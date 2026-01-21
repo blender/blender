@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -18,9 +14,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
-namespace nodes::node_composite_color_spill_cc {
+namespace blender::nodes::node_composite_color_spill_cc {
 
 enum class RGBChannel : uint8_t {
   R = 0,
@@ -49,7 +43,7 @@ static const EnumPropertyItem limit_method_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.use_custom_socket_order();
@@ -100,7 +94,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
       .description("Specifies the spilling strength of each color channel");
 }
 
-static void node_composit_init_color_spill(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but allocated for forward compatibility. */
   node->storage = MEM_new_for_free<NodeColorspill>(__func__);
@@ -194,12 +188,8 @@ static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(function);
 }
 
-}  // namespace nodes::node_composite_color_spill_cc
-
-static void register_node_type_cmp_color_spill()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_color_spill_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeColorSpill", CMP_NODE_COLOR_SPILL);
@@ -209,16 +199,16 @@ static void register_node_type_cmp_color_spill()
       "others";
   ntype.enum_name_legacy = "COLOR_SPILL";
   ntype.nclass = NODE_CLASS_MATTE;
-  ntype.declare = file_ns::cmp_node_color_spill_declare;
-  ntype.initfunc = file_ns::node_composit_init_color_spill;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
-  ntype.gpu_fn = file_ns::node_gpu_material;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
+  ntype.build_multi_function = node_build_multi_function;
   bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_color_spill)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_color_spill_cc

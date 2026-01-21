@@ -11,9 +11,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
-namespace nodes::node_composite_image_info_cc {
+namespace blender::nodes::node_composite_image_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -125,23 +123,19 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ImageInfoOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_image_info_cc
-
-static void register_node_type_cmp_image_info()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_image_info_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeImageInfo", CMP_NODE_IMAGE_INFO);
   ntype.ui_name = "Image Info";
   ntype.ui_description = "Returns information about an image";
   ntype.nclass = NODE_CLASS_INPUT;
-  ntype.declare = file_ns::node_declare;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.declare = node_declare;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_image_info)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_image_info_cc

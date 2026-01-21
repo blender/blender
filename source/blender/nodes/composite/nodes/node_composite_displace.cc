@@ -24,11 +24,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_displace_cc {
 
-namespace nodes::node_composite_displace_cc {
-
-static void cmp_node_displace_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -62,7 +60,7 @@ static void cmp_node_displace_declare(NodeDeclarationBuilder &b)
       .optional_label();
 }
 
-static void cmp_node_init_displace(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
   NodeDisplaceData *data = MEM_new_for_free<NodeDisplaceData>(__func__);
@@ -326,12 +324,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new DisplaceOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_displace_cc
-
-static void register_node_type_cmp_displace()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_displace_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDisplace", CMP_NODE_DISPLACE);
@@ -339,14 +333,14 @@ static void register_node_type_cmp_displace()
   ntype.ui_description = "Displace pixel position using an offset vector";
   ntype.enum_name_legacy = "DISPLACE";
   ntype.nclass = NODE_CLASS_DISTORT;
-  ntype.declare = file_ns::cmp_node_displace_declare;
-  ntype.initfunc = file_ns::cmp_node_init_displace;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeDisplaceData", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_displace)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_displace_cc

@@ -150,7 +150,7 @@ static void node_rna(StructRNA *srna)
       true);
 }
 
-static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_draw_buttons(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   layout.prop(ptr, "reference_dimension", UI_ITEM_NONE, "", ICON_NONE);
@@ -413,7 +413,7 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new RelativeToPixelOperation(context, node);
 }
 
-static void register_node()
+static void node_register()
 {
   static bke::bNodeType ntype;
 
@@ -425,13 +425,13 @@ static void register_node()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.updatefunc = node_update;
-  ntype.draw_buttons = node_layout;
+  ntype.draw_buttons = node_draw_buttons;
   ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }
-NOD_REGISTER_NODE(register_node)
+NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_composite_relative_to_pixel_cc

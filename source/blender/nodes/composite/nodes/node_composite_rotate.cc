@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
 
@@ -20,11 +16,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_rotate_cc {
 
-namespace nodes::node_composite_rotate_cc {
-
-static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -57,7 +51,7 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
       .description("The extension mode applied to the Y axis");
 }
 
-static void node_composit_init_rotate(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
   NodeRotateData *data = MEM_new_for_free<NodeRotateData>(__func__);
@@ -139,12 +133,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new RotateOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_rotate_cc
-
-static void register_node_type_cmp_rotate()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_rotate_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeRotate", CMP_NODE_ROTATE);
@@ -152,14 +142,14 @@ static void register_node_type_cmp_rotate()
   ntype.ui_description = "Rotate image by specified angle";
   ntype.enum_name_legacy = "ROTATE";
   ntype.nclass = NODE_CLASS_DISTORT;
-  ntype.declare = file_ns::cmp_node_rotate_declare;
-  ntype.initfunc = file_ns::node_composit_init_rotate;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_type_storage(
       ntype, "NodeRotateData", node_free_standard_storage, node_copy_standard_storage);
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_rotate)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_rotate_cc

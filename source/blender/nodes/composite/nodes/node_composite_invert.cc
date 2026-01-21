@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -13,21 +9,15 @@
 
 #include "NOD_multi_function.hh"
 
-#include "UI_resources.hh"
-
 #include "GPU_material.hh"
 
 #include "COM_result.hh"
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_invert_cc {
 
-/* **************** INVERT ******************** */
-
-namespace nodes::node_composite_invert_cc {
-
-static void cmp_node_invert_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -82,12 +72,8 @@ static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(function);
 }
 
-}  // namespace nodes::node_composite_invert_cc
-
-static void register_node_type_cmp_invert()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_invert_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeInvert", CMP_NODE_INVERT);
@@ -95,12 +81,12 @@ static void register_node_type_cmp_invert()
   ntype.ui_description = "Invert colors, producing a negative";
   ntype.enum_name_legacy = "INVERT";
   ntype.nclass = NODE_CLASS_OP_COLOR;
-  ntype.declare = file_ns::cmp_node_invert_declare;
-  ntype.gpu_fn = file_ns::node_gpu_material;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.declare = node_declare;
+  ntype.gpu_fn = node_gpu_material;
+  ntype.build_multi_function = node_build_multi_function;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_invert)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_invert_cc

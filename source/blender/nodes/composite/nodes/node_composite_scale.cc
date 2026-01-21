@@ -2,18 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
-#include "BLI_listbase.h"
-#include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
 
 #include "DNA_node_types.h"
 
@@ -28,9 +21,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
-namespace nodes::node_composite_scale_cc {
+namespace blender::nodes::node_composite_scale_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_SCALE_RELATIVE, "RELATIVE", 0, N_("Relative"), ""},
@@ -48,7 +39,7 @@ static const EnumPropertyItem frame_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -98,7 +89,7 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
       .description("The extension mode applied to the Y axis");
 }
 
-static void node_composit_init_scale(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
   NodeScaleData *data = MEM_new_for_free<NodeScaleData>(__func__);
@@ -392,12 +383,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ScaleOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_scale_cc
-
-static void register_node_type_cmp_scale()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_scale_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeScale", CMP_NODE_SCALE);
@@ -405,14 +392,14 @@ static void register_node_type_cmp_scale()
   ntype.ui_description = "Change the size of the image";
   ntype.enum_name_legacy = "SCALE";
   ntype.nclass = NODE_CLASS_DISTORT;
-  ntype.declare = file_ns::cmp_node_scale_declare;
-  ntype.initfunc = file_ns::node_composit_init_scale;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeScaleData", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_scale)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_scale_cc

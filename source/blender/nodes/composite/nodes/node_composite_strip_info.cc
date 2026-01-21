@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BKE_context.hh"
 
 #include "BLI_math_vector_types.hh"
@@ -21,11 +17,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_strip_info_cc {
 
-namespace nodes::node_composite_strip_info_cc {
-
-static void cmp_node_strip_info_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>("Start Frame");
   b.add_output<decl::Int>("End Frame");
@@ -127,24 +121,20 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new StripInfoOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_strip_info_cc
-
-static void register_node_type_cmp_strip_info()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_strip_info_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSequencerStripInfo");
   ntype.ui_name = "Sequencer Strip Info";
   ntype.ui_description = "Returns information about the active strip of the modifier";
   ntype.nclass = NODE_CLASS_INPUT;
-  ntype.declare = file_ns::cmp_node_strip_info_declare;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.get_extra_info = file_ns::node_extra_info;
+  ntype.declare = node_declare;
+  ntype.get_compositor_operation = get_compositor_operation;
+  ntype.get_extra_info = node_extra_info;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_strip_info)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_strip_info_cc

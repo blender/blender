@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include <cstring>
 #include <string>
 
@@ -35,10 +31,8 @@
 #include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
-#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -58,10 +52,6 @@
 #include <optional>
 
 namespace blender {
-
-/* -------------------------------------------------------------------- */
-/** \name Cryptomatte
- * \{ */
 
 static bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_node_render(
     const bNode &node, const bool build_meta_data)
@@ -232,6 +222,32 @@ CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node)
 }
 
 namespace nodes::node_composite_base_cryptomatte_cc {
+
+static void node_free_cryptomatte(bNode *node)
+{
+  BLI_assert(ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
+  NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
+
+  if (nc) {
+    MEM_SAFE_FREE(nc->matte_id);
+    BLI_freelistN(&nc->runtime.layers);
+    BLI_freelistN(&nc->entries);
+    MEM_freeN(nc);
+  }
+}
+
+static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
+                                  bNode *dest_node,
+                                  const bNode *src_node)
+{
+  NodeCryptomatte *src_nc = static_cast<NodeCryptomatte *>(src_node->storage);
+  NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupallocN(src_nc));
+
+  BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
+  BLI_listbase_clear(&dest_nc->runtime.layers);
+  dest_nc->matte_id = static_cast<char *>(MEM_dupallocN(src_nc->matte_id));
+  dest_node->storage = dest_nc;
+}
 
 NODE_STORAGE_FUNCS(NodeCryptomatte)
 
@@ -586,7 +602,7 @@ namespace nodes::node_composite_cryptomatte_cc {
 
 NODE_STORAGE_FUNCS(NodeCryptomatte)
 
-static void cmp_node_cryptomatte_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.0f, 0.0f, 0.0f, 1.0f})
@@ -597,13 +613,13 @@ static void cmp_node_cryptomatte_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Pick").structure_type(StructureType::Dynamic);
 }
 
-static void node_init_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeCryptomatte *user = MEM_new_for_free<NodeCryptomatte>(__func__);
   node->storage = user;
 }
 
-static void node_init_api_cryptomatte(const bContext *C, PointerRNA *ptr)
+static void node_init_api(const bContext *C, PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
   bNode *node = static_cast<bNode *>(ptr->data);
@@ -612,33 +628,7 @@ static void node_init_api_cryptomatte(const bContext *C, PointerRNA *ptr)
   id_us_plus(node->id);
 }
 
-static void node_free_cryptomatte(bNode *node)
-{
-  BLI_assert(ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
-  NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
-
-  if (nc) {
-    MEM_SAFE_FREE(nc->matte_id);
-    BLI_freelistN(&nc->runtime.layers);
-    BLI_freelistN(&nc->entries);
-    MEM_freeN(nc);
-  }
-}
-
-static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
-                                  bNode *dest_node,
-                                  const bNode *src_node)
-{
-  NodeCryptomatte *src_nc = static_cast<NodeCryptomatte *>(src_node->storage);
-  NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupallocN(src_nc));
-
-  BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
-  BLI_listbase_clear(&dest_nc->runtime.layers);
-  dest_nc->matte_id = static_cast<char *>(MEM_dupallocN(src_nc->matte_id));
-  dest_node->storage = dest_nc;
-}
-
-static void node_update_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
+static void node_update(bNodeTree * /*ntree*/, bNode *node)
 {
   ntreeCompositCryptomatteUpdateLayerNames(node);
 }
@@ -933,12 +923,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new CryptoMatteOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_cryptomatte_cc
-
-static void register_node_type_cmp_cryptomatte()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_cryptomatte_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeCryptomatteV2", CMP_NODE_CRYPTOMATTE);
@@ -947,25 +933,20 @@ static void register_node_type_cmp_cryptomatte()
       "Generate matte for individual objects and materials using Cryptomatte render passes";
   ntype.enum_name_legacy = "CRYPTOMATTE_V2";
   ntype.nclass = NODE_CLASS_MATTE;
-  ntype.declare = file_ns::cmp_node_cryptomatte_declare;
+  ntype.declare = node_declare;
   bke::node_type_size(ntype, 240, 100, 700);
-  ntype.initfunc = file_ns::node_init_cryptomatte;
-  ntype.initfunc_api = file_ns::node_init_api_cryptomatte;
-  ntype.get_extra_info = file_ns::node_extra_info;
-  ntype.updatefunc = file_ns::node_update_cryptomatte;
-  bke::node_type_storage(
-      ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.initfunc = node_init;
+  ntype.initfunc_api = node_init_api;
+  ntype.get_extra_info = node_extra_info;
+  ntype.updatefunc = node_update;
+  bke::node_type_storage(ntype, "NodeCryptomatte", node_free_cryptomatte, node_copy_cryptomatte);
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_cryptomatte)
+NOD_REGISTER_NODE(node_register)
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Cryptomatte Legacy
- * \{ */
+}  // namespace nodes::node_composite_cryptomatte_cc
 
 void ntreeCompositCryptomatteAddSocket(bNode *node)
 {
@@ -1010,7 +991,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
 }
 
-static void node_init_cryptomatte_legacy(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeCryptomatte *storage = MEM_new_for_free<NodeCryptomatte>(__func__);
   node->storage = storage;
@@ -1063,13 +1044,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new LegacyCryptoMatteOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_legacy_cryptomatte_cc
-
-static void register_node_type_cmp_cryptomatte_legacy()
+static void node_register()
 {
-  namespace legacy_file_ns = nodes::node_composite_legacy_cryptomatte_cc;
-  namespace file_ns = nodes::node_composite_cryptomatte_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeCryptomatte", CMP_NODE_CRYPTOMATTE_LEGACY);
@@ -1077,17 +1053,16 @@ static void register_node_type_cmp_cryptomatte_legacy()
   ntype.ui_description = "Deprecated. Use Cryptomatte Node instead";
   ntype.enum_name_legacy = "CRYPTOMATTE";
   ntype.nclass = NODE_CLASS_MATTE;
-  ntype.declare = legacy_file_ns::node_declare;
-  ntype.initfunc = legacy_file_ns::node_init_cryptomatte_legacy;
-  bke::node_type_storage(
-      ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  bke::node_type_storage(ntype, "NodeCryptomatte", node_free_cryptomatte, node_copy_cryptomatte);
   ntype.gather_link_search_ops = nullptr;
-  ntype.get_compositor_operation = legacy_file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_cryptomatte_legacy)
+NOD_REGISTER_NODE(node_register)
 
-/** \} */
+}  // namespace nodes::node_composite_legacy_cryptomatte_cc
 
 }  // namespace blender

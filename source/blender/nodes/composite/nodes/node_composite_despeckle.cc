@@ -2,16 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "UI_resources.hh"
 
 #include "GPU_shader.hh"
 
@@ -20,13 +14,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_despeckle_cc {
 
-/* **************** FILTER  ******************** */
-
-namespace nodes::node_composite_despeckle_cc {
-
-static void cmp_node_despeckle_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -202,12 +192,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new DespeckleOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_despeckle_cc
-
-static void register_node_type_cmp_despeckle()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_despeckle_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeDespeckle", CMP_NODE_DESPECKLE);
@@ -217,12 +203,12 @@ static void register_node_type_cmp_despeckle()
       "untouched";
   ntype.enum_name_legacy = "DESPECKLE";
   ntype.nclass = NODE_CLASS_OP_FILTER;
-  ntype.declare = file_ns::cmp_node_despeckle_declare;
+  ntype.declare = node_declare;
   ntype.flag |= NODE_PREVIEW;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_despeckle)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_despeckle_cc

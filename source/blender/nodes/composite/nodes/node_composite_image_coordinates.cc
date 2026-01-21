@@ -89,7 +89,7 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ImageCoordinatesOperation(context, node);
 }
 
-static void register_node()
+static void node_register()
 {
   static bke::bNodeType ntype;
 
@@ -102,6 +102,6 @@ static void register_node()
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node)
+NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_composite_image_coordinates_cc

@@ -2,16 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_base.hh"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "UI_resources.hh"
 
 #include "COM_algorithm_jump_flooding.hh"
 #include "COM_algorithm_symmetric_separable_blur_variable_size.hh"
@@ -20,13 +14,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_inpaint_cc {
 
-/* **************** Inpaint/ ******************** */
-
-namespace nodes::node_composite_inpaint_cc {
-
-static void cmp_node_inpaint_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -356,12 +346,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new InpaintOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_inpaint_cc
-
-static void register_node_type_cmp_inpaint()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_inpaint_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeInpaint", CMP_NODE_INPAINT);
@@ -369,11 +355,11 @@ static void register_node_type_cmp_inpaint()
   ntype.ui_description = "Extend borders of an image into transparent or masked regions";
   ntype.enum_name_legacy = "INPAINT";
   ntype.nclass = NODE_CLASS_OP_FILTER;
-  ntype.declare = file_ns::cmp_node_inpaint_declare;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.declare = node_declare;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_inpaint)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_inpaint_cc

@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include <cstring>
 
 #include "BLI_assert.h"
@@ -57,11 +53,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
-namespace path_templates = bke::path_templates;
-
-namespace nodes::node_composite_file_output_cc {
+namespace blender::nodes::node_composite_file_output_cc {
 
 NODE_STORAGE_FUNCS(NodeCompositorFileOutput)
 
@@ -155,7 +147,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
       params.ntree, params.node, params.node, params.link);
 }
 
-static void node_operators()
+static void node_register_operators()
 {
   socket_items::ops::make_common_operators<FileOutputItemsAccessor>();
 }
@@ -164,23 +156,23 @@ static void node_operators()
  * suffix, if not empty, will be added to the file name. If the given view is not empty, its file
  * suffix will be appended to the name. The frame number, scene, and node are provides for variable
  * substitution in the path. If there are any errors processing the path, they will be returned. */
-static Vector<path_templates::Error> compute_image_path(const StringRefNull directory,
-                                                        const StringRefNull file_name,
-                                                        const StringRefNull file_name_suffix,
-                                                        const char *view,
-                                                        const int frame_number,
-                                                        const ImageFormatData &format,
-                                                        const Scene &scene,
-                                                        const bNode &node,
-                                                        const bool is_animation_render,
-                                                        char *r_image_path)
+static Vector<bke::path_templates::Error> compute_image_path(const StringRefNull directory,
+                                                             const StringRefNull file_name,
+                                                             const StringRefNull file_name_suffix,
+                                                             const char *view,
+                                                             const int frame_number,
+                                                             const ImageFormatData &format,
+                                                             const Scene &scene,
+                                                             const bNode &node,
+                                                             const bool is_animation_render,
+                                                             char *r_image_path)
 {
   char base_path[FILE_MAX] = "";
   STRNCPY(base_path, directory.c_str());
   const std::string full_file_name = file_name + file_name_suffix;
   BLI_path_append(base_path, FILE_MAX, full_file_name.c_str());
 
-  path_templates::VariableMap template_variables;
+  bke::path_templates::VariableMap template_variables;
   BKE_add_template_variables_general(template_variables, &node.owner_tree().id);
   BKE_add_template_variables_for_render_path(template_variables, scene);
   BKE_add_template_variables_for_node(template_variables, node);
@@ -202,7 +194,7 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
                                       BKE_scene_multiview_view_suffix_get(&scene.r, view));
 }
 
-static void node_layout(ui::Layout &layout, bContext * /*context*/, PointerRNA *node_pointer)
+static void node_draw_buttons(ui::Layout &layout, bContext * /*context*/, PointerRNA *node_pointer)
 {
   layout.prop(node_pointer, "directory", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   layout.prop(node_pointer, "file_name", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
@@ -251,22 +243,22 @@ static void output_path_layout(ui::Layout &layout,
 {
 
   char image_path[FILE_MAX];
-  const Vector<path_templates::Error> path_errors = compute_image_path(directory,
-                                                                       file_name,
-                                                                       file_name_suffix,
-                                                                       view,
-                                                                       scene.r.cfra,
-                                                                       format,
-                                                                       scene,
-                                                                       node,
-                                                                       false,
-                                                                       image_path);
+  const Vector<bke::path_templates::Error> path_errors = compute_image_path(directory,
+                                                                            file_name,
+                                                                            file_name_suffix,
+                                                                            view,
+                                                                            scene.r.cfra,
+                                                                            format,
+                                                                            scene,
+                                                                            node,
+                                                                            false,
+                                                                            image_path);
 
   if (path_errors.is_empty()) {
     layout.label(image_path, ICON_FILE_IMAGE);
   }
   else {
-    for (const path_templates::Error &error : path_errors) {
+    for (const bke::path_templates::Error &error : path_errors) {
       layout.label(BKE_path_template_error_to_string(error, image_path).c_str(), ICON_ERROR);
     }
   }
@@ -330,9 +322,11 @@ static void item_layout(ui::Layout &layout,
   }
 }
 
-static void node_layout_ex(ui::Layout &layout, bContext *context, PointerRNA *node_pointer)
+static void node_draw_buttons_extended(ui::Layout &layout,
+                                       bContext *context,
+                                       PointerRNA *node_pointer)
 {
-  node_layout(layout, context, node_pointer);
+  node_draw_buttons(layout, context, node_pointer);
 
   PointerRNA format_pointer = RNA_pointer_get(node_pointer, "format");
   const bool is_multi_layer = RNA_enum_get(&format_pointer, "file_format") ==
@@ -480,7 +474,7 @@ class FileOutputOperation : public NodeOperation {
       }
 
       char image_path[FILE_MAX];
-      Vector<path_templates::Error> path_errors = this->get_image_path(
+      Vector<bke::path_templates::Error> path_errors = this->get_image_path(
           format, item.name, "", image_path);
       if (!path_errors.is_empty()) {
         continue;
@@ -511,7 +505,7 @@ class FileOutputOperation : public NodeOperation {
     const char *path_view = has_views ? "" : this->context().get_view_name().data();
 
     char image_path[FILE_MAX];
-    Vector<path_templates::Error> path_errors = this->get_image_path(
+    Vector<bke::path_templates::Error> path_errors = this->get_image_path(
         format, layer_name, path_view, image_path);
     if (!path_errors.is_empty()) {
       return;
@@ -550,7 +544,7 @@ class FileOutputOperation : public NodeOperation {
      * sure the file name does not contain a view suffix. */
     char image_path[FILE_MAX];
     const char *write_view = store_views_in_single_file ? "" : view;
-    Vector<path_templates::Error> path_errors = this->get_image_path(
+    Vector<bke::path_templates::Error> path_errors = this->get_image_path(
         format, "", write_view, image_path);
     if (!path_errors.is_empty()) {
       return;
@@ -785,12 +779,12 @@ class FileOutputOperation : public NodeOperation {
     }
   }
 
-  Vector<path_templates::Error> get_image_path(const ImageFormatData &format,
-                                               const char *file_name_suffix,
-                                               const char *view,
-                                               char *r_image_path)
+  Vector<bke::path_templates::Error> get_image_path(const ImageFormatData &format,
+                                                    const char *file_name_suffix,
+                                                    const char *view,
+                                                    char *r_image_path)
   {
-    const Vector<path_templates::Error> path_errors = compute_image_path(
+    const Vector<bke::path_templates::Error> path_errors = compute_image_path(
         this->get_directory(),
         this->get_file_name(),
         file_name_suffix,
@@ -878,10 +872,10 @@ static void node_register()
   ntype.enum_name_legacy = "OUTPUT_FILE";
   ntype.nclass = NODE_CLASS_OUTPUT;
   ntype.declare = node_declare;
-  ntype.draw_buttons = node_layout;
-  ntype.draw_buttons_ex = node_layout_ex;
+  ntype.draw_buttons = node_draw_buttons;
+  ntype.draw_buttons_ex = node_draw_buttons_extended;
   ntype.insert_link = node_insert_link;
-  ntype.register_operators = node_operators;
+  ntype.register_operators = node_register_operators;
   ntype.initfunc_api = node_init;
   bke::node_type_storage(ntype, "NodeCompositorFileOutput", node_free_storage, node_copy_storage);
   ntype.blend_write_storage_content = node_blend_write;
@@ -894,9 +888,9 @@ static void node_register()
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace nodes::node_composite_file_output_cc
+}  // namespace blender::nodes::node_composite_file_output_cc
 
-namespace nodes {
+namespace blender::nodes {
 
 StructRNA **FileOutputItemsAccessor::item_srna = &RNA_NodeCompositorFileOutputItem;
 
@@ -920,5 +914,4 @@ std::string FileOutputItemsAccessor::validate_name(const StringRef name)
   return file_name;
 }
 
-}  // namespace nodes
-}  // namespace blender
+}  // namespace blender::nodes

@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector.hh"
@@ -27,11 +23,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_map_uv_cc {
 
-namespace nodes::node_composite_map_uv_cc {
-
-static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -70,7 +64,7 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
       .description("The extension mode applied to the Y axis");
 }
 
-static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeMapUVData *data = MEM_new_for_free<NodeMapUVData>(__func__);
   node->storage = data;
@@ -363,12 +357,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new MapUVOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_map_uv_cc
-
-static void register_node_type_cmp_mapuv()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_map_uv_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeMapUV", CMP_NODE_MAP_UV);
@@ -377,14 +367,14 @@ static void register_node_type_cmp_mapuv()
       "Map a texture using UV coordinates, to apply a texture to objects in compositing";
   ntype.enum_name_legacy = "MAP_UV";
   ntype.nclass = NODE_CLASS_DISTORT;
-  ntype.declare = file_ns::cmp_node_map_uv_declare;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.initfunc = file_ns::node_composit_init_map_uv;
+  ntype.declare = node_declare;
+  ntype.get_compositor_operation = get_compositor_operation;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeMapUVData", node_free_standard_storage, node_copy_standard_storage);
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_mapuv)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_map_uv_cc

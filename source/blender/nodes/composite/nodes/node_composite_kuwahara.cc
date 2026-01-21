@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include <limits>
 
 #include "BLI_math_base.hh"
@@ -24,9 +20,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
-namespace nodes::node_composite_kuwahara_cc {
+namespace blender::nodes::node_composite_kuwahara_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_KUWAHARA_CLASSIC,
@@ -42,7 +36,7 @@ static const EnumPropertyItem type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -94,7 +88,7 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
           "Uses a more precise but slower method. Use if the output contains undesirable noise.");
 }
 
-static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
   NodeKuwaharaData *data = MEM_new_for_free<NodeKuwaharaData>(__func__);
@@ -835,12 +829,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ConvertKuwaharaOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_kuwahara_cc
-
-static void register_node_type_cmp_kuwahara()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_kuwahara_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeKuwahara", CMP_NODE_KUWAHARA);
@@ -849,15 +839,15 @@ static void register_node_type_cmp_kuwahara()
       "Apply smoothing filter that preserves edges, for stylized and painterly effects";
   ntype.enum_name_legacy = "KUWAHARA";
   ntype.nclass = NODE_CLASS_OP_FILTER;
-  ntype.declare = file_ns::cmp_node_kuwahara_declare;
-  ntype.initfunc = file_ns::node_composit_init_kuwahara;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeKuwaharaData", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_type_size(ntype, 150, 140, NODE_DEFAULT_MAX_WIDTH);
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_kuwahara)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_kuwahara_cc

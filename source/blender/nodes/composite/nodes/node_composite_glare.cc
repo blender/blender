@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include <array>
 #include <cmath>
 #include <complex>
@@ -19,7 +15,6 @@
 #endif
 
 #include "BLI_array.hh"
-#include "BLI_assert.h"
 #include "BLI_fftw.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_angle_types.hh"
@@ -47,11 +42,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
 #define MAX_GLARE_ITERATIONS 5
 
-namespace nodes::node_composite_glare_cc {
+namespace blender::nodes::node_composite_glare_cc {
 
 static const EnumPropertyItem type_items[] = {
     {CMP_NODE_GLARE_BLOOM, "BLOOM", 0, N_("Bloom"), ""},
@@ -91,7 +84,7 @@ static const EnumPropertyItem kernel_data_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -249,7 +242,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms);
 }
 
-static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but kept for forward compatibility. */
   NodeGlare *ndg = MEM_new_for_free<NodeGlare>(__func__);
@@ -2801,12 +2794,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new GlareOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_glare_cc
-
-static void register_node_type_cmp_glare()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_glare_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeGlare", CMP_NODE_GLARE);
@@ -2814,15 +2803,15 @@ static void register_node_type_cmp_glare()
   ntype.ui_description = "Add lens flares, fog and glows around bright parts of the image";
   ntype.enum_name_legacy = "GLARE";
   ntype.nclass = NODE_CLASS_OP_FILTER;
-  ntype.declare = file_ns::cmp_node_glare_declare;
-  ntype.initfunc = file_ns::node_composit_init_glare;
-  ntype.gather_link_search_ops = file_ns::gather_link_searches;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.gather_link_search_ops = gather_link_searches;
   bke::node_type_storage(
       ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_glare)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_glare_cc
