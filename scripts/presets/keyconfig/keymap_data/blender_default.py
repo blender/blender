@@ -5202,8 +5202,9 @@ def km_paint_vertex_mask(params):
         ("paint.vert_select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
     ])
 
-    # TODO: use `_template_view3d_paint_mask_select_loop` if loop-select is supported.
-    # See: `km_paint_face_mask`.
+    # For left mouse the tool key-maps are used because this interferes with Alt-LMB for regular selection.
+    if params.select_mouse == 'RIGHTMOUSE':
+        items.extend(_template_view3d_paint_mask_select_loop(params))
 
     return keymap
 
