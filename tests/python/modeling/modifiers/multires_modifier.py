@@ -22,10 +22,22 @@ from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest, OperatorSpecO
 
 def main():
     tests = [
-        SpecMeshTest("CubeMultires", "testCubeMultires", "expectedCubeMultires",
+        SpecMeshTest("CatmullClarkSubdivide", "testCubeMultires", "expectedCubeMultires",
                      [
                          ModifierSpec('multires', 'MULTIRES', {}),
                          OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires'}),
+                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                     ], apply_modifier=False),
+        SpecMeshTest("SimpleSubdivide", "testSuzanneSimple", "expectedSuzanneSimple",
+                     [
+                         ModifierSpec('multires', 'MULTIRES', {}),
+                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires', 'mode': 'SIMPLE'}),
+                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                     ], apply_modifier=False),
+        SpecMeshTest("LinearSubdivide", "testSuzanneLinear", "expectedSuzanneLinear",
+                     [
+                         ModifierSpec('multires', 'MULTIRES', {}),
+                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires', 'mode': 'LINEAR'}),
                          OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
                      ], apply_modifier=False),
     ]
