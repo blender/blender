@@ -61,8 +61,11 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
         const int current_frame = scene->r.cfra;
         std::optional<int> start_frame = target_layer.start_frame_at(current_frame);
         if (start_frame.has_value() && (start_frame.value() != current_frame)) {
-          grease_pencil.insert_duplicate_frame(
-              target_layer, *target_layer.start_frame_at(current_frame), current_frame, false);
+          if (grease_pencil.insert_duplicate_frame(
+                  target_layer, *target_layer.start_frame_at(current_frame), current_frame, false))
+          {
+            t->flag |= T_DUPLICATED_KEYFRAMES;
+          }
         }
       }
       curves_transform_data->drawings = ed::greasepencil::retrieve_editable_drawings_with_falloff(
@@ -280,13 +283,38 @@ static void recalcData_grease_pencil(TransInfo *t)
   }
 }
 
+static void special_aftertrans_update__grease_pencil(bContext *C, TransInfo *t)
+{
+  Scene *scene = CTX_data_scene(C);
+  MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
+
+  /* If the transform operation was cancelled and new keyframes got created, remove them. */
+  if ((t->state != TRANS_CANCEL) || ((t->flag & T_DUPLICATED_KEYFRAMES) == 0)) {
+    return;
+  }
+
+  for (TransDataContainer &tc : trans_data_contrainers) {
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(tc.obedit->data);
+
+    Vector<ed::greasepencil::MutableDrawingInfo> drawings =
+        ed::greasepencil::retrieve_editable_drawings_with_falloff(*scene, grease_pencil);
+
+    if (animrig::is_autokey_on(scene)) {
+      for (ed::greasepencil::MutableDrawingInfo &info : drawings) {
+        bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
+        grease_pencil.remove_frames(layer, {scene->r.cfra});
+      }
+    }
+  }
+}
+
 /** \} */
 
 TransConvertTypeInfo TransConvertType_GreasePencil = {
     /*flags*/ (T_EDIT | T_POINTS),
     /*create_trans_data*/ createTransGreasePencilVerts,
     /*recalc_data*/ recalcData_grease_pencil,
-    /*special_aftertrans_update*/ nullptr,
+    /*special_aftertrans_update*/ special_aftertrans_update__grease_pencil,
 };
 
 }  // namespace blender::ed::transform::greasepencil
