@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6577,6 +6577,14 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6585,12 +6593,12 @@ msgid "Metaball"
 msgstr "Meta test"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
 msgid "Import"
 msgstr "Importálás"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -6603,10 +6611,6 @@ msgstr "Helyi nézet"
 
 msgid "Navigation"
 msgstr "Navigáció"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -6639,10 +6643,6 @@ msgstr "Kulcsozás"
 
 msgid "Tracking"
 msgstr "Követés"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"

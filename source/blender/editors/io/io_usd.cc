@@ -42,8 +42,6 @@
 #  include "io_utils.hh"
 #  include "usd.hh"
 
-#  include <pxr/pxr.h>
-
 #  include <string>
 #  include <utility>
 

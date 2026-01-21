@@ -133,12 +133,12 @@ static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_ad
 {
   WorkSpace *workspace = id_cast<WorkSpace *>(id);
 
-  BLO_write_id_struct(writer, WorkSpace, id_address, &workspace->id);
+  writer->write_id_struct(id_address, workspace);
   BKE_id_blend_write(writer, &workspace->id);
-  BLO_write_struct_list(writer, WorkSpaceLayout, &workspace->layouts);
-  BLO_write_struct_list(writer, WorkSpaceDataRelation, &workspace->hook_layout_relations);
-  BLO_write_struct_list(writer, wmOwnerID, &workspace->owner_ids);
-  BLO_write_struct_list(writer, bToolRef, &workspace->tools);
+  writer->write_struct_list(&workspace->layouts);
+  writer->write_struct_list(&workspace->hook_layout_relations);
+  writer->write_struct_list(&workspace->owner_ids);
+  writer->write_struct_list(&workspace->tools);
   for (bToolRef &tref : workspace->tools) {
     if (tref.properties) {
       IDP_BlendWrite(writer, tref.properties);

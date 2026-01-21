@@ -2693,7 +2693,11 @@ static PyMethodDef IDProp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     IDProp_module_doc,
-    "This module provides access id property types (currently mainly for docs).");
+    "This module provides access to ID property types, used for\n"
+    "custom properties on data-blocks, accessed via ``[\"key\"]`` syntax.\n"
+    "\n"
+    "- See :ref:`info_quickstart-custom_properties` for example usage.\n"
+    "- See :ref:`bpy_types-custom_properties` for types that support custom properties.\n");
 static PyModuleDef IDProp_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "idprop",

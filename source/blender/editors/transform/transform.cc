@@ -1876,7 +1876,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         int orient_axis = constraintModeToIndex(t);
         if (orient_axis != -1) {
           RNA_property_enum_set(op->ptr, prop, orient_axis);
-          t->con.mode &= ~CON_APPLY;
         }
       }
       else {

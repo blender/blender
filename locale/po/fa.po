@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -3090,12 +3090,12 @@ msgid "Import"
 msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
 
 
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Add Image"
@@ -3106,16 +3106,16 @@ msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
+msgid "Layout"
+msgstr "ﺡﺮﻃ"
+
+
 msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
 
 
 msgid "Convert"
 msgstr "ﻞﯾﺪﺒﺗ"
-
-
-msgid "Layout"
-msgstr "ﺡﺮﻃ"
 
 
 msgid "Tracking"
@@ -3499,6 +3499,10 @@ msgid "Points to Curves"
 msgstr "ﺎﻫ‌ﯽﻨﺤﻨﻣ ﻪﺑ ﻁﺎﻘﻧ"
 
 
+msgid "Single"
+msgstr "ﯽﮑﺗ"
+
+
 msgid "Add Shader"
 msgstr "ﻥﺯ ﻪﯾﺎﺳ ﻥﺩﻭﺰﻓﺍ"
 
@@ -3565,10 +3569,6 @@ msgstr "ﻩﺮﮔ ﯽﺟﻭﺮﺧ"
 
 msgid "Value to Normal"
 msgstr "ﯼﺩﺎﻋ ﺖﻟﺎﺣ ﻪﺑ ﺭﺍﺪﻘﻣ"
-
-
-msgid "Single"
-msgstr "ﯽﮑﺗ"
 
 
 msgid "Linked"

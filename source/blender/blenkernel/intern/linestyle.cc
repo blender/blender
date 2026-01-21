@@ -468,7 +468,7 @@ static void linestyle_blend_write(BlendWriter *writer, ID *id, const void *id_ad
 {
   FreestyleLineStyle *linestyle = id_cast<FreestyleLineStyle *>(id);
 
-  BLO_write_id_struct(writer, FreestyleLineStyle, id_address, &linestyle->id);
+  writer->write_id_struct(id_address, linestyle);
   BKE_id_blend_write(writer, &linestyle->id);
 
   write_linestyle_color_modifiers(writer, &linestyle->color_modifiers);
@@ -482,8 +482,8 @@ static void linestyle_blend_write(BlendWriter *writer, ID *id, const void *id_ad
   }
   if (linestyle->nodetree) {
     BLO_Write_IDBuffer temp_embedded_id_buffer{linestyle->nodetree->id, writer};
-    BLO_write_struct_at_address(
-        writer, bNodeTree, linestyle->nodetree, temp_embedded_id_buffer.get());
+    writer->write_struct_at_address_cast<bNodeTree>(linestyle->nodetree,
+                                                    temp_embedded_id_buffer.get());
     bke::node_tree_blend_write(writer,
                                reinterpret_cast<bNodeTree *>(temp_embedded_id_buffer.get()));
   }

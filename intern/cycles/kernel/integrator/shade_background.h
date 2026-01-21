@@ -14,7 +14,10 @@
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
+#include "kernel/geom/object.h"
 #include "kernel/geom/shader_data.h"
+
+#include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -127,59 +130,66 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 {
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float ray_time = INTEGRATOR_STATE(state, ray, time);
-  LightSample ls ccl_optional_struct_init;
   for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
-    if (distant_light_sample_from_intersection(kg, ray_D, lamp, &ls)) {
-      /* Use visibility flag to skip lights. */
+    const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
+
+    if (klight->type != LIGHT_DISTANT || !(klight->shader_id & SHADER_USE_MIS)) {
+      continue;
+    }
+
+    LightEval light_eval = distant_light_eval_from_intersection(klight, ray_D);
+    if (light_eval.eval_fac == 0.0f) {
+      continue;
+    }
+
+    /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
-      const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-      if (!is_light_shader_visible_to_path(ls.shader, path_flag)) {
-        continue;
-      }
+    const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+    if (!is_light_shader_visible_to_path(klight->shader_id, path_flag)) {
+      continue;
+    }
 #endif
 
-      const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
 #ifdef __LIGHT_LINKING__
-      if (!light_link_light_match(kg, light_link_receiver_forward(kg, state), klight->object_id) &&
-          !(path_flag & PATH_RAY_CAMERA))
-      {
-        continue;
-      }
+    if (!light_link_light_match(kg, light_link_receiver_forward(kg, state), klight->object_id) &&
+        !(path_flag & PATH_RAY_CAMERA))
+    {
+      continue;
+    }
 #endif
 #ifdef __SHADOW_LINKING__
-      if (kernel_data_fetch(objects, klight->object_id).shadow_set_membership !=
-          LIGHT_LINK_MASK_ALL)
-      {
-        continue;
-      }
+    if (kernel_data_fetch(objects, klight->object_id).shadow_set_membership != LIGHT_LINK_MASK_ALL)
+    {
+      continue;
+    }
 #endif
 
 #ifdef __MNEE__
-      if (INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) {
-        /* This path should have been resolved with mnee, it will
-         * generate a firefly for small lights since it is improbable. */
-        if (klight->use_caustics) {
-          continue;
-        }
-      }
-#endif /* __MNEE__ */
-
-      /* Evaluate light shader. */
-      /* TODO: does aliasing like this break automatic SoA in CUDA? */
-      ShaderDataTinyStorage emission_sd_storage;
-      ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-      const Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
-      if (is_zero(light_eval)) {
+    if (INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) {
+      /* This path should have been resolved with mnee, it will
+       * generate a firefly for small lights since it is improbable. */
+      if (klight->use_caustics) {
         continue;
       }
-
-      /* MIS weighting. */
-      const float mis_weight = light_sample_mis_weight_forward_distant(kg, state, path_flag, &ls);
-
-      /* Write to render buffer. */
-      guiding_record_background(kg, state, light_eval, mis_weight);
-      film_write_surface_emission(kg, state, light_eval, mis_weight, render_buffer, ls.group);
     }
+#endif /* __MNEE__ */
+
+    /* Evaluate light shader. */
+    const Spectrum shader_eval = light_sample_shader_eval_forward(
+        kg, state, lamp, zero_float3(), ray_D, FLT_MAX, ray_time);
+    const float3 eval = shader_eval * light_eval.eval_fac;
+    if (is_zero(eval)) {
+      continue;
+    }
+
+    /* MIS weighting. */
+    const float mis_weight = light_sample_mis_weight_forward_distant(
+        kg, state, path_flag, lamp, light_eval.pdf);
+
+    /* Write to render buffer. */
+    guiding_record_background(kg, state, eval, mis_weight);
+    film_write_surface_emission(
+        kg, state, eval, mis_weight, render_buffer, object_lightgroup(kg, klight->object_id));
   }
 }
 

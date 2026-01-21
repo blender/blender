@@ -14,7 +14,8 @@ static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.0f, 0.0f, 0.0f, 1.0f})
-      .structure_type(StructureType::Dynamic);
+      .structure_type(StructureType::Dynamic)
+      .compositor_realization_mode(CompositorInputRealizationMode::None);
 }
 
 static void node_composit_init_viewer(bNodeTree * /*ntree*/, bNode *node)
@@ -33,20 +34,7 @@ class ViewerOperation : public NodeOperation {
 
   void execute() override
   {
-    const Result &image = this->get_input("Image");
-    this->context().write_viewer(image);
-  }
-
-  Domain compute_domain() override
-  {
-    /* Viewers nodes are treated as group outputs that should be the compositing domain. */
-    if (this->context().treat_viewer_as_group_output() &&
-        this->context().use_compositing_domain_for_input_output())
-    {
-      return this->context().get_compositing_domain();
-    }
-
-    return NodeOperation::compute_domain();
+    this->context().write_viewer(this->get_input("Image"));
   }
 };
 

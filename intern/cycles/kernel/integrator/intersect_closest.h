@@ -251,7 +251,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel(
   if (hit) {
     /* Hit a surface, continue with light or surface kernel. */
     if (isect->type & PRIMITIVE_LAMP) {
-      integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
+      integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD);
     }
     else {
       /* Hit a surface, continue with surface kernel unless terminated. */
@@ -311,7 +311,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel_after_volume(
   if (isect->prim != PRIM_NONE) {
     /* Hit a surface, continue with light or surface kernel. */
     if (isect->type & PRIMITIVE_LAMP) {
-      integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
+      integrator_path_next(state, current_kernel, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD);
       return;
     }
 

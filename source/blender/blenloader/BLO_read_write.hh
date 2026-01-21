@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "DNA_ID.h"
+#include "DNA_listBase.h"
 #include "DNA_sdna_type_ids.hh"
 
 #include "BLI_function_ref.hh"
@@ -68,6 +70,8 @@ struct BlendWriter {
   void write_struct_list_by_name(const char *struct_name, ListBase *list);
   void write_struct_list_by_id(int struct_id, const ListBase *list);
 
+  int struct_id_by_name(const char *struct_name) const;
+
   template<typename T> void write_struct(const T *data)
   {
     this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data);
@@ -76,6 +80,44 @@ struct BlendWriter {
   template<typename T> void write_struct_cast(const void *data)
   {
     this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data);
+  }
+
+  template<typename T> void write_struct_at_address(const void *address, const T *data)
+  {
+    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data);
+  }
+
+  template<typename T> void write_struct_at_address_cast(const void *address, const void *data)
+  {
+    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data);
+  }
+
+  template<typename T> void write_struct_array(const int64_t array_size, const T *data)
+  {
+    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data);
+  }
+
+  template<typename T> void write_struct_array_cast(const int64_t array_size, const void *data)
+  {
+    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data);
+  }
+
+  template<typename T>
+  void write_struct_array_at_address(const int64_t array_size, const void *address, const T *data)
+  {
+    this->write_struct_array_at_address_by_id(
+        dna::sdna_struct_id_get<T>(), array_size, address, data);
+  }
+
+  template<typename T> void write_struct_list(const ListBaseT<T> *list)
+  {
+    this->write_struct_list_by_id(dna::sdna_struct_id_get<T>(), list);
+  }
+
+  template<typename T> void write_id_struct(const void *id_address, const T *id)
+  {
+    this->write_struct_at_address_by_id_with_filecode(
+        GS(id_cast<const ID *>(id)->name), dna::sdna_struct_id_get<T>(), id_address, id);
   }
 };
 
@@ -112,7 +154,7 @@ struct BlendLibReader {
  * - Run-time Name: The name is provided as `const char *`.
  * - Compile-time Name: The name is provided at compile time. This is more efficient.
  * - Struct ID: Every DNA struct type has an integer ID that can be queried with
- *   #BLO_get_struct_id_by_name. Providing this ID can be a useful optimization when many
+ *   #BlendWriter::struct_id_by_name. Providing this ID can be a useful optimization when many
  *   structs of the same type are stored AND if those structs are not in a continuous array.
  *
  * Often only a single instance of a struct is written at once. However, sometimes it is necessary
@@ -129,52 +171,6 @@ struct BlendLibReader {
  * there are convenience functions that write and read arrays of simple types such as `int32`.
  * Those will correct endianness automatically.
  * \{ */
-
-/**
- * Mapping between names and ids.
- */
-int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name);
-
-/**
- * Write single struct at address.
- */
-#define BLO_write_struct_at_address(writer, struct_name, address, data_ptr) \
-  (writer)->write_struct_at_address_by_id( \
-      dna::sdna_struct_id_get<struct_name>(), address, data_ptr)
-
-/**
- * Write single struct at address and specify a file-code.
- */
-#define BLO_write_struct_at_address_with_filecode( \
-    writer, filecode, struct_name, address, data_ptr) \
-  (writer)->write_struct_at_address_by_id_with_filecode( \
-      filecode, dna::sdna_struct_id_get<struct_name>(), address, data_ptr)
-
-/**
- * Write struct array.
- */
-#define BLO_write_struct_array(writer, struct_name, array_size, data_ptr) \
-  (writer)->write_struct_array_by_id(dna::sdna_struct_id_get<struct_name>(), array_size, data_ptr)
-
-/**
- * Write struct array at address.
- */
-#define BLO_write_struct_array_at_address(writer, struct_name, array_size, address, data_ptr) \
-  (writer)->write_struct_array_at_address_by_id( \
-      dna::sdna_struct_id_get<struct_name>(), array_size, address, data_ptr)
-
-/**
- * Write struct list.
- */
-#define BLO_write_struct_list(writer, struct_name, list_ptr) \
-  (writer)->write_struct_list_by_id(dna::sdna_struct_id_get<struct_name>(), list_ptr)
-
-/**
- * Write id struct.
- */
-void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_address, const ID *id);
-#define BLO_write_id_struct(writer, struct_name, id_address, id) \
-  blo_write_id_struct(writer, dna::sdna_struct_id_get<struct_name>(), id_address, id)
 
 /**
  * Specific code to prepare IDs to be written.
@@ -283,7 +279,7 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * writer->write_struct(clmd->sim_parms);
  * BLO_read_struct(reader, ClothSimSettings, &clmd->sim_parms);
  *
- * BLO_write_struct_list(writer, TimeMarker, &action->markers);
+ * writer->write_struct_list(&action->markers);
  * BLO_read_struct_list(reader, TimeMarker, &action->markers);
  *
  * BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);

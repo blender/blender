@@ -750,8 +750,7 @@ wmKeyMap *node_resize_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-/* Compute the nearest 1D coordinate corresponding to the nearest grid in node editors. */
-static float nearest_node_grid_coord(float co)
+float nearest_node_grid_coord(float co)
 {
   /* Size and location of nodes are independent of UI scale, so grid size should be independent of
    * UI scale as well. */

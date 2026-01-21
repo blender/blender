@@ -130,7 +130,7 @@ static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_a
   CustomData_reset(&pointcloud->pdata_legacy);
 
   /* Write LibData */
-  BLO_write_id_struct(writer, PointCloud, id_address, &pointcloud->id);
+  writer->write_id_struct(id_address, pointcloud);
   BKE_id_blend_write(writer, &pointcloud->id);
 
   /* Direct data */

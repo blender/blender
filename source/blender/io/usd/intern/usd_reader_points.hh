@@ -4,6 +4,7 @@
 #pragma once
 
 #include "usd.hh"
+#include "usd_api_modifier.hh"
 #include "usd_reader_geom.hh"
 
 #include <pxr/usd/usdGeom/points.h>

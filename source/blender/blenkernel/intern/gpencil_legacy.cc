@@ -150,7 +150,7 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
   gpd->runtime.sbuffer_size = 0;
 
   /* write gpd data block to file */
-  BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
+  writer->write_id_struct(id_address, gpd);
   BKE_id_blend_write(writer, &gpd->id);
 
   BKE_defbase_blend_write(writer, &gpd->vertex_group_names);
@@ -158,24 +158,23 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
   BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
 
   /* write grease-pencil layers to file */
-  BLO_write_struct_list(writer, bGPDlayer, &gpd->layers);
+  writer->write_struct_list(&gpd->layers);
   for (bGPDlayer &gpl : gpd->layers) {
     /* Write mask list. */
-    BLO_write_struct_list(writer, bGPDlayer_Mask, &gpl.mask_layers);
+    writer->write_struct_list(&gpl.mask_layers);
     /* write this layer's frames to file */
-    BLO_write_struct_list(writer, bGPDframe, &gpl.frames);
+    writer->write_struct_list(&gpl.frames);
     for (bGPDframe &gpf : gpl.frames) {
       /* write strokes */
-      BLO_write_struct_list(writer, bGPDstroke, &gpf.strokes);
+      writer->write_struct_list(&gpf.strokes);
       for (bGPDstroke &gps : gpf.strokes) {
-        BLO_write_struct_array(writer, bGPDspoint, gps.totpoints, gps.points);
-        BLO_write_struct_array(writer, bGPDtriangle, gps.tot_triangles, gps.triangles);
+        writer->write_struct_array(gps.totpoints, gps.points);
+        writer->write_struct_array(gps.tot_triangles, gps.triangles);
         BKE_defvert_blend_write(writer, gps.totpoints, gps.dvert);
         if (gps.editcurve != nullptr) {
           bGPDcurve *gpc = gps.editcurve;
           writer->write_struct(gpc);
-          BLO_write_struct_array(
-              writer, bGPDcurve_point, gpc->tot_curve_points, gpc->curve_points);
+          writer->write_struct_array(gpc->tot_curve_points, gpc->curve_points);
         }
       }
     }

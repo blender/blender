@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "util/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Kernel Feature Flags
@@ -220,5 +222,21 @@ CCL_NAMESPACE_BEGIN
 #if defined(__SUBSURFACE__) || defined(__SHADER_RAYTRACE__)
 #  define __BVH_LOCAL__
 #endif
+
+/* Feature mask for integrator states, to allocate state memory only when
+ * certain features are on or off. */
+
+struct KernelFeatureRequest {
+  uint32_t on;
+  uint32_t off;
+
+  explicit KernelFeatureRequest(uint32_t on) : on(on), off(0) {}
+  KernelFeatureRequest(uint32_t on, uint32_t off) : on(on), off(off) {}
+
+  bool test(uint32_t features) const
+  {
+    return (features & on) && !(features & off);
+  }
+};
 
 CCL_NAMESPACE_END

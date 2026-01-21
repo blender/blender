@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13838,6 +13838,30 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
@@ -13846,16 +13870,8 @@ msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Metaball"
 msgstr "Meta objekt"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
 
 
 msgid "Names"
@@ -13866,8 +13882,8 @@ msgid "Bone Roll"
 msgstr "Kost"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
+msgid "Instances"
+msgstr "Instance"
 
 
 msgid "Pivot Point"
@@ -13880,10 +13896,6 @@ msgstr "Přichytit"
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
-
-
-msgid "Instances"
-msgstr "Instance"
 
 
 msgid "Import"
@@ -13930,6 +13942,10 @@ msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
+msgid "Layout"
+msgstr "Rozložení"
+
+
 msgid "Apply"
 msgstr "Použít"
 
@@ -13950,18 +13966,6 @@ msgid "Hooks"
 msgstr "Háky"
 
 
-msgid "Layout"
-msgstr "Rozložení"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
 msgid "Keying"
 msgstr "Klíčovací sestava"
 
@@ -13970,16 +13974,12 @@ msgid "Tracking"
 msgstr "Sledování"
 
 
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Propagate"
+msgstr "Vložit"
 
 
 msgid "Basic"
@@ -17188,6 +17188,10 @@ msgid "Font size to use for displaying the label"
 msgstr "Velikost písma použitého pro zobrazení textu"
 
 
+msgid "Single"
+msgstr "Úhel"
+
+
 msgid "Group Input"
 msgstr "Vstup Skupiny"
 
@@ -17678,10 +17682,6 @@ msgstr "Výstup uzlu"
 
 msgid "Value to Normal"
 msgstr "Hodnota k Normále"
-
-
-msgid "Single"
-msgstr "Úhel"
 
 
 msgid "Node Inputs"
@@ -21981,6 +21981,11 @@ msgstr "Převrátit"
 msgctxt "Operator"
 msgid "Erase"
 msgstr "Smazat"
+
+
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Maska"
 
 
 msgid "Flat"
@@ -30854,11 +30859,6 @@ msgstr "Roztrhnout oblast"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "Chytit"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Maska"
 
 
 msgid "Tiling"

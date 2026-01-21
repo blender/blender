@@ -46,7 +46,7 @@ class Context {
   virtual Domain get_compositing_domain() const = 0;
 
   /* Write the result of the compositor viewer. */
-  virtual void write_viewer(const Result &result) = 0;
+  virtual void write_viewer(Result &viewer_result) = 0;
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
@@ -77,12 +77,6 @@ class Context {
   /* True if the compositor should treat viewer nodes as group output nodes because it has no
    * concept of or support for viewers. */
   virtual bool treat_viewer_as_group_output() const;
-
-  /* True if the compositor inputs/outputs should be in the compositing domain. */
-  virtual bool use_compositing_domain_for_input_output() const
-  {
-    return true;
-  }
 
   /* Populates the given meta data from the render stamp information of the given render pass. */
   virtual void populate_meta_data_for_pass(const Scene *scene,

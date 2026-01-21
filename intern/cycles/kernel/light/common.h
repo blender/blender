@@ -10,23 +10,30 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Light Sample Result */
-
+/* Result from light sampling with next event estimation.
+ *
+ * TODO: It may be possible to reduce the size of this struct now that shader evaluation
+ * no longer uses this. For example D, Ng or P, though it's not trivial. */
 struct LightSample {
   float3 P;            /* position on light, or direction for distant light */
   packed_float3 Ng;    /* normal on light */
   float t;             /* distance to light (FLT_MAX for distant light) */
   float3 D;            /* direction from shading point to light */
-  float u, v;          /* parametric coordinate on primitive */
   float pdf;           /* pdf for selecting light and point on light */
   float pdf_selection; /* pdf for selecting light */
-  float eval_fac;      /* intensity multiplier */
+  float eval_fac;      /* intensity multiplier (normalization, spot falloff) */
   int object;          /* object id for triangle/curve lights */
   int prim;            /* lamp id for lights, primitive id for triangle/curve lights */
   int shader;          /* shader id */
   int group;           /* lightgroup */
   LightType type;      /* type of light */
   int emitter_id;      /* index in the emitter array */
+};
+
+/* Result of evaluating a light from an intersection. */
+struct LightEval {
+  float eval_fac = 0.0f; /* Intensity multiplier (normalization, spot falloff) */
+  float pdf = 0.0f;      /* Pdf for light sampling with next event estimation sampling. */
 };
 
 /* Utilities */

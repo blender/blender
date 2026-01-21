@@ -91,9 +91,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bool supports_fields = socket_type_supports_fields(data_type) &&
                                ntree->type == NTREE_GEOMETRY;
 
-  StructureType value_structure_type = socket_type_always_single(data_type) ?
-                                           StructureType::Single :
-                                           StructureType::Dynamic;
+  StructureType value_structure_type = StructureType::Dynamic;
   StructureType index_structure_type = value_structure_type;
 
   if (ntree->type == NTREE_COMPOSIT) {

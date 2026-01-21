@@ -880,8 +880,8 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
       writer->write_struct(data->proxy);
     }
     if (strip->type == STRIP_TYPE_IMAGE) {
-      BLO_write_struct_array(
-          writer, StripElem, MEM_allocN_len(data->stripdata) / sizeof(StripElem), data->stripdata);
+      writer->write_struct_array(MEM_allocN_len(data->stripdata) / sizeof(StripElem),
+                                 data->stripdata);
     }
     else if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND)) {
       writer->write_struct(data->stripdata);
@@ -907,7 +907,7 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
 
   if (strip->retiming_keys != nullptr) {
     int size = retiming_keys_count(strip);
-    BLO_write_struct_array(writer, SeqRetimingKey, size, strip->retiming_keys);
+    writer->write_struct_array(size, strip->retiming_keys);
   }
 
   return true;

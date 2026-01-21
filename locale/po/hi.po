@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2581,12 +2581,16 @@ msgid "Dots"
 msgstr "बिन्दु्"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
 msgid "Math"
 msgstr "गणित"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
 
 
 msgid "Names"
@@ -2605,12 +2609,12 @@ msgid "Import"
 msgstr "आयात करें"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
 msgid "UV"
 msgstr "यूवी"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Light"
@@ -2651,10 +2655,6 @@ msgstr "हड्डी विकल्प बंद/बुझ"
 
 msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
 
 
 msgid "Basic"

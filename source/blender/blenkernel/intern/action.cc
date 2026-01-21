@@ -376,7 +376,7 @@ static void write_slots(BlendWriter *writer, Span<animrig::Slot *> slots)
     ActionSlot shallow_copy = *slot;
     shallow_copy.runtime = nullptr;
 
-    BLO_write_struct_at_address(writer, ActionSlot, slot, &shallow_copy);
+    writer->write_struct_at_address(slot, &shallow_copy);
   }
 }
 
@@ -525,7 +525,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     }
   }
 
-  BLO_write_id_struct(writer, bAction, id_address, &action.id);
+  writer->write_id_struct(id_address, static_cast<const bAction *>(&action));
   BKE_id_blend_write(writer, &action.id);
 
   /* Write layered Action data. */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2734,6 +2734,10 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
+msgid "Layout"
+msgstr "Indeling"
+
+
 msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
@@ -2744,10 +2748,6 @@ msgstr "Converteer"
 
 msgid "Hooks"
 msgstr "Haken"
-
-
-msgid "Layout"
-msgstr "Indeling"
 
 
 msgid "Clear Transform"

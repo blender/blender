@@ -81,10 +81,8 @@ void spreadsheet_table_id_blend_write_content_geometry(BlendWriter *writer,
                                                        const SpreadsheetTableIDGeometry *table_id)
 {
   BKE_viewer_path_blend_write(writer, &table_id->viewer_path);
-  BLO_write_struct_array(
-      writer, SpreadsheetInstanceID, table_id->instance_ids_num, table_id->instance_ids);
-  BLO_write_struct_array(
-      writer, SpreadsheetBundlePathElem, table_id->bundle_path_num, table_id->bundle_path);
+  writer->write_struct_array(table_id->instance_ids_num, table_id->instance_ids);
+  writer->write_struct_array(table_id->bundle_path_num, table_id->bundle_path);
   for (const int i : IndexRange(table_id->bundle_path_num)) {
     BLO_write_string(writer, table_id->bundle_path[i].identifier);
   }

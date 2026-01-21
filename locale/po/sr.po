@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8497,16 +8497,24 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
 msgid "Special Characters"
 msgstr "Специјални знаци"
-
-
-msgid "Math"
-msgstr "Математика"
 
 
 msgid "Metaball"
@@ -8529,6 +8537,10 @@ msgid "Import"
 msgstr "Увоз"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Mirror"
 msgstr "Огледало"
 
@@ -8543,10 +8555,6 @@ msgstr "Локални поглед"
 
 msgid "Navigation"
 msgstr "Навигација"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -8585,6 +8593,14 @@ msgid "Hooks"
 msgstr "Удице"
 
 
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
+msgid "Tracking"
+msgstr "Праћење"
+
+
 msgid "Clear Transform"
 msgstr "Очисти трансформације"
 
@@ -8597,14 +8613,6 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
 msgid "Toggle Bone Options"
 msgstr "Мање/више информација"
 
@@ -8615,14 +8623,6 @@ msgstr "Омогући опције костију"
 
 msgid "Disable Bone Options"
 msgstr "Онемогући опције костију"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
-msgid "Merge"
-msgstr "Сједини"
 
 
 msgid "Basic"

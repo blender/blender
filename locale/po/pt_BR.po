@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'12e628ea43f8')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-01-12 15:09+0000\n"
+"POT-Creation-Date: 2026-01-20 10:29+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21231,16 +21231,32 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
 msgid "Special Characters"
 msgstr "Caracteres especiais"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Metaball"
@@ -21255,8 +21271,8 @@ msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Pivot Point"
@@ -21271,12 +21287,12 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Import"
 msgstr "Importar"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -21297,10 +21313,6 @@ msgstr "Ponto de visualização"
 
 msgid "Navigation"
 msgstr "Navegação"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -21355,6 +21367,10 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Apply"
 msgstr "Aplicar"
 
@@ -21379,8 +21395,12 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Layout"
-msgstr "Organizar"
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Random Mask"
@@ -21399,14 +21419,6 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -21417,18 +21429,6 @@ msgstr "Habilitar opções de ossos"
 
 msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Merge"
-msgstr "Fundir"
 
 
 msgid "Basic"
@@ -27325,30 +27325,6 @@ msgid "Unknown"
 msgstr "Desconhecido"
 
 
-msgid "Align text to the center"
-msgstr "Alinha o texto ao centro"
-
-
-msgid "Align text to the left and the right"
-msgstr "Alinha o texto para esquerda e para direita"
-
-
-msgid "Align text to the left and the right, with equal character spacing"
-msgstr "Alinha o texto para a esquerda e para a direita, com igual espaçamento entre caracteres"
-
-
-msgid "Top Left"
-msgstr "Topo a Esquerda"
-
-
-msgid "Top Center"
-msgstr "Topo ao Centro"
-
-
-msgid "Top Right"
-msgstr "Topo à Direita"
-
-
 msgid "Subdivide Curve"
 msgstr "Subdividir Curva"
 
@@ -27392,6 +27368,10 @@ msgstr "Tamanho de fonte para mostrar os rótulos."
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Encolhe o quadro para a caixa circundante mínima."
+
+
+msgid "Single"
+msgstr "Único"
 
 
 msgid "Group Input"
@@ -28053,10 +28033,6 @@ msgstr "Para texturas que usam nós como base, permite definir o nó de saída u
 
 msgid "Value to Normal"
 msgstr "Valor para as normais"
-
-
-msgid "Single"
-msgstr "Único"
 
 
 msgid "Enum Item"
@@ -34787,6 +34763,11 @@ msgstr "Alterna o pincel para o modo suave através da duração do traço."
 msgctxt "Operator"
 msgid "Erase"
 msgstr "Apagar"
+
+
+msgctxt "Operator"
+msgid "Mask"
+msgstr "Máscara"
 
 
 msgid "Flat"
@@ -48564,11 +48545,6 @@ msgstr "Extrair Região"
 msgctxt "Operator"
 msgid "Grab"
 msgstr "Agarrar"
-
-
-msgctxt "Operator"
-msgid "Mask"
-msgstr "Máscara"
 
 
 msgid "Tiling"
@@ -67434,6 +67410,10 @@ msgstr "Altura da caixa de texto"
 
 msgid "Edge Crease"
 msgstr "Vincos de arestas"
+
+
+msgid "Top Right"
+msgstr "Topo à Direita"
 
 
 msgid "Rotate islands for best fit"

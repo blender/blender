@@ -10,6 +10,7 @@
 #include "BLI_span.hh"
 
 #include "usd.hh"
+#include "usd_api_modifier.hh"
 #include "usd_reader_geom.hh"
 
 #include <pxr/usd/usdGeom/mesh.h>

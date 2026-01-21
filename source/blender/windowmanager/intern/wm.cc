@@ -118,7 +118,7 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
 
   wm->runtime = nullptr;
 
-  BLO_write_id_struct(writer, wmWindowManager, id_address, &wm->id);
+  writer->write_id_struct(id_address, wm);
   BKE_id_blend_write(writer, &wm->id);
   write_wm_xr_data(writer, &wm->xr);
 

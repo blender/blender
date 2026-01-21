@@ -800,7 +800,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
                      });
   }
 
-  BLO_write_struct_at_address(writer, CorrectiveSmoothModifierData, md, &csmd);
+  writer->write_struct_at_address(md, &csmd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

@@ -43,7 +43,7 @@ static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   Speaker *spk = id_cast<Speaker *>(id);
 
   /* write LibData */
-  BLO_write_id_struct(writer, Speaker, id_address, &spk->id);
+  writer->write_id_struct(id_address, spk);
   BKE_id_blend_write(writer, &spk->id);
 }
 

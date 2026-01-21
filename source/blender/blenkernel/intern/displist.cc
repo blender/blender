@@ -308,6 +308,9 @@ void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
             if (sf_vert != nullptr && sf_vert_new != nullptr) {
               BLI_scanfill_edge_add(&sf_ctx, sf_vert, sf_vert_new);
             }
+
+            dl_flag_accum |= dl.flag;
+            dl_rt_accum |= dl.rt;
           }
           else if (colnr < dl.col) {
             /* got poly with next material at current char */
@@ -315,8 +318,6 @@ void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
             nextcol = true;
           }
         }
-        dl_flag_accum |= dl.flag;
-        dl_rt_accum |= dl.rt;
       }
     }
 
@@ -342,7 +343,7 @@ void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
 
       /* index data */
       int *index = dlnew->index;
-      for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
+      for (const ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
         index[0] = sf_tri.v1->tmp.i;
         index[1] = flip_normal ? sf_tri.v3->tmp.i : sf_tri.v2->tmp.i;
         index[2] = flip_normal ? sf_tri.v2->tmp.i : sf_tri.v3->tmp.i;

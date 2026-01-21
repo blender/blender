@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -300,10 +301,10 @@ static void node_input_from_rect(bNode *node,
   const float ymin = rect->ymin * dims.y - offset.y;
   const float height = rect->ymax * dims.y - offset.y - ymin;
 
-  RNA_int_set(&x_input_rna_pointer, "default_value", int(xmin));
-  RNA_int_set(&y_input_rna_pointer, "default_value", int(ymin));
-  RNA_int_set(&width_input_rna_pointer, "default_value", int(width));
-  RNA_int_set(&height_input_rna_pointer, "default_value", int(height));
+  RNA_int_set(&x_input_rna_pointer, "default_value", math::round(xmin));
+  RNA_int_set(&y_input_rna_pointer, "default_value", math::round(ymin));
+  RNA_int_set(&width_input_rna_pointer, "default_value", math::round(width));
+  RNA_int_set(&height_input_rna_pointer, "default_value", math::round(height));
 }
 
 /* scale callbacks */

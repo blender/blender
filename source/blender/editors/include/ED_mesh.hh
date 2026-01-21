@@ -487,6 +487,8 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags);
  */
 void paintvert_flush_flags(Object *ob);
 void paintvert_tag_select_update(bContext *C, Object *ob);
+void paintvert_select_loop(bContext *C, Object *ob, const int mval[2], const bool select);
+
 /* Select vertices that are connected to already selected vertices. */
 void paintvert_select_linked(bContext *C, Object *ob);
 /* Select vertices that are linked to the vertex under the given region space coordinates. */

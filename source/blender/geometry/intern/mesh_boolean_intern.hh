@@ -65,5 +65,17 @@ void set_material_from_map(Span<int> out_to_in_map,
 
 bke::GeometrySet join_meshes_with_transforms(Span<const Mesh *> meshes, Span<float4x4> transforms);
 
+/**
+ * What mesh_id corresponds to a given face_id, assuming that the face_id
+ * is in one of the ranges of mesh_offsets.face_offsets.
+ */
+int mesh_id_for_face(int face_id, const MeshOffsets &mesh_offsets);
+
+/**
+ * What is the vertex index range for the face \a face_id, assuming that face_id is one of the
+ * ranges of mesh_offsets.face_offsets.
+ */
+IndexRange vertex_range_for_face(int face_id, const MeshOffsets &mesh_offsets);
+
 }  // namespace geometry::boolean
 }  // namespace blender

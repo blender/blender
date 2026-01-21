@@ -297,7 +297,7 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
   CustomData_reset(&grease_pencil->layers_data_legacy);
 
   /* Write LibData */
-  BLO_write_id_struct(writer, GreasePencil, id_address, &grease_pencil->id);
+  writer->write_id_struct(id_address, grease_pencil);
   BKE_id_blend_write(writer, &grease_pencil->id);
 
   grease_pencil->attribute_storage.wrap().blend_write(*writer, attribute_data);
@@ -4347,7 +4347,7 @@ static void write_drawing_array(GreasePencil &grease_pencil,
         BLO_write_shared_tag(writer, curves.curve_offsets);
         BLO_write_shared_tag(writer, curves.custom_knots);
 
-        BLO_write_struct_at_address(writer, GreasePencilDrawing, drawing_base, &drawing_copy);
+        writer->write_struct_at_address_cast<GreasePencilDrawing>(drawing_base, &drawing_copy);
         curves.blend_write(*writer, grease_pencil.id, write_data);
         break;
       }
@@ -4452,10 +4452,9 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
   BLO_write_string(writer, node->viewlayername);
 
   BLO_write_int32_array(writer, node->frames_storage.num, node->frames_storage.keys);
-  BLO_write_struct_array(
-      writer, GreasePencilFrame, node->frames_storage.num, node->frames_storage.values);
+  writer->write_struct_array(node->frames_storage.num, node->frames_storage.values);
 
-  BLO_write_struct_list(writer, GreasePencilLayerMask, &node->masks);
+  writer->write_struct_list(&node->masks);
   for (GreasePencilLayerMask &mask : node->masks) {
     BLO_write_string(writer, mask.layer_name);
   }

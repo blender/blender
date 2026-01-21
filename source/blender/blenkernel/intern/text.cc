@@ -175,7 +175,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
   text->compiled = nullptr;
 
   /* write LibData */
-  BLO_write_id_struct(writer, Text, id_address, &text->id);
+  writer->write_id_struct(id_address, text);
   BKE_id_blend_write(writer, &text->id);
 
   if (text->filepath) {

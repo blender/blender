@@ -10,6 +10,10 @@
 #include "util/math.h"
 #include "util/projection.h"
 
+#ifndef __KERNEL_GPU__
+#  include <climits>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Distribute 2D uniform random samples on [0, 1] over unit disk [-1, 1], with concentric mapping

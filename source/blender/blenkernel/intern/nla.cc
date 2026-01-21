@@ -2696,7 +2696,7 @@ void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id)
 
 static void blend_write_nla_strips(BlendWriter *writer, ListBaseT<NlaStrip> *strips)
 {
-  BLO_write_struct_list(writer, NlaStrip, strips);
+  writer->write_struct_list(strips);
   for (NlaStrip &strip : *strips) {
     /* write the strip's F-Curves and modifiers */
     BKE_fcurve_blend_write_listbase(writer, &strip.fcurves);

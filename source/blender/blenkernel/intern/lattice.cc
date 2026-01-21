@@ -131,11 +131,11 @@ static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   lt->batch_cache = nullptr;
 
   /* write LibData */
-  BLO_write_id_struct(writer, Lattice, id_address, &lt->id);
+  writer->write_id_struct(id_address, lt);
   BKE_id_blend_write(writer, &lt->id);
 
   /* direct data */
-  BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
+  writer->write_struct_array(lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
   BKE_defbase_blend_write(writer, &lt->vertex_group_names);
   BKE_defvert_blend_write(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);

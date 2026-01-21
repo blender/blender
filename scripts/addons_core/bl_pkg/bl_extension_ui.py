@@ -1817,7 +1817,7 @@ class USERPREF_PT_extensions_filter(Panel):
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
-        layout.enabled = wm.extension_use_filter
+        layout.active = wm.extension_use_filter
         layout.prop(wm, "extension_repo_filter", text="")
         tags_panel_draw(layout, context, "extension_tags")
 

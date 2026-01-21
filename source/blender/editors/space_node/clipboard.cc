@@ -52,6 +52,7 @@ static bool node_copy_local(bNodeTree &from_tree,
                             bNodeTree &to_tree,
                             const bool allow_duplicate_names,
                             const float2 offset,
+                            const bool snap_to_grid,
                             ReportList *reports)
 {
   node_select_paired(from_tree);
@@ -74,6 +75,10 @@ static bool node_copy_local(bNodeTree &from_tree,
       node_map.add_new(node, new_node);
       new_node->location[0] += offset.x;
       new_node->location[1] += offset.y;
+      if (snap_to_grid) {
+        new_node->location[0] = nearest_node_grid_coord(new_node->location[0]);
+        new_node->location[1] = nearest_node_grid_coord(new_node->location[1]);
+      }
     }
     else {
       if (disabled_hint) {
@@ -176,7 +181,7 @@ static wmOperatorStatus node_clipboard_copy_exec(bContext *C, wmOperator *op)
   copy_tree->tree_interface.free_data();
   copy_tree->tree_interface.copy_data(node_tree->tree_interface, LIB_ID_COPY_DEFAULT);
 
-  if (!node_copy_local(*node_tree, *copy_tree, true, float2(0), op->reports)) {
+  if (!node_copy_local(*node_tree, *copy_tree, true, float2(0), false, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -343,7 +348,8 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
     offset = mouse_location / UI_SCALE_FAC - center;
   }
 
-  if (!node_copy_local(*from_tree, *snode->edittree, false, offset, op->reports)) {
+  const bool snap_to_grid = CTX_data_scene(C)->toolsettings->snap_flag_node & SCE_SNAP;
+  if (!node_copy_local(*from_tree, *snode->edittree, false, offset, snap_to_grid, op->reports)) {
     BKE_id_delete(bmain_dst, &from_tree->id);
     /* Note: we don't return OPERATOR_CANCELLED here although the copy fails to avoid corrupting
      * the undo stack after merging two bmains. */

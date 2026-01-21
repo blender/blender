@@ -2418,7 +2418,7 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   writer->write_struct(view_layer);
-  BLO_write_struct_list(writer, Base, BKE_view_layer_object_bases_get(view_layer));
+  writer->write_struct_list(BKE_view_layer_object_bases_get(view_layer));
 
   if (view_layer->id_properties) {
     IDP_BlendWrite(writer, view_layer->id_properties);
