@@ -642,8 +642,8 @@ static blender::SubsurfModifierData *object_subdivision_modifier(blender::Object
   if (md->type != blender::eModifierType_Subsurf) {
     return nullptr;
   }
-  const blender::ModifierMode enabled_mode = preview ? blender::eModifierMode_Render :
-                                                       blender::eModifierMode_Realtime;
+  const blender::ModifierMode enabled_mode = preview ? blender::eModifierMode_Realtime :
+                                                       blender::eModifierMode_Render;
   if ((md->mode & enabled_mode) == 0) {
     return nullptr;
   }
