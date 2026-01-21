@@ -111,6 +111,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::dna
   PRIVATE bf::functions
+  PRIVATE bf::nodes
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib

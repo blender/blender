@@ -175,6 +175,20 @@ const BundleItemValue *Bundle::lookup_path(const StringRef path) const
   return this->lookup_path(path_elems);
 }
 
+void Bundle::merge(const Bundle &other)
+{
+  for (const auto &item : other.items_.items()) {
+    this->add(item.key, item.value);
+  }
+}
+
+void Bundle::merge_override(const Bundle &other)
+{
+  for (const auto &item : other.items_.items()) {
+    this->add_override(item.key, item.value);
+  }
+}
+
 void Bundle::ensure_owns_direct_data()
 {
   for (const auto &item : items_.items()) {

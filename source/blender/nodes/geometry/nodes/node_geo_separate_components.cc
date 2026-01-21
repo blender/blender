@@ -39,6 +39,13 @@ static void node_geo_exec(GeoNodeExecParams params)
   volumes.name = name;
   instances.name = name;
 
+  meshes.copy_bundle_from(geometry_set);
+  curves.copy_bundle_from(geometry_set);
+  grease_pencil.copy_bundle_from(geometry_set);
+  pointclouds.copy_bundle_from(geometry_set);
+  volumes.copy_bundle_from(geometry_set);
+  instances.copy_bundle_from(geometry_set);
+
   if (geometry_set.has<MeshComponent>()) {
     meshes.add(*geometry_set.get_component<MeshComponent>());
   }

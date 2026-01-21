@@ -41,6 +41,10 @@ class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
 struct GizmoEditHints;
 }  // namespace bke
+namespace nodes {
+class Bundle;
+using BundlePtr = ImplicitSharingPtr<Bundle>;
+}  // namespace nodes
 
 namespace bke {
 
@@ -148,6 +152,7 @@ struct GeometrySet {
  private:
   /* Indexed by #GeometryComponent::Type. */
   std::array<GeometryComponentPtr, GEO_COMPONENT_TYPE_ENUM_SIZE> components_;
+  nodes::BundlePtr bundle_;
 
  public:
   /**
@@ -444,16 +449,26 @@ struct GeometrySet {
   void replace_grease_pencil(GreasePencil *grease_pencil,
                              GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
+  bool has_bundle() const;
+  const nodes::Bundle *bundle() const;
+  const nodes::BundlePtr &bundle_ptr() const;
+  nodes::BundlePtr &bundle_ptr();
+  nodes::Bundle &bundle_for_write();
+
+  void copy_bundle_from(const GeometrySet &other);
+  void merge_bundle_from(const GeometrySet &other);
+
   friend bool operator==(const GeometrySet &a, const GeometrySet &b)
   {
     /* This compares only the component pointers, not the actual geometry data. */
-    return Span(a.components_) == Span(b.components_) && a.name == b.name;
+    return Span(a.components_) == Span(b.components_) && a.name == b.name &&
+           a.bundle_ == b.bundle_;
   }
 
   uint64_t hash() const
   {
     /* This should have the same data that's also taken into account in #operator==. */
-    return get_default_hash(Span(components_), this->name);
+    return get_default_hash(Span(components_), this->name, this->bundle_.get());
   }
 
   void count_memory(MemoryCounter &memory) const;

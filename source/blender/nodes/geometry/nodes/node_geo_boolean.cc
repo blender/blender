@@ -255,6 +255,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       all_geometries, {}, std::make_optional(types_to_join));
   result_geometry.replace_mesh(result);
   result_geometry.name = set_a.name;
+  for (const GeometrySet &geometry : all_geometries) {
+    result_geometry.merge_bundle_from(geometry);
+  }
 
   params.set_output("Mesh", std::move(result_geometry));
 }

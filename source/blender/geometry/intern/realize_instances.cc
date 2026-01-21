@@ -24,6 +24,8 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_type_conversions.hh"
 
+#include "NOD_geometry_nodes_bundle.hh"
+
 #include "BLT_translation.hh"
 
 namespace blender::geometry {
@@ -278,6 +280,8 @@ struct GatherTasks {
   /* Volumes only have very simple support currently. Only the first found volume is put into the
    * output. */
   ImplicitSharingPtr<const bke::VolumeComponent> first_volume;
+
+  VectorSet<const nodes::Bundle *> bundles;
 };
 
 /** Current offsets while during the gather operation. */
@@ -638,6 +642,9 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
                                            const float4x4 &base_transform,
                                            const InstanceContext &base_instance_context)
 {
+  if (geometry_set.has_bundle()) {
+    gather_info.r_tasks.bundles.add(geometry_set.bundle());
+  }
   for (const bke::GeometryComponent *component : geometry_set.get_components()) {
     const bke::GeometryComponent::Type type = component->type();
     switch (type) {
@@ -2561,6 +2568,9 @@ RealizeInstancesResult realize_instances(bke::GeometrySet geometry_set,
   });
   if (gather_info.r_tasks.first_volume) {
     result.geometry.add(*gather_info.r_tasks.first_volume);
+  }
+  for (const nodes::Bundle *bundle : gather_info.r_tasks.bundles) {
+    result.geometry.bundle_for_write().merge(*bundle);
   }
 
   return result;

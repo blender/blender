@@ -809,7 +809,8 @@ struct UserDef_Experimental {
   char use_sculpt_texture_paint = 0;
   char use_shader_node_previews = 0;
   char use_geometry_nodes_lists = 0;
-  char _pad[5] = {};
+  char use_geometry_bundle = 0;
+  char _pad[4] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)

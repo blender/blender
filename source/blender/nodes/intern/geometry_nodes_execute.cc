@@ -13,6 +13,7 @@
 #include "BLI_string.h"
 
 #include "NOD_geometry.hh"
+#include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_menu_value.hh"
@@ -1002,6 +1003,12 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     }
   }
 
+  if (output_geometry.has_bundle()) {
+    /* Ensure that the bundle data is properly owned by the geometry. Do not call this in the
+     * geometry itself because it may just be referenced during modifier evaluation and an
+     * unnecessary copy can be avoided. See #GeometryOwnershipType::Editable. */
+    output_geometry.bundle_for_write().ensure_owns_direct_data();
+  }
   return output_geometry;
 }
 

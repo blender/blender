@@ -75,6 +75,12 @@ const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_geometry_item_type_items[] = {
+    {SPREADSHEET_GEOMETRY_ITEM_TYPE_DOMAIN, "DOMAIN", ICON_NONE, "Domain", "Domain data"},
+    {SPREADSHEET_GEOMETRY_ITEM_TYPE_BUNDLE, "BUNDLE", ICON_NONE, "Bundle", "Bundle data"},
+    {},
+};
+
 const EnumPropertyItem rna_enum_space_type_items[] = {
     /* empty must be here for python, is skipped for UI */
     {SPACE_EMPTY, "EMPTY", ICON_NONE, "Empty", ""},
@@ -8875,6 +8881,11 @@ static void rna_def_spreadsheet_table_id_geometry(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
   RNA_def_property_ui_text(prop, "Attribute Domain", "Attribute domain to display");
 
+  prop = RNA_def_property(srna, "geometry_item_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, rna_enum_geometry_item_type_items);
+  RNA_def_property_ui_text(prop, "Geometry Item Type", "Item Type");
+
   prop = RNA_def_property(srna, "viewer_path", PROP_POINTER, PROP_NONE);
   RNA_def_property_ui_text(prop, "Viewer Path", "Path to the data that is displayed");
 
@@ -9219,6 +9230,12 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Show Only Selected", "Only include rows that correspond to selected elements");
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 0);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
+
+  prop = RNA_def_property(srna, "geometry_item_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "geometry_id.geometry_item_type");
+  RNA_def_property_enum_items(prop, rna_enum_geometry_item_type_items);
+  RNA_def_property_ui_text(prop, "Geometry Item Type", "Item Type");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
   prop = RNA_def_property(srna, "geometry_component_type", PROP_ENUM, PROP_NONE);
