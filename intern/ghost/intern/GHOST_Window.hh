@@ -86,18 +86,17 @@ class GHOST_Window : public GHOST_IWindow {
   }
 
   /** \copydoc #GHOST_IWindow::getWindowDecorationStyleFlags */
-  virtual GHOST_TWindowDecorationStyleFlags getWindowDecorationStyleFlags() override;
+  GHOST_TWindowDecorationStyleFlags getWindowDecorationStyleFlags() override;
 
   /** \copydoc #GHOST_IWindow::setWindowDecorationStyleFlags */
-  virtual void setWindowDecorationStyleFlags(
-      GHOST_TWindowDecorationStyleFlags style_flags) override;
+  void setWindowDecorationStyleFlags(GHOST_TWindowDecorationStyleFlags style_flags) override;
 
   /** \copydoc #GHOST_IWindow::setWindowDecorationStyleSettings */
-  virtual void setWindowDecorationStyleSettings(
+  void setWindowDecorationStyleSettings(
       GHOST_WindowDecorationStyleSettings decoration_settings) override;
 
   /** \copydoc #GHOST_IWindow::applyWindowDecorationStyle */
-  virtual GHOST_TSuccess applyWindowDecorationStyle() override
+  GHOST_TSuccess applyWindowDecorationStyle() override
   {
     return GHOST_kSuccess;
   }
