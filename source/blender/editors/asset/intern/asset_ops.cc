@@ -94,12 +94,12 @@ static IDVecStats asset_operation_get_id_vec_stats_from_ids(const Span<PointerRN
 
 static const char *asset_operation_unsupported_type_msg(const bool is_single)
 {
-  const char *msg_single =
-      "Data-block does not support asset operations - must be "
-      "a " ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING;
-  const char *msg_multiple =
-      "No data-block selected that supports asset operations - select at least "
-      "one " ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING;
+  const char *msg_single = N_(
+      "Data-block does not support asset operations - must be a "
+      "Brush, Collection, Node Group, Object, Pose Action, Scene, or World");
+  const char *msg_multiple = N_(
+      "No data-block selected that supports asset operations - select at least one "
+      "Brush, Collection, Node Group, Object, Pose Action, Scene, or World");
   return is_single ? msg_single : msg_multiple;
 }
 
