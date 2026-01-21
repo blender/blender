@@ -296,7 +296,7 @@ bool ED_operator_region_view3d_active(bContext *C)
     return true;
   }
 
-  CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
+  CTX_wm_operator_poll_msg_set(C, "Expected a view3d region");
   return false;
 }
 
@@ -322,7 +322,7 @@ bool ED_operator_animview_active(bContext *C)
     }
   }
 
-  CTX_wm_operator_poll_msg_set(C, "expected a timeline/animation area to be active");
+  CTX_wm_operator_poll_msg_set(C, "Expected a timeline/animation area to be active");
   return false;
 }
 
@@ -551,7 +551,7 @@ bool ED_operator_editmesh_region_view3d(bContext *C)
     return true;
   }
 
-  CTX_wm_operator_poll_msg_set(C, "expected a view3d region & editmesh");
+  CTX_wm_operator_poll_msg_set(C, "Expected a view3d region & editmesh");
   return false;
 }
 
@@ -691,7 +691,7 @@ bool ED_operator_editsurfcurve_region_view3d(bContext *C)
     return true;
   }
 
-  CTX_wm_operator_poll_msg_set(C, "expected a view3d region & editcurve");
+  CTX_wm_operator_poll_msg_set(C, "Expected a view3d region & editcurve");
   return false;
 }
 
@@ -732,7 +732,7 @@ bool ED_operator_editfont(bContext *C)
       return true;
     }
   }
-  CTX_wm_operator_poll_msg_set(C, "expected an active edit-font object");
+  CTX_wm_operator_poll_msg_set(C, "Expected an active edit-font object");
   return false;
 }
 
