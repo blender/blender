@@ -3702,6 +3702,22 @@ struct GeometryNodeFieldToGrid {
   int active_index = 0;
 };
 
+struct GeometryNodeFieldToListItem {
+  /** #eNodeSocketDatatype. */
+  int8_t socket_type = SOCK_FLOAT;
+  char _pad[3] = {};
+  int identifier = 0;
+  char *name = nullptr;
+};
+
+struct GeometryNodeFieldToList {
+  char _pad[4] = {};
+  int next_identifier = 0;
+  GeometryNodeFieldToListItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+};
+
 struct NodeGeometryDistributePointsInVolume {
   DNA_DEFINE_CXX_METHODS(NodeGeometryDistributePointsInVolume)
 
