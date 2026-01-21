@@ -74,6 +74,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "attribute_storage_access.hh"
+
 namespace blender {
 
 /** Using STACK_FIXED_DEPTH to keep the implementation in line with `pbvh.cc`. */
@@ -451,9 +453,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_string(reader, &mesh->default_uv_map_attribute);
   BLO_read_string(reader, &mesh->stencil_uv_map_attribute);
   BLO_read_string(reader, &mesh->clone_uv_map_attribute);
-
-  /* Forward compatibility. To be removed when runtime format changes. */
-  bke::mesh_convert_storage_to_customdata(*mesh);
 
   mesh->texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO_EVALUATED;
 
@@ -1092,28 +1091,26 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
 
 Span<float3> Mesh::vert_positions() const
 {
-  return {static_cast<const float3 *>(
-              CustomData_get_layer_named(&this->vert_data, CD_PROP_FLOAT3, "position")),
-          this->verts_num};
+  return bke::get_span_attribute<float3>(
+             this->attribute_storage.wrap(), bke::AttrDomain::Point, "position", this->verts_num)
+      .value_or(Span<float3>());
 }
 MutableSpan<float3> Mesh::vert_positions_for_write()
 {
-  return {static_cast<float3 *>(CustomData_get_layer_named_for_write(
-              &this->vert_data, CD_PROP_FLOAT3, "position", this->verts_num)),
-          this->verts_num};
+  return bke::get_mutable_attribute<float3>(
+      this->attribute_storage.wrap(), bke::AttrDomain::Point, "position", this->verts_num);
 }
 
 Span<int2> Mesh::edges() const
 {
-  return {static_cast<const int2 *>(
-              CustomData_get_layer_named(&this->edge_data, CD_PROP_INT32_2D, ".edge_verts")),
-          this->edges_num};
+  return bke::get_span_attribute<int2>(
+             this->attribute_storage.wrap(), bke::AttrDomain::Edge, ".edge_verts", this->edges_num)
+      .value_or(Span<int2>());
 }
 MutableSpan<int2> Mesh::edges_for_write()
 {
-  return {static_cast<int2 *>(CustomData_get_layer_named_for_write(
-              &this->edge_data, CD_PROP_INT32_2D, ".edge_verts", this->edges_num)),
-          this->edges_num};
+  return bke::get_mutable_attribute<int2>(
+      this->attribute_storage.wrap(), bke::AttrDomain::Edge, ".edge_verts", this->edges_num);
 }
 
 OffsetIndices<int> Mesh::faces() const
@@ -1139,28 +1136,30 @@ MutableSpan<int> Mesh::face_offsets_for_write()
 
 Span<int> Mesh::corner_verts() const
 {
-  return {static_cast<const int *>(
-              CustomData_get_layer_named(&this->corner_data, CD_PROP_INT32, ".corner_vert")),
-          this->corners_num};
+  return bke::get_span_attribute<int>(this->attribute_storage.wrap(),
+                                      bke::AttrDomain::Corner,
+                                      ".corner_vert",
+                                      this->corners_num)
+      .value_or(Span<int>());
 }
 MutableSpan<int> Mesh::corner_verts_for_write()
 {
-  return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->corner_data, CD_PROP_INT32, ".corner_vert", this->corners_num)),
-          this->corners_num};
+  return bke::get_mutable_attribute<int>(
+      this->attribute_storage.wrap(), bke::AttrDomain::Corner, ".corner_vert", this->corners_num);
 }
 
 Span<int> Mesh::corner_edges() const
 {
-  return {static_cast<const int *>(
-              CustomData_get_layer_named(&this->corner_data, CD_PROP_INT32, ".corner_edge")),
-          this->corners_num};
+  return bke::get_span_attribute<int>(this->attribute_storage.wrap(),
+                                      bke::AttrDomain::Corner,
+                                      ".corner_edge",
+                                      this->corners_num)
+      .value_or(Span<int>());
 }
 MutableSpan<int> Mesh::corner_edges_for_write()
 {
-  return {static_cast<int *>(CustomData_get_layer_named_for_write(
-              &this->corner_data, CD_PROP_INT32, ".corner_edge", this->corners_num)),
-          this->corners_num};
+  return bke::get_mutable_attribute<int>(
+      this->attribute_storage.wrap(), bke::AttrDomain::Corner, ".corner_edge", this->corners_num);
 }
 
 Span<MDeformVert> Mesh::deform_verts() const
@@ -1188,6 +1187,7 @@ void Mesh::count_memory(MemoryCounter &memory) const
 {
   memory.add_shared(this->runtime->face_offsets_sharing_info,
                     this->face_offsets().size_in_bytes());
+  this->attribute_storage.wrap().count_memory(memory);
   CustomData_count_memory(this->vert_data, this->verts_num, memory);
   CustomData_count_memory(this->edge_data, this->edges_num, memory);
   CustomData_count_memory(this->face_data, this->faces_num, memory);
@@ -1319,10 +1319,10 @@ Mesh *mesh_new_no_attributes(const int verts_num,
   mesh->verts_num = verts_num;
   mesh->edges_num = edges_num;
   mesh->corners_num = corners_num;
-  CustomData_free_layer_named(&mesh->vert_data, "position");
-  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts");
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert");
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge");
+  mesh->attribute_storage.wrap().remove("position");
+  mesh->attribute_storage.wrap().remove(".edge_verts");
+  mesh->attribute_storage.wrap().remove(".corner_vert");
+  mesh->attribute_storage.wrap().remove(".corner_edge");
   return mesh;
 }
 
@@ -1447,6 +1447,14 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata_legacy, CD_MFACE)) {
     CustomData_add_layer(&me_dst->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, me_dst->totface_legacy);
   }
+
+  bke::MutableAttributeAccessor dst_attrs = me_dst->attributes_for_write();
+  me_src->attribute_storage.wrap().foreach([&](const bke::Attribute &attr) {
+    if (dst_attrs.contains(attr.name())) {
+      return;
+    }
+    dst_attrs.add(attr.name(), attr.domain(), attr.data_type(), bke::AttributeInitDefaultValue());
+  });
 
   return me_dst;
 }

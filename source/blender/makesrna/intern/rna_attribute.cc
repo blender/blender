@@ -338,8 +338,11 @@ static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
 static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
 {
   if (GS(ptr->owner_id->name) == ID_ME) {
-    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
-    return srna_by_custom_data_layer_type(eCustomDataType(layer->type));
+    const Mesh *mesh = blender::id_cast<const Mesh *>(ptr->owner_id);
+    if (mesh->runtime->edit_mesh) {
+      CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
+      return srna_by_custom_data_layer_type(eCustomDataType(layer->type));
+    }
   }
   bke::Attribute *attr = ptr->data_as<bke::Attribute>();
   const eCustomDataType data_type = *bke::attr_type_to_custom_data_type(attr->data_type());
@@ -354,8 +357,11 @@ StringRefNull rna_Attribute_name_get(const PointerRNA &ptr)
   ID *owner_id = ptr.owner_id;
   const AttributeOwner owner = AttributeOwner::from_id(owner_id);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = ptr.data_as<CustomDataLayer>();
-    return layer->name;
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      const CustomDataLayer *layer = ptr.data_as<CustomDataLayer>();
+      return layer->name;
+    }
   }
   const bke::Attribute *attr = ptr.data_as<bke::Attribute>();
   return attr->name();
@@ -375,9 +381,12 @@ void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
-    BKE_attribute_rename(owner, layer->name, value, nullptr);
-    return;
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
+      BKE_attribute_rename(owner, layer->name, value, nullptr);
+      return;
+    }
   }
 
   const bke::Attribute *attr = ptr->data_as<bke::Attribute>();
@@ -388,12 +397,15 @@ static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_inf
 {
   AttributeOwner owner = owner_from_attribute_pointer_rna(const_cast<PointerRNA *>(ptr));
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
-    if (BKE_attribute_required(owner, layer->name)) {
-      *r_info = N_("Cannot modify name of required geometry attribute");
-      return false;
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
+      if (BKE_attribute_required(owner, layer->name)) {
+        *r_info = N_("Cannot modify name of required geometry attribute");
+        return false;
+      }
+      return true;
     }
-    return true;
   }
 
   bke::Attribute *attr = ptr->data_as<bke::Attribute>();
@@ -406,9 +418,13 @@ static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_inf
 
 static int rna_Attribute_type_get(PointerRNA *ptr)
 {
-  if (GS(ptr->owner_id->name) == ID_ME) {
-    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
-    return layer->type;
+  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
+      return layer->type;
+    }
   }
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
   return *bke::attr_type_to_custom_data_type(attr->data_type());
@@ -416,8 +432,12 @@ static int rna_Attribute_type_get(PointerRNA *ptr)
 
 static int rna_Attribute_storage_type_get(PointerRNA *ptr)
 {
-  if (GS(ptr->owner_id->name) == ID_ME) {
-    return int(bke::AttrStorageType::Array);
+  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      return int(bke::AttrStorageType::Array);
+    }
   }
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
   return int(attr->storage_type());
@@ -490,7 +510,11 @@ static int rna_Attribute_domain_get(PointerRNA *ptr)
 {
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    return int(BKE_attribute_domain(owner, static_cast<const CustomDataLayer *>(ptr->data)));
+    const Mesh *mesh = owner.get_mesh();
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      return int(
+          BKE_attribute_domain(*mesh, *em->bm, static_cast<const CustomDataLayer *>(ptr->data)));
+    }
   }
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
   return int(attr->domain());
@@ -511,17 +535,11 @@ void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
-    if (!(CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL)) {
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
       iter->valid = false;
+      return;
     }
-
-    const int length = BKE_attribute_data_length(owner, layer);
-    const size_t struct_size = CustomData_get_elem_size(layer);
-    CustomData_ensure_data_is_mutable(layer, length);
-
-    rna_iterator_array_begin(iter, ptr, layer->data, struct_size, length, 0, nullptr);
-    return;
   }
 
   bke::MutableAttributeAccessor accessor = *owner.get_accessor();
@@ -550,8 +568,10 @@ int rna_Attribute_data_length(PointerRNA *ptr)
   }
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
-    return BKE_attribute_data_length(owner, layer);
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      return 0;
+    }
   }
 
   const bke::Attribute *attr = ptr->data_as<bke::Attribute>();
@@ -696,37 +716,40 @@ static PointerRNA rna_AttributeGroupID_new(
 {
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = BKE_attribute_new(
-        owner, name, eCustomDataType(type), AttrDomain(domain), reports);
-    if (!layer) {
-      return PointerRNA_NULL;
-    }
+    Mesh *mesh = owner.get_mesh();
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      CustomDataLayer *layer = BKE_attribute_new(
+          *mesh, *em->bm, name, eCustomDataType(type), AttrDomain(domain), reports);
+      if (!layer) {
+        return PointerRNA_NULL;
+      }
 
-    if ((GS(id->name) == ID_ME)) {
-      Mesh *mesh = id_cast<Mesh *>(id);
-      if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-        if (!mesh->active_color_attribute) {
-          mesh->active_color_attribute = BLI_strdup(layer->name);
+      if ((GS(id->name) == ID_ME)) {
+        Mesh *mesh = id_cast<Mesh *>(id);
+        if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
+          if (!mesh->active_color_attribute) {
+            mesh->active_color_attribute = BLI_strdup(layer->name);
+          }
+          if (!mesh->default_color_attribute) {
+            mesh->default_color_attribute = BLI_strdup(layer->name);
+          }
         }
-        if (!mesh->default_color_attribute) {
-          mesh->default_color_attribute = BLI_strdup(layer->name);
+        if (ELEM(layer->type, CD_PROP_FLOAT2)) {
+          if (mesh->active_uv_map_name().is_empty()) {
+            mesh->uv_maps_active_set(layer->name);
+          }
+          if (mesh->default_uv_map_name().is_empty()) {
+            mesh->uv_maps_default_set(layer->name);
+          }
         }
       }
-      if (ELEM(layer->type, CD_PROP_FLOAT2)) {
-        if (mesh->active_uv_map_name().is_empty()) {
-          mesh->uv_maps_active_set(layer->name);
-        }
-        if (mesh->default_uv_map_name().is_empty()) {
-          mesh->uv_maps_default_set(layer->name);
-        }
-      }
+
+      DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+      WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+      PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_Attribute, layer);
+      return ptr;
     }
-
-    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
-
-    PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_Attribute, layer);
-    return ptr;
   }
 
   const bke::AttributeAccessor accessor = *owner.get_accessor();
@@ -754,13 +777,16 @@ static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA 
 {
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(attribute_ptr->data);
-    BKE_attribute_remove(owner, layer->name, reports);
-    attribute_ptr->invalidate();
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(attribute_ptr->data);
+      BKE_attribute_remove(owner, layer->name, reports);
+      attribute_ptr->invalidate();
 
-    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
-    return;
+      DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+      WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+      return;
+    }
   }
 
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(attribute_ptr->data);
@@ -787,19 +813,19 @@ void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter,
   AttributeOwner owner = owner_from_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
-    Vector<CustomDataLayer *, 16> layers;
-    const auto add_layers = [&](CustomData &data) {
-      for (CustomDataLayer &layer : MutableSpan(data.layers, data.totlayer)) {
-        if (!(CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & cd_type_mask)) {
-          continue;
-        }
-        if (!include_anonymous && bke::attribute_name_is_anonymous(layer.name)) {
-          continue;
-        }
-        layers.append(&layer);
-      }
-    };
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      Vector<CustomDataLayer *, 16> layers;
+      const auto add_layers = [&](CustomData &data) {
+        for (CustomDataLayer &layer : MutableSpan(data.layers, data.totlayer)) {
+          if (!(CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & cd_type_mask)) {
+            continue;
+          }
+          if (!include_anonymous && bke::attribute_name_is_anonymous(layer.name)) {
+            continue;
+          }
+          layers.append(&layer);
+        }
+      };
       if (domain_mask & ATTR_DOMAIN_MASK_POINT) {
         add_layers(em->bm->vdata);
       }
@@ -812,25 +838,11 @@ void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter,
       if (domain_mask & ATTR_DOMAIN_MASK_CORNER) {
         add_layers(em->bm->ldata);
       }
+      VectorData data = layers.release();
+      rna_iterator_array_begin(
+          iter, ptr, data.data, sizeof(CustomDataLayer *), data.size, true, nullptr);
+      return;
     }
-    else {
-      if (domain_mask & ATTR_DOMAIN_MASK_POINT) {
-        add_layers(mesh->vert_data);
-      }
-      if (domain_mask & ATTR_DOMAIN_MASK_EDGE) {
-        add_layers(mesh->edge_data);
-      }
-      if (domain_mask & ATTR_DOMAIN_MASK_FACE) {
-        add_layers(mesh->face_data);
-      }
-      if (domain_mask & ATTR_DOMAIN_MASK_CORNER) {
-        add_layers(mesh->corner_data);
-      }
-    }
-    VectorData data = layers.release();
-    rna_iterator_array_begin(
-        iter, ptr, data.data, sizeof(CustomDataLayer *), data.size, true, nullptr);
-    return;
   }
 
   bke::AttributeStorage &storage = *owner.get_storage();
@@ -861,12 +873,15 @@ PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter)
 {
   AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = *static_cast<CustomDataLayer **>(rna_iterator_array_get(iter));
-    StructRNA *type = srna_by_custom_data_layer_type(eCustomDataType(layer->type));
-    if (type == nullptr) {
-      return PointerRNA_NULL;
+    Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      CustomDataLayer *layer = *static_cast<CustomDataLayer **>(rna_iterator_array_get(iter));
+      StructRNA *type = srna_by_custom_data_layer_type(eCustomDataType(layer->type));
+      if (type == nullptr) {
+        return PointerRNA_NULL;
+      }
+      return RNA_pointer_create_with_parent(iter->parent, type, layer);
     }
-    return RNA_pointer_create_with_parent(iter->parent, type, layer);
   }
 
   bke::Attribute *attr = *static_cast<bke::Attribute **>(rna_iterator_array_get(iter));
@@ -916,14 +931,6 @@ PointerRNA rna_AttributeGroup_lookup_string(const PointerRNA &ptr,
           ptr, RNA_Attribute, const_cast<CustomDataLayer *>(attr.layer), result);
       return result;
     }
-    else if (CustomDataLayer *layer = BKE_attribute_search_for_write(
-                 owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
-    {
-      PointerRNA result;
-      rna_pointer_create_with_ancestors(ptr, RNA_Attribute, layer, result);
-      return result;
-    }
-    return PointerRNA_NULL;
   }
 
   bke::AttributeStorage &storage = *owner.get_storage();
@@ -970,14 +977,17 @@ static void rna_AttributeGroupID_active_set(PointerRNA *ptr,
 {
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-    if (layer) {
-      BKE_attributes_active_set(owner, layer->name);
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
+      if (layer) {
+        BKE_attributes_active_set(owner, layer->name);
+      }
+      else {
+        BKE_attributes_active_clear(owner);
+      }
+      return;
     }
-    else {
-      BKE_attributes_active_clear(owner);
-    }
-    return;
   }
 
   bke::Attribute *attr = attribute_ptr.data_as<bke::Attribute>();
@@ -1022,7 +1032,10 @@ static int rna_AttributeGroupID_domain_size(ID *id, const int domain)
 {
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    return BKE_attribute_domain_size(owner, domain);
+    const Mesh *mesh = owner.get_mesh();
+    if (mesh->runtime->edit_mesh) {
+      return BKE_attribute_domain_size(owner, domain);
+    }
   }
 
   bke::AttributeAccessor attributes = *owner.get_accessor();

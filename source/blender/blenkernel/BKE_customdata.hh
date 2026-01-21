@@ -229,14 +229,6 @@ bool CustomData_bmesh_merge_layout(const CustomData *source,
                                    char htype);
 
 /**
- * Remove layers that aren't stored in BMesh or are stored as flags on BMesh.
- * The `layers` array of the returned #CustomData must be freed, but may be null.
- * Used during conversion of #Mesh data to #BMesh storage format.
- */
-CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData *src,
-                                                               eCustomDataMask mask);
-
-/**
  * NULL's all members and resets the #CustomData.typemap.
  *
  * \warning Does not free or release any internal resources.

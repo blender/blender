@@ -173,11 +173,11 @@ struct Mesh {
   int *face_offset_indices = nullptr;
 
   /**
-   * Vertex, edge, face, and corner generic attributes. Currently unused at runtime, but used for
-   * forward compatibility when reading files (see #122398).
+   * Vertex, edge, face, and corner generic attributes.
    */
   struct AttributeStorage attribute_storage;
 
+  /** Store for non-generic layer data on each domain. */
   CustomData vert_data;
   CustomData edge_data;
   CustomData face_data;

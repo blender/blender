@@ -687,17 +687,8 @@ static void mesh_add_verts(Mesh *mesh, int len)
   }
 
   int totvert = mesh->verts_num + len;
-  CustomData vert_data;
-  CustomData_init_layout_from(
-      &mesh->vert_data, &vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
-  CustomData_copy_data(&mesh->vert_data, &vert_data, 0, 0, mesh->verts_num);
-
-  if (!CustomData_has_layer_named(&vert_data, CD_PROP_FLOAT3, "position")) {
-    CustomData_add_layer_named(&vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
-  }
-
-  CustomData_free(&mesh->vert_data);
-  mesh->vert_data = vert_data;
+  mesh->attribute_storage.wrap().resize(bke::AttrDomain::Point, totvert);
+  CustomData_realloc(&mesh->vert_data, mesh->verts_num, totvert, CD_SET_DEFAULT);
 
   BKE_mesh_runtime_clear_cache(mesh);
 
@@ -708,11 +699,11 @@ static void mesh_add_verts(Mesh *mesh, int len)
       ".select_vert", bke::AttrDomain::Point);
   select_vert.span.take_back(len).fill(true);
   select_vert.finish();
+  attributes.add<float3>("position", bke::AttrDomain::Point, bke::AttributeInitDefaultValue());
 }
 
 static void mesh_add_edges(Mesh *mesh, int len)
 {
-  CustomData edge_data;
   int totedge;
 
   if (len == 0) {
@@ -721,18 +712,8 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   totedge = mesh->edges_num + len;
 
-  /* Update custom-data. */
-  CustomData_init_layout_from(
-      &mesh->edge_data, &edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
-  CustomData_copy_data(&mesh->edge_data, &edge_data, 0, 0, mesh->edges_num);
-
-  if (!CustomData_has_layer_named(&edge_data, CD_PROP_INT32_2D, ".edge_verts")) {
-    CustomData_add_layer_named(
-        &edge_data, CD_PROP_INT32_2D, CD_SET_DEFAULT, totedge, ".edge_verts");
-  }
-
-  CustomData_free(&mesh->edge_data);
-  mesh->edge_data = edge_data;
+  mesh->attribute_storage.wrap().resize(bke::AttrDomain::Edge, totedge);
+  CustomData_realloc(&mesh->edge_data, mesh->edges_num, totedge, CD_SET_DEFAULT);
 
   BKE_mesh_runtime_clear_cache(mesh);
 
@@ -743,11 +724,11 @@ static void mesh_add_edges(Mesh *mesh, int len)
       ".select_edge", bke::AttrDomain::Edge);
   select_edge.span.take_back(len).fill(true);
   select_edge.finish();
+  attributes.add<float3>(".edge_verts", bke::AttrDomain::Edge, bke::AttributeInitDefaultValue());
 }
 
 static void mesh_add_loops(Mesh *mesh, int len)
 {
-  CustomData ldata;
   int totloop;
 
   if (len == 0) {
@@ -756,24 +737,16 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   totloop = mesh->corners_num + len; /* new face count */
 
-  /* update customdata */
-  CustomData_init_layout_from(
-      &mesh->corner_data, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
-  CustomData_copy_data(&mesh->corner_data, &ldata, 0, 0, mesh->corners_num);
-
-  if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
-    CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_vert");
-  }
-  if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_edge")) {
-    CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_edge");
-  }
+  mesh->attribute_storage.wrap().resize(bke::AttrDomain::Corner, totloop);
+  CustomData_realloc(&mesh->corner_data, mesh->corners_num, totloop, CD_SET_DEFAULT);
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  CustomData_free(&mesh->corner_data);
-  mesh->corner_data = ldata;
-
   mesh->corners_num = totloop;
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  attributes.add<int>(".corner_vert", bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
+  attributes.add<int>(".corner_edge", bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
 
   /* Keep the last face offset up to date with the corner total (they must be the same). We have
    * to be careful here though, since the mesh may not be in a valid state at this point. */
@@ -784,7 +757,6 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
 static void mesh_add_faces(Mesh *mesh, int len)
 {
-  CustomData face_data;
   int faces_num;
 
   if (len == 0) {
@@ -793,10 +765,8 @@ static void mesh_add_faces(Mesh *mesh, int len)
 
   faces_num = mesh->faces_num + len; /* new face count */
 
-  /* update customdata */
-  CustomData_init_layout_from(
-      &mesh->face_data, &face_data, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
-  CustomData_copy_data(&mesh->face_data, &face_data, 0, 0, mesh->faces_num);
+  mesh->attribute_storage.wrap().resize(bke::AttrDomain::Face, faces_num);
+  CustomData_realloc(&mesh->face_data, mesh->faces_num, faces_num, CD_SET_DEFAULT);
 
   implicit_sharing::resize_trivial_array(&mesh->face_offset_indices,
                                          &mesh->runtime->face_offsets_sharing_info,
@@ -805,9 +775,6 @@ static void mesh_add_faces(Mesh *mesh, int len)
   /* Set common values for convenience. */
   mesh->face_offset_indices[0] = 0;
   mesh->face_offset_indices[faces_num] = mesh->corners_num;
-
-  CustomData_free(&mesh->face_data);
-  mesh->face_data = face_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
 

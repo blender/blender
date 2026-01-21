@@ -26,6 +26,7 @@ class AttributeAccessor;
 class AttributeStorage;
 class MutableAttributeAccessor;
 }  // namespace bke
+struct BMesh;
 struct CustomData;
 struct CustomDataLayer;
 struct ID;
@@ -89,27 +90,18 @@ class AttributeOwner {
 /**
  * Create a new attribute layer.
  */
-struct CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
+struct CustomDataLayer *BKE_attribute_new(Mesh &mesh,
+                                          BMesh &bm,
                                           StringRef name,
                                           eCustomDataType type,
                                           bke::AttrDomain domain,
                                           struct ReportList *reports);
 bool BKE_attribute_remove(AttributeOwner &owner, StringRef name, struct ReportList *reports);
 
-const struct CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
-                                                   StringRef name,
-                                                   eCustomDataMask type,
-                                                   AttrDomainMask domain_mask);
-
-struct CustomDataLayer *BKE_attribute_search_for_write(AttributeOwner &owner,
-                                                       StringRef name,
-                                                       eCustomDataMask type,
-                                                       AttrDomainMask domain_mask);
-
-bke::AttrDomain BKE_attribute_domain(const AttributeOwner &owner,
+bke::AttrDomain BKE_attribute_domain(const Mesh &mesh,
+                                     const BMesh &bm,
                                      const struct CustomDataLayer *layer);
 int BKE_attribute_domain_size(const AttributeOwner &owner, int domain);
-int BKE_attribute_data_length(AttributeOwner &owner, struct CustomDataLayer *layer);
 bool BKE_attribute_required(const AttributeOwner &owner, StringRef name);
 bool BKE_attribute_rename(AttributeOwner &owner,
                           StringRef old_name,

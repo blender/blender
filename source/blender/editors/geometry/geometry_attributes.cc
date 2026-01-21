@@ -336,19 +336,22 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh &mesh = *id_cast<Mesh *>(id);
-    CustomDataLayer *layer = BKE_attribute_new(owner, name, cd_type, domain, op->reports);
-    if (layer == nullptr) {
-      return OPERATOR_CANCELLED;
+    if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
+      CustomDataLayer *layer = BKE_attribute_new(
+          mesh, *em->bm, name, cd_type, domain, op->reports);
+      if (layer == nullptr) {
+        return OPERATOR_CANCELLED;
+      }
+      const StringRefNull new_name = layer->name;
+      BKE_attributes_active_set(owner, new_name);
+
+      set_active_default_status_on_add(mesh, domain, type, new_name);
+
+      DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+      WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+      return OPERATOR_FINISHED;
     }
-    const StringRefNull new_name = layer->name;
-    BKE_attributes_active_set(owner, new_name);
-
-    set_active_default_status_on_add(mesh, domain, type, new_name);
-
-    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
-
-    return OPERATOR_FINISHED;
   }
 
   bke::MutableAttributeAccessor accessor = *owner.get_accessor();
@@ -367,6 +370,10 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
       bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
 
   BKE_attributes_active_set(owner, attr.name());
+
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    set_active_default_status_on_add(*owner.get_mesh(), domain, type, attr.name());
+  }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -498,19 +505,22 @@ static wmOperatorStatus geometry_color_attribute_add_exec(bContext *C, wmOperato
   const std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
 
   if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = BKE_attribute_new(owner, unique_name, type, domain, op->reports);
-    if (layer == nullptr) {
-      return OPERATOR_CANCELLED;
+    Mesh *mesh = owner.get_mesh();
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      CustomDataLayer *layer = BKE_attribute_new(*mesh, *em->bm, name, type, domain, op->reports);
+      if (layer == nullptr) {
+        return OPERATOR_CANCELLED;
+      }
+      BKE_id_attributes_active_color_set(id, unique_name);
+      if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id).value_or("")))
+      {
+        BKE_id_attributes_default_color_set(id, unique_name);
+      }
+      sculpt_paint::object_active_color_fill(*ob, color, false);
+      DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+      WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+      return OPERATOR_FINISHED;
     }
-
-    BKE_id_attributes_active_color_set(id, unique_name);
-    if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id).value_or(""))) {
-      BKE_id_attributes_default_color_set(id, unique_name);
-    }
-    sculpt_paint::object_active_color_fill(*ob, color, false);
-    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
-    return OPERATOR_FINISHED;
   }
 
   bke::MutableAttributeAccessor attributes = *owner.get_accessor();

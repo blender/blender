@@ -5356,20 +5356,18 @@ void store_mesh_from_eval(const wmOperator &op,
       undo::push_begin(scene, object, &op);
       undo::push_nodes(depsgraph, object, leaf_nodes, undo::Type::Position);
       undo::push_end(object);
-      CustomData_free_layer_named(&mesh.vert_data, "position");
-      mesh.attributes_for_write().remove("position");
+      mesh.attribute_storage.wrap().remove("position");
       const bke::AttributeReader position = new_mesh->attributes().lookup<float3>("position");
       if (position.sharing_info) {
         /* Use lower level API to add the position attribute to avoid copying the array and to
          * allow using #tag_positions_changed_no_normals instead of #tag_positions_changed (which
          * would be called by the attribute API). */
-        CustomData_add_layer_named_with_data(
-            &mesh.vert_data,
-            CD_PROP_FLOAT3,
-            const_cast<float3 *>(position.varray.get_internal_span().data()),
-            mesh.verts_num,
-            "position",
-            position.sharing_info);
+        bke::Attribute::ArrayData data{};
+        data.data = const_cast<float3 *>(position.varray.get_internal_span().data());
+        data.size = position.varray.size();
+        data.sharing_info = ImplicitSharingPtr<>(position.sharing_info);
+        mesh.attribute_storage.wrap().add(
+            "position", bke::AttrDomain::Point, bke::AttrType::Float3, std::move(data));
       }
       else {
         mesh.vert_positions_for_write().copy_from(VArraySpan(*position));
