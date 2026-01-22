@@ -293,6 +293,7 @@ struct ProjPaintState {
   short brush_type;
   short blend;
   BrushStrokeMode mode;
+  BrushSwitchMode brush_switch_mode;
 
   float brush_size;
   Object *ob;
@@ -5085,7 +5086,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps,
   if (LIKELY(accum_tot != 0)) {
     mul_v4_fl(rgba, 1.0f / accum_tot);
 
-    if (ps->mode == BRUSH_STROKE_INVERT) {
+    if (ps->mode == BrushStrokeMode::Invert) {
       /* subtract blurred image from normal image gives high pass filter */
       sub_v3_v3v3(rgba, projPixel->pixel.f_pt, rgba);
 
@@ -5148,7 +5149,7 @@ static void do_projectpaint_soften(ProjPaintState *ps,
 
     mul_v4_fl(rgba, 1.0f / accum_tot);
 
-    if (ps->mode == BRUSH_STROKE_INVERT) {
+    if (ps->mode == BrushStrokeMode::Invert) {
       float rgba_pixel[4];
 
       straight_uchar_to_premul_float(rgba_pixel, projPixel->pixel.ch_pt);
@@ -5905,7 +5906,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
     paint_brush_color_get(paint,
                           brush,
                           ps_handle->initial_hsv_jitter,
-                          ps->mode == BRUSH_STROKE_INVERT,
+                          ps->mode == BrushStrokeMode::Invert,
                           distance,
                           pressure,
                           ps->paint_color_linear);
@@ -5940,7 +5941,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
   else if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK) {
     ps->stencil_value = brush->weight;
 
-    if ((ps->mode == BRUSH_STROKE_INVERT) ^
+    if ((ps->mode == BrushStrokeMode::Invert) ^
         ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) != 0))
     {
       ps->stencil_value = 1.0f - ps->stencil_value;
@@ -5997,28 +5998,33 @@ void paint_proj_stroke(const bContext *C,
 }
 
 /* initialize project paint settings from context */
-static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int mode)
+static void project_state_init(bContext *C,
+                               Object *ob,
+                               ProjPaintState *ps,
+                               const BrushStrokeMode mode,
+                               const BrushSwitchMode brush_switch_mode)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
 
   /* brush */
-  ps->mode = BrushStrokeMode(mode);
+  ps->mode = mode;
+  ps->brush_switch_mode = brush_switch_mode;
   ps->paint = BKE_paint_get_active_from_context(C);
   ps->brush = BKE_paint_brush(&settings->imapaint.paint);
   if (ps->brush) {
     Brush *brush = ps->brush;
     ps->brush_type = brush->image_brush_type;
     ps->blend = brush->blend;
-    if (mode == BRUSH_STROKE_SMOOTH) {
+    if (brush_switch_mode == BrushSwitchMode::Smooth) {
       ps->brush_type = IMAGE_PAINT_BRUSH_TYPE_SOFTEN;
     }
     /* only check for inversion for the soften brush, elsewhere,
      * a resident brush inversion flag can cause issues */
     if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) {
-      ps->mode = (((ps->mode == BRUSH_STROKE_INVERT) ^ ((brush->flag & BRUSH_DIR_IN) != 0)) ?
-                      BRUSH_STROKE_INVERT :
-                      BRUSH_STROKE_NORMAL);
+      ps->mode = (((ps->mode == BrushStrokeMode::Invert) ^ ((brush->flag & BRUSH_DIR_IN) != 0)) ?
+                      BrushStrokeMode::Invert :
+                      BrushStrokeMode::Normal);
 
       ps->blurkernel = paint_new_blur_kernel(brush, true);
     }
@@ -6108,7 +6114,11 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
   ps->dither = settings->imapaint.dither;
 }
 
-void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int mode)
+void *paint_proj_new_stroke(bContext *C,
+                            Object *ob,
+                            const float mouse[2],
+                            const BrushStrokeMode mode,
+                            const BrushSwitchMode brush_switch_mode)
 {
   ProjStrokeHandle *ps_handle;
   Scene *scene = CTX_data_scene(C);
@@ -6124,7 +6134,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
     ps_handle->initial_hsv_jitter = seed_hsv_jitter();
   }
 
-  if (mode == BRUSH_STROKE_INVERT) {
+  if (mode == BrushStrokeMode::Invert) {
     /* Bypass regular stroke logic. */
     if (ps_handle->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
       view3d_operator_needs_gpu(C);
@@ -6166,7 +6176,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     ProjPaintState *ps = ps_handle->ps_views[i];
 
-    project_state_init(C, ob, ps, mode);
+    project_state_init(C, ob, ps, mode, brush_switch_mode);
 
     if (ps->ob == nullptr) {
       ps_handle->ps_views_tot = i + 1;
@@ -6288,7 +6298,7 @@ static wmOperatorStatus texture_paint_camera_project_exec(bContext *C, wmOperato
     return OPERATOR_CANCELLED;
   }
 
-  project_state_init(C, ob, &ps, BRUSH_STROKE_NORMAL);
+  project_state_init(C, ob, &ps, BrushStrokeMode::Normal, BrushSwitchMode::None);
 
   if (image == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Image could not be found");

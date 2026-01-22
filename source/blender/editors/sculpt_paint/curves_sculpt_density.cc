@@ -805,7 +805,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
 
   const eBrushCurvesSculptDensityMode density_mode = eBrushCurvesSculptDensityMode(
       brush.curves_sculpt_settings->density_mode);
-  const bool use_invert = brush_mode == BRUSH_STROKE_INVERT;
+  const bool use_invert = brush_mode == BrushStrokeMode::Invert;
 
   if (density_mode == BRUSH_CURVES_SCULPT_DENSITY_MODE_ADD) {
     return !use_invert;

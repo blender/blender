@@ -397,7 +397,6 @@ void update_cache_invariants(
   Object &ob = *stroke->object;
   float mat[3][3];
   float view_dir[3] = {0.0f, 0.0f, 1.0f};
-  int mode;
 
   /* VW paint needs to allocate stroke cache before update is called. */
   if (!ss.cache) {
@@ -416,9 +415,11 @@ void update_cache_invariants(
     zero_v2(cache->initial_mouse);
   }
 
-  mode = RNA_enum_get(op->ptr, "mode");
-  cache->invert = mode == BRUSH_STROKE_INVERT;
-  cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
+  const auto mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
+  cache->invert = mode == BrushStrokeMode::Invert;
+
+  const auto brush_switch_mode = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
+  cache->alt_smooth = brush_switch_mode == BrushSwitchMode::Smooth;
   /* not very nice, but with current events system implementation
    * we can't handle brush appearance inversion hotkey separately (sergey) */
   if (cache->invert) {
@@ -949,8 +950,8 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(wmOperator *op,
                                   brush.falloff_angle,
                                   (brush.flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
-  vpd->paintcol = vpaint_get_current_col(vp,
-                                         (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT));
+  vpd->paintcol = vpaint_get_current_col(
+      vp, (BrushStrokeMode(RNA_enum_get(op->ptr, "mode")) == BrushStrokeMode::Invert));
 
   vpd->is_texbrush = !(brush.vertex_brush_type == VPAINT_BRUSH_TYPE_BLUR) && brush.mtex.tex;
 
