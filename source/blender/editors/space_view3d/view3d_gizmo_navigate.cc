@@ -326,13 +326,17 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
       rect_visible->ymax - icon_offset,
   };
 
-  float icon_offset_from_axis = 0.0f;
+  float icon_offset_from_axis = icon_offset_mini * 0.75f;
   switch (eUserpref_MiniAxisType(U.mini_axis_type)) {
     case USER_MINI_AXIS_TYPE_GIZMO:
-      icon_offset_from_axis = icon_offset * 2.1f;
+      icon_offset_from_axis = icon_offset * 2.2f;
       break;
     case USER_MINI_AXIS_TYPE_MINIMAL:
-      icon_offset_from_axis = (UI_UNIT_X * 2.5) + (U.rvisize * U.pixelsize * 2.0f);
+      if (region->alignment != RGN_ALIGN_QSPLIT ||
+          region->runtime->quadview_index == bke::ARegionQuadviewIndex::TopRight)
+      {
+        icon_offset_from_axis = (UI_UNIT_X * 2.0) + (U.rvisize * UI_SCALE_FAC * 1.6f);
+      }
       break;
     case USER_MINI_AXIS_TYPE_NONE:
       icon_offset_from_axis = icon_offset_mini * 0.75f;

@@ -1660,7 +1660,11 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
         /* The gizmo handles its own drawing. */
         break;
       case USER_MINI_AXIS_TYPE_MINIMAL:
-        draw_view_axis(rv3d, rect);
+        if (region->alignment != RGN_ALIGN_QSPLIT ||
+            region->runtime->quadview_index == bke::ARegionQuadviewIndex::TopRight)
+        {
+          draw_view_axis(rv3d, rect);
+        }
       case USER_MINI_AXIS_TYPE_NONE:
         break;
     }
