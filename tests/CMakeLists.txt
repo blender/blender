@@ -71,7 +71,7 @@ endif()
 add_subdirectory(gtests)
 
 if(WITH_COMPILER_CODE_COVERAGE)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(COVERAGE_SCRIPT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/coverage/coverage.py)
 
     add_custom_target(coverage-report

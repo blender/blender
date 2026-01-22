@@ -574,7 +574,7 @@ macro(get_sse_flags
 
   if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64)" OR CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
     # message(STATUS "Detecting SSE support")
-    if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+    if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
       set(${_sse42_flags} "-march=x86-64-v2")
     elseif(MSVC)
       # MSVC has no specific compile flags for SSE42 (only for AVX).
@@ -687,7 +687,7 @@ endmacro()
 
 macro(remove_strict_flags)
 
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     remove_cc_flag(
       "-Wstrict-prototypes"
       "-Wsuggest-attribute=format"
@@ -742,7 +742,7 @@ macro(remove_strict_flags)
 endmacro()
 
 macro(remove_extra_strict_flags)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     remove_cc_flag(
       "-Wunused-parameter"
     )
@@ -768,7 +768,7 @@ endmacro()
 macro(remove_strict_c_flags_file
   filenames)
   foreach(_SOURCE ${ARGV})
-    if(CMAKE_COMPILER_IS_GNUCC OR
+    if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
        (CMAKE_C_COMPILER_ID MATCHES "Clang"))
       set_source_files_properties(
         ${_SOURCE} PROPERTIES
@@ -786,7 +786,7 @@ macro(remove_strict_cxx_flags_file
   filenames)
   remove_strict_c_flags_file(${filenames} ${ARHV})
   foreach(_SOURCE ${ARGV})
-    if(CMAKE_COMPILER_IS_GNUCC OR
+    if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
        (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
       set_source_files_properties(
         ${_SOURCE} PROPERTIES
@@ -802,7 +802,7 @@ endmacro()
 
 # External libs may need 'signed char' to be default.
 macro(remove_cc_flag_unsigned_char)
-  if(CMAKE_COMPILER_IS_GNUCC OR
+  if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
      (CMAKE_C_COMPILER_ID MATCHES "Clang") OR
      (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
     remove_cc_flag("-funsigned-char")
@@ -1518,7 +1518,7 @@ endmacro()
 
 macro(with_shader_cpp_compilation_config)
   # avoid noisy warnings
-  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
     add_c_flag("-Wno-unused-result")
     remove_cc_flag("-Wmissing-declarations")
     # Would be nice to enable the warning once we support references.

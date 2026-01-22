@@ -139,7 +139,7 @@ endif()
 #
 # Keep in sync with: https://developer.blender.org/docs/handbook/building_blender/
 
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "14.0.0")
     message(FATAL_ERROR
       "The minimum supported version of GCC is 14.0.0, found C compiler: "
@@ -153,7 +153,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
     )
   endif()
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "17.0")
       message(FATAL_ERROR
         "The minimum supported version of CLANG is 17.0, found C compiler: "
@@ -308,7 +308,7 @@ Use pre-compiled headers to speed up compilation."
   )
   mark_as_advanced(WITH_COMPILER_PRECOMPILED_HEADERS)
 
-  if(WITH_CLANG_TIDY AND (CMAKE_COMPILER_IS_GNUCC OR APPLE))
+  if(WITH_CLANG_TIDY AND ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR APPLE))
     if(WITH_COMPILER_PRECOMPILED_HEADERS)
       message(STATUS
         "Clang-Tidy and the current compiler's precompiled headers are incompatible, "
@@ -1005,11 +1005,11 @@ mark_as_advanced(WITH_STRSIZE_DEBUG)
 
 # Compiler tool-chain.
 if(UNIX AND NOT APPLE)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
     mark_as_advanced(WITH_LINKER_GOLD)
   endif()
-  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
     option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
     mark_as_advanced(WITH_LINKER_LLD)
     option(WITH_LINKER_MOLD "Use ld.mold linker which is usually faster than ld.gold & ld.lld" OFF)
@@ -1040,7 +1040,7 @@ Build and link with code coverage support (only for Debug targets)."
 mark_as_advanced(WITH_COMPILER_CODE_COVERAGE)
 
 if(WITH_COMPILER_CODE_COVERAGE)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(_code_coverage_defaults "--coverage")
   elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     get_filename_component(COMPILER_DIRECTORY ${CMAKE_CXX_COMPILER} DIRECTORY)
@@ -1086,7 +1086,7 @@ if(WITH_COMPILER_CODE_COVERAGE)
   endif()
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
   if(WITH_COMPILER_ASAN)
     set(_asan_defaults "\
 -fsanitize=address \
@@ -1115,7 +1115,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
       else()
         string(APPEND _asan_defaults " -fsanitize=object-size")
       endif()
-    elseif(CMAKE_COMPILER_IS_GNUCC)
+    elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
       string(APPEND _asan_defaults " -fsanitize=leak -fsanitize=object-size")
     else()
       string(APPEND _asan_defaults " -fsanitize=leak")
@@ -1151,7 +1151,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
       )
       unset(CLANG_LIB_DIR)
       mark_as_advanced(COMPILER_ASAN_LIBRARY)
-    elseif(CMAKE_COMPILER_IS_GNUCC)
+    elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
       find_library(
         COMPILER_ASAN_LIBRARY asan ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}
       )
@@ -1161,7 +1161,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   endif()
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
   option(WITH_COMPILER_SHORT_FILE_MACRO "\
 Make paths in macros like __FILE__ relative to top level source and build directories."
     ON
@@ -1505,7 +1505,7 @@ set(PLATFORM_LINKFLAGS_RELEASE "")
 set(PLATFORM_LINKFLAGS_EXECUTABLE "")
 
 if(WITH_COMPILER_CODE_COVERAGE)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     # GCC only supports this on debug builds.
     string(APPEND CMAKE_C_FLAGS_DEBUG " ${COMPILER_CODE_COVERAGE_CFLAGS}")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " ${COMPILER_CODE_COVERAGE_CXXFLAGS}")
@@ -1944,7 +1944,7 @@ endif()
 # -----------------------------------------------------------------------------
 # Extra Compile Flags
 
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
   add_check_c_compiler_flags(
     C_WARNINGS
@@ -2629,7 +2629,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Visual Studio has all standards it supports available by default
 # Clang on windows copies this behavior and does not support these switches
-if(CMAKE_COMPILER_IS_GNUCC OR
+if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
    (CMAKE_C_COMPILER_ID MATCHES "Clang" AND (NOT MSVC)) OR
    (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
 

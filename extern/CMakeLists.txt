@@ -14,7 +14,7 @@ endif()
 remove_strict_flags()
 
 # Not a strict flag, but noisy for code we don't maintain
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   remove_cc_flag(
     "-Wmisleading-indentation"
   )

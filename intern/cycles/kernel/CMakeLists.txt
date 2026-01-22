@@ -341,7 +341,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if(WITH_COMPILER_ASAN)
-  if(CMAKE_COMPILER_IS_GNUCC AND (NOT WITH_CYCLES_KERNEL_ASAN))
+  if((CMAKE_C_COMPILER_ID STREQUAL "GNU") AND (NOT WITH_CYCLES_KERNEL_ASAN))
     # GCC hangs compiling the big kernel files with ASAN and release, so disable by default.
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")
