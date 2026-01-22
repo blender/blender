@@ -476,19 +476,19 @@ def main():
             "MokeyLoopMultiSelect",
             "testMonkeyLoopMultiSelect",
             "expectedMonkeyLoopMultiSelect",
-            [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {355, 359, 73, 301, 302})],
+            [OperatorSpecEditMode("select_edge_loop_multi", {}, "VERT", {355, 359, 73, 301, 302})],
         ),
         SpecMeshTest(
             "HoledGridLoopMultiSelect",
             "testGridLoopMultiSelect",
             "expectedGridLoopMultiSelect",
-            [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {257, 169, 202, 207, 274, 278, 63})],
+            [OperatorSpecEditMode("select_edge_loop_multi", {}, "VERT", {257, 169, 202, 207, 274, 278, 63})],
         ),
         SpecMeshTest(
             "EmptyMeshLoopMultiSelect",
             "testEmptyMeshLoopMultiSelect",
             "expectedEmptyMeshLoopMultiSelect",
-            [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {})],
+            [OperatorSpecEditMode("select_edge_loop_multi", {}, "VERT", {})],
         ),
         # mark seam
         SpecMeshTest(

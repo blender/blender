@@ -1724,14 +1724,14 @@ static bool walker_select(BMEditMesh *em,
   return changed;
 }
 
-static wmOperatorStatus edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator *op)
 {
-  const bool is_ring = RNA_boolean_get(op->ptr, "ring");
-  BMWDelimitFlag delimit = BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop"));
+  const BMWDelimitFlag delimit = BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop"));
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
+
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
@@ -1761,34 +1761,22 @@ static wmOperatorStatus edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
     }
 
     bool changed = false;
-    if (is_ring) {
-      for (edindex = 0; edindex < totedgesel; edindex += 1) {
-        eed = edarray[edindex];
+    for (edindex = 0; edindex < totedgesel; edindex += 1) {
+      eed = edarray[edindex];
+      const bool non_manifold = BM_edge_face_count_is_over(eed, 2);
+      if (non_manifold) {
         changed |= walker_select(
-            em, BMW_EDGERING, eed, true, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+            em, BMW_EDGELOOP_NONMANIFOLD, eed, true, BMW_FLAG_TEST_HIDDEN, delimit);
       }
-      if (changed) {
-        EDBM_selectmode_flush(em);
-        EDBM_uvselect_clear(em);
-      }
-    }
-    else {
-      for (edindex = 0; edindex < totedgesel; edindex += 1) {
-        eed = edarray[edindex];
-        bool non_manifold = BM_edge_face_count_is_over(eed, 2);
-        if (non_manifold) {
-          changed |= walker_select(
-              em, BMW_EDGELOOP_NONMANIFOLD, eed, true, BMW_FLAG_TEST_HIDDEN, delimit);
-        }
-        else {
-          changed |= walker_select(em, BMW_EDGELOOP, eed, true, BMW_FLAG_TEST_HIDDEN, delimit);
-        }
-      }
-      if (changed) {
-        EDBM_selectmode_flush(em);
-        EDBM_uvselect_clear(em);
+      else {
+        changed |= walker_select(em, BMW_EDGELOOP, eed, true, BMW_FLAG_TEST_HIDDEN, delimit);
       }
     }
+    if (changed) {
+      EDBM_selectmode_flush(em);
+      EDBM_uvselect_clear(em);
+    }
+
     MEM_freeN(edarray);
 
     if (changed) {
@@ -1800,28 +1788,99 @@ static wmOperatorStatus edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void MESH_OT_loop_multi_select(wmOperatorType *ot)
+static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    if (em->bm->totedgesel == 0) {
+      continue;
+    }
+
+    BMEdge *eed;
+    int edindex;
+    BMIter iter;
+    int totedgesel = 0;
+
+    BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+      if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+        totedgesel++;
+      }
+    }
+
+    BMEdge **edarray = MEM_malloc_arrayN<BMEdge *>(totedgesel, "edge array");
+    edindex = 0;
+
+    BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+      if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+        edarray[edindex] = eed;
+        edindex++;
+      }
+    }
+
+    bool changed = false;
+    for (edindex = 0; edindex < totedgesel; edindex += 1) {
+      eed = edarray[edindex];
+      changed |= walker_select(
+          em, BMW_EDGERING, eed, true, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+    }
+    if (changed) {
+      EDBM_selectmode_flush(em);
+      EDBM_uvselect_clear(em);
+    }
+
+    MEM_freeN(edarray);
+
+    if (changed) {
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_edge_loop_multi(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Multi Select Loops";
-  ot->idname = "MESH_OT_loop_multi_select";
-  ot->description = "Select a loop of connected edges by connection type";
+  ot->name = "Multi Select Edge Loops";
+  ot->idname = "MESH_OT_select_edge_loop_multi";
+  ot->description = "Select loops of connected edges from each selected edge";
 
   /* API callbacks. */
-  ot->exec = edbm_loop_multiselect_exec;
+  ot->exec = edbm_edge_loop_multiselect_exec;
   ot->poll = ED_operator_editmesh;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties. */
-  RNA_def_boolean(ot->srna, "ring", false, "Ring", "");
   RNA_def_enum_flag(ot->srna,
                     "delimit_edge_loop",
                     rna_enum_mesh_walk_delimit_edge_loop_items,
                     BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS | BMW_DELIMIT_EDGE_LOOP_NGONS,
                     "Boundary Delimit",
                     "Delimit edge loop selection");
+}
+
+void MESH_OT_select_edge_ring_multi(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Multi Select Edge Rings";
+  ot->idname = "MESH_OT_select_edge_ring_multi";
+  ot->description = "Select rings of connected edges from each selected edge";
+
+  /* API callbacks. */
+  ot->exec = edbm_edge_ring_multiselect_exec;
+  ot->poll = ED_operator_editmesh;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 /** \} */
 
@@ -2065,7 +2124,6 @@ static bool mouse_mesh_loop(bContext *C,
 
 static wmOperatorStatus edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-
   view3d_operator_needs_gpu(C);
 
   if (mouse_mesh_loop(C,
@@ -2073,8 +2131,25 @@ static wmOperatorStatus edbm_select_loop_invoke(bContext *C, wmOperator *op, con
                       RNA_boolean_get(op->ptr, "extend"),
                       RNA_boolean_get(op->ptr, "deselect"),
                       RNA_boolean_get(op->ptr, "toggle"),
-                      RNA_boolean_get(op->ptr, "ring"),
+                      false,
                       BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop"))))
+  {
+    return OPERATOR_FINISHED;
+  }
+  return OPERATOR_CANCELLED;
+}
+
+static wmOperatorStatus edbm_select_ring_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  view3d_operator_needs_gpu(C);
+
+  if (mouse_mesh_loop(C,
+                      event->mval,
+                      RNA_boolean_get(op->ptr, "extend"),
+                      RNA_boolean_get(op->ptr, "deselect"),
+                      RNA_boolean_get(op->ptr, "toggle"),
+                      true,
+                      BMW_DELIMIT_NONE))
   {
     return OPERATOR_FINISHED;
   }
@@ -2104,8 +2179,6 @@ void MESH_OT_loop_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "ring", false, "Select Ring", "Select ring");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_enum_flag(ot->srna,
                     "delimit_edge_loop",
                     rna_enum_mesh_walk_delimit_edge_loop_items,
@@ -2122,7 +2195,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   ot->description = "Select an edge ring";
 
   /* Callbacks. */
-  ot->invoke = edbm_select_loop_invoke;
+  ot->invoke = edbm_select_ring_invoke;
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* Flags. */
@@ -2135,8 +2208,6 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Remove from the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "ring", true, "Select Ring", "Select ring");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
