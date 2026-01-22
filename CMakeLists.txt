@@ -153,19 +153,17 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     )
   endif()
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "17.0")
-      message(FATAL_ERROR
-        "The minimum supported version of CLANG is 17.0, found C compiler: "
-        "${CMAKE_C_COMPILER_VERSION}"
-      )
-    endif()
-    if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "17.0")
-      message(FATAL_ERROR
-        "The minimum supported version of CLANG is 17.0, found C++ compiler: "
-        "${CMAKE_CXX_COMPILER_VERSION}"
-      )
-    endif()
+  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "17.0")
+    message(FATAL_ERROR
+      "The minimum supported version of CLANG is 17.0, found C compiler: "
+      "${CMAKE_C_COMPILER_VERSION}"
+    )
+  endif()
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "17.0")
+    message(FATAL_ERROR
+      "The minimum supported version of CLANG is 17.0, found C++ compiler: "
+      "${CMAKE_CXX_COMPILER_VERSION}"
+    )
   endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   if(MSVC_VERSION VERSION_LESS "1928")
