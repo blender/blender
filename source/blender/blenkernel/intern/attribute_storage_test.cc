@@ -41,6 +41,35 @@ TEST(attribute_storage, Single)
   EXPECT_EQ(count, 1);
 }
 
+TEST(attribute_storage, Iterator)
+{
+  AttributeStorage storage;
+
+  storage.add("foo",
+              AttrDomain::Point,
+              AttrType::Float,
+              Attribute::SingleData::from_default_value(CPPType::get<float>()));
+  storage.add("bar",
+              AttrDomain::Point,
+              AttrType::Float,
+              Attribute::SingleData::from_default_value(CPPType::get<float>()));
+  Vector<StringRef> expected_names{"foo", "bar"};
+  {
+    Vector<StringRef> names;
+    for (Attribute &attr : storage) {
+      names.append(attr.name());
+    }
+    EXPECT_EQ(names, expected_names);
+  }
+  {
+    Vector<StringRef> names;
+    for (const Attribute &attr : const_cast<const AttributeStorage &>(storage)) {
+      names.append(attr.name());
+    }
+    EXPECT_EQ(names, expected_names);
+  }
+}
+
 TEST(attribute_storage, GetForWrite)
 {
   AttributeStorage storage;

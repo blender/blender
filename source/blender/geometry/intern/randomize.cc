@@ -86,9 +86,9 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
                                      const bke::AttrDomain domain,
                                      const Span<int> new_by_old_map)
 {
-  data.foreach([&](bke::Attribute &attr) {
+  for (bke::Attribute &attr : data) {
     if (attr.domain() != domain) {
-      return;
+      continue;
     }
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
@@ -99,12 +99,13 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
                                     new_by_old_map,
                                     GMutableSpan(type, new_data.data, new_data.size));
         attr.assign_data(std::move(new_data));
+        break;
       }
       case bke::AttrStorageType::Single: {
-        return;
+        break;
       }
     }
-  });
+  }
 }
 
 void debug_randomize_vert_order(Mesh *mesh)
@@ -187,9 +188,9 @@ static void reorder_attribute_groups(bke::AttributeStorage &storage,
                                      const Span<int> new_by_old_map)
 {
   const int groups_num = new_by_old_map.size();
-  storage.foreach([&](bke::Attribute &attr) {
+  for (bke::Attribute &attr : storage) {
     if (attr.domain() != domain) {
-      return;
+      continue;
     }
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
@@ -210,12 +211,13 @@ static void reorder_attribute_groups(bke::AttributeStorage &storage,
         });
 
         attr.assign_data(std::move(new_data));
+        break;
       }
       case bke::AttrStorageType::Single: {
-        return;
+        break;
       }
     }
-  });
+  }
 }
 
 void debug_randomize_face_order(Mesh *mesh)
