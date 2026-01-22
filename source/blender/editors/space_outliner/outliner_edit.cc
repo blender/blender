@@ -912,12 +912,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
 
-void id_remap_fn(bContext *C,
-                 ReportList * /*reports*/,
-                 Scene * /*scene*/,
-                 TreeElement * /*te*/,
-                 TreeStoreElem * /*tsep*/,
-                 TreeStoreElem *tselem)
+void id_remap_fn(bContext *C, TreeStoreElem *tselem)
 {
   wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_id_remap", false);
 

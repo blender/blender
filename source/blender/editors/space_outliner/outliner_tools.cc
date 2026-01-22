@@ -2568,11 +2568,15 @@ static wmOperatorStatus outliner_object_operation_exec(bContext *C, wmOperator *
       str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Deselect Objects");
       selection_changed = true;
       break;
-    case OL_OP_REMAP:
-      outliner_do_libdata_operation(C, op->reports, scene, space_outliner, id_remap_fn);
+    case OL_OP_REMAP: {
+      TreeElement *active_elem = get_target_element(space_outliner);
+      if (active_elem) {
+        id_remap_fn(C, TREESTORE(active_elem));
+      }
       /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
        * trick does not work here). */
       break;
+    }
     case OL_OP_RENAME:
       outliner_do_object_operation(
           C, op->reports, scene, space_outliner, &space_outliner->tree, item_rename_fn);
@@ -2990,7 +2994,11 @@ static wmOperatorStatus outliner_id_operation_exec(bContext *C, wmOperator *op)
     }
     case OUTLINER_IDOP_REMAP: {
       if (idlevel > 0 || objectlevel) {
-        outliner_do_libdata_operation(C, op->reports, scene, space_outliner, id_remap_fn);
+        /* Only work on the active element. Working on selection would spawn multiple popup
+         * windows. See #93814. */
+        if (te) {
+          id_remap_fn(C, TREESTORE(te));
+        }
         /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
          * trick does not work here). */
       }
