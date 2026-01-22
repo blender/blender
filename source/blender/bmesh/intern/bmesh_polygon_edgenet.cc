@@ -1059,7 +1059,9 @@ static int bm_face_split_edgenet_find_connection(const EdgeGroup_FindConnection_
              (e_hit = test_edges_isect_2d_vert(args, v_origin, v_other)));
 
     if (v_other == nullptr) {
+#ifdef DEBUG_PRINT
       printf("Using fallback\n");
+#endif
       v_other = v_other_fallback;
     }
 
