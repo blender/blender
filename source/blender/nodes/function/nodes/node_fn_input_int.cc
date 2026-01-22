@@ -41,7 +41,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeInputInt", FN_NODE_INPUT_INT);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeInputInt", FN_NODE_INPUT_INT);
   ntype.ui_name = "Integer";
   ntype.ui_description =
       "Provide an integer value that can be connected to other nodes in the tree";
