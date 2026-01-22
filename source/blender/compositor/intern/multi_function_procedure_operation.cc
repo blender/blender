@@ -44,8 +44,13 @@
 namespace blender::compositor {
 
 MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(
-    Context &context, PixelCompileUnit &compile_unit, const VectorSet<const bNode *> &schedule)
-    : PixelOperation(context, compile_unit, schedule), procedure_builder_(procedure_)
+    Context &context,
+    PixelCompileUnit &compile_unit,
+    const VectorSet<const bNode *> &schedule,
+    const bool is_single_value)
+    : PixelOperation(context, compile_unit, schedule),
+      procedure_builder_(procedure_),
+      is_single_value_(is_single_value)
 {
   this->build_procedure();
   procedure_executor_ = std::make_unique<mf::ProcedureExecutor>(procedure_);
@@ -53,12 +58,10 @@ MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(
 
 void MultiFunctionProcedureOperation::execute()
 {
-  const Domain domain = compute_domain();
+  const Domain domain = is_single_value_ ? Domain(int2(1)) : this->compute_domain();
   const int64_t size = int64_t(domain.data_size.x) * domain.data_size.y;
   const IndexMask mask = IndexMask(size);
   mf::ParamsBuilder parameter_builder{*procedure_executor_, &mask};
-
-  const bool is_single_value = this->is_single_value_operation();
 
   /* For each of the parameters, either add an input or an output depending on its interface type,
    * allocating the outputs when needed. */
@@ -69,12 +72,20 @@ void MultiFunctionProcedureOperation::execute()
         parameter_builder.add_readonly_single_input(input.single_value());
       }
       else {
-        parameter_builder.add_readonly_single_input(input.cpu_data());
+        if (is_single_value_) {
+          /* The operation is operating on single values but an image is provided, so add a default
+           * single value as a fallback. */
+          parameter_builder.add_readonly_single_input(
+              GPointer(input.get_cpp_type(), input.get_cpp_type().default_value()));
+        }
+        else {
+          parameter_builder.add_readonly_single_input(input.cpu_data());
+        }
       }
     }
     else {
       Result &output = get_result(parameter_identifiers_[i]);
-      if (is_single_value) {
+      if (is_single_value_) {
         output.allocate_single_value();
         parameter_builder.add_uninitialized_single_output(
             GMutableSpan(output.get_cpp_type(), output.single_value().get(), 1));
@@ -90,7 +101,7 @@ void MultiFunctionProcedureOperation::execute()
   procedure_executor_->call_auto(mask, parameter_builder, context_builder);
 
   /* In case of single value execution, update single value data. */
-  if (is_single_value) {
+  if (is_single_value_) {
     for (int i = 0; i < procedure_.params().size(); i++) {
       if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Output) {
         Result &output = get_result(parameter_identifiers_[i]);
@@ -437,20 +448,6 @@ mf::Variable *MultiFunctionProcedureOperation::convert_variable(mf::Variable *va
   mf::Variable *converted_variable = procedure_builder_.add_call<1>(*function, {variable})[0];
   implicit_variables_.append(converted_variable);
   return converted_variable;
-}
-
-bool MultiFunctionProcedureOperation::is_single_value_operation()
-{
-  /* Return true if all inputs are single values. */
-  for (int i = 0; i < procedure_.params().size(); i++) {
-    if (procedure_.params()[i].type == mf::ParamType::InterfaceType::Input) {
-      Result &input = this->get_input(parameter_identifiers_[i]);
-      if (!input.is_single_value()) {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 }  // namespace blender::compositor
