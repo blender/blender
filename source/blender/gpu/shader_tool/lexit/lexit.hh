@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <iterator>
 #include <string_view>
@@ -135,6 +136,7 @@ class TokenBuffer {
     {
       int start = buf_->offsets_[index_];
       int end = buf_->original_offsets_[index_ + 1];
+      assert(start < end);
       return Token{std::string_view((const char *)buf_->str_ + start, end - start),
                    buf_->types_[index_]};
     }
