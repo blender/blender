@@ -88,7 +88,7 @@ intern/guardedalloc.*        @mont29
 # BPY.
 source/python/[^/]+        @mont29
 source/python/intern/.*    @mont29
-source/python/eneric/.*    @mont29
+source/python/generic/.*   @mont29
 
 # --------------------------------------------------
 # Motion tracking and Libmv.
