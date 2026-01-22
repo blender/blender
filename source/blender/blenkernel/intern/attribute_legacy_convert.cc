@@ -341,6 +341,9 @@ LegacyMeshInterpolator::LegacyMeshInterpolator(const Mesh &src, Mesh &dst, const
 
 void LegacyMeshInterpolator::copy(const int src_index, const int dst_index, const int count) const
 {
+  if (count == 0) {
+    return;
+  }
   CustomData_copy_data(&cd_src_, &cd_dst_, src_index, dst_index, count);
   for (const int i : attrs_src_.index_range()) {
     const GVArray &src = attrs_src_[i];
