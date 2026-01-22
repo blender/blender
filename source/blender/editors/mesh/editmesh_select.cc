@@ -1885,33 +1885,21 @@ void MESH_OT_select_edge_ring_multi(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Select Loop (Cursor Pick) Operator
+/** \name Select Loop & Ring (Cursor Pick) Utilities
  * \{ */
 
-static void mouse_mesh_loop_face(BMEditMesh *em, BMEdge *eed, bool select, bool select_clear)
+static void mouse_mesh_loop_face(BMEditMesh *em, BMEdge *eed, bool select)
 {
-  if (select_clear) {
-    EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-  }
-
   walker_select(em, BMW_FACELOOP, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
 }
 
-static void mouse_mesh_loop_edge_ring(BMEditMesh *em, BMEdge *eed, bool select, bool select_clear)
+static void mouse_mesh_loop_edge_ring(BMEditMesh *em, BMEdge *eed, bool select)
 {
-  if (select_clear) {
-    EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-  }
-
   walker_select(em, BMW_EDGERING, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
 }
 
-static void mouse_mesh_loop_edge(BMEditMesh *em,
-                                 BMEdge *eed,
-                                 bool select,
-                                 bool select_clear,
-                                 bool select_cycle,
-                                 BMWDelimitFlag delimit)
+static void mouse_mesh_loop_edge(
+    BMEditMesh *em, BMEdge *eed, bool select, bool select_cycle, BMWDelimitFlag delimit)
 {
   bool edge_boundary = false;
   bool non_manifold = BM_edge_face_count_is_over(eed, 2);
@@ -1934,10 +1922,6 @@ static void mouse_mesh_loop_edge(BMEditMesh *em,
     }
   }
 
-  if (select_clear) {
-    EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-  }
-
   if (edge_boundary) {
     walker_select(em, BMW_EDGEBOUNDARY, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
   }
@@ -1949,28 +1933,57 @@ static void mouse_mesh_loop_edge(BMEditMesh *em,
   }
 }
 
-static bool mouse_mesh_loop(bContext *C,
-                            const int mval[2],
-                            bool extend,
-                            bool deselect,
-                            bool toggle,
-                            bool ring,
-                            BMWDelimitFlag delimit)
+/**
+ * Core loop selection logic, shared by invoke and exec.
+ */
+static void edbm_select_loop_or_ring_by_edge(BMEditMesh *em,
+                                             Object *obedit,
+                                             BMEdge *eed,
+                                             bool select,
+                                             bool select_cycle,
+                                             bool ring,
+                                             BMWDelimitFlag delimit)
 {
-  Base *basact = nullptr;
-  BMVert *eve = nullptr;
-  BMEdge *eed = nullptr;
-  BMFace *efa = nullptr;
+  if (em->selectmode & SCE_SELECT_FACE) {
+    mouse_mesh_loop_face(em, eed, select);
+  }
+  else {
+    if (ring) {
+      mouse_mesh_loop_edge_ring(em, eed, select);
+    }
+    else {
+      mouse_mesh_loop_edge(em, eed, select, select_cycle, delimit);
+    }
+  }
 
-  BMEditMesh *em;
-  bool select = true;
-  bool select_clear = false;
-  bool select_cycle = true;
-  float mvalf[2];
+  EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
+
+  /* Sets as active, useful for other tools. */
+  if (select) {
+    if (em->selectmode & SCE_SELECT_EDGE) {
+      BM_select_history_store(em->bm, eed);
+    }
+  }
+
+  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+}
+
+/**
+ * Find the edge under the mouse cursor for loop/ring selection.
+ * This only does picking, no selection logic.
+ */
+static bool edbm_select_loop_or_ring_pick(bContext *C,
+                                          const int mval[2],
+                                          Object **r_obedit,
+                                          BMEdge **r_eed)
+{
+  *r_obedit = nullptr;
+  *r_eed = nullptr;
 
   ViewContext vc = em_setup_viewcontext(C);
-  mvalf[0] = float(vc.mval[0] = mval[0]);
-  mvalf[1] = float(vc.mval[1] = mval[1]);
+  vc.mval[0] = mval[0];
+  vc.mval[1] = mval[1];
 
   BMEditMesh *em_original = vc.em;
   const short selectmode = em_original->selectmode;
@@ -1979,23 +1992,91 @@ static bool mouse_mesh_loop(bContext *C,
   Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
       vc.scene, vc.view_layer, vc.v3d);
 
-  {
-    int base_index = -1;
-    if (EDBM_unified_findnearest(&vc, bases, &base_index, &eve, &eed, &efa)) {
-      basact = bases[base_index];
-      ED_view3d_viewcontext_init_object(&vc, basact->object);
-      em = vc.em;
-    }
-    else {
-      em = nullptr;
-    }
+  BMVert *eve = nullptr;
+  BMEdge *eed = nullptr;
+  BMFace *efa = nullptr;
+  int base_index = -1;
+
+  if (EDBM_unified_findnearest(&vc, bases, &base_index, &eve, &eed, &efa)) {
+    *r_obedit = bases[base_index]->object;
+    *r_eed = eed;
   }
 
   em_original->selectmode = selectmode;
 
-  if (em == nullptr || eed == nullptr) {
-    return false;
+  return eed != nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Loop & Ring (Cursor Pick) Shared Operator Helpers
+ * \{ */
+
+static void edbm_select_loop_or_ring_properties(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* Selection properties could be exposed in the UI however they are mainly set via shortcuts,
+   * so they aren't all that useful to expose. */
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "Extend the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Remove from the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
+  /* Use for redo. */
+  prop = RNA_def_int(ot->srna, "object_index", -1, -1, INT_MAX, "", "", 0, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_int(ot->srna, "edge_index", -1, -1, INT_MAX, "", "", 0, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  /* For setting active element during redo. */
+  prop = RNA_def_int(ot->srna, "vert_index", -1, -1, INT_MAX, "", "", 0, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_int(ot->srna, "face_index", -1, -1, INT_MAX, "", "", 0, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+static wmOperatorStatus edbm_select_loop_or_ring_exec_impl(bContext *C,
+                                                           wmOperator *op,
+                                                           bool ring,
+                                                           BMWDelimitFlag delimit)
+{
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  /* Intentionally wrap negative values so the lookup fails. */
+  const uint object_index = uint(RNA_int_get(op->ptr, "object_index"));
+  const uint edge_index = uint(RNA_int_get(op->ptr, "edge_index"));
+
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(scene, view_layer, nullptr);
+  if (object_index >= bases.size()) {
+    return OPERATOR_CANCELLED;
   }
+
+  Object *obedit = bases[object_index]->object;
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  BMesh *bm = em->bm;
+
+  if (edge_index >= uint(bm->totedge)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BMEdge *eed = BM_edge_at_index_find_or_table(bm, int(edge_index));
+
+  if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool deselect = RNA_boolean_get(op->ptr, "deselect");
+  const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+
+  bool select = true;
+  bool select_clear = false;
+  bool select_cycle = true;
 
   if (extend == false && deselect == false && toggle == false) {
     select_clear = true;
@@ -2015,84 +2096,133 @@ static bool mouse_mesh_loop(bContext *C,
     select_cycle = false;
   }
 
+  /* Clear selection in other objects when not extending. */
   if (select_clear) {
-    for (Base *base_iter : bases) {
-      Object *ob_iter = base_iter->object;
-      BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+    EDBM_mesh_deselect_all_multi_ex(bases);
+  }
 
-      if (em_iter->bm->totvertsel == 0) {
-        continue;
+  edbm_select_loop_or_ring_by_edge(em, obedit, eed, select, select_cycle, ring, delimit);
+
+  /* Set active element from stored indices (for redo support).
+   * These indices should only be set when "select" is true,
+   * add extra check in case script call with confusing arguments. */
+  if (select) {
+    const uint vert_index = uint(RNA_int_get(op->ptr, "vert_index"));
+    const uint face_index = uint(RNA_int_get(op->ptr, "face_index"));
+
+    if (vert_index < uint(bm->totvert)) {
+      BMVert *v = BM_vert_at_index_find_or_table(bm, vert_index);
+      if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN) && BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+        BM_select_history_store(bm, v);
       }
-
-      if (em_iter == em) {
-        continue;
+    }
+    else if (face_index < uint(bm->totface)) {
+      BMFace *f = BM_face_at_index_find_or_table(bm, face_index);
+      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN) && BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+        BM_mesh_active_face_set(bm, f);
+        BM_select_history_store(bm, f);
       }
-
-      EDBM_flag_disable_all(em_iter, BM_ELEM_SELECT);
-      DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SELECT);
     }
   }
 
-  if (em->selectmode & SCE_SELECT_FACE) {
-    mouse_mesh_loop_face(em, eed, select, select_clear);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus edbm_select_loop_or_ring_invoke_impl(bContext *C,
+                                                             wmOperator *op,
+                                                             const wmEvent *event)
+{
+  PropertyRNA *prop_object_index = RNA_struct_find_property(op->ptr, "object_index");
+  PropertyRNA *prop_vert_index = RNA_struct_find_property(op->ptr, "vert_index");
+  PropertyRNA *prop_edge_index = RNA_struct_find_property(op->ptr, "edge_index");
+  PropertyRNA *prop_face_index = RNA_struct_find_property(op->ptr, "face_index");
+
+  if (RNA_property_is_set(op->ptr, prop_object_index) &&
+      RNA_property_is_set(op->ptr, prop_edge_index))
+  {
+    /* Pass, everything is set. */
   }
   else {
-    if (ring) {
-      mouse_mesh_loop_edge_ring(em, eed, select, select_clear);
+    view3d_operator_needs_gpu(C);
+
+    BMEdge *eed = nullptr;
+    Object *obedit = nullptr;
+
+    if (!edbm_select_loop_or_ring_pick(C, event->mval, &obedit, &eed)) {
+      return OPERATOR_CANCELLED;
     }
-    else {
-      mouse_mesh_loop_edge(em, eed, select, select_clear, select_cycle, delimit);
-    }
-  }
 
-  EDBM_selectmode_flush(em);
-  EDBM_uvselect_clear(em);
+    BLI_assert(eed != nullptr && obedit != nullptr);
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMesh *bm = em->bm;
 
-  /* Sets as active, useful for other tools. */
-  if (select) {
-    if (em->selectmode & SCE_SELECT_VERTEX) {
-      /* Find nearest vert from mouse
-       * (initialize to large values in case only one vertex can be projected). */
-      float v1_co[2], v2_co[2];
-      float length_1 = FLT_MAX;
-      float length_2 = FLT_MAX;
+    /* Store indices for redo. */
+    BM_mesh_elem_index_ensure(bm, BM_EDGE);
 
-      /* We can't be sure this has already been set... */
-      ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-
-      if (ED_view3d_project_float_object(vc.region, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) ==
-          V3D_PROJ_RET_OK)
-      {
-        length_1 = len_squared_v2v2(mvalf, v1_co);
+    const Scene *scene = CTX_data_scene(C);
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+        scene, view_layer, nullptr);
+    int object_index = -1;
+    for (const int i : bases.index_range()) {
+      if (bases[i]->object == obedit) {
+        object_index = i;
+        break;
       }
+    }
+    BLI_assert(object_index >= 0);
+    RNA_property_int_set(op->ptr, prop_object_index, object_index);
+    RNA_property_int_set(op->ptr, prop_edge_index, BM_elem_index_get(eed));
 
-      if (ED_view3d_project_float_object(vc.region, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) ==
-          V3D_PROJ_RET_OK)
-      {
-        length_2 = len_squared_v2v2(mvalf, v2_co);
+    /* Never use stale values. */
+    RNA_property_unset(op->ptr, prop_vert_index);
+    RNA_property_unset(op->ptr, prop_face_index);
+
+    /* Compute active element index for redo support (view-dependent). */
+    const bool extend = RNA_boolean_get(op->ptr, "extend");
+    const bool deselect = RNA_boolean_get(op->ptr, "deselect");
+    const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+    const bool select = extend || (!deselect && !toggle);
+
+    if (select) {
+      /* NOTE(@ideasman42): This view-context setup may be redundant if `op->type->exec` fails.
+       * Accepted because this only runs during interactive picking (not performance critical),
+       * and avoiding this would add complexity without tangible benefit. */
+      ViewContext vc = em_setup_viewcontext(C);
+      ED_view3d_viewcontext_init_object(&vc, obedit);
+      ED_view3d_init_mats_rv3d(obedit, vc.rv3d);
+      float mvalf[2] = {float(event->mval[0]), float(event->mval[1])};
+
+      if (em->selectmode & SCE_SELECT_VERTEX) {
+        /* Find nearest vert from mouse. */
+        float v1_co[2], v2_co[2];
+        float length_1 = FLT_MAX;
+        float length_2 = FLT_MAX;
+
+        if (ED_view3d_project_float_object(
+                vc.region, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+        {
+          length_1 = len_squared_v2v2(mvalf, v1_co);
+        }
+        if (ED_view3d_project_float_object(
+                vc.region, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+        {
+          length_2 = len_squared_v2v2(mvalf, v2_co);
+        }
+
+        BM_mesh_elem_index_ensure(bm, BM_VERT);
+        BMVert *v = (length_1 < length_2) ? eed->v1 : eed->v2;
+        RNA_property_int_set(op->ptr, prop_vert_index, BM_elem_index_get(v));
       }
-#if 0
-      printf("mouse to v1: %f\nmouse to v2: %f\n",
-             len_squared_v2v2(mvalf, v1_co),
-             len_squared_v2v2(mvalf, v2_co));
-#endif
-      BM_select_history_store(em->bm, (length_1 < length_2) ? eed->v1 : eed->v2);
-    }
-    else if (em->selectmode & SCE_SELECT_EDGE) {
-      BM_select_history_store(em->bm, eed);
-    }
-    else if (em->selectmode & SCE_SELECT_FACE) {
-      /* Select the face of eed which is the nearest of mouse. */
-      BMFace *f;
-      BMIter iterf;
-      float best_dist = FLT_MAX;
-      efa = nullptr;
+      else if (em->selectmode & SCE_SELECT_FACE) {
+        /* Find the face of eed which is the nearest of mouse. */
+        BMFace *f, *efa = nullptr;
+        BMIter iterf;
+        float best_dist = FLT_MAX;
 
-      /* We can't be sure this has already been set... */
-      ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-
-      BM_ITER_ELEM (f, &iterf, eed, BM_FACES_OF_EDGE) {
-        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+        BM_ITER_ELEM (f, &iterf, eed, BM_FACES_OF_EDGE) {
           float cent[3];
           float co[2], tdist;
 
@@ -2102,58 +2232,47 @@ static bool mouse_mesh_loop(bContext *C,
           {
             tdist = len_squared_v2v2(mvalf, co);
             if (tdist < best_dist) {
-              // printf("Best face: %p (%f)\n", f, tdist);
               best_dist = tdist;
               efa = f;
             }
           }
         }
-      }
-      if (efa) {
-        BM_mesh_active_face_set(em->bm, efa);
-        BM_select_history_store(em->bm, efa);
+        if (efa) {
+          BM_mesh_elem_index_ensure(bm, BM_FACE);
+          RNA_property_int_set(op->ptr, prop_face_index, BM_elem_index_get(efa));
+        }
       }
     }
   }
+  /* Do the selection via exec. */
+  return op->type->exec(C, op);
+}
 
-  DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+/** \} */
 
-  return true;
+/* -------------------------------------------------------------------- */
+/** \name Select Loop & Ring (Cursor Pick) Operators
+ * \{ */
+
+static wmOperatorStatus edbm_select_loop_exec(bContext *C, wmOperator *op)
+{
+  return edbm_select_loop_or_ring_exec_impl(
+      C, op, false, BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop")));
 }
 
 static wmOperatorStatus edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  view3d_operator_needs_gpu(C);
+  return edbm_select_loop_or_ring_invoke_impl(C, op, event);
+}
 
-  if (mouse_mesh_loop(C,
-                      event->mval,
-                      RNA_boolean_get(op->ptr, "extend"),
-                      RNA_boolean_get(op->ptr, "deselect"),
-                      RNA_boolean_get(op->ptr, "toggle"),
-                      false,
-                      BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop"))))
-  {
-    return OPERATOR_FINISHED;
-  }
-  return OPERATOR_CANCELLED;
+static wmOperatorStatus edbm_select_ring_exec(bContext *C, wmOperator *op)
+{
+  return edbm_select_loop_or_ring_exec_impl(C, op, true, BMW_DELIMIT_NONE);
 }
 
 static wmOperatorStatus edbm_select_ring_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  view3d_operator_needs_gpu(C);
-
-  if (mouse_mesh_loop(C,
-                      event->mval,
-                      RNA_boolean_get(op->ptr, "extend"),
-                      RNA_boolean_get(op->ptr, "deselect"),
-                      RNA_boolean_get(op->ptr, "toggle"),
-                      true,
-                      BMW_DELIMIT_NONE))
-  {
-    return OPERATOR_FINISHED;
-  }
-  return OPERATOR_CANCELLED;
+  return edbm_select_loop_or_ring_invoke_impl(C, op, event);
 }
 
 void MESH_OT_loop_select(wmOperatorType *ot)
@@ -2165,50 +2284,40 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->invoke = edbm_select_loop_invoke;
+  ot->exec = edbm_select_loop_exec;
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* Flags. */
-  ot->flag = OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties. */
-  PropertyRNA *prop;
-
-  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "Extend the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Remove from the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_enum_flag(ot->srna,
                     "delimit_edge_loop",
                     rna_enum_mesh_walk_delimit_edge_loop_items,
                     BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS | BMW_DELIMIT_EDGE_LOOP_NGONS,
                     "Boundary Delimit",
                     "Delimit edge loop selection");
+
+  edbm_select_loop_or_ring_properties(ot);
 }
 
 void MESH_OT_edgering_select(wmOperatorType *ot)
 {
-  /* Description. */
+  /* Identifiers. */
   ot->name = "Edge Ring Select";
   ot->idname = "MESH_OT_edgering_select";
   ot->description = "Select an edge ring";
 
-  /* Callbacks. */
+  /* API callbacks. */
   ot->invoke = edbm_select_ring_invoke;
+  ot->exec = edbm_select_ring_exec;
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* Flags. */
-  ot->flag = OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties. */
-  PropertyRNA *prop;
-  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Remove from the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  edbm_select_loop_or_ring_properties(ot);
 }
 
 /** \} */
