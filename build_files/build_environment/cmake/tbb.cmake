@@ -26,10 +26,6 @@ ExternalProject_Add(external_tbb
   URL_HASH ${TBB_HASH_TYPE}=${TBB_HASH}
   PREFIX ${BUILD_DIR}/tbb
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
-  PATCH_COMMAND
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/tbb/src/external_tbb <
-      ${PATCH_DIR}/tbb_1478.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/tbb ${DEFAULT_CMAKE_FLAGS} ${TBB_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/tbb
 )

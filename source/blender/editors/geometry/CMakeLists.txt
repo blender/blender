@@ -31,7 +31,6 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_object
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes

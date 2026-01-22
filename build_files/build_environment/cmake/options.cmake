@@ -67,7 +67,10 @@ if(WIN32)
     # Some deps with warnings as error aren't quite ready for dealing with the new 2017 warnings.
     set(COMMON_MSVC_FLAGS "/Wv:18")
   endif()
-  string(APPEND COMMON_MSVC_FLAGS " /bigobj")
+  string(APPEND COMMON_MSVC_FLAGS " /bigobj /experimental:deterministic /utf-8")
+  if(NOT BLENDER_PLATFORM_WINDOWS_ARM) #x64
+    string(APPEND COMMON_MSVC_FLAGS " /arch:SSE4.2")
+  endif()
   # To keep MSVC from oversubscribing the CPU, force it to single threaded mode
   # msbuild/ninja will queue as many compile units as there are cores, no need for
   # MSVC to be internally threading as well.
@@ -122,7 +125,7 @@ if(WIN32)
     -DCMAKE_CXX_FLAGS_MINSIZEREL=${BLENDER_CLANG_CMAKE_CXX_FLAGS_MINSIZEREL}
     -DCMAKE_CXX_FLAGS_RELEASE=${BLENDER_CLANG_CMAKE_CXX_FLAGS_RELEASE}
     -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${BLENDER_CLANG_CMAKE_CXX_FLAGS_RELWITHDEBINFO}
-    -DCMAKE_CXX_STANDARD=17
+    -DCMAKE_CXX_STANDARD=20
   )
 
   set(PLATFORM_FLAGS)
@@ -220,7 +223,7 @@ else()
     endif()
 
     set(PLATFORM_CFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
-    set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -std=c++17 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -std=c++20 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
     set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES} -headerpad_max_install_names")
     if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
       set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin19.0.0) # OS X 10.15
@@ -240,7 +243,7 @@ else()
     endif()
 
     set(PLATFORM_CFLAGS "-fPIC")
-    set(PLATFORM_CXXFLAGS "-std=c++17 -fPIC")
+    set(PLATFORM_CXXFLAGS "-std=c++20 -fPIC")
     set(PLATFORM_LDFLAGS)
     set(PLATFORM_BUILD_TARGET)
     set(PLATFORM_CMAKE_FLAGS -DCMAKE_INSTALL_LIBDIR=lib)
@@ -287,7 +290,7 @@ set(DEFAULT_CMAKE_FLAGS
   -DCMAKE_CXX_FLAGS_MINSIZEREL=${BLENDER_CMAKE_CXX_FLAGS_MINSIZEREL}
   -DCMAKE_CXX_FLAGS_RELEASE=${BLENDER_CMAKE_CXX_FLAGS_RELEASE}
   -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${CMAKE_CXX_FLAGS_RELWITHDEBINFO}
-  -DCMAKE_CXX_STANDARD=17
+  -DCMAKE_CXX_STANDARD=20
   ${PLATFORM_CMAKE_FLAGS}
 )
 

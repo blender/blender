@@ -53,7 +53,6 @@ set(LIB
   PRIVATE bf::nodes
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
-  PRIVATE bf::extern::fmtlib
 )
 
 if(WITH_PYTHON)

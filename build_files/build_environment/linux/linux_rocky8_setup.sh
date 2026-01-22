@@ -37,7 +37,7 @@ yum -y install scl-utils
 yum -y install scl-utils-build
 
 # Currently this is defined by the VFX platform (CY2023), see: https://vfxplatform.com
-yum -y install gcc-toolset-11
+yum -y install gcc-toolset-14
 
 # Repository for CUDA (`nvcc`).
 CUDA_ARCH=$(uname -i)
@@ -70,6 +70,9 @@ PACKAGES_FOR_LIBS=(
     autoconf
     automake
     libtool
+
+    # Requried by flex
+    help2man
 
     # Required by: `external_libsndfile` configure scripts.
     autogen

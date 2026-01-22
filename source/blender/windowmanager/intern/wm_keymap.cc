@@ -10,6 +10,7 @@
 
 #include <cstring>
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"

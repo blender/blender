@@ -21,9 +21,9 @@ echo #
 echo # Then run it using %USERPROFILE%/vmprep.cmd
 echo # 
 echo # This will install :
-echo # - Visual Studio 2019 16.11.26 Buildtools with the required workloads in 
-echo #   the c:\vs2019bt\ folder         
-echo # - Meson 1.6.0 
+echo # - Visual Studio 2022 17.14.14 Buildtools with the required workloads in 
+echo #   the c:\vs2022bt\ folder         
+echo # - Meson 1.9.1 
 echo # - Visual Studio 2010 X64 redist (required for the yaml binary) 
 echo # - Git 2.38.0
 echo # - CMake 3.31.7
@@ -66,11 +66,11 @@ echo create shortly named temp folder
 mkdir C:\t
 
 echo Obtaining Visual Studio build tools installer
-curl https://download.visualstudio.microsoft.com/download/pr/48ee919d-ab7d-45bc-a595-a2262643c3bc/295fdfc1de25116a75b2d6e0944284f2f79c0778ffab798ae9db35d187e8ab99/vs_BuildTools.exe -o c:\install\vs_BuildTools.exe
+curl https://download.visualstudio.microsoft.com/download/pr/c2e2845d-bdff-44fc-ac00-3d488e9f5675/abdb87ff12fe1885ccc4964b4ab51da566549fd2096d7ceb1fdea907372f21d7/vs_BuildTools.exe -o c:\install\vs_BuildTools.exe
 echo Obtaining Visual studio blender installer configuration 
-curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/vsconfig_2019 -o c:\install\.vsconfig_2019
-echo Installing Visual Studio 2019 Build tools 
-c:\install\vs_BuildTools.exe --wait --passive --installPath c:\vs2019bt\ --config c:\install\.vsconfig_2019
+curl https://projects.blender.org/blender/blender/raw/branch/main/build_files/build_environment/windows/vsconfig -o c:\install\.vsconfig
+echo Installing Visual Studio 2022 Build tools 
+c:\install\vs_BuildTools.exe --wait --passive --installPath c:\vs2022bt\ --config c:\install\.vsconfig
 
 echo Obtaining git
 curl -L https://github.com/git-for-windows/git/releases/download/v2.38.0.windows.1/Git-2.38.0-64-bit.exe -o c:\install\Git-2.38.0-64-bit.exe
@@ -83,9 +83,9 @@ echo Installing cmake
 start /wait msiexec /passive /ic:\install\cmake-3.31.7-windows-x86_64.msi ADD_CMAKE_TO_PATH="System"
 
 echo Obtaining meson 
-curl -L https://github.com/mesonbuild/meson/releases/download/1.6.0/meson-1.6.0-64.msi -o c:\install\meson-1.6.0-64.msi
+curl -L https://github.com/mesonbuild/meson/releases/download/1.9.1/meson-1.9.1-64.msi -o c:\install\meson-1.9.1-64.msi
 echo Installing meson
-start /wait msiexec /passive /i	c:\install\meson-1.6.0-64.msi
+start /wait msiexec /passive /i	c:\install\meson-1.9.1-64.msi
 
 echo Obtaining Visual studio 2010 x64 redist
 curl https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe  -o c:\install\vcredist_x64.exe

@@ -100,6 +100,16 @@ if(WITH_USD)
   endif()
 endif()
 
+if(WITH_IMAGE_OPENEXR)
+  # NOTE: This is _only_ needed when linking blender before the install target runs.
+  # Once openjph libraries have been copied into `TARGETDIR_LIB` then Blender will link.
+  # Don't rely on this though as failing on a fresh build is no good and the library
+  # files could get outdated too.
+  if(DEFINED LIBDIR)
+    link_directories(${LIBDIR}/openjph/lib)
+  endif()
+endif()
+
 if(WITH_PYTHON)
   list(APPEND INC ../blender/python)
   add_definitions(-DWITH_PYTHON)
@@ -593,14 +603,31 @@ if(WIN32)
       DEBUG
     )
   endif()
-  if(EXISTS ${LIBDIR}/opencolorio/bin/opencolorio_2_3.dll) # 4.1
+  if(EXISTS ${LIBDIR}/opencolorio/bin/opencolorio_2_5.dll) # 5.1
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_3.dll
+      FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_5.dll
       RELEASE
     )
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_3.dll
+      FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_5.dll
       DEBUG
+    )
+  endif()
+  if(EXISTS ${LIBDIR}/openjph/bin/openjph.0.25.dll) # 5.1
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/openjph/bin/openjph.0.25.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/openjph/bin/openjph.0.25d.dll
+      DEBUG
+    )
+  endif()
+  if(EXISTS "${LIBDIR}/aom/bin/aom.dll") # 5.1
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/aom/bin/aom.dll
+      ALL
     )
   endif()
   install(
@@ -2024,9 +2051,9 @@ endif()
 if(WIN32)
   if(WITH_CYCLES_DEVICE_HIPRT)
     if(EXISTS ${LIBDIR}/hiprt/bin/hiprt64.dll)
-      install(
+      windows_install_shared_manifest(
         FILES ${LIBDIR}/hiprt/bin/hiprt64.dll
-        DESTINATION "./"
+        ALL
       )
     endif()
   endif()

@@ -128,7 +128,6 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
   bf_compositor
   PRIVATE bf::render
   PRIVATE bf::windowmanager

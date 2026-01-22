@@ -125,7 +125,6 @@ set(LIB
   PRIVATE bf::draw
   bf_editor_datafiles
   bf_editor_id_management
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

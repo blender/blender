@@ -29,23 +29,15 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   endif()
 else()
   if(WITH_BLENDER)
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.28.29921) # MSVC 2019 16.9.16
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.44.35216) # MSVC 2022 17.14.14
       message(FATAL_ERROR
-        "Compiler is unsupported, MSVC 2019 16.9.16 or newer is required for building blender."
-      )
-    endif()
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36.32532 AND # MSVC 2022 17.6.0 has a bad codegen
-       CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.37.32705)             # But it is fixed in 2022 17.7 preview 1
-      message(FATAL_ERROR
-        "Compiler is unsupported, "
-        "MSVC 2022 17.6.x has codegen issues and cannot be used to build blender. "
-        "Please upgrade to 17.7 or newer."
+        "Compiler is unsupported, MSVC 2022 17.14.14 or newer is required for building blender."
       )
     endif()
   endif()
 endif()
 
-set(WINDOWS_ARM64_MIN_VSCMD_VER 17.12.3)
+set(WINDOWS_ARM64_MIN_VSCMD_VER 17.14.23)
 # We have a minimum version of VSCMD for ARM64 (ie, the version the libs were compiled against)
 # This checks for the version on initial run, and caches it,
 # so users do not have to run the VS CMD window every time
@@ -57,7 +49,7 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
     if(VSCMD_VER VERSION_LESS WINDOWS_ARM64_MIN_VSCMD_VER)
       message(FATAL_ERROR
         "Windows ARM64 requires VS2022 version ${WINDOWS_ARM64_MIN_VSCMD_VER} or greater - "
-        "please update your VS2022 install!"
+        "detected ${VSCMD_VER}, please update your VS2022 install!"
       )
     endif()
   else()
@@ -394,6 +386,9 @@ set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
 set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_DIR ${LIBDIR}/zlib)
 
+set(fmt_DIR ${LIBDIR}/fmt/lib/cmake/config) 
+find_package(fmt REQUIRED CONFIG)
+
 windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.
 windows_find_package(PNG)
 if(NOT PNG_FOUND)
@@ -581,17 +576,17 @@ if(WITH_JACK)
   )
 endif()
 
-set(_PYTHON_VERSION "3.11")
+set(_PYTHON_VERSION "3.13")
 string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
 
 # Enable for a short time when bumping to the next Python version.
-if(FALSE)
+if(TRUE)
   if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
-    set(_PYTHON_VERSION "3.12")
+    set(_PYTHON_VERSION "3.11")
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
     if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
       message(FATAL_ERROR
-        "Missing python libraries! Neither 3.12 nor 3.11 are found in ${LIBDIR}/python"
+        "Missing python libraries! Neither 3.13 nor 3.11 are found in ${LIBDIR}/python"
       )
     endif()
   endif()
@@ -610,7 +605,7 @@ if(WITH_PYTHON)
   set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
 
   set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/include)
-  set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/core/include)
+  set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/_core/include)
   set(NUMPY_FOUND ON)
   # uncached vars
   set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
@@ -1346,7 +1341,7 @@ endif()
 get_filename_component(_msvc_path ${CMAKE_C_COMPILER} DIRECTORY)
 # Environment variables to run precompiled executables that needed libraries.
 list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)
-set(PLATFORM_ENV_BUILD_DIRS "${_msvc_path}\;${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${LIBDIR}/opencolorio/bin\;${PATH}")
+set(PLATFORM_ENV_BUILD_DIRS "${_msvc_path}\;${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${LIBDIR}/opencolorio/bin\;${LIBDIR}/aom/bin\;${LIBDIR}/openjph/bin\;${PATH}")
 set(PLATFORM_ENV_BUILD "PATH=${PLATFORM_ENV_BUILD_DIRS}")
 # Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like:
 # `idiff` and `abcls` use the release mode dlls.

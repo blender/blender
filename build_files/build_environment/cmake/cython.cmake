@@ -38,4 +38,5 @@ ExternalProject_Add(external_cython
 add_dependencies(
   external_cython
   external_python
+  external_python_site_packages
 )

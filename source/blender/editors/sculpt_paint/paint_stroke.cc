@@ -9,8 +9,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
-
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 

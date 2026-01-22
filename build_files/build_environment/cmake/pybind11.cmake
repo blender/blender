@@ -14,10 +14,6 @@ ExternalProject_Add(external_pybind11
   PREFIX ${BUILD_DIR}/pybind11
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
 
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/pybind11/src/external_pybind11 <
-    ${PATCH_DIR}/pybind11_4761.diff
-
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/pybind11
     ${DEFAULT_CMAKE_FLAGS}

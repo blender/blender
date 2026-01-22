@@ -1,0 +1,40 @@
+--- ll\clang\lib\Headers\__clang_cuda_math_forward_declares.h	2025-12-05 10:13:42.161742700 -0800
++++ ll\clang\lib\Headers\__clang_cuda_math_forward_declares.h	2025-12-11 08:12:38.769391500 -0800
+@@ -68,6 +68,37 @@
+ __DEVICE__ float fdim(float, float);
+ __DEVICE__ double floor(double);
+ __DEVICE__ float floor(float);
++/* 
++  BLENDER: clang++ with -language=cuda and -std=c++20 options trigger some error
++  in the MSVC STL headers during the build of the OSL CUDA kernels. by providing 
++  this overload we sidestep this issue. nothing appears to be ending up calling it,
++  since there are no linker errors, so i guess we're safe doing this? 
++  
++  =========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<
++In file included from <built-in>:1:
++In file included from C:\db\build\S\VS1564R\Release\llvm\lib\clang\20\include\__clang_cuda_runtime_wrapper.h:41:
++In file included from C:\db\build\S\VS1564R\Release\llvm\lib\clang\20\include\cuda_wrappers\cmath:28:
++c:\vs2022bt\VC\Tools\MSVC\14.44.35207\include\cmath:1591:12: error: call to 'fma' is ambiguous
++ 1591 |     return _STD fma(_ArgT, _ArgB - _ArgA, _ArgA);
++      |            ^~~~~~~~
++c:\vs2022bt\VC\Tools\MSVC\14.44.35207\include\yvals_core.h:1928:17: note: expanded from macro '_STD'
++ 1928 | #define _STD    ::std::
++      |                 ^
++c:\vs2022bt\VC\Tools\MSVC\14.44.35207\include\cmath:1612:33: note: in instantiation of function template specialization 'std::_Linear_for_lerp<long double>' requested here
++ 1612 |         const auto _Candidate = _Linear_for_lerp(_ArgA, _ArgB, _ArgT);
++      |                                 ^
++c:\vs2022bt\VC\Tools\MSVC\14.44.35207\include\cmath:1681:12: note: in instantiation of function template specialization 'std::_Common_lerp<long double>' requested here
++ 1681 |     return _Common_lerp(_ArgA, _ArgB, _ArgT);
++      |            ^
++C:\db\build\S\VS1564R\Release\llvm\lib\clang\20\include\__clang_cuda_math_forward_declares.h:71:19: note: candidate function
++   71 | __DEVICE__ double fma(double, double, double);
++      |                   ^
++C:\db\build\S\VS1564R\Release\llvm\lib\clang\20\include\__clang_cuda_math_forward_declares.h:72:18: note: candidate function
++   72 | __DEVICE__ float fma(float, float, float);
++      |                  ^
++=========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<=========8<
++*/
++__DEVICE__ double fma(long double, long double, long double);
+ __DEVICE__ double fma(double, double, double);
+ __DEVICE__ float fma(float, float, float);
+ __DEVICE__ double fmax(double, double);

@@ -51,7 +51,7 @@ endif()
 set(OPENIMAGEIO_EXTRA_ARGS
   -DBUILD_SHARED_LIBS=ON
   ${OPENIMAGEIO_LINKSTATIC}
-  -DOpenImageIO_REQUIRED_DEPS=WebP$<SEMICOLON>JPEGTurbo$<SEMICOLON>TIFF$<SEMICOLON>OpenEXR$<SEMICOLON>PNG$<SEMICOLON>OpenJPEG$<SEMICOLON>fmt$<SEMICOLON>Robinmap$<SEMICOLON>ZLIB$<SEMICOLON>pugixml$<SEMICOLON>Python
+  -DOpenImageIO_REQUIRED_DEPS=WebP$<SEMICOLON>libjpeg-turbo$<SEMICOLON>TIFF$<SEMICOLON>OpenEXR$<SEMICOLON>PNG$<SEMICOLON>OpenJPEG$<SEMICOLON>fmt$<SEMICOLON>Robinmap$<SEMICOLON>ZLIB$<SEMICOLON>pugixml$<SEMICOLON>Python$<SEMICOLON>openjph$<SEMICOLON>TBB$<SEMICOLON>Libheif
   -DUSE_NUKE=OFF
   -DUSE_OPENVDB=OFF
   -DUSE_FREETYPE=OFF
@@ -66,6 +66,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DUSE_FFMPEG=OFF
   -DUSE_PTEX=OFF
   -DUSE_FREETYPE=OFF
+  -DUSE_LIBHEIF=ON
   -DUSE_LIBRAW=OFF
   -DUSE_JXL=OFF
   -DUSE_OPENCOLORIO=ON
@@ -104,6 +105,8 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DTBB_ROOT=${LIBDIR}/tbb
   -Dlibdeflate_ROOT=${LIBDIR}/deflate
   -Dfmt_ROOT=${LIBDIR}/fmt
+  -Dopenjph_DIR=${LIBDIR}/openjph/lib/cmake/openjph
+  -DLibheif_DIR=${LIBDIR}/libheif/lib/cmake/libheif
 )
 
 if(WIN32)
@@ -131,10 +134,7 @@ ExternalProject_Add(external_openimageio
   PATCH_COMMAND
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/openimageio.diff &&
-    ${PATCH_CMD} -p 1 -N -d
-      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/openimageio_png_cicp_4746.diff
+      ${PATCH_DIR}/openimageio.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio
     ${DEFAULT_CMAKE_FLAGS}
@@ -160,6 +160,7 @@ add_dependencies(
   external_python
   external_pybind11
   external_tbb
+  external_libheif
 )
 
 if(WIN32)

@@ -100,7 +100,6 @@ set(LIB
   PRIVATE bf::draw
   bf_editor_screen
   bf_editor_undo
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::imbuf::movie

@@ -17,6 +17,7 @@ set(OPENPGL_EXTRA_ARGS
   -DCMAKE_C_FLAGS_INIT="--target=arm64-pc-windows-msvc"
   -DCMAKE_CXX_FLAGS_INIT="--target=arm64-pc-windows-msvc"
   -DCMAKE_SHARED_LINKER_FLAGS=-L"${LIBDIR}/../../VS1564R/Release/llvm/lib"
+  -DCMAKE_CXX_STANDARD=17
 )
 
 if(TBB_STATIC_LIBRARY)

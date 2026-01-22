@@ -1,0 +1,219 @@
+https://github.com/westes/flex/issues/436
+https://bugs.gentoo.org/705800
+https://developers.redhat.com/blog/2019/04/22/implicit-function-declarations-flexs-use-of-reallocarray
+https://github.com/westes/flex/commit/4b5111d9772b5c160340ca96f08d30d7f6db5cda
+https://github.com/westes/flex/commit/24fd0551333e7eded87b64dd36062da3df2f6380
+https://github.com/westes/flex/commit/0db9f8903a446e7026874be519b8dc55a471f014
+https://github.com/westes/flex/commit/a17d79e9c722a6735b6d2a8f152287404f27df32
+https://github.com/westes/flex/commit/4081efa0831b15d7e4e4255401c225ad8262426d
+https://github.com/westes/flex/commit/1985bb3c7abed940e91ad816504ef08a18c3b7c1
+
+From 4b5111d9772b5c160340ca96f08d30d7f6db5cda Mon Sep 17 00:00:00 2001
+From: Explorer09 <explorer09@gmail.com>
+Date: Mon, 4 Sep 2017 08:28:53 +0800
+Subject: [PATCH] scanner: Include flexdef.h at %top block of scan.l
+
+config.h may define macros that alter the API of the standard library
+funtions, and so it should be included before any other standard
+header, even before the skeleton's standard header inclusion.
+
+For example: config.h may #define _GNU_SOURCE that would expose the
+reallocarray() prototype from <stdlib.h> on glibc 2.26+ systems. If we
+include <stdlib.h> before config.h, reallocarray() would not be
+available for use in lex file since the second include doesn't help
+due to header guard.
+
+For now our config.h might `#define malloc rpl_malloc` -- this
+substitution must work before including stdlib.h, or else the compiler
+will complain about missing prototypes, and may result in incorrect
+code in scan.l (gcc warning: return makes pointer from integer without
+a cast [-Wint-conversion]).
+
+Fixes #247.
+--- a/src/scan.l
++++ b/src/scan.l
+@@ -1,5 +1,11 @@
+ /* scan.l - scanner for flex input -*-C-*- */
+ 
++%top{
++/* flexdef.h includes config.h, which may contain macros that alter the API */
++/* of libc functions. Must include first before any libc header. */
++#include "flexdef.h"
++}
++
+ %{
+ /*  Copyright (c) 1990 The Regents of the University of California. */
+ /*  All rights reserved. */
+@@ -32,7 +38,6 @@
+ /*  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR */
+ /*  PURPOSE. */
+ 
+-#include "flexdef.h"
+ #include "parse.h"
+ extern bool tablesverify, tablesext;
+ extern int trlcontxt; /* Set in  parse.y for each rule. */
+
+From 24fd0551333e7eded87b64dd36062da3df2f6380 Mon Sep 17 00:00:00 2001
+From: Explorer09 <explorer09@gmail.com>
+Date: Mon, 4 Sep 2017 10:47:33 +0800
+Subject: [PATCH] build: AC_USE_SYSTEM_EXTENSIONS in configure.ac.
+
+This would, e.g. define _GNU_SOURCE in config.h, enabling the
+reallocarray() prototype in glibc 2.26+ on Linux systems with that
+version of glibc.
+
+Fixes #241.
+--- a/configure.ac
++++ b/configure.ac
+@@ -25,8 +25,10 @@
+ # autoconf requirements and initialization
+ 
+ AC_INIT([the fast lexical analyser generator],[2.6.4],[flex-help@lists.sourceforge.net],[flex])
++AC_PREREQ([2.60])
+ AC_CONFIG_SRCDIR([src/scan.l])
+ AC_CONFIG_AUX_DIR([build-aux])
++AC_USE_SYSTEM_EXTENSIONS
+ LT_INIT
+ AM_INIT_AUTOMAKE([1.15 -Wno-portability foreign std-options dist-lzip parallel-tests subdir-objects])
+ AC_CONFIG_HEADER([src/config.h])
+
+
+From 0db9f8903a446e7026874be519b8dc55a471f014 Mon Sep 17 00:00:00 2001
+From: Lukasz Baj <l.baj@radytek.com>
+Date: Fri, 22 Sep 2017 10:24:46 +0200
+Subject: [PATCH] build: Remove custom reallocarray() declaration.
+
+Use one from <stdlib.h> instead because that is more portable.
+--- a/src/flexdef.h
++++ b/src/flexdef.h
+@@ -631,10 +631,6 @@ extern int sectnum, nummt, hshcol, dfaeql, numeps, eps2, num_reallocs;
+ extern int tmpuses, totnst, peakpairs, numuniq, numdup, hshsave;
+ extern int num_backing_up, bol_needed;
+ 
+-#ifndef HAVE_REALLOCARRAY
+-void *reallocarray(void *, size_t, size_t);
+-#endif
+-
+ void   *allocate_array(int, size_t);
+ void   *reallocate_array(void *, int, size_t);
+ 
+
+From a17d79e9c722a6735b6d2a8f152287404f27df32 Mon Sep 17 00:00:00 2001
+From: Explorer09 <explorer09@gmail.com>
+Date: Sat, 14 Oct 2017 00:36:54 +0800
+Subject: [PATCH] scanner: Define _POSIX_C_SOURCE when needed in skeleton.
+
+The function fileno() is defined by POSIX. When flex would otherwise not provide that feature macro, we define it.
+
+Fixes #263
+--- a/src/flex.skl
++++ b/src/flex.skl
+@@ -218,6 +218,14 @@ m4_ifdef( [[M4_YY_TABLES_EXTERNAL]],
+ 
+ /* begin standard C headers. */
+ %if-c-only
++m4_ifdef( [[M4_YY_ALWAYS_INTERACTIVE]], ,
++[[m4_ifdef( [[M4_YY_NEVER_INTERACTIVE]], ,
++[[#ifndef _POSIX_C_SOURCE
++#define _POSIX_C_SOURCE 1 /* for fileno() */
++#ifndef _POSIX_SOURCE
++#define _POSIX_SOURCE 1
++#endif
++#endif]])]])
+ #include <stdio.h>
+ #include <string.h>
+ #include <errno.h>
+
+From 4081efa0831b15d7e4e4255401c225ad8262426d Mon Sep 17 00:00:00 2001
+From: Explorer09 <explorer09@gmail.com>
+Date: Thu, 8 Mar 2018 10:04:36 +0800
+Subject: [PATCH] scanner: Fix glibc features.h dependency in skeleton.
+
+Commit a17d79e9c722a6735b6d2a8f152287404f27df32 defines _POSIX_C_SOURCE
+to the minimum of 1 if it's not defined in the user's scanner code or
+the compiling environment. However in glibc the macros are not yet set
+up until one of the libc headers is included. This unfortunately have
+made us overwrite the default _POSIX_C_SOURCE value that would be
+defined by glibc (200809L at the time of writing), causing regressions
+in user code.
+
+Now in this patch:
+1. Ensure feature test macros have been set up in glibc before checking
+or defining any of them in our skeleton code.
+2. Have a more conservative logic when determining the need to define
+_POSIX_C_SOURCE (required for fileno()).
+
+Fixes: #313
+
+Note:
+It could be tricky for application code to ensure feature test macros
+have been set up in glibc, since <features.h> is no portable header and
+not meant to be included directly by applications. The way to do it is
+to include a libc header which in turn includes <features.h>. However,
+many of the glibc headers check __USE_POSIX (a glibc internal macro
+defined if _POSIX_C_SOURCE is defined) and determine which interfaces
+to expose already, making the headers inappropriate for our goal.
+Those which don't depend on _POSIX_C_SOURCE, and are also available
+since ANSI C89, are only <assert.h>, <errno.h> and <math.h>.
+
+<assert.h> is finally favored due to other considerations:
+- <math.h> check for __USE_XOPEN in glibc, making a dependency on
+_XOPEN_SOURCE, besides it exposes much more interfaces than we need.
+- In djgpp, <errno.h> depends on _POSIX_SOURCE to hide definitions of
+some errno values when it's defined.
+- <assert.h> exposes the fewest interfaces among the 3 headers and, at
+the time of writing, checks for only C99 (for __func__), C11 (for
+_Static_assert), and _GNU_SOURCE when needed.
+
+Signed-off-by: Kang-Che Sung <explorer09@gmail.com>
+--- a/src/flex.skl
++++ b/src/flex.skl
+@@ -220,11 +220,21 @@ m4_ifdef( [[M4_YY_TABLES_EXTERNAL]],
+ %if-c-only
+ m4_ifdef( [[M4_YY_ALWAYS_INTERACTIVE]], ,
+ [[m4_ifdef( [[M4_YY_NEVER_INTERACTIVE]], ,
+-[[#ifndef _POSIX_C_SOURCE
+-#define _POSIX_C_SOURCE 1 /* for fileno() */
+-#ifndef _POSIX_SOURCE
+-#define _POSIX_SOURCE 1
++[[/* Feature test macros. Flex uses functions that require a minimum set of
++ * macros defined. As defining some macros may hide function declarations that
++ * user code might use, be conservative and respect user's definitions as much
++ * as possible. In glibc, feature test macros may not be all set up until one
++ * of the libc header (that includes <features.h>) is included. This creates
++ * a circular dependency when we check the macros. <assert.h> is the safest
++ * header we can include and does not declare too many functions we don't need.
++ */
++#if !defined(__GNU_LIBRARY__) && defined(__STDC__)
++#include <assert.h>
+ #endif
++#if !(defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE) || \
++    defined(_POSIX_SOURCE))
++# define _POSIX_C_SOURCE 1 /* Required for fileno() */
++# define _POSIX_SOURCE 1
+ #endif]])]])
+ #include <stdio.h>
+ #include <string.h>
+
+From 1985bb3c7abed940e91ad816504ef08a18c3b7c1 Mon Sep 17 00:00:00 2001
+From: Explorer09 <explorer09@gmail.com>
+Date: Thu, 8 Mar 2018 09:53:24 +0800
+Subject: [PATCH] scanner: correct comments about __STDC_LIMIT_MACROS.
+
+No code changes.
+
+Signed-off-by: Kang-Che Sung <explorer09@gmail.com>
+--- a/src/flexint.h
++++ b/src/flexint.h
+@@ -7,8 +7,8 @@
+ 
+ #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+ 
+-/* C99 says to define __STDC_LIMIT_MACROS before including stdint.h,
+- * if you want the limit (max/min) macros for int types. 
++/* C++ systems might need __STDC_LIMIT_MACROS defined before including
++ * <stdint.h>, if you want the limit (max/min) macros for int types.
+  */
+ #ifndef __STDC_LIMIT_MACROS
+ #define __STDC_LIMIT_MACROS 1
+

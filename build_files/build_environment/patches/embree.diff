@@ -59,3 +59,25 @@ index b827807..648603a 100644
    DISABLE_STACK_PROTECTOR_FOR_INTERSECTORS(${EMBREE_LIBRARY_FILES_AVX2})
    ADD_LIBRARY(embree_avx2 STATIC ${EMBREE_LIBRARY_FILES_AVX2})
    TARGET_LINK_LIBRARIES(embree_avx2 PRIVATE tasking)
+diff --git a/kernels/sycl/rthwif_embree.cpp b/kernels/sycl/rthwif_embree.cpp
+index 00a581b..a58f3a2 100644
+--- a/kernels/sycl/rthwif_embree.cpp
++++ b/kernels/sycl/rthwif_embree.cpp
+@@ -713,13 +713,14 @@
+   if (valid)
+   {
+     float t = intel_get_hit_distance(query, intel_hit_type_committed_hit);
+-    float2 uv = intel_get_hit_barycentrics (query, intel_hit_type_committed_hit);
++    float2 uv(ray.u, ray.v);
+     unsigned int geomID = intel_get_hit_geometry_id(query, intel_hit_type_committed_hit);
+ 
+     unsigned int primID = ray.primID;
+-    if (intel_get_hit_candidate(query, intel_hit_type_committed_hit) == intel_candidate_type_triangle)
++    if (intel_get_hit_candidate(query, intel_hit_type_committed_hit) == intel_candidate_type_triangle) {
+       primID = intel_get_hit_triangle_primitive_id(query, intel_hit_type_committed_hit);
+-      
++      uv = intel_get_hit_barycentrics (query, intel_hit_type_committed_hit);
++    }
+     rayhit_i->ray.tfar = t;
+     rayhit_i->hit.geomID = geomID;
+     rayhit_i->hit.primID = primID;

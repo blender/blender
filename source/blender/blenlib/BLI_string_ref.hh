@@ -32,6 +32,7 @@
  */
 
 #include <cstring>
+#include <fmt/ranges.h>
 #include <string>
 #include <string_view>
 
@@ -664,3 +665,14 @@ inline std::string_view format_as(StringRef str)
 /** \} */
 
 }  // namespace blender
+
+/**
+ * Disable conflicting range formatter in fmtlib. Otherwise we will get compile errors
+ * where fmtlib doesn't know if it should use the formatter from format.h or ranges.h.
+ */
+namespace fmt {
+
+template<> struct is_range<blender::StringRef, char> : std::false_type {};
+template<> struct is_range<blender::StringRefNull, char> : std::false_type {};
+
+}  // namespace fmt

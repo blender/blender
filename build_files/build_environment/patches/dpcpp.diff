@@ -137,6 +137,39 @@ index b2b6761b9..f9db10a86 100644
 
  foreach(flag_var
      CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+diff --git a/unified-runtime/cmake/FetchLevelZero.cmake b/unified-runtime/cmake/FetchLevelZero.cmake
+index cf1ca5e82..ca23bd87e 100644
+--- a/unified-runtime/cmake/FetchLevelZero.cmake
++++ b/unified-runtime/cmake/FetchLevelZero.cmake
+@@ -41,7 +41,7 @@ if (NOT DEFINED LEVEL_ZERO_LIBRARY OR NOT DEFINED LEVEL_ZERO_INCLUDE_DIR)
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++98-compat-extra-semi")
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-warning-option")
+     endif()
+-    set(BUILD_STATIC ON)
++    set(BUILD_STATIC OFF)
+
+     if (UR_LEVEL_ZERO_LOADER_REPO STREQUAL "")
+         set(UR_LEVEL_ZERO_LOADER_REPO "https://github.com/oneapi-src/level-zero.git")
+diff --git a/unified-runtime/source/adapters/level_zero/CMakeLists.txt b/unified-runtime/source/adapters/level_zero/CMakeLists.txt
+index 6eb08a6d9..b66a55f3c 100644
+--- a/unified-runtime/source/adapters/level_zero/CMakeLists.txt
++++ b/unified-runtime/source/adapters/level_zero/CMakeLists.txt
+@@ -56,7 +56,6 @@ if(UR_BUILD_ADAPTER_L0)
+     )
+     install_ur_library(ur_adapter_level_zero)
+
+-    target_compile_definitions(ur_adapter_level_zero PUBLIC UR_STATIC_LEVEL_ZERO)
+     if(UR_STATIC_ADAPTER_L0)
+         target_compile_definitions(ur_adapter_level_zero PUBLIC UR_STATIC_ADAPTER_LEVEL_ZERO)
+
+@@ -193,7 +192,6 @@ if(UR_BUILD_ADAPTER_L0_V2)
+         )
+     endif()
+
+-    target_compile_definitions(ur_adapter_level_zero_v2 PUBLIC UR_STATIC_LEVEL_ZERO)
+     target_compile_definitions(ur_adapter_level_zero_v2 PUBLIC UR_ADAPTER_LEVEL_ZERO_V2)
+
+     # TODO: fix level_zero adapter conversion warnings
 diff --git a/xptifw/include/xpti_string_table.hpp b/xptifw/include/xpti_string_table.hpp
 index c8678bdff..bd91468c9 100644
 --- a/xptifw/include/xpti_string_table.hpp

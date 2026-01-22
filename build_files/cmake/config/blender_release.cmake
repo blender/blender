@@ -65,6 +65,7 @@ set(WITH_TBB                 ON  CACHE BOOL "" FORCE)
 set(WITH_USD                 ON  CACHE BOOL "" FORCE)
 set(WITH_MATERIALX           ON  CACHE BOOL "" FORCE)
 set(WITH_HYDRA               ON  CACHE BOOL "" FORCE)
+set(WITH_XR_OPENXR           ON  CACHE BOOL "" FORCE)
 
 # platform dependent options
 if(APPLE)
@@ -88,8 +89,6 @@ if(UNIX AND NOT APPLE)
   set(WITH_PIPEWIRE_DYNLOAD    ON  CACHE BOOL "" FORCE)
 endif()
 if(NOT APPLE)
-  set(WITH_XR_OPENXR           ON  CACHE BOOL "" FORCE)
-
   # Can't use CMAKE_SYSTEM_PROCESSOR here as it's not set yet,
   # so fall back to checking the env for vcvarsall's VSCMD_ARG_TGT_ARCH
   if(NOT (WIN32 AND "$ENV{VSCMD_ARG_TGT_ARCH}" STREQUAL "arm64"))

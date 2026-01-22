@@ -30,11 +30,13 @@ if(WIN32)
   set(PYTHON_EXTERNALS_FOLDER ${BUILD_DIR}/python/src/external_python/externals)
   set(ZLIB_SOURCE_FOLDER ${BUILD_DIR}/zlib/src/external_zlib)
   set(SSL_SOURCE_FOLDER ${BUILD_DIR}/ssl/src/external_ssl)
+  set(FFI_SOURCE_FOLDER ${LIBDIR}/ffi)
   set(SQLITE_SOURCE_FOLDER ${BUILD_DIR}/sqlite/src/external_sqlite)
   set(DOWNLOADS_EXTERNALS_FOLDER ${DOWNLOAD_DIR}/externals)
 
   cmake_to_dos_path(${PYTHON_EXTERNALS_FOLDER} PYTHON_EXTERNALS_FOLDER_DOS)
   cmake_to_dos_path(${ZLIB_SOURCE_FOLDER} ZLIB_SOURCE_FOLDER_DOS)
+  cmake_to_dos_path(${FFI_SOURCE_FOLDER} FFI_SOURCE_FOLDER_DOS)
   cmake_to_dos_path(${SSL_SOURCE_FOLDER} SSL_SOURCE_FOLDER_DOS)
   cmake_to_dos_path(${SQLITE_SOURCE_FOLDER} SQLITE_SOURCE_FOLDER_DOS)
   cmake_to_dos_path(${DOWNLOADS_EXTERNALS_FOLDER} DOWNLOADS_EXTERNALS_FOLDER_DOS)
@@ -50,9 +52,10 @@ if(WIN32)
     # the foldernames *HAVE* to match the ones inside pythons get_externals.cmd.
     # regardless of the version actually in there.
     PATCH_COMMAND mkdir ${PYTHON_EXTERNALS_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\libffi-3.4.4 ${FFI_SOURCE_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.3.1 ${ZLIB_SOURCE_FOLDER_DOS} &&
-      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-3.0.15 ${SSL_SOURCE_FOLDER_DOS} &&
-      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\sqlite-3.45.1.0 ${SQLITE_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-3.0.18 ${SSL_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\sqlite-3.50.4.0 ${SQLITE_SOURCE_FOLDER_DOS} &&
       ${CMAKE_COMMAND} -E copy
         ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h
         ${PYTHON_EXTERNALS_FOLDER}/zlib-1.3.1/zconf.h &&
@@ -119,43 +122,52 @@ else()
   endif()
   set(PYTHON_BINARY ${LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
 
-  # Various flags to convince Python to use our own versions of:
-  # `ffi`, `sqlite`, `ssl`, `bzip2`, `lzma` and `zlib`.
-  # Using pkg-config is only supported for some, and even then we need to work around issues.
-  set(PYTHON_CONFIGURE_EXTRA_ARGS --with-openssl=${LIBDIR}/ssl)
   set(PYTHON_CFLAGS "${PLATFORM_CFLAGS} ")
-  # Manually specify some library paths. For ffi there is no other way,
-  # for sqlite is needed because LIBSQLITE3_LIBS does not work,
-  # and ssl because it uses the wrong ssl/lib dir instead of ssl/lib64.
-  set(PYTHON_LDFLAGS "-L${LIBDIR}/ffi/lib -L${LIBDIR}/sqlite/lib -L${LIBDIR}/ssl/lib -L${LIBDIR}/ssl/lib64 ${PLATFORM_LDFLAGS} ")
+  # We need to add the zlib static lib path here as even if python itself links the static zlib correctly,
+  # the "_sqlite" cpython library needs to know where to get it from.
+  set(PYTHON_LDFLAGS "-L${LIBDIR}/zlib/lib ${PLATFORM_LDFLAGS} ")
+
+  set(PYTHON_CONFIGURE_EXTRA_ARGS
+    # Using pkg-config is supported for most libs besides bzip2, so make sure it is on.
+    --with-pkg-config=yes
+    --enable-loadable-sqlite-extensions
+    # Don't build or ship the python test suite
+    --disable-test-modules
+  )
+
+  set(PYTHON_CONFIGURE_PKG_CONFIG_PATH "\
+${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/sqlite/lib/pkgconfig:${LIBDIR}/ssl/lib/pkgconfig:\
+${LIBDIR}/ssl/lib64/pkgconfig:${LIBDIR}/lzma/lib/pkgconfig:${LIBDIR}/zlib/share/pkgconfig")
+
   set(PYTHON_CONFIGURE_EXTRA_ENV
     export CFLAGS=${PYTHON_CFLAGS} &&
     export CPPFLAGS=${PYTHON_CFLAGS} &&
     export LDFLAGS=${PYTHON_LDFLAGS} &&
-    # Use pkg-config for libraries that support it.
-    export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/sqlite/lib/pkgconfig:${LIBDIR}/ssl/lib/pkgconfig:${LIBDIR}/ssl/lib64/pkgconfig
+
+    # Use pkg-config for libraries that support it, and ensure that it used static libraries.
+    export PKG_CONFIG=pkg-config\ --static
+    export PKG_CONFIG_PATH=${PYTHON_CONFIGURE_PKG_CONFIG_PATH}
+
     # Use flags documented by ./configure for other libs.
     export BZIP2_CFLAGS=-I${LIBDIR}/bzip2/include
     export BZIP2_LIBS=${LIBDIR}/bzip2/lib/${LIBPREFIX}bz2${LIBEXT}
-    export LIBLZMA_CFLAGS=-I${LIBDIR}/lzma/include
-    export LIBLZMA_LIBS=${LIBDIR}/lzma/lib/${LIBPREFIX}lzma${LIBEXT}
-    export ZLIB_CFLAGS=-I${LIBDIR}/zlib/include
-    export ZLIB_LIBS=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   )
 
-  # This patch includes changes to fix missing `-lm` for SQLITE
-  # and fix the order of `-ldl` flags for SSL to avoid link errors.
   if(APPLE)
-    set(PYTHON_PATCH
-      ${PATCH_CMD} --verbose -p1 -d
-        ${BUILD_DIR}/python/src/external_python <
-        ${PATCH_DIR}/python_apple.diff
+    # Prevent linking against Homebrew's libmpdec if it exists.
+    set(PYTHON_CONFIGURE_EXTRA_ARGS
+      ${PYTHON_CONFIGURE_EXTRA_ARGS}
+      --without-system-libmpdec
     )
-  else()
-    set(PYTHON_PATCH
-      ${PATCH_CMD} --verbose -p1 -d
-        ${BUILD_DIR}/python/src/external_python <
-        ${PATCH_DIR}/python_unix.diff
+
+    # Override library paths for SQLite and zlib on macOS (which are normally provided by pkg-config).
+    # Redefining these prevents Python from wrongly trying to dynamically link zlib in SQLite and various built-in modules.
+    set(PYTHON_CONFIGURE_EXTRA_ENV
+      ${PYTHON_CONFIGURE_EXTRA_ENV}
+      export LIBSQLITE3_CFLAGS=-I${LIBDIR}/sqlite/include
+      export LIBSQLITE3_LIBS=${LIBDIR}/sqlite/lib/${LIBPREFIX}sqlite3${LIBEXT}
+      export ZLIB_CFLAGS=-I${LIBDIR}/zlib/include
+      export ZLIB_LIBS=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
     )
   endif()
 
@@ -199,12 +211,12 @@ add_dependencies(
   external_ssl
   external_zlib
   external_sqlite
+  external_ffi
 )
 if(UNIX)
   add_dependencies(
     external_python
     external_bzip2
-    external_ffi
     external_lzma
   )
 endif()

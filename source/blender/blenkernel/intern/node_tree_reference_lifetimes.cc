@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"

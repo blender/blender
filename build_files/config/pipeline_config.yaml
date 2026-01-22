@@ -3,7 +3,7 @@
 #
 buildbot:
     gcc:
-        version: '11.0.0'
+        version: '14.2.1'
     xcode:
         version: '26.1.1'
     cuda10:

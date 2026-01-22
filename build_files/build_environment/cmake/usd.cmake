@@ -145,6 +145,9 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_noboost.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_mip_trace_3837.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_no_vulkan_sdk.diff &&
     # The patch just makes empty, but we need it to be removed to avoid
     # including an empty file instead of the actual vma header.

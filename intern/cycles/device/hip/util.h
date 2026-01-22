@@ -81,8 +81,10 @@ static inline bool hipSupportsDeviceOIDN(const int hipDevId)
 {
   /* Matches HIPDevice::getArch in HIP. */
   const std::string arch = hipDeviceArch(hipDevId);
-  return (arch == "gfx1030" || arch == "gfx1100" || arch == "gfx1101" || arch == "gfx1102" ||
-          arch == "gfx1200" || arch == "gfx1201");
+  return (arch == "gfx1030" || arch == "gfx1031" || arch == "gfx1032" || arch == "gfx1034" ||
+          arch == "gfx1035" || arch == "gfx1036" || arch == "gfx1100" || arch == "gfx1101" ||
+          arch == "gfx1102" || arch == "gfx1103" || arch == "gfx1150" || arch == "gfx1151" ||
+          arch == "gfx1152" || arch == "gfx1200" || arch == "gfx1201");
 }
 
 CCL_NAMESPACE_END

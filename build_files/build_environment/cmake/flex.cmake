@@ -16,6 +16,10 @@ ExternalProject_Add(external_flex
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/flex
 
+  PATCH_COMMAND ${PATCH_CMD} --verbose -p1 -d
+    ${BUILD_DIR}/flex/src/external_flex <
+    ${PATCH_DIR}/flex_gcc14.diff
+
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/flex/src/external_flex/ &&
     ${_autoconf_cmd_optional} ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flex

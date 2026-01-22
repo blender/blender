@@ -1,22 +1,22 @@
 diff --git a/core/CMakeLists.txt b/core/CMakeLists.txt
-index 057526d..059cdbd 100644
+index 27e2ed3..35a8541 100644
 --- a/core/CMakeLists.txt
 +++ b/core/CMakeLists.txt
-@@ -94,6 +94,7 @@ set_target_properties(OpenImageDenoise_core PROPERTIES
+@@ -95,6 +95,7 @@ set_target_properties(OpenImageDenoise_core PROPERTIES
    OUTPUT_NAME ${OIDN_LIBRARY_NAME}_core
  )
  target_compile_definitions(OpenImageDenoise_core PRIVATE OIDN_LIBRARY_NAME="${OIDN_LIBRARY_NAME}")
 +target_compile_definitions(OpenImageDenoise_core PRIVATE SHARED_POSTFIX=\"$<$<CONFIG:Debug>:$<TARGET_PROPERTY:OpenImageDenoise_core,DEBUG_POSTFIX>>\")
- 
+
  if(OIDN_LIBRARY_VERSIONED)
    set_target_properties(OpenImageDenoise_core PROPERTIES VERSION ${PROJECT_VERSION})
 diff --git a/core/module.cpp b/core/module.cpp
-index cafedbc..b7d7ff6 100644
+index 9cd9498..23a5593 100644
 --- a/core/module.cpp
 +++ b/core/module.cpp
 @@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
        return true; // module already loaded
- 
+
      // Get the path of the module to load
 -    std::string filename = OIDN_LIBRARY_NAME "_" + name;
 +    std::string filename = OIDN_LIBRARY_NAME "_" + name + SHARED_POSTFIX;
@@ -34,18 +34,18 @@ index cafedbc..b7d7ff6 100644
      filename = "lib" + filename + ".so" + versionStr;
    #endif
 diff --git a/devices/CMakeLists.txt b/devices/CMakeLists.txt
-index d43a68e..c878613 100644
+index a0ea112..c6b31f9 100644
 --- a/devices/CMakeLists.txt
 +++ b/devices/CMakeLists.txt
-@@ -67,6 +67,7 @@ if(OIDN_DEVICE_CUDA)
-       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
-       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
-       -DOIDN_DEVICE_CUDA_API:STRING=${OIDN_DEVICE_CUDA_API}
-+      -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
-     BUILD_ALWAYS TRUE
-     DEPENDS
-       OpenImageDenoise_core
-@@ -158,6 +159,8 @@ if(OIDN_DEVICE_HIP)
+@@ -60,6 +60,7 @@ if(OIDN_DEVICE_CUDA)
+     -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
+     -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
+     -DOIDN_DEVICE_CUDA_API:STRING=${OIDN_DEVICE_CUDA_API}
++    -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
+   )
+   if(DEFINED CUDAToolkit_ROOT)
+     list(APPEND _oidn_cuda_cache_args
+@@ -170,6 +171,8 @@ if(OIDN_DEVICE_HIP)
        -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
        -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
        -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
@@ -55,20 +55,22 @@ index d43a68e..c878613 100644
      DEPENDS
        OpenImageDenoise_core
 diff --git a/devices/hip/hip_device.cpp b/devices/hip/hip_device.cpp
-index 35c6291..5cc2d84 100644
+index 6093afc..2f0e67f 100644
 --- a/devices/hip/hip_device.cpp
 +++ b/devices/hip/hip_device.cpp
-@@ -97,11 +97,17 @@ OIDN_NAMESPACE_BEGIN
+@@ -96,13 +96,19 @@ OIDN_NAMESPACE_BEGIN
+   HIPArch HIPDevice::getArch(const hipDeviceProp_t& prop)
    {
      const std::string name = getArchName(prop);
- 
 +    // BLENDER: this comment is meant to generate a merge conflict if the code
 +    // here changes, so we know that hipSupportsDeviceOIDN should be updated.
-     if (name == "gfx1030")
+     if (name == "gfx1030" || name == "gfx1031" || name == "gfx1032" || name == "gfx1034" ||
+         name == "gfx1035" || name == "gfx1036")
        return HIPArch::DL;
 +    // BLENDER: this comment is meant to generate a merge conflict if the code
 +    // here changes, so we know that hipSupportsDeviceOIDN should be updated.
-     if (name == "gfx1100" || name == "gfx1101" || name == "gfx1102" ||
+     if (name == "gfx1100" || name == "gfx1101" || name == "gfx1102" || name == "gfx1103" ||
+         name == "gfx1150" || name == "gfx1151" || name == "gfx1152" ||
          name == "gfx1200" || name == "gfx1201")
        return HIPArch::WMMA;
 +    // BLENDER: this comment is meant to generate a merge conflict if the code
@@ -76,15 +78,3 @@ index 35c6291..5cc2d84 100644
      else
        return HIPArch::Unknown;
    }
-diff --git a/devices/sycl/sycl_device_table.h b/devices/sycl/sycl_device_table.h
-index 70dd493..7a773ea 100644
---- a/devices/sycl/sycl_device_table.h
-+++ b/devices/sycl/sycl_device_table.h
-@@ -77,6 +77,7 @@ OIDN_NAMESPACE_BEGIN
-       SYCLArch::Xe2HPG,
-       {
-         0x05004000, // bmg-g21
-+        0x05008000,
-       }
-     },
-     {

@@ -36,7 +36,6 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::dependencies::optional::pugixml
   PRIVATE bf::dependencies::optional::haru
   bf_io_common
