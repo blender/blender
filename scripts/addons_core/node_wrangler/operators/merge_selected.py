@@ -364,8 +364,8 @@ class NODE_OT_merge_selected(Operator, NWBase):
                     add.hide = do_hide
                     if do_hide:
                         loc_y = loc_y - 50
-                    first = 1
-                    second = 2
+                    first = 0
+                    second = 1
                 elif nodes_list == selected_boolean:
                     add = nodes.new('FunctionNodeBooleanMath')
                     add.show_preview = False
