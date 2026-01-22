@@ -121,9 +121,9 @@ class AssetLibrary {
    * Execute \a fn for every asset library that is loaded. The asset library is passed to the
    * \a fn call.
    *
-   * \param skip_all_library: When true, the \a fn will also be executed for the "All" asset
-   *                          library. This is just a combination of the other ones, so usually
-   *                          iterating over it is redundant.
+   * \param include_all_library: When true, \a fn will also be executed for the "All" asset
+   *   library. This is just a combination of the other ones, so usually iterating over it is
+   *   redundant.
    */
   static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
