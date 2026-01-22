@@ -1836,9 +1836,15 @@ Keep at '0' to automatically compute optimal values for each build."
     # Heuristics: Maximum amount of memory needed per heavy compile task.
     # Note: These values are purposely over-estimated by 10-15% at least, to account
     #       for other types of jobs' memory usage, other system memory usages, etc.
+    # NOTE: Since CMake 4.2, specific files can be put into specific jobs, which
+    #       allows for a more optimal usage of available RAM & CPU resources.
     set(_compile_heavy_mem 2000)
     if(WITH_COMPILER_ASAN)
-      set(_compile_heavy_mem 15000)
+      if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.2.0")
+        set(_compile_heavy_mem 6000)
+      else()
+        set(_compile_heavy_mem 15000)
+      endif()
     elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
       set(_compile_heavy_mem 2000)
     endif()
@@ -1896,9 +1902,15 @@ Keep at '0' to automatically compute optimal values for each build."
     # values in ASAN build cases is the best that can be done.
     # Alternative solution would be to put several whole targets (like `bf_blenkernel`)
     # into the heavy pool, but that is likely even worse of a workaround.
+    # NOTE: Since CMake 4.2, specific files can be put into specific jobs, which
+    #       allows for a more optimal usage of available RAM & CPU resources.
     set(_compile_mem 500)
     if(WITH_COMPILER_ASAN)
-      set(_compile_mem 4000)
+     if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.2.0")
+        set(_compile_mem 1000)
+      else()
+        set(_compile_mem 4000)
+      endif()
     elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
       set(_compile_mem 500)
     endif()
