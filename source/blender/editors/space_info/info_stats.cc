@@ -75,7 +75,8 @@ struct SceneStats {
   uint64_t totlamp, totlampsel;
   uint64_t tottri, tottrisel;
   uint64_t totgplayer, totgpframe, totgpstroke;
-  uint64_t totpoints;
+  uint64_t totpoints, totpointsel;
+  uint64_t totcurves, totcurvesel;
 };
 
 struct SceneStatsFmt {
@@ -92,7 +93,10 @@ struct SceneStatsFmt {
   char totgplayer[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
       totgpframe[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totgpstroke[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
-  char totpoints[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totpoints[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totpointsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totcurves[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totcurvesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
 };
 
 static bool stats_mesheval(const Mesh *mesh_eval, bool is_selected, SceneStats *stats)
@@ -280,34 +284,39 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
 
     for (Nurb &nu : *nurbs) {
+      int selection_count = stats->totpointsel;
       if (nu.type == CU_BEZIER) {
         bezt = nu.bezt;
         a = nu.pntsu;
         while (a--) {
-          stats->totvert += 3;
+          stats->totpoints += 3;
           if (bezt->f1 & SELECT) {
-            stats->totvertsel++;
+            stats->totpointsel++;
           }
           if (bezt->f2 & SELECT) {
-            stats->totvertsel++;
+            stats->totpointsel++;
           }
           if (bezt->f3 & SELECT) {
-            stats->totvertsel++;
+            stats->totpointsel++;
           }
           bezt++;
         }
+        selection_count = (stats->totpointsel - selection_count) == (nu.pntsu * 3);
       }
       else {
         bp = nu.bp;
         a = nu.pntsu * nu.pntsv;
         while (a--) {
-          stats->totvert++;
+          stats->totpoints++;
           if (bp->f1 & SELECT) {
-            stats->totvertsel++;
+            stats->totpointsel++;
           }
           bp++;
         }
+        selection_count = (stats->totpointsel - selection_count) == (nu.pntsu * nu.pntsv);
       }
+      stats->totcurves++;
+      stats->totcurvesel += selection_count;
     }
   }
   else if (obedit->type == OB_MBALL) {
@@ -342,10 +351,45 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   else if (obedit->type == OB_CURVES) {
     const Curves &curves_id = *id_cast<Curves *>(obedit->data);
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
-        ".selection", bke::AttrDomain::Point, true);
-    stats->totvertsel += array_utils::count_booleans(selection);
+    if (const bke::AttributeReader selection = curves.attributes().lookup<bool>(".selection")) {
+      const OffsetIndices points_by_curve = curves.points_by_curve();
+      struct SelectionCounts {
+        int point;
+        int curve;
+      };
+      const SelectionCounts counts = threading::parallel_reduce(
+          points_by_curve.index_range(),
+          2048,
+          SelectionCounts{0, 0},
+          [&](const IndexRange range, SelectionCounts value) {
+            for (const int curve : range) {
+              if (selection.domain == bke::AttrDomain::Point) {
+                const int selected_points = array_utils::count_booleans(*selection,
+                                                                        points_by_curve[curve]);
+                value.point += selected_points;
+                value.curve += (selected_points > 0);
+              }
+              else {
+                const bool selected = selection.varray[curve];
+                value.point += selected ? points_by_curve[curve].size() : 0;
+                value.curve += selected;
+              }
+            }
+            return value;
+          },
+          [&](const SelectionCounts &a, const SelectionCounts &b) {
+            return SelectionCounts{a.point + b.point, a.curve + b.curve};
+          });
+      stats->totpointsel += counts.point;
+      stats->totcurvesel += counts.curve;
+    }
+    else {
+      stats->totpointsel += curves.points_num();
+      stats->totcurvesel += curves.curves_num();
+    }
+
     stats->totpoints += curves.points_num();
+    stats->totcurves += curves.curves_num();
   }
   else if (obedit->type == OB_POINTCLOUD) {
     PointCloud &pointcloud = *id_cast<PointCloud *>(obedit->data);
@@ -561,6 +605,9 @@ static bool format_stats(
   SCENE_STATS_FMT_INT(totgpstroke);
 
   SCENE_STATS_FMT_INT(totpoints);
+  SCENE_STATS_FMT_INT(totpointsel);
+  SCENE_STATS_FMT_INT(totcurves);
+  SCENE_STATS_FMT_INT(totcurvesel);
 
 #undef SCENE_STATS_FMT_INT
   return true;
@@ -845,6 +892,7 @@ void ED_info_draw_stats(
     STROKES,
     POINTS,
     LIGHTS,
+    CURVES,
     MAX_LABELS_COUNT
   };
   char labels[MAX_LABELS_COUNT][64];
@@ -861,6 +909,7 @@ void ED_info_draw_stats(
   STRNCPY_UTF8(labels[STROKES], IFACE_("Strokes"));
   STRNCPY_UTF8(labels[POINTS], IFACE_("Points"));
   STRNCPY_UTF8(labels[LIGHTS], IFACE_("Lights"));
+  STRNCPY_UTF8(labels[CURVES], IFACE_("Curves"));
 
   int longest_label = 0;
   for (int i = 0; i < MAX_LABELS_COUNT; ++i) {
@@ -911,11 +960,12 @@ void ED_info_draw_stats(
       stats_row(col1, labels[JOINTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
       stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
     }
-    else if (ob->type == OB_CURVES) {
-      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totpoints, y, height);
-    }
     else if (ob->type == OB_POINTCLOUD) {
       stats_row(col1, labels[POINTS], col2, stats_fmt.totvertsel, stats_fmt.totpoints, y, height);
+    }
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_CURVES)) {
+      stats_row(col1, labels[POINTS], col2, stats_fmt.totpointsel, stats_fmt.totpoints, y, height);
+      stats_row(col1, labels[CURVES], col2, stats_fmt.totcurvesel, stats_fmt.totcurves, y, height);
     }
     else if (ob->type != OB_FONT) {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
