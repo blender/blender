@@ -1749,7 +1749,7 @@ struct MeshStatVis {
  * \{ */
 
 /** #SequencerToolSettings::snap_mode */
-enum {
+enum eSequencerSnapMode {
   SEQ_SNAP_TO_STRIPS = 1 << 0,
   SEQ_SNAP_TO_CURRENT_FRAME = 1 << 1,
   SEQ_SNAP_TO_STRIP_HOLD = 1 << 2,
@@ -1761,11 +1761,12 @@ enum {
   SEQ_SNAP_TO_STRIPS_PREVIEW = 1 << 6,
 
   SEQ_SNAP_TO_RETIMING = 1 << 7,
-  SEQ_SNAP_TO_FRAME_RANGE = 1 << 8,
+  SEQ_SNAP_TO_INCREMENT = 1 << 8, /* NOTE: Treated identically to `SCE_SNAP_TO_INCREMENT`. */
+  SEQ_SNAP_TO_FRAME_RANGE = 1 << 9,
 };
 
 /** #SequencerToolSettings::snap_flag */
-enum {
+enum eSequencerSnapFlag {
   SEQ_SNAP_IGNORE_MUTED = 1 << 0,
   SEQ_SNAP_IGNORE_SOUND = 1 << 1,
   SEQ_SNAP_CURRENT_FRAME_TO_STRIPS = 1 << 2,

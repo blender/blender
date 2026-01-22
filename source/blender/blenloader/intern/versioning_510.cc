@@ -686,6 +686,18 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 20)) {
+    for (Scene &scene : bmain->scenes) {
+      SequencerToolSettings *seq_ts = seq::tool_settings_ensure(&scene);
+      constexpr short SEQ_SNAP_TO_FRAME_RANGE_OLD = (1 << 8);
+      /* Snap to frame range was bit 8, now bit 9, to make room for snap to increment in bit 8. */
+      if (seq_ts->snap_mode & SEQ_SNAP_TO_FRAME_RANGE_OLD) {
+        seq_ts->snap_mode &= ~SEQ_SNAP_TO_FRAME_RANGE_OLD;
+        seq_ts->snap_mode |= SEQ_SNAP_TO_FRAME_RANGE;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
