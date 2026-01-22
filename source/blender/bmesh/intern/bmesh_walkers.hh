@@ -35,6 +35,10 @@ enum BMWDelimitFlag {
   BMW_DELIMIT_EDGE_LOOP_INNER_CORNERS = 1 << 0,
   BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS = 1 << 1,
   BMW_DELIMIT_EDGE_LOOP_NGONS = 1 << 2,
+  BMW_DELIMIT_EDGE_RING_NGONS = 1 << 3,
+  BMW_DELIMIT_EDGE_MARK_SEAM = 1 << 4,
+  BMW_DELIMIT_EDGE_MARK_SHARP = 1 << 5,
+  BMW_DELIMIT_FACE_MARK_MATERIAL = 1 << 6,
 };
 ENUM_OPERATORS(BMWDelimitFlag)
 
@@ -47,6 +51,7 @@ struct BMWalker {
   int structsize;
   BMWOrder order;
   int valid_mask;
+  BMWDelimitFlag delimit_supported;
 
   /* runtime */
   int layer;

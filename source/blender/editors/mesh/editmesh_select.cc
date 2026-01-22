@@ -1788,8 +1788,9 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
   return OPERATOR_FINISHED;
 }
 
-static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator *op)
 {
+  const BMWDelimitFlag delimit = BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_ring"));
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -1826,8 +1827,7 @@ static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator 
     bool changed = false;
     for (edindex = 0; edindex < totedgesel; edindex += 1) {
       eed = edarray[edindex];
-      changed |= walker_select(
-          em, BMW_EDGERING, eed, true, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+      changed |= walker_select(em, BMW_EDGERING, eed, true, BMW_FLAG_TEST_HIDDEN, delimit);
     }
     if (changed) {
       EDBM_selectmode_flush(em);
@@ -1881,6 +1881,14 @@ void MESH_OT_select_edge_ring_multi(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  RNA_def_enum_flag(ot->srna,
+                    "delimit_edge_ring",
+                    rna_enum_mesh_walk_delimit_edge_ring_items,
+                    BMW_DELIMIT_EDGE_RING_NGONS,
+                    "Edge Ring Delimit",
+                    "Delimit edge ring selection");
 }
 /** \} */
 
@@ -1888,14 +1896,17 @@ void MESH_OT_select_edge_ring_multi(wmOperatorType *ot)
 /** \name Select Loop & Ring (Cursor Pick) Utilities
  * \{ */
 
-static void mouse_mesh_loop_face(BMEditMesh *em, BMEdge *eed, bool select)
+static void mouse_mesh_loop_face(BMEditMesh *em, BMEdge *eed, bool select, BMWDelimitFlag delimit)
 {
-  walker_select(em, BMW_FACELOOP, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+  walker_select(em, BMW_FACELOOP, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
 }
 
-static void mouse_mesh_loop_edge_ring(BMEditMesh *em, BMEdge *eed, bool select)
+static void mouse_mesh_loop_edge_ring(BMEditMesh *em,
+                                      BMEdge *eed,
+                                      bool select,
+                                      BMWDelimitFlag delimit)
 {
-  walker_select(em, BMW_EDGERING, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+  walker_select(em, BMW_EDGERING, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
 }
 
 static void mouse_mesh_loop_edge(
@@ -1945,11 +1956,11 @@ static void edbm_select_loop_or_ring_by_edge(BMEditMesh *em,
                                              BMWDelimitFlag delimit)
 {
   if (em->selectmode & SCE_SELECT_FACE) {
-    mouse_mesh_loop_face(em, eed, select);
+    mouse_mesh_loop_face(em, eed, select, delimit);
   }
   else {
     if (ring) {
-      mouse_mesh_loop_edge_ring(em, eed, select);
+      mouse_mesh_loop_edge_ring(em, eed, select, delimit);
     }
     else {
       mouse_mesh_loop_edge(em, eed, select, select_cycle, delimit);
@@ -2256,8 +2267,12 @@ static wmOperatorStatus edbm_select_loop_or_ring_invoke_impl(bContext *C,
 
 static wmOperatorStatus edbm_select_loop_exec(bContext *C, wmOperator *op)
 {
+  Object *obedit = CTX_data_edit_object(C);
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  const char *delimit_prop = (em->selectmode & SCE_SELECT_FACE) ? "delimit_face_loop" :
+                                                                  "delimit_edge_loop";
   return edbm_select_loop_or_ring_exec_impl(
-      C, op, false, BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop")));
+      C, op, false, BMWDelimitFlag(RNA_enum_get(op->ptr, delimit_prop)));
 }
 
 static wmOperatorStatus edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2267,12 +2282,34 @@ static wmOperatorStatus edbm_select_loop_invoke(bContext *C, wmOperator *op, con
 
 static wmOperatorStatus edbm_select_ring_exec(bContext *C, wmOperator *op)
 {
-  return edbm_select_loop_or_ring_exec_impl(C, op, true, BMW_DELIMIT_NONE);
+  return edbm_select_loop_or_ring_exec_impl(
+      C, op, true, BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_ring")));
 }
 
 static wmOperatorStatus edbm_select_ring_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   return edbm_select_loop_or_ring_invoke_impl(C, op, event);
+}
+
+static bool edbm_select_loop_poll_property(const bContext *C,
+                                           wmOperator * /*op*/,
+                                           const PropertyRNA *prop)
+{
+  Object *obedit = CTX_data_edit_object(C);
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  const char *prop_id = RNA_property_identifier(prop);
+
+  if (em->selectmode & SCE_SELECT_FACE) {
+    if (STREQ(prop_id, "delimit_edge_loop")) {
+      return false;
+    }
+  }
+  else {
+    if (STREQ(prop_id, "delimit_face_loop")) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void MESH_OT_loop_select(wmOperatorType *ot)
@@ -2286,17 +2323,27 @@ void MESH_OT_loop_select(wmOperatorType *ot)
   ot->invoke = edbm_select_loop_invoke;
   ot->exec = edbm_select_loop_exec;
   ot->poll = ED_operator_editmesh_region_view3d;
+  ot->poll_property = edbm_select_loop_poll_property;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties. */
+
+  /* Only shown when face-select mode is disabled. */
   RNA_def_enum_flag(ot->srna,
                     "delimit_edge_loop",
                     rna_enum_mesh_walk_delimit_edge_loop_items,
                     BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS | BMW_DELIMIT_EDGE_LOOP_NGONS,
                     "Boundary Delimit",
                     "Delimit edge loop selection");
+  /* Only shown when face-select mode is enabled. */
+  RNA_def_enum_flag(ot->srna,
+                    "delimit_face_loop",
+                    rna_enum_mesh_walk_delimit_face_loop_items,
+                    0,
+                    "Face Loop Delimit",
+                    "Delimit face loop selection");
 
   edbm_select_loop_or_ring_properties(ot);
 }
@@ -2317,6 +2364,13 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties. */
+  RNA_def_enum_flag(ot->srna,
+                    "delimit_edge_ring",
+                    rna_enum_mesh_walk_delimit_edge_ring_items,
+                    BMW_DELIMIT_EDGE_RING_NGONS,
+                    "Edge Ring Delimit",
+                    "Delimit edge ring selection");
+
   edbm_select_loop_or_ring_properties(ot);
 }
 
