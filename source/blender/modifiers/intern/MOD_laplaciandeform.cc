@@ -650,7 +650,7 @@ static void LaplacianDeformModifier_do(
       lmd->cache_system = nullptr;
     }
     lmd->verts_num = 0;
-    MEM_SAFE_FREE(lmd->vertexco);
+    implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
     return;
   }
   if (lmd->cache_system) {
@@ -660,7 +660,7 @@ static void LaplacianDeformModifier_do(
       if (ELEM(sysdif, LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS, LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP)) {
         filevertexCos = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
         memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
-        MEM_SAFE_FREE(lmd->vertexco);
+        implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
         lmd->verts_num = 0;
         deleteLaplacianSystem(sys);
         lmd->cache_system = nullptr;
