@@ -14,7 +14,7 @@ import numpy as np
 import bpy
 
 """
-blender -b --factory-startup --python tests/python/bl_sculpt.py -- --testdir tests/files/sculpting/
+blender -b --factory-startup --python tests/python/mask_test.py -- --testdir tests/files/sculpting/
 """
 
 args = None
@@ -39,6 +39,107 @@ def set_view3d_context_override(context_override):
                     continue
                 context_override["area"] = area
                 context_override["region"] = region
+
+
+class GrowMaskTest(unittest.TestCase):
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "partially_masked_sphere.blend"), load_ui=False)
+        bpy.ops.ed.undo_push()
+
+    def test_grow_increases_number_of_masked_vertices(self):
+        mesh = bpy.context.object.data
+        mask_attr = mesh.attributes['.sculpt_mask']
+
+        num_vertices = mesh.attributes.domain_size('POINT')
+
+        old_mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', old_mask_data)
+
+        bpy.ops.sculpt.mask_filter(filter_type='GROW')
+
+        new_mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', new_mask_data)
+
+        self.assertGreater(np.count_nonzero(new_mask_data), np.count_nonzero(old_mask_data))
+
+
+class ShrinkMaskTest(unittest.TestCase):
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "partially_masked_sphere.blend"), load_ui=False)
+        bpy.ops.ed.undo_push()
+
+    def test_shrink_decreases_number_of_masked_vertices(self):
+        mesh = bpy.context.object.data
+        mask_attr = mesh.attributes['.sculpt_mask']
+
+        num_vertices = mesh.attributes.domain_size('POINT')
+
+        old_mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', old_mask_data)
+
+        bpy.ops.sculpt.mask_filter(filter_type='SHRINK')
+
+        new_mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', new_mask_data)
+
+        self.assertLess(np.count_nonzero(new_mask_data), np.count_nonzero(old_mask_data))
+
+
+class ClearMaskTest(unittest.TestCase):
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "partially_masked_sphere.blend"), load_ui=False)
+        bpy.ops.ed.undo_push()
+
+    def test_value_removes_attribute(self):
+        mesh = bpy.context.object.data
+
+        bpy.ops.paint.mask_flood_fill(mode='VALUE', value=0)
+
+        self.assertFalse(mesh.attributes.get('.sculpt_mask'))
+
+
+class InvertMaskTest(unittest.TestCase):
+    def test_invert_applies_correct_values(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "partially_masked_sphere.blend"), load_ui=False)
+        bpy.ops.ed.undo_push()
+
+        mesh = bpy.context.object.data
+        mask_attr = mesh.attributes['.sculpt_mask']
+
+        num_vertices = mesh.attributes.domain_size('POINT')
+
+        old_mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', old_mask_data)
+
+        bpy.ops.paint.mask_flood_fill(mode='INVERT')
+
+        new_mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', new_mask_data)
+
+        expected_mask_data = np.array([1.0 - m for m in old_mask_data])
+
+        self.assertEqual(expected_mask_data.tolist(), new_mask_data.tolist())
+
+    def test_invert_on_empty_fills_mesh(self):
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        bpy.ops.ed.undo_push()
+
+        bpy.ops.mesh.primitive_monkey_add()
+        bpy.ops.sculpt.sculptmode_toggle()
+
+        bpy.ops.paint.mask_flood_fill(mode='INVERT')
+
+        mesh = bpy.context.object.data
+        mask_attr = mesh.attributes['.sculpt_mask']
+
+        num_vertices = mesh.attributes.domain_size('POINT')
+
+        new_mask_data = np.zeros(num_vertices, dtype=np.float32)
+        mask_attr.data.foreach_get('value', new_mask_data)
+
+        expected_mask_data = np.ones(num_vertices, dtype=np.float32)
+
+        self.assertEqual(expected_mask_data.tolist(), new_mask_data.tolist())
 
 
 class MaskByColorTest(unittest.TestCase):
@@ -125,48 +226,6 @@ class MaskFromCavityTest(unittest.TestCase):
             else:
                 self.assertNotEqual(mask_data[i], 1.0,
                                     f"Vertex {i} should not be fully masked ({position_data[i]}) -> {mask_data[i]}")
-
-
-class DetailFloodFillTest(unittest.TestCase):
-    def setUp(self):
-        bpy.ops.wm.read_factory_settings(use_empty=True)
-        bpy.ops.ed.undo_push()
-
-        bpy.ops.mesh.primitive_cube_add()
-        bpy.ops.sculpt.sculptmode_toggle()
-        bpy.ops.sculpt.dynamic_topology_toggle()
-
-    def test_operator_subdivides_mesh(self):
-        """Test that the operator generates a mesh with appropriately sized edges."""
-
-        max_edge_length = 1.0
-        # Based on the detail_size::EDGE_LENGTH_MIN_FACTOR constant
-        min_edge_length = max_edge_length * 0.4
-
-        bpy.context.scene.tool_settings.sculpt.detail_type_method = 'CONSTANT'
-        bpy.context.scene.tool_settings.sculpt.constant_detail_resolution = max_edge_length
-
-        ret_val = bpy.ops.sculpt.detail_flood_fill()
-        self.assertEqual({'FINISHED'}, ret_val)
-
-        # Toggle to ensure the mesh data is refreshed.
-        bpy.ops.sculpt.dynamic_topology_toggle()
-
-        mesh = bpy.context.object.data
-        for edge in mesh.edges:
-            v0 = mesh.vertices[edge.vertices[0]]
-            v1 = mesh.vertices[edge.vertices[1]]
-
-            length = (v0.co - v1.co).length
-
-            self.assertGreaterEqual(
-                length,
-                min_edge_length,
-                f"Edge between {v0.index} and {v1.index} should be longer than minimum length")
-            self.assertLessEqual(
-                length,
-                max_edge_length,
-                f"Edge between {v0.index} and {v1.index} should be shorter than maximum length")
 
 
 def main():
