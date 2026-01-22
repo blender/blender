@@ -134,36 +134,6 @@ Attribute::SingleData Attribute::SingleData::from_default_value(const CPPType &t
   return from_value(GPointer(type, type.default_value()));
 }
 
-void AttributeStorage::foreach(FunctionRef<void(Attribute &)> fn)
-{
-  for (const std::unique_ptr<Attribute> &attribute : this->runtime->attributes) {
-    fn(*attribute);
-  }
-}
-void AttributeStorage::foreach(FunctionRef<void(const Attribute &)> fn) const
-{
-  for (const std::unique_ptr<Attribute> &attribute : this->runtime->attributes) {
-    fn(*attribute);
-  }
-}
-
-void AttributeStorage::foreach_with_stop(FunctionRef<bool(Attribute &)> fn)
-{
-  for (const std::unique_ptr<Attribute> &attribute : this->runtime->attributes) {
-    if (!fn(*attribute)) {
-      break;
-    }
-  }
-}
-void AttributeStorage::foreach_with_stop(FunctionRef<bool(const Attribute &)> fn) const
-{
-  for (const std::unique_ptr<Attribute> &attribute : this->runtime->attributes) {
-    if (!fn(*attribute)) {
-      break;
-    }
-  }
-}
-
 AttrStorageType Attribute::storage_type() const
 {
   if (std::get_if<Attribute::ArrayData>(&data_)) {
@@ -218,9 +188,9 @@ AttributeStorage::AttributeStorage(const AttributeStorage &other)
   this->dna_attributes_num = 0;
   this->runtime = MEM_new<AttributeStorageRuntime>(__func__);
   this->runtime->attributes.reserve(other.runtime->attributes.size());
-  other.foreach([&](const Attribute &attribute) {
+  for (const Attribute &attribute : other) {
     this->runtime->attributes.add_new(std::make_unique<Attribute>(attribute));
-  });
+  }
 }
 
 AttributeStorage &AttributeStorage::operator=(const AttributeStorage &other)
@@ -336,9 +306,9 @@ void AttributeStorage::rename(const StringRef old_name, std::string new_name)
 
 void AttributeStorage::resize(const AttrDomain domain, const int64_t new_size)
 {
-  this->foreach([&](Attribute &attr) {
+  for (Attribute &attr : *this) {
     if (attr.domain() != domain) {
-      return;
+      continue;
     }
     const CPPType &type = attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
@@ -354,12 +324,13 @@ void AttributeStorage::resize(const AttrDomain domain, const int64_t new_size)
         }
 
         attr.assign_data(std::move(new_data));
+        break;
       }
       case bke::AttrStorageType::Single: {
-        return;
+        break;
       }
     }
-  });
+  }
 }
 
 static void read_array_data(BlendDataReader &reader,
@@ -585,7 +556,7 @@ static void write_array_data(BlendWriter &writer,
 void attribute_storage_blend_write_prepare(AttributeStorage &data,
                                            AttributeStorage::BlendWriteData &write_data)
 {
-  data.foreach([&](Attribute &attr) {
+  for (Attribute &attr : data) {
     blender::Attribute attribute_dna{};
     attribute_dna.name = attr.name().c_str();
     attribute_dna.data_type = int16_t(attr.data_type());
@@ -614,7 +585,7 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
     }
 
     write_data.attributes.append(attribute_dna);
-  });
+  }
   data.runtime = nullptr;
 }
 

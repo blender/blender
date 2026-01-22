@@ -488,12 +488,12 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
   bke::GeometrySet::GatheredAttributes attribute_info;
   for (int i = 0; i < me_src_array_len; i++) {
     const Mesh *me_src = me_src_array[i];
-    me_src->attribute_storage.wrap().foreach([&](const bke::Attribute &attr) {
+    for (const bke::Attribute &attr : me_src->attribute_storage.wrap()) {
       if (BM_attribute_stored_in_bmesh_builtin(attr.name())) {
-        return;
+        continue;
       }
       attribute_info.add(attr.name(), {attr.domain(), attr.data_type()});
-    });
+    }
   }
 
   for (const int i : attribute_info.names.index_range()) {

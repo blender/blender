@@ -498,9 +498,9 @@ void mesh_calc_edges(Mesh &mesh,
   }
 
   mesh.attribute_storage.wrap().remove(".edge_verts");
-  mesh.attribute_storage.wrap().foreach([&](bke::Attribute &attr) {
+  for (bke::Attribute &attr : mesh.attribute_storage.wrap()) {
     if (attr.domain() != bke::AttrDomain::Edge) {
-      return;
+      continue;
     }
     switch (attr.storage_type()) {
       case AttrStorageType::Single: {
@@ -520,7 +520,7 @@ void mesh_calc_edges(Mesh &mesh,
         break;
       }
     }
-  });
+  }
 
   {
     const int orig_index_layer = CustomData_get_layer_index(&mesh.edge_data, CD_ORIGINDEX);

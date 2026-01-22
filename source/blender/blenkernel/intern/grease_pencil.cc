@@ -3806,9 +3806,9 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
                                      const bke::AttrDomain domain,
                                      const Span<int> new_by_old_map)
 {
-  data.foreach([&](bke::Attribute &attr) {
+  for (bke::Attribute &attr : data) {
     if (attr.domain() != domain) {
-      return;
+      continue;
     }
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
@@ -3819,12 +3819,13 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
                                     new_by_old_map,
                                     GMutableSpan(type, new_data.data, new_data.size));
         attr.assign_data(std::move(new_data));
+        break;
       }
       case bke::AttrStorageType::Single: {
-        return;
+        break;
       }
     }
-  });
+  }
 }
 
 static void reorder_layer_data(GreasePencil &grease_pencil,
@@ -4137,7 +4138,7 @@ static void shrink_attribute_storage(bke::AttributeStorage &storage,
   const IndexRange range_before(index_to_remove);
   const IndexRange range_after(index_to_remove + 1, size - index_to_remove - 1);
 
-  storage.foreach([&](bke::Attribute &attr) {
+  for (bke::Attribute &attr : storage) {
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
       case bke::AttrStorageType::Array: {
@@ -4150,12 +4151,13 @@ static void shrink_attribute_storage(bke::AttributeStorage &storage,
                               range_after.size());
 
         attr.assign_data(std::move(new_data));
+        break;
       }
       case bke::AttrStorageType::Single: {
-        return;
+        break;
       }
     }
-  });
+  }
 }
 
 static void update_active_node_from_node_to_remove(GreasePencil &grease_pencil,

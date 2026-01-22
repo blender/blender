@@ -958,7 +958,7 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
     }
 
     const AttributeStorage &storage = mesh.attribute_storage.wrap();
-    storage.foreach_with_stop([&](const Attribute &attr) {
+    for (const Attribute &attr : storage) {
       const auto get_fn = [&]() {
         const int domain_size = get_domain_size(owner, attr.domain());
         return attribute_to_reader(attr, attr.domain(), domain_size);
@@ -967,8 +967,10 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
       iter.is_builtin = builtin_attributes().contains(attr.name());
       iter.accessor = &accessor;
       fn(iter);
-      return !iter.is_stopped();
-    });
+      if (iter.is_stopped()) {
+        break;
+      }
+    }
   };
   fn.lookup_validator = [](const void * /*owner*/, const StringRef name) -> AttributeValidator {
     const AttrBuiltinInfo *info = builtin_attributes().lookup_ptr(name);

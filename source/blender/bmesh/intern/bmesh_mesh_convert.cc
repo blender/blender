@@ -279,19 +279,19 @@ static CustomData get_mesh_to_bm_custom_data(const Mesh &mesh,
 {
   CustomData custom_data;
   CustomData_reset(&custom_data);
-  mesh.attribute_storage.wrap().foreach([&](const bke::Attribute &attr) {
+  for (const bke::Attribute &attr : mesh.attribute_storage.wrap()) {
     if (attr.domain() != domain) {
-      return;
+      continue;
     }
     if (BM_attribute_stored_in_bmesh_builtin(attr.name())) {
-      return;
+      continue;
     }
     const eCustomDataType data_type = *bke::attr_type_to_custom_data_type(attr.data_type());
     if ((CD_TYPE_AS_MASK(data_type) & cd_type_mask) == 0) {
-      return;
+      continue;
     }
     CustomData_add_layer_named(&custom_data, data_type, CD_SET_DEFAULT, 0, attr.name());
-  });
+  }
   const CustomData &mesh_data = get_mesh_custom_data(mesh, domain);
   for (const CustomDataLayer &layer : Span(mesh_data.layers, mesh_data.totlayer)) {
     if ((CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & cd_type_mask) == 0) {
@@ -1212,18 +1212,18 @@ static Vector<BMeshToMeshLayerInfo> bm_to_mesh_copy_info_calc(const CustomData &
 
     per_type_index[type]++;
   }
-  storage.foreach([&](bke::Attribute &attr) {
+  for (bke::Attribute &attr : storage) {
     if (attr.domain() != domain) {
-      return;
+      continue;
     }
     const eCustomDataType cd_type = *bke::attr_type_to_custom_data_type(attr.data_type());
     const int bm_layer_index = CustomData_get_named_layer_index(&bm_data, cd_type, attr.name());
     if (bm_layer_index == -1) {
-      return;
+      continue;
     }
     const CustomDataLayer &bm_layer = bm_data.layers[bm_layer_index];
     if (bm_layer.flag & CD_FLAG_NOCOPY) {
-      return;
+      continue;
     }
     BMeshToMeshLayerInfo info{};
     info.type = cd_type;
@@ -1231,7 +1231,7 @@ static Vector<BMeshToMeshLayerInfo> bm_to_mesh_copy_info_calc(const CustomData &
     info.mesh_data = std::get<bke::Attribute::ArrayData>(attr.data_for_write()).data;
     info.elem_size = bke::attribute_type_to_cpp_type(attr.data_type()).size;
     infos.append(info);
-  });
+  }
   return infos;
 }
 

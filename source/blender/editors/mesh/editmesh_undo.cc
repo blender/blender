@@ -495,8 +495,9 @@ static void um_arraystore_cd_free(BArrayCustomData *bcd, const int bs_index)
 static MultiValueMap<bke::AttrDomain, bke::Attribute *> get_attributes_by_domain(Mesh &mesh)
 {
   MultiValueMap<bke::AttrDomain, bke::Attribute *> result;
-  mesh.attribute_storage.wrap().foreach(
-      [&](bke::Attribute &attr) { result.add(attr.domain(), &attr); });
+  for (bke::Attribute &attr : mesh.attribute_storage.wrap()) {
+    result.add(attr.domain(), &attr);
+  }
   return result;
 }
 
@@ -628,7 +629,9 @@ static void um_arraystore_expand_clear(UndoMesh *um)
   um_arraystore_cd_clear(&mesh->edge_data);
   um_arraystore_cd_clear(&mesh->corner_data);
   um_arraystore_cd_clear(&mesh->face_data);
-  mesh->attribute_storage.wrap().foreach([&](bke::Attribute &attr) { attr.assign_data({}); });
+  for (bke::Attribute &attr : mesh->attribute_storage.wrap()) {
+    attr.assign_data({});
+  }
   if (mesh->face_offset_indices) {
     implicit_sharing::free_shared_data(&mesh->face_offset_indices,
                                        &mesh->runtime->face_offsets_sharing_info);

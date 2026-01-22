@@ -12,8 +12,7 @@ namespace blender::bke::tests {
 TEST(attribute_storage, Empty)
 {
   AttributeStorage storage;
-  int count = 0;
-  storage.foreach([&](const Attribute & /*attribute*/) { count++; });
+  const int count = std::distance(storage.begin(), storage.end());
   EXPECT_EQ(count, 0);
 }
 
@@ -36,8 +35,7 @@ TEST(attribute_storage, Single)
     EXPECT_EQ(data.data, sharing_info->data.data());
   }
 
-  int count = 0;
-  storage.foreach([&](const Attribute & /*attribute*/) { count++; });
+  const int count = std::distance(storage.begin(), storage.end());
   EXPECT_EQ(count, 1);
 }
 
@@ -133,8 +131,7 @@ TEST(attribute_storage, MultipleShared)
     EXPECT_EQ(data_ptr[3], 1.0f);
   }
 
-  int count = 0;
-  storage.foreach([&](const Attribute & /*attribute*/) { count++; });
+  const int count = std::distance(storage.begin(), storage.end());
   EXPECT_EQ(count, 5);
 }
 
@@ -208,8 +205,7 @@ TEST(attribute_storage, UniqueNames)
   storage.add(
       storage.unique_name_calc("foo_2"), AttrDomain::Point, AttrType::Float, create_array_data());
 
-  int count = 0;
-  storage.foreach([&](const Attribute & /*attribute*/) { count++; });
+  const int count = std::distance(storage.begin(), storage.end());
   EXPECT_EQ(count, 6);
 }
 

@@ -2675,11 +2675,11 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   /* free old CustomData and assign new one */
   CustomData_free(&mesh->edge_data);
   Set<StringRef> edge_attributes;
-  mesh->attribute_storage.wrap().foreach([&](const bke::Attribute &attr) {
+  for (const bke::Attribute &attr : mesh->attribute_storage.wrap()) {
     if (attr.domain() == bke::AttrDomain::Edge) {
       edge_attributes.add(attr.name());
     }
-  });
+  }
   for (const StringRef name : edge_attributes) {
     mesh->attribute_storage.wrap().remove(name);
   }

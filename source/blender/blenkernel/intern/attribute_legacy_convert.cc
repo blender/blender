@@ -304,22 +304,22 @@ LegacyMeshInterpolator::LegacyMeshInterpolator(const Mesh &src, Mesh &dst, const
   AttributeStorage &dst_attributes = dst.attribute_storage.wrap();
   const int src_domain_size = get_domain_size(src, domain);
   const int dst_domain_size = get_domain_size(dst, domain);
-  src_attributes.foreach([&](const Attribute &src_attr) {
+  for (const Attribute &src_attr : src_attributes) {
     if (src_attr.domain() != domain) {
-      return;
+      continue;
     }
     Attribute *dst_attr = dst_attributes.lookup(src_attr.name());
     if (!dst_attr) {
-      return;
+      continue;
     }
     if (dst_attr->domain() != domain) {
-      return;
+      continue;
     }
     if (dst_attr->data_type() != src_attr.data_type()) {
-      return;
+      continue;
     }
     if (dst_attr->storage_type() != AttrStorageType::Array) {
-      return;
+      continue;
     }
     const CPPType &cpp_type = attribute_type_to_cpp_type(src_attr.data_type());
     switch (src_attr.storage_type()) {
@@ -336,7 +336,7 @@ LegacyMeshInterpolator::LegacyMeshInterpolator(const Mesh &src, Mesh &dst, const
     }
     auto &value = std::get<Attribute::ArrayData>(dst_attr->data_for_write());
     attrs_dst_.append({cpp_type, value.data, dst_domain_size});
-  });
+  }
 }
 
 void LegacyMeshInterpolator::copy(const int src_index, const int dst_index, const int count) const

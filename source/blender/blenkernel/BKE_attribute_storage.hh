@@ -139,15 +139,6 @@ class AttributeStorage : public blender::AttributeStorage {
   AttributeStorage &operator=(AttributeStorage &&other);
   ~AttributeStorage();
 
-  /**
-   * Iterate over all attributes, with the order defined by the order of insertion. It is not safe
-   * to add or remove attributes while iterating.
-   */
-  void foreach(FunctionRef<void(Attribute &)> fn);
-  void foreach(FunctionRef<void(const Attribute &)> fn) const;
-  void foreach_with_stop(FunctionRef<bool(Attribute &)> fn);
-  void foreach_with_stop(FunctionRef<bool(const Attribute &)> fn) const;
-
   /** Return the number of attributes. */
   int count() const;
 
