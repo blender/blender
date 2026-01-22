@@ -371,7 +371,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
 
   /* Recalculate handles. */
   for (int i = 0; i < fcurve_array_len; i++) {
-    BKE_fcurve_handles_recalc_ex(fcurve_array[i], eBezTriple_Flag(0));
+    BKE_fcurve_handles_recalc_ex(*fcurve_array[i], eBezTriple_Flag(0));
   }
 
   MEM_freeN(keyed_frames);

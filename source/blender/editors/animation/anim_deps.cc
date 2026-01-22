@@ -404,14 +404,14 @@ void ANIM_animdata_update(bAnimContext *ac, ListBaseT<bAnimListElem> *anim_data)
       if (ale.update & ANIM_UPDATE_ORDER) {
         ale.update &= ~ANIM_UPDATE_ORDER;
         if (fcu) {
-          sort_time_fcurve(fcu);
+          sort_time_fcurve(*fcu);
         }
       }
 
       if (ale.update & ANIM_UPDATE_HANDLES) {
         ale.update &= ~ANIM_UPDATE_HANDLES;
         if (fcu) {
-          BKE_fcurve_handles_recalc(fcu);
+          BKE_fcurve_handles_recalc(*fcu);
         }
       }
 

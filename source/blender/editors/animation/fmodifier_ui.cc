@@ -986,7 +986,7 @@ bool ANIM_fmodifiers_paste_from_buf(ListBaseT<FModifier> *modifiers, bool replac
     return false;
   }
 
-  bool was_cyclic = curve && BKE_fcurve_is_cyclic(curve);
+  bool was_cyclic = curve && BKE_fcurve_is_cyclic(*curve);
 
   /* if replacing the list, free the existing modifiers */
   if (replace) {
@@ -1009,8 +1009,8 @@ bool ANIM_fmodifiers_paste_from_buf(ListBaseT<FModifier> *modifiers, bool replac
   }
 
   /* adding or removing the Cycles modifier requires an update to handles */
-  if (curve && BKE_fcurve_is_cyclic(curve) != was_cyclic) {
-    BKE_fcurve_handles_recalc(curve);
+  if (curve && BKE_fcurve_is_cyclic(*curve) != was_cyclic) {
+    BKE_fcurve_handles_recalc(*curve);
   }
 
   /* did we succeed? */

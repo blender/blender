@@ -135,7 +135,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
 
   /* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
   if (fcu_cb) {
-    fcu_cb(fcu);
+    fcu_cb(*fcu);
   }
 
   /* done */

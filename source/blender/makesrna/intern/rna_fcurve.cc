@@ -738,9 +738,9 @@ static void rna_tag_animation_update(Main *bmain, ID *id)
 /* allow scripts to update curve after editing manually */
 static void rna_FCurve_update_data_ex(ID *id, FCurve *fcu, Main *bmain)
 {
-  sort_time_fcurve(fcu);
+  sort_time_fcurve(*fcu);
   BKE_fcurve_deduplicate_keys(fcu);
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_handles_recalc(*fcu);
 
   rna_tag_animation_update(bmain, id);
 }
@@ -872,7 +872,7 @@ static void rna_FModifier_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
 
   if (fcm->curve && fcm->type == FMODIFIER_TYPE_CYCLES) {
-    BKE_fcurve_handles_recalc(fcm->curve);
+    BKE_fcurve_handles_recalc(*fcm->curve);
   }
 
   rna_tag_animation_update(bmain, id);
@@ -1131,7 +1131,7 @@ static void rna_FKeyframe_points_remove(
   bezt_ptr->invalidate();
 
   if (!do_fast) {
-    BKE_fcurve_handles_recalc(fcu);
+    BKE_fcurve_handles_recalc(*fcu);
   }
 
   rna_tag_animation_update(bmain, id);
@@ -1139,14 +1139,16 @@ static void rna_FKeyframe_points_remove(
 
 static void rna_FKeyframe_points_clear(ID *id, FCurve *fcu, Main *bmain)
 {
-  BKE_fcurve_delete_keys_all(fcu);
+  if (fcu) {
+    BKE_fcurve_delete_keys_all(*fcu);
+  }
 
   rna_tag_animation_update(bmain, id);
 }
 
 static void rna_FKeyframe_points_sort(ID *id, FCurve *fcu, Main *bmain)
 {
-  sort_time_fcurve(fcu);
+  sort_time_fcurve(*fcu);
   rna_tag_animation_update(bmain, id);
 }
 
@@ -1158,7 +1160,7 @@ static void rna_FKeyframe_points_deduplicate(ID *id, FCurve *fcu, Main *bmain)
 
 static void rna_FKeyframe_points_handles_recalc(ID *id, FCurve *fcu, Main *bmain)
 {
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_handles_recalc(*fcu);
   rna_tag_animation_update(bmain, id);
 }
 

@@ -442,7 +442,7 @@ static float nla_time_remap(float time,
 static SingleKeyingResult insert_keyframe_value(
     FCurve *fcu, float cfra, float curval, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
 {
-  if (!BKE_fcurve_is_keyframable(fcu)) {
+  if (!fcu || !BKE_fcurve_is_keyframable(*fcu)) {
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
   }
 

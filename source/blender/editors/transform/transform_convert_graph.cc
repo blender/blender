@@ -895,7 +895,7 @@ static void remake_graph_transdata(TransInfo *t, const Span<FCurve *> fcurves)
 
       /* Re-sort actual beztriples
        * (perhaps this could be done using the beztmaps to save time?). */
-      sort_time_fcurve(fcu);
+      sort_time_fcurve(*fcu);
 
       testhandles_fcurve(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
     }
@@ -947,11 +947,11 @@ static void recalcData_graphedit(TransInfo *t)
     }
 
     /* Watch it: if the time is wrong: do not correct handles yet. */
-    if (test_time_fcurve(fcu)) {
+    if (test_time_fcurve(*fcu)) {
       unsorted_fcurves.append(fcu);
     }
     else {
-      BKE_fcurve_handles_recalc_ex(fcu, BEZT_FLAG_TEMP_TAG);
+      BKE_fcurve_handles_recalc_ex(*fcu, BEZT_FLAG_TEMP_TAG);
     }
 
     /* Set refresh tags for objects using this animation,

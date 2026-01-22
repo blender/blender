@@ -1326,7 +1326,7 @@ static void fcurve_convert_thickness_cb(FCurve &fcurve)
     }
   }
   fcurve.flag &= ~FCURVE_INT_VALUES;
-  BKE_fcurve_handles_recalc(&fcurve);
+  BKE_fcurve_handles_recalc(fcurve);
 }
 
 static void legacy_object_thickness_modifier_thickness_anim(ConversionData &conversion_data,

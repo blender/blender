@@ -109,7 +109,7 @@ eFCurve_Flags fcurve_flags_for_property_type(const PropertyType prop_type)
 
 bool fcurve_delete_keyframe_at_time(FCurve *fcurve, const float time)
 {
-  if (BKE_fcurve_is_protected(fcurve)) {
+  if (!fcurve || BKE_fcurve_is_protected(*fcurve)) {
     return false;
   }
   bool found;
@@ -121,7 +121,7 @@ bool fcurve_delete_keyframe_at_time(FCurve *fcurve, const float time)
   }
 
   BKE_fcurve_delete_key(fcurve, index);
-  BKE_fcurve_handles_recalc(fcurve);
+  BKE_fcurve_handles_recalc(*fcurve);
 
   return true;
 }
@@ -186,7 +186,7 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
         if (flag & INSERTKEY_CYCLE_AWARE) {
           /* If replacing an end point of a cyclic curve without offset,
            * modify the other end too. */
-          if (ELEM(i, 0, fcu->totvert - 1) && BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT)
+          if (ELEM(i, 0, fcu->totvert - 1) && BKE_fcurve_get_cycle_type(*fcu) == FCU_CYCLE_PERFECT)
           {
             replace_bezt_keyframe_ypos(&fcu->bezt[i == 0 ? fcu->totvert - 1 : 0], bezt);
           }
@@ -438,7 +438,7 @@ SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
   float2 remapped_position = position;
   /* Adjust coordinates for cycle aware insertion. */
   if (flag & INSERTKEY_CYCLE_AWARE) {
-    eFCU_Cycle_Type type = BKE_fcurve_get_cycle_type(fcu);
+    eFCU_Cycle_Type type = BKE_fcurve_get_cycle_type(*fcu);
     remapped_position = remap_cyclic_keyframe_location(*fcu, type, position);
     if (type != FCU_CYCLE_PERFECT) {
       /* Inhibit action from insert_bezt_fcurve unless it's a perfect cycle. */
@@ -496,7 +496,7 @@ SingleKeyingResult insert_vert_fcurve(FCurve *fcu,
    * - we may calculate twice (due to auto-handle needing to be calculated twice)
    */
   if ((flag & INSERTKEY_FAST) == 0) {
-    BKE_fcurve_handles_recalc(fcu);
+    BKE_fcurve_handles_recalc(*fcu);
   }
 
   /* Return the index at which the keyframe was added. */
@@ -522,7 +522,7 @@ static void remove_fcurve_key_range(FCurve *fcu,
   switch (removal_mode) {
 
     case BakeCurveRemove::ALL: {
-      BKE_fcurve_delete_keys_all(fcu);
+      BKE_fcurve_delete_keys_all(*fcu);
       break;
     }
 
@@ -533,7 +533,7 @@ static void remove_fcurve_key_range(FCurve *fcu,
           fcu->bezt, range[0], fcu->totvert, &replace);
 
       if (before_index > 0) {
-        BKE_fcurve_delete_keys(fcu, {0, uint(before_index)});
+        BKE_fcurve_delete_keys(*fcu, {0, uint(before_index)});
       }
 
       int after_index = BKE_fcurve_bezt_binarysearch_index(
@@ -543,7 +543,7 @@ static void remove_fcurve_key_range(FCurve *fcu,
         after_index++;
       }
       if (after_index < fcu->totvert) {
-        BKE_fcurve_delete_keys(fcu, {uint(after_index), fcu->totvert});
+        BKE_fcurve_delete_keys(*fcu, {uint(after_index), fcu->totvert});
       }
       break;
     }
@@ -559,7 +559,7 @@ static void remove_fcurve_key_range(FCurve *fcu,
       }
 
       if (range_end_index > range_start_index) {
-        BKE_fcurve_delete_keys(fcu, {uint(range_start_index), uint(range_end_index)});
+        BKE_fcurve_delete_keys(*fcu, {uint(range_start_index), uint(range_end_index)});
       }
       break;
     }
@@ -607,7 +607,7 @@ void bake_fcurve(FCurve *fcu,
   fcu->totvert = merged_size;
 
   MEM_freeN(samples);
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_handles_recalc(*fcu);
 }
 
 struct TempFrameValCache {
@@ -687,7 +687,7 @@ void bake_fcurve_segments(FCurve *fcu)
     }
   }
 
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_handles_recalc(*fcu);
 }
 
 bool fcurve_frame_has_keyframe(const FCurve *fcu, const float frame)
