@@ -724,7 +724,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
       ".select_edge", bke::AttrDomain::Edge);
   select_edge.span.take_back(len).fill(true);
   select_edge.finish();
-  attributes.add<float3>(".edge_verts", bke::AttrDomain::Edge, bke::AttributeInitDefaultValue());
+  attributes.add<int2>(".edge_verts", bke::AttrDomain::Edge, bke::AttributeInitDefaultValue());
 }
 
 static void mesh_add_loops(Mesh *mesh, int len)
