@@ -68,6 +68,15 @@ static constexpr AttributeAccessorFunctions get_pointcloud_accessor_functions()
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
   };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const PointCloud &pointcloud = *static_cast<const PointCloud *>(owner);
+    const AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
+  };
   fn.lookup = [](const void *owner, const StringRef name) -> GAttributeReader {
     const PointCloud &pointcloud = *static_cast<const PointCloud *>(owner);
     const AttributeStorage &storage = pointcloud.attribute_storage.wrap();

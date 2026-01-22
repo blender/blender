@@ -500,6 +500,7 @@ struct AttributeAccessorFunctions {
   std::optional<AttributeDomainAndType> (*builtin_domain_and_type)(const void *owner,
                                                                    StringRef attribute_id);
   GPointer (*get_builtin_default)(const void *owner, StringRef attribute_id);
+  std::optional<AttributeMetaData> (*lookup_meta_data)(const void *owner, StringRef attribute_id);
   GAttributeReader (*lookup)(const void *owner, StringRef attribute_id);
   GVArray (*adapt_domain)(const void *owner,
                           const GVArray &varray,
@@ -556,12 +557,18 @@ class AttributeAccessor {
   /**
    * \return True, when the attribute is available.
    */
-  bool contains(StringRef attribute_id) const;
+  bool contains(StringRef attribute_id) const
+  {
+    return this->lookup_meta_data(attribute_id).has_value();
+  }
 
   /**
    * \return Information about the attribute if it exists.
    */
-  std::optional<AttributeMetaData> lookup_meta_data(StringRef attribute_id) const;
+  std::optional<AttributeMetaData> lookup_meta_data(StringRef attribute_id) const
+  {
+    return fn_->lookup_meta_data(owner_, attribute_id);
+  }
 
   /**
    * \return True, when attributes can exist on that domain.

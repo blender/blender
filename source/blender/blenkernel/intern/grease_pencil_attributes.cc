@@ -55,6 +55,15 @@ static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
   };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
+    const AttributeStorage &storage = grease_pencil.attribute_storage.wrap();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
+  };
   fn.adapt_domain = [](const void * /*owner*/,
                        const GVArray &varray,
                        const AttrDomain from_domain,

@@ -410,31 +410,6 @@ GAttributeReader AttributeAccessor::lookup_or_default(const StringRef attribute_
   return {GVArray::from_single(type, domain_size, default_value), domain, nullptr};
 }
 
-bool AttributeAccessor::contains(const StringRef attribute_id) const
-{
-  bool found = false;
-  this->foreach_attribute([&](const AttributeIter &iter) {
-    if (attribute_id == iter.name) {
-      found = true;
-      iter.stop();
-    }
-  });
-  return found;
-}
-
-std::optional<AttributeMetaData> AttributeAccessor::lookup_meta_data(
-    const StringRef attribute_id) const
-{
-  std::optional<AttributeMetaData> meta_data;
-  this->foreach_attribute([&](const AttributeIter &iter) {
-    if (attribute_id == iter.name) {
-      meta_data = AttributeMetaData{iter.domain, iter.data_type};
-      iter.stop();
-    }
-  });
-  return meta_data;
-}
-
 Set<StringRefNull> AttributeAccessor::all_ids() const
 {
   Set<StringRefNull> ids;

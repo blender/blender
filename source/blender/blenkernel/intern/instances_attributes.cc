@@ -64,6 +64,15 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
   };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const Instances &instances = *static_cast<const Instances *>(owner);
+    const AttributeStorage &storage = instances.attribute_storage();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
+  };
   fn.lookup = [](const void *owner, const StringRef name) -> GAttributeReader {
     const Instances &instances = *static_cast<const Instances *>(owner);
     const AttributeStorage &storage = instances.attribute_storage();

@@ -912,6 +912,18 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
   };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const Mesh &mesh = *static_cast<const Mesh *>(owner);
+    if (BKE_defgroup_name_index(&mesh.vertex_group_names, name) != -1) {
+      return AttributeMetaData{AttrDomain::Point, AttrType::Float};
+    }
+    const AttributeStorage &storage = mesh.attribute_storage.wrap();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
+  };
   fn.lookup = [](const void *owner, const StringRef name) -> GAttributeReader {
     const Mesh &mesh = *static_cast<const Mesh *>(owner);
 
