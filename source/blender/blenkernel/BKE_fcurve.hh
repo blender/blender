@@ -347,26 +347,6 @@ int BKE_fcurve_bezt_binarysearch_index(const BezTriple array[],
                                        int arraylen,
                                        bool *r_replace);
 
-/* `fcurve_cache.cc` */
-
-/**
- * Cached f-curve look-ups, use when this needs to be done many times.
- */
-FCurvePathCache *BKE_fcurve_pathcache_create(Span<FCurve *> fcurves);
-void BKE_fcurve_pathcache_destroy(FCurvePathCache *fcache);
-FCurve *BKE_fcurve_pathcache_find(const FCurvePathCache *fcache,
-                                  const char rna_path[],
-                                  int array_index);
-/**
- * Fill in an array of F-Curve, leave NULL when not found.
- *
- * \return The number of F-Curves found.
- */
-int BKE_fcurve_pathcache_find_array(const FCurvePathCache *fcache,
-                                    const char *rna_path,
-                                    FCurve **fcurve_result,
-                                    int fcurve_result_len);
-
 /**
  * Calculate the x range of the given F-Curve's data.
  * \return true if a range has been found.
