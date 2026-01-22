@@ -379,7 +379,7 @@ void TokenBuffer::tokenize(const CharClass char_class_table[128])
         _mm_storeu_si128((__m128i *)(offsets_ + cursor + 4),
                          _mm_add_epi32(shuffle32_hi, base_off));
 
-        cursor += __builtin_popcount(m);
+        cursor += count_bits_i(m);
       };
 
       /* Low 8 bytes. */
