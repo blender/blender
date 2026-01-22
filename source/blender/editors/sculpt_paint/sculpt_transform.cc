@@ -71,8 +71,6 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
   undo::push_begin_ex(scene, ob, undo_name);
 
-  ss.pivot_rot[3] = 1.0f;
-
   vert_random_access_ensure(ob);
 
   filter::cache_init(C, ob, sd, undo::Type::Position, mval_fl, 5.0, 1.0f);

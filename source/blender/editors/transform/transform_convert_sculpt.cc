@@ -66,10 +66,6 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   td->loc = ss.pivot_pos;
   copy_v3_v3(td->iloc, ss.pivot_pos);
 
-  if (is_zero_v4(ss.pivot_rot)) {
-    ss.pivot_rot[3] = 1.0f;
-  }
-
   float obmat_inv[3][3];
   copy_m3_m4(obmat_inv, ob.object_to_world().ptr());
   invert_m3(obmat_inv);
