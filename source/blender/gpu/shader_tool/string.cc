@@ -18,7 +18,7 @@ using namespace metadata;
 void SourceProcessor::lower_strings_sequences(Parser &parser)
 {
   do {
-    parser().foreach_match("__", [&](const vector<Token> &tokens) {
+    parser().foreach_match("\"\"", [&](const vector<Token> &tokens) {
       string first = tokens[0].str();
       string second = tokens[1].str();
       string between = parser.substr_range_inclusive(tokens[0].str_index_last_no_whitespace() + 1,
@@ -35,7 +35,7 @@ void SourceProcessor::lower_strings_sequences(Parser &parser)
 void SourceProcessor::lower_assert(Parser &parser, const string &filename)
 {
   /* Example: `assert(i < 0)` > `if (!(i < 0)) { printf(...); }` */
-  parser().foreach_match("w(..)", [&](const vector<Token> &tokens) {
+  parser().foreach_match("A(..)", [&](const vector<Token> &tokens) {
     if (tokens[0].str() != "assert") {
       return;
     }
@@ -78,7 +78,7 @@ void SourceProcessor::lower_strings(Parser &parser)
  * This allows to emulate the variadic arguments of printf. */
 void SourceProcessor::lower_printf(Parser &parser)
 {
-  parser().foreach_match("w(..)", [&](const vector<Token> &tokens) {
+  parser().foreach_match("A(..)", [&](const vector<Token> &tokens) {
     if (tokens[0].str() != "printf") {
       return;
     }

@@ -45,7 +45,7 @@ static void parse_template_definition(const Scope arg,
     bool found = false;
     /* Search argument list for type-names. If type-name matches, the template argument is
      * present inside the function signature. */
-    fn_args.foreach_match("ww", [&](const vector<Token> &tokens) {
+    fn_args.foreach_match("AA", [&](const vector<Token> &tokens) {
       if (tokens[0].str() == name_str) {
         found = true;
       }
@@ -128,8 +128,8 @@ static void lower_template_instantiation(SourceProcessor::Parser &parser,
 
 void SourceProcessor::lower_template_dependent_names(Parser &parser)
 {
-  parser().foreach_match("tw<..>", [&](const Tokens &toks) {
-    if (toks[0].prev() == '.' || toks[0].prev() == Deref) {
+  parser().foreach_match("tA<..>", [&](const Tokens &toks) {
+    if (toks[0].prev() == '.' || (toks[0].prev().prev() == '-' && toks[0].prev() == '>')) {
       parser.erase(toks[0]);
     }
   });
@@ -140,9 +140,9 @@ void SourceProcessor::lower_templates(Parser &parser)
 {
   /* Process templated function calls first to avoid matching them later. */
 
-  parser().foreach_match("w<..>(..)", [&](const vector<Token> &tokens) {
+  parser().foreach_match("A<..>(..)", [&](const vector<Token> &tokens) {
     const Scope template_args = tokens[1].scope();
-    template_args.foreach_match("w<..>", [&parser](const vector<Token> &tokens) {
+    template_args.foreach_match("A<..>", [&parser](const vector<Token> &tokens) {
       parser.replace(tokens[1].scope(), template_arguments_mangle(tokens[1].scope()), true);
     });
   });
@@ -155,11 +155,11 @@ void SourceProcessor::lower_templates(Parser &parser)
     parser.replace(template_args, template_arguments_mangle(template_args), true);
   };
   /* Replace full specialization by simple functions. */
-  parser().foreach_match("t<>ww<", [&](const vector<Token> &tokens) {
+  parser().foreach_match("t<>AA<", [&](const vector<Token> &tokens) {
     process_specialization(tokens[0], tokens[5].scope());
   });
   /* Replace full specialization by simple struct. */
-  parser().foreach_match("t<>sw<..>", [&](const vector<Token> &tokens) {
+  parser().foreach_match("t<>sA<..>", [&](const vector<Token> &tokens) {
     process_specialization(tokens[0], tokens[5].scope());
   });
 
@@ -190,7 +190,7 @@ void SourceProcessor::lower_templates(Parser &parser)
 
     /* Replace instantiations. */
     Scope parent_scope = template_scope.scope();
-    parent_scope.foreach_match("tsw<", [&](const vector<Token> &tokens) {
+    parent_scope.foreach_match("tsA<", [&](const vector<Token> &tokens) {
       lower_template_instantiation(parser,
                                    tokens,
                                    parent_scope,
@@ -241,7 +241,7 @@ void SourceProcessor::lower_templates(Parser &parser)
 
     /* Replace instantiations. */
     Scope parent_scope = template_scope.scope();
-    parent_scope.foreach_match("tww<", [&](const vector<Token> &tokens) {
+    parent_scope.foreach_match("tAA<", [&](const vector<Token> &tokens) {
       lower_template_instantiation(parser,
                                    tokens,
                                    parent_scope,
@@ -254,7 +254,7 @@ void SourceProcessor::lower_templates(Parser &parser)
     });
   };
 
-  parser().foreach_match("t<..>ww(..)c?{..}", [&](const vector<Token> &tokens) {
+  parser().foreach_match("t<..>AA(..)c?{..}", [&](const vector<Token> &tokens) {
     process_template_function(
         tokens[5], tokens[6], tokens[7].scope(), tokens[1].scope(), tokens[16]);
   });
@@ -272,7 +272,7 @@ void SourceProcessor::lower_templates(Parser &parser)
   });
 
   /* Process calls to templated types or functions. */
-  parser().foreach_match("w<..>", [&](const vector<Token> &tokens) {
+  parser().foreach_match("A<..>", [&](const vector<Token> &tokens) {
     parser.replace(tokens[1].scope(), template_arguments_mangle(tokens[1].scope()), true);
   });
 

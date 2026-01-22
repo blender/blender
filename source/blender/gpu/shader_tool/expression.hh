@@ -72,8 +72,11 @@ class ExpressionParser : ParserBase {
         return +expr(unary_binding_power);
       case Minus:
         return -expr(unary_binding_power);
-      case Not:
-        return !expr(unary_binding_power);
+      case Not: {
+        int v = expr(unary_binding_power);
+        /* Note that '!' token is of MultiTok class and can contain many unary '!'. */
+        return (t.str_view().size() & 1) ? !v : !!v;
+      }
       case BitwiseNot:
         return ~expr(unary_binding_power);
       case ParOpen: {

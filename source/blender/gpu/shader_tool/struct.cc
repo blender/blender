@@ -31,7 +31,7 @@ void SourceProcessor::lower_classes(Parser &parser)
 void SourceProcessor::lint_constructors(Parser &parser)
 {
   parser().foreach_struct([&](Token, Scope, Token struct_name, Scope struct_scope) {
-    struct_scope.foreach_match("w(..)", [&](const Tokens &t) {
+    struct_scope.foreach_match("A(..)", [&](const Tokens &t) {
       if (t[0].scope() != struct_scope) {
         return;
       }
@@ -46,7 +46,7 @@ void SourceProcessor::lint_constructors(Parser &parser)
  * there is no pointers. */
 void SourceProcessor::lint_forward_declared_structs(Parser &parser)
 {
-  parser().foreach_match("sw;", [&](const Tokens &t) {
+  parser().foreach_match("sA;", [&](const Tokens &t) {
     if (t[0].scope().type() == ScopeType::Global) {
       report_error_(ERROR_TOK(t[0]), "Forward declaration of types are not supported.");
     }
@@ -157,10 +157,10 @@ void SourceProcessor::lower_implicit_member(Parser &parser)
           if (is_static) {
             return;
           }
-          fn_args.foreach_match("ww", check_shadowing);
-          fn_args.foreach_match("&w", check_shadowing);
-          fn_body.foreach_match("ww", check_shadowing);
-          fn_body.foreach_match("&w", check_shadowing);
+          fn_args.foreach_match("AA", check_shadowing);
+          fn_args.foreach_match("&A", check_shadowing);
+          fn_body.foreach_match("AA", check_shadowing);
+          fn_body.foreach_match("&A", check_shadowing);
           methods_tokens.emplace_back(fn_name);
         });
 
@@ -169,7 +169,7 @@ void SourceProcessor::lower_implicit_member(Parser &parser)
         return;
       }
       fn_body.foreach_token(Word, [&](Token tok) {
-        if (tok.prev() != Deref && tok.prev() != Dot &&
+        if (!(tok.prev().prev() == '-' && tok.prev() == '>') && tok.prev() != Dot &&
             /* Reject namespace qualified symbols. */
             (tok.prev() != Colon || tok.prev().prev() != Colon))
         {
@@ -202,18 +202,18 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
   /* `return *this;` -> `return this_;` */
   parser().foreach_match("*T;", [&](const Tokens &t) { parser.replace(t[0], t[1], "this_"); });
   /* `this->` -> `this_.` */
-  parser().foreach_match("TD", [&](const Tokens &t) { parser.replace(t[0], t[1], "this_."); });
+  parser().foreach_match("T->", [&](const Tokens &t) { parser.replace(t[0], t[2], "this_."); });
 
   parser.apply_mutations();
 
-  parser().foreach_match("sw:", [&](const Tokens &toks) {
+  parser().foreach_match("sA:", [&](const Tokens &toks) {
     if (toks[2] == ':') {
       report_error_(ERROR_TOK(toks[2]), "class inheritance is not supported");
       return;
     }
   });
 
-  parser().foreach_match("cww(..)c?{..}", [&](const Tokens &toks) {
+  parser().foreach_match("cAA(..)c?{..}", [&](const Tokens &toks) {
     if (toks[0].prev() == Const) {
       report_error_(ERROR_TOK(toks[0]),
                     "function return type is marked `const` but it makes no sense for values "
@@ -334,7 +334,7 @@ void SourceProcessor::lower_method_calls(Parser &parser)
 {
   do {
     parser().foreach_scope(ScopeType::Function, [&](Scope scope) {
-      scope.foreach_match(".w(", [&](const vector<Token> &tokens) {
+      scope.foreach_match(".A(", [&](const vector<Token> &tokens) {
         const Token dot = tokens[0];
         const Token func = tokens[1];
         const Token par_open = tokens[2];

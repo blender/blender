@@ -122,6 +122,8 @@ set(SRC
   shader_tool/template.cc
   shader_tool/union.cc
 
+  shader_tool/lexit/lexit.cc
+
   GPU_attribute_convert.hh
   GPU_batch.hh
   GPU_batch_presets.hh

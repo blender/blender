@@ -174,7 +174,7 @@ static void lower_namespace(string ns_prefix,
 
   /* Pipeline declarations.
    * Manually handle them. They are the only use-case of variable defined in global scope. */
-  scope.foreach_match("ww(w", [&](vector<Token> toks) {
+  scope.foreach_match("AA(A", [&](vector<Token> toks) {
     if (toks[0].scope().type() != ScopeType::Namespace || toks[0].str().find("Pipeline") != 0) {
       return;
     }

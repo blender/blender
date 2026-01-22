@@ -411,7 +411,7 @@ void SourceProcessor::lower_unions(Parser &parser)
   /* Replace assignment pattern.
    * Example: `a.b() = c;` >  `a.b_set_(c);`
    * This pattern is currently only allowed for `union_t`. */
-  parser().foreach_match("w()=", [&](const Tokens &t) {
+  parser().foreach_match("A()=", [&](const Tokens &t) {
     parser.insert_before(t[1], "_set_");
     parser.erase(t[2], t[3]);
     parser.insert_after(t[3].scope().back(), ")");
