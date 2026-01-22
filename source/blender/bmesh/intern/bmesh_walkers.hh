@@ -30,6 +30,14 @@ enum BMWFlag {
   BMW_FLAG_TEST_HIDDEN = (1 << 0),
 };
 
+enum BMWDelimitFlag {
+  BMW_DELIMIT_NONE = 0,
+  BMW_DELIMIT_EDGE_LOOP_INNER_CORNERS = 1 << 0,
+  BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS = 1 << 1,
+  BMW_DELIMIT_EDGE_LOOP_NGONS = 1 << 2,
+};
+ENUM_OPERATORS(BMWDelimitFlag)
+
 /*Walkers*/
 struct BMWalker {
   char begin_htype; /* only for validating input */
@@ -54,6 +62,7 @@ struct BMWalker {
   short mask_face;
 
   BMWFlag flag;
+  BMWDelimitFlag delimit;
 
   Set<const void *> *visit_set;
   Set<const void *> *visit_set_alt;
@@ -76,7 +85,8 @@ void BMW_init(struct BMWalker *walker,
               short mask_edge,
               short mask_face,
               BMWFlag flag,
-              int layer);
+              int layer,
+              BMWDelimitFlag delimit);
 void *BMW_begin(BMWalker *walker, void *start);
 /**
  * \brief Step Walker

@@ -1000,7 +1000,7 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
   e = lwalk->cur;
   l = e->l;
 
-  if (owalk.f_hub) { /* NGON EDGE */
+  if (owalk.f_hub) { /* INTERIOR NGON EDGE */
     int vert_edge_tot;
 
     v = BM_edge_other_vert(e, lwalk->lastv);
@@ -1099,16 +1099,21 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
 
     vert_edge_tot = BM_vert_edge_count_nonwire(v);
 
-    /* Check if we should step, this is fairly involved. */
-    if (
-        /* Walk over boundary of faces but stop at corners. */
-        (owalk.is_single == false && vert_edge_tot > 2) ||
+    /* Check if any delimits should stop the step. */
+    bool has_delimit = false;
+    if ((walker->delimit & BMW_DELIMIT_EDGE_LOOP_INNER_CORNERS) != 0) {
+      if (vert_edge_tot > 3) {
+        has_delimit = true;
+      }
+    }
+    if ((walker->delimit & BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS) != 0) {
+      if (vert_edge_tot == 2 && bm_edge_is_single(e) == false) {
+        has_delimit = true;
+      }
+    }
 
-        /* Initial edge was a boundary, so is this edge and vertex is only a part of this face
-         * this lets us walk over the boundary of an ngon which is handy. */
-        (owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
-    {
-      /* Find next boundary edge in the fan. */
+    /* Find next boundary edge in the fan. */
+    if (has_delimit == false) {
       do {
         l = BM_loop_other_edge_loop(l, v);
         if (BM_edge_is_manifold(l->e)) {
@@ -1124,8 +1129,11 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
       } while (true);
     }
 
-    if (owalk.is_single == false && l && bm_edge_is_single(l->e)) {
-      l = nullptr;
+    /* Stop at delimiting n-gons here so that Rewind picks the correct edge to start from. */
+    if (l && (walker->delimit & BMW_DELIMIT_EDGE_LOOP_NGONS) != 0) {
+      if (owalk.is_single != bm_edge_is_single(l->e)) {
+        l = nullptr;
+      }
     }
 
     if (l != nullptr) {

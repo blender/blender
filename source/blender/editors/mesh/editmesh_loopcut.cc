@@ -123,7 +123,8 @@ static void edgering_select(RingSelOpData *lcd)
            BMW_MASK_NOP,
            BMW_MASK_NOP,
            BMW_FLAG_TEST_HIDDEN,
-           BMW_NIL_LAY);
+           BMW_NIL_LAY,
+           BMW_DELIMIT_NONE);
 
   for (eed = static_cast<BMEdge *>(BMW_begin(&walker, eed_start)); eed;
        eed = static_cast<BMEdge *>(BMW_step(&walker)))

@@ -34,6 +34,22 @@ const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_mesh_walk_delimit_edge_loop_items[] = {
+    {BMW_DELIMIT_EDGE_LOOP_INNER_CORNERS,
+     "INNER_CORNERS",
+     0,
+     "Inner Corners",
+     "Stop boundary selection at vertices with more than three edges"},
+    {BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS,
+     "OUTER_CORNERS",
+     0,
+     "Outer Corners",
+     "Stop boundary selection at vertices with two edges when they share a face that is not an "
+     "n-gon"},
+    {BMW_DELIMIT_EDGE_LOOP_NGONS, "NGONS", 0, "N-gons", "Stop boundary selection at n-gons"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
     {REMESH_VOXEL, "VOXEL", 0, "Voxel", "Use the voxel remesher"},
     {REMESH_QUAD, "QUAD", 0, "Quad", "Use the quad remesher"},
