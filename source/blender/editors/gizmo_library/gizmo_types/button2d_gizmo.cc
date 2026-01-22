@@ -340,7 +340,7 @@ static int gizmo_button2d_cursor_get(wmGizmo *gz)
 }
 
 #define CIRCLE_RESOLUTION_3D 32
-static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
+static bool gizmo_button2d_bounds(const bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
   float rad = CIRCLE_RESOLUTION_3D * UI_SCALE_FAC / 2.0f;
@@ -375,8 +375,8 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
   if (co != nullptr) {
     r_bounding_box->xmin = co[0] + area->totrct.xmin - rad;
     r_bounding_box->ymin = co[1] + area->totrct.ymin - rad;
-    r_bounding_box->xmax = r_bounding_box->xmin + rad;
-    r_bounding_box->ymax = r_bounding_box->ymin + rad;
+    r_bounding_box->xmax = co[0] + area->totrct.xmin + rad;
+    r_bounding_box->ymax = co[1] + area->totrct.ymin + rad;
     return true;
   }
   return false;
