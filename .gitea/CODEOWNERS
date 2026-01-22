@@ -201,3 +201,10 @@ release/pypi/.*                 @ThomasDinges
 release/release_notes/.*        @ThomasDinges
 release/text/.*                 @ThomasDinges
 release/windows/.*              @ThomasDinges
+
+# --------------------------------------------------
+# DevOps & CI/CD
+build_files/buildbot/.*         @bartvdbraak
+build_files/config/.*           @bartvdbraak
+.gitea/workflows/.*             @bartvdbraak
+.github/.*                      @bartvdbraak
