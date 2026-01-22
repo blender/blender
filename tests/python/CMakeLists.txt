@@ -484,6 +484,12 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    modifiers_armature
+    ${TEST_SRC_DIR}/modeling/modifiers/armature_modifier.blend
+    --python ${TEST_PYTHON_DIR}/modeling/modifiers/armature_modifier.py
+  )
+
+  add_blender_test(
     physics_cloth
     ${TEST_SRC_DIR}/physics/cloth_test.blend
     --python ${TEST_PYTHON_DIR}/physics_cloth.py
