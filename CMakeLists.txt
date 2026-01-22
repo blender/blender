@@ -140,29 +140,29 @@ endif()
 # Keep in sync with: https://developer.blender.org/docs/handbook/building_blender/
 
 if(CMAKE_COMPILER_IS_GNUCC)
-  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "11.0.0")
+  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "14.0.0")
     message(FATAL_ERROR
-      "The minimum supported version of GCC is 11.0.0, found C compiler: "
+      "The minimum supported version of GCC is 14.0.0, found C compiler: "
       "${CMAKE_C_COMPILER_VERSION}"
     )
   endif()
-  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "11.0.0")
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "14.0.0")
     message(FATAL_ERROR
-      "The minimum supported version of GCC is 11.0.0, found C++ compiler: "
+      "The minimum supported version of GCC is 14.0.0, found C++ compiler: "
       "${CMAKE_CXX_COMPILER_VERSION}"
     )
   endif()
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(CMAKE_COMPILER_IS_GNUCC)
-    if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "8.0")
+    if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "17.0")
       message(FATAL_ERROR
-        "The minimum supported version of CLANG is 8.0, found C compiler: "
+        "The minimum supported version of CLANG is 17.0, found C compiler: "
         "${CMAKE_C_COMPILER_VERSION}"
       )
     endif()
-    if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "8.0")
+    if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "17.0")
       message(FATAL_ERROR
-        "The minimum supported version of CLANG is 8.0, found C++ compiler: "
+        "The minimum supported version of CLANG is 17.0, found C++ compiler: "
         "${CMAKE_CXX_COMPILER_VERSION}"
       )
     endif()

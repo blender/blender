@@ -8,7 +8,7 @@
 # For anyone making their own library build, matching these exactly is not
 # needed but it can be a useful reference.
 
-set(RELEASE_GCC_VERSION 11.2)
+set(RELEASE_GCC_VERSION 14.2)
 set(RELEASE_CUDA_VERSION 12.8)
 set(RELEASE_HIP_VERSION 6.4)
 
