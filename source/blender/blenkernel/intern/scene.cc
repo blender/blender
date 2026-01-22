@@ -1598,45 +1598,41 @@ static void scene_lib_override_apply_post(ID *id_dst, ID * /*id_src*/)
   }
 }
 
-constexpr IDTypeInfo get_type_info()
-{
-  IDTypeInfo info{};
-  info.id_code = ID_SCE;
-  info.id_filter = FILTER_ID_SCE;
-  info.dependencies_id_types = (FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC |
-                                FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS |
-                                FILTER_ID_MSK | FILTER_ID_SO | FILTER_ID_GD_LEGACY | FILTER_ID_BR |
-                                FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT);
-  info.main_listbase_index = INDEX_ID_SCE;
-  info.struct_size = sizeof(Scene);
-  info.name = "Scene";
-  info.name_plural = "scenes";
-  info.translation_context = BLT_I18NCONTEXT_ID_SCENE;
-  info.flags = IDTYPE_FLAGS_NEVER_UNUSED;
-  info.asset_type_info = nullptr;
+IDTypeInfo IDType_ID_SCE = {
+    /*id_code*/ Scene::id_type,
+    /*id_filter*/ FILTER_ID_SCE,
+    /*dependencies_id_types*/
+    (FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC | FILTER_ID_MA | FILTER_ID_GR |
+     FILTER_ID_TXT | FILTER_ID_LS | FILTER_ID_MSK | FILTER_ID_SO | FILTER_ID_GD_LEGACY |
+     FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT),
+    /*main_listbase_index*/ INDEX_ID_SCE,
+    /*struct_size*/ sizeof(Scene),
+    /*name*/ "Scene",
+    /*name_plural*/ "scenes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_SCENE,
+    /*flags*/ IDTYPE_FLAGS_NEVER_UNUSED,
+    /*asset_type_info*/ nullptr,
 
-  info.init_data = scene_init_data;
-  info.copy_data = scene_copy_data;
-  info.free_data = scene_free_data;
-  /* For now default `BKE_lib_id_make_local_generic()` should work, may need more work though to
-   * support all possible corner cases. */
-  info.make_local = nullptr;
-  info.foreach_id = scene_foreach_id;
-  info.foreach_cache = scene_foreach_cache;
-  info.foreach_path = scene_foreach_path;
-  info.foreach_working_space_color = scene_foreach_working_space_color;
-  info.owner_pointer_get = nullptr;
+    /*init_data*/ scene_init_data,
+    /*copy_data*/ scene_copy_data,
+    /*free_data*/ scene_free_data,
+    /* For now default `BKE_lib_id_make_local_generic()` should work, may need more work though to
+     * support all possible corner cases. */
+    /*make_local*/ nullptr,
+    /*foreach_id*/ scene_foreach_id,
+    /*foreach_cache*/ scene_foreach_cache,
+    /*foreach_path*/ scene_foreach_path,
+    /*foreach_working_space_color*/ scene_foreach_working_space_color,
+    /*owner_pointer_get*/ nullptr,
 
-  info.blend_write = scene_blend_write;
-  info.blend_read_data = scene_blend_read_data;
-  info.blend_read_after_liblink = scene_blend_read_after_liblink;
+    /*blend_write*/ scene_blend_write,
+    /*blend_read_data*/ scene_blend_read_data,
+    /*blend_read_after_liblink*/ scene_blend_read_after_liblink,
 
-  info.blend_read_undo_preserve = scene_undo_preserve;
+    /*blend_read_undo_preserve*/ scene_undo_preserve,
 
-  info.lib_override_apply_post = scene_lib_override_apply_post;
-  return info;
-}
-IDTypeInfo IDType_ID_SCE = get_type_info();
+    /*lib_override_apply_post*/ scene_lib_override_apply_post,
+};
 
 /** \} */
 
