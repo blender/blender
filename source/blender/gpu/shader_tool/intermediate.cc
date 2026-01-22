@@ -126,8 +126,10 @@ void LexerBase::ensure_memory()
    * Note: Never shrinks. */
   if (alloc_size < needed_size) {
 #ifdef _WIN32
+    _aligned_free(memory);
     memory = static_cast<char *>(_aligned_malloc(needed_size, 128));
 #else
+    std::free(memory);
     memory = static_cast<char *>(std::aligned_alloc(128, needed_size));
 #endif
     alloc_size = needed_size;
