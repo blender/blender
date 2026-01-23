@@ -85,18 +85,23 @@ Attribute::ArrayData Attribute::ArrayData::from_value(const GPointer &value,
   return data;
 }
 
+static GPointer default_value_for_type(const CPPType &type)
+{
+  if (type.is<ColorGeometry4f>()) {
+    static constexpr ColorGeometry4f default_color(1.0f, 1.0f, 1.0f, 1.0f);
+    return GPointer(type, &default_color);
+  }
+  if (type.is<ColorGeometry4b>()) {
+    static constexpr ColorGeometry4b default_color(255, 255, 255, 255);
+    return GPointer(type, &default_color);
+  }
+  return GPointer(type, type.default_value());
+}
+
 Attribute::ArrayData Attribute::ArrayData::from_default_value(const CPPType &type,
                                                               const int64_t domain_size)
 {
-  if (type.is<ColorGeometry4f>()) {
-    constexpr ColorGeometry4f default_color(1.0f, 1.0f, 1.0f, 1.0f);
-    return from_value(GPointer(type, &default_color), domain_size);
-  }
-  if (type.is<ColorGeometry4b>()) {
-    constexpr ColorGeometry4b default_color(255, 255, 255, 255);
-    return from_value(GPointer(type, &default_color), domain_size);
-  }
-  return from_value(GPointer(type, type.default_value()), domain_size);
+  return from_value(default_value_for_type(type), domain_size);
 }
 
 Attribute::ArrayData Attribute::ArrayData::from_uninitialized(const CPPType &type,
@@ -131,7 +136,7 @@ Attribute::SingleData Attribute::SingleData::from_value(const GPointer &value)
 
 Attribute::SingleData Attribute::SingleData::from_default_value(const CPPType &type)
 {
-  return from_value(GPointer(type, type.default_value()));
+  return from_value(default_value_for_type(type));
 }
 
 AttrStorageType Attribute::storage_type() const
