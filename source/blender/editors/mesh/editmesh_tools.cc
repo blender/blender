@@ -4264,14 +4264,14 @@ static Base *mesh_separate_arrays(Main *bmain,
 static bool mesh_separate_selected(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base_old, BMesh *bm_old)
 {
+  BM_custom_loop_normals_to_vector_layer(bm_old);
+
   /* we may have tags from previous operators */
   BM_mesh_elem_hflag_disable_all(bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, false);
 
   /* sel -> tag */
   BM_mesh_elem_hflag_enable_test(
       bm_old, BM_FACE | BM_EDGE | BM_VERT, BM_ELEM_TAG, true, false, BM_ELEM_SELECT);
-
-  BM_custom_loop_normals_to_vector_layer(bm_old);
 
   Base *base_new = mesh_separate_tagged(bmain, scene, view_layer, base_old, bm_old);
 
