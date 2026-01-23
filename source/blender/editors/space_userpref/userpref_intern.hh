@@ -8,7 +8,10 @@
 
 #pragma once
 
-#include "BLI_bit_vector.hh"
+#include <array>
+#include <string>
+
+#include "DNA_userdef_types.h"
 
 namespace blender {
 
@@ -23,12 +26,12 @@ void PREFERENCES_OT_clear_filter(wmOperatorType *ot);
 
 struct SpaceUserPref_Runtime {
   /** For filtering properties displayed in the space. */
-  char search_string[128] = {};
+  std::string search_string;
   /**
-   * Bit-field (in the same order as the tabs) for whether each tab has properties
+   * Results (in the same order as the tabs) for whether each tab has properties
    * that match the search filter. Only valid when #search_string is set.
    */
-  BitVector<> tab_search_results;
+  std::array<bool, USER_SECTION_DEVELOPER_TOOLS * 2> tab_search_results = {};
 };
 
 }  // namespace blender
