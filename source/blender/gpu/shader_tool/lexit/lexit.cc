@@ -405,7 +405,7 @@ void TokenBuffer::tokenize(const CharClass char_class_table[128])
     const uint8x16_t c = vld1q_u8(str_ + offset);
     const uint8x16_t curr = simd_transform16_ascii(map_v, c);
     /* (curr > ClassToTypeThreshold) ? TokenType(curr) : TokenType(c) */
-    const uint8x16_t mask_t = vcgtq_s8(curr, vdupq_n_u8(uint8_t(CharClass::ClassToTypeThreshold)));
+    const uint8x16_t mask_t = vcgtq_u8(curr, vdupq_n_u8(uint8_t(CharClass::ClassToTypeThreshold)));
     /* Type to store. */
     const uint8x16_t type = vbslq_u8(mask_t, curr, c);
     /* Add the last iteration end token at the end of the vector. */
