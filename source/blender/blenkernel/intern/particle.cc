@@ -5490,7 +5490,7 @@ void BKE_particle_mcol_on_emitter(ParticleSystem *particlesystem,
                                   int vcol_no,
                                   float r_mcol[3])
 {
-  if (!CustomData_has_layer(&modifier->mesh_final->corner_data, CD_PROP_BYTE_COLOR)) {
+  if (!CustomData_has_layer(&modifier->mesh_final->fdata_legacy, CD_MCOL)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no VCol data");
     zero_v3(r_mcol);
     return;
