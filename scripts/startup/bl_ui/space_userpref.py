@@ -2777,7 +2777,10 @@ class USERPREF_PT_assets_asset_libraries(AssetsPanel, Panel):
         )
 
         col = row.column(align=True)
-        col.operator_menu_enum("preferences.asset_library_add", "type", text="", icon='ADD')
+        if context.preferences.experimental.use_remote_asset_libraries:
+            col.operator_menu_enum("preferences.asset_library_add", "type", text="", icon='ADD')
+        else:
+            col.operator("preferences.asset_library_add", text="", icon='ADD').type = 'LOCAL'
         props = col.operator("preferences.asset_library_remove", text="", icon='REMOVE')
         props.index = active_library_index
 
@@ -2792,8 +2795,10 @@ class USERPREF_PT_assets_asset_libraries(AssetsPanel, Panel):
         layout.separator()
 
         if active_library.use_remote_url:
-            layout.prop(active_library, "remote_url")
-            layout.prop(active_library, "path", text="Download Location")
+            use_remote_libraries = context.preferences.experimental.use_remote_asset_libraries
+            if use_remote_libraries:
+                layout.prop(active_library, "remote_url")
+                layout.prop(active_library, "path", text="Download Location")
         else:
             layout.prop(active_library, "path")
             layout.prop(active_library, "import_method", text="Import Method")
@@ -2801,11 +2806,31 @@ class USERPREF_PT_assets_asset_libraries(AssetsPanel, Panel):
 
 
 class USERPREF_UL_asset_libraries(UIList):
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
+    def draw_item(self, context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         asset_library = item
 
         icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
         layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
+
+        # Check the 'experimental' flag.
+        if asset_library.use_remote_url:
+            layout.enabled = context.preferences.experimental.use_remote_asset_libraries
+
+    def filter_items(self, context, data, property):
+        asset_libraries = getattr(data, property)
+
+        # Determine the bitflags for remote & non-remote asset libraries.
+        use_remote_libs = context.preferences.experimental.use_remote_asset_libraries
+        flag_remote = self.bitflag_filter_item if use_remote_libs else self.bitflag_item_never_show
+        flag_nonremote = self.bitflag_filter_item
+
+        # Construct arrays of flags & indices.
+        flags = [
+            flag_remote if asset_library.use_remote_url else flag_nonremote
+            for asset_library in asset_libraries]
+        indices = list(range(len(asset_libraries)))
+
+        return flags, indices
 
 
 # -----------------------------------------------------------------------------
@@ -3041,6 +3066,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_shader_node_previews"}, ("blender/blender/issues/110353", "#110353")),
                 ({"property": "use_geometry_nodes_lists"}, ("blender/blender/issues/140918", "#140918")),
                 ({"property": "use_geometry_bundle"}, ("blender/blender/issues/150574", "#150574")),
+                ({"property": "use_remote_asset_libraries"}, ("blender/blender/issues/134495", "#134495")),
             ),
         )
 

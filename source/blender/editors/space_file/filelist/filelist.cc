@@ -3590,6 +3590,11 @@ static void filelist_start_job_all_asset_library(FileListReadJob *job_params)
 {
   Set<StringRef> requested_urls;
 
+  if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
+    /* No remote asset libraries in the 'All' library, unless the experimental flag is enabled. */
+    return;
+  }
+
   asset_system::foreach_registered_remote_library([&](bUserAssetLibrary &library) {
     if (!requested_urls.contains(library.remote_url)) {
       requested_urls.add(library.remote_url);
@@ -3666,7 +3671,7 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 
   /* Count how many asset libraries need to be loaded, for progress reporting. Not very precise. */
   int library_count = 0;
-  asset_system::AssetLibrary::foreach_loaded([&library_count](auto &) { library_count++; }, false);
+  asset_system::AssetLibrary::foreach_loaded([&](const auto &) { library_count++; }, false);
 
   BLI_assert(filelist->asset_library != nullptr);
 

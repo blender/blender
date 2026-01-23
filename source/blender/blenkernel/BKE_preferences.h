@@ -95,7 +95,8 @@ int BKE_preferences_asset_library_get_index(const struct UserDef *userdef,
  * \param check_directory_exists: When true, a library is required to point to a valid path on disk
  * as its root, otherwise the library is considered invalid.
  */
-bool BKE_preferences_asset_library_is_valid(const struct bUserAssetLibrary *library,
+bool BKE_preferences_asset_library_is_valid(const UserDef *userdef,
+                                            const struct bUserAssetLibrary *library,
                                             const bool check_directory_exists) ATTR_NONNULL();
 
 void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NONNULL();

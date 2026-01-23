@@ -459,7 +459,7 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   }
 
   for (const auto [i, asset_library] : U.asset_libraries.enumerate()) {
-    if (!BKE_preferences_asset_library_is_valid(&asset_library, true)) {
+    if (!BKE_preferences_asset_library_is_valid(&U, &asset_library, true)) {
       continue;
     }
     AssetLibraryReference library_ref{};

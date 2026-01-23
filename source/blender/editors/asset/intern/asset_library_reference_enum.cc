@@ -55,7 +55,7 @@ static bool custom_library_is_valid(const bUserAssetLibrary *user_library)
    */
   const bool check_directory_exists = false;
 
-  return BKE_preferences_asset_library_is_valid(user_library, check_directory_exists);
+  return BKE_preferences_asset_library_is_valid(&U, user_library, check_directory_exists);
 }
 
 AssetLibraryReference library_reference_from_enum_value(int value)
@@ -86,7 +86,6 @@ AssetLibraryReference library_reference_from_enum_value(int value)
 
 static void rna_enum_add_custom_libraries(EnumPropertyItem **item, int *totitem)
 {
-
   for (const auto [i, user_library] : U.asset_libraries.enumerate()) {
     if (!custom_library_is_valid(&user_library)) {
       continue;

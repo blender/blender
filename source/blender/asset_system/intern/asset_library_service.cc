@@ -650,8 +650,10 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
     fn(*asset_lib_uptr);
   }
 
-  for (const auto &asset_lib_uptr : remote_libraries_.values()) {
-    fn(*asset_lib_uptr);
+  if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
+    for (const auto &asset_lib_uptr : remote_libraries_.values()) {
+      fn(*asset_lib_uptr);
+    }
   }
 }
 
