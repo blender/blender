@@ -844,9 +844,9 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
     /* clip block with window boundary */
     ui_popup_block_clip(window, block);
 
-    /* Avoid menu moving down and losing cursor focus by keeping it at
-     * the same height. */
-    if (handle->refresh && handle->prev_block_rect.ymax > block->rect.ymax) {
+    /* Avoid menu moving down and losing cursor focus by keeping it at the same height when the
+     * popup is displaced down by at least one window unit. */
+    if (handle->refresh && (handle->prev_block_rect.ymax - block->rect.ymax) > 1.0f) {
       if (block->bounds_type != BLOCK_BOUNDS_POPUP_CENTER) {
         const float offset = handle->prev_block_rect.ymax - block->rect.ymax;
         block_translate(block, 0, offset);
