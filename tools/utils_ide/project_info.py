@@ -33,13 +33,6 @@ from collections.abc import (
 )
 
 
-import sys
-if sys.version_info.major < 3:
-    print("\nPython3.x needed, found %s.\nAborting!\n" %
-          sys.version.partition(" ")[0])
-    sys.exit(1)
-
-
 import subprocess
 import os
 from os.path import (
