@@ -22,6 +22,7 @@ namespace blender {
 
 struct Depsgraph;
 struct Main;
+struct ReportList;
 struct Scene;
 struct Strip;
 struct bSound;
@@ -39,6 +40,14 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath);
 bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath);
 
 void BKE_sound_load(Main *bmain, bSound *sound);
+
+/**
+ * High-level pack function.
+ *
+ * Packs sound data from its filepath.
+ * Does nothing if sound is already packed.
+ */
+void BKE_sound_packfile_ensure(Main *bmain, bSound *sound, ReportList *reports);
 
 /** Matches AUD_Channels. */
 enum eSoundChannels {

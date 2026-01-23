@@ -422,6 +422,15 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath);
 void BKE_image_packfiles_from_mem(ReportList *reports, Image *ima, char *data, size_t data_len);
 
 /**
+ * High-level pack function.
+ *
+ * Packs image data, handling dirty state and raw data input.
+ * Does nothing if image is already packed and not dirty (unless data is provided).
+ */
+void BKE_image_packfile_ensure(
+    Main *bmain, Image *image, ReportList *reports, const char *data, int data_len);
+
+/**
  * Prints memory statistics for images.
  */
 void BKE_image_print_memlist(Main *bmain);

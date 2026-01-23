@@ -1515,6 +1515,38 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
   }
 }
 
+void BKE_image_packfile_ensure(
+    Main *bmain, Image *image, ReportList *reports, const char *data, const int data_len)
+{
+  const bool is_packed = BKE_image_has_packedfile(image);
+  const bool is_dirty = BKE_image_is_dirty(image);
+
+  if (is_packed && !is_dirty && !data) {
+    /* Image is already packed and considered unmodified, do not attempt to repack it, since:
+     * - Its original file may not be available anymore on the current FS.
+     * - Repacking from the current runtime buffer will force the packedfile format to OpenEXR or
+     *   PNG (see code of #image_memorypack_imbuf).
+     *
+     * See #152638.
+     */
+    return;
+  }
+
+  BKE_image_free_packedfiles(image);
+
+  if (data) {
+    char *data_dup = static_cast<char *>(MEM_malloc_arrayN(size_t(data_len), 1, __func__));
+    memcpy(data_dup, data, size_t(data_len));
+    BKE_image_packfiles_from_mem(reports, image, data_dup, size_t(data_len));
+  }
+  else if (is_dirty) {
+    BKE_image_memorypack(image);
+  }
+  else {
+    BKE_image_packfiles(reports, image, ID_BLEND_PATH(bmain, &image->id));
+  }
+}
+
 void BKE_image_tag_time(Image *ima)
 {
   ima->runtime->lastused = BLI_time_now_seconds_i();

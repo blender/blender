@@ -54,6 +54,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_scene_runtime.hh"
@@ -716,6 +717,21 @@ void BKE_sound_load(Main *bmain, bSound *sound)
 {
   sound_verify_evaluated_id(&sound->id);
   sound_load_audio(bmain, sound, true);
+}
+
+void BKE_sound_packfile_ensure(Main *bmain, bSound *sound, ReportList *reports)
+{
+  if (sound->packedfile != nullptr) {
+    /* Sound is already packed and considered unmodified, do not attempt to repack it, since its
+     * original file may not be available anymore on the current FS.
+     *
+     * See #152638.
+     */
+    return;
+  }
+
+  sound->packedfile = BKE_packedfile_new(
+      reports, sound->filepath, ID_BLEND_PATH(bmain, &sound->id));
 }
 
 AUD_Device *BKE_sound_mixdown(const Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
@@ -1469,6 +1485,7 @@ void BKE_sound_init_once() {}
 void BKE_sound_init(Main * /*bmain*/) {}
 void BKE_sound_exit_once() {}
 void BKE_sound_load(Main * /*bmain*/, bSound * /*sound*/) {}
+void BKE_sound_packfile_ensure(Main * /*bmain*/, bSound * /*sound*/, ReportList * /*reports*/) {}
 void BKE_sound_create_scene(Scene * /*scene*/) {}
 void BKE_sound_destroy_scene(Scene * /*scene*/) {}
 void BKE_sound_lock() {}
