@@ -314,7 +314,7 @@ static void lineart_bake_startjob(void *customdata, wmJobWorkerStatus *worker_st
     for (const int object : bj->objects.index_range()) {
       Object *ob = bj->objects[object];
       if (bake_single_target(bj, ob, frame)) {
-        DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+        DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(bj->C, NC_GPENCIL | ND_DATA | NA_EDITED, ob);
       }
     }
@@ -473,7 +473,7 @@ static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
 
     lmd->flags &= (~MOD_LINEART_IS_BAKED);
   }
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
 }
 
 static wmOperatorStatus lineart_gpencil_clear_strokes_exec(bContext *C, wmOperator *op)

@@ -573,7 +573,7 @@ static void createTransObject(bContext *C, TransInfo *t)
     }
 
     if (t->options & CTX_OBMODE_XFORM_OBDATA) {
-      ID *id = static_cast<ID *>(ob->data);
+      ID *id = ob->data;
       if (!id || id->lib) {
         td->flag |= TD_SKIP;
       }

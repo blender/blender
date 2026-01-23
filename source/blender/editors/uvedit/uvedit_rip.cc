@@ -951,7 +951,7 @@ static wmOperatorStatus uv_rip_exec(bContext *C, wmOperator *op)
     if (uv_rip_object(scene, obedit, co, aspect_y)) {
       changed_multi = true;
       uvedit_live_unwrap_update(sima, scene, obedit);
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      DEG_id_tag_update(obedit->data, 0);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     }
   }

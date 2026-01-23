@@ -682,7 +682,7 @@ static bool edbm_shortest_path_pick_ex(Scene *scene,
   }
 
   if (ok) {
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
 

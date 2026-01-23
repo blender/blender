@@ -70,7 +70,7 @@ static void edbm_flag_disable_all_multi(const Scene *scene,
     BMesh *bm_iter = em_iter->bm;
     if (bm_iter->totvertsel) {
       EDBM_flag_disable_all(em_iter, hflag);
-      DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
     }
   }
 }

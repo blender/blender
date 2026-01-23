@@ -637,7 +637,7 @@ void call_import_hooks(USDStageReader *archive, ReportList *reports)
         .append(RNA_id_pointer_create(&ob->id));
     if (ob->data) {
       prim_map.lookup_or_add_default(reader->data_prim_path())
-          .append(RNA_id_pointer_create(static_cast<ID *>(ob->data)));
+          .append(RNA_id_pointer_create(ob->data));
     }
   }
 

@@ -86,7 +86,7 @@ const IDProperty *ABCAbstractWriter::get_id_properties(const HierarchyContext &c
   }
 
   /* Most subclasses write object data, so default to the object data's ID properties. */
-  return static_cast<ID *>(object->data)->properties;
+  return object->data->properties;
 }
 
 uint32_t ABCAbstractWriter::timesample_index() const

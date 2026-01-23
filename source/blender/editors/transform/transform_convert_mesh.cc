@@ -2050,7 +2050,7 @@ static void recalcData_mesh(TransInfo *t)
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* The Rotate Normal mode uses a custom array and ignores any elements created for the mesh
        * in transData and similar structures. */
-      DEG_id_tag_update(static_cast<ID *>(tc->obedit->data), ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
     }
     return;
   }
@@ -2080,7 +2080,7 @@ static void recalcData_mesh(TransInfo *t)
   mesh_partial_types_calc(t, &partial_state);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    DEG_id_tag_update(static_cast<ID *>(tc->obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
 
     mesh_partial_update(t, tc, &partial_state);
   }

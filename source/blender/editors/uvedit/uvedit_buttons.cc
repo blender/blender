@@ -219,7 +219,7 @@ static void do_uvedit_vertex(bContext *C, void * /*arg*/, int event)
 
   WM_event_add_notifier(C, NC_IMAGE, sima->image);
   for (Object *obedit : objects) {
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
   }
 }
 

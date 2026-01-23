@@ -172,7 +172,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob)
   }
 
   /* Material linked to obdata. */
-  const ID *data = static_cast<ID *>(ob->data);
+  const ID *data = ob->data;
   return (data && ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
@@ -492,7 +492,7 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
 
     if (changed) {
       changed_multi = true;
-      DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
     }
   }

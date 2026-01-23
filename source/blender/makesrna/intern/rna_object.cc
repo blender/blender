@@ -1990,7 +1990,7 @@ static void rna_VertexGroup_vertex_add(ID *id,
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, static_cast<ID *>(ob->data));
+  WM_main_add_notifier(NC_GEOM | ND_DATA, ob->data);
 }
 
 static void rna_VertexGroup_vertex_remove(
@@ -2009,7 +2009,7 @@ static void rna_VertexGroup_vertex_remove(
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, static_cast<ID *>(ob->data));
+  WM_main_add_notifier(NC_GEOM | ND_DATA, ob->data);
 }
 
 static float rna_VertexGroup_weight(ID *id, bDeformGroup *dg, ReportList *reports, int index)

@@ -220,7 +220,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
      * obj.pose.bones[].bone in a driver attached to the Object,
      * redirect to its data. */
     if (GS(node_identifier.id->name) == ID_OB) {
-      node_identifier.id = static_cast<ID *>((id_cast<Object *>(node_identifier.id))->data);
+      node_identifier.id = id_cast<Object *>(node_identifier.id)->data;
     }
     return node_identifier;
   }

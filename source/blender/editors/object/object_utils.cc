@@ -355,12 +355,12 @@ struct XFormObjectData_Container {
 
 void data_xform_container_item_ensure(XFormObjectData_Container *xds, Object *ob)
 {
-  xds->obdata_in_obmode_map.lookup_or_add_cb(static_cast<ID *>(ob->data), [&]() {
+  xds->obdata_in_obmode_map.lookup_or_add_cb(ob->data, [&]() {
     auto xf = std::make_unique<XFormObjectData_Extra>();
     copy_m4_m4(xf->obmat_orig, ob->object_to_world().ptr());
     xf->ob = ob;
     /* Result may be nullptr, that's OK. */
-    xf->xod = data_xform_create(static_cast<ID *>(ob->data));
+    xf->xod = data_xform_create(ob->data);
     return xf;
   });
 }

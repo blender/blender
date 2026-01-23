@@ -2908,7 +2908,7 @@ static wmOperatorStatus uv_select_more_less(bContext *C, const bool select)
         EDBM_select_less(em, true);
       }
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
       continue;
     }
@@ -3020,7 +3020,7 @@ static wmOperatorStatus uv_select_more_less(bContext *C, const bool select)
         BM_mesh_uvselect_sync_to_mesh(bm);
       }
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -4022,13 +4022,12 @@ static wmOperatorStatus uv_select_linked_internal(bContext *C,
                          BM_ELEM_SELECT);
 
   if (pick) {
-    DEG_id_tag_update(static_cast<ID *>(hit.ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+    DEG_id_tag_update(hit.ob->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, hit.ob->data);
   }
   else {
     for (Object *obedit : objects) {
-      DEG_id_tag_update(static_cast<ID *>(obedit->data),
-                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -4283,7 +4282,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
                                             Object *obedit)
 {
   if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
   else {

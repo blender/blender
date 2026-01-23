@@ -387,7 +387,7 @@ static PointerRNA rna_ClothSettings_rest_shape_key_get(PointerRNA *ptr)
   Object *ob = id_cast<Object *>(ptr->owner_id);
   ClothSimSettings *sim = static_cast<ClothSimSettings *>(ptr->data);
 
-  return rna_object_shapekey_index_get(static_cast<ID *>(ob->data), sim->shapekey_rest);
+  return rna_object_shapekey_index_get(ob->data, sim->shapekey_rest);
 }
 
 static void rna_ClothSettings_rest_shape_key_set(PointerRNA *ptr,
@@ -397,8 +397,7 @@ static void rna_ClothSettings_rest_shape_key_set(PointerRNA *ptr,
   Object *ob = id_cast<Object *>(ptr->owner_id);
   ClothSimSettings *sim = static_cast<ClothSimSettings *>(ptr->data);
 
-  sim->shapekey_rest = rna_object_shapekey_index_set(
-      static_cast<ID *>(ob->data), value, sim->shapekey_rest);
+  sim->shapekey_rest = rna_object_shapekey_index_set(ob->data, value, sim->shapekey_rest);
 }
 
 static void rna_ClothSettings_gravity_get(PointerRNA *ptr, float *values)

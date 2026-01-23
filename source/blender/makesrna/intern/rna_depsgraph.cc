@@ -242,7 +242,7 @@ static bool rna_DepsgraphUpdate_is_updated_geometry_get(PointerRNA *ptr)
     return false;
   }
   Object *object = id_cast<Object *>(id);
-  ID *data = static_cast<ID *>(object->data);
+  ID *data = object->data;
   if (data == nullptr) {
     return false;
   }

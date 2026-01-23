@@ -50,7 +50,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
   const int mode = tvs->mode;
   BLI_assert(ED_transverts_check_obedit(obedit) == true);
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
 
   if (obedit->type == OB_MESH) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);

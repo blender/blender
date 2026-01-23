@@ -965,7 +965,7 @@ static wmOperatorStatus uv_sculpt_stroke_modal(bContext *C, wmOperator *op, cons
 
   ED_region_tag_redraw(CTX_wm_region(C));
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
   return OPERATOR_RUNNING_MODAL;
 }
 

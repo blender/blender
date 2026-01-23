@@ -1055,7 +1055,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
   cu->actvert = nu->pntsu - 1;
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+  DEG_id_tag_update(obedit->data, 0);
 
   curve_draw_exit(op);
 

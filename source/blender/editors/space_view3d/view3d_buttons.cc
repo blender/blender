@@ -1681,7 +1681,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void * /*arg*/, int event)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   ed::object::vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
@@ -2085,7 +2085,7 @@ static void do_view3d_region_buttons(bContext *C, void * /*index*/, int event)
     case B_TRANSFORM_PANEL_MEDIAN:
       if (ob) {
         v3d_editvertex_buts(C, nullptr, v3d, ob, 1.0);
-        DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+        DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
       }
       break;
     case B_TRANSFORM_PANEL_DIMS:
@@ -2203,7 +2203,7 @@ static void apply_to_active_object(
     }
   }
 
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 

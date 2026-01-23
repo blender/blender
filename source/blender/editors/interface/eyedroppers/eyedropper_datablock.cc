@@ -170,8 +170,8 @@ static void datadropper_id_sample_pt(
             id = id_cast<ID *>(ob);
           }
           else if (ob->data) {
-            if (GS(((ID *)ob->data)->name) == ddr->idcode) {
-              id = static_cast<ID *>(ob->data);
+            if (GS(ob->data->name) == ddr->idcode) {
+              id = ob->data;
             }
             else {
               SNPRINTF_UTF8(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);

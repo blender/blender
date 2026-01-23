@@ -542,7 +542,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
     }
 
     if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     }
     else {
       Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);

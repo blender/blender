@@ -79,7 +79,7 @@ static void shader_get_from_context(const bContext *C,
     if (ob) {
       *r_from = &ob->id;
       if (ob->type == OB_LAMP) {
-        *r_id = static_cast<ID *>(ob->data);
+        *r_id = ob->data;
         *r_ntree = (id_cast<Light *>(ob->data))->nodetree;
       }
       else {

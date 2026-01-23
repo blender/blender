@@ -133,7 +133,7 @@ void ED_editors_init(bContext *C)
 
     /* Reset object to Object mode, so that code below can properly re-switch it to its
      * previous mode if possible, re-creating its mode data, etc. */
-    ID *ob_data = static_cast<ID *>(ob.data);
+    ID *ob_data = ob.data;
     ob.mode = OB_MODE_OBJECT;
     DEG_id_tag_update(&ob.id, ID_RECALC_SYNC_TO_EVAL);
 
@@ -300,7 +300,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
   }
   else if (ob->mode & OB_MODE_EDIT) {
 
-    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(static_cast<ID *>(ob->data));
+    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(ob->data);
     if (needs_flush_ptr != nullptr) {
       if (check_needs_flush && (*needs_flush_ptr == 0)) {
         return false;
