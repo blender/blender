@@ -369,7 +369,7 @@ void LegacyMeshInterpolator::mix(Span<int> src_indices,
       MutableSpan dst = attrs_dst_[attr_index].typed<T>();
       attribute_math::DefaultMixer<T> mixer(dst.slice(dst_index, 1));
       for (const int i : src_indices.index_range()) {
-        mixer.mix_in(0, src[i], weights ? (*weights)[i] : 1.0f);
+        mixer.mix_in(0, src[src_indices[i]], weights ? (*weights)[i] : 1.0f);
       }
       mixer.finalize();
     });
