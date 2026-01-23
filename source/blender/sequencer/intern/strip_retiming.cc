@@ -1175,13 +1175,15 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   correct_pitch = false;
 #endif
 
-  void *sound_handle = BKE_sound_playback_handle_get(strip->sound);
+  AUD_Sound *sound_handle = BKE_sound_playback_handle_get(strip->sound);
   const float scene_fps = float(scene->frames_per_second());
   if (correct_pitch) {
-    sound_handle = BKE_sound_ensure_time_stretch_effect(
-        sound_handle, strip->runtime->scene_sound, scene_fps);
+    sound_handle = BKE_sound_ensure_time_stretch_effect(strip, scene_fps);
     BKE_sound_set_scene_sound_pitch_constant_range(
         strip->runtime->scene_sound, 0, strip->start + strip->len, 1.0f);
+  }
+  else {
+    strip->runtime->clear_sound_time_stretch();
   }
 
   /* Content cut off by `anim_startofs` is as if it does not exist for sequencer. But Audaspace

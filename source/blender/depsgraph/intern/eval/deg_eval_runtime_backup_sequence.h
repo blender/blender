@@ -55,7 +55,9 @@ class StripBackup {
 
   bool isEmpty() const;
 
-  void *scene_sound;
+  void *scene_sound;        /* AUD_SequenceEntry */
+  void *sound_time_stretch; /* AUD_Sound */
+  float sound_time_stretch_fps;
   Vector<MovieReader *, 1> movie_readers;
   Map<int, StripModifierDataBackup> modifiers;
 };

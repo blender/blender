@@ -196,7 +196,7 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, double time);
 
 void BKE_sound_evaluate(Depsgraph *depsgraph, Main *bmain, bSound *sound);
 
-void *BKE_sound_ensure_time_stretch_effect(void *sound_handle, void *sequence_handle, float fps);
+AUD_Sound *BKE_sound_ensure_time_stretch_effect(const Strip *strip, float fps);
 
 void BKE_sound_runtime_state_get_and_clear(const bSound *sound,
                                            AUD_Sound **r_cache,

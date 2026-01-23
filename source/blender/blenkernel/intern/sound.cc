@@ -1441,21 +1441,28 @@ bool BKE_sound_stream_info_get(Main *main,
 }
 
 #  ifdef WITH_RUBBERBAND
-void *BKE_sound_ensure_time_stretch_effect(void *sound_handle, void *sequence_handle, float fps)
+AUD_Sound *BKE_sound_ensure_time_stretch_effect(const Strip *strip, float fps)
 {
-  /* If sequence handle is already the time stretch effect with the same frame-rate, use that. */
-  AUD_Sound *cur_seq_sound = sequence_handle ? AUD_SequenceEntry_getSound(sequence_handle) :
-                                               nullptr;
-  if (AUD_Sound_isAnimateableTimeStretchPitchScale(cur_seq_sound) &&
-      AUD_Sound_animateableTimeStretchPitchScale_getFPS(cur_seq_sound) == fps)
-  {
-    return cur_seq_sound;
+  seq::StripRuntime &runtime = *strip->runtime;
+
+  /* If we already have a time stretch effect with the same frame-rate, use that. */
+  if (runtime.sound_time_stretch != nullptr && runtime.sound_time_stretch_fps == fps) {
+    return runtime.sound_time_stretch;
   }
 
   /* Otherwise create the time stretch effect. */
-  return AUD_Sound_animateableTimeStretchPitchScale(
-      sound_handle, fps, 1.0, 1.0, AUD_STRETCHER_QUALITY_HIGH, false);
+  runtime.clear_sound_time_stretch();
+  runtime.sound_time_stretch = AUD_Sound_animateableTimeStretchPitchScale(
+      BKE_sound_playback_handle_get(strip->sound),
+      fps,
+      1.0,
+      1.0,
+      AUD_STRETCHER_QUALITY_HIGH,
+      false);
+  runtime.sound_time_stretch_fps = fps;
+  return runtime.sound_time_stretch;
 }
+
 void BKE_sound_set_scene_sound_time_stretch_at_frame(void *handle,
                                                      int frame,
                                                      float time_stretch,
@@ -1593,9 +1600,7 @@ bool BKE_sound_stream_info_get(Main * /*main*/,
 #endif /* WITH_AUDASPACE */
 
 #if !defined(WITH_AUDASPACE) || !defined(WITH_RUBBERBAND)
-void *BKE_sound_ensure_time_stretch_effect(void * /*sound_handle*/,
-                                           void * /*sequence_handle*/,
-                                           float /*fps*/)
+AUD_Sound *BKE_sound_ensure_time_stretch_effect(const Strip * /*strip*/, float /*fps*/)
 {
   return nullptr;
 }
