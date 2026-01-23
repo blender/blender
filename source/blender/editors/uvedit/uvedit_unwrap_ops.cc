@@ -1133,7 +1133,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
         continue;
       }
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     }
   }
@@ -1171,7 +1171,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
       continue;
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 
@@ -1655,7 +1655,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
 
   if (notify_wm && !is_cancelled) {
     for (Object *obedit : objects) {
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
       WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
     }
   }
@@ -1726,7 +1726,7 @@ static void pack_islands_endjob(void *pidv)
 {
   UVPackIslandsData *pid = static_cast<UVPackIslandsData *>(pidv);
   for (Object *obedit : pid->objects) {
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
   }
   WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, nullptr);
@@ -2088,7 +2088,7 @@ static wmOperatorStatus average_islands_scale_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
   return OPERATOR_FINISHED;
@@ -2784,7 +2784,7 @@ static void uvedit_unwrap_multi(const Scene *scene,
 {
   for (Object *obedit : objects) {
     uvedit_unwrap(scene, obedit, options, r_count_changed, r_count_failed);
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
   }
 }
@@ -3590,7 +3590,7 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       changed_objects.append(obedit);
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     }
   }
@@ -3669,7 +3669,7 @@ static wmOperatorStatus reset_exec(bContext *C, wmOperator * /*op*/)
 
     ED_mesh_uv_loop_reset(C, mesh);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 
@@ -3960,7 +3960,7 @@ static wmOperatorStatus sphere_project_exec(bContext *C, wmOperator *op)
     const bool per_face_aspect = true;
     uv_map_clip_correct(scene, {obedit}, op, per_face_aspect, only_selected_uvs);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 
@@ -4148,7 +4148,7 @@ static wmOperatorStatus cylinder_project_exec(bContext *C, wmOperator *op)
     const bool per_face_aspect = true;
     uv_map_clip_correct(scene, {obedit}, op, per_face_aspect, only_selected_uvs);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 
@@ -4284,7 +4284,7 @@ static wmOperatorStatus cube_project_exec(bContext *C, wmOperator *op)
     const bool per_face_aspect = true;
     uv_map_clip_correct(scene, {obedit}, op, per_face_aspect, only_selected_uvs);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 

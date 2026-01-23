@@ -48,8 +48,7 @@ void TreeElementIDObject::expand(SpaceOutliner & /*space_outliner*/) const
 
 void TreeElementIDObject::expand_data() const
 {
-  add_element(
-      &legacy_te_.subtree, static_cast<ID *>(object_.data), nullptr, &legacy_te_, TSE_SOME_ID, 0);
+  add_element(&legacy_te_.subtree, object_.data, nullptr, &legacy_te_, TSE_SOME_ID, 0);
 }
 
 void TreeElementIDObject::expand_pose() const

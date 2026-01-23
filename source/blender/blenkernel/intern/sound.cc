@@ -54,6 +54,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_scene_runtime.hh"
@@ -716,6 +717,21 @@ void BKE_sound_load(Main *bmain, bSound *sound)
 {
   sound_verify_evaluated_id(&sound->id);
   sound_load_audio(bmain, sound, true);
+}
+
+void BKE_sound_packfile_ensure(Main *bmain, bSound *sound, ReportList *reports)
+{
+  if (sound->packedfile != nullptr) {
+    /* Sound is already packed and considered unmodified, do not attempt to repack it, since its
+     * original file may not be available anymore on the current FS.
+     *
+     * See #152638.
+     */
+    return;
+  }
+
+  sound->packedfile = BKE_packedfile_new(
+      reports, sound->filepath, ID_BLEND_PATH(bmain, &sound->id));
 }
 
 AUD_Device *BKE_sound_mixdown(const Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
@@ -1425,21 +1441,28 @@ bool BKE_sound_stream_info_get(Main *main,
 }
 
 #  ifdef WITH_RUBBERBAND
-void *BKE_sound_ensure_time_stretch_effect(void *sound_handle, void *sequence_handle, float fps)
+AUD_Sound *BKE_sound_ensure_time_stretch_effect(const Strip *strip, float fps)
 {
-  /* If sequence handle is already the time stretch effect with the same frame-rate, use that. */
-  AUD_Sound *cur_seq_sound = sequence_handle ? AUD_SequenceEntry_getSound(sequence_handle) :
-                                               nullptr;
-  if (AUD_Sound_isAnimateableTimeStretchPitchScale(cur_seq_sound) &&
-      AUD_Sound_animateableTimeStretchPitchScale_getFPS(cur_seq_sound) == fps)
-  {
-    return cur_seq_sound;
+  seq::StripRuntime &runtime = *strip->runtime;
+
+  /* If we already have a time stretch effect with the same frame-rate, use that. */
+  if (runtime.sound_time_stretch != nullptr && runtime.sound_time_stretch_fps == fps) {
+    return runtime.sound_time_stretch;
   }
 
   /* Otherwise create the time stretch effect. */
-  return AUD_Sound_animateableTimeStretchPitchScale(
-      sound_handle, fps, 1.0, 1.0, AUD_STRETCHER_QUALITY_HIGH, false);
+  runtime.clear_sound_time_stretch();
+  runtime.sound_time_stretch = AUD_Sound_animateableTimeStretchPitchScale(
+      BKE_sound_playback_handle_get(strip->sound),
+      fps,
+      1.0,
+      1.0,
+      AUD_STRETCHER_QUALITY_HIGH,
+      false);
+  runtime.sound_time_stretch_fps = fps;
+  return runtime.sound_time_stretch;
 }
+
 void BKE_sound_set_scene_sound_time_stretch_at_frame(void *handle,
                                                      int frame,
                                                      float time_stretch,
@@ -1469,6 +1492,7 @@ void BKE_sound_init_once() {}
 void BKE_sound_init(Main * /*bmain*/) {}
 void BKE_sound_exit_once() {}
 void BKE_sound_load(Main * /*bmain*/, bSound * /*sound*/) {}
+void BKE_sound_packfile_ensure(Main * /*bmain*/, bSound * /*sound*/, ReportList * /*reports*/) {}
 void BKE_sound_create_scene(Scene * /*scene*/) {}
 void BKE_sound_destroy_scene(Scene * /*scene*/) {}
 void BKE_sound_lock() {}
@@ -1576,9 +1600,7 @@ bool BKE_sound_stream_info_get(Main * /*main*/,
 #endif /* WITH_AUDASPACE */
 
 #if !defined(WITH_AUDASPACE) || !defined(WITH_RUBBERBAND)
-void *BKE_sound_ensure_time_stretch_effect(void * /*sound_handle*/,
-                                           void * /*sequence_handle*/,
-                                           float /*fps*/)
+AUD_Sound *BKE_sound_ensure_time_stretch_effect(const Strip * /*strip*/, float /*fps*/)
 {
   return nullptr;
 }

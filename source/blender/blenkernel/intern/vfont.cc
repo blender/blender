@@ -399,6 +399,21 @@ VFont *BKE_vfont_builtin_ensure()
   return vfont;
 }
 
+void BKE_vfont_packfile_ensure(Main *bmain, VFont *vfont, ReportList *reports)
+{
+  if (vfont->packedfile != nullptr) {
+    /* Font is already packed and considered unmodified, do not attempt to repack it, since its
+     * original file may not be available anymore on the current FS.
+     *
+     * See #152638.
+     */
+    return;
+  }
+
+  vfont->packedfile = BKE_packedfile_new(
+      reports, vfont->filepath, ID_BLEND_PATH(bmain, &vfont->id));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

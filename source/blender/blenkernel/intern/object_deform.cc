@@ -188,7 +188,7 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
     }
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = object_defgroup_lattice_get(static_cast<ID *>(ob->data));
+    Lattice *lt = object_defgroup_lattice_get(ob->data);
 
     if (lt->dvert) {
       BPoint *bp;
@@ -271,7 +271,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
       CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT);
     }
     else if (ob->type == OB_LATTICE) {
-      Lattice *lt = object_defgroup_lattice_get(static_cast<ID *>(ob->data));
+      Lattice *lt = object_defgroup_lattice_get(ob->data);
       MEM_SAFE_FREE(lt->dvert);
     }
     else if (ob->type == OB_GREASE_PENCIL) {
@@ -295,7 +295,7 @@ static void object_defgroup_remove_object_mode(Object *ob, bDeformGroup *dg)
 
   BLI_assert(def_nr != -1);
 
-  BKE_object_defgroup_array_get(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot);
+  BKE_object_defgroup_array_get(ob->data, &dvert_array, &dvert_tot);
 
   if (dvert_array) {
     int i, j;
@@ -421,7 +421,7 @@ void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)
       CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT);
     }
     else if (ob->type == OB_LATTICE) {
-      Lattice *lt = object_defgroup_lattice_get(static_cast<ID *>(ob->data));
+      Lattice *lt = object_defgroup_lattice_get(ob->data);
       MEM_SAFE_FREE(lt->dvert);
     }
     else if (ob->type == OB_GREASE_PENCIL) {

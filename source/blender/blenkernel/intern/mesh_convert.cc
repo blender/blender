@@ -683,7 +683,7 @@ static void object_for_curve_to_mesh_free(Object *temp_object)
  */
 static void curve_to_mesh_eval_ensure(Object &object)
 {
-  BLI_assert(GS(static_cast<ID *>(object.data)->name) == ID_CU_LEGACY);
+  BLI_assert(GS(object.data->name) == ID_CU_LEGACY);
   Curve &curve = *id_cast<Curve *>(object.data);
   /* Clear all modifiers for the bevel object.
    *

@@ -257,7 +257,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
   ob = BKE_object_add_only_object(bmain, type, safe_name);
 
   ob->data = data;
-  BKE_object_materials_sync_length(bmain, ob, static_cast<ID *>(ob->data));
+  BKE_object_materials_sync_length(bmain, ob, ob->data);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 

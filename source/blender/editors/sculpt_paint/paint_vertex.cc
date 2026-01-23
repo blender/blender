@@ -2054,7 +2054,7 @@ void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 
   ED_region_tag_redraw(vc.region);
 
-  DEG_id_tag_update(static_cast<ID *>(ob.data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(ob.data, ID_RECALC_GEOMETRY);
 }
 
 void VertexPaintStroke::done(bool /*is_cancel*/)

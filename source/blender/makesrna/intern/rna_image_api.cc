@@ -130,34 +130,7 @@ static void rna_Image_save(Image *image,
 static void rna_Image_pack(
     Image *image, Main *bmain, bContext *C, ReportList *reports, const char *data, int data_len)
 {
-  const bool is_packed = BKE_image_has_packedfile(image);
-  const bool is_dirty = BKE_image_is_dirty(image);
-
-  if (is_packed && !is_dirty && !data) {
-    /* Image is already packed and considered unmodified, do not attempt to repack it, since:
-     * - Its original file may not be available anymore on the current FS.
-     * - Repacking from the current runtime buffer will force the packedfile format to OpenEXR or
-     *   PNG (see code of #image_memorypack_imbuf).
-     *
-     * See #152638.
-     */
-    return;
-  }
-
-  BKE_image_free_packedfiles(image);
-
-  if (data) {
-    char *data_dup = MEM_malloc_arrayN<char>(size_t(data_len), __func__);
-    memcpy(data_dup, data, size_t(data_len));
-    BKE_image_packfiles_from_mem(reports, image, data_dup, size_t(data_len));
-  }
-  else if (is_dirty) {
-    BKE_image_memorypack(image);
-  }
-  else {
-    BKE_image_packfiles(reports, image, ID_BLEND_PATH(bmain, &image->id));
-  }
-
+  BKE_image_packfile_ensure(bmain, image, reports, data, data_len);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 

@@ -18,6 +18,7 @@ struct CharInfo;
 struct Curve;
 struct Main;
 struct Object;
+struct ReportList;
 struct VFont;
 struct Nurb;
 
@@ -108,6 +109,14 @@ void BKE_vfont_builtin_register(const void *mem, int size);
  * The caller is responsible for adding a user.
  */
 VFont *BKE_vfont_builtin_ensure();
+
+/**
+ * High-level pack function.
+ *
+ * Packs font data from its filepath.
+ * Does nothing if font is already packed.
+ */
+void BKE_vfont_packfile_ensure(Main *bmain, VFont *vfont, ReportList *reports);
 
 void BKE_vfont_data_ensure(VFont *vfont);
 void BKE_vfont_data_free(VFont *vfont);

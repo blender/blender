@@ -415,7 +415,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
   /* Run update first since it can move the cursor. */
   if (mode == FO_EDIT) {
     /* Re-tessellate. */
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
   }
   else {
     /* Depsgraph runs above, but since we're not tagging for update, call directly. */
@@ -428,7 +428,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
 
   ed::object::material_active_index_set(obedit, cu->curinfo.mat_nr);
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+  DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
 
@@ -988,7 +988,7 @@ static wmOperatorStatus set_style(bContext *C, const int style, const bool clear
     }
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
   return OPERATOR_FINISHED;
@@ -2064,7 +2064,7 @@ static void font_cursor_set_apply(bContext *C, const wmEvent *event)
   ef->selend = string_offset;
   ef->pos = string_offset;
 
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
+  DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
@@ -2178,7 +2178,7 @@ static wmOperatorStatus textbox_add_exec(bContext *C, wmOperator * /*op*/)
     cu->totbox++;
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY_ALL_MODES);
+  DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY_ALL_MODES);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   return OPERATOR_FINISHED;
 }
@@ -2221,7 +2221,7 @@ static wmOperatorStatus textbox_remove_exec(bContext *C, wmOperator *op)
     }
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY_ALL_MODES);
+  DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY_ALL_MODES);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 
   return OPERATOR_FINISHED;
@@ -2657,7 +2657,7 @@ bool ED_curve_editfont_select_pick(
       cu->actbox = actbox_select;
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
       /* TODO: support #ID_RECALC_SELECT. */
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SYNC_TO_EVAL);
     }
     return true;
   }

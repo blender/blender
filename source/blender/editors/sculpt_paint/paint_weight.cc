@@ -1933,7 +1933,7 @@ void WeightPaintStroke::done(bool /*is_cancel*/)
     }
   }
 
-  DEG_id_tag_update(static_cast<ID *>(ob.data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(ob.data, ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, &ob);
 

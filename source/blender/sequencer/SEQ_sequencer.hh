@@ -69,9 +69,14 @@ enum class StripRuntimeFlag {
 ENUM_OPERATORS(StripRuntimeFlag);
 
 struct StripRuntime {
+  ~StripRuntime();
+
   SessionUID session_uid = {};
   StripRuntimeFlag flag = StripRuntimeFlag::None;
-  void *scene_sound = nullptr; /* AUD_SequenceEntry */
+  void *scene_sound = nullptr;        /* AUD_SequenceEntry */
+  void *sound_time_stretch = nullptr; /* AUD_Sound */
+  float sound_time_stretch_fps = 0.0f;
+
   Vector<MovieReader *, 1> movie_readers;
   /* To detect the removal of a sound modifier. */
   int sound_modifiers_count = 0;
@@ -83,6 +88,9 @@ struct StripRuntime {
     }
     return movie_readers[index];
   }
+
+  void clear_sound_time_stretch();
+  void remove_scene_sound(Scene *scene);
 };
 
 SequencerToolSettings *tool_settings_init();

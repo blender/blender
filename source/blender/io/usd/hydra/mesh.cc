@@ -61,9 +61,7 @@ void MeshData::remove()
 void MeshData::update()
 {
   Object *object = id_cast<Object *>(const_cast<ID *>(id));
-  if ((id->recalc & ID_RECALC_GEOMETRY) ||
-      ((static_cast<ID *>(object->data))->recalc & ID_RECALC_GEOMETRY))
-  {
+  if ((id->recalc & ID_RECALC_GEOMETRY) || (object->data->recalc & ID_RECALC_GEOMETRY)) {
     init();
     update_prims();
     return;

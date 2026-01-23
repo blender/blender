@@ -1486,7 +1486,7 @@ static bool view3d_lasso_select(bContext *C,
           if (changed) {
             /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
              * generic attribute for now. */
-            DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
+            DEG_id_tag_update(vc->obedit->data, ID_RECALC_GEOMETRY);
             WM_event_add_notifier(C, NC_GEOM | ND_DATA, vc->obedit->data);
           }
           break;
@@ -1501,7 +1501,7 @@ static bool view3d_lasso_select(bContext *C,
       }
 
       if (changed) {
-        DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_SELECT);
+        DEG_id_tag_update(vc->obedit->data, ID_RECALC_SELECT);
         WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc->obedit->data);
         changed_multi = true;
       }
@@ -4567,7 +4567,7 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
           vc.em = BKE_editmesh_from_object(vc.obedit);
           changed = do_mesh_box_select(&vc, wm_userdata, &rect, sel_op);
           if (changed) {
-            DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
+            DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
             WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
           }
           break;
@@ -4575,14 +4575,14 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
         case OB_SURF:
           changed = do_nurbs_box_select(&vc, &rect, sel_op);
           if (changed) {
-            DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
+            DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
             WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
           }
           break;
         case OB_MBALL:
           changed = do_meta_box_select(&vc, &rect, sel_op);
           if (changed) {
-            DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
+            DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
             WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
           }
           break;
@@ -4597,7 +4597,7 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
         case OB_LATTICE:
           changed = do_lattice_box_select(&vc, &rect, sel_op);
           if (changed) {
-            DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
+            DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
             WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
           }
           break;
@@ -4616,7 +4616,7 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
           if (changed) {
             /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
              * generic attribute for now. */
-            DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_GEOMETRY);
+            DEG_id_tag_update(vc.obedit->data, ID_RECALC_GEOMETRY);
             WM_event_add_notifier(C, NC_GEOM | ND_DATA, vc.obedit->data);
           }
           break;
@@ -5529,7 +5529,7 @@ static bool obedit_circle_select(bContext *C,
       if (changed) {
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */
-        DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
+        DEG_id_tag_update(vc->obedit->data, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(C, NC_GEOM | ND_DATA, vc->obedit->data);
       }
       break;
@@ -5544,7 +5544,7 @@ static bool obedit_circle_select(bContext *C,
   }
 
   if (changed) {
-    DEG_id_tag_update(static_cast<ID *>(vc->obact->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(vc->obact->data, ID_RECALC_SELECT);
     WM_main_add_notifier(NC_GEOM | ND_SELECT, vc->obact->data);
   }
   return changed;

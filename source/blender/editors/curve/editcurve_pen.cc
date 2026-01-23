@@ -1738,7 +1738,7 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+  DEG_id_tag_update(obedit->data, 0);
 
   return ret;
 }

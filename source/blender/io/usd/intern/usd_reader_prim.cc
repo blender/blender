@@ -53,7 +53,7 @@ void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCo
   if (object_->data) {
     /* If the object has data, the data represents the USD prim, so set the prim's custom
      * properties on the data directly. */
-    set_id_props_from_prim(static_cast<ID *>(object_->data), prim_, property_import_mode, time);
+    set_id_props_from_prim(object_->data, prim_, property_import_mode, time);
   }
 }
 

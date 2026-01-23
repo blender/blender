@@ -945,7 +945,7 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
      * Within a file (no library linking) this should never happen.
      * see: #139133. */
 
-    BLI_assert(GS(static_cast<ID *>(ob->data)->name) == ID_CU_LEGACY);
+    BLI_assert(GS(ob->data->name) == ID_CU_LEGACY);
     /* Don't recalculate any internal curve data is this is low level logic
      * intended to avoid errors when switching between font/curve types. */
     BKE_curve_type_test(ob, false);
@@ -953,8 +953,8 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 
   /* When the object is local and the data is library its possible
    * the material list size gets out of sync. #22663. */
-  if (ob->data && ob->id.lib != static_cast<ID *>(ob->data)->lib) {
-    BKE_object_materials_sync_length(bmain, ob, static_cast<ID *>(ob->data));
+  if (ob->data && ob->id.lib != ob->data->lib) {
+    BKE_object_materials_sync_length(bmain, ob, ob->data);
   }
 
   /* Performs quite extensive rebuilding & validation of object-level Pose data from the Armature
@@ -1599,7 +1599,7 @@ void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_own
   object_eval->runtime->is_data_eval_owned = is_owned;
 
   /* Overwrite data of evaluated object, if the data-block types match. */
-  ID *data = static_cast<ID *>(object_eval->data);
+  ID *data = object_eval->data;
   if (GS(data->name) == GS(data_eval->name)) {
     /* NOTE: we are not supposed to invoke evaluation for original objects,
      * but some areas are still being ported, so we play safe here. */
@@ -2556,7 +2556,7 @@ Object *BKE_object_duplicate(Main *bmain,
     }
   }
 
-  ID *id_old = static_cast<ID *>(obn->data);
+  ID *id_old = obn->data;
   ID *id_new = nullptr;
   const bool need_to_duplicate_obdata = (id_old != nullptr) && (id_old->newid == nullptr);
 
@@ -2683,7 +2683,7 @@ Object *BKE_object_duplicate(Main *bmain,
   }
 
   if (obn->data != nullptr) {
-    DEG_id_tag_update_ex(bmain, static_cast<ID *>(obn->data), ID_RECALC_EDITORS);
+    DEG_id_tag_update_ex(bmain, obn->data, ID_RECALC_EDITORS);
   }
 
   return obn;
@@ -4036,7 +4036,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
                                  Object *ob,
                                  RigidBodyWorld *rbw)
 {
-  const ID *object_data = static_cast<ID *>(ob->data);
+  const ID *object_data = ob->data;
   const bool recalc_object = (ob->id.recalc & ID_RECALC_ALL) != 0;
   const bool recalc_data = (object_data != nullptr) ?
                                ((object_data->recalc & ID_RECALC_ALL) != 0) :
@@ -4099,7 +4099,7 @@ bool BKE_object_obdata_texspace_get(Object *ob,
     return false;
   }
 
-  switch (GS(((ID *)ob->data)->name)) {
+  switch (GS(ob->data->name)) {
     case ID_ME: {
       BKE_mesh_texspace_get_reference(
           id_cast<Mesh *>(ob->data), r_texspace_flag, r_texspace_location, r_texspace_size);
@@ -4256,7 +4256,7 @@ const Mesh *BKE_object_get_mesh_deform_eval(const Object *object)
 
 Lattice *BKE_object_get_lattice(const Object *object)
 {
-  ID *data = static_cast<ID *>(object->data);
+  ID *data = object->data;
   if (data == nullptr || GS(data->name) != ID_LT) {
     return nullptr;
   }

@@ -304,19 +304,12 @@ struct DeadCodeEliminator
       }
       else {
         /* Prototype. */
-#ifdef __APPLE__
-        /* Filter MSL specific identifiers that could have confused the parser. */
+        /* Filter MSL & GLSL specific identifiers that could have confused the parser. */
         StringRef type_str = str(type);
-        if (type_str == "thread" || type_str == "device") {
-          continue;
-        }
-#else
-        /* Filter GLSL specific identifiers that could have confused the parser. */
         StringRef name_str = str(name_tok);
-        if (name_str == "layout") {
+        if (type_str == "thread" || type_str == "device" || name_str == "layout") {
           continue;
         }
-#endif
         erase(type, next(end_of_args));
       }
     }

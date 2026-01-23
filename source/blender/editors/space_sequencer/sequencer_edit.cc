@@ -3254,16 +3254,11 @@ static wmOperatorStatus sequencer_swap_data_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (strip_act->runtime->scene_sound) {
-    BKE_sound_remove_scene_sound(scene, strip_act->runtime->scene_sound);
-  }
+  strip_act->runtime->remove_scene_sound(scene);
+  strip_other->runtime->remove_scene_sound(scene);
 
-  if (strip_other->runtime->scene_sound) {
-    BKE_sound_remove_scene_sound(scene, strip_other->runtime->scene_sound);
-  }
-
-  strip_act->runtime->scene_sound = nullptr;
-  strip_other->runtime->scene_sound = nullptr;
+  strip_act->runtime->clear_sound_time_stretch();
+  strip_other->runtime->clear_sound_time_stretch();
 
   if (strip_act->sound) {
     BKE_sound_add_scene_sound_defaults(scene, strip_act);

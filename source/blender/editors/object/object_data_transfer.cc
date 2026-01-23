@@ -554,7 +554,7 @@ static bool data_transfer_poll(bContext *C)
    * it cannot check for all possible invalid cases. */
 
   Object *ob = context_active_object(C);
-  ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
+  ID *data = (ob) ? ob->data : nullptr;
   return (ob != nullptr && ob->type == OB_MESH && data != nullptr);
 }
 

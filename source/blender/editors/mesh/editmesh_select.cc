@@ -1507,7 +1507,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
   MEM_freeN(group_index);
 
   if (changed) {
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
   else {
@@ -1780,7 +1780,7 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
     MEM_freeN(edarray);
 
     if (changed) {
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -1837,7 +1837,7 @@ static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator 
     MEM_freeN(edarray);
 
     if (changed) {
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -1977,7 +1977,7 @@ static void edbm_select_loop_or_ring_by_edge(BMEditMesh *em,
     }
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+  DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 }
 
 /**
@@ -2415,7 +2415,7 @@ static wmOperatorStatus edbm_select_all_exec(bContext *C, wmOperator *op)
         break;
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -2459,7 +2459,7 @@ static wmOperatorStatus edbm_faces_select_interior_exec(bContext *C, wmOperator 
       continue;
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -2519,7 +2519,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
       for (Base *base_iter : bases) {
         Object *ob_iter = base_iter->object;
         EDBM_flag_disable_all(BKE_editmesh_from_object(ob_iter), BM_ELEM_SELECT);
-        DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SELECT);
+        DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
         WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
       }
       changed = true;
@@ -2713,7 +2713,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
       ed::object::base_activate(C, basact);
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
     changed = true;
@@ -3090,8 +3090,7 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       }
 
       EDBM_selectmode_set(em_iter, selectmode_new);
-      DEG_id_tag_update(static_cast<ID *>(ob_iter->data),
-                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+      DEG_id_tag_update(ob_iter->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
     }
 
@@ -3120,7 +3119,7 @@ bool EDBM_selectmode_set_multi_ex(Scene *scene, Span<Object *> objects, const sh
       continue;
     }
     EDBM_selectmode_set(em_iter, selectmode);
-    DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+    DEG_id_tag_update(ob_iter->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
     WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_iter->data);
     changed = true;
   }
@@ -3180,7 +3179,7 @@ static bool edbm_selectmode_sync_multi_ex(Span<Object *> objects)
     EDBM_selectmode_set(em, em_active->selectmode);
     changed = true;
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -3292,7 +3291,7 @@ bool EDBM_mesh_deselect_all_multi_ex(const Span<Base *> bases)
     }
 
     EDBM_flag_disable_all(em_iter, BM_ELEM_SELECT);
-    DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
     changed_multi = true;
   }
   return changed_multi;
@@ -4002,7 +4001,7 @@ static wmOperatorStatus edbm_select_linked_exec(bContext *C, wmOperator *op)
 
     EDBM_uvselect_clear(em);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -4243,7 +4242,7 @@ static wmOperatorStatus edbm_select_linked_pick_invoke(bContext *C,
     RNA_int_set(op->ptr, "index", index);
   }
 
-  DEG_id_tag_update(static_cast<ID *>(basact->object->data), ID_RECALC_SELECT);
+  DEG_id_tag_update(basact->object->data, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, basact->object->data);
 
   return OPERATOR_FINISHED;
@@ -4278,7 +4277,7 @@ static wmOperatorStatus edbm_select_linked_pick_exec(bContext *C, wmOperator *op
 
   edbm_select_linked_pick_ex(em, ele, sel, delimit);
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+  DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
   return OPERATOR_FINISHED;
@@ -4412,7 +4411,7 @@ static wmOperatorStatus edbm_select_by_pole_count_exec(bContext *C, wmOperator *
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -4492,7 +4491,7 @@ static wmOperatorStatus edbm_select_face_by_sides_exec(bContext *C, wmOperator *
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -4605,7 +4604,7 @@ static wmOperatorStatus edbm_select_loose_exec(bContext *C, wmOperator *op)
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -4671,7 +4670,7 @@ static wmOperatorStatus edbm_select_mirror_exec(bContext *C, wmOperator *op)
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
 
@@ -4728,7 +4727,7 @@ static wmOperatorStatus edbm_select_more_exec(bContext *C, wmOperator *op)
     }
 
     EDBM_select_more(em, use_face_step);
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -4776,7 +4775,7 @@ static wmOperatorStatus edbm_select_less_exec(bContext *C, wmOperator *op)
     }
 
     EDBM_select_less(em, use_face_step);
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -5403,7 +5402,7 @@ static wmOperatorStatus edbm_select_sharp_edges_exec(bContext *C, wmOperator *op
     }
     EDBM_uvselect_clear(em);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -5503,7 +5502,7 @@ static wmOperatorStatus edbm_select_linked_flat_faces_exec(bContext *C, wmOperat
       } while (!stack.is_empty() && (f = stack.pop_last()));
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -5608,7 +5607,7 @@ static wmOperatorStatus edbm_select_non_manifold_exec(bContext *C, wmOperator *o
     }
 
     if (changed) {
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
       EDBM_selectmode_flush(em);
@@ -5737,7 +5736,7 @@ static wmOperatorStatus edbm_select_random_exec(bContext *C, wmOperator *op)
     }
     EDBM_uvselect_clear(em);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -5834,7 +5833,7 @@ static wmOperatorStatus edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -5964,7 +5963,7 @@ static wmOperatorStatus edbm_select_axis_exec(bContext *C, wmOperator *op)
       EDBM_uvselect_clear(em);
 
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit_iter->data);
-      DEG_id_tag_update(static_cast<ID *>(obedit_iter->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit_iter->data, ID_RECALC_SELECT);
     }
   }
   return OPERATOR_FINISHED;
@@ -6285,7 +6284,7 @@ static wmOperatorStatus edbm_loop_to_region_exec(bContext *C, wmOperator *op)
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -6401,7 +6400,7 @@ static wmOperatorStatus edbm_select_by_attribute_exec(bContext *C, wmOperator * 
       EDBM_selectmode_flush(em);
       EDBM_uvselect_clear(em);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }

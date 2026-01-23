@@ -1640,7 +1640,6 @@ bNodeTreeInterfaceItem *bNodeTreeInterface::insert_item_copy(const bNodeTreeInte
   if (parent == nullptr) {
     parent = &root_panel;
   }
-  BLI_assert(this->find_item(item));
   BLI_assert(this->find_item(parent->item));
 
   bNodeTreeInterfaceItem *citem = static_cast<bNodeTreeInterfaceItem *>(MEM_dupallocN(&item));

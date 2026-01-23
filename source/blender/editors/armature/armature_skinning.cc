@@ -328,7 +328,7 @@ static void add_verts_to_dgroups(ReportList *reports,
     return;
   }
 
-  if (BKE_object_defgroup_data_create(static_cast<ID *>(ob->data)) == nullptr) {
+  if (BKE_object_defgroup_data_create(ob->data) == nullptr) {
     return;
   }
 
@@ -514,7 +514,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
     if (defbase_add) {
       /* It's possible there are DWeights outside the range of the current
        * object's deform groups. In this case the new groups won't be empty #33889. */
-      ed::object::vgroup_data_clamp_range(static_cast<ID *>(ob->data), defbase_tot);
+      ed::object::vgroup_data_clamp_range(ob->data, defbase_tot);
     }
   }
   else if (ELEM(mode, ARM_GROUPS_ENVELOPE, ARM_GROUPS_AUTO)) {

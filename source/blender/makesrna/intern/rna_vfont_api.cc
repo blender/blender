@@ -23,22 +23,11 @@ namespace blender {
 #  include "BKE_library.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.hh"
+#  include "BKE_vfont.hh"
 
 static void rna_VectorFont_pack(VFont *vfont, Main *bmain, ReportList *reports)
 {
-  const bool is_packed = vfont->packedfile != nullptr;
-
-  if (is_packed) {
-    /* Font is already packed and considered unmodified, do not attempt to repack it, since its
-     * original file may not be available anymore on the current FS.
-     *
-     * See #152638.
-     */
-    return;
-  }
-
-  vfont->packedfile = BKE_packedfile_new(
-      reports, vfont->filepath, ID_BLEND_PATH(bmain, &vfont->id));
+  BKE_vfont_packfile_ensure(bmain, vfont, reports);
 }
 
 static void rna_VectorFont_unpack(VFont *vfont, Main *bmain, ReportList *reports, int method)

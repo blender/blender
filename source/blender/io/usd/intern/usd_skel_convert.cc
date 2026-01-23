@@ -1148,7 +1148,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
     return;
   }
 
-  if (BKE_object_defgroup_data_create(static_cast<ID *>(mesh_obj->data)) == nullptr) {
+  if (BKE_object_defgroup_data_create(mesh_obj->data) == nullptr) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "%s: Error creating deform group data for mesh %s",

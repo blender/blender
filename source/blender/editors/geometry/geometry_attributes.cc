@@ -822,7 +822,7 @@ static bool geometry_color_attributes_remove_poll(bContext *C)
   }
 
   const Object *ob = object::context_object(C);
-  const ID *data = static_cast<ID *>(ob->data);
+  const ID *data = ob->data;
 
   if (BKE_id_attributes_color_find(data, BKE_id_attributes_active_color_name(data).value_or(""))) {
     return true;
@@ -886,7 +886,7 @@ static bool geometry_color_attributes_duplicate_poll(bContext *C)
   }
 
   const Object *ob = object::context_object(C);
-  const ID *data = static_cast<ID *>(ob->data);
+  const ID *data = ob->data;
 
   if (BKE_id_attributes_color_find(data, BKE_id_attributes_active_color_name(data).value_or(""))) {
     return true;

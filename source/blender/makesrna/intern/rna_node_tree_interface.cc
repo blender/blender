@@ -724,15 +724,33 @@ static bNodeTreeInterfaceItem *rna_NodeTreeInterfaceItems_copy_to_parent(
     }
   }
 
+  const bNodeTree &interface_node_tree = *blender::id_cast<bNodeTree *>(id);
+  if (bNodeTreeInterfaceSocket *socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
+          item))
+  {
+    blender::bke::bNodeTreeType *ntreetype = interface_node_tree.typeinfo;
+    /* Check if the node tree supports the socket type. */
+    if (ntreetype->valid_socket_type &&
+        !ntreetype->valid_socket_type(ntreetype, socket->socket_typeinfo()))
+    {
+      BKE_report(reports,
+                 RPT_ERROR_INVALID_INPUT,
+                 "Item to be copied to this interface is of an unsupported socket type");
+      return nullptr;
+    }
+  }
+
   if (parent == nullptr) {
     parent = &interface->root_panel;
   }
   const int index = parent->items().as_span().first_index_try(item);
-  if (!parent->items().index_range().contains(index)) {
-    return nullptr;
+  bNodeTreeInterfaceItem *item_copy = nullptr;
+  if (index == -1) {
+    item_copy = interface->insert_item_copy(*item, parent, parent->items_num);
   }
-
-  bNodeTreeInterfaceItem *item_copy = interface->insert_item_copy(*item, parent, index + 1);
+  else if (parent->items().index_range().contains(index)) {
+    item_copy = interface->insert_item_copy(*item, parent, index + 1);
+  }
 
   if (item_copy == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to copy item");

@@ -739,7 +739,7 @@ Material *BKE_object_material_get(Object *ob, short act)
 
 static const ID *get_evaluated_object_data_with_materials(const Object *ob)
 {
-  const ID *data = static_cast<ID *>(ob->data);
+  const ID *data = ob->data;
   /* Meshes in edit mode need special handling. */
   if (ob->type == OB_MESH && ob->mode == OB_MODE_EDIT) {
     const Mesh *mesh = id_cast<const Mesh *>(ob->data);

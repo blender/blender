@@ -282,7 +282,7 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
     Object *ob = static_cast<Object *>(path->ptr[path->len - 1].data);
 
     if (ob && ELEM(type, -1, ob->type)) {
-      path->ptr[path->len] = RNA_id_pointer_create(static_cast<ID *>(ob->data));
+      path->ptr[path->len] = RNA_id_pointer_create(ob->data);
       path->len++;
 
       return true;

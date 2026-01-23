@@ -568,7 +568,7 @@ static bool object_select_all_by_library_obdata(bContext *C, Library *lib)
 
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
     if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
-      if (base->object->data && lib == (static_cast<ID *>(base->object->data))->lib) {
+      if (base->object->data && lib == (base->object->data)->lib) {
         base_select(base, BA_SELECT);
         changed = true;
       }
@@ -669,7 +669,7 @@ static wmOperatorStatus object_select_linked_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    changed = object_select_all_by_library_obdata(C, (static_cast<ID *>(ob->data))->lib);
+    changed = object_select_all_by_library_obdata(C, ob->data->lib);
   }
   else {
     return OPERATOR_CANCELLED;

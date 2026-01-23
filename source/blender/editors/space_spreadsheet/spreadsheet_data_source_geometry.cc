@@ -1152,6 +1152,9 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
     const nodes::BundlePtr &bundle = *ptr.get<nodes::BundlePtr>();
     return lookup_bundle_path(bundle, table_id.viewer_item_bundle_path);
   }
+  if (value.is_list()) {
+    return value;
+  }
   return {};
 }
 

@@ -288,7 +288,7 @@ static bool object_shape_key_mirror(
 static bool shape_key_poll(bContext *C)
 {
   Object *ob = context_object(C);
-  ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
+  ID *data = (ob) ? ob->data : nullptr;
 
   return (ob != nullptr && ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && data != nullptr &&
           ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
@@ -418,8 +418,7 @@ static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
     }
 
     if (RNA_boolean_get(op->ptr, "apply_mix")) {
-      float *arr = BKE_key_evaluate_object_ex(
-          ob, nullptr, nullptr, 0, static_cast<ID *>(ob->data));
+      float *arr = BKE_key_evaluate_object_ex(ob, nullptr, nullptr, 0, ob->data);
       MEM_freeN(arr);
     }
     changed = BKE_object_shapekey_free(bmain, ob);

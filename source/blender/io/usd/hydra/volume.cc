@@ -83,9 +83,7 @@ void VolumeData::update()
 {
   const Object *object = id_cast<const Object *>(id);
   pxr::HdDirtyBits bits = pxr::HdChangeTracker::Clean;
-  if ((id->recalc & ID_RECALC_GEOMETRY) ||
-      ((static_cast<ID *>(object->data))->recalc & ID_RECALC_GEOMETRY))
-  {
+  if ((id->recalc & ID_RECALC_GEOMETRY) || (object->data->recalc & ID_RECALC_GEOMETRY)) {
     init();
     bits = pxr::HdChangeTracker::AllDirty;
   }

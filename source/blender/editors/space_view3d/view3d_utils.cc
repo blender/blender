@@ -1702,7 +1702,7 @@ static bool view3d_camera_to_view_selected_impl(Main *bmain,
     /* notifiers */
     DEG_id_tag_update_ex(bmain, &camera_ob->id, ID_RECALC_TRANSFORM);
     if (is_ortho_camera) {
-      DEG_id_tag_update_ex(bmain, static_cast<ID *>(camera_ob->data), ID_RECALC_PARAMETERS);
+      DEG_id_tag_update_ex(bmain, camera_ob->data, ID_RECALC_PARAMETERS);
     }
 
     return true;

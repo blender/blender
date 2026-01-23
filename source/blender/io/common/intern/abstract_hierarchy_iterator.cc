@@ -120,7 +120,7 @@ bool AbstractHierarchyWriter::check_is_animated(const HierarchyContext &context)
 {
   Object *object = context.object;
 
-  if (BKE_animdata_id_is_animated(static_cast<ID *>(object->data))) {
+  if (BKE_animdata_id_is_animated(object->data)) {
     return true;
   }
   if (BKE_key_from_object(object) != nullptr) {
@@ -558,7 +558,7 @@ void AbstractHierarchyIterator::determine_export_paths(const HierarchyContext *p
       duplisource_export_path_.add(source_ob, context->export_path);
 
       if (context->object->data != nullptr) {
-        ID *source_data = static_cast<ID *>(context->object->data);
+        ID *source_data = context->object->data;
         duplisource_export_path_.add(source_data, get_object_data_path(context));
       }
     }
@@ -594,7 +594,7 @@ bool AbstractHierarchyIterator::determine_duplication_references(
       }
 
       if (context->object->data) {
-        ID *source_data_id = static_cast<ID *>(context->object->data);
+        ID *source_data_id = context->object->data;
         if (!duplisource_export_path_.contains(source_data_id)) {
           /* The original was not found, so mark this instance as "original". */
           std::string data_path = get_object_data_path(context);
@@ -719,7 +719,7 @@ void AbstractHierarchyIterator::make_writer_object_data(const HierarchyContext *
 
   HierarchyContext data_context = context_for_object_data(context);
   if (data_context.is_instance()) {
-    ID *object_data = static_cast<ID *>(context->object->data);
+    ID *object_data = context->object->data;
     data_context.original_export_path = duplisource_export_path_.lookup(object_data);
 
     /* If the object is marked as an instance, so should the object data. */
@@ -797,7 +797,7 @@ std::string AbstractHierarchyIterator::get_object_name(const Object *object, con
 
 std::string AbstractHierarchyIterator::get_object_data_name(const Object *object) const
 {
-  const ID *object_data = static_cast<ID *>(object->data);
+  const ID *object_data = object->data;
   return get_id_name(object_data);
 }
 

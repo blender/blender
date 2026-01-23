@@ -337,7 +337,7 @@ static bool object_hook_index_array(Main *bmain,
       EDBM_mesh_load(bmain, obedit);
       EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
 
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      DEG_id_tag_update(obedit->data, 0);
 
       BMEditMesh *em = mesh->runtime->edit_mesh.get();
 
@@ -962,7 +962,7 @@ static wmOperatorStatus object_hook_select_exec(bContext *C, wmOperator *op)
   /* select functionality */
   object_hook_select(ob, hmd);
 
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
+  DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
   return OPERATOR_FINISHED;

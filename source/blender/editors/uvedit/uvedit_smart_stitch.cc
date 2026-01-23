@@ -2421,7 +2421,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
       continue;
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+    DEG_id_tag_update(obedit->data, 0);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 

@@ -516,7 +516,7 @@ static wmOperatorStatus edbm_delete_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -4288,7 +4288,7 @@ static bool mesh_separate_selected(
  */
 static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const short mat_nr)
 {
-  ID *obdata = static_cast<ID *>(ob->data);
+  ID *obdata = ob->data;
 
   const short *totcolp = BKE_id_material_len_p(obdata);
   Material ***matarar = BKE_id_material_array_p(obdata);
@@ -7040,7 +7040,7 @@ static void sort_bmelem_flag(bContext *C,
   params.is_destructive = true;
   EDBM_update(id_cast<Mesh *>(ob->data), &params);
 
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
   for (j = 3; j--;) {
@@ -8137,7 +8137,7 @@ static wmOperatorStatus edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *o
       }
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 
@@ -8212,7 +8212,7 @@ static wmOperatorStatus edbm_mark_freestyle_face_exec(bContext *C, wmOperator *o
       }
     }
 
-    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   }
 

@@ -184,7 +184,7 @@ class ShapeKeyDropTarget : public ui::TreeViewItemDropTarget {
       BKE_keyblock_move(ob, drag_index, drop_index);
     }
 
-    DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
     ED_undo_push(C, "Drop Active Shape Key");
 
