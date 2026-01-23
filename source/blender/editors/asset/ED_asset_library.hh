@@ -48,12 +48,16 @@ AssetLibraryReference library_reference_from_enum_value(int value);
  * \param include_readonly: If set, the "All" and "Essentials" asset libraries will be added, which
  * cannot be written to.
  * \param include_current_file: If set, "Current File" asset library will be added.
+ * \param include_remote_libraries: If set, all online asset libraries with a URL set will be
+ * added.
  */
 const EnumPropertyItem *library_reference_to_rna_enum_itemf(bool include_readonly,
-                                                            bool include_current_file);
+                                                            bool include_current_file,
+                                                            bool include_remote_libraries);
 /**
- * Same as #library_reference_to_rna_enum_itemf(), but only includes custom asset libraries
- * (libraries on disk, configured in the Preferences).
+ * Same as #library_reference_to_rna_enum_itemf(), but only includes custom on-disk asset libraries
+ * (libraries on disk, configured in the Preferences). Online asset libraries will be excluded,
+ * their on-disk location is just a cache.
  */
 const EnumPropertyItem *custom_libraries_rna_enum_itemf();
 

@@ -84,9 +84,14 @@ AssetLibraryReference library_reference_from_enum_value(int value)
   return library;
 }
 
-static void rna_enum_add_custom_libraries(EnumPropertyItem **item, int *totitem)
+static void rna_enum_add_custom_libraries(EnumPropertyItem **item,
+                                          int *totitem,
+                                          const bool include_remote_libraries)
 {
   for (const auto [i, user_library] : U.asset_libraries.enumerate()) {
+    if (!include_remote_libraries && (user_library.flag & ASSET_LIBRARY_USE_REMOTE_URL)) {
+      continue;
+    }
     if (!custom_library_is_valid(&user_library)) {
       continue;
     }
@@ -103,8 +108,10 @@ static void rna_enum_add_custom_libraries(EnumPropertyItem **item, int *totitem)
   }
 }
 
+/* TODO: Cleanup booleans - use flags instead. */
 const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_readonly,
-                                                            const bool include_current_file)
+                                                            const bool include_current_file,
+                                                            const bool include_remote_libraries)
 {
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
@@ -127,7 +134,7 @@ const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_r
   if (!BLI_listbase_is_empty(&U.asset_libraries) && (include_readonly || include_current_file)) {
     RNA_enum_item_add_separator(&item, &totitem);
   }
-  rna_enum_add_custom_libraries(&item, &totitem);
+  rna_enum_add_custom_libraries(&item, &totitem, include_remote_libraries);
 
   RNA_enum_item_end(&item, &totitem);
   return item;
@@ -138,7 +145,7 @@ const EnumPropertyItem *custom_libraries_rna_enum_itemf()
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
-  rna_enum_add_custom_libraries(&item, &totitem);
+  rna_enum_add_custom_libraries(&item, &totitem, /*include_remote_libraries=*/false);
 
   RNA_enum_item_end(&item, &totitem);
   return item;

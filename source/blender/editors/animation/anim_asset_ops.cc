@@ -57,7 +57,8 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
                                                                  PropertyRNA * /*prop*/,
                                                                  bool *r_free)
 {
-  const EnumPropertyItem *items = ed::asset::library_reference_to_rna_enum_itemf(false, true);
+  const EnumPropertyItem *items = ed::asset::library_reference_to_rna_enum_itemf(
+      false, true, false);
   *r_free = true;
   BLI_assert(items != nullptr);
   return items;
