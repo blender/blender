@@ -59,7 +59,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
