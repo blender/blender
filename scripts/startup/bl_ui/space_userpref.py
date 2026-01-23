@@ -2798,7 +2798,6 @@ class USERPREF_PT_assets_asset_libraries(AssetsPanel, Panel):
             use_remote_libraries = context.preferences.experimental.use_remote_asset_libraries
             if use_remote_libraries:
                 layout.prop(active_library, "remote_url")
-                layout.prop(active_library, "path", text="Download Location")
         else:
             layout.prop(active_library, "path")
             layout.prop(active_library, "import_method", text="Import Method")
