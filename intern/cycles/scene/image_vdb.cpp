@@ -87,7 +87,13 @@ bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
     return false;
   }
 
+#  if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+      (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 9)
+  /* size() was deprecated in this version. */
+  metadata.nanovdb_byte_size = nanogrid.bufferSize();
+#  else
   metadata.nanovdb_byte_size = nanogrid.size();
+#  endif
 
   /* Set transform from object space to voxel index. */
   openvdb::math::Mat4f grid_matrix = grid->transform().baseMap()->getAffineMap()->getMat4();
@@ -119,7 +125,7 @@ bool VDBImageLoader::load_pixels(const ImageMetaData &metadata, void *pixels)
     return true;
   }
   if (nanogrid) {
-    memcpy(pixels, nanogrid.data(), nanogrid.size());
+    memcpy(pixels, nanogrid.data(), metadata.nanovdb_byte_size);
     return true;
   }
 #else
