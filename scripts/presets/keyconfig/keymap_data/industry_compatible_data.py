@@ -1187,6 +1187,7 @@ def km_node_editor(params):
          {"properties": [("exit", True)]}),
         ("node.clipboard_copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("node.clipboard_paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
+        ("node.delete_copy_reconnect", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("node.viewer_border", {"type": 'Z', "value": 'PRESS'}, None),
         ("node.clear_viewer_border", {"type": 'Z', "value": 'PRESS', "alt": True}, None),
         ("node.translate_attach", {"type": 'W', "value": 'PRESS'}, None),

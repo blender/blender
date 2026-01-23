@@ -2320,7 +2320,7 @@ def km_node_editor(params):
         op_menu_pie("NODE_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("node.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("node.delete", {"type": 'DEL', "value": 'PRESS'}, None),
-        ("node.delete_reconnect", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
+        ("node.delete_copy_reconnect", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("node.delete_reconnect", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_select_actions(params, "node.select_all"),
         ("node.select_linked_to", {"type": 'L', "value": 'PRESS', "shift": True}, None),
