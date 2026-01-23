@@ -11,8 +11,8 @@
 #  include <arm_neon.h>
 #endif
 
-#if (defined(__x86_64__) || defined(_M_X64))
-#  define USE_SSE2
+#if (defined(__x86_64__) || defined(_M_X64)) && defined(__SSE4_2__)
+#  define USE_SSE4_2
 #  include <immintrin.h>
 #endif
 
@@ -27,7 +27,7 @@
 
 namespace lexit {
 
-#if defined(USE_NEON) || defined(USE_SSE2)
+#if defined(USE_NEON) || defined(USE_SSE4_2)
 
 /* Shuffle table used for stream compaction. */
 static const uint8_t shuffle_table_8[256][8] = {
@@ -300,7 +300,7 @@ static inline uint8x16_t simd_transform16_ascii(uint8x16x4_t table[2], uint8x16_
 }
 #endif
 
-#ifdef USE_SSE2
+#ifdef USE_SSE4_2
 static inline __m128i simd_transform16_ascii(const __m128i table[8], __m128i input)
 {
   __m128i result = _mm_setzero_si128();
@@ -329,7 +329,7 @@ void TokenBuffer::tokenize(const CharClass char_class_table[128])
 {
   uint32_t offset = 0, cursor = 0;
 
-#if defined(USE_SSE2)
+#if defined(USE_SSE4_2)
   __m128i map_v[8];
   for (int i = 0; i < 8; ++i) {
     map_v[i] = _mm_loadu_si128((const __m128i *)char_class_table + i);
