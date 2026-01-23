@@ -871,8 +871,12 @@ def brush_settings(layout, context, brush, popover=False):
         # use_persistent, set_persistent_base
         if capabilities.has_persistence:
             layout.separator()
-            layout.prop(brush, "use_persistent")
-            layout.operator("sculpt.set_persistent_base")
+            col = layout.column()
+            # Persistent base is not supported when Dyntopo is enabled.
+            if context.sculpt_object and context.sculpt_object.use_dynamic_topology_sculpting:
+                col.enabled = False
+            col.prop(brush, "use_persistent")
+            col.operator("sculpt.set_persistent_base")
             layout.separator()
 
         if capabilities.has_color:
