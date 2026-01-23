@@ -101,9 +101,14 @@ static void rna_enum_add_custom_libraries(EnumPropertyItem **item,
     library_reference.custom_library_index = i;
 
     const int enum_value = library_reference_to_enum_value(&library_reference);
-    /* Use library path as description, it's a nice hint for users. */
     EnumPropertyItem tmp = {
-        enum_value, user_library.name, ICON_NONE, user_library.name, user_library.dirpath};
+        enum_value,
+        user_library.name,
+        ICON_NONE,
+        user_library.name,
+        /* Use library path or URL as description, it's a nice hint for users. */
+        (user_library.flag & ASSET_LIBRARY_USE_REMOTE_URL) ? user_library.remote_url :
+                                                             user_library.dirpath};
     RNA_enum_item_add(item, totitem, &tmp);
   }
 }
