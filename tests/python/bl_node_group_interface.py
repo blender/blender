@@ -209,6 +209,12 @@ class NodeGroupInterfaceTests:
         if (hasattr(in1, "default_value")):
             self.do_test_user_count(in1.default_value, 4)
 
+        tree2 = self.make_group()
+        inCrossTreeCopy = tree2.interface.copy(in0)
+        outCrossTreeCopy = tree2.interface.copy(out1)
+        self.assertIsNotNone(inCrossTreeCopy, "Could not copy socket to other tree")
+        self.assertIsNotNone(outCrossTreeCopy, "Could not copy socket to other tree")
+
     # Classic outputs..inputs socket layout
     def do_test_items_order_classic(self, socket_type):
         tree, group_node = self.make_group_and_instance()
