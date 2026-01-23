@@ -84,13 +84,15 @@ class TokenBuffer {
   }
 
   /**
-   * @brief Tokenizes the input string by grouping contiguous characters of the same type.
+   * @brief Tokenizes the input string by grouping contiguous characters of the same class.
    *
    * This function iterates through the input string and identifies "runs" of characters
-   * that map to the same TokenType. For each new group, it records the type and the
+   * that map to the same CharClass. For each new group, it records the type and the
    * starting byte offset into the result arrays.
    *
-   * Only tokens with the #Merge flag are merged together.
+   * Only characters with the #CanMerge flag are merged together.
+   * Characters with class greater than #ClassToTypeThreshold will just be assigned their class as
+   * #TokenType. Otherwise, the first character of the token will be used as #TokenType.
    *
    * @param char_class_table  A lookup table mapping ASCII values (0-127) to a 8-bit CharClass.
    */
