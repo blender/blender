@@ -159,6 +159,28 @@ int CompileState::compute_pixel_node_operation_outputs_count(const bNode &node,
 
 bool CompileState::is_pixel_node_single_value(const bNode &node)
 {
+  /* If any of the outputs are single-only outputs, then the node is operating on single values. */
+  for (const bNodeSocket *output : node.output_sockets()) {
+    if (!is_socket_available(output)) {
+      continue;
+    }
+
+    if (Result::is_single_value_only_type(get_node_socket_result_type(output))) {
+      return true;
+    }
+  }
+
+  /* If any of the inputs are single-only outputs, then the node is operating on single values. */
+  for (const bNodeSocket *input : node.input_sockets()) {
+    if (!is_socket_available(input)) {
+      continue;
+    }
+
+    if (Result::is_single_value_only_type(get_node_socket_result_type(input))) {
+      return true;
+    }
+  }
+
   /* The pixel node is single value when all of its inputs are single values. */
   for (const bNodeSocket *input : node.input_sockets()) {
     if (!is_socket_available(input)) {
@@ -167,9 +189,8 @@ bool CompileState::is_pixel_node_single_value(const bNode &node)
 
     const bNodeSocket *output = get_output_linked_to_input(*input);
     if (!output) {
-      const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-
       /* The input does not have an implicit input, so it is a single value. */
+      const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
       if (input_descriptor.implicit_input == ImplicitInput::None) {
         continue;
       }

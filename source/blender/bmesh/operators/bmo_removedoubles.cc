@@ -497,7 +497,8 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
            EDGE_MARK,
            BMW_MASK_NOP,
            BMW_FLAG_NOP, /* No need to use #BMW_FLAG_TEST_HIDDEN, already marked data. */
-           BMW_NIL_LAY);
+           BMW_NIL_LAY,
+           BMW_DELIMIT_NONE);
 
   edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
 
@@ -580,7 +581,8 @@ static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short ofl
            oflag,
            BMW_MASK_NOP,
            BMW_FLAG_NOP, /* No need to use #BMW_FLAG_TEST_HIDDEN, already marked data. */
-           layer);
+           layer,
+           BMW_DELIMIT_NONE);
 
   block_stack = BLI_stack_new(sizeof(void *), __func__);
 

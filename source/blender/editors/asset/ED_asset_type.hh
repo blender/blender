@@ -35,14 +35,5 @@ bool id_type_is_supported(const ID *id);
  */
 int64_t types_supported_as_filter_flags();
 
-/**
- * Utility: A string enumerating the non-experimental asset types. This is useful info to
- * the user, it should be displayed in tool-tips or messages. Macro to support concatenating static
- * strings with this (not all UI code supports dynamic strings nicely).
- * Should start with a consonant, so usages can prefix it with "a" (not "an").
- */
-#define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING \
-  "Material, Collection, Object, Brush, Pose Action, Node Group, World or Scene"
-
 }  // namespace ed::asset
 }  // namespace blender

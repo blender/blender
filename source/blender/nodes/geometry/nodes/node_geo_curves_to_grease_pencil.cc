@@ -214,6 +214,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet grease_pencil_geometry = GeometrySet::from_grease_pencil(grease_pencil);
   grease_pencil_geometry.name = std::move(curves_geometry.name);
+  grease_pencil_geometry.copy_bundle_from(curves_geometry);
   params.set_output("Grease Pencil", std::move(grease_pencil_geometry));
 }
 

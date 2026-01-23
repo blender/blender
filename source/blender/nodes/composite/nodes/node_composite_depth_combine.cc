@@ -2,15 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "UI_resources.hh"
 
 #include "COM_algorithm_smaa.hh"
 #include "COM_node_operation.hh"
@@ -20,13 +14,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_depth_combin_cc {
 
-/* **************** DEPTH COMBINE ******************** */
-
-namespace nodes::node_composite_zcombine_cc {
-
-static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("A")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
@@ -422,12 +412,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ZCombineOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_zcombine_cc
-
-static void register_node_type_cmp_zcombine()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_zcombine_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeZcombine", CMP_NODE_ZCOMBINE);
@@ -435,11 +421,11 @@ static void register_node_type_cmp_zcombine()
   ntype.ui_description = "Combine two images using depth maps";
   ntype.enum_name_legacy = "ZCOMBINE";
   ntype.nclass = NODE_CLASS_OP_COLOR;
-  ntype.declare = file_ns::cmp_node_zcombine_declare;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.declare = node_declare;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_zcombine)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_depth_combin_cc

@@ -11,7 +11,8 @@ ExternalProject_Add(external_emhash
   URL_HASH ${EMHASH_HASH_TYPE}=${EMHASH_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/emhash
-
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
+  
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/emhash/src/external_emhash <
     ${PATCH_DIR}/emhash.diff

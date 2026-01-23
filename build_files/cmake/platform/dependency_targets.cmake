@@ -435,3 +435,9 @@ endif()
 if(DEFINED PTHREADS_LIBRARIES)
   target_link_libraries(bf_deps_pthreads INTERFACE ${PTHREADS_LIBRARIES})
 endif()
+
+# -----------------------------------------------------------------------------
+# Configure libfmt
+#
+
+add_library(bf::dependencies::fmt ALIAS fmt::fmt)

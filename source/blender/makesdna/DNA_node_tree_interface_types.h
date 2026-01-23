@@ -305,7 +305,7 @@ struct bNodeTreeInterface {
 
   bNodeTreeInterfaceItem *active_item();
   const bNodeTreeInterfaceItem *active_item() const;
-  void active_item_set(bNodeTreeInterfaceItem *item);
+  void active_item_set(bNodeTreeInterfaceItem *item, bool deselect_original = true);
 
   /**
    * Get the position of the item in its parent panel.

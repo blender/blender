@@ -122,6 +122,8 @@ set(SRC
   shader_tool/template.cc
   shader_tool/union.cc
 
+  shader_tool/lexit/lexit.cc
+
   GPU_attribute_convert.hh
   GPU_batch.hh
   GPU_batch_presets.hh
@@ -431,7 +433,6 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::nodes
   PRIVATE bf::dependencies::optional::opencolorio
 )

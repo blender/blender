@@ -88,10 +88,12 @@ set(SRC
   nodes/node_geo_field_average.cc
   nodes/node_geo_field_min_and_max.cc
   nodes/node_geo_field_to_grid.cc
+  nodes/node_geo_field_to_list.cc
   nodes/node_geo_field_variance.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_foreach_geometry_element.cc
   nodes/node_geo_geometry_to_instance.cc
+  nodes/node_geo_get_geometry_bundle.cc
   nodes/node_geo_get_bundle_item.cc
   nodes/node_geo_get_named_grid.cc
   nodes/node_geo_gizmo_dial.cc
@@ -159,7 +161,6 @@ set(SRC
   nodes/node_geo_is_viewport.cc
   nodes/node_geo_join_bundle.cc
   nodes/node_geo_join_geometry.cc
-  nodes/node_geo_list.cc
   nodes/node_geo_list_get_item.cc
   nodes/node_geo_list_length.cc
   nodes/node_geo_material_replace.cc
@@ -227,6 +228,7 @@ set(SRC
   nodes/node_geo_set_curve_normal.cc
   nodes/node_geo_set_curve_radius.cc
   nodes/node_geo_set_curve_tilt.cc
+  nodes/node_geo_set_geometry_bundle.cc
   nodes/node_geo_set_geometry_name.cc
   nodes/node_geo_set_grease_pencil_color.cc
   nodes/node_geo_set_grease_pencil_depth_mode.cc
@@ -276,6 +278,7 @@ set(SRC
   include/NOD_geo_capture_attribute.hh
   include/NOD_geo_closure.hh
   include/NOD_geo_field_to_grid.hh
+  include/NOD_geo_field_to_list.hh
   include/NOD_geo_foreach_geometry_element.hh
   include/NOD_geo_index_switch.hh
   include/NOD_geo_menu_switch.hh
@@ -308,7 +311,6 @@ set(LIB
   bf_io_common
   bf_io_csv
   PRIVATE bf::intern::atomic
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
   PRIVATE bf::render
   PRIVATE bf::windowmanager

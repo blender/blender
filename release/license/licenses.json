@@ -65,6 +65,10 @@
     "name": "GNU Lesser General Public License v2.1 or later",
     "url": "https://spdx.org/licenses/LGPL-2.1-or-later.html"
   },
+  "SPDX:LGPL-3.0-or-later": {
+    "name": "GNU Lesser General Public License v3.0 or later",
+    "url": "https://spdx.org/licenses/LGPL-3.0-or-later.html"
+  },
   "SPDX:MIT": {
     "name": "MIT",
     "url": "https://spdx.org/licenses/MIT.html"

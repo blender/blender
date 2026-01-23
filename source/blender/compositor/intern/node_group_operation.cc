@@ -188,8 +188,9 @@ static PixelOperation *create_pixel_operation(Context &context, CompileState &co
 
   /* Use multi-function procedure to execute the pixel compile unit for CPU contexts or if the
    * compile unit is single value and would thus be more efficient to execute on the CPU. */
-  if (!context.use_gpu() || compile_state.is_pixel_compile_unit_single_value()) {
-    return new MultiFunctionProcedureOperation(context, compile_unit, schedule);
+  const bool is_single_value = compile_state.is_pixel_compile_unit_single_value();
+  if (!context.use_gpu() || is_single_value) {
+    return new MultiFunctionProcedureOperation(context, compile_unit, schedule, is_single_value);
   }
 
   return new ShaderOperation(context, compile_unit, schedule);

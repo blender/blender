@@ -69,7 +69,6 @@ set(LIB
   PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::memutil
   PRIVATE bf::nodes
   PRIVATE bf::render

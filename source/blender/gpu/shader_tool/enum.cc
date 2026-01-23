@@ -52,8 +52,8 @@ void SourceProcessor::lower_enums(Parser &parser)
                   "enum declaration must explicitly use an underlying type");
   };
 
-  parser().foreach_match("Mw{", missing_underlying_type);
-  parser().foreach_match("MSw{", missing_underlying_type);
+  parser().foreach_match("MA{", missing_underlying_type);
+  parser().foreach_match("MSA{", missing_underlying_type);
 
   const string placeholder_value = "=__auto__";
 
@@ -66,14 +66,14 @@ void SourceProcessor::lower_enums(Parser &parser)
         parser.insert_after(name, replacement);
       }
     };
-    enum_scope.foreach_match("{w", [&](const Tokens &t) { insert(t[1], start); });
-    enum_scope.foreach_match(",w", [&](const Tokens &t) { insert(t[1], value); });
+    enum_scope.foreach_match("{A", [&](const Tokens &t) { insert(t[1], start); });
+    enum_scope.foreach_match(",A", [&](const Tokens &t) { insert(t[1], value); });
   };
 
-  parser().foreach_match("MSw:w{", [&](const Tokens &t) { placeholder(t[5].scope()); });
-  parser().foreach_match("Mw:w{", [&](const Tokens &t) { placeholder(t[4].scope()); });
-  parser().foreach_match("MS[[w]]w:w{", [&](const Tokens &t) { placeholder(t[10].scope()); });
-  parser().foreach_match("M[[w]]w:w{", [&](const Tokens &t) { placeholder(t[9].scope()); });
+  parser().foreach_match("MSA:A{", [&](const Tokens &t) { placeholder(t[5].scope()); });
+  parser().foreach_match("MA:A{", [&](const Tokens &t) { placeholder(t[4].scope()); });
+  parser().foreach_match("MS[[A]]A:A{", [&](const Tokens &t) { placeholder(t[10].scope()); });
+  parser().foreach_match("M[[A]]A:A{", [&](const Tokens &t) { placeholder(t[9].scope()); });
 
   parser.apply_mutations();
 
@@ -124,16 +124,16 @@ void SourceProcessor::lower_enums(Parser &parser)
     parser.erase(enum_tok, enum_scope.back().next());
   };
 
-  parser().foreach_match("MSw:w{", [&](vector<Token> tokens) {
+  parser().foreach_match("MSA:A{", [&](vector<Token> tokens) {
     process_enum(tokens[0], tokens[1], tokens[2], tokens[4], tokens[5].scope(), false);
   });
-  parser().foreach_match("Mw:w{", [&](vector<Token> tokens) {
+  parser().foreach_match("MA:A{", [&](vector<Token> tokens) {
     process_enum(tokens[0], Token::invalid(), tokens[1], tokens[3], tokens[4].scope(), false);
   });
-  parser().foreach_match("MS[[w]]w:w{", [&](vector<Token> tokens) {
+  parser().foreach_match("MS[[A]]A:A{", [&](vector<Token> tokens) {
     process_enum(tokens[0], tokens[1], tokens[7], tokens[9], tokens[10].scope(), true);
   });
-  parser().foreach_match("M[[w]]w:w{", [&](vector<Token> tokens) {
+  parser().foreach_match("M[[A]]A:A{", [&](vector<Token> tokens) {
     process_enum(tokens[0], Token::invalid(), tokens[6], tokens[8], tokens[9].scope(), true);
   });
 

@@ -14,6 +14,7 @@
 #include "DNA_screen_types.h"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
@@ -637,6 +638,12 @@ static void rna_uiTemplateID(Layout *layout,
       name, text_ctxt, nullptr, prop, translate);
 
   template_id(layout, C, ptr, propname, newop, openop, unlinkop, filter, live_icon, text);
+}
+
+static void rna_ui_template_ID_session_uid(
+    Layout *layout, bContext *C, PointerRNA *ptr, const char *propname, int idcode)
+{
+  template_ID_session_uid(*layout, C, ptr, propname, idcode);
 }
 
 static void rna_uiTemplateAnyID(Layout *layout,
@@ -1753,6 +1760,15 @@ void RNA_api_ui_layout(StructRNA *srna)
                "Optionally limit the items which can be selected");
   RNA_def_boolean(func, "live_icon", false, "", "Show preview instead of fixed icon");
   api_ui_item_common_text(func);
+
+  func = RNA_def_function(srna, "template_ID_session_uid", "rna_ui_template_ID_session_uid");
+  RNA_def_function_ui_description(func,
+                                  "Template ID search menu button for session_uid Int properties");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  api_ui_item_rna_common(func);
+  parm = RNA_def_enum(func, "id_type", rna_enum_id_type_items, 0, "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
   func = RNA_def_function(srna, "template_ID_preview", "template_id_preview");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

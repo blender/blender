@@ -118,7 +118,8 @@ void ED_operatortypes_mesh()
   WM_operatortype_append(MESH_OT_select_similar);
   WM_operatortype_append(MESH_OT_select_similar_region);
   WM_operatortype_append(MESH_OT_select_mode);
-  WM_operatortype_append(MESH_OT_loop_multi_select);
+  WM_operatortype_append(MESH_OT_select_edge_loop_multi);
+  WM_operatortype_append(MESH_OT_select_edge_ring_multi);
   WM_operatortype_append(MESH_OT_mark_seam);
   WM_operatortype_append(MESH_OT_mark_sharp);
 #if defined(WITH_FREESTYLE)

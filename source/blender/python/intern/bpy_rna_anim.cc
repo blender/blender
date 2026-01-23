@@ -521,7 +521,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
       /* NOTE: This should be true, or else we wouldn't be able to get here. */
       BLI_assert(fcu != nullptr);
 
-      if (BKE_fcurve_is_protected(fcu)) {
+      if (BKE_fcurve_is_protected(*fcu)) {
         BKE_reportf(
             &reports,
             RPT_WARNING,
@@ -543,7 +543,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
         if (found) {
           /* delete the key at the index (will sanity check + do recalc afterwards) */
           BKE_fcurve_delete_key(fcu, i);
-          BKE_fcurve_handles_recalc(fcu);
+          BKE_fcurve_handles_recalc(*fcu);
           result = true;
         }
       }

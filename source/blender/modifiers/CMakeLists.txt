@@ -141,7 +141,6 @@ set(LIB
   PRIVATE bf::functions
   PRIVATE bf::geometry
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
   PRIVATE bf::nodes
   PRIVATE bf::render

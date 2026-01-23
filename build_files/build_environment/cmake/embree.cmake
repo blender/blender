@@ -5,8 +5,6 @@
 # Note the utility apps may use png/tiff/gif system libraries, but the
 # library itself does not depend on them, so should give no problems.
 
-set(EMBREE_CMAKE_FLAGS ${DEFAULT_CMAKE_FLAGS})
-
 set(EMBREE_EXTRA_ARGS
   -DEMBREE_ISPC_SUPPORT=OFF
   -DEMBREE_TUTORIALS=OFF
@@ -16,7 +14,6 @@ set(EMBREE_EXTRA_ARGS
   -DEMBREE_BACKFACE_CULLING=OFF
   -DEMBREE_BACKFACE_CULLING_CURVES=ON
   -DEMBREE_BACKFACE_CULLING_SPHERES=ON
-  -DEMBREE_NO_SPLASH=ON
   -DEMBREE_TASKING_SYSTEM=TBB
   -DEMBREE_TBB_ROOT=${LIBDIR}/tbb
   -DTBB_ROOT=${LIBDIR}/tbb
@@ -63,6 +60,8 @@ if(NOT APPLE AND NOT BLENDER_PLATFORM_ARM)
       ${EMBREE_EXTRA_ARGS}
     )
   else()
+    string(REPLACE "-DCMAKE_CXX_STANDARD=20" " " EMBREE_CMAKE_FLAGS "${DEFAULT_CMAKE_FLAGS}")
+
     set(EMBREE_EXTRA_ARGS
       -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++
       -DCMAKE_C_COMPILER=${LIBDIR}/dpcpp/bin/clang

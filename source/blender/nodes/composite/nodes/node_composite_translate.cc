@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_matrix.hh"
 
 #include "DNA_node_types.h"
@@ -17,11 +13,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_translate_cc {
 
-namespace nodes::node_composite_translate_cc {
-
-static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -54,7 +48,7 @@ static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
       .description("The extension mode applied to the Y axis");
 }
 
-static void node_composit_init_translate(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
   NodeTranslateData *data = MEM_new_for_free<NodeTranslateData>(__func__);
@@ -138,12 +132,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new TranslateOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_translate_cc
-
-static void register_node_type_cmp_translate()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_translate_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeTranslate", CMP_NODE_TRANSLATE);
@@ -151,14 +141,14 @@ static void register_node_type_cmp_translate()
   ntype.ui_description = "Offset an image";
   ntype.enum_name_legacy = "TRANSLATE";
   ntype.nclass = NODE_CLASS_DISTORT;
-  ntype.declare = file_ns::cmp_node_translate_declare;
-  ntype.initfunc = file_ns::node_composit_init_translate;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeTranslateData", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_translate)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_translate_cc

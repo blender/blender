@@ -271,7 +271,7 @@ template<typename ParserT> void SourceProcessor::cleanup_whitespace(ParserT &par
  * This allow the create infos to use shared defines values. */
 void SourceProcessor::parse_defines(Parser &parser)
 {
-  parser().foreach_match("#w", [&](const vector<Token> &tokens) {
+  parser().foreach_match("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "define") {
       metadata_.create_infos_defines.emplace_back(tokens[1].next().scope().str_with_whitespace());
     }
@@ -315,7 +315,7 @@ void SourceProcessor::parse_legacy_create_info(Parser &parser)
     parser.insert_line_number(struct_keyword.str_index_start() - 1, struct_keyword.line_number());
   });
 
-  parser().foreach_match("w(..)", [&](const vector<Token> &tokens) {
+  parser().foreach_match("A(..)", [&](const vector<Token> &tokens) {
     if (tokens[0].str() == "CREATE_INFO_VARIANT") {
       const string variant_name = tokens[1].scope().front().next().str();
       metadata_.create_infos.emplace_back(variant_name);
@@ -391,7 +391,7 @@ void SourceProcessor::parse_legacy_create_info(Parser &parser)
 
 void SourceProcessor::parse_includes(Parser &parser)
 {
-  parser().foreach_match("#w_", [&](const vector<Token> &tokens) {
+  parser().foreach_match("#A\"", [&](const vector<Token> &tokens) {
     if (tokens[1].str() != "include") {
       return;
     }
@@ -469,18 +469,18 @@ string SourceProcessor::disabled_code_mutation(const string &str)
     }
   };
 
-  parser().foreach_match("#ww", [&](const vector<Token> &tokens) {
+  parser().foreach_match("#AA", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "ifndef" && tokens[2].str() == "GPU_SHADER") {
       process_disabled_scope(tokens[0]);
     }
   });
-  parser().foreach_match("#i!w(w)", [&](const vector<Token> &tokens) {
+  parser().foreach_match("#i!A(A)", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "if" && tokens[3].str() == "defined" && tokens[5].str() == "GPU_SHADER")
     {
       process_disabled_scope(tokens[0]);
     }
   });
-  parser().foreach_match("#i0", [&](const vector<Token> &tokens) {
+  parser().foreach_match("#i1", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "if" && tokens[2].str() == "0") {
       process_disabled_scope(tokens[0]);
     }
@@ -492,7 +492,7 @@ void SourceProcessor::lower_preprocessor(Parser &parser)
 {
   /* Remove unsupported directives. */
 
-  parser().foreach_match("#w", [&](const vector<Token> &tokens) {
+  parser().foreach_match("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "pragma") {
       Token next = tokens[1].next();
       if (next.str() == "once") {
@@ -513,7 +513,7 @@ void SourceProcessor::lower_swizzle_methods(Parser &parser)
 {
   /* Change C++ swizzle functions into plain swizzle. */
   /** IMPORTANT: This prevent the usage of any method with a swizzle name. */
-  parser().foreach_match(".w()", [&](const vector<Token> &tokens) {
+  parser().foreach_match(".A()", [&](const vector<Token> &tokens) {
     string method_name = tokens[1].str();
     if (method_name.length() > 1 && method_name.length() <= 4 &&
         (method_name.find_first_not_of("xyzw") == string::npos ||
@@ -538,16 +538,16 @@ string SourceProcessor::threadgroup_variables_parse_and_remove(const string &str
       parser.erase(shared_tok, decl_end);
     }
   };
-  parser().foreach_match("www;", [&](const vector<Token> &tokens) {
+  parser().foreach_match("AAA;", [&](const vector<Token> &tokens) {
     process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
   });
-  parser().foreach_match("www[..];", [&](const vector<Token> &tokens) {
+  parser().foreach_match("AAA[..];", [&](const vector<Token> &tokens) {
     process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
   });
-  parser().foreach_match("www[..][..];", [&](const vector<Token> &tokens) {
+  parser().foreach_match("AAA[..][..];", [&](const vector<Token> &tokens) {
     process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
   });
-  parser().foreach_match("www[..][..][..];", [&](const vector<Token> &tokens) {
+  parser().foreach_match("AAA[..][..][..];", [&](const vector<Token> &tokens) {
     process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
   });
   /* If more array depth is needed, find a less dumb solution. */
@@ -658,7 +658,7 @@ void SourceProcessor::parse_builtins(const string &str, const string &filename, 
 void SourceProcessor::lower_empty_struct(Parser &parser)
 {
   parser().foreach_match(
-      "sw{};", [&](const vector<Token> &tokens) { parser.insert_after(tokens[2], "int _pad;"); });
+      "sA{};", [&](const vector<Token> &tokens) { parser.insert_after(tokens[2], "int _pad;"); });
   parser.apply_mutations();
 }
 
@@ -681,8 +681,8 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
         create_info_decl += ", " + toks[3].str();
         create_info_decl += ")\n";
       };
-      scope.foreach_match(".w=w", process_constant);
-      scope.foreach_match(".w=0", process_constant);
+      scope.foreach_match(".A=A", process_constant);
+      scope.foreach_match(".A=1", process_constant);
       tok = scope.back().next();
     }
 
@@ -722,7 +722,7 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
     metadata_.create_infos_declarations.emplace_back(create_info_decl);
   };
 
-  parser().foreach_match("ww(w", [&](const vector<Token> &tokens) {
+  parser().foreach_match("AA(A", [&](const vector<Token> &tokens) {
     Scope parameters = tokens[2].scope();
     if (tokens[0].str() == "PipelineGraphic") {
       process_graphic_pipeline(tokens[1], parameters);
@@ -1067,14 +1067,14 @@ void SourceProcessor::lower_comma_separated_declarations(Parser &parser)
     }
   };
 
-  parser().foreach_match("ww,", [&](const Tokens &t) { process_decl(t); });
-  parser().foreach_match("ww[..],", [&](const Tokens &t) { process_decl(t); });
+  parser().foreach_match("AA,", [&](const Tokens &t) { process_decl(t); });
+  parser().foreach_match("AA[..],", [&](const Tokens &t) { process_decl(t); });
 }
 
 void SourceProcessor::lower_implicit_return_types(Parser &parser)
 {
   parser().foreach_function([&](bool, Token type, Token, Scope, bool, Scope fn_body) {
-    fn_body.foreach_match("rw?{..};", [&](Tokens toks) {
+    fn_body.foreach_match("rA?{..};", [&](Tokens toks) {
       Scope list = toks[3].scope();
       if (list.front().next() == '.') {
         /* `return {1, 2};` > `T tmp = T{1, 2}; return tmp;`
@@ -1095,9 +1095,9 @@ void SourceProcessor::lower_initializer_implicit_types(Parser &parser)
 {
   auto process_scope = [&](Scope s) {
     /* Auto insert equal. */
-    s.foreach_match("ww{..}", [&](Tokens t) { parser.insert_before(t[2], " = " + t[0].str()); });
+    s.foreach_match("AA{..}", [&](Tokens t) { parser.insert_before(t[2], " = " + t[0].str()); });
     /* Auto insert type. */
-    s.foreach_match("ww={..}", [&](Tokens t) { parser.insert_before(t[3], t[0].str()); });
+    s.foreach_match("AA={..}", [&](Tokens t) { parser.insert_before(t[3], t[0].str()); });
   };
 
   parser().foreach_scope(ScopeType::FunctionArg, process_scope);
@@ -1108,8 +1108,8 @@ void SourceProcessor::lower_initializer_implicit_types(Parser &parser)
 void SourceProcessor::lower_designated_initializers(Parser &parser)
 {
   /* Transform to compatibility macro. */
-  parser().foreach_match("w{.w=", [&](Tokens t) {
-    if (t[0].prev() != '=' || t[0].prev().prev() != 'w') {
+  parser().foreach_match("A{.A=", [&](Tokens t) {
+    if (t[0].prev() != '=' || t[0].prev().prev() != Word) {
       report_error_(ERROR_TOK(t[0]), "Designated initializers are only supported in assignments");
       return;
     }
@@ -1129,7 +1129,7 @@ void SourceProcessor::lower_designated_initializers(Parser &parser)
 
     parser.insert_before(assign_tok, ";");
     parser.erase(assign_tok, t[1]);
-    aggregate.foreach_match(".w=", [&](Tokens t) {
+    aggregate.foreach_match(".A=", [&](Tokens t) {
       if (t[0].scope() != aggregate) {
         report_error_(ERROR_TOK(t[0]), "Nested initializer lists are not supported");
         return;
@@ -1162,7 +1162,7 @@ void SourceProcessor::lower_aggregate_initializers(Parser &parser)
 
   do {
     /* Transform to compatibility macro. */
-    parser().foreach_match("w{..}", [&](Tokens t) {
+    parser().foreach_match("A{..}", [&](Tokens t) {
       if (t[0].prev() == Struct) {
         return;
       }
@@ -1205,7 +1205,7 @@ void SourceProcessor::lower_aggregate_initializers(Parser &parser)
  * initializer list instead. */
 void SourceProcessor::lower_array_initializations(Parser &parser)
 {
-  parser().foreach_match("ww[..]={..};", [&](vector<Token> toks) {
+  parser().foreach_match("AA[..]={..};", [&](vector<Token> toks) {
     const Token type_tok = toks[0];
     const Token name_tok = toks[1];
     const Scope array_scope = toks[2].scope();
@@ -1321,33 +1321,35 @@ void SourceProcessor::lower_function_default_arguments(Parser &parser)
 /* Successive mutations can introduce a lot of unneeded line directives. */
 void SourceProcessor::cleanup_line_directives(Parser &parser)
 {
-  parser().foreach_match("#w0\n", [&](vector<Token> toks) {
+  parser().foreach_match("#A1\n", [&](vector<Token> toks) {
     if (toks[1].str() != "line") {
       return;
     }
     /* Workaround the foreach_match not matching overlapping patterns. */
-    if (toks.back().next() == '#' && toks.back().next().next() == 'w' &&
-        toks.back().next().next().next() == '0' && toks.back().next().next().next().next() == '\n')
+    if (toks.back().next() == '#' && toks.back().next().next() == Word &&
+        toks.back().next().next().next() == Number &&
+        toks.back().next().next().next().next() == '\n')
     {
       parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
     }
   });
   parser.apply_mutations();
 
-  parser().foreach_match("#w0\n#w\n", [&](vector<Token> toks) {
+  parser().foreach_match("#A1\n#A\n", [&](vector<Token> toks) {
     if (toks[1].str() != "line") {
       return;
     }
     /* Workaround the foreach_match not matching overlapping patterns. */
-    if (toks.back().next() == '#' && toks.back().next().next() == 'w' &&
-        toks.back().next().next().next() == '0' && toks.back().next().next().next().next() == '\n')
+    if (toks.back().next() == '#' && toks.back().next().next() == Word &&
+        toks.back().next().next().next() == Number &&
+        toks.back().next().next().next().next() == '\n')
     {
       parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
     }
   });
   parser.apply_mutations();
 
-  parser().foreach_match("#w0\n", [&](vector<Token> toks) {
+  parser().foreach_match("#A1\n", [&](vector<Token> toks) {
     if (toks[1].str() != "line") {
       return;
     }
@@ -1443,11 +1445,11 @@ void SourceProcessor::lower_reference_arguments(Parser &parser)
 
   parser().foreach_scope(ScopeType::FunctionArgs, [&](const Scope scope) {
     scope.foreach_match(
-        "w(&w)", [&](const vector<Token> toks) { add_mutation(toks[0], toks[3], toks[4]); });
+        "A(&A)", [&](const vector<Token> toks) { add_mutation(toks[0], toks[3], toks[4]); });
     scope.foreach_match(
-        "w&w", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
+        "A&A", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
     scope.foreach_match(
-        "w&T", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
+        "A&T", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
   });
   parser.apply_mutations();
 }
@@ -1456,7 +1458,7 @@ void SourceProcessor::lower_reference_arguments(Parser &parser)
 void SourceProcessor::lower_reference_variables(Parser &parser)
 {
   parser().foreach_function([&](bool, Token, Token, Scope fn_args, bool, Scope fn_scope) {
-    fn_scope.foreach_match("c?w&w=", [&](const vector<Token> &tokens) {
+    fn_scope.foreach_match("c?A&A=", [&](const vector<Token> &tokens) {
       const Token name = tokens[4];
       const Scope assignment = tokens[5].scope();
 
@@ -1513,8 +1515,8 @@ void SourceProcessor::lower_reference_variables(Parser &parser)
             is_found = true;
           }
         };
-        fn_args.foreach_match("c?w&?w", [&](const vector<Token> &toks) { process_decl(toks); });
-        fn_scope.foreach_match("c?w&?w", [&](const vector<Token> &toks) { process_decl(toks); });
+        fn_args.foreach_match("c?A&?A", [&](const vector<Token> &toks) { process_decl(toks); });
+        fn_scope.foreach_match("c?A&?A", [&](const vector<Token> &toks) { process_decl(toks); });
 
         if (!is_found) {
           report_error_(ERROR_TOK(index_var),
@@ -1553,7 +1555,7 @@ void SourceProcessor::lower_reference_variables(Parser &parser)
   });
   parser.apply_mutations();
 
-  parser().foreach_match("c?w&w=", [&](const vector<Token> &tokens) {
+  parser().foreach_match("c?A&A=", [&](const vector<Token> &tokens) {
     report_error_(ERROR_TOK(tokens[4]),
                   "Reference is defined inside a global or unterminated scope.");
   });
@@ -1561,7 +1563,7 @@ void SourceProcessor::lower_reference_variables(Parser &parser)
 
 void SourceProcessor::lower_argument_qualifiers(Parser &parser)
 {
-  parser().foreach_match("www", [&](const Tokens &toks) {
+  parser().foreach_match("AAA", [&](const Tokens &toks) {
     if (toks[0].scope().type() == ScopeType::Preprocessor) {
       /* Don't mutate the actual implementation. */
       return;
@@ -1579,7 +1581,7 @@ string SourceProcessor::argument_decorator_macro_injection(const string &str)
 {
   IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
   /* Example: `out float foo` > `out float _out_sta foo _out_end` */
-  parser().foreach_match("www", [&](const Tokens &t) {
+  parser().foreach_match("AAA", [&](const Tokens &t) {
     string_view qualifier = t[0].str_view();
     if (qualifier == "out" || qualifier == "inout" || qualifier == "in" || qualifier == "shared") {
       parser.insert_after(t[1], " _" + string(qualifier) + "_sta ");
@@ -1592,7 +1594,7 @@ string SourceProcessor::argument_decorator_macro_injection(const string &str)
 string SourceProcessor::array_constructor_macro_injection(const string &str)
 {
   IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
-  parser().foreach_match("=w[", [&](const Tokens toks) {
+  parser().foreach_match("=A[", [&](const Tokens toks) {
     Token array_len_start = toks.back();
     Token array_len_end = array_len_start.find_next(SquareClose);
     if (array_len_end.is_valid()) {
@@ -1612,7 +1614,7 @@ string SourceProcessor::array_constructor_macro_injection(const string &str)
 void SourceProcessor::lint_global_scope_constants(Parser &parser)
 {
   /* Example: `const uint global_var = 1u;`. */
-  parser().foreach_match("cww=", [&](const vector<Token> &tokens) {
+  parser().foreach_match("cAA=", [&](const vector<Token> &tokens) {
     if (tokens[0].scope().type() == ScopeType::Global) {
       report_error_(
           ERROR_TOK(tokens[2]),

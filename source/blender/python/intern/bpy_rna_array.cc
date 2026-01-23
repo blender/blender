@@ -62,6 +62,101 @@ struct ItemConvert_FuncArg {
   ItemConvertArgData arg;
 };
 
+static int validate_array_type(PyObject *seq,
+                               int dim,
+                               int totdim,
+                               int dimsize[],
+                               bool is_dynamic,
+                               ItemTypeCheckFunc check_item_type,
+                               const char *item_type_str,
+                               const char *error_prefix);
+
+static int validate_array_type_fast(PyObject *seq_fast,
+                                    int dim,
+                                    int totdim,
+                                    int dimsize[],
+                                    const bool is_dynamic,
+                                    ItemTypeCheckFunc check_item_type,
+                                    const char *item_type_str,
+                                    const char *error_prefix)
+{
+  /* Ensure this is the result of `PySequence_Fast`. */
+  BLI_assert(PyList_Check(seq_fast) || PyTuple_Check(seq_fast));
+
+  const int seq_size = PySequence_Fast_GET_SIZE(seq_fast);
+  PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
+
+  /* not the last dimension */
+  if (dim + 1 < totdim) {
+    /* check that a sequence contains dimsize[dim] items */
+    for (int i = 0; i < seq_size; i++) {
+      PyObject *item = seq_items[i];
+      Py_ssize_t item_seq_size;
+
+      if ((item_seq_size = PySequence_Size(item)) == -1) {
+        PyErr_Format(PyExc_TypeError,
+                     "%s expected a sequence of %s, not %s",
+                     error_prefix,
+                     item_type_str,
+                     Py_TYPE(item)->tp_name);
+        return -1;
+      }
+      /* arr[3][4][5]
+       * dimsize[1] = 4
+       * dimsize[2] = 5
+       *
+       * dim = 0 */
+      if (item_seq_size != dimsize[dim + 1]) {
+        PyErr_Format(PyExc_ValueError,
+                     "%s sequences of dimension %d should contain %d items, not %d",
+                     error_prefix,
+                     dim + 1,
+                     dimsize[dim + 1],
+                     item_seq_size);
+        return -1;
+      }
+      if (validate_array_type(item,
+                              dim + 1,
+                              totdim,
+                              dimsize,
+                              is_dynamic,
+                              check_item_type,
+                              item_type_str,
+                              error_prefix) == -1)
+      {
+        return -1;
+      }
+    }
+  }
+  else {
+    /* check that items are of correct type */
+    if ((seq_size != dimsize[dim]) && (is_dynamic == false)) {
+      PyErr_Format(PyExc_ValueError,
+                   "%s sequences of dimension %d should contain %d items, not %d",
+                   error_prefix,
+                   dim,
+                   dimsize[dim],
+                   seq_size);
+      return -1;
+    }
+
+    for (int i = 0; i < seq_size; i++) {
+      PyObject *item = seq_items[i];
+
+      if (!check_item_type(item)) {
+        PyErr_Format(PyExc_TypeError,
+                     "%s expected sequence items of type %s, not %s",
+                     error_prefix,
+                     item_type_str,
+                     Py_TYPE(item)->tp_name);
+        return -1;
+      }
+    }
+  }
+
+  return 0; /* ok */
+}
+
 /*
  * arr[3][4][5]
  *     0  1  2  <- dimension index
@@ -87,122 +182,14 @@ static int validate_array_type(PyObject *seq,
                                const char *item_type_str,
                                const char *error_prefix)
 {
-  Py_ssize_t i;
-
-  /* not the last dimension */
-  if (dim + 1 < totdim) {
-    /* check that a sequence contains dimsize[dim] items */
-    const int seq_size = PySequence_Size(seq);
-    if (seq_size == -1) {
-      PyErr_Format(PyExc_ValueError,
-                   "%s sequence expected at dimension %d, not '%s'",
-                   error_prefix,
-                   dim + 1,
-                   Py_TYPE(seq)->tp_name);
-      return -1;
-    }
-    for (i = 0; i < seq_size; i++) {
-      Py_ssize_t item_seq_size;
-      PyObject *item;
-      bool ok = true;
-      item = PySequence_GetItem(seq, i);
-
-      if (item == nullptr) {
-        PyErr_Format(PyExc_TypeError,
-                     "%s sequence type '%s' failed to retrieve index %d",
-                     error_prefix,
-                     Py_TYPE(seq)->tp_name,
-                     i);
-        ok = false;
-      }
-      else if ((item_seq_size = PySequence_Size(item)) == -1) {
-        PyErr_Format(PyExc_TypeError,
-                     "%s expected a sequence of %s, not %s",
-                     error_prefix,
-                     item_type_str,
-                     Py_TYPE(item)->tp_name);
-        ok = false;
-      }
-      /* arr[3][4][5]
-       * dimsize[1] = 4
-       * dimsize[2] = 5
-       *
-       * dim = 0 */
-      else if (item_seq_size != dimsize[dim + 1]) {
-        PyErr_Format(PyExc_ValueError,
-                     "%s sequences of dimension %d should contain %d items, not %d",
-                     error_prefix,
-                     dim + 1,
-                     dimsize[dim + 1],
-                     item_seq_size);
-        ok = false;
-      }
-      else if (validate_array_type(item,
-                                   dim + 1,
-                                   totdim,
-                                   dimsize,
-                                   is_dynamic,
-                                   check_item_type,
-                                   item_type_str,
-                                   error_prefix) == -1)
-      {
-        ok = false;
-      }
-
-      Py_XDECREF(item);
-
-      if (!ok) {
-        return -1;
-      }
-    }
+  PyObject *seq_fast = PySequence_Fast(seq, error_prefix);
+  if (seq_fast == nullptr) {
+    return -1;
   }
-  else {
-    /* check that items are of correct type */
-    const int seq_size = PySequence_Size(seq);
-    if (seq_size == -1) {
-      PyErr_Format(PyExc_ValueError,
-                   "%s sequence expected at dimension %d, not '%s'",
-                   error_prefix,
-                   dim + 1,
-                   Py_TYPE(seq)->tp_name);
-      return -1;
-    }
-    if ((seq_size != dimsize[dim]) && (is_dynamic == false)) {
-      PyErr_Format(PyExc_ValueError,
-                   "%s sequences of dimension %d should contain %d items, not %d",
-                   error_prefix,
-                   dim,
-                   dimsize[dim],
-                   seq_size);
-      return -1;
-    }
-
-    for (i = 0; i < seq_size; i++) {
-      PyObject *item = PySequence_GetItem(seq, i);
-
-      if (item == nullptr) {
-        PyErr_Format(PyExc_TypeError,
-                     "%s sequence type '%s' failed to retrieve index %d",
-                     error_prefix,
-                     Py_TYPE(seq)->tp_name,
-                     i);
-        return -1;
-      }
-      if (!check_item_type(item)) {
-        Py_DECREF(item);
-        PyErr_Format(PyExc_TypeError,
-                     "%s expected sequence items of type %s, not %s",
-                     error_prefix,
-                     item_type_str,
-                     Py_TYPE(item)->tp_name);
-        return -1;
-      }
-
-      Py_DECREF(item);
-    }
-  }
-
-  return 0; /* ok */
+  const int result = validate_array_type_fast(
+      seq_fast, dim, totdim, dimsize, is_dynamic, check_item_type, item_type_str, error_prefix);
+  Py_DECREF(seq_fast);
+  return result;
 }
 
 /* Returns the number of items in a single- or multi-dimensional sequence. */
@@ -211,26 +198,25 @@ static int count_items(PyObject *seq, int dim)
   int totitem = 0;
 
   if (dim > 1) {
-    const Py_ssize_t seq_size = PySequence_Size(seq);
-    Py_ssize_t i;
-    for (i = 0; i < seq_size; i++) {
-      PyObject *item = PySequence_GetItem(seq, i);
-      if (item) {
-        const int tot = count_items(item, dim - 1);
-        Py_DECREF(item);
-        if (tot != -1) {
-          totitem += tot;
-        }
-        else {
-          totitem = -1;
-          break;
-        }
+    PyObject *seq_fast = PySequence_Fast(seq, "");
+    if (seq_fast == nullptr) {
+      return -1;
+    }
+
+    const Py_ssize_t seq_size = PySequence_Fast_GET_SIZE(seq_fast);
+    PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
+    for (Py_ssize_t i = 0; i < seq_size; i++) {
+      PyObject *item = seq_items[i];
+      const int tot = count_items(item, dim - 1);
+      if (tot != -1) {
+        totitem += tot;
       }
       else {
         totitem = -1;
         break;
       }
     }
+    Py_DECREF(seq_fast);
   }
   else {
     totitem = PySequence_Size(seq);
@@ -438,6 +424,51 @@ static char *copy_value_single(PyObject *item,
 /**
  * \param data: Data array, may be null.
  */
+static char *copy_values_fast(PyObject *seq,
+                              PointerRNA *ptr,
+                              PropertyRNA *prop,
+                              int dim,
+                              int totdim,
+                              char *data,
+                              uint item_size,
+                              int *index,
+                              const ItemConvert_FuncArg *convert_item,
+                              RNA_SetIndexFunc rna_set_index)
+{
+  PyObject *seq_fast = PySequence_Fast(seq, "");
+  if (seq_fast == nullptr) {
+    return nullptr;
+  }
+
+  const Py_ssize_t seq_size = PySequence_Fast_GET_SIZE(seq_fast);
+  PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
+
+  if (dim + 1 < totdim) {
+    for (Py_ssize_t i = 0; i < seq_size; i++) {
+      data = copy_values_fast(seq_items[i],
+                              ptr,
+                              prop,
+                              dim + 1,
+                              totdim,
+                              data,
+                              item_size,
+                              index,
+                              convert_item,
+                              rna_set_index);
+    }
+  }
+  else {
+    for (Py_ssize_t i = 0; i < seq_size; i++) {
+      data = copy_value_single(
+          seq_items[i], ptr, prop, data, item_size, index, convert_item, rna_set_index);
+    }
+  }
+
+  Py_DECREF(seq_fast);
+
+  return data;
+}
+
 static char *copy_values(PyObject *seq,
                          PointerRNA *ptr,
                          PropertyRNA *prop,
@@ -448,21 +479,6 @@ static char *copy_values(PyObject *seq,
                          const ItemConvert_FuncArg *convert_item,
                          RNA_SetIndexFunc rna_set_index)
 {
-  const int totdim = RNA_property_array_dimension(ptr, prop, nullptr);
-  const Py_ssize_t seq_size = PySequence_Size(seq);
-  Py_ssize_t i;
-
-  /* Regarding PySequence_GetItem() failing.
-   *
-   * This should never be nullptr since we validated it, _but_ some tricky python
-   * developer could write their own sequence type which succeeds on
-   * validating but fails later somehow, so include checks for safety.
-   */
-
-  if (seq_size == -1) {
-    return nullptr;
-  }
-
 #ifdef USE_MATHUTILS
   if (dim == 0) {
     if (MatrixObject_Check(seq)) {
@@ -481,28 +497,9 @@ static char *copy_values(PyObject *seq,
   }
 #endif /* USE_MATHUTILS */
 
-  for (i = 0; i < seq_size; i++) {
-    PyObject *item = PySequence_GetItem(seq, i);
-    if (item) {
-      if (dim + 1 < totdim) {
-        data = copy_values(
-            item, ptr, prop, dim + 1, data, item_size, index, convert_item, rna_set_index);
-      }
-      else {
-        data = copy_value_single(
-            item, ptr, prop, data, item_size, index, convert_item, rna_set_index);
-      }
-
-      Py_DECREF(item);
-
-      /* data may be nullptr, but the for loop checks */
-    }
-    else {
-      return nullptr;
-    }
-  }
-
-  return data;
+  const int totdim = RNA_property_array_dimension(ptr, prop, nullptr);
+  return copy_values_fast(
+      seq, ptr, prop, dim, totdim, data, item_size, index, convert_item, rna_set_index);
 }
 
 static int py_to_array(PyObject *seq,

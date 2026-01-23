@@ -1607,7 +1607,7 @@ void paint_2d_stroke(void *ps,
   painter->firsttouch = false;
 }
 
-void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
+void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mode)
 {
   Scene *scene = CTX_data_scene(C);
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -1694,7 +1694,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   paint_brush_init_tex(s->brush);
 
   /* create painter */
-  s->painter = brush_painter_2d_new(scene, paint, s->brush, mode == BRUSH_STROKE_INVERT);
+  s->painter = brush_painter_2d_new(scene, paint, s->brush, mode == BrushStrokeMode::Invert);
 
   return s;
 }

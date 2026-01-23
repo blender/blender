@@ -17,6 +17,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -80,19 +82,19 @@ static bool lib_id_preview_editing_poll_ex(const ID *id, const char **r_disabled
   }
   if (!ID_IS_EDITABLE(id)) {
     if (r_disabled_hint) {
-      *r_disabled_hint = "Cannot edit external library data";
+      *r_disabled_hint = RPT_("Cannot edit external library data");
     }
     return false;
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     if (r_disabled_hint) {
-      *r_disabled_hint = "Cannot edit previews of overridden library data";
+      *r_disabled_hint = RPT_("Cannot edit previews of overridden library data");
     }
     return false;
   }
   if (!BKE_previewimg_id_get_p(id)) {
     if (r_disabled_hint) {
-      *r_disabled_hint = "Data-block does not support previews";
+      *r_disabled_hint = RPT_("Data-block does not support previews");
     }
     return false;
   }

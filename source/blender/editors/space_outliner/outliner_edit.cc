@@ -62,6 +62,7 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
 #include "UI_interface_layout.hh"
 #include "UI_view2d.hh"
 
@@ -764,10 +765,11 @@ static wmOperatorStatus outliner_id_remap_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   const short id_type = short(RNA_enum_get(op->ptr, "id_type"));
-  ID *old_id = static_cast<ID *>(
-      BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "old_id")));
-  ID *new_id = static_cast<ID *>(
-      BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "new_id")));
+
+  const uint32_t old_session_uid = RNA_int_get(op->ptr, "old_id");
+  const uint32_t new_session_uid = RNA_int_get(op->ptr, "new_id");
+  ID *old_id = BKE_libblock_find_session_uid(bmain, id_type, old_session_uid);
+  ID *new_id = BKE_libblock_find_session_uid(bmain, id_type, new_session_uid);
 
   /* check for invalid states */
   if (space_outliner == nullptr) {
@@ -819,8 +821,8 @@ static bool outliner_id_remap_find_tree_element(bContext *C,
 
       if ((tselem->type == TSE_SOME_ID) && tselem->id) {
         RNA_enum_set(op->ptr, "id_type", GS(tselem->id->name));
-        RNA_enum_set_identifier(C, op->ptr, "new_id", tselem->id->name + 2);
-        RNA_enum_set_identifier(C, op->ptr, "old_id", tselem->id->name + 2);
+        RNA_int_set(op->ptr, "new_id", int(tselem->id->session_uid));
+        RNA_int_set(op->ptr, "old_id", int(tselem->id->session_uid));
         return true;
       }
     }
@@ -846,32 +848,11 @@ static wmOperatorStatus outliner_id_remap_invoke(bContext *C, wmOperator *op, co
   return WM_operator_props_dialog_popup(C, op, 400, IFACE_("Remap Data ID"), IFACE_("Remap"));
 }
 
-static const EnumPropertyItem *outliner_id_itemf(bContext *C,
-                                                 PointerRNA *ptr,
-                                                 PropertyRNA * /*prop*/,
-                                                 bool *r_free)
+static void outliner_id_remap_ui(bContext *C, wmOperator *op)
 {
-  if (C == nullptr) {
-    return rna_enum_dummy_NULL_items;
-  }
-
-  EnumPropertyItem item_tmp = {0}, *item = nullptr;
-  int totitem = 0;
-  int i = 0;
-
-  short id_type = short(RNA_enum_get(ptr, "id_type"));
-  ID *id = static_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
-
-  for (; id; id = static_cast<ID *>(id->next)) {
-    item_tmp.identifier = item_tmp.name = id->name + 2;
-    item_tmp.value = i++;
-    RNA_enum_item_add(&item, &totitem, &item_tmp);
-  }
-
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-
-  return item;
+  ui::Layout &layout = *op->layout;
+  layout.use_property_split_set(true);
+  ui::template_ID_session_uid(layout, C, op->ptr, "new_id", RNA_enum_get(op->ptr, "id_type"));
 }
 
 void OUTLINER_OT_id_remap(wmOperatorType *ot)
@@ -884,6 +865,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
 
   /* callbacks */
   ot->invoke = outliner_id_remap_invoke;
+  ot->ui = outliner_id_remap_ui;
   ot->exec = outliner_id_remap_exec;
   ot->poll = ED_operator_region_outliner_active;
 
@@ -896,28 +878,22 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
    */
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
-  prop = RNA_def_enum(
-      ot->srna, "old_id", rna_enum_dummy_NULL_items, 0, "Old ID", "Old ID to replace");
-  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, outliner_id_itemf, nullptr, nullptr);
-  RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE | PROP_HIDDEN);
+  prop = RNA_def_int(
+      ot->srna, "old_id", 0, 0, 0, "Old ID", "Old ID's session uid to remap data from", 0, 0);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
-  ot->prop = RNA_def_enum(ot->srna,
-                          "new_id",
-                          rna_enum_dummy_NULL_items,
-                          0,
-                          "New ID",
-                          "New ID to remap all selected IDs' users to");
-  RNA_def_property_enum_funcs_runtime(
-      ot->prop, nullptr, nullptr, outliner_id_itemf, nullptr, nullptr);
-  RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
+  ot->prop = RNA_def_int(ot->srna,
+                         "new_id",
+                         0,
+                         0,
+                         0,
+                         "New ID",
+                         "New ID's session uid to remap all selected IDs' users to",
+                         0,
+                         0);
 }
 
-void id_remap_fn(bContext *C,
-                 ReportList * /*reports*/,
-                 Scene * /*scene*/,
-                 TreeElement * /*te*/,
-                 TreeStoreElem * /*tsep*/,
-                 TreeStoreElem *tselem)
+void id_remap_fn(bContext *C, TreeStoreElem *tselem)
 {
   wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_id_remap", false);
 
@@ -926,7 +902,7 @@ void id_remap_fn(bContext *C,
   PointerRNA op_props = WM_operator_properties_create_ptr(ot);
 
   RNA_enum_set(&op_props, "id_type", GS(tselem->id->name));
-  RNA_enum_set_identifier(C, &op_props, "old_id", tselem->id->name + 2);
+  RNA_int_set(&op_props, "old_id", int(tselem->id->session_uid));
 
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &op_props, nullptr);
 

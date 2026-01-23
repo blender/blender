@@ -209,7 +209,7 @@ bool is_brush_inverted(const Brush &brush, const BrushStrokeMode stroke_mode)
 {
   /* The basic setting is the brush's setting. During runtime, the user can hold down the Ctrl key
    * to invert the basic behavior. */
-  return bool(brush.flag & BRUSH_DIR_IN) ^ (stroke_mode == BrushStrokeMode::BRUSH_STROKE_INVERT);
+  return bool(brush.flag & BRUSH_DIR_IN) ^ (stroke_mode == BrushStrokeMode::Invert);
 }
 
 DeltaProjectionFunc get_screen_projection_fn(const GreasePencilStrokeParams &params,

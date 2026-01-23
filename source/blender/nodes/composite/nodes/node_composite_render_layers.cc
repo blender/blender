@@ -199,7 +199,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   declare_extra_passes(b, scene, view_layer);
 }
 
-static void node_draw(ui::Layout &layout, bContext *context, PointerRNA *node_pointer)
+static void node_draw_buttons(ui::Layout &layout, bContext *context, PointerRNA *node_pointer)
 {
   template_id(&layout, context, node_pointer, "scene", nullptr, nullptr, nullptr);
 
@@ -328,7 +328,7 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new RenderLayerOperation(context, node);
 }
 
-static void register_node()
+static void node_register()
 {
   static bke::bNodeType ntype;
 
@@ -340,13 +340,13 @@ static void register_node()
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc_api = node_init;
   ntype.declare = node_declare;
-  ntype.draw_buttons = node_draw;
+  ntype.draw_buttons = node_draw_buttons;
   ntype.get_compositor_operation = get_compositor_operation;
   ntype.get_extra_info = node_extra_info;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node)
+NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_composite_render_layer_cc

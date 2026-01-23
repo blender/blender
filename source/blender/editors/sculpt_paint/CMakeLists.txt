@@ -179,7 +179,6 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::draw
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::geometry
   PRIVATE bf::gpu

@@ -175,7 +175,7 @@ static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(function);
 }
 
-static void register_node_type_cmp_alphaover()
+static void node_register()
 {
   static bke::bNodeType ntype;
 
@@ -190,6 +190,6 @@ static void register_node_type_cmp_alphaover()
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_alphaover)
+NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_composite_alpha_over_cc

@@ -119,7 +119,7 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
     insert_vert_fcurve(fcu, {0.0f, 0.0f}, settings, INSERTKEY_FAST);
     insert_vert_fcurve(fcu, {1.0f, 1.0f}, settings, INSERTKEY_FAST);
     fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
-    BKE_fcurve_handles_recalc(fcu);
+    BKE_fcurve_handles_recalc(*fcu);
   }
 
   return fcu;

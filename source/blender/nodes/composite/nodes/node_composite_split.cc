@@ -2,15 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
-#include "BLI_math_base.hh"
 #include "BLI_math_numbers.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
 
 #include "GPU_shader.hh"
 
@@ -19,13 +11,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_split_cc {
 
-/* **************** SPLIT NODE ******************** */
-
-namespace nodes::node_composite_split_cc {
-
-static void cmp_node_split_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>("Position")
       .dimensions(2)
@@ -131,12 +119,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new SplitOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_split_cc
-
-static void register_node_type_cmp_split()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_split_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSplit", CMP_NODE_SPLIT);
@@ -146,12 +130,12 @@ static void register_node_type_cmp_split()
       "node";
   ntype.enum_name_legacy = "SPLIT";
   ntype.nclass = NODE_CLASS_CONVERTER;
-  ntype.declare = file_ns::cmp_node_split_declare;
+  ntype.declare = node_declare;
   ntype.flag |= NODE_PREVIEW;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_split)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_split_cc

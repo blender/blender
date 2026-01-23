@@ -203,7 +203,7 @@ struct StrokeCache {
    * Whether the modifier key that controls inverting brush behavior is active currently.
    * Generally signals a change in behavior for brushes.
    *
-   * \see BrushStrokeMode::BRUSH_STROKE_INVERT.
+   * \see BrushStrokeMode::Invert.
    */
   bool invert = false;
   float pressure = 0.0f;
@@ -395,7 +395,7 @@ struct StrokeCache {
    * Whether the modifier key that controls smoothing is active currently.
    * Generally signals a change in behavior for different brushes.
    *
-   * \see BrushStrokeMode::BRUSH_STROKE_SMOOTH.
+   * \see BrushSwitchMode::Smooth.
    */
   bool alt_smooth = false;
 
@@ -403,7 +403,7 @@ struct StrokeCache {
    * Whether the modifier key that controls masking is active currently.
    * Switches the active brush to the mask brush during the stroke.
    *
-   * \see BrushStrokeMode::BRUSH_STROKE_MASK.
+   * \see BrushSwitchMode::Mask.
    */
   bool alt_mask = false;
 

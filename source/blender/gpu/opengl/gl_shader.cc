@@ -37,6 +37,7 @@
 #include <stdio.h>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include <chrono>
 #include <filesystem>

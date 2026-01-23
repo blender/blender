@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -44,7 +45,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "fmt/format.h"
 #include "interface_intern.hh"
 
 namespace blender {

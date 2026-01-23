@@ -15,15 +15,15 @@ if(WIN32)
       ${PATCH_DIR}/vpx_windows.diff
   )
 
-  if(MSVC_VERSION GREATER_EQUAL 1920) # 2019
+  if(MSVC_VERSION GREATER_EQUAL 1930) # 2022
+    set(VPX_COMPILER_STRING vs17)
+  else() # 2019
     set(VPX_COMPILER_STRING vs16)
-  else() # 2017
-    set(VPX_COMPILER_STRING vs15)
   endif()
 
   if(BLENDER_PLATFORM_ARM)
     # ARM64 requires a min of vc142
-    set(VPX_EXTRA_FLAGS --target=arm64-win64-vs16 --as=nasm --disable-neon_dotprod --disable-neon_i8mm)
+    set(VPX_EXTRA_FLAGS --target=arm64-win64-${VPX_COMPILER_STRING} --as=nasm --disable-neon_dotprod --disable-neon_i8mm)
     set(VPX_INCL_ARCH nopost-nodocs-arm64-win64)
   else()
     set(VPX_EXTRA_FLAGS --target=x86_64-win64-${VPX_COMPILER_STRING} --as=nasm)
@@ -59,7 +59,11 @@ else()
       set(VPX_EXTRA_FLAGS --target=x86_64-darwin17-gcc)
     endif()
   else()
-    set(VPX_EXTRA_FLAGS --target=generic-gnu)
+   if(NOT BLENDER_PLATFORM_ARM)
+     set(VPX_EXTRA_FLAGS --target=x86_64-linux-gcc)
+   else()
+     set(VPX_EXTRA_FLAGS --target=generic-gnu)
+   endif()
   endif()
 
   set(VPX_CONFIGURE_COMMAND ${CONFIGURE_ENV})
@@ -71,16 +75,6 @@ else()
   set(VPX_INSTALL_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/vpx/src/external_vpx/ &&
     make install
-  )
-endif()
-
-if(NOT BLENDER_PLATFORM_ARM)
-  list(APPEND VPX_EXTRA_FLAGS
-    --enable-sse4_1
-    --enable-sse3
-    --enable-ssse3
-    --enable-avx
-    --enable-avx2
   )
 endif()
 

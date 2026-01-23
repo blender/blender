@@ -1510,14 +1510,16 @@ void bNodeTreeInterfaceItem::set_selected(const bool select)
   }
 }
 
-void bNodeTreeInterface::active_item_set(bNodeTreeInterfaceItem *item)
+void bNodeTreeInterface::active_item_set(bNodeTreeInterfaceItem *item,
+                                         const bool deselect_original)
 {
+  if (deselect_original) {
+    if (bNodeTreeInterfaceItem *original_active = this->active_item()) {
+      original_active->set_selected(false);
+    }
+  }
   this->active_index = 0;
   int count = 0;
-
-  if (bNodeTreeInterfaceItem *original_active = this->active_item()) {
-    original_active->set_selected(false);
-  }
   this->foreach_item([&](bNodeTreeInterfaceItem &titem) {
     if (&titem == item) {
       this->active_index = count;

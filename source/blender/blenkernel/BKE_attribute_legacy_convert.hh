@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 #include "DNA_attribute_types.h"
 
 #include "BKE_attribute.h"
@@ -38,13 +40,6 @@ std::optional<AttrType> custom_data_type_to_attr_type(eCustomDataType data_type)
 std::optional<eCustomDataType> attr_type_to_custom_data_type(AttrType attr_type);
 
 /**
- * Move attributes from the #AttributeStorage to the mesh's #CustomData structs. Used for forward
- * compatibility: converting newer files written with #AttributeStorage while #CustomData is still
- * used at runtime.
- */
-void mesh_convert_storage_to_customdata(Mesh &mesh);
-
-/**
  * Move generic attributes from #CustomData to #AttributeStorage (not including non-generic layer
  * types). Use for versioning old files when the newer #AttributeStorage format is used at runtime.
  */
@@ -61,6 +56,8 @@ void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil);
 
 /** Abstraction for copying #CustomData layers and #AttributeStorage attributes. */
 class LegacyMeshInterpolator {
+  Vector<GVArray> attrs_src_;
+  Vector<GMutableSpan> attrs_dst_;
 
   const CustomData &cd_src_;
   CustomData &cd_dst_;

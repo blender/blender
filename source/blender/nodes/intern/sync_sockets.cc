@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"

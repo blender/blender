@@ -99,7 +99,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     set_is_active_fn([interface, &socket]() { return interface.active_item() == &socket.item; });
     set_on_activate_fn([&interface](bContext & /*C*/, BasicTreeViewItem &new_active) {
       NodeSocketViewItem &self = static_cast<NodeSocketViewItem &>(new_active);
-      interface.active_item_set(&self.socket_.item);
+      interface.active_item_set(&self.socket_.item, false);
     });
   }
 
@@ -203,7 +203,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
     set_is_active_fn([interface, &panel]() { return interface.active_item() == &panel.item; });
     set_on_activate_fn([&interface](bContext & /*C*/, BasicTreeViewItem &new_active) {
       NodePanelViewItem &self = static_cast<NodePanelViewItem &>(new_active);
-      interface.active_item_set(&self.panel_.item);
+      interface.active_item_set(&self.panel_.item, false);
     });
     toggle_ = panel.header_toggle_socket();
     is_always_collapsible_ = true;

@@ -145,7 +145,7 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
     });
 
     /* [[unroll]]. */
-    parser().foreach_match("f(..)[[w]]{..}", [&](const vector<Token> tokens) {
+    parser().foreach_match("f(..)[[A]]{..}", [&](const vector<Token> tokens) {
       if (tokens[6].scope().str_with_whitespace() != "[unroll]") {
         return;
       }
@@ -168,21 +168,25 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
         report_error_(ERROR_TOK(var_init), "Expecting assignment here.");
         return;
       }
-      if (init[3] != '0' && init[3] != '-') {
+      if (init[3] != Number && init[3] != '-') {
         report_error_(ERROR_TOK(init[3]), "Expecting integer literal here.");
         return;
       }
 
       /* Conditional statement. */
-      const Token cond_var = cond[0];
-      const Token cond_type = cond[1];
-      const Token cond_sign = (cond[2] == '+' || cond[2] == '-') ? cond[2] : Token::invalid();
-      const Token cond_end = cond_sign.is_valid() ? cond[3] : cond[2];
+      int t = 0;
+      const Token cond_var = cond[t++];
+      const Token cond_type = cond[t++];
+      if (cond_type.next() == '=') {
+        t++; /* Skip equal sign. */
+      }
+      const Token cond_sign = (cond[t] == '+' || cond[t] == '-') ? cond[t++] : Token::invalid();
+      const Token cond_end = cond[t];
       if (cond_var.str() != var_name.str()) {
         report_error_(ERROR_TOK(cond_var), "Non matching loop counter variable.");
         return;
       }
-      if (cond_end != '0') {
+      if (cond_end != Number) {
         report_error_(ERROR_TOK(cond_end), "Expecting integer literal here.");
         return;
       }
@@ -221,7 +225,7 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
           parser.substr_range_inclusive(cond_sign.is_valid() ? cond_sign : cond_end, cond_end));
       /* TODO(fclem): Support arbitrary strides (aka, arbitrary iter statement). */
       int iter_count = abs(end_value - init_value);
-      if (cond_type == GEqual || cond_type == LEqual) {
+      if (cond_type.next() == '=') {
         iter_count += 1;
       }
 
@@ -241,7 +245,7 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
     });
 
     /* [[unroll_n(n)]]. */
-    parser().foreach_match("f(..)[[w(0)]]{..}", [&](const vector<Token> tokens) {
+    parser().foreach_match("f(..)[[A(1)]]{..}", [&](const vector<Token> tokens) {
       if (tokens[7].str() != "unroll_n") {
         return;
       }
@@ -258,7 +262,7 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
   } while (parser.apply_mutations());
 
   /* Check for remaining keywords. */
-  parser().foreach_match("[[w", [&](const vector<Token> tokens) {
+  parser().foreach_match("[[A", [&](const vector<Token> tokens) {
     if (tokens[2].str().find("unroll") != string::npos) {
       report_error_(ERROR_TOK(tokens[0]), "Incompatible loop format for [[unroll]].");
     }
@@ -267,7 +271,7 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
 
 void SourceProcessor::lower_static_branch(Parser &parser)
 {
-  parser().foreach_match("i(..)[[w]]{..}", [&](const vector<Token> &tokens) {
+  parser().foreach_match("i(..)[[A]]{..}", [&](const vector<Token> &tokens) {
     Token if_tok = tokens[0];
     Scope condition = tokens[1].scope();
     Token attribute = tokens[7];

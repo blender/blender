@@ -169,7 +169,7 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
     grp->customCol = value;
 
     /* sync colors stored with theme colors based on the index specified */
-    action_group_colors_sync(grp, nullptr);
+    action_group_colors_sync(grp);
   }
 }
 

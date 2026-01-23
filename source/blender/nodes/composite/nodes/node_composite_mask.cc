@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_base.hh"
 #include "BLI_string_utf8.h"
 
@@ -19,9 +15,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
-namespace nodes::node_composite_mask_cc {
+namespace blender::nodes::node_composite_mask_cc {
 
 static const EnumPropertyItem size_source_items[] = {
     {0, "SCENE", 0, "Scene Size", ""},
@@ -34,7 +28,7 @@ static const EnumPropertyItem size_source_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
 
@@ -82,10 +76,10 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
       .description("Exposure for motion blur as a factor of FPS");
 }
 
-static void node_mask_label(const bNodeTree * /*ntree*/,
-                            const bNode *node,
-                            char *label,
-                            int label_maxncpy)
+static void node_label(const bNodeTree * /*ntree*/,
+                       const bNode *node,
+                       char *label,
+                       int label_maxncpy)
 {
   BLI_strncpy_utf8(label, node->id ? node->id->name + 2 : IFACE_("Mask"), label_maxncpy);
 }
@@ -191,12 +185,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new MaskOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_mask_cc
-
-static void register_node_type_cmp_mask()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_mask_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeMask", CMP_NODE_MASK);
@@ -204,12 +194,12 @@ static void register_node_type_cmp_mask()
   ntype.ui_description = "Input mask from a mask data-block, created in the image editor";
   ntype.enum_name_legacy = "MASK";
   ntype.nclass = NODE_CLASS_INPUT;
-  ntype.declare = file_ns::cmp_node_mask_declare;
-  ntype.labelfunc = file_ns::node_mask_label;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.declare = node_declare;
+  ntype.labelfunc = node_label;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_mask)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_mask_cc

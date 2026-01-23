@@ -350,7 +350,7 @@ struct Scope {
           bool is_static, Token type, Token name, Scope args, bool is_const, Scope body)> callback)
       const
   {
-    foreach_match("m?ww(..)c?{..}", [&](const std::vector<Token> matches) {
+    foreach_match("m?AA(..)c?{..}", [&](const std::vector<Token> matches) {
       callback(matches[0] == Static,
                matches[2],
                matches[3],
@@ -358,7 +358,7 @@ struct Scope {
                matches[8] == Const,
                matches[10].scope());
     });
-    foreach_match("m?ww::w(..)c?{..}", [&](const std::vector<Token> matches) {
+    foreach_match("m?AA::A(..)c?{..}", [&](const std::vector<Token> matches) {
       callback(matches[0] == Static,
                matches[2],
                matches[6],
@@ -366,7 +366,7 @@ struct Scope {
                matches[11] == Const,
                matches[13].scope());
     });
-    foreach_match("m?ww<..>(..)c?{..}", [&](const std::vector<Token> matches) {
+    foreach_match("m?AA<..>(..)c?{..}", [&](const std::vector<Token> matches) {
       callback(matches[0] == Static,
                matches[2],
                matches[3],
@@ -381,16 +381,16 @@ struct Scope {
       std::function<void(Token struct_tok, Scope attributes, Token name, Scope body)> callback)
       const
   {
-    foreach_match("sw{..}", [&](const std::vector<Token> matches) {
+    foreach_match("sA{..}", [&](const std::vector<Token> matches) {
       callback(matches[0], Scope::invalid(), matches[1], matches[2].scope());
     });
-    foreach_match("sw<..>{..}", [&](const std::vector<Token> matches) {
+    foreach_match("sA<..>{..}", [&](const std::vector<Token> matches) {
       callback(matches[0], Scope::invalid(), matches[1], matches[6].scope());
     });
-    foreach_match("s[[..]]w{..}", [&](const std::vector<Token> matches) {
+    foreach_match("s[[..]]A{..}", [&](const std::vector<Token> matches) {
       callback(matches[0], matches[2].scope(), matches[7], matches[8].scope());
     });
-    foreach_match("s[[..]]w<..>{..}", [&](const std::vector<Token> matches) {
+    foreach_match("s[[..]]A<..>{..}", [&](const std::vector<Token> matches) {
       callback(matches[0], matches[2].scope(), matches[7], matches[12].scope());
     });
   }
@@ -424,29 +424,29 @@ struct Scope {
       callback(attributes, const_tok, type, template_scope, name, array, decl_end);
     };
 
-    foreach_match("c?ww;", [&](const std::vector<Token> toks) {
+    foreach_match("c?AA;", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], Scope::invalid(), toks[3], Scope::invalid(), toks.back());
     });
-    foreach_match("c?ww[..];", [&](const std::vector<Token> toks) {
+    foreach_match("c?AA[..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], Scope::invalid(), toks[3], toks[4].scope(), toks.back());
     });
-    foreach_match("c?w<..>w;", [&](const std::vector<Token> toks) {
+    foreach_match("c?A<..>A;", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], Scope::invalid(), toks.back());
     });
-    foreach_match("c?w<..>w[..];", [&](const std::vector<Token> toks) {
+    foreach_match("c?A<..>A[..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], toks[8].scope(), toks.back());
     });
 
-    foreach_match("c?w&w;", [&](const std::vector<Token> toks) {
+    foreach_match("c?A&A;", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], Scope::invalid(), toks[4], Scope::invalid(), toks.back());
     });
-    foreach_match("c?w(&w)[..];", [&](const std::vector<Token> toks) {
+    foreach_match("c?A(&A)[..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], Scope::invalid(), toks[5], toks[7].scope(), toks.back());
     });
-    foreach_match("c?w<..>&w;", [&](const std::vector<Token> toks) {
+    foreach_match("c?A<..>&A;", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[8], Scope::invalid(), toks.back());
     });
-    foreach_match("c?w<..>(&w)[..];", [&](const std::vector<Token> toks) {
+    foreach_match("c?A<..>(&A)[..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[9], toks[11].scope(), toks.back());
     });
   }

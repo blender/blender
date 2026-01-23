@@ -129,6 +129,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet curves_geometry = GeometrySet::from_instances(instances);
   curves_geometry.name = std::move(grease_pencil_geometry.name);
+  curves_geometry.copy_bundle_from(grease_pencil_geometry);
 
   const bool layers_as_instances = params.extract_input<bool>("Layers as Instances");
   if (!layers_as_instances) {

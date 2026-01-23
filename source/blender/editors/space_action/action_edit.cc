@@ -1145,7 +1145,9 @@ static bool delete_action_keys(bAnimContext *ac)
     }
     else {
       FCurve *fcu = static_cast<FCurve *>(ale.key_data);
-      changed = BKE_fcurve_delete_keys_selected(fcu);
+      if (fcu) {
+        changed = BKE_fcurve_delete_keys_selected(*fcu);
+      }
 
       if (changed && BKE_fcurve_is_empty(fcu)) {
         ED_anim_ale_fcurve_delete(*ac, ale);

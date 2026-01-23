@@ -6,11 +6,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_viewer_cc {
 
-namespace nodes::node_composite_viewer_cc {
-
-static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.0f, 0.0f, 0.0f, 1.0f})
@@ -18,7 +16,7 @@ static void cmp_node_viewer_declare(NodeDeclarationBuilder &b)
       .compositor_realization_mode(CompositorInputRealizationMode::None);
 }
 
-static void node_composit_init_viewer(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   ImageUser *iuser = MEM_new_for_free<ImageUser>(__func__);
   node->storage = iuser;
@@ -43,12 +41,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ViewerOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_viewer_cc
-
-static void register_node_type_cmp_viewer()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_viewer_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeViewer", CMP_NODE_VIEWER);
@@ -57,16 +51,16 @@ static void register_node_type_cmp_viewer()
       "Visualize data from inside a node graph, in the image editor or as a backdrop";
   ntype.enum_name_legacy = "VIEWER";
   ntype.nclass = NODE_CLASS_OUTPUT;
-  ntype.declare = file_ns::cmp_node_viewer_declare;
-  ntype.initfunc = file_ns::node_composit_init_viewer;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   ntype.no_muting = true;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_viewer)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_viewer_cc

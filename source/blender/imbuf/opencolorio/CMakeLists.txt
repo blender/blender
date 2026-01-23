@@ -82,7 +82,6 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
-  PRIVATE bf::extern::fmtlib
   PUBLIC bf::dependencies::optional::opencolorio
 )
 

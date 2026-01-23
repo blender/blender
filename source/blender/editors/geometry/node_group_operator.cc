@@ -1447,7 +1447,6 @@ static GeometryNodeAssetTraitFlag asset_flag_for_context(const ObjectType type,
     default:
       break;
   }
-  BLI_assert_unreachable();
   return GeometryNodeAssetTraitFlag(0);
 }
 

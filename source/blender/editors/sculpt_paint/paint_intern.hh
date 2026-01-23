@@ -74,12 +74,17 @@ using ColorManagedDisplay = ocio::Display;
 
 /* paint_stroke.cc */
 
-enum BrushStrokeMode {
-  BRUSH_STROKE_NORMAL,
-  BRUSH_STROKE_INVERT,
-  BRUSH_STROKE_SMOOTH,
-  BRUSH_STROKE_ERASE,
-  BRUSH_STROKE_MASK,
+enum class BrushStrokeMode : int8_t {
+  Normal = 0,
+  Invert = 1,
+};
+
+/* Indicates a brush that the stroke will switch to for the duration of the stroke */
+enum class BrushSwitchMode : int8_t {
+  None = 0,
+  Smooth = 1,
+  Erase = 2,
+  Mask = 3,
 };
 
 namespace ed::sculpt_paint {
@@ -160,7 +165,8 @@ struct PaintStroke : NonCopyable, NonMovable {
   float cached_size_pressure_ = 0.0f;
   /* last pressure will store last pressure value for use in interpolation for space strokes */
   float last_pressure_ = 0.0f;
-  int stroke_mode_ = 0;
+  BrushStrokeMode stroke_mode_ = BrushStrokeMode::Normal;
+  BrushSwitchMode brush_switch_mode_ = BrushSwitchMode::None;
 
   float last_tablet_event_pressure_ = 0.0f;
 
@@ -207,7 +213,7 @@ struct PaintStroke : NonCopyable, NonMovable {
 
   bool stroke_inverted() const
   {
-    return stroke_mode_ == BRUSH_STROKE_INVERT;
+    return stroke_mode_ == BrushStrokeMode::Invert;
   }
 
   float stroke_distance() const
@@ -290,7 +296,7 @@ void paint_stroke_jitter_pos(Paint *paint,
                              PaintMode mode,
                              const Brush &brush,
                              float pressure,
-                             int stroke_mode,
+                             BrushStrokeMode stroke_mode,
                              float zoom_2d,
                              const float mval[2],
                              float r_mouse_out[2]);
@@ -307,7 +313,9 @@ bool paint_supports_dynamic_size(const Brush &br, PaintMode mode);
  * Return true if the brush size can change during paint (normally used for pressure).
  */
 bool paint_supports_dynamic_tex_coords(const Brush &br, PaintMode mode);
-bool paint_supports_smooth_stroke(const Brush &brush, PaintMode mode, int stroke_mode);
+bool paint_supports_smooth_stroke(const Brush &brush,
+                                  PaintMode mode,
+                                  BrushSwitchMode brush_switch_mode);
 bool paint_supports_texture(PaintMode mode);
 
 /**
@@ -445,7 +453,7 @@ void set_imapaintpartial(ImagePaintPartialRedraw *ippr);
 void imapaint_region_tiles(
     ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th);
 bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy);
-void *paint_2d_new_stroke(bContext *, wmOperator *, int mode);
+void *paint_2d_new_stroke(bContext *, wmOperator *, BrushStrokeMode mode);
 void paint_2d_redraw(const bContext *C, void *ps, bool final);
 void paint_2d_stroke_done(void *ps);
 void paint_2d_stroke(void *ps,
@@ -466,7 +474,11 @@ void paint_2d_bucket_fill(const bContext *C,
                           void *ps);
 void paint_2d_gradient_fill(
     const bContext *C, Brush *br, const float mouse_init[2], const float mouse_final[2], void *ps);
-void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int mode);
+void *paint_proj_new_stroke(bContext *C,
+                            Object *ob,
+                            const float mouse[2],
+                            BrushStrokeMode mode,
+                            BrushSwitchMode brush_switch_mode);
 void paint_proj_stroke(const bContext *C,
                        void *ps_handle_p,
                        const float prev_pos[2],

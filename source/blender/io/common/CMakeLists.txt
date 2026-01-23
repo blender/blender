@@ -38,7 +38,6 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::fast_float
 )
 

@@ -7,6 +7,7 @@
  */
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <iostream>
 
 #include "BLI_array.hh"

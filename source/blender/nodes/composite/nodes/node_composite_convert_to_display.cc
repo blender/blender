@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "DNA_color_types.h"
 
 #include "BKE_colortools.hh"
@@ -200,9 +196,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ConvertToDisplayOperation(context, node);
 }
 
-static void register_node_type_cmp_convert_to_display()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_convert_to_display_cc;
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeConvertToDisplay", CMP_NODE_CONVERT_TO_DISPLAY);
@@ -224,6 +219,6 @@ static void register_node_type_cmp_convert_to_display()
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_convert_to_display)
+NOD_REGISTER_NODE(node_register)
 
 }  // namespace blender::nodes::node_composite_convert_to_display_cc

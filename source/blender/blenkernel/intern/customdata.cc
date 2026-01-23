@@ -2381,30 +2381,6 @@ bool CustomData_merge_layout(const CustomData *source,
   return customdata_merge_internal(source, dest, mask, alloctype, totelem);
 }
 
-CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData *src,
-                                                               const eCustomDataMask mask)
-{
-  Vector<CustomDataLayer> dst_layers;
-  for (const CustomDataLayer &layer : Span<CustomDataLayer>{src->layers, src->totlayer}) {
-    if (BM_attribute_stored_in_bmesh_builtin(layer.name)) {
-      continue;
-    }
-    if (!(mask & CD_TYPE_AS_MASK(eCustomDataType(layer.type)))) {
-      continue;
-    }
-    dst_layers.append(layer);
-  }
-
-  CustomData dst = *src;
-  dst.layers = MEM_new_array_for_free<CustomDataLayer>(dst_layers.size(), __func__);
-  dst.maxlayer = dst.totlayer = dst_layers.size();
-  memcpy(dst.layers, dst_layers.data(), dst_layers.as_span().size_in_bytes());
-
-  CustomData_update_typemap(&dst);
-
-  return dst;
-}
-
 /**
  * An #ImplicitSharingInfo that knows how to free the entire referenced custom data layer
  * (including potentially separately allocated chunks like for vertex groups).

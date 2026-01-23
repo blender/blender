@@ -81,8 +81,11 @@ static void fill_rotation_attribute(const Span<float3> tangents,
 {
   threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
     for (const int i : range) {
-      rotations[i] = math::to_quaternion(
-          math::from_orthonormal_axes<float4x4>(normals[i], tangents[i]));
+      const float3 tangent = tangents[i];
+      BLI_assert(math::is_unit(tangent));
+      const float3 binormal = math::normalize(math::cross(tangent, normals[i]));
+      const float3 normal = math::cross(binormal, tangent);
+      rotations[i] = math::to_quaternion(float3x3{normal, binormal, tangent});
     }
   });
 }

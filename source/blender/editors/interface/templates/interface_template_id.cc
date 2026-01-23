@@ -73,6 +73,19 @@ static void template_ID_set_property_exec_fn(bContext *C, void *arg_template, vo
   }
 }
 
+/* Search browse menu, assign #ID::session_uid as Int Property. */
+static void template_ID_set_int_property_session_uid_exec_fn(bContext * /*C*/,
+                                                             void *arg_template,
+                                                             void *item)
+{
+  TemplateID *template_ui = static_cast<TemplateID *>(arg_template);
+  if (!item) {
+    return;
+  }
+  RNA_property_int_set(
+      &template_ui->ptr, template_ui->prop, int(static_cast<ID *>(item)->session_uid));
+}
+
 static bool id_search_allows_id(TemplateID *template_ui, const int flag, ID *id, const char *query)
 {
   ID *id_from = template_ui->ptr.owner_id;
@@ -258,6 +271,29 @@ static Block *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
                                      &template_ui,
                                      template_ID_set_property_exec_fn,
                                      active_item_ptr.data,
+                                     template_ID_search_menu_item_tooltip,
+                                     template_ui.prv_rows,
+                                     template_ui.prv_cols,
+                                     template_ui.scale);
+}
+
+static Block *id_search_menu_session_uid(bContext *C, ARegion *region, void *arg_litem)
+{
+  static TemplateID template_ui;
+  void (*id_search_update_fn)(
+      const bContext *, void *, const char *, SearchItems *, const bool) = id_search_cb;
+
+  template_ui = *(static_cast<TemplateID *>(arg_litem));
+  const uint32_t active_session_uid = RNA_property_int_get(&template_ui.ptr, template_ui.prop);
+  ID *active_id = BKE_libblock_find_session_uid(
+      CTX_data_main(C), template_ui.idcode, active_session_uid);
+
+  return template_common_search_menu(C,
+                                     region,
+                                     id_search_update_fn,
+                                     &template_ui,
+                                     template_ID_set_int_property_session_uid_exec_fn,
+                                     active_id,
                                      template_ID_search_menu_item_tooltip,
                                      template_ui.prv_rows,
                                      template_ui.prv_cols,
@@ -1580,6 +1616,62 @@ static void ui_template_id(Layout &layout,
           C, row, template_ui, type, flag, newop, openop, unlinkop, text, live_icon, hide_buttons);
     }
   }
+}
+
+void template_ID_session_uid(
+    Layout &layout, bContext *C, PointerRNA *ptr, const StringRefNull propname, short idcode)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
+
+  if (!prop || RNA_property_type(prop) != PROP_INT) {
+    RNA_warning(
+        "int property not found: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
+    return;
+  }
+  ListBaseT<ID> *lb = which_libbase(CTX_data_main(C), idcode);
+  if (!lb) {
+    RNA_warning("idcode is not an ID type: %d.", idcode);
+    return;
+  }
+  StructRNA *type = ID_code_to_RNA_type(idcode);
+  TemplateID template_ui = {};
+  template_ui.ptr = *ptr;
+  template_ui.prop = prop;
+  template_ui.scale = 1.0f;
+
+  Block *block = layout.block();
+
+  template_ui.idcode = idcode;
+  template_ui.idlb = lb;
+
+  Layout &row = layout.row(true);
+  if (layout.use_property_split()) {
+    PropertySplitWrapper split = uiItemPropertySplitWrapperCreate(&row);
+    split.label_column->label(RNA_property_ui_name(prop), 0);
+    block_layout_set_current(block, split.property_row);
+  }
+  const uint32_t session_uid = RNA_property_int_get(ptr, prop);
+  const ID *id = BKE_libblock_find_session_uid(CTX_data_main(C), template_ui.idcode, session_uid);
+
+  const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+  const int margin = UI_UNIT_X * 0.75f;
+  const int estimated_width = id ? (fontstyle_string_width(fstyle, id->name + 2) + margin) : 0;
+  const int width = std::clamp(
+      estimated_width, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH * 4);
+
+  Button *but = uiDefBlockButN(block,
+                               id_search_menu_session_uid,
+                               MEM_new<TemplateID>(__func__, template_ui),
+                               id ? id->name + 2 : nullptr,
+                               0,
+                               0,
+                               width,
+                               UI_UNIT_Y,
+                               nullptr,
+                               but_func_argN_free<TemplateID>,
+                               but_func_argN_copy<TemplateID>);
+
+  def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
 }
 
 void template_id(Layout *layout,

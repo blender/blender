@@ -379,9 +379,15 @@ void ShaderOperation::declare_operation_input(const bNodeSocket &input_socket,
   std::string input_identifier = "input" + std::to_string(input_index);
 
   /* Declare the input descriptor for this input and prefer to declare its type to be the same as
-   * the type of the output socket because doing type conversion in the shader is much cheaper. */
+   * the type of the output socket because doing type conversion in the shader is much cheaper. An
+   * exception is when the output is a single value only type, which is not supported on GPU, so we
+   * assume the input type. */
   InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input_socket);
-  input_descriptor.type = get_node_socket_result_type(&output_socket);
+  const ResultType output_type = get_node_socket_result_type(&output_socket);
+  if (!Result::is_single_value_only_type(output_type)) {
+    input_descriptor.type = output_type;
+  }
+
   declare_input_descriptor(input_identifier, input_descriptor);
 
   /* Add a new GPU attribute representing an input to the GPU material. Instead of using the

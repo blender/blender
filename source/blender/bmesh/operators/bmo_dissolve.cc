@@ -65,7 +65,8 @@ static bool UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
            BMW_MASK_NOP,
            FACE_MARK,
            BMW_FLAG_NOP,
-           BMW_NIL_LAY);
+           BMW_NIL_LAY,
+           BMW_DELIMIT_NONE);
 
   for (f2 = static_cast<BMFace *>(BMW_begin(&regwalker, f)); f2;
        f2 = static_cast<BMFace *>(BMW_step(&regwalker)))
@@ -259,7 +260,8 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
              FACE_MARK,
              /* no need to check BMW_FLAG_TEST_HIDDEN, faces are already marked by the bmo. */
              BMW_FLAG_NOP,
-             BMW_NIL_LAY);
+             BMW_NIL_LAY,
+             BMW_DELIMIT_NONE);
 
     /* Check there are at least two faces before creating the array. */
     BMFace *faces_init[2];

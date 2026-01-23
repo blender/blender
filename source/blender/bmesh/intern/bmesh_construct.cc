@@ -15,7 +15,11 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
+#include "BKE_attribute_storage.hh"
 #include "BKE_customdata.hh"
+#include "BKE_geometry_set.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -454,6 +458,23 @@ static BMFace *bm_mesh_copy_new_face(BMesh *bm_new,
   return f_new;
 }
 
+static CustomData &get_bmesh_custom_data(BMesh &bm, const bke::AttrDomain domain)
+{
+  switch (domain) {
+    case bke::AttrDomain::Point:
+      return bm.vdata;
+    case bke::AttrDomain::Edge:
+      return bm.edata;
+    case bke::AttrDomain::Face:
+      return bm.pdata;
+    case bke::AttrDomain::Corner:
+      return bm.ldata;
+    default:
+      BLI_assert_unreachable();
+      return bm.vdata;
+  }
+}
+
 void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
                                                   const Mesh *me_src_array[],
                                                   const int me_src_array_len,
@@ -464,38 +485,36 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
     allocsize = &bm_mesh_allocsize_default;
   }
 
+  bke::GeometrySet::GatheredAttributes attribute_info;
   for (int i = 0; i < me_src_array_len; i++) {
     const Mesh *me_src = me_src_array[i];
-    CustomData mesh_vdata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->vert_data, CD_MASK_BMESH.vmask);
-    CustomData mesh_edata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->edge_data, CD_MASK_BMESH.emask);
-    CustomData mesh_pdata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->face_data, CD_MASK_BMESH.pmask);
-    CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->corner_data, CD_MASK_BMESH.lmask);
-
-    if (i == 0) {
-      CustomData_init_layout_from(
-          &mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
-      CustomData_init_layout_from(
-          &mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
-      CustomData_init_layout_from(
-          &mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
-      CustomData_init_layout_from(
-          &mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
+    for (const bke::Attribute &attr : me_src->attribute_storage.wrap()) {
+      if (BM_attribute_stored_in_bmesh_builtin(attr.name())) {
+        continue;
+      }
+      attribute_info.add(attr.name(), {attr.domain(), attr.data_type()});
     }
-    else {
-      CustomData_merge_layout(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
-      CustomData_merge_layout(&mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
-      CustomData_merge_layout(&mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
-      CustomData_merge_layout(&mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
-    }
+  }
 
-    MEM_SAFE_FREE(mesh_vdata.layers);
-    MEM_SAFE_FREE(mesh_edata.layers);
-    MEM_SAFE_FREE(mesh_pdata.layers);
-    MEM_SAFE_FREE(mesh_ldata.layers);
+  for (const int i : attribute_info.names.index_range()) {
+    const StringRef name = attribute_info.names[i];
+    const bke::AttrDomain domain = attribute_info.kinds[i].domain;
+    const eCustomDataType data_type = *bke::attr_type_to_custom_data_type(
+        attribute_info.kinds[i].data_type);
+    CustomData &custom_data = get_bmesh_custom_data(*bm_dst, domain);
+    CustomData_add_layer_named(&custom_data, data_type, CD_SET_DEFAULT, 0, name);
+  }
+
+  for (int i = 0; i < me_src_array_len; i++) {
+    const Mesh *me_src = me_src_array[i];
+    CustomData_merge_layout(
+        &me_src->vert_data, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
+    CustomData_merge_layout(
+        &me_src->edge_data, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
+    CustomData_merge_layout(
+        &me_src->face_data, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+    CustomData_merge_layout(
+        &me_src->corner_data, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
   }
 
   CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);

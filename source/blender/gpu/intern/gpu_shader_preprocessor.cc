@@ -15,6 +15,9 @@
 #include "gpu_shader_dead_code_elimination.hh"
 #include "gpu_shader_private.hh"
 
+#include "shader_tool/lexit/lexit.hh"
+#include "shader_tool/lexit/tables.hh"
+
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
@@ -91,64 +94,113 @@ struct AtomicLexer : LexerBase {
   /* Preprocessor directive to line index. */
   Vector<int> directive_lines;
 
+  BLI_NOINLINE void tokenize()
+  {
+    lexit::TokenBuffer tok_buf(str.data(), str.size(), token_types.data(), token_offsets.data());
+    tok_buf.tokenize(lexit::char_class_table);
+
+    /* Resize to the actual usage. */
+    token_types.shrink(tok_buf.size());
+    token_ends.shrink(tok_buf.size());
+    token_offsets.offsets.shrink(tok_buf.size() + 1);
+
+    update_string_view();
+  }
+
+  BLI_NOINLINE void merge_tokens()
+  {
+    lexit::TokenBuffer tok_buf(
+        str.data(), str.size(), token_types.data(), token_offsets.data(), token_types.size());
+
+    tok_buf.merge_complex_literals();
+
+    /* Resize to the actual usage. */
+    token_types.shrink(tok_buf.size());
+    token_ends.shrink(tok_buf.size());
+    token_offsets.offsets.shrink(tok_buf.size() + 1);
+
+    update_string_view();
+  }
+
   void lexical_analysis(std::string_view input)
   {
     str = input;
     ensure_memory();
-    tokenize(true);
+
+    tokenize();
     atomize_words();
     build_line_structure();
   }
 
-  Atom hash(StringRef tok_str)
+  BLI_INLINE_METHOD Atom hash(StringRef tok_str)
   {
-    if (tok_str.size() == 1) {
-      /* Reserve [0-127] range for single char token. */
-      return tok_str[0];
-    }
+    union {
+      uint64_t u64;
+      uint32_t u32[2];
+    };
+    u64 = 0;
 
-    if (tok_str.size() == 2) {
-      /* Reserve [128-16511] range for double char token. tok_str[1] cannot be 0. */
-      return tok_str[0] + tok_str[1] * uint16_t(128);
+    switch (tok_str.size()) {
+      case 1:
+        /* Reserve [0-127] range for single char token. */
+        return tok_str[0];
+      case 2:
+        /* Reserve [128-16511] range for double char token. tok_str[1] cannot be 0. */
+        return tok_str[0] + tok_str[1] * uint16_t(128);
+      case 3:
+      case 4:
+        std::memcpy(&u64, tok_str.data(), tok_str.size());
+        return atom_u32_map_.lookup_or_add_cb(u32[0], [this]() { return this->next_hash(); });
+      case 5:
+      case 6:
+      case 7:
+      case 8:
+        std::memcpy(&u64, tok_str.data(), tok_str.size());
+        return atom_u64_map_.lookup_or_add_cb(u64, [this]() { return this->next_hash(); });
+      default:
+        /* Long identifier slow path. Do full hash */
+        return atomization_map_.lookup_or_add_cb(tok_str, [this]() { return this->next_hash(); });
     }
-    /* Reserve [16512-65536] range for longer token. */
-    Atom id = 16512 + atomization_map_.size();
-    /* Check for overflow. */
-    BLI_assert(id >= 16512);
-    /* Long identifier slow path. Do full hash */
-    return atomization_map_.lookup_or_add(tok_str, id);
   }
 
  protected:
   /** Map string hashes to atom value. */
   Map<StringRef, Atom> atomization_map_;
+  Map<uint64_t, Atom> atom_u64_map_;
+  Map<uint32_t, Atom> atom_u32_map_;
+  /* Reserve [16512-65536] range for longer token. */
+  uint16_t atom_hash_counter_ = 16512;
 
-  void atomize_words()
+  uint16_t next_hash()
   {
-    token_atoms.resize(token_types.size());
+    /* Check for overflow. */
+    BLI_assert(atom_hash_counter_ >= 16512);
+    return atom_hash_counter_++;
+  }
+
+  BLI_NOINLINE void atomize_words()
+  {
+    const int tok_count = token_types.size();
+
+    token_atoms.resize(tok_count);
     /* From checking our statistics. This heuristic should be enough for 99% of our cases. */
-    atomization_map_.reserve(token_types.size() / 10);
+    atom_u32_map_.reserve(tok_count / 170);
+    atom_u64_map_.reserve(tok_count / 80);
+    atomization_map_.reserve(tok_count / 25);
 
-    for (int tok_id : blender::IndexRange(token_types.size())) {
-      if (token_types[tok_id] == Word) {
-        IndexRange range = token_offsets[tok_id];
-        StringRef tok_str(str.data() + range.start, range.size);
-        char alpha1 = tok_str[0] >> 6;
-        /* Check if number. Reduce false negative in dead code elimination. */
-        if (alpha1 == 0) {
-          token_types[tok_id] = Number;
-          continue;
-        }
-
-        token_atoms[tok_id] = hash(tok_str);
+    for (int tok_id = 0; tok_id < tok_count; tok_id++) {
+      if (token_types[tok_id] != Word) {
+        continue;
       }
+      IndexRange range = token_offsets[tok_id];
+      token_atoms[tok_id] = hash(StringRef(str.data() + range.start, range.size));
     }
   }
 
   /* Backing buffer for line_offsets. */
   Vector<int> line_offsets_buf_;
 
-  void build_line_structure()
+  BLI_NOINLINE void build_line_structure()
   {
     /* From checking our statistics. This heuristic should be enough for 100% of our cases. */
     line_offsets_buf_.reserve(token_types.size() / 7);
@@ -313,7 +365,7 @@ struct IntermediateFormWithIDs : IntermediateForm<AtomicLexer, NullParser> {
   }
   bool is_last(TokenID tok)
   {
-    return (lex_.token_sizes.size() - 1) == int(tok);
+    return (lex_.token_types.size() - 1) == int(tok);
   }
 
   /**

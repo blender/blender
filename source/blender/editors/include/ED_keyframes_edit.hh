@@ -221,7 +221,7 @@ struct KeyframeEditData {
  * \{ */
 
 /** Callback function that refreshes the F-Curve after use. */
-using FcuEditFunc = void (*)(FCurve *fcu);
+using FcuEditFunc = void (*)(FCurve &fcu);
 /** Callback function that operates on the given #BezTriple. */
 using KeyframeEditFunc = short (*)(KeyframeEditData *ked, BezTriple *bezt);
 

@@ -53,7 +53,7 @@ using wmGizmoFnMatrixBasisGet = void (*)(const wmGizmo *, float[4][4]);
 using wmGizmoFnInvoke = wmOperatorStatus (*)(bContext *, wmGizmo *, const wmEvent *);
 using wmGizmoFnExit = void (*)(bContext *, wmGizmo *, const bool);
 using wmGizmoFnCursorGet = int (*)(wmGizmo *);
-using wmGizmoFnScreenBoundsGet = bool (*)(bContext *, wmGizmo *, rcti *r_bounding_box);
+using wmGizmoFnScreenBoundsGet = bool (*)(const bContext *, wmGizmo *, rcti *r_bounding_box);
 using wmGizmoFnSelectRefresh = void (*)(wmGizmo *);
 using wmGizmoFnFree = void (*)(wmGizmo *);
 

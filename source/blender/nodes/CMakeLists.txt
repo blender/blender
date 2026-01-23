@@ -184,7 +184,6 @@ set(LIB
   bf_nodes_geometry
   bf_nodes_shader
   bf_nodes_texture
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
   PRIVATE bf::render
   PRIVATE bf::windowmanager

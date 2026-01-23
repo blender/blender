@@ -58,7 +58,6 @@ if(WITH_GTESTS)
   )
   set(TEST_LIB
     PRIVATE bf::blenlib
-    PRIVATE bf::extern::fmtlib
   )
 
   blender_add_test_executable(makesdna "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")

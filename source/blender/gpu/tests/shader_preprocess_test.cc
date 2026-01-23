@@ -2665,7 +2665,7 @@ static void test_preprocess_parser()
 0+8;
 )";
     string expect = R"(
-0;0;0;0;0;0;0;0;0;0;0+0;)";
+1;1;1;1;1;1;1;1;1;1;1+1;)";
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
   }
   {
@@ -2673,7 +2673,7 @@ static void test_preprocess_parser()
 [[a(0,1,b), c, d(t)]]
 )";
     string expect = R"(
-[[w(0,0,w),w,w(w)]])";
+[[A(1,1,A),A,A(A)]])";
     string scopes = R"(GABbcmmmbbcm)";
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().scope_types_str, scopes);
@@ -2688,7 +2688,7 @@ class B {
 };
 )";
     string expect = R"(
-sw{ww=0;};Sw{ww;};)";
+sA{AA=1;};SA{AA;};)";
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
   }
   {
@@ -2697,7 +2697,7 @@ namespace T {}
 namespace T::U::V {}
 )";
     string expect = R"(
-nw{}nw::w::w{})";
+nA{}nA::A::A{})";
     string expect_scopes = R"(GNN)";
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().scope_types_str, expect_scopes);
@@ -2715,7 +2715,7 @@ void f(int t = 0) {
 }
 )";
     string expect = R"(
-ww(ww=0){ww=0,w=0,w={0};{w=w=w,wP;i(wEw){r;}}})";
+AA(AA=1){AA=1,A=1,A={1};{A=A=A,AP;i(AEA){r;}}})";
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
   }
   {
@@ -2732,8 +2732,8 @@ B
 )";
     IntermediateForm parser(input, no_err_report);
     string expect = R"(
-w#w0
-w)";
+A#A1
+A)";
     EXPECT_EQ(parser.data_get().lex.token_types_str, expect);
 
     Token A = Token::from_position(&parser.data_get(), 1);

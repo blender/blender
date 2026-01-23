@@ -9,8 +9,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
-
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -446,12 +445,12 @@ void paint_stroke_jitter_pos(Paint *paint,
                              PaintMode mode,
                              const Brush &brush,
                              float pressure,
-                             int stroke_mode,
+                             BrushStrokeMode stroke_mode,
                              float zoom_2d,
                              const float mval[2],
                              float r_mouse_out[2])
 {
-  if (paint_stroke_use_jitter(mode, brush, stroke_mode == BRUSH_STROKE_INVERT)) {
+  if (paint_stroke_use_jitter(mode, brush, stroke_mode == BrushStrokeMode::Invert)) {
     float factor = zoom_2d;
 
     if (brush.flag & BRUSH_JITTER_PRESSURE) {
@@ -581,14 +580,14 @@ void PaintStroke::add_step(bContext *C, wmOperator *op, const float2 mval, float
 static bool paint_smooth_stroke(const Brush &brush,
                                 const PaintSample *sample,
                                 const PaintMode mode,
-                                const int stroke_mode,
+                                const BrushSwitchMode brush_switch_mode,
                                 float zoom_2d,
                                 float2 last_mouse_position,
                                 float last_pressure,
                                 float2 &r_mouse,
                                 float &r_pressure)
 {
-  if (paint_supports_smooth_stroke(brush, mode, stroke_mode)) {
+  if (paint_supports_smooth_stroke(brush, mode, brush_switch_mode)) {
     const float radius = brush.smooth_stroke_radius * zoom_2d;
     const float u = brush.smooth_stroke_factor;
 
@@ -869,7 +868,8 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
   this->object = CTX_data_active_object(C);
   this->scene = CTX_data_scene(C);
 
-  stroke_mode_ = RNA_enum_get(op->ptr, "mode");
+  stroke_mode_ = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
+  brush_switch_mode_ = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
 
   original_ = paint_brush_type_raycast_original(*this->brush,
                                                 BKE_paintmode_get_active_from_context(C));
@@ -896,9 +896,9 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
     BKE_image_pool_release_ibuf(this->brush->mtex.tex->ima, tex_ibuf, nullptr);
   }
 
-  if (stroke_mode_ == BRUSH_STROKE_INVERT) {
+  if (stroke_mode_ == BrushStrokeMode::Invert) {
     if (this->brush->flag & BRUSH_CURVE) {
-      RNA_enum_set(op->ptr, "mode", BRUSH_STROKE_NORMAL);
+      RNA_enum_set(op->ptr, "mode", int(BrushStrokeMode::Normal));
     }
   }
   /* initialize here */
@@ -1051,13 +1051,15 @@ bool paint_supports_dynamic_size(const Brush &br, const PaintMode mode)
   return true;
 }
 
-bool paint_supports_smooth_stroke(const Brush &brush, const PaintMode mode, int stroke_mode)
+bool paint_supports_smooth_stroke(const Brush &brush,
+                                  const PaintMode mode,
+                                  const BrushSwitchMode brush_switch_mode)
 {
   /* The grease pencil draw tool needs to enable this when the `stroke_mode` is set to
-   * `BRUSH_STROKE_SMOOTH`. */
+   * `BrushSwitchMode::Smooth`. */
   if (mode == PaintMode::GPencil &&
       eBrushGPaintType(brush.gpencil_brush_type) == GPAINT_BRUSH_TYPE_DRAW &&
-      stroke_mode == BRUSH_STROKE_SMOOTH)
+      brush_switch_mode == BrushSwitchMode::Smooth)
   {
     return true;
   }
@@ -1486,7 +1488,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
        * here. */
       br = BKE_paint_brush(paint);
 
-      if (paint_supports_smooth_stroke(*br, mode, stroke_mode_)) {
+      if (paint_supports_smooth_stroke(*br, mode, brush_switch_mode_)) {
 
         stroke_cursor_ = WM_paint_cursor_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_smooth_cursor, this);
@@ -1519,14 +1521,14 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
   /* Handles shift-key active smooth toggling during a grease pencil stroke. */
   if (mode == PaintMode::GPencil) {
     if (event->modifier & KM_SHIFT) {
-      stroke_mode_ = BRUSH_STROKE_SMOOTH;
+      brush_switch_mode_ = BrushSwitchMode::Smooth;
       if (!stroke_cursor_) {
         stroke_cursor_ = WM_paint_cursor_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_smooth_cursor, this);
       }
     }
     else {
-      stroke_mode_ = BRUSH_STROKE_NORMAL;
+      stroke_mode_ = BrushStrokeMode::Normal;
       if (stroke_cursor_ != nullptr) {
         WM_paint_cursor_end(static_cast<wmPaintCursor *>(stroke_cursor_));
         stroke_cursor_ = nullptr;
@@ -1580,7 +1582,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
     if (paint_smooth_stroke(*this->brush,
                             &sample_average,
                             mode,
-                            stroke_mode_,
+                            brush_switch_mode_,
                             zoom_2d_,
                             this->last_mouse_position,
                             last_pressure_,

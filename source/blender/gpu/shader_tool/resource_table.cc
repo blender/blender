@@ -94,7 +94,7 @@ void SourceProcessor::lower_srt_member_access(Parser &parser)
     string srt_type = type.str();
     string srt_var = var.str();
 
-    body_scope.foreach_match("w.w", [&](const vector<Token> toks) {
+    body_scope.foreach_match("A.A", [&](const vector<Token> toks) {
       if (toks[0].str() != srt_var) {
         return;
       }
@@ -108,10 +108,10 @@ void SourceProcessor::lower_srt_member_access(Parser &parser)
     Scope fn_body = fn_args.next().type() == ScopeType::Function ? fn_args.next() :
                                                                    Scope::invalid();
     /* Function arguments. */
-    fn_args.foreach_match("[[w]]c?w&w", [&](const vector<Token> toks) {
+    fn_args.foreach_match("[[A]]c?A&A", [&](const vector<Token> toks) {
       memher_access_mutation(toks[0].scope(), toks[7], toks[9], fn_body);
     });
-    fn_args.foreach_match("[[w]]c?ww", [&](const vector<Token> toks) {
+    fn_args.foreach_match("[[A]]c?AA", [&](const vector<Token> toks) {
       if (toks[2].str() == srt_attribute) {
         parser.erase(toks[0].scope());
         report_error_(ERROR_TOK(toks[8]), "Shader Resource Table arguments must be references.");
@@ -121,11 +121,11 @@ void SourceProcessor::lower_srt_member_access(Parser &parser)
 
   parser().foreach_scope(ScopeType::Function, [&](const Scope fn_body) {
     /* Local references. */
-    fn_body.foreach_match("[[w]]c?w&w", [&](const vector<Token> toks) {
+    fn_body.foreach_match("[[A]]c?A&A", [&](const vector<Token> toks) {
       memher_access_mutation(toks[0].scope(), toks[7], toks[9], toks[9].scope());
     });
     /* Local variables. */
-    fn_body.foreach_match("[[w]]c?ww", [&](const vector<Token> toks) {
+    fn_body.foreach_match("[[A]]c?AA", [&](const vector<Token> toks) {
       memher_access_mutation(toks[0].scope(), toks[7], toks[8], toks[8].scope());
     });
   });
@@ -140,7 +140,7 @@ void SourceProcessor::lower_srt_arguments(Parser &parser)
   /* SRT arguments. */
   parser().foreach_function([&](bool, Token fn_type, Token, Scope fn_args, bool, Scope fn_body) {
     string condition;
-    fn_args.foreach_match("[[w]]c?w", [&](const vector<Token> &tokens) {
+    fn_args.foreach_match("[[A]]c?A", [&](const vector<Token> &tokens) {
       if (tokens[2].str() != "resource_table") {
         return;
       }
@@ -164,7 +164,7 @@ void SourceProcessor::lower_resource_access_functions(Parser &parser)
 {
   /* Legacy access macros. */
   parser().foreach_function([&](bool, Token fn_type, Token, Scope, bool, Scope fn_body) {
-    fn_body.foreach_match("w(w,", [&](const vector<Token> &tokens) {
+    fn_body.foreach_match("A(A,", [&](const vector<Token> &tokens) {
       string func_name = tokens[0].str();
       if (func_name != "specialization_constant_get" && func_name != "shared_variable_get" &&
           func_name != "push_constant_get" && func_name != "interface_get" &&
@@ -275,12 +275,12 @@ void SourceProcessor::lower_using(Parser &parser)
     parser.erase(using_tok, end_tok);
   };
 
-  parser().foreach_match("uw::w", [&](const vector<Token> &tokens) {
+  parser().foreach_match("uA::A", [&](const vector<Token> &tokens) {
     Token end = tokens.back().find_next(SemiColon);
     process_using(tokens[0], end.prev(), tokens[1], end.prev(), end);
   });
 
-  parser().foreach_match("uw=w::w", [&](const vector<Token> &tokens) {
+  parser().foreach_match("uA=A::A", [&](const vector<Token> &tokens) {
     Token end = tokens.back().find_next(SemiColon);
     process_using(tokens[0], tokens[1], tokens[3], end.prev(), end);
   });

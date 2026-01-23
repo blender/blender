@@ -1,0 +1,14 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -755,6 +755,11 @@ if(MSVC)
+   if(MSVC_VERSION GREATER 1926 AND CMAKE_GENERATOR_PLATFORM MATCHES "Win32|x64")
+     list(APPEND EXTRA_LDFLAGS_BUILD "-CETCOMPAT")
+   endif()
++
++  # for VS >= 17.14 targeting ARM64: inline the Interlocked funcs
++  if(MSVC_VERSION GREATER 1943 AND SDL_CPU_ARM64 AND NOT SDL_LIBC)
++    list(APPEND EXTRA_CFLAGS /forceInterlockedFunctions-)
++  endif()
+ endif()
+ 
+ if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")

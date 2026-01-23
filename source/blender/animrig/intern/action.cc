@@ -2117,7 +2117,7 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
     return SingleKeyingResult::CANNOT_CREATE_FCURVE;
   }
 
-  if (!BKE_fcurve_is_keyframable(fcurve)) {
+  if (!BKE_fcurve_is_keyframable(*fcurve)) {
     /* TODO: handle this properly, in a way that can be communicated to the user. */
     CLOG_WARN(&LOG,
               "FCurve %s[%d] for slot %s doesn't allow inserting keys.\n",

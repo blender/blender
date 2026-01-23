@@ -34,18 +34,9 @@
 #  include "GHOST_NDOFManagerCocoa.hh"
 #endif
 
-#include "AssertMacros.h"
-
-#import <Cocoa/Cocoa.h>
-
 /* For the currently not ported to Cocoa keyboard layout functions (64bit & 10.6 compatible) */
 #include <Carbon/Carbon.h>
-
-#include <sys/sysctl.h>
 #include <sys/time.h>
-#include <sys/types.h>
-
-#include <mach/mach_time.h>
 
 /* --------------------------------------------------------------------
  * Keymaps, mouse converters.

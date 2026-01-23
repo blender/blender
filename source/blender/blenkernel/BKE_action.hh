@@ -61,23 +61,13 @@ bAction *BKE_action_add(Main *bmain, const char name[]);
 /* Action Groups API ----------------- */
 
 /**
- * Get the active action-group for an Action.
- *
- * \note This function supports both legacy and layered Actions.
- */
-bActionGroup *get_active_actiongroup(bAction *act) ATTR_WARN_UNUSED_RESULT;
-
-/**
- * Make the given Action-Group the active one.
- *
- * \note This function supports both legacy and layered Actions.
- */
-void set_active_action_group(bAction *act, bActionGroup *agrp, short select);
-
-/**
  * Sync colors used for action/bone group with theme settings.
+ * This has to be called when the color theme index on the group changes so the actual color can be
+ * copied from the theme.
+ *
+ * \note Only meaningful on objects since for bones the group color is defined by the bone color.
  */
-void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp);
+void action_group_colors_sync(bActionGroup *grp);
 
 /**
  * Set colors used on this action group.
@@ -93,13 +83,6 @@ void action_group_colors_set(bActionGroup *grp, const BoneColor *color);
  * Note that if `pchan->bone` is `nullptr`, this function silently does nothing.
  */
 void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan);
-
-/**
- * Clear all 'temp' flags on all groups.
- *
- * \note This function supports both legacy and layered Actions.
- */
-void action_groups_clear_tempflags(bAction *act);
 
 /* Pose API ----------------- */
 

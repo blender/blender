@@ -852,23 +852,18 @@ void BKE_fcurve_keyframe_move_value_with_handles(BezTriple *keyframe, const floa
 /** \name Status Checks
  * \{ */
 
-bool BKE_fcurve_are_keyframes_usable(const FCurve *fcu)
+bool BKE_fcurve_are_keyframes_usable(const FCurve &fcu)
 {
-  /* F-Curve must exist. */
-  if (fcu == nullptr) {
-    return false;
-  }
-
   /* F-Curve must not have samples - samples are mutually exclusive of keyframes. */
-  if (fcu->fpt) {
+  if (fcu.fpt) {
     return false;
   }
 
   /* If it has modifiers, none of these should "drastically" alter the curve. */
-  if (fcu->modifiers.first) {
+  if (fcu.modifiers.first) {
     /* Check modifiers from last to first, as last will be more influential. */
     /* TODO: optionally, only check modifier if it is the active one... (Joshua Leung 2010) */
-    for (const FModifier &fcm : fcu->modifiers.items_reversed()) {
+    for (const FModifier &fcm : fcu.modifiers.items_reversed()) {
       /* Ignore if muted/disabled. */
       if (fcm.flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED)) {
         continue;
@@ -910,16 +905,16 @@ bool BKE_fcurve_are_keyframes_usable(const FCurve *fcu)
   return true;
 }
 
-bool BKE_fcurve_is_protected(const FCurve *fcu)
+bool BKE_fcurve_is_protected(const FCurve &fcu)
 {
-  return ((fcu->flag & FCURVE_PROTECTED) || (fcu->grp && (fcu->grp->flag & AGRP_PROTECTED)));
+  return ((fcu.flag & FCURVE_PROTECTED) || (fcu.grp && (fcu.grp->flag & AGRP_PROTECTED)));
 }
 
-bool BKE_fcurve_has_selected_control_points(const FCurve *fcu)
+bool BKE_fcurve_has_selected_control_points(const FCurve &fcu)
 {
   int i;
   BezTriple *bezt;
-  for (bezt = fcu->bezt, i = 0; i < fcu->totvert; ++i, ++bezt) {
+  for (bezt = fcu.bezt, i = 0; i < fcu.totvert; ++i, ++bezt) {
     if ((bezt->f2 & SELECT) != 0) {
       return true;
     }
@@ -937,7 +932,7 @@ void BKE_fcurve_deselect_all_keys(FCurve &fcu)
   }
 }
 
-bool BKE_fcurve_is_keyframable(const FCurve *fcu)
+bool BKE_fcurve_is_keyframable(const FCurve &fcu)
 {
   /* F-Curve's keyframes must be "usable" (i.e. visible + have an effect on final result) */
   if (BKE_fcurve_are_keyframes_usable(fcu) == 0) {
@@ -1080,7 +1075,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
   MEM_SAFE_FREE(fcu->fpt);
 
   /* Not strictly needed since we use linear interpolation, but better be consistent here. */
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_handles_recalc(*fcu);
 }
 
 /* ***************************** F-Curve Sanity ********************************* */
@@ -1089,9 +1084,9 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
  * that the handles are correct.
  */
 
-eFCU_Cycle_Type BKE_fcurve_get_cycle_type(const FCurve *fcu)
+eFCU_Cycle_Type BKE_fcurve_get_cycle_type(const FCurve &fcu)
 {
-  FModifier *fcm = static_cast<FModifier *>(fcu->modifiers.first);
+  FModifier *fcm = static_cast<FModifier *>(fcu.modifiers.first);
 
   if (!fcm || fcm->type != FMODIFIER_TYPE_CYCLES) {
     return FCU_CYCLE_NONE;
@@ -1123,7 +1118,7 @@ eFCU_Cycle_Type BKE_fcurve_get_cycle_type(const FCurve *fcu)
   return FCU_CYCLE_NONE;
 }
 
-bool BKE_fcurve_is_cyclic(const FCurve *fcu)
+bool BKE_fcurve_is_cyclic(const FCurve &fcu)
 {
   return BKE_fcurve_get_cycle_type(fcu) != FCU_CYCLE_NONE;
 }
@@ -1151,41 +1146,41 @@ static BezTriple *cycle_offset_triple(
   return out;
 }
 
-void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
+void BKE_fcurve_handles_recalc_ex(FCurve &fcu, const eBezTriple_Flag handle_sel_flag)
 {
   /* Error checking:
    * - Need at least two points.
    * - Need bezier keys.
    * - Only bezier-interpolation has handles (for now).
    */
-  if (ELEM(nullptr, fcu, fcu->bezt) ||
-      (fcu->totvert < 2) /*|| ELEM(fcu->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN) */)
+  if (fcu.bezt == nullptr ||
+      (fcu.totvert < 2) /*|| ELEM(fcu->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN) */)
   {
     return;
   }
 
   /* If the first modifier is Cycles, smooth the curve through the cycle. */
-  BezTriple *first = &fcu->bezt[0];
-  BezTriple *last = &fcu->bezt[fcu->totvert - 1];
+  BezTriple *first = &fcu.bezt[0];
+  BezTriple *last = &fcu.bezt[fcu.totvert - 1];
   const bool cycle = BKE_fcurve_is_cyclic(fcu) && BEZT_IS_AUTOH(first) && BEZT_IS_AUTOH(last);
 
-  threading::parallel_for(IndexRange(fcu->totvert), 256, [&](const IndexRange range) {
+  threading::parallel_for(IndexRange(fcu.totvert), 256, [&](const IndexRange range) {
     BezTriple tmp;
     for (const int i : range) {
-      BezTriple *bezt = &fcu->bezt[i];
+      BezTriple *bezt = &fcu.bezt[i];
       BezTriple *prev = nullptr;
       BezTriple *next = nullptr;
       if (i > 0) {
         prev = (bezt - 1);
       }
       else {
-        prev = cycle_offset_triple(cycle, &tmp, &fcu->bezt[fcu->totvert - 2], last, first);
+        prev = cycle_offset_triple(cycle, &tmp, &fcu.bezt[fcu.totvert - 2], last, first);
       }
-      if (i < fcu->totvert - 1) {
+      if (i < fcu.totvert - 1) {
         next = (bezt + 1);
       }
       else {
-        next = cycle_offset_triple(cycle, &tmp, &fcu->bezt[1], first, last);
+        next = cycle_offset_triple(cycle, &tmp, &fcu.bezt[1], first, last);
       }
 
       /* Clamp timing of handles to be on either side of beztriple. The threshold with
@@ -1198,14 +1193,14 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
       CLAMP_MIN(bezt->vec[2][0], increment_ulp(bezt->vec[1][0] + threshold));
 
       /* Calculate auto-handles. */
-      BKE_nurb_handle_calc_ex(bezt, prev, next, handle_sel_flag, true, fcu->auto_smoothing);
+      BKE_nurb_handle_calc_ex(bezt, prev, next, handle_sel_flag, true, fcu.auto_smoothing);
 
       /* For automatic ease in and out. */
       if (BEZT_IS_AUTOH(bezt) && !cycle) {
         /* Only do this on first or last beztriple. */
-        if (ELEM(i, 0, fcu->totvert - 1)) {
+        if (ELEM(i, 0, fcu.totvert - 1)) {
           /* Set both handles to have same horizontal value as keyframe. */
-          if (fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) {
+          if (fcu.extend == FCURVE_EXTRAPOLATE_CONSTANT) {
             bezt->vec[0][1] = bezt->vec[2][1] = bezt->vec[1][1];
             /* Remember that these keyframes are special, they don't need to be adjusted. */
             bezt->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
@@ -1230,8 +1225,8 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
   }
 
   /* Do a second pass for auto handle: compute the handle to have 0 acceleration step. */
-  if (fcu->auto_smoothing != FCURVE_SMOOTH_NONE) {
-    BKE_nurb_handle_smooth_fcurve(fcu->bezt, fcu->totvert, cycle);
+  if (fcu.auto_smoothing != FCURVE_SMOOTH_NONE) {
+    BKE_nurb_handle_smooth_fcurve(fcu.bezt, fcu.totvert, cycle);
   }
 }
 
@@ -1271,7 +1266,7 @@ void BKE_fcurve_update_handle_flag_from_opposite(BezTriple &key, const HandleSid
   }
 }
 
-void BKE_fcurve_handles_recalc(FCurve *fcu)
+void BKE_fcurve_handles_recalc(FCurve &fcu)
 {
   BKE_fcurve_handles_recalc_ex(fcu, eBezTriple_Flag(SELECT));
 }
@@ -1292,12 +1287,12 @@ void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_ha
   }
 
   /* Recalculate handles. */
-  BKE_fcurve_handles_recalc_ex(fcu, sel_flag);
+  BKE_fcurve_handles_recalc_ex(*fcu, sel_flag);
 }
 
-void sort_time_fcurve(FCurve *fcu)
+void sort_time_fcurve(FCurve &fcu)
 {
-  if (fcu->bezt == nullptr) {
+  if (fcu.bezt == nullptr) {
     return;
   }
 
@@ -1311,9 +1306,9 @@ void sort_time_fcurve(FCurve *fcu)
     /* Currently, will only be needed when there are beztriples. */
 
     /* Loop over ALL points to adjust position in array and recalculate handles. */
-    for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
+    for (a = 0, bezt = fcu.bezt; a < fcu.totvert; a++, bezt++) {
       /* Check if there's a next beztriple which we could try to swap with current. */
-      if (a < (fcu->totvert - 1)) {
+      if (a < (fcu.totvert - 1)) {
         /* Swap if one is after the other (and indicate that order has changed). */
         if (bezt->vec[1][0] > (bezt + 1)->vec[1][0]) {
           std::swap(*bezt, *(bezt + 1));
@@ -1323,7 +1318,7 @@ void sort_time_fcurve(FCurve *fcu)
     }
   }
 
-  for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
+  for (a = 0, bezt = fcu.bezt; a < fcu.totvert; a++, bezt++) {
     /* If either one of both of the points exceeds crosses over the keyframe time... */
     if ((bezt->vec[0][0] > bezt->vec[1][0]) && (bezt->vec[2][0] < bezt->vec[1][0])) {
       /* Swap handles if they have switched sides for some reason. */
@@ -1337,31 +1332,26 @@ void sort_time_fcurve(FCurve *fcu)
   }
 }
 
-bool test_time_fcurve(FCurve *fcu)
+bool test_time_fcurve(FCurve &fcu)
 {
   uint a;
 
-  /* Sanity checks. */
-  if (fcu == nullptr) {
-    return false;
-  }
-
   /* Currently, only need to test beztriples. */
-  if (fcu->bezt) {
+  if (fcu.bezt) {
     BezTriple *bezt;
 
     /* Loop through all BezTriples, stopping when one exceeds the one after it. */
-    for (a = 0, bezt = fcu->bezt; a < (fcu->totvert - 1); a++, bezt++) {
+    for (a = 0, bezt = fcu.bezt; a < (fcu.totvert - 1); a++, bezt++) {
       if (bezt->vec[1][0] > (bezt + 1)->vec[1][0]) {
         return true;
       }
     }
   }
-  else if (fcu->fpt) {
+  else if (fcu.fpt) {
     FPoint *fpt;
 
     /* Loop through all FPoints, stopping when one exceeds the one after it. */
-    for (a = 0, fpt = fcu->fpt; a < (fcu->totvert - 1); a++, fpt++) {
+    for (a = 0, fpt = fcu.fpt; a < (fcu.totvert - 1); a++, fpt++) {
       if (fpt->vec[0] > (fpt + 1)->vec[0]) {
         return true;
       }
@@ -1562,10 +1552,10 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
   }
 }
 
-static void fcurve_bezt_free(FCurve *fcu)
+static void fcurve_bezt_free(FCurve &fcu)
 {
-  MEM_SAFE_FREE(fcu->bezt);
-  fcu->totvert = 0;
+  MEM_SAFE_FREE(fcu.bezt);
+  fcu.totvert = 0;
 }
 
 bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
@@ -1630,7 +1620,7 @@ bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
   return true;
 }
 
-void BKE_fcurve_bezt_resize(FCurve *fcu, const int new_totvert)
+void BKE_fcurve_bezt_resize(FCurve &fcu, const int new_totvert)
 {
   BLI_assert(new_totvert >= 0);
 
@@ -1643,17 +1633,16 @@ void BKE_fcurve_bezt_resize(FCurve *fcu, const int new_totvert)
     return;
   }
 
-  fcu->bezt = static_cast<BezTriple *>(
-      MEM_reallocN(fcu->bezt, new_totvert * sizeof(*(fcu->bezt))));
+  fcu.bezt = static_cast<BezTriple *>(MEM_reallocN(fcu.bezt, new_totvert * sizeof(*(fcu.bezt))));
 
   /* Zero out all the newly-allocated beztriples. This is necessary, as it is likely that only some
    * of the fields will actually be updated by the caller. */
-  const int old_totvert = fcu->totvert;
+  const int old_totvert = fcu.totvert;
   if (new_totvert > old_totvert) {
-    std::fill_n(fcu->bezt + old_totvert, new_totvert - old_totvert, BezTriple{});
+    std::fill_n(fcu.bezt + old_totvert, new_totvert - old_totvert, BezTriple{});
   }
 
-  fcu->totvert = new_totvert;
+  fcu.totvert = new_totvert;
 }
 
 void BKE_fcurve_delete_key(FCurve *fcu, int index)
@@ -1681,24 +1670,23 @@ void BKE_fcurve_delete_key(FCurve *fcu, int index)
 
   /* Free the array of BezTriples if there are not keyframes */
   if (fcu->totvert == 0) {
-    fcurve_bezt_free(fcu);
+    fcurve_bezt_free(*fcu);
   }
 }
 
-void BKE_fcurve_delete_keys(FCurve *fcu, uint2 index_range)
+void BKE_fcurve_delete_keys(FCurve &fcu, uint2 index_range)
 {
-  BLI_assert(fcu != nullptr);
-  BLI_assert(fcu->bezt != nullptr);
+  BLI_assert(fcu.bezt != nullptr);
   BLI_assert(index_range[1] > index_range[0]);
-  BLI_assert(index_range[1] <= fcu->totvert);
+  BLI_assert(index_range[1] <= fcu.totvert);
 
   const int removed_index_count = index_range[1] - index_range[0];
-  memmove(&fcu->bezt[index_range[0]],
-          &fcu->bezt[index_range[1]],
-          sizeof(BezTriple) * (fcu->totvert - index_range[1]));
-  fcu->totvert -= removed_index_count;
+  memmove(&fcu.bezt[index_range[0]],
+          &fcu.bezt[index_range[1]],
+          sizeof(BezTriple) * (fcu.totvert - index_range[1]));
+  fcu.totvert -= removed_index_count;
 
-  if (fcu->totvert == 0) {
+  if (fcu.totvert == 0) {
     fcurve_bezt_free(fcu);
   }
 }
@@ -1759,36 +1747,36 @@ BezTriple *BKE_bezier_array_merge(
   return minimal_array;
 }
 
-bool BKE_fcurve_delete_keys_selected(FCurve *fcu)
+bool BKE_fcurve_delete_keys_selected(FCurve &fcu)
 {
-  if (fcu->bezt == nullptr) { /* ignore baked curves */
+  if (fcu.bezt == nullptr) { /* ignore baked curves */
     return false;
   }
 
   bool changed = false;
 
   /* Delete selected BezTriples */
-  for (int i = 0; i < fcu->totvert; i++) {
-    if (fcu->bezt[i].f2 & SELECT) {
-      if (i == fcu->active_keyframe_index) {
-        BKE_fcurve_active_keyframe_set(fcu, nullptr);
+  for (int i = 0; i < fcu.totvert; i++) {
+    if (fcu.bezt[i].f2 & SELECT) {
+      if (i == fcu.active_keyframe_index) {
+        BKE_fcurve_active_keyframe_set(&fcu, nullptr);
       }
-      memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
-      fcu->totvert--;
+      memmove(&fcu.bezt[i], &fcu.bezt[i + 1], sizeof(BezTriple) * (fcu.totvert - i - 1));
+      fcu.totvert--;
       i--;
       changed = true;
     }
   }
 
   /* Free the array of BezTriples if there are not keyframes */
-  if (fcu->totvert == 0) {
+  if (fcu.totvert == 0) {
     fcurve_bezt_free(fcu);
   }
 
   return changed;
 }
 
-void BKE_fcurve_delete_keys_all(FCurve *fcu)
+void BKE_fcurve_delete_keys_all(FCurve &fcu)
 {
   fcurve_bezt_free(fcu);
 }
@@ -1967,7 +1955,7 @@ void BKE_fcurve_deduplicate_keys(FCurve *fcu)
     }
   }
 
-  BKE_fcurve_bezt_resize(fcu, prev_bezt_index + 1);
+  BKE_fcurve_bezt_resize(*fcu, prev_bezt_index + 1);
 }
 
 /** \} */

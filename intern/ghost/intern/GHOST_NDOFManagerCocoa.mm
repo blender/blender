@@ -2,14 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#define DEBUG_NDOF_DRIVER false
-
 #include "GHOST_NDOFManagerCocoa.hh"
+
 #include "GHOST_SystemCocoa.hh"
 #import <Cocoa/Cocoa.h>
 
+#include <cstdint>
 #include <dlfcn.h>
-#include <stdint.h>
+
+#define DEBUG_NDOF_DRIVER false
 
 #if DEBUG_NDOF_DRIVER
 #  include <cstdio>

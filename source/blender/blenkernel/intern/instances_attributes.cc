@@ -64,6 +64,15 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
   };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const Instances &instances = *static_cast<const Instances *>(owner);
+    const AttributeStorage &storage = instances.attribute_storage();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
+  };
   fn.lookup = [](const void *owner, const StringRef name) -> GAttributeReader {
     const Instances &instances = *static_cast<const Instances *>(owner);
     const AttributeStorage &storage = instances.attribute_storage();
@@ -87,7 +96,7 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
                             const AttributeAccessor &accessor) {
     const Instances &instances = *static_cast<const Instances *>(owner);
     const AttributeStorage &storage = instances.attribute_storage();
-    storage.foreach_with_stop([&](const Attribute &attribute) {
+    for (const Attribute &attribute : storage) {
       const auto get_fn = [&]() {
         return attribute_to_reader(attribute, AttrDomain::Instance, instances.instances_num());
       };
@@ -95,8 +104,10 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
       iter.is_builtin = builtin_attributes().contains(attribute.name());
       iter.accessor = &accessor;
       fn(iter);
-      return !iter.is_stopped();
-    });
+      if (iter.is_stopped()) {
+        break;
+      }
+    }
   };
   fn.lookup_validator = [](const void * /*owner*/, const StringRef name) -> AttributeValidator {
     const AttrBuiltinInfo *info = builtin_attributes().lookup_ptr(name);

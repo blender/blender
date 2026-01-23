@@ -1052,8 +1052,24 @@ const nodes::geo_eval_log::ViewerNodeLog *viewer_node_log_lookup(
       sspreadsheet.geometry_id.viewer_path);
 }
 
-bke::SocketValueVariant geometry_display_data_get(const SpaceSpreadsheet *sspreadsheet,
-                                                  Object *object_eval)
+static bke::SocketValueVariant lookup_bundle_path(const nodes::BundlePtr &bundle,
+                                                  const SpreadsheetBundleTreeViewPath &path)
+{
+  if (!bundle) {
+    return {};
+  }
+  if (path.bundle_path_num == 0) {
+    return bke::SocketValueVariant::From(bundle);
+  }
+  Vector<StringRef> keys;
+  for (const int i : IndexRange(path.bundle_path_num)) {
+    keys.append(path.bundle_path[i].identifier);
+  }
+  return bundle->lookup_path<bke::SocketValueVariant>(keys).value_or(bke::SocketValueVariant{});
+}
+
+bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadsheet,
+                                              Object *object_eval)
 {
   if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     const Object *object_orig = DEG_get_original(object_eval);
@@ -1128,35 +1144,21 @@ bke::SocketValueVariant geometry_display_data_get(const SpaceSpreadsheet *ssprea
     return {};
   }
 
-  for (const SpreadsheetBundlePathElem &bundle_path_elem :
-       Span(table_id.bundle_path, table_id.bundle_path_num))
-  {
-    if (!value.is_single()) {
-      return {};
-    }
+  if (value.is_single()) {
     const GPointer ptr = value.get_single_ptr();
     if (!ptr.is_type<nodes::BundlePtr>()) {
-      return {};
+      return value;
     }
     const nodes::BundlePtr &bundle = *ptr.get<nodes::BundlePtr>();
-    const nodes::BundleItemValue *item = bundle->lookup(bundle_path_elem.identifier);
-    if (!item) {
-      return {};
-    }
-    const auto *stored_value = std::get_if<nodes::BundleItemSocketValue>(&item->value);
-    if (!stored_value) {
-      return {};
-    }
-    value = stored_value->value;
+    return lookup_bundle_path(bundle, table_id.viewer_item_bundle_path);
   }
-
-  return value;
+  return {};
 }
 
 std::optional<bke::GeometrySet> root_geometry_set_get(const SpaceSpreadsheet *sspreadsheet,
                                                       Object *object_eval)
 {
-  bke::SocketValueVariant display_data = geometry_display_data_get(sspreadsheet, object_eval);
+  bke::SocketValueVariant display_data = root_display_data_get(sspreadsheet, object_eval);
   if (!display_data.is_single()) {
     return std::nullopt;
   }
@@ -1190,77 +1192,110 @@ bke::GeometrySet get_geometry_set_for_instance_ids(const bke::GeometrySet &root_
   return geometry;
 }
 
-std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
+static std::unique_ptr<DataSource> data_source_from_socket_value(
+    const bke::SocketValueVariant &value, const SpreadsheetClosureInputOutput closure_inout)
 {
-  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-
-  bke::SocketValueVariant display_data = geometry_display_data_get(sspreadsheet, object_eval);
-  if (display_data.is_context_dependent_field()) {
+  if (value.is_context_dependent_field()) {
     return {};
   }
-  if (display_data.is_volume_grid()) {
+  if (value.is_volume_grid()) {
 #ifdef WITH_OPENVDB
-    return std::make_unique<VolumeGridDataSource>(display_data.get<bke::GVolumeGrid>());
+    return std::make_unique<VolumeGridDataSource>(value.get<bke::GVolumeGrid>());
 #else
     return {};
 #endif
   }
-  if (display_data.is_list()) {
-    return std::make_unique<ListDataSource>(display_data.extract<nodes::ListPtr>());
+  if (value.is_list()) {
+    return std::make_unique<ListDataSource>(value.get<nodes::ListPtr>());
   }
-  if (!display_data.is_single()) {
-    return {};
-  }
-  const GPointer ptr = display_data.get_single_ptr();
-  if (ptr.is_type<bke::GeometrySet>()) {
-    const bke::GeometrySet root_geometry_set = display_data.extract<bke::GeometrySet>();
-    const bke::GeometrySet geometry_set = get_geometry_set_for_instance_ids(
-        root_geometry_set,
-        Span{sspreadsheet->geometry_id.instance_ids, sspreadsheet->geometry_id.instance_ids_num});
-
-    const bke::AttrDomain domain = bke::AttrDomain(sspreadsheet->geometry_id.attribute_domain);
-    const auto component_type = bke::GeometryComponent::Type(
-        sspreadsheet->geometry_id.geometry_component_type);
-    const int layer_index = sspreadsheet->geometry_id.layer_index;
-    if (!geometry_set.has(component_type)) {
+  if (value.is_single()) {
+    const GPointer ptr = value.get_single_ptr();
+    if (ptr.is_type<nodes::BundlePtr>()) {
+      const nodes::BundlePtr bundle_ptr = value.get<nodes::BundlePtr>();
+      if (bundle_ptr) {
+        return std::make_unique<BundleDataSource>(bundle_ptr);
+      }
       return {};
     }
+    if (ptr.is_type<nodes::ClosurePtr>()) {
+      const nodes::ClosurePtr closure_ptr = value.get<nodes::ClosurePtr>();
+      if (closure_ptr) {
+        return std::make_unique<ClosureSignatureDataSource>(closure_ptr, closure_inout);
+      }
+      return {};
+    }
+    const eSpreadsheetColumnValueType column_type = cpp_type_to_column_type(*ptr.type());
+    if (column_type == SPREADSHEET_VALUE_TYPE_UNKNOWN) {
+      return {};
+    }
+    return std::make_unique<SingleValueDataSource>(ptr);
+  }
+  return {};
+}
 
-    if (component_type == bke::GeometryComponent::Type::Volume) {
-      return std::make_unique<VolumeDataSource>(std::move(geometry_set));
+static std::unique_ptr<DataSource> data_source_from_geometry(
+    bke::GeometrySet geometry,
+    const SpreadsheetTableIDGeometry &geometry_id,
+    Object *object_eval,
+    const bool show_internal_attributes)
+{
+  switch (SpreadsheetGeometryItemType(geometry_id.geometry_item_type)) {
+    case SPREADSHEET_GEOMETRY_ITEM_TYPE_DOMAIN: {
+      const bke::AttrDomain domain = (bke::AttrDomain)geometry_id.attribute_domain;
+      const auto component_type = bke::GeometryComponent::Type(
+          geometry_id.geometry_component_type);
+      const int layer_index = geometry_id.layer_index;
+      if (!geometry.has(component_type)) {
+        return {};
+      }
+      if (component_type == bke::GeometryComponent::Type::Volume) {
+        return std::make_unique<VolumeDataSource>(std::move(geometry));
+      }
+      Object *object_orig = geometry_id.instance_ids_num == 0 ? DEG_get_original(object_eval) :
+                                                                nullptr;
+      return std::make_unique<GeometryDataSource>(object_orig,
+                                                  std::move(geometry),
+                                                  component_type,
+                                                  domain,
+                                                  show_internal_attributes,
+                                                  layer_index);
     }
-    Object *object_orig = sspreadsheet->geometry_id.instance_ids_num == 0 ?
-                              DEG_get_original(object_eval) :
-                              nullptr;
-    return std::make_unique<GeometryDataSource>(object_orig,
-                                                std::move(geometry_set),
-                                                component_type,
-                                                domain,
-                                                sspreadsheet->flag &
-                                                    SPREADSHEET_FLAG_SHOW_INTERNAL_ATTRIBUTES,
-                                                layer_index);
-  }
-  if (ptr.is_type<nodes::BundlePtr>()) {
-    const nodes::BundlePtr bundle_ptr = display_data.extract<nodes::BundlePtr>();
-    if (bundle_ptr) {
-      return std::make_unique<BundleDataSource>(bundle_ptr);
+    case SPREADSHEET_GEOMETRY_ITEM_TYPE_BUNDLE: {
+      const nodes::BundlePtr &bundle_ptr = geometry.bundle_ptr();
+      bke::SocketValueVariant value = lookup_bundle_path(bundle_ptr,
+                                                         geometry_id.geometry_bundle_path);
+      return data_source_from_socket_value(
+          value,
+          SpreadsheetClosureInputOutput(geometry_id.geometry_bundle_path.closure_input_output));
     }
-    return {};
   }
-  if (ptr.is_type<nodes::ClosurePtr>()) {
-    const auto in_out = SpreadsheetClosureInputOutput(
-        sspreadsheet->geometry_id.closure_input_output);
-    const nodes::ClosurePtr closure_ptr = display_data.extract<nodes::ClosurePtr>();
-    if (closure_ptr) {
-      return std::make_unique<ClosureSignatureDataSource>(closure_ptr, in_out);
+  return {};
+}
+
+std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
+{
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  bke::SocketValueVariant root_data = root_display_data_get(sspreadsheet, object_eval);
+
+  if (root_data.is_single()) {
+    const GPointer ptr = root_data.get_single_ptr();
+    if (ptr.is_type<bke::GeometrySet>()) {
+      const bke::GeometrySet root_geometry_set = root_data.extract<bke::GeometrySet>();
+      const bke::GeometrySet geometry_set = get_geometry_set_for_instance_ids(
+          root_geometry_set,
+          Span{sspreadsheet->geometry_id.instance_ids,
+               sspreadsheet->geometry_id.instance_ids_num});
+      return data_source_from_geometry(std::move(geometry_set),
+                                       sspreadsheet->geometry_id,
+                                       object_eval,
+                                       sspreadsheet->flag &
+                                           SPREADSHEET_FLAG_SHOW_INTERNAL_ATTRIBUTES);
     }
-    return {};
   }
-  const eSpreadsheetColumnValueType column_type = cpp_type_to_column_type(*ptr.type());
-  if (column_type == SPREADSHEET_VALUE_TYPE_UNKNOWN) {
-    return {};
-  }
-  return std::make_unique<SingleValueDataSource>(ptr);
+  return data_source_from_socket_value(
+      root_data,
+      SpreadsheetClosureInputOutput(
+          sspreadsheet->geometry_id.viewer_item_bundle_path.closure_input_output));
 }
 
 }  // namespace ed::spreadsheet

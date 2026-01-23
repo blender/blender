@@ -63,6 +63,7 @@ set(INC_SYS
 
 set(LIB
   PRIVATE bf::blenkernel
+  PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

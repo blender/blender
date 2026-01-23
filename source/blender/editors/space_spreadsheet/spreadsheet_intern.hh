@@ -62,8 +62,8 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
 const nodes::geo_eval_log::ViewerNodeLog *viewer_node_log_lookup(
     const SpaceSpreadsheet &sspreadsheet);
 
-bke::SocketValueVariant geometry_display_data_get(const SpaceSpreadsheet *sspreadsheet,
-                                                  Object *object_eval);
+bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadsheet,
+                                              Object *object_eval);
 std::optional<bke::GeometrySet> root_geometry_set_get(const SpaceSpreadsheet *sspreadsheet,
                                                       Object *object_eval);
 

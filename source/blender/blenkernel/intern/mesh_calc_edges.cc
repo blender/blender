@@ -497,34 +497,48 @@ void mesh_calc_edges(Mesh &mesh,
     dst_attributes.remove(attribute);
   }
 
-  CustomData_free_layer_named(&mesh.edge_data, ".edge_verts");
-  for (CustomDataLayer &layer : MutableSpan(mesh.edge_data.layers, mesh.edge_data.totlayer)) {
-    const void *src_data = layer.data;
-    const size_t elem_size = CustomData_sizeof(eCustomDataType(layer.type));
-
-    void *dst_data = MEM_malloc_arrayN(result_edges_num, elem_size, AT);
-    if (src_data != nullptr) {
-      if (layer.type == CD_ORIGINDEX) {
-        const Span src(static_cast<const int *>(src_data), mesh.edges_num);
-        MutableSpan dst(static_cast<int *>(dst_data), result_edges_num);
-        array_utils::gather(src, src_to_dst_mask, dst.take_front(src_to_dst_mask.size()));
-        dst.slice(back_range_of_new_edges).fill(-1);
-      }
-      else {
-        const CPPType *type = custom_data_type_to_cpp_type(eCustomDataType(layer.type));
-        BLI_assert(type != nullptr);
-        const GSpan src(type, src_data, mesh.edges_num);
-        GMutableSpan dst(type, dst_data, result_edges_num);
-        array_utils::gather(src, src_to_dst_mask, dst.take_front(src_to_dst_mask.size()));
-        type->fill_assign_n(type->default_value(),
-                            dst.slice(back_range_of_new_edges).data(),
-                            dst.slice(back_range_of_new_edges).size());
-      }
-      layer.sharing_info->remove_user_and_delete_if_last();
+  mesh.attribute_storage.wrap().remove(".edge_verts");
+  for (bke::Attribute &attr : mesh.attribute_storage.wrap()) {
+    if (attr.domain() != bke::AttrDomain::Edge) {
+      continue;
     }
+    switch (attr.storage_type()) {
+      case AttrStorageType::Single: {
+        break;
+      }
+      case AttrStorageType::Array: {
+        const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
+        const auto &src_data = std::get<bke::Attribute::ArrayData>(attr.data());
+        auto dst_data = bke::Attribute::ArrayData::from_uninitialized(type, result_edges_num);
+        const GSpan src(type, src_data.data, mesh.edges_num);
+        GMutableSpan dst(type, dst_data.data, result_edges_num);
+        array_utils::gather(src, src_to_dst_mask, dst.take_front(src_to_dst_mask.size()));
+        type.fill_construct_n(type.default_value(),
+                              dst.slice(back_range_of_new_edges).data(),
+                              dst.slice(back_range_of_new_edges).size());
+        attr.assign_data(std::move(dst_data));
+        break;
+      }
+    }
+  }
 
-    layer.data = dst_data;
-    layer.sharing_info = implicit_sharing::info_for_mem_free(dst_data);
+  {
+    const int orig_index_layer = CustomData_get_layer_index(&mesh.edge_data, CD_ORIGINDEX);
+    if (orig_index_layer != -1) {
+      CustomDataLayer &layer = mesh.edge_data.layers[orig_index_layer];
+      const int *src_data = static_cast<const int *>(layer.data);
+
+      int *dst_data = MEM_malloc_arrayN<int>(result_edges_num, __func__);
+      MutableSpan dst(dst_data, result_edges_num);
+      if (src_data != nullptr) {
+        const Span src(src_data, mesh.edges_num);
+        array_utils::gather(src, src_to_dst_mask, dst.take_front(src_to_dst_mask.size()));
+      }
+      dst.slice(back_range_of_new_edges).fill(-1);
+      layer.sharing_info->remove_user_and_delete_if_last();
+      layer.data = dst_data;
+      layer.sharing_info = implicit_sharing::info_for_mem_free(dst_data);
+    }
   }
 
   mesh.edges_num = result_edges_num;

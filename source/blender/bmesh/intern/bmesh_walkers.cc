@@ -55,12 +55,14 @@ void BMW_init(BMWalker *walker,
               short mask_edge,
               short mask_face,
               BMWFlag flag,
-              int layer)
+              int layer,
+              BMWDelimitFlag delimit)
 {
   memset(walker, 0, sizeof(BMWalker));
 
   walker->layer = layer;
   walker->flag = flag;
+  walker->delimit = delimit;
   walker->bm = bm;
 
   walker->mask_vert = mask_vert;
@@ -93,6 +95,7 @@ void BMW_init(BMWalker *walker,
     walker->structsize = bm_walker_types[type]->structsize;
     walker->order = bm_walker_types[type]->order;
     walker->valid_mask = bm_walker_types[type]->valid_mask;
+    walker->delimit_supported = bm_walker_types[type]->delimit_supported;
 
     /* safety checks */
     /* if this raises an error either the caller is wrong or
@@ -100,6 +103,7 @@ void BMW_init(BMWalker *walker,
     BLI_assert(mask_vert == 0 || (walker->valid_mask & BM_VERT));
     BLI_assert(mask_edge == 0 || (walker->valid_mask & BM_EDGE));
     BLI_assert(mask_face == 0 || (walker->valid_mask & BM_FACE));
+    BLI_assert((delimit & ~walker->delimit_supported) == 0);
   }
 
   walker->worklist = BLI_mempool_create(walker->structsize, 0, 128, BLI_MEMPOOL_NOP);

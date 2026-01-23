@@ -141,23 +141,32 @@ bool paint_get_tex_pixel(const MTex *mtex,
 void paint_stroke_operator_properties(wmOperatorType *ot)
 {
   static const EnumPropertyItem stroke_mode_items[] = {
-      {BRUSH_STROKE_NORMAL, "NORMAL", 0, "Regular", "Apply brush normally"},
-      {BRUSH_STROKE_INVERT,
+      {int(BrushStrokeMode::Normal), "NORMAL", 0, "Regular", "Apply brush normally"},
+      {int(BrushStrokeMode::Invert),
        "INVERT",
        0,
        "Invert",
        "Invert action of brush for duration of stroke"},
-      {BRUSH_STROKE_SMOOTH,
+      {0},
+  };
+
+  static const EnumPropertyItem temporary_brush_toggle_items[] = {
+      {int(BrushSwitchMode::None), "None", 0, "None", "Apply brush normally"},
+      {int(BrushSwitchMode::Smooth),
        "SMOOTH",
        0,
        "Smooth",
-       "Switch brush to smooth mode for duration of stroke"},
-      {BRUSH_STROKE_ERASE,
+       "Switch to smooth brush for duration of stroke"},
+      {int(BrushSwitchMode::Erase),
        "ERASE",
        0,
        "Erase",
-       "Switch brush to erase mode for duration of stroke"},
-      {BRUSH_STROKE_MASK, "MASK", 0, "Mask", "Switch brush to mask mode for duration of stroke"},
+       "Switch to erase brush for duration of stroke"},
+      {int(BrushSwitchMode::Mask),
+       "MASK",
+       0,
+       "Mask",
+       "Switch to mask brush for duration of stroke"},
       {0},
   };
 
@@ -169,9 +178,18 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna,
                       "mode",
                       stroke_mode_items,
-                      BRUSH_STROKE_NORMAL,
+                      int(BrushStrokeMode::Normal),
                       "Stroke Mode",
                       "Action taken when a paint stroke is made");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "brush_toggle",
+                      temporary_brush_toggle_items,
+                      int(BrushSwitchMode::None),
+                      "Temporary Brush Toggle Type",
+                      "Brush to use for duration of stroke");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 

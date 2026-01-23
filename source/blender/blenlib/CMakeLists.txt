@@ -417,14 +417,13 @@ set(SRC
 
 set(LIB
   PUBLIC bf::dna
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::json
   PRIVATE bf::extern::xxhash
   bf_intern_eigen
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::wcwidth
   PRIVATE bf::intern::atomic
-  PRIVATE bf::extern::fmtlib
+  PUBLIC bf::dependencies::fmt
   PRIVATE bf::dependencies::eigen
   PUBLIC bf::dependencies::optional::tbb
   PRIVATE bf::dependencies::zlib

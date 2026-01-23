@@ -4,6 +4,12 @@
 
 set(OCIO_PATCH echo .)
 
+if(WIN32)
+  set(MINIZIP_LIBRARY minizip${LIBEXT})
+else()
+  set(MINIZIP_LIBRARY libminizip${LIBEXT})
+endif()
+
 set(OPENCOLORIO_EXTRA_ARGS
   -DOCIO_BUILD_APPS=OFF
   -DOCIO_BUILD_PYTHON=ON
@@ -18,13 +24,13 @@ set(OPENCOLORIO_EXTRA_ARGS
   -DOCIO_INSTALL_EXT_PACKAGES=NONE
 
   -Dexpat_ROOT=${LIBDIR}/expat
-  -Dyaml-cpp_ROOT=${LIBDIR}/yamlcpp
+  -Dyaml-cpp_DIR=${LIBDIR}/yamlcpp/lib/cmake/yaml-cpp
   -Dyaml-cpp_VERSION=${YAMLCPP_VERSION}
   -Dpystring_ROOT=${LIBDIR}/pystring
   -DImath_ROOT=${LIBDIR}/imath
   -Dminizip-ng_ROOT=${LIBDIR}/minizipng
-  -Dminizip-ng_INCLUDE_DIR=${LIBDIR}/minizipng/include/minizip-ng
-  -Dminizip-ng_LIBRARY=${LIBDIR}/minizipng/lib/libminizip${LIBEXT}
+  -Dminizip-ng_INCLUDE_DIR=${LIBDIR}/minizipng/include/minizip-ng/minizip
+  -Dminizip-ng_LIBRARY=${LIBDIR}/minizipng/lib/${MINIZIP_LIBRARY}
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
   -DPython_EXECUTABLE=${PYTHON_BINARY}
@@ -101,8 +107,8 @@ if(WIN32)
         ${LIBDIR}/opencolorio/include
         ${HARVEST_TARGET}/opencolorio/include
       COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/bin/OpenColorIO_2_4.dll
-        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_4.dll
+        ${LIBDIR}/opencolorio/bin/OpenColorIO_2_5.dll
+        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_5.dll
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/opencolorio/lib
         ${HARVEST_TARGET}/opencolorio/lib
@@ -113,8 +119,8 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_opencolorio after_install
       COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_4.dll
-        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_4.dll
+        ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_5.dll
+        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_5.dll
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/opencolorio/lib/Opencolorio_d.lib
         ${HARVEST_TARGET}/opencolorio/lib/OpenColorIO_d.lib

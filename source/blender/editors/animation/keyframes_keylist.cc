@@ -1287,7 +1287,7 @@ void fcurve_to_keylist(AnimData *adt,
     ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
   }
 
-  const bool is_cyclic = BKE_fcurve_is_cyclic(fcu) && (fcu->totvert >= 2);
+  const bool is_cyclic = BKE_fcurve_is_cyclic(*fcu) && (fcu->totvert >= 2);
   const bool do_extremes = (saction_flag & SACTION_SHOW_EXTREMES) != 0;
 
   BezTripleChain chain = {nullptr};

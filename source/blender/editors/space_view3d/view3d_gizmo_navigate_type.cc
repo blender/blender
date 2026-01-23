@@ -346,14 +346,14 @@ static int gizmo_axis_cursor_get(wmGizmo * /*gz*/)
   return WM_CURSOR_DEFAULT;
 }
 
-static bool gizmo_axis_screen_bounds_get(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
+static bool gizmo_axis_screen_bounds_get(const bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
   const float rad = WIDGET_RADIUS;
   r_bounding_box->xmin = gz->matrix_basis[3][0] + area->totrct.xmin - rad;
   r_bounding_box->ymin = gz->matrix_basis[3][1] + area->totrct.ymin - rad;
-  r_bounding_box->xmax = r_bounding_box->xmin + rad;
-  r_bounding_box->ymax = r_bounding_box->ymin + rad;
+  r_bounding_box->xmax = gz->matrix_basis[3][0] + area->totrct.xmin + rad;
+  r_bounding_box->ymax = gz->matrix_basis[3][1] + area->totrct.ymin + rad;
   return true;
 }
 

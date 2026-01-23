@@ -405,14 +405,14 @@ void SourceProcessor::lower_entry_points(Parser &parser)
       }
     };
 
-    args.foreach_match("[[..]]c?ww", [&](const vector<Token> toks) {
+    args.foreach_match("[[..]]c?AA", [&](const vector<Token> toks) {
       process_argument(toks[8], toks[9], toks[1].scope());
     });
-    args.foreach_match("[[..]]c?w&w", [&](const vector<Token> toks) {
+    args.foreach_match("[[..]]c?A&A", [&](const vector<Token> toks) {
       process_argument(toks[8], toks[10], toks[1].scope());
     });
 
-    args.foreach_match("[[..]]c?w(&w)", [&](const vector<Token> toks) {
+    args.foreach_match("[[..]]c?A(&A)", [&](const vector<Token> toks) {
       process_argument(toks[8], toks[11], toks[1].scope());
     });
 

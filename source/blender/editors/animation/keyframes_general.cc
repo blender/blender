@@ -228,7 +228,7 @@ void clean_fcurve(bAnimListElem *ale,
     }
 
     if (fcu->bezt->vec[1][1] == default_value) {
-      BKE_fcurve_delete_keys_all(fcu);
+      BKE_fcurve_delete_keys_all(*fcu);
 
       /* check if curve is really unused and if it is, return signal for deletion */
       if (BKE_fcurve_is_empty(fcu)) {
@@ -1237,7 +1237,7 @@ void smooth_fcurve(FCurve *fcu)
   }
 
   /* recalculate handles */
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_handles_recalc(*fcu);
 }
 
 /** \} */
@@ -1944,7 +1944,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu,
 
     case KEYFRAME_PASTE_MERGE_OVER:
       /* remove all keys */
-      BKE_fcurve_delete_keys_all(fcu);
+      BKE_fcurve_delete_keys_all(*fcu);
       break;
 
     case KEYFRAME_PASTE_MERGE_OVER_RANGE:
@@ -1972,7 +1972,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu,
         }
 
         /* remove frames in the range */
-        BKE_fcurve_delete_keys_selected(fcu);
+        BKE_fcurve_delete_keys_selected(*fcu);
       }
       break;
     }
@@ -2002,7 +2002,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu,
   }
 
   /* recalculate F-Curve's handles? */
-  BKE_fcurve_handles_recalc(fcu);
+  BKE_fcurve_handles_recalc(*fcu);
 }
 }  // namespace ed::animation
 

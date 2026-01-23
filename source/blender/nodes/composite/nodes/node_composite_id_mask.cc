@@ -2,16 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include <cmath>
 
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "UI_resources.hh"
 
 #include "GPU_shader.hh"
 
@@ -21,13 +15,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_id_mask_cc {
 
-/* **************** ID Mask  ******************** */
-
-namespace nodes::node_composite_id_mask_cc {
-
-static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("ID value")
       .default_value(1.0f)
@@ -133,12 +123,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new IDMaskOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_id_mask_cc
-
-static void register_node_type_cmp_idmask()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_id_mask_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeIDMask", CMP_NODE_ID_MASK);
@@ -146,11 +132,11 @@ static void register_node_type_cmp_idmask()
   ntype.ui_description = "Create a matte from an object or material index pass";
   ntype.enum_name_legacy = "ID_MASK";
   ntype.nclass = NODE_CLASS_CONVERTER;
-  ntype.declare = file_ns::cmp_node_idmask_declare;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.declare = node_declare;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_idmask)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_id_mask_cc

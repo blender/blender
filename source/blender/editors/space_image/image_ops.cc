@@ -3410,12 +3410,17 @@ static bool image_pack_test(Image *ima, const char **r_error_message)
   }
 
   if (!ID_IS_EDITABLE(&ima->id)) {
-    *r_error_message = "Image is not editable";
+    *r_error_message = N_("Image is not editable");
     return false;
   }
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-    *r_error_message = "Movies or image sequences do not support packing";
+    *r_error_message = N_("Movies or image sequences do not support packing");
+    return false;
+  }
+
+  if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+    *r_error_message = N_("Render Result and Viewer Nodes cannot be packed");
     return false;
   }
 

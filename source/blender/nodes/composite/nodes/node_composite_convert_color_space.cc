@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_string_utf8.h"
 
 #include "UI_interface_layout.hh"
@@ -21,13 +17,11 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
-
-namespace nodes::node_composite_convert_color_space_cc {
+namespace blender::nodes::node_composite_convert_color_space_cc {
 
 NODE_STORAGE_FUNCS(NodeConvertColorSpace)
 
-static void CMP_NODE_CONVERT_COLOR_SPACE_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
@@ -36,7 +30,7 @@ static void CMP_NODE_CONVERT_COLOR_SPACE_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
-static void node_composit_init_convert_colorspace(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeConvertColorSpace *ncs = MEM_new_for_free<NodeConvertColorSpace>("node colorspace");
   STRNCPY_UTF8(ncs->from_color_space, "scene_linear");
@@ -44,9 +38,7 @@ static void node_composit_init_convert_colorspace(bNodeTree * /*ntree*/, bNode *
   node->storage = ncs;
 }
 
-static void node_composit_buts_convert_colorspace(ui::Layout &layout,
-                                                  bContext * /*C*/,
-                                                  PointerRNA *ptr)
+static void node_draw_buttons(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
 #ifndef WITH_OPENCOLORIO
   layout.label(RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
@@ -183,11 +175,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new ConvertColorSpaceOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_convert_color_space_cc
-
-static void register_node_type_cmp_convert_color_space()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_convert_color_space_cc;
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeConvertColorSpace", CMP_NODE_CONVERT_COLOR_SPACE);
@@ -195,17 +184,17 @@ static void register_node_type_cmp_convert_color_space()
   ntype.ui_description = "Convert between color spaces";
   ntype.enum_name_legacy = "CONVERT_COLORSPACE";
   ntype.nclass = NODE_CLASS_CONVERTER;
-  ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_draw_buttons;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
-  ntype.initfunc = file_ns::node_composit_init_convert_colorspace;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_type_size(ntype, 160, 150, NODE_DEFAULT_MAX_WIDTH);
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_convert_color_space)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_convert_color_space_cc

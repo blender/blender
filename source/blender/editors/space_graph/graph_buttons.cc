@@ -278,8 +278,8 @@ static void graphedit_activekey_update_cb(bContext * /*C*/, void *fcu_ptr, void 
   FCurve *fcu = static_cast<FCurve *>(fcu_ptr);
 
   /* make sure F-Curve and its handles are still valid after this editing */
-  sort_time_fcurve(fcu);
-  BKE_fcurve_handles_recalc(fcu);
+  sort_time_fcurve(*fcu);
+  BKE_fcurve_handles_recalc(*fcu);
 }
 
 /* update callback for active keyframe properties - handle-editing wrapper */

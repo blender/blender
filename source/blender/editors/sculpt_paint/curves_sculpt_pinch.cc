@@ -290,7 +290,7 @@ std::unique_ptr<CurvesSculptStrokeOperation> new_pinch_operation(const BrushStro
 {
   const Brush &brush = *BKE_paint_brush_for_read(&scene.toolsettings->curves_sculpt->paint);
 
-  const bool invert_pinch = (brush_mode == BRUSH_STROKE_INVERT) !=
+  const bool invert_pinch = (brush_mode == BrushStrokeMode::Invert) !=
                             ((brush.flag & BRUSH_DIR_IN) != 0);
   return std::make_unique<PinchOperation>(invert_pinch);
 }

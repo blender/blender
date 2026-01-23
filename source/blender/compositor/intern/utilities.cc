@@ -126,8 +126,7 @@ int number_of_inputs_linked_to_output_conditioned(const bNodeSocket &output,
 
 bool is_pixel_node(const bNode &node)
 {
-  BLI_assert(bool(node.typeinfo->gpu_fn) == bool(node.typeinfo->build_multi_function));
-  return node.typeinfo->gpu_fn && node.typeinfo->build_multi_function;
+  return node.typeinfo->build_multi_function;
 }
 
 static ImplicitInput get_implicit_input(const nodes::SocketDeclaration *socket_declaration)

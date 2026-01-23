@@ -30,7 +30,9 @@ FCurve *create_fcurve(animrig::Channelbag &channelbag,
 {
   FCurve *fcurve = channelbag.fcurve_create_unique(nullptr, fcurve_descriptor);
   BLI_assert_msg(fcurve, "The same F-Curve is being created twice, this is unexpected.");
-  BKE_fcurve_bezt_resize(fcurve, sample_count);
+  if (fcurve) {
+    BKE_fcurve_bezt_resize(*fcurve, sample_count);
+  }
   return fcurve;
 }
 

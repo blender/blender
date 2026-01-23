@@ -50,7 +50,6 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )

@@ -24,6 +24,7 @@
 #include "BLI_sys_types.h"
 
 #include "BKE_asset.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
@@ -677,6 +678,24 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 19)) {
+    for (Mesh &mesh : bmain->meshes) {
+      bke::mesh_convert_customdata_to_storage(mesh);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 20)) {
+    for (Scene &scene : bmain->scenes) {
+      SequencerToolSettings *seq_ts = seq::tool_settings_ensure(&scene);
+      constexpr short SEQ_SNAP_TO_FRAME_RANGE_OLD = (1 << 8);
+      /* Snap to frame range was bit 8, now bit 9, to make room for snap to increment in bit 8. */
+      if (seq_ts->snap_mode & SEQ_SNAP_TO_FRAME_RANGE_OLD) {
+        seq_ts->snap_mode &= ~SEQ_SNAP_TO_FRAME_RANGE_OLD;
+        seq_ts->snap_mode |= SEQ_SNAP_TO_FRAME_RANGE;
+      }
+    }
   }
 
   /**

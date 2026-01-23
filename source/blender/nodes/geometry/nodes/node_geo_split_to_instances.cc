@@ -335,6 +335,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   dst_geometry.name = src_geometry.name;
+  dst_geometry.copy_bundle_from(src_geometry);
 
   geometry::debug_randomize_instance_order(dst_instances);
 

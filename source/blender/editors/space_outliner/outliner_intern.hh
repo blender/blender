@@ -449,12 +449,7 @@ void id_delete_tag_fn(bContext *C,
                       TreeElement *te,
                       TreeStoreElem *tsep,
                       TreeStoreElem *tselem);
-void id_remap_fn(bContext *C,
-                 ReportList *reports,
-                 Scene *scene,
-                 TreeElement *te,
-                 TreeStoreElem *tsep,
-                 TreeStoreElem *tselem);
+void id_remap_fn(bContext *C, TreeStoreElem *tselem);
 
 /**
  * To retrieve coordinates with redrawing the entire tree.

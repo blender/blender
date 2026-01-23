@@ -643,6 +643,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "NOD_geo_capture_attribute.hh"
 #  include "NOD_geo_closure.hh"
 #  include "NOD_geo_field_to_grid.hh"
+#  include "NOD_geo_field_to_list.hh"
 #  include "NOD_geo_foreach_geometry_element.hh"
 #  include "NOD_geo_index_switch.hh"
 #  include "NOD_geo_menu_switch.hh"
@@ -678,6 +679,7 @@ using nodes::CombineBundleItemsAccessor;
 using nodes::EvaluateClosureInputItemsAccessor;
 using nodes::EvaluateClosureOutputItemsAccessor;
 using nodes::FieldToGridItemsAccessor;
+using nodes::FieldToListItemsAccessor;
 using nodes::FileOutputItemsAccessor;
 using nodes::ForeachGeometryElementGenerationItemsAccessor;
 using nodes::ForeachGeometryElementInputItemsAccessor;
@@ -8172,6 +8174,66 @@ static void def_geo_field_to_grid(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void rna_def_geo_field_to_list_item(BlenderRNA *brna)
+{
+  PropertyRNA *prop;
+
+  StructRNA *srna = RNA_def_struct(brna, "GeometryNodeFieldToListItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Field to List Item", "");
+  RNA_def_struct_sdna(srna, "GeometryNodeFieldToListItem");
+
+  rna_def_node_item_array_socket_item_common(srna, "FieldToListItemsAccessor", true);
+
+  prop = RNA_def_property(srna, "identifier", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
+static void rna_def_geo_field_to_list_items(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "GeometryNodeFieldToListItems", nullptr);
+  RNA_def_struct_ui_text(srna, "Items", "Collection of field to list items");
+  RNA_def_struct_sdna(srna, "bNode");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "GeometryNodeFieldToListItem", "FieldToListItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "GeometryNodeFieldToListItem", "FieldToListItemsAccessor");
+}
+
+static void def_geo_field_to_list(BlenderRNA *brna, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  rna_def_geo_field_to_list_item(brna);
+  rna_def_geo_field_to_list_items(brna);
+
+  RNA_def_struct_sdna_from(srna, "GeometryNodeFieldToList", "storage");
+
+  prop = RNA_def_property(srna, "list_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "items", "items_num");
+  RNA_def_property_struct_type(prop, "GeometryNodeFieldToListItem");
+  RNA_def_property_ui_text(prop, "Items", "");
+  RNA_def_property_srna(prop, "GeometryNodeFieldToListItems");
+
+  prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+
+  prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "RepeatItem");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_Node_ItemArray_active_get<FieldToListItemsAccessor>",
+                                 "rna_Node_ItemArray_active_set<FieldToListItemsAccessor>",
+                                 nullptr,
+                                 nullptr);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+}
+
 static void rna_def_fn_format_string_item(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -9998,6 +10060,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeFieldMinAndMax");
   define("GeometryNode", "GeometryNodeFieldOnDomain");
   define("GeometryNode", "GeometryNodeFieldToGrid", def_geo_field_to_grid);
+  define("GeometryNode", "GeometryNodeFieldToList", def_geo_field_to_list);
   define("GeometryNode", "GeometryNodeFieldVariance");
   define("GeometryNode", "GeometryNodeFillCurve");
   define("GeometryNode", "GeometryNodeFilletCurve");
@@ -10005,6 +10068,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeForeachGeometryElementInput", def_geo_foreach_geometry_element_input);
   define("GeometryNode", "GeometryNodeForeachGeometryElementOutput", def_geo_foreach_geometry_element_output);
   define("GeometryNode", "GeometryNodeGeometryToInstance");
+  define("GeometryNode", "GeometryNodeGetGeometryBundle");
   define("GeometryNode", "GeometryNodeGetNamedGrid");
   define("GeometryNode", "GeometryNodeGizmoDial");
   define("GeometryNode", "GeometryNodeGizmoLinear");
@@ -10069,7 +10133,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeInterpolateCurves");
   define("GeometryNode", "GeometryNodeIsViewport");
   define("GeometryNode", "GeometryNodeJoinGeometry");
-  define("GeometryNode", "GeometryNodeList");
   define("GeometryNode", "GeometryNodeListGetItem");
   define("GeometryNode", "GeometryNodeListLength");
   define("GeometryNode", "GeometryNodeMaterialSelection");
@@ -10133,6 +10196,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeSetCurveNormal");
   define("GeometryNode", "GeometryNodeSetCurveRadius");
   define("GeometryNode", "GeometryNodeSetCurveTilt");
+  define("GeometryNode", "GeometryNodeSetGeometryBundle");
   define("GeometryNode", "GeometryNodeSetGeometryName");
   define("GeometryNode", "GeometryNodeSetGreasePencilColor");
   define("GeometryNode", "GeometryNodeSetGreasePencilDepth");

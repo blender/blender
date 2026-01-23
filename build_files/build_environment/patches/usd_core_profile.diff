@@ -194,7 +194,7 @@ index c22f2d75e..f6b724bb5 100644
      // Resolve multisample textures
      HgiGL* hgiGL = static_cast<HgiGL*>(hgi);
 diff --git a/pxr/imaging/hgiGL/graphicsPipeline.cpp b/pxr/imaging/hgiGL/graphicsPipeline.cpp
-index 9704c6e11..6d864f398 100644
+index 9704c6e11..34148d1fa 100644
 --- a/pxr/imaging/hgiGL/graphicsPipeline.cpp
 +++ b/pxr/imaging/hgiGL/graphicsPipeline.cpp
 @@ -25,7 +25,12 @@ HgiGLGraphicsPipeline::HgiGLGraphicsPipeline(
@@ -228,6 +228,15 @@ index 9704c6e11..6d864f398 100644
      //
      // Depth Stencil State
      //
+@@ -150,7 +158,7 @@ HgiGLGraphicsPipeline::BindPipeline()
+     //
+     if (_descriptor.multiSampleState.multiSampleEnable) {
+         glEnable(GL_MULTISAMPLE);
+-        if (!_hgi->GetCapabilities()->IsSet(
++        if (!coreProfile && !_hgi->GetCapabilities()->IsSet(
+             HgiDeviceCapabilitiesBitsRoundPoints)) {
+             // Needed to get gl_pointCoord in FS.
+             glEnable(GL_POINT_SPRITE);
 @@ -160,7 +168,9 @@ HgiGLGraphicsPipeline::BindPipeline()
          // If not using GL_MULTISAMPLE, use GL_POINT_SMOOTH to render points as 
          // circles instead of square.
@@ -249,7 +258,7 @@ index 9704c6e11..6d864f398 100644
      }
  
 diff --git a/pxr/imaging/hgiGL/scopedStateHolder.cpp b/pxr/imaging/hgiGL/scopedStateHolder.cpp
-index 28e31b12e..737a75dad 100644
+index 28e31b12e..3a339dc3b 100644
 --- a/pxr/imaging/hgiGL/scopedStateHolder.cpp
 +++ b/pxr/imaging/hgiGL/scopedStateHolder.cpp
 @@ -9,6 +9,7 @@
@@ -308,7 +317,7 @@ index 28e31b12e..737a75dad 100644
      if (_cullFace) {
          glEnable(GL_CULL_FACE);
      } else {
-@@ -275,10 +284,12 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
+@@ -275,16 +284,17 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
          glDisable(GL_MULTISAMPLE);
      }
  
@@ -316,15 +325,26 @@ index 28e31b12e..737a75dad 100644
 -        glEnable(GL_POINT_SMOOTH);
 -    } else {
 -        glDisable(GL_POINT_SMOOTH);
+-    }
+-
+-    if (_restorePointSprite) {
+-        glEnable(GL_POINT_SPRITE);
+-    } else {
+-        glDisable(GL_POINT_SPRITE);
 +    if (!_coreProfile) {
 +        if (_restorePointSmooth) {
 +            glEnable(GL_POINT_SMOOTH);
 +        } else {
 +            glDisable(GL_POINT_SMOOTH);
 +        }
++        if (_restorePointSprite) {
++            glEnable(GL_POINT_SPRITE);
++        } else {
++            glDisable(GL_POINT_SPRITE);
++        }
      }
  
-     if (_restorePointSprite) {
+     glPixelStorei(GL_UNPACK_ALIGNMENT, _restoreUnpackAlignment);
 diff --git a/pxr/imaging/hgiGL/scopedStateHolder.h b/pxr/imaging/hgiGL/scopedStateHolder.h
 index 4e76d5426..39de06111 100644
 --- a/pxr/imaging/hgiGL/scopedStateHolder.h

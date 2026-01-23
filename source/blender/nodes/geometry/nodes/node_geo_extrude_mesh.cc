@@ -133,6 +133,7 @@ static void expand_mesh(Mesh &mesh,
     const int old_verts_num = mesh.verts_num;
     mesh.verts_num += vert_expand;
     CustomData_realloc(&mesh.vert_data, old_verts_num, mesh.verts_num);
+    mesh.attribute_storage.wrap().resize(AttrDomain::Point, mesh.verts_num);
   }
   if (edge_expand != 0) {
     if (mesh.edges_num == 0) {
@@ -142,11 +143,13 @@ static void expand_mesh(Mesh &mesh,
     const int old_edges_num = mesh.edges_num;
     mesh.edges_num += edge_expand;
     CustomData_realloc(&mesh.edge_data, old_edges_num, mesh.edges_num);
+    mesh.attribute_storage.wrap().resize(AttrDomain::Edge, mesh.edges_num);
   }
   if (face_expand != 0) {
     const int old_faces_num = mesh.faces_num;
     mesh.faces_num += face_expand;
     CustomData_realloc(&mesh.face_data, old_faces_num, mesh.faces_num);
+    mesh.attribute_storage.wrap().resize(AttrDomain::Face, mesh.faces_num);
     implicit_sharing::resize_trivial_array(&mesh.face_offset_indices,
                                            &mesh.runtime->face_offsets_sharing_info,
                                            old_faces_num == 0 ? 0 : (old_faces_num + 1),
@@ -165,6 +168,7 @@ static void expand_mesh(Mesh &mesh,
     const int old_loops_num = mesh.corners_num;
     mesh.corners_num += loop_expand;
     CustomData_realloc(&mesh.corner_data, old_loops_num, mesh.corners_num);
+    mesh.attribute_storage.wrap().resize(AttrDomain::Corner, mesh.corners_num);
   }
 }
 

@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_bounds.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -21,13 +17,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_crop_cc {
 
-/* **************** Crop  ******************** */
-
-namespace nodes::node_composite_crop_cc {
-
-static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -245,12 +237,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new CropOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_crop_cc
-
-static void register_node_type_cmp_crop()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_crop_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeCrop", CMP_NODE_CROP);
@@ -260,11 +248,11 @@ static void register_node_type_cmp_crop()
       "the image";
   ntype.enum_name_legacy = "CROP";
   ntype.nclass = NODE_CLASS_DISTORT;
-  ntype.declare = file_ns::cmp_node_crop_declare;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.declare = node_declare;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_crop)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_crop_cc

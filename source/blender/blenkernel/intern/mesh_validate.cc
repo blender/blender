@@ -370,22 +370,51 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
   const OffsetIndices new_faces = offset_indices::gather_selected_offsets(
       old_faces, valid_faces, new_face_offsets);
 
-  for (CustomDataLayer &layer : MutableSpan(mesh.face_data.layers, mesh.face_data.totlayer)) {
-    const eCustomDataType cd_type = eCustomDataType(layer.type);
-    if (CD_TYPE_AS_MASK(cd_type) & CD_MASK_PROP_ALL) {
-      const CPPType &type = *bke::custom_data_type_to_cpp_type(cd_type);
-      const GSpan src(type, layer.data, mesh.faces_num);
-
-      void *dst_data = MEM_malloc_arrayN(valid_faces_num, type.size, __func__);
-      GMutableSpan dst(type, dst_data, valid_faces_num);
-
-      array_utils::gather(src, valid_faces, dst);
-
-      layer.sharing_info->remove_user_and_delete_if_last();
-      layer.data = dst_data;
-      layer.sharing_info = implicit_sharing::info_for_mem_free(dst_data);
+  for (bke::Attribute &attr : mesh.attribute_storage.wrap()) {
+    const CPPType &type = attribute_type_to_cpp_type(attr.data_type());
+    switch (attr.domain()) {
+      case AttrDomain::Face: {
+        switch (attr.storage_type()) {
+          case AttrStorageType::Array: {
+            const auto &src_data = std::get<Attribute::ArrayData>(attr.data());
+            auto dst_data = Attribute::ArrayData::from_uninitialized(type, valid_faces_num);
+            array_utils::gather(GSpan(type, src_data.data, mesh.faces_num),
+                                valid_faces,
+                                GMutableSpan(type, dst_data.data, valid_faces_num));
+            attr.assign_data(std::move(dst_data));
+            break;
+          }
+          case AttrStorageType::Single:
+            break;
+        }
+        break;
+      }
+      case AttrDomain::Corner: {
+        switch (attr.storage_type()) {
+          case AttrStorageType::Array: {
+            const auto &src_data = std::get<Attribute::ArrayData>(attr.data());
+            auto dst_data = Attribute::ArrayData::from_uninitialized(type, new_faces.total_size());
+            bke::attribute_math::gather_group_to_group(
+                old_faces,
+                new_faces,
+                valid_faces,
+                GSpan(type, src_data.data, mesh.corners_num),
+                GMutableSpan(type, dst_data.data, new_faces.total_size()));
+            attr.assign_data(std::move(dst_data));
+            break;
+          }
+          case AttrStorageType::Single:
+            break;
+        }
+        break;
+      }
+      default:
+        break;
     }
-    else if (cd_type == CD_ORIGINDEX) {
+  }
+
+  for (CustomDataLayer &layer : MutableSpan(mesh.face_data.layers, mesh.face_data.totlayer)) {
+    if (layer.type == CD_ORIGINDEX) {
       const Span src(static_cast<const int *>(layer.data), mesh.edges_num);
 
       int *dst_data = MEM_malloc_arrayN<int>(valid_faces_num, __func__);
@@ -400,26 +429,13 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
   }
 
   for (CustomDataLayer &layer : MutableSpan(mesh.corner_data.layers, mesh.corner_data.totlayer)) {
-    const eCustomDataType cd_type = eCustomDataType(layer.type);
-    if (CD_TYPE_AS_MASK(cd_type) & CD_MASK_PROP_ALL) {
-      const CPPType &type = *bke::custom_data_type_to_cpp_type(cd_type);
-      const GSpan src(type, layer.data, mesh.corners_num);
-
-      void *dst_data = MEM_malloc_arrayN(new_faces.total_size(), type.size, __func__);
-      GMutableSpan dst(type, dst_data, new_faces.total_size());
-
-      bke::attribute_math::gather_group_to_group(old_faces, new_faces, valid_faces, src, dst);
-
-      layer.sharing_info->remove_user_and_delete_if_last();
-      layer.data = dst_data;
-      layer.sharing_info = implicit_sharing::info_for_mem_free(dst_data);
-    }
-    else if (ELEM(cd_type,
-                  CD_NORMAL,
-                  CD_ORIGINDEX,
-                  CD_MDISPS,
-                  CD_GRID_PAINT_MASK,
-                  CD_ORIGSPACE_MLOOP))
+    const eCustomDataType cd_type = eCustomDataType();
+    if (ELEM(layer.type,
+             CD_NORMAL,
+             CD_ORIGINDEX,
+             CD_MDISPS,
+             CD_GRID_PAINT_MASK,
+             CD_ORIGSPACE_MLOOP))
     {
       const size_t elem_size = CustomData_sizeof(cd_type);
       const void *src = layer.data;
@@ -452,22 +468,29 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
 static void remove_invalid_edges(Mesh &mesh, const IndexMask &valid_edges)
 {
   const int valid_edges_num = valid_edges.size();
-  for (CustomDataLayer &layer : MutableSpan(mesh.edge_data.layers, mesh.edge_data.totlayer)) {
-    const eCustomDataType cd_type = eCustomDataType(layer.type);
-    if (CD_TYPE_AS_MASK(cd_type) & CD_MASK_PROP_ALL) {
-      const CPPType &type = *bke::custom_data_type_to_cpp_type(cd_type);
-      const GSpan src(type, layer.data, mesh.edges_num);
 
-      void *dst_data = MEM_malloc_arrayN(valid_edges_num, type.size, __func__);
-      GMutableSpan dst(type, dst_data, valid_edges_num);
-
-      array_utils::gather(src, valid_edges, dst);
-
-      layer.sharing_info->remove_user_and_delete_if_last();
-      layer.data = dst_data;
-      layer.sharing_info = implicit_sharing::info_for_mem_free(dst_data);
+  for (bke::Attribute &attr : mesh.attribute_storage.wrap()) {
+    if (attr.domain() != AttrDomain::Edge) {
+      continue;
     }
-    else if (cd_type == CD_ORIGINDEX) {
+    const CPPType &type = attribute_type_to_cpp_type(attr.data_type());
+    switch (attr.storage_type()) {
+      case AttrStorageType::Array: {
+        const auto &src_data = std::get<Attribute::ArrayData>(attr.data());
+        auto dst_data = Attribute::ArrayData::from_uninitialized(type, valid_edges_num);
+        array_utils::gather(GSpan(type, src_data.data, mesh.faces_num),
+                            valid_edges,
+                            GMutableSpan(type, dst_data.data, valid_edges_num));
+        attr.assign_data(std::move(dst_data));
+        break;
+      }
+      case AttrStorageType::Single:
+        break;
+    }
+  }
+
+  for (CustomDataLayer &layer : MutableSpan(mesh.edge_data.layers, mesh.edge_data.totlayer)) {
+    if (layer.type == CD_ORIGINDEX) {
       const Span src(static_cast<const int *>(layer.data), mesh.edges_num);
 
       int *dst_data = MEM_malloc_arrayN<int>(valid_edges_num, __func__);

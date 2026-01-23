@@ -23,7 +23,7 @@ class DrawWeightPaintOperation : public WeightPaintOperation {
 
     /* Get the add/subtract mode of the draw brush. */
     this->invert_brush_weight = (this->brush->flag & BRUSH_DIR_IN) != 0;
-    if (this->stroke_mode == BRUSH_STROKE_INVERT) {
+    if (this->stroke_mode == BrushStrokeMode::Invert) {
       this->invert_brush_weight = !this->invert_brush_weight;
     }
 

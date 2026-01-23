@@ -13,8 +13,17 @@
 #include "token.hh"
 #include "token_stream.hh"
 
+#include "lexit/lexit.hh"
+#include "lexit/tables.hh"
+
+#if defined(_MSC_VER)
+#  include <malloc.h>
+#endif
+
 #include <algorithm>
 #include <array>
+#include <cstdlib>
+#include <cstring>
 #include <stack>
 
 #if defined(_MSC_VER)
@@ -102,411 +111,206 @@ void LexerBase::ensure_memory()
     /* Avoid no allocation. */
     input_size = 1;
   }
-  /* Add one for offsets. */
+  /* Add one for offsets and end token. */
   input_size += 1;
   /* Round to 128 for easy alignment of types and allocations. */
-  input_size += (input_size + 127) & ~127;
+  input_size = (input_size + 127) & ~127;
 
   size_t needed_size = 0;
   needed_size += sizeof(*token_types.data_) * input_size;
-  needed_size += sizeof(*token_sizes.data_) * input_size;
+  needed_size += sizeof(*token_ends.data_) * input_size;
   needed_size += sizeof(*token_offsets.data()) * input_size;
 
   /* Make sure there is enough reserved space inside the data structures.
    * We need at least as many token as there is character.
    * Note: Never shrinks. */
   if (alloc_size < needed_size) {
+#ifdef _WIN32
+    _aligned_free(memory);
+    memory = static_cast<char *>(_aligned_malloc(needed_size, 128));
+#else
     std::free(memory);
-    memory = static_cast<char *>(std::malloc(needed_size));
+    memory = static_cast<char *>(std::aligned_alloc(128, needed_size));
+#endif
     alloc_size = needed_size;
   }
 
   char *ptr = memory;
   token_types = {reinterpret_cast<TokenType *>(ptr), input_size};
   ptr += sizeof(*token_types.data_) * input_size;
-  token_sizes = {reinterpret_cast<uint32_t *>(ptr), input_size};
-  ptr += sizeof(*token_sizes.data_) * input_size;
+  token_ends = {reinterpret_cast<uint32_t *>(ptr), input_size};
+  ptr += sizeof(*token_ends.data_) * input_size;
   token_offsets = {reinterpret_cast<uint32_t *>(ptr), input_size};
 
   update_string_view();
 }
 
-static always_inline TokenType to_type(const char c)
+LexerBase::~LexerBase()
 {
-  switch (c) {
-    case '\n':
-      return TokenType::NewLine;
-    case ' ':
-      return TokenType::Space;
-    case '#':
-      return TokenType::Hash;
-    case '&':
-      return TokenType::Ampersand;
-    case '^':
-      return TokenType::Caret;
-    case '|':
-      return TokenType::Pipe;
-    case '%':
-      return TokenType::Percent;
-    case '.':
-      return TokenType::Dot;
-    case '(':
-      return TokenType::ParOpen;
-    case ')':
-      return TokenType::ParClose;
-    case '{':
-      return TokenType::BracketOpen;
-    case '}':
-      return TokenType::BracketClose;
-    case '[':
-      return TokenType::SquareOpen;
-    case ']':
-      return TokenType::SquareClose;
-    case '<':
-      return TokenType::AngleOpen;
-    case '>':
-      return TokenType::AngleClose;
-    case '=':
-      return TokenType::Assign;
-    case '!':
-      return TokenType::Not;
-    case '*':
-      return TokenType::Star;
-    case '-':
-      return TokenType::Minus;
-    case '+':
-      return TokenType::Plus;
-    case '/':
-      return TokenType::Divide;
-    case '~':
-      return TokenType::Tilde;
-    case '\\':
-      return TokenType::Backslash;
-    case '\"':
-      return TokenType::String;
-    case '?':
-      return TokenType::Question;
-    case ':':
-      return TokenType::Colon;
-    case ',':
-      return TokenType::Comma;
-    case ';':
-      return TokenType::SemiColon;
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      return TokenType::Number;
-    default:
-      return TokenType::Word;
-  }
+#ifdef _WIN32
+  _aligned_free(memory);
+#else
+  std::free(memory);
+#endif
 }
 
-static always_inline bool always_split_token(const TokenType c, bool is_preprocessor = false)
-{
-  switch (c) {
-    case TokenType::Dot: /* For variadic macros. */
-    case TokenType::Number:
-    case TokenType::Word:
-    case TokenType::Space:
-      return false;
-    case TokenType::NewLine:
-      /* Split new lines for the preprocessor so that we know when to end a directive. */
-      return is_preprocessor;
-    default:
-      return true;
-  }
-}
+/* Same thing as default table but consider numbers as words to avoid second merging pass. */
+static const std::array<CharClass, 128> char_class_table = [] {
+  std::array<CharClass, 128> table;
+  memcpy(table.data(), lexit::char_class_table, sizeof(lexit::char_class_table));
 
-static const std::array<std::pair<TokenType, bool>, 256> token_table_full = [] {
-  std::array<std::pair<TokenType, bool>, 256> t;
-  for (int i = 0; i < 256; ++i) {
-    TokenType type = to_type(i);
-    t[i] = {type, always_split_token(type)};
-  }
-  return t;
+  /* Make < and > separators in order to support template.
+   * That means >= and <= need to be manually handled. */
+  table['<'] = CharClass::Separator;
+  table['>'] = CharClass::Separator;
+  return table;
 }();
 
-/* Same thing but consider numbers as words to avoid second merging pass. */
-static const std::array<std::pair<TokenType, bool>, 256> token_table_preprocessor = [] {
-  std::array<std::pair<TokenType, bool>, 256> t;
-  for (int i = 0; i < 256; ++i) {
-    TokenType type = to_type(i);
-    if (type == Number) {
-      type = Word;
-    }
-    t[i] = {type, always_split_token(type, true)};
-  }
-  return t;
-}();
-
-void LexerBase::tokenize(bool only_preprocessor_tokens)
+void LexerBase::tokenize(bool use_default_table)
 {
-  TokenType type = TokenType::Invalid;
+  lexit::TokenBuffer tok_buf(str.data(), str.size(), token_types.data(), token_offsets.data());
+  tok_buf.tokenize(use_default_table ? lexit::char_class_table : char_class_table.data());
 
-  const std::array<std::pair<TokenType, bool>, 256> &token_table = only_preprocessor_tokens ?
-                                                                       token_table_preprocessor :
-                                                                       token_table_full;
-
-  TokenType *types_raw = token_types.data();
-  uint32_t *offsets_raw = token_offsets.data();
-
-  int offset = 0, cursor = 0;
-  for (const char c : str) {
-    const TokenType prev = type;
-    auto [tok_type, always_split] = token_table[c];
-    type = tok_type;
-    /* Its faster to overwrite the previous value with the same value
-     * than having a condition. */
-    types_raw[cursor] = type;
-    offsets_raw[cursor] = offset++;
-    /* Split if type mismatch. */
-    cursor += (type != prev || always_split);
-  }
-  /* Set end of last token. */
-  offsets_raw[cursor] = offset++;
   /* Resize to the actual usage. */
-  token_types.shrink(cursor);
-  token_sizes.shrink(cursor);
-  token_offsets.offsets.shrink(cursor + 1);
+  token_types.shrink(tok_buf.size());
+  token_ends.shrink(tok_buf.size());
+  token_offsets.offsets.shrink(tok_buf.size() + 1);
 
   update_string_view();
 }
 
-static const std::array<bool, 256> num_literal_table = [] {
-  std::array<bool, 256> t;
-  for (int c = 0; c < 256; ++c) {
-    t[c] = true;
-    /* If dot is part of float literal. */
-    if (c == '.') {
-      continue; /* Merge. */
-    }
-    /* If 'A-F' is part of hex literal. */
-    if (c >= 'A' && c <= 'F') {
-      continue; /* Merge. */
-    }
-    /* If 'a-f' is part of hex literal. */
-    /* If 'f' suffix is part of float literal. */
-    /* If 'e' is part of float literal. */
-    if (c >= 'a' && c <= 'f') {
-      continue; /* Merge. */
-    }
-    /* If 'x' is part of hex literal. */
-    if (c == 'x') {
-      continue; /* Merge. */
-    }
-    /* If 'u' is part of unsigned int literal. */
-    if (c == 'u') {
-      continue; /* Merge. */
-    }
-    t[c] = false;
+static always_inline TokenType multi_tok_lookup(TokenType input, std::string_view s)
+{
+  switch (s.size()) {
+    case 2:
+      switch (s[0]) {
+        case '=':
+          if (s == "==") {
+            return Equal;
+          }
+          break;
+        case '!':
+          if (s == "!=") {
+            return NotEqual;
+          }
+          break;
+        // case '*':
+        //   if (s == "*=") {
+        //     return MulEqual;
+        //   }
+        //   break;
+        // case '%':
+        //   if (s == "%=") {
+        //     return ModEqual;
+        //   }
+        //   break;
+        case '|':
+          if (s == "||") {
+            return LogicalOr;
+          }
+          // if (s == "|=") {
+          //   return OrEqual;
+          // }
+          break;
+        case '&':
+          if (s == "&&") {
+            return LogicalAnd;
+          }
+          // if (s == "&=") {
+          //   return AndEqual;
+          // }
+          break;
+        case '<':
+          if (s == "<=") {
+            return LEqual;
+          }
+          // if (s == "<<") {
+          //   return LShit;
+          // }
+          break;
+        case '>':
+          if (s == ">=") {
+            return GEqual;
+          }
+          // if (s == ">>") {
+          //   return RShit;
+          // }
+          break;
+        case '+':
+          if (s == "++") {
+            return Increment;
+          }
+          // if (s == "+=") {
+          //   return AddEqual;
+          // }
+          break;
+        case '-':
+          if (s == "--") {
+            return Decrement;
+          }
+          // if (s == "-=") {
+          //   return SubEqual;
+          // }
+          break;
+        case '#':
+          if (s == "##") {
+            return DoubleHash;
+          }
+          break;
+      }
+      break;
   }
-  return t;
-}();
-
-/* Table lookup variant. Much faster than switch statement.  */
-static always_inline bool is_char_part_of_number_literal(const unsigned char c)
-{
-  return num_literal_table[c];
-}
-
-static always_inline bool is_word_part_of_number_literal(const std::string_view str)
-{
-  for (char c : str) {
-    if (!is_char_part_of_number_literal(c)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-static always_inline bool is_whitespace(TokenType t)
-{
-  return (t == ' ') || (t == '\n');
+  return input;
 }
 
 void LexerBase::merge_tokens()
 {
-  const char *str_raw = str.data();
-  TokenType *types_raw = token_types.data();
-  uint32_t *offsets_raw = token_offsets.data();
-  uint32_t *sizes_raw = token_sizes.data();
+  {
+    lexit::TokenBuffer tok_buf(
+        str.data(), str.size(), token_types.data(), token_offsets.data(), token_types.size());
 
-  /* Never merge the first token. We don't want to loose it. */
-  TokenType prev = types_raw[0];
-  sizes_raw[0] = token_offsets[0].size;
-
-  /* State. */
-  bool after_whitespace = is_whitespace(prev);
-  bool inside_escaped_char = false;
-  bool inside_preprocessor_directive = false;
-  bool inside_string = false;
-  bool inside_number = false;
-
-  uint32_t cursor = 1;
-  for (uint32_t i = 1; i < token_types.size(); i++) {
-    bool emit = true;
-#define merge_if(a) emit &= !(a)
-
-    TokenType tok = types_raw[i];
-    uint32_t offset = offsets_raw[i];
-    uint32_t tok_size = offsets_raw[i + 1] - offset;
-
-#ifndef NDEBUG
-    std::string_view tok_str{str_raw + offset, tok_size};
-#endif
-
-    /* Merge string literal. */
-    merge_if(inside_string);
-
-    /* Flip flop inside string when finding and unescaped quote. */
-    if (tok == String && !inside_escaped_char) {
-      inside_string = !inside_string;
-    }
-    inside_escaped_char = inside_string && (tok == '\\');
-
-    /* Merge number literal. */
-    if (inside_number) {
-      merge_if((tok == Word || tok == '.') &&
-               is_word_part_of_number_literal({str_raw + offset, tok_size}));
-      /* If sign is part of float literal after exponent. */
-      merge_if((tok == '+' || tok == '-') && str_raw[offset - 1] == 'e');
-
-      /* Disable if we do not emit. */
-      inside_number = (tok == Number) || !emit;
-    }
-
-    switch (tok) {
-      case Hash:
-        inside_preprocessor_directive = true;
-        break;
-
-      case NewLine:
-        after_whitespace = true;
-        /* Preprocessor directives. */
-        if (inside_preprocessor_directive) {
-          /* Detect preprocessor directive newlines `\\\n`. */
-          if (prev == Backslash) {
-            types_raw[cursor - 1] = PreprocessorNewline;
-            continue;
+    for (auto it = tok_buf.begin(); it < tok_buf.end(); ++it) {
+      TokenBuffer::Token tok = *it;
+      if (tok.type == '#') {
+        /* Seek until the end of the directive and mark it as PreprocessorNewLine
+         * to avoid loosing it during merge_whitespaces. This is necessary for parsing preprocessor
+         * directive scopes. */
+        while ((*it).type != EndOfFile) {
+          TokenBuffer::Token tok = *it;
+          if (tok.type == NewLine) {
+            tok.type = PreprocessorNewline;
+            break;
           }
-          inside_preprocessor_directive = false;
-          /* Make sure to keep the ending newline for a preprocessor directive. */
-          break;
+          if (tok.type == '\\') {
+            ++it; /* Escape newline. */
+          }
+          ++it;
         }
-        continue;
-
-      case Space:
-        after_whitespace = true;
-        continue;
-
-      case Word:
-        /* Merge words that contain numbers that were split by the tokenizer. */
-        if (prev == Word && !after_whitespace) {
-          sizes_raw[cursor - 1] += tok_size;
-          continue;
-        }
-        sizes_raw[cursor] = tok_size;
-        break;
-
-      case Number:
-        /* If digit is part of word. */
-        if (prev == Word && !after_whitespace) {
-          sizes_raw[cursor - 1] += tok_size;
-          continue;
-        }
-        if (prev == Number) {
-          continue;
-        }
-        inside_number = true;
-        break;
-
-      case '=':
-        /* Merge '=='. */
-        if (prev == '=') {
-          types_raw[cursor - 1] = Equal;
-          continue;
-        }
-        /* Merge '!='. */
-        if (prev == '!') {
-          types_raw[cursor - 1] = NotEqual;
-          continue;
-        }
-        /* Merge '>='. */
-        if (prev == '>') {
-          types_raw[cursor - 1] = GEqual;
-          continue;
-        }
-        /* Merge '<='. */
-        if (prev == '<') {
-          types_raw[cursor - 1] = LEqual;
-          continue;
-        }
-        break;
-
-      case '>':
-        /* Merge '->'. */
-        if (prev == '-') {
-          types_raw[cursor - 1] = Deref;
-          continue;
-        }
-        break;
-
-      case '&':
-        /* Detect logical and. */
-        if (prev == '&') {
-          types_raw[cursor - 1] = LogicalAnd;
-          continue;
-        }
-        break;
-
-      case '|':
-        /* Detect logical or. */
-        if (prev == '|') {
-          types_raw[cursor - 1] = LogicalOr;
-          continue;
-        }
-        break;
-
-      case '+':
-        /* Detect increment. */
-        if (prev == '+') {
-          types_raw[cursor - 1] = Increment;
-          continue;
-        }
-        break;
-
-      case '-':
-        /* Detect decrement. */
-        if (prev == '-') {
-          types_raw[cursor - 1] = Decrement;
-          continue;
-        }
-        break;
-
-      default:
-        break;
-    }
-    after_whitespace = false;
-
-    if (emit) {
-      prev = tok;
-      types_raw[cursor] = tok;
-      offsets_raw[cursor] = offset;
-      cursor += 1;
+      }
     }
   }
-  /* Make sure the last token extend to the end of the string. */
-  token_offsets.offsets[cursor] = token_offsets.offsets.back();
-  /* Shrink spans to new number of tokens. */
-  token_types.shrink(cursor);
-  token_offsets.offsets.shrink(cursor + 1);
+
+  lexit::TokenBuffer tok_buf(str.data(),
+                             str.size(),
+                             token_types.data(),
+                             token_offsets.data(),
+                             token_ends.data(),
+                             token_types.size());
+
+  tok_buf.merge_complex_literals();
+  tok_buf.merge_whitespaces();
+
+  /* Change back tor regular newline. */
+  for (auto tok : tok_buf) {
+    if (tok.type == PreprocessorNewline) {
+      tok.type = NewLine;
+    }
+  }
+
+  /* Resize to the actual usage. */
+  token_types.shrink(tok_buf.size());
+  token_ends.shrink(tok_buf.size());
+  token_offsets.offsets.shrink(tok_buf.size() + 1);
 
   update_string_view();
 }
@@ -664,12 +468,19 @@ static always_inline TokenType type_lookup(std::string_view s)
 
 void LexerBase::identify_keywords()
 {
-  int tok_id = -1;
-  for (TokenType &type : token_types) {
-    tok_id++;
-    if (type == Word) {
-      IndexRange range = token_offsets[tok_id];
-      type = type_lookup({str.data() + range.start, size_t(token_sizes[tok_id])});
+  lexit::TokenBuffer tok_buf(
+      str.data(), str.size(), token_types.data(), token_offsets.data(), token_types.size());
+
+  for (auto tok : tok_buf) {
+    switch (tok.type) {
+      case Word:
+        tok.type = type_lookup(tok.str);
+        break;
+      case Number:
+        break;
+      default:
+        tok.type = multi_tok_lookup(tok.type, tok.str);
+        break;
     }
   }
 }
@@ -743,7 +554,7 @@ void ParserBase::build_scope_tree(report_callback &report_error)
 
     const ScopeType current_scope = stack.back().type;
 
-    if (stack.back().type == ScopeType::Preprocessor) {  // Here
+    if (stack.back().type == ScopeType::Preprocessor) {
       if (type == NewLine) {
         stack.exit_scope(tok_id);
       }
@@ -983,7 +794,7 @@ void ParserBase::build_scope_tree(report_callback &report_error)
 
   if (stack.back().type != ScopeType::Global) {
     ScopeStack::Item scope_item = stack.back();
-    error_token = (*this)[scope_ranges[scope_item.index].start];
+    error_token = (*this)[stack.ranges[scope_item.index].start];
     error_msg = "Unterminated scope";
     goto error;
   }

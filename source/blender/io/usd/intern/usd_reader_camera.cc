@@ -337,7 +337,9 @@ void USDCameraReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 
   /* Recalculate any animation curve handles. */
   for (FCurve *fcu : channelbag.fcurves()) {
-    BKE_fcurve_handles_recalc(fcu);
+    if (fcu) {
+      BKE_fcurve_handles_recalc(*fcu);
+    }
   }
 
   USDXformReader::read_object_data(bmain, time);

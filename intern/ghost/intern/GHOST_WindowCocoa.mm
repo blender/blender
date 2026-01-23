@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GHOST_WindowCocoa.hh"
+
 #include "GHOST_ContextNone.hh"
 #include "GHOST_Debug.hh"
 #include "GHOST_SystemCocoa.hh"
@@ -23,9 +24,6 @@
 
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
-#import <QuartzCore/QuartzCore.h>
-
-#include <sys/sysctl.h>
 
 /* --------------------------------------------------------------------
  * Blender window delegate object.

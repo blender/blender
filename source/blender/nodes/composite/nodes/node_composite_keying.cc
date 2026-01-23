@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_color.h"
 #include "BLI_math_vector_types.hh"
 
@@ -23,11 +19,9 @@
 
 #include "node_composite_util.hh"
 
-namespace blender {
+namespace blender::nodes::node_composite_keying_cc {
 
-namespace nodes::node_composite_keying_cc {
-
-static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
@@ -160,7 +154,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
           "of the two is used, while 1 means the former of the two is used");
 }
 
-static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, only kept for forward compatibility. */
   NodeKeyingData *data = MEM_new_for_free<NodeKeyingData>(__func__);
@@ -818,12 +812,8 @@ static NodeOperation *get_compositor_operation(Context &context, const bNode &no
   return new KeyingOperation(context, node);
 }
 
-}  // namespace nodes::node_composite_keying_cc
-
-static void register_node_type_cmp_keying()
+static void node_register()
 {
-  namespace file_ns = nodes::node_composite_keying_cc;
-
   static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeKeying", CMP_NODE_KEYING);
@@ -833,15 +823,15 @@ static void register_node_type_cmp_keying()
       "from the backdrop)";
   ntype.enum_name_legacy = "KEYING";
   ntype.nclass = NODE_CLASS_MATTE;
-  ntype.declare = file_ns::cmp_node_keying_declare;
-  ntype.initfunc = file_ns::node_composit_init_keying;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
 
   bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_keying)
+NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender
+}  // namespace blender::nodes::node_composite_keying_cc

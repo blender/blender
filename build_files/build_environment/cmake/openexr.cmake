@@ -21,6 +21,7 @@ set(OPENEXR_EXTRA_ARGS
   -DImath_DIR=${LIBDIR}/imath/lib/cmake/Imath
   -DOPENEXR_LIB_SUFFIX=${OPENEXR_VERSION_BUILD_POSTFIX}
   -Dlibdeflate_DIR=${LIBDIR}/deflate/lib/cmake/libdeflate
+  -Dopenjph_DIR=${LIBDIR}/openjph/lib/cmake/openjph
 )
 
 ExternalProject_Add(external_openexr
@@ -74,4 +75,5 @@ add_dependencies(
   external_openexr
   external_imath
   external_deflate
+  external_openjph
 )

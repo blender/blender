@@ -599,7 +599,7 @@ static inline void replace_pose_key(Main &bmain,
 
   /* Clearing all keys beforehand in case the pose was not defined on frame defined in
    * `time_value`. */
-  BKE_fcurve_delete_keys_all(&fcurve);
+  BKE_fcurve_delete_keys_all(fcurve);
   const KeyframeSettings key_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO, BEZT_IPO_BEZ};
   insert_vert_fcurve(&fcurve, time_value, key_settings, INSERTKEY_NOFLAGS);
 }

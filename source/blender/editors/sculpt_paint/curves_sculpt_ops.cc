@@ -130,15 +130,16 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
     const Object &object,
     const StrokeExtension &stroke_start)
 {
-  const BrushStrokeMode mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
+  const auto mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
+  const auto brush_switch_mode = BrushSwitchMode(RNA_enum_get(op.ptr, "brush_toggle"));
 
   const CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&curves_sculpt.paint);
   const eBrushCurvesSculptType brush_type = eBrushCurvesSculptType(brush.curves_sculpt_brush_type);
-  if (mode == BRUSH_STROKE_SMOOTH) {
+  if (brush_switch_mode == BrushSwitchMode::Smooth) {
     if (brush_type == CURVES_SCULPT_BRUSH_TYPE_SELECTION_PAINT) {
-      /* The selection brush uses the BRUSH_STROKE_SMOOTH mode to indicate that the current
-       * selection should be added to. It should not toggle to the smooth brush itself. */
+      /* The selection brush uses the BrushSwitchMode::Smooth mode to indicate that the
+       * current selection should be added to. It should not toggle to the smooth brush itself. */
     }
     else {
       return new_smooth_operation();
@@ -157,7 +158,7 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
     case CURVES_SCULPT_BRUSH_TYPE_GROW_SHRINK:
       return new_grow_shrink_operation(mode, scene);
     case CURVES_SCULPT_BRUSH_TYPE_SELECTION_PAINT:
-      return new_selection_paint_operation(mode, scene);
+      return new_selection_paint_operation(mode, brush_switch_mode, scene);
     case CURVES_SCULPT_BRUSH_TYPE_PINCH:
       return new_pinch_operation(mode, scene);
     case CURVES_SCULPT_BRUSH_TYPE_SMOOTH:

@@ -65,10 +65,10 @@ inline float max_mag_component(const pxr::GfVec3d &vec)
   return pxr::GfMax(pxr::GfAbs(vec[0]), pxr::GfAbs(vec[1]), pxr::GfAbs(vec[2]));
 }
 
-void resize_fcurve(FCurve *fcu, uint bezt_count)
+void resize_fcurve(FCurve &fcu, uint bezt_count)
 {
   /* There is no need to resize if the counts match. */
-  if (!fcu || bezt_count == fcu->totvert) {
+  if (bezt_count == fcu.totvert) {
     return;
   }
 
@@ -170,7 +170,7 @@ void import_skeleton_curves(Main *bmain,
   BLI_assert_msg(fcurves.size() == curve_desc.size(), "USD: animation curve count mismatch");
   for (FCurve *fcu : fcurves) {
     if (fcu != nullptr) {
-      BKE_fcurve_bezt_resize(fcu, num_samples);
+      BKE_fcurve_bezt_resize(*fcu, num_samples);
     }
   }
 
@@ -315,8 +315,8 @@ void import_skeleton_curves(Main *bmain,
   /* Recalculate curve handles. */
   for (FCurve *fcu : fcurves) {
     if (fcu != nullptr) {
-      resize_fcurve(fcu, bezt_index);
-      BKE_fcurve_handles_recalc(fcu);
+      resize_fcurve(*fcu, bezt_index);
+      BKE_fcurve_handles_recalc(*fcu);
     }
   }
 }
@@ -673,8 +673,10 @@ void import_blendshapes(Main *bmain,
 
   /* Recalculate curve handles. */
   auto recalc_handles = [bezt_index](FCurve *fcu) {
-    resize_fcurve(fcu, bezt_index);
-    BKE_fcurve_handles_recalc(fcu);
+    if (fcu) {
+      resize_fcurve(*fcu, bezt_index);
+      BKE_fcurve_handles_recalc(*fcu);
+    }
   };
   std::for_each(curves.begin(), curves.end(), recalc_handles);
 }

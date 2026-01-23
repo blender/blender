@@ -483,7 +483,7 @@ class NodeTreeItemsIteratorTest(AbstractNodeGroupInterfaceTest, NodeGroupInterfa
         tree.interface.new_socket("Input 1", socket_type="NodeSocketBool", in_out='INPUT')
         # The cache vector has a fixed buffer for small sizes, add enough sockets to force reallocation.
         for i in range(20):
-            tree.interface.new_socket(f"Input {2+i}", socket_type="NodeSocketColor", in_out='INPUT')
+            tree.interface.new_socket(f"Input {2 + i}", socket_type="NodeSocketColor", in_out='INPUT')
 
         # Iterate over items and change properties. The loop iterator must remain valid.
         for item in tree.interface.items_tree:

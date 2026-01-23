@@ -152,7 +152,7 @@ bool graphop_visible_keyframes_poll(bContext *C)
     if (fcu->bezt == nullptr) {
       continue;
     }
-    if (BKE_fcurve_are_keyframes_usable(fcu)) {
+    if (BKE_fcurve_are_keyframes_usable(*fcu)) {
       found = true;
       break;
     }
@@ -208,7 +208,7 @@ bool graphop_editable_keyframes_poll(bContext *C)
       /* This is a baked curve, it is never editable. */
       continue;
     }
-    if (BKE_fcurve_is_keyframable(fcu)) {
+    if (BKE_fcurve_is_keyframable(*fcu)) {
       found = true;
       break;
     }

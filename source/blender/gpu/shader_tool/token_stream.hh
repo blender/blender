@@ -30,8 +30,8 @@ struct LexerBase {
 
   /** Token type per token. */
   MutableSpan<TokenType> token_types;
-  /** Size of the raw token before token merging. */
-  MutableSpan<uint32_t> token_sizes;
+  /** End of the raw token before whitespace removing. */
+  MutableSpan<uint32_t> token_ends;
   /** Ranges of characters per token. */
   OffsetIndices token_offsets;
 
@@ -39,21 +39,17 @@ struct LexerBase {
   size_t alloc_size = 0;
   char *memory = nullptr;
 
-  ~LexerBase()
-  {
-    std::free(memory);
-  }
+  ~LexerBase();
 
  protected:
   void ensure_memory();
   /* Create tokens based on character stream. */
-  void tokenize(bool only_preprocessor_tokens);
+  void tokenize(bool use_default_table = false);
+  /* Change words into keyword (ex: `if`, `struct`, `template`). Must run before merge tokens. */
+  void identify_keywords();
   /* Merge tokens (ex: '2','.','e','-','3` into '2.e-3`). */
   void merge_tokens();
-  /* Change words into keyword (ex: `if`, `struct`, `template`). */
-  void identify_keywords();
 
- private:
   void update_string_view();
 };
 
@@ -78,19 +74,25 @@ struct ExpressionLexer : LexerBase {
   {
     str = input;
     ensure_memory();
-    tokenize(false);
+    tokenize(true);
+    identify_keywords();
     merge_tokens();
   }
 };
 
+/**
+ * Allow recognition of operators and numbers. Merge whitespaces.
+ * However, doesn't merge angle bracket with other tokens in order to use them for template
+ * expressions parsing.
+ */
 struct FullLexer : LexerBase {
   void lexical_analysis(std::string_view input)
   {
     str = input;
     ensure_memory();
-    tokenize(false);
-    merge_tokens();
+    tokenize();
     identify_keywords();
+    merge_tokens();
   }
 };
 

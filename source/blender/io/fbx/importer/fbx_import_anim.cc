@@ -38,9 +38,9 @@ static FCurve *create_fcurve(animrig::Channelbag &channelbag,
                              const animrig::FCurveDescriptor &descriptor,
                              int64_t key_count)
 {
-  FCurve *cu = &channelbag.fcurve_ensure(nullptr, descriptor);
+  FCurve &cu = channelbag.fcurve_ensure(nullptr, descriptor);
   BKE_fcurve_bezt_resize(cu, key_count);
-  return cu;
+  return &cu;
 }
 
 static void set_curve_sample(FCurve *curve, int64_t key_index, float time, float value)
@@ -195,7 +195,7 @@ static Vector<ElementAnimations> gather_animated_properties(const FbxElementMapp
 static void finalize_curve(FCurve *cu)
 {
   if (cu != nullptr) {
-    BKE_fcurve_handles_recalc(cu);
+    BKE_fcurve_handles_recalc(*cu);
   }
 }
 
@@ -341,7 +341,9 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
   int64_t tot_curves = scale_index + 3;
   for (int64_t i = 0; i < tot_curves; i++) {
     BLI_assert_msg(curves[i], "fbx: animation curve was not created successfully");
-    BKE_fcurve_bezt_resize(curves[i], sorted_key_times.size());
+    if (curves[i]) {
+      BKE_fcurve_bezt_resize(*curves[i], sorted_key_times.size());
+    }
   }
 
   /* Evaluate transforms at all the key times. */

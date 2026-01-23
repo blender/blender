@@ -42,25 +42,25 @@ class MutableAttributeAccessor;
 /** Some storage types are only relevant for certain attribute types. */
 enum class AttrStorageType : int8_t {
   /** #AttributeDataArray. */
-  Array,
+  Array = 0,
   /** A single value for the whole attribute. */
-  Single,
+  Single = 1,
 };
 
 enum class AttrType : int16_t {
-  Bool,
-  Int8,
-  Int16_2D,
-  Int32,
-  Int32_2D,
-  Float,
-  Float2,
-  Float3,
-  Float4x4,
-  ColorByte,
-  ColorFloat,
-  Quaternion,
-  String,
+  Bool = 0,
+  Int8 = 1,
+  Int16_2D = 2,
+  Int32 = 3,
+  Int32_2D = 4,
+  Float = 5,
+  Float2 = 6,
+  Float3 = 7,
+  Float4x4 = 8,
+  ColorByte = 9,
+  ColorFloat = 10,
+  Quaternion = 11,
+  String = 12,
 };
 
 const CPPType &attribute_type_to_cpp_type(AttrType type);
@@ -500,6 +500,7 @@ struct AttributeAccessorFunctions {
   std::optional<AttributeDomainAndType> (*builtin_domain_and_type)(const void *owner,
                                                                    StringRef attribute_id);
   GPointer (*get_builtin_default)(const void *owner, StringRef attribute_id);
+  std::optional<AttributeMetaData> (*lookup_meta_data)(const void *owner, StringRef attribute_id);
   GAttributeReader (*lookup)(const void *owner, StringRef attribute_id);
   GVArray (*adapt_domain)(const void *owner,
                           const GVArray &varray,
@@ -556,12 +557,18 @@ class AttributeAccessor {
   /**
    * \return True, when the attribute is available.
    */
-  bool contains(StringRef attribute_id) const;
+  bool contains(StringRef attribute_id) const
+  {
+    return this->lookup_meta_data(attribute_id).has_value();
+  }
 
   /**
    * \return Information about the attribute if it exists.
    */
-  std::optional<AttributeMetaData> lookup_meta_data(StringRef attribute_id) const;
+  std::optional<AttributeMetaData> lookup_meta_data(StringRef attribute_id) const
+  {
+    return fn_->lookup_meta_data(owner_, attribute_id);
+  }
 
   /**
    * \return True, when attributes can exist on that domain.

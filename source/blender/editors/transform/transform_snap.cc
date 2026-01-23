@@ -154,10 +154,16 @@ bool transform_snap_is_active(const TransInfo *t)
 
 bool transformModeUseSnap(const TransInfo *t)
 {
-  /* The VSE and animation editors should not depend on the snapping options of the 3D viewport. */
-  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
+  /* The animation editors should not depend on the snapping options of the 3D viewport. */
+  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA)) {
     return true;
   }
+
+  /* The VSE has its own snapping options with no ability to snap while scaling/rotating yet. */
+  if (t->spacetype == SPACE_SEQ && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+    return false;
+  }
+
   ToolSettings *ts = t->settings;
   if (t->mode == TFM_TRANSLATION) {
     return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_TRANSLATE) != 0;
@@ -186,10 +192,6 @@ static bool doForceIncrementSnap(const TransInfo *t)
   if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
     /* These spaces don't support increment snapping. */
     return false;
-  }
-
-  if (t->spacetype == SPACE_SEQ && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
-    return true;
   }
 
   if (t->modifiers & MOD_SNAP_FORCED) {
@@ -1722,11 +1724,6 @@ static void snap_increment_apply(const TransInfo *t, const float loc[3], float r
 bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val)
 {
   if (!transform_snap_is_active(t)) {
-    return false;
-  }
-
-  if (t->spacetype == SPACE_SEQ) {
-    /* Sequencer has its own dedicated enum for snap_mode with increment snap bit overridden. */
     return false;
   }
 
