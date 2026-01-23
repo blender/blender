@@ -581,7 +581,7 @@ macro(get_sse_flags
       set(${_sse42_flags})
       # It also doesn't define __SSE__/__MMX__ flags and only does the AVX and higher flags.
       # For consistency we define these flags for MSVC.
-      add_compile_definitions(__MMX__ __SSE__ __SSE2__ _SSE3__ __SSE4_1__ __SSE4_2__)
+      add_compile_definitions(__MMX__ __SSE__ __SSE2__ __SSE3__ __SSE4_1__ __SSE4_2__)
     elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
       if(WIN32)
         set(${_sse42_flags} "/QxSSE4.2")
