@@ -1792,7 +1792,10 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
 class USERPREF_UL_asset_libraries(UIList):
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         asset_library = item
-        layout.prop(asset_library, "name", text="", emboss=False)
+
+        row = layout.row(align=True)
+        row.prop(asset_library, "enabled", text="")
+        row.prop(asset_library, "name", text="", emboss=False)
 
 
 class USERPREF_UL_extension_repos(UIList):

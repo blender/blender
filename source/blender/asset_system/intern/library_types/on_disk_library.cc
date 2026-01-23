@@ -40,4 +40,9 @@ void OnDiskAssetLibrary::refresh_catalogs()
   this->catalog_service().reload_catalogs();
 }
 
+bool OnDiskAssetLibrary::is_enabled() const
+{
+  return true;
+}
+
 }  // namespace blender::asset_system

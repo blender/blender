@@ -118,8 +118,8 @@ class AssetLibrary {
   virtual ~AssetLibrary();
 
   /**
-   * Execute \a fn for every asset library that is loaded. The asset library is passed to the
-   * \a fn call.
+   * Execute \a fn for every asset library that is loaded and enabled. The asset library is passed
+   * to the \a fn call.
    *
    * \param include_all_library: When true, \a fn will also be executed for the "All" asset
    *   library. This is just a combination of the other ones, so usually iterating over it is
@@ -200,6 +200,7 @@ class AssetLibrary {
   virtual void refresh_catalogs();
 };
 
+/** Get all asset library references which are enabled and for which the directory exists. */
 Vector<AssetLibraryReference> all_valid_asset_library_refs();
 
 AssetLibraryReference all_library_reference();

@@ -442,6 +442,9 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   }
 
   for (const auto [i, asset_library] : U.asset_libraries.enumerate()) {
+    if (asset_library.flag & ASSET_LIBRARY_DISABLED) {
+      continue;
+    }
     if (!BLI_is_dir(asset_library.dirpath)) {
       continue;
     }

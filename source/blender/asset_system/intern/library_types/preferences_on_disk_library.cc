@@ -40,4 +40,19 @@ std::optional<AssetLibraryReference> PreferencesOnDiskAssetLibrary::library_refe
   return {};
 }
 
+bool PreferencesOnDiskAssetLibrary::is_enabled() const
+{
+  for (const bUserAssetLibrary &asset_library : U.asset_libraries) {
+    if (!BLI_is_dir(asset_library.dirpath)) {
+      continue;
+    }
+
+    if (BLI_path_cmp_normalized(asset_library.dirpath, this->root_path().c_str()) == 0) {
+      return (asset_library.flag & ASSET_LIBRARY_DISABLED) == 0;
+    }
+  }
+
+  return false;
+}
+
 }  // namespace blender::asset_system

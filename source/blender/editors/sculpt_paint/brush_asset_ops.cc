@@ -281,29 +281,22 @@ static wmOperatorStatus brush_asset_save_as_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
   const asset_system::AssetLibrary &library = asset->owner_asset_library();
-  const std::optional<AssetLibraryReference> library_ref = library.library_reference();
-  if (!library_ref) {
-    BLI_assert_unreachable();
-    return OPERATOR_CANCELLED;
-  }
 
   RNA_string_set(op->ptr, "name", asset->get_name().c_str());
 
-  /* If the library isn't saved from the operator's last execution, find the current library or the
-   * first library if the current library isn't editable. */
+  /* If the library isn't saved from the operator's last execution, use the asset's owner library
+   * or fall back to the first library if the current library isn't editable. */
   if (!RNA_struct_property_is_set_ex(op->ptr, "asset_library_reference", false)) {
-    if (library_is_editable(*library_ref)) {
-      RNA_enum_set(op->ptr,
-                   "asset_library_reference",
-                   asset::library_reference_to_enum_value(&*library_ref));
+    std::optional<AssetLibraryReference> dest_library_ref =
+        ed::asset::get_user_library_ref_for_save(&library);
+
+    if (!dest_library_ref) {
+      BKE_report(op->reports, RPT_WARNING, "No editable asset library to save into");
+      return OPERATOR_CANCELLED;
     }
-    else {
-      const AssetLibraryReference first_library = asset::user_library_to_library_ref(
-          *static_cast<const bUserAssetLibrary *>(U.asset_libraries.first));
-      RNA_enum_set(op->ptr,
-                   "asset_library_reference",
-                   asset::library_reference_to_enum_value(&first_library));
-    }
+    RNA_enum_set(op->ptr,
+                 "asset_library_reference",
+                 asset::library_reference_to_enum_value(&*dest_library_ref));
   }
 
   /* By default, put the new asset in the same catalog as the existing asset. */
