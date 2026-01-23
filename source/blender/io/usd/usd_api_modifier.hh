@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
+
 #include "DNA_listBase.h"
 
 namespace blender {
@@ -38,7 +40,7 @@ CacheArchiveHandle *USD_create_handle(Main *bmain,
 
 void USD_free_handle(CacheArchiveHandle *handle);
 
-void USD_get_transform(CacheReader *reader, float r_mat[4][4], float time, float scale);
+void USD_get_transform(CacheReader *reader, float4x4 &r_mat_world, float time, float scale);
 
 /** Either modifies current_mesh in-place or constructs a new mesh. */
 void USD_read_geometry(CacheReader *reader,

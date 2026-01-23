@@ -46,7 +46,8 @@
 #include "BKE_scene.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
@@ -179,17 +180,12 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
   }
 
   if (params.convert_orientation) {
-    float mrot[3][3];
-    mat3_from_axis_conversion(IO_AXIS_Y, IO_AXIS_Z, params.forward_axis, params.up_axis, mrot);
-    transpose_m3(mrot);
+    float3x3 mrot;
+    mat3_from_axis_conversion(
+        IO_AXIS_Y, IO_AXIS_Z, params.forward_axis, params.up_axis, mrot.ptr());
 
-    float eul[3];
-    mat3_to_eul(eul, mrot);
-
-    /* Convert radians to degrees. */
-    mul_v3_fl(eul, 180.0f / M_PI);
-
-    xf_api.SetRotate(pxr::GfVec3f(eul[0], eul[1], eul[2]));
+    const math::EulerXYZ eul = math::to_euler(math::transpose(mrot));
+    xf_api.SetRotate(pxr::GfVec3f(eul.x().degree(), eul.y().degree(), eul.z().degree()));
   }
 
   for (const auto &path : pxr::SdfPath(params.root_prim_path).GetPrefixes()) {

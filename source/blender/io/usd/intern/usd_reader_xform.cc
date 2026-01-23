@@ -11,7 +11,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_string.h"
 
 #include "DNA_cachefile_types.h"
@@ -35,7 +36,7 @@ void USDXformReader::create_object(Main *bmain)
 void USDXformReader::read_object_data(Main * /*bmain*/, const pxr::UsdTimeCode time)
 {
   bool is_constant;
-  float transform_from_usd[4][4];
+  float4x4 transform_from_usd;
 
   read_matrix(transform_from_usd, time, settings_->scene_scale, &is_constant);
 
@@ -52,7 +53,7 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const pxr::UsdTimeCode t
     id_us_plus(&data->cache_file->id);
   }
 
-  BKE_object_apply_mat4(object_, transform_from_usd, true, false);
+  BKE_object_apply_mat4(object_, transform_from_usd.ptr(), true, false);
 
   /* Make sure to collect custom attributes */
   set_props(use_parent_xform(), time);
@@ -63,38 +64,33 @@ pxr::SdfPath USDXformReader::object_prim_path() const
   return get_xformable().GetPrim().GetPath();
 }
 
-void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
+void USDXformReader::read_matrix(float4x4 &r_mat /* local matrix */,
                                  const pxr::UsdTimeCode time,
                                  const float scale,
                                  bool *r_is_constant) const
 {
-  BLI_assert(r_mat);
   BLI_assert(r_is_constant);
 
   *r_is_constant = true;
-  unit_m4(r_mat);
+  r_mat = float4x4::identity();
 
   std::optional<XformResult> xf_result = get_local_usd_xform(time);
-
   if (!xf_result) {
     return;
   }
 
-  std::get<0>(*xf_result).Get(r_mat);
+  std::get<0>(*xf_result).Get(r_mat.ptr());
   *r_is_constant = std::get<1>(*xf_result);
 
   /* Apply global scaling and rotation only to root objects, parenting
    * will propagate it. */
-  if ((scale != 1.0 || settings_->do_convert_mat) && is_root_xform_) {
-
+  if (is_root_xform_) {
     if (scale != 1.0f) {
-      float scale_mat[4][4];
-      scale_m4_fl(scale_mat, scale);
-      mul_m4_m4m4(r_mat, scale_mat, r_mat);
+      r_mat = math::scale(r_mat, float3(scale));
     }
 
     if (settings_->do_convert_mat) {
-      mul_m4_m4m4(r_mat, settings_->conversion_mat, r_mat);
+      r_mat = settings_->conversion_mat * r_mat;
     }
   }
 }

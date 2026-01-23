@@ -11,6 +11,7 @@
 #include "usd_hash_types.hh"
 
 #include "BLI_map.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_set.hh"
 
 #include <pxr/usd/sdf/path.h>
@@ -31,7 +32,7 @@ namespace io::usd {
 struct ImportSettings {
   bool blender_stage_version_prior_44 = false;
   bool do_convert_mat = false;
-  float conversion_mat[4][4] = {};
+  float4x4 conversion_mat;
 
   /* From MeshSeqCacheModifierData.read_flag */
   int read_flag = 0;

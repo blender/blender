@@ -46,10 +46,7 @@ class USDXformReader : public USDPrimReader {
 
   pxr::SdfPath object_prim_path() const override;
 
-  void read_matrix(float r_mat[4][4],
-                   pxr::UsdTimeCode time,
-                   float scale,
-                   bool *r_is_constant) const;
+  void read_matrix(float4x4 &r_mat, pxr::UsdTimeCode time, float scale, bool *r_is_constant) const;
 
   bool use_parent_xform() const
   {

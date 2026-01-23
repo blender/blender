@@ -12,7 +12,10 @@
 
 #include "DNA_object_types.h"
 
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_quaternion.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_vector.hh"
 
@@ -69,13 +72,6 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  constexpr float UNIT_M4[4][4] = {
-      {1, 0, 0, 0},
-      {0, 1, 0, 0},
-      {0, 0, 1, 0},
-      {0, 0, 0, 1},
-  };
-
   pxr::UsdGeomXformable xform = create_xformable();
 
   if (!xform) {
@@ -83,41 +79,39 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  float parent_relative_matrix[4][4]; /* The object matrix relative to the parent. */
+  float4x4 parent_relative_matrix; /* The object matrix relative to the parent. */
 
   if (should_apply_root_xform(context)) {
-    float matrix_world[4][4];
-    copy_m4_m4(matrix_world, context.matrix_world);
+    float4x4 matrix_world = context.matrix_world;
 
     if (usd_export_context_.export_params.convert_orientation) {
-      float mrot[3][3];
-      float mat[4][4];
+      float3x3 mrot;
+      float4x4 mat = float4x4::identity();
       mat3_from_axis_conversion(IO_AXIS_Y,
                                 IO_AXIS_Z,
                                 usd_export_context_.export_params.forward_axis,
                                 usd_export_context_.export_params.up_axis,
-                                mrot);
-      transpose_m3(mrot);
-      copy_m4_m3(mat, mrot);
-      mul_m4_m4m4(matrix_world, mat, context.matrix_world);
+                                mrot.ptr());
+      mat.view<3, 3>() = math::transpose(mrot);
+      matrix_world = mat * context.matrix_world;
     }
 
     if (usd_export_context_.export_params.convert_scene_units !=
         eUSDSceneUnits::USD_SCENE_UNITS_METERS)
     {
-      float scale_mat[4][4];
-      scale_m4_fl(scale_mat, float(1.0 / get_meters_per_unit(usd_export_context_.export_params)));
-      mul_m4_m4m4(matrix_world, scale_mat, matrix_world);
+      const float scale = float(1.0 / get_meters_per_unit(usd_export_context_.export_params));
+      matrix_world = math::scale(matrix_world, float3(scale));
     }
 
-    mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, matrix_world);
+    parent_relative_matrix = context.parent_matrix_inv_world * matrix_world;
   }
   else {
-    mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, context.matrix_world);
+    parent_relative_matrix = context.parent_matrix_inv_world * context.matrix_world;
   }
 
   /* USD Xforms are by default the identity transform; only write if necessary when static. */
-  if (is_animated_ || !compare_m4m4(parent_relative_matrix, UNIT_M4, 0.000000001f)) {
+  if (is_animated_ || !math::is_equal(parent_relative_matrix, float4x4::identity(), 0.000000001f))
+  {
     set_xform_ops(parent_relative_matrix, xform);
   }
 
@@ -146,7 +140,7 @@ bool USDTransformWriter::check_is_animated(const HierarchyContext &context) cons
   return BKE_object_moves_in_time(context.object, context.animation_check_include_parent);
 }
 
-void USDTransformWriter::set_xform_ops(float parent_relative_matrix[4][4],
+void USDTransformWriter::set_xform_ops(const float4x4 &parent_relative_matrix,
                                        const pxr::UsdGeomXformable &xf)
 {
   if (!xf) {
@@ -185,41 +179,35 @@ void USDTransformWriter::set_xform_ops(float parent_relative_matrix[4][4],
   pxr::UsdTimeCode time_code = get_export_time_code();
 
   if (xformOps_.size() == 1) {
-    pxr::GfMatrix4d mat_val(parent_relative_matrix);
+    pxr::GfMatrix4d mat_val(parent_relative_matrix.ptr());
     usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), mat_val, time_code);
   }
   else if (xformOps_.size() == 3) {
+    float3 loc;
+    math::Quaternion rot;
+    float3 scale;
 
-    float loc[3];
-    float quat[4];
-    float scale[3];
-
-    mat4_decompose(loc, quat, scale, parent_relative_matrix);
+    math::to_loc_rot_scale<true>(parent_relative_matrix, loc, rot, scale);
 
     if (xfOpMode == USD_XFORM_OP_TRS) {
-      float rot[3];
-      quat_to_eul(rot, quat);
-      rot[0] *= 180.0 / M_PI;
-      rot[1] *= 180.0 / M_PI;
-      rot[2] *= 180.0 / M_PI;
-
-      pxr::GfVec3d loc_val(loc);
+      pxr::GfVec3d loc_val(loc.x, loc.y, loc.z);
       usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), loc_val, time_code);
 
-      pxr::GfVec3f rot_val(rot);
+      const math::EulerXYZ eul = math::to_euler(rot);
+      pxr::GfVec3f rot_val(eul.x().degree(), eul.y().degree(), eul.z().degree());
       usd_value_writer_.SetAttribute(xformOps_[1].GetAttr(), rot_val, time_code);
 
-      pxr::GfVec3f scale_val(scale);
+      pxr::GfVec3f scale_val(scale.x, scale.y, scale.z);
       usd_value_writer_.SetAttribute(xformOps_[2].GetAttr(), scale_val, time_code);
     }
     else if (xfOpMode == USD_XFORM_OP_TOS) {
-      pxr::GfVec3d loc_val(loc);
+      pxr::GfVec3d loc_val(loc.x, loc.y, loc.z);
       usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), loc_val, time_code);
 
-      pxr::GfQuatf quat_val(quat[0], quat[1], quat[2], quat[3]);
+      pxr::GfQuatf quat_val(rot.w, rot.x, rot.y, rot.z);
       usd_value_writer_.SetAttribute(xformOps_[1].GetAttr(), quat_val, time_code);
 
-      pxr::GfVec3f scale_val(scale);
+      pxr::GfVec3f scale_val(scale.x, scale.y, scale.z);
       usd_value_writer_.SetAttribute(xformOps_[2].GetAttr(), scale_val, time_code);
     }
   }
