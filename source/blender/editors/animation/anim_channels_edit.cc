@@ -4281,7 +4281,8 @@ static int click_select_channel_action_slot(bAnimContext *ac,
   return (ND_ANIMCHAN | NA_SELECTED);
 }
 
-static int click_select_channel_shapekey(bAnimContext *ac,
+static int click_select_channel_shapekey(bContext *C,
+                                         bAnimContext *ac,
                                          bAnimListElem *ale,
                                          const short /* eEditKeyframes_Select or -1 */ selectmode)
 {
@@ -4301,6 +4302,10 @@ static int click_select_channel_shapekey(bAnimContext *ac,
     ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     kb->flag |= KEYBLOCK_SEL;
   }
+
+  PointerRNA object_ptr = RNA_pointer_create_discrete(&ob.id, RNA_Object, &ob);
+  PropertyRNA *prop = RNA_struct_find_property(&object_ptr, "active_shape_key_index");
+  RNA_property_update(C, &object_ptr, prop);
 
   return (ND_ANIMCHAN | NA_SELECTED);
 }
@@ -4552,7 +4557,7 @@ static int mouse_anim_channels(bContext *C,
       notifierFlags |= click_select_channel_action_slot(ac, ale, selectmode);
       break;
     case ANIMTYPE_SHAPEKEY:
-      notifierFlags |= click_select_channel_shapekey(ac, ale, selectmode);
+      notifierFlags |= click_select_channel_shapekey(C, ac, ale, selectmode);
       break;
     case ANIMTYPE_NLACONTROLS:
       notifierFlags |= click_select_channel_nlacontrols(ale);
