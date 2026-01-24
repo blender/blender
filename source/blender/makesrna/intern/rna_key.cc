@@ -982,6 +982,10 @@ static void rna_def_keyblock(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Key_update_data");
   RNA_def_struct_name_property(srna, prop);
 
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", KEYBLOCK_SEL);
+  RNA_def_property_ui_text(prop, "Select", "Shape key selection state");
+
   /* keys need to be sorted to edit this */
   prop = RNA_def_property(srna, "frame", PROP_FLOAT, PROP_TIME);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

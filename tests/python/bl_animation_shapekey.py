@@ -133,6 +133,35 @@ class LatticeShapekeyTest(unittest.TestCase):
         # Incomplete test, same issue as CurveShapekeyTest.
 
 
+class ShapekeySelectionTest(unittest.TestCase):
+    def setUp(self):
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+        self.cube = bpy.data.objects["Cube"]
+        self.cube.shape_key_add(name="Base")
+        self.key_1 = self.cube.shape_key_add(name="one")
+        self.key_2 = self.cube.shape_key_add(name="two")
+        self.key_3 = self.cube.shape_key_add(name="three")
+
+    def test_shape_keys_selected(self):
+        selected_keys = self.cube.shape_keys_selected()
+        # None selected
+        self.assertEqual(len(selected_keys), 0)
+
+        # One shape key selected
+        self.key_2.select = True
+        selected_keys = self.cube.shape_keys_selected()
+        self.assertEqual(selected_keys[0].name, "two")
+
+        # All shape keys selected
+        self.key_1.select = True
+        self.key_3.select = True
+        selected_keys = self.cube.shape_keys_selected()
+        self.assertEqual(len(selected_keys), 3)
+        self.assertEqual(selected_keys[0].name, "one")
+        self.assertEqual(selected_keys[1].name, "two")
+        self.assertEqual(selected_keys[2].name, "three")
+
+
 def main():
     global args
     import argparse
