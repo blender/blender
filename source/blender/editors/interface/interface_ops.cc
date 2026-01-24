@@ -2787,6 +2787,12 @@ static wmOperatorStatus view_item_click_select(bContext &C,
         /* Select end items from the range. */
         item.set_selected(true);
       }
+
+      if (!item.is_filtered_visible()) {
+        /* Skip selection of elements that are not visible with the search string. */
+        return;
+      }
+
       if (is_inside_range) {
         /* Select items within the range. */
         item.set_selected(true);
