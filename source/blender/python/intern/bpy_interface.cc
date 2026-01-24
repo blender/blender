@@ -211,7 +211,6 @@ void BPY_context_dict_clear_members_array(void **dict_p,
     PyObject *key = PyUnicode_FromString(context_members[i]);
     PyObject *item;
 
-#if PY_VERSION_HEX >= 0x030d0000
     switch (PyDict_Pop(dict, key, &item)) {
       case 1: {
         Py_DECREF(item);
@@ -224,10 +223,6 @@ void BPY_context_dict_clear_members_array(void **dict_p,
         break;
       }
     }
-#else /* Remove when Python 3.12 support is dropped. */
-    item = _PyDict_Pop(dict, key, Py_None);
-    Py_DECREF(item);
-#endif
 
     Py_DECREF(key);
   }

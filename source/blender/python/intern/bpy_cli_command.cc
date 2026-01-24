@@ -217,8 +217,7 @@ static PyObject *bpy_cli_command_register(PyObject * /*self*/, PyObject *args, P
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
-      "O!"  /* `id` */
+      "O!" /* `id` */
       "O"  /* `execute` */
       ":register_cli_command",
       _keywords,

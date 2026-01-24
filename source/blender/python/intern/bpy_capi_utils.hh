@@ -12,8 +12,8 @@
 
 namespace blender {
 
-#if PY_VERSION_HEX < 0x030b0000
-#  error "Python 3.11 or greater is required, you'll need to update your Python."
+#if PY_VERSION_HEX < 0x030d0000
+#  error "Python 3.13 or greater is required, you'll need to update your Python."
 #endif
 
 struct bContext;

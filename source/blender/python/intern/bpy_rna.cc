@@ -3768,7 +3768,6 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 
   static const char *_keywords[] = {"", "ghost", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "s"  /* `name` (positional). */
       "|$" /* Optional keyword only arguments. */
       "O&" /* `ghost` */

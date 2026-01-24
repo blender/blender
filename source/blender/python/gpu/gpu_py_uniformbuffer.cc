@@ -70,7 +70,6 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject * /*self*/,
 
   static const char *_keywords[] = {"data", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O" /* `data` */
       ":GPUUniformBuf.__new__",
       _keywords,

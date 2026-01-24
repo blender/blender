@@ -148,20 +148,12 @@ def _rmtree_safe(dir_remove: str, expected_root: str) -> Exception | None:
 
     ex_result = None
 
-    if sys.version_info < (3, 12):
-        def on_error(*args) -> None:  # type: ignore
-            nonlocal ex_result
-            print("Failed to remove:", args)
-            ex_result = args[2][0]
+    def on_exc(*args) -> None:  # type: ignore
+        nonlocal ex_result
+        print("Failed to remove:", args)
+        ex_result = args[2]
 
-        shutil.rmtree(dir_remove, onerror=on_error)
-    else:
-        def on_exc(*args) -> None:  # type: ignore
-            nonlocal ex_result
-            print("Failed to remove:", args)
-            ex_result = args[2]
-
-        shutil.rmtree(dir_remove, onexc=on_exc)
+    shutil.rmtree(dir_remove, onexc=on_exc)
 
     return ex_result
 

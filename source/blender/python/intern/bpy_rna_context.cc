@@ -541,10 +541,9 @@ static PyObject *bpy_rna_context_temp_override_logging_set(BPyContextTempOverrid
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
-      "O&"  /* `enable` */
-      "|$"  /* Optional keyword only arguments. */
-      "O&"  /* `hide_missing` */
+      "O&" /* `enable` */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `hide_missing` */
       ":logging_set",
       _keywords,
       nullptr,
@@ -661,7 +660,6 @@ static PyObject *bpy_context_temp_override_extract_known_args(const char *const 
     PyObject *key = PyUnicode_FromString(kwds_static[i]);
     PyObject *val;
 
-#if PY_VERSION_HEX >= 0x030d0000
     switch (PyDict_Pop(kwds, key, &val)) {
       case 1: {
         if (PyDict_SetItem(kwds_parse, key, val) == -1) {
@@ -677,16 +675,6 @@ static PyObject *bpy_context_temp_override_extract_known_args(const char *const 
         break;
       }
     }
-#else /* Remove when Python 3.12 support is dropped. */
-    PyObject *sentinel = Py_Ellipsis;
-    val = _PyDict_Pop(kwds, key, sentinel);
-    if (val != sentinel) {
-      if (PyDict_SetItem(kwds_parse, key, val) == -1) {
-        BLI_assert_unreachable();
-      }
-    }
-    Py_DECREF(val);
-#endif
 
     Py_DECREF(key);
   }
@@ -760,7 +748,6 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "|$" /* Optional, keyword only arguments. */
       "O&" /* `window` */
       "O&" /* `screen` */

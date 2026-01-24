@@ -91,7 +91,6 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `filepath` */
       "O!" /* `datablocks` */
       "|$" /* Optional keyword only arguments. */
