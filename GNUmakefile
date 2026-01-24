@@ -653,7 +653,9 @@ help_features: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_print_build_options.py" $(BLENDER_DIR)"/CMakeLists.txt"
 
 clean: .FORCE
-	$(BUILD_COMMAND) -C "$(BUILD_DIR)" clean
+	@if [ -d "$(BUILD_DIR)" ] ; then \
+		$(BUILD_COMMAND) -C "$(BUILD_DIR)" clean ; \
+	fi
 
 .PHONY: all
 
