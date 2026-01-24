@@ -296,6 +296,8 @@ def _template_asset_shelf_popup(asset_shelf, spacebar_action):
         kmi_args = {"type": 'SPACE', "value": 'PRESS', "shift": True}
     elif spacebar_action == 'TOOL':
         kmi_args = {"type": 'SPACE', "value": 'PRESS'}
+    else:
+        assert False, "unreachable"
 
     return [("wm.call_asset_shelf_popover", kmi_args, {"properties": [("name", asset_shelf)]})]
 
@@ -4275,7 +4277,10 @@ def km_grease_pencil_weight_paint(params):
         # Radial controls
         *_template_paint_radial_control("gpencil_weight_paint"),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-         radial_control_properties("gpencil_weight_paint", "weight", "use_unified_weight")),
+         radial_control_properties(
+             "gpencil_weight_paint", "weight",
+             secondary_prop="use_unified_weight",
+        )),
         # Toggle Add/Subtract for weight draw tool
         ("grease_pencil.weight_toggle_direction", {"type": 'D', "value": 'PRESS'}, None),
 
@@ -4715,22 +4720,30 @@ def km_paint_curve(params):
 # Radial control setup helpers, this operator has a lot of properties.
 
 
-def radial_control_properties(paint, prop, secondary_prop, secondary_rotation=False, color=False, zoom=False):
-    brush_path = "tool_settings." + paint + ".brush"
-    unified_path = "tool_settings." + paint + ".unified_paint_settings"
+def radial_control_properties(
+        paint,
+        prop,
+        *,
+        secondary_prop,
+        secondary_rotation=False,
+        color=False,
+        zoom=False,
+):
+    brush_path = "tool_settings.{:s}.brush".format(paint)
+    unified_path = "tool_settings.{:s}.unified_paint_settings".format(paint)
     rotation = "mask_texture_slot.angle" if secondary_rotation else "texture_slot.angle"
     return {
         "properties": [
-            ("data_path_primary", brush_path + '.' + prop),
-            ("data_path_secondary", unified_path + '.' + prop if secondary_prop else ''),
-            ("use_secondary", unified_path + '.' + secondary_prop if secondary_prop else ''),
-            ("rotation_path", brush_path + '.' + rotation),
-            ("color_path", brush_path + '.cursor_color_add'),
-            ("fill_color_path", brush_path + '.color' if color else ''),
-            ("fill_color_override_path", unified_path + '.color' if color else ''),
-            ("fill_color_override_test_path", unified_path + '.use_unified_color' if color else ''),
-            ("zoom_path", "space_data.zoom" if zoom else ''),
-            ("image_id", brush_path + ''),
+            ("data_path_primary", "{:s}.{:s}".format(brush_path, prop)),
+            ("data_path_secondary", "{:s}.{:s}".format(unified_path, prop) if secondary_prop else ""),
+            ("use_secondary", "{:s}.{:s}".format(unified_path, secondary_prop) if secondary_prop else ""),
+            ("rotation_path", "{:s}.{:s}".format(brush_path, rotation)),
+            ("color_path", "{:s}.cursor_color_add".format(brush_path)),
+            ("fill_color_path", "{:s}.color".format(brush_path) if color else ""),
+            ("fill_color_override_path", "{:s}.color".format(unified_path) if color else ""),
+            ("fill_color_override_test_path", "{:s}.use_unified_color".format(unified_path) if color else ""),
+            ("zoom_path", "space_data.zoom" if zoom else ""),
+            ("image_id", brush_path),
             ("secondary_tex", secondary_rotation),
         ],
     }
@@ -4744,23 +4757,40 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
     items.extend([
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
          radial_control_properties(
-             paint, "size", "use_unified_size", secondary_rotation=secondary_rotation, color=color, zoom=zoom)),
+             paint, "size",
+             secondary_prop="use_unified_size",
+             secondary_rotation=secondary_rotation,
+             color=color,
+             zoom=zoom,
+        )),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
          radial_control_properties(
-             paint, "strength", "use_unified_strength", secondary_rotation=secondary_rotation, color=color)),
+             paint, "strength",
+             secondary_prop="use_unified_strength",
+             secondary_rotation=secondary_rotation,
+             color=color,
+        )),
     ])
 
     if rotation:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-             radial_control_properties(paint, "texture_slot.angle", None, color=color)),
+             radial_control_properties(
+                 paint, "texture_slot.angle",
+                 secondary_prop=None,
+                 color=color,
+            )),
         ])
 
     if secondary_rotation:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
              radial_control_properties(
-                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color)),
+                 paint, "mask_texture_slot.angle",
+                 secondary_prop=None,
+                 secondary_rotation=secondary_rotation,
+                 color=color,
+            )),
         ])
 
     return items
@@ -5092,7 +5122,10 @@ def km_weight_paint(params):
          {"properties": [("scalar", 1.0 / 0.9)]}),
         *_template_paint_radial_control("weight_paint"),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-         radial_control_properties("weight_paint", "weight", "use_unified_weight")),
+         radial_control_properties(
+             "weight_paint", "weight",
+             secondary_prop="use_unified_weight",
+        )),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS', "alt": True},
          {"properties": [("data_path", "tool_settings.vertex_paint.brush.stroke_method")]}),
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
@@ -6064,7 +6097,7 @@ def km_transform_modal_map(params):
         {"items": items},
     )
 
-    alt_without_navigaton = {} if params.use_alt_navigation else {"alt": True}
+    alt_without_navigation = {} if params.use_alt_navigation else {"alt": True}
 
     items.extend([
         ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
@@ -6100,25 +6133,25 @@ def km_transform_modal_map(params):
         ("PROPORTIONAL_SIZE_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "repeat": True}, None),
         ("PROPORTIONAL_SIZE_UP", {"type": 'PAGE_UP', "value": 'PRESS', "shift": True, "repeat": True}, None),
         ("PROPORTIONAL_SIZE_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "shift": True, "repeat": True}, None),
-        ("PROPORTIONAL_SIZE_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
-        ("PROPORTIONAL_SIZE_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
+        ("PROPORTIONAL_SIZE_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
+        ("PROPORTIONAL_SIZE_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
         ("PROPORTIONAL_SIZE_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True}, None),
         ("PROPORTIONAL_SIZE_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True}, None),
-        ("PROPORTIONAL_SIZE", {"type": 'TRACKPADPAN', "value": 'ANY', **alt_without_navigaton}, None),
+        ("PROPORTIONAL_SIZE", {"type": 'TRACKPADPAN', "value": 'ANY', **alt_without_navigation}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'PAGE_UP', "value": 'PRESS', "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'PAGE_UP', "value": 'PRESS', "shift": True, "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "shift": True, "repeat": True}, None),
-        ("AUTOIK_CHAIN_LEN_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
-        ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
+        ("AUTOIK_CHAIN_LEN_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
+        ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True}, None),
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True}, None),
         ("INSERTOFS_TOGGLE_DIR", {"type": 'T', "value": 'PRESS'}, None),
         ("NODE_ATTACH_ON", {"type": 'LEFT_ALT', "value": 'RELEASE', "any": True}, None),
         ("NODE_ATTACH_OFF", {"type": 'LEFT_ALT', "value": 'PRESS', "any": True}, None),
         ("NODE_FRAME", {"type": 'F', "value": 'PRESS'}, None),
-        ("AUTOCONSTRAIN", {"type": 'MIDDLEMOUSE', "value": 'ANY', **alt_without_navigaton}, None),
-        ("AUTOCONSTRAINPLANE", {"type": 'MIDDLEMOUSE', "value": 'ANY', "shift": True, **alt_without_navigaton}, None),
+        ("AUTOCONSTRAIN", {"type": 'MIDDLEMOUSE', "value": 'ANY', **alt_without_navigation}, None),
+        ("AUTOCONSTRAINPLANE", {"type": 'MIDDLEMOUSE', "value": 'ANY', "shift": True, **alt_without_navigation}, None),
         ("PRECISION", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
         ("PRECISION", {"type": 'RIGHT_SHIFT', "value": 'ANY', "any": True}, None),
         ("STRIP_CLAMP_TOGGLE", {"type": 'C', "value": 'PRESS', "any": True}, None),
@@ -7216,7 +7249,7 @@ def km_image_editor_tool_mask_primitive_square(params):
         "Image Editor Tool: Mask, Box",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("mask.primitive_square_add", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+            ("mask.primitive_square_add", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": []}),
         ]},
     )
@@ -7227,7 +7260,7 @@ def km_image_editor_tool_mask_primitive_circle(params):
         "Image Editor Tool: Mask, Circle",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("mask.primitive_circle_add", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+            ("mask.primitive_circle_add", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": []}),
         ]},
     )
@@ -8086,9 +8119,9 @@ def km_3d_view_tool_sculpt_polyline_mask(params):
         "3D View Tool: Sculpt, Polyline Mask",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"},
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("value", 1.0)]}),
-            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS", "ctrl": True},
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("value", 0.0)]}),
         ]},
     )
@@ -8144,9 +8177,9 @@ def km_3d_view_tool_sculpt_polyline_hide(params):
         "3D View Tool: Sculpt, Polyline Hide",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"},
+            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("action", 'HIDE')]}),
-            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS", "ctrl": True},
+            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("action", 'SHOW')]}),
         ]},
     )
@@ -8187,7 +8220,7 @@ def km_3d_view_tool_sculpt_polyline_face_set(params):
         "3D View Tool: Sculpt, Polyline Face Set",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("sculpt.face_set_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
+            ("sculpt.face_set_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'}, None)
         ]},
     )
 
@@ -8227,7 +8260,7 @@ def km_3d_view_tool_sculpt_polyline_trim(params):
         "3D View Tool: Sculpt, Polyline Trim",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("sculpt.trim_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
+            ("sculpt.trim_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'}, None)
         ]}
     )
 
