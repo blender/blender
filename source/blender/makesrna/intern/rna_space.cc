@@ -3915,7 +3915,7 @@ static IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[] = {
     {FILTER_ID_AC, "category_animation", ICON_ANIM_DATA, "Animations", "Show animation data"},
     {FILTER_ID_OB | FILTER_ID_GR,
      "category_object",
-     ICON_OUTLINER_COLLECTION,
+     ICON_GROUP,
      "Objects & Collections",
      "Show objects and collections"},
     {FILTER_ID_AR | FILTER_ID_CU_LEGACY | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME |
