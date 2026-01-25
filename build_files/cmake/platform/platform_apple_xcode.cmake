@@ -96,7 +96,7 @@ else()
   endif()
 
   unset(_cltools_pkg_info)
-  unset(__cltools_pkg_info_result)
+  unset(_cltools_pkg_info_result)
 endif()
 
 # Require a relatively recent Xcode version.

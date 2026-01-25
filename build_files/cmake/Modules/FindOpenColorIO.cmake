@@ -81,7 +81,5 @@ mark_as_advanced(
   OPENCOLORIO_VERSION
 )
 
-unset(COMPONENT)
-unset(UPPERCOMPONENT)
 unset(_opencolorio_LIBRARIES)
 unset(_opencolorio_SEARCH_DIRS)
