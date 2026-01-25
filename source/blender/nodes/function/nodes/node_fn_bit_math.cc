@@ -112,10 +112,12 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const bool is_integer = params.other_socket().type == SOCK_INT;
   const int weight = is_integer ? 0 : -1;
 
+  const StringRef socket_name = (params.in_out() == SOCK_OUT) ? "Value" : "A";
+
   for (const auto &item : bit_math_operation_items) {
     if (item.name != nullptr && item.identifier[0] != '\0') {
       params.add_item(
-          IFACE_(item.name), SocketSearchOp{"A", BitMathOperation(item.value)}, weight);
+          IFACE_(item.name), SocketSearchOp{socket_name, BitMathOperation(item.value)}, weight);
     }
   }
 }
