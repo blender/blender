@@ -414,7 +414,8 @@ enum {
   R_IMF_EXR_CODEC_B44A = 7,
   R_IMF_EXR_CODEC_DWAA = 8,
   R_IMF_EXR_CODEC_DWAB = 9,
-  R_IMF_EXR_CODEC_MAX = 10,
+  R_IMF_EXR_CODEC_HTJ2K = 10,
+  R_IMF_EXR_CODEC_MAX = 11,
 };
 
 /** #ImageFormatData::exr_flag */

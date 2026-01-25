@@ -61,6 +61,12 @@ const EnumPropertyItem rna_enum_exr_codec_items[] = {
      0,
      "DWAB (lossy)",
      "JPEG-like lossy compression on 256 row image blocks"},
+    {R_IMF_EXR_CODEC_HTJ2K,
+     "HTJ2K",
+     0,
+     "",
+     "Lossless compression based on high throughput JPEG 2000 encoding. It produces smaller "
+     "files, but it is new and not widely supported by other software yet."},
     {R_IMF_EXR_CODEC_ZIPS,
      "ZIPS",
      0,
