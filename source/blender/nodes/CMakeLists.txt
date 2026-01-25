@@ -32,7 +32,7 @@ function(add_node_discovery
       ${sources}
       ${extra_args}
     DEPENDS
-      ${SRC}
+      ${sources}
       ${DISCOVER_NODES_PATH}
   )
   set_source_files_properties(${output_file} PROPERTIES GENERATED TRUE)
