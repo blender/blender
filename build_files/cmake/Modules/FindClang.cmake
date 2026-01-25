@@ -23,7 +23,7 @@ endif()
 
 if(NOT LLVM_ROOT_DIR)
   if(DEFINED LLVM_VERSION)
-    message(running llvm-config-${LLVM_VERSION})
+    message(STATUS "Running llvm-config-${LLVM_VERSION}")
     find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION})
   endif()
   if(NOT LLVM_CONFIG)
