@@ -354,7 +354,7 @@ if(WITH_COMPILER_ASAN)
 endif()
 
 # -----------------------------------------------------------------------------
-# Create module with headers common for all compute backend.
+# Create module with headers common for all compute backends.
 
 add_library(cycles_kernel INTERFACE)
 target_sources(cycles_kernel INTERFACE

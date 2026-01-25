@@ -36,7 +36,7 @@ else()
       endif()
     endif()
 
-    # Avoid namespace pollustion.
+    # Avoid namespace pollution.
     unset(LIBDIR_NATIVE_ABI)
     unset(LIBDIR_GLIBC228_ABI)
   endif()

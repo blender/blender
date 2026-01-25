@@ -5,7 +5,7 @@
 # - Find Eigen3 library
 # Find the native Eigen3 includes and library
 # This module defines
-#  EIGEN3_INCLUDE_DIRS, where to find spnav.h, Set when
+#  EIGEN3_INCLUDE_DIRS, where to find Eigen/Eigen, Set when
 #                        EIGEN3_INCLUDE_DIR is found.
 #  EIGEN3_ROOT_DIR, The base directory to search for Eigen3.
 #                    This can also be an environment variable.

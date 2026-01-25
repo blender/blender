@@ -117,7 +117,7 @@ set(PTHREADS_COPYRIGHT [=[
 Copyright 1998 John E. Bossom
 Copyright 1999-2018, Pthreads4w contributors
 
-This product includes software developed through the colaborative
+This product includes software developed through the collaborative
 effort of several individuals, each of whom is listed in the file
 CONTRIBUTORS included with this software.
 

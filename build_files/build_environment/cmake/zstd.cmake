@@ -41,7 +41,7 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/zstd/include/
         ${HARVEST_TARGET}/zstd/include/
-      # The zstandard python extension hardcoded links to ztsd.lib
+      # The zstandard python extension hardcoded links to zstd.lib
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/zstd/lib/zstd_static${LIBEXT}
         ${LIBDIR}/zstd/lib/zstd${LIBEXT}
@@ -49,7 +49,7 @@ if(WIN32)
     )
   else()
     ExternalProject_Add_Step(external_zstd after_install
-      # The zstandard python extension hardcoded links to ztsd.lib
+      # The zstandard python extension hardcoded links to zstd.lib
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/zstd/lib/zstd_static${LIBEXT}
         ${LIBDIR}/zstd/lib/zstd${LIBEXT}

@@ -11,7 +11,7 @@ option(FORCE_CHECK_HASH "Force a check of all hashes during CMake the configure 
 cmake_host_system_information(RESULT NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
 set(MAKE_THREADS ${NUM_CORES} CACHE STRING "Number of threads to run make with")
 
-# Any python module building with setup.py cannot use multiple theads on windows
+# Any python module building with setup.py cannot use multiple threads on windows
 # as they will try to write to the same .pdb file simultaneously which causes
 # build errors.
 if(WIN32)

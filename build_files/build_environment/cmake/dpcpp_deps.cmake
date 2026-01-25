@@ -17,7 +17,7 @@ ExternalProject_Add(external_vcintrinsics
 )
 
 # opencl headers do not have to be unpacked, dpcpp will do it
-# but it wouldn't hurt to do it anyway as an opertunity to validate
+# but it wouldn't hurt to do it anyway as an opportunity to validate
 # the hash is correct.
 ExternalProject_Add(external_openclheaders
   URL file://${PACKAGE_DIR}/${OPENCLHEADERS_FILE}
@@ -30,7 +30,7 @@ ExternalProject_Add(external_openclheaders
 )
 
 # icdloader does not have to be unpacked, dpcpp will do it
-# but it wouldn't hurt to do it anyway as an opertunity to validate
+# but it wouldn't hurt to do it anyway as an opportunity to validate
 # the hash is correct.
 ExternalProject_Add(external_icdloader
   URL file://${PACKAGE_DIR}/${ICDLOADER_FILE}

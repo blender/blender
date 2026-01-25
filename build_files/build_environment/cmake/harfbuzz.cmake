@@ -21,7 +21,7 @@ set(HARFBUZZ_EXTRA_OPTIONS
   -Dglib=disabled
   -Dgobject=disabled
   # Only used for command line utilities,
-  # disable as this would add an addition & unnecessary build-dependency.
+  # disable as this would add an additional & unnecessary build-dependency.
   -Dcairo=disabled
   ${MESON_BUILD_TYPE}
 )

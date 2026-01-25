@@ -109,7 +109,7 @@ if(WITH_UI_TESTS)
     )
   endif()
   function(add_blender_test_ui testname)
-    # Remove `--background`a
+    # Remove `--background`
     set(EXE_PARAMS ${TEST_BLENDER_EXE_PARAMS})
     list(REMOVE_ITEM EXE_PARAMS --background)
     add_blender_test_impl(
@@ -1191,7 +1191,7 @@ if(WITH_GPU_RENDER_TESTS AND TEST_SRC_DIR_EXISTS)
   )
 
   if(WITH_TESTS_EXPERIMENTAL)
-    # The viewport tests are flakey and difficult to keep up to date for use
+    # The viewport tests are flaky and difficult to keep up to date for use
     # in a CI environment due to constantly changing UI, but may still be helpful
     # for local development.
     #
@@ -1552,7 +1552,7 @@ if(TEST_SRC_DIR_EXISTS)
 endif()
 
 # ------------------------------------------------------------------------------
-# Linux Release sainty checks
+# Linux Release sanity checks
 # ------------------------------------------------------------------------------
 
 if(WITH_LINUX_OFFICIAL_RELEASE_TESTS)

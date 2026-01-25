@@ -10,7 +10,7 @@ if(WITH_IO_FBX)
   add_subdirectory(ufbx)
 endif()
 
-# Otherwise we get warnings here that we cant fix in external projects
+# Otherwise we get warnings here that we can't fix in external projects
 remove_strict_flags()
 
 # Not a strict flag, but noisy for code we don't maintain

@@ -39,7 +39,7 @@ file(TO_CMAKE_PATH $ENV{VCToolsInstallDir} OPENPGL_VCTOOLSINSTALLDIR_PATH)
 cmake_path(GET OPENPGL_VCTOOLSINSTALLDIR_PATH PARENT_PATH OPENPGL_VCTOOLSDIR_PATH)
 file(GLOB OPENPGL_INSTALLED_VCTOOLS RELATIVE ${OPENPGL_VCTOOLSDIR_PATH} ${OPENPGL_VCTOOLSDIR_PATH}/${OPENPGL_VCTOOLS_REQUIRED_VERSION}*)
 
-# Check that at least one the installed tool versions
+# Check that at least one of the installed tool versions
 # (there may be different subversions) is present.
 if(NOT OPENPGL_INSTALLED_VCTOOLS)
   message(FATAL_ERROR

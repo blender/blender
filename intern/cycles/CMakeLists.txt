@@ -330,7 +330,7 @@ if(WITH_OPENIMAGEDENOISE)
   )
 endif()
 
-# Includes that might be overrides by USD last, to avoid compiling
+# Includes that might be overridden by USD last, to avoid compiling
 # against the wrong versions of other libraries.
 include_directories(
   SYSTEM
@@ -376,7 +376,7 @@ if(WITH_CYCLES_PATH_GUIDING)
   # Different levels can be selected to measure the overhead of different stages.
   # 1 = recording the path segments
   # 2 = 1 + generating (not storing) sample data from the segments
-  # 3 = 2 + storing the generates sample data
+  # 3 = 2 + storing the generated sample data
   # 4 = 3 + training the guiding fields
   # 5 = 4 + querying the trained guiding for sampling (full path guiding)
   add_definitions(-DPATH_GUIDING_LEVEL=5)

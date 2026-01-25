@@ -224,7 +224,7 @@ endif()
 if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_python after_install
-      # Boost can't keep it self from linking release python
+      # Boost can't keep itself from linking release python
       # in a debug configuration even if all options are set
       # correctly to instruct it to use the debug version
       # of python. So just copy the debug imports file over

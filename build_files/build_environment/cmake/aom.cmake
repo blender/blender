@@ -75,7 +75,7 @@ if(NOT WIN32)
 else()
     if(BUILD_MODE STREQUAL Release)
       # aom insists on building a static version even if you
-      # do not want it, get rid of it by coping the import lib
+      # do not want it, get rid of it by copying the import lib
       # on top of it, so other projects don't accidentally link
       # the static library.
       ExternalProject_Add_Step(external_aom after_install

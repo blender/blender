@@ -358,22 +358,22 @@ function(blender_link_libraries
   #
   #   set(FOO_LIBRARIES optimized libfoo.lib debug libfoo_d.lib)
   #
-  # Complications starts with a single argument for library_deps: all the elements are being
+  # Complications start with a single argument for library_deps: all the elements are being
   # put to a list: "${FOO_LIBRARIES}" will become "optimized;libfoo.lib;debug;libfoo_d.lib".
-  # This makes it impossible to pass it as-is to target_link_libraries sine it will treat
+  # This makes it impossible to pass it as-is to target_link_libraries since it will treat
   # this argument as a list of libraries to be linked against, causing missing libraries
   # for optimized.lib.
   #
-  # What this code does it traverses library_deps and extracts information about whether
-  # library is to provided as general, debug or optimized. This is a little state machine which
-  # keeps track of which build type library is to provided for:
+  # What this code does is traverse library_deps and extracts information about whether
+  # library is to be provided as general, debug or optimized. This is a little state machine which
+  # keeps track of which build type library is to be provided for:
   #
   # - If "debug" or "optimized" word is found, the next element in the list is expected to be
   #   a library which will be passed to target_link_libraries() under corresponding build type.
   #
   # - If there is no "debug" or "optimized" used library is specified for all build types.
   #
-  # NOTE: If separated libraries for debug and release are needed every library is the list are
+  # NOTE: If separated libraries for debug and release are needed every library in the list is
   # to be prefixed explicitly.
   #
   # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
@@ -448,7 +448,7 @@ function(blender_add_lib__impl
   # Not for system includes because they can resolve to the same path
   # list_assert_duplicates("${includes_sys}")
 
-  # blenders dependency loops are longer than cmake expects and we need additional loops to
+  # Blender's dependency loops are longer than cmake expects and we need additional loops to
   # properly link.
   set_property(TARGET ${name} APPEND PROPERTY LINK_INTERFACE_MULTIPLICITY 3)
 endfunction()

@@ -23,7 +23,7 @@ else()
 endif()
 
 # The installation directory's Python is the best one to use. However, it can only be there
-# after the install step, # which means that Python will never be there on a fresh system.
+# after the install step, which means that Python will never be there on a fresh system.
 # To suit different needs, the user can pass `-DTEST_PYTHON_EXE=/path/to/python` to CMake.
 if(NOT TEST_PYTHON_EXE)
   set(TEST_PYTHON_EXE ${PYTHON_EXECUTABLE})
@@ -106,7 +106,7 @@ if(WITH_COMPILER_CODE_COVERAGE)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18.1 OR
        (CMAKE_C_COMPILER_ID MATCHES "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.0)
       )
-      # Available clang on 18.1+ only , Apple's compiler doesn't map 1:1 to clang
+      # Available clang on 18.1+ only, Apple's compiler doesn't map 1:1 to clang
       # versions so on apple we check for version 17+ which maps to clang
       # version 19.1.4, given this is somewhat unintuitive there is a handy table on
       # https://en.wikipedia.org/wiki/Xcode#Xcode_15.0_-_(since_visionOS_support)_2

@@ -7,7 +7,7 @@
 # This module defines
 #  PUGIXML_INCLUDE_DIRS, where to find pugixml.hpp, Set when
 #                        PugiXML is found.
-#  PUGIXML_LIBRARIES, libraries to link against to use PugiiXML.
+#  PUGIXML_LIBRARIES, libraries to link against to use PugiXML.
 #  PUGIXML_ROOT_DIR, The base directory to search for PugiXML.
 #                    This can also be an environment variable.
 #  PUGIXML_FOUND, If false, do not try to use PugiXML.

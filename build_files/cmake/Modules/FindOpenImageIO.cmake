@@ -11,7 +11,7 @@
 #  OPENIMAGEIO_ROOT_DIR, The base directory to search for OpenImageIO.
 #                        This can also be an environment variable.
 #  OPENIMAGEIO_FOUND, If false, do not try to use OpenImageIO.
-#  OPENIMAGEIO_PUGIXML_FOUND, Indicates whether OIIO has biltin PuguXML parser.
+#  OPENIMAGEIO_PUGIXML_FOUND, Indicates whether OIIO has builtin PugiXML parser.
 #  OPENIMAGEIO_TOOL, full path to oiiotool application if found.
 #
 # also defined, but not for general use are

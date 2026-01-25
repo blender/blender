@@ -535,7 +535,7 @@ if(WITH_IMAGE_OPENEXR)
       ${OPENEXR_INCLUDE_DIR}/OpenEXR
     )
     set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-    # Check if the blender 3.3 lib static library eixts
+    # Check if the blender 3.3 lib static library exists
     # if not assume this is a 3.4+ dynamic version.
     if(EXISTS "${OPENEXR_LIBPATH}/OpenEXR_s.lib")
       set(OPENEXR_POSTFIX _s)
@@ -1186,7 +1186,7 @@ if(WINDOWS_PYTHON_DEBUG)
   set_target_properties(blender_python_system_scripts PROPERTIES FOLDER "scripts")
   set_target_properties(blender_python_user_scripts PROPERTIES FOLDER "scripts")
   # Set the default debugging options for the project, only write this file once so the user
-  # is free to override them at their own perril.
+  # is free to override them at their own peril.
   set(USER_PROPS_FILE "${CMAKE_CURRENT_BINARY_DIR}/source/creator/blender.Cpp.user.props")
   if(NOT EXISTS ${USER_PROPS_FILE})
     # Layout below is messy, because otherwise the generated file will look messy.

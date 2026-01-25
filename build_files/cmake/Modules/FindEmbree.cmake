@@ -10,7 +10,7 @@
 #  EMBREE_LIBRARIES, libraries to link against to use Embree.
 #  EMBREE_ROOT_DIR, The base directory to search for Embree.
 #                        This can also be an environment variable.
-#  EMBREEFOUND, If false, do not try to use Embree.
+#  EMBREE_FOUND, If false, do not try to use Embree.
 
 # If `EMBREE_ROOT_DIR` was defined in the environment, use it.
 if(DEFINED EMBREE_ROOT_DIR)

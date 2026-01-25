@@ -145,7 +145,7 @@ ELSE()
     SET(CMAKE_CXX_FLAGS_DEBUG CACHE STRING "-ggdb")
     SET(CMAKE_C_FLAGS_DEBUG CACHE STRING "-ggdb")
   ELSEIF(MSVC)
-    # This part is unnecessary 'casue the same is set by the lemon/core.h.
+    # This part is unnecessary 'cause the same is set by the lemon/core.h.
     # Still keep it as an example.
     SET(CXX_WARNING "/wd4250 /wd4355 /wd4503 /wd4800 /wd4996")
     # Suppressed warnings:

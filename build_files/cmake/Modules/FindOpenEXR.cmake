@@ -14,7 +14,7 @@
 #
 # For individual library access these advanced settings are available
 #  OPENEXR_HALF_LIBRARY, Path to Half library
-#  OPENEXR_IEX_LIBRARY, Path to Half library
+#  OPENEXR_IEX_LIBRARY, Path to Iex library
 #  OPENEXR_ILMIMF_LIBRARY, Path to Ilmimf library
 #  OPENEXR_ILMTHREAD_LIBRARY, Path to IlmThread library
 #  OPENEXR_IMATH_LIBRARY, Path to Imath library

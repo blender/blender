@@ -54,7 +54,7 @@ file(TO_CMAKE_PATH $ENV{VCToolsInstallDir} EMBREE_VCTOOLSINSTALLDIR_PATH)
 cmake_path(GET EMBREE_VCTOOLSINSTALLDIR_PATH PARENT_PATH EMBREE_VCTOOLSDIR_PATH)
 file(GLOB EMBREE_INSTALLED_VCTOOLS RELATIVE ${EMBREE_VCTOOLSDIR_PATH} ${EMBREE_VCTOOLSDIR_PATH}/${EMBREE_VCTOOLS_REQUIRED_VERSION}*)
 
-# Check that at least one the installed tool versions
+# Check that at least one of the installed tool versions
 # (there may be different subversions) is present.
 if(NOT EMBREE_INSTALLED_VCTOOLS)
   message(FATAL_ERROR

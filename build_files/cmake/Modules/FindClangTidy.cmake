@@ -7,7 +7,7 @@
 # Find the native clang-tidy executable
 #
 # This module defines
-#  CLANG_TIDY_EXECUTABLE, the ful lpath to clang-tidy executable
+#  CLANG_TIDY_EXECUTABLE, the full path to clang-tidy executable
 #
 #  CLANG_TIDY_VERSION, the full version of the clang-tidy in the
 #                      major,minor.patch format
@@ -16,7 +16,7 @@
 # CLANG_TIDY_VERSION_MINOR,
 # CLANG_TIDY_VERSION_PATCH, individual components of the clang-tidy version.
 #
-#  CLANG_TIDY_FOUND, If false, do not try to use Eigen3.
+#  CLANG_TIDY_FOUND, If false, do not try to use clang-tidy.
 
 # If `CLANG_TIDY_ROOT_DIR` was defined in the environment, use it.
 if(DEFINED CLANG_TIDY_ROOT_DIR)

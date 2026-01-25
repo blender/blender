@@ -59,7 +59,7 @@ ExternalProject_Add(external_spirv_headers
 
 if(UNIX AND NOT APPLE)
   # These are used in `cmake/FindWayland.cmake` from `external_vulkan_loader`.
-  # NOTE: When upgrading to CMAKE 3.22 we it would be cleaner to use: `PKG_CONFIG_ARGN`,
+  # NOTE: When upgrading to CMAKE 3.22 it would be cleaner to use: `PKG_CONFIG_ARGN`,
   # so `pkgconfig` would find wayland.
   set(VULKAN_LOADER_EXTRA_ARGS
     ${VULKAN_LOADER_EXTRA_ARGS}
