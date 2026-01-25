@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "BLI_ressource_strings.h"
+#include "BLI_resource_strings.h"
 #include "testing/testing.h"
 
 #define GHASH_INTERNAL_API

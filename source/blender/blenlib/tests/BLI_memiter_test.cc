@@ -10,7 +10,7 @@
 #include "BLI_memiter.h"
 #include "BLI_string_utils.hh"
 
-#include "BLI_ressource_strings.h"
+#include "BLI_resource_strings.h"
 #include "BLI_string.h"
 
 namespace blender {
