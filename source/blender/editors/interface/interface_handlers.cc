@@ -9810,18 +9810,22 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, Button *but
           bool reenable_tooltip = true;
           bScreen *screen = CTX_wm_screen(C);
           if (screen && screen->tool_tip) {
-            if (but->type == ButtonType::Label && BLI_rctf_size_y(&but->rect) > UI_UNIT_Y) {
-              /* For some large buttons (like File/Asset thumbnails),
-               * allow some movement once the tooltip timer has started. */
-              const int threshold = WM_event_drag_threshold(event);
-              const int movement = len_manhattan_v2v2_int(event->xy, screen->tool_tip->event_xy);
+            const int movement = len_manhattan_v2v2_int(event->xy, screen->tool_tip->event_xy);
+            const int threshold = WM_event_drag_threshold(event);
+            if (screen->tool_tip->region) {
+              /* Tooltip is showing. Only reset with motion on large buttons.
+               * Otherwise the tooltip follows the mouse while it is moved. */
+              const bool large_button = but->type == ButtonType::Label &&
+                                        BLI_rctf_size_y(&but->rect) > UI_UNIT_Y;
+              reenable_tooltip = (large_button && movement > threshold);
+            }
+            else {
+              /* Tooltip not yet showing. Allow some movement before resetting timer,
+               * otherwise it is difficult to get tooltips with pens and touch. #153319. */
               reenable_tooltip = (movement > threshold);
             }
-            else if (screen->tool_tip->region) {
-              /* Don't reset if already showing for a regular size button. */
-              reenable_tooltip = false;
-            }
           }
+
           if (reenable_tooltip) {
             ui_blocks_set_tooltips(region, true);
             button_tooltip_timer_reset(C, but);
