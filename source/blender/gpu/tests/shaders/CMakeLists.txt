@@ -20,7 +20,6 @@ set(SRC_GLSL_VERT
 
 set(SRC_GLSL_FRAG
   gpu_framebuffer_layer_viewport_test.glsl
-  gpu_framebuffer_layer_viewport_test.glsl
   gpu_framebuffer_subpass_input_test.glsl
   gpu_math_test.glsl
   gpu_specialization_test.glsl
