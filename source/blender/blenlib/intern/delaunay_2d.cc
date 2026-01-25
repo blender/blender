@@ -2796,6 +2796,10 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
   /* Store one winding delta per region pair using a map.
    * Key: (from_region, to_region), Value: winding delta from the first edge found. */
   Map<int2, int> region_pair_winding;
+  /* Reserve based on region count: ~3 edges per region, 2 entries per edge.
+   * This is an absolute floor (actual count is likely larger),
+   * but avoids re-allocations at small values. */
+  region_pair_winding.reserve(6 * num_regions);
 
   for (CDTEdge<T> *e : cdt->edges) {
     if (is_deleted_edge(e) || !is_constrained_edge(e)) {
