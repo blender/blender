@@ -215,7 +215,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
       unset(cuda_nvcc_executable)
       unset(cuda_toolkit_root_dir)
-      unset(cuda_version)
     endif()
   endforeach()
 
