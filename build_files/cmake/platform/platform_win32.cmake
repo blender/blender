@@ -90,8 +90,6 @@ macro(find_package_wrapper)
   endif()
 endmacro()
 
-add_definitions(-DWIN32)
-
 # Needed, otherwise system encoding causes utf-8 encoding to fail in some cases (C4819)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
