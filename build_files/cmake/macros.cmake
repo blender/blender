@@ -784,9 +784,9 @@ endmacro()
 
 macro(remove_strict_cxx_flags_file
   filenames)
-  remove_strict_c_flags_file(${filenames} ${ARHV})
+  remove_strict_c_flags_file(${filenames} ${ARGV})
   foreach(_SOURCE ${ARGV})
-    if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
+    if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR
        (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
       set_source_files_properties(
         ${_SOURCE} PROPERTIES
