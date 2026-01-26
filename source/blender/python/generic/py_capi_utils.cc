@@ -1170,6 +1170,20 @@ void PyC_MainModule_Restore(PyObject *main_mod)
   }
 }
 
+int PyC_Module_AddToSysModules(PyObject *sys_modules, PyObject *module)
+{
+  /* It would be OK to remove this assert if we ever wanted to add to a non-standard module dict.
+   * Currently it's only ever expected that they match, hence the assert. */
+  BLI_assert(sys_modules == PyImport_GetModuleDict());
+  PyObject *name = PyModule_GetNameObject(module);
+  if (name == nullptr) {
+    return -1;
+  }
+  int result = PyDict_SetItem(sys_modules, name, module);
+  Py_DECREF(name);
+  return result;
+}
+
 bool PyC_IsInterpreterActive()
 {
   /* instead of PyThreadState_Get, which calls Py_FatalError */

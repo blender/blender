@@ -207,7 +207,7 @@ PyObject *BPY_app_icons_module()
 
   PyObject *mod = PyModule_Create(&M_AppIcons_module_def);
 
-  PyDict_SetItem(sys_modules, PyModule_GetNameObject(mod), mod);
+  PyC_Module_AddToSysModules(sys_modules, mod);
 
   return mod;
 }
