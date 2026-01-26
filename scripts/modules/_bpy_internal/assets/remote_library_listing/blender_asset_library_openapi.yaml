@@ -1,15 +1,21 @@
-# SPDX-FileCopyrightText: 2025 Blender Authors
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This is the OpenAPI specification for Blender's Remote Assets system.
 #
-# It has been intentionally trimmed down to the bare minimum for a review of the
-# code generator in general, and how it integrates into Blender's build system.
+# At this moment, the `paths` section is not used by the Blender code, and is
+# here just for referencing by humans. It is also still being designed, so don't
+# take it as set in stone.
 #
-# The `paths` section is not used by the Blender code, and is here just for
-# referencing by humans. The Python code generator just uses the data structures
-# specified by the `components` section.
+# The Python code generator just uses the data structures specified by the
+# `components` section.
+#
+# --------------------------------------------------------------------------
+# Run `ninja generate_datamodels` from the build directory to regenerate the
+# Python code in blender_asset_library_openapi.py. Replace `ninja` with your
+# build tool of choice.
+# --------------------------------------------------------------------------
 
 openapi: 3.0.0
 info:
@@ -25,11 +31,14 @@ info:
 servers:
   - url: /
 paths:
+  ## Meta
+
   /_asset-library-meta.json:
     summary: Meta-information about this asset library.
     get:
       summary: Retrieve the asset library meta info.
       operationId: getLibraryMeta
+      tags: [meta]
       responses:
         "200":
           description: normal response
@@ -38,8 +47,53 @@ paths:
               schema:
                 $ref: "#/components/schemas/AssetLibraryMeta"
 
+  ## Index
+  /_v1/asset-index.json:
+    summary: The index of the asset library, containing the metadata of all available assets.
+    get:
+      summary: Get the asset library index.
+      operationId: getLibraryIndex
+      tags: [index]
+      responses:
+        "200":
+          description: normal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetLibraryIndexV1"
+
+  /_v1/assets-{page}.json:
+    summary: >
+      The index of the asset library, containing the metadata of all available assets.
+      Note that the actual URLs of these pages are listed in the `asset-index.json` above.
+      The path specified here is merely a suggestion.
+    get:
+      summary: Get the asset library index.
+      operationId: getLibraryIndexPage
+      tags: [index]
+      parameters:
+        - name: page
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: normal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetLibraryIndexPageV1"
+
+tags:
+  - name: meta
+    description: Info about the asset library itself.
+  - name: index
+    description: Access to the asset library's list of assets.
+
 components:
   schemas:
+    ## Meta
+
     AssetLibraryMeta:
       type: object
       description: "Meta-data of this asset library."
@@ -53,13 +107,9 @@ components:
             A single asset library can expose multiple versions, in order to be
             backward-compatible with older versions of Blender.
 
-            Properties should be "v1", "v2", etc. and their values should point
-            to their respective index files.
-          additionalProperties:
-            type: string
-          patternProperties:
-            "^v[0-9]+$":
-              type: string
+            Keys should be "v1", "v2", etc. and their values should be a
+            URLWithHash that points to each version's index file.
+          additionalProperties: { $ref: "#/components/schemas/URLWithHash" }
         "name":
           type: string
           description: Name of this asset library.
@@ -67,7 +117,9 @@ components:
       required: [api_versions, name, contact]
       example:
         api_versions:
-          v1: _v1/asset-index.json
+          v1:
+            url: _v1/asset-index.json
+            hash: "SHA256:22c9d2d5e9fe119b43fb8437df06c88e61d3bbad315690284b9eece66641c1e9"
         name: Blender Essentials
         contact:
           name: Blender
@@ -81,3 +133,239 @@ components:
         "url": { type: string }
         "email": { type: string }
       required: [name]
+
+    ## Index
+
+    AssetLibraryIndexV1:
+      type: object
+      description: The available assets at this library.
+      properties:
+        "schema_version":
+          type: string
+          description: >
+            Version number of the used schema. This should be the same as the
+            version of this OpenAPI definition, as described in its
+            'info.version' field.
+        "asset_size_bytes": { type: integer }
+        "asset_count":
+          type: integer
+          description: >
+            Total number of assets in this index. This is the sum of all
+            `asset_count` fields of each page.
+        "file_count":
+          type: integer
+          description: >
+            Total number of files in this index. This is the sum of all
+            `file_count` fields of each page (after deduplication).
+        "pages":
+          type: array
+          items: { $ref: "#/components/schemas/URLWithHash" }
+          description: >
+            URLs of the individual asset index pages. When relative, these are
+            taken as relative to the main server URL (i.e. the root of all paths
+            defined in this OpenAPI spec).
+        "catalogs":
+          type: array
+          items: { $ref: "#/components/schemas/CatalogV1" }
+      required:
+        [schema_version, asset_size_bytes, asset_count, file_count, pages]
+
+    URLWithHash:
+      type: object
+      description: >
+        Resource that's identified by a URL. The resource should be fetched by
+        including the hash in the query string, like `GET {URL}?hash={HASH}`.
+        Here `{HASH}` should _not_ include the hash type. The purpose of
+        including this on the URL is for cache busting, and thus the hash type
+        is not relevant here.
+      properties:
+        "url":
+          type: string
+          description: URL of the page file
+        "hash":
+          type: string
+          description: >
+            Hash of the resource obtained at that URL. This should be in the
+            format "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type
+            is supported.
+
+            Note that for dynamic API servers, which may perform a server-side
+            filter on the data, the actual response may not have the same hash.
+            Static servers send content that matches the hash.
+      required: [url, hash]
+
+    AssetLibraryIndexPageV1:
+      type: object
+      description: Any number of assets.
+      properties:
+        "asset_count":
+          type: integer
+          description: >
+            Number of assets in this page. This is declared separately, so that
+            a partial JSON parser has this information before the entire file is
+            downloaded and parsed.
+        "file_count":
+          type: integer
+          description: >
+            Number of files in this page. This is declared separately, so that
+            a partial JSON parser has this information before the entire file is
+            downloaded and parsed.
+        "assets":
+          type: array
+          items: { $ref: "#/components/schemas/AssetV1" }
+        "files":
+          type: array
+          items: { $ref: "#/components/schemas/FileV1" }
+          description: >
+            The files that are referenced by the above assets. Note that there
+            may be duplication of this information between asset pages, as each
+            file can contain multiple assets, and those assets might be
+            scattered across multiple pages.
+      required: [asset_count, file_count, assets, files]
+
+    AssetV1:
+      type: object
+      description: >
+        Representation of a single asset. Assets are always Blender data-blocks
+        in some blend file.
+
+        This asset may be stored in the same blend file as other assets, and so
+        it does _not_ represent a single downloadable item.
+      properties:
+        "name":
+          type: string
+          description: Name of the Blender data-block.
+        "id_type": { $ref: "#/components/schemas/AssetIDTypeV1" }
+        "files":
+          type: array
+          items: { type: string }
+          minItems: 1
+          description: >
+            Relative paths of the files that contain this asset. The first entry
+            in the list MUST contain the asset data-block itself, while the
+            remaining entries can be in any order. These relative paths are used
+            to look up more file information in the asset library's list of
+            files.
+        "thumbnail": { $ref: "#/components/schemas/URLWithHash" }
+        "meta": { $ref: "#/components/schemas/AssetMetadataV1" }
+      required:
+        - "name"
+        - "id_type"
+        - "files"
+
+    AssetIDTypeV1:
+      type: string
+      description: >
+        Type of the Blender data-block.
+
+        This can be obtained via BPY with `datablock.id_type`. Any comparisons
+        should be done in a case-insensitive manner.
+
+        Note that this list is just a list of data-block types in Blender. This
+        type being in this list does not mean that Blender supports making this
+        data-block an asset. It's just here to ensure that if that changes, and
+        more data-block types can become assets, this schema doesn't need
+        updating.
+
+    AssetMetadataV1:
+      type: object
+      description: >
+        Metadata of an asset, as defined by Blender's `AssetMeta` DNA struct.
+        Fields should either be non-empty or absent.
+      properties:
+        "catalog_id":
+          type: string
+          description: >
+            The catalog UUID that contains this asset. Having the UUID here
+            makes it easier to create a per-blendfile .cats.txt file, if that's
+            ever necessary.
+        "tags":
+          type: array
+          items: { type: string }
+          minItems: 1
+        "author": { type: string }
+        "description": { type: string }
+        "license": { type: string }
+        "copyright": { type: string }
+        "custom": { $ref: "#/components/schemas/CustomPropertiesV1" }
+
+    CustomPropertiesV1:
+      type: object
+      description: >
+        Arbitrary custom properties of the asset. Keys are the property names.
+      additionalProperties:
+        $ref: "#/components/schemas/CustomPropertyV1"
+
+    CustomPropertyV1:
+      type: object
+      description: >
+        Single 'custom property' value of the asset. The value should be
+        compatible with the given type; GROUP properties should be represented
+        as `CustomPropertiesV1` object again. Arrays should specify an
+        `itemtype`.
+      properties:
+        "type": { $ref: "#/components/schemas/CustomPropertyTypeV1" }
+        "itemtype": { $ref: "#/components/schemas/CustomPropertyTypeV1" }
+        "value":
+          oneOf:
+            - { $ref: "#/components/schemas/CustomPropertiesV1" }
+            - { type: array }
+            - { type: number }
+            - { type: integer }
+            - { type: string }
+            - { type: boolean }
+      required: [type, value]
+
+    CustomPropertyTypeV1:
+      type: string
+      description: >
+        Type of IDProperty without the `IDP_` prefix, see `eIDPropertyType` in `DNA_ID_enumms.h`.
+        For now, type `ID` and `IDPARRAY` are not supported.
+      enum: [STRING, INT, FLOAT, ARRAY, GROUP, DOUBLE, BOOLEAN]
+
+    CatalogV1:
+      type: object
+      description: An asset catalog, which can be represented by one or more UUIDs.
+      properties:
+        "path": { type: string }
+        "simple_name": { type: string }
+        "uuids":
+          type: array
+          items:
+            type: string
+          minItems: 1
+      required: [path, uuids]
+
+    FileV1:
+      type: object
+      description: >
+        Single file in the asset library. Identified by its relative path in that library.
+      properties:
+        "path":
+          type: string
+          description: >
+            Relative path of where this file is located in the asset library.
+        "url":
+          type: string
+          description: >
+            URL where the file can be downloaded. If the URL is relative, it is
+            to be interpreted as relative to the library's root URL.
+
+            If the URL is not given, or an empty string, it is assumed to be the
+            same as 'path'.
+        "size_in_bytes": { type: integer }
+        "hash":
+          type: string
+          description: >
+            Hash of the file. This should be in the format "HASHTYPE:HASH-AS-HEX".
+            Currently only the "SHA256" hash type is supported.
+        "blender_version":
+          type: string
+          description: >
+            Version of Blender used to create this file.. Should be a semantic
+            version, which may be shortened ('3.1' matches any '3.1.x' version).
+      required:
+        - "path"
+        - "size_in_bytes"
+        - "hash"
+        - "blender_version"

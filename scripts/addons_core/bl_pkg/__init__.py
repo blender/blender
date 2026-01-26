@@ -789,6 +789,9 @@ def register():
 
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
+    from _bpy_internal.assets import remote_library_listing
+    cli_commands.append(bpy.utils.register_cli_command("asset_listing", remote_library_listing.asset_listing_main))
+
     monkeypatch_install()
 
     if not bpy.app.background:
