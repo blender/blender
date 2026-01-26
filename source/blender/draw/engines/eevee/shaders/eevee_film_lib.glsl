@@ -466,6 +466,21 @@ float film_history_blend_factor(float velocity,
   return blend;
 }
 
+float4 clamp_negative_values(float4 color)
+{
+  /* Clamp negative values caused by float imprecision to 0.0f. This also covers the case of -0.0f,
+   * as (-0.0f > 0.0f) evaluates to false and therefore the whole ternary operator to 0.0f.
+   * This is important for certain compositor operations that work differently depending on the
+   * sign of the input.
+   * In theory, color = max(0.0f, color) could also be used for that, however, the output of
+   * max(0.0f, -0.0f) depends on both the exact wording of the specification of the max() function
+   * and the order of function parameters, which is why it is not used. */
+  for (int i = 0; i < 4; i++) [[unroll]] {
+    color[i] = (color[i] > 0.0f) ? color[i] : 0.0f;
+  }
+  return color;
+}
+
 /* Returns resolved final color. */
 void film_store_combined(
     FilmSample dst, int2 src_texel, float4 color, float color_weight, float4 &display)
@@ -533,6 +548,8 @@ void film_store_combined(
     color = float4(0.0f, 0.0f, 0.0f, 1.0f);
   }
 
+  color = clamp_negative_values(color);
+
   if (display_id == -1) {
     display = color;
   }
@@ -554,6 +571,8 @@ void film_store_color(FilmSample dst, int pass_id, float4 color, float4 &display
   if (any(isnan(color))) {
     color = float4(0.0f, 0.0f, 0.0f, 1.0f);
   }
+
+  color = clamp_negative_values(color);
 
   /* Fix alpha not accumulating to 1 because of float imprecision. But here we cannot assume that
    * the alpha contains actual transparency and not user data. Only bias if very close to 1. */
