@@ -89,7 +89,7 @@ static void icon_free(void *val)
       MEM_delete(obj->coords);
       MEM_delete(obj->colors);
     }
-    MEM_delete_void(icon->obj);
+    MEM_delete(obj);
   }
 
   if (icon->drawinfo_free) {

@@ -6709,12 +6709,21 @@ void WM_window_status_area_tag_redraw(wmWindow *win)
   }
 }
 
+void WM_window_cursor_keymap_status_free(wmWindow *win)
+{
+  if (win->runtime->cursor_keymap_status) {
+    CursorKeymapInfo *cd = static_cast<CursorKeymapInfo *>(win->runtime->cursor_keymap_status);
+    MEM_delete(cd);
+    win->runtime->cursor_keymap_status = nullptr;
+  }
+}
+
 void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
   ScrArea *area_statusbar = WM_window_status_area_find(win, screen);
   if (area_statusbar == nullptr) {
-    MEM_SAFE_DELETE_VOID(win->runtime->cursor_keymap_status);
+    WM_window_cursor_keymap_status_free(win);
     return;
   }
 

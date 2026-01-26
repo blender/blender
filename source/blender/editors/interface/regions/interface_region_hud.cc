@@ -218,7 +218,10 @@ static void hud_region_init(wmWindowManager *wm, ARegion *region)
 
 static void hud_region_free(ARegion *region)
 {
-  MEM_SAFE_DELETE_VOID(region->regiondata);
+  if (region->regiondata) {
+    MEM_delete(static_cast<HudRegionData *>(region->regiondata));
+    region->regiondata = nullptr;
+  }
 }
 
 static void hud_region_layout(const bContext *C, ARegion *region)

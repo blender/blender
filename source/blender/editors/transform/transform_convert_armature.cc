@@ -1614,7 +1614,7 @@ static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
           BIK_clear_data(ob->pose);
 
           BLI_remlink(&pchan.constraints, con);
-          MEM_delete_void(con->data);
+          MEM_delete(static_cast<bKinematicConstraint *>(con->data));
           MEM_delete(con);
           continue;
         }

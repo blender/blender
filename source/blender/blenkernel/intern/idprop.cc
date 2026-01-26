@@ -108,10 +108,9 @@ static void IDP_FreeIDPArray(IDProperty *prop, const bool do_id_user)
   }
 
   if (prop->data.pointer) {
-    MEM_delete_void(prop->data.pointer);
+    MEM_delete(static_cast<IDProperty *>(prop->data.pointer));
   }
 }
-
 void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 {
   BLI_assert(prop->type == IDP_IDPARRAY);
@@ -455,7 +454,7 @@ void IDP_FreeString(IDProperty *prop)
   BLI_assert(prop->type == IDP_STRING);
 
   if (prop->data.pointer) {
-    MEM_delete_void(prop->data.pointer);
+    MEM_delete(static_cast<char *>(prop->data.pointer));
   }
 }
 /** \} */

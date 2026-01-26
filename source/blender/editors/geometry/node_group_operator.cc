@@ -458,15 +458,15 @@ static void store_attributes_to_shape_keys(const Mesh &mesh, Key &key)
     if (!attr) {
       continue;
     }
-    MEM_delete_void(kb.data);
-    kb.data = MEM_new_array_uninitialized(attr.size(), sizeof(float3), __func__);
+    MEM_delete(static_cast<float3 *>(kb.data));
+    kb.data = MEM_new_array_uninitialized<float3>(attr.size(), __func__);
     kb.totelem = attr.size();
     attr.materialize({static_cast<float3 *>(kb.data), attr.size()});
   }
   if (KeyBlock *kb = key.refkey) {
     const Span<float3> positions = mesh.vert_positions();
-    MEM_delete_void(kb->data);
-    kb->data = MEM_new_array_uninitialized(positions.size(), sizeof(float3), __func__);
+    MEM_delete(static_cast<float3 *>(kb->data));
+    kb->data = MEM_new_array_uninitialized<float3>(positions.size(), __func__);
     kb->totelem = positions.size();
     array_utils::copy(positions, MutableSpan(static_cast<float3 *>(kb->data), positions.size()));
   }

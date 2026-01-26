@@ -1195,10 +1195,9 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
   }
 
   if (kb->data) {
-    MEM_delete_void(kb->data);
+    MEM_delete(static_cast<float3 *>(kb->data));
   }
-  kb->data = MEM_new_array_uninitialized(
-      size_t(mesh_dst->verts_num), size_t(mesh_dst->key->elemsize), "kb->data");
+  kb->data = MEM_new_array_uninitialized<float3>(size_t(mesh_dst->verts_num), "kb->data");
   kb->totelem = totvert;
   MutableSpan(static_cast<float3 *>(kb->data), kb->totelem).copy_from(mesh_src->vert_positions());
 }

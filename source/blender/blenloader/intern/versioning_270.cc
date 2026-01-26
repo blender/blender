@@ -315,7 +315,7 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
     MEM_delete(const_cast<char *>(prefix));
   }
   /* Free storage, it is no longer used. */
-  MEM_delete_void(node->storage);
+  MEM_delete(nhs);
   node->storage = nullptr;
 }
 

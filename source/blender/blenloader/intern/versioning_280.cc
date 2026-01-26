@@ -1820,7 +1820,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
         need_update = true;
       }
 
-      MEM_delete_void(node.storage);
+      MEM_delete(mapping);
       node.storage = nullptr;
 
       char node_name_esc[sizeof(node.name) * 2];

@@ -156,10 +156,7 @@ void WM_gizmo_free(wmGizmo *gz)
     }
   }
 
-  /* Explicit calling of the destructor is needed here because allocation still happens 'the C
-   * way', see FIXME note in #wm_gizmo_create. */
-  gz->~wmGizmo();
-  MEM_delete_void(static_cast<void *>(gz));
+  MEM_delete(gz);
 }
 
 void WM_gizmo_unlink(ListBaseT<wmGizmo> *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bContext *C)

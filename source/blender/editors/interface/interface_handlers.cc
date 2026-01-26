@@ -509,7 +509,7 @@ struct AfterFunc {
 
   ButtonHandleRenameFunc rename_func;
   void *rename_arg1;
-  void *rename_orig;
+  char *rename_orig;
 
   std::function<void(std::string &new_name)> rename_full_func = nullptr;
   std::string rename_full_new;
@@ -1173,10 +1173,10 @@ static void ui_apply_but_funcs_after(bContext *C)
     }
 
     if (after.rename_func) {
-      after.rename_func(C, after.rename_arg1, static_cast<char *>(after.rename_orig));
+      after.rename_func(C, after.rename_arg1, after.rename_orig);
     }
     if (after.rename_orig) {
-      MEM_delete_void(after.rename_orig);
+      MEM_delete(after.rename_orig);
     }
 
     if (after.search_arg_free_fn) {

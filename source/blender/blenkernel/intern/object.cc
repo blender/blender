@@ -3902,6 +3902,12 @@ void BKE_object_tfm_restore(Object *ob, void *obtfm_pt)
   copy_m4_m4(ob->runtime->world_to_object.ptr(), obtfm->imat);
 }
 
+void BKE_object_tfm_free(void *obtfm_pt)
+{
+  ObTfmBack *obtfm = static_cast<ObTfmBack *>(obtfm_pt);
+  MEM_delete(obtfm);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

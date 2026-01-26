@@ -1560,7 +1560,8 @@ static void wm_xr_session_surface_free_data(wmSurface *surface)
     MEM_delete(data->controller_art);
   }
 
-  MEM_delete_void(surface->customdata);
+  wmXrSurfaceData *xr_data = static_cast<wmXrSurfaceData *>(surface->customdata);
+  MEM_delete(xr_data);
 
   g_xr_surface = nullptr;
 }
