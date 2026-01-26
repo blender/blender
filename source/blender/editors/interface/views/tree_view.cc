@@ -868,10 +868,6 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
   /* Column for the tree view. */
   row.column(true);
 
-  if (tree_view.scroll_active_into_view_on_draw_) {
-    tree_view.scroll_active_into_view();
-  }
-
   /* Clamp scroll-value to valid range. */
   if (tree_view.scroll_value_ && visible_row_count) {
     *tree_view.scroll_value_ = std::clamp(
@@ -882,16 +878,25 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
   const int max_visible_index = visible_row_count ? first_visible_index + *visible_row_count - 1 :
                                                     std::numeric_limits<int>::max();
   int index = 0;
+  bool is_active_visible = false;
   tree_view.foreach_item(
       [&, this](AbstractTreeViewItem &item) {
         if ((index >= first_visible_index) && (index <= max_visible_index)) {
           if (item.is_filtered_visible()) {
             this->build_row(item);
+            is_active_visible |= item.is_active_;
           }
         }
         index++;
       },
       AbstractTreeView::IterOptions::SkipCollapsed | AbstractTreeView::IterOptions::SkipFiltered);
+
+  if (tree_view.scroll_active_into_view_on_draw_) {
+    if (!is_active_visible) {
+      /* Don't scroll the list when active item is alredy in view. */
+      tree_view.scroll_active_into_view();
+    }
+  }
 
   if (tree_view.custom_height_) {
 
