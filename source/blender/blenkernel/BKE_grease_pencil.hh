@@ -31,6 +31,10 @@ struct Scene;
 struct Object;
 struct Material;
 
+namespace draw {
+struct GreasePencilBatchCache;
+};
+
 namespace bke::bake {
 struct BakeMaterialsList;
 }
@@ -929,7 +933,7 @@ class GreasePencilRuntime {
   /**
    * Allocated and freed by the drawing code. See `DRW_grease_pencil_batch_cache_*` functions.
    */
-  void *batch_cache = nullptr;
+  draw::GreasePencilBatchCache *batch_cache = nullptr;
   /**
    * The frame on which the object was evaluated (only valid for evaluated object).
    */

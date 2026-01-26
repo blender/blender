@@ -100,13 +100,13 @@ struct CurvesBatchCache {
 
 static bool batch_cache_is_dirty(const Curves &curves)
 {
-  const CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves.batch_cache);
+  const CurvesBatchCache *cache = curves.batch_cache;
   return (cache && cache->is_dirty == false);
 }
 
 static void init_batch_cache(Curves &curves)
 {
-  CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves.batch_cache);
+  CurvesBatchCache *cache = curves.batch_cache;
 
   if (!cache) {
     cache = MEM_new<CurvesBatchCache>(__func__);
@@ -183,7 +183,7 @@ void CurvesEvalCache::clear()
 
 static void clear_batch_cache(Curves &curves)
 {
-  CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves.batch_cache);
+  CurvesBatchCache *cache = curves.batch_cache;
   if (!cache) {
     return;
   }
@@ -195,7 +195,7 @@ static void clear_batch_cache(Curves &curves)
 static CurvesBatchCache &get_batch_cache(Curves &curves)
 {
   DRW_curves_batch_cache_validate(&curves);
-  return *static_cast<CurvesBatchCache *>(curves.batch_cache);
+  return *curves.batch_cache;
 }
 
 static uint32_t bezier_data_value(int8_t handle_type, bool is_active)
@@ -898,7 +898,7 @@ CurvesEvalCache &curves_get_eval_cache(Curves &curves_id)
 
 void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode)
 {
-  CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves->batch_cache);
+  CurvesBatchCache *cache = curves->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -922,14 +922,14 @@ void DRW_curves_batch_cache_validate(Curves *curves)
 void DRW_curves_batch_cache_free(Curves *curves)
 {
   clear_batch_cache(*curves);
-  CurvesBatchCache *batch_cache = static_cast<CurvesBatchCache *>(curves->batch_cache);
+  CurvesBatchCache *batch_cache = curves->batch_cache;
   MEM_delete(batch_cache);
   curves->batch_cache = nullptr;
 }
 
 void DRW_curves_batch_cache_free_old(Curves *curves, int ctime)
 {
-  CurvesBatchCache *cache = static_cast<CurvesBatchCache *>(curves->batch_cache);
+  CurvesBatchCache *cache = curves->batch_cache;
   if (cache == nullptr) {
     return;
   }

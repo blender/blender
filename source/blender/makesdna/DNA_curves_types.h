@@ -22,6 +22,10 @@ class CurvesGeometry;
 class CurvesGeometryRuntime;
 }  // namespace bke
 
+namespace draw {
+struct CurvesBatchCache;
+}
+
 enum CurveType {
   /**
    * Catmull Rom curves provide automatic smoothness, like Bezier curves with automatic handle
@@ -240,7 +244,7 @@ struct Curves {
   char _pad2[4] = {};
 
   /* Draw cache to store data used for viewport drawing. */
-  void *batch_cache = nullptr;
+  draw::CurvesBatchCache *batch_cache = nullptr;
 };
 
 /* Only one material supported currently. */

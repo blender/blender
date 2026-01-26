@@ -30,6 +30,10 @@ struct Material;
 struct Object;
 struct VFont;
 
+namespace draw {
+struct CurveBatchCache;
+}
+
 /* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
@@ -325,7 +329,7 @@ struct Curve {
    */
   const struct Curves *curve_eval = nullptr;
 
-  void *batch_cache = nullptr;
+  draw::CurveBatchCache *batch_cache = nullptr;
 
 #ifdef __cplusplus
   /** Get the largest material index used by the curves or `nullopt` if there are none. */

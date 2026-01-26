@@ -37,6 +37,10 @@ struct Scene;
 struct DispList;
 struct Nurb;
 
+namespace draw {
+struct MeshBatchCache;
+}
+
 /* TODO: Move to `BKE_mesh_types.hh` when possible. */
 enum eMeshBatchDirtyMode : int8_t {
   BKE_MESH_BATCH_DIRTY_ALL = 0,
@@ -439,10 +443,10 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh);
 
 /* Draw Cache */
 void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode);
-void BKE_mesh_batch_cache_free(void *batch_cache);
+void BKE_mesh_batch_cache_free(draw::MeshBatchCache *batch_cache);
 
 extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *mesh, eMeshBatchDirtyMode mode);
-extern void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache);
+extern void (*BKE_mesh_batch_cache_free_cb)(draw::MeshBatchCache *batch_cache);
 
 /* `mesh_debug.cc` */
 

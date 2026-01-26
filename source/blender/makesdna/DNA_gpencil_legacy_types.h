@@ -16,6 +16,7 @@ namespace blender {
 
 struct AnimData;
 struct MDeformVert;
+struct tGPspoint;
 
 /** #bGPDspoint.flag */
 enum eGPDspoint_Flag {
@@ -666,7 +667,7 @@ struct bGPdata_Runtime {
   DNA_DEFINE_CXX_METHODS(bGPdata_Runtime)
 
   /** Stroke buffer. */
-  void *sbuffer = nullptr;
+  tGPspoint *sbuffer = nullptr;
 
   /** Animation playing flag. */
   short playing = 0;

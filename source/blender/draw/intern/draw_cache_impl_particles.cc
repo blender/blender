@@ -144,7 +144,7 @@ static const GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_
 
 static bool particle_batch_cache_valid(ParticleSystem *psys)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
 
   if (cache == nullptr) {
     return false;
@@ -161,7 +161,7 @@ static bool particle_batch_cache_valid(ParticleSystem *psys)
 
 static void particle_batch_cache_init(ParticleSystem *psys)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
 
   if (!cache) {
     cache = MEM_new<ParticleBatchCache>(__func__);
@@ -181,12 +181,12 @@ static ParticleBatchCache *particle_batch_cache_get(ParticleSystem *psys)
     particle_batch_cache_clear(psys);
     particle_batch_cache_init(psys);
   }
-  return static_cast<ParticleBatchCache *>(psys->batch_cache);
+  return psys->batch_cache;
 }
 
 void DRW_particle_batch_cache_dirty_tag(ParticleSystem *psys, int mode)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -222,7 +222,7 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
 
 static void particle_batch_cache_clear(ParticleSystem *psys)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
   if (!cache) {
     return;
   }
@@ -243,7 +243,7 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
 void DRW_particle_batch_cache_free(ParticleSystem *psys)
 {
   particle_batch_cache_clear(psys);
-  ParticleBatchCache *batch_cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *batch_cache = psys->batch_cache;
   MEM_delete(batch_cache);
   psys->batch_cache = nullptr;
 }

@@ -87,7 +87,7 @@ struct PointCloudBatchCache {
 
 static PointCloudBatchCache *pointcloud_batch_cache_get(PointCloud &pointcloud)
 {
-  return static_cast<PointCloudBatchCache *>(pointcloud.batch_cache);
+  return pointcloud.batch_cache;
 }
 
 static bool pointcloud_batch_cache_valid(PointCloud &pointcloud)
@@ -184,7 +184,7 @@ void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud)
 void DRW_pointcloud_batch_cache_free(PointCloud *pointcloud)
 {
   pointcloud_batch_cache_clear(*pointcloud);
-  MEM_delete(static_cast<PointCloudBatchCache *>(pointcloud->batch_cache));
+  MEM_delete(pointcloud->batch_cache);
   pointcloud->batch_cache = nullptr;
 }
 

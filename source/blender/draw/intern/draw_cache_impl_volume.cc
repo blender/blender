@@ -63,13 +63,13 @@ struct VolumeBatchCache {
 
 static bool volume_batch_cache_valid(Volume *volume)
 {
-  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
+  VolumeBatchCache *cache = volume->batch_cache;
   return (cache && cache->is_dirty == false);
 }
 
 static void volume_batch_cache_init(Volume *volume)
 {
-  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
+  VolumeBatchCache *cache = volume->batch_cache;
 
   if (!cache) {
     volume->batch_cache = cache = MEM_new_zeroed<VolumeBatchCache>(__func__);
@@ -92,12 +92,12 @@ void DRW_volume_batch_cache_validate(Volume *volume)
 static VolumeBatchCache *volume_batch_cache_get(Volume *volume)
 {
   DRW_volume_batch_cache_validate(volume);
-  return static_cast<VolumeBatchCache *>(volume->batch_cache);
+  return volume->batch_cache;
 }
 
 void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode)
 {
-  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
+  VolumeBatchCache *cache = volume->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -112,7 +112,7 @@ void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode)
 
 static void volume_batch_cache_clear(Volume *volume)
 {
-  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
+  VolumeBatchCache *cache = volume->batch_cache;
   if (!cache) {
     return;
   }
@@ -131,7 +131,7 @@ static void volume_batch_cache_clear(Volume *volume)
 void DRW_volume_batch_cache_free(Volume *volume)
 {
   volume_batch_cache_clear(volume);
-  MEM_SAFE_DELETE_VOID(volume->batch_cache);
+  MEM_SAFE_DELETE(volume->batch_cache);
 }
 struct VolumeWireframeUserData {
   Volume *volume;
@@ -144,7 +144,7 @@ static void drw_volume_wireframe_cb(
   VolumeWireframeUserData *data = static_cast<VolumeWireframeUserData *>(userdata);
   Scene *scene = data->scene;
   Volume *volume = data->volume;
-  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
+  VolumeBatchCache *cache = volume->batch_cache;
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
 
@@ -242,7 +242,7 @@ static void drw_volume_selection_surface_cb(
     void *userdata, float (*verts)[3], int (*tris)[3], int totvert, int tottris)
 {
   Volume *volume = static_cast<Volume *>(userdata);
-  VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
+  VolumeBatchCache *cache = volume->batch_cache;
 
   static uint pos_id;
   static const GPUVertFormat format = [&]() {
