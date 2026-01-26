@@ -139,11 +139,17 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
     A decorator for import/export classes, generating properties needed by the axis conversion system and IO helpers,
     with specified default values (axes).
     """
+
     def wrapper(cls):
-        # Without that, we may end up adding those fields to some **parent** class' __annotations__ property
-        # (like the ImportHelper or ExportHelper ones)! See #58772.
-        if "__annotations__" not in cls.__dict__:
-            setattr(cls, "__annotations__", {})
+        # Python 3.14+ (PEP 649): This workaround is no longer needed because annotations
+        # are lazily evaluated. Accessing `cls.__annotations__` always returns a dict
+        # specific to that class (never the parent's), so adding items is safe.
+        import sys
+        if sys.version_info < (3, 14):
+            # Without this, we may end up adding those fields to some **parent** class'
+            # `__annotations__` property (like the ImportHelper or ExportHelper ones)! See #58772.
+            if "__annotations__" not in cls.__dict__:
+                setattr(cls, "__annotations__", {})
 
         def _update_axis_forward(self, _context):
             if self.axis_forward[-1] == self.axis_up[-1]:
