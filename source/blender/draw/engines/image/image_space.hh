@@ -73,6 +73,9 @@ class AbstractSpaceAccessor {
   /** \brief Is (wrap) repeat option enabled in the space. */
   virtual bool use_tile_drawing() const = 0;
 
+  /** \brief Draw image with display window offsets. */
+  virtual bool use_display_window() const = 0;
+
   /**
    * \brief Initialize r_uv_to_texture matrix to transform from normalized screen space coordinates
    * (0..1) to texture space UV coordinates.

@@ -85,10 +85,6 @@ struct ImageRuntime {
 
   /* The image's current update count. See deg::set_id_update_count for more information. */
   uint64_t update_count = 0;
-
-  /* Compositor viewer might be translated, and that translation will be stored in this runtime
-   * vector by the compositor so that the editor draw code can draw the image translated. */
-  float backdrop_offset[2] = {};
 };
 
 }  // namespace bke

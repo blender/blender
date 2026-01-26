@@ -84,6 +84,11 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
     return false;
   }
 
+  bool use_display_window() const override
+  {
+    return true;
+  }
+
   /**
    * The backdrop of the node editor isn't drawn in screen space UV space. But is locked with the
    * screen.

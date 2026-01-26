@@ -90,6 +90,11 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     return (sima->flag & SI_DRAW_TILE) != 0;
   }
 
+  bool use_display_window() const override
+  {
+    return sima->mode == SI_MODE_VIEW;
+  }
+
   void init_ss_to_texture_matrix(const ARegion *region,
                                  const float image_offset[2],
                                  const float image_resolution[2],
