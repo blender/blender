@@ -1143,7 +1143,7 @@ class MetadataProviderFilesystem(MetadataProvider):
             meta_path, 'rb', max_tries=20, wait_time_sec=0.1)
 
         try:
-            meta_json = meta_path.read_bytes()
+            meta_json = meta_file.read()
         finally:
             unlocker(meta_file)
 
