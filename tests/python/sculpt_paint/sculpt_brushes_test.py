@@ -124,7 +124,7 @@ class MeshBrushTests(unittest.TestCase):
             relative_asset_identifier='brushes/essentials_brushes-mesh_sculpt.blend/Brush/{}'.format(brush))
         self.assertEqual({'FINISHED'}, result)
 
-    def _check_stroke(self, start_over_mesh=False):
+    def _check_stroke(self, start_over_mesh=False, opts={}):
         # Ideally, we would use something like pytest and parameterized tests here, but this helper function is an
         # alright solution for now...
 
@@ -137,7 +137,7 @@ class MeshBrushTests(unittest.TestCase):
                 stroke=generate_stroke(
                     context_override,
                     start_over_mesh),
-                override_location=True)
+                override_location=True, **opts)
 
         new_data = get_attribute_data()
 
@@ -148,7 +148,7 @@ class MeshBrushTests(unittest.TestCase):
         self.assertTrue(all_valid, "All position components should be rational values")
         self.assertTrue(any_different, "At least one position should be different from its original value")
 
-    def _check_mask_stroke(self):
+    def _check_mask_stroke(self, opts={}):
         initial_data = get_attribute_data(
             attribute_name='.sculpt_mask',
             attribute_domain='POINT',
@@ -158,7 +158,7 @@ class MeshBrushTests(unittest.TestCase):
         context_override = bpy.context.copy()
         set_view3d_context_override(context_override)
         with bpy.context.temp_override(**context_override):
-            bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
+            bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True, **opts)
 
         new_data = get_attribute_data(
             attribute_name='.sculpt_mask',
@@ -173,7 +173,7 @@ class MeshBrushTests(unittest.TestCase):
         self.assertTrue(all_valid, "All mask values should be rational values")
         self.assertTrue(any_different, "At least one mask should be different from its original value")
 
-    def _check_face_set_stroke(self):
+    def _check_face_set_stroke(self, opts={}):
         initial_data = get_attribute_data(
             attribute_name='.sculpt_face_set',
             attribute_domain='FACE',
@@ -183,7 +183,7 @@ class MeshBrushTests(unittest.TestCase):
         context_override = bpy.context.copy()
         set_view3d_context_override(context_override)
         with bpy.context.temp_override(**context_override):
-            bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
+            bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True, **opts)
 
         new_data = get_attribute_data(
             attribute_name='.sculpt_face_set',
@@ -285,6 +285,10 @@ class MeshBrushTests(unittest.TestCase):
         self._activate_brush("Smooth")
         self._check_stroke()
 
+    def test_smooth_brush_invert_mode_creates_valid_data(self):
+        self._activate_brush("Smooth")
+        self._check_stroke(opts={"mode": 'INVERT'})
+
     def test_trim_brush_creates_valid_data(self):
         self._activate_brush("Trim")
         self._check_stroke()
@@ -339,6 +343,10 @@ class MeshBrushTests(unittest.TestCase):
         self._activate_brush("Relax Slide")
         self._check_stroke()
 
+    def test_relax_brush_smooth_mode_creates_valid_data(self):
+        self._activate_brush("Relax Slide")
+        self._check_stroke(opts={"brush_toggle": 'SMOOTH'})
+
     def test_snake_hook_brush_creates_valid_data(self):
         self._activate_brush("Snake Hook")
         self._check_stroke()
@@ -355,9 +363,21 @@ class MeshBrushTests(unittest.TestCase):
         self._activate_brush("Mask")
         self._check_mask_stroke()
 
+    def test_mask_brush_smooth_mode_creates_valid_data(self):
+        self._activate_brush("Mask")
+        self._check_mask_stroke()
+
+        self._check_mask_stroke({"brush_toggle": 'SMOOTH'})
+
     def test_face_set_brush_creates_valid_data(self):
         self._activate_brush("Face Set Paint")
         self._check_face_set_stroke()
+
+    def test_face_set_brush_smooth_mode_creates_valid_data(self):
+        self._activate_brush("Face Set Paint")
+        self._check_face_set_stroke()
+
+        self._check_stroke(opts={"brush_toggle": 'SMOOTH'})
 
     def test_airbrush_brush_creates_valid_data(self):
         self._activate_brush("Airbrush")
