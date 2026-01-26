@@ -30,12 +30,12 @@ enum class DistortionType : uint8_t {
 class DistortionGridKey {
  public:
   MovieTrackingCamera camera;
-  int2 size;
+  Domain domain;
   DistortionType type;
   int2 calibration_size;
 
   DistortionGridKey(const MovieTrackingCamera &camera,
-                    int2 size,
+                    Domain domain,
                     DistortionType type,
                     int2 calibration_size);
 

@@ -26,23 +26,30 @@ namespace blender::compositor {
  */
 
 DistortionGridKey::DistortionGridKey(const MovieTrackingCamera &camera,
-                                     int2 size,
+                                     Domain domain,
                                      DistortionType type,
                                      int2 calibration_size)
-    : camera(camera), size(size), type(type), calibration_size(calibration_size)
+    : camera(camera), domain(domain), type(type), calibration_size(calibration_size)
 {
 }
 
 uint64_t DistortionGridKey::hash() const
 {
-  return get_default_hash(
-      BKE_tracking_camera_distortion_hash(&camera), size, type, calibration_size);
+  return get_default_hash(BKE_tracking_camera_distortion_hash(&camera),
+                          domain.data_size,
+                          domain.display_size,
+                          domain.data_offset,
+                          type,
+                          calibration_size);
 }
 
 bool operator==(const DistortionGridKey &a, const DistortionGridKey &b)
 {
-  return BKE_tracking_camera_distortion_equal(&a.camera, &b.camera) && a.size == b.size &&
-         a.type == b.type && a.calibration_size == b.calibration_size;
+  return BKE_tracking_camera_distortion_equal(&a.camera, &b.camera) &&
+         a.domain.data_size == b.domain.data_size &&
+         a.domain.display_size == b.domain.display_size &&
+         a.domain.data_offset == b.domain.data_offset && a.type == b.type &&
+         a.calibration_size == b.calibration_size;
 }
 
 /* --------------------------------------------------------------------
@@ -257,8 +264,7 @@ Result &DistortionGridContainer::get(
 {
   const int2 calibration_size = get_movie_clip_size(movie_clip, frame_number);
 
-  const DistortionGridKey key(
-      movie_clip->tracking.camera, domain.data_size, type, calibration_size);
+  const DistortionGridKey key(movie_clip->tracking.camera, domain, type, calibration_size);
 
   auto &distortion_grid = *map_.lookup_or_add_cb(key, [&]() {
     return std::make_unique<DistortionGrid>(context, movie_clip, domain, type, calibration_size);
