@@ -226,7 +226,8 @@ if(WITH_GTESTS)
     intern/node_iterator_tests.cc
   )
   set(TEST_LIB
+    ${LIB}
     bf_nodes
   )
-  blender_add_test_suite_lib(nodes "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+  blender_add_test_suite_lib(nodes "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()
