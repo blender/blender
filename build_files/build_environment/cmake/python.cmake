@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(PYTHON_POSTFIX)
+set(PYTHON_EXTRA_INSTALL_FLAGS)
 if(BUILD_MODE STREQUAL Debug)
   set(PYTHON_POSTFIX _d)
-  set(PYTHON_EXTRA_INSTLAL_FLAGS -d)
+  set(PYTHON_EXTRA_INSTALL_FLAGS -d)
 endif()
 
 if(WIN32)
@@ -82,7 +83,7 @@ if(WIN32)
       --include-launchers
       --include-venv
       --include-symbols
-      ${PYTHON_EXTRA_INSTLAL_FLAGS}
+      ${PYTHON_EXTRA_INSTALL_FLAGS}
       --copy
       ${LIBDIR}/python
   )
