@@ -32,7 +32,7 @@ ImBuf *imb_load_png(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   ImBuf *ibuf = imb_oiio_read(ctx, config, r_colorspace, spec);
   if (ibuf) {
     if (spec.format == TypeDesc::UINT16) {
-      ibuf->flags |= PNG_16BIT;
+      ibuf->foptions.flag |= PNG_16BIT;
     }
   }
 
