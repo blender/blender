@@ -12,6 +12,8 @@
 #include "vk_texture.hh"
 #include "vk_texture_pool.hh"
 
+#include "fmt/format.h"
+
 namespace blender::gpu {
 
 /* Compute the nearest `offset` that is aligned up to `alignment`, but with
@@ -117,18 +119,22 @@ VKTexturePool::~VKTexturePool()
   }
 }
 
-Texture *VKTexturePool::acquire_texture(int2 extent, TextureFormat format, eGPUTextureUsage usage)
+Texture *VKTexturePool::acquire_texture(int2 extent,
+                                        TextureFormat format,
+                                        eGPUTextureUsage usage,
+                                        const char *name)
 {
   VKDevice &device = VKBackend::get().device;
 
-  /* Create texture object with no backing allocation, wrapped in `TextureHandle`. */
-  char name[16] = "TexFromPool";
+  /* Generate debug label name, if one isn't passed in `name`. */
+  std::string name_str;
   if (G.debug & G_DEBUG_GPU) {
-    int texture_id = acquired_.size();
-    SNPRINTF(name, "TexFromPool_%d", texture_id);
+    name_str = name ? name : fmt::format("TexFromPool_{}", acquired_.size());
   }
+
+  /* Create texture object with no backing allocation, wrapped in `TextureHandle`. */
   TextureHandle texture_handle;
-  texture_handle.alloc(extent, format, usage, name);
+  texture_handle.alloc(extent, format, usage, name_str.c_str());
 
   /* Query the requirements for this specific image */
   VkMemoryRequirements memory_requirements;
@@ -191,7 +197,7 @@ Texture *VKTexturePool::acquire_texture(int2 extent, TextureFormat format, eGPUT
 
   debug::object_label(texture_handle.texture->vk_image_, texture_handle.texture->name_);
   device.resources.add_image(
-      texture_handle.texture->vk_image_, false, texture_handle.texture->name_);
+      texture_handle.texture->vk_image_, false, texture_handle.texture->name_.c_str());
 
   acquired_.add(texture_handle);
   return wrap(texture_handle.texture);

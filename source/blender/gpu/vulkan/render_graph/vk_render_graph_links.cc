@@ -26,7 +26,7 @@ void VKRenderGraphLink::debug_print(std::ostream &ss,
       ss << "BUFFER";
       ss << ", vk_handle=" << uint64_t(tracked_resource.buffer.vk_buffer);
 #ifndef NDEBUG
-      if (tracked_resource.name) {
+      if (!tracked_resource.name.empty()) {
         ss << ", name=" << tracked_resource.name;
       }
 #endif
@@ -37,7 +37,7 @@ void VKRenderGraphLink::debug_print(std::ostream &ss,
       ss << "IMAGE";
       ss << ", vk_handle=" << uint64_t(tracked_resource.image.vk_image);
 #ifndef NDEBUG
-      if (tracked_resource.name) {
+      if (!tracked_resource.name.empty()) {
         ss << ", name=" << tracked_resource.name;
       }
 #endif

@@ -51,7 +51,8 @@ class TexturePoolImpl : public TexturePool {
 
   Texture *acquire_texture(int2 extent,
                            TextureFormat format,
-                           eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL) override;
+                           eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                           const char *name = nullptr) override;
 
   void release_texture(Texture *tex) override;
 

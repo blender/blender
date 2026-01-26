@@ -301,7 +301,7 @@ class MTLTexture : public Texture {
   bool texture_is_baked();
   const char *get_name()
   {
-    return name_;
+    return name_.c_str();
   }
 
   bool has_custom_swizzle()

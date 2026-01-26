@@ -438,7 +438,7 @@ gpu::FrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_
   /* Check if layer has changed. */
   bool update_attachments = false;
   if (!blit_fb_) {
-    std::string fb_name = StringRefNull(this->name_) + "_blit_fb";
+    std::string fb_name = this->name_ + "_blit_fb";
     blit_fb_ = GPU_framebuffer_create(fb_name.c_str());
     update_attachments = true;
   }
@@ -671,7 +671,7 @@ void gpu::MTLTexture::update_sub(int mip,
       MTL_LOG_WARNING(
           "SRGB data upload does not work correctly using compute upload. "
           "texname '%s'",
-          name_);
+          name_.c_str());
     }
 
     /* Safety Checks. */

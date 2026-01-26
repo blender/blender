@@ -15,6 +15,8 @@
 #include "gpu_context_private.hh"
 #include "gpu_texture_pool_private.hh"
 
+#include "fmt/format.h"
+
 namespace blender::gpu {
 
 TexturePool &TexturePool::get()
@@ -35,7 +37,8 @@ TexturePoolImpl::~TexturePoolImpl()
 
 Texture *TexturePoolImpl::acquire_texture(int2 extent,
                                           TextureFormat format,
-                                          eGPUTextureUsage usage)
+                                          eGPUTextureUsage usage,
+                                          const char * /* name */)
 {
   /* Search pool for compatible available texture first. */
   int64_t match_index = -1;
@@ -57,13 +60,16 @@ Texture *TexturePoolImpl::acquire_texture(int2 extent,
     return handle.texture;
   }
 
-  /* Otherwise, allocate a new texture as a last resort. */
-  char name[16] = "TexFromPool";
+  /* Generate debug label name, if one isn't passed in `name`. TexturePoolImpl ignores the
+   *name argument, as returned textures do not shadow/view/abstract the underlying texture. */
+  std::string name_str;
   if (G.debug & G_DEBUG_GPU) {
-    int texture_id = pool_.size();
-    SNPRINTF(name, "TexFromPool_%d", texture_id);
+    name_str = fmt::format("TexFromPool_{}", pool_.size());
   }
-  TextureHandle handle = {GPU_texture_create_2d(name, UNPACK2(extent), 1, format, usage, nullptr)};
+
+  /* Otherwise, allocate a new texture as a last resort. */
+  TextureHandle handle = {
+      GPU_texture_create_2d(name_str.c_str(), UNPACK2(extent), 1, format, usage, nullptr)};
   acquired_.add(handle);
   return handle.texture;
 }

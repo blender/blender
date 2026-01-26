@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include "BKE_global.hh"
+
 #include "BLI_index_range.hh"
 
 #include "vk_resource_state_tracker.hh"
@@ -47,8 +49,11 @@ void VKResourceStateTracker::add_image(VkImage vk_image,
   resource.image.vk_image = vk_image;
   resource.image.use_subresource_tracking = use_subresource_tracking;
   resource.barrier_state = barrier_state;
+
 #ifndef NDEBUG
-  resource.name = name;
+  if (name) {
+    resource.name = name;
+  }
 #endif
 
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
@@ -87,8 +92,11 @@ void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char *name)
   resource.type = VKResourceType::BUFFER;
   resource.buffer.vk_buffer = vk_buffer;
   resource.stamp = 0;
+
 #ifndef NDEBUG
-  resource.name = name;
+  if (name) {
+    resource.name = name;
+  }
 #endif
 
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION

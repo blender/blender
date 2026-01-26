@@ -81,12 +81,6 @@ enum GPUSamplerFormat {
 
 ENUM_OPERATORS(GPUSamplerFormat)
 
-#ifndef NDEBUG
-#  define DEBUG_NAME_LEN 64
-#else
-#  define DEBUG_NAME_LEN 8
-#endif
-
 /* Maximum number of image units. */
 #define GPU_MAX_IMAGE 8
 
@@ -132,8 +126,8 @@ class Texture {
   /** For error checking */
   int mip_min_ = 0, mip_max_ = 0;
 
-  /** For debugging */
-  char name_[DEBUG_NAME_LEN];
+  /** For debugging. */
+  std::string name_;
 
   /** Frame-buffer references to update on deletion. */
   GPUAttachmentType fb_attachment_[GPU_TEX_MAX_FBO_ATTACHED];
@@ -364,8 +358,6 @@ static inline const PixelBuffer *unwrap(const GPUPixelBuffer *pixbuf)
 {
   return reinterpret_cast<const PixelBuffer *>(pixbuf);
 }
-
-#undef DEBUG_NAME_LEN
 
 inline size_t to_bytesize(TextureFormat format)
 {

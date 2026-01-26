@@ -29,7 +29,8 @@ class TexturePool {
   /* Acquire a 2D texture from the pool with the given characteristics. */
   virtual Texture *acquire_texture(int2 extent,
                                    TextureFormat format,
-                                   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL) = 0;
+                                   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                                   const char *name = nullptr) = 0;
 
   /* Release the texture back into the pool so it can be reused. */
   virtual void release_texture(Texture *tex) = 0;
