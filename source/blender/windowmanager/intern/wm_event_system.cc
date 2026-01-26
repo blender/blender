@@ -4038,6 +4038,9 @@ static void wm_event_handle_xrevent(bContext *C,
       if (op_handler->is_xr) {
         action = wm_handler_operator_call(
             C, modalhandlers, &handler_base, event, nullptr, nullptr);
+      }
+
+      if (action & WM_HANDLER_BREAK) {
         break;
       }
     }
