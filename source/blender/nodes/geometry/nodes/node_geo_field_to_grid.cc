@@ -359,7 +359,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<ItemsAccessor>(*node);
-  MEM_delete_void(node->storage);
+  MEM_delete(static_cast<GeometryNodeFieldToGrid *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)

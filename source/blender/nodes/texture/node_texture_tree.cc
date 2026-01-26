@@ -262,7 +262,7 @@ static void tex_free_delegates(bNodeTreeExec *exec)
     for (bNodeThreadStack &nts : exec->threadstack[th]) {
       for (ns = nts.stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
-          MEM_delete_void(ns->data);
+          MEM_delete(static_cast<TexDelegate *>(ns->data));
         }
       }
     }

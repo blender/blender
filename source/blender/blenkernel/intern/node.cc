@@ -1024,8 +1024,10 @@ static void free_legacy_socket_storage(bNode &node)
 {
   if (ELEM(node.type_legacy, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE)) {
     for (bNodeSocket &output : node.outputs) {
-      MEM_delete_void(output.storage);
-      output.storage = nullptr;
+      if (output.storage) {
+        MEM_delete(static_cast<NodeImageLayer *>(output.storage));
+        output.storage = nullptr;
+      }
     }
   }
 }
@@ -2840,6 +2842,89 @@ static void socket_id_user_increment(bNodeSocket *sock)
   }
 }
 
+static void node_socket_free_default_value(bNodeSocket *sock, const bool do_id_user)
+{
+  if (sock->default_value == nullptr) {
+    return;
+  }
+
+  if (do_id_user) {
+    socket_id_user_decrement(sock);
+  }
+
+  switch (eNodeSocketDatatype(sock->type)) {
+    case SOCK_FLOAT:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueFloat>());
+      break;
+    case SOCK_VECTOR:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueVector>());
+      break;
+    case SOCK_RGBA:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueRGBA>());
+      break;
+    case SOCK_BOOLEAN:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueBoolean>());
+      break;
+    case SOCK_INT:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueInt>());
+      break;
+    case SOCK_STRING:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueString>());
+      break;
+    case SOCK_OBJECT:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueObject>());
+      break;
+    case SOCK_IMAGE:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueImage>());
+      break;
+    case SOCK_COLLECTION:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueCollection>());
+      break;
+    case SOCK_TEXTURE:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueTexture>());
+      break;
+    case SOCK_MATERIAL:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueMaterial>());
+      break;
+    case SOCK_FONT:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueFont>());
+      break;
+    case SOCK_SCENE:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueScene>());
+      break;
+    case SOCK_TEXT_ID:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueText>());
+      break;
+    case SOCK_MASK:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueMask>());
+      break;
+    case SOCK_SOUND:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueSound>());
+      break;
+    case SOCK_ROTATION:
+      MEM_delete(sock->default_value_typed<bNodeSocketValueRotation>());
+      break;
+    case SOCK_MENU: {
+      auto &default_value_menu = *sock->default_value_typed<bNodeSocketValueMenu>();
+      if (default_value_menu.enum_items) {
+        /* Release shared data pointer. */
+        default_value_menu.enum_items->remove_user_and_delete_if_last();
+      }
+      MEM_delete(&default_value_menu);
+      break;
+    }
+    case SOCK_MATRIX:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_GEOMETRY:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
+      MEM_delete_void(sock->default_value);
+      break;
+  }
+  sock->default_value = nullptr;
+}
+
 /** \return True if the socket had an ID default value. */
 static bool socket_id_user_decrement(bNodeSocket *sock)
 {
@@ -2933,9 +3018,7 @@ void node_modify_socket_type(bNodeTree &ntree,
       /* Only reallocate the default value if the type changed so that UI data like min and max
        * isn't removed. This assumes that the default value is stored in the same format for all
        * socket types with the same #eNodeSocketDatatype. */
-      socket_id_user_decrement(&sock);
-      MEM_delete_void(sock.default_value);
-      sock.default_value = nullptr;
+      node_socket_free_default_value(&sock, true);
     }
     else {
       /* Update the socket subtype when the storage isn't freed and recreated. */
@@ -3453,17 +3536,7 @@ static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
   }
 
   if (sock->default_value) {
-    if (do_id_user) {
-      socket_id_user_decrement(sock);
-    }
-    if (sock->type == SOCK_MENU) {
-      auto &default_value_menu = *sock->default_value_typed<bNodeSocketValueMenu>();
-      if (default_value_menu.enum_items) {
-        /* Release shared data pointer. */
-        default_value_menu.enum_items->remove_user_and_delete_if_last();
-      }
-    }
-    MEM_delete_void(sock->default_value);
+    node_socket_free_default_value(sock, do_id_user);
   }
   if (sock->default_attribute_name) {
     MEM_delete(sock->default_attribute_name);
