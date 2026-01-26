@@ -709,9 +709,11 @@ void SocketValueVariant::count_memory(MemoryCounter &memory) const
       break;
     }
     case Kind::Grid: {
+#ifdef WITH_OPENVDB
       if (const GVolumeGrid &grid = value_.get<GVolumeGrid>()) {
         grid->count_memory(memory);
       }
+#endif
       break;
     }
     case Kind::List: {
