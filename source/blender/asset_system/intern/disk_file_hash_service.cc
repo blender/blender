@@ -59,11 +59,15 @@ _result = service.get_hash(Path(filepath), hash_algorithm)
   /* Run the script.*/
   std::optional<IDProperty *> idprop_optptr = BPY_run_string_exec_with_locals_return_idprop(
       &C, SCRIPT, *locals, "_result");
-  BLI_assert(idprop_optptr.has_value());
+  if (!idprop_optptr.has_value()) {
+    const std::string filepath_str = filepath;
+    CLOG_ERROR(&LOG, "Failed to run hash script for file [%s].", filepath_str.c_str());
+    return "";
+  }
   IDProperty *hash_idprop = *idprop_optptr;
 
   /* Check the returned value. */
-  if (hash_idprop->type != IDP_STRING) {
+  if (hash_idprop == nullptr || hash_idprop->type != IDP_STRING) {
     IDP_FreeProperty(hash_idprop);
     const std::string filepath_str = filepath;
     CLOG_ERROR(&LOG,
@@ -126,11 +130,15 @@ _result = service.file_matches(Path(filepath), hash_algorithm, hexhash, size_in_
   /* Run the script.*/
   std::optional<IDProperty *> idprop_optptr = BPY_run_string_exec_with_locals_return_idprop(
       &C, SCRIPT, *locals, "_result");
-  BLI_assert(idprop_optptr.has_value());
+  if (!idprop_optptr.has_value()) {
+    const std::string filepath_str = filepath;
+    CLOG_ERROR(&LOG, "Failed to run hash match script for file [%s].", filepath_str.c_str());
+    return false;
+  }
   IDProperty *is_match_idprop = *idprop_optptr;
 
   /* Check the returned value. */
-  if (is_match_idprop->type != IDP_BOOLEAN) {
+  if (is_match_idprop == nullptr || is_match_idprop->type != IDP_BOOLEAN) {
     IDP_FreeProperty(is_match_idprop);
     const std::string filepath_str = filepath;
     CLOG_ERROR(
