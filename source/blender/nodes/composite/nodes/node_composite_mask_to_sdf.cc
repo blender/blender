@@ -50,7 +50,7 @@ class MaskToSDFOperation : public NodeOperation {
       }
       if (nearest_pixel_output.should_compute()) {
         nearest_pixel_output.allocate_single_value();
-        distance_output.set_single_value(int2(0));
+        nearest_pixel_output.set_single_value(int2(0));
       }
       return;
     }
