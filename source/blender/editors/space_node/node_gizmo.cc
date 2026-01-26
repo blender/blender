@@ -557,10 +557,9 @@ static void gizmo_node_box_mask_prop_matrix_set(const wmGizmo *gz,
 
   size_input->default_value_typed<bNodeSocketValueVector>()->value[0] = size[0];
   size_input->default_value_typed<bNodeSocketValueVector>()->value[1] = size[1] / aspect;
-  position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = rct.xmin +
-                                                                            size_value.x / 2;
+  position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = rct.xmin + size[0] / 2;
   position_input->default_value_typed<bNodeSocketValueVector>()->value[1] = rct.ymin +
-                                                                            size_value.y / 2;
+                                                                            size[1] / aspect / 2;
 
   gizmo_node_bbox_update(mask_group);
 }
