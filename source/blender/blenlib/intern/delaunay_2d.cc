@@ -2855,25 +2855,25 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
   Array<int> region_winding(num_regions);
   region_winding.fill(INT_MIN); /* INT_MIN = unknown. */
 
-  Vector<int> queue;
-  queue.reserve(num_regions); /* At most one entry per region. */
+  Vector<int> region_stack;
+  region_stack.reserve(num_regions); /* At most one entry per region. */
   for (const BoundaryRegionInfo &info : boundary_regions) {
     if (region_winding[info.region] == INT_MIN) {
       region_winding[info.region] = info.winding;
-      queue.append(info.region);
+      region_stack.append(info.region);
     }
   }
 
   /* BFS to propagate winding values through region graph. */
-  for (int qi = 0; qi < int(queue.size()); qi++) {
-    const int region = queue[qi];
+  while (!region_stack.is_empty()) {
+    const int region = region_stack.pop_last();
     const int current_winding = region_winding[region];
 
     for (const int i : region_adjacency_offsets[region]) {
       const RegionEdge &re = adjacency_data[i];
       if (region_winding[re.neighbor_region] == INT_MIN) {
         region_winding[re.neighbor_region] = current_winding + re.winding_delta;
-        queue.append(re.neighbor_region);
+        region_stack.append(re.neighbor_region);
       }
     }
   }
