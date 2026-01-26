@@ -57,7 +57,7 @@ else()
 endif()
 
 if(UNIX)
-  if(NOT (APPLE AND BLENDER_PLATFORN_ARM))
+  if(NOT (APPLE AND BLENDER_PLATFORM_ARM))
     set(GMP_OPTIONS ${GMP_OPTIONS} --with-pic)
   endif()
   if(NOT (APPLE OR BLENDER_PLATFORM_ARM))
