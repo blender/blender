@@ -64,7 +64,7 @@ const EnumPropertyItem rna_enum_exr_codec_items[] = {
     {R_IMF_EXR_CODEC_HTJ2K,
      "HTJ2K",
      0,
-     "",
+     "HTJ2K",
      "Lossless compression based on high throughput JPEG 2000 encoding. It produces smaller "
      "files, but it is new and not widely supported by other software yet."},
     {R_IMF_EXR_CODEC_ZIPS,
