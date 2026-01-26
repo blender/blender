@@ -748,11 +748,10 @@ void WM_event_free_ui_handler_all(bContext *C,
 /**
  * Add a modal handler to `win`, `area` and `region` may optionally be NULL.
  */
-wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindowManager *wm,
-                                                 wmWindow *win,
+wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
                                                  ScrArea *area,
                                                  ARegion *region,
-                                                 wmOperator *op) ATTR_NONNULL(1, 2, 5);
+                                                 wmOperator *op) ATTR_NONNULL(1, 4);
 wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op) ATTR_NONNULL(1, 2);
 void WM_event_remove_modal_handler(ListBaseT<wmEventHandler> *handlers,
                                    const wmOperator *op,

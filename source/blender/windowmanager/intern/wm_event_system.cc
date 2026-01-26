@@ -3999,6 +3999,21 @@ static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
  * Although XR events are added to regular window queues, they are handled in an "off-screen area"
  * context that is owned entirely by XR runtime data and not tied to a window.
  */
+
+static bool wm_event_xr_handler_matches_actiondata(const wmEventHandler_Op *op_handler,
+                                                   const wmXrActionData *actiondata)
+{
+  if (op_handler->op == nullptr) {
+    return false;
+  }
+
+  const bool handler_op_type_match = (op_handler->op->type == actiondata->ot);
+  const bool handler_op_properties_match = IDP_EqualsProperties(op_handler->op->properties,
+                                                                actiondata->op_properties);
+
+  return (handler_op_type_match && handler_op_properties_match);
+}
+
 static void wm_event_handle_xrevent(bContext *C,
                                     wmWindowManager *wm,
                                     wmWindow *win,
@@ -4022,6 +4037,10 @@ static void wm_event_handle_xrevent(bContext *C,
 
   ListBaseT<wmEventHandler> *modalhandlers = &win->runtime->modalhandlers;
 
+  BLI_assert(event->custom == EVT_DATA_XR);
+  BLI_assert(event->customdata);
+  wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
+
   /* Only process XR operator handlers to prevent interferences with main window handlers.
    * NOTE: This is a stripped-down XR specific version of #wm_handlers_do_intern. Changes made
    *       in that function might also need to be reproduced here. */
@@ -4035,7 +4054,8 @@ static void wm_event_handle_xrevent(bContext *C,
       }
 
       wmEventHandler_Op *op_handler = (wmEventHandler_Op *)&handler_base;
-      if (op_handler->is_xr) {
+      /* Only execute operator handler matching the XR action data carried by the event. */
+      if (wm_event_xr_handler_matches_actiondata(op_handler, actiondata)) {
         action = wm_handler_operator_call(
             C, modalhandlers, &handler_base, event, nullptr, nullptr);
       }
@@ -4049,7 +4069,6 @@ static void wm_event_handle_xrevent(bContext *C,
   wm_event_handler_return_value_check(C, event, action);
 
   if ((action & WM_HANDLER_BREAK) == 0) {
-    wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
     if (actiondata->ot->modal && event->val == KM_RELEASE) {
       /* Don't execute modal operators on release. */
     }
@@ -4672,8 +4691,10 @@ static void WM_event_set_handler_flag(wmEventHandler *handler, const int flag)
 }
 #endif
 
-wmEventHandler_Op *WM_event_add_modal_handler_ex(
-    wmWindowManager *wm, wmWindow *win, ScrArea *area, ARegion *region, wmOperator *op)
+wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
+                                                 ScrArea *area,
+                                                 ARegion *region,
+                                                 wmOperator *op)
 {
   wmEventHandler_Op *handler = MEM_callocN<wmEventHandler_Op>(__func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
@@ -4693,12 +4714,6 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(
   handler->context.region = region;
   handler->context.region_type = handler->context.region ? handler->context.region->regiontype :
                                                            -1;
-#ifdef WITH_XR_OPENXR
-  handler->is_xr = (area == WM_xr_session_area_get(&wm->xr));
-#else
-  handler->is_xr = false;
-  UNUSED_VARS(wm);
-#endif
 
   wm_handler_operator_insert(win, handler);
 
@@ -4711,11 +4726,10 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(
 
 wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  return WM_event_add_modal_handler_ex(wm, win, area, region, op);
+  return WM_event_add_modal_handler_ex(win, area, region, op);
 }
 
 void WM_event_remove_modal_handler(ListBaseT<wmEventHandler> *handlers,
