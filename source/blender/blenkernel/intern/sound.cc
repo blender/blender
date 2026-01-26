@@ -1943,7 +1943,7 @@ void BKE_sound_set_scene_sound_time_stretch_at_frame(AUD_Sound /*handle*/,
                                                      bool /*animated*/)
 {
 }
-void BKE_sound_set_scene_sound_time_stretch_constant_range(void * /*handle*/,
+void BKE_sound_set_scene_sound_time_stretch_constant_range(AUD_Sound /*handle*/,
                                                            int /*frame_start*/,
                                                            int /*frame_end*/,
                                                            float /*time_stretch*/)
