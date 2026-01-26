@@ -10,9 +10,9 @@ if(NOT MSVC)
   message(FATAL_ERROR "Compiler is unsupported")
 endif()
 
-# By default CMAKE will map imported configs that lack a specific RELWITHDEBINFO 
+# By default CMAKE will map imported configs that lack a specific RELWITHDEBINFO
 # or MINSIZEREL location, to the debug libs, which is not good as this will cause
-# all sorts of linking issues with MSVC. Map them explicitly to Release libs. 
+# all sorts of linking issues with MSVC. Map them explicitly to Release libs.
 # for further reading: https://gitlab.kitware.com/cmake/cmake/-/issues/20319
 set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel RelWithDebInfo Release Debug)
 set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release MinSizeRel Debug)
@@ -383,7 +383,7 @@ set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
 set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_DIR ${LIBDIR}/zlib)
 
-set(fmt_DIR ${LIBDIR}/fmt/lib/cmake/config) 
+set(fmt_DIR ${LIBDIR}/fmt/lib/cmake/config)
 find_package(fmt REQUIRED CONFIG)
 
 windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.

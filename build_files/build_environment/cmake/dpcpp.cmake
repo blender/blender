@@ -120,7 +120,7 @@ ExternalProject_Add(external_dpcpp
   #   echo "." # ${PYTHON_BINARY} ${BUILD_DIR}/dpcpp/src/external_dpcpp/buildbot/compile.py
   INSTALL_COMMAND ${CMAKE_COMMAND} --build . -- deploy-sycl-toolchain
 
-  PATCH_COMMAND 
+  PATCH_COMMAND
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/dpcpp/src/external_dpcpp <
       ${PATCH_DIR}/dpcpp.diff

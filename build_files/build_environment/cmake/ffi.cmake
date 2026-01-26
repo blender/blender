@@ -15,7 +15,7 @@ if(WIN32)
 
   set(CONFIGURE_ENV_FFI ${CONFIGURE_ENV} &&
     set CC=${BUILD_DIR}/ffi/src/external_ffi/msvcc.sh ${FFI_MSVC_SH_FLAGS} &&
-    set CXX=${BUILD_DIR}/ffi/src/external_ffi/msvcc.sh ${FFI_MSVC_SH_FLAGS} && 
+    set CXX=${BUILD_DIR}/ffi/src/external_ffi/msvcc.sh ${FFI_MSVC_SH_FLAGS} &&
     set LD=link &&
     set CPP=cl -nologo -EP &&
     set CXXCPP=cl -nologo -EP &&
@@ -25,7 +25,7 @@ if(WIN32)
   # out, "fine ,then don't". We'll pick the files we need ourselves
   # from the build folder in the after install cmake step.
   set(FFI_INSTALL echo .)
-  set(FFI_EXTRA_ARGS 
+  set(FFI_EXTRA_ARGS
       --disable-docs
       --disable-multi-os-directory
       --enable-shared=yes
@@ -40,7 +40,7 @@ else()
       --disable-multi-os-directory
       --enable-shared=no
       --enable-static=yes
-      --with-pic  
+      --with-pic
   )
 endif()
 

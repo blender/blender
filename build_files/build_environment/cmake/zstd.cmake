@@ -23,7 +23,7 @@ ExternalProject_Add(external_zstd
   PREFIX ${BUILD_DIR}/zstd
   SOURCE_SUBDIR build/cmake
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
-  
+
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/zstd
     ${DEFAULT_CMAKE_FLAGS}
