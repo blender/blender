@@ -252,9 +252,8 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 90})
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 90})
 
-        # Note: These 2 variations are problematic on MacOS ARM64 (#105006)
-        # self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 70})
-        # self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
 # autopep8: on
 
 
