@@ -588,7 +588,7 @@ static void restore_position_mesh(Object &object,
           undo_data.compressed_positions[i], tls.compress_buffer, tls.positions);
       MutableSpan undo_positions = tls.positions.as_mutable_span();
 
-      if (!ss.deform_modifiers_active) {
+      if (!ss.deform_modifiers_active && !shape_key_data) {
         /* When original positions aren't written separately in the undo step, there are no
          * deform modifiers. Therefore the original and evaluated deform positions will be the
          * same, and modifying the positions from the original mesh is enough. */
