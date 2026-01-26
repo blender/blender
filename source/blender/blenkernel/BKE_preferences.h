@@ -47,6 +47,10 @@ bool exists();
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
                                                             const char *dirpath) ATTR_NONNULL(1);
+struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDef *userdef,
+                                                                   const char *name,
+                                                                   const char *remote_url)
+    ATTR_NONNULL(1, 3);
 /**
  * Unlink and free a library preference member.
  * \note Free's \a library itself.
@@ -100,14 +104,6 @@ bool BKE_preferences_asset_library_is_valid(const UserDef *userdef,
                                             const bool check_directory_exists) ATTR_NONNULL();
 
 void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NONNULL();
-
-struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDef *userdef,
-                                                                   const char *name,
-                                                                   const char *remote_url)
-    ATTR_NONNULL(1, 3);
-size_t BKE_preferences_remote_asset_library_dirpath_get(const bUserAssetLibrary *library,
-                                                        char *dirpath,
-                                                        const int dirpath_maxncpy);
 
 /** \} */
 
