@@ -440,6 +440,12 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
   verts_num = mmd->verts_num;
   cage_verts_num = mmd->cage_verts_num;
 
+  if (verts_num == 0) {
+    MEM_freeN(mmd->bindweights);
+    mmd->bindweights = nullptr;
+    return;
+  }
+
   /* count number of influences above threshold */
   for (b = 0; b < verts_num; b++) {
     for (a = 0; a < cage_verts_num; a++) {
