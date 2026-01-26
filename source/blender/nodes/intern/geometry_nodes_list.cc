@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_memory_counter.hh"
+
 #include "NOD_geometry_nodes_list.hh"
 
 namespace blender::nodes {
@@ -135,6 +137,30 @@ GVArray List::varray() const
   }
   BLI_assert_unreachable();
   return {};
+}
+
+void List::count_memory(MemoryCounter &memory) const
+{
+  if (const auto *array_data = std::get_if<ArrayData>(&data_)) {
+    array_data->count_memory(memory, cpp_type_, size_);
+    return;
+  }
+  if (const auto *single_data = std::get_if<SingleData>(&data_)) {
+    single_data->count_memory(memory, cpp_type_);
+    return;
+  }
+}
+
+void List::ArrayData::count_memory(MemoryCounter &memory,
+                                   const CPPType &type,
+                                   const int64_t size) const
+{
+  memory.add_shared(this->sharing_info.get(), type.size * size);
+}
+
+void List::SingleData::count_memory(MemoryCounter &memory, const CPPType &type) const
+{
+  memory.add(type.size);
 }
 
 }  // namespace blender::nodes

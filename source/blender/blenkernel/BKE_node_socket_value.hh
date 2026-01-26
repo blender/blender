@@ -12,6 +12,7 @@
 
 #include "BLI_any.hh"
 #include "BLI_generic_pointer.hh"
+#include "BLI_memory_counter_fwd.hh"
 
 #include "BKE_node_socket_value_fwd.hh"
 
@@ -199,6 +200,8 @@ class SocketValueVariant {
    * caller is responsible to construct the value in the returned memory before it is used.
    */
   void *allocate_single(eNodeSocketDatatype socket_type);
+
+  void count_memory(MemoryCounter &memory) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const SocketValueVariant &value_variant);
 

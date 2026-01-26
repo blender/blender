@@ -5,8 +5,10 @@
 #pragma once
 
 #include "BKE_node.hh"
-
 #include "BKE_node_socket_value.hh"
+
+#include "BLI_memory_counter_fwd.hh"
+
 #include "NOD_geometry_nodes_bundle_fwd.hh"
 #include "NOD_geometry_nodes_values.hh"
 
@@ -106,6 +108,8 @@ class Bundle : public ImplicitSharingMixin {
   BundlePtr copy() const;
 
   void delete_self() override;
+
+  void count_memory(MemoryCounter &memory) const;
 
   /** Create the combined path by inserting '/' between each element. */
   static std::string combine_path(const Span<StringRef> path);

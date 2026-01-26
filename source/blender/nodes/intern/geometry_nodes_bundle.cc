@@ -275,6 +275,15 @@ void Bundle::delete_self()
   MEM_delete(this);
 }
 
+void Bundle::count_memory(MemoryCounter &memory) const
+{
+  for (const auto &item : items_.items()) {
+    if (const auto *socket_value = std::get_if<BundleItemSocketValue>(&item.value.value)) {
+      socket_value->value.count_memory(memory);
+    }
+  }
+}
+
 NodeSocketInterfaceStructureType get_structure_type_for_bundle_signature(
     const bNodeSocket &socket,
     const NodeSocketInterfaceStructureType stored_structure_type,
