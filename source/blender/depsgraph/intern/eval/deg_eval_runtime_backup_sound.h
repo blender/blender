@@ -28,9 +28,9 @@ class SoundBackup {
   void init_from_sound(bSound *sound);
   void restore_to_sound(bSound *sound);
 
-  AUD_Sound *cache;
+  AUD_Sound cache;
+  AUD_Sound playback_handle;
   Vector<float> *waveform;
-  AUD_Sound *playback_handle;
 };
 
 }  // namespace deg

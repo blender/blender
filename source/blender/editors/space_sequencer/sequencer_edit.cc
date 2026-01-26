@@ -3261,10 +3261,10 @@ static wmOperatorStatus sequencer_swap_data_exec(bContext *C, wmOperator *op)
   strip_other->runtime->clear_sound_time_stretch();
 
   if (strip_act->sound) {
-    BKE_sound_add_scene_sound_defaults(scene, strip_act);
+    BKE_sound_add_scene_sound(scene, strip_act);
   }
   if (strip_other->sound) {
-    BKE_sound_add_scene_sound_defaults(scene, strip_other);
+    BKE_sound_add_scene_sound(scene, strip_other);
   }
 
   seq::relations_invalidate_cache_raw(scene, strip_act);

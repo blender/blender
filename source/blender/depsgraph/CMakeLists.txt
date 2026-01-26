@@ -158,6 +158,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::optional::audaspace
 )
 
 if(WITH_PYTHON)

@@ -500,6 +500,7 @@ set(SRC
   BKE_shrinkwrap.hh
   BKE_softbody.h
   BKE_sound.hh
+  BKE_sound_types.hh
   BKE_speaker.hh
   BKE_studiolight.h
   BKE_subdiv.hh

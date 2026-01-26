@@ -50,6 +50,7 @@
 
 #include "BKE_blender.hh"
 #include "BKE_image.hh"
+#include "BKE_sound.hh"
 
 #include "BIF_glutil.hh"
 
@@ -71,19 +72,19 @@
 
 #include "WM_api.hh" /* Only for #WM_main_playanim. */
 
+#ifdef WITH_AUDASPACE
+#  include <devices/IHandle.h>
+#  include <file/File.h>
+#endif
+
 namespace blender {
 
 #ifdef WITH_AUDASPACE
-#  include <AUD_Device.h>
-#  include <AUD_Handle.h>
-#  include <AUD_Sound.h>
-#  include <AUD_Special.h>
-
 static struct {
-  AUD_Sound *source;
-  AUD_Handle *playback_handle;
-  AUD_Handle *scrub_handle;
-  AUD_Device *audio_device;
+  AUD_Sound source;
+  AUD_Handle playback_handle;
+  AUD_Handle scrub_handle;
+  AUD_Device audio_device;
 } g_audaspace = {nullptr};
 #endif
 
@@ -1175,7 +1176,7 @@ static void update_sound_fps()
     /* Swap-time stores the 1.0/fps ratio. */
     double speed = 1.0 / (g_playanim.swap_time * g_playanim.fps_movie);
 
-    AUD_Handle_setPitch(g_audaspace.playback_handle, speed);
+    g_audaspace.playback_handle->setPitch(speed);
   }
 #endif
 }
@@ -1204,35 +1205,36 @@ static void playanim_change_frame(PlayState &ps)
 
 #ifdef WITH_AUDASPACE
   if (g_audaspace.scrub_handle) {
-    AUD_Handle_stop(g_audaspace.scrub_handle);
+    g_audaspace.scrub_handle->stop();
     g_audaspace.scrub_handle = nullptr;
   }
 
   if (g_audaspace.playback_handle) {
-    AUD_Status status = AUD_Handle_getStatus(g_audaspace.playback_handle);
-    if (status != AUD_STATUS_PLAYING) {
-      AUD_Handle_stop(g_audaspace.playback_handle);
-      g_audaspace.playback_handle = AUD_Device_play(
-          g_audaspace.audio_device, g_audaspace.source, 1);
+    aud::Status status = g_audaspace.playback_handle->getStatus();
+    if (status != aud::STATUS_PLAYING) {
+      g_audaspace.playback_handle->stop();
+      g_audaspace.playback_handle = bke::sound_device_play(g_audaspace.audio_device,
+                                                           g_audaspace.source);
       if (g_audaspace.playback_handle) {
-        AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
-        g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle,
-                                                  1.0 / g_playanim.fps_movie);
+        g_audaspace.playback_handle->seek(i / g_playanim.fps_movie);
+        g_audaspace.scrub_handle = bke::sound_pause_after(g_audaspace.playback_handle,
+                                                          1.0 / g_playanim.fps_movie);
       }
       update_sound_fps();
     }
     else {
-      AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
-      g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle,
-                                                1.0 / g_playanim.fps_movie);
+      g_audaspace.playback_handle->seek(i / g_playanim.fps_movie);
+      g_audaspace.scrub_handle = bke::sound_pause_after(g_audaspace.playback_handle,
+                                                        1.0 / g_playanim.fps_movie);
     }
   }
   else if (g_audaspace.source) {
-    g_audaspace.playback_handle = AUD_Device_play(g_audaspace.audio_device, g_audaspace.source, 1);
+    g_audaspace.playback_handle = bke::sound_device_play(g_audaspace.audio_device,
+                                                         g_audaspace.source);
     if (g_audaspace.playback_handle) {
-      AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
-      g_audaspace.scrub_handle = AUD_pauseAfter(g_audaspace.playback_handle,
-                                                1.0 / g_playanim.fps_movie);
+      g_audaspace.playback_handle->seek(i / g_playanim.fps_movie);
+      g_audaspace.scrub_handle = bke::sound_pause_after(g_audaspace.playback_handle,
+                                                        1.0 / g_playanim.fps_movie);
     }
     update_sound_fps();
   }
@@ -1254,11 +1256,12 @@ static void playanim_audio_resume(PlayState &ps)
   /* TODO: store in ps direct? */
   const int i = BLI_findindex(&ps.picsbase, ps.picture);
   if (g_audaspace.playback_handle) {
-    AUD_Handle_stop(g_audaspace.playback_handle);
+    g_audaspace.playback_handle->stop();
   }
-  g_audaspace.playback_handle = AUD_Device_play(g_audaspace.audio_device, g_audaspace.source, 1);
+  g_audaspace.playback_handle = bke::sound_device_play(g_audaspace.audio_device,
+                                                       g_audaspace.source);
   if (g_audaspace.playback_handle) {
-    AUD_Handle_setPosition(g_audaspace.playback_handle, i / g_playanim.fps_movie);
+    g_audaspace.playback_handle->seek(i / g_playanim.fps_movie);
   }
   update_sound_fps();
 #else
@@ -1270,7 +1273,7 @@ static void playanim_audio_stop(PlayState & /*ps*/)
 {
 #ifdef WITH_AUDASPACE
   if (g_audaspace.playback_handle) {
-    AUD_Handle_stop(g_audaspace.playback_handle);
+    g_audaspace.playback_handle->stop();
     g_audaspace.playback_handle = nullptr;
   }
 #endif
@@ -2127,7 +2130,7 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
                   &ps.loading);
 
 #ifdef WITH_AUDASPACE
-  g_audaspace.source = AUD_Sound_file(filepath);
+  g_audaspace.source = AUD_Sound(new aud::File(filepath));
   if (!BLI_listbase_is_empty(&ps.picsbase)) {
     const MovieReader *anim_movie = static_cast<PlayAnimPict *>(ps.picsbase.first)->anim;
     if (anim_movie) {
@@ -2186,9 +2189,10 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
 #ifdef WITH_AUDASPACE
     if (g_audaspace.playback_handle) {
-      AUD_Handle_stop(g_audaspace.playback_handle);
+      g_audaspace.playback_handle->stop();
     }
-    g_audaspace.playback_handle = AUD_Device_play(g_audaspace.audio_device, g_audaspace.source, 1);
+    g_audaspace.playback_handle = bke::sound_device_play(g_audaspace.audio_device,
+                                                         g_audaspace.source);
     update_sound_fps();
 #endif
 
@@ -2331,15 +2335,14 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
 #ifdef WITH_AUDASPACE
   if (g_audaspace.playback_handle) {
-    AUD_Handle_stop(g_audaspace.playback_handle);
+    g_audaspace.playback_handle->stop();
     g_audaspace.playback_handle = nullptr;
   }
   if (g_audaspace.scrub_handle) {
-    AUD_Handle_stop(g_audaspace.scrub_handle);
+    g_audaspace.scrub_handle->stop();
     g_audaspace.scrub_handle = nullptr;
   }
-  AUD_Sound_free(g_audaspace.source);
-  g_audaspace.source = nullptr;
+  g_audaspace.source.reset();
 #endif
 
   /* Free subsystems the animation player is responsible for starting.
@@ -2379,16 +2382,16 @@ int WM_main_playanim(int argc, const char **argv)
 {
 #ifdef WITH_AUDASPACE
   {
-    AUD_DeviceSpecs specs;
+    aud::DeviceSpecs specs;
 
-    specs.rate = AUD_RATE_48000;
-    specs.format = AUD_FORMAT_FLOAT32;
-    specs.channels = AUD_CHANNELS_STEREO;
+    specs.rate = aud::RATE_48000;
+    specs.format = aud::FORMAT_FLOAT32;
+    specs.channels = aud::CHANNELS_STEREO;
 
-    AUD_initOnce();
+    bke::sound_system_initialize();
 
-    if (!(g_audaspace.audio_device = AUD_init(nullptr, specs, 1024, "Blender"))) {
-      g_audaspace.audio_device = AUD_init("None", specs, 0, "Blender");
+    if (!(g_audaspace.audio_device = bke::sound_device_init(nullptr, specs, 1024, "Blender"))) {
+      g_audaspace.audio_device = bke::sound_device_init("None", specs, 0, "Blender");
     }
   }
 #endif
@@ -2419,8 +2422,8 @@ int WM_main_playanim(int argc, const char **argv)
   BLI_assert(exit_code.has_value());
 
 #ifdef WITH_AUDASPACE
-  AUD_exit(g_audaspace.audio_device);
-  AUD_exitOnce();
+  bke::sound_device_exit();
+  g_audaspace.audio_device.reset();
 #endif
 
   /* Cleanup sub-systems started before this function was called. */

@@ -68,10 +68,6 @@
 
 #include "BKE_scene_runtime.hh"
 
-#ifdef WITH_AUDASPACE
-#  include <AUD_Sound.h>
-#endif
-
 namespace blender {
 namespace seq {
 
@@ -213,6 +209,7 @@ static void seq_strip_free_ex(Scene *scene,
 
     if (strip->runtime->scene_sound && ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
       BKE_sound_remove_scene_sound(scene, strip->runtime->scene_sound);
+      strip->runtime->scene_sound.reset();
     }
   }
 
@@ -283,12 +280,7 @@ StripRuntime::~StripRuntime()
 
 void StripRuntime::clear_sound_time_stretch()
 {
-  if (sound_time_stretch != nullptr) {
-#ifdef WITH_AUDASPACE
-    AUD_Sound_free(sound_time_stretch);
-    sound_time_stretch = nullptr;
-#endif
-  }
+  sound_time_stretch.reset();
   sound_time_stretch_fps = 0.0f;
 }
 
@@ -296,7 +288,7 @@ void StripRuntime::remove_scene_sound(Scene *scene)
 {
   if (scene_sound != nullptr) {
     BKE_sound_remove_scene_sound(scene, scene_sound);
-    scene_sound = nullptr;
+    scene_sound.reset();
   }
 }
 
@@ -698,8 +690,7 @@ static Strip *strip_duplicate(StripDuplicateContext &ctx,
     }
     strip_new->data->stripdata = nullptr;
     if (strip->runtime->scene_sound) {
-      strip_new->runtime->scene_sound = BKE_sound_scene_add_scene_sound_defaults(ctx.scene_dst,
-                                                                                 strip_new);
+      strip_new->runtime->scene_sound = BKE_sound_scene_add_scene_sound(ctx.scene_dst, strip_new);
     }
   }
   else if (strip->type == STRIP_TYPE_MOVIECLIP) {
@@ -1103,12 +1094,12 @@ static void strip_update_mix_sounds(Scene *scene, Strip *strip)
 
   if (strip->sound != nullptr) {
     /* Adds `strip->sound->playback_handle` to `scene->sound_scene` */
-    strip->runtime->scene_sound = BKE_sound_add_scene_sound_defaults(scene, strip);
+    strip->runtime->scene_sound = BKE_sound_add_scene_sound(scene, strip);
   }
   else if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr) {
     /* Adds `strip->scene->sound_scene` to `scene->sound_scene`. */
     BKE_sound_ensure_scene(strip->scene);
-    strip->runtime->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene, strip);
+    strip->runtime->scene_sound = BKE_sound_scene_add_scene_sound(scene, strip);
   }
 }
 
@@ -1131,7 +1122,7 @@ static void strip_update_sound_properties(const Scene *scene, const Strip *strip
 
 static void strip_update_sound_modifiers(Strip *strip)
 {
-  void *sound_handle = BKE_sound_playback_handle_get(strip->sound);
+  AUD_Sound sound_handle = BKE_sound_playback_handle_get(strip->sound);
   bool needs_update = false;
   int sound_modifiers_count = 0;
 

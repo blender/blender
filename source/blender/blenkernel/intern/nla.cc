@@ -65,6 +65,14 @@ static void nla_tweakmode_find_active(ListBaseT<NlaTrack> *nla_tracks,
 /* *************************************************** */
 /* Data Management */
 
+bke::NlaStripRuntime &NlaStrip::runtime_get()
+{
+  if (this->runtime == nullptr) {
+    this->runtime = MEM_new<bke::NlaStripRuntime>(__func__);
+  }
+  return *this->runtime;
+}
+
 /* Freeing ------------------------------------------- */
 
 void BKE_nlastrip_free(NlaStrip *strip, const bool do_id_user)
@@ -93,7 +101,8 @@ void BKE_nlastrip_free(NlaStrip *strip, const bool do_id_user)
   /* free own F-Modifiers */
   free_fmodifiers(&strip->modifiers);
 
-  /* free the strip itself */
+  /* free the strip runtime and itself */
+  MEM_delete(strip->runtime);
   MEM_freeN(strip);
 }
 
@@ -155,6 +164,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
   /* make a copy */
   strip_d = static_cast<NlaStrip *>(MEM_dupallocN(strip));
   strip_d->next = strip_d->prev = nullptr;
+  strip_d->runtime = nullptr;
 
   /* handle action */
   if (strip_d->act) {

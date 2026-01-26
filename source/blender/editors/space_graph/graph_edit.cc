@@ -14,7 +14,7 @@
 #include <cstring>
 
 #ifdef WITH_AUDASPACE
-#  include <AUD_Special.h>
+#  include "BKE_sound.hh"
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -1153,19 +1153,19 @@ static wmOperatorStatus graphkeys_sound_to_samples_exec(bContext *C, wmOperator 
   scene = ac.scene; /* Current scene. */
 
   /* Store necessary data for the baking steps. */
-  sbi.samples = AUD_readSoundBuffer(filepath,
-                                    RNA_float_get(op->ptr, "low"),
-                                    RNA_float_get(op->ptr, "high"),
-                                    RNA_float_get(op->ptr, "attack"),
-                                    RNA_float_get(op->ptr, "release"),
-                                    RNA_float_get(op->ptr, "threshold"),
-                                    RNA_boolean_get(op->ptr, "use_accumulate"),
-                                    RNA_boolean_get(op->ptr, "use_additive"),
-                                    RNA_boolean_get(op->ptr, "use_square"),
-                                    RNA_float_get(op->ptr, "sthreshold"),
-                                    scene->frames_per_second(),
-                                    &sbi.length,
-                                    0);
+  sbi.samples = bke::sound_read_file_buffer(filepath,
+                                            RNA_float_get(op->ptr, "low"),
+                                            RNA_float_get(op->ptr, "high"),
+                                            RNA_float_get(op->ptr, "attack"),
+                                            RNA_float_get(op->ptr, "release"),
+                                            RNA_float_get(op->ptr, "threshold"),
+                                            RNA_boolean_get(op->ptr, "use_accumulate"),
+                                            RNA_boolean_get(op->ptr, "use_additive"),
+                                            RNA_boolean_get(op->ptr, "use_square"),
+                                            RNA_float_get(op->ptr, "sthreshold"),
+                                            scene->frames_per_second(),
+                                            0,
+                                            &sbi.length);
 
   if (sbi.samples == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
@@ -1193,7 +1193,7 @@ static wmOperatorStatus graphkeys_sound_to_samples_exec(bContext *C, wmOperator 
   }
 
   /* Free sample data. */
-  free(sbi.samples);
+  MEM_freeN(sbi.samples);
 
   /* Validate keyframes after editing. */
   ANIM_animdata_update(&ac, &anim_data);

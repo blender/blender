@@ -21,11 +21,6 @@
 #  include <cstdio>
 #  include <cstring>
 
-#  ifdef WITH_AUDASPACE
-#    include <AUD_Device.h>
-#    include <AUD_Special.h>
-#  endif
-
 #  include "DNA_scene_types.h"
 
 #  include "BLI_string.h"
@@ -53,7 +48,7 @@ static int write_audio_frame(MovieWriter *context)
   AVFrame *frame = nullptr;
   AVCodecContext *c = context->audio_codec;
 
-  AUD_Device_read(
+  bke::sound_device_read(
       context->audio_mixdown_device, context->audio_input_buffer, context->audio_input_samples);
 
   frame = av_frame_alloc();
@@ -157,28 +152,28 @@ bool movie_audio_open(MovieWriter *context,
   if (context->audio_stream) {
     AVCodecContext *c = context->audio_codec;
 
-    AUD_DeviceSpecs specs;
+    aud::DeviceSpecs specs;
 #    ifdef FFMPEG_USE_OLD_CHANNEL_VARS
-    specs.channels = AUD_Channels(c->channels);
+    specs.channels = aud::Channels(c->channels);
 #    else
-    specs.channels = AUD_Channels(c->ch_layout.nb_channels);
+    specs.channels = aud::Channels(c->ch_layout.nb_channels);
 #    endif
 
     switch (av_get_packed_sample_fmt(c->sample_fmt)) {
       case AV_SAMPLE_FMT_U8:
-        specs.format = AUD_FORMAT_U8;
+        specs.format = aud::FORMAT_U8;
         break;
       case AV_SAMPLE_FMT_S16:
-        specs.format = AUD_FORMAT_S16;
+        specs.format = aud::FORMAT_S16;
         break;
       case AV_SAMPLE_FMT_S32:
-        specs.format = AUD_FORMAT_S32;
+        specs.format = aud::FORMAT_S32;
         break;
       case AV_SAMPLE_FMT_FLT:
-        specs.format = AUD_FORMAT_FLOAT32;
+        specs.format = aud::FORMAT_FLOAT32;
         break;
       case AV_SAMPLE_FMT_DBL:
-        specs.format = AUD_FORMAT_FLOAT64;
+        specs.format = aud::FORMAT_FLOAT64;
         break;
       default:
         BKE_report(reports, RPT_ERROR, "Audio sample format unsupported");
@@ -201,10 +196,7 @@ void movie_audio_close(MovieWriter *context, bool is_autosplit)
 {
 #  ifdef WITH_AUDASPACE
   if (!is_autosplit) {
-    if (context->audio_mixdown_device) {
-      AUD_Device_free(context->audio_mixdown_device);
-      context->audio_mixdown_device = nullptr;
-    }
+    context->audio_mixdown_device.reset();
   }
 #  else
   UNUSED_VARS(context, is_autosplit);
