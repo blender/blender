@@ -30,9 +30,8 @@ endif()
 
 if(WITH_SYSTEM_PYTHON_TESTS)
   if(NOT EXISTS "${TEST_SYSTEM_PYTHON_EXE}")
-    message(ERROR
-      "'System Python' tests requested but no valid system python path, "
-      "set TEST_SYSTEM_PYTHON_EXE."
+    message(STATUS
+      "Tests: Disabling 'System Python', no valid system python path, set TEST_SYSTEM_PYTHON_EXE."
     )
     set(WITH_SYSTEM_PYTHON_TESTS OFF)
   endif()
