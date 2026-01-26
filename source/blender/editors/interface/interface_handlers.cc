@@ -810,7 +810,7 @@ enum eSnapType {
   SNAP_ON_SMALL,
 };
 
-static enum eSnapType ui_event_to_snap(const wmEvent *event)
+static eSnapType ui_event_to_snap(const wmEvent *event)
 {
   return (event->modifier & KM_CTRL) ? (event->modifier & KM_SHIFT) ? SNAP_ON_SMALL : SNAP_ON :
                                        SNAP_OFF;
@@ -822,7 +822,7 @@ static bool ui_event_is_snap(const wmEvent *event)
           ELEM(event->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY));
 }
 
-static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
+static void ui_color_snap_hue(const eSnapType snap, float *r_hue)
 {
   const float snap_increment = (snap == SNAP_ON_SMALL) ? 24 : 12;
   BLI_assert(snap != SNAP_OFF);
@@ -5283,7 +5283,7 @@ static int ui_do_but_EXIT(bContext *C, Button *but, HandleButtonData *data, cons
 
 /* var names match ui_numedit_but_NUM */
 static float ui_numedit_apply_snapf(
-    Button *but, float tempf, float softmin, float softmax, const enum eSnapType snap)
+    Button *but, float tempf, float softmin, float softmax, const eSnapType snap)
 {
   if (tempf == softmin || tempf == softmax || snap == SNAP_OFF) {
     /* pass */
@@ -5360,10 +5360,7 @@ static float ui_numedit_apply_snapf(
   return tempf;
 }
 
-static float ui_numedit_apply_snap(int temp,
-                                   float softmin,
-                                   float softmax,
-                                   const enum eSnapType snap)
+static float ui_numedit_apply_snap(int temp, float softmin, float softmax, const eSnapType snap)
 {
   if (ELEM(temp, softmin, softmax)) {
     return temp;
@@ -5388,7 +5385,7 @@ static bool ui_numedit_but_NUM(ButtonNumber *but,
                                int mx,
                                FunctionRef<int()> drag_threshold_fn,
                                const bool is_motion,
-                               const enum eSnapType snap,
+                               const eSnapType snap,
                                float fac)
 {
   float deler, tempf;
@@ -5796,7 +5793,7 @@ static int ui_do_but_NUM(
     }
     else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
       const bool is_motion = (event->type == MOUSEMOVE);
-      const enum eSnapType snap = ui_event_to_snap(event);
+      const eSnapType snap = ui_event_to_snap(event);
       float fac;
 
 #ifdef USE_DRAG_MULTINUM
@@ -6530,7 +6527,7 @@ static int ui_do_but_BLOCK(bContext *C, Button *but, HandleButtonData *data, con
 }
 
 static bool ui_numedit_but_UNITVEC(
-    Button *but, HandleButtonData *data, int mx, int my, const enum eSnapType snap)
+    Button *but, HandleButtonData *data, int mx, int my, const eSnapType snap)
 {
   float mrad;
   bool changed = true;
@@ -6780,7 +6777,7 @@ static int ui_do_but_UNITVEC(
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
-      const enum eSnapType snap = ui_event_to_snap(event);
+      const eSnapType snap = ui_event_to_snap(event);
       data->dragstartx = mx;
       data->dragstarty = my;
       data->draglastx = mx;
@@ -6798,7 +6795,7 @@ static int ui_do_but_UNITVEC(
   else if (data->state == BUTTON_STATE_NUM_EDITING) {
     if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
       if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
-        const enum eSnapType snap = ui_event_to_snap(event);
+        const eSnapType snap = ui_event_to_snap(event);
         if (ui_numedit_but_UNITVEC(but, data, mx, my, snap)) {
           ui_numedit_apply(C, block, but, data);
         }
@@ -6874,7 +6871,7 @@ static bool ui_numedit_but_HSVCUBE(Button *but,
                                    HandleButtonData *data,
                                    int mx,
                                    int my,
-                                   const enum eSnapType snap,
+                                   const eSnapType snap,
                                    const bool shift,
                                    const bool use_continuous_grab,
                                    bool start_drag = false)
@@ -7001,7 +6998,7 @@ static bool ui_numedit_but_HSVCUBE(Button *but,
 static void ui_ndofedit_but_HSVCUBE(ButtonHSVCube *hsv_but,
                                     HandleButtonData *data,
                                     const wmNDOFMotionData &ndof,
-                                    const enum eSnapType snap,
+                                    const eSnapType snap,
                                     const bool shift)
 {
   ColorPicker *cpicker = static_cast<ColorPicker *>(hsv_but->custom_data);
@@ -7077,7 +7074,7 @@ static int ui_do_but_HSVCUBE(
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
-      const enum eSnapType snap = ui_event_to_snap(event);
+      const eSnapType snap = ui_event_to_snap(event);
 
       data->dragstartx = mx;
       data->dragstarty = my;
@@ -7098,7 +7095,7 @@ static int ui_do_but_HSVCUBE(
 #ifdef WITH_INPUT_NDOF
     if (event->type == NDOF_MOTION) {
       const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(event->customdata);
-      const enum eSnapType snap = ui_event_to_snap(event);
+      const eSnapType snap = ui_event_to_snap(event);
 
       ui_ndofedit_but_HSVCUBE(hsv_but, data, ndof, snap, event->modifier & KM_SHIFT);
 
@@ -7151,7 +7148,7 @@ static int ui_do_but_HSVCUBE(
     }
     else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
       if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
-        const enum eSnapType snap = ui_event_to_snap(event);
+        const eSnapType snap = ui_event_to_snap(event);
 
         const bool shift = event->modifier & KM_SHIFT;
         const bool use_continuous_grab = button_is_cursor_warp(but) &&
@@ -7175,7 +7172,7 @@ static bool ui_numedit_but_HSVCIRCLE(Button *but,
                                      HandleButtonData *data,
                                      float mx,
                                      float my,
-                                     const enum eSnapType snap,
+                                     const eSnapType snap,
                                      const bool shift,
                                      const bool use_continuous_grab,
                                      const bool start_drag = false)
@@ -7284,7 +7281,7 @@ static bool ui_numedit_but_HSVCIRCLE(Button *but,
 static void ui_ndofedit_but_HSVCIRCLE(Button *but,
                                       HandleButtonData *data,
                                       const wmNDOFMotionData &ndof,
-                                      const enum eSnapType snap,
+                                      const eSnapType snap,
                                       const bool shift)
 {
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
@@ -7369,7 +7366,7 @@ static int ui_do_but_HSVCIRCLE(
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
-      const enum eSnapType snap = ui_event_to_snap(event);
+      const eSnapType snap = ui_event_to_snap(event);
       data->dragstartx = mx;
       data->dragstarty = my;
       data->draglastx = mx;
@@ -7387,7 +7384,7 @@ static int ui_do_but_HSVCIRCLE(
     }
 #ifdef WITH_INPUT_NDOF
     if (event->type == NDOF_MOTION) {
-      const enum eSnapType snap = ui_event_to_snap(event);
+      const eSnapType snap = ui_event_to_snap(event);
       const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(event->customdata);
 
       ui_ndofedit_but_HSVCIRCLE(but, data, ndof, snap, event->modifier & KM_SHIFT);
@@ -7450,7 +7447,7 @@ static int ui_do_but_HSVCIRCLE(
     }
     else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
       if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
-        const enum eSnapType snap = ui_event_to_snap(event);
+        const eSnapType snap = ui_event_to_snap(event);
         const bool shift = event->modifier & KM_SHIFT;
         const bool use_continuous_grab = button_is_cursor_warp(but) &&
                                          event->tablet.active == EVT_TABLET_NONE;
