@@ -1468,9 +1468,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
     {
       bke::SpanAttributeWriter<float> fill_opacities =
           dst_curves.attributes_for_write().lookup_or_add_for_write_span<float>(
-              "fill_opacity",
-              bke::AttrDomain::Curve,
-              bke::AttributeInitVArray(VArray<float>::from_single(1.0f, dst_curves.curves_num())));
+              "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
       fill_opacities.finish();
     }
 

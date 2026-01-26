@@ -608,21 +608,13 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
   bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
       "cyclic", bke::AttrDomain::Curve);
   bke::SpanAttributeWriter<float> hardnesses = attributes.lookup_or_add_for_write_span<float>(
-      "hardness",
-      bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
+      "hardness", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
   bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
-      "fill_opacity",
-      bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
+      "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
   bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
-      "radius",
-      bke::AttrDomain::Point,
-      bke::AttributeInitVArray(VArray<float>::from_single(0.01f, curves.points_num())));
+      "radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
   bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
-      "opacity",
-      bke::AttrDomain::Point,
-      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.points_num())));
+      "opacity", bke::AttrDomain::Point, bke::AttributeInitValue(1.0f));
 
   cyclic.span.fill(true);
   materials.span.fill(material_index);

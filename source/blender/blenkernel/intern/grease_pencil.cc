@@ -710,9 +710,7 @@ void Drawing::set_texture_matrices(Span<float4x2> matrices, const IndexMask &sel
   SpanAttributeWriter<float2> uv_translations = attributes.lookup_or_add_for_write_span<float2>(
       "uv_translation", AttrDomain::Curve);
   SpanAttributeWriter<float2> uv_scales = attributes.lookup_or_add_for_write_span<float2>(
-      "uv_scale",
-      AttrDomain::Curve,
-      AttributeInitVArray(VArray<float2>::from_single(float2(1.0f, 1.0f), curves.curves_num())));
+      "uv_scale", AttrDomain::Curve, AttributeInitValue(float2(1.0f, 1.0f)));
 
   if (!uv_rotations || !uv_translations || !uv_scales) {
     /* FIXME: It might be better to ensure the attributes exist and are on the right domain. */
