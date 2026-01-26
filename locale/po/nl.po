@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2698,28 +2698,24 @@ msgid "Import"
 msgstr "Importeren"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
+msgid "Rigid Body"
+msgstr "Star Lichaam"
 
 
-msgid "Local View"
-msgstr "Lokale Scherm"
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
 
 
-msgid "Navigation"
-msgstr "Navigatie"
+msgid "Hooks"
+msgstr "Haken"
 
 
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
+msgid "Convert"
+msgstr "Converteer"
 
 
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Light"
-msgstr "Licht"
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
 
 
 msgid "Add Image"
@@ -2730,28 +2726,32 @@ msgid "Relations"
 msgstr "Relaties"
 
 
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
 msgid "Layout"
 msgstr "Indeling"
 
 
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
+msgid "Light"
+msgstr "Licht"
 
 
-msgid "Convert"
-msgstr "Converteer"
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
 
 
-msgid "Hooks"
-msgstr "Haken"
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
 
 
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgctxt "MovieClip"
@@ -4218,13 +4218,13 @@ msgstr "Vetkrijt Tekenen"
 
 
 msgctxt "Operator"
-msgid "Invert"
-msgstr "Keer Om"
+msgid "Erase"
+msgstr "Gummen"
 
 
 msgctxt "Operator"
-msgid "Erase"
-msgstr "Gummen"
+msgid "Invert"
+msgstr "Keer Om"
 
 
 msgid "Flat"

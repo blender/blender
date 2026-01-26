@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -3078,24 +3078,24 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
 msgid "Import"
 msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
+
+
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
+msgid "Apply"
+msgstr "ﻝﺎﻤﻋﺍ"
+
+
+msgid "Convert"
+msgstr "ﻞﯾﺪﺒﺗ"
 
 
 msgid "Add Image"
@@ -3110,16 +3110,16 @@ msgid "Layout"
 msgstr "ﺡﺮﻃ"
 
 
-msgid "Apply"
-msgstr "ﻝﺎﻤﻋﺍ"
-
-
-msgid "Convert"
-msgstr "ﻞﯾﺪﺒﺗ"
-
-
 msgid "Tracking"
 msgstr "ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
+
+
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
 msgid "Key"
@@ -3487,6 +3487,10 @@ msgid "Mirror"
 msgstr "ﺏﺎﺗﺯﺎﺑ"
 
 
+msgid "Single"
+msgstr "ﯽﮑﺗ"
+
+
 msgid "Fill Type"
 msgstr "ﻥﺩﺮﮐ ﺮﭘ ﻉﻮﻧ"
 
@@ -3497,10 +3501,6 @@ msgstr "ﯽﺷ ﺕﺎﻋﻼ﻿ﻃﺍ"
 
 msgid "Points to Curves"
 msgstr "ﺎﻫ‌ﯽﻨﺤﻨﻣ ﻪﺑ ﻁﺎﻘﻧ"
-
-
-msgid "Single"
-msgstr "ﯽﮑﺗ"
 
 
 msgid "Add Shader"
@@ -3932,10 +3932,6 @@ msgid "Feather"
 msgstr "ﺮﭘ"
 
 
-msgid "Select ring"
-msgstr "ﻪﻘﻠﺣ ﺏﺎﺨﺘﻧﺍ"
-
-
 msgid "Select Bigger"
 msgstr "ﺮﺘﮔﺭﺰﺑ ﺏﺎﺨﺘﻧﺍ"
 
@@ -4320,12 +4316,12 @@ msgid "Restrict"
 msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
 
-msgid "Motion Tracking"
-msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
-
-
 msgid "Transform Orientations"
 msgstr "ﻞﮑﺷ ﺮﯿﯿﻐﺗ ﺖﻬﺟ"
+
+
+msgid "Motion Tracking"
+msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "Bone Constraints"

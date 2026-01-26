@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21231,104 +21231,144 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Math"
-msgstr "Matemática"
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Names"
-msgstr "Nomes"
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
+msgid "Names"
+msgstr "Nomes"
 
 
 msgid "Import"
 msgstr "Importar"
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Face Data"
+msgstr "Dados das faces"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Rigid Body"
+msgstr "Corpo rígido"
 
 
-msgid "Local View"
-msgstr "Visão local"
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
 
 
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
 
 
-msgid "Navigation"
-msgstr "Navegação"
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
 
 
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
 
 
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
+msgid "Apply"
+msgstr "Aplicar"
 
 
-msgid "View Regions"
-msgstr "Visualizar Regiões"
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Select Similar"
@@ -21347,88 +21387,48 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Light"
-msgstr "Luz"
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
-msgid "Light Probe"
-msgstr "Sonda de Luz"
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
-msgid "Add Image"
-msgstr "Adicionar Imagem"
+msgid "Navigation"
+msgstr "Navegação"
 
 
-msgid "Relations"
-msgstr "Relações"
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
-msgid "Rigid Body"
-msgstr "Corpo rígido"
+msgid "Local View"
+msgstr "Visão local"
 
 
-msgid "Layout"
-msgstr "Organizar"
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
-msgid "Track"
-msgstr "Rastrear"
+msgid "Snap"
+msgstr "Atrair"
 
 
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
-msgid "Make Single User"
-msgstr "Tornar usuário único"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -27297,6 +27297,10 @@ msgid "Is Viewport"
 msgstr "É Janela e Exibição"
 
 
+msgid "Single"
+msgstr "Único"
+
+
 msgid "Fill Type"
 msgstr "Tipo de preenchimento"
 
@@ -27368,10 +27372,6 @@ msgstr "Tamanho de fonte para mostrar os rótulos."
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Encolhe o quadro para a caixa circundante mínima."
-
-
-msgid "Single"
-msgstr "Único"
 
 
 msgid "Group Input"
@@ -34739,25 +34739,8 @@ msgid "Grease Pencil Draw"
 msgstr "Desenho com lápis de cera"
 
 
-msgid "Action taken when a paint stroke is made"
-msgstr "Ação tomada quando um traço de pintura é feito."
-
-
 msgid "Apply brush normally"
 msgstr "Aplica o pincel normalmente"
-
-
-msgctxt "Operator"
-msgid "Invert"
-msgstr "Inverter"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Inverte a ação do pincel pela duração do traço."
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Alterna o pincel para o modo suave através da duração do traço."
 
 
 msgctxt "Operator"
@@ -34768,6 +34751,19 @@ msgstr "Apagar"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "Máscara"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Ação tomada quando um traço de pintura é feito."
+
+
+msgctxt "Operator"
+msgid "Invert"
+msgstr "Inverter"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Inverte a ação do pincel pela duração do traço."
 
 
 msgid "Flat"
@@ -36731,14 +36727,6 @@ msgid "Remove from the selection"
 msgstr "Remove a partir da seleção."
 
 
-msgid "Select Ring"
-msgstr "Selecionar anel"
-
-
-msgid "Select ring"
-msgstr "Seleciona um anel."
-
-
 msgid "Toggle Select"
 msgstr "Alternar seleção"
 
@@ -37096,19 +37084,6 @@ msgstr "Corta somente a geometria mais frontal."
 
 msgid "X-Ray"
 msgstr "Raio-X"
-
-
-msgctxt "Operator"
-msgid "Multi Select Loops"
-msgstr "Seleção múltipla de anéis"
-
-
-msgid "Select a loop of connected edges by connection type"
-msgstr "Seleciona um anel de arestas conectadas pelo tipo de conexão."
-
-
-msgid "Ring"
-msgstr "Anéis"
 
 
 msgctxt "Operator"
@@ -41383,16 +41358,8 @@ msgid "New ID"
 msgstr "Novo identificador"
 
 
-msgid "New ID to remap all selected IDs' users to"
-msgstr "Permite criar um novo identificador para remapear todos os identificadores dos usuários atuais."
-
-
 msgid "Old ID"
 msgstr "Identificador anterior"
-
-
-msgid "Old ID to replace"
-msgstr "O identificador anterior a ser substituído."
 
 
 msgid "Extend selection for activation"
@@ -48276,24 +48243,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -61687,6 +61654,16 @@ msgstr "Faces planas conectadas"
 
 
 msgctxt "Operator"
+msgid "Edge Loops"
+msgstr "Anéis de arestas"
+
+
+msgctxt "Operator"
+msgid "Edge Rings"
+msgstr "Aros de arestas"
+
+
+msgctxt "Operator"
 msgid "Sharp Edges"
 msgstr "Arestas ressaltadas"
 
@@ -62024,11 +62001,6 @@ msgstr "Faces Suaves"
 
 
 msgctxt "Operator"
-msgid "Edge Loops"
-msgstr "Anéis de arestas"
-
-
-msgctxt "Operator"
 msgid "Bones"
 msgstr "Ossos"
 
@@ -62107,11 +62079,6 @@ msgstr "Centralizar cursor e visualizar tudo"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Superfícies não contíguas"
-
-
-msgctxt "Operator"
-msgid "Edge Rings"
-msgstr "Aros de arestas"
 
 
 msgctxt "Operator"
@@ -64132,6 +64099,10 @@ msgid "Selected faces required"
 msgstr "Requer faces selecionadas."
 
 
+msgid "Select Ring"
+msgstr "Selecionar anel"
+
+
 msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "Corte de anel não funciona bem na mostragem de edição de malha deformada."
 
@@ -65115,24 +65086,8 @@ msgid "Removed amount of editors: %d"
 msgstr "Montante de editores removidos: %d"
 
 
-msgid "expected a view3d region"
-msgstr "Uma região de janela de visualização 3D era esperada."
-
-
-msgid "expected a timeline/animation area to be active"
-msgstr "Uma área de animação ou linha do tempo ativa era esperada."
-
-
 msgid "Context missing active object"
 msgstr "O contexto não possui um objeto ativo."
-
-
-msgid "expected a view3d region & editmesh"
-msgstr "Uma região da janela de visualização 3D e edição de malhas era esperada."
-
-
-msgid "expected a view3d region & editcurve"
-msgstr "Uma região da janela de visualização 3D e edição de curvas era esperada."
 
 
 msgid "Quick Favorites"

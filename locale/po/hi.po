@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2581,6 +2581,22 @@ msgid "Dots"
 msgstr "बिन्दु्"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Import"
+msgstr "आयात करें"
+
+
 msgid "Math"
 msgstr "गणित"
 
@@ -2589,72 +2605,56 @@ msgid "Merge"
 msgstr "विलय करें"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "UV"
 msgstr "यूवी"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Light"
-msgstr "प्रकाश"
 
 
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
 
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
 
 
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -3693,14 +3693,6 @@ msgid "Delete Unused"
 msgstr "मिटाएँ अप्रयुक्त"
 
 
-msgid "Select Ring"
-msgstr "वलय का चयन करें"
-
-
-msgid "Select ring"
-msgstr "वलय का चयन करें"
-
-
 msgctxt "Operator"
 msgid "Select Sharp Edges"
 msgstr "तेज किनारों का चयन करें"
@@ -3751,10 +3743,6 @@ msgstr "केवल चयनित"
 
 msgid "X-Ray"
 msgstr "एक्स-रे"
-
-
-msgid "Ring"
-msgstr "वलय"
 
 
 msgctxt "Operator"
@@ -4441,12 +4429,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Motion Tracking"
-msgstr "गति मार्गन"
-
-
 msgid "Transform Orientations"
 msgstr "दिक् विन्यास संरचनांतरण"
+
+
+msgid "Motion Tracking"
+msgstr "गति मार्गन"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -6084,6 +6072,10 @@ msgstr "बाहरी"
 
 msgid "Seams"
 msgstr "तेजी"
+
+
+msgid "Select Ring"
+msgstr "वलय का चयन करें"
 
 
 msgid "No additional selected meshes with equal vertex count to join"

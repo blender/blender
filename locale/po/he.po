@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
-"PO-Revision-Date: 2026-01-12 02:12+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"PO-Revision-Date: 2026-01-20 15:20+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -45,6 +45,10 @@ msgstr "AOVs לש תמישר"
 
 msgid "Collection of AOVs"
 msgstr "םי־AOV לש ףסוא"
+
+
+msgid "Animation Channel Bag"
+msgstr "היצמינא יצורע קית"
 
 
 msgid "Action Group"
@@ -509,6 +513,14 @@ msgstr "חתפמ תורגסמ ירפסמ גצה"
 
 msgid "Show frame numbers of Keyframes on Motion Paths"
 msgstr "העונת יביתנ לע חתפמ תורגסמ לש תורגסמ ירפסמ גצה"
+
+
+msgid "Display Paths of poses within a fixed number of frames around the current frame"
+msgstr "תיחכונה תרגסמה ביבס תורגסמ לש רדגומ רפסמב תוחונת ביתנ גצה"
+
+
+msgid "Display Paths of poses within specified range"
+msgstr "םיוסמ חווטב תוחונת לש םיביתנ גצה"
 
 
 msgid "Frame Number"
@@ -1279,6 +1291,10 @@ msgid "Influence"
 msgstr "העפשה"
 
 
+msgid "Pose Space"
+msgstr "החונת בחרמ"
+
+
 msgid "Camera Solver"
 msgstr "המלצמ רתופ"
 
@@ -1336,8 +1352,16 @@ msgid "Copy the target's Z scale"
 msgstr "Z-ה ריצ לע הרטמה לש לדוגה תא קתעה"
 
 
+msgid "Fixed Position"
+msgstr "רדגומ םוקימ"
+
+
 msgid "Camera"
 msgstr "המלצמ"
+
+
+msgid "Copy Pose"
+msgstr "החונת קתעה"
 
 
 msgid "On Surface"
@@ -1843,6 +1867,10 @@ msgid "Edit Mode"
 msgstr "הכירע בצמ"
 
 
+msgid "Pose Mode"
+msgstr "החונת בצמ"
+
+
 msgid "Sculpt Mode"
 msgstr "לוסיפ בצמ"
 
@@ -2217,20 +2245,20 @@ msgid "Face Data"
 msgstr "האפ ינותנ"
 
 
-msgid "Mirror"
-msgstr "הארמ"
-
-
-msgid "Layout"
-msgstr "הסירפ"
-
-
 msgid "Apply"
 msgstr "לחה"
 
 
 msgid "Convert"
 msgstr "רמה"
+
+
+msgid "Layout"
+msgstr "הסירפ"
+
+
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Proxy"
@@ -2634,6 +2662,11 @@ msgstr "טקייבוא בצמ עבק"
 
 
 msgctxt "Operator"
+msgid "Toggle Pose Mode"
+msgstr "החונת בצמ לעפה"
+
+
+msgctxt "Operator"
 msgid "Select Vertex Group"
 msgstr "דוקדוק תצובק רחב"
 
@@ -2694,6 +2727,10 @@ msgstr "תידממ תלת הגוצתב לקשמ תעיבצ בצמ לעפה"
 
 msgid "Toggle particle edit mode"
 msgstr "םיקיקלח תכירע בצמ לעפה"
+
+
+msgid "Reveal all bones hidden in Pose Mode"
+msgstr "החונת בצמב תורתסומה תומצעה לכ תא גצה"
 
 
 msgid "Object is directly controlled by animation system"
@@ -3005,6 +3042,10 @@ msgstr "היצמינא"
 
 msgid "Torus"
 msgstr "תעבט"
+
+
+msgid "Switch to Pose or Object mode"
+msgstr "טקייבוא בצמ וא החונת בצמל רובע"
 
 
 msgid "Credits"

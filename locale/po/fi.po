@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7244,52 +7244,72 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Read"
 msgstr "Lue"
-
-
-msgid "Names"
-msgstr "Nimet"
 
 
 msgid "Write"
 msgstr "Kirjoita"
 
 
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
 msgid "Instances"
 msgstr "Instanssit"
+
+
+msgid "Names"
+msgstr "Nimet"
 
 
 msgid "Import"
 msgstr "Tuo"
 
 
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Math"
+msgstr "Matematiikka"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Light"
+msgstr "Valo"
 
 
 msgid "Select More/Less"
@@ -7308,28 +7328,8 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Basic"
@@ -13364,6 +13364,11 @@ msgstr "Juuret"
 
 
 msgctxt "Operator"
+msgid "Edge Loops"
+msgstr "Reunasilmukat"
+
+
+msgctxt "Operator"
 msgid "First"
 msgstr "Ensimmäinen"
 
@@ -13490,11 +13495,6 @@ msgstr "Heikko"
 msgctxt "Operator"
 msgid "Strong"
 msgstr "Vahva"
-
-
-msgctxt "Operator"
-msgid "Edge Loops"
-msgstr "Reunasilmukat"
 
 
 msgctxt "Operator"
@@ -15501,6 +15501,14 @@ msgid "Key Color"
 msgstr "Avainväri"
 
 
+msgid "Cb"
+msgstr "Cb"
+
+
+msgid "Cr"
+msgstr "Cr"
+
+
 msgid "Upper Left"
 msgstr "Ylävase"
 
@@ -15551,14 +15559,6 @@ msgstr "Tekijä"
 
 msgid "Offset Y"
 msgstr "Y-siirros"
-
-
-msgid "Cb"
-msgstr "Cb"
-
-
-msgid "Cr"
-msgstr "Cr"
 
 
 msgid "Column 1 Row 1"

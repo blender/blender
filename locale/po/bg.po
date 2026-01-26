@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1144,20 +1144,12 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "Merge"
-msgstr "Слей"
-
-
 msgid "Import"
 msgstr "Внеси"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
-
-
-msgid "Light"
-msgstr "Светлина"
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "Rigid Body"
@@ -1168,16 +1160,24 @@ msgid "Apply"
 msgstr "Прилагане"
 
 
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
 
 
 msgid "Hooks"
 msgstr "Куки"
 
 
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Light"
+msgstr "Светлина"
+
+
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Cache"
@@ -1596,10 +1596,6 @@ msgstr "Закривай Геометрията"
 
 msgid "X-Ray"
 msgstr "Рентген"
-
-
-msgid "Ring"
-msgstr "Прстн"
 
 
 msgctxt "Operator"

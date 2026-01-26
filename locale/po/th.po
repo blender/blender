@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2026-01-15 09:13+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4341,8 +4341,16 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "Math"
@@ -4353,68 +4361,24 @@ msgid "Merge"
 msgstr "ผสาน"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
 
 
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
+msgid "Apply"
+msgstr "นำไปใช้"
 
 
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
+msgid "Hooks"
+msgstr "ตะขอ"
 
 
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Light"
-msgstr "แสง"
+msgid "Track"
+msgstr "แทร็ค"
 
 
 msgid "Add Image"
@@ -4425,20 +4389,56 @@ msgid "Layout"
 msgstr "เค้าโครง"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
+msgid "Light"
+msgstr "แสง"
 
 
 msgid "Keying"
 msgstr "คีย์"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Snap"
+msgstr "ยึดติด"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
 
 
 msgid "Zoom"
@@ -5147,10 +5147,6 @@ msgid "X-Ray"
 msgstr "มองผ่าน"
 
 
-msgid "Ring"
-msgstr "แหวน"
-
-
 msgid "Paste Normal"
 msgstr "วางแนวฉาก"
 
@@ -5707,12 +5703,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "View Lock"
-msgstr "ล็อกมุมมอง"
-
-
 msgid "Overlays"
 msgstr "วางซ้อน"
+
+
+msgid "View Lock"
+msgstr "ล็อกมุมมอง"
 
 
 msgid "Mask Display"

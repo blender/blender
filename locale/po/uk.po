@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-01-26 11:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26358,12 +26358,60 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
+msgid "Sample"
+msgstr "Вибірка"
 
 
-msgid "Face Data"
-msgstr "Дані граней"
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Names"
+msgstr "Назви"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
+
+
+msgid "Import"
+msgstr "Імпортувати"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select by Face Strength"
@@ -26374,124 +26422,124 @@ msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
 
 
-msgid "Math"
-msgstr "Математика"
+msgid "Face Data"
+msgstr "Дані граней"
 
 
-msgid "Clean Up"
-msgstr "Вичищення"
+msgid "Rigid Body"
+msgstr "Тверде тіло"
 
 
-msgid "Utilities"
-msgstr "Утиліти"
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
 
 
-msgid "Special Characters"
-msgstr "Спеціальні символи"
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
 
 
-msgid "Kerning"
-msgstr "Кернінг"
+msgid "Apply"
+msgstr "Застосувати"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
 
 
-msgid "Names"
-msgstr "Назви"
+msgid "Propagate"
+msgstr "Поширити"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
-
-
-msgid "Pivot Point"
-msgstr "Точка Опертя"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Import"
-msgstr "Імпортувати"
-
-
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
+msgid "In-Betweens"
+msgstr "У проміжках"
 
 
 msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
 
 
-msgid "UV Mapping"
-msgstr "Розкладання UV"
+msgid "Hooks"
+msgstr "Гачки"
 
 
-msgid "Local View"
-msgstr "Огляд Локально"
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
 
 
-msgid "Viewpoint"
-msgstr "Точка зору"
+msgid "Convert"
+msgstr "Конвертування"
 
 
-msgid "Navigation"
-msgstr "Навігація"
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
 
 
-msgid "Align View"
-msgstr "Вирівняти Огляд"
+msgid "Asset"
+msgstr "Актив"
 
 
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
 
 
-msgid "View Regions"
-msgstr "Регіони Огляду"
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Keying"
+msgstr "Ключування"
 
 
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
+
+
+msgid "Tracking"
+msgstr "Стеження"
 
 
 msgid "Select Similar"
@@ -26510,104 +26558,56 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
 
 
-msgid "Light"
-msgstr "Слабко"
+msgid "View Regions"
+msgstr "Регіони Огляду"
 
 
-msgid "Light Probe"
-msgstr "Проба Освітлення"
+msgid "Navigation"
+msgstr "Навігація"
 
 
-msgid "Add Image"
-msgstr "Додати Зображення"
+msgid "Align View"
+msgstr "Вирівняти Огляд"
 
 
-msgid "Relations"
-msgstr "Зв'язки"
+msgid "Local View"
+msgstr "Огляд Локально"
 
 
-msgid "Rigid Body"
-msgstr "Тверде тіло"
+msgid "Viewpoint"
+msgstr "Точка зору"
 
 
-msgid "Layout"
-msgstr "Розстановка"
+msgid "UV Mapping"
+msgstr "Розкладання UV"
 
 
-msgid "Apply"
-msgstr "Застосувати"
+msgid "Snap"
+msgstr "Підхоп"
 
 
-msgid "Track"
-msgstr "Стеження"
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
 
 
-msgid "Asset"
-msgstr "Актив"
+msgid "Pivot Point"
+msgstr "Точка Опертя"
 
 
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
+msgid "Mask Edit"
+msgstr "Редагування Маски"
 
 
-msgid "Convert"
-msgstr "Конвертування"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
 
 
 msgid "Basic"
@@ -34468,6 +34468,10 @@ msgid "Join Geometry"
 msgstr "Сполучення Геометрії"
 
 
+msgid "Single"
+msgstr "Один"
+
+
 msgid "Fill Type"
 msgstr "Тип заповнення"
 
@@ -34587,10 +34591,6 @@ msgstr "Розмір шрифту, який використовується д�
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Звузити рамку до мінімальної габаритної коробки"
-
-
-msgid "Single"
-msgstr "Один"
 
 
 msgid "Group Input"
@@ -43724,25 +43724,8 @@ msgid "Draw a new stroke in the active Grease Pencil object"
 msgstr "Рисувати новий штрих в активному об'єкті Нарисного Олівця"
 
 
-msgid "Action taken when a paint stroke is made"
-msgstr "Дія, що виконується при завершенні штриха"
-
-
 msgid "Apply brush normally"
 msgstr "Застосувати пензель стандартно"
-
-
-msgctxt "Operator"
-msgid "Invert"
-msgstr "Інвертування"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Інвертувати дію пензля при виконанні штриха"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Перемкнути пензель у режим згладжування для продовження штриха"
 
 
 msgctxt "Operator"
@@ -43753,6 +43736,19 @@ msgstr "Витерти"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "Маска"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Дія, що виконується при завершенні штриха"
+
+
+msgctxt "Operator"
+msgid "Invert"
+msgstr "Інвертування"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Інвертувати дію пензля при виконанні штриха"
 
 
 msgid "Set as default rounded"
@@ -46227,14 +46223,6 @@ msgid "Remove from the selection"
 msgstr "Вилучити з вибраного"
 
 
-msgid "Select Ring"
-msgstr "Вибрати кільце"
-
-
-msgid "Select ring"
-msgstr "Вибрати кільце"
-
-
 msgid "Toggle Select"
 msgstr "Перемкнути стан вибору"
 
@@ -46678,19 +46666,6 @@ msgstr "Різати лише на передньому плані"
 
 msgid "X-Ray"
 msgstr "Просвічення"
-
-
-msgctxt "Operator"
-msgid "Multi Select Loops"
-msgstr "Мультивибір петель"
-
-
-msgid "Select a loop of connected edges by connection type"
-msgstr "Вибрати петлю зі сполучених ребер за типом з'єднання"
-
-
-msgid "Ring"
-msgstr "Кільце"
 
 
 msgctxt "Operator"
@@ -52002,16 +51977,8 @@ msgid "New ID"
 msgstr "Новий Ідентифікатор"
 
 
-msgid "New ID to remap all selected IDs' users to"
-msgstr "Новий Ідентифікатор для перерозкладання ідентифікаторів всіх вибраних користувачів"
-
-
 msgid "Old ID"
 msgstr "Старий Ідентифікатор"
-
-
-msgid "Old ID to replace"
-msgstr "Старий Ідентифікатор для його заміни"
 
 
 msgid "Extend selection for activation"
@@ -60932,56 +60899,32 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Active Tool"
-msgstr "Активний Засіб"
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
 
 
-msgid "View Lock"
-msgstr "Блокувати Огляд"
+msgid "VR"
+msgstr "ВР"
 
 
-msgid "Shadow Settings"
-msgstr "Устави Тіні"
+msgid "Multi Frame"
+msgstr "Багато Кадр"
 
 
-msgid "SSAO Settings"
-msgstr "Устави Загороди Оточення Простору Екрану"
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
 
 
-msgid "Cavity"
-msgstr "Порожнинність"
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
 
 
-msgid "Render Pass"
-msgstr "Прохід Рендера"
-
-
-msgid "Overlays"
-msgstr "Накладки"
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
 
 
 msgid "Guides"
 msgstr "Напрямні"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
 
 
 msgid "Stroke Placement"
@@ -60992,28 +60935,52 @@ msgid "Drawing Plane"
 msgstr "Площина Рисування"
 
 
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
 
 
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
 
 
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
+msgid "Measurement"
+msgstr "Вимірювання"
 
 
-msgid "Multi Frame"
-msgstr "Багато Кадр"
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
 
 
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
 
 
-msgid "VR"
-msgstr "ВР"
+msgid "Overlays"
+msgstr "Накладки"
+
+
+msgid "Active Tool"
+msgstr "Активний Засіб"
+
+
+msgid "SSAO Settings"
+msgstr "Устави Загороди Оточення Простору Екрану"
+
+
+msgid "Render Pass"
+msgstr "Прохід Рендера"
+
+
+msgid "Cavity"
+msgstr "Порожнинність"
+
+
+msgid "Shadow Settings"
+msgstr "Устави Тіні"
+
+
+msgid "View Lock"
+msgstr "Блокувати Огляд"
 
 
 msgid "Chain Scaling"
@@ -61736,16 +61703,6 @@ msgstr "Програвання"
 
 msgid "Rename Active Item"
 msgstr "Перейменувати Активний Елемент"
-
-
-msgid ""
-"\n"
-"    Popover panel for adding extra options that don't fit in the tool settings header\n"
-"    "
-msgstr ""
-"\n"
-"    Випливна панель для додавання параметрів, які не помістились у заголовку параметрів інструмента\n"
-"    "
 
 
 msgid "Extra Options"
@@ -80640,6 +80597,16 @@ msgstr "Пов'язані Плоскі Грані"
 
 
 msgctxt "Operator"
+msgid "Edge Loops"
+msgstr "Петлі Ребер"
+
+
+msgctxt "Operator"
+msgid "Edge Rings"
+msgstr "Кільця Ребер"
+
+
+msgctxt "Operator"
 msgid "Sharp Edges"
 msgstr "Гострі Ребра"
 
@@ -81221,11 +81188,6 @@ msgstr "Плоскі Грані"
 
 
 msgctxt "Operator"
-msgid "Edge Loops"
-msgstr "Петлі Ребер"
-
-
-msgctxt "Operator"
 msgid "Bones"
 msgstr "Кістки"
 
@@ -81340,11 +81302,6 @@ msgstr "Центрувати Курсор та Усе в Кадр"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Не Розгортне"
-
-
-msgctxt "Operator"
-msgid "Edge Rings"
-msgstr "Кільця Ребер"
 
 
 msgctxt "Operator"
@@ -83989,6 +83946,10 @@ msgid "No other selected objects have wire or boundary edges to use for projecti
 msgstr "Немає інших вибраних об'єктів, що мають дротяні або рубіжні ребра для використання для проектування"
 
 
+msgid "Select Ring"
+msgstr "Вибрати кільце"
+
+
 msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "Замкнутий розріз може працювати погано при показі деформованої сіті"
 
@@ -85296,24 +85257,8 @@ msgid "Removed amount of editors: %d"
 msgstr "Кількість вилучених редакторів: %d"
 
 
-msgid "expected a view3d region"
-msgstr "потрібна область 3D-вигляду"
-
-
-msgid "expected a timeline/animation area to be active"
-msgstr "потрібна активна область шкали часу/анімації"
-
-
 msgid "Context missing active object"
 msgstr "Немає активного об'єкта у контексті"
-
-
-msgid "expected a view3d region & editmesh"
-msgstr "очікується регіон 3D огляду та режим редагування сіті"
-
-
-msgid "expected a view3d region & editcurve"
-msgstr "потрібна область 3D-вигляду та крива, що редагується"
 
 
 msgid "Toggling regions in the Top-bar is not allowed"
