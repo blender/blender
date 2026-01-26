@@ -750,10 +750,10 @@ bool VKTexture::allocate()
   if (result != VK_SUCCESS) {
     return false;
   }
-  debug::object_label(vk_image_, name_);
+  debug::object_label(vk_image_, name_.c_str());
 
   const bool use_subresource_tracking = image_info.arrayLayers > 1 || image_info.mipLevels > 1;
-  device.resources.add_image(vk_image_, use_subresource_tracking, name_);
+  device.resources.add_image(vk_image_, use_subresource_tracking, name_.c_str());
 
   return result == VK_SUCCESS;
 }

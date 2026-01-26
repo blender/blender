@@ -683,7 +683,7 @@ static void key_evaluate_relative_float3(Key *key,
 
   /* Cannot use auto [keyblock_index, kb] here because that would throw a warning at the
    * parallel_for. */
-  for (std::pair<int, KeyBlock> enumerator : key->block.enumerate()) {
+  for (std::pair<int, KeyBlock &> enumerator : key->block.enumerate()) {
     KeyBlock &kb = enumerator.second;
     if (&kb == key->refkey) {
       continue;

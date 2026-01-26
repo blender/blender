@@ -89,7 +89,7 @@ bool GLTexture::init_internal()
     glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   }
 
-  debug::object_label(GL_TEXTURE, tex_id_, name_);
+  debug::object_label(GL_TEXTURE, tex_id_, name_.c_str());
   return true;
 }
 
@@ -110,7 +110,7 @@ bool GLTexture::init_internal(VertBuf *vbo)
     glTexBuffer(target_, internal_format, gl_vbo->vbo_id_);
   }
 
-  debug::object_label(GL_TEXTURE, tex_id_, name_);
+  debug::object_label(GL_TEXTURE, tex_id_, name_.c_str());
 
   return true;
 }
@@ -133,7 +133,7 @@ bool GLTexture::init_internal(gpu::Texture *src,
                 layer_offset,
                 this->layer_count());
 
-  debug::object_label(GL_TEXTURE, tex_id_, name_);
+  debug::object_label(GL_TEXTURE, tex_id_, name_.c_str());
 
   /* Stencil view support. */
   if (ELEM(format_, TextureFormat::SFLOAT_32_DEPTH_UINT_8)) {
@@ -530,7 +530,7 @@ FrameBuffer *GLTexture::framebuffer_get()
     return framebuffer_;
   }
   BLI_assert(!(type_ & GPU_TEXTURE_1D));
-  framebuffer_ = GPU_framebuffer_create(name_);
+  framebuffer_ = GPU_framebuffer_create(name_.c_str());
   framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE(this));
   has_pixels_ = true;
   return framebuffer_;
@@ -809,7 +809,7 @@ void GLTexture::check_feedback_loop()
         SNPRINTF(msg,
                  "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "
                  "attached to the active framebuffer (%s)",
-                 name_,
+                 name_.c_str(),
                  mip_min_,
                  mip_max_,
                  attachment.mip,

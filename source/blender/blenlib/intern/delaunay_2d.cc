@@ -10,12 +10,15 @@
 #include <atomic>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <sstream>
 
 #include "BLI_array.hh"
 #include "BLI_linklist.h"
+#include "BLI_map.hh"
 #include "BLI_math_boolean.hh"
 #include "BLI_math_vector_mpq_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -283,8 +286,9 @@ template<typename T> struct CDTArrangement {
   /**
    * Split se at fraction lambda, and return the new #CDTEdge that is the new second half.
    * Copy the edge input_ids into the new one.
+   * If edge_winding_map is non-null, propagate winding to the new edge.
    */
-  CDTEdge<T> *split_edge(SymEdge<T> *se, T lambda);
+  CDTEdge<T> *split_edge(SymEdge<T> *se, T lambda, Map<CDTEdge<T> *, int> *edge_winding_map);
 
   /**
    * Delete an edge. The new combined face on either side of the deleted edge will be the one that
@@ -323,6 +327,21 @@ template<typename T> class CDT_state {
   T epsilon;
   /** Do we need to track ids? */
   bool need_ids;
+  /**
+   * Maps edge to net winding contribution for non-zero winding rule.
+   * Only populated when non-zero winding is used. Sum of +1/-1 for each
+   * face edge, based on direction match with `symedge` ordering.
+   *
+   * Computed before intersections are made to simplify calculation
+   * and reduce the possibility of numeric inaccuracy caused by
+   * degenerate (or near zero) edge lengths.
+   *
+   * \note This could be removed if we were to store the winding
+   * directly in the #CDTEdge, however that adds overhead for
+   * even-odd filling, so accept some complexity to split out
+   * the data in a map.
+   */
+  Map<CDTEdge<T> *, int> *edge_winding_map;
 
   explicit CDT_state(
       int input_verts_num, int input_edges_num, int input_faces_num, T epsilon, bool need_ids);
@@ -862,6 +881,7 @@ CDT_state<T>::CDT_state(
   this->epsilon = epsilon;
   this->need_ids = need_ids;
   this->visit_count = 0;
+  this->edge_winding_map = nullptr;
 }
 
 /* Is any id in (range_start, range_start+1, ... , range_end) in id_list? */
@@ -1043,8 +1063,13 @@ CDTEdge<T> *CDTArrangement<T>::connect_separate_parts(SymEdge<T> *se1, SymEdge<T
  * Split se at fraction lambda,
  * and return the new #CDTEdge that is the new second half.
  * Copy the edge input_ids into the new one.
+ *
+ * \param edge_winding_map: Only used for non-zero filling.
  */
-template<typename T> CDTEdge<T> *CDTArrangement<T>::split_edge(SymEdge<T> *se, T lambda)
+template<typename T>
+CDTEdge<T> *CDTArrangement<T>::split_edge(SymEdge<T> *se,
+                                          T lambda,
+                                          Map<CDTEdge<T> *, int> *edge_winding_map)
 {
   /* Split e at lambda. */
   const VecBase<T, 2> *a = &se->vert->co.exact;
@@ -1070,6 +1095,26 @@ template<typename T> CDTEdge<T> *CDTArrangement<T>::split_edge(SymEdge<T> *se, T
     newsesym->vert->symedge = newsesym;
   }
   add_list_to_input_ids(e->input_ids, se->edge->input_ids);
+
+  if (edge_winding_map) {
+    /* Propagate winding from original edge to new edge.
+     *
+     * The new edge `e` goes from split point to `se->next->vert`.
+     * When split is called via `symedges[0]`,
+     * this matches the original edge direction (A->B becomes A->M + M->B).
+     * When called via `symedges[1]`,
+     * the new edge opposes it (A->B becomes M->B + M->A), so we negate the winding.
+     *
+     * This occurs when the crossing traversal encounters an edge from the
+     * opposite face side from where winding was originally assigned. */
+    int winding = edge_winding_map->lookup_default(se->edge, 0);
+    if (winding != 0) {
+      if (se == &se->edge->symedges[1]) {
+        winding = -winding;
+      }
+      edge_winding_map->add(e, winding);
+    }
+  }
   return e;
 }
 
@@ -2005,7 +2050,8 @@ void add_edge_constraint(
   for (int i = 0; i < ncrossings; ++i) {
     CrossData<T> *cd = &crossings[i];
     if (cd->lambda != 0.0 && cd->lambda != -1.0 && is_constrained_edge(cd->in->edge)) {
-      CDTEdge<T> *edge = cdt_state->cdt.split_edge(cd->in, cd->lambda);
+      CDTEdge<T> *edge = cdt_state->cdt.split_edge(
+          cd->in, cd->lambda, cdt_state->edge_winding_map);
       cd->vert = edge->symedges[0].vert;
     }
   }
@@ -2187,7 +2233,8 @@ static int power_of_10_greater_equal_to(int x)
 template<typename T>
 int add_face_constraints(CDT_state<T> *cdt_state,
                          const CDT_input<T> &input,
-                         CDT_output_type output_type)
+                         CDT_output_type output_type,
+                         const bool need_winding)
 {
   int nv = input.vert.size();
   const Span<Vector<int>> input_faces = input.face;
@@ -2237,6 +2284,28 @@ int add_face_constraints(CDT_state<T> *cdt_state,
         if (face_symedge0->vert != v1) {
           face_symedge0 = &face_edge->symedges[1];
           BLI_assert(face_symedge0->vert == v1);
+        }
+        if (need_winding) {
+          /* Update winding for each edge in the path from v1 to v2.
+           *
+           * Each edge stores a net winding: +1 if the face traverses the edge in the
+           * same direction as `symedges[0].vert` to `symedges[1].vert`, -1 if opposite.
+           * Multiple faces sharing an edge accumulate their contributions. At ray-cast
+           * time in detect_holes, this determines whether crossings add or subtract. */
+          CDTVert<T> *curr_vert = v1;
+          for (LinkNode *ln = edge_list; ln != nullptr; ln = ln->next) {
+            CDTEdge<T> *e = static_cast<CDTEdge<T> *>(ln->link);
+            int &winding = cdt_state->edge_winding_map->lookup_or_add_default(e);
+            if (e->symedges[0].vert == curr_vert) {
+              winding += 1;
+              curr_vert = e->symedges[1].vert;
+            }
+            else {
+              BLI_assert(e->symedges[1].vert == curr_vert);
+              winding -= 1;
+              curr_vert = e->symedges[0].vert;
+            }
+          }
         }
       }
       BLI_linklist_free(edge_list, nullptr);
@@ -2470,21 +2539,17 @@ template<typename T> void remove_faces_in_holes(CDT_state<T> *cdt_state)
 }
 
 /**
- * Set the hole member of each CDTFace to true for each face that is detected to be part of a
- * hole. A hole face is define as one for which, when a ray is shot from a point inside the face
- * to infinity, it crosses an even number of constraint edges. We'll choose a ray direction that
- * is extremely unlikely to exactly superimpose some edge, so avoiding the need to be careful
- * about such overlaps.
- *
- * To improve performance, we gather together faces that should have the same winding number, and
- * only shoot rays once.
+ * Flood-fill faces into regions connected through non-constraint edges.
+ * Each face's `visit_index` is set to its region number (-1 = unvisited, -2 = outer face).
+ * Returns a vector of representative faces, one per region.
  */
-template<typename T> void detect_holes(CDT_state<T> *cdt_state)
+template<typename T> Vector<CDTFace<T> *> compute_face_regions(CDT_state<T> *cdt_state)
 {
+  /* NOTE: Loose edges (input edges not part of any face) are not supported.
+   * To support them, loose edges would need to be handled as region boundaries. */
+
   CDTArrangement<T> *cdt = &cdt_state->cdt;
 
-  /* Make it so that each face with the same visit_index is connected through a path of
-   * non-constraint edges. */
   Vector<CDTFace<T> *> fstack;
   Vector<CDTFace<T> *> region_rep_face;
   for (int i : cdt->faces.index_range()) {
@@ -2519,8 +2584,25 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
     }
   }
   cdt_state->visit_count = ++cur_region; /* Good start for next use of visit_count. */
+  return region_rep_face;
+}
 
-  /* Now get hole status for each region_rep_face. */
+/**
+ * Detect holes using the even-odd fill rule.
+ *
+ * A hole face is one for which, when a ray is shot from a point inside the face to infinity,
+ * it crosses an even number of constraint edges.
+ *
+ * To improve performance, faces are grouped into regions (connected through non-constraint edges)
+ * and rays are only shot once per region.
+ */
+template<typename T> void detect_holes_with_fillrule_even_odd(CDT_state<T> *cdt_state)
+{
+  CDTArrangement<T> *cdt = &cdt_state->cdt;
+  Vector<CDTFace<T> *> region_rep_face = compute_face_regions(cdt_state);
+  if (region_rep_face.is_empty()) {
+    return;
+  }
 
   /* Pick a ray end almost certain to be outside everything and in direction
    * that is unlikely to hit a vertex or overlap an edge exactly. */
@@ -2535,7 +2617,8 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
     mid.exact[1] = (f->symedge->vert->co.exact[1] + f->symedge->next->vert->co.exact[1] +
                     f->symedge->next->next->vert->co.exact[1]) /
                    3;
-    std::atomic<int> hits = 0;
+    /* Count edge crossings from face centroid to infinity. */
+    std::atomic<int> crossings = 0;
     /* TODO: Use CDT data structure here to greatly reduce search for intersections! */
     threading::parallel_for(cdt->edges.index_range(), 256, [&](IndexRange range) {
       for (const int i : range) {
@@ -2550,18 +2633,20 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
                                      e->symedges[1].vert->co.exact);
           switch (isect.kind) {
             case isect_result<VecBase<T, 2>>::LINE_LINE_CROSS: {
-              hits++;
+              crossings++;
               break;
             }
             case isect_result<VecBase<T, 2>>::LINE_LINE_EXACT:
             case isect_result<VecBase<T, 2>>::LINE_LINE_NONE:
-            case isect_result<VecBase<T, 2>>::LINE_LINE_COLINEAR:
+            case isect_result<VecBase<T, 2>>::LINE_LINE_COLINEAR: {
               break;
+            }
           }
         }
       }
     });
-    f->hole = (hits.load() % 2) == 0;
+    /* Even-odd rule: hole if even number of crossings. */
+    f->hole = (crossings.load() % 2) == 0;
   }
 
   /* Finally, propagate hole status to all holes of a region. */
@@ -2572,12 +2657,236 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
       continue;
     }
     CDTFace<T> *f_region_rep = region_rep_face[region];
-    if (i >= 0) {
-      f->hole = f_region_rep->hole;
-    }
+    f->hole = f_region_rep->hole;
   }
 }
 
+/**
+ * Detect holes using the non-zero winding fill rule.
+ *
+ * Each region accumulates a winding number based on the signed edge crossings from the outer
+ * boundary. A region is a hole if its winding number is zero (unfilled), and filled otherwise.
+ */
+template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_state)
+{
+  /* Non-zero winding hole detection using optimized region graph BFS propagation.
+   *
+   * Unlike even-odd (which just toggles), non-zero winding uses signed edge values.
+   * This allows correct handling of overlapping faces because we propagate actual
+   * winding numbers through the region graph, not just boolean hole status.
+   *
+   * Algorithm:
+   * - Flood-fill faces into regions (connected through non-constrained edges).
+   * - Build region adjacency graph with edge winding information.
+   * - Initialize boundary regions (touching outer_face) with their winding.
+   * - BFS propagate: S.winding = R.winding + delta(R->S), where delta is signed.
+   * - A region is a hole if its winding == 0 (or unreachable from outer).
+   *
+   * Complexity: `O(F + E)` where F = faces, E = edges.
+   */
+
+  CDTArrangement<T> *cdt = &cdt_state->cdt;
+
+  /* Adjacency entry for region graph.
+   *
+   * Crossing direction convention:
+   * - Edge `winding > 0` means net CCW traversal from `symedge[0].vert` to `symedge[1].vert`.
+   * - Crossing from `symedge[0].face` side INTO `symedge[1].face` side: subtract winding.
+   * - Crossing from `symedge[1].face` side INTO `symedge[0].face` side: add winding.
+   */
+  struct RegionEdge {
+    int neighbor_region;
+    int winding_delta; /* Winding change when crossing TO neighbor. */
+  };
+
+  /* Boundary regions are those touching outer_face. We collect them during flood-fill
+   * to avoid a separate pass over all edges. */
+  struct BoundaryRegionInfo {
+    int region;
+    int winding; /* Initial winding from crossing outer boundary. */
+  };
+  Vector<BoundaryRegionInfo> boundary_regions;
+
+  /* Flood-fill faces into regions (faces connected through non-constrained edges).
+   * During flood-fill, we also detect regions touching outer_face and compute their
+   * initial winding. */
+  Vector<CDTFace<T> *> fstack;
+  fstack.reserve(cdt->faces.size()); /* Worst case: all faces in stack. */
+  for (CDTFace<T> *f : cdt->faces) {
+    f->visit_index = -1; /* -1 = unvisited. */
+  }
+  cdt->outer_face->visit_index = -2; /* -2 = outer face (never process). */
+
+  int cur_region = -1;
+  for (CDTFace<T> *f_init : cdt->faces) {
+    if (f_init->deleted || !f_init->symedge || f_init->visit_index != -1) {
+      continue;
+    }
+    fstack.append(f_init);
+    cur_region++;
+    bool found_outer_edge = false;
+    int outer_winding = 0;
+
+    while (!fstack.is_empty()) {
+      CDTFace<T> *f = fstack.pop_last();
+      if (f->visit_index != -1) {
+        continue;
+      }
+      f->visit_index = cur_region;
+
+      SymEdge<T> *se_start = f->symedge;
+      SymEdge<T> *se = se_start;
+      do {
+        if (!se->edge) {
+          continue;
+        }
+        CDTFace<T> *neighbor = sym(se)->face;
+        if (!neighbor) {
+          continue;
+        }
+        /* NOTE: Loose edges (input edges not part of any face) are not supported.
+         * To support them, they would need winding values assigned here. */
+        if (is_constrained_edge(se->edge)) {
+          if (neighbor == cdt->outer_face && !found_outer_edge) {
+            /* This region touches outer. Compute initial winding by determining the
+             * winding contribution from crossing into this region from outside.
+             *
+             * We only use the first outer edge found. For simply-connected regions
+             * (all CDT regions), a ray from inside to infinity crosses the outer boundary
+             * once, so this matches ray-casting behavior. If multiple outer edges exist
+             * with different windings (ambiguous overlapping input), the result depends
+             * on which edge is encountered first - same as ray-casting depends on ray
+             * direction. */
+            found_outer_edge = true;
+            const int winding = cdt_state->edge_winding_map->lookup_default(se->edge, 0);
+            /* If our face is `symedges[0].face`, outer is `symedges[1].face`.
+             * Crossing INTO our region from `outer = side1` -> `side0 = +winding`. */
+            if (&se->edge->symedges[0] == se) {
+              outer_winding = winding;
+            }
+            else {
+              outer_winding = -winding;
+            }
+          }
+        }
+        else if (!neighbor->deleted && neighbor->visit_index == -1) {
+          fstack.append(neighbor);
+        }
+      } while ((se = se->next) != se_start);
+    }
+
+    if (found_outer_edge) {
+      boundary_regions.append({cur_region, outer_winding});
+    }
+  }
+
+  const int num_regions = ++cur_region;
+  cdt_state->visit_count = num_regions;
+  if (num_regions == 0) {
+    return;
+  }
+
+  /* Build region adjacency graph with winding deltas.
+   *
+   * For each pair of adjacent regions, we need ONE representative edge's winding delta.
+   * A ray from inside one region to the other crosses exactly one constraint edge (for
+   * simply-connected regions in CDT), so we use the first edge encountered between each
+   * pair. The edge_winding_map already accounts for multiple input faces sharing an edge. */
+
+  /* Store one winding delta per region pair using a map.
+   * Key: (from_region, to_region), Value: winding delta from the first edge found. */
+  Map<int2, int> region_pair_winding;
+  /* Reserve based on region count: ~3 edges per region, 2 entries per edge.
+   * This is an absolute floor (actual count is likely larger),
+   * but avoids re-allocations at small values. */
+  region_pair_winding.reserve(6 * num_regions);
+
+  for (CDTEdge<T> *e : cdt->edges) {
+    if (is_deleted_edge(e) || !is_constrained_edge(e)) {
+      continue;
+    }
+    const int region0 = e->symedges[0].face->visit_index;
+    const int region1 = e->symedges[1].face->visit_index;
+
+    /* Skip edges within same region, or involving outer/unprocessed faces. */
+    if (region0 == region1 || region0 < 0 || region1 < 0) {
+      continue;
+    }
+
+    const int winding = cdt_state->edge_winding_map->lookup_default(e, 0);
+    const int delta_0_to_1 = -winding; /* Crossing from face0 to face1. */
+    const int delta_1_to_0 = winding;  /* Crossing from face1 to face0. */
+
+    /* Use first edge found for each direction. Multiple edges between the same regions
+     * (e.g., 4 sides of an inner square) should all have consistent winding for valid input,
+     * so we only need one. Using `add` ignores subsequent edges if key already exists. */
+    region_pair_winding.add(int2(region0, region1), delta_0_to_1);
+    region_pair_winding.add(int2(region1, region0), delta_1_to_0);
+  }
+
+  /* Count unique neighbors per region to build offset array. */
+  Array<int> region_neighbor_count(num_regions, 0);
+  for (const auto &item : region_pair_winding.items()) {
+    region_neighbor_count[item.key[0]]++;
+  }
+
+  /* Build offset array (prefix sum of counts) for CSR-style adjacency storage. */
+  Array<int> offset_data(num_regions + 1);
+  offset_data[0] = 0;
+  for (int i = 0; i < num_regions; i++) {
+    offset_data[i + 1] = offset_data[i] + region_neighbor_count[i];
+  }
+  const OffsetIndices<int> region_adjacency_offsets(offset_data);
+  const int total_adjacency_entries = offset_data[num_regions];
+
+  /* Fill flat adjacency array. `region_neighbor_count` is repurposed,
+   * reset to 0 and reused to track the current write position within
+   * each region's slice of the adjacency array. */
+  Array<RegionEdge> adjacency_data(total_adjacency_entries);
+  region_neighbor_count.fill(0);
+
+  for (const auto &item : region_pair_winding.items()) {
+    const int from_region = item.key[0];
+    const int idx = offset_data[from_region] + region_neighbor_count[from_region]++;
+    adjacency_data[idx] = {item.key[1], item.value};
+  }
+
+  /* Initialize region winding values and BFS queue. */
+  Array<int> region_winding(num_regions);
+  region_winding.fill(INT_MIN); /* INT_MIN = unknown. */
+
+  Vector<int> region_stack;
+  region_stack.reserve(num_regions); /* At most one entry per region. */
+  for (const BoundaryRegionInfo &info : boundary_regions) {
+    if (region_winding[info.region] == INT_MIN) {
+      region_winding[info.region] = info.winding;
+      region_stack.append(info.region);
+    }
+  }
+
+  /* BFS to propagate winding values through region graph. */
+  while (!region_stack.is_empty()) {
+    const int region = region_stack.pop_last();
+    const int current_winding = region_winding[region];
+
+    for (const int i : region_adjacency_offsets[region]) {
+      const RegionEdge &re = adjacency_data[i];
+      if (region_winding[re.neighbor_region] == INT_MIN) {
+        region_winding[re.neighbor_region] = current_winding + re.winding_delta;
+        region_stack.append(re.neighbor_region);
+      }
+    }
+  }
+
+  /* Apply hole status to faces. Hole if winding == 0 (or unreachable). */
+  for (CDTFace<T> *f : cdt->faces) {
+    const int region = f->visit_index;
+    if (region >= 0) {
+      const int winding = region_winding[region];
+      f->hole = (winding == 0 || winding == INT_MIN);
+    }
+  }
+}
 /**
  * Remove edges and merge faces to get desired output, as per options.
  * \note the cdt cannot be further changed after this.
@@ -2602,11 +2911,17 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
     }
   }
 
-  bool need_holes = output_type == CDT_INSIDE_WITH_HOLES ||
-                    output_type == CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES;
+  /* Determine if hole detection is needed and which winding rule to use. */
+  bool need_holes_evenodd = ELEM(
+      output_type, CDT_INSIDE_WITH_HOLES, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  bool need_holes_nonzero = ELEM(
+      output_type, CDT_INSIDE_WITH_HOLES_NONZERO, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO);
 
-  if (need_holes) {
-    detect_holes(cdt_state);
+  if (need_holes_evenodd) {
+    detect_holes_with_fillrule_even_odd(cdt_state);
+  }
+  else if (need_holes_nonzero) {
+    detect_holes_with_fillrule_nonzero(cdt_state);
   }
 
   if (output_type == CDT_CONSTRAINTS) {
@@ -2618,11 +2933,14 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
   else if (output_type == CDT_INSIDE) {
     remove_outer_edges_until_constraints(cdt_state);
   }
-  else if (output_type == CDT_INSIDE_WITH_HOLES) {
+  else if (ELEM(output_type, CDT_INSIDE_WITH_HOLES, CDT_INSIDE_WITH_HOLES_NONZERO)) {
     remove_outer_edges_until_constraints(cdt_state);
     remove_faces_in_holes(cdt_state);
   }
-  else if (output_type == CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES) {
+  else if (ELEM(output_type,
+                CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES,
+                CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO))
+  {
     remove_outer_edges_until_constraints(cdt_state);
     remove_non_constraint_edges_leave_valid_bmesh(cdt_state);
     remove_faces_in_holes(cdt_state);
@@ -2630,9 +2948,7 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
 }
 
 template<typename T>
-CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
-                             const CDT_input<T> /*input*/,
-                             CDT_output_type output_type)
+CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_type)
 {
   CDT_output_type oty = output_type;
   prepare_cdt_for_output(cdt_state, oty);
@@ -2764,15 +3080,26 @@ CDT_result<T> delaunay_calc(const CDT_input<T> &input, CDT_output_type output_ty
   int ne = input.edge.size();
   int nf = input.face.size();
   CDT_state<T> cdt_state(nv, ne, nf, input.epsilon, input.need_ids);
+  const bool need_winding = ELEM(
+      output_type, CDT_INSIDE_WITH_HOLES_NONZERO, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO);
+
+  /* Only constructed if winding is needed. */
+  std::optional<Map<CDTEdge<T> *, int>> edge_winding_map;
+  if (need_winding) {
+    BLI_assert(cdt_state.edge_winding_map == nullptr);
+    edge_winding_map.emplace();
+    cdt_state.edge_winding_map = &edge_winding_map.value();
+  }
+
   add_input_verts(&cdt_state, input);
   initial_triangulation(&cdt_state.cdt);
   add_edge_constraints(&cdt_state, input);
-  int actual_nf = add_face_constraints(&cdt_state, input, output_type);
+  int actual_nf = add_face_constraints(&cdt_state, input, output_type, need_winding);
   if (actual_nf == 0 && !ELEM(output_type, CDT_FULL, CDT_INSIDE, CDT_CONSTRAINTS)) {
     /* Can't look for faces or holes if there were no valid input faces. */
     output_type = CDT_INSIDE;
   }
-  return get_cdt_output(&cdt_state, input, output_type);
+  return get_cdt_output(&cdt_state, output_type);
 }
 
 CDT_result<double> delaunay_2d_calc(const CDT_input<double> &input, CDT_output_type output_type)

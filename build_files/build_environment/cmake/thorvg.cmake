@@ -54,7 +54,7 @@ if(WIN32)
         ${HARVEST_TARGET}/thorvg/lib/libthorvg_d.lib
       DEPENDEES install
     )
-  endif()  
+  endif()
 else()
   harvest(external_thorvg thorvg/include thorvg/include "*.h")
   harvest(external_thorvg thorvg/lib thorvg/lib "*.a")

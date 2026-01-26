@@ -75,7 +75,7 @@ else()
     set(WEBP_INCLUDE_DIRS ${WEBP_INCLUDE_DIR})
     set(WEBP_LIBRARIES ${_webp_LIBRARIES})
   else()
-    set(WEBPL_PUGIXML_FOUND FALSE)
+    set(WEBP_FOUND FALSE)
   endif()
 endif()
 

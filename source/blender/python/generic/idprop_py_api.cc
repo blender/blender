@@ -2720,7 +2720,7 @@ PyObject *BPyInit_idprop()
 
   /* idprop.types */
   PyModule_AddObject(mod, "types", (submodule = BPyInit_idprop_types()));
-  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+  PyC_Module_AddToSysModules(sys_modules, submodule);
 
   return mod;
 }

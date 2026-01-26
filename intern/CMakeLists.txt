@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# add_subdirectory(atomic)  # header only
 add_subdirectory(atomic)
 add_subdirectory(clog)
 add_subdirectory(ghost)

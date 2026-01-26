@@ -46,6 +46,9 @@ int library_reference_to_enum_value(const AssetLibraryReference *library)
 
 static bool custom_library_is_valid(const bUserAssetLibrary *user_library)
 {
+  if (user_library->flag & ASSET_LIBRARY_DISABLED) {
+    return false;
+  }
   if (!user_library->name[0]) {
     return false;
   }
@@ -135,11 +138,20 @@ const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_r
     RNA_enum_item_add(&item, &totitem, &rna_enum_asset_library_type_items[2]);
   }
 
-  /* Add separator if needed. */
-  if (!BLI_listbase_is_empty(&U.asset_libraries) && (include_readonly || include_current_file)) {
-    RNA_enum_item_add_separator(&item, &totitem);
+  {
+    EnumPropertyItem *custom_item = nullptr;
+    int tot_custom_item = 0;
+    rna_enum_add_custom_libraries(&custom_item, &tot_custom_item, include_remote_libraries);
+
+    /* Add separator if needed. */
+    if ((tot_custom_item > 0) && (include_readonly || include_current_file)) {
+      RNA_enum_item_add_separator(&item, &totitem);
+    }
+    RNA_enum_item_end(&custom_item, &tot_custom_item);
+    RNA_enum_items_add(&item, &totitem, custom_item);
+
+    MEM_freeN(custom_item);
   }
-  rna_enum_add_custom_libraries(&item, &totitem, include_remote_libraries);
 
   RNA_enum_item_end(&item, &totitem);
   return item;

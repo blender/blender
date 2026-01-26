@@ -19,7 +19,7 @@
 #                         search for glog includes, e.g: /timbuktu/include.
 # GLOG_LIBRARY_DIR_HINTS: List of additional directories in which to
 #                         search for glog libraries, e.g: /timbuktu/lib.
-# GFLOG_ROOT_DIR,         The base directory to search for Glog.
+# GLOG_ROOT_DIR,          The base directory to search for Glog.
 #                         This can also be an environment variable.
 #
 # The following variables are also defined by this module, but in line with
@@ -60,7 +60,7 @@ macro(GLOG_RESET_FIND_LIBRARY_PREFIX)
   endif()
 endmacro()
 
-# Called if we failed to find glog or any of it's required dependencies,
+# Called if we failed to find glog or any of its required dependencies,
 # unsets all public (designed to be used externally) variables and reports
 # error message at priority depending upon [REQUIRED/QUIET/<NONE>] argument.
 macro(GLOG_REPORT_NOT_FOUND REASON_MSG)

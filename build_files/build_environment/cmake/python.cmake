@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(PYTHON_POSTFIX)
+set(PYTHON_EXTRA_INSTALL_FLAGS)
 if(BUILD_MODE STREQUAL Debug)
   set(PYTHON_POSTFIX _d)
-  set(PYTHON_EXTRA_INSTLAL_FLAGS -d)
+  set(PYTHON_EXTRA_INSTALL_FLAGS -d)
 endif()
 
 if(WIN32)
@@ -82,7 +83,7 @@ if(WIN32)
       --include-launchers
       --include-venv
       --include-symbols
-      ${PYTHON_EXTRA_INSTLAL_FLAGS}
+      ${PYTHON_EXTRA_INSTALL_FLAGS}
       --copy
       ${LIBDIR}/python
   )
@@ -224,7 +225,7 @@ endif()
 if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_python after_install
-      # Boost can't keep it self from linking release python
+      # Boost can't keep itself from linking release python
       # in a debug configuration even if all options are set
       # correctly to instruct it to use the debug version
       # of python. So just copy the debug imports file over

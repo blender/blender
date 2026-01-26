@@ -1628,8 +1628,10 @@ void draw_nodespace_back_pix(const bContext &C,
   if (ibuf) {
     /* somehow the offset has to be calculated inverse */
     wmOrtho2_region_pixelspace(&region);
-    const float offset_x = snode.xof + ima->runtime->backdrop_offset[0] * snode.zoom;
-    const float offset_y = snode.yof + ima->runtime->backdrop_offset[1] * snode.zoom;
+    const float2 offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
+                                                                float2(0.0f);
+    const float offset_x = snode.xof + offset.x * snode.zoom;
+    const float offset_y = snode.yof + offset.y * snode.zoom;
     const float x = (region.winx - snode.zoom * ibuf->x) / 2 + offset_x;
     const float y = (region.winy - snode.zoom * ibuf->y) / 2 + offset_y;
 

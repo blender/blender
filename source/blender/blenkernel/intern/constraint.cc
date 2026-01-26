@@ -5453,8 +5453,10 @@ static void transformcache_evaluate(bConstraint *con,
       break;
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
+      float4x4 mat;
       io::usd::USD_get_transform(
-          data->reader, cob->matrix, time * scene->frames_per_second(), cache_file->scale);
+          data->reader, mat, time * scene->frames_per_second(), cache_file->scale);
+      copy_m4_m4(cob->matrix, mat.ptr());
 #  endif
       break;
     case CACHE_FILE_TYPE_INVALID:

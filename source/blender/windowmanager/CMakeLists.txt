@@ -149,12 +149,6 @@ if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
-if(WITH_HEADLESS)
-  add_definitions(-DWITH_HEADLESS)
-elseif(WITH_GHOST_X11)
-  add_definitions(-DWITH_GHOST_X11)
-endif()
-
 if(WITH_PYTHON)
   list(APPEND INC
     ../python

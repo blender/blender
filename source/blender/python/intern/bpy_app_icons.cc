@@ -45,7 +45,6 @@ static PyObject *bpy_app_icons_new_triangles(PyObject * /*self*/, PyObject *args
 
   static const char *_keywords[] = {"range", "coords", "colors", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "(BB)" /* `range` */
       "S"    /* `coords` */
       "S"    /* `colors` */
@@ -107,7 +106,6 @@ static PyObject *bpy_app_icons_new_triangles_from_file(PyObject * /*self*/,
 
   static const char *_keywords[] = {"filepath", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `filepath` */
       ":new_triangles_from_file",
       _keywords,
@@ -141,7 +139,6 @@ static PyObject *bpy_app_icons_release(PyObject * /*self*/, PyObject *args, PyOb
   int icon_id;
   static const char *_keywords[] = {"icon_id", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "i" /* `icon_id` */
       ":release",
       _keywords,
@@ -210,7 +207,7 @@ PyObject *BPY_app_icons_module()
 
   PyObject *mod = PyModule_Create(&M_AppIcons_module_def);
 
-  PyDict_SetItem(sys_modules, PyModule_GetNameObject(mod), mod);
+  PyC_Module_AddToSysModules(sys_modules, mod);
 
   return mod;
 }

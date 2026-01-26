@@ -235,6 +235,13 @@ void ED_operatormacros_node()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
   WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
+
+  ot = WM_operatortype_append_macro("NODE_OT_delete_copy_reconnect",
+                                    "Delete with Copy and Reconnect",
+                                    "Copy nodes to clipboard, remove and reconnect them.",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "NODE_OT_clipboard_copy");
+  WM_operatortype_macro_define(ot, "NODE_OT_delete_reconnect");
 }
 
 }  // namespace blender

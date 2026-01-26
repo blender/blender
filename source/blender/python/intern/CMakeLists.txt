@@ -255,6 +255,9 @@ endif()
 
 if(WITH_OPENSUBDIV)
   add_definitions(-DWITH_OPENSUBDIV)
+  list(APPEND INC
+    ../../../../intern/opensubdiv
+  )
 endif()
 
 if(WITH_JACK)
@@ -320,13 +323,6 @@ if(WITH_USD)
   add_definitions(-DWITH_USD)
   list(APPEND INC
     ../../io/usd
-  )
-endif()
-
-if(WITH_OPENSUBDIV)
-  add_definitions(-DWITH_OPENSUBDIV)
-  list(APPEND INC
-    ../../../../intern/opensubdiv
   )
 endif()
 

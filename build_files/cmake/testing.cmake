@@ -197,7 +197,7 @@ function(blender_add_test_suite_lib
   library_deps
   )
 
-  # Sources which are common for all suits and do not need to yield their own
+  # Sources which are common for all suites and do not need to yield their own
   # test suite binaries when WITH_TESTS_SINGLE_BINARY is OFF.
   set(common_sources ${ARGN})
 
@@ -301,7 +301,7 @@ endfunction()
 # very large executable, blender_add_test_suite_lib() should be used instead.
 #
 # The function accepts an optional argument which denotes list of sources which
-# is to be compiled-in with the suit sources for each of the suites when the
+# is to be compiled-in with the suite sources for each of the suites when the
 # WITH_TESTS_SINGLE_BINARY configuration is set to OFF.
 function(blender_add_test_suite_executable
   name
@@ -311,8 +311,8 @@ function(blender_add_test_suite_executable
   library_deps
   )
 
-  # Sources which are common for all suits and do not need to yield their own
-  # test suit binaries when WITH_TESTS_SINGLE_BINARY is OFF.
+  # Sources which are common for all suites and do not need to yield their own
+  # test suite binaries when WITH_TESTS_SINGLE_BINARY is OFF.
   set(common_sources ${ARGN})
 
   if(WITH_TESTS_SINGLE_BINARY)

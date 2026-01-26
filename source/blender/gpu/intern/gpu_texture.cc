@@ -27,11 +27,8 @@ namespace gpu {
 
 Texture::Texture(const char *name)
 {
-  if (name) {
-    STRNCPY(name_, name);
-  }
-  else {
-    name_[0] = '\0';
+  if ((G.debug & G_DEBUG_GPU) && name) {
+    name_ = name;
   }
 
   for (int i = 0; i < ARRAY_SIZE(fb_); i++) {

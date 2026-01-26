@@ -185,7 +185,6 @@ static PyObject *bpyunits_to_value(PyObject * /*self*/, PyObject *args, PyObject
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "s"  /* `unit_system` */
       "s"  /* `unit_category` */
       "s#" /* `str_input` */
@@ -274,7 +273,6 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "s"  /* `unit_system` */
       "s"  /* `unit_category` */
       "d"  /* `value` */

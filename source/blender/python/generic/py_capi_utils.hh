@@ -206,6 +206,17 @@ void PyC_RunQuicky(const char *filepath, int n, ...) ATTR_NONNULL(1);
 [[nodiscard]] PyObject *PyC_MainModule_Backup();
 void PyC_MainModule_Restore(PyObject *main_mod);
 
+/**
+ * Add a module to `sys.modules` using the module's `__name__` as the key.
+ *
+ * Equivalent to: `sys.modules[module.__name__] = module`.
+ *
+ * \param sys_modules: The result of #PyImport_GetModuleDict().
+ * \param module: The module to add.
+ * \return 0 on success, -1 on error.
+ */
+int PyC_Module_AddToSysModules(PyObject *sys_modules, PyObject *module);
+
 [[nodiscard]] bool PyC_IsInterpreterActive();
 
 /**
@@ -359,11 +370,7 @@ struct PyC_StringEnum {
 /* inline so type signatures match as expected */
 [[nodiscard]] Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
 {
-#if PY_VERSION_HEX < 0x030d0000 /* <3.13 */
-  return int32_t(_PyLong_AsInt(value));
-#else
   return int32_t(PyLong_AsInt(value));
-#endif
 }
 [[nodiscard]] Py_LOCAL_INLINE(int64_t) PyC_Long_AsI64(PyObject *value)
 {

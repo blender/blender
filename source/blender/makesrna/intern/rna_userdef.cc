@@ -411,9 +411,13 @@ int rna_userdef_asset_library_path_editable(const PointerRNA *ptr, const char **
   return PROP_EDITABLE;
 }
 
-static void rna_userdef_asset_library_update(bContext *C, PointerRNA *ptr)
+static void rna_userdef_asset_libraries_refresh(bContext *C, PointerRNA *ptr)
 {
   ed::asset::list::clear_all_library(C);
+
+  /* Trigger refresh for the Asset Browser. */
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+
   rna_userdef_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
@@ -424,7 +428,7 @@ static void rna_userdef_asset_library_remote_sync_update(bContext *C, PointerRNA
   /* Make sure all visible instances of this asset library will be refreshed. */
   blender::ed::asset::list::clear(&library_ref, C);
   blender::asset_system::remote_library_request_download(*CTX_data_main(C), *library);
-  rna_userdef_asset_library_update(C, ptr);
+  rna_userdef_asset_libraries_refresh(C, ptr);
 }
 
 /**
@@ -1595,7 +1599,7 @@ static void rna_experimental_no_data_block_packing_update(bContext *C, PointerRN
   rna_userdef_update(bmain, scene, ptr);
   AS_asset_library_import_method_ensure_valid(*bmain);
   AS_asset_library_essential_import_method_update();
-  rna_userdef_asset_library_update(C, ptr);
+  rna_userdef_asset_libraries_refresh(C, ptr);
 }
 
 }  // namespace blender
@@ -6870,7 +6874,13 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_path_set");
   RNA_def_property_editable_func(prop, "rna_userdef_asset_library_path_editable");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
+
+  prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", ASSET_LIBRARY_DISABLED);
+  RNA_def_property_ui_text(prop, "Enabled", "Enable the asset library");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
 
   prop = RNA_def_property(srna, "remote_url", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "remote_url");
@@ -6888,7 +6898,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
       "Default Import Method",
       "Determine how the asset will be imported, unless overridden by the Asset Browser");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
 
   prop = RNA_def_property(srna, "use_relative_path", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_RELATIVE_PATH);

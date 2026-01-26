@@ -17,36 +17,6 @@
 /* This code is not placed in the blender namespace, as it is meant to replace Python functions
  * in the global namespace. */
 
-/* Removes `initialized` member from Python 3.13+. */
-#if PY_VERSION_HEX >= 0x030d0000
-#  define PY_ARG_PARSER_HEAD_COMPAT()
-#elif PY_VERSION_HEX >= 0x030c0000
-/* Adds `initialized` member for Python 3.12+. */
-#  define PY_ARG_PARSER_HEAD_COMPAT() 0,
-#else
-#  define PY_ARG_PARSER_HEAD_COMPAT()
-#endif
-
-/* Python 3.13 made some changes, use the "new" names. */
-#if PY_VERSION_HEX < 0x030d0000
-#  define PyObject_GetOptionalAttr _PyObject_LookupAttr
-
-[[nodiscard]] Py_LOCAL_INLINE(int)
-    PyObject_GetOptionalAttrString(PyObject *obj, const char *name, PyObject **result)
-{
-  PyObject *oname = PyUnicode_FromString(name);
-  if (oname == nullptr) {
-    *result = nullptr;
-    return -1;
-  }
-  const int status = PyObject_GetOptionalAttr(obj, oname, result);
-  Py_DECREF(oname);
-  return status;
-}
-
-#  define Py_IsFinalizing _Py_IsFinalizing
-#endif
-
 /* Python 3.14 made some changes, use the "new" names. */
 #if PY_VERSION_HEX < 0x030e0000
 #  define Py_HashPointer _Py_HashPointer

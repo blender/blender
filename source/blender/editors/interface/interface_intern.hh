@@ -552,25 +552,25 @@ struct ColorPicker {
 };
 
 struct ColorPickerData {
-  ListBaseT<ColorPicker> list;
+  ListBaseT<ColorPicker> list = {nullptr, nullptr};
 };
 
 struct PieMenuData {
   /** store title and icon to allow access when pie levels are created */
-  const char *title;
-  int icon;
+  const char *title = nullptr;
+  int icon = 0;
 
   /** A mask combining the directions of all buttons in the pie menu (excluding separators). */
-  int pie_dir_mask;
-  float pie_dir[2];
-  float pie_center_init[2];
-  float pie_center_spawned[2];
-  float last_pos[2];
-  double duration_gesture;
-  int flags;
+  int pie_dir_mask = 0;
+  float pie_dir[2] = {};
+  float pie_center_init[2] = {};
+  float pie_center_spawned[2] = {};
+  float last_pos[2] = {};
+  double duration_gesture = 0.0;
+  int flags = 0;
   /** Initial event used to fire the pie menu, store here so we can query for release */
-  short event_type;
-  float alphafac;
+  short event_type = 0;
+  float alphafac = 0.0f;
 };
 
 /** #Block.content_hints */
@@ -612,123 +612,122 @@ struct ButStore;
 struct ViewLink;
 
 struct Block {
-  Block *next, *prev;
+  Block *next = nullptr, *prev = nullptr;
 
   Vector<std::unique_ptr<Button>> buttons;
-  Panel *panel;
-  Block *oldblock;
+  Panel *panel = nullptr;
+  Block *oldblock = nullptr;
 
   /** Used for `UI_butstore_*` runtime function. */
-  ListBaseT<ButStore> butstore;
+  ListBaseT<ButStore> butstore = {nullptr, nullptr};
 
   Vector<ButtonGroup> button_groups;
 
-  ListBaseT<LayoutRoot> layouts;
-  Layout *curlayout;
+  ListBaseT<LayoutRoot> layouts = {nullptr, nullptr};
+  Layout *curlayout = nullptr;
 
   Vector<std::unique_ptr<bContextStore>> contexts;
 
   /** A block can store "views" on data-sets. Currently tree-views (#AbstractTreeView) only.
    * Others are imaginable, e.g. table-views, grid-views, etc. These are stored here to support
    * state that is persistent over redraws (e.g. collapsed tree-view items). */
-  ListBaseT<ViewLink> views;
+  ListBaseT<ViewLink> views = {nullptr, nullptr};
 
-  ListBaseT<BlockDynamicListener> dynamic_listeners;
+  ListBaseT<BlockDynamicListener> dynamic_listeners = {nullptr, nullptr};
 
   std::string name;
 
-  float winmat[4][4];
+  float winmat[4][4] = {};
 
-  rctf rect;
-  float aspect;
+  rctf rect = {};
+  float aspect = 0.0f;
 
   BlockAlertLevel alert_level = BlockAlertLevel::None;
 
   /** Unique hash used to implement popup menu memory. */
-  uint puphash;
+  uint puphash = 0;
 
-  ButtonHandleFunc func;
-  void *func_arg1;
-  void *func_arg2;
+  ButtonHandleFunc func = nullptr;
+  void *func_arg1 = nullptr;
+  void *func_arg2 = nullptr;
 
-  ButtonHandleNFunc funcN;
-  void *func_argN;
-  ButtonArgNFree func_argN_free_fn;
-  ButtonArgNCopy func_argN_copy_fn;
+  ButtonHandleNFunc funcN = nullptr;
+  void *func_argN = nullptr;
+  ButtonArgNFree func_argN_free_fn = nullptr;
+  ButtonArgNCopy func_argN_copy_fn = nullptr;
 
-  BlockHandleFunc handle_func;
-  void *handle_func_arg;
+  BlockHandleFunc handle_func = nullptr;
+  void *handle_func_arg = nullptr;
 
   /** Custom interaction data. */
-  BlockInteraction_CallbackData custom_interaction_callbacks;
+  BlockInteraction_CallbackData custom_interaction_callbacks = {};
 
   /** Custom extra event handling. */
-  int (*block_event_func)(const bContext *C, Block *, const wmEvent *);
+  int (*block_event_func)(const bContext *C, Block *, const wmEvent *) = nullptr;
 
   /** Custom extra draw function for custom blocks. */
   std::function<void(const bContext *, rcti *)> drawextra;
 
-  int flag;
-  short alignnr;
+  int flag = 0;
+  short alignnr = 0;
   /** Hints about the buttons of this block. Used to avoid iterating over
    * buttons to find out if some criteria is met by any. Instead, check this
    * criteria when adding the button and set a flag here if it's met. */
-  short content_hints; /* #eBlockContentHints */
+  short content_hints = 0; /* #eBlockContentHints */
 
-  char direction;
+  char direction = 0;
   /** BLOCK_THEME_STYLE_* */
-  char theme_style;
+  char theme_style = 0;
   /** Copied to #Button.emboss */
-  EmbossType emboss;
-  bool auto_open;
-  char _pad[5];
-  double auto_open_last;
+  EmbossType emboss = EmbossType::Emboss;
+  bool auto_open = false;
+  double auto_open_last = 0.0;
 
-  const char *lockstr;
+  const char *lockstr = nullptr;
 
-  bool lock;
+  bool lock = false;
   /** To keep blocks while drawing and free them afterwards. */
-  bool active;
+  bool active = false;
   /** To avoid tool-tip after click. */
-  bool tooltipdisabled;
+  bool tooltipdisabled = false;
   /** True when #block_end has been called. */
-  bool endblock;
+  bool endblock = false;
 
   /** for doing delayed */
-  BlockBoundsCalc bounds_type;
+  BlockBoundsCalc bounds_type = BLOCK_BOUNDS_NONE;
   /** Offset to use when calculating bounds (in pixels). */
-  int bounds_offset[2];
+  int bounds_offset[2] = {};
   /** for doing delayed */
-  int bounds, minbounds;
+  int bounds = 0, minbounds = 0;
 
   /** Pull-downs, to detect outside, can differ per case how it is created. */
-  rctf safety;
-  ListBaseT<SafetyRect> saferct;
+  rctf safety = {};
+  ListBaseT<SafetyRect> saferct = {nullptr, nullptr};
 
-  PopupBlockHandle *handle;
+  PopupBlockHandle *handle = nullptr;
 
   /** use so presets can find the operator,
    * across menus and from nested popups which fail for operator context. */
-  wmOperator *ui_operator;
-  bool ui_operator_free;
+  wmOperator *ui_operator = nullptr;
+  bool ui_operator_free = false;
 
   /** XXX hack for dynamic operator enums */
-  void *evil_C;
+  void *evil_C = nullptr;
 
   /** unit system, used a lot for numeric buttons so include here
    * rather than fetching through the scene every time. */
-  const UnitSettings *unit;
+  const UnitSettings *unit = nullptr;
   /** \note only accessed by color picker templates. */
   ColorPickerData color_pickers;
 
   /** Block for color picker with gamma baked in. */
-  bool is_color_gamma_picker;
+  bool is_color_gamma_picker = false;
 
   /**
    * Display device name used to display this block,
    * used by color widgets to transform colors from/to scene linear.
    */
-  char display_device[64];
+  char display_device[64] = "";
 
   PieMenuData pie_data;
 

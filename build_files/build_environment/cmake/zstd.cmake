@@ -23,7 +23,7 @@ ExternalProject_Add(external_zstd
   PREFIX ${BUILD_DIR}/zstd
   SOURCE_SUBDIR build/cmake
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
-  
+
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/zstd
     ${DEFAULT_CMAKE_FLAGS}
@@ -41,7 +41,7 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/zstd/include/
         ${HARVEST_TARGET}/zstd/include/
-      # The zstandard python extension hardcoded links to ztsd.lib
+      # The zstandard python extension hardcoded links to zstd.lib
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/zstd/lib/zstd_static${LIBEXT}
         ${LIBDIR}/zstd/lib/zstd${LIBEXT}
@@ -49,7 +49,7 @@ if(WIN32)
     )
   else()
     ExternalProject_Add_Step(external_zstd after_install
-      # The zstandard python extension hardcoded links to ztsd.lib
+      # The zstandard python extension hardcoded links to zstd.lib
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/zstd/lib/zstd_static${LIBEXT}
         ${LIBDIR}/zstd/lib/zstd${LIBEXT}

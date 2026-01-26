@@ -429,7 +429,7 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
   }
 
   for (CustomDataLayer &layer : MutableSpan(mesh.corner_data.layers, mesh.corner_data.totlayer)) {
-    const eCustomDataType cd_type = eCustomDataType();
+    const eCustomDataType cd_type = eCustomDataType(layer.type);
     if (ELEM(layer.type,
              CD_NORMAL,
              CD_ORIGINDEX,
@@ -478,7 +478,7 @@ static void remove_invalid_edges(Mesh &mesh, const IndexMask &valid_edges)
       case AttrStorageType::Array: {
         const auto &src_data = std::get<Attribute::ArrayData>(attr.data());
         auto dst_data = Attribute::ArrayData::from_uninitialized(type, valid_edges_num);
-        array_utils::gather(GSpan(type, src_data.data, mesh.faces_num),
+        array_utils::gather(GSpan(type, src_data.data, mesh.edges_num),
                             valid_edges,
                             GMutableSpan(type, dst_data.data, valid_edges_num));
         attr.assign_data(std::move(dst_data));

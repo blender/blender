@@ -183,7 +183,6 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
 
   static const char *_keywords[] = {"subset", "key_types", "value_types", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "|$" /* Optional keyword only arguments. */
       "O"  /* `subset` */
       "O!" /* `key_types` */
@@ -401,7 +400,6 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
 
   static const char *_keywords[] = {"subset", "key_types", "include_libraries", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "|$" /* Optional keyword only arguments. */
       "O"  /* `subset` */
       "O!" /* `key_types` */
@@ -698,7 +696,6 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
 
   static const char *_keywords[] = {"visit_path_fn", "subset", "visit_types", "flags", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O!" /* `visit_path_fn` */
       "|$" /* Optional keyword only arguments. */
       "O"  /* `subset` */
@@ -831,7 +828,6 @@ static PyObject *bpy_batch_remove(PyObject *self, PyObject *args, PyObject *kwds
 
   static const char *_keywords[] = {"ids", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O" /* `ids` */
       ":batch_remove",
       _keywords,
@@ -902,7 +898,6 @@ static PyObject *bpy_orphans_purge(PyObject *self, PyObject *args, PyObject *kwd
 
   static const char *_keywords[] = {"do_local_ids", "do_linked_ids", "do_recursive", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "|"  /* Optional arguments. */
       "O&" /* `do_local_ids` */
       "O&" /* `do_linked_ids` */

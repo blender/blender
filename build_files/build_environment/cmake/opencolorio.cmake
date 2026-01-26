@@ -122,7 +122,7 @@ if(WIN32)
         ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_5.dll
         ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_5.dll
       COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/lib/Opencolorio_d.lib
+        ${LIBDIR}/opencolorio/lib/OpenColorIO_d.lib
         ${HARVEST_TARGET}/opencolorio/lib/OpenColorIO_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/opencolorio/lib/site-packages

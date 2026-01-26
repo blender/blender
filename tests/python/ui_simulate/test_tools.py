@@ -5,45 +5,20 @@
 """
 This file does not run anything, its methods are accessed for tests by ``run_blender_setup.py``.
 """
-
-
-def _test_window(windows_exclude=None):
-    import bpy
-    wm = bpy.data.window_managers[0]
-    if windows_exclude is None:
-        return wm.windows[0]
-    for window in wm.windows:
-        if window not in windows_exclude:
-            return window
-    return None
-
-
-def _test_vars(window):
-    import unittest
-    from modules.easy_keys import EventGenerate
-    return (
-        EventGenerate(window),
-        unittest.TestCase(),
-    )
-
-
-def _window_area_get_by_type(window, space_type):
-    for area in window.screen.areas:
-        if area.type == space_type:
-            return area
+import modules.ui_test_utils as ui
 
 
 def sculpt_mode_toolbar():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
 
     # In the default properties area, set it to the tool tab to force access of all
     # tool properties when a tool is activated.
-    properties_area = _window_area_get_by_type(window, 'PROPERTIES')
+    properties_area = ui.get_window_area_by_type(window, 'PROPERTIES')
     properties_area.spaces[0].context = 'TOOL'
 
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
-    area = _window_area_get_by_type(window, 'VIEW_3D')
+    area = ui.get_window_area_by_type(window, 'VIEW_3D')
     position = (area.x + int(area.width * 0.05), area.y + area.height // 2)
     e.cursor_position_set(*position, move=True)     # Move mouse over the toolbar
 

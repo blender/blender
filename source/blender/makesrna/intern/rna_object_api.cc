@@ -526,6 +526,22 @@ static void rna_Object_shape_key_clear(Object *ob, Main *bmain)
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
+static CollectionVector rna_Object_shape_keys_selected(Object *ob)
+{
+  Key *key = BKE_key_from_object(ob);
+  if (key == nullptr) {
+    return CollectionVector();
+  }
+
+  CollectionVector selected_keys;
+  for (KeyBlock &kb : key->block) {
+    if (kb.flag & KEYBLOCK_SEL) {
+      selected_keys.items.append(RNA_pointer_create_discrete(&key->id, RNA_ShapeKey, &kb));
+    }
+  }
+  return selected_keys;
+}
+
 #  if 0
 static void rna_Mesh_assign_verts_to_group(
     Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
@@ -1134,6 +1150,13 @@ void RNA_api_object(StructRNA *srna)
   func = RNA_def_function(srna, "shape_key_clear", "rna_Object_shape_key_clear");
   RNA_def_function_ui_description(func, "Remove all Shape Keys from this object");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "shape_keys_selected", "rna_Object_shape_keys_selected");
+  RNA_def_function_ui_description(func, "Return selected shape keys");
+
+  parm = RNA_def_property(func, "keyblocks", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(parm, "ShapeKey");
+  RNA_def_function_return(func, parm);
 
   /* Ray Cast */
   func = RNA_def_function(srna, "ray_cast", "rna_Object_ray_cast");

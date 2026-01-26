@@ -7,7 +7,7 @@ if(WIN32)
   # link, which is not something we're super into distribution wise. However
   # if it cannot find pthread.h it'll happily provide a pthread emulation
   # layer using win32 threads. So all this patch does is make it not find
-  # pthead.h
+  # pthread.h
 
   set(VPX_PATCH
     ${PATCH_CMD} -p 1 -d

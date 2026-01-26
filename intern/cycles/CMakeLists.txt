@@ -88,7 +88,7 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   else()
     set(CYCLES_SSE42_FLAGS "/arch:SSE2")
   endif()
-elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+elseif((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   check_cxx_compiler_flag(-msse4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(-mavx2 CXX_HAS_AVX2)
 
@@ -154,7 +154,7 @@ if(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
      AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
     string(APPEND CMAKE_CXX_FLAGS " /jumptablerdata")
   endif()
-elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+elseif((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   # Assume no signal trapping for better code generation.
   list(APPEND CYCLES_MATH_FLAGS "-fno-trapping-math")
   # Avoid overhead of setting `errno` for NaNs.
@@ -175,7 +175,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   # Don't enable `-ffinite-math-only` since the BVH code relies on NaNs.
   # Otherwise, we could just use `-ffast-math`.
 
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     # Assume no signal trapping for better code generation.
     list(APPEND CYCLES_MATH_FLAGS "-fno-signaling-nans")
     # Assume a fixed rounding mode for better constant folding.
@@ -330,7 +330,7 @@ if(WITH_OPENIMAGEDENOISE)
   )
 endif()
 
-# Includes that might be overrides by USD last, to avoid compiling
+# Includes that might be overridden by USD last, to avoid compiling
 # against the wrong versions of other libraries.
 include_directories(
   SYSTEM
@@ -376,7 +376,7 @@ if(WITH_CYCLES_PATH_GUIDING)
   # Different levels can be selected to measure the overhead of different stages.
   # 1 = recording the path segments
   # 2 = 1 + generating (not storing) sample data from the segments
-  # 3 = 2 + storing the generates sample data
+  # 3 = 2 + storing the generated sample data
   # 4 = 3 + training the guiding fields
   # 5 = 4 + querying the trained guiding for sampling (full path guiding)
   add_definitions(-DPATH_GUIDING_LEVEL=5)

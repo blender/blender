@@ -43,7 +43,6 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject * /*type*/, PyObject *args,
 
   static const char *_keywords[] = {"type", "seq", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "$"  /* Keyword only arguments. */
       "O&" /* `type` */
       "O"  /* `seq` */

@@ -10,7 +10,7 @@ if(WIN32)
   set(OSL_FLEX_BISON -DFLEX_EXECUTABLE=${LIBDIR}/flexbison/win_flex.exe -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe)
 else()
   set(OSL_CMAKE_CXX_STANDARD_LIBRARIES)
-  # llvm-config will add -lmxl2. Make sure it can be found and that no system
+  # llvm-config will add -lxml2. Make sure it can be found and that no system
   # library is used instead.
   set(OSL_CMAKE_LINKER_FLAGS "-L${LIBDIR}/xml2/lib")
   set(OSL_OPENIMAGEIO_LIBRARY "${LIBDIR}/openimageio/lib/OpenImageIO${SHAREDLIBEXT};${LIBDIR}/openexr/lib/IlmImf${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}")

@@ -14,6 +14,7 @@
 
 #include "bpy_app_timers.hh"
 
+#include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 namespace blender {
@@ -92,7 +93,6 @@ static PyObject *bpy_app_timers_register(PyObject * /*self*/, PyObject *args, Py
 
   static const char *_keywords[] = {"function", "first_interval", "persistent", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O"  /* `function` */
       "|$" /* Optional keyword only arguments. */
       "d"  /* `first_interval` */
@@ -203,7 +203,7 @@ PyObject *BPY_app_timers_module()
 {
   PyObject *sys_modules = PyImport_GetModuleDict();
   PyObject *mod = PyModule_Create(&M_AppTimers_module_def);
-  PyDict_SetItem(sys_modules, PyModule_GetNameObject(mod), mod);
+  PyC_Module_AddToSysModules(sys_modules, mod);
   return mod;
 }
 

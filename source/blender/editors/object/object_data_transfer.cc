@@ -687,8 +687,13 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
                   "handy to change several things at once with heavy geometry");
 
   /* Data type to transfer. */
-  ot->prop = RNA_def_enum(
-      ot->srna, "data_type", DT_layer_items, 0, "Data Type", "Which data to transfer");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "data_type",
+                          DT_layer_items,
+                          /* The default is not significant, just use a valid value. */
+                          DT_TYPE_MDEFORMVERT,
+                          "Data Type",
+                          "Which data to transfer");
   RNA_def_boolean(ot->srna,
                   "use_create",
                   true,

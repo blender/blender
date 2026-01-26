@@ -680,11 +680,10 @@ static PyObject *py_blf_bind_imbuf(PyObject * /*self*/, PyObject *args, PyObject
   };
 
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
-      "i" /* `fontid` */
+      "i"  /* `fontid` */
       "O!" /* `image` */
-      "|" /* Optional arguments. */
-      "z" /* `display_name` */
+      "|"  /* Optional arguments. */
+      "z"  /* `display_name` */
       ":bind_imbuf",
       _keywords,
       nullptr,

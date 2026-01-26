@@ -9,7 +9,7 @@
 #include "BLI_array_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
-#include "BLI_ressource_strings.h"
+#include "BLI_resource_strings.h"
 #include "BLI_string.h"
 
 namespace blender {

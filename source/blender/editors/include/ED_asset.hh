@@ -55,6 +55,13 @@ const bUserAssetLibrary *get_asset_library_from_opptr(PointerRNA &ptr);
 AssetLibraryReference get_asset_library_ref_from_opptr(PointerRNA &ptr);
 
 /**
+ * Returns the library reference of \a library if set and if it is a library that can be saved to.
+ * Otherwise falls back to the first enabled user library.
+ */
+std::optional<AssetLibraryReference> get_user_library_ref_for_save(
+    const asset_system::AssetLibrary *preferred_library = nullptr);
+
+/**
  * For each catalog of the given bUserAssetLibrary call `visit_fn`.
  * \param edit_text: If that text is not empty, and not matching an existing catalog path
  * `visit_fn` will be called with that text and the icon ICON_ADD.

@@ -177,10 +177,8 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     return;
   }
 
-  int offset[2];
-  offset[0] = int(image->runtime->backdrop_offset[0]);
-  offset[1] = int(image->runtime->backdrop_offset[1]);
-
+  const float2 offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
+                                                              float2(0.0f);
   int x = int(uv[0] * ibuf->x), y = int(uv[1] * ibuf->y);
 
   if (x >= offset[0] && y >= offset[1] && x < (ibuf->x + offset[0]) && y < (ibuf->y + offset[1])) {

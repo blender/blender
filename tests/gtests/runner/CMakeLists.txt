@@ -24,7 +24,7 @@ if(WIN32 OR APPLE)
 elseif(UNIX)
   list(APPEND TEST_LIBS "-Wl,--whole-archive" ${_test_libs} "-Wl,--no-whole-archive")
 else()
-  message(FATAL_ERROR "Unknown how to link whole-archive with your compiler ${CMAKE_CXX_COMPILER_ID}")
+  message(FATAL_ERROR "Don't know how to link whole-archive with compiler ${CMAKE_CXX_COMPILER_ID}")
 endif()
 
 # This builds `bin/tests/blender_test`, but does not add it as a single test.

@@ -15,7 +15,7 @@ endif()
 
 set(DPCPP_CONFIGURE_ARGS
   # When external deps dpcpp needs are not found it will automatically
-  # download the during the configure stage using FetchContent. Given
+  # download them during the configure stage using FetchContent. Given
   # we need to keep an archive of all source used during build for compliance
   # reasons it CANNOT download anything we do not know about. By setting
   # this property to ON, all downloads are disabled, and we will have to
@@ -26,7 +26,7 @@ set(DPCPP_CONFIGURE_ARGS
 set(DPCPP_SOURCE_ROOT ${BUILD_DIR}/dpcpp/src/external_dpcpp/)
 set(DPCPP_EXTRA_ARGS
   # When external deps dpcpp needs are not found it will automatically
-  # download the during the configure stage using FetchContent. Given
+  # download them during the configure stage using FetchContent. Given
   # we need to keep an archive of all source used during build for compliance
   # reasons it CANNOT download anything we do not know about. By setting
   # this property to ON, all downloads are disabled, and we will have to
@@ -120,7 +120,7 @@ ExternalProject_Add(external_dpcpp
   #   echo "." # ${PYTHON_BINARY} ${BUILD_DIR}/dpcpp/src/external_dpcpp/buildbot/compile.py
   INSTALL_COMMAND ${CMAKE_COMMAND} --build . -- deploy-sycl-toolchain
 
-  PATCH_COMMAND 
+  PATCH_COMMAND
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/dpcpp/src/external_dpcpp <
       ${PATCH_DIR}/dpcpp.diff

@@ -798,7 +798,6 @@ static PyObject *bpy_bm_utils_uv_select_check(PyObject * /*self*/, PyObject *arg
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O!" /* `bm` */
       "|$" /* Optional keyword only arguments. */
       "O&" /* `sync` */

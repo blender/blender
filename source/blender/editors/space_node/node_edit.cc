@@ -175,8 +175,6 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
                             compositor_job->needed_outputs);
     }
   }
-
-  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
 }
 
 static void compositor_job_cancel(void *compositor_job_data)
@@ -198,6 +196,7 @@ static void compositor_job_complete(void *compositor_job_data)
       scene->compositing_node_group, compositor_job->evaluated_node_tree, true);
   scene->runtime->compositor.per_node_execution_time =
       compositor_job->profiler.get_nodes_evaluation_times();
+  WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
 }
 
 static void compositor_job_free(void *compositor_job_data)
@@ -329,7 +328,7 @@ void ED_node_compositor_job(const bContext *C)
   compositor_job->needed_outputs = needed_outputs;
 
   WM_jobs_customdata_set(job, compositor_job, compositor_job_free);
-  WM_jobs_timer(job, 0.1, NC_SCENE | ND_COMPO_RESULT, NC_SCENE | ND_COMPO_RESULT);
+  WM_jobs_timer(job, 0.1, 0, 0);
   WM_jobs_callbacks_ex(job,
                        compositor_job_start,
                        compositor_job_init,

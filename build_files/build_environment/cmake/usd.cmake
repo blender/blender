@@ -29,7 +29,7 @@ if(WIN32)
 elseif(UNIX)
   set(USD_PLATFORM_FLAGS
     # Workaround USD not linking correctly with static Python library, where it would embed
-    # part of the interpret in the USD library. Allow undefined Python symbols and replace
+    # part of the interpreter in the USD library. Allow undefined Python symbols and replace
     # Python library with TBB so it doesn't complain about missing library.
     # NOTE(@ideasman42): Setting the root is needed, without this an older version of Python
     # is detected from the system. Referencing the root-directory may remove the need
@@ -157,7 +157,10 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_storm_vulkan.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_vulkan_headless_3931.diff
+      ${PATCH_DIR}/usd_vulkan_headless_3931.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_linux_arm64_3764.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
     -Wno-dev

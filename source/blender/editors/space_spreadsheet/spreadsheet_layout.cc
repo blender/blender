@@ -326,11 +326,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
               std::get_if<nodes::BundleItemSocketValue>(&value.value))
       {
         const bke::SocketValueVariant &value_variant = socket_value->value;
-        if (value_variant.is_single()) {
-          const GPointer single_value_ptr = value_variant.get_single_ptr();
-          this->draw_content_cell_value(single_value_ptr, params, column);
-          return;
-        }
+        this->draw_content_cell_value(&value_variant, params, column);
+        return;
       }
       this->draw_undrawable(params);
       return;
@@ -362,6 +359,16 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                          nullptr,
                          std::nullopt);
       }
+      return;
+    }
+    if (type.is<bke::SocketValueVariant>()) {
+      const bke::SocketValueVariant &value_variant = *value_ptr.get<bke::SocketValueVariant>();
+      if (value_variant.is_single()) {
+        const GPointer single_value_ptr = value_variant.get_single_ptr();
+        this->draw_content_cell_value(single_value_ptr, params, column);
+        return;
+      }
+      this->draw_undrawable(params);
       return;
     }
     this->draw_undrawable(params);

@@ -463,6 +463,13 @@ static void openexr_header_compression(Header *header, int compression, int qual
       header->dwaCompressionLevel() = openexr_jpg_like_quality_to_dwa_quality(quality);
       break;
 #endif
+#if COMBINED_OPENEXR_VERSION >= 30400
+      /* Always writing 32 scanlines for now, could add an option for 256 scanlines
+       * for slightly smaller files if there is demand for it. */
+    case R_IMF_EXR_CODEC_HTJ2K:
+      header->compression() = HTJ2K32_COMPRESSION;
+      break;
+#endif
     default:
       header->compression() = ZIP_COMPRESSION;
       break;
@@ -492,6 +499,11 @@ static int openexr_header_get_compression(const Header &header)
       return R_IMF_EXR_CODEC_DWAA;
     case DWAB_COMPRESSION:
       return R_IMF_EXR_CODEC_DWAB;
+#if COMBINED_OPENEXR_VERSION >= 30400
+    case HTJ2K256_COMPRESSION:
+    case HTJ2K32_COMPRESSION:
+      return R_IMF_EXR_CODEC_HTJ2K;
+#endif
     case NUM_COMPRESSION_METHODS:
       return R_IMF_EXR_CODEC_NONE;
   }

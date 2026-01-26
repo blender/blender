@@ -144,43 +144,6 @@ ${body}
 
 
 # -----------------------------------------------------------------------------
-# Workarounds
-
-def _worlaround_win32_ssl_cert_failure() -> None:
-    # Applies workaround by `pukkandan` on GITHUB at run-time:
-    # See: https://github.com/python/cpython/pull/91740
-    import ssl
-
-    class SSLContext_DUMMY(ssl.SSLContext):
-        def _load_windows_store_certs(self, storename: str, purpose: ssl.Purpose) -> bytearray:
-            # WIN32 only.
-            enum_certificates = getattr(ssl, "enum_certificates", None)
-            assert callable(enum_certificates)
-            certs = bytearray()
-            try:
-                for cert, encoding, trust in enum_certificates(storename):
-                    try:
-                        self.load_verify_locations(cadata=cert)
-                    except ssl.SSLError:
-                        # warnings.warn("Bad certificate in Windows certificate store")
-                        pass
-                    else:
-                        # CA certs are never PKCS#7 encoded
-                        if encoding == "x509_asn":
-                            if trust is True or purpose.oid in trust:
-                                certs.extend(cert)
-            except PermissionError:
-                # warnings.warn("unable to enumerate Windows certificate store")
-                pass
-            # NOTE(@ideasman42): Python never uses this return value internally.
-            # Keep it for consistency.
-            return certs
-
-    # pylint: disable-next=protected-access
-    ssl.SSLContext._load_windows_store_certs = SSLContext_DUMMY._load_windows_store_certs  # type: ignore
-
-
-# -----------------------------------------------------------------------------
 # Argument Overrides
 
 class _ArgsDefaultOverride:
@@ -573,13 +536,7 @@ def rmtree_with_fallback_or_error(
     # so use it's callback that raises a link error and remove the link in that case.
     errors = []
 
-    # *DEPRECATED* 2024/07/01 Remove when 3.11 is dropped.
-    if sys.version_info >= (3, 12):
-        shutil.rmtree(path, onexc=lambda *args: errors.append(args))
-    else:
-        # Ignore as the deprecated logic is only used for older Python versions.
-        # pylint: disable-next=deprecated-argument
-        shutil.rmtree(path, onerror=lambda *args: errors.append((args[0], args[1], args[2][1])))
+    shutil.rmtree(path, onexc=lambda *args: errors.append(args))
 
     # Happy path (for practically all cases).
     if not errors:
@@ -5676,9 +5633,6 @@ def main(
     if "--version" in sys.argv:
         sys.stdout.write("{:s}\n".format(VERSION))
         return 0
-
-    if (sys.platform == "win32") and (sys.version_info < (3, 12, 6)):
-        _worlaround_win32_ssl_cert_failure()
 
     parser = argparse_create(
         args_internal=args_internal,

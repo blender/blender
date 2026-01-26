@@ -27,7 +27,6 @@ set(OPENVDB_EXTRA_ARGS
   -DOPENVDB_CORE_STATIC=OFF
   -DOPENVDB_BUILD_BINARIES=OFF
   -DCMAKE_DEBUG_POSTFIX=_d
-  -DBLOSC_USE_STATIC_LIBS=ON
   -DUSE_NANOVDB=ON
   -DOPENVDB_BUILD_PYTHON_MODULE=ON
   -DOPENVDB_PYTHON_WRAP_ALL_GRID_TYPES=ON
@@ -97,7 +96,7 @@ if(WIN32)
         ${HARVEST_TARGET}/openvdb/bin/openvdb.dll
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/openvdb/lib/python${PYTHON_SHORT_VERSION}/site-packages/openvdb.cp${PYTHON_SHORT_VERSION_NO_DOTS}-win_${OPENVDB_ARCH}.pyd
-        ${HARVEST_TARGET}openvdb/python/openvdb.cp${PYTHON_SHORT_VERSION_NO_DOTS}-win_${OPENVDB_ARCH}.pyd
+        ${HARVEST_TARGET}/openvdb/python/openvdb.cp${PYTHON_SHORT_VERSION_NO_DOTS}-win_${OPENVDB_ARCH}.pyd
       DEPENDEES install
     )
   endif()
@@ -111,7 +110,7 @@ if(WIN32)
         ${HARVEST_TARGET}/openvdb/bin/openvdb_d.dll
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/openvdb/lib/python${PYTHON_SHORT_VERSION}/site-packages/openvdb_d.cp${PYTHON_SHORT_VERSION_NO_DOTS}-win_${OPENVDB_ARCH}.pyd
-        ${HARVEST_TARGET}openvdb/python/openvdb_d.cp${PYTHON_SHORT_VERSION_NO_DOTS}-win_${OPENVDB_ARCH}.pyd
+        ${HARVEST_TARGET}/openvdb/python/openvdb_d.cp${PYTHON_SHORT_VERSION_NO_DOTS}-win_${OPENVDB_ARCH}.pyd
 
       DEPENDEES install
     )

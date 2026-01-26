@@ -756,6 +756,1373 @@ template<typename T> void nestedholes_test()
   }
 }
 
+/* Two overlapping squares with the same winding direction (both CCW).
+ * Even-odd: overlap region is excluded (2 crossings = outside).
+ * Non-zero: overlap region is included (winding = 2 = inside). */
+template<typename T> void nonzero_winding_test()
+{
+  /* Square 1: (0,0)-(1,1) CCW, Square 2: (0.5,0.5)-(1.5,1.5) CCW. */
+  const char *spec = R"(8 0 2
+  0.0 0.0
+  1.0 0.0
+  1.0 1.0
+  0.0 1.0
+  0.5 0.5
+  1.5 0.5
+  1.5 1.5
+  0.5 1.5
+  0 1 2 3
+  4 5 6 7
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  /* Even-odd: the overlap region (0.5,0.5)-(1,1) is a hole. */
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  EXPECT_EQ(out_evenodd.vert.size(), 10); /* 8 input + 2 intersections */
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "NonZeroWinding - even-odd", out_evenodd.vert, out_evenodd.edge, out_evenodd.face);
+  }
+
+  /* Non-zero: overlapping same-winding squares union. */
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  EXPECT_EQ(out_nonzero.vert.size(), 10); /* 8 input + 2 intersections */
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "NonZeroWinding - non-zero", out_nonzero.vert, out_nonzero.edge, out_nonzero.face);
+  }
+
+  /* Non-zero should have more faces than even-odd (union vs hole in overlap). */
+  EXPECT_EQ(out_evenodd.face.size(), 8);
+  EXPECT_EQ(out_nonzero.face.size(), 10);
+
+  /* Verify non-zero rule is winding-independent: flipping all face windings
+   * should produce identical results since we only check if winding == 0. */
+  CDT_input<T> in_flipped = in;
+  for (Vector<int> &face : in_flipped.face) {
+    std::reverse(face.begin(), face.end());
+  }
+  CDT_result<T> out_flipped = delaunay_2d_calc(in_flipped, CDT_INSIDE_WITH_HOLES_NONZERO);
+  EXPECT_EQ(out_flipped.vert.size(), out_nonzero.vert.size());
+  EXPECT_EQ(out_flipped.face.size(), out_nonzero.face.size());
+}
+
+/* One square inside another - tests hole creation with winding rules.
+ * Outer square CCW, inner square CW (opposite winding) = inner is a hole.
+ * Outer square CCW, inner square CCW (same winding) = inner is filled. */
+template<typename T> void nonzero_winding_nested_test()
+{
+  /* Outer square (0,0)-(2,2) CCW, inner square (0.5,0.5)-(1.5,1.5) CW. */
+  const char *spec_hole = R"(8 0 2
+  0.0 0.0
+  2.0 0.0
+  2.0 2.0
+  0.0 2.0
+  0.5 0.5
+  0.5 1.5
+  1.5 1.5
+  1.5 0.5
+  0 1 2 3
+  4 5 6 7
+  )";
+
+  CDT_input<T> in_hole = fill_input_from_string<T>(spec_hole);
+
+  /* Even-odd: inner square is a hole (2 crossings = outside). */
+  CDT_result<T> out_evenodd_hole = delaunay_2d_calc(in_hole, CDT_INSIDE_WITH_HOLES);
+  EXPECT_EQ(out_evenodd_hole.vert.size(), 8);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNested - even-odd, inner CW (hole)",
+                  out_evenodd_hole.vert,
+                  out_evenodd_hole.edge,
+                  out_evenodd_hole.face);
+  }
+
+  /* Non-zero: inner CW square creates a hole (winding: +1 - 1 = 0). */
+  CDT_result<T> out_nonzero_hole = delaunay_2d_calc(in_hole, CDT_INSIDE_WITH_HOLES_NONZERO);
+  EXPECT_EQ(out_nonzero_hole.vert.size(), 8);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNested - non-zero, inner CW (hole)",
+                  out_nonzero_hole.vert,
+                  out_nonzero_hole.edge,
+                  out_nonzero_hole.face);
+  }
+
+  /* Both rules produce same face count when inner has opposite winding. */
+  EXPECT_EQ(out_evenodd_hole.face.size(), 8);
+  EXPECT_EQ(out_nonzero_hole.face.size(), out_evenodd_hole.face.size());
+
+  /* Now test with inner square also CCW (same winding as outer). */
+  const char *spec_filled = R"(8 0 2
+  0.0 0.0
+  2.0 0.0
+  2.0 2.0
+  0.0 2.0
+  0.5 0.5
+  1.5 0.5
+  1.5 1.5
+  0.5 1.5
+  0 1 2 3
+  4 5 6 7
+  )";
+
+  CDT_input<T> in_filled = fill_input_from_string<T>(spec_filled);
+
+  /* Even-odd: inner square is still a hole (2 crossings = outside). */
+  CDT_result<T> out_evenodd_filled = delaunay_2d_calc(in_filled, CDT_INSIDE_WITH_HOLES);
+  EXPECT_EQ(out_evenodd_filled.vert.size(), 8);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNested - even-odd, inner CCW (hole)",
+                  out_evenodd_filled.vert,
+                  out_evenodd_filled.edge,
+                  out_evenodd_filled.face);
+  }
+
+  /* Non-zero: inner CCW square is filled (winding: +1 + 1 = 2 = inside). */
+  CDT_result<T> out_nonzero_filled = delaunay_2d_calc(in_filled, CDT_INSIDE_WITH_HOLES_NONZERO);
+  EXPECT_EQ(out_nonzero_filled.vert.size(), 8);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNested - non-zero, inner CCW (filled)",
+                  out_nonzero_filled.vert,
+                  out_nonzero_filled.edge,
+                  out_nonzero_filled.face);
+  }
+
+  /* Non-zero should have more faces (inner filled vs inner hole). */
+  EXPECT_EQ(out_evenodd_filled.face.size(), 8);
+  EXPECT_EQ(out_nonzero_filled.face.size(), 10);
+}
+
+/**
+ * Outer square with a hole, and two overlapping filled squares inside the hole.
+ * Tests union behavior: the two inner CCW squares should union together.
+ *
+ * \code{.unparsed}
+ * Geometry:
+ *
+ *   3---------------------------------2  y=4
+ *   |                                 |
+ *   |   5-------------------------6   |  y=3.5
+ *   |   |                         |   |
+ *   |   |       15-----------14   |   |  y=3
+ *   |   |        |            |   |   |
+ *   |   |   11---+-------10   |   |   |  y=2.5
+ *   |   |    |   | overlap|   |   |   |
+ *   |   |    |   12-------+---13  |   |  y=1.5
+ *   |   |    |            |       |   |
+ *   |   |    8------------9       |   |  y=1
+ *   |   |                         |   |
+ *   |   4-------------------------7   |  y=0.5
+ *   |                                 |
+ *   0---------------------------------1  y=0
+ *  x=0  .5   1  1.5      2.5  3  3.5  4
+ * \endcode
+ *
+ * - Face 0 (verts 0,1,2,3): Outer boundary (0,0)-(4,4) CCW gives winding +1.
+ * - Face 1 (verts 4,5,6,7): Hole (0.5,0.5)-(3.5,3.5) CW gives winding -1.
+ * - Face 2 (verts 8,9,10,11): Inner1 (1,1)-(2.5,2.5) CCW gives winding +1.
+ * - Face 3 (verts 12,13,14,15): Inner2 (1.5,1.5)-(3,3) CCW gives winding +1.
+ *
+ * Winding by region:
+ * - Outer band (between face 0 and face 1): +1 (filled).
+ * - Hole band (inside face 1, outside inners): +1-1 = 0 (empty).
+ * - Inner1 only region: +1-1+1 = +1 (filled).
+ * - Inner2 only region: +1-1+1 = +1 (filled).
+ * - Overlap region (both inners): +1-1+1+1 = +2 (filled for non-zero, hole for even-odd).
+ *
+ * Even-odd: overlap has 4 crossings (outer, hole, inner1, inner2) which is outside.
+ * Non-zero: overlap has winding +2 which is inside, so inner squares union together.
+ */
+template<typename T> void nonzero_winding_nested_union_test()
+{
+  const char *spec = R"(16 0 4
+  0.0 0.0
+  4.0 0.0
+  4.0 4.0
+  0.0 4.0
+  0.5 0.5
+  0.5 3.5
+  3.5 3.5
+  3.5 0.5
+  1.0 1.0
+  2.5 1.0
+  2.5 2.5
+  1.0 2.5
+  1.5 1.5
+  3.0 1.5
+  3.0 3.0
+  1.5 3.0
+  0 1 2 3
+  4 5 6 7
+  8 9 10 11
+  12 13 14 15
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  /* Even-odd: inner overlap has 4 crossings (outer, hole, inner1, inner2) = outside. */
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  EXPECT_EQ(out_evenodd.vert.size(), 18); /* 16 input + 2 intersections */
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNestedUnion - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  /* Non-zero: inner squares union.
+   * Winding in overlap: outer(+1) + hole(-1) + inner1(+1) + inner2(+1) = +2 = inside. */
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  EXPECT_EQ(out_nonzero.vert.size(), 18); /* 16 input + 2 intersections */
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNestedUnion - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  /* Non-zero should have more faces (union vs hole in overlap). */
+  EXPECT_EQ(out_evenodd.face.size(), 16);
+  EXPECT_EQ(out_nonzero.face.size(), 18);
+}
+
+/**
+ * Stress test for non-zero winding with edges explicitly shared by 3+ faces.
+ * Three overlapping rectangles that share bottom edge and overlapping side edges.
+ *
+ * \code{.unparsed}
+ * Geometry:
+ *   7---------6  y=3
+ *   |         |
+ *   5---------4  y=2
+ *   |         |
+ *   3---------2  y=1
+ *   |         |
+ *   0---------1  y=0
+ *       x=0,3
+ * \endcode
+ *
+ * Faces (all CCW):
+ * - Face 0: 0,1,2,3 is the bottom rectangle with height 1.
+ * - Face 1: 0,1,4,5 is the middle rectangle with height 2.
+ * - Face 2: 0,1,6,7 is the tall rectangle with height 3.
+ *
+ * Shared edges with winding contributions:
+ * - Edge (0,0)->(3,0) [bottom]: Faces 0,1,2 all traverse left->right giving winding +3.
+ * - Edge (3,0)->(3,1): Faces 0,1,2 all traverse up giving winding +3.
+ * - Edge (3,1)->(3,2): Faces 1,2 traverse up giving winding +2.
+ * - Edge (3,2)->(3,3): Only face 2 traverses this edge giving winding +1.
+ * - Similarly for left edges going down.
+ *
+ * Regions by y-band:
+ * - [0,1]: All 3 faces overlap.
+ * - [1,2]: Faces 1,2 overlap.
+ * - [2,3]: Only face 2.
+ *
+ * Even-odd rule: [0,1]=3 crossings=inside, [1,2]=2=outside, [2,3]=1=inside
+ * Non-zero rule: all regions have winding>0, all inside
+ */
+template<typename T> void nonzero_winding_multi_face_edge_test()
+{
+  const char *spec = R"(8 0 3
+  0.0 0.0
+  3.0 0.0
+  3.0 1.0
+  0.0 1.0
+  3.0 2.0
+  0.0 2.0
+  3.0 3.0
+  0.0 3.0
+  0 1 2 3
+  0 1 4 5
+  0 1 6 7
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingMultiFaceEdge - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingMultiFaceEdge - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  /* 8 input vertices, no intersections needed. */
+  EXPECT_EQ(out_evenodd.vert.size(), 8);
+  EXPECT_EQ(out_nonzero.vert.size(), 8);
+
+  /* Even-odd: middle band [1,2] is a hole (2 crossings = outside).
+   * Non-zero: all bands filled (winding > 0).
+   * So non-zero should have more faces than even-odd. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Same geometry as MultiFaceEdge but with mixed winding directions to test cancellation.
+ * Face 0: CCW (+1), Face 1: CW (-1), Face 2: CCW (+1).
+ *
+ * \code{.unparsed}
+ * Geometry (same as MultiFaceEdge):
+ *   7---------6      y=3  Face 2 (CCW)
+ *   |         |
+ *   5---------4      y=2  Face 1 (CW - reversed!)
+ *   |         |
+ *   3---------2      y=1  Face 0 (CCW)
+ *   |         |
+ *   0---------1      y=0
+ *       x=0,3
+ * \endcode
+ *
+ * Edge windings:
+ * - Bottom (0,0)->(3,0): +1 - 1 + 1 = +1.
+ * - Edge (3,0)->(3,1): +1 - 1 + 1 = +1.
+ * - Edge (3,1)->(3,2): -1 + 1 = 0 (key difference).
+ * - Edge (3,2)->(3,3): +1.
+ *
+ * With mixed winding, the middle band [1,2] has edges with zero net winding,
+ * so it behaves differently than the all-CCW case. This tests that winding
+ * accumulation correctly handles cancellation from opposite-wound faces.
+ */
+template<typename T> void nonzero_winding_multi_face_edge_mixed_test()
+{
+  /* Same vertices, but face 1 is CW (reversed order). */
+  const char *spec = R"(8 0 3
+  0.0 0.0
+  3.0 0.0
+  3.0 1.0
+  0.0 1.0
+  3.0 2.0
+  0.0 2.0
+  3.0 3.0
+  0.0 3.0
+  0 1 2 3
+  5 4 1 0
+  0 1 6 7
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingMultiFaceEdgeMixed - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingMultiFaceEdgeMixed - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 8);
+  EXPECT_EQ(out_nonzero.vert.size(), 8);
+
+  /* With CW middle face, the winding calculation differs from all-CCW case.
+   * This verifies winding accumulation with cancellation works correctly.
+   * The middle face (CW) subtracts from the outer, so effectively:
+   * - [0,1]: face 0 only (face 1 CW cancels contribution) -> inside
+   * - [1,2]: face 1 (CW, negative) + face 2 (CCW, positive) -> net depends on geometry
+   * - [2,3]: face 2 only -> inside */
+  EXPECT_EQ(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: winding contributions that cancel exactly to zero.
+ * Four faces share the same bottom edge with windings: CCW, CCW, CW, CW.
+ * Net winding on shared edge: +1 + 1 - 1 - 1 = 0.
+ *
+ * This tests that zero-winding regions correctly become holes in non-zero mode.
+ *
+ * \code{.unparsed}
+ * Geometry (4 overlapping rectangles, all sharing bottom edge at y=0):
+ *
+ *   9---------8      y=4  Face 3 (CW, -1)
+ *   |         |
+ *   7---------6      y=3  Face 2 (CW, -1)
+ *   |         |
+ *   5---------4      y=2  Face 1 (CCW, +1)
+ *   |         |
+ *   3---------2      y=1  Face 0 (CCW, +1)
+ *   |         |
+ *   0---------1      y=0
+ *       x=0,3
+ * \endcode
+ *
+ * - Face 0: (0,0)-(3,1) CCW (+1).
+ * - Face 1: (0,0)-(3,2) CCW (+1).
+ * - Face 2: (0,0)-(3,3) CW (-1).
+ * - Face 3: (0,0)-(3,4) CW (-1).
+ *
+ * Winding by y-band:
+ * - [0,1]: All 4 faces overlap giving +1+1-1-1 = 0 (HOLE - this is correct).
+ * - [1,2]: Faces 1,2,3 overlap giving +1-1-1 = -1 (filled).
+ * - [2,3]: Faces 2,3 overlap giving -1-1 = -2 (filled).
+ * - [3,4]: Only face 3 giving -1 (filled).
+ *
+ * EXPECTED RESULT for non-zero: bottom band [0,1] is empty, top 3 bands filled.
+ * This looks unusual but is correct - the bottom band has winding=0 because
+ * two CCW faces (+1+1) and two CW faces (-1-1) cancel out exactly.
+ *
+ * Even-odd by y-band (for comparison):
+ * - [0,1]: 4 crossings means outside (hole).
+ * - [1,2]: 3 crossings means inside (filled).
+ * - [2,3]: 2 crossings means outside (hole).
+ * - [3,4]: 1 crossing means inside (filled).
+ */
+template<typename T> void nonzero_winding_cancel_to_zero_test()
+{
+  const char *spec = R"(10 0 4
+  0.0 0.0
+  3.0 0.0
+  3.0 1.0
+  0.0 1.0
+  3.0 2.0
+  0.0 2.0
+  3.0 3.0
+  0.0 3.0
+  3.0 4.0
+  0.0 4.0
+  0 1 2 3
+  0 1 4 5
+  7 6 1 0
+  9 8 1 0
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingCancelToZero - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingCancelToZero - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 10);
+  EXPECT_EQ(out_nonzero.vert.size(), 10);
+
+  /* Non-zero fills 3 bands, even-odd fills 2 bands:
+   * - Even-odd: [0,1] and [2,3] are holes (alternating pattern)
+   * - Non-zero: only [0,1] is a hole (winding=0), bands [1,2],[2,3],[3,4] filled
+   * The empty bottom band in non-zero is correct: winding cancels to zero there. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: high winding count with 6 faces sharing an edge.
+ * Tests that winding accumulation handles large values correctly.
+ *
+ * \code{.unparsed}
+ * Geometry (6 stacked rectangles, all CCW):
+ *
+ *  13--------12      y=6  Face 5
+ *   |         |
+ *  11--------10      y=5  Face 4
+ *   |         |
+ *   9---------8      y=4  Face 3
+ *   |         |
+ *   7---------6      y=3  Face 2
+ *   |         |
+ *   5---------4      y=2  Face 1
+ *   |         |
+ *   3---------2      y=1  Face 0
+ *   |         |
+ *   0---------1      y=0
+ *       x=0,3
+ * \endcode
+ *
+ * The bottom edge (0,0)->(3,0) has winding = +6.
+ *
+ * Winding by y-band (all positive, all inside for non-zero):
+ * bands [0,1]: 6, [1,2]: 5, [2,3]: 4, [3,4]: 3, [4,5]: 2, [5,6]: 1.
+ *
+ * Even-odd: alternating inside/outside (odd crossings = inside).
+ */
+template<typename T> void nonzero_winding_high_count_test()
+{
+  const char *spec = R"(14 0 6
+  0.0 0.0
+  3.0 0.0
+  3.0 1.0
+  0.0 1.0
+  3.0 2.0
+  0.0 2.0
+  3.0 3.0
+  0.0 3.0
+  3.0 4.0
+  0.0 4.0
+  3.0 5.0
+  0.0 5.0
+  3.0 6.0
+  0.0 6.0
+  0 1 2 3
+  0 1 4 5
+  0 1 6 7
+  0 1 8 9
+  0 1 10 11
+  0 1 12 13
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingHighCount - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingHighCount - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 14);
+  EXPECT_EQ(out_nonzero.vert.size(), 14);
+
+  /* Non-zero: all bands have positive winding, all filled.
+   * Even-odd: bands with even crossing count are holes.
+   * Non-zero should have more faces. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: fan of triangles around a central vertex.
+ * Tests complex topology where multiple edges radiate from a single point.
+ *
+ * \code{.unparsed}
+ * Geometry (4 triangles in a fan, all sharing center vertex 0):
+ *        2
+ *       /|\
+ *      / | \
+ *     /  |  \
+ *    3---0---1
+ *     \  |  /
+ *      \ | /
+ *       \|/
+ *        4
+ * \endcode
+ *
+ * Faces (all CCW):
+ * - Face 0: 0,1,2 (right-top).
+ * - Face 1: 0,2,3 (left-top).
+ * - Face 2: 0,3,4 (left-bottom).
+ * - Face 3: 0,4,1 (right-bottom).
+ *
+ * Each edge from center is shared by 2 adjacent faces with opposite traversal:
+ * - Edge 0-1: Face 0 (0->1, +1), Face 3 (1->0, -1) gives net 0.
+ * - Edge 0-2: Face 1 (0->2, +1), Face 0 (2->0, -1) gives net 0.
+ * - And so on for other edges.
+ *
+ * This creates interesting winding behavior where the center edges have
+ * zero net winding because adjacent triangles traverse them oppositely.
+ */
+template<typename T> void nonzero_winding_fan_test()
+{
+  const char *spec = R"(5 0 4
+  0.0 0.0
+  2.0 0.0
+  0.0 2.0
+  -2.0 0.0
+  0.0 -2.0
+  0 1 2
+  0 2 3
+  0 3 4
+  0 4 1
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "NonZeroWindingFan - even-odd", out_evenodd.vert, out_evenodd.edge, out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "NonZeroWindingFan - non-zero", out_nonzero.vert, out_nonzero.edge, out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 5);
+  EXPECT_EQ(out_nonzero.vert.size(), 5);
+
+  /* The adjacent triangles share edges with opposite traversal directions,
+   * creating zero-winding edges at the center. This results in different
+   * behavior between even-odd and non-zero rules.
+   * Non-zero correctly fills all 4 triangular regions. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+  EXPECT_EQ(out_nonzero.face.size(), 4);
+}
+
+/**
+ * Stress test: edge split propagation.
+ * Tests that winding is correctly propagated when edges are split by
+ * intersection points.
+ *
+ * \code{.unparsed}
+ * Geometry: Two overlapping rectangles where one edge crosses through
+ * the middle of another's edge, forcing edge splits.
+ *
+ *       4-------5  y=2
+ *       |       |
+ *   0---+-------+---1  y=1
+ *   |   |       |   |
+ *   |   |       |   |
+ *   3---+-------+---2  y=-1
+ *       |       |
+ *       7-------6  y=-2
+ * \endcode
+ *
+ * Face 0: (0,1)-(2,1)-(2,-1)-(0,-1) - wide rectangle, CCW
+ * Face 1: (0.5,2)-(1.5,2)-(1.5,-2)-(0.5,-2) - tall rectangle, CCW
+ *
+ * The edges of face 1 cross through face 0's top and bottom edges,
+ * causing splits at the + marks. Winding must propagate correctly through splits.
+ */
+template<typename T> void nonzero_winding_edge_split_test()
+{
+  const char *spec = R"(8 0 2
+  0.0 1.0
+  2.0 1.0
+  2.0 -1.0
+  0.0 -1.0
+  0.5 2.0
+  1.5 2.0
+  1.5 -2.0
+  0.5 -2.0
+  0 1 2 3
+  4 5 6 7
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingEdgeSplit - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingEdgeSplit - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  /* 8 input vertices + 4 intersection points where rectangles cross. */
+  EXPECT_EQ(out_evenodd.vert.size(), 12);
+  EXPECT_EQ(out_nonzero.vert.size(), 12);
+
+  /* The overlap region has winding +2 (both CCW), so non-zero fills it.
+   * Even-odd treats it as a hole (2 crossings = outside).
+   * Non-zero should have more faces. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: self-intersecting polygon (figure-8 / bowtie shape).
+ * Tests how winding is computed for a single face that crosses itself.
+ *
+ * \code{.unparsed}
+ * Geometry (bowtie/figure-8 shape):
+ *    2-----------1
+ *     \         /
+ *      \       /
+ *       \     /
+ *        \   /
+ *         \ /
+ *          X  (self-intersection at origin)
+ *         / \
+ *        /   \
+ *       /     \
+ *      /       \
+ *     /         \
+ *    0-----------3
+ * \endcode
+ *
+ * Face 0: 0,1,2,3 forming a bowtie where edges 0->1 and 2->3 cross.
+ * Vertices: 0=(-1,-1), 1=(1,1), 2=(-1,1), 3=(1,-1)
+ * Edge 0->1: (-1,-1) to (1,1) - diagonal up-right
+ * Edge 2->3: (-1,1) to (1,-1) - diagonal down-right, crosses edge 0->1
+ *
+ * The self-intersection creates two triangular regions.
+ */
+template<typename T> void nonzero_winding_self_intersect_test()
+{
+  const char *spec = R"(4 0 1
+  -1.0 -1.0
+  1.0 1.0
+  -1.0 1.0
+  1.0 -1.0
+  0 1 2 3
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingSelfIntersect - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingSelfIntersect - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  /* 4 input vertices + 1 intersection point at the crossing. */
+  EXPECT_EQ(out_evenodd.vert.size(), 5);
+  EXPECT_EQ(out_nonzero.vert.size(), 5);
+
+  /* Self-intersecting polygon creates complex winding.
+   * Both rules should fill the two triangular lobes of the figure-8. */
+  EXPECT_EQ(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: deeply nested shapes with alternating winding.
+ * Tests winding accumulation through many nesting levels.
+ *
+ * \code{.unparsed}
+ * Geometry (5 nested squares, alternating CCW/CW):
+ *
+ *   +-------------------+  Square 0 (CCW, +1)
+ *   | +---------------+ |  Square 1 (CW, -1)
+ *   | | +-----------+ | |  Square 2 (CCW, +1)
+ *   | | | +-------+ | | |  Square 3 (CW, -1)
+ *   | | | | +---+ | | | |  Square 4 (CCW, +1)
+ *   | | | | |   | | | | |
+ *   | | | | +---+ | | | |
+ *   | | | +-------+ | | |
+ *   | | +-----------+ | |
+ *   | +---------------+ |
+ *   +-------------------+
+ * \endcode
+ *
+ * - Square 0: (0,0)-(10,10) CCW  (+1).
+ * - Square 1: (1,1)-(9,9)   CW   (-1).
+ * - Square 2: (2,2)-(8,8)   CCW  (+1).
+ * - Square 3: (3,3)-(7,7)   CW   (-1).
+ * - Square 4: (4,4)-(6,6)   CCW  (+1).
+ *
+ * Winding at innermost region: +1-1+1-1+1 = +1 (inside).
+ *
+ * Even-odd: alternating inside/outside (5 crossings = inside).
+ * Non-zero: all layers with non-zero winding are inside.
+ */
+template<typename T> void nonzero_winding_deep_nest_test()
+{
+  const char *spec = R"(20 0 5
+  0.0 0.0
+  10.0 0.0
+  10.0 10.0
+  0.0 10.0
+  1.0 1.0
+  1.0 9.0
+  9.0 9.0
+  9.0 1.0
+  2.0 2.0
+  8.0 2.0
+  8.0 8.0
+  2.0 8.0
+  3.0 3.0
+  3.0 7.0
+  7.0 7.0
+  7.0 3.0
+  4.0 4.0
+  6.0 4.0
+  6.0 6.0
+  4.0 6.0
+  0 1 2 3
+  4 5 6 7
+  8 9 10 11
+  12 13 14 15
+  16 17 18 19
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "NonZeroWindingDeepNest - even-odd", out_evenodd.vert, out_evenodd.edge, out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "NonZeroWindingDeepNest - non-zero", out_nonzero.vert, out_nonzero.edge, out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 20);
+  EXPECT_EQ(out_nonzero.vert.size(), 20);
+
+  /* With alternating winding (CCW, CW, CCW, CW, CCW):
+   * - Regions between levels have winding: +1, 0, +1, 0, +1
+   * - Non-zero fills regions with winding != 0
+   * - Even-odd fills regions with odd crossing count
+   * Both should produce similar results for alternating pattern. */
+  EXPECT_EQ(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: partial overlap with shared subsegment.
+ * Tests winding on a subsegment of larger edges after intersection splitting.
+ *
+ * \code{.unparsed}
+ * Geometry (3 overlapping rectangles):
+ *
+ *          7-------------6  y=2
+ *          |             |
+ *   3------+------11-----+------2------10  y=1
+ *   |      |      |      |      |      |
+ *   0------4------8------5------1------9  y=0
+ *  x=0    x=1    x=2    x=3    x=4    x=5
+ *
+ *   Face 0 (verts 0,1,2,3):   x=0 to x=4, y=0 to y=1
+ *   Face 1 (verts 4,5,6,7):   x=1 to x=3, y=0 to y=2
+ *   Face 2 (verts 8,9,10,11): x=2 to x=5, y=0 to y=1
+ * \endcode
+ *
+ * - Face 0: (0,0)-(4,0)-(4,1)-(0,1) is a wide rectangle.
+ * - Face 1: (1,0)-(3,0)-(3,2)-(1,2) is a tall rectangle that shares part of bottom edge.
+ * - Face 2: (2,0)-(5,0)-(5,1)-(2,1) is a wide rectangle that shares part of bottom edge.
+ *
+ * The segment (2,0)-(3,0) is part of all 3 faces' bottom edges.
+ * After CDT processes intersections, this subsegment should have winding +3.
+ */
+template<typename T> void nonzero_winding_shared_subsegment_test()
+{
+  const char *spec = R"(12 0 3
+  0.0 0.0
+  4.0 0.0
+  4.0 1.0
+  0.0 1.0
+  1.0 0.0
+  3.0 0.0
+  3.0 2.0
+  1.0 2.0
+  2.0 0.0
+  5.0 0.0
+  5.0 1.0
+  2.0 1.0
+  0 1 2 3
+  4 5 6 7
+  8 9 10 11
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingSharedSubsegment - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingSharedSubsegment - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  /* Multiple intersection points are created where edges cross. */
+  EXPECT_GE(out_evenodd.vert.size(), 12);
+  EXPECT_GE(out_nonzero.vert.size(), 12);
+
+  /* The region where all 3 faces overlap (around x=2-3, y=0-1) has winding +3.
+   * Non-zero fills it, while even-odd treats odd crossings as inside.
+   * Different overlap patterns create different results. */
+  EXPECT_NE(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: opposing faces creating an island inside a hole.
+ * Tests winding cancellation and re-addition.
+ *
+ * \code{.unparsed}
+ * Geometry:
+ *
+ *   3-----------------------2    Face 0 (CCW, outer)
+ *   |                       |
+ *   |   4---------------7   |    Face 1 (CW, hole)
+ *   |   |               |   |
+ *   |   |   8-------9   |   |    Face 2 (CCW, island)
+ *   |   |   |       |   |   |
+ *   |   |  11------10   |   |
+ *   |   |               |   |
+ *   |   5---------------6   |
+ *   |                       |
+ *   0-----------------------1
+ * \endcode
+ *
+ * - Face 0: (0,0)-(6,0)-(6,6)-(0,6) CCW is the outer boundary.
+ * - Face 1: (1,1)-(1,5)-(5,5)-(5,1) CW is the hole (cancels outer).
+ * - Face 2: (2,2)-(4,2)-(4,4)-(2,4) CCW is the island inside hole (re-adds winding).
+ *
+ * Winding:
+ * - Outer band has winding +1 (inside).
+ * - Hole band has winding +1-1 = 0 (outside).
+ * - Island has winding +1-1+1 = +1 (inside).
+ *
+ * This pattern is common in font glyphs with counter-shapes.
+ */
+template<typename T> void nonzero_winding_island_in_hole_test()
+{
+  const char *spec = R"(12 0 3
+  0.0 0.0
+  6.0 0.0
+  6.0 6.0
+  0.0 6.0
+  1.0 1.0
+  1.0 5.0
+  5.0 5.0
+  5.0 1.0
+  2.0 2.0
+  4.0 2.0
+  4.0 4.0
+  2.0 4.0
+  0 1 2 3
+  4 5 6 7
+  8 9 10 11
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingIslandInHole - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingIslandInHole - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 12);
+  EXPECT_EQ(out_nonzero.vert.size(), 12);
+
+  /* Both rules should produce the same result:
+   * - Outer band is filled (1 or +1)
+   * - Hole is empty (2 or 0)
+   * - Island is filled (3 or +1)
+   * This is the standard nested hole+island pattern. */
+  EXPECT_EQ(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: coincident edges from separate faces with different vertices.
+ * Tests vertex merging combined with winding accumulation.
+ *
+ * \code{.unparsed}
+ * Geometry:
+ *
+ *          2 (1,1)
+ *         / \          Face 0 (CCW, +1)
+ *        /   \
+ *       /     \
+ *   0,3---------1,4    y=0 (shared edge, vertices merged)
+ *       \     /
+ *        \   /
+ *         \ /          Face 1 (CW, -1)
+ *          5 (1,-1)
+ * \endcode
+ *
+ * - Face 0: Triangle with base (0,0)-(2,0), apex at (1,1), CCW, uses vertices 0,1,2.
+ * - Face 1: Triangle with base (0,0)-(2,0), apex at (1,-1), CW, uses vertices 3,4,5.
+ * - Vertices 0,3 are coincident (both at 0,0).
+ * - Vertices 1,4 are coincident (both at 2,0).
+ *
+ * The shared edge (0,0)-(2,0) comes from two different vertex pairs that
+ * get merged by CDT. Face 0 is CCW (+1), Face 1 is CW (-1).
+ * The shared edge has winding +1-1 = 0.
+ *
+ * This tests that winding is correctly accumulated when vertex merging
+ * creates shared edges, even when the faces have opposite orientations.
+ */
+template<typename T> void nonzero_winding_coincident_verts_test()
+{
+  const char *spec = R"(6 0 2
+  0.0 0.0
+  2.0 0.0
+  1.0 1.0
+  0.0 0.0
+  2.0 0.0
+  1.0 -1.0
+  0 1 2
+  3 4 5
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingCoincidentVerts - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingCoincidentVerts - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  /* 6 input vertices but 2 pairs are coincident, so 4 unique after merging. */
+  EXPECT_EQ(out_evenodd.vert.size(), 4);
+  EXPECT_EQ(out_nonzero.vert.size(), 4);
+
+  /* The shared edge has winding 0 (CCW + CW cancel). Non-zero fills both
+   * triangles because their outer edges have non-zero winding.
+   * Even-odd treats the shared edge differently. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+  EXPECT_EQ(out_nonzero.face.size(), 2);
+}
+
+/**
+ * Stress test: ray casting through many constrained edges.
+ * Tests the ray-casting accumulation in detect_holes() with many edge crossings.
+ *
+ * \code{.unparsed}
+ * Geometry: 5 separate non-overlapping vertical strips.
+ * A horizontal ray must cross multiple constrained edges.
+ *
+ *   Strip 0    Strip 1    Strip 2    Strip 3    Strip 4
+ *   +--+       +--+       +--+       +--+       +--+
+ *   |  |       |  |       |  |       |  |       |  |
+ *   |  |       |  |       |  |       |  |       |  |
+ *   +--+       +--+       +--+       +--+       +--+
+ *   x=0-1      x=2-3      x=4-5      x=6-7      x=8-9
+ *   CCW        CW         CCW        CW         CCW
+ * \endcode
+ *
+ * Strips have alternating CCW/CW orientation due to vertex ordering.
+ * Since they don't overlap, each strip is independently "inside" for
+ * both even-odd and non-zero rules (winding +/-1 != 0).
+ * Tests that ray casting correctly handles many separate regions.
+ */
+template<typename T> void nonzero_winding_many_crossings_test()
+{
+  const char *spec = R"(20 0 5
+  0.0 0.0
+  1.0 0.0
+  1.0 2.0
+  0.0 2.0
+  2.0 0.0
+  2.0 2.0
+  3.0 2.0
+  3.0 0.0
+  4.0 0.0
+  5.0 0.0
+  5.0 2.0
+  4.0 2.0
+  6.0 0.0
+  6.0 2.0
+  7.0 2.0
+  7.0 0.0
+  8.0 0.0
+  9.0 0.0
+  9.0 2.0
+  8.0 2.0
+  0 1 2 3
+  4 5 6 7
+  8 9 10 11
+  12 13 14 15
+  16 17 18 19
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingManyCrossings - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingManyCrossings - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 20);
+  EXPECT_EQ(out_nonzero.vert.size(), 20);
+
+  /* 5 non-overlapping strips with alternating CCW/CW orientation.
+   * Both rules fill all strips (1 crossing = inside for even-odd,
+   * winding +/-1 != 0 for non-zero). */
+  EXPECT_EQ(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: all faces with negative winding (all CW).
+ * Tests that negative winding values are correctly treated as "inside"
+ * by the non-zero rule (any non-zero winding = inside).
+ *
+ * \code{.unparsed}
+ * Geometry: 3 overlapping rectangles, all CW (clockwise).
+ *
+ *   7---------6      y=3  Face 2 (CW, -1)
+ *   |         |
+ *   5---------4      y=2  Face 1 (CW, -1)
+ *   |         |
+ *   3---------2      y=1  Face 0 (CW, -1)
+ *   |         |
+ *   0---------1      y=0
+ *       x=0,3
+ * \endcode
+ *
+ * - Face 0: (0,0)-(3,1) CW gives winding -1.
+ * - Face 1: (0,0)-(3,2) CW gives winding -1.
+ * - Face 2: (0,0)-(3,3) CW gives winding -1.
+ *
+ * Winding by y-band (all negative):
+ * - [0,1]: -3 (all 3 overlap).
+ * - [1,2]: -2 (faces 1,2 overlap).
+ * - [2,3]: -1 (face 2 only).
+ *
+ * Non-zero rule: all bands have winding != 0, so all are inside.
+ * Even-odd rule: alternating inside/outside.
+ */
+template<typename T> void nonzero_winding_negative_only_test()
+{
+  /* All faces are CW (vertices listed clockwise). */
+  const char *spec = R"(8 0 3
+  0.0 0.0
+  3.0 0.0
+  3.0 1.0
+  0.0 1.0
+  3.0 2.0
+  0.0 2.0
+  3.0 3.0
+  0.0 3.0
+  3 2 1 0
+  5 4 1 0
+  7 6 1 0
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNegativeOnly - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingNegativeOnly - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 8);
+  EXPECT_EQ(out_nonzero.vert.size(), 8);
+
+  /* Non-zero fills all bands (winding -3, -2, -1 are all != 0).
+   * Even-odd has holes in even-crossing bands.
+   * Non-zero should have more faces. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: overlapping rectangles with shared collinear edge segment.
+ * Tests winding when one face's edge is a subsegment of another's edge.
+ *
+ * \code{.unparsed}
+ * Geometry:
+ *   Face 0: Large rectangle (0,0)-(4,2) CCW - vertices 0,1,2,3
+ *   Face 1: Small rectangle (1,0)-(3,1) CCW - vertices 4,5,6,7
+ *
+ *      0-----------------1  y=2
+ *      |                 |
+ *      |     4-----5     |  y=1
+ *      |     |     |     |
+ *      3-----7-----6-----2  y=0
+ *            ^     ^
+ *       (1,0)     (3,0)
+ * \endcode
+ *
+ * Face 1's bottom edge (1,0)-(3,0) lies on Face 0's bottom edge (0,0)-(4,0).
+ * This creates shared collinear segments where Face 0's edge is split.
+ * Face 1 is entirely inside Face 0, creating an overlap region (1,0)-(3,1).
+ */
+template<typename T> void nonzero_winding_tjunction_test()
+{
+  const char *spec = R"(8 0 2
+  0.0 2.0
+  4.0 2.0
+  4.0 0.0
+  0.0 0.0
+  1.0 1.0
+  3.0 1.0
+  3.0 0.0
+  1.0 0.0
+  0 1 2 3
+  4 5 6 7
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingTJunction - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingTJunction - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  /* 8 input vertices. Face 1's bottom edge shares segment with Face 0's bottom edge. */
+  EXPECT_EQ(out_evenodd.vert.size(), 8);
+  EXPECT_EQ(out_nonzero.vert.size(), 8);
+
+  /* The overlap region (1,0)-(3,1) has winding +2 (both CCW).
+   * Non-zero fills it, even-odd treats it as a hole.
+   * Non-zero should have more faces. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
+/**
+ * Stress test: exactly shared edge used by 3 triangles.
+ * Three triangles that literally use the same two vertex indices (0,1) for one edge.
+ *
+ * \code{.unparsed}
+ * Geometry:
+ *
+ *       2 (1,2)
+ *      / \
+ *     /   \
+ *    /  4  \     4=(1,1) inside upper triangle
+ *   / (1,1) \
+ *  0---------1   0=(0,0), 1=(2,0)
+ *   \       /
+ *    \     /
+ *     \   /
+ *      \ /
+ *       3 (1,-2)
+ * \endcode
+ *
+ * - Face 0: 0,1,2 is the large triangle apex up, CCW.
+ * - Face 1: 0,1,4 is the small triangle apex up (inside face 0), CCW.
+ * - Face 2: 0,1,3 is the triangle apex down, CCW.
+ *
+ * Edge 0->1 is used by all 3 faces:
+ * - Face 0: 0->1 in CCW order gives +1.
+ * - Face 1: 0->1 in CCW order gives +1.
+ * - Face 2: 0->1 in CCW order gives +1.
+ * Total winding on edge 0->1 is +3.
+ *
+ * Faces 0 and 1 overlap (1 is inside 0), face 2 is separate.
+ */
+template<typename T> void nonzero_winding_exact_shared_edge_test()
+{
+  const char *spec = R"(5 0 3
+  0.0 0.0
+  2.0 0.0
+  1.0 2.0
+  1.0 -2.0
+  1.0 1.0
+  0 1 2
+  0 1 4
+  0 1 3
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingExactSharedEdge - even-odd",
+                  out_evenodd.vert,
+                  out_evenodd.edge,
+                  out_evenodd.face);
+  }
+
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  if (DO_DRAW) {
+    graph_draw<T>("NonZeroWindingExactSharedEdge - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+
+  EXPECT_EQ(out_evenodd.vert.size(), 5);
+  EXPECT_EQ(out_nonzero.vert.size(), 5);
+
+  /* 3 triangles all sharing edge 0-1 with same traversal direction (+1 each).
+   * Face 1 (small triangle) is inside Face 0 (large triangle).
+   * Face 2 (down triangle) is separate.
+   *
+   * Edge 0-1 has total winding = +3.
+   *
+   * Even-odd: small triangle region has 2 crossings = hole
+   * Non-zero: small triangle region has winding = 2 = inside
+   * Non-zero should have more faces. */
+  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+}
+
 template<typename T> void crosssegs_test()
 {
   const char *spec = R"(4 2 0
@@ -1512,6 +2879,96 @@ TEST(delaunay_d, NestedHoles)
   nestedholes_test<double>();
 }
 
+TEST(delaunay_d, NonZeroWinding)
+{
+  nonzero_winding_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingNested)
+{
+  nonzero_winding_nested_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingNestedUnion)
+{
+  nonzero_winding_nested_union_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingMultiFaceEdge)
+{
+  nonzero_winding_multi_face_edge_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingMultiFaceEdgeMixed)
+{
+  nonzero_winding_multi_face_edge_mixed_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingCancelToZero)
+{
+  nonzero_winding_cancel_to_zero_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingHighCount)
+{
+  nonzero_winding_high_count_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingFan)
+{
+  nonzero_winding_fan_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingEdgeSplit)
+{
+  nonzero_winding_edge_split_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingSelfIntersect)
+{
+  nonzero_winding_self_intersect_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingDeepNest)
+{
+  nonzero_winding_deep_nest_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingSharedSubsegment)
+{
+  nonzero_winding_shared_subsegment_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingIslandInHole)
+{
+  nonzero_winding_island_in_hole_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingCoincidentVerts)
+{
+  nonzero_winding_coincident_verts_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingManyCrossings)
+{
+  nonzero_winding_many_crossings_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingNegativeOnly)
+{
+  nonzero_winding_negative_only_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingTJunction)
+{
+  nonzero_winding_tjunction_test<double>();
+}
+
+TEST(delaunay_d, NonZeroWindingExactSharedEdge)
+{
+  nonzero_winding_exact_shared_edge_test<double>();
+}
+
 TEST(delaunay_d, CrossSegs)
 {
   crosssegs_test<double>();
@@ -1655,6 +3112,96 @@ TEST(delaunay_m, LineHoleInSquare)
 TEST(delaunay_m, NestedHoles)
 {
   nestedholes_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWinding)
+{
+  nonzero_winding_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingNested)
+{
+  nonzero_winding_nested_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingNestedUnion)
+{
+  nonzero_winding_nested_union_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingMultiFaceEdge)
+{
+  nonzero_winding_multi_face_edge_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingMultiFaceEdgeMixed)
+{
+  nonzero_winding_multi_face_edge_mixed_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingCancelToZero)
+{
+  nonzero_winding_cancel_to_zero_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingHighCount)
+{
+  nonzero_winding_high_count_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingFan)
+{
+  nonzero_winding_fan_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingEdgeSplit)
+{
+  nonzero_winding_edge_split_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingSelfIntersect)
+{
+  nonzero_winding_self_intersect_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingDeepNest)
+{
+  nonzero_winding_deep_nest_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingSharedSubsegment)
+{
+  nonzero_winding_shared_subsegment_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingIslandInHole)
+{
+  nonzero_winding_island_in_hole_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingCoincidentVerts)
+{
+  nonzero_winding_coincident_verts_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingManyCrossings)
+{
+  nonzero_winding_many_crossings_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingNegativeOnly)
+{
+  nonzero_winding_negative_only_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingTJunction)
+{
+  nonzero_winding_tjunction_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingExactSharedEdge)
+{
+  nonzero_winding_exact_shared_edge_test<mpq_class>();
 }
 
 TEST(delaunay_m, CrossSegs)

@@ -248,6 +248,14 @@ NUMPAD_1 = (
     'NUMPAD_0',
 )
 
+# Keys used for view zoom ratio operators.
+NUMPAD_ZOOM = (
+    'NUMPAD_1',
+    'NUMPAD_2',
+    'NUMPAD_4',
+    'NUMPAD_8',
+)
+
 
 # ------------------------------------------------------------------------------
 # Generic Utilities
@@ -288,6 +296,8 @@ def _template_asset_shelf_popup(asset_shelf, spacebar_action):
         kmi_args = {"type": 'SPACE', "value": 'PRESS', "shift": True}
     elif spacebar_action == 'TOOL':
         kmi_args = {"type": 'SPACE', "value": 'PRESS'}
+    else:
+        assert False, "unreachable"
 
     return [("wm.call_asset_shelf_popover", kmi_args, {"properties": [("name", asset_shelf)]})]
 
@@ -1331,22 +1341,20 @@ def km_outliner(params):
          {"properties": [("tweak", True), ("mode", 'ADD')]}),
         ("outliner.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True},
          {"properties": [("tweak", True), ("mode", 'SUB')]}),
-        ("outliner.select_walk", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'UP')]}),
-        ("outliner.select_walk", {"type": 'UP_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("direction", 'UP'), ("extend", True)]}),
-        ("outliner.select_walk", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'DOWN')]}),
-        ("outliner.select_walk", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("direction", 'DOWN'), ("extend", True)]}),
-        ("outliner.select_walk", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'LEFT')]}),
-        ("outliner.select_walk", {"type": 'LEFT_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("direction", 'LEFT'), ("toggle_all", True)]}),
-        ("outliner.select_walk", {"type": 'RIGHT_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'RIGHT')]}),
-        ("outliner.select_walk", {"type": 'RIGHT_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("direction", 'RIGHT'), ("toggle_all", True)]}),
+        *[
+            (
+                "outliner.select_walk",
+                {"type": d + '_ARROW', "value": 'PRESS', **key_shift, "repeat": True},
+                {"properties": [("direction", d), *prop_shift]},
+            )
+            for d, shift_prop in (
+                ('UP', (("extend", True),)),
+                ('DOWN', (("extend", True),)),
+                ('LEFT', (("toggle_all", True),)),
+                ('RIGHT', (("toggle_all", True),)),
+            )
+            for key_shift, prop_shift in (({}, ()), ({"shift": True}, shift_prop))
+        ],
         ("outliner.item_openclose", {"type": 'LEFTMOUSE', "value": 'CLICK'},
          {"properties": [("all", False)]}),
         ("outliner.item_openclose", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
@@ -1628,26 +1636,28 @@ def km_view3d(params):
         ("view3d.smoothview", {"type": 'TIMER1', "value": 'ANY', "any": True}, None),
         ("view3d.zoom", {"type": 'TRACKPADZOOM', "value": 'ANY'}, None),
         ("view3d.zoom", {"type": 'TRACKPADPAN', "value": 'ANY', "ctrl": True}, None),
-        ("view3d.zoom", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "repeat": True},
-         {"properties": [("delta", 1)]}),
-        ("view3d.zoom", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "repeat": True},
-         {"properties": [("delta", -1)]}),
-        ("view3d.zoom", {"type": 'EQUAL', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("delta", 1)]}),
-        ("view3d.zoom", {"type": 'MINUS', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("delta", -1)]}),
-        ("view3d.zoom", {"type": 'WHEELINMOUSE', "value": 'PRESS'},
-         {"properties": [("delta", 1)]}),
-        ("view3d.zoom", {"type": 'WHEELOUTMOUSE', "value": 'PRESS'},
-         {"properties": [("delta", -1)]}),
-        ("view3d.dolly", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("delta", 1)]}),
-        ("view3d.dolly", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("delta", -1)]}),
-        ("view3d.dolly", {"type": 'EQUAL', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True},
-         {"properties": [("delta", 1)]}),
-        ("view3d.dolly", {"type": 'MINUS', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True},
-         {"properties": [("delta", -1)]}),
+        *((
+            "view3d.zoom",
+            {"type": key, "value": 'PRESS', **mods},
+            {"properties": [("delta", delta)]},
+        ) for key, delta, mods in (
+            ('NUMPAD_PLUS', 1, {"repeat": True}),
+            ('NUMPAD_MINUS', -1, {"repeat": True}),
+            ('EQUAL', 1, {"ctrl": True, "repeat": True}),
+            ('MINUS', -1, {"ctrl": True, "repeat": True}),
+            ('WHEELINMOUSE', 1, {}),
+            ('WHEELOUTMOUSE', -1, {}),
+        )),
+        *((
+            "view3d.dolly",
+            {"type": key, "value": 'PRESS', "shift": True, "repeat": True, **mods},
+            {"properties": [("delta", delta)]},
+        ) for key, delta, mods in (
+            ('NUMPAD_PLUS', 1, {}),
+            ('NUMPAD_MINUS', -1, {}),
+            ('EQUAL', 1, {"ctrl": True}),
+            ('MINUS', -1, {"ctrl": True}),
+        )),
         ("view3d.view_center_camera", {"type": 'HOME', "value": 'PRESS'}, None),
         ("view3d.view_center_lock", {"type": 'HOME', "value": 'PRESS'}, None),
         ("view3d.view_all", {"type": 'HOME', "value": 'PRESS'},
@@ -1665,77 +1675,85 @@ def km_view3d(params):
         ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         # Numpad views.
         ("view3d.view_camera", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
-        ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS'},
-         {"properties": [("type", 'FRONT')]}),
+        *((
+            "view3d.view_axis",
+            {"type": numpad_key, "value": 'PRESS', **default_mod, **opposite_mod},
+            {"properties": [("type", axis_type)]},
+        )
+            for default_mod, opposite_mod, axis_pairs in (
+                ({}, {}, (
+                    ('NUMPAD_1', 'FRONT'),
+                    ('NUMPAD_3', 'RIGHT'),
+                    ('NUMPAD_7', 'TOP'),
+                )),
+                ({}, {"ctrl": True}, (
+                    ('NUMPAD_1', 'BACK'),
+                    ('NUMPAD_3', 'LEFT'),
+                    ('NUMPAD_7', 'BOTTOM'),
+                )),
+        )
+            for numpad_key, axis_type in axis_pairs
+        ),
         ("view3d.view_orbit", {"type": 'NUMPAD_2', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'ORBITDOWN')]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_3', "value": 'PRESS'},
-         {"properties": [("type", 'RIGHT')]}),
         ("view3d.view_orbit", {"type": 'NUMPAD_4', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'ORBITLEFT')]}),
         ("view3d.view_persportho", {"type": 'NUMPAD_5', "value": 'PRESS'}, None),
         ("view3d.view_orbit", {"type": 'NUMPAD_6', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'ORBITRIGHT')]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_7', "value": 'PRESS'},
-         {"properties": [("type", 'TOP')]}),
         ("view3d.view_orbit", {"type": 'NUMPAD_8', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'ORBITUP')]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS', "ctrl": True},
-         {"properties": [("type", 'BACK')]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_3', "value": 'PRESS', "ctrl": True},
-         {"properties": [("type", 'LEFT')]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_7', "value": 'PRESS', "ctrl": True},
-         {"properties": [("type", 'BOTTOM')]}),
-        ("view3d.view_pan", {"type": 'NUMPAD_2', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("type", 'PANDOWN')]}),
-        ("view3d.view_pan", {"type": 'NUMPAD_4', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("type", 'PANLEFT')]}),
-        ("view3d.view_pan", {"type": 'NUMPAD_6', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("type", 'PANRIGHT')]}),
-        ("view3d.view_pan", {"type": 'NUMPAD_8', "value": 'PRESS', "ctrl": True, "repeat": True},
-         {"properties": [("type", 'PANUP')]}),
+        *((
+            "view3d.view_pan",
+            {"type": numpad_key, "value": 'PRESS', "ctrl": True, "repeat": True},
+            {"properties": [("type", pan_type)]},
+        ) for numpad_key, pan_type in (
+            ('NUMPAD_2', 'PANDOWN'),
+            ('NUMPAD_4', 'PANLEFT'),
+            ('NUMPAD_6', 'PANRIGHT'),
+            ('NUMPAD_8', 'PANUP'),
+        )),
         ("view3d.view_roll", {"type": 'NUMPAD_4', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("type", 'LEFT')]}),
         ("view3d.view_roll", {"type": 'NUMPAD_6', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("type", 'RIGHT')]}),
         ("view3d.view_orbit", {"type": 'NUMPAD_9', "value": 'PRESS'},
          {"properties": [("angle", pi), ("type", 'ORBITRIGHT')]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS', "shift": True},
-         {"properties": [("type", 'FRONT'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_3', "value": 'PRESS', "shift": True},
-         {"properties": [("type", 'RIGHT'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_7', "value": 'PRESS', "shift": True},
-         {"properties": [("type", 'TOP'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("type", 'BACK'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_3', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("type", 'LEFT'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'NUMPAD_7', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("type", 'BOTTOM'), ("align_active", True)]}),
         *((
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'NORTH', "alt": True},
-             {"properties": [("type", 'TOP'), ("relative", True)]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'SOUTH', "alt": True},
-             {"properties": [("type", 'BOTTOM'), ("relative", True)]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'EAST', "alt": True},
-             {"properties": [("type", 'RIGHT'), ("relative", True)]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'WEST', "alt": True},
-             {"properties": [("type", 'LEFT'), ("relative", True)]}),
-        ) if params.v3d_alt_mmb_drag_action == 'RELATIVE' else (
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'NORTH', "alt": True},
-             {"properties": [("type", 'TOP')]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'SOUTH', "alt": True},
-             {"properties": [("type", 'BOTTOM')]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'EAST', "alt": True},
-             {"properties": [("type", 'RIGHT')]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'WEST', "alt": True},
-             {"properties": [("type", 'LEFT')]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'NORTH_WEST', "alt": True},
-             {"properties": [("type", 'FRONT')]}),
-            ("view3d.view_axis", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": 'NORTH_EAST', "alt": True},
-             {"properties": [("type", 'BACK')]}),
+            "view3d.view_axis",
+            {"type": numpad_key, "value": 'PRESS', "shift": True, **opposite_mod},
+            {"properties": [("type", axis_type), ("align_active", True)]},
+        )
+            for opposite_mod, axis_pairs in (
+                ({}, (
+                    ('NUMPAD_1', 'FRONT'),
+                    ('NUMPAD_3', 'RIGHT'),
+                    ('NUMPAD_7', 'TOP'),
+                )),
+                ({"ctrl": True}, (
+                    ('NUMPAD_1', 'BACK'),
+                    ('NUMPAD_3', 'LEFT'),
+                    ('NUMPAD_7', 'BOTTOM'),
+                )),
+        )
+            for numpad_key, axis_type in axis_pairs
+        ),
+        *([(
+            "view3d.view_axis",
+            {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": direction, "alt": True},
+            {"properties": [("type", axis_type), *
+                            ([("relative", True)] if params.v3d_alt_mmb_drag_action == 'RELATIVE' else [])]},
+        )
+            for direction, axis_type in (
+                ('NORTH', 'TOP'), ('SOUTH', 'BOTTOM'), ('EAST', 'RIGHT'), ('WEST', 'LEFT'),
+        )
+        ] + ([] if params.v3d_alt_mmb_drag_action == 'RELATIVE' else [
             # Match the pie menu.
-        )),
+            ("view3d.view_axis",
+             {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG', "direction": direction, "alt": True},
+             {"properties": [("type", axis_type)]})
+            for direction, axis_type in (('NORTH_WEST', 'FRONT'), ('NORTH_EAST', 'BACK'))
+        ])),
         ("view3d.view_center_pick", {"type": 'MIDDLEMOUSE', "value": 'CLICK', "alt": True}, None),
         ("view3d.ndof_orbit_zoom", {"type": 'NDOF_MOTION', "value": 'ANY'}, None),
         ("view3d.ndof_orbit", {"type": 'NDOF_MOTION', "value": 'ANY', "ctrl": True}, None),
@@ -1746,24 +1764,16 @@ def km_view3d(params):
          {"properties": [("angle", PI_2)]}),
         ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CCW', "value": 'PRESS'},
          {"properties": [("angle", -PI_2)]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_FRONT', "value": 'PRESS'},
-         {"properties": [("type", 'FRONT')]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_BACK', "value": 'PRESS'},
-         {"properties": [("type", 'BACK')]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_LEFT', "value": 'PRESS'},
-         {"properties": [("type", 'LEFT')]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_RIGHT', "value": 'PRESS'},
-         {"properties": [("type", 'RIGHT')]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_TOP', "value": 'PRESS'},
-         {"properties": [("type", 'TOP')]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_BOTTOM', "value": 'PRESS'},
-         {"properties": [("type", 'BOTTOM')]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_FRONT', "value": 'PRESS', "shift": True},
-         {"properties": [("type", 'FRONT'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_RIGHT', "value": 'PRESS', "shift": True},
-         {"properties": [("type", 'RIGHT'), ("align_active", True)]}),
-        ("view3d.view_axis", {"type": 'NDOF_BUTTON_TOP', "value": 'PRESS', "shift": True},
-         {"properties": [("type", 'TOP'), ("align_active", True)]}),
+        *((
+            "view3d.view_axis",
+            {"type": 'NDOF_BUTTON_' + axis_type, "value": 'PRESS'},
+            {"properties": [("type", axis_type)]},
+        ) for axis_type in ('FRONT', 'BACK', 'LEFT', 'RIGHT', 'TOP', 'BOTTOM')),
+        *((
+            "view3d.view_axis",
+            {"type": 'NDOF_BUTTON_' + axis_type, "value": 'PRESS', "shift": True},
+            {"properties": [("type", axis_type), ("align_active", True)]},
+        ) for axis_type in ('FRONT', 'RIGHT', 'TOP')),
         # Selection.
         *_template_view3d_select(
             type=params.select_mouse,
@@ -1837,26 +1847,39 @@ def km_view3d(params):
             ("view3d.zoom_camera_1_to_1", {"type": 'NUMPAD_ENTER', "value": 'PRESS', "shift": True}, None),
             ("view3d.view_center_cursor", {"type": 'HOME', "value": 'PRESS', "alt": True}, None),
             ("view3d.view_center_pick", {"type": 'F', "value": 'PRESS', "alt": True}, None),
-            ("view3d.view_pan", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True},
-             {"properties": [("type", 'PANRIGHT')]}),
-            ("view3d.view_pan", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True},
-             {"properties": [("type", 'PANLEFT')]}),
-            ("view3d.view_pan", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True},
-             {"properties": [("type", 'PANUP')]}),
-            ("view3d.view_pan", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True},
-             {"properties": [("type", 'PANDOWN')]}),
-            ("view3d.view_orbit", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True, "alt": True},
-             {"properties": [("type", 'ORBITLEFT')]}),
-            ("view3d.view_orbit", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True, "alt": True},
-             {"properties": [("type", 'ORBITRIGHT')]}),
-            ("view3d.view_orbit", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True, "alt": True},
-             {"properties": [("type", 'ORBITUP')]}),
-            ("view3d.view_orbit", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True, "alt": True},
-             {"properties": [("type", 'ORBITDOWN')]}),
-            ("view3d.view_roll", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
-             {"properties": [("type", 'LEFT')]}),
-            ("view3d.view_roll", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
-             {"properties": [("type", 'RIGHT')]}),
+            *((
+                "view3d.view_pan",
+                {"type": wheel_key, "value": 'PRESS', **mod},
+                {"properties": [("type", pan_type)]},
+            ) for mod, wheel_pairs in (
+                ({"ctrl": True}, (
+                    ('WHEELUPMOUSE', 'PANRIGHT'),
+                    ('WHEELDOWNMOUSE', 'PANLEFT'),
+                )),
+                ({"shift": True}, (
+                    ('WHEELUPMOUSE', 'PANUP'),
+                    ('WHEELDOWNMOUSE', 'PANDOWN'),
+                )),
+            ) for wheel_key, pan_type in wheel_pairs),
+            *((
+                "view3d.view_orbit",
+                {"type": wheel_key, "value": 'PRESS', "alt": True, **mod},
+                {"properties": [("type", orbit_type)]},
+            ) for mod, wheel_pairs in (
+                ({"ctrl": True}, (
+                    ('WHEELUPMOUSE', 'ORBITLEFT'),
+                    ('WHEELDOWNMOUSE', 'ORBITRIGHT'),
+                )),
+                ({"shift": True}, (
+                    ('WHEELUPMOUSE', 'ORBITUP'),
+                    ('WHEELDOWNMOUSE', 'ORBITDOWN'),
+                )),
+            ) for wheel_key, orbit_type in wheel_pairs),
+            *((
+                "view3d.view_roll",
+                {"type": wheel_key, "value": 'PRESS', "shift": True, "ctrl": True},
+                {"properties": [("type", roll_type)]},
+            ) for wheel_key, roll_type in (('WHEELUPMOUSE', 'LEFT'), ('WHEELDOWNMOUSE', 'RIGHT'))),
             ("transform.create_orientation", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "alt": True},
              {"properties": [("use", True)]}),
             ("transform.translate", {"type": 'T', "value": 'PRESS', "shift": True},
@@ -2131,30 +2154,15 @@ def km_image(params):
         ("image.view_zoom", {"type": 'TRACKPADZOOM', "value": 'ANY'}, None),
         ("image.view_zoom", {"type": 'TRACKPADPAN', "value": 'ANY', "ctrl": True}, None),
         ("image.view_zoom_border", {"type": 'B', "value": 'PRESS', "shift": True}, None),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_1', "value": 'PRESS'},
-         {"properties": [("ratio", 1.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS'},
-         {"properties": [("ratio", 0.5)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS'},
-         {"properties": [("ratio", 0.25)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
-         {"properties": [("ratio", 0.125)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 8.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 4.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 2.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_1', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 1.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS', "shift": True},
-         {"properties": [("ratio", 8.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS', "shift": True},
-         {"properties": [("ratio", 4.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS', "shift": True},
-         {"properties": [("ratio", 2.0)]}),
-        ("image.view_zoom_ratio", {"type": 'NUMPAD_1', "value": 'PRESS', "shift": True},
-         {"properties": [("ratio", 1.0)]}),
+        *((
+            "image.view_zoom_ratio",
+            {"type": key, "value": 'PRESS', **mod},
+            {"properties": [("ratio", ratio)]},
+        ) for mod, keys, ratios in (
+            ({}, NUMPAD_ZOOM, (1.0, 0.5, 0.25, 0.125)),
+            ({"ctrl": True}, NUMPAD_ZOOM, (1.0, 2.0, 4.0, 8.0)),
+            ({"shift": True}, NUMPAD_ZOOM, (1.0, 2.0, 4.0, 8.0)),
+        ) for key, ratio in zip(keys, ratios, strict=True)),
         ("image.change_frame", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("image.sample", {"type": params.action_mouse, "value": 'PRESS'}, None),
         ("image.curves_point_set", {"type": params.action_mouse, "value": 'PRESS', "ctrl": True},
@@ -2320,7 +2328,7 @@ def km_node_editor(params):
         op_menu_pie("NODE_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("node.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("node.delete", {"type": 'DEL', "value": 'PRESS'}, None),
-        ("node.delete_reconnect", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
+        ("node.delete_copy_reconnect", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("node.delete_reconnect", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_select_actions(params, "node.select_all"),
         ("node.select_linked_to", {"type": 'L', "value": 'PRESS', "shift": True}, None),
@@ -2516,30 +2524,19 @@ def km_file_browser_main(params):
          {"properties": [("extend", True), ("open", False)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
          {"properties": [("extend", True), ("fill", True), ("open", False)]}),
-        ("file.select_walk", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'UP')]}),
-        ("file.select_walk", {"type": 'UP_ARROW', "value": 'PRESS', "shift": True},
-         {"properties": [("direction", 'UP'), ("extend", True)]}),
-        ("file.select_walk", {"type": 'UP_ARROW', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True},
-         {"properties": [("direction", 'UP'), ("extend", True), ("fill", True)]}),
-        ("file.select_walk", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'DOWN')]}),
-        ("file.select_walk", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("direction", 'DOWN'), ("extend", True)]}),
-        ("file.select_walk", {"type": 'DOWN_ARROW', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True},
-         {"properties": [("direction", 'DOWN'), ("extend", True), ("fill", True)]}),
-        ("file.select_walk", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'LEFT')]}),
-        ("file.select_walk", {"type": 'LEFT_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("direction", 'LEFT'), ("extend", True)]}),
-        ("file.select_walk", {"type": 'LEFT_ARROW', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True},
-         {"properties": [("direction", 'LEFT'), ("extend", True), ("fill", True)]}),
-        ("file.select_walk", {"type": 'RIGHT_ARROW', "value": 'PRESS', "repeat": True},
-         {"properties": [("direction", 'RIGHT')]}),
-        ("file.select_walk", {"type": 'RIGHT_ARROW', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("direction", 'RIGHT'), ("extend", True)]}),
-        ("file.select_walk", {"type": 'RIGHT_ARROW', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True},
-         {"properties": [("direction", 'RIGHT'), ("extend", True), ("fill", True)]}),
+        *[
+            (
+                "file.select_walk",
+                {"type": d + '_ARROW', "value": 'PRESS', **key_mod, "repeat": True},
+                {"properties": [("direction", d), *prop_mod]},
+            )
+            for d in ('UP', 'DOWN', 'LEFT', 'RIGHT')
+            for key_mod, prop_mod in (
+                ({}, ()),
+                ({"shift": True}, (("extend", True),)),
+                ({"shift": True, "ctrl": True}, (("extend", True), ("fill", True))),
+            )
+        ],
         ("file.previous", {"type": 'BUTTON4MOUSE', "value": 'CLICK'}, None),
         ("file.next", {"type": 'BUTTON5MOUSE', "value": 'CLICK'}, None),
         *_template_items_select_actions(params, "file.select_all"),
@@ -3284,20 +3281,14 @@ def km_sequencer_preview(params):
         ("sequencer.view_all_preview", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),
-        ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 8.0)]}),
-        ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 4.0)]}),
-        ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 2.0)]}),
-        ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_1', "value": 'PRESS'},
-         {"properties": [("ratio", 1.0)]}),
-        ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS'},
-         {"properties": [("ratio", 0.5)]}),
-        ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS'},
-         {"properties": [("ratio", 0.25)]}),
-        ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
-         {"properties": [("ratio", 0.125)]}),
+        *((
+            "sequencer.view_zoom_ratio",
+            {"type": key, "value": 'PRESS', **mod},
+            {"properties": [("ratio", ratio)]},
+        ) for mod, keys, ratios in (
+            ({}, NUMPAD_ZOOM, (1.0, 0.5, 0.25, 0.125)),
+            ({"ctrl": True}, NUMPAD_ZOOM[1:], (2.0, 4.0, 8.0)),
+        ) for key, ratio in zip(keys, ratios, strict=True)),
         op_menu_pie("SEQUENCER_MT_preview_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
 
         # Transform Actions.
@@ -3531,26 +3522,15 @@ def km_clip_editor(params):
         ("clip.view_zoom_out", {"type": 'WHEELOUTMOUSE', "value": 'PRESS'}, None),
         ("clip.view_zoom_in", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "repeat": True}, None),
         ("clip.view_zoom_out", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "repeat": True}, None),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 8.0)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 4.0)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS', "ctrl": True},
-         {"properties": [("ratio", 2.0)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS', "shift": True},
-         {"properties": [("ratio", 8.0)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS', "shift": True},
-         {"properties": [("ratio", 4.0)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS', "shift": True},
-         {"properties": [("ratio", 2.0)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_1', "value": 'PRESS'},
-         {"properties": [("ratio", 1.0)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_2', "value": 'PRESS'},
-         {"properties": [("ratio", 0.5)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_4', "value": 'PRESS'},
-         {"properties": [("ratio", 0.25)]}),
-        ("clip.view_zoom_ratio", {"type": 'NUMPAD_8', "value": 'PRESS'},
-         {"properties": [("ratio", 0.125)]}),
+        *((
+            "clip.view_zoom_ratio",
+            {"type": key, "value": 'PRESS', **mod},
+            {"properties": [("ratio", ratio)]},
+        ) for mod, keys, ratios in (
+            ({}, NUMPAD_ZOOM, (1.0, 0.5, 0.25, 0.125)),
+            ({"ctrl": True}, NUMPAD_ZOOM[1:], (2.0, 4.0, 8.0)),
+            ({"shift": True}, NUMPAD_ZOOM[1:], (2.0, 4.0, 8.0)),
+        ) for key, ratio in zip(keys, ratios, strict=True)),
         ("clip.view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("clip.view_all", {"type": 'F', "value": 'PRESS'},
          {"properties": [("fit_view", True)]}),
@@ -4297,7 +4277,10 @@ def km_grease_pencil_weight_paint(params):
         # Radial controls
         *_template_paint_radial_control("gpencil_weight_paint"),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-         radial_control_properties("gpencil_weight_paint", "weight", "use_unified_weight")),
+         radial_control_properties(
+             "gpencil_weight_paint", "weight",
+             secondary_prop="use_unified_weight",
+        )),
         # Toggle Add/Subtract for weight draw tool
         ("grease_pencil.weight_toggle_direction", {"type": 'D', "value": 'PRESS'}, None),
 
@@ -4737,22 +4720,30 @@ def km_paint_curve(params):
 # Radial control setup helpers, this operator has a lot of properties.
 
 
-def radial_control_properties(paint, prop, secondary_prop, secondary_rotation=False, color=False, zoom=False):
-    brush_path = "tool_settings." + paint + ".brush"
-    unified_path = "tool_settings." + paint + ".unified_paint_settings"
+def radial_control_properties(
+        paint,
+        prop,
+        *,
+        secondary_prop,
+        secondary_rotation=False,
+        color=False,
+        zoom=False,
+):
+    brush_path = "tool_settings.{:s}.brush".format(paint)
+    unified_path = "tool_settings.{:s}.unified_paint_settings".format(paint)
     rotation = "mask_texture_slot.angle" if secondary_rotation else "texture_slot.angle"
     return {
         "properties": [
-            ("data_path_primary", brush_path + '.' + prop),
-            ("data_path_secondary", unified_path + '.' + prop if secondary_prop else ''),
-            ("use_secondary", unified_path + '.' + secondary_prop if secondary_prop else ''),
-            ("rotation_path", brush_path + '.' + rotation),
-            ("color_path", brush_path + '.cursor_color_add'),
-            ("fill_color_path", brush_path + '.color' if color else ''),
-            ("fill_color_override_path", unified_path + '.color' if color else ''),
-            ("fill_color_override_test_path", unified_path + '.use_unified_color' if color else ''),
-            ("zoom_path", "space_data.zoom" if zoom else ''),
-            ("image_id", brush_path + ''),
+            ("data_path_primary", "{:s}.{:s}".format(brush_path, prop)),
+            ("data_path_secondary", "{:s}.{:s}".format(unified_path, prop) if secondary_prop else ""),
+            ("use_secondary", "{:s}.{:s}".format(unified_path, secondary_prop) if secondary_prop else ""),
+            ("rotation_path", "{:s}.{:s}".format(brush_path, rotation)),
+            ("color_path", "{:s}.cursor_color_add".format(brush_path)),
+            ("fill_color_path", "{:s}.color".format(brush_path) if color else ""),
+            ("fill_color_override_path", "{:s}.color".format(unified_path) if color else ""),
+            ("fill_color_override_test_path", "{:s}.use_unified_color".format(unified_path) if color else ""),
+            ("zoom_path", "space_data.zoom" if zoom else ""),
+            ("image_id", brush_path),
             ("secondary_tex", secondary_rotation),
         ],
     }
@@ -4766,23 +4757,40 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
     items.extend([
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
          radial_control_properties(
-             paint, "size", "use_unified_size", secondary_rotation=secondary_rotation, color=color, zoom=zoom)),
+             paint, "size",
+             secondary_prop="use_unified_size",
+             secondary_rotation=secondary_rotation,
+             color=color,
+             zoom=zoom,
+        )),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
          radial_control_properties(
-             paint, "strength", "use_unified_strength", secondary_rotation=secondary_rotation, color=color)),
+             paint, "strength",
+             secondary_prop="use_unified_strength",
+             secondary_rotation=secondary_rotation,
+             color=color,
+        )),
     ])
 
     if rotation:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-             radial_control_properties(paint, "texture_slot.angle", None, color=color)),
+             radial_control_properties(
+                 paint, "texture_slot.angle",
+                 secondary_prop=None,
+                 color=color,
+            )),
         ])
 
     if secondary_rotation:
         items.extend([
             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
              radial_control_properties(
-                 paint, "mask_texture_slot.angle", None, secondary_rotation=secondary_rotation, color=color)),
+                 paint, "mask_texture_slot.angle",
+                 secondary_prop=None,
+                 secondary_rotation=secondary_rotation,
+                 color=color,
+            )),
         ])
 
     return items
@@ -5114,7 +5122,10 @@ def km_weight_paint(params):
          {"properties": [("scalar", 1.0 / 0.9)]}),
         *_template_paint_radial_control("weight_paint"),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-         radial_control_properties("weight_paint", "weight", "use_unified_weight")),
+         radial_control_properties(
+             "weight_paint", "weight",
+             secondary_prop="use_unified_weight",
+        )),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS', "alt": True},
          {"properties": [("data_path", "tool_settings.vertex_paint.brush.stroke_method")]}),
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
@@ -6086,7 +6097,7 @@ def km_transform_modal_map(params):
         {"items": items},
     )
 
-    alt_without_navigaton = {} if params.use_alt_navigation else {"alt": True}
+    alt_without_navigation = {} if params.use_alt_navigation else {"alt": True}
 
     items.extend([
         ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
@@ -6122,25 +6133,25 @@ def km_transform_modal_map(params):
         ("PROPORTIONAL_SIZE_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "repeat": True}, None),
         ("PROPORTIONAL_SIZE_UP", {"type": 'PAGE_UP', "value": 'PRESS', "shift": True, "repeat": True}, None),
         ("PROPORTIONAL_SIZE_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "shift": True, "repeat": True}, None),
-        ("PROPORTIONAL_SIZE_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
-        ("PROPORTIONAL_SIZE_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
+        ("PROPORTIONAL_SIZE_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
+        ("PROPORTIONAL_SIZE_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
         ("PROPORTIONAL_SIZE_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True}, None),
         ("PROPORTIONAL_SIZE_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True}, None),
-        ("PROPORTIONAL_SIZE", {"type": 'TRACKPADPAN', "value": 'ANY', **alt_without_navigaton}, None),
+        ("PROPORTIONAL_SIZE", {"type": 'TRACKPADPAN', "value": 'ANY', **alt_without_navigation}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'PAGE_UP', "value": 'PRESS', "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'PAGE_UP', "value": 'PRESS', "shift": True, "repeat": True}, None),
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'PAGE_DOWN', "value": 'PRESS', "shift": True, "repeat": True}, None),
-        ("AUTOIK_CHAIN_LEN_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
-        ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigaton}, None),
+        ("AUTOIK_CHAIN_LEN_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
+        ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', **alt_without_navigation}, None),
         ("AUTOIK_CHAIN_LEN_UP", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True}, None),
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True}, None),
         ("INSERTOFS_TOGGLE_DIR", {"type": 'T', "value": 'PRESS'}, None),
         ("NODE_ATTACH_ON", {"type": 'LEFT_ALT', "value": 'RELEASE', "any": True}, None),
         ("NODE_ATTACH_OFF", {"type": 'LEFT_ALT', "value": 'PRESS', "any": True}, None),
         ("NODE_FRAME", {"type": 'F', "value": 'PRESS'}, None),
-        ("AUTOCONSTRAIN", {"type": 'MIDDLEMOUSE', "value": 'ANY', **alt_without_navigaton}, None),
-        ("AUTOCONSTRAINPLANE", {"type": 'MIDDLEMOUSE', "value": 'ANY', "shift": True, **alt_without_navigaton}, None),
+        ("AUTOCONSTRAIN", {"type": 'MIDDLEMOUSE', "value": 'ANY', **alt_without_navigation}, None),
+        ("AUTOCONSTRAINPLANE", {"type": 'MIDDLEMOUSE', "value": 'ANY', "shift": True, **alt_without_navigation}, None),
         ("PRECISION", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
         ("PRECISION", {"type": 'RIGHT_SHIFT', "value": 'ANY', "any": True}, None),
         ("STRIP_CLAMP_TOGGLE", {"type": 'C', "value": 'PRESS', "any": True}, None),
@@ -7238,7 +7249,7 @@ def km_image_editor_tool_mask_primitive_square(params):
         "Image Editor Tool: Mask, Box",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("mask.primitive_square_add", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+            ("mask.primitive_square_add", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": []}),
         ]},
     )
@@ -7249,7 +7260,7 @@ def km_image_editor_tool_mask_primitive_circle(params):
         "Image Editor Tool: Mask, Circle",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("mask.primitive_circle_add", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+            ("mask.primitive_circle_add", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": []}),
         ]},
     )
@@ -8108,9 +8119,9 @@ def km_3d_view_tool_sculpt_polyline_mask(params):
         "3D View Tool: Sculpt, Polyline Mask",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"},
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("value", 1.0)]}),
-            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS", "ctrl": True},
+            ("paint.mask_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("value", 0.0)]}),
         ]},
     )
@@ -8166,9 +8177,9 @@ def km_3d_view_tool_sculpt_polyline_hide(params):
         "3D View Tool: Sculpt, Polyline Hide",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"},
+            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("action", 'HIDE')]}),
-            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS", "ctrl": True},
+            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("action", 'SHOW')]}),
         ]},
     )
@@ -8209,7 +8220,7 @@ def km_3d_view_tool_sculpt_polyline_face_set(params):
         "3D View Tool: Sculpt, Polyline Face Set",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("sculpt.face_set_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
+            ("sculpt.face_set_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'}, None)
         ]},
     )
 
@@ -8249,7 +8260,7 @@ def km_3d_view_tool_sculpt_polyline_trim(params):
         "3D View Tool: Sculpt, Polyline Trim",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("sculpt.trim_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"}, None)
+            ("sculpt.trim_polyline_gesture", {"type": params.tool_mouse, "value": 'PRESS'}, None)
         ]}
     )
 

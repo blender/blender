@@ -17,7 +17,8 @@
 #include "BKE_particle.h"
 
 #include "BLI_assert.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_set.hh"
 #include "BLI_string_utils.hh"
 
@@ -439,8 +440,7 @@ void AbstractHierarchyIterator::visit_object(Object *object,
   context->original_export_path = "";
   context->higher_up_export_path = "";
   context->is_duplisource = false;
-
-  copy_m4_m4(context->matrix_world, object->object_to_world().ptr());
+  context->matrix_world = object->object_to_world();
 
   ObjectIdentifier graph_index = determine_graph_index_object(context);
   context_update_for_graph_index(context, graph_index);
@@ -477,8 +477,7 @@ void AbstractHierarchyIterator::visit_dupli_object(const DupliObject *dupli_obje
   context->original_export_path = "";
   context->animation_check_include_parent = false;
   context->is_duplisource = false;
-
-  copy_m4_m4(context->matrix_world, dupli_object->mat);
+  context->matrix_world = float4x4(dupli_object->mat);
 
   /* Construct export name for the dupli-instance. */
   std::string export_name = get_object_name(context->object) + "-" +
@@ -628,13 +627,13 @@ bool AbstractHierarchyIterator::determine_duplication_references(
 
 void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_context)
 {
-  float parent_matrix_inv_world[4][4];
+  float4x4 parent_matrix_inv_world;
 
   if (parent_context) {
-    invert_m4_m4(parent_matrix_inv_world, parent_context->matrix_world);
+    parent_matrix_inv_world = math::invert(parent_context->matrix_world);
   }
   else {
-    unit_m4(parent_matrix_inv_world);
+    parent_matrix_inv_world = float4x4::identity();
   }
 
   const ExportChildren *children = graph_children(parent_context);
@@ -653,7 +652,7 @@ void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_cont
     context->has_point_instance_ancestor = has_point_instance_ancestor;
 
     /* Update the context so that it is correct for this parent-child relation. */
-    copy_m4_m4(context->parent_matrix_inv_world, parent_matrix_inv_world);
+    context->parent_matrix_inv_world = parent_matrix_inv_world;
     if (parent_context != nullptr) {
       context->higher_up_export_path = parent_context->export_path;
     }

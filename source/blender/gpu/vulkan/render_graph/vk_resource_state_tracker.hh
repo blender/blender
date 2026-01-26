@@ -136,7 +136,7 @@ class VKResourceStateTracker {
     VKResourceBarrierState barrier_state = {};
 
 #ifndef NDEBUG
-    const char *name = nullptr;
+    std::string name;
 #endif
 
     /**

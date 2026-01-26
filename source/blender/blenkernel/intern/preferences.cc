@@ -137,6 +137,12 @@ bool BKE_preferences_asset_library_is_valid(const UserDef *userdef,
                                             const bUserAssetLibrary *library,
                                             const bool check_directory_exists)
 {
+  /* Check disabled libraries. */
+  if (library->flag & ASSET_LIBRARY_DISABLED) {
+    return false;
+  }
+
+  /* Check remote libraries. */
   const bool is_remote_library = library->flag & ASSET_LIBRARY_USE_REMOTE_URL;
   const bool skip_remote_libraries = !USER_EXPERIMENTAL_TEST(userdef, use_remote_asset_libraries);
   if (is_remote_library && skip_remote_libraries) {
@@ -145,6 +151,7 @@ bool BKE_preferences_asset_library_is_valid(const UserDef *userdef,
   if (is_remote_library && !library->remote_url[0]) {
     return false;
   }
+
   /* Note that there's no check if the path exists on disk here. If an invalid library path is
    * used, the Asset Browser can give a nice hint on what's wrong, so include such items in enums
    * the user can choose from. */

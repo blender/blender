@@ -349,7 +349,9 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
 
   const bool snap_to_grid = CTX_data_scene(C)->toolsettings->snap_flag_node & SCE_SNAP;
-  if (!node_copy_local(*from_tree, *snode->edittree, false, offset, snap_to_grid, op->reports)) {
+  const int num_copied = node_copy_local(
+      *from_tree, *snode->edittree, false, offset, snap_to_grid, op->reports);
+  if (num_copied == 0) {
     /* Note: we don't return OPERATOR_CANCELLED here although the copy fails to avoid corrupting
      * the undo stack after merging two bmains. */
   };

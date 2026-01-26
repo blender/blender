@@ -1,6 +1,6 @@
-/* SPDX-FileCopyrightText: 2026 Blender Authors
+/* SPDX-FileCopyrightText: 2026 Clement Foucault
  *
- * SPDX-License-Identifier: GPL-2.0-or-later */
+ * SPDX-License-Identifier: MIT */
 
 #include "lexit.hh"
 
@@ -29,7 +29,11 @@ namespace lexit {
 
 #if defined(USE_NEON) || defined(USE_SSE4_2)
 
-/* Shuffle table used for stream compaction. */
+/* Shuffle table used for stream compaction.
+ * For a given 8bit pattern (where each 1 bit represent an element to keep)
+ * encode the index of the source register for each of the 8 destination register.
+ * Every 0 bit (representing a discarded element) will be sourced from the 0th element.
+ * This is to be used with table. */
 static const uint8_t shuffle_table_8[256][8] = {
     /* [0b00000000] = */ {0, 0, 0, 0, 0, 0, 0, 0},
     /* [0b00000001] = */ {0, 0, 0, 0, 0, 0, 0, 0},
@@ -292,15 +296,17 @@ static const uint8_t shuffle_table_8[256][8] = {
 #endif
 
 #if defined(USE_NEON)
+/* Perform a 128 bytes table lookup of for 16 element.
+ * https://lemire.me/blog/2019/07/23/arbitrary-byte-to-byte-maps-using-arm-neon/ */
 static inline uint8x16_t simd_transform16_ascii(uint8x16x4_t table[2], uint8x16_t input)
 {
   uint8x16_t t1 = vqtbl4q_u8(table[0], input);
   uint8x16_t t2 = vqtbl4q_u8(table[1], veorq_u8(input, vdupq_n_u8(0x40)));
   return vorrq_u8(t1, t2);
 }
-#endif
-
-#ifdef USE_SSE4_2
+#elif defined(USE_SSE4_2)
+/* SSE equivalent to the above function.
+ * TODO(fclem): Check if we can speed that up by shuffling the table in advance. */
 static inline __m128i simd_transform16_ascii(const __m128i table[8], __m128i input)
 {
   __m128i result = _mm_setzero_si128();
@@ -405,7 +411,7 @@ void TokenBuffer::tokenize(const CharClass char_class_table[128])
     const uint8x16_t c = vld1q_u8(str_ + offset);
     const uint8x16_t curr = simd_transform16_ascii(map_v, c);
     /* (curr > ClassToTypeThreshold) ? TokenType(curr) : TokenType(c) */
-    const uint8x16_t mask_t = vcgtq_s8(curr, vdupq_n_u8(uint8_t(CharClass::ClassToTypeThreshold)));
+    const uint8x16_t mask_t = vcgtq_u8(curr, vdupq_n_u8(uint8_t(CharClass::ClassToTypeThreshold)));
     /* Type to store. */
     const uint8x16_t type = vbslq_u8(mask_t, curr, c);
     /* Add the last iteration end token at the end of the vector. */

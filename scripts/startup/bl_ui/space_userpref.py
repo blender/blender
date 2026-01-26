@@ -2809,7 +2809,9 @@ class USERPREF_UL_asset_libraries(UIList):
         asset_library = item
 
         icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
-        layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
+        row = layout.row(align=True)
+        row.prop(asset_library, "enabled", text="")
+        row.prop(asset_library, "name", text="", icon=icon, emboss=False)
 
         # Check the 'experimental' flag.
         if asset_library.use_remote_url:

@@ -647,7 +647,9 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
   }
 
   for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
-    fn(*asset_lib_uptr);
+    if (asset_lib_uptr->is_enabled()) {
+      fn(*asset_lib_uptr);
+    }
   }
 
   if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {

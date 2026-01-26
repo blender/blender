@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Too noisy for code we don't maintain.
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_cxx_flag("-Wno-cast-function-type")
 endif()
 

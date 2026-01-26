@@ -82,11 +82,8 @@ Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
       const GVArray &varray = init.varray;
       BLI_assert(varray.size() == domain_size);
       const CPPType &type = varray.type();
-      Attribute::ArrayData data;
-      data.data = MEM_malloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
+      Attribute::ArrayData data = Attribute::ArrayData::from_uninitialized(type, domain_size);
       varray.materialize_to_uninitialized(varray.index_range(), data.data);
-      data.size = domain_size;
-      data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.data));
       return data;
     }
     case AttributeInit::Type::MoveArray: {
