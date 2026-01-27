@@ -1016,7 +1016,7 @@ static wmOperatorStatus image_view_selected_exec(bContext *C, wmOperator * /*op*
     }
   }
   else if (ED_space_image_check_show_maskedit(sima, obedit)) {
-    if (!ED_mask_selected_minmax(C, min, max, false)) {
+    if (!ED_mask_selected_minmax(C, min, max, false, false)) {
       return OPERATOR_CANCELLED;
     }
     BKE_mask_coord_to_image(sima->image, &sima->iuser, min, min);

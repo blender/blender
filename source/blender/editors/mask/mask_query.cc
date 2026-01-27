@@ -599,10 +599,10 @@ void ED_mask_point_pos__reverse(
 
 static void handle_position_for_minmax(const MaskSplinePoint *point,
                                        eMaskWhichHandle which_handle,
-                                       bool handles_as_control_point,
+                                       bool handles_as_knot,
                                        float r_handle[2])
 {
-  if (handles_as_control_point) {
+  if (handles_as_knot) {
     copy_v2_v2(r_handle, point->bezt.vec[1]);
     return;
   }
@@ -612,7 +612,8 @@ static void handle_position_for_minmax(const MaskSplinePoint *point,
 bool ED_mask_selected_minmax(const bContext *C,
                              float min[2],
                              float max[2],
-                             bool handles_as_control_point)
+                             const bool handles_as_knot,
+                             const bool handles_as_knot_selected_only)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Mask *mask = CTX_data_edit_mask(C);
@@ -643,27 +644,28 @@ bool ED_mask_selected_minmax(const bContext *C,
         if (!BKE_mask_point_selected(point)) {
           continue;
         }
-        if (bezt->f2 & SELECT) {
+        if (bezt->f2 & SELECT || handles_as_knot_selected_only) {
           minmax_v2v2_v2(min, max, deform_point->bezt.vec[1]);
           ok = true;
+          continue;
         }
 
         if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
           handle_position_for_minmax(
-              deform_point, MASK_WHICH_HANDLE_STICK, handles_as_control_point, handle);
+              deform_point, MASK_WHICH_HANDLE_STICK, handles_as_knot, handle);
           minmax_v2v2_v2(min, max, handle);
           ok = true;
         }
         else {
           if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
             handle_position_for_minmax(
-                deform_point, MASK_WHICH_HANDLE_LEFT, handles_as_control_point, handle);
+                deform_point, MASK_WHICH_HANDLE_LEFT, handles_as_knot, handle);
             minmax_v2v2_v2(min, max, handle);
             ok = true;
           }
           if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
             handle_position_for_minmax(
-                deform_point, MASK_WHICH_HANDLE_RIGHT, handles_as_control_point, handle);
+                deform_point, MASK_WHICH_HANDLE_RIGHT, handles_as_knot, handle);
             minmax_v2v2_v2(min, max, handle);
             ok = true;
           }
@@ -674,11 +676,16 @@ bool ED_mask_selected_minmax(const bContext *C,
   return ok;
 }
 
-void ED_mask_center_from_pivot_ex(
-    const bContext *C, ScrArea *area, float r_center[2], char mode, bool *r_has_select)
+void ED_mask_center_from_pivot_ex(const bContext *C,
+                                  ScrArea *area,
+                                  const char mode,
+                                  const bool handles_as_knot_selected_only,
+                                  float r_center[2],
+                                  bool *r_has_select)
 {
   float min[2], max[2];
-  const bool mask_selected = ED_mask_selected_minmax(C, min, max, false);
+  const bool mask_selected = ED_mask_selected_minmax(
+      C, min, max, false, handles_as_knot_selected_only);
 
   switch (mode) {
     case V3D_AROUND_CURSOR:
