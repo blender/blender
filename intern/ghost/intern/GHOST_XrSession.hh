@@ -28,7 +28,7 @@ class GHOST_XrSession {
   GHOST_XrSession(GHOST_XrContext &xr_context);
   ~GHOST_XrSession();
 
-  void start(const GHOST_XrSessionBeginInfo *begin_info);
+  void start();
   void requestEnd();
 
   LifeExpectancy handleStateChangeEvent(const XrEventDataSessionStateChanged &lifecycle);
