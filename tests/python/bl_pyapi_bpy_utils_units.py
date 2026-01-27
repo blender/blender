@@ -66,12 +66,12 @@ class UnitsTesting(unittest.TestCase):
         ('IMPERIAL', 'LENGTH', -6, False, True, 0.3048, "1.000000ft"),
         ('IMPERIAL', 'LENGTH', -7, False, True, 0.3048, "1.000000ft"),
         ('IMPERIAL', 'LENGTH', 4, True, False, 0.3048 * 2 + 0.0254 * 5.5, "2' 5.5\""),
-        ('IMPERIAL', 'LENGTH', -4, True, False, 0.3048 * 2 + 0.0254 * 5.5, "2' 5.50\""),
+        ('IMPERIAL', 'LENGTH', -4, True, False, 0.3048 * 2 + 0.0254 * 5.5, "2' 5.5000\""),
         ('IMPERIAL', 'LENGTH', 3, False, False, 1609.344 * 1e6, "1000000 mi"),
         ('IMPERIAL', 'LENGTH', 6, False, False, 1609.344 * 1e6, "1000000 mi"),
         ('METRIC', 'LENGTH', 3, True, False, 1000 * 2 + 0.001 * 15, "2 km 2 cm"),
         ('METRIC', 'LENGTH', 3, True, False, 0.000005, "5 µm"),
-        ('METRIC', 'LENGTH', -3, True, False, 0.000005, "5.00 µm"),
+        ('METRIC', 'LENGTH', -3, True, False, 0.000005, "5.000 µm"),
         ('METRIC', 'LENGTH', 5, True, False, 1234.56789, "1 km 234.6 m"),
         ('METRIC', 'LENGTH', 6, True, False, 1234.56789, "1 km 234.57 m"),
         ('METRIC', 'LENGTH', 9, False, False, 1234.56789, "1.234568 km"),
@@ -79,6 +79,8 @@ class UnitsTesting(unittest.TestCase):
         ('METRIC', 'LENGTH', 7, True, False, 0, "0 m"),
         ('METRIC', 'LENGTH', -5, True, False, 0, "0.00000 m"),
         ('METRIC', 'LENGTH', -7, True, False, 0, "0.000000 m"),
+        ('METRIC', 'LENGTH', -3, False, False, 0.001004, "1.004 mm"),
+        ('METRIC', 'LENGTH', -3, False, False, 0.0005, "0.500 mm"),
     )
 
     def test_units_inputs(self):
