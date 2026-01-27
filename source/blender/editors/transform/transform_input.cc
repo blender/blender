@@ -227,7 +227,7 @@ void setCustomPoints(TransInfo * /*t*/,
 {
   int *data;
 
-  mi->data = MEM_reallocN(mi->data, sizeof(int[4]));
+  mi->data = MEM_realloc_uninitialized(mi->data, sizeof(int[4]));
 
   data = static_cast<int *>(mi->data);
 
@@ -371,7 +371,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       InputAngle_Data *data;
       mi->use_virtual_mval = false;
       mi->precision_factor = 1.0f / 30.0f;
-      data = MEM_callocN<InputAngle_Data>("angle accumulator");
+      data = MEM_new_zeroed<InputAngle_Data>("angle accumulator");
       data->mval_prev[0] = mi->imval[0];
       data->mval_prev[1] = mi->imval[1];
       mi->data = data;
@@ -477,7 +477,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
   /* If we've allocated new data, free the old data
    * less hassle than checking before every alloc above. */
   if (mi_data_prev && (mi_data_prev != mi->data)) {
-    MEM_freeN(mi_data_prev);
+    MEM_delete_void(mi_data_prev);
   }
 }
 

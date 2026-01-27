@@ -105,7 +105,7 @@ ListBaseT<wmDropBox> *WM_dropboxmap_find(const char *idname, int spaceid, int re
     }
   }
 
-  wmDropBoxMap *dm = MEM_callocN<wmDropBoxMap>(__func__);
+  wmDropBoxMap *dm = MEM_new_zeroed<wmDropBoxMap>(__func__);
   STRNCPY_UTF8(dm->idname, idname);
   dm->spaceid = spaceid;
   dm->regionid = regionid;
@@ -127,7 +127,7 @@ wmDropBox *WM_dropbox_add(ListBaseT<wmDropBox> *lb,
     return nullptr;
   }
 
-  wmDropBox *drop = MEM_callocN<wmDropBox>(__func__);
+  wmDropBox *drop = MEM_new_zeroed<wmDropBox>(__func__);
   drop->poll = poll;
   drop->copy = copy;
   drop->cancel = cancel;
@@ -419,7 +419,7 @@ void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
       break;
     }
     default:
-      MEM_freeN(poin);
+      MEM_delete_void(poin);
       break;
   }
 }
@@ -497,7 +497,7 @@ static wmDropBox *dropbox_active(bContext *C,
           if (disabled_hint) {
             drag->drop_state.disabled_info = disabled_hint;
             if (free_disabled_info) {
-              MEM_SAFE_FREE(disabled_hint);
+              MEM_SAFE_DELETE(disabled_hint);
             }
           }
         }
@@ -647,7 +647,7 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
   }
 
   /* Add to list. */
-  wmDragID *drag_id = MEM_callocN<wmDragID>(__func__);
+  wmDragID *drag_id = MEM_new_zeroed<wmDragID>(__func__);
   drag_id->id = id;
   drag_id->from_parent = from_parent;
   BLI_addtail(&drag->ids, drag_id);
@@ -834,7 +834,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag, const asset_system::AssetRepresen
   /* No guarantee that the same asset isn't added twice. */
 
   /* Add to list. */
-  wmDragAssetListItem *drag_asset = MEM_callocN<wmDragAssetListItem>(__func__);
+  wmDragAssetListItem *drag_asset = MEM_new_zeroed<wmDragAssetListItem>(__func__);
   ID *local_id = asset->local_id();
   if (local_id) {
     drag_asset->is_external = false;

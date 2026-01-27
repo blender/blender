@@ -61,15 +61,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeFunctionFormatString *data = MEM_new_for_free<NodeFunctionFormatString>(__func__);
+  NodeFunctionFormatString *data = MEM_new<NodeFunctionFormatString>(__func__);
   node->storage = data;
 }
 
 static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeFunctionFormatString &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_new_for_free<NodeFunctionFormatString>(__func__,
-                                                                 dna::shallow_copy(src_storage));
+  auto *dst_storage = MEM_new<NodeFunctionFormatString>(__func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<FormatStringItemsAccessor>(*src_node, *dst_node);
@@ -78,7 +77,7 @@ static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<FormatStringItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_delete_void(node->storage);
 }
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)

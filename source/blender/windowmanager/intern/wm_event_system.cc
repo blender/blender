@@ -180,7 +180,7 @@ static bool screen_temp_region_exists(const ARegion *region)
 
 static wmEvent *wm_event_add_intern(wmWindow *win, const wmEvent *event_to_add)
 {
-  wmEvent *event = MEM_new_for_free<wmEvent>(__func__);
+  wmEvent *event = MEM_new<wmEvent>(__func__);
 
   *event = *event_to_add;
 
@@ -235,7 +235,7 @@ static void wm_event_custom_free(wmEvent *event)
     WM_drag_free_list(lb);
   }
   else {
-    MEM_freeN(event->customdata);
+    MEM_delete_void(event->customdata);
   }
 }
 
@@ -263,7 +263,7 @@ void wm_event_free(wmEvent *event)
 
   wm_event_custom_free(event);
 
-  MEM_freeN(event);
+  MEM_delete(event);
 }
 
 /** A version of #wm_event_free that holds the last handled event. */
@@ -274,8 +274,8 @@ static void wm_event_free_last_handled(wmWindow *win, wmEvent *event)
    * As this function should be interchangeable with #wm_event_free. */
 #ifndef NDEBUG
   {
-    wmEvent *event_copy = static_cast<wmEvent *>(MEM_dupallocN(event));
-    MEM_freeN(event);
+    wmEvent *event_copy = MEM_dupalloc(event);
+    MEM_delete(event);
     event = event_copy;
   }
 #endif
@@ -363,7 +363,7 @@ static void wm_event_add_notifier_intern(wmWindowManager *wm,
   BLI_assert(!wm_notifier_is_clear(&note_test));
 
   wm->runtime->notifier_queue_set.lookup_key_or_add_cb(&note_test, [&]() {
-    wmNotifier *note = MEM_new_for_free<wmNotifier>(__func__);
+    wmNotifier *note = MEM_new<wmNotifier>(__func__);
     *note = note_test;
     BLI_addtail(&wm->runtime->notifier_queue, note);
     return note;
@@ -420,7 +420,7 @@ void WM_main_remove_notifier_reference(const void *reference)
         }
         else {
           BLI_remlink(&wm->runtime->notifier_queue, &note);
-          MEM_freeN(&note);
+          MEM_delete(&note);
         }
       }
     }
@@ -616,7 +616,7 @@ void wm_event_do_notifiers(bContext *C)
     {
       if (wm_notifier_is_clear(note)) {
         note_next = note->next;
-        MEM_freeN(note);
+        MEM_delete(note);
         continue;
       }
 
@@ -702,7 +702,7 @@ void wm_event_do_notifiers(bContext *C)
       note_next = note->next;
       if (wm_notifier_is_clear(note)) {
         BLI_remlink(&wm->runtime->notifier_queue, (void *)note);
-        MEM_freeN(note);
+        MEM_delete(note);
       }
     }
 
@@ -733,7 +733,7 @@ void wm_event_do_notifiers(bContext *C)
              BLI_pophead(&wm->runtime->notifier_queue)))
   {
     if (wm_notifier_is_clear(note)) {
-      MEM_freeN(note);
+      MEM_delete(note);
       continue;
     }
     /* NOTE: no need to set `wm->runtime->notifier_current` since it's been removed from the queue.
@@ -807,7 +807,7 @@ void wm_event_do_notifiers(bContext *C)
       }
     }
 
-    MEM_freeN(note);
+    MEM_delete(note);
   }
 #endif /* If 1 (postpone disabling for in favor of message-bus), eventually. */
 
@@ -1008,7 +1008,7 @@ void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
   /* Records time since last report was added. */
   wm_reports->reporttimer = WM_event_timer_add(wm, win, TIMERREPORT, 0.05);
 
-  ReportTimerInfo *rti = MEM_new_for_free<ReportTimerInfo>(__func__);
+  ReportTimerInfo *rti = MEM_new<ReportTimerInfo>(__func__);
   wm_reports->reporttimer->customdata = rti;
 }
 
@@ -1069,7 +1069,7 @@ void WM_global_reportf(eReportType type, const char *format, ...)
   va_end(args);
 
   WM_global_report(type, str);
-  MEM_freeN(str);
+  MEM_delete(str);
 }
 
 /** \} */
@@ -1134,7 +1134,7 @@ bool WM_operator_poll_or_report_error(bContext *C, wmOperatorType *ot, ReportLis
               CTX_IFACE_(ot->translation_context, ot->name),
               msg ? msg : IFACE_("poll failed"));
   if (msg_free) {
-    MEM_freeN(msg);
+    MEM_delete(msg);
   }
   return false;
 }
@@ -1504,7 +1504,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
 {
   /* Operator-type names are static still (for C++ defined operators).
    * Pass to allocation name for debugging. */
-  wmOperator *op = MEM_new_for_free<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
+  wmOperator *op = MEM_new<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
 
   /* Adding new operator could be function, only happens here now. */
   op->type = ot;
@@ -1525,7 +1525,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
     op->reports = reports; /* Must be initialized already. */
   }
   else {
-    op->reports = MEM_new_for_free<ReportList>("wmOperatorReportList");
+    op->reports = MEM_new<ReportList>("wmOperatorReportList");
     BKE_reports_init(op->reports, RPT_STORE | RPT_FREE);
   }
 
@@ -2190,7 +2190,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
 void wm_event_free_handler(wmEventHandler *handler)
 {
   /* Future extra custom-data free? */
-  MEM_freeN(handler);
+  MEM_delete(handler);
 }
 
 /**
@@ -3092,7 +3092,7 @@ static std::string keymap_handler_log_kmi_op_str(bContext *C, const wmKeyMapItem
     else { /* Fallback. */
       char *c_str = IDP_reprN(kmi->properties, nullptr);
       kmi_props = c_str;
-      MEM_freeN(c_str);
+      MEM_delete(c_str);
     }
   }
   return fmt::format("{}({})", kmi->idname, kmi_props.value_or(""));
@@ -4603,7 +4603,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
     root_region = CTX_wm_region(C);
   }
 
-  wmEventHandler_Op *handler = MEM_callocN<wmEventHandler_Op>(__func__);
+  wmEventHandler_Op *handler = MEM_new_zeroed<wmEventHandler_Op>(__func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
 
   handler->is_fileselect = true;
@@ -4657,7 +4657,7 @@ void WM_event_consecutive_data_set(wmWindow *win, const char *id, void *custom_d
 
   const size_t id_size = strlen(id) + 1;
   wmEvent_ConsecutiveData *cdata = static_cast<wmEvent_ConsecutiveData *>(
-      MEM_mallocN(sizeof(*cdata) + id_size, __func__));
+      MEM_new_uninitialized(sizeof(*cdata) + id_size, __func__));
   cdata->custom_data = custom_data;
   memcpy((cdata + 1), id, id_size);
   win->event_queue_consecutive_gesture_data = cdata;
@@ -4671,9 +4671,9 @@ void WM_event_consecutive_data_free(wmWindow *win)
   }
 
   if (cdata->custom_data) {
-    MEM_freeN(cdata->custom_data);
+    MEM_delete_void(cdata->custom_data);
   }
-  MEM_freeN(cdata);
+  MEM_delete(cdata);
   win->event_queue_consecutive_gesture_data = nullptr;
 }
 
@@ -4696,7 +4696,7 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
                                                  ARegion *region,
                                                  wmOperator *op)
 {
-  wmEventHandler_Op *handler = MEM_callocN<wmEventHandler_Op>(__func__);
+  wmEventHandler_Op *handler = MEM_new_zeroed<wmEventHandler_Op>(__func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
 
   /* Operator was part of macro. */
@@ -4826,7 +4826,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBaseT<wmEventHandler> *ha
     }
   }
 
-  wmEventHandler_Keymap *handler = MEM_callocN<wmEventHandler_Keymap>(__func__);
+  wmEventHandler_Keymap *handler = MEM_new_zeroed<wmEventHandler_Keymap>(__func__);
   handler->head.type = WM_HANDLER_TYPE_KEYMAP;
   BLI_addtail(handlers, handler);
   handler->keymap = keymap;
@@ -4974,7 +4974,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
     }
   }
 
-  wmEventHandler_Keymap *handler = MEM_callocN<wmEventHandler_Keymap>(__func__);
+  wmEventHandler_Keymap *handler = MEM_new_zeroed<wmEventHandler_Keymap>(__func__);
   handler->head.type = WM_HANDLER_TYPE_KEYMAP;
   BLI_addtail(handlers, handler);
   handler->dynamic.keymap_fn = keymap_fn;
@@ -4989,7 +4989,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBaseT<wmEventHan
 {
   WM_event_remove_keymap_handler(handlers, keymap);
 
-  wmEventHandler_Keymap *handler = MEM_callocN<wmEventHandler_Keymap>("event key-map handler");
+  wmEventHandler_Keymap *handler = MEM_new_zeroed<wmEventHandler_Keymap>("event key-map handler");
   handler->head.type = WM_HANDLER_TYPE_KEYMAP;
 
   BLI_addhead(handlers, handler);
@@ -5121,7 +5121,7 @@ wmEventHandler_UI *WM_event_add_ui_handler(const bContext *C,
                                            void *user_data,
                                            const eWM_EventHandlerFlag flag)
 {
-  wmEventHandler_UI *handler = MEM_callocN<wmEventHandler_UI>(__func__);
+  wmEventHandler_UI *handler = MEM_new_zeroed<wmEventHandler_UI>(__func__);
   handler->head.type = WM_HANDLER_TYPE_UI;
   handler->handle_fn = handle_fn;
   handler->remove_fn = remove_fn;
@@ -5201,7 +5201,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBaseT<wmEventHandler> *
     }
   }
 
-  wmEventHandler_Dropbox *handler = MEM_callocN<wmEventHandler_Dropbox>(__func__);
+  wmEventHandler_Dropbox *handler = MEM_new_zeroed<wmEventHandler_Dropbox>(__func__);
   handler->head.type = WM_HANDLER_TYPE_DROPBOX;
 
   /* Dropbox stored static, no free or copy. */
@@ -5681,7 +5681,7 @@ void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData
 /* Adds custom-data to event. */
 static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *ghost)
 {
-  wmNDOFMotionData *data = MEM_new_for_free<wmNDOFMotionData>("Custom-data NDOF");
+  wmNDOFMotionData *data = MEM_new<wmNDOFMotionData>("Custom-data NDOF");
 
   const float ts = U.ndof_translation_sensitivity;
   const float rs = U.ndof_rotation_sensitivity;
@@ -6714,13 +6714,13 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
   bScreen *screen = WM_window_get_active_screen(win);
   ScrArea *area_statusbar = WM_window_status_area_find(win, screen);
   if (area_statusbar == nullptr) {
-    MEM_SAFE_FREE(win->runtime->cursor_keymap_status);
+    MEM_SAFE_DELETE_VOID(win->runtime->cursor_keymap_status);
     return;
   }
 
   CursorKeymapInfo *cd;
   if (UNLIKELY(win->runtime->cursor_keymap_status == nullptr)) {
-    win->runtime->cursor_keymap_status = MEM_new_for_free<CursorKeymapInfo>(__func__);
+    win->runtime->cursor_keymap_status = MEM_new<CursorKeymapInfo>(__func__);
   }
   cd = static_cast<CursorKeymapInfo *>(win->runtime->cursor_keymap_status);
 

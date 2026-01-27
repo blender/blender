@@ -150,7 +150,7 @@ void psys_reset(ParticleSystem *psys, int mode)
   }
 
   /* reset children */
-  MEM_SAFE_FREE(psys->child);
+  MEM_SAFE_DELETE(psys->child);
 
   psys->totchild = 0;
 
@@ -160,7 +160,7 @@ void psys_reset(ParticleSystem *psys, int mode)
   /* reset point cache */
   BKE_ptcache_invalidate(psys->pointcache);
 
-  MEM_SAFE_FREE(psys->fluid_springs);
+  MEM_SAFE_DELETE(psys->fluid_springs);
 
   psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
 }
@@ -205,18 +205,18 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
     }
 
     if (totpart) {
-      newpars = MEM_new_array_for_free<ParticleData>(totpart, "particles");
+      newpars = MEM_new_array<ParticleData>(totpart, "particles");
       if (newpars == nullptr) {
         return;
       }
 
       if (psys->part->phystype == PART_PHYS_BOIDS) {
-        newboids = MEM_new_array_for_free<BoidParticle>(totpart, "boid particles");
+        newboids = MEM_new_array<BoidParticle>(totpart, "boid particles");
 
         if (newboids == nullptr) {
           /* allocation error! */
           if (newpars) {
-            MEM_freeN(newpars);
+            MEM_delete(newpars);
           }
           return;
         }
@@ -235,11 +235,11 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
       }
 
       if (psys->particles->keys) {
-        MEM_freeN(psys->particles->keys);
+        MEM_delete(psys->particles->keys);
       }
 
       if (psys->particles->boid) {
-        MEM_freeN(psys->particles->boid);
+        MEM_delete(psys->particles->boid);
       }
 
       for (p = 0, pa = newpars; p < totsaved; p++, pa++) {
@@ -251,11 +251,11 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 
       for (p = totsaved, pa = psys->particles + totsaved; p < psys->totpart; p++, pa++) {
         if (pa->hair) {
-          MEM_freeN(pa->hair);
+          MEM_delete(pa->hair);
         }
       }
 
-      MEM_freeN(psys->particles);
+      MEM_delete(psys->particles);
       psys_free_pdd(psys);
     }
 
@@ -271,7 +271,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
   }
 
   if (psys->child) {
-    MEM_freeN(psys->child);
+    MEM_delete(psys->child);
     psys->child = nullptr;
     psys->totchild = 0;
   }
@@ -358,8 +358,8 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
       }
     }
 
-    nodedmelem = MEM_calloc_arrayN<LinkNode>(totdmelem, "psys node elems");
-    nodearray = MEM_calloc_arrayN<LinkNode *>(totelem, "psys node array");
+    nodedmelem = MEM_new_array_zeroed<LinkNode>(totdmelem, "psys node elems");
+    nodearray = MEM_new_array_zeroed<LinkNode *>(totelem, "psys node array");
 
     for (i = 0, node = nodedmelem; i < totdmelem; i++, node++) {
       int origindex_final;
@@ -422,8 +422,8 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
       }
     }
 
-    MEM_freeN(nodearray);
-    MEM_freeN(nodedmelem);
+    MEM_delete(nodearray);
+    MEM_delete(nodedmelem);
   }
   else {
     /* TODO_PARTICLE: make the following line unnecessary, each function
@@ -488,46 +488,46 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
 {
   /* path caching */
   if (ctx->vg_length) {
-    MEM_freeN(ctx->vg_length);
+    MEM_delete(ctx->vg_length);
   }
   if (ctx->vg_clump) {
-    MEM_freeN(ctx->vg_clump);
+    MEM_delete(ctx->vg_clump);
   }
   if (ctx->vg_kink) {
-    MEM_freeN(ctx->vg_kink);
+    MEM_delete(ctx->vg_kink);
   }
   if (ctx->vg_rough1) {
-    MEM_freeN(ctx->vg_rough1);
+    MEM_delete(ctx->vg_rough1);
   }
   if (ctx->vg_rough2) {
-    MEM_freeN(ctx->vg_rough2);
+    MEM_delete(ctx->vg_rough2);
   }
   if (ctx->vg_roughe) {
-    MEM_freeN(ctx->vg_roughe);
+    MEM_delete(ctx->vg_roughe);
   }
   if (ctx->vg_twist) {
-    MEM_freeN(ctx->vg_twist);
+    MEM_delete(ctx->vg_twist);
   }
 
   psys_sim_data_free(&ctx->sim);
 
   /* distribution */
   if (ctx->jit) {
-    MEM_freeN(ctx->jit);
+    MEM_delete(ctx->jit);
   }
   if (ctx->jitoff) {
-    MEM_freeN(ctx->jitoff);
+    MEM_delete(ctx->jitoff);
   }
   if (ctx->weight) {
-    MEM_freeN(ctx->weight);
+    MEM_delete(ctx->weight);
   }
   if (ctx->index) {
-    MEM_freeN(ctx->index);
+    MEM_delete(ctx->index);
   }
   if (ctx->seams) {
-    MEM_freeN(ctx->seams);
+    MEM_delete(ctx->seams);
   }
-  // if (ctx->vertpart) MEM_freeN(ctx->vertpart);
+  // if (ctx->vertpart) MEM_delete(ctx->vertpart);
   kdtree_3d_free(ctx->tree);
 
   if (ctx->clumpcurve != nullptr) {
@@ -620,10 +620,10 @@ static void free_unexisting_particles(ParticleSimulationData *sim)
 
   if (psys->totpart && psys->totunexist == psys->totpart) {
     if (psys->particles->boid) {
-      MEM_freeN(psys->particles->boid);
+      MEM_delete(psys->particles->boid);
     }
 
-    MEM_freeN(psys->particles);
+    MEM_delete(psys->particles);
     psys->particles = nullptr;
     psys->totpart = psys->totunexist = 0;
   }
@@ -632,7 +632,7 @@ static void free_unexisting_particles(ParticleSimulationData *sim)
     int newtotpart = psys->totpart - psys->totunexist;
     ParticleData *npa, *newpars;
 
-    npa = newpars = MEM_new_array_for_free<ParticleData>(newtotpart, "particles");
+    npa = newpars = MEM_new_array<ParticleData>(newtotpart, "particles");
 
     for (p = 0, pa = psys->particles; p < newtotpart; p++, pa++, npa++) {
       while (pa->flag & PARS_UNEXIST) {
@@ -643,15 +643,14 @@ static void free_unexisting_particles(ParticleSimulationData *sim)
     }
 
     if (psys->particles->boid) {
-      MEM_freeN(psys->particles->boid);
+      MEM_delete(psys->particles->boid);
     }
-    MEM_freeN(psys->particles);
+    MEM_delete(psys->particles);
     psys->particles = newpars;
     psys->totpart -= psys->totunexist;
 
     if (psys->particles->boid) {
-      BoidParticle *newboids = MEM_new_array_for_free<BoidParticle>(psys->totpart,
-                                                                    "boid particles");
+      BoidParticle *newboids = MEM_new_array<BoidParticle>(psys->totpart, "boid particles");
 
       LOOP_PARTICLES
       {
@@ -1215,7 +1214,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
   if (totpart && psys->particles->totkey != totkeys) {
     free_keyed_keys(psys);
 
-    key = MEM_calloc_arrayN<ParticleKey>(size_t(totpart) * size_t(totkeys), "Keyed keys");
+    key = MEM_new_array_zeroed<ParticleKey>(size_t(totpart) * size_t(totkeys), "Keyed keys");
 
     LOOP_PARTICLES
     {
@@ -1560,14 +1559,14 @@ static ParticleSpring *sph_spring_add(ParticleSystem *psys, ParticleSpring *spri
   /* Are more refs required? */
   if (psys->alloc_fluidsprings == 0 || psys->fluid_springs == nullptr) {
     psys->alloc_fluidsprings = PSYS_FLUID_SPRINGS_INITIAL_SIZE;
-    psys->fluid_springs = MEM_calloc_arrayN<ParticleSpring>(psys->alloc_fluidsprings,
-                                                            "Particle Fluid Springs");
+    psys->fluid_springs = MEM_new_array_zeroed<ParticleSpring>(psys->alloc_fluidsprings,
+                                                               "Particle Fluid Springs");
   }
   else if (psys->tot_fluidsprings == psys->alloc_fluidsprings) {
     /* Double the number of refs allocated */
     psys->alloc_fluidsprings *= 2;
-    psys->fluid_springs = static_cast<ParticleSpring *>(
-        MEM_reallocN(psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring)));
+    psys->fluid_springs = static_cast<ParticleSpring *>(MEM_realloc_uninitialized(
+        psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring)));
   }
 
   memcpy(psys->fluid_springs + psys->tot_fluidsprings, spring, sizeof(ParticleSpring));
@@ -1587,8 +1586,8 @@ static void sph_spring_delete(ParticleSystem *psys, int j)
       psys->alloc_fluidsprings > PSYS_FLUID_SPRINGS_INITIAL_SIZE)
   {
     psys->alloc_fluidsprings /= 2;
-    psys->fluid_springs = static_cast<ParticleSpring *>(
-        MEM_reallocN(psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring)));
+    psys->fluid_springs = static_cast<ParticleSpring *>(MEM_realloc_uninitialized(
+        psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring)));
   }
 }
 static void sph_springs_modify(ParticleSystem *psys, float dtime)
@@ -3295,7 +3294,7 @@ static MDeformVert *hair_set_pinning(MDeformVert *dvert, float weight)
 {
   if (dvert) {
     if (!dvert->totweight) {
-      dvert->dw = MEM_callocN<MDeformWeight>("deformWeight");
+      dvert->dw = MEM_new_zeroed<MDeformWeight>("deformWeight");
       dvert->totweight = 1;
     }
 
@@ -3330,7 +3329,8 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   dvert = mesh->deform_verts_for_write().data();
 
   if (psys->clmd->hairdata == nullptr) {
-    psys->clmd->hairdata = MEM_malloc_arrayN<ClothHairData>(size_t(totpoint), "hair data");
+    psys->clmd->hairdata = MEM_new_array_uninitialized<ClothHairData>(size_t(totpoint),
+                                                                      "hair data");
   }
 
   /* calculate maximum segment length */
@@ -3476,7 +3476,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 
   if (!psys->hair_in_mesh || !psys->clmd->hairdata || realloc_roots) {
     if (psys->clmd->hairdata) {
-      MEM_freeN(psys->clmd->hairdata);
+      MEM_delete(psys->clmd->hairdata);
       psys->clmd->hairdata = nullptr;
     }
   }
@@ -3576,7 +3576,7 @@ static void save_hair(ParticleSimulationData *sim, float /*cfra*/)
   {
     /* first time alloc */
     if (pa->totkey == 0 || pa->hair == nullptr) {
-      pa->hair = MEM_calloc_arrayN<HairKey>(size_t(psys->part->hair_step) + 1, "HairKeys");
+      pa->hair = MEM_new_array_zeroed<HairKey>(size_t(psys->part->hair_step) + 1, "HairKeys");
       pa->totkey = 0;
     }
 
@@ -4169,7 +4169,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
 {
   ParticleSystem *psys = sim->psys;
   if (psys->particles) {
-    MEM_freeN(psys->particles);
+    MEM_delete(psys->particles);
     psys->particles = nullptr;
     psys->totpart = 0;
   }
@@ -4506,7 +4506,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
     reset_all_particles(sim, 0.0, cfra, oldtotpart);
     free_unexisting_particles(sim);
 
-    MEM_SAFE_FREE(psys->fluid_springs);
+    MEM_SAFE_DELETE(psys->fluid_springs);
 
     psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
 
@@ -4671,7 +4671,7 @@ void psys_check_boid_data(ParticleSystem *psys)
 
   if (psys->part && psys->part->phystype == PART_PHYS_BOIDS) {
     if (!pa->boid) {
-      bpa = MEM_new_array_for_free<BoidParticle>(psys->totpart, "Boid Data");
+      bpa = MEM_new_array<BoidParticle>(psys->totpart, "Boid Data");
 
       LOOP_PARTICLES
       {
@@ -4680,7 +4680,7 @@ void psys_check_boid_data(ParticleSystem *psys)
     }
   }
   else if (pa->boid) {
-    MEM_freeN(pa->boid);
+    MEM_delete(pa->boid);
     LOOP_PARTICLES
     {
       pa->boid = nullptr;
@@ -4755,7 +4755,7 @@ static void particle_settings_free_local(ParticleSettings *particle_settings)
   BKE_libblock_free_datablock(&particle_settings->id, 0);
   BKE_libblock_free_data(&particle_settings->id, false);
   BLI_assert(!particle_settings->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
-  MEM_freeN(particle_settings);
+  MEM_delete(particle_settings);
 }
 
 void particle_system_update(Depsgraph *depsgraph,

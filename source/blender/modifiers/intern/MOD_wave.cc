@@ -169,7 +169,7 @@ static void waveModifier_do(WaveModifierData *wmd,
 
   Tex *tex_target = wmd->texture;
   if (mesh != nullptr && tex_target != nullptr) {
-    tex_co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
+    tex_co = MEM_new_array_uninitialized<float[3]>(size_t(verts_num), __func__);
     MOD_get_texture_coords(
         reinterpret_cast<MappingInfoModifierData *>(wmd), ctx, ob, mesh, vertexCos, tex_co);
 
@@ -272,7 +272,7 @@ static void waveModifier_do(WaveModifierData *wmd,
     }
   }
 
-  MEM_SAFE_FREE(tex_co);
+  MEM_SAFE_DELETE(tex_co);
 }
 
 static void deform_verts(ModifierData *md,

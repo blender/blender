@@ -111,6 +111,8 @@ struct AttributeInit {
   enum class Type {
     /** #AttributeInitConstruct. */
     Construct,
+    /** #AttributeInitValue. */
+    Value,
     /** #AttributeInitDefaultValue. */
     DefaultValue,
     /** #AttributeInitVArray. */
@@ -130,6 +132,20 @@ struct AttributeInit {
  */
 struct AttributeInitConstruct : public AttributeInit {
   AttributeInitConstruct() : AttributeInit(Type::Construct) {}
+};
+
+/**
+ * Create attribute data with the given value, which must be the same as the specified type.
+ */
+struct AttributeInitValue : public AttributeInit {
+  GPointer value;
+
+  /** \warning The value argument must out-live this attribute initialization operation. */
+  template<typename T>
+  AttributeInitValue(const T &value) : AttributeInit(Type::Value), value(GPointer(&value))
+  {
+  }
+  AttributeInitValue(const GPointer value) : AttributeInit(Type::Value), value(value) {}
 };
 
 /**

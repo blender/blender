@@ -500,7 +500,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
   /* STEP 1: make using FillVert and FillEdge lists a sorted
    * ScanFillVertLink list
    */
-  sc = scdata = MEM_malloc_arrayN<ScanFillVertLink>(pf->verts, "Scanfill1");
+  sc = scdata = MEM_new_array_uninitialized<ScanFillVertLink>(pf->verts, "Scanfill1");
   verts = 0;
   for (ScanFillVert &eve : sf_ctx->fillvertbase) {
     if (eve.poly_nr == nr) {
@@ -773,7 +773,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
     sc++;
   }
 
-  MEM_freeN(scdata);
+  MEM_delete(scdata);
 
   BLI_assert(totface <= maxface);
 
@@ -1037,7 +1037,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
    */
 
   /* STEP 3: MAKE POLYFILL STRUCT */
-  pflist = MEM_malloc_arrayN<PolyFill>(size_t(poly), "edgefill");
+  pflist = MEM_new_array_uninitialized<PolyFill>(size_t(poly), "edgefill");
   pf = pflist;
   for (a = 0; a < poly; a++) {
     pf->edges = pf->verts = 0;
@@ -1079,7 +1079,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
     }
 #endif
 
-    uint *target_map = MEM_calloc_arrayN<uint>(poly, "polycache");
+    uint *target_map = MEM_new_array_zeroed<uint>(poly, "polycache");
     range_vn_u(target_map, poly, 0);
 
     for (a = 0; a < poly; a++) {
@@ -1098,7 +1098,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
       }
     }
 
-    MEM_freeN(target_map);
+    MEM_delete(target_map);
   }
 
 #if 0
@@ -1132,7 +1132,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
 
   /* FREE */
 
-  MEM_freeN(pflist);
+  MEM_delete(pflist);
 
   return totfaces;
 }

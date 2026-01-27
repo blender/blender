@@ -107,7 +107,7 @@ static PyObject *python_compat_wrapper_PyRun_FileExFlags(FILE *fp,
     buf[buf_len] = '\0';
     PyObject *filepath_py = PyC_UnicodeFromBytes(filepath);
     PyObject *compiled = Py_CompileStringObject(buf, filepath_py, Py_file_input, flags, -1);
-    MEM_freeN(buf);
+    MEM_delete(buf);
     Py_DECREF(filepath_py);
 
     if (compiled == nullptr) {
@@ -159,7 +159,7 @@ static bool python_script_exec(
       size_t buf_len_dummy;
       char *buf = txt_to_buf(text, &buf_len_dummy);
       text->compiled = Py_CompileStringObject(buf, filepath_dummy_py, Py_file_input, nullptr, -1);
-      MEM_freeN(buf);
+      MEM_delete(buf);
       Py_DECREF(filepath_dummy_py);
     }
 
@@ -316,7 +316,7 @@ bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
  * \return IDProperty The converted property, or nullptr if the Python value was None. The caller
  * owns the pointer, and is responsible for freeing it.
  */
-static IDProperty *pyobject_to_idprop(const blender::StringRefNull prop_name, PyObject *py_object)
+static IDProperty *pyobject_to_idprop(const StringRefNull prop_name, PyObject *py_object)
 {
   if (py_object == Py_None) {
     return nullptr;
@@ -332,9 +332,9 @@ static IDProperty *pyobject_to_idprop(const blender::StringRefNull prop_name, Py
  * dealing with the exception.
  */
 static bool bpy_run_string_exec_with_locals_assume_gil(
-    const blender::StringRefNull script,
+    const StringRefNull script,
     IDProperty &locals,
-    blender::FunctionRef<void(PyObject *py_locals)> on_exec_ok)
+    FunctionRef<void(PyObject *py_locals)> on_exec_ok)
 {
   /* Set up locals & globals. */
   BLI_assert(locals.type == IDP_GROUP);
@@ -368,9 +368,9 @@ static bool bpy_run_string_exec_with_locals_assume_gil(
 
 static bool bpy_run_string_exec_with_locals_acquire_gil(
     bContext *C,
-    const blender::StringRefNull script,
+    const StringRefNull script,
     IDProperty &locals,
-    blender::FunctionRef<void(PyObject *py_locals)> on_exec_ok)
+    FunctionRef<void(PyObject *py_locals)> on_exec_ok)
 {
   PyGILState_STATE gilstate;
   bpy_context_set(C, &gilstate);
@@ -391,18 +391,16 @@ static bool bpy_run_string_exec_with_locals_acquire_gil(
   return ok;
 }
 
-bool BPY_run_string_exec_with_locals(bContext *C,
-                                     const blender::StringRefNull script,
-                                     IDProperty &locals)
+bool BPY_run_string_exec_with_locals(bContext *C, const StringRefNull script, IDProperty &locals)
 {
   return bpy_run_string_exec_with_locals_acquire_gil(C, script, locals, nullptr);
 }
 
 std::optional<IDProperty *> BPY_run_string_exec_with_locals_return_idprop(
     bContext *C,
-    const blender::StringRefNull script,
+    const StringRefNull script,
     IDProperty &locals,
-    const blender::StringRefNull result_var_name)
+    const StringRefNull result_var_name)
 {
   BLI_assert(!result_var_name.is_empty());
 

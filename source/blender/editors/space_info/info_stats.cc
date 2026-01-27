@@ -532,7 +532,7 @@ static void stats_update(Depsgraph *depsgraph,
 
 void ED_info_stats_clear(wmWindowManager *wm, ViewLayer *view_layer)
 {
-  MEM_SAFE_FREE(view_layer->stats);
+  MEM_SAFE_DELETE(view_layer->stats);
 
   for (wmWindow &win : wm->windows) {
     ViewLayer *view_layer_test = WM_window_get_active_view_layer(&win);
@@ -553,7 +553,7 @@ void ED_info_stats_clear(wmWindowManager *wm, ViewLayer *view_layer)
 
 void ED_view3d_local_stats_free(View3D *v3d)
 {
-  MEM_SAFE_FREE(v3d->runtime.local_stats);
+  MEM_SAFE_DELETE(v3d->runtime.local_stats);
 }
 
 static bool format_stats(
@@ -568,7 +568,7 @@ static bool format_stats(
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
-    *stats_p = MEM_mallocN<SceneStats>(__func__);
+    *stats_p = MEM_new_uninitialized<SceneStats>(__func__);
     stats_update(depsgraph, scene, view_layer, v3d_local, *stats_p);
   }
 

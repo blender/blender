@@ -1318,7 +1318,7 @@ static void hide_show_init_properties(bContext & /*C*/,
                                       wmOperator &op)
 {
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<HideShowOperation>(__func__));
+      MEM_new_zeroed<HideShowOperation>(__func__));
 
   HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data.operation);
 

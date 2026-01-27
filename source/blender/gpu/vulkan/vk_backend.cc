@@ -500,6 +500,16 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.vertex_input_dynamic_state = false;
   }
 
+  /* Disable vertex input dynamic state for Qualcomm devices (#153414).
+   *
+   * TODO: We should re-validate vertex input dynamic state as there are multiple vendors with
+   * similar issues. It might be an oversight. Will wait for feedback from the driver developers
+   * and perfrom some out of bounds error checks.
+   */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    extensions.vertex_input_dynamic_state = false;
+  }
+
   /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel
    * performance is better when disabled (20%). On Qualcomm devices the improvement can be
    * substantial (16% on shader_balls.blend).

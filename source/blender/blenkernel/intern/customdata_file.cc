@@ -92,7 +92,7 @@ static int cdf_endian()
 
 CDataFile *cdf_create(int type)
 {
-  CDataFile *cdf = MEM_callocN<CDataFile>("CDataFile");
+  CDataFile *cdf = MEM_new_zeroed<CDataFile>("CDataFile");
 
   cdf->type = type;
 
@@ -105,10 +105,10 @@ void cdf_free(CDataFile *cdf)
   cdf_write_close(cdf);
 
   if (cdf->layer) {
-    MEM_freeN(cdf->layer);
+    MEM_delete(cdf->layer);
   }
 
-  MEM_freeN(cdf);
+  MEM_delete(cdf);
 }
 
 /********************************* Read/Write ********************************/
@@ -184,7 +184,7 @@ static bool cdf_read_header(CDataFile *cdf)
     return false;
   }
 
-  cdf->layer = MEM_calloc_arrayN<CDataFileLayer>(header->totlayer, "CDataFileLayer");
+  cdf->layer = MEM_new_array_zeroed<CDataFileLayer>(header->totlayer, "CDataFileLayer");
   cdf->totlayer = header->totlayer;
 
   if (!cdf->layer) {
@@ -417,7 +417,7 @@ CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t
   CDataFileLayer *newlayer, *layer;
 
   /* expand array */
-  newlayer = MEM_calloc_arrayN<CDataFileLayer>(size_t(cdf->totlayer) + 1, "CDataFileLayer");
+  newlayer = MEM_new_array_zeroed<CDataFileLayer>(size_t(cdf->totlayer) + 1, "CDataFileLayer");
   if (cdf->totlayer > 0) {
     memcpy(newlayer, cdf->layer, sizeof(CDataFileLayer) * cdf->totlayer);
   }

@@ -153,7 +153,7 @@ static void volume_copy_data(Main * /*bmain*/,
     volume_dst->packedfile = BKE_packedfile_duplicate(volume_src->packedfile);
   }
 
-  volume_dst->mat = static_cast<Material **>(MEM_dupallocN(volume_src->mat));
+  volume_dst->mat = MEM_dupalloc(volume_src->mat);
 #ifdef WITH_OPENVDB
   if (volume_src->runtime->grids) {
     const VolumeGridVector &grids_src = *(volume_src->runtime->grids);
@@ -179,7 +179,7 @@ static void volume_free_data(ID *id)
   Volume *volume = id_cast<Volume *>(id);
   BKE_animdata_free(&volume->id, false);
   BKE_volume_batch_cache_free(volume);
-  MEM_SAFE_FREE(volume->mat);
+  MEM_SAFE_DELETE(volume->mat);
   if (volume->packedfile) {
     BKE_packedfile_free(volume->packedfile);
     volume->packedfile = nullptr;
@@ -938,7 +938,7 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   Volume *volume_dst = BKE_id_new_nomain<Volume>(nullptr);
 
   STRNCPY(volume_dst->id.name, volume_src->id.name);
-  volume_dst->mat = static_cast<Material **>(MEM_dupallocN(volume_src->mat));
+  volume_dst->mat = MEM_dupalloc(volume_src->mat);
   volume_dst->totcol = volume_src->totcol;
   volume_dst->render = volume_src->render;
   volume_dst->display = volume_src->display;

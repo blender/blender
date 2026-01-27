@@ -66,8 +66,8 @@ void template_add_button_search_menu(const bContext *C,
                                      const bool use_previews,
                                      const bool editable,
                                      const bool live_icon,
-                                     ButtonArgNFree func_argN_free_fn = MEM_freeN,
-                                     ButtonArgNCopy func_argN_copy_fn = MEM_dupallocN);
+                                     ButtonArgNFree func_argN_free_fn = MEM_delete_void,
+                                     ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc);
 
 Block *template_common_search_menu(const bContext *C,
                                    ARegion *region,

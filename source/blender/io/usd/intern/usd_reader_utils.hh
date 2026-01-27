@@ -16,7 +16,7 @@ namespace io::usd {
 
 void set_id_props_from_prim(ID *id,
                             const pxr::UsdPrim &prim,
-                            eUSDPropertyImportMode property_import_mode = USD_ATTR_IMPORT_ALL,
+                            PropertyImportMode property_import_mode = PropertyImportMode::All,
                             pxr::UsdTimeCode time_code = pxr::UsdTimeCode::Default());
 
 }  // namespace io::usd

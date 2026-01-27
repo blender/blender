@@ -77,7 +77,7 @@ void BKE_mesh_debug_print(const Mesh *mesh)
   char *str = BKE_mesh_debug_info(mesh);
   puts(str);
   fflush(stdout);
-  MEM_freeN(str);
+  MEM_delete(str);
 }
 
 }  // namespace blender

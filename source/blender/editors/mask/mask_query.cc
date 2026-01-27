@@ -139,9 +139,9 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
           }
 
           if (feather_points != nullptr) {
-            MEM_freeN(feather_points);
+            MEM_delete(feather_points);
           }
-          MEM_freeN(diff_points);
+          MEM_delete(diff_points);
         }
       }
     }
@@ -442,7 +442,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
         }
       }
 
-      MEM_freeN(feather_points);
+      MEM_delete(feather_points);
     }
   }
 

@@ -45,7 +45,7 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   ARegion *region;
   SpaceTopBar *stopbar;
 
-  stopbar = MEM_new_for_free<SpaceTopBar>("init topbar");
+  stopbar = MEM_new<SpaceTopBar>("init topbar");
   stopbar->spacetype = SPACE_TOPBAR;
 
   /* header */
@@ -74,7 +74,7 @@ static void topbar_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *topbar_duplicate(SpaceLink *sl)
 {
-  SpaceTopBar *stopbarn = static_cast<SpaceTopBar *>(MEM_dupallocN(sl));
+  SpaceTopBar *stopbarn = MEM_dupalloc(reinterpret_cast<SpaceTopBar *>(sl));
 
   /* clear or remove stuff from old */
 
@@ -215,7 +215,7 @@ static void recent_files_menu_register()
 {
   MenuType *mt;
 
-  mt = MEM_callocN<MenuType>("spacetype info menu recent files");
+  mt = MEM_new_zeroed<MenuType>("spacetype info menu recent files");
   STRNCPY_UTF8(mt->idname, "TOPBAR_MT_file_open_recent");
   STRNCPY_UTF8(mt->label, N_("Open Recent"));
   STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -273,7 +273,7 @@ static void undo_history_menu_register()
 {
   MenuType *mt;
 
-  mt = MEM_callocN<MenuType>(__func__);
+  mt = MEM_new_zeroed<MenuType>(__func__);
   STRNCPY_UTF8(mt->idname, "TOPBAR_MT_undo_history");
   STRNCPY_UTF8(mt->label, N_("Undo History"));
   STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -303,7 +303,7 @@ void ED_spacetype_topbar()
   st->blend_write = topbar_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype topbar main region");
+  art = MEM_new_zeroed<ARegionType>("spacetype topbar main region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = topbar_main_region_init;
   art->layout = ED_region_header_layout;
@@ -315,7 +315,7 @@ void ED_spacetype_topbar()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype topbar header region");
+  art = MEM_new_zeroed<ARegionType>("spacetype topbar header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->prefsizex = UI_UNIT_X * 5; /* Mainly to avoid glitches */

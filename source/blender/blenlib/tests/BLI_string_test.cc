@@ -775,7 +775,7 @@ static void string_join_array_test_truncate(const char *strings[],
   { /* Ensure the allocated version is the same. */
     char *buffer_alloc = BLI_string_join_arrayN(strings, strings_num);
     EXPECT_STREQ(buffer_alloc, buffer);
-    MEM_freeN(buffer_alloc);
+    MEM_delete(buffer_alloc);
   }
 
   for (int dst_size = buffer_len + 1; dst_size > 0; dst_size--) {
@@ -796,7 +796,7 @@ static void string_join_array_with_sep_char_test_truncate(const char *strings[],
   { /* Ensure the allocated version is the same. */
     char *buffer_alloc = BLI_string_join_array_by_sep_charN('|', strings, strings_num);
     EXPECT_STREQ(buffer_alloc, buffer);
-    MEM_freeN(buffer_alloc);
+    MEM_delete(buffer_alloc);
   }
 
   for (int dst_size = buffer_len + 1; dst_size > 0; dst_size--) {

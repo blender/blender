@@ -214,20 +214,20 @@ static void editselect_buf_cache_init(const ViewContext *vc, short select_mode)
 
 static void editselect_buf_cache_free(EditSelectBuf_Cache *esel)
 {
-  MEM_SAFE_FREE(esel->select_bitmap);
+  MEM_SAFE_DELETE(esel->select_bitmap);
 }
 
 static void editselect_buf_cache_free_voidp(void *esel_voidp)
 {
   editselect_buf_cache_free(static_cast<EditSelectBuf_Cache *>(esel_voidp));
-  MEM_freeN(static_cast<EditSelectBuf_Cache *>(esel_voidp));
+  MEM_delete(static_cast<EditSelectBuf_Cache *>(esel_voidp));
 }
 
 static void editselect_buf_cache_init_with_generic_userdata(wmGenericUserData *wm_userdata,
                                                             const ViewContext *vc,
                                                             short select_mode)
 {
-  EditSelectBuf_Cache *esel = MEM_callocN<EditSelectBuf_Cache>(__func__);
+  EditSelectBuf_Cache *esel = MEM_new_zeroed<EditSelectBuf_Cache>(__func__);
   wm_userdata->data = esel;
   wm_userdata->free_fn = editselect_buf_cache_free_voidp;
   wm_userdata->use_free = true;
@@ -1779,7 +1779,7 @@ static bool object_mouse_select_menu(bContext *C,
 
     if (ok) {
       base_count++;
-      BaseRefWithDepth *base_ref = MEM_callocN<BaseRefWithDepth>(__func__);
+      BaseRefWithDepth *base_ref = MEM_new_zeroed<BaseRefWithDepth>(__func__);
       base_ref->base = base;
       base_ref->depth_id = depth_id;
       BLI_addtail(&base_ref_list, static_cast<void *>(base_ref));
@@ -2017,7 +2017,7 @@ static bool bone_mouse_select_menu(bContext *C,
 
     if (!is_duplicate_bone) {
       bone_count++;
-      BoneRefWithDepth *bone_ref = MEM_callocN<BoneRefWithDepth>(__func__);
+      BoneRefWithDepth *bone_ref = MEM_new_zeroed<BoneRefWithDepth>(__func__);
       bone_ref->base = bone_base;
       bone_ref->bone_ptr = bone_ptr;
       bone_ref->depth_id = hit_result.depth;
@@ -4933,7 +4933,7 @@ static bool paint_facesel_circle_select(const ViewContext *vc,
         vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), nullptr);
     if (esel->select_bitmap != nullptr) {
       changed |= edbm_backbuf_check_and_select_faces_obmode(mesh, esel, sel_op);
-      MEM_freeN(esel->select_bitmap);
+      MEM_delete(esel->select_bitmap);
       esel->select_bitmap = nullptr;
     }
   }
@@ -4993,7 +4993,7 @@ static bool paint_vertsel_circle_select(const ViewContext *vc,
         vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), nullptr);
     if (esel->select_bitmap != nullptr) {
       changed |= edbm_backbuf_check_and_select_verts_obmode(mesh, esel, sel_op);
-      MEM_freeN(esel->select_bitmap);
+      MEM_delete(esel->select_bitmap);
       esel->select_bitmap = nullptr;
     }
   }
@@ -5737,7 +5737,7 @@ static wmOperatorStatus view3d_circle_select_exec(bContext *C, wmOperator *op)
   else {
     EditSelectBuf_Cache *esel = static_cast<EditSelectBuf_Cache *>(wm_userdata->data);
     if (esel && esel->select_bitmap) {
-      MEM_freeN(esel->select_bitmap);
+      MEM_delete(esel->select_bitmap);
       esel->select_bitmap = nullptr;
     }
   }

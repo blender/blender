@@ -49,7 +49,7 @@ struct GeoViewerItemsAccessor : public socket_items::SocketItemsAccessorDefaults
 
   static void destruct_item(NodeGeometryViewerItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

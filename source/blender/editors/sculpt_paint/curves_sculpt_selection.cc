@@ -17,7 +17,7 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
   if (const auto meta_data = attributes.lookup_meta_data(".selection")) {
     if (meta_data->data_type == bke::AttrType::Bool) {
       const VArray<float> selection = *attributes.lookup<float>(".selection");
-      float *dst = MEM_malloc_arrayN<float>(selection.size(), __func__);
+      float *dst = MEM_new_array_uninitialized<float>(selection.size(), __func__);
       selection.materialize({dst, selection.size()});
 
       attributes.remove(".selection");
@@ -26,12 +26,10 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
     }
   }
   else {
-    const bke::AttrDomain domain = bke::AttrDomain(curves_id.selection_domain);
-    const int64_t size = attributes.domain_size(domain);
     attributes.add(".selection",
-                   domain,
+                   bke::AttrDomain(curves_id.selection_domain),
                    bke::AttrType::Float,
-                   bke::AttributeInitVArray(VArray<float>::from_single(1.0f, size)));
+                   bke::AttributeInitValue(1.0f));
   }
 
   return curves.attributes_for_write().lookup_for_write_span<float>(".selection");

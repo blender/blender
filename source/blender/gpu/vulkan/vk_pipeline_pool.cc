@@ -690,7 +690,7 @@ void VKPipelinePool::read_from_disk()
   fstream file(cache_file, std::ios::binary | std::ios::in | std::ios::ate);
   std::streamsize data_size = file.tellg();
   file.seekg(0, std::ios::beg);
-  void *buffer = MEM_mallocN(data_size, __func__);
+  void *buffer = MEM_new_uninitialized(data_size, __func__);
   file.read(reinterpret_cast<char *>(buffer), data_size);
   file.close();
 
@@ -702,7 +702,7 @@ void VKPipelinePool::read_from_disk()
     /* Headers are different, most likely the cache will not work and potentially crash the driver.
      * [https://medium.com/@zeuxcg/creating-a-robust-pipeline-cache-with-vulkan-961d09416cda]
      */
-    MEM_freeN(buffer);
+    MEM_delete_void(buffer);
     CLOG_INFO(&LOG,
               "Pipeline cache on disk [%s] is ignored as it was written by a different driver or "
               "Blender version. Cache will be overwritten when exiting.",
@@ -718,7 +718,7 @@ void VKPipelinePool::read_from_disk()
   create_info.pInitialData = static_cast<uint8_t *>(buffer) + sizeof(VKPipelineCachePrefixHeader);
   VkPipelineCache vk_pipeline_cache = VK_NULL_HANDLE;
   vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache);
-  MEM_freeN(buffer);
+  MEM_delete_void(buffer);
 
   vkMergePipelineCaches(device.vk_handle(), vk_pipeline_cache_static_, 1, &vk_pipeline_cache);
   vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache, nullptr);
@@ -737,7 +737,7 @@ void VKPipelinePool::write_to_disk()
   VKDevice &device = VKBackend::get().device;
   size_t data_size;
   vkGetPipelineCacheData(device.vk_handle(), vk_pipeline_cache_static_, &data_size, nullptr);
-  void *buffer = MEM_mallocN(data_size, __func__);
+  void *buffer = MEM_new_uninitialized(data_size, __func__);
   vkGetPipelineCacheData(device.vk_handle(), vk_pipeline_cache_static_, &data_size, buffer);
 
   std::string cache_file = pipeline_cache_filepath_get();
@@ -750,7 +750,7 @@ void VKPipelinePool::write_to_disk()
   file.write(reinterpret_cast<char *>(&header), sizeof(VKPipelineCachePrefixHeader));
   file.write(static_cast<char *>(buffer), data_size);
 
-  MEM_freeN(buffer);
+  MEM_delete_void(buffer);
 #endif
 }
 

@@ -28,18 +28,19 @@ static void alloc_scale_dst_buffers(
 {
   *r_dst_byte = nullptr;
   if (ibuf->byte_buffer.data != nullptr) {
-    *r_dst_byte = MEM_malloc_arrayN<uchar4>(size_t(newx) * size_t(newy), "scale_buf_byte");
+    *r_dst_byte = MEM_new_array_uninitialized<uchar4>(size_t(newx) * size_t(newy),
+                                                      "scale_buf_byte");
     if (*r_dst_byte == nullptr) {
       return;
     }
   }
   *r_dst_float = nullptr;
   if (ibuf->float_buffer.data != nullptr) {
-    *r_dst_float = MEM_malloc_arrayN<float>(size_t(ibuf->channels) * newx * newy,
-                                            "scale_buf_float");
+    *r_dst_float = MEM_new_array_uninitialized<float>(size_t(ibuf->channels) * newx * newy,
+                                                      "scale_buf_float");
     if (*r_dst_float == nullptr) {
       if (*r_dst_byte) {
-        MEM_freeN(*r_dst_byte);
+        MEM_delete(*r_dst_byte);
       }
       return;
     }
@@ -515,10 +516,10 @@ ImBuf *IMB_scale_into_new(
       alloc_scale_dst_buffers(ibuf, newx, ibuf->y, &tmp_byte, &tmp_float);
       if (tmp_byte == nullptr && tmp_float == nullptr) {
         if (dst_byte != nullptr) {
-          MEM_freeN(dst_byte);
+          MEM_delete(dst_byte);
         }
         if (dst_byte != nullptr) {
-          MEM_freeN(dst_float);
+          MEM_delete(dst_float);
         }
         return nullptr;
       }
@@ -547,10 +548,10 @@ ImBuf *IMB_scale_into_new(
       }
 
       if (tmp_byte != nullptr) {
-        MEM_freeN(tmp_byte);
+        MEM_delete(tmp_byte);
       }
       if (tmp_float != nullptr) {
-        MEM_freeN(tmp_float);
+        MEM_delete(tmp_float);
       }
     } break;
   }

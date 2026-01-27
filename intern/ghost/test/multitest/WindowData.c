@@ -17,7 +17,7 @@ struct _WindowData {
 
 WindowData *windowdata_new(void *data, WindowDataHandler handler)
 {
-  WindowData *wb = MEM_mallocN(sizeof(*wb), "windowdata_new");
+  WindowData *wb = MEM_new_uninitialized(sizeof(*wb), "windowdata_new");
   wb->data = data;
   wb->handler = handler;
 
@@ -31,5 +31,5 @@ void windowdata_handle(WindowData *wb, GHOST_EventHandle evt)
 
 void windowdata_free(WindowData *wb)
 {
-  MEM_freeN(wb);
+  MEM_delete(wb);
 }

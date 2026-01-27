@@ -44,7 +44,7 @@ void node_free_curves(bNode *node)
 void node_free_standard_storage(bNode *node)
 {
   if (node->storage) {
-    MEM_freeN(node->storage);
+    MEM_delete_void(node->storage);
   }
 }
 
@@ -57,7 +57,7 @@ void node_copy_standard_storage(bNodeTree * /*dest_ntree*/,
                                 bNode *dest_node,
                                 const bNode *src_node)
 {
-  dest_node->storage = MEM_dupallocN(src_node->storage);
+  dest_node->storage = MEM_dupalloc_void(src_node->storage);
 }
 
 void *node_initexec_curves(bNodeExecContext * /*context*/, bNode *node, bNodeInstanceKey /*key*/)

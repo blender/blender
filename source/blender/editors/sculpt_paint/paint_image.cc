@@ -203,7 +203,7 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 
     side = kernel->side = 2;
     kernel->side_squared = kernel->side * kernel->side;
-    kernel->wdata = MEM_malloc_arrayN<float>(kernel->side_squared, "blur kernel data");
+    kernel->wdata = MEM_new_array_uninitialized<float>(kernel->side_squared, "blur kernel data");
     kernel->pixel_len = radius;
   }
   else {
@@ -215,7 +215,7 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 
     side = kernel->side = radius * 2 + 1;
     kernel->side_squared = kernel->side * kernel->side;
-    kernel->wdata = MEM_malloc_arrayN<float>(kernel->side_squared, "blur kernel data");
+    kernel->wdata = MEM_new_array_uninitialized<float>(kernel->side_squared, "blur kernel data");
     kernel->pixel_len = br->blur_kernel_radius;
   }
 
@@ -259,7 +259,7 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 void paint_delete_blur_kernel(BlurKernel *kernel)
 {
   if (kernel->wdata) {
-    MEM_freeN(kernel->wdata);
+    MEM_delete(kernel->wdata);
   }
 }
 
@@ -545,7 +545,7 @@ static wmOperatorStatus grab_clone_invoke(bContext *C, wmOperator *op, const wmE
   const ImagePaintSettings &image_paint_settings = settings->imapaint;
   GrabClone *cmv;
 
-  cmv = MEM_callocN<GrabClone>("GrabClone");
+  cmv = MEM_new_zeroed<GrabClone>("GrabClone");
   copy_v2_v2(cmv->startoffset, image_paint_settings.clone_offset);
   cmv->startx = event->xy[0];
   cmv->starty = event->xy[1];
@@ -570,7 +570,7 @@ static wmOperatorStatus grab_clone_modal(bContext *C, wmOperator *op, const wmEv
     case LEFTMOUSE:
     case MIDDLEMOUSE:
     case RIGHTMOUSE: /* XXX hardcoded */
-      MEM_freeN(cmv);
+      MEM_delete(cmv);
       return OPERATOR_FINISHED;
     case MOUSEMOVE:
       /* mouse moved, so move the clone image */

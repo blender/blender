@@ -217,7 +217,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   if (do_vtargetmap) {
     /* second half is filled with -1 */
-    *r_vert_merge_map = MEM_malloc_arrayN<int>(2 * size_t(src_verts_num), "MOD_mirror tarmap");
+    *r_vert_merge_map = MEM_new_array_uninitialized<int>(2 * size_t(src_verts_num),
+                                                         "MOD_mirror tarmap");
 
     vtmap_a = *r_vert_merge_map;
     vtmap_b = *r_vert_merge_map + src_verts_num;
@@ -452,7 +453,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
           }
         }
 
-        MEM_freeN(flip_map);
+        MEM_delete(flip_map);
       }
     }
   }

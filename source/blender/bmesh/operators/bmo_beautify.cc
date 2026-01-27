@@ -46,8 +46,8 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
   }
 
   /* will over alloc if some edges can't be rotated */
-  edge_array = MEM_malloc_arrayN<BMEdge *>(size_t(BMO_slot_buffer_len(op->slots_in, "edges")),
-                                           __func__);
+  edge_array = MEM_new_array_uninitialized<BMEdge *>(
+      size_t(BMO_slot_buffer_len(op->slots_in, "edges")), __func__);
 
   BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 
@@ -65,7 +65,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
   BM_mesh_beautify_fill(
       bm, edge_array, edge_array_len, flag, method, ELE_NEW, FACE_MARK | ELE_NEW);
 
-  MEM_freeN(edge_array);
+  MEM_delete(edge_array);
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_EDGE | BM_FACE, ELE_NEW);
 }

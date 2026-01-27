@@ -171,7 +171,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
 
 wmXrRuntimeData *wm_xr_runtime_data_create()
 {
-  wmXrRuntimeData *runtime = MEM_callocN<wmXrRuntimeData>(__func__);
+  wmXrRuntimeData *runtime = MEM_new_zeroed<wmXrRuntimeData>(__func__);
   return runtime;
 }
 
@@ -202,7 +202,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
 
     GHOST_XrContextDestroy(context);
   }
-  MEM_SAFE_FREE(*runtime);
+  MEM_SAFE_DELETE(*runtime);
 }
 
 /** \} */ /* XR Runtime Data. */

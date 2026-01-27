@@ -167,7 +167,7 @@ void activate_geometry_node(Main &bmain,
           if (item_identifier) {
             table_id.viewer_item_identifier = *item_identifier;
           }
-          MEM_SAFE_FREE(table_id.viewer_item_bundle_path.bundle_path);
+          MEM_SAFE_DELETE(table_id.viewer_item_bundle_path.bundle_path);
           table_id.viewer_item_bundle_path.bundle_path_num = 0;
           table_id.viewer_item_bundle_path.closure_input_output = SPREADSHEET_CLOSURE_NONE;
         }

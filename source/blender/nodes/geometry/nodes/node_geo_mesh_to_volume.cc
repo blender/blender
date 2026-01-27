@@ -69,7 +69,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_new_for_free<NodeGeometryMeshToVolume>(__func__);
+  node->storage = MEM_new<NodeGeometryMeshToVolume>(__func__);
 }
 
 #ifdef WITH_OPENVDB

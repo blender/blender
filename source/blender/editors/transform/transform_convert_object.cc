@@ -76,7 +76,7 @@ static void freeTransObjectCustomData(TransInfo *t,
   if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
     object::object_xform_skip_child_container_destroy(tdo->xcs);
   }
-  MEM_freeN(tdo);
+  MEM_delete(tdo);
 }
 
 /** \} */
@@ -544,10 +544,10 @@ static void createTransObject(bContext *C, TransInfo *t)
     tc->data_len += count_proportional_objects(t);
   }
 
-  td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransOb");
-  tx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len, "TransObExtension");
+  td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransOb");
+  tx = tc->data_ext = MEM_new_array_zeroed<TransDataExtension>(tc->data_len, "TransObExtension");
 
-  TransDataObject *tdo = MEM_callocN<TransDataObject>(__func__);
+  TransDataObject *tdo = MEM_new_zeroed<TransDataObject>(__func__);
   t->custom.type.data = tdo;
   t->custom.type.free_cb = freeTransObjectCustomData;
 

@@ -213,7 +213,7 @@ static bool shaderfx_ui_poll(const bContext *C, PanelType * /*pt*/)
 
 PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, PanelDrawFn draw)
 {
-  PanelType *panel_type = MEM_callocN<PanelType>(__func__);
+  PanelType *panel_type = MEM_new_zeroed<PanelType>(__func__);
 
   BKE_shaderfxType_panel_id(type, panel_type->idname);
   STRNCPY_UTF8(panel_type->label, "");
@@ -243,7 +243,7 @@ PanelType *shaderfx_subpanel_register(ARegionType *region_type,
                                       PanelDrawFn draw,
                                       PanelType *parent)
 {
-  PanelType *panel_type = MEM_callocN<PanelType>(__func__);
+  PanelType *panel_type = MEM_new_zeroed<PanelType>(__func__);
 
   BLI_assert(parent != nullptr);
   SNPRINTF_UTF8(panel_type->idname, "%s_%s", parent->idname, name);

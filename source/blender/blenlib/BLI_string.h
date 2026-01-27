@@ -216,7 +216,7 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
     ATTR_PRINTF_FORMAT(4, 0);
 
 /**
- * Print formatted string into a newly #MEM_mallocN'd string
+ * Print formatted string into a newly #MEM_new_uninitialized'd string
  * and return it.
  */
 char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT

@@ -53,7 +53,8 @@ static void create_flame_spectrum_texture(float *data)
 #  define MAX_FIRE_ALPHA 0.06f
 #  define FULL_ON_FIRE 100
 
-  float *spec_pixels = MEM_malloc_arrayN<float>(TFUNC_WIDTH * 4 * 16 * 16, "spec_pixels");
+  float *spec_pixels = MEM_new_array_uninitialized<float>(TFUNC_WIDTH * 4 * 16 * 16,
+                                                          "spec_pixels");
 
   IMB_colormanagement_blackbody_temperature_to_rgb_table(data, TFUNC_WIDTH, 1500, 3000);
 
@@ -79,7 +80,7 @@ static void create_flame_spectrum_texture(float *data)
 
   memcpy(data, spec_pixels, sizeof(float) * 4 * TFUNC_WIDTH);
 
-  MEM_freeN(spec_pixels);
+  MEM_delete(spec_pixels);
 
 #  undef FIRE_THRESH
 #  undef MAX_FIRE_ALPHA
@@ -96,7 +97,7 @@ static void create_color_ramp(const ColorBand *coba, float *data)
 
 static gpu::Texture *create_transfer_function(int type, const ColorBand *coba)
 {
-  float *data = MEM_malloc_arrayN<float>(4 * TFUNC_WIDTH, __func__);
+  float *data = MEM_new_array_uninitialized<float>(4 * TFUNC_WIDTH, __func__);
 
   switch (type) {
     case TFUNC_FLAME_SPECTRUM:
@@ -114,7 +115,7 @@ static gpu::Texture *create_transfer_function(int type, const ColorBand *coba)
                                             GPU_TEXTURE_USAGE_SHADER_READ,
                                             data);
 
-  MEM_freeN(data);
+  MEM_delete(data);
 
   return tex;
 }
@@ -135,7 +136,7 @@ static float *rescale_3d(const int dim[3],
   const uint fw = final_dim[0], fh = final_dim[1], fd = final_dim[2];
   const uint xf = w / fw, yf = h / fh, zf = d / fd;
   const uint pixel_count = fw * fh * fd;
-  float *nfpixels = MEM_malloc_arrayN<float>(channels * pixel_count, __func__);
+  float *nfpixels = MEM_new_array_uninitialized<float>(channels * pixel_count, __func__);
 
   if (nfpixels) {
     printf("Performance: You need to scale a 3D texture, feel the pain!\n");
@@ -223,7 +224,7 @@ static gpu::Texture *create_volume_texture(const int dim[3],
     float *rescaled_data = rescale_3d(dim, final_dim, channels, static_cast<const float *>(data));
     if (rescaled_data) {
       GPU_texture_update_sub(tex, GPU_DATA_FLOAT, rescaled_data, 0, 0, 0, UNPACK3(final_dim));
-      MEM_freeN(rescaled_data);
+      MEM_delete(rescaled_data);
     }
     else {
       printf("Error: Could not allocate rescaled 3d texture!\n");
@@ -358,7 +359,7 @@ static gpu::Texture *create_color_texture(FluidDomainSettings *fds, int highres)
 
   int cell_count = (highres) ? manta_noise_get_cells(fds->fluid) : fds->total_cells;
   int *dim = (highres) ? fds->res_noise : fds->res;
-  float *data = MEM_calloc_arrayN<float>(cell_count * 4, "smokeColorTexture");
+  float *data = MEM_new_array_zeroed<float>(cell_count * 4, "smokeColorTexture");
 
   if (data == nullptr) {
     return nullptr;
@@ -374,7 +375,7 @@ static gpu::Texture *create_color_texture(FluidDomainSettings *fds, int highres)
   gpu::Texture *tex = create_volume_texture(
       dim, gpu::TextureFormat::UNORM_8_8_8_8, GPU_DATA_FLOAT, data);
 
-  MEM_freeN(data);
+  MEM_delete(data);
 
   return tex;
 }

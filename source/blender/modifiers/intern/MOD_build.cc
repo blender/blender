@@ -67,9 +67,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const Span<int> corner_verts_src = mesh->corner_verts();
   const Span<int> corner_edges_src = mesh->corner_edges();
 
-  int *vertMap = MEM_malloc_arrayN<int>(size_t(vert_src_num), __func__);
-  int *edgeMap = MEM_malloc_arrayN<int>(size_t(edges_src.size()), __func__);
-  int *faceMap = MEM_malloc_arrayN<int>(size_t(faces_src.size()), __func__);
+  int *vertMap = MEM_new_array_uninitialized<int>(size_t(vert_src_num), __func__);
+  int *edgeMap = MEM_new_array_uninitialized<int>(size_t(edges_src.size()), __func__);
+  int *faceMap = MEM_new_array_uninitialized<int>(size_t(faces_src.size()), __func__);
 
   range_vn_i(vertMap, vert_src_num, 0);
   range_vn_i(edgeMap, edges_src.size(), 0);
@@ -227,9 +227,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  MEM_freeN(vertMap);
-  MEM_freeN(edgeMap);
-  MEM_freeN(faceMap);
+  MEM_delete(vertMap);
+  MEM_delete(edgeMap);
+  MEM_delete(faceMap);
 
   /* TODO(sybren): also copy flags & tags? */
   return result;

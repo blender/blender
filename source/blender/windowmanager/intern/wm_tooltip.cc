@@ -35,7 +35,7 @@ void WM_tooltip_immediate_init(
 
   bScreen *screen = WM_window_get_active_screen(win);
   if (screen->tool_tip == nullptr) {
-    screen->tool_tip = MEM_callocN<wmTooltipState>(__func__);
+    screen->tool_tip = MEM_new_zeroed<wmTooltipState>(__func__);
   }
   screen->tool_tip->area_from = area;
   screen->tool_tip->region_from = region;
@@ -51,7 +51,7 @@ void WM_tooltip_timer_init_ex(
   bScreen *screen = WM_window_get_active_screen(win);
   wmWindowManager *wm = CTX_wm_manager(C);
   if (screen->tool_tip == nullptr) {
-    screen->tool_tip = MEM_callocN<wmTooltipState>(__func__);
+    screen->tool_tip = MEM_new_zeroed<wmTooltipState>(__func__);
   }
   screen->tool_tip->area_from = area;
   screen->tool_tip->region_from = region;
@@ -91,7 +91,7 @@ void WM_tooltip_clear(bContext *C, wmWindow *win)
       screen->tool_tip->region = nullptr;
       g_tooltip_time_closed = BLI_time_now_seconds();
     }
-    MEM_freeN(screen->tool_tip);
+    MEM_delete(screen->tool_tip);
     screen->tool_tip = nullptr;
   }
 }

@@ -46,7 +46,7 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
     path.append({name, icon, 1, handle_func});
   }
   if (name != name_buf) {
-    MEM_freeN(name);
+    MEM_delete(name);
   }
 }
 

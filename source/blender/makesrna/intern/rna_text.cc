@@ -54,7 +54,7 @@ static void rna_Text_filepath_set(PointerRNA *ptr, const char *value)
   Text *text = static_cast<Text *>(ptr->data);
 
   if (text->filepath) {
-    MEM_freeN(text->filepath);
+    MEM_delete(text->filepath);
   }
 
   if (value[0]) {
@@ -157,14 +157,14 @@ static void rna_TextLine_body_set(PointerRNA *ptr, const char *value)
   size_t len = strlen(value);
 
   if (line->line) {
-    MEM_freeN(line->line);
+    MEM_delete(line->line);
   }
 
-  line->line = MEM_malloc_arrayN<char>(len + 1, "rna_text_body");
+  line->line = MEM_new_array_uninitialized<char>(len + 1, "rna_text_body");
   line->len = int(len);
   memcpy(line->line, value, len + 1);
 
-  MEM_SAFE_FREE(line->format);
+  MEM_SAFE_DELETE(line->format);
 }
 
 }  // namespace blender

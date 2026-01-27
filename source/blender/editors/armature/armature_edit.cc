@@ -618,7 +618,7 @@ static void chains_find_tips(ListBaseT<EditBone> *edbo, ListBaseT<LinkData> *lis
     }
 
     /* add current bone to a new chain */
-    ld = MEM_callocN<LinkData>("BoneChain");
+    ld = MEM_new_zeroed<LinkData>("BoneChain");
     ld->data = &curBone;
     BLI_addtail(list, ld);
   }
@@ -666,7 +666,7 @@ static void fill_add_joint(EditBone *ebo, short eb_tail, ListBaseT<EditBonePoint
 
   /* allocate a new point if no existing point was related */
   if (found == 0) {
-    ebp = MEM_callocN<EditBonePoint>("EditBonePoint");
+    ebp = MEM_new_zeroed<EditBonePoint>("EditBonePoint");
 
     if (eb_tail) {
       copy_v3_v3(ebp->vec, ebo->tail);

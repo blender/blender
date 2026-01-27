@@ -940,7 +940,7 @@ static int face_boolean_operand(BMFace *f, void * /*user_data*/)
  * face_boolean_operand() function can distinguish those faces from the
  * rest.
  * The caller is responsible for using `BM_mesh_free` on the returned
- * BMesh, and calling `MEM_freeN` on the returned looptris.
+ * BMesh, and calling `MEM_delete` on the returned looptris.
  *
  * TODO: maybe figure out how to use the join_geometries() function
  * to join all the meshes into one mesh first, and then convert

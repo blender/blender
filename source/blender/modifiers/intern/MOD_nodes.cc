@@ -378,8 +378,8 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
     }
   }
 
-  NodesModifierBake *new_bake_data = MEM_new_array_for_free<NodesModifierBake>(new_bake_ids.size(),
-                                                                               __func__);
+  NodesModifierBake *new_bake_data = MEM_new_array<NodesModifierBake>(new_bake_ids.size(),
+                                                                      __func__);
   for (const int i : new_bake_ids.index_range()) {
     const int id = new_bake_ids[i];
     NodesModifierBake *old_bake = old_bake_by_id.lookup_default(id, nullptr);
@@ -403,7 +403,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   for (NodesModifierBake &old_bake : MutableSpan(nmd.bakes, nmd.bakes_num)) {
     nodes_modifier_bake_destruct(&old_bake, true);
   }
-  MEM_SAFE_FREE(nmd.bakes);
+  MEM_SAFE_DELETE(nmd.bakes);
 
   nmd.bakes = new_bake_data;
   nmd.bakes_num = new_bake_ids.size();
@@ -430,8 +430,8 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
     });
   }
 
-  NodesModifierPanel *new_panels = MEM_new_array_for_free<NodesModifierPanel>(
-      interface_panels.size(), __func__);
+  NodesModifierPanel *new_panels = MEM_new_array<NodesModifierPanel>(interface_panels.size(),
+                                                                     __func__);
 
   for (const int i : interface_panels.index_range()) {
     const bNodeTreeInterfacePanel &interface_panel = *interface_panels[i];
@@ -448,7 +448,7 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
     }
   }
 
-  MEM_SAFE_FREE(nmd.panels);
+  MEM_SAFE_DELETE(nmd.panels);
 
   nmd.panels = new_panels;
   nmd.panels_num = interface_panels.size();
@@ -1665,7 +1665,7 @@ static void add_missing_data_block_mappings(
   const int old_num = bake.data_blocks_num;
   const int new_num = old_num + missing.size();
   bake.data_blocks = reinterpret_cast<NodesModifierDataBlock *>(
-      MEM_recallocN(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
+      MEM_realloc_zeroed(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
   for (const int i : missing.index_range()) {
     NodesModifierDataBlock &data_block = bake.data_blocks[old_num + i];
     const bke::bake::BakeDataBlockID &key = missing[i];
@@ -1685,8 +1685,8 @@ static void add_missing_data_block_mappings(
 
 void nodes_modifier_data_block_destruct(NodesModifierDataBlock *data_block, const bool do_id_user)
 {
-  MEM_SAFE_FREE(data_block->id_name);
-  MEM_SAFE_FREE(data_block->lib_name);
+  MEM_SAFE_DELETE(data_block->id_name);
+  MEM_SAFE_DELETE(data_block->lib_name);
   if (do_id_user) {
     id_us_min(data_block->id);
   }
@@ -2180,14 +2180,14 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   BKE_modifier_copydata_generic(md, target, flag);
 
   if (nmd->bakes) {
-    tnmd->bakes = static_cast<NodesModifierBake *>(MEM_dupallocN(nmd->bakes));
+    tnmd->bakes = MEM_dupalloc(nmd->bakes);
     for (const int i : IndexRange(nmd->bakes_num)) {
       NodesModifierBake &bake = tnmd->bakes[i];
       if (bake.directory) {
         bake.directory = BLI_strdup(bake.directory);
       }
       if (bake.data_blocks) {
-        bake.data_blocks = static_cast<NodesModifierDataBlock *>(MEM_dupallocN(bake.data_blocks));
+        bake.data_blocks = MEM_dupalloc(bake.data_blocks);
         for (const int i : IndexRange(bake.data_blocks_num)) {
           NodesModifierDataBlock &data_block = bake.data_blocks[i];
           if (data_block.id_name) {
@@ -2199,13 +2199,13 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
         }
       }
       if (bake.packed) {
-        bake.packed = static_cast<NodesModifierPackedBake *>(MEM_dupallocN(bake.packed));
+        bake.packed = MEM_dupalloc(bake.packed);
         const auto copy_bake_files_inplace = [](NodesModifierBakeFile **bake_files,
                                                 const int bake_files_num) {
           if (!*bake_files) {
             return;
           }
-          *bake_files = static_cast<NodesModifierBakeFile *>(MEM_dupallocN(*bake_files));
+          *bake_files = MEM_dupalloc(*bake_files);
           for (NodesModifierBakeFile &bake_file : MutableSpan{*bake_files, bake_files_num}) {
             bake_file.name = BLI_strdup_null(bake_file.name);
             if (bake_file.packed_file) {
@@ -2220,7 +2220,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   }
 
   if (nmd->panels) {
-    tnmd->panels = static_cast<NodesModifierPanel *>(MEM_dupallocN(nmd->panels));
+    tnmd->panels = MEM_dupalloc(nmd->panels);
   }
 
   tnmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
@@ -2246,27 +2246,27 @@ void nodes_modifier_packed_bake_free(NodesModifierPackedBake *packed_bake)
 {
   const auto free_packed_files = [](NodesModifierBakeFile *files, const int files_num) {
     for (NodesModifierBakeFile &file : MutableSpan{files, files_num}) {
-      MEM_SAFE_FREE(file.name);
+      MEM_SAFE_DELETE(file.name);
       if (file.packed_file) {
         BKE_packedfile_free(file.packed_file);
       }
     }
-    MEM_SAFE_FREE(files);
+    MEM_SAFE_DELETE(files);
   };
   free_packed_files(packed_bake->meta_files, packed_bake->meta_files_num);
   free_packed_files(packed_bake->blob_files, packed_bake->blob_files_num);
-  MEM_SAFE_FREE(packed_bake);
+  MEM_SAFE_DELETE(packed_bake);
 }
 
 void nodes_modifier_bake_destruct(NodesModifierBake *bake, const bool do_id_user)
 {
-  MEM_SAFE_FREE(bake->directory);
+  MEM_SAFE_DELETE(bake->directory);
 
   for (NodesModifierDataBlock &data_block : MutableSpan(bake->data_blocks, bake->data_blocks_num))
   {
     nodes_modifier_data_block_destruct(&data_block, do_id_user);
   }
-  MEM_SAFE_FREE(bake->data_blocks);
+  MEM_SAFE_DELETE(bake->data_blocks);
 
   if (bake->packed) {
     nodes_modifier_packed_bake_free(bake->packed);
@@ -2284,11 +2284,11 @@ static void free_data(ModifierData *md)
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
     nodes_modifier_bake_destruct(&bake, false);
   }
-  MEM_SAFE_FREE(nmd->bakes);
+  MEM_SAFE_DELETE(nmd->bakes);
 
-  MEM_SAFE_FREE(nmd->panels);
+  MEM_SAFE_DELETE(nmd->panels);
 
-  MEM_SAFE_FREE(nmd->bake_directory);
+  MEM_SAFE_DELETE(nmd->bake_directory);
   MEM_delete(nmd->runtime);
 }
 

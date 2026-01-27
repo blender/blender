@@ -79,7 +79,7 @@ static void wpaint_prev_create(WPaintPrev *wpp, MDeformVert *dverts, int dcount)
   wpaint_prev_init(wpp);
 
   if (dverts && dcount) {
-    wpp->wpaint_prev = MEM_malloc_arrayN<MDeformVert>(dcount, __func__);
+    wpp->wpaint_prev = MEM_new_array_uninitialized<MDeformVert>(dcount, __func__);
     wpp->tot = dcount;
     BKE_defvert_array_copy(wpp->wpaint_prev, dverts, dcount);
   }
@@ -246,7 +246,7 @@ static wmOperatorStatus weight_sample_invoke(bContext *C, wmOperator *op, const 
               &dvert[v_idx_best], defbase_tot, defbase_sel, defbase_tot_sel, is_normalized);
         }
 
-        MEM_freeN(defbase_sel);
+        MEM_delete(defbase_sel);
       }
 
       if (use_lock_relative) {
@@ -257,8 +257,8 @@ static wmOperatorStatus weight_sample_invoke(bContext *C, wmOperator *op, const 
             vgroup_weight, &dvert[v_idx_best], defbase_tot, defbase_locked, defbase_unlocked);
       }
 
-      MEM_SAFE_FREE(defbase_locked);
-      MEM_SAFE_FREE(defbase_unlocked);
+      MEM_SAFE_DELETE(defbase_locked);
+      MEM_SAFE_DELETE(defbase_unlocked);
 
       CLAMP(vgroup_weight, 0.0f, 1.0f);
       BKE_brush_weight_set(&ts->wpaint->paint, brush, vgroup_weight);
@@ -730,7 +730,7 @@ static wmOperatorStatus paint_weight_gradient_modal(bContext *C,
         BKE_defvert_array_copy(dvert, vert_cache->wpp.wpaint_prev, mesh->verts_num);
         wpaint_prev_destroy(&vert_cache->wpp);
       }
-      MEM_freeN(vert_cache);
+      MEM_delete(vert_cache);
     }
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -738,7 +738,7 @@ static wmOperatorStatus paint_weight_gradient_modal(bContext *C,
   }
   else if (ret & OPERATOR_FINISHED) {
     wpaint_prev_destroy(&vert_cache->wpp);
-    MEM_freeN(vert_cache);
+    MEM_delete(vert_cache);
   }
 
   return ret;
@@ -767,9 +767,9 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
   if (is_interactive) {
     if (gesture->user_data.data == nullptr) {
-      gesture->user_data.data = MEM_mallocN(sizeof(WPGradient_vertStoreBase) +
-                                                (sizeof(WPGradient_vertStore) * mesh->verts_num),
-                                            __func__);
+      gesture->user_data.data = MEM_new_uninitialized(
+          sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * mesh->verts_num),
+          __func__);
       gesture->user_data.use_free = false;
       data.is_init = true;
 
@@ -791,7 +791,7 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
     }
 
     data.is_init = true;
-    vert_cache = static_cast<WPGradient_vertStoreBase *>(MEM_mallocN(
+    vert_cache = static_cast<WPGradient_vertStoreBase *>(MEM_new_uninitialized(
         sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * mesh->verts_num),
         __func__));
   }
@@ -835,7 +835,7 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
     BKE_mesh_foreach_mapped_vert(mesh_eval, gradientVertInit__mapFunc, &data, MESH_FOREACH_NOP);
 
-    MEM_freeN(data.vert_visit);
+    MEM_delete(data.vert_visit);
     data.vert_visit = nullptr;
   }
   else {
@@ -846,14 +846,14 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   if (is_interactive == false) {
-    MEM_freeN(vert_cache);
+    MEM_delete(vert_cache);
   }
 
   if (scene->toolsettings->auto_normalize) {
     const int vgroup_num = BLI_listbase_count(&mesh->vertex_group_names);
     bool *lock_flags = BKE_object_defgroup_lock_flags_get(ob, vgroup_num);
     if (!lock_flags) {
-      lock_flags = MEM_malloc_arrayN<bool>(vgroup_num, "lock_flags");
+      lock_flags = MEM_new_array_uninitialized<bool>(vgroup_num, "lock_flags");
       std::memset(lock_flags, 0, vgroup_num); /* Clear to false. */
       lock_flags[data.def_nr] = true;
     }
@@ -868,8 +868,8 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
           BKE_defvert_normalize_lock_map(dvert[i], subset_flags_span, lock_flags_span);
         }
       }
-      MEM_SAFE_FREE(lock_flags);
-      MEM_freeN(vgroup_validmap);
+      MEM_SAFE_DELETE(lock_flags);
+      MEM_delete(vgroup_validmap);
     }
   }
 

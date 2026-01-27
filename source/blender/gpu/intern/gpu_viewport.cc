@@ -108,7 +108,7 @@ bool GPU_viewport_do_update(GPUViewport *viewport)
 
 GPUViewport *GPU_viewport_create()
 {
-  GPUViewport *viewport = MEM_new_for_free<GPUViewport>("GPUViewport");
+  GPUViewport *viewport = MEM_new<GPUViewport>("GPUViewport");
   viewport->do_color_management = false;
   viewport->size[0] = viewport->size[1] = -1;
   viewport->active_view = 0;
@@ -638,7 +638,7 @@ void GPU_viewport_free(GPUViewport *viewport)
   BKE_color_managed_view_settings_free(&viewport->view_settings);
   gpu_viewport_batch_free(viewport);
 
-  MEM_freeN(viewport);
+  MEM_delete(viewport);
 }
 
 }  // namespace blender

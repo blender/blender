@@ -175,7 +175,7 @@ static void scene_init_data(ID *id)
                      CURVE_PRESET_MAX,
                      CurveMapSlopeType::PositiveNegative);
 
-  scene->toolsettings = MEM_new_for_free<ToolSettings>(__func__);
+  scene->toolsettings = MEM_new<ToolSettings>(__func__);
 
   scene->toolsettings->autokey_mode = uchar(U.autokey_mode);
 
@@ -333,7 +333,7 @@ static void scene_copy_data(Main *bmain,
 
   /* Copy sequencer, this is local data! */
   if (scene_src->ed) {
-    scene_dst->ed = MEM_new_for_free<Editing>(__func__);
+    scene_dst->ed = MEM_new<Editing>(__func__);
     scene_dst->ed->cache_flag = scene_src->ed->cache_flag;
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
@@ -367,9 +367,9 @@ static void scene_free_markers(Scene *scene, bool do_id_user)
   for (TimeMarker &marker : scene->markers.items_mutable()) {
     if (marker.prop != nullptr) {
       IDP_FreePropertyContent_ex(marker.prop, do_id_user);
-      MEM_freeN(marker.prop);
+      MEM_delete(marker.prop);
     }
-    MEM_freeN(&marker);
+    MEM_delete(&marker);
   }
 }
 
@@ -403,7 +403,7 @@ static void scene_free_data(ID *id)
 
   BKE_scene_free_depsgraph_hash(scene);
 
-  MEM_SAFE_FREE(scene->fps_info);
+  MEM_SAFE_DELETE_VOID(scene->fps_info);
 
   BKE_sound_destroy_scene(scene);
 
@@ -427,7 +427,7 @@ static void scene_free_data(ID *id)
   if (scene->master_collection) {
     BKE_collection_free_data(scene->master_collection);
     BKE_libblock_free_data_py(&scene->master_collection->id);
-    MEM_freeN(scene->master_collection);
+    MEM_delete(scene->master_collection);
     scene->master_collection = nullptr;
   }
 
@@ -1109,9 +1109,9 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
   bke::node_tree_blend_write(writer, temp_nodetree);
 
   bke::node_tree_free_embedded_tree(temp_nodetree_copy);
-  MEM_freeN(temp_nodetree_copy);
+  MEM_delete(temp_nodetree_copy);
   temp_nodetree_copy = nullptr;
-  MEM_freeN(reinterpret_cast<void *>(scene.nodetree));
+  MEM_delete_void(reinterpret_cast<void *>(scene.nodetree));
   scene.nodetree = nullptr;
 }
 
@@ -1134,7 +1134,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     /* We need a valid, unique (within that Scene ID) memory address as 'UID' of the written
      * embedded node tree. The simplest and safest solution to obtain this is to actually allocate
      * a dummy byte. */
-    sce->nodetree = reinterpret_cast<bNodeTree *>(MEM_mallocN(1, "dummy pointer"));
+    sce->nodetree = reinterpret_cast<bNodeTree *>(MEM_new_uninitialized(1, "dummy pointer"));
   }
 
   /* Todo(#140111): Forward compatibility support will be removed in 6.0. Remove mapping between
@@ -1564,7 +1564,7 @@ static void scene_blend_read_after_liblink(BlendLibReader *reader, ID *id)
       if (&base_legacy == sce->basact) {
         sce->basact = nullptr;
       }
-      MEM_freeN(&base_legacy);
+      MEM_delete(&base_legacy);
     }
   }
 
@@ -1697,17 +1697,17 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   if (toolsettings == nullptr) {
     return nullptr;
   }
-  ToolSettings *ts = static_cast<ToolSettings *>(MEM_dupallocN(toolsettings));
+  ToolSettings *ts = MEM_dupalloc(toolsettings);
   if (toolsettings->vpaint) {
-    ts->vpaint = static_cast<VPaint *>(MEM_dupallocN(toolsettings->vpaint));
+    ts->vpaint = MEM_dupalloc(toolsettings->vpaint);
     BKE_paint_copy(&toolsettings->vpaint->paint, &ts->vpaint->paint, flag);
   }
   if (toolsettings->wpaint) {
-    ts->wpaint = static_cast<VPaint *>(MEM_dupallocN(toolsettings->wpaint));
+    ts->wpaint = MEM_dupalloc(toolsettings->wpaint);
     BKE_paint_copy(&toolsettings->wpaint->paint, &ts->wpaint->paint, flag);
   }
   if (toolsettings->sculpt) {
-    ts->sculpt = static_cast<Sculpt *>(MEM_dupallocN(toolsettings->sculpt));
+    ts->sculpt = MEM_dupalloc(toolsettings->sculpt);
     BKE_paint_copy(&toolsettings->sculpt->paint, &ts->sculpt->paint, flag);
 
     if (toolsettings->sculpt->automasking_cavity_curve) {
@@ -1728,23 +1728,23 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
     BKE_curvemapping_init(ts->uvsculpt.curve_distance_falloff);
   }
   if (toolsettings->gp_paint) {
-    ts->gp_paint = static_cast<GpPaint *>(MEM_dupallocN(toolsettings->gp_paint));
+    ts->gp_paint = MEM_dupalloc(toolsettings->gp_paint);
     BKE_paint_copy(&toolsettings->gp_paint->paint, &ts->gp_paint->paint, flag);
   }
   if (toolsettings->gp_vertexpaint) {
-    ts->gp_vertexpaint = static_cast<GpVertexPaint *>(MEM_dupallocN(toolsettings->gp_vertexpaint));
+    ts->gp_vertexpaint = MEM_dupalloc(toolsettings->gp_vertexpaint);
     BKE_paint_copy(&toolsettings->gp_vertexpaint->paint, &ts->gp_vertexpaint->paint, flag);
   }
   if (toolsettings->gp_sculptpaint) {
-    ts->gp_sculptpaint = static_cast<GpSculptPaint *>(MEM_dupallocN(toolsettings->gp_sculptpaint));
+    ts->gp_sculptpaint = MEM_dupalloc(toolsettings->gp_sculptpaint);
     BKE_paint_copy(&toolsettings->gp_sculptpaint->paint, &ts->gp_sculptpaint->paint, flag);
   }
   if (toolsettings->gp_weightpaint) {
-    ts->gp_weightpaint = static_cast<GpWeightPaint *>(MEM_dupallocN(toolsettings->gp_weightpaint));
+    ts->gp_weightpaint = MEM_dupalloc(toolsettings->gp_weightpaint);
     BKE_paint_copy(&toolsettings->gp_weightpaint->paint, &ts->gp_weightpaint->paint, flag);
   }
   if (toolsettings->curves_sculpt) {
-    ts->curves_sculpt = static_cast<CurvesSculpt *>(MEM_dupallocN(toolsettings->curves_sculpt));
+    ts->curves_sculpt = MEM_dupalloc(toolsettings->curves_sculpt);
     BKE_paint_copy(&toolsettings->curves_sculpt->paint, &ts->curves_sculpt->paint, flag);
   }
 
@@ -1781,11 +1781,11 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   }
   if (toolsettings->vpaint) {
     BKE_paint_free(&toolsettings->vpaint->paint);
-    MEM_freeN(toolsettings->vpaint);
+    MEM_delete(toolsettings->vpaint);
   }
   if (toolsettings->wpaint) {
     BKE_paint_free(&toolsettings->wpaint->paint);
-    MEM_freeN(toolsettings->wpaint);
+    MEM_delete(toolsettings->wpaint);
   }
   if (toolsettings->sculpt) {
     if (toolsettings->sculpt->automasking_cavity_curve) {
@@ -1796,30 +1796,30 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
     }
 
     BKE_paint_free(&toolsettings->sculpt->paint);
-    MEM_freeN(toolsettings->sculpt);
+    MEM_delete(toolsettings->sculpt);
   }
   if (toolsettings->uvsculpt.curve_distance_falloff) {
     BKE_curvemapping_free(toolsettings->uvsculpt.curve_distance_falloff);
   }
   if (toolsettings->gp_paint) {
     BKE_paint_free(&toolsettings->gp_paint->paint);
-    MEM_freeN(toolsettings->gp_paint);
+    MEM_delete(toolsettings->gp_paint);
   }
   if (toolsettings->gp_vertexpaint) {
     BKE_paint_free(&toolsettings->gp_vertexpaint->paint);
-    MEM_freeN(toolsettings->gp_vertexpaint);
+    MEM_delete(toolsettings->gp_vertexpaint);
   }
   if (toolsettings->gp_sculptpaint) {
     BKE_paint_free(&toolsettings->gp_sculptpaint->paint);
-    MEM_freeN(toolsettings->gp_sculptpaint);
+    MEM_delete(toolsettings->gp_sculptpaint);
   }
   if (toolsettings->gp_weightpaint) {
     BKE_paint_free(&toolsettings->gp_weightpaint->paint);
-    MEM_freeN(toolsettings->gp_weightpaint);
+    MEM_delete(toolsettings->gp_weightpaint);
   }
   if (toolsettings->curves_sculpt) {
     BKE_paint_free(&toolsettings->curves_sculpt->paint);
-    MEM_freeN(toolsettings->curves_sculpt);
+    MEM_delete(toolsettings->curves_sculpt);
   }
   BKE_paint_free(&toolsettings->imapaint.paint);
 
@@ -1854,7 +1854,7 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
     seq::tool_settings_free(toolsettings->sequencer_tool_settings);
   }
 
-  MEM_freeN(toolsettings);
+  MEM_delete(toolsettings);
 }
 
 void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
@@ -2832,7 +2832,7 @@ SceneRenderView *BKE_scene_add_render_view(Scene *sce, const char *name)
     name = DATA_("RenderView");
   }
 
-  SceneRenderView *srv = MEM_new_for_free<SceneRenderView>(__func__);
+  SceneRenderView *srv = MEM_new<SceneRenderView>(__func__);
   STRNCPY_UTF8(srv->name, name);
   BLI_uniquename(&sce->r.views,
                  srv,
@@ -2858,7 +2858,7 @@ bool BKE_scene_remove_render_view(Scene *scene, SceneRenderView *srv)
   }
 
   BLI_remlink(&scene->r.views, srv);
-  MEM_freeN(srv);
+  MEM_delete(srv);
 
   scene->r.actview = 0;
 
@@ -3514,7 +3514,7 @@ Depsgraph *BKE_scene_ensure_depsgraph(Main *bmain, Scene *scene, ViewLayer *view
 static char *scene_undo_depsgraph_gen_key(Scene *scene, ViewLayer *view_layer, char *key_full)
 {
   if (key_full == nullptr) {
-    key_full = MEM_calloc_arrayN<char>(MAX_ID_NAME + FILE_MAX + MAX_NAME, __func__);
+    key_full = MEM_new_array_zeroed<char>(MAX_ID_NAME + FILE_MAX + MAX_NAME, __func__);
   }
 
   size_t key_full_offset = BLI_strncpy_rlen(key_full, scene->id.name, MAX_ID_NAME);
@@ -3587,7 +3587,7 @@ void BKE_scene_undo_depsgraphs_restore(Main *bmain, GHash *depsgraph_extract)
     }
   }
 
-  BLI_ghash_free(depsgraph_extract, MEM_freeN, depsgraph_key_value_free);
+  BLI_ghash_free(depsgraph_extract, MEM_delete_void, depsgraph_key_value_free);
 }
 
 /* -------------------------------------------------------------------- */

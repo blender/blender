@@ -133,7 +133,7 @@ static void node_reroute_add_storage(bNodeTree &tree)
       STRNCPY_UTF8(input.identifier, "Input");
       STRNCPY_UTF8(output.identifier, "Output");
 
-      NodeReroute *data = MEM_new_for_free<NodeReroute>(__func__);
+      NodeReroute *data = MEM_new<NodeReroute>(__func__);
       STRNCPY_UTF8(data->type_idname, input.idname);
       node->storage = data;
     }
@@ -190,7 +190,7 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
       input_node.locx_legacy = node.locx_legacy - 25;
       input_node.locy_legacy = node.locy_legacy;
 
-      NodeInputBool *input_node_storage = MEM_new_for_free<NodeInputBool>(__func__);
+      NodeInputBool *input_node_storage = MEM_new<NodeInputBool>(__func__);
       input_node.storage = input_node_storage;
       input_node_storage->boolean = true;
 

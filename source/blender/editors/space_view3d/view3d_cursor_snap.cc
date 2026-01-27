@@ -185,7 +185,7 @@ static void v3d_cursor_plane_draw_grid(const int resolution,
   immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   const size_t coords_len = resolution * resolution;
-  float (*coords)[3] = MEM_malloc_arrayN<float[3]>(coords_len, __func__);
+  float (*coords)[3] = MEM_new_array_uninitialized<float[3]>(coords_len, __func__);
 
   const int axis_x = (plane_axis + 0) % 3;
   const int axis_y = (plane_axis + 1) % 3;
@@ -248,7 +248,7 @@ static void v3d_cursor_plane_draw_grid(const int resolution,
     }
   }
 
-  MEM_freeN(coords);
+  MEM_delete(coords);
 
   immEnd();
 
@@ -1035,7 +1035,7 @@ V3DSnapCursorState *ED_view3d_cursor_snap_state_create()
     v3d_cursor_snap_activate();
   }
 
-  SnapStateIntern *state_intern = MEM_mallocN<SnapStateIntern>(__func__);
+  SnapStateIntern *state_intern = MEM_new_uninitialized<SnapStateIntern>(__func__);
   state_intern->snap_state = g_data_intern.state_default;
   BLI_addtail(&g_data_intern.state_intern, state_intern);
 
@@ -1051,7 +1051,7 @@ void ED_view3d_cursor_snap_state_free(V3DSnapCursorState *state)
 
   SnapStateIntern *state_intern = STATE_INTERN_GET(state);
   BLI_remlink(&data_intern->state_intern, state_intern);
-  MEM_freeN(state_intern);
+  MEM_delete(state_intern);
   if (BLI_listbase_is_empty(&data_intern->state_intern)) {
     v3d_cursor_snap_free();
   }

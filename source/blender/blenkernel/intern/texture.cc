@@ -85,7 +85,7 @@ static void texture_copy_data(Main *bmain,
   }
 
   if (texture_dst->coba) {
-    texture_dst->coba = static_cast<ColorBand *>(MEM_dupallocN(texture_dst->coba));
+    texture_dst->coba = MEM_dupalloc(texture_dst->coba);
   }
   if (texture_src->nodetree) {
     if (texture_src->nodetree->runtime->execdata) {
@@ -120,11 +120,11 @@ static void texture_free_data(ID *id)
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {
     bke::node_tree_free_embedded_tree(texture->nodetree);
-    MEM_freeN(texture->nodetree);
+    MEM_delete(texture->nodetree);
     texture->nodetree = nullptr;
   }
 
-  MEM_SAFE_FREE(texture->coba);
+  MEM_SAFE_DELETE(texture->coba);
 
   BKE_icon_id_delete(id_cast<ID *>(texture));
   BKE_previewimg_free(&texture->preview);
@@ -221,7 +221,7 @@ void BKE_texture_mtex_foreach_id(LibraryForeachIDData *data, MTex *mtex)
 
 TexMapping *BKE_texture_mapping_add(int type)
 {
-  TexMapping *texmap = MEM_new_for_free<TexMapping>("TexMapping");
+  TexMapping *texmap = MEM_new<TexMapping>("TexMapping");
 
   BKE_texture_mapping_default(texmap, type);
 
@@ -324,7 +324,7 @@ void BKE_texture_mapping_init(TexMapping *texmap)
 
 ColorMapping *BKE_texture_colormapping_add()
 {
-  ColorMapping *colormap = MEM_new_for_free<ColorMapping>("ColorMapping");
+  ColorMapping *colormap = MEM_new<ColorMapping>("ColorMapping");
 
   BKE_texture_colormapping_default(colormap);
 
@@ -386,7 +386,7 @@ MTex *BKE_texture_mtex_add()
 {
   MTex *mtex;
 
-  mtex = MEM_new_for_free<MTex>("BKE_texture_mtex_add");
+  mtex = MEM_new<MTex>("BKE_texture_mtex_add");
 
   BKE_texture_mtex_default(mtex);
 
@@ -426,7 +426,7 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
   if (mtex_ar[slot]) {
     id_us_min(id_cast<ID *>(mtex_ar[slot]->tex));
-    MEM_freeN(mtex_ar[slot]);
+    MEM_delete(mtex_ar[slot]);
     mtex_ar[slot] = nullptr;
   }
 
@@ -470,7 +470,7 @@ void set_current_linestyle_texture(FreestyleLineStyle *linestyle, Tex *newtex)
     id_us_plus(&newtex->id);
   }
   else {
-    MEM_SAFE_FREE(linestyle->mtex[act]);
+    MEM_SAFE_DELETE(linestyle->mtex[act]);
   }
 }
 
@@ -575,7 +575,7 @@ void set_current_particle_texture(ParticleSettings *part, Tex *newtex)
     id_us_plus(&newtex->id);
   }
   else {
-    MEM_SAFE_FREE(part->mtex[act]);
+    MEM_SAFE_DELETE(part->mtex[act]);
   }
 }
 

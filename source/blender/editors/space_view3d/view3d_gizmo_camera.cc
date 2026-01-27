@@ -87,7 +87,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
 
-  CameraWidgetGroup *cagzgroup = MEM_callocN<CameraWidgetGroup>(__func__);
+  CameraWidgetGroup *cagzgroup = MEM_new_zeroed<CameraWidgetGroup>(__func__);
   gzgroup->customdata = cagzgroup;
 
   negate_v3_v3(dir, ob->object_to_world().ptr()[2]);
@@ -418,7 +418,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType * /
 
 static void WIDGETGROUP_camera_view_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  CameraViewWidgetGroup *viewgroup = MEM_new_for_free<CameraViewWidgetGroup>(__func__);
+  CameraViewWidgetGroup *viewgroup = MEM_new<CameraViewWidgetGroup>(__func__);
 
   viewgroup->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
 

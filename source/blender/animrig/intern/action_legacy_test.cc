@@ -53,7 +53,7 @@ class ActionLegacyTest : public testing::Test {
 
   FCurve *fcurve_add_legacy(bAction *action, const StringRefNull rna_path, const int array_index)
   {
-    FCurve *fcurve = MEM_new_for_free<FCurve>(__func__);
+    FCurve *fcurve = MEM_new<FCurve>(__func__);
     BKE_fcurve_rnapath_set(*fcurve, rna_path);
     fcurve->array_index = array_index;
     BLI_addtail(&action->curves, fcurve);

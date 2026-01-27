@@ -191,21 +191,21 @@ static void mesh_copy_data(Main *bmain,
     }
   }
 
-  mesh_dst->mat = static_cast<Material **>(MEM_dupallocN(mesh_src->mat));
+  mesh_dst->mat = MEM_dupalloc(mesh_src->mat);
 
   BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
   mesh_dst->active_color_attribute = static_cast<char *>(
-      MEM_dupallocN(mesh_src->active_color_attribute));
+      MEM_dupalloc(mesh_src->active_color_attribute));
   mesh_dst->default_color_attribute = static_cast<char *>(
-      MEM_dupallocN(mesh_src->default_color_attribute));
+      MEM_dupalloc(mesh_src->default_color_attribute));
   mesh_dst->active_uv_map_attribute = static_cast<char *>(
-      MEM_dupallocN(mesh_src->active_uv_map_attribute));
+      MEM_dupalloc(mesh_src->active_uv_map_attribute));
   mesh_dst->default_uv_map_attribute = static_cast<char *>(
-      MEM_dupallocN(mesh_src->default_uv_map_attribute));
+      MEM_dupalloc(mesh_src->default_uv_map_attribute));
   mesh_dst->stencil_uv_map_attribute = static_cast<char *>(
-      MEM_dupallocN(mesh_src->stencil_uv_map_attribute));
+      MEM_dupalloc(mesh_src->stencil_uv_map_attribute));
   mesh_dst->clone_uv_map_attribute = static_cast<char *>(
-      MEM_dupallocN(mesh_src->clone_uv_map_attribute));
+      MEM_dupalloc(mesh_src->clone_uv_map_attribute));
 
   CustomData_init_from(
       &mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->verts_num);
@@ -229,7 +229,7 @@ static void mesh_copy_data(Main *bmain,
     mesh_tessface_clear_intern(mesh_dst, false);
   }
 
-  mesh_dst->mselect = static_cast<MSelect *>(MEM_dupallocN(mesh_dst->mselect));
+  mesh_dst->mselect = MEM_dupalloc(mesh_dst->mselect);
 
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_in_lib(bmain,
@@ -251,19 +251,19 @@ static void mesh_free_data(ID *id)
   CustomData_free(&mesh->corner_data);
   CustomData_free(&mesh->face_data);
   BLI_freelistN(&mesh->vertex_group_names);
-  MEM_SAFE_FREE(mesh->active_color_attribute);
-  MEM_SAFE_FREE(mesh->default_color_attribute);
-  MEM_SAFE_FREE(mesh->active_uv_map_attribute);
-  MEM_SAFE_FREE(mesh->default_uv_map_attribute);
-  MEM_SAFE_FREE(mesh->stencil_uv_map_attribute);
-  MEM_SAFE_FREE(mesh->clone_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh->active_color_attribute);
+  MEM_SAFE_DELETE(mesh->default_color_attribute);
+  MEM_SAFE_DELETE(mesh->active_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh->default_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh->stencil_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh->clone_uv_map_attribute);
   mesh->attribute_storage.wrap().~AttributeStorage();
   if (mesh->face_offset_indices) {
     implicit_sharing::free_shared_data(&mesh->face_offset_indices,
                                        &mesh->runtime->face_offsets_sharing_info);
   }
-  MEM_SAFE_FREE(mesh->mselect);
-  MEM_SAFE_FREE(mesh->mat);
+  MEM_SAFE_DELETE(mesh->mselect);
+  MEM_SAFE_DELETE(mesh->mat);
   delete mesh->runtime;
 }
 
@@ -607,22 +607,22 @@ void mesh_remove_invalid_attribute_strings(Mesh &mesh)
 {
   bke::AttributeAccessor attributes = mesh.attributes();
   if (!mesh::is_color_attribute(attributes.lookup_meta_data(mesh.active_color_attribute))) {
-    MEM_SAFE_FREE(mesh.active_color_attribute);
+    MEM_SAFE_DELETE(mesh.active_color_attribute);
   }
   if (!mesh::is_color_attribute(attributes.lookup_meta_data(mesh.default_color_attribute))) {
-    MEM_SAFE_FREE(mesh.default_color_attribute);
+    MEM_SAFE_DELETE(mesh.default_color_attribute);
   }
   if (!mesh::is_uv_map(attributes.lookup_meta_data(mesh.active_uv_map_name()))) {
-    MEM_SAFE_FREE(mesh.active_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh.active_uv_map_attribute);
   }
   if (!mesh::is_uv_map(attributes.lookup_meta_data(mesh.default_uv_map_name()))) {
-    MEM_SAFE_FREE(mesh.default_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh.default_uv_map_attribute);
   }
   if (!mesh::is_uv_map(attributes.lookup_meta_data(mesh.stencil_uv_map_attribute))) {
-    MEM_SAFE_FREE(mesh.stencil_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh.stencil_uv_map_attribute);
   }
   if (!mesh::is_uv_map(attributes.lookup_meta_data(mesh.clone_uv_map_attribute))) {
-    MEM_SAFE_FREE(mesh.clone_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh.clone_uv_map_attribute);
   }
 }
 
@@ -1017,7 +1017,7 @@ static void mesh_clear_geometry(Mesh &mesh)
     implicit_sharing::free_shared_data(&mesh.face_offset_indices,
                                        &mesh.runtime->face_offsets_sharing_info);
   }
-  MEM_SAFE_FREE(mesh.mselect);
+  MEM_SAFE_DELETE(mesh.mselect);
 
   mesh.verts_num = 0;
   mesh.edges_num = 0;
@@ -1031,12 +1031,12 @@ static void mesh_clear_geometry(Mesh &mesh)
 static void clear_attribute_names(Mesh &mesh)
 {
   BLI_freelistN(&mesh.vertex_group_names);
-  MEM_SAFE_FREE(mesh.active_color_attribute);
-  MEM_SAFE_FREE(mesh.default_color_attribute);
-  MEM_SAFE_FREE(mesh.active_uv_map_attribute);
-  MEM_SAFE_FREE(mesh.default_uv_map_attribute);
-  MEM_SAFE_FREE(mesh.stencil_uv_map_attribute);
-  MEM_SAFE_FREE(mesh.clone_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh.active_color_attribute);
+  MEM_SAFE_DELETE(mesh.default_color_attribute);
+  MEM_SAFE_DELETE(mesh.active_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh.default_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh.stencil_uv_map_attribute);
+  MEM_SAFE_DELETE(mesh.clone_uv_map_attribute);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)
@@ -1076,7 +1076,8 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
   if (mesh->faces_num == 0) {
     return;
   }
-  mesh->face_offset_indices = MEM_malloc_arrayN<int>(size_t(mesh->faces_num) + 1, __func__);
+  mesh->face_offset_indices = MEM_new_array_uninitialized<int>(size_t(mesh->faces_num) + 1,
+                                                               __func__);
   mesh->runtime->face_offsets_sharing_info = implicit_sharing::info_for_mem_free(
       mesh->face_offset_indices);
 
@@ -1235,7 +1236,7 @@ StringRefNull Mesh::default_uv_map_name() const
 
 void Mesh::uv_maps_active_set(const StringRef name)
 {
-  MEM_SAFE_FREE(this->active_uv_map_attribute);
+  MEM_SAFE_DELETE(this->active_uv_map_attribute);
   if (!name.is_empty()) {
     this->active_uv_map_attribute = BLI_strdupn(name.data(), name.size());
   }
@@ -1250,7 +1251,7 @@ void Mesh::uv_maps_active_set(const StringRef name)
 
 void Mesh::uv_maps_default_set(const StringRef name)
 {
-  MEM_SAFE_FREE(this->default_uv_map_attribute);
+  MEM_SAFE_DELETE(this->default_uv_map_attribute);
   if (!name.is_empty()) {
     this->default_uv_map_attribute = BLI_strdupn(name.data(), name.size());
   }
@@ -1331,27 +1332,27 @@ Mesh *mesh_new_no_attributes(const int verts_num,
 static void copy_attribute_names(const Mesh &mesh_src, Mesh &mesh_dst)
 {
   if (mesh_src.active_color_attribute) {
-    MEM_SAFE_FREE(mesh_dst.active_color_attribute);
+    MEM_SAFE_DELETE(mesh_dst.active_color_attribute);
     mesh_dst.active_color_attribute = BLI_strdup(mesh_src.active_color_attribute);
   }
   if (mesh_src.default_color_attribute) {
-    MEM_SAFE_FREE(mesh_dst.default_color_attribute);
+    MEM_SAFE_DELETE(mesh_dst.default_color_attribute);
     mesh_dst.default_color_attribute = BLI_strdup(mesh_src.default_color_attribute);
   }
   if (mesh_src.active_uv_map_attribute) {
-    MEM_SAFE_FREE(mesh_dst.active_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh_dst.active_uv_map_attribute);
     mesh_dst.active_uv_map_attribute = BLI_strdup(mesh_src.active_uv_map_attribute);
   }
   if (mesh_src.default_uv_map_attribute) {
-    MEM_SAFE_FREE(mesh_dst.default_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh_dst.default_uv_map_attribute);
     mesh_dst.default_uv_map_attribute = BLI_strdup(mesh_src.default_uv_map_attribute);
   }
   if (mesh_src.stencil_uv_map_attribute) {
-    MEM_SAFE_FREE(mesh_dst.stencil_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh_dst.stencil_uv_map_attribute);
     mesh_dst.stencil_uv_map_attribute = BLI_strdup(mesh_src.stencil_uv_map_attribute);
   }
   if (mesh_src.clone_uv_map_attribute) {
-    MEM_SAFE_FREE(mesh_dst.clone_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh_dst.clone_uv_map_attribute);
     mesh_dst.clone_uv_map_attribute = BLI_strdup(mesh_src.clone_uv_map_attribute);
   }
 }
@@ -1392,9 +1393,9 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 
   /* Copy materials. */
   if (me_dst->mat != nullptr) {
-    MEM_freeN(me_dst->mat);
+    MEM_delete(me_dst->mat);
   }
-  me_dst->mat = static_cast<Material **>(MEM_dupallocN(me_src->mat));
+  me_dst->mat = MEM_dupalloc(me_src->mat);
   me_dst->totcol = me_src->totcol;
 
   me_dst->runtime->edit_mesh = me_src->runtime->edit_mesh;
@@ -1414,7 +1415,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   Mesh *me_dst = BKE_id_new_nomain<Mesh>(nullptr);
 
-  me_dst->mselect = static_cast<MSelect *>(MEM_dupallocN(me_src->mselect));
+  me_dst->mselect = MEM_dupalloc(me_src->mselect);
 
   me_dst->verts_num = verts_num;
   me_dst->edges_num = edges_num;
@@ -2017,7 +2018,7 @@ void BKE_mesh_tessface_clear(Mesh *mesh)
 
 void BKE_mesh_mselect_clear(Mesh *mesh)
 {
-  MEM_SAFE_FREE(mesh->mselect);
+  MEM_SAFE_DELETE(mesh->mselect);
   mesh->totselect = 0;
 }
 
@@ -2032,7 +2033,8 @@ void BKE_mesh_mselect_validate(Mesh *mesh)
   }
 
   mselect_src = mesh->mselect;
-  mselect_dst = MEM_malloc_arrayN<MSelect>(size_t(mesh->totselect), "Mesh selection history");
+  mselect_dst = MEM_new_array_uninitialized<MSelect>(size_t(mesh->totselect),
+                                                     "Mesh selection history");
 
   const AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
@@ -2073,14 +2075,15 @@ void BKE_mesh_mselect_validate(Mesh *mesh)
     }
   }
 
-  MEM_freeN(mselect_src);
+  MEM_delete(mselect_src);
 
   if (i_dst == 0) {
-    MEM_freeN(mselect_dst);
+    MEM_delete(mselect_dst);
     mselect_dst = nullptr;
   }
   else if (i_dst != mesh->totselect) {
-    mselect_dst = static_cast<MSelect *>(MEM_reallocN(mselect_dst, sizeof(MSelect) * i_dst));
+    mselect_dst = static_cast<MSelect *>(
+        MEM_realloc_uninitialized(mselect_dst, sizeof(MSelect) * i_dst));
   }
 
   mesh->totselect = i_dst;
@@ -2119,7 +2122,7 @@ void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type)
   if (msel_index == -1) {
     /* add to the end */
     mesh->mselect = static_cast<MSelect *>(
-        MEM_reallocN(mesh->mselect, sizeof(MSelect) * (mesh->totselect + 1)));
+        MEM_realloc_uninitialized(mesh->mselect, sizeof(MSelect) * (mesh->totselect + 1)));
     mesh->mselect[mesh->totselect].index = index;
     mesh->mselect[mesh->totselect].type = type;
     mesh->totselect++;

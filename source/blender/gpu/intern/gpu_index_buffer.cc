@@ -67,7 +67,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
   builder->restart_index_value = RESTART_INDEX;
 #endif
   builder->uses_restart_indices = false;
-  builder->data = MEM_malloc_arrayN<uint>(builder->max_index_len, "IndexBuf data");
+  builder->data = MEM_new_array_uninitialized<uint>(builder->max_index_len, "IndexBuf data");
 }
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
@@ -292,7 +292,7 @@ namespace gpu {
 IndexBuf::~IndexBuf()
 {
   if (!is_subrange_) {
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 }
 
@@ -490,7 +490,7 @@ IndexBuf *GPU_indexbuf_build_from_memory(const GPUPrimType prim_type,
   const uint32_t indices_num = data_len * indices_per_primitive(prim_type);
   /* TODO: The need for this copy is meant to be temporary. The data should be uploaded directly to
    * the GPU here rather than copied to an array owned by the IBO first. */
-  uint32_t *copy = MEM_malloc_arrayN<uint32_t>(indices_num, __func__);
+  uint32_t *copy = MEM_new_array_uninitialized<uint32_t>(indices_num, __func__);
   threading::memory_bandwidth_bound_task(sizeof(uint32_t) * indices_num * 2, [&]() {
     array_utils::copy(Span(data, indices_num), MutableSpan(copy, indices_num));
   });

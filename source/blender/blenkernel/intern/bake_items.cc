@@ -49,7 +49,7 @@ static std::unique_ptr<BakeMaterialsList> materials_to_weak_references(
     }
   }
 
-  MEM_SAFE_FREE(*materials);
+  MEM_SAFE_DELETE(*materials);
   *materials_num = 0;
 
   return materials_list;
@@ -121,7 +121,7 @@ static void restore_materials(Material ***materials,
   }
   BLI_assert(*materials == nullptr);
   *materials_num = materials_list->size();
-  *materials = MEM_calloc_arrayN<Material *>(materials_list->size(), __func__);
+  *materials = MEM_new_array_zeroed<Material *>(materials_list->size(), __func__);
   if (!data_block_map) {
     return;
   }
@@ -207,14 +207,14 @@ void ListBakeItem::count_memory(MemoryCounter & /*memory*/) const
 
 PrimitiveBakeItem::PrimitiveBakeItem(const CPPType &type, const void *value) : type_(type)
 {
-  value_ = MEM_mallocN_aligned(type.size, type.alignment, __func__);
+  value_ = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
   type.copy_construct(value, value_);
 }
 
 PrimitiveBakeItem::~PrimitiveBakeItem()
 {
   type_.destruct(value_);
-  MEM_freeN(value_);
+  MEM_delete_void(value_);
 }
 
 StringBakeItem::StringBakeItem(std::string value) : value_(std::move(value)) {}

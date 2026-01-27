@@ -102,7 +102,7 @@ static void uf_arraystore_compact_ex(UndoFont *uf, const UndoFont *uf_ref, bool 
             bs, (uf)->id, size_t(len) * stride, state_reference); \
       } \
       /* keep uf->len for validation */ \
-      MEM_freeN((uf)->id); \
+      MEM_delete((uf)->id); \
       (uf)->id = nullptr; \
     } \
     ((void)0)
@@ -256,10 +256,10 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
   size_t alloc_len = ef->len + 1;
 
   BLI_assert(sizeof(*uf->textbuf) == sizeof(*ef->textbuf));
-  uf->textbuf = MEM_malloc_arrayN<char32_t>(alloc_len, __func__);
+  uf->textbuf = MEM_new_array_uninitialized<char32_t>(alloc_len, __func__);
   memcpy(uf->textbuf, ef->textbuf, sizeof(char32_t) * alloc_len);
 
-  uf->textbufinfo = MEM_new_array_for_free<CharInfo>(alloc_len, __func__);
+  uf->textbufinfo = MEM_new_array<CharInfo>(alloc_len, __func__);
   memcpy(uf->textbufinfo, ef->textbufinfo, sizeof(CharInfo) * alloc_len);
 
   uf->pos = ef->pos;
@@ -295,16 +295,16 @@ static void undofont_free_data(UndoFont *uf)
     LinkData *link = static_cast<LinkData *>(
         BLI_findptr(&uf_arraystore.local_links, uf, offsetof(LinkData, data)));
     BLI_remlink(&uf_arraystore.local_links, link);
-    MEM_freeN(link);
+    MEM_delete(link);
   }
   uf_arraystore_free(uf);
 #endif
 
   if (uf->textbuf) {
-    MEM_freeN(uf->textbuf);
+    MEM_delete(uf->textbuf);
   }
   if (uf->textbufinfo) {
-    MEM_freeN(uf->textbufinfo);
+    MEM_delete(uf->textbufinfo);
   }
 }
 

@@ -73,6 +73,11 @@ Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
       const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
       return Attribute::ArrayData::from_constructed(type, domain_size);
     }
+    case AttributeInit::Type::Value: {
+      const auto &init = static_cast<const AttributeInitValue &>(initializer);
+      BLI_assert(*init.value.type() == bke::attribute_type_to_cpp_type(data_type));
+      return Attribute::ArrayData::from_value(init.value, domain_size);
+    }
     case AttributeInit::Type::DefaultValue: {
       const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
       return Attribute::ArrayData::from_default_value(type, domain_size);

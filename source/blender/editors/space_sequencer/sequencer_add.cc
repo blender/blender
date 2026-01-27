@@ -1689,7 +1689,7 @@ void sequencer_image_strip_reserve_frames(
       SNPRINTF(se->filename, "%s%s", filename_stripped, ext);
     }
 
-    MEM_freeN(filename);
+    MEM_delete(filename);
   }
 }
 

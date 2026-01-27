@@ -120,7 +120,7 @@ static void *subdiv_foreach_tls_alloc(ForeachTaskContext *ctx)
   const ForeachContext *foreach_context = ctx->foreach_context;
   void *tls = nullptr;
   if (foreach_context->user_data_tls_size != 0) {
-    tls = MEM_mallocN(foreach_context->user_data_tls_size, "tls");
+    tls = MEM_new_uninitialized(foreach_context->user_data_tls_size, "tls");
     memcpy(tls, foreach_context->user_data_tls, foreach_context->user_data_tls_size);
   }
   return tls;
@@ -134,7 +134,7 @@ static void subdiv_foreach_tls_free(ForeachTaskContext *ctx, void *tls)
   if (ctx->foreach_context != nullptr) {
     ctx->foreach_context->user_data_tls_free(tls);
   }
-  MEM_freeN(tls);
+  MEM_delete_void(tls);
 }
 
 /** \} */
@@ -261,8 +261,8 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
 
 static void subdiv_foreach_ctx_free(ForeachTaskContext *ctx)
 {
-  MEM_freeN(ctx->coarse_vertices_used_map);
-  MEM_freeN(ctx->coarse_edges_used_map);
+  MEM_delete(ctx->coarse_vertices_used_map);
+  MEM_delete(ctx->coarse_edges_used_map);
 }
 
 /** \} */

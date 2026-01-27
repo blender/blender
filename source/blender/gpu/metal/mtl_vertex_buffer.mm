@@ -24,12 +24,12 @@ MTLVertBuf::~MTLVertBuf()
 void MTLVertBuf::acquire_data()
 {
   /* Discard previous data, if any. */
-  MEM_SAFE_FREE(data_);
+  MEM_SAFE_DELETE(data_);
   if (usage_ == GPU_USAGE_DEVICE_ONLY) {
     data_ = nullptr;
   }
   else {
-    data_ = MEM_malloc_arrayN<uchar>(this->size_alloc_get(), __func__);
+    data_ = MEM_new_array_uninitialized<uchar>(this->size_alloc_get(), __func__);
   }
 }
 
@@ -39,7 +39,7 @@ void MTLVertBuf::resize_data()
     data_ = nullptr;
   }
   else {
-    data_ = (uchar *)MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get());
+    data_ = (uchar *)MEM_realloc_uninitialized(data_, sizeof(uchar) * this->size_alloc_get());
   }
 }
 
@@ -53,7 +53,7 @@ void MTLVertBuf::release_data()
 
   GPU_TEXTURE_FREE_SAFE(buffer_texture_);
 
-  MEM_SAFE_FREE(data_);
+  MEM_SAFE_DELETE(data_);
 
   if (ssbo_wrapper_) {
     delete ssbo_wrapper_;
@@ -147,7 +147,7 @@ void MTLVertBuf::bind()
 
     /* If static usage, free host-side data. */
     if (usage_ == GPU_USAGE_STATIC) {
-      MEM_SAFE_FREE(data_);
+      MEM_SAFE_DELETE(data_);
     }
 
     /* Flag data as having been uploaded. */
@@ -187,7 +187,7 @@ void MTLVertBuf::bind()
 
       /* For VBOs flagged as static, release host data as it will no longer be needed. */
       if (usage_ == GPU_USAGE_STATIC) {
-        MEM_SAFE_FREE(data_);
+        MEM_SAFE_DELETE(data_);
       }
 
       /* Flag data as uploaded. */

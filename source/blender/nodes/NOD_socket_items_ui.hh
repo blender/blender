@@ -60,7 +60,7 @@ static void draw_items_list_with_operators(const bContext *C,
       const_cast<ID *>(&tree.id), RNA_Node, const_cast<bNode *>(&node));
 
   static const uiListType *items_list = []() {
-    uiListType *list = MEM_callocN<uiListType>(Accessor::ui_idnames::list.c_str());
+    uiListType *list = MEM_new_zeroed<uiListType>(Accessor::ui_idnames::list.c_str());
     STRNCPY_UTF8(list->idname, Accessor::ui_idnames::list.c_str());
     list->draw_item = draw_item_in_list<Accessor>;
     WM_uilisttype_add(list);

@@ -222,13 +222,13 @@ bool ANIM_remove_driver(ID *id, const char rna_path[], int array_index);
 
 /**
  * Clear copy-paste buffer for drivers.
- * \note This function frees any MEM_calloc'ed copy/paste buffer data.
+ * \note This function frees any allocated copy/paste buffer data.
  */
 void ANIM_drivers_copybuf_free();
 
 /**
  * Clear copy-paste buffer for driver variable sets.
- * \note This function frees any MEM_calloc'ed copy/paste buffer data.
+ * \note This function frees any allocated copy/paste buffer data.
  */
 void ANIM_driver_vars_copybuf_free();
 

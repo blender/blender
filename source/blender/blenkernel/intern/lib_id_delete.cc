@@ -51,12 +51,12 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {
   if (id->properties) {
     IDP_FreePropertyContent_ex(id->properties, do_id_user);
-    MEM_freeN(id->properties);
+    MEM_delete(id->properties);
     id->properties = nullptr;
   }
   if (id->system_properties) {
     IDP_FreePropertyContent_ex(id->system_properties, do_id_user);
-    MEM_freeN(id->system_properties);
+    MEM_delete(id->system_properties);
     id->system_properties = nullptr;
   }
 
@@ -70,7 +70,7 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
   }
 
   if (id->library_weak_reference != nullptr) {
-    MEM_freeN(id->library_weak_reference);
+    MEM_delete(id->library_weak_reference);
   }
 
   BKE_animdata_free(id, do_id_user);
@@ -190,7 +190,7 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
   }
 
   if ((flag & LIB_ID_FREE_NOT_ALLOCATED) == 0) {
-    MEM_freeN(id);
+    MEM_delete(id);
   }
 
   return flag;

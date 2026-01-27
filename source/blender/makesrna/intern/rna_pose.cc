@@ -200,7 +200,7 @@ static void rna_Pose_ik_solver_set(PointerRNA *ptr, int value)
     /* the solver has changed, must clean any temporary structures */
     BIK_clear_data(pose);
     if (pose->ikparam) {
-      MEM_freeN(pose->ikparam);
+      MEM_delete_void(pose->ikparam);
       pose->ikparam = nullptr;
     }
     pose->iksolver = value;

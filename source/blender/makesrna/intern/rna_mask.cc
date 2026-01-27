@@ -514,7 +514,7 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
   }
 
   spline->points = static_cast<MaskSplinePoint *>(
-      MEM_recallocN(spline->points, sizeof(MaskSplinePoint) * (spline->tot_point + count)));
+      MEM_realloc_zeroed(spline->points, sizeof(MaskSplinePoint) * (spline->tot_point + count)));
   spline->tot_point += count;
 
   if (active_point_index >= 0) {
@@ -573,15 +573,15 @@ static void rna_MaskSpline_point_remove(ID *id,
 
   point_index = point - spline->points;
 
-  new_point_array = MEM_new_array_for_free<MaskSplinePoint>(size_t(spline->tot_point) - 1,
-                                                            "remove mask point");
+  new_point_array = MEM_new_array<MaskSplinePoint>(size_t(spline->tot_point) - 1,
+                                                   "remove mask point");
 
   memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * point_index);
   memcpy(new_point_array + point_index,
          spline->points + point_index + 1,
          sizeof(MaskSplinePoint) * (spline->tot_point - point_index - 1));
 
-  MEM_freeN(spline->points);
+  MEM_delete(spline->points);
   spline->points = new_point_array;
   spline->tot_point--;
 

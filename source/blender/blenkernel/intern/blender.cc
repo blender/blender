@@ -290,7 +290,7 @@ void BKE_blender_userdef_data_set(UserDef *userdef)
 void BKE_blender_userdef_data_set_and_free(UserDef *userdef)
 {
   BKE_blender_userdef_data_set(userdef);
-  MEM_freeN(userdef);
+  MEM_delete(userdef);
 }
 
 static void userdef_free_keymaps(UserDef *userdef)
@@ -302,11 +302,11 @@ static void userdef_free_keymaps(UserDef *userdef)
     for (wmKeyMapDiffItem &kmdi : km->diff_items) {
       if (kmdi.add_item) {
         keymap_item_free(kmdi.add_item);
-        MEM_freeN(kmdi.add_item);
+        MEM_delete(kmdi.add_item);
       }
       if (kmdi.remove_item) {
         keymap_item_free(kmdi.remove_item);
-        MEM_freeN(kmdi.remove_item);
+        MEM_delete(kmdi.remove_item);
       }
     }
 
@@ -317,7 +317,7 @@ static void userdef_free_keymaps(UserDef *userdef)
     BLI_freelistN(&km->diff_items);
     BLI_freelistN(&km->items);
 
-    MEM_freeN(km);
+    MEM_delete(km);
   }
   BLI_listbase_clear(&userdef->user_keymaps);
 }
@@ -331,7 +331,7 @@ static void userdef_free_keyconfig_prefs(UserDef *userdef)
   {
     kpt_next = kpt->next;
     IDP_FreeProperty(kpt->prop);
-    MEM_freeN(kpt);
+    MEM_delete(kpt);
   }
   BLI_listbase_clear(&userdef->user_keyconfig_prefs);
 }
@@ -343,7 +343,7 @@ static void userdef_free_user_menus(UserDef *userdef)
   {
     um_next = um->next;
     BKE_blender_user_menu_item_free_list(&um->items);
-    MEM_freeN(um);
+    MEM_delete(um);
   }
 }
 
@@ -382,14 +382,14 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   BLI_freelistN(&userdef->asset_libraries);
 
   for (bUserExtensionRepo &repo_ref : userdef->extension_repos.items_mutable()) {
-    MEM_SAFE_FREE(repo_ref.access_token);
-    MEM_freeN(&repo_ref);
+    MEM_SAFE_DELETE(repo_ref.access_token);
+    MEM_delete(&repo_ref);
   }
   BLI_listbase_clear(&userdef->extension_repos);
 
   for (bUserAssetShelfSettings &settings : userdef->asset_shelves_settings.items_mutable()) {
     BKE_asset_catalog_path_list_free(settings.enabled_catalog_paths);
-    MEM_freeN(&settings);
+    MEM_delete(&settings);
   }
   BLI_listbase_clear(&userdef->asset_shelves_settings);
 
@@ -470,7 +470,7 @@ void BKE_blender_userdef_app_template_data_set(UserDef *userdef)
 void BKE_blender_userdef_app_template_data_set_and_free(UserDef *userdef)
 {
   BKE_blender_userdef_app_template_data_set(userdef);
-  MEM_freeN(userdef);
+  MEM_delete(userdef);
 }
 
 /** \} */
@@ -478,7 +478,7 @@ void BKE_blender_userdef_app_template_data_set_and_free(UserDef *userdef)
 /* -------------------------------------------------------------------- */
 /** \name Blender's AtExit
  *
- * \note Don't use MEM_mallocN so functions can be registered at any time.
+ * \note Don't use MEM_new_uninitialized so functions can be registered at any time.
  * \{ */
 
 static struct AtExitData {

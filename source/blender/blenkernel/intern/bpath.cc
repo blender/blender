@@ -204,7 +204,7 @@ bool BKE_bpath_foreach_path_allocated_process(BPathForeachPathData *bpath_data, 
   }
 
   if (bpath_data->callback_function(bpath_data, path_dst, sizeof(path_dst), path_src)) {
-    MEM_freeN(*path);
+    MEM_delete(*path);
     (*path) = BLI_strdup(path_dst);
     bpath_data->is_path_modified = true;
     return true;
@@ -658,7 +658,7 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
 
   /* NOTE: the PathStore and its string are allocated together in a single alloc. */
   PathStore *path_store = static_cast<PathStore *>(
-      MEM_mallocN(sizeof(PathStore) + path_size, __func__));
+      MEM_new_uninitialized(sizeof(PathStore) + path_size, __func__));
 
   char *filepath = path_store->filepath;
 
@@ -693,7 +693,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
 
 void *BKE_bpath_list_backup(Main *bmain, const eBPathForeachFlag flag)
 {
-  ListBaseT<PathStore> *path_list = MEM_callocN<ListBaseT<PathStore>>(__func__);
+  ListBaseT<PathStore> *path_list = MEM_new_zeroed<ListBaseT<PathStore>>(__func__);
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
@@ -725,7 +725,7 @@ void BKE_bpath_list_free(void *path_list_handle)
   BLI_assert(BLI_listbase_is_empty(path_list));
 
   BLI_freelistN(path_list);
-  MEM_freeN(path_list);
+  MEM_delete(path_list);
 }
 
 /** \} */

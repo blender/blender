@@ -1280,7 +1280,7 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBaseT<ID> *lb)
   }
 
   /* Fill an array because renaming sorts. */
-  ID **id_array = MEM_malloc_arrayN<ID *>(size_t(lb_len), __func__);
+  ID **id_array = MEM_new_array_uninitialized<ID *>(size_t(lb_len), __func__);
   Set<StringRef> name_set;
   int i = 0;
   for (ID &id : *lb) {
@@ -1295,7 +1295,7 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBaseT<ID> *lb)
           *bmain, *lb, *id_array[i], nullptr, IDNewNameMode::RenameExistingNever, false);
     }
   }
-  MEM_freeN(id_array);
+  MEM_delete(id_array);
 }
 
 void BKE_main_lib_objects_recalc_all(Main *bmain)
@@ -1353,7 +1353,7 @@ ID *BKE_libblock_alloc_notest(short type)
   const char *name;
   size_t size = BKE_libblock_get_alloc_info(type, &name);
   if (size != 0) {
-    ID *id = static_cast<ID *>(MEM_callocN(size, name));
+    ID *id = static_cast<ID *>(MEM_new_zeroed(size, name));
     return id;
   }
   BLI_assert_msg(0, "Request to allocate unknown data type");

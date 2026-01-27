@@ -68,7 +68,7 @@ bool WM_menutype_add(MenuType *mt)
 void WM_menutype_freelink(MenuType *mt)
 {
   bool ok = get_menu_type_map().remove(mt);
-  MEM_freeN(mt);
+  MEM_delete(mt);
 
   BLI_assert(ok);
   UNUSED_VARS_NDEBUG(ok);
@@ -86,7 +86,7 @@ void WM_menutype_free()
     if (mt->rna_ext.free) {
       mt->rna_ext.free(mt->rna_ext.data);
     }
-    MEM_freeN(mt);
+    MEM_delete(mt);
   }
   get_menu_type_map().clear();
 }

@@ -1320,7 +1320,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
       uiItemLDrag(&row, ptr, name, icon);
 
       if (name != namebuf) {
-        MEM_freeN(name);
+        MEM_delete(name);
       }
     }
     else {
@@ -1340,7 +1340,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 
 void buttons_context_register(ARegionType *art)
 {
-  PanelType *pt = MEM_callocN<PanelType>("spacetype buttons panel context");
+  PanelType *pt = MEM_new_zeroed<PanelType>("spacetype buttons panel context");
   STRNCPY_UTF8(pt->idname, "PROPERTIES_PT_context");
   STRNCPY_UTF8(pt->label, N_("Context")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "BKE_sound_types.hh"
+
 #include "BLI_function_ref.hh"
 
 #include "DNA_sequence_types.h"
@@ -73,8 +75,8 @@ struct StripModifierDataRuntime {
    * and old sound handle may be returned. This is to prevent audio glitches, see #141595 */
 
   /* Reference sound handles (may be used by any sound modifier). */
-  void *last_sound_in = nullptr;
-  void *last_sound_out = nullptr;
+  AUD_Sound last_sound_in;
+  AUD_Sound last_sound_out;
 
   /* Hash to detect change in modifier state. */
   uint64_t params_hash = 0;

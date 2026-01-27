@@ -151,7 +151,7 @@ bool search_item_add(SearchItems *items,
   if (name_prefix_offset != 0) {
     /* Lazy initialize, as this isn't used often. */
     if (items->name_prefix_offsets == nullptr) {
-      items->name_prefix_offsets = MEM_calloc_arrayN<uint8_t>(items->maxitem, __func__);
+      items->name_prefix_offsets = MEM_new_array_zeroed<uint8_t>(items->maxitem, __func__);
     }
     items->name_prefix_offsets[items->totitem] = name_prefix_offset;
   }
@@ -224,7 +224,7 @@ int searchbox_size_x_guess(const bContext *C, const ButtonSearchUpdateFn update_
   update_fn(C, arg, "", &items, true);
 
   /* This is lazy-initialized in #search_item_add. */
-  MEM_SAFE_FREE(items.name_prefix_offsets);
+  MEM_SAFE_DELETE(items.name_prefix_offsets);
 
   return searchbox_size_x_from_items(items);
 }
@@ -357,7 +357,7 @@ bool searchbox_apply(Button *but, ARegion *region)
     }
 
     search_but->item_active = data->items.pointers[data->active];
-    MEM_SAFE_FREE(search_but->item_active_str);
+    MEM_SAFE_DELETE(search_but->item_active_str);
     search_but->item_active_str = BLI_strdup(data->items.names[data->active]);
 
     return true;
@@ -821,18 +821,18 @@ static void searchbox_region_free_fn(ARegion *region)
 
   /* free search data */
   for (int a = 0; a < data->items.maxitem; a++) {
-    MEM_freeN(data->items.names[a]);
+    MEM_delete(data->items.names[a]);
   }
-  MEM_freeN(data->items.names);
-  MEM_freeN(data->items.pointers);
-  MEM_freeN(data->items.icons);
-  MEM_freeN(data->items.but_flags);
+  MEM_delete(data->items.names);
+  MEM_delete(data->items.pointers);
+  MEM_delete(data->items.icons);
+  MEM_delete(data->items.but_flags);
 
   if (data->items.name_prefix_offsets != nullptr) {
-    MEM_freeN(data->items.name_prefix_offsets);
+    MEM_delete(data->items.name_prefix_offsets);
   }
 
-  MEM_freeN(data);
+  MEM_delete(data);
   region->regiondata = nullptr;
 }
 
@@ -982,7 +982,7 @@ static ARegion *searchbox_create_generic_ex(bContext *C,
   region->runtime->type = &type;
 
   /* Create search-box data. */
-  uiSearchboxData *data = MEM_new_for_free<uiSearchboxData>(__func__);
+  uiSearchboxData *data = MEM_new<uiSearchboxData>(__func__);
   data->search_arg = but->arg;
   data->search_but = but;
   data->butregion = butregion;
@@ -1030,13 +1030,13 @@ static ARegion *searchbox_create_generic_ex(bContext *C,
   /* In case the button's string is dynamic, make sure there are buffers available. */
   data->items.maxstrlen = but->hardmax == 0 ? UI_MAX_NAME_STR : but->hardmax;
   data->items.totitem = 0;
-  data->items.names = MEM_calloc_arrayN<char *>(data->items.maxitem, __func__);
-  data->items.pointers = MEM_calloc_arrayN<void *>(data->items.maxitem, __func__);
-  data->items.icons = MEM_calloc_arrayN<int>(data->items.maxitem, __func__);
-  data->items.but_flags = MEM_calloc_arrayN<int>(data->items.maxitem, __func__);
+  data->items.names = MEM_new_array_zeroed<char *>(data->items.maxitem, __func__);
+  data->items.pointers = MEM_new_array_zeroed<void *>(data->items.maxitem, __func__);
+  data->items.icons = MEM_new_array_zeroed<int>(data->items.maxitem, __func__);
+  data->items.but_flags = MEM_new_array_zeroed<int>(data->items.maxitem, __func__);
   data->items.name_prefix_offsets = nullptr; /* Lazy initialized as needed. */
   for (int i = 0; i < data->items.maxitem; i++) {
-    data->items.names[i] = MEM_calloc_arrayN<char>(data->items.maxstrlen + 1, __func__);
+    data->items.names[i] = MEM_new_array_zeroed<char>(data->items.maxstrlen + 1, __func__);
   }
 
   return region;
@@ -1204,14 +1204,14 @@ void button_search_refresh(ButtonSearch *but)
     return;
   }
 
-  SearchItems *items = MEM_new_for_free<SearchItems>(__func__);
+  SearchItems *items = MEM_new<SearchItems>(__func__);
 
   /* setup search struct */
   items->maxitem = 10;
   items->maxstrlen = 256;
-  items->names = MEM_calloc_arrayN<char *>(items->maxitem, __func__);
+  items->names = MEM_new_array_zeroed<char *>(items->maxitem, __func__);
   for (int i = 0; i < items->maxitem; i++) {
-    items->names[i] = MEM_calloc_arrayN<char>(but->hardmax + 1, __func__);
+    items->names[i] = MEM_new_array_zeroed<char>(but->hardmax + 1, __func__);
   }
 
   searchbox_update_fn(
@@ -1230,10 +1230,10 @@ void button_search_refresh(ButtonSearch *but)
   }
 
   for (int i = 0; i < items->maxitem; i++) {
-    MEM_freeN(items->names[i]);
+    MEM_delete(items->names[i]);
   }
-  MEM_freeN(items->names);
-  MEM_freeN(items);
+  MEM_delete(items->names);
+  MEM_delete(items);
 }
 
 /** \} */

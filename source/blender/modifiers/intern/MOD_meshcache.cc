@@ -79,7 +79,8 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 
   float (*vertexCos_Store)[3] = (use_factor || influence_group_index != -1 ||
                                  (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE)) ?
-                                    MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__) :
+                                    MEM_new_array_uninitialized<float[3]>(size_t(verts_num),
+                                                                          __func__) :
                                     nullptr;
   float (*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
 
@@ -170,7 +171,8 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
-      float (*vertexCos_New)[3] = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
+      float (*vertexCos_New)[3] = MEM_new_array_uninitialized<float[3]>(size_t(verts_num),
+                                                                        __func__);
 
       BKE_mesh_calc_relative_deform(
           mesh->face_offsets().data(),
@@ -189,7 +191,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       /* write the corrected locations back into the result */
       memcpy(vertexCos, vertexCos_New, sizeof(*vertexCos) * verts_num);
 
-      MEM_freeN(vertexCos_New);
+      MEM_delete(vertexCos_New);
     }
   }
 
@@ -264,7 +266,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       }
     }
 
-    MEM_freeN(vertexCos_Store);
+    MEM_delete(vertexCos_Store);
   }
 }
 

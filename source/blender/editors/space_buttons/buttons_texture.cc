@@ -374,7 +374,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
   ID *pinid = sbuts->pinid;
 
   if (!ct) {
-    ct = MEM_callocN<ButsContextTexture>("ButsContextTexture");
+    ct = MEM_new_zeroed<ButsContextTexture>("ButsContextTexture");
     sbuts->texuser = ct;
   }
   else {

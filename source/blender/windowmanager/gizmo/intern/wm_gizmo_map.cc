@@ -104,14 +104,15 @@ static void wm_gizmomap_select_array_ensure_len_alloc(wmGizmoMap *gzmap, int len
   if (len <= msel->len_alloc) {
     return;
   }
-  msel->items = static_cast<wmGizmo **>(MEM_reallocN(msel->items, sizeof(*msel->items) * len));
+  msel->items = static_cast<wmGizmo **>(
+      MEM_realloc_uninitialized(msel->items, sizeof(*msel->items) * len));
   msel->len_alloc = len;
 }
 
 void wm_gizmomap_select_array_clear(wmGizmoMap *gzmap)
 {
   wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
-  MEM_SAFE_FREE(msel->items);
+  MEM_SAFE_DELETE(msel->items);
   msel->len = 0;
   msel->len_alloc = 0;
 }
@@ -126,7 +127,7 @@ void wm_gizmomap_select_array_shrink(wmGizmoMap *gzmap, int len_subtract)
   else {
     if (msel->len < msel->len_alloc / 2) {
       msel->items = static_cast<wmGizmo **>(
-          MEM_reallocN(msel->items, sizeof(*msel->items) * msel->len));
+          MEM_realloc_uninitialized(msel->items, sizeof(*msel->items) * msel->len));
       msel->len_alloc = msel->len;
     }
   }
@@ -139,7 +140,7 @@ void wm_gizmomap_select_array_push_back(wmGizmoMap *gzmap, wmGizmo *gz)
   if (msel->len == msel->len_alloc) {
     msel->len_alloc = (msel->len + 1) * 2;
     msel->items = static_cast<wmGizmo **>(
-        MEM_reallocN(msel->items, sizeof(*msel->items) * msel->len_alloc));
+        MEM_realloc_uninitialized(msel->items, sizeof(*msel->items) * msel->len_alloc));
   }
   msel->items[msel->len++] = gz;
 }
@@ -183,7 +184,7 @@ static wmGizmoMap *wm_gizmomap_new_from_type_ex(wmGizmoMapType *gzmap_type, wmGi
 wmGizmoMap *WM_gizmomap_new_from_type(const wmGizmoMapType_Params *gzmap_params)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(gzmap_params);
-  wmGizmoMap *gzmap = MEM_callocN<wmGizmoMap>("GizmoMap");
+  wmGizmoMap *gzmap = MEM_new_zeroed<wmGizmoMap>("GizmoMap");
   wm_gizmomap_new_from_type_ex(gzmap_type, gzmap);
   return gzmap;
 }
@@ -207,7 +208,7 @@ static void wm_gizmomap_free_data(wmGizmoMap *gzmap)
 void wm_gizmomap_remove(wmGizmoMap *gzmap)
 {
   wm_gizmomap_free_data(gzmap);
-  MEM_freeN(gzmap);
+  MEM_delete(gzmap);
 }
 
 void WM_gizmomap_reinit(wmGizmoMap *gzmap)
@@ -855,7 +856,7 @@ void WM_gizmomap_add_handlers(ARegion *region, wmGizmoMap *gzmap)
     }
   }
 
-  wmEventHandler_Gizmo *handler = MEM_callocN<wmEventHandler_Gizmo>(__func__);
+  wmEventHandler_Gizmo *handler = MEM_new_zeroed<wmEventHandler_Gizmo>(__func__);
   handler->head.type = WM_HANDLER_TYPE_GIZMO;
   BLI_assert(gzmap == region->runtime->gizmo_map);
   handler->gizmo_map = gzmap;
@@ -1138,7 +1139,7 @@ void wm_gizmomap_modal_set(
       /* We failed to hook the gizmo to the operator handler or operator was canceled, return. */
       if (!gzmap->gzmap_context.modal) {
         gz->state &= ~WM_GIZMO_STATE_MODAL;
-        MEM_SAFE_FREE(gz->interaction_data);
+        MEM_SAFE_DELETE_VOID(gz->interaction_data);
       }
     }
   }
@@ -1148,7 +1149,7 @@ void wm_gizmomap_modal_set(
     /* Deactivate, gizmo but first take care of some stuff. */
     if (gz) {
       gz->state &= ~WM_GIZMO_STATE_MODAL;
-      MEM_SAFE_FREE(gz->interaction_data);
+      MEM_SAFE_DELETE_VOID(gz->interaction_data);
     }
 
     if (gzmap->gzmap_context.modal != nullptr) {
@@ -1294,7 +1295,7 @@ wmGizmoMapType *WM_gizmomaptype_ensure(const wmGizmoMapType_Params *gzmap_params
     return gzmap_type;
   }
 
-  gzmap_type = MEM_callocN<wmGizmoMapType>("gizmotype list");
+  gzmap_type = MEM_new_zeroed<wmGizmoMapType>("gizmotype list");
   gzmap_type->spaceid = gzmap_params->spaceid;
   gzmap_type->regionid = gzmap_params->regionid;
   BLI_addhead(&gizmomaptypes, gzmap_type);
@@ -1319,7 +1320,7 @@ void wm_gizmomaptypes_free()
       gzgt_next = gzgt_ref->next;
       WM_gizmomaptype_group_free(gzgt_ref);
     }
-    MEM_freeN(gzmap_type);
+    MEM_delete(gzmap_type);
   }
 }
 

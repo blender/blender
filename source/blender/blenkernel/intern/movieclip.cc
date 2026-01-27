@@ -501,7 +501,7 @@ static void movieclip_convert_multilayer_add_pass(void * /*layer*/,
   MultilayerConvertContext *ctx = static_cast<MultilayerConvertContext *>(ctx_v);
   /* If we've found a first combined pass, skip all the rest ones. */
   if (ctx->combined_pass != nullptr) {
-    MEM_freeN(rect);
+    MEM_delete(rect);
     return;
   }
   if (STREQ(pass_name, RE_PASSNAME_COMBINED) || STR_ELEM(chan_id, "RGBA", "RGB")) {
@@ -509,7 +509,7 @@ static void movieclip_convert_multilayer_add_pass(void * /*layer*/,
     ctx->num_combined_channels = num_channels;
   }
   else {
-    MEM_freeN(rect);
+    MEM_delete(rect);
   }
 }
 
@@ -775,7 +775,7 @@ static void *moviecache_getprioritydata(void *key_v)
   MovieClipImBufCacheKey *key = static_cast<MovieClipImBufCacheKey *>(key_v);
   MovieClipCachePriorityData *priority_data;
 
-  priority_data = MEM_callocN<MovieClipCachePriorityData>("movie cache clip priority data");
+  priority_data = MEM_new_zeroed<MovieClipCachePriorityData>("movie cache clip priority data");
   priority_data->framenr = key->framenr;
 
   return priority_data;
@@ -795,7 +795,7 @@ static void moviecache_prioritydeleter(void *priority_data_v)
   MovieClipCachePriorityData *priority_data = static_cast<MovieClipCachePriorityData *>(
       priority_data_v);
 
-  MEM_freeN(priority_data);
+  MEM_delete(priority_data);
 }
 
 static ImBuf *get_imbuf_cache(MovieClip *clip, const MovieClipUser *user, int flag)
@@ -858,7 +858,7 @@ static bool put_imbuf_cache(
     // char cache_name[64];
     // SNPRINTF(cache_name, "movie %s", clip->id.name);
 
-    clip->cache = MEM_callocN<MovieClipCache>("movieClipCache");
+    clip->cache = MEM_new_zeroed<MovieClipCache>("movieClipCache");
 
     moviecache = IMB_moviecache_create(
         "movieclip", sizeof(MovieClipImBufCacheKey), moviecache_hashhash, moviecache_hashcmp);
@@ -1633,7 +1633,7 @@ static void free_buffers(MovieClip *clip)
       IMB_freeImBuf(clip->cache->stabilized.ibuf);
     }
 
-    MEM_freeN(clip->cache);
+    MEM_delete(clip->cache);
     clip->cache = nullptr;
   }
 
@@ -2015,7 +2015,7 @@ static gpu::Texture **movieclip_get_gputexture_ptr(MovieClip *clip,
 
   /* If not, allocate a new one. */
   if (tex == nullptr) {
-    tex = MEM_new_for_free<MovieClip_RuntimeGPUTexture>(__func__);
+    tex = MEM_new<MovieClip_RuntimeGPUTexture>(__func__);
 
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
       tex->gputexture[i] = nullptr;
@@ -2077,7 +2077,7 @@ void BKE_movieclip_free_gputexture(MovieClip *clip)
         tex->gputexture[i] = nullptr;
       }
     }
-    MEM_freeN(tex);
+    MEM_delete(tex);
   }
 }
 

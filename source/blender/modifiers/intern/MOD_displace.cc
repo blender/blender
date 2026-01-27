@@ -269,7 +269,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 
   Tex *tex_target = dmd->texture;
   if (tex_target != nullptr) {
-    tex_co = MEM_calloc_arrayN<float[3]>(positions.size(), "displaceModifier_do tex_co");
+    tex_co = MEM_new_array_zeroed<float[3]>(positions.size(), "displaceModifier_do tex_co");
     MOD_get_texture_coords(reinterpret_cast<MappingInfoModifierData *>(dmd),
                            ctx,
                            ob,
@@ -319,7 +319,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (tex_co) {
-    MEM_freeN(tex_co);
+    MEM_delete(tex_co);
   }
 }
 

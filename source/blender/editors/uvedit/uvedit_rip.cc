@@ -305,7 +305,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
                                             const float aspect_y,
                                             const int cd_loop_uv_offset)
 {
-  UVRipSingle *rip = MEM_callocN<UVRipSingle>(__func__);
+  UVRipSingle *rip = MEM_new_zeroed<UVRipSingle>(__func__);
   const float *co_center = BM_ELEM_CD_GET_FLOAT_P(l_init_orig, cd_loop_uv_offset);
   rip->loops = MEM_new<Set<BMLoop *>>(__func__);
 
@@ -422,7 +422,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
 static void uv_rip_single_free(UVRipSingle *rip)
 {
   MEM_delete(rip->loops);
-  MEM_freeN(rip);
+  MEM_delete(rip);
 }
 
 /** \} */
@@ -556,7 +556,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
                                           const float aspect_y,
                                           const int cd_loop_uv_offset)
 {
-  UVRipPairs *rip = MEM_callocN<UVRipPairs>(__func__);
+  UVRipPairs *rip = MEM_new_zeroed<UVRipPairs>(__func__);
   rip->loops = MEM_new<Set<BMLoop *>>(__func__);
 
   /* We can rely on this stack being small, as we're walking down two sides of an edge loop,
@@ -677,7 +677,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
 static void uv_rip_pairs_free(UVRipPairs *rip)
 {
   MEM_delete(rip->loops);
-  MEM_freeN(rip);
+  MEM_delete(rip);
 }
 
 /**

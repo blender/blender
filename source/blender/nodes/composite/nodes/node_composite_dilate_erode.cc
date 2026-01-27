@@ -63,7 +63,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused but kept for forward compatibility. */
-  NodeDilateErode *data = MEM_new_for_free<NodeDilateErode>(__func__);
+  NodeDilateErode *data = MEM_new<NodeDilateErode>(__func__);
   node->storage = data;
 }
 

@@ -1442,6 +1442,13 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    bl_sculpt_mesh_filter
+    --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/mesh_filter_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/sculpting"
+  )
+
+  add_blender_test(
     bl_sculpt_brushes
     --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/sculpt_brushes_test.py
     --
@@ -1497,6 +1504,7 @@ if(WITH_UI_TESTS)
   set(_ui_tests
     test_sculpt.asset_shelf_brush_selection
     test_sculpt.mask_expand_and_invert
+    test_sculpt.face_set_expand
     test_tools.sculpt_mode_toolbar
     test_undo.compositor_make_group
     test_undo.text_editor_edit_mode_mix

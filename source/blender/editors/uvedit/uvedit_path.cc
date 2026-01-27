@@ -848,7 +848,7 @@ static wmOperatorStatus uv_shortest_path_select_exec(bContext *C, wmOperator *op
         ele_src = ele_array[0];
         ele_dst = ele_array[1];
       }
-      MEM_freeN(ele_array);
+      MEM_delete(ele_array);
     }
 
     if (ele_src && ele_dst) {

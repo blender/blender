@@ -110,9 +110,7 @@ bool BPY_run_string_eval(bContext *C, const char *imports[], const char *expr);
  *
  * \param locals: group property with string keys, defining the script's local variables.
  */
-bool BPY_run_string_exec_with_locals(bContext *C,
-                                     blender::StringRefNull script,
-                                     IDProperty &locals);
+bool BPY_run_string_exec_with_locals(bContext *C, StringRefNull script, IDProperty &locals);
 
 /**
  * Run a script, with the given local variables, and return a result.
@@ -136,10 +134,7 @@ bool BPY_run_string_exec_with_locals(bContext *C,
  * of the `std::optional`.
  */
 std::optional<IDProperty *> BPY_run_string_exec_with_locals_return_idprop(
-    bContext *C,
-    blender::StringRefNull script,
-    IDProperty &locals,
-    blender::StringRefNull result_var_name);
+    bContext *C, StringRefNull script, IDProperty &locals, StringRefNull result_var_name);
 
 /** \} */
 

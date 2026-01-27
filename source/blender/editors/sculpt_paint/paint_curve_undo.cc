@@ -46,22 +46,22 @@ struct UndoCurve {
 static void undocurve_from_paintcurve(UndoCurve *uc, const PaintCurve *pc)
 {
   BLI_assert(BLI_array_is_zeroed(uc, 1));
-  uc->points = static_cast<PaintCurvePoint *>(MEM_dupallocN(pc->points));
+  uc->points = MEM_dupalloc(pc->points);
   uc->tot_points = pc->tot_points;
   uc->add_index = pc->add_index;
 }
 
 static void undocurve_to_paintcurve(const UndoCurve *uc, PaintCurve *pc)
 {
-  MEM_SAFE_FREE(pc->points);
-  pc->points = static_cast<PaintCurvePoint *>(MEM_dupallocN(uc->points));
+  MEM_SAFE_DELETE(pc->points);
+  pc->points = MEM_dupalloc(uc->points);
   pc->tot_points = uc->tot_points;
   pc->add_index = uc->add_index;
 }
 
 static void undocurve_free_data(UndoCurve *uc)
 {
-  MEM_SAFE_FREE(uc->points);
+  MEM_SAFE_DELETE(uc->points);
 }
 
 /** \} */

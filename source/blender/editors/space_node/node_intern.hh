@@ -48,11 +48,48 @@ struct AssetItemTree;
  */
 struct NodeAndSocket {
   const bNode &node;
-  const bNodeSocket &socket;
+  std::string socket_identifier;
+  eNodeSocketInOut in_out;
+
+  NodeAndSocket(const bNode &node,
+                const StringRef socket_identifier,
+                const eNodeSocketInOut in_out)
+      : node(node), socket_identifier(socket_identifier), in_out(in_out)
+  {
+  }
+  NodeAndSocket(const bNode &node, const bNodeSocket socket)
+      : node(node), socket_identifier(socket.identifier), in_out(eNodeSocketInOut(socket.in_out))
+  {
+  }
+  NodeAndSocket(const bNodeSocket &socket)
+      : node(socket.owner_node()),
+        socket_identifier(socket.identifier),
+        in_out(eNodeSocketInOut(socket.in_out))
+  {
+  }
+
+  bool is_input() const
+  {
+    return in_out == SOCK_IN;
+  }
+
+  bool is_output() const
+  {
+    return in_out == SOCK_OUT;
+  }
+
+  const bNodeSocket &find_socket_in_node(const bNode &other_node) const;
+  bNodeSocket &find_socket_in_node(bNode &other_node) const;
+
+  const bNodeSocket &find_socket() const
+  {
+    return find_socket_in_node(this->node);
+  }
 
   friend bool operator==(const NodeAndSocket &a, const NodeAndSocket &b)
   {
-    return (&a.node == &b.node) && (&a.socket == &b.socket);
+    return (&a.node == &b.node) && (a.in_out == b.in_out) &&
+           (a.socket_identifier == b.socket_identifier);
   }
   BLI_STRUCT_DERIVED_UNEQUAL_OPERATOR(NodeAndSocket)
 };
@@ -64,16 +101,53 @@ struct NodeAndSocket {
  */
 struct MutableNodeAndSocket {
   bNode &node;
-  bNodeSocket &socket;
+  std::string socket_identifier;
+  eNodeSocketInOut in_out;
+
+  MutableNodeAndSocket(bNode &node,
+                       const StringRef socket_identifier,
+                       const eNodeSocketInOut in_out)
+      : node(node), socket_identifier(socket_identifier), in_out(in_out)
+  {
+  }
+  MutableNodeAndSocket(bNode &node, bNodeSocket &socket)
+      : node(node), socket_identifier(socket.identifier), in_out(eNodeSocketInOut(socket.in_out))
+  {
+  }
+  MutableNodeAndSocket(bNodeSocket &socket)
+      : node(socket.owner_node()),
+        socket_identifier(socket.identifier),
+        in_out(eNodeSocketInOut(socket.in_out))
+  {
+  }
 
   NodeAndSocket operator()() const
   {
-    return {node, socket};
+    return {node, socket_identifier, in_out};
+  }
+
+  bool is_input() const
+  {
+    return in_out == SOCK_IN;
+  }
+
+  bool is_output() const
+  {
+    return in_out == SOCK_OUT;
+  }
+
+  const bNodeSocket &find_socket_in_node(const bNode &other_node) const;
+  bNodeSocket &find_socket_in_node(bNode &other_node) const;
+
+  bNodeSocket &find_socket() const
+  {
+    return find_socket_in_node(this->node);
   }
 
   friend bool operator==(const MutableNodeAndSocket &a, const MutableNodeAndSocket &b)
   {
-    return (&a.node == &b.node) && (&a.socket == &b.socket);
+    return (&a.node == &b.node) && (a.in_out == b.in_out) &&
+           (a.socket_identifier == b.socket_identifier);
   }
   BLI_STRUCT_DERIVED_UNEQUAL_OPERATOR(MutableNodeAndSocket)
 };
@@ -81,22 +155,24 @@ struct MutableNodeAndSocket {
 template<> struct DefaultHash<NodeAndSocket> {
   uint64_t operator()(const NodeAndSocket &value) const
   {
-    return get_default_hash(&value.socket);
+    return get_default_hash(&value.node, value.in_out, value.socket_identifier);
   }
   uint64_t operator()(const bNodeSocket &socket) const
   {
-    return get_default_hash(&socket);
+    return get_default_hash(
+        &socket.owner_node(), eNodeSocketInOut(socket.in_out), socket.identifier);
   }
 };
 
 template<> struct DefaultHash<MutableNodeAndSocket> {
   uint64_t operator()(const MutableNodeAndSocket &value) const
   {
-    return get_default_hash(&value.socket);
+    return get_default_hash(&value.node, value.in_out, value.socket_identifier);
   }
   uint64_t operator()(const bNodeSocket &socket) const
   {
-    return get_default_hash(&socket);
+    return get_default_hash(
+        &socket.owner_node(), eNodeSocketInOut(socket.in_out), socket.identifier);
   }
 };
 
@@ -620,13 +696,11 @@ class NodeSetCopy {
  private:
   bNodeTree &dst_tree_;
   Map<const bNode *, bNode *> node_map_;
-  Map<const bNodeSocket *, bNodeSocket *> socket_map_;
   Map<int32_t, int32_t> node_identifier_map_;
 
  public:
   bNodeTree &dst_tree() const;
   const Map<const bNode *, bNode *> &node_map() const;
-  const Map<const bNodeSocket *, bNodeSocket *> &socket_map() const;
   const Map<int32_t, int32_t> &node_identifier_map() const;
 
   static NodeSetCopy from_nodes(Main &bmain,

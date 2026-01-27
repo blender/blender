@@ -240,14 +240,14 @@ class GVArrayImpl_For_SingleValue : public GVArrayImpl_For_SingleValueRef,
   GVArrayImpl_For_SingleValue(const CPPType &type, const int64_t size, const void *value)
       : GVArrayImpl_For_SingleValueRef(type, size)
   {
-    value_ = MEM_mallocN_aligned(type.size, type.alignment, __func__);
+    value_ = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
     type.copy_construct(value, const_cast<void *>(value_));
   }
 
   ~GVArrayImpl_For_SingleValue() override
   {
     type_->destruct(const_cast<void *>(value_));
-    MEM_freeN(const_cast<void *>(value_));
+    MEM_delete_void(const_cast<void *>(value_));
   }
 };
 
@@ -328,7 +328,7 @@ GVArraySpan::GVArraySpan(GVArray varray)
     data_ = info.data;
   }
   else {
-    owned_data_ = MEM_mallocN_aligned(type_->size * size_, type_->alignment, __func__);
+    owned_data_ = MEM_new_uninitialized_aligned(type_->size * size_, type_->alignment, __func__);
     varray_.materialize_to_uninitialized(IndexRange(size_), owned_data_);
     data_ = owned_data_;
   }
@@ -358,7 +358,7 @@ GVArraySpan::~GVArraySpan()
 {
   if (owned_data_ != nullptr) {
     type_->destruct_n(owned_data_, size_);
-    MEM_freeN(owned_data_);
+    MEM_delete_void(owned_data_);
   }
 }
 
@@ -392,7 +392,7 @@ GMutableVArraySpan::GMutableVArraySpan(GVMutableArray varray, const bool copy_va
     data_ = const_cast<void *>(info.data);
   }
   else {
-    owned_data_ = MEM_mallocN_aligned(type_->size * size_, type_->alignment, __func__);
+    owned_data_ = MEM_new_uninitialized_aligned(type_->size * size_, type_->alignment, __func__);
     if (copy_values_to_span) {
       varray_.materialize_to_uninitialized(IndexRange(size_), owned_data_);
     }
@@ -436,7 +436,7 @@ GMutableVArraySpan::~GMutableVArraySpan()
   }
   if (owned_data_ != nullptr) {
     type_->destruct_n(owned_data_, size_);
-    MEM_freeN(owned_data_);
+    MEM_delete_void(owned_data_);
   }
 }
 

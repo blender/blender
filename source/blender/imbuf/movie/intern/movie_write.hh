@@ -34,7 +34,7 @@ extern "C" {
 }
 
 #  ifdef WITH_AUDASPACE
-#    include <AUD_Types.h>
+#    include "BKE_sound_types.hh"
 #  endif
 
 namespace blender {
@@ -83,7 +83,7 @@ struct MovieWriter {
   StampData *stamp_data = nullptr;
 
 #  ifdef WITH_AUDASPACE
-  AUD_Device *audio_mixdown_device = nullptr;
+  AUD_Device audio_mixdown_device;
 #  endif
 };
 

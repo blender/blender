@@ -33,7 +33,7 @@ static void txttl_free_suggest()
   SuggItem *item, *prev;
   for (item = suggestions.last; item; item = prev) {
     prev = item->prev;
-    MEM_freeN(item);
+    MEM_delete(item);
   }
   suggestions.first = suggestions.last = nullptr;
   suggestions.firstmatch = suggestions.lastmatch = nullptr;
@@ -43,7 +43,7 @@ static void txttl_free_suggest()
 
 static void txttl_free_docs()
 {
-  MEM_SAFE_FREE(documentation);
+  MEM_SAFE_DELETE(documentation);
 }
 
 /**************************/
@@ -86,7 +86,7 @@ void texttool_suggest_add(const char *name, char type)
   int cmp;
   SuggItem *newitem, *item;
 
-  newitem = static_cast<SuggItem *>(MEM_mallocN(sizeof(SuggItem) + len + 1, "SuggItem"));
+  newitem = static_cast<SuggItem *>(MEM_new_uninitialized(sizeof(SuggItem) + len + 1, "SuggItem"));
   if (!newitem) {
     printf("Failed to allocate memory for suggestion.\n");
     return;

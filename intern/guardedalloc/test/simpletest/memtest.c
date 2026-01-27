@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
       printf("|--* Allocating block %d\n", i);
     }
     sprintf(tagstring, "Memblock no. %d : ", i);
-    p[i] = MEM_callocN(blocksize, strdup(tagstring));
+    p[i] = MEM_new_zeroed(blocksize, strdup(tagstring));
   }
 
   /* report on that */
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
   }
 
   for (i = 0; i < NUM_BLOCKS; i++) {
-    MEM_freeN(p[i]);
+    MEM_delete_void(p[i]);
   }
 
   /* ----------------------------------------------------------------- */
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
       printf("|--* Allocating block %d\n", i);
     }
     sprintf(tagstring, "Memblock no. %d : ", i);
-    p[i] = MEM_callocN(blocksize, strdup(tagstring));
+    p[i] = MEM_new_zeroed(blocksize, strdup(tagstring));
   }
 
   /* Now corrupt a few blocks. */
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
   }
 
   for (i = 0; i < NUM_BLOCKS; i++) {
-    MEM_freeN(p[i]);
+    MEM_delete_void(p[i]);
   }
 
   if (verbose && error_status) {

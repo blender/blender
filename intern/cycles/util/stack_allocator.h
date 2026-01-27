@@ -46,7 +46,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator {
       util_guarded_mem_alloc(size);
       T *mem;
 #ifdef WITH_BLENDER_GUARDEDALLOC
-      mem = (T *)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
+      mem = (T *)MEM_new_uninitialized_aligned(size, 16, "Cycles Alloc");
 #else
       mem = (T *)malloc(size);
 #endif
@@ -68,7 +68,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator {
     if (p < data_ || p >= data_ + SIZE) {
       util_guarded_mem_free(n * sizeof(T));
 #ifdef WITH_BLENDER_GUARDEDALLOC
-      MEM_freeN(static_cast<void *>(p));
+      MEM_delete_void(static_cast<void *>(p));
 #else
       free(p);
 #endif

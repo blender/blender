@@ -32,7 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeConvertColorSpace *ncs = MEM_new_for_free<NodeConvertColorSpace>("node colorspace");
+  NodeConvertColorSpace *ncs = MEM_new<NodeConvertColorSpace>("node colorspace");
   STRNCPY_UTF8(ncs->from_color_space, "scene_linear");
   STRNCPY_UTF8(ncs->to_color_space, "scene_linear");
   node->storage = ncs;

@@ -700,7 +700,7 @@ void Result::free()
       gpu_texture_ = nullptr;
       break;
     case ResultStorageType::CPU:
-      MEM_freeN(this->cpu_data().data());
+      MEM_delete_void(this->cpu_data().data());
       cpu_data_ = GMutableSpan();
       break;
   }
@@ -860,7 +860,7 @@ void Result::allocate_data(const int2 size,
     const int64_t array_size = int64_t(size.x) * int64_t(size.y);
     const int64_t memory_size = array_size * item_size;
 
-    void *data = MEM_mallocN_aligned(memory_size, alignment, AT);
+    void *data = MEM_new_uninitialized_aligned(memory_size, alignment, AT);
     cpp_type.default_construct_n(data, array_size);
 
     cpu_data_ = GMutableSpan(cpp_type, data, array_size);

@@ -154,7 +154,7 @@ GlyphCacheBLF::~GlyphCacheBLF()
     GPU_texture_free(this->texture);
   }
   if (this->bitmap_result) {
-    MEM_freeN(this->bitmap_result);
+    MEM_delete(this->bitmap_result);
   }
 }
 
@@ -269,7 +269,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(GlyphCacheBLF *gc,
     }
 
     const int buffer_size = g->dims[0] * g->dims[1] * g->num_channels;
-    g->bitmap = MEM_malloc_arrayN<uchar>(size_t(buffer_size), "glyph bitmap");
+    g->bitmap = MEM_new_array_uninitialized<uchar>(size_t(buffer_size), "glyph bitmap");
 
     if (ELEM(glyph->bitmap.pixel_mode,
              FT_PIXEL_MODE_GRAY,
@@ -417,7 +417,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(GlyphCacheBLF *gc,
   g->num_channels = color ? 4 : 1;
 
   const int buffer_size = g->dims[0] * g->dims[1] * g->num_channels;
-  g->bitmap = MEM_malloc_arrayN<uchar>(size_t(buffer_size), "glyph bitmap");
+  g->bitmap = MEM_new_array_uninitialized<uchar>(size_t(buffer_size), "glyph bitmap");
 
   if (color) {
     memcpy(g->bitmap, render_bmp.data(), size_t(buffer_size));
@@ -1435,7 +1435,7 @@ GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *
 GlyphBLF::~GlyphBLF()
 {
   if (this->bitmap) {
-    MEM_freeN(this->bitmap);
+    MEM_delete(this->bitmap);
   }
 }
 
@@ -1523,7 +1523,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
 
       gc->bitmap_len_alloc = w * h;
       gc->bitmap_result = static_cast<char *>(
-          MEM_reallocN(gc->bitmap_result, size_t(gc->bitmap_len_alloc)));
+          MEM_realloc_uninitialized(gc->bitmap_result, size_t(gc->bitmap_len_alloc)));
 
       /* Keep in sync with the texture. */
       if (gc->texture) {

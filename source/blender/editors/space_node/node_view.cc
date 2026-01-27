@@ -240,7 +240,7 @@ static wmOperatorStatus snode_bg_viewmove_modal(bContext *C, wmOperator *op, con
     case LEFTMOUSE:
     case MIDDLEMOUSE:
       if (event->val == KM_RELEASE) {
-        MEM_freeN(nvm);
+        MEM_delete(nvm);
         op->customdata = nullptr;
         return OPERATOR_FINISHED;
       }
@@ -253,7 +253,7 @@ static wmOperatorStatus snode_bg_viewmove_modal(bContext *C, wmOperator *op, con
       WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
       WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
-      MEM_freeN(nvm);
+      MEM_delete(nvm);
       op->customdata = nullptr;
 
       return OPERATOR_CANCELLED;
@@ -285,7 +285,7 @@ static wmOperatorStatus snode_bg_viewmove_invoke(bContext *C, wmOperator *op, co
     return OPERATOR_CANCELLED;
   }
 
-  nvm = MEM_callocN<NodeViewMove>(__func__);
+  nvm = MEM_new_zeroed<NodeViewMove>(__func__);
   op->customdata = nvm;
   nvm->mvalo.x = event->mval[0];
   nvm->mvalo.y = event->mval[1];
@@ -309,7 +309,7 @@ static wmOperatorStatus snode_bg_viewmove_invoke(bContext *C, wmOperator *op, co
 static void snode_bg_viewmove_cancel(bContext * /*C*/, wmOperator *op)
 {
   NodeViewMove *nvm = static_cast<NodeViewMove *>(op->customdata);
-  MEM_freeN(nvm);
+  MEM_delete(nvm);
   op->customdata = nullptr;
 }
 
@@ -648,7 +648,7 @@ static void sample_exit(bContext *C, wmOperator *op)
   ED_node_sample_set(nullptr);
   ED_region_draw_cb_exit(info->art, info->draw_handle);
   ED_area_tag_redraw(CTX_wm_area(C));
-  MEM_freeN(info);
+  MEM_delete(info);
 }
 
 static wmOperatorStatus sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -667,7 +667,7 @@ static wmOperatorStatus sample_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  info = MEM_callocN<ImageSampleInfo>("ImageSampleInfo");
+  info = MEM_new_zeroed<ImageSampleInfo>("ImageSampleInfo");
   info->art = region->runtime->type;
   info->draw_handle = ED_region_draw_cb_activate(
       region->runtime->type, sample_draw, info, REGION_DRAW_POST_PIXEL);

@@ -315,10 +315,10 @@ static void transDataTrackingFree(TransInfo * /*t*/,
   if (custom_data->data) {
     TransDataTracking *tdt = static_cast<TransDataTracking *>(custom_data->data);
     if (tdt->smarkers) {
-      MEM_freeN(tdt->smarkers);
+      MEM_delete(tdt->smarkers);
     }
 
-    MEM_freeN(tdt);
+    MEM_delete(tdt);
     custom_data->data = nullptr;
   }
 }
@@ -353,10 +353,10 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
     return;
   }
 
-  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransTracking TransData");
-  tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransTracking TransData2D");
-  tc->custom.type.data = MEM_calloc_arrayN<TransDataTracking>(tc->data_len,
-                                                              "TransTracking TransDataTracking");
+  tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransTracking TransData");
+  tc->data_2d = MEM_new_array_zeroed<TransData2D>(tc->data_len, "TransTracking TransData2D");
+  tc->custom.type.data = MEM_new_array_zeroed<TransDataTracking>(
+      tc->data_len, "TransTracking TransDataTracking");
   tc->custom.type.free_cb = transDataTrackingFree;
 
   init_context.current.td = tc->data;
@@ -489,8 +489,8 @@ static void flushTransTracking(TransInfo *t)
             float d[2], d2[2];
 
             if (!tdt->smarkers) {
-              tdt->smarkers = MEM_calloc_arrayN<float[2]>(tdt->markersnr,
-                                                          "flushTransTracking markers");
+              tdt->smarkers = MEM_new_array_zeroed<float[2]>(tdt->markersnr,
+                                                             "flushTransTracking markers");
               for (int a = 0; a < tdt->markersnr; a++) {
                 copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
               }

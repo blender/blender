@@ -848,9 +848,9 @@ void InstancesTreeViewItem::on_activate(bContext &C)
 
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
 
-  MEM_SAFE_FREE(sspreadsheet.geometry_id.instance_ids);
-  sspreadsheet.geometry_id.instance_ids = MEM_new_array_for_free<SpreadsheetInstanceID>(
-      instance_ids.size(), __func__);
+  MEM_SAFE_DELETE(sspreadsheet.geometry_id.instance_ids);
+  sspreadsheet.geometry_id.instance_ids = MEM_new_array<SpreadsheetInstanceID>(instance_ids.size(),
+                                                                               __func__);
   sspreadsheet.geometry_id.instance_ids_num = instance_ids.size();
   initialized_copy_n(
       instance_ids.data(), instance_ids.size(), sspreadsheet.geometry_id.instance_ids);

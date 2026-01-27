@@ -8,6 +8,7 @@
 
 #include "BLI_generic_pointer.hh"
 #include "BLI_generic_virtual_array.hh"
+#include "BLI_memory_counter_fwd.hh"
 
 #include "NOD_geometry_nodes_list_fwd.hh"
 
@@ -23,6 +24,8 @@ class List : public ImplicitSharingMixin {
     static ArrayData ForDefaultValue(const CPPType &type, int64_t size);
     static ArrayData ForConstructed(const CPPType &type, int64_t size);
     static ArrayData ForUninitialized(const CPPType &type, int64_t size);
+
+    void count_memory(MemoryCounter &memory, const CPPType &type, const int64_t size) const;
   };
 
   class SingleData {
@@ -31,6 +34,8 @@ class List : public ImplicitSharingMixin {
     ImplicitSharingPtr<> sharing_info;
     static SingleData ForValue(const GPointer &value);
     static SingleData ForDefaultValue(const CPPType &type);
+
+    void count_memory(MemoryCounter &memory, const CPPType &type) const;
   };
 
   using DataVariant = std::variant<ArrayData, SingleData>;
@@ -60,6 +65,8 @@ class List : public ImplicitSharingMixin {
   /** Access the list as virtual array. */
   GVArray varray() const;
   template<typename T> VArray<T> varray() const;
+
+  void count_memory(MemoryCounter &memory) const;
 };
 
 inline const List::DataVariant &List::data() const

@@ -325,7 +325,7 @@ static bool nlaedit_mouse_is_over_strip(bAnimContext *ac, const int mval[2])
 
   if (ale != nullptr) {
     BLI_assert(strip != nullptr);
-    MEM_freeN(ale);
+    MEM_delete(ale);
     return true;
   }
   return false;
@@ -671,7 +671,7 @@ static wmOperatorStatus mouse_nla_strips(bContext *C,
     }
 
     /* free this track */
-    MEM_freeN(ale);
+    MEM_delete(ale);
   }
 
   return ret_value;

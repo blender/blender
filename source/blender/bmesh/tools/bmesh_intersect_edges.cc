@@ -697,7 +697,7 @@ bool BM_mesh_intersect_edges(
     int edgexvert_pair_len = edgexelem_pair_len - edgexedge_pair_len;
 
     if (edgexelem_pair_len) {
-      pair_array = MEM_malloc_arrayN<EDBMSplitElem[2]>(pair_len, __func__);
+      pair_array = MEM_new_array_uninitialized<EDBMSplitElem[2]>(pair_len, __func__);
 
       pair_iter = pair_array;
       for (i = 0; i < BLI_STACK_PAIR_LEN; i++) {
@@ -731,7 +731,7 @@ bool BM_mesh_intersect_edges(
                           ((size_t(2) * edgexedge_pair_len + edgexvert_pair_len) *
                            sizeof(*(e_map->cuts_index)));
 
-      e_map = static_cast<EdgeIntersectionsMap *>(MEM_mallocN(e_map_size, __func__));
+      e_map = static_cast<EdgeIntersectionsMap *>(MEM_new_uninitialized(e_map_size, __func__));
       int map_len = 0;
 
       /* Convert every pair to Vert x Vert. */
@@ -798,7 +798,7 @@ bool BM_mesh_intersect_edges(
         }
       }
 
-      MEM_freeN(e_map);
+      MEM_delete(e_map);
     }
   }
 #endif
@@ -808,7 +808,7 @@ bool BM_mesh_intersect_edges(
 
   if (r_targetmap) {
     if (pair_len && pair_array == nullptr) {
-      pair_array = MEM_malloc_arrayN<EDBMSplitElem[2]>(pair_len, __func__);
+      pair_array = MEM_new_array_uninitialized<EDBMSplitElem[2]>(pair_len, __func__);
       pair_iter = pair_array;
       for (i = 0; i < BLI_STACK_PAIR_LEN; i++) {
         if (pair_stack[i]) {
@@ -936,7 +936,7 @@ bool BM_mesh_intersect_edges(
             if (edgenet_alloc_len == edgenet_len) {
               edgenet_alloc_len = (edgenet_alloc_len + 1) * 2;
               edgenet = static_cast<BMEdge **>(
-                  MEM_reallocN(edgenet, (edgenet_alloc_len) * sizeof(*edgenet)));
+                  MEM_realloc_uninitialized(edgenet, (edgenet_alloc_len) * sizeof(*edgenet)));
             }
             edgenet[edgenet_len++] = e_net;
 
@@ -1024,7 +1024,7 @@ bool BM_mesh_intersect_edges(
         }
 
         if (edgenet) {
-          MEM_freeN(edgenet);
+          MEM_delete(edgenet);
         }
       }
       ok = true;
@@ -1037,7 +1037,7 @@ bool BM_mesh_intersect_edges(
     }
   }
   if (pair_array) {
-    MEM_freeN(pair_array);
+    MEM_delete(pair_array);
   }
 
   return ok;

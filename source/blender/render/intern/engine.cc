@@ -89,7 +89,7 @@ void RE_engines_exit()
         type->rna_ext.free(type->rna_ext.data);
       }
 
-      MEM_freeN(type);
+      MEM_delete(type);
     }
   }
 }
@@ -125,7 +125,7 @@ bool RE_engine_is_external(const Render *re)
 
 RenderEngine *RE_engine_create(RenderEngineType *type)
 {
-  RenderEngine *engine = MEM_callocN<RenderEngine>("RenderEngine");
+  RenderEngine *engine = MEM_new_zeroed<RenderEngine>("RenderEngine");
   engine->type = type;
 
   BLI_mutex_init(&engine->update_render_passes_mutex);
@@ -178,7 +178,7 @@ void RE_engine_free(RenderEngine *engine)
   BLI_mutex_end(&engine->blender_gpu_context_mutex);
   BLI_mutex_end(&engine->update_render_passes_mutex);
 
-  MEM_freeN(engine);
+  MEM_delete(engine);
 }
 
 /* Bake Render Results */
@@ -196,7 +196,7 @@ static RenderResult *render_result_from_bake(
   }
 
   /* Create render result with specified size. */
-  RenderResult *rr = MEM_new_for_free<RenderResult>(__func__);
+  RenderResult *rr = MEM_new<RenderResult>(__func__);
 
   rr->rectx = w;
   rr->recty = h;
@@ -208,7 +208,7 @@ static RenderResult *render_result_from_bake(
   BKE_scene_ppm_get(&engine->re->r, rr->ppm);
 
   /* Add single baking render layer. */
-  RenderLayer *rl = MEM_new_for_free<RenderLayer>("bake render layer");
+  RenderLayer *rl = MEM_new<RenderLayer>("bake render layer");
   STRNCPY(rl->name, layername);
   rl->rectx = w;
   rl->recty = h;
@@ -553,7 +553,7 @@ void RE_engine_set_error_message(RenderEngine *engine, const char *msg)
     RenderResult *rr = RE_AcquireResultRead(re);
     if (rr) {
       if (rr->error != nullptr) {
-        MEM_freeN(rr->error);
+        MEM_delete(rr->error);
       }
       rr->error = BLI_strdup(msg);
     }

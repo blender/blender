@@ -85,7 +85,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeCornerPinData *data = MEM_new_for_free<NodeCornerPinData>(__func__);
+  NodeCornerPinData *data = MEM_new<NodeCornerPinData>(__func__);
   node->storage = data;
 }
 

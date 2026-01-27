@@ -57,7 +57,7 @@ TEST(blf_load, display_name_from_file)
   const char *name = BLF_display_name_from_file(path.c_str());
   EXPECT_TRUE(STREQ(name, "Ahem Regular"));
   /* BLF_display_name result must be freed. */
-  MEM_freeN(name);
+  MEM_delete(name);
 }
 
 TEST(blf_load, display_name_from_id)
@@ -66,7 +66,7 @@ TEST(blf_load, display_name_from_id)
   const char *name = BLF_display_name_from_id(id);
   EXPECT_TRUE(STREQ(name, "Ahem Regular"));
   /* BLF_display_name result must be freed. */
-  MEM_freeN(name);
+  MEM_delete(name);
   close_font(id);
 }
 

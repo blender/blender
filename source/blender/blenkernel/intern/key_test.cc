@@ -107,7 +107,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   KeyBlock *key2 = BKE_keyblock_add(key, "two");
   BKE_keyblock_convert_from_mesh(mesh, key, key2);
@@ -124,7 +124,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   /* Blend in halfway. */
   key2->curval = 0.5;
@@ -136,7 +136,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   /* Blend in double. */
   key2->curval = 2.0;
@@ -148,7 +148,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 }
 
 TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
@@ -183,7 +183,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   /* At 1 this should be at key1. */
   key->ctime = 100.0;
@@ -195,7 +195,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   /* At 2 this should be at key2. */
   key->ctime = 200.0;
@@ -207,7 +207,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   /* This should be a linear blend between key1 and key2; */
   key->ctime = 150.0;
@@ -220,7 +220,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
   EXPECT_NEAR(3.0, 0.5 * key1_data[2][0] + 0.5 * key2_data[2][0], 0.001);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 }
 
 /* For historical reasons, keyblocks can end up having an element count that does not match the
@@ -241,7 +241,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative_uneqal_element_count)
   /* The mesh has 4 vertices, but this shapekey will only have 3. */
   constexpr int SHAPEKEY_VERTEX_COUNT = 3;
   float3 *key1_data = reinterpret_cast<float3 *>(
-      MEM_malloc_arrayN(size_t(SHAPEKEY_VERTEX_COUNT), size_t(key->elemsize), __func__));
+      MEM_new_array_uninitialized(size_t(SHAPEKEY_VERTEX_COUNT), size_t(key->elemsize), __func__));
   key1->data = key1_data;
   key1->totelem = SHAPEKEY_VERTEX_COUNT;
   key1_data[1] = {5, 5, 5};
@@ -258,7 +258,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative_uneqal_element_count)
       {0, 1, 0},
   };
   EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 }
 
 /* Same as mesh_key_evaluation_relative_uneqal_element_count but with absolute shapekeys. This is
@@ -277,7 +277,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
   ASSERT_EQ(key->elemsize, 12);
   /* The mesh has 4 vertices, but this shapekey will only have 2. */
   float3 *key1_data = reinterpret_cast<float3 *>(
-      MEM_malloc_arrayN(size_t(2), size_t(key->elemsize), __func__));
+      MEM_new_array_uninitialized(size_t(2), size_t(key->elemsize), __func__));
   key1->data = key1_data;
   key1->totelem = 2;
   key1_data[0] = {1, 0, 0};
@@ -297,7 +297,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
       {2, 0, 0},
   };
   EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   /* Causing blending with the base key. */
   key->ctime = 95.0;
@@ -312,14 +312,14 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
       {1.9, 0.05, 0},
   };
   EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
-  MEM_freeN(key1_data);
+  MEM_delete(key1_data);
 
   key->ctime = 100.0;
   /* Testing with more vertices than the mesh. */
   key1_data = reinterpret_cast<float3 *>(
-      MEM_malloc_arrayN(size_t(8), size_t(key->elemsize), __func__));
+      MEM_new_array_uninitialized(size_t(8), size_t(key->elemsize), __func__));
   key1->data = key1_data;
   key1->totelem = 8;
   key1_data[0] = {1, 0, 0};
@@ -342,7 +342,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
       {7, 0, 0},
   };
   EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 
   /* Causing blending with the base key. */
   key->ctime = 95.0;
@@ -359,7 +359,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
   EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
   /* The values should be a linear interpolation between base and key1 at 95%. */
   EXPECT_NEAR(6.65, 0.95 * key1_data[6][0] + 0.05 * base_data[3][0], 0.001);
-  MEM_freeN(ob_eval);
+  MEM_delete(ob_eval);
 }
 
 }  // namespace bke::tests

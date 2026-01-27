@@ -243,13 +243,13 @@ class alignas(ReservedAlignment) DynamicStackBuffer {
       buffer_ = reserved_buffer_;
     }
     else {
-      buffer_ = MEM_mallocN_aligned(size, alignment, __func__);
+      buffer_ = MEM_new_uninitialized_aligned(size, alignment, __func__);
     }
   }
   ~DynamicStackBuffer()
   {
     if (buffer_ != reserved_buffer_) {
-      MEM_freeN(buffer_);
+      MEM_delete_void(buffer_);
     }
   }
 

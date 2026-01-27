@@ -196,7 +196,7 @@ static BPyPropStore *bpy_prop_py_data_ensure(PropertyRNA *prop)
 {
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   if (prop_store == nullptr) {
-    prop_store = MEM_callocN<BPyPropStore>(__func__);
+    prop_store = MEM_new_zeroed<BPyPropStore>(__func__);
     RNA_def_py_data(prop, prop_store);
     BLI_addtail(&g_bpy_prop_store_list, prop_store);
   }
@@ -2506,7 +2506,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   /* blank value */
   *r_default_value = 0;
 
-  items = MEM_calloc_arrayN<EnumPropertyItem>(size_t(seq_len) + 1, "enum_items_from_py1");
+  items = MEM_new_array_zeroed<EnumPropertyItem>(size_t(seq_len) + 1, "enum_items_from_py1");
 
   for (i = 0; i < seq_len; i++) {
     EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -2570,7 +2570,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
       items[i].identifier = "";
     }
     else {
-      MEM_freeN(items);
+      MEM_delete(items);
       PyErr_SetString(PyExc_TypeError,
                       "EnumProperty(...): expected a tuple containing "
                       "(identifier, name, description) and optionally an "
@@ -2582,7 +2582,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   if (is_enum_flag) {
     /* strict check that all set members were used */
     if (default_py && default_used != PySet_GET_SIZE(default_py)) {
-      MEM_freeN(items);
+      MEM_delete(items);
 
       PyErr_Format(PyExc_TypeError,
                    "EnumProperty(..., default={...}): set has %d unused member(s)",
@@ -2592,7 +2592,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   }
   else {
     if (default_py && default_used == 0) {
-      MEM_freeN(items);
+      MEM_delete(items);
 
       if (default_str_cmp) {
         PyErr_Format(PyExc_TypeError,
@@ -2612,9 +2612,9 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   /* This would all work perfectly _but_ the python strings may be freed immediately after use,
    * so we need to duplicate them, ugh. annoying because it works most of the time without this. */
   {
-    EnumPropertyItem *items_dup = MEM_mallocN((sizeof(EnumPropertyItem) * (seq_len + 1)) +
-                                                  (sizeof(char) * totbuf),
-                                              "enum_items_from_py2");
+    EnumPropertyItem *items_dup = MEM_new_uninitialized(
+        (sizeof(EnumPropertyItem) * (seq_len + 1)) + (sizeof(char) * totbuf),
+        "enum_items_from_py2");
     EnumPropertyItem *items_ptr = items_dup;
     char *buf = ((char *)items_dup) + (sizeof(EnumPropertyItem) * (seq_len + 1));
     memcpy(items_dup, items, sizeof(EnumPropertyItem) * (seq_len + 1));
@@ -2623,7 +2623,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
       buf += strswapbufcpy(buf, &items_ptr->name);
       buf += strswapbufcpy(buf, &items_ptr->description);
     }
-    MEM_freeN(items);
+    MEM_delete(items);
     items = items_dup;
   }
 /* end string duplication */
@@ -5212,7 +5212,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
      * otherwise if this is a generator it may free the strings before we copy them */
     Py_DECREF(items_fast);
 
-    MEM_freeN(eitems);
+    MEM_delete(eitems);
   }
 
   Py_RETURN_NONE;

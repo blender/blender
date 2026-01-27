@@ -50,7 +50,7 @@ static float scrollbar_co_to_pos(ScrollBar *sb, int yco)
 
 ScrollBar *scrollbar_new(int inset, int minthumb)
 {
-  ScrollBar *sb = MEM_callocN(sizeof(*sb), "scrollbar_new");
+  ScrollBar *sb = MEM_new_zeroed<ScrollBar>("scrollbar_new");
   sb->inset = inset;
   sb->minthumb = minthumb;
 
@@ -132,5 +132,5 @@ void scrollbar_get_rect(ScrollBar *sb, int rect_r[2][2])
 
 void scrollbar_free(ScrollBar *sb)
 {
-  MEM_freeN(sb);
+  MEM_delete(sb);
 }

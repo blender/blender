@@ -116,7 +116,7 @@ static void node_label(const bNodeTree * /*ntree*/,
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeClosureInput *data = MEM_new_for_free<NodeClosureInput>(__func__);
+  NodeClosureInput *data = MEM_new<NodeClosureInput>(__func__);
   node->storage = data;
 }
 
@@ -180,15 +180,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeClosureOutput *data = MEM_new_for_free<NodeClosureOutput>(__func__);
+  NodeClosureOutput *data = MEM_new<NodeClosureOutput>(__func__);
   node->storage = data;
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeClosureOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_new_for_free<NodeClosureOutput>(__func__,
-                                                          dna::shallow_copy(src_storage));
+  auto *dst_storage = MEM_new<NodeClosureOutput>(__func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ClosureInputItemsAccessor>(*src_node, *dst_node);
@@ -199,7 +198,7 @@ static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<ClosureInputItemsAccessor>(*node);
   socket_items::destruct_array<ClosureOutputItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_delete_void(node->storage);
 }
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)

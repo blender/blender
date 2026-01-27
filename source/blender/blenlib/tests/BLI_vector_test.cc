@@ -944,7 +944,7 @@ TEST(vector, RecursiveStructure)
 TEST(vector, FromRaw)
 {
   VectorData<int, GuardedAllocator> data;
-  data.data = MEM_calloc_arrayN<int>(30, __func__);
+  data.data = MEM_new_array_zeroed<int>(30, __func__);
   data.size = 10;
   data.capacity = 30;
 
@@ -984,7 +984,7 @@ TEST(vector, ReleaseEmptyAllocated)
   EXPECT_NE(data.data, nullptr);
   EXPECT_EQ(data.size, 0);
   EXPECT_EQ(data.capacity, 100);
-  MEM_freeN(data.data);
+  MEM_delete(data.data);
 }
 
 TEST(vector, ReleaseNonEmptyInline)
@@ -1000,7 +1000,7 @@ TEST(vector, ReleaseNonEmptyInline)
 
   EXPECT_NE(data.data, inline_data_ptr);
   EXPECT_EQ(data.size, 2);
-  MEM_freeN(data.data);
+  MEM_delete(data.data);
 }
 
 TEST(vector, ReleaseAllocated)
@@ -1017,7 +1017,7 @@ TEST(vector, ReleaseAllocated)
   EXPECT_EQ(data.data, data_ptr);
   EXPECT_EQ(data.size, 50);
   EXPECT_EQ(data.data[0], 3);
-  MEM_freeN(data.data);
+  MEM_delete(data.data);
 }
 
 }  // namespace blender::tests

@@ -177,7 +177,7 @@ bool vgroup_parray_alloc(ID *id,
 
           i = em->bm->totvert;
 
-          *dvert_arr = MEM_malloc_arrayN<MDeformVert *>(i, __func__);
+          *dvert_arr = MEM_new_array_uninitialized<MDeformVert *>(i, __func__);
           *dvert_tot = i;
 
           i = 0;
@@ -204,7 +204,7 @@ bool vgroup_parray_alloc(ID *id,
           MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
 
           *dvert_tot = mesh->verts_num;
-          *dvert_arr = MEM_malloc_arrayN<MDeformVert *>(mesh->verts_num, __func__);
+          *dvert_arr = MEM_new_array_uninitialized<MDeformVert *>(mesh->verts_num, __func__);
 
           if (use_vert_sel) {
             const bke::AttributeAccessor attributes = mesh->attributes();
@@ -232,7 +232,7 @@ bool vgroup_parray_alloc(ID *id,
         if (lt->dvert) {
           BPoint *def = lt->def;
           *dvert_tot = lt->pntsu * lt->pntsv * lt->pntsw;
-          *dvert_arr = MEM_malloc_arrayN<MDeformVert *>((*dvert_tot), __func__);
+          *dvert_arr = MEM_new_array_uninitialized<MDeformVert *>((*dvert_tot), __func__);
 
           if (use_vert_sel) {
             for (int i = 0; i < *dvert_tot; i++) {
@@ -269,7 +269,7 @@ bool vgroup_parray_alloc(ID *id,
         if (!dverts.is_empty()) {
           const int points_num = curves.points_num();
           *dvert_tot = points_num;
-          *dvert_arr = MEM_malloc_arrayN<MDeformVert *>(points_num, __func__);
+          *dvert_arr = MEM_new_array_uninitialized<MDeformVert *>(points_num, __func__);
 
           for (int i = 0; i < points_num; i++) {
             (*dvert_arr)[i] = &dverts[i];
@@ -327,8 +327,8 @@ void vgroup_parray_mirror_sync(Object *ob,
     }
   }
 
-  MEM_freeN(flip_map);
-  MEM_freeN(dvert_array_all);
+  MEM_delete(flip_map);
+  MEM_delete(dvert_array_all);
 }
 
 void vgroup_parray_mirror_assign(Object *ob, MDeformVert **dvert_array, const int dvert_tot)
@@ -358,7 +358,7 @@ void vgroup_parray_mirror_assign(Object *ob, MDeformVert **dvert_array, const in
     }
   }
 
-  MEM_freeN(dvert_array_all);
+  MEM_delete(dvert_array_all);
 }
 
 void vgroup_parray_remove_zero(MDeformVert **dvert_array,
@@ -432,10 +432,10 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
         dvert_array == nullptr)
     {
       if (dvert_array) {
-        MEM_freeN(dvert_array);
+        MEM_delete(dvert_array);
       }
       if (dvert_array_from) {
-        MEM_freeN(dvert_array_from);
+        MEM_delete(dvert_array_from);
       }
 
       if (new_vgroup == true) {
@@ -471,16 +471,16 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
     dv = dvert_array;
 
     for (i = 0; i < dvert_tot; i++, dvf++, dv++) {
-      MEM_SAFE_FREE((*dv)->dw);
+      MEM_SAFE_DELETE((*dv)->dw);
       *(*dv) = *(*dvf);
 
       if ((*dv)->dw) {
-        (*dv)->dw = static_cast<MDeformWeight *>(MEM_dupallocN((*dv)->dw));
+        (*dv)->dw = MEM_dupalloc((*dv)->dw);
       }
     }
 
-    MEM_freeN(dvert_array);
-    MEM_freeN(dvert_array_from);
+    MEM_delete(dvert_array);
+    MEM_delete(dvert_array_from);
   }
 
   return true;
@@ -539,7 +539,7 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
     int flip_map_len;
     int *flip_map = BKE_object_defgroup_flip_map_unlocked(ob, true, &flip_map_len);
     BKE_defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, true);
-    MEM_freeN(flip_map);
+    MEM_delete(flip_map);
   }
   else {
     /* Single vgroup. */
@@ -655,13 +655,13 @@ static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type
   if (lock_flags) {
     BKE_defvert_normalize_lock_map(
         *dvert_act, Span(vgroup_validmap, vgroup_tot), Span(lock_flags, vgroup_tot));
-    MEM_freeN(lock_flags);
+    MEM_delete(lock_flags);
   }
   else {
     BKE_defvert_normalize_subset(*dvert_act, Span(vgroup_validmap, vgroup_tot));
   }
 
-  MEM_freeN(vgroup_validmap);
+  MEM_delete(vgroup_validmap);
 
   if (mesh->symmetry & ME_SYMMETRY_X) {
     if (em) {
@@ -724,7 +724,7 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
     }
   }
 
-  MEM_freeN(vgroup_validmap);
+  MEM_delete(vgroup_validmap);
 }
 
 /** \} */
@@ -1255,7 +1255,7 @@ static void vgroup_duplicate(Object *ob)
       }
     }
 
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
   }
 }
 
@@ -1309,7 +1309,7 @@ static bool vgroup_normalize(Object *ob)
       }
     }
 
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
 
     return true;
   }
@@ -1360,7 +1360,7 @@ static void vgroup_levels_subset(Object *ob,
       vgroup_parray_mirror_sync(ob, dvert_array, dvert_tot, vgroup_validmap, vgroup_tot);
     }
 
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
   }
 }
 
@@ -1412,7 +1412,7 @@ static bool vgroup_normalize_all(Object *ob,
     lock_flags = MutableSpan(lock_flags_array, vgroup_tot);
   }
   else if (lock_active) {
-    lock_flags_array = MEM_malloc_arrayN<bool>(vgroup_tot, "lock_flags_array");
+    lock_flags_array = MEM_new_array_uninitialized<bool>(vgroup_tot, "lock_flags_array");
     std::memset(lock_flags_array, 0, vgroup_tot); /* Clear to false. */
     lock_flags = MutableSpan(lock_flags_array, vgroup_tot);
   }
@@ -1441,8 +1441,8 @@ static bool vgroup_normalize_all(Object *ob,
     }
   }
 
-  MEM_freeN(dvert_array);
-  MEM_SAFE_FREE(lock_flags_array);
+  MEM_delete(dvert_array);
+  MEM_SAFE_DELETE(lock_flags_array);
 
   return !all_locked;
 }
@@ -1472,10 +1472,10 @@ static void vgroup_normalize_all_deform_if_active_is_deform(Object *ob,
 
     vgroup_normalize_all(
         ob, vgroup_validmap, vgroup_tot, false, soft_lock_active, reports, current_frame);
-    MEM_SAFE_FREE(vgroup_validmap);
+    MEM_SAFE_DELETE(vgroup_validmap);
   }
 
-  MEM_SAFE_FREE(defgroup_validmap);
+  MEM_SAFE_DELETE(defgroup_validmap);
 }
 
 enum {
@@ -1532,7 +1532,7 @@ static bool *vgroup_selected_get(Object *ob)
     }
   }
   else {
-    mask = MEM_calloc_arrayN<bool>(defbase_tot, __func__);
+    mask = MEM_new_array_zeroed<bool>(defbase_tot, __func__);
   }
 
   const int actdef = BKE_object_defgroup_active_index_get(ob);
@@ -1615,7 +1615,7 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
   }
 
   if (selected) {
-    MEM_freeN(selected);
+    MEM_delete(selected);
   }
 }
 
@@ -1670,7 +1670,7 @@ static void vgroup_invert_subset(Object *ob,
       vgroup_parray_remove_zero(dvert_array, dvert_tot, vgroup_validmap, vgroup_tot, 0.0f, false);
     }
 
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
   }
 }
 
@@ -1729,10 +1729,10 @@ static void vgroup_smooth_subset(Object *ob,
         mesh->edges(), mesh->verts_num, vert_to_edge_offsets, vert_to_edge_indices);
   }
 
-  weight_accum_prev = MEM_malloc_arrayN<float>(dvert_tot, __func__);
-  weight_accum_curr = MEM_malloc_arrayN<float>(dvert_tot, __func__);
+  weight_accum_prev = MEM_new_array_uninitialized<float>(dvert_tot, __func__);
+  weight_accum_curr = MEM_new_array_uninitialized<float>(dvert_tot, __func__);
 
-  verts_used = MEM_malloc_arrayN<uint>(dvert_tot, __func__);
+  verts_used = MEM_new_array_uninitialized<uint>(dvert_tot, __func__);
   STACK_INIT(verts_used, dvert_tot);
 
 #define IS_BM_VERT_READ(v) (use_hide ? (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == 0) : true)
@@ -1882,12 +1882,12 @@ static void vgroup_smooth_subset(Object *ob,
 #undef IS_BM_VERT_READ
 #undef IS_BM_VERT_WRITE
 
-  MEM_freeN(weight_accum_curr);
-  MEM_freeN(weight_accum_prev);
-  MEM_freeN(verts_used);
+  MEM_delete(weight_accum_curr);
+  MEM_delete(weight_accum_prev);
+  MEM_delete(verts_used);
 
   if (dvert_array) {
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
   }
 
   /* not so efficient to get 'dvert_array' again just so unselected verts are nullptr'd */
@@ -1895,7 +1895,7 @@ static void vgroup_smooth_subset(Object *ob,
     vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, true);
     vgroup_parray_mirror_sync(ob, dvert_array, dvert_tot, vgroup_validmap, vgroup_tot);
     if (dvert_array) {
-      MEM_freeN(dvert_array);
+      MEM_delete(dvert_array);
     }
   }
 }
@@ -1965,7 +1965,7 @@ static int vgroup_limit_total_subset(Object *ob,
       if (num_to_drop > 0) {
         /* re-pack dw array so that non-bone weights are first, bone-weighted verts at end
          * sort the tail, then copy only the truncated array back to dv->dw */
-        dw_temp = MEM_malloc_arrayN<MDeformWeight>(dv->totweight, __func__);
+        dw_temp = MEM_new_array_uninitialized<MDeformWeight>(dv->totweight, __func__);
         bone_count = 0;
         non_bone_count = 0;
         for (j = 0; j < dv->totweight; j++) {
@@ -1987,17 +1987,17 @@ static int vgroup_limit_total_subset(Object *ob,
                 inv_cmp_mdef_vert_weights);
           dv->totweight -= num_to_drop;
           /* Do we want to clean/normalize here? */
-          MEM_freeN(dv->dw);
+          MEM_delete(dv->dw);
           dv->dw = static_cast<MDeformWeight *>(
-              MEM_reallocN(dw_temp, sizeof(MDeformWeight) * dv->totweight));
+              MEM_realloc_uninitialized(dw_temp, sizeof(MDeformWeight) * dv->totweight));
           remove_tot += num_to_drop;
         }
         else {
-          MEM_freeN(dw_temp);
+          MEM_delete(dw_temp);
         }
       }
     }
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
   }
 
   return remove_tot;
@@ -2030,7 +2030,7 @@ static void vgroup_clean_subset(Object *ob,
     vgroup_parray_remove_zero(
         dvert_array, dvert_tot, vgroup_validmap, vgroup_tot, epsilon, keep_single);
 
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
   }
 }
 
@@ -2073,7 +2073,7 @@ static void vgroup_quantize_subset(Object *ob,
       }
     }
 
-    MEM_freeN(dvert_array);
+    MEM_delete(dvert_array);
   }
 }
 
@@ -2286,7 +2286,7 @@ void vgroup_mirror(Object *ob,
         }
       }
 
-      MEM_freeN(vert_tag);
+      MEM_delete(vert_tag);
     }
   }
   else if (ob->type == OB_LATTICE) {
@@ -2348,7 +2348,7 @@ cleanup:
   *r_totfail = totfail;
 
   if (flip_map) {
-    MEM_freeN(flip_map);
+    MEM_delete(flip_map);
   }
 
 #undef VGROUP_MIRR_OP
@@ -3067,7 +3067,7 @@ static wmOperatorStatus vertex_group_levels_exec(bContext *C, wmOperator *op)
   const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
       ob, subset_type, &vgroup_tot, &subset_count);
   vgroup_levels_subset(ob, vgroup_validmap, vgroup_tot, subset_count, offset, gain);
-  MEM_freeN(vgroup_validmap);
+  MEM_delete(vgroup_validmap);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3164,7 +3164,7 @@ static eVGroupSelect normalize_vertex_group_target(Object *ob)
         break;
       }
     }
-    MEM_freeN(defgroup_validmap);
+    MEM_delete(defgroup_validmap);
   }
 
   return target_group;
@@ -3202,7 +3202,7 @@ static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator 
     }
   }
 
-  MEM_freeN(vgroup_validmap);
+  MEM_delete(vgroup_validmap);
 
   if (changed) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -3374,7 +3374,7 @@ static wmOperatorStatus vertex_group_invert_exec(bContext *C, wmOperator *op)
   const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
       ob, subset_type, &vgroup_tot, &subset_count);
   vgroup_invert_subset(ob, vgroup_validmap, vgroup_tot, subset_count, auto_assign, auto_remove);
-  MEM_freeN(vgroup_validmap);
+  MEM_delete(vgroup_validmap);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3443,7 +3443,7 @@ static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
           }
         }
       }
-      MEM_SAFE_FREE(locked_vgroups);
+      MEM_SAFE_DELETE(locked_vgroups);
 
       has_vgroup_multi = true;
 
@@ -3457,7 +3457,7 @@ static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
       }
     }
 
-    MEM_freeN(vgroup_validmap);
+    MEM_delete(vgroup_validmap);
   }
 
   /* NOTE: typically we would return canceled if no changes were made (`changed_multi`).
@@ -3523,7 +3523,7 @@ static wmOperatorStatus vertex_group_clean_exec(bContext *C, wmOperator *op)
         ob, subset_type, &vgroup_tot, &subset_count);
 
     vgroup_clean_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit, keep_single);
-    MEM_freeN(vgroup_validmap);
+    MEM_delete(vgroup_validmap);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3583,7 +3583,7 @@ static wmOperatorStatus vertex_group_quantize_exec(bContext *C, wmOperator *op)
   const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
       ob, subset_type, &vgroup_tot, &subset_count);
   vgroup_quantize_subset(ob, vgroup_validmap, vgroup_tot, subset_count, steps);
-  MEM_freeN(vgroup_validmap);
+  MEM_delete(vgroup_validmap);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -3631,7 +3631,7 @@ static wmOperatorStatus vertex_group_limit_total_exec(bContext *C, wmOperator *o
         ob, subset_type, &vgroup_tot, &subset_count);
     const int remove_count = vgroup_limit_total_subset(
         ob, vgroup_validmap, vgroup_tot, subset_count, limit);
-    MEM_freeN(vgroup_validmap);
+    MEM_delete(vgroup_validmap);
 
     if (remove_count != 0) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -3878,7 +3878,8 @@ static char *vgroup_init_remap(Object *ob)
 {
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   int defbase_tot = BLI_listbase_count(defbase);
-  char *name_array = MEM_malloc_arrayN<char>(MAX_VGROUP_NAME * defbase_tot, "sort vgroups");
+  char *name_array = MEM_new_array_uninitialized<char>(MAX_VGROUP_NAME * defbase_tot,
+                                                       "sort vgroups");
   char *name;
 
   name = name_array;
@@ -3898,7 +3899,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   int defbase_tot = BLI_listbase_count(defbase);
 
   /* Needs a dummy index at the start. */
-  int *sort_map_update = MEM_malloc_arrayN<int>((defbase_tot + 1), __func__);
+  int *sort_map_update = MEM_new_array_uninitialized<int>((defbase_tot + 1), __func__);
   int *sort_map = sort_map_update + 1;
 
   const char *name;
@@ -3936,7 +3937,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
     }
     else {
       BKE_report(op->reports, RPT_ERROR, "Editmode lattice is not supported yet");
-      MEM_freeN(sort_map_update);
+      MEM_delete(sort_map_update);
       return OPERATOR_CANCELLED;
     }
   }
@@ -3967,7 +3968,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   BKE_object_defgroup_active_index_set(ob,
                                        sort_map_update[BKE_object_defgroup_active_index_get(ob)]);
 
-  MEM_freeN(sort_map_update);
+  MEM_delete(sort_map_update);
 
   return OPERATOR_FINISHED;
 }
@@ -4044,7 +4045,7 @@ static wmOperatorStatus vertex_group_sort_exec(bContext *C, wmOperator *op)
   }
 
   if (name_array) {
-    MEM_freeN(name_array);
+    MEM_delete(name_array);
   }
 
   return ret;
@@ -4106,7 +4107,7 @@ static wmOperatorStatus vgroup_move_exec(bContext *C, wmOperator *op)
   }
 
   if (name_array) {
-    MEM_freeN(name_array);
+    MEM_delete(name_array);
   }
 
   return ret;

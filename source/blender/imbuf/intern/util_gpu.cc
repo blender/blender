@@ -148,7 +148,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
     if (ibuf->channels != 4 || !store_premultiplied) {
-      data_rect = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
+      data_rect = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
+                                                     __func__);
       *r_freedata = freedata = true;
 
       if (data_rect == nullptr) {
@@ -171,9 +172,9 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
       /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
-      data_rect = MEM_mallocN((is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) *
-                                  IMB_get_pixel_count(ibuf),
-                              __func__);
+      data_rect = MEM_new_uninitialized((is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) *
+                                            IMB_get_pixel_count(ibuf),
+                                        __func__);
       *r_freedata = freedata = true;
 
       if (data_rect == nullptr) {
@@ -198,7 +199,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     }
     else {
       /* Other colorspace, store as float texture to avoid precision loss. */
-      data_rect = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
+      data_rect = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
+                                                     __func__);
       *r_freedata = freedata = true;
       is_float_rect = true;
 
@@ -224,7 +226,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     IMB_scale(scale_ibuf, UNPACK2(rescale_size), IMBScaleFilter::Box, false);
 
     if (freedata) {
-      MEM_freeN(data_rect);
+      MEM_delete_void(data_rect);
     }
 
     data_rect = (is_float_rect) ? static_cast<void *>(scale_ibuf->float_buffer.data) :
@@ -241,7 +243,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     void *src_rect = data_rect;
 
     if (freedata == false) {
-      data_rect = MEM_mallocN(
+      data_rect = MEM_new_uninitialized(
           (is_float_rect ? sizeof(float) : sizeof(uchar)) * IMB_get_pixel_count(ibuf), __func__);
       *r_freedata = freedata = true;
     }
@@ -321,7 +323,7 @@ void IMB_update_gpu_texture_sub(gpu::Texture *tex,
   GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
 
   if (freebuf) {
-    MEM_freeN(data);
+    MEM_delete_void(data);
   }
 }
 
@@ -402,7 +404,7 @@ gpu::Texture *IMB_create_gpu_texture(const char *name,
   GPU_texture_anisotropic_filter(tex, true);
 
   if (freebuf) {
-    MEM_freeN(data);
+    MEM_delete_void(data);
   }
 
   return tex;

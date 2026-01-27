@@ -117,7 +117,7 @@ void MTLUniformBuf::bind(int slot)
   /* Check if we have any deferred data to upload. */
   if (data_ != nullptr) {
     this->update(data_);
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 
   /* Ensure there is at least an empty dummy buffer. */
@@ -139,7 +139,7 @@ void MTLUniformBuf::bind_as_ssbo(int slot)
     /* Check if we have any deferred data to upload. */
     if (data_ != nullptr) {
       this->update(data_);
-      MEM_SAFE_FREE(data_);
+      MEM_SAFE_DELETE_VOID(data_);
     }
     else {
       this->clear_to_zero();

@@ -509,7 +509,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip * /*clip*/, MovieTrackingTr
    * for really long paths. */
   path = (count < MAX_STATIC_PATH) ?
              path_static :
-             MEM_calloc_arrayN<TrackPathPoint>(sizeof(*path) * (count + 1) * 2, "path");
+             MEM_new_array_zeroed<TrackPathPoint>(sizeof(*path) * (count + 1) * 2, "path");
   /* Collect path information. */
   const int num_points_before = track_to_path_segment(sc, track, -1, path);
   const int num_points_after = track_to_path_segment(sc, track, 1, path);
@@ -576,7 +576,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip * /*clip*/, MovieTrackingTr
   immUnbindProgram();
 
   if (path != path_static) {
-    MEM_freeN(path);
+    MEM_delete(path);
   }
 
 #undef MAX_STATIC_PATH
@@ -1513,7 +1513,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
     /* undistort */
     if (count) {
-      marker_pos = MEM_calloc_arrayN<float>(2 * count, "draw_tracking_tracks marker_pos");
+      marker_pos = MEM_new_array_zeroed<float>(2 * count, "draw_tracking_tracks marker_pos");
 
       fp = marker_pos;
       for (MovieTrackingTrack &track : tracking_object->tracks) {
@@ -1687,7 +1687,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
   GPU_matrix_pop();
 
   if (marker_pos) {
-    MEM_freeN(marker_pos);
+    MEM_delete(marker_pos);
   }
 }
 

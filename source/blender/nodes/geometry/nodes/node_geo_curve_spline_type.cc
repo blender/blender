@@ -39,7 +39,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveSplineType *data = MEM_new_for_free<NodeGeometryCurveSplineType>(__func__);
+  NodeGeometryCurveSplineType *data = MEM_new<NodeGeometryCurveSplineType>(__func__);
 
   data->spline_type = CURVE_TYPE_POLY;
   node->storage = data;

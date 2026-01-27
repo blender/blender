@@ -20,7 +20,7 @@ NODE_STORAGE_FUNCS(NodeCMPCombSepColor)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeCMPCombSepColor *data = MEM_new_for_free<NodeCMPCombSepColor>(__func__);
+  NodeCMPCombSepColor *data = MEM_new<NodeCMPCombSepColor>(__func__);
   data->mode = CMP_NODE_COMBSEP_COLOR_RGB;
   data->ycc_mode = BLI_YCC_ITU_BT709;
   node->storage = data;

@@ -113,3 +113,53 @@ def mask_expand_and_invert():
     mesh = bpy.context.object.data
     total_verts = mesh.attributes.domain_size('POINT')
     t.assertEqual(initial_masked_verts + inverted_masked_verts, total_verts)
+
+
+def _num_matching_face_set(face_set_id):
+    import bpy
+    import numpy as np
+
+    mesh = bpy.context.object.data
+
+    if not mesh.attributes.get('.sculpt_face_set'):
+        return 0
+
+    face_set_attr = mesh.attributes['.sculpt_face_set']
+
+    num_faces = mesh.attributes.domain_size('FACE')
+
+    face_set_data = np.zeros(num_faces, dtype=np.int32)
+    face_set_attr.data.foreach_get('value', face_set_data)
+
+    return np.count_nonzero(face_set_data == face_set_id)
+
+
+def face_set_expand():
+    import bpy
+    e, t, window = ui.test_window()
+    yield from _view3d_startup_area_maximized(e)
+
+    yield from ui.call_menu(e, "Add -> Mesh -> Monkey")
+    yield e.numpad_period()                                     # View monkey
+
+    yield from _subdivide_mesh(e, 3)
+
+    yield e.ctrl.tab().s()                                      # Sculpt via pie menu.
+
+    area = ui.get_window_area_by_type(window, 'VIEW_3D')
+    position = (area.x + area.width // 2, area.y + area.height // 2)
+    yield e.cursor_position_set(*position, move=True)           # Move mouse to center
+
+    yield e.shift.w()                                           # Expand operator
+
+    yield from _cursor_motion_data_x(e, position, 200)
+    e.leftmouse.tap()
+    yield
+
+    non_default_faces = _num_matching_face_set(2)
+    t.assertEqual(non_default_faces, 8682)
+
+    default_faces = _num_matching_face_set(1)
+    mesh = bpy.context.object.data
+    num_faces = mesh.attributes.domain_size('FACE')
+    t.assertEqual(default_faces + non_default_faces, num_faces)

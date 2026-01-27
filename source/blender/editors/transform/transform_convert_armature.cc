@@ -648,8 +648,8 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
         }
       }
 
-      PoseInitData_Mirror *pid = MEM_malloc_arrayN<PoseInitData_Mirror>((total_mirrored + 1),
-                                                                        "PoseInitData_Mirror");
+      PoseInitData_Mirror *pid = MEM_new_array_uninitialized<PoseInitData_Mirror>(
+          (total_mirrored + 1), "PoseInitData_Mirror");
 
       /* Trick to terminate iteration. */
       pid[total_mirrored].pchan = nullptr;
@@ -682,8 +682,9 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     tc->poseobj = ob;
 
     /* Initialize trans data. */
-    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransPoseBone");
-    tdx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len, "TransPoseBoneExt");
+    td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransPoseBone");
+    tdx = tc->data_ext = MEM_new_array_zeroed<TransDataExtension>(tc->data_len,
+                                                                  "TransPoseBoneExt");
 
     if (mirror) {
       for (bPoseChannel &pchan : pose->chanbase) {
@@ -787,7 +788,8 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     }
 
     if (mirror) {
-      BoneInitData *bid = MEM_malloc_arrayN<BoneInitData>((total_mirrored + 1), "BoneInitData");
+      BoneInitData *bid = MEM_new_array_uninitialized<BoneInitData>((total_mirrored + 1),
+                                                                    "BoneInitData");
 
       /* Trick to terminate iteration. */
       bid[total_mirrored].bone = nullptr;
@@ -816,7 +818,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransEditBone");
+    td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransEditBone");
     int i = 0;
 
     for (EditBone &ebo : *edbo) {
@@ -1612,8 +1614,8 @@ static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
           BIK_clear_data(ob->pose);
 
           BLI_remlink(&pchan.constraints, con);
-          MEM_freeN(con->data);
-          MEM_freeN(con);
+          MEM_delete_void(con->data);
+          MEM_delete(con);
           continue;
         }
         pchan.constflag |= PCHAN_HAS_IK;

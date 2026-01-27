@@ -90,7 +90,7 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
       const MDeformVert &src = src_dverts[vert];
       MDeformVert &dst = dvert[vert_ranges[i][vert]];
       dst = src;
-      dst.dw = MEM_malloc_arrayN<MDeformWeight>(src.totweight, __func__);
+      dst.dw = MEM_new_array_uninitialized<MDeformWeight>(src.totweight, __func__);
       for (const int weight : IndexRange(src.totweight)) {
         dst.dw[weight].def_nr = index_map[src.dw[weight].def_nr];
         dst.dw[weight].weight = src.dw[weight].weight;
@@ -200,7 +200,7 @@ static void join_shape_keys(Main *bmain,
   VectorSet<std::string> key_names;
   if (Key *key = active_mesh.key) {
     for (KeyBlock &kb : key->block) {
-      kb.data = MEM_reallocN(kb.data, sizeof(float3) * dst_verts_num);
+      kb.data = MEM_realloc_uninitialized(kb.data, sizeof(float3) * dst_verts_num);
       kb.totelem = dst_verts_num;
       key_names.add_new(kb.name);
       key_blocks.append(&kb);
@@ -226,7 +226,7 @@ static void join_shape_keys(Main *bmain,
       if (key_names.add_as(src_kb.name)) {
         KeyBlock *dst_kb = BKE_keyblock_add(active_mesh.key, src_kb.name);
         BKE_keyblock_copy_settings(dst_kb, &src_kb);
-        dst_kb->data = MEM_malloc_arrayN<float3>(dst_verts_num, __func__);
+        dst_kb->data = MEM_new_array_uninitialized<float3>(dst_verts_num, __func__);
         dst_kb->totelem = dst_verts_num;
 
         /* Initialize the new shape key data with the base positions for the active object. */
@@ -576,7 +576,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
                                        corner_ranges.total_size());
   BKE_mesh_copy_parameters_for_eval(dst_mesh, active_mesh);
   BLI_freelistN(&dst_mesh->vertex_group_names);
-  MEM_SAFE_FREE(dst_mesh->mat);
+  MEM_SAFE_DELETE(dst_mesh->mat);
   dst_mesh->totcol = 0;
 
   /* Inverse transform for all selected meshes in this object,
@@ -710,9 +710,9 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
       id_us_min(&ma->id);
     }
   }
-  MEM_SAFE_FREE(active_object->mat);
-  MEM_SAFE_FREE(active_object->matbits);
-  MEM_SAFE_FREE(active_mesh->mat);
+  MEM_SAFE_DELETE(active_object->mat);
+  MEM_SAFE_DELETE(active_object->matbits);
+  MEM_SAFE_DELETE(active_mesh->mat);
 
   /* If the object had no slots, don't add an empty one. */
   if (active_object->totcol == 0 && materials.size() == 1 && materials[0] == nullptr) {
@@ -728,8 +728,8 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
         id_us_plus(id_cast<ID *>(ma));
       }
     }
-    active_object->mat = MEM_calloc_arrayN<Material *>(totcol, __func__);
-    active_object->matbits = MEM_calloc_arrayN<char>(totcol, __func__);
+    active_object->mat = MEM_new_array_zeroed<Material *>(totcol, __func__);
+    active_object->matbits = MEM_new_array_zeroed<char>(totcol, __func__);
   }
 
   active_object->totcol = active_mesh->totcol = totcol;

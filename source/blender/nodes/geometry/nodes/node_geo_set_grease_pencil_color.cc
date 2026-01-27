@@ -73,7 +73,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         bke::CurvesGeometry &curves = drawing->strokes_for_write();
-        const int64_t domain_size = curves.attributes().domain_size(domain);
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
         const bke::GreasePencilLayerFieldContext layer_field_context(
             *grease_pencil, domain, layer_index);
@@ -82,12 +82,9 @@ static void node_geo_exec(GeoNodeExecParams params)
          * to initialize the attribute manually.
          * TODO: Avoid doing this if the selection is false. */
         if (!curves.attributes().contains(opacity_attr_name)) {
-          curves.attributes_for_write().add<float>(
-              opacity_attr_name,
-              domain,
-              bke::AttributeInitVArray(VArray<float>::from_single(1.0f, domain_size)));
+          attributes.add<float>(opacity_attr_name, domain, bke::AttributeInitValue(1.0f));
         }
-        bke::try_capture_fields_on_geometry(curves.attributes_for_write(),
+        bke::try_capture_fields_on_geometry(attributes,
                                             layer_field_context,
                                             {color_attr_name, opacity_attr_name},
                                             domain,

@@ -66,14 +66,14 @@ void console_scrollback_prompt_begin(SpaceConsole *sc, ConsoleLine *cl_dummy)
   cl_dummy->type = CONSOLE_LINE_INPUT;
   cl_dummy->len = prompt_len + cl->len;
   cl_dummy->len_alloc = cl_dummy->len + 1;
-  cl_dummy->line = MEM_malloc_arrayN<char>(cl_dummy->len_alloc, "cl_dummy");
+  cl_dummy->line = MEM_new_array_uninitialized<char>(cl_dummy->len_alloc, "cl_dummy");
   memcpy(cl_dummy->line, sc->prompt, prompt_len);
   memcpy(cl_dummy->line + prompt_len, cl->line, cl->len + 1);
   BLI_addtail(&sc->scrollback, cl_dummy);
 }
 void console_scrollback_prompt_end(SpaceConsole *sc, ConsoleLine *cl_dummy)
 {
-  MEM_freeN(cl_dummy->line);
+  MEM_delete(cl_dummy->line);
   BLI_remlink(&sc->scrollback, cl_dummy);
 }
 

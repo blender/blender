@@ -461,8 +461,8 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
   const VArray<bool> sharp_faces =
       attributes.lookup_or_default<bool>("sharp_face", bke::AttrDomain::Face, false).varray;
 
-  int3 *corner_tris = MEM_malloc_arrayN<int3>(tottri, __func__);
-  triangles = MEM_calloc_arrayN<TriTessFace>(tottri, __func__);
+  int3 *corner_tris = MEM_new_array_uninitialized<int3>(tottri, __func__);
+  triangles = MEM_new_array_zeroed<TriTessFace>(tottri, __func__);
 
   const bool calculate_normal = BKE_mesh_face_normals_are_dirty(mesh);
   Span<float3> precomputed_normals;
@@ -536,7 +536,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
     }
   }
 
-  MEM_freeN(corner_tris);
+  MEM_delete(corner_tris);
 
   return triangles;
 }
@@ -567,10 +567,10 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   TriTessFace **tris_high;
 
   /* Assume all low-poly tessfaces can be quads. */
-  tris_high = MEM_calloc_arrayN<TriTessFace *>(highpoly_num, "MVerts Highpoly Mesh Array");
+  tris_high = MEM_new_array_zeroed<TriTessFace *>(highpoly_num, "MVerts Highpoly Mesh Array");
 
   /* Assume all high-poly tessfaces are triangles. */
-  me_highpoly = MEM_malloc_arrayN<Mesh *>(highpoly_num, "Highpoly Derived Meshes");
+  me_highpoly = MEM_new_array_uninitialized<Mesh *>(highpoly_num, "Highpoly Derived Meshes");
   Array<bke::BVHTreeFromMesh> treeData(highpoly_num);
 
   if (!is_cage) {
@@ -661,21 +661,21 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
 cleanup:
   for (int i = 0; i < highpoly_num; i++) {
     if (tris_high[i]) {
-      MEM_freeN(tris_high[i]);
+      MEM_delete(tris_high[i]);
     }
   }
 
-  MEM_freeN(tris_high);
-  MEM_freeN(me_highpoly);
+  MEM_delete(tris_high);
+  MEM_delete(me_highpoly);
 
   if (me_eval_low) {
     BKE_id_free(nullptr, me_eval_low);
   }
   if (tris_low) {
-    MEM_freeN(tris_low);
+    MEM_delete(tris_low);
   }
   if (tris_cage) {
-    MEM_freeN(tris_cage);
+    MEM_delete(tris_cage);
   }
 
   return result;
@@ -728,7 +728,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
 
   BakeDataZSpan bd;
   bd.pixel_array = pixel_array;
-  bd.zspan = MEM_calloc_arrayN<ZSpan>(targets->images_num, "bake zspan");
+  bd.zspan = MEM_new_array_zeroed<ZSpan>(targets->images_num, "bake zspan");
 
   /* initialize all pixel arrays so we know which ones are 'blank' */
   for (int i = 0; i < pixels_num; i++) {
@@ -741,7 +741,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
   }
 
   const int tottri = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
-  int3 *corner_tris = MEM_malloc_arrayN<int3>(size_t(tottri), __func__);
+  int3 *corner_tris = MEM_new_array_uninitialized<int3>(size_t(tottri), __func__);
 
   bke::mesh::corner_tris_calc(
       mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), {corner_tris, tottri});
@@ -794,8 +794,8 @@ void RE_bake_pixels_populate(Mesh *mesh,
     zbuf_free_span(&bd.zspan[i]);
   }
 
-  MEM_freeN(corner_tris);
-  MEM_freeN(bd.zspan);
+  MEM_delete(corner_tris);
+  MEM_delete(bd.zspan);
 }
 
 /* ******************** NORMALS ************************ */
@@ -958,7 +958,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
   }
 
   /* garbage collection */
-  MEM_freeN(triangles);
+  MEM_delete(triangles);
 
   if (mesh_eval) {
     BKE_id_free(nullptr, mesh_eval);

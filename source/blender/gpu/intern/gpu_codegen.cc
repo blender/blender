@@ -134,7 +134,7 @@ GPUCodegen::GPUCodegen(GPUMaterial *mat_, GPUNodeGraph *graph_, const char *debu
 
 GPUCodegen::~GPUCodegen()
 {
-  MEM_SAFE_FREE(cryptomatte_input_);
+  MEM_SAFE_DELETE(cryptomatte_input_);
   MEM_delete(create_info);
   BLI_freelistN(&ubo_inputs_);
 };
@@ -471,7 +471,7 @@ GPUGraphOutput GPUCodegen::graph_serialize(GPUNodeTag tree_tag)
 
 void GPUCodegen::generate_cryptomatte()
 {
-  cryptomatte_input_ = MEM_callocN<GPUInput>(__func__);
+  cryptomatte_input_ = MEM_new_zeroed<GPUInput>(__func__);
   cryptomatte_input_->type = GPU_FLOAT;
   cryptomatte_input_->source = GPU_SOURCE_CRYPTOMATTE;
 

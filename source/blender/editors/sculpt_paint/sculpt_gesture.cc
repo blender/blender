@@ -282,7 +282,7 @@ std::unique_ptr<GestureData> init_from_line(bContext *C, const wmOperator *op)
 
 GestureData::~GestureData()
 {
-  MEM_SAFE_FREE(this->operation);
+  MEM_SAFE_DELETE(this->operation);
 }
 
 static void flip_plane(float out[4], const float in[4], const char symm)

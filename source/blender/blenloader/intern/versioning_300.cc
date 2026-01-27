@@ -149,7 +149,8 @@ static void version_idproperty_move_data_int(IDPropertyUIDataInt *ui_data,
   if (default_value != nullptr) {
     if (default_value->type == IDP_ARRAY) {
       if (default_value->subtype == IDP_INT) {
-        ui_data->default_array = MEM_malloc_arrayN<int>(size_t(default_value->len), __func__);
+        ui_data->default_array = MEM_new_array_uninitialized<int>(size_t(default_value->len),
+                                                                  __func__);
         memcpy(ui_data->default_array,
                IDP_array_int_get(default_value),
                sizeof(int) * default_value->len);
@@ -197,14 +198,14 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
       const int array_len = default_value->len;
       ui_data->default_array_len = array_len;
       if (default_value->subtype == IDP_FLOAT) {
-        ui_data->default_array = MEM_malloc_arrayN<double>(size_t(array_len), __func__);
+        ui_data->default_array = MEM_new_array_uninitialized<double>(size_t(array_len), __func__);
         const float *old_default_array = IDP_array_float_get(default_value);
         for (int i = 0; i < ui_data->default_array_len; i++) {
           ui_data->default_array[i] = double(old_default_array[i]);
         }
       }
       else if (default_value->subtype == IDP_DOUBLE) {
-        ui_data->default_array = MEM_malloc_arrayN<double>(size_t(array_len), __func__);
+        ui_data->default_array = MEM_new_array_uninitialized<double>(size_t(array_len), __func__);
         memcpy(ui_data->default_array,
                IDP_array_double_get(default_value),
                sizeof(double) * array_len);
@@ -486,7 +487,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene,
           }
           if (substr) {
             char *new_path = BLI_string_replaceN(fcu->rna_path, "speed_factor", substr);
-            MEM_freeN(fcu->rna_path);
+            MEM_delete(fcu->rna_path);
             fcu->rna_path = new_path;
           }
         }
@@ -646,10 +647,10 @@ static void strip_speed_factor_fix_rna_path(Strip *strip, ListBaseT<FCurve> *fcu
   char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
   FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
   if (fcu != nullptr) {
-    MEM_freeN(fcu->rna_path);
+    MEM_delete(fcu->rna_path);
     fcu->rna_path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc);
   }
-  MEM_freeN(path);
+  MEM_delete(path);
 }
 
 static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
@@ -826,7 +827,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
       }
     }
     /* The storage must be freed manually because the node type isn't defined anymore. */
-    MEM_freeN(node.storage);
+    MEM_delete_void(node.storage);
     bke::node_remove_node(nullptr, *ntree, node, false);
   }
 }
@@ -872,7 +873,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
     store_attribute_node->parent = node.parent;
     store_attribute_node->locx_legacy = node.locx_legacy + 25;
     store_attribute_node->locy_legacy = node.locy_legacy;
-    auto &storage = *MEM_new_for_free<NodeGeometryStoreNamedAttribute>(__func__);
+    auto &storage = *MEM_new<NodeGeometryStoreNamedAttribute>(__func__);
     store_attribute_node->storage = &storage;
     storage.domain = int8_t(bke::AttrDomain::Corner);
     /* Intentionally use 3D instead of 2D vectors, because 2D vectors did not exist in older
@@ -1000,7 +1001,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
     capture_node.locx_legacy = node.locx_legacy - 25;
     capture_node.locy_legacy = node.locy_legacy;
     new_nodes.append(&capture_node);
-    auto *capture_node_storage = MEM_new_for_free<NodeGeometryAttributeCapture>(__func__);
+    auto *capture_node_storage = MEM_new<NodeGeometryAttributeCapture>(__func__);
     capture_node.storage = capture_node_storage;
     capture_node_storage->data_type_legacy = CD_PROP_BOOL;
     capture_node_storage->domain = int8_t(bke::AttrDomain::Face);
@@ -1424,7 +1425,7 @@ static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
     }
     else {
       *p_old_path = BLI_sprintfN("%s[%d]", old_path, index);
-      MEM_freeN(old_path);
+      MEM_delete(old_path);
     }
 
     return true;
@@ -1939,7 +1940,7 @@ static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
     if (node.type_legacy == SH_NODE_MIX_RGB_LEGACY) {
       STRNCPY_UTF8(node.idname, "ShaderNodeMix");
       node.type_legacy = SH_NODE_MIX;
-      NodeShaderMix *data = MEM_new_for_free<NodeShaderMix>(__func__);
+      NodeShaderMix *data = MEM_new<NodeShaderMix>(__func__);
       data->blend_type = node.custom1;
       data->clamp_result = (node.custom2 & SHD_MIXRGB_CLAMP) ? 1 : 0;
       data->clamp_factor = 1;
@@ -2114,7 +2115,7 @@ static void version_liboverride_nla_frame_start_end(ID *id, AnimData *adt)
       version_liboverride_nla_strip_frame_start_end(liboverride, rna_path_track, &strip);
     }
 
-    MEM_freeN(rna_path_track);
+    MEM_delete(rna_path_track);
   }
 }
 
@@ -2971,7 +2972,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (bNode &node : ntree.nodes) {
         if (node.type_legacy == GEO_NODE_VIEWER) {
           if (node.storage == nullptr) {
-            NodeGeometryViewer *data = MEM_new_for_free<NodeGeometryViewer>(__func__);
+            NodeGeometryViewer *data = MEM_new<NodeGeometryViewer>(__func__);
             data->data_type_legacy = CD_PROP_FLOAT;
             node.storage = data;
           }
@@ -3094,7 +3095,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         /* Convert float compare into a more general compare node. */
         if (node.type_legacy == FN_NODE_COMPARE) {
           if (node.storage == nullptr) {
-            NodeFunctionCompare *data = MEM_new_for_free<NodeFunctionCompare>(__func__);
+            NodeFunctionCompare *data = MEM_new<NodeFunctionCompare>(__func__);
             data->data_type = SOCK_FLOAT;
             data->operation = node.custom1;
             STRNCPY_UTF8(node.idname, "FunctionNodeCompare");
@@ -3123,7 +3124,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       for (bNode &node : ntree->nodes) {
         if (node.type_legacy == SH_NODE_MAP_RANGE) {
           if (node.storage == nullptr) {
-            NodeMapRange *data = MEM_new_for_free<NodeMapRange>(__func__);
+            NodeMapRange *data = MEM_new<NodeMapRange>(__func__);
             data->clamp = node.custom1;
             data->data_type = CD_PROP_FLOAT;
             data->interpolation_type = node.custom2;
@@ -3367,7 +3368,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       if (brush.curves_sculpt_settings != nullptr) {
         continue;
       }
-      brush.curves_sculpt_settings = MEM_new_for_free<BrushCurvesSculptSettings>(__func__);
+      brush.curves_sculpt_settings = MEM_new<BrushCurvesSculptSettings>(__func__);
       brush.curves_sculpt_settings->add_amount = 1;
     }
 
@@ -3530,8 +3531,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == GEO_NODE_MERGE_BY_DISTANCE) {
             if (node.storage == nullptr) {
-              NodeGeometryMergeByDistance *data = MEM_new_for_free<NodeGeometryMergeByDistance>(
-                  __func__);
+              NodeGeometryMergeByDistance *data = MEM_new<NodeGeometryMergeByDistance>(__func__);
               data->mode = GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL;
               node.storage = data;
             }

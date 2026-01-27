@@ -689,7 +689,8 @@ static void quad_4edge_subdivide(BMesh *bm,
   int numcuts = params->numcuts;
   int i, j, a, b, s = numcuts + 2 /* , totv = numcuts * 4 + 4 */;
 
-  lines = MEM_calloc_arrayN<BMVert *>(size_t(numcuts + 2) * size_t(numcuts + 2), "q_4edge_split");
+  lines = MEM_new_array_zeroed<BMVert *>(size_t(numcuts + 2) * size_t(numcuts + 2),
+                                         "q_4edge_split");
   /* build a 2-dimensional array of verts,
    * containing every vert (and all new ones)
    * in the face */
@@ -745,7 +746,7 @@ static void quad_4edge_subdivide(BMesh *bm,
     }
   }
 
-  MEM_freeN(lines);
+  MEM_delete(lines);
 }
 
 /**
@@ -800,12 +801,12 @@ static void tri_3edge_subdivide(BMesh *bm,
   int i, j, a, b, numcuts = params->numcuts;
 
   /* number of verts in each lin */
-  lines = MEM_calloc_arrayN<BMVert **>((numcuts + 2), "triangle vert table");
+  lines = MEM_new_array_zeroed<BMVert **>((numcuts + 2), "triangle vert table");
 
   lines[0] = reinterpret_cast<BMVert **>(stackarr);
   lines[0][0] = verts[numcuts * 2 + 1];
 
-  lines[numcuts + 1] = MEM_calloc_arrayN<BMVert *>(numcuts + 2, "triangle vert table 2");
+  lines[numcuts + 1] = MEM_new_array_zeroed<BMVert *>(numcuts + 2, "triangle vert table 2");
   for (i = 0; i < numcuts; i++) {
     lines[numcuts + 1][i + 1] = verts[i];
   }
@@ -813,7 +814,7 @@ static void tri_3edge_subdivide(BMesh *bm,
   lines[numcuts + 1][numcuts + 1] = verts[numcuts];
 
   for (i = 0; i < numcuts; i++) {
-    lines[i + 1] = MEM_calloc_arrayN<BMVert *>(2 + i, "triangle vert table row");
+    lines[i + 1] = MEM_new_array_zeroed<BMVert *>(2 + i, "triangle vert table row");
     a = numcuts * 2 + 2 + i;
     b = numcuts + numcuts - i;
     e = connect_smallest_face(bm, verts[a], verts[b], &f_new);
@@ -869,11 +870,11 @@ static void tri_3edge_subdivide(BMesh *bm,
 cleanup:
   for (i = 1; i < numcuts + 2; i++) {
     if (lines[i]) {
-      MEM_freeN(lines[i]);
+      MEM_delete(lines[i]);
     }
   }
 
-  MEM_freeN(lines);
+  MEM_delete(lines);
 }
 
 static const SubDPattern tri_3edge = {

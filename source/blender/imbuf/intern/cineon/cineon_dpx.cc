@@ -127,8 +127,8 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
     /* Don't use the float buffer to save 8 BPP picture to prevent color banding
      * (there's no dithering algorithm behind the #logImageSetDataRGBA function). */
 
-    fbuf = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
-                                    "fbuf in imb_save_dpx_cineon");
+    fbuf = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
+                                              "fbuf in imb_save_dpx_cineon");
 
     for (y = 0; y < ibuf->y; y++) {
       float *dst_ptr = fbuf + (4 * (size_t(ibuf->y - y - 1) * size_t(ibuf->x)));
@@ -139,15 +139,15 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
 
     rvalue = (logImageSetDataRGBA(logImage, fbuf, 1) == 0);
 
-    MEM_freeN(fbuf);
+    MEM_delete(fbuf);
   }
   else {
     if (ibuf->byte_buffer.data == nullptr) {
       IMB_byte_from_float(ibuf);
     }
 
-    fbuf = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
-                                    "fbuf in imb_save_dpx_cineon");
+    fbuf = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
+                                              "fbuf in imb_save_dpx_cineon");
     if (fbuf == nullptr) {
       printf("DPX/Cineon: error allocating memory.\n");
       logImageClose(logImage);
@@ -166,7 +166,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
       }
     }
     rvalue = (logImageSetDataRGBA(logImage, fbuf, 0) == 0);
-    MEM_freeN(fbuf);
+    MEM_delete(fbuf);
   }
 
   logImageClose(logImage);

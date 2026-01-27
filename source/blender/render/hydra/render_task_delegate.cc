@@ -272,7 +272,7 @@ void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
   int w = GPU_texture_width(tex), h = GPU_texture_height(tex);
   void *tex_data = GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
   memcpy(data, tex_data, sizeof(float) * w * h * c);
-  MEM_freeN(tex_data);
+  MEM_delete_void(tex_data);
 }
 
 void GPURenderTaskDelegate::bind()

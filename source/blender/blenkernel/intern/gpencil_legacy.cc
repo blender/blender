@@ -74,7 +74,7 @@ static void greasepencil_copy_data(Main * /*bmain*/,
 
   /* duplicate material array */
   if (gpd_src->mat) {
-    gpd_dst->mat = static_cast<Material **>(MEM_dupallocN(gpd_src->mat));
+    gpd_dst->mat = MEM_dupalloc(gpd_src->mat);
   }
 
   BKE_defgroup_copy_list(&gpd_dst->vertex_group_names, &gpd_src->vertex_group_names);
@@ -303,7 +303,7 @@ void BKE_gpencil_free_point_weights(MDeformVert *dvert)
   if (dvert == nullptr) {
     return;
   }
-  MEM_SAFE_FREE(dvert->dw);
+  MEM_SAFE_DELETE(dvert->dw);
 }
 
 void BKE_gpencil_free_stroke_weights(bGPDstroke *gps)
@@ -331,8 +331,8 @@ void BKE_gpencil_free_stroke_editcurve(bGPDstroke *gps)
   if (editcurve == nullptr) {
     return;
   }
-  MEM_freeN(editcurve->curve_points);
-  MEM_freeN(editcurve);
+  MEM_delete(editcurve->curve_points);
+  MEM_delete(editcurve);
   gps->editcurve = nullptr;
 }
 
@@ -343,20 +343,20 @@ void BKE_gpencil_free_stroke(bGPDstroke *gps)
   }
   /* free stroke memory arrays, then stroke itself */
   if (gps->points) {
-    MEM_freeN(gps->points);
+    MEM_delete(gps->points);
   }
   if (gps->dvert) {
     BKE_gpencil_free_stroke_weights(gps);
-    MEM_freeN(gps->dvert);
+    MEM_delete(gps->dvert);
   }
   if (gps->triangles) {
-    MEM_freeN(gps->triangles);
+    MEM_delete(gps->triangles);
   }
   if (gps->editcurve != nullptr) {
     BKE_gpencil_free_stroke_editcurve(gps);
   }
 
-  MEM_freeN(gps);
+  MEM_delete(gps);
 }
 
 bool BKE_gpencil_free_strokes(bGPDframe *gpf)
@@ -430,7 +430,7 @@ void BKE_gpencil_free_legacy_palette_data(ListBaseT<bGPDpalette> *list)
 {
   for (bGPDpalette &palette : list->items_mutable()) {
     BLI_freelistN(&palette.colors);
-    MEM_freeN(&palette);
+    MEM_delete(&palette);
   }
   BLI_listbase_clear(list);
 }
@@ -442,7 +442,7 @@ void BKE_gpencil_free_data(bGPdata *gpd, bool /*free_all*/)
   BKE_gpencil_free_legacy_palette_data(&gpd->palettes);
 
   /* materials */
-  MEM_SAFE_FREE(gpd->mat);
+  MEM_SAFE_DELETE(gpd->mat);
 
   BLI_freelistN(&gpd->vertex_group_names);
 }
@@ -466,7 +466,7 @@ bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
   }
 
   /* allocate memory for this frame */
-  gpf = MEM_new_for_free<bGPDframe>("bGPDframe");
+  gpf = MEM_new<bGPDframe>("bGPDframe");
   gpf->framenum = cframe;
 
   /* find appropriate place to add frame */
@@ -493,7 +493,7 @@ bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
         &LOG, "Frame (%d) existed already for this layer_active. Using existing frame", cframe);
 
     /* free the newly created one, and use the old one instead */
-    MEM_freeN(gpf);
+    MEM_delete(gpf);
 
     /* return existing frame instead... */
     BLI_assert(gf != nullptr);
@@ -540,7 +540,7 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
        * - Delete the new frame and don't do anything else here.
        */
       BKE_gpencil_free_strokes(new_frame);
-      MEM_freeN(new_frame);
+      MEM_delete(new_frame);
       new_frame = nullptr;
 
       found = true;
@@ -576,7 +576,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
   }
 
   /* allocate memory for frame and add to end of list */
-  gpl = MEM_new_for_free<bGPDlayer>("bGPDlayer");
+  gpl = MEM_new<bGPDlayer>("bGPDlayer");
 
   gpl_active = BKE_gpencil_layer_active_get(gpd);
 
@@ -714,15 +714,15 @@ bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src,
 {
   bGPDstroke *gps_dst = nullptr;
 
-  gps_dst = static_cast<bGPDstroke *>(MEM_dupallocN(gps_src));
+  gps_dst = MEM_dupalloc(gps_src);
   gps_dst->prev = gps_dst->next = nullptr;
-  gps_dst->triangles = static_cast<bGPDtriangle *>(MEM_dupallocN(gps_src->triangles));
+  gps_dst->triangles = MEM_dupalloc(gps_src->triangles);
 
   if (dup_points) {
-    gps_dst->points = static_cast<bGPDspoint *>(MEM_dupallocN(gps_src->points));
+    gps_dst->points = MEM_dupalloc(gps_src->points);
 
     if (gps_src->dvert != nullptr) {
-      gps_dst->dvert = static_cast<MDeformVert *>(MEM_dupallocN(gps_src->dvert));
+      gps_dst->dvert = MEM_dupalloc(gps_src->dvert);
       BKE_gpencil_stroke_weights_duplicate(gps_src, gps_dst);
     }
     else {
@@ -751,7 +751,7 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src, const bool dup_
   }
 
   /* make a copy of the source frame */
-  gpf_dst = static_cast<bGPDframe *>(MEM_dupallocN(gpf_src));
+  gpf_dst = MEM_dupalloc(gpf_src);
   gpf_dst->prev = gpf_dst->next = nullptr;
 
   /* Copy strokes. */
@@ -781,7 +781,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   }
 
   /* make a copy of source layer */
-  gpl_dst = static_cast<bGPDlayer *>(MEM_dupallocN(gpl_src));
+  gpl_dst = MEM_dupalloc(gpl_src);
   gpl_dst->prev = gpl_dst->next = nullptr;
 
   /* copy frames */
@@ -818,7 +818,7 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
 
   if (internal_copy) {
     /* make a straight copy for undo buffers used during stroke drawing */
-    gpd_dst = static_cast<bGPdata *>(MEM_dupallocN(gpd_src));
+    gpd_dst = MEM_dupalloc(gpd_src);
   }
   else {
     BLI_assert(bmain != nullptr);

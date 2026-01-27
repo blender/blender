@@ -71,7 +71,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   ARegion *region;
   SpaceSeq *sseq;
 
-  sseq = MEM_new_for_free<SpaceSeq>("initsequencer");
+  sseq = MEM_new<SpaceSeq>("initsequencer");
   sseq->runtime = MEM_new<SpaceSeq_Runtime>(__func__);
   sseq->spacetype = SPACE_SEQ;
   sseq->chanshown = 0;
@@ -264,7 +264,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
 
 static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 {
-  SpaceSeq *sseqn = static_cast<SpaceSeq *>(MEM_dupallocN(sl));
+  SpaceSeq *sseqn = MEM_dupalloc(reinterpret_cast<SpaceSeq *>(sl));
   sseqn->runtime = MEM_new<SpaceSeq_Runtime>(__func__);
 
   /* Clear or remove stuff from old. */
@@ -1135,7 +1135,7 @@ void ED_spacetype_sequencer()
 
   /* Create regions: */
   /* Main window. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer region");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_WINDOW;
   art->poll = sequencer_main_region_poll;
   art->init = sequencer_main_region_init;
@@ -1153,7 +1153,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Preview. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer region");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_PREVIEW;
   art->poll = sequencer_preview_region_poll;
   art->init = sequencer_preview_region_init;
@@ -1165,7 +1165,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* List-view/buttons. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer region");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH * 1.3f;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -1178,7 +1178,7 @@ void ED_spacetype_sequencer()
 
   sequencer_buttons_register(art);
   /* Toolbar. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer tools region");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer tools region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = int(UI_TOOLBAR_WIDTH);
   art->prefsizey = 50; /* XXX */
@@ -1191,7 +1191,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Channels. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer channels");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer channels");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
@@ -1202,7 +1202,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Tool header. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer tool header region");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer tool header region");
   art->regionid = RGN_TYPE_TOOL_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1213,7 +1213,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Header. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer region");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1224,7 +1224,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Footer. */
-  art = MEM_callocN<ARegionType>("spacetype sequencer region");
+  art = MEM_new_zeroed<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
@@ -1238,9 +1238,9 @@ void ED_spacetype_sequencer()
   art = ui::ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
-  WM_menutype_add(MEM_dupallocN<MenuType>(__func__, add_catalog_assets_menu_type()));
-  WM_menutype_add(MEM_dupallocN<MenuType>(__func__, add_unassigned_assets_menu_type()));
-  WM_menutype_add(MEM_dupallocN<MenuType>(__func__, add_scene_menu_type()));
+  WM_menutype_add(MEM_new<MenuType>(__func__, add_catalog_assets_menu_type()));
+  WM_menutype_add(MEM_new<MenuType>(__func__, add_unassigned_assets_menu_type()));
+  WM_menutype_add(MEM_new<MenuType>(__func__, add_scene_menu_type()));
 
   BKE_spacetype_register(std::move(st));
 

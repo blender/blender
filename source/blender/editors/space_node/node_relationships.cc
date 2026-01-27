@@ -509,12 +509,12 @@ static int ensure_geometry_nodes_viewer_has_non_geometry_socket(
   if (existing_geometry_index) {
     dna::array::move_index(storage.items, storage.items_num, *existing_geometry_index, 0);
     storage.items[1].socket_type = socket_type;
-    MEM_SAFE_FREE(storage.items[1].name);
+    MEM_SAFE_DELETE(storage.items[1].name);
     storage.items[1].name = BLI_strdup(IFACE_("Value"));
     return 1;
   }
   storage.items[0].socket_type = socket_type;
-  MEM_SAFE_FREE(storage.items[0].name);
+  MEM_SAFE_DELETE(storage.items[0].name);
   storage.items[0].name = BLI_strdup(IFACE_("Value"));
   return 0;
 }
@@ -1338,18 +1338,18 @@ static void add_dragged_links_to_tree(bContext &C, bNodeLinkDrag &nldrag)
 
     /* Before actually adding the link let nodes perform special link insertion handling. */
 
-    bNodeLink *new_link = MEM_new_for_free<bNodeLink>(__func__, link);
+    bNodeLink *new_link = MEM_new<bNodeLink>(__func__, link);
     if (link.fromnode->typeinfo->insert_link) {
       bke::NodeInsertLinkParams params{ntree, *link.fromnode, *new_link, &C};
       if (!link.fromnode->typeinfo->insert_link(params)) {
-        MEM_freeN(new_link);
+        MEM_delete(new_link);
         continue;
       }
     }
     if (link.tonode->typeinfo->insert_link) {
       bke::NodeInsertLinkParams params{ntree, *link.tonode, *new_link, &C};
       if (!link.tonode->typeinfo->insert_link(params)) {
-        MEM_freeN(new_link);
+        MEM_delete(new_link);
         continue;
       }
     }
@@ -2767,7 +2767,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
   /* Set up insert offset data, it needs stuff from here. */
   if (U.uiflag & USER_NODE_AUTO_OFFSET) {
     BLI_assert(snode.runtime->iofsd == nullptr);
-    NodeInsertOfsData *iofsd = MEM_callocN<NodeInsertOfsData>(__func__);
+    NodeInsertOfsData *iofsd = MEM_new_zeroed<NodeInsertOfsData>(__func__);
 
     iofsd->insert = node_to_insert;
     iofsd->prev = from_node;
@@ -3066,7 +3066,7 @@ static wmOperatorStatus node_insert_offset_modal(bContext *C, wmOperator *op, co
       node->runtime->anim_ofsx = 0.0f;
     }
 
-    MEM_freeN(iofsd);
+    MEM_delete(iofsd);
 
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
@@ -3096,7 +3096,7 @@ static wmOperatorStatus node_insert_offset_invoke(bContext *C,
   const bool offset_applied = node_link_insert_offset_ntree(
       iofsd, CTX_wm_region(C), event->mval, (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT));
   if (!offset_applied) {
-    MEM_freeN(iofsd);
+    MEM_delete(iofsd);
     op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }

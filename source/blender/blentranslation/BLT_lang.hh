@@ -28,14 +28,15 @@ const char *BLT_lang_get();
 
 /* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g.
  * if there is no variant, *variant and *language_variant will always be NULL).
- * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
- * NOTE: Always available, even in non-WITH_INTERNATIONAL builds.
+ * Non-null elements are always MEM_new_uninitialized'ed, it's the caller's responsibility to free
+ * them. NOTE: Always available, even in non-WITH_INTERNATIONAL builds.
  */
 /**
  * Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g.
  * if there is no variant,
  * *variant and *language_variant will always be NULL).
- * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
+ * Non-null elements are always MEM_new_uninitialized'ed, it's the caller's responsibility to free
+ * them.
  *
  * \note Keep that one always available, you never know,
  * may become useful even in no #WITH_INTERNATIONAL context.

@@ -486,7 +486,7 @@ bool BLI_path_make_safe_filename_ex(char *filename, bool allow_tokens)
       }
     }
 
-    MEM_freeN(filename_lower);
+    MEM_delete(filename_lower);
   }
 #endif
 
@@ -2002,9 +2002,9 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   const size_t p2_size = strlen(p2) + 1;
 
   char *norm_p1 = (p1_size <= sizeof(norm_p1_buf)) ? norm_p1_buf :
-                                                     MEM_calloc_arrayN<char>(p1_size, __func__);
+                                                     MEM_new_array_zeroed<char>(p1_size, __func__);
   char *norm_p2 = (p2_size <= sizeof(norm_p2_buf)) ? norm_p2_buf :
-                                                     MEM_calloc_arrayN<char>(p2_size, __func__);
+                                                     MEM_new_array_zeroed<char>(p2_size, __func__);
 
   memcpy(norm_p1, p1, p1_size);
   memcpy(norm_p2, p2, p2_size);
@@ -2022,10 +2022,10 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   const int result = BLI_path_cmp(norm_p1, norm_p2);
 
   if (norm_p1 != norm_p1_buf) {
-    MEM_freeN(norm_p1);
+    MEM_delete(norm_p1);
   }
   if (norm_p2 != norm_p2_buf) {
-    MEM_freeN(norm_p2);
+    MEM_delete(norm_p2);
   }
   return result;
 }

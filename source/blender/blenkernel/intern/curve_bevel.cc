@@ -79,7 +79,7 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
                                               const bool use_extrude,
                                               const CurveBevelFillType fill_type)
 {
-  DispList *dl = MEM_callocN<DispList>(__func__);
+  DispList *dl = MEM_new_zeroed<DispList>(__func__);
 
   /* Calculate the profile of the bevel once to reuse it for each quarter. We will need
    * to flip around the indices for every other section in order to build around the circle
@@ -108,7 +108,7 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
     dl->flag = (fill_type == FRONT) ? DL_FRONT_CURVE : DL_BACK_CURVE;
   }
 
-  dl->verts = MEM_malloc_arrayN<float>(3 * size_t(nr), __func__);
+  dl->verts = MEM_new_array_uninitialized<float>(3 * size_t(nr), __func__);
   BLI_addtail(disp, dl);
   /* Use a different type depending on whether the loop is complete or not. */
   dl->type = (fill_type == FULL) ? DL_POLY : DL_SEGM;
@@ -188,8 +188,8 @@ static void curve_bevel_make_full_circle(const Curve *cu, ListBaseT<DispList> *d
 {
   const int nr = 4 + 2 * cu->bevresol;
 
-  DispList *dl = MEM_callocN<DispList>(__func__);
-  dl->verts = MEM_malloc_arrayN<float>(3 * size_t(nr), __func__);
+  DispList *dl = MEM_new_zeroed<DispList>(__func__);
+  dl->verts = MEM_new_array_uninitialized<float>(3 * size_t(nr), __func__);
   BLI_addtail(disp, dl);
   dl->type = DL_POLY;
   dl->parts = 1;
@@ -211,8 +211,8 @@ static void curve_bevel_make_full_circle(const Curve *cu, ListBaseT<DispList> *d
 
 static void curve_bevel_make_only_extrude(const Curve *cu, ListBaseT<DispList> *disp)
 {
-  DispList *dl = MEM_callocN<DispList>(__func__);
-  dl->verts = MEM_malloc_arrayN<float>(3 * 2, __func__);
+  DispList *dl = MEM_new_zeroed<DispList>(__func__);
+  dl->verts = MEM_new_array_uninitialized<float>(3 * 2, __func__);
   BLI_addtail(disp, dl);
   dl->type = DL_SEGM;
   dl->parts = 1;
@@ -252,9 +252,10 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBaseT<DispList> *d
 
     while (dl) {
       if (ELEM(dl->type, DL_POLY, DL_SEGM)) {
-        DispList *dlnew = MEM_mallocN<DispList>(__func__);
+        DispList *dlnew = MEM_new_uninitialized<DispList>(__func__);
         *dlnew = *dl;
-        dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(dl->parts) * size_t(dl->nr), __func__);
+        dlnew->verts = MEM_new_array_uninitialized<float>(3 * size_t(dl->parts) * size_t(dl->nr),
+                                                          __func__);
         memcpy(dlnew->verts, dl->verts, sizeof(float[3]) * dl->parts * dl->nr);
 
         if (dlnew->type == DL_SEGM) {

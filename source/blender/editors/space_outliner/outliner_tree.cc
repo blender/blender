@@ -168,7 +168,7 @@ void outliner_free_tree_element(TreeElement *element, ListBaseT<TreeElement> *pa
   outliner_free_tree(&element->subtree);
 
   if (element->flag & TE_FREE_NAME) {
-    MEM_freeN(element->name);
+    MEM_delete(element->name);
   }
   element->abstract_element = nullptr;
   MEM_delete(element);
@@ -571,7 +571,7 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
-      tTreeSort *tear = MEM_malloc_arrayN<tTreeSort>(totelem, "tree sort array");
+      tTreeSort *tear = MEM_new_array_uninitialized<tTreeSort>(totelem, "tree sort array");
       tTreeSort *tp = tear;
       int skip = 0;
 
@@ -615,7 +615,7 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
         BLI_addtail(lb, tp->te);
         tp++;
       }
-      MEM_freeN(tear);
+      MEM_delete(tear);
     }
   }
 
@@ -637,7 +637,7 @@ static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
-      tTreeSort *tear = MEM_malloc_arrayN<tTreeSort>(totelem, "tree sort array");
+      tTreeSort *tear = MEM_new_array_uninitialized<tTreeSort>(totelem, "tree sort array");
       tTreeSort *tp = tear;
 
       for (TreeElement &te : *lb) {
@@ -657,7 +657,7 @@ static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
         BLI_addtail(lb, tp->te);
         tp++;
       }
-      MEM_freeN(tear);
+      MEM_delete(tear);
     }
   }
 

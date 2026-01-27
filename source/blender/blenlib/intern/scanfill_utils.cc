@@ -95,8 +95,8 @@ using IsectMap = Map<ScanFillEdge *, ListBaseT<LinkData> *>;
 
 static ListBaseT<LinkData> *edge_isect_ls_ensure(IsectMap *isect_hash, ScanFillEdge *eed)
 {
-  return isect_hash->lookup_or_add_cb(eed,
-                                      []() { return MEM_callocN<ListBaseT<LinkData>>(__func__); });
+  return isect_hash->lookup_or_add_cb(
+      eed, []() { return MEM_new_zeroed<ListBaseT<LinkData>>(__func__); });
 }
 
 static ListBaseT<LinkData> *edge_isect_ls_add(IsectMap *isect_hash,
@@ -106,7 +106,7 @@ static ListBaseT<LinkData> *edge_isect_ls_add(IsectMap *isect_hash,
   ListBaseT<LinkData> *e_ls;
   LinkData *isect_link;
   e_ls = edge_isect_ls_ensure(isect_hash, eed);
-  isect_link = MEM_callocN<LinkData>(__func__);
+  isect_link = MEM_new_zeroed<LinkData>(__func__);
   isect_link->data = isect;
   EFLAG_SET(eed, E_ISISECT);
   BLI_addtail(e_ls, isect_link);
@@ -193,7 +193,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
               isect_hash = MEM_new<IsectMap>(__func__);
             }
 
-            isect = MEM_mallocN<ScanFillIsect>(__func__);
+            isect = MEM_new_uninitialized<ScanFillIsect>(__func__);
 
             BLI_addtail(&isect_lb, isect);
 
@@ -271,7 +271,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
         }
 
         BLI_freelistN(e_ls);
-        MEM_freeN(e_ls);
+        MEM_delete(e_ls);
 
         if (pi->edge_last == nullptr) {
           pi->edge_last = eed;
@@ -369,7 +369,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
     return false;
   }
 
-  PolyInfo *poly_info = MEM_calloc_arrayN<PolyInfo>(poly_num, __func__);
+  PolyInfo *poly_info = MEM_new_array_zeroed<PolyInfo>(poly_num, __func__);
 
   /* get the polygon span */
   if (sf_ctx->poly_nr == 0) {
@@ -409,7 +409,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
     }
   }
 
-  MEM_freeN(poly_info);
+  MEM_delete(poly_info);
 
   if (changed == false) {
     return false;

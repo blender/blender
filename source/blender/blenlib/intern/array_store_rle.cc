@@ -328,7 +328,7 @@ static RLE_Elem *rle_link_chunk_iter_step(RLE_ElemChunkIter *link_block_iter)
 
 static RLE_ElemChunk *rle_link_chunk_new()
 {
-  RLE_ElemChunk *link_block = MEM_mallocN<RLE_ElemChunk>(__func__);
+  RLE_ElemChunk *link_block = MEM_new_uninitialized<RLE_ElemChunk>(__func__);
   link_block->next = nullptr;
   link_block->links_num = 0;
   return link_block;
@@ -338,7 +338,7 @@ static void rle_link_chunk_free_all(RLE_ElemChunk *link_block)
 {
   while (RLE_ElemChunk *link_iter = link_block) {
     link_block = link_iter->next;
-    MEM_freeN(link_iter);
+    MEM_delete(link_iter);
   }
 }
 
@@ -423,7 +423,7 @@ uint8_t *BLI_array_store_rle_encode(const uint8_t *data_dec,
   }
 
   /* Encode RLE and literal data into this flat buffer. */
-  uint8_t *data_enc = MEM_malloc_arrayN<uint8_t>(data_enc_alloc_size, __func__);
+  uint8_t *data_enc = MEM_new_array_uninitialized<uint8_t>(data_enc_alloc_size, __func__);
   data_enc += data_enc_extra_size;
 
   size_t ofs_enc = 0;

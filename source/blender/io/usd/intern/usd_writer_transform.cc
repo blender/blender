@@ -50,7 +50,7 @@ pxr::UsdGeomXformable USDTransformWriter::create_xformable() const
 bool USDTransformWriter::should_apply_root_xform(const HierarchyContext &context) const
 {
   if (!(usd_export_context_.export_params.convert_orientation ||
-        usd_export_context_.export_params.convert_scene_units))
+        usd_export_context_.export_params.convert_scene_units != SceneUnits::Meters))
   {
     return false;
   }
@@ -96,9 +96,7 @@ void USDTransformWriter::do_write(HierarchyContext &context)
       matrix_world = mat * context.matrix_world;
     }
 
-    if (usd_export_context_.export_params.convert_scene_units !=
-        eUSDSceneUnits::USD_SCENE_UNITS_METERS)
-    {
+    if (usd_export_context_.export_params.convert_scene_units != SceneUnits::Meters) {
       const float scale = float(1.0 / get_meters_per_unit(usd_export_context_.export_params));
       matrix_world = math::scale(matrix_world, float3(scale));
     }
@@ -147,21 +145,21 @@ void USDTransformWriter::set_xform_ops(const float4x4 &parent_relative_matrix,
     return;
   }
 
-  eUSDXformOpMode xfOpMode = usd_export_context_.export_params.xform_op_mode;
+  XformOpMode xfOpMode = usd_export_context_.export_params.xform_op_mode;
 
   if (xformOps_.is_empty()) {
     switch (xfOpMode) {
-      case USD_XFORM_OP_TRS:
+      case XformOpMode::TRS:
         xformOps_.append(xf.AddTranslateOp());
         xformOps_.append(xf.AddRotateXYZOp());
         xformOps_.append(xf.AddScaleOp());
         break;
-      case USD_XFORM_OP_TOS:
+      case XformOpMode::TOS:
         xformOps_.append(xf.AddTranslateOp());
         xformOps_.append(xf.AddOrientOp());
         xformOps_.append(xf.AddScaleOp());
         break;
-      case USD_XFORM_OP_MAT:
+      case XformOpMode::MAT:
         xformOps_.append(xf.AddTransformOp());
         break;
       default:
@@ -189,7 +187,7 @@ void USDTransformWriter::set_xform_ops(const float4x4 &parent_relative_matrix,
 
     math::to_loc_rot_scale<true>(parent_relative_matrix, loc, rot, scale);
 
-    if (xfOpMode == USD_XFORM_OP_TRS) {
+    if (xfOpMode == XformOpMode::TRS) {
       pxr::GfVec3d loc_val(loc.x, loc.y, loc.z);
       usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), loc_val, time_code);
 
@@ -200,7 +198,7 @@ void USDTransformWriter::set_xform_ops(const float4x4 &parent_relative_matrix,
       pxr::GfVec3f scale_val(scale.x, scale.y, scale.z);
       usd_value_writer_.SetAttribute(xformOps_[2].GetAttr(), scale_val, time_code);
     }
-    else if (xfOpMode == USD_XFORM_OP_TOS) {
+    else if (xfOpMode == XformOpMode::TOS) {
       pxr::GfVec3d loc_val(loc.x, loc.y, loc.z);
       usd_value_writer_.SetAttribute(xformOps_[0].GetAttr(), loc_val, time_code);
 

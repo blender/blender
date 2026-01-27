@@ -10,6 +10,8 @@
 
 #include "DNA_listBase.h"
 
+#include "BKE_sound_types.hh"
+
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
@@ -37,8 +39,8 @@ class StripModifierDataBackup {
   bool isEmpty() const;
 
   /* For Sound Modifiers. */
-  void *sound_in;
-  void *sound_out;
+  AUD_Sound sound_in;
+  AUD_Sound sound_out;
   eStripModifierFlag flag;
   uint64_t params_hash;
 };
@@ -55,8 +57,8 @@ class StripBackup {
 
   bool isEmpty() const;
 
-  void *scene_sound;        /* AUD_SequenceEntry */
-  void *sound_time_stretch; /* AUD_Sound */
+  AUD_SequenceEntry scene_sound;
+  AUD_Sound sound_time_stretch;
   float sound_time_stretch_fps;
   Vector<MovieReader *, 1> movie_readers;
   Map<int, StripModifierDataBackup> modifiers;

@@ -38,7 +38,7 @@ static void node_shader_buts_tex_magic(ui::Layout &layout, bContext * /*C*/, Poi
 
 static void node_shader_init_tex_magic(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexMagic *tex = MEM_new_for_free<NodeTexMagic>(__func__);
+  NodeTexMagic *tex = MEM_new<NodeTexMagic>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->depth = 2;

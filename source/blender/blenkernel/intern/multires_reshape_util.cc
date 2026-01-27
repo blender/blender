@@ -322,16 +322,16 @@ void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_contex
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
     if (orig_mdisps != nullptr) {
       MDisps *orig_grid = &orig_mdisps[grid_index];
-      MEM_SAFE_FREE(orig_grid->disps);
+      MEM_SAFE_DELETE(orig_grid->disps);
     }
     if (orig_grid_paint_masks != nullptr) {
       GridPaintMask *orig_paint_mask_grid = &orig_grid_paint_masks[grid_index];
-      MEM_SAFE_FREE(orig_paint_mask_grid->data);
+      MEM_SAFE_DELETE(orig_paint_mask_grid->data);
     }
   }
 
-  MEM_SAFE_FREE(orig_mdisps);
-  MEM_SAFE_FREE(orig_grid_paint_masks);
+  MEM_SAFE_DELETE(orig_mdisps);
+  MEM_SAFE_DELETE(orig_grid_paint_masks);
 
   reshape_context->orig.mdisps = nullptr;
   reshape_context->orig.grid_paint_masks = nullptr;
@@ -555,9 +555,9 @@ static void allocate_displacement_grid(MDisps *displacement_grid, const int leve
 {
   const int grid_size = bke::subdiv::grid_size_from_level(level);
   const int grid_area = grid_size * grid_size;
-  float (*disps)[3] = MEM_calloc_arrayN<float[3]>(grid_area, "multires disps");
+  float (*disps)[3] = MEM_new_array_zeroed<float[3]>(grid_area, "multires disps");
   if (displacement_grid->disps != nullptr) {
-    MEM_freeN(displacement_grid->disps);
+    MEM_delete(displacement_grid->disps);
   }
   /* TODO(sergey): Preserve data on the old level. */
   displacement_grid->disps = disps;
@@ -600,10 +600,10 @@ static void ensure_mask_grids(Mesh *mesh, const int level)
     }
     grid_paint_mask->level = level;
     if (grid_paint_mask->data) {
-      MEM_freeN(grid_paint_mask->data);
+      MEM_delete(grid_paint_mask->data);
     }
     /* TODO(sergey): Preserve data on the old level. */
-    grid_paint_mask->data = MEM_calloc_arrayN<float>(grid_area, "gpm.data");
+    grid_paint_mask->data = MEM_new_array_zeroed<float>(grid_area, "gpm.data");
   }
 }
 
@@ -624,10 +624,10 @@ void multires_reshape_store_original_grids(MultiresReshapeContext *reshape_conte
   const MDisps *mdisps = reshape_context->mdisps;
   const GridPaintMask *grid_paint_masks = reshape_context->grid_paint_masks;
 
-  MDisps *orig_mdisps = static_cast<MDisps *>(MEM_dupallocN(mdisps));
+  MDisps *orig_mdisps = MEM_dupalloc(mdisps);
   GridPaintMask *orig_grid_paint_masks = nullptr;
   if (grid_paint_masks != nullptr) {
-    orig_grid_paint_masks = static_cast<GridPaintMask *>(MEM_dupallocN(grid_paint_masks));
+    orig_grid_paint_masks = MEM_dupalloc(grid_paint_masks);
   }
 
   const int num_grids = reshape_context->num_grids;
@@ -638,13 +638,12 @@ void multires_reshape_store_original_grids(MultiresReshapeContext *reshape_conte
      * Reshape process will ensure all grids are on top level, but that happens on separate set of
      * grids which eventually replaces original one. */
     if (orig_grid->disps != nullptr) {
-      orig_grid->disps = static_cast<float (*)[3]>(MEM_dupallocN(orig_grid->disps));
+      orig_grid->disps = MEM_dupalloc(orig_grid->disps);
     }
     if (orig_grid_paint_masks != nullptr) {
       GridPaintMask *orig_paint_mask_grid = &orig_grid_paint_masks[grid_index];
       if (orig_paint_mask_grid->data != nullptr) {
-        orig_paint_mask_grid->data = static_cast<float *>(
-            MEM_dupallocN(orig_paint_mask_grid->data));
+        orig_paint_mask_grid->data = MEM_dupalloc(orig_paint_mask_grid->data);
       }
     }
   }

@@ -383,9 +383,9 @@ static wmOperatorStatus brush_asset_edit_metadata_exec(bContext *C, wmOperator *
   RNA_string_get(op->ptr, "catalog_path", catalog_path_c);
 
   AssetMetaData &meta_data = *brush->id.asset_data;
-  MEM_SAFE_FREE(meta_data.author);
+  MEM_SAFE_DELETE(meta_data.author);
   meta_data.author = RNA_string_get_alloc(op->ptr, "author", nullptr, 0, nullptr);
-  MEM_SAFE_FREE(meta_data.description);
+  MEM_SAFE_DELETE(meta_data.description);
   meta_data.description = RNA_string_get_alloc(op->ptr, "description", nullptr, 0, nullptr);
 
   if (catalog_path_c[0]) {

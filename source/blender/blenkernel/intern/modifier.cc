@@ -142,7 +142,8 @@ void BKE_modifier_panel_expand(ModifierData *md)
 static ModifierData *modifier_allocate_and_init(ModifierType type)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
-  ModifierData *md = static_cast<ModifierData *>(MEM_callocN(mti->struct_size, mti->struct_name));
+  ModifierData *md = static_cast<ModifierData *>(
+      MEM_new_zeroed(mti->struct_size, mti->struct_name));
 
   /* NOTE: this name must be made unique later. */
   STRNCPY_UTF8(md->name, DATA_(mti->name));
@@ -195,10 +196,10 @@ void BKE_modifier_free_ex(ModifierData *md, const int flag)
     mti->free_data(md);
   }
   if (md->error) {
-    MEM_freeN(md->error);
+    MEM_delete(md->error);
   }
 
-  MEM_freeN(md);
+  MEM_delete(md);
 }
 
 void BKE_modifier_free(ModifierData *md)
@@ -278,7 +279,7 @@ void BKE_modifiers_clear_errors(Object *ob)
 {
   for (ModifierData &md : ob->modifiers) {
     if (md.error) {
-      MEM_freeN(md.error);
+      MEM_delete(md.error);
       md.error = nullptr;
     }
   }
@@ -415,7 +416,7 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_for
   buffer[sizeof(buffer) - 1] = '\0';
 
   if (md->error) {
-    MEM_freeN(md->error);
+    MEM_delete(md->error);
   }
 
   md->error = BLI_strdup(buffer);
@@ -446,7 +447,7 @@ void BKE_modifier_set_warning(const Object *ob, ModifierData *md, const char *_f
    * message simplifies interface code. */
 
   if (md->error) {
-    MEM_freeN(md->error);
+    MEM_delete(md->error);
   }
 
   md->error = BLI_strdup(buffer);
@@ -559,7 +560,7 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-    curr = MEM_new_for_free<CDMaskLink>(__func__);
+    curr = MEM_new<CDMaskLink>(__func__);
 
     if (BKE_modifier_is_enabled(scene, md, required_mode)) {
       if (mti->type == ModifierTypeType::OnlyDeform) {
@@ -842,7 +843,7 @@ void BKE_modifier_free_temporary_data(ModifierData *md)
   if (md->type == eModifierType_Armature) {
     ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
 
-    MEM_SAFE_FREE(amd->vert_coords_prev);
+    MEM_SAFE_DELETE(amd->vert_coords_prev);
   }
 }
 
@@ -1333,7 +1334,7 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
   }
 
   /* Free old modifier data. */
-  MEM_freeN(old_modifier_data);
+  MEM_delete(old_modifier_data);
 
   return new_modifier_data;
 }

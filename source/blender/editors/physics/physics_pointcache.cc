@@ -98,8 +98,8 @@ struct PointCacheJob {
 static void ptcache_job_free(void *customdata)
 {
   PointCacheJob *job = static_cast<PointCacheJob *>(customdata);
-  MEM_freeN(job->baker);
-  MEM_freeN(job);
+  MEM_delete(job->baker);
+  MEM_delete(job);
 }
 
 static int ptcache_job_break(void *customdata)
@@ -177,7 +177,7 @@ static void ptcache_free_bake(PointCache *cache)
 
 static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 {
-  PTCacheBaker *baker = MEM_callocN<PTCacheBaker>("PTCacheBaker");
+  PTCacheBaker *baker = MEM_new_zeroed<PTCacheBaker>("PTCacheBaker");
 
   baker->bmain = CTX_data_main(C);
   baker->scene = CTX_data_scene(C);
@@ -206,7 +206,7 @@ static wmOperatorStatus ptcache_bake_exec(bContext *C, wmOperator *op)
 
   PTCacheBaker *baker = ptcache_baker_create(C, op, all);
   BKE_ptcache_bake(baker);
-  MEM_freeN(baker);
+  MEM_delete(baker);
 
   return OPERATOR_FINISHED;
 }
@@ -215,7 +215,7 @@ static wmOperatorStatus ptcache_bake_invoke(bContext *C, wmOperator *op, const w
 {
   bool all = STREQ(op->type->idname, "PTCACHE_OT_bake_all");
 
-  PointCacheJob *job = MEM_mallocN<PointCacheJob>("PointCacheJob");
+  PointCacheJob *job = MEM_new_uninitialized<PointCacheJob>("PointCacheJob");
   job->wm = CTX_wm_manager(C);
   job->baker = ptcache_baker_create(C, op, all);
   job->baker->bake_job = job;

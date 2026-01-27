@@ -206,7 +206,7 @@ static void get_context_path_node_compositor(const bContext &C,
         context_path_add_node_tree_and_node_groups(snode, path);
         return;
       }
-      ui::context_path_add_generic(path, *RNA_NodeTree, scmd->node_group);
+      context_path_add_top_level_shader_node_tree(snode, path, *RNA_NodeTree, scmd->node_group);
       context_path_add_node_tree_and_node_groups(snode, path, true);
     }
     else {

@@ -6,6 +6,7 @@
  * \ingroup gpu
  */
 
+#include <cstdint>
 #include <string>
 
 #include "BLI_assert.h"
@@ -19,6 +20,7 @@
 #include "GPU_platform.hh"
 
 #include "GPU_vertex_buffer.hh" /* TODO: should be `gl_vertex_buffer.hh`. */
+#include "MEM_guardedalloc.h"
 #include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_state.hh"
@@ -207,7 +209,7 @@ void GLTexture::update_sub(int mip,
   const bool do_texture_unpack = !ELEM(unpack_row_length, 0, extent[0]);
 
   /* Unpack `data` if `unpack_row_length` is set. */
-  std::unique_ptr<uint8_t, MEM_freeN_smart_ptr_deleter> unpack_buffer = nullptr;
+  std::unique_ptr<uint8_t, MEM_smart_ptr_deleter<uint8_t>> unpack_buffer = nullptr;
   if (do_texture_unpack) {
     BLI_assert_msg(!(format_flag_ & GPU_FORMAT_COMPRESSED),
                    "Compressed data with unpack_row_length != 0 is not supported.");
@@ -220,7 +222,7 @@ void GLTexture::update_sub(int mip,
 
     /* Allocate buffer to size necessary for gather */
     unpack_buffer.reset(
-        static_cast<uint8_t *>(MEM_mallocN_aligned(dst_total_count, 128, __func__)));
+        static_cast<uint8_t *>(MEM_new_uninitialized_aligned(dst_total_count, 128, __func__)));
 
     /* Strided loop; we advance source and destination pointers separately during a gather. */
     const uint8_t *src_ptr = static_cast<const uint8_t *>(data);
@@ -237,14 +239,14 @@ void GLTexture::update_sub(int mip,
   }
 
   /* If `data` is float and target storage is half, convert to half */
-  std::unique_ptr<uint16_t, MEM_freeN_smart_ptr_deleter> clamped_half_buffer = nullptr;
+  std::unique_ptr<uint16_t, MEM_smart_ptr_deleter<uint16_t>> clamped_half_buffer = nullptr;
   if (type == GPU_DATA_FLOAT && is_half_float(format_)) {
     size_t dst_pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
     size_t dst_total_count = to_component_len(format_) * dst_pixel_count;
 
     /* Allocate buffer to size necessary for conversion.. */
     clamped_half_buffer.reset(static_cast<uint16_t *>(
-        MEM_mallocN_aligned(sizeof(uint16_t) * dst_total_count, 128, __func__)));
+        MEM_new_uninitialized_aligned(sizeof(uint16_t) * dst_total_count, 128, __func__)));
 
     Span<float> src(static_cast<const float *>(data), dst_total_count);
     MutableSpan<uint16_t> dst(static_cast<uint16_t *>(clamped_half_buffer.get()), dst_total_count);
@@ -449,7 +451,7 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
 
   /* AMD Pro driver have a bug that write 8 bytes past buffer size
    * if the texture is big. (see #66573) */
-  void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
+  void *data = MEM_new_uninitialized(texture_size + 8, "GPU_texture_read");
 
   GLenum gl_format = to_gl_data_format(
       format_ == TextureFormat::SFLOAT_32_DEPTH_UINT_8 ? TextureFormat::SFLOAT_32_DEPTH : format_);

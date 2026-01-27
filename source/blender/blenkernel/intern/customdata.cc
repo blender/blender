@@ -210,7 +210,8 @@ static void layerCopy_mdeformvert(const void *source, void *dest, const int coun
     MDeformVert *dvert = static_cast<MDeformVert *>(POINTER_OFFSET(dest, i * size));
 
     if (dvert->totweight) {
-      MDeformWeight *dw = MEM_malloc_arrayN<MDeformWeight>(size_t(dvert->totweight), __func__);
+      MDeformWeight *dw = MEM_new_array_uninitialized<MDeformWeight>(size_t(dvert->totweight),
+                                                                     __func__);
 
       memcpy(dw, dvert->dw, dvert->totweight * sizeof(*dw));
       dvert->dw = dw;
@@ -225,7 +226,7 @@ static void layerFree_mdeformvert(void *data, const int count)
 {
   for (MDeformVert &dvert : MutableSpan(static_cast<MDeformVert *>(data), count)) {
     if (dvert.dw) {
-      MEM_freeN(dvert.dw);
+      MEM_delete(dvert.dw);
       dvert.dw = nullptr;
       dvert.totweight = 0;
     }
@@ -295,11 +296,11 @@ static void layerInterp_mdeformvert(const void **sources,
   }
   else {
     if (dvert->dw) {
-      MEM_freeN(dvert->dw);
+      MEM_delete(dvert->dw);
     }
 
     if (totweight) {
-      dvert->dw = MEM_malloc_arrayN<MDeformWeight>(size_t(totweight), __func__);
+      dvert->dw = MEM_new_array_uninitialized<MDeformWeight>(size_t(totweight), __func__);
     }
   }
 
@@ -599,19 +600,19 @@ static void layerSwap_mdisps(void *data, const int *ci)
       /* happens when face changed vertex count in edit mode
        * if it happened, just forgot displacement */
 
-      MEM_freeN(s->disps);
+      MEM_delete(s->disps);
       s->totdisp = (s->totdisp / corners) * nverts;
-      s->disps = MEM_calloc_arrayN<float[3]>(s->totdisp, "mdisp swap");
+      s->disps = MEM_new_array_zeroed<float[3]>(s->totdisp, "mdisp swap");
       return;
     }
 
-    float (*d)[3] = MEM_calloc_arrayN<float[3]>(s->totdisp, "mdisps swap");
+    float (*d)[3] = MEM_new_array_zeroed<float[3]>(s->totdisp, "mdisps swap");
 
     for (int S = 0; S < corners; S++) {
       memcpy(d + cornersize * S, s->disps + cornersize * ci[S], sizeof(float[3]) * cornersize);
     }
 
-    MEM_freeN(s->disps);
+    MEM_delete(s->disps);
     s->disps = d;
   }
 }
@@ -623,8 +624,8 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
 
   for (int i = 0; i < count; i++) {
     if (s[i].disps) {
-      d[i].disps = static_cast<float (*)[3]>(MEM_dupallocN(s[i].disps));
-      d[i].hidden = static_cast<uint *>(MEM_dupallocN(s[i].hidden));
+      d[i].disps = MEM_dupalloc(s[i].disps);
+      d[i].hidden = MEM_dupalloc(s[i].hidden);
     }
     else {
       d[i].disps = nullptr;
@@ -640,8 +641,8 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
 static void layerFree_mdisps(void *data, const int count)
 {
   for (MDisps &d : MutableSpan(static_cast<MDisps *>(data), count)) {
-    MEM_SAFE_FREE(d.disps);
-    MEM_SAFE_FREE(d.hidden);
+    MEM_SAFE_DELETE(d.disps);
+    MEM_SAFE_DELETE(d.hidden);
     d.totdisp = 0;
     d.level = 0;
   }
@@ -658,7 +659,7 @@ static bool layerRead_mdisps(CDataFile *cdf, void *data, const int count)
 
   for (int i = 0; i < count; i++) {
     if (!d[i].disps) {
-      d[i].disps = MEM_calloc_arrayN<float[3]>(d[i].totdisp, "mdisps read");
+      d[i].disps = MEM_new_array_zeroed<float[3]>(d[i].totdisp, "mdisps read");
     }
 
     if (!cdf_read_data(cdf, sizeof(float[3]) * d[i].totdisp, d[i].disps)) {
@@ -743,7 +744,7 @@ static void layerCopy_grid_paint_mask(const void *source, void *dest, const int 
 
   for (int i = 0; i < count; i++) {
     if (s[i].data) {
-      d[i].data = static_cast<float *>(MEM_dupallocN(s[i].data));
+      d[i].data = MEM_dupalloc(s[i].data);
       d[i].level = s[i].level;
     }
     else {
@@ -756,7 +757,7 @@ static void layerCopy_grid_paint_mask(const void *source, void *dest, const int 
 static void layerFree_grid_paint_mask(void *data, const int count)
 {
   for (GridPaintMask &gpm : MutableSpan(static_cast<GridPaintMask *>(data), count)) {
-    MEM_SAFE_FREE(gpm.data);
+    MEM_SAFE_DELETE(gpm.data);
     gpm.level = 0;
   }
 }
@@ -2259,7 +2260,7 @@ static void *copy_layer_data(const eCustomDataType type, const void *data, const
 {
   const LayerTypeInfo &type_info = *layerType_getInfo(type);
   const int64_t size_in_bytes = int64_t(totelem) * type_info.size;
-  void *new_data = MEM_mallocN_aligned(size_in_bytes, type_info.alignment, __func__);
+  void *new_data = MEM_new_uninitialized_aligned(size_in_bytes, type_info.alignment, __func__);
   if (type_info.copy) {
     type_info.copy(data, new_data, totelem);
   }
@@ -2275,7 +2276,7 @@ static void free_layer_data(const eCustomDataType type, const void *data, const 
   if (type_info.free) {
     type_info.free(const_cast<void *>(data), totelem);
   }
-  MEM_freeN(const_cast<void *>(data));
+  MEM_delete_void(const_cast<void *>(data));
 }
 
 static bool customdata_merge_internal(const CustomData *source,
@@ -2477,7 +2478,7 @@ void CustomData_realloc(CustomData *data,
     const int64_t old_size_in_bytes = int64_t(old_size) * typeInfo->size;
     const int64_t new_size_in_bytes = int64_t(new_size) * typeInfo->size;
 
-    void *new_layer_data = (new_size > 0) ? MEM_mallocN_aligned(
+    void *new_layer_data = (new_size > 0) ? MEM_new_uninitialized_aligned(
                                                 new_size_in_bytes, typeInfo->alignment, __func__) :
                                             nullptr;
     if (old_size_in_bytes > 0) {
@@ -2535,7 +2536,7 @@ void CustomData_init_from(const CustomData *source,
   CustomData_reset(dest);
 
   if (source->external) {
-    dest->external = static_cast<CustomDataExternal *>(MEM_dupallocN(source->external));
+    dest->external = MEM_dupalloc(source->external);
   }
 
   CustomData_merge(source, dest, mask, totelem);
@@ -2550,7 +2551,7 @@ void CustomData_init_layout_from(const CustomData *source,
   CustomData_reset(dest);
 
   if (source->external) {
-    dest->external = static_cast<CustomDataExternal *>(MEM_dupallocN(source->external));
+    dest->external = MEM_dupalloc(source->external);
   }
 
   CustomData_merge_layout(source, dest, mask, alloctype, totelem);
@@ -2569,7 +2570,7 @@ static void customData_free_layer__internal(CustomDataLayer *layer)
 static void CustomData_external_free(CustomData *data)
 {
   if (data->external) {
-    MEM_freeN(data->external);
+    MEM_delete(data->external);
     data->external = nullptr;
   }
 }
@@ -2587,7 +2588,7 @@ void CustomData_free(CustomData *data)
   }
 
   if (data->layers) {
-    MEM_freeN(data->layers);
+    MEM_delete(data->layers);
   }
 
   CustomData_external_free(data);
@@ -2812,8 +2813,8 @@ bool CustomData_layer_is_anonymous(const CustomData *data, eCustomDataType type,
 
 static void customData_resize(CustomData *data, const int grow_amount)
 {
-  data->layers = static_cast<CustomDataLayer *>(
-      MEM_reallocN(data->layers, (data->maxlayer + grow_amount) * sizeof(CustomDataLayer)));
+  data->layers = static_cast<CustomDataLayer *>(MEM_realloc_uninitialized(
+      data->layers, (data->maxlayer + grow_amount) * sizeof(CustomDataLayer)));
   data->maxlayer += grow_amount;
 }
 
@@ -2863,12 +2864,13 @@ static CustomDataLayer *customData_add_layer__internal(
     switch (*alloctype) {
       case CD_SET_DEFAULT: {
         if (totelem > 0) {
-          new_layer.data = MEM_mallocN_aligned(size_in_bytes, type_info.alignment, alloc_name);
+          new_layer.data = MEM_new_uninitialized_aligned(
+              size_in_bytes, type_info.alignment, alloc_name);
           if (type_info.set_default_value) {
             type_info.set_default_value(new_layer.data, totelem);
           }
           else {
-            /* Alternatively, #MEM_calloc_arrayN is faster, but has no aligned version. */
+            /* Alternatively, #MEM_new_array_zeroed is faster, but has no aligned version. */
             memset(new_layer.data, 0, size_in_bytes);
           }
         }
@@ -2876,7 +2878,8 @@ static CustomDataLayer *customData_add_layer__internal(
       }
       case CD_CONSTRUCT: {
         if (totelem > 0) {
-          new_layer.data = MEM_mallocN_aligned(size_in_bytes, type_info.alignment, alloc_name);
+          new_layer.data = MEM_new_uninitialized_aligned(
+              size_in_bytes, type_info.alignment, alloc_name);
           if (type_info.construct) {
             type_info.construct(new_layer.data, totelem);
           }
@@ -2887,7 +2890,7 @@ static CustomDataLayer *customData_add_layer__internal(
   }
   else {
     if (totelem == 0 && sharing_info_to_assign == nullptr) {
-      MEM_SAFE_FREE(layer_data_to_assign);
+      MEM_SAFE_DELETE_VOID(layer_data_to_assign);
     }
     else {
       new_layer.data = layer_data_to_assign;
@@ -3290,7 +3293,7 @@ void CustomData_interp(const CustomData *source,
 
   /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
-    sources = MEM_malloc_arrayN<const void *>(size_t(count), __func__);
+    sources = MEM_new_array_uninitialized<const void *>(size_t(count), __func__);
   }
 
   /* If no weights are given, generate default ones to produce an average result. */
@@ -3298,7 +3301,7 @@ void CustomData_interp(const CustomData *source,
   float *default_weights = nullptr;
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
-                          MEM_malloc_arrayN<float>(size_t(count), __func__) :
+                          MEM_new_array_uninitialized<float>(size_t(count), __func__) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -3347,10 +3350,10 @@ void CustomData_interp(const CustomData *source,
   }
 
   if (count > SOURCE_BUF_SIZE) {
-    MEM_freeN(sources);
+    MEM_delete(sources);
   }
   if (!ELEM(default_weights, nullptr, default_weights_buf)) {
-    MEM_freeN(default_weights);
+    MEM_delete(default_weights);
   }
 }
 
@@ -3568,12 +3571,12 @@ bool CustomData_bmesh_merge_layout(const CustomData *source,
    * the new allocation */
   CustomData destold = *dest;
   if (destold.layers) {
-    destold.layers = static_cast<CustomDataLayer *>(MEM_dupallocN(destold.layers));
+    destold.layers = MEM_dupalloc(destold.layers);
   }
 
   if (CustomData_merge_layout(source, dest, mask, alloctype, 0) == false) {
     if (destold.layers) {
-      MEM_freeN(destold.layers);
+      MEM_delete(destold.layers);
     }
     return false;
   }
@@ -3641,7 +3644,7 @@ bool CustomData_bmesh_merge_layout(const CustomData *source,
     BLI_mempool_destroy(destold.pool);
   }
   if (destold.layers) {
-    MEM_freeN(destold.layers);
+    MEM_delete(destold.layers);
   }
   return true;
 }
@@ -4050,7 +4053,7 @@ void CustomData_bmesh_interp(
 
   /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
-    sources = MEM_malloc_arrayN<const void *>(size_t(count), __func__);
+    sources = MEM_new_array_uninitialized<const void *>(size_t(count), __func__);
   }
 
   /* If no weights are given, generate default ones to produce an average result. */
@@ -4058,7 +4061,7 @@ void CustomData_bmesh_interp(
   float *default_weights = nullptr;
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
-                          MEM_malloc_arrayN<float>(size_t(count), __func__) :
+                          MEM_new_array_uninitialized<float>(size_t(count), __func__) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -4078,10 +4081,10 @@ void CustomData_bmesh_interp(
   }
 
   if (count > SOURCE_BUF_SIZE) {
-    MEM_freeN(sources);
+    MEM_delete(sources);
   }
   if (!ELEM(default_weights, nullptr, default_weights_buf)) {
-    MEM_freeN(default_weights);
+    MEM_delete(default_weights);
   }
 }
 
@@ -4256,7 +4259,7 @@ static bool CustomData_layer_ensure_data_exists(CustomDataLayer *layer, size_t c
     case CD_PROP_BOOL:   /* See #84935. */
     case CD_MLOOPUV:     /* See #90620. */
     case CD_PROP_FLOAT2: /* See #90620. */
-      layer->data = MEM_calloc_arrayN(
+      layer->data = MEM_new_array_zeroed(
           count, typeInfo->size, layerType_getName(eCustomDataType(layer->type)));
       BLI_assert(layer->data);
       if (typeInfo->set_default_value) {
@@ -4527,7 +4530,7 @@ void CustomData_external_add(CustomData *data,
   }
 
   if (!external) {
-    external = MEM_new_for_free<CustomDataExternal>(__func__);
+    external = MEM_new<CustomDataExternal>(__func__);
     data->external = external;
   }
   STRNCPY(external->filepath, filepath);
@@ -4619,7 +4622,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     copy_cd = type_info->copy;
   }
 
-  void *tmp_dst = MEM_mallocN(data_size, __func__);
+  void *tmp_dst = MEM_new_uninitialized(data_size, __func__);
 
   if (count > 1 && !interp_cd) {
     /* We just choose highest weighted source. */
@@ -4657,7 +4660,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     }
   }
 
-  MEM_freeN(tmp_dst);
+  MEM_delete_void(tmp_dst);
 }
 
 void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLayerMap *laymap,
@@ -4731,7 +4734,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
   }
 
   if (data_src) {
-    tmp_data_src = MEM_malloc_arrayN<const void *>(tmp_buff_size, __func__);
+    tmp_data_src = MEM_new_array_uninitialized<const void *>(tmp_buff_size, __func__);
   }
 
   if (int(data_type) & CD_FAKE) {
@@ -4763,8 +4766,8 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
     if (tmp_data_src) {
       if (UNLIKELY(sources_num > tmp_buff_size)) {
         tmp_buff_size = size_t(sources_num);
-        tmp_data_src = static_cast<const void **>(
-            MEM_reallocN((void *)tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size));
+        tmp_data_src = static_cast<const void **>(MEM_realloc_uninitialized(
+            (void *)tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size));
       }
 
       for (int j = 0; j < sources_num; j++) {
@@ -4788,7 +4791,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
     std::get<GMutableVArraySpan>(laymap->data_dst).save();
   }
 
-  MEM_SAFE_FREE(tmp_data_src);
+  MEM_SAFE_DELETE(tmp_data_src);
 }
 
 /** \} */

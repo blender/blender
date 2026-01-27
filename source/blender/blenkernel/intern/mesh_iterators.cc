@@ -380,7 +380,7 @@ void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *mesh_eval,
   user_data.vertexcos = r_cos;
   user_data.vertex_visit = BLI_BITMAP_NEW(totcos, __func__);
   BKE_mesh_foreach_mapped_vert(mesh_eval, get_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
-  MEM_freeN(user_data.vertex_visit);
+  MEM_delete(user_data.vertex_visit);
 }
 
 }  // namespace blender

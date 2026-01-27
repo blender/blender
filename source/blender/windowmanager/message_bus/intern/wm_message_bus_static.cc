@@ -42,7 +42,7 @@ static bool wm_msg_static_gset_cmp(const void *key_a_p, const void *key_b_p)
 static void *wm_msg_static_gset_key_duplicate(const void *key_p)
 {
   const wmMsgSubscribeKey *key_src = static_cast<const wmMsgSubscribeKey *>(key_p);
-  return MEM_dupallocN<wmMsgSubscribeKey>(__func__, *key_src);
+  return MEM_new<wmMsgSubscribeKey>(__func__, *key_src);
 }
 static void wm_msg_static_gset_key_free(void *key_p)
 {
@@ -55,9 +55,9 @@ static void wm_msg_static_gset_key_free(void *key_p)
   {
     msg_lnk_next = msg_lnk->next;
     BLI_remlink(&key->values, msg_lnk);
-    MEM_freeN(msg_lnk);
+    MEM_delete(msg_lnk);
   }
-  MEM_freeN(key);
+  MEM_delete(key);
 }
 
 static void wm_msg_static_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)

@@ -599,7 +599,7 @@ void VKContext::openxr_release_framebuffer_image_handler(GHOST_VulkanOpenXRData 
 {
   switch (openxr_data.data_transfer_mode) {
     case GHOST_kVulkanXRModeCPU:
-      MEM_freeN(openxr_data.cpu.image_data);
+      MEM_delete_void(openxr_data.cpu.image_data);
       openxr_data.cpu.image_data = nullptr;
       break;
 

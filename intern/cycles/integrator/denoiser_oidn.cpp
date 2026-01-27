@@ -631,7 +631,7 @@ bool OIDNDenoiser::denoise_create_if_needed(const OIDNDenoiseContext &context)
     oidnSetFilterProgressMonitorFunction(
         base_.albedo_filter_, oidn_progress_monitor_function, this);
   }
-  if (!base_.normal_filter_) {
+  if (base_.normal_filter_) {
     oidnSetFilterProgressMonitorFunction(
         base_.normal_filter_, oidn_progress_monitor_function, this);
   }

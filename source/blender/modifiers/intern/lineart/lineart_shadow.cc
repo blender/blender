@@ -1181,7 +1181,7 @@ bool lineart_main_try_generate_shadow_v3(
     }
   }
 
-  LineartData *ld = MEM_mallocN<LineartData>("LineArt render buffer copied");
+  LineartData *ld = MEM_new_uninitialized<LineartData>("LineArt render buffer copied");
   memcpy(ld, original_ld, sizeof(LineartData));
 
   BLI_spin_init(&ld->lock_task);
@@ -1272,7 +1272,7 @@ bool lineart_main_try_generate_shadow_v3(
   if (!ld->geom.vertex_buffer_pointers.first) {
     /* No geometry loaded, return early. */
     lineart_destroy_render_data_keep_init(ld);
-    MEM_freeN(ld);
+    MEM_delete(ld);
     return false;
   }
 
@@ -1305,7 +1305,7 @@ bool lineart_main_try_generate_shadow_v3(
   }
   else {
     lineart_destroy_render_data_keep_init(ld);
-    MEM_freeN(ld);
+    MEM_delete(ld);
   }
 
   if (G.debug_value == 4000) {
@@ -1442,7 +1442,7 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
   ld->shadow_data_pool = &ld->render_data_pool;
 
   if (shadow_ld->pending_edges.array) {
-    MEM_freeN(shadow_ld->pending_edges.array);
+    MEM_delete(shadow_ld->pending_edges.array);
     shadow_ld->pending_edges.array = nullptr;
     shadow_ld->pending_edges.next = shadow_ld->pending_edges.max = 0;
   }

@@ -28,7 +28,7 @@ void VKUniformBuffer::update(const void *data)
   }
 
   if (data) {
-    void *data_copy = MEM_mallocN(size_in_bytes_, __func__);
+    void *data_copy = MEM_new_uninitialized(size_in_bytes_, __func__);
     memcpy(data_copy, data, size_in_bytes_);
     VKContext &context = *VKContext::get();
     buffer_.update_render_graph(context, data_copy);
@@ -73,7 +73,7 @@ void VKUniformBuffer::ensure_updated()
   if (data_) {
     if (!data_uploaded_ && buffer_.is_mapped()) {
       buffer_.update_immediately(data_);
-      MEM_freeN(data_);
+      MEM_delete_void(data_);
       data_ = nullptr;
     }
     else {

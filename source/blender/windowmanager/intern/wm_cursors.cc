@@ -196,7 +196,7 @@ static void cursor_bitmap_rgba_flip_y(uint8_t *buffer, const size_t size[2])
 
   top = reinterpret_cast<uint *>(buffer);
   bottom = top + ((y_size - 1) * x_size);
-  line = MEM_malloc_arrayN<uint>(x_size, "linebuf");
+  line = MEM_new_array_uninitialized<uint>(x_size, "linebuf");
 
   y_size >>= 1;
   for (; y_size > 0; y_size--) {
@@ -207,7 +207,7 @@ static void cursor_bitmap_rgba_flip_y(uint8_t *buffer, const size_t size[2])
     top += x_size;
   }
 
-  MEM_freeN(line);
+  MEM_delete(line);
 }
 
 /**
@@ -293,7 +293,7 @@ static void cursor_rgba_to_xbm_32(const uint8_t *rgba,
 
 static bool window_set_custom_cursor_generator(wmWindow *win, const BCursor &cursor)
 {
-  GHOST_CursorGenerator *cursor_generator = MEM_callocN<GHOST_CursorGenerator>(__func__);
+  GHOST_CursorGenerator *cursor_generator = MEM_new_zeroed<GHOST_CursorGenerator>(__func__);
   cursor_generator->generate_fn = [](const GHOST_CursorGenerator *cursor_generator,
                                      const int cursor_size,
                                      const int cursor_size_max,
@@ -326,7 +326,7 @@ static bool window_set_custom_cursor_generator(wmWindow *win, const BCursor &cur
 
   cursor_generator->user_data = const_cast<void *>(static_cast<const void *>(&cursor));
   cursor_generator->free_fn = [](GHOST_CursorGenerator *cursor_generator) {
-    MEM_freeN(cursor_generator);
+    MEM_delete(cursor_generator);
   };
 
   GHOST_TSuccess success = GHOST_SetCustomCursorGenerator(
@@ -350,7 +350,9 @@ static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor
   uint8_t *bitmap_rgba = cursor_bitmap_from_svg(
       cursor.svg_source,
       size,
-      [](size_t size) -> uint8_t * { return MEM_malloc_arrayN<uint8_t>(size, "wm.cursor"); },
+      [](size_t size) -> uint8_t * {
+        return MEM_new_array_uninitialized<uint8_t>(size, "wm.cursor");
+      },
       bitmap_size);
   if (UNLIKELY(bitmap_rgba == nullptr)) {
     return false;
@@ -384,7 +386,7 @@ static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor
                                          cursor.can_invert);
   }
 
-  MEM_freeN(bitmap_rgba);
+  MEM_delete(bitmap_rgba);
   return (success == GHOST_kSuccess) ? true : false;
 }
 
@@ -827,7 +829,7 @@ static bool wm_cursor_text_generator(wmWindow *win, const char *text, int font_i
     int font_id;
   };
 
-  GHOST_CursorGenerator *cursor_generator = MEM_callocN<GHOST_CursorGenerator>(__func__);
+  GHOST_CursorGenerator *cursor_generator = MEM_new_zeroed<GHOST_CursorGenerator>(__func__);
   cursor_generator->generate_fn = [](const GHOST_CursorGenerator *cursor_generator,
                                      const int cursor_size,
                                      const int cursor_size_max,
@@ -870,7 +872,7 @@ static bool wm_cursor_text_generator(wmWindow *win, const char *text, int font_i
   cursor_generator->free_fn = [](GHOST_CursorGenerator *cursor_generator) {
     const WMCursorText *cursor_text = static_cast<WMCursorText *>(cursor_generator->user_data);
     MEM_delete(cursor_text);
-    MEM_freeN(cursor_generator);
+    MEM_delete(cursor_generator);
   };
 
   GHOST_TSuccess success = GHOST_SetCustomCursorGenerator(
@@ -894,7 +896,9 @@ static bool wm_cursor_text_pixmap(wmWindow *win, const char *text, int font_id)
       cursor_size,
       cursor_size_max,
       font_id,
-      [](size_t size) -> uint8_t * { return MEM_malloc_arrayN<uint8_t>(size, "wm.cursor"); },
+      [](size_t size) -> uint8_t * {
+        return MEM_new_array_uninitialized<uint8_t>(size, "wm.cursor");
+      },
       bitmap_size);
   if (bitmap_rgba == nullptr) {
     return false;
@@ -912,7 +916,7 @@ static bool wm_cursor_text_pixmap(wmWindow *win, const char *text, int font_id)
       hot_spot,
       /* Always use a black background. */
       false);
-  MEM_freeN(bitmap_rgba);
+  MEM_delete(bitmap_rgba);
 
   return (success == GHOST_kSuccess) ? true : false;
 }

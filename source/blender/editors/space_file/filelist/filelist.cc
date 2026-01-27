@@ -169,15 +169,14 @@ void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_
   /* Unset if needed. */
   if (!asset_library_ref) {
     if (filelist->asset_library_ref) {
-      MEM_SAFE_FREE(filelist->asset_library_ref);
+      MEM_SAFE_DELETE(filelist->asset_library_ref);
       filelist->flags |= FL_FORCE_RESET;
     }
     return;
   }
 
   if (!filelist->asset_library_ref) {
-    filelist->asset_library_ref = MEM_new_for_free<AssetLibraryReference>(
-        "filelist asset library");
+    filelist->asset_library_ref = MEM_new<AssetLibraryReference>("filelist asset library");
     *filelist->asset_library_ref = *asset_library_ref;
 
     filelist->flags |= FL_FORCE_RESET;
@@ -475,13 +474,13 @@ static bool filelist_checkdir_return_always_valid(const FileList * /*filelist*/,
 static void filelist_entry_clear(FileDirEntry *entry)
 {
   if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
-    MEM_freeN(const_cast<char *>(entry->name));
+    MEM_delete(const_cast<char *>(entry->name));
   }
   if (entry->relpath) {
-    MEM_freeN(entry->relpath);
+    MEM_delete(entry->relpath);
   }
   if (entry->redirection_path) {
-    MEM_freeN(entry->redirection_path);
+    MEM_delete(entry->redirection_path);
   }
   if (entry->preview_icon_id) {
     BKE_icon_delete(entry->preview_icon_id);
@@ -492,7 +491,7 @@ static void filelist_entry_clear(FileDirEntry *entry)
 static void filelist_entry_free(FileDirEntry *entry)
 {
   filelist_entry_clear(entry);
-  MEM_freeN(entry);
+  MEM_delete(entry);
 }
 
 static void filelist_direntryarr_free(FileDirEntryArr *array)
@@ -520,13 +519,13 @@ static void filelist_intern_entry_free(FileList *filelist, FileListInternEntry *
   }
 
   if (entry->relpath) {
-    MEM_freeN(entry->relpath);
+    MEM_delete(entry->relpath);
   }
   if (entry->redirection_path) {
-    MEM_freeN(entry->redirection_path);
+    MEM_delete(entry->redirection_path);
   }
   if (entry->name && entry->free_name) {
-    MEM_freeN(const_cast<char *>(entry->name));
+    MEM_delete(const_cast<char *>(entry->name));
   }
   MEM_delete(entry);
 }
@@ -539,7 +538,7 @@ static void filelist_intern_free(FileList *filelist)
   }
   BLI_listbase_clear(&filelist_intern->entries);
 
-  MEM_SAFE_FREE(filelist_intern->filtered);
+  MEM_SAFE_DELETE(filelist_intern->filtered);
 }
 
 /**
@@ -560,7 +559,7 @@ static int filelist_intern_free_main_files(FileList *filelist)
   }
 
   if (removed_counter > 0) {
-    MEM_SAFE_FREE(filelist_intern->filtered);
+    MEM_SAFE_DELETE(filelist_intern->filtered);
   }
   return removed_counter;
 }
@@ -624,10 +623,10 @@ static void filelist_cache_preview_freef(TaskPool *__restrict /*pool*/, void *ta
 
   /* In case the preview wasn't moved to the "done" queue yet. */
   if (preview_taskdata->preview) {
-    MEM_freeN(preview_taskdata->preview);
+    MEM_delete(preview_taskdata->preview);
   }
 
-  MEM_freeN(preview_taskdata);
+  MEM_delete(preview_taskdata);
 }
 
 static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
@@ -659,7 +658,7 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
       if (preview->icon_id) {
         BKE_icon_delete(preview->icon_id);
       }
-      MEM_freeN(preview);
+      MEM_delete(preview);
     }
     cache->previews_todo_count = 0;
   }
@@ -749,7 +748,7 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   filelist_cache_preview_ensure_running(cache);
   entry->flags |= FILE_ENTRY_PREVIEW_LOADING;
 
-  FileListEntryPreview *preview = MEM_callocN<FileListEntryPreview>(__func__);
+  FileListEntryPreview *preview = MEM_new_zeroed<FileListEntryPreview>(__func__);
   preview->index = index;
   preview->flags = entry->typeflag;
   preview->icon_id = 0;
@@ -773,7 +772,7 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     }
     // printf("%s: %d - %s\n", __func__, preview->index, preview->filepath);
 
-    FileListEntryPreviewTaskData *preview_taskdata = MEM_callocN<FileListEntryPreviewTaskData>(
+    FileListEntryPreviewTaskData *preview_taskdata = MEM_new_zeroed<FileListEntryPreviewTaskData>(
         __func__);
     preview_taskdata->preview = preview;
     BLI_task_pool_push(cache->previews_pool,
@@ -790,10 +789,10 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
 FileListEntryCache::FileListEntryCache() : size(FILELIST_ENTRYCACHESIZE_DEFAULT)
 {
   block_entries = static_cast<FileDirEntry **>(
-      MEM_mallocN(sizeof(*this->block_entries) * this->size, __func__));
+      MEM_new_uninitialized(sizeof(*this->block_entries) * this->size, __func__));
 
   this->misc_entries.reserve(this->size);
-  this->misc_entries_indices = MEM_malloc_arrayN<int>(this->size, __func__);
+  this->misc_entries_indices = MEM_new_array_uninitialized<int>(this->size, __func__);
   copy_vn_i(this->misc_entries_indices, this->size, -1);
 
   this->uids.reserve(this->size * 2);
@@ -803,8 +802,8 @@ FileListEntryCache::~FileListEntryCache()
 {
   filelist_cache_previews_free(this);
 
-  MEM_freeN(this->block_entries);
-  MEM_freeN(this->misc_entries_indices);
+  MEM_delete(this->block_entries);
+  MEM_delete(this->misc_entries_indices);
 
   for (FileDirEntry &entry : this->cached_entries.items_mutable()) {
     filelist_entry_free(&entry);
@@ -819,13 +818,13 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
       cache->block_end_index = 0;
   if (new_size != cache->size) {
     cache->block_entries = static_cast<FileDirEntry **>(
-        MEM_reallocN(cache->block_entries, sizeof(*cache->block_entries) * new_size));
+        MEM_realloc_uninitialized(cache->block_entries, sizeof(*cache->block_entries) * new_size));
   }
 
   cache->misc_entries.clear();
   cache->misc_entries.reserve(new_size);
   if (new_size != cache->size) {
-    cache->misc_entries_indices = static_cast<int *>(MEM_reallocN(
+    cache->misc_entries_indices = static_cast<int *>(MEM_realloc_uninitialized(
         cache->misc_entries_indices, sizeof(*cache->misc_entries_indices) * new_size));
   }
   copy_vn_i(cache->misc_entries_indices, new_size, -1);
@@ -843,7 +842,7 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 
 FileList *filelist_new(short type)
 {
-  FileList *p = MEM_new_for_free<FileList>(__func__);
+  FileList *p = MEM_new<FileList>(__func__);
 
   p->filelist_cache = MEM_new<FileListEntryCache>("FileListEntryCache");
 
@@ -1015,13 +1014,13 @@ void filelist_free(FileList *filelist)
     filelist->selection_state = nullptr;
   }
 
-  MEM_SAFE_FREE(filelist->asset_library_ref);
+  MEM_SAFE_DELETE(filelist->asset_library_ref);
 
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
 
   filelist->flags &= ~(FL_NEED_SORTING | FL_NEED_FILTERING);
 
-  MEM_freeN(filelist);
+  MEM_delete(filelist);
 }
 
 asset_system::AssetLibrary *filelist_asset_library(FileList *filelist)
@@ -1186,7 +1185,7 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   FileListEntryCache *cache = filelist->filelist_cache;
   FileDirEntry *ret;
 
-  ret = MEM_new_for_free<FileDirEntry>(__func__);
+  ret = MEM_new<FileDirEntry>(__func__);
 
   ret->size = uint64_t(entry->st.st_size);
   ret->time = int64_t(entry->st.st_mtime);
@@ -1729,7 +1728,7 @@ bool filelist_cache_previews_update(FileList *filelist)
       BKE_icon_delete(preview->icon_id);
     }
 
-    MEM_freeN(preview);
+    MEM_delete(preview);
     cache->previews_todo_count--;
   }
 
@@ -2118,7 +2117,7 @@ struct FileListReadJob {
 /**
  * Append \a filename (or even a path inside of a .blend, like `Material/Material.001`), to the
  * current relative path being read within the filelist root. The returned string needs freeing
- * with #MEM_freeN().
+ * with #MEM_delete().
  */
 static char *current_relpath_append(const FileListReadJob *job_params, const char *filename)
 {
@@ -2271,7 +2270,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
 
       /* Is this a file that points to another file? */
       if (entry->attributes & FILE_ATTR_ALIAS) {
-        entry->redirection_path = MEM_calloc_arrayN<char>(FILE_MAXDIR, __func__);
+        entry->redirection_path = MEM_new_array_zeroed<char>(FILE_MAXDIR, __func__);
         if (BLI_file_alias_target(full_path, entry->redirection_path)) {
           if (BLI_is_dir(entry->redirection_path)) {
             entry->typeflag = FILE_TYPE_DIR;
@@ -2287,7 +2286,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
 #endif
         }
         else {
-          MEM_freeN(entry->redirection_path);
+          MEM_delete(entry->redirection_path);
           entry->redirection_path = nullptr;
           entry->attributes |= FILE_ATTR_HIDDEN;
         }
@@ -2950,7 +2949,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
     dirs_done_count++;
     *progress = float(dirs_done_count) / float(dirs_todo_count);
-    MEM_freeN(subdir);
+    MEM_delete(subdir);
   }
 
   /* Finalize and free indexer. */
@@ -2966,7 +2965,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
    * pending dir paths. */
   while (!BLI_stack_is_empty(todo_dirs)) {
     td_dir = static_cast<TodoDir *>(BLI_stack_peek(todo_dirs));
-    MEM_freeN(td_dir->dir);
+    MEM_delete(td_dir->dir);
     BLI_stack_discard(todo_dirs);
   }
   BLI_stack_free(todo_dirs);
@@ -3248,7 +3247,7 @@ static void filelist_readjob_startjob(void *flrjv, wmJobWorkerStatus *worker_sta
     std::scoped_lock lock(flrj->lock);
     BLI_assert((flrj->tmp_filelist == nullptr) && flrj->filelist);
 
-    flrj->tmp_filelist = static_cast<FileList *>(MEM_dupallocN(flrj->filelist));
+    flrj->tmp_filelist = MEM_dupalloc(flrj->filelist);
 
     BLI_listbase_clear(&flrj->tmp_filelist->filelist.entries);
     flrj->tmp_filelist->filelist.entries_num = FILEDIR_NBR_ENTRIES_UNSET;

@@ -646,7 +646,7 @@ void USDStageReader::import_all_materials(Main *bmain)
 
     settings_.mat_name_to_mat.add_new(new_mtl->id.name + 2, new_mtl);
 
-    if (params_.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+    if (params_.mtl_name_collision_mode == MtlNameCollisionMode::MakeUnique) {
       /* Record the Blender material we created for the USD material with the given path.
        * This is to prevent importing the material again when assigning materials to objects
        * elsewhere in the code. */

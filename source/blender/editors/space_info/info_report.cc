@@ -329,8 +329,8 @@ static wmOperatorStatus report_delete_exec(bContext *C, wmOperator * /*op*/)
 
     if ((report->type & report_mask) && (report->flag & SELECT)) {
       BLI_remlink(&reports->list, report);
-      MEM_freeN(report->message);
-      MEM_freeN(report);
+      MEM_delete(report->message);
+      MEM_delete(report);
     }
 
     report = report_next;
@@ -379,7 +379,7 @@ static wmOperatorStatus report_copy_exec(bContext *C, wmOperator * /*op*/)
 
   WM_clipboard_text_set(buf_str, false);
 
-  MEM_freeN(buf_str);
+  MEM_delete(buf_str);
   return OPERATOR_FINISHED;
 }
 

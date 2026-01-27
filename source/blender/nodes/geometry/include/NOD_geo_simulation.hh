@@ -48,7 +48,7 @@ struct SimulationItemsAccessor : public socket_items::SocketItemsAccessorDefault
 
   static void destruct_item(NodeSimulationItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

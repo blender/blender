@@ -204,8 +204,8 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 {
   /* NOTE: while #BMWalker seems like a logical choice, it results in uneven geometry. */
 
-  BMVert **verts_collapse = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
-  BMVert **verts_ignore = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
+  BMVert **verts_collapse = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
+  BMVert **verts_ignore = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
   uint verts_collapse_num = 0;
   uint verts_ignore_num = 0;
 
@@ -293,8 +293,8 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
   /* Ensure the vert index values will be recomputed. */
   bm->elem_index_dirty |= BM_VERT;
 
-  MEM_freeN(verts_collapse);
-  MEM_freeN(verts_ignore);
+  MEM_delete(verts_collapse);
+  MEM_delete(verts_ignore);
 }
 
 void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations)

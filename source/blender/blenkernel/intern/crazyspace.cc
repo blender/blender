@@ -451,7 +451,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
       }
     }
 
-    quats = MEM_malloc_arrayN<float[4]>(size_t(mesh->verts_num), "crazy quats");
+    quats = MEM_new_array_uninitialized<float[4]>(size_t(mesh->verts_num), "crazy quats");
 
     BKE_crazyspace_set_quats_mesh(mesh, origVerts, deformcos, quats);
 
@@ -463,7 +463,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
       copy_m3_m3(deformmats[i].ptr(), tmat);
     }
 
-    MEM_freeN(quats);
+    MEM_delete(quats);
 
     if (mesh_eval != nullptr) {
       BKE_id_free(nullptr, mesh_eval);

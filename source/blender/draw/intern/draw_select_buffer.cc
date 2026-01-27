@@ -97,7 +97,7 @@ uint *DRW_select_buffer_read(
 
       /* Read the UI32 pixels. */
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
-      buf = MEM_malloc_arrayN<uint>(buf_len, __func__);
+      buf = MEM_new_array_uninitialized<uint>(buf_len, __func__);
 
       gpu::FrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
       GPU_framebuffer_bind(select_id_fb);
@@ -165,7 +165,7 @@ uint *DRW_select_buffer_bitmap_from_rect(
     }
     buf_iter++;
   }
-  MEM_freeN(buf);
+  MEM_delete(buf);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -212,7 +212,7 @@ uint *DRW_select_buffer_bitmap_from_circle(Depsgraph *depsgraph,
       }
     }
   }
-  MEM_freeN(buf);
+  MEM_delete(buf);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -284,8 +284,8 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
     buf_iter++;
     i++;
   }
-  MEM_freeN(buf);
-  MEM_freeN(buf_mask);
+  MEM_delete(buf);
+  MEM_delete(buf_mask);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -321,7 +321,7 @@ uint DRW_select_buffer_sample_point(Depsgraph *depsgraph,
   if (buf) {
     BLI_assert(0 != buf_len);
     ret = buf[0];
-    MEM_freeN(buf);
+    MEM_delete(buf);
   }
 
   return ret;
@@ -387,7 +387,7 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
     *dist = uint(abs(hit_y - center_yx[0]) + abs(hit_x - center_yx[1]));
   }
 
-  MEM_freeN(buf);
+  MEM_delete(buf);
   return data.r_index;
 }
 

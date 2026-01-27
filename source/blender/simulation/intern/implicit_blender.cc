@@ -116,14 +116,14 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], uint verts)
 DO_INLINE lfVector *create_lfvector(uint verts)
 {
   /* TODO: check if memory allocation was successful */
-  return MEM_calloc_arrayN<lfVector>(verts, "cloth_implicit_alloc_vector");
+  return MEM_new_array_zeroed<lfVector>(verts, "cloth_implicit_alloc_vector");
   // return (lfVector *)cloth_aligned_malloc(&MEMORY_BASE, verts * sizeof(lfVector));
 }
 /* delete long vector */
 DO_INLINE void del_lfvector(float (*fLongVector)[3])
 {
   if (fLongVector != nullptr) {
-    MEM_freeN(fLongVector);
+    MEM_delete(fLongVector);
     // cloth_aligned_free(&MEMORY_BASE, fLongVector);
   }
 }
@@ -292,7 +292,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 {
   int tot = m[0].vcount + m[0].scount;
   int size = m[0].vcount * 3;
-  float *t = MEM_calloc_arrayN<float>(size * size, "bfmatrix");
+  float *t = MEM_new_array_zeroed<float>(size * size, "bfmatrix");
   int q, i, j;
 
   for (q = 0; q < tot; q++) {
@@ -332,7 +332,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
     printf("\n");
   }
 
-  MEM_freeN(t);
+  MEM_delete(t);
 }
 #  endif
 
@@ -532,7 +532,8 @@ BLI_INLINE void init_fmatrix(fmatrix3x3 *matrix, int r, int c)
 DO_INLINE fmatrix3x3 *create_bfmatrix(uint verts, uint springs)
 {
   /* TODO: check if memory allocation was successful */
-  fmatrix3x3 *temp = MEM_calloc_arrayN<fmatrix3x3>(verts + springs, "cloth_implicit_alloc_matrix");
+  fmatrix3x3 *temp = MEM_new_array_zeroed<fmatrix3x3>(verts + springs,
+                                                      "cloth_implicit_alloc_matrix");
   int i;
 
   temp[0].vcount = verts;
@@ -549,7 +550,7 @@ DO_INLINE fmatrix3x3 *create_bfmatrix(uint verts, uint springs)
 DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 {
   if (matrix != nullptr) {
-    MEM_freeN(matrix);
+    MEM_delete(matrix);
   }
 }
 
@@ -658,7 +659,7 @@ struct Implicit_Data {
 
 Implicit_Data *SIM_mass_spring_solver_create(int numverts, int numsprings)
 {
-  Implicit_Data *id = MEM_callocN<Implicit_Data>("implicit vecmat");
+  Implicit_Data *id = MEM_new_zeroed<Implicit_Data>("implicit vecmat");
 
   /* process diagonal elements */
   id->tfm = create_bfmatrix(numverts, 0);
@@ -705,7 +706,7 @@ void SIM_mass_spring_solver_free(Implicit_Data *id)
   del_lfvector(id->dV);
   del_lfvector(id->z);
 
-  MEM_freeN(id);
+  MEM_delete(id);
 }
 
 /* ==== Transformation from/to root reference frames ==== */

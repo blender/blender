@@ -99,7 +99,7 @@ static bGPDpalette *BKE_gpencil_palette_addnew(bGPdata *gpd, const char *name)
   }
 
   /* allocate memory and add to end of list */
-  palette = MEM_new_for_free<bGPDpalette>("bGPDpalette");
+  palette = MEM_new<bGPDpalette>("bGPDpalette");
 
   /* add to datablock */
   BLI_addtail(&gpd->palettes, palette);
@@ -129,7 +129,7 @@ static bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(bGPDpalette *palette, c
   }
 
   /* allocate memory and add to end of list */
-  palcolor = MEM_new_for_free<bGPDpalettecolor>("bGPDpalettecolor");
+  palcolor = MEM_new<bGPDpalettecolor>("bGPDpalettecolor");
 
   /* add to datablock */
   BLI_addtail(&palette->colors, palcolor);
@@ -266,10 +266,10 @@ static void anim_change_prop_name(FCurve *fcu,
 {
   const char *old_path = BLI_sprintfN("%s.%s", prefix, old_prop_name);
   if (STREQ(fcu->rna_path, old_path)) {
-    MEM_freeN(fcu->rna_path);
+    MEM_delete(fcu->rna_path);
     fcu->rna_path = BLI_sprintfN("%s.%s", prefix, new_prop_name);
   }
-  MEM_freeN(const_cast<char *>(old_path));
+  MEM_delete(const_cast<char *>(old_path));
 }
 
 static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
@@ -312,10 +312,10 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
         anim_change_prop_name(&fcu, prefix, "color_value", "inputs[3].default_value");
       }
     }
-    MEM_freeN(const_cast<char *>(prefix));
+    MEM_delete(const_cast<char *>(prefix));
   }
   /* Free storage, it is no longer used. */
-  MEM_freeN(node->storage);
+  MEM_delete_void(node->storage);
   node->storage = nullptr;
 }
 
@@ -374,7 +374,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
        sock = static_cast<bNodeSocket *>(sock->next), pass_index++)
   {
     if (sock->storage == nullptr) {
-      NodeImageLayer *sockdata = MEM_new_for_free<NodeImageLayer>("node image layer");
+      NodeImageLayer *sockdata = MEM_new<NodeImageLayer>("node image layer");
       sock->storage = sockdata;
       STRNCPY_UTF8(sockdata->pass_name, legacy_socket_index_to_pass_name(pass_index));
 
@@ -420,7 +420,7 @@ static char *replace_bbone_easing_rnapath(char *old_path)
   }
 
   if (new_path) {
-    MEM_freeN(old_path);
+    MEM_delete(old_path);
     return new_path;
   }
 
@@ -466,7 +466,7 @@ static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
 
 static bool strip_update_proxy_cb(Strip *strip, void * /*user_data*/)
 {
-  strip->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Stereo Display 3d Format");
+  strip->stereo3d_format = MEM_new<Stereo3dFormat>("Stereo Display 3d Format");
 
 #define STRIP_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define STRIP_USE_PROXY_CUSTOM_FILE (1 << 21)
@@ -932,10 +932,10 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     for (Image &ima : bmain->images) {
-      ima.stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Image Stereo 3d Format");
+      ima.stereo3d_format = MEM_new<Stereo3dFormat>("Image Stereo 3d Format");
 
       if (ima.packedfile) {
-        ImagePackedFile *imapf = MEM_new_for_free<ImagePackedFile>("Image Packed File");
+        ImagePackedFile *imapf = MEM_new<ImagePackedFile>("Image Packed File");
         BLI_addtail(&ima.packedfiles, imapf);
 
         imapf->packedfile = ima.packedfile;
@@ -946,7 +946,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (wmWindowManager &wm : bmain->wm) {
       for (wmWindow &win : wm.windows) {
-        win.stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Stereo Display 3d Format");
+        win.stereo3d_format = MEM_new<Stereo3dFormat>("Stereo Display 3d Format");
       }
     }
   }

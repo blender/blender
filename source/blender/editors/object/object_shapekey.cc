@@ -164,7 +164,7 @@ static void object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
 void shape_key_mirror(
     Object *ob, KeyBlock *kb, const bool use_topology, int &totmirr, int &totfail)
 {
-  char *tag_elem = MEM_calloc_arrayN<char>(kb->totelem, "shape_key_mirror");
+  char *tag_elem = MEM_new_array_zeroed<char>(kb->totelem, "shape_key_mirror");
 
   if (ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
@@ -250,7 +250,7 @@ void shape_key_mirror(
     }
   }
 
-  MEM_freeN(tag_elem);
+  MEM_delete(tag_elem);
 }
 
 static bool object_shape_key_mirror(
@@ -419,7 +419,7 @@ static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
 
     if (RNA_boolean_get(op->ptr, "apply_mix")) {
       float *arr = BKE_key_evaluate_object_ex(ob, nullptr, nullptr, 0, ob->data);
-      MEM_freeN(arr);
+      MEM_delete(arr);
     }
     changed = BKE_object_shapekey_free(bmain, ob);
   }

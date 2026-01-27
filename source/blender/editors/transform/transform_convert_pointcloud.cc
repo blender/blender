@@ -77,7 +77,7 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
       continue;
     }
 
-    tc.data = MEM_calloc_arrayN<TransData>(tc.data_len, __func__);
+    tc.data = MEM_new_array_zeroed<TransData>(tc.data_len, __func__);
     MutableSpan<TransData> tc_data = MutableSpan(tc.data, tc.data_len);
 
     transform_data.positions.reinitialize(tc.data_len);

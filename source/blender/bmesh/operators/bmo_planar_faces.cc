@@ -42,7 +42,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
   float (*faces_center)[3];
   int i, iter_step, shared_vert_num;
 
-  faces_center = MEM_malloc_arrayN<float[3]>(faces_num, __func__);
+  faces_center = MEM_new_array_uninitialized<float[3]>(faces_num, __func__);
 
   shared_vert_num = 0;
   BMO_ITER_INDEX (f, &oiter, op->slots_in, "faces", BM_FACE, i) {
@@ -128,7 +128,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
     vaccum_map.clear();
   }
 
-  MEM_freeN(faces_center);
+  MEM_delete(faces_center);
 }
 
 }  // namespace blender

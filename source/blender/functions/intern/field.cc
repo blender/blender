@@ -695,14 +695,14 @@ FieldInput::~FieldInput() = default;
 FieldConstant::FieldConstant(const CPPType &type, const void *value)
     : FieldNode(FieldNodeType::Constant), type_(type)
 {
-  value_ = MEM_mallocN_aligned(type.size, type.alignment, __func__);
+  value_ = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
   type.copy_construct(value, value_);
 }
 
 FieldConstant::~FieldConstant()
 {
   type_.destruct(value_);
-  MEM_freeN(value_);
+  MEM_delete_void(value_);
 }
 
 const CPPType &FieldConstant::output_cpp_type(int output_index) const

@@ -821,7 +821,7 @@ struct ExrPass {
   ~ExrPass()
   {
     if (rect) {
-      MEM_freeN(rect);
+      MEM_delete(rect);
     }
   }
 
@@ -1724,7 +1724,7 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *handle)
   for (ExrLayer &lay : handle->layers) {
     for (ExrPass &pass : lay.passes) {
       if (pass.totchan) {
-        pass.rect = MEM_calloc_arrayN<float>(
+        pass.rect = MEM_new_array_zeroed<float>(
             size_t(handle->width) * size_t(handle->height) * size_t(pass.totchan), "pass rect");
         if (pass.totchan == 1) {
           ExrChannel &echan = *pass.chan[0];

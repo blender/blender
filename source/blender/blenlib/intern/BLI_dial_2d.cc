@@ -38,7 +38,7 @@ struct Dial {
 
 Dial *BLI_dial_init(const float start_position[2], float threshold)
 {
-  Dial *dial = MEM_callocN<Dial>("dial");
+  Dial *dial = MEM_new_zeroed<Dial>("dial");
 
   copy_v2_v2(dial->center, start_position);
   dial->threshold_squared = threshold * threshold;
@@ -48,7 +48,7 @@ Dial *BLI_dial_init(const float start_position[2], float threshold)
 
 void BLI_dial_free(Dial *dial)
 {
-  MEM_freeN(dial);
+  MEM_delete(dial);
 }
 
 float BLI_dial_angle(Dial *dial, const float current_position[2])

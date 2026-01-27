@@ -90,7 +90,7 @@ static void PREFERENCES_OT_reset_default_theme(wmOperatorType *ot)
 
 static wmOperatorStatus preferences_autoexec_add_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
-  bPathCompare *path_cmp = MEM_new_for_free<bPathCompare>("bPathCompare");
+  bPathCompare *path_cmp = MEM_new<bPathCompare>("bPathCompare");
   BLI_addtail(&U.autoexec_paths, path_cmp);
   U.runtime.is_dirty = true;
   return OPERATOR_FINISHED;
@@ -161,7 +161,7 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
   WM_main_add_notifier(NC_WINDOW, nullptr);
   ed::asset::list::clear_all_library(C);
 
-  MEM_freeN(path);
+  MEM_delete(path);
   return OPERATOR_FINISHED;
 }
 
@@ -906,7 +906,7 @@ static wmOperatorStatus associate_blend_exec(bContext * /*C*/, wmOperator *op)
     BKE_report(
         op->reports, RPT_ERROR, error_msg ? error_msg : "Unable to register file association");
     if (error_msg) {
-      MEM_freeN(error_msg);
+      MEM_delete(error_msg);
     }
     return OPERATOR_CANCELLED;
   }
@@ -954,7 +954,7 @@ static wmOperatorStatus unassociate_blend_exec(bContext * /*C*/, wmOperator *op)
     BKE_report(
         op->reports, RPT_ERROR, error_msg ? error_msg : "Unable to unregister file association");
     if (error_msg) {
-      MEM_freeN(error_msg);
+      MEM_delete(error_msg);
     }
     return OPERATOR_CANCELLED;
   }

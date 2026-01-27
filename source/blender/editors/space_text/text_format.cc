@@ -36,15 +36,15 @@ static void flatten_string_append(FlattenString *fs, const char *c, int accum, i
     int *naccum;
     fs->len *= 2;
 
-    nbuf = MEM_calloc_arrayN<char>(fs->len, "fs->buf");
+    nbuf = MEM_new_array_zeroed<char>(fs->len, "fs->buf");
     memcpy(nbuf, fs->buf, sizeof(*fs->buf) * fs->pos);
 
-    naccum = MEM_calloc_arrayN<int>(fs->len, "fs->accum");
+    naccum = MEM_new_array_zeroed<int>(fs->len, "fs->accum");
     memcpy(naccum, fs->accum, sizeof(*fs->accum) * fs->pos);
 
     if (fs->buf != fs->fixedbuf) {
-      MEM_freeN(fs->buf);
-      MEM_freeN(fs->accum);
+      MEM_delete(fs->buf);
+      MEM_delete(fs->accum);
     }
 
     fs->buf = nbuf;
@@ -95,10 +95,10 @@ int flatten_string(const SpaceText *st, FlattenString *fs, const char *in)
 void flatten_string_free(FlattenString *fs)
 {
   if (fs->buf != fs->fixedbuf) {
-    MEM_freeN(fs->buf);
+    MEM_delete(fs->buf);
   }
   if (fs->accum != fs->fixedaccum) {
-    MEM_freeN(fs->accum);
+    MEM_delete(fs->accum);
   }
 }
 
@@ -113,15 +113,15 @@ int text_check_format_len(TextLine *line, uint len)
 {
   if (line->format) {
     if (strlen(line->format) < len) {
-      MEM_freeN(line->format);
-      line->format = MEM_malloc_arrayN<char>(len + 2, "SyntaxFormat");
+      MEM_delete(line->format);
+      line->format = MEM_new_array_uninitialized<char>(len + 2, "SyntaxFormat");
       if (!line->format) {
         return 0;
       }
     }
   }
   else {
-    line->format = MEM_malloc_arrayN<char>(len + 2, "SyntaxFormat");
+    line->format = MEM_new_array_uninitialized<char>(len + 2, "SyntaxFormat");
     if (!line->format) {
       return 0;
     }

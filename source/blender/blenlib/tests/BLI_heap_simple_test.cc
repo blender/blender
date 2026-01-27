@@ -97,7 +97,7 @@ TEST(heap, SimpleDuplicates)
 static void random_heapsimple_helper(const int items_total, const int random_seed)
 {
   HeapSimple *heap = BLI_heapsimple_new();
-  float *values = MEM_malloc_arrayN<float>(size_t(items_total), __func__);
+  float *values = MEM_new_array_uninitialized<float>(size_t(items_total), __func__);
   range_fl(values, items_total);
   BLI_array_randomize(values, sizeof(float), items_total, random_seed);
   for (int i = 0; i < items_total; i++) {
@@ -108,7 +108,7 @@ static void random_heapsimple_helper(const int items_total, const int random_see
   }
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
   BLI_heapsimple_free(heap, nullptr);
-  MEM_freeN(values);
+  MEM_delete(values);
 }
 
 TEST(heap, SimpleRand1)

@@ -943,13 +943,13 @@ static void pchan_draw_data_init(bPoseChannel *pchan)
 {
   if (pchan->draw_data != nullptr) {
     if (pchan->draw_data->bbone_matrix_len != pchan->bone->segments) {
-      MEM_SAFE_FREE(pchan->draw_data);
+      MEM_SAFE_DELETE(pchan->draw_data);
     }
   }
 
   if (pchan->draw_data == nullptr) {
-    pchan->draw_data = static_cast<bPoseChannelDrawData *>(
-        MEM_mallocN(sizeof(*pchan->draw_data) + sizeof(Mat4) * pchan->bone->segments, __func__));
+    pchan->draw_data = static_cast<bPoseChannelDrawData *>(MEM_new_uninitialized(
+        sizeof(*pchan->draw_data) + sizeof(Mat4) * pchan->bone->segments, __func__));
     pchan->draw_data->bbone_matrix_len = pchan->bone->segments;
   }
 }

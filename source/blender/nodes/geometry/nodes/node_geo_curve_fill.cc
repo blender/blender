@@ -49,7 +49,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_new_for_free<NodeGeometryCurveFill>(__func__);
+  node->storage = MEM_new<NodeGeometryCurveFill>(__func__);
 }
 
 static void fill_curve_vert_indices(const OffsetIndices<int> offsets,

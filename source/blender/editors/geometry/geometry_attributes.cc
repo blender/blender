@@ -402,7 +402,7 @@ static wmOperatorStatus geometry_attribute_add_invoke(bContext *C,
       RNA_property_enum_set(op->ptr, prop, items[0].value);
     }
     if (free) {
-      MEM_freeN(items);
+      MEM_delete(items);
     }
   }
   return WM_operator_props_popup_confirm_ex(
@@ -603,12 +603,12 @@ bool convert_attribute(AttributeOwner &owner,
   const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
 
   const CPPType &cpp_type = varray.type();
-  void *new_data = MEM_mallocN_aligned(
+  void *new_data = MEM_new_uninitialized_aligned(
       varray.size() * cpp_type.size, cpp_type.alignment, __func__);
   varray.materialize_to_uninitialized(new_data);
   attributes.remove(name_copy);
   if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
-    MEM_freeN(new_data);
+    MEM_delete_void(new_data);
   }
 
   if (was_active) {

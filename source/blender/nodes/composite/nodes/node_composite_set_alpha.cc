@@ -48,7 +48,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but allocated for forward compatibility. */
-  NodeSetAlpha *settings = MEM_new_for_free<NodeSetAlpha>(__func__);
+  NodeSetAlpha *settings = MEM_new<NodeSetAlpha>(__func__);
   node->storage = settings;
 }
 

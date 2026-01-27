@@ -72,7 +72,7 @@ void _bli_array_permute(
   uint i;
 
   if (arr_temp == nullptr) {
-    arr_orig = MEM_mallocN(len, __func__);
+    arr_orig = MEM_new_uninitialized(len, __func__);
   }
   else {
     arr_orig = arr_temp;
@@ -88,7 +88,7 @@ void _bli_array_permute(
   }
 
   if (arr_temp == nullptr) {
-    MEM_freeN(arr_orig);
+    MEM_delete_void(arr_orig);
   }
 }
 

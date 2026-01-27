@@ -71,7 +71,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     const bke::CurvesGeometry &layer_strokes = drawing->strokes();
     Curves *curves_id = bke::curves_new_nomain(layer_strokes);
-    curves_id->mat = static_cast<Material **>(MEM_dupallocN(grease_pencil->material_array));
+    curves_id->mat = MEM_dupalloc(grease_pencil->material_array);
     curves_id->totcol = grease_pencil->material_array_num;
     GeometrySet curves_geometry = GeometrySet::from_curves(curves_id);
     curves_geometry.name = layer.name();

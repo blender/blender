@@ -55,7 +55,7 @@ static ImBuf *imb_thumb_load_from_blendfile(const char *blen_path)
   ImBuf *ima = BKE_main_thumbnail_to_imbuf(nullptr, data);
 
   if (data) {
-    MEM_freeN(data);
+    MEM_delete(data);
   }
   return ima;
 }

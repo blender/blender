@@ -190,7 +190,7 @@ void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const bke::id::IDRemapper
 
 template<typename T> static T *make_elem(const ViewerPathElemType type)
 {
-  T *elem = MEM_new_for_free<T>(__func__);
+  T *elem = MEM_new<T>(__func__);
   elem->base.type = type;
   return elem;
 }
@@ -462,9 +462,9 @@ void BKE_viewer_path_elem_free(ViewerPathElem *elem)
     }
   }
   if (elem->ui_name) {
-    MEM_freeN(elem->ui_name);
+    MEM_delete(elem->ui_name);
   }
-  MEM_freeN(elem);
+  MEM_delete(elem);
 }
 
 }  // namespace blender

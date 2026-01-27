@@ -143,7 +143,7 @@ using wmGenericUserDataFreeFn = void (*)(void *data);
 
 struct wmGenericUserData {
   void *data;
-  /** When NULL, use #MEM_freeN. */
+  /** When NULL, use #MEM_delete_void. */
   wmGenericUserDataFreeFn free_fn;
   bool use_free;
 };

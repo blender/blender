@@ -405,7 +405,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
   }
 
   if (stroke_len > 1) {
-    float (*coord_array)[3] = MEM_malloc_arrayN<float[3]>(stroke_len, __func__);
+    float (*coord_array)[3] = MEM_new_array_uninitialized<float[3]>(stroke_len, __func__);
 
     {
       BLI_mempool_iter iter;
@@ -453,7 +453,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
       immUnbindProgram();
     }
 
-    MEM_freeN(coord_array);
+    MEM_delete(coord_array);
   }
 }
 
@@ -578,13 +578,13 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 {
   BLI_assert(op->customdata == nullptr);
 
-  CurveDrawData *cdd = MEM_callocN<CurveDrawData>(__func__);
+  CurveDrawData *cdd = MEM_new_zeroed<CurveDrawData>(__func__);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   if (is_invoke) {
     cdd->vc = ED_view3d_viewcontext_init(C, depsgraph);
     if (ELEM(nullptr, cdd->vc.region, cdd->vc.rv3d, cdd->vc.v3d, cdd->vc.win, cdd->vc.scene)) {
-      MEM_freeN(cdd);
+      MEM_delete(cdd);
       BKE_report(op->reports, RPT_ERROR, "Unable to access 3D viewport");
       return false;
     }
@@ -599,7 +599,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
     /* Using an empty stroke complicates logic later,
      * it's simplest to disallow early on (see: #94085). */
     if (RNA_collection_is_empty(op->ptr, "stroke")) {
-      MEM_freeN(cdd);
+      MEM_delete(cdd);
       BKE_report(op->reports, RPT_ERROR, "The \"stroke\" cannot be empty");
       return false;
     }
@@ -639,7 +639,7 @@ static void curve_draw_exit(wmOperator *op)
     if (cdd->depths) {
       ED_view3d_depths_free(cdd->depths);
     }
-    MEM_freeN(cdd);
+    MEM_delete(cdd);
     op->customdata = nullptr;
   }
 }
@@ -723,8 +723,8 @@ static void curve_draw_exec_precalc(wmOperator *op)
     BLI_mempool_iter iter;
     StrokeElem *selem, *selem_prev;
 
-    float *lengths = MEM_malloc_arrayN<float>(stroke_len, __func__);
-    StrokeElem **selem_array = MEM_malloc_arrayN<StrokeElem *>(stroke_len, __func__);
+    float *lengths = MEM_new_array_uninitialized<float>(stroke_len, __func__);
+    StrokeElem **selem_array = MEM_new_array_uninitialized<StrokeElem *>(stroke_len, __func__);
     lengths[0] = 0.0f;
 
     float len_3d = 0.0f;
@@ -761,8 +761,8 @@ static void curve_draw_exec_precalc(wmOperator *op)
       }
     }
 
-    MEM_freeN(lengths);
-    MEM_freeN(selem_array);
+    MEM_delete(lengths);
+    MEM_delete(selem_array);
   }
 }
 
@@ -798,7 +798,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
   const float radius_max = cps->radius_max;
   const float radius_range = cps->radius_max - cps->radius_min;
 
-  Nurb *nu = MEM_new_for_free<Nurb>(__func__);
+  Nurb *nu = MEM_new<Nurb>(__func__);
   nu->pntsv = 0;
   nu->resolu = cu->resolu;
   nu->resolv = cu->resolv;
@@ -820,7 +820,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
     } coords_indices;
     coords_indices.radius = use_pressure_radius ? dims++ : -1;
 
-    float *coords = MEM_malloc_arrayN<float>(stroke_len * dims, __func__);
+    float *coords = MEM_new_array_uninitialized<float>(stroke_len * dims, __func__);
 
     float *cubic_spline = nullptr;
     uint cubic_spline_len = 0;
@@ -912,14 +912,14 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
                                             &corners_index_len);
     }
 
-    MEM_freeN(coords);
+    MEM_delete(coords);
     if (corners) {
       free(corners);
     }
 
     if (result == 0) {
       nu->pntsu = cubic_spline_len;
-      nu->bezt = MEM_calloc_arrayN<BezTriple>(nu->pntsu, __func__);
+      nu->bezt = MEM_new_array_zeroed<BezTriple>(nu->pntsu, __func__);
 
       float *co = cubic_spline;
       BezTriple *bezt = nu->bezt;
@@ -973,7 +973,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
 
 #else
     nu->pntsu = stroke_len;
-    nu->bezt = MEM_calloc_arrayN<BezTriple>(nu->pntsu, __func__);
+    nu->bezt = MEM_new_array_zeroed<BezTriple>(nu->pntsu, __func__);
 
     BezTriple *bezt = nu->bezt;
 
@@ -1015,7 +1015,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
     nu->pntsu = stroke_len;
     nu->pntsv = 1;
     nu->type = CU_POLY;
-    nu->bp = MEM_calloc_arrayN<BPoint>(nu->pntsu, __func__);
+    nu->bp = MEM_new_array_zeroed<BPoint>(nu->pntsu, __func__);
 
     /* Misc settings. */
     nu->resolu = cu->resolu;

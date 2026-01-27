@@ -250,7 +250,7 @@ static void draw_spline_points(const bContext *C,
       fp++;
     }
   }
-  MEM_freeN(feather_points);
+  MEM_delete(feather_points);
 
   immUnbindProgram();
 
@@ -394,7 +394,7 @@ static void mask_draw_curve_type(const bContext *C,
     const bool undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT);
 
     if (undistort) {
-      points = MEM_calloc_arrayN<float[2]>(tot_point, "undistorthed mask curve");
+      points = MEM_new_array_zeroed<float[2]>(tot_point, "undistorthed mask curve");
 
       for (int i = 0; i < tot_point; i++) {
         mask_point_undistort_pos(sc, points[i], orig_points[i]);
@@ -493,7 +493,7 @@ static void mask_draw_curve_type(const bContext *C,
   }
 
   if (points != orig_points) {
-    MEM_freeN(points);
+    MEM_delete(points);
   }
 }
 
@@ -553,13 +553,13 @@ static void draw_spline_curve(const bContext *C,
         C, spline, feather_points, tot_feather_point, true, is_active, rgb_tmp, draw_type);
   }
 
-  MEM_freeN(feather_points);
+  MEM_delete(feather_points);
 
   /* draw main curve */
   mask_spline_color_get(mask_layer, spline, is_spline_sel, rgb_tmp);
   mask_draw_curve_type(
       C, spline, diff_points, tot_diff_point, false, is_active, rgb_tmp, draw_type);
-  MEM_freeN(diff_points);
+  MEM_delete(diff_points);
 
   GPU_line_smooth(false);
 }
@@ -626,7 +626,7 @@ static void draw_mask_layers(
 static float *mask_rasterize(Mask *mask, const int width, const int height)
 {
   MaskRasterHandle *handle;
-  float *buffer = MEM_calloc_arrayN<float>(height * width, "rasterized mask buffer");
+  float *buffer = MEM_new_array_zeroed<float>(height * width, "rasterized mask buffer");
 
   /* Initialize rasterization handle. */
   handle = BKE_maskrasterize_handle_new();
@@ -761,7 +761,7 @@ void ED_mask_draw_region(
       GPU_blend(GPU_BLEND_NONE);
     }
 
-    MEM_freeN(buffer);
+    MEM_delete(buffer);
   }
 
   /* apply transformation so mask editing tools will assume drawing from the

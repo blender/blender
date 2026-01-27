@@ -885,7 +885,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     }
   }
 
-  v3d->localvd = MEM_new_for_free<View3D>("localview");
+  v3d->localvd = MEM_new<View3D>("localview");
   *v3d->localvd = dna::shallow_copy(*v3d);
   v3d->local_view_uid = local_view_bit;
 
@@ -898,7 +898,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
       Object *camera_old = nullptr;
       float dist_new, ofs_new[3];
 
-      rv3d->localvd = MEM_new_for_free<RegionView3D>("localview region", dna::shallow_copy(*rv3d));
+      rv3d->localvd = MEM_new<RegionView3D>("localview region", dna::shallow_copy(*rv3d));
 
       if (frame_selected) {
         float mid[3];
@@ -987,7 +987,7 @@ static bool view3d_localview_exit(const Depsgraph *depsgraph,
   v3d->local_view_uid = 0;
   v3d->camera = v3d->localvd->camera;
 
-  MEM_freeN(v3d->localvd);
+  MEM_delete(v3d->localvd);
   v3d->localvd = nullptr;
   ED_view3d_local_stats_free(v3d);
 
@@ -1023,7 +1023,7 @@ static bool view3d_localview_exit(const Depsgraph *depsgraph,
             depsgraph, wm, win, area, v3d, &region, smooth_viewtx, &sview_params);
       }
 
-      MEM_freeN(rv3d->localvd);
+      MEM_delete(rv3d->localvd);
       rv3d->localvd = nullptr;
       changed = true;
     }

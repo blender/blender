@@ -227,7 +227,7 @@ static bool fluid_validatepaths(FluidJob *job, ReportList *reports)
 static void fluid_bake_free(void *customdata)
 {
   FluidJob *job = static_cast<FluidJob *>(customdata);
-  MEM_freeN(job);
+  MEM_delete(job);
 }
 
 static void fluid_bake_sequence(FluidJob *job)
@@ -529,7 +529,7 @@ static void fluid_free_startjob(void *customdata, wmJobWorkerStatus *worker_stat
 
 static wmOperatorStatus fluid_bake_exec(bContext *C, wmOperator *op)
 {
-  FluidJob *job = MEM_mallocN<FluidJob>("FluidJob");
+  FluidJob *job = MEM_new_uninitialized<FluidJob>("FluidJob");
   char error_msg[256] = "\0";
 
   if (!fluid_initjob(C, job, op, error_msg, sizeof(error_msg))) {
@@ -556,7 +556,7 @@ static wmOperatorStatus fluid_bake_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*_event*/)
 {
   Scene *scene = CTX_data_scene(C);
-  FluidJob *job = MEM_mallocN<FluidJob>("FluidJob");
+  FluidJob *job = MEM_new_uninitialized<FluidJob>("FluidJob");
   char error_msg[256] = "\0";
 
   if (!fluid_initjob(C, job, op, error_msg, sizeof(error_msg))) {
@@ -640,7 +640,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  FluidJob *job = MEM_mallocN<FluidJob>("FluidJob");
+  FluidJob *job = MEM_new_uninitialized<FluidJob>("FluidJob");
   job->bmain = CTX_data_main(C);
   job->scene = scene;
   job->depsgraph = CTX_data_depsgraph_pointer(C);

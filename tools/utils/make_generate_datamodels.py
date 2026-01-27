@@ -43,7 +43,7 @@ YAML_PATHS = [
 # Packages to install in the virtualenv. These are only necessary to run this
 # generator. The generated code does not depend on these.
 REQUIREMENTS = [
-    "datamodel-code-generator ~= 0.28.2",
+    "datamodel-code-generator ~= 0.53.0",
     "PyYAML ~= 6.0.2",
 ]
 

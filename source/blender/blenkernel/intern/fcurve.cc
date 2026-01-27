@@ -65,7 +65,7 @@ static CLG_LogRef LOG = {"anim.fcurve"};
 
 FCurve *BKE_fcurve_create()
 {
-  FCurve *fcu = MEM_new_for_free<FCurve>(__func__);
+  FCurve *fcu = MEM_new<FCurve>(__func__);
   return fcu;
 }
 
@@ -82,18 +82,18 @@ void BKE_fcurve_free(FCurve *fcu)
   }
 
   /* Free curve data. */
-  MEM_SAFE_FREE(fcu->bezt);
-  MEM_SAFE_FREE(fcu->fpt);
+  MEM_SAFE_DELETE(fcu->bezt);
+  MEM_SAFE_DELETE(fcu->fpt);
 
   /* Free RNA-path, as this were allocated when getting the path string. */
-  MEM_SAFE_FREE(fcu->rna_path);
+  MEM_SAFE_DELETE(fcu->rna_path);
 
   /* Free extra data - i.e. modifiers, and driver. */
   fcurve_free_driver(fcu);
   free_fmodifiers(&fcu->modifiers);
 
   /* Free the f-curve itself. */
-  MEM_freeN(fcu);
+  MEM_delete(fcu);
 }
 
 void BKE_fcurves_free(ListBaseT<FCurve> *list)
@@ -129,17 +129,17 @@ FCurve *BKE_fcurve_copy(const FCurve *fcu)
   }
 
   /* Make a copy. */
-  FCurve *fcu_d = static_cast<FCurve *>(MEM_dupallocN(fcu));
+  FCurve *fcu_d = MEM_dupalloc(fcu);
 
   fcu_d->next = fcu_d->prev = nullptr;
   fcu_d->grp = nullptr;
 
   /* Copy curve data. */
-  fcu_d->bezt = static_cast<BezTriple *>(MEM_dupallocN(fcu_d->bezt));
-  fcu_d->fpt = static_cast<FPoint *>(MEM_dupallocN(fcu_d->fpt));
+  fcu_d->bezt = MEM_dupalloc(fcu_d->bezt);
+  fcu_d->fpt = MEM_dupalloc(fcu_d->fpt);
 
   /* Copy rna-path. */
-  fcu_d->rna_path = static_cast<char *>(MEM_dupallocN(fcu_d->rna_path));
+  fcu_d->rna_path = MEM_dupalloc(fcu_d->rna_path);
 
   /* Copy driver. */
   fcu_d->driver = fcurve_copy_driver(fcu_d->driver);
@@ -170,7 +170,7 @@ void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src)
 
 void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path)
 {
-  MEM_SAFE_FREE(fcu.rna_path);
+  MEM_SAFE_DELETE(fcu.rna_path);
   fcu.rna_path = BLI_strdupn(rna_path.data(), rna_path.size());
 }
 
@@ -766,7 +766,7 @@ float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
   }
 
   const size_t frames_len = frames_unique.size();
-  float *frames = MEM_malloc_arrayN<float>(frames_len, __func__);
+  float *frames = MEM_new_array_uninitialized<float>(frames_len, __func__);
 
   for (const int i : frames_unique.index_range()) {
     const int value = frames_unique[i];
@@ -979,7 +979,7 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
 
   /* Set up sample data. */
   FPoint *new_fpt;
-  FPoint *fpt = new_fpt = MEM_calloc_arrayN<FPoint>((end - start + 1), "FPoint Samples");
+  FPoint *fpt = new_fpt = MEM_new_array_zeroed<FPoint>((end - start + 1), "FPoint Samples");
 
   /* Use the sampling callback at 1-frame intervals from start to end frames. */
   for (int cfra = start; cfra <= end; cfra++, fpt++) {
@@ -989,10 +989,10 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
 
   /* Free any existing sample/keyframe data on curve. */
   if (fcu->bezt) {
-    MEM_freeN(fcu->bezt);
+    MEM_delete(fcu->bezt);
   }
   if (fcu->fpt) {
-    MEM_freeN(fcu->fpt);
+    MEM_delete(fcu->fpt);
   }
 
   /* Store the samples. */
@@ -1032,14 +1032,14 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
 
   /* Free any existing sample/keyframe data on the curve. */
   if (fcu->bezt) {
-    MEM_freeN(fcu->bezt);
+    MEM_delete(fcu->bezt);
   }
 
   FPoint *fpt = fcu->fpt;
   int keyframes_to_insert = end - start;
   int sample_points = fcu->totvert;
 
-  BezTriple *bezt = fcu->bezt = MEM_calloc_arrayN<BezTriple>(keyframes_to_insert, __func__);
+  BezTriple *bezt = fcu->bezt = MEM_new_array_zeroed<BezTriple>(keyframes_to_insert, __func__);
   fcu->totvert = keyframes_to_insert;
 
   /* Get first sample point to 'copy' as keyframe. */
@@ -1072,7 +1072,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
     bezt->vec[1][1] = fpt->vec[1];
   }
 
-  MEM_SAFE_FREE(fcu->fpt);
+  MEM_SAFE_DELETE(fcu->fpt);
 
   /* Not strictly needed since we use linear interpolation, but better be consistent here. */
   BKE_fcurve_handles_recalc(*fcu);
@@ -1554,7 +1554,7 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
 
 static void fcurve_bezt_free(FCurve &fcu)
 {
-  MEM_SAFE_FREE(fcu.bezt);
+  MEM_SAFE_DELETE(fcu.bezt);
   fcu.totvert = 0;
 }
 
@@ -1633,7 +1633,8 @@ void BKE_fcurve_bezt_resize(FCurve &fcu, const int new_totvert)
     return;
   }
 
-  fcu.bezt = static_cast<BezTriple *>(MEM_reallocN(fcu.bezt, new_totvert * sizeof(*(fcu.bezt))));
+  fcu.bezt = static_cast<BezTriple *>(
+      MEM_realloc_uninitialized(fcu.bezt, new_totvert * sizeof(*(fcu.bezt))));
 
   /* Zero out all the newly-allocated beztriples. This is necessary, as it is likely that only some
    * of the fields will actually be updated by the caller. */
@@ -1694,7 +1695,7 @@ void BKE_fcurve_delete_keys(FCurve &fcu, uint2 index_range)
 BezTriple *BKE_bezier_array_merge(
     const BezTriple *a, const int size_a, const BezTriple *b, const int size_b, int *r_merged_size)
 {
-  BezTriple *large_array = MEM_calloc_arrayN<BezTriple>(size_t(size_a + size_b), "beztriple");
+  BezTriple *large_array = MEM_new_array_zeroed<BezTriple>(size_t(size_a + size_b), "beztriple");
 
   int iterator_a = 0;
   int iterator_b = 0;
@@ -1738,7 +1739,7 @@ BezTriple *BKE_bezier_array_merge(
   BezTriple *minimal_array;
   if (*r_merged_size < size_a + size_b) {
     minimal_array = static_cast<BezTriple *>(
-        MEM_reallocN(large_array, sizeof(BezTriple) * (*r_merged_size)));
+        MEM_realloc_uninitialized(large_array, sizeof(BezTriple) * (*r_merged_size)));
   }
   else {
     minimal_array = large_array;
@@ -1830,7 +1831,7 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
 
       /* If nothing found yet, create a new one */
       if (found == false) {
-        tRetainedKeyframe *rk = MEM_callocN<tRetainedKeyframe>("tRetainedKeyframe");
+        tRetainedKeyframe *rk = MEM_new_zeroed<tRetainedKeyframe>("tRetainedKeyframe");
 
         rk->frame = bezt->vec[1][0];
         rk->val = bezt->vec[1][1];

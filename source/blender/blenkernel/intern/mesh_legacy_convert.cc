@@ -140,7 +140,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
     return;
   }
 
-  ed = edsort = MEM_malloc_arrayN<EdgeSort>(totedge, "EdgeSort");
+  ed = edsort = MEM_new_array_uninitialized<EdgeSort>(totedge, "EdgeSort");
 
   for (a = totface, mface = allface; a > 0; a--, mface++) {
     to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
@@ -166,7 +166,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   }
   totedge_final++;
 
-  edges = MEM_calloc_arrayN<MEdge>(totedge_final, __func__);
+  edges = MEM_new_array_zeroed<MEdge>(totedge_final, __func__);
 
   for (a = totedge, edge = edges, ed = edsort; a > 1; a--, ed++) {
     /* edge is unique when it differs from next edge, or is last */
@@ -190,7 +190,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   edge->v1 = ed->v1;
   edge->v2 = ed->v2;
 
-  MEM_freeN(edsort);
+  MEM_delete(edsort);
 
   /* set edge members of mloops */
   Map<OrderedEdge, int> hash;
@@ -429,10 +429,11 @@ static void bm_corners_to_loops_ex(ID *id,
         ld->level = int(logf(float(side) - 1.0f) / float(M_LN2)) + 1;
 
         if (ld->disps) {
-          MEM_freeN(ld->disps);
+          MEM_delete(ld->disps);
         }
 
-        ld->disps = MEM_malloc_arrayN<float[3]>(size_t(side_sq), "converted loop mdisps");
+        ld->disps = MEM_new_array_uninitialized<float[3]>(size_t(side_sq),
+                                                          "converted loop mdisps");
         if (fd->disps) {
           memcpy(ld->disps, disps, size_t(side_sq) * sizeof(float[3]));
         }
@@ -1016,9 +1017,9 @@ static void mesh_tessface_calc(Mesh &mesh)
   /* Allocate the length of `totfaces`, avoid many small reallocation's,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
   /* Take care since memory is _not_ zeroed so be sure to initialize each field. */
-  mface_to_poly_map = MEM_malloc_arrayN<int>(size_t(corner_tris_num), __func__);
-  mface = MEM_malloc_arrayN<MFace>(size_t(corner_tris_num), __func__);
-  lindices = MEM_malloc_arrayN<uint[4]>(size_t(corner_tris_num), __func__);
+  mface_to_poly_map = MEM_new_array_uninitialized<int>(size_t(corner_tris_num), __func__);
+  mface = MEM_new_array_uninitialized<MFace>(size_t(corner_tris_num), __func__);
+  lindices = MEM_new_array_uninitialized<uint[4]>(size_t(corner_tris_num), __func__);
 
   mface_index = 0;
   for (poly_index = 0; poly_index < faces_num; poly_index++) {
@@ -1181,9 +1182,10 @@ static void mesh_tessface_calc(Mesh &mesh)
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
   if (LIKELY(corner_tris_num != totface)) {
-    mface = static_cast<MFace *>(MEM_reallocN(mface, sizeof(*mface) * size_t(totface)));
-    mface_to_poly_map = static_cast<int *>(
-        MEM_reallocN(mface_to_poly_map, sizeof(*mface_to_poly_map) * size_t(totface)));
+    mface = static_cast<MFace *>(
+        MEM_realloc_uninitialized(mface, sizeof(*mface) * size_t(totface)));
+    mface_to_poly_map = static_cast<int *>(MEM_realloc_uninitialized(
+        mface_to_poly_map, sizeof(*mface_to_poly_map) * size_t(totface)));
   }
 
   CustomData_add_layer_with_data(fdata_legacy, CD_MFACE, mface, totface, nullptr);
@@ -1217,7 +1219,7 @@ static void mesh_tessface_calc(Mesh &mesh)
   }
 #endif
 
-  MEM_freeN(lindices);
+  MEM_delete(lindices);
 
   mesh.totface_legacy = totface;
 
@@ -1692,10 +1694,10 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
         },
         [](const uint32_t a, const uint32_t b) { return a | b; });
 
-    float2 *coords = MEM_malloc_arrayN<float2>(size_t(mesh->corners_num), __func__);
+    float2 *coords = MEM_new_array_uninitialized<float2>(size_t(mesh->corners_num), __func__);
     bool *pin = nullptr;
     if (needed_boolean_attributes & MLOOPUV_PINNED) {
-      pin = MEM_malloc_arrayN<bool>(size_t(mesh->corners_num), __func__);
+      pin = MEM_new_array_uninitialized<bool>(size_t(mesh->corners_num), __func__);
     }
 
     threading::parallel_for(IndexRange(mesh->corners_num), 4096, [&](IndexRange range) {
@@ -2047,7 +2049,7 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain, Library *owner_library)
   bNodeTree *group = node_tree_add_in_lib(
       &bmain, owner_library, DATA_("Auto Smooth"), "GeometryNodeTree");
   if (!group->geometry_node_asset_traits) {
-    group->geometry_node_asset_traits = MEM_new_for_free<GeometryNodeAssetTraits>(__func__);
+    group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
   }
   group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
 
@@ -2593,7 +2595,7 @@ void mesh_uv_select_to_single_attribute(Mesh &mesh)
     STRNCPY_UTF8(mesh.corner_data.layers[uv_select_vert].name, uv_select_vert_name_shared.c_str());
     STRNCPY_UTF8(mesh.corner_data.layers[uv_select_edge].name, uv_select_edge_name_shared.c_str());
 
-    bool *uv_select_face = MEM_malloc_arrayN<bool>(mesh.faces_num, __func__);
+    bool *uv_select_face = MEM_new_array_uninitialized<bool>(mesh.faces_num, __func__);
     CustomData_add_layer_named_with_data(&mesh.face_data,
                                          CD_PROP_BOOL,
                                          uv_select_face,

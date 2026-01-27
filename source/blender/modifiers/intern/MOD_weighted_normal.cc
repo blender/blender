@@ -376,7 +376,7 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
   const OffsetIndices faces = wn_data->faces;
   const Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *face_area = MEM_malloc_arrayN<ModePair>(size_t(faces.size()), __func__);
+  ModePair *face_area = MEM_new_array_uninitialized<ModePair>(size_t(faces.size()), __func__);
 
   ModePair *f_area = face_area;
   for (const int i : faces.index_range()) {
@@ -396,11 +396,12 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
   const OffsetIndices faces = wn_data->faces;
   const Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *corner_angle = MEM_malloc_arrayN<ModePair>(size_t(corner_verts.size()), __func__);
+  ModePair *corner_angle = MEM_new_array_uninitialized<ModePair>(size_t(corner_verts.size()),
+                                                                 __func__);
 
   for (const int i : faces.index_range()) {
     const IndexRange face = faces[i];
-    float *index_angle = MEM_malloc_arrayN<float>(size_t(face.size()), __func__);
+    float *index_angle = MEM_new_array_uninitialized<float>(size_t(face.size()), __func__);
     bke::mesh::face_angles_calc(positions, corner_verts.slice(face), {index_angle, face.size()});
 
     ModePair *c_angl = &corner_angle[face.start()];
@@ -411,7 +412,7 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
       c_angl->val = float(M_PI) - *angl;
       c_angl->index = corner;
     }
-    MEM_freeN(index_angle);
+    MEM_delete(index_angle);
   }
 
   qsort(corner_angle, corner_verts.size(), sizeof(*corner_angle), modepair_cmp_by_val_inverse);
@@ -426,13 +427,14 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
   const OffsetIndices faces = wn_data->faces;
   const Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *combined = MEM_malloc_arrayN<ModePair>(size_t(corner_verts.size()), __func__);
+  ModePair *combined = MEM_new_array_uninitialized<ModePair>(size_t(corner_verts.size()),
+                                                             __func__);
 
   for (const int i : faces.index_range()) {
     const IndexRange face = faces[i];
     const Span<int> face_verts = corner_verts.slice(face);
     const float face_area = bke::mesh::face_area_calc(positions, face_verts);
-    float *index_angle = MEM_malloc_arrayN<float>(size_t(face.size()), __func__);
+    float *index_angle = MEM_new_array_uninitialized<float>(size_t(face.size()), __func__);
     bke::mesh::face_angles_calc(positions, face_verts, {index_angle, face.size()});
 
     ModePair *cmbnd = &combined[face.start()];
@@ -443,7 +445,7 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
       cmbnd->val = (float(M_PI) - *angl) * face_area;
       cmbnd->index = corner;
     }
-    MEM_freeN(index_angle);
+    MEM_delete(index_angle);
   }
 
   qsort(combined, corner_verts.size(), sizeof(*combined), modepair_cmp_by_val_inverse);
@@ -535,7 +537,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       break;
   }
 
-  MEM_SAFE_FREE(wn_data.mode_pair);
+  MEM_SAFE_DELETE(wn_data.mode_pair);
 
   result->runtime->is_original_bmesh = false;
 

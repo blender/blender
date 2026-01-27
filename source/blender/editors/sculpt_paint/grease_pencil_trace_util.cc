@@ -54,14 +54,14 @@ Bitmap *create_bitmap(const int2 &size)
   /* Number of words per scanline. */
   const int32_t dy = (size.x + BM_WORDBITS - 1) / BM_WORDBITS;
 
-  potrace_bitmap_t *bm = MEM_mallocN<potrace_bitmap_t>(__func__);
+  potrace_bitmap_t *bm = MEM_new_uninitialized<potrace_bitmap_t>(__func__);
   if (!bm) {
     return nullptr;
   }
   bm->w = size.x;
   bm->h = size.y;
   bm->dy = dy;
-  bm->map = MEM_malloc_arrayN<potrace_word>(size.y * dy, __func__);
+  bm->map = MEM_new_array_uninitialized<potrace_word>(size.y * dy, __func__);
 
   return bm;
 }
@@ -69,9 +69,9 @@ Bitmap *create_bitmap(const int2 &size)
 void free_bitmap(Bitmap *bm)
 {
   if (bm != nullptr) {
-    MEM_freeN(bm->map);
+    MEM_delete(bm->map);
   }
-  MEM_SAFE_FREE(bm);
+  MEM_SAFE_DELETE(bm);
 }
 
 ImBuf *bitmap_to_image(const Bitmap &bm)

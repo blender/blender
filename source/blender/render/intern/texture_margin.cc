@@ -518,10 +518,10 @@ static void generate_margin(ImBuf *ibuf,
   /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`
    * for margin pixels, just `polyindex` for face pixels. */
   if (mask) {
-    mask = static_cast<char *>(MEM_dupallocN(mask));
+    mask = MEM_dupalloc(mask);
   }
   else {
-    mask = MEM_calloc_arrayN<char>(size_t(ibuf->x) * size_t(ibuf->y), __func__);
+    mask = MEM_new_array_zeroed<char>(size_t(ibuf->x) * size_t(ibuf->y), __func__);
     draw_new_mask = true;
   }
 
@@ -546,11 +546,11 @@ static void generate_margin(ImBuf *ibuf,
     map.rasterize_tri(vec[0], vec[1], vec[2], tri_faces[i], mask, draw_new_mask);
   }
 
-  char *tmpmask = static_cast<char *>(MEM_dupallocN(mask));
+  char *tmpmask = MEM_dupalloc(mask);
   /* Extend (with averaging) by 2 pixels. Those will be overwritten, but it
    * helps linear interpolations on the edges of polygons. */
   IMB_filter_extend(ibuf, tmpmask, 2);
-  MEM_freeN(tmpmask);
+  MEM_delete(tmpmask);
 
   map.grow_dijkstra(margin);
 
@@ -564,7 +564,7 @@ static void generate_margin(ImBuf *ibuf,
    */
   IMB_filter_extend(ibuf, mask, margin);
 
-  MEM_freeN(mask);
+  MEM_delete(mask);
 }
 
 }  // namespace render::texturemargin

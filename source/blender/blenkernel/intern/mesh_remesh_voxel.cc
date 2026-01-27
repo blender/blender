@@ -94,8 +94,8 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   if (qrd.out_totfaces == 0) {
     /* Meshing failed */
-    MEM_freeN(qrd.out_faces);
-    MEM_freeN(qrd.out_verts);
+    MEM_delete(qrd.out_faces);
+    MEM_delete(qrd.out_verts);
     return nullptr;
   }
 
@@ -120,8 +120,8 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   mesh_calc_edges(*mesh, false, false);
 
-  MEM_freeN(qrd.out_faces);
-  MEM_freeN(qrd.out_verts);
+  MEM_delete(qrd.out_faces);
+  MEM_delete(qrd.out_verts);
 
   return mesh;
 }

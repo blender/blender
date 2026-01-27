@@ -88,7 +88,7 @@ std::string cache_or_get_image_file(Main *bmain, Scene *scene, Image *image, Ima
         if (file_path.empty()) {
           file_path = cached_path;
         }
-        MEM_freeN(cached_path);
+        MEM_delete(cached_path);
       }
     }
   }

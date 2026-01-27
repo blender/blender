@@ -284,7 +284,7 @@ int3 BLO_blendhandle_get_version(const BlendHandle *bh);
  * \param ofblocktype: The type of names to get.
  * \param use_assets_only: Only list IDs marked as assets.
  * \param r_tot_names: The length of the returned list.
- * \return A BLI_linklist of strings. The string links should be freed with #MEM_freeN().
+ * \return A BLI_linklist of strings. The string links should be freed with #MEM_delete().
  */
 LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
                                               int ofblocktype,
@@ -326,7 +326,7 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
  * (e.g. "Scene", "Mesh", "Light", etc.).
  *
  * \param bh: The blendhandle to access.
- * \return A BLI_linklist of strings. The string links should be freed with #MEM_freeN().
+ * \return A BLI_linklist of strings. The string links should be freed with #MEM_delete().
  */
 LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 

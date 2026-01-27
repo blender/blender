@@ -1230,11 +1230,10 @@ static void add_instance_attributes_to_single_geometry(
     const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
     const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
     const CPPType &cpp_type = bke::attribute_type_to_cpp_type(data_type);
-    GVArray gvaray(GVArray::from_single(cpp_type, attributes.domain_size(domain), value));
     attributes.add(ordered_attributes.ids[attribute_index],
                    domain,
                    data_type,
-                   bke::AttributeInitVArray(std::move(gvaray)));
+                   bke::AttributeInitValue(GPointer(cpp_type, value)));
   }
 }
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
@@ -1274,7 +1273,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
 
   const RealizePointCloudTask &first_task = tasks.first();
   const PointCloud &first_pointcloud = *first_task.pointcloud_info->pointcloud;
-  dst_pointcloud->mat = static_cast<Material **>(MEM_dupallocN(first_pointcloud.mat));
+  dst_pointcloud->mat = MEM_dupalloc(first_pointcloud.mat);
   dst_pointcloud->totcol = first_pointcloud.totcol;
 
   SpanAttributeWriter<float3> positions = dst_attributes.lookup_or_add_for_write_only_span<float3>(
@@ -1653,7 +1652,7 @@ static void copy_vertex_group_name(ListBaseT<bDeformGroup> *dst_deform_group,
     /* Skip if the source attribute can't possibly contain vertex weights. */
     return;
   }
-  bDeformGroup *dst = MEM_new_for_free<bDeformGroup>(__func__);
+  bDeformGroup *dst = MEM_new<bDeformGroup>(__func__);
   src_name.copy_utf8_truncated(dst->name);
   BLI_addtail(dst_deform_group, dst);
 }
@@ -2409,9 +2408,9 @@ static void execute_realize_grease_pencil_tasks(
 
   /* Transfer material pointers. The material indices are updated for each task separately. */
   if (!all_grease_pencils_info.materials.is_empty()) {
-    MEM_SAFE_FREE(dst_grease_pencil->material_array);
+    MEM_SAFE_DELETE(dst_grease_pencil->material_array);
     dst_grease_pencil->material_array_num = all_grease_pencils_info.materials.size();
-    dst_grease_pencil->material_array = MEM_calloc_arrayN<Material *>(
+    dst_grease_pencil->material_array = MEM_new_array_zeroed<Material *>(
         dst_grease_pencil->material_array_num, __func__);
     uninitialized_copy_n(all_grease_pencils_info.materials.data(),
                          dst_grease_pencil->material_array_num,

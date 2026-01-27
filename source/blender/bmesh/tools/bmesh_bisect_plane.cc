@@ -387,7 +387,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
 {
   uint einput_len;
   uint i;
-  BMEdge **edges_arr = MEM_malloc_arrayN<BMEdge *>(size_t(bm->totedge), __func__);
+  BMEdge **edges_arr = MEM_new_array_uninitialized<BMEdge *>(size_t(bm->totedge), __func__);
 
   BLI_LINKSTACK_DECLARE(face_stack, BMFace *);
 
@@ -526,7 +526,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
     }
   }
 
-  MEM_freeN(edges_arr);
+  MEM_delete(edges_arr);
 
   while ((f = BLI_LINKSTACK_POP(face_stack))) {
     bm_face_bisect_verts(bm, f, plane, oflag_center, oflag_new);

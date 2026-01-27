@@ -40,7 +40,7 @@ static void ft_ansi_stream_close(FT_Stream stream)
 
   /* WARNING: this works but be careful!
    * Checked freetype sources, there isn't any access after closing. */
-  MEM_freeN(stream);
+  MEM_delete(stream);
 }
 
 static ulong ft_ansi_stream_io(FT_Stream stream, ulong offset, uchar *buffer, ulong count)
@@ -106,7 +106,7 @@ FT_Error FT_New_Face__win32_compat(FT_Library library,
 {
   FT_Error err;
   FT_Open_Args open;
-  FT_Stream stream = static_cast<FT_Stream>(MEM_callocN(sizeof(*stream), __func__));
+  FT_Stream stream = static_cast<FT_Stream>(MEM_new_zeroed(sizeof(*stream), __func__));
 
   open.flags = FT_OPEN_STREAM;
   open.stream = stream;
@@ -115,7 +115,7 @@ FT_Error FT_New_Face__win32_compat(FT_Library library,
 
   err = FT_Stream_Open__win32_compat(stream, pathname);
   if (err) {
-    MEM_freeN(stream);
+    MEM_delete(stream);
     return err;
   }
 

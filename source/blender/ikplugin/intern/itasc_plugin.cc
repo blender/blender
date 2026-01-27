@@ -282,7 +282,7 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
 
   /* setup the chain data */
   /* create a target */
-  target = MEM_callocN<PoseTarget>("posetarget");
+  target = MEM_new_zeroed<PoseTarget>("posetarget");
   target->con = con;
   /* by construction there can be only one tree per channel
    * and each channel can be part of at most one tree. */
@@ -290,14 +290,14 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
 
   if (tree == nullptr) {
     /* make new tree */
-    tree = MEM_callocN<PoseTree>("posetree");
+    tree = MEM_new_zeroed<PoseTree>("posetree");
 
     tree->iterations = data->iterations;
     tree->totchannel = segcount;
     tree->stretch = (data->flag & CONSTRAINT_IK_STRETCH);
 
-    tree->pchan = MEM_calloc_arrayN<bPoseChannel *>(segcount, "ik tree pchan");
-    tree->parent = MEM_calloc_arrayN<int>(segcount, "ik tree parent");
+    tree->pchan = MEM_new_array_zeroed<bPoseChannel *>(segcount, "ik tree pchan");
+    tree->parent = MEM_new_array_zeroed<int>(segcount, "ik tree parent");
     for (a = 0; a < segcount; a++) {
       tree->pchan[a] = chanlist[segcount - a - 1];
       tree->parent[a] = a - 1;
@@ -351,12 +351,12 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
       oldchan = tree->pchan;
       oldparent = tree->parent;
 
-      tree->pchan = MEM_calloc_arrayN<bPoseChannel *>(newsize, "ik tree pchan");
-      tree->parent = MEM_calloc_arrayN<int>(newsize, "ik tree parent");
+      tree->pchan = MEM_new_array_zeroed<bPoseChannel *>(newsize, "ik tree pchan");
+      tree->parent = MEM_new_array_zeroed<int>(newsize, "ik tree parent");
       memcpy(tree->pchan, oldchan, sizeof(void *) * tree->totchannel);
       memcpy(tree->parent, oldparent, sizeof(int) * tree->totchannel);
-      MEM_freeN(oldchan);
-      MEM_freeN(oldparent);
+      MEM_delete(oldchan);
+      MEM_delete(oldparent);
 
       /* add new pose channels at the end, in reverse order */
       for (a = 0; a < segcount; a++) {
@@ -426,7 +426,7 @@ static IK_Data *get_ikdata(bPose *pose)
   if (pose->ikdata) {
     return static_cast<IK_Data *>(pose->ikdata);
   }
-  pose->ikdata = MEM_callocN<IK_Data>("iTaSC ikdata");
+  pose->ikdata = MEM_new_zeroed<IK_Data>("iTaSC ikdata");
   /* here init ikdata if needed
    * now that we have scene, make sure the default param are initialized */
   if (!DefIKParam.iksolver) {
@@ -1673,15 +1673,15 @@ static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float c
         BLI_remlink(&pchan.iktree, tree);
         BLI_freelistN(&tree->targets);
         if (tree->pchan) {
-          MEM_freeN(tree->pchan);
+          MEM_delete(tree->pchan);
         }
         if (tree->parent) {
-          MEM_freeN(tree->parent);
+          MEM_delete(tree->parent);
         }
         if (tree->basis_change) {
-          MEM_freeN(tree->basis_change);
+          MEM_delete(tree->basis_change);
         }
-        MEM_freeN(tree);
+        MEM_delete(tree);
         tree = (PoseTree *)pchan.iktree.first;
       }
     }
@@ -1953,7 +1953,7 @@ void itasc_clear_data(bPose *pose)
       ikdata->first = scene->next;
       delete scene;
     }
-    MEM_freeN(ikdata);
+    MEM_delete(ikdata);
     pose->ikdata = nullptr;
   }
 }

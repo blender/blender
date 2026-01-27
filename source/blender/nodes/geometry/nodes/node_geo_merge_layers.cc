@@ -50,7 +50,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  auto *data = MEM_new_for_free<NodeGeometryMergeLayers>(__func__);
+  auto *data = MEM_new<NodeGeometryMergeLayers>(__func__);
   data->mode = int8_t(MergeLayerMode::ByName);
   node->storage = data;
 }

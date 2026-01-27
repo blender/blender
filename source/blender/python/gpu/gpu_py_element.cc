@@ -165,7 +165,7 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject * /*type*/, PyObject *args,
   }
 
   if (ok == false) {
-    MEM_freeN(builder.data);
+    MEM_delete(builder.data);
     return nullptr;
   }
 

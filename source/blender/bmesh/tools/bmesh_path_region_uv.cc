@@ -166,8 +166,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
   int *depths[2] = {nullptr};
   int pass = 0;
 
-  BMLoop **stack = MEM_malloc_arrayN<BMLoop *>(bm->totloop, __func__);
-  BMLoop **stack_other = MEM_malloc_arrayN<BMLoop *>(bm->totloop, __func__);
+  BMLoop **stack = MEM_new_array_uninitialized<BMLoop *>(bm->totloop, __func__);
+  BMLoop **stack_other = MEM_new_array_uninitialized<BMLoop *>(bm->totloop, __func__);
 
   STACK_DECLARE(stack);
   STACK_INIT(stack, bm->totloop);
@@ -185,7 +185,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     const int side_other = !side;
 
     /* initialize depths to -1 (un-touched), fill in with the depth as we walk over the edges. */
-    depths[side] = MEM_malloc_arrayN<int>(bm->totloop, __func__);
+    depths[side] = MEM_new_array_uninitialized<int>(bm->totloop, __func__);
     copy_vn_i(depths[side], bm->totloop, -1);
 
     /* needed for second side */
@@ -310,8 +310,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
     }
   }
 
-  MEM_freeN(stack);
-  MEM_freeN(stack_other);
+  MEM_delete(stack);
+  MEM_delete(stack_other);
 
   /* Now we have depths recorded from both sides,
    * select elements that use tagged verts. */
@@ -392,7 +392,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 
   for (int side = 0; side < 2; side++) {
     if (depths[side]) {
-      MEM_freeN(depths[side]);
+      MEM_delete(depths[side]);
     }
   }
 

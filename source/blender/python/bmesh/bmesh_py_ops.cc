@@ -123,8 +123,8 @@ static PyObject *bpy_bmesh_op_doc_get(BPy_BMeshOpFunc *self, void * /*closure*/)
                              slot_in,
                              slot_out);
 
-  MEM_freeN(slot_in);
-  MEM_freeN(slot_out);
+  MEM_delete(slot_in);
+  MEM_delete(slot_out);
 
   return ret;
 }

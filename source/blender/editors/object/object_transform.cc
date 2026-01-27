@@ -2037,7 +2037,7 @@ static void object_transform_axis_target_free_data(wmOperator *op)
 #endif
 
   for (XFormAxisItem &item : xfd->object_data) {
-    MEM_freeN(item.obtfm);
+    MEM_delete_void(item.obtfm);
   }
   MEM_delete(xfd);
   op->customdata = nullptr;

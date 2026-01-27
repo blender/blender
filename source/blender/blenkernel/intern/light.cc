@@ -104,7 +104,7 @@ static void light_free_data(ID *id)
   /* is no lib link block, but light extension */
   if (la->nodetree) {
     bke::node_tree_free_embedded_tree(la->nodetree);
-    MEM_freeN(la->nodetree);
+    MEM_delete(la->nodetree);
     la->nodetree = nullptr;
   }
 

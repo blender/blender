@@ -42,7 +42,7 @@ static void node_init(const bContext *C, PointerRNA *ptr)
   node->flag |= NODE_PREVIEW;
 
   Scene *scene = CTX_data_scene(C);
-  MovieClipUser *user = MEM_new_for_free<MovieClipUser>(__func__);
+  MovieClipUser *user = MEM_new<MovieClipUser>(__func__);
 
   node->id = id_cast<ID *>(scene->clip);
   id_us_plus(node->id);

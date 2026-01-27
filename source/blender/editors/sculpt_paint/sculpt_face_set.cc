@@ -158,9 +158,7 @@ bool create_face_sets_mesh(Object &object)
   if (attributes.contains(".sculpt_face_set")) {
     return false;
   }
-  attributes.add<int>(".sculpt_face_set",
-                      bke::AttrDomain::Face,
-                      bke::AttributeInitVArray(VArray<int>::from_single(1, mesh.faces_num)));
+  attributes.add<int>(".sculpt_face_set", bke::AttrDomain::Face, bke::AttributeInitValue(1));
   mesh.face_sets_color_default = 1;
   return true;
 }
@@ -169,9 +167,7 @@ bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Mesh &mesh)
 {
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (!attributes.contains(".sculpt_face_set")) {
-    attributes.add<int>(".sculpt_face_set",
-                        bke::AttrDomain::Face,
-                        bke::AttributeInitVArray(VArray<int>::from_single(1, mesh.faces_num)));
+    attributes.add<int>(".sculpt_face_set", bke::AttrDomain::Face, bke::AttributeInitValue(1));
     mesh.face_sets_color_default = 1;
   }
   return attributes.lookup_or_add_for_write_span<int>(".sculpt_face_set", bke::AttrDomain::Face);
@@ -1801,7 +1797,7 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op
 {
   Object &object = *gesture_data.vc.obact;
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<FaceSetOperation>(__func__));
+      MEM_new_zeroed<FaceSetOperation>(__func__));
 
   FaceSetOperation *face_set_operation = reinterpret_cast<FaceSetOperation *>(
       gesture_data.operation);

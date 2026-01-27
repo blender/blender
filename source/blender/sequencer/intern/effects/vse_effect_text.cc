@@ -177,8 +177,8 @@ bool effects_can_render_text(const Strip *strip)
 
 static void init_text_effect(Strip *strip)
 {
-  MEM_SAFE_FREE(strip->effectdata);
-  TextVars *data = MEM_new_for_free<TextVars>("textvars");
+  MEM_SAFE_DELETE_VOID(strip->effectdata);
+  TextVars *data = MEM_new<TextVars>("textvars");
   strip->effectdata = data;
 
   data->text_font = nullptr;
@@ -281,22 +281,23 @@ static void free_text_effect(Strip *strip, const bool do_id_user)
   text_font_unload(data, do_id_user);
 
   if (data) {
-    MEM_SAFE_FREE(data->text_ptr);
+    MEM_SAFE_DELETE(data->text_ptr);
     MEM_delete(data->runtime);
-    MEM_freeN(data);
+    MEM_delete(data);
     strip->effectdata = nullptr;
   }
 }
 
 static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
 {
-  dst->effectdata = MEM_dupallocN(src->effectdata);
-  TextVars *data = static_cast<TextVars *>(dst->effectdata);
+  TextVars *data = MEM_dupalloc(static_cast<TextVars *>(src->effectdata));
   data->text_ptr = BLI_strdup_null(data->text_ptr);
 
   data->runtime = nullptr;
   data->text_blf_id = -1;
   text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
+
+  dst->effectdata = data;
 }
 
 static int num_inputs_text()

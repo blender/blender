@@ -523,7 +523,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         if (pbuf) {
           const bool success = editstr_insert_at_cursor(n, pbuf, pbuf_len);
 
-          MEM_freeN(pbuf);
+          MEM_delete(pbuf);
           if (!success) {
             return false;
           }
@@ -591,7 +591,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       printf("%s\n", error);
       BKE_report(reports, RPT_ERROR, error);
       BKE_report(reports, RPT_ERROR, "Numeric input evaluation");
-      MEM_freeN(error);
+      MEM_delete(error);
     }
 
     if (success) {

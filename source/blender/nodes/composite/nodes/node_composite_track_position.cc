@@ -74,7 +74,7 @@ static void node_init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = static_cast<bNode *>(ptr->data);
 
-  NodeTrackPosData *data = MEM_new_for_free<NodeTrackPosData>(__func__);
+  NodeTrackPosData *data = MEM_new<NodeTrackPosData>(__func__);
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);

@@ -71,7 +71,7 @@ static void bm_face_triangulate_mapping(BMesh *bm,
     while (faces_double) {
       LinkNode *next = faces_double->next;
       BMO_slot_map_elem_insert(op, slot_facemap_double_out, faces_double->link, face);
-      MEM_freeN(faces_double);
+      MEM_delete(faces_double);
       faces_double = next;
     }
   }
@@ -144,7 +144,7 @@ void BM_mesh_triangulate(BMesh *bm,
     while (faces_double) {
       LinkNode *next = faces_double->next;
       BM_face_kill(bm, static_cast<BMFace *>(faces_double->link));
-      MEM_freeN(faces_double);
+      MEM_delete(faces_double);
       faces_double = next;
     }
   }

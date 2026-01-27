@@ -135,7 +135,7 @@ enum ImBufOwnership {
   IB_DO_NOT_TAKE_OWNERSHIP = 0,
 
   /**
-   * The ImBuf takes ownership of the buffer data, and will use MEM_freeN() to free this memory
+   * The ImBuf takes ownership of the buffer data, and will use MEM_delete() to free this memory
    * when the ImBuf needs to free the data.
    */
   IB_TAKE_OWNERSHIP = 1,

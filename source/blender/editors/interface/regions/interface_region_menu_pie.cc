@@ -95,7 +95,7 @@ PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent 
 
   wmWindow *win = CTX_wm_window(C);
 
-  PieMenu *pie = MEM_callocN<PieMenu>(__func__);
+  PieMenu *pie = MEM_new_zeroed<PieMenu>(__func__);
 
   pie->pie_block = block_begin(C, nullptr, __func__, EmbossType::Emboss);
   /* may be useful later to allow spawning pies
@@ -174,7 +174,7 @@ void pie_menu_end(bContext *C, PieMenu *pie)
   popup_handlers_add(C, &window->runtime->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
   WM_event_add_mousemove(window);
 
-  MEM_freeN(pie);
+  MEM_delete(pie);
 }
 
 Layout *pie_menu_layout(PieMenu *pie)
@@ -280,7 +280,7 @@ void pie_menu_level_create(Block *block,
 
   /* used as but->func_argN so freeing is handled elsewhere */
   EnumPropertyItem *remaining = static_cast<EnumPropertyItem *>(
-      MEM_mallocN(array_size + sizeof(EnumPropertyItem), "pie_level_item_array"));
+      MEM_new_uninitialized(array_size + sizeof(EnumPropertyItem), "pie_level_item_array"));
   memcpy(remaining, items + totitem_parent, array_size);
   /* A null terminating sentinel element is required. */
   memset(&remaining[totitem_remain], 0, sizeof(EnumPropertyItem));

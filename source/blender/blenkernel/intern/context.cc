@@ -113,13 +113,13 @@ struct bContext {
 
 bContext *CTX_create()
 {
-  bContext *C = MEM_callocN<bContext>(__func__);
+  bContext *C = MEM_new_zeroed<bContext>(__func__);
   return C;
 }
 
 bContext *CTX_copy(const bContext *C)
 {
-  bContext *newC = MEM_callocN<bContext>(__func__);
+  bContext *newC = MEM_new_zeroed<bContext>(__func__);
   *newC = *C;
 
   memset(&newC->wm.operator_poll_msg_dyn_params, 0, sizeof(newC->wm.operator_poll_msg_dyn_params));
@@ -132,7 +132,7 @@ void CTX_free(bContext *C)
   /* This may contain a dynamically allocated message, free. */
   CTX_wm_operator_poll_msg_clear(C);
 
-  MEM_freeN(C);
+  MEM_delete(C);
 }
 
 /* store */
@@ -317,7 +317,7 @@ static std::string ctx_result_brief_repr(const bContextDataResult &result)
             if (name && name[0] != '\0') {
               member_name = name;
               if (name != name_buf) {
-                MEM_freeN(name);
+                MEM_delete(name);
               }
             }
           }
@@ -774,7 +774,7 @@ static void data_dir_add(ListBaseT<LinkData> *lb, const char *member, const bool
     return;
   }
 
-  link = MEM_callocN<LinkData>(__func__);
+  link = MEM_new_zeroed<LinkData>(__func__);
   link->data = const_cast<char *>(member);
   BLI_addtail(lb, link);
 }
@@ -807,7 +807,7 @@ ListBaseT<LinkData> CTX_data_dir_get_ex(const bContext *C,
       name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), &namelen);
       data_dir_add(&lb, name, use_all);
       if (name != name_buf) {
-        MEM_freeN(name);
+        MEM_delete(name);
       }
     }
     RNA_PROP_END;

@@ -422,7 +422,7 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepa
 
   const int num_layers = BLI_listbase_count(&cache_file->layers);
 
-  CacheFileLayer *layer = MEM_new_for_free<CacheFileLayer>("CacheFileLayer");
+  CacheFileLayer *layer = MEM_new<CacheFileLayer>("CacheFileLayer");
   STRNCPY(layer->filepath, filepath);
 
   BLI_addtail(&cache_file->layers, layer);
@@ -442,7 +442,7 @@ void BKE_cachefile_remove_layer(CacheFile *cache_file, CacheFileLayer *layer)
 {
   cache_file->active_layer = 0;
   BLI_remlink(&cache_file->layers, layer);
-  MEM_freeN(layer);
+  MEM_delete(layer);
 }
 
 }  // namespace blender

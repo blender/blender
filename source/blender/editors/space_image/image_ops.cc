@@ -383,7 +383,7 @@ static void image_view_pan_init(bContext *C, wmOperator *op, const wmEvent *even
   SpaceImage *sima = CTX_wm_space_image(C);
   ViewPanData *vpd;
 
-  op->customdata = vpd = MEM_callocN<ViewPanData>("ImageViewPanData");
+  op->customdata = vpd = MEM_new_zeroed<ViewPanData>("ImageViewPanData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
@@ -414,7 +414,7 @@ static void image_view_pan_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(vpd);
+  MEM_delete(vpd);
 }
 
 static wmOperatorStatus image_view_pan_exec(bContext *C, wmOperator *op)
@@ -544,7 +544,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   ARegion *region = CTX_wm_region(C);
   ViewZoomData *vpd;
 
-  op->customdata = vpd = MEM_callocN<ViewZoomData>("ImageViewZoomData");
+  op->customdata = vpd = MEM_new_zeroed<ViewZoomData>("ImageViewZoomData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
@@ -593,7 +593,7 @@ static void image_view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(vpd);
+  MEM_delete(vpd);
 }
 
 static wmOperatorStatus image_view_zoom_exec(bContext *C, wmOperator *op)
@@ -1952,13 +1952,13 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
   ImageUser *iuser = image_user_from_context(C);
   Scene *scene = CTX_data_scene(C);
 
-  ImageSaveData *isd = MEM_new_for_free<ImageSaveData>(__func__);
+  ImageSaveData *isd = MEM_new<ImageSaveData>(__func__);
   isd->image = image;
   isd->iuser = iuser;
 
   if (!BKE_image_save_options_init(&isd->opts, bmain, scene, image, iuser, true, false)) {
     BKE_image_save_options_free(&isd->opts);
-    MEM_freeN(isd);
+    MEM_delete(isd);
     return nullptr;
   }
 
@@ -1995,7 +1995,7 @@ static void image_save_as_free(wmOperator *op)
     ImageSaveData *isd = static_cast<ImageSaveData *>(op->customdata);
     BKE_image_save_options_free(&isd->opts);
 
-    MEM_freeN(isd);
+    MEM_delete(isd);
     op->customdata = nullptr;
   }
 }
@@ -2851,7 +2851,7 @@ static wmOperatorStatus image_flip_exec(bContext *C, wmOperator *op)
   if (ibuf->float_buffer.data) {
     float *float_pixels = ibuf->float_buffer.data;
 
-    float *orig_float_pixels = static_cast<float *>(MEM_dupallocN(float_pixels));
+    float *orig_float_pixels = MEM_dupalloc(float_pixels);
     for (int x = 0; x < size_x; x++) {
       const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
       for (int y = 0; y < size_y; y++) {
@@ -2864,7 +2864,7 @@ static wmOperatorStatus image_flip_exec(bContext *C, wmOperator *op)
         copy_v4_v4(target_pixel, source_pixel);
       }
     }
-    MEM_freeN(orig_float_pixels);
+    MEM_delete(orig_float_pixels);
 
     if (ibuf->byte_buffer.data) {
       IMB_byte_from_float(ibuf);
@@ -2872,7 +2872,7 @@ static wmOperatorStatus image_flip_exec(bContext *C, wmOperator *op)
   }
   else if (ibuf->byte_buffer.data) {
     uchar *char_pixels = ibuf->byte_buffer.data;
-    uchar *orig_char_pixels = static_cast<uchar *>(MEM_dupallocN(char_pixels));
+    uchar *orig_char_pixels = MEM_dupalloc(char_pixels);
     for (int x = 0; x < size_x; x++) {
       const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
       for (int y = 0; y < size_y; y++) {
@@ -2885,7 +2885,7 @@ static wmOperatorStatus image_flip_exec(bContext *C, wmOperator *op)
         copy_v4_v4_uchar(target_pixel, source_pixel);
       }
     }
-    MEM_freeN(orig_char_pixels);
+    MEM_delete(orig_char_pixels);
   }
   else {
     BKE_image_release_ibuf(ima, ibuf, nullptr);

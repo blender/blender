@@ -299,10 +299,10 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
 
 error:
   if (key_types_bitmap != nullptr) {
-    MEM_freeN(key_types_bitmap);
+    MEM_delete(key_types_bitmap);
   }
   if (val_types_bitmap != nullptr) {
-    MEM_freeN(val_types_bitmap);
+    MEM_delete(val_types_bitmap);
   }
 
   return ret;
@@ -501,7 +501,7 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
 
 error:
   if (key_types_bitmap != nullptr) {
-    MEM_freeN(key_types_bitmap);
+    MEM_delete(key_types_bitmap);
   }
 
   return ret;
@@ -688,7 +688,7 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
   PyObject *visit_path_fn = nullptr;
   PyObject *subset = nullptr;
   PyObject *visit_types = nullptr;
-  std::unique_ptr<BLI_bitmap, MEM_freeN_smart_ptr_deleter> visit_types_bitmap;
+  std::unique_ptr<BLI_bitmap, MEM_smart_ptr_deleter<BLI_bitmap>> visit_types_bitmap;
   PyObject *py_flags = nullptr;
 
   IDFilePathForeachData filepathforeach_data{};

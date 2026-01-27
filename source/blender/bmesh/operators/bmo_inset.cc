@@ -571,11 +571,11 @@ static float bm_edge_info_average_length_fallback(BMVert *v_lookup,
 
   /* Only run this once, if needed. */
   if (UNLIKELY(vert_lengths == nullptr)) {
-    BMVert **vert_stack = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
+    BMVert **vert_stack = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
     STACK_DECLARE(vert_stack);
     STACK_INIT(vert_stack, bm->totvert);
 
-    vert_lengths = MEM_calloc_arrayN<VertLengths>(bm->totvert, __func__);
+    vert_lengths = MEM_new_array_zeroed<VertLengths>(bm->totvert, __func__);
 
     /* Needed for 'vert_lengths' lookup from connected vertices. */
     BM_mesh_elem_index_ensure(bm, BM_VERT);
@@ -637,7 +637,7 @@ static float bm_edge_info_average_length_fallback(BMVert *v_lookup,
         }
       }
     }
-    MEM_freeN(vert_stack);
+    MEM_delete(vert_stack);
     *vert_lengths_p = vert_lengths;
   }
 
@@ -711,7 +711,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
   if (use_interpolate) {
     interp_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
     /* warning, we could be more clever here and not over alloc */
-    iface_array = MEM_calloc_arrayN<InterpFace *>(bm->totface, __func__);
+    iface_array = MEM_new_array_zeroed<InterpFace *>(bm->totface, __func__);
     iface_array_len = bm->totface;
   }
 
@@ -753,7 +753,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
   }
   bm->elem_index_dirty |= BM_EDGE;
 
-  edge_info = MEM_malloc_arrayN<SplitEdgeInfo>(edge_info_len, __func__);
+  edge_info = MEM_new_array_uninitialized<SplitEdgeInfo>(edge_info_len, __func__);
 
   /* fill in array and initialize tagging */
   es = edge_info;
@@ -867,7 +867,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
           if (use_vert_coords_orig) {
             vert_coords.add(vout[0], vout[0]->co);
           }
-          MEM_freeN(vout);
+          MEM_delete(vout);
           continue;
         }
 
@@ -1108,7 +1108,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
           }
           /* end glue */
         }
-        MEM_freeN(vout);
+        MEM_delete(vout);
       }
     }
   }
@@ -1282,7 +1282,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     }
 
     BLI_memarena_free(interp_arena);
-    MEM_freeN(iface_array);
+    MEM_delete(iface_array);
   }
 
   /* we could flag new edges/verts too, is it useful? */
@@ -1332,7 +1332,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
      * which BM_vert_calc_shell_factor uses. */
 
     /* over allocate */
-    varr_co = MEM_calloc_arrayN<float[3]>(bm->totvert, __func__);
+    varr_co = MEM_new_array_zeroed<float[3]>(bm->totvert, __func__);
     void *vert_lengths_p = nullptr;
 
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
@@ -1353,7 +1353,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     }
 
     if (vert_lengths_p != nullptr) {
-      MEM_freeN(vert_lengths_p);
+      MEM_delete_void(vert_lengths_p);
     }
 
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
@@ -1361,10 +1361,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         copy_v3_v3(v->co, varr_co[i]);
       }
     }
-    MEM_freeN(varr_co);
+    MEM_delete(varr_co);
   }
 
-  MEM_freeN(edge_info);
+  MEM_delete(edge_info);
 }
 
 /** \} */

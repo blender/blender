@@ -2794,7 +2794,7 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
    * pair. The edge_winding_map already accounts for multiple input faces sharing an edge. */
 
   /* Store one winding delta per region pair using a map.
-   * Key: (from_region, to_region), Value: winding delta from the first edge found. */
+   * Key: `(region_src, region_dst)`, Value: `winding_delta` from the first edge found. */
   Map<int2, int> region_pair_winding;
   /* Reserve based on region count: ~3 edges per region, 2 entries per edge.
    * This is an absolute floor (actual count is likely larger),
@@ -2826,29 +2826,33 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
 
   /* Count unique neighbors per region to build offset array. */
   Array<int> region_neighbor_count(num_regions, 0);
-  for (const auto &item : region_pair_winding.items()) {
-    region_neighbor_count[item.key[0]]++;
+  for (const auto &key : region_pair_winding.keys()) {
+    const int region_src = key[0];
+    region_neighbor_count[region_src]++;
   }
 
-  /* Build offset array (prefix sum of counts) for CSR-style adjacency storage. */
-  Array<int> offset_data(num_regions + 1);
-  offset_data[0] = 0;
-  for (int i = 0; i < num_regions; i++) {
-    offset_data[i + 1] = offset_data[i] + region_neighbor_count[i];
-  }
-  const OffsetIndices<int> region_adjacency_offsets(offset_data);
-  const int total_adjacency_entries = offset_data[num_regions];
+  /* Build offset array for CSR-style adjacency storage. */
+  Array<int> region_adjacency_offset_data(num_regions + 1);
+  region_adjacency_offset_data.as_mutable_span()
+      .take_front(num_regions)
+      .copy_from(region_neighbor_count);
+  region_adjacency_offset_data[num_regions] = 0;
+  const OffsetIndices<int> region_adjacency_offsets = offset_indices::accumulate_counts_to_offsets(
+      region_adjacency_offset_data);
 
   /* Fill flat adjacency array. `region_neighbor_count` is repurposed,
    * reset to 0 and reused to track the current write position within
    * each region's slice of the adjacency array. */
-  Array<RegionEdge> adjacency_data(total_adjacency_entries);
-  region_neighbor_count.fill(0);
+  Array<RegionEdge> adjacency_data(region_adjacency_offsets.total_size());
+  MutableSpan<int> write_position = region_neighbor_count; /* Alias for readability. */
+  write_position.fill(0);
 
   for (const auto &item : region_pair_winding.items()) {
-    const int from_region = item.key[0];
-    const int idx = offset_data[from_region] + region_neighbor_count[from_region]++;
-    adjacency_data[idx] = {item.key[1], item.value};
+    const int region_src = item.key[0];
+    const int region_dst = item.key[1];
+    const int winding_delta = item.value;
+    const int index = region_adjacency_offset_data[region_src] + write_position[region_src]++;
+    adjacency_data[index] = {region_dst, winding_delta};
   }
 
   /* Initialize region winding values and BFS queue. */

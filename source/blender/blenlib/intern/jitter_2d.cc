@@ -141,7 +141,7 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
   number_fl = float(num);
   number_fl_sqrt = sqrtf(number_fl);
 
-  jit2 = MEM_malloc_arrayN<float[2]>(2 + size_t(num), "initjit");
+  jit2 = MEM_new_array_uninitialized<float[2]>(2 + size_t(num), "initjit");
   rad1 = 1.0f / number_fl_sqrt;
   rad2 = 1.0f / number_fl;
   rad3 = number_fl_sqrt / number_fl;
@@ -164,7 +164,7 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
     BLI_jitterate2(jitarr, jit2, num, rad2);
   }
 
-  MEM_freeN(jit2);
+  MEM_delete_void(static_cast<void *>(jit2));
 
   /* Finally, move jitter to be centered around (0, 0). */
   for (i = 0; i < num; i++) {

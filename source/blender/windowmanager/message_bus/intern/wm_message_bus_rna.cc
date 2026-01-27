@@ -76,7 +76,7 @@ static void wm_msg_rna_gset_key_free(void *key_p)
     wm_msg_subscribe_value_free(&key->head, msg_lnk);
   }
   if (key->msg.params.data_path != nullptr) {
-    MEM_freeN(key->msg.params.data_path);
+    MEM_delete(key->msg.params.data_path);
   }
   MEM_delete(key);
 }

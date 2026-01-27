@@ -156,7 +156,7 @@ static void calc_face_as_quad_map(
     /* Over allocate, since we don't know how many ngon or quads we have. */
 
     /* map fake face index to looptri */
-    face_as_quad_map = MEM_malloc_arrayN<int>(size_t(totface), __func__);
+    face_as_quad_map = MEM_new_array_uninitialized<int>(size_t(totface), __func__);
     int i, j;
     for (i = 0, j = 0; j < totface; i++, j++) {
       face_as_quad_map[i] = j;
@@ -225,7 +225,7 @@ Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
     }
   });
 
-  MEM_SAFE_FREE(face_as_quad_map);
+  MEM_SAFE_DELETE(face_as_quad_map);
 
   return result;
 }
@@ -274,7 +274,7 @@ Array<float4> BKE_editmesh_orco_tangents_calc(BMEditMesh *em,
   mikk::Mikktspace<SGLSLEditMeshToTangent> mikk(mesh2tangent);
   mikk.genTangSpace();
 
-  MEM_SAFE_FREE(face_as_quad_map);
+  MEM_SAFE_DELETE(face_as_quad_map);
 
   return result;
 }

@@ -37,7 +37,7 @@ namespace blender {
 
 wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent *event, int type)
 {
-  wmGesture *gesture = MEM_new_for_free<wmGesture>("new gesture");
+  wmGesture *gesture = MEM_new<wmGesture>("new gesture");
 
   BLI_addtail(&window->runtime->gesture, gesture);
 
@@ -59,7 +59,7 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
            WM_GESTURE_CIRCLE,
            WM_GESTURE_STRAIGHTLINE))
   {
-    rcti *rect = MEM_callocN<rcti>("gesture rect new");
+    rcti *rect = MEM_new_zeroed<rcti>("gesture rect new");
 
     gesture->customdata = rect;
     rect->xmin = xy[0] - gesture->winrct.xmin;
@@ -75,15 +75,16 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
   else if (ELEM(type, WM_GESTURE_LINES, WM_GESTURE_LASSO)) {
     float *lasso;
     gesture->points_alloc = 1024;
-    gesture->customdata = lasso = MEM_malloc_arrayN<float>(size_t(2 * gesture->points_alloc),
-                                                           "lasso points");
+    gesture->customdata = lasso = MEM_new_array_uninitialized<float>(
+        size_t(2 * gesture->points_alloc), "lasso points");
     lasso[0] = xy[0] - gesture->winrct.xmin;
     lasso[1] = xy[1] - gesture->winrct.ymin;
     gesture->points = 1;
   }
   else if (ELEM(type, WM_GESTURE_POLYLINE)) {
     gesture->points_alloc = 64;
-    short *border = MEM_malloc_arrayN<short>(size_t(2 * gesture->points_alloc), "polyline points");
+    short *border = MEM_new_array_uninitialized<short>(size_t(2 * gesture->points_alloc),
+                                                       "polyline points");
     gesture->customdata = border;
     border[0] = xy[0] - gesture->winrct.xmin;
     border[1] = xy[1] - gesture->winrct.ymin;
@@ -98,9 +99,9 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
 void WM_gesture_end(wmWindow *win, wmGesture *gesture)
 {
   BLI_remlink(&win->runtime->gesture, gesture);
-  MEM_freeN(gesture->customdata);
+  MEM_delete_void(gesture->customdata);
   WM_generic_user_data_free(&gesture->user_data);
-  MEM_freeN(gesture);
+  MEM_delete(gesture);
 }
 
 void WM_gestures_free_all(wmWindow *win)
@@ -336,7 +337,7 @@ static void draw_filled_lasso(wmGesture *gt, const int2 *lasso_pt_extra)
   if (BLI_rcti_is_empty(&rect) == false) {
     const int w = BLI_rcti_size_x(&rect);
     const int h = BLI_rcti_size_y(&rect);
-    uchar *pixel_buf = MEM_calloc_arrayN<uchar>(size_t(w) * size_t(h), __func__);
+    uchar *pixel_buf = MEM_new_array_zeroed<uchar>(size_t(w) * size_t(h), __func__);
     LassoFillData lasso_fill_data = {pixel_buf, w};
 
     BLI_bitmap_draw_2d_poly_v2i_n(rect.xmin,
@@ -368,7 +369,7 @@ static void draw_filled_lasso(wmGesture *gt, const int2 *lasso_pt_extra)
 
     GPU_shader_unbind();
 
-    MEM_freeN(pixel_buf);
+    MEM_delete(pixel_buf);
 
     GPU_blend(GPU_BLEND_NONE);
   }

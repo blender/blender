@@ -59,7 +59,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
      * Removing a vert may remove and edge which is later checked by #BMO_ITER.
      * over-allocate the total possible vert count. */
     const int vert_arr_max = min_ii(bm->totvert, BMO_slot_buffer_len(op->slots_in, "geom"));
-    BMVert **vert_arr = MEM_malloc_arrayN<BMVert *>(vert_arr_max, __func__);
+    BMVert **vert_arr = MEM_new_array_uninitialized<BMVert *>(vert_arr_max, __func__);
     BMOIter siter;
     BMVert *v;
     float plane_inner[4];
@@ -86,7 +86,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
       BM_vert_kill(bm, v);
     }
 
-    MEM_freeN(vert_arr);
+    MEM_delete(vert_arr);
   }
 
   BMO_slot_buffer_from_enabled_flag(

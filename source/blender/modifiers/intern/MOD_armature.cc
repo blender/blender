@@ -136,7 +136,7 @@ static void deform_verts(ModifierData *md,
                                        mesh);
 
   /* free cache */
-  MEM_SAFE_FREE(amd->vert_coords_prev);
+  MEM_SAFE_DELETE(amd->vert_coords_prev);
 }
 
 static void deform_verts_EM(ModifierData *md,
@@ -169,7 +169,7 @@ static void deform_verts_EM(ModifierData *md,
                                            *em);
 
   /* free cache */
-  MEM_SAFE_FREE(amd->vert_coords_prev);
+  MEM_SAFE_DELETE(amd->vert_coords_prev);
 }
 
 static void deform_matrices_EM(ModifierData *md,

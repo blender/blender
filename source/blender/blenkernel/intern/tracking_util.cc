@@ -52,13 +52,13 @@ namespace blender {
 
 TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 {
-  TracksMap *map = MEM_callocN<TracksMap>("TrackingsMap");
+  TracksMap *map = MEM_new_zeroed<TracksMap>("TrackingsMap");
 
   STRNCPY(map->object_name, object_name);
 
   map->num_tracks = num_tracks;
 
-  map->tracks = MEM_new_array_for_free<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
+  map->tracks = MEM_new_array<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
 
   map->hash = MEM_new<Map<MovieTrackingTrack *, MovieTrackingTrack *>>("TracksMap hash");
 
@@ -76,7 +76,7 @@ void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track)
 {
   MovieTrackingTrack new_track = *track;
 
-  new_track.markers = static_cast<MovieTrackingMarker *>(MEM_dupallocN(new_track.markers));
+  new_track.markers = MEM_dupalloc(new_track.markers);
 
   map->tracks[map->ptr] = new_track;
 
@@ -123,9 +123,9 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
         track->search_flag = old_track->search_flag;
 
         /* Copy all the rest settings back from the map to the actual tracks. */
-        MEM_freeN(old_track->markers);
+        MEM_delete(old_track->markers);
         *old_track = *track;
-        old_track->markers = static_cast<MovieTrackingMarker *>(MEM_dupallocN(old_track->markers));
+        old_track->markers = MEM_dupalloc(old_track->markers);
 
         BLI_spin_unlock(&map->spin_lock);
 
@@ -184,11 +184,11 @@ void tracks_map_free(TracksMap *map)
     BKE_tracking_track_free(&map->tracks[i]);
   }
 
-  MEM_freeN(map->tracks);
+  MEM_delete(map->tracks);
 
   BLI_spin_end(&map->spin_lock);
 
-  MEM_freeN(map);
+  MEM_delete(map);
 }
 
 /** \} */
@@ -627,7 +627,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
    */
   const size_t num_pixels = size_t(grayscale->x) * size_t(grayscale->y);
   grayscale->channels = 1;
-  float *rect_float = MEM_calloc_arrayN<float>(num_pixels, "tracking grayscale image");
+  float *rect_float = MEM_new_array_zeroed<float>(num_pixels, "tracking grayscale image");
   if (rect_float != nullptr) {
     IMB_assign_float_buffer(grayscale, rect_float, IB_TAKE_OWNERSHIP);
 
@@ -655,7 +655,7 @@ static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
   ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
   size_t num_total_channels = size_t(ibuf->x) * size_t(ibuf->y) * float_image->channels;
   ibuf->channels = float_image->channels;
-  float *rect_float = MEM_calloc_arrayN<float>(num_total_channels, "tracking grayscale image");
+  float *rect_float = MEM_new_array_zeroed<float>(num_total_channels, "tracking grayscale image");
   if (rect_float != nullptr) {
     IMB_assign_float_buffer(ibuf, rect_float, IB_TAKE_OWNERSHIP);
 
@@ -878,7 +878,7 @@ static void accessor_release_mask_callback(libmv_CacheKey cache_key)
 {
   if (cache_key != nullptr) {
     float *mask = static_cast<float *>(cache_key);
-    MEM_freeN(mask);
+    MEM_delete(mask);
   }
 }
 
@@ -887,14 +887,16 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
                                                    MovieTrackingTrack **tracks,
                                                    int num_tracks)
 {
-  TrackingImageAccessor *accessor = MEM_callocN<TrackingImageAccessor>("tracking image accessor");
+  TrackingImageAccessor *accessor = MEM_new_zeroed<TrackingImageAccessor>(
+      "tracking image accessor");
 
   BLI_assert(num_clips <= MAX_ACCESSOR_CLIP);
 
   memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip *));
   accessor->num_clips = num_clips;
 
-  accessor->tracks = MEM_calloc_arrayN<MovieTrackingTrack *>(num_tracks, "image accessor tracks");
+  accessor->tracks = MEM_new_array_zeroed<MovieTrackingTrack *>(num_tracks,
+                                                                "image accessor tracks");
   memcpy(accessor->tracks, tracks, num_tracks * sizeof(MovieTrackingTrack *));
   accessor->num_tracks = num_tracks;
 
@@ -914,8 +916,8 @@ void tracking_image_accessor_destroy(TrackingImageAccessor *accessor)
 {
   libmv_FrameAccessorDestroy(accessor->libmv_accessor);
   BLI_spin_end(&accessor->cache_lock);
-  MEM_freeN(accessor->tracks);
-  MEM_freeN(accessor);
+  MEM_delete(accessor->tracks);
+  MEM_delete(accessor);
 }
 
 /** \} */

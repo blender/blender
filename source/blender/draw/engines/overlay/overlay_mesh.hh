@@ -1115,7 +1115,7 @@ class MeshUVs : Overlay {
   {
     const int width = resolution.x;
     const int height = floor(float(resolution.y) * (aspect.y / aspect.x));
-    float *buffer = MEM_malloc_arrayN<float>(height * width, __func__);
+    float *buffer = MEM_new_array_uninitialized<float>(height * width, __func__);
 
     MaskRasterHandle *handle = BKE_maskrasterize_handle_new();
     BKE_maskrasterize_handle_init(handle, mask, width, height, true, true, true);
@@ -1126,7 +1126,7 @@ class MeshUVs : Overlay {
     mask_texture_.ensure_2d(
         gpu::TextureFormat::SFLOAT_16, int2(width, height), GPU_TEXTURE_USAGE_SHADER_READ, buffer);
 
-    MEM_freeN(buffer);
+    MEM_delete(buffer);
   }
 };
 

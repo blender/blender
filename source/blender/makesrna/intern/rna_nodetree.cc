@@ -2190,10 +2190,10 @@ static void rna_GeometryNodeTree_node_tool_idname_set(PointerRNA *ptr, const cha
 {
   bNodeTree *ntree = ptr->data_as<bNodeTree>();
   if (!ntree->geometry_node_asset_traits) {
-    ntree->geometry_node_asset_traits = MEM_new_for_free<GeometryNodeAssetTraits>(__func__);
+    ntree->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
   }
   if (ntree->geometry_node_asset_traits->node_tool_idname) {
-    MEM_freeN(ntree->geometry_node_asset_traits->node_tool_idname);
+    MEM_delete(ntree->geometry_node_asset_traits->node_tool_idname);
   }
   if (value && value[0]) {
     ntree->geometry_node_asset_traits->node_tool_idname = BLI_strdup(value);
@@ -2209,7 +2209,7 @@ static void geometry_node_asset_trait_flag_set(PointerRNA *ptr,
 {
   bNodeTree *ntree = ptr->data_as<bNodeTree>();
   if (!ntree->geometry_node_asset_traits) {
-    ntree->geometry_node_asset_traits = MEM_new_for_free<GeometryNodeAssetTraits>(__func__);
+    ntree->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
   }
   SET_FLAG_FROM_TEST(ntree->geometry_node_asset_traits->flag, value, flag);
 }
@@ -3593,7 +3593,7 @@ static void rna_NodeCryptomatte_matte_get(PointerRNA *ptr, char *value)
   NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
   char *matte_id = BKE_cryptomatte_entries_to_matte_id(nc);
   strcpy(value, matte_id);
-  MEM_freeN(matte_id);
+  MEM_delete(matte_id);
 }
 
 static int rna_NodeCryptomatte_matte_length(PointerRNA *ptr)
@@ -3602,7 +3602,7 @@ static int rna_NodeCryptomatte_matte_length(PointerRNA *ptr)
   NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
   char *matte_id = BKE_cryptomatte_entries_to_matte_id(nc);
   int result = strlen(matte_id);
-  MEM_freeN(matte_id);
+  MEM_delete(matte_id);
   return result;
 }
 
@@ -3940,7 +3940,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 
     /* remove any bytecode */
     if (nss->bytecode) {
-      MEM_freeN(nss->bytecode);
+      MEM_delete(nss->bytecode);
       nss->bytecode = nullptr;
     }
 
@@ -3970,7 +3970,7 @@ static void rna_ShaderNodeScript_bytecode_set(PointerRNA *ptr, const char *value
   NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
 
   if (nss->bytecode) {
-    MEM_freeN(nss->bytecode);
+    MEM_delete(nss->bytecode);
   }
 
   if (value && value[0]) {

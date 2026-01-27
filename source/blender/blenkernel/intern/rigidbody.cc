@@ -151,16 +151,16 @@ void BKE_rigidbody_free_world(Scene *scene)
     rbw->shared->pointcache = nullptr;
 
     MEM_delete(rbw->shared->runtime);
-    MEM_freeN(rbw->shared);
+    MEM_delete(rbw->shared);
   }
 
   /* free effector weights */
   if (rbw->effector_weights) {
-    MEM_freeN(rbw->effector_weights);
+    MEM_delete(rbw->effector_weights);
   }
 
   /* free rigidbody world itself */
-  MEM_freeN(rbw);
+  MEM_delete(rbw);
 }
 
 void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
@@ -206,11 +206,11 @@ void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
       rbo->shared->physics_shape = nullptr;
     }
 
-    MEM_freeN(rbo->shared);
+    MEM_delete(rbo->shared);
   }
 
   /* free data itself */
-  MEM_freeN(rbo);
+  MEM_delete(rbo);
   ob->rigidbody_object = nullptr;
 }
 
@@ -230,7 +230,7 @@ void BKE_rigidbody_free_constraint(Object *ob)
   }
 
   /* free data itself */
-  MEM_freeN(rbc);
+  MEM_delete(rbc);
   ob->rigidbody_constraint = nullptr;
 }
 
@@ -1140,8 +1140,8 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
   }
 
   /* create a new sim world */
-  rbw = MEM_new_for_free<RigidBodyWorld>("RigidBodyWorld");
-  rbw->shared = MEM_new_for_free<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
+  rbw = MEM_new<RigidBodyWorld>("RigidBodyWorld");
+  rbw->shared = MEM_new<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
 
   /* set default settings */
   rbw->effector_weights = BKE_effector_add_weights(nullptr);
@@ -1166,11 +1166,11 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 
 RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 {
-  RigidBodyWorld *rbw_copy = static_cast<RigidBodyWorld *>(MEM_dupallocN(rbw));
+  RigidBodyWorld *rbw_copy = MEM_dupalloc(rbw);
 
   if (rbw->effector_weights) {
     rbw_copy->effector_weights = static_cast<EffectorWeights *>(
-        MEM_dupallocN(rbw->effector_weights));
+        MEM_dupalloc(rbw->effector_weights));
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus((ID *)rbw->effector_weights->group);
     }
@@ -1182,7 +1182,7 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0) {
     /* This is a regular copy, and not an evaluated copy for depsgraph evaluation. */
-    rbw_copy->shared = MEM_new_for_free<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
+    rbw_copy->shared = MEM_new<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
     BKE_ptcache_copy_list(&rbw_copy->shared->ptcaches, &rbw->shared->ptcaches, LIB_ID_COPY_CACHES);
     rbw_copy->shared->pointcache = static_cast<PointCache *>(rbw_copy->shared->ptcaches.first);
     BKE_rigidbody_world_init_runtime(rbw_copy);
@@ -1220,8 +1220,8 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
   }
 
   /* create new settings data, and link it up */
-  rbo = MEM_new_for_free<RigidBodyOb>("RigidBodyOb");
-  rbo->shared = MEM_new_for_free<RigidBodyOb_Shared>("RigidBodyOb_Shared");
+  rbo = MEM_new<RigidBodyOb>("RigidBodyOb");
+  rbo->shared = MEM_new<RigidBodyOb_Shared>("RigidBodyOb_Shared");
 
   /* set default settings */
   rbo->type = type;
@@ -1279,7 +1279,7 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
   }
 
   /* create new settings data, and link it up */
-  rbc = MEM_new_for_free<RigidBodyCon>("RigidBodyCon");
+  rbc = MEM_new<RigidBodyCon>("RigidBodyCon");
 
   /* set default settings */
   rbc->type = type;
@@ -1885,7 +1885,7 @@ static ListBaseT<LinkData> rigidbody_create_substep_data(RigidBodyWorld *rbw)
     if (rbo->flag & RBO_FLAG_KINEMATIC) {
       float loc[3], rot[4], scale[3];
 
-      KinematicSubstepData *data = MEM_callocN<KinematicSubstepData>("RigidBody Substep data");
+      KinematicSubstepData *data = MEM_new_zeroed<KinematicSubstepData>("RigidBody Substep data");
 
       data->rbo = rbo;
 
@@ -2021,7 +2021,7 @@ static void rigidbody_free_substep_data(ListBaseT<LinkData> *substep_targets)
 {
   for (LinkData &link : *substep_targets) {
     KinematicSubstepData *data = static_cast<KinematicSubstepData *>(link.data);
-    MEM_freeN(data);
+    MEM_delete(data);
   }
 
   BLI_freelistN(substep_targets);
@@ -2433,11 +2433,11 @@ static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
     const bool is_orig = (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0;
 
     /* just duplicate the whole struct first (to catch all the settings) */
-    rboN = static_cast<RigidBodyOb *>(MEM_dupallocN(ob->rigidbody_object));
+    rboN = MEM_dupalloc(ob->rigidbody_object);
 
     if (is_orig) {
       /* This is a regular copy, and not an evaluated copy for depsgraph evaluation */
-      rboN->shared = MEM_new_for_free<RigidBodyOb_Shared>("RigidBodyOb_Shared");
+      rboN->shared = MEM_new<RigidBodyOb_Shared>("RigidBodyOb_Shared");
     }
 
     /* tag object as needing to be verified */
@@ -2454,7 +2454,7 @@ static RigidBodyCon *rigidbody_copy_constraint(const Object *ob, const int /*fla
 
   if (ob->rigidbody_constraint) {
     /* Just duplicate the whole struct first (to catch all the settings). */
-    rbcN = static_cast<RigidBodyCon *>(MEM_dupallocN(ob->rigidbody_constraint));
+    rbcN = MEM_dupalloc(ob->rigidbody_constraint);
 
     /* Tag object as needing to be verified. */
     rbcN->flag |= RBC_FLAG_NEEDS_VALIDATE;

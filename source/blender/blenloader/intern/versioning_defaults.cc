@@ -429,7 +429,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Don't enable compositing nodes. */
   if (scene->nodetree) {
     bke::node_tree_free_embedded_tree(scene->nodetree);
-    MEM_freeN(scene->nodetree);
+    MEM_delete(scene->nodetree);
     scene->nodetree = nullptr;
     scene->use_nodes = false;
   }

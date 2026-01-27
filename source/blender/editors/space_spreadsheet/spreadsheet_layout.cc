@@ -215,8 +215,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{:f}", *(static_cast<float *>(argN)));
           },
-          MEM_dupallocN<float>(__func__, value),
-          MEM_freeN);
+          MEM_new<float>(__func__, value),
+          MEM_delete_void);
       /* Right-align Floats. */
       button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
       button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
@@ -297,7 +297,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       return;
     }
     if (type.is<MStringProperty>()) {
-      MStringProperty *prop = MEM_callocN<MStringProperty>(__func__);
+      MStringProperty *prop = MEM_new_zeroed<MStringProperty>(__func__);
       *prop = *value_ptr.get<MStringProperty>();
       ui::Button *but = uiDefIconTextBut(params.block,
                                          ui::ButtonType::Label,
@@ -317,7 +317,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
             return std::string(StringRef(prop.s, prop.s_len));
           },
           prop,
-          MEM_freeN);
+          MEM_delete_void);
       return;
     }
     if (type.is<nodes::BundleItemValue>()) {
@@ -399,8 +399,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{:f}", *(static_cast<float *>(argN)));
           },
-          MEM_dupallocN<float>(__func__, value),
-          MEM_freeN);
+          MEM_new<float>(__func__, value),
+          MEM_delete_void);
       /* Right-align Floats. */
       button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
       button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
@@ -445,8 +445,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
               BLI_str_format_int64_grouped(dst, *static_cast<int64_t *>(argN));
               return fmt::format("{} {}", dst, TIP_("bytes"));
             },
-            MEM_dupallocN<int64_t>(__func__, value),
-            MEM_freeN);
+            MEM_new<int64_t>(__func__, value),
+            MEM_delete_void);
         break;
       }
       default: {
@@ -455,8 +455,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
             [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
               return fmt::format("{}", *static_cast<int64_t *>(argN));
             },
-            MEM_dupallocN<int64_t>(__func__, value),
-            MEM_freeN);
+            MEM_new<int64_t>(__func__, value),
+            MEM_delete_void);
         break;
       }
     }
@@ -489,8 +489,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{}", *(static_cast<int *>(argN)));
           },
-          MEM_dupallocN<int>(__func__, value),
-          MEM_freeN);
+          MEM_new<int>(__func__, value),
+          MEM_delete_void);
       /* Right-align Floats. */
       button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
       button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
@@ -551,8 +551,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           tooltip_text_field_add(
               tip, format_matrix_to_grid(matrix), {}, ui::TIP_STYLE_MONO, ui::TIP_LC_VALUE);
         },
-        MEM_dupallocN<float4x4>(__func__, value),
-        MEM_freeN);
+        MEM_new<float4x4>(__func__, value),
+        MEM_delete_void);
   }
 
   ui::Button *draw_undrawable(const CellDrawParams &params) const

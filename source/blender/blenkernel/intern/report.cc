@@ -122,8 +122,8 @@ void BKE_reports_clear(ReportList *reports)
 
   while (report) {
     report_next = report->next;
-    MEM_freeN(report->message);
-    MEM_freeN(report);
+    MEM_delete(report->message);
+    MEM_delete(report);
     report = report_next;
   }
 
@@ -167,12 +167,12 @@ void BKE_report(ReportList *reports, eReportType type, const char *_message)
     std::scoped_lock lock(*reports->lock);
 
     char *message_alloc;
-    report = MEM_new_for_free<Report>("Report");
+    report = MEM_new<Report>("Report");
     report->type = type;
     report->typestr = BKE_report_type_str(type);
 
     len = strlen(message);
-    message_alloc = MEM_malloc_arrayN<char>(size_t(len) + 1, "ReportMessage");
+    message_alloc = MEM_new_array_uninitialized<char>(size_t(len) + 1, "ReportMessage");
     memcpy(message_alloc, message, sizeof(char) * (len + 1));
     report->message = message_alloc;
     report->len = len;
@@ -192,13 +192,13 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
     va_end(args);
     BKE_report_log(type, message, &LOG);
     fflush(stdout); /* this ensures the message is printed before a crash */
-    MEM_freeN(message);
+    MEM_delete(message);
   }
 
   if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
     std::scoped_lock lock(*reports->lock);
 
-    report = MEM_new_for_free<Report>("Report");
+    report = MEM_new<Report>("Report");
 
     va_start(args, _format);
     report->message = BLI_vsprintfN(format, args);
@@ -225,7 +225,7 @@ static void reports_prepend_impl(ReportList *reports, const char *prepend)
   const size_t prefix_len = strlen(prepend);
   for (Report &report : reports->list) {
     char *message = BLI_string_joinN(prepend, report.message);
-    MEM_freeN(report.message);
+    MEM_delete(report.message);
     report.message = message;
     report.len += prefix_len;
     BLI_assert(report.len == strlen(message));
@@ -252,7 +252,7 @@ void BKE_reports_prependf(ReportList *reports, const char *prepend_format, ...)
 
   reports_prepend_impl(reports, prepend);
 
-  MEM_freeN(prepend);
+  MEM_delete(prepend);
 }
 
 eReportType BKE_report_print_level(ReportList *reports)
@@ -366,7 +366,7 @@ void BKE_reports_print(ReportList *reports, eReportType level)
   /* A trailing newline is already part of `cstring`. */
   fputs(cstring, stdout);
   fflush(stdout);
-  MEM_freeN(cstring);
+  MEM_delete(cstring);
 }
 
 Report *BKE_reports_last_displayable(ReportList *reports)

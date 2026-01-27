@@ -259,7 +259,7 @@ static void bm_uidwalk_free(UIDWalk *uidwalk)
   BLI_ghash_free(uidwalk->cache.verts_uid, nullptr, nullptr);
   MEM_delete(uidwalk->cache.faces_step);
   BLI_ghash_free(uidwalk->cache.faces_from_uid, nullptr, nullptr);
-  MEM_SAFE_FREE(uidwalk->cache.rehash_store);
+  MEM_SAFE_DELETE(uidwalk->cache.rehash_store);
 
   BLI_mempool_destroy(uidwalk->link_pool);
   BLI_mempool_destroy(uidwalk->step_pool);
@@ -376,7 +376,7 @@ static void bm_uidwalk_rehash_reserve(UIDWalk *uidwalk, uint rehash_store_len_ne
   if (UNLIKELY(rehash_store_len_new > uidwalk->cache.rehash_store_len)) {
     /* Avoid re-allocations. */
     rehash_store_len_new *= 2;
-    uidwalk->cache.rehash_store = static_cast<UID_Int *>(MEM_reallocN(
+    uidwalk->cache.rehash_store = static_cast<UID_Int *>(MEM_realloc_uninitialized(
         uidwalk->cache.rehash_store, rehash_store_len_new * sizeof(*uidwalk->cache.rehash_store)));
     uidwalk->cache.rehash_store_len = rehash_store_len_new;
   }
@@ -833,7 +833,7 @@ static BMFace **bm_mesh_region_match_pair(
     const uint faces_result_len = BLI_ghash_len(w_dst->faces_uid);
     uint i;
 
-    faces_result = MEM_malloc_arrayN<BMFace *>(faces_result_len + 1, __func__);
+    faces_result = MEM_new_array_uninitialized<BMFace *>(faces_result_len + 1, __func__);
     GHASH_ITER_INDEX (gh_iter, w_dst->faces_uid, i) {
       BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
       faces_result[i] = f;
@@ -1259,8 +1259,8 @@ static UIDFashMatch *bm_vert_fasthash_create(BMesh *bm, const uint depth)
   BMVert *v;
   BMIter iter;
 
-  id_prev = MEM_malloc_arrayN<UIDFashMatch>(uint(bm->totvert), __func__);
-  id_curr = MEM_malloc_arrayN<UIDFashMatch>(uint(bm->totvert), __func__);
+  id_prev = MEM_new_array_uninitialized<UIDFashMatch>(uint(bm->totvert), __func__);
+  id_curr = MEM_new_array_uninitialized<UIDFashMatch>(uint(bm->totvert), __func__);
 
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
     id_prev[i] = bm_vert_fasthash_single(v);
@@ -1281,7 +1281,7 @@ static UIDFashMatch *bm_vert_fasthash_create(BMesh *bm, const uint depth)
       }
     }
   }
-  MEM_freeN(id_prev);
+  MEM_delete(id_prev);
 
   return id_curr;
 }
@@ -1311,7 +1311,7 @@ static bool bm_vert_fasthash_edge_is_match(UIDFashMatch *fm, const BMEdge *e_a, 
 
 static void bm_vert_fasthash_destroy(UIDFashMatch *fm)
 {
-  MEM_freeN(fm);
+  MEM_delete(fm);
 }
 
 /** \} */

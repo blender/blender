@@ -666,7 +666,7 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
                                                 const float dist,
                                                 const bool has_keep_vert)
 {
-  int *duplicates = MEM_malloc_arrayN<int>(verts_len, __func__);
+  int *duplicates = MEM_new_array_uninitialized<int>(verts_len, __func__);
   bool found_duplicates = false;
   bool has_self_index = false;
 
@@ -728,7 +728,7 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
   kdtree_3d_free(tree);
 
   if (!found_duplicates) {
-    MEM_freeN(duplicates);
+    MEM_delete(duplicates);
     duplicates = nullptr;
   }
   return duplicates;
@@ -741,7 +741,7 @@ static int *bmesh_find_doubles_by_distance_connected_impl(BMesh *bm,
                                                           const float dist,
                                                           const bool has_keep_vert)
 {
-  int *duplicates = MEM_malloc_arrayN<int>(verts_len, __func__);
+  int *duplicates = MEM_new_array_uninitialized<int>(verts_len, __func__);
   bool found_duplicates = false;
 
   Stack<int> vert_stack;
@@ -821,7 +821,7 @@ static int *bmesh_find_doubles_by_distance_connected_impl(BMesh *bm,
   }
 
   if (!found_duplicates) {
-    MEM_freeN(duplicates);
+    MEM_delete(duplicates);
     duplicates = nullptr;
   }
   return duplicates;
@@ -878,7 +878,7 @@ static void bmesh_find_doubles_common(BMesh *bm,
         BMO_slot_map_elem_insert(optarget, optarget_slot, v_check, v_other);
       }
     }
-    MEM_freeN(duplicates);
+    MEM_delete(duplicates);
   }
 }
 

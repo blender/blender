@@ -43,7 +43,7 @@ constexpr FileIndexerType default_indexer()
 static FileIndexerEntry *file_indexer_entry_create_from_datablock_info(
     BLODataBlockInfo *datablock_info, const int idcode)
 {
-  FileIndexerEntry *entry = MEM_mallocN<FileIndexerEntry>(__func__);
+  FileIndexerEntry *entry = MEM_new_uninitialized<FileIndexerEntry>(__func__);
   entry->idcode = idcode;
   /* Shallow copy data-block info and mark original as having its asset data ownership stolen. */
   entry->datablock_info = *datablock_info;
@@ -71,7 +71,7 @@ void ED_file_indexer_entries_clear(FileIndexerEntries *indexer_entries)
   BLI_linklist_free(indexer_entries->entries, [](void *indexer_entry_ptr) {
     FileIndexerEntry *indexer_entry = static_cast<FileIndexerEntry *>(indexer_entry_ptr);
     BLO_datablock_info_free(&indexer_entry->datablock_info);
-    MEM_freeN(indexer_entry);
+    MEM_delete(indexer_entry);
   });
 
   indexer_entries->entries = nullptr;

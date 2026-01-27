@@ -72,8 +72,8 @@ static int char_switch(char *string, char ch_src, char ch_dst)
 TEST(listbase, FindLinkOrIndex)
 {
   ListBaseT<Link> lb;
-  void *link1 = MEM_callocN<Link>("link1");
-  void *link2 = MEM_callocN<Link>("link2");
+  void *link1 = MEM_new_zeroed<Link>("link1");
+  void *link2 = MEM_new_zeroed<Link>("link2");
 
   /* Empty list */
   BLI_listbase_clear(&lb);
@@ -125,10 +125,10 @@ TEST(listbase, FindLinkFromStringOrPointer)
   const size_t ptr_offset = offsetof(TestLink, ptr);
 
   ListBaseT<TestLink> lb;
-  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  TestLink *link1 = MEM_new_zeroed<TestLink>("link1");
   STRNCPY(link1->name, link1_name);
   link1->ptr = link1_ptr;
-  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  TestLink *link2 = MEM_new_zeroed<TestLink>("link2");
   STRNCPY(link2->name, link2_name);
   link2->ptr = link2_ptr;
 
@@ -179,9 +179,9 @@ TEST(listbase, FindLinkFromStringOrPointer)
 TEST(listbase, FromLink)
 {
   ListBaseT<Link> lb = {nullptr, nullptr};
-  Link *link1 = MEM_callocN<Link>("link1");
-  Link *link2 = MEM_callocN<Link>("link2");
-  Link *link3 = MEM_callocN<Link>("link3");
+  Link *link1 = MEM_new_zeroed<Link>("link1");
+  Link *link2 = MEM_new_zeroed<Link>("link2");
+  Link *link3 = MEM_new_zeroed<Link>("link3");
 
   /* Null safety. */
   EXPECT_EQ(lb, BLI_listbase_from_link(nullptr));
@@ -205,8 +205,8 @@ TEST(listbase, SplitAfter)
 {
   ListBaseT<Link> lb;
   ListBaseT<Link> split_after_lb;
-  void *link1 = MEM_callocN<Link>("link1");
-  void *link2 = MEM_callocN<Link>("link2");
+  void *link1 = MEM_new_zeroed<Link>("link1");
+  void *link2 = MEM_new_zeroed<Link>("link2");
 
   /* Empty list */
   BLI_listbase_clear(&lb);
@@ -281,11 +281,11 @@ TEST(listbase, EnumerateIterator)
   ListBaseT<TestLink> lb;
   BLI_listbase_clear(&lb);
 
-  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  TestLink *link1 = MEM_new_zeroed<TestLink>("link1");
   link1->value = 10;
   BLI_addtail(&lb, link1);
 
-  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  TestLink *link2 = MEM_new_zeroed<TestLink>("link2");
   link2->value = 20;
   BLI_addtail(&lb, link2);
 
@@ -317,11 +317,11 @@ TEST(listbase, ReversedIterator)
   ListBaseT<TestLink> lb;
   BLI_listbase_clear(&lb);
 
-  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  TestLink *link1 = MEM_new_zeroed<TestLink>("link1");
   link1->value = 10;
   BLI_addtail(&lb, link1);
 
-  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  TestLink *link2 = MEM_new_zeroed<TestLink>("link2");
   link2->value = 20;
   BLI_addtail(&lb, link2);
 
@@ -350,13 +350,13 @@ TEST(listbase, MutableIterator)
   ListBaseT<TestLink> lb;
   BLI_listbase_clear(&lb);
 
-  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  TestLink *link1 = MEM_new_zeroed<TestLink>("link1");
   BLI_addtail(&lb, link1);
 
-  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  TestLink *link2 = MEM_new_zeroed<TestLink>("link2");
   BLI_addtail(&lb, link2);
 
-  TestLink *link3 = MEM_callocN<TestLink>("link3");
+  TestLink *link3 = MEM_new_zeroed<TestLink>("link3");
   BLI_addtail(&lb, link3);
 
   int count = 0;
@@ -384,13 +384,13 @@ TEST(listbase, MutableReversedIterator)
   ListBaseT<TestLink> lb;
   BLI_listbase_clear(&lb);
 
-  TestLink *link1 = MEM_callocN<TestLink>("link1");
+  TestLink *link1 = MEM_new_zeroed<TestLink>("link1");
   BLI_addtail(&lb, link1);
 
-  TestLink *link2 = MEM_callocN<TestLink>("link2");
+  TestLink *link2 = MEM_new_zeroed<TestLink>("link2");
   BLI_addtail(&lb, link2);
 
-  TestLink *link3 = MEM_callocN<TestLink>("link3");
+  TestLink *link3 = MEM_new_zeroed<TestLink>("link3");
   BLI_addtail(&lb, link3);
 
   int count = 0;
@@ -487,9 +487,9 @@ TEST(listbase, Sort)
   /* delimit words */
   words_num = 1 + char_switch(words, ' ', '\0');
 
-  words_arr = MEM_malloc_arrayN<char *>(size_t(words_num), __func__);
+  words_arr = MEM_new_array_uninitialized<char *>(size_t(words_num), __func__);
 
-  words_linkdata_arr = MEM_malloc_arrayN<LinkData>(size_t(words_num), __func__);
+  words_linkdata_arr = MEM_new_array_uninitialized<LinkData>(size_t(words_num), __func__);
 
   /* create array */
   w_step = words;
@@ -562,9 +562,9 @@ TEST(listbase, Sort)
     EXPECT_TRUE(testsort_listbase_sort_is_stable(&words_lb, false));
   }
 
-  MEM_freeN(words);
-  MEM_freeN(words_arr);
-  MEM_freeN(words_linkdata_arr);
+  MEM_delete(words);
+  MEM_delete(words_arr);
+  MEM_delete(words_linkdata_arr);
 }
 
 }  // namespace blender

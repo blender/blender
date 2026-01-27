@@ -240,7 +240,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
 {
   bke::bNodeType *ntype = bke::node_type_find(idname);
 
-  bNode *node = MEM_new_for_free<bNode>(__func__);
+  bNode *node = MEM_new<bNode>(__func__);
   node->runtime = MEM_new<bke::bNodeRuntime>(__func__);
   BLI_addtail(&ntree.nodes, node);
   bke::node_unique_id(ntree, *node);
@@ -289,7 +289,7 @@ bNode &version_node_add_unknown(bNodeTree &ntree,
   ntype.no_muting = no_muting;
   ntype.ui_name = ui_name;
 
-  bNode *node = MEM_new_for_free<bNode>(__func__);
+  bNode *node = MEM_new<bNode>(__func__);
   node->runtime = MEM_new<bNodeRuntime>(__func__);
   BLI_addtail(&ntree.nodes, node);
   node_unique_id(ntree, *node);
@@ -327,7 +327,7 @@ bNodeSocket &version_node_add_socket(bNodeTree &ntree,
 {
   bke::bNodeSocketType *stype = bke::node_socket_type_find(idname);
 
-  bNodeSocket *socket = MEM_new_for_free<bNodeSocket>(__func__);
+  bNodeSocket *socket = MEM_new<bNodeSocket>(__func__);
   socket->runtime = MEM_new<bke::bNodeSocketRuntime>(__func__);
   socket->in_out = in_out;
   socket->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
@@ -362,7 +362,7 @@ bNodeLink &version_node_add_link(
   bNode &node_to = node_b;
   bNodeSocket &socket_to = socket_b;
 
-  bNodeLink *link = MEM_new_for_free<bNodeLink>(__func__);
+  bNodeLink *link = MEM_new<bNodeLink>(__func__);
   link->fromnode = &node_from;
   link->fromsock = &socket_from;
   link->tonode = &node_to;
@@ -437,7 +437,7 @@ void version_node_socket_index_animdata(Main *bmain,
         const int new_index = input_index + socket_index_offset;
         BKE_animdata_fix_paths_rename_all_ex(
             bmain, owner_id, rna_path_prefix, nullptr, nullptr, input_index, new_index, false);
-        MEM_freeN(rna_path_prefix);
+        MEM_delete(rna_path_prefix);
       }
     }
     FOREACH_NODETREE_END;

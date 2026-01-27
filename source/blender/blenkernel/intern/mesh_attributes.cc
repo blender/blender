@@ -807,7 +807,7 @@ static bool try_delete_vertex_group(void *owner, const StringRef name)
     return false;
   }
   BLI_remlink(&mesh->vertex_group_names, group);
-  MEM_freeN(group);
+  MEM_delete(group);
   if (mesh->deform_verts().is_empty()) {
     return true;
   }

@@ -47,7 +47,7 @@ static void test_compute_direct()
   for (int index = 0; index < SIZE * SIZE; index++) {
     EXPECT_EQ(data[index], expected_result);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_shader_unbind();
@@ -97,7 +97,7 @@ static void test_compute_indirect()
   for (int index = 0; index < SIZE * SIZE; index++) {
     EXPECT_EQ(data[index], expected_result);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_storagebuf_free(compute_commands);

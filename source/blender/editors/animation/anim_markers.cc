@@ -309,7 +309,7 @@ static void add_marker_to_cfra_elem(ListBaseT<CfraElem> *lb,
     }
   }
 
-  cen = MEM_callocN<CfraElem>("add_to_cfra_elem");
+  cen = MEM_new_zeroed<CfraElem>("add_to_cfra_elem");
   if (ce) {
     BLI_insertlinkbefore(lb, ce, cen);
   }
@@ -861,7 +861,7 @@ static wmOperatorStatus ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
     marker.flag &= ~SELECT;
   }
 
-  TimeMarker *marker = MEM_new_for_free<TimeMarker>("TimeMarker");
+  TimeMarker *marker = MEM_new<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
   SNPRINTF_UTF8(marker->name, "F_%02d", frame);
@@ -1016,10 +1016,10 @@ static bool ed_marker_move_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  op->customdata = mm = MEM_callocN<MarkerMove>("Markermove");
+  op->customdata = mm = MEM_new_zeroed<MarkerMove>("Markermove");
   mm->slink = CTX_wm_space_data(C);
   mm->markers = markers;
-  mm->oldframe = MEM_calloc_arrayN<int>(totmark, "MarkerMove oldframe");
+  mm->oldframe = MEM_new_array_zeroed<int>(totmark, "MarkerMove oldframe");
 
   initNumInput(&mm->num);
   mm->num.idx_max = 0; /* one axis */
@@ -1044,8 +1044,8 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
   MarkerMove *mm = static_cast<MarkerMove *>(op->customdata);
 
   /* free data */
-  MEM_freeN(mm->oldframe);
-  MEM_freeN(mm);
+  MEM_delete(mm->oldframe);
+  MEM_delete(mm);
   op->customdata = nullptr;
 
   /* clear custom header prints */
@@ -1302,7 +1302,7 @@ static void ed_marker_duplicate_apply(bContext *C)
       marker.flag &= ~SELECT;
 
       /* create and set up new marker */
-      TimeMarker *newmarker = MEM_new_for_free<TimeMarker>("TimeMarker");
+      TimeMarker *newmarker = MEM_new<TimeMarker>("TimeMarker");
       newmarker->flag = SELECT;
       newmarker->frame = marker.frame;
       STRNCPY_UTF8(newmarker->name, marker.name);
@@ -1810,7 +1810,7 @@ static wmOperatorStatus ed_marker_delete_exec(bContext *C, wmOperator * /*op*/)
     if (marker->flag & SELECT) {
       if (marker->prop != nullptr) {
         IDP_FreePropertyContent(marker->prop);
-        MEM_freeN(marker->prop);
+        MEM_delete(marker->prop);
       }
       BLI_freelinkN(markers, marker);
       changed = true;
@@ -1961,7 +1961,7 @@ static wmOperatorStatus ed_marker_make_links_scene_exec(bContext *C, wmOperator 
   /* copy markers */
   for (TimeMarker &marker : *markers) {
     if (marker.flag & SELECT) {
-      marker_new = static_cast<TimeMarker *>(MEM_dupallocN(&marker));
+      marker_new = MEM_dupalloc(&marker);
       marker_new->prev = marker_new->next = nullptr;
 
       BLI_addtail(&scene_to->markers, marker_new);
@@ -2027,7 +2027,7 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 
   marker = ED_markers_find_nearest_marker(markers, scene->r.cfra);
   if ((marker == nullptr) || (marker->frame != scene->r.cfra)) {
-    marker = MEM_new_for_free<TimeMarker>("Camera TimeMarker");
+    marker = MEM_new<TimeMarker>("Camera TimeMarker");
     /* This marker's name is only displayed in the viewport statistics, animation editors use the
      * camera's name when bound to a marker. */
     SNPRINTF_UTF8(marker->name, "F_%02d", scene->r.cfra);

@@ -67,7 +67,7 @@ bUserMenu **ED_screen_user_menus_find(const bContext *C, uint *r_len)
   const char *context_mode = CTX_data_mode_string(C);
   const char *context = screen_menu_context_string(C, sl);
   uint array_len = 3;
-  bUserMenu **um_array = MEM_calloc_arrayN<bUserMenu *>(array_len, __func__);
+  bUserMenu **um_array = MEM_new_array_zeroed<bUserMenu *>(array_len, __func__);
   um_array[0] = BKE_blender_user_menu_find(&U.user_menus, sl->spacetype, context);
   um_array[1] = (sl->spacetype != SPACE_TOPBAR) ?
                     BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context_mode) :
@@ -313,7 +313,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
     }
   }
   if (um_array) {
-    MEM_freeN(um_array);
+    MEM_delete(um_array);
   }
 
   if (is_empty) {
@@ -324,7 +324,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 
 void ED_screen_user_menu_register()
 {
-  MenuType *mt = MEM_callocN<MenuType>(__func__);
+  MenuType *mt = MEM_new_zeroed<MenuType>(__func__);
   STRNCPY_UTF8(mt->idname, "SCREEN_MT_user_menu");
   STRNCPY_UTF8(mt->label, N_("Quick Favorites"));
   STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

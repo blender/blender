@@ -1124,7 +1124,7 @@ void init_default()
   bTheme *btheme = static_cast<bTheme *>(
       BLI_findstring(&U.themes, U_theme_default.name, offsetof(bTheme, name)));
   if (btheme == nullptr) {
-    btheme = MEM_callocN<bTheme>(__func__);
+    btheme = MEM_new_zeroed<bTheme>(__func__);
     STRNCPY_UTF8(btheme->name, U_theme_default.name);
     BLI_addhead(&U.themes, btheme);
   }

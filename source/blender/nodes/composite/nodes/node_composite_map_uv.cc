@@ -66,7 +66,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeMapUVData *data = MEM_new_for_free<NodeMapUVData>(__func__);
+  NodeMapUVData *data = MEM_new<NodeMapUVData>(__func__);
   node->storage = data;
 }
 

@@ -5960,7 +5960,7 @@ static void draw_setting_widget(bAnimContext *ac,
         button_callback = achannel_setting_widget_cb;
         break;
     }
-    button_funcN_set(but, button_callback, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
+    button_funcN_set(but, button_callback, MEM_dupalloc(ale), POINTER_FROM_INT(setting));
   }
 
   if ((ale->fcurve_owner_id != nullptr && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||

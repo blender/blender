@@ -69,7 +69,7 @@ struct MovieIndexBuilder {
 
 static MovieIndexBuilder *index_builder_create(const char *filepath)
 {
-  MovieIndexBuilder *rv = MEM_callocN<MovieIndexBuilder>("index builder");
+  MovieIndexBuilder *rv = MEM_new_zeroed<MovieIndexBuilder>("index builder");
 
   STRNCPY(rv->filepath, filepath);
 
@@ -85,7 +85,7 @@ static MovieIndexBuilder *index_builder_create(const char *filepath)
                "Failed to build index for '%s': could not open '%s' for writing",
                filepath,
                rv->filepath_temp);
-    MEM_freeN(rv);
+    MEM_delete(rv);
     return nullptr;
   }
 
@@ -122,7 +122,7 @@ static void index_builder_finish(MovieIndexBuilder *fp, bool rollback)
     BLI_rename_overwrite(fp->filepath_temp, fp->filepath);
   }
 
-  MEM_freeN(fp);
+  MEM_delete(fp);
 }
 
 #endif
@@ -386,7 +386,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
                                                    int height,
                                                    int quality)
 {
-  proxy_output_ctx *rv = MEM_callocN<proxy_output_ctx>("alloc_proxy_output");
+  proxy_output_ctx *rv = MEM_new_zeroed<proxy_output_ctx>("alloc_proxy_output");
 
   char filepath[FILE_MAX];
 
@@ -395,7 +395,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
 
   get_proxy_filepath(rv->anim, rv->proxy_size, filepath, true);
   if (!BLI_file_ensure_parent_dir_exists(filepath)) {
-    MEM_freeN(rv);
+    MEM_delete(rv);
     return nullptr;
   }
 
@@ -418,7 +418,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
     CLOG_ERROR(&LOG, "Could not build proxy '%s': failed to create video encoder", filepath);
     avcodec_free_context(&rv->c);
     avformat_free_context(rv->of);
-    MEM_freeN(rv);
+    MEM_delete(rv);
     return nullptr;
   }
 
@@ -492,7 +492,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
                error_str);
     avcodec_free_context(&rv->c);
     avformat_free_context(rv->of);
-    MEM_freeN(rv);
+    MEM_delete(rv);
     return nullptr;
   }
 
@@ -505,7 +505,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
         &LOG, "Could not build proxy '%s': failed to open video codec (%s)", filepath, error_str);
     avcodec_free_context(&rv->c);
     avformat_free_context(rv->of);
-    MEM_freeN(rv);
+    MEM_delete(rv);
     return nullptr;
   }
 
@@ -551,7 +551,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
 
     avcodec_free_context(&rv->c);
     avformat_free_context(rv->of);
-    MEM_freeN(rv);
+    MEM_delete(rv);
     return nullptr;
   }
 
@@ -672,7 +672,7 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
     BLI_rename_overwrite(filepath_tmp, filepath);
   }
 
-  MEM_freeN(ctx);
+  MEM_delete(ctx);
 }
 
 static IMB_Timecode_Type tc_types[IMB_TC_NUM_TYPES] = {IMB_TC_RECORD_RUN,
@@ -719,7 +719,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
     return nullptr;
   }
 
-  MovieProxyBuilder *context = MEM_callocN<MovieProxyBuilder>("FFmpeg index builder context");
+  MovieProxyBuilder *context = MEM_new_zeroed<MovieProxyBuilder>("FFmpeg index builder context");
   int num_proxy_sizes = IMB_PROXY_MAX_SLOT;
   int i, streamcount;
 
@@ -732,13 +732,13 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
   memset(context->indexer, 0, sizeof(context->indexer));
 
   if (avformat_open_input(&context->iFormatCtx, anim->filepath, nullptr, nullptr) != 0) {
-    MEM_freeN(context);
+    MEM_delete(context);
     return nullptr;
   }
 
   if (avformat_find_stream_info(context->iFormatCtx, nullptr) < 0) {
     avformat_close_input(&context->iFormatCtx);
-    MEM_freeN(context);
+    MEM_delete(context);
     return nullptr;
   }
 
@@ -759,7 +759,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
 
   if (context->videoStream == -1) {
     avformat_close_input(&context->iFormatCtx);
-    MEM_freeN(context);
+    MEM_delete(context);
     return nullptr;
   }
 
@@ -769,7 +769,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
 
   if (context->iCodec == nullptr) {
     avformat_close_input(&context->iFormatCtx);
-    MEM_freeN(context);
+    MEM_delete(context);
     return nullptr;
   }
 
@@ -794,7 +794,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
   if (avcodec_open2(context->iCodecCtx, context->iCodec, nullptr) < 0) {
     avformat_close_input(&context->iFormatCtx);
     avcodec_free_context(&context->iCodecCtx);
-    MEM_freeN(context);
+    MEM_delete(context);
     return nullptr;
   }
 
@@ -817,7 +817,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
   {
     avformat_close_input(&context->iFormatCtx);
     avcodec_free_context(&context->iCodecCtx);
-    MEM_freeN(context);
+    MEM_delete(context);
     return nullptr; /* Nothing to transcode. */
   }
 
@@ -858,7 +858,7 @@ static void index_rebuild_ffmpeg_finish(MovieProxyBuilder *context, const bool s
   avcodec_free_context(&context->iCodecCtx);
   avformat_close_input(&context->iFormatCtx);
 
-  MEM_freeN(context);
+  MEM_delete(context);
 }
 
 static void index_rebuild_ffmpeg_proc_decoded_frame(MovieProxyBuilder *context, AVFrame *in_frame)

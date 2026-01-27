@@ -961,6 +961,11 @@ def register_classes_factory(classes):
     """
     Utility function to create register and unregister functions
     which simply registers and unregisters a sequence of classes.
+
+    :arg classes: Sequence of classes to register and unregister.
+    :type classes: Sequence[type]
+    :return: register and unregister functions.
+    :rtype: tuple[Callable[[], None], Callable[[], None]]
     """
     def register():
         for cls in classes:

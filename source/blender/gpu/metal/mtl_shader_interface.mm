@@ -64,11 +64,11 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
   }
 
   int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
-  inputs_ = MEM_calloc_arrayN<ShaderInput>(input_tot_len, __func__);
+  inputs_ = MEM_new_array_zeroed<ShaderInput>(input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
   size_t names_size = info.interface_names_size_;
-  name_buffer_ = MEM_malloc_arrayN<char>(names_size, "name_buffer");
+  name_buffer_ = MEM_new_array_uninitialized<char>(names_size, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
   /* Attributes */

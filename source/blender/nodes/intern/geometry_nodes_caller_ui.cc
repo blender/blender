@@ -75,7 +75,8 @@ struct SocketSearchData {
 
   SearchInfo info(const bContext &C) const;
 };
-/* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
+/* This class must not have a destructor, since it is used by buttons and freed with
+ * #MEM_delete_void. */
 BLI_STATIC_ASSERT(std::is_trivially_destructible_v<SocketSearchData>, "");
 
 struct DrawGroupInputsContext {
@@ -261,9 +262,9 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
   }
 
   /* Using a custom free function make the search not work currently. So make sure this data can be
-   * freed with MEM_freeN. */
+   * freed with MEM_delete. */
   SocketSearchData *data = static_cast<SocketSearchData *>(
-      MEM_mallocN(sizeof(SocketSearchData), __func__));
+      MEM_new_uninitialized(sizeof(SocketSearchData), __func__));
   *data = ctx.socket_search_data_fn(socket);
   button_func_search_set_results_are_suggestions(but, true);
   button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
@@ -376,9 +377,9 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
   }
 
   /* Using a custom free function make the search not work currently. So make sure this data can be
-   * freed with MEM_freeN. */
+   * freed with MEM_delete. */
   SocketSearchData *data = static_cast<SocketSearchData *>(
-      MEM_mallocN(sizeof(SocketSearchData), __func__));
+      MEM_new_uninitialized(sizeof(SocketSearchData), __func__));
   *data = ctx.socket_search_data_fn(socket);
   button_func_search_set_results_are_suggestions(but, true);
   button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);

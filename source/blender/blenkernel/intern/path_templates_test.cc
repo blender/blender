@@ -539,7 +539,7 @@ TEST(path_templates, apply_template_alloc)
 
   for (const PathTemplateTestCase &test_case : test_cases) {
     const int in_size = strlen(test_case.path_in) + 1;
-    char *buffer = MEM_malloc_arrayN<char>(in_size, __func__);
+    char *buffer = MEM_new_array_uninitialized<char>(in_size, __func__);
     BLI_strncpy(buffer, test_case.path_in, in_size);
 
     const Vector<Error> application_errors = BKE_path_apply_template_alloc(
@@ -552,7 +552,7 @@ TEST(path_templates, apply_template_alloc)
         << "  Note: test_case.path_in = " << test_case.path_in << std::endl
         << "  Note: test_case.path_result = " << test_case.path_result << std::endl;
 
-    MEM_freeN(buffer);
+    MEM_delete(buffer);
   }
 }
 

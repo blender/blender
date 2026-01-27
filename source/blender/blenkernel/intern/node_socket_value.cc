@@ -21,6 +21,7 @@
 #include "BLI_color.hh"
 #include "BLI_math_rotation_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_memory_counter.hh"
 
 #include "FN_field.hh"
 
@@ -680,6 +681,48 @@ bool SocketValueVariant::valid_for_socket(eNodeSocketDatatype socket_type) const
     return false;
   }
   return socket_type_ == socket_type;
+}
+
+void SocketValueVariant::count_memory(MemoryCounter &memory) const
+{
+  switch (kind_) {
+    case Kind::None: {
+      break;
+    }
+    case Kind::Single: {
+      const GPointer value = this->get_single_ptr();
+      const CPPType &cpp_type = *value.type();
+      memory.add(cpp_type.size);
+      if (cpp_type.is<GeometrySet>()) {
+        const GeometrySet &geometry = *value.get<GeometrySet>();
+        geometry.count_memory(memory);
+      }
+      if (cpp_type.is<nodes::BundlePtr>()) {
+        const nodes::BundlePtr &bundle_ptr = *value.get<nodes::BundlePtr>();
+        if (bundle_ptr) {
+          bundle_ptr->count_memory(memory);
+        }
+      }
+      break;
+    }
+    case Kind::Field: {
+      break;
+    }
+    case Kind::Grid: {
+#ifdef WITH_OPENVDB
+      if (const GVolumeGrid &grid = value_.get<GVolumeGrid>()) {
+        grid->count_memory(memory);
+      }
+#endif
+      break;
+    }
+    case Kind::List: {
+      if (const nodes::ListPtr &list = value_.get<nodes::ListPtr>()) {
+        list->count_memory(memory);
+      }
+      break;
+    }
+  }
 }
 
 #define INSTANTIATE(TYPE) \

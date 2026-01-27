@@ -128,7 +128,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
 BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const BMeshCreateParams *params)
 {
   /* allocate the structure */
-  BMesh *bm = MEM_new_for_free<BMesh>(__func__);
+  BMesh *bm = MEM_new<BMesh>(__func__);
 
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);
@@ -211,13 +211,13 @@ void BM_mesh_data_free(BMesh *bm)
   BLI_mempool_destroy(bm->fpool);
 
   if (bm->vtable) {
-    MEM_freeN(bm->vtable);
+    MEM_delete(bm->vtable);
   }
   if (bm->etable) {
-    MEM_freeN(bm->etable);
+    MEM_delete(bm->etable);
   }
   if (bm->ftable) {
-    MEM_freeN(bm->ftable);
+    MEM_delete(bm->ftable);
   }
 
   /* destroy flag pool */
@@ -231,7 +231,7 @@ void BM_mesh_data_free(BMesh *bm)
 
   if (bm->lnor_spacearr) {
     BKE_lnor_spacearr_free(bm->lnor_spacearr);
-    MEM_freeN(bm->lnor_spacearr);
+    MEM_delete(bm->lnor_spacearr);
   }
 
   BMO_error_clear(bm);
@@ -272,7 +272,7 @@ void BM_mesh_free(BMesh *bm)
     bm->py_handle = nullptr;
   }
 
-  MEM_freeN(bm);
+  MEM_delete(bm);
 }
 
 void bmesh_edit_begin(BMesh * /*bm*/, BMOpTypeFlag /*type_flag*/)
@@ -586,9 +586,9 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
     }
     else {
       if (bm->vtable) {
-        MEM_freeN(bm->vtable);
+        MEM_delete(bm->vtable);
       }
-      bm->vtable = MEM_malloc_arrayN<BMVert *>(bm->totvert, "bm->vtable");
+      bm->vtable = MEM_new_array_uninitialized<BMVert *>(bm->totvert, "bm->vtable");
       bm->vtable_tot = bm->totvert;
     }
     BM_iter_as_array(
@@ -600,9 +600,9 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
     }
     else {
       if (bm->etable) {
-        MEM_freeN(bm->etable);
+        MEM_delete(bm->etable);
       }
-      bm->etable = MEM_malloc_arrayN<BMEdge *>(bm->totedge, "bm->etable");
+      bm->etable = MEM_new_array_uninitialized<BMEdge *>(bm->totedge, "bm->etable");
       bm->etable_tot = bm->totedge;
     }
     BM_iter_as_array(
@@ -614,9 +614,9 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
     }
     else {
       if (bm->ftable) {
-        MEM_freeN(bm->ftable);
+        MEM_delete(bm->ftable);
       }
-      bm->ftable = MEM_malloc_arrayN<BMFace *>(bm->totface, "bm->ftable");
+      bm->ftable = MEM_new_array_uninitialized<BMFace *>(bm->totface, "bm->ftable");
       bm->ftable_tot = bm->totface;
     }
     BM_iter_as_array(
@@ -643,15 +643,15 @@ void BM_mesh_elem_table_init(BMesh *bm, const char htype)
 void BM_mesh_elem_table_free(BMesh *bm, const char htype)
 {
   if (htype & BM_VERT) {
-    MEM_SAFE_FREE(bm->vtable);
+    MEM_SAFE_DELETE(bm->vtable);
   }
 
   if (htype & BM_EDGE) {
-    MEM_SAFE_FREE(bm->etable);
+    MEM_SAFE_DELETE(bm->etable);
   }
 
   if (htype & BM_FACE) {
-    MEM_SAFE_FREE(bm->ftable);
+    MEM_SAFE_DELETE(bm->ftable);
   }
 }
 
@@ -764,8 +764,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     verts_pool = bm->vtable;
-    verts_copy = MEM_malloc_arrayN<BMVert>(totvert, __func__);
-    void **pyptrs = (cd_vert_pyptr != -1) ? MEM_malloc_arrayN<void *>(totvert, __func__) : nullptr;
+    verts_copy = MEM_new_array_uninitialized<BMVert>(totvert, __func__);
+    void **pyptrs = (cd_vert_pyptr != -1) ?
+                        MEM_new_array_uninitialized<void *>(totvert, __func__) :
+                        nullptr;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
          ve--, vep--)
     {
@@ -802,9 +804,9 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     bm->elem_index_dirty |= BM_VERT;
     bm->elem_table_dirty |= BM_VERT;
 
-    MEM_freeN(verts_copy);
+    MEM_delete(verts_copy);
     if (pyptrs) {
-      MEM_freeN(pyptrs);
+      MEM_delete(pyptrs);
     }
   }
 
@@ -820,8 +822,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     edges_pool = bm->etable;
-    edges_copy = MEM_malloc_arrayN<BMEdge>(totedge, __func__);
-    void **pyptrs = (cd_edge_pyptr != -1) ? MEM_malloc_arrayN<void *>(totedge, __func__) : nullptr;
+    edges_copy = MEM_new_array_uninitialized<BMEdge>(totedge, __func__);
+    void **pyptrs = (cd_edge_pyptr != -1) ?
+                        MEM_new_array_uninitialized<void *>(totedge, __func__) :
+                        nullptr;
     for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--;
          ed--, edp--)
     {
@@ -857,9 +861,9 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     bm->elem_index_dirty |= BM_EDGE;
     bm->elem_table_dirty |= BM_EDGE;
 
-    MEM_freeN(edges_copy);
+    MEM_delete(edges_copy);
     if (pyptrs) {
-      MEM_freeN(pyptrs);
+      MEM_delete(pyptrs);
     }
   }
 
@@ -875,8 +879,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     faces_pool = bm->ftable;
-    faces_copy = MEM_malloc_arrayN<BMFace>(totface, __func__);
-    void **pyptrs = (cd_poly_pyptr != -1) ? MEM_malloc_arrayN<void *>(totface, __func__) : nullptr;
+    faces_copy = MEM_new_array_uninitialized<BMFace>(totface, __func__);
+    void **pyptrs = (cd_poly_pyptr != -1) ?
+                        MEM_new_array_uninitialized<void *>(totface, __func__) :
+                        nullptr;
     for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--;
          fa--, fap--)
     {
@@ -909,9 +915,9 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     bm->elem_index_dirty |= BM_FACE | BM_LOOP;
     bm->elem_table_dirty |= BM_FACE;
 
-    MEM_freeN(faces_copy);
+    MEM_delete(faces_copy);
     if (pyptrs) {
-      MEM_freeN(pyptrs);
+      MEM_delete(pyptrs);
     }
   }
 
@@ -1027,14 +1033,18 @@ void BM_mesh_rebuild(BMesh *bm,
   const char remap = (vpool_dst ? BM_VERT : 0) | (epool_dst ? BM_EDGE : 0) |
                      (lpool_dst ? BM_LOOP : 0) | (fpool_dst ? BM_FACE : 0);
 
-  BMVert **vtable_dst = (remap & BM_VERT) ? MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__) :
-                                            nullptr;
-  BMEdge **etable_dst = (remap & BM_EDGE) ? MEM_malloc_arrayN<BMEdge *>(bm->totedge, __func__) :
-                                            nullptr;
-  BMLoop **ltable_dst = (remap & BM_LOOP) ? MEM_malloc_arrayN<BMLoop *>(bm->totloop, __func__) :
-                                            nullptr;
-  BMFace **ftable_dst = (remap & BM_FACE) ? MEM_malloc_arrayN<BMFace *>(bm->totface, __func__) :
-                                            nullptr;
+  BMVert **vtable_dst = (remap & BM_VERT) ?
+                            MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__) :
+                            nullptr;
+  BMEdge **etable_dst = (remap & BM_EDGE) ?
+                            MEM_new_array_uninitialized<BMEdge *>(bm->totedge, __func__) :
+                            nullptr;
+  BMLoop **ltable_dst = (remap & BM_LOOP) ?
+                            MEM_new_array_uninitialized<BMLoop *>(bm->totloop, __func__) :
+                            nullptr;
+  BMFace **ftable_dst = (remap & BM_FACE) ?
+                            MEM_new_array_uninitialized<BMFace *>(bm->totface, __func__) :
+                            nullptr;
 
   const bool use_toolflags = params->use_toolflags;
 
@@ -1234,7 +1244,7 @@ void BM_mesh_rebuild(BMesh *bm,
       bm->vtable_tot = bm->totvert;
       bm->elem_table_dirty &= ~BM_VERT;
     }
-    MEM_freeN(vtable_dst);
+    MEM_delete(vtable_dst);
     BLI_mempool_destroy(bm->vpool);
     bm->vpool = vpool_dst;
   }
@@ -1245,14 +1255,14 @@ void BM_mesh_rebuild(BMesh *bm,
       bm->etable_tot = bm->totedge;
       bm->elem_table_dirty &= ~BM_EDGE;
     }
-    MEM_freeN(etable_dst);
+    MEM_delete(etable_dst);
     BLI_mempool_destroy(bm->epool);
     bm->epool = epool_dst;
   }
 
   if (remap & BM_LOOP) {
     /* no loop table */
-    MEM_freeN(ltable_dst);
+    MEM_delete(ltable_dst);
     BLI_mempool_destroy(bm->lpool);
     bm->lpool = lpool_dst;
   }
@@ -1263,7 +1273,7 @@ void BM_mesh_rebuild(BMesh *bm,
       bm->ftable_tot = bm->totface;
       bm->elem_table_dirty &= ~BM_FACE;
     }
-    MEM_freeN(ftable_dst);
+    MEM_delete(ftable_dst);
     BLI_mempool_destroy(bm->fpool);
     bm->fpool = fpool_dst;
   }

@@ -63,7 +63,7 @@ static void curves_copy_data(Main * /*bmain*/,
 {
   Curves *curves_dst = id_cast<Curves *>(id_dst);
   const Curves *curves_src = id_cast<const Curves *>(id_src);
-  curves_dst->mat = static_cast<Material **>(MEM_dupallocN(curves_src->mat));
+  curves_dst->mat = MEM_dupalloc(curves_src->mat);
 
   new (&curves_dst->geometry) bke::CurvesGeometry(curves_src->geometry.wrap());
 
@@ -83,8 +83,8 @@ static void curves_free_data(ID *id)
 
   BKE_curves_batch_cache_free(curves);
 
-  MEM_SAFE_FREE(curves->mat);
-  MEM_SAFE_FREE(curves->surface_uv_map);
+  MEM_SAFE_DELETE(curves->mat);
+  MEM_SAFE_DELETE(curves->surface_uv_map);
 }
 
 static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -309,14 +309,14 @@ Curves *curves_new_nomain(CurvesGeometry curves)
 void curves_copy_parameters(const Curves &src, Curves &dst)
 {
   dst.flag = src.flag;
-  MEM_SAFE_FREE(dst.mat);
-  dst.mat = MEM_malloc_arrayN<Material *>(size_t(src.totcol), __func__);
+  MEM_SAFE_DELETE(dst.mat);
+  dst.mat = MEM_new_array_uninitialized<Material *>(size_t(src.totcol), __func__);
   dst.totcol = src.totcol;
   MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
   dst.symmetry = src.symmetry;
   dst.selection_domain = src.selection_domain;
   dst.surface = src.surface;
-  MEM_SAFE_FREE(dst.surface_uv_map);
+  MEM_SAFE_DELETE(dst.surface_uv_map);
   if (src.surface_uv_map != nullptr) {
     dst.surface_uv_map = BLI_strdup(src.surface_uv_map);
   }

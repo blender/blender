@@ -134,7 +134,7 @@ static void cryptomatte_add(bNode &node, NodeCryptomatte &node_cryptomatte, floa
     return;
   }
 
-  CryptomatteEntry *entry = MEM_new_for_free<CryptomatteEntry>(__func__);
+  CryptomatteEntry *entry = MEM_new<CryptomatteEntry>(__func__);
   entry->encoded_hash = encoded_hash;
   bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(node, true);
   if (session) {
@@ -151,7 +151,7 @@ static void cryptomatte_remove(NodeCryptomatte &n, float encoded_hash)
     return;
   }
   BLI_remlink(&n.entries, entry);
-  MEM_freeN(entry);
+  MEM_delete(entry);
 }
 
 void ntreeCompositCryptomatteSyncFromAdd(bNode *node)
@@ -184,7 +184,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
 
   if (session) {
     for (StringRef layer_name : bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session)) {
-      CryptomatteLayer *layer = MEM_new_for_free<CryptomatteLayer>(__func__);
+      CryptomatteLayer *layer = MEM_new<CryptomatteLayer>(__func__);
       layer_name.copy_utf8_truncated(layer->name);
       BLI_addtail(&n->runtime.layers, layer);
     }
@@ -229,10 +229,10 @@ static void node_free_cryptomatte(bNode *node)
   NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
 
   if (nc) {
-    MEM_SAFE_FREE(nc->matte_id);
+    MEM_SAFE_DELETE(nc->matte_id);
     BLI_freelistN(&nc->runtime.layers);
     BLI_freelistN(&nc->entries);
-    MEM_freeN(nc);
+    MEM_delete(nc);
   }
 }
 
@@ -241,11 +241,11 @@ static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
                                   const bNode *src_node)
 {
   NodeCryptomatte *src_nc = static_cast<NodeCryptomatte *>(src_node->storage);
-  NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupallocN(src_nc));
+  NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupalloc(src_nc));
 
   BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
   BLI_listbase_clear(&dest_nc->runtime.layers);
-  dest_nc->matte_id = static_cast<char *>(MEM_dupallocN(src_nc->matte_id));
+  dest_nc->matte_id = static_cast<char *>(MEM_dupalloc(src_nc->matte_id));
   dest_node->storage = dest_nc;
 }
 
@@ -615,7 +615,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeCryptomatte *user = MEM_new_for_free<NodeCryptomatte>(__func__);
+  NodeCryptomatte *user = MEM_new<NodeCryptomatte>(__func__);
   node->storage = user;
 }
 
@@ -993,7 +993,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeCryptomatte *storage = MEM_new_for_free<NodeCryptomatte>(__func__);
+  NodeCryptomatte *storage = MEM_new<NodeCryptomatte>(__func__);
   node->storage = storage;
 
   /* Add three inputs by default, as recommended by the Cryptomatte specification. */

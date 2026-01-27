@@ -133,7 +133,7 @@ const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_r
     RNA_enum_item_end(&custom_item, &tot_custom_item);
     RNA_enum_items_add(&item, &totitem, custom_item);
 
-    MEM_freeN(custom_item);
+    MEM_delete(custom_item);
   }
 
   RNA_enum_item_end(&item, &totitem);

@@ -199,7 +199,7 @@ static bool WIDGETGROUP_light_spot_poll(const bContext *C, wmGizmoGroupType * /*
 
 static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  LightSpotWidgetGroup *ls_gzgroup = MEM_mallocN<LightSpotWidgetGroup>(__func__);
+  LightSpotWidgetGroup *ls_gzgroup = MEM_new_uninitialized<LightSpotWidgetGroup>(__func__);
 
   gzgroup->customdata = ls_gzgroup;
 
@@ -364,7 +364,7 @@ static bool WIDGETGROUP_light_point_poll(const bContext *C, wmGizmoGroupType * /
 
 static void WIDGETGROUP_light_point_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = MEM_mallocN<wmGizmoWrapper>(__func__);
+  wmGizmoWrapper *wwrapper = MEM_new_uninitialized<wmGizmoWrapper>(__func__);
   wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
   /* Point radius gizmo. */
   wmGizmo *gz = wwrapper->gizmo;
@@ -509,7 +509,7 @@ static bool WIDGETGROUP_light_area_poll(const bContext *C, wmGizmoGroupType * /*
 
 static void WIDGETGROUP_light_area_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = MEM_mallocN<wmGizmoWrapper>(__func__);
+  wmGizmoWrapper *wwrapper = MEM_new_uninitialized<wmGizmoWrapper>(__func__);
   wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
   wmGizmo *gz = wwrapper->gizmo;
   RNA_enum_set(gz->ptr, "transform", ED_GIZMO_CAGE_XFORM_FLAG_SCALE);
@@ -610,7 +610,7 @@ static bool WIDGETGROUP_light_target_poll(const bContext *C, wmGizmoGroupType * 
 
 static void WIDGETGROUP_light_target_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = MEM_mallocN<wmGizmoWrapper>(__func__);
+  wmGizmoWrapper *wwrapper = MEM_new_uninitialized<wmGizmoWrapper>(__func__);
   wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, nullptr);
   wmGizmo *gz = wwrapper->gizmo;
 

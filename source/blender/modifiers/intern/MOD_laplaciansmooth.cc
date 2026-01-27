@@ -62,14 +62,14 @@ struct LaplacianSystem {
 
 static void delete_laplacian_system(LaplacianSystem *sys)
 {
-  MEM_SAFE_FREE(sys->eweights);
-  MEM_SAFE_FREE(sys->fweights);
-  MEM_SAFE_FREE(sys->ne_ed_num);
-  MEM_SAFE_FREE(sys->ne_fa_num);
-  MEM_SAFE_FREE(sys->ring_areas);
-  MEM_SAFE_FREE(sys->vlengths);
-  MEM_SAFE_FREE(sys->vweights);
-  MEM_SAFE_FREE(sys->zerola);
+  MEM_SAFE_DELETE(sys->eweights);
+  MEM_SAFE_DELETE(sys->fweights);
+  MEM_SAFE_DELETE(sys->ne_ed_num);
+  MEM_SAFE_DELETE(sys->ne_fa_num);
+  MEM_SAFE_DELETE(sys->ring_areas);
+  MEM_SAFE_DELETE(sys->vlengths);
+  MEM_SAFE_DELETE(sys->vweights);
+  MEM_SAFE_DELETE(sys->zerola);
 
   if (sys->context) {
     EIG_linear_solver_delete(sys->context);
@@ -96,14 +96,14 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, in
   sys = MEM_new<LaplacianSystem>(__func__);
   sys->verts_num = a_numVerts;
 
-  sys->eweights = MEM_calloc_arrayN<float>(a_numEdges, __func__);
-  sys->fweights = MEM_calloc_arrayN<float[3]>(a_numLoops, __func__);
-  sys->ne_ed_num = MEM_calloc_arrayN<short>(sys->verts_num, __func__);
-  sys->ne_fa_num = MEM_calloc_arrayN<short>(sys->verts_num, __func__);
-  sys->ring_areas = MEM_calloc_arrayN<float>(sys->verts_num, __func__);
-  sys->vlengths = MEM_calloc_arrayN<float>(sys->verts_num, __func__);
-  sys->vweights = MEM_calloc_arrayN<float>(sys->verts_num, __func__);
-  sys->zerola = MEM_calloc_arrayN<bool>(sys->verts_num, __func__);
+  sys->eweights = MEM_new_array_zeroed<float>(a_numEdges, __func__);
+  sys->fweights = MEM_new_array_zeroed<float[3]>(a_numLoops, __func__);
+  sys->ne_ed_num = MEM_new_array_zeroed<short>(sys->verts_num, __func__);
+  sys->ne_fa_num = MEM_new_array_zeroed<short>(sys->verts_num, __func__);
+  sys->ring_areas = MEM_new_array_zeroed<float>(sys->verts_num, __func__);
+  sys->vlengths = MEM_new_array_zeroed<float>(sys->verts_num, __func__);
+  sys->vweights = MEM_new_array_zeroed<float>(sys->verts_num, __func__);
+  sys->zerola = MEM_new_array_zeroed<bool>(sys->verts_num, __func__);
 
   return sys;
 }

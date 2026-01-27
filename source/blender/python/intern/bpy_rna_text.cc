@@ -91,7 +91,7 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
   }
   char *buf = txt_sel_to_buf(text, nullptr);
   PyObject *sel_text = PyUnicode_FromString(buf);
-  MEM_freeN(buf);
+  MEM_delete(buf);
   /* Return the selected text. */
   return sel_text;
 }

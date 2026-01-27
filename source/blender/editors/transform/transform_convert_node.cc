@@ -188,8 +188,8 @@ static void createTransNodeData(bContext *C, TransInfo *t)
   }
 
   tc->data_len = nodes.size();
-  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, __func__);
-  tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, __func__);
+  tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, __func__);
+  tc->data_2d = MEM_new_array_zeroed<TransData2D>(tc->data_len, __func__);
 
   for (const int i : nodes.index_range()) {
     create_transform_data_for_node(tc->data[i], tc->data_2d[i], *nodes[i], UI_SCALE_FAC);

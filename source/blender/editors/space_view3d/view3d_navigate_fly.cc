@@ -460,16 +460,16 @@ static wmOperatorStatus flyEnd(bContext *C, FlyInfo *fly)
 
 #ifdef WITH_INPUT_NDOF
   if (fly->ndof) {
-    MEM_freeN(fly->ndof);
+    MEM_delete(fly->ndof);
   }
 #endif
 
   if (fly->state == FLY_CONFIRM) {
-    MEM_freeN(fly);
+    MEM_delete(fly);
     return OPERATOR_FINISHED;
   }
 
-  MEM_freeN(fly);
+  MEM_delete(fly);
   return OPERATOR_CANCELLED;
 }
 
@@ -504,8 +504,8 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         fflush(stdout);
 #  endif
         if (fly->ndof == nullptr) {
-          // fly->ndof = MEM_mallocNwmNDOFMotionData(tag_name);
-          fly->ndof = static_cast<wmNDOFMotionData *>(MEM_dupallocN(incoming_ndof));
+          // fly->ndof = MEM_new_uninitializedwmNDOFMotionData(tag_name);
+          fly->ndof = MEM_dupalloc(incoming_ndof);
           // fly->ndof = malloc(sizeof(wmNDOFMotionData));
         }
         else {
@@ -519,7 +519,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         puts("stop keeping track of 3D mouse position");
 #  endif
         if (fly->ndof) {
-          MEM_freeN(fly->ndof);
+          MEM_delete(fly->ndof);
           // free(fly->ndof);
           fly->ndof = nullptr;
         }
@@ -1118,12 +1118,12 @@ static wmOperatorStatus fly_invoke(bContext *C, wmOperator *op, const wmEvent *e
     return OPERATOR_CANCELLED;
   }
 
-  FlyInfo *fly = MEM_callocN<FlyInfo>("FlyOperation");
+  FlyInfo *fly = MEM_new_zeroed<FlyInfo>("FlyOperation");
 
   op->customdata = fly;
 
   if (initFlyInfo(C, fly, op, event) == false) {
-    MEM_freeN(fly);
+    MEM_delete(fly);
     return OPERATOR_CANCELLED;
   }
 

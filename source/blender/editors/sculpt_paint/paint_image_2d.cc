@@ -180,10 +180,10 @@ static void brush_painter_2d_require_imbuf(Brush *brush,
       IMB_freeImBuf(cache->ibuf);
     }
     if (cache->tex_mask) {
-      MEM_freeN(cache->tex_mask);
+      MEM_delete(cache->tex_mask);
     }
     if (cache->tex_mask_old) {
-      MEM_freeN(cache->tex_mask_old);
+      MEM_delete(cache->tex_mask_old);
     }
     cache->ibuf = nullptr;
     cache->tex_mask = nullptr;
@@ -212,10 +212,10 @@ static void brush_painter_cache_2d_free(BrushPainterCache *cache)
   }
   paint_curve_mask_cache_free_data(&cache->curve_mask_cache);
   if (cache->tex_mask) {
-    MEM_freeN(cache->tex_mask);
+    MEM_delete(cache->tex_mask);
   }
   if (cache->tex_mask_old) {
-    MEM_freeN(cache->tex_mask_old);
+    MEM_delete(cache->tex_mask_old);
   }
 }
 
@@ -237,7 +237,7 @@ static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size
   ushort *mask, *m;
   int x, y, thread = 0;
 
-  mask = MEM_malloc_arrayN<ushort>(size * size, __func__);
+  mask = MEM_new_array_uninitialized<ushort>(size * size, __func__);
   m = mask;
 
   for (y = 0; y < size; y++) {
@@ -322,12 +322,12 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
 
   /* create brush image buffer if it didn't exist yet */
   if (!cache->tex_mask) {
-    cache->tex_mask = MEM_malloc_arrayN<ushort>(diameter * diameter, __func__);
+    cache->tex_mask = MEM_new_array_uninitialized<ushort>(diameter * diameter, __func__);
   }
 
   /* create new texture image buffer with coordinates relative to old */
   tex_mask_old = cache->tex_mask_old;
-  cache->tex_mask_old = MEM_malloc_arrayN<ushort>(diameter * diameter, __func__);
+  cache->tex_mask_old = MEM_new_array_uninitialized<ushort>(diameter * diameter, __func__);
 
   if (tex_mask_old) {
     ImBuf maskibuf;
@@ -364,7 +364,7 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
   }
 
   if (tex_mask_old) {
-    MEM_freeN(tex_mask_old);
+    MEM_delete(tex_mask_old);
   }
 
   /* sample texture in new areas */
@@ -782,7 +782,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
     if (diameter != cache->lastdiameter || (mask_rotation != cache->last_mask_rotation) ||
         renew_maxmask)
     {
-      MEM_SAFE_FREE(cache->tex_mask);
+      MEM_SAFE_DELETE(cache->tex_mask);
 
       brush_painter_2d_tex_mapping(
           s, tile, diameter, pos, mouse, brush->mask_mtex.brush_map_mode, &painter->mask_mapping);
@@ -1615,7 +1615,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mod
   const Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
 
-  ImagePaintState *s = MEM_callocN<ImagePaintState>(__func__);
+  ImagePaintState *s = MEM_new_zeroed<ImagePaintState>(__func__);
 
   s->sima = CTX_wm_space_image(C);
   s->v2d = &CTX_wm_region(C)->v2d;
@@ -1630,17 +1630,17 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mod
   s->symmetry = settings->imapaint.paint.symmetry_flags;
 
   if (s->image == nullptr) {
-    MEM_freeN(s);
+    MEM_delete(s);
     return nullptr;
   }
   if (BKE_image_has_packedfile(s->image) && s->image->rr != nullptr) {
     BKE_report(op->reports, RPT_WARNING, "Packed MultiLayer files cannot be painted");
-    MEM_freeN(s);
+    MEM_delete(s);
     return nullptr;
   }
 
   s->num_tiles = BLI_listbase_count(&s->image->tiles);
-  s->tiles = MEM_new_array_for_free<ImagePaintTile>(s->num_tiles, __func__);
+  s->tiles = MEM_new_array<ImagePaintTile>(s->num_tiles, __func__);
   for (int i = 0; i < s->num_tiles; i++) {
     s->tiles[i].iuser = sima->iuser;
   }
@@ -1649,16 +1649,16 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mod
 
   ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, &s->tiles[0].iuser, nullptr);
   if (ibuf == nullptr) {
-    MEM_freeN(s->tiles);
-    MEM_freeN(s);
+    MEM_delete(s->tiles);
+    MEM_delete(s);
     return nullptr;
   }
 
   if (ibuf->channels != 4) {
     BKE_image_release_ibuf(s->image, ibuf, nullptr);
     BKE_report(op->reports, RPT_WARNING, "Image requires 4 color channels to paint");
-    MEM_freeN(s->tiles);
-    MEM_freeN(s);
+    MEM_delete(s->tiles);
+    MEM_delete(s);
     return nullptr;
   }
 
@@ -1681,9 +1681,9 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mod
   }
 
   if (!paint_2d_canvas_set(s, paint)) {
-    MEM_freeN(s->tiles);
+    MEM_delete(s->tiles);
 
-    MEM_freeN(s);
+    MEM_delete(s);
     return nullptr;
   }
 
@@ -1758,10 +1758,10 @@ void paint_2d_stroke_done(void *ps)
     brush_painter_cache_2d_free(&s->tiles[i].cache);
   }
   MEM_delete(s->painter);
-  MEM_freeN(s->tiles);
+  MEM_delete(s->tiles);
   paint_brush_exit_tex(s->brush);
 
-  MEM_freeN(s);
+  MEM_delete(s);
 }
 
 static void paint_2d_fill_add_pixel_byte(const int x_px,
@@ -2023,7 +2023,7 @@ void paint_2d_bucket_fill(const bContext *C,
       }
     }
 
-    MEM_freeN(touched);
+    MEM_delete(touched);
     BLI_stack_free(stack);
   }
 

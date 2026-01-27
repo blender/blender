@@ -117,7 +117,7 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
 {
   View3DCameraControl *vctrl;
 
-  vctrl = MEM_callocN<View3DCameraControl>(__func__);
+  vctrl = MEM_new_zeroed<View3DCameraControl>(__func__);
 
   /* Store context */
   vctrl->ctx_scene = scene;
@@ -347,10 +347,10 @@ void ED_view3d_cameracontrol_release(View3DCameraControl *vctrl, const bool rest
   }
 
   if (vctrl->obtfm) {
-    MEM_freeN(vctrl->obtfm);
+    MEM_delete_void(vctrl->obtfm);
   }
 
-  MEM_freeN(vctrl);
+  MEM_delete(vctrl);
 }
 
 }  // namespace blender

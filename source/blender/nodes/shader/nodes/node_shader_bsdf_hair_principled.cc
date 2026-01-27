@@ -138,7 +138,7 @@ static void node_shader_buts_principled_hair(ui::Layout &layout, bContext * /*C*
 /* Initialize custom properties. */
 static void node_shader_init_hair_principled(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderHairPrincipled *data = MEM_new_for_free<NodeShaderHairPrincipled>(__func__);
+  NodeShaderHairPrincipled *data = MEM_new<NodeShaderHairPrincipled>(__func__);
 
   data->model = SHD_PRINCIPLED_HAIR_CHIANG;
   data->parametrization = SHD_PRINCIPLED_HAIR_REFLECTANCE;

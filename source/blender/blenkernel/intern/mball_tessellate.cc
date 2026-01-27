@@ -448,7 +448,7 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
   if (UNLIKELY(process->totindex == process->curindex)) {
     process->totindex = process->totindex ? (process->totindex * 2) : MBALL_ARRAY_LEN_INIT;
     process->indices = static_cast<int (*)[4]>(
-        MEM_reallocN(process->indices, sizeof(int[4]) * process->totindex));
+        MEM_realloc_uninitialized(process->indices, sizeof(int[4]) * process->totindex));
   }
 
   int *cur = process->indices[process->curindex++];
@@ -491,19 +491,19 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
 static void freepolygonize(PROCESS *process)
 {
   if (process->corners) {
-    MEM_freeN(process->corners);
+    MEM_delete(process->corners);
   }
   if (process->edges) {
-    MEM_freeN(process->edges);
+    MEM_delete(process->edges);
   }
   if (process->centers) {
-    MEM_freeN(process->centers);
+    MEM_delete(process->centers);
   }
   if (process->mainb) {
-    MEM_freeN(process->mainb);
+    MEM_delete(process->mainb);
   }
   if (process->bvh_queue) {
-    MEM_freeN(process->bvh_queue);
+    MEM_delete(process->bvh_queue);
   }
   if (process->pgn_elements) {
     BLI_memarena_free(process->pgn_elements);
@@ -770,7 +770,7 @@ static void makecubetable()
     for (e = 0; e < 12; e++) {
       if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
         INTLIST *ints = nullptr;
-        INTLISTS *lists = MEM_callocN<INTLISTS>("mball_intlist");
+        INTLISTS *lists = MEM_new_zeroed<INTLISTS>("mball_intlist");
         int start = e, edge = e;
 
         /* get face that is to right of edge from pos to neg corner: */
@@ -782,7 +782,7 @@ static void makecubetable()
           if (pos[corner1[edge]] != pos[corner2[edge]]) {
             INTLIST *tmp = ints;
 
-            ints = MEM_callocN<INTLIST>("mball_intlist");
+            ints = MEM_new_zeroed<INTLIST>("mball_intlist");
             ints->i = edge;
             ints->next = tmp; /* add edge to head of list */
 
@@ -839,11 +839,11 @@ void BKE_mball_cubeTable_free()
       INTLIST *ints = lists->list;
       while (ints) {
         INTLIST *nints = ints->next;
-        MEM_freeN(ints);
+        MEM_delete(ints);
         ints = nints;
       }
 
-      MEM_freeN(lists);
+      MEM_delete(lists);
       lists = nlists;
     }
     cubetable[i] = nullptr;
@@ -1139,11 +1139,11 @@ static void polygonize(PROCESS *process)
 {
   CUBE c;
 
-  process->centers = MEM_calloc_arrayN<CENTERLIST *>(HASHSIZE, "mbproc->centers");
-  process->corners = MEM_calloc_arrayN<CORNER *>(HASHSIZE, "mbproc->corners");
-  process->edges = MEM_calloc_arrayN<EDGELIST *>(2 * HASHSIZE, "mbproc->edges");
-  process->bvh_queue = MEM_calloc_arrayN<MetaballBVHNode *>(process->bvh_queue_size,
-                                                            "Metaball BVH Queue");
+  process->centers = MEM_new_array_zeroed<CENTERLIST *>(HASHSIZE, "mbproc->centers");
+  process->corners = MEM_new_array_zeroed<CORNER *>(HASHSIZE, "mbproc->corners");
+  process->edges = MEM_new_array_zeroed<EDGELIST *>(2 * HASHSIZE, "mbproc->edges");
+  process->bvh_queue = MEM_new_array_zeroed<MetaballBVHNode *>(process->bvh_queue_size,
+                                                               "Metaball BVH Queue");
 
   makecubetable();
 
@@ -1344,7 +1344,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       if (UNLIKELY(process->totelem == process->mem)) {
         process->mem = process->mem * 2 + 10;
         process->mainb = static_cast<MetaElem **>(
-            MEM_reallocN(process->mainb, sizeof(MetaElem *) * process->mem));
+            MEM_realloc_uninitialized(process->mainb, sizeof(MetaElem *) * process->mem));
       }
       process->mainb[process->totelem++] = new_ml;
     }
@@ -1466,7 +1466,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
     loop_offset += count;
   }
-  MEM_freeN(process.indices);
+  MEM_delete(process.indices);
 
   for (int i = 0; i < mesh->verts_num; i++) {
     normalize_v3(process.no[i]);

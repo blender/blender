@@ -38,7 +38,7 @@ static void node_shader_buts_attribute(ui::Layout &layout, bContext * /*C*/, Poi
 
 static void node_shader_init_attribute(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderAttribute *attr = MEM_new_for_free<NodeShaderAttribute>("NodeShaderAttribute");
+  NodeShaderAttribute *attr = MEM_new<NodeShaderAttribute>("NodeShaderAttribute");
   node->storage = attr;
 }
 

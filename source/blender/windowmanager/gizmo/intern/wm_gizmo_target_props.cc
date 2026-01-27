@@ -253,7 +253,7 @@ void WM_gizmotype_target_property_def(wmGizmoType *gzt,
 
   const uint idname_size = strlen(idname) + 1;
   wmGizmoPropertyType *gz_prop_type = static_cast<wmGizmoPropertyType *>(
-      MEM_callocN(sizeof(wmGizmoPropertyType) + idname_size, __func__));
+      MEM_new_zeroed(sizeof(wmGizmoPropertyType) + idname_size, __func__));
   memcpy(gz_prop_type->idname, idname, idname_size);
   gz_prop_type->data_type = data_type;
   gz_prop_type->array_length = array_length;

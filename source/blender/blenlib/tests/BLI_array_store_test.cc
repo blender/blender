@@ -51,7 +51,7 @@ struct TestChunk {
 
 static TestChunk *testchunk_list_add(ListBaseT<TestChunk> *lb, const void *data, size_t data_len)
 {
-  TestChunk *tc = MEM_mallocN<TestChunk>(__func__);
+  TestChunk *tc = MEM_new_uninitialized<TestChunk>(__func__);
   tc->data = data;
   tc->data_len = data_len;
   BLI_addtail(lb, tc);
@@ -62,7 +62,7 @@ static TestChunk *testchunk_list_add(ListBaseT<TestChunk> *lb, const void *data,
 #if 0
 static TestChunk *testchunk_list_add_copydata(ListBaseT<TestChunk> *lb, const void *data, size_t data_len)
 {
-  void *data_copy = MEM_mallocN(data_len, __func__);
+  void *data_copy = MEM_new_uninitialized(data_len, __func__);
   memcpy(data_copy, data, data_len);
   return testchunk_list_add(lb, data_copy, data_len);
 }
@@ -72,8 +72,8 @@ static void testchunk_list_free(ListBaseT<TestChunk> *lb)
 {
   for (TestChunk *tc = static_cast<TestChunk *>(lb->first), *tb_next; tc; tc = tb_next) {
     tb_next = tc->next;
-    MEM_freeN(const_cast<void *>(tc->data));
-    MEM_freeN(tc);
+    MEM_delete_void(const_cast<void *>(tc->data));
+    MEM_delete(tc);
   }
   BLI_listbase_clear(lb);
 }
@@ -85,7 +85,7 @@ static char *testchunk_as_data(ListBaseT<TestChunk> *lb, size_t *r_data_len)
   for (TestChunk *tc = (TestChunk *)lb->first; tc; tc = tc->next) {
     data_len += tc->data_len;
   }
-  char *data = MEM_malloc_arrayN<char>(data_len, __func__);
+  char *data = MEM_new_array_uninitialized<char>(data_len, __func__);
   size_t i = 0;
   for (TestChunk *tc = (TestChunk *)lb->first; tc; tc = tc->next) {
     memcpy(&data[i], tc->data, tc->data_len);
@@ -105,7 +105,7 @@ static char *testchunk_as_data_array(TestChunk **tc_array, int tc_array_len, siz
   for (int tc_index = 0; tc_index < tc_array_len; tc_index++) {
     data_len += tc_array[tc_index]->data_len;
   }
-  char *data = MEM_malloc_arrayN<char>(data_len, __func__);
+  char *data = MEM_new_array_uninitialized<char>(data_len, __func__);
   size_t i = 0;
   for (int tc_index = 0; tc_index < tc_array_len; tc_index++) {
     TestChunk *tc = tc_array[tc_index];
@@ -135,7 +135,7 @@ static TestBuffer *testbuffer_list_add(ListBaseT<TestBuffer> *lb,
                                        const void *data,
                                        size_t data_len)
 {
-  TestBuffer *tb = MEM_mallocN<TestBuffer>(__func__);
+  TestBuffer *tb = MEM_new_uninitialized<TestBuffer>(__func__);
   tb->data = data;
   tb->data_len = data_len;
   tb->state = nullptr;
@@ -147,7 +147,7 @@ static TestBuffer *testbuffer_list_add_copydata(ListBaseT<TestBuffer> *lb,
                                                 const void *data,
                                                 size_t data_len)
 {
-  void *data_copy = MEM_mallocN(data_len, __func__);
+  void *data_copy = MEM_new_uninitialized(data_len, __func__);
   memcpy(data_copy, data, data_len);
   return testbuffer_list_add(lb, data_copy, data_len);
 }
@@ -173,7 +173,7 @@ static void testbuffer_list_state_from_data__stride_expand(ListBaseT<TestBuffer>
   }
   else {
     const size_t data_stride_len = data_len * stride;
-    char *data_stride = MEM_malloc_arrayN<char>(data_stride_len, __func__);
+    char *data_stride = MEM_new_array_uninitialized<char>(data_stride_len, __func__);
 
     for (size_t i = 0, i_stride = 0; i < data_len; i += 1, i_stride += stride) {
       memset(&data_stride[i_stride], data[i], stride);
@@ -226,7 +226,7 @@ static bool testbuffer_item_validate(TestBuffer *tb)
   else if (memcmp(data_state, tb->data, data_state_len) != 0) {
     ok = false;
   }
-  MEM_freeN(data_state);
+  MEM_delete_void(data_state);
   return ok;
 }
 
@@ -270,8 +270,8 @@ static void testbuffer_list_free(ListBaseT<TestBuffer> *lb)
 {
   for (TestBuffer *tb = static_cast<TestBuffer *>(lb->first), *tb_next; tb; tb = tb_next) {
     tb_next = tb->next;
-    MEM_freeN(const_cast<void *>(tb->data));
-    MEM_freeN(tb);
+    MEM_delete_void(const_cast<void *>(tb->data));
+    MEM_delete(tb);
   }
   BLI_listbase_clear(lb);
 }
@@ -339,7 +339,7 @@ TEST(array_store, Single)
   EXPECT_STREQ(data_src, data_dst);
   EXPECT_EQ(data_dst_len, sizeof(data_src));
   BLI_array_store_destroy(bs);
-  MEM_freeN(data_dst);
+  MEM_delete(data_dst);
 }
 
 TEST(array_store, DoubleNop)
@@ -358,11 +358,11 @@ TEST(array_store, DoubleNop)
 
   data_dst = static_cast<char *>(BLI_array_store_state_data_get_alloc(state_a, &data_dst_len));
   EXPECT_STREQ(data_src, data_dst);
-  MEM_freeN(data_dst);
+  MEM_delete(data_dst);
 
   data_dst = static_cast<char *>(BLI_array_store_state_data_get_alloc(state_b, &data_dst_len));
   EXPECT_STREQ(data_src, data_dst);
-  MEM_freeN(data_dst);
+  MEM_delete(data_dst);
 
   EXPECT_EQ(data_dst_len, sizeof(data_src));
   BLI_array_store_destroy(bs);
@@ -384,11 +384,11 @@ TEST(array_store, DoubleDiff)
 
   data_dst = static_cast<char *>(BLI_array_store_state_data_get_alloc(state_a, &data_dst_len));
   EXPECT_STREQ(data_src_a, data_dst);
-  MEM_freeN(data_dst);
+  MEM_delete(data_dst);
 
   data_dst = static_cast<char *>(BLI_array_store_state_data_get_alloc(state_b, &data_dst_len));
   EXPECT_STREQ(data_src_b, data_dst);
-  MEM_freeN(data_dst);
+  MEM_delete(data_dst);
 
   BLI_array_store_destroy(bs);
 }
@@ -598,7 +598,7 @@ static void testbuffer_list_state_random_data(ListBaseT<TestBuffer> *lb,
                                               RNG *rng)
 {
   size_t data_len = rand_range_i(rng, data_min_len, data_max_len + stride, stride);
-  char *data = MEM_malloc_arrayN<char>(data_len, __func__);
+  char *data = MEM_new_array_uninitialized<char>(data_len, __func__);
 
   if (lb->last == nullptr) {
     BLI_rng_get_char_n(rng, data, data_len);
@@ -632,7 +632,7 @@ static void testbuffer_list_state_random_data(ListBaseT<TestBuffer> *lb,
           const uint offset = rand_range_i(rng, 0, data_len, stride);
           if (data_len < data_max_len) {
             data_len += stride;
-            data = static_cast<char *>(MEM_reallocN((void *)data, data_len));
+            data = static_cast<char *>(MEM_realloc_uninitialized((void *)data, data_len));
             memmove(&data[offset + stride], &data[offset], data_len - (offset + stride));
             BLI_rng_get_char_n(rng, &data[offset], stride);
           }
@@ -730,7 +730,7 @@ static void random_chunk_generate(ListBaseT<TestChunk> *lb,
   RNG *rng = BLI_rng_new(random_seed);
   const size_t chunk_size_bytes = stride * chunk_count;
   for (int i = 0; i < chunks_per_buffer; i++) {
-    char *data_chunk = MEM_malloc_arrayN<char>(chunk_size_bytes, __func__);
+    char *data_chunk = MEM_new_array_uninitialized<char>(chunk_size_bytes, __func__);
     BLI_rng_get_char_n(rng, data_chunk, chunk_size_bytes);
     testchunk_list_add(lb, data_chunk, chunk_size_bytes);
   }
@@ -751,7 +751,8 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
   ListBaseT<TestChunk> random_chunks;
   BLI_listbase_clear(&random_chunks);
   random_chunk_generate(&random_chunks, chunks_per_buffer, stride, chunk_count, random_seed);
-  TestChunk **chunks_array = MEM_malloc_arrayN<TestChunk *>(size_t(chunks_per_buffer), __func__);
+  TestChunk **chunks_array = MEM_new_array_uninitialized<TestChunk *>(size_t(chunks_per_buffer),
+                                                                      __func__);
   {
     TestChunk *tc = static_cast<TestChunk *>(random_chunks.first);
     for (int i = 0; i < chunks_per_buffer; i++, tc = tc->next) {
@@ -776,7 +777,7 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
   }
 
   testchunk_list_free(&random_chunks);
-  MEM_freeN(chunks_array);
+  MEM_delete(chunks_array);
 
   BArrayStore *bs = BLI_array_store_create(stride, chunk_count);
   testbuffer_run_tests_single(bs, &lb);
@@ -825,7 +826,7 @@ static bool rle_encode_decode_test(const uint8_t *data_dec,
   TIMEIT_END(encode);
 #endif
 
-  uint8_t *data_dec_copy = MEM_malloc_arrayN<uint8_t>(data_dec_len, __func__);
+  uint8_t *data_dec_copy = MEM_new_array_uninitialized<uint8_t>(data_dec_len, __func__);
 
 #ifdef DEBUG_TIME
   TIMEIT_START(decode);
@@ -835,9 +836,9 @@ static bool rle_encode_decode_test(const uint8_t *data_dec,
   TIMEIT_END(decode);
 #endif
 
-  MEM_freeN(data_enc);
+  MEM_delete(data_enc);
   const bool eq = memcmp(data_dec, data_dec_copy, data_dec_len) == 0;
-  MEM_freeN(data_dec_copy);
+  MEM_delete(data_dec_copy);
   if (r_data_enc_len) {
     *r_data_enc_len = data_enc_len;
   }
@@ -854,8 +855,8 @@ static void array_store_test_random_span_rle_encode(const size_t data_size,
   BLI_assert(data_size > span_size);
 
   RNG *rng = BLI_rng_new(1);
-  uint8_t *data = MEM_malloc_arrayN<uint8_t>(data_size, __func__);
-  uint8_t *data_pattern = MEM_malloc_arrayN<uint8_t>(data_size, __func__);
+  uint8_t *data = MEM_new_array_uninitialized<uint8_t>(data_size, __func__);
+  uint8_t *data_pattern = MEM_new_array_uninitialized<uint8_t>(data_size, __func__);
 
   for (int i = 0; i < data_size; i++) {
     data_pattern[i] = i % 2;
@@ -894,8 +895,8 @@ static void array_store_test_random_span_rle_encode(const size_t data_size,
                                              (sizeof(size_t[2]) * 2);
     EXPECT_LE(data_enc_len, data_enc_len_expected_max);
   }
-  MEM_freeN(data);
-  MEM_freeN(data_pattern);
+  MEM_delete(data);
+  MEM_delete(data_pattern);
 
   BLI_rng_free(rng);
 }
@@ -905,7 +906,7 @@ static void array_store_test_random_data_rle_encode(const size_t data_size,
                                                     const int permitations)
 {
   RNG *rng = BLI_rng_new(1);
-  uint8_t *data = MEM_malloc_arrayN<uint8_t>(data_size, __func__);
+  uint8_t *data = MEM_new_array_uninitialized<uint8_t>(data_size, __func__);
 
   for (int mutaiton = 0; mutaiton < permitations; mutaiton++) {
     memset(data, 1, data_ratio_size);
@@ -917,7 +918,7 @@ static void array_store_test_random_data_rle_encode(const size_t data_size,
     EXPECT_TRUE(rle_encode_decode_test(data, data_size, &data_enc_len));
   }
 
-  MEM_freeN(data);
+  MEM_delete(data);
   BLI_rng_free(rng);
 }
 
@@ -969,7 +970,7 @@ TEST(array_store, RLE_Alignment)
   /* Use a size large enough to detect usable spans
    * but not so large as to make the tests slow. */
   const size_t data_len_max = sizeof(void *) * 8;
-  uint8_t *data_pattern = MEM_calloc_arrayN<uint8_t>(data_len_max, __func__);
+  uint8_t *data_pattern = MEM_new_array_zeroed<uint8_t>(data_len_max, __func__);
   for (size_t i = 0; i < data_len_max; i += 2) {
     data_pattern[i] = 1;
   }
@@ -977,7 +978,8 @@ TEST(array_store, RLE_Alignment)
   /* Use allocations memory checking tools will report errors on invalid buffer read/writes.
    * It's important to offset the start of the array so as to ensure searching the array
    * is performed at different memory alignments.
-   * It's also important to use `malloc` not `MEM_mallocN` since these hide out of bounds reads. */
+   * It's also important to use `malloc` not `MEM_new_uninitialized` since these hide out of bounds
+   * reads. */
   for (int data_len = 1; data_len < data_len_max; data_len += 1) {
     uint8_t *data = static_cast<uint8_t *>(malloc(data_len));
     for (size_t offset = 0; offset < sizeof(void *); offset += 1) {
@@ -997,7 +999,7 @@ TEST(array_store, RLE_Alignment)
     }
     free(data);
   }
-  MEM_freeN(data_pattern);
+  MEM_delete(data_pattern);
 }
 
 TEST(array_store, RLE_RandomSpan)
@@ -1089,14 +1091,14 @@ static void *file_read_binary_as_mem(const char *filepath, size_t pad_bytes, siz
     }
     fseek(fp, 0L, SEEK_SET);
 
-    mem = MEM_mallocN(filelen + pad_bytes, __func__);
+    mem = MEM_new_uninitialized(filelen + pad_bytes, __func__);
     if (mem == nullptr) {
       goto finally;
     }
 
     filelen_read = fread(mem, 1, filelen, fp);
     if ((filelen_read != filelen) || ferror(fp)) {
-      MEM_freeN(mem);
+      MEM_delete_void(mem);
       mem = nullptr;
       goto finally;
     }

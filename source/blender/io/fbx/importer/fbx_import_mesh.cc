@@ -486,7 +486,7 @@ void import_meshes(Main &bmain,
     /* Add vertex groups to the object. */
     VectorSet<std::string> bone_set = get_skin_bone_name_set(mapping, fmesh);
     for (const std::string &name : bone_set) {
-      bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>("bDeformGroup");
+      bDeformGroup *defgroup = MEM_new<bDeformGroup>("bDeformGroup");
       StringRef(name).copy_utf8_truncated(defgroup->name);
       BLI_addtail(&mesh->vertex_group_names, defgroup);
     }

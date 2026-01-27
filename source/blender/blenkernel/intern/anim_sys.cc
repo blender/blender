@@ -140,7 +140,7 @@ KeyingSet *BKE_keyingset_add(ListBaseT<KeyingSet> *list,
   KeyingSet *ks;
 
   /* allocate new KeyingSet */
-  ks = MEM_new_for_free<KeyingSet>("KeyingSet");
+  ks = MEM_new<KeyingSet>("KeyingSet");
 
   STRNCPY_UTF8(ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"));
   STRNCPY_UTF8(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"));
@@ -195,7 +195,7 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
   }
 
   /* allocate a new KeyingSet Path */
-  ksp = MEM_new_for_free<KS_Path>("KeyingSet Path");
+  ksp = MEM_new<KS_Path>("KeyingSet Path");
 
   /* just store absolute info */
   ksp->id = id;
@@ -236,7 +236,7 @@ void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp)
 
   /* free RNA-path info */
   if (ksp->rna_path) {
-    MEM_freeN(ksp->rna_path);
+    MEM_delete(ksp->rna_path);
   }
 
   /* free path itself */
@@ -251,7 +251,7 @@ void BKE_keyingsets_copy(ListBaseT<KeyingSet> *newlist, const ListBaseT<KeyingSe
     BLI_duplicatelist(&ksn.paths, &ksn.paths);
 
     for (KS_Path &kspn : ksn.paths) {
-      kspn.rna_path = static_cast<char *>(MEM_dupallocN(kspn.rna_path));
+      kspn.rna_path = MEM_dupalloc(kspn.rna_path);
     }
   }
 }
@@ -695,7 +695,7 @@ static void animsys_blend_in_fcurves(PointerRNA *ptr,
       animsys_blend_fcurves_quaternion(&anim_rna, quat_fcurves, anim_eval_context, blend_factor);
 
       /* Skip the next up-to-three channels, because those have already been handled here. */
-      MEM_SAFE_FREE(channel_to_skip);
+      MEM_SAFE_DELETE(channel_to_skip);
       channel_to_skip = BLI_strdup(fcu->rna_path);
       num_channels_to_skip = quat_fcurves.size() - 1;
       continue;
@@ -732,7 +732,7 @@ static void animsys_blend_in_fcurves(PointerRNA *ptr,
     BKE_animsys_write_to_rna_path(&anim_rna, value_to_write);
   }
 
-  MEM_SAFE_FREE(channel_to_skip);
+  MEM_SAFE_DELETE(channel_to_skip);
 }
 
 /* ***************************************** */
@@ -1057,7 +1057,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBaseT<NlaEvalStrip> *list,
   }
 
   /* add to list of strips we need to evaluate */
-  nes = MEM_callocN<NlaEvalStrip>("NlaEvalStrip");
+  nes = MEM_new_zeroed<NlaEvalStrip>("NlaEvalStrip");
 
   nes->strip = estrip;
   nes->strip_mode = side;
@@ -1101,7 +1101,7 @@ static void nlavalidmask_init(NlaValidMask *mask, int bits)
 static void nlavalidmask_free(NlaValidMask *mask)
 {
   if (mask->ptr != mask->buffer) {
-    MEM_freeN(mask->ptr);
+    MEM_delete(mask->ptr);
   }
 }
 
@@ -1114,7 +1114,7 @@ static NlaEvalChannelSnapshot *nlaevalchan_snapshot_new(NlaEvalChannel *nec)
 
   size_t byte_size = sizeof(NlaEvalChannelSnapshot) + sizeof(float) * length;
   NlaEvalChannelSnapshot *nec_snapshot = static_cast<NlaEvalChannelSnapshot *>(
-      MEM_callocN(byte_size, "NlaEvalChannelSnapshot"));
+      MEM_new_zeroed(byte_size, "NlaEvalChannelSnapshot"));
 
   nec_snapshot->channel = nec;
   nec_snapshot->length = length;
@@ -1131,7 +1131,7 @@ static void nlaevalchan_snapshot_free(NlaEvalChannelSnapshot *nec_snapshot)
 
   nlavalidmask_free(&nec_snapshot->blend_domain);
   nlavalidmask_free(&nec_snapshot->remap_domain);
-  MEM_freeN(nec_snapshot);
+  MEM_delete(nec_snapshot);
 }
 
 /* Copy all data in the snapshot. */
@@ -1152,8 +1152,8 @@ static void nlaeval_snapshot_init(NlaEvalSnapshot *snapshot,
 {
   snapshot->base = base;
   snapshot->size = std::max(16, nlaeval->num_channels);
-  snapshot->channels = MEM_calloc_arrayN<NlaEvalChannelSnapshot *>(snapshot->size,
-                                                                   "NlaEvalSnapshot::channels");
+  snapshot->channels = MEM_new_array_zeroed<NlaEvalChannelSnapshot *>(snapshot->size,
+                                                                      "NlaEvalSnapshot::channels");
 }
 
 /* Retrieve the individual channel snapshot. */
@@ -1172,7 +1172,7 @@ static void nlaeval_snapshot_ensure_size(NlaEvalSnapshot *snapshot, int size)
 
     size_t byte_size = sizeof(*snapshot->channels) * snapshot->size;
     snapshot->channels = static_cast<NlaEvalChannelSnapshot **>(
-        MEM_recallocN_id(snapshot->channels, byte_size, "NlaEvalSnapshot::channels"));
+        MEM_realloc_zeroed_id(snapshot->channels, byte_size, "NlaEvalSnapshot::channels"));
   }
 }
 
@@ -1231,7 +1231,7 @@ static void nlaeval_snapshot_free_data(NlaEvalSnapshot *snapshot)
       }
     }
 
-    MEM_freeN(snapshot->channels);
+    MEM_delete(snapshot->channels);
   }
 
   snapshot->base = nullptr;
@@ -1260,7 +1260,7 @@ static void nlaeval_init(NlaEvalData *nlaeval)
 static void nlaeval_free(NlaEvalData *nlaeval)
 {
   /* Delete base snapshot - its channels are part of NlaEvalChannel and shouldn't be freed. */
-  MEM_SAFE_FREE(nlaeval->base_snapshot.channels);
+  MEM_SAFE_DELETE(nlaeval->base_snapshot.channels);
 
   /* Delete result snapshot. */
   nlaeval_snapshot_free_data(&nlaeval->eval_snapshot);
@@ -1340,20 +1340,20 @@ static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
-        tmp_bool = MEM_malloc_arrayN<bool>(size_t(length), __func__);
+        tmp_bool = MEM_new_array_uninitialized<bool>(size_t(length), __func__);
         RNA_property_boolean_get_default_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
           r_values[i] = float(tmp_bool[i]);
         }
-        MEM_freeN(tmp_bool);
+        MEM_delete(tmp_bool);
         break;
       case PROP_INT:
-        tmp_int = MEM_malloc_arrayN<int>(size_t(length), __func__);
+        tmp_int = MEM_new_array_uninitialized<int>(size_t(length), __func__);
         RNA_property_int_get_default_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
           r_values[i] = float(tmp_int[i]);
         }
-        MEM_freeN(tmp_int);
+        MEM_delete(tmp_int);
         break;
       case PROP_FLOAT:
         RNA_property_float_get_default_array(ptr, prop, r_values);
@@ -1420,7 +1420,7 @@ static NlaEvalChannel *nlaevalchan_verify_key(NlaEvalData *nlaeval,
     int length = is_array ? RNA_property_array_length(&key->ptr, key->prop) : 1;
 
     NlaEvalChannel *nec = static_cast<NlaEvalChannel *>(
-        MEM_callocN(sizeof(NlaEvalChannel) + sizeof(float) * length, "NlaEvalChannel"));
+        MEM_new_zeroed(sizeof(NlaEvalChannel) + sizeof(float) * length, "NlaEvalChannel"));
 
     /* Initialize the channel. */
     nec->rna_path = path;
@@ -2881,7 +2881,7 @@ static void nlastrip_evaluate_meta(const int evaluation_mode,
                       flush_to_original);
 
     /* free temp eval-strip */
-    MEM_freeN(tmp_nes);
+    MEM_delete(tmp_nes);
   }
 
   /* unlink this strip's modifiers from the parent's modifiers again */
@@ -3646,7 +3646,7 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
 
   if (ctx == nullptr) {
     /* Allocate and evaluate a new context. */
-    ctx = MEM_new_for_free<NlaKeyframingContext>("NlaKeyframingContext");
+    ctx = MEM_new<NlaKeyframingContext>("NlaKeyframingContext");
     ctx->adt = adt;
 
     nlaeval_init(&ctx->lower_eval_data);
@@ -3786,7 +3786,7 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
 void BKE_animsys_free_nla_keyframing_context_cache(ListBaseT<NlaKeyframingContext> *cache)
 {
   for (NlaKeyframingContext &ctx : *cache) {
-    MEM_SAFE_FREE(ctx.eval_strip);
+    MEM_SAFE_DELETE(ctx.eval_strip);
     BLI_freelistN(&ctx.upper_estrips);
     nlaeval_free(&ctx.lower_eval_data);
   }
@@ -4073,7 +4073,8 @@ void BKE_animsys_update_driver_array(ID *id)
     BLI_assert(!adt->driver_array);
 
     int num_drivers = BLI_listbase_count(&adt->drivers);
-    adt->driver_array = MEM_malloc_arrayN<FCurve *>(size_t(num_drivers), "adt->driver_array");
+    adt->driver_array = MEM_new_array_uninitialized<FCurve *>(size_t(num_drivers),
+                                                              "adt->driver_array");
 
     int driver_index = 0;
     for (FCurve &fcu : adt->drivers) {

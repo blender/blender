@@ -283,7 +283,7 @@ static void track_markers_freejob(void *tmv)
   tmj->clip->tracking_context = nullptr;
   WM_locked_interface_set(tmj->wm, false);
   BKE_autotrack_context_free(tmj->context);
-  MEM_freeN(tmj);
+  MEM_delete(tmj);
 }
 
 static wmOperatorStatus track_markers(bContext *C, wmOperator *op, bool use_job)
@@ -309,7 +309,7 @@ static wmOperatorStatus track_markers(bContext *C, wmOperator *op, bool use_job)
     return OPERATOR_CANCELLED;
   }
 
-  tmj = MEM_callocN<TrackMarkersJob>("TrackMarkersJob data");
+  tmj = MEM_new_zeroed<TrackMarkersJob>("TrackMarkersJob data");
   if (!track_markers_initjob(C, tmj, backwards, sequence)) {
     track_markers_freejob(tmj);
     return OPERATOR_CANCELLED;

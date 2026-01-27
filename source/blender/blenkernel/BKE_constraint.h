@@ -94,7 +94,7 @@ struct bConstraintTypeInfo {
   void (*copy_data)(struct bConstraint *con, struct bConstraint *src);
   /**
    * Set settings for data that will be used for #bConstraint.data
-   * (memory already allocated using #MEM_callocN).
+   * (memory already allocated using #MEM_new_zeroed).
    */
   void (*new_data)(void *cdata);
 
@@ -288,7 +288,7 @@ void BKE_constraint_panel_expand(struct bConstraint *con);
 /**
  * Package an object/bone for use in constraint evaluation.
  *
- * This function MEM_calloc's a #bConstraintOb struct,
+ * This function MEM_new_zeroed's a #bConstraintOb struct,
  * that will need to be freed after evaluation.
  */
 struct bConstraintOb *BKE_constraints_make_evalob(struct Depsgraph *depsgraph,

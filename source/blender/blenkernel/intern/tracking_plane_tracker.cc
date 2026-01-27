@@ -28,8 +28,8 @@ static int point_markers_correspondences_on_both_image(
 {
   Vec2 *x1, *x2;
 
-  *r_x1 = x1 = MEM_calloc_arrayN<Vec2>(plane_track->point_tracksnr, "point correspondences x1");
-  *r_x2 = x2 = MEM_calloc_arrayN<Vec2>(plane_track->point_tracksnr, "point correspondences x2");
+  *r_x1 = x1 = MEM_new_array_zeroed<Vec2>(plane_track->point_tracksnr, "point correspondences x1");
+  *r_x2 = x2 = MEM_new_array_zeroed<Vec2>(plane_track->point_tracksnr, "point correspondences x2");
 
   int correspondence_index = 0;
   for (int i = 0; i < plane_track->point_tracksnr; i++) {
@@ -107,8 +107,8 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
     const int num_correspondences = point_markers_correspondences_on_both_image(
         plane_track, current_frame, current_frame + frame_delta, &x1, &x2);
     if (num_correspondences < 4) {
-      MEM_freeN(x1);
-      MEM_freeN(x2);
+      MEM_delete(x1);
+      MEM_delete(x2);
       break;
     }
 
@@ -150,8 +150,8 @@ static void track_plane_from_existing_motion(MovieTrackingPlaneTrack *plane_trac
 
     BKE_tracking_plane_marker_insert(plane_track, &new_plane_marker);
 
-    MEM_freeN(x1);
-    MEM_freeN(x2);
+    MEM_delete(x1);
+    MEM_delete(x2);
   }
 }
 

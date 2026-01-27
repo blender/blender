@@ -73,7 +73,7 @@ static void linestyle_copy_data(Main *bmain,
 
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_src->mtex[a]) {
-      linestyle_dst->mtex[a] = MEM_new_for_free<MTex>(__func__);
+      linestyle_dst->mtex[a] = MEM_new<MTex>(__func__);
       *linestyle_dst->mtex[a] = dna::shallow_copy(*linestyle_src->mtex[a]);
     }
   }
@@ -114,13 +114,13 @@ static void linestyle_free_data(ID *id)
   LineStyleModifier *linestyle_modifier;
 
   for (int material_slot_index = 0; material_slot_index < MAX_MTEX; material_slot_index++) {
-    MEM_SAFE_FREE(linestyle->mtex[material_slot_index]);
+    MEM_SAFE_DELETE(linestyle->mtex[material_slot_index]);
   }
 
   /* is no lib link block, but linestyle extension */
   if (linestyle->nodetree) {
     bke::node_tree_free_embedded_tree(linestyle->nodetree);
-    MEM_freeN(linestyle->nodetree);
+    MEM_delete(linestyle->nodetree);
     linestyle->nodetree = nullptr;
   }
 
@@ -761,7 +761,7 @@ static LineStyleModifier *new_modifier(const char *name, int type, size_t size)
   if (!name) {
     name = modifier_name[type];
   }
-  m = static_cast<LineStyleModifier *>(MEM_callocN(size, "line style modifier"));
+  m = static_cast<LineStyleModifier *>(MEM_new_zeroed(size, "line style modifier"));
   m->type = type;
   STRNCPY_UTF8(m->name, DATA_(name));
   m->influence = 1.0f;
@@ -900,7 +900,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
               const_cast<LineStyleModifier *>(m));
       LineStyleColorModifier_AlongStroke *q =
           reinterpret_cast<LineStyleColorModifier_AlongStroke *>(new_m);
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_CAMERA: {
@@ -909,7 +909,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
               const_cast<LineStyleModifier *>(m));
       LineStyleColorModifier_DistanceFromCamera *q =
           reinterpret_cast<LineStyleColorModifier_DistanceFromCamera *>(new_m);
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       q->range_min = p->range_min;
       q->range_max = p->range_max;
       break;
@@ -924,7 +924,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
       if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
         id_us_plus(id_cast<ID *>(q->target));
       }
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       q->range_min = p->range_min;
       q->range_max = p->range_max;
       break;
@@ -934,7 +934,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
           const_cast<LineStyleModifier *>(m));
       LineStyleColorModifier_Material *q = reinterpret_cast<LineStyleColorModifier_Material *>(
           new_m);
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       q->flags = p->flags;
       q->mat_attr = p->mat_attr;
       break;
@@ -944,14 +944,14 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
           const_cast<LineStyleModifier *>(m));
       LineStyleColorModifier_Tangent *q = reinterpret_cast<LineStyleColorModifier_Tangent *>(
           new_m);
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       break;
     }
     case LS_MODIFIER_NOISE: {
       LineStyleColorModifier_Noise *p = reinterpret_cast<LineStyleColorModifier_Noise *>(
           const_cast<LineStyleModifier *>(m));
       LineStyleColorModifier_Noise *q = reinterpret_cast<LineStyleColorModifier_Noise *>(new_m);
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       q->amplitude = p->amplitude;
       q->period = p->period;
       q->seed = p->seed;
@@ -963,7 +963,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
               const_cast<LineStyleModifier *>(m));
       LineStyleColorModifier_CreaseAngle *q =
           reinterpret_cast<LineStyleColorModifier_CreaseAngle *>(new_m);
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       q->min_angle = p->min_angle;
       q->max_angle = p->max_angle;
       break;
@@ -974,7 +974,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
               const_cast<LineStyleModifier *>(m));
       LineStyleColorModifier_Curvature_3D *q =
           reinterpret_cast<LineStyleColorModifier_Curvature_3D *>(new_m);
-      q->color_ramp = static_cast<ColorBand *>(MEM_dupallocN(p->color_ramp));
+      q->color_ramp = MEM_dupalloc(p->color_ramp);
       q->min_curvature = p->min_curvature;
       q->max_curvature = p->max_curvature;
       break;
@@ -994,28 +994,28 @@ int BKE_linestyle_color_modifier_remove(FreestyleLineStyle *linestyle, LineStyle
   }
   switch (m->type) {
     case LS_MODIFIER_ALONG_STROKE:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_AlongStroke *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_AlongStroke *>(m))->color_ramp);
       break;
     case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_DistanceFromCamera *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_DistanceFromCamera *>(m))->color_ramp);
       break;
     case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_DistanceFromObject *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_DistanceFromObject *>(m))->color_ramp);
       break;
     case LS_MODIFIER_MATERIAL:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_Material *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_Material *>(m))->color_ramp);
       break;
     case LS_MODIFIER_TANGENT:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_Tangent *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_Tangent *>(m))->color_ramp);
       break;
     case LS_MODIFIER_NOISE:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_Noise *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_Noise *>(m))->color_ramp);
       break;
     case LS_MODIFIER_CREASE_ANGLE:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_CreaseAngle *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_CreaseAngle *>(m))->color_ramp);
       break;
     case LS_MODIFIER_CURVATURE_3D:
-      MEM_freeN((reinterpret_cast<LineStyleColorModifier_Curvature_3D *>(m))->color_ramp);
+      MEM_delete((reinterpret_cast<LineStyleColorModifier_Curvature_3D *>(m))->color_ramp);
       break;
   }
   BLI_freelinkN(&linestyle->color_modifiers, m);
@@ -2013,7 +2013,7 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle,
       default:
         continue;
     }
-    link = MEM_callocN<LinkData>("link to color ramp");
+    link = MEM_new_zeroed<LinkData>("link to color ramp");
     link->data = color_ramp;
     BLI_addtail(listbase, link);
   }

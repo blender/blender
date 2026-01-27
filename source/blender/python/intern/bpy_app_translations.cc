@@ -249,9 +249,9 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
   }
 
   /* Clean up! */
-  MEM_SAFE_FREE(language);
-  MEM_SAFE_FREE(language_country);
-  MEM_SAFE_FREE(language_variant);
+  MEM_SAFE_DELETE(language);
+  MEM_SAFE_DELETE(language_country);
+  MEM_SAFE_DELETE(language_variant);
 }
 
 std::optional<StringRefNull> BPY_app_translations_py_pgettext(const StringRef msgctxt,
@@ -791,11 +791,11 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations * /*self
   ret_tuple = Py_BuildValue(
       "sssss", language, country, variant, language_country, language_variant);
 
-  MEM_SAFE_FREE(language);
-  MEM_SAFE_FREE(country);
-  MEM_SAFE_FREE(variant);
-  MEM_SAFE_FREE(language_country);
-  MEM_SAFE_FREE(language_variant);
+  MEM_SAFE_DELETE(language);
+  MEM_SAFE_DELETE(country);
+  MEM_SAFE_DELETE(variant);
+  MEM_SAFE_DELETE(language_country);
+  MEM_SAFE_DELETE(language_variant);
 
   return ret_tuple;
 }

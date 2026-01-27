@@ -756,7 +756,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
     VKUpdateBufferNode::CreateInfo update_buffer = {};
     update_buffer.dst_buffer = buffer_a;
     update_buffer.data_size = 16;
-    update_buffer.data = MEM_callocN(16, __func__);
+    update_buffer.data = MEM_new_zeroed(16, __func__);
 
     render_graph->add_node(update_buffer);
   }
@@ -783,7 +783,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
     VKUpdateBufferNode::CreateInfo update_buffer = {};
     update_buffer.dst_buffer = buffer_b;
     update_buffer.data_size = 24;
-    update_buffer.data = MEM_callocN(24, __func__);
+    update_buffer.data = MEM_new_zeroed(24, __func__);
 
     render_graph->add_node(update_buffer);
   }
@@ -810,7 +810,7 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
     VKUpdateBufferNode::CreateInfo update_buffer = {};
     update_buffer.dst_buffer = buffer_a;
     update_buffer.data_size = 16;
-    update_buffer.data = MEM_callocN(16, __func__);
+    update_buffer.data = MEM_new_zeroed(16, __func__);
 
     render_graph->add_node(update_buffer);
   }

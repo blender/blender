@@ -93,7 +93,7 @@ static float eval_mask(SubdivCCGMaskEvaluator *mask_evaluator,
 static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  MEM_freeN(data->ptex_face_corner);
+  MEM_delete(data->ptex_face_corner);
   MEM_delete(data);
 }
 
@@ -116,7 +116,8 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
   const OffsetIndices faces = mesh->faces();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
-  data->ptex_face_corner = MEM_malloc_arrayN<PolyCornerIndex>(size_t(num_ptex_faces), __func__);
+  data->ptex_face_corner = MEM_new_array_uninitialized<PolyCornerIndex>(size_t(num_ptex_faces),
+                                                                        __func__);
   /* Fill in offsets. */
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_face_corner = data->ptex_face_corner;

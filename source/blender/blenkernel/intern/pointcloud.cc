@@ -66,7 +66,7 @@ static void pointcloud_copy_data(Main * /*bmain*/,
 {
   PointCloud *pointcloud_dst = id_cast<PointCloud *>(id_dst);
   const PointCloud *pointcloud_src = id_cast<const PointCloud *>(id_src);
-  pointcloud_dst->mat = static_cast<Material **>(MEM_dupallocN(pointcloud_src->mat));
+  pointcloud_dst->mat = MEM_dupalloc(pointcloud_src->mat);
 
   new (&pointcloud_dst->attribute_storage.wrap())
       bke::AttributeStorage(pointcloud_src->attribute_storage.wrap());
@@ -90,7 +90,7 @@ static void pointcloud_free_data(ID *id)
   BKE_animdata_free(&pointcloud->id, false);
   BKE_pointcloud_batch_cache_free(pointcloud);
   pointcloud->attribute_storage.wrap().~AttributeStorage();
-  MEM_SAFE_FREE(pointcloud->mat);
+  MEM_SAFE_DELETE(pointcloud->mat);
   delete pointcloud->runtime;
 }
 
@@ -306,8 +306,8 @@ bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const 
 void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)
 {
   dst.flag = src.flag;
-  MEM_SAFE_FREE(dst.mat);
-  dst.mat = MEM_malloc_arrayN<Material *>(src.totcol, __func__);
+  MEM_SAFE_DELETE(dst.mat);
+  dst.mat = MEM_new_array_uninitialized<Material *>(src.totcol, __func__);
   dst.totcol = src.totcol;
   MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
 }

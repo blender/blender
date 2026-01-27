@@ -105,7 +105,7 @@ static void init_noop(Strip * /*strip*/) {}
 
 static void free_default(Strip *strip, const bool /*do_id_user*/)
 {
-  MEM_SAFE_FREE(strip->effectdata);
+  MEM_SAFE_DELETE_VOID(strip->effectdata);
 }
 
 static int num_inputs_default()
@@ -115,7 +115,7 @@ static int num_inputs_default()
 
 static void copy_effect_default(Strip *dst, const Strip *src, const int /*flag*/)
 {
-  dst->effectdata = MEM_dupallocN(src->effectdata);
+  dst->effectdata = MEM_dupalloc_void(src->effectdata);
 }
 
 static StripEarlyOut early_out_noop(const Strip * /*strip*/, float /*fac*/)

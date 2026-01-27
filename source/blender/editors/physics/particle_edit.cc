@@ -147,19 +147,19 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
   if (edit->points) {
     LOOP_POINTS {
       if (point->keys) {
-        MEM_freeN(point->keys);
+        MEM_delete(point->keys);
       }
     }
 
-    MEM_freeN(edit->points);
+    MEM_delete(edit->points);
   }
 
   if (edit->mirror_cache) {
-    MEM_freeN(edit->mirror_cache);
+    MEM_delete(edit->mirror_cache);
   }
 
   if (edit->emitter_cosnos) {
-    MEM_freeN(edit->emitter_cosnos);
+    MEM_delete(edit->emitter_cosnos);
     edit->emitter_cosnos = nullptr;
   }
 
@@ -170,7 +170,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
 
   psys_free_path_cache(edit->psys, edit);
 
-  MEM_freeN(edit);
+  MEM_delete(edit);
 }
 
 int PE_minmax(Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float3 &min, float3 &max)
@@ -1013,7 +1013,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 
   /* lookup particles and set in mirror cache */
   if (!edit->mirror_cache) {
-    edit->mirror_cache = MEM_calloc_arrayN<int>(totpart, "PE mirror cache");
+    edit->mirror_cache = MEM_new_array_zeroed<int>(totpart, "PE mirror cache");
   }
 
   LOOP_PARTICLES
@@ -1088,15 +1088,15 @@ static void PE_mirror_particle(
   /* make sure they have the same amount of keys */
   if (pa->totkey != mpa->totkey) {
     if (mpa->hair) {
-      MEM_freeN(mpa->hair);
+      MEM_delete(mpa->hair);
     }
     if (mpoint->keys) {
-      MEM_freeN(mpoint->keys);
+      MEM_delete(mpoint->keys);
     }
 
-    mpa->hair = static_cast<HairKey *>(MEM_dupallocN(pa->hair));
+    mpa->hair = MEM_dupalloc(pa->hair);
     mpa->totkey = pa->totkey;
-    mpoint->keys = static_cast<PTCacheEditKey *>(MEM_dupallocN(point->keys));
+    mpoint->keys = MEM_dupalloc(point->keys);
     mpoint->totkey = point->totkey;
 
     mhkey = mpa->hair;
@@ -1448,7 +1448,7 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
   }
 
   if (edit->emitter_cosnos) {
-    MEM_freeN(edit->emitter_cosnos);
+    MEM_delete(edit->emitter_cosnos);
   }
 
   kdtree_3d_free(edit->emitter_field);
@@ -1456,7 +1456,7 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
   totface = mesh->totface_legacy;
   // int totvert = dm->getNumVerts(dm); /* UNUSED */
 
-  edit->emitter_cosnos = MEM_calloc_arrayN<float>(6 * totface, "emitter cosnos");
+  edit->emitter_cosnos = MEM_new_array_zeroed<float>(6 * totface, "emitter cosnos");
 
   edit->emitter_field = kdtree_3d_new(totface);
 
@@ -2352,12 +2352,12 @@ bool PE_box_select(bContext *C, const rcti *rect, const int sel_op)
 static void pe_select_cache_free_generic_userdata(void *data)
 {
   PE_data_free(static_cast<PEData *>(data));
-  MEM_freeN(static_cast<PEData *>(data));
+  MEM_delete(static_cast<PEData *>(data));
 }
 
 static void pe_select_cache_init_with_generic_userdata(bContext *C, wmGenericUserData *wm_userdata)
 {
-  PEData *data = MEM_callocN<PEData>(__func__);
+  PEData *data = MEM_new_zeroed<PEData>(__func__);
   wm_userdata->data = data;
   wm_userdata->free_fn = pe_select_cache_free_generic_userdata;
   wm_userdata->use_free = true;
@@ -2776,7 +2776,7 @@ static void rekey_particle(PEData *data, int pa_index)
 
   pa->flag |= PARS_REKEY;
 
-  key = new_keys = MEM_calloc_arrayN<HairKey>(data->totrekey, "Hair re-key keys");
+  key = new_keys = MEM_new_array_zeroed<HairKey>(data->totrekey, "Hair re-key keys");
 
   okey = pa->hair;
   /* root and tip stay the same */
@@ -2796,15 +2796,15 @@ static void rekey_particle(PEData *data, int pa_index)
   }
 
   /* replace keys */
-  MEM_freeN(pa->hair);
+  MEM_delete(pa->hair);
   pa->hair = new_keys;
 
   point->totkey = pa->totkey = data->totrekey;
 
   if (point->keys) {
-    MEM_freeN(point->keys);
+    MEM_delete(point->keys);
   }
-  ekey = point->keys = MEM_calloc_arrayN<PTCacheEditKey>(pa->totkey, "Hair re-key edit keys");
+  ekey = point->keys = MEM_new_array_zeroed<PTCacheEditKey>(pa->totkey, "Hair re-key edit keys");
 
   for (k = 0, key = pa->hair; k < pa->totkey; k++, key++, ekey++) {
     ekey->co = key->co;
@@ -2884,7 +2884,7 @@ static void rekey_particle_to_time(
 
   pa->flag |= PARS_REKEY;
 
-  key = new_keys = static_cast<HairKey *>(MEM_dupallocN(pa->hair));
+  key = new_keys = MEM_dupalloc(pa->hair);
 
   /* interpolate new keys from old ones (roots stay the same) */
   for (k = 1, key++; k < pa->totkey; k++, key++) {
@@ -2895,7 +2895,7 @@ static void rekey_particle_to_time(
 
   /* replace hair keys */
   if (pa->hair) {
-    MEM_freeN(pa->hair);
+    MEM_delete(pa->hair);
   }
   pa->hair = new_keys;
 
@@ -2941,17 +2941,17 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
 
   if (new_totpart != psys->totpart) {
     if (new_totpart) {
-      npa = new_pars = MEM_new_array_for_free<ParticleData>(new_totpart, "ParticleData array");
-      npoint = new_points = MEM_calloc_arrayN<PTCacheEditPoint>(new_totpart,
-                                                                "PTCacheEditKey array");
+      npa = new_pars = MEM_new_array<ParticleData>(new_totpart, "ParticleData array");
+      npoint = new_points = MEM_new_array_zeroed<PTCacheEditPoint>(new_totpart,
+                                                                   "PTCacheEditKey array");
 
       if (ELEM(nullptr, new_pars, new_points)) {
         /* allocation error! */
         if (new_pars) {
-          MEM_freeN(new_pars);
+          MEM_delete(new_pars);
         }
         if (new_points) {
-          MEM_freeN(new_points);
+          MEM_delete(new_points);
         }
         return 0;
       }
@@ -2962,10 +2962,10 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
     for (i = 0; i < psys->totpart; i++, pa++, point++) {
       if (point->flag & PEP_TAG) {
         if (point->keys) {
-          MEM_freeN(point->keys);
+          MEM_delete(point->keys);
         }
         if (pa->hair) {
-          MEM_freeN(pa->hair);
+          MEM_delete(pa->hair);
         }
       }
       else {
@@ -2977,19 +2977,19 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
     }
 
     if (psys->particles) {
-      MEM_freeN(psys->particles);
+      MEM_delete(psys->particles);
     }
     psys->particles = new_pars;
 
     if (edit->points) {
-      MEM_freeN(edit->points);
+      MEM_delete(edit->points);
     }
     edit->points = new_points;
 
-    MEM_SAFE_FREE(edit->mirror_cache);
+    MEM_SAFE_DELETE(edit->mirror_cache);
 
     if (psys->child) {
-      MEM_freeN(psys->child);
+      MEM_delete(psys->child);
       psys->child = nullptr;
       psys->totchild = 0;
     }
@@ -3045,8 +3045,8 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
     }
 
     if (new_totkey != pa->totkey) {
-      nhkey = new_hkeys = MEM_calloc_arrayN<HairKey>(new_totkey, "HairKeys");
-      nkey = new_keys = MEM_calloc_arrayN<PTCacheEditKey>(new_totkey, "particle edit keys");
+      nhkey = new_hkeys = MEM_new_array_zeroed<HairKey>(new_totkey, "HairKeys");
+      nkey = new_keys = MEM_new_array_zeroed<PTCacheEditKey>(new_totkey, "particle edit keys");
 
       hkey = pa->hair;
       LOOP_KEYS {
@@ -3075,11 +3075,11 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
       }
 
       if (pa->hair) {
-        MEM_freeN(pa->hair);
+        MEM_delete(pa->hair);
       }
 
       if (point->keys) {
-        MEM_freeN(point->keys);
+        MEM_delete(point->keys);
       }
 
       pa->hair = new_hkeys;
@@ -3132,9 +3132,9 @@ static void subdivide_particle(PEData *data, int pa_index)
 
   pa->flag |= PARS_REKEY;
 
-  nkey = new_keys = MEM_calloc_arrayN<HairKey>((pa->totkey + totnewkey), "Hair subdivide keys");
-  nekey = new_ekeys = MEM_calloc_arrayN<PTCacheEditKey>((pa->totkey + totnewkey),
-                                                        "Hair subdivide edit keys");
+  nkey = new_keys = MEM_new_array_zeroed<HairKey>((pa->totkey + totnewkey), "Hair subdivide keys");
+  nekey = new_ekeys = MEM_new_array_zeroed<PTCacheEditKey>((pa->totkey + totnewkey),
+                                                           "Hair subdivide edit keys");
 
   key = pa->hair;
   endtime = key[pa->totkey - 1].time;
@@ -3174,11 +3174,11 @@ static void subdivide_particle(PEData *data, int pa_index)
   nekey->co = nkey->co;
   nekey->time = &nkey->time;
 
-  MEM_freeN(pa->hair);
+  MEM_delete(pa->hair);
   pa->hair = new_keys;
 
   if (point->keys) {
-    MEM_freeN(point->keys);
+    MEM_delete(point->keys);
   }
   point->keys = new_ekeys;
 
@@ -3588,22 +3588,22 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
                                      CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
 
     /* allocate new arrays and copy existing */
-    new_pars = MEM_new_array_for_free<ParticleData>(newtotpart, "ParticleData new");
-    new_points = MEM_calloc_arrayN<PTCacheEditPoint>(newtotpart, "PTCacheEditPoint new");
+    new_pars = MEM_new_array<ParticleData>(newtotpart, "ParticleData new");
+    new_points = MEM_new_array_zeroed<PTCacheEditPoint>(newtotpart, "PTCacheEditPoint new");
 
     if (psys->particles) {
       memcpy(new_pars, psys->particles, totpart * sizeof(ParticleData));
-      MEM_freeN(psys->particles);
+      MEM_delete(psys->particles);
     }
     psys->particles = new_pars;
 
     if (edit->points) {
       memcpy(new_points, edit->points, totpart * sizeof(PTCacheEditPoint));
-      MEM_freeN(edit->points);
+      MEM_delete(edit->points);
     }
     edit->points = new_points;
 
-    MEM_SAFE_FREE(edit->mirror_cache);
+    MEM_SAFE_DELETE(edit->mirror_cache);
 
     edit->totpoint = psys->totpart = newtotpart;
 
@@ -3627,10 +3627,10 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
       *newpa = *pa;
       *newpoint = *point;
       if (pa->hair) {
-        newpa->hair = static_cast<HairKey *>(MEM_dupallocN(pa->hair));
+        newpa->hair = MEM_dupalloc(pa->hair);
       }
       if (point->keys) {
-        newpoint->keys = static_cast<PTCacheEditKey *>(MEM_dupallocN(point->keys));
+        newpoint->keys = MEM_dupalloc(point->keys);
       }
 
       /* rotate weights according to vertex index rotation */
@@ -3680,7 +3680,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
     point->flag &= ~PEP_TAG;
   }
 
-  MEM_freeN(mirrorfaces);
+  MEM_delete(mirrorfaces);
 }
 
 static wmOperatorStatus mirror_exec(bContext *C, wmOperator * /*op*/)
@@ -4439,7 +4439,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
     return 0;
   }
 
-  add_pars = MEM_new_array_for_free<ParticleData>(number, "ParticleData add");
+  add_pars = MEM_new_array<ParticleData>(number, "ParticleData add");
 
   rng = BLI_rng_new_srandom(psys->seed + data->mval[0] + data->mval[1]);
 
@@ -4506,9 +4506,8 @@ static int brush_add(const bContext *C, PEData *data, short number)
     int newtotpart = totpart + n;
     float hairmat[4][4], cur_co[3];
     KDTree_3d *tree = nullptr;
-    ParticleData *pa,
-        *new_pars = MEM_new_array_for_free<ParticleData>(newtotpart, "ParticleData new");
-    PTCacheEditPoint *point, *new_points = MEM_calloc_arrayN<PTCacheEditPoint>(
+    ParticleData *pa, *new_pars = MEM_new_array<ParticleData>(newtotpart, "ParticleData new");
+    PTCacheEditPoint *point, *new_points = MEM_new_array_zeroed<PTCacheEditPoint>(
                                  newtotpart, "PTCacheEditPoint array new");
     PTCacheEditKey *key;
     HairKey *hkey;
@@ -4519,16 +4518,16 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
     /* change old arrays to new ones */
     if (psys->particles) {
-      MEM_freeN(psys->particles);
+      MEM_delete(psys->particles);
     }
     psys->particles = new_pars;
 
     if (edit->points) {
-      MEM_freeN(edit->points);
+      MEM_delete(edit->points);
     }
     edit->points = new_points;
 
-    MEM_SAFE_FREE(edit->mirror_cache);
+    MEM_SAFE_DELETE(edit->mirror_cache);
 
     /* create tree for interpolation */
     if (pset->flag & PE_INTERPOLATE_ADDED && psys->totpart) {
@@ -4560,8 +4559,9 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
     for (i = totpart; i < newtotpart; i++, pa++, point++) {
       memcpy(pa, add_pars + i - totpart, sizeof(ParticleData));
-      pa->hair = MEM_calloc_arrayN<HairKey>(pset->totaddkey, "BakeKey key add");
-      key = point->keys = MEM_calloc_arrayN<PTCacheEditKey>(pset->totaddkey, "PTCacheEditKey add");
+      pa->hair = MEM_new_array_zeroed<HairKey>(pset->totaddkey, "BakeKey key add");
+      key = point->keys = MEM_new_array_zeroed<PTCacheEditKey>(pset->totaddkey,
+                                                               "PTCacheEditKey add");
       point->totkey = pa->totkey = pset->totaddkey;
 
       for (k = 0, hkey = pa->hair; k < pa->totkey; k++, hkey++, key++) {
@@ -4680,7 +4680,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
     }
   }
 
-  MEM_freeN(add_pars);
+  MEM_delete(add_pars);
 
   BLI_rng_free(rng);
 
@@ -4723,7 +4723,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
   PE_minmax(depsgraph, scene, view_layer, min, max);
   mid_v3_v3v3(min, min, max);
 
-  bedit = MEM_callocN<BrushEdit>("BrushEdit");
+  bedit = MEM_new_zeroed<BrushEdit>("BrushEdit");
   bedit->first = 1;
   op->customdata = bedit;
 
@@ -4982,7 +4982,7 @@ static void brush_edit_exit(wmOperator *op)
   BrushEdit *bedit = static_cast<BrushEdit *>(op->customdata);
 
   PE_data_free(&bedit->data);
-  MEM_freeN(bedit);
+  MEM_delete(bedit);
 }
 
 static wmOperatorStatus brush_edit_exec(bContext *C, wmOperator *op)
@@ -5349,8 +5349,8 @@ void PE_create_particle_edit(
     totpoint = psys ? psys->totpart :
                       int((static_cast<PTCacheMem *>(cache->mem_cache.first))->totpoint);
 
-    edit = MEM_callocN<PTCacheEdit>("PE_create_particle_edit");
-    edit->points = MEM_calloc_arrayN<PTCacheEditPoint>(totpoint, "PTCacheEditPoints");
+    edit = MEM_new_zeroed<PTCacheEdit>("PE_create_particle_edit");
+    edit->points = MEM_new_array_zeroed<PTCacheEditPoint>(totpoint, "PTCacheEditPoints");
     edit->totpoint = totpoint;
 
     if (psys && !cache) {
@@ -5368,7 +5368,7 @@ void PE_create_particle_edit(
       pa = psys->particles;
       LOOP_POINTS {
         point->totkey = pa->totkey;
-        point->keys = MEM_calloc_arrayN<PTCacheEditKey>(point->totkey, "ParticleEditKeys");
+        point->keys = MEM_new_array_zeroed<PTCacheEditKey>(point->totkey, "ParticleEditKeys");
         point->flag |= PEP_EDIT_RECALC;
 
         hkey = pa->hair;
@@ -5404,7 +5404,7 @@ void PE_create_particle_edit(
           }
 
           if (!point->totkey) {
-            key = point->keys = MEM_calloc_arrayN<PTCacheEditKey>(totframe, "ParticleEditKeys");
+            key = point->keys = MEM_new_array_zeroed<PTCacheEditKey>(totframe, "ParticleEditKeys");
             point->flag |= PEP_EDIT_RECALC;
           }
           else {

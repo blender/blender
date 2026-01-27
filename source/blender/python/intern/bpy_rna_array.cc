@@ -544,7 +544,7 @@ static int py_to_array(PyObject *seq,
       param_alloc->array_tot = totitem;
 
       /* freeing param list will free */
-      param_alloc->array = MEM_callocN(item_size * totitem, "py_to_array dyn");
+      param_alloc->array = MEM_new_zeroed(item_size * totitem, "py_to_array dyn");
 
       data = static_cast<char *>(param_alloc->array);
     }

@@ -588,7 +588,7 @@ static void restore_position_mesh(Object &object,
           undo_data.compressed_positions[i], tls.compress_buffer, tls.positions);
       MutableSpan undo_positions = tls.positions.as_mutable_span();
 
-      if (!ss.deform_modifiers_active) {
+      if (!ss.deform_modifiers_active && !shape_key_data) {
         /* When original positions aren't written separately in the undo step, there are no
          * deform modifiers. Therefore the original and evaluated deform positions will be the
          * same, and modifying the positions from the original mesh is enough. */
@@ -949,7 +949,7 @@ static void restore_geometry_data(const NodeGeometry *geometry, Mesh *mesh)
   mesh->faces_num = geometry->faces_num;
   mesh->totface_legacy = 0;
 
-  mesh->attribute_storage = geometry->attribute_storage.wrap();
+  mesh->attribute_storage.wrap() = geometry->attribute_storage.wrap();
   CustomData_init_from(
       &geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->verts_num);
   CustomData_init_from(

@@ -107,7 +107,7 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 
 static void node_shader_init_map_range(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeMapRange *data = MEM_new_for_free<NodeMapRange>(__func__);
+  NodeMapRange *data = MEM_new<NodeMapRange>(__func__);
   data->clamp = 1;
   data->data_type = CD_PROP_FLOAT;
   data->interpolation_type = NODE_MAP_RANGE_LINEAR;

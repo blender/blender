@@ -26,7 +26,7 @@ struct ListBase;
 
 /**
  * string with all instances of substr_old replaced with substr_new,
- * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
+ * Returns a copy of the c-string \a str into a newly #MEM_new_uninitialized'd
  * and returns it.
  *
  * \note A rather wasteful string-replacement utility, though this shall do for now.

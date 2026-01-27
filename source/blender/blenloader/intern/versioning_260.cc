@@ -333,7 +333,7 @@ static bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
       *ntree, *node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", name);
 
   /* create format data for the input socket */
-  NodeImageMultiFileSocket *sockdata = MEM_new_for_free<NodeImageMultiFileSocket>(__func__);
+  NodeImageMultiFileSocket *sockdata = MEM_new<NodeImageMultiFileSocket>(__func__);
   sock->storage = sockdata;
 
   STRNCPY_UTF8(sockdata->path, name);
@@ -368,8 +368,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
     if (node.type_legacy == CMP_NODE_OUTPUT_FILE) {
       /* previous CMP_NODE_OUTPUT_FILE nodes get converted to multi-file outputs */
       NodeImageFile *old_data = static_cast<NodeImageFile *>(node.storage);
-      NodeCompositorFileOutput *nimf = MEM_new_for_free<NodeCompositorFileOutput>(
-          "node image multi file");
+      NodeCompositorFileOutput *nimf = MEM_new<NodeCompositorFileOutput>("node image multi file");
       bNodeSocket *old_image = static_cast<bNodeSocket *>(BLI_findlink(&node.inputs, 0));
       bNodeSocket *old_z = static_cast<bNodeSocket *>(BLI_findlink(&node.inputs, 1));
 
@@ -439,7 +438,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
       bke::node_remove_socket(*ntree, node, *old_image);
       bke::node_remove_socket(*ntree, node, *old_z);
       if (old_data) {
-        MEM_freeN(old_data);
+        MEM_delete(old_data);
       }
     }
     else if (node.type_legacy == CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED) {
@@ -517,7 +516,7 @@ static void do_versions_nodetree_image_layer_2_64_5(bNodeTree *ntree)
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy == CMP_NODE_IMAGE) {
       for (bNodeSocket &sock : node.outputs) {
-        NodeImageLayer *output = MEM_new_for_free<NodeImageLayer>("node image layer");
+        NodeImageLayer *output = MEM_new<NodeImageLayer>("node image layer");
 
         /* Take pass index both from current storage pointer (actually an int). */
         output->pass_index = POINTER_AS_INT(sock.storage);
@@ -535,7 +534,7 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
     if (node.type_legacy == NODE_FRAME) {
       /* initialize frame node storage data */
       if (node.storage == nullptr) {
-        NodeFrame *data = MEM_new_for_free<NodeFrame>("frame node storage");
+        NodeFrame *data = MEM_new<NodeFrame>("frame node storage");
         node.storage = data;
 
         /* copy current flags */
@@ -1158,7 +1157,7 @@ static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
     cbmd->color_multiply = strip->mul;
     strip->mul = 1.0f;
 
-    MEM_freeN(data->color_balance_legacy);
+    MEM_delete(data->color_balance_legacy);
     data->color_balance_legacy = nullptr;
   }
   return true;
@@ -1194,7 +1193,7 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
                                              const void *default_value,
                                              const IDProperty *prop)
 {
-  bNodeSocket *socket = MEM_new_for_free<bNodeSocket>(__func__);
+  bNodeSocket *socket = MEM_new<bNodeSocket>(__func__);
   socket->runtime = MEM_new<bke::bNodeSocketRuntime>(__func__);
   STRNCPY_UTF8(socket->idname, idname);
   socket->type = int(type);
@@ -1210,7 +1209,7 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
   /* NOTE: technically socket values can store ref-counted ID pointers, but at this stage the
    * refcount can be ignored. It gets recomputed after lib-linking for all ID pointers. Socket
    * values don't have allocated data, so a simple duplication works here. */
-  socket->default_value = default_value ? MEM_dupallocN(default_value) : nullptr;
+  socket->default_value = default_value ? MEM_dupalloc_void(default_value) : nullptr;
   socket->prop = prop ? IDP_CopyProperty(prop) : nullptr;
 
   return socket;
@@ -1223,7 +1222,7 @@ static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
   ListBaseT<bNodeSocket> *node_socket_list = nullptr;
   eNodeSocketInOut socket_in_out = SOCK_IN;
 
-  bNode *node = MEM_new_for_free<bNode>("new node");
+  bNode *node = MEM_new<bNode>("new node");
   switch (type) {
     case NODE_GROUP_INPUT:
       STRNCPY_UTF8(node->idname, "NodeGroupInput");
@@ -1927,7 +1926,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == CMP_NODE_DILATEERODE) {
             if (node.storage == nullptr) {
-              NodeDilateErode *data = MEM_new_for_free<NodeDilateErode>(__func__);
+              NodeDilateErode *data = MEM_new<NodeDilateErode>(__func__);
               data->falloff = PROP_SMOOTH;
               node.storage = data;
             }
@@ -1970,7 +1969,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == CMP_NODE_MASK) {
             if (node.storage == nullptr) {
-              NodeMask *data = MEM_new_for_free<NodeMask>(__func__);
+              NodeMask *data = MEM_new<NodeMask>(__func__);
               /* move settings into own struct */
               data->size_x = int(node.custom3);
               data->size_y = int(node.custom4);
@@ -2312,7 +2311,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_COMPOSIT) {
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == CMP_NODE_TRANSLATE && node.storage == nullptr) {
-            node.storage = MEM_new_for_free<NodeTranslateData>("node translate data");
+            node.storage = MEM_new<NodeTranslateData>("node translate data");
           }
         }
       }

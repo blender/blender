@@ -135,7 +135,7 @@ static void memiter_words10k_test(const char split_char, const int chunk_size)
   }
   EXPECT_EQ(len_expect, index);
   BLI_memiter_destroy(mi);
-  MEM_freeN(words);
+  MEM_delete(words);
 }
 
 #define TEST_EMPTY_AT_CHUNK_SIZE(chunk_size) \

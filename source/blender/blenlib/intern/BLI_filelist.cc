@@ -175,19 +175,19 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 
   if (newnum) {
     if (dir_ctx->files) {
-      void *const tmp = MEM_reallocN(dir_ctx->files,
-                                     (dir_ctx->files_num + newnum) * sizeof(direntry));
+      void *const tmp = MEM_realloc_uninitialized(
+          dir_ctx->files, (dir_ctx->files_num + newnum) * sizeof(direntry));
       if (tmp) {
         dir_ctx->files = static_cast<direntry *>(tmp);
       }
       else { /* Reallocation may fail. */
-        MEM_freeN(dir_ctx->files);
+        MEM_delete(dir_ctx->files);
         dir_ctx->files = nullptr;
       }
     }
 
     if (dir_ctx->files == nullptr) {
-      dir_ctx->files = MEM_malloc_arrayN<direntry>(size_t(newnum), __func__);
+      dir_ctx->files = MEM_new_array_uninitialized<direntry>(size_t(newnum), __func__);
     }
 
     if (UNLIKELY(dir_ctx->files == nullptr)) {
@@ -242,7 +242,7 @@ uint BLI_filelist_dir_contents(const char *dirname, direntry **r_filelist)
   else {
     /* Keep Blender happy. Blender stores this in a variable
      * where 0 has special meaning..... */
-    *r_filelist = MEM_mallocN<direntry>(__func__);
+    *r_filelist = MEM_new_uninitialized<direntry>(__func__);
   }
 
   return dir_ctx.files_num;
@@ -409,10 +409,10 @@ void BLI_filelist_entry_duplicate(direntry *dst, const direntry *src)
 {
   *dst = *src;
   if (dst->relname) {
-    dst->relname = static_cast<char *>(MEM_dupallocN(src->relname));
+    dst->relname = MEM_dupalloc(src->relname);
   }
   if (dst->path) {
-    dst->path = static_cast<char *>(MEM_dupallocN(src->path));
+    dst->path = MEM_dupalloc(src->path);
   }
 }
 
@@ -422,7 +422,7 @@ void BLI_filelist_duplicate(direntry **dest_filelist,
 {
   uint i;
 
-  *dest_filelist = MEM_malloc_arrayN<direntry>(size_t(nrentries), __func__);
+  *dest_filelist = MEM_new_array_uninitialized<direntry>(size_t(nrentries), __func__);
   for (i = 0; i < nrentries; i++) {
     const direntry *src = &src_filelist[i];
     direntry *dst = &(*dest_filelist)[i];
@@ -433,10 +433,10 @@ void BLI_filelist_duplicate(direntry **dest_filelist,
 void BLI_filelist_entry_free(direntry *entry)
 {
   if (entry->relname) {
-    MEM_freeN(entry->relname);
+    MEM_delete(entry->relname);
   }
   if (entry->path) {
-    MEM_freeN(entry->path);
+    MEM_delete(entry->path);
   }
 }
 
@@ -448,7 +448,7 @@ void BLI_filelist_free(direntry *filelist, const uint nrentries)
   }
 
   if (filelist != nullptr) {
-    MEM_freeN(filelist);
+    MEM_delete(filelist);
   }
 }
 

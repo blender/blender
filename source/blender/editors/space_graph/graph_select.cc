@@ -131,7 +131,7 @@ static void nearest_fcurve_vert_store(ListBaseT<tNearestVertInfo> *matches,
       }
       /* add new if not replacing... */
       if (replace == 0) {
-        nvi = MEM_callocN<tNearestVertInfo>("Nearest Graph Vert Info - Bezt");
+        nvi = MEM_new_zeroed<tNearestVertInfo>("Nearest Graph Vert Info - Bezt");
       }
 
       /* store values */
@@ -465,7 +465,7 @@ static wmOperatorStatus graphkeys_deselectall_exec(bContext *C, wmOperator *op)
      */
     fcu->flag |= (FCURVE_SELECTED | FCURVE_ACTIVE);
 
-    MEM_freeN(ale_active);
+    MEM_delete(ale_active);
     ale_active = nullptr;
   }
 
@@ -837,7 +837,7 @@ static wmOperatorStatus graphkeys_box_select_invoke(bContext *C,
     tNearestVertInfo *under_mouse = find_nearest_fcurve_vert(&ac, mval);
     bool mouse_is_over_element = under_mouse != nullptr;
     if (under_mouse) {
-      MEM_freeN(under_mouse);
+      MEM_delete(under_mouse);
     }
 
     if (mouse_is_over_element) {
@@ -1245,7 +1245,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
 
     case GRAPHKEYS_COLUMNSEL_CFRA: /* current frame */
       /* make a single CfraElem for storing this */
-      ce = MEM_callocN<CfraElem>("cfraElem");
+      ce = MEM_new_zeroed<CfraElem>("cfraElem");
       BLI_addtail(&ked.cfra_elem_list, ce);
 
       ce->cfra = float(scene->r.cfra);
@@ -1433,14 +1433,14 @@ static void select_moreless_graph_keys(bAnimContext *ac, short mode)
     }
 
     /* build up map of whether F-Curve's keyframes should be selected or not */
-    ked.data = MEM_callocN(fcu->totvert, "selmap graphEdit");
+    ked.data = MEM_new_zeroed(fcu->totvert, "selmap graphEdit");
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, build_cb, nullptr);
 
     /* based on this map, adjust the selection status of the keyframes */
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, bezt_selmap_flush, nullptr);
 
     /* free the selmap used here */
-    MEM_freeN(ked.data);
+    MEM_delete_void(ked.data);
     ked.data = nullptr;
   }
 
@@ -1863,7 +1863,7 @@ static wmOperatorStatus mouse_graph_keys(bAnimContext *ac,
   }
 
   /* free temp sample data for filtering */
-  MEM_freeN(nvi);
+  MEM_delete(nvi);
 
   return run_modal ? OPERATOR_RUNNING_MODAL : OPERATOR_FINISHED;
 }
@@ -1941,7 +1941,7 @@ static wmOperatorStatus graphkeys_mselect_column(bAnimContext *ac,
   }
 
   /* free elements */
-  MEM_freeN(nvi);
+  MEM_delete(nvi);
   BLI_freelistN(&ked.cfra_elem_list);
   BLI_freelistN(&ked.time_marker_list);
   ANIM_animdata_freelist(&anim_data);

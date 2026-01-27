@@ -38,7 +38,7 @@ wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idna
   wmKeyConfigPref *kpt = static_cast<wmKeyConfigPref *>(BLI_findstring(
       &userdef->user_keyconfig_prefs, kc_idname, offsetof(wmKeyConfigPref, idname)));
   if (kpt == nullptr) {
-    kpt = MEM_new_for_free<wmKeyConfigPref>(__func__);
+    kpt = MEM_new<wmKeyConfigPref>(__func__);
     STRNCPY(kpt->idname, kc_idname);
     BLI_addtail(&userdef->user_keyconfig_prefs, kpt);
   }
@@ -90,7 +90,7 @@ void BKE_keyconfig_pref_type_add(wmKeyConfigPrefType_Runtime *kpt_rt)
 
 void BKE_keyconfig_pref_type_remove(const wmKeyConfigPrefType_Runtime *kpt_rt)
 {
-  BLI_ghash_remove(global_keyconfigpreftype_hash, kpt_rt->idname, nullptr, MEM_freeN);
+  BLI_ghash_remove(global_keyconfigpreftype_hash, kpt_rt->idname, nullptr, MEM_delete_void);
 }
 
 void BKE_keyconfig_pref_type_init()
@@ -101,7 +101,7 @@ void BKE_keyconfig_pref_type_init()
 
 void BKE_keyconfig_pref_type_free()
 {
-  BLI_ghash_free(global_keyconfigpreftype_hash, nullptr, MEM_freeN);
+  BLI_ghash_free(global_keyconfigpreftype_hash, nullptr, MEM_delete_void);
   global_keyconfigpreftype_hash = nullptr;
 }
 
@@ -129,7 +129,7 @@ static void keymap_item_free(wmKeyMapItem *kmi)
   if (kmi->ptr) {
     MEM_delete(kmi->ptr);
   }
-  MEM_freeN(kmi);
+  MEM_delete(kmi);
 }
 
 static void keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
@@ -140,7 +140,7 @@ static void keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
   if (kmdi->remove_item) {
     keymap_item_free(kmdi->remove_item);
   }
-  MEM_freeN(kmdi);
+  MEM_delete(kmdi);
 }
 
 void BKE_keyconfig_keymap_filter_item(wmKeyMap *keymap,

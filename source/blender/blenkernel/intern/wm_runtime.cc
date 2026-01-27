@@ -41,7 +41,7 @@ WindowManagerRuntime::~WindowManagerRuntime()
    * and in this case it's necessary to free them on exit, see: #109953. */
   while (wmTimer *timer = static_cast<wmTimer *>(BLI_pophead(&this->timers))) {
     WM_event_timer_free_data(timer);
-    MEM_freeN(timer);
+    MEM_delete(timer);
   }
 
   while (wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(BLI_pophead(&this->keyconfigs))) {

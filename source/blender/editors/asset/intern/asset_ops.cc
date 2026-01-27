@@ -1079,8 +1079,8 @@ static void generate_previewimg_from_buffer(ID *id, const ImBuf *image_buffer)
 
     ImBuf *scaled_imbuf = IMB_scale_into_new(
         image_buffer, width, height, IMBScaleFilter::Nearest, false);
-    preview_image->rect[size_type] = static_cast<uint *>(
-        MEM_dupallocN(scaled_imbuf->byte_buffer.data));
+    preview_image->rect[size_type] = reinterpret_cast<uint *>(
+        MEM_dupalloc(scaled_imbuf->byte_buffer.data));
     preview_image->w[size_type] = width;
     preview_image->h[size_type] = height;
     preview_image->flag[size_type] |= PRV_USER_EDITED;
@@ -1107,7 +1107,7 @@ static ImBuf *take_screenshot_crop(bContext *C, const rcti &crop_rect)
 
   /* Validate rectangle. */
   if (!BLI_rcti_is_valid(&safe_rect)) {
-    MEM_freeN(dumprect);
+    MEM_delete(dumprect);
     return nullptr;
   }
 
@@ -1288,7 +1288,7 @@ static void screenshot_preview_exit(bContext *C, wmOperator *op)
   WM_cursor_modal_restore(win);
   ScreenshotOperatorData *data = static_cast<ScreenshotOperatorData *>(op->customdata);
   WM_draw_cb_exit(win, data->draw_handle);
-  MEM_freeN(data);
+  MEM_delete(data);
   ED_workspace_status_text(C, nullptr);
 }
 
@@ -1439,7 +1439,7 @@ static wmOperatorStatus screenshot_preview_invoke(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   WM_cursor_modal_set(win, WM_CURSOR_CROSS);
 
-  op->customdata = MEM_callocN<ScreenshotOperatorData>(__func__);
+  op->customdata = MEM_new_zeroed<ScreenshotOperatorData>(__func__);
   ScreenshotOperatorData *data = static_cast<ScreenshotOperatorData *>(op->customdata);
   data->draw_handle = WM_draw_cb_activate(win, screenshot_preview_draw, data);
   data->is_mouse_down = false;

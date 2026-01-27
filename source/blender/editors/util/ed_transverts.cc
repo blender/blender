@@ -302,7 +302,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
     /* and now make transverts */
     if (tvs->transverts_tot) {
-      tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(tvs->transverts_tot, __func__);
+      tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(tvs->transverts_tot, __func__);
 
       a = 0;
       BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
@@ -344,7 +344,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
     totmalloc *= 2; /* probably overkill but bones can have 2 trans verts each */
 
-    tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);
+    tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(totmalloc, __func__);
 
     for (EditBone &ebo : *arm->edbo) {
       if (animrig::bone_is_visible(arm, &ebo)) {
@@ -398,7 +398,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
         totmalloc += nu.pntsu * nu.pntsv;
       }
     }
-    tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);
+    tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(totmalloc, __func__);
 
     nu = static_cast<Nurb *>(nurbs->first);
     while (nu) {
@@ -478,7 +478,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     MetaBall *mb = id_cast<MetaBall *>(obedit->data);
     int totmalloc = BLI_listbase_count(mb->editelems);
 
-    tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(totmalloc, __func__);
+    tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(totmalloc, __func__);
 
     ml = static_cast<MetaElem *>(mb->editelems->first);
     while (ml) {
@@ -499,7 +499,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
     a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 
-    tv = tvs->transverts = MEM_calloc_arrayN<TransVert>(a, __func__);
+    tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(a, __func__);
 
     while (a--) {
       if (bp->f1 & SELECT) {
@@ -526,7 +526,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     const IndexMask selection = ed::pointcloud::retrieve_selected_points(*pointcloud, memory);
     MutableSpan<float3> positions = pointcloud->positions_for_write();
 
-    tvs->transverts = MEM_calloc_arrayN<TransVert>(selection.size(), __func__);
+    tvs->transverts = MEM_new_array_zeroed<TransVert>(selection.size(), __func__);
     tvs->transverts_tot = selection.size();
 
     selection.foreach_index(GrainSize(1024), [&](const int64_t i, const int64_t pos) {
@@ -540,7 +540,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   if (!tvs->transverts_tot && tvs->transverts) {
     /* Prevent memory leak. happens for curves/lattices due to
      * difficult condition of adding points to trans data. */
-    MEM_freeN(tvs->transverts);
+    MEM_delete(tvs->transverts);
     tvs->transverts = nullptr;
   }
 
@@ -549,7 +549,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
 void ED_transverts_free(TransVertStore *tvs)
 {
-  MEM_SAFE_FREE(tvs->transverts);
+  MEM_SAFE_DELETE(tvs->transverts);
   tvs->transverts_tot = 0;
 }
 

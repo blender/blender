@@ -27,7 +27,7 @@ static std::string replace_all(const StringRefNull str,
   }
   char *new_str_ptr = BLI_string_replaceN(str.c_str(), from.c_str(), to.c_str());
   std::string new_str{new_str_ptr};
-  MEM_freeN(new_str_ptr);
+  MEM_delete(new_str_ptr);
   return new_str;
 }
 

@@ -322,7 +322,7 @@ static void statvis_calc_intersect(const MeshRenderData &mr, MutableSpan<float> 
           }
         }
       }
-      MEM_freeN(overlap);
+      MEM_delete(overlap);
     }
 
     BKE_bmbvh_free(bmtree);
@@ -355,7 +355,7 @@ static void statvis_calc_intersect(const MeshRenderData &mr, MutableSpan<float> 
           }
         }
       }
-      MEM_freeN(overlap);
+      MEM_delete(overlap);
     }
   }
 }
@@ -484,7 +484,7 @@ static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sh
   const float minmax_irange = 1.0f / (max - min);
 
   /* Can we avoid this extra allocation? */
-  float *vert_angles = MEM_malloc_arrayN<float>(mr.verts_num, __func__);
+  float *vert_angles = MEM_new_array_uninitialized<float>(mr.verts_num, __func__);
   copy_vn_fl(vert_angles, mr.verts_num, -M_PI);
 
   if (mr.extract_type == MeshExtractType::BMesh) {
@@ -567,7 +567,7 @@ static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sh
     }
   }
 
-  MEM_freeN(vert_angles);
+  MEM_delete(vert_angles);
 }
 
 gpu::VertBufPtr extract_mesh_analysis(const MeshRenderData &mr, const float4x4 &object_to_world)

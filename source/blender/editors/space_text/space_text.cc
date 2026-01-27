@@ -8,6 +8,7 @@
 
 #include <cstring>
 
+#include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -47,7 +48,7 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   ARegion *region;
   SpaceText *stext;
 
-  stext = MEM_new_for_free<SpaceText>("inittext");
+  stext = MEM_new<SpaceText>("inittext");
   stext->spacetype = SPACE_TEXT;
 
   stext->lheight = 12;
@@ -103,7 +104,7 @@ static void text_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *text_duplicate(SpaceLink *sl)
 {
-  SpaceText *stextn = static_cast<SpaceText *>(MEM_dupallocN(sl));
+  SpaceText *stextn = MEM_dupalloc(reinterpret_cast<SpaceText *>(sl));
 
   /* Add its own runtime data. */
   stextn->runtime = MEM_new<ed::text::SpaceText_Runtime>(__func__);
@@ -446,7 +447,7 @@ void ED_spacetype_text()
   st->blend_write = text_space_blend_write;
 
   /* Regions: main window. */
-  art = MEM_callocN<ARegionType>("spacetype text region");
+  art = MEM_new_zeroed<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = text_main_region_init;
   art->draw = text_main_region_draw;
@@ -456,7 +457,7 @@ void ED_spacetype_text()
   BLI_addhead(&st->regiontypes, art);
 
   /* Regions: properties. */
-  art = MEM_callocN<ARegionType>("spacetype text region");
+  art = MEM_new_zeroed<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
@@ -467,7 +468,7 @@ void ED_spacetype_text()
   BLI_addhead(&st->regiontypes, art);
 
   /* Regions: header. */
-  art = MEM_callocN<ARegionType>("spacetype text region");
+  art = MEM_new_zeroed<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
@@ -477,7 +478,7 @@ void ED_spacetype_text()
   BLI_addhead(&st->regiontypes, art);
 
   /* Regions: footer. */
-  art = MEM_callocN<ARegionType>("spacetype text region");
+  art = MEM_new_zeroed<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;

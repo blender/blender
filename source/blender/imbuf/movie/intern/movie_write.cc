@@ -304,7 +304,8 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
 
   /* Allocate float buffer with the proper number of channels. */
   const size_t num_pixels = IMB_get_pixel_count(input_ibuf);
-  float *buffer = MEM_malloc_arrayN<float>(num_pixels * result_ibuf->channels, "movie hdr image");
+  float *buffer = MEM_new_array_uninitialized<float>(num_pixels * result_ibuf->channels,
+                                                     "movie hdr image");
   IMB_assign_float_buffer(result_ibuf, buffer, IB_TAKE_OWNERSHIP);
 
   /* Transfer flags related to color space conversion from the original image buffer. */

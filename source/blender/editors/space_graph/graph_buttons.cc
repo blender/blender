@@ -89,7 +89,7 @@ static bool graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve *
     *ale = elem;
   }
   else {
-    MEM_freeN(elem);
+    MEM_delete(elem);
   }
 
   return true;
@@ -239,7 +239,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   ui::Layout &smooth_col = layout.column(true);
   smooth_col.prop(&fcu_ptr, "auto_smoothing", UI_ITEM_NONE, IFACE_("Handle Smoothing"), ICON_NONE);
 
-  MEM_freeN(ale);
+  MEM_delete(ale);
 }
 
 /** \} */
@@ -605,7 +605,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     }
   }
 
-  MEM_freeN(ale);
+  MEM_delete(ale);
 }
 
 /** \} */
@@ -936,7 +936,7 @@ static void graph_panel_drivers_header(const bContext *C, Panel *panel)
   }
 
   graph_draw_driven_property_enabled_btn(*panel->layout, ale->id, fcu, IFACE_("Driver"));
-  MEM_freeN(ale);
+  MEM_delete(ale);
 }
 
 static void graph_draw_driven_property_panel(ui::Layout &layout, ID *id, FCurve *fcu)
@@ -1258,7 +1258,7 @@ static void graph_panel_driven_property(const bContext *C, Panel *panel)
 
   graph_draw_driven_property_panel(*panel->layout, ale->id, fcu);
 
-  MEM_freeN(ale);
+  MEM_delete(ale);
 }
 
 /* driver settings for active F-Curve
@@ -1276,7 +1276,7 @@ static void graph_panel_drivers(const bContext *C, Panel *panel)
   graph_draw_driver_settings_panel(*panel->layout, ale->id, fcu, false);
 
   /* cleanup */
-  MEM_freeN(ale);
+  MEM_delete(ale);
 }
 
 /* ----------------------------------------------------------------- */
@@ -1405,7 +1405,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
 
   ANIM_fmodifier_panels(C, ale->fcurve_owner_id, &fcu->modifiers, graph_fmodifier_panel_id);
 
-  MEM_freeN(ale);
+  MEM_delete(ale);
 }
 
 /** \} */
@@ -1418,7 +1418,7 @@ void graph_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_callocN<PanelType>("spacetype graph panel properties");
+  pt = MEM_new_zeroed<PanelType>("spacetype graph panel properties");
   STRNCPY_UTF8(pt->idname, "GRAPH_PT_properties");
   STRNCPY_UTF8(pt->label, N_("Active F-Curve"));
   STRNCPY_UTF8(pt->category, "F-Curve");
@@ -1427,7 +1427,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype graph panel properties");
+  pt = MEM_new_zeroed<PanelType>("spacetype graph panel properties");
   STRNCPY_UTF8(pt->idname, "GRAPH_PT_key_properties");
   STRNCPY_UTF8(pt->label, N_("Active Keyframe"));
   STRNCPY_UTF8(pt->category, "F-Curve");
@@ -1436,7 +1436,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype graph panel drivers driven");
+  pt = MEM_new_zeroed<PanelType>("spacetype graph panel drivers driven");
   STRNCPY_UTF8(pt->idname, "GRAPH_PT_driven_property");
   STRNCPY_UTF8(pt->label, N_("Driven Property"));
   STRNCPY_UTF8(pt->category, "Drivers");
@@ -1445,7 +1445,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype graph panel drivers");
+  pt = MEM_new_zeroed<PanelType>("spacetype graph panel drivers");
   STRNCPY_UTF8(pt->idname, "GRAPH_PT_drivers");
   STRNCPY_UTF8(pt->label, N_("Driver"));
   STRNCPY_UTF8(pt->category, "Drivers");
@@ -1455,7 +1455,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN<PanelType>("spacetype graph panel drivers popover");
+  pt = MEM_new_zeroed<PanelType>("spacetype graph panel drivers popover");
   STRNCPY_UTF8(pt->idname, "GRAPH_PT_drivers_popover");
   STRNCPY_UTF8(pt->label, N_("Add/Edit Driver"));
   STRNCPY_UTF8(pt->category, "Drivers");
@@ -1467,7 +1467,7 @@ void graph_buttons_register(ARegionType *art)
    * Add explicitly to global list (so popovers work). */
   WM_paneltype_add(pt);
 
-  pt = MEM_callocN<PanelType>("spacetype graph panel modifiers");
+  pt = MEM_new_zeroed<PanelType>("spacetype graph panel modifiers");
   STRNCPY_UTF8(pt->idname, "GRAPH_PT_modifiers");
   STRNCPY_UTF8(pt->label, N_("Modifiers"));
   STRNCPY_UTF8(pt->category, "Modifiers");
@@ -1480,7 +1480,7 @@ void graph_buttons_register(ARegionType *art)
   ANIM_modifier_panels_register_graph_and_NLA(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
   ANIM_modifier_panels_register_graph_only(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
 
-  pt = MEM_callocN<PanelType>("spacetype graph panel view");
+  pt = MEM_new_zeroed<PanelType>("spacetype graph panel view");
   STRNCPY_UTF8(pt->idname, "GRAPH_PT_view");
   STRNCPY_UTF8(pt->label, N_("Show Cursor"));
   STRNCPY_UTF8(pt->category, "View");

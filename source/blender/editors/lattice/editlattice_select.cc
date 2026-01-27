@@ -110,7 +110,7 @@ static wmOperatorStatus lattice_select_random_exec(bContext *C, wmOperator *op)
 
     int a = lt->pntsu * lt->pntsv * lt->pntsw;
     int elem_map_len = 0;
-    BPoint **elem_map = MEM_malloc_arrayN<BPoint *>(a, __func__);
+    BPoint **elem_map = MEM_new_array_uninitialized<BPoint *>(a, __func__);
     BPoint *bp = lt->def;
 
     while (a--) {
@@ -125,7 +125,7 @@ static wmOperatorStatus lattice_select_random_exec(bContext *C, wmOperator *op)
     for (int i = 0; i < count_select; i++) {
       bpoint_select_set(elem_map[i], select);
     }
-    MEM_freeN(elem_map);
+    MEM_delete(elem_map);
 
     if (select == false) {
       lt->actbp = LT_ACTBP_NONE;
@@ -194,7 +194,7 @@ static void ed_lattice_select_mirrored(Lattice *lt, const int axis, const bool e
     }
   }
 
-  MEM_freeN(selpoints);
+  MEM_delete(selpoints);
 }
 
 static wmOperatorStatus lattice_select_mirror_exec(bContext *C, wmOperator *op)
@@ -304,7 +304,7 @@ static wmOperatorStatus lattice_select_more_less(bContext *C, const bool select)
       }
     }
 
-    MEM_freeN(selpoints);
+    MEM_delete(selpoints);
 
     changed = true;
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);

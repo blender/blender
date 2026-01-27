@@ -154,7 +154,7 @@ TEST_F(BPathTest, list_backup_restore)
   ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
   EXPECT_EQ(BLI_listbase_count(path_list), 2);
 
-  MEM_freeN(text->filepath);
+  MEM_delete(text->filepath);
   text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
   STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE);
 

@@ -70,7 +70,7 @@ static void free_runtime_data(void *runtime_data_v)
   if (runtime_data->subdiv_gpu != nullptr) {
     bke::subdiv::free(runtime_data->subdiv_gpu);
   }
-  MEM_freeN(runtime_data);
+  MEM_delete(runtime_data);
 }
 
 static void free_data(ModifierData *md)

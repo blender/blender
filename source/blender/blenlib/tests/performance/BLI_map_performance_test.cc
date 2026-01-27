@@ -145,10 +145,10 @@ static void str_ghash_tests(GHash *ghash, const char *id)
   }
 
   BLI_ghash_free(ghash, nullptr, nullptr);
-  MEM_freeN(data);
-  MEM_freeN(data_p);
-  MEM_freeN(data_w);
-  MEM_freeN(data_bis);
+  MEM_delete(data);
+  MEM_delete(data_p);
+  MEM_delete(data_w);
+  MEM_delete(data_bis);
 
   printf("========== ENDED %s ==========\n\n", id);
 }
@@ -215,10 +215,10 @@ template<typename MapType> static void str_map_tests(MapType &map, const char *i
     }
   }
 
-  MEM_freeN(data);
-  MEM_freeN(data_p);
-  MEM_freeN(data_w);
-  MEM_freeN(data_bis);
+  MEM_delete(data);
+  MEM_delete(data_p);
+  MEM_delete(data_w);
+  MEM_delete(data_bis);
 
   printf("========== ENDED %s ==========\n\n", id);
 }
@@ -673,7 +673,7 @@ TEST(ghash, Int4Map20000000)
 
 static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const uint count)
 {
-  uint *data = MEM_malloc_arrayN<uint>(size_t(count), __func__);
+  uint *data = MEM_new_array_uninitialized<uint>(size_t(count), __func__);
   uint *dt;
   uint i;
 
@@ -695,7 +695,7 @@ static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const uint count
   }
 
   BLI_ghash_clear(ghash, nullptr, nullptr);
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 static void multi_small_ghash_tests(GHash *ghash, const char *id, const uint count)

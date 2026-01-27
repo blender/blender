@@ -187,7 +187,7 @@ static void do_version_glare_node_star_45_option_to_input_animation(bNodeTree *n
 
     /* Change the RNA path of the FCurve from the old property to the new input. */
     if (BLI_str_endswith(fcurve->rna_path, "use_rotate_45")) {
-      MEM_freeN(fcurve->rna_path);
+      MEM_delete(fcurve->rna_path);
       fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[14].default_value");
     }
   });
@@ -236,7 +236,7 @@ static void do_version_bokeh_image_node_options_to_inputs(bNodeTree *node_tree, 
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->lensshift;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -277,7 +277,7 @@ static void do_version_bokeh_image_node_options_to_inputs_animation(bNodeTree *n
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -326,7 +326,7 @@ static void do_version_time_curve_node_options_to_inputs_animation(bNodeTree *no
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -377,7 +377,7 @@ static void do_version_mask_node_options_to_inputs(bNodeTree *node_tree, bNode *
     input->default_value_typed<bNodeSocketValueFloat>()->value = node->custom3;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -420,7 +420,7 @@ static void do_version_mask_node_options_to_inputs_animation(bNodeTree *node_tre
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -466,7 +466,7 @@ static void do_version_switch_node_options_to_inputs_animation(bNodeTree *node_t
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -514,7 +514,7 @@ static void do_version_split_node_options_to_inputs_animation(bNodeTree *node_tr
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -564,7 +564,7 @@ static void do_version_invert_node_options_to_inputs_animation(bNodeTree *node_t
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -613,7 +613,7 @@ static void do_version_z_combine_node_options_to_inputs_animation(bNodeTree *nod
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -721,7 +721,7 @@ static void do_version_tone_map_node_options_to_inputs_animation(bNodeTree *node
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -769,7 +769,7 @@ static void do_version_dilate_node_options_to_inputs_animation(bNodeTree *node_t
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -808,7 +808,7 @@ static void do_version_inpaint_node_options_to_inputs_animation(bNodeTree *node_
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -847,7 +847,7 @@ static void do_version_pixelate_node_options_to_inputs_animation(bNodeTree *node
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -918,7 +918,7 @@ static void do_version_kuwahara_node_options_to_inputs_animation(bNodeTree *node
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -972,7 +972,7 @@ static void do_version_despeckle_node_options_to_inputs_animation(bNodeTree *nod
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1016,7 +1016,7 @@ static void do_version_denoise_node_options_to_inputs_animation(bNodeTree *node_
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1048,7 +1048,7 @@ static void do_version_anti_alias_node_options_to_inputs(bNodeTree *node_tree, b
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->corner_rounding;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -1086,7 +1086,7 @@ static void do_version_anti_alias_node_options_to_inputs_animation(bNodeTree *no
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1112,7 +1112,7 @@ static void do_version_vector_blur_node_options_to_inputs(bNodeTree *node_tree, 
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->fac * 2.0f;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -1147,7 +1147,7 @@ static void do_version_vector_blur_node_options_to_inputs_animation(bNodeTree *n
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1201,7 +1201,7 @@ static void do_version_channel_matte_node_options_to_inputs_animation(bNodeTree 
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1232,7 +1232,7 @@ static void do_version_chroma_matte_node_options_to_inputs(bNodeTree *node_tree,
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->fstrength;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -1267,7 +1267,7 @@ static void do_version_chroma_matte_node_options_to_inputs_animation(bNodeTree *
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1298,7 +1298,7 @@ static void do_version_color_matte_node_options_to_inputs(bNodeTree *node_tree, 
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t3;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -1333,7 +1333,7 @@ static void do_version_color_matte_node_options_to_inputs_animation(bNodeTree *n
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1358,7 +1358,7 @@ static void do_version_difference_matte_node_options_to_inputs(bNodeTree *node_t
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -1390,7 +1390,7 @@ static void do_version_difference_matte_node_options_to_inputs_animation(bNodeTr
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1444,7 +1444,7 @@ static void do_version_distance_matte_node_options_to_inputs_animation(bNodeTree
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1469,7 +1469,7 @@ static void do_version_luminance_matte_node_options_to_inputs(bNodeTree *node_tr
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -1501,7 +1501,7 @@ static void do_version_luminance_matte_node_options_to_inputs_animation(bNodeTre
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1580,7 +1580,7 @@ static void do_version_color_spill_node_options_to_inputs_animation(bNodeTree *n
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1625,7 +1625,7 @@ static void do_version_keying_screen_node_options_to_inputs_animation(bNodeTree 
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1784,7 +1784,7 @@ static void do_version_keying_node_options_to_inputs_animation(bNodeTree *node_t
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1832,7 +1832,7 @@ static void do_version_id_mask_node_options_to_inputs_animation(bNodeTree *node_
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1872,7 +1872,7 @@ static void do_version_stabilize_node_options_to_inputs_animation(bNodeTree *nod
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -1935,7 +1935,7 @@ static void do_version_plane_track_deform_node_options_to_inputs_animation(bNode
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2138,7 +2138,7 @@ static void do_version_color_correction_node_options_to_inputs(bNodeTree *node_t
     input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 2));
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -2242,7 +2242,7 @@ static void do_version_color_correction_node_options_to_inputs_animation(bNodeTr
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2303,7 +2303,7 @@ static void do_version_lens_distortion_node_options_to_inputs_animation(bNodeTre
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2336,7 +2336,7 @@ static void do_version_box_mask_node_options_to_inputs(bNodeTree *node_tree, bNo
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->rotation;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -2380,7 +2380,7 @@ static void do_version_box_mask_node_options_to_inputs_animation(bNodeTree *node
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2413,7 +2413,7 @@ static void do_version_ellipse_mask_node_options_to_inputs(bNodeTree *node_tree,
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->rotation;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -2458,7 +2458,7 @@ static void do_version_ellipse_mask_node_options_to_inputs_animation(bNodeTree *
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2484,7 +2484,7 @@ static void do_version_sun_beams_node_options_to_inputs(bNodeTree *node_tree, bN
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->ray_length;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -2516,7 +2516,7 @@ static void do_version_sun_beams_node_options_to_inputs_animation(bNodeTree *nod
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2567,7 +2567,7 @@ static void do_version_directional_blur_node_options_to_inputs(bNodeTree *node_t
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->zoom + 1.0f;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -2619,7 +2619,7 @@ static void do_version_directional_blur_node_options_to_inputs_animation(bNodeTr
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2646,7 +2646,7 @@ static void do_version_bilateral_blur_node_options_to_inputs(bNodeTree *node_tre
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->sigma_color / 3.0f;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -2678,7 +2678,7 @@ static void do_version_bilateral_blur_node_options_to_inputs_animation(bNodeTree
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -2950,7 +2950,7 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
   for (bNode &node : node_tree->nodes) {
     if (node.type_legacy == CMP_NODE_ALPHAOVER) {
       NodeTwoFloats *storage = static_cast<NodeTwoFloats *>(node.storage);
-      MEM_freeN(storage);
+      MEM_delete(storage);
       node.storage = nullptr;
     }
   }
@@ -2991,7 +2991,7 @@ static void do_version_alpha_over_node_options_to_inputs_animation(bNodeTree *no
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -3031,7 +3031,7 @@ static void do_version_bokeh_blur_node_options_to_inputs_animation(bNodeTree *no
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -3387,7 +3387,7 @@ static void do_version_crop_node_options_to_inputs(bNodeTree *node_tree, bNode *
 
   /* If Relative is not enabled or no image is connected, nothing else to do. */
   if (!bool(node->custom2) || !image_link) {
-    MEM_freeN(storage);
+    MEM_delete(storage);
     node->storage = nullptr;
     return;
   }
@@ -3498,7 +3498,7 @@ static void do_version_crop_node_options_to_inputs(bNodeTree *node_tree, bNode *
                         *height_relative_to_pixel_node,
                         *height_image_input);
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -3540,7 +3540,7 @@ static void do_version_crop_node_options_to_inputs_animation(bNodeTree *node_tre
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -3629,7 +3629,7 @@ static void do_version_color_balance_node_options_to_inputs(bNodeTree *node_tree
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->output_tint;
   }
 
-  MEM_freeN(storage);
+  MEM_delete(storage);
   node->storage = nullptr;
 }
 
@@ -3688,7 +3688,7 @@ static void do_version_color_balance_node_options_to_inputs_animation(bNodeTree 
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -3970,7 +3970,7 @@ static void do_version_blur_node_options_to_inputs_animation(bNodeTree *node_tre
 
     /* The RNA path was changed, free the old path. */
     if (fcurve->rna_path != old_rna_path) {
-      MEM_freeN(old_rna_path);
+      MEM_delete(old_rna_path);
     }
   });
 }
@@ -4751,7 +4751,7 @@ static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
 
     bNode &named_attribute = version_node_add_empty(*tree, "GeometryNodeInputNamedAttribute");
     NodeGeometryInputNamedAttribute *named_attribute_storage =
-        MEM_new_for_free<NodeGeometryInputNamedAttribute>(__func__);
+        MEM_new<NodeGeometryInputNamedAttribute>(__func__);
     named_attribute_storage->data_type = CD_PROP_FLOAT;
     named_attribute.storage = named_attribute_storage;
     named_attribute.parent = curve_to_mesh->parent;
@@ -4769,7 +4769,7 @@ static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
         tree, &named_attribute, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Attribute", "Attribute");
 
     bNode &switch_node = version_node_add_empty(*tree, "GeometryNodeSwitch");
-    NodeSwitch *switch_storage = MEM_new_for_free<NodeSwitch>(__func__);
+    NodeSwitch *switch_storage = MEM_new<NodeSwitch>(__func__);
     switch_storage->input_type = SOCK_FLOAT;
     switch_node.storage = switch_storage;
     switch_node.parent = curve_to_mesh->parent;
@@ -5067,7 +5067,7 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         if (node.storage != nullptr) {
           continue;
         }
-        NodeScaleData *data = MEM_new_for_free<NodeScaleData>(__func__);
+        NodeScaleData *data = MEM_new<NodeScaleData>(__func__);
         data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
         node.storage = data;
       }

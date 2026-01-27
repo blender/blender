@@ -185,7 +185,7 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
 
 static void hud_panels_register(ARegionType *art, int space_type, int region_type)
 {
-  PanelType *pt = MEM_callocN<PanelType>(__func__);
+  PanelType *pt = MEM_new_zeroed<PanelType>(__func__);
   STRNCPY_UTF8(pt->idname, "OPERATOR_PT_redo");
   STRNCPY_UTF8(pt->label, N_("Redo"));
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -218,7 +218,7 @@ static void hud_region_init(wmWindowManager *wm, ARegion *region)
 
 static void hud_region_free(ARegion *region)
 {
-  MEM_SAFE_FREE(region->regiondata);
+  MEM_SAFE_DELETE_VOID(region->regiondata);
 }
 
 static void hud_region_layout(const bContext *C, ARegion *region)
@@ -298,7 +298,7 @@ static void hud_region_listener(const wmRegionListenerParams *params)
 
 ARegionType *ED_area_type_hud(int space_type)
 {
-  ARegionType *art = MEM_callocN<ARegionType>(__func__);
+  ARegionType *art = MEM_new_zeroed<ARegionType>(__func__);
   art->regionid = RGN_TYPE_HUD;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
   art->listener = hud_region_listener;
@@ -409,7 +409,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   {
     HudRegionData *hrd = static_cast<HudRegionData *>(region->regiondata);
     if (hrd == nullptr) {
-      hrd = MEM_callocN<HudRegionData>(__func__);
+      hrd = MEM_new_zeroed<HudRegionData>(__func__);
       region->regiondata = hrd;
     }
     if (region_op) {

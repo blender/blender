@@ -34,10 +34,10 @@ typedef unsigned int BLI_bitmap;
 #define BLI_BITMAP_SIZE(_num) ((size_t)(_BITMAP_NUM_BLOCKS(_num)) * sizeof(BLI_bitmap))
 
 /**
- * Allocate memory for a bitmap with '_num' bits; free with MEM_freeN().
+ * Allocate memory for a bitmap with '_num' bits; free with MEM_delete().
  */
 #define BLI_BITMAP_NEW(_num, _alloc_string) \
-  ((BLI_bitmap *)MEM_callocN(BLI_BITMAP_SIZE(_num), _alloc_string))
+  ((BLI_bitmap *)MEM_new_zeroed(BLI_BITMAP_SIZE(_num), _alloc_string))
 
 /**
  * Allocate a bitmap on the stack.
@@ -116,7 +116,7 @@ typedef unsigned int BLI_bitmap;
 #define BLI_BITMAP_RESIZE(_bitmap, _num) \
   { \
     CHECK_TYPE(_bitmap, BLI_bitmap *); \
-    (_bitmap) = (unsigned int *)MEM_recallocN(_bitmap, BLI_BITMAP_SIZE(_num)); \
+    (_bitmap) = (unsigned int *)MEM_realloc_zeroed(_bitmap, BLI_BITMAP_SIZE(_num)); \
   } \
   (void)0
 

@@ -117,7 +117,7 @@ static void attach_stabilization_baseline_data(StabContext *ctx,
 static void discard_stabilization_baseline_data(TrackStabilizationBase *val)
 {
   if (val != nullptr) {
-    MEM_freeN(val);
+    MEM_delete(val);
   }
 }
 
@@ -204,7 +204,7 @@ static void use_values_from_fcurves(StabContext *ctx, bool toggle)
  */
 static StabContext *init_stabilization_working_context(MovieClip *clip)
 {
-  StabContext *ctx = MEM_callocN<StabContext>("2D stabilization animation runtime data");
+  StabContext *ctx = MEM_new_zeroed<StabContext>("2D stabilization animation runtime data");
   ctx->clip = clip;
   ctx->tracking = &clip->tracking;
   ctx->stab = &clip->tracking.stabilization;
@@ -236,7 +236,7 @@ static void discard_stabilization_working_context(StabContext *ctx)
       discard_stabilization_baseline_data(data);
     }
     MEM_delete(ctx->private_track_data);
-    MEM_freeN(ctx);
+    MEM_delete(ctx);
   }
 }
 
@@ -875,7 +875,8 @@ static void init_all_tracks(StabContext *ctx, float aspect)
   for (MovieTrackingTrack &track : tracking_camera_object->tracks) {
     TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, &track);
     if (!local_data) {
-      local_data = MEM_callocN<TrackStabilizationBase>("2D stabilization per track baseline data");
+      local_data = MEM_new_zeroed<TrackStabilizationBase>(
+          "2D stabilization per track baseline data");
       attach_stabilization_baseline_data(ctx, &track, local_data);
     }
     BLI_assert(local_data != nullptr);
@@ -888,7 +889,7 @@ static void init_all_tracks(StabContext *ctx, float aspect)
     return;
   }
 
-  order = MEM_calloc_arrayN<TrackInitOrder>(track_len, "stabilization track order");
+  order = MEM_new_array_zeroed<TrackInitOrder>(track_len, "stabilization track order");
   if (!order) {
     return;
   }
@@ -925,7 +926,7 @@ static void init_all_tracks(StabContext *ctx, float aspect)
   }
 
 cleanup:
-  MEM_freeN(order);
+  MEM_delete(order);
 }
 
 /* Retrieve the measurement of frame movement by averaging contributions of

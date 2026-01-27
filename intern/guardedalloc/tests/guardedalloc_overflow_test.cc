@@ -19,17 +19,17 @@ namespace {
 
 void MallocArray(size_t len, size_t size)
 {
-  void *mem = MEM_malloc_arrayN(len, size, "MallocArray");
+  void *mem = MEM_new_array_uninitialized(len, size, "MallocArray");
   if (mem) {
-    MEM_freeN(mem);
+    MEM_delete_void(mem);
   }
 }
 
 void CallocArray(size_t len, size_t size)
 {
-  void *mem = MEM_calloc_arrayN(len, size, "CallocArray");
+  void *mem = MEM_new_array_zeroed(len, size, "CallocArray");
   if (mem) {
-    MEM_freeN(mem);
+    MEM_delete_void(mem);
   }
 }
 

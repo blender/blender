@@ -162,7 +162,7 @@ void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
 
 void BLI_linklist_prepend(LinkNode **listp, void *ptr)
 {
-  LinkNode *nlink = MEM_mallocN<LinkNode>(__func__);
+  LinkNode *nlink = MEM_new_uninitialized<LinkNode>(__func__);
   BLI_linklist_prepend_nlink(listp, ptr, nlink);
 }
 
@@ -197,7 +197,7 @@ void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nli
 
 void BLI_linklist_append(LinkNodePair *list_pair, void *ptr)
 {
-  LinkNode *nlink = MEM_mallocN<LinkNode>(__func__);
+  LinkNode *nlink = MEM_new_uninitialized<LinkNode>(__func__);
   BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 
@@ -219,7 +219,7 @@ void *BLI_linklist_pop(LinkNode **listp)
   void *link = (*listp)->link;
   LinkNode *next = (*listp)->next;
 
-  MEM_freeN(*listp);
+  MEM_delete(*listp);
 
   *listp = next;
   return link;
@@ -239,7 +239,7 @@ void *BLI_linklist_pop_pool(LinkNode **listp, BLI_mempool *mempool)
 
 void BLI_linklist_insert_after(LinkNode **listp, void *ptr)
 {
-  LinkNode *nlink = MEM_callocN<LinkNode>(__func__);
+  LinkNode *nlink = MEM_new_zeroed<LinkNode>(__func__);
   LinkNode *node = *listp;
 
   nlink->link = ptr;
@@ -262,7 +262,7 @@ void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc)
     if (freefunc) {
       freefunc(list->link);
     }
-    MEM_freeN(list);
+    MEM_delete(list);
 
     list = next;
   }
@@ -287,8 +287,8 @@ void BLI_linklist_freeN(LinkNode *list)
   while (list) {
     LinkNode *next = list->next;
 
-    MEM_freeN(list->link);
-    MEM_freeN(list);
+    MEM_delete_void(list->link);
+    MEM_delete(list);
 
     list = next;
   }

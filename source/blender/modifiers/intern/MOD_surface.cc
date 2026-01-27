@@ -63,9 +63,9 @@ static void free_data(ModifierData *md)
       surmd->runtime.mesh = nullptr;
     }
 
-    MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
+    MEM_SAFE_DELETE(surmd->runtime.vert_positions_prev);
 
-    MEM_SAFE_FREE(surmd->runtime.vert_velocities);
+    MEM_SAFE_DELETE(surmd->runtime.vert_velocities);
   }
 }
 
@@ -112,11 +112,12 @@ static void deform_verts(ModifierData *md,
         (surmd->runtime.vert_velocities == nullptr) || (cfra != surmd->runtime.cfra_prev + 1))
     {
 
-      MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
-      MEM_SAFE_FREE(surmd->runtime.vert_velocities);
+      MEM_SAFE_DELETE(surmd->runtime.vert_positions_prev);
+      MEM_SAFE_DELETE(surmd->runtime.vert_velocities);
 
-      surmd->runtime.vert_positions_prev = MEM_calloc_arrayN<float[3]>(mesh_verts_num, __func__);
-      surmd->runtime.vert_velocities = MEM_calloc_arrayN<float[3]>(mesh_verts_num, __func__);
+      surmd->runtime.vert_positions_prev = MEM_new_array_zeroed<float[3]>(mesh_verts_num,
+                                                                          __func__);
+      surmd->runtime.vert_velocities = MEM_new_array_zeroed<float[3]>(mesh_verts_num, __func__);
 
       surmd->runtime.verts_num = mesh_verts_num;
 

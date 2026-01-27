@@ -302,8 +302,8 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS *tls);
  * Task data is freed when calling #BLI_task_graph_free.
  *
  * \code{.c}
- * MyData *task_data = MEM_callocN<MyData>(__func__);
- * TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, task_data, MEM_freeN);
+ * MyData *task_data = MEM_new_zeroed<MyData>(__func__);
+ * TaskNode *root = BLI_task_graph_node_create(task_graph, root_exec, task_data, MEM_delete);
  * TaskNode *node_1 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
  * TaskNode *node_2 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);
  * TaskNode *node_3 = BLI_task_graph_node_create(task_graph, node_exec, task_data, NULL);

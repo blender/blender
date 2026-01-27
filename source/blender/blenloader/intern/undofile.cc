@@ -44,9 +44,9 @@ void BLO_memfile_free(MemFile *memfile)
 {
   while (MemFileChunk *chunk = static_cast<MemFileChunk *>(BLI_pophead(&memfile->chunks))) {
     if (chunk->is_identical == false) {
-      MEM_freeN(chunk->buf);
+      MEM_delete(chunk->buf);
     }
-    MEM_freeN(chunk);
+    MEM_delete(chunk);
   }
   MEM_SAFE_DELETE(memfile->shared_storage);
   MEM_SAFE_DELETE(memfile->stable_address_ids);
@@ -146,7 +146,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
   MemFile *memfile = mem_data->written_memfile;
   MemFileChunk **compchunk_step = &mem_data->reference_current_chunk;
 
-  MemFileChunk *curchunk = MEM_mallocN<MemFileChunk>("MemFileChunk");
+  MemFileChunk *curchunk = MEM_new_uninitialized<MemFileChunk>("MemFileChunk");
   curchunk->size = size;
   curchunk->buf = nullptr;
   curchunk->is_identical = false;
@@ -172,7 +172,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
 
   /* not equal... */
   if (curchunk->buf == nullptr) {
-    char *buf_new = MEM_malloc_arrayN<char>(size, "Chunk buffer");
+    char *buf_new = MEM_new_array_uninitialized<char>(size, "Chunk buffer");
     memcpy(buf_new, buf, size);
     curchunk->buf = buf_new;
     memfile->size += size;
@@ -275,12 +275,12 @@ static int64_t undo_read(FileReader *reader, void *buffer, size_t size)
 
 static void undo_close(FileReader *reader)
 {
-  MEM_freeN(reader);
+  MEM_delete(reader);
 }
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction)
 {
-  UndoReader *undo = MEM_callocN<UndoReader>(__func__);
+  UndoReader *undo = MEM_new_zeroed<UndoReader>(__func__);
 
   undo->memfile = memfile;
   undo->undo_direction = undo_direction;

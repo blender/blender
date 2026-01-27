@@ -263,9 +263,9 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
 /** Reset the selection structure, deallocating heap memory as appropriate. */
 static void drw_mesh_weight_state_clear(DRW_MeshWeightState *wstate)
 {
-  MEM_SAFE_FREE(wstate->defgroup_sel);
-  MEM_SAFE_FREE(wstate->defgroup_locked);
-  MEM_SAFE_FREE(wstate->defgroup_unlocked);
+  MEM_SAFE_DELETE(wstate->defgroup_sel);
+  MEM_SAFE_DELETE(wstate->defgroup_locked);
+  MEM_SAFE_DELETE(wstate->defgroup_unlocked);
 
   memset(wstate, 0, sizeof(*wstate));
 
@@ -276,21 +276,21 @@ static void drw_mesh_weight_state_clear(DRW_MeshWeightState *wstate)
 static void drw_mesh_weight_state_copy(DRW_MeshWeightState *wstate_dst,
                                        const DRW_MeshWeightState *wstate_src)
 {
-  MEM_SAFE_FREE(wstate_dst->defgroup_sel);
-  MEM_SAFE_FREE(wstate_dst->defgroup_locked);
-  MEM_SAFE_FREE(wstate_dst->defgroup_unlocked);
+  MEM_SAFE_DELETE(wstate_dst->defgroup_sel);
+  MEM_SAFE_DELETE(wstate_dst->defgroup_locked);
+  MEM_SAFE_DELETE(wstate_dst->defgroup_unlocked);
 
   memcpy(wstate_dst, wstate_src, sizeof(*wstate_dst));
 
   if (wstate_src->defgroup_sel) {
-    wstate_dst->defgroup_sel = static_cast<bool *>(MEM_dupallocN(wstate_src->defgroup_sel));
+    wstate_dst->defgroup_sel = MEM_dupalloc(wstate_src->defgroup_sel);
   }
   if (wstate_src->defgroup_locked) {
-    wstate_dst->defgroup_locked = static_cast<bool *>(MEM_dupallocN(wstate_src->defgroup_locked));
+    wstate_dst->defgroup_locked = MEM_dupalloc(wstate_src->defgroup_locked);
   }
   if (wstate_src->defgroup_unlocked) {
     wstate_dst->defgroup_unlocked = static_cast<bool *>(
-        MEM_dupallocN(wstate_src->defgroup_unlocked));
+        MEM_dupalloc(wstate_src->defgroup_unlocked));
   }
 }
 
@@ -344,7 +344,7 @@ static void drw_mesh_weight_state_extract(
     /* With only one selected bone Multi-paint reverts to regular mode. */
     else {
       wstate->defgroup_sel_count = 0;
-      MEM_SAFE_FREE(wstate->defgroup_sel);
+      MEM_SAFE_DELETE(wstate->defgroup_sel);
     }
   }
 
@@ -371,8 +371,8 @@ static void drw_mesh_weight_state_extract(
                                                 wstate->defgroup_unlocked);
     }
     else {
-      MEM_SAFE_FREE(wstate->defgroup_unlocked);
-      MEM_SAFE_FREE(wstate->defgroup_locked);
+      MEM_SAFE_DELETE(wstate->defgroup_unlocked);
+      MEM_SAFE_DELETE(wstate->defgroup_locked);
     }
   }
 }

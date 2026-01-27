@@ -462,7 +462,7 @@ void BLI_polyfill_beautify(const float (*coords)[2],
 
   BLI_heap_clear(eheap, nullptr);
 
-  // MEM_freeN(eheap_table); /* arena */
+  // MEM_delete(eheap_table); /* arena */
 
   /* Get triangles from half edge. */
   uint tri_index = 0;

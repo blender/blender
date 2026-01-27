@@ -846,7 +846,7 @@ void panel_end(Panel *panel, int width, int height)
 
 void panel_drawname_set(Panel *panel, StringRef name)
 {
-  MEM_SAFE_FREE(panel->drawname);
+  MEM_SAFE_DELETE(panel->drawname);
   panel->drawname = BLI_strdupn(name.data(), name.size());
 }
 
@@ -2081,7 +2081,7 @@ struct PanelDragCollapseHandle {
 static void ui_panel_drag_collapse_handler_remove(bContext * /*C*/, void *userdata)
 {
   PanelDragCollapseHandle *dragcol_data = static_cast<PanelDragCollapseHandle *>(userdata);
-  MEM_freeN(dragcol_data);
+  MEM_delete(dragcol_data);
 }
 
 static void ui_panel_drag_collapse(const bContext *C,
@@ -2194,7 +2194,7 @@ void panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
 {
   wmWindow *win = CTX_wm_window(C);
   const wmEvent *event = win->runtime->eventstate;
-  PanelDragCollapseHandle *dragcol_data = MEM_callocN<PanelDragCollapseHandle>(__func__);
+  PanelDragCollapseHandle *dragcol_data = MEM_new_zeroed<PanelDragCollapseHandle>(__func__);
 
   dragcol_data->was_first_open = was_open;
   copy_v2_v2_int(dragcol_data->xy_init, event->xy);
@@ -2379,7 +2379,7 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
     BLI_remlink(lb, pc_act);
   }
   else {
-    pc_act = MEM_new_for_free<PanelCategoryStack>(__func__);
+    pc_act = MEM_new<PanelCategoryStack>(__func__);
     STRNCPY_UTF8(pc_act->idname, idname);
   }
 
@@ -2404,7 +2404,7 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
               &region->runtime->type->paneltypes, pc_act->idname, offsetof(PanelType, category)))
       {
         BLI_remlink(lb, pc_act);
-        MEM_freeN(pc_act);
+        MEM_delete(pc_act);
       }
     }
   }
@@ -2468,7 +2468,7 @@ static PanelCategoryDyn *panel_categories_find_mouse_over(ARegion *region, const
 
 void panel_category_add(ARegion *region, const char *name)
 {
-  PanelCategoryDyn *pc_dyn = MEM_new_for_free<PanelCategoryDyn>(__func__);
+  PanelCategoryDyn *pc_dyn = MEM_new<PanelCategoryDyn>(__func__);
   BLI_addtail(&region->runtime->panels_category, pc_dyn);
 
   STRNCPY_UTF8(pc_dyn->idname, name);
@@ -2811,7 +2811,7 @@ static void panel_handle_data_ensure(const bContext *C,
   BLI_assert(ELEM(state, PANEL_STATE_DRAG, PANEL_STATE_ANIMATION));
 
   if (panel->activedata == nullptr) {
-    panel->activedata = MEM_callocN<HandlePanelData>(__func__);
+    panel->activedata = MEM_new_zeroed<HandlePanelData>(__func__);
     WM_event_add_ui_handler(C,
                             &win->runtime->modalhandlers,
                             ui_handler_panel,
@@ -2880,7 +2880,7 @@ static void panel_activate_state(const bContext *C, Panel *panel, const HandlePa
       data->animtimer = nullptr;
     }
 
-    MEM_freeN(data);
+    MEM_delete(data);
     panel->activedata = nullptr;
 
     WM_event_remove_ui_handler(

@@ -879,7 +879,8 @@ static void where_am_i(char *program_filepath,
 
 #  ifdef _WIN32
   {
-    wchar_t *fullname_16 = MEM_malloc_arrayN<wchar_t>(program_filepath_maxncpy, "ProgramPath");
+    wchar_t *fullname_16 = MEM_new_array_uninitialized<wchar_t>(program_filepath_maxncpy,
+                                                                "ProgramPath");
     if (GetModuleFileNameW(0, fullname_16, program_filepath_maxncpy)) {
       conv_utf_16_to_8(fullname_16, program_filepath, program_filepath_maxncpy);
       if (!BLI_exists(program_filepath)) {
@@ -892,11 +893,11 @@ static void where_am_i(char *program_filepath,
                    "Error",
                    MB_OK);
       }
-      MEM_freeN(fullname_16);
+      MEM_delete(fullname_16);
       return;
     }
 
-    MEM_freeN(fullname_16);
+    MEM_delete(fullname_16);
   }
 #  endif
 

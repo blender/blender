@@ -271,7 +271,7 @@ PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params)
                 import_params.filepath);
     return nullptr;
   }
-  BLI_SCOPED_DEFER([&]() { MEM_freeN(buffer); });
+  BLI_SCOPED_DEFER([&]() { MEM_delete_void(buffer); });
   if (buffer_len == 0) {
     BKE_reportf(
         import_params.reports, RPT_ERROR, "CSV Import: empty file '%s'", import_params.filepath);

@@ -547,7 +547,7 @@ static void text_autocomplete_free(bContext *C, wmOperator *op)
 {
   GHash *gh = static_cast<GHash *>(op->customdata);
   if (gh) {
-    BLI_ghash_free(gh, nullptr, MEM_freeN);
+    BLI_ghash_free(gh, nullptr, MEM_delete_void);
     op->customdata = nullptr;
   }
 

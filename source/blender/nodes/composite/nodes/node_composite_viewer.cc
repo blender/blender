@@ -18,7 +18,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  ImageUser *iuser = MEM_new_for_free<ImageUser>(__func__);
+  ImageUser *iuser = MEM_new<ImageUser>(__func__);
   node->storage = iuser;
   iuser->sfra = 1;
   node->custom1 = NODE_VIEWER_SHORTCUT_NONE;

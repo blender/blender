@@ -74,7 +74,7 @@ void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
   if (size == 0) {
     return;
   }
-  tvs->transverts = MEM_calloc_arrayN<TransVert>(size, __func__);
+  tvs->transverts = MEM_new_array_zeroed<TransVert>(size, __func__);
   tvs->transverts_tot = size;
 
   int offset = 0;
@@ -124,7 +124,7 @@ float (*point_normals_array_create(const Curves *curves_id))[3]
 {
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   const int size = curves.points_num();
-  float3 *data = MEM_malloc_arrayN<float3>(size, __func__);
+  float3 *data = MEM_new_array_uninitialized<float3>(size, __func__);
   bke::curves_normals_point_domain_calc(curves, {data, size});
   return reinterpret_cast<float (*)[3]>(data);
 }

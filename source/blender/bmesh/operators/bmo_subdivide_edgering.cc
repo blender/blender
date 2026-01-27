@@ -442,7 +442,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
                                                     BMEdgeLoopStore *el_store_b,
                                                     const int interp_mode)
 {
-  LoopPairStore *lpair = MEM_mallocN<LoopPairStore>(__func__);
+  LoopPairStore *lpair = MEM_new_uninitialized<LoopPairStore>(__func__);
 
   if (interp_mode == SUBD_RING_INTERP_SURF) {
     const uint len_a = BM_edgeloop_length_get(el_store_a);
@@ -461,8 +461,8 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     BM_edgeloop_edges_get(el_store_a, e_arr_a.data());
     BM_edgeloop_edges_get(el_store_b, e_arr_b.data());
 
-    lpair->nors_a = MEM_malloc_arrayN<float[3]>(len_a, __func__);
-    lpair->nors_b = MEM_malloc_arrayN<float[3]>(len_b, __func__);
+    lpair->nors_a = MEM_new_array_uninitialized<float[3]>(len_a, __func__);
+    lpair->nors_b = MEM_new_array_uninitialized<float[3]>(len_b, __func__);
 
     nors_pair[0] = lpair->nors_a;
     nors_pair[1] = lpair->nors_b;
@@ -515,13 +515,13 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
 static void bm_edgering_pair_store_free(LoopPairStore *lpair, const int interp_mode)
 {
   if (interp_mode == SUBD_RING_INTERP_SURF) {
-    MEM_freeN(lpair->nors_a);
-    MEM_freeN(lpair->nors_b);
+    MEM_delete(lpair->nors_a);
+    MEM_delete(lpair->nors_b);
 
     MEM_delete(lpair->nors_gh_a);
     MEM_delete(lpair->nors_gh_b);
   }
-  MEM_freeN(lpair);
+  MEM_delete(lpair);
 }
 
 /** \} */
@@ -604,7 +604,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
     add_v3_v3(handle_a, el_store_a_co);
     add_v3_v3(handle_b, el_store_b_co);
 
-    coord_array_main = MEM_malloc_arrayN<float[3]>(resolu, __func__);
+    coord_array_main = MEM_new_array_uninitialized<float[3]>(resolu, __func__);
 
     for (i = 0; i < dims; i++) {
       BKE_curve_forward_diff_bezier(el_store_a_co[i],
@@ -620,7 +620,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
   switch (interp_mode) {
     case SUBD_RING_INTERP_LINEAR: {
       if (falloff_cache) {
-        float (*coord_array)[3] = MEM_malloc_arrayN<float[3]>(resolu, __func__);
+        float (*coord_array)[3] = MEM_new_array_uninitialized<float[3]>(resolu, __func__);
         for (i = 0; i < resolu; i++) {
           interp_v3_v3v3(
               coord_array[i], el_store_a_co, el_store_b_co, float(i) / float(resolu - 1));
@@ -647,15 +647,15 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
           }
         }
 
-        MEM_freeN(coord_array);
+        MEM_delete(coord_array);
       }
 
       break;
     }
     case SUBD_RING_INTERP_PATH: {
-      float (*direction_array)[3] = MEM_malloc_arrayN<float[3]>(resolu, __func__);
-      float (*quat_array)[4] = MEM_malloc_arrayN<float[4]>(resolu, __func__);
-      float (*tri_array)[3][3] = MEM_malloc_arrayN<float[3][3]>(resolu, __func__);
+      float (*direction_array)[3] = MEM_new_array_uninitialized<float[3]>(resolu, __func__);
+      float (*quat_array)[4] = MEM_new_array_uninitialized<float[4]>(resolu, __func__);
+      float (*tri_array)[3][3] = MEM_new_array_uninitialized<float[3][3]>(resolu, __func__);
       float (*tri_sta)[3], (*tri_end)[3], (*tri_tmp)[3];
 
       /* very similar to make_bevel_list_3D_minimum_twist */
@@ -740,13 +740,13 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
         }
       }
 
-      MEM_freeN(direction_array);
-      MEM_freeN(quat_array);
-      MEM_freeN(tri_array);
+      MEM_delete(direction_array);
+      MEM_delete(quat_array);
+      MEM_delete(tri_array);
       break;
     }
     case SUBD_RING_INTERP_SURF: {
-      float (*coord_array)[3] = MEM_malloc_arrayN<float[3]>(resolu, __func__);
+      float (*coord_array)[3] = MEM_new_array_uninitialized<float[3]>(resolu, __func__);
 
       /* calculate a bezier handle per edge ring */
       for (el_store_ring = static_cast<BMEdgeLoopStore *>(eloops_ring->first); el_store_ring;
@@ -815,14 +815,14 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
         }
       }
 
-      MEM_freeN(coord_array);
+      MEM_delete(coord_array);
 
       break;
     }
   }
 
   if (coord_array_main) {
-    MEM_freeN(coord_array_main);
+    MEM_delete(coord_array_main);
   }
 }
 

@@ -977,7 +977,7 @@ static void curve_select_more(Object *obedit)
         a--;
       }
 
-      MEM_freeN(selbpoints);
+      MEM_delete(selbpoints);
     }
   }
   else {
@@ -1101,7 +1101,7 @@ static void curve_select_less(Object *obedit)
         bp++;
       }
 
-      MEM_freeN(selbpoints);
+      MEM_delete(selbpoints);
     }
   }
   else {
@@ -1322,7 +1322,7 @@ static wmOperatorStatus curve_select_random_exec(bContext *C, wmOperator *op)
       }
     }
 
-    MEM_freeN(verts_selection_mask);
+    MEM_delete(verts_selection_mask);
     BKE_curve_nurb_vert_active_validate(id_cast<Curve *>(obedit->data));
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -1932,7 +1932,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
   } *data;
 
   /* init connectivity data */
-  data = MEM_malloc_arrayN<PointAdj>(vert_num, __func__);
+  data = MEM_new_array_uninitialized<PointAdj>(vert_num, __func__);
   for (int i = 0; i < vert_num; i++) {
     data[i].vert = i;
     data[i].vert_prev = -1;
@@ -1996,7 +1996,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
     }
   }
 
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 static wmOperatorStatus edcu_shortest_path_pick_invoke(bContext *C,

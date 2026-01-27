@@ -20,7 +20,7 @@ void displacement_detach(Subdiv *subdiv)
   if (subdiv->displacement_evaluator->free != nullptr) {
     subdiv->displacement_evaluator->free(subdiv->displacement_evaluator);
   }
-  MEM_freeN(subdiv->displacement_evaluator);
+  MEM_delete(subdiv->displacement_evaluator);
   subdiv->displacement_evaluator = nullptr;
 }
 

@@ -79,7 +79,7 @@ static bool solve_camera_initjob(
                                                          width,
                                                          height);
 
-  tracking->stats = MEM_new_for_free<MovieTrackingStats>("solve camera stats");
+  tracking->stats = MEM_new<MovieTrackingStats>("solve camera stats");
 
   WM_locked_interface_set(scj->wm, true);
 
@@ -121,7 +121,7 @@ static void solve_camera_freejob(void *scv)
 
   if (!scj->context) {
     /* job weren't fully initialized due to some error */
-    MEM_freeN(scj);
+    MEM_delete(scj);
     return;
   }
 
@@ -163,7 +163,7 @@ static void solve_camera_freejob(void *scv)
     WM_main_add_notifier(NC_OBJECT, camera);
   }
 
-  MEM_freeN(tracking->stats);
+  MEM_delete(tracking->stats);
   tracking->stats = nullptr;
 
   DEG_id_tag_update(&clip->id, 0);
@@ -175,14 +175,14 @@ static void solve_camera_freejob(void *scv)
   WM_main_add_notifier(NC_SCENE, scene);
 
   BKE_tracking_reconstruction_context_free(scj->context);
-  MEM_freeN(scj);
+  MEM_delete(scj);
 }
 
 static wmOperatorStatus solve_camera_exec(bContext *C, wmOperator *op)
 {
   SolveCameraJob *scj;
   char error_msg[256] = "\0";
-  scj = MEM_new_for_free<SolveCameraJob>("SolveCameraJob data");
+  scj = MEM_new<SolveCameraJob>("SolveCameraJob data");
   if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -212,7 +212,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
     return OPERATOR_CANCELLED;
   }
 
-  scj = MEM_new_for_free<SolveCameraJob>("SolveCameraJob data");
+  scj = MEM_new<SolveCameraJob>("SolveCameraJob data");
   if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -298,7 +298,7 @@ static wmOperatorStatus clear_solution_exec(bContext *C, wmOperator * /*op*/)
     track.flag &= ~TRACK_HAS_BUNDLE;
   }
 
-  MEM_SAFE_FREE(reconstruction->cameras);
+  MEM_SAFE_DELETE(reconstruction->cameras);
 
   reconstruction->camnr = 0;
   reconstruction->flag &= ~TRACKING_RECONSTRUCTED;

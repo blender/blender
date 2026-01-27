@@ -865,7 +865,7 @@ static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
 
 void collection_exporter_register()
 {
-  MenuType *mt = MEM_callocN<MenuType>(__func__);
+  MenuType *mt = MEM_new_zeroed<MenuType>(__func__);
   STRNCPY_UTF8(mt->idname, "COLLECTION_MT_exporter_add");
   STRNCPY_UTF8(mt->label, N_("Add Exporter"));
   mt->draw = collection_exporter_menu_draw;

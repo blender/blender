@@ -101,7 +101,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeDenoise *ndg = MEM_new_for_free<NodeDenoise>(__func__);
+  NodeDenoise *ndg = MEM_new<NodeDenoise>(__func__);
   node->storage = ndg;
 }
 
@@ -296,7 +296,7 @@ class DenoiseOperation : public NodeOperation {
     }
 
     for (float *buffer : temporary_buffers_to_free) {
-      MEM_freeN(buffer);
+      MEM_delete(buffer);
     }
 #endif
   }

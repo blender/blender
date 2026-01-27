@@ -746,10 +746,10 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
                  mesh_src.verts_num,
                  kb.name,
                  kb.totelem);
-      array = MEM_calloc_arrayN<float[3]>(mesh_src.verts_num, __func__);
+      array = MEM_new_array_zeroed<float[3]>(mesh_src.verts_num, __func__);
     }
     else {
-      array = MEM_malloc_arrayN<float[3]>(size_t(mesh_src.verts_num), __func__);
+      array = MEM_new_array_uninitialized<float[3]>(size_t(mesh_src.verts_num), __func__);
       memcpy(array, kb.data, sizeof(float[3]) * size_t(mesh_src.verts_num));
     }
 
@@ -2790,7 +2790,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   ANIM_armature_bonecoll_show_all(arm);
   arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_DRAW_TYPE_STICK;
-  arm->edbo = MEM_callocN<ListBaseT<EditBone>>("edbo armature");
+  arm->edbo = MEM_new_zeroed<ListBaseT<EditBone>>("edbo armature");
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num));
@@ -2828,7 +2828,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
     }
   }
 
-  MEM_freeN(edges_visited);
+  MEM_delete(edges_visited);
 
   ED_armature_from_edit(bmain, arm);
   ED_armature_edit_free(arm);
@@ -2927,7 +2927,7 @@ static wmOperatorStatus correctivesmooth_bind_exec(bContext *C, wmOperator *op)
   const bool is_bind = (csmd->bind_coords != nullptr);
 
   implicit_sharing::free_shared_data(&csmd->bind_coords, &csmd->bind_coords_sharing_info);
-  MEM_SAFE_FREE(csmd->delta_cache.deltas);
+  MEM_SAFE_DELETE(csmd->delta_cache.deltas);
 
   if (is_bind) {
     /* toggle off */
@@ -3006,8 +3006,8 @@ static wmOperatorStatus meshdeform_bind_exec(bContext *C, wmOperator *op)
     implicit_sharing::free_shared_data(&mmd->bindinfluences, &mmd->bindinfluences_sharing_info);
     implicit_sharing::free_shared_data(&mmd->bindoffsets, &mmd->bindoffsets_sharing_info);
     implicit_sharing::free_shared_data(&mmd->dynverts, &mmd->dynverts_sharing_info);
-    MEM_SAFE_FREE(mmd->bindweights); /* Deprecated */
-    MEM_SAFE_FREE(mmd->bindcos);     /* Deprecated */
+    MEM_SAFE_DELETE(mmd->bindweights); /* Deprecated */
+    MEM_SAFE_DELETE(mmd->bindcos);     /* Deprecated */
     mmd->verts_num = 0;
     mmd->cage_verts_num = 0;
     mmd->influences_num = 0;
@@ -3223,7 +3223,7 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
                                          omd->foam_fade,
                                          omd->resolution);
 
-  och->time = MEM_malloc_arrayN<float>(och->duration, "foam bake time");
+  och->time = MEM_new_array_uninitialized<float>(och->duration, "foam bake time");
 
   int cfra = scene->r.cfra;
 
@@ -3272,7 +3272,7 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
                               "Simulating ocean...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_OCEAN);
-  OceanBakeJob *oj = MEM_callocN<OceanBakeJob>("ocean bake job");
+  OceanBakeJob *oj = MEM_new_zeroed<OceanBakeJob>("ocean bake job");
   oj->owner = ob;
   oj->ocean = ocean;
   oj->och = och;
@@ -3599,8 +3599,8 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilDashModifierSegment *new_segments =
-      MEM_new_array_for_free<GreasePencilDashModifierSegment>(dmd->segments_num + 1, __func__);
+  GreasePencilDashModifierSegment *new_segments = MEM_new_array<GreasePencilDashModifierSegment>(
+      dmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(dmd->segment_active_index + 1, 0, dmd->segments_num);
   if (dmd->segments_num != 0) {
@@ -3629,7 +3629,7 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
       '.',
       ds->name);
 
-  MEM_SAFE_FREE(dmd->segments_array);
+  MEM_SAFE_DELETE(dmd->segments_array);
   dmd->segments_array = new_segments;
   dmd->segments_num++;
   dmd->segment_active_index = new_active_index;
@@ -3833,8 +3833,8 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilTimeModifierSegment *new_segments =
-      MEM_new_array_for_free<GreasePencilTimeModifierSegment>(tmd->segments_num + 1, __func__);
+  GreasePencilTimeModifierSegment *new_segments = MEM_new_array<GreasePencilTimeModifierSegment>(
+      tmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(tmd->segment_active_index + 1, 0, tmd->segments_num);
   if (tmd->segments_num != 0) {
@@ -3863,7 +3863,7 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
       '.',
       segment->name);
 
-  MEM_SAFE_FREE(tmd->segments_array);
+  MEM_SAFE_DELETE(tmd->segments_array);
   tmd->segments_array = new_segments;
   tmd->segments_num++;
   tmd->segment_active_index++;

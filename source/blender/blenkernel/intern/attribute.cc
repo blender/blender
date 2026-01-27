@@ -875,7 +875,7 @@ void BKE_id_attributes_active_color_set(ID *id, const std::optional<StringRef> n
   switch (GS(id->name)) {
     case ID_ME: {
       Mesh *mesh = reinterpret_cast<Mesh *>(id);
-      MEM_SAFE_FREE(mesh->active_color_attribute);
+      MEM_SAFE_DELETE(mesh->active_color_attribute);
       if (name) {
         mesh->active_color_attribute = BLI_strdupn(name->data(), name->size());
       }
@@ -891,7 +891,7 @@ void BKE_id_attributes_active_color_clear(ID *id)
   switch (GS(id->name)) {
     case ID_ME: {
       Mesh *mesh = reinterpret_cast<Mesh *>(id);
-      MEM_SAFE_FREE(mesh->active_color_attribute);
+      MEM_SAFE_DELETE(mesh->active_color_attribute);
       break;
     }
     default:
@@ -904,7 +904,7 @@ void BKE_id_attributes_default_color_set(ID *id, const std::optional<StringRef> 
   switch (GS(id->name)) {
     case ID_ME: {
       Mesh *mesh = reinterpret_cast<Mesh *>(id);
-      MEM_SAFE_FREE(mesh->default_color_attribute);
+      MEM_SAFE_DELETE(mesh->default_color_attribute);
       if (name) {
         mesh->default_color_attribute = BLI_strdupn(name->data(), name->size());
       }

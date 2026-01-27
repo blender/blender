@@ -135,7 +135,7 @@ static void rna_Camera_custom_mode_set(PointerRNA *ptr, int value)
 
     /* remove any bytecode */
     if (camera->custom_bytecode) {
-      MEM_freeN(camera->custom_bytecode);
+      MEM_delete(camera->custom_bytecode);
       camera->custom_bytecode = nullptr;
     }
     camera->custom_bytecode_hash[0] = '\0';
@@ -158,7 +158,7 @@ static void rna_Camera_custom_bytecode_set(PointerRNA *ptr, const char *value)
 {
   Camera *camera = id_cast<Camera *>(ptr->owner_id);
   if (camera->custom_bytecode) {
-    MEM_freeN(camera->custom_bytecode);
+    MEM_delete(camera->custom_bytecode);
   }
 
   if (value && value[0]) {

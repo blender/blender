@@ -947,7 +947,7 @@ static void export_in_memory_texture(Image *ima,
           imbuf, export_dir, image_abs_path, tile_filepath, allow_overwrite, reports);
       BKE_image_release_ibuf(ima, imbuf, nullptr);
     }
-    MEM_freeN(udim_pattern);
+    MEM_delete(udim_pattern);
   }
 }
 
@@ -1349,7 +1349,7 @@ static void copy_tiled_textures(Image *ima,
   /* Only <UDIM> tile formats are supported by USD right now. */
   if (tile_format != UDIM_TILE_FORMAT_UDIM) {
     CLOG_WARN(&LOG, "Unsupported tile format for '%s'", src_path);
-    MEM_SAFE_FREE(udim_pattern);
+    MEM_SAFE_DELETE(udim_pattern);
     return;
   }
 
@@ -1385,7 +1385,7 @@ static void copy_tiled_textures(Image *ima,
                   dest_tile_path);
     }
   }
-  MEM_SAFE_FREE(udim_pattern);
+  MEM_SAFE_DELETE(udim_pattern);
 }
 
 /* Copy the given image to the destination directory. */

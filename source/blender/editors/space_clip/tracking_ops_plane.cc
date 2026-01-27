@@ -148,7 +148,7 @@ static SlidePlaneMarkerData *slide_plane_marker_customdata(bContext *C, const wm
   if (plane_track) {
     MovieTrackingPlaneMarker *plane_marker;
 
-    customdata = MEM_callocN<SlidePlaneMarkerData>("slide plane marker data");
+    customdata = MEM_new_zeroed<SlidePlaneMarkerData>("slide plane marker data");
 
     customdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
@@ -207,7 +207,7 @@ static void cancel_mouse_slide_plane_marker(SlidePlaneMarkerData *data)
 
 static void free_slide_plane_marker_data(SlidePlaneMarkerData *data)
 {
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 static void slide_plane_marker_update_homographies(SpaceClip *sc, SlidePlaneMarkerData *data)

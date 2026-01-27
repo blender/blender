@@ -40,7 +40,7 @@ std::string normalize_path(StringRefNull path, int64_t max_len)
   BLI_path_normalize(buf);
 
   std::string normalized_path = buf;
-  MEM_freeN(buf);
+  MEM_delete(buf);
 
   if (len != path.size()) {
     normalized_path = normalized_path + path.substr(len);

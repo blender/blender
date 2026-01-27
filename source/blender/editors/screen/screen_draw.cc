@@ -684,7 +684,7 @@ static void area_animate_highlight_cb(const wmWindow * /*win*/, void *userdata)
   double now = BLI_time_now_seconds();
   if (now > data->end_time) {
     WM_draw_cb_exit(data->win, data->draw_callback);
-    MEM_freeN(const_cast<AreaAnimateHighlightData *>(data));
+    MEM_delete(const_cast<AreaAnimateHighlightData *>(data));
     data = nullptr;
     return;
   }
@@ -734,7 +734,7 @@ void screen_animate_area_highlight(wmWindow *win,
    * be enough, but will have to be investigated. */
   return;
 
-  AreaAnimateHighlightData *data = MEM_callocN<AreaAnimateHighlightData>(
+  AreaAnimateHighlightData *data = MEM_new_zeroed<AreaAnimateHighlightData>(
       "screen_animate_area_highlight");
   data->win = win;
   data->screen = screen;

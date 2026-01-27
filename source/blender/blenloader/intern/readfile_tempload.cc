@@ -23,7 +23,7 @@ TempLibraryContext *BLO_library_temp_load_id(Main *real_main,
                                              const char *idname,
                                              ReportList *reports)
 {
-  TempLibraryContext *temp_lib_ctx = MEM_callocN<TempLibraryContext>(__func__);
+  TempLibraryContext *temp_lib_ctx = MEM_new_zeroed<TempLibraryContext>(__func__);
   temp_lib_ctx->bmain_base = BKE_main_new();
   temp_lib_ctx->bf_reports.reports = reports;
 
@@ -49,7 +49,7 @@ TempLibraryContext *BLO_library_temp_load_id(Main *real_main,
 void BLO_library_temp_free(TempLibraryContext *temp_lib_ctx)
 {
   BKE_main_free(temp_lib_ctx->bmain_base);
-  MEM_freeN(temp_lib_ctx);
+  MEM_delete(temp_lib_ctx);
 }
 
 }  // namespace blender

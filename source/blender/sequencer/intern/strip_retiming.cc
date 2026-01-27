@@ -294,7 +294,7 @@ void retiming_data_ensure(Strip *strip)
     return;
   }
 
-  strip->retiming_keys = MEM_new_array_for_free<SeqRetimingKey>(2, __func__);
+  strip->retiming_keys = MEM_new_array<SeqRetimingKey>(2, __func__);
   SeqRetimingKey *key = strip->retiming_keys + 1;
   key->strip_frame_index = strip->len;
   key->retiming_factor = 1.0f;
@@ -329,7 +329,7 @@ SeqRetimingKey fake_retiming_key_init(const Scene *scene, const Strip *strip, in
 void retiming_data_clear(Strip *strip)
 {
   if (strip->retiming_keys != nullptr) {
-    MEM_freeN(strip->retiming_keys);
+    MEM_delete(strip->retiming_keys);
     strip->retiming_keys = nullptr;
     strip->retiming_keys_num = 0;
   }
@@ -396,7 +396,7 @@ static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)
   BLI_assert(new_key_index >= 0);
   BLI_assert(new_key_index < keys_count);
 
-  SeqRetimingKey *new_keys = MEM_new_array_for_free<SeqRetimingKey>(keys_count + 1, __func__);
+  SeqRetimingKey *new_keys = MEM_new_array<SeqRetimingKey>(keys_count + 1, __func__);
   if (new_key_index > 0) {
     memcpy(new_keys, keys, new_key_index * sizeof(SeqRetimingKey));
   }
@@ -405,7 +405,7 @@ static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)
            keys + new_key_index,
            (keys_count - new_key_index) * sizeof(SeqRetimingKey));
   }
-  MEM_freeN(keys);
+  MEM_delete(keys);
   strip->retiming_keys = new_keys;
   strip->retiming_keys_num++;
 
@@ -472,7 +472,7 @@ void retiming_remove_multiple_keys(Strip *strip, Vector<SeqRetimingKey *> &keys_
 
   const size_t keys_count = retiming_keys_count(strip);
   size_t new_keys_count = keys_count - keys_to_remove.size() - transitions.size() / 2;
-  SeqRetimingKey *new_keys = MEM_new_array_for_free<SeqRetimingKey>(new_keys_count, __func__);
+  SeqRetimingKey *new_keys = MEM_new_array<SeqRetimingKey>(new_keys_count, __func__);
   int keys_copied = 0;
 
   /* Copy keys to new array. */
@@ -492,7 +492,7 @@ void retiming_remove_multiple_keys(Strip *strip, Vector<SeqRetimingKey *> &keys_
     keys_copied++;
   }
 
-  MEM_freeN(strip->retiming_keys);
+  MEM_delete(strip->retiming_keys);
   strip->retiming_keys = new_keys;
   strip->retiming_keys_num = new_keys_count;
 }
@@ -508,14 +508,14 @@ static void strip_retiming_remove_key_ex(Strip *strip, SeqRetimingKey *key)
   }
 
   size_t keys_count = retiming_keys_count(strip);
-  SeqRetimingKey *keys = MEM_new_array_for_free<SeqRetimingKey>(keys_count - 1, __func__);
+  SeqRetimingKey *keys = MEM_new_array<SeqRetimingKey>(keys_count - 1, __func__);
 
   const int key_index = key - strip->retiming_keys;
   memcpy(keys, strip->retiming_keys, (key_index) * sizeof(SeqRetimingKey));
   memcpy(keys + key_index,
          strip->retiming_keys + key_index + 1,
          (keys_count - key_index - 1) * sizeof(SeqRetimingKey));
-  MEM_freeN(strip->retiming_keys);
+  MEM_delete(strip->retiming_keys);
   strip->retiming_keys = keys;
   strip->retiming_keys_num--;
 }
@@ -1175,7 +1175,7 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   correct_pitch = false;
 #endif
 
-  AUD_Sound *sound_handle = BKE_sound_playback_handle_get(strip->sound);
+  AUD_Sound sound_handle = BKE_sound_playback_handle_get(strip->sound);
   const float scene_fps = float(scene->frames_per_second());
   if (correct_pitch) {
     sound_handle = BKE_sound_ensure_time_stretch_effect(strip, scene_fps);

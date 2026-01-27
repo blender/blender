@@ -173,13 +173,13 @@ static void wm_xr_grab_init(wmOperator *op)
 {
   BLI_assert(op->customdata == nullptr);
 
-  op->customdata = MEM_callocN<XrGrabData>(__func__);
+  op->customdata = MEM_new_zeroed<XrGrabData>(__func__);
 }
 
 static void wm_xr_grab_uninit(wmOperator *op)
 {
   XrGrabData *data = static_cast<XrGrabData *>(op->customdata);
-  MEM_SAFE_FREE(data);
+  MEM_SAFE_DELETE(data);
   op->customdata = nullptr;
 }
 
@@ -639,7 +639,7 @@ static void wm_xr_fly_init(wmOperator *op, const wmXrData *xr)
 {
   BLI_assert(op->customdata == nullptr);
 
-  XrFlyData *data = MEM_callocN<XrFlyData>(__func__);
+  XrFlyData *data = MEM_new_zeroed<XrFlyData>(__func__);
   op->customdata = data;
 
   WM_xr_session_state_viewer_pose_rotation_get(xr, data->viewer_rot);
@@ -649,7 +649,7 @@ static void wm_xr_fly_init(wmOperator *op, const wmXrData *xr)
 static void wm_xr_fly_uninit(wmOperator *op)
 {
   XrFlyData *data = static_cast<XrFlyData *>(op->customdata);
-  MEM_SAFE_FREE(data);
+  MEM_SAFE_DELETE(data);
   op->customdata = nullptr;
 }
 

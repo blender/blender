@@ -54,7 +54,7 @@ struct ClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefau
 
   static void destruct_item(ItemT *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);
@@ -128,7 +128,7 @@ struct ClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefa
 
   static void destruct_item(ItemT *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);
@@ -202,7 +202,7 @@ struct EvaluateClosureInputItemsAccessor : public socket_items::SocketItemsAcces
 
   static void destruct_item(ItemT *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);
@@ -277,7 +277,7 @@ struct EvaluateClosureOutputItemsAccessor : public socket_items::SocketItemsAcce
 
   static void destruct_item(ItemT *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

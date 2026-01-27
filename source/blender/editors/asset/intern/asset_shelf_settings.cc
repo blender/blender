@@ -49,7 +49,7 @@ AssetShelfSettings &AssetShelfSettings::operator=(const AssetShelfSettings &othe
     BKE_asset_catalog_path_list_free(this->enabled_catalog_paths);
   }
   if (this->active_catalog_path != other.active_catalog_path) {
-    MEM_SAFE_FREE(this->active_catalog_path);
+    MEM_SAFE_DELETE(this->active_catalog_path);
   }
 
   /* Copy from 'other'. */
@@ -69,7 +69,7 @@ AssetShelfSettings &AssetShelfSettings::operator=(const AssetShelfSettings &othe
 AssetShelfSettings::~AssetShelfSettings()
 {
   BKE_asset_catalog_path_list_free(enabled_catalog_paths);
-  MEM_SAFE_FREE(active_catalog_path);
+  MEM_SAFE_DELETE(active_catalog_path);
 }
 
 namespace ed::asset::shelf {

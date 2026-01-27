@@ -155,13 +155,13 @@ static void button2d_draw_intern(const bContext *C,
     else if (RNA_property_is_set(gz->ptr, shape_prop)) {
       const uint polys_len = RNA_property_string_length(gz->ptr, shape_prop);
       if (LIKELY(polys_len > 0)) {
-        char *polys = MEM_malloc_arrayN<char>(polys_len, __func__);
+        char *polys = MEM_new_array_uninitialized<char>(polys_len, __func__);
         RNA_property_string_get(gz->ptr, shape_prop, polys);
         button->shape_batch[0] = GPU_batch_tris_from_poly_2d_encoded(
             reinterpret_cast<const uchar *>(polys), polys_len, nullptr);
         button->shape_batch[1] = GPU_batch_wire_from_poly_2d_encoded(
             reinterpret_cast<const uchar *>(polys), polys_len, nullptr);
-        MEM_freeN(polys);
+        MEM_delete(polys);
       }
     }
   }

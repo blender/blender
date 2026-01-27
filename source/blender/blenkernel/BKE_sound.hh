@@ -8,15 +8,17 @@
  * \ingroup bke
  */
 
+#include <string>
+
+#include "BKE_sound_types.hh"
+
 #include "BLI_vector.hh"
 
-#define SOUND_WAVE_SAMPLES_PER_SECOND 250
-
 #if defined(WITH_AUDASPACE)
-#  include <AUD_Types.h>
-#else
-typedef void AUD_Sound;
+#  include <file/IWriter.h>
 #endif
+
+#define SOUND_WAVE_SAMPLES_PER_SECOND 250
 
 namespace blender {
 
@@ -93,7 +95,10 @@ bool BKE_sound_stream_info_get(Main *main,
                                SoundStreamInfo *sound_info);
 
 #if defined(WITH_AUDASPACE)
-AUD_Device *BKE_sound_mixdown(const Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
+AUD_Device BKE_sound_mixdown(const Scene *scene,
+                             const aud::DeviceSpecs &specs,
+                             int start,
+                             float volume);
 #endif
 
 void BKE_sound_create_scene(Scene *scene);
@@ -106,27 +111,21 @@ void BKE_sound_unlock();
 
 void BKE_sound_reset_scene_specs(Scene *scene);
 
-void BKE_sound_mute_scene(Scene *scene, int muted);
+void BKE_sound_mute_scene(Scene *scene, bool muted);
 
 void BKE_sound_update_fps(Main *bmain, Scene *scene);
 
 void BKE_sound_update_scene_listener(Scene *scene);
 
-void *BKE_sound_scene_add_scene_sound(
-    Scene *scene, Strip *strip, int startframe, int endframe, int frameskip);
+AUD_SequenceEntry BKE_sound_scene_add_scene_sound(Scene *scene, Strip *strip);
+AUD_SequenceEntry BKE_sound_add_scene_sound(Scene *scene, Strip *strip);
 
-void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *strip);
+void BKE_sound_remove_scene_sound(Scene *scene, AUD_SequenceEntry handle);
 
-void *BKE_sound_add_scene_sound(
-    Scene *scene, Strip *strip, int startframe, int endframe, int frameskip);
-void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *strip);
-
-void BKE_sound_remove_scene_sound(Scene *scene, void *handle);
-
-void BKE_sound_mute_scene_sound(void *handle, bool mute);
+void BKE_sound_mute_scene_sound(AUD_SequenceEntry handle, bool mute);
 
 void BKE_sound_move_scene_sound(const Scene *scene,
-                                void *handle,
+                                AUD_SequenceEntry handle,
                                 int startframe,
                                 int endframe,
                                 int frameskip,
@@ -134,40 +133,46 @@ void BKE_sound_move_scene_sound(const Scene *scene,
 void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *strip);
 
 /** Join the Sequence with the structure in Audaspace, the second parameter is a #bSound. */
-void BKE_sound_update_scene_sound(void *handle, bSound *sound);
+void BKE_sound_update_scene_sound(AUD_SequenceEntry handle, bSound *sound);
 
 /**
  * Join the Sequence with the structure in Audaspace,
  *
  * \param sound_handle: the `AUD_Sound` created in Audaspace previously.
  */
-void BKE_sound_update_sequence_handle(void *handle, void *sound_handle);
+void BKE_sound_update_sequence_handle(AUD_SequenceEntry handle, AUD_Sound sound_handle);
 
 void BKE_sound_set_scene_volume(Scene *scene, float volume);
 
-void BKE_sound_set_scene_sound_volume_at_frame(void *handle,
+void BKE_sound_set_scene_sound_volume_at_frame(AUD_SequenceEntry handle,
                                                int frame,
                                                float volume,
-                                               char animated);
+                                               bool animated);
 
-void BKE_sound_set_scene_sound_pitch_at_frame(void *handle, int frame, float pitch, char animated);
+void BKE_sound_set_scene_sound_pitch_at_frame(AUD_SequenceEntry handle,
+                                              int frame,
+                                              float pitch,
+                                              bool animated);
 
-void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
+void BKE_sound_set_scene_sound_pitch_constant_range(AUD_SequenceEntry handle,
                                                     int frame_start,
                                                     int frame_end,
                                                     float pitch);
 
-void BKE_sound_set_scene_sound_time_stretch_at_frame(void *handle,
+void BKE_sound_set_scene_sound_time_stretch_at_frame(AUD_Sound handle,
                                                      int frame,
                                                      float time_stretch,
-                                                     char animated);
+                                                     bool animated);
 
-void BKE_sound_set_scene_sound_time_stretch_constant_range(void *handle,
+void BKE_sound_set_scene_sound_time_stretch_constant_range(AUD_Sound handle,
                                                            int frame_start,
                                                            int frame_end,
                                                            float time_stretch);
 
-void BKE_sound_set_scene_sound_pan_at_frame(void *handle, int frame, float pan, char animated);
+void BKE_sound_set_scene_sound_pan_at_frame(AUD_SequenceEntry handle,
+                                            int frame,
+                                            float pan,
+                                            bool animated);
 
 void BKE_sound_update_sequencer(Main *main, bSound *sound);
 
@@ -183,7 +188,7 @@ void BKE_sound_read_waveform(Main *bmain, bSound *sound, bool *stop);
 
 void BKE_sound_update_scene(Depsgraph *depsgraph, Scene *scene);
 
-void *BKE_sound_get_factory(void *sound);
+AUD_Sound BKE_sound_get_factory(void *sound);
 
 float BKE_sound_get_length(Main *bmain, bSound *sound);
 
@@ -196,21 +201,62 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, double time);
 
 void BKE_sound_evaluate(Depsgraph *depsgraph, Main *bmain, bSound *sound);
 
-AUD_Sound *BKE_sound_ensure_time_stretch_effect(const Strip *strip, float fps);
+AUD_Sound BKE_sound_ensure_time_stretch_effect(const Strip *strip, float fps);
 
 void BKE_sound_runtime_state_get_and_clear(const bSound *sound,
-                                           AUD_Sound **r_cache,
-                                           AUD_Sound **r_playback_handle,
+                                           AUD_Sound *r_cache,
+                                           AUD_Sound *r_playback_handle,
                                            Vector<float> **r_waveform);
 void BKE_sound_runtime_state_set(const bSound *sound,
-                                 AUD_Sound *cache,
-                                 AUD_Sound *playback_handle,
+                                 AUD_Sound cache,
+                                 AUD_Sound playback_handle,
                                  Vector<float> *waveform);
 
-AUD_Sound *BKE_sound_playback_handle_get(const bSound *sound);
+AUD_Sound BKE_sound_playback_handle_get(const bSound *sound);
 
 void BKE_sound_runtime_clear_waveform_loading_tag(bSound *sound);
 bool BKE_sound_runtime_start_waveform_loading(bSound *sound);
 const Vector<float> *BKE_sound_runtime_get_waveform(const bSound *sound);
+
+#if defined(WITH_AUDASPACE)
+namespace bke {
+void sound_system_initialize();
+AUD_Device sound_device_init(const char *device,
+                             const aud::DeviceSpecs &specs,
+                             int buffersize,
+                             const char *name);
+void sound_device_exit();
+AUD_Handle sound_device_play(AUD_Device device, AUD_Sound sound);
+bool sound_device_read(AUD_Device device, unsigned char *buffer, int length);
+AUD_Handle sound_pause_after(AUD_Handle handle, double seconds);
+SoundInfo sound_info_get(AUD_Sound sound);
+float *sound_read_file_buffer(const char *filename,
+                              float low,
+                              float high,
+                              float attack,
+                              float release,
+                              float threshold,
+                              bool accumulate,
+                              bool additive,
+                              bool square,
+                              float sthreshold,
+                              double samplerate,
+                              int stream,
+                              int *length);
+
+bool sound_mixdown(AUD_Sequence sequence,
+                   unsigned int start,
+                   unsigned int length,
+                   unsigned int buffersize,
+                   const char *filename,
+                   const aud::DeviceSpecs &specs,
+                   aud::Container format,
+                   aud::Codec codec,
+                   unsigned int bitrate,
+                   bool split_channels,
+                   std::string &r_error);
+
+}  // namespace bke
+#endif  // #if defined(WITH_AUDASPACE)
 
 }  // namespace blender

@@ -224,7 +224,7 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
   char c = RNA_property_array_item_char(TreeElementRNAArrayElement::get_property_rna(), index);
 
   const size_t name_size = sizeof(char[20]);
-  char *name = MEM_calloc_arrayN<char>(name_size, "OutlinerRNAArrayName");
+  char *name = MEM_new_array_zeroed<char>(name_size, "OutlinerRNAArrayName");
   if (c) {
     BLI_snprintf_utf8(name, name_size, "  %c", c);
   }

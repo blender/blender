@@ -109,7 +109,7 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
 
   if (!ELEM(creation_mode, DRIVER_FCURVE_LOOKUP_ONLY, DRIVER_FCURVE_EMPTY)) {
     /* add some new driver data */
-    fcu->driver = MEM_new_for_free<ChannelDriver>("ChannelDriver");
+    fcu->driver = MEM_new<ChannelDriver>("ChannelDriver");
 
     /* Add 2 keyframes so that user has something to work with
      * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
@@ -642,8 +642,8 @@ bool ANIM_paste_driver(
      * NOTE: this step needs care to not miss new settings
      */
     /* keyframes/samples */
-    fcu->bezt = static_cast<BezTriple *>(MEM_dupallocN(channeldriver_copypaste_buf->bezt));
-    fcu->fpt = static_cast<FPoint *>(MEM_dupallocN(channeldriver_copypaste_buf->fpt));
+    fcu->bezt = MEM_dupalloc(channeldriver_copypaste_buf->bezt);
+    fcu->fpt = MEM_dupalloc(channeldriver_copypaste_buf->fpt);
     fcu->totvert = channeldriver_copypaste_buf->totvert;
 
     /* modifiers */

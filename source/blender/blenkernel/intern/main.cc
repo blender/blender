@@ -50,7 +50,7 @@ static CLG_LogRef LOG = {"lib.main"};
 
 Main::Main()
 {
-  SpinLock *main_lock = MEM_mallocN<SpinLock>("main lock");
+  SpinLock *main_lock = MEM_new_uninitialized<SpinLock>("main lock");
   BLI_spin_init(main_lock);
   /* Use C-style cast to workaround an issue casting away volatile for builds without TBB. */
   this->lock = (MainLock *)main_lock;
@@ -84,7 +84,7 @@ Main::~Main()
 
   BLI_spin_end(reinterpret_cast<SpinLock *>(this->lock));
   /* The void cast is needed when building without TBB. */
-  MEM_freeN((void *)reinterpret_cast<SpinLock *>(this->lock));
+  MEM_delete_void((void *)reinterpret_cast<SpinLock *>(this->lock));
   this->lock = nullptr;
 }
 
@@ -104,7 +104,7 @@ void BKE_main_clear(Main &bmain)
   const int free_flag = (LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_UI_USER |
                          LIB_ID_FREE_NO_USER_REFCOUNT | LIB_ID_FREE_NO_DEG_TAG);
 
-  MEM_SAFE_FREE(bmain.blen_thumb);
+  MEM_SAFE_DELETE(bmain.blen_thumb);
 
   MainListsArray lbarray = BKE_main_lists_get(bmain);
   int a = lbarray.size();
@@ -598,7 +598,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     {
       MainIDRelationsEntry *entry = bmain_relations->relations_from_pointers->lookup_or_add_cb(
           self_id, [&]() {
-            auto *entry = MEM_callocN<MainIDRelationsEntry>(__func__);
+            auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(__func__);
             entry->session_uid = self_id->session_uid;
             return entry;
           });
@@ -617,7 +617,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     if (*id_pointer != nullptr) {
       MainIDRelationsEntry *entry = bmain_relations->relations_from_pointers->lookup_or_add_cb(
           *id_pointer, [&]() {
-            auto *entry = MEM_callocN<MainIDRelationsEntry>(__func__);
+            auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(__func__);
             entry->session_uid = (*id_pointer)->session_uid;
             return entry;
           });
@@ -641,7 +641,7 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     BKE_main_relations_free(bmain);
   }
 
-  bmain->relations = MEM_mallocN<MainIDRelations>(__func__);
+  bmain->relations = MEM_new_uninitialized<MainIDRelations>(__func__);
   bmain->relations->relations_from_pointers = MEM_new<Map<const ID *, MainIDRelationsEntry *>>(
       __func__);
   bmain->relations->entry_items_pool = BLI_mempool_create(
@@ -659,7 +659,7 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     /* Ensure all IDs do have an entry, even if they are not connected to any other. */
     MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup_or_add_cb(
         id, [&]() {
-          auto *entry = MEM_callocN<MainIDRelationsEntry>(__func__);
+          auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(__func__);
           entry->session_uid = id->session_uid;
           return entry;
         });
@@ -676,11 +676,11 @@ void BKE_main_relations_free(Main *bmain)
 {
   if (bmain->relations != nullptr) {
     for (MainIDRelationsEntry *entry : bmain->relations->relations_from_pointers->values()) {
-      MEM_freeN(entry);
+      MEM_delete(entry);
     }
     MEM_delete(bmain->relations->relations_from_pointers);
     BLI_mempool_destroy(bmain->relations->entry_items_pool);
-    MEM_freeN(bmain->relations);
+    MEM_delete(bmain->relations);
     bmain->relations = nullptr;
   }
 }
@@ -845,7 +845,7 @@ void BKE_main_library_weak_reference_remove_item(
   BLI_assert(library_weak_reference_mapping->map.lookup(key) == old_id);
   library_weak_reference_mapping->map.remove(key);
 
-  MEM_SAFE_FREE(old_id->library_weak_reference);
+  MEM_SAFE_DELETE(old_id->library_weak_reference);
 }
 
 ID *BKE_main_library_weak_reference_find(Main *bmain,
@@ -884,7 +884,7 @@ void BKE_main_library_weak_reference_add(ID *local_id,
                                          const char *library_id_name)
 {
   if (local_id->library_weak_reference == nullptr) {
-    local_id->library_weak_reference = MEM_new_for_free<LibraryWeakReference>(__func__);
+    local_id->library_weak_reference = MEM_new<LibraryWeakReference>(__func__);
   }
 
   STRNCPY(local_id->library_weak_reference->library_filepath, library_filepath);
@@ -896,12 +896,12 @@ BlendThumbnail *BKE_main_thumbnail_from_buffer(Main *bmain, const uint8_t *rect,
   BlendThumbnail *data = nullptr;
 
   if (bmain) {
-    MEM_SAFE_FREE(bmain->blen_thumb);
+    MEM_SAFE_DELETE(bmain->blen_thumb);
   }
 
   if (rect) {
     const size_t data_size = BLEN_THUMB_MEMSIZE(size[0], size[1]);
-    data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
+    data = static_cast<BlendThumbnail *>(MEM_new_uninitialized(data_size, __func__));
     data->width = size[0];
     data->height = size[1];
     memcpy(data->rect, rect, data_size - sizeof(*data));
@@ -918,12 +918,12 @@ BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
   BlendThumbnail *data = nullptr;
 
   if (bmain) {
-    MEM_SAFE_FREE(bmain->blen_thumb);
+    MEM_SAFE_DELETE(bmain->blen_thumb);
   }
 
   if (img) {
     const size_t data_size = BLEN_THUMB_MEMSIZE(img->x, img->y);
-    data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
+    data = static_cast<BlendThumbnail *>(MEM_new_uninitialized(data_size, __func__));
 
     IMB_byte_from_float(img); /* Just in case... */
     data->width = img->x;
@@ -958,10 +958,10 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
 
 void BKE_main_thumbnail_create(Main *bmain)
 {
-  MEM_SAFE_FREE(bmain->blen_thumb);
+  MEM_SAFE_DELETE(bmain->blen_thumb);
 
   bmain->blen_thumb = static_cast<BlendThumbnail *>(
-      MEM_callocN(BLEN_THUMB_MEMSIZE(BLEN_THUMB_SIZE, BLEN_THUMB_SIZE), __func__));
+      MEM_new_zeroed(BLEN_THUMB_MEMSIZE(BLEN_THUMB_SIZE, BLEN_THUMB_SIZE), __func__));
   bmain->blen_thumb->width = BLEN_THUMB_SIZE;
   bmain->blen_thumb->height = BLEN_THUMB_SIZE;
 }

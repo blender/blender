@@ -122,8 +122,8 @@ void VKVertexBuffer::acquire_data()
 
   /* Discard previous data if any. */
   /* TODO: Use mapped memory. */
-  MEM_SAFE_FREE(data_);
-  data_ = MEM_malloc_arrayN<uchar>(this->size_alloc_get(), __func__);
+  MEM_SAFE_DELETE(data_);
+  data_ = MEM_new_array_uninitialized<uchar>(this->size_alloc_get(), __func__);
 }
 
 void VKVertexBuffer::resize_data()
@@ -132,7 +132,8 @@ void VKVertexBuffer::resize_data()
     return;
   }
 
-  data_ = static_cast<uchar *>(MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get()));
+  data_ = static_cast<uchar *>(
+      MEM_realloc_uninitialized(data_, sizeof(uchar) * this->size_alloc_get()));
 }
 
 void VKVertexBuffer::release_data()
@@ -142,7 +143,7 @@ void VKVertexBuffer::release_data()
     vk_buffer_view_ = VK_NULL_HANDLE;
   }
 
-  MEM_SAFE_FREE(data_);
+  MEM_SAFE_DELETE(data_);
 }
 
 void VKVertexBuffer::upload_data_direct(const VKBuffer &host_buffer)
@@ -192,7 +193,7 @@ void VKVertexBuffer::upload_data()
       upload_data_via_staging_buffer(context);
     }
     if (usage_ == GPU_USAGE_STATIC) {
-      MEM_SAFE_FREE(data_);
+      MEM_SAFE_DELETE(data_);
     }
     data_uploaded_ = true;
 

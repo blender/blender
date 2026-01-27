@@ -21,8 +21,8 @@ void GLVertBuf::acquire_data()
   }
 
   /* Discard previous data if any. */
-  MEM_SAFE_FREE(data_);
-  data_ = MEM_malloc_arrayN<uchar>(this->size_alloc_get(), __func__);
+  MEM_SAFE_DELETE(data_);
+  data_ = MEM_new_array_uninitialized<uchar>(this->size_alloc_get(), __func__);
 }
 
 void GLVertBuf::resize_data()
@@ -31,7 +31,8 @@ void GLVertBuf::resize_data()
     return;
   }
 
-  data_ = static_cast<uchar *>(MEM_reallocN(data_, sizeof(uchar) * this->size_alloc_get()));
+  data_ = static_cast<uchar *>(
+      MEM_realloc_uninitialized(data_, sizeof(uchar) * this->size_alloc_get()));
 }
 
 void GLVertBuf::release_data()
@@ -47,7 +48,7 @@ void GLVertBuf::release_data()
     memory_usage -= vbo_size_;
   }
 
-  MEM_SAFE_FREE(data_);
+  MEM_SAFE_DELETE(data_);
 }
 
 void GLVertBuf::upload_data()
@@ -79,7 +80,7 @@ void GLVertBuf::bind()
     memory_usage += vbo_size_;
 
     if (usage_ == GPU_USAGE_STATIC) {
-      MEM_SAFE_FREE(data_);
+      MEM_SAFE_DELETE(data_);
     }
     flag &= ~GPU_VERTBUF_DATA_DIRTY;
     flag |= GPU_VERTBUF_DATA_UPLOADED;

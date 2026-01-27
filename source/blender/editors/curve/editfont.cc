@@ -474,7 +474,7 @@ static void font_select_update_primary_clipboard(Object *obedit)
     return;
   }
   WM_clipboard_text_set(buf, true);
-  MEM_freeN(buf);
+  MEM_delete(buf);
 }
 
 /** \} */
@@ -542,13 +542,13 @@ static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
 
   int tmplen;
 
-  char32_t *mem = MEM_malloc_arrayN<char32_t>(str_len + 1, __func__);
+  char32_t *mem = MEM_new_array_uninitialized<char32_t>(str_len + 1, __func__);
 
   tmplen = BLI_str_utf8_as_utf32(mem, str, str_len + 1);
 
   retval = font_paste_wchar(obedit, mem, tmplen, nullptr);
 
-  MEM_freeN(mem);
+  MEM_delete(mem);
 
   return retval;
 }
@@ -571,7 +571,7 @@ static char *font_select_to_buffer(Object *obedit)
   const size_t text_buf_len = selend - selstart;
 
   const size_t len_utf8 = BLI_str_utf32_as_utf8_len_ex(text_buf, text_buf_len + 1);
-  char *buf = MEM_malloc_arrayN<char>(len_utf8 + 1, __func__);
+  char *buf = MEM_new_array_uninitialized<char>(len_utf8 + 1, __func__);
   BLI_str_utf32_as_utf8(buf, text_buf, len_utf8);
   return buf;
 }
@@ -605,7 +605,7 @@ static wmOperatorStatus paste_from_file(bContext *C, ReportList *reports, const 
     retval = OPERATOR_CANCELLED;
   }
 
-  MEM_freeN(strp);
+  MEM_delete(strp);
 
   return retval;
 }
@@ -801,9 +801,9 @@ static wmOperatorStatus text_insert_unicode_invoke(bContext *C,
                                                    wmOperator * /*op*/,
                                                    const wmEvent * /*event*/)
 {
-  char *edit_string = MEM_malloc_arrayN<char>(24, __func__);
+  char *edit_string = MEM_new_array_uninitialized<char>(24, __func__);
   edit_string[0] = 0;
-  popup_block_invoke_ex(C, wm_block_insert_unicode_create, edit_string, MEM_freeN, false);
+  popup_block_invoke_ex(C, wm_block_insert_unicode_create, edit_string, MEM_delete_void, false);
   return OPERATOR_FINISHED;
 }
 
@@ -869,14 +869,14 @@ static void txt_add_object(bContext *C,
   }
 
   if (cu->str) {
-    MEM_freeN(cu->str);
+    MEM_delete(cu->str);
   }
   if (cu->strinfo) {
-    MEM_freeN(cu->strinfo);
+    MEM_delete(cu->strinfo);
   }
 
-  cu->str = MEM_malloc_arrayN<char>(nbytes + 4, "str");
-  cu->strinfo = MEM_new_array_for_free<CharInfo>((nchars + 4), "strinfo");
+  cu->str = MEM_new_array_uninitialized<char>(nbytes + 4, "str");
+  cu->strinfo = MEM_new_array<CharInfo>((nchars + 4), "strinfo");
 
   cu->len = 0;
   cu->len_char32 = nchars - 1;
@@ -1125,11 +1125,11 @@ static void copy_selection(Object *obedit)
     BKE_vfont_clipboard_get(&text_buf, nullptr, &len_utf8, nullptr);
 
     /* system clipboard */
-    buf = MEM_malloc_arrayN<char>(len_utf8 + 1, __func__);
+    buf = MEM_new_array_uninitialized<char>(len_utf8 + 1, __func__);
     if (buf) {
       BLI_str_utf32_as_utf8(buf, text_buf, len_utf8 + 1);
       WM_clipboard_text_set(buf, false);
-      MEM_freeN(buf);
+      MEM_delete(buf);
     }
   }
 }
@@ -1242,10 +1242,10 @@ static wmOperatorStatus paste_text_exec(bContext *C, wmOperator *op)
   BKE_vfont_clipboard_get(&text_buf, nullptr, &len_utf8, nullptr);
 
   if (text_buf) {
-    clipboard_vfont.buf = MEM_malloc_arrayN<char>(len_utf8 + 1, __func__);
+    clipboard_vfont.buf = MEM_new_array_uninitialized<char>(len_utf8 + 1, __func__);
 
     if (clipboard_vfont.buf == nullptr) {
-      MEM_freeN(clipboard_system.buf);
+      MEM_delete(clipboard_system.buf);
       return OPERATOR_CANCELLED;
     }
 
@@ -1277,10 +1277,10 @@ static wmOperatorStatus paste_text_exec(bContext *C, wmOperator *op)
 
   /* cleanup */
   if (clipboard_vfont.buf) {
-    MEM_freeN(clipboard_vfont.buf);
+    MEM_delete(clipboard_vfont.buf);
   }
 
-  MEM_freeN(clipboard_system.buf);
+  MEM_delete(clipboard_system.buf);
 
   return retval;
 }
@@ -1887,14 +1887,14 @@ static wmOperatorStatus insert_text_exec(bContext *C, wmOperator *op)
   std::string inserted_utf8 = RNA_string_get(op->ptr, "text");
   len = BLI_strlen_utf8(inserted_utf8.c_str());
 
-  inserted_text = MEM_calloc_arrayN<char32_t>((len + 1), "FONT_insert_text");
+  inserted_text = MEM_new_array_zeroed<char32_t>((len + 1), "FONT_insert_text");
   len = BLI_str_utf8_as_utf32(inserted_text, inserted_utf8.c_str(), MAXTEXT);
 
   for (a = 0; a < len; a++) {
     insert_into_textbuf(obedit, inserted_text[a]);
   }
 
-  MEM_freeN(inserted_text);
+  MEM_delete(inserted_text);
 
   kill_selection(obedit, len);
   text_update_edited(C, obedit, FO_EDIT);
@@ -2256,10 +2256,10 @@ void ED_curve_editfont_make(Object *obedit)
   EditFont *ef = cu->editfont;
 
   if (ef == nullptr) {
-    ef = cu->editfont = MEM_callocN<EditFont>("editfont");
+    ef = cu->editfont = MEM_new_zeroed<EditFont>("editfont");
 
-    ef->textbuf = MEM_calloc_arrayN<char32_t>((MAXTEXT + 4), "texteditbuf");
-    ef->textbufinfo = MEM_new_array_for_free<CharInfo>((MAXTEXT + 4), "texteditbufinfo");
+    ef->textbuf = MEM_new_array_zeroed<char32_t>((MAXTEXT + 4), "texteditbuf");
+    ef->textbufinfo = MEM_new_array<CharInfo>((MAXTEXT + 4), "texteditbufinfo");
   }
 
   /* Convert the original text to chat32_t. */
@@ -2295,7 +2295,7 @@ void ED_curve_editfont_load(Object *obedit)
 
   /* Free the old curve string */
   if (cu->str) {
-    MEM_freeN(cu->str);
+    MEM_delete(cu->str);
   }
 
   /* Calculate the actual string length in UTF8 variable characters. */
@@ -2303,15 +2303,15 @@ void ED_curve_editfont_load(Object *obedit)
   cu->len = BLI_str_utf32_as_utf8_len(ef->textbuf);
 
   /* Alloc memory for UTF8 variable char length string. */
-  cu->str = MEM_malloc_arrayN<char>(cu->len + sizeof(char32_t), "str");
+  cu->str = MEM_new_array_uninitialized<char>(cu->len + sizeof(char32_t), "str");
 
   /* Copy the wchar to UTF8. */
   BLI_str_utf32_as_utf8(cu->str, ef->textbuf, cu->len + 1);
 
   if (cu->strinfo) {
-    MEM_freeN(cu->strinfo);
+    MEM_delete(cu->strinfo);
   }
-  cu->strinfo = MEM_new_array_for_free<CharInfo>((cu->len_char32 + 4), "texteditinfo");
+  cu->strinfo = MEM_new_array<CharInfo>((cu->len_char32 + 4), "texteditinfo");
   memcpy(cu->strinfo, ef->textbufinfo, cu->len_char32 * sizeof(CharInfo));
 
   /* Other vars */

@@ -256,7 +256,7 @@ bool graphop_active_fcurve_poll(bContext *C)
   }
 
   /* free temp data... */
-  MEM_freeN(ale);
+  MEM_delete(ale);
 
   /* return success */
   return has_fcurve;

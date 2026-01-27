@@ -168,8 +168,8 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   }
 
   if (!nts) {
-    nts = MEM_callocN<bNodeThreadStack>("bNodeThreadStack");
-    nts->stack = static_cast<bNodeStack *>(MEM_dupallocN(exec->stack));
+    nts = MEM_new_zeroed<bNodeThreadStack>("bNodeThreadStack");
+    nts->stack = MEM_dupalloc(exec->stack);
     nts->used = true;
     BLI_addtail(lb, nts);
   }
@@ -220,8 +220,8 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   exec = ntree_exec_begin(context, ntree, parent_key);
 
   /* allocate the thread stack listbase array */
-  exec->threadstack = MEM_calloc_arrayN<ListBaseT<bNodeThreadStack>>(BLENDER_MAX_THREADS,
-                                                                     "thread stack array");
+  exec->threadstack = MEM_new_array_zeroed<ListBaseT<bNodeThreadStack>>(BLENDER_MAX_THREADS,
+                                                                        "thread stack array");
 
   for (bNode &node : exec->nodetree->nodes) {
     node.runtime->need_exec = 1;
@@ -262,7 +262,7 @@ static void tex_free_delegates(bNodeTreeExec *exec)
     for (bNodeThreadStack &nts : exec->threadstack[th]) {
       for (ns = nts.stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
-          MEM_freeN(ns->data);
+          MEM_delete_void(ns->data);
         }
       }
     }
@@ -279,13 +279,13 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
       for (bNodeThreadStack &nts : exec->threadstack[a]) {
         if (nts.stack) {
-          MEM_freeN(nts.stack);
+          MEM_delete(nts.stack);
         }
       }
       BLI_freelistN(&exec->threadstack[a]);
     }
 
-    MEM_freeN(exec->threadstack);
+    MEM_delete(exec->threadstack);
     exec->threadstack = nullptr;
   }
 

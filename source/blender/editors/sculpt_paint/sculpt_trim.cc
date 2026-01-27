@@ -348,7 +348,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   const int trim_faces_nums = (2 * (screen_points.size() - 2)) + (2 * screen_points.size());
   trim_operation->mesh = BKE_mesh_new_nomain(
       trim_totverts, 0, trim_faces_nums, trim_faces_nums * 3);
-  trim_operation->true_mesh_co = MEM_malloc_arrayN<float[3]>(trim_totverts, "mesh orco");
+  trim_operation->true_mesh_co = MEM_new_array_uninitialized<float[3]>(trim_totverts, "mesh orco");
 
   float shape_origin[3];
   float shape_normal[3];
@@ -609,7 +609,7 @@ static void free_geometry(gesture::GestureData &gesture_data)
 {
   TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
   BKE_id_free(nullptr, trim_operation->mesh);
-  MEM_freeN(trim_operation->true_mesh_co);
+  MEM_delete(trim_operation->true_mesh_co);
 }
 
 static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
@@ -779,7 +779,7 @@ static wmOperatorStatus gesture_box_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<TrimOperation>(__func__));
+      MEM_new_zeroed<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 
@@ -810,7 +810,7 @@ static wmOperatorStatus gesture_lasso_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<TrimOperation>(__func__));
+      MEM_new_zeroed<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 
@@ -841,7 +841,7 @@ static wmOperatorStatus gesture_line_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<TrimOperation>(__func__));
+      MEM_new_zeroed<TrimOperation>(__func__));
 
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
@@ -872,7 +872,7 @@ static wmOperatorStatus gesture_polyline_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_callocN<TrimOperation>(__func__));
+      MEM_new_zeroed<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 

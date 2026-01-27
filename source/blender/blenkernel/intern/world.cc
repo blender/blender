@@ -52,7 +52,7 @@ static void world_free_data(ID *id)
   /* is no lib link block, but world extension */
   if (wrld->nodetree) {
     bke::node_tree_free_embedded_tree(wrld->nodetree);
-    MEM_freeN(wrld->nodetree);
+    MEM_delete(wrld->nodetree);
     wrld->nodetree = nullptr;
   }
 
@@ -61,7 +61,7 @@ static void world_free_data(ID *id)
   BKE_icon_id_delete(id_cast<ID *>(wrld));
   BKE_previewimg_free(&wrld->preview);
 
-  MEM_SAFE_FREE(wrld->lightgroup);
+  MEM_SAFE_DELETE(wrld->lightgroup);
 }
 
 static void world_init_data(ID *id)
@@ -122,8 +122,7 @@ static void world_copy_data(Main *bmain,
   }
 
   if (wrld_src->lightgroup) {
-    wrld_dst->lightgroup = static_cast<LightgroupMembership *>(
-        MEM_dupallocN(wrld_src->lightgroup));
+    wrld_dst->lightgroup = MEM_dupalloc(wrld_src->lightgroup);
   }
 }
 

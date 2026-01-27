@@ -105,7 +105,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
   if (buffer != nullptr) {
     res.assign(static_cast<const char *>(buffer), buffer_len);
-    MEM_freeN(buffer);
+    MEM_delete_void(buffer);
   }
   return res;
 }

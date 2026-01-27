@@ -86,16 +86,16 @@ AssetMetaData::~AssetMetaData()
   if (properties) {
     IDP_FreeProperty(properties);
   }
-  MEM_SAFE_FREE(author);
-  MEM_SAFE_FREE(description);
-  MEM_SAFE_FREE(copyright);
-  MEM_SAFE_FREE(license);
+  MEM_SAFE_DELETE(author);
+  MEM_SAFE_DELETE(description);
+  MEM_SAFE_DELETE(copyright);
+  MEM_SAFE_DELETE(license);
   BLI_freelistN(&tags);
 }
 
 static AssetTag *asset_metadata_tag_add(AssetMetaData *asset_data, const char *const name)
 {
-  AssetTag *tag = MEM_new_for_free<AssetTag>(__func__);
+  AssetTag *tag = MEM_new<AssetTag>(__func__);
   STRNCPY_UTF8(tag->name, name);
 
   BLI_addtail(&asset_data->tags, tag);

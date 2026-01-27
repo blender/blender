@@ -416,7 +416,7 @@ static LinkNode *bm_edgenet_path_calc_best(BMEdge *e,
 
 void BM_mesh_edgenet(BMesh *bm, const bool use_edge_tag, const bool use_new_face_tag)
 {
-  VertNetInfo *vnet_info = MEM_calloc_arrayN<VertNetInfo>(size_t(bm->totvert), __func__);
+  VertNetInfo *vnet_info = MEM_new_array_zeroed<VertNetInfo>(size_t(bm->totvert), __func__);
   BLI_mempool *edge_queue_pool = BLI_mempool_create(sizeof(LinkNode), 0, 512, BLI_MEMPOOL_NOP);
   BLI_mempool *path_pool = BLI_mempool_create(sizeof(LinkNode), 0, 512, BLI_MEMPOOL_NOP);
   LinkNode *edge_queue = nullptr;
@@ -476,7 +476,7 @@ void BM_mesh_edgenet(BMesh *bm, const bool use_edge_tag, const bool use_new_face
 
   BLI_mempool_destroy(edge_queue_pool);
   BLI_mempool_destroy(path_pool);
-  MEM_freeN(vnet_info);
+  MEM_delete(vnet_info);
 }
 
 }  // namespace blender

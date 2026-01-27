@@ -198,7 +198,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     totvert = mesh->verts_num;
   }
 
-  MirrTopoHash_t *topo_hash = MEM_calloc_arrayN<MirrTopoHash_t>(totvert, __func__);
+  MirrTopoHash_t *topo_hash = MEM_new_array_zeroed<MirrTopoHash_t>(totvert, __func__);
 
   /* Initialize the vert-edge-user counts used to detect unique topology */
   if (em) {
@@ -218,7 +218,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     }
   }
 
-  MirrTopoHash_t *topo_hash_prev = static_cast<MirrTopoHash_t *>(MEM_dupallocN(topo_hash));
+  MirrTopoHash_t *topo_hash_prev = MEM_dupalloc(topo_hash);
 
   tot_unique_prev = -1;
   tot_unique_edges_prev = -1;
@@ -270,10 +270,10 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
   }
 
   /* Hash/Index pairs are needed for sorting to find index pairs */
-  MirrTopoVert_t *topo_pairs = MEM_calloc_arrayN<MirrTopoVert_t>(totvert, "MirrTopoPairs");
+  MirrTopoVert_t *topo_pairs = MEM_new_array_zeroed<MirrTopoVert_t>(totvert, "MirrTopoPairs");
 
   /* since we are looping through verts, initialize these values here too */
-  intptr_t *index_lookup = MEM_malloc_arrayN<intptr_t>(totvert, "mesh_topo_lookup");
+  intptr_t *index_lookup = MEM_new_array_uninitialized<intptr_t>(totvert, "mesh_topo_lookup");
 
   if (em) {
     if (skip_em_vert_array_init == false) {
@@ -337,11 +337,11 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     }
   }
 
-  MEM_freeN(topo_pairs);
+  MEM_delete(topo_pairs);
   topo_pairs = nullptr;
 
-  MEM_freeN(topo_hash);
-  MEM_freeN(topo_hash_prev);
+  MEM_delete(topo_hash);
+  MEM_delete(topo_hash_prev);
 
   mesh_topo_store->index_lookup = index_lookup;
   mesh_topo_store->prev_vert_tot = totvert;
@@ -350,7 +350,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
 
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store)
 {
-  MEM_SAFE_FREE(mesh_topo_store->index_lookup);
+  MEM_SAFE_DELETE(mesh_topo_store->index_lookup);
   mesh_topo_store->prev_vert_tot = -1;
   mesh_topo_store->prev_edge_tot = -1;
 }

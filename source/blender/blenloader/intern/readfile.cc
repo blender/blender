@@ -330,7 +330,7 @@ static void oldnewmap_clear(OldNewMap *onm)
   /* Free unused data. */
   for (NewAddress &new_addr : onm->map.values()) {
     if (new_addr.nr == 0) {
-      MEM_freeN(new_addr.newp);
+      MEM_delete_void(new_addr.newp);
     }
   }
   onm->map.clear();
@@ -497,7 +497,7 @@ static void read_file_version_and_colorspace(FileData *fd, Main *main)
         main->is_asset_edit_file = (fg->fileflags & G_FILE_ASSET_EDIT_FILE) != 0;
         STRNCPY(main->colorspace.scene_linear_name, fg->colorspace_scene_linear_name);
         main->colorspace.scene_linear_to_xyz = float3x3(fg->colorspace_scene_linear_to_xyz);
-        MEM_freeN(fg);
+        MEM_delete(fg);
       }
       else if (bhead->code == BLO_CODE_ENDB) {
         break;
@@ -607,7 +607,7 @@ static BHeadN *get_bhead(FileData *fd)
 #ifdef USE_BHEAD_READ_ON_DEMAND
       else if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(bhead)) {
         /* Delay reading bhead content. */
-        new_bhead = MEM_mallocN<BHeadN>("new_bhead");
+        new_bhead = MEM_new_uninitialized<BHeadN>("new_bhead");
         if (new_bhead) {
           new_bhead->next = new_bhead->prev = nullptr;
           new_bhead->file_offset = fd->file->offset;
@@ -617,7 +617,7 @@ static BHeadN *get_bhead(FileData *fd)
           const off64_t seek_new = fd->file->seek(fd->file, bhead->len, SEEK_CUR);
           if (UNLIKELY(seek_new == -1)) {
             fd->is_eof = true;
-            MEM_freeN(new_bhead);
+            MEM_delete(new_bhead);
             new_bhead = nullptr;
           }
           else {
@@ -631,7 +631,7 @@ static BHeadN *get_bhead(FileData *fd)
 #endif
       else {
         new_bhead = static_cast<BHeadN *>(
-            MEM_mallocN(sizeof(BHeadN) + size_t(bhead->len), "new_bhead"));
+            MEM_new_uninitialized(sizeof(BHeadN) + size_t(bhead->len), "new_bhead"));
         if (new_bhead) {
           new_bhead->next = new_bhead->prev = nullptr;
 #ifdef USE_BHEAD_READ_ON_DEMAND
@@ -645,7 +645,7 @@ static BHeadN *get_bhead(FileData *fd)
 
           if (UNLIKELY(readsize != bhead->len)) {
             fd->is_eof = true;
-            MEM_freeN(new_bhead);
+            MEM_delete(new_bhead);
             new_bhead = nullptr;
           }
           else {
@@ -759,13 +759,13 @@ static BHead *blo_bhead_read_full(FileData *fd, BHead *thisblock)
 {
   BHeadN *new_bhead = BHEADN_FROM_BHEAD(thisblock);
   BHeadN *new_bhead_data = static_cast<BHeadN *>(
-      MEM_mallocN(sizeof(BHeadN) + new_bhead->bhead.len, "new_bhead"));
+      MEM_new_uninitialized(sizeof(BHeadN) + new_bhead->bhead.len, "new_bhead"));
   new_bhead_data->bhead = new_bhead->bhead;
   new_bhead_data->file_offset = new_bhead->file_offset;
   new_bhead_data->has_data = true;
   new_bhead_data->is_memchunk_identical = false;
   if (!blo_bhead_read_data(fd, thisblock, new_bhead_data + 1)) {
-    MEM_freeN(new_bhead_data);
+    MEM_delete(new_bhead_data);
     return nullptr;
   }
   return &new_bhead_data->bhead;
@@ -1168,10 +1168,10 @@ static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
                 fd->relabase,
                 writer_ver_str,
                 min_reader_ver_str);
-      MEM_freeN(fg);
+      MEM_delete(fg);
       return true;
     }
-    MEM_freeN(fg);
+    MEM_delete(fg);
     return false;
   }
   return false;
@@ -1340,7 +1340,7 @@ void blo_filedata_free(FileData *fd)
       BLI_assert(new_bhead.has_data == 0);
     }
 #  endif
-    MEM_freeN(&new_bhead);
+    MEM_delete(&new_bhead);
   }
 #endif
   fd->file->close(fd->file);
@@ -1349,7 +1349,7 @@ void blo_filedata_free(FileData *fd)
     DNA_sdna_free(fd->filesdna);
   }
   if (fd->compflags) {
-    MEM_freeN(fd->compflags);
+    MEM_delete(fd->compflags);
   }
   if (fd->reconstruct_info) {
     DNA_reconstruct_info_free(fd->reconstruct_info);
@@ -1372,7 +1372,7 @@ void blo_filedata_free(FileData *fd)
   }
   blo_cache_storage_end(fd);
   if (fd->bheadmap) {
-    MEM_freeN(fd->bheadmap);
+    MEM_delete(fd->bheadmap);
   }
 
   MEM_delete(fd);
@@ -1395,7 +1395,7 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
       const int height = fd_data[1];
       if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
         const size_t data_size = BLEN_THUMB_MEMSIZE(width, height);
-        data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
+        data = static_cast<BlendThumbnail *>(MEM_new_uninitialized(data_size, __func__));
         if (data) {
           BLI_assert((data_size - sizeof(*data)) ==
                      (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*fd_data) * 2)));
@@ -1623,7 +1623,7 @@ void blo_cache_storage_init(FileData *fd, Main *bmain)
 {
   if (fd->flags & FD_FLAGS_IS_MEMFILE) {
     BLI_assert(fd->cache_storage == nullptr);
-    fd->cache_storage = MEM_mallocN<BLOCacheStorage>(__func__);
+    fd->cache_storage = MEM_new_uninitialized<BLOCacheStorage>(__func__);
     fd->cache_storage->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
     fd->cache_storage->cache_map = BLI_ghash_new(
         BKE_idtype_cache_key_hash, BKE_idtype_cache_key_cmp, __func__);
@@ -1687,7 +1687,7 @@ void blo_cache_storage_end(FileData *fd)
   if (fd->cache_storage != nullptr) {
     BLI_ghash_free(fd->cache_storage->cache_map, nullptr, nullptr);
     BLI_memarena_free(fd->cache_storage->memarena);
-    MEM_freeN(fd->cache_storage);
+    MEM_delete(fd->cache_storage);
     fd->cache_storage = nullptr;
   }
 }
@@ -1825,7 +1825,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
       else {
         /* SDNA_CMP_EQUAL */
         const int alignment = DNA_struct_alignment(fd->filesdna, bh->SDNAnr);
-        temp = MEM_mallocN_aligned(bh->len, alignment, alloc_name);
+        temp = MEM_new_uninitialized_aligned(bh->len, alignment, alloc_name);
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data) {
           memcpy(temp, (bh + 1), bh->len);
@@ -1835,7 +1835,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
            * read the data from the file directly into the memory. */
           if (UNLIKELY(!blo_bhead_read_data(fd, bh, temp))) {
             fd->flags &= ~FD_FLAGS_FILE_OK;
-            MEM_freeN(temp);
+            MEM_delete_void(temp);
             temp = nullptr;
           }
         }
@@ -1847,7 +1847,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
 
 #ifdef USE_BHEAD_READ_ON_DEMAND
     if (bh_orig != bh) {
-      MEM_freeN(BHEADN_FROM_BHEAD(bh));
+      MEM_delete(BHEADN_FROM_BHEAD(bh));
     }
 #endif
   }
@@ -2026,7 +2026,7 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
           RPT_ERROR,
           RPT_("Data-block '%s' had an invalid embedded node group, which has not been read"),
           id->name);
-      MEM_SAFE_FREE(*nodetree);
+      MEM_SAFE_DELETE(*nodetree);
     }
     else {
       direct_link_id_common(reader,
@@ -2052,7 +2052,7 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
             RPT_ERROR,
             RPT_("Scene '%s' had an invalid root collection, which has not been read"),
             BKE_id_name(*id));
-        MEM_SAFE_FREE(scene->master_collection);
+        MEM_SAFE_DELETE(scene->master_collection);
       }
       else {
         direct_link_id_common(
@@ -2130,7 +2130,7 @@ static void readfile_id_runtime_data_ensure(ID &id)
   if (id.runtime->readfile_data) {
     return;
   }
-  id.runtime->readfile_data = MEM_callocN<ID_Readfile_Data>(__func__);
+  id.runtime->readfile_data = MEM_new_zeroed<ID_Readfile_Data>(__func__);
 }
 
 ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id)
@@ -2149,7 +2149,7 @@ ID_Readfile_Data::Tags &BLO_readfile_id_runtime_tags_for_write(ID &id)
 
 void BLO_readfile_id_runtime_data_free(ID &id)
 {
-  MEM_SAFE_FREE(id.runtime->readfile_data);
+  MEM_SAFE_DELETE(id.runtime->readfile_data);
 }
 
 void BLO_readfile_id_runtime_data_free_all(Main &bmain)
@@ -2528,7 +2528,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
       // change_link_placeholder_to_real_ID_pointer_fd(fd, lib, newmain->curlib);
 
       BLI_remlink(&main->libraries, lib);
-      MEM_freeN(lib);
+      MEM_delete(lib);
 
       /* Now, since Blender always expect **last** Main pointer from fd->bmain->split_mains
        * to be the active library Main pointer, where to add all non-library data-blocks found in
@@ -3435,7 +3435,7 @@ static BHead *read_libblock(FileData *fd,
   if (lb == nullptr) {
     /* Unknown ID type. */
     CLOG_WARN(&LOG, "Unknown id code '%c%c'", (idcode & 0xff), (idcode >> 8));
-    MEM_freeN(id);
+    MEM_delete(id);
     if (r_id) {
       *r_id = nullptr;
     }
@@ -3596,7 +3596,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   bfd->curscene = fg->curscene;
   bfd->cur_view_layer = fg->cur_view_layer;
 
-  MEM_freeN(fg);
+  MEM_delete(fg);
 
   fd->globalf = bfd->globalf;
   fd->fileflags = bfd->fileflags;
@@ -4161,7 +4161,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       const int height = data[1];
       if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
         const size_t data_size = BLEN_THUMB_MEMSIZE(width, height);
-        bfd->main->blen_thumb = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
+        bfd->main->blen_thumb = static_cast<BlendThumbnail *>(
+            MEM_new_uninitialized(data_size, __func__));
 
         BLI_assert((data_size - sizeof(*bfd->main->blen_thumb)) ==
                    (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*data) * 2)));
@@ -4554,7 +4555,7 @@ static void sort_bhead_old_map(FileData *fd)
     return;
   }
 
-  bhs = fd->bheadmap = MEM_malloc_arrayN<BHeadSort>(tot, "BHeadSort");
+  bhs = fd->bheadmap = MEM_new_array_uninitialized<BHeadSort>(tot, "BHeadSort");
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead), bhs++) {
     bhs->bhead = bhead;
@@ -4950,7 +4951,7 @@ static void expand_doit_library(void *fdhandle,
         read_id_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL));
     Main *libmain = blo_find_main_for_library_and_idname(
         fd, lib->filepath, fd->relabase, nullptr, nullptr, false);
-    MEM_freeN(lib);
+    MEM_delete(lib);
 
     if (libmain->curlib == nullptr) {
       BLO_reportf_wrap(fd->reports,
@@ -4991,7 +4992,7 @@ static void expand_doit_library(void *fdhandle,
         read_id_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL));
     Main *libmain = blo_find_main_for_library_and_idname(
         fd, lib->filepath, fd->relabase, bhead, id_name, is_packed_id);
-    MEM_freeN(lib);
+    MEM_delete(lib);
 
     if (libmain->curlib == nullptr) {
       BLO_reportf_wrap(fd->reports,
@@ -5567,7 +5568,7 @@ static void read_library_linked_ids(FileData *basefd, FileData *fd, Main *mainva
          * #BKE_libblock_free_data on it would not work. */
         BKE_libblock_free_runtime_data(id);
 
-        MEM_freeN(id);
+        MEM_delete(id);
       }
       id = id_next;
     }
@@ -6015,21 +6016,21 @@ void BLO_read_pointer_array(BlendDataReader *reader, const int64_t array_size, v
   }
   else if (file_pointer_size == 8 && current_pointer_size == 4) {
     /* Convert pointers from 64 to 32 bit. */
-    final_array = MEM_malloc_arrayN(array_size, 4, "new pointer array");
+    final_array = MEM_new_array_uninitialized(array_size, 4, "new pointer array");
     convert_pointer_array_64_to_32(reader,
                                    array_size,
                                    static_cast<uint64_t *>(orig_array),
                                    static_cast<uint32_t *>(final_array));
-    MEM_freeN(orig_array);
+    MEM_delete_void(orig_array);
   }
   else if (file_pointer_size == 4 && current_pointer_size == 8) {
     /* Convert pointers from 32 to 64 bit. */
-    final_array = MEM_malloc_arrayN(array_size, 8, "new pointer array");
+    final_array = MEM_new_array_uninitialized(array_size, 8, "new pointer array");
     convert_pointer_array_32_to_64(reader,
                                    array_size,
                                    static_cast<uint32_t *>(orig_array),
                                    static_cast<uint64_t *>(final_array));
-    MEM_freeN(orig_array);
+    MEM_delete_void(orig_array);
   }
   else {
     BLI_assert_unreachable();

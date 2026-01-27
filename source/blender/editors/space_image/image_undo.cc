@@ -136,12 +136,12 @@ struct PaintTile {
 static void ptile_free(PaintTile *ptile)
 {
   if (ptile->rect.pt) {
-    MEM_freeN(ptile->rect.pt);
+    MEM_delete_void(ptile->rect.pt);
   }
   if (ptile->mask) {
-    MEM_freeN(ptile->mask);
+    MEM_delete(ptile->mask);
   }
-  MEM_freeN(ptile);
+  MEM_delete(ptile);
 }
 
 struct PaintTileMap {
@@ -185,8 +185,8 @@ void *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
   if (r_mask) {
     /* allocate mask if requested. */
     if (!ptile->mask) {
-      ptile->mask = MEM_calloc_arrayN<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                "UndoImageTile.mask");
+      ptile->mask = MEM_new_array_zeroed<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                   "UndoImageTile.mask");
     }
     *r_mask = ptile->mask;
   }
@@ -246,7 +246,7 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
     *tmpibuf = imbuf_alloc_temp_tile();
   }
 
-  PaintTile *ptile = MEM_new_for_free<PaintTile>("PaintTile");
+  PaintTile *ptile = MEM_new<PaintTile>("PaintTile");
 
   ptile->image = image;
   ptile->ibuf = ibuf;
@@ -258,17 +258,17 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
 
   /* add mask explicitly here */
   if (r_mask) {
-    *r_mask = ptile->mask = MEM_calloc_arrayN<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                        "PaintTile.mask");
+    *r_mask = ptile->mask = MEM_new_array_zeroed<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                           "PaintTile.mask");
   }
 
   if (ibuf->float_buffer.data) {
-    ptile->rect.pt = MEM_calloc_arrayN<float[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                 "PaintTile.rect");
+    ptile->rect.pt = MEM_new_array_zeroed<float[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                    "PaintTile.rect");
   }
   else {
-    ptile->rect.pt = MEM_calloc_arrayN<char[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                "PaintTile.rect");
+    ptile->rect.pt = MEM_new_array_zeroed<char[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                   "PaintTile.rect");
   }
 
   ptile->use_float = has_float;
@@ -389,13 +389,14 @@ struct UndoImageTile {
 
 static UndoImageTile *utile_alloc(bool has_float)
 {
-  UndoImageTile *utile = MEM_callocN<UndoImageTile>("ImageUndoTile");
+  UndoImageTile *utile = MEM_new_zeroed<UndoImageTile>("ImageUndoTile");
   if (has_float) {
-    utile->rect.fp = MEM_malloc_arrayN<float>(4 * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__);
+    utile->rect.fp = MEM_new_array_uninitialized<float>(4 * square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                        __func__);
   }
   else {
-    utile->rect.byte_ptr = MEM_malloc_arrayN<uint8_t>(4 * square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                      __func__);
+    utile->rect.byte_ptr = MEM_new_array_uninitialized<uint8_t>(
+        4 * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__);
   }
   return utile;
 }
@@ -451,7 +452,7 @@ static void utile_decref(UndoImageTile *utile)
   utile->users -= 1;
   BLI_assert(utile->users >= 0);
   if (utile->users == 0) {
-    MEM_freeN(utile->rect.pt);
+    MEM_delete_void(utile->rect.pt);
     MEM_delete(utile);
   }
 }
@@ -490,7 +491,7 @@ struct UndoImageBuf {
 
 static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
 {
-  UndoImageBuf *ubuf = MEM_callocN<UndoImageBuf>(__func__);
+  UndoImageBuf *ubuf = MEM_new_zeroed<UndoImageBuf>(__func__);
 
   ubuf->image_dims[0] = ibuf->x;
   ubuf->image_dims[1] = ibuf->y;
@@ -499,7 +500,7 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
   ubuf->tiles_dims[1] = ED_IMAGE_UNDO_TILE_NUMBER(ubuf->image_dims[1]);
 
   ubuf->tiles_len = ubuf->tiles_dims[0] * ubuf->tiles_dims[1];
-  ubuf->tiles = MEM_calloc_arrayN<UndoImageTile *>(ubuf->tiles_len, __func__);
+  ubuf->tiles = MEM_new_array_zeroed<UndoImageTile *>(ubuf->tiles_len, __func__);
 
   STRNCPY(ubuf->ibuf_filepath, ibuf->filepath);
   ubuf->ibuf_fileframe = ibuf->fileframe;
@@ -569,8 +570,8 @@ static void ubuf_free(UndoImageBuf *ubuf)
     UndoImageTile *utile = ubuf->tiles[i];
     utile_decref(utile);
   }
-  MEM_freeN(ubuf->tiles);
-  MEM_freeN(ubuf);
+  MEM_delete(ubuf->tiles);
+  MEM_delete(ubuf);
   if (ubuf_post) {
     ubuf_free(ubuf_post);
   }
@@ -654,7 +655,7 @@ static void uhandle_free_list(ListBaseT<UndoImageHandle> *undo_handles)
     for (UndoImageBuf &ubuf : uh.buffers.items_mutable()) {
       ubuf_free(&ubuf);
     }
-    MEM_freeN(&uh);
+    MEM_delete(&uh);
   }
   BLI_listbase_clear(undo_handles);
 }
@@ -729,7 +730,7 @@ static UndoImageHandle *uhandle_add(ListBaseT<UndoImageHandle> *undo_handles,
                                     ImageUser *iuser)
 {
   BLI_assert(uhandle_lookup(undo_handles, image, iuser->tile) == nullptr);
-  UndoImageHandle *uh = MEM_new_for_free<UndoImageHandle>(__func__);
+  UndoImageHandle *uh = MEM_new<UndoImageHandle>(__func__);
   uh->image_ref.ptr = image;
   uh->iuser = *iuser;
   uh->iuser.scene = nullptr;
@@ -831,7 +832,7 @@ static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *u
         UndoImageHandle *uh = uhandle_ensure(&us->handles, ptile->image, &ptile->iuser);
         UndoImageBuf *ubuf_pre = uhandle_ensure_ubuf(uh, ptile->image, ptile->ibuf);
 
-        UndoImageTile *utile = MEM_callocN<UndoImageTile>("UndoImageTile");
+        UndoImageTile *utile = MEM_new_zeroed<UndoImageTile>("UndoImageTile");
         utile->users = 1;
         utile->rect.pt = ptile->rect.pt;
         ptile->rect.pt = nullptr;

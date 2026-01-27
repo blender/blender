@@ -168,7 +168,7 @@ ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
     uci.shiftx = 0.5f - (camera->shiftx * uci.xasp);
     uci.shifty = 0.5f - (camera->shifty * uci.yasp);
 
-    uci_pt = MEM_mallocN<ProjCameraInfo>(__func__);
+    uci_pt = MEM_new_uninitialized<ProjCameraInfo>(__func__);
     *uci_pt = uci;
     return uci_pt;
   }
@@ -178,7 +178,7 @@ ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
 
 void BKE_uvproject_camera_info_free(ProjCameraInfo *uci)
 {
-  MEM_freeN(uci);
+  MEM_delete(uci);
 }
 
 void BKE_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])
