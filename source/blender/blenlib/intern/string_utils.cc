@@ -20,6 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utf8_symbols.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -98,6 +99,15 @@ void BLI_string_replace(std::string &haystack, const StringRef needle, const Str
     haystack.replace(index, size_t(needle.size()), other);
     i = index + size_t(other.size());
   }
+}
+
+std::string BLI_string_pad_number_sign(const blender::StringRef str)
+{
+  if (str.startswith("-")) {
+    return std::string(str);
+  }
+
+  return std::string(BLI_STR_UTF8_FIGURE_SPACE + str);
 }
 
 void BLI_string_replace_char(char *str, char src, char dst)

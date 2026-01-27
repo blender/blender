@@ -20,7 +20,8 @@ struct UnitSettings;
  * Representation of a value in units.
  *
  * \param prec: Decimal places to show,
- * Use a negative number to prevent trailing zeros being stripped.
+ * Use a negative number to enforce fixed-width formatting, which preserves trailing zeros
+ * (e.g., -3 gives exactly 3 decimal places: 1.004, 0.500).
  * \param pad: When true & `prec` is positive, stripped zeroes will be replaced with a space
  * instead of being removed.
  *

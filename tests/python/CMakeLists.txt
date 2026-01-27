@@ -107,7 +107,7 @@ if(WITH_UI_TESTS)
       "PASS_THROUGH=1"
     )
   endif()
-  function(add_blender_test_ui testname)
+  function(add_blender_test_ui_backend testname backend)
     # Remove `--background`
     set(EXE_PARAMS ${TEST_BLENDER_EXE_PARAMS})
     list(REMOVE_ITEM EXE_PARAMS --background)
@@ -123,9 +123,33 @@ if(WITH_UI_TESTS)
       # No need for window frame with tests.
       --no-window-frame
       -p 0 0 800 600
+      --gpu-backend ${backend}
       "${EXE_PARAMS}"
       "${ARGN}"
     )
+  endfunction()
+  function(add_blender_test_ui testname)
+    if(WITH_OPENGL_BACKEND)
+      add_blender_test_ui_backend(
+        "ui_opengl_${testname}"
+        "opengl"
+        "${ARGN}"
+      )
+    endif()
+    if(WITH_METAL_BACKEND)
+      add_blender_test_ui_backend(
+        "ui_metal_${testname}"
+        "metal"
+        "${ARGN}"
+      )
+    endif()
+    if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN AND WITH_UI_TESTS_VULKAN)
+      add_blender_test_ui_backend(
+        "ui_vulkan_${testname}"
+        "vulkan"
+        "${ARGN}"
+      )
+    endif()
   endfunction()
 endif()
 
@@ -843,149 +867,59 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     list(APPEND gpu_render_tests ${render_tests})
     list(FILTER gpu_render_tests EXCLUDE REGEX light_group|shadow_catcher|denoise|guiding|reports)
 
-    set(_gpu_render_tests_arguments)
-
-    # EEVEE
-    if(WITH_OPENGL_BACKEND)
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          eevee_opengl_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/eevee_opengl"
-          --gpu-backend opengl
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-    endif()
-
-    if(WITH_METAL_BACKEND)
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          eevee_metal_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/eevee_metal"
-          --gpu-backend metal
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-    endif()
-
-    if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN)
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          eevee_vulkan_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/eevee_vulkan"
-          --gpu-backend vulkan
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-    endif()
-
-    # Workbench
-    if(WITH_OPENGL_BACKEND)
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          workbench_opengl_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/workbench_opengl"
-          --gpu-backend opengl
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-    endif()
-
-    if(WITH_METAL_BACKEND)
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          workbench_metal_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/workbench_metal"
-          --gpu-backend metal
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-    endif()
-
-    if(WITH_VULKAN_BACKEND)
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          workbench_vulkan_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/workbench_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/workbench_vulkan"
-          --gpu-backend vulkan
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-    endif()
-
-    # Overlay
-    if(WITH_GPU_RENDER_TESTS_HEADED)
+    function(add_gpu_render_tests name script render_tests)
       if(WITH_OPENGL_BACKEND)
-        add_render_test(
-          overlay_opengl
-          ${CMAKE_CURRENT_LIST_DIR}/overlay_render_tests.py
-          --testdir "${TEST_SRC_DIR}/overlay"
-          --outdir "${TEST_OUT_DIR}/overlay"
-          --gpu-backend opengl
-          ${_gpu_render_tests_arguments}
-        )
+        foreach(render_test ${render_tests})
+          add_render_test(
+            ${name}_opengl_${render_test}
+            ${CMAKE_CURRENT_LIST_DIR}/${script}
+            --testdir "${TEST_SRC_DIR}/render/${render_test}"
+            --outdir "${TEST_OUT_DIR}/${name}_opengl"
+            --gpu-backend opengl
+            ${ARGN}
+          )
+        endforeach()
       endif()
 
       if(WITH_METAL_BACKEND)
-        add_render_test(
-          overlay_metal
-          ${CMAKE_CURRENT_LIST_DIR}/overlay_render_tests.py
-          --testdir "${TEST_SRC_DIR}/overlay"
-          --outdir "${TEST_OUT_DIR}/overlay"
-          --gpu-backend metal
-          ${_gpu_render_tests_arguments}
-        )
+        foreach(render_test ${render_tests})
+          add_render_test(
+            ${name}_metal_${render_test}
+            ${CMAKE_CURRENT_LIST_DIR}/${script}
+            --testdir "${TEST_SRC_DIR}/render/${render_test}"
+            --outdir "${TEST_OUT_DIR}/${name}_metal"
+            --gpu-backend metal
+            ${ARGN}
+          )
+        endforeach()
       endif()
 
-      if(WITH_VULKAN_BACKEND)
-        add_render_test(
-          overlay_vulkan
-          ${CMAKE_CURRENT_LIST_DIR}/overlay_render_tests.py
-          --testdir "${TEST_SRC_DIR}/overlay"
-          --outdir "${TEST_OUT_DIR}/overlay"
-          --gpu-backend vulkan
-          ${_gpu_render_tests_arguments}
-        )
+      if(WITH_VULKAN_BACKEND AND (name STREQUAL "workbench" OR name STREQUAL "overlay" OR WITH_GPU_RENDER_TESTS_VULKAN)
+          AND (NOT (name STREQUAL "storm_hydra" OR name STREQUAL "storm_usd") OR WITH_STORM_TESTS_VULKAN))
+        foreach(render_test ${render_tests})
+          add_render_test(
+            ${name}_vulkan_${render_test}
+            ${CMAKE_CURRENT_LIST_DIR}/${script}
+            --testdir "${TEST_SRC_DIR}/render/${render_test}"
+            --outdir "${TEST_OUT_DIR}/${name}_vulkan"
+            --gpu-backend vulkan
+            ${ARGN}
+          )
+        endforeach()
       endif()
+    endfunction()
+
+    add_gpu_render_tests(eevee "eevee_render_tests.py" "${gpu_render_tests}")
+    add_gpu_render_tests(workbench "workbench_render_tests.py" "${gpu_render_tests}")
+    if(WITH_GPU_RENDER_TESTS_HEADED)
+      add_gpu_render_tests(overlay "overlay_render_tests.py" "${gpu_render_tests}")
     endif()
-
     if(WITH_HYDRA)
-      # Hydra Storm
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          storm_hydra_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/storm_hydra"
-          --export_method "HYDRA"
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
-
-      foreach(render_test ${gpu_render_tests})
-        add_render_test(
-          storm_usd_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
-          --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/storm_usd"
-          --export_method "USD"
-          ${_gpu_render_tests_arguments}
-        )
-      endforeach()
+      add_gpu_render_tests(storm_hydra "storm_render_tests.py" "${gpu_render_tests}" --export_method "HYDRA")
     endif()
-    unset(_gpu_render_tests_arguments)
+    if(WITH_HYDRA)
+      add_gpu_render_tests(storm_usd "storm_render_tests.py" "${gpu_render_tests}" --export_method "USD")
+    endif()
   endif()
 endif()
 
@@ -1538,7 +1472,7 @@ if(WITH_UI_TESTS)
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(
-      "ui_${ui_test}"
+      "${ui_test}"
       --enable-event-simulate
       --python "${CMAKE_CURRENT_LIST_DIR}/ui_simulate/run_blender_setup.py"
       --

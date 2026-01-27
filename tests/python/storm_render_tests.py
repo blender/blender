@@ -7,6 +7,22 @@ import argparse
 import os
 import sys
 from pathlib import Path
+try:
+    # Render report is not always available and leads to errors in the console logs that can be ignored.
+    from modules import render_report
+
+    class StormReport(render_report.Report):
+        def __init__(self, title, output_dir, oiiotool, variation=None, blocklist=[]):
+            super().__init__(title, output_dir, oiiotool, variation=variation, blocklist=blocklist)
+            self.gpu_backend = variation
+
+        def _get_render_arguments(self, arguments_cb, filepath, base_output_filepath):
+            return arguments_cb(filepath, base_output_filepath, gpu_backend=self.gpu_backend)
+
+except ImportError:
+    # render_report can only be loaded when running the render tests. It errors when
+    # this script is run during preparation steps.
+    pass
 
 # Unsupported or broken scenarios for the Storm render engine
 BLOCKLIST_HYDRA = [
@@ -67,11 +83,71 @@ BLOCKLIST_AMD = BLOCKLIST_METAL + [
 ]
 
 # Minor difference in texture coordinate for white noise hash.
-BLOCKLIST_INTEL = [
+BLOCKLIST_OPENGL_INTEL_LINUX = [
     "hair_reflection.blend",
     "hair_transmission.blend",
     "principled_bsdf_emission.blend",
     "principled_bsdf_sheen.blend",
+]
+
+# Some Vulkan tests are broken for all vendors.
+BLOCKLIST_VULKAN = [
+    # Integrator; image 100% transparent
+    "transparent_shadow_limit_0.blend",
+    "transparent_shadow_limit_1.blend",
+    "transparent_shadow_limit_1024.blend",
+    "transparent_shadow_limit_401.blend",
+
+    # Light linking; image black
+    "shadow_link_simple_point_cloud.blend",
+
+    # Mesh; some spheres (Intel Linux) or all spheres (every other vendor) not rendered
+    "normal_types.blend",
+    "normal_types_motion.blend",
+
+    # Shader; image 100% transparent
+    "normal.blend",
+]
+BLOCKLIST_VULKAN_HYDRA = [
+    # Motion blur; sporadic black image on NVIDIA and Intel
+    "multi_step_motion_blur.blend",
+]
+BLOCKLIST_VULKAN_USD = [
+    # Motion blur; image black
+    "bvh_steps_curve_segments_0.blend",
+    "bvh_steps_curve_segments_3.blend",
+    "bvh_steps_line_segments_0.blend",
+    "bvh_steps_line_segments_3.blend",
+    "mblur_deform_autosmooth.blend",
+    "mblur_deform_simple.blend",
+]
+
+# A very large amount of tests is missing objects. Blacklist all tests for now.
+BLOCKLIST_VULKAN_INTEL_LINUX = [
+    ".*.blend",
+]
+
+BLOCKLIST_VULKAN_NVIDIA = [
+    # Principled bsdf; missing objects
+    "principled_bsdf_emission.blend",
+    "principled_bsdf_sheen.blend",
+
+    # Shader; failed non-deterministically on workers when tested
+    "texture_coordinate_camera.blend",
+    "texture_coordinate_object.blend",
+    "texture_coordinate_generated.blend",
+    "texture_coordinate_normal.blend",
+
+    # Render layer; failed non-deterministically on workers when tested
+    "freestyle_stroke_material.blend"
+
+    # Hair; failed non-deterministically on workers when tested
+    "hair_instancer_uv.blend"
+]
+
+BLOCKLIST_VULKAN_AMD = [
+    # Hair; failed non-deterministically on workers when tested
+    "hair_instancer_uv.blend"
 ]
 
 
@@ -101,19 +177,26 @@ if inside_blender:
         sys.exit(1)
 
 
-def get_arguments(filepath, output_filepath):
-    return [
+def get_arguments(filepath, output_filepath, gpu_backend):
+    arguments = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
-        "--debug-exit-on-error",
+        "--debug-exit-on-error"]
+
+    if gpu_backend:
+        arguments.extend(["--gpu-backend", gpu_backend])
+
+    arguments.extend([
         filepath,
         "-P",
         os.path.realpath(__file__),
         "-o", output_filepath,
         "-F", "PNG",
-        "-f", "1"]
+        "-f", "1"])
+
+    return arguments
 
 
 def create_argparse():
@@ -126,6 +209,7 @@ def create_argparse():
     parser.add_argument("--oiiotool", required=True)
     parser.add_argument("--export_method", required=True)
     parser.add_argument('--batch', default=False, action='store_true')
+    parser.add_argument('--gpu-backend')
     return parser
 
 
@@ -133,27 +217,60 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    from modules import render_report
-
-    if sys.platform == "darwin":
-        blocklist = BLOCKLIST_METAL
+    blocklist = []
+    if args.gpu_backend == "metal":
+        blocklist += BLOCKLIST_METAL
+    elif args.gpu_backend == "vulkan":
+        blocklist += BLOCKLIST_VULKAN
+        if args.export_method == 'HYDRA':
+            blocklist += BLOCKLIST_VULKAN_HYDRA
+        else:
+            blocklist += BLOCKLIST_VULKAN_USD
+        gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+        if gpu_vendor == "NVIDIA":
+            blocklist += BLOCKLIST_VULKAN_NVIDIA
+        elif gpu_vendor == "AMD":
+            blocklist += BLOCKLIST_VULKAN_AMD
+        elif gpu_vendor == "INTEL" and sys.platform == "linux":
+            blocklist += BLOCKLIST_VULKAN_INTEL_LINUX
     else:
         gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
         if gpu_vendor == "AMD":
-            blocklist = BLOCKLIST_AMD
-        elif gpu_vendor == "INTEL":
-            blocklist = BLOCKLIST_INTEL
-        else:
-            blocklist = []
+            blocklist += BLOCKLIST_AMD
+        elif gpu_vendor == "INTEL" and sys.platform == "linux":
+            blocklist += BLOCKLIST_OPENGL_INTEL_LINUX
 
     if args.export_method == 'HYDRA':
-        report = render_report.Report("Storm Hydra", args.outdir, args.oiiotool, blocklist=blocklist + BLOCKLIST_HYDRA)
+        report = StormReport(
+            "Storm Hydra",
+            args.outdir,
+            args.oiiotool,
+            variation=args.gpu_backend,
+            blocklist=blocklist +
+            BLOCKLIST_HYDRA)
         report.set_reference_dir("storm_hydra_renders")
-        report.set_compare_engine('cycles', 'CPU')
+        if args.gpu_backend == "vulkan":
+            report.set_compare_engine('storm_hydra', 'opengl')
+        else:
+            report.set_compare_engine('cycles', 'CPU')
     else:
-        report = render_report.Report("Storm USD", args.outdir, args.oiiotool, blocklist=blocklist + BLOCKLIST_USD)
+        report = StormReport(
+            "Storm USD",
+            args.outdir,
+            args.oiiotool,
+            variation=args.gpu_backend,
+            blocklist=blocklist +
+            BLOCKLIST_USD)
         report.set_reference_dir("storm_usd_renders")
         report.set_compare_engine('storm_hydra')
+        if args.gpu_backend == "metal":
+            report.set_compare_engine('storm_hydra', 'metal')
+        elif args.gpu_backend == "vulkan":
+            report.set_compare_engine('storm_hydra', 'vulkan')
+        elif args.gpu_backend == "opengl":
+            report.set_compare_engine('storm_hydra', 'opengl')
+        else:
+            report.set_compare_engine('cycles', 'CPU')
 
     report.set_pixelated(True)
 
@@ -169,9 +286,9 @@ def main():
         report.set_fail_threshold(0.036)
         report.set_fail_percent(1.3)
     if (test_dir_name in {'sss', 'hair'}):
-        # Ignore differences in rasterization of hair on Mesa drivers
-        report.set_fail_threshold(0.02)
-        report.set_fail_percent(1.8)
+        # Ignore differences in rasterization of hair on Vulkan and Mesa drivers
+        report.set_fail_threshold(0.036)
+        report.set_fail_percent(2.3)
 
     test_dir_name = Path(args.testdir).name
 
