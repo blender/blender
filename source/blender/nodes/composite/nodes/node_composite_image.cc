@@ -192,18 +192,18 @@ static void node_declare(NodeDeclarationBuilder &b)
     return;
   }
 
-  /* Avoid unnecessary updates, only changes to the Image/Image User data are of interest. */
-  if (!(node->runtime->update & NODE_UPDATE_ID)) {
-    declare_existing(b);
-    return;
-  }
-
   BLI_SCOPED_DEFER([&]() { declare_old_linked_outputs(b); });
 
   Image *image = reinterpret_cast<Image *>(node->id);
   const ImageUser *image_user = static_cast<ImageUser *>(node->storage);
   if (!image || !image_user) {
     declare_default(b);
+    return;
+  }
+
+  /* Avoid unnecessary updates, only changes to the Image/Image User data are of interest. */
+  if (!(node->runtime->update & NODE_UPDATE_ID)) {
+    declare_existing(b);
     return;
   }
 
