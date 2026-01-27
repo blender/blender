@@ -64,12 +64,12 @@ const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
-    {USD_MTL_NAME_COLLISION_MAKE_UNIQUE,
+    {int(MtlNameCollisionMode::MakeUnique),
      "MAKE_UNIQUE",
      0,
      "Make Unique",
      "Import each USD material as a unique Blender material"},
-    {USD_MTL_NAME_COLLISION_REFERENCE_EXISTING,
+    {int(MtlNameCollisionMode::ReferenceExisting),
      "REFERENCE_EXISTING",
      0,
      "Reference Existing",
@@ -78,14 +78,14 @@ const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_property_import_mode_items[] = {
-    {USD_ATTR_IMPORT_NONE, "NONE", 0, "None", "Do not import USD custom attributes"},
-    {USD_ATTR_IMPORT_USER,
+    {int(PropertyImportMode::None), "NONE", 0, "None", "Do not import USD custom attributes"},
+    {int(PropertyImportMode::User),
      "USER",
      0,
      "User",
      "Import USD attributes in the 'userProperties' namespace as Blender custom "
      "properties. The namespace will be stripped from the property names"},
-    {USD_ATTR_IMPORT_ALL,
+    {int(PropertyImportMode::All),
      "ALL",
      0,
      "All Custom",
@@ -95,34 +95,38 @@ const EnumPropertyItem rna_enum_usd_property_import_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_tex_import_mode_items[] = {
-    {USD_TEX_IMPORT_NONE, "IMPORT_NONE", 0, "None", "Don't import textures"},
-    {USD_TEX_IMPORT_PACK, "IMPORT_PACK", 0, "Packed", "Import textures as packed data"},
-    {USD_TEX_IMPORT_COPY, "IMPORT_COPY", 0, "Copy", "Copy files to textures directory"},
+    {int(TexImportMode::None), "IMPORT_NONE", 0, "None", "Don't import textures"},
+    {int(TexImportMode::Pack), "IMPORT_PACK", 0, "Packed", "Import textures as packed data"},
+    {int(TexImportMode::Copy), "IMPORT_COPY", 0, "Copy", "Copy files to textures directory"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_usd_tex_name_collision_mode_items[] = {
-    {USD_TEX_NAME_COLLISION_USE_EXISTING,
+    {int(TexNameCollisionMode::UseExisting),
      "USE_EXISTING",
      0,
      "Use Existing",
      "If a file with the same name already exists, use that instead of copying"},
-    {USD_TEX_NAME_COLLISION_OVERWRITE, "OVERWRITE", 0, "Overwrite", "Overwrite existing files"},
+    {int(TexNameCollisionMode::Overwrite),
+     "OVERWRITE",
+     0,
+     "Overwrite",
+     "Overwrite existing files"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_usd_export_subdiv_mode_items[] = {
-    {USD_SUBDIV_IGNORE,
+    {int(SubdivExportMode::Ignore),
      "IGNORE",
      0,
      "Ignore",
      "Scheme = None. Export base mesh without subdivision"},
-    {USD_SUBDIV_TESSELLATE,
+    {int(SubdivExportMode::Tessellate),
      "TESSELLATE",
      0,
      "Tessellate",
      "Scheme = None. Export subdivided mesh"},
-    {USD_SUBDIV_BEST_MATCH,
+    {int(SubdivExportMode::Match),
      "BEST_MATCH",
      0,
      "Best Match",
@@ -132,40 +136,40 @@ const EnumPropertyItem rna_enum_usd_export_subdiv_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_xform_op_mode_items[] = {
-    {USD_XFORM_OP_TRS,
+    {int(XformOpMode::TRS),
      "TRS",
      0,
      "Translate, Rotate, Scale",
      "Export with translate, rotate, and scale Xform operators"},
-    {USD_XFORM_OP_TOS,
+    {int(XformOpMode::TOS),
      "TOS",
      0,
      "Translate, Orient, Scale",
      "Export with translate, orient quaternion, and scale Xform operators"},
-    {USD_XFORM_OP_MAT, "MAT", 0, "Matrix", "Export matrix operator"},
+    {int(XformOpMode::MAT), "MAT", 0, "Matrix", "Export matrix operator"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_usdz_downscale_size[] = {
-    {USD_TEXTURE_SIZE_KEEP, "KEEP", 0, "Keep", "Keep all current texture sizes"},
-    {USD_TEXTURE_SIZE_256, "256", 0, "256", "Resize to a maximum of 256 pixels"},
-    {USD_TEXTURE_SIZE_512, "512", 0, "512", "Resize to a maximum of 512 pixels"},
-    {USD_TEXTURE_SIZE_1024, "1024", 0, "1024", "Resize to a maximum of 1024 pixels"},
-    {USD_TEXTURE_SIZE_2048, "2048", 0, "2048", "Resize to a maximum of 2048 pixels"},
-    {USD_TEXTURE_SIZE_4096, "4096", 0, "4096", "Resize to a maximum of 4096 pixels"},
-    {USD_TEXTURE_SIZE_CUSTOM, "CUSTOM", 0, "Custom", "Specify a custom size"},
+    {int(TextureDownscaleSize::Keep), "KEEP", 0, "Keep", "Keep all current texture sizes"},
+    {int(TextureDownscaleSize::Size256), "256", 0, "256", "Resize to a maximum of 256 pixels"},
+    {int(TextureDownscaleSize::Size512), "512", 0, "512", "Resize to a maximum of 512 pixels"},
+    {int(TextureDownscaleSize::Size1024), "1024", 0, "1024", "Resize to a maximum of 1024 pixels"},
+    {int(TextureDownscaleSize::Size2048), "2048", 0, "2048", "Resize to a maximum of 2048 pixels"},
+    {int(TextureDownscaleSize::Size4096), "4096", 0, "4096", "Resize to a maximum of 4096 pixels"},
+    {int(TextureDownscaleSize::Custom), "CUSTOM", 0, "Custom", "Specify a custom size"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_usd_tex_export_mode_items[] = {
-    {USD_TEX_EXPORT_KEEP, "KEEP", 0, "Keep", "Use original location of textures"},
-    {USD_TEX_EXPORT_PRESERVE,
+    {int(TexExportMode::Keep), "KEEP", 0, "Keep", "Use original location of textures"},
+    {int(TexExportMode::Preserve),
      "PRESERVE",
      0,
      "Preserve",
      "Preserve file paths of textures from already imported USD files.\n"
      "Export remaining textures to a 'textures' folder next to the USD file"},
-    {USD_TEX_EXPORT_NEW_PATH,
+    {int(TexExportMode::NewPath),
      "NEW",
      0,
      "New Path",
@@ -173,18 +177,18 @@ const EnumPropertyItem rna_enum_usd_tex_export_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr}};
 
 const EnumPropertyItem rna_enum_usd_mtl_purpose_items[] = {
-    {USD_MTL_PURPOSE_ALL,
+    {int(MtlPurpose::All),
      "MTL_ALL_PURPOSE",
      0,
      "All Purpose",
      "Attempt to import 'allPurpose' materials."},
-    {USD_MTL_PURPOSE_PREVIEW,
+    {int(MtlPurpose::Preview),
      "MTL_PREVIEW",
      0,
      "Preview",
      "Attempt to import 'preview' materials. "
      "Load 'allPurpose' materials as a fallback"},
-    {USD_MTL_PURPOSE_FULL,
+    {int(MtlPurpose::Full),
      "MTL_FULL",
      0,
      "Full",
@@ -194,22 +198,26 @@ const EnumPropertyItem rna_enum_usd_mtl_purpose_items[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_convert_scene_units_items[] = {
-    {USD_SCENE_UNITS_METERS, "METERS", 0, "Meters", "Scene meters per unit to 1.0"},
-    {USD_SCENE_UNITS_KILOMETERS, "KILOMETERS", 0, "Kilometers", "Scene meters per unit to 1000.0"},
-    {USD_SCENE_UNITS_CENTIMETERS,
+    {int(SceneUnits::Meters), "METERS", 0, "Meters", "Scene meters per unit to 1.0"},
+    {int(SceneUnits::Kilometers),
+     "KILOMETERS",
+     0,
+     "Kilometers",
+     "Scene meters per unit to 1000.0"},
+    {int(SceneUnits::Centimeters),
      "CENTIMETERS",
      0,
      "Centimeters",
      "Scene meters per unit to 0.01"},
-    {USD_SCENE_UNITS_MILLIMETERS,
+    {int(SceneUnits::Millimeters),
      "MILLIMETERS",
      0,
      "Millimeters",
      "Scene meters per unit to 0.001"},
-    {USD_SCENE_UNITS_INCHES, "INCHES", 0, "Inches", "Scene meters per unit to 0.0254"},
-    {USD_SCENE_UNITS_FEET, "FEET", 0, "Feet", "Scene meters per unit to 0.3048"},
-    {USD_SCENE_UNITS_YARDS, "YARDS", 0, "Yards", "Scene meters per unit to 0.9144"},
-    {USD_SCENE_UNITS_CUSTOM,
+    {int(SceneUnits::Inches), "INCHES", 0, "Inches", "Scene meters per unit to 0.0254"},
+    {int(SceneUnits::Feet), "FEET", 0, "Feet", "Scene meters per unit to 0.3048"},
+    {int(SceneUnits::Yards), "YARDS", 0, "Yards", "Scene meters per unit to 0.9144"},
+    {int(SceneUnits::Custom),
      "CUSTOM",
      0,
      "Custom",
@@ -280,21 +288,20 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  const eUSDTexExportMode textures_mode = eUSDTexExportMode(
-      RNA_enum_get(op->ptr, "export_textures_mode"));
+  const TexExportMode textures_mode = TexExportMode(RNA_enum_get(op->ptr, "export_textures_mode"));
   bool export_textures = false;
   bool use_original_paths = false;
 
   switch (textures_mode) {
-    case eUSDTexExportMode::USD_TEX_EXPORT_PRESERVE:
+    case TexExportMode::Preserve:
       export_textures = false;
       use_original_paths = true;
       break;
-    case eUSDTexExportMode::USD_TEX_EXPORT_NEW_PATH:
+    case TexExportMode::NewPath:
       export_textures = true;
       use_original_paths = false;
       break;
-    case eUSDTexExportMode::USD_TEX_EXPORT_KEEP:
+    case TexExportMode::Keep:
       export_textures = false;
       use_original_paths = false;
       break;
@@ -331,7 +338,7 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
   params.author_blender_name = RNA_boolean_get(op->ptr, "author_blender_name");
   params.allow_unicode = RNA_boolean_get(op->ptr, "allow_unicode");
 
-  params.export_subdiv = eSubdivExportMode(RNA_enum_get(op->ptr, "export_subdivision"));
+  params.export_subdiv = SubdivExportMode(RNA_enum_get(op->ptr, "export_subdivision"));
   params.evaluation_mode = eEvaluationMode(RNA_enum_get(op->ptr, "evaluation_mode"));
 
   params.generate_preview_surface = RNA_boolean_get(op->ptr, "generate_preview_surface");
@@ -348,12 +355,11 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
   params.convert_orientation = RNA_boolean_get(op->ptr, "convert_orientation");
   params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "export_global_forward_selection"));
   params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "export_global_up_selection"));
-  params.xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
+  params.xform_op_mode = XformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
 
-  params.usdz_downscale_size = eUSDZTextureDownscaleSize(
-      RNA_enum_get(op->ptr, "usdz_downscale_size"));
+  params.usdz_downscale_size = TextureDownscaleSize(RNA_enum_get(op->ptr, "usdz_downscale_size"));
   params.usdz_downscale_custom_size = RNA_int_get(op->ptr, "usdz_downscale_custom_size");
-  params.convert_scene_units = eUSDSceneUnits(RNA_enum_get(op->ptr, "convert_scene_units"));
+  params.convert_scene_units = SceneUnits(RNA_enum_get(op->ptr, "convert_scene_units"));
   params.custom_meters_per_unit = RNA_float_get(op->ptr, "meters_per_unit");
 
   params.merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
@@ -409,7 +415,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     }
 
     col->prop(ptr, "convert_scene_units", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    if (eUSDSceneUnits(RNA_enum_get(ptr, "convert_scene_units")) == USD_SCENE_UNITS_CUSTOM) {
+    if (SceneUnits(RNA_enum_get(ptr, "convert_scene_units")) == SceneUnits::Custom) {
       col->prop(ptr, "meters_per_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
 
@@ -480,15 +486,17 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       col->use_property_split_set(true);
       col->prop(ptr, "export_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-      const eUSDTexExportMode textures_mode = eUSDTexExportMode(
+      const TexExportMode textures_mode = TexExportMode(
           RNA_enum_get(op->ptr, "export_textures_mode"));
 
       ui::Layout &sub_col = col->column(true);
       sub_col.use_property_split_set(true);
-      sub_col.enabled_set(textures_mode == USD_TEX_EXPORT_NEW_PATH);
+      sub_col.enabled_set(textures_mode == TexExportMode::NewPath);
       sub_col.prop(ptr, "overwrite_textures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       sub_col.prop(ptr, "usdz_downscale_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
+      if (TextureDownscaleSize(RNA_enum_get(ptr, "usdz_downscale_size")) ==
+          TextureDownscaleSize::Custom)
+      {
         sub_col.prop(ptr, "usdz_downscale_custom_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
     }
@@ -617,7 +625,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "export_subdivision",
                rna_enum_usd_export_subdiv_mode_items,
-               USD_SUBDIV_BEST_MATCH,
+               int(SubdivExportMode::Match),
                "Subdivision",
                "Choose how subdivision modifiers will be mapped to the USD subdivision scheme "
                "during export");
@@ -687,7 +695,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "export_textures_mode",
                rna_enum_usd_tex_export_mode_items,
-               USD_TEX_EXPORT_NEW_PATH,
+               int(TexExportMode::NewPath),
                "Export Textures",
                "Texture export method");
 
@@ -707,7 +715,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "xform_op_mode",
                rna_enum_usd_xform_op_mode_items,
-               USD_XFORM_OP_TRS,
+               int(XformOpMode::TRS),
                "Xform Ops",
                "The type of transform operators to write");
 
@@ -836,7 +844,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "convert_scene_units",
                rna_enum_usd_convert_scene_units_items,
-               eUSDSceneUnits::USD_SCENE_UNITS_METERS,
+               int(SceneUnits::Meters),
                "Units",
                "Set the USD Stage meters per unit to the chosen measurement, or a custom value");
 
@@ -937,15 +945,14 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
 
   params.import_usd_preview = RNA_boolean_get(op->ptr, "import_usd_preview");
   params.set_material_blend = RNA_boolean_get(op->ptr, "set_material_blend");
-  params.mtl_purpose = eUSDMtlPurpose(RNA_enum_get(op->ptr, "mtl_purpose"));
-  params.mtl_name_collision_mode = eUSDMtlNameCollisionMode(
+  params.mtl_purpose = MtlPurpose(RNA_enum_get(op->ptr, "mtl_purpose"));
+  params.mtl_name_collision_mode = MtlNameCollisionMode(
       RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
-  params.import_textures_mode = eUSDTexImportMode(RNA_enum_get(op->ptr, "import_textures_mode"));
-  params.tex_name_collision_mode = eUSDTexNameCollisionMode(
+  params.import_textures_mode = TexImportMode(RNA_enum_get(op->ptr, "import_textures_mode"));
+  params.tex_name_collision_mode = TexNameCollisionMode(
       RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
-  params.property_import_mode = eUSDPropertyImportMode(
-      RNA_enum_get(op->ptr, "property_import_mode"));
+  params.property_import_mode = PropertyImportMode(RNA_enum_get(op->ptr, "property_import_mode"));
 
   params.prim_path_mask = RNA_string_get(op->ptr, "prim_path_mask");
 
@@ -1056,7 +1063,8 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     ui::Layout &col = panel->column(false);
 
     col.prop(ptr, "import_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
+    const bool copy_textures = TexImportMode(RNA_enum_get(op->ptr, "import_textures_mode")) ==
+                               TexImportMode::Copy;
 
     ui::Layout *row = &col.row(true);
     row->prop(ptr, "import_textures_dir", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1215,7 +1223,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "mtl_purpose",
                rna_enum_usd_mtl_purpose_items,
-               USD_MTL_PURPOSE_FULL,
+               int(MtlPurpose::Full),
                "Material Purpose",
                "Attempt to import materials with the given purpose. "
                "If no material with this purpose is bound to the primitive, "
@@ -1225,14 +1233,14 @@ void WM_OT_usd_import(wmOperatorType *ot)
       ot->srna,
       "mtl_name_collision_mode",
       rna_enum_usd_mtl_name_collision_mode_items,
-      USD_MTL_NAME_COLLISION_MAKE_UNIQUE,
+      int(MtlNameCollisionMode::MakeUnique),
       "Material Name Collision",
       "Behavior when the name of an imported material conflicts with an existing material");
 
   RNA_def_enum(ot->srna,
                "import_textures_mode",
                rna_enum_usd_tex_import_mode_items,
-               USD_TEX_IMPORT_PACK,
+               int(TexImportMode::Pack),
                "Import Textures",
                "Behavior when importing textures from a USDZ archive");
 
@@ -1247,14 +1255,14 @@ void WM_OT_usd_import(wmOperatorType *ot)
       ot->srna,
       "tex_name_collision_mode",
       rna_enum_usd_tex_name_collision_mode_items,
-      USD_TEX_NAME_COLLISION_USE_EXISTING,
+      int(TexNameCollisionMode::UseExisting),
       "File Name Collision",
       "Behavior when the name of an imported texture file conflicts with an existing file");
 
   RNA_def_enum(ot->srna,
                "property_import_mode",
                rna_enum_usd_property_import_mode_items,
-               USD_ATTR_IMPORT_ALL,
+               int(PropertyImportMode::All),
                "Custom Properties",
                "Behavior when importing USD attributes as Blender custom properties");
 

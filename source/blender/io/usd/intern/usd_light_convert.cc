@@ -77,7 +77,7 @@ namespace io::usd {
 static Image *load_image(std::string tex_path, Main *bmain, const USDImportParams &params)
 {
   /* Optionally copy the asset if it's inside a USDZ package. */
-  const bool import_textures = params.import_textures_mode != USD_TEX_IMPORT_NONE &&
+  const bool import_textures = params.import_textures_mode != TexImportMode::None &&
                                should_import_asset(tex_path);
 
   std::string imported_file_source_path = tex_path;
@@ -85,14 +85,14 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
   if (import_textures) {
     /* If we are packing the imported textures, we first write them
      * to a temporary directory. */
-    const char *textures_dir = params.import_textures_mode == USD_TEX_IMPORT_PACK ?
+    const char *textures_dir = params.import_textures_mode == TexImportMode::Pack ?
                                    temp_textures_dir() :
                                    params.import_textures_dir;
 
-    const eUSDTexNameCollisionMode name_collision_mode = params.import_textures_mode ==
-                                                                 USD_TEX_IMPORT_PACK ?
-                                                             USD_TEX_NAME_COLLISION_OVERWRITE :
-                                                             params.tex_name_collision_mode;
+    const TexNameCollisionMode name_collision_mode = params.import_textures_mode ==
+                                                             TexImportMode::Pack ?
+                                                         TexNameCollisionMode::Overwrite :
+                                                         params.tex_name_collision_mode;
 
     tex_path = import_asset(tex_path, textures_dir, name_collision_mode, nullptr);
   }
@@ -106,7 +106,7 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
     ensure_usd_source_path_prop(imported_file_source_path, &image->id);
   }
 
-  if (import_textures && params.import_textures_mode == USD_TEX_IMPORT_PACK &&
+  if (import_textures && params.import_textures_mode == TexImportMode::Pack &&
       !BKE_image_has_packedfile(image))
   {
     BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain, &image->id));

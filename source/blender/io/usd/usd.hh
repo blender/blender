@@ -24,96 +24,92 @@ namespace io::usd {
  * Behavior when the name of an imported material
  * conflicts with an existing material.
  */
-enum eUSDMtlNameCollisionMode {
-  USD_MTL_NAME_COLLISION_MAKE_UNIQUE = 0,
-  USD_MTL_NAME_COLLISION_REFERENCE_EXISTING = 1,
+enum class MtlNameCollisionMode {
+  MakeUnique = 0,
+  ReferenceExisting = 1,
 };
 
 /* Enums specifying the USD material purpose,
  * corresponding to #pxr::UsdShadeTokens 'allPurpose',
  * 'preview', and 'render', respectively. */
-enum eUSDMtlPurpose {
-  USD_MTL_PURPOSE_ALL = 0,
-  USD_MTL_PURPOSE_PREVIEW = 1,
-  USD_MTL_PURPOSE_FULL = 2
-};
+enum class MtlPurpose { All = 0, Preview = 1, Full = 2 };
 
 /**
  *  Behavior for importing of custom
  *  attributes / properties outside
  *  a prim's regular schema.
  */
-enum eUSDPropertyImportMode {
-  USD_ATTR_IMPORT_NONE = 0,
-  USD_ATTR_IMPORT_USER = 1,
-  USD_ATTR_IMPORT_ALL = 2,
+enum class PropertyImportMode {
+  None = 0,
+  User = 1,
+  All = 2,
 };
 
 /**
  *  Behavior when importing textures from a package
  * (e.g., USDZ archive) or from a URI path.
  */
-enum eUSDTexImportMode {
-  USD_TEX_IMPORT_NONE = 0,
-  USD_TEX_IMPORT_PACK,
-  USD_TEX_IMPORT_COPY,
+enum class TexImportMode {
+  None = 0,
+  Pack,
+  Copy,
 };
 
 /**
  * Behavior when the name of an imported texture
  * file conflicts with an existing file.
  */
-enum eUSDTexNameCollisionMode {
-  USD_TEX_NAME_COLLISION_USE_EXISTING = 0,
-  USD_TEX_NAME_COLLISION_OVERWRITE = 1,
+enum class TexNameCollisionMode {
+  UseExisting = 0,
+  Overwrite = 1,
 };
 
-enum eSubdivExportMode {
+enum class SubdivExportMode {
   /** Subdivision scheme = None, export base mesh without subdivision. */
-  USD_SUBDIV_IGNORE = 0,
+  Ignore = 0,
   /** Subdivision scheme = None, export subdivided mesh. */
-  USD_SUBDIV_TESSELLATE = 1,
+  Tessellate = 1,
   /**
    * Apply the USD subdivision scheme that is the closest match to Blender.
-   * Reverts to #USD_SUBDIV_TESSELLATE if the subdivision method is not supported.
+   * Reverts to #SubdivExportMode::Tessellate if the subdivision method is not supported.
    */
-  USD_SUBDIV_BEST_MATCH = 2,
+  Match = 2,
 };
 
-enum eUSDXformOpMode {
-  USD_XFORM_OP_TRS = 0,
-  USD_XFORM_OP_TOS = 1,
-  USD_XFORM_OP_MAT = 2,
+enum class XformOpMode {
+  TRS = 0,
+  TOS = 1,
+  MAT = 2,
 };
 
-enum eUSDZTextureDownscaleSize {
-  USD_TEXTURE_SIZE_CUSTOM = -1,
-  USD_TEXTURE_SIZE_KEEP = 0,
-  USD_TEXTURE_SIZE_256 = 256,
-  USD_TEXTURE_SIZE_512 = 512,
-  USD_TEXTURE_SIZE_1024 = 1024,
-  USD_TEXTURE_SIZE_2048 = 2048,
-  USD_TEXTURE_SIZE_4096 = 4096
+enum class TextureDownscaleSize {
+  Custom = -1,
+  Keep = 0,
+  Size256 = 256,
+  Size512 = 512,
+  Size1024 = 1024,
+  Size2048 = 2048,
+  Size4096 = 4096
 };
 
 /**
  *  Behavior when exporting textures.
  */
-enum eUSDTexExportMode {
-  USD_TEX_EXPORT_KEEP = 0,
-  USD_TEX_EXPORT_PRESERVE,
-  USD_TEX_EXPORT_NEW_PATH,
+enum class TexExportMode {
+  Keep = 0,
+  Preserve,
+  NewPath,
 };
 
-enum eUSDSceneUnits {
-  USD_SCENE_UNITS_CUSTOM = -1,
-  USD_SCENE_UNITS_METERS = 0,
-  USD_SCENE_UNITS_KILOMETERS = 1,
-  USD_SCENE_UNITS_CENTIMETERS = 2,
-  USD_SCENE_UNITS_MILLIMETERS = 3,
-  USD_SCENE_UNITS_INCHES = 4,
-  USD_SCENE_UNITS_FEET = 5,
-  USD_SCENE_UNITS_YARDS = 6,
+enum class SceneUnits {
+  Custom = -1,
+  Meters = 0,
+  Kilometers = 1,
+  Centimeters = 2,
+  Millimeters = 3,
+  Inches = 4,
+  Feet = 5,
+  Yards = 6,
 };
 
 struct USDExportParams {
@@ -145,7 +141,7 @@ struct USDExportParams {
   bool author_blender_name = true;
   bool allow_unicode = true;
 
-  eSubdivExportMode export_subdiv = USD_SUBDIV_BEST_MATCH;
+  SubdivExportMode export_subdiv = SubdivExportMode::Match;
   enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
 
   bool generate_preview_surface = true;
@@ -162,9 +158,9 @@ struct USDExportParams {
   bool convert_orientation = false;
   enum eIOAxis forward_axis = eIOAxis::IO_AXIS_NEGATIVE_Z;
   enum eIOAxis up_axis = eIOAxis::IO_AXIS_Y;
-  eUSDXformOpMode xform_op_mode = eUSDXformOpMode::USD_XFORM_OP_TRS;
+  XformOpMode xform_op_mode = XformOpMode::TRS;
 
-  eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize::USD_TEXTURE_SIZE_KEEP;
+  TextureDownscaleSize usdz_downscale_size = TextureDownscaleSize::Keep;
   int usdz_downscale_custom_size = 128;
 
   std::string root_prim_path = "";
@@ -174,7 +170,7 @@ struct USDExportParams {
   std::string accessibility_label = "";
   std::string accessibility_description = "";
 
-  eUSDSceneUnits convert_scene_units = eUSDSceneUnits::USD_SCENE_UNITS_METERS;
+  SceneUnits convert_scene_units = SceneUnits::Meters;
   float custom_meters_per_unit = 1.0f;
 
   /** Communication structure between the wmJob management code and the worker code. Currently used
@@ -224,14 +220,14 @@ struct USDImportParams {
   bool validate_meshes;
   bool merge_parent_xform;
 
-  eUSDMtlPurpose mtl_purpose;
-  eUSDMtlNameCollisionMode mtl_name_collision_mode;
-  eUSDTexImportMode import_textures_mode;
+  MtlPurpose mtl_purpose;
+  MtlNameCollisionMode mtl_name_collision_mode;
+  TexImportMode import_textures_mode;
 
   std::string prim_path_mask;
   char import_textures_dir[/*FILE_MAXDIR*/ 768];
-  eUSDTexNameCollisionMode tex_name_collision_mode;
-  eUSDPropertyImportMode property_import_mode;
+  TexNameCollisionMode tex_name_collision_mode;
+  PropertyImportMode property_import_mode;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used
