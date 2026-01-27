@@ -502,17 +502,14 @@ static bool mask_has_selection(const bContext *C)
   return false;
 }
 
-static bool selected_boundbox(const bContext *C,
-                              float min[2],
-                              float max[2],
-                              bool handles_as_control_point)
+static bool selected_boundbox(const bContext *C, float min[2], float max[2], bool handles_as_knot)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   if (sc->mode == SC_MODE_TRACKING) {
     return selected_tracking_boundbox(sc, min, max);
   }
 
-  if (ED_mask_selected_minmax(C, min, max, handles_as_control_point)) {
+  if (ED_mask_selected_minmax(C, min, max, handles_as_knot, false)) {
     MovieClip *clip = ED_space_clip_get_clip(sc);
     int width, height;
     ED_space_clip_get_size(sc, &width, &height);
@@ -541,8 +538,8 @@ bool clip_view_calculate_view_selection(
 
   /* NOTE: The `fit` argument is set to truth when doing "View to Selected" operator, and it set to
    * false when this function is used for Lock-to-Selection functionality. When locking to
-   * selection the handles are to use control point position. So we can derive the
-   * `handles_as_control_point` from `fit`.
+   * selection the handles are to use the knot position.
+   * So we can derive `handles_as_knot` from `fit`.
    *
    * TODO(sergey): Make such decision more explicit. Maybe pass use-case for the calculation to
    * tell operator from lock-to-selection apart. */
