@@ -535,7 +535,8 @@ void do_versions_after_linking_510(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 22)) {
-    bke::greasepencil::convert::material_stroke_fill_toggles_to_attributes(*bmain, *fd->reports);
+    bke::greasepencil::convert::material_stroke_fill_toggles_to_attributes(
+        *bmain, {}, *fd->reports);
     /* Set the stroke mode for all brushes. */
     for (Brush &brush : bmain->brushes) {
       if (BrushGpencilSettings *settings = brush.gpencil_settings) {

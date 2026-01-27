@@ -3084,7 +3084,7 @@ static void legacy_gpencil_object(ConversionData &conversion_data, Object &objec
 
 void legacy_main(Main &bmain,
                  BlendfileLinkAppendContext *lapp_context,
-                 BlendFileReadReport & /*reports*/)
+                 BlendFileReadReport &reports)
 {
   ConversionData conversion_data(bmain, lapp_context);
 
@@ -3104,6 +3104,7 @@ void legacy_main(Main &bmain,
   /* Allow remapping from legacy bGPdata IDs to new GreasePencil ones. */
   gpd_remapper.allow_idtype_mismatch = true;
 
+  Set<GreasePencil *> new_grease_pencils;
   for (bGPdata &legacy_gpd : bmain.gpencils) {
     /* Annotations still use legacy `bGPdata`, these should not be converted. Call to
      * #legacy_gpencil_sanitize_annotations above ensured to fully separate annotations from object
@@ -3120,10 +3121,16 @@ void legacy_main(Main &bmain,
       legacy_gpencil_to_grease_pencil(conversion_data, *new_grease_pencil, legacy_gpd);
       conversion_data.legacy_to_greasepencil_data.add(&legacy_gpd, new_grease_pencil);
     }
+    new_grease_pencils.add(new_grease_pencil);
     gpd_remapper.add(&legacy_gpd.id, &new_grease_pencil->id);
   }
 
   BKE_libblock_remap_multiple(&bmain, gpd_remapper, ID_REMAP_ALLOW_IDTYPE_MISMATCH);
+
+  /* !MAIN_VERSION_FILE_ATLEAST(new_bmain, 501, 22) */
+  /* Convert all the material stroke/fill settings to geometry attributes. */
+  bke::greasepencil::convert::material_stroke_fill_toggles_to_attributes(
+      bmain, new_grease_pencils, reports);
 
   if (conversion_data.lapp_context) {
     BKE_blendfile_link_append_context_item_foreach(
@@ -3250,10 +3257,15 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
   }
 }
 
-void material_stroke_fill_toggles_to_attributes(Main &bmain, BlendFileReadReport &reports)
+void material_stroke_fill_toggles_to_attributes(Main &bmain,
+                                                const std::optional<Set<GreasePencil *>> &filter,
+                                                BlendFileReadReport &reports)
 {
   using namespace blender;
   using namespace bke::greasepencil;
+  if (filter && filter->is_empty()) {
+    return;
+  }
   /* NOTE: We ignore the edge cases where Grease Pencil data is reused in different objects.
    * This does break visual compatibility in the case where different objects use different
    * materials that use a different stroke/fill toggle state.
@@ -3264,6 +3276,9 @@ void material_stroke_fill_toggles_to_attributes(Main &bmain, BlendFileReadReport
       continue;
     }
     GreasePencil *grease_pencil = id_cast<GreasePencil *>(object.data);
+    if (filter && !filter->contains(grease_pencil)) {
+      continue;
+    }
     if (grease_pencils.add(grease_pencil)) {
       for (Layer *layer : grease_pencil->layers_for_write()) {
         for (auto [frame_number, frame] : layer->frames().items()) {
@@ -3272,6 +3287,14 @@ void material_stroke_fill_toggles_to_attributes(Main &bmain, BlendFileReadReport
               reports, &object, layer->name(), frame_number, drawing);
         }
       }
+    }
+    else {
+      BLO_reportf_wrap(&reports,
+                       RPT_WARNING,
+                       RPT_("Skipped versioning materials of object '%s' because '%s' was already "
+                            "converted. Manual intervention might be required!"),
+                       object.id.name + 2,
+                       grease_pencil->id.name + 2);
     }
   }
 }
