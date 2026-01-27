@@ -738,6 +738,7 @@ enum eUserPref_Section {
   USER_SECTION_EXPERIMENTAL = 16,
   USER_SECTION_EXTENSIONS = 17,
   USER_SECTION_DEVELOPER_TOOLS = 18,
+  USER_SECTION_ASSETS = 19,
 };
 
 /** #UserDef_SpaceData.flag (State of the user preferences UI). */
