@@ -493,6 +493,13 @@ option(WITH_MATERIALX "Enable MaterialX Support" ON)
 # Hydra render engine
 option(WITH_HYDRA "Enable Hydra render engine" ON)
 
+# Storm tests (via USD or Hydra)
+option(WITH_STORM_TESTS_VULKAN "\
+Enable Storm tests using the Vulkan backend. Requires WITH_HYDRA."
+  OFF
+)
+mark_as_advanced(WITH_STORM_TESTS_VULKAN)
+
 # RTL Languages, Complex Shaping, OpenType Features
 option(WITH_FRIBIDI "Enable features relying on fribidi" OFF)
 option(WITH_HARFBUZZ "Enable features relying on harfbuzz" OFF)
@@ -884,6 +891,13 @@ else()
   # TODO: We should probably add more sanity checks for Windows and Mac as well
   set(WITH_LINUX_OFFICIAL_RELEASE_TESTS OFF)
 endif()
+
+option(WITH_UI_TESTS_VULKAN "\
+Enable UI tests using the Vulkan backend. \
+Requires WITH_UI_TESTS and WITH_GPU_RENDER_TESTS_VULKAN."
+  OFF
+)
+mark_as_advanced(WITH_UI_TESTS_VULKAN)
 
 option(WITH_TESTS_EXPERIMENTAL "\
 Run tests marked as experimental. \
@@ -2936,6 +2950,7 @@ if(FIRST_RUN)
   info_cfg_option(WITH_GPU_MESH_PAINT_TESTS)
   info_cfg_option(WITH_UI_TESTS)
   info_cfg_option(WITH_UI_TESTS_HEADLESS)
+  info_cfg_option(WITH_UI_TESTS_VULKAN)
   info_cfg_option(WITH_GPU_RENDER_TESTS_VULKAN)
   info_cfg_option(WITH_LINUX_OFFICIAL_RELEASE_TESTS)
 

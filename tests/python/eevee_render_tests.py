@@ -59,7 +59,7 @@ BLOCKLIST_METAL = [
 
 BLOCKLIST_VULKAN = [
     # Blocked due to difference in screen space tracing (to be investigated).
-    "image.blend"
+    "image.blend",
 ]
 
 BLOCKLIST_INTEL = [
