@@ -31,7 +31,7 @@ def blend_list(dirpath, blocklist, filter):
 
     if filter:
         if "-" in filter:
-            positive_filter, negative_filter = filter.split('-', maxsplit=2)
+            positive_filter, negative_filter = filter.split('-', maxsplit=1)
         else:
             positive_filter = filter
             negative_filter = ""
