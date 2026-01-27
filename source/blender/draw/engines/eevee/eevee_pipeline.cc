@@ -531,6 +531,13 @@ void ForwardPipeline::render(View &view,
   transp_buffer_.acquire(extent, use_colored_transparency());
 
   if (!use_colored_transparency()) {
+    /* NOTE: When using Vulkan this triggers a (false positive) validation warning about writing to
+     * an attachment that isn't filled. The warning could be removed by adding dummy attachments,
+     * recompiling the shader, etc. But it is not worth the hassle.
+     *
+     * VUID: Undefined-Value-ShaderOutputNotConsumed-DynamicRendering
+     * MessageId: 0x46877e3e
+     */
     transparent_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx),
                           GPU_ATTACHMENT_TEXTURE(transp_buffer_.r_channel_tx));
   }
