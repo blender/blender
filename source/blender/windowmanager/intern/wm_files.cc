@@ -2724,13 +2724,26 @@ static wmOperatorStatus wm_userpref_read_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static wmOperatorStatus wm_userpref_revert_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent * /*event*/)
+{
+  return WM_operator_confirm_ex(C,
+                                op,
+                                IFACE_("Revert to Saved Preferences"),
+                                IFACE_("Reload preferences from the last saved state"),
+                                IFACE_("Revert"),
+                                blender::ui::AlertIcon::Warning,
+                                false);
+}
+
 void WM_OT_read_userpref(wmOperatorType *ot)
 {
   ot->name = "Load Preferences";
   ot->idname = "WM_OT_read_userpref";
   ot->description = "Load last saved preferences";
 
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = wm_userpref_revert_invoke;
   ot->exec = wm_userpref_read_exec;
 }
 
