@@ -690,25 +690,26 @@ class STRIP_PT_time(StripButtonsPanel, Panel):
         is_effect = isinstance(strip, bpy.types.EffectStrip)
 
         # Get once.
-        frame_start = strip.frame_start
-        frame_final_start = strip.frame_final_start
-        frame_final_end = strip.frame_final_end
-        frame_final_duration = strip.frame_final_duration
-        frame_offset_start = strip.frame_offset_start
-        frame_offset_end = strip.frame_offset_end
+        content_start = strip.content_start
+        content_duration = strip.content_duration
+        content_end = strip.content_end
+        left_handle = strip.left_handle
+        duration = strip.duration
+        right_handle = strip.right_handle
 
         length_list = (
-            str(round(frame_start, 0)),
-            str(round(frame_final_end, 0)),
-            str(round(frame_final_duration, 0)),
-            str(round(frame_offset_start, 0)),
-            str(round(frame_offset_end, 0)),
+            str(round(content_start, 0)),
+            str(round(content_duration, 0)),
+            str(round(content_end, 0)),
         )
 
         if not is_effect:
             length_list = length_list + (
-                str(round(strip.animation_offset_start, 0)),
-                str(round(strip.animation_offset_end, 0)),
+                str(round(left_handle, 0)),
+                str(round(duration, 0)),
+                str(round(right_handle, 0)),
+                str(round(strip.content_trim_start, 0)),
+                str(round(strip.content_trim_end, 0)),
             )
 
         max_length = max(len(x) for x in length_list)
@@ -721,35 +722,43 @@ class STRIP_PT_time(StripButtonsPanel, Panel):
         sub = layout.row(align=True)
         split = sub.split(factor=factor + max_factor)
         split.alignment = 'RIGHT'
-        split.label(text="")
-        split.prop(strip, "show_retiming_keys")
-
-        sub = layout.row(align=True)
-        split = sub.split(factor=factor + max_factor)
-        split.alignment = 'RIGHT'
         split.label(text="Channel")
         split.prop(strip, "channel", text="")
+
+        if not is_effect or strip.input_count == 0:
+            layout.alignment = 'RIGHT'
+            sub = layout.column(align=True)
+
+            split = sub.split(factor=factor + max_factor, align=True)
+            split.alignment = 'RIGHT'
+            split.label(text="Left Handle")
+            split.prop(strip, "left_handle", text=smpte_from_frame(left_handle))
+
+            split = sub.split(factor=factor + max_factor, align=True)
+            split.alignment = 'RIGHT'
+            split.label(text="Strip Duration")
+            split.prop(strip, "duration", text=smpte_from_frame(duration))
+
+            split = sub.split(factor=factor + max_factor, align=True)
+            split.alignment = 'RIGHT'
+            split.label(text="Right Handle")
+            split.prop(strip, "right_handle", text=smpte_from_frame(right_handle))
 
         sub = layout.column(align=True)
         split = sub.split(factor=factor + max_factor, align=True)
         split.alignment = 'RIGHT'
-        split.label(text="Start")
-        split.prop(strip, "frame_start", text=smpte_from_frame(frame_start))
+        split.label(text="Content Start")
+        split.prop(strip, "content_start", text=smpte_from_frame(content_start))
 
         split = sub.split(factor=factor + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="Duration")
-        split.prop(strip, "frame_final_duration", text=smpte_from_frame(frame_final_duration))
+        split.prop(strip, "content_duration", text=smpte_from_frame(content_duration))
 
-        # Use label, editing this value from the UI allows negative values,
-        # users can adjust duration.
         split = sub.split(factor=factor + max_factor, align=True)
         split.alignment = 'RIGHT'
         split.label(text="End")
-        split = split.split(factor=factor + 0.3 + max_factor, align=True)
-        split.label(text="{:>14s}".format(smpte_from_frame(frame_final_end)), translate=False)
-        split.alignment = 'RIGHT'
-        split.label(text=str(frame_final_end) + " ")
+        split.prop(strip, "content_end", text=smpte_from_frame(content_end))
 
         if not is_effect:
 
@@ -758,46 +767,33 @@ class STRIP_PT_time(StripButtonsPanel, Panel):
 
             split = sub.split(factor=factor + max_factor, align=True)
             split.alignment = 'RIGHT'
-            split.label(text="Strip Offset Start")
-            split.prop(strip, "frame_offset_start", text=smpte_from_frame(frame_offset_start))
+            split.label(text="Content Trim Start")
+            split.prop(strip, "content_trim_start", text=smpte_from_frame(strip.content_trim_start))
 
             split = sub.split(factor=factor + max_factor, align=True)
             split.alignment = 'RIGHT'
             split.label(text="End")
-            split.prop(strip, "frame_offset_end", text=smpte_from_frame(frame_offset_end))
+            split.prop(strip, "content_trim_end", text=smpte_from_frame(strip.content_trim_end))
 
-            layout.alignment = 'RIGHT'
-            sub = layout.column(align=True)
-
-            split = sub.split(factor=factor + max_factor, align=True)
+        if strip.type == 'SOUND':
+            sub2 = layout.column(align=True)
+            split = sub2.split(factor=factor + max_factor, align=True)
             split.alignment = 'RIGHT'
-            split.label(text="Hold Offset Start")
-            split.prop(strip, "animation_offset_start", text=smpte_from_frame(strip.animation_offset_start))
-
-            split = sub.split(factor=factor + max_factor, align=True)
-            split.alignment = 'RIGHT'
-            split.label(text="End")
-            split.prop(strip, "animation_offset_end", text=smpte_from_frame(strip.animation_offset_end))
-
-            if strip.type == 'SOUND':
-                sub2 = layout.column(align=True)
-                split = sub2.split(factor=factor + max_factor, align=True)
-                split.alignment = 'RIGHT'
-                split.label(text="Sound Offset", text_ctxt=i18n_contexts.id_sound)
-                split.prop(strip, "sound_offset", text="")
+            split.label(text="Sound Offset", text_ctxt=i18n_contexts.id_sound)
+            split.prop(strip, "sound_offset", text="")
 
         col = layout.column(align=True)
         col = col.box()
         col.active = (
-            (frame_current >= frame_final_start) and
-            (frame_current <= frame_final_start + frame_final_duration)
+            (frame_current >= left_handle) and
+            (frame_current <= left_handle + duration)
         )
 
         split = col.split(factor=factor + max_factor, align=True)
         split.alignment = 'RIGHT'
-        split.label(text="Current Frame")
+        split.label(text="Playhead Offset")
         split = split.split(factor=factor + 0.3 + max_factor, align=True)
-        frame_display = frame_current - frame_final_start
+        frame_display = frame_current - left_handle
         split.label(text="{:>14s}".format(smpte_from_frame(frame_display)), translate=False)
         split.alignment = 'RIGHT'
         split.label(text=str(frame_display) + " ")
@@ -810,9 +806,15 @@ class STRIP_PT_time(StripButtonsPanel, Panel):
                 end = scene.frame_end
                 split = col.split(factor=factor + max_factor)
                 split.alignment = 'RIGHT'
-                split.label(text="Original Frame Range")
+                split.label(text="Scene Frame Range")
                 split.alignment = 'LEFT'
                 split.label(text="{:d}-{:d} ({:d})".format(sta, end, end - sta + 1), translate=False)
+
+        sub = layout.row(align=True)
+        split = sub.split(factor=factor + max_factor)
+        split.alignment = 'RIGHT'
+        split.label(text="")
+        split.prop(strip, "show_retiming_keys")
 
 
 class STRIP_PT_adjust_sound(StripButtonsPanel, Panel):
