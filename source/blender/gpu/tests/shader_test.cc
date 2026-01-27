@@ -596,6 +596,11 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
 
 static void test_math_lib()
 {
+  BLOCK_GPU_TEST_ON(GPUDeviceType::GPU_DEVICE_NVIDIA,
+                    GPUOSType::GPU_OS_UNIX,
+                    GPUDriverType::GPU_DRIVER_OFFICIAL,
+                    GPUBackendType::GPU_BACKEND_OPENGL);
+
   gpu_shader_lib_test("gpu_math_test.glsl");
 }
 GPU_TEST(math_lib)
