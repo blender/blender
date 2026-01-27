@@ -2197,7 +2197,7 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("grease_pencil.select_by_stroke_mode", "mode", text="By Stroke Mode")
+        layout.operator_menu_enum("grease_pencil.select_by_stroke_type", "type", text="By Stroke Type")
         layout.operator_menu_enum("grease_pencil.select_similar", "mode")
         layout.operator("grease_pencil.select_fill")
         layout.operator("grease_pencil.select_linked")
@@ -5850,7 +5850,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.separator()
 
         # Set stroke mode
-        layout.operator_menu_enum("grease_pencil.set_stroke_mode", "mode", text="Set Stroke Mode")
+        layout.operator_menu_enum("grease_pencil.set_stroke_type", "type", text="Set Stroke Type")
 
         layout.separator()
 
@@ -8391,7 +8391,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Set stroke mode
-            col.operator_menu_enum("grease_pencil.set_stroke_mode", "mode", text="Set Stroke Mode")
+            col.operator_menu_enum("grease_pencil.set_stroke_type", "type", text="Set Stroke Type")
 
             col.separator()
 
@@ -8444,7 +8444,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Set stroke mode
-            col.operator_menu_enum("grease_pencil.set_stroke_mode", "mode", text="Set Stroke Mode")
+            col.operator_menu_enum("grease_pencil.set_stroke_type", "mode", text="Set Stroke Type")
 
             col.separator()
 

@@ -5039,15 +5039,15 @@ static void GREASE_PENCIL_OT_set_corner_type(wmOperatorType *ot)
 /** \name Set Stroke Mode Operator
  * \{ */
 
-enum class StrokeMode : int8_t { Stroke = 0, Fill = 1, Both = 2 };
+enum class StrokeType : int8_t { Stroke = 0, Fill = 1, Both = 2 };
 
-static wmOperatorStatus grease_pencil_set_stroke_mode_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const StrokeMode mode = StrokeMode(RNA_enum_get(op->ptr, "mode"));
+  const StrokeType type = StrokeType(RNA_enum_get(op->ptr, "type"));
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -5066,23 +5066,23 @@ static wmOperatorStatus grease_pencil_set_stroke_mode_exec(bContext *C, wmOperat
     bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_span<int>(
         "fill_id", bke::AttrDomain::Curve);
 
-    switch (mode) {
-      case StrokeMode::Stroke: {
+    switch (type) {
+      case StrokeType::Stroke: {
         index_mask::masked_fill(hide_stroke.span, false, strokes);
         index_mask::masked_fill(fill_ids.span, 0, strokes);
         break;
       }
-      case StrokeMode::Fill: {
+      case StrokeType::Fill: {
         index_mask::masked_fill(hide_stroke.span, true, strokes);
         break;
       }
-      case StrokeMode::Both: {
+      case StrokeType::Both: {
         index_mask::masked_fill(hide_stroke.span, false, strokes);
         break;
       }
     }
 
-    if (ELEM(mode, StrokeMode::Fill, StrokeMode::Both)) {
+    if (ELEM(type, StrokeType::Fill, StrokeType::Both)) {
       /* Get the first id that does not already exist. */
       int new_fill_id = *std::max_element(fill_ids.span.begin(), fill_ids.span.end()) + 1;
 
@@ -5114,28 +5114,28 @@ static wmOperatorStatus grease_pencil_set_stroke_mode_exec(bContext *C, wmOperat
   return OPERATOR_FINISHED;
 }
 
-static void GREASE_PENCIL_OT_set_stroke_mode(wmOperatorType *ot)
+static void GREASE_PENCIL_OT_set_stroke_type(wmOperatorType *ot)
 {
-  static const EnumPropertyItem prop_stroke_mode_types[] = {
-      {int(StrokeMode::Stroke), "STROKE", 0, "Stroke", ""},
-      {int(StrokeMode::Fill), "FILL", 0, "Fill", ""},
-      {int(StrokeMode::Both), "BOTH", 0, "Both", ""},
+  static const EnumPropertyItem prop_stroke_type_types[] = {
+      {int(StrokeType::Stroke), "STROKE", 0, "Stroke", ""},
+      {int(StrokeType::Fill), "FILL", 0, "Fill", ""},
+      {int(StrokeType::Both), "BOTH", 0, "Both", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* Identifiers. */
-  ot->name = "Set Stroke Mode";
-  ot->idname = "GREASE_PENCIL_OT_set_stroke_mode";
-  ot->description = "Set the stroke mode (stroke/fill) of the selected strokes";
+  ot->name = "Set Stroke Type";
+  ot->idname = "GREASE_PENCIL_OT_set_stroke_type";
+  ot->description = "Set the stroke type (stroke, fill, or both) of the selected strokes";
 
   /* Callbacks. */
-  ot->exec = grease_pencil_set_stroke_mode_exec;
+  ot->exec = grease_pencil_set_stroke_type_exec;
   ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->prop = RNA_def_enum(
-      ot->srna, "mode", prop_stroke_mode_types, int(StrokeMode::Stroke), "Mode", "");
+      ot->srna, "type", prop_stroke_type_types, int(StrokeType::Stroke), "Type", "");
 }
 
 /** \} */
@@ -5450,7 +5450,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_outline);
   WM_operatortype_append(GREASE_PENCIL_OT_convert_curve_type);
   WM_operatortype_append(GREASE_PENCIL_OT_set_corner_type);
-  WM_operatortype_append(GREASE_PENCIL_OT_set_stroke_mode);
+  WM_operatortype_append(GREASE_PENCIL_OT_set_stroke_type);
   WM_operatortype_append(GREASE_PENCIL_OT_join_fills);
   WM_operatortype_append(GREASE_PENCIL_OT_separate_fills);
 }
