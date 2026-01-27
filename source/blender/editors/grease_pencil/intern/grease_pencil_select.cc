@@ -1196,6 +1196,107 @@ static void GREASE_PENCIL_OT_material_select(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+enum class StrokeMode : int8_t { Stroke, Fill };
+
+static wmOperatorStatus grease_pencil_select_by_stroke_mode_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
+
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(ts, object);
+
+  const StrokeMode stroke_mode = StrokeMode(RNA_enum_get(op->ptr, "mode"));
+  const bool select = !RNA_boolean_get(op->ptr, "deselect");
+  const int action = select ? SEL_SELECT : SEL_DESELECT;
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
+        *object, info.drawing, info.layer_index, memory);
+    if (selectable_strokes.is_empty()) {
+      return;
+    }
+
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    if (stroke_mode == StrokeMode::Stroke) {
+      if (const VArray<bool> hide_stroke = *curves.attributes().lookup<bool>(
+              "hide_stroke", bke::AttrDomain::Curve))
+      {
+        IndexMask mask = IndexMask::from_predicate(
+            selectable_strokes, GrainSize(1024), memory, [&](const int index) {
+              return !hide_stroke[index];
+            });
+        if (selection_domain == bke::AttrDomain::Point) {
+          mask = IndexMask::from_ranges(curves.points_by_curve(), mask, memory);
+        }
+        ed::curves::select_all(info.drawing.strokes_for_write(), mask, selection_domain, action);
+      }
+      else {
+        ed::curves::select_all(info.drawing.strokes_for_write(), selection_domain, action);
+      }
+      changed.store(true, std::memory_order_relaxed);
+    }
+    else if (stroke_mode == StrokeMode::Fill) {
+      if (const VArray<int> fill_id = *curves.attributes().lookup<int>("fill_id",
+                                                                       bke::AttrDomain::Curve))
+      {
+        IndexMask mask = IndexMask::from_predicate(
+            selectable_strokes, GrainSize(1024), memory, [&](const int index) {
+              return fill_id[index] != 0;
+            });
+        if (selection_domain == bke::AttrDomain::Point) {
+          mask = IndexMask::from_ranges(curves.points_by_curve(), mask, memory);
+        }
+        ed::curves::select_all(info.drawing.strokes_for_write(), mask, selection_domain, action);
+        changed.store(true, std::memory_order_relaxed);
+      }
+    }
+  });
+
+  if (changed) {
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static const EnumPropertyItem select_by_stroke_mode_items[] = {
+    {int(StrokeMode::Stroke), "STROKE", 0, "Stroke", ""},
+    {int(StrokeMode::Fill), "FILL", 0, "Fill", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static void GREASE_PENCIL_OT_select_by_stroke_mode(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Select By Stroke Mode";
+  ot->idname = "GREASE_PENCIL_OT_select_by_stroke_mode";
+  ot->description = "Select/Deselect all strokes or fills";
+
+  /* callbacks. */
+  ot->exec = grease_pencil_select_by_stroke_mode_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  /* flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* props */
+  ot->prop = RNA_def_enum(ot->srna, "mode", select_by_stroke_mode_items, 0, "Mode", "");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Unselect strokes");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
 }  // namespace ed::greasepencil
 
 bke::AttrDomain ED_grease_pencil_edit_selection_domain_get(const ToolSettings *tool_settings)
@@ -1305,6 +1406,7 @@ void ED_operatortypes_grease_pencil_select()
   WM_operatortype_append(GREASE_PENCIL_OT_select_fill);
   WM_operatortype_append(GREASE_PENCIL_OT_set_selection_mode);
   WM_operatortype_append(GREASE_PENCIL_OT_material_select);
+  WM_operatortype_append(GREASE_PENCIL_OT_select_by_stroke_mode);
 }
 
 }  // namespace blender
