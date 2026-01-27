@@ -386,6 +386,15 @@ set(ZLIB_DIR ${LIBDIR}/zlib)
 set(fmt_DIR ${LIBDIR}/fmt/lib/cmake/config)
 find_package(fmt REQUIRED CONFIG)
 
+set(Eigen3_DIR ${LIBDIR}/eigen)
+find_package(Eigen3 REQUIRED CONFIG)
+
+if(WITH_LIBMV)
+  set(absl_DIR ${LIBDIR}/abseil)
+  set(Ceres_DIR ${LIBDIR}/ceres)
+  find_package(Ceres REQUIRED CONFIG)
+endif()
+
 windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.
 windows_find_package(PNG)
 if(NOT PNG_FOUND)

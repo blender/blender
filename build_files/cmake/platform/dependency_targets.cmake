@@ -65,15 +65,24 @@ if(WITH_OPENVDB)
 endif()
 
 # -----------------------------------------------------------------------------
+# Configure Ceres
+add_library(bf_deps_optional_ceres INTERFACE)
+add_library(bf::dependencies::optional::ceres ALIAS bf_deps_optional_ceres)
+
+if(TARGET Ceres::ceres)
+  target_compile_definitions(bf_deps_optional_ceres INTERFACE WITH_CERES)
+  target_link_libraries(bf_deps_optional_ceres INTERFACE Ceres::ceres)
+endif()
+
+# -----------------------------------------------------------------------------
 # Configure Eigen
 
 add_library(bf_deps_eigen INTERFACE)
 add_library(bf::dependencies::eigen ALIAS bf_deps_eigen)
-
-target_include_directories(bf_deps_eigen SYSTEM INTERFACE ${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(bf_deps_eigen INTERFACE Eigen3::Eigen)
 
 if(WITH_TBB)
-  target_compile_definitions(bf_deps_eigen INTERFACE WITH_TBB)
+  target_compile_definitions(bf_deps_eigen INTERFACE EIGEN_HAS_TBB)
   target_include_directories(bf_deps_eigen SYSTEM INTERFACE ${TBB_INCLUDE_DIRS})
   target_link_libraries(bf_deps_eigen INTERFACE ${TBB_LIBRARIES})
 endif()

@@ -536,3 +536,23 @@ index 1c59ad0f70c..f8836ed0d0e 100644
  
              std::set<int> ids;
              for (int i = 0; i < arcs.size(); ++i) {
+diff --git a/extern/quadriflow/src/field-math.hpp b/extern/quadriflow/src/field-math.hpp
+index 86ed4b2b1f4..3f4fe3fa097 100644
+--- a/extern/quadriflow/src/field-math.hpp
++++ b/extern/quadriflow/src/field-math.hpp
+@@ -292,7 +292,6 @@ inline Vector3d Travel(Vector3d p, const Vector3d &dir, double &len, int &f, Vec
+         double max_len = 1e30;
+         bool found = false;
+         int next_id, next_f;
+-        Vector3d next_q;
+         Matrix3d m, n;
+         m.col(0) = t1;
+         m.col(1) = t2;
+@@ -399,7 +398,6 @@ inline Vector3d TravelField(Vector3d p, Vector3d &pt, double &len, int &f, Vecto
+         double max_len = 1e30;
+         bool found = false;
+         int next_id = -1, next_f = -1;
+-        Vector3d next_q;
+         Matrix3d m, n;
+         m.col(0) = t1;
+         m.col(1) = t2;
