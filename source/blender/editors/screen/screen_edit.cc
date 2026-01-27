@@ -525,7 +525,10 @@ static bool screen_area_join_ex(bContext *C,
       if (screen_area_close(C, reports, screen, side1, (offset1 > 0) ? sa2 : sa1)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
-        ED_area_tag_redraw(sa1);
+        if (sa1->spacetype == SPACE_OUTLINER) {
+          /* Outliner needs a full rebuild. #153395. */
+          ED_area_tag_redraw(sa1);
+        }
       }
     }
     if (side2) {
@@ -534,7 +537,10 @@ static bool screen_area_join_ex(bContext *C,
       if (screen_area_close(C, reports, screen, side2, (offset2 > 0) ? sa1 : sa2)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
-        ED_area_tag_redraw(sa1);
+        if (sa1->spacetype == SPACE_OUTLINER) {
+          /* Outliner needs a full rebuild. #153395. */
+          ED_area_tag_redraw(sa1);
+        }
       }
     }
   }
