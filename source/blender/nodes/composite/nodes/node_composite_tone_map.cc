@@ -339,39 +339,16 @@ class ToneMapOperation : public NodeOperation {
    * from equations (6) and (7) in Reinhard's 2005 paper. */
   float4 compute_global_adaptation_level()
   {
-    const float4 average_color = compute_average_color();
-    const float average_luminance = compute_average_luminance();
-    const float chromatic_adaptation = get_chromatic_adaptation();
-    return math::interpolate(float4(average_luminance), average_color, chromatic_adaptation);
-  }
-
-  float4 compute_average_color()
-  {
-    /* The average color will reduce to zero if chromatic adaptation is zero, so just return zero
-     * in this case to avoid needlessly computing the average. See the trilinear interpolation
-     * equations constructed from equations (6) and (7) in Reinhard's 2005 paper. */
-    if (get_chromatic_adaptation() == 0.0f) {
-      return float4(0.0f);
-    }
-
-    const Result &input = get_input("Image");
-    return sum_color(context(), input) / (input.domain().data_size.x * input.domain().data_size.y);
-  }
-
-  float compute_average_luminance()
-  {
-    /* The average luminance will reduce to zero if chromatic adaptation is one, so just return
-     * zero in this case to avoid needlessly computing the average. See the trilinear interpolation
-     * equations constructed from equations (6) and (7) in Reinhard's 2005 paper. */
-    if (get_chromatic_adaptation() == 1.0f) {
-      return 0.0f;
-    }
+    const Result &input = this->get_input("Image");
+    const float4 mean_color = sum_color(context(), input) /
+                              math::reduce_mul(input.domain().data_size);
 
     float luminance_coefficients[3];
     IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-    const Result &input = get_input("Image");
-    float sum = sum_luminance(context(), input, luminance_coefficients);
-    return sum / (input.domain().data_size.x * input.domain().data_size.y);
+    const float mean_luminance = math::dot(mean_color.xyz(), float3(luminance_coefficients));
+
+    const float chromatic_adaptation = this->get_chromatic_adaptation();
+    return math::interpolate(float4(mean_luminance), mean_color, chromatic_adaptation);
   }
 
   /* Computes equation (5) from Reinhard's 2005 paper. */

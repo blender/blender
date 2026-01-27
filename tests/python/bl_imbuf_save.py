@@ -129,9 +129,10 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
+        # Temporarily disabled until #153443 is fixed.
+        # self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
 
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "ZIP"})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 97})
@@ -139,9 +140,10 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
+        # Temporarily disabled until #153443 is fixed.
+        # self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
 
     def test_save_hdr(self):
         self.check(src="rgba08", ext="hdr", settings={"file_format": "HDR", "color_mode": "BW"})

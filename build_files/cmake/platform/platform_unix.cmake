@@ -954,21 +954,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     unset(MOLD_BIN)
   endif()
 
-  if(WITH_LINKER_GOLD AND _IS_LINKER_DEFAULT)
-    execute_process(
-      COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version
-      ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-    if("${LD_VERSION}" MATCHES "GNU gold")
-      string(APPEND CMAKE_EXE_LINKER_FLAGS    " -fuse-ld=gold")
-      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-      set(_IS_LINKER_DEFAULT OFF)
-    else()
-      message(STATUS "GNU gold linker isn't available, using the default system linker.")
-    endif()
-    unset(LD_VERSION)
-  endif()
-
   if(WITH_LINKER_LLD AND _IS_LINKER_DEFAULT)
     execute_process(
       COMMAND ${CMAKE_C_COMPILER} -fuse-ld=lld -Wl,--version
