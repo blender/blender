@@ -2912,14 +2912,18 @@ static void rna_generate_blender(BlenderRNA *brna, FILE *f)
           "BlenderRNA rna_blender_rna_create()\n"
           "{\n"
           "\tBlenderRNA brna{};\n");
+
   /* Allocate the structs before creating their definitions, so they can reference each other out
    * of their definition order.*/
-  for (std::unique_ptr<StructRNA> &srna : brna->structs) {
-    fprintf(f,
-            "\tbrna.structs.append(std::make_unique<StructRNA>());\n"
-            "\tRNA_%s = brna.structs.last().get();\n",
-            srna->identifier);
+  fprintf(f, "\tbrna.structs.resize(%d);\n", int(brna->structs.size()));
+  fprintf(f,
+          "\tfor (const int i : brna.structs.index_range()) {\n"
+          "\t\tbrna.structs[i] = std::make_unique<StructRNA>();\n"
+          "\t}\n");
+  for (const int i : brna->structs.index_range()) {
+    fprintf(f, "\tRNA_%s = brna.structs[%d].get();\n", brna->structs[i]->identifier, i);
   }
+
   for (std::unique_ptr<StructRNA> &srna : brna->structs) {
     fprintf(f, "\tregister_struct_%s(brna);\n", srna->identifier);
   }
