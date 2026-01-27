@@ -546,9 +546,17 @@ void Film::sync()
    *
    * Compute shader is also used to work around Metal/Intel iGPU issues concerning
    * read write support for array textures. In this case the copy_ps_ is used to
-   * copy the right color/value to the framebuffer. */
+   * copy the right color/value to the framebuffer.
+   *
+   * It is also disabled for Windows on ARM as certain GPU/Driver combinations will cause a driver
+   * compiler crash. There is no way to detect up front when this is the case.
+   *
+   * See #153463
+   */
   use_compute_ = !inst_.is_viewport() ||
-                 GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY);
+                 GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY) ||
+                 GPU_type_matches_ex(
+                     GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_VULKAN);
 
   eShaderType shader = use_compute_ ? FILM_COMP : FILM_FRAG;
 
