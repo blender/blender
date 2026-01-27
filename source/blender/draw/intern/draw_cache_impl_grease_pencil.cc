@@ -1518,7 +1518,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
         const int fill_index = fill_index_by_curves[curve_i];
 
         const bool is_filled = fill_index != -1;
-        const bool active_filled = is_filled && (first_curves[curve_i] == curve_i);
+        const bool active_filled = triangles && is_filled && (first_curves[curve_i] == curve_i);
 
         if (active_filled) {
           const int fill_index = fill_index_by_curves[curve_i];
