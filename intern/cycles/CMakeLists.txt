@@ -199,17 +199,12 @@ endif()
 # Definitions and Includes
 
 add_definitions(
-  ${BOOST_DEFINITIONS}
-)
-
-add_definitions(
   -DCCL_NAMESPACE_BEGIN=namespace\ ccl\ {
   -DCCL_NAMESPACE_END=}
 )
 
 include_directories(
   SYSTEM
-  ${BOOST_INCLUDE_DIR}
   ${OPENIMAGEIO_INCLUDE_DIRS}
   ${IMATH_INCLUDE_DIRS}
   ${OPENEXR_INCLUDE_DIRS}

@@ -93,10 +93,6 @@ if(DEFINED LIBDIR)
   include(platform_old_libs_update)
 
   set(WITH_STATIC_LIBS ON)
-  set(Boost_NO_BOOST_CMAKE ON)
-  set(Boost_ROOT ${LIBDIR}/boost)
-  set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)
-  set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
   set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
   set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
@@ -438,53 +434,6 @@ if(WITH_MATERIALX)
   set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
 endif()
 add_bundled_libraries(materialx/lib)
-
-# With Blender 4.4 libraries there is no more Boost. But Linux distros may have
-# older versions of libs like USD with a header dependency on Boost, so can't
-# remove this entirely yet.
-if(WITH_BOOST)
-  if(DEFINED LIBDIR AND NOT EXISTS "${LIBDIR}/boost")
-    set(WITH_BOOST OFF)
-    set(BOOST_LIBRARIES)
-    set(BOOST_PYTHON_LIBRARIES)
-    set(BOOST_INCLUDE_DIR)
-  endif()
-endif()
-
-if(WITH_BOOST)
-  # uses in build instructions to override include and library variables
-  if(NOT BOOST_CUSTOM)
-    if(WITH_STATIC_LIBS)
-      set(Boost_USE_STATIC_LIBS OFF)
-    endif()
-    set(Boost_USE_MULTITHREADED ON)
-    set(__boost_packages)
-    if(WITH_USD AND USD_PYTHON_SUPPORT)
-      list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
-    endif()
-    set(Boost_NO_WARN_NEW_VERSIONS ON)
-    find_package(Boost 1.48 COMPONENTS ${__boost_packages})
-    if(NOT Boost_FOUND)
-      # try to find non-multithreaded if -mt not found, this flag
-      # doesn't matter for us, it has nothing to do with thread
-      # safety, but keep it to not disturb build setups
-      set(Boost_USE_MULTITHREADED OFF)
-      find_package(Boost 1.48 COMPONENTS ${__boost_packages})
-    endif()
-    unset(__boost_packages)
-    mark_as_advanced(Boost_DIR)  # why doesn't boost do this?
-    mark_as_advanced(Boost_INCLUDE_DIR)  # why doesn't boost do this?
-  endif()
-
-  # Boost Python is the only library Blender directly depends on, though USD headers.
-  if(WITH_USD AND USD_PYTHON_SUPPORT)
-    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
-  endif()
-  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
-  set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
-  set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
-endif()
-add_bundled_libraries(boost/lib)
 
 if(WITH_PUGIXML)
   find_package_wrapper(PugiXML)
