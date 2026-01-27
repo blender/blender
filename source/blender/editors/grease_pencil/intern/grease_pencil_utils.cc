@@ -1673,6 +1673,9 @@ static StrokeVisibilityStatus get_visibility_status_for_draw_operator(Object *ob
                                                                       const Brush &brush)
 {
   const Material *material = BKE_grease_pencil_object_material_from_brush_get(object, &brush);
+  if (!material) {
+    return StrokeVisibilityStatus::Visible;
+  }
 
   const bool is_stroke_visible = material->gp_style->stroke_rgba[3] > 0.0f;
   const bool is_fill_visible = material->gp_style->fill_rgba[3] > 0.0f;
