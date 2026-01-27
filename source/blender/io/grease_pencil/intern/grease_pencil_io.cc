@@ -439,7 +439,7 @@ void GreasePencilExporter::foreach_shape_in_layer(const Object &object,
 
     BLI_assert(material->gp_style != nullptr);
     if (material->gp_style->flag & GP_MATERIAL_HIDE) {
-      return;
+      continue;
     }
     const bool show_stroke = !hide_stroke[curve_i];
 
@@ -484,11 +484,13 @@ void GreasePencilExporter::foreach_shape_in_layer(const Object &object,
         const bool round_cap = start_cap == GP_STROKE_CAP_TYPE_ROUND ||
                                end_cap == GP_STROKE_CAP_TYPE_ROUND;
 
+        const Array<int> shape(1, curve_i);
+
         shape_fn(positions,
                  positions_left,
                  positions_right,
                  points_by_curve,
-                 {curve_i},
+                 shape.as_span(),
                  cyclic,
                  types,
                  stroke_color,
@@ -526,12 +528,15 @@ void GreasePencilExporter::foreach_shape_in_layer(const Object &object,
         const Span<float3> outline_positions_right = *outline.handle_positions_right();
         const VArray<int8_t> outline_types = outline.curve_types();
 
+        Array<int> outline_shape(outline.curves_num());
+        array_utils::fill_index_range<int>(outline_shape.as_mutable_span());
+
         /* Use stroke color to fill the outline. */
         shape_fn(outline_positions,
                  outline_positions_left,
                  outline_positions_right,
                  outline_points_by_curve,
-                 {0},
+                 outline_shape.as_span(),
                  outline_cyclic,
                  outline_types,
                  stroke_color,
