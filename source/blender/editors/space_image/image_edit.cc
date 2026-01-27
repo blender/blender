@@ -122,6 +122,7 @@ void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
     if (sima->image) {
       Main *bmain = CTX_data_main(C);
       BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+      WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, sima);
     }
   }
 }
