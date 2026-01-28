@@ -61,9 +61,14 @@ Here is an example of threading supported by Blender:
    print("Starting threads...")
    for t in threads:
       t.start()
+
+   # NOTE: While threads are running, no code (including the main thread)
+   # may use bpy or any Blender API - only standard Python or third-party modules.
    print("Waiting for threads to finish...")
    for t in threads:
       t.join()
+
+   # It's now safe to use bpy again since all threads have finished.
    print("Threads all done, now Blender can continue")
 
 This an example of an **unsupported** case, where a timer which runs many times
