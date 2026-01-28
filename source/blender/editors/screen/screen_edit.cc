@@ -1058,7 +1058,15 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 
     if (actedge) {
       if (screen_geom_edge_is_horizontal(actedge)) {
-        WM_cursor_set(win, WM_CURSOR_Y_MOVE);
+        rcti screen_rect;
+        WM_window_screen_rect_calc(win, &screen_rect);
+        /* Check if edge is at top of screen (with small threshold that scales with interface). */
+        if (actedge->v1->vec.y >= screen_rect.ymax - int(2.0f * UI_SCALE_FAC)) {
+          WM_cursor_set(win, WM_CURSOR_DEFAULT);
+        }
+        else {
+          WM_cursor_set(win, WM_CURSOR_Y_MOVE);
+        }
       }
       else {
         WM_cursor_set(win, WM_CURSOR_X_MOVE);
