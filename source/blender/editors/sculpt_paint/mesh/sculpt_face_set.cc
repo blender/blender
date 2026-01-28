@@ -996,7 +996,7 @@ static wmOperatorStatus change_visibility_exec(bContext *C, wmOperator *op)
   }
 
   const VisibilityMode mode = VisibilityMode(RNA_enum_get(op->ptr, "mode"));
-  const int active_face_set = active_face_set_get(object);
+  const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
 
   undo::push_begin(scene, object, op);
 
@@ -1103,6 +1103,9 @@ static wmOperatorStatus change_visibility_invoke(bContext *C, wmOperator *op, co
   vert_random_access_ensure(ob);
   cursor_geometry_info_update(C, &cgi, mval_fl, false);
 
+  const int active_face_set = active_face_set_get(ob);
+  RNA_int_set(op->ptr, "active_face_set", active_face_set);
+
   return change_visibility_exec(C, op);
 }
 
@@ -1137,6 +1140,10 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
   RNA_def_enum(ot->srna, "mode", modes, int(VisibilityMode::Toggle), "Mode", "");
+
+  PropertyRNA *prop = RNA_def_int(
+      ot->srna, "active_face_set", 0, 0, INT_MAX, "Active Face Set", "", 0, INT_MAX);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static wmOperatorStatus randomize_colors_exec(bContext *C, wmOperator * /*op*/)
