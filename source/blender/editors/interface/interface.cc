@@ -2290,7 +2290,7 @@ void block_draw(const bContext *C, Block *block)
   BLF_batch_draw_begin();
   widgetbase_draw_cache_begin();
 
-  if (block_is_popup_any(block) && block->flag & (BLOCK_CLIPTOP | BLOCK_CLIPBOTTOM)) {
+  if (block->flag & (BLOCK_CLIPTOP | BLOCK_CLIPBOTTOM)) {
     const int arrow_size = UI_MENU_SCROLL_MOUSE / block->aspect;
     const int ymax = rect.ymax - ((block->flag & BLOCK_CLIPTOP) ? arrow_size : 0.0f);
     const int ymin = rect.ymin + ((block->flag & BLOCK_CLIPBOTTOM) ? arrow_size : 0.0f);
