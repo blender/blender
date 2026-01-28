@@ -7517,6 +7517,10 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "Bundle in Geometry",
                            "Support storing custom bundles in a geometry in Geometry Nodes");
 
+  prop = RNA_def_property(srna, "use_remote_asset_libraries", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Remote Asset Libraries", "Enable asset libraries served over HTTP/HTTPS");
+
   prop = RNA_def_property(srna, "use_extensions_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,

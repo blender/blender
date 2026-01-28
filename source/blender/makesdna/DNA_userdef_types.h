@@ -811,7 +811,8 @@ struct UserDef_Experimental {
   char use_shader_node_previews = 0;
   char use_geometry_nodes_lists = 0;
   char use_geometry_bundle = 0;
-  char _pad[4] = {};
+  char use_remote_asset_libraries = 0;
+  char _pad[3] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)
