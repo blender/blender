@@ -973,6 +973,7 @@ class NODE_MT_gn_volume_operations_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "GeometryNodeSDFGridOffset")
         layout.separator()
         self.node_operator(layout, "GeometryNodeFieldToGrid")
+        self.node_operator(layout, "GeometryNodeGridDilateAndErode")
         self.node_operator(layout, "GeometryNodeGridPrune")
         self.node_operator(layout, "GeometryNodeGridVoxelize")
 
