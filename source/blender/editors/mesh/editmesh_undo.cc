@@ -312,6 +312,9 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
   Map<eCustomDataType, int> index_in_type;
 
   for (CustomDataLayer &layer : MutableSpan(cdata->layers, cdata->totlayer)) {
+    if (layer.data == nullptr) {
+      continue;
+    }
     store_layer(eCustomDataType(layer.type),
                 layer.data,
                 layer.sharing_info,
@@ -320,8 +323,10 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
                 bcd_reference,
                 index_in_type,
                 bcd);
-    layer.sharing_info->remove_user_and_delete_if_last();
-    layer.sharing_info = nullptr;
+    if (layer.sharing_info) {
+      layer.sharing_info->remove_user_and_delete_if_last();
+      layer.sharing_info = nullptr;
+    }
     layer.data = nullptr;
   }
 
