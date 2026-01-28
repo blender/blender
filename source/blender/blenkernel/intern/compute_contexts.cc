@@ -4,6 +4,8 @@
 
 #include <ostream>
 
+#include "DEG_depsgraph_query.hh"
+
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
@@ -14,6 +16,42 @@
 #include "BKE_node_runtime.hh"
 
 namespace blender::bke {
+
+DataBlockComputeContext::DataBlockComputeContext(const ComputeContext *parent, const ID &id)
+    : ComputeContext(parent), id_(&id)
+{
+  if (DEG_is_original(&id)) {
+    orig_session_uid_ = id.session_uid;
+  }
+  else if (const ID *orig_id = DEG_get_original_id(&id)) {
+    orig_session_uid_ = orig_id->session_uid;
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
+DataBlockComputeContext::DataBlockComputeContext(const ComputeContext *parent,
+                                                 const uint32_t orig_session_uid,
+                                                 const ID *id)
+    : ComputeContext(parent), orig_session_uid_(orig_session_uid), id_(id)
+{
+  BLI_assert(!id || id->session_uid == orig_session_uid ||
+             DEG_get_original(id)->session_uid == orig_session_uid);
+}
+
+ComputeContextHash DataBlockComputeContext::compute_hash() const
+{
+  return ComputeContextHash::from(parent_, "DATABLOCK", orig_session_uid_);
+}
+
+void DataBlockComputeContext::print_current_in_line(std::ostream &stream) const
+{
+  stream << "DataBlock: " << orig_session_uid_;
+  if (id_) {
+    stream << " " << id_->name;
+  }
+}
 
 ModifierComputeContext::ModifierComputeContext(const ComputeContext *parent,
                                                const NodesModifierData &nmd)
@@ -212,6 +250,28 @@ void ShaderComputeContext::print_current_in_line(std::ostream &stream) const
   if (tree_) {
     stream << BKE_id_name(tree_->id);
   }
+}
+
+const DataBlockComputeContext &ComputeContextCache::for_data_block(const ComputeContext *parent,
+                                                                   const uint32_t orig_session_uid,
+                                                                   const ID *id)
+{
+  return *data_block_contexts_cache_.lookup_or_add_cb(std::pair{parent, orig_session_uid}, [&]() {
+    return &this->for_any_uncached<DataBlockComputeContext>(parent, orig_session_uid, id);
+  });
+}
+
+const DataBlockComputeContext &ComputeContextCache::for_data_block(const ComputeContext *parent,
+                                                                   const ID &id)
+{
+  uint32_t orig_session_uid = 0;
+  if (DEG_is_original(&id)) {
+    orig_session_uid = id.session_uid;
+  }
+  else {
+    orig_session_uid = DEG_get_original(&id)->session_uid;
+  }
+  return this->for_data_block(parent, orig_session_uid, &id);
 }
 
 const ModifierComputeContext &ComputeContextCache::for_modifier(const ComputeContext *parent,

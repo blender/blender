@@ -23,6 +23,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_tree_interface_types.h"
 
+#include "ED_node.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
@@ -106,51 +107,52 @@ struct DrawGroupInputsContext {
 };
 }  // namespace
 
-static geo_log::GeoTreeLog *get_root_tree_log(const NodesModifierData &nmd)
+static geo_log::GeoTreeLog *get_root_tree_log(const Object &object, const NodesModifierData &nmd)
 {
   if (!nmd.runtime->eval_log) {
     return nullptr;
   }
-  bke::ModifierComputeContext compute_context{nullptr, nmd};
-  return &nmd.runtime->eval_log->get_tree_log(compute_context.hash());
+  bke::DataBlockComputeContext data_block_context{nullptr, object.id};
+  bke::ModifierComputeContext modifier_context{&data_block_context, nmd};
+  return &nmd.runtime->eval_log->get_tree_log(modifier_context.hash());
 }
 
-static NodesModifierData *get_modifier_data(Main &bmain,
-                                            const wmWindowManager &wm,
-                                            const ModifierSearchData &data)
+static std::optional<ed::space_node::ObjectAndModifier> get_modifier_data(
+    Main &bmain, const wmWindowManager &wm, const ModifierSearchData &data)
 {
   if (ED_screen_animation_playing(&wm)) {
     /* Work around an issue where the attribute search exec function has stale pointers when data
      * is reallocated when evaluating the node tree, causing a crash. This would be solved by
      * allowing the UI search data to own arbitrary memory rather than just referencing it. */
-    return nullptr;
+    return std::nullopt;
   }
 
   const Object *object = id_cast<Object *>(
       BKE_libblock_find_session_uid(&bmain, ID_OB, data.object_session_uid));
   if (object == nullptr) {
-    return nullptr;
+    return std::nullopt;
   }
   ModifierData *md = BKE_modifiers_findby_name(object, data.modifier_name);
   if (md == nullptr) {
-    return nullptr;
+    return std::nullopt;
   }
   BLI_assert(md->type == eModifierType_Nodes);
-  return reinterpret_cast<NodesModifierData *>(md);
+  return ed::space_node::ObjectAndModifier{object, reinterpret_cast<NodesModifierData *>(md)};
 }
 
 SearchInfo SocketSearchData::info(const bContext &C) const
 {
   if (const auto *modifier_search_data = std::get_if<ModifierSearchData>(&this->search_data)) {
-    const NodesModifierData *nmd = get_modifier_data(
+    const std::optional<ed::space_node::ObjectAndModifier> object_and_modifier = get_modifier_data(
         *CTX_data_main(&C), *CTX_wm_manager(&C), *modifier_search_data);
-    if (nmd == nullptr) {
+    if (!object_and_modifier) {
       return {};
     }
+    const NodesModifierData *nmd = object_and_modifier->nmd;
     if (nmd->node_group == nullptr) {
       return {};
     }
-    geo_log::GeoTreeLog *tree_log = get_root_tree_log(*nmd);
+    geo_log::GeoTreeLog *tree_log = get_root_tree_log(*object_and_modifier->object, *nmd);
     return {tree_log, nmd->node_group, nmd->settings.properties};
   }
   if (const auto *operator_search_data = std::get_if<OperatorSearchData>(&this->search_data)) {
@@ -809,7 +811,8 @@ static void draw_warnings(const bContext *C,
     return;
   }
   using namespace geo_log;
-  GeoTreeLog *tree_log = get_root_tree_log(nmd);
+  Object &object = *id_cast<Object *>(md_ptr->owner_id);
+  GeoTreeLog *tree_log = get_root_tree_log(object, nmd);
   if (!tree_log) {
     return;
   }
@@ -925,13 +928,13 @@ static void draw_bake_panel(ui::Layout &layout, PointerRNA *modifier_ptr)
   col.prop(modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
 }
 
-static void draw_named_attributes_panel(ui::Layout &layout, NodesModifierData &nmd)
+static void draw_named_attributes_panel(ui::Layout &layout, Object &object, NodesModifierData &nmd)
 {
   if (G.is_rendering) {
     /* Avoid accessing this data while baking in a separate thread. */
     return;
   }
-  geo_log::GeoTreeLog *tree_log = get_root_tree_log(nmd);
+  geo_log::GeoTreeLog *tree_log = get_root_tree_log(object, nmd);
   if (tree_log == nullptr) {
     return;
   }
@@ -1007,7 +1010,8 @@ static void draw_manage_panel(const bContext *C,
   if (ui::Layout *panel_layout = layout.panel_prop(
           C, modifier_ptr, "open_named_attributes_panel", IFACE_("Named Attributes")))
   {
-    draw_named_attributes_panel(*panel_layout, nmd);
+    Object &object = *id_cast<Object *>(modifier_ptr->owner_id);
+    draw_named_attributes_panel(*panel_layout, object, nmd);
   }
 }
 
@@ -1022,7 +1026,7 @@ void draw_geometry_nodes_modifier_ui(const bContext &C,
 
   DrawGroupInputsContext ctx{C,
                              nmd.node_group,
-                             get_root_tree_log(nmd),
+                             get_root_tree_log(object, nmd),
                              nmd.settings.properties,
                              modifier_ptr,
                              &bmain_ptr};
