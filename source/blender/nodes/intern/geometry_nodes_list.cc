@@ -173,4 +173,57 @@ void List::SingleData::count_memory(MemoryCounter &memory, const CPPType &type) 
   memory.add(type.size);
 }
 
+GMutableSpan List::ArrayData::span_for_write(const CPPType &type, int64_t size)
+{
+  if (this->sharing_info && !this->sharing_info->is_mutable()) {
+    void *new_data = MEM_new_array_uninitialized_aligned(
+        size, type.size, type.alignment, __func__);
+    type.copy_construct_n(this->data, new_data, size);
+    this->data = new_data;
+    this->sharing_info = sharing_ptr_for_array(new_data, size, type);
+  }
+  if (this->sharing_info) {
+    this->sharing_info->tag_ensured_mutable();
+  }
+  return {type, const_cast<void *>(this->data), size};
+}
+
+GMutablePointer List::SingleData::value_for_write(const CPPType &type)
+{
+  if (this->sharing_info && !this->sharing_info->is_mutable()) {
+    void *new_data = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
+    type.copy_construct(this->value, new_data);
+    this->value = new_data;
+    this->sharing_info = sharing_ptr_for_value(new_data, type);
+  }
+  if (this->sharing_info) {
+    this->sharing_info->tag_ensured_mutable();
+  }
+  return GMutablePointer{type, const_cast<void *>(this->value)};
+}
+
+std::variant<GSpan, GPointer> List::values() const
+{
+  if (const auto *array_data = std::get_if<ArrayData>(&data_)) {
+    return GSpan(cpp_type_, array_data->data, size_);
+  }
+  if (const auto *single_data = std::get_if<SingleData>(&data_)) {
+    return GPointer(cpp_type_, single_data->value);
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
+std::variant<GMutableSpan, GMutablePointer> List::values_for_write()
+{
+  if (auto *array_data = std::get_if<ArrayData>(&data_)) {
+    return array_data->span_for_write(cpp_type_, size_);
+  }
+  if (auto *single_data = std::get_if<SingleData>(&data_)) {
+    return single_data->value_for_write(cpp_type_);
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
 }  // namespace blender::nodes
