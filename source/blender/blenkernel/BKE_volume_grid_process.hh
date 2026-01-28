@@ -111,6 +111,7 @@ void set_mask_leaf_buffer_from_bools(openvdb::BoolGrid &grid,
                                      Span<openvdb::Coord> voxels);
 
 void set_grid_background(openvdb::GridBase &grid_base, const GPointer value);
+void set_inactive_values(openvdb::GridBase &grid_base, const GPointer value);
 
 /** See #openvdb::tools::pruneInactive. */
 void prune_inactive(openvdb::GridBase &grid_base);
