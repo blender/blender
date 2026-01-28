@@ -182,7 +182,7 @@ static bke::SocketValueVariant get_single_item(ListPtr &list,
   void *value_ptr = value.allocate_single(socket_type);
   if (const auto *data = std::get_if<List::ArrayData>(&list->data())) {
     if (list->is_mutable() && data->sharing_info->is_mutable()) {
-      GMutableSpan data_span(list->cpp_type(), data->data, list->size());
+      GMutableSpan data_span(list->cpp_type(), const_cast<void *>(data->data), list->size());
       list->cpp_type().move_construct(data_span[index], value_ptr);
       return value;
     }
@@ -192,7 +192,7 @@ static bke::SocketValueVariant get_single_item(ListPtr &list,
   }
   if (const auto *data = std::get_if<List::SingleData>(&list->data())) {
     if (list->is_mutable() && data->sharing_info->is_mutable()) {
-      list->cpp_type().move_construct(data->value, value_ptr);
+      list->cpp_type().move_construct(const_cast<void *>(data->value), value_ptr);
       return value;
     }
     list->cpp_type().copy_construct(data->value, value_ptr);
@@ -206,15 +206,17 @@ static bke::SocketValueVariant get_socket_value_item(ListPtr &list, const int64_
 {
   if (const auto *data = std::get_if<List::ArrayData>(&list->data())) {
     if (list->is_mutable() && data->sharing_info->is_mutable()) {
-      MutableSpan data_span(static_cast<bke::SocketValueVariant *>(data->data), list->size());
+      MutableSpan data_span(static_cast<bke::SocketValueVariant *>(const_cast<void *>(data->data)),
+                            list->size());
       return std::move(data_span[index]);
     }
-    const Span data_span(static_cast<bke::SocketValueVariant *>(data->data), list->size());
+    const Span data_span(static_cast<bke::SocketValueVariant *>(const_cast<void *>(data->data)),
+                         list->size());
     return data_span[index];
   }
   if (const auto *data = std::get_if<List::SingleData>(&list->data())) {
     if (list->is_mutable() && data->sharing_info->is_mutable()) {
-      return std::move(*static_cast<bke::SocketValueVariant *>(data->value));
+      return std::move(*static_cast<bke::SocketValueVariant *>(const_cast<void *>(data->value)));
     }
     return *static_cast<const bke::SocketValueVariant *>(data->value);
   }

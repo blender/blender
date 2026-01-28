@@ -18,7 +18,11 @@ class List : public ImplicitSharingMixin {
  public:
   class ArrayData {
    public:
-    void *data;
+    /**
+     * This is const because it uses implicit sharing. In some contexts the const can be cast away
+     * when it's clear that the data is not shared.
+     */
+    const void *data;
     ImplicitSharingPtr<> sharing_info;
     static ArrayData ForValue(const GPointer &value, int64_t size);
     static ArrayData ForDefaultValue(const CPPType &type, int64_t size);
@@ -30,7 +34,11 @@ class List : public ImplicitSharingMixin {
 
   class SingleData {
    public:
-    void *value;
+    /**
+     * This is const because it uses implicit sharing. In some contexts the const can be cast away
+     * when it's clear that the data is not shared.
+     */
+    const void *value;
     ImplicitSharingPtr<> sharing_info;
     static SingleData ForValue(const GPointer &value);
     static SingleData ForDefaultValue(const CPPType &type);
@@ -56,6 +64,7 @@ class List : public ImplicitSharingMixin {
     return ListPtr(MEM_new<List>(__func__, type, std::move(data), size));
   }
 
+  DataVariant &data();
   const DataVariant &data() const;
   const CPPType &cpp_type() const;
   int64_t size() const;
@@ -69,6 +78,11 @@ class List : public ImplicitSharingMixin {
 
   void count_memory(MemoryCounter &memory) const;
 };
+
+inline List::DataVariant &List::data()
+{
+  return data_;
+}
 
 inline const List::DataVariant &List::data() const
 {

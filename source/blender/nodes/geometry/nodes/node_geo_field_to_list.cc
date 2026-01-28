@@ -135,15 +135,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Array<GMutableSpan> list_values(lists.size());
   for (const int i : lists.index_range()) {
-    list_values[i] = {
-        lists[i]->cpp_type(), std::get<List::ArrayData>(lists[i]->data()).data, count};
+    list_values[i] = {lists[i]->cpp_type(),
+                      const_cast<void *>(std::get<List::ArrayData>(lists[i]->data()).data),
+                      count};
   }
 
   ListFieldContext context;
   fn::FieldEvaluator evaluator{context, count};
   for (const int i : fields.index_range()) {
-    GMutableSpan values(
-        lists[i]->cpp_type(), std::get<List::ArrayData>(lists[i]->data()).data, count);
+    GMutableSpan values(lists[i]->cpp_type(),
+                        const_cast<void *>(std::get<List::ArrayData>(lists[i]->data()).data),
+                        count);
     evaluator.add_with_destination(std::move(fields[i]), values);
   }
 
