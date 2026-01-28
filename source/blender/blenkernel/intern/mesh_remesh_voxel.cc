@@ -201,6 +201,10 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   openvdb::tools::volumeToMesh<openvdb::FloatGrid>(
       *level_set_grid, vertices, tris, quads, isovalue, adaptivity, relax_disoriented_triangles);
 
+  if (vertices.size() == 0 || quads.size() + tris.size() == 0) {
+    return nullptr;
+  }
+
   Mesh *mesh = BKE_mesh_new_nomain(
       vertices.size(), 0, quads.size() + tris.size(), quads.size() * 4 + tris.size() * 3);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
@@ -261,7 +265,9 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
   }
   openvdb::FloatGrid::Ptr level_set = remesh_voxel_level_set_create(mesh, transform);
   Mesh *result = remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
-  BKE_mesh_copy_parameters(result, mesh);
+  if (result != nullptr) {
+    BKE_mesh_copy_parameters(result, mesh);
+  }
   return result;
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue, object, modifier_data);
@@ -289,7 +295,9 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
   }
   openvdb::FloatGrid::Ptr level_set = remesh_voxel_level_set_create(mesh, transform);
   Mesh *result = remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
-  BKE_mesh_copy_parameters(result, mesh);
+  if (result != nullptr) {
+    BKE_mesh_copy_parameters(result, mesh);
+  }
   return result;
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue, reports);
