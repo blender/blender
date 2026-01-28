@@ -51,42 +51,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       "Minimum coordinate in Z axis (grid index space)");
 }
 
-static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
-{
-  const eNodeSocketDatatype other_type = eNodeSocketDatatype(params.other_socket().type);
-
-  if (params.in_out() == SOCK_OUT) {
-    if (params.node_tree().typeinfo->validate_link(SOCK_BOOLEAN, other_type)) {
-      params.add_item(IFACE_("Topology"), [](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("GeometryNodeCubeGrid");
-        params.update_and_connect_available_socket(node, "Topology");
-      });
-    }
-  }
-  else {
-    if (params.node_tree().typeinfo->validate_link(other_type, SOCK_INT)) {
-      params.add_item(IFACE_("Min X"), [](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("GeometryNodeCubeGrid");
-        params.update_and_connect_available_socket(node, "Min X");
-      });
-      params.add_item(IFACE_("Resolution X"), [](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("GeometryNodeCubeGrid");
-        params.update_and_connect_available_socket(node, "Resolution X");
-      });
-    }
-    if (params.node_tree().typeinfo->validate_link(other_type, SOCK_VECTOR)) {
-      params.add_item(IFACE_("Bounds Min"), [](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("GeometryNodeCubeGrid");
-        params.update_and_connect_available_socket(node, "Bounds Min");
-      });
-      params.add_item(IFACE_("Bounds Max"), [](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("GeometryNodeCubeGrid");
-        params.update_and_connect_available_socket(node, "Bounds Max");
-      });
-    }
-  }
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
@@ -157,7 +121,6 @@ static void node_register()
       "node";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
-  ntype.gather_link_search_ops = node_gather_link_search_ops;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_register_type(ntype);
 }
