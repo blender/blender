@@ -386,6 +386,10 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       [metal_layer_ removeAllAnimations];
       metal_layer_.device = metalDevice;
 
+      if (context_params.vsync != GHOST_kVSyncModeUnset) {
+        metal_layer_.displaySyncEnabled = (context_params.vsync == GHOST_kVSyncModeOff) ? NO : YES;
+      }
+
       if (type == GHOST_kDrawingContextTypeMetal) {
         /* Enable EDR support. This is done by:
          * 1. Using a floating point render target, so that values outside 0..1 can be used
