@@ -986,6 +986,7 @@ class NODE_MT_gn_volume_primitives_base(node_add_menu.NodeMenu):
     def draw(self, context):
         del context
         layout = self.layout
+        self.node_operator(layout, "GeometryNodeCubeGridTopology")
         self.node_operator(layout, "GeometryNodeVolumeCube")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
