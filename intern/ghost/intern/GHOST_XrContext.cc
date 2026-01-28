@@ -18,7 +18,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 #include "GHOST_XrException.hh"
 #include "GHOST_XrSession.hh"
 #include "GHOST_Xr_intern.hh"

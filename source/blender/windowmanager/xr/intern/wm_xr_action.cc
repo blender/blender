@@ -17,7 +17,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "GHOST_C-api.h"
+#include "GHOST_Xr-api.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -22,7 +22,7 @@
 
 #include "ED_view3d_offscreen.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_Xr-api.hh"
 
 #include "GPU_batch_presets.hh"
 #include "GPU_immediate.hh"
@@ -225,7 +225,7 @@ void wm_xr_disable_passthrough(void *customdata)
   WM_global_report(RPT_INFO, "Passthrough not available");
 }
 
-static gpu::Batch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
+static gpu::Batch *wm_xr_controller_model_batch_create(GHOST_IXrContext *xr_context,
                                                        const char *subaction_path)
 {
   GHOST_XrControllerModelData model_data;
@@ -261,7 +261,7 @@ static gpu::Batch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_
 }
 
 static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
-                                        GHOST_XrContextHandle xr_context,
+                                        GHOST_IXrContext *xr_context,
                                         wmXrSessionState *state)
 {
   GHOST_XrControllerModelData model_data;
@@ -422,7 +422,7 @@ void wm_xr_draw_controllers(const bContext * /*C*/, ARegion * /*region*/, void *
 {
   wmXrData *xr = static_cast<wmXrData *>(customdata);
   const XrSessionSettings *settings = &xr->session_settings;
-  GHOST_XrContextHandle xr_context = xr->runtime->context;
+  GHOST_IXrContext *xr_context = xr->runtime->context;
   wmXrSessionState *state = &xr->runtime->session_state;
 
   wm_xr_controller_model_draw(settings, xr_context, state);

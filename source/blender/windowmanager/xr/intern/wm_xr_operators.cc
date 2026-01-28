@@ -37,7 +37,7 @@
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"

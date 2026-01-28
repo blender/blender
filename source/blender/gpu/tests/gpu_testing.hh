@@ -6,7 +6,8 @@
 
 #include "BKE_global.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_IContext.hh"
+#include "GHOST_ISystem.hh"
 
 #include "GPU_platform.hh"
 
@@ -19,8 +20,8 @@ namespace blender::gpu {
  */
 class GPUTest : public ::testing::Test {
  private:
-  static GHOST_SystemHandle ghost_system_;
-  static GHOST_ContextHandle ghost_context_;
+  static GHOST_ISystem *ghost_system_;
+  static GHOST_IContext *ghost_context_;
   static GPUContext *context_;
 
   static int32_t prev_g_debug_;

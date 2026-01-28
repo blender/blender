@@ -12,6 +12,10 @@
 
 #include "BLI_color_types.hh"
 #include "BLI_string_ref.hh"
+
+#include "GHOST_IContext.hh"
+#include "GHOST_IWindow.hh"
+
 #include "GPU_vertex_buffer.hh"
 
 namespace blender::gpu {
@@ -55,7 +59,7 @@ class GPUBackend {
   virtual void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) = 0;
   virtual void compute_dispatch_indirect(StorageBuf *indirect_buf) = 0;
 
-  virtual Context *context_alloc(void *ghost_window, void *ghost_context) = 0;
+  virtual Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context) = 0;
 
   virtual Batch *batch_alloc() = 0;
   virtual Fence *fence_alloc() = 0;

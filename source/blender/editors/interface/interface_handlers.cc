@@ -52,7 +52,7 @@
 
 #include "BLT_translation.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_ISystem.hh"
 
 #include "IMB_colormanagement.hh"
 
@@ -3624,7 +3624,8 @@ static void ui_textedit_begin(bContext *C, Button *but, HandleButtonData *data)
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
   /* Temporarily turn off window auto-focus on platforms that support it. */
-  GHOST_SetAutoFocus(false);
+  GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
+  ghost_system->setAutoFocus(false);
 
 #ifdef WITH_INPUT_IME
   if (!is_num_but) {
@@ -3689,7 +3690,8 @@ static void ui_textedit_end(bContext *C, Button *but, HandleButtonData *data)
   WM_cursor_modal_restore(win);
 
   /* Turn back on the auto-focusing of windows. */
-  GHOST_SetAutoFocus(true);
+  GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
+  ghost_system->setAutoFocus(true);
 
   /* Free text undo history text blocks. */
   textedit_undo_stack_destroy(text_edit.undo_stack_text);

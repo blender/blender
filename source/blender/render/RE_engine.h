@@ -162,7 +162,7 @@ struct RenderEngine {
   void *update_render_passes_data;
 
   /* GPU context. */
-  void *system_gpu_context; /* WindowManager GPU context -> GHOSTContext. */
+  GHOST_IContext *system_gpu_context; /* WindowManager GPU context -> GHOSTContext. */
   ThreadMutex blender_gpu_context_mutex;
   bool use_drw_render_context;
   struct GPUContext *blender_gpu_context;

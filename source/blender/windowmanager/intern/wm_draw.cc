@@ -36,7 +36,10 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_ISystem.hh"
+#include "GHOST_IWindow.hh"
+#include "GHOST_Rect.hh"
+#include "GHOST_Types.hh"
 
 #include "ED_node.hh"
 #include "ED_screen.hh"
@@ -87,14 +90,14 @@ static bool wm_window_grab_warp_region_is_set(const wmWindow *win)
   if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
     GHOST_TGrabCursorMode mode_dummy;
     GHOST_TAxisFlag wrap_axis_dummy;
-    int bounds[4] = {0};
+    GHOST_Rect bounds = {0};
     bool use_software_cursor_dummy = false;
-    GHOST_GetCursorGrabState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                             &mode_dummy,
-                             &wrap_axis_dummy,
-                             bounds,
-                             &use_software_cursor_dummy);
-    if ((bounds[0] != bounds[2]) || (bounds[1] != bounds[3])) {
+
+    GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+    ghost_window->getCursorGrabState(
+        mode_dummy, wrap_axis_dummy, bounds, use_software_cursor_dummy);
+
+    if (bounds.getWidth() != 0 || bounds.getHeight() != 0) {
       return true;
     }
   }
@@ -184,11 +187,11 @@ static struct {
     /*winid*/ -1,
 };
 
-/** Reuse the result from #GHOST_GetCursorGrabState. */
+/** Reuse the result from #GHOST_IWindow::getCursorGrabState. */
 struct GrabState {
   GHOST_TGrabCursorMode mode;
   GHOST_TAxisFlag wrap_axis;
-  int bounds[4];
+  GHOST_Rect bounds;
 };
 
 static bool wm_software_cursor_needed()
@@ -202,15 +205,15 @@ static bool wm_software_cursor_needed()
 static bool wm_software_cursor_needed_for_window(const wmWindow *win, GrabState *grab_state)
 {
   BLI_assert(wm_software_cursor_needed());
-  if (GHOST_GetCursorVisibility(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin))) {
+
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  if (ghost_window->getCursorVisibility()) {
     /* NOTE: The value in `win->grabcursor` can't be used as it
      * doesn't always match GHOST's value in the case of tablet events. */
     bool use_software_cursor;
-    GHOST_GetCursorGrabState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                             &grab_state->mode,
-                             &grab_state->wrap_axis,
-                             grab_state->bounds,
-                             &use_software_cursor);
+    ghost_window->getCursorGrabState(
+        grab_state->mode, grab_state->wrap_axis, grab_state->bounds, use_software_cursor);
+
     if (use_software_cursor) {
       return true;
     }
@@ -371,16 +374,16 @@ static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
   int event_xy[2] = {UNPACK2(win->runtime->eventstate->xy)};
 
   if (grab_state->wrap_axis & GHOST_kAxisX) {
-    const int min = grab_state->bounds[0];
-    const int max = grab_state->bounds[2];
+    const int min = grab_state->bounds.l_;
+    const int max = grab_state->bounds.r_;
     if (min != max) {
       event_xy[0] = mod_i(event_xy[0] - min, max - min) + min;
     }
   }
   if (grab_state->wrap_axis & GHOST_kAxisY) {
     const int height = WM_window_native_pixel_y(win);
-    const int min = height - grab_state->bounds[1];
-    const int max = height - grab_state->bounds[3];
+    const int min = height - grab_state->bounds.t_;
+    const int max = height - grab_state->bounds.b_;
     if (min != max) {
       event_xy[1] = mod_i(event_xy[1] - max, min - max) + max;
     }
@@ -389,9 +392,8 @@ static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
   const float system_scale = WM_window_dpi_get_scale(win);
 
   GHOST_CursorBitmapRef bitmap = {nullptr};
-  if (GHOST_GetCursorBitmap(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), &bitmap) ==
-      GHOST_kSuccess)
-  {
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  if (ghost_window->getCursorBitmap(&bitmap) == GHOST_kSuccess) {
     wm_software_cursor_draw_bitmap(system_scale, event_xy, &bitmap);
   }
   else {
@@ -1342,8 +1344,9 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
    * See it's comments for details on why it's needed, see also #98462. */
   bool setup_context = wm->runtime->windrawable != win;
 
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
   if (setup_context) {
-    GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+    ghost_window->activateDrawingContext();
     GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
 
@@ -1355,8 +1358,7 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
 
   if (setup_context) {
     if (wm->runtime->windrawable) {
-      GHOST_ActivateWindowDrawingContext(
-          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->runtime->ghostwin));
+      ghost_window->activateDrawingContext();
       GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->runtime->gpuctx));
     }
   }
@@ -1381,8 +1383,9 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
   BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ);
   bool setup_context = wm->runtime->windrawable != win;
 
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
   if (setup_context) {
-    GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+    ghost_window->activateDrawingContext();
     GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
 
@@ -1398,8 +1401,7 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
 
   if (setup_context) {
     if (wm->runtime->windrawable) {
-      GHOST_ActivateWindowDrawingContext(
-          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->runtime->ghostwin));
+      ghost_window->activateDrawingContext();
       GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->runtime->gpuctx));
     }
   }
@@ -1504,7 +1506,8 @@ bool WM_window_pixels_read_sample(bContext *C, wmWindow *win, const int pos[2], 
 
 bool WM_desktop_cursor_sample_read(float r_col[3])
 {
-  return GHOST_GetPixelAtCursor(r_col);
+  const GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
+  return ghost_system->getPixelAtCursor(r_col);
 }
 
 /** \} */
@@ -1639,8 +1642,8 @@ void wm_draw_update(bContext *C)
 
   for (wmWindow &win : wm->windows) {
 #ifdef WIN32
-    GHOST_TWindowState state = GHOST_GetWindowState(
-        static_cast<GHOST_WindowHandle>(win.runtime->ghostwin));
+    const GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win.runtime->ghostwin);
+    const GHOST_TWindowState state = ghost_window->getState();
 
     if (state == GHOST_kWindowStateMinimized) {
       /* Do not update minimized windows, gives issues on Intel (see #33223)

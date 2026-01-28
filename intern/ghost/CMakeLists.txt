@@ -12,7 +12,6 @@ set(INC_SYS
 
 set(SRC
   intern/GHOST_Buttons.cc
-  intern/GHOST_C-api.cc
   intern/GHOST_CallbackEventConsumer.cc
   intern/GHOST_Context.cc
   intern/GHOST_ContextNone.cc
@@ -20,7 +19,6 @@ set(SRC
   intern/GHOST_ISystem.cc
   intern/GHOST_ISystemPaths.cc
   intern/GHOST_ModifierKeys.cc
-  intern/GHOST_Path-api.cc
   intern/GHOST_PathUtils.cc
   intern/GHOST_Rect.cc
   intern/GHOST_System.cc
@@ -28,7 +26,7 @@ set(SRC
   intern/GHOST_Window.cc
   intern/GHOST_WindowManager.cc
 
-  GHOST_C-api.h
+  GHOST_CallbackEventConsumer.hh
   GHOST_IContext.hh
   GHOST_IEvent.hh
   GHOST_IEventConsumer.hh
@@ -36,12 +34,10 @@ set(SRC
   GHOST_ISystemPaths.hh
   GHOST_ITimerTask.hh
   GHOST_IWindow.hh
-  GHOST_Path-api.hh
   GHOST_Rect.hh
-  GHOST_Types.h
+  GHOST_Types.hh
 
   intern/GHOST_Buttons.hh
-  intern/GHOST_CallbackEventConsumer.hh
   intern/GHOST_Context.hh
   intern/GHOST_ContextNone.hh
   intern/GHOST_Debug.hh
@@ -529,6 +525,7 @@ if(WITH_XR_OPENXR)
     intern/GHOST_XrSwapchain.cc
 
     GHOST_IXrContext.hh
+    GHOST_Xr-api.hh
     intern/GHOST_IXrGraphicsBinding.hh
     intern/GHOST_XrAction.hh
     intern/GHOST_XrContext.hh

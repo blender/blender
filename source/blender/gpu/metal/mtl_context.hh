@@ -17,7 +17,7 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 #include "intern/GHOST_Context.hh"
 #include "intern/GHOST_ContextMTL.hh"
 #include "intern/GHOST_Window.hh"
@@ -706,7 +706,7 @@ class MTLContext : public Context {
 
  public:
   /* GPUContext interface. */
-  MTLContext(void *ghost_window, void *ghost_context);
+  MTLContext(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context);
   ~MTLContext();
 
   static void check_error(const char *info);
@@ -916,8 +916,8 @@ class MTLContext : public Context {
   }
 
  private:
-  void set_ghost_context(GHOST_ContextHandle ghostCtxHandle);
-  void set_ghost_window(GHOST_WindowHandle ghostWinHandle);
+  void set_ghost_context(GHOST_IContext *ghostCtxHandle);
+  void set_ghost_window(GHOST_IWindow *ghostWinHandle);
 };
 
 /* GHOST Context callbacks. */

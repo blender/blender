@@ -68,7 +68,7 @@
 #  include "BPY_extern_run.hh"
 #endif
 
-#include "GHOST_C-api.h"
+#include "GHOST_ISystem.hh"
 
 #include "RNA_define.hh"
 
@@ -322,11 +322,12 @@ void WM_init(bContext *C, int argc, const char **argv)
 #endif
 
   if (!G.background) {
+    GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
     if (wm_start_with_console) {
-      GHOST_setConsoleWindowState(GHOST_kConsoleWindowStateShow);
+      ghost_system->setConsoleWindowState(GHOST_kConsoleWindowStateShow);
     }
     else {
-      GHOST_setConsoleWindowState(GHOST_kConsoleWindowStateHideForNonConsoleLaunch);
+      ghost_system->setConsoleWindowState(GHOST_kConsoleWindowStateHideForNonConsoleLaunch);
     }
   }
 

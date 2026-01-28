@@ -10,7 +10,7 @@
 #pragma once
 
 #include "GHOST_IContext.hh"
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 #include <cstdlib> /* For `nullptr`. */
 

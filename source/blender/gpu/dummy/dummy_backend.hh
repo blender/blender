@@ -39,7 +39,8 @@ class DummyBackend : public GPUBackend {
   {
   }
   void compute_dispatch_indirect(StorageBuf * /*indirect_buf*/) override {}
-  Context *context_alloc(void * /*ghost_window*/, void * /*ghost_context*/) override
+  Context *context_alloc(GHOST_IWindow * /*ghost_window*/,
+                         GHOST_IContext * /*ghost_context*/) override
   {
     return new DummyContext;
   }

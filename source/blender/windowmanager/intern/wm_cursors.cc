@@ -20,7 +20,8 @@
 
 #include <cstring>
 
-#include "GHOST_C-api.h"
+#include "GHOST_IWindow.hh"
+#include "GHOST_Types.hh"
 
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -329,8 +330,8 @@ static bool window_set_custom_cursor_generator(wmWindow *win, const BCursor &cur
     MEM_delete(cursor_generator);
   };
 
-  GHOST_TSuccess success = GHOST_SetCustomCursorGenerator(
-      static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), cursor_generator);
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  GHOST_TSuccess success = ghost_window->setCustomCursorGenerator(cursor_generator);
 
   return (success == GHOST_kSuccess) ? true : false;
 }
@@ -364,13 +365,11 @@ static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor
   };
 
   GHOST_TSuccess success;
+
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
   if (use_rgba) {
-    success = GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                                         bitmap_rgba,
-                                         nullptr,
-                                         bitmap_size,
-                                         hot_spot,
-                                         cursor.can_invert);
+    success = ghost_window->setCustomCursorShape(
+        bitmap_rgba, nullptr, bitmap_size, hot_spot, cursor.can_invert);
   }
   else {
     int bitmap_size_fixed[2] = {32, 32};
@@ -378,12 +377,8 @@ static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor
     uint8_t bitmap[4 * 32] = {0};
     uint8_t mask[4 * 32] = {0};
     cursor_rgba_to_xbm_32(bitmap_rgba, bitmap_size, bitmap, mask);
-    success = GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                                         bitmap,
-                                         mask,
-                                         bitmap_size_fixed,
-                                         hot_spot,
-                                         cursor.can_invert);
+    success = ghost_window->setCustomCursorShape(
+        bitmap, mask, bitmap_size_fixed, hot_spot, cursor.can_invert);
   }
 
   MEM_delete(bitmap_rgba);
@@ -422,12 +417,14 @@ void WM_cursor_set(wmWindow *win, int curs)
     curs = win->modalcursor;
   }
 
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+
   if (curs == WM_CURSOR_NONE) {
-    GHOST_SetCursorVisibility(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), false);
+    ghost_window->setCursorVisibility(false);
     return;
   }
 
-  GHOST_SetCursorVisibility(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), true);
+  ghost_window->setCursorVisibility(true);
 
   if (win->cursor == curs) {
     return; /* Cursor is already set. */
@@ -443,17 +440,16 @@ void WM_cursor_set(wmWindow *win, int curs)
   GHOST_TStandardCursor ghost_cursor = convert_to_ghost_standard_cursor(WMCursorType(curs));
 
   if (!use_only_custom_cursors && ghost_cursor != GHOST_kStandardCursorCustom &&
-      GHOST_HasCursorShape(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), ghost_cursor))
+      ghost_window->hasCursorShape(ghost_cursor))
   {
     /* Use native GHOST cursor when available. */
-    GHOST_SetCursorShape(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), ghost_cursor);
+    ghost_window->setCursorShape(ghost_cursor);
   }
   else {
     const BCursor &bcursor = g_cursors[curs];
     if (!bcursor.svg_source || !window_set_custom_cursor(win, bcursor)) {
       /* Fall back to default cursor if no bitmap found. */
-      GHOST_SetCursorShape(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                           GHOST_kStandardCursorDefault);
+      ghost_window->setCursorShape(GHOST_kStandardCursorDefault);
     }
   }
 }
@@ -555,11 +551,17 @@ void WM_cursor_grab_enable(wmWindow *win,
   if ((G.debug & G_DEBUG) == 0) {
     if (win->runtime->ghostwin) {
       if (win->runtime->eventstate->tablet.is_motion_absolute == false) {
-        GHOST_SetCursorGrab(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                            mode,
-                            mode_axis,
-                            wrap_region_screen,
-                            nullptr);
+        GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+        if (wrap_region_screen) {
+          GHOST_Rect wrap_region_screen_rect(wrap_region_screen[0],
+                                             wrap_region_screen[1],
+                                             wrap_region_screen[2],
+                                             wrap_region_screen[3]);
+          ghost_window->setCursorGrab(mode, mode_axis, &wrap_region_screen_rect, nullptr);
+        }
+        else {
+          ghost_window->setCursorGrab(mode, mode_axis, nullptr, nullptr);
+        }
       }
 
       win->grabcursor = mode;
@@ -571,21 +573,15 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
 {
   if ((G.debug & G_DEBUG) == 0) {
     if (win && win->runtime->ghostwin) {
+      GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+
       if (mouse_ungrab_xy) {
-        int mouse_xy[2] = {mouse_ungrab_xy[0], mouse_ungrab_xy[1]};
+        int32_t mouse_xy[2] = {mouse_ungrab_xy[0], mouse_ungrab_xy[1]};
         wm_cursor_position_to_ghost_screen_coords(win, &mouse_xy[0], &mouse_xy[1]);
-        GHOST_SetCursorGrab(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                            GHOST_kGrabDisable,
-                            GHOST_kAxisNone,
-                            nullptr,
-                            mouse_xy);
+        ghost_window->setCursorGrab(GHOST_kGrabDisable, GHOST_kAxisNone, nullptr, mouse_xy);
       }
       else {
-        GHOST_SetCursorGrab(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                            GHOST_kGrabDisable,
-                            GHOST_kAxisNone,
-                            nullptr,
-                            nullptr);
+        ghost_window->setCursorGrab(GHOST_kGrabDisable, GHOST_kAxisNone, nullptr, nullptr);
       }
 
       win->grabcursor = GHOST_kGrabDisable;
@@ -607,8 +603,9 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
   /* TODO: give it a modal keymap? Hard coded for now. */
 
   if (win && event->val == KM_PRESS) {
-    /* Must move at least this much to avoid rounding in #WM_cursor_warp. */
-    float fac = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+    /* Must move at least this much to avoid rounding in WM_cursor_warp. */
+    GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+    const float fac = ghost_window->getNativePixelSize();
 
     if (event->type == EVT_UPARROWKEY) {
       wm_cursor_warp_relative(win, 0, fac);
@@ -688,12 +685,10 @@ static bool wm_cursor_time_large(wmWindow *win, uint32_t nr)
 
   const int size[2] = {32, 32};
   const int hot_spot[2] = {15, 15};
-  return GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                                    bitmap[0],
-                                    mask[0],
-                                    size,
-                                    hot_spot,
-                                    false) == GHOST_kSuccess;
+
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  return ghost_window->setCustomCursorShape(bitmap[0], mask[0], size, hot_spot, false) ==
+         GHOST_kSuccess;
 }
 
 static void wm_cursor_time_small(wmWindow *win, uint32_t nr)
@@ -731,12 +726,12 @@ static void wm_cursor_time_small(wmWindow *win, uint32_t nr)
 
   const int size[2] = {16, 16};
   const int hot_spot[2] = {7, 7};
-  GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-                             reinterpret_cast<uint8_t *>(bitmap),
-                             reinterpret_cast<uint8_t *>(mask),
-                             size,
-                             hot_spot,
-                             false);
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  ghost_window->setCustomCursorShape(reinterpret_cast<uint8_t *>(bitmap),
+                                     reinterpret_cast<uint8_t *>(mask),
+                                     size,
+                                     hot_spot,
+                                     false);
 }
 
 /**
@@ -875,8 +870,8 @@ static bool wm_cursor_text_generator(wmWindow *win, const char *text, int font_i
     MEM_delete(cursor_generator);
   };
 
-  GHOST_TSuccess success = GHOST_SetCustomCursorGenerator(
-      static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), cursor_generator);
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  GHOST_TSuccess success = ghost_window->setCustomCursorGenerator(cursor_generator);
 
   return (success == GHOST_kSuccess) ? true : false;
 }
@@ -908,14 +903,13 @@ static bool wm_cursor_text_pixmap(wmWindow *win, const char *text, int font_id)
       bitmap_size[0] / 2,
       bitmap_size[1] / 2,
   };
-  GHOST_TSuccess success = GHOST_SetCustomCursorShape(
-      static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
-      bitmap_rgba,
-      nullptr,
-      bitmap_size,
-      hot_spot,
-      /* Always use a black background. */
-      false);
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  GHOST_TSuccess success = ghost_window->setCustomCursorShape(bitmap_rgba,
+                                                              nullptr,
+                                                              bitmap_size,
+                                                              hot_spot,
+                                                              /* Always use a black background. */
+                                                              false);
   MEM_delete(bitmap_rgba);
 
   return (success == GHOST_kSuccess) ? true : false;

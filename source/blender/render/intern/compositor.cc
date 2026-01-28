@@ -664,12 +664,12 @@ class Compositor {
        * render system GPU context, use the DRW context directly, while for threaded rendering when
        * we have a render system GPU context, use the render's system GPU context to avoid blocking
        * with the global DST. */
-      void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+      GHOST_IContext *re_system_gpu_context = RE_system_gpu_context_get(&render_);
       if (BLI_thread_is_main() || re_system_gpu_context == nullptr) {
         DRW_gpu_context_enable();
       }
       else {
-        void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+        GHOST_IContext *re_system_gpu_context = RE_system_gpu_context_get(&render_);
         WM_system_gpu_context_activate(re_system_gpu_context);
 
         void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
@@ -697,14 +697,14 @@ class Compositor {
     if (context.use_gpu()) {
       gpu::TexturePool::get().reset();
 
-      void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+      GHOST_IContext *re_system_gpu_context = RE_system_gpu_context_get(&render_);
       if (BLI_thread_is_main() || re_system_gpu_context == nullptr) {
         DRW_gpu_context_disable();
       }
       else {
         GPU_render_end();
         GPU_context_active_set(nullptr);
-        void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+        GHOST_IContext *re_system_gpu_context = RE_system_gpu_context_get(&render_);
         WM_system_gpu_context_release(re_system_gpu_context);
       }
     }

@@ -62,7 +62,7 @@ class LightBake {
    * If running in parallel (in a separate thread), use this context.
    * Created on main thread but first bound in worker thread.
    */
-  void *gl_context_ = nullptr;
+  GHOST_IContext *gl_context_ = nullptr;
   /** Context associated to `gl_context_`. Created in the worker thread. */
   GPUContext *gpu_context_ = nullptr;
 

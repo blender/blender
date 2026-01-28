@@ -8,11 +8,8 @@
 
 #include <cassert>
 
-#include "GHOST_C-api.h"
-
 #include "GHOST_IXrGraphicsBinding.hh"
 #include "GHOST_XrException.hh"
-#include "GHOST_XrSession.hh"
 #include "GHOST_Xr_intern.hh"
 
 #include "GHOST_XrSwapchain.hh"

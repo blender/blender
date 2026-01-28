@@ -19,7 +19,7 @@
 #include <vector>
 #include <wtypes.h>
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 #include <wintab.h>
 /* PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first. */

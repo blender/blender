@@ -12,11 +12,14 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+class GHOST_IContext;
+
 namespace blender {
 
 namespace gpu {
 class Texture;
 }
+
 struct ExrHandle;
 struct ImBuf;
 struct Image;
@@ -433,7 +436,7 @@ void RE_current_scene_update_cb(struct Render *re,
                                 void *handle,
                                 void (*f)(void *handle, struct Scene *scene));
 
-void *RE_system_gpu_context_get(Render *re);
+GHOST_IContext *RE_system_gpu_context_get(Render *re);
 void *RE_blender_gpu_context_ensure(Render *re);
 
 bool RE_seq_render_active(struct Scene *scene, struct RenderData *rd);

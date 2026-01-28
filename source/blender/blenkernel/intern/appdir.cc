@@ -27,7 +27,7 @@
 
 #include "BLT_translation.hh"
 
-#include "GHOST_Path-api.hh"
+#include "GHOST_ISystemPaths.hh"
 
 #include "CLG_log.h"
 
@@ -106,7 +106,7 @@ void BKE_appdir_exit()
    * disposed of here. Note that there may be several calls to this in `exit` process
    * (e.g. `wm_init/wm_exit` will currently both call GHOST API directly,
    * & `BKE_appdir_init/_exit`). */
-  GHOST_DisposeSystemPaths();
+  GHOST_ISystemPaths::dispose();
 #ifndef NDEBUG
   BLI_assert(is_appdir_init == true);
   is_appdir_init = false;
@@ -175,7 +175,8 @@ bool BKE_appdir_folder_documents(char *dir)
 {
   dir[0] = '\0';
 
-  const std::optional<std::string> documents_path = GHOST_getUserSpecialDir(
+  const GHOST_ISystemPaths *ghost_system_paths = GHOST_ISystemPaths::get();
+  const std::optional<std::string> documents_path = ghost_system_paths->getUserSpecialDir(
       GHOST_kUserSpecialDirDocuments);
 
   /* Usual case: Ghost gave us the documents path. We're done here. */
@@ -206,7 +207,8 @@ bool BKE_appdir_folder_caches(char *path, const size_t path_maxncpy)
 {
   path[0] = '\0';
 
-  std::optional<std::string> caches_root_path = GHOST_getUserSpecialDir(
+  const GHOST_ISystemPaths *ghost_system_paths = GHOST_ISystemPaths::get();
+  std::optional<std::string> caches_root_path = ghost_system_paths->getUserSpecialDir(
       GHOST_kUserSpecialDirCaches);
   if (!caches_root_path || !BLI_is_dir(caches_root_path->c_str())) {
     caches_root_path = BKE_tempdir_base();
@@ -514,7 +516,9 @@ static bool get_path_user_ex(char *targetpath,
   else {
     user_path[0] = '\0';
 
-    const char *user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
+    const GHOST_ISystemPaths *ghost_system_paths = GHOST_ISystemPaths::get();
+    const char *user_base_path = ghost_system_paths->getUserDir(version,
+                                                                blender_version_decimal(version));
     if (user_base_path) {
       STRNCPY(user_path, user_base_path);
     }
@@ -569,7 +573,9 @@ static bool get_path_system_ex(char *targetpath,
   }
   else {
     system_path[0] = '\0';
-    const char *system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
+    const GHOST_ISystemPaths *ghost_system_paths = GHOST_ISystemPaths::get();
+    const char *system_base_path = ghost_system_paths->getSystemDir(
+        version, blender_version_decimal(version));
     if (system_base_path) {
       STRNCPY(system_path, system_base_path);
     }

@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 #include "GHOST_Xr_openxr_includes.hh"
 
 class GHOST_IXrGraphicsBinding {

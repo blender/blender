@@ -26,7 +26,7 @@
 
 #include "CLG_log.h"
 
-#include "GHOST_C-api.h"
+#include "GHOST_ISystem.hh"
 
 #include "BLI_enum_flags.hh"
 #include "BLI_ghash.h"
@@ -1022,7 +1022,8 @@ void WM_report_banners_cancel(Main *bmain)
 #ifdef WITH_INPUT_NDOF
 void WM_ndof_deadzone_set(float deadzone)
 {
-  GHOST_setNDOFDeadZone(deadzone);
+  GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
+  ghost_system->setNDOFDeadZone(deadzone);
 }
 #endif
 

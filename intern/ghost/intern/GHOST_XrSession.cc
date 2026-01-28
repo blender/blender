@@ -15,8 +15,7 @@
 
 #include "BLI_span.hh"
 
-#include "GHOST_C-api.h"
-
+#include "GHOST_Context.hh"
 #include "GHOST_IXrGraphicsBinding.hh"
 #include "GHOST_XrAction.hh"
 #include "GHOST_XrContext.hh"
@@ -659,7 +658,7 @@ void GHOST_XrSession::unbindGraphicsContext()
 {
   const GHOST_XrCustomFuncs &custom_funcs = context_->getCustomFuncs();
   if (custom_funcs.gpu_ctx_unbind_fn) {
-    custom_funcs.gpu_ctx_unbind_fn((GHOST_ContextHandle)gpu_ctx_);
+    custom_funcs.gpu_ctx_unbind_fn(gpu_ctx_);
   }
   gpu_ctx_ = nullptr;
 }

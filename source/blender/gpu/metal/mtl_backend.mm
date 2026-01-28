@@ -58,7 +58,7 @@ void MTLBackend::samplers_update() {
   /* Placeholder -- Handled in MTLContext. */
 };
 
-Context *MTLBackend::context_alloc(void *ghost_window, void *ghost_context)
+Context *MTLBackend::context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context)
 {
   return new MTLContext(ghost_window, ghost_context);
 };
