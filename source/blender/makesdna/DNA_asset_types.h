@@ -52,6 +52,7 @@ enum eAssetImportMethod {
 enum eAssetLibrary_Flag {
   ASSET_LIBRARY_RELATIVE_PATH = (1 << 0),
   ASSET_LIBRARY_DISABLED = (1 << 1),
+  ASSET_LIBRARY_USE_REMOTE_URL = (1 << 2),
 };
 
 /**

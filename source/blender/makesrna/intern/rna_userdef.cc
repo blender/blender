@@ -397,6 +397,17 @@ static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *valu
   BKE_preferences_asset_library_path_set(library, value);
 }
 
+int rna_userdef_asset_library_path_editable(const PointerRNA *ptr, const char **r_info)
+{
+  bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
+  if ((library->flag & ASSET_LIBRARY_USE_REMOTE_URL) != 0) {
+    *r_info = N_("The download cache directory of remote asset libraries cannot be changed");
+    return PropertyFlag(0);
+  }
+
+  return PROP_EDITABLE;
+}
+
 static void rna_userdef_asset_libraries_refresh(bContext *C, PointerRNA *ptr)
 {
   ed::asset::list::clear_all_library(C);
@@ -6845,6 +6856,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
       prop, "Path", "Path to a directory with .blend files to use as an asset library");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_path_set");
+  RNA_def_property_editable_func(prop, "rna_userdef_asset_library_path_editable");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
 
@@ -6853,6 +6865,10 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Enabled", "Enable the asset library");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_userdef_asset_libraries_refresh");
+
+  prop = RNA_def_property(srna, "remote_url", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "remote_url");
+  RNA_def_property_ui_text(prop, "URL", "Remote URL to the asset library");
 
   prop = RNA_def_property(srna, "import_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_preferences_asset_import_method_items);
@@ -6870,6 +6886,11 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_RELATIVE_PATH);
   RNA_def_property_ui_text(
       prop, "Relative Path", "Use relative path when linking assets from this asset library");
+
+  prop = RNA_def_property(srna, "use_remote_url", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_USE_REMOTE_URL);
+  RNA_def_property_ui_text(prop, "Use Remote", "Synchronize the asset library with a remote URL");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)

@@ -2717,7 +2717,10 @@ class USERPREF_PT_assets_asset_libraries(AssetsPanel, Panel):
         )
 
         col = row.column(align=True)
-        col.operator("preferences.asset_library_add", text="", icon='ADD')
+        if context.preferences.experimental.use_remote_asset_libraries:
+            col.operator_menu_enum("preferences.asset_library_add", "type", text="", icon='ADD')
+        else:
+            col.operator("preferences.asset_library_add", text="", icon='ADD').type = 'LOCAL'
         props = col.operator("preferences.asset_library_remove", text="", icon='REMOVE')
         props.index = active_library_index
 
@@ -2731,19 +2734,41 @@ class USERPREF_PT_assets_asset_libraries(AssetsPanel, Panel):
 
         layout.separator()
 
-        layout.prop(active_library, "path")
-        layout.prop(active_library, "import_method", text="Import Method")
-        layout.prop(active_library, "use_relative_path")
+        if active_library.use_remote_url:
+            use_remote_libraries = context.preferences.experimental.use_remote_asset_libraries
+            if use_remote_libraries:
+                layout.prop(active_library, "remote_url")
+        else:
+            layout.prop(active_library, "path")
+            layout.prop(active_library, "import_method", text="Import Method")
+            layout.prop(active_library, "use_relative_path")
 
 
 class USERPREF_UL_asset_libraries(UIList):
     def draw_item(self, context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         asset_library = item
 
+        icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
         row = layout.row(align=True)
-        row.prop(asset_library, "name", text="", emboss=False)
+        row.prop(asset_library, "name", text="", icon=icon, emboss=False)
         row.prop(asset_library, "enabled", text="", emboss=False,
                  icon='CHECKBOX_HLT' if asset_library.enabled else 'CHECKBOX_DEHLT')
+
+    def filter_items(self, context, data, property):
+        asset_libraries = getattr(data, property)
+
+        # Determine the bitflags for remote & non-remote asset libraries.
+        use_remote_libs = context.preferences.experimental.use_remote_asset_libraries
+        flag_remote = self.bitflag_filter_item if use_remote_libs else self.bitflag_item_never_show
+        flag_nonremote = self.bitflag_filter_item
+
+        # Construct arrays of flags & indices.
+        flags = [
+            flag_remote if asset_library.use_remote_url else flag_nonremote
+            for asset_library in asset_libraries]
+        indices = list(range(len(asset_libraries)))
+
+        return flags, indices
 
 
 # -----------------------------------------------------------------------------

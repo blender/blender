@@ -615,7 +615,12 @@ struct bUserAssetLibrary {
   struct bUserAssetLibrary *next = nullptr, *prev = nullptr;
 
   char name[/*MAX_NAME*/ 64] = "";
+  /** The path on disk for this asset library. For remote libraries
+   * (#ASSET_LIBRARY_USE_REMOTE_URL), this is the download cache directory, where already
+   * downloaded assets will be placed. */
   char dirpath[/*FILE_MAX*/ 1024] = "";
+  /** Only for remote asset libraries (#ASSET_LIBRARY_USE_REMOTE_URL is set). */
+  char remote_url[/*FILE_MAX*/ 1024];
 
   short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */
   short flag = ASSET_LIBRARY_RELATIVE_PATH; /* eAssetLibrary_Flag */

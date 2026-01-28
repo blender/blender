@@ -11,6 +11,7 @@
 #include <cstring>
 
 #include "BLI_fileops.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -132,6 +133,38 @@ int BKE_preferences_asset_library_get_index(const UserDef *userdef,
   return BLI_findindex(&userdef->asset_libraries, library);
 }
 
+bool BKE_preferences_asset_library_is_valid(const UserDef *userdef,
+                                            const bUserAssetLibrary *library,
+                                            const bool check_directory_exists)
+{
+  /* Check disabled libraries. */
+  if (library->flag & ASSET_LIBRARY_DISABLED) {
+    return false;
+  }
+
+  /* Check remote libraries. */
+  const bool is_remote_library = library->flag & ASSET_LIBRARY_USE_REMOTE_URL;
+  const bool skip_remote_libraries = !USER_EXPERIMENTAL_TEST(userdef, use_remote_asset_libraries);
+  if (is_remote_library && skip_remote_libraries) {
+    return false;
+  }
+  if (is_remote_library && !library->remote_url[0]) {
+    return false;
+  }
+
+  /* Note that there's no check if the path exists on disk here. If an invalid library path is
+   * used, the Asset Browser can give a nice hint on what's wrong, so include such items in enums
+   * the user can choose from. */
+  if (!library->dirpath[0]) {
+    return false;
+  }
+  if (check_directory_exists && !BLI_is_dir(library->dirpath)) {
+    return false;
+  }
+
+  return true;
+}
+
 void BKE_preferences_asset_library_default_add(UserDef *userdef)
 {
   char documents_path[FILE_MAXDIR];
@@ -147,6 +180,59 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
   /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
   BLI_path_join(
       library->dirpath, sizeof(library->dirpath), documents_path, N_("Blender"), N_("Assets"));
+}
+
+/**
+ * Maximum length of the remote library directory name. Kept short to avoid path length issues with
+ * deeply nested asset libraries.
+ *
+ * The directory name will be the MD5 hash of the URL.
+ */
+const int8_t REMOTE_LIBRARY_DIRNAME_LEN = 16;
+
+/**
+ * Determine the directory name of the asset library's on-disk cache for downloaded files.
+ *
+ * This is based on the remote URL of the library, and not the library name. As the name can be
+ * user-chosen. the URL is a more stable identifier. And if there happen to be multiple libraries
+ * in the preferences, with the same URL, they'll share the same cache.
+ */
+static void asset_library_directory_name(blender::StringRef remote_url,
+                                         /* Buffer for the directory name + null-terminator. */
+                                         char identifier_buf[REMOTE_LIBRARY_DIRNAME_LEN + 1])
+{
+  /* MD5 hash part. */
+  uchar digest[16];
+  BLI_hash_md5_buffer(remote_url.data(), remote_url.size(), digest);
+  char hex_digest[33];
+  BLI_hash_md5_to_hexdigest(digest, hex_digest);
+  /* This adds a null terminator. */
+  BLI_strncpy(identifier_buf, hex_digest, REMOTE_LIBRARY_DIRNAME_LEN + 1);
+}
+
+bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
+                                                            const char *name,
+                                                            const char *remote_url)
+{
+  bUserAssetLibrary *library = MEM_new<bUserAssetLibrary>(__func__);
+
+  library->flag |= ASSET_LIBRARY_USE_REMOTE_URL;
+  BLI_addtail(&userdef->asset_libraries, library);
+
+  STRNCPY(library->remote_url, remote_url);
+  if (name) {
+    BKE_preferences_asset_library_name_set(userdef, library, name);
+  }
+
+  /* Download location cache path. */
+  char cache_path[FILE_MAX];
+  BKE_appdir_folder_caches(cache_path, sizeof(cache_path));
+  char library_identifier[REMOTE_LIBRARY_DIRNAME_LEN + 1];
+  asset_library_directory_name(remote_url, library_identifier);
+  BLI_path_join(
+      library->dirpath, sizeof(library->dirpath), cache_path, "remote-assets", library_identifier);
+
+  return library;
 }
 
 /** \} */
