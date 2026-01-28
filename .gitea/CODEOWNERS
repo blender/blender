@@ -186,6 +186,11 @@ source/blender/gpu/vulkan/.*                           @Jeroen-Bakker
 source/blender/python/gpu/.*                           @Jeroen-Bakker
 
 # --------------------------------------------------
+# XR
+source/blender/windowmanager/xr/.*                     @Brainzman
+intern/ghost/intern/GHOST_Xr.*                         @Brainzman
+
+# --------------------------------------------------
 # I18N.
 source/blender/blentranslation.*      @mont29
 
@@ -201,6 +206,13 @@ release/pypi/.*                 @ThomasDinges
 release/release_notes/.*        @ThomasDinges
 release/text/.*                 @ThomasDinges
 release/windows/.*              @ThomasDinges
+
+## macOS Maintenance
+intern/ghost/intern/GHOST_.*Cocoa.*             @Brainzman
+build_files/cmake/platform/platform_apple.*     @Brainzman
+
+## macOS Objective-C code
+.*\\.mm                                         @Brainzman
 
 # --------------------------------------------------
 # DevOps & CI/CD
