@@ -57,7 +57,7 @@ struct NodeAndSocket {
       : node(node), socket_identifier(socket_identifier), in_out(in_out)
   {
   }
-  NodeAndSocket(const bNode &node, const bNodeSocket socket)
+  NodeAndSocket(const bNode &node, const bNodeSocket &socket)
       : node(node), socket_identifier(socket.identifier), in_out(eNodeSocketInOut(socket.in_out))
   {
   }
