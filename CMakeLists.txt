@@ -1036,8 +1036,8 @@ Can cause linking issues due to too large binary size."
   OFF
 )
 mark_as_advanced(WITH_COMPILER_ASAN_EXTERN)
-# Note: Using tbbmalloc allocator seems to be fully compatible with current sanitizers
-# (both clang/llvm and gcc ones).
+# Note: Using TBBMALLOC allocator seems to be fully compatible with current sanitizers
+# (both CLANG/LLVM and GCC ones).
 set_and_warn_incompatible(WITH_COMPILER_ASAN WITH_MEM_VALGRIND OFF)
 set_and_warn_incompatible(WITH_COMPILER_ASAN_EXTERN WITH_MEM_VALGRIND OFF)
 

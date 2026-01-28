@@ -1177,7 +1177,7 @@ static void rna_def_font(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_overflow_items);
   RNA_def_property_enum_default(prop, CU_OVERFLOW_NONE);
   RNA_def_property_ui_text(
-      prop, "Textbox Overflow", "Handle the text behavior when it does not fit in the text boxes");
+      prop, "TextBox Overflow", "Handle the text behavior when it does not fit in the text boxes");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   /* number values */
@@ -1247,7 +1247,7 @@ static void rna_def_font(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "text_boxes", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "tb", "totbox");
   RNA_def_property_struct_type(prop, "TextBox");
-  RNA_def_property_ui_text(prop, "Textboxes", "");
+  RNA_def_property_ui_text(prop, "TextBoxes", "");
 
   prop = RNA_def_property(srna, "active_textbox", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "actbox");
@@ -1366,28 +1366,28 @@ static void rna_def_textbox(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "x");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -50.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox X Offset", "");
+  RNA_def_property_ui_text(prop, "TextBox X Offset", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "y");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -50.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox Y Offset", "");
+  RNA_def_property_ui_text(prop, "TextBox Y Offset", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "w");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox Width", "");
+  RNA_def_property_ui_text(prop, "TextBox Width", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "h");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox Height", "");
+  RNA_def_property_ui_text(prop, "TextBox Height", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   RNA_def_struct_path_func(srna, "rna_TextBox_path");

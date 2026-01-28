@@ -2441,7 +2441,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
       return;
     }
   }
-  /* For non-constant light shader, probablistic termination happens in
+  /* For non-constant light shader, probabilistic termination happens in
    * SHADE_LIGHT_NEE when the full contribution is known. */
   else if (bsdf_eval_is_zero(&phase_eval)) {
     return;

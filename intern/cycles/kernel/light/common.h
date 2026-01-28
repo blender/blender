@@ -33,7 +33,7 @@ struct LightSample {
 /* Result of evaluating a light from an intersection. */
 struct LightEval {
   float eval_fac = 0.0f; /* Intensity multiplier (normalization, spot falloff) */
-  float pdf = 0.0f;      /* Pdf for light sampling with next event estimation sampling. */
+  float pdf = 0.0f;      /* PDF for light sampling with next event estimation sampling. */
 };
 
 /* Utilities */

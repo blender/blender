@@ -147,7 +147,7 @@ Texture *VKTexturePool::acquire_texture(int2 extent,
     const AllocationHandle &handle = pool_[i];
 
     /* VkMemoryRequirements::alignment specifies alignment requirements of the offset within a
-     * memory allocation; we compute the necssary size of the allocation such that there is a
+     * memory allocation; we compute the necessary size of the allocation such that there is a
      * starting offset to the first aligned index. As different images can have different
      * alignments, this is done per VkImage */
     VkDeviceSize aligned_offset = align_offset(
