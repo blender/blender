@@ -708,8 +708,11 @@ GroupInputOutputNodes connect_copied_nodes_to_interface(const bContext &C,
   }
   if (const std::optional<Bounds<float2>> bounds = node_bounds(nodes_vec)) {
     io_nodes.input_node->location[0] = bounds->min[0] - 200.0f;
-    io_nodes.input_node->location[1] = bounds->center()[1];
     io_nodes.output_node->location[0] = bounds->max[0] + 50.0f;
+  }
+  /* Ignore node dimensions for vertical placement. */
+  if (const std::optional<Bounds<float2>> bounds = node_location_bounds(nodes_vec)) {
+    io_nodes.input_node->location[1] = bounds->center()[1];
     io_nodes.output_node->location[1] = bounds->center()[1];
   }
 
