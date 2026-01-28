@@ -160,63 +160,9 @@ int g_test_id = 0;
 #  define COLLAPSE_BOOL(OP) (OP)
 #endif
 
-#ifdef GPU_COMPUTE_SHADER
-
-#  define EXPECT_OP(OP, val1, val2) \
-    out_test[g_test_id++] = test_output( \
-        as_raw_data(val1), as_raw_data(val2), COLLAPSE_BOOL(OP), int(__LINE__), to_type(val1))
-#else
-
-/** WORKAROUND: Fragment shader variant for older platform. */
-#  define EXPECT_OP(OP, val1, val2) \
-    g_test_id += 1; \
-    if (g_test_id == 1) { \
-      /* Avoid pixels with undefined values. */ \
-      out_test = uint4(0); \
-    } \
-    if (int(gl_FragCoord.y) == g_test_id - 1) { \
-      TestOutput to = test_output( \
-          as_raw_data(val1), as_raw_data(val2), COLLAPSE_BOOL(OP), int(__LINE__), to_type(val1)); \
-      switch (int(gl_FragCoord.x)) { \
-        case 0: \
-          out_test = uint4( \
-              to.expect.data[0], to.expect.data[1], to.expect.data[2], to.expect.data[3]); \
-          break; \
-        case 1: \
-          out_test = uint4( \
-              to.expect.data[4], to.expect.data[5], to.expect.data[6], to.expect.data[7]); \
-          break; \
-        case 2: \
-          out_test = uint4( \
-              to.expect.data[8], to.expect.data[9], to.expect.data[10], to.expect.data[11]); \
-          break; \
-        case 3: \
-          out_test = uint4( \
-              to.expect.data[12], to.expect.data[13], to.expect.data[14], to.expect.data[15]); \
-          break; \
-        case 4: \
-          out_test = uint4( \
-              to.result.data[0], to.result.data[1], to.result.data[2], to.result.data[3]); \
-          break; \
-        case 5: \
-          out_test = uint4( \
-              to.result.data[4], to.result.data[5], to.result.data[6], to.result.data[7]); \
-          break; \
-        case 6: \
-          out_test = uint4( \
-              to.result.data[8], to.result.data[9], to.result.data[10], to.result.data[11]); \
-          break; \
-        case 7: \
-          out_test = uint4( \
-              to.result.data[12], to.result.data[13], to.result.data[14], to.result.data[15]); \
-          break; \
-        case 8: \
-          out_test = uint4(to.status, to.line, to.type, 0); \
-          break; \
-      } \
-    }
-
-#endif
+#define EXPECT_OP(OP, val1, val2) \
+  out_test[g_test_id++] = test_output( \
+      as_raw_data(val1), as_raw_data(val2), COLLAPSE_BOOL(OP), int(__LINE__), to_type(val1))
 
 #define EXPECT_EQ(result, expect) EXPECT_OP((result) == (expect), result, expect)
 #define EXPECT_NE(result, expect) EXPECT_OP((result) != (expect), result, expect)
