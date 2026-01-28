@@ -94,4 +94,8 @@ bool node_socket_not_zero(const GPUNodeStack &socket);
 bool node_socket_not_white(const GPUNodeStack &socket);
 bool node_socket_not_black(const GPUNodeStack &socket);
 
+/* Link search callback that ignores the "Weight" socket in shader nodes.
+ * These sockets are never available and must be ignored to avoid invalid link operations. */
+void search_link_ops_for_shader_bsdf_node(nodes::GatherLinkSearchOpParams &params);
+
 }  // namespace blender

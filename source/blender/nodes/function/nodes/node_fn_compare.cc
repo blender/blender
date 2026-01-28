@@ -180,7 +180,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     }
   }
 
-  if (params.in_out() != SOCK_IN && type != SOCK_STRING) {
+  if (params.in_out() == SOCK_IN && type != SOCK_STRING) {
     params.add_item(
         IFACE_("Angle"),
         SocketSearchOp{

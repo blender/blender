@@ -60,6 +60,7 @@ void register_node_type_sh_emission()
   ntype.enum_name_legacy = "EMISSION";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.gpu_fn = file_ns::node_shader_gpu_emission;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 

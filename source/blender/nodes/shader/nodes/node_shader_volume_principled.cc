@@ -172,6 +172,7 @@ void register_node_type_sh_volume_principled()
   ntype.enum_name_legacy = "PRINCIPLED_VOLUME";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_principled;
 

@@ -52,14 +52,16 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
       node.custom2 = *type;
       params.update_and_connect_available_socket(node, "Value");
     });
-    params.add_item(
-        IFACE_("Index"),
-        [node_type, type](LinkSearchOpParams &params) {
-          bNode &node = params.add_node(node_type);
-          node.custom2 = *type;
-          params.update_and_connect_available_socket(node, "Index");
-        },
-        -1);
+    if (params.in_out() == SOCK_IN) {
+      params.add_item(
+          IFACE_("Index"),
+          [node_type, type](LinkSearchOpParams &params) {
+            bNode &node = params.add_node(node_type);
+            node.custom2 = *type;
+            params.update_and_connect_available_socket(node, "Index");
+          },
+          -1);
+    }
   }
 }
 

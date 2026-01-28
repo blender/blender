@@ -28,25 +28,30 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Directionality of the scattering. Zero is isotropic, negative is backward, "
-          "positive is forward");
+          "positive is forward")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_HENYEY_GREENSTEIN; });
   b.add_input<decl::Float>("IOR")
       .default_value(1.33f)
       .min(1.0f)
       .max(2.0f)
       .subtype(PROP_FACTOR)
-      .description("Index Of Refraction of the scattering particles");
+      .description("Index Of Refraction of the scattering particles")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_FOURNIER_FORAND; });
   b.add_input<decl::Float>("Backscatter")
       .default_value(0.1f)
       .min(0.0f)
       .max(0.5f)
       .subtype(PROP_FACTOR)
-      .description("Fraction of light that is scattered backwards");
-  b.add_input<decl::Float>("Alpha").default_value(0.5f).min(0.0f).max(500.0f);
+      .description("Fraction of light that is scattered backwards")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_FOURNIER_FORAND; });
+  b.add_input<decl::Float>("Alpha").default_value(0.5f).min(0.0f).max(500.0f).make_available(
+      [](bNode &node) { node.custom1 = SHD_PHASE_DRAINE; });
   b.add_input<decl::Float>("Diameter")
       .default_value(20.0f)
       .min(0.0f)
       .max(50.0f)
-      .description("Diameter of the water droplets, in micrometers");
+      .description("Diameter of the water droplets, in micrometers")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_MIE; });
   b.add_input<decl::Float>("Weight").available(false);
   b.add_output<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
@@ -115,6 +120,7 @@ void register_node_type_sh_volume_scatter()
   ntype.enum_name_legacy = "VOLUME_SCATTER";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_scatter;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
