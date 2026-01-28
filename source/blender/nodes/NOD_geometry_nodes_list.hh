@@ -58,15 +58,9 @@ class List : public ImplicitSharingMixin {
   int64_t size_ = 0;
 
  public:
-  explicit List(const CPPType &type, DataVariant data, const int64_t size)
-      : cpp_type_(type), data_(std::move(data)), size_(size)
-  {
-  }
+  explicit List(const CPPType &type, DataVariant data, const int64_t size);
 
-  static ListPtr create(const CPPType &type, DataVariant data, const int64_t size)
-  {
-    return ListPtr(MEM_new<List>(__func__, type, std::move(data), size));
-  }
+  static ListPtr create(const CPPType &type, DataVariant data, const int64_t size);
 
   DataVariant &data();
   const DataVariant &data() const;
