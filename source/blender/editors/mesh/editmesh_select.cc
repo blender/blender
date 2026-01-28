@@ -1896,21 +1896,30 @@ void MESH_OT_select_edge_ring_multi(wmOperatorType *ot)
 /** \name Select Loop & Ring (Cursor Pick) Utilities
  * \{ */
 
-static void mouse_mesh_loop_face(BMEditMesh *em, BMEdge *eed, bool select, BMWDelimitFlag delimit)
+static void mouse_mesh_loop_face(
+    BMEditMesh *em, BMEdge *eed, bool select, bool select_clear, BMWDelimitFlag delimit)
 {
+  if (select_clear) {
+    EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+  }
   walker_select(em, BMW_FACELOOP, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
 }
 
-static void mouse_mesh_loop_edge_ring(BMEditMesh *em,
-                                      BMEdge *eed,
-                                      bool select,
-                                      BMWDelimitFlag delimit)
+static void mouse_mesh_loop_edge_ring(
+    BMEditMesh *em, BMEdge *eed, bool select, bool select_clear, BMWDelimitFlag delimit)
 {
+  if (select_clear) {
+    EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+  }
   walker_select(em, BMW_EDGERING, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
 }
 
-static void mouse_mesh_loop_edge(
-    BMEditMesh *em, BMEdge *eed, bool select, bool select_cycle, BMWDelimitFlag delimit)
+static void mouse_mesh_loop_edge(BMEditMesh *em,
+                                 BMEdge *eed,
+                                 bool select,
+                                 bool select_clear,
+                                 bool select_cycle,
+                                 BMWDelimitFlag delimit)
 {
   bool edge_boundary = false;
   bool non_manifold = BM_edge_face_count_is_over(eed, 2);
@@ -1933,6 +1942,10 @@ static void mouse_mesh_loop_edge(
     }
   }
 
+  if (select_clear) {
+    EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+  }
+
   if (edge_boundary) {
     walker_select(em, BMW_EDGEBOUNDARY, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
   }
@@ -1951,19 +1964,20 @@ static void edbm_select_loop_or_ring_by_edge(BMEditMesh *em,
                                              Object *obedit,
                                              BMEdge *eed,
                                              bool select,
+                                             bool select_clear,
                                              bool select_cycle,
                                              bool ring,
                                              BMWDelimitFlag delimit)
 {
   if (em->selectmode & SCE_SELECT_FACE) {
-    mouse_mesh_loop_face(em, eed, select, delimit);
+    mouse_mesh_loop_face(em, eed, select, select_clear, delimit);
   }
   else {
     if (ring) {
-      mouse_mesh_loop_edge_ring(em, eed, select, delimit);
+      mouse_mesh_loop_edge_ring(em, eed, select, select_clear, delimit);
     }
     else {
-      mouse_mesh_loop_edge(em, eed, select, select_cycle, delimit);
+      mouse_mesh_loop_edge(em, eed, select, select_clear, select_cycle, delimit);
     }
   }
 
@@ -2107,12 +2121,28 @@ static wmOperatorStatus edbm_select_loop_or_ring_exec_impl(bContext *C,
     select_cycle = false;
   }
 
-  /* Clear selection in other objects when not extending. */
+  /* Clear selection in other objects when not extending.
+   *
+   * NOTE(@ideasman42): the current object must *not* be cleared here because the loop selection
+   * logic checks if edges are already selected to cycle between loop and boundary selection.
+   * Clearing before that check prevents cycling from triggering, see #153473. */
   if (select_clear) {
-    EDBM_mesh_deselect_all_multi_ex(bases);
+    for (Base *base_iter : bases) {
+      Object *obedit_iter = base_iter->object;
+      if (obedit_iter == obedit) {
+        continue;
+      }
+      BMEditMesh *em_iter = BKE_editmesh_from_object(obedit_iter);
+      if (em_iter->bm->totvertsel == 0) {
+        continue;
+      }
+      EDBM_flag_disable_all(em_iter, BM_ELEM_SELECT);
+      DEG_id_tag_update(obedit_iter->data, ID_RECALC_SELECT);
+    }
   }
 
-  edbm_select_loop_or_ring_by_edge(em, obedit, eed, select, select_cycle, ring, delimit);
+  edbm_select_loop_or_ring_by_edge(
+      em, obedit, eed, select, select_clear, select_cycle, ring, delimit);
 
   /* Set active element from stored indices (for redo support).
    * These indices should only be set when "select" is true,
