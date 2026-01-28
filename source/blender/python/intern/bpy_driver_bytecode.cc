@@ -32,8 +32,39 @@ namespace blender {
 
 static bool is_opcode_secure(const int opcode)
 {
-  /* TODO(@ideasman42): Handle intrinsic opcodes (`CALL_INTRINSIC_2`).
-   * For Python 3.12. */
+  /*
+   * Intentionally Excluded Opcodes
+   * ==============================
+   *
+   * Likely Safe but Unnecessary
+   * ---------------------------
+   *
+   * These opcodes appear safe but are not needed for driver expressions.
+   *
+   * In the interest of reducing the attack surface, exclude them unless
+   * practical use cases are found.
+   *
+   * - `CALL_INTRINSIC_2`: Used for exception handling (`except*`) and type hints.
+   *   Not needed for driver expressions.
+   *
+   * - `MAKE_FUNCTION`, `LOAD_BUILD_CLASS`: Function/class creation not needed.
+   *
+   * Known to be Dangerous
+   * ---------------------
+   *
+   * These opcodes are excluded for security reasons:
+   *
+   * - `DICT_MERGE`, `DICT_UPDATE`: Could potentially be used to manipulate
+   *   the namespace via `globals()`, allowing malicious code execution.
+   *
+   * - `IMPORT_NAME`, `IMPORT_FROM`: Module imports are not allowed.
+   *
+   * - `STORE_NAME`, `STORE_GLOBAL`, `STORE_ATTR`: Storing to names/globals/attributes
+   *   could modify the namespace or objects in unsafe ways.
+   *
+   * - `LOAD_ATTR`: Attribute access is not allowed as it could access
+   *   private/internal attributes.
+   */
 
 #  define OK_OP(op) \
     case op: \
