@@ -129,7 +129,6 @@ if(WIN32)
   )
 
   set(PLATFORM_FLAGS)
-  set(PLATFORM_CXX_FLAGS)
 
   if(BLENDER_PLATFORM_ARM)
     # In some cases on ARM64 (unsure why), dep builds using the "Ninja" generator appear to use
