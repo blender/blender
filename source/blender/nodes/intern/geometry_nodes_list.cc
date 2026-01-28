@@ -127,6 +127,11 @@ void List::delete_self()
   MEM_delete(this);
 }
 
+ListPtr List::copy() const
+{
+  return List::create(cpp_type_, data_, size_);
+}
+
 GVArray List::varray() const
 {
   if (const auto *array_data = std::get_if<ArrayData>(&data_)) {

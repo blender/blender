@@ -61,6 +61,7 @@ class List : public ImplicitSharingMixin {
   int64_t size() const;
 
   void delete_self() override;
+  ListPtr copy() const;
 
   /** Access the list as virtual array. */
   GVArray varray() const;
