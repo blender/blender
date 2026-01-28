@@ -558,14 +558,33 @@ static int treesort_obtype_alpha(const void *v1, const void *v2)
 /* sort happens on each subtree individual */
 static void outliner_sort(ListBaseT<TreeElement> *lb)
 {
+  /* Sorting trying to handle these cases:
+   * - contents of collections (where contained collections
+   *   come first, stay first and are not sorted, followed by
+   *   objects etc - which ARE sorted).
+   * - contents of "Vertex Groups" (these ARE all sorted, nothing
+   *   else in there).
+   * - contents of armature data (where optional contained bone
+   *   collections [editmode] come last, stay last and are not sorted)
+   *   with bones coming first (and ARE sorted).
+   */
+
   TreeElement *last_te = static_cast<TreeElement *>(lb->last);
   if (last_te == nullptr) {
     return;
   }
   TreeStoreElem *last_tselem = TREESTORE(last_te);
 
-  /* Sorting rules; only object lists, ID lists, or deform-groups. */
-  if (ELEM(last_tselem->type, TSE_DEFGROUP, TSE_ID_BASE) ||
+  /* Check if we are expanding Armature data and if there are bone collections. */
+  const TreeElement *first_te = static_cast<TreeElement *>(lb->first);
+  const TreeStoreElem *first_tselem = TREESTORE(first_te);
+  const bool inside_armature_data = ELEM(
+      first_tselem->type, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL);
+  const bool has_armature_data_bone_collections = ELEM(last_tselem->type,
+                                                       TSE_BONE_COLLECTION_BASE);
+
+  /* Sorting rules; only object lists, ID lists, bones or deform-groups. */
+  if (inside_armature_data || ELEM(last_tselem->type, TSE_DEFGROUP, TSE_ID_BASE) ||
       ((last_tselem->type == TSE_SOME_ID) && (last_te->idcode == ID_OB)))
   {
     int totelem = BLI_listbase_count(lb);
@@ -573,7 +592,6 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
     if (totelem > 1) {
       tTreeSort *tear = MEM_new_array_uninitialized<tTreeSort>(totelem, "tree sort array");
       tTreeSort *tp = tear;
-      int skip = 0;
 
       for (TreeElement &te : *lb) {
         TreeStoreElem *tselem = TREESTORE(&te);
@@ -581,10 +599,11 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
         tp->name = te.name;
         tp->idcode = te.idcode;
 
-        if (!ELEM(tselem->type, TSE_SOME_ID, TSE_DEFGROUP)) {
+        if (!ELEM(tselem->type, TSE_SOME_ID, TSE_DEFGROUP, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL))
+        {
           tp->idcode = 0; /* Don't sort this. */
         }
-        if (ELEM(tselem->type, TSE_ID_BASE, TSE_DEFGROUP)) {
+        if (ELEM(tselem->type, TSE_ID_BASE, TSE_DEFGROUP, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL)) {
           tp->idcode = 1; /* Do sort this. */
         }
 
@@ -592,20 +611,22 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
         tp++;
       }
 
-      /* just sort alphabetically */
+      /* Just sort alphabetically (but keep bone collections last when inside armature data). */
       if (tear->idcode == 1) {
-        qsort(tear, totelem, sizeof(tTreeSort), treesort_alpha);
+        const int skip_back = has_armature_data_bone_collections ? 1 : 0;
+        qsort(tear, totelem - skip_back, sizeof(tTreeSort), treesort_alpha);
       }
       else {
         /* keep beginning of list */
-        for (tp = tear, skip = 0; skip < totelem; skip++, tp++) {
+        int skip_front = 0;
+        for (tp = tear, skip_front = 0; skip_front < totelem; skip_front++, tp++) {
           if (tp->idcode) {
             break;
           }
         }
 
-        if (skip < totelem) {
-          qsort(tear + skip, totelem - skip, sizeof(tTreeSort), treesort_alpha_ob);
+        if (skip_front < totelem) {
+          qsort(tear + skip_front, totelem - skip_front, sizeof(tTreeSort), treesort_alpha_ob);
         }
       }
 
