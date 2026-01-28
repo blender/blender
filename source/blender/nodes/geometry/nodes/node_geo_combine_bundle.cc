@@ -49,7 +49,8 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Bundle>("Bundle").propagate_all().reference_pass_all();
+  b.add_output<decl::Bundle>("Bundle").propagate_all().reference_pass_all().structure_type(
+      StructureType::Single);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

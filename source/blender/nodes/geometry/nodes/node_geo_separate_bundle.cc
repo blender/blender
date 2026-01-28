@@ -31,7 +31,7 @@ NODE_STORAGE_FUNCS(NodeSeparateBundle);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bundle>("Bundle");
+  b.add_input<decl::Bundle>("Bundle").structure_type(StructureType::Single);
   const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
   if (tree && node) {
