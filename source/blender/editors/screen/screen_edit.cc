@@ -522,7 +522,7 @@ static bool screen_area_join_ex(bContext *C,
     if (side1) {
       rcti rect = {side1->v1->vec.x, side1->v3->vec.x, side1->v1->vec.y, side1->v3->vec.y};
       /* Close side1 but not by joining with the area that we just split. */
-      if (screen_area_close(C, reports, screen, side1, (offset1 > 0) ? sa2 : sa1)) {
+      if (screen_area_close(C, reports, screen, side1, sa1)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
         if (sa1->spacetype == SPACE_OUTLINER) {
@@ -534,7 +534,7 @@ static bool screen_area_join_ex(bContext *C,
     if (side2) {
       rcti rect = {side2->v1->vec.x, side2->v3->vec.x, side2->v1->vec.y, side2->v3->vec.y};
       /* Close side2 but not by joining with the area that we just split. */
-      if (screen_area_close(C, reports, screen, side2, (offset2 > 0) ? sa1 : sa2)) {
+      if (screen_area_close(C, reports, screen, side2, sa1)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
         if (sa1->spacetype == SPACE_OUTLINER) {
