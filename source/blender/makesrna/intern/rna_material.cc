@@ -171,10 +171,16 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
   Material *ma = id_cast<Material *>(ptr->owner_id);
 
   if (ma->nodetree) {
-    bNode *node = BKE_texpaint_slot_material_find_node(ma, ma->paint_active_slot);
+    std::pair<bNodeTree *, bNode *> found = BKE_texpaint_slot_material_find_node(
+        ma, ma->paint_active_slot);
 
-    if (node) {
-      bke::node_set_active(*ma->nodetree, *node);
+    if (found.second) {
+      BLI_assert(found.first != nullptr);
+      bke::node_set_active(*found.first, *found.second);
+      /* Tag nodetree for viewport update (if node is found in a nested group). */
+      if (ma->nodetree != found.first) {
+        DEG_id_tag_update(&found.first->id, ID_RECALC_SYNC_TO_EVAL);
+      }
     }
   }
 
