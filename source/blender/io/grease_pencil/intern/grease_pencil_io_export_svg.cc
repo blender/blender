@@ -446,7 +446,7 @@ pugi::xml_node SVGExporter::write_path(pugi::xml_node node,
     element_node.append_attribute("stroke-width").set_value(*width);
   }
 
-  std::string txt = "";
+  std::string txt;
   for (const int curve_i : shape) {
     txt.append("M");
     const IndexRange points = points_by_curve[curve_i];
