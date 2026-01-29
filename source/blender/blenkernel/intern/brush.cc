@@ -812,14 +812,11 @@ void BKE_brush_debug_print_state(Brush *br)
   BR_TEST(size, d);
 
   /* br->flag */
-  BR_TEST_FLAG(BRUSH_AIRBRUSH);
   BR_TEST_FLAG(BRUSH_ALPHA_PRESSURE);
   BR_TEST_FLAG(BRUSH_SIZE_PRESSURE);
   BR_TEST_FLAG(BRUSH_JITTER_PRESSURE);
   BR_TEST_FLAG(BRUSH_SPACING_PRESSURE);
-  BR_TEST_FLAG(BRUSH_ANCHORED);
   BR_TEST_FLAG(BRUSH_DIR_IN);
-  BR_TEST_FLAG(BRUSH_SPACE);
   BR_TEST_FLAG(BRUSH_SMOOTH_STROKE);
   BR_TEST_FLAG(BRUSH_PERSISTENT);
   BR_TEST_FLAG(BRUSH_ACCUMULATE);
@@ -830,7 +827,6 @@ void BKE_brush_debug_print_state(Brush *br)
   BR_TEST_FLAG(BRUSH_ADAPTIVE_SPACE);
   BR_TEST_FLAG(BRUSH_LOCK_SIZE);
   BR_TEST_FLAG(BRUSH_EDGE_TO_EDGE);
-  BR_TEST_FLAG(BRUSH_DRAG_DOT);
   BR_TEST_FLAG(BRUSH_INVERSE_SMOOTH_PRESSURE);
   BR_TEST_FLAG(BRUSH_PLANE_TRIM);
   BR_TEST_FLAG(BRUSH_FRONTFACE);
@@ -1817,7 +1813,7 @@ bool supports_plane_depth(const Brush &brush)
 }
 bool supports_jitter(const Brush &brush)
 {
-  return !(brush.flag & BRUSH_ANCHORED) && !(brush.flag & BRUSH_DRAG_DOT) &&
+  return !(ELEM(brush.stroke_method, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT)) &&
          !ELEM(brush.sculpt_brush_type,
                SCULPT_BRUSH_TYPE_GRAB,
                SCULPT_BRUSH_TYPE_ROTATE,
@@ -1892,8 +1888,11 @@ bool supports_secondary_cursor_color(const Brush &brush)
 }
 bool supports_smooth_stroke(const Brush &brush)
 {
-  return !(brush.flag & BRUSH_ANCHORED) && !(brush.flag & BRUSH_DRAG_DOT) &&
-         !(brush.flag & BRUSH_LINE) && !(brush.flag & BRUSH_CURVE) &&
+  return !(ELEM(brush.stroke_method,
+                BRUSH_STROKE_ANCHORED,
+                BRUSH_STROKE_DRAG_DOT,
+                BRUSH_STROKE_LINE,
+                BRUSH_STROKE_CURVE)) &&
          !ELEM(brush.sculpt_brush_type,
                SCULPT_BRUSH_TYPE_GRAB,
                SCULPT_BRUSH_TYPE_ROTATE,
@@ -1902,7 +1901,7 @@ bool supports_smooth_stroke(const Brush &brush)
 }
 bool supports_space_attenuation(const Brush &brush)
 {
-  return brush.flag & (BRUSH_SPACE | BRUSH_LINE | BRUSH_CURVE) &&
+  return ELEM(brush.stroke_method, BRUSH_STROKE_SPACE, BRUSH_STROKE_LINE, BRUSH_STROKE_CURVE) &&
          !ELEM(brush.sculpt_brush_type,
                SCULPT_BRUSH_TYPE_GRAB,
                SCULPT_BRUSH_TYPE_ROTATE,

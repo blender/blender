@@ -363,9 +363,20 @@ enum eBrushGradientSourceFill {
   BRUSH_GRADIENT_RADIAL = 1, /* gradient from spacing */
 };
 
+/** #Brush.stroke_method */
+enum eBrushStrokeType {
+  BRUSH_STROKE_DOTS = 0,
+  BRUSH_STROKE_AIRBRUSH = 1,
+  BRUSH_STROKE_ANCHORED = 2,
+  BRUSH_STROKE_SPACE = 3,
+  BRUSH_STROKE_DRAG_DOT = 4,
+  BRUSH_STROKE_LINE = 5,
+  BRUSH_STROKE_CURVE = 6,
+};
+
 /** #Brush.flag */
 enum eBrushFlags {
-  BRUSH_AIRBRUSH = (1 << 0),
+  BRUSH_UNUSED_1 = (1 << 0),
   BRUSH_INVERT_TO_SCRAPE_FILL = (1 << 1),
   BRUSH_ALPHA_PRESSURE = (1 << 2),
   BRUSH_SIZE_PRESSURE = (1 << 3),
@@ -373,9 +384,9 @@ enum eBrushFlags {
   BRUSH_SPACING_PRESSURE = (1 << 5),
   BRUSH_ORIGINAL_PLANE = (1 << 6),
   BRUSH_GRAB_ACTIVE_VERTEX = (1 << 7),
-  BRUSH_ANCHORED = (1 << 8),
+  BRUSH_UNUSED_2 = (1 << 8),
   BRUSH_DIR_IN = (1 << 9),
-  BRUSH_SPACE = (1 << 10),
+  BRUSH_UNUSED_3 = (1 << 10),
   BRUSH_SMOOTH_STROKE = (1 << 11),
   BRUSH_PERSISTENT = (1 << 12),
   BRUSH_ACCUMULATE = (1 << 13),
@@ -388,15 +399,15 @@ enum eBrushFlags {
   BRUSH_LOCK_SIZE = (1 << 20),
   BRUSH_USE_GRADIENT = (1 << 21),
   BRUSH_EDGE_TO_EDGE = (1 << 22),
-  BRUSH_DRAG_DOT = (1 << 23),
+  BRUSH_UNUSED_4 = (1 << 23),
   BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
   BRUSH_FRONTFACE_FALLOFF = (1 << 25),
   BRUSH_PLANE_TRIM = (1 << 26),
   BRUSH_FRONTFACE = (1 << 27),
   /* BRUSH_CUSTOM_ICON = (1 << 28), */
-  BRUSH_LINE = (1 << 29),
+  BRUSH_UNUSED_5 = (1 << 29),
   BRUSH_ABSOLUTE_JITTER = (1 << 30),
-  BRUSH_CURVE = (1u << 31),
+  BRUSH_UNUSED_6 = (1u << 31),
 };
 
 /** #Brush.sampling_flag */

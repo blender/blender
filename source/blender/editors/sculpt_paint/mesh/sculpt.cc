@@ -872,7 +872,7 @@ bool stroke_is_dyntopo(const Object &object, const Brush &brush)
   return ((pbvh.type() == bke::pbvh::Type::BMesh) && (!ss.cache || (!ss.cache->alt_smooth)) &&
           /* Requires mesh restore, which doesn't work with
            * dynamic-topology. */
-          !(brush.flag & BRUSH_ANCHORED) && !(brush.flag & BRUSH_DRAG_DOT) &&
+          !(ELEM(brush.stroke_method, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT)) &&
           bke::brush::supports_dyntopo(brush));
 }
 
@@ -2595,7 +2595,7 @@ static void update_sculpt_normal(const Depsgraph &depsgraph,
   const bool update_normal = !(brush.flag & BRUSH_ORIGINAL_NORMAL) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_THUMB &&
-                               !(brush.flag & BRUSH_ANCHORED)) &&
+                               !(brush.stroke_method == BRUSH_STROKE_ANCHORED)) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ELASTIC_DEFORM) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK &&
                                cache.normal_weight > 0.0f);
@@ -4031,7 +4031,9 @@ static float brush_dynamic_size_get(const Brush &brush,
  * generally used to create grab deformations. */
 static bool need_delta_from_anchored_origin(const Brush &brush)
 {
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMEAR && (brush.flag & BRUSH_ANCHORED)) {
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMEAR &&
+      (brush.stroke_method == BRUSH_STROKE_ANCHORED))
+  {
     return true;
   }
 
@@ -4141,7 +4143,7 @@ static void brush_delta_update(const Depsgraph &depsgraph,
       add_v3_v3(cache->grab_delta, delta);
     }
     else if (need_delta_for_tip_orientation(brush)) {
-      if (brush.flag & BRUSH_ANCHORED) {
+      if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
         float orig[3];
         mul_v3_m4v3(orig, ob.object_to_world().ptr(), cache->orig_grab_location);
         sub_v3_v3v3(cache->grab_delta, grab_location, orig);
@@ -5031,7 +5033,7 @@ static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
   }
 
   /* Restore the mesh before continuing with anchored stroke. */
-  if (brush->flag & BRUSH_ANCHORED || brush->flag & BRUSH_DRAG_DOT) {
+  if (ELEM(brush->stroke_method, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT)) {
 
     undo::restore_from_undo_step(depsgraph, sd, ob);
 
@@ -5615,7 +5617,7 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   cache->accum = true;
 
   /* Make copies of the mesh vertex locations and normals for some brushes. */
-  if (brush->flag & BRUSH_ANCHORED) {
+  if (brush->stroke_method == BRUSH_STROKE_ANCHORED) {
     cache->accum = false;
   }
 
@@ -5710,7 +5712,7 @@ void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
   Brush &brush = *BKE_paint_brush(&paint);
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) ||
-      !((brush.flag & BRUSH_ANCHORED) ||
+      !((brush.stroke_method == BRUSH_STROKE_ANCHORED) ||
         (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK) ||
         (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) ||
         cloth::is_cloth_deform_brush(brush)))
@@ -5773,7 +5775,7 @@ void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
 
   cache.radius_squared = cache.radius * cache.radius;
 
-  if (brush.flag & BRUSH_ANCHORED) {
+  if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
     /* True location has been calculated as part of the stroke system already here. */
     if (brush.flag & BRUSH_EDGE_TO_EDGE) {
       RNA_float_get_array(ptr, "location", cache.location);

@@ -64,7 +64,7 @@ bool paint_curve_poll(bContext *C)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
 
-  if (brush && (brush->flag & BRUSH_CURVE)) {
+  if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
     return true;
   }
 

@@ -199,10 +199,16 @@ struct Brush {
   /** Brush diameter. */
   int size = 70; /* diameter of the brush in pixels */
   /** General purpose flags. */
-  int flag = (BRUSH_ALPHA_PRESSURE | BRUSH_SPACE | BRUSH_SPACE_ATTEN);
+  int flag = (BRUSH_ALPHA_PRESSURE | BRUSH_SPACE_ATTEN);
   int flag2 = 0;
   int sampling_flag = (BRUSH_PAINT_ANTIALIASING);
 
+  /**
+   * How the stroke behaves when used via the modal operators.
+   * \see #eBrushStrokeType
+   */
+  int8_t stroke_method = BRUSH_STROKE_SPACE;
+  char _pad[7] = {};
   /** Number of samples used to smooth the stroke. */
   int input_samples = 1;
 

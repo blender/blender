@@ -410,7 +410,7 @@ void ImagePaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
     BKE_brush_alpha_set(paint, brush, max_ff(0.0f, startalpha * alphafac));
   }
 
-  if ((brush->flag & BRUSH_DRAG_DOT) || (brush->flag & BRUSH_ANCHORED)) {
+  if (ELEM(brush->stroke_method, BRUSH_STROKE_DRAG_DOT, BRUSH_STROKE_ANCHORED)) {
     UndoStack *ustack = CTX_wm_manager(this->evil_C)->runtime->undo_stack;
     ED_image_undo_restore(ustack->step_init);
   }

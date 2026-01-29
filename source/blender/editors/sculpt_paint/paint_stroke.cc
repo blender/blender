@@ -194,13 +194,13 @@ static bool paint_stroke_use_scene_spacing(const Brush &brush, const PaintMode m
 
 static bool paint_brush_type_raycast_original(const Brush &brush, PaintMode /*mode*/)
 {
-  return brush.flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT);
+  return ELEM(brush.stroke_method, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT);
 }
 
 static bool paint_brush_type_require_inbetween_mouse_events(const Brush &brush,
                                                             const PaintMode mode)
 {
-  if (brush.flag & BRUSH_ANCHORED) {
+  if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
     return false;
   }
 
@@ -320,7 +320,7 @@ bool PaintStroke::update(bContext *C,
     }
   }
 
-  if (brush.flag & BRUSH_ANCHORED) {
+  if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
     bool hit = false;
     float2 halfway;
 
@@ -370,7 +370,7 @@ bool PaintStroke::update(bContext *C,
   }
   else {
     /* curve strokes do their own rake calculation */
-    if (!(brush.flag & BRUSH_CURVE)) {
+    if (brush.stroke_method != BRUSH_STROKE_CURVE) {
       if (!paint_calculate_rake_rotation(*paint, brush, mouse_init, mode, rake_started_)) {
         /* Not enough motion to define an angle. */
         if (!rake_started_) {
@@ -425,7 +425,7 @@ bool PaintStroke::update(bContext *C,
 static bool paint_stroke_use_dash(const Brush &brush)
 {
   /* Only these stroke modes support dash lines */
-  return brush.flag & BRUSH_SPACE || brush.flag & BRUSH_LINE || brush.flag & BRUSH_CURVE;
+  return ELEM(brush.stroke_method, BRUSH_STROKE_SPACE, BRUSH_STROKE_LINE, BRUSH_STROKE_CURVE);
 }
 
 static bool paint_stroke_use_jitter(const PaintMode mode, const Brush &brush, const bool invert)
@@ -435,7 +435,7 @@ static bool paint_stroke_use_jitter(const PaintMode mode, const Brush &brush, co
 
   /* jitter-ed brush gives weird and unpredictable result for this
    * kinds of stroke, so manually disable jitter usage (sergey) */
-  use_jitter &= (brush.flag & (BRUSH_DRAG_DOT | BRUSH_ANCHORED)) == 0;
+  use_jitter &= (ELEM(brush.stroke_method, BRUSH_STROKE_DRAG_DOT, BRUSH_STROKE_ANCHORED)) == 0;
   use_jitter &= !ELEM(mode, PaintMode::Texture2D, PaintMode::Texture3D) ||
                 !(invert && brush.image_brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE);
 
@@ -635,7 +635,7 @@ static float paint_space_stroke_spacing(const ViewContext &vc,
   float spacing = brush->spacing;
 
   /* apply spacing pressure */
-  if (brush->flag & BRUSH_SPACE && brush->flag & BRUSH_SPACING_PRESSURE) {
+  if (brush->stroke_method & BRUSH_STROKE_SPACE && brush->flag & BRUSH_SPACING_PRESSURE) {
     spacing = spacing * (1.5f - pressure);
   }
 
@@ -898,7 +898,7 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
   }
 
   if (stroke_mode_ == BrushStrokeMode::Invert) {
-    if (this->brush->flag & BRUSH_CURVE) {
+    if (this->brush->stroke_method == BRUSH_STROKE_CURVE) {
       RNA_enum_set(op->ptr, "mode", int(BrushStrokeMode::Normal));
     }
   }
@@ -985,7 +985,7 @@ static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptType tool)
 
 bool paint_space_stroke_enabled(const Brush &br, const PaintMode mode)
 {
-  if ((br.flag & BRUSH_SPACE) == 0) {
+  if (br.stroke_method != BRUSH_STROKE_SPACE) {
     return false;
   }
 
@@ -1030,7 +1030,7 @@ static bool sculpt_is_grab_tool(const Brush &br)
 
 bool paint_supports_dynamic_size(const Brush &br, const PaintMode mode)
 {
-  if (br.flag & BRUSH_ANCHORED) {
+  if (br.stroke_method == BRUSH_STROKE_ANCHORED) {
     return false;
   }
 
@@ -1065,7 +1065,7 @@ bool paint_supports_smooth_stroke(const Brush &brush,
     return true;
   }
   if (!(brush.flag & BRUSH_SMOOTH_STROKE) ||
-      (brush.flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT | BRUSH_LINE)))
+      ELEM(brush.stroke_method, BRUSH_STROKE_ANCHORED | BRUSH_STROKE_DRAG_DOT | BRUSH_STROKE_LINE))
   {
     return false;
   }
@@ -1091,7 +1091,7 @@ bool paint_supports_texture(const PaintMode mode)
 
 bool paint_supports_dynamic_tex_coords(const Brush &br, const PaintMode mode)
 {
-  if (br.flag & BRUSH_ANCHORED) {
+  if (br.stroke_method == BRUSH_STROKE_ANCHORED) {
     return false;
   }
 
@@ -1262,7 +1262,7 @@ void PaintStroke::line_end(bContext *C, wmOperator *op, const float2 mouse)
 {
   Brush *br = this->brush;
   bke::PaintRuntime *paint_runtime = this->paint->runtime;
-  if (stroke_started_ && (br->flag & BRUSH_LINE)) {
+  if (stroke_started_ && br->stroke_method == BRUSH_STROKE_LINE) {
     paint_runtime->overlap_factor = paint_stroke_integrate_overlap(*br, 1.0);
 
     this->add_step(C, op, this->last_mouse_position, 1.0);
@@ -1273,7 +1273,7 @@ void PaintStroke::line_end(bContext *C, wmOperator *op, const float2 mouse)
 bool PaintStroke::curve_end(bContext *C, wmOperator *op)
 {
   const Brush &br = *this->brush;
-  if (!(br.flag & BRUSH_CURVE)) {
+  if (br.stroke_method != BRUSH_STROKE_CURVE) {
     return false;
   }
 
@@ -1421,8 +1421,10 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
 
   /* see if tablet affects event. Line, anchored and drag dot strokes do not support pressure */
   const float tablet_pressure = WM_event_tablet_data(event, &pen_flip_, nullptr);
-  float pressure = ((br->flag & (BRUSH_LINE | BRUSH_ANCHORED | BRUSH_DRAG_DOT)) ? 1.0f :
-                                                                                  tablet_pressure);
+  float pressure =
+      ELEM(br->stroke_method, BRUSH_STROKE_LINE, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT) ?
+          1.0f :
+          tablet_pressure;
 
   if (print_pressure_status_enabled() && WM_event_is_tablet(event)) {
     std::string msg = fmt::format("Tablet Pressure: {:.4f}", pressure);
@@ -1495,11 +1497,11 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_smooth_cursor, this);
       }
 
-      if (br->flag & BRUSH_AIRBRUSH) {
+      if (br->stroke_method == BRUSH_STROKE_AIRBRUSH) {
         timer_ = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, this->brush->rate);
       }
 
-      if (br->flag & BRUSH_LINE) {
+      if (br->stroke_method == BRUSH_STROKE_LINE) {
         stroke_cursor_ = WM_paint_cursor_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_line_cursor, this);
       }
@@ -1554,7 +1556,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
     this->stroke_done(C, op, false);
     return OPERATOR_FINISHED;
   }
-  else if (br->flag & BRUSH_LINE) {
+  else if (br->stroke_method == BRUSH_STROKE_LINE) {
     if (event->modifier & KM_ALT) {
       this->constrain_line = true;
     }
@@ -1576,9 +1578,10 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
   }
   else if (first_modal ||
            /* regular dabs */
-           (!(br->flag & BRUSH_AIRBRUSH) && ISMOUSE_MOTION(event->type)) ||
+           (!(br->stroke_method == BRUSH_STROKE_AIRBRUSH) && ISMOUSE_MOTION(event->type)) ||
            /* airbrush */
-           ((br->flag & BRUSH_AIRBRUSH) && event->type == TIMER && event->customdata == timer_))
+           ((br->stroke_method == BRUSH_STROKE_AIRBRUSH) && event->type == TIMER &&
+            event->customdata == timer_))
   {
     if (paint_smooth_stroke(*this->brush,
                             &sample_average,

@@ -751,7 +751,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
     else if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM) {
       do_random = true;
     }
-    else if (!((brush->flag & BRUSH_ANCHORED) || update_color)) {
+    else if (!((brush->stroke_method == BRUSH_STROKE_ANCHORED) || update_color)) {
       do_partial_update = true;
     }
 
@@ -769,7 +769,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
     else if (brush->mask_mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM) {
       renew_maxmask = true;
     }
-    else if (!(brush->flag & BRUSH_ANCHORED)) {
+    else if (!(brush->stroke_method == BRUSH_STROKE_ANCHORED)) {
       do_partial_update_mask = true;
       renew_maxmask = true;
     }
