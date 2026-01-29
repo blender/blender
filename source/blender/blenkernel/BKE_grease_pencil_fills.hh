@@ -23,7 +23,7 @@ void gather_next_available_fill_ids(const VArray<int> &fill_ids,
                                     const IndexMask &curve_mask,
                                     MutableSpan<int> r_new_fill_ids);
 
-IndexMask selected_mask_to_fills(const IndexMask selected_mask,
+IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
                                  const bke::CurvesGeometry &curves,
                                  const bke::AttrDomain selection_domain,
                                  IndexMaskMemory &memory);

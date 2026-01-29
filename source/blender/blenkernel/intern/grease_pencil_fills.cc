@@ -114,7 +114,7 @@ void gather_next_available_fill_ids(const VArray<int> &fill_ids,
   });
 }
 
-IndexMask selected_mask_to_fills(const IndexMask selected_mask,
+IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
                                  const bke::CurvesGeometry &curves,
                                  const bke::AttrDomain domain,
                                  IndexMaskMemory &memory)
