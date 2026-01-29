@@ -420,22 +420,6 @@ if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND (NOT WITH_BLENDER) AND (NOT WITH_CYCLES
   set(CYCLES_INSTALL_PATH ${CYCLES_INSTALL_PATH}/hdCycles/resources)
 endif()
 
-if(WITH_CYCLES_CUDA_BINARIES)
-  if(MSVC)
-    set(MAX_MSVC 1800)
-    if(${CUDA_VERSION} EQUAL "8.0")
-      set(MAX_MSVC 1900)
-    elseif(${CUDA_VERSION} EQUAL "9.0")
-      set(MAX_MSVC 1910)
-    elseif(${CUDA_VERSION} EQUAL "9.1")
-      set(MAX_MSVC 1911)
-    elseif(${CUDA_VERSION} VERSION_GREATER_EQUAL 10.0)
-      set(MAX_MSVC 1999)
-    endif()
-    unset(MAX_MSVC)
-  endif()
-endif()
-
 # Subdirectories
 
 if(WITH_CYCLES_BLENDER)

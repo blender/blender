@@ -43,8 +43,6 @@ set(LIB
 
 blender_add_lib(bf_io_common "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-target_link_libraries(bf_io_common INTERFACE)
-
 if(WITH_GTESTS)
   set(TEST_SRC
     intern/abstract_hierarchy_iterator_test.cc

@@ -155,8 +155,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
     unset(_cuda_nvcc_args)
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_file_compressed}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND cuda_cubins ${cuda_file_compressed})
-
-    unset(cuda_debug_flags)
   endmacro()
 
   set(prev_arch "none")

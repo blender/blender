@@ -801,7 +801,6 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
 
   # Cycles
   if(WITH_CYCLES)
-    set(_cycles_blocklist "")
     set(_cycles_all_test_devices CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)
     set(_cycles_osl_test_devices CPU OPTIX)
     foreach(_cycles_device ${CYCLES_TEST_DEVICES})

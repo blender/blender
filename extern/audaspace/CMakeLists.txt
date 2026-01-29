@@ -946,7 +946,6 @@ endif()
 # directories
 
 include_directories(${INCLUDE})
-link_directories()
 
 # install configuration
 

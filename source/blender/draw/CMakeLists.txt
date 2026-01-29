@@ -924,9 +924,6 @@ list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(bf_draw_shaders PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-list(APPEND INC
-)
-
 if(WITH_DRAW_DEBUG)
   list(APPEND SRC
     engines/select/select_debug_engine.cc
