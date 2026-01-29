@@ -141,15 +141,6 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef 
  */
 bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
     const UserDef *userdef, const char *remote_url_full, const bool only_enabled);
-/**
- * Skip the `https` or `http` part of a URL `https://`, return zero if none is found.
- */
-int BKE_preferences_extension_repo_remote_scheme_end(const char *url);
-/**
- * Set a name based on a URL, e.g. `https://www.example.com/path` -> `example.com`.
- */
-void BKE_preferences_extension_remote_to_name(const char *remote_url, char name[64]);
-
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
                                              const bUserExtensionRepo *repo);
 
@@ -157,6 +148,23 @@ void BKE_preferences_extension_repo_read_data(struct BlendDataReader *reader,
                                               bUserExtensionRepo *repo);
 void BKE_preferences_extension_repo_write_data(struct BlendWriter *writer,
                                                const bUserExtensionRepo *repo);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Web/remote utilities
+ *
+ *  For extension and online asset library remotes.
+ * \{ */
+
+/**
+ * Skip the `https` or `http` part of a URL `https://`, return zero if none is found.
+ */
+int BKE_preferences_remote_scheme_end(const char *url);
+/**
+ * Set a name based on a URL, e.g. `https://www.example.com/path` -> `example.com`.
+ */
+void BKE_preferences_remote_to_name(const char *remote_url, char name[64 /*MAX_NAME*/]);
 
 /** \} */
 

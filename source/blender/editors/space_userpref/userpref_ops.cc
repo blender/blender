@@ -321,7 +321,7 @@ static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOpera
     if (name[0] == '\0') {
       switch (repo_type) {
         case bUserExtensionRepoAddType::Remote: {
-          BKE_preferences_extension_remote_to_name(remote_url, name);
+          BKE_preferences_remote_to_name(remote_url, name);
           break;
         }
         case bUserExtensionRepoAddType::Local: {
@@ -997,7 +997,7 @@ static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEven
 
   /* Only URL formatted text. */
   const char *cstr = str.c_str();
-  if (BKE_preferences_extension_repo_remote_scheme_end(cstr) == 0) {
+  if (BKE_preferences_remote_scheme_end(cstr) == 0) {
     return false;
   }
 
