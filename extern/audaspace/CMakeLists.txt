@@ -1219,7 +1219,14 @@ if(WITH_PYTHON)
 	endif()
 
 	add_library(audaspace-py ${LIBRARY_TYPE} ${PYTHON_SRC} ${PYTHON_HDR})
-	target_link_libraries(audaspace-py audaspace ${PYTHON_LIBRARIES})
+	# When Blender is built as a Python module, `PYTHON_LIBRARIES` won't be defined.
+	# NOTE: AUDASPACE has its own `WITH_PYTHON_MODULE` option with different meaning,
+	# so we check the variable is defined instead.
+	if(DEFINED PYTHON_LIBRARIES)
+		target_link_libraries(audaspace-py audaspace ${PYTHON_LIBRARIES})
+	else()
+		target_link_libraries(audaspace-py audaspace)
+	endif()
 	set_target_properties(audaspace-py PROPERTIES SOVERSION ${AUDASPACE_VERSION})
 
 	if(AUDASPACE_STANDALONE)

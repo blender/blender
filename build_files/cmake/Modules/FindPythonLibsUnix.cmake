@@ -106,6 +106,17 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
     # endif()
     string(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
 
+    set(_python_INCLUDE_PATH_SUFFIXES
+      include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+    )
+    if(DEFINED CMAKE_LIBRARY_ARCHITECTURE)
+      if(CMAKE_LIBRARY_ARCHITECTURE)
+        list(APPEND _python_INCLUDE_PATH_SUFFIXES
+          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+        )
+      endif()
+    endif()
+
     if(NOT DEFINED PYTHON_INCLUDE_DIR)
       find_path(PYTHON_INCLUDE_DIR
         NAMES
@@ -113,8 +124,7 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
         HINTS
           ${_python_SEARCH_DIRS}
         PATH_SUFFIXES
-          include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+          ${_python_INCLUDE_PATH_SUFFIXES}
       )
     endif()
 
@@ -125,8 +135,7 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
         HINTS
           ${_python_SEARCH_DIRS}
         PATH_SUFFIXES
-          include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+          ${_python_INCLUDE_PATH_SUFFIXES}
       )
       if((NOT PYTHON_INCLUDE_CONFIG_DIR) AND PYTHON_INCLUDE_DIR)
         # Fallback...
@@ -184,6 +193,7 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
 
   unset(_CURRENT_ABI_FLAGS)
   unset(_CURRENT_PATH)
+  unset(_python_INCLUDE_PATH_SUFFIXES)
 
   unset(_PYTHON_ABI_FLAGS_TEST)
 

@@ -357,7 +357,7 @@ function(blender_add_test_suite_executable
         # perform search of _PyBaseObject_Type on startup.
         #
         # Work-around by telling the linker that the python libraries should not be stripped.
-        if(APPLE)
+        if(APPLE AND NOT WITH_PYTHON_MODULE)
           target_link_libraries("${_test_name}_test" PRIVATE "-Wl,-force_load,${PYTHON_LIBRARIES}")
         endif()
 

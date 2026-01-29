@@ -1463,11 +1463,13 @@ if(WITH_PYTHON)
   # Do this before main 'platform_*' checks,
   # because UNIX will search for the old Python paths which may not exist.
   # giving errors about missing paths before this case is met.
-  if(DEFINED PYTHON_VERSION AND "${PYTHON_VERSION}" VERSION_LESS "3.13")
-    message(
-      FATAL_ERROR
-      "At least Python 3.13 is required to build, but found Python ${PYTHON_VERSION}"
-    )
+  if(DEFINED PYTHON_VERSION)
+    if("${PYTHON_VERSION}" VERSION_LESS "3.13")
+      message(
+        FATAL_ERROR
+        "At least Python 3.13 is required to build, but found Python ${PYTHON_VERSION}"
+      )
+    endif()
   endif()
 endif()
 
@@ -2901,8 +2903,10 @@ if(FIRST_RUN)
   if(WITH_PYTHON)
     info_cfg_text("Python:")
     info_cfg_option(WITH_PYTHON_INSTALL)
-    info_cfg_option(WITH_PYTHON_INSTALL_NUMPY)
-    info_cfg_option(WITH_PYTHON_INSTALL_ZSTANDARD)
+    if(WITH_PYTHON_INSTALL)
+      info_cfg_option(WITH_PYTHON_INSTALL_NUMPY)
+      info_cfg_option(WITH_PYTHON_INSTALL_ZSTANDARD)
+    endif()
     info_cfg_option(WITH_PYTHON_MODULE)
     info_cfg_option(WITH_PYTHON_SAFETY)
   endif()

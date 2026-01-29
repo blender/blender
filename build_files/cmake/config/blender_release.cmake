@@ -88,10 +88,19 @@ if(UNIX AND NOT APPLE)
   set(WITH_PIPEWIRE            OFF  CACHE BOOL "" FORCE)
   set(WITH_PIPEWIRE_DYNLOAD    ON  CACHE BOOL "" FORCE)
 endif()
+
 if(NOT APPLE)
-  # Can't use CMAKE_SYSTEM_PROCESSOR here as it's not set yet,
-  # so fall back to checking the env for vcvarsall's VSCMD_ARG_TGT_ARCH
-  if(NOT (WIN32 AND "$ENV{VSCMD_ARG_TGT_ARCH}" STREQUAL "arm64"))
+  set(_is_win32_arm64_target OFF)
+  if(WIN32)
+    if(DEFINED ENV{VSCMD_ARG_TGT_ARCH})
+      if("$ENV{VSCMD_ARG_TGT_ARCH}" STREQUAL "arm64")
+        # Can't use `CMAKE_SYSTEM_PROCESSOR` here as it's not set yet,
+        # so fall back to checking the environment for vcvarsall's `VSCMD_ARG_TGT_ARCH`.
+        set(_is_win32_arm64_target ON)
+      endif()
+    endif()
+  endif()
+  if(NOT _is_win32_arm64_target)
     set(WITH_TBB_MALLOC_PROXY       ON  CACHE BOOL "" FORCE)
     set(WITH_CYCLES_DEVICE_HIPRT    ON  CACHE BOOL "" FORCE)
     set(WITH_CYCLES_DEVICE_OPTIX    ON  CACHE BOOL "" FORCE)
@@ -100,4 +109,5 @@ if(NOT APPLE)
     set(WITH_CYCLES_DEVICE_ONEAPI   ON  CACHE BOOL "" FORCE)
     set(WITH_CYCLES_ONEAPI_BINARIES ON  CACHE BOOL "" FORCE)
   endif()
+  unset(_is_win32_arm64_target)
 endif()
