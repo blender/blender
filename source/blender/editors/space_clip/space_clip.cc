@@ -896,7 +896,7 @@ static void graph_region_draw(const bContext *C, ARegion *region)
     rcti rect;
     BLI_rcti_init(
         &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-    ui::view2d_draw_scale_y__values(region, v2d, &rect, TH_TEXT, 10);
+    ui::view2d_draw_scale_y(region, v2d, &rect, TH_TEXT, 10);
   }
 }
 
@@ -920,8 +920,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
 
   /* time grid */
   if (!minimized) {
-    ui::view2d_draw_lines_x__discrete_frames_or_seconds(
-        v2d, scene, sc->flag & SC_SHOW_SECONDS, true);
+    ui::view2d_draw_lines_x_frames(v2d, scene, sc->flag & SC_SHOW_SECONDS, false, true);
   }
 
   /* data... */

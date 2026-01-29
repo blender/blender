@@ -239,15 +239,15 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
    * grid size should be independent of the scene's frame rate. */
   constexpr int driver_step = 10;
   /* grid */
-  bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME);
+  const bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME);
   if (region->winy > min_height) {
     if (sipo->mode == SIPO_MODE_DRIVERS) {
-      ui::view2d_draw_lines_x__values(v2d, driver_step);
+      ui::view2d_draw_lines_x(v2d, false, true, true, driver_step);
     }
     else {
-      ui::view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
+      ui::view2d_draw_lines_x_frames(v2d, scene, display_seconds, true, true);
     }
-    ui::view2d_draw_lines_y__values(v2d, 10);
+    ui::view2d_draw_lines_y(v2d, true, 10);
   }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
@@ -379,7 +379,7 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
       rcti rect;
       BLI_rcti_init(
           &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-      ui::view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT, 10);
+      ui::view2d_draw_scale_y(region, v2d, &rect, TH_SCROLL_TEXT, 10);
     }
   }
   else {
