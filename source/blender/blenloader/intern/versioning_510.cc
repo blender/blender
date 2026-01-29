@@ -596,6 +596,8 @@ void do_versions_after_linking_510(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 23)) {
+    /* Note: For legacy Grease Pencil objects (#OB_GPENCIL_LEGACY) this is handled as part of
+     * bke::greasepencil::convert::legacy_main. */
     bke::greasepencil::convert::material_stroke_fill_toggles_to_attributes(
         *bmain, {}, *fd->reports);
     /* Set the stroke mode for all brushes. */
