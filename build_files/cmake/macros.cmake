@@ -5,7 +5,7 @@
 macro(list_insert_after
   list_id item_check item_add
   )
-  set(_index)
+  set(_index "")
   list(FIND "${list_id}" "${item_check}" _index)
   if("${_index}" MATCHES "-1")
     message(FATAL_ERROR "'${list_id}' doesn't contain '${item_check}'")
@@ -18,7 +18,7 @@ endmacro()
 macro(list_insert_before
   list_id item_check item_add
   )
-  set(_index)
+  set(_index "")
   list(FIND "${list_id}" "${item_check}" _index)
   if("${_index}" MATCHES "-1")
     message(FATAL_ERROR "'${list_id}' doesn't contain '${item_check}'")
@@ -107,10 +107,10 @@ macro(file_list_suffix
   )
 
   # in case of empty list
-  set(_fp)
-  set(_fp_suffixed)
+  set(_fp "")
+  set(_fp_suffixed "")
 
-  set(fp_list_new)
+  set(fp_list_new "")
 
   foreach(_fp ${fp_list})
     file_suffix(_fp_suffixed "${_fp}" "${fn_suffix}")
@@ -378,7 +378,7 @@ function(blender_link_libraries
   #
   # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
   # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
-  set(dependency_libraries)
+  set(dependency_libraries "")
   if(NOT "${library_deps}" STREQUAL "")
     set(next_library_mode "")
     set(next_interface_mode "PRIVATE")
@@ -485,9 +485,9 @@ endfunction()
 # Ninja only: assign 'heavy pool' to some targets that are especially RAM-consuming to build.
 function(setup_heavy_lib_pool)
   if(WITH_NINJA_POOL_JOBS AND NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
-    set(_HEAVY_LIBS)
-    set(_HEAVY_FILES)
-    set(_TARGET)
+    set(_HEAVY_LIBS "")
+    set(_HEAVY_FILES "")
+    set(_TARGET "")
     if(WITH_CYCLES)
       list(APPEND _HEAVY_LIBS "cycles_device" "cycles_kernel" "cycles_hydra")
     endif()
@@ -1079,7 +1079,7 @@ function(glsl_to_c
   get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c  REALPATH)
 
   # Turn include directories into absolute paths
-  set(_inc_list)
+  set(_inc_list "")
   foreach(path IN LISTS ${include_list})
     get_filename_component(_inc_path ${CMAKE_CURRENT_SOURCE_DIR}/${path} REALPATH)
     list(APPEND _inc_list ${_inc_path})
@@ -1396,7 +1396,7 @@ endmacro()
 
 macro(windows_install_shared_manifest)
   set(options OPTIONAL DEBUG RELEASE ALL)
-  set(oneValueArgs)
+  set(oneValueArgs "")
   set(multiValueArgs FILES)
   cmake_parse_arguments(
     WINDOWS_INSTALL
@@ -1447,7 +1447,7 @@ macro(windows_install_shared_manifest)
 endmacro()
 
 macro(windows_generate_manifest)
-  set(options)
+  set(options "")
   set(oneValueArgs OUTPUT NAME)
   set(multiValueArgs FILES)
   cmake_parse_arguments(

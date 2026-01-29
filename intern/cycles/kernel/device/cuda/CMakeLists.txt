@@ -94,7 +94,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
     ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
     $<TARGET_PROPERTY:cycles_kernel,INTERFACE_SOURCES>
   )
-  set(cuda_cubins)
+  set(cuda_cubins "")
 
   macro(CYCLES_CUDA_KERNEL_ADD arch prev_arch name flags sources experimental)
     if(${arch} MATCHES "compute_.*")

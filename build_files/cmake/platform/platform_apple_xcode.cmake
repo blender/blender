@@ -125,9 +125,9 @@ if(OSX_SYSTEM MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+)")
 endif()
 
 # Loop through all possible versions and pick the first one which resolves to a valid SDK path.
-set(OSX_SDK_PATH)
+set(OSX_SDK_PATH "")
 set(OSX_SDK_FOUND FALSE)
-set(OSX_SDKROOT)
+set(OSX_SDKROOT "")
 foreach(OSX_SDK_VERSION ${OSX_SDK_TEST_VERSIONS})
   set(CURRENT_OSX_SDK_PATH "${XCODE_SDK_DIR}/MacOSX${OSX_SDK_VERSION}.sdk")
   if(EXISTS ${CURRENT_OSX_SDK_PATH})

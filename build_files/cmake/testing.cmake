@@ -48,7 +48,7 @@ endfunction()
 
 macro(blender_src_gtest_ex)
   if(WITH_GTESTS)
-    set(options)
+    set(options "")
     set(oneValueArgs NAME)
     set(multiValueArgs SRC EXTRA_LIBS COMMAND_ARGS)
     cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -257,7 +257,7 @@ function(blender_add_test_executable_impl
   )
 
   set(oneValueArgs ADD_CTESTS DISCOVER_TESTS)
-  set(multiValueArgs)
+  set(multiValueArgs "")
   cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   unset(oneValueArgs)
   unset(multiValueArgs)

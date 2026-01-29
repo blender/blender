@@ -1312,7 +1312,7 @@ if(TEST_SRC_DIR_EXISTS)
     blend_modes_byte
     blend_modes_float
   )
-  set(video_output_tests)
+  set(video_output_tests "")
 
   if(WITH_LIBMV)
     list(APPEND render_tests effects)

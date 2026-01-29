@@ -1880,7 +1880,7 @@ unset(TARGETDIR_TEXT)
 
 # Geometry icons.
 get_property(_icon_names GLOBAL PROPERTY ICON_GEOM_NAMES)
-set(_icon_files)
+set(_icon_files "")
 foreach(_f ${_icon_names})
   list(APPEND _icon_files
     "${CMAKE_SOURCE_DIR}/release/datafiles/icons/${_f}.dat"

@@ -46,7 +46,7 @@ if(APPLE)
   if(WITH_PYTHON_MODULE)
     set(PYTHON_LINKFLAGS "-undefined dynamic_lookup")
   else()
-    set(PYTHON_LINKFLAGS)
+    set(PYTHON_LINKFLAGS "")
   endif()
 else()
   # See: http://docs.python.org/extending/embedding.html#linking-requirements

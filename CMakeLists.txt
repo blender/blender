@@ -1482,18 +1482,18 @@ set(WITH_BINRELOC OFF)
 set(EXETYPE "")
 
 # C/C++ flags
-set(PLATFORM_CFLAGS)
+set(PLATFORM_CFLAGS "")
 
 # these are added to later on.
-set(C_WARNINGS)
-set(CXX_WARNINGS)
+set(C_WARNINGS "")
+set(CXX_WARNINGS "")
 
 # NOTE: These flags are intended for situations where it's impractical to
 # suppress warnings by modifying the code or for code which is maintained externally.
 # For GCC this typically means adding `-Wno-*` arguments to negate warnings
 # that are useful in the general case.
-set(C_REMOVE_STRICT_FLAGS)
-set(CXX_REMOVE_STRICT_FLAGS)
+set(C_REMOVE_STRICT_FLAGS "")
+set(CXX_REMOVE_STRICT_FLAGS "")
 
 # Libraries to link to targets in setup_platform_linker_libs
 set(PLATFORM_LINKLIBS "")
@@ -1596,7 +1596,7 @@ endif()
 # Add the default compiler SIMD flags if enabled
 #
 if(WITH_COMPILER_SIMD)
-  set(COMPILER_SSE42_FLAG)
+  set(COMPILER_SSE42_FLAG "")
   get_sse_flags(COMPILER_SSE42_FLAG)
   string(APPEND CMAKE_CXX_FLAGS " ${COMPILER_SSE42_FLAG}")
   string(APPEND CMAKE_C_FLAGS " ${COMPILER_SSE42_FLAG}")
@@ -1689,7 +1689,7 @@ if(WITH_LIBMV OR WITH_GTESTS)
       message(FATAL_ERROR "System wide Gflags is requested but was not found")
     endif()
     # `FindGflags` does not define this, and we are not even sure what to use here.
-    set(GFLAGS_DEFINES)
+    set(GFLAGS_DEFINES "")
   else()
     set(GFLAGS_DEFINES
       -DGFLAGS_DLL_DEFINE_FLAG=
@@ -1707,7 +1707,7 @@ if(WITH_LIBMV OR WITH_GTESTS)
       message(FATAL_ERROR "System wide Glog is requested but was not found")
     endif()
     # `FindGlog` does not define this, and we are not even sure what to use here.
-    set(GLOG_DEFINES)
+    set(GLOG_DEFINES "")
   else()
     set(GLOG_DEFINES
       -DGOOGLE_GLOG_DLL_DECL=
@@ -1807,8 +1807,8 @@ Keep at '0' to automatically compute optimal values for each build."
       "  NINJA_MAX_NUM_PARALLEL_LINK_JOBS: "
       "max concurrent linking jobs (computed): ${_link_jobs}"
     )
-    set(_link_mem)
-    set(_link_jobs_max)
+    unset(_link_mem)
+    unset(_link_jobs_max)
   endif()
   set_property(
     GLOBAL APPEND PROPERTY
@@ -1864,8 +1864,8 @@ Keep at '0' to automatically compute optimal values for each build."
       "max concurrent heavy compile jobs (computed): ${_compile_heavy_jobs}"
     )
 
-    set(_compile_heavy_mem)
-    set(_compile_heavy_jobs_max)
+    unset(_compile_heavy_mem)
+    unset(_compile_heavy_jobs_max)
   endif()
   set_property(
     GLOBAL APPEND PROPERTY
@@ -1926,8 +1926,8 @@ Keep at '0' to automatically compute optimal values for each build."
       "  NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS: "
       "max concurrent regular compile jobs (computed): ${_compile_jobs}"
     )
-    set(_compile_mem)
-    set(_compile_jobs_max)
+    unset(_compile_mem)
+    unset(_compile_jobs_max)
   endif()
   set_property(
     GLOBAL APPEND PROPERTY
@@ -1935,11 +1935,11 @@ Keep at '0' to automatically compute optimal values for each build."
   )
   set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
 
-  set(_link_jobs)
-  set(_compile_heavy_jobs)
-  set(_compile_jobs)
-  set(_NUM_CORES)
-  set(_TOT_MEM)
+  unset(_link_jobs)
+  unset(_compile_heavy_jobs)
+  unset(_compile_jobs)
+  unset(_NUM_CORES)
+  unset(_TOT_MEM)
 endif()
 
 

@@ -493,7 +493,7 @@ if(WITH_OPENSUBDIV)
   find_package(OpenSubdiv)
 
   set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBRARIES})
-  set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
+  set(OPENSUBDIV_LIBPATH "")  # TODO, remove and reference the absolute path everywhere
 
   set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
 endif()
