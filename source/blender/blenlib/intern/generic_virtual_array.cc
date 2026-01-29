@@ -732,6 +732,13 @@ GVArray GVArray::from_empty(const CPPType &type)
   return GVArray::from_span(GSpan(type));
 }
 
+GVArray GVArray::from_std_func(const CPPType &type,
+                               int64_t size,
+                               std::function<void(int64_t index, void *r_value)> get_to_uninit)
+{
+  return GVArray::from_func(type, size, std::move(get_to_uninit));
+}
+
 GVArray GVArray::slice(IndexRange slice) const
 {
   const CommonVArrayInfo info = this->common_info();
