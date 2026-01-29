@@ -136,12 +136,10 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
     const IndexMask selected_curves = IndexMask::from_predicate(
         curves.curves_range(), GrainSize(512), memory, [&](const int curve_i) {
           const IndexRange points = points_by_curve[curve_i];
-          for (const int point_i : points) {
-            if (selected_points[point_i]) {
-              return true;
-            }
-          }
-          return false;
+          const Span<bool> selected_curve_points = selected_points.as_span().slice(points);
+          return std::any_of(selected_curve_points.begin(),
+                             selected_curve_points.end(),
+                             [](const bool value) { return value; });
         });
 
     return curves::curve_to_point_selection(points_by_curve, selected_curves, memory);
@@ -157,12 +155,10 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
     const IndexMask selected_curves = IndexMask::from_predicate(
         curves.curves_range(), GrainSize(512), memory, [&](const int curve_i) {
           const IndexRange points = points_by_curve[curve_i];
-          for (const int point_i : points) {
-            if (selected_points[point_i]) {
-              return true;
-            }
-          }
-          return false;
+          const Span<bool> selected_curve_points = selected_points.as_span().slice(points);
+          return std::any_of(selected_curve_points.begin(),
+                             selected_curve_points.end(),
+                             [](const bool value) { return value; });
         });
 
     selected_curves.foreach_index([&](const int64_t curve_i) {
