@@ -1392,25 +1392,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
       verts_slice.last().stroke_id = verts_range.first();
     };
 
-    if (!fills) {
-      threading::parallel_for(
-          visible_strokes.index_range(),
-          1024,
-          [&](const IndexRange range) {
-            visible_strokes.slice(range).foreach_index([&](const int64_t curve_i) {
-              const int first_curve = curve_i;
-              const int first_vert = verts_start_offsets[first_curve];
-              const float4x2 texture_matrix = texture_matrices[first_curve] *
-                                              object_space_to_layer_space;
-
-              populate_curve(curve_i, first_curve, first_vert, texture_matrix);
-            });
-          },
-          threading::accumulated_task_sizes([&](const IndexRange range) {
-            return offset_indices::sum_group_sizes(points_by_curve, visible_strokes.slice(range));
-          }));
-    }
-    else {
+    if (fills) {
       Array<int> first_curves(curves.curves_num());
       array_utils::fill_index_range<int>(first_curves);
 
@@ -1451,37 +1433,27 @@ static void grease_pencil_geom_batch_ensure(Object &object,
             return offset_indices::sum_group_sizes(points_by_curve, visible_strokes.slice(range));
           }));
     }
+    else {
+      threading::parallel_for(
+          visible_strokes.index_range(),
+          1024,
+          [&](const IndexRange range) {
+            visible_strokes.slice(range).foreach_index([&](const int64_t curve_i) {
+              const int first_curve = curve_i;
+              const int first_vert = verts_start_offsets[first_curve];
+              const float4x2 texture_matrix = texture_matrices[first_curve] *
+                                              object_space_to_layer_space;
+
+              populate_curve(curve_i, first_curve, first_vert, texture_matrix);
+            });
+          },
+          threading::accumulated_task_sizes([&](const IndexRange range) {
+            return offset_indices::sum_group_sizes(points_by_curve, visible_strokes.slice(range));
+          }));
+    }
 
     /* Fill in IBO in series. */
-    if (!fills) {
-      visible_strokes.foreach_index([&](const int curve_i, const int pos) {
-        const IndexRange points = points_by_curve[curve_i];
-        const bool is_cyclic = cyclic[curve_i] && (points.size() > 2);
-        const int verts_start_offset = verts_start_offsets[pos];
-        const int num_verts = 1 + points.size() + (is_cyclic ? 1 : 0) + 1;
-        const IndexRange verts_range = IndexRange(verts_start_offset, num_verts);
-
-        for (const int i : points.index_range()) {
-          const int idx = i + 1;
-          int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
-          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
-          triangle_ibo_index++;
-          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
-          triangle_ibo_index++;
-        }
-
-        if (is_cyclic) {
-          const int idx = points.size() + 1;
-
-          int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
-          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
-          triangle_ibo_index++;
-          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
-          triangle_ibo_index++;
-        }
-      });
-    }
-    else {
+    if (fills) {
       int fill_index = 0;
 
       Array<int> fill_index_by_curves(curves.curves_num(), -1);
@@ -1577,7 +1549,35 @@ static void grease_pencil_geom_batch_ensure(Object &object,
         }
       });
     }
-  }
+    else {
+      visible_strokes.foreach_index([&](const int curve_i, const int pos) {
+        const IndexRange points = points_by_curve[curve_i];
+        const bool is_cyclic = cyclic[curve_i] && (points.size() > 2);
+        const int verts_start_offset = verts_start_offsets[pos];
+        const int num_verts = 1 + points.size() + (is_cyclic ? 1 : 0) + 1;
+        const IndexRange verts_range = IndexRange(verts_start_offset, num_verts);
+
+        for (const int i : points.index_range()) {
+          const int idx = i + 1;
+          int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
+          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
+          triangle_ibo_index++;
+          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
+          triangle_ibo_index++;
+        }
+
+        if (is_cyclic) {
+          const int idx = points.size() + 1;
+
+          int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
+          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
+          triangle_ibo_index++;
+          triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
+          triangle_ibo_index++;
+        }
+      });
+    }
+  };
 
   /* Mark last 2 verts as invalid. */
   verts[total_verts_num + 0].mat = -1;
