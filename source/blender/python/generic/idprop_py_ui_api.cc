@@ -962,12 +962,18 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
     return nullptr;
   }
 
+  IDProperty *src_prop = ui_manager_src->property;
+  if ((property->type != src_prop->type) || property->subtype != src_prop->subtype) {
+    PyErr_SetString(PyExc_TypeError, "Properties type does not match.");
+    return nullptr;
+  }
+
   if (property->ui_data != nullptr) {
     IDP_ui_data_free(property);
   }
 
   if (ui_manager_src->property && ui_manager_src->property->ui_data) {
-    property->ui_data = IDP_ui_data_copy(ui_manager_src->property);
+    property->ui_data = IDP_ui_data_copy(src_prop);
   }
 
   Py_RETURN_NONE;
