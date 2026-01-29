@@ -1490,23 +1490,19 @@ static void grease_pencil_geom_batch_ensure(Object &object,
           const Span<int3> tris_slice = (*triangles)[fill_index];
           const Span<int> fill = (*fills)[fill_index];
 
-          int fill_points_index = 0;
+          IndexMaskMemory memory;
           Array<int> fill_point_offset_data(fill.size() + 1);
+          OffsetIndices<int> fill_point_offset = offset_indices::gather_selected_offsets(
+              points_by_curve,
+              IndexMask::from_indices(fill, memory),
+              fill_point_offset_data.as_mutable_span());
 
-          for (const int pos : fill.index_range()) {
-            const int curve_i = fill[pos];
-            const IndexRange points = points_by_curve[curve_i];
-            fill_point_offset_data[pos] = fill_points_index;
-            fill_points_index += points.size();
-          }
-
-          fill_point_offset_data.last() = fill_points_index;
-          OffsetIndices<int> fill_point_offset = OffsetIndices<int>(fill_point_offset_data);
-
-          Array<int> fill_point_to_pos_map(fill_points_index);
-          for (const int pos : fill.index_range()) {
-            fill_point_to_pos_map.as_mutable_span().slice(fill_point_offset[pos]).fill(pos);
-          }
+          Array<int> fill_point_to_pos_map(fill_point_offset_data.last());
+          threading::parallel_for(fill.index_range(), 1024, [&](const IndexRange range) {
+            for (const int i : range) {
+              fill_point_to_pos_map.as_mutable_span().slice(fill_point_offset[i]).fill(i);
+            }
+          });
 
           auto point_to_id = [&](int32_t p) {
             const int pos_ = fill_point_to_pos_map[p];
