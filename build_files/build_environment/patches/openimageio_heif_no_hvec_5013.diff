@@ -1,0 +1,44 @@
+commit 80a86ffa983949358abb6a26ef3602d72785d285
+Author: Brecht Van Lommel <brecht@blender.org>
+Date:   Fri Jan 23 18:14:03 2026 +0100
+
+    fix(heif): Can not output AVIF when libheif has no HEVC support
+    
+    Initializing the encoder to heif_compression_HEVC by default throws an
+    exception when libheif was built without HEVC support, which prevents it
+    from being used entirely even if there is AVIF support.
+    
+    So delay that initialization until we are sure which encoder we want.
+    
+    Signed-off-by: Brecht Van Lommel <brecht@blender.org>
+
+diff --git a/src/heif.imageio/heifoutput.cpp b/src/heif.imageio/heifoutput.cpp
+index 9998ab5a5..309bc53ac 100644
+--- a/src/heif.imageio/heifoutput.cpp
++++ b/src/heif.imageio/heifoutput.cpp
+@@ -49,7 +49,9 @@ private:
+     std::unique_ptr<heif::Context> m_ctx;
+     heif::ImageHandle m_ihandle;
+     heif::Image m_himage;
+-    heif::Encoder m_encoder { heif_compression_HEVC };
++    // Undefined until we know the specific requested encoder, because an
++    // exception is thrown if libheif is built without support for it.
++    heif::Encoder m_encoder { heif_compression_undefined };
+     std::vector<unsigned char> scratch;
+     std::vector<unsigned char> m_tilebuffer;
+     int m_bitdepth = 0;
+@@ -140,12 +142,13 @@ HeifOutput::open(const std::string& name, const ImageSpec& newspec,
+         m_himage.add_plane(heif_channel_interleaved, newspec.width,
+                            newspec.height, m_bitdepth);
+ 
+-        m_encoder      = heif::Encoder(heif_compression_HEVC);
+         auto compqual  = m_spec.decode_compression_metadata("", 75);
+         auto extension = Filesystem::extension(m_filename);
+         if (compqual.first == "avif"
+             || (extension == ".avif" && compqual.first == "")) {
+             m_encoder = heif::Encoder(heif_compression_AV1);
++        } else {
++            m_encoder = heif::Encoder(heif_compression_HEVC);
+         }
+     } catch (const heif::Error& err) {
+         std::string e = err.get_message();

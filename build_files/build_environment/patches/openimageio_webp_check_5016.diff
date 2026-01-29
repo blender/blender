@@ -1,0 +1,21 @@
+commit b5e056ee8a439bf7e87f4eb0e95092d9dab02424
+Author: Jesse Yurkovich <jesse.y@gmail.com>
+Date:   Tue Jan 27 17:27:45 2026 -0800
+
+    fix(webp): Use correct resolution limits during WebpOutput::open
+    
+    Signed-off-by: Jesse Yurkovich <jesse.y@gmail.com>
+
+diff --git a/src/webp.imageio/webpoutput.cpp b/src/webp.imageio/webpoutput.cpp
+index 2c2acb85c..784575963 100644
+--- a/src/webp.imageio/webpoutput.cpp
++++ b/src/webp.imageio/webpoutput.cpp
+@@ -73,7 +73,7 @@ WebpImageWriter(const uint8_t* img_data, size_t data_size,
+ bool
+ WebpOutput::open(const std::string& name, const ImageSpec& spec, OpenMode mode)
+ {
+-    if (!check_open(mode, spec, { 0, 1 << 20, 0, 1 << 20, 0, 1, 0, 4 },
++    if (!check_open(mode, spec, { 0, 16383, 0, 16383, 0, 1, 0, 4 },
+                     uint64_t(OpenChecks::Disallow1or2Channel)))
+         return false;
+ 
