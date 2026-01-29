@@ -3187,11 +3187,9 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   /* Optimization: If all of the strokes are shown, don't create the attribute. */
-  const bool needs_hide_stroke_attribute = std::any_of(
-      material_hides_stroke.begin(), material_hides_stroke.end(), [&](const bool hide_stroke) {
-        return hide_stroke;
-      });
-  if (needs_hide_stroke_attribute) {
+  if (array_utils::booleans_mix_calc(VArray<bool>::from_container(material_hides_stroke)) !=
+      array_utils::BooleanMix::AllFalse)
+  {
     constexpr StringRef hide_stroke_name = "hide_stroke";
     /* Ensure that the name is not already taken. If so, rename the existing attribute and report a
      * warning. */
@@ -3220,10 +3218,9 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
   }
 
   /* Optimization: If no fills are used in this drawing, don't create the attribute. */
-  const bool needs_fill_id_attribute = std::any_of(material_uses_fill.begin(),
-                                                   material_uses_fill.end(),
-                                                   [&](const bool use_fill) { return use_fill; });
-  if (needs_fill_id_attribute) {
+  if (array_utils::booleans_mix_calc(VArray<bool>::from_container(material_uses_fill)) !=
+      array_utils::BooleanMix::AllFalse)
+  {
     constexpr StringRef fill_id_name = "fill_id";
     /* Ensure that the name is not already taken. If so, rename the existing attribute. */
     if (attributes.contains(fill_id_name)) {
