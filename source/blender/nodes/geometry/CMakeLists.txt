@@ -103,11 +103,13 @@ set(SRC
   nodes/node_geo_grease_pencil_to_curves.cc
   nodes/node_geo_grid_advect.cc
   nodes/node_geo_grid_curl.cc
+  nodes/node_geo_grid_dilate_erode.cc
   nodes/node_geo_grid_divergence.cc
   nodes/node_geo_grid_gradient.cc
   nodes/node_geo_grid_info.cc
   nodes/node_geo_grid_laplacian.cc
-  nodes/node_geo_grid_dilate_erode.cc
+  nodes/node_geo_grid_mean.cc
+  nodes/node_geo_grid_median.cc
   nodes/node_geo_grid_prune.cc
   nodes/node_geo_grid_to_mesh.cc
   nodes/node_geo_grid_voxelize.cc
