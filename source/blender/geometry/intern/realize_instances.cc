@@ -714,11 +714,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
           const bke::AttributeAccessor attributes = curves->geometry.wrap().attributes();
           const VArray<int> fill_ids = *attributes.lookup<int>("fill_id", bke::AttrDomain::Curve);
           if (fill_ids) {
-            int max_fill_id = 0;
-            for (const int i : fill_ids.index_range()) {
-              max_fill_id = std::max(max_fill_id, fill_ids[i]);
-            }
-
+            const int max_fill_id = array_utils::max_element(fill_ids);
             gather_info.r_offsets.curves_offsets.fill_id += max_fill_id;
           }
         }

@@ -72,35 +72,9 @@ std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids)
   return fill_cache;
 }
 
-static int max_element(const VArray<int> &array)
-{
-  if (!array || array.is_empty()) {
-    return 0;
-  }
-  if (array.is_single()) {
-    return array.get_internal_single();
-  }
-  if (array.is_span()) {
-    const Span<int> span = array.get_internal_span();
-    return *std::max_element(span.begin(), span.end());
-  }
-  return threading::parallel_reduce(
-      array.index_range(),
-      8192,
-      0,
-      [&](const IndexRange range, const int &init) {
-        int max_elem = init;
-        for (const int i : range) {
-          max_elem = std::max(array[i], max_elem);
-        }
-        return max_elem;
-      },
-      [&](const int &a, const int &b) { return std::max(a, b); });
-}
-
 void gather_next_available_fill_ids(const VArray<int> &fill_ids, MutableSpan<int> r_new_fill_ids)
 {
-  const int next_fill_id = max_element(fill_ids) + 1;
+  const int next_fill_id = array_utils::max_element(fill_ids) + 1;
   array_utils::fill_index_range(r_new_fill_ids, next_fill_id);
 }
 
@@ -108,7 +82,7 @@ void gather_next_available_fill_ids(const VArray<int> &fill_ids,
                                     const IndexMask &curve_mask,
                                     MutableSpan<int> r_new_fill_ids)
 {
-  const int next_fill_id = max_element(fill_ids) + 1;
+  const int next_fill_id = array_utils::max_element(fill_ids) + 1;
   curve_mask.foreach_index(GrainSize(1024), [&](const int index, const int pos) {
     r_new_fill_ids[index] = next_fill_id + pos;
   });
