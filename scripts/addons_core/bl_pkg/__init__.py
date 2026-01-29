@@ -46,8 +46,8 @@ else:
     _RemoteAssetListingDownloader: TypeAlias = object
 
 
-# Auto-refresh remote asset libraries once every 7 days.
-REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC = 3600 * 24 * 7
+# Auto-refresh remote asset libraries once per day.
+REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC = 3600 * 24
 
 
 # -----------------------------------------------------------------------------
