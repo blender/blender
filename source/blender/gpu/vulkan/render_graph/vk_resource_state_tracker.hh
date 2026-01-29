@@ -189,6 +189,16 @@ class VKResourceStateTracker {
    * the resource state can be tracked during its lifetime.
    */
   void add_image(VkImage vk_image, bool use_subresource_tracking, const char *name = nullptr);
+
+  /**
+   * \brief Register an image resource that can have aliased memory.
+   *
+   * The aliased memory can still be in use and requires the image to wait for all commands to be
+   * completed, before it can start writing to the aliased memory.
+   */
+  void add_aliased_image(VkImage vk_image,
+                         bool use_subresource_tracking,
+                         const char *name = nullptr);
   void add_swapchain_image(VkImage vk_image, const char *name = nullptr);
 
   /**

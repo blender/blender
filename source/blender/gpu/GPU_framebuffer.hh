@@ -28,6 +28,7 @@
 #include "GPU_texture.hh"
 
 #include "BLI_enum_flags.hh"
+#include "BLI_math_vector_types.hh"
 
 namespace blender {
 
@@ -385,6 +386,11 @@ void GPU_framebuffer_default_size(gpu::FrameBuffer *fb, int width, int height);
 /* -------------------------------------------------------------------- */
 /** \name Internal state
  * \{ */
+
+/**
+ * \brief Get the extent of the framebuffer
+ */
+int2 GPU_framebuffer_extent_get(gpu::FrameBuffer *fb);
 
 /**
  * Set the viewport offset and size.

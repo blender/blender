@@ -10155,8 +10155,10 @@ static int ui_handle_list_event(bContext *C,
         RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, value);
         RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);
 
-        Button *but = region_find_active_but(region);
-        ui_apply_but_undo(but);
+        Button *but = button_first(listbox->block);
+        if (but && but->type == ButtonType::ListRow) {
+          ui_apply_but_undo(but);
+        }
 
         ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
         redraw = true;

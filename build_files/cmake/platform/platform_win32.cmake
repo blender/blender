@@ -1245,13 +1245,44 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
-  file(GLOB _sycl_pi_runtime_libraries_glob
-    ${SYCL_ROOT_DIR}/bin/pi_*.dll
+  file(GLOB _sycl_unified_runtime_libraries_glob
     ${SYCL_ROOT_DIR}/bin/ur_*.dll
   )
-  list(REMOVE_ITEM _sycl_pi_runtime_libraries_glob "${SYCL_ROOT_DIR}/bin/pi_opencl.dll")
-  list(APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
-  unset(_sycl_pi_runtime_libraries_glob)
+  # Cycles doesn't currently support the OpenCL backend
+  list(FILTER _sycl_unified_runtime_libraries_glob EXCLUDE REGEX "opencl")
+
+  foreach(sycl_unified_runtime_library IN LISTS _sycl_unified_runtime_libraries_glob)
+    # We do not know, which library we would discover first, debug or release, so we check for both.
+    string(REPLACE ".dll" "d.dll" sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    # In case we are processing release version (no "d.dll" to replace), then
+    # sycl_unified_runtime_library_release will be identical to sycl_unified_runtime_library,
+    # there is a safe guard against it below.
+    string(REPLACE "d.dll" ".dll" sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+
+    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_debug} debug_index)
+    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_release} release_index)
+    if(NOT debug_index EQUAL -1)
+      set (sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+    elseif(NOT release_index EQUAL -1 AND NOT sycl_unified_runtime_library_release STREQUAL sycl_unified_runtime_library)
+      set (sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    else()
+      # If there is no debug pair version of the library, then we are assuming
+      # that this dll dependency is unique, and should be just added as both
+      # release and debug dependency.
+      set (sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+      set (sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    endif()
+    list(FIND _sycl_runtime_libraries ${sycl_unified_runtime_library_release} found_index)
+    if (found_index EQUAL -1)
+      list(APPEND _sycl_runtime_libraries RELEASE ${sycl_unified_runtime_library_release})
+      list(APPEND _sycl_runtime_libraries DEBUG ${sycl_unified_runtime_library_debug})
+      # NOTE(Sirgienko) Due to a bug in DPC++ runtime, in versions 6.2 and 6.3
+      # at least, the debug builds need the release versions of the
+      # unified-runtime adapters to be installed.
+      list(APPEND _sycl_runtime_libraries DEBUG ${sycl_unified_runtime_library_release})
+    endif()
+  endforeach()
+  unset(_sycl_unified_runtime_libraries_glob)
 
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)

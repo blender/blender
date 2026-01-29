@@ -122,4 +122,36 @@ TEST_F(BundleTest, AddOverride)
   EXPECT_EQ(bundle.lookup_path<int>("a/b"), 10);
 }
 
+TEST_F(BundleTest, EnsureNestedBundle)
+{
+  BundlePtr bundle_ptr = Bundle::create();
+  Bundle &bundle = bundle_ptr.ensure_mutable_inplace();
+  Bundle &nested_bundle = bundle.ensure_nested_bundle("a/b/c");
+  nested_bundle.add("test", 4);
+  const std::optional<int> value = bundle.lookup_path<int>("a/b/c/test");
+  EXPECT_EQ(value, 4);
+}
+
+TEST_F(BundleTest, LookupPtr)
+{
+  BundlePtr bundle_ptr = Bundle::create();
+  Bundle &bundle = bundle_ptr.ensure_mutable_inplace();
+  bundle.add_path("a/b", 3);
+  EXPECT_EQ(bundle.lookup_path_ptr<int>("a/a"), nullptr);
+  EXPECT_EQ(*bundle.lookup_path<int>("a/b"), 3);
+  int *value = bundle.lookup_path_for_write_ptr<int>("a/b");
+  *value = 10;
+  EXPECT_EQ(bundle.lookup_path<int>("a/b"), 10);
+}
+
+TEST_F(BundleTest, Clear)
+{
+  BundlePtr bundle_ptr = Bundle::create();
+  Bundle &bundle = bundle_ptr.ensure_mutable_inplace();
+  bundle.add_path("a/b", 3);
+  EXPECT_FALSE(bundle.is_empty());
+  bundle.clear();
+  EXPECT_TRUE(bundle.is_empty());
+}
+
 }  // namespace blender::nodes::tests

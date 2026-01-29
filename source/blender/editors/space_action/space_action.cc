@@ -244,8 +244,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
 
   /* time grid */
   if (region->winy > min_height) {
-    ui::view2d_draw_lines_x__discrete_frames_or_seconds(
-        v2d, scene, saction->flag & SACTION_DRAWTIME, true);
+    ui::view2d_draw_lines_x_frames(v2d, scene, saction->flag & SACTION_DRAWTIME, false, true);
   }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);

@@ -2142,8 +2142,6 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     CXX_WARNINGS
 
     CXX_WARN_ALL -Wall
-    # Using C++20 features while having C++17 as the project language isn't allowed by MSVC.
-    CXX_CXX20_DESIGNATOR -Wc++20-designator
 
     CXX_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare
     CXX_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas
@@ -2567,7 +2565,6 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     "/wd4828"  # The file contains a character that is illegal
     "/wd4996"  # identifier was declared deprecated
     "/wd4661"  # no suitable definition provided for explicit template instantiation request
-    "/wd4848"  # 'no_unique_address' is a vendor extension in C++17
     # errors:
     "/we4013"  # 'function' undefined; assuming extern returning int
     "/we4133"  # incompatible pointer types
@@ -2624,9 +2621,9 @@ if(WITH_PYTHON)
   endif()
 endif()
 
-# Select C++17 as the standard for C++ projects.
-set(CMAKE_CXX_STANDARD 17)
-# If C++17 is not available, downgrading to an earlier standard is NOT OK.
+# Select C++20 as the standard for C++ projects.
+set(CMAKE_CXX_STANDARD 20)
+# If C++20 is not available, downgrading to an earlier standard is NOT OK.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Do not enable compiler specific language extensions.
 set(CMAKE_CXX_EXTENSIONS OFF)

@@ -1768,12 +1768,12 @@ static void draw_timeline_grid(const TimelineDrawContext &ctx)
     /* If we don't have a scene available, pick what we defined as default for frame-rate to show
      * *something*. */
     Scene scene = {};
-    ui::view2d_draw_lines_x__discrete_frames_or_seconds(
-        ctx.v2d, &scene, (ctx.sseq->flag & SEQ_DRAWFRAMES) == 0, false);
+    ui::view2d_draw_lines_x_frames(
+        ctx.v2d, &scene, (ctx.sseq->flag & SEQ_DRAWFRAMES) == 0, false, false);
   }
   else {
-    ui::view2d_draw_lines_x__discrete_frames_or_seconds(
-        ctx.v2d, ctx.scene, (ctx.sseq->flag & SEQ_DRAWFRAMES) == 0, false);
+    ui::view2d_draw_lines_x_frames(
+        ctx.v2d, ctx.scene, (ctx.sseq->flag & SEQ_DRAWFRAMES) == 0, false, false);
   }
 }
 

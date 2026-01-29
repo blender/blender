@@ -617,6 +617,13 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
     return nullptr;
   }
 
+  int2 extent = GPU_framebuffer_extent_get(self->fb);
+  if (x < 0 || w < 0 || x + w > extent.x || y < 0 || h < 0 || y + h > extent.y) {
+    PyErr_SetString(PyExc_ValueError,
+                    "Trying to read color outside the extent of the framebuffer");
+    return nullptr;
+  }
+
   if (py_buffer) {
     if (pygpu_dataformat.value_found != py_buffer->format) {
       PyErr_SetString(PyExc_AttributeError,
@@ -693,6 +700,13 @@ static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer))
   {
+    return nullptr;
+  }
+
+  int2 extent = GPU_framebuffer_extent_get(self->fb);
+  if (x < 0 || w < 0 || x + w > extent.x || y < 0 || h < 0 || y + h > extent.y) {
+    PyErr_SetString(PyExc_ValueError,
+                    "Trying to read depth outside the extent of the framebuffer");
     return nullptr;
   }
 

@@ -387,7 +387,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
     const UserDef *userdef, const char *remote_url_full, const bool only_enabled)
 {
   const int path_full_len = strlen(remote_url_full);
-  const int path_full_offset = BKE_preferences_extension_repo_remote_scheme_end(remote_url_full);
+  const int path_full_offset = BKE_preferences_remote_scheme_end(remote_url_full);
 
   for (bUserExtensionRepo &repo : userdef->extension_repos) {
     if (only_enabled && (repo.flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
@@ -410,7 +410,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
     /* Allow paths beginning with both `http` & `https` to be considered equivalent.
      * This is done by skipping the "scheme" prefix both have a scheme. */
     if (path_full_offset) {
-      const int path_repo_offset = BKE_preferences_extension_repo_remote_scheme_end(path_repo);
+      const int path_repo_offset = BKE_preferences_remote_scheme_end(path_repo);
       if (path_repo_offset) {
         path_repo += path_repo_offset;
         path_test += path_full_offset;
@@ -441,7 +441,33 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
   return nullptr;
 }
 
-int BKE_preferences_extension_repo_remote_scheme_end(const char *url)
+int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
+                                             const bUserExtensionRepo *repo)
+{
+  return BLI_findindex(&userdef->extension_repos, repo);
+}
+
+void BKE_preferences_extension_repo_read_data(BlendDataReader *reader, bUserExtensionRepo *repo)
+{
+  if (repo->access_token) {
+    BLO_read_string(reader, &repo->access_token);
+  }
+}
+
+void BKE_preferences_extension_repo_write_data(BlendWriter *writer, const bUserExtensionRepo *repo)
+{
+  if (repo->access_token) {
+    BLO_write_string(writer, repo->access_token);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Web/remote utilities
+ * \{ */
+
+int BKE_preferences_remote_scheme_end(const char *url)
 {
   /* Technically the "://" are not part of the scheme, so subtract 3 from the return value. */
   const char *scheme_check[] = {
@@ -459,8 +485,7 @@ int BKE_preferences_extension_repo_remote_scheme_end(const char *url)
   return 0;
 }
 
-void BKE_preferences_extension_remote_to_name(const char *remote_url,
-                                              char name[sizeof(bUserExtensionRepo::name)])
+void BKE_preferences_remote_to_name(const char *remote_url, char name[MAX_NAME])
 {
 #ifdef _WIN32
   const bool is_win32 = true;
@@ -469,7 +494,7 @@ void BKE_preferences_extension_remote_to_name(const char *remote_url,
 #endif
   const bool is_file = STRPREFIX(remote_url, "file://");
   name[0] = '\0';
-  if (int offset = BKE_preferences_extension_repo_remote_scheme_end(remote_url)) {
+  if (int offset = BKE_preferences_remote_scheme_end(remote_url)) {
     /* Skip the `://`. */
     remote_url += (offset + 3);
 
@@ -519,33 +544,12 @@ void BKE_preferences_extension_remote_to_name(const char *remote_url,
     }
   }
 
-  BLI_strncpy_utf8(
-      name, remote_url, std::min(size_t(c - remote_url) + 1, sizeof(bUserExtensionRepo::name)));
+  BLI_strncpy_utf8(name, remote_url, std::min(size_t(c - remote_url) + 1, size_t(MAX_NAME)));
 
   if (is_win32) {
     if (is_file) {
       BLI_path_slash_native(name);
     }
-  }
-}
-
-int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
-                                             const bUserExtensionRepo *repo)
-{
-  return BLI_findindex(&userdef->extension_repos, repo);
-}
-
-void BKE_preferences_extension_repo_read_data(BlendDataReader *reader, bUserExtensionRepo *repo)
-{
-  if (repo->access_token) {
-    BLO_read_string(reader, &repo->access_token);
-  }
-}
-
-void BKE_preferences_extension_repo_write_data(BlendWriter *writer, const bUserExtensionRepo *repo)
-{
-  if (repo->access_token) {
-    BLO_write_string(writer, repo->access_token);
   }
 }
 

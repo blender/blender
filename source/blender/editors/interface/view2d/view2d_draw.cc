@@ -116,7 +116,7 @@ static int calculate_grid_step(const int base, const float pixel_width, const fl
 }
 
 /* Mostly the same as `calculate_grid_step, except in can divide into the 0-1 range. */
-static float calculate_grid_step_subframes(const int base,
+static float calculate_grid_step_fractions(const int base,
                                            const float pixel_width,
                                            const float view_width)
 {
@@ -290,15 +290,15 @@ static void view2d_draw_lines(const View2D *v2d,
  **************************************************/
 
 using PositionToString =
-    void (*)(void *user_data, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy);
+    void (*)(void *user_data, float value, float step, char *r_str, uint str_maxncpy);
 
 static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const View2D *v2d,
-                                             float distance,
+                                             const float distance,
                                              const rcti *rect,
                                              PositionToString to_string,
                                              void *to_string_data,
-                                             int colorid)
+                                             const int colorid)
 {
   if (view2d_scale_get_x(v2d) <= 0.0f) {
     return;
@@ -434,44 +434,48 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   GPU_matrix_pop_projection();
 }
 
-static void view_to_string__frame_number(
-    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, char *r_str, uint str_maxncpy)
-{
-  BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(v2d_pos));
-}
-
-static void view_to_string__time(
-    void *user_data, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
+/**
+ * Generates a timecode string with the time represented by `frame`.
+ * The timecode formatting depends on the user preferences.
+ *
+ * \param user_data has to be a `Scene *` so we can get the frames per second.
+ */
+static void frame_to_time_string(
+    void *user_data, const float frame, const float step, char *r_str, const uint str_maxncpy)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
 
   int brevity_level = -1;
-  if (U.timecode_style == USER_TIMECODE_MINIMAL && v2d_step >= scene->frames_per_second()) {
+  if (U.timecode_style == USER_TIMECODE_MINIMAL && step >= scene->frames_per_second()) {
     brevity_level = 1;
   }
 
   BLI_timecode_string_from_time(r_str,
                                 str_maxncpy,
                                 brevity_level,
-                                v2d_pos / float(scene->frames_per_second()),
+                                frame / float(scene->frames_per_second()),
                                 scene->frames_per_second(),
                                 U.timecode_style);
 }
 
-static void view_to_string__value(
-    void * /*user_data*/, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
+/**
+ * Generates a string based on the given `frame`.
+ * Depending on `step` the returned string has 0 - 3 decimal positions.
+ */
+static void frame_to_string(
+    void * /*user_data*/, const float frame, const float step, char *r_str, const uint str_maxncpy)
 {
-  if (v2d_step >= 1.0f * UI_SCALE_FAC) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(v2d_pos));
+  if (step >= 1.0f * UI_SCALE_FAC) {
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(frame));
   }
-  else if (v2d_step >= 0.5f * UI_SCALE_FAC) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", v2d_pos);
+  else if (step >= 0.5f * UI_SCALE_FAC) {
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", frame);
   }
-  else if (v2d_step >= 0.01f * UI_SCALE_FAC) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", v2d_pos);
+  else if (step >= 0.01f * UI_SCALE_FAC) {
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", frame);
   }
   else {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.3f", v2d_pos);
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.3f", frame);
   }
 }
 
@@ -481,132 +485,100 @@ static void view_to_string__value(
 float view2d_grid_resolution_x__frames_or_seconds(const View2D *v2d, const Scene *scene)
 {
   const int fps = round_db_to_int(scene->frames_per_second());
-  return calculate_grid_step_subframes(
+  return calculate_grid_step_fractions(
       fps, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
 }
 
 float view2d_grid_resolution_y__values(const View2D *v2d, const int base)
 {
-  return calculate_grid_step_subframes(
+  return calculate_grid_step_fractions(
       base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
 }
 
 /* Line Drawing API
  **************************************************/
 
-void view2d_draw_lines_x__discrete_values(const View2D *v2d,
-                                          const int base,
-                                          bool display_minor_lines)
+void view2d_draw_lines_x(const View2D *v2d,
+                         const bool display_seconds,
+                         const bool show_fractions,
+                         const bool draw_minor_lines,
+                         const int base)
 {
-  const float major_line_distance = calculate_grid_step(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  view2d_draw_lines(
-      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
+  float major_line_distance;
+  /* Fractions are only drawn when not showing a timecode. See `view2d_draw_scale_x`. */
+  if (show_fractions && !display_seconds) {
+    major_line_distance = calculate_grid_step_fractions(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+  }
+  else {
+    major_line_distance = calculate_grid_step(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+  }
+  /* The extra check for minor line drawing here is so minor lines are *not* drawn
+   * below a distance of 1. */
+  view2d_draw_lines(v2d, major_line_distance, draw_minor_lines && (major_line_distance > 1), 'v');
 }
 
-void view2d_draw_lines_x__values(const View2D *v2d, const int base)
+void view2d_draw_lines_x_frames(const View2D *v2d,
+                                const Scene *scene,
+                                const bool display_seconds,
+                                const bool show_fractions,
+                                const bool draw_minor_lines)
 {
-  const float major_line_distance = calculate_grid_step_subframes(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  view2d_draw_lines(v2d, major_line_distance, true, 'v');
+  const int fps = round_db_to_int(scene->frames_per_second());
+  view2d_draw_lines_x(v2d, display_seconds, show_fractions, draw_minor_lines, fps);
 }
 
-void view2d_draw_lines_y__values(const View2D *v2d, const int base)
+void view2d_draw_lines_y(const View2D *v2d, const bool show_fractions, const int base)
 {
-  const float major_line_distance = calculate_grid_step_subframes(
-      base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+  float major_line_distance;
+  if (show_fractions) {
+    major_line_distance = calculate_grid_step_fractions(
+        base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+  }
+  else {
+    major_line_distance = calculate_grid_step(
+        base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+  }
   view2d_draw_lines(v2d, major_line_distance, true, 'h');
-}
-
-void view2d_draw_lines_x__discrete_time(const View2D *v2d,
-                                        const int base,
-                                        bool display_minor_lines)
-{
-  const float major_line_distance = calculate_grid_step(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  view2d_draw_lines(
-      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
-}
-
-void view2d_draw_lines_x__discrete_frames_or_seconds(const View2D *v2d,
-                                                     const Scene *scene,
-                                                     bool display_seconds,
-                                                     bool display_minor_lines)
-{
-  /* Rounding fractional frame-rates for drawing. */
-  const int fps = round_db_to_int(scene->frames_per_second());
-  if (display_seconds) {
-    view2d_draw_lines_x__discrete_time(v2d, fps, display_minor_lines);
-  }
-  else {
-    view2d_draw_lines_x__discrete_values(v2d, fps, display_minor_lines);
-  }
-}
-
-void view2d_draw_lines_x__frames_or_seconds(const View2D *v2d,
-                                            const Scene *scene,
-                                            bool display_seconds)
-{
-  const int fps = round_db_to_int(scene->frames_per_second());
-  if (display_seconds) {
-    view2d_draw_lines_x__discrete_time(v2d, fps, true);
-  }
-  else {
-    view2d_draw_lines_x__values(v2d, fps);
-  }
 }
 
 /* Scale indicator text drawing API
  **************************************************/
 
-void view2d_draw_scale_y__values(
-    const ARegion *region, const View2D *v2d, const rcti *rect, int colorid, const int base)
+void view2d_draw_scale_y(
+    const ARegion *region, const View2D *v2d, const rcti *rect, const int colorid, const int base)
 {
-  const float step = calculate_grid_step_subframes(
+  const float step = calculate_grid_step_fractions(
       base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
-  draw_vertical_scale_indicators(
-      region, v2d, step, 0.0f, rect, view_to_string__value, nullptr, colorid);
+  draw_vertical_scale_indicators(region, v2d, step, 0.0f, rect, frame_to_string, nullptr, colorid);
 }
 
-void view2d_draw_scale_x__discrete_frames_or_seconds(const ARegion *region,
-                                                     const View2D *v2d,
-                                                     const rcti *rect,
-                                                     const Scene *scene,
-                                                     bool display_seconds,
-                                                     int colorid,
-                                                     const int base)
+void view2d_draw_scale_x(const ARegion *region,
+                         const View2D *v2d,
+                         const rcti *rect,
+                         const Scene *scene,
+                         const bool display_seconds,
+                         const bool show_fractions,
+                         const int colorid,
+                         const int base)
 {
-  const float step = calculate_grid_step(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  if (display_seconds) {
-    draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
+  float step;
+  /* The timecode string does not change on fractions of a frame so it makes no sense to display
+   * that. */
+  if (show_fractions && !display_seconds) {
+    step = calculate_grid_step_fractions(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
   }
   else {
-    draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__frame_number, nullptr, colorid);
+    step = calculate_grid_step(base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
   }
-}
-
-void view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
-                                            const View2D *v2d,
-                                            const rcti *rect,
-                                            const Scene *scene,
-                                            bool display_seconds,
-                                            int colorid,
-                                            const int base)
-{
   if (display_seconds) {
-    const float step = calculate_grid_step(
-        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
     draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
+        region, v2d, step, rect, frame_to_time_string, (void *)scene, colorid);
   }
   else {
-    const float step = calculate_grid_step_subframes(
-        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-    draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__value, nullptr, colorid);
+    draw_horizontal_scale_indicators(region, v2d, step, rect, frame_to_string, nullptr, colorid);
   }
 }
 

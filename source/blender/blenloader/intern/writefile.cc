@@ -2051,7 +2051,11 @@ static bool BLO_write_file_impl(Main *mainvar,
           BKE_bpath_relative_rebase(mainvar, dir_src, dir_dst, nullptr);
           break;
         case BLO_WRITE_PATH_REMAP_RELATIVE_ALL:
-          /* Make all relative (when requested or unsaved). */
+          /* If saved, make relative paths relative to new location (if possible). */
+          if (relbase_valid && (BLI_path_cmp(dir_dst, dir_src) != 0)) {
+            BKE_bpath_relative_rebase(mainvar, dir_src, dir_dst, nullptr);
+          }
+          /* Make all absolute paths relative (when requested or unsaved). */
           BKE_bpath_relative_convert(mainvar, dir_dst, nullptr);
           break;
         case BLO_WRITE_PATH_REMAP_ABSOLUTE:

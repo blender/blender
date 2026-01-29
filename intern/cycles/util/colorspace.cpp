@@ -39,6 +39,44 @@ static thread_mutex cache_scene_linear_interop_id_mutex;
 static bool cache_scene_linear_interop_id_done = false;
 static const char *cache_scene_linear_interop_id = "";
 static const char *cache_scene_linear_srgb_interop_id = "";
+
+static void check_invalidate_caches()
+{
+  static thread_mutex cache_scene_linear_mutex;
+  static string cache_scene_linear_name;
+
+  /* Invalidate cached processors and colorspace, in case Blender changed it.
+   * Note this should not happen during rendering, all render should be stopped
+   * before it is changed. */
+  const thread_scoped_lock cache_scene_linear_lock(cache_scene_linear_mutex);
+  OCIO::ConstConfigRcPtr config = nullptr;
+  try {
+    config = OCIO::GetCurrentConfig();
+  }
+  catch (const OCIO::Exception &exception) {
+    LOG_ERROR << "OCIO config error: " << exception.what();
+    return;
+  }
+
+  const OCIO::ConstColorSpaceRcPtr scene_linear_colorspace = config->getColorSpace("scene_linear");
+  if (scene_linear_colorspace && cache_scene_linear_name != scene_linear_colorspace->getName()) {
+    cache_scene_linear_name = scene_linear_colorspace->getName();
+    {
+      const thread_scoped_lock cache_processors_lock(cache_processors_mutex);
+      cache_processors.clear();
+    }
+    {
+      const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
+      cached_colorspaces.clear();
+    }
+    {
+      const thread_scoped_lock cache_lock(cache_scene_linear_interop_id_mutex);
+      cache_scene_linear_interop_id_done = false;
+      cache_scene_linear_interop_id = "";
+      cache_scene_linear_srgb_interop_id = "";
+    }
+  }
+}
 #endif
 
 static thread_mutex cache_xyz_to_scene_linear_mutex;
@@ -67,6 +105,10 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
     return nullptr;
   }
 
+  /* Outside the mutex lock. This will also invalidate the cache if
+   * scene linear colorspace changed. */
+  const char *scene_linear_interop_id = get_scene_linear_interop_id();
+
   /* Cache processor until free_memory(), memory overhead is expected to be
    * small and the processor is likely to be reused. */
   const thread_scoped_lock cache_processors_lock(cache_processors_mutex);
@@ -75,7 +117,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
       if (colorspace == u_colorspace_srgb) {
         /* Linear Rec.709 to sRGB is handled separately in to_scene_linear, here
          * we only need the matrix transform from scene_linear to Linear Rec.709. */
-        if (strcmp(get_scene_linear_interop_id(), "lin_rec709_scene") == 0) {
+        if (strcmp(scene_linear_interop_id, "lin_rec709_scene") == 0) {
           cache_processors[colorspace] = nullptr;
         }
         else {
@@ -264,6 +306,8 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
 
   /* Use OpenColorIO. */
 #ifdef WITH_OCIO
+  check_invalidate_caches();
+
   {
     const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
     /* Cached lookup. */
@@ -809,6 +853,8 @@ const std::string &ColorSpaceManager::get_xyz_to_scene_linear_rgb_string()
 
 const char *ColorSpaceManager::get_scene_linear_interop_id(const bool srgb_encoded)
 {
+  check_invalidate_caches();
+
   const thread_scoped_lock cache_lock(cache_scene_linear_interop_id_mutex);
 
   if (!cache_scene_linear_interop_id_done) {

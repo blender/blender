@@ -146,8 +146,27 @@ void Bundle::add_path_new(StringRef path, const BundleItemValue &value)
   this->add_path_override(path, value);
 }
 
+Bundle &Bundle::ensure_nested_bundle(const StringRef path)
+{
+  BundlePtr *bundle_ptr = this->lookup_path_for_write_ptr<BundlePtr>(path);
+  if (bundle_ptr && *bundle_ptr) {
+    return bundle_ptr->ensure_mutable_inplace();
+  }
+  BundlePtr new_bundle = Bundle::create();
+  Bundle &new_bundle_ref = new_bundle.ensure_mutable_inplace();
+  this->add_path_override(path, std::move(new_bundle));
+  return new_bundle_ref;
+}
+
 const BundleItemValue *Bundle::lookup(const StringRef key) const
 {
+  BLI_assert(is_valid_key(key));
+  return items_.lookup_ptr_as(key);
+}
+
+BundleItemValue *Bundle::lookup(const StringRef key)
+{
+  BLI_assert(is_valid_key(key));
   return items_.lookup_ptr_as(key);
 }
 
@@ -174,6 +193,35 @@ const BundleItemValue *Bundle::lookup_path(const StringRef path) const
   BLI_assert(is_valid_path(path));
   const Vector<StringRef> path_elems = *split_path(path);
   return this->lookup_path(path_elems);
+}
+
+BundleItemValue *Bundle::lookup_path_for_write(Span<StringRef> path)
+{
+  BLI_assert(!path.is_empty());
+  const StringRef first_elem = path[0];
+  BundleItemValue *item = this->lookup(first_elem);
+  if (!item) {
+    return nullptr;
+  }
+  if (path.size() == 1) {
+    return item;
+  }
+  BundlePtr *child_bundle_ptr = item->as_pointer<BundlePtr>();
+  if (!child_bundle_ptr) {
+    return nullptr;
+  }
+  if (!*child_bundle_ptr) {
+    return nullptr;
+  }
+  Bundle &child_bundle = child_bundle_ptr->ensure_mutable_inplace();
+  return child_bundle.lookup_path_for_write(path.drop_front(1));
+}
+
+BundleItemValue *Bundle::lookup_path_for_write(StringRef path)
+{
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
+  return this->lookup_path_for_write(path_elems);
 }
 
 void Bundle::merge(const Bundle &other)
@@ -273,6 +321,11 @@ std::string Bundle::combine_path(const Span<StringRef> path)
 void Bundle::delete_self()
 {
   MEM_delete(this);
+}
+
+void Bundle::clear()
+{
+  items_.clear();
 }
 
 void Bundle::count_memory(MemoryCounter &memory) const

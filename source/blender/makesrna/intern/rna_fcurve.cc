@@ -57,6 +57,11 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
      0,
      "Stepped Interpolation",
      "Snap values to nearest grid step, e.g. for a stop-motion look"},
+    {FMODIFIER_TYPE_SMOOTH,
+     "SMOOTH",
+     0,
+     "Gaussian Smoothing",
+     "Smooth curve using Gaussian smoothing"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -226,6 +231,8 @@ static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
       return RNA_FModifierLimits;
     case FMODIFIER_TYPE_STEPPED:
       return RNA_FModifierStepped;
+    case FMODIFIER_TYPE_SMOOTH:
+      return RNA_FModifierSmooth;
     default:
       return RNA_UnknownType;
   }
@@ -1808,6 +1815,39 @@ static void rna_def_fmodifier_stepped(BlenderRNA *brna)
 
 /* --------- */
 
+static void rna_def_fmodifier_smooth(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "FModifierSmooth", "FModifier");
+  RNA_def_struct_ui_text(srna, "Smooth F-Modifier", "Smooth curve using Gaussian smoothing");
+  RNA_def_struct_sdna_from(srna, "FMod_Smooth", "data");
+
+  prop = RNA_def_property(srna, "sigma", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, nullptr, "sigma");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_range(prop, 0.1, 100.0);
+  RNA_def_property_ui_range(prop, 0.1, 2.0, 0.05, 3);
+  RNA_def_property_ui_text(prop,
+                           "Sigma",
+                           "The shape of the Gaussian distribution in frames. Lower values will "
+                           "increase sharpness across the Filter Width.");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_update");
+
+  prop = RNA_def_property(srna, "filter_width", PROP_INT, PROP_TIME);
+  RNA_def_property_int_sdna(prop, nullptr, "filter_width");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_range(prop, 1, 32);
+  RNA_def_property_ui_text(prop,
+                           "Filter Width",
+                           "The number of frames to average around each keyframe. Higher values "
+                           "allow more smoothing, but will decrease performance.");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_update");
+}
+
+/* --------- */
+
 static void rna_def_fmodifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -2781,6 +2821,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
   rna_def_fmodifier_limits(brna);
   rna_def_fmodifier_noise(brna);
   rna_def_fmodifier_stepped(brna);
+  rna_def_fmodifier_smooth(brna);
 }
 
 }  // namespace blender
