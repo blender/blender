@@ -24,8 +24,8 @@ void gather_next_available_fill_ids(const VArray<int> &fill_ids,
                                     MutableSpan<int> r_new_fill_ids);
 
 IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
-                                 const bke::CurvesGeometry &curves,
-                                 bke::AttrDomain selection_domain,
+                                 const CurvesGeometry &curves,
+                                 AttrDomain selection_domain,
                                  IndexMaskMemory &memory);
 void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep);
 

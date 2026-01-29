@@ -115,13 +115,13 @@ void gather_next_available_fill_ids(const VArray<int> &fill_ids,
 }
 
 IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
-                                 const bke::CurvesGeometry &curves,
-                                 const bke::AttrDomain domain,
+                                 const CurvesGeometry &curves,
+                                 const AttrDomain domain,
                                  IndexMaskMemory &memory)
 {
-  const bke::AttributeAccessor attributes = curves.attributes();
+  const AttributeAccessor attributes = curves.attributes();
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  const VArray<int> fill_ids = *attributes.lookup<int>("fill_id", bke::AttrDomain::Curve);
+  const VArray<int> fill_ids = *attributes.lookup<int>("fill_id", AttrDomain::Curve);
 
   /* If the attribute does not exist then each curves is its own fill. */
   if (!fill_ids) {
@@ -144,7 +144,7 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
           return false;
         });
 
-    return bke::curves::curve_to_point_selection(points_by_curve, selected_curves, memory);
+    return curves::curve_to_point_selection(points_by_curve, selected_curves, memory);
   }
 
   VectorSet<int> selected_fill_ids;
@@ -197,7 +197,7 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
   }
   BLI_assert(domain == AttrDomain::Point);
 
-  return bke::curves::curve_to_point_selection(curves.points_by_curve(), selected_curves, memory);
+  return curves::curve_to_point_selection(curves.points_by_curve(), selected_curves, memory);
 }
 
 void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep)
@@ -209,8 +209,8 @@ void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep)
     return;
   }
 
-  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_for_write_span<int>("fill_id");
+  MutableAttributeAccessor attributes = curves.attributes_for_write();
+  SpanAttributeWriter<int> fill_ids = attributes.lookup_for_write_span<int>("fill_id");
 
   if (!fill_ids) {
     return;
