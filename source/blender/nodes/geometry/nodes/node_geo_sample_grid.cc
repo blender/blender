@@ -6,6 +6,7 @@
 
 #include "BKE_type_conversions.hh"
 #include "BKE_volume_grid.hh"
+#include "BKE_volume_openvdb.hh"
 
 #include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
@@ -154,29 +155,6 @@ void sample_grid(const bke::OpenvdbGridType<T> &grid,
   }
 }
 
-template<typename Fn> void to_static_type(const VolumeGridType type, Fn &&fn)
-{
-  switch (type) {
-    case VOLUME_GRID_BOOLEAN:
-      fn.template operator()<bool>();
-      break;
-    case VOLUME_GRID_FLOAT:
-      fn.template operator()<float>();
-      break;
-    case VOLUME_GRID_INT:
-      fn.template operator()<int>();
-      break;
-    case VOLUME_GRID_MASK:
-      fn.template operator()<bool>();
-      break;
-    case VOLUME_GRID_VECTOR_FLOAT:
-      fn.template operator()<float3>();
-      break;
-    default:
-      break;
-  }
-}
-
 class SampleGridFunction : public mf::MultiFunction {
   bke::GVolumeGrid grid_;
   InterpolationMode interpolation_;
@@ -209,13 +187,14 @@ class SampleGridFunction : public mf::MultiFunction {
     const VArraySpan<float3> positions = params.readonly_single_input<float3>(0, "Position");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");
 
-    bke::VolumeTreeAccessToken tree_token;
-    to_static_type(grid_type_, [&]<typename T>() {
-      sample_grid<T>(static_cast<const bke::OpenvdbGridType<T> &>(*grid_base_),
-                     interpolation_,
-                     positions,
-                     mask,
-                     dst.typed<T>());
+    BKE_volume_grid_type_to_blender_value_type(grid_type_, [&]<typename T>() {
+      if constexpr (is_same_any_v<T, bool, float, int, float3>) {
+        sample_grid<T>(static_cast<const bke::OpenvdbGridType<T> &>(*grid_base_),
+                       interpolation_,
+                       positions,
+                       mask,
+                       dst.typed<T>());
+      }
     });
   }
 };

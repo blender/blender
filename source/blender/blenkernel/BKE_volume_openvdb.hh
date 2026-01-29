@@ -82,7 +82,7 @@ auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)
 }
 
 template<typename Fn>
-void BKE_volume_grid_type_to_static_type(const VolumeGridType grid_type, Fn &&fn)
+inline void BKE_volume_grid_type_to_static_type(const VolumeGridType grid_type, Fn &&fn)
 {
   switch (grid_type) {
     case VOLUME_GRID_FLOAT:
@@ -109,6 +109,42 @@ void BKE_volume_grid_type_to_static_type(const VolumeGridType grid_type, Fn &&fn
       break;
   }
   BLI_assert_unreachable();
+}
+
+template<typename Fn>
+inline bool BKE_volume_grid_type_to_blender_value_type(const VolumeGridType grid_type, Fn &&fn)
+{
+  switch (grid_type) {
+    case VOLUME_GRID_FLOAT:
+      fn.template operator()<float>();
+      return true;
+    case VOLUME_GRID_VECTOR_FLOAT:
+      fn.template operator()<float3>();
+      return true;
+    case VOLUME_GRID_BOOLEAN:
+      fn.template operator()<bool>();
+      return true;
+    case VOLUME_GRID_DOUBLE:
+      fn.template operator()<double>();
+      return true;
+    case VOLUME_GRID_INT:
+      fn.template operator()<int>();
+      return true;
+    case VOLUME_GRID_INT64:
+      fn.template operator()<int64_t>();
+      return true;
+    case VOLUME_GRID_VECTOR_INT:
+      fn.template operator()<int3>();
+      return true;
+    case VOLUME_GRID_VECTOR_DOUBLE:
+      fn.template operator()<double3>();
+      return true;
+    case VOLUME_GRID_MASK:
+    case VOLUME_GRID_POINTS:
+    case VOLUME_GRID_UNKNOWN:
+      break;
+  }
+  return false;
 }
 
 openvdb::GridBase::Ptr BKE_volume_grid_create_with_changed_resolution(
