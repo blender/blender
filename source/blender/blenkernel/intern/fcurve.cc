@@ -2390,6 +2390,19 @@ float evaluate_fcurve_only_curve(const FCurve *fcu, float evaltime)
   return evaluate_fcurve_ex(fcu, evaltime, 0.0);
 }
 
+float evaluate_fcurve_unmodified(const FCurve *fcu, float evaltime)
+{
+  if (fcu->bezt) {
+    return fcurve_eval_keyframes(fcu, fcu->bezt, evaltime);
+  }
+  if (fcu->fpt) {
+    return fcurve_eval_samples(fcu, fcu->fpt, evaltime);
+  }
+
+  BLI_assert_unreachable();
+  return 0;
+}
+
 float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
                              FCurve *fcu,
                              ChannelDriver *driver_orig,
