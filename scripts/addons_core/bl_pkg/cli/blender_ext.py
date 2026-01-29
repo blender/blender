@@ -402,7 +402,11 @@ class PkgServerRepoConfig(NamedTuple):
 def path_to_url(path: str) -> str:
     from urllib.parse import urljoin
     from urllib.request import pathname2url
-    return urljoin("file:", pathname2url(path))
+    # Python 3.14+: pathname2url returns '///path' (RFC 8089), use 'file://' base.
+    file_prefix = "file://" if sys.version_info >= (3, 14) else "file:"
+    result = urljoin(file_prefix, pathname2url(path))
+    assert result.startswith('file:///')
+    return result
 
 
 def path_from_url(path: str) -> str:
