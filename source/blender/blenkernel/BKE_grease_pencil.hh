@@ -64,7 +64,7 @@ struct FillCache {
    * fill (ordered by the first occurance of the fill ID). The #fill_offsets are offset indices
    * into #fill_map where each range represents a fill.
    *
-   * Here's a example:
+   * For example:
    *
    * curve index:  0 1 2 3 4 5 6 7 8
    * fill_id:      0 0 1 0 1 4 1 3 3
