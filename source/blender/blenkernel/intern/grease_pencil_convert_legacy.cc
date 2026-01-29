@@ -3161,10 +3161,10 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
     Object *object,
     const StringRef layer_name,
     const int frame_number,
-    blender::bke::greasepencil::Drawing &drawing)
+    greasepencil::Drawing &drawing)
 {
   using namespace blender;
-  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  CurvesGeometry &curves = drawing.strokes_for_write();
   if (curves.is_empty()) {
     return;
   }
@@ -3172,7 +3172,7 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
   Array<bool> material_hides_stroke(curves.curves_num(), false);
   Array<bool> material_uses_fill(curves.curves_num(), false);
   const VArray<int> materials = *curves.attributes().lookup_or_default<int>(
-      "material_index", bke::AttrDomain::Curve, 0);
+      "material_index", AttrDomain::Curve, 0);
   threading::parallel_for(curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int curve_i : range) {
       const Material *material = BKE_object_material_get(object, materials[curve_i] + 1);
@@ -3185,7 +3185,7 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
     }
   });
 
-  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  MutableAttributeAccessor attributes = curves.attributes_for_write();
   /* Optimization: If all of the strokes are shown, don't create the attribute. */
   if (array_utils::booleans_mix_calc(VArray<bool>::from_container(material_hides_stroke)) !=
       array_utils::BooleanMix::AllFalse)
@@ -3210,9 +3210,8 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
           layer_name,
           frame_number);
     }
-    bke::SpanAttributeWriter<bool> hide_stroke =
-        attributes.lookup_or_add_for_write_only_span<bool>(hide_stroke_name,
-                                                           bke::AttrDomain::Curve);
+    SpanAttributeWriter hide_stroke = attributes.lookup_or_add_for_write_only_span<bool>(
+        hide_stroke_name, AttrDomain::Curve);
     hide_stroke.span.copy_from(material_hides_stroke);
     hide_stroke.finish();
   }
@@ -3238,8 +3237,8 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
           layer_name,
           frame_number);
     }
-    bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_only_span<int>(
-        "fill_id", bke::AttrDomain::Curve);
+    SpanAttributeWriter fill_ids = attributes.lookup_or_add_for_write_only_span<int>(
+        "fill_id", AttrDomain::Curve);
     int current_fill_id = 1;
     for (const int curve_i : curves.curves_range()) {
       if (material_uses_fill[curve_i]) {
