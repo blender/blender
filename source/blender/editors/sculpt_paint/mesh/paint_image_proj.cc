@@ -6025,9 +6025,9 @@ static void project_state_init(bContext *C,
     /* only check for inversion for the soften brush, elsewhere,
      * a resident brush inversion flag can cause issues */
     if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) {
-      ps->mode = (((ps->mode == BrushStrokeMode::Invert) ^ ((brush->flag & BRUSH_DIR_IN) != 0)) ?
-                      BrushStrokeMode::Invert :
-                      BrushStrokeMode::Normal);
+      ps->mode = (ps->mode == BrushStrokeMode::Invert) != ((brush->flag & BRUSH_DIR_IN) != 0) ?
+                     BrushStrokeMode::Invert :
+                     BrushStrokeMode::Normal;
 
       ps->blurkernel = paint_new_blur_kernel(brush, true);
     }
