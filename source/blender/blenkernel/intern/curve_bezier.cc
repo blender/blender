@@ -433,8 +433,7 @@ void interpolate_to_evaluated(const GSpan src,
                               const OffsetIndices<int> evaluated_offsets,
                               GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(src.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       interpolate_to_evaluated(src.typed<T>(), evaluated_offsets, dst.typed<T>());
     }

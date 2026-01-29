@@ -1567,8 +1567,7 @@ Array<PointTransferData> compute_topology_change(
   for (bke::AttributeTransferData &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes, dst_attributes, {bke::AttrDomain::Point}))
   {
-    bke::attribute_math::convert_to_static_type(attribute.dst.span.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attribute.dst.span.type(), [&]<typename T>() {
       auto src_attr = attribute.src.typed<T>();
       auto dst_attr = attribute.dst.span.typed<T>();
 
@@ -1791,8 +1790,7 @@ void add_single_curve(bke::greasepencil::Drawing &drawing, const bool at_end)
     bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
     GMutableSpan attribute_data = dst.span;
 
-    bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
       MutableSpan<T> span_data = attribute_data.typed<T>();
 
       /* Loop through backwards to not overwrite the data. */
@@ -1842,8 +1840,7 @@ void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const i
       bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = dst.span;
 
-      bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
         MutableSpan<T> span_data = attribute_data.typed<T>();
 
         /* Loop through backwards to not overwrite the data. */
@@ -1866,8 +1863,7 @@ void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const i
       bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
       GMutableSpan attribute_data = dst.span;
 
-      bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
         MutableSpan<T> span_data = attribute_data.typed<T>();
 
         for (const int i :
@@ -2097,8 +2093,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
     if (!dst) {
       return;
     }
-    attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(src.type(), [&]<typename T>() {
       Span<T> src_span = src.typed<T>();
       MutableSpan<T> dst_span = dst.span.typed<T>();
       for (const auto [src_i, dst_i] : eval_to_orig_layer_indices_map.items()) {

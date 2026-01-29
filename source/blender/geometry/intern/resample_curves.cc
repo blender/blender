@@ -337,8 +337,7 @@ static void resample_to_uniform(const CurvesGeometry &src_curves,
      * curve's "evaluated points", then use linear interpolation to sample to the result. */
     for (const int i_attribute : attributes.dst.index_range()) {
       const CPPType &type = attributes.src[i_attribute].type();
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         Span<T> src = attributes.src[i_attribute].typed<T>();
         MutableSpan<T> dst = attributes.dst[i_attribute].typed<T>();
 

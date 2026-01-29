@@ -363,8 +363,7 @@ void LegacyMeshInterpolator::mix(Span<int> src_indices,
                     src_indices.size(),
                     dst_index);
   for (const int attr_index : attrs_src_.index_range()) {
-    attribute_math::convert_to_static_type(attrs_src_[attr_index].type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(attrs_src_[attr_index].type(), [&]<typename T>() {
       const VArray src = attrs_src_[attr_index].typed<T>();
       MutableSpan dst = attrs_dst_[attr_index].typed<T>();
       attribute_math::DefaultMixer<T> mixer(dst.slice(dst_index, 1));

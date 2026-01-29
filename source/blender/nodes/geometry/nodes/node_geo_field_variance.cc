@@ -156,8 +156,7 @@ class FieldVarianceInput final : public bke::GeometryFieldInput {
 
     GVArray g_outputs;
 
-    bke::attribute_math::convert_to_static_type(g_values.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
       if constexpr (is_same_any_v<T, int, float, float3>) {
         const VArraySpan<T> values = g_values.typed<T>();
 

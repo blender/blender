@@ -343,8 +343,7 @@ static void mix_attrs(const Span<GSpan> src,
                       const Span<GMutableSpan> dst)
 {
   for (const int attr : src.index_range()) {
-    attribute_math::convert_to_static_type(src[attr].type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(src[attr].type(), [&]<typename T>() {
       const Span<T> src_attr = src[attr].typed<T>();
       MutableSpan<T> dst_attr = dst[attr].typed<T>();
       if constexpr (std::is_same_v<T, bool>) {
@@ -365,8 +364,7 @@ static void mix_attrs(const Span<GSpan> src,
                       const Span<GMutableSpan> dst)
 {
   for (const int attr : src.index_range()) {
-    attribute_math::convert_to_static_type(src[attr].type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(src[attr].type(), [&]<typename T>() {
       const Span<T> src_attr = src[attr].typed<T>();
       MutableSpan<T> dst_attr = dst[attr].typed<T>();
       if constexpr (std::is_same_v<T, bool>) {
@@ -402,8 +400,7 @@ static void mix_attrs(const Span<GSpan> src,
                       const Span<GMutableSpan> dst)
 {
   for (const int attr : src.index_range()) {
-    attribute_math::convert_to_static_type(src[attr].type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(src[attr].type(), [&]<typename T>() {
       const Span<T> src_attr = src[attr].typed<T>();
       MutableSpan<T> dst_attr = dst[attr].typed<T>();
       dst_attr[dst_index] = mix_attr(src_attr, src_indices, weights);

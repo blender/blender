@@ -341,8 +341,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
     }
 
     const CPPType &type = dst_attribute.span.type();
-    bke::attribute_math::convert_to_static_type(type, [&](auto type) {
-      using T = decltype(type);
+    bke::attribute_math::to_static_type(type, [&]<typename T>() {
       const VArraySpan<T> src_span = src_attribute.varray.typed<T>();
       MutableSpan<T> new_span = dst_attribute.span.typed<T>();
 

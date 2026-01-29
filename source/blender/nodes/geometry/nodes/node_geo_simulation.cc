@@ -955,8 +955,7 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
       void *prev_value = prev.get_single_ptr().get();
       const void *next_value = next_copy.get_single_ptr().get();
 
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         *static_cast<T *>(prev_value) = bke::attribute_math::mix2(
             factor, *static_cast<T *>(prev_value), *static_cast<const T *>(next_value));
       });

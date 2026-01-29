@@ -81,8 +81,7 @@ void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
 static GVArray adapt_mesh_domain_corner_to_point(const Mesh &mesh, const GVArray &varray)
 {
   GArray<> values(varray.type(), mesh.verts_num);
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       /* We compute all interpolated values at once, because for this interpolation, one has to
        * iterate over all loops anyway. */
@@ -101,8 +100,7 @@ static GVArray adapt_mesh_domain_point_to_corner(const Mesh &mesh, const GVArray
   const Span<int> corner_verts = mesh.corner_verts();
 
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     new_varray = VArray<T>::from_func(
         mesh.corners_num, [corner_verts, varray = varray.typed<T>()](const int64_t corner) {
           return varray[corner_verts[corner]];
@@ -116,8 +114,7 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
   const OffsetIndices faces = mesh.faces();
 
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         new_varray = VArray<T>::from_func(
@@ -214,8 +211,7 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
 static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray &varray)
 {
   GArray<> values(varray.type(), mesh.edges_num);
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       adapt_mesh_domain_corner_to_edge_impl<T>(
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
@@ -227,8 +223,7 @@ static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray 
 static GVArray adapt_mesh_domain_face_to_point(const Mesh &mesh, const GVArray &varray)
 {
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       VArray<T> src = varray.typed<T>();
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
@@ -279,8 +274,7 @@ void adapt_mesh_domain_face_to_corner_impl(const Mesh &mesh,
 static GVArray adapt_mesh_domain_face_to_corner(const Mesh &mesh, const GVArray &varray)
 {
   GArray<> values(varray.type(), mesh.corners_num);
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       adapt_mesh_domain_face_to_corner_impl<T>(
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
@@ -334,8 +328,7 @@ void adapt_mesh_domain_face_to_edge_impl(const Mesh &mesh,
 static GVArray adapt_mesh_domain_face_to_edge(const Mesh &mesh, const GVArray &varray)
 {
   GArray<> values(varray.type(), mesh.edges_num);
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       adapt_mesh_domain_face_to_edge_impl<T>(
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
@@ -350,8 +343,7 @@ static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &
   const Span<int> corner_verts = mesh.corner_verts();
 
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         new_varray = VArray<T>::from_func(
@@ -389,8 +381,7 @@ static GVArray adapt_mesh_domain_point_to_edge(const Mesh &mesh, const GVArray &
   const Span<int2> edges = mesh.edges();
 
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         /* An edge is selected if both of its vertices were selected. */
@@ -469,8 +460,7 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
 static GVArray adapt_mesh_domain_edge_to_corner(const Mesh &mesh, const GVArray &varray)
 {
   GArray<> values(varray.type(), mesh.corners_num);
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       adapt_mesh_domain_edge_to_corner_impl<T>(
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
@@ -525,8 +515,7 @@ void adapt_mesh_domain_edge_to_point_impl(const Mesh &mesh,
 static GVArray adapt_mesh_domain_edge_to_point(const Mesh &mesh, const GVArray &varray)
 {
   GArray<> values(varray.type(), mesh.verts_num);
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       adapt_mesh_domain_edge_to_point_impl<T>(
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
@@ -541,8 +530,7 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
   const Span<int> corner_edges = mesh.corner_edges();
 
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         /* A face is selected if all of its edges are selected. */

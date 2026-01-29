@@ -30,8 +30,7 @@ namespace bke::attribute_math {
 /**
  * Utility function that simplifies calling a templated function based on a run-time data type.
  */
-template<typename Func>
-inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
+template<typename Fn> inline void to_static_type(const CPPType &cpp_type, Fn &&fn)
 {
   cpp_type.to_static_type<float,
                           float2,
@@ -44,14 +43,13 @@ inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
                           ColorGeometry4f,
                           ColorGeometry4b,
                           math::Quaternion,
-                          float4x4>([&]<typename T>() { func(T()); });
+                          float4x4>([&]<typename T>() { fn.template operator()<T>(); });
 }
 
-template<typename Func>
-inline void convert_to_static_type(const bke::AttrType data_type, const Func &func)
+template<typename Fn> inline void to_static_type(const bke::AttrType data_type, Fn &&fn)
 {
   const CPPType &cpp_type = bke::attribute_type_to_cpp_type(data_type);
-  convert_to_static_type(cpp_type, func);
+  to_static_type(cpp_type, std::forward<Fn>(fn));
 }
 
 /* -------------------------------------------------------------------- */

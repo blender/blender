@@ -1688,8 +1688,7 @@ void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
     }
 
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
       reverse_curve_point_data<T>(*this, curves_to_reverse, attribute.span.typed<T>());
     });
     attribute.finish();
@@ -1816,8 +1815,7 @@ static GVArray adapt_curve_domain_point_to_curve(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       Array<T> values(curves.curves_num());
       adapt_curve_domain_point_to_curve_impl<T>(curves, varray.typed<T>(), values);
@@ -1849,8 +1847,7 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     Array<T> values(curves.points_num());
     adapt_curve_domain_curve_to_point_impl<T>(curves, varray.typed<T>(), values);
     new_varray = VArray<T>::from_container(std::move(values));

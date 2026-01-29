@@ -174,8 +174,7 @@ static void transfer_attributes(
     switch (src.domain) {
       case AttrDomain::Point: {
         const GVArraySpan src_span(*src);
-        bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(data_type, [&]<typename T>() {
           copy_data_based_on_vertex_types(
               src_span.typed<T>(), dst.span.typed<T>(), vertex_types, keep_boundaries);
         });
@@ -187,8 +186,7 @@ static void transfer_attributes(
       case AttrDomain::Face: {
         const GVArraySpan src_span(*src);
         dst.span.take_front(src_span.size()).copy_from(src_span);
-        bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(data_type, [&]<typename T>() {
           if (keep_boundaries) {
             copy_data_based_on_pairs(
                 src_span.typed<T>(), dst.span.typed<T>(), boundary_vertex_to_relevant_face_map);

@@ -490,9 +490,7 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
 
     bool attributes_are_equal = true;
 
-    attribute_math::convert_to_static_type(attrs_a.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-
+    attribute_math::to_static_type(attrs_a.varray.type(), [&]<typename T>() {
       const VArray attributes_a = attrs_a.varray.typed<T>();
       const VArray attributes_b = attrs_b.varray.typed<T>();
 

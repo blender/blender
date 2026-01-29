@@ -154,23 +154,23 @@ void sample_grid(const bke::OpenvdbGridType<T> &grid,
   }
 }
 
-template<typename Fn> void convert_to_static_type(const VolumeGridType type, const Fn &fn)
+template<typename Fn> void to_static_type(const VolumeGridType type, Fn &&fn)
 {
   switch (type) {
     case VOLUME_GRID_BOOLEAN:
-      fn(bool());
+      fn.template operator()<bool>();
       break;
     case VOLUME_GRID_FLOAT:
-      fn(float());
+      fn.template operator()<float>();
       break;
     case VOLUME_GRID_INT:
-      fn(int());
+      fn.template operator()<int>();
       break;
     case VOLUME_GRID_MASK:
-      fn(bool());
+      fn.template operator()<bool>();
       break;
     case VOLUME_GRID_VECTOR_FLOAT:
-      fn(float3());
+      fn.template operator()<float3>();
       break;
     default:
       break;
@@ -210,8 +210,7 @@ class SampleGridFunction : public mf::MultiFunction {
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");
 
     bke::VolumeTreeAccessToken tree_token;
-    convert_to_static_type(grid_type_, [&](auto dummy) {
-      using T = decltype(dummy);
+    to_static_type(grid_type_, [&]<typename T>() {
       sample_grid<T>(static_cast<const bke::OpenvdbGridType<T> &>(*grid_base_),
                      interpolation_,
                      positions,

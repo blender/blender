@@ -83,8 +83,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
       return;
     }
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    attribute_math::convert_to_static_type(iter.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(iter.data_type, [&]<typename T>() {
       flip_corner_data(faces, selection, attribute.span.typed<T>());
     });
     attribute.finish();

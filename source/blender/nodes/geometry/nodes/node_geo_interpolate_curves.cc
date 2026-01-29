@@ -485,8 +485,7 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       if (!dst_generic) {
         return;
       }
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
 
@@ -519,8 +518,7 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
         return;
       }
 
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
 
