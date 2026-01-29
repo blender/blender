@@ -8444,7 +8444,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Set stroke mode
-            col.operator_menu_enum("grease_pencil.set_stroke_type", "mode", text="Set Stroke Type")
+            col.operator_menu_enum("grease_pencil.set_stroke_type", "type", text="Set Stroke Type")
 
             col.separator()
 
