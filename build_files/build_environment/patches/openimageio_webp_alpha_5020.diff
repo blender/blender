@@ -1,0 +1,30 @@
+commit 00c1d742dd19317253d51ba481ebccb249bfa9fe
+Author: Brecht Van Lommel <brecht@blender.org>
+Date:   Thu Jan 29 00:28:55 2026 +0100
+
+    fix(webp): Missing oiio:UnassociatedAlpha on input
+    
+    Like other file formats, the returned ImageSpec should indicate if the
+    image contains unassociated alpha.
+    
+    This was an oversight in #4770.
+    
+    Signed-off-by: Brecht Van Lommel <brecht@blender.org>
+
+diff --git a/src/webp.imageio/webpinput.cpp b/src/webp.imageio/webpinput.cpp
+index 09cc08c4c..bbe35d982 100644
+--- a/src/webp.imageio/webpinput.cpp
++++ b/src/webp.imageio/webpinput.cpp
+@@ -214,8 +214,11 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
+     // Make space for the decoded image
+     m_decoded_image.reset(new uint8_t[m_spec.image_bytes()]);
+ 
+-    if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1)
++    if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1) {
+         m_keep_unassociated_alpha = true;
++        if (m_spec.alpha_channel != -1)
++            m_spec.attribute("oiio:UnassociatedAlpha", 1);
++    }
+ 
+     seek_subimage(0, 0);
+     spec = m_spec;

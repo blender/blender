@@ -1,0 +1,249 @@
+commit 7e9a88d9705de0c82357fc9e69d2f0ff88a570be
+Author: Brecht Van Lommel <brecht@blender.org>
+Date:   Mon Jan 26 07:39:18 2026 +0100
+
+    Fix race condition in table initialization with multiple threads
+
+diff --git a/src/core/coding/ojph_block_encoder.cpp b/src/core/coding/ojph_block_encoder.cpp
+index f9c8d89..019f4f1 100644
+--- a/src/core/coding/ojph_block_encoder.cpp
++++ b/src/core/coding/ojph_block_encoder.cpp
+@@ -44,6 +44,7 @@
+ #include <cstring>
+ #include <cstdint>
+ #include <climits>
++#include <mutex>
+ 
+ #include "ojph_mem.h"
+ #include "ojph_arch.h"
+@@ -253,17 +254,16 @@ namespace ojph {
+       return true;
+     }
+ 
+-    /////////////////////////////////////////////////////////////////////////
+-    static bool tables_initialized = false;
+-
+     /////////////////////////////////////////////////////////////////////////
+     bool initialize_block_encoder_tables() {
+-      if (!tables_initialized) {
++      static bool tables_initialized = false;
++      static std::once_flag tables_initialized_flag;
++      std::call_once(tables_initialized_flag, []() {
+         memset(vlc_tbl0, 0, 2048 * sizeof(ui16));
+         memset(vlc_tbl1, 0, 2048 * sizeof(ui16));
+         tables_initialized = vlc_init_tables();
+         tables_initialized = tables_initialized && uvlc_init_tables();
+-      }
++      });
+       return tables_initialized;
+     }
+ 
+diff --git a/src/core/coding/ojph_block_encoder_avx2.cpp b/src/core/coding/ojph_block_encoder_avx2.cpp
+index 1bc7a43..91d0195 100644
+--- a/src/core/coding/ojph_block_encoder_avx2.cpp
++++ b/src/core/coding/ojph_block_encoder_avx2.cpp
+@@ -42,6 +42,7 @@
+ #include <cstdint>
+ #include <climits>
+ #include <immintrin.h>
++#include <mutex>
+ 
+ #include "ojph_mem.h"
+ #include "ojph_arch.h"
+@@ -220,17 +221,16 @@ namespace ojph {
+       return true;
+     }
+ 
+-    /////////////////////////////////////////////////////////////////////////
+-    static bool tables_initialized = false;
+-
+     /////////////////////////////////////////////////////////////////////////
+     bool initialize_block_encoder_tables_avx2() {
+-      if (!tables_initialized) {
++      static bool tables_initialized = false;
++      static std::once_flag tables_initialized_flag;
++      std::call_once(tables_initialized_flag, []() {
+         memset(vlc_tbl0, 0, 2048 * sizeof(ui32));
+         memset(vlc_tbl1, 0, 2048 * sizeof(ui32));
+         tables_initialized = vlc_init_tables();
+         tables_initialized = tables_initialized && uvlc_init_tables();
+-      }
++      });
+       return tables_initialized;
+     }
+ 
+diff --git a/src/core/coding/ojph_block_encoder_avx512.cpp b/src/core/coding/ojph_block_encoder_avx512.cpp
+index 6de1f3b..3ae7684 100644
+--- a/src/core/coding/ojph_block_encoder_avx512.cpp
++++ b/src/core/coding/ojph_block_encoder_avx512.cpp
+@@ -42,6 +42,7 @@
+ #include <cstdint>
+ #include <climits>
+ #include <immintrin.h>
++#include <mutex>
+ 
+ #include "ojph_mem.h"
+ #include "ojph_block_encoder.h"
+@@ -219,17 +220,16 @@ namespace ojph {
+       return true;
+     }
+ 
+-    /////////////////////////////////////////////////////////////////////////
+-    static bool tables_initialized = false;
+-
+     /////////////////////////////////////////////////////////////////////////
+     bool initialize_block_encoder_tables_avx512() {
+-      if (!tables_initialized) {
++      static bool tables_initialized = false;
++      static std::once_flag tables_initialized_flag;
++      std::call_once(tables_initialized_flag, []() {
+         memset(vlc_tbl0, 0, 2048 * sizeof(ui32));
+         memset(vlc_tbl1, 0, 2048 * sizeof(ui32));
+         tables_initialized = vlc_init_tables();
+         tables_initialized = tables_initialized && uvlc_init_tables();
+-      }
++      });
+       return tables_initialized;
+     }
+ 
+diff --git a/src/core/transform/ojph_colour.cpp b/src/core/transform/ojph_colour.cpp
+index b3c05ae..ef147ad 100644
+--- a/src/core/transform/ojph_colour.cpp
++++ b/src/core/transform/ojph_colour.cpp
+@@ -37,6 +37,7 @@
+ 
+ #include <cmath>
+ #include <climits>
++#include <mutex>
+ 
+ #include "ojph_defs.h"
+ #include "ojph_arch.h"
+@@ -104,27 +105,23 @@ namespace ojph {
+       (const float *y, const float *cb, const float *cr,
+        float *r, float *g, float *b, ui32 repeat) = NULL;
+ 
+-    //////////////////////////////////////////////////////////////////////////
+-    static bool colour_transform_functions_initialized = false;
+-
+     //////////////////////////////////////////////////////////////////////////
+     void init_colour_transform_functions()
+     {
+-      if (colour_transform_functions_initialized)
+-        return;
+-
++      static std::once_flag colour_transform_functions_init_flag;
++      std::call_once(colour_transform_functions_init_flag, []() {
+ #if !defined(OJPH_ENABLE_WASM_SIMD) || !defined(OJPH_EMSCRIPTEN)
+ 
+-      rev_convert = gen_rev_convert;
+-      rev_convert_nlt_type3 = gen_rev_convert_nlt_type3;
+-      irv_convert_to_integer = gen_irv_convert_to_integer;
+-      irv_convert_to_float = gen_irv_convert_to_float;
+-      irv_convert_to_integer_nlt_type3 = gen_irv_convert_to_integer_nlt_type3;
+-      irv_convert_to_float_nlt_type3 = gen_irv_convert_to_float_nlt_type3;
+-      rct_forward = gen_rct_forward;
+-      rct_backward = gen_rct_backward;
+-      ict_forward = gen_ict_forward;
+-      ict_backward = gen_ict_backward;
++        rev_convert = gen_rev_convert;
++        rev_convert_nlt_type3 = gen_rev_convert_nlt_type3;
++        irv_convert_to_integer = gen_irv_convert_to_integer;
++        irv_convert_to_float = gen_irv_convert_to_float;
++        irv_convert_to_integer_nlt_type3 = gen_irv_convert_to_integer_nlt_type3;
++        irv_convert_to_float_nlt_type3 = gen_irv_convert_to_float_nlt_type3;
++        rct_forward = gen_rct_forward;
++        rct_backward = gen_rct_backward;
++        ict_forward = gen_ict_forward;
++        ict_backward = gen_ict_backward;
+ 
+   #ifndef OJPH_DISABLE_SIMD
+ 
+@@ -186,20 +183,19 @@ namespace ojph {
+ 
+ #else // OJPH_ENABLE_WASM_SIMD
+ 
+-      rev_convert = wasm_rev_convert;
+-      rev_convert_nlt_type3 = wasm_rev_convert_nlt_type3;
+-      irv_convert_to_integer = wasm_irv_convert_to_integer;
+-      irv_convert_to_float = wasm_irv_convert_to_float;
+-      irv_convert_to_integer_nlt_type3 = wasm_irv_convert_to_integer_nlt_type3;
+-      irv_convert_to_float_nlt_type3 = wasm_irv_convert_to_float_nlt_type3;
+-      rct_forward = wasm_rct_forward;
+-      rct_backward = wasm_rct_backward;
+-      ict_forward = wasm_ict_forward;
+-      ict_backward = wasm_ict_backward;
++        rev_convert = wasm_rev_convert;
++        rev_convert_nlt_type3 = wasm_rev_convert_nlt_type3;
++        irv_convert_to_integer = wasm_irv_convert_to_integer;
++        irv_convert_to_float = wasm_irv_convert_to_float;
++        irv_convert_to_integer_nlt_type3 = wasm_irv_convert_to_integer_nlt_type3;
++        irv_convert_to_float_nlt_type3 = wasm_irv_convert_to_float_nlt_type3;
++        rct_forward = wasm_rct_forward;
++        rct_backward = wasm_rct_backward;
++        ict_forward = wasm_ict_forward;
++        ict_backward = wasm_ict_backward;
+ 
+ #endif // !OJPH_ENABLE_WASM_SIMD
+-
+-      colour_transform_functions_initialized = true;
++      });
+     }
+ 
+     //////////////////////////////////////////////////////////////////////////
+diff --git a/src/core/transform/ojph_transform.cpp b/src/core/transform/ojph_transform.cpp
+index c4313ab..f67ea1b 100644
+--- a/src/core/transform/ojph_transform.cpp
++++ b/src/core/transform/ojph_transform.cpp
+@@ -36,6 +36,7 @@
+ //***************************************************************************/
+ 
+ #include <cstdio>
++#include <mutex>
+ 
+ #include "ojph_arch.h"
+ #include "ojph_mem.h"
+@@ -93,25 +94,21 @@ namespace ojph {
+       (const param_atk* atk, const line_buf* dst, const line_buf* lsrc,
+         const line_buf* hsrc, ui32 width, bool even) = NULL;
+ 
+-    ////////////////////////////////////////////////////////////////////////////
+-    static bool wavelet_transform_functions_initialized = false;
+-
+     //////////////////////////////////////////////////////////////////////////
+     void init_wavelet_transform_functions()
+     {
+-      if (wavelet_transform_functions_initialized)
+-        return;
+-
++      static std::once_flag wavelet_transform_functions_init_flag;
++      std::call_once(wavelet_transform_functions_init_flag, [](){
+ #if !defined(OJPH_ENABLE_WASM_SIMD) || !defined(OJPH_EMSCRIPTEN)
+ 
+-      rev_vert_step             = gen_rev_vert_step;
+-      rev_horz_ana              = gen_rev_horz_ana;
+-      rev_horz_syn              = gen_rev_horz_syn;
++        rev_vert_step             = gen_rev_vert_step;
++        rev_horz_ana              = gen_rev_horz_ana;
++        rev_horz_syn              = gen_rev_horz_syn;
+ 
+-      irv_vert_step             = gen_irv_vert_step;
+-      irv_vert_times_K          = gen_irv_vert_times_K;
+-      irv_horz_ana              = gen_irv_horz_ana;
+-      irv_horz_syn              = gen_irv_horz_syn;
++        irv_vert_step             = gen_irv_vert_step;
++        irv_vert_times_K          = gen_irv_vert_times_K;
++        irv_horz_ana              = gen_irv_horz_ana;
++        irv_horz_syn              = gen_irv_horz_syn;
+ 
+   #ifndef OJPH_DISABLE_SIMD
+ 
+@@ -185,8 +182,7 @@ namespace ojph {
+         irv_horz_ana              = wasm_irv_horz_ana;
+         irv_horz_syn              = wasm_irv_horz_syn;
+ #endif // !OJPH_ENABLE_WASM_SIMD
+-
+-      wavelet_transform_functions_initialized = true;
++      });
+     }
+     
+     //////////////////////////////////////////////////////////////////////////

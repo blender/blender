@@ -21,6 +21,11 @@ ExternalProject_Add(external_openjph
     ${DEFAULT_CMAKE_FLAGS}
     ${OPENJPH_EXTRA_ARGS}
 
+  PATCH_COMMAND
+    ${PATCH_CMD} -p 1 -N -d
+      ${BUILD_DIR}/openjph/src/external_openjph/ <
+      ${PATCH_DIR}/openjph_table_init_243.diff
+
   INSTALL_DIR ${LIBDIR}/openjph
 )
 

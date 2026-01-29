@@ -1,0 +1,23 @@
+commit 03250258d7684239b5efc6db40f30f3122ac9e5f
+Author: Brecht Van Lommel <brecht@blender.org>
+Date:   Wed Jan 28 15:28:09 2026 +0100
+
+    fix(heif): Error saving multiple images with different bit depths
+    
+    This variable should not have been static.
+    
+    Signed-off-by: Brecht Van Lommel <brecht@blender.org>
+
+diff --git a/src/heif.imageio/heifoutput.cpp b/src/heif.imageio/heifoutput.cpp
+index 309bc53ac..315f6b1a6 100644
+--- a/src/heif.imageio/heifoutput.cpp
++++ b/src/heif.imageio/heifoutput.cpp
+@@ -128,7 +128,7 @@ HeifOutput::open(const std::string& name, const ImageSpec& newspec,
+     try {
+         m_ctx.reset(new heif::Context);
+         m_himage = heif::Image();
+-        static heif_chroma chromas[/*nchannels*/]
++        const heif_chroma chromas[/*nchannels*/]
+             = { heif_chroma_undefined, heif_chroma_monochrome,
+                 heif_chroma_undefined,
+                 (m_bitdepth == 8) ? heif_chroma_interleaved_RGB
