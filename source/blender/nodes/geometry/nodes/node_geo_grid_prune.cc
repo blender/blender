@@ -188,18 +188,18 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     case Mode::SDF: {
       const VolumeGridType grid_type = bke::volume_grid::get_type(grid_base);
-      BKE_volume_grid_type_to_static_type(grid_type, [&](auto type_tag) {
-        using GridT = typename decltype(type_tag)::type;
-        if constexpr (bke::volume_grid::is_supported_grid_type<GridT>) {
-          if constexpr (std::is_scalar_v<typename GridT::ValueType>) {
-            GridT &grid = static_cast<GridT &>(grid_base);
-            openvdb::tools::pruneLevelSet(grid.tree());
-          }
-        }
-        else {
-          BLI_assert_unreachable();
-        }
-      });
+      BKE_volume_grid_type_to_static_type(
+          grid_type, [&]<std::derived_from<openvdb::GridBase> GridT>() {
+            if constexpr (bke::volume_grid::is_supported_grid_type<GridT>) {
+              if constexpr (std::is_scalar_v<typename GridT::ValueType>) {
+                GridT &grid = static_cast<GridT &>(grid_base);
+                openvdb::tools::pruneLevelSet(grid.tree());
+              }
+            }
+            else {
+              BLI_assert_unreachable();
+            }
+          });
       break;
     }
   }

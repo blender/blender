@@ -86,25 +86,25 @@ void BKE_volume_grid_type_to_static_type(const VolumeGridType grid_type, Fn &&fn
 {
   switch (grid_type) {
     case VOLUME_GRID_FLOAT:
-      return fn(TypeTag<openvdb::FloatGrid>());
+      return fn.template operator()<openvdb::FloatGrid>();
     case VOLUME_GRID_VECTOR_FLOAT:
-      return fn(TypeTag<openvdb::Vec3fGrid>());
+      return fn.template operator()<openvdb::Vec3fGrid>();
     case VOLUME_GRID_BOOLEAN:
-      return fn(TypeTag<openvdb::BoolGrid>());
+      return fn.template operator()<openvdb::BoolGrid>();
     case VOLUME_GRID_DOUBLE:
-      return fn(TypeTag<openvdb::DoubleGrid>());
+      return fn.template operator()<openvdb::DoubleGrid>();
     case VOLUME_GRID_INT:
-      return fn(TypeTag<openvdb::Int32Grid>());
+      return fn.template operator()<openvdb::Int32Grid>();
     case VOLUME_GRID_INT64:
-      return fn(TypeTag<openvdb::Int64Grid>());
+      return fn.template operator()<openvdb::Int64Grid>();
     case VOLUME_GRID_VECTOR_INT:
-      return fn(TypeTag<openvdb::Vec3IGrid>());
+      return fn.template operator()<openvdb::Vec3IGrid>();
     case VOLUME_GRID_VECTOR_DOUBLE:
-      return fn(TypeTag<openvdb::Vec3dGrid>());
+      return fn.template operator()<openvdb::Vec3dGrid>();
     case VOLUME_GRID_MASK:
-      return fn(TypeTag<openvdb::MaskGrid>());
+      return fn.template operator()<openvdb::MaskGrid>();
     case VOLUME_GRID_POINTS:
-      return fn(TypeTag<openvdb::points::PointDataGrid>());
+      return fn.template operator()<openvdb::points::PointDataGrid>();
     case VOLUME_GRID_UNKNOWN:
       break;
   }

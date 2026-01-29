@@ -704,15 +704,15 @@ openvdb::GridBase::Ptr create_grid_with_topology(const openvdb::MaskTree &topolo
                                                  const VolumeGridType grid_type)
 {
   openvdb::GridBase::Ptr grid;
-  BKE_volume_grid_type_to_static_type(grid_type, [&](auto type_tag) {
-    using GridT = typename decltype(type_tag)::type;
-    using TreeT = typename GridT::TreeType;
-    using ValueType = typename TreeT::ValueType;
-    const ValueType background{};
-    auto tree = std::make_shared<TreeT>(topology, background, openvdb::TopologyCopy());
-    grid = openvdb::createGrid(std::move(tree));
-    grid->setTransform(transform.copy());
-  });
+  BKE_volume_grid_type_to_static_type(
+      grid_type, [&]<std::derived_from<openvdb::GridBase> GridT>() {
+        using TreeT = typename GridT::TreeType;
+        using ValueType = typename TreeT::ValueType;
+        const ValueType background{};
+        auto tree = std::make_shared<TreeT>(topology, background, openvdb::TopologyCopy());
+        grid = openvdb::createGrid(std::move(tree));
+        grid->setTransform(transform.copy());
+      });
   return grid;
 }
 

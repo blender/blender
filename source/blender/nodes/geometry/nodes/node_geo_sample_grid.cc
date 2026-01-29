@@ -122,8 +122,7 @@ void sample_grid(const bke::OpenvdbGridType<T> &grid,
   using TraitsT = typename bke::VolumeGridTraits<T>;
   AccessorT accessor = grid.getConstUnsafeAccessor();
 
-  auto sample_data = [&](auto sampler_type_tag) {
-    using Sampler = typename decltype(sampler_type_tag)::type;
+  auto sample_data = [&]<typename Sampler>() {
     mask.foreach_index([&](const int64_t i) {
       const float3 &pos = positions[i];
       const openvdb::Vec3R world_pos(pos.x, pos.y, pos.z);
@@ -141,15 +140,15 @@ void sample_grid(const bke::OpenvdbGridType<T> &grid,
   }
   switch (real_interpolation) {
     case InterpolationMode::TriLinear: {
-      sample_data(TypeTag<openvdb::tools::BoxSampler>{});
+      sample_data.template operator()<openvdb::tools::BoxSampler>();
       break;
     }
     case InterpolationMode::TriQuadratic: {
-      sample_data(TypeTag<openvdb::tools::QuadraticSampler>{});
+      sample_data.template operator()<openvdb::tools::QuadraticSampler>();
       break;
     }
     case InterpolationMode::Nearest: {
-      sample_data(TypeTag<openvdb::tools::PointSampler>{});
+      sample_data.template operator()<openvdb::tools::PointSampler>();
       break;
     }
   }

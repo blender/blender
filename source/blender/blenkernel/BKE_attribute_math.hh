@@ -33,27 +33,18 @@ namespace bke::attribute_math {
 template<typename Func>
 inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
 {
-  cpp_type.to_static_type_tag<float,
-                              float2,
-                              float3,
-                              int,
-                              int2,
-                              bool,
-                              int8_t,
-                              short2,
-                              ColorGeometry4f,
-                              ColorGeometry4b,
-                              math::Quaternion,
-                              float4x4>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_same_v<T, void>) {
-      /* It's expected that the given cpp type is one of the supported ones. */
-      BLI_assert_unreachable();
-    }
-    else {
-      func(T());
-    }
-  });
+  cpp_type.to_static_type<float,
+                          float2,
+                          float3,
+                          int,
+                          int2,
+                          bool,
+                          int8_t,
+                          short2,
+                          ColorGeometry4f,
+                          ColorGeometry4b,
+                          math::Quaternion,
+                          float4x4>([&]<typename T>() { func(T()); });
 }
 
 template<typename Func>
