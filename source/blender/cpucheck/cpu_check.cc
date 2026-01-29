@@ -7,12 +7,12 @@
  */
 #include <string>
 
-namespace blender {
-
 #if defined(WIN32)
 #  include <Windows.h>
 #  include <intrin.h>
 #endif
+
+namespace blender {
 
 /* The code below is duplicated from system.c from bf_blenlib. This is on purpose, since bf_blenlib
  * may be build with CPU flags that are not available on the current cpu so we can't link it. */
