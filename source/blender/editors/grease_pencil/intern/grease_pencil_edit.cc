@@ -474,7 +474,7 @@ static bool remove_curves_based_on_mode(Object &object,
             return fill_ids[index] == 0 && !hidden_strokes[index];
           });
     }
-    else if (mode == DeleteMode::OnlyFills) {
+    if (mode == DeleteMode::OnlyFills) {
       /* Only curves that don't have the stroke set and are filled. */
       return IndexMask::from_predicate(
           editable_strokes, GrainSize(1024), memory, [&](const int index) {
