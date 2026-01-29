@@ -21,11 +21,19 @@ namespace blender::seq {
 
 static void init_gaussian_blur_effect(Strip *strip)
 {
-  MEM_SAFE_DELETE_VOID(strip->effectdata);
   GaussianBlurVars *data = MEM_new<GaussianBlurVars>("gaussianblurvars");
   strip->effectdata = data;
   data->size_x = 9.0f;
   data->size_y = 9.0f;
+}
+
+static void free_gaussian_blur_effect(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    GaussianBlurVars *data = static_cast<GaussianBlurVars *>(strip->effectdata);
+    MEM_delete(data);
+    strip->effectdata = nullptr;
+  }
 }
 
 static int num_inputs_gaussian_blur()
@@ -214,6 +222,7 @@ void gaussian_blur_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_gaussian_blur_effect;
   rval.num_inputs = num_inputs_gaussian_blur;
+  rval.free = free_gaussian_blur_effect;
   rval.early_out = early_out_gaussian_blur;
   rval.execute = do_gaussian_blur_effect;
 }

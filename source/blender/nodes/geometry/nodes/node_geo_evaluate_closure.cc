@@ -87,7 +87,7 @@ static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<EvaluateClosureInputItemsAccessor>(*node);
   socket_items::destruct_array<EvaluateClosureOutputItemsAccessor>(*node);
-  MEM_delete_void(node->storage);
+  MEM_delete(static_cast<NodeEvaluateClosure *>(node->storage));
 }
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)

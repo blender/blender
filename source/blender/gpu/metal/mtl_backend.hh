@@ -57,7 +57,7 @@ class MTLBackend : public GPUBackend {
 
   /* MTL Allocators need to be implemented in separate `.mm` files,
    * due to allocation of Objective-C objects. */
-  Context *context_alloc(void *ghost_window, void *ghost_context) override;
+  Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context) override;
   Batch *batch_alloc() override;
   Fence *fence_alloc() override;
   FrameBuffer *framebuffer_alloc(const char *name) override;

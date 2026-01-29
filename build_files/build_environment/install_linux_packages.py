@@ -753,7 +753,7 @@ PACKAGES_ALL = (
                                   },
             ),
     Package(name="OpenVDB Library", is_mandatory=False,
-            version="13.0.0", version_short="13.0", version_min="11.0", version_mex="14.0",
+            version="13.0.0", version_short="13.0", version_min="12.0", version_mex="14.0",
             sub_packages=(
                 # Assume packaged versions of the dependencies are compatible with OpenVDB package.
                 Package(name="OpenVDB Dependencies", is_mandatory=False, is_group=True,
@@ -800,7 +800,7 @@ PACKAGES_ALL = (
                                   },
             ),
     Package(name="USD Library", is_mandatory=False,
-            version="25.02", version_short="25.02", version_min="24.05", version_mex="26.00",
+            version="25.02", version_short="25.02", version_min="24.11", version_mex="26.00",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "usd-devel",

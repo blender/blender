@@ -20,21 +20,25 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Color>("Base Color")
       .default_value({0.617f, 0.577f, 0.540f, 1.0f})
-      .description("Color of the material");
+      .description("Color of the material")
+      .make_available([](bNode &node) { node.custom2 = SHD_CONDUCTOR_F82; });
   b.add_input<decl::Color>("Edge Tint")
       .default_value({0.695f, 0.726f, 0.770f, 1.0f})
       .description(
-          "Tint reflection at near-grazing incidence to simulate complex index of refraction");
+          "Tint reflection at near-grazing incidence to simulate complex index of refraction")
+      .make_available([](bNode &node) { node.custom2 = SHD_CONDUCTOR_F82; });
   b.add_input<decl::Vector>("IOR")
       .default_value({2.757f, 2.513f, 2.231f})
       .min(0.0f)
       .max(100.0f)
-      .description("Real part of the conductor's refractive index, often called n");
+      .description("Real part of the conductor's refractive index, often called n")
+      .make_available([](bNode &node) { node.custom2 = SHD_PHYSICAL_CONDUCTOR; });
   b.add_input<decl::Vector>("Extinction")
       .default_value({3.867f, 3.404f, 3.009f})
       .min(0.0f)
       .max(100.0f)
-      .description("Imaginary part of the conductor's refractive index, often called k");
+      .description("Imaginary part of the conductor's refractive index, often called k")
+      .make_available([](bNode &node) { node.custom2 = SHD_PHYSICAL_CONDUCTOR; });
   b.add_input<decl::Float>("Roughness")
       .default_value(0.5f)
       .min(0.0f)
@@ -192,6 +196,7 @@ void register_node_type_sh_bsdf_metallic()
   ntype.enum_name_legacy = "BSDF_METALLIC";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_metallic;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);

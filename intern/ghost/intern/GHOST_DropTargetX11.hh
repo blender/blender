@@ -9,8 +9,8 @@
 #pragma once
 
 #include "GHOST_SystemX11.hh"
+#include "GHOST_Types.hh"
 #include "GHOST_WindowX11.hh"
-#include <GHOST_Types.h>
 
 #include "xdnd.h"
 

@@ -42,25 +42,34 @@ static void node_declare(NodeDeclarationBuilder &b)
                       .subtype(PROP_NONE)
                       .description(
                           "When combined with each voxel's value, determines the number of points "
-                          "to sample per unit volume");
-  auto &seed = b.add_input<decl::Int>("Seed").min(-10000).max(10000).description(
-      "Seed used by the random number generator to generate random points");
+                          "to sample per unit volume")
+                      .make_available(
+                          [](bNode &node) { node.custom1 = int16_t(DistributeMode::Random); });
+  auto &seed =
+      b.add_input<decl::Int>("Seed")
+          .min(-10000)
+          .max(10000)
+          .description("Seed used by the random number generator to generate random points")
+          .make_available([](bNode &node) { node.custom1 = int16_t(DistributeMode::Random); });
   auto &spacing = b.add_input<decl::Vector>("Spacing")
                       .default_value({0.3, 0.3, 0.3})
                       .min(0.0001f)
                       .subtype(PROP_XYZ)
-                      .description("Spacing between grid points");
+                      .description("Spacing between grid points")
+                      .make_available(
+                          [](bNode &node) { node.custom1 = int16_t(DistributeMode::Grid); });
   auto &threshold = b.add_input<decl::Float>("Threshold")
                         .default_value(0.1f)
                         .min(0.0f)
                         .max(FLT_MAX)
-                        .description("Minimum density of a voxel to contain a grid point");
+                        .description("Minimum density of a voxel to contain a grid point")
+                        .make_available(
+                            [](bNode &node) { node.custom1 = int16_t(DistributeMode::Grid); });
   b.add_output<decl::Geometry>("Points").propagate_all();
 
   const bNode *node = b.node_or_null();
   if (node != nullptr) {
     const auto mode = DistributeMode(node->custom1);
-
     density.available(mode == DistributeMode::Random);
     seed.available(mode == DistributeMode::Random);
     spacing.available(mode == DistributeMode::Grid);

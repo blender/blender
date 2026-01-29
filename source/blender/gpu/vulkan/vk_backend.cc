@@ -8,8 +8,6 @@
 
 #include <sstream>
 
-#include "GHOST_C-api.h"
-
 #include "BLI_path_utils.hh"
 #include "BLI_threads.h"
 
@@ -337,10 +335,10 @@ void VKBackend::platform_init()
            GPU_ARCHITECTURE_IMR);
 }
 
-static void init_device_list(GHOST_ContextHandle ghost_context)
+static void init_device_list(GHOST_IContext *ghost_context)
 {
   GHOST_VulkanHandles vulkan_handles = {};
-  GHOST_GetVulkanHandles(ghost_context, &vulkan_handles);
+  ghost_context->getVulkanHandles(vulkan_handles);
 
   uint32_t physical_devices_count = 0;
   vkEnumeratePhysicalDevices(vulkan_handles.instance, &physical_devices_count, nullptr);
@@ -598,11 +596,11 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   context.render_graph().add_node(dispatch_indirect_info);
 }
 
-Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
+Context *VKBackend::context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context)
 {
   if (ghost_window) {
     BLI_assert(ghost_context == nullptr);
-    ghost_context = GHOST_GetDrawingContext(static_cast<GHOST_WindowHandle>(ghost_window));
+    ghost_context = ghost_window->getDrawingContext();
   }
 
   BLI_assert(ghost_context != nullptr);
@@ -610,16 +608,16 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
     device.extensions_get().log();
     device.workarounds_get().log();
-    init_device_list(static_cast<GHOST_ContextHandle>(ghost_context));
+    init_device_list(ghost_context);
   }
 
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device.context_register(*context);
-  GHOST_SetVulkanSwapBuffersCallbacks(static_cast<GHOST_ContextHandle>(ghost_context),
-                                      VKContext::swap_buffer_draw_callback,
-                                      VKContext::swap_buffer_acquired_callback,
-                                      VKContext::openxr_acquire_framebuffer_image_callback,
-                                      VKContext::openxr_release_framebuffer_image_callback);
+  ghost_context->setVulkanSwapBuffersCallbacks(
+      VKContext::swap_buffer_draw_callback,
+      VKContext::swap_buffer_acquired_callback,
+      VKContext::openxr_acquire_framebuffer_image_callback,
+      VKContext::openxr_release_framebuffer_image_callback);
 
   return context;
 }

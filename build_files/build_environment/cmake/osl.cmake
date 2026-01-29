@@ -6,10 +6,10 @@ string(REPLACE "-DCMAKE_CXX_STANDARD=20" " " OSL_CMAKE_FLAGS "${DEFAULT_CMAKE_FL
 
 if(WIN32)
   set(OSL_CMAKE_CXX_STANDARD_LIBRARIES "kernel32${LIBEXT} user32${LIBEXT} gdi32${LIBEXT} winspool${LIBEXT} shell32${LIBEXT} ole32${LIBEXT} oleaut32${LIBEXT} uuid${LIBEXT} comdlg32${LIBEXT} advapi32${LIBEXT} psapi${LIBEXT}")
-  set(OSL_CMAKE_LINKER_FLAGS)
+  set(OSL_CMAKE_LINKER_FLAGS "")
   set(OSL_FLEX_BISON -DFLEX_EXECUTABLE=${LIBDIR}/flexbison/win_flex.exe -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe)
 else()
-  set(OSL_CMAKE_CXX_STANDARD_LIBRARIES)
+  set(OSL_CMAKE_CXX_STANDARD_LIBRARIES "")
   # llvm-config will add -lxml2. Make sure it can be found and that no system
   # library is used instead.
   set(OSL_CMAKE_LINKER_FLAGS "-L${LIBDIR}/xml2/lib")
@@ -23,7 +23,7 @@ else()
       set(OSL_FLEX_BISON -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison)
     endif()
   else()
-    set(OSL_FLEX_BISON)
+    set(OSL_FLEX_BISON "")
   endif()
 endif()
 

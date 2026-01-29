@@ -190,11 +190,12 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
     STRNCPY_UTF8(node.idname, "ShaderNodeTexNoise");
     node.type_legacy = SH_NODE_TEX_NOISE;
     NodeTexNoise *data = MEM_new<NodeTexNoise>(__func__);
-    data->base = (static_cast<NodeTexMusgrave *>(node.storage))->base;
-    data->dimensions = (static_cast<NodeTexMusgrave *>(node.storage))->dimensions;
+    NodeTexMusgrave *musgrave_data = static_cast<NodeTexMusgrave *>(node.storage);
+    data->base = musgrave_data->base;
+    data->dimensions = musgrave_data->dimensions;
     data->normalize = false;
-    data->type = (static_cast<NodeTexMusgrave *>(node.storage))->musgrave_type;
-    MEM_delete_void(node.storage);
+    data->type = musgrave_data->musgrave_type;
+    MEM_delete(musgrave_data);
     node.storage = data;
 
     bNodeLink *detail_link = nullptr;

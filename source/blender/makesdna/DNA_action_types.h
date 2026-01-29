@@ -27,6 +27,7 @@
 
 namespace blender {
 
+struct bItasc;
 struct AnimData;
 struct Collection;
 struct FCurve;
@@ -908,8 +909,8 @@ struct bPose {
   int iksolver = 0;
   /** Temporary IK data, depends on the IK solver. Not saved in file. */
   void *ikdata = nullptr;
-  /** IK solver parameters, structure depends on iksolver. */
-  void *ikparam = nullptr;
+  /** IK solver parameter for ItaSC .*/
+  bItasc *ikparam = nullptr;
 
   /** Settings for visualization of bone animation. */
   bAnimVizSettings avs;

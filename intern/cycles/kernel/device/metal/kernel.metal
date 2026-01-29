@@ -97,7 +97,7 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
     return result;
   }
 
-  /* Make a copty of the lcg_state in the private address space, allowing to use utility function
+  /* Make a copy of the lcg_state in the private address space, allowing to use utility function
    * to find the hit index to write the intersection to. This function is used from both HW-RT
    * code-path and non-HW-RT, making it hard to deal with the address spaces in the function
    * signature. Hopefully, compiler is smart enough to eliminate this temporary copy. */

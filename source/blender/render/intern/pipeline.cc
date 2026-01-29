@@ -966,7 +966,7 @@ void RE_display_free(Render *re)
   RE_display_init(re);
 }
 
-void *RE_system_gpu_context_get(Render *re)
+GHOST_IContext *RE_system_gpu_context_get(Render *re)
 {
   RenderDisplay *display = re->display.get();
   return display->system_gpu_context;

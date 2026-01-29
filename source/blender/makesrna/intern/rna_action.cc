@@ -860,7 +860,7 @@ static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, Poi
 
 static void rna_ActionGroup_channels_end(CollectionPropertyIterator *iter)
 {
-  MEM_delete_void(iter->internal.custom);
+  MEM_delete(static_cast<ActionGroupChannelsIterator *>(iter->internal.custom));
 }
 
 static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
@@ -1253,7 +1253,10 @@ static const EnumPropertyItem *rna_ActionSlot_target_id_type_itemf(bContext * /*
   *r_free = false;
   _rna_ActionSlot_target_id_type_items = items;
 
-  BKE_blender_atexit_register(MEM_delete_void, items);
+  auto rna_free_enum_items = [](void *items) {
+    MEM_delete(static_cast<EnumPropertyItem *>(items));
+  };
+  BKE_blender_atexit_register(rna_free_enum_items, items);
 
   return items;
 }

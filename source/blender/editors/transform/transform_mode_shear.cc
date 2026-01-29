@@ -344,7 +344,7 @@ static void initShear(TransInfo *t, wmOperator *op)
   ShearCustomData *custom_data = MEM_new_zeroed<ShearCustomData>(__func__);
   t->custom.mode.data = custom_data;
   t->custom.mode.free_cb = [](TransInfo *, TransDataContainer *, TransCustomData *custom_data) {
-    MEM_delete_void(custom_data->data);
+    MEM_delete(static_cast<ShearCustomData *>(custom_data->data));
     custom_data->data = nullptr;
   };
 

@@ -302,7 +302,7 @@ struct IntermediateFormWithIDs : IntermediateForm<AtomicLexer, NullParser> {
   using TokenID = ID<TokenTrait>;
   using LineID = ID<LineTrait>;
   using DirectiveID = ID<DirectiveTrait>;
-  /* Typesafe Atom. */
+  /* Type-safe Atom. */
   using AtomID = ID<AtomTrait, AtomicLexer::Atom>;
 
   enum DirectiveType : char {
@@ -1059,7 +1059,7 @@ struct Preprocessor : IntermediateFormWithIDs {
       TokenType next_type = look_ahead(tok);
       /* Skip the token pasting operator. */
       if (curr_type == '#' && next_type == '#') {
-        /* Token concat. */
+        /* Token concatenate. */
         tok = next(next(tok));
         continue;
       }

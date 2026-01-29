@@ -159,9 +159,9 @@ set_source_files_properties(${GENSRC} PROPERTIES GENERATED TRUE)
 # CFLAGS for Generated Files
 #
 # less strict flags for generated source
-set(GENSRC_FLAGS)
-set(GENSRC_CFLAGS)
-set(GENSRC_CXXFLAGS)
+set(GENSRC_FLAGS "")
+set(GENSRC_CFLAGS "")
+set(GENSRC_CXXFLAGS "")
 if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
   set(GENSRC_CFLAGS "-Wno-missing-prototypes")
   set(GENSRC_CXXFLAGS "-Wno-missing-declarations")

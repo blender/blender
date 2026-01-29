@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdio>
 
+#include "BLI_assert.h"
 #include "BLI_fileops.h"
 #include "BLI_kdtree.hh"
 #include "BLI_listbase.h"
@@ -984,7 +985,18 @@ void dynamicPaint_freeSurfaceData(DynamicPaintSurface *surface)
   }
   /* type data */
   if (data->type_data) {
-    MEM_delete_void(data->type_data);
+    switch (surface->type) {
+      case MOD_DPAINT_SURFACE_T_PAINT:
+        MEM_delete(static_cast<PaintPoint *>(data->type_data));
+        break;
+      case MOD_DPAINT_SURFACE_T_DISPLACE:
+      case MOD_DPAINT_SURFACE_T_WEIGHT:
+        MEM_delete(static_cast<float *>(data->type_data));
+        break;
+      case MOD_DPAINT_SURFACE_T_WAVE:
+        MEM_delete(static_cast<PaintWavePoint *>(data->type_data));
+        break;
+    }
   }
   dynamicPaint_freeAdjData(data);
   /* bake data */

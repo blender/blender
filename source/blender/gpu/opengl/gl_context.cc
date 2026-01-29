@@ -13,8 +13,6 @@
 
 #include "GPU_framebuffer.hh"
 
-#include "GHOST_C-api.h"
-
 #include "gpu_context_private.hh"
 #include "gpu_immediate_private.hh"
 
@@ -34,7 +32,7 @@ using namespace blender::gpu;
 /** \name Constructor / Destructor
  * \{ */
 
-GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list)
+GLContext::GLContext(GHOST_IWindow *ghost_window, GLSharedOrphanLists &shared_orphan_list)
     : shared_orphan_list_(shared_orphan_list)
 {
   if (G.debug & G_DEBUG_GPU) {
@@ -52,13 +50,12 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
   ghost_window_ = ghost_window;
 
   if (ghost_window) {
-    GLuint default_fbo = GHOST_GetDefaultGPUFramebuffer(
-        static_cast<GHOST_WindowHandle>(ghost_window));
-    GHOST_RectangleHandle bounds = GHOST_GetClientBounds(
-        static_cast<GHOST_WindowHandle>(ghost_window));
-    int w = GHOST_GetWidthRectangle(bounds);
-    int h = GHOST_GetHeightRectangle(bounds);
-    GHOST_DisposeRectangle(bounds);
+    GLuint default_fbo = ghost_window->getDefaultFramebuffer();
+
+    GHOST_Rect bounds;
+    ghost_window->getClientBounds(bounds);
+    const int w = bounds.getWidth();
+    const int h = bounds.getHeight();
 
     if (default_fbo != 0) {
       /* Bind default framebuffer, otherwise state might be undefined. */
@@ -126,11 +123,11 @@ void GLContext::activate()
 
   if (ghost_window_) {
     /* Get the correct framebuffer size for the internal framebuffers. */
-    GHOST_RectangleHandle bounds = GHOST_GetClientBounds(
-        static_cast<GHOST_WindowHandle>(ghost_window_));
-    int w = GHOST_GetWidthRectangle(bounds);
-    int h = GHOST_GetHeightRectangle(bounds);
-    GHOST_DisposeRectangle(bounds);
+    GHOST_Rect bounds = {0};
+    ghost_window_->getClientBounds(bounds);
+
+    const int w = bounds.getWidth();
+    const int h = bounds.getHeight();
 
     if (front_left) {
       front_left->size_set(w, h);

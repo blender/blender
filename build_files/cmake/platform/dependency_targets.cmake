@@ -159,7 +159,7 @@ add_library(bf::dependencies::optional::usd ALIAS bf_deps_optional_usd)
 
 if(WITH_USD)
   target_compile_definitions(bf_deps_optional_usd INTERFACE WITH_USD)
-  target_include_directories(bf_deps_optional_usd SYSTEM INTERFACE ${BOOST_INCLUDE_DIR} ${USD_INCLUDE_DIRS})
+  target_include_directories(bf_deps_optional_usd SYSTEM INTERFACE ${USD_INCLUDE_DIRS})
   target_link_libraries(bf_deps_optional_usd INTERFACE ${USD_LIBRARIES})
 endif()
 
@@ -259,11 +259,13 @@ add_library(bf::dependencies::optional::python ALIAS bf_deps_optional_python)
 
 if(WITH_PYTHON)
   target_compile_definitions(bf_deps_optional_python INTERFACE WITH_PYTHON)
+  target_include_directories(bf_deps_optional_python SYSTEM INTERFACE ${PYTHON_INCLUDE_DIR})
+  target_link_libraries(bf_deps_optional_python INTERFACE ${PYTHON_LINKFLAGS})
   if(WITH_PYTHON_MODULE)
     target_compile_definitions(bf_deps_optional_python INTERFACE WITH_PYTHON_MODULE)
+  else()
+    target_link_libraries(bf_deps_optional_python INTERFACE ${PYTHON_LIBRARIES})
   endif()
-  target_include_directories(bf_deps_optional_python SYSTEM INTERFACE ${PYTHON_INCLUDE_DIR})
-  target_link_libraries(bf_deps_optional_python INTERFACE ${PYTHON_LINKFLAGS} ${PYTHON_LIBRARIES})
 endif()
 
 # -----------------------------------------------------------------------------
@@ -340,9 +342,11 @@ target_link_libraries(bf_deps_epoxy INTERFACE ${Epoxy_LIBRARIES})
 add_library(bf_deps_gflags INTERFACE)
 add_library(bf::dependencies::gflags ALIAS bf_deps_gflags)
 
-target_compile_definitions(bf_deps_gflags INTERFACE ${GFLAGS_DEFINES})
-target_include_directories(bf_deps_gflags SYSTEM INTERFACE ${GFLAGS_INCLUDE_DIRS})
-target_link_libraries(bf_deps_gflags INTERFACE ${GFLAGS_LIBRARIES})
+if(WITH_LIBMV OR WITH_GTESTS)
+  target_compile_definitions(bf_deps_gflags INTERFACE ${GFLAGS_DEFINES})
+  target_include_directories(bf_deps_gflags SYSTEM INTERFACE ${GFLAGS_INCLUDE_DIRS})
+  target_link_libraries(bf_deps_gflags INTERFACE ${GFLAGS_LIBRARIES})
+endif()
 
 # -----------------------------------------------------------------------------
 # Configure Glog
@@ -350,9 +354,11 @@ target_link_libraries(bf_deps_gflags INTERFACE ${GFLAGS_LIBRARIES})
 add_library(bf_deps_glog INTERFACE)
 add_library(bf::dependencies::glog ALIAS bf_deps_glog)
 
-target_compile_definitions(bf_deps_glog INTERFACE ${GLOG_DEFINES})
-target_include_directories(bf_deps_glog SYSTEM INTERFACE ${GLOG_INCLUDE_DIRS})
-target_link_libraries(bf_deps_glog INTERFACE ${GLOG_LIBRARIES})
+if(WITH_LIBMV OR WITH_GTESTS)
+  target_compile_definitions(bf_deps_glog INTERFACE ${GLOG_DEFINES})
+  target_include_directories(bf_deps_glog SYSTEM INTERFACE ${GLOG_INCLUDE_DIRS})
+  target_link_libraries(bf_deps_glog INTERFACE ${GLOG_LIBRARIES})
+endif()
 
 # -----------------------------------------------------------------------------
 # Configure OpenImageDenoise

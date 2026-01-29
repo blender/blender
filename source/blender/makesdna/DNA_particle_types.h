@@ -20,6 +20,10 @@ using KDTree3d = KDTree<VecBase<float, 3>>;
 
 struct AnimData;
 
+namespace draw {
+struct ParticleBatchCache;
+};
+
 /** #SPHFluidSettings::flag */
 enum {
   SPH_VISCOELASTIC_SPRINGS = 1 << 0,
@@ -748,7 +752,7 @@ struct ParticleSystem {
   /** Influence of the lattice modifier. */
   float lattice_strength = 0;
 
-  void *batch_cache = nullptr;
+  draw::ParticleBatchCache *batch_cache = nullptr;
 
   /**
    * Set by dependency graph's copy-on-evaluation, allows to quickly go

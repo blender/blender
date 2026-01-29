@@ -485,7 +485,9 @@ static const ComputeContext *get_node_editor_root_compute_context(
         if (!object_and_modifier) {
           return nullptr;
         }
-        return &compute_context_cache.for_modifier(nullptr, *object_and_modifier->nmd);
+        const bke::DataBlockComputeContext &object_context = compute_context_cache.for_data_block(
+            nullptr, object_and_modifier->object->id);
+        return &compute_context_cache.for_modifier(&object_context, *object_and_modifier->nmd);
       }
       case SNODE_GEOMETRY_TOOL: {
         return &compute_context_cache.for_operator(nullptr);

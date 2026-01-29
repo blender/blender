@@ -10,6 +10,7 @@
 
 #include "BLI_string_ref.hh"
 struct DRWInstanceDataList;
+class GHOST_IContext;
 
 namespace blender {
 
@@ -162,7 +163,7 @@ void DRW_gpu_context_disable();
 
 #ifdef WITH_XR_OPENXR
 /* XXX: see comment on #DRW_system_gpu_context_get() */
-void *DRW_system_gpu_context_get();
+GHOST_IContext *DRW_system_gpu_context_get();
 void *DRW_xr_blender_gpu_context_get();
 void DRW_xr_drawing_begin();
 void DRW_xr_drawing_end();
@@ -186,8 +187,8 @@ void DRW_gpu_context_disable_ex(bool restore);
  * Enable system context first, then enable blender context,
  * then disable blender context, then disable system context. */
 
-void DRW_system_gpu_render_context_enable(void *re_system_gpu_context);
-void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
+void DRW_system_gpu_render_context_enable(GHOST_IContext *re_system_gpu_context);
+void DRW_system_gpu_render_context_disable(GHOST_IContext *re_system_gpu_context);
 void DRW_blender_gpu_render_context_enable(void *re_gpu_context);
 void DRW_blender_gpu_render_context_disable(void *re_gpu_context);
 

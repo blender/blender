@@ -12,7 +12,7 @@
 #include <X11/XKBlib.h> /* Allow detectable auto-repeat. */
 #include <X11/Xlib.h>
 
-#include "../GHOST_Types.h"
+#include "../GHOST_Types.hh"
 #include "GHOST_System.hh"
 
 /* For tablets. */

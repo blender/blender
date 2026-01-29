@@ -183,7 +183,7 @@ size_t BLI_file_zstd_from_mem_at_pos(
   ZSTD_inBuffer input = {buf, len, 0};
 
   size_t out_len = ZSTD_CStreamOutSize();
-  void *out_buf = MEM_new_uninitialized(out_len, __func__);
+  std::byte *out_buf = MEM_new_array_uninitialized<std::byte>(out_len, __func__);
   size_t total_written = 0;
 
   /* Compress block and write it out until the input has been consumed. */
@@ -213,7 +213,7 @@ size_t BLI_file_zstd_from_mem_at_pos(
     total_written += output.pos;
   }
 
-  MEM_delete_void(out_buf);
+  MEM_delete(out_buf);
   ZSTD_freeCCtx(ctx);
 
   return ZSTD_isError(ret) ? 0 : total_written;
@@ -226,7 +226,7 @@ size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t f
   ZSTD_DCtx *ctx = ZSTD_createDCtx();
 
   size_t in_len = ZSTD_DStreamInSize();
-  void *in_buf = MEM_new_uninitialized(in_len, __func__);
+  std::byte *in_buf = MEM_new_array_uninitialized<std::byte>(in_len, __func__);
   ZSTD_inBuffer input = {in_buf, in_len, 0};
 
   ZSTD_outBuffer output = {buf, len, 0};
@@ -250,7 +250,7 @@ size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t f
     }
   }
 
-  MEM_delete_void(in_buf);
+  MEM_delete(in_buf);
   ZSTD_freeDCtx(ctx);
 
   return ZSTD_isError(ret) ? 0 : output.pos;

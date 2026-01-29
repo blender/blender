@@ -526,8 +526,7 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
   std::string create_info_name = test_src_name.substr(0, test_src_name.find('.'));
 
   ShaderCreateInfo create_info(create_info_name.c_str());
-  create_info.builtins(BuiltinBits::FRAG_COORD);
-  create_info.fragment_source(test_src_name);
+  create_info.compute_source(test_src_name);
   create_info.additional_info("gpu_shader_test");
   if (additional_info) {
     create_info.additional_info(additional_info);
@@ -547,26 +546,18 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
     pos += sizeof("EXPECT_");
   }
 
-  int test_output_px_len = divide_ceil_u(sizeof(TestOutput), 4 * 4);
+  gpu::StorageBuf *output_buf = GPU_storagebuf_create(test_count * sizeof(TestOutput));
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  gpu::Texture *tex = GPU_texture_create_2d(
-      "tx", test_output_px_len, test_count, 1, TextureFormat::UINT_32_32_32_32, usage, nullptr);
-  gpu::FrameBuffer *fb = GPU_framebuffer_create("test_fb");
-  GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(tex)});
-  GPU_framebuffer_bind(fb);
+  GPU_storagebuf_clear(output_buf, 0xFFFFFFFFu);
+  GPU_storagebuf_bind(output_buf, 0);
 
-  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, 3);
-
-  GPU_batch_set_shader(batch, shader);
-  GPU_batch_draw(batch);
-
-  GPU_batch_discard(batch);
+  GPU_compute_dispatch(shader, 1, 1, 1);
 
   GPU_finish();
 
-  TestOutput *test_data = static_cast<TestOutput *>(GPU_texture_read(tex, GPU_DATA_UINT, 0));
-  Span<TestOutput> tests(test_data, test_count);
+  blender::Vector<TestOutput> tests;
+  tests.resize(test_count);
+  GPU_storagebuf_read(output_buf, tests.data());
 
   for (const TestOutput &test : tests) {
     if (ELEM(test.status, TEST_STATUS_NONE, TEST_STATUS_PASSED)) {
@@ -583,24 +574,16 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
     }
   }
 
-  MEM_delete(test_data);
-
   /* Cleanup. */
   GPU_shader_unbind();
   GPU_shader_free(shader);
-  GPU_framebuffer_free(fb);
-  GPU_texture_free(tex);
+  GPU_storagebuf_free(output_buf);
 
   GPU_render_end();
 }
 
 static void test_math_lib()
 {
-  BLOCK_GPU_TEST_ON(GPUDeviceType::GPU_DEVICE_NVIDIA,
-                    GPUOSType::GPU_OS_UNIX,
-                    GPUDriverType::GPU_DRIVER_OFFICIAL,
-                    GPUBackendType::GPU_BACKEND_OPENGL);
-
   gpu_shader_lib_test("gpu_math_test.glsl");
 }
 GPU_TEST(math_lib)

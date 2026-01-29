@@ -49,7 +49,8 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Bundle>("Bundle").propagate_all().reference_pass_all();
+  b.add_output<decl::Bundle>("Bundle").propagate_all().reference_pass_all().structure_type(
+      StructureType::Single);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -70,7 +71,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<CombineBundleItemsAccessor>(*node);
-  MEM_delete_void(node->storage);
+  MEM_delete(static_cast<NodeCombineBundle *>(node->storage));
 }
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)

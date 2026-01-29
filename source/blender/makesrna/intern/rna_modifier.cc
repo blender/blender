@@ -1926,18 +1926,21 @@ static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, Point
   MOD_nodes_update_interface(object, nmd);
 }
 
-static nodes::geo_eval_log::GeoTreeLog *get_nodes_modifier_log(NodesModifierData &nmd)
+static nodes::geo_eval_log::GeoTreeLog *get_nodes_modifier_log(const Object &object,
+                                                               NodesModifierData &nmd)
 {
   if (!nmd.runtime->eval_log) {
     return nullptr;
   }
-  bke::ModifierComputeContext compute_context{nullptr, nmd};
-  return &nmd.runtime->eval_log->get_tree_log(compute_context.hash());
+  bke::DataBlockComputeContext data_block_context{nullptr, object.id};
+  bke::ModifierComputeContext modifier_context{&data_block_context, nmd};
+  return &nmd.runtime->eval_log->get_tree_log(modifier_context.hash());
 }
 
-static Span<nodes::geo_eval_log::NodeWarning> get_node_modifier_warnings(NodesModifierData &nmd)
+static Span<nodes::geo_eval_log::NodeWarning> get_node_modifier_warnings(const Object &object,
+                                                                         NodesModifierData &nmd)
 {
-  if (auto *log = get_nodes_modifier_log(nmd)) {
+  if (auto *log = get_nodes_modifier_log(object, nmd)) {
     log->ensure_node_warnings(nmd);
     return log->all_warnings;
   }
@@ -1947,30 +1950,34 @@ static Span<nodes::geo_eval_log::NodeWarning> get_node_modifier_warnings(NodesMo
 static void rna_NodesModifier_node_warnings_iterator_begin(CollectionPropertyIterator *iter,
                                                            PointerRNA *ptr)
 {
+  Object &object = id_cast<Object &>(*iter->parent.owner_id);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
   iter->internal.count.item = 0;
-  iter->valid = !get_node_modifier_warnings(*nmd).is_empty();
+  iter->valid = !get_node_modifier_warnings(object, *nmd).is_empty();
 }
 
 static void rna_NodesModifier_node_warnings_iterator_next(CollectionPropertyIterator *iter)
 {
+  Object &object = id_cast<Object &>(*iter->parent.owner_id);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(iter->parent.data);
   iter->internal.count.item++;
-  iter->valid = get_node_modifier_warnings(*nmd).size() > iter->internal.count.item;
+  iter->valid = get_node_modifier_warnings(object, *nmd).size() > iter->internal.count.item;
 }
 
 static PointerRNA rna_NodesModifier_node_warnings_iterator_get(CollectionPropertyIterator *iter)
 {
+  Object &object = id_cast<Object &>(*iter->parent.owner_id);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(iter->parent.data);
-  Span warnings = get_node_modifier_warnings(*nmd);
+  Span warnings = get_node_modifier_warnings(object, *nmd);
   return RNA_pointer_create_with_parent(
       iter->parent, RNA_NodesModifierWarning, (void *)&warnings[iter->internal.count.item]);
 }
 
 static int rna_NodesModifier_node_warnings_length(PointerRNA *ptr)
 {
+  Object &object = id_cast<Object &>(*ptr->owner_id);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
-  return get_node_modifier_warnings(*nmd).size();
+  return get_node_modifier_warnings(object, *nmd).size();
 }
 
 static void rna_NodesModifierWarning_message_get(PointerRNA *ptr, char *r_value)

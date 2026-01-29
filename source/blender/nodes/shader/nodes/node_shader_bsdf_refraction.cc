@@ -85,6 +85,7 @@ void register_node_type_sh_bsdf_refraction()
   ntype.enum_name_legacy = "BSDF_REFRACTION";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_shader_nodes_poll;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_refraction;

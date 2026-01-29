@@ -32,8 +32,39 @@ namespace blender {
 
 static bool is_opcode_secure(const int opcode)
 {
-  /* TODO(@ideasman42): Handle intrinsic opcodes (`CALL_INTRINSIC_2`).
-   * For Python 3.12. */
+  /*
+   * Intentionally Excluded Opcodes
+   * ==============================
+   *
+   * Likely Safe but Unnecessary
+   * ---------------------------
+   *
+   * These opcodes appear safe but are not needed for driver expressions.
+   *
+   * In the interest of reducing the attack surface, exclude them unless
+   * practical use cases are found.
+   *
+   * - `CALL_INTRINSIC_2`: Used for exception handling (`except*`) and type hints.
+   *   Not needed for driver expressions.
+   *
+   * - `MAKE_FUNCTION`, `LOAD_BUILD_CLASS`: Function/class creation not needed.
+   *
+   * Known to be Dangerous
+   * ---------------------
+   *
+   * These opcodes are excluded for security reasons:
+   *
+   * - `DICT_MERGE`, `DICT_UPDATE`: Could potentially be used to manipulate
+   *   the namespace via `globals()`, allowing malicious code execution.
+   *
+   * - `IMPORT_NAME`, `IMPORT_FROM`: Module imports are not allowed.
+   *
+   * - `STORE_NAME`, `STORE_GLOBAL`, `STORE_ATTR`: Storing to names/globals/attributes
+   *   could modify the namespace or objects in unsafe ways.
+   *
+   * - `LOAD_ATTR`: Attribute access is not allowed as it could access
+   *   private/internal attributes.
+   */
 
 #  define OK_OP(op) \
     case op: \
@@ -41,12 +72,14 @@ static bool is_opcode_secure(const int opcode)
 
   switch (opcode) {
     OK_OP(CACHE)
+    OK_OP(COPY) /* Ok for short-circuit boolean evaluation (`and`, `or`). */
     OK_OP(POP_TOP)
     OK_OP(PUSH_NULL)
     OK_OP(NOP)
 #  if PY_VERSION_HEX >= 0x030e0000
     OK_OP(NOT_TAKEN)
 #  endif
+    OK_OP(TO_BOOL) /* Ok for boolean conversion in `and`/`or` expressions. */
     OK_OP(UNARY_NEGATIVE)
     OK_OP(UNARY_NOT)
     OK_OP(UNARY_INVERT)
@@ -67,7 +100,15 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(CONTAINS_OP)
     OK_OP(BINARY_OP)
     OK_OP(LOAD_FAST)
+    OK_OP(LOAD_FAST_AND_CLEAR) /* Ok, optimized variant of `LOAD_FAST`. */
+    OK_OP(LOAD_FAST_LOAD_FAST) /* Ok, optimized double `LOAD_FAST`. */
+#  if PY_VERSION_HEX >= 0x030e0000
+    OK_OP(LOAD_FAST_BORROW)                  /* Ok, optimized variant of `LOAD_FAST`. */
+    OK_OP(LOAD_FAST_BORROW_LOAD_FAST_BORROW) /* Ok, optimized double `LOAD_FAST`. */
+#  endif
     OK_OP(STORE_FAST)
+    OK_OP(STORE_FAST_LOAD_FAST)  /* Ok, optimized `STORE_FAST` + `LOAD_FAST`. */
+    OK_OP(STORE_FAST_STORE_FAST) /* Ok, optimized double `STORE_FAST`. */
     OK_OP(DELETE_FAST)
     OK_OP(BUILD_SLICE)
     OK_OP(LOAD_DEREF)
@@ -85,7 +126,11 @@ static bool is_opcode_secure(const int opcode)
 #  if PY_VERSION_HEX < 0x030e0000
     OK_OP(RETURN_CONST)
 #  endif
-    OK_OP(POP_JUMP_IF_FALSE)
+    /* Ok, conditional jumps only affect control flow within the expression. */
+    OK_OP(POP_JUMP_IF_FALSE)    /* Used for `and` expressions and `if` conditionals. */
+    OK_OP(POP_JUMP_IF_TRUE)     /* Used for `or` expressions. */
+    OK_OP(POP_JUMP_IF_NONE)     /* Used for `is not None` conditionals. */
+    OK_OP(POP_JUMP_IF_NOT_NONE) /* Used for `is None` conditionals. */
     OK_OP(CALL_INTRINSIC_1)
     /* Special cases. */
     OK_OP(LOAD_CONST) /* Ok because constants are accepted. */

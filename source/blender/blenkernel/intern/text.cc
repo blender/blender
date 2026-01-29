@@ -417,7 +417,7 @@ static void text_from_buf(Text *text, const uchar *buffer, const int len)
 
 bool BKE_text_reload(Text *text)
 {
-  uchar *buffer;
+  char *buffer;
   size_t buffer_len;
   char filepath_abs[FILE_MAX];
   BLI_stat_t st;
@@ -429,7 +429,7 @@ bool BKE_text_reload(Text *text)
   STRNCPY(filepath_abs, text->filepath);
   BLI_path_abs(filepath_abs, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
-  buffer = static_cast<uchar *>(BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len));
+  buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
   if (buffer == nullptr) {
     return false;
   }
@@ -446,7 +446,7 @@ bool BKE_text_reload(Text *text)
     text->mtime = 0;
   }
 
-  text_from_buf(text, buffer, buffer_len);
+  text_from_buf(text, reinterpret_cast<uchar *>(buffer), buffer_len);
 
   MEM_delete(buffer);
   return true;
@@ -457,7 +457,7 @@ Text *BKE_text_load_ex(Main *bmain,
                        const char *relbase,
                        const bool is_internal)
 {
-  uchar *buffer;
+  char *buffer;
   size_t buffer_len;
   Text *ta;
   char filepath_abs[FILE_MAX];
@@ -466,7 +466,7 @@ Text *BKE_text_load_ex(Main *bmain,
   STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, relbase);
 
-  buffer = static_cast<uchar *>(BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len));
+  buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
   if (buffer == nullptr) {
     return nullptr;
   }
@@ -499,7 +499,7 @@ Text *BKE_text_load_ex(Main *bmain,
     ta->mtime = 0;
   }
 
-  text_from_buf(ta, buffer, buffer_len);
+  text_from_buf(ta, reinterpret_cast<uchar *>(buffer), buffer_len);
 
   MEM_delete(buffer);
 

@@ -45,11 +45,12 @@
 
 #include "IMB_colormanagement.hh"
 
-#include "curves_sculpt_intern.hh"
-#include "paint_hide.hh"
 #include "paint_intern.hh"
-#include "paint_mask.hh"
-#include "sculpt_intern.hh"
+
+#include "curves/sculpt_intern.hh"
+#include "mesh/paint_hide.hh"
+#include "mesh/paint_mask.hh"
+#include "mesh/sculpt_intern.hh"
 
 namespace blender {
 

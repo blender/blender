@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "../GHOST_Types.h"
+#include "../GHOST_Types.hh"
 #include "GHOST_Event.hh"
 #include "GHOST_System.hh"
 #include "GHOST_TimerManager.hh"

@@ -16,7 +16,7 @@
 #include "GHOST_IContext.hh"
 #include "GHOST_ITimerTask.hh"
 #include "GHOST_IWindow.hh"
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 class GHOST_IEventConsumer;
 
@@ -57,10 +57,11 @@ class GHOST_IEventConsumer;
  *
  * GHOST supports the following platforms:
  *
- * - OSX Cocoa.
- * - Windows.
- * - X11.
- * - SDL2 (experimental).
+ * - macOS Cocoa.
+ * - Microsoft Windows.
+ * - X11 (Linux).
+ * - Wayland (Linux).
+ * - SDL2.
  * - null (headless mode).
  *
  * \section Building GHOST
@@ -68,15 +69,7 @@ class GHOST_IEventConsumer;
  * GHOST is not build standalone however there are tests in intern/ghost/test
  *
  * \section interface Interface
- * GHOST has two programming interfaces:
- *
- * - The C-API. For programs written in C.
- * - The C++-API. For programs written in C++.
- *
- * GHOST itself is written in C++ and the C-API is a wrapper around the C++
- * API.
- *
- * \subsection cplusplus_api The C++ API consists of the following files:
+ * The GHOST C++ API consists of the following files:
  *
  * - GHOST_IEvent.hh
  * - GHOST_IEventConsumer.hh
@@ -84,18 +77,11 @@ class GHOST_IEventConsumer;
  * - GHOST_ITimerTask.hh
  * - GHOST_IWindow.hh
  * - GHOST_Rect.hh
- * - GHOST_Types.h
+ * - GHOST_Types.hh
+ * - GHOST_Xr-api.hh
  *
- * For an example of using the C++-API, have a look at the GHOST_C-Test.cpp
+ * For an example of using the GHOST API, have a look at the GHOST_Test.cpp
  * program in the ?/ghost/test/gears/ directory.
- *
- * \subsection c_api The C-API
- * To use GHOST in programs written in C, include the file GHOST_C-API.h in
- * your program. This file includes the GHOST_Types.h file for all GHOST types
- * and defines functions that give you access to the same functionality present
- * in the C++ API.<br>
- * For an example of using the C-API, have a look at the GHOST_C-Test.c program
- * in the ?/ghost/test/gears/ directory.
  *
  * \section work Work in progress
  * \todo write WIP section
@@ -123,7 +109,7 @@ class GHOST_ISystem {
    * \return An indication of success.
    */
 
-  static GHOST_TSuccess createSystem(bool verbose, bool background);
+  static GHOST_TSuccess createSystem(bool verbose = true, bool background = false);
   static GHOST_TSuccess createSystemBackground();
 
   /**

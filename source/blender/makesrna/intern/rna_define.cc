@@ -151,7 +151,7 @@ static void rna_remlink(ListBase *listbase, void *vlink)
 void rna_freelinkN(ListBase *listbase, void *vlink)
 {
   rna_remlink(listbase, vlink);
-  MEM_delete_void(vlink);
+  MEM_delete(static_cast<Link *>(vlink));
 }
 
 void rna_freelistN(ListBase *listbase)

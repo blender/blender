@@ -777,6 +777,7 @@ class NODE_MT_gn_utilities_matrix_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeMatrixDeterminant", label="Determinant")
         self.node_operator(layout, "FunctionNodeInvertMatrix")
         self.node_operator(layout, "FunctionNodeMatrixMultiply")
+        self.node_operator(layout, "FunctionNodeMatrixSVD")
         self.node_operator(layout, "FunctionNodeProjectPoint")
         self.node_operator(layout, "FunctionNodeSeparateMatrix")
         self.node_operator(layout, "FunctionNodeSeparateTransform")
@@ -972,6 +973,7 @@ class NODE_MT_gn_volume_operations_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "GeometryNodeSDFGridOffset")
         layout.separator()
         self.node_operator(layout, "GeometryNodeFieldToGrid")
+        self.node_operator(layout, "GeometryNodeGridDilateAndErode")
         self.node_operator(layout, "GeometryNodeGridPrune")
         self.node_operator(layout, "GeometryNodeGridVoxelize")
 
@@ -985,6 +987,7 @@ class NODE_MT_gn_volume_primitives_base(node_add_menu.NodeMenu):
     def draw(self, context):
         del context
         layout = self.layout
+        self.node_operator(layout, "GeometryNodeCubeGridTopology")
         self.node_operator(layout, "GeometryNodeVolumeCube")
 
         self.draw_assets_for_catalog(layout, self.menu_path)

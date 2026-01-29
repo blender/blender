@@ -522,17 +522,25 @@ static bool screen_area_join_ex(bContext *C,
     if (side1) {
       rcti rect = {side1->v1->vec.x, side1->v3->vec.x, side1->v1->vec.y, side1->v3->vec.y};
       /* Close side1 but not by joining with the area that we just split. */
-      if (screen_area_close(C, reports, screen, side1, (offset1 > 0) ? sa2 : sa1)) {
+      if (screen_area_close(C, reports, screen, side1, sa1)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+        if (sa1->spacetype == SPACE_OUTLINER) {
+          /* Outliner needs a full rebuild. #153395. */
+          ED_area_tag_redraw(sa1);
+        }
       }
     }
     if (side2) {
       rcti rect = {side2->v1->vec.x, side2->v3->vec.x, side2->v1->vec.y, side2->v3->vec.y};
       /* Close side2 but not by joining with the area that we just split. */
-      if (screen_area_close(C, reports, screen, side2, (offset2 > 0) ? sa1 : sa2)) {
+      if (screen_area_close(C, reports, screen, side2, sa1)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+        if (sa1->spacetype == SPACE_OUTLINER) {
+          /* Outliner needs a full rebuild. #153395. */
+          ED_area_tag_redraw(sa1);
+        }
       }
     }
   }
@@ -1050,7 +1058,15 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 
     if (actedge) {
       if (screen_geom_edge_is_horizontal(actedge)) {
-        WM_cursor_set(win, WM_CURSOR_Y_MOVE);
+        rcti screen_rect;
+        WM_window_screen_rect_calc(win, &screen_rect);
+        /* Check if edge is at top of screen (with small threshold that scales with interface). */
+        if (actedge->v1->vec.y >= screen_rect.ymax - int(2.0f * UI_SCALE_FAC)) {
+          WM_cursor_set(win, WM_CURSOR_DEFAULT);
+        }
+        else {
+          WM_cursor_set(win, WM_CURSOR_Y_MOVE);
+        }
       }
       else {
         WM_cursor_set(win, WM_CURSOR_X_MOVE);

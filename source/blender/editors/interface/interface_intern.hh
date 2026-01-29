@@ -248,7 +248,7 @@ struct Button {
 
   ButtonHandleRenameFunc rename_func = nullptr;
   void *rename_arg1 = nullptr;
-  void *rename_orig = nullptr;
+  char *rename_orig = nullptr;
 
   /**
    * When defined, and the button edits a string RNA property,

@@ -2408,6 +2408,7 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
       }
     }
   }
+  ED_region_tag_redraw(region);
 }
 
 void panel_category_active_set(ARegion *region, const char *idname)
@@ -2529,7 +2530,6 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
           /* Intentionally don't reset scroll in this case,
            * allowing for quick browsing between tabs. */
           panel_category_active_set(region, pc_dyn->idname);
-          ED_region_tag_redraw(region);
         }
         return WM_UI_HANDLER_BREAK;
       }

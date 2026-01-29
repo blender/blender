@@ -2541,6 +2541,11 @@ static void uv_select_linked_multi(const Scene *scene,
     /* Tagging could be supported for other elements but currently isn't needed. */
     BLI_assert(hflag == BM_ELEM_SELECT);
   }
+  /* With BM_ELEM_TAG we only mark faces; it is the responsibility of the function
+   * that flushes tags to selection to choose select vs deselect. Passing `deselect=true`
+   * would clear the tags, leaving no tagged faces for the flush function to process.
+   * See: #153444. */
+  BLI_assert(!((hflag & BM_ELEM_TAG) && deselect));
 
   const ToolSettings *ts = scene->toolsettings;
   const bool uv_select_sync = (ts->uv_flag & UV_FLAG_SELECT_SYNC);
@@ -2823,6 +2828,12 @@ static void uv_select_linked_multi(const Scene *scene,
 
 /**
  * A wrapper for #uv_select_linked_multi that uses defaults for UV island selection.
+ *
+ * \param deselect: This only makes sense for selection.
+ * When `hflag & BM_ELEM_TAG`, `deselect` must be false
+ * so linked faces have their tags set (not cleared).
+ * The caller is responsible for the actual select/deselect
+ * via a flush function (e.g. #uv_select_flush_from_tag_face).
  */
 static void uv_select_linked_multi_for_select_island(const Scene *scene,
                                                      const Span<Object *> objects,
@@ -4753,8 +4764,10 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
           }
         }
         if (has_selected && use_select_linked) {
+          /* See doc-string for why deselect is false with BM_ELEM_TAG. */
+          const bool deselect = false;
           uv_select_linked_multi_for_select_island(
-              scene, objects, obedit, efa, !select, true, BM_ELEM_TAG);
+              scene, objects, obedit, efa, deselect, true, BM_ELEM_TAG);
         }
       }
 
@@ -5021,8 +5034,10 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
         }
 
         if (has_selected && use_select_linked) {
+          /* See doc-string for why deselect is false with BM_ELEM_TAG. */
+          const bool deselect = false;
           uv_select_linked_multi_for_select_island(
-              scene, objects, obedit, efa, !select, true, BM_ELEM_TAG);
+              scene, objects, obedit, efa, deselect, true, BM_ELEM_TAG);
         }
       }
 
@@ -5242,8 +5257,10 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
         }
 
         if (has_selected && use_select_linked) {
+          /* See doc-string for why deselect is false with BM_ELEM_TAG. */
+          const bool deselect = false;
           uv_select_linked_multi_for_select_island(
-              scene, objects, obedit, efa, !select, true, BM_ELEM_TAG);
+              scene, objects, obedit, efa, deselect, true, BM_ELEM_TAG);
         }
       }
 

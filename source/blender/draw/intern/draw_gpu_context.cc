@@ -85,7 +85,7 @@ class ContextShared {
  public:
   TicketMutex *mutex_ = nullptr;
   /** Unique ghost context used by Viewports. */
-  void *system_gpu_context_ = nullptr;
+  GHOST_IContext *system_gpu_context_ = nullptr;
   /** GPUContext associated to the system_gpu_context. */
   GPUContext *blender_gpu_context_ = nullptr;
 
@@ -256,7 +256,7 @@ void DRW_gpu_context_disable()
   DRW_gpu_context_disable_ex(true);
 }
 
-void DRW_system_gpu_render_context_enable(void *re_system_gpu_context)
+void DRW_system_gpu_render_context_enable(GHOST_IContext *re_system_gpu_context)
 {
   /* If thread is main you should use DRW_gpu_context_enable(). */
   BLI_assert(!BLI_thread_is_main());
@@ -265,7 +265,7 @@ void DRW_system_gpu_render_context_enable(void *re_system_gpu_context)
   WM_system_gpu_context_activate(re_system_gpu_context);
 }
 
-void DRW_system_gpu_render_context_disable(void *re_system_gpu_context)
+void DRW_system_gpu_render_context_disable(GHOST_IContext *re_system_gpu_context)
 {
   WM_system_gpu_context_release(re_system_gpu_context);
   DRW_lock_end();
@@ -299,7 +299,7 @@ void DRW_render_context_enable(Render *render)
     return;
   }
 
-  void *re_viewport_system_gpu_context = RE_system_gpu_context_get(render);
+  GHOST_IContext *re_viewport_system_gpu_context = RE_system_gpu_context_get(render);
 
   /* Changing Context */
   if (re_viewport_system_gpu_context != nullptr) {
@@ -322,7 +322,7 @@ void DRW_render_context_disable(Render *render)
     return;
   }
 
-  void *re_viewport_system_gpu_context = RE_system_gpu_context_get(render);
+  GHOST_IContext *re_viewport_system_gpu_context = RE_system_gpu_context_get(render);
 
   if (re_viewport_system_gpu_context != nullptr) {
     void *re_viewport_context = RE_blender_gpu_context_ensure(render);
@@ -347,7 +347,7 @@ void DRW_render_context_disable(Render *render)
 
 #ifdef WITH_XR_OPENXR
 
-void *DRW_system_gpu_context_get()
+GHOST_IContext *DRW_system_gpu_context_get()
 {
   /* XXX: There should really be no such getter, but for VR we currently can't easily avoid it.
    * OpenXR needs some low level info for the GPU context that will be used for submitting the

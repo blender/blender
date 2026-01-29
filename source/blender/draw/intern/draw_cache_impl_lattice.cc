@@ -215,7 +215,7 @@ struct LatticeBatchCache {
 
 static bool lattice_batch_cache_valid(Lattice *lt)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
 
   if (cache == nullptr) {
     return false;
@@ -241,7 +241,7 @@ static bool lattice_batch_cache_valid(Lattice *lt)
 
 static void lattice_batch_cache_init(Lattice *lt)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
 
   if (!cache) {
     lt->batch_cache = cache = MEM_new_zeroed<LatticeBatchCache>(__func__);
@@ -270,12 +270,12 @@ void DRW_lattice_batch_cache_validate(Lattice *lt)
 
 static LatticeBatchCache *lattice_batch_cache_get(Lattice *lt)
 {
-  return static_cast<LatticeBatchCache *>(lt->batch_cache);
+  return lt->batch_cache;
 }
 
 void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -294,7 +294,7 @@ void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
 
 static void lattice_batch_cache_clear(Lattice *lt)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
   if (!cache) {
     return;
   }
@@ -310,7 +310,7 @@ static void lattice_batch_cache_clear(Lattice *lt)
 void DRW_lattice_batch_cache_free(Lattice *lt)
 {
   lattice_batch_cache_clear(lt);
-  MEM_SAFE_DELETE_VOID(lt->batch_cache);
+  MEM_SAFE_DELETE(lt->batch_cache);
 }
 
 /* gpu::Batch cache usage. */

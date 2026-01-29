@@ -2118,7 +2118,10 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag)
 
 static void object_bases_iterator_end(BLI_Iterator *iter)
 {
-  MEM_SAFE_DELETE_VOID(iter->data);
+  if (iter->data) {
+    MEM_delete(static_cast<LayerObjectBaseIteratorData *>(iter->data));
+    iter->data = nullptr;
+  }
 }
 
 static void objects_iterator_begin(BLI_Iterator *iter, void *data_in, const int flag)

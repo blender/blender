@@ -30,6 +30,10 @@ class MutableAttributeAccessor;
 struct PointCloudRuntime;
 }  // namespace bke
 
+namespace draw {
+struct PointCloudBatchCache;
+}
+
 /** #PointCloud.flag */
 enum {
   PT_DS_EXPAND = (1 << 0),
@@ -89,7 +93,7 @@ struct PointCloud {
   bke::PointCloudRuntime *runtime = nullptr;
 
   /* Draw Cache */
-  void *batch_cache = nullptr;
+  draw::PointCloudBatchCache *batch_cache = nullptr;
 };
 
 /* Only one material supported currently. */

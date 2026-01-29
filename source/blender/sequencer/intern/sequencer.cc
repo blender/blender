@@ -178,7 +178,9 @@ static void seq_strip_free_ex(Scene *scene,
 
   if (strip->is_effect()) {
     EffectHandle sh = strip_effect_handle_get(strip);
-    sh.free(strip, do_id_user);
+    if (sh.free) {
+      sh.free(strip, do_id_user);
+    }
   }
 
   if (strip->sound && do_id_user) {

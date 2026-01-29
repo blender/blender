@@ -18,7 +18,7 @@ class GHOST_ContextMTL;
 #include <vector>
 
 #include "GHOST_IXrGraphicsBinding.hh"
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 class GHOST_XrGraphicsBindingMetal : public GHOST_IXrGraphicsBinding {
   PFN_xrGetMetalGraphicsRequirementsKHR xrGetMetalGraphicsRequirementsKHR_ = nullptr;

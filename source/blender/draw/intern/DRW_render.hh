@@ -135,6 +135,11 @@ struct DrawEngine {
  */
 draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name);
 
+/**
+ * Returns true if the pass with the given name exists.
+ */
+bool DRW_viewport_pass_texture_exists(const char *pass_name);
+
 void DRW_viewport_request_redraw();
 
 void DRW_render_to_image(

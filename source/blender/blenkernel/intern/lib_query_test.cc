@@ -5,7 +5,7 @@
 
 #include "CLG_log.h"
 
-#include "GHOST_Path-api.hh"
+#include "GHOST_ISystemPaths.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -89,7 +89,7 @@ class LibQueryTest : public ::testing::Test {
     RNA_exit();
     IMB_exit();
     BKE_appdir_exit();
-    GHOST_DisposeSystemPaths();
+    GHOST_ISystemPaths::dispose();
     CLG_exit();
   }
 };

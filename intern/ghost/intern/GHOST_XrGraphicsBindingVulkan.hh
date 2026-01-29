@@ -19,7 +19,7 @@
 
 #include "GHOST_ContextVK.hh"
 #include "GHOST_IXrGraphicsBinding.hh"
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   struct {

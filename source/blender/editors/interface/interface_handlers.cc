@@ -52,7 +52,7 @@
 
 #include "BLT_translation.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_ISystem.hh"
 
 #include "IMB_colormanagement.hh"
 
@@ -509,7 +509,7 @@ struct AfterFunc {
 
   ButtonHandleRenameFunc rename_func;
   void *rename_arg1;
-  void *rename_orig;
+  char *rename_orig;
 
   std::function<void(std::string &new_name)> rename_full_func = nullptr;
   std::string rename_full_new;
@@ -1173,10 +1173,10 @@ static void ui_apply_but_funcs_after(bContext *C)
     }
 
     if (after.rename_func) {
-      after.rename_func(C, after.rename_arg1, static_cast<char *>(after.rename_orig));
+      after.rename_func(C, after.rename_arg1, after.rename_orig);
     }
     if (after.rename_orig) {
-      MEM_delete_void(after.rename_orig);
+      MEM_delete(after.rename_orig);
     }
 
     if (after.search_arg_free_fn) {
@@ -3624,7 +3624,8 @@ static void ui_textedit_begin(bContext *C, Button *but, HandleButtonData *data)
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
   /* Temporarily turn off window auto-focus on platforms that support it. */
-  GHOST_SetAutoFocus(false);
+  GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
+  ghost_system->setAutoFocus(false);
 
 #ifdef WITH_INPUT_IME
   if (!is_num_but) {
@@ -3689,7 +3690,8 @@ static void ui_textedit_end(bContext *C, Button *but, HandleButtonData *data)
   WM_cursor_modal_restore(win);
 
   /* Turn back on the auto-focusing of windows. */
-  GHOST_SetAutoFocus(true);
+  GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
+  ghost_system->setAutoFocus(true);
 
   /* Free text undo history text blocks. */
   textedit_undo_stack_destroy(text_edit.undo_stack_text);

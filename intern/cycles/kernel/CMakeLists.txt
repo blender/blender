@@ -423,7 +423,7 @@ add_subdirectory(device/optix)
 target_link_libraries(cycles_kernel INTERFACE cycles_kernel_cpu)
 
 if(NOT WITH_CYCLES_PARALLEL_DEVICE_KERNEL_BUILD)
-  set(_cycles_prev_gpu_kernel_target)
+  set(_cycles_prev_gpu_kernel_target "")
   macro(cycles_add_gpu_kernel_dependencies GPU_KERNEL_TARGET)
     if(TARGET ${GPU_KERNEL_TARGET})
       if(_cycles_prev_gpu_kernel_target)

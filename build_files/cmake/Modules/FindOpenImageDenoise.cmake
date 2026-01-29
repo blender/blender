@@ -55,7 +55,7 @@ set(_openimagedenoise_FIND_STATIC_COMPONENTS
   dnnl
 )
 
-set(_openimagedenoise_LIBRARIES)
+set(_openimagedenoise_LIBRARIES "")
 foreach(COMPONENT ${_openimagedenoise_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 

@@ -87,7 +87,7 @@ set(_clang_FIND_COMPONENTS
   clangBasic
 )
 
-set(_clang_LIBRARIES)
+set(_clang_LIBRARIES "")
 foreach(COMPONENT ${_clang_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 

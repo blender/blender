@@ -43,6 +43,7 @@ set(SRC
   nodes/node_geo_combine_bundle.cc
   nodes/node_geo_common.cc
   nodes/node_geo_convex_hull.cc
+  nodes/node_geo_cube_grid_topology.cc
   nodes/node_geo_curve_endpoint_selection.cc
   nodes/node_geo_curve_fill.cc
   nodes/node_geo_curve_fillet.cc
@@ -106,6 +107,7 @@ set(SRC
   nodes/node_geo_grid_gradient.cc
   nodes/node_geo_grid_info.cc
   nodes/node_geo_grid_laplacian.cc
+  nodes/node_geo_grid_dilate_erode.cc
   nodes/node_geo_grid_prune.cc
   nodes/node_geo_grid_to_mesh.cc
   nodes/node_geo_grid_voxelize.cc

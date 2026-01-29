@@ -135,7 +135,6 @@ add_dependencies(
   external_igc_vcintrinsics
   external_igc_llvm
   external_igc_opencl_clang
-  external_igc_vcintrinsics
   external_igc_spirv_headers
   external_igc_spirv_tools
   external_igc_spirv_translator

@@ -28,15 +28,14 @@ GVArray ListFieldContext::get_varray_for_input(const FieldInput &field_input,
 ListPtr evaluate_field_to_list(GField field, const int64_t count)
 {
   const CPPType &cpp_type = field.cpp_type();
-  List::ArrayData array_data = List::ArrayData::ForConstructed(cpp_type, count);
-  GMutableSpan span(cpp_type, array_data.data, count);
+  GArray array(cpp_type, count);
 
   ListFieldContext context{};
   fn::FieldEvaluator evaluator{context, count};
-  evaluator.add_with_destination(std::move(field), span);
+  evaluator.add_with_destination(std::move(field), array);
   evaluator.evaluate();
 
-  return List::create(cpp_type, std::move(array_data), count);
+  return List::from_garray(std::move(array));
 }
 
 static ListPtr create_repeated_list(ListPtr list, const int64_t dst_size)
@@ -48,20 +47,17 @@ static ListPtr create_repeated_list(ListPtr list, const int64_t dst_size)
     const int64_t size = list->size();
     BLI_assert(size > 0);
     const CPPType &cpp_type = list->cpp_type();
-    List::ArrayData new_data = List::ArrayData::ForUninitialized(cpp_type, dst_size);
+    GArray new_data(cpp_type, dst_size, NoInitialization{});
     const int64_t chunks = dst_size / size;
     for (const int64_t i : IndexRange(chunks)) {
-      const int64_t offset = cpp_type.size * i * size;
-      cpp_type.copy_construct_n(data->data, POINTER_OFFSET(new_data.data, offset), size);
+      cpp_type.copy_construct_n(data->data, new_data[i * size], size);
     }
     const int64_t last_chunk_size = dst_size % size;
     if (last_chunk_size > 0) {
-      const int64_t offset = cpp_type.size * chunks * size;
-      cpp_type.copy_construct_n(
-          data->data, POINTER_OFFSET(new_data.data, offset), last_chunk_size);
+      cpp_type.copy_construct_n(data->data, new_data[chunks * size], last_chunk_size);
     }
 
-    return List::create(cpp_type, std::move(new_data), dst_size);
+    return List::from_garray(std::move(new_data));
   }
   if (const auto *data = std::get_if<nodes::List::SingleData>(&list->data())) {
     const CPPType &cpp_type = list->cpp_type();
@@ -142,10 +138,10 @@ void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
     SocketValueVariant &output_variant = *output_values[i];
     const mf::ParamType param_type = fn.param_type(params.next_param_index());
     const CPPType &cpp_type = param_type.data_type().single_type();
-    List::ArrayData array_data = List::ArrayData::ForUninitialized(cpp_type, max_size);
+    GArray array(cpp_type, max_size, NoInitialization{});
 
-    params.add_uninitialized_single_output(GMutableSpan(cpp_type, array_data.data, max_size));
-    output_variant.set(List::create(cpp_type, std::move(array_data), max_size));
+    params.add_uninitialized_single_output(GMutableSpan(cpp_type, array.data(), max_size));
+    output_variant.set(List::from_garray(std::move(array)));
   }
   fn.call(mask, params, context);
 }

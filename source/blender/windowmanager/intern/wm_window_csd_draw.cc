@@ -14,7 +14,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "GHOST_C-api.h"
+#include "GHOST_IWindow.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"
@@ -280,9 +280,11 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
   BLI_assert(WM_window_is_csd(win));
   const int2 win_size = WM_window_native_pixel_size(win);
   const GHOST_CSD_Layout *csd_layout = WM_window_csd_layout_get();
-  const uint16_t dpi = GHOST_GetDPIHint(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
+  const uint16_t dpi = ghost_window->getDPIHint();
   const char win_state = GHOST_TWindowState(win->windowstate);
-  char *title = GHOST_GetTitle(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+  const std::string window_title = ghost_window->getTitle();
+  const char *title = window_title.c_str();
   const bool is_active = (win->active != 0);
 
   uchar border_color[3], text_color[3];
@@ -313,9 +315,6 @@ void WM_window_csd_draw_titlebar(const wmWindow *win)
                                  border_color,
                                  text_color,
                                  alpha);
-  if (title) {
-    free(title);
-  }
 }
 
 /** \} */

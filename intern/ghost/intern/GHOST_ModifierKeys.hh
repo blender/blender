@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 /**
  * Stores the state of modifier keys.

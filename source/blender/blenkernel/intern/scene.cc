@@ -662,7 +662,7 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                                                     &toolsett_old->imapaint.canvas,
                                                     IDWALK_CB_USER);
 
-  /* These two Object pointers should just follow the normal Undo behaviour. See #153065. */
+  /* These two Object pointers should just follow the normal Undo behavior. See #153065. */
   BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER_P(data,
                                                     &toolsett->anim_mirror_object,
                                                     do_undo_restore,

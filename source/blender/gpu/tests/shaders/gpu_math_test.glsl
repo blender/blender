@@ -9,7 +9,7 @@
 
 #include "infos/gpu_shader_test_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(gpu_math_test)
+COMPUTE_SHADER_CREATE_INFO(gpu_math_test)
 
 #include "gpu_shader_test_lib.glsl"
 
@@ -235,16 +235,19 @@ void main()
     EXPECT_NEAR(eul.as_float3(), expect_eul.as_float3(), 0.0002f);
   }
 
-#ifndef GPU_METAL /* Disabled because no operator==(matrix,matrix) on metal. */
   TEST(math_matrix, MatrixTranspose)
   {
     float4x4 m = float4x4(
         float4(1, 2, 3, 4), float4(5, 6, 7, 8), float4(9, 1, 2, 3), float4(2, 5, 6, 7));
+    float4x4 transposed = transpose(m);
     float4x4 expect = float4x4(
         float4(1, 5, 9, 2), float4(2, 6, 1, 5), float4(3, 7, 2, 6), float4(4, 8, 3, 7));
-    EXPECT_EQ(transpose(m), expect);
+    /* Split into vector comparison because lack of operator==(matrix,matrix) on metal. */
+    EXPECT_NEAR(transposed[0], expect[0], 0.0f);
+    EXPECT_NEAR(transposed[1], expect[1], 0.0f);
+    EXPECT_NEAR(transposed[2], expect[2], 0.0f);
+    EXPECT_NEAR(transposed[3], expect[3], 0.0f);
   }
-#endif
 
   TEST(math_matrix, MatrixInterpolationRegular)
   {

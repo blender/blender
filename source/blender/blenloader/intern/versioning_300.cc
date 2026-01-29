@@ -827,7 +827,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
       }
     }
     /* The storage must be freed manually because the node type isn't defined anymore. */
-    MEM_delete_void(node.storage);
+    MEM_delete(storage);
     bke::node_remove_node(nullptr, *ntree, node, false);
   }
 }

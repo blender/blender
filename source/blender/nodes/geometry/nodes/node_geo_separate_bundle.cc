@@ -31,7 +31,7 @@ NODE_STORAGE_FUNCS(NodeSeparateBundle);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bundle>("Bundle");
+  b.add_input<decl::Bundle>("Bundle").structure_type(StructureType::Single);
   const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
   if (tree && node) {
@@ -75,7 +75,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<SeparateBundleItemsAccessor>(*node);
-  MEM_delete_void(node->storage);
+  MEM_delete(static_cast<NodeSeparateBundle *>(node->storage));
 }
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)

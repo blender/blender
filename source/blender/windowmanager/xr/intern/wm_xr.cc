@@ -20,7 +20,9 @@
 
 #include "ED_screen.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_IXrContext.hh"
+#include "GHOST_Types.hh"
+#include "GHOST_Xr-api.hh"
 
 #include "GPU_context.hh"
 
@@ -101,8 +103,6 @@ bool wm_xr_init(wmWindowManager *wm)
         /*gpu_binding_candidates*/ gpu_bindings_candidates.data(),
         /*gpu_binding_candidates_count*/ uint32_t(gpu_bindings_candidates.size()),
     };
-    GHOST_XrContextHandle context;
-
     if (G.debug & G_DEBUG_XR) {
       create_info.context_flag |= GHOST_kXrContextDebug;
     }
@@ -115,6 +115,7 @@ bool wm_xr_init(wmWindowManager *wm)
     }
 #endif
 
+    GHOST_IXrContext *context;
     if (!(context = GHOST_XrContextCreate(&create_info))) {
       return false;
     }
@@ -184,7 +185,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
 
   /* We free all runtime XR data here, so if the context is still alive, destroy it. */
   if ((*runtime)->context != nullptr) {
-    GHOST_XrContextHandle context = (*runtime)->context;
+    GHOST_IXrContext *context = (*runtime)->context;
     /* Prevent recursive #GHOST_XrContextDestroy() call by nulling the context pointer before
      * the first call, see comment above. */
     (*runtime)->context = nullptr;

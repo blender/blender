@@ -9,7 +9,7 @@
 /* Currently all of the logic is for CSD. */
 
 #include "GHOST_WindowWaylandCSD.hh" /* Own include. */
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 #include "GHOST_utildefines.hh"
 
 #include <array> /* For `std::array`. */

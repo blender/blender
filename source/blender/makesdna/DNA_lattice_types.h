@@ -19,6 +19,10 @@ struct BPoint;
 struct Key;
 struct MDeformVert;
 
+namespace draw {
+struct LatticeBatchCache;
+}
+
 /** #Lattice::flag */
 enum {
   LT_GRID = 1 << 0,
@@ -79,7 +83,7 @@ struct Lattice {
   char _pad0[4] = {};
 
   struct EditLatt *editlatt = nullptr;
-  void *batch_cache = nullptr;
+  draw::LatticeBatchCache *batch_cache = nullptr;
 };
 
 }  // namespace blender

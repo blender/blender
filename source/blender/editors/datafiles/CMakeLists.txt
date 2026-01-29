@@ -1001,8 +1001,8 @@ if(WITH_BLENDER)
       cursor_zoom_out
     )
 
-    set(SVG_CONTENTS_H)
-    set(SVG_CONTENTS_C)
+    set(SVG_CONTENTS_H "")
+    set(SVG_CONTENTS_C "")
     foreach(svg ${SVG_FILENAMES_NOEXT})
       data_to_c_simple(../../../../release/datafiles/icons_svg/${svg}.svg SRC)
       string(TOUPPER ${svg} svg_name_upper)
@@ -1034,7 +1034,7 @@ if(WITH_BLENDER)
     list(APPEND SRC ${CMAKE_CURRENT_BINARY_DIR}/svg_icons.h)
     list(APPEND SRC ${CMAKE_CURRENT_BINARY_DIR}/svg_icons.cc)
 
-    set(SVG_CURSORS_CONTENTS_H)
+    set(SVG_CURSORS_CONTENTS_H "")
     foreach(svg ${SVG_CURSORS_FILENAMES_NOEXT})
       data_to_c_simple(../../../../release/datafiles/cursors/${svg}.svg SRC)
       list(APPEND SVG_CURSORS_CONTENTS_H

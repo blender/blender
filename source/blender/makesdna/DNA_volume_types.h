@@ -14,6 +14,10 @@ namespace blender {
 
 struct PackedFile;
 
+namespace draw {
+struct VolumeBatchCache;
+}
+
 namespace bke {
 struct VolumeRuntime;
 }
@@ -146,7 +150,7 @@ struct Volume {
   float velocity_scale = 1.0f;
 
   /* Draw Cache */
-  void *batch_cache = nullptr;
+  draw::VolumeBatchCache *batch_cache = nullptr;
 
   /* Runtime Data */
   bke::VolumeRuntime *runtime = nullptr;

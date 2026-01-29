@@ -174,28 +174,51 @@ static void node_rna(StructRNA *srna)
  * Needed because #execute_multi_function_on_value_variant does not support types that can't be
  * processed as fields.
  */
-static bke::SocketValueVariant get_list_value_at_index(const ListPtr &list,
-                                                       const eNodeSocketDatatype socket_type,
-                                                       const int64_t index)
+static bke::SocketValueVariant get_single_item(ListPtr &list,
+                                               const eNodeSocketDatatype socket_type,
+                                               const int64_t index)
 {
-  const CPPType &list_type = list->cpp_type();
   bke::SocketValueVariant value;
-  void *dst = value.allocate_single(socket_type);
+  void *value_ptr = value.allocate_single(socket_type);
   if (const auto *data = std::get_if<List::ArrayData>(&list->data())) {
     if (list->is_mutable() && data->sharing_info->is_mutable()) {
-      list_type.move_construct(POINTER_OFFSET(data->data, list_type.size * index), dst);
+      GMutableSpan data_span(list->cpp_type(), const_cast<void *>(data->data), list->size());
+      list->cpp_type().move_construct(data_span[index], value_ptr);
+      return value;
     }
-    else {
-      list_type.copy_construct(POINTER_OFFSET(data->data, list_type.size * index), dst);
-    }
+    const GSpan data_span(list->cpp_type(), data->data, list->size());
+    list->cpp_type().copy_construct(data_span[index], value_ptr);
+    return value;
   }
   if (const auto *data = std::get_if<List::SingleData>(&list->data())) {
     if (list->is_mutable() && data->sharing_info->is_mutable()) {
-      list_type.move_construct(data->value, dst);
+      list->cpp_type().move_construct(const_cast<void *>(data->value), value_ptr);
+      return value;
     }
-    else {
-      list_type.copy_construct(data->value, dst);
+    list->cpp_type().copy_construct(data->value, value_ptr);
+    return value;
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
+static bke::SocketValueVariant get_socket_value_item(ListPtr &list, const int64_t index)
+{
+  if (const auto *data = std::get_if<List::ArrayData>(&list->data())) {
+    if (list->is_mutable() && data->sharing_info->is_mutable()) {
+      MutableSpan data_span(static_cast<bke::SocketValueVariant *>(const_cast<void *>(data->data)),
+                            list->size());
+      return std::move(data_span[index]);
     }
+    const Span data_span(static_cast<bke::SocketValueVariant *>(const_cast<void *>(data->data)),
+                         list->size());
+    return data_span[index];
+  }
+  if (const auto *data = std::get_if<List::SingleData>(&list->data())) {
+    if (list->is_mutable() && data->sharing_info->is_mutable()) {
+      return std::move(*static_cast<bke::SocketValueVariant *>(const_cast<void *>(data->value)));
+    }
+    return *static_cast<const bke::SocketValueVariant *>(data->value);
   }
   BLI_assert_unreachable();
   return {};
@@ -212,22 +235,26 @@ static void node_geo_exec(GeoNodeExecParams params)
   const CPPType &list_type = list->cpp_type();
   const std::optional<eNodeSocketDatatype> socket_type =
       bke::geo_nodes_base_cpp_type_to_socket_type(list_type);
-  if (!socket_type) {
-    BLI_assert_unreachable();
-    params.set_default_remaining_outputs();
-    return;
-  }
 
-  if (!socket_type_supports_fields(*socket_type)) {
+  if (list_type.is<bke::SocketValueVariant>() || !socket_type_supports_fields(*socket_type)) {
     if (!index.is_single()) {
-      params.error_message_add(NodeWarningType::Error,
-                               "Index must be a single value for socket type");
+      params.error_message_add(NodeWarningType::Error, "Index must be a single value");
       params.set_default_remaining_outputs();
       return;
     }
     index.convert_to_single();
     const int index_int = index.get<int>();
-    params.set_output("Value", get_list_value_at_index(list, *socket_type, index_int));
+    if (!IndexRange(list->size()).contains(index_int)) {
+      params.error_message_add(NodeWarningType::Error, "Index out of range");
+      params.set_default_remaining_outputs();
+      return;
+    }
+    if (list->cpp_type().is<bke::SocketValueVariant>()) {
+      params.set_output("Value", get_socket_value_item(list, index_int));
+    }
+    else {
+      params.set_output("Value", get_single_item(list, *socket_type, index_int));
+    }
     return;
   }
 

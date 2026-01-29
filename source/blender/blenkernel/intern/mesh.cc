@@ -74,9 +74,13 @@
 
 #include "BLO_read_write.hh"
 
+#include "CLG_log.h"
+
 #include "attribute_storage_access.hh"
 
 namespace blender {
+
+static CLG_LogRef LOG = {"geom.mesh"};
 
 /** Using STACK_FIXED_DEPTH to keep the implementation in line with `pbvh.cc`. */
 #define STACK_FIXED_DEPTH 100
@@ -831,6 +835,11 @@ static Vector<NonContiguousGroup> compute_local_mesh_groups(Mesh &mesh)
 
 void mesh_apply_spatial_organization(Mesh &mesh)
 {
+  BLI_assert(mesh.faces_num != 0);
+  if (mesh.verts_num == 0 || mesh.faces_num == 0) {
+    return;
+  }
+
   Vector<NonContiguousGroup> local_groups = compute_local_mesh_groups(mesh);
 
   Vector<int> new_vert_order;

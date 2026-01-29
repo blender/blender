@@ -438,7 +438,7 @@ void Mesh::tag_material_index_changed()
 /* Draw Engine */
 
 void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *mesh, eMeshBatchDirtyMode mode) = nullptr;
-void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache) = nullptr;
+void (*BKE_mesh_batch_cache_free_cb)(draw::MeshBatchCache *batch_cache) = nullptr;
 
 void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
 {
@@ -453,7 +453,7 @@ void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
     BKE_mesh_batch_cache_dirty_tag_cb(mesh_eval, mode);
   }
 }
-void BKE_mesh_batch_cache_free(void *batch_cache)
+void BKE_mesh_batch_cache_free(draw::MeshBatchCache *batch_cache)
 {
   BKE_mesh_batch_cache_free_cb(batch_cache);
 }

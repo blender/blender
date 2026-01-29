@@ -347,7 +347,7 @@ void ED_view3d_cameracontrol_release(View3DCameraControl *vctrl, const bool rest
   }
 
   if (vctrl->obtfm) {
-    MEM_delete_void(vctrl->obtfm);
+    BKE_object_tfm_free(vctrl->obtfm);
   }
 
   MEM_delete(vctrl);

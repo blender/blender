@@ -128,8 +128,7 @@ if(WIN32)
     -DCMAKE_CXX_STANDARD=20
   )
 
-  set(PLATFORM_FLAGS)
-  set(PLATFORM_CXX_FLAGS)
+  set(PLATFORM_FLAGS "")
 
   if(BLENDER_PLATFORM_ARM)
     # In some cases on ARM64 (unsure why), dep builds using the "Ninja" generator appear to use
@@ -147,7 +146,7 @@ if(WIN32)
       -DCMAKE_RC_COMPILER=${CMAKE_RC_COMPILER}
     )
   else()
-    set(PLATFORM_CMAKE_FLAGS)
+    set(PLATFORM_CMAKE_FLAGS "")
   endif()
 
   set(MINGW_PATH ${DOWNLOAD_DIR}/msys2/msys64/)
@@ -155,8 +154,8 @@ if(WIN32)
   set(PERL_SHELL ${DOWNLOAD_DIR}/perl/portableshell.bat)
   set(MINGW_HOST x86_64-w64-mingw32)
 
-  set(MINGW_CFLAGS)
-  set(MINGW_LDFLAGS)
+  set(MINGW_CFLAGS "")
+  set(MINGW_LDFLAGS "")
 
   # some build systems like meson will respect the *nix like environment vars
   # like CFLAGS and LDFlags but will still build with the MSVC compiler, so for
@@ -244,8 +243,8 @@ else()
 
     set(PLATFORM_CFLAGS "-fPIC")
     set(PLATFORM_CXXFLAGS "-std=c++20 -fPIC")
-    set(PLATFORM_LDFLAGS)
-    set(PLATFORM_BUILD_TARGET)
+    set(PLATFORM_LDFLAGS "")
+    set(PLATFORM_BUILD_TARGET "")
     set(PLATFORM_CMAKE_FLAGS -DCMAKE_INSTALL_LIBDIR=lib)
   endif()
 

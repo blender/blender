@@ -801,7 +801,6 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
 
   # Cycles
   if(WITH_CYCLES)
-    set(_cycles_blocklist "")
     set(_cycles_all_test_devices CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)
     set(_cycles_osl_test_devices CPU OPTIX)
     foreach(_cycles_device ${CYCLES_TEST_DEVICES})
@@ -1313,7 +1312,7 @@ if(TEST_SRC_DIR_EXISTS)
     blend_modes_byte
     blend_modes_float
   )
-  set(video_output_tests)
+  set(video_output_tests "")
 
   if(WITH_LIBMV)
     list(APPEND render_tests effects)
@@ -1364,6 +1363,13 @@ if(TEST_SRC_DIR_EXISTS)
   add_blender_test(
     bl_sculpt_mask
     --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/mask_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/sculpting"
+  )
+
+  add_blender_test(
+    bl_sculpt_face_set
+    --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/face_set_test.py
     --
     --testdir "${TEST_SRC_DIR}/sculpting"
   )

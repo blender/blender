@@ -51,7 +51,7 @@ find_path(_ffmpeg_INCLUDE_DIR
     include/ffmpeg
 )
 
-set(_ffmpeg_LIBRARIES)
+set(_ffmpeg_LIBRARIES "")
 foreach(_component ${FFMPEG_FIND_COMPONENTS})
   string(TOUPPER ${_component} _upper_COMPONENT)
   find_library(FFMPEG_${_upper_COMPONENT}_LIBRARY

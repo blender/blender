@@ -6,7 +6,7 @@
 #include "GHOST_Debug.hh"
 #include "GHOST_EventKey.hh"
 #include "GHOST_EventNDOF.hh"
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 #include "GHOST_WindowManager.hh"
 #include "GHOST_utildefines.hh"
 

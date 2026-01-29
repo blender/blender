@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "GHOST_C-api.h"
+#include "GHOST_Xr-api.hh"
 #include "GHOST_XrContext.hh"
 #include "GHOST_Xr_intern.hh"
 
@@ -21,13 +21,13 @@ static bool GHOST_XrEventPollNext(XrInstance instance, XrEventDataBuffer &r_even
   return (xrPollEvent(instance, &r_event_data) == XR_SUCCESS);
 }
 
-GHOST_TSuccess GHOST_XrEventsHandle(GHOST_XrContextHandle xr_contexthandle)
+GHOST_TSuccess GHOST_XrEventsHandle(GHOST_IXrContext *xr_contexthandle)
 {
   if (xr_contexthandle == nullptr) {
     return GHOST_kFailure;
   }
 
-  GHOST_XrContext &xr_context = *(GHOST_XrContext *)xr_contexthandle;
+  GHOST_XrContext &xr_context = *static_cast<GHOST_XrContext *>(xr_contexthandle);
   XrEventDataBuffer event_buffer; /* Structure big enough to hold all possible events. */
 
   while (GHOST_XrEventPollNext(xr_context.getInstance(), event_buffer)) {

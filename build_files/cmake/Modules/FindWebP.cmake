@@ -44,7 +44,7 @@ set(_webp_FIND_COMPONENTS
   sharpyuv # New in 1.3
 )
 
-set(_webp_LIBRARIES)
+set(_webp_LIBRARIES "")
 foreach(COMPONENT ${_webp_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 

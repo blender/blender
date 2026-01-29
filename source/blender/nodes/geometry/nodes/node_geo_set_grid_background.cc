@@ -35,6 +35,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .is_default_link_socket();
   b.add_output(data_type, "Grid").structure_type(StructureType::Grid).align_with_previous();
   b.add_input(data_type, "Background").structure_type(StructureType::Single);
+  b.add_input<decl::Bool>("Update Inactive")
+      .description("Override all values stored for inactive voxels as well");
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -107,11 +109,19 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const auto background = params.extract_input<bke::SocketValueVariant>("Background");
+  auto background_variant = params.extract_input<bke::SocketValueVariant>("Background");
+  background_variant.convert_to_single();
+  const GPointer background = background_variant.get_single_ptr();
+
+  const bool update_inactive = params.get_input<bool>("Update Inactive");
 
   bke::VolumeTreeAccessToken tree_token;
   openvdb::GridBase &grid_base = grid.get_for_write().grid_for_write(tree_token);
-  bke::volume_grid::set_grid_background(grid_base, background.get_single_ptr());
+  bke::volume_grid::set_grid_background(grid_base, background);
+
+  if (update_inactive) {
+    bke::volume_grid::set_inactive_values(grid_base, background);
+  }
 
   params.set_output("Grid", std::move(grid));
 #else

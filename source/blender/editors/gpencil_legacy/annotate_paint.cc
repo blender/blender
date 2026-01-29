@@ -30,6 +30,7 @@
 #include "BKE_tracking.hh"
 
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -388,7 +389,7 @@ static void annotation_smooth_buffer(tGPsdata *p, float inf, int idx)
     return;
   }
 
-  tGPspoint *points = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
+  tGPspoint *points = gpd->runtime.sbuffer;
   float steps = 4.0f;
   if (idx < 4) {
     steps--;
@@ -520,7 +521,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     /* straight lines only - i.e. only store start and end point in buffer */
     if (gpd->runtime.sbuffer_used == 0) {
       /* first point in buffer (start point) */
-      pt = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
+      pt = gpd->runtime.sbuffer;
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
@@ -536,7 +537,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       /* just reset the endpoint to the latest value
        * - assume that pointers for this are always valid...
        */
-      pt = (static_cast<tGPspoint *>(gpd->runtime.sbuffer) + 1);
+      pt = (gpd->runtime.sbuffer + 1);
 
       /* store settings */
       copy_v2_v2(pt->m_xy, mval);
@@ -553,7 +554,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
         /* Store start and end point coords for arrows. */
         float end[2];
         copy_v2_v2(end, pt->m_xy);
-        pt = (static_cast<tGPspoint *>(gpd->runtime.sbuffer));
+        pt = gpd->runtime.sbuffer;
         float start[2];
         copy_v2_v2(start, pt->m_xy);
 
@@ -582,13 +583,10 @@ static short annotation_stroke_addpoint(tGPsdata *p,
   if (p->paintmode == GP_PAINTMODE_DRAW) { /* normal drawing */
     /* check if still room in buffer or add more */
     gpd->runtime.sbuffer = ED_gpencil_sbuffer_ensure(
-        static_cast<tGPspoint *>(gpd->runtime.sbuffer),
-        &gpd->runtime.sbuffer_size,
-        &gpd->runtime.sbuffer_used,
-        false);
+        gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, false);
 
     /* get pointer to destination point */
-    pt = (static_cast<tGPspoint *>(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_used);
+    pt = gpd->runtime.sbuffer + gpd->runtime.sbuffer_used;
 
     /* store settings */
     copy_v2_v2(pt->m_xy, mval);
@@ -615,7 +613,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
 
   if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
     /* get pointer to destination point */
-    pt = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
+    pt = gpd->runtime.sbuffer;
 
     /* store settings */
     copy_v2_v2(pt->m_xy, mval);
@@ -869,7 +867,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
     /* straight lines only -> only endpoints */
     {
       /* first point */
-      ptc = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
+      ptc = gpd->runtime.sbuffer;
 
       /* convert screen-coordinates to appropriate coordinates (and store them) */
       annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, nullptr);
@@ -887,7 +885,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       bGPdata_Runtime runtime = dna::shallow_copy(gpd->runtime);
 
       /* Last point if applicable. */
-      ptc = (static_cast<tGPspoint *>(runtime.sbuffer)) + (runtime.sbuffer_used - 1);
+      ptc = runtime.sbuffer + (runtime.sbuffer_used - 1);
 
       /* Convert screen-coordinates to appropriate coordinates (and store them). */
       annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, nullptr);
@@ -913,7 +911,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
         pt = e_arrow_gps->points + (e_arrow_gps->totpoints - totarrowpoints);
 
         /* End point. */
-        ptc = (static_cast<tGPspoint *>(runtime.sbuffer)) + (runtime.sbuffer_used - 1);
+        ptc = runtime.sbuffer + (runtime.sbuffer_used - 1);
         annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, nullptr);
         annotation_stroke_arrow_init_point_default(pt);
 
@@ -935,7 +933,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
         pt = s_arrow_gps->points + (s_arrow_gps->totpoints - totarrowpoints);
 
         /* Start point. */
-        ptc = static_cast<tGPspoint *>(runtime.sbuffer);
+        ptc = runtime.sbuffer;
         annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, nullptr);
         annotation_stroke_arrow_init_point_default(pt);
 
@@ -947,7 +945,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
   }
   else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
     /* first point */
-    ptc = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
+    ptc = gpd->runtime.sbuffer;
 
     /* convert screen-coordinates to appropriate coordinates (and store them) */
     annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, nullptr);
@@ -969,10 +967,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       depth_arr = MEM_new_array_uninitialized<float>(gpd->runtime.sbuffer_used, "depth_points");
 
       const ViewDepths *depths = p->depths;
-      for (i = 0, ptc = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
-           i < gpd->runtime.sbuffer_used;
-           i++, ptc++, pt++)
-      {
+      for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used; i++, ptc++, pt++) {
         mval_i = int2(ptc->m_xy);
         if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
             (i && (ED_view3d_depth_read_cached_seg(
@@ -1031,9 +1026,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
     pt = gps->points;
 
     /* convert all points (normal behavior) */
-    for (i = 0, ptc = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
-         i < gpd->runtime.sbuffer_used && ptc;
-         i++, ptc++, pt++)
+    for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used && ptc; i++, ptc++, pt++)
     {
       /* convert screen-coordinates to appropriate coordinates (and store them) */
       annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, depth_arr ? depth_arr + i : nullptr);
@@ -1068,7 +1061,7 @@ static void annotation_free_stroke(bGPDframe *gpf, bGPDstroke *gps)
 
   if (gps->dvert) {
     BKE_gpencil_free_stroke_weights(gps);
-    MEM_delete_void(static_cast<void *>(gps->dvert));
+    MEM_delete(gps->dvert);
   }
 
   if (gps->triangles) {
@@ -1245,10 +1238,8 @@ static void annotation_session_validatebuffer(tGPsdata *p)
 {
   bGPdata *gpd = p->gpd;
 
-  gpd->runtime.sbuffer = ED_gpencil_sbuffer_ensure(static_cast<tGPspoint *>(gpd->runtime.sbuffer),
-                                                   &gpd->runtime.sbuffer_size,
-                                                   &gpd->runtime.sbuffer_used,
-                                                   true);
+  gpd->runtime.sbuffer = ED_gpencil_sbuffer_ensure(
+      gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, true);
 
   /* reset flags */
   gpd->runtime.sbuffer_sflag = 0;
@@ -1491,7 +1482,7 @@ static void annotation_session_cleanup(tGPsdata *p)
 
   /* free stroke buffer */
   if (gpd->runtime.sbuffer) {
-    MEM_delete_void(gpd->runtime.sbuffer);
+    MEM_delete(gpd->runtime.sbuffer);
     gpd->runtime.sbuffer = nullptr;
   }
 

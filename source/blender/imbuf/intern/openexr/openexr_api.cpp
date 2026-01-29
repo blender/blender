@@ -464,7 +464,7 @@ static void openexr_header_compression(Header *header, int compression, int qual
       break;
 #endif
 #if COMBINED_OPENEXR_VERSION >= 30400
-      /* Always writing 32 scanlines for now, could add an option for 256 scanlines
+      /* Always writing 32 scan-lines for now, could add an option for 256 scan-lines
        * for slightly smaller files if there is demand for it. */
     case R_IMF_EXR_CODEC_HTJ2K:
       header->compression() = HTJ2K32_COMPRESSION;

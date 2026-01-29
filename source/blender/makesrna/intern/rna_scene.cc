@@ -4398,7 +4398,10 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "snap_to_hold_offset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "snap_mode", SEQ_SNAP_TO_STRIP_HOLD);
-  RNA_def_property_ui_text(prop, "Hold Offset", "Snap to strip hold offsets");
+  RNA_def_property_ui_text(prop,
+                           "Holds",
+                           "Snap to underlying strip content start and end in cases where the "
+                           "strip length extends beyond this range, producing holds");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "snap_to_markers", PROP_BOOLEAN, PROP_NONE);

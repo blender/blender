@@ -122,7 +122,7 @@ list(APPEND GLOG_CHECK_LIBRARY_DIRS
   /usr/local/homebrew/lib # Mac OS X.
   /opt/local/lib
   /usr/lib
-  /opt/lib/gflags/lib)
+  /opt/lib/glog/lib)
 # Windows (for C:/Program Files prefix).
 list(APPEND GLOG_CHECK_LIBRARY_SUFFIXES
   glog/lib

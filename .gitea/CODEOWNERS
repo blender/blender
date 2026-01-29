@@ -174,16 +174,21 @@ source/blender/blenlib/intern/memory_counter.*             @JacquesLucke
 
 # --------------------------------------------------
 # Viewport & EEVEE Module.
-extern/renderdoc/.*                                    @Jeroen-Bakker
-extern/vulkan_memory_allocator/.*                      @Jeroen-Bakker
-intern/ghost/intern/GHOST_ContextVK*                   @Jeroen-Bakker
-intern/ghost/intern/GHOST_Xr*                          @Jeroen-Bakker
-intern/opensubdiv/evaluator/gpu*                       @Jeroen-Bakker
-intern/opensubdiv/evaluator/shaders/.*                 @Jeroen-Bakker
-source/blender/blenkernel/intern/image_gpu*            @Jeroen-Bakker
-source/blender/blenkernel/intern/image_partial_update* @Jeroen-Bakker
-source/blender/gpu/vulkan/.*                           @Jeroen-Bakker
-source/blender/python/gpu/.*                           @Jeroen-Bakker
+extern/renderdoc/.*                                     @Jeroen-Bakker
+extern/vulkan_memory_allocator/.*                       @Jeroen-Bakker
+intern/ghost/intern/GHOST_ContextVK.*                   @Jeroen-Bakker
+intern/ghost/intern/GHOST_Xr.*                          @Jeroen-Bakker
+intern/opensubdiv/internal/evaluator/gpu.*              @Jeroen-Bakker
+intern/opensubdiv/internal/evaluator/shaders/.*         @Jeroen-Bakker
+source/blender/blenkernel/intern/image_gpu.*            @Jeroen-Bakker
+source/blender/blenkernel/intern/image_partial_update.* @Jeroen-Bakker
+source/blender/gpu/vulkan/.*                            @Jeroen-Bakker
+source/blender/python/gpu/.*                            @Jeroen-Bakker
+
+# --------------------------------------------------
+# XR
+source/blender/windowmanager/xr/.*                     @Brainzman
+intern/ghost/intern/GHOST_Xr.*                         @Brainzman
 
 # --------------------------------------------------
 # I18N.
@@ -201,6 +206,13 @@ release/pypi/.*                 @ThomasDinges
 release/release_notes/.*        @ThomasDinges
 release/text/.*                 @ThomasDinges
 release/windows/.*              @ThomasDinges
+
+## macOS Maintenance
+intern/ghost/intern/GHOST_.*Cocoa.*             @Brainzman
+build_files/cmake/platform/platform_apple.*     @Brainzman
+
+## macOS Objective-C code
+.*\\.mm                                         @Brainzman
 
 # --------------------------------------------------
 # DevOps & CI/CD

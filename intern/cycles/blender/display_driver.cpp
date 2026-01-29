@@ -832,7 +832,7 @@ void BlenderDisplayDriver::flush()
 void BlenderDisplayDriver::draw(const Params &params)
 {
   if (b_rv3d_ && (b_rv3d_->rflag & (blender::RV3D_NAVIGATING | blender::RV3D_PAINTING))) {
-    /* Before drawing, wait that an update to the texture has actually occured, to synchronize
+    /* Before drawing, wait that an update to the texture has actually occurred, to synchronize
      * rendering of Cycles with Blender. Use a timeout to prevent user interface in the main thread
      * from becoming unresponsive when rendering is too heavy. */
     thread_scoped_lock lock(has_update_mutex_);

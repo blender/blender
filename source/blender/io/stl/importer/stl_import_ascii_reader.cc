@@ -119,16 +119,16 @@ static inline void parse_float3(StringBuffer &buf, float3 &out)
 Mesh *read_stl_ascii(const char *filepath, const bool use_custom_normals)
 {
   size_t buffer_len;
-  void *buffer = BLI_file_read_text_as_mem(filepath, 0, &buffer_len);
+  char *buffer = BLI_file_read_text_as_mem(filepath, 0, &buffer_len);
   if (buffer == nullptr) {
     CLOG_ERROR(&LOG, "STL Importer: cannot read from ASCII STL file: '%s'", filepath);
     return nullptr;
   }
-  BLI_SCOPED_DEFER([&]() { MEM_delete_void(buffer); });
+  BLI_SCOPED_DEFER([&]() { MEM_delete(buffer); });
 
   constexpr int num_reserved_tris = 1024;
 
-  StringBuffer str_buf(static_cast<char *>(buffer), buffer_len);
+  StringBuffer str_buf(buffer, buffer_len);
   STLMeshHelper stl_mesh(num_reserved_tris, use_custom_normals);
 
   PackedTriangle data{};

@@ -94,7 +94,7 @@ else()
   endif()
 endif()
 
-set(_embree_LIBRARIES)
+set(_embree_LIBRARIES "")
 foreach(COMPONENT ${_embree_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
   find_library(EMBREE_${UPPERCOMPONENT}_LIBRARY

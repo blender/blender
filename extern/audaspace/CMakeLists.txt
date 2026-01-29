@@ -261,9 +261,9 @@ set(HDR ${PRIVATE_HDR} ${PUBLIC_HDR})
 set(INCLUDE ${CMAKE_CURRENT_BINARY_DIR} include)
 
 if(WIN32)
-	set(LIBRARIES)
+	set(LIBRARIES "")
 	if(AUDASPACE_STANDALONE)
-		set(DLLS)
+		set(DLLS "")
 		set(LIBRARY_PATH "../lib" CACHE PATH "Path which contains the libraries.")
 		file(GLOB LIBRARY_DIRS ${LIBRARY_PATH}/*)
 		list(APPEND CMAKE_PREFIX_PATH ${LIBRARY_DIRS})
@@ -946,7 +946,6 @@ endif()
 # directories
 
 include_directories(${INCLUDE})
-link_directories()
 
 # install configuration
 
@@ -1220,7 +1219,14 @@ if(WITH_PYTHON)
 	endif()
 
 	add_library(audaspace-py ${LIBRARY_TYPE} ${PYTHON_SRC} ${PYTHON_HDR})
-	target_link_libraries(audaspace-py audaspace ${PYTHON_LIBRARIES})
+	# When Blender is built as a Python module, `PYTHON_LIBRARIES` won't be defined.
+	# NOTE: AUDASPACE has its own `WITH_PYTHON_MODULE` option with different meaning,
+	# so we check the variable is defined instead.
+	if(DEFINED PYTHON_LIBRARIES)
+		target_link_libraries(audaspace-py audaspace ${PYTHON_LIBRARIES})
+	else()
+		target_link_libraries(audaspace-py audaspace)
+	endif()
 	set_target_properties(audaspace-py PROPERTIES SOVERSION ${AUDASPACE_VERSION})
 
 	if(AUDASPACE_STANDALONE)

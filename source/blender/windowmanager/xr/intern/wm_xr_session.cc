@@ -32,7 +32,7 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_Xr-api.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_viewport.hh"
@@ -714,7 +714,7 @@ static void wm_xr_session_controller_pose_calc(const GHOST_XrPose *raw_pose,
 static void wm_xr_session_controller_data_update(const XrSessionSettings *settings,
                                                  const wmXrAction *grip_action,
                                                  const wmXrAction *aim_action,
-                                                 GHOST_XrContextHandle xr_context,
+                                                 GHOST_IXrContext *xr_context,
                                                  wmXrSessionState *state)
 {
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
@@ -1206,7 +1206,7 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
 
 /* Dispatch events to window queues. */
 static void wm_xr_session_events_dispatch(wmXrData *xr,
-                                          GHOST_XrContextHandle xr_context,
+                                          GHOST_IXrContext *xr_context,
                                           wmXrActionSet *action_set,
                                           wmXrSessionState *session_state,
                                           wmWindow *win)
@@ -1296,7 +1296,7 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
   }
 
   XrSessionSettings *settings = &xr->session_settings;
-  GHOST_XrContextHandle xr_context = xr->runtime->context;
+  GHOST_IXrContext *xr_context = xr->runtime->context;
   wmXrSessionState *state = &xr->runtime->session_state;
 
   if (state->is_navigation_dirty) {
@@ -1560,7 +1560,8 @@ static void wm_xr_session_surface_free_data(wmSurface *surface)
     MEM_delete(data->controller_art);
   }
 
-  MEM_delete_void(surface->customdata);
+  wmXrSurfaceData *xr_data = static_cast<wmXrSurfaceData *>(surface->customdata);
+  MEM_delete(xr_data);
 
   g_xr_surface = nullptr;
 }
@@ -1582,7 +1583,7 @@ static wmSurface *wm_xr_session_surface_create()
   surface->activate = DRW_xr_drawing_begin;
   surface->deactivate = DRW_xr_drawing_end;
 
-  surface->system_gpu_context = static_cast<GHOST_ContextHandle>(DRW_system_gpu_context_get());
+  surface->system_gpu_context = DRW_system_gpu_context_get();
   surface->blender_gpu_context = static_cast<GPUContext *>(DRW_xr_blender_gpu_context_get());
 
   data->controller_art->regionid = RGN_TYPE_XR;
@@ -1593,7 +1594,7 @@ static wmSurface *wm_xr_session_surface_create()
   return surface;
 }
 
-void *wm_xr_session_gpu_binding_context_create()
+GHOST_IContext *wm_xr_session_gpu_binding_context_create()
 {
   wmSurface *surface = wm_xr_session_surface_create();
 
@@ -1606,7 +1607,7 @@ void *wm_xr_session_gpu_binding_context_create()
   return surface->system_gpu_context;
 }
 
-void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle /*context*/)
+void wm_xr_session_gpu_binding_context_destroy(GHOST_IContext * /*context*/)
 {
   if (g_xr_surface) { /* Might have been freed already. */
     wm_surface_remove(g_xr_surface);

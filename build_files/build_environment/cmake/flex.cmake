@@ -6,7 +6,7 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(_autoconf_cmd_optional ./autogen.sh &&)
 else()
-  set(_autoconf_cmd_optional)
+  set(_autoconf_cmd_optional "")
 endif()
 
 

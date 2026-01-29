@@ -148,8 +148,7 @@ static const GPUVertFormat *grease_pencil_color_format()
 static bool grease_pencil_batch_cache_valid(const GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
-  const GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  const GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
   return (cache && cache->is_dirty == false &&
           cache->cache_frame == grease_pencil.runtime->eval_frame);
 }
@@ -157,8 +156,7 @@ static bool grease_pencil_batch_cache_valid(const GreasePencil &grease_pencil)
 static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
   if (cache == nullptr) {
     cache = MEM_new<GreasePencilBatchCache>(__func__);
     grease_pencil.runtime->batch_cache = cache;
@@ -176,8 +174,7 @@ static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grea
 static void grease_pencil_batch_cache_clear(GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -209,8 +206,7 @@ static void grease_pencil_batch_cache_clear(GreasePencil &grease_pencil)
 static GreasePencilBatchCache *grease_pencil_batch_cache_get(GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
   if (!grease_pencil_batch_cache_valid(grease_pencil)) {
     grease_pencil_batch_cache_clear(grease_pencil);
     return grease_pencil_batch_cache_init(grease_pencil);
@@ -287,8 +283,7 @@ static void grease_pencil_weight_batch_ensure(Object &object,
   constexpr float no_active_weight = 666.0f;
 
   BLI_assert(grease_pencil.runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
 
   if (cache->edit_points_pos != nullptr) {
     return;
@@ -634,7 +629,7 @@ static void index_buf_add_bezier_handle_lines(const IndexMask bezier_points,
                                               const int all_points,
                                               MutableSpan<uint2> handle_lines,
                                               int *r_drawing_line_index,
-                                              int *r_drawing_line_start_offset)
+                                              const int *r_drawing_line_start_offset)
 {
   if (bezier_points.is_empty()) {
     return;
@@ -728,8 +723,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 {
   using namespace blender::bke::greasepencil;
   BLI_assert(grease_pencil.runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
 
   if (cache->edit_points_pos != nullptr) {
     return;
@@ -1150,8 +1144,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
 {
   using namespace blender::bke::greasepencil;
   BLI_assert(grease_pencil.runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
 
   if (cache->vbo != nullptr) {
     return;
@@ -1610,8 +1603,7 @@ static void grease_pencil_wire_batch_ensure(Object &object,
   using namespace blender::bke::greasepencil;
 
   BLI_assert(grease_pencil.runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil.runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil.runtime->batch_cache;
 
   if (cache->lines_batch != nullptr) {
     return;
@@ -1698,8 +1690,7 @@ static void grease_pencil_wire_batch_ensure(Object &object,
 void DRW_grease_pencil_batch_cache_dirty_tag(GreasePencil *grease_pencil, int mode)
 {
   BLI_assert(grease_pencil->runtime != nullptr);
-  GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
-      grease_pencil->runtime->batch_cache);
+  GreasePencilBatchCache *cache = grease_pencil->runtime->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -1724,7 +1715,7 @@ void DRW_grease_pencil_batch_cache_validate(GreasePencil *grease_pencil)
 void DRW_grease_pencil_batch_cache_free(GreasePencil *grease_pencil)
 {
   grease_pencil_batch_cache_clear(*grease_pencil);
-  MEM_delete(static_cast<GreasePencilBatchCache *>(grease_pencil->runtime->batch_cache));
+  MEM_delete(grease_pencil->runtime->batch_cache);
   grease_pencil->runtime->batch_cache = nullptr;
 }
 

@@ -40,8 +40,6 @@
 #include "mtl_texture.hh"
 #include "mtl_vertex_buffer.hh"
 
-#include "GHOST_C-api.h"
-
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 

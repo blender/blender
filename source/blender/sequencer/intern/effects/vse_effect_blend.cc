@@ -347,11 +347,18 @@ static ImBuf *do_blend_mode_effect(const RenderData *context,
 
 static void init_colormix_effect(Strip *strip)
 {
-  MEM_SAFE_DELETE_VOID(strip->effectdata);
   ColorMixVars *data = MEM_new<ColorMixVars>("colormixvars");
   strip->effectdata = data;
   data->blend_effect = STRIP_BLEND_OVERLAY;
   data->factor = 1.0f;
+}
+
+static void free_colormix_effect(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    MEM_delete(static_cast<ColorMixVars *>(strip->effectdata));
+    strip->effectdata = nullptr;
+  }
 }
 
 static ImBuf *do_colormix_effect(const RenderData *context,
@@ -380,6 +387,7 @@ void blend_mode_effect_get_handle(EffectHandle &rval)
 void color_mix_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_colormix_effect;
+  rval.free = free_colormix_effect;
   rval.execute = do_colormix_effect;
   rval.early_out = early_out_mul_input2;
 }

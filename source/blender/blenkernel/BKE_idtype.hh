@@ -396,12 +396,22 @@ bool BKE_idtype_idcode_append_is_reusable(short idcode);
 #define BKE_idtype_idcode_is_localizable BKE_idtype_idcode_is_linkable
 
 /**
- * Convert an ID-type name into an \a idcode (ie. #ID_SCE)
+ * Convert an ID-type name into an \a idcode (ie. #ID_SCE).
+ *
+ * See #BKE_idtype_idcode_from_name_case_insensitive() for a variation.
  *
  * \param idtype_name: The ID-type's "user visible name" to convert.
  * \return The \a idcode for the name, or 0 if invalid.
  */
 short BKE_idtype_idcode_from_name(const char *idtype_name);
+/**
+ * Version of #BKE_idtype_idcode_from_name() that ignores string case differences between
+ * #IDTypeInfo.name and \a idtype_name.
+ *
+ * Particularly useful when the ID type name is written as ID type identifier for I/O or cache
+ * files.
+ */
+short BKE_idtype_idcode_from_name_case_insensitive(const char *idtype_name);
 
 /**
  * Convert an \a idcode into an \a idtype_index (e.g. #ID_OB -> #INDEX_ID_OB).

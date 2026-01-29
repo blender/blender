@@ -56,7 +56,7 @@ static FT_Fixed to_16dot16(const double val)
 /**
  * from: http://www.freetype.org/freetype2/docs/glyphs/glyphs-6.html#section-1
  *
- * Vectorial representation of Freetype glyphs
+ * Vectorial representation of FreeType glyphs
  *
  * The source format of outlines is a collection of closed paths called "contours". Each contour is
  * made of a series of line segments and bezier arcs. Depending on the file format, these can be

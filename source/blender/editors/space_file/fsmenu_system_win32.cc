@@ -15,6 +15,7 @@
 #include <comdef.h>
 #include <shlobj.h>
 #include <shlwapi.h>
+#include <winnetwk.h>
 #include <wrl.h>
 
 #include "utfconv.hh"
@@ -229,12 +230,30 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
         case DRIVE_CDROM:
           icon = ICON_DISC;
           break;
-        case DRIVE_FIXED:
+        case DRIVE_FIXED: {
+          DWORD fileSystemFlags;
+          const bool is_cloud =
+              (GetVolumeInformation(
+                   tmps, nullptr, 0, nullptr, nullptr, &fileSystemFlags, nullptr, 0) &&
+               (fileSystemFlags & FILE_SUPPORTS_REMOTE_STORAGE));
+          icon = is_cloud ? ICON_INTERNET : ICON_DISK_DRIVE;
+          break;
+        }
         case DRIVE_RAMDISK:
           icon = ICON_DISK_DRIVE;
           break;
-        case DRIVE_REMOTE:
-          icon = ICON_NETWORK_DRIVE;
+        case DRIVE_REMOTE: {
+          char lpLocalName[] = {static_cast<char>('A' + i), ':', 0};
+          char lpRemoteName[MAX_PATH];
+          DWORD lpnLength = sizeof(lpRemoteName);
+          const bool is_cloud = (WNetGetConnection(lpLocalName, lpRemoteName, &lpnLength) ==
+                                     NO_ERROR &&
+                                 STRPREFIX(lpRemoteName, "https:"));
+          icon = is_cloud ? ICON_INTERNET : ICON_NETWORK_DRIVE;
+          break;
+        }
+        default:
+          icon = ICON_DISK_DRIVE;
           break;
       }
 

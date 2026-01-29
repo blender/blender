@@ -20,7 +20,7 @@ set(WEBP_EXTRA_ARGS
 if(WIN32)
   set(WEBP_BUILD_DIR ${BUILD_MODE}/)
 else()
-  set(WEBP_BUILD_DIR)
+  set(WEBP_BUILD_DIR "")
 endif()
 
 ExternalProject_Add(external_webp

@@ -1710,6 +1710,8 @@ static void rna_def_node_socket_image(BlenderRNA *brna, const char *identifier)
       prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, nullptr, nullptr, "rna_Image_no_renderresult_or_viewer_poll");
 }
 
 static void rna_def_node_socket_interface_image(BlenderRNA *brna, const char *identifier)
@@ -1730,6 +1732,8 @@ static void rna_def_node_socket_interface_image(BlenderRNA *brna, const char *id
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, nullptr, nullptr, "rna_Image_no_renderresult_or_viewer_poll");
 
   rna_def_node_tree_interface_socket_builtin(srna);
 }

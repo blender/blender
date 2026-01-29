@@ -37,6 +37,13 @@ using bke::bNodeTreeZones;
 
 ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compute_context)
 {
+  if (const auto *context = dynamic_cast<const bke::DataBlockComputeContext *>(&compute_context)) {
+    IDViewerPathElem *elem = BKE_viewer_path_elem_new_id();
+    elem->id = const_cast<ID *>(context->id());
+    BLI_assert(elem->id);
+    elem->base.ui_name = BLI_strdup(BKE_id_name(*elem->id));
+    return &elem->base;
+  }
   if (const auto *context = dynamic_cast<const bke::ModifierComputeContext *>(&compute_context)) {
     ModifierViewerPathElem *elem = BKE_viewer_path_elem_new_modifier();
     elem->modifier_uid = context->modifier_uid();
@@ -112,18 +119,13 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
     return;
   }
 
-  Object *ob = reinterpret_cast<Object *>(snode.id);
-  IDViewerPathElem *id_elem = BKE_viewer_path_elem_new_id();
-  id_elem->id = &ob->id;
-  BLI_addhead(&r_dst.path, id_elem);
-
   for (const ComputeContext *context = socket_context; context; context = context->parent()) {
     ViewerPathElem *elem = viewer_path_elem_for_compute_context(*context);
     if (!elem) {
       BKE_viewer_path_clear(&r_dst);
       return;
     }
-    BLI_insertlinkafter(&r_dst.path, id_elem, elem);
+    BLI_addhead(&r_dst.path, elem);
   }
 
   ViewerNodeViewerPathElem *viewer_node_elem = BKE_viewer_path_elem_new_viewer_node();
@@ -517,9 +519,15 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
     const ComputeContext *parent_compute_context)
 {
   switch (ViewerPathElemType(elem_generic.type)) {
-    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
-    case VIEWER_PATH_ELEM_TYPE_ID: {
+    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
       return nullptr;
+    }
+    case VIEWER_PATH_ELEM_TYPE_ID: {
+      const auto &elem = reinterpret_cast<const IDViewerPathElem &>(elem_generic);
+      if (elem.id == nullptr) {
+        return nullptr;
+      }
+      return &compute_context_cache.for_data_block(parent_compute_context, *elem.id);
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
       const auto &elem = reinterpret_cast<const ModifierViewerPathElem &>(elem_generic);

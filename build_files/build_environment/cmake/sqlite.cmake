@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(SQLITE_CONFIGURE_ENV echo .)
-set(SQLITE_CONFIGURATION_ARGS)
+set(SQLITE_CONFIGURATION_ARGS "")
 
 if(WIN32)
   # Python will build this with its preferred build options.

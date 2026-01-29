@@ -288,7 +288,7 @@ static bool values_different(const T value1,
     return compare_threshold_relative(value1_f[component_i], value2_f[component_i], threshold);
   }
   if constexpr (std::is_same_v<T, float4x4>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 4);
+    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 16);
     return compare_threshold_relative(
         value1.base_ptr()[component_i], value2.base_ptr()[component_i], threshold);
   }

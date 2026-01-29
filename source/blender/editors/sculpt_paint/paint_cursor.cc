@@ -64,20 +64,21 @@
 #include "UI_resources.hh"
 
 #include "paint_intern.hh"
-#include "sculpt_boundary.hh"
-#include "sculpt_cloth.hh"
-#include "sculpt_expand.hh"
+
+#include "mesh/sculpt_boundary.hh"
+#include "mesh/sculpt_cloth.hh"
+#include "mesh/sculpt_expand.hh"
 /* still needed for sculpt_stroke_get_location, should be
  * removed eventually (TODO) */
-#include "sculpt_intern.hh"
-#include "sculpt_pose.hh"
+#include "mesh/sculpt_intern.hh"
+#include "mesh/sculpt_pose.hh"
 
 #include "bmesh.hh"
 
 /* Needed for determining tool material/vertex-color pinning. */
-#include "grease_pencil_intern.hh"
+#include "grease_pencil/grease_pencil_intern.hh"
 
-#include "brushes/brushes.hh"
+#include "mesh/brushes/brushes.hh"
 
 namespace blender {
 

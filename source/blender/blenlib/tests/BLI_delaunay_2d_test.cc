@@ -1451,7 +1451,7 @@ template<typename T> void nonzero_winding_edge_split_test()
 }
 
 /**
- * Stress test: self-intersecting polygon (figure-8 / bowtie shape).
+ * Stress test: self-intersecting polygon (figure-8 / bow-tie shape).
  * Tests how winding is computed for a single face that crosses itself.
  *
  * \code{.unparsed}

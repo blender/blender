@@ -164,7 +164,7 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
     BLI_jitterate2(jitarr, jit2, num, rad2);
   }
 
-  MEM_delete_void(static_cast<void *>(jit2));
+  MEM_delete(jit2);
 
   /* Finally, move jitter to be centered around (0, 0). */
   for (i = 0; i < num; i++) {

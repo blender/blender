@@ -39,6 +39,9 @@ struct EditMeshData;
 namespace bke::bake {
 struct BakeMaterialsList;
 }
+namespace draw {
+struct MeshBatchCache;
+}
 
 /** #MeshRuntime.wrapper_type */
 enum eMeshWrapperType {
@@ -190,7 +193,7 @@ struct MeshRuntime {
    * Data used to efficiently draw the mesh in the viewport, especially useful when
    * the same mesh is used in many objects or instances. See `draw_cache_impl_mesh.cc`.
    */
-  void *batch_cache = nullptr;
+  draw::MeshBatchCache *batch_cache = nullptr;
 
   /** Cache for derived triangulation of the mesh, accessed with #Mesh::corner_tris(). */
   TrianglesCache corner_tris_cache;

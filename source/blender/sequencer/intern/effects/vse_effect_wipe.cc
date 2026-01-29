@@ -158,8 +158,15 @@ static float calc_wipe_blend(const WipeData *data, int x, int y)
 
 static void init_wipe_effect(Strip *strip)
 {
-  MEM_SAFE_DELETE_VOID(strip->effectdata);
   strip->effectdata = MEM_new<WipeVars>("wipevars");
+}
+
+static void free_wipe_effect(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    MEM_delete(static_cast<WipeVars *>(strip->effectdata));
+    strip->effectdata = nullptr;
+  }
 }
 
 static int num_inputs_wipe()
@@ -238,6 +245,7 @@ static ImBuf *do_wipe_effect(const RenderData *context,
 void wipe_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_wipe_effect;
+  rval.free = free_wipe_effect;
   rval.num_inputs = num_inputs_wipe;
   rval.early_out = early_out_fade;
   rval.execute = do_wipe_effect;

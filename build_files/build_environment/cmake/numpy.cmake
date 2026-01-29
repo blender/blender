@@ -8,13 +8,13 @@ if(MSVC)
     set(NUMPY_ARCHIVE_POSTFIX d)
     set(NUMPY_BUILD_OPTION --debug)
   else()
-    set(NUMPY_DIR_POSTFIX)
-    set(NUMPY_ARCHIVE_POSTFIX)
-    set(NUMPY_BUILD_OPTION)
+    set(NUMPY_DIR_POSTFIX "")
+    set(NUMPY_ARCHIVE_POSTFIX "")
+    set(NUMPY_BUILD_OPTION "")
   endif()
 endif()
 
-set(NUMPY_POSTFIX)
+set(NUMPY_POSTFIX "")
 
 if(WIN32)
   file(WRITE ${CMAKE_BINARY_DIR}/fix_path.bat

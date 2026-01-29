@@ -1923,6 +1923,8 @@ static void rna_def_trackingPlaneTrack(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Image", "Image displayed in the track during editing in clip editor");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, nullptr, nullptr, "rna_Image_no_renderresult_or_viewer_poll");
 
   /* image opacity */
   prop = RNA_def_property(srna, "image_opacity", PROP_FLOAT, PROP_FACTOR);
