@@ -256,7 +256,7 @@ static void UNUSED_FUNCTION(rna_Strip_invalidate_composite_update)(Main * /*bmai
   }
 }
 
-static void rna_Strip_scene_switch_update(bContext *C, PointerRNA *ptr)
+static void rna_Strip_scene_sync_update(bContext *C, PointerRNA *ptr)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
@@ -3274,13 +3274,13 @@ static void rna_def_scene(BlenderRNA *brna)
   prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK | PROP_CONTEXT_UPDATE);
   RNA_def_property_ui_text(prop, "Scene", "Scene that this strip uses");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_scene_switch_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_scene_sync_update");
 
   prop = RNA_def_property(srna, "scene_camera", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
   RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, "rna_Camera_object_poll");
   RNA_def_property_ui_text(prop, "Camera Override", "Override the scene's active camera");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_raw_update");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_scene_sync_update");
 
   prop = RNA_def_property(srna, "scene_input", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
