@@ -35,7 +35,7 @@ class NODE_MT_gn_color_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "ShaderNodeGamma")
         self.node_operator(layout, "ShaderNodeValToRGB")
         self.node_operator(layout, "ShaderNodeRGBCurve")
-        self.color_mix_node(context, layout)
+        self.color_mix_node(context, layout, search_weight=-1.0)
         layout.separator()
         self.node_operator(layout, "FunctionNodeCombineColor")
         self.node_operator(layout, "FunctionNodeSeparateColor")
