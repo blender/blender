@@ -120,9 +120,9 @@ class SVGExporter : public GreasePencilExporter {
                                       float duration);
   pugi::xml_node write_path(pugi::xml_node node,
                             const float4x4 &transform,
-                            Span<float3> positions,
-                            Span<float3> positions_left,
-                            Span<float3> positions_right,
+                            const Span<float3> positions,
+                            const Span<float3> positions_left,
+                            const Span<float3> positions_right,
                             const OffsetIndices<int> points_by_curve,
                             const Span<int> shape,
                             const VArray<bool> cyclic,
