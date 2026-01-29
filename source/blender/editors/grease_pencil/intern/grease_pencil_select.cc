@@ -935,8 +935,8 @@ static wmOperatorStatus select_fill_exec(bContext *C, wmOperator * /*op*/)
           break;
         }
         case bke::AttrDomain::Point: {
-          strokes.foreach_index([&](const int curve_index) {
-            const IndexRange points = points_by_curve[curve_index];
+          strokes.foreach_index(GrainSize(512), [&](const int curve) {
+            const IndexRange points = points_by_curve[curve];
             ed::curves::fill_selection_true(selection.span.slice(points));
           });
           break;
