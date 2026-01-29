@@ -125,8 +125,8 @@ class SVGExporter : public GreasePencilExporter {
                             const Span<float3> positions_right,
                             const OffsetIndices<int> points_by_curve,
                             const Span<int> shape,
-                            const VArray<bool> cyclic,
-                            const VArray<int8_t> types,
+                            const VArray<bool> &cyclic,
+                            const VArray<int8_t> &types,
                             std::optional<float> width);
 
   bool write_to_file(StringRefNull filepath);
@@ -319,8 +319,8 @@ void SVGExporter::export_grease_pencil_layer(pugi::xml_node layer_node,
                          const Span<float3> positions_right,
                          const OffsetIndices<int> points_by_curve,
                          const Span<int> shape,
-                         const VArray<bool> cyclic,
-                         const VArray<int8_t> types,
+                         const VArray<bool> &cyclic,
+                         const VArray<int8_t> &types,
                          const ColorGeometry4f &color,
                          const float opacity,
                          const std::optional<float> width,
@@ -436,8 +436,8 @@ pugi::xml_node SVGExporter::write_path(pugi::xml_node node,
                                        const Span<float3> positions_right,
                                        const OffsetIndices<int> points_by_curve,
                                        const Span<int> shape,
-                                       const VArray<bool> cyclic,
-                                       const VArray<int8_t> types,
+                                       const VArray<bool> &cyclic,
+                                       const VArray<int8_t> &types,
                                        const std::optional<float> width)
 {
   pugi::xml_node element_node = node.append_child("path");
