@@ -519,7 +519,7 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
           int *fill_points_by_curve_data = static_cast<int(*)>(BLI_memarena_alloc(
               pf_arena, sizeof(*fill_points_by_curve_data) * size_t(fill.size() + 1)));
           const MutableSpan<int> fill_points_by_curve_data_span = MutableSpan(
-              reinterpret_cast<int *>(fill_points_by_curve_data), fill.size() + 1);
+              fill_points_by_curve_data, fill.size() + 1);
 
           fill.foreach_index(GrainSize(256), [&](const int64_t curve_i, const int64_t pos) {
             fill_points_by_curve_data[pos] = points_by_curve[curve_i].size();
