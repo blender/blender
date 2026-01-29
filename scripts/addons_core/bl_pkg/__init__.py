@@ -534,6 +534,8 @@ def _remote_asset_libraries_sync_all_periodic():
     """Periodically download remote asset library listings."""
     if not bpy.app.online_access:
         return
+    if not bpy.context.preferences.experimental.use_remote_asset_libraries:
+        return
 
     for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
         remote_asset_libraries_sync(asset_lib, only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
