@@ -931,7 +931,7 @@ static wmOperatorStatus select_fill_exec(bContext *C, wmOperator * /*op*/)
           curves, selection_domain, bke::AttrType::Bool, selection_attribute_names[i]);
       switch (selection_domain) {
         case bke::AttrDomain::Curve: {
-          ed::curves::fill_selection_true(selection.span.typed<bool>(), strokes);
+          ed::curves::fill_selection_true(selection.span, strokes);
           break;
         }
         case bke::AttrDomain::Point: {
