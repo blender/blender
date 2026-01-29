@@ -53,6 +53,7 @@ class SQLiteBackend:
 
     def __init__(self, storage_path: Path) -> None:
         assert not storage_path.is_dir(), "SQLite back-end expects a directory + file prefix as storage path"
+        assert storage_path.is_absolute(), "SQLite back-end needs an absolute storage path"
 
         self._storage_path = storage_path
         self.dbfile_path = storage_path.with_name("{}_v{}.sqlite".format(storage_path.stem, DB_SCHEMA_VERSION))
@@ -82,7 +83,14 @@ class SQLiteBackend:
         self._execute_pragmas_on_connect(self.db_conn_rw)
 
         # Open a read-only connection.
-        uri = self.dbfile_path.as_uri() + "?mode=ro"
+        try:
+            uri = self.dbfile_path.as_uri() + "?mode=ro"
+        except ValueError as ex:
+            # The ValueError from as_uri() doesn't contain the actual path. Note that
+            # this shouldn't happen, unless the assert from the __init__ function was
+            # disabled (which is possible via a Python CLI argument).
+            raise ValueError("{!s}: {!s}".format(ex, self.dbfile_path))
+
         # Once we upgrade to Python 3.12+, pass `autocommit=False` instead of `isolation_level=None`.
         self.db_conn_ro = sqlite3.connect(uri, uri=True, timeout=DB_TIMEOUT_MSEC / 1000, isolation_level=None)
         if _DEBUG_QUERIES:
