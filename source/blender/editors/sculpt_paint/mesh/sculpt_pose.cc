@@ -1979,14 +1979,19 @@ std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(const Depsgraph 
                                                                 const float3 &initial_location,
                                                                 const float radius)
 {
-  const IKChain chain = *ik_chain_init(depsgraph, ob, ss, brush, initial_location, radius);
+  const std::unique_ptr<IKChain> chain = ik_chain_init(
+      depsgraph, ob, ss, brush, initial_location, radius);
+  if (!chain) {
+    return nullptr;
+  }
+
   std::unique_ptr<SculptPoseIKChainPreview> preview = std::make_unique<SculptPoseIKChainPreview>();
 
-  preview->initial_head_coords.reinitialize(chain.segments.size());
-  preview->initial_orig_coords.reinitialize(chain.segments.size());
-  for (const int i : chain.segments.index_range()) {
-    preview->initial_head_coords[i] = chain.segments[i].initial_head;
-    preview->initial_orig_coords[i] = chain.segments[i].initial_orig;
+  preview->initial_head_coords.reinitialize(chain->segments.size());
+  preview->initial_orig_coords.reinitialize(chain->segments.size());
+  for (const int i : chain->segments.index_range()) {
+    preview->initial_head_coords[i] = chain->segments[i].initial_head;
+    preview->initial_orig_coords[i] = chain->segments[i].initial_orig;
   }
 
   return preview;
