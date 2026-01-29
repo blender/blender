@@ -382,6 +382,11 @@ void GPU_framebuffer_default_size(gpu::FrameBuffer *gpu_fb, int width, int heigh
   gpu_fb->default_size_set(width, height);
 }
 
+int2 GPU_framebuffer_extent_get(gpu::FrameBuffer *gpu_fb)
+{
+  return gpu_fb->size_get();
+}
+
 /* ---------- Viewport & Scissor Region ----------- */
 
 void GPU_framebuffer_viewport_set(gpu::FrameBuffer *gpu_fb, int x, int y, int width, int height)

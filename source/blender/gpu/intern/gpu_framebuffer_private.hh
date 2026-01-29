@@ -162,6 +162,12 @@ class FrameBuffer {
     dirty_state_ = true;
   }
 
+  /** \brief Get the size of the framebuffer. */
+  int2 size_get() const
+  {
+    return int2(width_, height_);
+  }
+
   /* Sets the size for frame-buffer with no attachments. */
   void default_size_set(int width, int height)
   {
