@@ -17,11 +17,11 @@ namespace blender::bke::greasepencil {
 std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids);
 
 /* Fill the mutable span with the next available fill IDs. */
-void next_available_fill_ids(const VArray<int> &fill_ids, MutableSpan<int> r_new_fill_ids);
+void gather_next_available_fill_ids(const VArray<int> &fill_ids, MutableSpan<int> r_new_fill_ids);
 /* Write to the mutable span the next available fill ids at the indices of the given mask. */
-void next_available_fill_ids(const VArray<int> &fill_ids,
-                             const IndexMask &curve_mask,
-                             MutableSpan<int> r_new_fill_ids);
+void gather_next_available_fill_ids(const VArray<int> &fill_ids,
+                                    const IndexMask &curve_mask,
+                                    MutableSpan<int> r_new_fill_ids);
 
 IndexMask selected_mask_to_fills(const IndexMask selected_mask,
                                  const bke::CurvesGeometry &curves,

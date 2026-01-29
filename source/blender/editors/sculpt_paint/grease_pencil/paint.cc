@@ -445,7 +445,7 @@ struct PaintOperationExecutor {
     if (use_fill) {
       bke::SpanAttributeWriter<int> fill_id = attributes.lookup_or_add_for_write_span<int>(
           "fill_id", bke::AttrDomain::Curve);
-      bke::greasepencil::next_available_fill_ids(
+      bke::greasepencil::gather_next_available_fill_ids(
           fill_id.span.varray(), fill_id.span.slice(IndexRange::from_single(active_curve)));
       curve_attributes_to_skip.add("fill_id");
       fill_id.finish();

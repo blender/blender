@@ -98,15 +98,15 @@ static int max_element(const VArray<int> &array)
       [&](const int &a, const int &b) { return std::max(a, b); });
 }
 
-void next_available_fill_ids(const VArray<int> &fill_ids, MutableSpan<int> r_new_fill_ids)
+void gather_next_available_fill_ids(const VArray<int> &fill_ids, MutableSpan<int> r_new_fill_ids)
 {
   const int next_fill_id = max_element(fill_ids) + 1;
   array_utils::fill_index_range(r_new_fill_ids, next_fill_id);
 }
 
-void next_available_fill_ids(const VArray<int> &fill_ids,
-                             const IndexMask &curve_mask,
-                             MutableSpan<int> r_new_fill_ids)
+void gather_next_available_fill_ids(const VArray<int> &fill_ids,
+                                    const IndexMask &curve_mask,
+                                    MutableSpan<int> r_new_fill_ids)
 {
   const int next_fill_id = max_element(fill_ids) + 1;
   curve_mask.foreach_index(GrainSize(1024), [&](const int index, const int pos) {
