@@ -764,6 +764,7 @@ enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_MULTIPLY_ADD = 26,
   NODE_VECTOR_MATH_POWER = 27,
   NODE_VECTOR_MATH_SIGN = 28,
+  NODE_VECTOR_MATH_ROUND = 29,
 };
 
 enum NodeBooleanMathOperation {
