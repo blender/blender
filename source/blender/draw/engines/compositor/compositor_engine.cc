@@ -211,20 +211,20 @@ class Context : public compositor::Context {
    * returns an unallocated result instead. */
   compositor::Result get_pass_result(const char *pass_name)
   {
-    /* The combined pass is a special case where we return the viewport color texture, because it
-     * includes Grease Pencil objects since GP is drawn using their own engine. */
+    /* Return the pass that was written by the engine if such pass was found. */
+    if (DRW_viewport_pass_texture_exists(pass_name)) {
+      gpu::Texture *pass_texture = DRW_viewport_pass_texture_get(pass_name).gpu_texture();
+      compositor::Result pass = compositor::Result(*this, GPU_texture_format(pass_texture));
+      pass.wrap_external(pass_texture);
+      return pass;
+    }
+
+    /* The combined pass is a special case where we return the viewport color texture if the engine
+     * didn't provide a combined pass. */
     if (STREQ(pass_name, RE_PASSNAME_COMBINED)) {
       gpu::Texture *combined_texture = DRW_context_get()->viewport_texture_list_get()->color;
       compositor::Result pass = compositor::Result(*this, GPU_texture_format(combined_texture));
       pass.wrap_external(combined_texture);
-      return pass;
-    }
-
-    /* Return the pass that was written by the engine if such pass was found. */
-    gpu::Texture *pass_texture = DRW_viewport_pass_texture_get(pass_name).gpu_texture();
-    if (pass_texture) {
-      compositor::Result pass = compositor::Result(*this, GPU_texture_format(pass_texture));
-      pass.wrap_external(pass_texture);
       return pass;
     }
 

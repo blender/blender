@@ -999,13 +999,6 @@ void Film::write_viewport_compositor_passes()
       continue;
     }
 
-    /* The compositor will use the viewport color texture as the combined pass because the viewport
-     * texture will include Grease Pencil, so no need to write the combined pass from the engine
-     * side. */
-    if (pass_type == EEVEE_RENDER_PASS_COMBINED) {
-      continue;
-    }
-
     Vector<std::string> pass_names = Film::pass_to_render_pass_names(pass_type, inst_.view_layer);
     for (const int64_t pass_offset : IndexRange(pass_names.size())) {
       gpu::Texture *pass_texture = this->get_pass_texture(pass_type, pass_offset);

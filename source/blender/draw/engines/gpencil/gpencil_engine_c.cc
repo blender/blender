@@ -174,9 +174,11 @@ void Instance::begin_sync()
   this->use_mask_fb = false;
 
   const bool use_viewport_compositor = draw_ctx->is_viewport_compositor_enabled();
-  const bool has_grease_pencil_pass =
-      bke::compositor::get_used_passes(*scene, view_layer).contains(RE_PASSNAME_GREASE_PENCIL);
-  this->use_separate_pass = use_viewport_compositor ? has_grease_pencil_pass : false;
+  const Set<std::string> needed_passes = bke::compositor::get_used_passes(*scene, view_layer);
+  this->need_combined_pass = use_viewport_compositor &&
+                             needed_passes.contains(RE_PASSNAME_COMBINED);
+  this->need_grease_pencil_pass = use_viewport_compositor &&
+                                  needed_passes.contains(RE_PASSNAME_GREASE_PENCIL);
   this->use_signed_fb = !this->is_viewport;
 
   if (draw_ctx->v3d) {
@@ -657,12 +659,20 @@ void Instance::acquire_resources()
                          GPU_ATTACHMENT_TEXTURE(this->mask_tx));
   }
 
-  if (this->use_separate_pass) {
+  /* The engine might not support passes, so check if the combined pass actually exists before
+   * rendering grease pencil to it. */
+  const bool combined_pass_exists = DRW_viewport_pass_texture_exists(RE_PASSNAME_COMBINED);
+  if (this->need_combined_pass && combined_pass_exists) {
+    draw::TextureFromPool &combined_pass = DRW_viewport_pass_texture_get(RE_PASSNAME_COMBINED);
+    this->combined_pass_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(combined_pass));
+  }
+
+  if (this->need_grease_pencil_pass) {
     const int2 size = int2(draw_ctx->viewport_size_get());
-    draw::TextureFromPool &output_pass_texture = DRW_viewport_pass_texture_get(
+    draw::TextureFromPool &grease_pencil_pass = DRW_viewport_pass_texture_get(
         RE_PASSNAME_GREASE_PENCIL);
-    output_pass_texture.acquire(size, gpu::TextureFormat::SFLOAT_16_16_16_16);
-    this->gpencil_pass_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(output_pass_texture));
+    grease_pencil_pass.acquire(size, gpu::TextureFormat::SFLOAT_16_16_16_16);
+    this->gpencil_pass_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(grease_pencil_pass));
   }
 }
 

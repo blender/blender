@@ -511,6 +511,11 @@ draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name)
       pass_name, [&]() { return std::make_unique<draw::TextureFromPool>(pass_name); });
 }
 
+bool DRW_viewport_pass_texture_exists(const char *pass_name)
+{
+  return drw_get().view_data_active->viewport_compositor_passes.contains(pass_name);
+}
+
 void DRW_viewport_request_redraw()
 {
   if (drw_get().viewport) {
