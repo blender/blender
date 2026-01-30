@@ -300,20 +300,25 @@ void ImageManager::load_image_metadata(Image *img)
     return;
   }
 
-  ImageMetaData &metadata = img->metadata;
-  metadata = ImageMetaData();
-  metadata.colorspace = img->params.colorspace;
+  /* Isolate threading since we are holding a mutex lock and metadata loading
+   * may involve multithreadeding from e.g. the texture cache generation or host
+   * application processing. */
+  isolate_task([&]() {
+    ImageMetaData &metadata = img->metadata;
+    metadata = ImageMetaData();
+    metadata.colorspace = img->params.colorspace;
 
-  if (img->loader->load_metadata(metadata)) {
-    assert(metadata.type != IMAGE_DATA_NUM_TYPES);
-  }
-  else {
-    metadata.type = IMAGE_DATA_TYPE_BYTE4;
-  }
+    if (img->loader->load_metadata(metadata)) {
+      assert(metadata.type != IMAGE_DATA_NUM_TYPES);
+    }
+    else {
+      metadata.type = IMAGE_DATA_TYPE_BYTE4;
+    }
 
-  metadata.finalize(img->params.alpha_type);
+    metadata.finalize(img->params.alpha_type);
 
-  img->need_metadata = false;
+    img->need_metadata = false;
+  });
 }
 
 ImageHandle ImageManager::add_image(const string &filename, const ImageParams &params)
