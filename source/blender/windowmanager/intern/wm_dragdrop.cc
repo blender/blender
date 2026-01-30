@@ -1051,7 +1051,7 @@ const std::string WM_drag_get_item_name(wmDrag *drag)
       return path_drag_data->tooltip;
     }
     case WM_DRAG_NAME:
-      return *static_cast<const std::string *>(drag->poin);
+      return static_cast<const char *>(drag->poin);
     default:
       break;
   }
