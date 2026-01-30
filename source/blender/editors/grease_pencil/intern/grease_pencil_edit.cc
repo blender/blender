@@ -542,7 +542,7 @@ static wmOperatorStatus grease_pencil_delete_exec(bContext *C, wmOperator *op)
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
 
-  std::atomic<bool> changed = false;
+  bool changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
@@ -556,23 +556,23 @@ static wmOperatorStatus grease_pencil_delete_exec(bContext *C, wmOperator *op)
       if (selection_domain == bke::AttrDomain::Curve) {
         curves.remove_curves(elements_to_delete, {});
         info.drawing.tag_topology_changed();
-        changed.store(true, std::memory_order_relaxed);
+        changed = true;
       }
       else if (selection_domain == bke::AttrDomain::Point) {
         curves = geometry::remove_points_and_split(curves, elements_to_delete);
         info.drawing.tag_topology_changed();
-        changed.store(true, std::memory_order_relaxed);
+        changed = true;
       }
       return;
     }
 
     if (remove_curves_based_on_mode(*object, info.drawing, info.layer_index, mode, memory)) {
-      changed.store(true, std::memory_order_relaxed);
+      changed = true;
     }
 
     if (remove_stroke_or_fill_based_on_mode(*object, info.drawing, info.layer_index, mode, memory))
     {
-      changed.store(true, std::memory_order_relaxed);
+      changed = true;
     }
   });
 
