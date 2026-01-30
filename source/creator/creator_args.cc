@@ -92,6 +92,7 @@ namespace blender {
  * so it's preferable that known arguments are documented.
  */
 struct BuildDefs {
+  bool apple;
   bool win32;
   bool with_cycles;
   bool with_ffmpeg;
@@ -100,6 +101,7 @@ struct BuildDefs {
   bool with_opencolorio;
   bool with_opengl_backend;
   bool with_renderdoc;
+  bool with_input_ndof;
   bool with_vulkan_backend;
   bool with_xr_openxr;
 };
@@ -116,6 +118,9 @@ static void build_defs_init(BuildDefs *build_defs, bool force_all)
 
   memset(build_defs, 0x0, sizeof(*build_defs));
 
+#  ifdef __APPLE__
+  build_defs->apple = true;
+#  endif
 #  ifdef WIN32
   build_defs->win32 = true;
 #  endif
@@ -139,6 +144,9 @@ static void build_defs_init(BuildDefs *build_defs, bool force_all)
 #  endif
 #  ifdef WITH_RENDERDOC
   build_defs->with_renderdoc = true;
+#  endif
+#  ifdef WITH_INPUT_NDOF
+  build_defs->with_input_ndof = true;
 #  endif
 #  ifdef WITH_VULKAN_BACKEND
   build_defs->with_vulkan_backend = true;
@@ -895,6 +903,15 @@ static void print_help(bArgs *ba, bool all)
         "  $BLENDER_OCIO              Path to override the OpenColorIO configuration file.\n"
         "                             If not set, the 'OCIO' environment variable is used.\n");
   }
+
+  /* Non `BLENDER_` prefixed, conventions from 3rd party libraries or the operating system. */
+
+  if ((!defs.win32 && !defs.apple && defs.with_input_ndof) || all) {
+    PRINT(
+        "  $SPNAV_SOCKET              The socket path to connect to the 3D-mouse daemon "
+        "(Unix only).\n");
+  }
+
   if (defs.win32 || all) {
     PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");
   }
