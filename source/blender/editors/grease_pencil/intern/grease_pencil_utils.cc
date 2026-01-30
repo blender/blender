@@ -1683,10 +1683,10 @@ static StrokeVisibilityStatus get_visibility_status_for_draw_operator(Object *ob
   if (brush_uses_stroke && !brush_uses_fill && !is_stroke_visible) {
     return StrokeVisibilityStatus::StrokeInvisible;
   }
-  else if (!brush_uses_stroke && brush_uses_fill && !is_fill_visible) {
+  if (!brush_uses_stroke && brush_uses_fill && !is_fill_visible) {
     return StrokeVisibilityStatus::FillInvisible;
   }
-  else if (brush_uses_stroke && brush_uses_fill && !is_stroke_visible && !is_fill_visible) {
+  if (brush_uses_stroke && brush_uses_fill && !is_stroke_visible && !is_fill_visible) {
     return StrokeVisibilityStatus::BothInvisible;
   }
   BLI_assert(brush_uses_stroke || brush_uses_fill);
