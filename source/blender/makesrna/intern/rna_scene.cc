@@ -352,6 +352,9 @@ static const EnumPropertyItem rna_enum_media_type_image_items[] = {
 #  define R_IMF_ENUM_WEBP
 #endif
 
+#define R_IMF_ENUM_AVIF \
+  {R_IMF_IMTYPE_AVIF, "AVIF", 0, "AVIF (.avif)", "Output image in AVIF format"},
+
 #ifdef WITH_FFMPEG
 #  define R_IMF_ENUM_FFMPEG {R_IMF_IMTYPE_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFmpeg Video", ""},
 #else
@@ -364,6 +367,7 @@ static const EnumPropertyItem rna_enum_media_type_image_items[] = {
   R_IMF_ENUM_EXR \
   R_IMF_ENUM_PNG \
   R_IMF_ENUM_WEBP \
+  R_IMF_ENUM_AVIF \
   RNA_ENUM_ITEM_SEPR, \
       R_IMF_ENUM_BMP R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_IRIS R_IMF_ENUM_JPEG2K \
           R_IMF_ENUM_HDR R_IMF_ENUM_TAGA R_IMF_ENUM_TAGA_RAW R_IMF_ENUM_TIFF

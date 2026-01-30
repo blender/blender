@@ -260,6 +260,17 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
         self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 100})
         self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 100})
+
+    def test_save_avif(self):
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "8", "quality": 90})
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGBA", "color_depth": "8", "quality": 90})
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "10", "quality": 90})
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "12", "quality": 90})
+
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "8", "quality": 70})
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGBA", "color_depth": "8", "quality": 70})
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "10", "quality": 70})
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "12", "quality": 70})
 # autopep8: on
 
 

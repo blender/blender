@@ -50,6 +50,8 @@ const char *imb_ext_image[] = {
      * supported by various render engines texture caching systems.
      * These are typically TIFF or EXR images. See the tool `maketx` from OpenImageIO. */
     ".tx",
+    /* #IMB_FTYPE_AVIF */
+    ".avif",
 #ifdef WITH_IMAGE_OPENJPEG
     /* #IMB_FTYPE_JP2 */
     ".jp2",
