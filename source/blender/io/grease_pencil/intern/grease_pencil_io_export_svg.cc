@@ -37,7 +37,7 @@
 namespace blender::io::grease_pencil {
 
 constexpr const char *svg_exporter_name = "SVG Export for Grease Pencil";
-constexpr const char *svg_exporter_version = "v2.0";
+constexpr const char *svg_exporter_version = "v2.1";
 
 static std::string rgb_to_hexstr(const float color[3])
 {
