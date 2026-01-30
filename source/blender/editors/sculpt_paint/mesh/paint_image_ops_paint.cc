@@ -510,8 +510,11 @@ static wmOperatorStatus paint_invoke(bContext *C, wmOperator *op, const wmEvent 
   OPERATOR_RETVAL_CHECK(retval);
 
   if (retval == OPERATOR_FINISHED) {
-    stroke->free(C, op);
-    MEM_delete(stroke);
+    ImagePaintStroke *stroke = static_cast<ImagePaintStroke *>(op->customdata);
+    if (stroke) {
+      stroke->free(C, op);
+      MEM_delete(stroke);
+    }
     return OPERATOR_FINISHED;
   }
   /* add modal handler */
@@ -584,6 +587,7 @@ static wmOperatorStatus paint_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(stroke);
+    op->customdata = nullptr;
   }
 
   return retval;
