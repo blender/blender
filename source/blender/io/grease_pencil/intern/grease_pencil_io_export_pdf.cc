@@ -45,8 +45,6 @@ class PDFExporter : public GreasePencilExporter {
 
   void write_path(const float4x4 &transform,
                   Span<float3> positions,
-                  Span<float3> positions_left,
-                  Span<float3> positions_right,
                   const OffsetIndices<int> points_by_curve,
                   const Span<int> shape,
                   const VArray<bool> &cyclic,
@@ -151,8 +149,8 @@ void PDFExporter::export_grease_pencil_layer(const Object &object,
   const float4x4 layer_to_world = layer.to_world_space(object);
 
   auto write_shape = [&](const Span<float3> positions,
-                         const Span<float3> positions_left,
-                         const Span<float3> positions_right,
+                         const Span<float3> /*positions_left*/,
+                         const Span<float3> /*positions_right*/,
                          const OffsetIndices<int> points_by_curve,
                          const Span<int> shape,
                          const VArray<bool> &cyclic,
@@ -162,17 +160,8 @@ void PDFExporter::export_grease_pencil_layer(const Object &object,
                          const std::optional<float> width,
                          const bool /*round_cap*/,
                          const bool /*is_outline*/) {
-    write_path(layer_to_world,
-               positions,
-               positions_left,
-               positions_right,
-               points_by_curve,
-               shape,
-               cyclic,
-               types,
-               color,
-               opacity,
-               width);
+    write_path(
+        layer_to_world, positions, points_by_curve, shape, cyclic, types, color, opacity, width);
   };
 
   foreach_shape_in_layer(object, layer, drawing, write_shape);
@@ -227,8 +216,6 @@ bool PDFExporter::add_page(Scene &scene)
 
 void PDFExporter::write_path(const float4x4 &transform,
                              const Span<float3> positions,
-                             const Span<float3> /*positions_left*/,
-                             const Span<float3> /*positions_right*/,
                              const OffsetIndices<int> points_by_curve,
                              const Span<int> shape,
                              const VArray<bool> &cyclic,
