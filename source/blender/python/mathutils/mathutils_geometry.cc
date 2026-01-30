@@ -1440,7 +1440,12 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *po
   if (totpoints) {
     /* now make the list to return */
     float down_vec[3] = {0, 0, -1};
-    BKE_displist_fill(&dispbase, &dispbase, is_2d ? down_vec : nullptr, false);
+    BKE_displist_fill(&dispbase,
+                      &dispbase,
+                      is_2d ? down_vec : nullptr,
+                      false,
+                      CU_FILL_SOLVER_SWEEP_LINE,
+                      CU_FILL_RULE_EVEN_ODD);
 
     /* The faces are stored in a new DisplayList
      * that's added to the head of the #ListBase. */

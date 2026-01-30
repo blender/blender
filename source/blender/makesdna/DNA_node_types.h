@@ -1269,6 +1269,14 @@ enum GeometryNodeCurveFillMode {
   GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
 };
 
+/** See #CDT_output_type in BLI_delaunay_2d.hh for winding rule details. */
+enum GeometryNodeCurveFillRule {
+  /** Even-odd winding rule for hole detection. */
+  GEO_NODE_CURVE_FILL_RULE_EVEN_ODD = 0,
+  /** Non-zero winding rule. */
+  GEO_NODE_CURVE_FILL_RULE_NON_ZERO = 1,
+};
+
 enum GeometryNodeMeshToPointsMode {
   GEO_NODE_MESH_TO_POINTS_VERTICES = 0,
   GEO_NODE_MESH_TO_POINTS_EDGES = 1,
@@ -3260,7 +3268,10 @@ struct NodeGeometryRaycast {
 struct NodeGeometryCurveFill {
   DNA_DEFINE_CXX_METHODS(NodeGeometryCurveFill)
 
+  /** #GeometryNodeCurveFillMode. */
   uint8_t mode = 0;
+  /** #GeometryNodeCurveFillRule. */
+  uint8_t fill_rule = 0;
 };
 
 struct NodeGeometryMeshToPoints {

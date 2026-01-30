@@ -28,6 +28,21 @@ static const EnumPropertyItem mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+/* See #CDT_output_type in BLI_delaunay_2d.hh for winding rule details. */
+static const EnumPropertyItem fill_rule_items[] = {
+    {GEO_NODE_CURVE_FILL_RULE_EVEN_ODD,
+     "EVEN_ODD",
+     0,
+     N_("Even-Odd"),
+     N_("Alternate inside/outside based on crossing count")},
+    {GEO_NODE_CURVE_FILL_RULE_NON_ZERO,
+     "NON_ZERO",
+     0,
+     N_("Non-Zero"),
+     N_("Overlapping curves with the same winding direction are filled as a union")},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Curve")
@@ -43,6 +58,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .static_items(mode_items)
       .default_value(GEO_NODE_CURVE_FILL_MODE_TRIANGULATED)
       .optional_label();
+  b.add_input<decl::Menu>("Fill Rule")
+      .static_items(fill_rule_items)
+      .default_value(GEO_NODE_CURVE_FILL_RULE_EVEN_ODD)
+      .optional_label()
+      .description("Rule used to determine which regions are inside or outside");
   b.add_output<decl::Geometry>("Mesh").propagate_all_instance_attributes();
 }
 
@@ -247,11 +267,38 @@ static Mesh *cdts_to_mesh(const Span<meshintersect::CDT_result<double>> results)
 
 static void curve_fill_calculate(GeometrySet &geometry_set,
                                  const GeometryNodeCurveFillMode mode,
+                                 const GeometryNodeCurveFillRule fill_rule,
                                  const Field<int> &group_index)
 {
-  const CDT_output_type output_type = (mode == GEO_NODE_CURVE_FILL_MODE_NGONS) ?
-                                          CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
-                                          CDT_INSIDE_WITH_HOLES;
+  /* Determine CDT output type based on mode and fill rule. */
+  CDT_output_type output_type;
+  if (mode == GEO_NODE_CURVE_FILL_MODE_NGONS) {
+    output_type = CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES;
+    switch (fill_rule) {
+      case GEO_NODE_CURVE_FILL_RULE_NON_ZERO: {
+        output_type = CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO;
+        break;
+      }
+      case GEO_NODE_CURVE_FILL_RULE_EVEN_ODD: {
+        /* Default, already set. */
+        break;
+      }
+    }
+  }
+  else {
+    /* Triangulated mode. */
+    output_type = CDT_INSIDE_WITH_HOLES;
+    switch (fill_rule) {
+      case GEO_NODE_CURVE_FILL_RULE_NON_ZERO: {
+        output_type = CDT_INSIDE_WITH_HOLES_NONZERO;
+        break;
+      }
+      case GEO_NODE_CURVE_FILL_RULE_EVEN_ODD: {
+        /* Default, already set. */
+        break;
+      }
+    }
+  }
   if (geometry_set.has_curves()) {
     const Curves &curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
@@ -312,9 +359,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<int> group_index = params.extract_input<Field<int>>("Group ID");
   const GeometryNodeCurveFillMode mode = params.extract_input<GeometryNodeCurveFillMode>("Mode");
+  const auto fill_rule = params.extract_input<GeometryNodeCurveFillRule>("Fill Rule");
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
-    curve_fill_calculate(geometry, mode, group_index);
+    curve_fill_calculate(geometry, mode, fill_rule, group_index);
   });
 
   params.set_output("Mesh", std::move(geometry_set));
