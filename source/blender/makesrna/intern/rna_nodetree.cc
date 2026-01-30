@@ -8756,14 +8756,22 @@ static void rna_def_node(BlenderRNA *brna)
   PropertyRNA *parm;
 
   static const EnumPropertyItem warning_propagation_items[] = {
-      {NODE_WARNING_PROPAGATION_ALL, "ALL", 0, "All", ""},
-      {NODE_WARNING_PROPAGATION_NONE, "NONE", 0, "None", ""},
-      {NODE_WARNING_PROPAGATION_ONLY_ERRORS, "ERRORS", 0, "Errors", ""},
+      {NODE_WARNING_PROPAGATION_ALL,
+       "ALL",
+       0,
+       "All Messages",
+       "Propagate every info, error, and warning message upstream"},
       {NODE_WARNING_PROPAGATION_ONLY_ERRORS_AND_WARNINGS,
        "ERRORS_AND_WARNINGS",
        0,
        "Errors and Warnings",
-       ""},
+       "Propagate only error and warning messages upstream"},
+      {NODE_WARNING_PROPAGATION_ONLY_ERRORS,
+       "ERRORS",
+       0,
+       "Errors",
+       "Propagate only error messages upstream"},
+      {NODE_WARNING_PROPAGATION_NONE, "NONE", 0, "None", "Do not propagate any messages upstream"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
