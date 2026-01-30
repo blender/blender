@@ -306,6 +306,10 @@ static ClosestElement find_closest_element(const PenToolOperation &ptd, const fl
     const bke::CurvesGeometry &curves = ptd.get_curves(curves_index);
     const float4x4 layer_to_object = ptd.layer_to_object_per_curves[curves_index];
 
+    if (curves.is_empty()) {
+      continue;
+    }
+
     IndexMaskMemory memory;
     const IndexMask bezier_points = ptd.visible_bezier_handle_points(curves_index, memory);
     const IndexMask editable_curves = ptd.editable_curves(curves_index, memory);
