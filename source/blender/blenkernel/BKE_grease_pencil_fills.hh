@@ -10,6 +10,7 @@
 
 #include <optional>
 
+#include "BKE_attribute.hh"
 #include "BKE_grease_pencil.hh"
 
 namespace blender::bke::greasepencil {
