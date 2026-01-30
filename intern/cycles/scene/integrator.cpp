@@ -357,9 +357,20 @@ void Integrator::device_free(Device * /*unused*/, DeviceScene *dscene, bool forc
   dscene->sample_pattern_lut.free_if_need_realloc(force_free);
 }
 
+bool Integrator::is_modified() const
+{
+  return Node::is_modified() || shadow_catcher_needs_recalc_;
+}
+
+void Integrator::clear_modified()
+{
+  Node::clear_modified();
+  shadow_catcher_needs_recalc_ = false;
+}
+
 void Integrator::tag_update(Scene *scene, const uint32_t flag)
 {
-  if (flag & UPDATE_ALL) {
+  if (flag == UPDATE_ALL) {
     tag_modified();
   }
 
@@ -367,6 +378,10 @@ void Integrator::tag_update(Scene *scene, const uint32_t flag)
     /* tag only the ao_bounces socket as modified so we avoid updating sample_pattern_lut
      * unnecessarily */
     tag_ao_bounces_modified();
+  }
+
+  if (flag & OBJECT_MANAGER) {
+    shadow_catcher_needs_recalc_ = true;
   }
 
   if (motion_blur_is_modified()) {
