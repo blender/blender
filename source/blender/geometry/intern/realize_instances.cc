@@ -2034,7 +2034,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 
   if (!all_dst_fill_ids.is_empty()) {
     MutableSpan<int> dst_fill_ids = all_dst_fill_ids.slice(dst_curve_range);
-    const VArray<int> src_fill_ids = curves_info.stored_fill_ids;
+    const VArray<int> &src_fill_ids = curves_info.stored_fill_ids;
 
     if (src_fill_ids.is_empty()) {
       dst_fill_ids.fill(0);
