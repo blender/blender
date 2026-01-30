@@ -3478,12 +3478,11 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     MutableSpan<float3> positions = curves.positions_for_write();
     MutableSpan<int> offsets = curves.offsets_for_write();
-    MutableSpan<bool> cyclic = curves.cyclic_for_write();
-
+    
     curves.fill_curve_types(CURVE_TYPE_POLY);
     array_utils::gather(mesh_positions, corner_verts, positions);
     array_utils::copy(faces_span, offsets);
-    cyclic.fill(true);
+    curves.cyclic_for_write().fill(true);
 
     VArray<int> mesh_materials = *mesh_eval.attributes().lookup_or_default(
         "material_index", bke::AttrDomain::Face, 0);
