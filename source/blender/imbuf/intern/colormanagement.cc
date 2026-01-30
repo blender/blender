@@ -648,7 +648,10 @@ void colormanagement_init()
 
   /* Then use fallback. */
   if (g_config == nullptr) {
+#ifdef WITH_OPENCOLORIO
+    /* Without OpenColorIO this just adds noise. */
     CLOG_STR_INFO_NOCHECK(&LOG, "Using fallback mode for management");
+#endif
     g_config = ocio::Config::create_fallback();
     colormanage_load_config(*g_config);
   }
@@ -927,12 +930,14 @@ static bool colormanage_check_display_settings(ColorManagedDisplaySettings *disp
     }
   }
 
-  CLOG_WARN(&LOG,
-            "Display \"%s\" used by %s not found, setting to \"%s\".",
-            display_settings->display_device,
-            what,
-            new_display_name.c_str());
-
+  /* Don't warn when only one display is available (e.g. fallback config). */
+  if (g_config->get_num_displays() > 1) {
+    CLOG_WARN(&LOG,
+              "Display \"%s\" used by %s not found, setting to \"%s\".",
+              display_settings->display_device,
+              what,
+              new_display_name.c_str());
+  }
   STRNCPY_UTF8(display_settings->display_device, new_display_name.c_str());
   return false;
 }
@@ -1000,11 +1005,14 @@ static bool colormanage_check_view_settings(ColorManagedDisplaySettings *display
     if (!view) {
       StringRefNull new_view_name = colormanage_find_matching_view_name(display, view_name);
       if (!new_view_name.is_empty()) {
-        CLOG_WARN(&LOG,
-                  "%s view \"%s\" not found, setting to \"%s\".",
-                  what,
-                  view_settings->view_transform,
-                  new_view_name.c_str());
+        /* Don't warn when only one view is available (e.g. fallback config). */
+        if (display->get_num_views() > 1) {
+          CLOG_WARN(&LOG,
+                    "%s view \"%s\" not found, setting to \"%s\".",
+                    what,
+                    view_settings->view_transform,
+                    new_view_name.c_str());
+        }
         STRNCPY_UTF8(view_settings->view_transform, new_view_name.c_str());
         ok = false;
       }
@@ -1017,12 +1025,14 @@ static bool colormanage_check_view_settings(ColorManagedDisplaySettings *display
   else {
     const ocio::Look *look = g_config->get_look_by_name(view_settings->look);
     if (look == nullptr) {
-      CLOG_WARN(&LOG,
-                "%s look \"%s\" not found, setting default \"%s\".",
-                what,
-                view_settings->look,
-                default_look_name);
-
+      /* Don't warn when only one look is available (e.g. fallback config). */
+      if (g_config->get_num_looks() > 1) {
+        CLOG_WARN(&LOG,
+                  "%s look \"%s\" not found, setting default \"%s\".",
+                  what,
+                  view_settings->look,
+                  default_look_name);
+      }
       STRNCPY_UTF8(view_settings->look, default_look_name);
       ok = false;
     }
