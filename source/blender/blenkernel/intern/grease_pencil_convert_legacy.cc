@@ -3187,7 +3187,7 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
 
   MutableAttributeAccessor attributes = curves.attributes_for_write();
   /* Optimization: If all of the strokes are shown, don't create the attribute. */
-  if (array_utils::booleans_mix_calc(VArray<bool>::from_container(material_hides_stroke)) !=
+  if (array_utils::booleans_mix_calc(VArray<bool>::from_span(material_hides_stroke)) !=
       array_utils::BooleanMix::AllFalse)
   {
     constexpr StringRef hide_stroke_name = "hide_stroke";
@@ -3217,7 +3217,7 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
   }
 
   /* Optimization: If no fills are used in this drawing, don't create the attribute. */
-  if (array_utils::booleans_mix_calc(VArray<bool>::from_container(material_uses_fill)) !=
+  if (array_utils::booleans_mix_calc(VArray<bool>::from_span(material_uses_fill)) !=
       array_utils::BooleanMix::AllFalse)
   {
     constexpr StringRef fill_id_name = "fill_id";
