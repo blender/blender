@@ -5547,6 +5547,20 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   cache->invert = stroke_mode == BrushStrokeMode::Invert;
   cache->alt_smooth = brush_switch_mode == BrushSwitchMode::Smooth;
   cache->alt_mask = brush_switch_mode == BrushSwitchMode::Mask;
+
+  /* Alt-Smooth. */
+  if (cache->alt_smooth) {
+    smooth_brush_toggle_on(bmain_, this->paint, cache);
+    /* Refresh the brush pointer in case we switched brush in the toggle function. */
+    brush = BKE_paint_brush(this->paint);
+  }
+  /* Alt-Mask. */
+  if (cache->alt_mask) {
+    mask_brush_toggle_on(bmain_, this->paint, cache);
+    /* Refresh brush pointer after switching. */
+    brush = BKE_paint_brush(this->paint);
+  }
+
   cache->normal_weight = brush->normal_weight;
 
   /* Interpret invert as following normal, for grab brushes. */
@@ -5564,19 +5578,6 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   }
   else {
     paint_runtime->draw_inverted = false;
-  }
-
-  /* Alt-Smooth. */
-  if (cache->alt_smooth) {
-    smooth_brush_toggle_on(bmain_, this->paint, cache);
-    /* Refresh the brush pointer in case we switched brush in the toggle function. */
-    brush = BKE_paint_brush(this->paint);
-  }
-  /* Alt-Mask. */
-  if (cache->alt_mask) {
-    mask_brush_toggle_on(bmain_, this->paint, cache);
-    /* Refresh brush pointer after switching. */
-    brush = BKE_paint_brush(this->paint);
   }
 
   cache->mouse = cache->initial_mouse;
