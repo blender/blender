@@ -285,10 +285,18 @@ static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
-  if (mesh->corner_data.external) {
-    BKE_bpath_foreach_path_fixed_process(bpath_data,
-                                         mesh->corner_data.external->filepath,
-                                         sizeof(mesh->corner_data.external->filepath));
+  CustomData &data = mesh->corner_data;
+  if (data.external) {
+    /* CustomDataExternal should only be the case for CD_MDISPS, but check all layers regardless.
+     */
+    const Span<CustomDataLayer> layers(data.layers, data.totlayer);
+    if (std::any_of(layers.begin(), layers.end(), [&](const CustomDataLayer &layer) {
+          return CustomData_external_test(&data, eCustomDataType(layer.type));
+        }))
+    {
+      BKE_bpath_foreach_path_fixed_process(
+          bpath_data, data.external->filepath, sizeof(data.external->filepath));
+    }
   }
 }
 
