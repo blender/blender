@@ -218,8 +218,6 @@ void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep)
   });
 
   fill_ids.finish();
-
-  return;
 }
 
 }  // namespace blender::bke::greasepencil
