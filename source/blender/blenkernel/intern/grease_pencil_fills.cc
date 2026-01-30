@@ -37,16 +37,19 @@ std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids)
       continue;
     }
 
-    /* Try adding fill id to the map. */
-    if (fill_indexing.add(fill_id, fill_sizes.size())) {
-      fill_sizes.append(1);
-      curve_indices_by_fill.append(Vector<int>({curve}));
-    }
-    else {
-      const int fill_index = fill_indexing.lookup(fill_id);
-      fill_sizes[fill_index]++;
-      curve_indices_by_fill[fill_index].append(curve);
-    }
+    /* Try adding new fill id to the map or update existing fill id info. */
+    fill_indexing.add_or_modify(
+        fill_id,
+        [&](int *value) {
+          *value = fill_sizes.size();
+          fill_sizes.append(1);
+          curve_indices_by_fill.append(Vector<int>({curve}));
+        },
+        [&](int *value) {
+          const int fill_index = *value;
+          fill_sizes[fill_index]++;
+          curve_indices_by_fill[fill_index].append(curve);
+        });
   }
 
   if (fill_sizes.is_empty()) {
