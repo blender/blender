@@ -225,9 +225,10 @@ def main():
     elif args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
 
-    gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
-    if gpu_vendor == "INTEL":
-        blocklist += BLOCKLIST_INTEL
+    if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
+        gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+        if gpu_vendor == "INTEL":
+            blocklist += BLOCKLIST_INTEL
 
     report = EEVEEReport("EEVEE", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":

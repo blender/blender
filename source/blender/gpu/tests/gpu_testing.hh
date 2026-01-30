@@ -166,7 +166,7 @@ class GPUVulkanWorkaroundsTest : public GPUTest {
   GPU_VULKAN_TEST(test_name)
 
 #define BLOCK_GPU_TEST_ON(device_type, os_type, driver_type, backend_type) \
-  if (!blender::tests::should_ignore_blocklist() && \
+  if (!blender::tests::should_ignore_blocklist(device_type == GPU_DEVICE_ANY) && \
       GPU_type_matches_ex(device_type, os_type, driver_type, backend_type)) \
   { \
     GTEST_SKIP(); \

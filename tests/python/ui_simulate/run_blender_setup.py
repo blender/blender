@@ -92,7 +92,7 @@ def main():
     gpu_backend = gpu.platform.backend_type_get()
 
     BLOCKLIST = []
-    if os.getenv("BLENDER_TEST_IGNORE_BLOCKLIST") is None:
+    if os.getenv("BLENDER_TEST_IGNORE_BLOCKLIST") is None and os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
         if sys.platform == "win32" and gpu_device == "INTEL" and gpu_backend == "OPENGL":
             # See #149084 for the tracking issue
             BLOCKLIST = ["test_workspace"]
