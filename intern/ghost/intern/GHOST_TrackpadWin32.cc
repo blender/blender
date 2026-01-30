@@ -204,7 +204,7 @@ GHOST_TTrackpadInfo GHOST_DirectManipulationHelper::getTrackpadInfo()
 
 GHOST_DirectManipulationHelper::~GHOST_DirectManipulationHelper()
 {
-  HRESULT hr;
+  [[maybe_unused]] HRESULT hr;
   hr = direct_manipulation_viewport_->Stop();
   GHOST_ASSERT(SUCCEEDED(hr), "Viewport stop failed\n");
 

@@ -1011,11 +1011,7 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
       queue->get_device().get_info<sycl::info::device::device_type>();
   sycl::usm::alloc usm_type = get_pointer_type(usm_ptr, queue->get_context());
   (void)usm_type;
-#    ifndef WITH_ONEAPI_SYCL_HOST_TASK
   const sycl::usm::alloc main_memory_type = sycl::usm::alloc::device;
-#    else
-  const sycl::usm::alloc main_memory_type = sycl::usm::alloc::host;
-#    endif
   assert(usm_type == main_memory_type ||
          (usm_type == sycl::usm::alloc::host &&
           (allow_host || device_type == sycl::info::device_type::cpu)) ||
@@ -1111,11 +1107,7 @@ void *OneapiDevice::usm_alloc_device(SyclQueue *queue_, size_t memory_size)
    * two different pointer for host activity and device activity, and also has to perform all
    * needed memory transfer operations. So, USM device memory type has been used for oneAPI device
    * in order to better fit in Cycles architecture. */
-#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
   return sycl::malloc_device(memory_size, *queue);
-#  else
-  return sycl::malloc_host(memory_size, *queue);
-#  endif
 }
 
 void OneapiDevice::usm_free(SyclQueue *queue_, void *usm_ptr)
@@ -1365,22 +1357,6 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
   /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
    * we extend work size to fit uniformity requirements. */
   kernel_global_size = round_up(kernel_global_size, kernel_local_size);
-
-#  ifdef WITH_ONEAPI_SYCL_HOST_TASK
-  /* Kernels listed below need a specific number of work groups. */
-  if (kernel == DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY)
-  {
-    /* Path array implementation is serial in case of SYCL Host Task execution. */
-    kernel_global_size = 1;
-    kernel_local_size = 1;
-  }
-#  endif
 
   assert(kernel_global_size % kernel_local_size == 0);
 }
@@ -1676,11 +1652,7 @@ char *OneapiDevice::device_capabilities()
 
   const std::vector<sycl::device> &oneapi_devices = available_sycl_devices();
   for (const sycl::device &device : oneapi_devices) {
-#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
     const std::string &name = device.get_info<sycl::info::device::name>();
-#  else
-    const std::string &name = "SYCL Host Task (Debug)";
-#  endif
 
     capabilities << std::string("\t") << name << "\n";
     capabilities << "\t\tsycl::info::platform::name\t\t\t"
@@ -1797,11 +1769,7 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
   for (sycl::device &device : devices) {
     const std::string &platform_name =
         device.get_platform().get_info<sycl::info::platform::name>();
-#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
     std::string name = device.get_info<sycl::info::device::name>();
-#  else
-    std::string name = "SYCL Host Task (Debug)";
-#  endif
 #  ifdef WITH_EMBREE_GPU
     bool hwrt_support = rtcIsSYCLDeviceSupported(device);
 #  else

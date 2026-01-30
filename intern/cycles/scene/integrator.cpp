@@ -15,6 +15,7 @@
 #include "scene/shader.h"
 #include "scene/stats.h"
 #include "scene/tabulated_sobol.h"
+#include "scene/volume.h"
 
 #include "kernel/types.h"
 
@@ -357,9 +358,20 @@ void Integrator::device_free(Device * /*unused*/, DeviceScene *dscene, bool forc
   dscene->sample_pattern_lut.free_if_need_realloc(force_free);
 }
 
+bool Integrator::is_modified() const
+{
+  return Node::is_modified() || shadow_catcher_needs_recalc_;
+}
+
+void Integrator::clear_modified()
+{
+  Node::clear_modified();
+  shadow_catcher_needs_recalc_ = false;
+}
+
 void Integrator::tag_update(Scene *scene, const uint32_t flag)
 {
-  if (flag & UPDATE_ALL) {
+  if (flag == UPDATE_ALL) {
     tag_modified();
   }
 
@@ -369,9 +381,18 @@ void Integrator::tag_update(Scene *scene, const uint32_t flag)
     tag_ao_bounces_modified();
   }
 
+  if (flag & OBJECT_MANAGER) {
+    shadow_catcher_needs_recalc_ = true;
+  }
+
   if (motion_blur_is_modified()) {
     scene->object_manager->tag_update(scene, ObjectManager::MOTION_BLUR_MODIFIED);
     scene->camera->tag_modified();
+  }
+
+  if (volume_ray_marching_is_modified()) {
+    scene->volume_manager->tag_update_algorithm();
+    scene->geometry_manager->tag_update(scene, GeometryManager::VOLUME_MODIFIED);
   }
 }
 

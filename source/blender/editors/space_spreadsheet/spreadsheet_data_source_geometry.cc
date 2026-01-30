@@ -1179,6 +1179,9 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
   if (value.is_list()) {
     return value;
   }
+  if (value.is_volume_grid()) {
+    return value;
+  }
   return {};
 }
 

@@ -441,6 +441,24 @@ bool Object::has_shadow_linking() const
   return false;
 }
 
+void Object::set_tfm(Transform tfm)
+{
+  if (geometry) {
+    if (geometry->is_volume()) {
+      /* Slightly offset vertex coordinates to avoid overlapping faces with other volumes or
+       * meshes. The proper solution would be to improve intersection in the kernel to support
+       * robust handling of multiple overlapping faces or use an all-hit intersection similar to
+       * shadows. */
+      const float3 offset = transform_direction(
+          &tfm, make_float3(hash_uint_to_float(hash_string(name.c_str())) * 0.001f));
+      transform_translate(tfm, offset);
+    }
+  }
+
+  const SocketType *socket = get_tfm_socket();
+  set(*socket, tfm);
+}
+
 /* Object Manager */
 
 ObjectManager::ObjectManager()

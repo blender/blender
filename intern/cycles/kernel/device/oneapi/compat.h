@@ -65,7 +65,6 @@
 #define ccl_gpu_kernel(block_num_threads, thread_num_registers)
 #define ccl_gpu_kernel_threads(block_num_threads)
 
-#ifndef WITH_ONEAPI_SYCL_HOST_TASK
 #  define __ccl_gpu_kernel_signature(name, ...) \
 void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
                           size_t kernel_global_size, \
@@ -82,34 +81,6 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 #  define ccl_gpu_kernel_postfix \
           }); \
     }
-#else
-/* Additional anonymous lambda is required to handle all "return" statements in the kernel code */
-#  define ccl_gpu_kernel_signature(name, ...) \
-void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
-                          size_t kernel_global_size, \
-                          size_t kernel_local_size, \
-                          sycl::handler &cgh, \
-                          __VA_ARGS__) { \
-      (void)(kg); \
-      (kernel_local_size); \
-      cgh.host_task( \
-          [=]() {\
-            for (size_t gid = (size_t)0; gid < kernel_global_size; gid++) { \
-                kg->nd_item_local_id_0 = 0; \
-                kg->nd_item_local_range_0 = 1; \
-                kg->nd_item_group_id_0 = gid; \
-                kg->nd_item_group_range_0 = kernel_global_size; \
-                kg->nd_item_global_id_0 = gid; \
-                kg->nd_item_global_range_0 = kernel_global_size; \
-                auto kernel = [=]() {
-
-#  define ccl_gpu_kernel_postfix \
-                }; \
-                kernel(); \
-            } \
-      }); \
-}
-#endif
 
 #define ccl_gpu_kernel_call(x) ((ONEAPIKernelContext*)kg)->x
 #define ccl_gpu_kernel_within_bounds(i, n) ((i) < (n))
@@ -125,7 +96,6 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 
 /* GPU thread, block, grid size and index */
 
-#ifndef WITH_ONEAPI_SYCL_HOST_TASK
 #  define ccl_gpu_thread_idx_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_local_id(0))
 #  define ccl_gpu_block_dim_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_local_range(0))
 #  define ccl_gpu_block_idx_x (sycl::ext::oneapi::this_work_item::get_nd_item<1>().get_group(0))
@@ -144,21 +114,6 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 #  else
 #    define ccl_gpu_ballot(predicate) (predicate ? 1 : 0)
 #  endif
-#else
-#  define ccl_gpu_thread_idx_x (kg->nd_item_local_id_0)
-#  define ccl_gpu_block_dim_x (kg->nd_item_local_range_0)
-#  define ccl_gpu_block_idx_x (kg->nd_item_group_id_0)
-#  define ccl_gpu_grid_dim_x (kg->nd_item_group_range_0)
-#  define ccl_gpu_warp_size (1)
-#  define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
-
-#  define ccl_gpu_global_id_x() (kg->nd_item_global_id_0)
-#  define ccl_gpu_global_size_x() (kg->nd_item_global_range_0)
-
-#  define ccl_gpu_syncthreads()
-#  define ccl_gpu_local_syncthreads()
-#  define ccl_gpu_ballot(predicate) (predicate ? 1 : 0)
-#endif
 
 /* Debug defines */
 #if defined(__SYCL_DEVICE_ONLY__)

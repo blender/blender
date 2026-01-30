@@ -201,7 +201,7 @@ class Grid : Overlay {
     tile_pos_buf_.push_update();
 
     /* This suffices for most cases, and in others we fade to hide it. */
-    grid_ubo_.num_lines = 301u;
+    grid_ubo_.num_lines = 601u;
     num_iters_ = 1u;
 
     return true;
@@ -215,9 +215,8 @@ class Grid : Overlay {
     const bool show_axis_z = (state.v3d_gridflag & V3D_SHOW_Z) != 0;
     const bool show_persp = (state.v3d_gridflag & V3D_SHOW_FLOOR) != 0;
     const bool show_ortho = (state.v3d_gridflag & V3D_SHOW_ORTHO_GRID) != 0;
-    const bool show_any = show_axis_x || show_axis_y || show_axis_z || show_persp || show_ortho;
 
-    if (!show_any) {
+    if (!(show_axis_x || show_axis_y || show_axis_z || show_persp || show_ortho)) {
       return false;
     }
 
@@ -226,11 +225,15 @@ class Grid : Overlay {
 
     /* Set `grid_flag_` dependent on view configuration. */
     if (rv3d->is_persp || rv3d->view == RV3D_VIEW_USER) {
-      /* Perspective; set selected axes and floor bits. */
-      axis_flag_ |= (show_axis_x ? (AXIS_X | SHOW_AXES) : OVERLAY_GridBits(0));
-      axis_flag_ |= (show_axis_y ? (AXIS_Y | SHOW_AXES) : OVERLAY_GridBits(0));
-      axis_flag_ |= (show_axis_z ? (AXIS_Z | SHOW_AXES) : OVERLAY_GridBits(0));
-      grid_flag_ |= (show_persp ? (PLANE_XY | SHOW_GRID) : OVERLAY_GridBits(0));
+      /* Perspective; set selected axes and plane (floor = XY) bits. */
+      axis_flag_ |= (show_axis_x ? AXIS_X : OVERLAY_GridBits(0));
+      axis_flag_ |= (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
+      axis_flag_ |= (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
+      grid_flag_ |= (show_persp ? PLANE_XY : OVERLAY_GridBits(0));
+
+      /* If any options were set, set SHOW_AXES/SHOW_GRID. */
+      axis_flag_ |= (axis_flag_ ? SHOW_AXES : OVERLAY_GridBits(0));
+      grid_flag_ |= (grid_flag_ ? SHOW_GRID : OVERLAY_GridBits(0));
 
       /* Axes are passed to the grid flag for correct occlusion. */
       if (grid_flag_) {
@@ -245,20 +248,22 @@ class Grid : Overlay {
       if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
         axis_flag_ = (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0)) |
                      (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
-        grid_flag_ = axis_flag_ | PLANE_YZ;
+        grid_flag_ = (show_ortho ? PLANE_YZ : OVERLAY_GridBits(0));
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
         axis_flag_ = (show_axis_x ? AXIS_X : OVERLAY_GridBits(0)) |
                      (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
-        grid_flag_ = axis_flag_ | PLANE_XY;
+        grid_flag_ = (show_ortho ? PLANE_XY : OVERLAY_GridBits(0));
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
         axis_flag_ = (show_axis_x ? AXIS_X : OVERLAY_GridBits(0)) |
                      (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
-        grid_flag_ = axis_flag_ | PLANE_XZ;
+        grid_flag_ = (show_ortho ? PLANE_XZ : OVERLAY_GridBits(0));
       }
-      grid_flag_ |= (show_ortho ? SHOW_GRID : OVERLAY_GridBits(0));
-      axis_flag_ |= (show_ortho ? SHOW_AXES : OVERLAY_GridBits(0));
+
+      /* If any axes are set, set SHOW_AXES. If `grid` is toggled, set SHOW_GRID. */
+      axis_flag_ |= (axis_flag_ ? SHOW_AXES : OVERLAY_GridBits(0));
+      grid_flag_ |= (grid_flag_ ? SHOW_GRID : OVERLAY_GridBits(0));
     }
 
     /* Query grid scales from unit/scaling; this range suffices for user-visible levels. */

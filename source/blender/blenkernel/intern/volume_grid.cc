@@ -824,6 +824,49 @@ void prune_inactive(openvdb::GridBase &grid_base)
   to_typed_grid(grid_base, [&](auto &grid) { openvdb::tools::pruneInactive(grid.tree()); });
 }
 
+template<typename T>
+static void sample_tree_indices(const bke::OpenvdbTreeType<T> &tree,
+                                const Span<int> x,
+                                const Span<int> y,
+                                const Span<int> z,
+                                const IndexMask &mask,
+                                MutableSpan<T> dst)
+{
+  using TreeType = bke::OpenvdbTreeType<T>;
+  using TreeValueT = typename TreeType::ValueType;
+  using AccessorT = typename TreeType::ConstUnsafeAccessor;
+  using TraitsT = typename bke::VolumeGridTraits<T>;
+  /* Can use unsafe accessor because we know that the tree topology is not modified while we access
+   * it here. This reduces a significant amount of overhead. */
+  AccessorT accessor = const_cast<TreeType &>(tree).getConstUnsafeAccessor();
+
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
+    TreeValueT value = accessor.getValue(openvdb::Coord(x[i], y[i], z[i]));
+    dst[i] = TraitsT::to_blender(value);
+  });
+}
+
+void sample_tree_indices(const VolumeGridType grid_type,
+                         const openvdb::TreeBase &tree_base,
+                         Span<int> xs,
+                         Span<int> ys,
+                         Span<int> zs,
+                         const IndexMask &mask,
+                         GMutableSpan r_values)
+{
+  BLI_assert(grid_type == get_type(tree_base));
+  BKE_volume_grid_type_to_blender_value_type(grid_type, [&]<typename T>() {
+    if constexpr (is_same_any_v<T, bool, float, int, float3>) {
+      sample_tree_indices<T>(static_cast<const bke::OpenvdbTreeType<T> &>(tree_base),
+                             xs,
+                             ys,
+                             zs,
+                             mask,
+                             r_values.typed<T>());
+    }
+  });
+}
+
 #endif /* WITH_OPENVDB */
 
 }  // namespace blender::bke::volume_grid

@@ -30,10 +30,11 @@ const std::string &flags_test_release_dir()
   return FLAGS_test_release_dir;
 }
 
-bool should_ignore_blocklist()
+bool should_ignore_blocklist(bool is_all_gpu_vendors)
 {
   static bool has_env = getenv("BLENDER_TEST_IGNORE_BLOCKLIST");
-  return has_env;
+  static bool has_env_vendor = getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST");
+  return has_env || (!is_all_gpu_vendors && has_env_vendor);
 }
 
 }  // namespace blender::tests

@@ -37,6 +37,10 @@
 #include <optional>
 #include <vector>
 
+namespace blender {
+class StringRefNull;
+}
+
 #ifndef GHOST_OPENGL_VK_CONTEXT_FLAGS
 /* leave as convenience define for the future */
 #  define GHOST_OPENGL_VK_CONTEXT_FLAGS 0
@@ -204,6 +208,23 @@ class GHOST_ContextVK : public GHOST_Context {
   {
     return true;
   }
+
+  /**
+   * \brief Is the given extension name enabled on instance level?
+   *
+   * \returns false, when extension isn't enabled on instance level or when no instance exists.
+   * Will return true when instance exists and extension name has been enabled on the instance.
+   */
+  static bool is_instance_extension_enabled(blender::StringRefNull extension_name);
+
+  /**
+   * \brief Is the given extension name enabled on device level?
+   *
+   * \returns false, when extension isn't enabled on device level or when no instance or device
+   * exists. Will return true when instance exists and extension name has been enabled on the
+   * instance.
+   */
+  static bool is_device_extension_enabled(blender::StringRefNull extension_name);
 
  private:
 #ifdef _WIN32

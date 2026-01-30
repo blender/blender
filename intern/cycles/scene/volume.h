@@ -17,12 +17,6 @@ CCL_NAMESPACE_BEGIN
 class Object;
 class Octree;
 
-enum VolumeRenderingAlgorithm {
-  NULL_SCATTERING,
-  RAY_MARCHING,
-  NONE,
-};
-
 class Volume : public Mesh {
  public:
   NODE_DECLARE
@@ -53,6 +47,7 @@ class VolumeManager {
   void tag_update(const Object *object, const uint32_t flag);
   void tag_update(const Geometry *geometry);
   void tag_update_indices();
+  void tag_update_algorithm();
 
   /* Check whether the shader is a homogeneous volume. */
   static bool is_homogeneous_volume(const Object *, const Shader *);
@@ -88,13 +83,14 @@ class VolumeManager {
   /* One octree per object per shader. */
   std::map<std::pair<const Object *, const Shader *>, std::shared_ptr<Octree>> object_octrees_;
 
+  /* TODO(weizhen): replace booleans with enum `update_flags`? */
   bool update_root_indices_ = false;
   bool need_rebuild_;
   bool update_visualization_ = false;
+  bool algorithm_modified_ = true;
+
   int num_octree_nodes_;
   int num_octree_roots_;
-
-  VolumeRenderingAlgorithm last_algorithm = NONE;
 
 #ifdef WITH_OPENVDB
   /* Create SDF grid for mesh volumes, to determine whether a certain point is in the

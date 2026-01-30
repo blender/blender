@@ -73,6 +73,8 @@ inline void DRW_vbo_request(gpu::Batch *batch, gpu::VertBuf **vbo)
     *vbo = GPU_vertbuf_calloc();
   }
   if (batch != nullptr) {
+    BLI_assert_msg(batch->procedural_vertices == -1,
+                   "Request of vertex buffer for procedural batch is not valid operation.");
     /* HACK we set VBO's that may not yet be valid. */
     GPU_batch_vertbuf_add(batch, *vbo, false);
   }

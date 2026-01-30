@@ -78,10 +78,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     list(APPEND sycl_compiler_flags ${SYCL_CPP_FLAGS})
   endif()
 
-  if(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
-    list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_TASK)
-  endif()
-
   # Set defaults for spir64 and spir64_gen options
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-cl-fast-relaxed-math -ze-intel-enable-auto-large-GRF-mode -ze-opt-regular-grf-kernel integrator_intersect -ze-opt-large-grf-kernel shade_surface -ze-opt-no-local-to-generic'")
@@ -94,7 +90,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
 
   # Host execution won't use GPU binaries, no need to compile them.
-  if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
+  if(WITH_CYCLES_ONEAPI_BINARIES)
     # Add the list of Intel devices to build binaries for.
     foreach(device ${CYCLES_ONEAPI_INTEL_BINARIES_ARCH})
       # Run `ocloc` ids to test if the device is supported.

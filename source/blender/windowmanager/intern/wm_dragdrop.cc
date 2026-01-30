@@ -1027,28 +1027,28 @@ static void wm_drop_redalert_draw(const StringRef redalert_str, int x, int y)
   ui::fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
 }
 
-const char *WM_drag_get_item_name(wmDrag *drag)
+const std::string WM_drag_get_item_name(wmDrag *drag)
 {
   switch (drag->type) {
     case WM_DRAG_ID: {
       ID *id = WM_drag_get_local_ID(drag, 0);
-      bool single = BLI_listbase_is_single(&drag->ids);
+      const int dragged_ids = BLI_listbase_count(&drag->ids);
 
-      if (single) {
+      if (dragged_ids == 1) {
         return id->name + 2;
       }
       if (id) {
-        return BKE_idtype_idcode_to_name_plural(GS(id->name));
+        return std::to_string(dragged_ids) + " " + BKE_idtype_idcode_to_name_plural(GS(id->name));
       }
       break;
     }
     case WM_DRAG_ASSET: {
       const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-      return asset_drag->asset->get_name().c_str();
+      return asset_drag->asset->get_name();
     }
     case WM_DRAG_PATH: {
       const wmDragPath *path_drag_data = static_cast<const wmDragPath *>(drag->poin);
-      return path_drag_data->tooltip.c_str();
+      return path_drag_data->tooltip;
     }
     case WM_DRAG_NAME:
       return static_cast<const char *>(drag->poin);
@@ -1134,7 +1134,7 @@ static void wm_drag_draw_item_name(wmDrag *drag, const int x, const int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const uchar text_col[] = {255, 255, 255, 255};
-  ui::fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
+  ui::fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag).c_str(), text_col);
 }
 
 void WM_drag_draw_item_name_fn(bContext * /*C*/, wmWindow *win, wmDrag *drag, const int xy[2])

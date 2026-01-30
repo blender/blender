@@ -17,15 +17,36 @@ namespace nodes::node_shader_bsdf_hair_principled_cc {
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  auto set_parametrization_reflectance = [](bNode &node) {
+    static_cast<NodeShaderHairPrincipled *>(node.storage)->parametrization =
+        SHD_PRINCIPLED_HAIR_REFLECTANCE;
+  };
+  auto set_parametrization_pigment_concentration = [](bNode &node) {
+    static_cast<NodeShaderHairPrincipled *>(node.storage)->parametrization =
+        SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION;
+  };
+  auto set_parametrization_direct_absorption = [](bNode &node) {
+    static_cast<NodeShaderHairPrincipled *>(node.storage)->parametrization =
+        SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION;
+  };
+  auto set_model_huang = [](bNode &node) {
+    static_cast<NodeShaderHairPrincipled *>(node.storage)->model = SHD_PRINCIPLED_HAIR_HUANG;
+  };
+  auto set_model_chiang = [](bNode &node) {
+    static_cast<NodeShaderHairPrincipled *>(node.storage)->model = SHD_PRINCIPLED_HAIR_CHIANG;
+  };
+
   b.add_input<decl::Color>("Color")
       .default_value({0.017513f, 0.005763f, 0.002059f, 1.0f})
-      .description("The RGB color of the strand. Only used in Direct Coloring");
+      .description("The RGB color of the strand. Only used in Direct Coloring")
+      .make_available(set_parametrization_reflectance);
   b.add_input<decl::Float>("Melanin")
       .default_value(0.8f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Hair pigment. Specify its absolute quantity between 0 and 1");
+      .description("Hair pigment. Specify its absolute quantity between 0 and 1")
+      .make_available(set_parametrization_pigment_concentration);
   b.add_input<decl::Float>("Melanin Redness")
       .default_value(1.0f)
       .min(0.0f)
@@ -33,17 +54,20 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Fraction of pheomelanin in melanin, gives yellowish to reddish color, as opposed to "
-          "the brownish to black color of eumelanin");
+          "the brownish to black color of eumelanin")
+      .make_available(set_parametrization_pigment_concentration);
   b.add_input<decl::Color>("Tint")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .description("Additional color used for dyeing the hair");
+      .description("Additional color used for dyeing the hair")
+      .make_available(set_parametrization_pigment_concentration);
   b.add_input<decl::Vector>("Absorption Coefficient")
       .default_value({0.245531f, 0.52f, 1.365f})
       .min(0.0f)
       .max(1000.0f)
       .description(
           "Specifies energy absorption per unit length as light passes through the hair. A higher "
-          "value leads to a darker color");
+          "value leads to a darker color")
+      .make_available(set_parametrization_direct_absorption);
   b.add_input<decl::Float>("Aspect Ratio")
       .default_value(0.85f)
       .min(0.0f)
@@ -53,7 +77,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           "The ratio of the minor axis to the major axis of an elliptical cross-section. "
           "Recommended values are 0.8~1 for Asian hair, 0.65~0.9 for Caucasian hair, 0.5~0.65 for "
           "African hair. The major axis is aligned with the curve normal, which is not supported "
-          "in particle hair");
+          "in particle hair")
+      .make_available(set_model_huang);
   b.add_input<decl::Float>("Roughness")
       .default_value(0.3f)
       .min(0.0f)
@@ -64,7 +89,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.3f)
       .min(0.0f)
       .max(1.0f)
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .make_available(set_model_chiang);
   b.add_input<decl::Float>("Coat")
       .default_value(0.0f)
       .min(0.0f)
@@ -73,7 +99,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Simulate a shiny coat by reducing the roughness to the given factor only for the first "
           "light bounce (diffuse). Range [0, 1] is equivalent to a reduction of [0%, 100%] of the "
-          "original roughness");
+          "original roughness")
+      .make_available(set_model_chiang);
   b.add_input<decl::Float>("IOR").default_value(1.55f).min(0.0f).max(1000.0f).description(
       "Index of refraction determines how much the ray is bent. At 1.0 rays pass straight through "
       "like in a transparent material; higher values cause larger deflection in angle. Default "
@@ -91,7 +118,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Vary the melanin concentration for each strand");
+      .description("Vary the melanin concentration for each strand")
+      .make_available(set_parametrization_pigment_concentration);
   b.add_input<decl::Float>("Random Roughness")
       .default_value(0.0f)
       .min(0.0f)
@@ -107,7 +135,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Optional factor for modulating the first light bounce off the hair surface. The color "
-          "of this component is always white. Keep this 1.0 for physical correctness");
+          "of this component is always white. Keep this 1.0 for physical correctness")
+      .make_available(set_model_huang);
   b.add_input<decl::Float>("Transmission", "TT lobe")
       .default_value(1.0f)
       .min(0.0f)
@@ -115,7 +144,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Optional factor for modulating the transmission component. Picks up the color of the "
-          "pigment inside the hair. Keep this 1.0 for physical correctness");
+          "pigment inside the hair. Keep this 1.0 for physical correctness")
+      .make_available(set_model_huang);
   b.add_input<decl::Float>("Secondary Reflection", "TRT lobe")
       .default_value(1.0f)
       .min(0.0f)
@@ -125,7 +155,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Optional factor for modulating the component which is transmitted into the hair, "
           "reflected off the backside of the hair and then transmitted out of the hair. This "
           "component is oriented approximately around the incoming direction, and picks up the "
-          "color of the pigment inside the hair. Keep this 1.0 for physical correctness");
+          "color of the pigment inside the hair. Keep this 1.0 for physical correctness")
+      .make_available(set_model_huang);
   b.add_output<decl::Shader>("BSDF");
 }
 
