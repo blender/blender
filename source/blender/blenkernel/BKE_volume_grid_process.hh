@@ -116,6 +116,24 @@ void set_inactive_values(openvdb::GridBase &grid_base, const GPointer value);
 /** See #openvdb::tools::pruneInactive. */
 void prune_inactive(openvdb::GridBase &grid_base);
 
+/**
+ * Sample the tree at the given coordinates.
+ *
+ * \param grid_type: Data type of the tree. This is technically redundant but can help a little
+ *   with performance.
+ * \param tree_base: The tree to sample.
+ * \param xs, ys, zs: Coordinates to sample.
+ * \param mask: Subset of indices that should be sampled.
+ * \param r_values: Output buffer to store the sampled values.
+ */
+void sample_tree_indices(const VolumeGridType grid_type,
+                         const openvdb::TreeBase &tree_base,
+                         Span<int> xs,
+                         Span<int> ys,
+                         Span<int> zs,
+                         const IndexMask &mask,
+                         GMutableSpan r_values);
+
 }  // namespace blender::bke::volume_grid
 
 /** \} */
