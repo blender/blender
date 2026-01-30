@@ -327,17 +327,32 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
 
   for (bke::Attribute *attribute : attributes) {
     const eCustomDataType type = *bke::attr_type_to_custom_data_type(attribute->data_type());
-    const bke::Attribute::DataVariant &data = attribute->data();
-    BLI_assert(std::holds_alternative<bke::Attribute::ArrayData>(data));
-    const bke::Attribute::ArrayData &array_data = std::get<bke::Attribute::ArrayData>(data);
-    store_layer(type,
-                array_data.data,
-                array_data.sharing_info.get(),
-                data_len,
-                bs_index,
-                bcd_reference,
-                index_in_type,
-                bcd);
+    switch (attribute->storage_type()) {
+      case bke::AttrStorageType::Array: {
+        const auto &data = std::get<bke::Attribute::ArrayData>(attribute->data());
+        store_layer(type,
+                    data.data,
+                    data.sharing_info.get(),
+                    data_len,
+                    bs_index,
+                    bcd_reference,
+                    index_in_type,
+                    bcd);
+        break;
+      }
+      case bke::AttrStorageType::Single: {
+        const auto &data = std::get<bke::Attribute::SingleData>(attribute->data());
+        store_layer(type,
+                    data.value,
+                    data.sharing_info.get(),
+                    1,
+                    bs_index,
+                    bcd_reference,
+                    index_in_type,
+                    bcd);
+        break;
+      }
+    }
     attribute->assign_data({});
   }
 

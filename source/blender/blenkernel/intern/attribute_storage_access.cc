@@ -56,8 +56,12 @@ GAttributeWriter attribute_to_writer(void *owner,
           std::move(tag_modified_fn)};
     }
     case AttrStorageType::Single: {
-      /* Not yet implemented. */
-      BLI_assert_unreachable();
+      /* Just convert the stored type to an array for modification. It might not make sense to
+       * implement editing of single values at this level. */
+      const auto &data = std::get<Attribute::SingleData>(attribute.data());
+      const GPointer value(cpp_type, data.value);
+      attribute.assign_data(Attribute::ArrayData::from_value(value, domain_size));
+      return attribute_to_writer(owner, changed_tags, domain_size, attribute);
     }
   }
   BLI_assert_unreachable();
@@ -66,7 +70,8 @@ GAttributeWriter attribute_to_writer(void *owner,
 
 Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
                                               const int64_t domain_size,
-                                              const AttributeInit &initializer)
+                                              const AttributeInit &initializer,
+                                              const bool require_array_data)
 {
   switch (initializer.type) {
     case AttributeInit::Type::Construct: {
@@ -76,7 +81,10 @@ Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
     case AttributeInit::Type::Value: {
       const auto &init = static_cast<const AttributeInitValue &>(initializer);
       BLI_assert(*init.value.type() == bke::attribute_type_to_cpp_type(data_type));
-      return Attribute::ArrayData::from_value(init.value, domain_size);
+      if (require_array_data) {
+        return Attribute::ArrayData::from_value(init.value, domain_size);
+      }
+      return Attribute::SingleData::from_value(init.value);
     }
     case AttributeInit::Type::DefaultValue: {
       const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
@@ -86,6 +94,12 @@ Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
       const auto &init = static_cast<const AttributeInitVArray &>(initializer);
       const GVArray &varray = init.varray;
       BLI_assert(varray.size() == domain_size);
+      if (!require_array_data) {
+        const CommonVArrayInfo &info = varray.common_info();
+        if (info.type == CommonVArrayInfo::Type::Single) {
+          return Attribute::SingleData::from_value(GPointer(varray.type(), info.data));
+        }
+      }
       const CPPType &type = varray.type();
       Attribute::ArrayData data = Attribute::ArrayData::from_uninitialized(type, domain_size);
       varray.materialize_to_uninitialized(varray.index_range(), data.data);

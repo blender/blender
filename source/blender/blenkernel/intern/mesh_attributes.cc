@@ -726,6 +726,12 @@ static const auto &changed_tags()
   return attributes;
 }
 
+static const auto &array_storage_required()
+{
+  static Set<StringRef> attributes{"position", ".edge_verts", ".corner_vert", ".corner_edge"};
+  return attributes;
+}
+
 static int get_domain_size(const void *owner, const AttrDomain domain)
 {
   const Mesh *mesh = static_cast<const Mesh *>(owner);
@@ -1021,7 +1027,28 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
     if (storage.lookup(name)) {
       return false;
     }
-    storage.add(name, domain, type, attribute_init_to_data(type, domain_size, initializer));
+    const bool array = array_storage_required().contains(name);
+    Attribute::DataVariant data = attribute_init_to_data(type, domain_size, initializer, array);
+    storage.add(name, domain, type, std::move(data));
+    if (initializer.type != AttributeInit::Type::Construct) {
+      if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
+        (*fn)(owner);
+      }
+    }
+    return true;
+  };
+  fn.assign_data = [](void *owner, StringRef name, const AttributeInit &initializer) {
+    Mesh &mesh = *static_cast<Mesh *>(owner);
+    AttributeStorage &storage = mesh.attribute_storage.wrap();
+    Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return false;
+    }
+    Attribute::DataVariant data = attribute_init_to_data(attr->data_type(),
+                                                         get_domain_size(owner, attr->domain()),
+                                                         initializer,
+                                                         array_storage_required().contains(name));
+    attr->assign_data(std::move(data));
     if (initializer.type != AttributeInit::Type::Construct) {
       if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
         (*fn)(owner);

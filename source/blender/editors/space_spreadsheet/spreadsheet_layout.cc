@@ -91,7 +91,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
 
   void draw_top_row_cell(int column_index, const CellDrawParams &params) const final
   {
-    const StringRefNull name = spreadsheet_layout_.columns[column_index].values->name();
+    const ColumnValues &values = *spreadsheet_layout_.columns[column_index].values;
+    const StringRefNull name = values.name();
     ui::Button *but = uiDefIconTextBut(params.block,
                                        ui::ButtonType::Label,
                                        ICON_NONE,
@@ -102,12 +103,15 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                        params.height,
                                        nullptr,
                                        std::nullopt);
+    std::string description = values.description().is_empty() ?
+                                  std::string(name) :
+                                  fmt::format("{}\n{}", name, values.description());
     button_func_tooltip_set(
         but,
         [](bContext * /*C*/, void *arg, StringRef /*tip*/) {
           return *static_cast<std::string *>(arg);
         },
-        MEM_new<std::string>(__func__, name),
+        MEM_new<std::string>(__func__, std::move(description)),
         [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
     /* Center-align column headers. */
     button_drawflag_disable(but, ui::BUT_TEXT_LEFT);

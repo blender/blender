@@ -361,7 +361,12 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     column_display_name = "Viewer";
   }
 
-  return std::make_unique<ColumnValues>(column_display_name, std::move(varray));
+  StringRef description;
+  if (varray.is_single()) {
+    description = TIP_("Stored as single value");
+  }
+
+  return std::make_unique<ColumnValues>(column_display_name, std::move(varray), description);
 }
 
 int GeometryDataSource::tot_rows() const
@@ -681,6 +686,7 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
             [volume](const int64_t index) {
               return BKE_volume_grid_get(volume, index)->size_in_bytes();
             }),
+        "",
         ColumnValueDisplayHint::Bytes);
   }
   if (STREQ(column_id.name, "Voxel Extent")) {
@@ -773,7 +779,7 @@ std::unique_ptr<ColumnValues> VolumeGridDataSource::get_column_values(
   if (STREQ(column_id.name, "Size")) {
     const int64_t size = grid.size_in_bytes();
     return std::make_unique<ColumnValues>(
-        IFACE_("Size"), VArray<int64_t>::from_single(size, 1), ColumnValueDisplayHint::Bytes);
+        IFACE_("Size"), VArray<int64_t>::from_single(size, 1), "", ColumnValueDisplayHint::Bytes);
   }
   if (STREQ(column_id.name, "Voxel Extent")) {
     const int3 extent = int3(grid.active_bounds().dim().asPointer());

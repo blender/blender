@@ -41,6 +41,12 @@ static const auto &builtin_attributes()
   return attributes;
 }
 
+static const auto &array_storage_required()
+{
+  static Set<StringRef> attributes{"instance_transform", ".reference_index"};
+  return attributes;
+}
+
 static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
 {
   AttributeAccessorFunctions fn{};
@@ -159,7 +165,28 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
     if (storage.lookup(name)) {
       return false;
     }
-    storage.add(name, domain, type, attribute_init_to_data(type, domain_size, initializer));
+    const bool array = array_storage_required().contains(name);
+    Attribute::DataVariant data = attribute_init_to_data(type, domain_size, initializer, array);
+    storage.add(name, domain, type, std::move(data));
+    if (initializer.type != AttributeInit::Type::Construct) {
+      if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
+        (*fn)(owner);
+      }
+    }
+    return true;
+  };
+  fn.assign_data = [](void *owner, StringRef name, const AttributeInit &initializer) {
+    Instances &instances = *static_cast<Instances *>(owner);
+    AttributeStorage &storage = instances.attribute_storage();
+    Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return false;
+    }
+    Attribute::DataVariant data = attribute_init_to_data(attr->data_type(),
+                                                         instances.instances_num(),
+                                                         initializer,
+                                                         array_storage_required().contains(name));
+    attr->assign_data(std::move(data));
     if (initializer.type != AttributeInit::Type::Construct) {
       if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
         (*fn)(owner);

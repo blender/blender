@@ -8,6 +8,7 @@
 
 #include "BLI_task.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_context.hh"
 #include "BKE_main.hh"

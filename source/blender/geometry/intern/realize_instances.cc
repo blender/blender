@@ -75,7 +75,7 @@ struct PointCloudRealizeInfo {
   /** Id attribute on the point cloud. If there are no ids, this #Span is empty. */
   Span<float3> positions;
   VArray<float> radii;
-  Span<int> stored_ids;
+  VArray<int> stored_ids;
 };
 
 struct RealizePointCloudTask {
@@ -111,7 +111,7 @@ struct MeshRealizeInfo {
   /** Matches the order in #AllMeshesInfo.attributes. */
   Array<std::optional<GVArraySpan>> attributes;
   /** Vertex ids stored on the mesh. If there are no ids, this #Span is empty. */
-  Span<int> stored_vert_ids;
+  VArray<int> stored_vert_ids;
   VArray<int> material_indices;
   /** Custom normals are rotated based on each instance's transformation. */
   GVArraySpan custom_normal;
@@ -135,7 +135,7 @@ struct RealizeCurveInfo {
   Array<std::optional<GVArraySpan>> attributes;
 
   /** ID attribute on the curves. If there are no ids, this #Span is empty. */
-  Span<int> stored_ids;
+  VArray<int> stored_ids;
 
   /**
    * Handle position attributes must be transformed along with positions. Accessing them in
@@ -149,7 +149,7 @@ struct RealizeCurveInfo {
    * The radius attribute must be filled with a default of 1.0 if it
    * doesn't exist on some (but not all) of the input curves data-blocks.
    */
-  Span<float> radius;
+  VArray<float> radius;
 
   /**
    * The resolution attribute must be filled with the default value if it does not exist on some
@@ -322,7 +322,7 @@ struct GatherTasksInfo {
    * array owns all the temporary arrays so that they can live until all processing is done.
    * Use #std::unique_ptr to avoid depending on whether #GArray has an inline buffer or not.
    */
-  Vector<std::unique_ptr<GArray<>>> &r_temporary_arrays;
+  ResourceScope &r_temporary_arrays;
 
   AllInstancesInfo instances;
 
@@ -438,7 +438,7 @@ static void copy_generic_attributes_to_result(
 }
 
 static void create_result_ids(const RealizeInstancesOptions &options,
-                              const Span<int> stored_ids,
+                              const VArray<int> &stored_ids,
                               const int task_id,
                               MutableSpan<int> dst_ids)
 {
@@ -447,7 +447,7 @@ static void create_result_ids(const RealizeInstancesOptions &options,
       dst_ids.fill(0);
     }
     else {
-      dst_ids.copy_from(stored_ids);
+      stored_ids.materialize(dst_ids);
     }
   }
   else {
@@ -480,17 +480,22 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
                                            const float4x4 &base_transform,
                                            const InstanceContext &base_instance_context);
 
+struct AttrFallbackData {
+  int attr_index;
+  std::variant<GSpan, GPointer> data;
+};
+
 /**
  * Checks which of the #ordered_attributes exist on the #instances_component. For each attribute
  * that exists on the instances, a pair is returned that contains the attribute index and the
  * corresponding attribute data.
  */
-static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
+static Vector<AttrFallbackData> prepare_attribute_fallbacks(
     GatherTasksInfo &gather_info,
     const Instances &instances,
     const OrderedAttributes &ordered_attributes)
 {
-  Vector<std::pair<int, GSpan>> attributes_to_override;
+  Vector<AttrFallbackData> attributes_to_override;
   const bke::AttributeAccessor attributes = instances.attributes();
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     const int attribute_index = ordered_attributes.ids.index_of_try(iter.name);
@@ -499,27 +504,47 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
       return;
     }
     const bke::GAttributeReader attribute = iter.get();
-    if (!attribute || !attribute.varray.is_span()) {
+    if (!attribute) {
       return;
     }
-    GSpan span = attribute.varray.get_internal_span();
     const bke::AttrType expected_type = ordered_attributes.kinds[attribute_index].data_type;
-    if (iter.data_type != expected_type) {
-      const CPPType &from_type = span.type();
-      const CPPType &to_type = bke::attribute_type_to_cpp_type(expected_type);
-      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-      if (!conversions.is_convertible(from_type, to_type)) {
-        /* Ignore the attribute because it can not be converted to the desired type. */
-        return;
+    if (attribute.varray.is_single()) {
+      const CPPType &attr_type = attribute.varray.type();
+      const CPPType &expected_cpp_type = bke::attribute_type_to_cpp_type(expected_type);
+      void *ptr = gather_info.r_temporary_arrays.allocate_owned(attr_type);
+      attr_type.default_construct(ptr);
+      attribute.varray.get_internal_single(ptr);
+      if (iter.data_type != expected_type) {
+        const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+        if (!conversions.is_convertible(attr_type, expected_cpp_type)) {
+          /* Ignore the attribute because it can not be converted to the desired type. */
+          return;
+        }
+        /* Convert the attribute on the instances component to the expected attribute type. */
+        void *ptr_converted = gather_info.r_temporary_arrays.allocate_owned(expected_cpp_type);
+        conversions.convert_to_uninitialized(attr_type, expected_cpp_type, ptr, ptr_converted);
+        ptr = ptr_converted;
       }
-      /* Convert the attribute on the instances component to the expected attribute type. */
-      std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
-          to_type, instances.instances_num());
-      conversions.convert_to_initialized_n(span, temporary_array->as_mutable_span());
-      span = temporary_array->as_span();
-      gather_info.r_temporary_arrays.append(std::move(temporary_array));
+      attributes_to_override.append({attribute_index, GPointer(expected_cpp_type, ptr)});
     }
-    attributes_to_override.append({attribute_index, span});
+    else {
+      GSpan span = attribute.varray.get_internal_span();
+      if (iter.data_type != expected_type) {
+        const CPPType &from_type = span.type();
+        const CPPType &to_type = bke::attribute_type_to_cpp_type(expected_type);
+        const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+        if (!conversions.is_convertible(from_type, to_type)) {
+          /* Ignore the attribute because it can not be converted to the desired type. */
+          return;
+        }
+        /* Convert the attribute on the instances component to the expected attribute type. */
+        GMutableSpan temporary_array = gather_info.r_temporary_arrays.construct<GArray<>>(
+            to_type, instances.instances_num());
+        conversions.convert_to_initialized_n(span, temporary_array);
+        span = temporary_array;
+      }
+      attributes_to_override.append({attribute_index, span});
+    }
   });
   return attributes_to_override;
 }
@@ -551,27 +576,25 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
   const Span<int> handles = instances.reference_handles();
   const Span<float4x4> transforms = instances.transforms();
 
-  Span<int> stored_instance_ids;
+  VArray<int> stored_instance_ids;
   if (gather_info.create_id_attribute_on_any_component) {
     bke::GAttributeReader ids = instances.attributes().lookup("id");
-    if (ids && ids.domain == bke::AttrDomain::Instance && ids.varray.type().is<int>() &&
-        ids.varray.is_span())
-    {
-      stored_instance_ids = ids.varray.get_internal_span().typed<int>();
+    if (ids && ids.domain == bke::AttrDomain::Instance && ids.varray.type().is<int>()) {
+      stored_instance_ids = ids.varray.typed<int>();
     }
   }
 
   /* Prepare attribute fallbacks. */
   InstanceContext instance_context = base_instance_context;
-  Vector<std::pair<int, GSpan>> pointcloud_attributes_to_override = prepare_attribute_fallbacks(
+  Vector<AttrFallbackData> pointcloud_attributes_to_override = prepare_attribute_fallbacks(
       gather_info, instances, gather_info.pointclouds.attributes);
-  Vector<std::pair<int, GSpan>> mesh_attributes_to_override = prepare_attribute_fallbacks(
+  Vector<AttrFallbackData> mesh_attributes_to_override = prepare_attribute_fallbacks(
       gather_info, instances, gather_info.meshes.attributes);
-  Vector<std::pair<int, GSpan>> curve_attributes_to_override = prepare_attribute_fallbacks(
+  Vector<AttrFallbackData> curve_attributes_to_override = prepare_attribute_fallbacks(
       gather_info, instances, gather_info.curves.attributes);
-  Vector<std::pair<int, GSpan>> grease_pencil_attributes_to_override = prepare_attribute_fallbacks(
+  Vector<AttrFallbackData> grease_pencil_attributes_to_override = prepare_attribute_fallbacks(
       gather_info, instances, gather_info.grease_pencils.attributes);
-  Vector<std::pair<int, GSpan>> instance_attributes_to_override = prepare_attribute_fallbacks(
+  Vector<AttrFallbackData> instance_attributes_to_override = prepare_attribute_fallbacks(
       gather_info, instances, gather_info.instances_attriubutes);
 
   const bool is_top_level = current_depth == 0;
@@ -587,21 +610,22 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
     const float4x4 new_base_transform = base_transform * transform;
 
     /* Update attribute fallbacks for the current instance. */
-    for (const std::pair<int, GSpan> &pair : pointcloud_attributes_to_override) {
-      instance_context.pointclouds.array[pair.first] = pair.second[i];
-    }
-    for (const std::pair<int, GSpan> &pair : mesh_attributes_to_override) {
-      instance_context.meshes.array[pair.first] = pair.second[i];
-    }
-    for (const std::pair<int, GSpan> &pair : curve_attributes_to_override) {
-      instance_context.curves.array[pair.first] = pair.second[i];
-    }
-    for (const std::pair<int, GSpan> &pair : grease_pencil_attributes_to_override) {
-      instance_context.grease_pencils.array[pair.first] = pair.second[i];
-    }
-    for (const std::pair<int, GSpan> &pair : instance_attributes_to_override) {
-      instance_context.instances.array[pair.first] = pair.second[i];
-    }
+    const auto set_fallbacks = [&](Span<AttrFallbackData> fallbacks,
+                                   MutableSpan<const void *> ptrs) {
+      for (const AttrFallbackData &attr : fallbacks) {
+        if (const auto *array = std::get_if<GSpan>(&attr.data)) {
+          ptrs[attr.attr_index] = (*array)[i];
+        }
+        else if (const auto *single = std::get_if<GPointer>(&attr.data)) {
+          ptrs[attr.attr_index] = single->get();
+        }
+      }
+    };
+    set_fallbacks(pointcloud_attributes_to_override, instance_context.pointclouds.array);
+    set_fallbacks(mesh_attributes_to_override, instance_context.meshes.array);
+    set_fallbacks(curve_attributes_to_override, instance_context.curves.array);
+    set_fallbacks(grease_pencil_attributes_to_override, instance_context.grease_pencils.array);
+    set_fallbacks(instance_attributes_to_override, instance_context.instances.array);
 
     uint32_t local_instance_id = 0;
     if (gather_info.create_id_attribute_on_any_component) {
@@ -1146,9 +1170,9 @@ static AllPointCloudsInfo preprocess_pointclouds(const bke::GeometrySet &geometr
     if (info.create_id_attribute) {
       bke::GAttributeReader ids_attribute = attributes.lookup("id");
       if (ids_attribute && ids_attribute.domain == bke::AttrDomain::Point &&
-          ids_attribute.varray.type().is<int>() && ids_attribute.varray.is_span())
+          ids_attribute.varray.type().is<int>())
       {
-        pointcloud_info.stored_ids = ids_attribute.varray.get_internal_span().typed<int>();
+        pointcloud_info.stored_ids = ids_attribute.varray.typed<int>();
       }
     }
     if (info.create_radius_attribute) {
@@ -1430,9 +1454,9 @@ static AllMeshesInfo preprocess_meshes(const bke::GeometrySet &geometry_set,
     if (info.create_id_attribute) {
       bke::GAttributeReader ids_attribute = attributes.lookup("id");
       if (ids_attribute && ids_attribute.domain == bke::AttrDomain::Point &&
-          ids_attribute.varray.type().is<int>() && ids_attribute.varray.is_span())
+          ids_attribute.varray.type().is<int>())
       {
-        mesh_info.stored_vert_ids = ids_attribute.varray.get_internal_span().typed<int>();
+        mesh_info.stored_vert_ids = ids_attribute.varray.typed<int>();
       }
     }
     mesh_info.material_indices = *attributes.lookup_or_default<int>(
@@ -1878,15 +1902,14 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
     if (info.create_id_attribute) {
       bke::GAttributeReader id_attribute = attributes.lookup("id");
       if (id_attribute && id_attribute.domain == bke::AttrDomain::Point &&
-          id_attribute.varray.type().is<int>() && id_attribute.varray.is_span())
+          id_attribute.varray.type().is<int>())
       {
-        curve_info.stored_ids = id_attribute.varray.get_internal_span().typed<int>();
+        curve_info.stored_ids = id_attribute.varray.typed<int>();
       }
     }
 
     if (attributes.contains("radius")) {
-      curve_info.radius =
-          attributes.lookup<float>("radius", bke::AttrDomain::Point).varray.get_internal_span();
+      curve_info.radius = *attributes.lookup<float>("radius", bke::AttrDomain::Point);
       info.create_radius_attribute = true;
     }
     if (attributes.contains("handle_right")) {
@@ -1969,7 +1992,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       all_radii.slice(dst_point_range).fill(1.0f);
     }
     else {
-      all_radii.slice(dst_point_range).copy_from(curves_info.radius);
+      curves_info.radius.materialize(all_radii.slice(dst_point_range));
     }
   }
 
@@ -2501,7 +2524,7 @@ RealizeInstancesResult realize_instances(bke::GeometrySet geometry_set,
   const bool create_id_attribute = all_pointclouds_info.create_id_attribute ||
                                    all_meshes_info.create_id_attribute ||
                                    all_curves_info.create_id_attribute;
-  Vector<std::unique_ptr<GArray<>>> temporary_arrays;
+  ResourceScope temporary_arrays;
   GatherTasksInfo gather_info = {all_pointclouds_info,
                                  all_meshes_info,
                                  all_curves_info,

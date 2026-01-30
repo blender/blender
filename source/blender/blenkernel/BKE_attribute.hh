@@ -533,6 +533,7 @@ struct AttributeAccessorFunctions {
               AttrDomain domain,
               AttrType data_type,
               const AttributeInit &initializer);
+  bool (*assign_data)(void *owner, StringRef attribute_id, const AttributeInit &initializer);
 };
 
 /**
@@ -827,6 +828,12 @@ class MutableAttributeAccessor : public AttributeAccessor {
     const CPPType &cpp_type = CPPType::get<T>();
     const AttrType data_type = cpp_type_to_attribute_type(cpp_type);
     return this->add(attribute_id, domain, data_type, initializer);
+  }
+
+  bool assign_data(const StringRef attribute_id, const AttributeInit &initializer)
+  {
+    BLI_assert(this->contains(attribute_id));
+    return fn_->assign_data(owner_, attribute_id, initializer);
   }
 
   /**

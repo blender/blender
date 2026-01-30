@@ -199,7 +199,7 @@ struct MeshToBMeshLayerInfo {
   /** The mesh's #CustomDataLayer::data. When null, the BMesh block is set to its default value. */
   const void *mesh_data;
   /** The size of every custom data element. */
-  size_t elem_size;
+  size_t mesh_stride;
 };
 
 /**
@@ -228,11 +228,13 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
         case bke::AttrStorageType::Array: {
           const auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data());
           info.mesh_data = array_data.data;
+          info.mesh_stride = bke::attribute_type_to_cpp_type(attr->data_type()).size;
           break;
         }
         case bke::AttrStorageType::Single: {
-          BLI_assert_unreachable();
-          info.mesh_data = nullptr;
+          const auto &single_data = std::get<bke::Attribute::SingleData>(attr->data());
+          info.mesh_data = single_data.value;
+          info.mesh_stride = 0;
           break;
         }
       }
@@ -245,9 +247,9 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
       if (mesh_layer_index != -1) {
         BLI_assert((CD_TYPE_AS_MASK(type) & CD_MASK_PROP_ALL) == 0);
         info.mesh_data = mesh_data.layers[mesh_layer_index].data;
+        info.mesh_stride = CustomData_get_elem_size(&bm_layer);
       }
     }
-    info.elem_size = CustomData_get_elem_size(&bm_layer);
     infos.append(info);
 
     per_type_index[type]++;
@@ -264,7 +266,7 @@ static void mesh_attributes_copy_to_bmesh_block(CustomData &data,
   for (const MeshToBMeshLayerInfo &info : copy_info) {
     if (info.mesh_data) {
       CustomData_data_copy_value(info.type,
-                                 POINTER_OFFSET(info.mesh_data, info.elem_size * mesh_index),
+                                 POINTER_OFFSET(info.mesh_data, info.mesh_stride * mesh_index),
                                  POINTER_OFFSET(header.data, info.bmesh_offset));
     }
     else {

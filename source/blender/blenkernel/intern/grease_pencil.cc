@@ -290,7 +290,11 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
 
   Vector<CustomDataLayer, 16> layers_data_layers;
   bke::AttributeStorage::BlendWriteData attribute_data{scope};
-  attribute_storage_blend_write_prepare(grease_pencil->attribute_storage.wrap(), attribute_data);
+  attribute_storage_blend_write_prepare(
+      grease_pencil->attribute_storage.wrap(),
+      !BLO_write_is_undo(writer),
+      [&](const AttrDomain /*domain*/) { return grease_pencil->layers().size(); },
+      attribute_data);
   grease_pencil->attribute_storage.dna_attributes = attribute_data.attributes.data();
   grease_pencil->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
 
@@ -4341,7 +4345,7 @@ static void write_drawing_array(GreasePencil &grease_pencil,
         bke::CurvesGeometry &curves = drawing_copy.geometry.wrap();
 
         bke::CurvesGeometry::BlendWriteData write_data(scope);
-        curves.blend_write_prepare(write_data);
+        curves.blend_write_prepare(write_data, !BLO_write_is_undo(writer));
         drawing_copy.runtime = nullptr;
 
         BLO_write_shared_tag(writer, curves.curve_offsets);
