@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_set.hh"
 
 namespace blender {

@@ -16,6 +16,8 @@ namespace blender::bke::greasepencil {
 
 std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids);
 
+/* Get the next available fill ID. */
+int get_next_available_fill_id(const VArray<int> &fill_ids);
 /* Fill the mutable span with the next available fill IDs. */
 void gather_next_available_fill_ids(const VArray<int> &fill_ids, MutableSpan<int> r_new_fill_ids);
 /* Write to the mutable span the next available fill ids at the indices of the given mask. */

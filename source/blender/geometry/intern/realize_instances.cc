@@ -18,6 +18,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_fills.hh"
 #include "BKE_instances.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -713,10 +714,8 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
 
           const bke::AttributeAccessor attributes = curves->geometry.wrap().attributes();
           const VArray<int> fill_ids = *attributes.lookup<int>("fill_id", bke::AttrDomain::Curve);
-          if (fill_ids) {
-            const int max_fill_id = array_utils::max_element(fill_ids);
-            gather_info.r_offsets.curves_offsets.fill_id += max_fill_id;
-          }
+          gather_info.r_offsets.curves_offsets.fill_id +=
+              bke::greasepencil::get_next_available_fill_id(fill_ids);
         }
         break;
       }

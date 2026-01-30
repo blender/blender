@@ -72,9 +72,18 @@ std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids)
   return fill_cache;
 }
 
+int get_next_available_fill_id(const VArray<int> &fill_ids)
+{
+  if (std::optional<int64_t> max_i = array_utils::max_element_index(fill_ids)) {
+    const int max_fill_id = fill_ids[*max_i];
+    return max_fill_id == -1 ? 1 : max_fill_id + 1;
+  }
+  return 1;
+}
+
 void gather_next_available_fill_ids(const VArray<int> &fill_ids, MutableSpan<int> r_new_fill_ids)
 {
-  const int next_fill_id = array_utils::max_element(fill_ids) + 1;
+  const int next_fill_id = get_next_available_fill_id(fill_ids);
   array_utils::fill_index_range(r_new_fill_ids, next_fill_id);
 }
 
@@ -82,7 +91,7 @@ void gather_next_available_fill_ids(const VArray<int> &fill_ids,
                                     const IndexMask &curve_mask,
                                     MutableSpan<int> r_new_fill_ids)
 {
-  const int next_fill_id = array_utils::max_element(fill_ids) + 1;
+  const int next_fill_id = get_next_available_fill_id(fill_ids);
   curve_mask.foreach_index(GrainSize(1024), [&](const int index, const int pos) {
     r_new_fill_ids[index] = next_fill_id + pos;
   });

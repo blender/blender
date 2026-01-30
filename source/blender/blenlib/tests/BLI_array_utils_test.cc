@@ -8,6 +8,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
+#include "BLI_virtual_array.hh"
 
 namespace blender {
 
@@ -285,6 +286,39 @@ TEST(array_utils, FindAllRanges5)
   const std::array data = {true, false, false, true, true, false, true};
   const std::array data_cmp = {IndexRange(0, 1), IndexRange(3, 2), IndexRange(6, 1)};
   find_all_ranges_test(data, data_cmp);
+}
+
+static void find_max_element_test(const VArray<int> &values,
+                                  const std::optional<int64_t> expect_index)
+{
+  const std::optional<int64_t> result_index = array_utils::max_element_index(values);
+  EXPECT_TRUE(result_index.has_value() == expect_index.has_value());
+  if (result_index.has_value() && expect_index.has_value()) {
+    EXPECT_EQ(result_index.value(), expect_index.value());
+  }
+}
+
+TEST(array_utils, FindMaxElement1)
+{
+  find_max_element_test(VArray<int>::from_span({}), std::nullopt);
+}
+
+TEST(array_utils, FindMaxElement2)
+{
+  const std::array data{1};
+  find_max_element_test(VArray<int>::from_span(data), 0);
+}
+
+TEST(array_utils, FindMaxElement3)
+{
+  const std::array data{1, 2, 2, 1};
+  find_max_element_test(VArray<int>::from_span(data), 1);
+}
+
+TEST(array_utils, FindMaxElement4)
+{
+  /* Inverted parabola with roots 0 and 9 and a peak at (x = 4.5, y = 20.25). */
+  find_max_element_test(VArray<int>::from_func(10, [](const int x) { return -x * x + 9 * x; }), 4);
 }
 
 }  // namespace blender
