@@ -1228,7 +1228,6 @@ IndexMask retrieve_visible_fills(Object &object,
                                  const bke::greasepencil::Drawing &drawing,
                                  IndexMaskMemory &memory)
 {
-  /* Get all the hidden material indices. */
   VectorSet<int> hidden_material_indices = get_hidden_material_indices(object);
 
   const std::optional<GroupedSpan<int>> fills = drawing.fills();
