@@ -1134,8 +1134,8 @@ void Drawing::tag_positions_changed(const IndexMask &changed_curves)
 
   if (const std::optional<GroupedSpan<int3>> triangles = this->triangles()) {
     /* Copy the triangle data. */
-    const Array<int> src_triangles_offsets = Array<int>(triangles->offsets.data());
-    const Array<int3> src_triangles_data = Array<int3>(triangles->data);
+    const Array<int> src_triangles_offsets(triangles->offsets.data());
+    const Array<int3> src_triangles_data(triangles->data);
     const GroupedSpan<int3> src_triangles(src_triangles_offsets.as_span(),
                                           src_triangles_data.as_span());
 
@@ -1200,8 +1200,8 @@ void Drawing::tag_topology_changed(const IndexMask &changed_curves)
 
   if (const std::optional<GroupedSpan<int3>> triangles = this->triangles()) {
     /* Copy the triangle data. */
-    const Array<int> src_triangles_offsets = Array<int>(triangles->offsets.data());
-    const Array<int3> src_triangles_data = Array<int3>(triangles->data);
+    const Array<int> src_triangles_offsets(triangles->offsets.data());
+    const Array<int3> src_triangles_data(triangles->data);
     const GroupedSpan<int3> src_triangles(src_triangles_offsets.as_span(),
                                           src_triangles_data.as_span());
 
