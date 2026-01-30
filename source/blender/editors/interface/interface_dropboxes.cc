@@ -132,7 +132,7 @@ static std::string ui_drop_material_tooltip(bContext *C,
 
   PointerRNA rna_prev_material = RNA_pointer_get(&mat_slot, "material");
   Material *prev_mat_in_slot = static_cast<Material *>(rna_prev_material.data);
-  const char *dragged_material_name = WM_drag_get_item_name(drag);
+  const std::string dragged_material_name = WM_drag_get_item_name(drag);
 
   if (prev_mat_in_slot) {
     return fmt::format(fmt::runtime(TIP_("Drop {} on slot {} (replacing {}) of {}")),

@@ -1749,7 +1749,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag, const asset_system::AssetRepresen
 
 const ListBaseT<wmDragAssetListItem> *WM_drag_asset_list_get(const wmDrag *drag);
 
-const char *WM_drag_get_item_name(wmDrag *drag);
+const std::string WM_drag_get_item_name(wmDrag *drag);
 
 /* Paths drag and drop. */
 /**

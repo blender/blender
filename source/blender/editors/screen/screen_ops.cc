@@ -7372,7 +7372,7 @@ static std::string screen_drop_scene_tooltip(bContext * /*C*/,
                                                  [2],
                                              wmDropBox * /*drop*/)
 {
-  const char *dragged_scene_name = WM_drag_get_item_name(drag);
+  const std::string dragged_scene_name = WM_drag_get_item_name(drag);
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, ID_SCE);
   if (asset_drag) {
     switch (asset_drag->import_settings.method) {
