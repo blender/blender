@@ -589,6 +589,9 @@ void VKContext::openxr_acquire_framebuffer_image_handler(GHOST_VulkanOpenXRData 
       }
       break;
     }
+
+    case GHOST_kVulkanXRModeRenderGraph:
+      break;
   }
 }
 
@@ -615,6 +618,9 @@ void VKContext::openxr_release_framebuffer_image_handler(GHOST_VulkanOpenXRData 
         openxr_data.gpu.image_handle = 0;
       }
 #endif
+      break;
+
+    case GHOST_kVulkanXRModeRenderGraph:
       break;
   }
 }

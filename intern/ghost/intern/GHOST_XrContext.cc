@@ -425,6 +425,7 @@ static blender::Vector<blender::StringRefNull> openxr_ext_names_from_wm_gpu_bind
 
     case GHOST_kXrGraphicsVulkan:
 #ifdef WITH_VULKAN_BACKEND
+      extension_names.append(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME);
       extension_names.append(XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME);
 #endif
       break;
