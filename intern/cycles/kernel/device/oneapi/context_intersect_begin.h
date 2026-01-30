@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#if !defined(WITH_ONEAPI_SYCL_HOST_TASK) && defined(WITH_EMBREE_GPU)
+#if defined(WITH_EMBREE_GPU)
 #  undef ccl_gpu_kernel_signature
 #  define ccl_gpu_kernel_signature(name, ...) \
     void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \

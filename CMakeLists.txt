@@ -755,11 +755,6 @@ if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64"))
 Enable Ahead-Of-Time compilation for Cycles oneAPI device"
     OFF
   )
-  option(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION "\
-Switch target of oneAPI implementation from SYCL devices to Host Task (single thread on CPU). \
-This option is only for debugging purposes."
-    OFF
-  )
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
   # The supported devices can be retrieved from `ocloc` output when running
@@ -773,7 +768,6 @@ oneAPI Intel GPU architectures to build binaries for"
 oneAPI targets to build AOT binaries for"
   )
 
-  mark_as_advanced(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
   mark_as_advanced(CYCLES_ONEAPI_INTEL_BINARIES_ARCH)
   mark_as_advanced(CYCLES_ONEAPI_SYCL_TARGETS)
 endif()
