@@ -43,6 +43,11 @@ switch_nodes = {
     "GeometryNodeIndexSwitch",
 }
 
+has_child_sockets = {
+    "NodeCombineBundle",
+    "NodeSeparateBundle",
+}
+
 
 def cast_value(source, target):
     source_type = source.type
@@ -463,6 +468,25 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
 
         return None
 
+    @staticmethod
+    def get_node_sockets(node):
+        if node.bl_idname in {"NodeCombineBundle", "NodeSeparateBundle"}:
+            return node.bundle_items
+
+    def transfer_node_sockets(self, old_node, new_node):
+        old_items = self.get_node_sockets(old_node)
+        new_items = self.get_node_sockets(new_node)
+
+        for old_item in old_items:
+            try:
+                new_item = new_items.new(old_item.socket_type, old_item.name)
+
+                if hasattr(old_item, "structure_type") and hasattr(new_item, "structure_type"):
+                    new_item.structure_type = old_item.structure_type
+
+            except RuntimeError:
+                pass
+
     def execute(self, context):
         tree = context.space_data.edit_tree
         nodes_to_delete = set()
@@ -507,6 +531,9 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
 
                 if (old_node.bl_idname in switch_nodes) and (new_node.bl_idname in switch_nodes):
                     self.transfer_switch_data(old_node, new_node)
+
+                if (old_node.bl_idname in has_child_sockets) and (new_node.bl_idname in has_child_sockets):
+                    self.transfer_node_sockets(old_node, new_node)
 
                 self.transfer_input_values(old_node, new_node)
 
