@@ -517,9 +517,7 @@ static bool remove_stroke_or_fill_based_on_mode(Object &object,
   }
   if (mode == DeleteMode::OnlyStrokes) {
     bke::SpanAttributeWriter<bool> hide_strokes = attributes.lookup_or_add_for_write_span<bool>(
-        "hide_stroke",
-        bke::AttrDomain::Curve,
-        bke::AttributeInitVArray(VArray<bool>::from_single(false, curves.curves_num())));
+        "hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(false));
     index_mask::masked_fill(hide_strokes.span, true, fills_with_stroke);
     hide_strokes.finish();
   }

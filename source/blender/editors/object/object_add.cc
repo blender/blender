@@ -3478,7 +3478,7 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     MutableSpan<float3> positions = curves.positions_for_write();
     MutableSpan<int> offsets = curves.offsets_for_write();
-    
+
     curves.fill_curve_types(CURVE_TYPE_POLY);
     array_utils::gather(mesh_positions, corner_verts, positions);
     array_utils::copy(faces_span, offsets);
@@ -3508,9 +3508,7 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     fill_ids.finish();
 
     bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
-        "hide_stroke",
-        bke::AttrDomain::Curve,
-        bke::AttributeInitVArray(VArray<bool>::from_single(true, fills_num)));
+        "hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
     hide_stroke.finish();
   }
 
@@ -4008,9 +4006,7 @@ static void create_grease_pencil_fills(bke::greasepencil::Drawing &drawing)
       "fill_id", bke::AttrDomain::Curve);
   /* Hide all the strokes, only show fills. */
   bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
-      "hide_stroke",
-      bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<bool>::from_single(true, curves.curves_num())));
+      "hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
 
   /* Mark all the strokes in the same material as the same fill. */
   for (const int curve_i : curves.curves_range()) {

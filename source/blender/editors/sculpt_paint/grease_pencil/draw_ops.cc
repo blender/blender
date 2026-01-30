@@ -1452,9 +1452,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
     /* Combine the strokes into a single fill with the same fill ID. */
     bke::SpanAttributeWriter<int> fill_ids =
         fill_curves.attributes_for_write().lookup_or_add_for_write_span<int>(
-            "fill_id",
-            bke::AttrDomain::Curve,
-            bke::AttributeInitVArray(VArray<int>::from_single(1, fill_curves.curves_num())));
+            "fill_id", bke::AttrDomain::Curve, bke::AttributeInitValue(1));
     fill_ids.finish();
 
     smooth_fill_strokes(fill_curves, fill_curves.curves_range());
