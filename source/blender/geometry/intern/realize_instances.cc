@@ -138,8 +138,8 @@ struct RealizeCurveInfo {
   /** ID attribute on the curves. If there are no ids, this #Span is empty. */
   Span<int> stored_ids;
 
-  /** `fill_id` attribute on the curves. If there are no fills, this #Span is empty. */
-  Span<int> stored_fill_ids;
+  /** `fill_id` attribute on the curves. If there are no fills, this #VArray is empty. */
+  VArray<int> stored_fill_ids;
 
   /**
    * Handle position attributes must be transformed along with positions. Accessing them in
@@ -1907,9 +1907,9 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
     if (info.create_fill_id_attribute) {
       bke::GAttributeReader fill_id_attribute = attributes.lookup("fill_id");
       if (fill_id_attribute && fill_id_attribute.domain == bke::AttrDomain::Curve &&
-          fill_id_attribute.varray.type().is<int>() && fill_id_attribute.varray.is_span())
+          fill_id_attribute.varray.type().is<int>())
       {
-        curve_info.stored_fill_ids = fill_id_attribute.varray.get_internal_span().typed<int>();
+        curve_info.stored_fill_ids = fill_id_attribute.varray.typed<int>();
       }
     }
 
@@ -2034,7 +2034,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 
   if (!all_dst_fill_ids.is_empty()) {
     MutableSpan<int> dst_fill_ids = all_dst_fill_ids.slice(dst_curve_range);
-    const Span<int> src_fill_ids = curves_info.stored_fill_ids;
+    const VArray<int> src_fill_ids = curves_info.stored_fill_ids;
 
     if (src_fill_ids.is_empty()) {
       dst_fill_ids.fill(0);
