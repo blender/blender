@@ -494,6 +494,14 @@ static ImBuf *thumb_create_or_fail(const char *file_path,
 
 ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source, ImBuf *img)
 {
+  if (source == THB_SOURCE_DIRECT) {
+    /* Not yet implemented (not needed currently). Could just directly write the image to the given
+     * `filepath`. */
+    BLI_assert_msg(source != THB_SOURCE_DIRECT,
+                   "Writing thumbnails with direct source isn't implemented");
+    return nullptr;
+  }
+
   char uri[URI_MAX] = "";
   char thumb_name[40];
 
@@ -542,6 +550,26 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
 
 ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source)
 {
+  if (source == THB_SOURCE_DIRECT) {
+    const eFileAttributes file_attributes = BLI_file_attributes(file_or_lib_path);
+    /* Don't trigger download files from online drives. Maybe less of a problem for
+     * #THE_SOURCE_DIRECT, since what we request is the actual image itself. For other sources this
+     * may download a bunch of large files like videos or blends, just to extract a thumbnail. But
+     * for now, keep the API consistent and do not trigger download of such files. */
+    if (file_attributes & FILE_ATTR_OFFLINE) {
+      return nullptr;
+    }
+
+    ImBuf *thumb = IMB_load_image_from_filepath(file_or_lib_path, IB_byte_data | IB_metadata);
+    if (!thumb) {
+      return nullptr;
+    }
+
+    IMB_byte_from_float(thumb);
+    IMB_free_float_pixels(thumb);
+    return thumb;
+  }
+
   char path_buff[FILE_MAX_LIBEXTRA];
   char *blen_group = nullptr, *blen_id = nullptr;
 
