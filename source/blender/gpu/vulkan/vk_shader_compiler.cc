@@ -207,26 +207,30 @@ static bool compile_ex(shaderc::Compiler &compiler,
   shaderc::CompileOptions options;
   bool do_optimize = true;
   options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
-  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
-    do_optimize = false;
-  }
   /* WORKAROUND: Qualcomm driver can crash when handling optimized SPIR-V. */
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     do_optimize = false;
   }
-  /* Do not optimize large shaders. They can overflow internal buffers that during optimizations
-   * that cannot be adjusted via the ShaderC API. ShaderC in the past had this API
-   * (PassId::kCompactIds) but is unused.
-   *
-   * The shaders in #144614 and #143516 are larger than 512Kb so using this as a limit to disable
-   * optimizations.
-   */
-  constexpr int64_t optimization_source_size_limit = 512 * 1024;
-  if (shader_module.combined_sources.size() > optimization_source_size_limit) {
-    do_optimize = false;
-  }
   options.SetOptimizationLevel(do_optimize ? shaderc_optimization_level_performance :
                                              shaderc_optimization_level_zero);
+
+  /* Increase the max id bound.
+   *
+   * SPIR-V has a default max id bound set to 0x3fffff which is the minimum amount of ids that
+   * needs to be supported by any platform. However during optimization the max id bound can
+   * increase very fast and lowered at the end. As glslang uses max id bound in their internal
+   * structures to allocate arrays out of bound errors can occur.
+   *
+   * Increasing the max id bound to a larger number to increase the internal arrays of the
+   * compiler to work around the compiler crash.
+   *
+   * NOTE: Test-files in #144614 and #143516 would surpass the default limit during compilation.
+   * The final optimized SPIR-V is far less than the default so be fine to be used on platforms
+   * with minimum spec.
+   *
+   * https://registry.khronos.org/SPIR-V/specs/1.0/SPIRV.html#_a_id_limits_a_universal_limits
+   */
+  options.SetMaxIdBound(0xffffff);
 
   /* Should always be called after setting the optimization level. Setting optimization level
    * resets all previous passes. */

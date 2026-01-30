@@ -616,10 +616,10 @@ class IMAGE_MT_pivot_pie(Menu):
 
         sima = context.space_data
 
-        pie.prop_enum(sima, "pivot_point", value='CENTER')
+        pie.prop_enum(sima, "pivot_point", value='BOUNDING_BOX_CENTER')
         pie.prop_enum(sima, "pivot_point", value='CURSOR')
         pie.prop_enum(sima, "pivot_point", value='INDIVIDUAL_ORIGINS')
-        pie.prop_enum(sima, "pivot_point", value='MEDIAN')
+        pie.prop_enum(sima, "pivot_point", value='MEDIAN_POINT')
 
 
 class IMAGE_MT_uvs_snap_pie(Menu):

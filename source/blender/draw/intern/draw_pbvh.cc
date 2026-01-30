@@ -708,8 +708,7 @@ BLI_NOINLINE static void update_generic_attribute_mesh(const Object &object,
   ensure_vbos_allocated_mesh(
       object, attribute_format(orig_mesh_data, name, data_type), node_mask, vbos);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    bke::attribute_math::convert_to_static_type(attr.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attr.varray.type(), [&]<typename T>() {
       if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
         const VArraySpan<T> src = attr.varray.typed<T>();
         switch (attr.domain) {
@@ -1077,8 +1076,7 @@ BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
   ensure_vbos_allocated_bmesh(
       object, attribute_format(orig_mesh_data, name, attr.type), node_mask, vbos);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    bke::attribute_math::convert_to_static_type(attr.type, [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attr.type, [&]<typename T>() {
       const auto &faces = BKE_pbvh_bmesh_node_faces(&const_cast<bke::pbvh::BMeshNode &>(nodes[i]));
       if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
         switch (attr.domain) {

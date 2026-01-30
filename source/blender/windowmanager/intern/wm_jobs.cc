@@ -88,6 +88,18 @@ struct wmJob {
    */
   void (*update)(void *);
   /**
+   * Optional, called for each timer step while the job is running. Can be used to send messages to
+   * the running job. For example, online asset library loading uses this to get status updates
+   * from the downloader to the loading job, like that it's done downloading some files that are
+   * now ready to be processed.
+   *
+   * Should be used for messaging to the job only, must _not_ be used to modify the running job,
+   * like changing the timer, replacing the custom data pointer, etc.
+   *
+   * Executed in the main thread.
+   */
+  void (*timer_step)(void *);
+  /**
    * Free callback (typically for customdata).
    * Executed in main thread.
    */
@@ -377,11 +389,13 @@ void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *
   }
 }
 
-void WM_jobs_timer(wmJob *wm_job, double time_step, uint note, uint endnote)
+void WM_jobs_timer(
+    wmJob *wm_job, double time_step, uint note, uint endnote, void (*timer_step)(void *))
 {
   wm_job->time_step = time_step;
   wm_job->note = note;
   wm_job->endnote = endnote;
+  wm_job->timer_step = timer_step;
 }
 
 void WM_jobs_delay_start(wmJob *wm_job, double delay_time)
@@ -692,6 +706,10 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
     if (wm_job->threads.first) {
       /* Let threads get temporary lock over main thread if needed. */
       wm_job_main_thread_yield(wm_job);
+
+      if (wm_job->timer_step) {
+        wm_job->timer_step(wm_job->run_customdata);
+      }
 
       /* Always call note and update when ready. */
       if (wm_job->worker_status.do_update || wm_job->ready) {

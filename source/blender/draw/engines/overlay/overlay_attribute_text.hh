@@ -235,8 +235,7 @@ class AttributeTexts : Overlay {
     uchar col[4];
     ui::theme::get_color_4ubv(TH_TEXT_HI, col);
 
-    bke::attribute_math::convert_to_static_type(values.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(values.type(), [&]<typename T>() {
       const VArray<T> &values_typed = values.typed<T>();
       for (const int i : values.index_range()) {
         const float3 position = math::transform_point(object_to_world, positions[i]);

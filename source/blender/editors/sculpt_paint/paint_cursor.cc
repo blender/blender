@@ -1051,7 +1051,7 @@ static void paint_cursor_update_unprojected_size(Paint &paint,
       projected_radius = paint_runtime.anchored_size;
     }
     else {
-      if (brush.flag & BRUSH_ANCHORED) {
+      if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
         projected_radius = 8;
       }
       else {
@@ -1359,7 +1359,7 @@ static bool paint_cursor_context_init(bContext *C,
 
   pcontext.vc = ED_view3d_viewcontext_init(C, pcontext.depsgraph);
 
-  if (pcontext.brush->flag & BRUSH_CURVE) {
+  if (pcontext.brush->stroke_method == BRUSH_STROKE_CURVE) {
     pcontext.cursor_type = PaintCursorDrawingType::Curve;
   }
   else if (paint_use_2d_cursor(pcontext.mode)) {

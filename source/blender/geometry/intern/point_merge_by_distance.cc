@@ -131,8 +131,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
     }
 
     bke::GAttributeReader src_attribute = src_attributes.lookup(id);
-    bke::attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(src_attribute.varray.type(), [&]<typename T>() {
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
         bke::SpanAttributeWriter<T> dst_attribute =
             dst_attributes.lookup_or_add_for_write_only_span<T>(id, bke::AttrDomain::Point);

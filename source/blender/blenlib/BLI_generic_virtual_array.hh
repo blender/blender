@@ -198,6 +198,11 @@ class GVArray : public GVArrayCommon {
   static GVArray from_span(GSpan span);
   static GVArray from_garray(GArray<> array);
   static GVArray from_empty(const CPPType &type);
+  template<typename GetToUninitFn>
+  static GVArray from_func(const CPPType &type, int64_t size, GetToUninitFn &&get_to_uninit);
+  static GVArray from_std_func(const CPPType &type,
+                               int64_t size,
+                               std::function<void(int64_t index, void *r_value)> get_to_uninit);
 
   GVArray slice(IndexRange slice) const;
 
@@ -624,6 +629,36 @@ inline constexpr bool is_trivial_extended_v<GVArrayImpl_For_SingleValueRef_final
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name #GVArrayImpl_For_Func.
+ * \{ */
+
+template<typename GetToUninitFn> class GVArrayImpl_For_Func final : public GVArrayImpl {
+ private:
+  GetToUninitFn get_to_uninit_;
+
+ public:
+  GVArrayImpl_For_Func(const CPPType &type, const int64_t size, GetToUninitFn get_to_uninit)
+      : GVArrayImpl(type, size), get_to_uninit_(std::move(get_to_uninit))
+  {
+  }
+
+  void get(const int64_t index, void *r_value) const override
+  {
+    if (!type_->is_trivially_destructible) {
+      type_->destruct(r_value);
+    }
+    return get_to_uninit_(index, r_value);
+  }
+
+  void get_to_uninitialized(const int64_t index, void *r_value) const override
+  {
+    return get_to_uninit_(index, r_value);
+  }
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Inline methods for #GVArrayImpl.
  * \{ */
 
@@ -884,6 +919,13 @@ template<typename T> inline VArray<T> GVArray::typed() const
     return varray;
   }
   return VArray<T>::template from<VArrayImpl_For_GVArray<T>>(*this);
+}
+
+template<typename GetToUninitFn>
+inline GVArray GVArray::from_func(const CPPType &type, int64_t size, GetToUninitFn &&get_to_uninit)
+{
+  return GVArray::from<GVArrayImpl_For_Func<GetToUninitFn>>(
+      type, size, std::forward<GetToUninitFn>(get_to_uninit));
 }
 
 /** \} */

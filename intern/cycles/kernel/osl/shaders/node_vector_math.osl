@@ -61,6 +61,9 @@ shader node_vector_math(string math_type = "add",
   else if (math_type == "snap") {
     Vector = snap(Vector1, Vector2);
   }
+  else if (math_type == "round") {
+    Vector = floor(Vector1 + 0.5);
+  }
   else if (math_type == "floor") {
     Vector = floor(Vector1);
   }

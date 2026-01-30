@@ -95,6 +95,25 @@ enum {
   CU_TAPER_RADIUS_ADD = 2,
 };
 
+/** #Curve.fill_solver */
+enum CurveFillSolverType {
+  /**
+   * Fast filling without support for self-intersections.
+   * Uses `BLI_scanfill`.
+   */
+  CU_FILL_SOLVER_SWEEP_LINE = 0,
+  /**
+   * Constrained Delaunay Triangulation with self-intersection and fill rule support.
+   */
+  CU_FILL_SOLVER_CDT = 1,
+};
+
+/** #Curve.fill_rule */
+enum CurveFillRuleType {
+  CU_FILL_RULE_EVEN_ODD = 0,
+  CU_FILL_RULE_NONZERO = 1,
+};
+
 /* Curve.overflow. */
 enum {
   CU_OVERFLOW_NONE = 0,

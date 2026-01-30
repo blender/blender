@@ -285,4 +285,17 @@ TEST(virtual_array, EmptySpanWrapper)
   }
 }
 
+TEST(generic_virtual_array, FromFunc)
+{
+  GVArray gvarray = GVArray::from_func(
+      CPPType::get<std::string>(), 10, [](const int64_t i, void *r_value) {
+        new (r_value) std::string(std::to_string(i));
+      });
+  VArray<std::string> varray = gvarray.typed<std::string>();
+  EXPECT_EQ(varray.size(), 10);
+  EXPECT_EQ(varray[0], "0");
+  EXPECT_EQ(varray[3], "3");
+  EXPECT_EQ(varray[9], "9");
+}
+
 }  // namespace blender::tests

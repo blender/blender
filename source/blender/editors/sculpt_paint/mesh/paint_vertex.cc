@@ -911,13 +911,6 @@ struct VPaintData : public PaintModeData {
 
   ColorPaint4f paintcol;
 
-  /**
-   * Owned by #vp_handle.
-   * \todo Look into replacing this with just using the evaluated/deform positions.
-   */
-  Span<float3> vert_positions;
-  Span<float3> vert_normals;
-
   bool is_texbrush;
 
   /* Special storage for smear brush, avoid feedback loop - update each step. */
@@ -1825,7 +1818,7 @@ static void vpaint_do_draw(const Depsgraph &depsgraph,
            * position in order to project it. This ensures that the
            * brush texture will be oriented correctly.
            * This is the method also used in #sculpt_apply_texture(). */
-          float3 position = vpd.vert_positions[vert];
+          float3 position = vert_positions[vert];
           if (cache.radial_symmetry_pass) {
             position = math::transform_point(cache.symm_rot_mat_inv, position);
           }
@@ -2083,8 +2076,11 @@ static wmOperatorStatus vpaint_invoke(bContext *C, wmOperator *op, const wmEvent
   OPERATOR_RETVAL_CHECK(retval);
 
   if (retval == OPERATOR_FINISHED) {
-    stroke->free(C, op);
-    MEM_delete(stroke);
+    VertexPaintStroke *stroke = static_cast<VertexPaintStroke *>(op->customdata);
+    if (stroke) {
+      stroke->free(C, op);
+      MEM_delete(stroke);
+    }
     return OPERATOR_FINISHED;
   }
 
@@ -2113,6 +2109,7 @@ static wmOperatorStatus vpaint_modal(bContext *C, wmOperator *op, const wmEvent 
 
   if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(stroke);
+    op->customdata = nullptr;
   }
 
   return retval;

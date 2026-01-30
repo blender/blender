@@ -536,18 +536,18 @@ class StrokePanel(BrushPanel):
         col.prop(brush, "stroke_method")
         col.separator()
 
-        if brush.use_anchor:
+        if brush.stroke_method == 'ANCHORED':
             col.prop(brush, "use_edge_to_edge", text="Edge to Edge")
 
-        if brush.use_airbrush:
+        if brush.stroke_method == 'AIRBRUSH':
             col.prop(brush, "rate", text="Rate", slider=True)
 
-        if brush.use_space:
+        if brush.stroke_method == 'SPACE':
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
             row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
-        if brush.use_line or brush.use_curve:
+        if brush.stroke_method in {'LINE', 'CURVE'}:
             row = col.row(align=True)
             row.prop(brush, "spacing", text="Spacing")
 
@@ -558,13 +558,13 @@ class StrokePanel(BrushPanel):
             if brush.image_paint_capabilities.has_space_attenuation or brush.sculpt_capabilities.has_space_attenuation:
                 col.prop(brush, "use_space_attenuation")
 
-        if brush.use_curve:
+        if brush.stroke_method == 'CURVE':
             col.separator()
             col.template_ID(brush, "paint_curve", new="paintcurve.new")
             col.operator("paintcurve.draw")
             col.separator()
 
-        if brush.use_space or brush.use_line or brush.use_curve:
+        if brush.stroke_method in {'SPACE', 'LINE', 'CURVE'}:
             col.separator()
             row = col.row(align=True)
             col.prop(brush, "dash_ratio", text="Dash Ratio")

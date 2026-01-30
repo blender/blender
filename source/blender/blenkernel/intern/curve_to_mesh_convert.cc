@@ -633,8 +633,7 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
     }
   }
   const GSpan src_all = evaluate_attribute(*src_attribute, curves_info.main, eval_buffer);
-  attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(src_attribute.varray.type(), [&]<typename T>() {
     const Span<T> src = src_all.typed<T>();
     MutableSpan<T> dst = dst_attribute.span.typed<T>();
     switch (dst_domain) {
@@ -716,8 +715,7 @@ static void copy_profile_point_domain_attribute_to_mesh(const CurvesInfo &curves
                                                         const GSpan src_all,
                                                         GMutableSpan dst_all)
 {
-  attribute_math::convert_to_static_type(src_all.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(src_all.type(), [&]<typename T>() {
     const Span<T> src = src_all.typed<T>();
     MutableSpan<T> dst = dst_all.typed<T>();
     switch (dst_domain) {
@@ -793,8 +791,7 @@ static void copy_curve_domain_attribute_to_mesh(const ResultOffsets &mesh_offset
       BLI_assert_unreachable();
       return;
   }
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(src.type(), [&]<typename T>() {
     copy_indices_to_offset_ranges(src.typed<T>(), curve_indices, offsets, dst.typed<T>());
   });
 }

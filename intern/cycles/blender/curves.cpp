@@ -790,8 +790,7 @@ static void attr_create_generic(Scene *scene,
         return;
     }
 
-    blender::bke::attribute_math::convert_to_static_type(b_attr.varray.type(), [&](auto dummy) {
-      using BlenderT = decltype(dummy);
+    blender::bke::attribute_math::to_static_type(b_attr.varray.type(), [&]<typename BlenderT>() {
       using Converter = typename ccl::AttributeConverter<BlenderT>;
       using CyclesT = typename Converter::CyclesT;
       if constexpr (!std::is_void_v<CyclesT>) {

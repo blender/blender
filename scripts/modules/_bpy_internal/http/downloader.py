@@ -390,6 +390,40 @@ class DownloaderOptions:
     """
     http_headers: dict[str, str] = dataclasses.field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        self._ensure_user_agent()
+
+    def _ensure_user_agent(self) -> None:
+        """Make sure a custom User-Agent HTTP header is set.
+
+        This is done here, instead of globally in the `requests` module, because
+        `requests` will be used in a Python subprocess, which doesn't run inside
+        of Blender. So in order to include the Blender version, the header has
+        to be defined in the main process.
+
+        Note that this information is NOT passed in the query string for GET
+        requests. This is to help HTTP caching infrastructure (like Cloudflare)
+        to cache HTTP responses as much as possible.
+        """
+        if any(header.lower() == 'user-agent' for header in self.http_headers):
+            return
+
+        user_agent = ""
+        try:
+            from bl_pkg import bl_extension_ops
+            user_agent = bl_extension_ops.online_user_agent_from_blender()
+        except ImportError:
+            logger.exception(
+                "http downloader could not import bl_extension_ops from Blender; "
+                "HTTP user-agent header will not identify the Blender version")
+            import platform
+            user_agent = "Blender/unknown ({:s} {:s}; cycle=unknown)".format(
+                platform.system(),
+                platform.machine(),
+            )
+
+        self.http_headers['user-agent'] = user_agent
+
 
 class BackgroundDownloader:
     """Wrapper for a ConditionalDownloader + reporters.
@@ -939,9 +973,12 @@ class DownloadReporter(Protocol):
     ) -> None:
         """There was an error downloading the URL.
 
-        This can be due to the actual download (network issues), but also local
-        processing of the downloaded data (such as renaming the file from its
-        temporary name to its final name).
+        This can be due to the actual download (HTTP status code 4xx or 5xx,
+        network issues), but also local processing of the downloaded data (such
+        as renaming the file from its temporary name to its final name).
+
+        For HTTP errors, the 'error' parameter will be a requests.HTTPError
+        instance.
         """
 
     def download_progress(

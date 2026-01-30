@@ -588,9 +588,7 @@ static void trim_attribute_linear(const bke::CurvesGeometry &src_curves,
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   for (bke::AttributeTransferData &attribute : transfer_attributes) {
-    bke::attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-
+    bke::attribute_math::to_static_type(attribute.meta_data.data_type, [&]<typename T>() {
       selection.foreach_index(GrainSize(512), [&](const int curve_i) {
         const IndexRange src_points = src_points_by_curve[curve_i];
         sample_interval_linear<T>(attribute.src.template typed<T>().slice(src_points),
@@ -669,9 +667,7 @@ static void trim_catmull_rom_curves(const bke::CurvesGeometry &src_curves,
   fill_nurbs_data(dst_curves, selection);
 
   for (bke::AttributeTransferData &attribute : transfer_attributes) {
-    bke::attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-
+    bke::attribute_math::to_static_type(attribute.meta_data.data_type, [&]<typename T>() {
       selection.foreach_index(GrainSize(512), [&](const int curve_i) {
         const IndexRange src_points = src_points_by_curve[curve_i];
         const IndexRange dst_points = dst_points_by_curve[curve_i];
@@ -767,9 +763,7 @@ static void trim_evaluated_curves(const bke::CurvesGeometry &src_curves,
   fill_nurbs_data(dst_curves, selection);
 
   for (bke::AttributeTransferData &attribute : transfer_attributes) {
-    bke::attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-
+    bke::attribute_math::to_static_type(attribute.meta_data.data_type, [&]<typename T>() {
       selection.foreach_segment(GrainSize(512), [&](const IndexMaskSegment segment) {
         Vector<std::byte> evaluated_buffer;
         for (const int64_t curve_i : segment) {

@@ -404,8 +404,7 @@ static void sample_curve_attribute(const bke::CurvesGeometry &src_curves,
   BLI_assert(dst_sample_factors.size() == dst_points_num);
 #endif
 
-  bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(type, [&]<typename T>() {
     Span<T> src = src_data.typed<T>();
     MutableSpan<T> dst = dst_data.typed<T>();
 
@@ -877,8 +876,7 @@ static void mix_arrays(const GSpan src_from,
                        const IndexMask &selection,
                        const GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(dst.type(), [&]<typename T>() {
     const Span<T> from = src_from.typed<T>();
     const Span<T> to = src_to.typed<T>();
     const MutableSpan<T> dst_typed = dst.typed<T>();
@@ -906,8 +904,7 @@ static void mix_arrays(const GSpan src_from,
 {
   group_selection.foreach_index(GrainSize(32), [&](const int curve) {
     const IndexRange range = groups[curve];
-    bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(dst.type(), [&]<typename T>() {
       const Span<T> from = src_from.typed<T>();
       const Span<T> to = src_to.typed<T>();
       const MutableSpan<T> dst_typed = dst.typed<T>();

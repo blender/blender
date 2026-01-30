@@ -107,8 +107,7 @@ void copy_attribute_using_map(const Span<T> src, const Span<int> out_to_in_map, 
 void copy_attribute_using_map(const GSpan src, const Span<int> out_to_in_map, GMutableSpan dst)
 {
   const CPPType &type = dst.type();
-  bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(type, [&]<typename T>() {
     copy_attribute_using_map(src.typed<T>(), out_to_in_map, dst.typed<T>());
   });
 }
@@ -235,8 +234,7 @@ void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
               GMutableSpan dst = dsts[attr_index];
               const bool need_flip = face_is_flipped && is_normal_attribute[attr_index];
               const CPPType &type = dst.type();
-              bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-                using T = decltype(dummy);
+              bke::attribute_math::to_static_type(type, [&]<typename T>() {
                 const Span<T> src_typed = src.typed<T>();
                 MutableSpan<T> dst_typed = dst.typed<T>();
                 bke::attribute_math::DefaultMixer<T> mixer{MutableSpan(&dst_typed[out_c], 1)};

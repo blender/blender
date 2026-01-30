@@ -516,8 +516,9 @@ struct StripDuplicateContext {
   int copy_flag;
 
   /* Sources of newly created datablocks when duplicating strips.
-   * Processed with `seq_duplicate_postprocess`. */
+   * Their duplicates are processed with `seq_duplicate_postprocess`. */
   Set<Scene *> scenes;
+  Set<Object *> scene_cameras;
   Set<MovieClip *> movieclips;
   Set<Mask *> masks;
 };
@@ -561,6 +562,12 @@ static void seq_duplicate_postprocess(StripDuplicateContext &ctx)
         BKE_libblock_relink_to_newid(ctx.bmain, scene_src->id.newid, remap_flag);
       }
     }
+    for (Object *scene_camera_src : ctx.scene_cameras) {
+      BLI_assert(scene_camera_src);
+      if (scene_camera_src->id.newid) {
+        BKE_libblock_relink_to_newid(ctx.bmain, scene_camera_src->id.newid, remap_flag);
+      }
+    }
     for (MovieClip *movieclip_src : ctx.movieclips) {
       BLI_assert(movieclip_src);
       if (movieclip_src->id.newid) {
@@ -588,8 +595,8 @@ static void seq_duplicate_postprocess(StripDuplicateContext &ctx)
       FOREACH_MAIN_ID_END;
 #endif
 
-      /* Clear temporary `newid` for potentially copied datablocks (scene, mask, and movieclip)
-       * to indicate that we have finished processing them. */
+      /* Clear temporary `newid` for potentially copied datablocks (scene, scene cameras, mask, and
+       * movieclip) to indicate that we have finished processing them. */
       BKE_main_id_newptr_and_tag_clear(ctx.bmain);
 
       BKE_main_collection_sync(ctx.bmain);
@@ -597,6 +604,7 @@ static void seq_duplicate_postprocess(StripDuplicateContext &ctx)
   }
   else {
     BLI_assert(ctx.scenes.is_empty());
+    BLI_assert(ctx.scene_cameras.is_empty());
     BLI_assert(ctx.movieclips.is_empty());
     BLI_assert(ctx.masks.is_empty());
   }
@@ -680,12 +688,22 @@ static Strip *strip_duplicate(StripDuplicateContext &ctx,
     if (flag_is_set(ctx.dupe_flag, StripDuplicate::Data) && strip_new->scene != nullptr) {
       Scene *scene_old = strip_new->scene;
       ctx.scenes.add(scene_old);
+
+      Object *scene_camera_old = strip_new->scene_camera;
+      if (scene_camera_old) {
+        ctx.scene_cameras.add(scene_camera_old);
+      }
+
       strip_new->scene = BKE_scene_duplicate(ctx.bmain,
                                              scene_old,
                                              SCE_COPY_FULL,
                                              eDupli_ID_Flags(U.dupflag | USER_DUP_OBJECT),
                                              LIB_ID_DUPLICATE_IS_ROOT_ID |
                                                  LIB_ID_DUPLICATE_IS_SUBPROCESS);
+
+      if (scene_camera_old && scene_camera_old->id.newid) {
+        strip_new->scene_camera = blender::id_cast<Object *>(scene_camera_old->id.newid);
+      }
     }
     strip_new->data->stripdata = nullptr;
     if (strip->runtime->scene_sound) {

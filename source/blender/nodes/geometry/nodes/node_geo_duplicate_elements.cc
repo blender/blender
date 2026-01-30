@@ -191,8 +191,7 @@ static void copy_curve_attributes_without_id(const bke::CurvesGeometry &src_curv
             curve_offsets, selection, attribute.src, attribute.dst.span);
         break;
       case AttrDomain::Point:
-        bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(attribute.src.type(), [&]<typename T>() {
           const Span<T> src = attribute.src.typed<T>();
           MutableSpan<T> dst = attribute.dst.span.typed<T>();
           selection.foreach_index(
@@ -803,8 +802,7 @@ static bke::CurvesGeometry duplicate_points_CurvesGeometry(
            {bke::AttrDomain::Curve},
            bke::attribute_filter_with_skip_ref(attribute_filter, {"id"})))
   {
-    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attribute.src.type(), [&]<typename T>() {
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();
       selection.foreach_index(GrainSize(512), [&](const int64_t index, const int64_t i_selection) {

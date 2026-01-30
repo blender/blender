@@ -158,29 +158,32 @@ class ShapeKeyDropTarget : public ui::TreeViewItemDropTarget {
     Key *key = BKE_key_from_object(ob);
     const KeyBlock **drag_shapekey = static_cast<const KeyBlock **>(drag_info.drag_data.poin);
 
+    const int first_drag_index = BLI_findindex(&key->block, drag_shapekey[0]);
+    int drop_index = BLI_findindex(&key->block, &drop_kb_);
+    switch (drag_info.drop_location) {
+      case ui::DropLocation::Into:
+        BLI_assert_unreachable();
+        break;
+      case ui::DropLocation::Before:
+        if (drop_index == 0) {
+          return false;
+        }
+        drop_index -= int(first_drag_index < drop_index);
+        break;
+      case ui::DropLocation::After:
+        drop_index += int(first_drag_index > drop_index);
+        break;
+    }
+
     for (int8_t i = 0; drag_shapekey[i] != nullptr; i++) {
       const int drag_index = BLI_findindex(&key->block, drag_shapekey[i]);
-      int drop_index = BLI_findindex(&key->block, &drop_kb_);
-
       if (drag_index == -1) {
         continue;
       }
-
-      switch (drag_info.drop_location) {
-        case ui::DropLocation::Into:
-          BLI_assert_unreachable();
-          break;
-        case ui::DropLocation::Before:
-          if (drop_index == 0) {
-            return false;
-          }
-          drop_index -= int(drag_index < drop_index);
-          break;
-        case ui::DropLocation::After:
-          drop_index += int(drag_index > drop_index) + i;
-          break;
+      if (i > 0) {
+        /* Place subsequent items directly after the previously moved item. */
+        drop_index += int(drag_index > drop_index);
       }
-
       BKE_keyblock_move(ob, drag_index, drop_index);
     }
 

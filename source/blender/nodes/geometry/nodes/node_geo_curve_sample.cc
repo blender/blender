@@ -310,8 +310,7 @@ class SampleCurveFunction : public mf::MultiFunction {
         index_mask::masked_fill(sampled_normals, float3(0), mask);
       }
       if (!sampled_values.is_empty()) {
-        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
           index_mask::masked_fill<T>(sampled_values.typed<T>(), {}, mask);
         });
       }
@@ -333,8 +332,7 @@ class SampleCurveFunction : public mf::MultiFunction {
               sampled_normals, evaluated_normals[evaluated_points.first()], mask);
         }
         if (!sampled_values.is_empty()) {
-          bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
-            using T = decltype(dummy);
+          bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
             const T &value = source_data_->typed<T>()[points_by_curve[curve_i].first()];
             index_mask::masked_fill<T>(sampled_values.typed<T>(), value, mask);
           });
@@ -383,8 +381,7 @@ class SampleCurveFunction : public mf::MultiFunction {
         source_data_->materialize_compressed_to_uninitialized(points, src_original_values.data());
         src_evaluated_values.reinitialize(evaluated_points.size());
         curves.interpolate_to_evaluated(curve_i, src_original_values, src_evaluated_values);
-        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
           const Span<T> src_evaluated_values_typed = src_evaluated_values.as_span().typed<T>();
           MutableSpan<T> sampled_values_typed = sampled_values.typed<T>();
           length_parameterize::interpolate_to_masked<T>(

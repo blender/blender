@@ -3127,7 +3127,7 @@ void legacy_main(Main &bmain,
 
   BKE_libblock_remap_multiple(&bmain, gpd_remapper, ID_REMAP_ALLOW_IDTYPE_MISMATCH);
 
-  /* !MAIN_VERSION_FILE_ATLEAST(new_bmain, 501, 23) */
+  /* !MAIN_VERSION_FILE_ATLEAST(new_bmain, 501, 24) */
   /* Convert all the material stroke/fill settings to geometry attributes. */
   bke::greasepencil::convert::material_stroke_fill_toggles_to_attributes(
       bmain, new_grease_pencils, reports);

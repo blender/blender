@@ -120,29 +120,6 @@ void sample_grid(const bke::OpenvdbGridType<T> &grid,
   });
 }
 
-template<typename Fn> void convert_to_static_type(const VolumeGridType type, const Fn &fn)
-{
-  switch (type) {
-    case VOLUME_GRID_BOOLEAN:
-      fn(bool());
-      break;
-    case VOLUME_GRID_FLOAT:
-      fn(float());
-      break;
-    case VOLUME_GRID_INT:
-      fn(int());
-      break;
-    case VOLUME_GRID_MASK:
-      fn(bool());
-      break;
-    case VOLUME_GRID_VECTOR_FLOAT:
-      fn(float3());
-      break;
-    default:
-      break;
-  }
-}
-
 class SampleGridIndexFunction : public mf::MultiFunction {
   bke::GVolumeGrid grid_;
   mf::Signature signature_;
@@ -177,14 +154,15 @@ class SampleGridIndexFunction : public mf::MultiFunction {
     const VArraySpan<int> z = params.readonly_single_input<int>(2, "Z");
     GMutableSpan dst = params.uninitialized_single_output(3, "Value");
 
-    convert_to_static_type(grid_type_, [&](auto dummy) {
-      using T = decltype(dummy);
-      sample_grid<T>(static_cast<const bke::OpenvdbGridType<T> &>(*grid_base_),
-                     x,
-                     y,
-                     z,
-                     mask,
-                     dst.typed<T>());
+    BKE_volume_grid_type_to_blender_value_type(grid_type_, [&]<typename T>() {
+      if constexpr (is_same_any_v<T, bool, float, int, float3>) {
+        sample_grid<T>(static_cast<const bke::OpenvdbGridType<T> &>(*grid_base_),
+                       x,
+                       y,
+                       z,
+                       mask,
+                       dst.typed<T>());
+      }
     });
   }
 };

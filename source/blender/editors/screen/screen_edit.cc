@@ -2025,7 +2025,7 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 
   DEG_time_tag_update(bmain);
 
-  void *camera = BKE_scene_camera_switch_find(scene);
+  void *camera = BKE_scene_camera_switch_find(scene, int(BKE_scene_ctime_get(scene)));
   if (camera && scene->camera != camera) {
     scene->camera = static_cast<Object *>(camera);
     /* are there cameras in the views that are not in the scene? */

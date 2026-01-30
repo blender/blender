@@ -10,6 +10,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_camera.h"
+#include "BKE_scene.hh"
 
 #include "RNA_access.hh"
 
@@ -496,7 +497,9 @@ class DefocusOperation : public NodeOperation {
 
   const Object *get_camera_object()
   {
-    return get_scene()->camera;
+    Object *marker_camera = BKE_scene_camera_switch_find(this->get_scene(),
+                                                         this->context().get_frame_number());
+    return marker_camera ? marker_camera : this->get_scene()->camera;
   }
 
   const Scene *get_scene()

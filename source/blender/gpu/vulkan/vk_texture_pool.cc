@@ -14,30 +14,122 @@
 
 #include "fmt/format.h"
 
+#include "BKE_global.hh"
+
+#include "CLG_log.h"
+
 namespace blender::gpu {
 
-/* Compute the nearest `offset` that is aligned up to `alignment`, but with
- * respect to `allocation_offset` from which `offset` is based. */
-static VkDeviceSize align_offset(VkDeviceSize offset,
-                                 VkDeviceSize allocation_offset,
-                                 VkDeviceSize alignment)
+static CLG_LogRef LOG = {"gpu.vulkan"};
+
+std::optional<VKTexturePool::Segment> VKTexturePool::AllocationHandle::acquire(
+    VkMemoryRequirements requirements)
 {
-  return ceil_to_multiple_ul(allocation_offset + offset, alignment) - allocation_offset;
+  /* `memoryType` uses 0 as special value to indicate no memory type restrictions.
+   * If there are restrictions, we check against `memoryTypeBits`.  */
+  if (allocation_info.memoryType != 0 &&
+      !bool(requirements.memoryTypeBits & allocation_info.memoryType))
+  {
+    return {};
+  }
+
+  /* Find the first compatible segment. If a segment is found, we keep the iterator
+   * to modify the existing segment in the list, as it may be shrunk or split. */
+  auto found_segment = std::find_if(segments.begin(), segments.end(), [&](const Segment &segment) {
+    VkDeviceSize aligned_offset = ceil_to_multiple_ul(segment.offset, requirements.alignment);
+    VkDeviceSize remaining_size = segment.size - (aligned_offset - segment.offset);
+    return
+        /* Check: the aligned offset does not lie past the segment's end. */
+        aligned_offset < segment.offset + segment.size &&
+        /* Check: the segment's remaining size is large enough. */
+        remaining_size >= requirements.size;
+  });
+  if (found_segment == segments.end()) {
+    return {};
+  }
+
+  /* The return segment is split from the found segment, starting at the aligned offset. This
+   * implies there are now segments before/after it. */
+  Segment segment = {ceil_to_multiple_ul(found_segment->offset, requirements.alignment),
+                     requirements.size};
+  Segment segment_prev = {found_segment->offset, segment.offset - found_segment->offset};
+  Segment segment_next = {segment.offset + segment.size,
+                          found_segment->size - segment.size - segment_prev.size};
+
+  /* Depending on the segments before/after, we shrink/split/remove the stored segment. */
+  if (segment_prev.size > 0 && segment_next.size > 0) {
+    *found_segment = segment_next;
+    segments.insert(found_segment, segment_prev);
+  }
+  else if (segment_prev.size > 0) {
+    *found_segment = segment_prev;
+  }
+  else if (segment_next.size > 0) {
+    *found_segment = segment_next;
+  }
+  else {
+    segments.erase(found_segment);
+  }
+
+  return segment;
 }
 
-bool VKTexturePool::AllocationHandle::alloc(VkMemoryRequirements memory_requirements)
+void VKTexturePool::AllocationHandle::release(Segment segment)
+{
+  /* Find the segments directly before/after the released segment, if they exist. */
+  auto segment_next = std::find_if(segments.begin(), segments.end(), [segment](Segment next) {
+    return segment.offset < next.offset;
+  });
+  auto segment_prev = segment_next;
+  if (segment_prev != segments.begin()) {
+    --segment_prev;
+  }
+
+  /* Extend the previous/next segment, if they connect to the released segment. */
+  bool extend_prev = segment_prev != segments.end() &&
+                     segment.offset == (segment_prev->offset + segment_prev->size);
+  bool extend_next = segment_next != segments.end() &&
+                     segment_next->offset == (segment.offset + segment.size);
+  if (extend_prev) {
+    segment_prev->size += segment.size;
+  }
+  if (extend_next) {
+    segment_next->offset = segment.offset;
+    segment_next->size += segment.size;
+  }
+
+  /* If both segments are extended, we join them. If neither was extended, we
+   * insert the released segment in between, as it doesn't connect to either. */
+  if (extend_prev && extend_next) {
+    segment_prev->size += segment_next->size - segment.size;
+    segments.erase(segment_next);
+  }
+  else if (!(extend_prev || extend_next)) {
+    segments.insert(segment_next, segment);
+  }
+}
+
+void VKTexturePool::AllocationHandle::alloc(VkMemoryRequirements memory_requirements)
 {
   VKDevice &device = VKBackend::get().device;
+
   VmaAllocationCreateInfo create_info = {};
   create_info.priority = 1.0f;
   create_info.memoryTypeBits = memory_requirements.memoryTypeBits;
   create_info.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
   VkResult result = vmaAllocateMemory(device.mem_allocator_get(),
                                       &memory_requirements,
                                       &create_info,
                                       &allocation,
                                       &allocation_info);
-  return result == VK_SUCCESS;
+
+  /* WATCH(not_mark): will remove asserts when pool is a bit more mature. */
+  UNUSED_VARS(result);
+  BLI_assert(result == VK_SUCCESS);
+
+  /* Start with a single segment, sized to the full range of the allocation. */
+  segments = {{allocation_info.offset, allocation_info.size}};
 }
 
 void VKTexturePool::AllocationHandle::free()
@@ -46,9 +138,10 @@ void VKTexturePool::AllocationHandle::free()
   /* TODO(not_mark): allocation needs to go to discard pool, but for that it needs to be tracked.
    * This is only OK right now because `max_unused_cycles_` is sufficiently large. */
   vmaFreeMemory(device.mem_allocator_get(), allocation);
+  segments = {};
 }
 
-bool VKTexturePool::TextureHandle::alloc(int2 extent,
+void VKTexturePool::TextureHandle::alloc(int2 extent,
                                          TextureFormat format,
                                          eGPUTextureUsage usage,
                                          const char *name)
@@ -93,10 +186,13 @@ bool VKTexturePool::TextureHandle::alloc(int2 extent,
   create_info.extent.width = static_cast<uint32_t>(extent.x);
   create_info.extent.height = static_cast<uint32_t>(extent.y);
   create_info.extent.depth = 1u;
+
   VkResult result = vkCreateImage(
       device.vk_handle(), &create_info, nullptr, &(texture->vk_image_));
 
-  return result == VK_SUCCESS;
+  /* WATCH(not_mark): will remove asserts when pool is a bit more mature. */
+  UNUSED_VARS(result);
+  BLI_assert(result == VK_SUCCESS);
 }
 
 void VKTexturePool::TextureHandle::free()
@@ -114,7 +210,7 @@ VKTexturePool::~VKTexturePool()
   for (const TextureHandle &handle : acquired_) {
     release_texture(wrap(handle.texture));
   }
-  for (AllocationHandle &handle : pool_) {
+  for (AllocationHandle handle : allocations_) {
     handle.free();
   }
 }
@@ -136,68 +232,64 @@ Texture *VKTexturePool::acquire_texture(int2 extent,
   TextureHandle texture_handle;
   texture_handle.alloc(extent, format, usage, name_str.c_str());
 
-  /* Query the requirements for this specific image */
+  /* Query the requirements for this specific image. */
   VkMemoryRequirements memory_requirements;
   vkGetImageMemoryRequirements(
       device.vk_handle(), texture_handle.texture->vk_image_, &memory_requirements);
 
-  /* TODO(not_mark): naive, but first compatible works better than smallest compatible. */
-  int64_t match_index = -1;
-  for (uint64_t i : pool_.index_range()) {
-    const AllocationHandle &handle = pool_[i];
-
-    /* VkMemoryRequirements::alignment specifies alignment requirements of the offset within a
-     * memory allocation; we compute the necessary size of the allocation such that there is a
-     * starting offset to the first aligned index. As different images can have different
-     * alignments, this is done per VkImage */
-    VkDeviceSize aligned_offset = align_offset(
-        0, handle.allocation_info.offset, memory_requirements.alignment);
-    VkDeviceSize aligned_size = aligned_offset + memory_requirements.size;
-
-    if (handle.allocation_info.size >= aligned_size) {
-      /* VkMemoryRequirements::memoryTypeBits has bits set for every supported memory type;
-       * only one needs to match for the allocation to be compatible to the image. Further,
-       * if VmaAllocationInfo::memoryType is 0, the allocation is generally compatible. */
-      if (handle.allocation_info.memoryType == 0 ||
-          bool(handle.allocation_info.memoryType & memory_requirements.memoryTypeBits))
-      {
-        match_index = i;
-        break;
-      }
+  /* Find a compatible segment of allocated memory. */
+  for (AllocationHandle handle : allocations_) {
+    std::optional<Segment> segment_opt = handle.acquire(memory_requirements);
+    if (segment_opt) {
+      texture_handle.allocation_handle = handle;
+      texture_handle.segment = segment_opt.value();
+      allocations_.add_overwrite(handle);
+      break;
     }
   }
 
-  /* Acquire the compatible allocation, or allocate as a last resort. */
-  AllocationHandle &allocation_handle = texture_handle.allocation_handle;
-  if (match_index != -1) {
-    allocation_handle = pool_[match_index];
-    pool_.remove_and_reorder(match_index);
-  }
-  else {
-    allocation_handle.alloc(memory_requirements);
-  }
+  /* If no compatible region was found, allocate new memory. */
+  if (texture_handle.allocation_handle.allocation == VK_NULL_HANDLE) {
+    VkMemoryRequirements allocation_requirements = memory_requirements;
+    allocation_requirements.size = std::max(allocation_size, allocation_requirements.size);
 
-  /* Compute the necessary offset into the allocation to satisfy alignment requirements. */
-  VkDeviceSize aligned_offset = align_offset(
-      0, allocation_handle.allocation_info.offset, memory_requirements.alignment);
+    AllocationHandle handle;
+    handle.alloc(allocation_requirements);
+
+    std::optional<Segment> segment_opt = handle.acquire(memory_requirements);
+    if (segment_opt) {
+      allocations_.add(handle);
+      texture_handle.allocation_handle = handle;
+      texture_handle.segment = segment_opt.value();
+    }
+    else {
+      BLI_assert_unreachable();
+    }
+  }
 
   /* Bind VkImage to allocation. */
-  VkResult bind_result = vmaBindImageMemory2(device.mem_allocator_get(),
-                                             allocation_handle.allocation,
-                                             aligned_offset,
-                                             texture_handle.texture->vk_image_,
-                                             nullptr);
+  VkResult result = vmaBindImageMemory2(device.mem_allocator_get(),
+                                        texture_handle.allocation_handle.allocation,
+                                        texture_handle.allocation_local_offset(),
+                                        texture_handle.texture->vk_image_,
+                                        nullptr);
 
   /* WATCH(not_mark): if the bind fails with e.g. VK_ERROR_UNKNOWN, VkMemoryRequirements are
    * likely not correctly satisfied. I'll keep the assert in for now, as the problem otherwise
    * incorrectly shows up in the render graph. */
-  UNUSED_VARS(bind_result);
-  BLI_assert_msg(bind_result == VK_SUCCESS,
-                 "VKTexturePool::acquire failed on vmaBindImageMemory2.");
+  UNUSED_VARS(result);
+  BLI_assert_msg(result == VK_SUCCESS, "VKTexturePool::acquire failed on vmaBindImageMemory2.");
 
   debug::object_label(texture_handle.texture->vk_image_, texture_handle.texture->name_);
   device.resources.add_aliased_image(
       texture_handle.texture->vk_image_, false, texture_handle.texture->name_.c_str());
+
+  if (G.debug & G_DEBUG_GPU) {
+    /* Accumulate usage data for debug log. */
+    current_usage_data_.acquired_segment_size += texture_handle.segment.size;
+    current_usage_data_.acquired_segment_size_max = std::max(
+        current_usage_data_.acquired_segment_size_max, current_usage_data_.acquired_segment_size);
+  }
 
   acquired_.add(texture_handle);
   return wrap(texture_handle.texture);
@@ -209,10 +301,15 @@ void VKTexturePool::release_texture(Texture *tex)
                  "Unacquired texture passed to VKTexturePool::offset_users_count()");
   TextureHandle texture_handle = acquired_.lookup_key({unwrap(tex)});
 
+  if (G.debug & G_DEBUG_GPU) {
+    current_usage_data_.acquired_segment_size -= texture_handle.segment.size;
+  }
+
   /* Move allocation back to `pool_`. */
-  AllocationHandle allocation_handle = texture_handle.allocation_handle;
-  allocation_handle.unused_cycles_count = 0;
-  pool_.append(allocation_handle);
+  AllocationHandle page_handle = allocations_.lookup_key(texture_handle.allocation_handle);
+  page_handle.release(texture_handle.segment);
+  page_handle.unused_cycles_count = 0;
+  allocations_.add_overwrite(page_handle);
 
   /* Clear out acquired texture object. */
   acquired_.remove(texture_handle);
@@ -241,16 +338,48 @@ void VKTexturePool::reset(bool force_free)
 #endif
 
   /* Reverse iterate unused allocations, to make sure we only reorder known good handles. */
-  for (int i = pool_.size() - 1; i >= 0; i--) {
-    AllocationHandle &handle = pool_[i];
-    if (handle.unused_cycles_count >= max_unused_cycles_ || force_free) {
+  for (AllocationHandle handle : allocations_) {
+    if (handle.is_unused() && (handle.unused_cycles_count >= max_unused_cycles_ || force_free)) {
       handle.free();
-      pool_.remove_and_reorder(i);
+      allocations_.remove(handle);
     }
     else {
       handle.unused_cycles_count++;
+      allocations_.add_overwrite(handle);
     }
   }
+
+  if (G.debug & G_DEBUG_GPU) {
+    /* Log debug usage data if it differs from the last `::reset()`. */
+    current_usage_data_.allocation_count = allocations_.size();
+    if (!(previous_usage_data_ == current_usage_data_)) {
+      log_usage_data();
+    }
+
+    /* Reset usage data; don't forget to add up persistent textures to current usage. */
+    previous_usage_data_ = current_usage_data_;
+    current_usage_data_ = {};
+    for (const TextureHandle &tex : acquired_) {
+      current_usage_data_.acquired_segment_size += tex.segment.size;
+    }
+  }
+}
+
+void VKTexturePool::log_usage_data()
+{
+  VkDeviceSize total_allocation_size = 0;
+  for (const AllocationHandle &handle : allocations_) {
+    total_allocation_size += handle.allocation_info.size;
+  }
+  float ratio = static_cast<float>(current_usage_data_.acquired_segment_size_max) /
+                static_cast<float>(total_allocation_size);
+
+  CLOG_TRACE(&LOG,
+             "VKTexturePool uses %zu/%zu mb (%.1f%% of %li allocations)",
+             current_usage_data_.acquired_segment_size_max >> 20,
+             total_allocation_size >> 20,
+             ratio * 100.0f,
+             current_usage_data_.allocation_count);
 }
 
 }  // namespace blender::gpu

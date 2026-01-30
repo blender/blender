@@ -330,35 +330,12 @@ template<typename Fn> bool socket_data_to_static_type(const StringRef socket_typ
   return false;
 }
 
-namespace detail {
-
-template<typename Fn> struct TypeTagExecutor {
-  const Fn &fn;
-
-  TypeTagExecutor(const Fn &fn_) : fn(fn_) {}
-
-  template<typename T> void operator()() const
-  {
-    fn(TypeTag<T>{});
-  }
-};
-
-}  // namespace detail
-
-template<typename Fn>
-void socket_data_to_static_type_tag(const StringRef socket_type, const Fn &fn)
-{
-  detail::TypeTagExecutor executor{fn};
-  socket_data_to_static_type(socket_type, executor);
-}
-
 }  // namespace socket_types
 
 template<typename T> bool socket_data_is_type(const char *socket_type)
 {
   bool match = false;
-  socket_types::socket_data_to_static_type_tag(socket_type, [&match](auto type_tag) {
-    using SocketDataType = typename decltype(type_tag)::type;
+  socket_types::socket_data_to_static_type(socket_type, [&match]<typename SocketDataType>() {
     match |= std::is_same_v<T, SocketDataType>;
   });
   return match;

@@ -607,8 +607,7 @@ static std::optional<GeoMismatch> sort_domain_using_attributes(
 
     std::optional<GeoMismatch> mismatch = {};
 
-    attribute_math::convert_to_static_type(reader1.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(reader1.varray.type(), [&]<typename T>() {
       const VArraySpan<T> values1 = reader1.varray.typed<T>();
       const VArraySpan<T> values2 = reader2.varray.typed<T>();
 

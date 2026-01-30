@@ -211,8 +211,7 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
 
     GVArray g_output;
 
-    bke::attribute_math::convert_to_static_type(g_values.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
       if constexpr (is_same_any_v<T, int, float, float3, float4x4>) {
         Array<T> outputs(domain_size);
         const VArray<T> values = g_values.typed<T>();
@@ -324,8 +323,7 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
 
     GVArray g_outputs;
 
-    bke::attribute_math::convert_to_static_type(g_values.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
       if constexpr (is_same_any_v<T, int, float, float3, float4x4>) {
         const VArray<T> values = g_values.typed<T>();
         if (group_indices.is_single()) {

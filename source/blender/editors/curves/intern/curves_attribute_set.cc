@@ -171,8 +171,7 @@ static wmOperatorStatus set_attribute_invoke(bContext *C, wmOperator *op, const 
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
   BLI_SCOPED_DEFER([&]() { type.destruct(buffer); });
 
-  bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(type, [&]<typename T>() {
     const VArray<T> values_typed = attribute.varray.typed<T>();
     bke::attribute_math::DefaultMixer<T> mixer{MutableSpan(static_cast<T *>(buffer), 1)};
     selection.foreach_index([&](const int i) { mixer.mix_in(0, values_typed[i]); });

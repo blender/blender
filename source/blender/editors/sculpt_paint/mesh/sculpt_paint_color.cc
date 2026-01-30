@@ -724,7 +724,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
   scale_factors(factors, strength);
 
   float3 brush_delta;
-  if (brush.flag & BRUSH_ANCHORED) {
+  if (brush.stroke_method == BRUSH_STROKE_ANCHORED) {
     brush_delta = ss.cache->grab_delta_symm;
   }
   else {

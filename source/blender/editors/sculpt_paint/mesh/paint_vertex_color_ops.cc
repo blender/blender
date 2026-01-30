@@ -258,14 +258,10 @@ static void transform_active_color_data(
   const IndexMask selection = get_selected_indices(mesh, color_attribute.domain, memory);
 
   selection.foreach_segment(GrainSize(1024), [&](const IndexMaskSegment segment) {
-    color_attribute.varray.type().to_static_type_tag<ColorGeometry4f, ColorGeometry4b>(
-        [&](auto type_tag) {
-          using T = typename decltype(type_tag)::type;
+    color_attribute.varray.type().to_static_type<ColorGeometry4f, ColorGeometry4b>(
+        [&]<typename T>() {
           for ([[maybe_unused]] const int i : segment) {
-            if constexpr (std::is_void_v<T>) {
-              BLI_assert_unreachable();
-            }
-            else if constexpr (std::is_same_v<T, ColorGeometry4f>) {
+            if constexpr (std::is_same_v<T, ColorGeometry4f>) {
               ColorGeometry4f color = color_attribute.varray.get<ColorGeometry4f>(i);
               transform_fn(color);
               color_attribute.varray.set_by_copy(i, &color);

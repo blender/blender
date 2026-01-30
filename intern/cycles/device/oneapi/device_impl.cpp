@@ -1625,31 +1625,43 @@ void OneapiDevice::architecture_information(const SyclDevice *device,
     FILL_ARCH_INFO(intel_gpu_kbl, false)
     FILL_ARCH_INFO(intel_gpu_cfl, false)
     FILL_ARCH_INFO(intel_gpu_apl, false)
+    /* intel_gpu_bxt == intel_gpu_apl */
     FILL_ARCH_INFO(intel_gpu_glk, false)
     FILL_ARCH_INFO(intel_gpu_whl, false)
     FILL_ARCH_INFO(intel_gpu_aml, false)
     FILL_ARCH_INFO(intel_gpu_cml, false)
     FILL_ARCH_INFO(intel_gpu_icllp, false)
+    /* intel_gpu_icl == intel_gpu_icllp */
     FILL_ARCH_INFO(intel_gpu_ehl, false)
+    /* intel_gpu_jsl == intel_gpu_ehl */
     FILL_ARCH_INFO(intel_gpu_tgllp, false)
+    /* intel_gpu_tgl == intel_gpu_tgllp */
     FILL_ARCH_INFO(intel_gpu_rkl, false)
     FILL_ARCH_INFO(intel_gpu_adl_s, false)
+    /* intel_gpu_rpl_s == intel_gpu_adl_s */
     FILL_ARCH_INFO(intel_gpu_adl_p, false)
     FILL_ARCH_INFO(intel_gpu_adl_n, false)
     FILL_ARCH_INFO(intel_gpu_dg1, false)
-    FILL_ARCH_INFO(intel_gpu_dg2_g10, true)
-    FILL_ARCH_INFO(intel_gpu_dg2_g11, true)
-    FILL_ARCH_INFO(intel_gpu_dg2_g12, true)
+    FILL_ARCH_INFO(intel_gpu_acm_g10, true)
+    /* intel_gpu_dg2_g10 == intel_gpu_acm_g10 */
+    FILL_ARCH_INFO(intel_gpu_acm_g11, true)
+    /* intel_gpu_dg2_g11 == intel_gpu_acm_g11 */
+    FILL_ARCH_INFO(intel_gpu_acm_g12, true)
+    /* intel_gpu_dg2_g12 == intel_gpu_acm_g12 */
     FILL_ARCH_INFO(intel_gpu_pvc, false)
     FILL_ARCH_INFO(intel_gpu_pvc_vg, false)
-    /* intel_gpu_mtl_u == intel_gpu_mtl_s == intel_gpu_arl_u == intel_gpu_arl_s */
     FILL_ARCH_INFO(intel_gpu_mtl_u, true)
+    /* intel_gpu_mtl_s == intel_gpu_mtl_u */
+    /* intel_gpu_arl_u == intel_gpu_mtl_u */
+    /* intel_gpu_arl_s == intel_gpu_mtl_u */
     FILL_ARCH_INFO(intel_gpu_mtl_h, true)
+    FILL_ARCH_INFO(intel_gpu_arl_h, true)
     FILL_ARCH_INFO(intel_gpu_bmg_g21, true)
     FILL_ARCH_INFO(intel_gpu_bmg_g31, true)
     FILL_ARCH_INFO(intel_gpu_lnl_m, true)
     FILL_ARCH_INFO(intel_gpu_ptl_h, true)
     FILL_ARCH_INFO(intel_gpu_ptl_u, true)
+    FILL_ARCH_INFO(intel_gpu_wcl, true)
 
     default:
       name = "unknown";

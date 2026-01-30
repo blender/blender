@@ -531,7 +531,7 @@ bool ED_space_image_paint_curve(const bContext *C)
   if (sima && sima->mode == SI_MODE_PAINT) {
     Brush *br = BKE_paint_brush(&CTX_data_tool_settings(C)->imapaint.paint);
 
-    if (br && (br->flag & BRUSH_CURVE)) {
+    if (br && (br->stroke_method == BRUSH_STROKE_CURVE)) {
       return true;
     }
   }

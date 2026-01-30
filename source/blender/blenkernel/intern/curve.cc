@@ -369,6 +369,8 @@ void BKE_curve_init(Curve *cu, const short curve_type)
 
   if (cu->ob_type == OB_FONT) {
     cu->flag |= CU_FRONT | CU_BACK;
+    cu->fill_solver = CU_FILL_SOLVER_CDT;
+    cu->fill_rule = CU_FILL_RULE_NONZERO;
     cu->vfont = cu->vfontb = cu->vfonti = cu->vfontbi = BKE_vfont_builtin_ensure();
     cu->vfont->id.us += 4;
 

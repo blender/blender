@@ -410,7 +410,7 @@ void ImagePaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
     BKE_brush_alpha_set(paint, brush, max_ff(0.0f, startalpha * alphafac));
   }
 
-  if ((brush->flag & BRUSH_DRAG_DOT) || (brush->flag & BRUSH_ANCHORED)) {
+  if (ELEM(brush->stroke_method, BRUSH_STROKE_DRAG_DOT, BRUSH_STROKE_ANCHORED)) {
     UndoStack *ustack = CTX_wm_manager(this->evil_C)->runtime->undo_stack;
     ED_image_undo_restore(ustack->step_init);
   }
@@ -510,8 +510,11 @@ static wmOperatorStatus paint_invoke(bContext *C, wmOperator *op, const wmEvent 
   OPERATOR_RETVAL_CHECK(retval);
 
   if (retval == OPERATOR_FINISHED) {
-    stroke->free(C, op);
-    MEM_delete(stroke);
+    ImagePaintStroke *stroke = static_cast<ImagePaintStroke *>(op->customdata);
+    if (stroke) {
+      stroke->free(C, op);
+      MEM_delete(stroke);
+    }
     return OPERATOR_FINISHED;
   }
   /* add modal handler */
@@ -584,6 +587,7 @@ static wmOperatorStatus paint_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(stroke);
+    op->customdata = nullptr;
   }
 
   return retval;

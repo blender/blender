@@ -184,8 +184,7 @@ class SampleIndexFunction : public mf::MultiFunction {
     }
 
     if (clamp_) {
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         copy_with_clamped_indices(src_data_->typed<T>(), indices, mask, dst.typed<T>());
       });
     }

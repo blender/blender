@@ -62,29 +62,29 @@ constexpr bool is_supported_grid_type = is_same_any_v<GridT,
 template<typename Fn> inline void to_typed_grid(const openvdb::GridBase &grid_base, Fn &&fn)
 {
   const VolumeGridType grid_type = get_type(grid_base);
-  BKE_volume_grid_type_to_static_type(grid_type, [&](auto type_tag) {
-    using GridT = typename decltype(type_tag)::type;
-    if constexpr (is_supported_grid_type<GridT>) {
-      fn(static_cast<const GridT &>(grid_base));
-    }
-    else {
-      BLI_assert_unreachable();
-    }
-  });
+  BKE_volume_grid_type_to_static_type(grid_type,
+                                      [&]<std::derived_from<openvdb::GridBase> GridT>() {
+                                        if constexpr (is_supported_grid_type<GridT>) {
+                                          fn(static_cast<const GridT &>(grid_base));
+                                        }
+                                        else {
+                                          BLI_assert_unreachable();
+                                        }
+                                      });
 }
 
 template<typename Fn> inline void to_typed_grid(openvdb::GridBase &grid_base, Fn &&fn)
 {
   const VolumeGridType grid_type = get_type(grid_base);
-  BKE_volume_grid_type_to_static_type(grid_type, [&](auto type_tag) {
-    using GridT = typename decltype(type_tag)::type;
-    if constexpr (is_supported_grid_type<GridT>) {
-      fn(static_cast<GridT &>(grid_base));
-    }
-    else {
-      BLI_assert_unreachable();
-    }
-  });
+  BKE_volume_grid_type_to_static_type(grid_type,
+                                      [&]<std::derived_from<openvdb::GridBase> GridT>() {
+                                        if constexpr (is_supported_grid_type<GridT>) {
+                                          fn(static_cast<GridT &>(grid_base));
+                                        }
+                                        else {
+                                          BLI_assert_unreachable();
+                                        }
+                                      });
 }
 
 /** Create a grid with the same activated voxels and internal nodes as the given grid. */

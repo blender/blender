@@ -55,10 +55,8 @@ template<typename T> static void bezier_generic_to_nurbs(const Span<T> src, Muta
 
 static void bezier_generic_to_nurbs(const GSpan src, GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    bezier_generic_to_nurbs(src.typed<T>(), dst.typed<T>());
-  });
+  bke::attribute_math::to_static_type(
+      src.type(), [&]<typename T>() { bezier_generic_to_nurbs(src.typed<T>(), dst.typed<T>()); });
 }
 
 static void bezier_positions_to_nurbs(const Span<float3> src_positions,
@@ -147,8 +145,7 @@ static void nurbs_to_bezier_assign(const Span<T> src,
 
 static void nurbs_to_bezier_assign(const GSpan src, const KnotsMode knots_mode, GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
     nurbs_to_bezier_assign(src.typed<T>(), dst.typed<T>(), knots_mode);
   });
 }

@@ -1658,29 +1658,22 @@ static void blend_neighborhood_cpu(const Result &input, const Result &weights, R
 
   const int2 size = input.domain().data_size;
 
-  output.get_cpp_type().to_static_type_tag<float, Color>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_same_v<T, void>) {
-      /* Unsupported type. */
-      BLI_assert_unreachable();
-    }
-    else {
-      parallel_for(size, [&](const int2 texel) {
-        const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+  output.get_cpp_type().to_static_type<float, Color>([&]<typename T>() {
+    parallel_for(size, [&](const int2 texel) {
+      const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
 
-        float4 offset;
-        SMAANeighborhoodBlendingVS(coordinates, size, offset);
+      float4 offset;
+      SMAANeighborhoodBlendingVS(coordinates, size, offset);
 
-        const float4 result = SMAANeighborhoodBlendingPS<T>(
-            coordinates, offset, input, weights, size);
-        if constexpr (std::is_same_v<T, float>) {
-          output.store_pixel(texel, result.x);
-        }
-        else {
-          output.store_pixel(texel, Color(result));
-        }
-      });
-    }
+      const float4 result = SMAANeighborhoodBlendingPS<T>(
+          coordinates, offset, input, weights, size);
+      if constexpr (std::is_same_v<T, float>) {
+        output.store_pixel(texel, result.x);
+      }
+      else {
+        output.store_pixel(texel, Color(result));
+      }
+    });
   });
 }
 

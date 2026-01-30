@@ -158,7 +158,7 @@ Scene *BKE_scene_find_replacement(
 bool BKE_scene_has_view_layer(const Scene *scene, const ViewLayer *layer);
 Scene *BKE_scene_find_from_collection(const Main *bmain, const Collection *collection);
 
-Object *BKE_scene_camera_switch_find(Scene *scene);
+Object *BKE_scene_camera_switch_find(const Scene *scene, const int time);
 bool BKE_scene_camera_switch_update(Scene *scene);
 
 const char *BKE_scene_find_marker_name(const Scene *scene, int frame);

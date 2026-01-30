@@ -258,18 +258,14 @@ void float4x4Mixer::finalize(const IndexMask &mask)
 
 void gather(const GSpan src, const Span<int> map, GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    array_utils::gather(src.typed<T>(), map, dst.typed<T>());
-  });
+  attribute_math::to_static_type(
+      src.type(), [&]<typename T>() { array_utils::gather(src.typed<T>(), map, dst.typed<T>()); });
 }
 
 void gather(const GVArray &src, const Span<int> map, GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    array_utils::gather(src.typed<T>(), map, dst.typed<T>());
-  });
+  attribute_math::to_static_type(
+      src.type(), [&]<typename T>() { array_utils::gather(src.typed<T>(), map, dst.typed<T>()); });
 }
 
 void gather_group_to_group(const OffsetIndices<int> src_offsets,
@@ -278,8 +274,7 @@ void gather_group_to_group(const OffsetIndices<int> src_offsets,
                            const GSpan src,
                            GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(src.type(), [&]<typename T>() {
     array_utils::gather_group_to_group(
         src_offsets, dst_offsets, selection, src.typed<T>(), dst.typed<T>());
   });
@@ -290,8 +285,7 @@ void gather_ranges_to_groups(const Span<IndexRange> src_ranges,
                              const GSpan src,
                              GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(src.type(), [&]<typename T>() {
     Span<T> src_span = src.typed<T>();
     MutableSpan<T> dst_span = dst.typed<T>();
 
@@ -308,8 +302,7 @@ void gather_to_groups(const OffsetIndices<int> dst_offsets,
                       const GSpan src,
                       GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(src.type(), [&]<typename T>() {
     array_utils::gather_to_groups(dst_offsets, src_selection, src.typed<T>(), dst.typed<T>());
   });
 }

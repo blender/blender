@@ -275,7 +275,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if ((object_mode & OB_MODE_ALL_PAINT) || (object_mode & OB_MODE_SCULPT_CURVES)) {
       Paint *paint = BKE_paint_get_active_from_context(C);
       Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
-      if (brush && (brush->flag & BRUSH_CURVE)) {
+      if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
         t->options |= CTX_PAINT_CURVE;
       }
     }
@@ -308,7 +308,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     else if (sima->mode == SI_MODE_PAINT) {
       Paint *paint = &sce->toolsettings->imapaint.paint;
       Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
-      if (brush && (brush->flag & BRUSH_CURVE)) {
+      if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
         t->options |= CTX_PAINT_CURVE;
       }
     }

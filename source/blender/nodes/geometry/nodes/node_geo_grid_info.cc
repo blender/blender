@@ -115,9 +115,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const std::shared_ptr<const openvdb::GridBase> vdb_grid = grid->grid_ptr(tree_token);
   params.set_output("Transform", BKE_volume_transform_to_blender(vdb_grid->transform()));
 
-  bke::attribute_math::convert_to_static_type(
-      *bke::socket_type_to_geo_nodes_base_cpp_type(data_type), [&](auto type_tag) {
-        using ValueT = decltype(type_tag);
+  bke::attribute_math::to_static_type(
+      *bke::socket_type_to_geo_nodes_base_cpp_type(data_type), [&]<typename ValueT>() {
         using type_traits = typename bke::VolumeGridTraits<ValueT>;
         using TreeType = typename type_traits::TreeType;
         using GridType = openvdb::Grid<TreeType>;
