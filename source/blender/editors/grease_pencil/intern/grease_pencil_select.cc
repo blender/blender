@@ -1277,19 +1277,15 @@ static void GREASE_PENCIL_OT_select_by_stroke_type(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* identifiers */
   ot->name = "Select By Stroke Type";
   ot->idname = "GREASE_PENCIL_OT_select_by_stroke_type";
   ot->description = "Select/Deselect all strokes or fills";
 
-  /* callbacks. */
   ot->exec = grease_pencil_select_by_stroke_type_exec;
   ot->poll = editable_grease_pencil_poll;
 
-  /* flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* props */
   ot->prop = RNA_def_enum(ot->srna, "type", select_by_stroke_type_items, 0, "Type", "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
