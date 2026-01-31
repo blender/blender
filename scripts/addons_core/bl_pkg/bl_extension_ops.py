@@ -894,7 +894,7 @@ def _extensions_repo_from_directory(directory):
 
 def _extensions_repo_from_directory_and_report(directory, report_fn):
     if not directory:
-        report_fn({'ERROR', "Directory not set"})
+        report_fn({'ERROR'}, "Directory not set")
         return None
 
     repo_item = _extensions_repo_from_directory(directory)
