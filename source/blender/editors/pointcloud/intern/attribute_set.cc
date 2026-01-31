@@ -97,14 +97,20 @@ static wmOperatorStatus set_attribute_exec(bContext *C, wmOperator *op)
 
   for (PointCloud *pointcloud : get_unique_editable_pointclouds(*C)) {
     bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
-    if (!attribute) {
+    const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+    if (!meta_data) {
+      continue;
+    }
+
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_selected_points(*pointcloud, memory);
+    if (selection.is_empty()) {
       continue;
     }
 
     /* Use implicit conversions to try to handle the case where the active attribute has a
      * different type on multiple objects. */
-    const CPPType &dst_type = attribute.span.type();
+    const CPPType &dst_type = bke::attribute_type_to_cpp_type(meta_data->data_type);
     if (&type != &dst_type && !conversions.is_convertible(type, dst_type)) {
       continue;
     }
@@ -113,14 +119,14 @@ static wmOperatorStatus set_attribute_exec(bContext *C, wmOperator *op)
     conversions.convert_to_uninitialized(type, dst_type, value.get(), dst_buffer);
 
     validate_value(attributes, name, dst_type, dst_buffer);
-    const GPointer dst_value(type, dst_buffer);
-
-    IndexMaskMemory memory;
-    const IndexMask selection = retrieve_selected_points(*pointcloud, memory);
-    if (selection.is_empty()) {
-      attribute.finish();
-      continue;
+    const GPointer dst_value(dst_type, dst_buffer);
+    if (selection.size() == attributes.domain_size(meta_data->domain)) {
+      if (attributes.assign_data(name, bke::AttributeInitValue(dst_value))) {
+        continue;
+      }
     }
+
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
     dst_type.fill_assign_indices(dst_value.get(), attribute.span.data(), selection);
     attribute.finish();
 
