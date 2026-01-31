@@ -617,8 +617,12 @@ static float strip_speed_get(const Scene *scene)
   /* Strip mode. */
   if (!sequencer_retiming_mode_is_active(scene)) {
     Strip *strip = seq::editing_get(scene)->act_strip;
-    SeqRetimingKey *key = seq::ensure_left_and_right_keys(scene, strip);
-    return seq::retiming_key_speed_get(strip, key);
+    if (!strip || !seq::retiming_is_active(strip)) {
+      return 1.0f;
+    }
+    int right_frame = seq::right_fake_key_frame_get(scene, strip);
+    SeqRetimingKey *key = seq::retiming_key_get_by_frame(scene, strip, right_frame);
+    return (key != nullptr) ? seq::retiming_key_speed_get(strip, key) : 1.0f;
   }
 
   Map selection = seq::retiming_selection_get(seq::editing_get(scene));
@@ -632,42 +636,42 @@ static float strip_speed_get(const Scene *scene)
   return 1.0f;
 }
 
-static void strip_speed_set(Scene *scene, VectorSet<Strip *> strips, const float speed)
+static void strip_speed_set(Scene *scene, Strip *strip, const float speed)
 {
-  for (Strip *strip : strips) {
-    SeqRetimingKey *key = seq::ensure_left_and_right_keys(scene, strip);
+  seq::relations_invalidate_cache_raw(scene, strip);
 
-    if (key == nullptr) {
-      continue;
-    }
+  /* Overwrite existing keys, since these hidden/visible keys just add noise when the user wants to
+   * retime the whole strip. Only keep them if explicitly retiming segments with keys selected. */
+  seq::retiming_reset(scene, strip);
 
-    /* TODO: it would be nice to multiply speed with complex retiming by a factor. */
-    seq::retiming_key_speed_set(scene, strip, key, speed / 100.0f, false);
+  SeqRetimingKey *right_key = seq::ensure_left_and_right_keys(scene, strip);
+  if (right_key == nullptr) {
+    return;
+  }
 
-    ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
-    if (seq::transform_test_overlap(scene, seqbase, strip)) {
-      seq::transform_seqbase_shuffle(seqbase, strip, scene);
-    }
+  /* TODO: it would be nice to multiply speed with complex retiming by a factor. */
+  seq::retiming_key_speed_set(scene, strip, right_key, speed / 100.0f);
 
-    seq::relations_invalidate_cache_raw(scene, strip);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
+  if (seq::transform_test_overlap(scene, seqbase, strip)) {
+    seq::transform_seqbase_shuffle(seqbase, strip, scene);
   }
 }
 
 static void segment_speed_set(Scene *scene,
                               Map<SeqRetimingKey *, Strip *> selection,
-                              const float speed,
-                              const bool keep_retiming)
+                              const float speed)
 {
   ListBaseT<Strip> *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
 
   for (auto item : selection.items()) {
-    seq::retiming_key_speed_set(scene, item.value, item.key, speed / 100.0f, keep_retiming);
+    seq::relations_invalidate_cache_raw(scene, item.value);
+
+    seq::retiming_key_speed_set(scene, item.value, item.key, speed / 100.0f);
 
     if (seq::transform_test_overlap(scene, seqbase, item.value)) {
       seq::transform_seqbase_shuffle(seqbase, item.value, scene);
     }
-
-    seq::relations_invalidate_cache_raw(scene, item.value);
   }
 }
 
@@ -675,13 +679,14 @@ static wmOperatorStatus sequencer_retiming_segment_speed_set_exec(bContext *C, w
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   const float speed = RNA_float_get(op->ptr, "speed");
-  const bool keep_retiming = RNA_boolean_get(op->ptr, "keep_retiming");
 
   /* Strip mode. */
   if (!sequencer_retiming_mode_is_active(scene)) {
     VectorSet<Strip *> strips = selected_strips_from_context(C);
     strips.remove_if([&](Strip *strip) { return !seq::retiming_is_allowed(strip); });
-    strip_speed_set(scene, strips, speed);
+    for (Strip *strip : strips) {
+      strip_speed_set(scene, strip, speed);
+    }
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
     return OPERATOR_FINISHED;
   }
@@ -690,7 +695,7 @@ static wmOperatorStatus sequencer_retiming_segment_speed_set_exec(bContext *C, w
 
   /* Retiming mode. */
   if (selection.size() > 0) {
-    segment_speed_set(scene, selection, speed, keep_retiming);
+    segment_speed_set(scene, selection, speed);
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
     return OPERATOR_FINISHED;
   }
@@ -738,12 +743,6 @@ void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
                 "New speed of retimed segment",
                 0.1f,
                 FLT_MAX);
-
-  RNA_def_boolean(ot->srna,
-                  "keep_retiming",
-                  true,
-                  "Preserve Current Retiming",
-                  "Keep speed of other segments unchanged, change strip length instead");
 }
 
 /** \} */

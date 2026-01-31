@@ -158,8 +158,9 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
         /* Ensure that this key cannot pass the next key. */
         ts->offset_clamp.xmax = min_ii(key_next->strip_frame_index - key->strip_frame_index - 1,
                                        ts->offset_clamp.xmax);
-        /* XXX: There is an off-by-one error for the last "fake" key's `strip_frame_index`, which
-         * is 1 less than it should be. This is not an immediate issue but should be fixed. */
+        /* TODO(john): There is an off-by-one error for the last "fake" key's `strip_frame_index`,
+         * which is 1 less than it should be. This is not an immediate issue but should be fixed.
+         */
       }
       if (key->strip_frame_index != 0) {
         /* Ensure that this key cannot pass the previous key. */
@@ -243,7 +244,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
       seq::retiming_transition_key_frame_set(t->scene, strip, key, round_fl_to_int(new_frame));
     }
     else {
-      seq::retiming_key_frame_set(t->scene, strip, key, new_frame, true);
+      seq::retiming_key_frame_set(t->scene, strip, key, new_frame);
     }
 
     seq::relations_invalidate_cache(t->scene, strip);

@@ -61,8 +61,7 @@ void retiming_transition_key_frame_set(const Scene *scene,
                                        SeqRetimingKey *key,
                                        int frame);
 float retiming_key_speed_get(const Strip *strip, const SeqRetimingKey *key);
-void retiming_key_speed_set(
-    const Scene *scene, Strip *strip, SeqRetimingKey *key, float speed, bool keep_retiming);
+void retiming_key_speed_set(const Scene *scene, Strip *strip, SeqRetimingKey *key, float speed);
 int retiming_key_index_get(const Strip *strip, const SeqRetimingKey *key);
 SeqRetimingKey *retiming_key_get_by_frame(const Scene *scene, const Strip *strip, int frame);
 void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip);
@@ -71,8 +70,7 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip);
  * This is absolute, not a frame index from the start of the `strip`.
  */
 int retiming_key_frame_get(const Scene *scene, const Strip *strip, const SeqRetimingKey *key);
-void retiming_key_frame_set(
-    const Scene *scene, Strip *strip, SeqRetimingKey *key, int frame, bool keep_retiming);
+void retiming_key_frame_set(const Scene *scene, Strip *strip, SeqRetimingKey *key, int frame);
 SeqRetimingKey *retiming_find_segment_start_key(const Strip *strip, float frame_index);
 bool retiming_key_is_transition_type(const SeqRetimingKey *key);
 bool retiming_key_is_transition_start(const SeqRetimingKey *key);
