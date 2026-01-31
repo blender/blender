@@ -1239,21 +1239,22 @@ def _preferences_theme_state_create():
     if (result := file_mtime_or_none(filepath)) is not None:
         return result, filepath
 
-    # It's possible the XML was renamed after upgrading, detect another.
+    # Fallback for renamed XML theme files: the theme XML may have been renamed
+    # after upgrading (e.g. version bump), so scan the directory for any XML file.
     dirpath = os.path.dirname(filepath)
+    del filepath
 
     # Not essential, just avoids a demoted error from `scandir` which seems like it may be a bug.
     if not os.path.exists(dirpath):
         return None, None
 
-    filepath = ""
     for entry in scandir_with_demoted_errors(dirpath):
         if entry.is_dir():
             continue
-        # There must only ever be one.
+        # Theme directories contain only one XML file, use the first one found.
         if entry.name.lower().endswith(".xml"):
             if (result := file_mtime_or_none(entry.path)) is not None:
-                return result, filepath
+                return result, entry.path
     return None, None
 
 
