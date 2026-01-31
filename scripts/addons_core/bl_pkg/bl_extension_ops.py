@@ -1729,8 +1729,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_repo_refresh_all(Operator):
-    """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). """ \
-        """Any issues are reported as warnings"""
+    """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting)"""
     bl_idname = "extensions.repo_refresh_all"
     bl_label = "Refresh Local"
 
@@ -1743,6 +1742,10 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
         self.report({'WARNING'}, "{:s}: {:s}".format(repo_name, str(ex)))
 
     def execute(self, _context):
+        # NOTE: report errors as warnings.
+        # - So the user is aware there are problems.
+        # - Because this operation may involve many repositories,
+        #   failing with a single error doesn't make sense.
         import importlib
         import addon_utils
 
@@ -1787,7 +1790,7 @@ class EXTENSIONS_OT_repo_refresh_all(Operator):
         # Ensure compatibility info and wheels is up to date.
         addon_utils.extensions_refresh(
             ensure_wheels=True,
-            handle_error=lambda ex: self.report({'ERROR'}, str(ex)),
+            handle_error=lambda ex: self.report({'WARNING'}, str(ex)),
         )
 
         _preferences_ui_redraw()
