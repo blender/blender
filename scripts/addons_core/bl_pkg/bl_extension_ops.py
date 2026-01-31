@@ -3254,7 +3254,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             # This shouldn't happen unless someone goes out of there way
             # to enable `do_legacy_replace` for a non-legacy extension.
             # Use a print here as it's such a corner case and harmless.
-            print("Internal error, legacy lookup failed:", addon_module_name)
+            print("Internal error, legacy lookup failed:", pkg_id)
             return
 
         try:
