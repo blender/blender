@@ -1149,7 +1149,9 @@ class CommandBatch:
             if update_count > 0:
                 # NOTE: the UI design in #120612 has the number of extensions available in icon.
                 # Include in the text as this is not yet supported.
-                return rpt_("Extension Update Available ({:d}){:s}" if update_count == 1 else "Extension Updates Available ({:d}){:s}").format(update_count, fail_text), 'INTERNET'
+                return rpt_(
+                    "Extension Update Available ({:d}){:s}" if update_count == 1 else "Extension Updates Available ({:d}){:s}").format(
+                    update_count, fail_text), 'INTERNET'
             return rpt_("All Extensions Up-to-date{:s}").format(fail_text), 'CHECKMARK'
 
         # Should never reach this line!
