@@ -201,6 +201,18 @@ static void extract_attribute_data(const MeshRenderData &mr,
                                    const bke::GAttributeReader &attr,
                                    gpu::VertBuf &vbo)
 {
+  if (attr.varray.is_single()) {
+    bke::attribute_math::to_static_type(attr.varray.type(), [&]<typename T>() {
+      const VArray<T> &src = attr.varray.typed<T>();
+      if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
+        using Converter = AttributeConverter<T>;
+        using VBOType = typename Converter::VBOType;
+        MutableSpan data = vbo.data<VBOType>();
+        data.fill(Converter::convert(src.get_internal_single()));
+      }
+    });
+    return;
+  }
   bke::attribute_math::to_static_type(attr.varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
       switch (attr.domain) {
