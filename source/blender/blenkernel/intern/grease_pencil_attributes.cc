@@ -91,6 +91,7 @@ static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
       };
       AttributeIter iter(attribute.name(), attribute.domain(), attribute.data_type(), get_fn);
       iter.is_builtin = builtin_attributes().contains(attribute.name());
+      iter.storage_type = attribute.storage_type();
       iter.accessor = &accessor;
       fn(iter);
       if (iter.is_stopped()) {

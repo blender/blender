@@ -929,6 +929,9 @@ void mesh_apply_spatial_organization(Mesh &mesh)
 
   MutableAttributeAccessor attributes_for_write = mesh.attributes_for_write();
   attributes_for_write.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     if (iter.domain == bke::AttrDomain::Face) {
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
       const CPPType &type = attribute.span.type();

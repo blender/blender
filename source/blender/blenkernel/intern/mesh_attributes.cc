@@ -959,6 +959,7 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
       };
       AttributeIter iter(attr.name(), attr.domain(), attr.data_type(), get_fn);
       iter.is_builtin = builtin_attributes().contains(attr.name());
+      iter.storage_type = attr.storage_type();
       iter.accessor = &accessor;
       fn(iter);
       if (iter.is_stopped()) {

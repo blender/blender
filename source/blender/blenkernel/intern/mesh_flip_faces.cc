@@ -79,6 +79,9 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
     if (iter.domain != AttrDomain::Corner) {
       return;
     }
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     if (ELEM(iter.name, ".corner_vert", ".corner_edge")) {
       return;
     }

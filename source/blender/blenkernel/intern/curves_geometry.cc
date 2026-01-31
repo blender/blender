@@ -1683,6 +1683,9 @@ void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     if (bezier_handle_names.contains(iter.name)) {
       return;
     }

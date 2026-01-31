@@ -3997,6 +3997,9 @@ bke::greasepencil::Layer &GreasePencil::duplicate_layer(
   this->attribute_storage.wrap().resize(bke::AttrDomain::Layer, numLayers + 1);
   bke::MutableAttributeAccessor attributes = this->attributes_for_write();
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     bke::GSpanAttributeWriter attr = attributes.lookup_for_write_span(iter.name);
     GMutableSpan span = attr.span;
     span.type().copy_assign(span[*duplicate_layer_idx], span[numLayers]);
