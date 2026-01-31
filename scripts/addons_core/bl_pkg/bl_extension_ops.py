@@ -93,7 +93,7 @@ def url_normalize(url):
                 # Ensure:
                 # MS-Edge uses: `file://HOST/share/path`
                 # Firefox uses: `file://///HOST/share/path`
-                # Both can work prefer the shorter one.
+                # Both can work, prefer the shorter one.
                 url = prefix + path_lstrip
     return url
 
@@ -148,7 +148,7 @@ def repo_lookup_by_index_or_none_with_report(index, report_fn):
 
 def repo_user_directory(repo_module_name):
     path = bpy.utils.user_resource('EXTENSIONS')
-    # Technically possible this is empty but in practice never happens.
+    # Technically possible this is empty but should not happen.
     if path:
         path = os.path.join(path, ".user", repo_module_name)
     return path
@@ -205,7 +205,7 @@ class CheckSIGINT_Context:
 # -----------------------------------------------------------------------------
 # Operator Notify State
 #
-# Support for
+# Support for non-blocking operations that update the UI during sync.
 
 class OperatorNonBlockingSyncHelper:
     __slots__ = (
@@ -340,8 +340,8 @@ def _extensions_repo_install_stale_package_clear(
 ):  # `-> None`
     # If install succeeds, ensure the package is not stale.
     #
-    # This can happen when a package fails to remove (if one of it's files are locked),
-    # it is queued for removal. Then the user successfully removes it & re-installs in.
+    # This can happen when a package fails to remove (if one of its files are locked),
+    # it is queued for removal. Then the user successfully removes it & re-installs it.
     # In this case the package will be tagged for later removal, so ensure it's removed.
     import addon_utils
 
@@ -379,7 +379,7 @@ def extension_url_find_repo_index_and_pkg_id(url):
     from .bl_extension_utils import (
         pkg_manifest_archive_url_abs_from_remote_url,
     )
-    # return repo_index, pkg_id
+    # return (repo_index, repo.name, pkg_id, item_remote, item_local | None)
 
     # NOTE: we might want to use `urllib.parse.urlsplit` so it's possible to include variables in the URL.
     url_basename = url.rpartition("/")[2]
@@ -388,7 +388,7 @@ def extension_url_find_repo_index_and_pkg_id(url):
     repo_cache_store = repo_cache_store_ensure()
 
     # Regarding `ignore_missing`, set to True, otherwise a user-repository
-    # or a new repository that has not yet been initialize will report errors.
+    # or a new repository that has not yet been initialized will report errors.
     # It's OK to silently ignore these.
 
     for repo_index, (
@@ -541,7 +541,7 @@ def wm_wait_cursor(value):
 
 
 def operator_finished_result(operator_result):
-    # Inspect results for modal operator, return None when the result isn't known.
+    # Inspect operator results, return True if cancelled, False if finished, None if still running.
     if 'CANCELLED' in operator_result:
         return True
     if 'FINISHED' in operator_result:
@@ -556,7 +556,7 @@ def pkg_manifest_params_compatible_or_error_for_this_system(
     platforms,  # `list[str]`
     python_versions,  # `list[str]`
 ):  # `str | None`
-    # Return true if the parameters are compatible with this system.
+    # Return an error message if the parameters are incompatible, or None if compatible.
     import sys
     from .bl_extension_utils import (
         pkg_manifest_params_compatible_or_error,
@@ -647,7 +647,7 @@ def _preferences_ensure_disabled(
         pkg_id_sequence,  # `list[str]`
         default_set,  # `bool`
         error_fn,  # `Callable[[Exception], None]`
-):  # `-> dict[str, tuple[boo, bool]]`
+):  # `-> dict[str, tuple[bool, bool]]`
     import sys
     import addon_utils
 
@@ -710,10 +710,10 @@ def _preferences_ensure_disabled(
             continue
 
         # Use pop instead of del because there is a (very) small chance
-        # that classes defined in a removed module define a `__del__` method manipulates modules.
+        # that classes defined in a removed module define a `__del__` method that manipulates modules.
         sys.modules.pop(key, None)
 
-    # Now remove from the module from it's parent (when found).
+    # Now remove the module from its parent (when found).
     # Although in most cases this isn't needed because disabling the add-on typically deletes the module,
     # don't report a warning if this is the case.
     if repo_module is not None:
@@ -756,7 +756,7 @@ def _preferences_install_post_enable_on_install(
         directory,
         pkg_manifest_local,
         pkg_id_sequence,
-        # There were already installed and an attempt to enable it will have already been made.
+        # These were already installed and an attempt to enable them will have already been made.
         pkg_id_sequence_upgrade,
         handle_error,
 ):
@@ -769,12 +769,12 @@ def _preferences_install_post_enable_on_install(
     for pkg_id in pkg_id_sequence:
         item_local = pkg_manifest_local.get(pkg_id)
         if item_local is None:
-            # Unlikely but possible, do nothing in this case.
+            # Unlikely but possible, report and skip in this case.
             print("Package should have been installed but not found:", pkg_id)
             return
 
         if item_local.type == "add-on":
-            # Check if the add-on will have been enabled from re-installing.
+            # Skip add-ons being upgraded, they are re-enabled as part of re-installation.
             if pkg_id in pkg_id_sequence_upgrade:
                 continue
 
@@ -919,7 +919,7 @@ def _pkg_marked_by_repo(repo_cache_store, pkg_manifest_all):
             if not ui_visibility.test((pkg_id, repo_index)):
                 continue
         else:
-            # Background mode, just to a simple range check.
+            # Background mode, just do a simple range check.
             # While this should be prevented, any marked packages out of the range will cause problems, skip them.
             if repo_index >= len(pkg_manifest_all):
                 continue
@@ -945,7 +945,7 @@ def _extensions_wheel_filter_for_this_system(wheels):
 
     # Copied from `wheel.bwheel_dist.get_platform(..)` which isn't part of Python.
     # This misses some additional checks which aren't supported by official Blender builds,
-    # it's highly doubtful users ever run into this but we could add extend this if it's really needed.
+    # it's highly doubtful users ever run into this but we could extend this if it's really needed.
     # (e.g. `linux-i686` on 64 bit systems & `linux-armv7l`).
     import sysconfig
 
@@ -1071,7 +1071,7 @@ def pkg_wheel_filter(
         pkg_id,  # `str`
         repo_directory,  # `str`
         wheels_rel,  # `list[str]`
-):  # `-> tuple[str, list[str]]`
+):  # `-> tuple[str, list[str]] | None`
     # Filter only the wheels for this platform.
     wheels_rel = _extensions_wheel_filter_for_this_system(wheels_rel)
     if not wheels_rel:
@@ -1109,8 +1109,8 @@ def _extensions_enabled():
 
 
 def _extensions_enabled_from_repo_directory_and_pkg_id_sequence(repo_directory_and_pkg_id_sequence):
-    # Use to calculate extensions which will be enabled,
-    # needed so the wheels for the extensions can be enabled before the add-on is enabled that uses them.
+    # Calculate which extensions are pending to be enabled,
+    # needed so wheels for extensions can be extracted before any add-on using them is enabled.
     extensions_enabled_pending = set()
     repo_directory_to_module_map = _extension_repos_directory_to_module_map()
     for repo_directory, pkg_id_sequence in repo_directory_and_pkg_id_sequence:
@@ -2474,8 +2474,8 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
     # Used when dropping legacy add-ons:
     #
     # - None: Unset, not dropping a legacy add-on.
-    # - True: Drop treats the `filepath` as a legacy add-on.
-    #   `_drop_variables` will be None.
+    # - True: Drop treats the `filepath` as a legacy add-on,
+    #   in this case `_drop_variables` remains None (not extracted from ZIP).
     _legacy_drop = None
 
     filter_glob: StringProperty(default="*.zip;*.py", options={'HIDDEN'})
@@ -2842,7 +2842,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
             self._drop_variables = None
             self._legacy_drop = True
 
-        # Set to it's self to the property is considered "set".
+        # Set to itself so the property is considered "set".
         self.repo = self.repo
         self.filepath = filepath
 
@@ -2954,7 +2954,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
     url: rna_prop_url
 
     # NOTE: this can be removed once upgrading from 4.1 is no longer relevant.
-    # Only used when moving from  previously built-in add-ons to extensions.
+    # Only used when moving from previously built-in add-ons to extensions.
     do_legacy_replace: BoolProperty(
         name="Do Legacy Replace",
         default=False,
@@ -3254,7 +3254,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
         from .bl_extension_ui import extensions_map_from_legacy_addons_reverse_lookup
         addon_module_name = extensions_map_from_legacy_addons_reverse_lookup(pkg_id)
         if not addon_module_name:
-            # This shouldn't happen unless someone goes out of there way
+            # This shouldn't happen unless someone goes out of their way
             # to enable `do_legacy_replace` for a non-legacy extension.
             # Use a print here as it's such a corner case and harmless.
             print("Internal error, legacy lookup failed:", pkg_id)

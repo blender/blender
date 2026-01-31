@@ -673,7 +673,7 @@ def build_paths_expand_iter(
             filepath = filepath.replace("/", "\\")
 
         # Avoid `os.path.join(path, filepath)` because `path` is ignored `filepath` is an absolute path.
-        # In the contest of declaring build paths we *never* want to reference an absolute directory
+        # In the context of declaring build paths we *never* want to reference an absolute directory
         # such as `C:\path` or `/tmp/path`.
         yield (
             "{:s}{:s}{:s}".format(path_strip, os.sep, filepath.lstrip(os.sep)),
@@ -1053,7 +1053,7 @@ def zipfile_make_root_directory(
         filename = member.filename
         if not filename.startswith(root_dir):
             continue
-        # Ensure the path is not _ony_ the directory (can happen for some ZIP files).
+        # Ensure the path is not _only_ the directory (can happen for some ZIP files).
         if not (filename := filename[len(root_dir):]):
             continue
 
@@ -1222,7 +1222,7 @@ class PathPatternMatch:
             pattern = "\\A" + pattern
 
         if only_directory:
-            # Ensure this only ever matches a directly.
+            # Ensure this only ever matches a directory.
             pattern = pattern + "[\\n/]"
         else:
             # Ensure this isn't part of a longer string.
@@ -1609,7 +1609,7 @@ def pkg_manifest_tags_valid_or_error(
 # - When building packages.
 # - When validating packages from the command line.
 #
-# However manifests from severs that don't adhere to strict rules are not prevented from loading.
+# However manifests from servers that don't adhere to strict rules are not prevented from loading.
 
 # pylint: disable-next=useless-return
 def pkg_manifest_validate_field_nop(
@@ -2566,7 +2566,7 @@ def url_request_headers_create(*, accept_json: bool, user_agent: str, access_tok
         headers["Accept"] = "application/json"
 
     if user_agent:
-        # Typically: `Blender/4.2.0 (Linux x84_64; cycle=alpha)`.
+        # Typically: `Blender/4.2.0 (Linux x86_64; cycle=alpha)`.
         headers["User-Agent"] = user_agent
 
     if access_token:

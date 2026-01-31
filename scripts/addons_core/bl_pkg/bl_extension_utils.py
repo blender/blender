@@ -87,7 +87,7 @@ PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 PKG_EXT = ".zip"
 
 # Components to use when creating temporary directory.
-# Note that digits may be added to the suffix avoid conflicts.
+# Note that digits may be added to the suffix to avoid conflicts.
 PKG_TEMP_PREFIX_AND_SUFFIX = (".", ".~temp~")
 
 # Add this to the local JSON file.
@@ -241,7 +241,7 @@ def command_output_from_json_0(
 ) -> Generator[InfoItemSeq, bool, None]:
     cmd = [*blender_ext_cmd(python_args), *args, "--output-type=JSON_0"]
     # Note that the context-manager isn't used to wait until the process is finished as
-    # the function only finishes when `poll()` is not none, it's just use to ensure file-handles
+    # the function only finishes when `poll()` is not none, it's just used to ensure file-handles
     # are closed before this function exits, this only seems to be a problem on WIN32.
 
     # WIN32 needs to use a separate process-group else Blender will receive the "break", see #131947.
@@ -472,11 +472,10 @@ def url_append_query_for_blender(
 
 
 def url_parse_for_blender(url: str) -> tuple[str, dict[str, str]]:
-    # Split the URL into components:
-    # - The stripped: `scheme + netloc + path`
-    # - Known query values used by Blender.
-    #   Extract `?repository=...` value from the URL and return it.
-    #   Concatenating it where appropriate.
+    # Parse the URL, returning a tuple pair representing:
+    # - The stripped URL: `scheme + netloc + path` (without query or fragment).
+    # - Known query values used by Blender (`repository`, `blender_version_min`, etc.).
+    #   For `repository`, relative paths are resolved against the base URL.
     #
     import urllib
     import urllib.parse
@@ -764,7 +763,7 @@ def pkg_manifest_dict_is_valid_or_error(
         strict: bool,
 ) -> str | None:
     # Exception! In general `cli` shouldn't be considered a Python module,
-    # it's validation function is handy to reuse.
+    # its validation function is handy to reuse.
     from .cli.blender_ext import pkg_manifest_from_dict_and_validate
     assert "id" in data
     result = pkg_manifest_from_dict_and_validate(data, from_repo=from_repo, strict=strict)
@@ -1132,7 +1131,7 @@ class CommandBatch:
         # NOTE: this is (arguably) UI logic, it's just nice to have it here
         # as it avoids using low-level flags externally.
         #
-        # FIXME: this text assumed a "sync" operation.
+        # FIXME: this text assumes a "sync" operation.
         if status_data.failure_count == 0:
             fail_text = ""
         elif status_data.failure_count == status_data.count:
@@ -1172,7 +1171,7 @@ class CommandBatch:
 
     def calc_status_log_since_last_request_or_none(self) -> list[list[tuple[str, str]]] | None:
         """
-        Return a list of new errors per command or None when none are found.
+        Return a list of new messages per command or None when none are found.
         """
         result: list[list[tuple[str, str]]] = [[] for _ in range(len(self._batch))]
         found = False
@@ -1216,7 +1215,7 @@ class PkgBlock_Normalized(NamedTuple):
 
 
 # See similar named tuple: `bl_pkg.cli.blender_ext.PkgManifest`.
-# This type is loaded from an external source and had it's valued parsed into a known "normalized" state.
+# This type is loaded from an external source and had its values parsed into a known "normalized" state.
 # Some transformation is performed to the purpose of displaying in the UI although this type isn't specifically for UI.
 class PkgManifest_Normalized(NamedTuple):
     # Intentionally excluded:
@@ -1848,7 +1847,7 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
             error_fn: Callable[[Exception], None],
     ) -> bool:
         """
-        Detect a change and return as early as possibly.
+        Detect a change and return as early as possible.
         Ideally this would not have to scan many files, since this could become *expensive*
         with very large repositories however as each package has its own TOML,
         there is no viable alternative.

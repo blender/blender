@@ -18,7 +18,7 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    # This doesn't need to be inline because sub-modules aren't important into the global name-space.
+    # This doesn't need to be inline because sub-modules aren't imported into the global name-space.
     # The check for `bpy` ensures this is always assigned before use.
     # pylint: disable-next=used-before-assignment
     _local_module_reload()
@@ -353,7 +353,7 @@ def repos_to_notify():
 
         # WARNING: this could be a more expensive check, use a "reasonable" guess.
         # This is technically incorrect because knowing if a repository has any installed
-        # packages requires reading it's meta-data and comparing it with the directory contents.
+        # packages requires reading its meta-data and comparing it with the directory contents.
         # Chances are - if the directory contains *any* directories containing a package manifest
         # this means it has packages installed.
         #
