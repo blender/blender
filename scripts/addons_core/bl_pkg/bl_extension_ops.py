@@ -1039,7 +1039,8 @@ def _extensions_wheel_filter_for_this_system(wheels):
                             str,
                     ):
                         print("Error: wheel \"{:s}\" unable to parse Python ABI version {:s}".format(
-                            wheel_filename, python_versions,
+                            # `python_versions_stable_abi` is the error.
+                            wheel_filename, python_versions_stable_abi,
                         ))
                     elif (python_version_current[0],) in python_versions_stable_abi:
                         if python_version_current >= python_version:
