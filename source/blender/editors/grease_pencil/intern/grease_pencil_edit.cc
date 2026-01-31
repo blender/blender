@@ -5198,6 +5198,8 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
     return OPERATOR_CANCELLED;
   }
 
+  const int active_layer_index = *grease_pencil.get_layer_index(*active_layer);
+
   /* Iterate through all the drawings at current scene frame. */
   const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(*scene,
                                                                              grease_pencil);
@@ -5207,6 +5209,11 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
     const IndexMask selected_strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
         *object, info.drawing, info.layer_index, memory);
     if (selected_strokes.is_empty()) {
+      continue;
+    }
+
+    /* Skip moving the strokes already on the active layer. */
+    if (info.layer_index == active_layer_index) {
       continue;
     }
 
@@ -5254,7 +5261,6 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
     info.drawing.tag_topology_changed();
   }
 
-  const int active_layer_index = *grease_pencil.get_layer_index(*active_layer);
   Drawing *drawing_dst = grease_pencil.get_drawing_at(*active_layer, scene->r.cfra);
 
   IndexMaskMemory memory;
