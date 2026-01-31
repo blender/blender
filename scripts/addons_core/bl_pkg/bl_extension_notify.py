@@ -113,7 +113,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
 
     Another reason this is needed is exiting Blender will close the sync sub-processes,
     this is OK as long as the final location of the repositories JSON isn't being written
-    to the moment Blender and it's sub-processes exit.
+    to the moment Blender and its sub-processes exit.
     """
     # TODO: handle the case of cruft being left behind, perhaps detect previous
     # files created with a `unique_ext` (`@{HEX}` extension) and removing them.
@@ -139,11 +139,11 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
             has_error = False
             if directory in repo_directories_stale:
                 # Unlikely but possible repositories change or are removed after check starts.
-                sys.stderr.write("Warning \"{:s}\" has changed or been removed (skipping)\n".format(directory))
+                sys.stderr.write("Warning: \"{:s}\" has changed or been removed (skipping)\n".format(directory))
                 any_stale_errors = True
                 has_error = True
             elif (lock_result_for_repo := lock_result[directory]) is not None:
-                sys.stderr.write("Warning \"{:s}\" locking \"{:s}\"\n".format(lock_result_for_repo, directory))
+                sys.stderr.write("Warning: locking \"{:s}\" failed: {:s}\n".format(directory, lock_result_for_repo))
                 any_lock_errors = True
                 has_error = True
 

@@ -287,7 +287,7 @@ def my_create_package(
 
 
 class PkgTemplate(NamedTuple):
-    """Data need to create a package for testing."""
+    """Data needed to create a package for testing."""
     idname: str
     name: str
     version: str

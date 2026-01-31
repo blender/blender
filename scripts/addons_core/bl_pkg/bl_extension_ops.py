@@ -142,7 +142,7 @@ def repo_lookup_by_index_or_none(index):
 def repo_lookup_by_index_or_none_with_report(index, report_fn):
     result = repo_lookup_by_index_or_none(index)
     if result is None:
-        report_fn({'WARNING'}, "Called with invalid index")
+        report_fn({'WARNING'}, "Repository index is not valid")
     return result
 
 
@@ -168,7 +168,6 @@ blender_extension_show = set()
 blender_filter_by_type_map = {
     "ALL": "",
     "ADDON": "add-on",
-    "KEYMAP": "keymap",
     "THEME": "theme",
 }
 
@@ -437,7 +436,7 @@ def online_user_agent_from_blender():
 
 def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
     """
-    Convert any locking errors from ``bl_extension_utils.RepoLock.acquire`` into reports.
+    Convert any locking errors from ``bl_extension_utils.RepoLock`` acquire/release into reports.
 
     Note that we might want to allow some repositories not to lock and still proceed (in the future).
     """
@@ -770,7 +769,7 @@ def _preferences_install_post_enable_on_install(
         item_local = pkg_manifest_local.get(pkg_id)
         if item_local is None:
             # Unlikely but possible, report and skip in this case.
-            print("Package should have been installed but not found:", pkg_id)
+            print("Package was expected to be installed but not found:", pkg_id)
             return
 
         if item_local.type == "add-on":
@@ -1473,9 +1472,9 @@ class _ExtCmdMixIn:
     """
     Utility to execute mix-in.
 
-    Sub-class must define.
-    - bl_idname
-    - bl_label
+    Sub-class must define:
+    - bl_idname (Operator)
+    - bl_label (Operator)
     - exec_command_iter
     - exec_command_finish
     """
@@ -1487,7 +1486,7 @@ class _ExtCmdMixIn:
     def __init_subclass__(cls) -> None:
         for attr in ("exec_command_iter", "exec_command_finish"):
             if getattr(cls, attr) is getattr(_ExtCmdMixIn, attr):
-                raise Exception("Subclass did not define 'exec_command_iter'!")
+                raise Exception("Subclass did not define {!r}!".format(attr))
 
     def exec_command_iter(self, is_modal):
         raise Exception("Subclass must define!")
@@ -1507,7 +1506,7 @@ class _ExtCmdMixIn:
         if cmd_batch is None:
             return {'CANCELLED'}
 
-        # Needed in cast there are no commands within `cmd_batch`,
+        # Needed in case there are no commands within `cmd_batch`,
         # the title should still be set.
         repo_status_text.title = cmd_batch.title
 
@@ -1729,7 +1728,7 @@ class EXTENSIONS_OT_repo_sync_all(Operator, _ExtCmdMixIn):
 
 
 class EXTENSIONS_OT_repo_refresh_all(Operator):
-    """Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting)"""
+    """Refresh extension & legacy add-ons, reloading modules & meta-data (similar to restarting)"""
     bl_idname = "extensions.repo_refresh_all"
     bl_label = "Refresh Local"
 
@@ -1866,7 +1865,7 @@ class EXTENSIONS_OT_repo_unlock(Operator):
         # Either return a message for why the lock cannot be unlocked, or,
         # the lock time and a possible error when accessing it.
         if not repos:
-            return "Active repository is not enabled has invalid settings", None, None
+            return "Active repository is not enabled or has invalid settings", None, None
         repo = repos[0]
 
         from . import bl_extension_utils
@@ -1954,7 +1953,7 @@ class EXTENSIONS_OT_repo_unlock(Operator):
 
 
 class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
-    """Upgrade all the extensions to their latest version for all the remote repositories"""
+    """Upgrade installed extensions to their latest version from remote repositories"""
     bl_idname = "extensions.package_upgrade_all"
     bl_label = "Install Available Updates"
     __slots__ = (
@@ -1964,7 +1963,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
 
     use_active_only: BoolProperty(
         name="Active Only",
-        description="Only sync the active repository",
+        description="Only upgrade the active repository",
     )
 
     @classmethod
@@ -2001,7 +2000,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
         repos_all = extension_repos_read(use_active_only=use_active_only)
         repo_cache_store = repo_cache_store_ensure()
 
-        repo_directory_supset = [repo_entry.directory for repo_entry in repos_all] if use_active_only else None
+        repo_directory_subset = [repo_entry.directory for repo_entry in repos_all] if use_active_only else None
 
         if not repos_all:
             if use_active_only:
@@ -2031,11 +2030,11 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
 
         pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(
             error_fn=self.error_fn_from_exception,
-            directory_subset=repo_directory_supset,
+            directory_subset=repo_directory_subset,
         ))
         for repo_index, pkg_manifest_remote in enumerate(repo_cache_store.pkg_manifest_from_remote_ensure(
             error_fn=self.error_fn_from_exception,
-            directory_subset=repo_directory_supset,
+            directory_subset=repo_directory_subset,
         )):
             if pkg_manifest_remote is None:
                 continue
@@ -2161,7 +2160,7 @@ class EXTENSIONS_OT_package_upgrade_all(Operator, _ExtCmdMixIn):
 
 class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
     bl_idname = "extensions.package_install_marked"
-    bl_label = "Ext Package Install_marked"
+    bl_label = "Ext Package Install Marked"
     __slots__ = (
         *_ExtCmdMixIn.cls_slots,
         "_repo_directories",
@@ -2235,7 +2234,7 @@ class EXTENSIONS_OT_package_install_marked(Operator, _ExtCmdMixIn):
                 self._repo_map_packages_addon_only.append((repo_item.directory, pkg_id_sequence_addon_only))
 
         if not cmd_batch:
-            self.report({'ERROR'}, "No uninstalled packages marked")
+            self.report({'ERROR'}, "No installable packages marked")
             return None
 
         # Lock repositories.
@@ -2823,7 +2822,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                 return {'CANCELLED'}
 
             if isinstance(result := pkg_manifest_dict_from_archive_or_error(filepath), str):
-                self.report({'ERROR'}, rpt_("Error in manifest {:s}").format(result))
+                self.report({'ERROR'}, rpt_("Manifest validation failed: {:s}").format(result))
                 return {'CANCELLED'}
 
             pkg_id = result["id"]
@@ -3257,7 +3256,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
             # This shouldn't happen unless someone goes out of their way
             # to enable `do_legacy_replace` for a non-legacy extension.
             # Use a print here as it's such a corner case and harmless.
-            print("Internal error, legacy lookup failed:", pkg_id)
+            print("Internal error, legacy lookup failed:", addon_module_name)
             return
 
         try:
@@ -3591,12 +3590,13 @@ class EXTENSIONS_OT_package_disable(Operator):
     bl_label = "Disable extension"
 
     def execute(self, _context):
+        # NOTE: add-ons use `preferences.addon_disable`, so only themes reach this operator.
         self.report({'WARNING'}, "Disabling themes is not yet supported")
         return {'CANCELLED'}
 
 
 class EXTENSIONS_OT_package_theme_enable(Operator):
-    """Turn off this theme"""
+    """Turn on this theme"""
     bl_idname = "extensions.package_theme_enable"
     bl_label = "Enable theme extension"
 
@@ -3606,12 +3606,11 @@ class EXTENSIONS_OT_package_theme_enable(Operator):
     def execute(self, _context):
         repo_item = extension_repos_read_index(self.repo_index)
         extension_theme_enable(repo_item.directory, self.pkg_id)
-        print(repo_item.directory, self.pkg_id)
         return {'FINISHED'}
 
 
 class EXTENSIONS_OT_package_theme_disable(Operator):
-    """Turn off this theme"""
+    """Reset to the default theme if this theme is active"""
     bl_idname = "extensions.package_theme_disable"
     bl_label = "Disable theme extension"
 
@@ -3776,7 +3775,7 @@ class EXTENSIONS_OT_package_show_settings(Operator):
 # Testing Operators
 #
 
-class EXTENSIONS_OT_package_obselete_marked(Operator):
+class EXTENSIONS_OT_package_obsolete_marked(Operator):
     """Zeroes package versions, useful for development - to test upgrading"""
     bl_idname = "extensions.package_obsolete_marked"
     bl_label = "Obsolete Marked"
@@ -3866,7 +3865,7 @@ class EXTENSIONS_OT_repo_lock_all(Operator):
             lock_handle.release()
             return {'CANCELLED'}
 
-        self.report({'INFO'}, rpt_("Locked {:d} repos(s)").format(len(lock_result)))
+        self.report({'INFO'}, rpt_("Locked {:d} repo(s)").format(len(lock_result)))
         EXTENSIONS_OT_repo_lock_all.lock = lock_handle
         return {'FINISHED'}
 
@@ -3890,7 +3889,7 @@ class EXTENSIONS_OT_repo_unlock_all(Operator):
             # This isn't canceled, but there were issues unlocking.
             return {'FINISHED'}
 
-        self.report({'INFO'}, rpt_("Unlocked {:d} repos(s)").format(len(lock_result)))
+        self.report({'INFO'}, rpt_("Unlocked {:d} repo(s)").format(len(lock_result)))
         return {'FINISHED'}
 
 
@@ -4089,7 +4088,7 @@ classes = (
     EXTENSIONS_OT_package_mark_clear_all,
     EXTENSIONS_OT_package_show_settings,
 
-    EXTENSIONS_OT_package_obselete_marked,
+    EXTENSIONS_OT_package_obsolete_marked,
     EXTENSIONS_OT_repo_lock_all,
     EXTENSIONS_OT_repo_unlock_all,
 

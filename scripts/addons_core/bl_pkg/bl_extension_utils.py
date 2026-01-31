@@ -576,7 +576,7 @@ def repo_sync(
 ) -> Iterator[InfoItemSeq]:
     """
     Implementation:
-    ``bpy.ops.ext.repo_sync(directory)``.
+    ``bpy.ops.extensions.repo_sync(directory, ...)``.
     """
     if dry_run:
         yield [COMPLETE_ITEM]
@@ -608,7 +608,7 @@ def repo_upgrade(
 ) -> Iterator[InfoItemSeq]:
     """
     Implementation:
-    ``bpy.ops.ext.repo_upgrade(directory)``.
+    ``bpy.ops.extensions.repo_upgrade(directory, ...)``.
     """
     yield from command_output_from_json_0([
         "upgrade",
@@ -627,7 +627,7 @@ def repo_listing(
 ) -> Iterator[InfoItemSeq]:
     """
     Implementation:
-    ``bpy.ops.ext.repo_listing(directory)``.
+    ``bpy.ops.extensions.repo_listing(repos)``.
     """
     if result := repositories_validate_or_errors(repos):
         yield result
@@ -651,7 +651,7 @@ def pkg_install_files(
 ) -> Iterator[InfoItemSeq]:
     """
     Implementation:
-    ``bpy.ops.ext.pkg_install_files(directory, files)``.
+    ``bpy.ops.extensions.pkg_install_files(directory, files, ...)``.
     """
     yield from command_output_from_json_0([
         "install-files", *files,
@@ -679,7 +679,7 @@ def pkg_install(
 ) -> Iterator[InfoItemSeq]:
     """
     Implementation:
-    ``bpy.ops.ext.pkg_install(directory, pkg_id)``.
+    ``bpy.ops.extensions.pkg_install(directory, pkg_id_sequence, ...)``.
     """
     yield from command_output_from_json_0([
         "install", ",".join(pkg_id_sequence),
@@ -706,7 +706,7 @@ def pkg_uninstall(
 ) -> Iterator[InfoItemSeq]:
     """
     Implementation:
-    ``bpy.ops.ext.pkg_uninstall(directory, pkg_id)``.
+    ``bpy.ops.extensions.pkg_uninstall(directory, pkg_id_sequence, ...)``.
     """
     yield from command_output_from_json_0([
         "uninstall", ",".join(pkg_id_sequence),
@@ -730,9 +730,9 @@ def json_from_filepath(filepath_json: str) -> dict[str, Any] | None:
     return None
 
 
-def toml_from_filepath(filepath_json: str) -> dict[str, Any] | None:
-    if os.path.exists(filepath_json):
-        with open(filepath_json, "r", encoding="utf-8") as fh:
+def toml_from_filepath(filepath_toml: str) -> dict[str, Any] | None:
+    if os.path.exists(filepath_toml):
+        with open(filepath_toml, "r", encoding="utf-8") as fh:
             return tomllib.loads(fh.read())
     return None
 
@@ -1107,7 +1107,7 @@ class CommandBatch:
 
     def calc_status_data(self) -> CommandBatch_StatusFlag:
         """
-        A single string for all commands
+        Return status flags and failure count for all commands.
         """
         status_flag = 0
         failure_count = 0
@@ -1149,7 +1149,7 @@ class CommandBatch:
             if update_count > 0:
                 # NOTE: the UI design in #120612 has the number of extensions available in icon.
                 # Include in the text as this is not yet supported.
-                return rpt_("Extensions Updates Available ({:d}){:s}").format(update_count, fail_text), 'INTERNET'
+                return rpt_("Extension Update Available ({:d}){:s}" if update_count == 1 else "Extension Updates Available ({:d}){:s}").format(update_count, fail_text), 'INTERNET'
             return rpt_("All Extensions Up-to-date{:s}").format(fail_text), 'CHECKMARK'
 
         # Should never reach this line!
@@ -1324,11 +1324,14 @@ class PkgManifest_Normalized(NamedTuple):
                         )
                     )
             ):
-                raise TypeError("{:s}: \"permissions\" must be a non-empty list of strings".format(pkg_idname))
+                # Use TOML terminology as this is what the developer works with.
+                raise TypeError("{:s}: \"permissions\" must be a table of strings".format(pkg_idname))
 
+            # TODO: check on enforcing the "non-empty" statement.
             if not (isinstance(field_tags, list) and (not any(1 for x in field_tags if not isinstance(x, str)))):
                 raise TypeError("{:s}: \"tags\" must be a non-empty list of strings".format(pkg_idname))
 
+            # TODO: check on enforcing the "non-empty" statement.
             if not (isinstance(field_wheels, list) and (not any(1 for x in field_wheels if not isinstance(x, str)))):
                 raise TypeError("{:s}: \"wheels\" must be a non-empty list of strings".format(pkg_idname))
 
@@ -1337,7 +1340,7 @@ class PkgManifest_Normalized(NamedTuple):
                 raise TypeError("{:s}: \"archive_size\" must be an int".format(pkg_idname))
 
             if not isinstance(field_archive_url, str):
-                raise TypeError("{:s}: \"archive_url\" must a string".format(pkg_idname))
+                raise TypeError("{:s}: \"archive_url\" must be a string".format(pkg_idname))
 
         except TypeError as ex:
             error_fn(ex)
@@ -1460,7 +1463,7 @@ def repository_parse_blocklist(
 
     for item in data:
         if not isinstance(item, dict):
-            error_fn(Exception("found non dict item in repository \"blocklist\", found {:s}".format(str(type(item)))))
+            error_fn(Exception("found a non-dict item in repository \"blocklist\", found {:s}".format(str(type(item)))))
             continue
 
         if (pkg_idname := repository_id_with_error_fn(
@@ -1496,7 +1499,7 @@ def repository_parse_data_filtered(
     pkg_manifest_map = {}
     for item in data:
         if not isinstance(item, dict):
-            error_fn(Exception("found non dict item in repository \"data\", found {:s}".format(str(type(item)))))
+            error_fn(Exception("found a non-dict item in repository \"data\", found {:s}".format(str(type(item)))))
             continue
 
         if (pkg_idname := repository_id_with_error_fn(
@@ -1532,7 +1535,7 @@ class RepoRemoteData(NamedTuple):
     pkg_manifest_map: dict[str, PkgManifest_Normalized]
 
 
-class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
+class _RepoDataSource_ABC(metaclass=abc.ABCMeta):
     """
     The purpose of this class is to be a source for the repository data.
 
@@ -1596,7 +1599,7 @@ class _RepoDataSouce_ABC(metaclass=abc.ABCMeta):
         return data
 
 
-class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
+class _RepoDataSource_JSON(_RepoDataSource_ABC):
     __slots__ = (
         "_data",
 
@@ -1706,7 +1709,7 @@ class _RepoDataSouce_JSON(_RepoDataSouce_ABC):
         return data
 
 
-class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
+class _RepoDataSource_TOML_FILES(_RepoDataSource_ABC):
     __slots__ = (
         "_data",
 
@@ -1857,12 +1860,12 @@ class _RepoDataSouce_TOML_FILES(_RepoDataSouce_ABC):
 
         package_count = 0
         for entry in repository_iter_package_dirs(directory, error_fn=error_fn):
-            filename = entry.name
-            mtime_ref = mtime_for_each_package.get(filename)
+            dirname = entry.name
+            mtime_ref = mtime_for_each_package.get(dirname)
             if mtime_ref is None:
                 return True
 
-            filepath_toml = os.path.join(directory, filename, PKG_MANIFEST_FILENAME_TOML)
+            filepath_toml = os.path.join(directory, dirname, PKG_MANIFEST_FILENAME_TOML)
             if mtime_ref != (file_mtime_or_none_with_error_fn(filepath_toml, error_fn=error_fn) or 0):
                 return True
             package_count += 1
@@ -1885,7 +1888,7 @@ class _RepoCacheEntry:
         "_pkg_manifest_local",
         "_pkg_manifest_remote",
         "_pkg_manifest_remote_data_source",
-        "_pkg_manifest_remote_has_warning",
+        "_pkg_manifest_remote_warning_shown",
 
     )
 
@@ -1899,15 +1902,15 @@ class _RepoCacheEntry:
         self.directory = directory
         self.remote_url = remote_url
         # Manifest data per package loaded from the packages local JSON.
-        # TODO(@ideasman42): use `_RepoDataSouce_ABC` for `pkg_manifest_local`.
+        # TODO(@ideasman42): use `_RepoDataSource_ABC` for `pkg_manifest_local`.
         self._pkg_manifest_local: dict[str, PkgManifest_Normalized] | None = None
         self._pkg_manifest_remote: dict[str, PkgManifest_Normalized] | None = None
-        self._pkg_manifest_remote_data_source: _RepoDataSouce_ABC = (
-            _RepoDataSouce_JSON(directory, filter_params) if remote_url else
-            _RepoDataSouce_TOML_FILES(directory, filter_params)
+        self._pkg_manifest_remote_data_source: _RepoDataSource_ABC = (
+            _RepoDataSource_JSON(directory, filter_params) if remote_url else
+            _RepoDataSource_TOML_FILES(directory, filter_params)
         )
         # Avoid many noisy prints.
-        self._pkg_manifest_remote_has_warning = False
+        self._pkg_manifest_remote_warning_shown = False
 
     def _json_data_ensure(
             self,
@@ -1934,9 +1937,9 @@ class _RepoCacheEntry:
                 # NOTE: this warning will occur when setting up a new repository.
                 # It could be removed but it's also useful to know when the JSON is missing.
                 if self.remote_url:
-                    if not self._pkg_manifest_remote_has_warning:
+                    if not self._pkg_manifest_remote_warning_shown:
                         print("Repository data:", self.directory, "not found, sync required!")
-                        self._pkg_manifest_remote_has_warning = True
+                        self._pkg_manifest_remote_warning_shown = True
 
         return self._pkg_manifest_remote
 
@@ -1999,10 +2002,9 @@ class _RepoCacheEntry:
                 if has_remote:
                     # This should never happen, the user may have manually renamed a directory.
                     if pkg_idname != dirname:
-                        print("Skipping package with inconsistent name: \"{:s}\" mismatch \"{:s}\"".format(
-                            dirname,
-                            pkg_idname,
-                        ))
+                        print(
+                            "Skipping package with inconsistent name: directory \"{:s}\" doesn't match manifest id \"{:s}\"".format(
+                                dirname, pkg_idname, ))
                         continue
                 else:
                     pkg_idname = dirname

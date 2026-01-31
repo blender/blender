@@ -10,7 +10,7 @@
     "extensions": {
         # The first value is the extension ID, the second is the display name.
         "add_camera_rigs": ("add_camera_rigs", "Add Camera Rigs"),
-        "add_curve_extra_objects": ("extra_curve_objectes", "Extra Curve Objectes"),
+        "add_curve_extra_objects": ("extra_curve_objects", "Extra Curve Objects"),
         "add_curve_ivygen": ("ivygen", "IvyGen"),
         "add_curve_sapling": ("sapling_tree_gen", "Sapling Tree Gen"),
         "add_mesh_BoltFactory": ("boltfactory", "BoltFactory"),
