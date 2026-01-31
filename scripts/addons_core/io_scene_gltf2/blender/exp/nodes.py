@@ -14,10 +14,14 @@ from ..com import gltf2_blender_math
 from . import tree as gltf2_blender_gather_tree
 from . import skins as gltf2_blender_gather_skins
 from . import cameras as gltf2_blender_gather_cameras
-from . import mesh as gltf2_blender_gather_mesh
+from . import obj_data as gltf2_blender_gather_mesh
 from . import joints as gltf2_blender_gather_joints
 from . import lights as gltf2_blender_gather_lights
 from .tree import VExportNode
+
+# In this file, 'mesh' refers to glTF2 Mesh
+# blender_data or data refers to any object.data
+# blender_mesh is used when we specifically refer to Mesh data
 
 
 def gather_node(vnode, export_settings):
@@ -42,7 +46,7 @@ def gather_node(vnode, export_settings):
     else:
         mesh = None
 
-    # If mesh is skined, but failed to export
+    # If blender data is skined, but failed to export
     # We should ignore the skin too,
     # As it will generate a not valid glTF file
     if mesh is None and skin is not None:
@@ -254,14 +258,14 @@ def __gather_mesh(vnode, blender_object, export_settings):
     if vnode.blender_type == VExportNode.COLLECTION:
         return None
     if blender_object and blender_object.type in ['CURVE', 'SURFACE', 'FONT']:
-        return __gather_mesh_from_nonmesh(blender_object, export_settings)
+        return __gather_mesh_from_blender_nonmesh(blender_object, export_settings)
     if blender_object is None and type(vnode.data).__name__ not in ["Mesh"]:
         return None  # TODO
     if blender_object is None:
         # GN instance
-        blender_mesh = vnode.data
-        # Keep materials from the tmp mesh, but if no material, keep from object
-        materials = tuple(mat for mat in blender_mesh.materials)
+        blender_data = vnode.data
+        # Keep materials from the tmp data, but if no material, keep from object
+        materials = tuple(mat for mat in blender_data.materials)
         __keep_material_info(materials, False, export_settings)
         if len(materials) == 1 and materials[0] is None:
             materials = tuple(ms.material for ms in vnode.original_object.material_slots)
@@ -270,7 +274,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
         uuid_for_skined_data = None
         modifiers = None
 
-        if blender_mesh is None:
+        if blender_data is None:
             return None
 
     else:
@@ -290,8 +294,8 @@ def __gather_mesh(vnode, blender_object, export_settings):
             modifiers = None
 
         if export_settings['gltf_apply']:
-            if modifiers is None:  # If no modifier, use original mesh, it will instance all shared mesh in a single glTF mesh
-                blender_mesh = blender_object.data
+            if modifiers is None:  # If no modifier, use original data, it will instance all shared data in a single glTF mesh
+                blender_data = blender_object.data
                 # Keep materials from object, as no modifiers are applied, so no risk that
                 # modifiers changed them
                 materials = tuple(ms.material for ms in blender_object.material_slots)
@@ -306,31 +310,32 @@ def __gather_mesh(vnode, blender_object, export_settings):
                             modifier.show_viewport = False
 
                 depsgraph = bpy.context.evaluated_depsgraph_get()
-                blender_mesh_owner = blender_object.evaluated_get(depsgraph)
-                blender_mesh = blender_mesh_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
+                blender_data_owner = blender_object.evaluated_get(depsgraph)
+                blender_data = blender_data_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
                 # Seems now (from 4.2) the custom properties are Statically Typed
                 # so no need to copy them in that case, because overwriting them will crash
-                if len(blender_mesh.keys()) == 0:
+                if len(blender_data.keys()) == 0:
                     # Copy custom properties
                     for prop in [p for p in blender_object.data.keys() if (
                             (p not in BLACK_LIST) or p.startswith("gltf"))]:
-                        blender_mesh[prop] = blender_object.data[prop]
+                        blender_data[prop] = blender_object.data[prop]
                 else:
                     # But we need to remove some properties that are not needed
                     for prop in [p for p in blender_object.data.keys() if (
                             p in BLACK_LIST and not p.startswith("gltf"))]:
-                        del blender_mesh[prop]
-                # Store that this evaluated mesh has been created by the exporter, and is not a GN instance mesh
-                blender_mesh['gltf2_mesh_applied'] = True
+                        del blender_data[prop]
+                # Store the fact that this evaluated data has been created by the
+                # exporter, and is not a GN instance data
+                blender_data['gltf2_mesh_applied'] = True
 
                 if export_settings['gltf_skins']:
                     # restore Armature modifiers
                     for idx, show_viewport in armature_modifiers.items():
                         blender_object.modifiers[idx].show_viewport = show_viewport
 
-                # Keep materials from the newly created tmp mesh, but if no materials, keep from object
-                materials = tuple(mat for mat in blender_mesh.materials)
-                # We need to store link between the original material and the tmp mesh material,
+                # Keep materials from the newly created tmp data, but if no materials, keep from object
+                materials = tuple(mat for mat in blender_data.materials)
+                # We need to store link between the original material and the tmp data material,
                 # Because of animation pointer NLA that will still have the original
                 __keep_material_info(materials, False, export_settings)
                 if len(materials) == 1 and materials[0] is None:
@@ -338,7 +343,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
                     __keep_material_info(materials, True, export_settings)
 
         else:
-            blender_mesh = blender_object.data
+            blender_data = blender_object.data
             if not export_settings['gltf_skins']:
                 modifiers = None
             else:
@@ -352,7 +357,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
             __keep_material_info(materials, True, export_settings)
 
         # retrieve armature
-        # Because mesh data will be transforms to skeleton space,
+        # Because data will be transforms to skeleton space,
         # we can't instantiate multiple object at different location, skined by same armature
         uuid_for_skined_data = None
         if export_settings['gltf_skins']:
@@ -360,7 +365,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
                 if modifier.type == 'ARMATURE':
                     uuid_for_skined_data = vnode.uuid
 
-    result = gltf2_blender_gather_mesh.gather_mesh(blender_mesh,
+    result = gltf2_blender_gather_mesh.gather_mesh(blender_data,
                                                    uuid_for_skined_data,
                                                    blender_object.vertex_groups if blender_object else None,
                                                    modifiers,
@@ -369,8 +374,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
                                                    export_settings)
 
     if export_settings['gltf_apply'] and modifiers is not None:
-        blender_mesh_owner.to_mesh_clear()
-
+        blender_data_owner.to_mesh_clear()
     return result
 
 
@@ -384,7 +388,7 @@ def __keep_material_info(materials, originals, export_settings):
             export_settings['material_identifiers'][id(m)] = m.original
 
 
-def __gather_mesh_from_nonmesh(blender_object, export_settings):
+def __gather_mesh_from_blender_nonmesh(blender_object, export_settings):
     """Handles curves, surfaces, text, etc."""
     needs_to_mesh_clear = False
     try:
@@ -392,13 +396,13 @@ def __gather_mesh_from_nonmesh(blender_object, export_settings):
         try:
             if export_settings['gltf_apply']:
                 depsgraph = bpy.context.evaluated_depsgraph_get()
-                blender_mesh_owner = blender_object.evaluated_get(depsgraph)
-                blender_mesh = blender_mesh_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
+                blender_data_owner = blender_object.evaluated_get(depsgraph)
+                blender_mesh = blender_data_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
                 # TODO: do we need preserve_all_data_layers?
 
             else:
-                blender_mesh_owner = blender_object
-                blender_mesh = blender_mesh_owner.to_mesh()
+                blender_data_owner = blender_object
+                blender_mesh = blender_data_owner.to_mesh()
 
             # In some cases (for example curve with single vertice), no blender_mesh is created (without crash)
             if blender_mesh is None:
@@ -423,7 +427,7 @@ def __gather_mesh_from_nonmesh(blender_object, export_settings):
 
     finally:
         if needs_to_mesh_clear:
-            blender_mesh_owner.to_mesh_clear()
+            blender_data_owner.to_mesh_clear()
 
     return result
 
@@ -458,7 +462,7 @@ def __gather_trans_rot_scale(vnode, export_settings):
                 export_settings['vtree'].nodes[vnode.parent_uuid].matrix_world.inverted_safe() @ vnode.matrix_world).decompose()
         else:
             # But ... if parent has skin, the parent TRS are not taken into account, so don't get local from parent, but from armature
-            # It also depens if skined mesh is parented to armature or not
+            # It also depens if skined data is parented to armature or not
             if export_settings['vtree'].nodes[vnode.parent_uuid].parent_uuid is not None and export_settings['vtree'].nodes[
                     export_settings['vtree'].nodes[vnode.parent_uuid].parent_uuid].blender_type == VExportNode.ARMATURE:
                 trans, rot, sca = (export_settings['vtree'].nodes[export_settings['vtree'].nodes[vnode.parent_uuid].armature].matrix_world.inverted_safe(
@@ -516,7 +520,7 @@ def gather_skin(vnode, export_settings):
     blender_object = export_settings['vtree'].nodes[vnode].blender_object
 
     # Lattice can have armature modifiers & vertex groups, but we don't want to export them
-    # Avoid crash getting mesh data from lattices
+    # Avoid crash getting skin from lattices
     if blender_object and blender_object.type == 'LATTICE':
         return None
 
@@ -528,14 +532,14 @@ def gather_skin(vnode, export_settings):
     if len(blender_object.vertex_groups) == 0:
         return None
 
-    # check if any vertices in the mesh are part of a vertex group
+    # check if any vertices in the data are part of a vertex group
     depsgraph = bpy.context.evaluated_depsgraph_get()
-    blender_mesh_owner = blender_object.evaluated_get(depsgraph)
-    blender_mesh = blender_mesh_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
-    if not any(vertex.groups is not None and len(vertex.groups) > 0 for vertex in blender_mesh.vertices):
+    blender_data_owner = blender_object.evaluated_get(depsgraph)
+    blender_data = blender_data_owner.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
+    if not any(vertex.groups is not None and len(vertex.groups) > 0 for vertex in blender_data.vertices):
         return None
 
-    # Prevent infinite recursive error. A mesh can't have an Armature modifier
+    # Prevent infinite recursive error. A data can't have an Armature modifier
     # and be bone parented to a bone of this armature
     # In that case, ignore the armature modifier, keep only the bone parenting
     if blender_object.parent is not None \
@@ -544,7 +548,7 @@ def gather_skin(vnode, export_settings):
 
         return None
 
-    # Skins and meshes must be in the same glTF node, which is different from how blender handles armatures
+    # glTF Skins and mesh must be in the same glTF node, which is different from how blender handles armatures
     return gltf2_blender_gather_skins.gather_skin(export_settings['vtree'].nodes[vnode].armature, export_settings)
 
 

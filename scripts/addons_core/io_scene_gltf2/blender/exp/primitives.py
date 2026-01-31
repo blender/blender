@@ -18,21 +18,21 @@ from .material.extensions import variants as ext_variants
 
 @cached
 def gather_primitive_cache_key(
-        blender_mesh,
+        blender_data,
         uuid_for_skined_data,
         vertex_groups,
         modifiers,
         materials,
         export_settings):
 
-    # Use id of mesh
+    # Use id of blender object.data
     # Do not use bpy.types that can be unhashable
-    # Do not use mesh name, that can be not unique (when linked)
+    # Do not use data name, that can be not unique (when linked)
 
     # TODO check what is really needed for modifiers
 
     return (
-        (id(blender_mesh),),
+        (id(blender_data),),
         (modifiers,),
         tuple(id(m) if m is not None else None for m in materials)
     )
@@ -40,7 +40,7 @@ def gather_primitive_cache_key(
 
 @cached_by_key(key=gather_primitive_cache_key)
 def gather_primitives(
-        blender_mesh: bpy.types.Mesh,
+        blender_data,
         uuid_for_skined_data,
         vertex_groups: bpy.types.VertexGroups,
         modifiers: Optional[bpy.types.ObjectModifiers],
@@ -55,7 +55,7 @@ def gather_primitives(
     primitives = []
 
     blender_primitives, addional_materials_udim = __gather_cache_primitives(
-        materials, blender_mesh, uuid_for_skined_data, vertex_groups, modifiers, export_settings)
+        materials, blender_data, uuid_for_skined_data, vertex_groups, modifiers, export_settings)
 
     for internal_primitive, udim_material in zip(blender_primitives, addional_materials_udim):
 
@@ -67,7 +67,7 @@ def gather_primitives(
             # Now, we can retrieve the real material, by checking attributes and active maps
             blender_mat = get_material_from_idx(internal_primitive['material'], materials, export_settings)
             material = get_final_material(
-                blender_mesh,
+                blender_data,
                 blender_mat,
                 internal_primitive['uvmap_attributes_index'],
                 base_material,
@@ -77,7 +77,7 @@ def gather_primitives(
             # UDIM case
             base_material, material_info, unique_material_id, tile = udim_material
             material = get_final_material(
-                blender_mesh,
+                blender_data,
                 unique_material_id,
                 internal_primitive['uvmap_attributes_index'],
                 base_material,
@@ -90,7 +90,7 @@ def gather_primitives(
         primitive = gltf2_io.MeshPrimitive(
             attributes=internal_primitive['attributes'],
             extensions=__gather_extensions(
-                blender_mesh,
+                blender_data,
                 internal_primitive['material'],
                 internal_primitive['uvmap_attributes_index'],
                 export_settings),
@@ -107,21 +107,21 @@ def gather_primitives(
 @cached
 def get_primitive_cache_key(
         materials,
-        blender_mesh,
+        blender_data,
         uuid_for_skined_data,
         vertex_groups,
         modifiers,
         export_settings):
 
-    # Use id of mesh
+    # Use id of blender object.data
     # Do not use bpy.types that can be unhashable
-    # Do not use mesh name, that can be not unique (when linked)
+    # Do not use data name, that can be not unique (when linked)
     # Do not use materials here
 
     # TODO check what is really needed for modifiers
 
     return (
-        (id(blender_mesh),),
+        (id(blender_data),),
         (modifiers,)
     )
 
@@ -129,7 +129,7 @@ def get_primitive_cache_key(
 @cached_by_key(key=get_primitive_cache_key)
 def __gather_cache_primitives(
         materials,
-        blender_mesh: bpy.types.Mesh,
+        blender_data,
         uuid_for_skined_data,
         vertex_groups: bpy.types.VertexGroups,
         modifiers: Optional[bpy.types.ObjectModifiers],
@@ -141,7 +141,7 @@ def __gather_cache_primitives(
     primitives = []
 
     blender_primitives, additional_materials_udim, shared_attributes = gltf2_blender_gather_primitives_extract.extract_primitives(
-        materials, blender_mesh, uuid_for_skined_data, vertex_groups, modifiers, export_settings)
+        materials, blender_data, uuid_for_skined_data, vertex_groups, modifiers, export_settings)
 
     if shared_attributes is not None:
 
@@ -149,15 +149,15 @@ def __gather_cache_primitives(
             shared = {}
             shared["attributes"] = shared_attributes
 
-            attributes = __gather_attributes(shared, blender_mesh, modifiers, export_settings)
-            targets = __gather_targets(shared, blender_mesh, modifiers, export_settings)
+            attributes = __gather_attributes(shared, blender_data, modifiers, export_settings)
+            targets = __gather_targets(shared, blender_data, modifiers, export_settings)
 
         for internal_primitive in blender_primitives:
             if internal_primitive.get('mode') is None:
 
                 primitive = {
                     "attributes": attributes,
-                    "indices": __gather_indices(internal_primitive, blender_mesh, modifiers, export_settings),
+                    "indices": __gather_indices(internal_primitive, blender_data, modifiers, export_settings),
                     "mode": internal_primitive.get('mode'),
                     "material": internal_primitive.get('material'),
                     "targets": targets,
@@ -167,11 +167,11 @@ def __gather_cache_primitives(
             else:
                 # Edges & points, no shared attributes
                 primitive = {
-                    "attributes": __gather_attributes(internal_primitive, blender_mesh, modifiers, export_settings),
-                    "indices": __gather_indices(internal_primitive, blender_mesh, modifiers, export_settings),
+                    "attributes": __gather_attributes(internal_primitive, blender_data, modifiers, export_settings),
+                    "indices": __gather_indices(internal_primitive, blender_data, modifiers, export_settings),
                     "mode": internal_primitive.get('mode'),
                     "material": internal_primitive.get('material'),
-                    "targets": __gather_targets(internal_primitive, blender_mesh, modifiers, export_settings),
+                    "targets": __gather_targets(internal_primitive, blender_data, modifiers, export_settings),
                     "uvmap_attributes_index": internal_primitive.get('uvmap_attributes_index')
                 }
             primitives.append(primitive)
@@ -180,11 +180,11 @@ def __gather_cache_primitives(
 
         for internal_primitive in blender_primitives:
             primitive = {
-                "attributes": __gather_attributes(internal_primitive, blender_mesh, modifiers, export_settings),
-                "indices": __gather_indices(internal_primitive, blender_mesh, modifiers, export_settings),
+                "attributes": __gather_attributes(internal_primitive, blender_data, modifiers, export_settings),
+                "indices": __gather_indices(internal_primitive, blender_data, modifiers, export_settings),
                 "mode": internal_primitive.get('mode'),
                 "material": internal_primitive.get('material'),
-                "targets": __gather_targets(internal_primitive, blender_mesh, modifiers, export_settings),
+                "targets": __gather_targets(internal_primitive, blender_data, modifiers, export_settings),
                 "uvmap_attributes_index": internal_primitive.get('uvmap_attributes_index')
             }
             primitives.append(primitive)
@@ -192,7 +192,7 @@ def __gather_cache_primitives(
     return primitives, additional_materials_udim
 
 
-def __gather_indices(blender_primitive, blender_mesh, modifiers, export_settings):
+def __gather_indices(blender_primitive, blender_data, modifiers, export_settings):
     indices = blender_primitive.get('indices')
     if indices is None:
         return None
@@ -231,16 +231,16 @@ def __gather_indices(blender_primitive, blender_mesh, modifiers, export_settings
     )
 
 
-def __gather_attributes(blender_primitive, blender_mesh, modifiers, export_settings):
+def __gather_attributes(blender_primitive, blender_data, modifiers, export_settings):
     return gltf2_blender_gather_primitive_attributes.gather_primitive_attributes(blender_primitive, export_settings)
 
 
-def __gather_targets(blender_primitive, blender_mesh, modifiers, export_settings):
+def __gather_targets(blender_primitive, blender_data, modifiers, export_settings):
     if export_settings['gltf_morph']:
         targets = []
-        if blender_mesh.shape_keys is not None:
+        if blender_data.shape_keys is not None:
             morph_index = 0
-            for blender_shape_key in get_sk_exported(blender_mesh.shape_keys.key_blocks):
+            for blender_shape_key in get_sk_exported(blender_data.shape_keys.key_blocks):
 
                 target_position_id = 'MORPH_POSITION_' + str(morph_index)
                 target_normal_id = 'MORPH_NORMAL_' + str(morph_index)
@@ -288,7 +288,7 @@ def __gather_targets(blender_primitive, blender_mesh, modifiers, export_settings
     return None
 
 
-def __gather_extensions(blender_mesh,
+def __gather_extensions(blender_data,
                         material_idx: int,
                         attr_indices: dict,
                         export_settings):
@@ -303,7 +303,7 @@ def __gather_extensions(blender_mesh,
     # Material idx is the slot idx. Retrieve associated variant, if any
     mapping = []
     variants_idx_in_use = []
-    for i in [v for v in blender_mesh.gltf2_variant_mesh_data if v.material_slot_index == material_idx]:
+    for i in [v for v in blender_data.gltf2_variant_mesh_data if v.material_slot_index == material_idx]:
         variants = []
         for idx, v in enumerate(i.variants):
             if v.variant.variant_idx in [o.variant.variant_idx for o in i.variants[:idx]]:
@@ -343,7 +343,7 @@ def __gather_extensions(blender_mesh,
             if base_material is not None:
                 # Now, we can retrieve the real material, by checking attributes and active maps
                 mat = get_final_material(
-                    blender_mesh,
+                    blender_data,
                     i.material,
                     attr_indices,
                     base_material,
