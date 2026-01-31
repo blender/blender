@@ -824,6 +824,44 @@ static void subdiv_accumulate_vert_displacement(SubdivMeshContext *ctx,
 /** \name Callbacks
  * \{ */
 
+static void create_attrs_and_retrieve_interp_spans(const AttributeAccessor src_attrs,
+                                                   const bke::AttrDomain domain,
+                                                   const Set<StringRef> &skip_names,
+                                                   MutableAttributeAccessor dst_attrs,
+                                                   Vector<GVArraySpan> &coarse_varray_spans,
+                                                   Vector<GSpan> &coarse_spans,
+                                                   Vector<GSpanAttributeWriter> &dst_writers,
+                                                   Vector<GMutableSpan> &dst_spans)
+
+{
+  src_attrs.foreach_attribute([&](const AttributeIter &iter) {
+    if (iter.domain != domain) {
+      return;
+    }
+    if (iter.data_type == bke::AttrType::String) {
+      return;
+    }
+    if (skip_names.contains(iter.name)) {
+      return;
+    }
+    GVArray src = *iter.get();
+    {
+      const CommonVArrayInfo info = src.common_info();
+      if (info.type == CommonVArrayInfo::Type::Single) {
+        const GPointer value(src.type(), info.data);
+        if (dst_attrs.add(iter.name, domain, iter.data_type, bke::AttributeInitValue(value))) {
+          return;
+        }
+      }
+    }
+    coarse_varray_spans.append(std::move(src));
+    coarse_spans.append(coarse_varray_spans.last());
+    dst_writers.append(
+        dst_attrs.lookup_or_add_for_write_only_span(iter.name, domain, iter.data_type));
+    dst_spans.append(dst_writers.last().span);
+  });
+}
+
 static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
                                       const int num_vertices,
                                       const int num_edges,
@@ -848,59 +886,52 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
   }
 
   /* Create corner data for interpolation without topology attributes. */
+  const AttributeAccessor coarse_attrs = coarse_mesh.attributes();
   MutableAttributeAccessor attributes = subdiv_mesh.attributes_for_write();
-  coarse_mesh.attributes().foreach_attribute([&](const AttributeIter &iter) {
-    if (iter.data_type == AttrType::String) {
-      return;
-    }
-    if (iter.domain == AttrDomain::Point) {
-      if (ELEM(iter.name, "position")) {
-        return;
-      }
-      subdiv_context->coarse_vert_attrs.append(*iter.get());
-      subdiv_context->coarse_vert_attr_spans.append(subdiv_context->coarse_vert_attrs.last());
-      subdiv_context->subdiv_vert_attrs.append(
-          attributes.lookup_or_add_for_write_only_span(iter.name, iter.domain, iter.data_type));
-      subdiv_context->subdiv_vert_attr_spans.append(subdiv_context->subdiv_vert_attrs.last().span);
-    }
-    else if (iter.domain == AttrDomain::Edge) {
-      if (ELEM(iter.name, ".edge_verts")) {
-        return;
-      }
-      subdiv_context->coarse_edge_attrs.append(*iter.get());
-      subdiv_context->coarse_edge_attr_spans.append(subdiv_context->coarse_edge_attrs.last());
-      subdiv_context->subdiv_edge_attrs.append(
-          attributes.lookup_or_add_for_write_only_span(iter.name, iter.domain, iter.data_type));
-      subdiv_context->subdiv_edge_attr_spans.append(subdiv_context->subdiv_edge_attrs.last().span);
-    }
-    else if (iter.domain == AttrDomain::Face) {
-      subdiv_context->coarse_face_attrs.append(*iter.get());
-      subdiv_context->coarse_face_attr_spans.append(subdiv_context->coarse_face_attrs.last());
-      subdiv_context->subdiv_face_attrs.append(
-          attributes.lookup_or_add_for_write_only_span(iter.name, iter.domain, iter.data_type));
-      subdiv_context->subdiv_face_attr_spans.append(subdiv_context->subdiv_face_attrs.last().span);
-    }
-    else if (iter.domain == AttrDomain::Corner) {
-      if (ELEM(iter.name, ".corner_vert", ".corner_edge")) {
-        return;
-      }
-      /* Rely on #CD_NORMAL to propagate normals to subdivision surfaces.
-       * These are converted into "custom_normals" afterwards, otherwise these normals
-       * would interpolated without being normalized, see: #152277. */
-      if (ELEM(iter.name, "custom_normal")) {
-        return;
-      }
-      if (iter.data_type == AttrType::Float2) {
-        return;
-      }
-      subdiv_context->coarse_corner_attrs.append(*iter.get());
-      subdiv_context->coarse_corner_attr_spans.append(subdiv_context->coarse_corner_attrs.last());
-      subdiv_context->subdiv_corner_attrs.append(
-          attributes.lookup_or_add_for_write_only_span(iter.name, iter.domain, iter.data_type));
-      subdiv_context->subdiv_corner_attr_spans.append(
-          subdiv_context->subdiv_corner_attrs.last().span);
-    }
-  });
+
+  create_attrs_and_retrieve_interp_spans(coarse_attrs,
+                                         AttrDomain::Point,
+                                         {"position"},
+                                         attributes,
+                                         subdiv_context->coarse_vert_attrs,
+                                         subdiv_context->coarse_vert_attr_spans,
+                                         subdiv_context->subdiv_vert_attrs,
+                                         subdiv_context->subdiv_vert_attr_spans);
+
+  create_attrs_and_retrieve_interp_spans(coarse_attrs,
+                                         AttrDomain::Edge,
+                                         {".edge_verts"},
+                                         attributes,
+                                         subdiv_context->coarse_edge_attrs,
+                                         subdiv_context->coarse_edge_attr_spans,
+                                         subdiv_context->subdiv_edge_attrs,
+                                         subdiv_context->subdiv_edge_attr_spans);
+
+  create_attrs_and_retrieve_interp_spans(coarse_attrs,
+                                         AttrDomain::Face,
+                                         {},
+                                         attributes,
+                                         subdiv_context->coarse_face_attrs,
+                                         subdiv_context->coarse_face_attr_spans,
+                                         subdiv_context->subdiv_face_attrs,
+                                         subdiv_context->subdiv_face_attr_spans);
+
+  /* Rely on #CD_NORMAL to propagate normals to subdivision surfaces.
+   * These are converted into "custom_normals" afterwards, otherwise these normals
+   * would interpolated without being normalized, see: #152277. */
+  Set<StringRef> corner_skip_names{".corner_vert", ".corner_edge", "custom_normal"};
+  /* UV map names are interpolated separately. */
+  for (const StringRef name : coarse_mesh.uv_map_names()) {
+    corner_skip_names.add_new(name);
+  }
+  create_attrs_and_retrieve_interp_spans(coarse_attrs,
+                                         AttrDomain::Corner,
+                                         corner_skip_names,
+                                         attributes,
+                                         subdiv_context->coarse_corner_attrs,
+                                         subdiv_context->coarse_corner_attr_spans,
+                                         subdiv_context->subdiv_corner_attrs,
+                                         subdiv_context->subdiv_corner_attr_spans);
 
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
   subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);
