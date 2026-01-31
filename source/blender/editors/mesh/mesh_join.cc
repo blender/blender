@@ -270,6 +270,52 @@ static void join_shape_keys(Main *bmain,
   }
 }
 
+static bool try_join_single_value_attribute(const Span<const Object *> objects_to_join,
+                                            const StringRef name,
+                                            const bke::AttrDomain domain,
+                                            const bke::AttrType data_type,
+                                            bke::MutableAttributeAccessor dst_attributes)
+{
+  const auto get_single_value = [&](const Object &object) {
+    const Mesh &src_mesh = *id_cast<const Mesh *>(object.data);
+    const bke::AttributeAccessor attributes = src_mesh.attributes();
+    const GVArray src = *attributes.lookup_or_default(name, domain, data_type);
+    const CommonVArrayInfo info = src.common_info();
+    if (info.type != CommonVArrayInfo::Type::Single) {
+      return GPointer();
+    }
+    return GPointer(src.type(), info.data);
+  };
+  const GPointer first_value = get_single_value(*objects_to_join.first());
+  if (!first_value) {
+    return false;
+  }
+  const bool all_equal = threading::parallel_reduce(
+      objects_to_join.index_range().drop_front(1),
+      8,
+      true,
+      [&](const IndexRange range, bool value) {
+        if (!value) {
+          return false;
+        }
+        for (const int i : range) {
+          const GPointer value = get_single_value(*objects_to_join[i]);
+          if (!value) {
+            return false;
+          }
+          if (!value.type()->is_equal(value.get(), first_value.get())) {
+            return false;
+          }
+        }
+        return true;
+      },
+      std::logical_and<bool>());
+  if (!all_equal) {
+    return false;
+  }
+  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
+}
+
 static void join_generic_attributes(const Span<const Object *> objects_to_join,
                                     const VectorSet<std::string> &all_vertex_group_names,
                                     const OffsetIndices<int> vert_ranges,
@@ -323,9 +369,6 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
             owner, dst_attributes, name, meta_data->domain, meta_data->data_type, nullptr);
       }
     }
-    else {
-      dst_attributes.add(name, domain, data_type, bke::AttributeInitConstruct());
-    }
   }
 
   for (const int attr_i : names.index_range()) {
@@ -333,7 +376,13 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
     const bke::AttrDomain domain = kinds[attr_i].domain;
     const bke::AttrType data_type = kinds[attr_i].data_type;
 
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_for_write_span(name);
+    if (try_join_single_value_attribute(objects_to_join, name, domain, data_type, dst_attributes))
+    {
+      continue;
+    }
+
+    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_span(
+        name, domain, data_type);
     for (const int i : objects_to_join.index_range()) {
       const Mesh &src_mesh = *id_cast<const Mesh *>(objects_to_join[i]->data);
       const bke::AttributeAccessor src_attributes = src_mesh.attributes();
