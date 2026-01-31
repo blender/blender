@@ -599,6 +599,20 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
 
 /** \} */
 
+static bool try_add_single_value_attribute(const GVArray &src,
+                                           const StringRef name,
+                                           const AttrDomain dst_domain,
+                                           const AttrType data_type,
+                                           MutableAttributeAccessor &dst_attributes)
+{
+  const CommonVArrayInfo src_info = src.common_info();
+  if (src_info.type != CommonVArrayInfo::Type::Single) {
+    return false;
+  }
+  const GPointer value(src.type(), src_info.data);
+  return dst_attributes.add(name, dst_domain, data_type, AttributeInitValue(value));
+}
+
 void gather_attributes(const AttributeAccessor src_attributes,
                        const AttrDomain src_domain,
                        const AttrDomain dst_domain,
@@ -618,6 +632,11 @@ void gather_attributes(const AttributeAccessor src_attributes,
       return;
     }
     const GAttributeReader src = iter.get(src_domain);
+    if (try_add_single_value_attribute(
+            *src, iter.name, dst_domain, iter.data_type, dst_attributes))
+    {
+      return;
+    }
     if (selection.size() == src_size && src.sharing_info && src.varray.is_span()) {
       const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
       if (dst_attributes.add(iter.name, dst_domain, iter.data_type, init)) {
@@ -657,6 +676,11 @@ void gather_attributes(const AttributeAccessor src_attributes,
         return;
       }
       const GAttributeReader src = iter.get(src_domain);
+      if (try_add_single_value_attribute(
+              *src, iter.name, dst_domain, iter.data_type, dst_attributes))
+      {
+        return;
+      }
       GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
           iter.name, dst_domain, iter.data_type);
       if (!dst) {
@@ -695,13 +719,18 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (attribute_filter.allow_skip(iter.name)) {
       return;
     }
-    const GVArraySpan src = *iter.get(src_domain);
+    const GVArray src = *iter.get(src_domain);
+    if (try_add_single_value_attribute(src, iter.name, dst_domain, iter.data_type, dst_attributes))
+    {
+      return;
+    }
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, dst_domain, iter.data_type);
     if (!dst) {
       return;
     }
-    attribute_math::gather_group_to_group(src_offsets, dst_offsets, selection, src, dst.span);
+    const GVArraySpan src_span = src;
+    attribute_math::gather_group_to_group(src_offsets, dst_offsets, selection, src_span, dst.span);
     dst.finish();
   });
 }
@@ -724,13 +753,18 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
     if (attribute_filter.allow_skip(iter.name)) {
       return;
     }
-    const GVArraySpan src = *iter.get(src_domain);
+    const GVArray src = *iter.get(src_domain);
+    if (try_add_single_value_attribute(src, iter.name, dst_domain, iter.data_type, dst_attributes))
+    {
+      return;
+    }
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, dst_domain, iter.data_type);
     if (!dst) {
       return;
     }
-    attribute_math::gather_to_groups(dst_offsets, src_selection, src, dst.span);
+    const GVArraySpan src_span = src;
+    attribute_math::gather_to_groups(dst_offsets, src_selection, src_span, dst.span);
     dst.finish();
   });
 }
@@ -748,6 +782,18 @@ void copy_attributes(const AttributeAccessor src_attributes,
                     attribute_filter,
                     IndexMask(src_attributes.domain_size(src_domain)),
                     dst_attributes);
+}
+
+static GPointer get_default_for_fill(AttributeAccessor attributes,
+                                     const CPPType &type,
+                                     const StringRef name)
+{
+  if (attributes.is_builtin(name)) {
+    if (const GPointer value = attributes.get_builtin_default(name)) {
+      return value;
+    }
+  }
+  return GPointer(type, type.default_value());
 }
 
 void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
@@ -772,7 +818,11 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (attribute_filter.allow_skip(iter.name)) {
       return;
     }
-    const GVArraySpan src = *iter.get(src_domain);
+    const GVArray src = *iter.get(src_domain);
+    if (try_add_single_value_attribute(src, iter.name, dst_domain, iter.data_type, dst_attributes))
+    {
+      return;
+    }
     const bool dst_already_exists = dst_attributes.contains(iter.name);
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, dst_domain, iter.data_type);
@@ -783,21 +833,13 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
       /* Skip filling with the default value if all of the data is going to be filled. */
       if (!(dst_offsets.total_size() == dst.span.size() && selection.size() == dst_offsets.size()))
       {
-        const CPPType &type = dst.span.type();
-        if (dst_attributes.is_builtin(iter.name)) {
-          if (const GPointer value = dst_attributes.get_builtin_default(iter.name)) {
-            type.fill_construct_n(value.get(), dst.span.data(), dst.span.size());
-          }
-          else {
-            type.fill_construct_n(type.default_value(), dst.span.data(), dst.span.size());
-          }
-        }
-        else {
-          type.fill_construct_n(type.default_value(), dst.span.data(), dst.span.size());
-        }
+        const CPPType &type = attribute_type_to_cpp_type(iter.data_type);
+        const GPointer value = get_default_for_fill(dst_attributes, type, iter.name);
+        type.fill_construct_n(value.get(), dst.span.data(), dst.span.size());
       }
     }
-    array_utils::copy_group_to_group(src_offsets, dst_offsets, selection, src, dst.span);
+    const GVArraySpan src_span = src;
+    array_utils::copy_group_to_group(src_offsets, dst_offsets, selection, src_span, dst.span);
     dst.finish();
   });
 }
@@ -824,20 +866,16 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
     if (iter.data_type == AttrType::String) {
       return;
     }
+    const GVArray varray = *iter.get();
+    const CPPType &type = varray.type();
+    const GPointer value = get_default_for_fill(attributes, type, iter.name);
+    const CommonVArrayInfo info = varray.common_info();
+    if (type.is_equal(value.get(), info.data)) {
+      return;
+    }
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    const CPPType &type = attribute.span.type();
     GMutableSpan data = attribute.span.slice(range);
-    if (attributes.is_builtin(iter.name)) {
-      if (const GPointer value = attributes.get_builtin_default(iter.name)) {
-        type.fill_assign_n(value.get(), data.data(), data.size());
-      }
-      else {
-        type.fill_assign_n(type.default_value(), data.data(), data.size());
-      }
-    }
-    else {
-      type.fill_assign_n(type.default_value(), data.data(), data.size());
-    }
+    type.fill_assign_n(value.get(), data.data(), data.size());
     attribute.finish();
   });
 }
