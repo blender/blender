@@ -5286,12 +5286,7 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
 
   int fill_id_to_set = fill_ids.span[active_curve];
   if (fill_id_to_set == 0) {
-    /* Get the first id that does not already exist. */
-    fill_id_to_set = *std::max_element(fill_ids.span.begin(), fill_ids.span.end()) + 1;
-
-    if (fill_id_to_set == 0) {
-      fill_id_to_set++;
-    }
+    fill_id_to_set = bke::greasepencil::get_next_available_fill_id(fill_ids.span.varray());
   }
 
   index_mask::masked_fill(fill_ids.span, fill_id_to_set, selected_strokes);
