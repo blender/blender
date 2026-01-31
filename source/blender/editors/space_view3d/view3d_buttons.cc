@@ -117,6 +117,13 @@ struct CurvesDataPanelState {
   int order;
   int resolution;
   char cyclic;
+
+  float fill_opacity;
+  int start_cap;
+  int end_cap;
+  float softness;
+  float u_scale;
+  float aspect_ratio;
 };
 
 /* temporary struct for storing transform properties */
@@ -502,6 +509,19 @@ static bool apply_to_curves_point_selection(const int tot,
   return changed;
 }
 
+template<typename T> struct StatusValue {
+  T value_sum;
+  T value_max;
+
+  static StatusValue sum(const StatusValue &a, const StatusValue &b)
+  {
+    return {
+        a.value_sum + b.value_sum,
+        math::max(a.value_max, b.value_max),
+    };
+  }
+};
+
 struct CurvesSelectionStatus {
   int curve_count = 0;
   int nurbs_count = 0;
@@ -516,19 +536,34 @@ struct CurvesSelectionStatus {
   int resolution_sum = 0;
   int resolution_max = 0;
 
+  StatusValue<float> fill_opacity;
+  StatusValue<int> start_cap;
+  StatusValue<int> end_cap;
+  StatusValue<float> softness;
+  StatusValue<float> u_scale;
+  StatusValue<float> aspect_ratio;
+
   static CurvesSelectionStatus sum(const CurvesSelectionStatus &a, const CurvesSelectionStatus &b)
   {
-    return {a.curve_count + b.curve_count,
-            a.nurbs_count + b.nurbs_count,
-            a.bezier_count + b.bezier_count,
-            a.poly_count + b.poly_count,
-            a.cyclic_count + b.cyclic_count,
-            a.nurbs_knot_mode_sum + b.nurbs_knot_mode_sum,
-            std::max(a.nurbs_knot_mode_max, b.nurbs_knot_mode_max),
-            a.order_sum + b.order_sum,
-            std::max(a.order_max, b.order_max),
-            a.resolution_sum + b.resolution_sum,
-            std::max(a.resolution_max, b.resolution_max)};
+    return {
+        a.curve_count + b.curve_count,
+        a.nurbs_count + b.nurbs_count,
+        a.bezier_count + b.bezier_count,
+        a.poly_count + b.poly_count,
+        a.cyclic_count + b.cyclic_count,
+        a.nurbs_knot_mode_sum + b.nurbs_knot_mode_sum,
+        std::max(a.nurbs_knot_mode_max, b.nurbs_knot_mode_max),
+        a.order_sum + b.order_sum,
+        std::max(a.order_max, b.order_max),
+        a.resolution_sum + b.resolution_sum,
+        std::max(a.resolution_max, b.resolution_max),
+        StatusValue<float>::sum(a.fill_opacity, b.fill_opacity),
+        StatusValue<int>::sum(a.start_cap, b.start_cap),
+        StatusValue<int>::sum(a.end_cap, b.end_cap),
+        StatusValue<float>::sum(a.softness, b.softness),
+        StatusValue<float>::sum(a.u_scale, b.u_scale),
+        StatusValue<float>::sum(a.aspect_ratio, b.aspect_ratio),
+    };
   }
 };
 
@@ -583,6 +618,72 @@ static CurvesSelectionStatus init_curves_selection_status(const bke::CurvesGeome
         return value;
       },
       CurvesSelectionStatus::sum);
+}
+
+template<typename T>
+static StatusValue<T> init_status_from_attribute(const blender::VArray<T> &attribute,
+                                                 const blender::IndexMask &selection,
+                                                 const T &default_value)
+{
+  using namespace blender;
+  if (!attribute) {
+    if (selection.is_empty()) {
+      return {T(0), T(0)};
+    }
+    return {T(default_value * selection.size()), default_value};
+  }
+
+  return threading::parallel_reduce(
+      selection.index_range(),
+      512,
+      StatusValue<T>(),
+      [&](const IndexRange range, const StatusValue<T> &acc) {
+        StatusValue<T> value = acc;
+
+        selection.slice(range).foreach_index([&](const int curve) {
+          const T attribute_value = attribute[curve];
+          value.value_sum += attribute_value;
+          value.value_max = math::max(value.value_max, attribute_value);
+        });
+        return value;
+      },
+      StatusValue<T>::sum);
+}
+
+static CurvesSelectionStatus init_grease_pencil_selection_status(
+    const blender::bke::CurvesGeometry &curves)
+{
+  using namespace blender;
+  using namespace ed::curves;
+
+  if (curves.is_empty()) {
+    return CurvesSelectionStatus();
+  }
+
+  IndexMaskMemory memory;
+  const IndexMask selection = retrieve_selected_curves(curves, memory);
+  const bke::AttributeAccessor attributes = curves.attributes();
+
+  CurvesSelectionStatus status;
+
+  status.fill_opacity = init_status_from_attribute(
+      *attributes.lookup<float>("fill_opacity", bke::AttrDomain::Curve), selection, 1.0f);
+  status.start_cap = init_status_from_attribute(
+      *attributes.lookup<int>("start_cap", bke::AttrDomain::Curve),
+      selection,
+      int(GP_STROKE_CAP_TYPE_ROUND));
+  status.end_cap = init_status_from_attribute(
+      *attributes.lookup<int>("end_cap", bke::AttrDomain::Curve),
+      selection,
+      int(GP_STROKE_CAP_TYPE_ROUND));
+  status.softness = init_status_from_attribute(
+      *attributes.lookup<float>("softness", bke::AttrDomain::Curve), selection, 0.0f);
+  status.u_scale = init_status_from_attribute(
+      *attributes.lookup<float>("u_scale", bke::AttrDomain::Curve), selection, 1.0f);
+  status.aspect_ratio = init_status_from_attribute(
+      *attributes.lookup<float>("aspect_ratio", bke::AttrDomain::Curve), selection, 1.0f);
+
+  return status;
 }
 
 /* is used for both read and write... */
@@ -2351,6 +2452,122 @@ static void handle_curves_resolution(bContext *C, void *, void *)
                          });
 }
 
+static void handle_curves_aspect_ratio(bContext *C, void *, void *)
+{
+  using namespace blender;
+
+  apply_to_active_object(
+      C,
+      [](const CurvesDataPanelState &modified_state,
+         const IndexMask &selection,
+         bke::CurvesGeometry &curves) {
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+        bke::SpanAttributeWriter<float> aspect_ratio =
+            attributes.lookup_or_add_for_write_span<float>(
+                "aspect_ratio",
+                bke::AttrDomain::Curve,
+                bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
+        index_mask::masked_fill(aspect_ratio.span, modified_state.aspect_ratio, selection);
+        aspect_ratio.finish();
+      });
+}
+
+static void handle_curves_softness(bContext *C, void *, void *)
+{
+  using namespace blender;
+
+  apply_to_active_object(
+      C,
+      [](const CurvesDataPanelState &modified_state,
+         const IndexMask &selection,
+         bke::CurvesGeometry &curves) {
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+        bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
+            "softness", bke::AttrDomain::Curve);
+        index_mask::masked_fill(softness.span, modified_state.softness, selection);
+        softness.finish();
+      });
+}
+
+static void handle_curves_u_scale(bContext *C, void *, void *)
+{
+  using namespace blender;
+
+  apply_to_active_object(
+      C,
+      [](const CurvesDataPanelState &modified_state,
+         const IndexMask &selection,
+         bke::CurvesGeometry &curves) {
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+        bke::SpanAttributeWriter<float> u_scale = attributes.lookup_or_add_for_write_span<float>(
+            "u_scale",
+            bke::AttrDomain::Curve,
+            bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
+        index_mask::masked_fill(u_scale.span, modified_state.u_scale, selection);
+        u_scale.finish();
+      });
+}
+
+static void handle_curves_fill_opacity(bContext *C, void *, void *)
+{
+  using namespace blender;
+
+  apply_to_active_object(
+      C,
+      [](const CurvesDataPanelState &modified_state,
+         const IndexMask &selection,
+         bke::CurvesGeometry &curves) {
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+        bke::SpanAttributeWriter<float> fill_opacity =
+            attributes.lookup_or_add_for_write_span<float>(
+                "fill_opacity",
+                bke::AttrDomain::Curve,
+                bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
+        index_mask::masked_fill(fill_opacity.span, modified_state.fill_opacity, selection);
+        fill_opacity.finish();
+      });
+}
+
+static void handle_curves_end_cap(bContext *C, void *, void *)
+{
+  using namespace blender;
+
+  apply_to_active_object(
+      C,
+      [](const CurvesDataPanelState &modified_state,
+         const IndexMask &selection,
+         bke::CurvesGeometry &curves) {
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+        bke::SpanAttributeWriter<int> end_cap = attributes.lookup_or_add_for_write_span<int>(
+            "end_cap",
+            bke::AttrDomain::Curve,
+            bke::AttributeInitVArray(
+                VArray<int>::from_single(GP_STROKE_CAP_TYPE_ROUND, curves.curves_num())));
+        index_mask::masked_fill(end_cap.span, modified_state.end_cap, selection);
+        end_cap.finish();
+      });
+}
+
+static void handle_curves_start_cap(bContext *C, void *, void *)
+{
+  using namespace blender;
+
+  apply_to_active_object(
+      C,
+      [](const CurvesDataPanelState &modified_state,
+         const IndexMask &selection,
+         bke::CurvesGeometry &curves) {
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+        bke::SpanAttributeWriter<int> start_cap = attributes.lookup_or_add_for_write_span<int>(
+            "start_cap",
+            bke::AttrDomain::Curve,
+            bke::AttributeInitVArray(
+                VArray<int>::from_single(GP_STROKE_CAP_TYPE_ROUND, curves.curves_num())));
+        index_mask::masked_fill(start_cap.span, modified_state.start_cap, selection);
+        start_cap.finish();
+      });
+}
+
 constexpr std::array<EnumPropertyItem, 5> enum_curve_knot_mode_items{{
     {NURBS_KNOT_MODE_NORMAL, "NORMAL", ICON_NONE, "Normal", ""},
     {NURBS_KNOT_MODE_ENDPOINT, "ENDPOINT", ICON_NONE, "Endpoint", ""},
@@ -2374,6 +2591,32 @@ static void knot_modes_menu(bContext * /*C*/, ui::Layout *layout, void *knot_mod
               UI_UNIT_X * 5,
               UI_UNIT_Y,
               reinterpret_cast<int *>(knot_mode_p),
+              item.value,
+              0.0,
+              "");
+  }
+}
+
+constexpr std::array<EnumPropertyItem, 2> enum_grease_pencil_cap_items{{
+    {GP_STROKE_CAP_TYPE_ROUND, "ROUND", ICON_GP_CAPS_ROUND, "Round", ""},
+    {GP_STROKE_CAP_TYPE_FLAT, "FLAT", ICON_GP_CAPS_FLAT, "Flat", ""},
+}};
+
+static void grease_pencil_cap_menu(bContext * /*C*/, ui::Layout *layout, void *cap_type_p)
+{
+  ui::Block *block = layout->block();
+  blender::ui::block_layout_set_current(block, layout);
+  layout->column(false);
+
+  for (const EnumPropertyItem &item : enum_grease_pencil_cap_items) {
+    uiDefButI(block,
+              ui::ButtonType::ButMenu,
+              IFACE_(item.name),
+              0,
+              0,
+              UI_UNIT_X * 5,
+              UI_UNIT_Y,
+              reinterpret_cast<int *>(cap_type_p),
               item.value,
               0.0,
               "");
@@ -2405,8 +2648,9 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
         [&](const IndexRange range, const CurvesSelectionStatus &acc) {
           CurvesSelectionStatus value = acc;
           for (const int drawing : range) {
-            value = CurvesSelectionStatus::sum(
-                value, init_curves_selection_status(drawings[drawing].drawing.strokes()));
+            const bke::CurvesGeometry &curves = drawings[drawing].drawing.strokes();
+            value = CurvesSelectionStatus::sum(value, init_curves_selection_status(curves));
+            value = CurvesSelectionStatus::sum(value, init_grease_pencil_selection_status(curves));
           }
           return value;
         },
@@ -2443,6 +2687,15 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
   current.order = math::safe_divide(status.order_sum, status.nurbs_count);
   current.resolution = math::safe_divide(status.resolution_sum, status.curve_count);
 
+  current.fill_opacity = math::safe_divide(status.fill_opacity.value_sum,
+                                           float(status.curve_count));
+  current.start_cap = math::safe_divide(status.start_cap.value_sum, status.curve_count);
+  current.end_cap = math::safe_divide(status.end_cap.value_sum, status.curve_count);
+  current.u_scale = math::safe_divide(status.u_scale.value_sum, float(status.curve_count));
+  current.softness = math::safe_divide(status.softness.value_sum, float(status.curve_count));
+  current.aspect_ratio = math::safe_divide(status.aspect_ratio.value_sum,
+                                           float(status.curve_count));
+
   modified = current;
 
   panel->layout->use_property_split_set(true);
@@ -2464,6 +2717,10 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
           button_drawflag_enable(but, ui::BUT_INDETERMINATE);
         }
       };
+
+  auto is_equal = [&](const float a, const float b, const float epsilon = 1e-4f) {
+    return math::abs(a - b) <= epsilon;
+  };
 
   const int butw = 10 * UI_UNIT_X;
   const int buth = 20 * UI_SCALE_FAC;
@@ -2520,6 +2777,128 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
           button_func_set(but, handle_curves_resolution, nullptr, nullptr);
           return but;
         });
+  }
+
+  if (ob->type == OB_GREASE_PENCIL) {
+    add_labeled_field("Fill Opacity",
+                      is_equal(status.fill_opacity.value_max * status.curve_count,
+                               status.fill_opacity.value_sum),
+                      [&]() {
+                        ui::Button *but = uiDefButF(block,
+                                                    ui::ButtonType::Num,
+                                                    "",
+                                                    0,
+                                                    0,
+                                                    butw,
+                                                    buth,
+                                                    &modified.fill_opacity,
+                                                    0.0f,
+                                                    1.0f,
+                                                    "");
+                        button_number_step_size_set(but, 1);
+                        button_number_precision_set(but, 3);
+                        button_func_set(but, handle_curves_fill_opacity, nullptr, nullptr);
+                        return but;
+                      });
+
+    add_labeled_field(
+        "Start Cap",
+        status.start_cap.value_max * status.curve_count == status.start_cap.value_sum,
+        [&]() {
+          ui::Button *but = uiDefMenuBut(block,
+                                         grease_pencil_cap_menu,
+                                         &modified.start_cap,
+                                         enum_grease_pencil_cap_items[modified.start_cap].name,
+                                         0,
+                                         0,
+                                         butw,
+                                         buth,
+                                         "");
+          button_type_set_menu_from_pulldown(but);
+          button_func_set(but, handle_curves_start_cap, nullptr, nullptr);
+          return but;
+        });
+
+    add_labeled_field("End Cap",
+                      status.end_cap.value_max * status.curve_count == status.end_cap.value_sum,
+                      [&]() {
+                        ui::Button *but = uiDefMenuBut(
+                            block,
+                            grease_pencil_cap_menu,
+                            &modified.end_cap,
+                            enum_grease_pencil_cap_items[modified.end_cap].name,
+                            0,
+                            0,
+                            butw,
+                            buth,
+                            "");
+                        button_type_set_menu_from_pulldown(but);
+                        button_func_set(but, handle_curves_end_cap, nullptr, nullptr);
+                        return but;
+                      });
+
+    add_labeled_field(
+        "Softness",
+        is_equal(status.softness.value_max * status.curve_count, status.softness.value_sum),
+        [&]() {
+          ui::Button *but = uiDefButF(block,
+                                      ui::ButtonType::Num,
+                                      "",
+                                      0,
+                                      0,
+                                      butw,
+                                      buth,
+                                      &modified.softness,
+                                      0.0f,
+                                      1.0f,
+                                      "");
+          button_number_step_size_set(but, 1);
+          button_number_precision_set(but, 3);
+          button_func_set(but, handle_curves_softness, nullptr, nullptr);
+          return but;
+        });
+
+    add_labeled_field(
+        "U Scale",
+        is_equal(status.u_scale.value_max * status.curve_count, status.u_scale.value_sum),
+        [&]() {
+          ui::Button *but = uiDefButF(block,
+                                      ui::ButtonType::Num,
+                                      "",
+                                      0,
+                                      0,
+                                      butw,
+                                      buth,
+                                      &modified.u_scale,
+                                      0.0f,
+                                      1000.0f,
+                                      "");
+          button_number_step_size_set(but, 1);
+          button_number_precision_set(but, 3);
+          button_func_set(but, handle_curves_u_scale, nullptr, nullptr);
+          return but;
+        });
+
+    add_labeled_field("Aspect Ratio",
+                      is_equal(status.aspect_ratio.value_max * status.curve_count,
+                               status.aspect_ratio.value_sum),
+                      [&]() {
+                        ui::Button *but = uiDefButF(block,
+                                                    ui::ButtonType::Num,
+                                                    "",
+                                                    0,
+                                                    0,
+                                                    butw,
+                                                    buth,
+                                                    &modified.aspect_ratio,
+                                                    0.0f,
+                                                    1000.0f,
+                                                    "");
+                        button_number_step_size_set(but, 1);
+                        button_number_precision_set(but, 3);
+                        button_func_set(but, handle_curves_aspect_ratio, nullptr, nullptr);
+                        return but;
+                      });
   }
 }
 
