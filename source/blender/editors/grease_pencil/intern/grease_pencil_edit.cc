@@ -5206,9 +5206,10 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
   for (const MutableDrawingInfo &info : drawings_src) {
     bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
     IndexMaskMemory memory;
-    const IndexMask selected_strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
-        *object, info.drawing, info.layer_index, memory);
-    if (selected_strokes.is_empty()) {
+    const IndexMask base_selected_strokes =
+        ed::greasepencil::retrieve_editable_and_selected_strokes(
+            *object, info.drawing, info.layer_index, memory);
+    if (base_selected_strokes.is_empty()) {
       continue;
     }
 
@@ -5216,6 +5217,9 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
     if (info.layer_index == active_layer_index) {
       continue;
     }
+
+    const IndexMask selected_strokes = bke::greasepencil::selected_mask_to_fills(
+        base_selected_strokes, curves_src, bke::AttrDomain::Curve, memory);
 
     bool is_key_inserted = false;
     bool has_active_key = false;
@@ -5264,9 +5268,9 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
   Drawing *drawing_dst = grease_pencil.get_drawing_at(*active_layer, scene->r.cfra);
 
   IndexMaskMemory memory;
-  const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+  const IndexMask base_selected_strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
       *object, *drawing_dst, active_layer_index, memory);
-  if (strokes.is_empty()) {
+  if (base_selected_strokes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
   bke::CurvesGeometry &curves = drawing_dst->strokes_for_write();
@@ -5274,8 +5278,11 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
   bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_span<int>(
       "fill_id", bke::AttrDomain::Curve);
 
+  const IndexMask selected_strokes = bke::greasepencil::selected_mask_to_fills(
+      base_selected_strokes, curves, bke::AttrDomain::Curve, memory);
+
   /* Currently Grease Pencil does not have a active element, so instead just use the first. */
-  const int active_curve = strokes.first();
+  const int active_curve = selected_strokes.first();
 
   int fill_id_to_set = fill_ids.span[active_curve];
   if (fill_id_to_set == 0) {
@@ -5287,7 +5294,7 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
     }
   }
 
-  index_mask::masked_fill(fill_ids.span, fill_id_to_set, strokes);
+  index_mask::masked_fill(fill_ids.span, fill_id_to_set, selected_strokes);
   fill_ids.finish();
 
   Set<StringRef> attributes_to_set{{"material_index",
@@ -5306,11 +5313,12 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
     }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     const CPPType &type = attribute.span.type();
-    type.fill_assign_indices(attribute.span[active_curve], attribute.span.data(), strokes);
+    type.fill_assign_indices(
+        attribute.span[active_curve], attribute.span.data(), selected_strokes);
     attribute.finish();
   });
 
-  Array<int> indices = get_gapless_indices(curves.curves_range(), strokes);
+  Array<int> indices = get_gapless_indices(curves.curves_range(), selected_strokes);
   curves = geometry::reorder_curves_geometry(curves, indices, {});
   drawing_dst->tag_topology_changed();
 
