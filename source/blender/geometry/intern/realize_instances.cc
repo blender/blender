@@ -2040,6 +2040,12 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       dst_fill_ids.fill(0);
     }
     else {
+      int min_id = src_fill_ids.first();
+
+      for (const int i : src_fill_ids.index_range()) {
+        min_id = std::min(min_id, src_fill_ids[i]);
+      }
+
       threading::parallel_for(curves.curves_range(), 2048, [&](const IndexRange range) {
         for (const int i : range) {
           const int src_fill_id = src_fill_ids[i];
@@ -2047,7 +2053,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
             dst_fill_ids[i] = 0;
           }
           else {
-            dst_fill_ids[i] = task.start_indices.fill_id + src_fill_id;
+            dst_fill_ids[i] = task.start_indices.fill_id + src_fill_id - min_id + 1;
           }
         }
       });

@@ -79,7 +79,7 @@ int get_next_available_fill_id(const VArray<int> &fill_ids)
 {
   if (std::optional<int64_t> max_i = array_utils::max_element_index(fill_ids)) {
     const int max_fill_id = fill_ids[*max_i];
-    return max_fill_id == -1 ? 1 : max_fill_id + 1;
+    return max_fill_id <= 0 ? 1 : max_fill_id + 1;
   }
   return 1;
 }
