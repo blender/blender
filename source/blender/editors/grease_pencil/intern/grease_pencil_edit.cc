@@ -5188,84 +5188,109 @@ static wmOperatorStatus grease_pencil_join_fills_exec(bContext *C, wmOperator *o
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *blender::id_cast<GreasePencil *>(object->data);
 
-  Layer *active_layer = grease_pencil.get_active_layer();
-  if (!active_layer) {
-    BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
-    return OPERATOR_CANCELLED;
-  }
-  if (!active_layer->is_editable()) {
-    BKE_report(op->reports, RPT_ERROR, "Active layer is not editable");
-    return OPERATOR_CANCELLED;
-  }
-
-  const int active_layer_index = *grease_pencil.get_layer_index(*active_layer);
-
-  /* Iterate through all the drawings at current scene frame. */
   const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(*scene,
                                                                              grease_pencil);
+
+  Drawing *drawing_dst;
+  int num_drawings_selected = 0;
+  int active_layer_index = 0;
   for (const MutableDrawingInfo &info : drawings_src) {
-    bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
     IndexMaskMemory memory;
     const IndexMask base_selected_strokes =
         ed::greasepencil::retrieve_editable_and_selected_strokes(
             *object, info.drawing, info.layer_index, memory);
-    if (base_selected_strokes.is_empty()) {
-      continue;
+
+    if (!base_selected_strokes.is_empty()) {
+      drawing_dst = &info.drawing;
+      active_layer_index = info.layer_index;
+      num_drawings_selected++;
     }
-
-    /* Skip moving the strokes already on the active layer. */
-    if (info.layer_index == active_layer_index) {
-      continue;
-    }
-
-    const IndexMask selected_strokes = bke::greasepencil::selected_mask_to_fills(
-        base_selected_strokes, curves_src, bke::AttrDomain::Curve, memory);
-
-    bool is_key_inserted = false;
-    bool has_active_key = false;
-    if (active_layer->frames().is_empty()) {
-      /* If the target layer doesn't have any keyframes, insert a new key at the current frame.
-       */
-      grease_pencil.insert_frame(*active_layer, scene->r.cfra);
-      is_key_inserted = true;
-      has_active_key = true;
-    }
-    else {
-      has_active_key = ensure_active_keyframe(
-          *scene, grease_pencil, *active_layer, false, is_key_inserted);
-    }
-
-    if (has_active_key && is_key_inserted) {
-      /* Move geometry to a new drawing in target layer. */
-      Drawing &drawing_dst = *grease_pencil.get_drawing_at(*active_layer, info.frame_number);
-      drawing_dst.strokes_for_write() = bke::curves_copy_curve_selection(
-          curves_src, selected_strokes, {});
-
-      curves_src.remove_curves(selected_strokes, {});
-      drawing_dst.tag_topology_changed();
-    }
-    else if (Drawing *drawing_dst = grease_pencil.get_drawing_at(*active_layer, info.frame_number))
-    {
-      /* Append geometry to drawing in target layer. */
-      bke::CurvesGeometry selected_elems = curves_copy_curve_selection(
-          curves_src, selected_strokes, {});
-      Curves *selected_curves = bke::curves_new_nomain(std::move(selected_elems));
-      Curves *layer_curves = bke::curves_new_nomain(std::move(drawing_dst->strokes_for_write()));
-      std::array<bke::GeometrySet, 2> geometry_sets{
-          bke::GeometrySet::from_curves(layer_curves),
-          bke::GeometrySet::from_curves(selected_curves)};
-      bke::GeometrySet joined = geometry::join_geometries(geometry_sets, {});
-      drawing_dst->strokes_for_write() = std::move(joined.get_curves_for_write()->geometry.wrap());
-
-      curves_src.remove_curves(selected_strokes, {});
-
-      drawing_dst->tag_topology_changed();
-    }
-
-    info.drawing.tag_topology_changed();
   }
 
-  Drawing *drawing_dst = grease_pencil.get_drawing_at(*active_layer, scene->r.cfra);
+  if (num_drawings_selected == 0) {
+    return OPERATOR_FINISHED;
+  }
+
+  /* Move the selected strokes to the active layer only when the stroke span across multiple
+   * drawings. */
+  if (num_drawings_selected > 1) {
+    Layer *active_layer = grease_pencil.get_active_layer();
+    if (!active_layer) {
+      BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
+      return OPERATOR_CANCELLED;
+    }
+    if (!active_layer->is_editable()) {
+      BKE_report(op->reports, RPT_ERROR, "Active layer is not editable");
+      return OPERATOR_CANCELLED;
+    }
+
+    drawing_dst = grease_pencil.get_drawing_at(*active_layer, scene->r.cfra);
+    int active_layer_index = *grease_pencil.get_layer_index(*active_layer);
+
+    for (const MutableDrawingInfo &info : drawings_src) {
+      bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
+      IndexMaskMemory memory;
+      const IndexMask base_selected_strokes =
+          ed::greasepencil::retrieve_editable_and_selected_strokes(
+              *object, info.drawing, info.layer_index, memory);
+      if (base_selected_strokes.is_empty()) {
+        continue;
+      }
+
+      /* Skip moving the strokes already on the active layer. */
+      if (info.layer_index == active_layer_index) {
+        continue;
+      }
+
+      const IndexMask selected_strokes = bke::greasepencil::selected_mask_to_fills(
+          base_selected_strokes, curves_src, bke::AttrDomain::Curve, memory);
+
+      bool is_key_inserted = false;
+      bool has_active_key = false;
+      if (active_layer->frames().is_empty()) {
+        /* If the target layer doesn't have any keyframes, insert a new key at the current frame.
+         */
+        grease_pencil.insert_frame(*active_layer, scene->r.cfra);
+        is_key_inserted = true;
+        has_active_key = true;
+      }
+      else {
+        has_active_key = ensure_active_keyframe(
+            *scene, grease_pencil, *active_layer, false, is_key_inserted);
+      }
+
+      if (has_active_key && is_key_inserted) {
+        /* Move geometry to a new drawing in target layer. */
+        Drawing &drawing_dst = *grease_pencil.get_drawing_at(*active_layer, info.frame_number);
+        drawing_dst.strokes_for_write() = bke::curves_copy_curve_selection(
+            curves_src, selected_strokes, {});
+
+        curves_src.remove_curves(selected_strokes, {});
+        drawing_dst.tag_topology_changed();
+      }
+      else if (Drawing *drawing_dst = grease_pencil.get_drawing_at(*active_layer,
+                                                                   info.frame_number))
+      {
+        /* Append geometry to drawing in target layer. */
+        bke::CurvesGeometry selected_elems = curves_copy_curve_selection(
+            curves_src, selected_strokes, {});
+        Curves *selected_curves = bke::curves_new_nomain(std::move(selected_elems));
+        Curves *layer_curves = bke::curves_new_nomain(std::move(drawing_dst->strokes_for_write()));
+        std::array<bke::GeometrySet, 2> geometry_sets{
+            bke::GeometrySet::from_curves(layer_curves),
+            bke::GeometrySet::from_curves(selected_curves)};
+        bke::GeometrySet joined = geometry::join_geometries(geometry_sets, {});
+        drawing_dst->strokes_for_write() = std::move(
+            joined.get_curves_for_write()->geometry.wrap());
+
+        curves_src.remove_curves(selected_strokes, {});
+
+        drawing_dst->tag_topology_changed();
+      }
+
+      info.drawing.tag_topology_changed();
+    }
+  }
 
   IndexMaskMemory memory;
   const IndexMask base_selected_strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
