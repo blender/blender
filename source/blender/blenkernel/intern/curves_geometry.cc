@@ -288,8 +288,8 @@ std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &typ
   CountsType counts;
   counts.fill(0);
 
-  if (types.is_single()) {
-    counts[types.get_internal_single()] = types.size();
+  if (const std::optional<int8_t> single = types.get_if_single()) {
+    counts[*single] = types.size();
     return counts;
   }
 
