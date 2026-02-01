@@ -519,7 +519,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
 
     if (device_update_flags & DEVICE_MESH_DATA_NEEDS_REALLOC) {
       dscene->tri_verts.tag_realloc();
-      dscene->tri_vnormal.tag_realloc();
       dscene->tri_vindex.tag_realloc();
       dscene->tri_shader.tag_realloc();
     }
@@ -584,7 +583,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     /* if anything else than vertices or shaders are modified, we would need to reallocate, so
      * these are the only arrays that can be updated */
     dscene->tri_verts.tag_modified();
-    dscene->tri_vnormal.tag_modified();
     dscene->tri_shader.tag_modified();
   }
 
@@ -1104,7 +1102,6 @@ void GeometryManager::device_update(Device *device,
   dscene->tri_verts.clear_modified();
   dscene->tri_shader.clear_modified();
   dscene->tri_vindex.clear_modified();
-  dscene->tri_vnormal.clear_modified();
   dscene->curves.clear_modified();
   dscene->curve_keys.clear_modified();
   dscene->curve_segments.clear_modified();
@@ -1130,7 +1127,6 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->prim_time.free_if_need_realloc(force_free);
   dscene->tri_verts.free_if_need_realloc(force_free);
   dscene->tri_shader.free_if_need_realloc(force_free);
-  dscene->tri_vnormal.free_if_need_realloc(force_free);
   dscene->tri_vindex.free_if_need_realloc(force_free);
   dscene->curves.free_if_need_realloc(force_free);
   dscene->curve_keys.free_if_need_realloc(force_free);

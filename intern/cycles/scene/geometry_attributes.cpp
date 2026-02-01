@@ -453,20 +453,30 @@ void GeometryManager::device_update_attributes(Device *device,
    * shaders assigned, this merges the requested attributes that have
    * been set per shader by the shader manager */
   vector<AttributeRequestSet> geom_attributes(scene->geometry.size());
+  AttributeRequestSet global_attributes;
+  scene->need_global_attributes(global_attributes);
 
   for (size_t i = 0; i < scene->geometry.size(); i++) {
     Geometry *geom = scene->geometry[i];
 
     geom->index = i;
-    scene->need_global_attributes(geom_attributes[i]);
+    geom_attributes[i].add(global_attributes);
 
     for (Node *node : geom->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       geom_attributes[i].add(shader->attributes);
     }
 
-    if (geom->attributes.find(ATTR_STD_SHADOW_TRANSPARENCY)) {
-      geom_attributes[i].add(ATTR_STD_SHADOW_TRANSPARENCY);
+    for (const Attribute &attr : geom->attributes.attributes) {
+      switch (attr.std) {
+        case ATTR_STD_VERTEX_NORMAL:
+        case ATTR_STD_MOTION_VERTEX_NORMAL:
+        case ATTR_STD_SHADOW_TRANSPARENCY:
+          geom_attributes[i].add(attr.std);
+          break;
+        default:
+          break;
+      }
     }
   }
 

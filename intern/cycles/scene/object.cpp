@@ -25,6 +25,8 @@
 #include "util/tbb.h"
 #include "util/vector.h"
 
+#include "kernel/geom/attribute.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Global state of object transform update. */
@@ -523,6 +525,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.random_number = random_number;
   kobject.particle_index = particle_index;
   kobject.motion_offset = 0;
+  kobject.normal_attr_offset = ATTR_STD_NOT_FOUND;
   kobject.ao_distance = ob->ao_distance;
   kobject.receiver_light_set = ob->receiver_light_set >= LIGHT_LINK_SET_MAX ?
                                    0 :
@@ -617,6 +620,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.num_geom_steps = (geom->get_motion_steps() - 1) / 2;
   kobject.num_tfm_steps = ob->motion.size();
   kobject.numverts = object_num_motion_verts(geom);
+  kobject.numprims = (geom->is_mesh() || geom->is_volume()) ?
+                         static_cast<Mesh *>(geom)->num_triangles() :
+                         0;
   kobject.attribute_map_offset = 0;
 
   if (ob->asset_name_is_modified() || update_all) {
@@ -973,7 +979,7 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
                                                DeviceScene *dscene,
                                                Scene *scene)
 {
-  if (dscene->objects.size() == 0) {
+  if (scene->objects.size() == 0) {
     return;
   }
 
@@ -984,17 +990,31 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
   for (Object *object : scene->objects) {
     Geometry *geom = object->geometry;
 
-    size_t attr_map_offset = object->attr_map_offset;
+    KernelObject &kobject = kobjects[object->index];
 
     /* An object attribute map cannot have a zero offset because mesh maps come first. */
+    size_t attr_map_offset = object->attr_map_offset;
     if (attr_map_offset == 0) {
       attr_map_offset = geom->attr_map_offset;
     }
-
-    KernelObject &kobject = kobjects[object->index];
-
     if (kobject.attribute_map_offset != attr_map_offset) {
       kobject.attribute_map_offset = attr_map_offset;
+      update = true;
+    }
+
+    /* Cached normal offset for quick lookup. */
+    int normal_attr_offset = ATTR_STD_NOT_FOUND;
+    if (geom->is_mesh()) {
+      normal_attr_offset = find_attribute(dscene->attributes_map.data(),
+                                          attr_map_offset,
+                                          PRIMITIVE_TRIANGLE,
+                                          ATTR_STD_VERTEX_NORMAL)
+                               .offset;
+      assert(normal_attr_offset != ATTR_STD_NOT_FOUND ||
+             static_cast<Mesh *>(geom)->num_triangles() == 0);
+    }
+    if (kobject.normal_attr_offset != normal_attr_offset) {
+      kobject.normal_attr_offset = normal_attr_offset;
       update = true;
     }
 

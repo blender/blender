@@ -626,6 +626,17 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
 
   tag_verts_modified();
 
+  Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+  if (attr_vN) {
+    const Transform ntfm = transform_normal;
+    const size_t num_verts = verts.size();
+    float3 *vN = attr_vN->data_float3();
+
+    for (size_t i = 0; i < num_verts; i++) {
+      vN[i] = normalize(transform_direction(&ntfm, vN[i]));
+    }
+  }
+
   if (apply_to_motion) {
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
@@ -879,32 +890,6 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
     }
 
     tri_shader[i] = shader_id;
-  }
-}
-
-void Mesh::pack_normals(packed_float3 *vnormal)
-{
-  Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-  if (attr_vN == nullptr) {
-    /* Happens on objects with just hair. */
-    return;
-  }
-
-  const bool do_transform = transform_applied;
-  const Transform ntfm = transform_normal;
-
-  float3 *vN = attr_vN->data_float3();
-  const size_t verts_size = verts.size();
-
-  if (do_transform) {
-    for (size_t i = 0; i < verts_size; i++) {
-      vnormal[i] = safe_normalize(transform_direction(&ntfm, vN[i]));
-    }
-  }
-  else {
-    for (size_t i = 0; i < verts_size; i++) {
-      vnormal[i] = vN[i];
-    }
   }
 }
 

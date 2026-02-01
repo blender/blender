@@ -154,7 +154,7 @@ ccl_device_inline void triangle_shader_setup(KernelGlobals kg, ccl_private Shade
 
   /* Smooth normal. */
   if (sd->shader & SHADER_SMOOTH_NORMAL) {
-    sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
+    sd->N = triangle_smooth_normal(kg, Ng, sd->object, sd->prim, sd->u, sd->v);
   }
 
 #ifdef __DPDU__

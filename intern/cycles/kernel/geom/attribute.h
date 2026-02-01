@@ -34,18 +34,13 @@ ccl_device_inline uint object_attribute_map_offset(KernelGlobals kg, const int o
   return kernel_data_fetch(objects, object).attribute_map_offset;
 }
 
-ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
-                                                     const int object,
+ccl_device_inline AttributeDescriptor find_attribute(const ccl_global AttributeMap *attributes_map,
+                                                     uint attr_offset,
                                                      const int prim,
                                                      const uint64_t id)
 {
-  if (object == OBJECT_NONE) {
-    return attribute_not_found();
-  }
-
   /* for SVM, find attribute by unique id */
-  uint attr_offset = object_attribute_map_offset(kg, object);
-  AttributeMap attr_map = kernel_data_fetch(attributes_map, attr_offset);
+  AttributeMap attr_map = attributes_map[attr_offset];
 
   while (attr_map.id != id) {
     if (UNLIKELY(attr_map.id == ATTR_STD_NONE)) {
@@ -58,7 +53,7 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
     else {
       attr_offset += ATTR_PRIM_TYPES;
     }
-    attr_map = kernel_data_fetch(attributes_map, attr_offset);
+    attr_map = attributes_map[attr_offset];
   }
 
   AttributeDescriptor desc;
@@ -76,6 +71,19 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
   desc.type = (NodeAttributeType)attr_map.type;
 
   return desc;
+}
+
+ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
+                                                     const int object,
+                                                     const int prim,
+                                                     const uint64_t id)
+{
+  if (object == OBJECT_NONE) {
+    return attribute_not_found();
+  }
+
+  return find_attribute(
+      &kernel_data_fetch(attributes_map, 0), object_attribute_map_offset(kg, object), prim, id);
 }
 
 ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,

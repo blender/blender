@@ -1331,13 +1331,14 @@ struct KernelObject {
   float dupli_generated[3];
   float dupli_uv[2];
 
-  int numkeys;
-  int num_geom_steps;
-  int num_tfm_steps;
+  uint16_t num_geom_steps;
+  uint16_t num_tfm_steps;
   int numverts;
+  int numprims;
 
   uint attribute_map_offset;
   uint motion_offset;
+  int normal_attr_offset;
 
   float cryptomatte_object;
   float cryptomatte_asset;

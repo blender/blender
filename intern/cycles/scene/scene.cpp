@@ -434,9 +434,6 @@ bool Scene::need_global_attribute(AttributeStandard std)
   if (std == ATTR_STD_MOTION_VERTEX_POSITION) {
     return need_motion() != MOTION_NONE;
   }
-  if (std == ATTR_STD_MOTION_VERTEX_NORMAL) {
-    return need_motion() == MOTION_BLUR;
-  }
   if (std == ATTR_STD_VOLUME_VELOCITY || std == ATTR_STD_VOLUME_VELOCITY_X ||
       std == ATTR_STD_VOLUME_VELOCITY_Y || std == ATTR_STD_VOLUME_VELOCITY_Z)
   {
