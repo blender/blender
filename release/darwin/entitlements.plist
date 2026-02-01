@@ -11,5 +11,8 @@
   <!-- For LLVM. -->
   <key>com.apple.security.cs.allow-jit</key>
   <true/>
+  <!-- For microphone access (For addons only at the moment). -->
+  <key>com.apple.security.device.audio-input</key>
+  <true/>
 </dict>
 </plist>
