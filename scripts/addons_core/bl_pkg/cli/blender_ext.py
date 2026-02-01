@@ -71,6 +71,26 @@ REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
 
 URL_KNOWN_PREFIX = ("http://", "https://", "file://")
 
+# Extension types supported by this version of Blender.
+# Unknown types are skipped, allowing repositories to contain future extension types.
+PKG_MANIFEST_TYPE_SUPPORTED = {"add-on", "theme"}
+
+
+def pkg_manifest_skip_for_future_compat(item: dict[str, Any]) -> bool:
+    """
+    Return True if this item should be skipped for forward compatibility.
+
+    This allows repositories to contain extensions for future Blender versions
+    without causing errors in older versions.
+    Items with unknown types are silently skipped rather than treated as invalid.
+    """
+    # NOTE: this currently checks the type but it is intended for any future changes
+    # we don't want to hard fail on.
+    if (value := item.get("type")) is not None:
+        return value not in PKG_MANIFEST_TYPE_SUPPORTED
+    return False
+
+
 MESSAGE_TYPES = {
     # Status report about what is being done.
     'STATUS',
@@ -1707,7 +1727,7 @@ def pkg_manifest_validate_field_idname(value: str, strict: bool) -> str | None:
 def pkg_manifest_validate_field_type(value: str, strict: bool) -> str | None:
     _ = strict
     # NOTE: add "keymap" in the future.
-    value_expected = {"add-on", "theme"}
+    value_expected = PKG_MANIFEST_TYPE_SUPPORTED
     if value not in value_expected:
         return "Expected to be one of [{:s}], found {!r}".format(", ".join(value_expected), value)
     return None
@@ -2425,6 +2445,10 @@ def repository_filter_skip(
     reporting errors if the user attempts to install an extension which isn't compatible with their system.
     """
 
+    # Skip unknown extension types (allows repositories to contain future extension types).
+    if pkg_manifest_skip_for_future_compat(item):
+        return True
+
     if (platforms := item.get("platforms")) is not None:
         if not isinstance(platforms, list):
             # Possibly noisy, but this should *not* be happening on a regular basis.
@@ -2618,6 +2642,10 @@ def repo_json_is_valid_or_error(filepath: str) -> str | None:
             return "Expected key at index {:d} to be an identifier, \"{:s}\" failed: {:s}".format(
                 i, pkg_idname, error_msg,
             )
+
+        # Skip unknown extension types (allows repositories to contain future extension types).
+        if pkg_manifest_skip_for_future_compat(item):
+            continue
 
         if (error_msg := pkg_manifest_is_valid_or_error(item, from_repo=True, strict=False)) is not None:
             return "Error at index {:d}: {:s}".format(i, error_msg)
