@@ -65,7 +65,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg, ccl_priv
   /* Compute smooth normal. */
   if (sd->shader & SHADER_SMOOTH_NORMAL) {
     sd->N = motion_triangle_smooth_normal(
-        kg, Ng, sd->object, tri_vindex, numsteps, step, t, sd->u, sd->v);
+        kg, Ng, sd->object, sd->prim, tri_vindex, numsteps, step, t, sd->u, sd->v);
   }
 }
 

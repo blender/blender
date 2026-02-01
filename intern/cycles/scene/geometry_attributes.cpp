@@ -472,6 +472,8 @@ void GeometryManager::device_update_attributes(Device *device,
       switch (attr.std) {
         case ATTR_STD_VERTEX_NORMAL:
         case ATTR_STD_MOTION_VERTEX_NORMAL:
+        case ATTR_STD_CORNER_NORMAL:
+        case ATTR_STD_MOTION_CORNER_NORMAL:
         case ATTR_STD_SHADOW_TRANSPARENCY:
           geom_attributes[i].add(attr.std);
           break;

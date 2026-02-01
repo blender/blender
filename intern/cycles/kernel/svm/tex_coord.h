@@ -128,7 +128,8 @@ ccl_device_inline float3 texco_normal_from_uv(KernelGlobals kg,
   float3 N;
   if ((sd->type & PRIMITIVE_TRIANGLE) && (sd->shader & SHADER_SMOOTH_NORMAL)) {
     N = (sd->type == PRIMITIVE_TRIANGLE) ?
-            triangle_smooth_normal(kg, zero_float3(), sd->object, sd->prim, u, v) :
+            triangle_smooth_normal(
+                kg, zero_float3(), sd->object, sd->object_flag, sd->prim, u, v) :
             motion_triangle_smooth_normal(kg, zero_float3(), sd->object, sd->prim, u, v, sd->time);
     if (is_zero(N)) {
       N = sd->Ng;

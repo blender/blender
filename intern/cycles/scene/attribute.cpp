@@ -223,7 +223,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_SUBD) {
-          size = mesh->get_verts().size();
+          size = mesh->get_num_subd_base_verts();
         }
         else {
           size = mesh->get_verts().size();
@@ -264,6 +264,8 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       break;
     case ATTR_ELEMENT_CORNER:
     case ATTR_ELEMENT_CORNER_BYTE:
+    case ATTR_ELEMENT_CORNER_NORMAL:
+    case ATTR_ELEMENT_CORNER_NORMAL_MOTION:
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_SUBD) {
@@ -577,6 +579,12 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_MOTION_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL_MOTION);
         break;
+      case ATTR_STD_CORNER_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CORNER_NORMAL);
+        break;
+      case ATTR_STD_MOTION_CORNER_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CORNER_NORMAL_MOTION);
+        break;
       case ATTR_STD_PTEX_FACE_ID:
         attr = add(name, TypeFloat, ATTR_ELEMENT_FACE);
         break;
@@ -623,6 +631,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL);
+        break;
+      case ATTR_STD_CORNER_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CORNER_NORMAL);
         break;
       case ATTR_STD_VOLUME_DENSITY:
       case ATTR_STD_VOLUME_FLAME:

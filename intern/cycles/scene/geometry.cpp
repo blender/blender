@@ -940,6 +940,7 @@ void GeometryManager::device_update(Device *device,
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (displace(device, scene, mesh, progress)) {
             displacement_done = true;
+            need_flags_update = true;
           }
         }
       }

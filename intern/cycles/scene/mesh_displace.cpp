@@ -187,6 +187,20 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
   bool need_recompute_vertex_normals = false;
   bool need_recompute_all_vertex_normals = false;
 
+  /* Corner normals can't be preserved through displacement. */
+  if (mesh->attributes.find(ATTR_STD_CORNER_NORMAL)) {
+    mesh->attributes.remove(ATTR_STD_CORNER_NORMAL);
+    mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
+    need_recompute_vertex_normals = true;
+    need_recompute_all_vertex_normals = true;
+  }
+  if (mesh->attributes.find(ATTR_STD_MOTION_CORNER_NORMAL)) {
+    mesh->attributes.remove(ATTR_STD_MOTION_CORNER_NORMAL);
+    mesh->attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
+    need_recompute_vertex_normals = true;
+    need_recompute_all_vertex_normals = true;
+  }
+
   for (Node *node : mesh->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_displacement && shader->get_displacement_method() == DISPLACE_TRUE) {
@@ -207,7 +221,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
                              scene->default_surface;
 
         tri_recompute[i] = shader->has_displacement &&
-                               shader->get_displacement_method() == DISPLACE_TRUE;
+                           shader->get_displacement_method() == DISPLACE_TRUE;
       }
     }
 

@@ -105,18 +105,29 @@ ccl_device_inline void triangle_vertices(KernelGlobals kg, const int prim, float
 
 /* Triangle vertex locations and vertex normals */
 
-ccl_device_inline void triangle_vertices_and_normals(
-    KernelGlobals kg, const int object, const int prim, float3 P[3], float3 N[3])
+ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
+                                                     ccl_private const ShaderData *sd,
+                                                     float3 P[3],
+                                                     float3 N[3])
 {
-  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
   P[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
   P[1] = kernel_data_fetch(tri_verts, tri_vindex.y);
   P[2] = kernel_data_fetch(tri_verts, tri_vindex.z);
 
-  const int normal_offset = kernel_data_fetch(objects, object).normal_attr_offset;
-  const int i0 = tri_vindex.x;
-  const int i1 = tri_vindex.y;
-  const int i2 = tri_vindex.z;
+  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_attr_offset;
+  int i0, i1, i2;
+
+  if (sd->object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
+    i0 = sd->prim * 3 + 0;
+    i1 = sd->prim * 3 + 1;
+    i2 = sd->prim * 3 + 2;
+  }
+  else {
+    i0 = tri_vindex.x;
+    i1 = tri_vindex.y;
+    i2 = tri_vindex.z;
+  }
 
   attribute_data_fetch_normals(kg, normal_offset, i0, i1, i2, N);
 }
@@ -124,28 +135,39 @@ ccl_device_inline void triangle_vertices_and_normals(
 /* Interpolate smooth vertex normal from vertices */
 
 ccl_device_forceinline float3 triangle_smooth_normal_unnormalized(
-    KernelGlobals kg, float3 Ng, int object, int prim, float u, float v)
+    KernelGlobals kg, float3 Ng, int object, int object_flag, int prim, float u, float v)
 {
   const int normal_offset = kernel_data_fetch(objects, object).normal_attr_offset;
-  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const int i0 = tri_vindex.x;
-  const int i1 = tri_vindex.y;
-  const int i2 = tri_vindex.z;
+  int i0, i1, i2;
+
+  if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
+    i0 = prim * 3 + 0;
+    i1 = prim * 3 + 1;
+    i2 = prim * 3 + 2;
+  }
+  else {
+    const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+    i0 = tri_vindex.x;
+    i1 = tri_vindex.y;
+    i2 = tri_vindex.z;
+  }
 
   const float3 N = attribute_data_interpolate_normals(kg, normal_offset, i0, i1, i2, u, v);
   return is_zero(N) ? Ng : N;
 }
 
-ccl_device_inline float3
-triangle_smooth_normal(KernelGlobals kg, float3 Ng, int object, int prim, float u, float v)
+ccl_device_inline float3 triangle_smooth_normal(
+    KernelGlobals kg, float3 Ng, int object, int object_flag, int prim, float u, float v)
 {
-  return safe_normalize(triangle_smooth_normal_unnormalized(kg, Ng, object, prim, u, v));
+  return safe_normalize(
+      triangle_smooth_normal_unnormalized(kg, Ng, object, object_flag, prim, u, v));
 }
 
 ccl_device_inline float3 triangle_smooth_normal_unnormalized(KernelGlobals kg,
                                                              ccl_private const ShaderData *sd)
 {
-  return triangle_smooth_normal_unnormalized(kg, sd->Ng, sd->object, sd->prim, sd->u, sd->v);
+  return triangle_smooth_normal_unnormalized(
+      kg, sd->Ng, sd->object, sd->object_flag, sd->prim, sd->u, sd->v);
 }
 
 /* Compute triangle normals at the hit position, and offsetted positions in x and y direction for
@@ -153,6 +175,7 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized(KernelGlobals kg,
 ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
                                                 const float3 Ng,
                                                 const int object,
+                                                const int object_flag,
                                                 const int prim,
                                                 const float u,
                                                 float v,
@@ -162,11 +185,19 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
                                                 ccl_private float3 &N_y)
 {
   const int normal_offset = kernel_data_fetch(objects, object).normal_attr_offset;
+  int i0, i1, i2;
 
-  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const int i0 = tri_vindex.x;
-  const int i1 = tri_vindex.y;
-  const int i2 = tri_vindex.z;
+  if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
+    i0 = prim * 3 + 0;
+    i1 = prim * 3 + 1;
+    i2 = prim * 3 + 2;
+  }
+  else {
+    const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+    i0 = tri_vindex.x;
+    i1 = tri_vindex.y;
+    i2 = tri_vindex.z;
+  }
 
   float3 n[3];
   attribute_data_fetch_normals(kg, normal_offset, i0, i1, i2, n);
@@ -226,12 +257,6 @@ ccl_device_inline T triangle_attribute_dfdy(const ccl_private differential &du,
 {
   return du.dy * f1 + dv.dy * f2 - (du.dy + dv.dy) * f0;
 }
-
-#ifdef __KERNEL_METAL__
-template<typename U, typename V> using triangle_attribute_is_same = metal::is_same<U, V>;
-#else
-template<typename U, typename V> using triangle_attribute_is_same = std::is_same<U, V>;
-#endif
 
 /* Read attributes on various triangle elements, and compute the partial derivatives if requested.
  */

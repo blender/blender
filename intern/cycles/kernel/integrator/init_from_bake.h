@@ -216,7 +216,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   else {
     /* Surface baking. */
     float3 N = (shader & SHADER_SMOOTH_NORMAL) ?
-                   triangle_smooth_normal(kg, Ng, object, prim, u, v) :
+                   triangle_smooth_normal(kg, Ng, object, object_flag, prim, u, v) :
                    Ng;
 
     if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {

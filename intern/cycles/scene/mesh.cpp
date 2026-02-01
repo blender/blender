@@ -29,11 +29,13 @@ CCL_NAMESPACE_BEGIN
 struct MikkMeshWrapper {
   MikkMeshWrapper(const Mesh *mesh,
                   const packed_normal *vertex_normal,
+                  const packed_normal *corner_normal,
                   const float2 *uv,
                   float3 *tangent,
                   float *tangent_sign)
       : mesh(mesh),
         vertex_normal(vertex_normal),
+        corner_normal(corner_normal),
         uv(uv),
         tangent(tangent),
         tangent_sign(tangent_sign)
@@ -86,7 +88,9 @@ struct MikkMeshWrapper {
   {
     float3 vN;
     if (mesh->get_smooth()[face_num]) {
-      vN = vertex_normal[VertexIndex(face_num, vert_num)].decode();
+      vN = ((corner_normal) ? corner_normal[CornerIndex(face_num, vert_num)] :
+                              vertex_normal[VertexIndex(face_num, vert_num)])
+               .decode();
     }
     else {
       const Mesh::Triangle tri = mesh->get_triangle(face_num);
@@ -112,6 +116,7 @@ struct MikkMeshWrapper {
   const Mesh *mesh;
 
   const packed_normal *vertex_normal;
+  const packed_normal *corner_normal;
   const float2 *uv;
 
   float3 *tangent;
@@ -130,12 +135,14 @@ static void mikk_compute_tangents(Attribute *attr_uv,
   AttributeSet &attributes = mesh->attributes;
 
   Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-  if (attr_vN == nullptr) {
+  Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (attr_vN == nullptr && attr_cN == nullptr) {
     /* no normals */
     return;
   }
 
   const packed_normal *vertex_normal = attr_vN ? attr_vN->data_normal() : nullptr;
+  const packed_normal *corner_normal = attr_cN ? attr_cN->data_normal() : nullptr;
   const float2 *uv = (attr_uv) ? attr_uv->data_float2() : nullptr;
 
   const ustring name = ustring((attr_uv) ? attr_uv->name.string() + tangent_postfix :
@@ -163,7 +170,7 @@ static void mikk_compute_tangents(Attribute *attr_uv,
     tangent_sign = attr_sign->data_float();
   }
 
-  MikkMeshWrapper userdata(mesh, vertex_normal, uv, tangent, tangent_sign);
+  MikkMeshWrapper userdata(mesh, vertex_normal, corner_normal, uv, tangent, tangent_sign);
   /* Compute tangents. */
   mikk::Mikktspace(userdata).genTangSpace();
 }
@@ -545,6 +552,14 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
       const packed_normal *N = attr_N->data_normal();
       std::copy_n(N, numverts, attr_mN->data_normal() + motion_step * numverts);
     }
+
+    Attribute *attr_mcN = attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
+    Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+    if (attr_mcN && attr_cN) {
+      const size_t numcorners = triangles.size();
+      packed_normal *N = attr_cN->data_normal();
+      std::copy_n(N, numcorners, attr_mcN->data_normal() + motion_step * numcorners);
+    }
   }
 }
 
@@ -640,6 +655,17 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
     }
   }
 
+  Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (attr_cN) {
+    const Transform ntfm = transform_normal;
+    const size_t num_corners = triangles.size();
+    packed_normal *cN = attr_cN->data_normal();
+
+    for (size_t i = 0; i < num_corners; i++) {
+      cN[i] = packed_normal(normalize(transform_direction(&ntfm, cN[i].decode())));
+    }
+  }
+
   if (apply_to_motion) {
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
@@ -664,11 +690,36 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
             normalize(transform_direction(&ntfm, normal_steps[i].decode())));
       }
     }
+
+    Attribute *attr_mcN = attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
+
+    if (attr_mcN) {
+      const Transform ntfm = transform_normal;
+      const size_t steps_size = triangles.size() * (motion_steps - 1);
+      packed_normal *normal_steps = attr_mcN->data_normal();
+
+      for (size_t i = 0; i < steps_size; i++) {
+        normal_steps[i] = packed_normal(
+            normalize(transform_direction(&ntfm, normal_steps[i].decode())));
+      }
+    }
   }
 }
 
 void Mesh::add_vertex_normals()
 {
+  if (attributes.find(ATTR_STD_CORNER_NORMAL)) {
+    /* Not needed if we already have corner normals overriding these.
+     * If there is motion blur without motion corner normals we can't
+     * render correctly, discard corner normals. */
+    if (has_motion_blur() && !attributes.find(ATTR_STD_MOTION_CORNER_NORMAL)) {
+      attributes.remove(ATTR_STD_CORNER_NORMAL);
+    }
+    else {
+      return;
+    }
+  }
+
   const bool flip = transform_negative_scaled;
   const size_t verts_size = verts.size();
   const size_t triangles_size = num_triangles();
@@ -822,7 +873,7 @@ void Mesh::update_tangents(Scene *scene, bool undisplaced)
     return;
   }
 
-  assert(attributes.find(ATTR_STD_VERTEX_NORMAL));
+  assert(attributes.find(ATTR_STD_VERTEX_NORMAL) || attributes.find(ATTR_STD_CORNER_NORMAL));
 
   ccl::set<ustring> uv_maps;
   Attribute *attr_std_uv = attributes.find(ATTR_STD_UV);

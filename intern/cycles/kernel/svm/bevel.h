@@ -241,11 +241,11 @@ ccl_device float3 svm_bevel(
         const float v = isect.hits[hit].v;
 
         if (sd->type == PRIMITIVE_TRIANGLE) {
-          N = triangle_smooth_normal(kg, N, object, prim, u, v);
+          N = triangle_smooth_normal(kg, N, object, object_flag, prim, u, v);
         }
 #  ifdef __OBJECT_MOTION__
         else if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
-          N = motion_triangle_smooth_normal(kg, N, sd->object, prim, u, v, sd->time);
+          N = motion_triangle_smooth_normal(kg, N, object, prim, u, v, sd->time);
         }
 #  endif /* __OBJECT_MOTION__ */
       }

@@ -5,6 +5,7 @@
 #include "scene/object.h"
 
 #include "device/device.h"
+#include "kernel/types.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
 #include "scene/hair.h"
@@ -14,6 +15,7 @@
 #include "scene/particles.h"
 #include "scene/pointcloud.h"
 #include "scene/scene.h"
+#include "scene/shader.h"
 #include "scene/stats.h"
 #include "scene/volume.h"
 
@@ -558,6 +560,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     {
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
     }
+    else if (mesh->attributes.find(ATTR_STD_CORNER_NORMAL)) {
+      flag |= SD_OBJECT_HAS_CORNER_NORMALS;
+    }
   }
   else if (geom->is_volume()) {
     Volume *volume = static_cast<Volume *>(geom);
@@ -949,6 +954,14 @@ void ObjectManager::device_update_flags(Device * /*unused*/,
       object_flag[object->index] &= ~SD_OBJECT_SHADOW_CATCHER;
     }
 
+    /* Corner normals might get removed by subdivision and displacement. */
+    if (object->geometry->attributes.find(ATTR_STD_CORNER_NORMAL)) {
+      object_flag[object->index] |= SD_OBJECT_HAS_CORNER_NORMALS;
+    }
+    else {
+      object_flag[object->index] &= ~SD_OBJECT_HAS_CORNER_NORMALS;
+    }
+
     if (bounds_valid) {
       object->intersects_volume = false;
       for (Object *volume_object : volume_objects) {
@@ -979,7 +992,7 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
                                                DeviceScene *dscene,
                                                Scene *scene)
 {
-  if (scene->objects.size() == 0) {
+  if (dscene->objects.size() == 0) {
     return;
   }
 
@@ -997,6 +1010,7 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
     if (attr_map_offset == 0) {
       attr_map_offset = geom->attr_map_offset;
     }
+
     if (kobject.attribute_map_offset != attr_map_offset) {
       kobject.attribute_map_offset = attr_map_offset;
       update = true;
@@ -1008,8 +1022,15 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
       normal_attr_offset = find_attribute(dscene->attributes_map.data(),
                                           attr_map_offset,
                                           PRIMITIVE_TRIANGLE,
-                                          ATTR_STD_VERTEX_NORMAL)
+                                          ATTR_STD_CORNER_NORMAL)
                                .offset;
+      if (normal_attr_offset == ATTR_STD_NOT_FOUND) {
+        normal_attr_offset = find_attribute(dscene->attributes_map.data(),
+                                            attr_map_offset,
+                                            PRIMITIVE_TRIANGLE,
+                                            ATTR_STD_VERTEX_NORMAL)
+                                 .offset;
+      }
       assert(normal_attr_offset != ATTR_STD_NOT_FOUND ||
              static_cast<Mesh *>(geom)->num_triangles() == 0);
     }

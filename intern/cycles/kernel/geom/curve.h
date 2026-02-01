@@ -44,12 +44,6 @@ ccl_device_inline T curve_attribute_dfdy(const ccl_private differential &du,
   return du.dy * (f1 - f0);
 }
 
-#  ifdef __KERNEL_METAL__
-template<typename U, typename V> using curve_attribute_is_same = metal::is_same<U, V>;
-#  else
-template<typename U, typename V> using curve_attribute_is_same = std::is_same<U, V>;
-#  endif
-
 /* Read attributes on various curve elements, and compute the partial derivatives if requested. */
 
 template<typename T>
