@@ -1740,6 +1740,13 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->flag |= USER_HIDE_DOT_DATABLOCK;
   }
 
+  if (!USER_VERSION_ATLEAST(501, 24)) {
+    /* Increase the base XR vignette value to match the previous default after logic refactor. */
+    if (userdef->xr_navigation.vignette_intensity == 60) {
+      userdef->xr_navigation.vignette_intensity = 70;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

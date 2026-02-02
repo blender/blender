@@ -184,7 +184,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
                                   winmat,
                                   settings->clip_start,
                                   settings->clip_end,
-                                  session_state->vignette_data->aperture,
+                                  session_state->vignette_aperture,
                                   true,
                                   false,
                                   true,

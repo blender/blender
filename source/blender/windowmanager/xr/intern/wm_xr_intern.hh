@@ -79,8 +79,10 @@ struct wmXrSessionState {
   /* Name of the action set (if any) to activate before the next actions sync. */
   char active_action_set_next[64]; /* #MAX_NAME. */
 
-  /** The current state and parameters of the vignette that appears while moving. */
-  struct wmXrVignetteData *vignette_data;
+  /** The current view vignette aperture, appears on movement. */
+  float vignette_aperture;
+  /** Timestamp of last vignette update, used for delta time calculation. */
+  double vignette_last_update_time;
 };
 
 struct wmXrRuntimeData {
@@ -207,22 +209,6 @@ struct wmXrActionSet {
   ListBaseT<LinkData> active_modal_actions;
   /** Currently active haptic actions. */
   ListBaseT<wmXrHapticAction> active_haptic_actions;
-};
-
-struct wmXrVignetteData {
-  /** Vignette state. */
-  float aperture;
-  float aperture_velocity;
-
-  /** Vignette parameters. */
-  float initial_aperture;
-  float initial_aperture_velocity;
-
-  float aperture_min;
-  float aperture_max;
-
-  float aperture_velocity_max;
-  float aperture_velocity_delta;
 };
 
 /* `wm_xr.cc` */

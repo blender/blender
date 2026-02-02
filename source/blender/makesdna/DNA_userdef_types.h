@@ -699,7 +699,7 @@ struct WalkNavigation {
 };
 
 struct XrNavigation {
-  float vignette_intensity = 60;
+  float vignette_intensity = 70;
   float turn_speed = DEG2RAD(60);
   float turn_amount = DEG2RAD(30);
   short flag = USER_XR_NAV_SNAP_TURN;
