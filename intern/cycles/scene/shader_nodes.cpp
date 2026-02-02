@@ -6655,9 +6655,6 @@ OutputAOVNode::OutputAOVNode() : ShaderNode(get_node_type())
 void OutputAOVNode::simplify_settings(Scene *scene)
 {
   offset = scene->film->get_aov_offset(scene, name.string(), is_color);
-  if (offset == -1) {
-    offset = scene->film->get_aov_offset(scene, name.string(), is_color);
-  }
 
   if (offset == -1 || is_color) {
     input("Value")->disconnect();
