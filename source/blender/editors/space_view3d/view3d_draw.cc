@@ -1987,7 +1987,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      const float winmat[4][4],
                                      float clip_start,
                                      float clip_end,
-                                     float vignette_aperture,
+                                     float xr_vignette_aperture,
                                      bool is_xr_surface,
                                      bool is_image_render,
                                      bool draw_background,
@@ -2069,7 +2069,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
   v3d.clip_end = clip_end;
   /* Actually not used since we pass in the projection matrix. */
   v3d.lens = 0;
-  v3d.vignette_aperture = vignette_aperture;
+  v3d.xr_vignette_aperture = xr_vignette_aperture;
 
   /* WORKAROUND: Disable overscan because it is not supported for arbitrary input matrices.
    * The proper fix to this would be to support arbitrary matrices in `eevee::Camera::sync()`. */

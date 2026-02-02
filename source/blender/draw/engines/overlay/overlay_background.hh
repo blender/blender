@@ -101,7 +101,7 @@ class Background : Overlay {
     bg_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
     if (state.vignette_enabled) {
-      const float vignette_aperture = state.v3d ? state.v3d->vignette_aperture : 1.0f;
+      const float vignette_aperture = state.v3d ? state.v3d->xr_vignette_aperture : 1.0f;
       const float vignette_falloff = 0.15f;
 
       bg_vignette_ps_.init();

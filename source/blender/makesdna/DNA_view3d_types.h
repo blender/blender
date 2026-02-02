@@ -749,7 +749,7 @@ struct View3D {
 
   float lens = 50.0f, grid = 1.0f;
   float clip_start = 0.01f, clip_end = 1000.0f;
-  float vignette_aperture = 0;
+  float xr_vignette_aperture = 0;
   DNA_DEPRECATED float ofs[2] = {};
 
   char _pad[1] = {};
