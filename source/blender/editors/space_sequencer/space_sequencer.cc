@@ -1227,7 +1227,7 @@ void ED_spacetype_sequencer()
   art = MEM_new_zeroed<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER | ED_KEYMAP_FRAMES;
 
   art->init = sequencer_header_region_init;
   art->draw = sequencer_header_region_draw;

@@ -997,7 +997,7 @@ void ED_spacetype_ipo()
   art = MEM_new_zeroed<ARegionType>("spacetype graphedit region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER | ED_KEYMAP_FRAMES;
   art->init = graph_header_region_init;
   art->draw = graph_header_region_draw;
   art->poll = action_region_poll_hide_in_driver_mode;
