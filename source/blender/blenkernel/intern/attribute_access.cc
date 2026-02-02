@@ -586,6 +586,13 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
       return;
     }
     GVArray src = *iter.get();
+    const CommonVArrayInfo info = src.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const GPointer value(src.type(), info.data);
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, AttributeInitValue(value))) {
+        return;
+      }
+    }
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
     /* Skip unsupported attributes. */

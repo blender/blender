@@ -950,6 +950,8 @@ struct AttributeTransferData {
 /**
  * Retrieve attribute arrays and writers for attributes that should be transferred between
  * data-blocks of the same type.
+ * \note Attributes stored as single values are immediately added to the result attributes and are
+ * not included as array references in the return value.
  */
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     const AttributeAccessor src_attributes,
