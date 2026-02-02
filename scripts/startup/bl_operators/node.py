@@ -257,6 +257,12 @@ class NodeSwapOperator(NodeOperator):
         if (context.area is None) or (context.area.type != "NODE_EDITOR"):
             return False
 
+        if context.space_data.edit_tree is None:
+            return False
+
+        if context.space_data.edit_tree.library is not None:
+            return False
+
         if len(context.selected_nodes) <= 0:
             cls.poll_message_set("No nodes selected.")
             return False
