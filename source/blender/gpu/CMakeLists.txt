@@ -215,6 +215,7 @@ set(OPENGL_SRC
   opengl/gl_state.cc
   opengl/gl_storage_buffer.cc
   opengl/gl_texture.cc
+  opengl/gl_texture_pool.cc
   opengl/gl_uniform_buffer.cc
   opengl/gl_vertex_array.cc
   opengl/gl_vertex_buffer.cc
