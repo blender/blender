@@ -248,7 +248,9 @@ static void store_layer(const eCustomDataType type,
    */
   if (CustomData_layertype_is_dynamic(type)) {
     ImplicitSharingInfoAndData state = {sharing_info, data};
-    state.sharing_info->add_user();
+    if (state.data) {
+      state.sharing_info->add_user();
+    }
     bcd.non_trivial_arrays.lookup_or_add_default(type).append(state);
     return;
   }
@@ -320,9 +322,11 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
                 bcd_reference,
                 index_in_type,
                 bcd);
-    layer.sharing_info->remove_user_and_delete_if_last();
-    layer.sharing_info = nullptr;
-    layer.data = nullptr;
+    if (layer.data) {
+      layer.sharing_info->remove_user_and_delete_if_last();
+      layer.sharing_info = nullptr;
+      layer.data = nullptr;
+    }
   }
 
   for (bke::Attribute *attribute : attributes) {
