@@ -133,31 +133,29 @@ static float calculate_grid_step_fractions(const int base,
 /* Draw parallel lines
  ************************************/
 
-struct ParallelLinesSet {
-  float offset;
-  float distance;
-};
-
-static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
-                                          float region_start,
-                                          float region_end,
+/**
+ * Calculate the amount of lines to draw and the starting position in view space (frame or value).
+ *
+ * \param line_distance value distance between lines.
+ * \param view_bounds the value bounds visible in the region. x has to be lower than y.
+ */
+static void get_parallel_lines_draw_steps(const float line_distance,
+                                          const float2 view_bounds,
                                           float *r_first,
                                           uint *r_steps)
 {
-  if (region_start >= region_end) {
+  if (view_bounds.x >= view_bounds.y) {
     *r_first = 0;
     *r_steps = 0;
     return;
   }
 
-  BLI_assert(lines->distance > 0);
-  BLI_assert(region_start <= region_end);
+  BLI_assert(line_distance > 0);
 
-  *r_first = ceilf((region_start - lines->offset) / lines->distance) * lines->distance +
-             lines->offset;
+  *r_first = ceilf(view_bounds.x / line_distance) * line_distance;
 
-  if (region_start <= *r_first && region_end >= *r_first) {
-    *r_steps = std::max(0.0f, floorf((region_end - *r_first) / lines->distance)) + 1;
+  if (view_bounds.x <= *r_first && view_bounds.y >= *r_first) {
+    *r_steps = std::max(0.0f, floorf((view_bounds.y - *r_first) / line_distance)) + 1;
   }
   else {
     *r_steps = 0;
@@ -165,24 +163,25 @@ static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
 }
 
 /**
- * \param rect_mask: Region size in pixels.
+ * \param rect_mask Region size in pixels.
+ * \param line_distance Distance in view space (frame or value) between lines.
  */
-static void draw_parallel_lines(const ParallelLinesSet *lines,
+static void draw_parallel_lines(const float line_distance,
                                 const rctf *rect,
                                 const rcti *rect_mask,
                                 const uchar color[3],
-                                char direction)
+                                const char direction)
 {
   float first;
   uint steps, steps_max;
 
   if (direction == 'v') {
-    get_parallel_lines_draw_steps(lines, rect->xmin, rect->xmax, &first, &steps);
+    get_parallel_lines_draw_steps(line_distance, {rect->xmin, rect->xmax}, &first, &steps);
     steps_max = BLI_rcti_size_x(rect_mask);
   }
   else {
     BLI_assert(direction == 'h');
-    get_parallel_lines_draw_steps(lines, rect->ymin, rect->ymax, &first, &steps);
+    get_parallel_lines_draw_steps(line_distance, {rect->ymin, rect->ymax}, &first, &steps);
     steps_max = BLI_rcti_size_y(rect_mask);
   }
 
@@ -217,14 +216,14 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
 
   if (direction == 'v') {
     for (uint i = 0; i < steps; i++) {
-      const float xpos = first + i * lines->distance;
+      const float xpos = first + i * line_distance;
       immVertex2f(pos, xpos, rect->ymin);
       immVertex2f(pos, xpos, rect->ymax);
     }
   }
   else {
     for (uint i = 0; i < steps; i++) {
-      const float ypos = first + i * lines->distance;
+      const float ypos = first + i * line_distance;
       immVertex2f(pos, rect->xmin, ypos);
       immVertex2f(pos, rect->xmax, ypos);
     }
@@ -235,13 +234,13 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
 }
 
 static void view2d_draw_lines_internal(const View2D *v2d,
-                                       const ParallelLinesSet *lines,
+                                       const float line_distance,
                                        const uchar color[3],
                                        char direction)
 {
   GPU_matrix_push_projection();
   view2d_view_ortho(v2d);
-  draw_parallel_lines(lines, &v2d->cur, &v2d->mask, color, direction);
+  draw_parallel_lines(line_distance, &v2d->cur, &v2d->mask, color, direction);
   GPU_matrix_pop_projection();
 }
 
@@ -253,7 +252,6 @@ static void view2d_draw_lines(const View2D *v2d,
   if (display_minor_lines) {
     uchar minor_color[3];
     theme::get_color_shade_3ubv(TH_GRID, 16, minor_color);
-    ParallelLinesSet minor_lines;
     int distance_int;
     if (major_distance > 1) {
       distance_int = round_fl_to_int(major_distance);
@@ -266,23 +264,19 @@ static void view2d_draw_lines(const View2D *v2d,
       distance_int = round_fl_to_int(major_distance * subframe_range);
     }
     const int divisor = get_divisor(distance_int);
-    minor_lines.distance = major_distance / divisor;
-    minor_lines.offset = 0;
+    const float line_distance = major_distance / divisor;
     const int pixel_width = BLI_rcti_size_x(&v2d->mask) + 1;
     const float view_width = BLI_rctf_size_x(&v2d->cur);
 
     if ((pixel_width / view_width) * (major_distance / divisor) > MIN_MAJOR_LINE_DISTANCE / 5) {
-      view2d_draw_lines_internal(v2d, &minor_lines, minor_color, direction);
+      view2d_draw_lines_internal(v2d, line_distance, minor_color, direction);
     }
   }
 
   {
     uchar major_color[3];
     theme::get_color_3ubv(TH_GRID, major_color);
-    ParallelLinesSet major_lines;
-    major_lines.distance = major_distance;
-    major_lines.offset = 0;
-    view2d_draw_lines_internal(v2d, &major_lines, major_color, direction);
+    view2d_draw_lines_internal(v2d, major_distance, major_color, direction);
   }
 }
 
@@ -292,6 +286,9 @@ static void view2d_draw_lines(const View2D *v2d,
 using PositionToString =
     void (*)(void *user_data, float value, float step, char *r_str, uint str_maxncpy);
 
+/**
+ * \param distance is the distance between lines in the data unit of the v2d (frame or value).
+ */
 static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const View2D *v2d,
                                              const float distance,
@@ -307,14 +304,11 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   float start;
   uint steps;
   {
-    ParallelLinesSet lines;
-    lines.distance = distance;
-    lines.offset = 0;
-    get_parallel_lines_draw_steps(&lines,
-                                  view2d_region_to_view_x(v2d, rect->xmin),
-                                  view2d_region_to_view_x(v2d, rect->xmax),
-                                  &start,
-                                  &steps);
+    get_parallel_lines_draw_steps(
+        distance,
+        {view2d_region_to_view_x(v2d, rect->xmin), view2d_region_to_view_x(v2d, rect->xmax)},
+        &start,
+        &steps);
     const uint steps_max = BLI_rcti_size_x(&v2d->mask) + 1;
     if (UNLIKELY(steps >= steps_max)) {
       return;
@@ -382,14 +376,11 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   float start;
   uint steps;
   {
-    ParallelLinesSet lines;
-    lines.distance = distance;
-    lines.offset = 0;
-    get_parallel_lines_draw_steps(&lines,
-                                  view2d_region_to_view_y(v2d, rect->ymin),
-                                  view2d_region_to_view_y(v2d, rect->ymax),
-                                  &start,
-                                  &steps);
+    get_parallel_lines_draw_steps(
+        distance,
+        {view2d_region_to_view_y(v2d, rect->ymin), view2d_region_to_view_y(v2d, rect->ymax)},
+        &start,
+        &steps);
     const uint steps_max = BLI_rcti_size_y(&v2d->mask) + 1;
     if (UNLIKELY(steps >= steps_max)) {
       return;
