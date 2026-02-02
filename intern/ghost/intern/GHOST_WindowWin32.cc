@@ -639,6 +639,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
             false,
             h_wnd_,
             h_DC_,
+            false, /* owns_window_handle */
             WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             4,
             minor,
