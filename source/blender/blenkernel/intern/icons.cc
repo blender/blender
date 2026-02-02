@@ -21,6 +21,7 @@
 #include "BLI_linklist_lockfree.h"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
+#include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -406,6 +407,72 @@ ImBuf *BKE_icon_imbuf_get_buffer(int icon_id)
   }
 
   return static_cast<ImBuf *>(icon->obj);
+}
+
+static IconBufferRef construct_icon_buffer(const int width,
+                                           const int height,
+                                           const int channels,
+                                           const uint8_t *buffer)
+{
+  BLI_assert(buffer != nullptr);
+  BLI_assert(width >= 0);
+  BLI_assert(height >= 0);
+  BLI_assert(channels >= 0);
+
+  return IconBufferRef{
+      .width = width,
+      .height = height,
+      .channels = channels,
+      .buffer = Span(buffer, width * height * channels),
+  };
+}
+
+static std::optional<IconBufferRef> icon_buffer_from_preview(const PreviewImage *preview,
+                                                             const eIconSizes size)
+{
+  if (!preview->rect[size]) {
+    return std::nullopt;
+  }
+
+  const int num_channels = 4; /* #PreviewImage always has 4 color channels. */
+  return construct_icon_buffer(preview->w[size],
+                               preview->h[size],
+                               num_channels,
+                               reinterpret_cast<uint8_t *>(preview->rect[size]));
+}
+
+std::optional<IconBufferRef> BKE_icon_get_buffer(const int icon_id, const eIconSizes size)
+{
+  const Icon *icon = icon_ghash_lookup(icon_id);
+  if (!icon) {
+    CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
+    return std::nullopt;
+  }
+
+  switch (icon->obj_type) {
+    case ICON_DATA_IMBUF: {
+      const ImBuf *ibuf = static_cast<ImBuf *>(icon->obj);
+      return construct_icon_buffer(ibuf->x, ibuf->y, ibuf->channels, ibuf->byte_buffer.data);
+    }
+    case ICON_DATA_ID: {
+      const ID *id = static_cast<ID *>(icon->obj);
+      if (PreviewImage *preview = BKE_previewimg_id_get(id)) {
+        return icon_buffer_from_preview(preview, size);
+      }
+      break;
+    }
+    case ICON_DATA_PREVIEW: {
+      if (const PreviewImage *preview = static_cast<PreviewImage *>(icon->obj)) {
+        if (preview->flag[size] & PRV_RENDERING) {
+          return std::nullopt;
+        }
+        return icon_buffer_from_preview(preview, size);
+      }
+      break;
+    }
+  }
+
+  return std::nullopt;
 }
 
 Icon *BKE_icon_get(const int icon_id)
