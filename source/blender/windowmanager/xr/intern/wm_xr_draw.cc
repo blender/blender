@@ -123,7 +123,7 @@ static void wm_xr_draw_viewport_buffers_to_active_framebuffer(
       BLI_findlink(&surface_data->viewports, draw_view->view_idx));
   BLI_assert(vp && vp->viewport);
 
-  const bool is_upside_down = GHOST_XrSessionNeedsUpsideDownDrawing(runtime_data->context);
+  const bool is_upside_down = GHOST_XrSessionNeedsUpsideDownDrawing(runtime_data->ghost_context);
   rcti rect{};
   rect.xmin = 0;
   rect.ymin = 0;
@@ -422,7 +422,7 @@ void wm_xr_draw_controllers(const bContext * /*C*/, ARegion * /*region*/, void *
 {
   wmXrData *xr = static_cast<wmXrData *>(customdata);
   const XrSessionSettings *settings = &xr->session_settings;
-  GHOST_IXrContext *xr_context = xr->runtime->context;
+  GHOST_IXrContext *xr_context = xr->runtime->ghost_context;
   wmXrSessionState *state = &xr->runtime->session_state;
 
   wm_xr_controller_model_draw(settings, xr_context, state);

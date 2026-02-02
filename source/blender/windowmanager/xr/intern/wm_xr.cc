@@ -59,7 +59,7 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
 
 bool wm_xr_init(wmWindowManager *wm)
 {
-  if (wm->xr.runtime && wm->xr.runtime->context) {
+  if (wm->xr.runtime && wm->xr.runtime->ghost_context) {
     return true;
   }
   static wmXrErrorHandlerData error_customdata;
@@ -115,25 +115,25 @@ bool wm_xr_init(wmWindowManager *wm)
     }
 #endif
 
-    GHOST_IXrContext *context;
-    if (!(context = GHOST_XrContextCreate(&create_info))) {
+    GHOST_IXrContext *ghost_context;
+    if (!(ghost_context = GHOST_XrContextCreate(&create_info))) {
       return false;
     }
 
     /* Set up context callbacks. */
-    GHOST_XrGraphicsContextBindFuncs(context,
+    GHOST_XrGraphicsContextBindFuncs(ghost_context,
                                      wm_xr_session_gpu_binding_context_create,
                                      wm_xr_session_gpu_binding_context_destroy);
-    GHOST_XrDrawViewFunc(context, wm_xr_draw_view);
-    GHOST_XrPassthroughEnabledFunc(context, wm_xr_passthrough_enabled);
-    GHOST_XrDisablePassthroughFunc(context, wm_xr_disable_passthrough);
+    GHOST_XrDrawViewFunc(ghost_context, wm_xr_draw_view);
+    GHOST_XrPassthroughEnabledFunc(ghost_context, wm_xr_passthrough_enabled);
+    GHOST_XrDisablePassthroughFunc(ghost_context, wm_xr_disable_passthrough);
 
     if (!wm->xr.runtime) {
       wm->xr.runtime = wm_xr_runtime_data_create();
-      wm->xr.runtime->context = context;
+      wm->xr.runtime->ghost_context = ghost_context;
     }
   }
-  BLI_assert(wm->xr.runtime && wm->xr.runtime->context);
+  BLI_assert(wm->xr.runtime && wm->xr.runtime->ghost_context);
 
   return true;
 }
@@ -150,8 +150,8 @@ void wm_xr_exit(wmWindowManager *wm)
 
 bool wm_xr_events_handle(wmWindowManager *wm)
 {
-  if (wm->xr.runtime && wm->xr.runtime->context) {
-    GHOST_XrEventsHandle(wm->xr.runtime->context);
+  if (wm->xr.runtime && wm->xr.runtime->ghost_context) {
+    GHOST_XrEventsHandle(wm->xr.runtime->ghost_context);
 
     /* Process OpenXR action events. */
     if (WM_xr_session_is_ready(&wm->xr)) {
@@ -184,11 +184,11 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
    * everything that is freed here. */
 
   /* We free all runtime XR data here, so if the context is still alive, destroy it. */
-  if ((*runtime)->context != nullptr) {
-    GHOST_IXrContext *context = (*runtime)->context;
+  if ((*runtime)->ghost_context != nullptr) {
+    GHOST_IXrContext *ghost_context = (*runtime)->ghost_context;
     /* Prevent recursive #GHOST_XrContextDestroy() call by nulling the context pointer before
      * the first call, see comment above. */
-    (*runtime)->context = nullptr;
+    (*runtime)->ghost_context = nullptr;
 
     if ((*runtime)->area) {
       wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
@@ -201,7 +201,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
     wm_xr_session_data_free(&(*runtime)->session_state);
     WM_xr_actionmaps_clear(*runtime);
 
-    GHOST_XrContextDestroy(context);
+    GHOST_XrContextDestroy(ghost_context);
   }
   MEM_SAFE_DELETE(*runtime);
 }

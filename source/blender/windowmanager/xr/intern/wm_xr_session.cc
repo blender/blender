@@ -135,7 +135,7 @@ void wm_xr_session_toggle(wmWindowManager *wm,
     /* Must set first, since #GHOST_XrSessionEnd() may immediately free the runtime. */
     xr_data->runtime->session_state.is_started = false;
 
-    GHOST_XrSessionEnd(xr_data->runtime->context);
+    GHOST_XrSessionEnd(xr_data->runtime->ghost_context);
   }
   else {
     GHOST_XrSessionBeginInfo begin_info;
@@ -145,13 +145,13 @@ void wm_xr_session_toggle(wmWindowManager *wm,
     xr_data->runtime->exit_fn = session_exit_fn;
 
     wm_xr_session_begin_info_create(xr_data, &begin_info);
-    GHOST_XrSessionStart(xr_data->runtime->context, &begin_info);
+    GHOST_XrSessionStart(xr_data->runtime->ghost_context, &begin_info);
   }
 }
 
 bool WM_xr_session_exists(const wmXrData *xr)
 {
-  return xr->runtime && xr->runtime->context && xr->runtime->session_state.is_started;
+  return xr->runtime && xr->runtime->ghost_context && xr->runtime->session_state.is_started;
 }
 
 void WM_xr_session_base_pose_reset(wmXrData *xr)
@@ -161,7 +161,7 @@ void WM_xr_session_base_pose_reset(wmXrData *xr)
 
 bool WM_xr_session_is_ready(const wmXrData *xr)
 {
-  return WM_xr_session_exists(xr) && GHOST_XrSessionIsRunning(xr->runtime->context);
+  return WM_xr_session_exists(xr) && GHOST_XrSessionIsRunning(xr->runtime->ghost_context);
 }
 
 static void wm_xr_session_base_pose_calc(const Scene *scene,
@@ -658,7 +658,7 @@ void wm_xr_session_actions_init(wmXrData *xr)
     return;
   }
 
-  GHOST_XrAttachActionSets(xr->runtime->context);
+  GHOST_XrAttachActionSets(xr->runtime->ghost_context);
 }
 
 static void wm_xr_session_controller_pose_calc(const GHOST_XrPose *raw_pose,
@@ -1269,7 +1269,7 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
   }
 
   XrSessionSettings *settings = &xr->session_settings;
-  GHOST_IXrContext *xr_context = xr->runtime->context;
+  GHOST_IXrContext *xr_context = xr->runtime->ghost_context;
   wmXrSessionState *state = &xr->runtime->session_state;
 
   if (state->is_navigation_dirty) {
@@ -1413,7 +1413,7 @@ static void wm_xr_session_surface_draw(bContext *C)
   // BLI_assert(DEG_is_fully_evaluated(depsgraph));
   wm_xr_session_draw_data_populate(&wm->xr, scene, depsgraph, &draw_data);
 
-  GHOST_XrSessionDrawViews(wm->xr.runtime->context, &draw_data);
+  GHOST_XrSessionDrawViews(wm->xr.runtime->ghost_context, &draw_data);
 
   /* There's no active frame-buffer if the session was canceled (exception while drawing views). */
   if (GPU_framebuffer_active_get()) {

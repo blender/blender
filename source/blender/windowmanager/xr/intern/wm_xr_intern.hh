@@ -86,7 +86,7 @@ struct wmXrSessionState {
 };
 
 struct wmXrRuntimeData {
-  GHOST_IXrContext *context;
+  GHOST_IXrContext *ghost_context;
 
   /** The window the session was started in. Stored to be able to follow its view-layer. This may
    * be an invalid reference, i.e. the window may have been closed. */
