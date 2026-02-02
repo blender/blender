@@ -419,7 +419,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_action.anim_interpolation_linear);
   }
 
-  if (!USER_VERSION_ATLEAST(501, 100)) {
+  if (!USER_VERSION_ATLEAST(501, 19)) {
     FROM_DEFAULT_V4_UCHAR(space_preferences.match);
   }
 
