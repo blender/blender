@@ -541,10 +541,13 @@ static void map_panel(NodeTreeInterfaceMapping &io_mapping,
 }
 
 NodeTreeInterfaceMapping map_group_node_interface(const NodeSetInterfaceParams &params,
+                                                  const bNodeTree &tree,
                                                   const bNode &group_node)
 {
   BLI_assert(group_node.is_group());
   const bNodeTree &group_tree = *id_cast<const bNodeTree *>(group_node.id);
+
+  tree.ensure_topology_cache();
 
   NodeTreeInterfaceMapping result;
   for (const bNodeTreeInterfaceItem *io_item : group_tree.interface_items()) {
@@ -583,8 +586,6 @@ NodeSetCopy NodeSetCopy::from_nodes(Main &bmain,
                                     const Span<const bNode *> src_nodes,
                                     bNodeTree &dst_tree)
 {
-  node_deselect_all(dst_tree);
-
   NodeSetCopy result(dst_tree);
   Vector<AnimationBasePathChange> anim_basepaths;
   /* Note: socket map is not stored in NodeSetCopy because socket pointers are easily invalidated

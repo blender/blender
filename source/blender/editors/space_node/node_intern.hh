@@ -689,6 +689,7 @@ NodeTreeInterfaceMapping build_node_declaration_interface(const NodeSetInterface
  * node. No new sockets are added to the interface.
  */
 NodeTreeInterfaceMapping map_group_node_interface(const NodeSetInterfaceParams &params,
+                                                  const bNodeTree &tree,
                                                   const bNode &group_node);
 
 /**
