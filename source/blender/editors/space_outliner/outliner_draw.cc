@@ -1887,7 +1887,6 @@ static void outliner_draw_userbuts(ui::Block *block,
                             0,
                             0,
                             tip);
-      button_retval_set(bt, 1);
 
       if (is_linked) {
         button_flag_enable(bt, ui::BUT_DISABLED);

@@ -241,7 +241,6 @@ void AbstractViewItem::add_rename_button(Block &block)
                                 1.0f,
                                 view.get_rename_buffer().size(),
                                 "");
-  button_retval_set(rename_but, 1);
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the
    * callback is executed. */

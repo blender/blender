@@ -6175,7 +6175,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
                       0,
                       0,
                       std::nullopt);
-      button_retval_set(but, 1);
 
       /* copy what outliner does here, see outliner_buttons */
       if (button_active_only(C, ac->region, block, but) == false) {

@@ -968,7 +968,6 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                              0,
                              UI_MAX_NAME_STR,
                              "");
-      button_retval_set(but, 1);
       button_flag_enable(but, BUT_TEXTEDIT_UPDATE | BUT_VALUE_CLEAR);
       button_flag_disable(but, BUT_UNDO);
       def_but_icon(but, ICON_VIEWZOOM, UI_HAS_ICON);

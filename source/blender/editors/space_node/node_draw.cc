@@ -2065,7 +2065,6 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, ui::Block &blo
                                                0,
                                                0,
                                                "");
-      button_retval_set(panel_toggle_but, -1);
       button_func_tooltip_custom_set(
           panel_toggle_but,
           [](bContext &C, ui::TooltipData &tip, ui::Button *but, void *argN) {

@@ -903,8 +903,6 @@ ENUM_OPERATORS(eUI_Item_Flag)
  */
 bool block_apply_search_filter(Block *block, const char *search_filter);
 
-void uiLayoutSetFunc(Layout *layout, MenuHandleFunc handlefunc, void *argv);
-
 /**
  * Set tooltip function for all buttons in the layout.
  * func, arg and free_arg are passed on to button_func_tooltip_set, so their meaning is the same.

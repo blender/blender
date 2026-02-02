@@ -36,7 +36,6 @@ static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
   short yco = 0;
 
   Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
-
   for (const auto &item :
        {std::pair<StringRef, eCurveProfilePresets>(IFACE_("Default"), PROF_PRESET_LINE),
         std::pair<StringRef, eCurveProfilePresets>(
@@ -58,7 +57,6 @@ static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     const eCurveProfilePresets preset = item.second;
     button_func_set(but, [profile, cb, preset](bContext &C) {
       profile->preset = preset;
@@ -96,7 +94,6 @@ static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [profile](bContext &C) {
       BKE_curveprofile_reset_view(profile);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -113,7 +110,6 @@ static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [profile, cb](bContext &C) {
       BKE_curveprofile_reset(profile);
       BKE_curveprofile_update(profile, PROF_UPDATE_NONE);

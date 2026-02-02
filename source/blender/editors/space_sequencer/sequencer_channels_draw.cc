@@ -124,7 +124,6 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
                                        0,
                                        0,
                                        std::nullopt);
-  button_retval_set(but, 1);
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_muted(channel) ? "Unmute" : "Mute", channel_index);
@@ -163,7 +162,6 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
                                        0,
                                        0,
                                        "");
-  button_retval_set(but, 1);
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_locked(channel) ? "Unlock" : "Lock", channel_index);
@@ -240,7 +238,6 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
                                 0,
                                 0,
                                 std::nullopt);
-    button_retval_set(but, 1);
     block_emboss_set(block, ui::EmbossType::None);
 
     if (button_active_only(context->C, context->region, block, but) == false) {
