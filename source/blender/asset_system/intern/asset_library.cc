@@ -253,6 +253,12 @@ void AssetLibrary::foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
   service->foreach_loaded_asset_library(fn, include_all_library);
 }
 
+std::optional<StringRefNull> AssetLibrary::remote_url() const
+{
+  /* Remote asset library support is implemented in #RemoteAssetLibrary::remote_url(). */
+  return {};
+};
+
 void AssetLibrary::load_or_reload_catalogs()
 {
   {

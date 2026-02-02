@@ -6,6 +6,11 @@ set(INC
   PUBLIC .
   intern
   intern/library_types
+  ../makesrna
+  ../editors/include
+
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -25,6 +30,7 @@ set(SRC
   intern/library_types/essentials_library.cc
   intern/library_types/on_disk_library.cc
   intern/library_types/preferences_on_disk_library.cc
+  intern/library_types/remote_library.cc
   intern/library_types/runtime_library.cc
   intern/utils.cc
 
@@ -35,6 +41,7 @@ set(SRC
   AS_asset_representation.hh
   AS_disk_file_hash_service.hh
   AS_essentials_library.hh
+  AS_remote_library.hh
   intern/asset_catalog_collection.hh
   intern/asset_catalog_definition_file.hh
   intern/asset_library_service.hh
@@ -42,6 +49,7 @@ set(SRC
   intern/library_types/essentials_library.hh
   intern/library_types/on_disk_library.hh
   intern/library_types/preferences_on_disk_library.hh
+  intern/library_types/remote_library.hh
   intern/library_types/runtime_library.hh
   intern/utils.hh
 )
@@ -49,10 +57,12 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)
@@ -88,3 +98,6 @@ if(WITH_GTESTS)
     "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}" "${TEST_COMMON_SRC}"
   )
 endif()
+
+# RNA_prototypes.hh dna_type_offsets.h
+add_dependencies(bf_asset_system bf_rna)

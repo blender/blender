@@ -134,7 +134,14 @@ class AssetLibrary {
    */
   virtual std::optional<AssetLibraryReference> library_reference() const = 0;
 
-  void load_or_reload_catalogs();
+  /**
+   * Return the URL of the remote asset library, or std::nullopt if this is not a remote library.
+   *
+   * Note: don't use this as a way to distinguish remote vs. local libraries. Either query the
+   * asset itself, or use #is_or_contains_remote_libraries(). The Essentials and All libraries may
+   * contain a mixture of remote and local assets.
+   */
+  virtual std::optional<StringRefNull> remote_url() const;
 
   AssetCatalogService &catalog_service() const;
 
@@ -183,6 +190,8 @@ class AssetLibrary {
    * meant to help recover from.
    */
   void refresh_catalog_simplename(AssetMetaData *asset_data);
+
+  void load_or_reload_catalogs();
 
   void on_blend_save_handler_register();
   void on_blend_save_handler_unregister();

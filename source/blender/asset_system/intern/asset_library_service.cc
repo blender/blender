@@ -27,6 +27,7 @@
 #include "essentials_library.hh"
 #include "on_disk_library.hh"
 #include "preferences_on_disk_library.hh"
+#include "remote_library.hh"
 #include "runtime_library.hh"
 #include "utils.hh"
 
@@ -118,6 +119,36 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   return nullptr;
 }
 
+AssetLibrary *AssetLibraryService::get_remote_asset_library(
+    const bUserAssetLibrary &custom_library)
+{
+  if (!custom_library.remote_url[0]) {
+    return nullptr;
+  }
+
+  const StringRefNull remote_url = custom_library.remote_url;
+
+  std::unique_ptr<RemoteAssetLibrary> *lib_uptr_ptr = remote_libraries_.lookup_ptr(remote_url);
+  if (lib_uptr_ptr != nullptr) {
+    CLOG_DEBUG(&LOG, "get \"%s\" (cached)", remote_url.c_str());
+    AssetLibrary *lib = lib_uptr_ptr->get();
+    lib->load_or_reload_catalogs();
+    return lib;
+  }
+
+  std::unique_ptr<RemoteAssetLibrary> lib_uptr = std::make_unique<RemoteAssetLibrary>(
+      remote_url,
+      custom_library.name,
+      /* Constructor normalizes the path. */
+      custom_library.dirpath);
+  AssetLibrary *lib = lib_uptr.get();
+  lib->load_or_reload_catalogs();
+
+  remote_libraries_.add_new(remote_url, std::move(lib_uptr));
+  CLOG_DEBUG(&LOG, "get \"%s\" (loaded)", remote_url.c_str());
+  return lib;
+}
+
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
     eAssetLibraryType library_type,
     StringRef name,
@@ -153,12 +184,12 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
       break;
   }
 
-  AssetLibrary *lib = lib_uptr.get();
-
   if (load_catalogs) {
-    lib->load_or_reload_catalogs();
+    lib_uptr->load_or_reload_catalogs();
   }
 
+  /* Get underlying pointer before moving. */
+  AssetLibrary *lib = lib_uptr.get();
   on_disk_libraries_.add_new({library_type, normalized_root_path}, std::move(lib_uptr));
   CLOG_DEBUG(&LOG, "get \"%s\" (loaded)", normalized_root_path.c_str());
   return lib;

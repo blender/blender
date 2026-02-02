@@ -23,6 +23,7 @@
 
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 namespace blender::asset_system {
 
@@ -146,6 +147,48 @@ std::string AssetRepresentation::full_library_path() const
   return blend_path;
 }
 
+Span<OnlineAssetFile> AssetRepresentation::online_asset_files() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  return std::get<ExternalAsset>(asset_).online_info_->files;
+}
+
+std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  std::optional<URLWithHash> &url_with_hash =
+      std::get<ExternalAsset>(asset_).online_info_->preview_url;
+  if (!url_with_hash) {
+    return {};
+  }
+  return url_with_hash->url;
+}
+
+std::optional<StringRefNull> AssetRepresentation::online_asset_preview_hash() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  std::optional<URLWithHash> &url_with_hash =
+      std::get<ExternalAsset>(asset_).online_info_->preview_url;
+  if (!url_with_hash) {
+    return {};
+  }
+  return url_with_hash->hash;
+}
+
+void AssetRepresentation::online_asset_mark_downloaded()
+{
+  if (!this->is_online()) {
+    return;
+  }
+  std::get<ExternalAsset>(asset_).online_info_ = nullptr;
+}
+
 std::optional<eAssetImportMethod> AssetRepresentation::get_import_method() const
 {
   return owner_asset_library_.import_method_;
@@ -172,6 +215,14 @@ ID *AssetRepresentation::local_id() const
 bool AssetRepresentation::is_local_id() const
 {
   return std::holds_alternative<ID *>(asset_);
+}
+
+bool AssetRepresentation::is_online() const
+{
+  if (const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_)) {
+    return extern_asset->online_info_ != nullptr;
+  }
+  return false;
 }
 
 bool AssetRepresentation::is_potentially_editable_asset_blend() const
