@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_threads.h"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"
@@ -1209,6 +1210,19 @@ bool imb_save_jp2_stream(ImBuf *ibuf, opj_stream_t *stream, int /*flags*/)
   parameters.tcp_numlayers = 1; /* only one resolution */
   parameters.cp_disto_alloc = 1;
 
+  /* Enable tiling for better multi-threaded performance on large images.
+   * Only use tiling for images >= 12 megapixels to avoid overhead on smaller images.
+   * Note: Cinema profiles override this via cinema_parameters() which sets tile_size_on = 0. */
+  constexpr int64_t megapixels_threshold = 12 * 1000 * 1000;
+  const int64_t total_pixels = int64_t(ibuf->x) * int64_t(ibuf->y);
+  if (total_pixels >= megapixels_threshold) {
+    parameters.tile_size_on = OPJ_TRUE;
+    parameters.cp_tdx = 1024;
+    parameters.cp_tdy = 1024;
+    parameters.cp_tx0 = 0;
+    parameters.cp_ty0 = 0;
+  }
+
   image = ibuftoimage(ibuf, &parameters);
 
   opj_codec_t *codec = nullptr;
@@ -1236,6 +1250,11 @@ bool imb_save_jp2_stream(ImBuf *ibuf, opj_stream_t *stream, int /*flags*/)
     /* setup the encoder parameters using the current image and using user parameters */
     if (opj_setup_encoder(codec, &parameters, image) == false) {
       goto finally;
+    }
+
+    /* Enable multi-threaded encoding for faster compression. */
+    if (!opj_codec_set_threads(codec, BLI_system_thread_count())) {
+      CLOG_WARN(&LOG, "JP2 encoder: failed to set %d threads", BLI_system_thread_count());
     }
 
     if (opj_start_compress(codec, image, stream) == false) {
