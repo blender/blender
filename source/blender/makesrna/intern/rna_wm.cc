@@ -2962,6 +2962,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_WindowManager_extensions_statusbar_update");
 
   RNA_api_wm(srna);
+  RNA_api_asset_library_loading_status(srna);
 }
 
 /* keyconfig.items */
