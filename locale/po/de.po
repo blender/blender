@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -9383,6 +9383,14 @@ msgid "Scaling (in time) of the noise"
 msgstr "Seed des Rauschens"
 
 
+msgid "Filter Width"
+msgstr "Filterbreite"
+
+
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgid "Stepped Interpolation F-Modifier"
 msgstr "Interpolationsmodus"
 
@@ -12029,20 +12037,12 @@ msgid "Adaptive Spacing"
 msgstr "Aktiv"
 
 
-msgid "Airbrush"
-msgstr "Airbrush"
-
-
 msgid "Affect Alpha"
 msgstr "Alpha beeinflussen"
 
 
 msgid "When this is disabled, lock alpha while painting"
 msgstr "Bei deaktivieren wird während des Males das Alpha gesperrt"
-
-
-msgid "Anchored"
-msgstr "Verankert"
 
 
 msgid "Connected Only"
@@ -12135,10 +12135,6 @@ msgstr "Texturüberlagerung verwenden"
 
 msgid "Show texture in viewport"
 msgstr "Textur im Anzeigefenster zeigen"
-
-
-msgid "Restore Mesh"
-msgstr "Markierungen synchronisieren"
 
 
 msgid "Spacing Distance"
@@ -12695,10 +12691,6 @@ msgstr "Zeilenabstand"
 
 msgid "Spacing between words"
 msgstr "Abstand zwischen den Wörtern"
-
-
-msgid "Textboxes"
-msgstr "Textboxen"
 
 
 msgid "Underline Thickness"
@@ -18714,6 +18706,22 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Math"
+msgstr "Mathematisch"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
 msgid "Read"
 msgstr "Lesen"
 
@@ -18726,18 +18734,6 @@ msgid "Sample"
 msgstr "Beispiel"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Instances"
-msgstr "Instanzen"
-
-
 msgid "Names"
 msgstr "Namen"
 
@@ -18746,136 +18742,64 @@ msgid "Primitives"
 msgstr "Grundkörper"
 
 
-msgid "Import"
-msgstr "Importieren"
+msgid "Clean Up"
+msgstr "Aufräumen"
 
 
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
-msgid "Kerning"
-msgstr "Kerning"
+msgid "Snap"
+msgstr "Einrasten"
 
 
-msgid "Special Characters"
-msgstr "Sonderzeichen"
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
 
 
-msgid "Math"
-msgstr "Mathematisch"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
 
 
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Hooks"
-msgstr "Haken"
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
-msgid "Convert"
-msgstr "Konvertieren"
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
+msgid "Viewpoint"
+msgstr "Ansicht"
 
 
-msgid "Asset"
-msgstr "Asset"
+msgid "Navigation"
+msgstr "Navigation"
 
 
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
+msgid "Align View"
+msgstr "Ansicht ausrichten"
 
 
-msgid "Track"
-msgstr "Spur"
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
 
 
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Keying"
-msgstr "Schlüsselbilder"
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
 
 
-msgid "Tracking"
-msgstr "Verfolgen"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Select Similar"
@@ -18894,48 +18818,116 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
+msgid "Assign Material"
+msgstr "Material zuweisen"
 
 
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
+msgid "Keying"
+msgstr "Schlüsselbilder"
 
 
-msgid "Navigation"
-msgstr "Navigation"
+msgid "Tracking"
+msgstr "Verfolgen"
 
 
-msgid "Align View"
-msgstr "Ansicht ausrichten"
+msgid "Light"
+msgstr "Licht"
 
 
-msgid "Local View"
-msgstr "Lokale Ansicht"
+msgid "Light Probe"
+msgstr "Lichtsonde"
 
 
-msgid "Viewpoint"
-msgstr "Ansicht"
+msgid "Add Image"
+msgstr "Bild hinzufügen"
 
 
-msgid "Snap"
-msgstr "Einrasten"
+msgid "Relations"
+msgstr "Beziehungen"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
-msgid "Pivot Point"
-msgstr "Drehpunkt"
+msgid "Apply"
+msgstr "Anwenden"
 
 
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
+msgid "Track"
+msgstr "Spur"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Import"
+msgstr "Importieren"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Assets"
@@ -29200,14 +29192,6 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Drehpunkt um den Mittelpunkt der ausgewählten Objekte"
 
 
-msgid "Filter Width"
-msgstr "Filterbreite"
-
-
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "Geisterkurven löschen"
@@ -38887,84 +38871,84 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "Overlays"
-msgstr "Überlagerungen"
-
-
-msgid "Compositor"
-msgstr "Setzer"
-
-
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
 
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
-
-
-msgid "Cavity"
-msgstr "Hohlraum"
+msgid "View Lock"
+msgstr "Ansicht sperren"
 
 
 msgid "Shadow Settings"
 msgstr "Schatteneinstellungen"
 
 
-msgid "View Lock"
-msgstr "Ansicht sperren"
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Cavity"
+msgstr "Hohlraum"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
+msgid "Compositor"
+msgstr "Setzer"
+
+
+msgid "Overlays"
+msgstr "Überlagerungen"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -44095,10 +44079,6 @@ msgid "Snap to current frame"
 msgstr "Am aktuellen Einzelbild einrasten"
 
 
-msgid "Hold Offset"
-msgstr "Versatz halten"
-
-
 msgid "Markers"
 msgstr "Marker"
 
@@ -45569,10 +45549,6 @@ msgid "Stereo Mode"
 msgstr "Stereomodus"
 
 
-msgid "Y position of the sequence strip"
-msgstr "Y-Position des Sequenzstreifens"
-
-
 msgid "Strip Color"
 msgstr "Streifenfarbe"
 
@@ -45987,10 +45963,6 @@ msgstr "Name des Schlitzes"
 
 msgid "Text Box"
 msgstr "Textbox"
-
-
-msgid "Textbox X Offset"
-msgstr "Textbox-X-Versatz"
 
 
 msgid "Spacing between characters"
@@ -54381,16 +54353,16 @@ msgid "%d items"
 msgstr "%d Gegenstände"
 
 
-msgid "Color Space: "
-msgstr "Farbraum: "
-
-
 msgid "Value:"
 msgstr "Wert:"
 
 
 msgid "Hex"
 msgstr "Hex"
+
+
+msgid "Color Space: "
+msgstr "Farbraum: "
 
 
 msgid "Lightness"
@@ -54827,10 +54799,6 @@ msgstr "Heute"
 
 msgid "Yesterday"
 msgstr "Gestern"
-
-
-msgid "Modified"
-msgstr "Modifizieren"
 
 
 msgid "Anim Player"
@@ -55771,16 +55739,16 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Fehlende%s%s%s%s gefunden!"
 
 
-msgid "Palette created"
-msgstr "Palette erstellt"
-
-
 msgid "Mirror group is locked, aborting"
 msgstr "Spiegel Gruppe ist gesperrt, abbrechen"
 
 
 msgid "Multipaint group is locked, aborting"
 msgstr "Mulitfarben Gruppe ist gesperrt, abbrechen"
+
+
+msgid "Palette created"
+msgstr "Palette erstellt"
 
 
 msgid "Active F-Curve"
@@ -58056,6 +58024,10 @@ msgstr "Ausführung erlauben"
 
 msgid "Don't Save"
 msgstr "Nicht speichern"
+
+
+msgid "Modified"
+msgstr "Modifizieren"
 
 
 msgid "Reload file with execution of Python scripts enabled"

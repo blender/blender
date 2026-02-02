@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2026-01-21 22:54+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -13897,6 +13897,14 @@ msgid "Use the legacy way of generating noise. Has the issue that it can produce
 msgstr "Utiliser l’ancienne manière de générer du bruit. Présente un problème pouvant produire des valeurs hors de la plage -1; 1"
 
 
+msgid "Filter Width"
+msgstr "Largeur du filtre"
+
+
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgid "Stepped Interpolation F-Modifier"
 msgstr "F-modificateur Interpolation en escalier"
 
@@ -20578,20 +20586,12 @@ msgid "Space daubs according to surface orientation instead of screen space"
 msgstr "Espacer les applications d’après l’orientation de la surface, au lieu de l’espace écran"
 
 
-msgid "Airbrush"
-msgstr "Aérographe"
-
-
 msgid "Affect Alpha"
 msgstr "Affecter l’alpha"
 
 
 msgid "When this is disabled, lock alpha while painting"
 msgstr "Si désactivé, verrouiller l’alpha pendant la peinture"
-
-
-msgid "Anchored"
-msgstr "Ancré"
 
 
 msgid "Mesh Boundary Auto-Masking"
@@ -20712,10 +20712,6 @@ msgstr "Écraser la surimpression"
 
 msgid "Don't show overlay during a stroke"
 msgstr "Ne pas afficher la surimpression durant un trait"
-
-
-msgid "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing."
-msgstr "Définir la courbe de trait d’après une courbe de Bézier (les coups de pinceau sont espacés selon cet espacement)."
 
 
 msgid "Use Pressure for Density"
@@ -20980,14 +20976,6 @@ msgstr "Utiliser la surimpression de texture"
 
 msgid "Show texture in viewport"
 msgstr "Afficher la texture dans la vue 3D"
-
-
-msgid "Restore Mesh"
-msgstr "Restaurer le maillage"
-
-
-msgid "Allow a single dot to be carefully positioned"
-msgstr "Permettre à un simple point d’être positionné précisément"
 
 
 msgid "Spacing Distance"
@@ -22429,10 +22417,6 @@ msgid "Vertical offset from the object origin"
 msgstr "Décalage vertical depuis l’origine de l’objet"
 
 
-msgid "Textbox Overflow"
-msgstr "Débordement des boîtes de texte"
-
-
 msgid "Handle the text behavior when it does not fit in the text boxes"
 msgstr "Définit le comportement du texte quand il ne tient pas dans les boîtes de texte"
 
@@ -22491,10 +22475,6 @@ msgstr "Distance entre les lignes de texte"
 
 msgid "Spacing between words"
 msgstr "Espacement entre les mots"
-
-
-msgid "Textboxes"
-msgstr "Boîtes de texte"
 
 
 msgid "Underline Thickness"
@@ -29911,10 +29891,6 @@ msgid "Show Installed Extensions"
 msgstr "Afficher les extensions installées"
 
 
-msgid "Only show installed extensions"
-msgstr "N’afficher que les extensions installées"
-
-
 msgid "Extension Tags"
 msgstr "Étiquettes d’extensions"
 
@@ -34951,6 +34927,22 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
+
+
 msgid "Read"
 msgstr "Lecture"
 
@@ -34963,26 +34955,6 @@ msgid "Sample"
 msgstr "Échantillonner"
 
 
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
-
-
-msgid "Clean Up"
-msgstr "Nettoyer"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
-
-
 msgid "Names"
 msgstr "Noms"
 
@@ -34991,200 +34963,84 @@ msgid "Primitives"
 msgstr "Primitives"
 
 
-msgid "Import"
-msgstr "Importer"
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
 
 
-msgid "Metaball"
-msgstr "Métaballe"
+msgid "Clean Up"
+msgstr "Nettoyer"
 
 
-msgid "Kerning"
-msgstr "Approche"
+msgid "Pivot Point"
+msgstr "Point de pivot"
 
 
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
+msgid "Snap"
+msgstr "Aimanter"
 
 
-msgid "Utilities"
-msgstr "Utilitaires"
+msgid "Proportional Editing Falloff"
+msgstr "Atténuation de l’édition proportionnelle"
 
 
-msgid "Deprecated"
-msgstr "Obsolète"
-
-
-msgid "List"
-msgstr "Liste"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Merge"
-msgstr "Fusionner"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Select by Face Strength"
-msgstr "Sélectionner par force de face"
-
-
-msgid "Set Face Strength"
-msgstr "Définir la force de face"
-
-
-msgid "Face Data"
-msgstr "Données de face"
-
-
-msgid "Rigid Body"
-msgstr "Corps rigide"
-
-
-msgid "Enable Bone Options"
-msgstr "Activer des options d’os"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mode de sélection du maillage"
-
-
-msgid "Disable Bone Options"
-msgstr "Désactiver des options d’os"
-
-
-msgid "Toggle Bone Options"
-msgstr "(Dés)activer des options d’os"
-
-
-msgid "Apply"
-msgstr "Appliquer"
-
-
-msgid "Bone Collections"
-msgstr "Collections d’os"
-
-
-msgid "Clear Transform"
-msgstr "Réinitialiser la transformation"
-
-
-msgid "Propagate"
-msgstr "Propager"
-
-
-msgid "In-Betweens"
-msgstr "Intervalles"
-
-
-msgid "Random Mask"
-msgstr "Masque aléatoire"
-
-
-msgid "Vertex Group Locks"
-msgstr "Verrouillages des groupes de sommets"
-
-
-msgid "Face Sets Init"
-msgstr "Initialiser les ensembles de faces"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Définir le pivot pour la sculpture"
-
-
-msgid "Trim/Add"
-msgstr "Découper/Ajouter"
-
-
-msgid "Hooks"
-msgstr "Crochets"
-
-
-msgid "Link/Transfer Data"
-msgstr "Lier/transférer des données"
-
-
-msgid "Convert"
-msgstr "Convertir"
-
-
-msgid "Make Single User"
-msgstr "Rendre mono-utilisateur"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Quick Effects"
-msgstr "Effets rapides"
-
-
-msgid "Track"
-msgstr "Suivi"
-
-
-msgid "Add Image"
-msgstr "Ajouter une image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Layout"
-msgstr "Disposition"
-
-
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
+msgid "Mask Edit"
+msgstr "Édition du masque"
 
 
 msgid "Automasking"
 msgstr "Masquage auto"
 
 
-msgid "Assign Material"
-msgstr "Assigner un matériau"
+msgid "Face Sets Edit"
+msgstr "Édition des ensembles de faces"
 
 
-msgid "Adjust"
-msgstr "Ajuster"
+msgid "Vertex Group Locks"
+msgstr "Verrouillages des groupes de sommets"
 
 
-msgid "Light"
-msgstr "Éclairage"
+msgid "Mirror"
+msgstr "Miroir"
 
 
-msgid "Keying"
-msgstr "Incrustation"
+msgid "UV Mapping"
+msgstr "Placage UV"
+
+
+msgid "Local View"
+msgstr "Vue locale"
+
+
+msgid "Viewpoint"
+msgstr "Point de vue"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Aligner la vue"
+
+
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
+
+
+msgid "View Regions"
+msgstr "Régions dans la vue"
 
 
 msgid "Select More/Less"
 msgstr "Sélectionner plus ou moins"
 
 
-msgid "Tracking"
-msgstr "Suivi"
+msgid "Layout"
+msgstr "Disposition"
 
 
 msgid "Select Similar"
 msgstr "Sélectionner similaires"
-
-
-msgid "Creative"
-msgstr "Créatif"
 
 
 msgid "Select All by Trait"
@@ -35199,56 +35055,176 @@ msgid "Select Loops"
 msgstr "Sélectionner les boucles"
 
 
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
 
 
-msgid "View Regions"
-msgstr "Régions dans la vue"
+msgid "Adjust"
+msgstr "Ajuster"
 
 
-msgid "Navigation"
-msgstr "Navigation"
+msgid "Assign Material"
+msgstr "Assigner un matériau"
 
 
-msgid "Align View"
-msgstr "Aligner la vue"
+msgid "Keying"
+msgstr "Incrustation"
 
 
-msgid "Local View"
-msgstr "Vue locale"
+msgid "Tracking"
+msgstr "Suivi"
 
 
-msgid "Viewpoint"
-msgstr "Point de vue"
+msgid "Utilities"
+msgstr "Utilitaires"
 
 
-msgid "UV Mapping"
-msgstr "Placage UV"
+msgid "Creative"
+msgstr "Créatif"
 
 
-msgid "Snap"
-msgstr "Aimanter"
+msgid "Light"
+msgstr "Éclairage"
 
 
-msgid "Mirror"
-msgstr "Miroir"
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
 
 
-msgid "Face Sets Edit"
-msgstr "Édition des ensembles de faces"
+msgid "Add Image"
+msgstr "Ajouter une image"
 
 
-msgid "Pivot Point"
-msgstr "Point de pivot"
+msgid "Relations"
+msgstr "Relations"
 
 
-msgid "Mask Edit"
-msgstr "Édition du masque"
+msgid "Rigid Body"
+msgstr "Corps rigide"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Atténuation de l’édition proportionnelle"
+msgid "Apply"
+msgstr "Appliquer"
+
+
+msgid "Track"
+msgstr "Suivi"
+
+
+msgid "Quick Effects"
+msgstr "Effets rapides"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Rendre mono-utilisateur"
+
+
+msgid "Convert"
+msgstr "Convertir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Lier/transférer des données"
+
+
+msgid "Hooks"
+msgstr "Crochets"
+
+
+msgid "Trim/Add"
+msgstr "Découper/Ajouter"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Définir le pivot pour la sculpture"
+
+
+msgid "Face Sets Init"
+msgstr "Initialiser les ensembles de faces"
+
+
+msgid "Random Mask"
+msgstr "Masque aléatoire"
+
+
+msgid "Clear Transform"
+msgstr "Réinitialiser la transformation"
+
+
+msgid "In-Betweens"
+msgstr "Intervalles"
+
+
+msgid "Propagate"
+msgstr "Propager"
+
+
+msgid "Bone Collections"
+msgstr "Collections d’os"
+
+
+msgid "Toggle Bone Options"
+msgstr "(Dés)activer des options d’os"
+
+
+msgid "Enable Bone Options"
+msgstr "Activer des options d’os"
+
+
+msgid "Disable Bone Options"
+msgstr "Désactiver des options d’os"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mode de sélection du maillage"
+
+
+msgid "Face Data"
+msgstr "Données de face"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Select by Face Strength"
+msgstr "Sélectionner par force de face"
+
+
+msgid "Set Face Strength"
+msgstr "Définir la force de face"
+
+
+msgid "Import"
+msgstr "Importer"
+
+
+msgid "Merge"
+msgstr "Fusionner"
+
+
+msgid "Deprecated"
+msgstr "Obsolète"
+
+
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "List"
+msgstr "Liste"
 
 
 msgid "Keyframe Insert Pie"
@@ -44930,12 +44906,12 @@ msgid "The kinds of messages that should be propagated from this node to the par
 msgstr "Types de messages devant être propagés depuis ce nœud vers le nœud groupe parent"
 
 
-msgid "Errors"
-msgstr "Erreurs"
-
-
 msgid "Errors and Warnings"
 msgstr "Erreurs et avertissements"
+
+
+msgid "Errors"
+msgstr "Erreurs"
 
 
 msgid "Width of the node"
@@ -53486,11 +53462,6 @@ msgstr "Installer depuis le disque"
 
 
 msgctxt "Operator"
-msgid "Ext Package Install_marked"
-msgstr "Ext. : installer paquets marqués"
-
-
-msgctxt "Operator"
 msgid "Clear Marked Package"
 msgstr "Dé-marquer le paquet"
 
@@ -53534,10 +53505,6 @@ msgid "Show Settings"
 msgstr "Afficher les réglages"
 
 
-msgid "Turn off this theme"
-msgstr "Désactiver ce thème"
-
-
 msgctxt "Operator"
 msgid "Disable theme extension"
 msgstr "Désactiver l’extension de thème"
@@ -53567,10 +53534,6 @@ msgid "Uninstall"
 msgstr "Désinstaller"
 
 
-msgid "Upgrade all the extensions to their latest version for all the remote repositories"
-msgstr "Mettre à jour toutes les extensions vers leur dernière version, pour tous les dépôts distants"
-
-
 msgctxt "Operator"
 msgid "Install Available Updates"
 msgstr "Installer les mises à jour disponibles"
@@ -53588,10 +53551,6 @@ msgstr "Verrouiller les dépôts pour tester le verrouillage"
 msgctxt "Operator"
 msgid "Lock All Repositories (Testing)"
 msgstr "Verrouiller tous les dépôts (pour test)"
-
-
-msgid "Scan extension & legacy add-ons for changes to modules & meta-data (similar to restarting). Any issues are reported as warnings"
-msgstr "Rechercher les changements de modules et métadonnées dans les extensions et add-ons hérités (similaire à un redémarrage). Les problèmes seront signalés en avertissements"
 
 
 msgctxt "Operator"
@@ -62772,12 +62731,12 @@ msgid "Path to install legacy add-on packages to"
 msgstr "Chemin dans lequel installer des paquets d’add-on (héritage)"
 
 
-msgid "Only sync the active repository"
-msgstr "Ne synchroniser que le dépôt actif"
-
-
 msgid "Only refresh the active repository"
 msgstr "Ne rafraîchir que le dépôt actif"
+
+
+msgid "Only sync the active repository"
+msgstr "Ne synchroniser que le dépôt actif"
 
 
 msgid "Enable or disable all tags"
@@ -64383,16 +64342,8 @@ msgid "Smooth the curve using a Gaussian filter"
 msgstr "Adoucir la courbe en utilisant un filtre gaussien"
 
 
-msgid "Filter Width"
-msgstr "Largeur du filtre"
-
-
 msgid "How far to each side the operator will average the key values"
 msgstr "À quelle distance chaque côté l’opérateur va moyenner les valeurs des clés"
-
-
-msgid "Sigma"
-msgstr "Sigma"
 
 
 msgid "The shape of the gaussian distribution, lower values make it sharper"
@@ -83305,14 +83256,6 @@ msgid "Set speed of retimed segment"
 msgstr "Définir la vitesse du segment reminuté"
 
 
-msgid "Preserve Current Retiming"
-msgstr "Conserver le reminutage actuel"
-
-
-msgid "Keep speed of other segments unchanged, change strip length instead"
-msgstr "Ne pas toucher à la vitesse des autres segments, mais changer la durée de la bande"
-
-
 msgid "New speed of retimed segment"
 msgstr "Nouvelle vitesse du segment reminuté"
 
@@ -91554,16 +91497,72 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
-msgid "Auto-Masking"
-msgstr "Masquage auto"
+msgid "Active Tool"
+msgstr "Outil actif"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "View Lock"
+msgstr "Verrouillage de la vue"
 
 
-msgid "VR Info"
-msgstr "Infos VR"
+msgid "Selectability & Visibility"
+msgstr "Sélectionnabilité et visibilité"
+
+
+msgid "Wireframe Color"
+msgstr "Couleur des filaires"
+
+
+msgid "Shadow Settings"
+msgstr "Réglages d’ombre"
+
+
+msgid "SSAO Settings"
+msgstr "Réglages de SSAO"
+
+
+msgid "Cavity"
+msgstr "Cavité"
+
+
+msgid "Render Pass"
+msgstr "Passe de rendu"
+
+
+msgid "Compositor"
+msgstr "Compositing"
+
+
+msgid "Overlays"
+msgstr "Surimpressions"
+
+
+msgid "Guides"
+msgstr "Guides"
+
+
+msgid "Viewer Node"
+msgstr "Nœud visualiseur"
+
+
+msgid "Motion Tracking"
+msgstr "Suivi de mouvement (motion tracking)"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mode édition maillage"
+
+
+msgid "Measurement"
+msgstr "Mesure"
+
+
+msgid "Curve Edit Mode"
+msgstr "Mode édition courbe"
+
+
+msgid "Curves Edit Mode"
+msgstr "Mode édition courbes"
 
 
 msgid "glTF Variants"
@@ -91574,20 +91573,32 @@ msgid "glTF Material Variants"
 msgstr "Variantes de matériaux glTF"
 
 
-msgid "Viewport Debug"
-msgstr "Débugage vue 3D"
+msgid "Transform Orientations"
+msgstr "Orientations de transformation"
 
 
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Courbes – échelle pour grandir/raccourcir"
+msgid "Stroke Placement"
+msgstr "Placement de trait"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Sculpture courbes – atténuation le long de la courbe"
+msgid "Drawing Plane"
+msgstr "Plan de dessin"
 
 
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Sculpture courbes – options d’ajout de courbe"
+msgid "Grease Pencil Options"
+msgstr "Options du Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "Vue quadrants"
+
+
+msgid "Onion Skin"
+msgstr "Pelures d’oignon"
+
+
+msgid "Stereoscopy"
+msgstr "Stéréoscopie"
 
 
 msgid "glTF"
@@ -91602,100 +91613,32 @@ msgid "Multi Frame"
 msgstr "Multi-frames"
 
 
-msgid "Stereoscopy"
-msgstr "Stéréoscopie"
+msgid "Auto-Masking"
+msgstr "Masquage auto"
 
 
-msgid "Onion Skin"
-msgstr "Pelures d’oignon"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Sculpture courbes – options d’ajout de courbe"
 
 
-msgid "Quad View"
-msgstr "Vue quadrants"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Sculpture courbes – atténuation le long de la courbe"
 
 
-msgid "Grease Pencil Options"
-msgstr "Options du Grease Pencil"
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Courbes – échelle pour grandir/raccourcir"
 
 
-msgid "Guides"
-msgstr "Guides"
+msgid "Viewport Debug"
+msgstr "Débugage vue 3D"
 
 
-msgid "Stroke Placement"
-msgstr "Placement de trait"
+msgid "VR"
+msgstr "VR"
 
 
-msgid "Drawing Plane"
-msgstr "Plan de dessin"
-
-
-msgid "Transform Orientations"
-msgstr "Orientations de transformation"
-
-
-msgid "Curves Edit Mode"
-msgstr "Mode édition courbes"
-
-
-msgid "Curve Edit Mode"
-msgstr "Mode édition courbe"
-
-
-msgid "Measurement"
-msgstr "Mesure"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mode édition maillage"
-
-
-msgid "Viewer Node"
-msgstr "Nœud visualiseur"
-
-
-msgid "Motion Tracking"
-msgstr "Suivi de mouvement (motion tracking)"
-
-
-msgid "Overlays"
-msgstr "Surimpressions"
-
-
-msgid "Compositor"
-msgstr "Compositing"
-
-
-msgid "Active Tool"
-msgstr "Outil actif"
-
-
-msgid "SSAO Settings"
-msgstr "Réglages de SSAO"
-
-
-msgid "Render Pass"
-msgstr "Passe de rendu"
-
-
-msgid "Cavity"
-msgstr "Cavité"
-
-
-msgid "Shadow Settings"
-msgstr "Réglages d’ombre"
-
-
-msgid "Wireframe Color"
-msgstr "Couleur des filaires"
-
-
-msgid "Selectability & Visibility"
-msgstr "Sélectionnabilité et visibilité"
-
-
-msgid "View Lock"
-msgstr "Verrouillage de la vue"
+msgid "VR Info"
+msgstr "Infos VR"
 
 
 msgid "Import Settings"
@@ -96889,10 +96832,6 @@ msgstr "Identificateur de culture : be. Progrès de la traduction : 0%"
 
 msgid "Bulgarian - Български"
 msgstr "Bulgare - Български"
-
-
-msgid "Locale code: bg_BG. Translation progress: 2%"
-msgstr "Identificateur de culture : bg_BG. Progrès de la traduction : 2%"
 
 
 msgid "Catalan - Català"
@@ -104026,14 +103965,6 @@ msgid "Snap to preview or scene start and end frame"
 msgstr "Aimanter aux frames de début et de fin de scène ou de prévisualisation"
 
 
-msgid "Hold Offset"
-msgstr "Décalage d’animation"
-
-
-msgid "Snap to strip hold offsets"
-msgstr "Aimanter aux décalages de l’animation des bandes"
-
-
 msgid "Markers"
 msgstr "Marqueurs"
 
@@ -107878,10 +107809,6 @@ msgid "String value in geometry attribute"
 msgstr "Valeur de chaîne de caractères dans un attribut de géométrie"
 
 
-msgid "Sequence strip in the sequence editor"
-msgstr "Bande de séquence dans l’éditeur de séquences"
-
-
 msgid "Blend Opacity"
 msgstr "Opacité de mélange"
 
@@ -108029,10 +107956,6 @@ msgid "Gamma Cross"
 msgstr "Fondu gamma"
 
 
-msgid "Y position of the sequence strip"
-msgstr "Position Y de la bande de séquence"
-
-
 msgid "Strip Color"
 msgstr "Couleur de bande"
 
@@ -108079,10 +108002,6 @@ msgstr "Verrouiller la bande de façon qu’elle ne puisse plus être transform�
 
 msgid "Modifiers affecting this strip"
 msgstr "Modificateurs affectant cette bande"
-
-
-msgid "Disable strip so that it cannot be viewed in the output"
-msgstr "Désactiver la bande afin qu’elle ne soit pas visible dans la sortie"
 
 
 msgid "Left Handle Selected"
@@ -108786,10 +108705,6 @@ msgid "Sound Offset"
 msgstr "Décalage du son"
 
 
-msgid "Offset of the sound from the beginning of the strip, expressed in seconds"
-msgstr "Décalage du son depuis le début de la bande, en secondes"
-
-
 msgid "Strip Color Balance Data"
 msgstr "Données de balance des couleurs de la bande"
 
@@ -109414,22 +109329,6 @@ msgstr "Boîte de texte"
 
 msgid "Text bounding box for layout"
 msgstr "Boîte englobante de texte pour la mise en page"
-
-
-msgid "Textbox Height"
-msgstr "Hauteur de la boîte de texte"
-
-
-msgid "Textbox Width"
-msgstr "Largeur de la boîte de texte"
-
-
-msgid "Textbox X Offset"
-msgstr "Décalage en X de la boîte de texte"
-
-
-msgid "Textbox Y Offset"
-msgstr "Décalage en Y de la boîte de texte"
 
 
 msgid "Text Character Format"
@@ -118511,14 +118410,6 @@ msgid "Disabling themes is not yet supported"
 msgstr "Impossible de désactiver les thèmes pour le moment"
 
 
-msgid "Locked {:d} repos(s)"
-msgstr "Verrouillé {:d} dépôt(s)"
-
-
-msgid "Unlocked {:d} repos(s)"
-msgstr "Déverrouillé {:d} dépôt(s)"
-
-
 msgid "Active repository is disabled"
 msgstr "Le dépôt actif est désactivé"
 
@@ -118537,10 +118428,6 @@ msgstr "Mettre à jour toutes les extensions vers leur dernière version, pour l
 
 msgid "No installed packages to update"
 msgstr "Aucun paquet installé à mettre à jour"
-
-
-msgid "No uninstalled packages marked"
-msgstr "Aucun paquet non-installé marqué"
 
 
 msgid "No installed packages marked"
@@ -118593,10 +118480,6 @@ msgstr "La mise à jour n’est pas prise en charge pour les dépôt locaux"
 
 msgid "No user repositories"
 msgstr "Aucun dépôt utilisateur"
-
-
-msgid "Error in manifest {:s}"
-msgstr "Erreur dans le manifeste {:s}"
 
 
 msgid "Online access required to install or update. Launch Blender without --offline-mode"
@@ -118945,10 +118828,6 @@ msgstr "Recherche des mises à jour d’extensions{:s}"
 
 msgid "All Extensions Up-to-date{:s}"
 msgstr "Toutes les extensions sont à jour{:s}"
-
-
-msgid "Extensions Updates Available ({:d}){:s}"
-msgstr "Mises à jour d’extensions disponibles ({:d}){:s}"
 
 
 msgid "Demo"
@@ -124147,20 +124026,8 @@ msgid "Undistorted Clip"
 msgstr "Clip dé-distordu"
 
 
-msgid "Strip Offset Start"
-msgstr "Décalage de la bande, début"
-
-
-msgid "Hold Offset Start"
-msgstr "Décalage de l’anim, début"
-
-
 msgid "Effect Fader"
 msgstr "Fondu d’effet"
-
-
-msgid "Original Frame Range"
-msgstr "Intervalle de frames original"
 
 
 msgid "Pan Angle"
@@ -127096,14 +126963,6 @@ msgid "A restart of Blender is required"
 msgstr "Un redémarrage de Blender est requis"
 
 
-msgid "Current Vulkan backend limitations:"
-msgstr "Limitations actuelles du dorsal Vulkan :"
-
-
-msgid "• Low performance in VR"
-msgstr "• Faibles performances en VR"
-
-
 msgid "Open blend files with this Blender version"
 msgstr "Ouvrir les fichiers .blend avec cette version de Blender"
 
@@ -127169,6 +127028,10 @@ msgstr "URL du dépôt"
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Activer l’add-on Moteur de rendu Cycles pour utiliser Cycles"
+
+
+msgid "Current Vulkan backend limitations:"
+msgstr "Limitations actuelles du dorsal Vulkan :"
 
 
 msgid "• Windows on ARM requires driver 31.0.112.0 or higher"
@@ -133227,10 +133090,6 @@ msgid "%d items"
 msgstr "%d éléments"
 
 
-msgid "Color Space: "
-msgstr "Espace de couleur: "
-
-
 msgid "Perceptual"
 msgstr "Perceptuel"
 
@@ -133269,6 +133128,10 @@ msgstr "Alpha:"
 
 msgid "Hex"
 msgstr "Hexa"
+
+
+msgid "Color Space: "
+msgstr "Espace de couleur: "
 
 
 msgid "Scene linear values in the working color space"
@@ -133315,16 +133178,16 @@ msgid "Unsupported context"
 msgstr "Contexte non pris en charge"
 
 
-msgid "Internal error!"
-msgstr "Erreur interne !"
-
-
 msgid "Shortcut: {}"
 msgstr "Raccourci : {}"
 
 
 msgid "Python: {}"
 msgstr "Python : {}"
+
+
+msgid "Internal error!"
+msgstr "Erreur interne !"
 
 
 msgid "Shortcut Cycle: {}"
@@ -134171,10 +134034,6 @@ msgstr "Aujourd’hui"
 
 msgid "Yesterday"
 msgstr "Hier"
-
-
-msgid "Modified"
-msgstr "Modifié"
 
 
 msgid "Anim Player"
@@ -137226,10 +137085,6 @@ msgid "Tracing image..."
 msgstr "Traçage de l’image…"
 
 
-msgid "PaintCurve"
-msgstr "Courbe de peinture"
-
-
 msgid "Packed MultiLayer files cannot be painted"
 msgstr "Les fichiers multicouches empaquetés ne peuvent pas être peints"
 
@@ -137296,26 +137151,6 @@ msgstr "Impossible de créer un tampon OpenGL hors-écran : %s"
 
 msgid "Missing%s%s%s%s detected!"
 msgstr "%s%s%s%s manquants détectés !"
-
-
-msgid "Palette created"
-msgstr "Palette créée"
-
-
-msgid "Sample color for %s"
-msgstr "Échantillonner la couleur pour %s"
-
-
-msgid "Brush. Use Left Click to sample for palette instead"
-msgstr "Brosse. Utiliser le clic gauche pour échantillonner la palette"
-
-
-msgid "Palette. Use Left Click to sample more colors"
-msgstr "Palette. Utiliser le clic gauche pour échantillonner plus de couleurs"
-
-
-msgid "Sampling color for palette"
-msgstr "Échantillonnage d’une couleur pour la palette"
 
 
 msgid "The modifier used does not support deformed locations"
@@ -137464,6 +137299,30 @@ msgstr "Solveur booléen indisponible (compilé sans)"
 
 msgid "Unknown boolean error"
 msgstr "Erreur inconnue du solveur booléen"
+
+
+msgid "PaintCurve"
+msgstr "Courbe de peinture"
+
+
+msgid "Palette created"
+msgstr "Palette créée"
+
+
+msgid "Sample color for %s"
+msgstr "Échantillonner la couleur pour %s"
+
+
+msgid "Brush. Use Left Click to sample for palette instead"
+msgstr "Brosse. Utiliser le clic gauche pour échantillonner la palette"
+
+
+msgid "Palette. Use Left Click to sample more colors"
+msgstr "Palette. Utiliser le clic gauche pour échantillonner plus de couleurs"
+
+
+msgid "Sampling color for palette"
+msgstr "Échantillonnage d’une couleur pour la palette"
 
 
 msgid "Compiled without sound support"
@@ -137895,6 +137754,18 @@ msgid "File path"
 msgstr "Chemin de fichier"
 
 
+msgid "This file is offline"
+msgstr "Ce fichier est hors ligne"
+
+
+msgid "This file is read-only"
+msgstr "Ce fichier est en lecture seule"
+
+
+msgid "This is a restricted system file"
+msgstr "Fichier système restreint d’accès"
+
+
 msgid "The five boxing wizards jump quickly! 0123456789"
 msgstr "Portez ce vieux whisky au juge blond qui fume ! 0123456789"
 
@@ -137913,30 +137784,6 @@ msgstr ""
 
 msgid "Unreadable Blender library file:"
 msgstr "Fichier bibliothèque Blender illisible :"
-
-
-msgid "Link target"
-msgstr "Cible du lien"
-
-
-msgid "This file is offline"
-msgstr "Ce fichier est hors ligne"
-
-
-msgid "This file is read-only"
-msgstr "Ce fichier est en lecture seule"
-
-
-msgid "This is a restricted system file"
-msgstr "Fichier système restreint d’accès"
-
-
-msgid "seconds"
-msgstr "secondes"
-
-
-msgid "bytes"
-msgstr "octets"
 
 
 msgid "Could not rename: %s"
@@ -140328,10 +140175,6 @@ msgid "Leaf Voxels"
 msgstr "Voxels feuilles"
 
 
-msgid "Extent"
-msgstr "Étendue"
-
-
 msgid "(Geometry)"
 msgstr "(Géométrie)"
 
@@ -140346,6 +140189,10 @@ msgstr "Aucun contexte actif"
 
 msgid "Viewer Data"
 msgstr "Données du visualiseur"
+
+
+msgid "bytes"
+msgstr "octets"
 
 
 msgid ""
@@ -146907,6 +146754,26 @@ msgid "Points to compute the convex hull of"
 msgstr "Points desquels calculer la coque convexe"
 
 
+msgid "Bounding box volume must be greater than 0"
+msgstr "Le volume de la boîte englobante doit être supérieur à 0"
+
+
+msgid "Volume scale is lower than permitted by OpenVDB"
+msgstr "L’échelle du volume est inférieure à celle permise par OpenVDB"
+
+
+msgid "Number of voxels in the X axis"
+msgstr "Nombre de voxels dans l’axe X"
+
+
+msgid "Number of voxels in the Y axis"
+msgstr "Nombre de voxels dans l’axe Y"
+
+
+msgid "Number of voxels in the Z axis"
+msgstr "Nombre de voxels dans l’axe Z"
+
+
 msgid "Start Size"
 msgstr "Nombre début"
 
@@ -147840,6 +147707,14 @@ msgstr "Transformation depuis l’espace indice de grille vers l’espace objet"
 
 msgid "Default value outside of grid voxels"
 msgstr "Valeur par défaut en dehors des voxels de la grille"
+
+
+msgid "Filter kernel radius in voxels"
+msgstr "Rayon du noyau du filtre en voxels"
+
+
+msgid "Number of iterations to apply the filter"
+msgstr "Nombre d’itérations duquel appliquer le filtre"
 
 
 msgid "Turn inactive voxels and tiles into inactive background tiles"
@@ -149121,14 +148996,6 @@ msgid "Grid 2"
 msgstr "Grille 2"
 
 
-msgid "Number of iterations to apply the filter"
-msgstr "Nombre d’itérations duquel appliquer le filtre"
-
-
-msgid "Filter kernel radius in voxels"
-msgstr "Rayon du noyau du filtre en voxels"
-
-
 msgid "Object-space distance to offset the SDF surface"
 msgstr "Distance en espace objet de laquelle décaler la surface SDF"
 
@@ -149426,10 +149293,6 @@ msgid "Invalid transformation for volume grids"
 msgstr "Transformation invalide pour les grilles de volume"
 
 
-msgid "Volume scale is lower than permitted by OpenVDB"
-msgstr "L’échelle du volume est inférieure à celle permise par OpenVDB"
-
-
 msgid "Components"
 msgstr "Composants"
 
@@ -149574,10 +149437,6 @@ msgid "Resolution must be greater than 1"
 msgstr "La résolution doit être supérieure à 1"
 
 
-msgid "Bounding box volume must be greater than 0"
-msgstr "Le volume de la boîte englobante doit être supérieur à 0"
-
-
 msgid "Volume density per voxel"
 msgstr "Densité de volume par voxel"
 
@@ -149592,18 +149451,6 @@ msgstr "Limite minimum du volume"
 
 msgid "Maximum boundary of volume"
 msgstr "Limite maximum du volume"
-
-
-msgid "Number of voxels in the X axis"
-msgstr "Nombre de voxels dans l’axe X"
-
-
-msgid "Number of voxels in the Y axis"
-msgstr "Nombre de voxels dans l’axe Y"
-
-
-msgid "Number of voxels in the Z axis"
-msgstr "Nombre de voxels dans l’axe Z"
 
 
 msgctxt "Countable"
@@ -151313,6 +151160,10 @@ msgstr "Enregistrer sous…"
 
 msgid "Don't Save"
 msgstr "Ne pas enregistrer"
+
+
+msgid "Modified"
+msgstr "Modifié"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"
@@ -153729,6 +153580,14 @@ msgid "Choose child instances each element instead of instancing the entire geom
 msgstr "Choisir les instances enfants pour chaque élément au lieu d’instancier la géométrie entière"
 
 
+msgid "Reset Transform"
+msgstr "Réinitialiser la transformation"
+
+
+msgid "Reset the transforms of each individual child instance"
+msgstr "Réinitialiser les transformations de chaque instance enfant"
+
+
 msgid "Scale the instances on each local axis"
 msgstr "Redimensionner les instances sur chaque axe local"
 
@@ -154007,14 +153866,6 @@ msgstr "Redimensionner les instances aléatoirement pour chaque axe"
 
 msgid "Randomize Seed"
 msgstr "Graine pour aléatoire"
-
-
-msgid "Reset Transform"
-msgstr "Réinitialiser la transformation"
-
-
-msgid "Reset the transforms of each individual child instance"
-msgstr "Réinitialiser les transformations de chaque instance enfant"
 
 
 msgid "Scale of the instances on each local axis"

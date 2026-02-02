@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -7195,6 +7195,14 @@ msgid "Scaling (in time) of the noise"
 msgstr "Nelze uložit soubor"
 
 
+msgid "Filter Width"
+msgstr "Filtr skriptů"
+
+
+msgid "Sigma"
+msgstr "Sada barev"
+
+
 msgid "Stepped Interpolation F-Modifier"
 msgstr "Mód Interpolace"
 
@@ -8773,16 +8781,8 @@ msgid "Accumulate"
 msgstr "Hromadit"
 
 
-msgid "Airbrush"
-msgstr "Airbrush"
-
-
 msgid "When this is disabled, lock alpha while painting"
 msgstr "Když je toto vypnuto, zamknout alfu při malování"
-
-
-msgid "Anchored"
-msgstr "Ukotven"
 
 
 msgid "Collide with objects during the simulation"
@@ -8879,10 +8879,6 @@ msgstr "Prostor textury"
 
 msgid "Show texture in viewport"
 msgstr "Ukáže textové soubory"
-
-
-msgid "Restore Mesh"
-msgstr "Obnovit Síť"
 
 
 msgid "Smooth Stroke"
@@ -9495,10 +9491,6 @@ msgstr "Vzdálenost mezi dvěmi kostmi nebo objekty"
 
 msgid "Spacing between words"
 msgstr "Mezery mezi slovy"
-
-
-msgid "Textboxes"
-msgstr "Textury"
 
 
 msgid "Underline Thickness"
@@ -13838,116 +13830,52 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Instances"
-msgstr "Instance"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Import"
-msgstr "Importovat"
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Metaball"
 msgstr "Meta objekt"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
 
 
-msgid "Utilities"
-msgstr "Nástroje"
+msgid "Names"
+msgstr "Názvy"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Bone Roll"
+msgstr "Kost"
 
 
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Clean Up"
+msgstr "Vyčistit"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
 
 
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
+msgid "Snap"
+msgstr "Přichytit"
 
 
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
 
 
-msgid "Apply"
-msgstr "Použít"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
+msgid "UV Mapping"
+msgstr "UV mapování"
 
 
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Layout"
-msgstr "Rozložení"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
-msgid "Tracking"
-msgstr "Sledování"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
 msgid "Navigation"
@@ -13958,28 +13886,92 @@ msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
-msgid "Local View"
-msgstr "Lokální pohled"
+msgid "Layout"
+msgstr "Rozložení"
 
 
-msgid "UV Mapping"
-msgstr "UV mapování"
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
 
 
-msgid "Snap"
-msgstr "Přichytit"
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
+msgid "Keying"
+msgstr "Klíčovací sestava"
 
 
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
+msgid "Tracking"
+msgstr "Sledování"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
+msgid "Utilities"
+msgstr "Nástroje"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Instances"
+msgstr "Instance"
+
+
+msgid "Import"
+msgstr "Importovat"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
 
 
 msgid "Basic"
@@ -21896,14 +21888,6 @@ msgstr "Nelze kopírovat modifikátory do objektu jiného typu"
 
 msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Nastaví současný snímek na průměrný snímek vybraných klíčových snímků"
-
-
-msgid "Filter Width"
-msgstr "Filtr skriptů"
-
-
-msgid "Sigma"
-msgstr "Sada barev"
 
 
 msgctxt "Operator"
@@ -30465,44 +30449,16 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
-
-
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Measurement"
-msgstr "Měření"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Overlays"
-msgstr "Překrytí"
-
-
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
+
+
+msgid "View Lock"
+msgstr "Zámek zobrazení"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
 
 
 msgid "SSAO Settings"
@@ -30513,12 +30469,40 @@ msgid "Cavity"
 msgstr "Dutina"
 
 
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
+msgid "Overlays"
+msgstr "Překrytí"
 
 
-msgid "View Lock"
-msgstr "Zámek zobrazení"
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Measurement"
+msgstr "Měření"
+
+
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -35145,16 +35129,8 @@ msgid "Stereo Mode"
 msgstr "Pózy kostí"
 
 
-msgid "Sequence strip in the sequence editor"
-msgstr "Přidat vazbu aktivní kosti"
-
-
 msgid "Blend Opacity"
 msgstr "Sytost"
-
-
-msgid "Y position of the sequence strip"
-msgstr "První frame animace"
 
 
 msgid "Custom fade value"
@@ -35517,10 +35493,6 @@ msgstr "Textury"
 
 msgid "Text bounding box for layout"
 msgstr "Zobrazí armaturu zkrz objekt"
-
-
-msgid "Textbox Height"
-msgstr "Nastavit váhu"
 
 
 msgid "Text Character Format"
@@ -38184,10 +38156,6 @@ msgstr "Exportovat do souboru"
 
 msgid "Position X"
 msgstr "Pozice X"
-
-
-msgid "Original Frame Range"
-msgstr "Původní Rozsah Snímků"
 
 
 msgid "Unpack"
@@ -41223,10 +41191,6 @@ msgid "Yesterday"
 msgstr "Včera"
 
 
-msgid "Modified"
-msgstr "Modifikátory"
-
-
 msgid "Anim Player"
 msgstr "Přehrávač animací"
 
@@ -43005,6 +42969,10 @@ msgstr "Nahoře"
 
 msgid "Don't Save"
 msgstr "Neukládat"
+
+
+msgid "Modified"
+msgstr "Modifikátory"
 
 
 msgid "unable to open the file"

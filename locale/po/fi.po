@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -5368,6 +5368,10 @@ msgid "Roughness"
 msgstr "Karheus"
 
 
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgid "Step Size"
 msgstr "Askelkoko"
 
@@ -7244,38 +7248,6 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Write"
-msgstr "Kirjoita"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Instances"
-msgstr "Instanssit"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Import"
-msgstr "Tuo"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
 msgid "Math"
 msgstr "Matematiikka"
 
@@ -7284,32 +7256,28 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "Metaball"
+msgstr "Metapallo"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
 
 
-msgid "Hooks"
-msgstr "Koukut"
+msgid "Read"
+msgstr "Lue"
 
 
-msgid "Track"
-msgstr "Raide"
+msgid "Write"
+msgstr "Kirjoita"
 
 
-msgid "Add Image"
-msgstr "Lisää kuva"
+msgid "Names"
+msgstr "Nimet"
 
 
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Light"
-msgstr "Valo"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Select More/Less"
@@ -7328,8 +7296,44 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Instances"
+msgstr "Instanssit"
+
+
+msgid "Import"
+msgstr "Tuo"
 
 
 msgid "Basic"
@@ -9782,10 +9786,6 @@ msgid "Side"
 msgstr "Sivu"
 
 
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgid "The start frame"
 msgstr "Aloituskehys"
 
@@ -11091,22 +11091,6 @@ msgstr "Z-Kartoittaminen"
 
 msgid "Text Box"
 msgstr "Tekstilaatikko"
-
-
-msgid "Textbox Height"
-msgstr "Tekstilaatikon Korkeus"
-
-
-msgid "Textbox Width"
-msgstr "Tekstilaatikon Leveys"
-
-
-msgid "Textbox X Offset"
-msgstr "Tekstilaatikon X-Siirros"
-
-
-msgid "Textbox Y Offset"
-msgstr "Tekstilaatikon Y-Siirros"
 
 
 msgid "Random Angle"
@@ -14497,10 +14481,6 @@ msgid "Trace"
 msgstr "Jäljitä"
 
 
-msgid "PaintCurve"
-msgstr "Maalikäyrä"
-
-
 msgid " UVs,"
 msgstr " UV:t,"
 
@@ -14519,6 +14499,10 @@ msgstr "Ei aktiivista kamerasarjaa"
 
 msgid "Attribute Data Detected"
 msgstr "Attribuutti-data havaittu"
+
+
+msgid "PaintCurve"
+msgstr "Maalikäyrä"
 
 
 msgid "Active F-Curve"
@@ -14607,14 +14591,6 @@ msgstr "Ei esineitä"
 
 msgid "File path"
 msgstr "Tiedostopolku"
-
-
-msgid "seconds"
-msgstr "sekunnit"
-
-
-msgid "bytes"
-msgstr "tavut"
 
 
 msgid "Create new directory?"
@@ -14915,6 +14891,10 @@ msgstr "Luokka"
 
 msgid "(Geometry)"
 msgstr "(Geometria)"
+
+
+msgid "bytes"
+msgstr "tavut"
 
 
 msgid "Data Set"

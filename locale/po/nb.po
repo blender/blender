@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
-"PO-Revision-Date: 2026-01-17 22:37+0000\n"
-"Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"PO-Revision-Date: 2026-01-30 13:12+0000\n"
+"Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
@@ -1141,11 +1141,11 @@ msgstr "Beregn beinstiene fra hodene"
 
 
 msgid "Tails"
-msgstr "Haler"
+msgstr "Ender"
 
 
 msgid "Calculate bone paths from tails"
-msgstr "Beregn beinstiene fra halene"
+msgstr "Beregn beinstiene fra endene"
 
 
 msgid "After Current"
@@ -4748,7 +4748,7 @@ msgstr "Rull ut"
 
 
 msgid "Roll offset for the end of the B-Bone, adjusts twist"
-msgstr "Rulleforskyvning for slutten av B-beinet, justerer vridning"
+msgstr "Rulleforskyvning for enden av B-beinet, justerer vridning"
 
 
 msgid "Scale In"
@@ -4764,7 +4764,7 @@ msgstr "Skaler ut"
 
 
 msgid "Scale factors for the end of the B-Bone, adjusts thickness (for tapering effects)"
-msgstr "Skalafaktorer for slutten av B-beinet, justerer tykkelse (for innsnevring-effekt)"
+msgstr "Skalafaktorer for enden av B-beinet, justerer tykkelse (for innsnevring-effekt)"
 
 
 msgid "B-Bone Segments"
@@ -4876,15 +4876,235 @@ msgstr "Hode"
 
 
 msgid "Location of head end of the bone relative to its parent"
-msgstr "Plasseringa av slutthodet til beinet relativt til dens overordnede"
+msgstr "Plasseringa av endehodet til beinet relativt til dens overordnede"
+
+
+msgid "Armature-Relative Head"
+msgstr "Armatur-relativt hode"
+
+
+msgid "Location of head end of the bone relative to armature"
+msgstr "Plasseringa av endehodet til beinet relativt til armaturen"
+
+
+msgid "Envelope Head Radius"
+msgstr "Omhylling-hoderadius"
+
+
+msgid "Radius of head of bone (for Envelope deform only)"
+msgstr "Radiusen av hodet til beinet (kun for omhylling-deformasjon)"
+
+
+msgid "Bone is not visible when it is in Edit Mode"
+msgstr "Beinet er ikke synlig når den er i redigeringsmodus"
+
+
+msgid "Selectable"
+msgstr "Valgbar"
+
+
+msgid "Bone is able to be selected"
+msgstr "Beinet kan velges"
+
+
+msgid "Inherit Scale"
+msgstr "Arv skala"
+
+
+msgid "Specifies how the bone inherits scaling from the parent bone"
+msgstr "Velger hvordan beinet arver skalaen til overordnet bein"
+
+
+msgid "Inherit all effects of parent scaling"
+msgstr "Arv alle effekter av overordnet skalering"
+
+
+msgid "Fix Shear"
+msgstr "Fiks skjæring"
+
+
+msgid "Inherit scaling, but remove shearing of the child in the rest orientation"
+msgstr "Arv skalering, men fjern skjæring fra den underordnede i hvileplassen"
+
+
+msgid "Rotate non-uniform parent scaling to align with the child, applying parent X scale to child X axis, and so forth"
+msgstr "Roter ikke-enhetlig skalering fra overordnet for innrettelse med underordnet, bruker X-skala fra overordnet til X-skala fra underordnet og så videre"
+
+
+msgid "Inherit uniform scaling representing the overall change in the volume of the parent"
+msgstr "Arv enhetlig skalering, representerer den helhetlige endringen av volumet til dens overordnede"
+
+
+msgid "Completely ignore parent scaling"
+msgstr "Ignorer fullstendig overordnet skalering"
+
+
+msgid "None (Legacy)"
+msgstr "Ingen (gammel)"
+
+
+msgid "Ignore parent scaling without compensating for parent shear. Replicates the effect of disabling the original Inherit Scale checkbox."
+msgstr "Ignorer overordnet skalering uten kompensasjon av skjæring fra overordnet. Kopierer effekten av å slå av den opprinnelige arv skalering-avmerkingsboksen."
+
+
+msgid "Length"
+msgstr "Lengde"
+
+
+msgid "Length of the bone"
+msgstr "Lengden av beinet"
+
+
+msgid "Bone Matrix"
+msgstr "Beinmatrise"
+
+
+msgid "3×3 bone matrix"
+msgstr "3 × 3 beinmatrise"
+
+
+msgid "Bone Armature-Relative Matrix"
+msgstr "Bein armatur-relativt matrise"
+
+
+msgid "4×4 bone matrix relative to armature"
+msgstr "4 × 4 beinmatrise relativt til armaturen"
 
 
 msgid "Parent"
 msgstr "Overordnet"
 
 
+msgid "Parent bone (in same Armature)"
+msgstr "Overordnet bein (i samme armatur)"
+
+
+msgid "Display Wire"
+msgstr "Vis netting"
+
+
+msgid "Bone is always displayed in wireframe regardless of viewport shading mode (useful for non-obstructive custom bone shapes)"
+msgstr "Beinet er alltid vist i netting uansett hvilket visningsfelt skyggeleggingsmodus (nyttig for ikke-hindrende tilpassede bein-former)"
+
+
+msgid "Tail"
+msgstr "Ende"
+
+
+msgid "Location of tail end of the bone relative to its parent"
+msgstr "Plasseringa av enden av beinet relativt til dens overordnede"
+
+
+msgid "Armature-Relative Tail"
+msgstr "Armatur-relativt ende"
+
+
+msgid "Location of tail end of the bone relative to armature"
+msgstr "Plasseringa av enden av beinet relativt til armaturen"
+
+
+msgid "Envelope Tail Radius"
+msgstr "Omhylling-enderadius"
+
+
+msgid "Radius of tail of bone (for Envelope deform only)"
+msgstr "Radiusen for enden av beinet (kun for omhylling-deformasjon)"
+
+
 msgid "Connected"
 msgstr "Tilkoblet"
+
+
+msgid "When bone has a parent, bone's head is stuck to the parent's tail"
+msgstr "Når beinet har en overordnet, settes beinets hode fast til overordnede sin ende"
+
+
+msgid "Cyclic Offset"
+msgstr "Syklisk-forskyvning"
+
+
+msgid "When bone does not have a parent, it receives cyclic offset effects (Deprecated)"
+msgstr "Når beinet ikke har en overordnet, mottar den en syklisk-forskyvningseffekt (foreldet)"
+
+
+msgid "Deform"
+msgstr "Deformer"
+
+
+msgid "Enable Bone to deform geometry"
+msgstr "Gjør det mulig for beinet å deformere geometrien"
+
+
+msgid "Inherit End Roll"
+msgstr "Arv enderulling"
+
+
+msgid "Add Roll Out of the Start Handle bone to the Roll In value"
+msgstr "Legg til utrulling av starthåndtak bein for innrullingsverdien"
+
+
+msgid "Multiply Vertex Group with Envelope"
+msgstr "Multipliser hjørnegruppe med omhylling"
+
+
+msgid "When deforming bone, multiply effects of Vertex Group weights with Envelope influence"
+msgstr "Ved deformering av bein, multipliser effekter av hjørnegruppe vekten med omhyllingsinnflytelse"
+
+
+msgid "Inherit Rotation"
+msgstr "Arv rotasjon"
+
+
+msgid "Bone inherits rotation or scale from parent bone"
+msgstr "Beinet arver rotasjonen eller skalaen fra overordnet bein"
+
+
+msgid "Local Location"
+msgstr "Lokal plassering"
+
+
+msgid "Bone location is set in local space"
+msgstr "Beinplassering er satt i lokalplass"
+
+
+msgid "Relative Parenting"
+msgstr "Relativ ordning"
+
+
+msgid "Object children will use relative transform, like deform"
+msgstr "Underordnede objekter vil bruke relativ transformering, f.eks deformasjon"
+
+
+msgid "Scale Easing"
+msgstr "Skalaletting"
+
+
+msgid "Multiply the final easing values by the Scale In/Out Y factors"
+msgstr "Multipliser den endelige verdien for lettelse av skalaens in/ut-faktorer"
+
+
+msgid "Bone collection in an Armature data-block"
+msgstr "Samling av bein i en armatur-datablokk"
+
+
+msgid "Bones"
+msgstr "Bein"
+
+
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode."
+msgstr "Bein tildelt denne beinsamlingen. I armaturredigeringsmodus vil denne alltid gi en tom liste bein, da medlemskap av beinsamlingen bare synkroniseres ved avslutting av redigeringsmodus."
+
+
+msgid "Child Number"
+msgstr "Underordnedes nummer"
+
+
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care."
+msgstr "Indeksen av denne samlingen til overordnedes liste over underordnede. Merk: Funn av denne indeksen krever en skann av alle beinsamlinger, vær forsiktig ved bruk."
+
+
+msgid "Index"
+msgstr "Indeks"
 
 
 msgid "Left"
@@ -5034,12 +5254,31 @@ msgid "Make Local"
 msgstr "Gjør lokal"
 
 
+msgctxt "Operator"
+msgid "Save"
+msgstr "Lagre"
+
+
+msgctxt "Operator"
+msgid "Save As"
+msgstr "Lagre som"
+
+
 msgid "Rendered"
 msgstr "Gjengitt"
 
 
 msgid "Data-Block Type"
 msgstr "Type datablokk"
+
+
+msgctxt "Operator"
+msgid "Recover Last Session"
+msgstr "Gjenoppta siste økt"
+
+
+msgid "Save Copy"
+msgstr "Lagre kopi"
 
 
 msgctxt "Operator"
@@ -5115,10 +5354,6 @@ msgstr "Lokalkode: be. Status på oversettelse: 0 %"
 
 msgid "Bulgarian - Български"
 msgstr "Bulgarsk – Български"
-
-
-msgid "Locale code: bg_BG. Translation progress: 2%"
-msgstr "Lokalkode: bg_BG. Status på oversettelse: 2 %"
 
 
 msgid "Catalan - Català"
@@ -5598,6 +5833,16 @@ msgstr "Vindumiljø: {:s}"
 
 
 msgctxt "Operator"
+msgid "Save As..."
+msgstr "Lagre som …"
+
+
+msgctxt "Operator"
+msgid "Save a Copy..."
+msgstr "Lagre som kopi …"
+
+
+msgctxt "Operator"
 msgid "Render Animation"
 msgstr "Gjengi animasjon"
 
@@ -5623,6 +5868,11 @@ msgstr "Innstillinger …"
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Lagre kopi …"
+
+
+msgctxt "Operator"
 msgid "Render Image"
 msgstr "Gjengi bilde"
 
@@ -5641,9 +5891,25 @@ msgid "Child"
 msgstr "Underordnet"
 
 
+msgid "Untitled"
+msgstr "Navnløs"
+
+
 msgctxt "WindowManager"
 msgid "Search"
 msgstr "Søk"
+
+
+msgid "Open Recent"
+msgstr "Åpne nylige"
+
+
+msgid "Saved copy as \"%s\""
+msgstr "Lagret kopi som «%s»"
+
+
+msgid "(Unsaved)"
+msgstr "(Ulagret)"
 
 
 msgctxt "WorkSpace"

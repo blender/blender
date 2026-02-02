@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -4104,6 +4104,10 @@ msgid "Roughness"
 msgstr "Храпавост"
 
 
+msgid "Sigma"
+msgstr "Сигма"
+
+
 msgid "Step Size"
 msgstr "Број корака"
 
@@ -5138,10 +5142,6 @@ msgid "Texture Slot"
 msgstr "Слот текстуре"
 
 
-msgid "Airbrush"
-msgstr "Спреј"
-
-
 msgid "Use Cursor Overlay"
 msgstr "Користи преклапање курсора"
 
@@ -5180,10 +5180,6 @@ msgstr "Снага притиска"
 
 msgid "Use Texture Overlay"
 msgstr "Користи додатну провидност"
-
-
-msgid "Restore Mesh"
-msgstr "Врати"
 
 
 msgid "Forward"
@@ -5572,10 +5568,6 @@ msgstr "Растојање између линија и текста"
 
 msgid "Spacing between words"
 msgstr "Размак између речи"
-
-
-msgid "Textboxes"
-msgstr "Оквир текста"
 
 
 msgid "Underline Thickness"
@@ -8497,108 +8489,44 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Import"
-msgstr "Увоз"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
-
-
 msgid "Math"
 msgstr "Математика"
-
-
-msgid "Merge"
-msgstr "Сједини"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Rigid Body"
-msgstr "Круто тело"
+msgid "Metaball"
+msgstr "Мета лопта"
 
 
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
 
 
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
+msgid "Names"
+msgstr "Имена"
 
 
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
+msgid "Bone Roll"
+msgstr "Ролна костију"
 
 
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
+msgid "Snap"
+msgstr "Лепљење"
 
 
-msgid "Apply"
-msgstr "Примени"
+msgid "Mirror"
+msgstr "Огледало"
 
 
-msgid "Clear Transform"
-msgstr "Очисти трансформације"
+msgid "UV Mapping"
+msgstr "UV Мапирање"
 
 
-msgid "Propagate"
-msgstr "Пренеси"
-
-
-msgid "In-Betweens"
-msgstr "У међувремену"
-
-
-msgid "Hooks"
-msgstr "Удице"
-
-
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
-
-
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Relations"
-msgstr "Односи"
-
-
-msgid "Light"
-msgstr "Светлост"
-
-
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
+msgid "Local View"
+msgstr "Локални поглед"
 
 
 msgid "Navigation"
@@ -8609,20 +8537,84 @@ msgid "Align View"
 msgstr "Поравнај поглед"
 
 
-msgid "Local View"
-msgstr "Локални поглед"
+msgid "Select Linked"
+msgstr "Изабери повезано"
 
 
-msgid "UV Mapping"
-msgstr "UV Мапирање"
+msgid "Keying"
+msgstr "Збирка тастера"
 
 
-msgid "Snap"
-msgstr "Лепљење"
+msgid "Tracking"
+msgstr "Праћење"
 
 
-msgid "Mirror"
-msgstr "Огледало"
+msgid "Light"
+msgstr "Светлост"
+
+
+msgid "Relations"
+msgstr "Односи"
+
+
+msgid "Rigid Body"
+msgstr "Круто тело"
+
+
+msgid "Apply"
+msgstr "Примени"
+
+
+msgid "Track"
+msgstr "Стаза"
+
+
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
+
+
+msgid "Hooks"
+msgstr "Удице"
+
+
+msgid "Clear Transform"
+msgstr "Очисти трансформације"
+
+
+msgid "In-Betweens"
+msgstr "У међувремену"
+
+
+msgid "Propagate"
+msgstr "Пренеси"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Import"
+msgstr "Увоз"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
 
 
 msgid "Basic"
@@ -13837,10 +13829,6 @@ msgstr "Додај модификатор Ф-криве"
 
 msgid "Only Active"
 msgstr "Само активне"
-
-
-msgid "Sigma"
-msgstr "Сигма"
 
 
 msgctxt "Operator"
@@ -19126,12 +19114,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Transform Orientations"
-msgstr "Трансформација оријентација"
-
-
 msgid "Motion Tracking"
 msgstr "Праћење покрета"
+
+
+msgid "Transform Orientations"
+msgstr "Трансформација оријентација"
 
 
 msgid "Bone Constraints"
@@ -21623,14 +21611,6 @@ msgstr "Има минимум"
 
 msgid "Text Box"
 msgstr "Блок текта"
-
-
-msgid "Textbox Height"
-msgstr "Висина блока текта"
-
-
-msgid "Textbox Width"
-msgstr "Ширина блока текта"
 
 
 msgid "Text Character Format"
@@ -24378,10 +24358,6 @@ msgid "Reset operator defaults"
 msgstr "Враћа почете вредности оператора"
 
 
-msgid "Modified"
-msgstr "Измењен"
-
-
 msgid "Stop this job"
 msgstr "Заустави посао"
 
@@ -25423,6 +25399,10 @@ msgstr "Обод"
 
 msgid "Blender File View"
 msgstr "Blender-ов преглед датотека"
+
+
+msgid "Modified"
+msgstr "Измењен"
 
 
 msgid "unable to open the file"

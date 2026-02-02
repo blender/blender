@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -10079,6 +10079,10 @@ msgid "Roughness"
 msgstr "Kekasaran"
 
 
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgid "Step Size"
 msgstr "Ukuran Langkah"
 
@@ -12302,10 +12306,6 @@ msgid "Accumulate"
 msgstr "Akumulasi"
 
 
-msgid "Airbrush"
-msgstr "Kuasudara"
-
-
 msgid "Affect only vertices that share face sets with the active vertex"
 msgstr "Hanya mempengaruhi titik-titik sudut yang membagikan set-set wajah dengan titik sudut aktif"
 
@@ -12658,10 +12658,6 @@ msgstr "Huruf Tebal Miring"
 
 msgid "Font Italic"
 msgstr "Font Italic"
-
-
-msgid "Textboxes"
-msgstr "Tekstur"
 
 
 msgid "Surface UV Map"
@@ -15695,8 +15691,84 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Sample"
 msgstr "Sampel"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
+msgid "Utilities"
+msgstr "Utilitas"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
 
 
 msgid "Gizmo"
@@ -15707,88 +15779,12 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Import"
 msgstr "Impor"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Utilities"
-msgstr "Utilitas"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Merge"
 msgstr "Menggabungkan"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
 
 
 msgid "Animals"
@@ -20691,10 +20687,6 @@ msgstr "Tempel Pengubah-F"
 
 msgid "Add copied F-Modifiers to the selected F-Curves"
 msgstr "Tambah Pengubah-F yang tersalin ke Kurva-F yang terpilih"
-
-
-msgid "Sigma"
-msgstr "Sigma"
 
 
 msgctxt "Operator"

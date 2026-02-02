@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
-"PO-Revision-Date: 2026-01-15 09:13+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"PO-Revision-Date: 2026-02-01 08:12+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
 "Language: th\n"
@@ -3062,8 +3062,84 @@ msgid "Control Point selected"
 msgstr "เลือกจุดควบคุมแล้ว"
 
 
+msgid "Control point selection status"
+msgstr "สถานะการเลือกจุดควบคุม"
+
+
+msgid "Handle 1 selected"
+msgstr "เลือกจัดกระทำ 1 แล้ว"
+
+
+msgid "Handle 1 selection status"
+msgstr "จัดการสถานะจัดกระทำ 1"
+
+
+msgid "Handle 2 selected"
+msgstr "เลือกจัดกระทำที่ 2 แล้ว"
+
+
+msgid "Handle 2 selection status"
+msgstr "จัดการสถานะจัดกระทำ 2"
+
+
+msgid "Tilt in 3D View"
+msgstr "ตะแคงในมุมมอง 3 มิติ"
+
+
 msgid "Weight"
 msgstr "น้ำหนัก"
+
+
+msgid "Blend-File Data"
+msgstr "ข้อมูลไฟล์เบลนด์"
+
+
+msgid "Main data structure representing a .blend file and all its data-blocks"
+msgstr "โครงสร้างข้อมูลหลักที่แสดงถึงไฟล์ .blend และบล็อกข้อมูลทั้งหมดในไฟล์นั้น"
+
+
+msgid "Action data-blocks"
+msgstr "บล็อกข้อมูลการกระทำ"
+
+
+msgid "Annotation"
+msgstr "บรรณนิทัศน์"
+
+
+msgid "Annotation data-blocks (legacy Grease Pencil)"
+msgstr "บล็อกข้อมูลบรรณนิทัศน์ (ดินสอเทียนแบบเก่า)"
+
+
+msgid "Armature data-blocks"
+msgstr "บล็อกข้อมูลโครงหุ่น"
+
+
+msgid "Brush data-blocks"
+msgstr "บล็อกข้อมูลแปรง"
+
+
+msgid "Cache Files data-blocks"
+msgstr "บล็อกข้อมูลไฟล์แคช"
+
+
+msgid "Camera data-blocks"
+msgstr "บล็อกข้อมูลกล้อง"
+
+
+msgid "Collection data-blocks"
+msgstr "บล็อกข้อมูลการรวบรวม"
+
+
+msgid "Color Space"
+msgstr "พื้นที่สี"
+
+
+msgid "Information about the color space used for data-blocks in a blend file"
+msgstr "ข้อมูลเกี่ยวกับพื้นที่สีที่ใช้สำหรับบล็อกข้อมูลในไฟล์ Blend"
+
+
+msgid "Curve data-blocks"
+msgstr "บล็อกข้อมูลเส้นโค้ง"
 
 
 msgid "Filename"
@@ -3071,15 +3147,235 @@ msgstr "ชื่อไฟล์"
 
 
 msgid "Path to the .blend file"
-msgstr "ตำแหน่งไปยังไฟล์ .blend"
+msgstr "เส้นทางไปยังไฟล์ .blend"
+
+
+msgid "Vector Fonts"
+msgstr "ฟอนต์เวกเตอร์"
+
+
+msgid "Vector font data-blocks"
+msgstr "บล็อกข้อมูลแบบอักษรเวกเตอร์"
+
+
+msgid "Grease Pencil data-blocks"
+msgstr "บล็อกข้อมูลดินสอเทียน"
+
+
+msgid "Hair curve data-blocks"
+msgstr "บล็อกข้อมูลเส้นโค้งของเส้นผม"
+
+
+msgid "Image data-blocks"
+msgstr "บล็อกข้อมูลภาพ"
 
 
 msgid "File Has Unsaved Changes"
 msgstr "ไฟล์มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก"
 
 
+msgid "Have recent edits been saved to disk"
+msgstr "การแก้ไขล่าสุดได้รับการบันทึกไปยังดิสก์แล้วหรือไม่"
+
+
 msgid "File is Saved"
-msgstr "ไฟล์ถูกบันทึกแล้ว"
+msgstr "ไฟล์ถูกบันทึกแล้วไฟล์ถูกบันทึกแล้ว"
+
+
+msgid "Has the current session been saved to disk as a .blend file"
+msgstr "เซสชันปัจจุบันถูกบันทึกเป็นไฟล์ .blend ลงดิสก์แล้วหรือยัง"
+
+
+msgid "Lattice data-blocks"
+msgstr "บล็อกข้อมูลโครงตาข่าย"
+
+
+msgid "Libraries"
+msgstr "คลัง"
+
+
+msgid "Library data-blocks"
+msgstr "บล็อกข้อมูลคลัง"
+
+
+msgid "Light Probe data-blocks"
+msgstr "บล็อกข้อมูลหัววัดแสง"
+
+
+msgid "Light data-blocks"
+msgstr "บล็อกข้อมูลแสง"
+
+
+msgid "Line Styles"
+msgstr "ลีลาเส้น"
+
+
+msgid "Line Style data-blocks"
+msgstr "บล็อกข้อมูลแบบอย่างเส้น"
+
+
+msgid "Masks data-blocks"
+msgstr "บล็อกข้อมูลหน้ากาก"
+
+
+msgid "Material data-blocks"
+msgstr "บล็อกข้อมูลวัสดุ"
+
+
+msgid "Mesh data-blocks"
+msgstr "บล็อกข้อมูลเมช"
+
+
+msgid "Metaball data-blocks"
+msgstr "บล็อกข้อมูลเมตาบอล"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "บล็อกข้อมูลคลิปวิดีโอ"
+
+
+msgid "Node Groups"
+msgstr "กลุ่มจุดต่อ"
+
+
+msgid "Node group data-blocks"
+msgstr "บล็อกข้อมูลกลุ่มจุดต่อ"
+
+
+msgid "Object data-blocks"
+msgstr "บล็อกข้อมูลวัตถุ"
+
+
+msgid "Paint Curves data-blocks"
+msgstr "บล็อกข้อมูลการระบายสีเส้นโค้ง"
+
+
+msgid "Palette data-blocks"
+msgstr "บล็อกข้อมูลจานสี"
+
+
+msgid "Particles"
+msgstr "อนุภาค"
+
+
+msgid "Particle data-blocks"
+msgstr "บล็อกข้อมูลอนุภาค"
+
+
+msgid "Point cloud data-blocks"
+msgstr "บล็อกข้อมูลจุดก้อนเมฆ"
+
+
+msgid "Scene data-blocks"
+msgstr "บล็อกข้อมูลฉาก"
+
+
+msgid "Screens"
+msgstr "หน้าจอ"
+
+
+msgid "Screen data-blocks"
+msgstr "บล็อกข้อมูลหน้าจอ"
+
+
+msgid "Shape Keys"
+msgstr "กุญแจรูปทรง"
+
+
+msgid "Shape Key data-blocks"
+msgstr "บล็อกข้อมูลกุญแจรูปทรง"
+
+
+msgid "Sound data-blocks"
+msgstr "บล็อกข้อมูลเสียง"
+
+
+msgid "Speaker data-blocks"
+msgstr "บล็อกข้อมูลลำโพง"
+
+
+msgid "Text data-blocks"
+msgstr "บล็อกข้อมูลข้อความ"
+
+
+msgid "Texture data-blocks"
+msgstr "บล็อกข้อมูลผิวสัมผัส"
+
+
+msgid "Use Auto-Pack"
+msgstr "ใช้การบรรจุอัตโนมัติ"
+
+
+msgid "Automatically pack all external data into .blend file"
+msgstr "รวมข้อมูลภายนอกทั้งหมดลงในไฟล์ .blend โดยอัตโนมัติ"
+
+
+msgid "Version"
+msgstr "รุ่น"
+
+
+msgid "File format version the .blend file was saved with"
+msgstr "รูปแบบไฟล์เวอร์ชันที่บันทึกไฟล์ .blend ไว้"
+
+
+msgid "Volume data-blocks"
+msgstr "บล็อกข้อมูลปริมาตร"
+
+
+msgid "Window Managers"
+msgstr "ตัวจัดการหน้าต่าง"
+
+
+msgid "Window manager data-blocks"
+msgstr "บล็อกข้อมูลตัวจัดการหน้าต่าง"
+
+
+msgid "Workspace data-blocks"
+msgstr "บล็อกข้อมูลพื้นที่ทำงาน"
+
+
+msgid "World data-blocks"
+msgstr "บล็อกข้อมูลโลก"
+
+
+msgid "Main Actions"
+msgstr "การดำเนินการหลัก"
+
+
+msgid "Collection of actions"
+msgstr "การรวบรวมการกระทำ"
+
+
+msgid "Main Annotations"
+msgstr "คำอธิบายหลัก"
+
+
+msgid "Collection of annotations"
+msgstr "การรวบรวมคำอธิบายประกอบ"
+
+
+msgid "Main Armatures"
+msgstr "โครงร่างหลัก"
+
+
+msgid "Collection of armatures"
+msgstr "การรวบรวมโครงร่าง"
+
+
+msgid "Main Brushes"
+msgstr "แปรงสีหลัก"
+
+
+msgid "Collection of brushes"
+msgstr "การรวบรวมแปรงสี"
+
+
+msgid "Main Cache Files"
+msgstr "ไฟล์แคชหลัก"
+
+
+msgid "Collection of cache files"
+msgstr "การรวบรวมไฟล์แคช"
 
 
 msgid "Main Cameras"
@@ -3090,8 +3386,324 @@ msgid "Collection of cameras"
 msgstr "คอลเลกชันกล้อง"
 
 
+msgid "Main Collections"
+msgstr "การรวบรวมหลัก"
+
+
+msgid "Collection of collections"
+msgstr "การรวบรวมของการรวบรวม"
+
+
+msgid "Main Curves"
+msgstr "เส้นโค้งหลัก"
+
+
+msgid "Collection of curves"
+msgstr "การรวบรวมเส้นโค้ง"
+
+
+msgid "Main Fonts"
+msgstr "แบบอักษรหลัก"
+
+
+msgid "Collection of fonts"
+msgstr "การรวบรวมแบบอักษร"
+
+
+msgid "Main Grease Pencils"
+msgstr "ดินสอไขมันหลัก"
+
+
+msgid "Collection of Grease Pencils"
+msgstr "การรวบรวมดินสอเทียน"
+
+
+msgid "Main Hair Curves"
+msgstr "โค้งเส้นผมหลัก"
+
+
+msgid "Collection of hair curves"
+msgstr "การรวบรวมโค้งเส้นผม"
+
+
 msgid "Main Images"
 msgstr "รูปภาพหลัก"
+
+
+msgid "Collection of images"
+msgstr "การรวบรวมภาพ"
+
+
+msgid "Main Lattices"
+msgstr "โครงตาข่ายหลัก"
+
+
+msgid "Collection of lattices"
+msgstr "การรวบรวมโครงตาข่าย"
+
+
+msgid "Main Libraries"
+msgstr "คลังหลัก"
+
+
+msgid "Collection of libraries"
+msgstr "การรวบรวมคลัง"
+
+
+msgid "Main Lights"
+msgstr "แสงหลัก"
+
+
+msgid "Collection of lights"
+msgstr "การรวบรวมแสง"
+
+
+msgid "Main Line Styles"
+msgstr "ลีลาเส้นหลัก"
+
+
+msgid "Collection of line styles"
+msgstr "การรวบรวมลีลาเส้น"
+
+
+msgid "Main Masks"
+msgstr "หน้ากากหลัก"
+
+
+msgid "Collection of masks"
+msgstr "การรวบรวมหน้ากาก"
+
+
+msgid "Main Materials"
+msgstr "วัสดุหลัก"
+
+
+msgid "Collection of materials"
+msgstr "การรวบรวมวัสดุ"
+
+
+msgid "Main Meshes"
+msgstr "ตาข่ายหลักก"
+
+
+msgid "Collection of meshes"
+msgstr "การรวบรวมตาข่าย"
+
+
+msgid "Main Metaballs"
+msgstr "เมตาบอลหลัก"
+
+
+msgid "Collection of metaballs"
+msgstr "การรวบรวมเมตาบอล"
+
+
+msgid "Main Movie Clips"
+msgstr "คลิปภาพยนตร์หลัก"
+
+
+msgid "Collection of movie clips"
+msgstr "การรวบรวมคลิปภาพยนตร์"
+
+
+msgid "Main Node Trees"
+msgstr "ต้นไม้จุดต่อหลัก"
+
+
+msgid "Collection of node trees"
+msgstr "การรวบรวมต้นไม้จุดต่อ"
+
+
+msgid "Main Objects"
+msgstr "วัตถุหลัก"
+
+
+msgid "Collection of objects"
+msgstr "การรวบรวมวัตถุ"
+
+
+msgid "Main Paint Curves"
+msgstr "เส้นโค้งระบายสีหลัก"
+
+
+msgid "Collection of paint curves"
+msgstr "การรวบรวมเส้นโค้งระบายสี"
+
+
+msgid "Main Palettes"
+msgstr "จานสีหลัก"
+
+
+msgid "Collection of palettes"
+msgstr "การรวบรวมจานสี"
+
+
+msgid "Main Particle Settings"
+msgstr "การตั้งค่าอนุภาคหลัก"
+
+
+msgid "Collection of particle settings"
+msgstr "การรวบรวมการตั้งค่าอนุภาค"
+
+
+msgid "Main Point Clouds"
+msgstr "กลุ่มเมฆจุดหลัก"
+
+
+msgid "Collection of point clouds"
+msgstr "การรวบรวมเมฆจุด"
+
+
+msgid "Main Light Probes"
+msgstr "ตัวหยั่งแสงหลัก"
+
+
+msgid "Collection of light probes"
+msgstr "การรวบรวมตัวหยั่งแสง"
+
+
+msgid "Main Scenes"
+msgstr "ฉากหลัก"
+
+
+msgid "Collection of scenes"
+msgstr "การรวบรวมฉาก"
+
+
+msgid "Main Screens"
+msgstr "หน้าจอหลัก"
+
+
+msgid "Collection of screens"
+msgstr "การรวบรวมหน้าจอ"
+
+
+msgid "Main Sounds"
+msgstr "เสียงหลัก"
+
+
+msgid "Collection of sounds"
+msgstr "การรวบรวมเสียง"
+
+
+msgid "Main Speakers"
+msgstr "ลำโพงหลัก"
+
+
+msgid "Collection of speakers"
+msgstr "การรวบรวมลำโพง"
+
+
+msgid "Main Texts"
+msgstr "ข้อความหลัก"
+
+
+msgid "Collection of texts"
+msgstr "การรวบรวมข้อความ"
+
+
+msgid "Main Textures"
+msgstr "ผิวสัมผัสหลัก"
+
+
+msgid "Collection of textures"
+msgstr "การรวบรวมผิวสัมผัส"
+
+
+msgid "Main Volumes"
+msgstr "ปริมาตรหลัก"
+
+
+msgid "Collection of volumes"
+msgstr "การรวบรวมปริมาตร"
+
+
+msgid "Main Window Managers"
+msgstr "ตัวจัดการหน้าต่างหลัก"
+
+
+msgid "Collection of window managers"
+msgstr "การรวบรวมตัวจัดการหน้าต่าง"
+
+
+msgid "Main Workspaces"
+msgstr "พื้นที่ทำงานหลัก"
+
+
+msgid "Collection of workspaces"
+msgstr "การรวบรวมพื้นที่ทำงาน"
+
+
+msgid "Main Worlds"
+msgstr "โลกหลัก"
+
+
+msgid "Collection of worlds"
+msgstr "การรวบรวมโลก"
+
+
+msgid "Blend-File Color Space"
+msgstr "ปริภูมิสีของไฟล์ผสม"
+
+
+msgid "Missing OpenColorIO Configuration"
+msgstr "การกำหนดค่า \"OpenColorIO\" หายไป"
+
+
+msgid "A color space, view or display was not found, which likely means the OpenColorIO config used to create this blend file is missing"
+msgstr "ไม่พบพื้นที่สี มุมมอง หรือการแสดงผล ซึ่งอาจหมายความว่าไฟล์การกำหนดค่า OpenColorIO ที่ใช้สร้างไฟล์ Blend นี้หายไป"
+
+
+msgid "Working Space"
+msgstr "พื้นที่ทำงาน"
+
+
+msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
+msgstr "พื้นที่สีที่ใช้สำหรับสีเชิงเส้นทั้งหมดในฉากในไฟล์นี้ รวมถึงการประมวลผลโหนดการจัดองค์ประกอบภาพ เชเดอร์ และเรขาคณิต"
+
+
+msgid "Linear Rec.709"
+msgstr "ลิเนียร์ เรค.709"
+
+
+msgid "Linear BT.709 with illuminant D65 white point"
+msgstr "เส้นตรง BT.709 พร้อมแหล่งกำเนิดแสงจุดขาว D65"
+
+
+msgid "Linear Rec.2020"
+msgstr "ลิเนียร์ เรค.2020"
+
+
+msgid "Linear BT.2020 with illuminant D65 white point"
+msgstr "ไฟส่องสว่างแบบเส้นตรง BT.2020 พร้อมจุดสีขาว D65"
+
+
+msgid "ACEScg"
+msgstr "เอซีเอสซีจี"
+
+
+msgid "Linear AP1 with ACES white point"
+msgstr "เส้นตรง AP1 พร้อมจุดสีขาว ACES"
+
+
+msgid "Working Space Interop ID"
+msgstr "รหัสการทำงานร่วมกันของพื้นที่ทำงาน"
+
+
+msgid "Unique identifier for common color spaces, as defined by the Color Interop Forum. May be empty if there is no interop ID for the working space. Common values are lin_rec709_scene, lin_rec2020_scene and lin_ap1_scene (for ACEScg)"
+msgstr "รหัสเฉพาะสำหรับพื้นที่สีทั่วไป ตามที่กำหนดโดย Color Interop Forum อาจว่างเปล่าหากไม่มีรหัสการทำงานร่วมกันสำหรับพื้นที่ทำงาน ค่าทั่วไปคือ lin_rec709_scene, lin_rec2020_scene และ lin_ap1_scene (สำหรับ ACEScg)"
+
+
+msgid "Blendfile Import Context"
+msgstr "บริบทการนำเข้าไฟล์ Blendfile"
+
+
+msgid "Contextual data for a blendfile library/linked-data related operation. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "ข้อมูลบริบทสำหรับการดำเนินการที่เกี่ยวข้องกับไลบรารีไฟล์ Blendfile/ข้อมูลที่เชื่อมโยง ปัจจุบันแสดงเฉพาะในรูปแบบข้อมูลอ่านอย่างเดียวสำหรับตัวจัดการก่อน/หลังการนำเข้า Blendfile"
+
+
+msgid "Options for this blendfile import operation"
+msgstr "ตัวเลือกสำหรับการนำเข้าไฟล์ Blendfile นี้"
 
 
 msgid "Speed"
@@ -4341,76 +4953,40 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
 msgid "Math"
 msgstr "คณิตศาสตร์"
-
-
-msgid "Merge"
-msgstr "ผสาน"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
+msgid "Names"
+msgstr "ชื่อ"
 
 
-msgid "Hooks"
-msgstr "ตะขอ"
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
-msgid "Track"
-msgstr "แทร็ค"
+msgid "Snap"
+msgstr "ยึดติด"
 
 
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Light"
-msgstr "แสง"
-
-
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Local View"
@@ -4421,24 +4997,60 @@ msgid "Viewpoint"
 msgstr "จุดของมุมมอง"
 
 
-msgid "Snap"
-msgstr "ยึดติด"
+msgid "Navigation"
+msgstr "การนำทาง"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Align View"
+msgstr "จัดมุมมอง"
 
 
-msgid "Pivot Point"
-msgstr "จุดหมุน"
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
 
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
+msgid "Keying"
+msgstr "คีย์"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Zoom"
@@ -4459,7 +5071,7 @@ msgstr "กระจกสะท้อน"
 
 
 msgid "Node"
-msgstr "โหนด"
+msgstr "จุดต่อ"
 
 
 msgid "Add Modifier"
@@ -5703,12 +6315,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "Overlays"
-msgstr "วางซ้อน"
-
-
 msgid "View Lock"
 msgstr "ล็อกมุมมอง"
+
+
+msgid "Overlays"
+msgstr "วางซ้อน"
 
 
 msgid "Mask Display"

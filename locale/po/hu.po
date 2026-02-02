@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -4199,10 +4199,6 @@ msgid "How powerful the effect of the brush is when applied"
 msgstr "Az ecset hatásának erőssége használat közben"
 
 
-msgid "Airbrush"
-msgstr "Festékszóró"
-
-
 msgid "Use this brush in texture paint mode"
 msgstr "A jelenlegi ecset használata textúra festő módban"
 
@@ -6577,6 +6573,14 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
@@ -6585,20 +6589,36 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Import"
-msgstr "Importálás"
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
-msgid "Metaball"
-msgstr "Meta test"
+msgid "Local View"
+msgstr "Helyi nézet"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Navigation"
+msgstr "Navigáció"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Align View"
+msgstr "Nézet igazítása"
+
+
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
+msgid "Tracking"
+msgstr "Követés"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
 
 
 msgid "Rigid Body"
@@ -6613,36 +6633,12 @@ msgid "Track"
 msgstr "Nyom"
 
 
-msgid "Relations"
-msgstr "Kapcsolatok"
+msgid "Import"
+msgstr "Importálás"
 
 
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Keying"
-msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"
@@ -12797,12 +12793,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -9520,6 +9520,14 @@ msgid "Amplitude of the noise - the amount that it modifies the underlying curve
 msgstr "Amplitude do ruído - a quantia que ele modifica a curva subjacente."
 
 
+msgid "Filter Width"
+msgstr "Largura do filtro"
+
+
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgid "Stepped Interpolation F-Modifier"
 msgstr "Interpolação em passos para os modificadores-f"
 
@@ -12118,20 +12126,12 @@ msgid "Space daubs according to surface orientation instead of screen space"
 msgstr "Divide o espaço entre as crostas de acordo com a orientação de superfície ao invés do espaço de tela."
 
 
-msgid "Airbrush"
-msgstr "Aerógrafo"
-
-
 msgid "Affect Alpha"
 msgstr "Afeta Alfa"
 
 
 msgid "When this is disabled, lock alpha while painting"
 msgstr "Caso esta opção esteja desabilitada, impede modificações do alfa durante a pintura."
-
-
-msgid "Anchored"
-msgstr "Ancorado"
 
 
 msgid "Cavity Mask"
@@ -12284,14 +12284,6 @@ msgstr "Usar sobreposição de textura"
 
 msgid "Show texture in viewport"
 msgstr "Mostra a textura na janela de exibição."
-
-
-msgid "Restore Mesh"
-msgstr "Restaurar malha"
-
-
-msgid "Allow a single dot to be carefully positioned"
-msgstr "Permite que um único ponto seja cuidadosamente posicionado."
 
 
 msgid "Smooth Stroke"
@@ -13076,10 +13068,6 @@ msgstr "Distância entre as linhas do texto."
 
 msgid "Spacing between words"
 msgstr "Espaçamento entre palavras."
-
-
-msgid "Textboxes"
-msgstr "Caixas de texto"
 
 
 msgid "Underline Thickness"
@@ -21231,144 +21219,84 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
 msgid "Math"
 msgstr "Matemática"
-
-
-msgid "Merge"
-msgstr "Fundir"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
-msgid "Rigid Body"
-msgstr "Corpo rígido"
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
+msgid "Names"
+msgstr "Nomes"
 
 
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
-msgid "Apply"
-msgstr "Aplicar"
+msgid "Snap"
+msgstr "Atrair"
 
 
-msgid "Clear Transform"
-msgstr "Limpar transformações"
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Propagate"
-msgstr "Propagar"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
+msgid "Local View"
+msgstr "Visão local"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
 
 
-msgid "Convert"
-msgstr "Converter"
+msgid "Navigation"
+msgstr "Navegação"
 
 
-msgid "Make Single User"
-msgstr "Tornar usuário único"
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
-msgid "Tracking"
-msgstr "Rastreamento"
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Select Similar"
@@ -21387,48 +21315,108 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
-msgid "View Regions"
-msgstr "Visualizar Regiões"
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
-msgid "Navigation"
-msgstr "Navegação"
+msgid "Light"
+msgstr "Luz"
 
 
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Light Probe"
+msgstr "Sonda de Luz"
 
 
-msgid "Local View"
-msgstr "Visão local"
+msgid "Add Image"
+msgstr "Adicionar Imagem"
 
 
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
+msgid "Relations"
+msgstr "Relações"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Rigid Body"
+msgstr "Corpo rígido"
 
 
-msgid "Snap"
-msgstr "Atrair"
+msgid "Apply"
+msgstr "Aplicar"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Track"
+msgstr "Rastrear"
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
 msgid "Basic"
@@ -34565,14 +34553,6 @@ msgstr "Substitui os modificadores-f existentes, ao invés de simplesmente anex�
 
 msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Posiciona o cursor no ponto mediano dos quadros-chave selecionados."
-
-
-msgid "Filter Width"
-msgstr "Largura do filtro"
-
-
-msgid "Sigma"
-msgstr "Sigma"
 
 
 msgctxt "Operator"
@@ -48243,24 +48223,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
-
-
-msgid "Quad View"
-msgstr "Exibição Quadrante"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
+msgid "Quad View"
+msgstr "Exibição Quadrante"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Bone Constraints"
@@ -55866,10 +55846,6 @@ msgid "Combine both views in a squeezed image"
 msgstr "Combina ambas as visualizações em uma imagem encolhida."
 
 
-msgid "Sequence strip in the sequence editor"
-msgstr "Faixa de sequência dentro do editor de sequências."
-
-
 msgid "Blend Opacity"
 msgstr "Mesclar opacidade"
 
@@ -55880,10 +55856,6 @@ msgstr "A porcentagem para definir como as cores das faixas afetarão outras fai
 
 msgid "Method for controlling how the strip combines with other strips"
 msgstr "O método para controlar como as faixas serão combinadas com outras faixas."
-
-
-msgid "Y position of the sequence strip"
-msgstr "Posição Y da faixa de sequência "
 
 
 msgid "Custom fade value"
@@ -55920,10 +55892,6 @@ msgstr "Trava a faixa de maneira que esta não possa ser transformada."
 
 msgid "Modifiers affecting this strip"
 msgstr "Modificadores afetando esta faixa."
-
-
-msgid "Disable strip so that it cannot be viewed in the output"
-msgstr "Desabilita a faixa de maneira que ela não possa ser vista na saída."
 
 
 msgid "Left Handle Selected"
@@ -56676,22 +56644,6 @@ msgstr "Caixa de texto"
 
 msgid "Text bounding box for layout"
 msgstr "A caixa circundante que envolve e permite organizar o texto."
-
-
-msgid "Textbox Height"
-msgstr "Altura da caixa de texto"
-
-
-msgid "Textbox Width"
-msgstr "Largura da caixa de texto"
-
-
-msgid "Textbox X Offset"
-msgstr "Deslocamento de caixa de texto em X"
-
-
-msgid "Textbox Y Offset"
-msgstr "Deslocamento de caixa de texto em Y"
 
 
 msgid "Text Character Format"
@@ -63978,10 +63930,6 @@ msgid "Yesterday"
 msgstr "Ontem"
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Anim Player"
 msgstr "Rep. animação"
 
@@ -65159,22 +65107,6 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Detectada a falta de %s%s%s%s !"
 
 
-msgid "Palette created"
-msgstr "Paleta Criada"
-
-
-msgid "Sample color for %s"
-msgstr "Amostragem de cor para %s."
-
-
-msgid "Brush. Use Left Click to sample for palette instead"
-msgstr "O pincel atual. Clique com o BEM para obter amostras para a paleta ao invés de amostras para o pincel. "
-
-
-msgid "Palette. Use Left Click to sample more colors"
-msgstr "A paleta atual. Clique com o BEM para obter mais amostras de cor."
-
-
 msgid "The modifier used does not support deformed locations"
 msgstr "O modificador usado não suporta localizações deformadas."
 
@@ -65225,6 +65157,22 @@ msgstr "O objeto possui uma escala negativa, operações de escultura podem ser 
 
 msgid "Dynamic Topology found: %s, disabled"
 msgstr "Topologia dinâmica encontrada: %s, desabilitados(as)."
+
+
+msgid "Palette created"
+msgstr "Paleta Criada"
+
+
+msgid "Sample color for %s"
+msgstr "Amostragem de cor para %s."
+
+
+msgid "Brush. Use Left Click to sample for palette instead"
+msgstr "O pincel atual. Clique com o BEM para obter amostras para a paleta ao invés de amostras para o pincel. "
+
+
+msgid "Palette. Use Left Click to sample more colors"
+msgstr "A paleta atual. Clique com o BEM para obter mais amostras de cor."
 
 
 msgid "Compiled without sound support"
@@ -67726,6 +67674,10 @@ msgstr "Fonte confiável [Caminho não garantido]"
 
 msgid "Don't Save"
 msgstr "Não Salvar"
+
+
+msgid "Modified"
+msgstr "Modificado"
 
 
 msgid "unable to open the file"

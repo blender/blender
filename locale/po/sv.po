@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -6019,10 +6019,6 @@ msgid "Affect Alpha"
 msgstr "Påverka alfa"
 
 
-msgid "Anchored"
-msgstr "Förankrad"
-
-
 msgid "Use custom curve"
 msgstr "Använd anpassad kurva"
 
@@ -6299,10 +6295,6 @@ msgstr "Textstorlek"
 
 msgid "Small Caps"
 msgstr "Kapitäler"
-
-
-msgid "Textboxes"
-msgstr "Textrutor"
 
 
 msgid "Fast Editing"
@@ -9339,24 +9331,28 @@ msgid "Use Material Mask"
 msgstr "Använd materialmask"
 
 
-msgid "Read"
-msgstr "Läs"
+msgid "Math"
+msgstr "Matematik"
 
 
-msgid "Write"
-msgstr "Skriv"
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
 
 
 msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
-msgid "Clean Up"
-msgstr "Städa upp"
+msgid "Read"
+msgstr "Läs"
 
 
-msgid "Instances"
-msgstr "Instanser"
+msgid "Write"
+msgstr "Skriv"
 
 
 msgid "Names"
@@ -9367,120 +9363,12 @@ msgid "Primitives"
 msgstr "Primitiver"
 
 
-msgid "Import"
-msgstr "Importera"
+msgid "Clean Up"
+msgstr "Städa upp"
 
 
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Propagate"
-msgstr "Propagera"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
+msgid "Pivot Point"
+msgstr "Fast punkt"
 
 
 msgid "Snap"
@@ -9491,8 +9379,112 @@ msgid "Mirror"
 msgstr "Spegla"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Utilities"
+msgstr "Verktyg"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
+
+
+msgid "Propagate"
+msgstr "Propagera"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
 msgid "Animals"
@@ -12993,10 +12985,6 @@ msgstr "Aktivera temautökning"
 msgctxt "Operator"
 msgid "Uninstall"
 msgstr "Avinstallera"
-
-
-msgid "Upgrade all the extensions to their latest version for all the remote repositories"
-msgstr "Uppgradera alla tillägg till den senaste versionen för alla fjärrförråd"
 
 
 msgctxt "Operator"
@@ -21296,36 +21284,36 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Stroke Placement"
-msgstr "Streckplacering"
-
-
-msgid "Measurement"
-msgstr "Mätning"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
 
 
 msgid "Render Pass"
 msgstr "Renderingspass"
 
 
-msgid "Cavity"
-msgstr "Hålrum"
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Measurement"
+msgstr "Mätning"
+
+
+msgid "Stroke Placement"
+msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Import Settings"
@@ -25733,10 +25721,6 @@ msgstr "Föråldrat tillägg"
 msgctxt "Operator"
 msgid "Add Repository..."
 msgstr "Lägg till förråd..."
-
-
-msgid "Unlocked {:d} repos(s)"
-msgstr "Upplåsta {:d} förråd"
 
 
 msgid "Upgrade all the extensions to their latest version for the active repository"
@@ -30699,10 +30683,6 @@ msgid "%d items"
 msgstr "%d objekt"
 
 
-msgid "Color Space: "
-msgstr "Färgrymd: "
-
-
 msgid "Red:"
 msgstr "Röd:"
 
@@ -30721,6 +30701,10 @@ msgstr "Värde:"
 
 msgid "Alpha:"
 msgstr "Alfa:"
+
+
+msgid "Color Space: "
+msgstr "Färgrymd: "
 
 
 msgid "RGB values"
@@ -30751,12 +30735,12 @@ msgid "No results found"
 msgstr "Inga resultat hittades"
 
 
-msgid "Internal error!"
-msgstr "Internt fel!"
-
-
 msgid "Python: {}"
 msgstr "Python: {}"
+
+
+msgid "Internal error!"
+msgstr "Internt fel!"
 
 
 msgid "Python: {}.{}"
@@ -31069,10 +31053,6 @@ msgstr "Idag"
 
 msgid "Yesterday"
 msgstr "Igår"
-
-
-msgid "Modified"
-msgstr "Ändrad"
 
 
 msgid "Stop animation playback"
@@ -31553,16 +31533,16 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Saknade%s%s%s%s upptäckta!"
 
 
+msgid "Unknown boolean error"
+msgstr "Okänt booleanskt fel"
+
+
 msgid "Palette created"
 msgstr "Palett skapad"
 
 
 msgid "Brush. Use Left Click to sample for palette instead"
 msgstr "Pensel. Använd vänsterklick för palettprov istället"
-
-
-msgid "Unknown boolean error"
-msgstr "Okänt booleanskt fel"
 
 
 msgid "Delete selected keyframes?"
@@ -31689,10 +31669,6 @@ msgid "No items"
 msgstr "Inga objekt"
 
 
-msgid "Link target"
-msgstr "Länka mål"
-
-
 msgid "This file is offline"
 msgstr "Den här filen är offline"
 
@@ -31703,14 +31679,6 @@ msgstr "Denna fil är skrivskyddad"
 
 msgid "This is a restricted system file"
 msgstr "Detta är en begränsad systemfil"
-
-
-msgid "seconds"
-msgstr "sekunder"
-
-
-msgid "bytes"
-msgstr "byte"
 
 
 msgid "Delete selected files?"
@@ -32170,6 +32138,10 @@ msgstr "Klass"
 
 msgid "(Geometry)"
 msgstr "(Geometri)"
+
+
+msgid "bytes"
+msgstr "byte"
 
 
 msgid "Delete active text file?"
@@ -33659,6 +33631,10 @@ msgstr "Spara som..."
 
 msgid "Don't Save"
 msgstr "Spara inte"
+
+
+msgid "Modified"
+msgstr "Ändrad"
 
 
 msgid "unable to open the file"

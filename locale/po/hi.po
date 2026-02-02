@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -1328,6 +1328,10 @@ msgid "Phase"
 msgstr "चरण"
 
 
+msgid "Sigma"
+msgstr "सिग्मा"
+
+
 msgid "Frame"
 msgstr "गठन"
 
@@ -2581,72 +2585,24 @@ msgid "Dots"
 msgstr "बिन्दु्"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Math"
 msgstr "गणित"
-
-
-msgid "Merge"
-msgstr "विलय करें"
 
 
 msgid "UV"
 msgstr "यूवी"
 
 
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
+msgid "Names"
+msgstr "नाम"
 
 
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
 msgid "Snap"
@@ -2655,6 +2611,54 @@ msgstr "स्नैप"
 
 msgid "Mirror"
 msgstr "दर्पण"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Import"
+msgstr "आयात करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -3610,10 +3614,6 @@ msgid "Both"
 msgstr "दोनों"
 
 
-msgid "Sigma"
-msgstr "सिग्मा"
-
-
 msgid "Next Keyframe"
 msgstr "अगले अनुबोधक चिन्ह"
 
@@ -4429,12 +4429,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -6019,10 +6019,6 @@ msgid "New"
 msgstr "नई"
 
 
-msgid "Modified"
-msgstr "संशोधित"
-
-
 msgid "Stop animation playback"
 msgstr "अनुप्राणन चलाएँ रोकें"
 
@@ -6538,6 +6534,10 @@ msgstr "रिम"
 
 msgid "Blender File View"
 msgstr "ब्लेंडर संचिका दृश्य"
+
+
+msgid "Modified"
+msgstr "संशोधित"
 
 
 msgid "ON"

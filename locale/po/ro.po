@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'bd8d088b2702')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 11:28+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-09-04 22:59+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2136,28 +2136,28 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Apply"
-msgstr "Aplicare"
-
-
-msgid "Convert"
-msgstr "Convertire"
-
-
-msgid "Add Image"
-msgstr "Adăugare Imagine"
-
-
 msgid "Layout"
 msgstr "Aspect"
+
+
+msgid "Tracking"
+msgstr "Urmărire"
 
 
 msgid "Light"
 msgstr "Lumină"
 
 
-msgid "Tracking"
-msgstr "Urmărire"
+msgid "Add Image"
+msgstr "Adăugare Imagine"
+
+
+msgid "Apply"
+msgstr "Aplicare"
+
+
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Marker"
