@@ -351,8 +351,12 @@ class Context : public compositor::Context {
           this->create_result(ResultType::Color, ResultPrecision::Half));
       if (input_socket == node_group.interface_inputs()[0]) {
         /* First socket is the viewport combined pass. */
-        gpu::Texture *combined_texture = DRW_context_get()->viewport_texture_list_get()->color;
-        input_result->wrap_external(combined_texture);
+        const int active_view_layer_index = BLI_findstringindex(
+            &scene_->view_layers, DRW_context_get()->view_layer->name, offsetof(ViewLayer, name));
+        Result combined_pass = this->get_pass(
+            scene_, active_view_layer_index, RE_PASSNAME_COMBINED);
+        input_result->share_data(combined_pass);
+        combined_pass.release();
       }
       else {
         /* The rest of the sockets are not supported. */
