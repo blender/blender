@@ -593,6 +593,8 @@ void invoke_node_link_drag_add_menu(bContext &C,
                                     bNodeSocket &socket,
                                     const float2 &cursor);
 
+void NODE_OT_link_drag_operation_test(wmOperatorType *ot);
+
 /* `add_menu_assets.cc` */
 
 MenuType catalog_assets_menu_type();
