@@ -378,6 +378,11 @@ static void animdata_copy_id_action(Main *bmain,
       BLI_assert(orig_slot_handle == adt->slot_handle);
       UNUSED_VARS_NDEBUG(assign_ok, orig_slot_handle);
     }
+    else if (!adt->action) {
+      /* When the duplicated ID does not have an Action assigned, it's better to reset its
+       * last-used slot identifier as well. See #143117. */
+      adt->last_slot_identifier[0] = '\0';
+    }
     if (adt->tmpact && (do_linked_id || !ID_IS_LINKED(adt->tmpact))) {
       bAction *cloned_action = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &adt->tmpact->id));
 
@@ -392,6 +397,11 @@ static void animdata_copy_id_action(Main *bmain,
       BLI_assert_msg(assign_ok, "Expected tmp-action assignment to work when copying animdata");
       BLI_assert(orig_slot_handle == adt->tmp_slot_handle);
       UNUSED_VARS_NDEBUG(assign_ok, orig_slot_handle);
+    }
+    else if (!adt->tmpact) {
+      /* When the duplicated ID does not have an Action assigned, it's better to reset its
+       * last-used slot identifier as well. See #143117. */
+      adt->tmp_last_slot_identifier[0] = '\0';
     }
   }
   bNodeTree *ntree = bke::node_tree_from_id(id);
