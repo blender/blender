@@ -4067,6 +4067,10 @@ void node_socket_move_default_value(Main & /*bmain*/,
     /* Reroute node can't have ownership of socket value directly. */
     return;
   }
+  if (src.typeinfo->base_cpp_type == nullptr || dst.typeinfo->base_cpp_type == nullptr) {
+    /* Not all socket types have a value type. */
+    return;
+  }
 
   const CPPType &src_type = *src.typeinfo->base_cpp_type;
   const CPPType &dst_type = *dst.typeinfo->base_cpp_type;
