@@ -1263,7 +1263,8 @@ static PointerRNA rna_PointerProperty_fixed_type_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = static_cast<PropertyRNA *>(ptr->data);
   prop = rna_ensure_property(prop);
-  return RNA_pointer_create_discrete(nullptr, RNA_Struct, ((PointerPropertyRNA *)prop)->type);
+  return RNA_pointer_create_discrete(
+      nullptr, RNA_Struct, ((PointerPropertyRNA *)prop)->pointer_type);
 }
 
 static PointerRNA rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)

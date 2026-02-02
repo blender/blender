@@ -1678,8 +1678,8 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
     if (pprop->type_fn) {
       return pprop->type_fn(ptr);
     }
-    if (pprop->type) {
-      return pprop->type;
+    if (pprop->pointer_type) {
+      return pprop->pointer_type;
     }
   }
   else if (prop->type == PROP_COLLECTION) {
@@ -4494,7 +4494,7 @@ static PointerRNA property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, const
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
 
-    if (RNA_struct_is_ID(pprop->type)) {
+    if (RNA_struct_is_ID(pprop->pointer_type)) {
       /* ID PointerRNA should not have ancestors currently. */
       return RNA_id_pointer_create(idprop->type == IDP_GROUP ? nullptr : IDP_ID_get(idprop));
     }
@@ -4503,7 +4503,7 @@ static PointerRNA property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, const
     if (pprop->type_fn) {
       return RNA_pointer_create_with_parent(*ptr, pprop->type_fn(ptr), idprop);
     }
-    return RNA_pointer_create_with_parent(*ptr, pprop->type, idprop);
+    return RNA_pointer_create_with_parent(*ptr, pprop->pointer_type, idprop);
   }
   if (pprop->get) {
     return pprop->get(ptr);
@@ -4545,12 +4545,12 @@ void RNA_property_pointer_set(PointerRNA *ptr,
   /* This is a 'real' RNA property, not an IDProperty or a dynamic RNA property using an IDProperty
    * as backend storage. */
   if (pprop->set) {
-    if (ptr_value.type != nullptr && !RNA_struct_is_a(ptr_value.type, pprop->type)) {
+    if (ptr_value.type != nullptr && !RNA_struct_is_a(ptr_value.type, pprop->pointer_type)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "%s: expected %s type, not %s",
                   __func__,
-                  pprop->type->identifier,
+                  pprop->pointer_type->identifier,
                   ptr_value.type->identifier);
       return;
     }

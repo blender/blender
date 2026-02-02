@@ -1057,7 +1057,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 #ifdef RNA_RUNTIME
       PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
       pprop->get = rna_builtin_type_get;
-      pprop->type = RNA_Struct;
+      pprop->pointer_type = RNA_Struct;
 #endif
     }
   }
@@ -1951,7 +1951,7 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
   switch (prop->type) {
     case PROP_POINTER: {
       PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
-      pprop->type = reinterpret_cast<StructRNA *>(const_cast<char *>(type));
+      pprop->pointer_type = reinterpret_cast<StructRNA *>(const_cast<char *>(type));
       break;
     }
     case PROP_COLLECTION: {
@@ -1982,7 +1982,7 @@ void RNA_def_property_struct_runtime(StructOrFunctionRNA *cont, PropertyRNA *pro
   switch (prop->type) {
     case PROP_POINTER: {
       PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
-      pprop->type = type;
+      pprop->pointer_type = type;
 
       /* Check between `cont` and `srna` is mandatory, since when defined from python
        * `DefRNA.laststruct` is not valid.

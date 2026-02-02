@@ -632,7 +632,7 @@ struct PointerPropertyRNA : public PropertyRNA {
   /** unlike operators, 'set' can still run if poll fails, used for filtering display. */
   PropPointerPollFunc poll;
 
-  StructRNA *type;
+  StructRNA *pointer_type;
 };
 
 struct CollectionPropertyRNA : public PropertyRNA {
