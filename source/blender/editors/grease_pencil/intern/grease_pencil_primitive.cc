@@ -597,6 +597,22 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
   cyclic.finish();
   curve_attributes_to_skip.add("cyclic");
 
+  if ((ptd.settings->flag2 & GP_BRUSH_USE_STROKE) == 0) {
+    bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
+        "hide_stroke", bke::AttrDomain::Curve);
+    hide_stroke.span[target_curve_index] = true;
+    curve_attributes_to_skip.add("hide_stroke");
+    hide_stroke.finish();
+  }
+  if (ptd.use_fill) {
+    bke::SpanAttributeWriter<int> fill_id = attributes.lookup_or_add_for_write_span<int>(
+        "fill_id", bke::AttrDomain::Curve);
+    /* TODO: Use the first available ID. */
+    fill_id.span[target_curve_index] = target_curve_index + 1;
+    curve_attributes_to_skip.add("fill_id");
+    fill_id.finish();
+  }
+
   if (bke::SpanAttributeWriter<float> softness = attributes.lookup_or_add_for_write_span<float>(
           "softness", bke::AttrDomain::Curve))
   {
@@ -807,7 +823,7 @@ static wmOperatorStatus grease_pencil_primitive_invoke(bContext *C,
   Material *material = BKE_grease_pencil_object_material_ensure_from_brush(
       CTX_data_main(C), vc.obact, ptd.brush);
   ptd.material_index = BKE_object_material_index_get(vc.obact, material);
-  ptd.use_fill = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
+  ptd.use_fill = (ptd.settings->flag2 & GP_BRUSH_USE_FILL) != 0;
 
   const bool use_vertex_color = (vc.scene->toolsettings->gp_paint->mode ==
                                  GPPAINT_FLAG_USE_VERTEXCOLOR);

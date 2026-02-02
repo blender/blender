@@ -9,6 +9,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_ID.h"
+
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
 #include "DNA_light_types.h"
@@ -28,6 +29,7 @@
 #include "BKE_asset.hh"
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
+#include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -436,7 +438,8 @@ static void do_version_light_remove_use_nodes(Main *bmain, Light *light)
    * simulate the same effect by creating a new Light Output node and setting it to active. */
   bNodeTree *ntree = light->nodetree;
   if (ntree == nullptr) {
-    /* In case the light was defined through Python API it might have been missing a node tree. */
+    /* In case the light was defined through Python API it might have been missing a node tree.
+     */
     ntree = bke::node_tree_add_tree_embedded(
         bmain, &light->id, "Light Node Tree Versioning", "ShaderNodeTree");
   }
@@ -507,11 +510,11 @@ static void do_version_render_layers_node_albedo_normal_swap(bNode &node)
   }
 }
 
-/* Some nodes no longer have storage but their storage is still allocated at write time for forward
- * compatibility. This only happens during writes from 4.5, so we need to free this storage again
- * when loading any file from 4.5. But before this versioning was done, it was possible to save a
- * file from 4.5 in 5.0 or 5.1 and it would still have the storage, so we also need to include
- * versions up to the current 5.1 subversion. */
+/* Some nodes no longer have storage but their storage is still allocated at write time for
+ * forward compatibility. This only happens during writes from 4.5, so we need to free this
+ * storage again when loading any file from 4.5. But before this versioning was done, it was
+ * possible to save a file from 4.5 in 5.0 or 5.1 and it would still have the storage, so we also
+ * need to include versions up to the current 5.1 subversion. */
 static void free_compositor_forward_compatibility_storage(bNode &node)
 {
   if (!node.storage) {
@@ -599,13 +602,13 @@ static void convert_brush_flags_to_type(Brush &brush)
   }
 }
 
-void do_versions_after_linking_510(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_510(FileData *fd, Main *bmain)
 {
-  /* Some blend files were saved with an invalid active viewer key, possibly due to a bug that was
-   * fixed already in c8cb24121f, but blend files were never updated. So starting in 5.1, we fix
-   * those files by essentially doing what ED_node_set_active_viewer_key is supposed to do at load
-   * time during versioning. Note that the invalid active viewer will just cause a harmless assert,
-   * so this does not need to exist in previous releases. */
+  /* Some blend files were saved with an invalid active viewer key, possibly due to a bug that
+   * was fixed already in c8cb24121f, but blend files were never updated. So starting in 5.1, we
+   * fix those files by essentially doing what ED_node_set_active_viewer_key is supposed to do at
+   * load time during versioning. Note that the invalid active viewer will just cause a harmless
+   * assert, so this does not need to exist in previous releases. */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 0)) {
     for (bScreen &screen : bmain->screens) {
       for (ScrArea &area : screen.areabase) {
@@ -624,6 +627,44 @@ void do_versions_after_linking_510(FileData * /*fd*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 0)) {
     version_clear_unused_strip_flags(*bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 24)) {
+    /* Note: For legacy Grease Pencil objects (#OB_GPENCIL_LEGACY) this is handled as part of
+     * bke::greasepencil::convert::legacy_main. */
+    bke::greasepencil::convert::material_stroke_fill_toggles_to_attributes(
+        *bmain, {}, *fd->reports);
+    /* Set the stroke mode for all brushes. */
+    for (Brush &brush : bmain->brushes) {
+      if (BrushGpencilSettings *settings = brush.gpencil_settings) {
+        if (Material *material = settings->material) {
+          BLI_assert(material->gp_style != nullptr);
+          SET_FLAG_FROM_TEST(settings->flag2,
+                             (material->gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0,
+                             GP_BRUSH_USE_STROKE);
+          SET_FLAG_FROM_TEST(settings->flag2,
+                             (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0,
+                             GP_BRUSH_USE_FILL);
+        }
+        else {
+          settings->flag2 |= GP_BRUSH_USE_STROKE;
+          settings->flag2 &= ~GP_BRUSH_USE_FILL;
+        }
+      }
+    }
+    /* Set the color to transparent for when the stroke/fill is disabled. */
+    for (Material &material : bmain->materials) {
+      if (material.gp_style == nullptr) {
+        continue;
+      }
+      MaterialGPencilStyle &gp_style = *material.gp_style;
+      if ((gp_style.flag & GP_MATERIAL_STROKE_SHOW) == 0) {
+        gp_style.stroke_rgba[3] = 0.0f;
+      }
+      if ((gp_style.flag & GP_MATERIAL_FILL_SHOW) == 0) {
+        gp_style.fill_rgba[3] = 0.0f;
+      }
+    }
   }
 
   /**
@@ -804,7 +845,8 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     for (Scene &scene : bmain->scenes) {
       SequencerToolSettings *seq_ts = seq::tool_settings_ensure(&scene);
       constexpr short SEQ_SNAP_TO_FRAME_RANGE_OLD = (1 << 8);
-      /* Snap to frame range was bit 8, now bit 9, to make room for snap to increment in bit 8. */
+      /* Snap to frame range was bit 8, now bit 9, to make room for snap to increment in bit 8.
+       */
       if (seq_ts->snap_mode & SEQ_SNAP_TO_FRAME_RANGE_OLD) {
         seq_ts->snap_mode &= ~SEQ_SNAP_TO_FRAME_RANGE_OLD;
         seq_ts->snap_mode |= SEQ_SNAP_TO_FRAME_RANGE;

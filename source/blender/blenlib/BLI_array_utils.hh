@@ -340,4 +340,63 @@ bool indexed_data_equal(const Span<T> all_values, const Span<int> indices, const
 
 bool indices_are_range(Span<int> indices, IndexRange range);
 
+/**
+ * Returns the index of the (first) maximum element in the virtual array or std::nullopt if the
+ * array is empty.
+ */
+template<typename T>
+inline std::optional<int64_t> max_element_index(const VArray<T> &array,
+                                                const int64_t grain_size = 8192)
+{
+  if (!array || array.is_empty()) {
+    return std::nullopt;
+  }
+  if (array.is_single()) {
+    return 0;
+  }
+  if (array.is_span()) {
+    const Span<T> span = array.get_internal_span();
+    const T *max_it = threading::parallel_reduce(
+        span.index_range(),
+        grain_size,
+        span.begin(),
+        [&](const IndexRange range, const T *init_max) {
+          const Span<T> sub_span = span.slice(range);
+          const T *max_elem = std::max_element(sub_span.begin(), sub_span.end());
+          if (*max_elem < *init_max) {
+            return init_max;
+          }
+          return max_elem;
+        },
+        [&](const T *a, const T *b) {
+          if (*a < *b) {
+            return a;
+          }
+          return b;
+        });
+    return std::distance(span.begin(), max_it);
+  }
+  return threading::parallel_reduce(
+      array.index_range(),
+      grain_size,
+      0,
+      [&](const IndexRange range, const int64_t init_i) {
+        int64_t max_index = init_i;
+        T max_elem = array[max_index];
+        for (const int i : range) {
+          if (max_elem < array[i]) {
+            max_index = i;
+            max_elem = array[i];
+          }
+        }
+        return max_index;
+      },
+      [&](const int64_t index_a, const int64_t index_b) {
+        if (array[index_a] < array[index_b]) {
+          return index_b;
+        }
+        return index_a;
+      });
+}
+
 }  // namespace blender::array_utils

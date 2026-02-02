@@ -90,6 +90,10 @@ enum eGPDbrush_Flag2 {
   GP_BRUSH_USE_STRENGTH_RAND_PRESS = (1 << 10),
   /* Brush use UV random pressure */
   GP_BRUSH_USE_UV_RAND_PRESS = (1 << 11),
+  /* Brush creates curves that use the stroke. */
+  GP_BRUSH_USE_STROKE = (1 << 12),
+  /* Brush creates curves that use the fill. */
+  GP_BRUSH_USE_FILL = (1 << 13),
 };
 
 /* BrushGpencilSettings->fill_draw_mode */

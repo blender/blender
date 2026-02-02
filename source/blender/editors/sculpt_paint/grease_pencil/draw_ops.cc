@@ -1449,6 +1449,12 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
       continue;
     }
 
+    /* Combine the strokes into a single fill with the same fill ID. */
+    bke::SpanAttributeWriter<int> fill_ids =
+        fill_curves.attributes_for_write().lookup_or_add_for_write_span<int>(
+            "fill_id", bke::AttrDomain::Curve, bke::AttributeInitValue(1));
+    fill_ids.finish();
+
     smooth_fill_strokes(fill_curves, fill_curves.curves_range());
 
     if (simplify_levels > 0) {
@@ -1548,6 +1554,9 @@ static bool grease_pencil_fill_init(bContext &C, wmOperator &op)
 
   Material *material = BKE_grease_pencil_object_material_ensure_from_brush(&bmain, &ob, &brush);
   const int material_index = BKE_object_material_index_get(&ob, material);
+  if (material->gp_style->fill_rgba[3] == 0.0f) {
+    BKE_report(op.reports, RPT_WARNING, "Fill is fully transparent");
+  }
 
   const bool invert = RNA_boolean_get(op.ptr, "invert");
   const bool precision = RNA_boolean_get(op.ptr, "precision");

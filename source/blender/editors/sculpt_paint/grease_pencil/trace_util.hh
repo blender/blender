@@ -86,15 +86,12 @@ void free_trace(Trace *trace);
  * Create curves from trace data.
  * Pixels are interpreted as (x, y, 0) coordinates and transformed.
  */
-bke::CurvesGeometry trace_to_curves(const Trace &trace,
-                                    StringRef hole_attribute_id,
-                                    const float4x4 &transform);
+bke::CurvesGeometry trace_to_curves(const Trace &trace, const float4x4 &transform);
 /**
  * Create curves from trace data.
  * Pixels are transformed by the \a pixel_to_position function.
  */
 bke::CurvesGeometry trace_to_curves(const Trace &trace,
-                                    StringRef hole_attribute_id,
                                     FunctionRef<float3(const int2 &)> pixel_to_position);
 
 /* Inline functions. */

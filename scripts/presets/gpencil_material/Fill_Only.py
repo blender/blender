@@ -21,5 +21,3 @@ gpcolor.texture_scale = (1.0, 1.0)
 gpcolor.texture_angle = 0.0
 gpcolor.texture_clamp = False
 gpcolor.mix_factor = 0.0
-gpcolor.show_stroke = False
-gpcolor.show_fill = True

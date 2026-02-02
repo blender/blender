@@ -11,6 +11,7 @@
 #include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_fills.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
@@ -432,6 +433,22 @@ struct PaintOperationExecutor {
       aspect_ratio.span[active_curve] = aspect_ratio_;
       curve_attributes_to_skip.add("aspect_ratio");
       aspect_ratio.finish();
+    }
+
+    if ((settings_->flag2 & GP_BRUSH_USE_STROKE) == 0) {
+      bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
+          "hide_stroke", bke::AttrDomain::Curve);
+      hide_stroke.span[active_curve] = true;
+      curve_attributes_to_skip.add("hide_stroke");
+      hide_stroke.finish();
+    }
+    if (use_fill) {
+      bke::SpanAttributeWriter<int> fill_id = attributes.lookup_or_add_for_write_span<int>(
+          "fill_id", bke::AttrDomain::Curve);
+      bke::greasepencil::gather_next_available_fill_ids(
+          fill_id.span.varray(), fill_id.span.slice(IndexRange::from_single(active_curve)));
+      curve_attributes_to_skip.add("fill_id");
+      fill_id.finish();
     }
 
     if (settings_->uv_random > 0.0f || attributes.contains("rotation")) {
@@ -1208,7 +1225,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   Material *material = BKE_grease_pencil_object_material_ensure_from_brush(
       CTX_data_main(&C), object_, brush);
   const int material_index = BKE_object_material_index_get(object_, material);
-  const bool use_fill = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
+  const bool use_fill = (settings->flag2 & GP_BRUSH_USE_FILL) != 0;
 
   frame_number_ = scene_->r.cfra;
   drawing_ = grease_pencil->get_editable_drawing_at(layer, frame_number_);

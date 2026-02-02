@@ -702,11 +702,15 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_MATERIAL_STROKE_SHOW);
   RNA_def_property_ui_text(prop, "Show Stroke", "Show stroke lines of this material");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+  RNA_def_property_deprecated(
+      prop, "Unused but kept for compatibility with older versions of Blender.", 510, 600);
 
   prop = RNA_def_property(srna, "show_fill", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_MATERIAL_FILL_SHOW);
   RNA_def_property_ui_text(prop, "Show Fill", "Show stroke fills of this material");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+  RNA_def_property_deprecated(
+      prop, "Unused but kept for compatibility with older versions of Blender.", 510, 600);
 
   /* Mode to align Dots and Boxes to drawing path and object rotation */
   prop = RNA_def_property(srna, "alignment_mode", PROP_ENUM, PROP_NONE);

@@ -44,7 +44,7 @@ class GreasePencilImporter {
   GreasePencilImporter(const IOContext &context, const ImportParams &params);
 
   Object *create_object(StringRefNull name);
-  int32_t create_material(StringRefNull name, bool stroke, bool fill);
+  int32_t create_material(StringRefNull name);
 };
 
 class GreasePencilExporter {

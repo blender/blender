@@ -1376,6 +1376,13 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem rna_enum_gpencil_brush_stroke_type_items[] = {
+      {GP_BRUSH_USE_STROKE, "STROKE", ICON_NONE, "Stroke", ""},
+      {GP_BRUSH_USE_FILL, "FILL", ICON_NONE, "Fill", ""},
+      {GP_BRUSH_USE_FILL | GP_BRUSH_USE_STROKE, "BOTH", ICON_NONE, "Both", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "BrushGpencilSettings", nullptr);
   RNA_def_struct_sdna(srna, "BrushGpencilSettings");
   RNA_def_struct_path_func(srna, "rna_BrushGpencilSettings_path");
@@ -1837,6 +1844,13 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag2", GP_BRUSH_USE_UV_RAND_PRESS);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
   RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
+
+  prop = RNA_def_property(srna, "stroke_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag2");
+  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_stroke_type_items);
+  RNA_def_property_ui_text(prop, "Stroke Mode", "Mode to use when creating strokes");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 

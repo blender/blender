@@ -2197,7 +2197,9 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
 
         layout.separator()
 
+        layout.operator_menu_enum("grease_pencil.select_by_stroke_type", "type", text="By Stroke Type")
         layout.operator_menu_enum("grease_pencil.select_similar", "mode")
+        layout.operator("grease_pencil.select_fill")
         layout.operator("grease_pencil.select_linked")
 
         layout.separator()
@@ -5148,10 +5150,14 @@ class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, Menu):
 class VIEW3D_MT_edit_greasepencil_delete(Menu):
     bl_label = "Delete"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
 
-        layout.operator("grease_pencil.delete")
+        tool_settings = context.tool_settings
+        is_stroke_selection = tool_settings.gpencil_selectmode_edit == 'STROKE'
+        layout.operator("grease_pencil.delete", text="Strokes" if is_stroke_selection else "Points").mode = 'ALL'
+        layout.operator("grease_pencil.delete", text="Only Strokes").mode = 'STROKES'
+        layout.operator("grease_pencil.delete", text="Only Fills").mode = 'FILLS'
 
         layout.separator()
 
@@ -5844,7 +5850,14 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
+        # Set stroke mode
+        layout.operator_menu_enum("grease_pencil.set_stroke_type", "type", text="Set Stroke Type")
+
+        layout.separator()
+
         layout.operator("grease_pencil.reset_uvs")
+        layout.operator("grease_pencil.join_fills")
+        layout.operator("grease_pencil.separate_fills")
 
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
@@ -8378,6 +8391,11 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
 
             col.separator()
 
+            # Set stroke mode
+            col.operator_menu_enum("grease_pencil.set_stroke_type", "type", text="Set Stroke Type")
+
+            col.separator()
+
             # Deform Operators
             col.operator("grease_pencil.stroke_smooth", text="Smooth")
             col.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
@@ -8423,6 +8441,11 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
             col.operator("grease_pencil.stroke_simplify", text="Simplify")
             col.operator("grease_pencil.outline", text="Outline")
+
+            col.separator()
+
+            # Set stroke mode
+            col.operator_menu_enum("grease_pencil.set_stroke_type", "type", text="Set Stroke Type")
 
             col.separator()
 

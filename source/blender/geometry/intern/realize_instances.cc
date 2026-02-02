@@ -18,6 +18,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_fills.hh"
 #include "BKE_instances.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -137,6 +138,11 @@ struct RealizeCurveInfo {
   /** ID attribute on the curves. If there are no ids, this #Span is empty. */
   VArray<int> stored_ids;
 
+  /** `fill_id` attribute on the curves. If there are no fills, this #VArray is empty. */
+  VArray<int> stored_fill_ids;
+  /** Set of all the fill ids in `stored_fill_ids` that are not 0. */
+  VectorSet<int> index_by_fill_id;
+
   /**
    * Handle position attributes must be transformed along with positions. Accessing them in
    * advance isn't necessary theoretically, but is done to simplify other code and to avoid
@@ -172,6 +178,7 @@ struct CurvesElementStartIndices {
   int point = 0;
   int curve = 0;
   int custom_knot = 0;
+  int fill_id = 0;
 };
 
 struct RealizeCurveTask {
@@ -244,6 +251,7 @@ struct AllCurvesInfo {
   /** Preprocessed data about every original curve. This is ordered by #order. */
   Array<RealizeCurveInfo> realize_info;
   bool create_id_attribute = false;
+  bool create_fill_id_attribute = false;
   bool create_handle_postion_attributes = false;
   bool create_radius_attribute = false;
   bool create_custom_normal_attribute = false;
@@ -297,6 +305,7 @@ struct GatherOffsets {
     int64_t point = 0;
     int64_t curve = 0;
     int64_t custom_knot = 0;
+    int64_t fill_id = 0;
   } curves_offsets;
   int64_t grease_pencil_layer_offset = 0;
 };
@@ -466,6 +475,37 @@ static void create_result_ids(const RealizeInstancesOptions &options,
       });
     }
   }
+}
+
+static VectorSet<int> gather_all_fill_ids(const VArray<int> &fill_ids)
+{
+  if (fill_ids.is_empty()) {
+    return VectorSet<int>();
+  }
+  if (fill_ids.is_single()) {
+    const int fill_id = fill_ids.get_internal_single();
+    if (fill_id != 0) {
+      return VectorSet<int>({fill_id});
+    }
+  }
+  if (fill_ids.is_span()) {
+    VectorSet<int> index_by_fill_ids;
+    const Span<int> fill_ids_span = fill_ids.get_internal_span();
+    for (const int fill_id : fill_ids_span) {
+      if (fill_id != 0) {
+        index_by_fill_ids.add(fill_id);
+      }
+    }
+    return index_by_fill_ids;
+  }
+  VectorSet<int> index_by_fill_ids;
+  for (const int i : fill_ids.index_range()) {
+    const int fill_id = fill_ids[i];
+    if (fill_id != 0) {
+      index_by_fill_ids.add(fill_id);
+    }
+  }
+  return index_by_fill_ids;
 }
 
 /* -------------------------------------------------------------------- */
@@ -719,7 +759,8 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
           gather_info.r_tasks.curve_tasks.append(
               {{int(gather_info.r_offsets.curves_offsets.point),
                 int(gather_info.r_offsets.curves_offsets.curve),
-                int(gather_info.r_offsets.curves_offsets.custom_knot)},
+                int(gather_info.r_offsets.curves_offsets.custom_knot),
+                int(gather_info.r_offsets.curves_offsets.fill_id)},
                &curve_info,
                base_transform,
                base_instance_context.curves,
@@ -727,6 +768,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
           gather_info.r_offsets.curves_offsets.point += curves->geometry.point_num;
           gather_info.r_offsets.curves_offsets.curve += curves->geometry.curve_num;
           gather_info.r_offsets.curves_offsets.custom_knot += curves->geometry.custom_knot_num;
+          gather_info.r_offsets.curves_offsets.fill_id += curve_info.index_by_fill_id.size();
         }
         break;
       }
@@ -1831,7 +1873,8 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
     const bke::GeometrySet &in_geometry_set,
     const RealizeInstancesOptions &options,
     const VariedDepthOptions &varied_depth_option,
-    bool &r_create_id)
+    bool &r_create_id,
+    bool &r_create_fill_id)
 {
   bke::GeometrySet::GatheredAttributes attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Curve, options, varied_depth_option);
@@ -1848,6 +1891,10 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
     }
     if (attributes_to_propagate.names[i] == "id") {
       r_create_id = true;
+      continue;
+    }
+    if (attributes_to_propagate.names[i] == "fill_id") {
+      r_create_fill_id = true;
       continue;
     }
     ordered_attributes.ids.add_new(attributes_to_propagate.names[i]);
@@ -1876,8 +1923,11 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
                                        const VariedDepthOptions &varied_depth_option)
 {
   AllCurvesInfo info;
-  info.attributes = gather_generic_curve_attributes_to_propagate(
-      geometry_set, options, varied_depth_option, info.create_id_attribute);
+  info.attributes = gather_generic_curve_attributes_to_propagate(geometry_set,
+                                                                 options,
+                                                                 varied_depth_option,
+                                                                 info.create_id_attribute,
+                                                                 info.create_fill_id_attribute);
 
   gather_curves_to_realize(geometry_set, info.order);
   info.realize_info.reinitialize(info.order.size());
@@ -1905,6 +1955,15 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
           id_attribute.varray.type().is<int>())
       {
         curve_info.stored_ids = id_attribute.varray.typed<int>();
+      }
+    }
+    if (info.create_fill_id_attribute) {
+      bke::GAttributeReader fill_id_attribute = attributes.lookup("fill_id");
+      if (fill_id_attribute && fill_id_attribute.domain == bke::AttrDomain::Curve &&
+          fill_id_attribute.varray.type().is<int>())
+      {
+        curve_info.stored_fill_ids = fill_id_attribute.varray.typed<int>();
+        curve_info.index_by_fill_id = gather_all_fill_ids(curve_info.stored_fill_ids);
       }
     }
 
@@ -1952,6 +2011,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        bke::CurvesGeometry &dst_curves,
                                        MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
                                        MutableSpan<int> all_dst_ids,
+                                       MutableSpan<int> all_dst_fill_ids,
                                        MutableSpan<float3> all_handle_left,
                                        MutableSpan<float3> all_handle_right,
                                        MutableSpan<float> all_radii,
@@ -2023,6 +2083,32 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
   if (!all_dst_ids.is_empty()) {
     create_result_ids(
         options, curves_info.stored_ids, task.id, all_dst_ids.slice(dst_point_range));
+  }
+
+  if (!all_dst_fill_ids.is_empty()) {
+    MutableSpan<int> dst_fill_ids = all_dst_fill_ids.slice(dst_curve_range);
+    const VArray<int> &src_fill_ids = curves_info.stored_fill_ids;
+    const VectorSet<int> &index_by_fill_id = curves_info.index_by_fill_id;
+
+    if (src_fill_ids.is_empty() || index_by_fill_id.is_empty()) {
+      dst_fill_ids.fill(0);
+    }
+    else {
+      threading::parallel_for(curves.curves_range(), 2048, [&](const IndexRange range) {
+        for (const int i : range) {
+          const int src_fill_id = src_fill_ids[i];
+          if (src_fill_id == 0) {
+            dst_fill_ids[i] = 0;
+          }
+          else {
+            /* Use the index of the source fill ID to create new IDs. */
+            const int fill_id_index = index_by_fill_id.index_of(src_fill_id);
+            /* Valid fill IDs must not be 0, so start at 1. */
+            dst_fill_ids[i] = task.start_indices.fill_id + fill_id_index + 1;
+          }
+        }
+      });
+    }
   }
 
   copy_generic_attributes_to_result(
@@ -2120,6 +2206,13 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                                                       bke::AttrDomain::Point);
   }
 
+  /* Prepare fill id attribute. */
+  SpanAttributeWriter<int> fill_ids;
+  if (all_curves_info.create_fill_id_attribute) {
+    fill_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("fill_id",
+                                                                     bke::AttrDomain::Curve);
+  }
+
   /* Prepare generic output attributes. */
   Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
@@ -2162,6 +2255,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                  dst_curves,
                                  dst_attribute_writers,
                                  point_ids.span,
+                                 fill_ids.span,
                                  handle_left.span,
                                  handle_right.span,
                                  radius.span,
@@ -2183,6 +2277,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
     dst_attribute.finish();
   }
   point_ids.finish();
+  fill_ids.finish();
   radius.finish();
   handle_left.finish();
   handle_right.finish();

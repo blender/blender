@@ -8,6 +8,10 @@
  * \ingroup bke
  */
 
+#include <optional>
+
+#include "BLI_set.hh"
+
 namespace blender {
 
 struct BlendfileLinkAppendContext;
@@ -23,6 +27,13 @@ namespace bke::greasepencil::convert {
 void legacy_main(Main &bmain,
                  BlendfileLinkAppendContext *lapp_context,
                  BlendFileReadReport &reports);
+/**
+ * Convert material stroke and fill setting to geometry attributes.
+ * \param filter: Only process a specific set of GreasePencil IDs.
+ */
+void material_stroke_fill_toggles_to_attributes(Main &bmain,
+                                                const std::optional<Set<GreasePencil *>> &filter,
+                                                BlendFileReadReport &reports);
 
 void lineart_wrap_v3(const LineartGpencilModifierData *lmd_legacy,
                      GreasePencilLineartModifierData *lmd);
