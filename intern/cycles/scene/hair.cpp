@@ -356,6 +356,14 @@ void Hair::copy_center_to_motion_step(const int motion_step)
     const size_t numkeys = curve_keys.size();
     std::copy_n(keys, numkeys, attr_mP->data_float3() + motion_step * numkeys);
   }
+
+  Attribute *attr_mvN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+  Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+  if (attr_mvN && attr_vN) {
+    packed_normal *vN = attr_vN->data_normal();
+    const size_t numkeys = curve_keys.size();
+    std::copy_n(vN, numkeys, attr_mvN->data_normal() + motion_step * numkeys);
+  }
 }
 
 void Hair::get_uv_tiles(ustring map, unordered_set<int> &tiles)

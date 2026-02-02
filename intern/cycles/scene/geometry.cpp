@@ -229,6 +229,10 @@ static void update_device_flags_attribute(uint32_t &device_update_flags,
         device_update_flags |= ATTR_UCHAR4_MODIFIED;
         break;
       }
+      case AttrKernelDataType::NORMAL: {
+        device_update_flags |= ATTR_NORMAL_MODIFIED;
+        break;
+      }
       case AttrKernelDataType::NUM: {
         break;
       }
@@ -253,6 +257,9 @@ static void update_attribute_realloc_flags(uint32_t &device_update_flags,
   }
   if (attributes.modified(AttrKernelDataType::UCHAR4)) {
     device_update_flags |= ATTR_UCHAR4_NEEDS_REALLOC;
+  }
+  if (attributes.modified(AttrKernelDataType::NORMAL)) {
+    device_update_flags |= ATTR_NORMAL_NEEDS_REALLOC;
   }
 }
 
@@ -577,6 +584,14 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   }
   else if (device_update_flags & ATTR_UCHAR4_MODIFIED) {
     dscene->attributes_uchar4.tag_modified();
+  }
+
+  if (device_update_flags & ATTR_NORMAL_NEEDS_REALLOC) {
+    dscene->attributes_map.tag_realloc();
+    dscene->attributes_normal.tag_realloc();
+  }
+  else if (device_update_flags & ATTR_NORMAL_MODIFIED) {
+    dscene->attributes_normal.tag_modified();
   }
 
   if (device_update_flags & DEVICE_MESH_DATA_MODIFIED) {
@@ -1113,6 +1128,7 @@ void GeometryManager::device_update(Device *device,
   dscene->attributes_float3.clear_modified();
   dscene->attributes_float4.clear_modified();
   dscene->attributes_uchar4.clear_modified();
+  dscene->attributes_normal.clear_modified();
 }
 
 void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool force_free)
@@ -1139,6 +1155,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->attributes_float3.free_if_need_realloc(force_free);
   dscene->attributes_float4.free_if_need_realloc(force_free);
   dscene->attributes_uchar4.free_if_need_realloc(force_free);
+  dscene->attributes_normal.free_if_need_realloc(force_free);
 
   /* Signal for shaders like displacement not to do ray tracing. */
   dscene->data.bvh.bvh_layout = BVH_LAYOUT_NONE;

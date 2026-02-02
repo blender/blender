@@ -296,7 +296,8 @@ class AttributeTableBuilder {
         attr_float2{dscene->attributes_float2, 0, 0},
         attr_float3{dscene->attributes_float3, 0, 0},
         attr_float4{dscene->attributes_float4, 0, 0},
-        attr_uchar4{dscene->attributes_uchar4, 0, 0}
+        attr_uchar4{dscene->attributes_uchar4, 0, 0},
+        attr_normal{dscene->attributes_normal, 0, 0}
   {
   }
 
@@ -305,6 +306,7 @@ class AttributeTableBuilder {
   AttributeTableEntry<packed_float3> attr_float3;
   AttributeTableEntry<float4> attr_float4;
   AttributeTableEntry<uchar4> attr_uchar4;
+  AttributeTableEntry<packed_normal> attr_normal;
 
   void add(Geometry *geom,
            Attribute *mattr,
@@ -336,6 +338,9 @@ class AttributeTableBuilder {
     }
     else if (mattr->element & ATTR_ELEMENT_IS_BYTE) {
       offset = attr_uchar4.add(mattr->data_uchar4(), size, mattr->modified);
+    }
+    else if (mattr->element & ATTR_ELEMENT_IS_NORMAL) {
+      offset = attr_normal.add(mattr->data_normal(), size, mattr->modified);
     }
     else if (mattr->type == TypeFloat) {
       offset = attr_float.add(mattr->data_float(), size, mattr->modified);
@@ -397,6 +402,9 @@ class AttributeTableBuilder {
     else if (mattr->element & ATTR_ELEMENT_IS_BYTE) {
       attr_uchar4.reserve(size);
     }
+    else if (mattr->element & ATTR_ELEMENT_IS_NORMAL) {
+      attr_normal.reserve(size);
+    }
     else if (mattr->type == TypeFloat) {
       attr_float.reserve(size);
     }
@@ -421,6 +429,7 @@ class AttributeTableBuilder {
     attr_float3.alloc();
     attr_float4.alloc();
     attr_uchar4.alloc();
+    attr_normal.alloc();
   }
 
   void copy_to_device_if_modified()
@@ -430,6 +439,7 @@ class AttributeTableBuilder {
     attr_float3.data.copy_to_device_if_modified();
     attr_float4.data.copy_to_device_if_modified();
     attr_uchar4.data.copy_to_device_if_modified();
+    attr_normal.data.copy_to_device_if_modified();
   }
 };
 
@@ -539,6 +549,7 @@ void GeometryManager::device_update_attributes(Device *device,
       dscene->attributes_float3.need_realloc(),
       dscene->attributes_float4.need_realloc(),
       dscene->attributes_uchar4.need_realloc(),
+      dscene->attributes_normal.need_realloc(),
   };
 
   /* Fill in attributes. */

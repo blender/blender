@@ -37,6 +37,7 @@ DeviceScene::DeviceScene(Device *device)
       attributes_float3(device, "attributes_float3", MEM_GLOBAL),
       attributes_float4(device, "attributes_float4", MEM_GLOBAL),
       attributes_uchar4(device, "attributes_uchar4", MEM_GLOBAL),
+      attributes_normal(device, "attributes_normal", MEM_GLOBAL),
       light_distribution(device, "light_distribution", MEM_GLOBAL),
       lights(device, "lights", MEM_GLOBAL),
       light_background_marginal_cdf(device, "light_background_marginal_cdf", MEM_GLOBAL),

@@ -34,6 +34,7 @@
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_split_edges.hh"
+#include "util/types_normal.h"
 
 using blender::Attribute;
 
@@ -662,7 +663,7 @@ static void create_mesh(Scene *scene,
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr_N = attributes.add(ATTR_STD_VERTEX_NORMAL);
-  float3 *N = attr_N->data_float3();
+  packed_normal *N = attr_N->data_normal();
 
   if (subdivision || !(use_corner_normals && !corner_normals.is_empty())) {
     const blender::Span<blender::float3> vert_normals = b_mesh.vert_normals();
@@ -756,7 +757,7 @@ static void create_mesh(Scene *scene,
           const int corner = tri[i];
           const int vert = corner_verts[corner];
           const float *normal = corner_normals[corner];
-          N[vert] = make_float3(normal[0], normal[1], normal[2]);
+          N[vert] = packed_normal(make_float3(normal[0], normal[1], normal[2]));
         }
       }
     }
@@ -1042,7 +1043,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
     }
     /* Load vertex data from mesh. */
     float3 *mP = attr_mP->data_float3() + motion_step * numverts;
-    float3 *mN = (attr_mN) ? attr_mN->data_float3() + motion_step * numverts : nullptr;
+    packed_normal *mN = (attr_mN) ? attr_mN->data_normal() + motion_step * numverts : nullptr;
 
     /* NOTE: We don't copy more that existing amount of vertices to prevent
      * possible memory corruption.
@@ -1053,7 +1054,8 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
     if (mN) {
       const blender::Span<blender::float3> b_vert_normals = b_mesh->vert_normals();
       for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
-        mN[i] = make_float3(b_vert_normals[i][0], b_vert_normals[i][1], b_vert_normals[i][2]);
+        mN[i] = packed_normal(
+            make_float3(b_vert_normals[i][0], b_vert_normals[i][1], b_vert_normals[i][2]));
       }
     }
     if (new_attribute) {
@@ -1078,11 +1080,11 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
         const float3 *P = mesh->get_verts().data();
-        const float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
+        const packed_normal *N = (attr_N) ? attr_N->data_normal() : nullptr;
         for (int step = 0; step < motion_step; step++) {
           std::copy_n(P, numverts, attr_mP->data_float3() + step * numverts);
           if (attr_mN) {
-            std::copy_n(N, numverts, attr_mN->data_float3() + step * numverts);
+            std::copy_n(N, numverts, attr_mN->data_normal() + step * numverts);
           }
         }
       }
@@ -1092,7 +1094,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
         LOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                     << " at time " << motion_step;
         const float3 *P = mesh->get_verts().data();
-        const float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
+        const packed_normal *N = (attr_N) ? attr_N->data_normal() : nullptr;
         std::copy_n(P, numverts, mP);
         if (mN != nullptr) {
           std::copy_n(N, numverts, mN);

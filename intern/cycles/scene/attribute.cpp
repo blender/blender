@@ -120,6 +120,20 @@ void Attribute::add(const float3 &f)
   modified = true;
 }
 
+void Attribute::add(const packed_normal &f)
+{
+  assert(data_sizeof() == sizeof(packed_normal));
+
+  char *data = (char *)&f;
+  const size_t size = sizeof(f);
+
+  for (size_t i = 0; i < size; i++) {
+    buffer.push_back(data[i]);
+  }
+
+  modified = true;
+}
+
 void Attribute::add(const Transform &f)
 {
   assert(data_sizeof() == sizeof(Transform));
@@ -171,6 +185,9 @@ size_t Attribute::data_sizeof() const
   if (element & ATTR_ELEMENT_IS_BYTE) {
     return sizeof(uchar4);
   }
+  if (element & ATTR_ELEMENT_IS_NORMAL) {
+    return sizeof(packed_normal);
+  }
   if (type == TypeFloat) {
     return sizeof(float);
   }
@@ -202,6 +219,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       size = 1;
       break;
     case ATTR_ELEMENT_VERTEX:
+    case ATTR_ELEMENT_VERTEX_NORMAL:
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_SUBD) {
@@ -217,6 +235,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       }
       break;
     case ATTR_ELEMENT_VERTEX_MOTION:
+    case ATTR_ELEMENT_VERTEX_NORMAL_MOTION:
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         DCHECK_GT(mesh->get_motion_steps(), 0);
@@ -265,12 +284,14 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY:
+    case ATTR_ELEMENT_CURVE_KEY_NORMAL:
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         size = hair->get_curve_keys().size();
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY_MOTION:
+    case ATTR_ELEMENT_CURVE_KEY_NORMAL_MOTION:
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         DCHECK_GT(hair->get_motion_steps(), 0);
@@ -312,6 +333,7 @@ const char *Attribute::standard_name(AttributeStandard std)
 {
   switch (std) {
     case ATTR_STD_VERTEX_NORMAL:
+    case ATTR_STD_CORNER_NORMAL:
       return "N";
     case ATTR_STD_UV:
       return "uv";
@@ -338,6 +360,7 @@ const char *Attribute::standard_name(AttributeStandard std)
     case ATTR_STD_MOTION_VERTEX_POSITION:
       return "motion_P";
     case ATTR_STD_MOTION_VERTEX_NORMAL:
+    case ATTR_STD_MOTION_CORNER_NORMAL:
       return "motion_N";
     case ATTR_STD_PARTICLE:
       return "particle";
@@ -403,6 +426,10 @@ AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
 {
   if (attr.element & ATTR_ELEMENT_IS_BYTE) {
     return AttrKernelDataType::UCHAR4;
+  }
+
+  if (attr.element & ATTR_ELEMENT_IS_NORMAL) {
+    return AttrKernelDataType::NORMAL;
   }
 
   if (attr.type == TypeFloat) {
@@ -520,8 +547,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   if (geometry->is_mesh()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL);
+        break;
       case ATTR_STD_NORMAL_UNDISPLACED:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL);
         break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
@@ -546,7 +575,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         attr = add(name, TypePoint, ATTR_ELEMENT_VERTEX_MOTION);
         break;
       case ATTR_STD_MOTION_VERTEX_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_MOTION);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL_MOTION);
         break;
       case ATTR_STD_PTEX_FACE_ID:
         attr = add(name, TypeFloat, ATTR_ELEMENT_FACE);
@@ -593,7 +622,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   else if (geometry->is_volume()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL);
         break;
       case ATTR_STD_VOLUME_DENSITY:
       case ATTR_STD_VOLUME_FLAME:
@@ -618,7 +647,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   else if (geometry->is_hair()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY_NORMAL);
+        break;
+      case ATTR_STD_MOTION_VERTEX_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY_NORMAL_MOTION);
         break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);

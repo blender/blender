@@ -17,6 +17,7 @@
 
 #include "kernel/bvh/util.h"
 
+#include "kernel/geom/attribute.h"
 #include "kernel/geom/triangle.h"
 
 CCL_NAMESPACE_BEGIN
@@ -61,11 +62,11 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
                                                         float3 normals[3])
 {
   if (step == numsteps) {
-    /* center step: regular normal */
+    /* Center step in the regular attribute. */
     offset = kernel_data_fetch(objects, object).normal_attr_offset;
   }
   else {
-    /* center step is not stored in this array */
+    /* Other steps in the motion attribute, compensate for missing center step. */
     if (step > numsteps) {
       step--;
     }
@@ -73,9 +74,8 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
     offset += step * numverts;
   }
 
-  normals[0] = kernel_data_fetch(attributes_float3, offset + tri_vindex.x);
-  normals[1] = kernel_data_fetch(attributes_float3, offset + tri_vindex.y);
-  normals[2] = kernel_data_fetch(attributes_float3, offset + tri_vindex.z);
+  attribute_data_fetch_normals(
+      kg, offset, offset + tri_vindex.x, offset + tri_vindex.y, offset + tri_vindex.z, normals);
 }
 
 ccl_device_inline void motion_triangle_compute_info(KernelGlobals kg,

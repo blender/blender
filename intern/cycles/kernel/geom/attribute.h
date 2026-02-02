@@ -112,9 +112,13 @@ ccl_device_template_spec float2 attribute_data_fetch(KernelGlobals kg,
 }
 
 ccl_device_template_spec float3 attribute_data_fetch(KernelGlobals kg,
-                                                     AttributeElement /*element*/,
+                                                     AttributeElement element,
                                                      int offset)
 {
+  if (element & ATTR_ELEMENT_IS_NORMAL) {
+    const packed_normal normal = kernel_data_fetch(attributes_normal, offset);
+    return normal.decode();
+  }
   return kernel_data_fetch(attributes_float3, offset);
 }
 
@@ -130,7 +134,96 @@ ccl_device_template_spec float4 attribute_data_fetch(KernelGlobals kg,
   return kernel_data_fetch(attributes_float4, offset);
 }
 
+ccl_device_inline float3 attribute_data_fetch_normal(KernelGlobals kg, int offset)
+{
+  const packed_normal normal = kernel_data_fetch(attributes_normal, offset);
+  return normal.decode();
+}
+
+ccl_device_inline void attribute_data_fetch_normals(KernelGlobals kg,
+                                                    const int offset,
+                                                    const int i0,
+                                                    const int i1,
+                                                    const int i2,
+                                                    ccl_private float3 N[3])
+{
+#ifndef __KERNEL_GPU__
+  float4 nx, ny, nz;
+  const int4 packed_values = make_int4(kernel_data_fetch(attributes_normal, offset + i0).value,
+                                       kernel_data_fetch(attributes_normal, offset + i1).value,
+                                       kernel_data_fetch(attributes_normal, offset + i2).value,
+                                       0);
+  packed_normal_decode_simd(packed_values, nx, ny, nz);
+  N[0] = make_float3(nx.x, ny.x, nz.x);
+  N[1] = make_float3(nx.y, ny.y, nz.y);
+  N[2] = make_float3(nx.z, ny.z, nz.z);
+#else
+  N[0] = attribute_data_fetch_normal(kg, offset + i0);
+  N[1] = attribute_data_fetch_normal(kg, offset + i1);
+  N[2] = attribute_data_fetch_normal(kg, offset + i2);
+#endif
+}
+
+ccl_device_inline float3 attribute_data_interpolate_normals(KernelGlobals kg,
+                                                            const int offset,
+                                                            const int i0,
+                                                            const int i1,
+                                                            const int i2,
+                                                            const float u,
+                                                            const float v)
+{
+#ifndef __KERNEL_GPU__
+  float4 nx, ny, nz;
+  const int4 packed_values = make_int4(kernel_data_fetch(attributes_normal, offset + i0).value,
+                                       kernel_data_fetch(attributes_normal, offset + i1).value,
+                                       kernel_data_fetch(attributes_normal, offset + i2).value,
+                                       0);
+  packed_normal_decode_simd(packed_values, nx, ny, nz);
+
+  const float4 weights = make_float4(1.0f - u - v, u, v, 0.0f);
+  return make_float3(dot(nx, weights), dot(ny, weights), dot(nz, weights));
+#else
+  const float3 n0 = attribute_data_fetch_normal(kg, offset + i0);
+  const float3 n1 = attribute_data_fetch_normal(kg, offset + i1);
+  const float3 n2 = attribute_data_fetch_normal(kg, offset + i2);
+  return (1.0f - u - v) * n0 + u * n1 + v * n2;
+#endif
+}
+
+#ifdef __KERNEL_METAL__
+template<typename U, typename V> using attribute_data_type_is_same = metal::is_same<U, V>;
+#else
+template<typename U, typename V> using attribute_data_type_is_same = std::is_same<U, V>;
+#endif
+
+template<typename T>
+ccl_device_inline void attribute_data_fetch_3(KernelGlobals kg,
+                                              const AttributeElement element,
+                                              const int offset,
+                                              const int i0,
+                                              const int i1,
+                                              const int i2,
+                                              ccl_private T f[3])
+{
+  if constexpr (attribute_data_type_is_same<T, float3>::value) {
+    if (element & ATTR_ELEMENT_IS_NORMAL) {
+      attribute_data_fetch_normals(kg, offset, i0, i1, i2, f);
+    }
+    else {
+      f[0] = kernel_data_fetch(attributes_float3, offset + i0);
+      f[1] = kernel_data_fetch(attributes_float3, offset + i1);
+      f[2] = kernel_data_fetch(attributes_float3, offset + i2);
+    }
+  }
+  else {
+    f[0] = attribute_data_fetch<T>(kg, element, offset + i0);
+    f[1] = attribute_data_fetch<T>(kg, element, offset + i1);
+    f[2] = attribute_data_fetch<T>(kg, element, offset + i2);
+  }
+}
+
 ccl_device_template_spec Transform attribute_data_fetch(KernelGlobals kg,
+
                                                         AttributeElement /*element*/,
                                                         int offset)
 {
