@@ -253,9 +253,13 @@ class ImBufSaveTest(ImBufTest):
 
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 90})
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 90})
+        self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 100})
+        self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 100})
 
         self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 70})
         self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 100})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 100})
 # autopep8: on
 
 

@@ -12,23 +12,18 @@
 #  include <unistd.h>
 #endif
 
-#include <cstdio>
-#include <cstdlib>
 #include <fcntl.h>
+#include <string>
 #include <webp/decode.h>
-#include <webp/encode.h>
-#include <webp/mux.h>
+
+#include "oiio/openimageio_support.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_mmap.h"
 
-#include "IMB_allocimbuf.hh"
-#include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
 
@@ -36,46 +31,23 @@ namespace blender {
 
 static CLG_LogRef LOG = {"image.webp"};
 
+OIIO_NAMESPACE_USING
+using namespace blender::imbuf;
+
 bool imb_is_a_webp(const uchar *mem, size_t size)
 {
-  if (WebPGetInfo(mem, size, nullptr, nullptr)) {
-    return true;
-  }
-  return false;
+  return imb_oiio_check(mem, size, "webp");
 }
 
-ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, ImFileColorSpace & /*r_colorspace*/)
+ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
 {
-  if (!imb_is_a_webp(mem, size)) {
-    return nullptr;
-  }
+  ImageSpec config, spec;
+  config.attribute("oiio:UnassociatedAlpha", 1);
 
-  WebPBitstreamFeatures features;
-  if (WebPGetFeatures(mem, size, &features) != VP8_STATUS_OK) {
-    CLOG_ERROR(&LOG, "Failed to parse features");
-    return nullptr;
-  }
+  ReadContext ctx{mem, size, "webp", IMB_FTYPE_WEBP, flags};
+  ImBuf *ibuf = imb_oiio_read(ctx, config, r_colorspace, spec);
 
-  const int planes = features.has_alpha ? 32 : 24;
-  ImBuf *ibuf = IMB_allocImBuf(features.width, features.height, planes, 0);
-
-  if (ibuf == nullptr) {
-    CLOG_ERROR(&LOG, "Failed to allocate image memory");
-    return nullptr;
-  }
-
-  if ((flags & IB_test) == 0) {
-    ibuf->ftype = IMB_FTYPE_WEBP;
-    IMB_alloc_byte_pixels(ibuf);
-    /* Flip the image during decoding to match Blender. */
-    uchar *last_row = ibuf->byte_buffer.data + (4 * size_t(ibuf->y - 1) * size_t(ibuf->x));
-    if (WebPDecodeRGBAInto(mem, size, last_row, size_t(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
-        nullptr)
-    {
-      CLOG_ERROR(&LOG, "Failed to decode image");
-    }
-  }
-
+  r_colorspace.is_hdr_float = false;
   return ibuf;
 }
 
@@ -153,107 +125,31 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   return ibuf;
 }
 
-bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
+bool imb_savewebp(ImBuf *ibuf, const char *filepath, int flags)
 {
-  const uint limit = 16383;
-  if (ibuf->x > limit || ibuf->y > limit) {
-    CLOG_ERROR(&LOG, "image x/y exceeds %u", limit);
-    return false;
-  }
+  const int file_channels = ibuf->planes >> 3;
+  const TypeDesc data_format = TypeDesc::UINT8;
 
-  const int bytesperpixel = (ibuf->planes + 7) >> 3;
-  uchar *encoded_data, *last_row;
-  size_t encoded_data_size;
+  WriteContext ctx = imb_create_write_context("webp", ibuf, flags, false);
+  ImageSpec file_spec = imb_create_write_spec(ctx, file_channels, data_format);
 
-  if (bytesperpixel == 3) {
-    /* We must convert the ImBuf RGBA buffer to RGB as WebP expects a RGB buffer. */
-    const size_t num_pixels = IMB_get_pixel_count(ibuf);
-    const uint8_t *rgba_rect = ibuf->byte_buffer.data;
-    uint8_t *rgb_rect = MEM_new_array_uninitialized<uint8_t>(num_pixels * 3, "webp rgb_rect");
-    for (size_t i = 0; i < num_pixels; i++) {
-      rgb_rect[i * 3 + 0] = rgba_rect[i * 4 + 0];
-      rgb_rect[i * 3 + 1] = rgba_rect[i * 4 + 1];
-      rgb_rect[i * 3 + 2] = rgba_rect[i * 4 + 2];
-    }
+  file_spec.attribute("oiio:UnassociatedAlpha", 1);
 
-    last_row = static_cast<uchar *>(rgb_rect + (size_t(ibuf->y - 1) * size_t(ibuf->x) * 3));
+  /* A general quality/speed trade-off (0=fast, 6=slower-better). 4 matches historical value. */
+  file_spec.attribute("webp:method", 4);
 
-    if (ibuf->foptions.quality == 100) {
-      encoded_data_size = WebPEncodeLosslessRGB(
-          last_row, ibuf->x, ibuf->y, -3 * ibuf->x, &encoded_data);
-    }
-    else {
-      encoded_data_size = WebPEncodeRGB(
-          last_row, ibuf->x, ibuf->y, -3 * ibuf->x, ibuf->foptions.quality, &encoded_data);
-    }
-    MEM_delete(rgb_rect);
-  }
-  else if (bytesperpixel == 4) {
-    last_row = ibuf->byte_buffer.data + 4 * size_t(ibuf->y - 1) * size_t(ibuf->x);
-
-    if (ibuf->foptions.quality == 100) {
-      encoded_data_size = WebPEncodeLosslessRGBA(
-          last_row, ibuf->x, ibuf->y, -4 * ibuf->x, &encoded_data);
-    }
-    else {
-      encoded_data_size = WebPEncodeRGBA(
-          last_row, ibuf->x, ibuf->y, -4 * ibuf->x, ibuf->foptions.quality, &encoded_data);
-    }
+  if (ibuf->foptions.quality == 100.0f) {
+    /* Lossless compression. */
+    /* Use 70 to match historical value (see libwebp's LOSSLESS_DEFAULT_QUALITY). */
+    file_spec.attribute("compression", "lossless:70");
   }
   else {
-    CLOG_ERROR(&LOG, "Unsupported bytes per pixel: %d for file: '%s'", bytesperpixel, filepath);
-    return false;
+    /* Lossy compression. */
+    file_spec.attribute("compression",
+                        std::string("webp:") + std::to_string(ibuf->foptions.quality));
   }
 
-  if (encoded_data == nullptr) {
-    return false;
-  }
-
-  WebPMux *mux = WebPMuxNew();
-  WebPData image_data = {encoded_data, encoded_data_size};
-  WebPMuxSetImage(mux, &image_data, false /* Don't copy data */);
-
-  /* Write ICC profile if there is one associated with the colorspace. */
-  const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
-  if (colorspace) {
-    Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
-    if (!icc_profile.is_empty()) {
-      WebPData icc_chunk = {reinterpret_cast<const uint8_t *>(icc_profile.data()),
-                            size_t(icc_profile.size())};
-      WebPMuxSetChunk(mux, "ICCP", &icc_chunk, true /* copy data */);
-    }
-  }
-
-  /* Assemble image and metadata. */
-  WebPData output_data;
-  if (WebPMuxAssemble(mux, &output_data) != WEBP_MUX_OK) {
-    CLOG_ERROR(&LOG, "Error in mux assemble writing file: '%s'", filepath);
-    WebPMuxDelete(mux);
-    WebPFree(encoded_data);
-    return false;
-  }
-
-  /* Write to file. */
-  bool ok = true;
-  FILE *fp = BLI_fopen(filepath, "wb");
-  if (fp) {
-    if (fwrite(output_data.bytes, output_data.size, 1, fp) != 1) {
-      CLOG_ERROR(&LOG, "Unknown error writing file: '%s'", filepath);
-      ok = false;
-    }
-
-    fclose(fp);
-  }
-  else {
-    ok = false;
-    CLOG_ERROR(&LOG, "Cannot open file for writing: '%s'", filepath);
-  }
-
-  WebPMuxDelete(mux);
-  WebPFree(encoded_data);
-  WebPDataClear(&output_data);
-
-  return ok;
+  return imb_oiio_write(ctx, filepath, file_spec);
 }
 
 }  // namespace blender
