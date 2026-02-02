@@ -44,7 +44,7 @@ static void node_shader_buts_uvmap(ui::Layout &layout, bContext *C, PointerRNA *
       }
     }
 
-    layout.prop(ptr, "uv_map", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_GROUP_UVS);
+    layout.prop(ptr, "uv_map", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
   }
 }
 
