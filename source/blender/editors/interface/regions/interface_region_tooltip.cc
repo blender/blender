@@ -546,16 +546,16 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_tool(bContext *C,
     else {
       /* NOTE: this is an exceptional case, we could even remove it
        * however there have been reports of tooltips failing, so keep it for now. */
-      expr_result = BLI_strdup(IFACE_("Internal error!"));
+      expr_result = BLI_strdup(TIP_("Internal error!"));
       is_error = true;
     }
 
     if (expr_result != nullptr) {
       /* NOTE: This is a very weak hack to get a valid translation most of the time...
        * Proper way to do would be to get i18n context from the item, somehow. */
-      const char *label_str = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, expr_result);
+      const char *label_str = CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, expr_result);
       if (label_str == expr_result) {
-        label_str = IFACE_(expr_result);
+        label_str = TIP_(expr_result);
       }
 
       if (label_str != expr_result) {
@@ -1186,8 +1186,8 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
         if ((RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
           if (BLI_path_is_rel(but->drawstr.c_str())) {
             tooltip_text_field_add(*data,
-                                   "Warning: the blend-file relative path prefix \"//\" "
-                                   "is not supported for this property.",
+                                   TIP_("Warning: the blend-file relative path prefix \"//\" "
+                                        "is not supported for this property."),
                                    {},
                                    TIP_STYLE_NORMAL,
                                    TIP_LC_ALERT);
@@ -1783,8 +1783,11 @@ static void ui_tooltip_from_image(Image &ima, TooltipData &data)
     MovieReader *anim = static_cast<ImageAnim *>(ima.anims.first)->anim;
     if (anim) {
       int duration = MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN);
-      tooltip_text_field_add(
-          data, fmt::format("Frames: {}", duration), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+      tooltip_text_field_add(data,
+                             fmt::format(fmt::runtime(TIP_("Frames: {}")), duration),
+                             {},
+                             TIP_STYLE_NORMAL,
+                             TIP_LC_NORMAL);
     }
   }
 
@@ -1840,12 +1843,12 @@ static void ui_tooltip_from_clip(MovieClip &clip, TooltipData &data)
         TIP_STYLE_NORMAL,
         TIP_LC_NORMAL);
 
-    tooltip_text_field_add(
-        data,
-        fmt::format("Frames: {}", MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN)),
-        {},
-        TIP_STYLE_NORMAL,
-        TIP_LC_NORMAL);
+    tooltip_text_field_add(data,
+                           fmt::format(fmt::runtime(TIP_("Frames: {}")),
+                                       MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN)),
+                           {},
+                           TIP_STYLE_NORMAL,
+                           TIP_LC_NORMAL);
 
     ImBuf *ibuf = MOV_decode_preview_frame(anim);
 

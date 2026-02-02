@@ -724,8 +724,7 @@ static void block_colorpicker(const bContext * /*C*/,
     auto colorspace_tip_func = [](bContext & /*C*/, TooltipData &tip, Button *but, void *space) {
       tooltip_text_field_add(tip, but->tip, {}, TIP_STYLE_HEADER, TIP_LC_NORMAL, false);
       tooltip_text_field_add(tip,
-                             IFACE_("Color Space: ") +
-                                 std::string(static_cast<const char *>(space)),
+                             TIP_("Color Space: ") + std::string(static_cast<const char *>(space)),
                              {},
                              TIP_STYLE_NORMAL,
                              TIP_LC_ACTIVE,
@@ -1029,17 +1028,22 @@ static void block_colorpicker(const bContext * /*C*/,
         const bool *has_alpha = static_cast<bool *>(has_alpha_ptr);
         if (*has_alpha) {
           tooltip_text_field_add(tip,
-                                 "Hex triplet for color with alpha (#RRGGBBAA).",
+                                 TIP_("Hex triplet for color with alpha (#RRGGBBAA)."),
                                  {},
                                  TIP_STYLE_HEADER,
                                  TIP_LC_NORMAL,
                                  false);
         }
         else {
-          tooltip_text_field_add(
-              tip, "Hex triplet for color (#RRGGBB).", {}, TIP_STYLE_HEADER, TIP_LC_NORMAL, false);
+          tooltip_text_field_add(tip,
+                                 TIP_("Hex triplet for color (#RRGGBB)."),
+                                 {},
+                                 TIP_STYLE_HEADER,
+                                 TIP_LC_NORMAL,
+                                 false);
         }
-        tooltip_text_field_add(tip, "Gamma corrected", {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL, false);
+        tooltip_text_field_add(
+            tip, TIP_("Gamma corrected"), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL, false);
       };
   button_func_tooltip_custom_set(
       bt, bt_tooltip_func, static_cast<void *>(&cpicker->has_alpha), nullptr);

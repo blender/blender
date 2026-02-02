@@ -51,7 +51,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
   tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
 
   if (!BLI_exists(path)) {
-    tooltip_text_field_add(tip, N_("File Not Found"), {}, TIP_STYLE_NORMAL, TIP_LC_ALERT);
+    tooltip_text_field_add(tip, TIP_("File Not Found"), {}, TIP_STYLE_NORMAL, TIP_LC_ALERT);
     return;
   }
 
@@ -88,11 +88,10 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
     BLI_filelist_entry_datetime_to_string(
         nullptr, int64_t(status.st_mtime), false, time_st, date_str, &is_today, &is_yesterday);
     if (is_today || is_yesterday) {
-      day_string = (is_today ? N_("Today") : N_("Yesterday")) + std::string(" ");
+      day_string = (is_today ? TIP_("Today") : TIP_("Yesterday")) + std::string(" ");
     }
     tooltip_text_field_add(tip,
-                           fmt::format("{}: {}{}{}",
-                                       N_("Modified"),
+                           fmt::format(fmt::runtime(TIP_("Modified: {}{}{}")),
                                        day_string,
                                        (is_today || is_yesterday) ? "" : date_str,
                                        (is_today || is_yesterday) ? time_st : ""),
@@ -103,8 +102,11 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
     if (status.st_size > 0) {
       char size[16];
       BLI_filelist_entry_size_to_string(nullptr, status.st_size, false, size);
-      tooltip_text_field_add(
-          tip, fmt::format("{}: {}", N_("Size"), size), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+      tooltip_text_field_add(tip,
+                             fmt::format(fmt::runtime(TIP_("Size: {}")), size),
+                             {},
+                             TIP_STYLE_NORMAL,
+                             TIP_LC_NORMAL);
     }
   }
 
