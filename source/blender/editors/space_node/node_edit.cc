@@ -2186,7 +2186,7 @@ void NODE_OT_viewer_border(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Viewer Region";
-  ot->description = "Set the boundaries for viewer operations";
+  ot->description = "Set the boundaries for viewer operations (Not implemented)";
   ot->idname = "NODE_OT_viewer_border";
 
   /* API callbacks. */

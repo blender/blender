@@ -966,9 +966,6 @@ class NODE_PT_quality(Panel):
         if rd.compositor_device == 'GPU':
             col.prop(rd, "compositor_precision", text="Precision")
 
-        col = layout.column()
-        col.prop(tree, "use_viewer_border")
-
 
 class NODE_PT_overlay(Panel):
     bl_space_type = 'NODE_EDITOR'

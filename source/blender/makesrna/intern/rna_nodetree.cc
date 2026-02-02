@@ -9514,8 +9514,10 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_VIEWER_BORDER);
-  RNA_def_property_ui_text(
-      prop, "Viewer Region", "Use boundaries for viewer nodes and composite backdrop");
+  RNA_def_property_ui_text(prop,
+                           "Viewer Region",
+                           "Unused but kept for compatibility reasons. Use boundaries for viewer "
+                           "nodes and composite backdrop");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 }
 
