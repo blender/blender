@@ -943,6 +943,13 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     const AttrType type = iter.data_type;
     const GAttributeReader src = iter.get();
     const AttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, iter.name);
+    const CommonVArrayInfo info = src.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const GPointer value(src.varray.type(), info.data);
+      if (mesh_attributes.add(iter.name, dst_domain, type, bke::AttributeInitValue(value))) {
+        return;
+      }
+    }
 
     if (src_domain == AttrDomain::Point) {
       copy_main_point_domain_attribute_to_mesh(
