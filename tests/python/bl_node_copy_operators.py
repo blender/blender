@@ -41,6 +41,7 @@ testfile = "node_copy_operators.blend"
 # List of test cases expected in the test file.
 # A set of options can be associated with each test case:
 # - NODE_GROUP: Test starts as a node group instead of internal nodes. Only ungrouping and separating is tested.
+# - GROUP_INSERT: There should be one node group labeled "external", all other nodes are inserted into the group.
 all_test_cases = [
     ('test_empty', {}),
     ('test_socket_types', {}),
@@ -60,6 +61,7 @@ all_test_cases = [
     ('test_anim_data', {}),
     ('test_extension_sockets', {}),
     ('test_pass_through', {'NODE_GROUP'}),
+    ('test_insert_group_with_sockets', {'GROUP_INSERT'})
 ]
 
 
@@ -195,23 +197,30 @@ def find_test_nodes(tree, test_name):
     return internal_nodes, external_nodes
 
 
+# Skip a test case.
+def execute_skip(test_case, test_tree, expected_tree=None):
+    if expected_tree:
+        return NodeMapping()
+
+
 # NOOP case when the test starts out with a node group.
 def execute_node_group_noop(test_case, test_tree, expected_tree=None):
     test_nodes_internal, test_nodes_external = find_test_nodes(test_tree, test_case)
     assert len(test_nodes_internal) == 1
     group_node = test_nodes_internal[0]
 
-    if expected_tree:
-        # Map resulting nodes to expected nodes.
-        expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
-        assert len(expected_nodes_internal) == 1
-        expected_node = expected_nodes_internal[0]
-        mapping = NodeMapping()
-        mapping.add_tree(group_node.node_tree, expected_node.node_tree)
-        mapping.add_node(group_node, expected_node)
-        mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
-        mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
-        return mapping
+    if not expected_tree:
+        return
+    # Map resulting nodes to expected nodes.
+    expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
+    assert len(expected_nodes_internal) == 1
+    expected_node = expected_nodes_internal[0]
+    mapping = NodeMapping()
+    mapping.add_tree(group_node.node_tree, expected_node.node_tree)
+    mapping.add_node(group_node, expected_node)
+    mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
+    mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
+    return mapping
 
 
 # Run the 'node.make_group' operator on test nodes.
@@ -219,6 +228,8 @@ def execute_make_group(test_case, test_tree, expected_tree=None):
     # Special case: skip if the test starts as a node group.
     if 'NODE_GROUP' in test_options(test_case):
         return execute_node_group_noop(test_case, test_tree, expected_tree)
+    if 'GROUP_INSERT' in test_options(test_case):
+        return execute_skip(test_case, test_tree, expected_tree)
 
     test_nodes_internal, test_nodes_external = find_test_nodes(test_tree, test_case)
 
@@ -228,17 +239,18 @@ def execute_make_group(test_case, test_tree, expected_tree=None):
     # Re-attach to the parent frame to identify the operator result.
     group_node.parent = find_test_frame(test_tree, test_case)
 
-    if expected_tree:
-        # Map resulting nodes to expected nodes.
-        expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
-        assert len(expected_nodes_internal) == 1
-        expected_node = expected_nodes_internal[0]
-        mapping = NodeMapping()
-        mapping.add_tree(group_node.node_tree, expected_node.node_tree)
-        mapping.add_node(group_node, expected_node)
-        mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
-        mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
-        return mapping
+    if not expected_tree:
+        return
+    # Map resulting nodes to expected nodes.
+    expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
+    assert len(expected_nodes_internal) == 1
+    expected_node = expected_nodes_internal[0]
+    mapping = NodeMapping()
+    mapping.add_tree(group_node.node_tree, expected_node.node_tree)
+    mapping.add_node(group_node, expected_node)
+    mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
+    mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
+    return mapping
 
 
 # Run the 'node.group_insert' operator on test nodes.
@@ -249,6 +261,29 @@ def execute_group_insert(test_case, test_tree, expected_tree=None):
 
     test_nodes_internal, test_nodes_external = find_test_nodes(test_tree, test_case)
     centroid = node_centroid(test_nodes_internal)
+
+    # Special case: Expect an existing group node to insert into.
+    if 'GROUP_INSERT' in test_options(test_case):
+        print(len(test_nodes_internal), [n.name for n in test_nodes_external])
+        # Should have one node group labeled "external".
+        assert len(test_nodes_external) == 1
+        group_node = test_nodes_external[0]
+        with node_editor_context_override(bpy.context, test_tree, selected_nodes=test_nodes_internal + [group_node], active_node=group_node):
+            bpy.ops.node.group_insert()
+
+        if not expected_tree:
+            return
+        # Map resulting nodes to expected nodes.
+        expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
+        assert len(expected_nodes_internal) == 0
+        assert len(expected_nodes_external) == 1
+        expected_node = expected_nodes_external[0]
+        mapping = NodeMapping()
+        mapping.add_tree(group_node.node_tree, expected_node.node_tree)
+        mapping.add_node(group_node, expected_node)
+        mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
+        mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
+        return mapping
 
     # Make empty node group.
     group_tree = bpy.data.node_groups.new(f"{test_case}_GroupInsert", 'GeometryNodeTree')
@@ -275,21 +310,25 @@ def execute_group_insert(test_case, test_tree, expected_tree=None):
     with node_editor_context_override(bpy.context, test_tree, selected_nodes=test_nodes_internal + [group_node], active_node=group_node):
         bpy.ops.node.group_insert()
 
-    if expected_tree:
-        # Map resulting nodes to expected nodes.
-        expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
-        assert len(expected_nodes_internal) == 1
-        expected_node = expected_nodes_internal[0]
-        mapping = NodeMapping()
-        mapping.add_tree(group_node.node_tree, expected_node.node_tree)
-        mapping.add_node(group_node, expected_node)
-        mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
-        mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
-        return mapping
+    if not expected_tree:
+        return
+    # Map resulting nodes to expected nodes.
+    expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
+    assert len(expected_nodes_internal) == 1
+    expected_node = expected_nodes_internal[0]
+    mapping = NodeMapping()
+    mapping.add_tree(group_node.node_tree, expected_node.node_tree)
+    mapping.add_node(group_node, expected_node)
+    mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
+    mapping.add_nodes_by_name(group_node.node_tree.nodes, expected_node.node_tree.nodes)
+    return mapping
 
 
 # Run the 'node.ungroup' operator on test nodes.
 def execute_ungroup(test_case, test_tree, expected_tree=None):
+    if 'GROUP_INSERT' in test_options(test_case):
+        return execute_skip(test_case, test_tree, expected_tree)
+
     test_nodes_internal, test_nodes_external = find_test_nodes(test_tree, test_case)
 
     with node_editor_context_override(bpy.context, test_tree, selected_nodes=test_nodes_internal):
@@ -300,18 +339,22 @@ def execute_ungroup(test_case, test_tree, expected_tree=None):
         if node.parent is None:
             node.parent = find_test_frame(test_tree, test_case)
 
-    if expected_tree:
-        # Map resulting nodes to expected nodes.
-        expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
-        mapping = NodeMapping()
-        mapping.add_nodes_by_name(ungrouped_nodes, expected_nodes_internal)
-        mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
-        return mapping
+    if not expected_tree:
+        return
+    # Map resulting nodes to expected nodes.
+    expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
+    mapping = NodeMapping()
+    mapping.add_nodes_by_name(ungrouped_nodes, expected_nodes_internal)
+    mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
+    return mapping
 
 
 # Run the 'node.group_separate' operator on test nodes.
 # type can be 'COPY' or 'MOVE'.
 def execute_group_separate(type, test_case, test_tree, expected_tree=None):
+    if 'GROUP_INSERT' in test_options(test_case):
+        return execute_skip(test_case, test_tree, expected_tree)
+
     test_nodes_internal, test_nodes_external = find_test_nodes(test_tree, test_case)
 
     # Test nodes should be node groups
@@ -338,14 +381,15 @@ def execute_group_separate(type, test_case, test_tree, expected_tree=None):
         node.parent = find_test_frame(test_tree, test_case)
         node.location = group_node.location + Vector((0, -1000)) + offset
 
-    if expected_tree:
-        # Map resulting nodes to expected nodes.
-        result_nodes_internal, _ = find_test_nodes(test_tree, test_case)
-        expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
-        mapping = NodeMapping()
-        mapping.add_nodes_by_name(result_nodes_internal, expected_nodes_internal)
-        mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
-        return mapping
+    if not expected_tree:
+        return
+    # Map resulting nodes to expected nodes.
+    result_nodes_internal, _ = find_test_nodes(test_tree, test_case)
+    expected_nodes_internal, expected_nodes_external = find_test_nodes(expected_tree, test_case)
+    mapping = NodeMapping()
+    mapping.add_nodes_by_name(result_nodes_internal, expected_nodes_internal)
+    mapping.add_nodes_by_name(test_nodes_external, expected_nodes_external)
+    return mapping
 
 
 class AbstractNodeCopyOperatorTest(unittest.TestCase):
@@ -358,7 +402,7 @@ class AbstractNodeCopyOperatorTest(unittest.TestCase):
         self.assertTrue(args.testdir.exists(),
                         'Test dir {0} should exist'.format(args.testdir))
         open_test_file()
-        self.assertEqual(bpy.data.version, (5, 1, 16))
+        self.assertEqual(bpy.data.version, (5, 1, 23))
 
     def tearDown(self):
         self._tempdir.cleanup()
