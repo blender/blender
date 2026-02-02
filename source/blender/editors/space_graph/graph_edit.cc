@@ -904,6 +904,19 @@ static wmOperatorStatus graphkeys_clean_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static std::string graphkeys_clean_get_description(bContext * /*C*/,
+                                                   wmOperatorType * /*ot*/,
+                                                   PointerRNA *ptr)
+{
+  /* Custom description based on the 'channels' property */
+  if (RNA_boolean_get(ptr, "channels")) {
+    return TIP_("Simplify F-Curves and remove empty or redundant channels.");
+  }
+
+  /* Use the default description in the other case. */
+  return "";
+}
+
 void GRAPH_OT_clean(wmOperatorType *ot)
 {
   /* Identifiers */
@@ -913,6 +926,7 @@ void GRAPH_OT_clean(wmOperatorType *ot)
 
   /* API callbacks */
   // ot->invoke = ???; /* XXX we need that number popup for this! */
+  ot->get_description = graphkeys_clean_get_description;
   ot->exec = graphkeys_clean_exec;
   ot->poll = graphop_editable_keyframes_poll;
 
