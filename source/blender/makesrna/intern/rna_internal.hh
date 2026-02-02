@@ -499,6 +499,7 @@ void RNA_api_strip(StructRNA *srna);
 void RNA_api_text(StructRNA *srna);
 void RNA_api_ui_layout(StructRNA *srna);
 void RNA_api_window(StructRNA *srna);
+void RNA_api_windows(StructRNA *srna);
 void RNA_api_wm(StructRNA *srna);
 void RNA_api_space_node(StructRNA *srna);
 void RNA_api_space_text(StructRNA *srna);

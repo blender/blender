@@ -16,6 +16,8 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "ED_screen.hh"
+
 #include "UI_interface_icons.hh"
 #include "UI_interface_types.hh"
 
@@ -67,6 +69,8 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "DNA_userdef_types.h"
+
+#  include "ED_screen.hh"
 
 #  include "BLI_listbase.h"
 #  include "BLI_string.h"
@@ -792,6 +796,27 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   return WM_event_add_simulate(win, &e);
 }
 
+static Scene *rna_Window_find_playing_scene(wmWindow *win, const bool scrub)
+{
+  return ED_screen_find_playing_scene(WM_window_get_active_screen(win), scrub);
+}
+
+static wmWindow *rna_Windows_find_playing(wmWindowManager *wm, const bool scrub)
+{
+  wmWindow *win = ED_window_animation_playing_no_scrub(wm);
+  if (!win) {
+    return nullptr;
+  }
+  if (scrub) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    if (screen->scrubbing) {
+      return win;
+    }
+    return nullptr;
+  }
+  return win;
+}
+
 }  // namespace blender
 
 #else
@@ -874,6 +899,24 @@ void RNA_api_window(StructRNA *srna)
   RNA_def_boolean(func, "hyper", false, "Hyper", "");
   parm = RNA_def_pointer(func, "event", "Event", "Item", "Added key map item");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "find_playing_scene", "rna_Window_find_playing_scene");
+  RNA_def_boolean(
+      func, "scrub", false, "Scrubbing", "Check if time in the scene is being scrubbed");
+  parm = RNA_def_pointer(func, "scene", "Scene", "Scene", "Scene that is currently playing");
+  RNA_def_function_return(func, parm);
+}
+
+void RNA_api_windows(StructRNA *srna)
+{
+  FunctionRNA *func;
+  PropertyRNA *param;
+
+  func = RNA_def_function(srna, "find_playing", "rna_Windows_find_playing");
+  RNA_def_boolean(
+      func, "scrub", false, "Scrubbing", "Check if time in the window is being scrubbed");
+  param = RNA_def_pointer(func, "window", "Window", "Window", "Window that is currently playing");
+  RNA_def_function_return(func, param);
 }
 
 const EnumPropertyItem rna_operator_popup_icon_items[] = {
