@@ -5,6 +5,9 @@
 __all__ = (
     "call_menu",
     "call_operator",
+    "cursor_motion_data_x",
+    "cursor_motion_data_y",
+    "cursor_motion_data_xy",
     "get_area_center",
     "get_area_center_from_spacetype",
     "get_window_area_by_type",
@@ -127,3 +130,44 @@ def keep_open():
     """
     import bpy
     bpy.app.use_event_simulate = False
+
+
+def cursor_motion_data_x(window, margin=0.2):
+    """
+    Generate a range of (x,y) positions in screen space, centered vertically in the window
+    from left to right.
+
+    :param margin: Percentage of left and right window space to leave unused
+    """
+    size = get_window_size_in_pixels(window)
+    return [
+        (x, size[1] // 2) for x in
+        range(int(size[0] * margin), int(size[0] * (1.0 - margin)), 80)
+    ]
+
+
+def cursor_motion_data_y(window, margin=0.2):
+    """
+    Generate a range of (x,y) positions in screen space, centered horizontally in the window
+    from bottom to top.
+
+    :param margin: Percentage of top and bottom window space to leave unused
+    """
+    size = get_window_size_in_pixels(window)
+    return [
+        (size[0] // 2, y) for y in
+        range(int(size[1] * margin), int(size[1] * (1.0 - margin)), 80)
+    ]
+
+
+def cursor_motion_data_xy(window, margin=0.2):
+    """
+    Generate a range of (x,y) positions in screen space from bottom left to top right
+
+    :param margin: Percentage of window space to leave unused
+    """
+    size = get_window_size_in_pixels(window)
+    return [
+        (p, p) for p in
+        range(int(size[0] * margin), int(size[0] * (1.0 - margin)), 80)
+    ]

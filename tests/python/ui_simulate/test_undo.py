@@ -17,30 +17,6 @@ _MENU_CONFIRM_HACK = True
 # Utilities
 
 
-def _cursor_motion_data_x(window):
-    size = ui.get_window_size_in_pixels(window)
-    return [
-        (x, size[1] // 2) for x in
-        range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
-    ]
-
-
-def _cursor_motion_data_y(window):
-    size = ui.get_window_size_in_pixels(window)
-    return [
-        (size[0] // 2, y) for y in
-        range(int(size[1] * 0.2), int(size[1] * 0.8), 80)
-    ]
-
-
-def _cursor_motion_data_xy(window):
-    size = ui.get_window_size_in_pixels(window)
-    return [
-        (p, p) for p in
-        range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
-    ]
-
-
 def _view3d_object_calc_screen_space_location(window, name: str):
     from bpy_extras.view3d_utils import location_3d_to_region_2d
 
@@ -353,12 +329,12 @@ def view3d_sculpt_with_memfile_step():
     mesh_verts_cos_before_sculpt = extract_mesh_cos(window)
 
     # Add a first sculpt stroke.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     mesh_verts_cos_sculpt_stroke1 = extract_mesh_cos(window)
     t.assertNotEqual(mesh_verts_cos_before_sculpt, mesh_verts_cos_sculpt_stroke1)
 
     # Add a second sculpt stroke.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
     mesh_verts_cos_sculpt_stroke2 = extract_mesh_cos(window)
     t.assertNotEqual(mesh_verts_cos_sculpt_stroke1, mesh_verts_cos_sculpt_stroke2)
 
@@ -423,7 +399,7 @@ def view3d_sculpt_dyntopo_and_edit():
     # TODO: should be accessible from menu.
     yield from ui.call_operator(e, "Symmetrize")
     # Some painting (demo it works, not needed for the crash)
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     yield e.tab()                       # Edit mode.
     yield e.tab()                       # Object mode.
     yield e.ctrl.z(3)                   # Undo
@@ -455,7 +431,7 @@ def view3d_sculpt_trim():
 
     beginning_positions = extract_mesh_positions(window)
     yield from ui.call_operator(e, "Box Trim")
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_xy(window))    # Perform the trim
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_xy(window))  # Perform the trim
     after_trim_positions = extract_mesh_positions(window)
     t.assertNotEqual(beginning_positions, after_trim_positions)
 
@@ -490,13 +466,13 @@ def view3d_sculpt_dyntopo_stroke_toggle():
     original_positions = extract_mesh_positions(window)
     yield from ui.call_operator(e, "Dynamic Topology")  # On
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
     yield from ui.call_operator(e, "Dynamic Topology")  # Off
     after_toggle_off = extract_mesh_positions(window)
     t.assertNotEqual(original_positions, after_toggle_off)
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
     after_normal_stroke = extract_mesh_positions(window)
     t.assertNotEqual(after_toggle_off, after_normal_stroke)
 
@@ -531,14 +507,14 @@ def view3d_texture_paint_simple():
     yield from ui.call_operator(e, "Add Texture Paint Slot")
     yield e.ret()                       # Accept popup.
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     yield e.ctrl.z(2)                   # Undo: initial texture paint.
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
     yield e.ctrl.z()                    # Undo: object mode.
     t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
     yield e.ctrl.shift.z(2)             # Redo: initial blank canvas.
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     yield e.ctrl.z()                    # Used to crash T61172.
 
 
@@ -559,8 +535,8 @@ def view3d_texture_paint_complex():
 
     initial_data = tuple(bpy.data.images['Suzanne Base Color'].pixels)
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
 
     after_strokes = tuple(bpy.data.images['Suzanne Base Color'].pixels)
     t.assertTrue(any([orig != new for (orig, new) in zip(initial_data, after_strokes)]),
@@ -573,8 +549,8 @@ def view3d_texture_paint_complex():
     yield e.a()                         # Array modifier
     t.assertEqual(len(bpy.context.active_object.modifiers), 1, "One modifier should exist")
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
 
     yield e.ctrl.z(6)                   # Undo: second slot added.
     t.assertEqual(len(bpy.context.active_object.modifiers), 0, "No modifiers should exist")
@@ -591,8 +567,8 @@ def view3d_texture_paint_complex():
     yield e.ctrl.shift.z(2)             # Redo: initial blank canvas.
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
 
     yield from ui.call_operator(e, "Undo History")
     yield e.o()                         # Undo everything to Original step.
@@ -637,8 +613,8 @@ def view3d_mesh_particle_edit_mode_simple():
     t.assertEqual(window.view_layer.objects.active.mode, 'SCULPT_CURVES')
 
     # Brush strokes.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
     # Undo and redo.
     yield e.ctrl.z(5)
@@ -648,8 +624,8 @@ def view3d_mesh_particle_edit_mode_simple():
     t.assertEqual(window.view_layer.objects.active.mode, 'SCULPT_CURVES')
 
     # Brush strokes.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
     yield e.ctrl.z(7)
     t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
