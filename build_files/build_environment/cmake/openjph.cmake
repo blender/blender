@@ -31,14 +31,16 @@ ExternalProject_Add(external_openjph
 
 
 if(WIN32)
-    ExternalProject_Add_Step(external_openjph after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/openjph
-        ${HARVEST_TARGET}/openjph
+  ExternalProject_Add_Step(external_openjph after_install
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/openjph
+      ${HARVEST_TARGET}/openjph
 
-      DEPENDEES install
-    )
+    DEPENDEES install
+  )
 else()
-    harvest(external_openjph openjph/include openjph/include "*.h")
-    harvest_rpath_lib(external_openjph openjph/lib openjph/lib "*${SHAREDLIBEXT}*")
+  harvest(external_openjph openjph/include openjph/include "*.h")
+  # Cmake files first because harvest_rpath_lib edits them.
+  harvest(external_openjph openjph/lib/cmake/openjph openjph/lib/cmake/openjph "*.cmake")
+  harvest_rpath_lib(external_openjph openjph/lib openjph/lib "*${SHAREDLIBEXT}*")
 endif()

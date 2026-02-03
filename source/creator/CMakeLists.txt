@@ -100,16 +100,6 @@ if(WITH_USD)
   endif()
 endif()
 
-if(WITH_IMAGE_OPENEXR)
-  # NOTE: This is _only_ needed when linking blender before the install target runs.
-  # Once `openjph` libraries have been copied into `TARGETDIR_LIB` then Blender will link.
-  # Don't rely on this though as failing on a fresh build is no good and the library
-  # files could get outdated too.
-  if(DEFINED LIBDIR)
-    link_directories(${LIBDIR}/openjph/lib)
-  endif()
-endif()
-
 if(WITH_PYTHON)
   list(APPEND INC ../blender/python)
   add_definitions(-DWITH_PYTHON)

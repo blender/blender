@@ -107,7 +107,7 @@ endif()
 
 if(WITH_CYCLES_OSL)
   list(APPEND LIB
-    ${OSL_LIBRARIES}
+    bf::dependencies::optional::osl
   )
 endif()
 

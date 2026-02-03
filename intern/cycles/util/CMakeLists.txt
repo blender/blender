@@ -36,6 +36,7 @@ set(SRC
 )
 
 set(LIB
+  PUBLIC bf::dependencies::openimageio
   ${TBB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )

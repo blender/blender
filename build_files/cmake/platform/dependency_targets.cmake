@@ -138,18 +138,8 @@ target_link_libraries(bf_deps_png INTERFACE ${PNG_LIBRARIES})
 # -----------------------------------------------------------------------------
 # Configure OpenImageIO
 
-add_library(bf_deps_openimageio INTERFACE)
-add_library(bf::dependencies::openimageio ALIAS bf_deps_openimageio)
-
-target_include_directories(bf_deps_openimageio SYSTEM INTERFACE ${OPENIMAGEIO_INCLUDE_DIRS})
-target_link_libraries(bf_deps_openimageio INTERFACE ${OPENIMAGEIO_LIBRARIES})
-
-# OpenImageIO headers include `Imath` headers when there is no SSE support for
-# matrix operations. This depends on the specific architecture and compiler
-# flags, most reliable is to always include the `Imath` headers if we have them.
-if(DEFINED IMATH_INCLUDE_DIRS)
-  target_include_directories(bf_deps_openimageio SYSTEM INTERFACE ${IMATH_INCLUDE_DIRS})
-endif()
+add_library(bf::dependencies::openimageio ALIAS OpenImageIO::OpenImageIO)
+get_target_property(OPENIMAGEIO_TOOL OpenImageIO::oiiotool LOCATION)
 
 # -----------------------------------------------------------------------------
 # Configure USD
@@ -195,8 +185,7 @@ add_library(bf::dependencies::optional::openexr ALIAS bf_deps_optional_openexr)
 
 if(WITH_IMAGE_OPENEXR)
   target_compile_definitions(bf_deps_optional_openexr INTERFACE WITH_IMAGE_OPENEXR)
-  target_include_directories(bf_deps_optional_openexr SYSTEM INTERFACE ${OPENEXR_INCLUDE_DIRS})
-  target_link_libraries(bf_deps_optional_openexr INTERFACE ${OPENEXR_LIBRARIES})
+  target_link_libraries(bf_deps_optional_openexr INTERFACE OpenEXR::OpenEXR)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -447,3 +436,16 @@ endif()
 #
 
 add_library(bf::dependencies::fmt ALIAS fmt::fmt)
+
+# -----------------------------------------------------------------------------
+# Configure OSL
+
+if(WITH_CYCLES_OSL)
+  add_library(bf_deps_optional_osl INTERFACE)
+  target_link_libraries(bf_deps_optional_osl INTERFACE OSL::oslcomp OSL::oslquery OSL::oslexec OSL::oslnoise)
+  add_library(bf::dependencies::optional::osl ALIAS bf_deps_optional_osl)
+  get_target_property(OSL_COMPILER OSL::oslc LOCATION)
+else()
+  add_library(bf_deps_optional_osl INTERFACE)
+  add_library(bf::dependencies::optional::osl ALIAS bf_deps_optional_osl)
+endif()
