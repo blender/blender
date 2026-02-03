@@ -60,7 +60,7 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
     {FMODIFIER_TYPE_SMOOTH,
      "SMOOTH",
      0,
-     "Gaussian Smoothing",
+     "Smooth (Gaussian)",
      "Smooth curve using Gaussian smoothing"},
     {0, nullptr, 0, nullptr, nullptr},
 };
