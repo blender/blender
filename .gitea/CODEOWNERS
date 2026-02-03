@@ -98,7 +98,7 @@ source/blender/blenkernel/intern/tracking.*  @sergey
 
 # --------------------------------------------------
 # Render and Cycles module.
-intern/cycles/.*           @sergey @brecht @weizhen
+intern/cycles/.*           @sergey @brecht @weizhen @sherholz
 source/blender/render/.*   @sergey @brecht
 
 # --------------------------------------------------
