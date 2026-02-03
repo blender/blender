@@ -81,10 +81,19 @@ static void copy_attributes(PointCloud *pointcloud,
       using Converter = typename ccl::AttributeConverter<BlenderT>;
       using CyclesT = typename Converter::CyclesT;
       if constexpr (!std::is_void_v<CyclesT>) {
+        const blender::VArray<BlenderT> src_varray = b_attr.varray.typed<BlenderT>();
+
+        if (const std::optional<BlenderT> single_value = src_varray.get_if_single()) {
+          Attribute *attr = attributes.add(name, Converter::type_desc, ATTR_ELEMENT_MESH);
+          CyclesT *data = reinterpret_cast<CyclesT *>(attr->data());
+          *data = Converter::convert(*single_value);
+          return;
+        }
+
         Attribute *attr = attributes.add(name, Converter::type_desc, ATTR_ELEMENT_VERTEX);
         CyclesT *data = reinterpret_cast<CyclesT *>(attr->data());
 
-        const blender::VArraySpan src = b_attr.varray.typed<BlenderT>();
+        const blender::VArraySpan src = src_varray;
         for (const int i : src.index_range()) {
           data[i] = Converter::convert(src[i]);
         }

@@ -105,6 +105,24 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
   }
 }
 
+static AttributeElement blender_domain_to_attr_element(const blender::bke::AttrDomain b_domain)
+{
+  switch (b_domain) {
+    case blender::bke::AttrDomain::Corner:
+      return ATTR_ELEMENT_CORNER;
+      break;
+    case blender::bke::AttrDomain::Point:
+      return ATTR_ELEMENT_VERTEX;
+      break;
+    case blender::bke::AttrDomain::Face:
+      return ATTR_ELEMENT_FACE;
+      break;
+    default:
+      assert(false);
+      return ATTR_ELEMENT_NONE;
+  }
+}
+
 static void attr_create_generic(Scene *scene,
                                 Mesh *mesh,
                                 const blender::Mesh &b_mesh,
@@ -183,26 +201,23 @@ static void attr_create_generic(Scene *scene,
       return;
     }
 
-    AttributeElement element = ATTR_ELEMENT_NONE;
-    switch (b_domain) {
-      case blender::bke::AttrDomain::Corner:
-        element = ATTR_ELEMENT_CORNER;
-        break;
-      case blender::bke::AttrDomain::Point:
-        element = ATTR_ELEMENT_VERTEX;
-        break;
-      case blender::bke::AttrDomain::Face:
-        element = ATTR_ELEMENT_FACE;
-        break;
-      default:
-        assert(false);
-        return;
-    }
-
     blender::bke::attribute_math::to_static_type(b_attr.varray.type(), [&]<typename BlenderT>() {
       using Converter = typename ccl::AttributeConverter<BlenderT>;
       using CyclesT = typename Converter::CyclesT;
       if constexpr (!std::is_void_v<CyclesT>) {
+        const blender::VArray<BlenderT> src_varray = b_attr.varray.typed<BlenderT>();
+
+        if (const std::optional<BlenderT> single_value = src_varray.get_if_single()) {
+          Attribute *attr = attributes.add(name, Converter::type_desc, ATTR_ELEMENT_MESH);
+          if (is_render_color) {
+            attr->std = ATTR_STD_VERTEX_COLOR;
+          }
+          CyclesT *data = reinterpret_cast<CyclesT *>(attr->data());
+          *data = Converter::convert(*single_value);
+          return;
+        }
+
+        const AttributeElement element = blender_domain_to_attr_element(b_attr.domain);
         Attribute *attr = attributes.add(name, Converter::type_desc, element);
         if (is_render_color) {
           attr->std = ATTR_STD_VERTEX_COLOR;
