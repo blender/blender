@@ -48,9 +48,12 @@ ccl_device_inline float3 triangle_face_normal_undisplaced(KernelGlobals kg,
                                                           const int position_attr_offset)
 {
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-  const float3 v0 = attribute_data_fetch<float3>(kg, position_attr_offset + tri_vindex.x);
-  const float3 v1 = attribute_data_fetch<float3>(kg, position_attr_offset + tri_vindex.y);
-  const float3 v2 = attribute_data_fetch<float3>(kg, position_attr_offset + tri_vindex.z);
+  const float3 v0 = attribute_data_fetch<float3>(
+      kg, ATTR_ELEMENT_VERTEX, position_attr_offset + tri_vindex.x);
+  const float3 v1 = attribute_data_fetch<float3>(
+      kg, ATTR_ELEMENT_VERTEX, position_attr_offset + tri_vindex.y);
+  const float3 v2 = attribute_data_fetch<float3>(
+      kg, ATTR_ELEMENT_VERTEX, position_attr_offset + tri_vindex.z);
 
   if (object_negative_scale_applied(sd->object_flag)) {
     return normalize(cross(v2 - v0, v1 - v0));
@@ -229,31 +232,22 @@ ccl_device dual<T> triangle_attribute(KernelGlobals kg,
                                       const bool dy = false)
 {
   dual<T> result;
-  if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER |
-                      ATTR_ELEMENT_CORNER_BYTE))
-  {
+  if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_CORNER)) {
     T f0;
     T f1;
     T f2;
 
-    if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
+    if (desc.element & ATTR_ELEMENT_VERTEX) {
       const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-
-      f0 = attribute_data_fetch<T>(kg, desc.offset + tri_vindex.x);
-      f1 = attribute_data_fetch<T>(kg, desc.offset + tri_vindex.y);
-      f2 = attribute_data_fetch<T>(kg, desc.offset + tri_vindex.z);
-    }
-    else if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
-      const int tri = desc.offset + sd->prim * 3;
-      f0 = attribute_data_fetch_bytecolor<T>(kg, tri + 0);
-      f1 = attribute_data_fetch_bytecolor<T>(kg, tri + 1);
-      f2 = attribute_data_fetch_bytecolor<T>(kg, tri + 2);
+      f0 = attribute_data_fetch<T>(kg, desc.element, desc.offset + tri_vindex.x);
+      f1 = attribute_data_fetch<T>(kg, desc.element, desc.offset + tri_vindex.y);
+      f2 = attribute_data_fetch<T>(kg, desc.element, desc.offset + tri_vindex.z);
     }
     else {
       const int tri = desc.offset + sd->prim * 3;
-      f0 = attribute_data_fetch<T>(kg, tri + 0);
-      f1 = attribute_data_fetch<T>(kg, tri + 1);
-      f2 = attribute_data_fetch<T>(kg, tri + 2);
+      f0 = attribute_data_fetch<T>(kg, desc.element, tri + 0);
+      f1 = attribute_data_fetch<T>(kg, desc.element, tri + 1);
+      f2 = attribute_data_fetch<T>(kg, desc.element, tri + 2);
     }
 
 #ifdef __RAY_DIFFERENTIALS__
@@ -270,7 +264,7 @@ ccl_device dual<T> triangle_attribute(KernelGlobals kg,
   }
 
   if (desc.element == ATTR_ELEMENT_FACE) {
-    return dual<T>(attribute_data_fetch<T>(kg, desc.offset + sd->prim));
+    return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
   }
   return make_zero<dual<T>>();
 }

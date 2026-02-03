@@ -27,7 +27,7 @@ Attribute::Attribute(ustring name,
          type == TypeNormal || type == TypeMatrix || type == TypeFloat2 || type == TypeFloat4 ||
          type == TypeRGBA);
 
-  if (element == ATTR_ELEMENT_VOXEL) {
+  if (element & ATTR_ELEMENT_VOXEL) {
     buffer.resize(sizeof(ImageHandle));
     new (buffer.data()) ImageHandle();
   }
@@ -39,7 +39,7 @@ Attribute::Attribute(ustring name,
 Attribute::~Attribute()
 {
   /* For voxel data, we need to free the image handle. */
-  if (element == ATTR_ELEMENT_VOXEL && !buffer.empty()) {
+  if (element & ATTR_ELEMENT_VOXEL && !buffer.empty()) {
     ImageHandle &handle = data_voxel();
     handle.~ImageHandle();
   }
@@ -47,7 +47,7 @@ Attribute::~Attribute()
 
 void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_only)
 {
-  if (element != ATTR_ELEMENT_VOXEL) {
+  if (!(element & ATTR_ELEMENT_VOXEL)) {
     if (reserve_only) {
       buffer.reserve(buffer_size(geom, prim));
     }
@@ -59,7 +59,7 @@ void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_onl
 
 void Attribute::resize(const size_t num_elements)
 {
-  if (element != ATTR_ELEMENT_VOXEL) {
+  if (!(element & ATTR_ELEMENT_VOXEL)) {
     buffer.resize(num_elements * data_sizeof(), 0);
   }
 }
@@ -165,10 +165,10 @@ void Attribute::set_data_from(Attribute &&other)
 
 size_t Attribute::data_sizeof() const
 {
-  if (element == ATTR_ELEMENT_VOXEL) {
+  if (element & ATTR_ELEMENT_VOXEL) {
     return sizeof(ImageHandle);
   }
-  if (element == ATTR_ELEMENT_CORNER_BYTE) {
+  if (element & ATTR_ELEMENT_IS_BYTE) {
     return sizeof(uchar4);
   }
   if (type == TypeFloat) {
@@ -252,6 +252,9 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
         }
         else {
           size = mesh->num_triangles() * 3;
+        }
+        if (element & ATTR_ELEMENT_IS_MOTION) {
+          size *= (mesh->get_motion_steps() - 1);
         }
       }
       break;
@@ -398,7 +401,7 @@ AttributeStandard Attribute::name_standard(const char *name)
 
 AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
 {
-  if (attr.element == ATTR_ELEMENT_CORNER) {
+  if (attr.element & ATTR_ELEMENT_IS_BYTE) {
     return AttrKernelDataType::UCHAR4;
   }
 
@@ -749,7 +752,7 @@ void AttributeSet::clear(bool preserve_voxel_data)
     list<Attribute>::iterator it;
 
     for (it = attributes.begin(); it != attributes.end();) {
-      if (it->element == ATTR_ELEMENT_VOXEL || it->std == ATTR_STD_GENERATED_TRANSFORM) {
+      if ((it->element & ATTR_ELEMENT_VOXEL) || it->std == ATTR_STD_GENERATED_TRANSFORM) {
         it++;
       }
       else {

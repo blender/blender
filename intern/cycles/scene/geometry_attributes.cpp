@@ -72,7 +72,7 @@ AttributeRequestSet Geometry::needed_attributes()
 bool Geometry::has_voxel_attributes() const
 {
   for (const Attribute &attr : attributes.attributes) {
-    if (attr.element == ATTR_ELEMENT_VOXEL) {
+    if (attr.element & ATTR_ELEMENT_VOXEL) {
       return true;
     }
   }
@@ -329,12 +329,12 @@ class AttributeTableBuilder {
     const AttributeElement &element = desc.element;
     int &offset = desc.offset;
 
-    if (mattr->element == ATTR_ELEMENT_VOXEL) {
+    if (mattr->element & ATTR_ELEMENT_VOXEL) {
       /* store slot in offset value */
       const ImageHandle &handle = mattr->data_voxel();
       offset = handle.svm_slot();
     }
-    else if (mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
+    else if (mattr->element & ATTR_ELEMENT_IS_BYTE) {
       offset = attr_uchar4.add(mattr->data_uchar4(), size, mattr->modified);
     }
     else if (mattr->type == TypeFloat) {
@@ -357,36 +357,27 @@ class AttributeTableBuilder {
      * a correction for that in here */
     if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      if (element == ATTR_ELEMENT_VERTEX) {
+      if (element & ATTR_ELEMENT_VERTEX) {
         offset -= mesh->vert_offset;
       }
-      else if (element == ATTR_ELEMENT_VERTEX_MOTION) {
-        offset -= mesh->vert_offset;
-      }
-      else if (element == ATTR_ELEMENT_FACE) {
+      else if (element & ATTR_ELEMENT_FACE) {
         offset -= mesh->prim_offset;
       }
-      else if (element == ATTR_ELEMENT_CORNER || element == ATTR_ELEMENT_CORNER_BYTE) {
+      else if (element & ATTR_ELEMENT_CORNER) {
         offset -= 3 * mesh->prim_offset;
       }
     }
     else if (geom->is_hair()) {
       Hair *hair = static_cast<Hair *>(geom);
-      if (element == ATTR_ELEMENT_CURVE) {
+      if (element & ATTR_ELEMENT_CURVE) {
         offset -= hair->prim_offset;
       }
-      else if (element == ATTR_ELEMENT_CURVE_KEY) {
-        offset -= hair->curve_key_offset;
-      }
-      else if (element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+      else if (element & ATTR_ELEMENT_CURVE_KEY) {
         offset -= hair->curve_key_offset;
       }
     }
     else if (geom->is_pointcloud()) {
-      if (element == ATTR_ELEMENT_VERTEX) {
-        offset -= geom->prim_offset;
-      }
-      else if (element == ATTR_ELEMENT_VERTEX_MOTION) {
+      if (element & ATTR_ELEMENT_VERTEX) {
         offset -= geom->prim_offset;
       }
     }
@@ -400,10 +391,10 @@ class AttributeTableBuilder {
 
     const size_t size = mattr->element_size(geom, prim);
 
-    if (mattr->element == ATTR_ELEMENT_VOXEL) {
+    if (mattr->element & ATTR_ELEMENT_VOXEL) {
       /* pass */
     }
-    else if (mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
+    else if (mattr->element & ATTR_ELEMENT_IS_BYTE) {
       attr_uchar4.reserve(size);
     }
     else if (mattr->type == TypeFloat) {

@@ -54,13 +54,13 @@ ccl_device dual<T> curve_attribute(KernelGlobals kg,
                                    const bool dy = false)
 {
   dual<T> result;
-  if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
+  if (desc.element & ATTR_ELEMENT_CURVE_KEY) {
     const KernelCurve curve = kernel_data_fetch(curves, sd->prim);
     const int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     const int k1 = k0 + 1;
 
-    const T f0 = attribute_data_fetch<T>(kg, desc.offset + k0);
-    const T f1 = attribute_data_fetch<T>(kg, desc.offset + k1);
+    const T f0 = attribute_data_fetch<T>(kg, desc.element, desc.offset + k0);
+    const T f1 = attribute_data_fetch<T>(kg, desc.element, desc.offset + k1);
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -81,7 +81,7 @@ ccl_device dual<T> curve_attribute(KernelGlobals kg,
    * could be computed somehow? */
 
   if (desc.element == ATTR_ELEMENT_CURVE) {
-    return dual<T>(attribute_data_fetch<T>(kg, desc.offset + sd->prim));
+    return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
   }
   return make_zero<dual<T>>();
 }

@@ -670,18 +670,28 @@ enum AttributePrimitive {
 };
 
 enum AttributeElement {
+  /* Elements for regular domains. */
   ATTR_ELEMENT_NONE = 0,
   ATTR_ELEMENT_OBJECT = (1 << 0),
   ATTR_ELEMENT_MESH = (1 << 1),
   ATTR_ELEMENT_FACE = (1 << 2),
   ATTR_ELEMENT_VERTEX = (1 << 3),
-  ATTR_ELEMENT_VERTEX_MOTION = (1 << 4),
-  ATTR_ELEMENT_CORNER = (1 << 5),
-  ATTR_ELEMENT_CORNER_BYTE = (1 << 6),
-  ATTR_ELEMENT_CURVE = (1 << 7),
-  ATTR_ELEMENT_CURVE_KEY = (1 << 8),
-  ATTR_ELEMENT_CURVE_KEY_MOTION = (1 << 9),
-  ATTR_ELEMENT_VOXEL = (1 << 10)
+  ATTR_ELEMENT_CORNER = (1 << 4),
+  ATTR_ELEMENT_CURVE = (1 << 5),
+  ATTR_ELEMENT_CURVE_KEY = (1 << 6),
+  ATTR_ELEMENT_VOXEL = (1 << 7),
+
+  /* Elements with special encoding where the data type for storage does not
+   * match the data type returned when reading the attribute and needs a
+   * conversion or interpolation when reading. */
+  ATTR_ELEMENT_IS_MOTION = (1 << 8),
+  ATTR_ELEMENT_IS_BYTE = (1 << 10),
+
+  /* Only these combinations are supported by the kernel and can be
+   * created on geometry. */
+  ATTR_ELEMENT_VERTEX_MOTION = ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_IS_MOTION,
+  ATTR_ELEMENT_CORNER_BYTE = ATTR_ELEMENT_CORNER | ATTR_ELEMENT_IS_BYTE,
+  ATTR_ELEMENT_CURVE_KEY_MOTION = ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_IS_MOTION,
 };
 
 enum AttributeStandard {

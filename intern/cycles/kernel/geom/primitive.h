@@ -36,7 +36,7 @@ ccl_device_forceinline dual<T> primitive_surface_attribute(KernelGlobals kg,
                                                            const bool dy = false)
 {
   if (desc.element & (ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-    return dual<T>(attribute_data_fetch<T>(kg, desc.offset));
+    return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset));
   }
 
   if (sd->type & PRIMITIVE_TRIANGLE) {

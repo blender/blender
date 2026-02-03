@@ -680,7 +680,7 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
     }
 
     for (Attribute &attr : geom->attributes.attributes) {
-      if (attr.element != ATTR_ELEMENT_VOXEL) {
+      if (!(attr.element & ATTR_ELEMENT_VOXEL)) {
         continue;
       }
 

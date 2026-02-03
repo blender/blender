@@ -29,7 +29,7 @@ ccl_device dual<T> point_attribute(KernelGlobals kg,
                                    const bool /* dy */ = false)
 {
   if (desc.element == ATTR_ELEMENT_VERTEX) {
-    return dual<T>(attribute_data_fetch<T>(kg, desc.offset + sd->prim));
+    return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
   }
   return make_zero<dual<T>>();
 }

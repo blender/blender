@@ -94,50 +94,45 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
 }
 
 /* Templated functions to read from the attribute data */
-template<typename T> ccl_device_inline T attribute_data_fetch(KernelGlobals kg, int offset);
+template<typename T>
+ccl_device_inline T attribute_data_fetch(KernelGlobals kg, AttributeElement element, int offset);
 
-ccl_device_template_spec float attribute_data_fetch(KernelGlobals kg, int offset)
+ccl_device_template_spec float attribute_data_fetch(KernelGlobals kg,
+                                                    AttributeElement /*element*/,
+                                                    int offset)
 {
   return kernel_data_fetch(attributes_float, offset);
 }
 
-ccl_device_template_spec float2 attribute_data_fetch(KernelGlobals kg, int offset)
+ccl_device_template_spec float2 attribute_data_fetch(KernelGlobals kg,
+                                                     AttributeElement /*element*/,
+                                                     int offset)
 {
   return kernel_data_fetch(attributes_float2, offset);
 }
 
-ccl_device_template_spec float3 attribute_data_fetch(KernelGlobals kg, int offset)
+ccl_device_template_spec float3 attribute_data_fetch(KernelGlobals kg,
+                                                     AttributeElement /*element*/,
+                                                     int offset)
 {
   return kernel_data_fetch(attributes_float3, offset);
 }
 
-ccl_device_template_spec float4 attribute_data_fetch(KernelGlobals kg, int offset)
+ccl_device_template_spec float4 attribute_data_fetch(KernelGlobals kg,
+                                                     AttributeElement element,
+                                                     int offset)
 {
+  if (element & ATTR_ELEMENT_IS_BYTE) {
+    const float4 rec709 = color_srgb_to_linear_v4(
+        color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, offset)));
+    return make_float4(rec709_to_rgb(kg, make_float3(rec709)), rec709.w);
+  }
   return kernel_data_fetch(attributes_float4, offset);
 }
 
-ccl_device_template_spec uchar4 attribute_data_fetch(KernelGlobals kg, int offset)
-{
-  return kernel_data_fetch(attributes_uchar4, offset);
-}
-
-/* ATTR_ELEMENT_CORNER_BYTE is stored as uchar4, but has to be converted to float4.
- * We don't support it for float/float2/float3. */
-template<typename T>
-ccl_device_inline T attribute_data_fetch_bytecolor(KernelGlobals /*kg*/, int /*offset*/)
-{
-  kernel_assert(false);
-  return make_zero<T>();
-}
-
-ccl_device_template_spec float4 attribute_data_fetch_bytecolor(KernelGlobals kg, int offset)
-{
-  const float4 rec709 = color_srgb_to_linear_v4(
-      color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, offset)));
-  return make_float4(rec709_to_rgb(kg, make_float3(rec709)), rec709.w);
-}
-
-ccl_device_template_spec Transform attribute_data_fetch(KernelGlobals kg, int offset)
+ccl_device_template_spec Transform attribute_data_fetch(KernelGlobals kg,
+                                                        AttributeElement /*element*/,
+                                                        int offset)
 {
   Transform tfm;
 
@@ -152,7 +147,7 @@ ccl_device_template_spec Transform attribute_data_fetch(KernelGlobals kg, int of
 
 ccl_device Transform primitive_attribute_matrix(KernelGlobals kg, const AttributeDescriptor desc)
 {
-  return attribute_data_fetch<Transform>(kg, desc.offset);
+  return attribute_data_fetch<Transform>(kg, desc.element, desc.offset);
 }
 
 CCL_NAMESPACE_END
