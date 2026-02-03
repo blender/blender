@@ -1747,6 +1747,11 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
   const bool is_asset_browser = ED_fileselect_is_asset_browser(sfile);
   const bool is_library_browser = !is_asset_browser &&
                                   filelist_islibrary(sfile->files, blendfile_path, nullptr);
+  /* Call this before drawing a hint, otherwise drawing will not be visible. */
+  const auto setup_view = [region]() {
+    ui::view2d_totRect_set(&region->v2d, region->winx, region->winy);
+    ui::view2d_view_ortho(&region->v2d);
+  };
 
   if (is_asset_browser) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
@@ -1755,6 +1760,7 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
     if (!((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
           filelist_is_dir(sfile->files, asset_params->base_params.dir)))
     {
+      setup_view();
       file_draw_invalid_asset_library_hint(C, sfile, region, asset_params);
       return true;
     }
@@ -1790,6 +1796,7 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
       sfile->runtime->is_blendfile_status_set = true;
     }
     if (!sfile->runtime->is_blendfile_readable) {
+      setup_view();
       file_draw_invalid_library_hint(
           C, sfile, region, blendfile_path, &sfile->runtime->is_blendfile_readable_reports);
       return true;
