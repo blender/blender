@@ -53,6 +53,8 @@ namespace bke {
 struct PreviewDeferredLoadingData {
   std::string filepath;
   ThumbSource source;
+  /** See #BKE_previewimg_is_online(). */
+  bool is_online = false;
 };
 
 PreviewImageRuntime::PreviewImageRuntime() = default;
@@ -337,6 +339,17 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
   return prv;
 }
 
+PreviewImage *BKE_previewimg_online_thumbnail_read(const char *name,
+                                                   const char *dst_filepath,
+                                                   const bool force_update)
+{
+  PreviewImage *preview = BKE_previewimg_cached_thumbnail_read(
+      name, dst_filepath, THB_SOURCE_DIRECT, force_update);
+  preview->runtime->deferred_loading_data->is_online = true;
+
+  return preview;
+}
+
 void BKE_previewimg_cached_release(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
@@ -400,13 +413,22 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
   IMB_freeImBuf(thumb);
 }
 
-const char *BKE_previewimg_deferred_filepath_get(const PreviewImage *prv)
+bool BKE_previewimg_is_online(const PreviewImage *prv)
 {
   if (!prv->runtime->deferred_loading_data) {
-    return nullptr;
+    return false;
   }
 
-  return prv->runtime->deferred_loading_data->filepath.c_str();
+  return prv->runtime->deferred_loading_data->is_online;
+}
+
+std::optional<blender::StringRefNull> BKE_previewimg_deferred_filepath_get(const PreviewImage *prv)
+{
+  if (!prv->runtime->deferred_loading_data) {
+    return std::nullopt;
+  }
+
+  return prv->runtime->deferred_loading_data->filepath;
 }
 
 std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *prv)
