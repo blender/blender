@@ -5957,6 +5957,20 @@ static void def_sh_normal_map(BlenderRNA * /*brna*/, StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem prop_convention_items[] = {
+      {SHD_NORMAL_MAP_CONVENTION_OPENGL,
+       "OPENGL",
+       0,
+       "OpenGL",
+       "Normal map uses OpenGL convention, with Y axis in the green channel pointing up"},
+      {SHD_NORMAL_MAP_CONVENTION_DIRECTX,
+       "DIRECTX",
+       0,
+       "DirectX",
+       "Normal map uses DirectX convention, with Y axis in the green channel pointing down"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeShaderNormalMap", "storage");
@@ -5970,6 +5984,10 @@ static void def_sh_normal_map(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(prop, "UV Map", "UV Map for tangent space maps");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
+  prop = RNA_def_property(srna, "convention", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_convention_items);
+  RNA_def_property_ui_text(prop, "Mode", "OpenGL or DirectX");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
   RNA_def_struct_sdna_from(srna, "bNode", nullptr);
 }
 

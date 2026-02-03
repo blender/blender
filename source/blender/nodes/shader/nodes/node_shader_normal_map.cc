@@ -37,6 +37,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   layout.prop(ptr, "space", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "convention", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -93,6 +94,11 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   }
 
   GPU_link(mat, color_to_normal_fnc_name, newnormal, &newnormal);
+
+  if (nm->convention == SHD_NORMAL_MAP_CONVENTION_DIRECTX) {
+    GPU_link(mat, "color_invert_green_channel", newnormal, &newnormal);
+  }
+
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
       GPU_material_flag_set(mat, GPU_MATFLAG_OBJECT_INFO);
@@ -127,6 +133,11 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeShaderNormalMap *normal_map_node = static_cast<NodeShaderNormalMap *>(node_->storage);
   NodeItem color = get_input_value("Color", NodeItem::Type::Vector3);
   NodeItem strength = get_input_value("Strength", NodeItem::Type::Float);
+
+  if (normal_map_node->convention == SHD_NORMAL_MAP_CONVENTION_DIRECTX) {
+    NodeItem green_mask = val(MaterialX::Vector3(1.0f, -1.0f, 1.0f));
+    color = color * green_mask;
+  }
 
 #  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
   std::string space;
