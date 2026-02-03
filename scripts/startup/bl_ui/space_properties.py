@@ -101,7 +101,7 @@ class PROPERTIES_PT_navigation_bar(Panel):
         sub.scale_x = 0.8
         sub.scale_y = 0.8
         sub.separator(factor=0.7)
-        sub.popover(panel="PROPERTIES_PT_visibility", text="")
+        sub.popover(panel="PROPERTIES_PT_visibility", text="", direction='HORIZONTAL')
         sub.active = has_hidden_tabs(view)
 
 
