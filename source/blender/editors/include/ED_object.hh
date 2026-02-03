@@ -274,7 +274,7 @@ Base *add_duplicate(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, eDupli_ID_Flags dupflag);
 
 void parent_set(Object *ob, Object *parent, int type, const char *substr);
-std::string drop_named_material_tooltip(bContext *C, const char *name, const int mval[2]);
+std::string drop_named_material_tooltip(bContext *C, StringRef name, const int mval[2]);
 std::string drop_geometry_nodes_tooltip(bContext *C, PointerRNA *properties, const int mval[2]);
 
 /** Bit-flags for enter/exit edit-mode. */

@@ -2969,7 +2969,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 /** \name Drop Named Material on Object Operator
  * \{ */
 
-std::string drop_named_material_tooltip(bContext *C, const char *name, const int mval[2])
+std::string drop_named_material_tooltip(bContext *C, StringRef name, const int mval[2])
 {
   int mat_slot = 0;
   Object *ob = ED_view3d_give_material_slot_under_cursor(C, mval, &mat_slot);

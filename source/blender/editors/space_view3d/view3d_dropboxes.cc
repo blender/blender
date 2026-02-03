@@ -213,7 +213,7 @@ static std::string view3d_mat_drop_tooltip(bContext *C,
       xy[0] - region->winrct.xmin,
       xy[1] - region->winrct.ymin,
   };
-  return ed::object::drop_named_material_tooltip(C, name.c_str(), mval);
+  return ed::object::drop_named_material_tooltip(C, name, mval);
 }
 
 static bool view3d_world_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
