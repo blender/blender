@@ -8,6 +8,7 @@ __all__ = (
     "cursor_motion_data_x",
     "cursor_motion_data_y",
     "cursor_motion_data_xy",
+    "cursor_motion_data_circle",
     "get_area_center",
     "get_area_center_from_spacetype",
     "get_window_area_by_type",
@@ -170,4 +171,26 @@ def cursor_motion_data_xy(window, margin=0.2):
     return [
         (p, p) for p in
         range(int(size[0] * margin), int(size[0] * (1.0 - margin)), 80)
+    ]
+
+
+def cursor_motion_data_circle(center, radius):
+    """
+    Generate a range of (x,y) positions in screen space as a circle.
+    :param center: The center of the circle
+    :param radius: The radius of the circle
+    """
+    import sys
+    from math import sin, cos, pi
+    if sys.platform == "darwin":
+        from bpy import context
+        # The value is always rounded to an int, so converting to an int is safe here.
+        radius = radius * int(context.preferences.system.pixel_size)
+
+    steps = 20
+    angles = [(i / steps) * 2.0 * pi for i in range(steps)]
+    angles.append(0.0)
+
+    return [
+        (int(center[0] + -radius * sin(phi)), int(center[1] + radius * cos(phi))) for phi in angles
     ]
