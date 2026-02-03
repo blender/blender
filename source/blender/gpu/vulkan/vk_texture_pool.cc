@@ -374,11 +374,11 @@ void VKTexturePool::log_usage_data()
                 static_cast<float>(total_allocation_size);
 
   CLOG_TRACE(&LOG,
-             "VKTexturePool uses %zu/%zu mb (%.1f%% of %li allocations)",
-             current_usage_data_.acquired_segment_size_max >> 20,
-             total_allocation_size >> 20,
+             "VKTexturePool uses %lu/%lu mb (%.1f%% of %lu allocations)",
+             static_cast<unsigned long>(current_usage_data_.acquired_segment_size_max >> 20),
+             static_cast<unsigned long>(total_allocation_size >> 20),
              ratio * 100.0f,
-             current_usage_data_.allocation_count);
+             static_cast<unsigned long>(current_usage_data_.allocation_count));
 }
 
 }  // namespace blender::gpu
