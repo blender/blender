@@ -1072,7 +1072,7 @@ class SEQUENCER_MT_strip_retiming(Menu):
         layout.operator(
             "sequencer.retiming_show",
             icon='CHECKBOX_HLT' if (strip and strip.show_retiming_keys) else 'CHECKBOX_DEHLT',
-            text="Toggle Retiming Keys",
+            text="Show Retiming Keys",
         )
 
 

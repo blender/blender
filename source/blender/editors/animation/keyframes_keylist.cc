@@ -1489,7 +1489,7 @@ void mask_to_keylist(bDopeSheet * /*ads*/, MaskLayer *masklay, AnimKeylist *keyl
 
 void sequencer_strip_to_keylist(const Strip &strip, AnimKeylist &keylist, Scene &scene)
 {
-  if (!seq::retiming_is_active(&strip)) {
+  if (!seq::retiming_has_keys(&strip)) {
     return;
   }
   keylist_reset_last_accessed(&keylist);
