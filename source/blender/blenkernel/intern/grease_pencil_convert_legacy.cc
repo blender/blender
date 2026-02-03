@@ -3196,7 +3196,7 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
     /* Ensure that the name is not already taken. If so, rename the existing attribute and report a
      * warning. */
     if (attributes.contains(hide_stroke_name)) {
-      Set<StringRefNull> names = attributes.all_ids();
+      Set<StringRefNull> names = attributes.all_names();
       std::string unique_name = BLI_uniquename_cb(
           [&](StringRef name) { return names.contains(StringRefNull(name)); },
           '.',
@@ -3225,7 +3225,7 @@ static void convert_grease_pencil_drawing_material_stroke_fill_toggle_to_attribu
     constexpr StringRefNull fill_id_name = "fill_id";
     /* Ensure that the name is not already taken. If so, rename the existing attribute. */
     if (attributes.contains(fill_id_name)) {
-      Set<StringRefNull> names = attributes.all_ids();
+      Set<StringRefNull> names = attributes.all_names();
       std::string unique_name = BLI_uniquename_cb(
           [&](StringRef name) { return names.contains(StringRefNull(name)); }, '.', fill_id_name);
       attributes.rename(fill_id_name, unique_name);

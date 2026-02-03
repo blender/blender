@@ -299,13 +299,13 @@ BLI_NOINLINE static void propagate_existing_attributes(
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
   for (const int i : attributes.names.index_range()) {
-    const StringRef attribute_id = attributes.names[i];
+    const StringRef name = attributes.names[i];
     const bke::AttrType output_data_type = attributes.kinds[i].data_type;
-    if (attribute_id == "position") {
+    if (name == "position") {
       continue;
     }
 
-    GAttributeReader src = mesh_attributes.lookup(attribute_id);
+    GAttributeReader src = mesh_attributes.lookup(name);
     if (!src) {
       continue;
     }
@@ -314,7 +314,7 @@ BLI_NOINLINE static void propagate_existing_attributes(
     }
 
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, AttrDomain::Point, output_data_type);
+        name, AttrDomain::Point, output_data_type);
     if (!dst) {
       continue;
     }

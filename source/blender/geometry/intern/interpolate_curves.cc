@@ -231,17 +231,17 @@ void sample_curve_padded(const bke::CurvesGeometry &curves,
  * Return true if the attribute should be copied/interpolated to the result curves.
  * Don't output attributes that correspond to curve types that have no curves in the result.
  */
-static bool interpolate_attribute_to_curves(const StringRef attribute_id,
+static bool interpolate_attribute_to_curves(const StringRef name,
                                             const std::array<int, CURVE_TYPES_NUM> &type_counts)
 {
-  if (bke::attribute_name_is_anonymous(attribute_id)) {
+  if (bke::attribute_name_is_anonymous(name)) {
     return true;
   }
   /* Bezier handles and types are interpolated manually. */
-  if (ELEM(attribute_id, "handle_type_left", "handle_type_right", "handle_left", "handle_right")) {
+  if (ELEM(name, "handle_type_left", "handle_type_right", "handle_left", "handle_right")) {
     return false;
   }
-  if (ELEM(attribute_id, "nurbs_weight")) {
+  if (ELEM(name, "nurbs_weight")) {
     return type_counts[CURVE_TYPE_NURBS] != 0;
   }
   return true;
@@ -250,7 +250,7 @@ static bool interpolate_attribute_to_curves(const StringRef attribute_id,
 /**
  * Return true if the attribute should be copied to poly curves.
  */
-static bool interpolate_attribute_to_poly_curve(const StringRef attribute_id)
+static bool interpolate_attribute_to_poly_curve(const StringRef name)
 {
   static const Set<StringRef> no_interpolation{{
       "handle_type_left",
@@ -259,7 +259,7 @@ static bool interpolate_attribute_to_poly_curve(const StringRef attribute_id)
       "handle_left",
       "nurbs_weight",
   }};
-  return !no_interpolation.contains(attribute_id);
+  return !no_interpolation.contains(name);
 }
 
 struct AttributesForInterpolation {

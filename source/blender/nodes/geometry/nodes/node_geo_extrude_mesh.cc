@@ -96,8 +96,7 @@ static void remove_non_propagated_attributes(MutableAttributeAccessor attributes
                                              const AttributeFilter &attribute_filter)
 {
   Vector<std::string> names_to_remove;
-  const Set<StringRefNull> all_names = attributes.all_ids();
-  for (const StringRefNull name : all_names) {
+  for (const StringRefNull name : attributes.all_names()) {
     if (attribute_filter.allow_skip(name)) {
       names_to_remove.append(name);
     }

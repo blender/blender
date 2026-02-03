@@ -760,13 +760,13 @@ static GAttributeReader reader_for_vertex_group_index(const Mesh &mesh,
   return {varray_for_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
 }
 
-static GAttributeReader try_get_vertex_group(const void *owner, const StringRef attribute_id)
+static GAttributeReader try_get_vertex_group(const void *owner, const StringRef name)
 {
   const Mesh *mesh = static_cast<const Mesh *>(owner);
   if (mesh == nullptr) {
     return {};
   }
-  const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names, attribute_id);
+  const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names, name);
   if (vertex_group_index < 0) {
     return {};
   }
@@ -774,13 +774,13 @@ static GAttributeReader try_get_vertex_group(const void *owner, const StringRef 
   return reader_for_vertex_group_index(*mesh, dverts, vertex_group_index);
 }
 
-static GAttributeWriter try_get_vertex_group_for_write(void *owner, const StringRef attribute_id)
+static GAttributeWriter try_get_vertex_group_for_write(void *owner, const StringRef name)
 {
   Mesh *mesh = static_cast<Mesh *>(owner);
   if (mesh == nullptr) {
     return {};
   }
-  const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names, attribute_id);
+  const int vertex_group_index = BKE_defgroup_name_index(&mesh->vertex_group_names, name);
   if (vertex_group_index < 0) {
     return {};
   }

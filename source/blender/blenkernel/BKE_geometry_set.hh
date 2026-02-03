@@ -255,9 +255,8 @@ struct GeometrySet {
    */
   void ensure_no_shared_components();
 
-  using AttributeForeachCallback = FunctionRef<void(StringRef attribute_id,
-                                                    const AttributeMetaData &meta_data,
-                                                    const GeometryComponent &component)>;
+  using AttributeForeachCallback = FunctionRef<void(
+      StringRef name, const AttributeMetaData &meta_data, const GeometryComponent &component)>;
 
   void attribute_foreach(Span<GeometryComponent::Type> component_types,
                          bool include_instances,

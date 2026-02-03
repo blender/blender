@@ -142,15 +142,15 @@ static void transfer_attributes(
 {
   /* Retrieve all attributes except for position which is handled manually.
    * Remove anonymous attributes that don't need to be propagated. */
-  Set<StringRefNull> attribute_ids = src_attributes.all_ids();
-  attribute_ids.remove("position");
-  attribute_ids.remove(".edge_verts");
-  attribute_ids.remove(".corner_vert");
-  attribute_ids.remove(".corner_edge");
-  attribute_ids.remove("sharp_face");
-  attribute_ids.remove_if([&](const StringRef id) { return attribute_filter.allow_skip(id); });
+  Set<StringRefNull> names = src_attributes.all_names();
+  names.remove("position");
+  names.remove(".edge_verts");
+  names.remove(".corner_vert");
+  names.remove(".corner_edge");
+  names.remove("sharp_face");
+  names.remove_if([&](const StringRef id) { return attribute_filter.allow_skip(id); });
 
-  for (const StringRef id : attribute_ids) {
+  for (const StringRef id : names) {
     GAttributeReader src = src_attributes.lookup(id);
 
     AttrDomain out_domain;

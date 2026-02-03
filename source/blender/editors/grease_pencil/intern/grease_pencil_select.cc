@@ -593,7 +593,7 @@ template<typename T>
 void insert_selected_values(Object *object,
                             const MutableDrawingInfo &info,
                             const bke::AttrDomain domain,
-                            const StringRef attribute_id,
+                            const StringRef name,
                             const int handle_display,
                             Set<T> &r_value_set)
 {
@@ -602,8 +602,7 @@ void insert_selected_values(Object *object,
 
   const bke::CurvesGeometry &curves = info.drawing.strokes();
   const bke::AttributeAccessor attributes = curves.attributes();
-  const VArraySpan<T> values = *attributes.lookup_or_default<T>(
-      attribute_id, domain, default_value);
+  const VArraySpan<T> values = *attributes.lookup_or_default<T>(name, domain, default_value);
 
   threading::EnumerableThreadSpecific<Set<T>> value_set_by_thread;
   IndexMaskMemory memory;
@@ -641,7 +640,7 @@ static void select_similar_by_value(Scene *scene,
                                     Object *object,
                                     GreasePencil &grease_pencil,
                                     const bke::AttrDomain selection_domain,
-                                    const StringRef attribute_id,
+                                    const StringRef name,
                                     const int handle_display,
                                     float threshold,
                                     DistanceFn distance_fn)
@@ -655,8 +654,7 @@ static void select_similar_by_value(Scene *scene,
 
   Set<T> selected_values;
   for (const MutableDrawingInfo &info : drawings) {
-    insert_selected_values(
-        object, info, selection_domain, attribute_id, handle_display, selected_values);
+    insert_selected_values(object, info, selection_domain, name, handle_display, selected_values);
   }
 
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -665,7 +663,7 @@ static void select_similar_by_value(Scene *scene,
         *object, info, selection_domain, memory);
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     const VArraySpan<T> values = *curves.attributes().lookup_or_default<T>(
-        attribute_id, selection_domain, default_value);
+        name, selection_domain, default_value);
 
     Span<StringRef> selection_attribute_names = ed::curves::get_curves_selection_attribute_names(
         curves);

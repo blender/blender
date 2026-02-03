@@ -73,13 +73,13 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
                            const float factor,
                            const Set<std::string> &names_to_skip = {})
 {
-  Set<StringRefNull> ids = attributes_a.all_ids();
-  ids.remove("id");
+  Set<StringRefNull> names = attributes_a.all_names();
+  names.remove("id");
   for (const StringRef name : names_to_skip) {
-    ids.remove_as(name);
+    names.remove_as(name);
   }
 
-  for (const StringRef id : ids) {
+  for (const StringRef id : names) {
     const bke::GAttributeReader attribute_a = attributes_a.lookup(id);
     const bke::AttrDomain domain = attribute_a.domain;
     if (domain != mix_domain) {

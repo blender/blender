@@ -355,7 +355,7 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
 
   bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
 
-  const Set<StringRefNull> attribute_names = dst_attributes.all_ids();
+  const Set<StringRefNull> attribute_names = dst_attributes.all_names();
   for (const int attr_i : names.index_range()) {
     const StringRef name = names[attr_i];
     const bke::AttrDomain domain = kinds[attr_i].domain;

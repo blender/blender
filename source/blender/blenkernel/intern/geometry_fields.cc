@@ -840,18 +840,18 @@ static void initialize_new_data(MutableAttributeAccessor &attributes,
 
 bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
                                     const fn::FieldContext &field_context,
-                                    const Span<StringRef> attribute_ids,
+                                    const Span<StringRef> names,
                                     const AttrDomain domain,
                                     const fn::Field<bool> &selection,
                                     const Span<fn::GField> fields)
 {
-  BLI_assert(attribute_ids.size() == fields.size());
+  BLI_assert(names.size() == fields.size());
   const int domain_size = attributes.domain_size(domain);
   if (domain_size == 0) {
     bool all_added = true;
-    for (const int i : attribute_ids.index_range()) {
+    for (const int i : names.index_range()) {
       const bke::AttrType data_type = bke::cpp_type_to_attribute_type(fields[i].cpp_type());
-      all_added &= attributes.add(attribute_ids[i], domain, data_type, AttributeInitConstruct{});
+      all_added &= attributes.add(names[i], domain, data_type, AttributeInitConstruct{});
     }
     return all_added;
   }
@@ -884,8 +884,8 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
 
   bool success = true;
 
-  for (const int input_index : attribute_ids.index_range()) {
-    const StringRef id = attribute_ids[input_index];
+  for (const int input_index : names.index_range()) {
+    const StringRef id = names[input_index];
     const CPPType &type = fields[input_index].cpp_type();
     const bke::AttrType data_type = bke::cpp_type_to_attribute_type(type);
 
@@ -941,7 +941,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
   const IndexMask &mask = evaluator.get_evaluated_selection_as_mask();
 
   for (const StoreResult &result : results_to_store) {
-    const StringRef id = attribute_ids[result.input_index];
+    const StringRef id = names[result.input_index];
     const GVArray &result_data = evaluator.get_evaluated(result.evaluator_index);
     const CommonVArrayInfo info = result_data.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
@@ -958,7 +958,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
   }
 
   for (AddResult &result : results_to_add) {
-    const StringRef id = attribute_ids[result.input_index];
+    const StringRef id = names[result.input_index];
     attributes.remove(id);
     const CPPType &type = fields[result.input_index].cpp_type();
     const bke::AttrType data_type = bke::cpp_type_to_attribute_type(type);
@@ -988,7 +988,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
 }
 
 bool try_capture_fields_on_geometry(GeometryComponent &component,
-                                    const Span<StringRef> attribute_ids,
+                                    const Span<StringRef> names,
                                     const AttrDomain domain,
                                     const fn::Field<bool> &selection,
                                     const Span<fn::GField> fields)
@@ -1013,7 +1013,7 @@ bool try_capture_fields_on_geometry(GeometryComponent &component,
           const bool success = try_capture_fields_on_geometry(
               drawing->strokes_for_write().attributes_for_write(),
               field_context,
-              attribute_ids,
+              names,
               domain,
               selection,
               fields);
@@ -1033,16 +1033,16 @@ bool try_capture_fields_on_geometry(GeometryComponent &component,
   MutableAttributeAccessor attributes = *component.attributes_for_write();
   const GeometryFieldContext field_context{component, domain};
   return try_capture_fields_on_geometry(
-      attributes, field_context, attribute_ids, domain, selection, fields);
+      attributes, field_context, names, domain, selection, fields);
 }
 
 bool try_capture_fields_on_geometry(GeometryComponent &component,
-                                    const Span<StringRef> attribute_ids,
+                                    const Span<StringRef> names,
                                     const AttrDomain domain,
                                     const Span<fn::GField> fields)
 {
   const fn::Field<bool> selection = fn::make_constant_field<bool>(true);
-  return try_capture_fields_on_geometry(component, attribute_ids, domain, selection, fields);
+  return try_capture_fields_on_geometry(component, names, domain, selection, fields);
 }
 
 std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &component,

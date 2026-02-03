@@ -30,15 +30,15 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
   mesh.attribute_storage.wrap().resize(bke::AttrDomain::Point, mesh.verts_num);
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  for (const StringRef id : attributes.all_ids()) {
-    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(id);
+  for (const StringRef name : attributes.all_names()) {
+    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(name);
     if (meta_data.domain != bke::AttrDomain::Point) {
       continue;
     }
     if (meta_data.data_type == bke::AttrType::String) {
       continue;
     }
-    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
     if (!attribute) {
       continue;
     }
@@ -71,19 +71,19 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
   mesh.attribute_storage.wrap().resize(bke::AttrDomain::Edge, mesh.edges_num);
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  for (const StringRef id : attributes.all_ids()) {
-    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(id);
+  for (const StringRef name : attributes.all_names()) {
+    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(name);
     if (meta_data.domain != bke::AttrDomain::Edge) {
       continue;
     }
     if (meta_data.data_type == bke::AttrType::String) {
       continue;
     }
-    if (id == ".edge_verts") {
+    if (name == ".edge_verts") {
       /* Edge vertices are updated and combined with new edges separately. */
       continue;
     }
-    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
     if (!attribute) {
       continue;
     }

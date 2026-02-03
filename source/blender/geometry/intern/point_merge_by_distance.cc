@@ -103,7 +103,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
     point_merge_counts[dst_index]++;
   }
 
-  Set<StringRefNull> attribute_ids = src_attributes.all_ids();
+  Set<StringRefNull> attribute_names = src_attributes.all_names();
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
   bke::GAttributeReader src_id_attribute = src_attributes.lookup("id");
@@ -121,11 +121,11 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
     });
 
     dst.finish();
-    attribute_ids.remove_contained("id");
+    attribute_names.remove_contained("id");
   }
 
   /* Transfer all other attributes. */
-  for (const StringRef id : attribute_ids) {
+  for (const StringRef id : attribute_names) {
     if (attribute_filter.allow_skip(id)) {
       continue;
     }
