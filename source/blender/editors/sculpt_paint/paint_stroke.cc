@@ -1700,13 +1700,9 @@ void PaintStroke::cancel(bContext *C, wmOperator *op)
   this->stroke_done(C, op, true);
 }
 
-static const bToolRef *brush_tool_get(const ScrArea *area,
-                                      const ARegion *region,
-                                      const Paint *paint,
-                                      const Object *ob)
+static const bToolRef *brush_tool_get(const ScrArea *area, const ARegion *region)
 {
-  if (paint && ob && BKE_paint_brush_for_read(paint) &&
-      (area && ELEM(area->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
+  if ((area && ELEM(area->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
       (region && region->regiontype == RGN_TYPE_WINDOW))
   {
     if (area->runtime.tool && area->runtime.tool->runtime &&
@@ -1732,17 +1728,43 @@ bool paint_brush_tool_poll(const ScrArea *area,
                            const Paint *paint,
                            const Object *ob)
 {
-  return brush_tool_get(area, region, paint, ob) != nullptr;
+  if (!paint) {
+    return false;
+  }
+
+  if (!BKE_paint_brush_for_read(paint)) {
+    return false;
+  }
+
+  const bToolRef *tref = brush_tool_get(area, region);
+  if (!tref) {
+    return false;
+  }
+
+  if (ob) {
+    return true;
+  }
+
+  /* Be permissive painting in the Image Editor without an active object. */
+  return BKE_paintmode_get_from_tool(tref) == PaintMode::Texture2D;
 }
 
 bool paint_brush_cursor_poll(bContext *C)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
-  const Object *ob = CTX_data_active_object(C);
+
+  if (!paint) {
+    return false;
+  }
+
+  if (!BKE_paint_brush_for_read(paint)) {
+    return false;
+  }
+
   const ScrArea *area = CTX_wm_area(C);
   const ARegion *region = CTX_wm_region(C);
+  const bToolRef *tref = brush_tool_get(area, region);
 
-  const bToolRef *tref = brush_tool_get(area, region, paint, ob);
   if (!tref) {
     return false;
   }
@@ -1752,7 +1774,12 @@ bool paint_brush_cursor_poll(bContext *C)
     return false;
   }
 
-  return true;
+  if (CTX_data_active_object(C)) {
+    return true;
+  }
+
+  /* Be permissive painting in the Image Editor without an active object. */
+  return BKE_paintmode_get_from_tool(tref) == PaintMode::Texture2D;
 }
 
 }  // namespace blender::ed::sculpt_paint
