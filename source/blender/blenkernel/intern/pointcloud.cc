@@ -316,6 +316,33 @@ void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)
   MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
 }
 
+void pointcloud_resize(PointCloud &pointcloud, const int size)
+{
+  BLI_assert(size > 0);
+
+  const int old_totpoint = pointcloud.totpoint;
+
+  if (size == old_totpoint) {
+    return;
+  }
+
+  pointcloud.totpoint = size;
+
+  bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
+  if (old_totpoint == 0) {
+    /* If there were no points before, ensure the position attribute exists. */
+    attributes.add<float3>("position", bke::AttrDomain::Point, bke::AttributeInitConstruct());
+  }
+
+  pointcloud.attribute_storage.wrap().resize(bke::AttrDomain::Point, pointcloud.totpoint);
+
+  if (size > old_totpoint) {
+    /* Initialize new points. */
+    fill_attribute_range_default(
+        attributes, bke::AttrDomain::Point, {}, IndexRange(old_totpoint, size));
+  }
+}
+
 /* Dependency Graph */
 
 PointCloud *BKE_pointcloud_copy_for_eval(const PointCloud *pointcloud_src)
