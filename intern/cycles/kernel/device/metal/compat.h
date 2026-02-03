@@ -61,6 +61,9 @@ using namespace metal::raytracing;
 #define ccl_restrict __restrict
 #define ccl_align(n) alignas(n)
 #define ccl_optional_struct_init
+#define ccl_attr_maybe_unused
+// Not supported by older MacOS versions (e.g., 13.0)
+// #define ccl_attr_maybe_unused [[maybe_unused]]
 
 /* No assert supported for Metal */
 

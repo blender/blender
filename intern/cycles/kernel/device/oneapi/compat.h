@@ -58,6 +58,7 @@
 #define ccl_align(n) __attribute__((aligned(n)))
 #define kernel_assert(cond)
 #define ccl_may_alias
+#define ccl_attr_maybe_unused [[maybe_unused]]
 
 /* clang-format off */
 

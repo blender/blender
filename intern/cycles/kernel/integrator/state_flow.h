@@ -222,8 +222,11 @@ ccl_device_forceinline void integrator_path_next_sorted(KernelGlobals /*kg*/,
   (void)current_kernel;
 }
 
-ccl_device_forceinline IntegratorShadowState integrator_shadow_path_init(
-    KernelGlobals kg, IntegratorState state, const DeviceKernel next_kernel, const bool is_ao)
+ccl_device_forceinline IntegratorShadowState
+integrator_shadow_path_init(ccl_attr_maybe_unused KernelGlobals kg,
+                            IntegratorState state,
+                            const DeviceKernel next_kernel,
+                            const bool is_ao)
 {
   IntegratorShadowState shadow_state = (is_ao) ? &state->ao : &state->shadow;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, queued_kernel) = next_kernel;
