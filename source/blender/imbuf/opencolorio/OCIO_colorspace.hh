@@ -59,6 +59,12 @@ class ColorSpace {
    * as defined by the ASWF Color Interop Forum.
    */
   virtual StringRefNull interop_id() const = 0;
+  virtual bool is_primary_interop_id() const = 0;
+
+  /*
+   * ICC profile path from attribute in the configuration.
+   */
+  virtual std::string icc_profile_path() const = 0;
 
   /**
    * Quick access to CPU processors that convert color space from the current one to scene linear

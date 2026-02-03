@@ -50,6 +50,16 @@ class FallbackColorSpace : public ColorSpace {
     return "";
   }
 
+  bool is_primary_interop_id() const override
+  {
+    return false;
+  }
+
+  std::string icc_profile_path() const override
+  {
+    return "";
+  }
+
   bool is_invertible() const override
   {
     return true;
