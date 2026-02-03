@@ -1104,6 +1104,9 @@ if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang")
 -fsanitize=vla-bound \
 -fno-sanitize=alignment \
 ")
+    # Make sure we don't omit frame pointers as the leak backtraces might not be able to
+    # correctly track the source otherwise.
+    string(APPEND _asan_defaults " -fno-omit-frame-pointer")
 
     if(MSVC)
       # clang-cl doesn't support all sanitizers, but leak and object-size give errors/warnings.
