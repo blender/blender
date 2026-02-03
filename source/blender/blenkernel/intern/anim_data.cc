@@ -567,12 +567,13 @@ static bool action_move_fcurves_by_basepath(animrig::Action &src_action,
   /* Get a list of all F-Curves to move. This is done in a separate step so we
    * don't move the curves while iterating over them at the same time. */
   Vector<FCurve *> fcurves_to_transfer;
-  animrig::foreach_fcurve_in_action_slot(src_action, src_slot_handle, [&](FCurve &fcurve) {
-    if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
-      fcurves_to_transfer.append(&fcurve);
-      result = true;
-    }
-  });
+  animrig::foreach_fcurve_in_action_slot_editable(
+      src_action, src_slot_handle, [&](FCurve &fcurve) {
+        if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
+          fcurves_to_transfer.append(&fcurve);
+          result = true;
+        }
+      });
 
   /* Move the curves from one Action to the other and change path to match the destination. */
   for (FCurve *fcurve_to_move : fcurves_to_transfer) {

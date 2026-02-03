@@ -669,7 +669,7 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
 
   if (adt->slot_handle) {
     Vector<FCurve *> fcurves;
-    foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+    foreach_fcurve_in_action_slot_editable(action, adt->slot_handle, [&](FCurve &fcurve) {
       if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
         return;
       }

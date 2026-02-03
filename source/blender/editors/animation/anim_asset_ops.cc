@@ -128,10 +128,11 @@ static blender::animrig::Action &extract_pose(Main &bmain, const Span<Object *> 
     {
       Action &pose_object_action = pose_object->adt->action->wrap();
       const slot_handle_t pose_object_slot = pose_object->adt->slot_handle;
-      foreach_fcurve_in_action_slot(pose_object_action, pose_object_slot, [&](FCurve &fcurve) {
-        RNAPath existing_path = {fcurve.rna_path, std::nullopt, fcurve.array_index};
-        existing_paths.add(existing_path);
-      });
+      foreach_fcurve_in_action_slot(
+          pose_object_action, pose_object_slot, [&](const FCurve &fcurve) {
+            RNAPath existing_path = {fcurve.rna_path, std::nullopt, fcurve.array_index};
+            existing_paths.add(existing_path);
+          });
     }
 
     for (bPoseChannel &pose_bone : pose_object->pose->chanbase) {
@@ -630,7 +631,7 @@ static void update_pose_action_from_scene(Main *bmain,
   Vector<PathValue> path_values = generate_path_values(pose_object);
 
   Set<RNAPath> existing_paths;
-  foreach_fcurve_in_action_slot(pose_action, slot.handle, [&](FCurve &fcurve) {
+  foreach_fcurve_in_action_slot(pose_action, slot.handle, [&](const FCurve &fcurve) {
     existing_paths.add({fcurve.rna_path, std::nullopt, fcurve.array_index});
   });
 
