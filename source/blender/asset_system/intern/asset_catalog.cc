@@ -593,7 +593,7 @@ void AssetCatalogService::invalidate_catalog_tree()
   this->catalog_tree_ = nullptr;
 }
 
-const AssetCatalogTree &AssetCatalogService::catalog_tree()
+std::shared_ptr<const AssetCatalogTree> AssetCatalogService::catalog_tree()
 {
   std::lock_guard lock{catalog_tree_mutex_};
   if (!catalog_tree_) {
@@ -603,7 +603,7 @@ const AssetCatalogTree &AssetCatalogService::catalog_tree()
 
     catalog_tree_ = read_into_tree();
   }
-  return *catalog_tree_;
+  return catalog_tree_;
 }
 
 void AssetCatalogService::create_missing_catalogs()

@@ -575,8 +575,8 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
       "path/without/simplename",
   };
 
-  const AssetCatalogTree &tree = service.catalog_tree();
-  AssetCatalogTreeTestFunctions::expect_tree_items(tree, expected_paths);
+  const std::shared_ptr<const AssetCatalogTree> tree = service.catalog_tree();
+  AssetCatalogTreeTestFunctions::expect_tree_items(*tree, expected_paths);
 }
 
 TEST_F(AssetCatalogTest, delete_catalog_parent_by_id)
@@ -629,8 +629,8 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
       "path/without/simplename",
   };
 
-  const AssetCatalogTree &tree = service.catalog_tree();
-  AssetCatalogTreeTestFunctions::expect_tree_items(tree, expected_paths);
+  const std::shared_ptr<const AssetCatalogTree> tree = service.catalog_tree();
+  AssetCatalogTreeTestFunctions::expect_tree_items(*tree, expected_paths);
 }
 
 TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)

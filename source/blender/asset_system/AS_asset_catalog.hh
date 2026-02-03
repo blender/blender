@@ -44,7 +44,7 @@ class AssetCatalogService {
   /**
    * Cached catalog tree storage. Lazy-created by #AssetCatalogService::catalog_tree().
    */
-  std::unique_ptr<AssetCatalogTree> catalog_tree_;
+  std::shared_ptr<AssetCatalogTree> catalog_tree_;
   std::recursive_mutex catalog_tree_mutex_;
 
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
@@ -190,7 +190,7 @@ class AssetCatalogService {
   /**
    * May be called from multiple threads.
    */
-  const AssetCatalogTree &catalog_tree();
+  std::shared_ptr<const AssetCatalogTree> catalog_tree();
 
   /** Return true only if there are no catalogs known. */
   bool is_empty() const;

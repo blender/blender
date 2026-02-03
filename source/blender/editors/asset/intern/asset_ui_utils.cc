@@ -156,8 +156,9 @@ void visit_library_catalogs_catalog_for_search(
     }
   }
 
-  const asset_system::AssetCatalogTree &full_tree = library->catalog_service().catalog_tree();
-  full_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
+  const std::shared_ptr<const asset_system::AssetCatalogTree> full_tree =
+      library->catalog_service().catalog_tree();
+  full_tree->foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
     visit_fn(StringPropertySearchVisitParams{item.catalog_path().str(), std::nullopt});
   });
 }
