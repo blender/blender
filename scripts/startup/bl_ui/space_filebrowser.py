@@ -861,7 +861,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         st = context.space_data
         params = st.params
 
-        layout.operator("asset.library_refresh")
+        layout.operator("asset.library_refresh", icon='FILE_REFRESH')
 
         layout.separator()
 
