@@ -2332,6 +2332,7 @@ static size_t calculate_node_geometry_allocated_size(const NodeGeometry &node_ge
   CustomData_count_memory(node_geometry.face_data, node_geometry.faces_num, memory_counter);
   CustomData_count_memory(node_geometry.vert_data, node_geometry.verts_num, memory_counter);
   CustomData_count_memory(node_geometry.edge_data, node_geometry.edges_num, memory_counter);
+  node_geometry.attribute_storage.wrap().count_memory(memory_counter);
 
   return memory.total_bytes;
 }
