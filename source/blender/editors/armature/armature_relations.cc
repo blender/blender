@@ -100,8 +100,9 @@ static void joined_armature_fix_links_constraints(Main *bmain,
       BKE_constraint_targets_flush(&con, &targets, false);
     }
 
-    /* action constraint? (pose constraints only) */
-    if (con.type == CONSTRAINT_TYPE_ACTION) {
+    /* If it's an action constraint on the source object that's being joined,
+     * also remap the channels in the action. (Pose constraints only.) */
+    if (con.type == CONSTRAINT_TYPE_ACTION && ob == srcArm) {
       bActionConstraint *data = static_cast<bActionConstraint *>(con.data);
 
       if (data->act) {
