@@ -4,8 +4,7 @@
 
 #include "app/oiio_output_driver.h"
 
-#include "scene/colorspace.h"
-
+#include "util/colorspace.h"
 #include "util/image.h"
 #include "util/unique_ptr.h"
 
