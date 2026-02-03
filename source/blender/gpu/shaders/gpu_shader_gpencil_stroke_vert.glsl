@@ -10,10 +10,6 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-#define GP_XRAY_FRONT 0
-#define GP_XRAY_3DSPACE 1
-#define GP_XRAY_BACK 2
-
 #define GPENCIL_FLATCAP 1
 
 /* project 3d point to 2d on screen space */
@@ -25,18 +21,7 @@ float2 toScreenSpace(float4 vert)
 /* Get Z-depth value. */
 float getZdepth(float4 point)
 {
-  if (gpencil_stroke_data.xraymode == GP_XRAY_FRONT) {
-    return 0.0f;
-  }
-  if (gpencil_stroke_data.xraymode == GP_XRAY_3DSPACE) {
-    return (point.z / point.w);
-  }
-  if (gpencil_stroke_data.xraymode == GP_XRAY_BACK) {
-    return 1.0f;
-  }
-
-  /* in front by default */
-  return 0.0f;
+  return (point.z / point.w);
 }
 
 /* check equality but with a small tolerance */
@@ -68,21 +53,16 @@ struct VertOut {
 
 VertOut vertex_main(GreasePencilStrokeData vert_in)
 {
-  float defaultpixsize = gpencil_stroke_data.pixsize * (1000.0f / gpencil_stroke_data.pixfactor);
+  float thickness_scale = 1 / gpencil_stroke_data.pixsize;
 
   VertOut vert_out;
   vert_out.gpu_position = ModelViewProjectionMatrix * float4(vert_in.position, 1.0f);
   vert_out.final_color = vert_in.stroke_color;
 
-  if (gpencil_stroke_data.keep_size) {
-    vert_out.final_thickness = vert_in.stroke_thickness;
-  }
-  else {
-    float size = (ProjectionMatrix[3][3] == 0.0f) ?
-                     (vert_in.stroke_thickness / (vert_out.gpu_position.z * defaultpixsize)) :
-                     (vert_in.stroke_thickness / defaultpixsize);
-    vert_out.final_thickness = max(size * gpencil_stroke_data.objscale, 1.0f);
-  }
+  float size = (ProjectionMatrix[3][3] == 0.0f) ?
+                   (vert_in.stroke_thickness * thickness_scale / vert_out.gpu_position.z) :
+                   (vert_in.stroke_thickness * thickness_scale);
+  vert_out.final_thickness = max(size * gpencil_stroke_data.objscale, 1.0f);
   return vert_out;
 }
 

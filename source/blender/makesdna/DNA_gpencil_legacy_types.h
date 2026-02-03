@@ -268,12 +268,6 @@ enum eGP_OnionModes {
   GP_ONION_MODE_SELECTED = 2,
 };
 
-/* X-ray modes (Depth Ordering). */
-enum eGP_DepthOrdering {
-  GP_XRAY_FRONT = 0,
-  GP_XRAY_3DSPACE = 1,
-};
-
 /* draw modes (Use 2D or 3D position) */
 enum eGP_DrawMode {
   GP_DRAWMODE_2D = 0,
