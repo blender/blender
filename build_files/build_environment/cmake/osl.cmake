@@ -131,6 +131,9 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_osl after_install
       COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/osl/lib/cmake/OSL/OSLTargets-debug.cmake
+        ${HARVEST_TARGET}/osl/lib/cmake/OSL/OSLTargets-debug.cmake
+      COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/osl/lib/oslcomp_d.lib
         ${HARVEST_TARGET}/osl/lib/oslcomp_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy
