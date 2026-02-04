@@ -427,7 +427,7 @@ static void rna_userdef_asset_library_remote_sync_update(bContext *C, PointerRNA
   AssetLibraryReference library_ref = blender::ed::asset::user_library_to_library_ref(*library);
   /* Make sure all visible instances of this asset library will be refreshed. */
   blender::ed::asset::list::clear(&library_ref, C);
-  blender::asset_system::remote_library_request_download(*CTX_data_main(C), *library);
+  blender::asset_system::remote_library_request_download(*library);
   rna_userdef_asset_libraries_refresh(C, ptr);
 }
 
@@ -6913,10 +6913,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_remote_url", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_USE_REMOTE_URL);
   RNA_def_property_ui_text(prop, "Use Remote", "Synchronize the asset library with a remote URL");
-  /* TODO add application handlers for remote library changes, to update the remote index? Just
-   * like #rna_userdef_extension_repo_use_remote_url_set() */
-  // RNA_def_property_boolean_funcs(prop, nullptr, "rna_userdef_asset_library_use_remote_url_set");
-  RNA_def_property_update(prop, 0, "rna_userdef_update");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
@@ -7377,9 +7374,6 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "file_preview_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, preview_type_items);
   RNA_def_property_ui_text(prop, "File Preview Type", "What type of blend preview to create");
-
-  /* TODO: move this section to own RNA struct (out of PreferencesFilePaths)? Would break
-   * compatibility. Maybe for 5.0? */
 
   rna_def_userdef_filepaths_asset_library(brna);
 

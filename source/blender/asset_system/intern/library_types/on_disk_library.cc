@@ -6,8 +6,6 @@
  * \ingroup asset_system
  */
 
-#include "AS_asset_catalog.hh"
-
 #include "on_disk_library.hh"
 
 namespace blender::asset_system {

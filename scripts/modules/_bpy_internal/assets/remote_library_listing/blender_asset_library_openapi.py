@@ -8,8 +8,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
-from typing import Optional, Union
+from enum import StrEnum
+from typing import Any
 
 
 @dataclass
@@ -25,10 +25,10 @@ class URLWithHash:
     hash: str
 
 
-AssetIDTypeV1 = str
+type AssetIDTypeV1 = str
 
 
-class CustomPropertyTypeV1(Enum):
+class CustomPropertyTypeV1(StrEnum):
     STRING = "STRING"
     INT = "INT"
     FLOAT = "FLOAT"
@@ -42,7 +42,7 @@ class CustomPropertyTypeV1(Enum):
 class CatalogV1:
     path: str
     uuids: list[str]
-    simple_name: Optional[str] = None
+    simple_name: str | None = None
 
 
 @dataclass
@@ -51,7 +51,7 @@ class FileV1:
     size_in_bytes: int
     hash: str
     blender_version: str
-    url: Optional[str] = None
+    url: str | None = None
 
 
 @dataclass
@@ -68,7 +68,7 @@ class AssetLibraryIndexV1:
     asset_count: int
     file_count: int
     pages: list[URLWithHash]
-    catalogs: Optional[list[CatalogV1]] = None
+    catalogs: list[CatalogV1] | None = None
 
 
 @dataclass
@@ -84,26 +84,26 @@ class AssetV1:
     name: str
     id_type: AssetIDTypeV1
     files: list[str]
-    thumbnail: Optional[URLWithHash] = None
-    meta: Optional[AssetMetadataV1] = None
+    thumbnail: URLWithHash | None = None
+    meta: AssetMetadataV1 | None = None
 
 
 @dataclass
 class AssetMetadataV1:
-    catalog_id: Optional[str] = None
-    tags: Optional[list[str]] = None
-    author: Optional[str] = None
-    description: Optional[str] = None
-    license: Optional[str] = None
-    copyright: Optional[str] = None
-    custom: Optional[CustomPropertiesV1] = None
+    catalog_id: str | None = None
+    tags: list[str] | None = None
+    author: str | None = None
+    description: str | None = None
+    license: str | None = None
+    copyright: str | None = None
+    custom: CustomPropertiesV1 | None = None
 
 
-CustomPropertiesV1 = Optional[dict[str, 'CustomPropertyV1']]
+type CustomPropertiesV1 = dict[str, CustomPropertyV1]
 
 
 @dataclass
 class CustomPropertyV1:
     type: CustomPropertyTypeV1
-    value: Union[CustomPropertiesV1, list, float, int, str, bool]
-    itemtype: Optional[CustomPropertyTypeV1] = None
+    value: CustomPropertiesV1 | list[Any] | float | int | str | bool
+    itemtype: CustomPropertyTypeV1 | None = None

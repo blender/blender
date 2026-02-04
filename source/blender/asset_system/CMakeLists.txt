@@ -72,7 +72,6 @@ if(WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)
 endif()
 
-
 blender_add_lib(bf_asset_system "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::asset_system ALIAS bf_asset_system)
 

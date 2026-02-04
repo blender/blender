@@ -2809,8 +2809,9 @@ class USERPREF_UL_asset_libraries(UIList):
 
         icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
         row = layout.row(align=True)
-        row.prop(asset_library, "enabled", text="")
         row.prop(asset_library, "name", text="", icon=icon, emboss=False)
+        row.prop(asset_library, "enabled", text="", emboss=False,
+                 icon='CHECKBOX_HLT' if asset_library.enabled else 'CHECKBOX_DEHLT')
 
         # Check the 'experimental' flag.
         if asset_library.use_remote_url:

@@ -177,7 +177,7 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
 
       new_library = BKE_preferences_asset_library_add(&U, name, dirpath);
 
-      MEM_freeN(dirpath);
+      MEM_delete(dirpath);
       break;
     }
     case bUserAssetLibraryAddType::Remote: {
@@ -192,7 +192,7 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
 
       new_library = BKE_preferences_remote_asset_library_add(&U, name, remote_url);
 
-      MEM_freeN(remote_url);
+      MEM_delete(remote_url);
       break;
     }
   }
@@ -202,7 +202,7 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
   U.runtime.is_dirty = true;
 
   if (new_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-    blender::asset_system::remote_library_request_download(*CTX_data_main(C), *new_library);
+    blender::asset_system::remote_library_request_download(*new_library);
   }
 
   /* There's no dedicated notifier for the Preferences. */
@@ -449,23 +449,6 @@ static const char *preferences_extension_repo_default_name_from_type(
   return "";
 }
 
-/**
- * Makes the module name that's extracted from the URL (or file path) a bit nicer to read.
- */
-static void beautify_module_name(char module_buf[FILE_MAX])
-{
-  int i;
-  for (i = 0; module_buf[i]; i++) {
-    if (ELEM(module_buf[i], '.', '-', '/', '\\')) {
-      module_buf[i] = '_';
-    }
-  }
-  /* Strip any trailing underscores. */
-  while ((i > 0) && (module_buf[--i] == '_')) {
-    module_buf[i] = '\0';
-  }
-}
-
 static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
 {
   const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(
@@ -530,11 +513,24 @@ static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOpera
     }
   }
 
-  char module[FILE_MAX];
-  STRNCPY(module, custom_directory[0] ? BLI_path_basename(custom_directory) : name);
+  const char *module = custom_directory[0] ? BLI_path_basename(custom_directory) : name;
   /* Not essential but results in more readable module names.
    * Otherwise URL's have their '.' removed, making for quite unreadable module names. */
-  beautify_module_name(module);
+  char module_buf[FILE_MAX];
+  {
+    STRNCPY_UTF8(module_buf, module);
+    int i;
+    for (i = 0; module_buf[i]; i++) {
+      if (ELEM(module_buf[i], '.', '-', '/', '\\')) {
+        module_buf[i] = '_';
+      }
+    }
+    /* Strip any trailing underscores. */
+    while ((i > 0) && (module_buf[--i] == '_')) {
+      module_buf[i] = '\0';
+    }
+    module = module_buf;
+  }
 
   bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(
       &U, name, module, custom_directory);

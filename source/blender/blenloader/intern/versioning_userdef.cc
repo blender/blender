@@ -1751,6 +1751,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(501, 27)) {
+    userdef->uiflag2 |= USER_UIFLAG2_SHOW_ONLINE_ASSETS;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -1762,11 +1766,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     do_versions_theme(userdef, &btheme);
   }
 #undef USER_VERSION_ATLEAST
-
-  /* TODO subversion bump. */
-  {
-    userdef->uiflag2 |= USER_UIFLAG2_SHOW_ONLINE_ASSETS;
-  }
 }
 
 void BLO_sanitize_experimental_features_userpref_blend(UserDef *userdef)

@@ -4,24 +4,7 @@
 
 from __future__ import annotations
 
-try:
-    # Introduced in Python 3.12:
-    from itertools import batched  # type: ignore
-except ImportError:
-    import itertools
-
-    # According to the itertools documentation, this code is equivalent.
-    #
-    # The 'type: ignore' is necessary only for mypy in strict mode, and so the
-    # non-strict check would complain it's unused, hence also ignoring that
-    # error explicitly.
-    def batched(iterable, n):  # type: ignore[no-untyped-def,unused-ignore]
-        if n < 1:
-            raise ValueError('n must be at least one')
-        iterator = iter(iterable)
-        while batch := tuple(itertools.islice(iterator, n)):
-            yield batch
-
+from itertools import batched
 
 from . import blender_asset_library_openapi as api_models
 

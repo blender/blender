@@ -118,28 +118,6 @@ struct IconBufferRef {
   int width;
   /** Height in pixels. */
   int height;
-  /** Reference to the pixels to be drawn (size of width * height * channels). */
-  blender::Span<uint8_t> buffer;
-};
-
-/**
- * Get a non-owning buffer for the draw data of this icon.
- *
- * \note Only works for icons created from an #ImBuf (#BKE_icon_imbuf_create()), #PreviewImage
- * (#BKE_icon_preview_ensure()) or ID (#BKE_icon_id_ensure()).
- */
-std::optional<IconBufferRef> BKE_icon_get_buffer(int icon_id, eIconSizes size);
-
-/**
- * Simple wrapper to reference a drawable pixel buffer (non-owning).
- * Useful for draw functions that don't care where that buffer comes from (e.g. an #ImBuf icon or a
- * #PreviewImage icon).
- */
-struct IconBufferRef {
-  /** Width in pixels. */
-  int width;
-  /** Height in pixels. */
-  int height;
   /** The number of channels per pixel. */
   int channels;
 

@@ -83,11 +83,10 @@ struct OnlineAssetInfo {
 class AssetRepresentation;
 
 /**
- * Ensures the remote library cache directory exists, and calls Python downloader through
- * application handler. Doesn't do anything if a download with the library's URL is already
- * ongoing.
+ * Ensures the remote library cache directory exists, and calls the Python downloader. Doesn't do
+ * anything if a download with the library's URL is already ongoing.
  */
-void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_definition);
+void remote_library_request_download(const bUserAssetLibrary &library_definition);
 
 void remote_library_request_asset_download(bContext &C,
                                            const AssetRepresentation &asset,

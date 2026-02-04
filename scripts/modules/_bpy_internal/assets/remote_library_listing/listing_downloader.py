@@ -33,6 +33,20 @@ from _bpy_internal.assets.remote_library_listing import json_parsing
 logger = logging.getLogger(__name__)
 
 
+# The resolution of the cache-busting 'stamp' used when fetching the top-level
+# JSON file of asset listings.
+#
+# All the links to other resources will contain a hash of their contents,
+# which is used in their URL to help HTTP caches. But since the hash of
+# the top-level file is not known a priori, a time-based 'stamp' is used
+# for this.
+#
+# The stamp is basically 'time in seconds since some point in time' divided by
+# the number below. So every HTTP_CACHEBUST_RESOLUTION_SEC seconds, a new stamp
+# is used.
+HTTP_CACHEBUST_RESOLUTION_SEC = 60
+
+
 class RemoteAssetListingLocator:
     """Construct paths for various components of a remote asset library.
 
@@ -273,9 +287,13 @@ class RemoteAssetListingDownloader:
             # Double-check the registration worked, see #139720 for details.
             assert bpy.app.timers.is_registered(self.on_timer_event)
 
-        # Kickstart the download process by downloading the remote asset meta file:
-        self._queue_download(
+        # Kickstart the download process by downloading the remote asset meta file.
+        top_meta_url = "{!s}?s={:d}".format(
             listing_common.ASSET_TOP_METADATA_FILENAME,
+            self._cache_bust_stamp(),
+        )
+        self._queue_download(
+            top_meta_url,
             http_metadata.safe_to_unsafe_filename(listing_common.ASSET_TOP_METADATA_FILENAME),
             self.parse_asset_lib_metadata,
         )
@@ -446,6 +464,32 @@ class RemoteAssetListingDownloader:
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
             # Done downloading everything, let's shut down.
             self.shutdown(DownloadStatus.FINISHED_SUCCESSFULLY)
+
+    @staticmethod
+    def _cache_bust_stamp(*, _mocked_now=None) -> int:
+        """Construct a cache-busting number for the top-level JSON file.
+
+        This is based on the time since the first commit in Blender's Git
+        history (it's arbitrary anyway).
+
+        :param _mocked_now: UTC timestamp representing 'now', for testing only.
+
+        >>> from datetime import datetime, timezone
+        >>> now = datetime(2026, 1, 29, 16, 57, 47, tzinfo=timezone.utc)
+        >>> RemoteAssetListingDownloader._cache_bust_stamp(_mocked_now=now)
+        12254720
+        """
+        from datetime import datetime, timezone
+
+        if _mocked_now is None:
+            now = datetime.now(timezone.utc)
+        else:
+            now = _mocked_now
+
+        epoch_utc_time = datetime(2002, 10, 12, 11, 37, 38, tzinfo=timezone.utc)
+        time_delta = now - epoch_utc_time
+        cache_bust_stamp = int(time_delta.total_seconds()) // HTTP_CACHEBUST_RESOLUTION_SEC
+        return cache_bust_stamp
 
     def _parse_api_model(self, unsafe_local_file: Path,
                          api_model: Type[json_parsing.APIModel]) -> tuple[json_parsing.APIModel, bool]:
@@ -708,14 +752,14 @@ def _sanitize_path_from_url(urlpath: PurePosixPath | str) -> PurePosixPath:
     return PurePosixPath(*parts)
 
 
-def is_more_recent_than(library: bpy.types.UserAssetLibrary, max_age_sec: float | int) -> bool:
+def is_more_recent_than(library_path: Path, max_age_sec: float | int) -> bool:
     """Return whether the remote asset library listing is more recent than the given age.
 
     If the listing hasn't been downloaded, return False.
     """
     import time
 
-    top_metadata_path = Path(library.path) / listing_common.ASSET_TOP_METADATA_FILENAME
+    top_metadata_path = library_path / listing_common.ASSET_TOP_METADATA_FILENAME
 
     if not top_metadata_path.exists():
         # If the metadata does not exist, it's certainly not new enough.

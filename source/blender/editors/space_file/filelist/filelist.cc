@@ -3566,7 +3566,7 @@ static void remote_asset_library_request(FileListReadJob *job_params, bUserAsset
 
   /* Check if the library's cache directory exists, otherwise, request download. */
   if (!BLI_is_dir(library.dirpath)) {
-    blender::asset_system::remote_library_request_download(*job_params->current_main, library);
+    blender::asset_system::remote_library_request_download(library);
   }
 
   std::unique_ptr<RemoteLibraryRequest> request = std::make_unique<RemoteLibraryRequest>();

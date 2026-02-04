@@ -819,7 +819,7 @@ static wmWindow *rna_Windows_find_playing(wmWindowManager *wm, const bool scrub)
   return win;
 }
 
-using RemoteLibraryLoadingStatus = blender::asset_system::RemoteLibraryLoadingStatus;
+using RemoteLibraryLoadingStatus = asset_system::RemoteLibraryLoadingStatus;
 
 static void rna_asset_library_status_begin_loading(const char *library_url, float timeout)
 {

@@ -32,7 +32,6 @@
 #include "ED_render.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -293,7 +292,7 @@ bool RemoteLibraryLoadingStatus::handle_timeout(const StringRef url)
 /** \name Download Requests
  * \{ */
 
-void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_definition)
+void remote_library_request_download(const bUserAssetLibrary &library_definition)
 {
   BLI_assert(library_definition.flag & ASSET_LIBRARY_USE_REMOTE_URL);
   BLI_assert_msg(BLI_thread_is_main(), "Calling into Python from a thread is not safe");
@@ -302,6 +301,11 @@ void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_def
     return;
   }
 
+  if (!library_definition.remote_url[0]) {
+    return;
+  }
+
+#ifdef WITH_PYTHON
   /* Remote library is already downloading. */
   if (RemoteLibraryLoadingStatus::status(library_definition.remote_url) ==
       RemoteLibraryLoadingStatus::Loading)
@@ -314,10 +318,23 @@ void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_def
     return;
   }
 
-  PointerRNA lib_ptr = RNA_pointer_create_discrete(
-      nullptr, RNA_UserAssetLibrary, &library_definition);
-  PointerRNA *lib_ptr_arr[] = {&lib_ptr};
-  BKE_callback_exec(&bmain, lib_ptr_arr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
+  {
+    std::string script =
+        "import bl_pkg\n"
+        "from pathlib import Path\n"
+        "\n"
+        "bl_pkg.remote_asset_library_sync(\n"
+        "    library_url, Path(library_path),\n"
+        ")\n";
+
+    std::unique_ptr locals = bke::idprop::create_group("locals");
+    IDP_AddToGroup(locals.get(), IDP_NewString(library_definition.remote_url, "library_url"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(library_definition.dirpath, "library_path"));
+
+    /* TODO: report errors in the UI somehow. */
+    BPY_run_string_exec_with_locals(nullptr, script, *locals);
+  }
+#endif
 }
 
 #ifdef WITH_PYTHON
@@ -362,7 +379,7 @@ static bool remote_library_request_asset_download_file(bContext &C,
   IDP_AddToGroup(locals.get(), IDP_NewString(asset_url.url, "asset_url"));
   IDP_AddToGroup(locals.get(), IDP_NewString(asset_url.hash, "asset_hash"));
 
-  return BPY_run_string_with_locals(&C, script, *locals);
+  return BPY_run_string_exec_with_locals(&C, script, *locals);
 }
 
 #endif
@@ -473,7 +490,7 @@ void remote_library_request_preview_download(bContext &C,
     IDP_AddToGroup(locals.get(), IDP_NewString(dst_filepath, "dst_filepath"));
 
     /* TODO: report errors in the UI somehow. */
-    BPY_run_string_with_locals(&C, script, *locals);
+    BPY_run_string_exec_with_locals(&C, script, *locals);
   }
 
 #else

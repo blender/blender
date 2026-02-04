@@ -685,6 +685,7 @@ static void rna_def_asset_representation(BlenderRNA *brna)
                                 "rna_AssetRepresentation_full_path_get",
                                 "rna_AssetRepresentation_full_path_length",
                                 nullptr);
+
   RNA_def_property_ui_text(
       prop,
       "Full Path",

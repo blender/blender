@@ -772,13 +772,16 @@ static void file_draw_preview(const FileDirEntry *file,
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
+  const gpu::TextureFormat format = gpu::TextureFormat::UNORM_8_8_8_8;
+  BLI_assert_msg(preview.channels == 4, "preview images are expected to be 4 channels");
+
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
   immDrawPixelsTexTiled_scaling(&state,
                                 float(xmin),
                                 float(ymin),
                                 preview.width,
                                 preview.height,
-                                gpu::TextureFormat::UNORM_8_8_8_8,
+                                format,
                                 true,
                                 preview.buffer.data(),
                                 scale,
@@ -1724,7 +1727,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
 
     const char *suggestion = RPT_(
         "Asset Libraries are local directories that can contain .blend files with assets inside.\n"
-        "Manage Asset Libraries from the Assets section in the Preferences");
+        "Manage Asset Libraries from the Asset Libraries section in the Preferences");
     file_draw_string_multiline(
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, nullptr, &sy);
 

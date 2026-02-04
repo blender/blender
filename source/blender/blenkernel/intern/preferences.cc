@@ -207,7 +207,7 @@ bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
                                                             const char *name,
                                                             const char *remote_url)
 {
-  bUserAssetLibrary *library = MEM_new_for_free<bUserAssetLibrary>(__func__);
+  bUserAssetLibrary *library = MEM_new<bUserAssetLibrary>(__func__);
 
   library->flag |= ASSET_LIBRARY_USE_REMOTE_URL;
   BLI_addtail(&userdef->asset_libraries, library);
