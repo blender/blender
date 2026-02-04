@@ -72,7 +72,7 @@ struct AttributeFallbacksArray {
 struct PointCloudRealizeInfo {
   const PointCloud *pointcloud = nullptr;
   /** Matches the order stored in #AllPointCloudsInfo.attributes. */
-  Array<std::optional<GVArraySpan>> attributes;
+  Array<std::optional<GVArray>> attributes;
   /** Id attribute on the point cloud. If there are no ids, this #Span is empty. */
   Span<float3> positions;
   VArray<float> radii;
@@ -110,7 +110,7 @@ struct MeshRealizeInfo {
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
   /** Matches the order in #AllMeshesInfo.attributes. */
-  Array<std::optional<GVArraySpan>> attributes;
+  Array<std::optional<GVArray>> attributes;
   /** Vertex ids stored on the mesh. If there are no ids, this #Span is empty. */
   VArray<int> stored_vert_ids;
   VArray<int> material_indices;
@@ -133,7 +133,7 @@ struct RealizeCurveInfo {
   /**
    * Matches the order in #AllCurvesInfo.attributes.
    */
-  Array<std::optional<GVArraySpan>> attributes;
+  Array<std::optional<GVArray>> attributes;
 
   /** ID attribute on the curves. If there are no ids, this #Span is empty. */
   VArray<int> stored_ids;
@@ -195,7 +195,7 @@ struct RealizeCurveTask {
 struct GreasePencilRealizeInfo {
   const GreasePencil *grease_pencil = nullptr;
   /** Matches the order in #AllGreasePencilsInfo.attributes. */
-  Array<std::optional<GVArraySpan>> attributes;
+  Array<std::optional<GVArray>> attributes;
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
 };
@@ -397,12 +397,12 @@ static bool skip_transform(const float4x4 &transform)
   return math::is_equal(transform, float4x4::identity(), 1e-6f);
 }
 
-static void threaded_copy(const GSpan src, GMutableSpan dst)
+static void threaded_copy(const GVArray &src, GMutableSpan dst)
 {
   BLI_assert(src.size() == dst.size());
   BLI_assert(src.type() == dst.type());
-  threading::parallel_for(IndexRange(src.size()), 1024, [&](const IndexRange range) {
-    src.type().copy_construct_n(src.slice(range).data(), dst.slice(range).data(), range.size());
+  threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+    src.materialize_compressed_to_uninitialized(range, dst.slice(range).data());
   });
 }
 
@@ -415,7 +415,7 @@ static void threaded_fill(const GPointer value, GMutableSpan dst)
 }
 
 static void copy_generic_attributes_to_result(
-    const Span<std::optional<GVArraySpan>> src_attributes,
+    const Span<std::optional<GVArray>> src_attributes,
     const AttributeFallbacksArray &attribute_fallbacks,
     const OrderedAttributes &ordered_attributes,
     const FunctionRef<IndexRange(bke::AttrDomain)> &range_fn,
@@ -1284,6 +1284,67 @@ static void add_instance_attributes_to_single_geometry(
                    bke::AttributeInitValue(GPointer(cpp_type, value)));
   }
 }
+
+struct TaskAttrInfo {
+  Span<std::optional<GVArray>> attributes;
+  const AttributeFallbacksArray &fallbacks;
+};
+
+static bool try_join_single_value_attribute(
+    const int tasks_num,
+    const OrderedAttributes &ordered_attributes,
+    const FunctionRef<TaskAttrInfo(int)> get_task_attributes,
+    const int attr_index,
+    bke::MutableAttributeAccessor dst_attributes)
+{
+  const bke::AttrType data_type = ordered_attributes.kinds[attr_index].data_type;
+  const auto get_single_value = [&](const int task_index) -> GPointer {
+    const TaskAttrInfo task_info = get_task_attributes(task_index);
+    if (task_info.attributes[attr_index].has_value()) {
+      const CommonVArrayInfo info = task_info.attributes[attr_index]->common_info();
+      if (info.type != CommonVArrayInfo::Type::Single) {
+        return GPointer();
+      }
+      return GPointer(task_info.attributes[attr_index]->type(), info.data);
+    }
+    const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
+    if (const void *value = task_info.fallbacks.array[attr_index]) {
+      return GPointer(type, value);
+    }
+    return GPointer(type, type.default_value());
+  };
+  const GPointer first_value = get_single_value(0);
+  if (!first_value) {
+    return false;
+  }
+  const bool all_equal = threading::parallel_reduce(
+      IndexRange(tasks_num).drop_front(1),
+      32,
+      true,
+      [&](const IndexRange range, bool value) {
+        if (!value) {
+          return false;
+        }
+        for (const int i : range) {
+          const GPointer value = get_single_value(i);
+          if (!value) {
+            return false;
+          }
+          if (!value.type()->is_equal(value.get(), first_value.get())) {
+            return false;
+          }
+        }
+        return true;
+      },
+      std::logical_and<bool>());
+  if (!all_equal) {
+    return false;
+  }
+  const StringRef name = ordered_attributes.names[attr_index];
+  const bke::AttrDomain domain = ordered_attributes.kinds[attr_index].domain;
+  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
+}
+
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
                                              const GatherOffsets &offsets,
                                              const AllPointCloudsInfo &all_pointclouds_info,
@@ -1344,6 +1405,19 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   for (const int attribute_index : ordered_attributes.index_range()) {
     const StringRef name = ordered_attributes.names[attribute_index];
     const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    if (try_join_single_value_attribute(
+            tasks.size(),
+            ordered_attributes,
+            [&](const int task_index) -> TaskAttrInfo {
+              return {.attributes = tasks[task_index].pointcloud_info->attributes,
+                      .fallbacks = tasks[task_index].attribute_fallbacks};
+            },
+            attribute_index,
+            dst_attributes))
+    {
+      dst_attribute_writers.append({});
+      continue;
+    }
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(name, bke::AttrDomain::Point, data_type));
   }
@@ -1821,6 +1895,19 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
     const StringRef name = ordered_attributes.names[attribute_index];
     const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
     const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    if (try_join_single_value_attribute(
+            tasks.size(),
+            ordered_attributes,
+            [&](const int task_index) -> TaskAttrInfo {
+              return {.attributes = tasks[task_index].mesh_info->attributes,
+                      .fallbacks = tasks[task_index].attribute_fallbacks};
+            },
+            attribute_index,
+            dst_attributes))
+    {
+      dst_attribute_writers.append({});
+      continue;
+    }
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(name, domain, data_type));
   }
@@ -2219,6 +2306,19 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
     const StringRef name = ordered_attributes.names[attribute_index];
     const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
     const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    if (try_join_single_value_attribute(
+            tasks.size(),
+            ordered_attributes,
+            [&](const int task_index) -> TaskAttrInfo {
+              return {.attributes = tasks[task_index].curve_info->attributes,
+                      .fallbacks = tasks[task_index].attribute_fallbacks};
+            },
+            attribute_index,
+            dst_attributes))
+    {
+      dst_attribute_writers.append({});
+      continue;
+    }
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(name, domain, data_type));
   }
@@ -2475,6 +2575,19 @@ static void execute_realize_grease_pencil_tasks(
   for (const int attribute_index : ordered_attributes.index_range()) {
     const StringRef name = ordered_attributes.names[attribute_index];
     const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    if (try_join_single_value_attribute(
+            tasks.size(),
+            ordered_attributes,
+            [&](const int task_index) -> TaskAttrInfo {
+              return {.attributes = tasks[task_index].grease_pencil_info->attributes,
+                      .fallbacks = tasks[task_index].attribute_fallbacks};
+            },
+            attribute_index,
+            dst_attributes))
+    {
+      dst_attribute_writers.append({});
+      continue;
+    }
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(name, bke::AttrDomain::Layer, data_type));
   }
