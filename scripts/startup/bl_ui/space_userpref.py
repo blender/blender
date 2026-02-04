@@ -1793,8 +1793,9 @@ class USERPREF_UL_asset_libraries(UIList):
         asset_library = item
 
         row = layout.row(align=True)
-        row.prop(asset_library, "enabled", text="")
         row.prop(asset_library, "name", text="", emboss=False)
+        row.prop(asset_library, "enabled", text="", emboss=False,
+                 icon='CHECKBOX_HLT' if asset_library.enabled else 'CHECKBOX_DEHLT')
 
 
 class USERPREF_UL_extension_repos(UIList):
