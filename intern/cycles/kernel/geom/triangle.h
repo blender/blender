@@ -42,6 +42,22 @@ ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderDat
   return normalize(cross(v1 - v0, v2 - v0));
 }
 
+/* Face normal of undisplaced triangle, from vertex positions stored as attribute. */
+ccl_device_inline float3 triangle_face_normal_undisplaced(KernelGlobals kg,
+                                                          ccl_private const ShaderData *sd,
+                                                          const int position_attr_offset)
+{
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+  const float3 v0 = attribute_data_fetch<float3>(kg, position_attr_offset + tri_vindex.x);
+  const float3 v1 = attribute_data_fetch<float3>(kg, position_attr_offset + tri_vindex.y);
+  const float3 v2 = attribute_data_fetch<float3>(kg, position_attr_offset + tri_vindex.z);
+
+  if (object_negative_scale_applied(sd->object_flag)) {
+    return normalize(cross(v2 - v0, v1 - v0));
+  }
+  return normalize(cross(v1 - v0, v2 - v0));
+}
+
 /* Point and normal on triangle. */
 ccl_device_inline void triangle_point_normal(KernelGlobals kg,
                                              const int object,

@@ -57,6 +57,30 @@ ccl_device_forceinline dual<T> primitive_surface_attribute(KernelGlobals kg,
   }
 }
 
+/* Set sd->N to the undisplaced normal. For smooth shading, use the stored undisplaced
+ * normal attribute. For flat shading, compute the geometric face normal from undisplaced
+ * triangle positions. */
+ccl_device void primitive_normal_set_undisplaced(KernelGlobals kg,
+                                                 ccl_private ShaderData *sd,
+                                                 const int position_undisplaced_offset)
+{
+  float3 N;
+
+  if (sd->shader & SHADER_SMOOTH_NORMAL) {
+    const AttributeDescriptor ndesc = find_attribute(kg, sd, ATTR_STD_NORMAL_UNDISPLACED);
+    if (ndesc.offset == ATTR_STD_NOT_FOUND) {
+      return;
+    }
+    N = safe_normalize(primitive_surface_attribute<float3>(kg, sd, ndesc, false, false).val);
+  }
+  else {
+    N = triangle_face_normal_undisplaced(kg, sd, position_undisplaced_offset);
+  }
+
+  object_normal_transform(kg, sd, &N);
+  sd->N = (sd->flag & SD_BACKFACING) ? -N : N;
+}
+
 #ifdef __VOLUME__
 /* Volume Attributes
  *
