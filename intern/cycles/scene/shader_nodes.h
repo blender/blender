@@ -435,10 +435,9 @@ class ConvertNode : public ShaderNode {
   ustring value_string;
 
   static const int MAX_TYPE = 13;
-  static bool register_types();
+  static bool register_types(const NodeType *node_types[MAX_TYPE][MAX_TYPE]);
   static unique_ptr<Node> create(const NodeType *type);
-  static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
-  static bool initialized;
+  static const NodeType *(&get_node_types())[MAX_TYPE][MAX_TYPE];
 };
 
 class BsdfBaseNode : public ShaderNode {
