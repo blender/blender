@@ -631,7 +631,7 @@ class NODE_MT_node_color_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("node.node_copy_color", icon='COPY_ID')
+        layout.operator("node.node_copy_color", text="Copy to Selected")
 
 
 class NODE_MT_context_menu_show_hide_menu(Menu):
@@ -795,46 +795,29 @@ class NODE_PT_active_node_generic(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(node, "name", icon='NODE')
-        layout.prop(node, "label", icon='NODE')
+        col = layout.column()
+        col.prop(node, "name", placeholder="Name")
+        col.prop(node, "label", placeholder="Custom Label")
+
+        col = col.column(heading="Color")
+        col.active = node.bl_idname != "NodeReroute"
+        row = col.row()
+        row.prop(node, "use_custom_color", text="")
+        sub = row.row(align=True)
+        sub.active = node.use_custom_color
+        sub.prop(node, "color", text="")
+        sub.menu("NODE_MT_node_color_context_menu", text="", icon='DOWNARROW_HLT')
+        sub.popover(
+            panel="NODE_PT_node_color_presets",
+            icon='PRESET',
+            text="",
+        )
+
+        col.prop(node, "show_options")
+        col.prop(node, "mute")
 
         if tree.type == 'GEOMETRY':
             layout.prop(node, "warning_propagation", text="Propagate")
-
-
-class NODE_PT_active_node_color(Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Node"
-    bl_label = "Color"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "NODE_PT_active_node_generic"
-
-    @classmethod
-    def poll(cls, context):
-        node = context.active_node
-        if node is None:
-            return False
-        if node.bl_idname == "NodeReroute":
-            return False
-        return True
-
-    def draw_header(self, context):
-        node = context.active_node
-        self.layout.prop(node, "use_custom_color", text="")
-
-    def draw_header_preset(self, _context):
-        NODE_PT_node_color_presets.draw_panel_header(self.layout)
-
-    def draw(self, context):
-        layout = self.layout
-        node = context.active_node
-
-        layout.enabled = node.use_custom_color
-
-        row = layout.row()
-        row.prop(node, "color", text="")
-        row.menu("NODE_MT_node_color_context_menu", text="", icon='DOWNARROW_HLT')
 
 
 class NODE_PT_active_node_properties(Panel):
@@ -1064,27 +1047,28 @@ class NODE_PT_node_tree_properties(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(group, "name", text="Name")
+        col = layout.column()
+        col.prop(group, "name", text="Name", placeholder="Name")
 
         if group.asset_data:
-            layout.prop(group.asset_data, "description", text="Description")
+            col.prop(group.asset_data, "description", text="Description", placeholder="Description")
         else:
-            layout.prop(group, "description", text="Description")
+            col.prop(group, "description", text="Description", placeholder="Description")
 
         if not group.bl_use_group_interface:
             return
 
-        layout.prop(group, "color_tag")
-        row = layout.row(align=True)
+        col.prop(group, "color_tag")
+        row = col.row(align=True)
         row.prop(group, "default_group_node_width", text="Node Width")
         row.operator("node.default_group_width_set", text="", icon='NODE')
 
         if group.bl_idname == "GeometryNodeTree":
-            row = layout.row()
+            row = col.row()
             row.active = group.is_modifier
             row.prop(group, "show_modifier_manage_panel")
 
-            header, body = layout.panel("group_usage")
+            header, body = col.panel("group_usage")
             header.label(text="Usage")
             if body:
                 col = body.column(align=True)
@@ -1223,7 +1207,6 @@ classes = (
     NODE_MT_node_tree_interface_context_menu,
     NODE_PT_node_tree_animation,
     NODE_PT_active_node_generic,
-    NODE_PT_active_node_color,
     NODE_PT_texture_mapping,
     NODE_PT_active_tool,
     NODE_PT_backdrop,
