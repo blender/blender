@@ -136,6 +136,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>("Remainder")
       .usage_by_menu("Overflow", GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
   b.add_output<decl::Int>("Line").field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
+  b.add_output<decl::Int>("Word").field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
   b.add_output<decl::Vector>("Pivot Point").field_on_all();
 
   b.add_input<decl::String>("String").optional_label();
@@ -224,6 +225,9 @@ struct TextLayout {
 
   /* Line number of each character. */
   Array<int> line_numbers;
+
+  /* Word number of each character. */
+  Array<int> word_numbers;
 
   /* Map of Pivot point for each character code. */
   Map<int, float3> pivot_points;
@@ -342,6 +346,14 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
     }
   }
 
+  if (params.anonymous_attribute_output_is_required("Word")) {
+    layout.word_numbers.reinitialize(layout.positions.size());
+    for (const int i : layout.positions.index_range()) {
+      CharTrans &ct = chartransdata[i];
+      layout.word_numbers[i] = ct.wordnr;
+    }
+  }
+
   /* Convert UTF8 encoded string to UTF32. */
   len_chars = BLI_strlen_utf8_ex(layout.text.c_str(), &len_bytes);
   layout.char_codes.resize(len_chars + 1);
@@ -445,6 +457,14 @@ static void create_attributes(GeoNodeExecParams &params,
         *line_id, AttrDomain::Instance);
     line_attribute.span.copy_from(layout.line_numbers);
     line_attribute.finish();
+  }
+  if (std::optional<std::string> line_id = params.get_output_anonymous_attribute_id_if_needed(
+          "Word"))
+  {
+    SpanAttributeWriter<int> word_attribute = attributes.lookup_or_add_for_write_only_span<int>(
+        *line_id, AttrDomain::Instance);
+    word_attribute.span.copy_from(layout.word_numbers);
+    word_attribute.finish();
   }
 
   if (std::optional<std::string> pivot_id = params.get_output_anonymous_attribute_id_if_needed(

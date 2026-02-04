@@ -692,7 +692,7 @@ static bool vfont_to_curve(Object *ob,
   int curbox;
   /* These values are only set to the selection range when `selboxes` is non-null. */
   int selstart = 0, selend = 0;
-  int cnr = 0, lnr = 0, wsnr = 0;
+  int cnr = 0, lnr = 0, wsnr = 0, wnr = 0;
   const char32_t *mem = nullptr;
   bool mem_alloc = false;
   const float font_size = cu.fsize * iter_data.scale_to_fit;
@@ -844,6 +844,9 @@ static bool vfont_to_curve(Object *ob,
     curbox = 0;
   }
 
+  /* Start assuming the current index is in a space so that initial spaces are ignored. */
+  bool in_space = true;
+
   i = 0;
   while (i <= slen) {
     /* Characters in the list. */
@@ -869,6 +872,13 @@ static bool vfont_to_curve(Object *ob,
     else {
       che = nullptr;
     }
+
+    const bool is_space = ELEM(charcode, ' ', '\n', '\r', '\t');
+    if (is_space && !in_space) {
+      wnr++;
+    }
+    in_space = is_space;
+    ct->wordnr = wnr;
 
     twidth = vfont_char_width(cu, che, ct->is_smallcaps);
 
