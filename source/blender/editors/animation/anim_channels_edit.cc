@@ -2387,6 +2387,15 @@ static void animchannels_group_channels(bAnimContext *ac,
   ANIM_animdata_freelist(&anim_data);
 }
 
+static wmOperatorStatus animchannels_group_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
+{
+  /* Choose default name for new group. */
+  RNA_string_set(op->ptr, "name", DATA_("New Group"));
+  return WM_operator_props_popup(C, op, event);
+}
+
 static wmOperatorStatus animchannels_group_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
@@ -2433,7 +2442,7 @@ static void ANIM_OT_channels_group(wmOperatorType *ot)
   ot->description = "Add selected F-Curves to a new group";
 
   /* callbacks */
-  ot->invoke = WM_operator_props_popup;
+  ot->invoke = animchannels_group_invoke;
   ot->exec = animchannels_group_exec;
   ot->poll = animchannels_grouping_poll;
 
@@ -2443,7 +2452,7 @@ static void ANIM_OT_channels_group(wmOperatorType *ot)
   /* props */
   ot->prop = RNA_def_string(ot->srna,
                             "name",
-                            "New Group",
+                            nullptr,
                             sizeof(bActionGroup::name),
                             "Name",
                             "Name of newly created group");
