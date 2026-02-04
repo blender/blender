@@ -831,6 +831,8 @@ class ReplaceAction(unittest.TestCase):
     obj_no_slot_before: bpy.types.Object
     # Armature object with slot before and after a replace
     armature: bpy.types.Armature
+    obj_shapekeys: bpy.types.Object
+    obj_material: bpy.types.Object
     # Object with an action constraint
     obj_action_constraint: bpy.types.Object
     # Object with an NLA strip pointing to `initial_action`
@@ -847,6 +849,8 @@ class ReplaceAction(unittest.TestCase):
         self.armature = bpy.data.objects["Armature"]
         self.obj_action_constraint = bpy.data.objects["action_constrained"]
         self.obj_nla = bpy.data.objects["obj_nla"]
+        self.obj_shapekeys = bpy.data.objects["obj_shapekeys"]
+        self.obj_material = bpy.data.objects["obj_material"]
 
     def test_action_remap(self):
         self.assertEqual(self.obj_animated.animation_data.action, self.initial_action)
@@ -859,6 +863,11 @@ class ReplaceAction(unittest.TestCase):
         self.assertEqual(self.obj_no_slot_after.animation_data.action_slot, None)
         self.assertNotEqual(self.obj_no_slot_before.animation_data.action_slot, None)
         self.assertEqual(self.armature.animation_data.action, self.replacement_action)
+        self.assertEqual(self.obj_shapekeys.data.shape_keys.animation_data.action, self.replacement_action)
+
+        # Actions of embedded data blocks should also be replaced.
+        material = self.obj_material.material_slots[0].material
+        self.assertEqual(material.node_tree.animation_data.action, self.replacement_action)
 
         # The operator shouldn't touch the NLA or action constraints.
         self.assertEqual(self.obj_action_constraint.animation_data.action, None)

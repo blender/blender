@@ -25,6 +25,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_node.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
@@ -1329,6 +1330,25 @@ static void ANIM_OT_merge_animation(wmOperatorType *ot)
 /** \name Replace Animation
  * \{ */
 
+static void replace_action_on_id(ID *id,
+                                 const bAction &old_action,
+                                 bAction &new_action,
+                                 Vector<ID *> &r_failures)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (!adt || !adt->action || adt->action != &old_action) {
+    return;
+  }
+  if (!ID_IS_EDITABLE(id) && !ID_IS_OVERRIDE_LIBRARY(id)) {
+    return;
+  }
+  const bool success = animrig::assign_action(&new_action, {*id, *adt});
+  if (!success) {
+    r_failures.append(id);
+  }
+  DEG_id_tag_update(id, ID_RECALC_ALL);
+};
+
 static bool replace_action_common_poll(bContext *C)
 {
   Object *active_object = CTX_data_active_object(C);
@@ -1367,17 +1387,9 @@ static Vector<ID *> replace_action(Main &bmain,
   /* Cannot use the Action Slot user map because some action assignments may be missing a slot
    * assignment and those should also be remapped. */
   FOREACH_MAIN_ID_BEGIN (&bmain, id) {
-    AnimData *adt = BKE_animdata_from_id(id);
-    if (!adt || !adt->action || adt->action != &old_action) {
-      continue;
-    }
-    if (!ID_IS_EDITABLE(id) && !ID_IS_OVERRIDE_LIBRARY(id)) {
-      continue;
-    }
-    const bool success = animrig::assign_action(&new_action, {*id, *adt});
-    DEG_id_tag_update(id, ID_RECALC_ALL);
-    if (!success) {
-      failures.append(id);
+    replace_action_on_id(id, old_action, new_action, failures);
+    if (bNodeTree *node_tree = bke::node_tree_from_id(id)) {
+      replace_action_on_id(&node_tree->id, old_action, new_action, failures);
     }
   }
   FOREACH_MAIN_ID_END;
