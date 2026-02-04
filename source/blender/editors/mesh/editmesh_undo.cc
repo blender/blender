@@ -342,22 +342,13 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
                     bcd_reference,
                     index_in_type,
                     bcd);
+        attribute->assign_data(bke::Attribute::ArrayData{});
         break;
       }
       case bke::AttrStorageType::Single: {
-        const auto &data = std::get<bke::Attribute::SingleData>(attribute->data());
-        store_layer(type,
-                    data.value,
-                    data.sharing_info.get(),
-                    1,
-                    bs_index,
-                    bcd_reference,
-                    index_in_type,
-                    bcd);
         break;
       }
     }
-    attribute->assign_data({});
   }
 
   if (bcd.trivial_arrays.is_empty() && bcd.non_trivial_arrays.is_empty()) {
@@ -464,6 +455,10 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
 
     int &i = index_in_type.lookup_or_add(type, 0);
     BLI_SCOPED_DEFER([&]() { i++; });
+
+    if (attribute->storage_type() == bke::AttrStorageType::Single) {
+      continue;
+    }
 
     bke::Attribute::ArrayData array_data{};
     if (bcd->non_trivial_arrays.contains(type)) {
@@ -650,7 +645,10 @@ static void um_arraystore_expand_clear(UndoMesh *um)
   um_arraystore_cd_clear(&mesh->corner_data);
   um_arraystore_cd_clear(&mesh->face_data);
   for (bke::Attribute &attr : mesh->attribute_storage.wrap()) {
-    attr.assign_data({});
+    if (attr.storage_type() == bke::AttrStorageType::Single) {
+      continue;
+    }
+    attr.assign_data(bke::Attribute::ArrayData{});
   }
   if (mesh->face_offset_indices) {
     implicit_sharing::free_shared_data(&mesh->face_offset_indices,
