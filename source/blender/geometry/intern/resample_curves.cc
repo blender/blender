@@ -102,22 +102,29 @@ static bool interpolate_attribute_to_poly_curve(const StringRef name)
 static void retrieve_attribute_spans(const Span<StringRef> ids,
                                      const CurvesGeometry &src_curves,
                                      CurvesGeometry &dst_curves,
-                                     Vector<GVArraySpan> &src,
-                                     Vector<GMutableSpan> &dst,
-                                     Vector<bke::GSpanAttributeWriter> &dst_attributes)
+                                     Vector<GVArraySpan> &src_arrays,
+                                     Vector<GMutableSpan> &dst_arrays,
+                                     Vector<bke::GSpanAttributeWriter> &dst_writers)
 {
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   for (const int i : ids.index_range()) {
-    const bke::GAttributeReader src_attribute = src_attributes.lookup(ids[i],
-                                                                      bke::AttrDomain::Point);
-    src.append(src_attribute.varray);
+    GVArray src_attribute = *src_attributes.lookup(ids[i], bke::AttrDomain::Point);
+    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src_attribute.type());
 
-    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src_attribute.varray.type());
-    bke::GSpanAttributeWriter dst_attribute =
-        dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
-            ids[i], bke::AttrDomain::Point, data_type);
-    dst.append(dst_attribute.span);
-    dst_attributes.append(std::move(dst_attribute));
+    const CommonVArrayInfo info = src_attribute.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attribute.type(), info.data));
+      dst_attributes.add(ids[i], bke::AttrDomain::Point, data_type, init);
+      continue;
+    }
+
+    src_arrays.append(std::move(src_attribute));
+
+    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        ids[i], bke::AttrDomain::Point, data_type);
+    dst_arrays.append(dst_attribute.span);
+    dst_writers.append(std::move(dst_attribute));
   }
 }
 
