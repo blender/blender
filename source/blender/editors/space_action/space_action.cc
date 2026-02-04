@@ -61,7 +61,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   SpaceAction *saction;
   ARegion *region;
 
-  saction = MEM_new_for_free<SpaceAction>("initaction");
+  saction = MEM_new<SpaceAction>("initaction");
   saction->spacetype = SPACE_ACTION;
 
   const eAnimEdit_Context desired_mode = area ? eAnimEdit_Context(area->butspacetype_subtype) :
@@ -167,7 +167,7 @@ static void action_init(wmWindowManager * /*wm*/, ScrArea *area)
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
 {
-  SpaceAction *sactionn = static_cast<SpaceAction *>(MEM_dupallocN(sl));
+  SpaceAction *sactionn = MEM_dupalloc(reinterpret_cast<SpaceAction *>(sl));
 
   sactionn->runtime = SpaceAction_Runtime{};
 
@@ -244,8 +244,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
 
   /* time grid */
   if (region->winy > min_height) {
-    ui::view2d_draw_lines_x__discrete_frames_or_seconds(
-        v2d, scene, saction->flag & SACTION_DRAWTIME, true);
+    ui::view2d_draw_lines_x_frames(v2d, scene, saction->flag & SACTION_DRAWTIME, false, true);
   }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
@@ -983,7 +982,7 @@ void ED_spacetype_action()
   st->blend_write = action_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype action region");
+  art = MEM_new_zeroed<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = action_main_region_init;
   art->draw = action_main_region_draw;
@@ -995,7 +994,7 @@ void ED_spacetype_action()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype action region");
+  art = MEM_new_zeroed<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1007,7 +1006,7 @@ void ED_spacetype_action()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: footer */
-  art = MEM_callocN<ARegionType>("spacetype action region");
+  art = MEM_new_zeroed<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER | ED_KEYMAP_FRAMES;
@@ -1019,7 +1018,7 @@ void ED_spacetype_action()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: channels */
-  art = MEM_callocN<ARegionType>("spacetype action region");
+  art = MEM_new_zeroed<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = 200;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
@@ -1032,7 +1031,7 @@ void ED_spacetype_action()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: UI buttons */
-  art = MEM_callocN<ARegionType>("spacetype action region");
+  art = MEM_new_zeroed<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;

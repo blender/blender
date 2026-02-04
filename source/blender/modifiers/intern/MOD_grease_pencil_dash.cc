@@ -49,8 +49,7 @@ static void init_data(ModifierData *md)
   INIT_DEFAULT_STRUCT_AFTER(dmd, modifier);
   modifier::greasepencil::init_influence_data(&dmd->influence, false);
 
-  GreasePencilDashModifierSegment *ds = MEM_new_for_free<GreasePencilDashModifierSegment>(
-      __func__);
+  GreasePencilDashModifierSegment *ds = MEM_new<GreasePencilDashModifierSegment>(__func__);
   STRNCPY_UTF8(ds->name, DATA_("Segment"));
   dmd->segments_array = ds;
   dmd->segments_num = 1;
@@ -67,7 +66,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   modifier::greasepencil::copy_influence_data(&dmd->influence, &tmmd->influence, flag);
 
   tmmd->segments_array = static_cast<GreasePencilDashModifierSegment *>(
-      MEM_dupallocN(dmd->segments_array));
+      MEM_dupalloc(dmd->segments_array));
 }
 
 static void free_data(ModifierData *md)
@@ -75,7 +74,7 @@ static void free_data(ModifierData *md)
   auto *dmd = reinterpret_cast<GreasePencilDashModifierData *>(md);
   modifier::greasepencil::free_influence_data(&dmd->influence);
 
-  MEM_SAFE_FREE(dmd->segments_array);
+  MEM_SAFE_DELETE(dmd->segments_array);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
@@ -477,7 +476,7 @@ static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_GreasePencilDash, panel_draw);
 
-  uiListType *list_type = MEM_callocN<uiListType>("Grease Pencil Dash modifier segments");
+  uiListType *list_type = MEM_new_zeroed<uiListType>("Grease Pencil Dash modifier segments");
   STRNCPY(list_type->idname, "MOD_UL_grease_pencil_dash_modifier_segments");
   list_type->draw_item = segment_list_item_draw;
   WM_uilisttype_add(list_type);

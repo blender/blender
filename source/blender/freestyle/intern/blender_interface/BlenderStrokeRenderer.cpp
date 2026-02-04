@@ -221,7 +221,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(blender::Main *bmain,
     // make a copy of linestyle->nodetree
     if (ma->nodetree) {
       bke::node_tree_free_embedded_tree(ma->nodetree);
-      MEM_freeN(ma->nodetree);
+      MEM_delete(ma->nodetree);
       ma->nodetree = nullptr;
     }
     ntree = blender::bke::node_tree_copy_tree_ex(*iNodeTree, bmain, do_id_user);
@@ -646,7 +646,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   ColorGeometry4b *transp = transp_attr.span.data();
   BKE_id_attributes_active_color_set(&mesh->id, "Color");
 
-  mesh->mat = MEM_malloc_arrayN<Material *>(size_t(mesh->totcol), "MaterialList");
+  mesh->mat = MEM_new_array_uninitialized<Material *>(size_t(mesh->totcol), "MaterialList");
   for (const auto item : group->materials.items()) {
     Material *material = item.key;
     const int matnr = item.value;

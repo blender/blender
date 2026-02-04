@@ -575,7 +575,7 @@ static void rna_Particle_change_physics_type(Main *bmain, Scene *scene, PointerR
   if (part->phystype == PART_PHYS_BOIDS && part->boids == nullptr) {
     BoidState *state;
 
-    part->boids = MEM_new_for_free<BoidSettings>("Boid Settings");
+    part->boids = MEM_new<BoidSettings>("Boid Settings");
     boid_default_settings(part->boids);
 
     state = boid_new_state(part->boids);
@@ -588,7 +588,7 @@ static void rna_Particle_change_physics_type(Main *bmain, Scene *scene, PointerR
     BLI_addtail(&part->boids->states, state);
   }
   else if (part->phystype == PART_PHYS_FLUID && part->fluid == nullptr) {
-    part->fluid = MEM_new_for_free<SPHFluidSettings>("SPH Fluid Settings");
+    part->fluid = MEM_new<SPHFluidSettings>("SPH Fluid Settings");
     BKE_particlesettings_fluid_default_settings(part);
   }
 

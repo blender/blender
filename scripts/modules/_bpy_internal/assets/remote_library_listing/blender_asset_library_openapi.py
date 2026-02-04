@@ -15,8 +15,8 @@ from typing import Optional, Union
 @dataclass
 class Contact:
     name: str
-    url: Optional[str] = None
-    email: Optional[str] = None
+    url: str | None = None
+    email: str | None = None
 
 
 @dataclass

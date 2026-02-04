@@ -245,8 +245,8 @@ def list_render_passes(scene, srl):
         if crl.use_pass_shadow_catcher:
             yield ("Noisy Shadow Catcher", "RGB", 'COLOR')
     if crl.denoising_store_passes:
-        yield ("Denoising Normal", "XYZ", 'VECTOR')
         yield ("Denoising Albedo", "RGB", 'COLOR')
+        yield ("Denoising Normal", "XYZ", 'VECTOR')
         yield ("Denoising Depth", "Z", 'VALUE')
 
     # Custom AOV passes.

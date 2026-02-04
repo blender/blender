@@ -25,6 +25,7 @@ enum class ColumnValueDisplayHint {
 class ColumnValues final {
  protected:
   std::string name_;
+  std::string description_;
 
   GVArray data_;
   ColumnValueDisplayHint display_hint_;
@@ -32,8 +33,12 @@ class ColumnValues final {
  public:
   ColumnValues(std::string name,
                GVArray data,
+               std::string description = "",
                const ColumnValueDisplayHint display_hint = ColumnValueDisplayHint::None)
-      : name_(std::move(name)), data_(std::move(data)), display_hint_(display_hint)
+      : name_(std::move(name)),
+        description_(std::move(description)),
+        data_(std::move(data)),
+        display_hint_(display_hint)
   {
     /* The array should not be empty. */
     BLI_assert(data_);
@@ -49,6 +54,11 @@ class ColumnValues final {
   StringRefNull name() const
   {
     return name_;
+  }
+
+  StringRefNull description() const
+  {
+    return description_;
   }
 
   int size() const

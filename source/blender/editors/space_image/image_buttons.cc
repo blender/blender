@@ -159,7 +159,7 @@ struct ImageUI_Data {
 
 static ImageUI_Data *ui_imageuser_data_copy(const ImageUI_Data *rnd_pt_src)
 {
-  ImageUI_Data *rnd_pt_dst = MEM_mallocN<ImageUI_Data>(__func__);
+  ImageUI_Data *rnd_pt_dst = MEM_new_uninitialized<ImageUI_Data>(__func__);
   memcpy(rnd_pt_dst, rnd_pt_src, sizeof(*rnd_pt_src));
   return rnd_pt_dst;
 }
@@ -1308,7 +1308,7 @@ void image_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_callocN<PanelType>("spacetype image panel metadata");
+  pt = MEM_new_zeroed<PanelType>("spacetype image panel metadata");
   STRNCPY_UTF8(pt->idname, "IMAGE_PT_metadata");
   STRNCPY_UTF8(pt->label, N_("Metadata"));
   STRNCPY_UTF8(pt->category, "Image");

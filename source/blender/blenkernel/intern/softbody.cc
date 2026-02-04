@@ -57,6 +57,7 @@
 #include "BKE_effect.h"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
@@ -290,7 +291,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
     return nullptr;
   }
 
-  pccd_M = MEM_mallocN<ccd_Mesh>("ccd_Mesh");
+  pccd_M = MEM_new_uninitialized<ccd_Mesh>("ccd_Mesh");
   pccd_M->mvert_num = cmd->mvert_num;
   pccd_M->tri_num = cmd->tri_num;
   pccd_M->safety = CCD_SAFETY;
@@ -302,7 +303,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   hull = max_ff(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
 
   /* Allocate and copy verts. */
-  pccd_M->vert_positions = static_cast<const float (*)[3]>(MEM_dupallocN(cmd->xnew));
+  pccd_M->vert_positions = MEM_dupalloc(cmd->xnew);
   /* note that xnew coords are already in global space, */
   /* determine the ortho BB */
   for (i = 0; i < pccd_M->mvert_num; i++) {
@@ -319,10 +320,11 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
     pccd_M->bbmax[2] = max_ff(pccd_M->bbmax[2], v[2] + hull);
   }
   /* Allocate and copy faces. */
-  pccd_M->vert_tris = static_cast<const int3 *>(MEM_dupallocN(cmd->vert_tris));
+  pccd_M->vert_tris = reinterpret_cast<const int3 *>(MEM_dupalloc(cmd->vert_tris));
 
   /* OBBs for idea1 */
-  pccd_M->mima = MEM_malloc_arrayN<CCDF_MinMax>(size_t(pccd_M->tri_num), "ccd_Mesh_Faces_mima");
+  pccd_M->mima = MEM_new_array_uninitialized<CCDF_MinMax>(size_t(pccd_M->tri_num),
+                                                          "ccd_Mesh_Faces_mima");
 
   /* Anyhow we need to walk the list of faces and find OBB they live in. */
   for (i = 0, mima = pccd_M->mima; i < pccd_M->tri_num; i++, mima++) {
@@ -388,11 +390,11 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 
   /* rotate current to previous */
   if (pccd_M->vert_positions_prev) {
-    MEM_freeN(pccd_M->vert_positions_prev);
+    MEM_delete(pccd_M->vert_positions_prev);
   }
   pccd_M->vert_positions_prev = pccd_M->vert_positions;
   /* Allocate and copy verts. */
-  pccd_M->vert_positions = static_cast<const float (*)[3]>(MEM_dupallocN(cmd->xnew));
+  pccd_M->vert_positions = MEM_dupalloc(cmd->xnew);
   /* note that xnew coords are already in global space, */
   /* determine the ortho BB */
   for (i = 0; i < pccd_M->mvert_num; i++) {
@@ -482,13 +484,13 @@ static void ccd_mesh_free(ccd_Mesh *ccdm)
 {
   /* Make sure we're not nuking objects we don't know. */
   if (ccdm && (ccdm->safety == CCD_SAFETY)) {
-    MEM_freeN(ccdm->vert_positions);
-    MEM_freeN(ccdm->vert_tris);
+    MEM_delete(ccdm->vert_positions);
+    MEM_delete(ccdm->vert_tris);
     if (ccdm->vert_positions_prev) {
-      MEM_freeN(ccdm->vert_positions_prev);
+      MEM_delete(ccdm->vert_positions_prev);
     }
-    MEM_freeN(ccdm->mima);
-    MEM_freeN(ccdm);
+    MEM_delete(ccdm->mima);
+    MEM_delete(ccdm);
   }
 }
 
@@ -593,7 +595,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
-      ob->soft->bspring = static_cast<BodySpring *>(MEM_recallocN(
+      ob->soft->bspring = static_cast<BodySpring *>(MEM_realloc_zeroed(
           ob->soft->bspring, sizeof(BodySpring) * (ob->soft->totspring + nofquads * 2)));
 
       /* fill the tail */
@@ -692,12 +694,12 @@ static void add_2nd_order_springs(Object *ob, float stiffness)
   add_2nd_order_roller(ob, stiffness, &counter, 0); /* counting */
   if (counter) {
     /* resize spring-array to hold additional springs */
-    bs_new = MEM_calloc_arrayN<BodySpring>(size_t(ob->soft->totspring) + size_t(counter),
-                                           "bodyspring");
+    bs_new = MEM_new_array_zeroed<BodySpring>(size_t(ob->soft->totspring) + size_t(counter),
+                                              "bodyspring");
     memcpy(bs_new, ob->soft->bspring, (ob->soft->totspring) * sizeof(BodySpring));
 
     if (ob->soft->bspring) {
-      MEM_freeN(ob->soft->bspring);
+      MEM_delete(ob->soft->bspring);
     }
     ob->soft->bspring = bs_new;
 
@@ -711,15 +713,15 @@ static void add_bp_springlist(BodyPoint *bp, int springID)
   int *newlist;
 
   if (bp->springs == nullptr) {
-    bp->springs = MEM_calloc_arrayN<int>(1, "bpsprings");
+    bp->springs = MEM_new_array_zeroed<int>(1, "bpsprings");
     bp->springs[0] = springID;
     bp->nofsprings = 1;
   }
   else {
     bp->nofsprings++;
-    newlist = MEM_calloc_arrayN<int>(bp->nofsprings, "bpsprings");
+    newlist = MEM_new_array_zeroed<int>(bp->nofsprings, "bpsprings");
     memcpy(newlist, bp->springs, (bp->nofsprings - 1) * sizeof(int));
-    MEM_freeN(bp->springs);
+    MEM_delete(bp->springs);
     bp->springs = newlist;
     bp->springs[bp->nofsprings - 1] = springID;
   }
@@ -743,7 +745,7 @@ static void build_bps_springlist(Object *ob)
   for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
     /* throw away old list */
     if (bp->springs) {
-      MEM_freeN(bp->springs);
+      MEM_delete(bp->springs);
       bp->springs = nullptr;
     }
     /* scan for attached inner springs */
@@ -829,9 +831,9 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
     sb->totpoint = totpoint;
     sb->totspring = totspring;
 
-    sb->bpoint = MEM_malloc_arrayN<BodyPoint>(size_t(totpoint), "bodypoint");
+    sb->bpoint = MEM_new_array_uninitialized<BodyPoint>(size_t(totpoint), "bodypoint");
     if (totspring) {
-      sb->bspring = MEM_malloc_arrayN<BodySpring>(size_t(totspring), "bodyspring");
+      sb->bspring = MEM_new_array_uninitialized<BodySpring>(size_t(totspring), "bodyspring");
     }
 
     /* initialize BodyPoint array */
@@ -870,10 +872,10 @@ static void free_softbody_baked(SoftBody *sb)
   for (k = 0; k < sb->totkey; k++) {
     key = *(sb->keys + k);
     if (key) {
-      MEM_freeN(key);
+      MEM_delete(key);
     }
   }
-  MEM_SAFE_FREE(sb->keys);
+  MEM_SAFE_DELETE(sb->keys);
   sb->totkey = 0;
 }
 static void free_scratch(SoftBody *sb)
@@ -888,12 +890,12 @@ static void free_scratch(SoftBody *sb)
       sb->scratch->colliderhash = nullptr;
     }
     if (sb->scratch->bodyface) {
-      MEM_freeN(sb->scratch->bodyface);
+      MEM_delete(sb->scratch->bodyface);
     }
     if (sb->scratch->Ref.ivert) {
-      MEM_freeN(sb->scratch->Ref.ivert);
+      MEM_delete(sb->scratch->Ref.ivert);
     }
-    MEM_freeN(sb->scratch);
+    MEM_delete(sb->scratch);
     sb->scratch = nullptr;
   }
 }
@@ -909,14 +911,14 @@ static void free_softbody_intern(SoftBody *sb)
       for (a = sb->totpoint, bp = sb->bpoint; a > 0; a--, bp++) {
         /* free spring list */
         if (bp->springs != nullptr) {
-          MEM_freeN(bp->springs);
+          MEM_delete(bp->springs);
         }
       }
-      MEM_freeN(sb->bpoint);
+      MEM_delete(sb->bpoint);
     }
 
     if (sb->bspring) {
-      MEM_freeN(sb->bspring);
+      MEM_delete(sb->bspring);
     }
 
     sb->totpoint = sb->totspring = 0;
@@ -1500,7 +1502,7 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
     totthread--;
   }
 
-  sb_threads = MEM_calloc_arrayN<SB_thread_context>(totthread, "SBSpringsThread");
+  sb_threads = MEM_new_array_zeroed<SB_thread_context>(totthread, "SBSpringsThread");
   left = totsprings;
   dec = totsprings / totthread + 1;
   for (i = 0; i < totthread; i++) {
@@ -1536,7 +1538,7 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
     exec_scan_for_ext_spring_forces(&sb_threads[0]);
   }
   /* clean up */
-  MEM_freeN(sb_threads);
+  MEM_delete(sb_threads);
 
   BKE_effectors_free(effectors);
 }
@@ -2171,7 +2173,7 @@ static void sb_cf_threads_run(Scene *scene,
 
   // printf("sb_cf_threads_run spawning %d threads\n", totthread);
 
-  sb_threads = MEM_calloc_arrayN<SB_thread_context>(totthread, "SBThread");
+  sb_threads = MEM_new_array_zeroed<SB_thread_context>(totthread, "SBThread");
   left = totpoint;
   dec = totpoint / totthread + 1;
   for (i = 0; i < totthread; i++) {
@@ -2208,7 +2210,7 @@ static void sb_cf_threads_run(Scene *scene,
     exec_softbody_calc_forces(&sb_threads[0]);
   }
   /* clean up */
-  MEM_freeN(sb_threads);
+  MEM_delete(sb_threads);
 }
 
 static void softbody_calc_forces(
@@ -2727,8 +2729,8 @@ static void mesh_faces_to_scratch(Object *ob)
   bke::mesh::corner_tris_calc(
       mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), corner_tris);
 
-  bodyface = sb->scratch->bodyface = MEM_malloc_arrayN<BodyFace>(size_t(sb->scratch->bodyface_num),
-                                                                 "SB_body_Faces");
+  bodyface = sb->scratch->bodyface = MEM_new_array_uninitialized<BodyFace>(
+      size_t(sb->scratch->bodyface_num), "SB_body_Faces");
 
   for (a = 0; a < sb->scratch->bodyface_num; a++, bodyface++) {
     bodyface->v1 = corner_verts[corner_tris[a][0]];
@@ -2748,7 +2750,8 @@ static void reference_to_scratch(Object *ob)
   float accu_mass = 0.0f;
   int a;
 
-  sb->scratch->Ref.ivert = MEM_malloc_arrayN<ReferenceVert>(size_t(sb->totpoint), "SB_Reference");
+  sb->scratch->Ref.ivert = MEM_new_array_uninitialized<ReferenceVert>(size_t(sb->totpoint),
+                                                                      "SB_Reference");
   bp = ob->soft->bpoint;
   rp = sb->scratch->Ref.ivert;
   for (a = 0; a < sb->totpoint; a++, rp++, bp++) {
@@ -3050,7 +3053,7 @@ static void sb_new_scratch(SoftBody *sb)
   if (!sb) {
     return;
   }
-  sb->scratch = MEM_callocN<SBScratch>("SBScratch");
+  sb->scratch = MEM_new_zeroed<SBScratch>("SBScratch");
   sb->scratch->colliderhash = MEM_new<ColliderMeshMap>(__func__);
   sb->scratch->bodyface = nullptr;
   sb->scratch->bodyface_num = 0;
@@ -3066,7 +3069,7 @@ SoftBody *sbNew()
 {
   SoftBody *sb;
 
-  sb = MEM_new_for_free<SoftBody>("softbody");
+  sb = MEM_new<SoftBody>("softbody");
 
   sb->mediafrict = 0.5f;
   sb->nodemass = 1.0f;
@@ -3102,7 +3105,7 @@ SoftBody *sbNew()
   sb->shearstiff = 1.0f;
   sb->solverflags |= SBSO_OLDERR;
 
-  sb->shared = MEM_new_for_free<SoftBody_Shared>("SoftBody_Shared");
+  sb->shared = MEM_new<SoftBody_Shared>("SoftBody_Shared");
   sb->shared->pointcache = BKE_ptcache_add(&sb->shared->ptcaches);
 
   if (!sb->effector_weights) {
@@ -3129,14 +3132,63 @@ void sbFree(Object *ob)
     /* Only free shared data on non-evaluated copies */
     BKE_ptcache_free_list(&sb->shared->ptcaches);
     sb->shared->pointcache = nullptr;
-    MEM_freeN(sb->shared);
+    MEM_delete(sb->shared);
   }
   if (sb->effector_weights) {
-    MEM_freeN(sb->effector_weights);
+    MEM_delete(sb->effector_weights);
   }
-  MEM_freeN(sb);
+  MEM_delete(sb);
 
   ob->soft = nullptr;
+}
+
+SoftBody *sbCopy(SoftBody *sb, int flag)
+{
+  SoftBody *sbn = MEM_dupalloc(sb);
+  const bool is_orig = (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0;
+
+  if ((flag & LIB_ID_COPY_CACHES) == 0) {
+    sbn->totspring = sbn->totpoint = 0;
+    sbn->bpoint = nullptr;
+    sbn->bspring = nullptr;
+  }
+  else {
+    sbn->totspring = sb->totspring;
+    sbn->totpoint = sb->totpoint;
+
+    if (sbn->bpoint) {
+      int i;
+
+      sbn->bpoint = MEM_dupalloc(sbn->bpoint);
+
+      for (i = 0; i < sbn->totpoint; i++) {
+        if (sbn->bpoint[i].springs) {
+          sbn->bpoint[i].springs = MEM_dupalloc(sbn->bpoint[i].springs);
+        }
+      }
+    }
+
+    if (sb->bspring) {
+      sbn->bspring = MEM_dupalloc(sb->bspring);
+    }
+  }
+
+  sbn->keys = nullptr;
+  sbn->totkey = sbn->totpointkey = 0;
+
+  sbn->scratch = nullptr;
+
+  if (is_orig) {
+    sbn->shared = MEM_dupalloc(sb->shared);
+    sbn->shared->pointcache = BKE_ptcache_copy_list(
+        &sbn->shared->ptcaches, &sb->shared->ptcaches, flag);
+  }
+
+  if (sb->effector_weights) {
+    sbn->effector_weights = MEM_dupalloc(sb->effector_weights);
+  }
+
+  return sbn;
 }
 
 void sbFreeSimulation(SoftBody *sb)
@@ -3210,8 +3262,8 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
   if (!sb || !sb->bpoint) {
     return;
   }
-  opos = MEM_calloc_arrayN<float[3]>(sb->totpoint, "SB_OPOS");
-  rpos = MEM_calloc_arrayN<float[3]>(sb->totpoint, "SB_RPOS");
+  opos = MEM_new_array_zeroed<float[3]>(sb->totpoint, "SB_OPOS");
+  rpos = MEM_new_array_zeroed<float[3]>(sb->totpoint, "SB_RPOS");
   /* might filter vertex selection with a vertex group */
   for (a = 0, bp = sb->bpoint, rp = sb->scratch->Ref.ivert; a < sb->totpoint; a++, bp++, rp++) {
     copy_v3_v3(rpos[a], rp->pos);
@@ -3232,8 +3284,8 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
     copy_m3_m3(sb->lrot, lrot);
   }
 
-  MEM_freeN(opos);
-  MEM_freeN(rpos);
+  MEM_delete(opos);
+  MEM_delete(rpos);
 }
 
 static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)

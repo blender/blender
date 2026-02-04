@@ -1962,7 +1962,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   if (restore_rv3d_mats) {
     ED_view3d_mats_rv3d_restore(static_cast<RegionView3D *>(region->regiondata), orig.rv3d_mats);
   }
-  MEM_freeN(orig.rv3d_mats);
+  MEM_delete(orig.rv3d_mats);
   rv3d->persp = orig.rv3d_persp;
 
   ui::theme::theme_restore(&orig.theme_state);
@@ -1987,7 +1987,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      const float winmat[4][4],
                                      float clip_start,
                                      float clip_end,
-                                     float vignette_aperture,
+                                     float xr_vignette_aperture,
                                      bool is_xr_surface,
                                      bool is_image_render,
                                      bool draw_background,
@@ -1997,14 +1997,14 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      GPUViewport *viewport)
 {
   View3D v3d = dna::shallow_zero_initialize();
-  ARegion ar = {nullptr};
+  ARegion region = {nullptr};
   bke::ARegionRuntime region_runtime{};
-  ar.runtime = &region_runtime;
+  region.runtime = &region_runtime;
   RegionView3D rv3d;
 
-  v3d.regionbase.first = v3d.regionbase.last = &ar;
-  ar.regiondata = &rv3d;
-  ar.regiontype = RGN_TYPE_WINDOW;
+  v3d.regionbase.first = v3d.regionbase.last = &region;
+  region.regiondata = &rv3d;
+  region.regiontype = RGN_TYPE_WINDOW;
 
   View3DShading *source_shading_settings = &scene->display.shading;
   if (draw_flags & V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS && shading_override != nullptr) {
@@ -2069,7 +2069,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
   v3d.clip_end = clip_end;
   /* Actually not used since we pass in the projection matrix. */
   v3d.lens = 0;
-  v3d.vignette_aperture = vignette_aperture;
+  v3d.xr_vignette_aperture = xr_vignette_aperture;
 
   /* WORKAROUND: Disable overscan because it is not supported for arbitrary input matrices.
    * The proper fix to this would be to support arbitrary matrices in `eevee::Camera::sync()`. */
@@ -2080,7 +2080,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                            scene,
                            drawtype,
                            &v3d,
-                           &ar,
+                           &region,
                            winx,
                            winy,
                            viewmat,
@@ -2532,7 +2532,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
   r_d->w = w;
   r_d->h = h;
 
-  r_d->depths = MEM_malloc_arrayN<float>(w * h, "View depths Subset");
+  r_d->depths = MEM_new_array_uninitialized<float>(w * h, "View depths Subset");
 
   {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
@@ -2546,7 +2546,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
 /* NOTE: with NOUVEAU drivers the #glReadPixels() is very slow. #24339. */
 static ViewDepths *view3d_depths_create(ARegion *region)
 {
-  ViewDepths *d = MEM_callocN<ViewDepths>("ViewDepths");
+  ViewDepths *d = MEM_new_zeroed<ViewDepths>("ViewDepths");
 
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
   gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
@@ -2700,9 +2700,9 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
 void ED_view3d_depths_free(ViewDepths *depths)
 {
   if (depths->depths) {
-    MEM_freeN(depths->depths);
+    MEM_delete(depths->depths);
   }
-  MEM_freeN(depths);
+  MEM_delete(depths);
 }
 
 bool ED_view3d_has_depth_buffer_updated(const Depsgraph *depsgraph, const View3D *v3d)
@@ -2825,7 +2825,7 @@ struct RV3DMatrixStore {
 
 RV3DMatrixStore *ED_view3d_mats_rv3d_backup(RegionView3D *rv3d)
 {
-  RV3DMatrixStore *rv3dmat = MEM_mallocN<RV3DMatrixStore>(__func__);
+  RV3DMatrixStore *rv3dmat = MEM_new_uninitialized<RV3DMatrixStore>(__func__);
   copy_m4_m4(rv3dmat->winmat, rv3d->winmat);
   copy_m4_m4(rv3dmat->viewmat, rv3d->viewmat);
   copy_m4_m4(rv3dmat->persmat, rv3d->persmat);
@@ -2850,7 +2850,7 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
 
 void ED_view3D_mats_rv3d_free(RV3DMatrixStore *rv3d_mat)
 {
-  MEM_freeN(rv3d_mat);
+  MEM_delete(rv3d_mat);
 }
 
 /** \} */
@@ -3026,7 +3026,7 @@ bool ViewportColorSampleSession::sample(const int mval[2], float r_col[3])
 ViewportColorSampleSession::~ViewportColorSampleSession()
 {
   if (data != nullptr) {
-    MEM_freeN(data);
+    MEM_delete(data);
   }
   if (tex != nullptr) {
     GPU_texture_free(tex);

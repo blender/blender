@@ -31,6 +31,10 @@ struct Scene;
 struct Object;
 struct Material;
 
+namespace draw {
+struct GreasePencilBatchCache;
+};
+
 namespace bke::bake {
 struct BakeMaterialsList;
 }
@@ -50,16 +54,51 @@ namespace greasepencil {
  * For compatibility, legacy thickness values have to be multiplied by this factor. */
 constexpr float LEGACY_RADIUS_CONVERSION_FACTOR = 1.0f / 2000.0f;
 
+struct FillCache {
+  /**
+   * A cache of all the fills in the drawing.
+   *
+   * Uses the "fill_id" attribute to create groups of curves (fills) that are triangulated
+   * together. A fill ID of 0 indicates that the corresponding curve is not filled.
+   * The #fill_map is an index mapping where groups are the consecutive indices of curves in each
+   * fill (ordered by the first occurance of the fill ID). The #fill_offsets are offset indices
+   * into #fill_map where each range represents a fill.
+   *
+   * For example:
+   *
+   * curve index:  0 1 2 3 4 5 6 7 8
+   * fill_id:      0 0 1 0 1 4 1 3 3
+   * fill_map:         2 4 6 5   7 8
+   * fill_offsets:     0     3   4   6
+   * fills:            _____ _   ___
+   */
+  Vector<int> fill_map;
+  Vector<int> fill_offsets;
+};
+
+struct TriangleCache {
+  /**
+   * A cache of all the triangles (used to render fills) in this drawing.
+   *
+   * All triangles are stored sequentially in #triangles as triplet of point indices. For each fill
+   * (in #FillCache) there's a group of triangles. The ranges are stored using #triangle_offsets.
+   */
+  Vector<int3> triangles;
+  Vector<int> triangle_offsets;
+};
+
 class DrawingRuntime {
  public:
   /**
-   * Triangle offset cache for all the strokes in the drawing.
+   * Fill cache for the drawing. Will be `nullopt` when there are no fills.
    */
-  mutable SharedCache<Vector<int>> triangle_offsets_cache;
+  mutable SharedCache<std::optional<FillCache>> fill_cache;
+
   /**
-   * Triangle cache for all the strokes in the drawing.
+   * Triangle cache for all the fills in the drawing (see #fill_cache). Will be `nullopt` when
+   * there are no fills.
    */
-  mutable SharedCache<Vector<int3>> triangles_cache;
+  mutable SharedCache<std::optional<TriangleCache>> triangle_cache;
 
   /**
    * Normal vector cache for every stroke. Computed using Newell's method.
@@ -97,17 +136,34 @@ class Drawing : public blender::GreasePencilDrawing {
 
   const bke::CurvesGeometry &strokes() const;
   bke::CurvesGeometry &strokes_for_write();
+
   /**
-   * The triangles for fill geometry. Grouped by each stroke.
+   * Group of curve indices for each fill. Can be nullopt when there are no fills in this drawing.
    */
-  Span<int3> triangles() const;
+  std::optional<GroupedSpan<int>> fills() const;
+  /**
+   * The triangles for fill geometry. Grouped by each fill. Can be nullopt when there are no fills
+   * in this drawing. See #fills().
+   */
+  std::optional<GroupedSpan<int3>> triangles() const;
   /**
    * Normal vectors for a plane that fits the stroke.
    */
   Span<float3> curve_plane_normals() const;
 
+  /**
+   * Tag when the texture coordinates have changed.
+   */
   void tag_texture_matrices_changed();
 
+  void tag_triangles_changed();
+  /**
+   * Tag when the fills have changed, e.g. when curves have been filled/unfilled.
+   */
+  void tag_fills_changed();
+  /**
+   * Tag when the positions of points have changed.
+   */
   void tag_positions_changed();
   /**
    * Tag only the positions of some curves.
@@ -182,12 +238,6 @@ class Drawing : public blender::GreasePencilDrawing {
    * Return the number of users (keyframes) of this drawing.
    */
   int user_count() const;
-
- private:
-  /**
-   * The offset indices for each stroke in the flat triangle cache.
-   */
-  OffsetIndices<int> triangle_offsets() const;
 };
 static_assert(sizeof(Drawing) == sizeof(blender::GreasePencilDrawing));
 
@@ -929,7 +979,7 @@ class GreasePencilRuntime {
   /**
    * Allocated and freed by the drawing code. See `DRW_grease_pencil_batch_cache_*` functions.
    */
-  void *batch_cache = nullptr;
+  draw::GreasePencilBatchCache *batch_cache = nullptr;
   /**
    * The frame on which the object was evaluated (only valid for evaluated object).
    */
@@ -1154,7 +1204,7 @@ Material *BKE_grease_pencil_object_material_new(Main *bmain,
                                                 Object *ob,
                                                 const char *name,
                                                 int *r_index);
-Material *BKE_grease_pencil_object_material_from_brush_get(Object *ob, Brush *brush);
+Material *BKE_grease_pencil_object_material_from_brush_get(Object *ob, const Brush *brush);
 Material *BKE_grease_pencil_object_material_ensure_by_name(Main *bmain,
                                                            Object *ob,
                                                            const char *name,

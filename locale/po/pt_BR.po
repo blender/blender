@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -9520,6 +9520,14 @@ msgid "Amplitude of the noise - the amount that it modifies the underlying curve
 msgstr "Amplitude do ruído - a quantia que ele modifica a curva subjacente."
 
 
+msgid "Filter Width"
+msgstr "Largura do filtro"
+
+
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgid "Stepped Interpolation F-Modifier"
 msgstr "Interpolação em passos para os modificadores-f"
 
@@ -12118,20 +12126,12 @@ msgid "Space daubs according to surface orientation instead of screen space"
 msgstr "Divide o espaço entre as crostas de acordo com a orientação de superfície ao invés do espaço de tela."
 
 
-msgid "Airbrush"
-msgstr "Aerógrafo"
-
-
 msgid "Affect Alpha"
 msgstr "Afeta Alfa"
 
 
 msgid "When this is disabled, lock alpha while painting"
 msgstr "Caso esta opção esteja desabilitada, impede modificações do alfa durante a pintura."
-
-
-msgid "Anchored"
-msgstr "Ancorado"
 
 
 msgid "Cavity Mask"
@@ -12284,14 +12284,6 @@ msgstr "Usar sobreposição de textura"
 
 msgid "Show texture in viewport"
 msgstr "Mostra a textura na janela de exibição."
-
-
-msgid "Restore Mesh"
-msgstr "Restaurar malha"
-
-
-msgid "Allow a single dot to be carefully positioned"
-msgstr "Permite que um único ponto seja cuidadosamente posicionado."
 
 
 msgid "Smooth Stroke"
@@ -13076,10 +13068,6 @@ msgstr "Distância entre as linhas do texto."
 
 msgid "Spacing between words"
 msgstr "Espaçamento entre palavras."
-
-
-msgid "Textboxes"
-msgstr "Caixas de texto"
 
 
 msgid "Underline Thickness"
@@ -21231,36 +21219,20 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
 msgid "Math"
 msgstr "Matemática"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Metaball"
 msgstr "Meta-esfera"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Names"
@@ -21271,8 +21243,8 @@ msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Instances"
-msgstr "Instâncias"
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Pivot Point"
@@ -21285,14 +21257,6 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Mirror"
@@ -21331,6 +21295,10 @@ msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
@@ -21345,6 +21313,14 @@ msgstr "Selecionar vinculados(as)"
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Light"
@@ -21365,10 +21341,6 @@ msgstr "Relações"
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
-
-
-msgid "Layout"
-msgstr "Organizar"
 
 
 msgid "Apply"
@@ -21393,14 +21365,6 @@ msgstr "Converter"
 
 msgid "Hooks"
 msgstr "Ganchos"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
 
 
 msgid "Random Mask"
@@ -21429,6 +21393,30 @@ msgstr "Habilitar opções de ossos"
 
 msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
 msgid "Basic"
@@ -27297,6 +27285,10 @@ msgid "Is Viewport"
 msgstr "É Janela e Exibição"
 
 
+msgid "Single"
+msgstr "Único"
+
+
 msgid "Fill Type"
 msgstr "Tipo de preenchimento"
 
@@ -27368,10 +27360,6 @@ msgstr "Tamanho de fonte para mostrar os rótulos."
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "Encolhe o quadro para a caixa circundante mínima."
-
-
-msgid "Single"
-msgstr "Único"
 
 
 msgid "Group Input"
@@ -34567,14 +34555,6 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Posiciona o cursor no ponto mediano dos quadros-chave selecionados."
 
 
-msgid "Filter Width"
-msgstr "Largura do filtro"
-
-
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "Limpar curvas fantasmas"
@@ -34739,25 +34719,8 @@ msgid "Grease Pencil Draw"
 msgstr "Desenho com lápis de cera"
 
 
-msgid "Action taken when a paint stroke is made"
-msgstr "Ação tomada quando um traço de pintura é feito."
-
-
 msgid "Apply brush normally"
 msgstr "Aplica o pincel normalmente"
-
-
-msgctxt "Operator"
-msgid "Invert"
-msgstr "Inverter"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Inverte a ação do pincel pela duração do traço."
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Alterna o pincel para o modo suave através da duração do traço."
 
 
 msgctxt "Operator"
@@ -34768,6 +34731,19 @@ msgstr "Apagar"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "Máscara"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Ação tomada quando um traço de pintura é feito."
+
+
+msgctxt "Operator"
+msgid "Invert"
+msgstr "Inverter"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Inverte a ação do pincel pela duração do traço."
 
 
 msgid "Flat"
@@ -36731,14 +36707,6 @@ msgid "Remove from the selection"
 msgstr "Remove a partir da seleção."
 
 
-msgid "Select Ring"
-msgstr "Selecionar anel"
-
-
-msgid "Select ring"
-msgstr "Seleciona um anel."
-
-
 msgid "Toggle Select"
 msgstr "Alternar seleção"
 
@@ -37096,19 +37064,6 @@ msgstr "Corta somente a geometria mais frontal."
 
 msgid "X-Ray"
 msgstr "Raio-X"
-
-
-msgctxt "Operator"
-msgid "Multi Select Loops"
-msgstr "Seleção múltipla de anéis"
-
-
-msgid "Select a loop of connected edges by connection type"
-msgstr "Seleciona um anel de arestas conectadas pelo tipo de conexão."
-
-
-msgid "Ring"
-msgstr "Anéis"
 
 
 msgctxt "Operator"
@@ -41383,16 +41338,8 @@ msgid "New ID"
 msgstr "Novo identificador"
 
 
-msgid "New ID to remap all selected IDs' users to"
-msgstr "Permite criar um novo identificador para remapear todos os identificadores dos usuários atuais."
-
-
 msgid "Old ID"
 msgstr "Identificador anterior"
-
-
-msgid "Old ID to replace"
-msgstr "O identificador anterior a ser substituído."
 
 
 msgid "Extend selection for activation"
@@ -55899,10 +55846,6 @@ msgid "Combine both views in a squeezed image"
 msgstr "Combina ambas as visualizações em uma imagem encolhida."
 
 
-msgid "Sequence strip in the sequence editor"
-msgstr "Faixa de sequência dentro do editor de sequências."
-
-
 msgid "Blend Opacity"
 msgstr "Mesclar opacidade"
 
@@ -55913,10 +55856,6 @@ msgstr "A porcentagem para definir como as cores das faixas afetarão outras fai
 
 msgid "Method for controlling how the strip combines with other strips"
 msgstr "O método para controlar como as faixas serão combinadas com outras faixas."
-
-
-msgid "Y position of the sequence strip"
-msgstr "Posição Y da faixa de sequência "
 
 
 msgid "Custom fade value"
@@ -55953,10 +55892,6 @@ msgstr "Trava a faixa de maneira que esta não possa ser transformada."
 
 msgid "Modifiers affecting this strip"
 msgstr "Modificadores afetando esta faixa."
-
-
-msgid "Disable strip so that it cannot be viewed in the output"
-msgstr "Desabilita a faixa de maneira que ela não possa ser vista na saída."
 
 
 msgid "Left Handle Selected"
@@ -56709,22 +56644,6 @@ msgstr "Caixa de texto"
 
 msgid "Text bounding box for layout"
 msgstr "A caixa circundante que envolve e permite organizar o texto."
-
-
-msgid "Textbox Height"
-msgstr "Altura da caixa de texto"
-
-
-msgid "Textbox Width"
-msgstr "Largura da caixa de texto"
-
-
-msgid "Textbox X Offset"
-msgstr "Deslocamento de caixa de texto em X"
-
-
-msgid "Textbox Y Offset"
-msgstr "Deslocamento de caixa de texto em Y"
 
 
 msgid "Text Character Format"
@@ -61687,6 +61606,16 @@ msgstr "Faces planas conectadas"
 
 
 msgctxt "Operator"
+msgid "Edge Loops"
+msgstr "Anéis de arestas"
+
+
+msgctxt "Operator"
+msgid "Edge Rings"
+msgstr "Aros de arestas"
+
+
+msgctxt "Operator"
 msgid "Sharp Edges"
 msgstr "Arestas ressaltadas"
 
@@ -62024,11 +61953,6 @@ msgstr "Faces Suaves"
 
 
 msgctxt "Operator"
-msgid "Edge Loops"
-msgstr "Anéis de arestas"
-
-
-msgctxt "Operator"
 msgid "Bones"
 msgstr "Ossos"
 
@@ -62107,11 +62031,6 @@ msgstr "Centralizar cursor e visualizar tudo"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Superfícies não contíguas"
-
-
-msgctxt "Operator"
-msgid "Edge Rings"
-msgstr "Aros de arestas"
 
 
 msgctxt "Operator"
@@ -64011,10 +63930,6 @@ msgid "Yesterday"
 msgstr "Ontem"
 
 
-msgid "Modified"
-msgstr "Modificado"
-
-
 msgid "Anim Player"
 msgstr "Rep. animação"
 
@@ -64130,6 +64045,10 @@ msgstr "Nenhuma intersecção encontrada."
 
 msgid "Selected faces required"
 msgstr "Requer faces selecionadas."
+
+
+msgid "Select Ring"
+msgstr "Selecionar anel"
 
 
 msgid "Loop cut does not work well on deformed edit mesh display"
@@ -65115,24 +65034,8 @@ msgid "Removed amount of editors: %d"
 msgstr "Montante de editores removidos: %d"
 
 
-msgid "expected a view3d region"
-msgstr "Uma região de janela de visualização 3D era esperada."
-
-
-msgid "expected a timeline/animation area to be active"
-msgstr "Uma área de animação ou linha do tempo ativa era esperada."
-
-
 msgid "Context missing active object"
 msgstr "O contexto não possui um objeto ativo."
-
-
-msgid "expected a view3d region & editmesh"
-msgstr "Uma região da janela de visualização 3D e edição de malhas era esperada."
-
-
-msgid "expected a view3d region & editcurve"
-msgstr "Uma região da janela de visualização 3D e edição de curvas era esperada."
 
 
 msgid "Quick Favorites"
@@ -65204,22 +65107,6 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Detectada a falta de %s%s%s%s !"
 
 
-msgid "Palette created"
-msgstr "Paleta Criada"
-
-
-msgid "Sample color for %s"
-msgstr "Amostragem de cor para %s."
-
-
-msgid "Brush. Use Left Click to sample for palette instead"
-msgstr "O pincel atual. Clique com o BEM para obter amostras para a paleta ao invés de amostras para o pincel. "
-
-
-msgid "Palette. Use Left Click to sample more colors"
-msgstr "A paleta atual. Clique com o BEM para obter mais amostras de cor."
-
-
 msgid "The modifier used does not support deformed locations"
 msgstr "O modificador usado não suporta localizações deformadas."
 
@@ -65270,6 +65157,22 @@ msgstr "O objeto possui uma escala negativa, operações de escultura podem ser 
 
 msgid "Dynamic Topology found: %s, disabled"
 msgstr "Topologia dinâmica encontrada: %s, desabilitados(as)."
+
+
+msgid "Palette created"
+msgstr "Paleta Criada"
+
+
+msgid "Sample color for %s"
+msgstr "Amostragem de cor para %s."
+
+
+msgid "Brush. Use Left Click to sample for palette instead"
+msgstr "O pincel atual. Clique com o BEM para obter amostras para a paleta ao invés de amostras para o pincel. "
+
+
+msgid "Palette. Use Left Click to sample more colors"
+msgstr "A paleta atual. Clique com o BEM para obter mais amostras de cor."
 
 
 msgid "Compiled without sound support"
@@ -67771,6 +67674,10 @@ msgstr "Fonte confiável [Caminho não garantido]"
 
 msgid "Don't Save"
 msgstr "Não Salvar"
+
+
+msgid "Modified"
+msgstr "Modificado"
 
 
 msgid "unable to open the file"

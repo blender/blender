@@ -129,9 +129,10 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
+        # Temporarily disabled until #153443 is fixed.
+        # self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
 
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "ZIP"})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 97})
@@ -139,9 +140,10 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
-        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
+        # Temporarily disabled until #153443 is fixed.
+        # self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
+        # self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
 
     def test_save_hdr(self):
         self.check(src="rgba08", ext="hdr", settings={"file_format": "HDR", "color_mode": "BW"})
@@ -251,10 +253,13 @@ class ImBufSaveTest(ImBufTest):
 
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 90})
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 90})
+        self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 100})
+        self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 100})
 
-        # Note: These 2 variations are problematic on MacOS ARM64 (#105006)
-        # self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 70})
-        # self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 100})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 100})
 # autopep8: on
 
 

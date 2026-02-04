@@ -113,7 +113,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
         }
       }
 
-      MEM_freeN(done);
+      MEM_delete(done);
       return;
     }
 
@@ -146,7 +146,7 @@ void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
   while ((md = md->next) && md->type == eModifierType_Armature) {
     ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
     if (amd->multi && amd->vert_coords_prev == nullptr) {
-      amd->vert_coords_prev = static_cast<float (*)[3]>(MEM_dupallocN(vert_coords));
+      amd->vert_coords_prev = MEM_dupalloc(vert_coords);
     }
     else {
       break;

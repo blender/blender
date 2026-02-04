@@ -52,7 +52,7 @@ class AnimDrawTest : public testing::Test {
 
 TEST_F(AnimDrawTest, anim_unit_mapping_get_factor_not_normalizing)
 {
-  FCurve *fcurve = MEM_new_for_free<FCurve>(__func__);
+  FCurve *fcurve = MEM_new<FCurve>(__func__);
   fcurve->array_index = 0;
 
   /* Avoid creating a Scene via BKE_id_new<Scene>(this->bmain, "SCTestScene"); as that requires

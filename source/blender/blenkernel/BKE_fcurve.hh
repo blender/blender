@@ -73,7 +73,7 @@ struct FModifierTypeInfo {
   void (*copy_data)(FModifier *fcm, const FModifier *src);
   /**
    * Set settings for data that will be used for FCuModifier.data
-   * (memory already allocated using #MEM_callocN). */
+   * (memory already allocated using #MEM_new_zeroed). */
   void (*new_data)(void *mdata);
   /** Verifies that the modifier settings are valid */
   void (*verify_data)(FModifier *fcm);
@@ -599,9 +599,19 @@ void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], con
 
 /* -------- Evaluation -------- */
 
-/* evaluate fcurve */
+/**
+ * Evaluate a non-driver F-Curve.
+ */
 float evaluate_fcurve(const FCurve *fcu, float evaltime);
+/**
+ * Evaluate the F-Curve; if this is a driver, that aspect is ignored and only its F-Curve is
+ * evaluated.
+ */
 float evaluate_fcurve_only_curve(const FCurve *fcu, float evaltime);
+/**
+ * Evaluate a non-driver F-Curve, without applying its modifiers.
+ */
+float evaluate_fcurve_unmodified(const FCurve *fcu, float evaltime);
 float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
                              FCurve *fcu,
                              ChannelDriver *driver_orig,

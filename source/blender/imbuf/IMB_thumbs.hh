@@ -38,7 +38,10 @@ enum ThumbSource : int8_t {
    * The thumbnail is not created from some other file, but the given file path refers to the
    * thumbnail itself directly.
    *
-   * Does not use the thumbnail standard.
+   * Can be useful to directly load an image from disk that can be displayed as a thumbnail,
+   * without requiring the caller to handle these cases specially.
+   *
+   * Does _not_ use the thumbnail standard.
    */
   THB_SOURCE_DIRECT,
 };

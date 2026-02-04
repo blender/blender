@@ -7,7 +7,7 @@
 
 #include "CLG_log.h"
 
-#include "GHOST_Path-api.hh"
+#include "GHOST_ISystemPaths.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_global.hh"
@@ -82,7 +82,7 @@ class ImagePartialUpdateTest : public testing::Test {
 
     IMB_moviecache_destruct();
     IMB_exit();
-    GHOST_DisposeSystemPaths();
+    GHOST_ISystemPaths::dispose();
     BKE_appdir_exit();
     CLG_exit();
   }

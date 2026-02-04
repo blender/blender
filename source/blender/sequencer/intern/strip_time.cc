@@ -65,7 +65,7 @@ float give_frame_index(const Scene *scene, const Strip *strip, float timeline_fr
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   frame_index *= strip->media_playback_rate_factor(scene_fps);
 
-  if (retiming_is_active(strip)) {
+  if (retiming_has_keys(strip)) {
     const float retiming_factor = strip_retiming_evaluate(strip, frame_index);
     /* Retiming maps frame index from 0 up to `strip->len`, because key is positioned at the end of
      * last frame. Otherwise the last frame could not be retimed. */
@@ -509,7 +509,7 @@ float Strip::content_end(const Scene *scene) const
 int Strip::length(const Scene *scene) const
 {
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  if (seq::retiming_is_active(this)) {
+  if (seq::retiming_has_keys(this)) {
     const int last_key_frame = seq::retiming_key_frame_get(
         scene, this, seq::retiming_last_key_get(this));
     /* Last key is mapped to last frame index. Numbering starts from 0. */

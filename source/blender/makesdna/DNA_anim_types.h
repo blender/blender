@@ -17,6 +17,15 @@
 
 namespace blender {
 
+#ifdef __cplusplus
+namespace bke {
+struct NlaStripRuntime;
+}  // namespace bke
+using NlaStripRuntime = bke::NlaStripRuntime;
+#else
+typedef struct NlaStripRuntime NlaStripRuntime;
+#endif
+
 /* ************************************************ */
 /* F-Curve DataTypes */
 
@@ -183,6 +192,18 @@ struct FMod_Stepped {
   /** Various settings. */
   int flag = 0;
 };
+
+/* stepped modifier data */
+typedef struct FMod_Smooth {
+  /**
+   * The shape of the Gaussian distribution in frames. Lower values will make it sharper.
+   * This can be any value > 0.
+   */
+  float sigma;
+
+  /** The number of frames to average around each keyframe. */
+  int filter_width;
+} FMod_Smooth;
 
 /* Drivers -------------------------------------- */
 
@@ -474,9 +495,6 @@ struct NlaStrip {
   /** Type of NLA strip. */
   short type = 0;
 
-  /** Handle for speaker objects. */
-  void *speaker_handle = nullptr;
-
   /** Settings. */
   int flag = 0;
   char _pad2[4] = {};
@@ -484,7 +502,11 @@ struct NlaStrip {
   /* Pointer to an original NLA strip. */
   struct NlaStrip *orig_strip = nullptr;
 
-  void *_pad3 = nullptr;
+  NlaStripRuntime *runtime = nullptr;
+
+#ifdef __cplusplus
+  NlaStripRuntime &runtime_get();
+#endif
 };
 
 #ifdef __cplusplus

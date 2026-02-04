@@ -106,9 +106,14 @@ def remote_url_params_strip(url: str) -> str:
 
 
 def path_to_url(path: str) -> str:
+    import sys
     from urllib.parse import urljoin
     from urllib.request import pathname2url
-    return urljoin('file:', pathname2url(path))
+    # Python 3.14+: pathname2url returns '///path' (RFC 8089), use 'file://' base.
+    file_prefix = "file://" if sys.version_info >= (3, 14) else "file:"
+    result = urljoin(file_prefix, pathname2url(path))
+    assert result.startswith('file:///')
+    return result
 
 
 def rmdir_contents(directory: str) -> None:
@@ -282,7 +287,7 @@ def my_create_package(
 
 
 class PkgTemplate(NamedTuple):
-    """Data need to create a package for testing."""
+    """Data needed to create a package for testing."""
     idname: str
     name: str
     version: str

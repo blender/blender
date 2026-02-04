@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -9892,6 +9892,14 @@ msgid "Amplitude of the noise - the amount that it modifies the underlying curve
 msgstr "노이즈의 진폭 - 기본 커브를 수정하는 양"
 
 
+msgid "Filter Width"
+msgstr "폭을 필터"
+
+
+msgid "Sigma"
+msgstr "시그마"
+
+
 msgid "Stepped Interpolation F-Modifier"
 msgstr "계단 모양 보간 F-모디파이어"
 
@@ -13610,20 +13618,12 @@ msgid "Space daubs according to surface orientation instead of screen space"
 msgstr "씬 공간 대신 표면 오리엔테이션에 따라 공간을 바꿉니다"
 
 
-msgid "Airbrush"
-msgstr "에어브러시"
-
-
 msgid "Affect Alpha"
 msgstr "알파에 영향을 줍니다"
 
 
 msgid "When this is disabled, lock alpha while painting"
 msgstr "이 기능이 비활성화되면 그림을 그릴 때 알파를 잠급니다"
-
-
-msgid "Anchored"
-msgstr "정착"
 
 
 msgid "Cavity Mask"
@@ -13832,14 +13832,6 @@ msgstr "텍스처 오버레이를 사용"
 
 msgid "Show texture in viewport"
 msgstr "뷰포트에서 텍스처를 표시"
-
-
-msgid "Restore Mesh"
-msgstr "메쉬를 복원"
-
-
-msgid "Allow a single dot to be carefully positioned"
-msgstr "단일 도트를 신중하게 배치할 수 있습니다"
 
 
 msgid "Spacing Distance"
@@ -14674,10 +14666,6 @@ msgid "Vertical offset from the object origin"
 msgstr "오브젝트 오리진에서 수직 오프셋"
 
 
-msgid "Textbox Overflow"
-msgstr "텍스트박스 오버플로"
-
-
 msgid "Overflow"
 msgstr "오버플로우"
 
@@ -14732,10 +14720,6 @@ msgstr "텍스트 행 사이의 거리"
 
 msgid "Spacing between words"
 msgstr "단어 사이 간격"
-
-
-msgid "Textboxes"
-msgstr "텍스트박스"
 
 
 msgid "Underline Thickness"
@@ -23636,64 +23620,40 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
 msgid "Math"
 msgstr "수학"
 
 
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Metaball"
 msgstr "메타볼"
 
 
-msgid "Names"
-msgstr "이름"
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
 msgid "Sample"
 msgstr "샘플"
 
 
-msgid "Bone Roll"
-msgstr "본 롤"
+msgid "Names"
+msgstr "이름"
 
 
 msgid "Primitives"
 msgstr "프리미티브"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
+
+
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Pivot Point"
@@ -23710,14 +23670,6 @@ msgstr "비례 편집 감소"
 
 msgid "Mask Edit"
 msgstr "마스크 편집"
-
-
-msgid "Import"
-msgstr "가져오기"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Mirror"
@@ -23756,6 +23708,10 @@ msgid "Select More/Less"
 msgstr "선택 증가/감소"
 
 
+msgid "Layout"
+msgstr "레이아웃"
+
+
 msgid "Select Similar"
 msgstr "유사한 선택"
 
@@ -23776,6 +23732,14 @@ msgid "Assign Material"
 msgstr "매테리얼을 할당"
 
 
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
 msgid "Light"
 msgstr "라이트"
 
@@ -23794,10 +23758,6 @@ msgstr "관계"
 
 msgid "Rigid Body"
 msgstr "리지드 바디"
-
-
-msgid "Layout"
-msgstr "레이아웃"
 
 
 msgid "Apply"
@@ -23822,14 +23782,6 @@ msgstr "싱글 유저를 만들기"
 
 msgid "Hooks"
 msgstr "후크"
-
-
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Tracking"
-msgstr "트래킹"
 
 
 msgid "Sculpt Set Pivot"
@@ -23858,6 +23810,38 @@ msgstr "본 옵션을 사용"
 
 msgid "Disable Bone Options"
 msgstr "본 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
 
 
 msgid "Basic"
@@ -30574,6 +30558,10 @@ msgid "Edge Angle"
 msgstr "에지 각도"
 
 
+msgid "Single"
+msgstr "싱글"
+
+
 msgid "Fill Type"
 msgstr "채우기 유형"
 
@@ -30621,10 +30609,6 @@ msgstr "라벨을 표시하는 데 사용하는 폰트의 크기"
 
 msgid "Shrink the frame to minimal bounding box"
 msgstr "프레임을 최소 경계 박스로 축소합니다"
-
-
-msgid "Single"
-msgstr "싱글"
 
 
 msgid "Group Input"
@@ -38429,14 +38413,6 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "커서를 선택된 키 프레임의 중간 지점으로 이동"
 
 
-msgid "Filter Width"
-msgstr "폭을 필터"
-
-
-msgid "Sigma"
-msgstr "시그마"
-
-
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "고스트 커브를 지우기"
@@ -38596,25 +38572,8 @@ msgid "Grease Pencil Draw"
 msgstr "그리스 펜슬 그리기"
 
 
-msgid "Action taken when a paint stroke is made"
-msgstr "페인트 스트로크가 만들어 질 때 동작 촬영"
-
-
 msgid "Apply brush normally"
 msgstr "노멀로 브러시를 적용"
-
-
-msgctxt "Operator"
-msgid "Invert"
-msgstr "반전"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "스트로크의 지속에 대한 브러시의 작업을 반전"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "스트로크의 지속에 대해 스무스 모드로 브러시를 전환"
 
 
 msgctxt "Operator"
@@ -38625,6 +38584,19 @@ msgstr "지우기"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "마스크"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "페인트 스트로크가 만들어 질 때 동작 촬영"
+
+
+msgctxt "Operator"
+msgid "Invert"
+msgstr "반전"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "스트로크의 지속에 대한 브러시의 작업을 반전"
 
 
 msgid "Set as default rounded"
@@ -40708,14 +40680,6 @@ msgid "Remove from the selection"
 msgstr "선택에서 제거"
 
 
-msgid "Select Ring"
-msgstr "링을 선택"
-
-
-msgid "Select ring"
-msgstr "링을 선택"
-
-
 msgid "Toggle Select"
 msgstr "선택을 토글"
 
@@ -41085,19 +41049,6 @@ msgstr "앞쪽 지오메트리 절단 만"
 
 msgid "X-Ray"
 msgstr "X-Ray"
-
-
-msgctxt "Operator"
-msgid "Multi Select Loops"
-msgstr "다중 선택 루프"
-
-
-msgid "Select a loop of connected edges by connection type"
-msgstr "연결 유형으로 연결된 에지의 루프를 선택"
-
-
-msgid "Ring"
-msgstr "링"
 
 
 msgctxt "Operator"
@@ -45769,16 +45720,8 @@ msgid "New ID"
 msgstr "새로운 ID"
 
 
-msgid "New ID to remap all selected IDs' users to"
-msgstr "선택한 ID의 유저를 다음으로 모두 다시 맵하는 새로운 ID"
-
-
 msgid "Old ID"
 msgstr "오래된 ID"
-
-
-msgid "Old ID to replace"
-msgstr "교체할 오래된 ID"
 
 
 msgid "Extend selection for activation"
@@ -53992,16 +53935,6 @@ msgstr "재생"
 
 msgid "Rename Active Item"
 msgstr "활성 항목 이름을 변경"
-
-
-msgid ""
-"\n"
-"    Popover panel for adding extra options that don't fit in the tool settings header\n"
-"    "
-msgstr ""
-"\n"
-"    도구 설정 헤더에 맞지 않는 추가 옵션을 추가하기위한 팝 오버 패널\n"
-"    "
 
 
 msgid "Extra Options"
@@ -62552,10 +62485,6 @@ msgid "Combine both views in a squeezed image"
 msgstr "압착된 이미지에서 보기를 둘 다 결합"
 
 
-msgid "Sequence strip in the sequence editor"
-msgstr "시퀀스 에디터에서 시퀀스 스트립"
-
-
 msgid "Blend Opacity"
 msgstr "혼합 불투명도"
 
@@ -62566,10 +62495,6 @@ msgstr "스트립의 컬러이 다른 스트립에 미치는 영향의 비율"
 
 msgid "Method for controlling how the strip combines with other strips"
 msgstr "스트립이 다른 스트립과 결합하는 방법을 제어하는 메서드"
-
-
-msgid "Y position of the sequence strip"
-msgstr "시퀀스 스트립의 Y 위치"
 
 
 msgid "Effect Fader Position"
@@ -62610,10 +62535,6 @@ msgstr "스트립을 변형할 수 없도록 잠금"
 
 msgid "Modifiers affecting this strip"
 msgstr "이 스트립에 영향을 미치는 모디파이어"
-
-
-msgid "Disable strip so that it cannot be viewed in the output"
-msgstr "출력물에서 볼 수 없도록 스트립을 해제"
 
 
 msgid "Left Handle Selected"
@@ -63426,22 +63347,6 @@ msgstr "텍스트 박스"
 
 msgid "Text bounding box for layout"
 msgstr "레이아웃의 텍스트 경계 박스"
-
-
-msgid "Textbox Height"
-msgstr "텍스트박스 높이"
-
-
-msgid "Textbox Width"
-msgstr "텍스트박스 폭"
-
-
-msgid "Textbox X Offset"
-msgstr "텍스트박스 X 오프셋"
-
-
-msgid "Textbox Y Offset"
-msgstr "텍스트박스 Y 오프셋"
 
 
 msgid "Text Character Format"
@@ -68455,20 +68360,8 @@ msgid "Convert to Float"
 msgstr "실수로 변환"
 
 
-msgid "Strip Offset Start"
-msgstr "스트립 오프셋 시작"
-
-
-msgid "Hold Offset Start"
-msgstr "유지 오프셋 시작"
-
-
 msgid "Effect Fader"
 msgstr "이펙트 페더"
-
-
-msgid "Original Frame Range"
-msgstr "원본 프레임 범위"
 
 
 msgid "Unpack"
@@ -70221,6 +70114,16 @@ msgstr "연결된 플랫 페이스"
 
 
 msgctxt "Operator"
+msgid "Edge Loops"
+msgstr "에지 루프"
+
+
+msgctxt "Operator"
+msgid "Edge Rings"
+msgstr "에지 링"
+
+
+msgctxt "Operator"
 msgid "Sharp Edges"
 msgstr "샤프 에지"
 
@@ -70648,11 +70551,6 @@ msgstr "플랫 페이스"
 
 
 msgctxt "Operator"
-msgid "Edge Loops"
-msgstr "에지 루프"
-
-
-msgctxt "Operator"
 msgid "Bones"
 msgstr "본"
 
@@ -70754,11 +70652,6 @@ msgstr "롤 오른쪽"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "논 매니폴드"
-
-
-msgctxt "Operator"
-msgid "Edge Rings"
-msgstr "에지 링"
 
 
 msgctxt "Operator"
@@ -72909,10 +72802,6 @@ msgid "Yesterday"
 msgstr "어제"
 
 
-msgid "Modified"
-msgstr "수정됨"
-
-
 msgid "Anim Player"
 msgstr "Anim 플레이어"
 
@@ -73028,6 +72917,10 @@ msgstr "교차점을 찾을 수 없습니다"
 
 msgid "Selected faces required"
 msgstr "선택된 페이스 필요한"
+
+
+msgid "Select Ring"
+msgstr "링을 선택"
 
 
 msgid "Loop cut does not work well on deformed edit mesh display"
@@ -74133,24 +74026,8 @@ msgid "Removed amount of editors: %d"
 msgstr "에디터의 제거된 양: %d"
 
 
-msgid "expected a view3d region"
-msgstr "뷰3D 지역이 예상됨"
-
-
-msgid "expected a timeline/animation area to be active"
-msgstr "타임 라인/애니메이션 영역이 활성화 될 것으로 예상됨"
-
-
 msgid "Context missing active object"
 msgstr "컨텍스트에 활성 오브젝트 누락되었습니다"
-
-
-msgid "expected a view3d region & editmesh"
-msgstr "뷰3d 지역 및 편집메쉬가 예상됨"
-
-
-msgid "expected a view3d region & editcurve"
-msgstr "뷰3d 지역 및 편집커브이 예상됨"
 
 
 msgid "Toggling regions in the Top-bar is not allowed"
@@ -74242,18 +74119,6 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "누락된 %s%s%s%s 감지됨!"
 
 
-msgid "Sample color for %s"
-msgstr "%s에 대한 샘플 컬러"
-
-
-msgid "Brush. Use Left Click to sample for palette instead"
-msgstr "브러시. 왼쪽 팔레트를 사용하여 대신 팔레트 샘플"
-
-
-msgid "Palette. Use Left Click to sample more colors"
-msgstr "팔레트. 더 많은 컬러를 샘플하려면 왼쪽 클릭을 사용"
-
-
 msgid "The modifier used does not support deformed locations"
 msgstr "사용된 모디파이어는 변형된 위치를 지원하지 않음"
 
@@ -74304,6 +74169,18 @@ msgstr "오브젝트의 축적이 음수이고 스컬프트을 예측할 수 없
 
 msgid "Dynamic Topology found: %s, disabled"
 msgstr "발견된 다이나믹 토폴로지: %s, 비활성화됨"
+
+
+msgid "Sample color for %s"
+msgstr "%s에 대한 샘플 컬러"
+
+
+msgid "Brush. Use Left Click to sample for palette instead"
+msgstr "브러시. 왼쪽 팔레트를 사용하여 대신 팔레트 샘플"
+
+
+msgid "Palette. Use Left Click to sample more colors"
+msgstr "팔레트. 더 많은 컬러를 샘플하려면 왼쪽 클릭을 사용"
 
 
 msgid "Compiled without sound support"
@@ -77040,6 +76917,10 @@ msgstr "실행 허용"
 
 msgid "Don't Save"
 msgstr "저장하지 않음"
+
+
+msgid "Modified"
+msgstr "수정됨"
 
 
 msgid "Reload file with execution of Python scripts enabled"

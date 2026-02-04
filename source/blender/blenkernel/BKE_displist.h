@@ -9,6 +9,7 @@
  * \brief display list (or rather multi purpose list) stuff.
  */
 
+#include "DNA_curve_enums.h"
 #include "DNA_listBase.h"
 
 namespace blender {
@@ -80,11 +81,15 @@ bool BKE_displist_surfindex_get(
  * Pass this along if known since it saves time calculating the normal.
  * This is also used to initialize #DispList.nors (one normal per display list).
  * \param flip_normal: Flip the normal (same as passing \a normal_proj negated).
+ * \param fill_solver: Triangulation solver (#CU_FILL_SOLVER_SWEEP_LINE, etc.).
+ * \param fill_rule: Fill rule for CDT solver (#CU_FILL_RULE_EVEN_ODD, etc.).
  */
 void BKE_displist_fill(const ListBaseT<DispList> *dispbase,
                        ListBaseT<DispList> *to,
                        const float normal_proj[3],
-                       bool flip_normal);
+                       bool flip_normal,
+                       CurveFillSolverType fill_solver,
+                       CurveFillRuleType fill_rule);
 
 float BKE_displist_calc_taper(struct Depsgraph *depsgraph,
                               const struct Scene *scene,

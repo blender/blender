@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(FFTW_EXTRA_ARGS)
+set(FFTW_EXTRA_ARGS "")
 
 macro(fftw_build FFTW_POSTFIX)
   if(WIN32)

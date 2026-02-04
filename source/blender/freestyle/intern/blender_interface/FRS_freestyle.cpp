@@ -164,7 +164,7 @@ static void init_view(Render *re)
 
 static char *escape_quotes(char *name)
 {
-  char *s = MEM_malloc_arrayN<char>(strlen(name) * 2 + 1, "escape_quotes");
+  char *s = MEM_new_array_uninitialized<char>(strlen(name) * 2 + 1, "escape_quotes");
   char *p = s;
   while (*name) {
     if (*name == '\'') {
@@ -182,8 +182,8 @@ static char *create_lineset_handler(char *layer_name, char *lineset_name)
   char *s1 = escape_quotes(layer_name);
   char *s2 = escape_quotes(lineset_name);
   char *text = BLI_sprintfN(fmt, s1, s2);
-  MEM_freeN(s1);
-  MEM_freeN(s2);
+  MEM_delete(s1);
+  MEM_delete(s2);
   return text;
 }
 
@@ -353,7 +353,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
           char *buffer = create_lineset_handler(view_layer->name, lineset.name);
           controller->InsertStyleModule(layer_count, lineset.name, buffer);
           controller->toggleLayer(layer_count, true);
-          MEM_freeN(buffer);
+          MEM_delete(buffer);
           if (!(lineset.selection & FREESTYLE_SEL_EDGE_TYPES) || !lineset.edge_types) {
             ++use_ridges_and_valleys;
             ++use_suggestive_contours;

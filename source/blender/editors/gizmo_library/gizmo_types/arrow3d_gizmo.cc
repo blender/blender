@@ -435,7 +435,7 @@ static void gizmo_arrow_setup(wmGizmo *gz)
 static wmOperatorStatus gizmo_arrow_invoke(bContext * /*C*/, wmGizmo *gz, const wmEvent *event)
 {
   ArrowGizmo3D *arrow = reinterpret_cast<ArrowGizmo3D *>(gz);
-  ArrowGizmoInteraction *arrow_inter = MEM_callocN<ArrowGizmoInteraction>(__func__);
+  ArrowGizmoInteraction *arrow_inter = MEM_new_zeroed<ArrowGizmoInteraction>(__func__);
   GizmoInteraction *inter = &arrow_inter->inter;
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 

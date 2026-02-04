@@ -347,7 +347,7 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   size_t sample_len = mip_size[0] * mip_size[1] * mip_size[2] * layers.size();
   size_t host_memory_size = sample_len * to_bytesize(format_, format);
 
-  void *data = MEM_mallocN(host_memory_size, __func__);
+  void *data = MEM_new_uninitialized(host_memory_size, __func__);
   int region[6] = {0, 0, 0, mip_size[0], mip_size[1], mip_size[2]};
   read_sub(mip, format, region, layers, data);
   return data;

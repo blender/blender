@@ -9,7 +9,7 @@
 #pragma once
 
 #include "GHOST_Context.hh"
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>

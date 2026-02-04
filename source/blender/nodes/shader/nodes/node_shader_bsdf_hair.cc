@@ -62,6 +62,7 @@ void register_node_type_sh_bsdf_hair()
   ntype.enum_name_legacy = "BSDF_HAIR";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_hair;
   bke::node_type_size(ntype, 150, 60, 200);

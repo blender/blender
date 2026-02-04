@@ -267,13 +267,13 @@ void gpu_batch_presets_exit()
   while (LinkData *link = static_cast<LinkData *>(BLI_pophead(&presets_list))) {
     gpu::Batch *preset = static_cast<gpu::Batch *>(link->data);
     GPU_batch_discard(preset);
-    MEM_freeN(link);
+    MEM_delete(link);
   }
 
   while (LinkData *link = static_cast<LinkData *>(BLI_pophead(&buffer_list))) {
     gpu::StorageBuf *preset = static_cast<gpu::StorageBuf *>(link->data);
     GPU_storagebuf_free(preset);
-    MEM_freeN(link);
+    MEM_delete(link);
   }
 
   /* Reset pointers to null for subsequent initializations after tear-down. */

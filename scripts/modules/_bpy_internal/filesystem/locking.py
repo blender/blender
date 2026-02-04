@@ -67,7 +67,7 @@ def mutex_lock_and_open(file_path: Path, mode: str) -> tuple[io.IOBase | None, C
     :param: mode MUST be a binary mode, to be compatible with the file locking
         on Windows. So either 'rb' or 'wb'.
 
-    :returns: If the file was opened & locked succesfully, a tuple (file,
+    :returns: If the file was opened & locked successfully, a tuple (file,
         unlocker) is returned. Otherwise returns None. The caller should call
         `unlocker(file)` to unlock the mutex.
     """
@@ -101,7 +101,7 @@ def mutex_lock_and_open(file_path: Path, mode: str) -> tuple[io.IOBase | None, C
     # It is not suitable here to use an 'exclusive create' ('x' option) here.
     # That will still create a race condition, with the space between creation
     # of the file and locking it. So, better to make the existence of the file
-    # meaningless, and only communicate the lock state with an actual filesystem
+    # meaningless, and only communicate the lock state with an actual file-system
     # lock.
     try:
         # Type is ignored here, because the type checker doesn't realize that

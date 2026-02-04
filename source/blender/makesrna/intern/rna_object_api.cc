@@ -794,7 +794,7 @@ void rna_Object_me_eval_info(
     ret = BKE_mesh_debug_info(mesh_eval);
     if (ret) {
       BLI_strncpy(result, ret, MESH_DM_INFO_STR_MAX);
-      MEM_freeN(ret);
+      MEM_delete(ret);
     }
   }
 }

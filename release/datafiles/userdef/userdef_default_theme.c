@@ -371,6 +371,7 @@ const bTheme U_theme_default = {
     .header_text = RGBA(0xeeeeeeff),
     .header_text_hi = RGBA(0xffffffff),
     .grid = RGBA(0x54545480),
+    .grid_major = RGBA(0x545454ff),
     .wire = RGBA(0x000000ff),
     .wire_edit = RGBA(0x000000ff),
     .select = RGBA(0xed5700ff),

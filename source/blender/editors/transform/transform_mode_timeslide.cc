@@ -179,7 +179,7 @@ static void initTimeSlide(TransInfo *t, wmOperator * /*op*/)
   {
     Scene *scene = t->scene;
     float *range;
-    t->custom.mode.data = range = MEM_malloc_arrayN<float>(2, "TimeSlide Min/Max");
+    t->custom.mode.data = range = MEM_new_array_uninitialized<float>(2, "TimeSlide Min/Max");
     t->custom.mode.use_free = true;
 
     float min = 999999999.0f, max = -999999999.0f;

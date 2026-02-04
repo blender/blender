@@ -66,7 +66,7 @@ namespace io::usd {
 namespace utils {
 
 static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim,
-                                                    eUSDMtlPurpose mtl_purpose)
+                                                    MtlPurpose mtl_purpose)
 {
   const pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim);
 
@@ -76,17 +76,17 @@ static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim,
 
   pxr::UsdShadeMaterial mtl;
   switch (mtl_purpose) {
-    case USD_MTL_PURPOSE_FULL:
+    case MtlPurpose::Full:
       mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->full);
       if (!mtl) {
         /* Add an additional Blender-specific fallback to help with oddly authored USD files. */
         mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
       }
       break;
-    case USD_MTL_PURPOSE_PREVIEW:
+    case MtlPurpose::Preview:
       mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
       break;
-    case USD_MTL_PURPOSE_ALL:
+    case MtlPurpose::All:
       mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->allPurpose);
       break;
   }
@@ -142,7 +142,7 @@ static void assign_materials(Main *bmain,
 
       settings.mat_name_to_mat.add_new(assigned_mat->id.name + 2, assigned_mat);
 
-      if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+      if (params.mtl_name_collision_mode == MtlNameCollisionMode::MakeUnique) {
         /* Record the Blender material we created for the USD material with the given path. */
         settings.usd_path_to_mat.add_new(item.key, assigned_mat);
       }

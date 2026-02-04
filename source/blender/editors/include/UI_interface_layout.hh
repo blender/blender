@@ -101,6 +101,14 @@ enum class NodeAssetMenuOperatorType : int8_t {
   Swap,
 };
 
+/**
+ * Panel popup draw direction.
+ */
+enum class PopupAttachDirection : int8_t {
+  Vertical = 0,
+  Horizontal = 1,
+};
+
 enum class EnumTabExpand {
   Default = 0,
   Row,
@@ -570,7 +578,8 @@ struct Layout : public Item, NonCopyable, NonMovable {
   void popover(const bContext *C,
                StringRef panel_type,
                std::optional<StringRef> name_opt,
-               int icon);
+               int icon,
+               PopupAttachDirection direction = PopupAttachDirection::Vertical);
   void popover_group(
       bContext *C, int space_id, int region_id, const char *context, const char *category);
 
@@ -903,17 +912,15 @@ ENUM_OPERATORS(eUI_Item_Flag)
  */
 bool block_apply_search_filter(Block *block, const char *search_filter);
 
-void uiLayoutSetFunc(Layout *layout, MenuHandleFunc handlefunc, void *argv);
-
 /**
  * Set tooltip function for all buttons in the layout.
  * func, arg and free_arg are passed on to button_func_tooltip_set, so their meaning is the same.
  *
  * \param func: The callback function that gets called to get tooltip content
  * \param arg: An optional opaque pointer that gets passed to func
- * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_freeN)
+ * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_delete)
  * \param copy_arg: An optional callback for duplicating arg in case button_func_tooltip_set
- * is being called on multiple buttons (can be set to e.g. MEM_dupallocN). If set to NULL, arg will
+ * is being called on multiple buttons (can be set to e.g. MEM_dupalloc). If set to NULL, arg will
  * be passed as-is to all buttons.
  */
 void uiLayoutSetTooltipFunc(

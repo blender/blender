@@ -107,6 +107,19 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     world_clip_buf_.plane = probe.reflection_clip_plane_get();
     world_clip_buf_.push_update();
 
+    RenderBuffers &rbufs = inst_.render_buffers;
+
+    const bool with_raycast = inst_.pipelines.has_raycast;
+    res.prepass_fb.ensure(
+        GPU_ATTACHMENT_TEXTURE(depth_tx_),
+        with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.prepass_normal_tx) : GPU_ATTACHMENT_NONE,
+        with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.object_id_tx) : GPU_ATTACHMENT_NONE,
+        GPU_ATTACHMENT_NONE /* motion vectors */);
+    if (with_raycast) {
+      rbufs.object_id_tx.clear(uint4(0));
+      rbufs.prepass_normal_tx.clear(float4(0.0f));
+    }
+
     gbuf.acquire(extent,
                  inst_.pipelines.deferred.header_layer_count(),
                  inst_.pipelines.deferred.closure_layer_count(),
@@ -122,8 +135,12 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0));
 
-    inst_.pipelines.planar.render(
-        res.view, depth_tx_.layer_view(resource_index), res.gbuffer_fb, res.combined_fb, extent);
+    inst_.pipelines.planar.render(res.view,
+                                  depth_tx_.layer_view(resource_index),
+                                  res.prepass_fb,
+                                  res.gbuffer_fb,
+                                  res.combined_fb,
+                                  extent);
 
     if (do_display_draw_ && probe.viewport_display) {
       display_data_buf_.get_or_resize(display_index++) = {probe.plane_to_world, resource_index};

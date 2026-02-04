@@ -316,7 +316,8 @@ void mesh_calc_edges(Mesh &mesh,
   IndexRange back_range_of_new_edges;
   IndexMask src_to_dst_mask;
 
-  MutableSpan<int2> edge_verts(MEM_malloc_arrayN<int2>(result_edges_num, AT), result_edges_num);
+  MutableSpan<int2> edge_verts(MEM_new_array_uninitialized<int2>(result_edges_num, AT),
+                               result_edges_num);
 #ifndef NDEBUG
   edge_verts.fill(int2(-1));
 #endif
@@ -528,7 +529,7 @@ void mesh_calc_edges(Mesh &mesh,
       CustomDataLayer &layer = mesh.edge_data.layers[orig_index_layer];
       const int *src_data = static_cast<const int *>(layer.data);
 
-      int *dst_data = MEM_malloc_arrayN<int>(result_edges_num, __func__);
+      int *dst_data = MEM_new_array_uninitialized<int>(result_edges_num, __func__);
       MutableSpan dst(dst_data, result_edges_num);
       if (src_data != nullptr) {
         const Span src(src_data, mesh.edges_num);
@@ -550,10 +551,7 @@ void mesh_calc_edges(Mesh &mesh,
     dst_attributes.remove(".select_edge");
     if (ELEM(back_range_of_new_edges.size(), 0, mesh.edges_num)) {
       const bool fill_value = back_range_of_new_edges.size() == mesh.edges_num;
-      dst_attributes.add<bool>(
-          ".select_edge",
-          AttrDomain::Edge,
-          AttributeInitVArray(VArray<bool>::from_single(fill_value, mesh.edges_num)));
+      dst_attributes.add<bool>(".select_edge", AttrDomain::Edge, AttributeInitValue(fill_value));
     }
     else {
       SpanAttributeWriter<bool> select_edge = dst_attributes.lookup_or_add_for_write_span<bool>(

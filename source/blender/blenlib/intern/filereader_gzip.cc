@@ -22,7 +22,7 @@ struct GzipReader {
 
   z_stream strm;
 
-  void *in_buf;
+  Bytef *in_buf;
   size_t in_size;
 };
 
@@ -41,7 +41,7 @@ static int64_t gzip_read(FileReader *reader, void *buffer, size_t size)
       if (readsize > 0) {
         /* We got some data, so mark the buffer as refilled. */
         gzip->strm.avail_in = readsize;
-        gzip->strm.next_in = static_cast<Bytef *>(gzip->in_buf);
+        gzip->strm.next_in = gzip->in_buf;
       }
       else {
         /* The underlying file is EOF, so return as much as we can. */
@@ -68,24 +68,24 @@ static void gzip_close(FileReader *reader)
   if (inflateEnd(&gzip->strm) != Z_OK) {
     printf("close gzip stream error\n");
   }
-  MEM_freeN(gzip->in_buf);
+  MEM_delete(gzip->in_buf);
 
   gzip->base->close(gzip->base);
-  MEM_freeN(gzip);
+  MEM_delete(gzip);
 }
 
 FileReader *BLI_filereader_new_gzip(FileReader *base)
 {
-  GzipReader *gzip = MEM_callocN<GzipReader>(__func__);
+  GzipReader *gzip = MEM_new_zeroed<GzipReader>(__func__);
   gzip->base = base;
 
   if (inflateInit2(&gzip->strm, 16 + MAX_WBITS) != Z_OK) {
-    MEM_freeN(gzip);
+    MEM_delete(gzip);
     return nullptr;
   }
 
   gzip->in_size = 256 * 2014;
-  gzip->in_buf = MEM_mallocN(gzip->in_size, "gzip in buf");
+  gzip->in_buf = MEM_new_array_uninitialized<Bytef>(gzip->in_size, "gzip in buf");
 
   gzip->reader.read = gzip_read;
   gzip->reader.seek = nullptr;

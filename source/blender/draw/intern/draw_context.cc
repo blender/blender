@@ -375,7 +375,7 @@ const Mesh *DRW_object_get_editmesh_cage_for_drawing(const Object &object)
 
 DRWData *DRW_viewport_data_create()
 {
-  DRWData *drw_data = MEM_callocN<DRWData>("DRWData");
+  DRWData *drw_data = MEM_new_zeroed<DRWData>("DRWData");
 
   drw_data->default_view = new draw::View("DrawDefaultView");
 
@@ -414,7 +414,7 @@ void DRW_viewport_data_free(DRWData *drw_data)
   DRW_pointcloud_module_free(drw_data->pointcloud_module);
   DRW_curves_module_free(drw_data->curves_module);
   delete drw_data->default_view;
-  MEM_freeN(drw_data);
+  MEM_delete(drw_data);
 }
 
 static DRWData *drw_viewport_data_ensure(GPUViewport *viewport)
@@ -509,6 +509,11 @@ draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name)
 {
   return *drw_get().view_data_active->viewport_compositor_passes.lookup_or_add_cb(
       pass_name, [&]() { return std::make_unique<draw::TextureFromPool>(pass_name); });
+}
+
+bool DRW_viewport_pass_texture_exists(const char *pass_name)
+{
+  return drw_get().view_data_active->viewport_compositor_passes.contains(pass_name);
 }
 
 void DRW_viewport_request_redraw()

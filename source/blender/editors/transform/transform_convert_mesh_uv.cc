@@ -132,7 +132,7 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
   }
 
   /* Need to be very careful of feedback loops here, store previous dist's to avoid feedback. */
-  float *dists_prev = static_cast<float *>(MEM_dupallocN(dists));
+  float *dists_prev = MEM_dupalloc(dists);
 
   do {
     while ((l = BLI_LINKSTACK_POP(queue))) {
@@ -240,7 +240,7 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
 
-  MEM_freeN(dists_prev);
+  MEM_delete(dists_prev);
 #undef TMP_LOOP_SELECT_TAG
 }
 
@@ -280,7 +280,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         continue;
       }
 
-      island_center = MEM_calloc_arrayN<IslandCenter>(elementmap->total_islands, __func__);
+      island_center = MEM_new_array_zeroed<IslandCenter>(elementmap->total_islands, __func__);
     }
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -333,10 +333,10 @@ static void createTransUVs(bContext *C, TransInfo *t)
     }
 
     tc->data_len = (is_prop_edit) ? count : countsel;
-    tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransObData(UV Editing)");
+    tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransObData(UV Editing)");
     /* For each 2d uv coord a 3d vector is allocated, so that they can be
      * treated just as if they were 3d verts. */
-    tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransObData2D(UV Editing)");
+    tc->data_2d = MEM_new_array_zeroed<TransData2D>(tc->data_len, "TransObData2D(UV Editing)");
 
     if (sima->flag & SI_CLIP_UV) {
       t->flag |= T_CLIP_UV;
@@ -346,7 +346,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
     td2d = tc->data_2d;
 
     if (is_prop_connected) {
-      prop_dists = MEM_calloc_arrayN<float>(em->bm->totloop, "TransObPropDists(UV Editing)");
+      prop_dists = MEM_new_array_zeroed<float>(em->bm->totloop, "TransObPropDists(UV Editing)");
 
       uv_set_connectivity_distance(t->settings, em->bm, prop_dists, t->aspect);
     }
@@ -392,12 +392,12 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
   finally:
     if (is_prop_connected) {
-      MEM_SAFE_FREE(prop_dists);
+      MEM_SAFE_DELETE(prop_dists);
     }
     if (is_island_center) {
       BM_uv_element_map_free(elementmap);
 
-      MEM_freeN(island_center);
+      MEM_delete(island_center);
     }
   }
 }

@@ -97,6 +97,7 @@ void register_node_type_sh_bsdf_sheen()
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.initfunc = file_ns::node_shader_init_sheen;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_sheen;
   ntype.draw_buttons = file_ns::node_shader_buts_sheen;

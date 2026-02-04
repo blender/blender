@@ -36,7 +36,7 @@ static GeometrySet::GatheredAttributes get_final_attribute_info(
 }
 
 static void fill_new_attribute(const Span<const GeometryComponent *> src_components,
-                               const StringRef attribute_id,
+                               const StringRef name,
                                const bke::AttrType data_type,
                                const bke::AttrDomain domain,
                                GMutableSpan dst_span)
@@ -50,7 +50,7 @@ static void fill_new_attribute(const Span<const GeometryComponent *> src_compone
       continue;
     }
     GVArray read_attribute = *component->attributes()->lookup_or_default(
-        attribute_id, domain, data_type, nullptr);
+        name, domain, data_type, nullptr);
 
     GVArraySpan src_span{read_attribute};
     const void *src_buffer = src_span.data();
@@ -69,17 +69,17 @@ void join_attributes(const Span<const GeometryComponent *> src_components,
                                                                         ignored_attributes);
 
   for (const int i : info.names.index_range()) {
-    const StringRef attribute_id = info.names[i];
+    const StringRef name = info.names[i];
     const AttributeDomainAndType &meta_data = info.kinds[i];
 
     bke::GSpanAttributeWriter write_attribute =
         result.attributes_for_write()->lookup_or_add_for_write_only_span(
-            attribute_id, meta_data.domain, meta_data.data_type);
+            name, meta_data.domain, meta_data.data_type);
     if (!write_attribute) {
       continue;
     }
     fill_new_attribute(
-        src_components, attribute_id, meta_data.data_type, meta_data.domain, write_attribute.span);
+        src_components, name, meta_data.data_type, meta_data.domain, write_attribute.span);
     write_attribute.finish();
   }
 }

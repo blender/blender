@@ -71,7 +71,6 @@ struct CCLShadowContext : public RTCRayQueryContext {
   IntegratorShadowState isect_s;
   float throughput;
   float max_t;
-  bool opaque_hit;
   numhit_t max_transparent_hits;
   numhit_t num_transparent_hits;
   numhit_t num_recorded_hits;
@@ -285,7 +284,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
   /* If no transparent shadows, all light is blocked. */
   const int flags = intersection_get_shader_flags(kg, current_isect.prim, current_isect.type);
   if ((flags & SD_HAS_TRANSPARENT_SHADOW) == 0) {
-    ctx->opaque_hit = true;
+    ctx->throughput = 0.0f;
     return;
   }
 
@@ -300,7 +299,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
   ctx->num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
   if (ctx->num_transparent_hits > ctx->max_transparent_hits) {
     /* Max number of hits exceeded. */
-    ctx->opaque_hit = true;
+    ctx->throughput = 0.0f;
     return;
   }
 
@@ -310,13 +309,11 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
         kg, current_isect.object, current_isect.prim, current_isect.type, current_isect.u);
 
     if (ctx->throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-      ctx->opaque_hit = true;
+      ctx->throughput = 0.0f;
       return;
     }
-    else {
-      *args->valid = 0;
-      return;
-    }
+    *args->valid = 0;
+    return;
   }
 
   numhit_t isect_index = ctx->num_recorded_hits;
@@ -690,7 +687,7 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
 #endif
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
+ccl_device_intersect void kernel_embree_intersect_shadow_all(KernelGlobals kg,
                                                              IntegratorShadowState state,
                                                              const ccl_private Ray *ray,
                                                              const uint visibility,
@@ -711,7 +708,6 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
 #  endif
   ctx.num_transparent_hits = ctx.num_recorded_hits = numhit_t(0);
   ctx.throughput = 1.0f;
-  ctx.opaque_hit = false;
   ctx.isect_s = state;
   ctx.max_transparent_hits = numhit_t(max_transparent_hits);
   ctx.max_t = ray->tmax;
@@ -728,7 +724,6 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
 
   *num_recorded_hits = ctx.num_recorded_hits;
   *throughput = ctx.throughput;
-  return ctx.opaque_hit;
 }
 #endif
 

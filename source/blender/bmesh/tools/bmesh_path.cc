@@ -144,8 +144,8 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
 
   /* Allocate. */
   totvert = bm->totvert;
-  verts_prev = MEM_calloc_arrayN<BMVert *>(totvert, __func__);
-  cost = MEM_malloc_arrayN<float>(totvert, __func__);
+  verts_prev = MEM_new_array_zeroed<BMVert *>(totvert, __func__);
+  cost = MEM_new_array_uninitialized<float>(totvert, __func__);
 
   copy_vn_fl(cost, totvert, COST_INIT_MAX);
 
@@ -184,8 +184,8 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
     } while ((v = verts_prev[BM_elem_index_get(v)]));
   }
 
-  MEM_freeN(verts_prev);
-  MEM_freeN(cost);
+  MEM_delete(verts_prev);
+  MEM_delete(cost);
   BLI_heapsimple_free(heap, nullptr);
 
   return path;
@@ -335,8 +335,8 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
 
   /* Allocate. */
   totedge = bm->totedge;
-  edges_prev = MEM_calloc_arrayN<BMEdge *>(totedge, __func__);
-  cost = MEM_malloc_arrayN<float>(totedge, __func__);
+  edges_prev = MEM_new_array_zeroed<BMEdge *>(totedge, __func__);
+  cost = MEM_new_array_uninitialized<float>(totedge, __func__);
 
   copy_vn_fl(cost, totedge, COST_INIT_MAX);
 
@@ -381,8 +381,8 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
     } while ((e = edges_prev[BM_elem_index_get(e)]));
   }
 
-  MEM_freeN(edges_prev);
-  MEM_freeN(cost);
+  MEM_delete(edges_prev);
+  MEM_delete(cost);
   BLI_heapsimple_free(heap, nullptr);
 
   return path;
@@ -542,8 +542,8 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
 
   /* Allocate. */
   totface = bm->totface;
-  faces_prev = MEM_calloc_arrayN<BMFace *>(totface, __func__);
-  cost = MEM_malloc_arrayN<float>(totface, __func__);
+  faces_prev = MEM_new_array_zeroed<BMFace *>(totface, __func__);
+  cost = MEM_new_array_uninitialized<float>(totface, __func__);
 
   copy_vn_fl(cost, totface, COST_INIT_MAX);
 
@@ -582,8 +582,8 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
     } while ((f = faces_prev[BM_elem_index_get(f)]));
   }
 
-  MEM_freeN(faces_prev);
-  MEM_freeN(cost);
+  MEM_delete(faces_prev);
+  MEM_delete(cost);
   BLI_heapsimple_free(heap, nullptr);
 
   return path;

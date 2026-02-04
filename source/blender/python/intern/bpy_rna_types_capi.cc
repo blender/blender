@@ -123,7 +123,7 @@ static PyObject *pyrna_WindowManager_clipboard_get(PyObject * /*self*/, void * /
   char *text = WM_clipboard_text_get(false, false, &text_len);
   PyObject *result = PyC_UnicodeFromBytesAndSize(text ? text : "", text_len);
   if (text != nullptr) {
-    MEM_freeN(text);
+    MEM_delete(text);
   }
   return result;
 }

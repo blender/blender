@@ -816,7 +816,7 @@ short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
     return 0;
   }
 
-  CfraElem *ce = MEM_callocN<CfraElem>("cfraElem");
+  CfraElem *ce = MEM_new_zeroed<CfraElem>("cfraElem");
   BLI_addtail(&ked->cfra_elem_list, ce);
 
   /* bAnimListElem so we can do NLA mapping, we want the cfra to be in "global" time */

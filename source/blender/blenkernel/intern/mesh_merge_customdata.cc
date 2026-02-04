@@ -106,6 +106,9 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *mesh)
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   Vector<SpanAttributeWriter<float2>> uv_map_attrs;
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     if (iter.data_type != AttrType::Float2) {
       return;
     }

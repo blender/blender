@@ -1011,11 +1011,7 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
       queue->get_device().get_info<sycl::info::device::device_type>();
   sycl::usm::alloc usm_type = get_pointer_type(usm_ptr, queue->get_context());
   (void)usm_type;
-#    ifndef WITH_ONEAPI_SYCL_HOST_TASK
   const sycl::usm::alloc main_memory_type = sycl::usm::alloc::device;
-#    else
-  const sycl::usm::alloc main_memory_type = sycl::usm::alloc::host;
-#    endif
   assert(usm_type == main_memory_type ||
          (usm_type == sycl::usm::alloc::host &&
           (allow_host || device_type == sycl::info::device_type::cpu)) ||
@@ -1111,11 +1107,7 @@ void *OneapiDevice::usm_alloc_device(SyclQueue *queue_, size_t memory_size)
    * two different pointer for host activity and device activity, and also has to perform all
    * needed memory transfer operations. So, USM device memory type has been used for oneAPI device
    * in order to better fit in Cycles architecture. */
-#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
   return sycl::malloc_device(memory_size, *queue);
-#  else
-  return sycl::malloc_host(memory_size, *queue);
-#  endif
 }
 
 void OneapiDevice::usm_free(SyclQueue *queue_, void *usm_ptr)
@@ -1366,22 +1358,6 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
    * we extend work size to fit uniformity requirements. */
   kernel_global_size = round_up(kernel_global_size, kernel_local_size);
 
-#  ifdef WITH_ONEAPI_SYCL_HOST_TASK
-  /* Kernels listed below need a specific number of work groups. */
-  if (kernel == DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY)
-  {
-    /* Path array implementation is serial in case of SYCL Host Task execution. */
-    kernel_global_size = 1;
-    kernel_local_size = 1;
-  }
-#  endif
-
   assert(kernel_global_size % kernel_local_size == 0);
 }
 
@@ -1625,31 +1601,43 @@ void OneapiDevice::architecture_information(const SyclDevice *device,
     FILL_ARCH_INFO(intel_gpu_kbl, false)
     FILL_ARCH_INFO(intel_gpu_cfl, false)
     FILL_ARCH_INFO(intel_gpu_apl, false)
+    /* intel_gpu_bxt == intel_gpu_apl */
     FILL_ARCH_INFO(intel_gpu_glk, false)
     FILL_ARCH_INFO(intel_gpu_whl, false)
     FILL_ARCH_INFO(intel_gpu_aml, false)
     FILL_ARCH_INFO(intel_gpu_cml, false)
     FILL_ARCH_INFO(intel_gpu_icllp, false)
+    /* intel_gpu_icl == intel_gpu_icllp */
     FILL_ARCH_INFO(intel_gpu_ehl, false)
+    /* intel_gpu_jsl == intel_gpu_ehl */
     FILL_ARCH_INFO(intel_gpu_tgllp, false)
+    /* intel_gpu_tgl == intel_gpu_tgllp */
     FILL_ARCH_INFO(intel_gpu_rkl, false)
     FILL_ARCH_INFO(intel_gpu_adl_s, false)
+    /* intel_gpu_rpl_s == intel_gpu_adl_s */
     FILL_ARCH_INFO(intel_gpu_adl_p, false)
     FILL_ARCH_INFO(intel_gpu_adl_n, false)
     FILL_ARCH_INFO(intel_gpu_dg1, false)
-    FILL_ARCH_INFO(intel_gpu_dg2_g10, true)
-    FILL_ARCH_INFO(intel_gpu_dg2_g11, true)
-    FILL_ARCH_INFO(intel_gpu_dg2_g12, true)
+    FILL_ARCH_INFO(intel_gpu_acm_g10, true)
+    /* intel_gpu_dg2_g10 == intel_gpu_acm_g10 */
+    FILL_ARCH_INFO(intel_gpu_acm_g11, true)
+    /* intel_gpu_dg2_g11 == intel_gpu_acm_g11 */
+    FILL_ARCH_INFO(intel_gpu_acm_g12, true)
+    /* intel_gpu_dg2_g12 == intel_gpu_acm_g12 */
     FILL_ARCH_INFO(intel_gpu_pvc, false)
     FILL_ARCH_INFO(intel_gpu_pvc_vg, false)
-    /* intel_gpu_mtl_u == intel_gpu_mtl_s == intel_gpu_arl_u == intel_gpu_arl_s */
     FILL_ARCH_INFO(intel_gpu_mtl_u, true)
+    /* intel_gpu_mtl_s == intel_gpu_mtl_u */
+    /* intel_gpu_arl_u == intel_gpu_mtl_u */
+    /* intel_gpu_arl_s == intel_gpu_mtl_u */
     FILL_ARCH_INFO(intel_gpu_mtl_h, true)
+    FILL_ARCH_INFO(intel_gpu_arl_h, true)
     FILL_ARCH_INFO(intel_gpu_bmg_g21, true)
     FILL_ARCH_INFO(intel_gpu_bmg_g31, true)
     FILL_ARCH_INFO(intel_gpu_lnl_m, true)
     FILL_ARCH_INFO(intel_gpu_ptl_h, true)
     FILL_ARCH_INFO(intel_gpu_ptl_u, true)
+    FILL_ARCH_INFO(intel_gpu_wcl, true)
 
     default:
       name = "unknown";
@@ -1664,11 +1652,7 @@ char *OneapiDevice::device_capabilities()
 
   const std::vector<sycl::device> &oneapi_devices = available_sycl_devices();
   for (const sycl::device &device : oneapi_devices) {
-#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
     const std::string &name = device.get_info<sycl::info::device::name>();
-#  else
-    const std::string &name = "SYCL Host Task (Debug)";
-#  endif
 
     capabilities << std::string("\t") << name << "\n";
     capabilities << "\t\tsycl::info::platform::name\t\t\t"
@@ -1785,11 +1769,7 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
   for (sycl::device &device : devices) {
     const std::string &platform_name =
         device.get_platform().get_info<sycl::info::platform::name>();
-#  ifndef WITH_ONEAPI_SYCL_HOST_TASK
     std::string name = device.get_info<sycl::info::device::name>();
-#  else
-    std::string name = "SYCL Host Task (Debug)";
-#  endif
 #  ifdef WITH_EMBREE_GPU
     bool hwrt_support = rtcIsSYCLDeviceSupported(device);
 #  else

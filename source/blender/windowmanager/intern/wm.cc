@@ -270,7 +270,7 @@ void WM_operator_free(wmOperator *op)
 
   if (op->reports && (op->reports->flag & RPT_FREE)) {
     BKE_reports_free(op->reports);
-    MEM_freeN(op->reports);
+    MEM_delete(op->reports);
   }
 
   if (op->macro.first) {
@@ -281,7 +281,7 @@ void WM_operator_free(wmOperator *op)
     }
   }
 
-  MEM_freeN(op);
+  MEM_delete(op);
 }
 
 void WM_operator_free_all_after(wmWindowManager *wm, wmOperator *op)

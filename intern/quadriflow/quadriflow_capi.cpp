@@ -201,8 +201,8 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
   qrd->out_totverts = field.O_compact.size();
   qrd->out_totfaces = field.F_compact.size();
 
-  qrd->out_verts = MEM_malloc_arrayN<float>(qrd->out_totverts * 3, __func__);
-  qrd->out_faces = MEM_malloc_arrayN<int>(qrd->out_totfaces * 4, __func__);
+  qrd->out_verts = MEM_new_array_uninitialized<float>(qrd->out_totverts * 3, __func__);
+  qrd->out_faces = MEM_new_array_uninitialized<int>(qrd->out_totfaces * 4, __func__);
 
   for (int i = 0; i < qrd->out_totverts; i++) {
     auto t = field.O_compact[i] * field.normalize_scale + field.normalize_offset;

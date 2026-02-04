@@ -45,8 +45,9 @@ template<typename CoordT> inline KDTree<CoordT> *kdtree_new(uint nodes_len_capac
 {
   KDTree<CoordT> *tree;
 
-  tree = MEM_callocN<KDTree<CoordT>>("KDTree");
-  tree->nodes = MEM_malloc_arrayN<KDTreeNode<CoordT>>(nodes_len_capacity, "KDTreeNode<>");
+  tree = MEM_new_zeroed<KDTree<CoordT>>("KDTree");
+  tree->nodes = MEM_new_array_uninitialized<KDTreeNode<CoordT>>(nodes_len_capacity,
+                                                                "KDTreeNode<>");
   tree->nodes_len = 0;
   tree->root = detail::kd_node_root_is_init;
   tree->max_node_index = -1;
@@ -62,8 +63,8 @@ template<typename CoordT> inline KDTree<CoordT> *kdtree_new(uint nodes_len_capac
 template<typename CoordT> inline void kdtree_free(KDTree<CoordT> *tree)
 {
   if (tree) {
-    MEM_freeN(tree->nodes);
-    MEM_freeN(tree);
+    MEM_delete(tree->nodes);
+    MEM_delete(tree);
   }
 }
 
@@ -179,12 +180,12 @@ namespace detail {
 template<typename CoordT>
 static uint *realloc_nodes(uint *stack, uint *stack_len_capacity, const bool is_alloc)
 {
-  uint *stack_new = MEM_malloc_arrayN<uint>(*stack_len_capacity + detail::kd_near_alloc_inc,
-                                            "KDTree.treestack");
+  uint *stack_new = MEM_new_array_uninitialized<uint>(
+      *stack_len_capacity + detail::kd_near_alloc_inc, "KDTree.treestack");
   memcpy(stack_new, stack, *stack_len_capacity * sizeof(uint));
   // memset(stack_new + *stack_len_capacity, 0, sizeof(uint) * detail::kd_near_alloc_inc);
   if (is_alloc) {
-    MEM_freeN(stack);
+    MEM_delete(stack);
   }
   *stack_len_capacity += detail::kd_near_alloc_inc;
   return stack_new;
@@ -289,7 +290,7 @@ inline int kdtree_find_nearest(const KDTree<CoordT> *tree,
   }
 
   if (stack != stack_default) {
-    MEM_freeN(stack);
+    MEM_delete(stack);
   }
 
   return min_node->index;
@@ -396,7 +397,7 @@ inline int kdtree_find_nearest_cb(const KDTree<CoordT> *tree,
   }
 
   if (stack != stack_default) {
-    MEM_freeN(stack);
+    MEM_delete(stack);
   }
 
   if (min_node) {
@@ -557,7 +558,7 @@ inline int kdtree_find_nearest_n_with_len_squared_cb(
   }
 
   if (stack != stack_default) {
-    MEM_freeN(stack);
+    MEM_delete(stack);
   }
 
   return int(nearest_len);
@@ -600,7 +601,7 @@ static void nearest_add_in_range(KDTreeNearest<CoordT> **r_nearest,
   KDTreeNearest<CoordT> *to;
 
   if (UNLIKELY(nearest_index >= *nearest_len_capacity)) {
-    *r_nearest = static_cast<KDTreeNearest<CoordT> *>(MEM_reallocN_id(
+    *r_nearest = static_cast<KDTreeNearest<CoordT> *>(MEM_realloc_uninitialized_id(
         *r_nearest,
         (*nearest_len_capacity += detail::kd_found_alloc_inc) * sizeof(KDTreeNode<CoordT>),
         __func__));
@@ -693,7 +694,7 @@ inline int kdtree_range_search_with_len_squared_cb(
   }
 
   if (stack != stack_default) {
-    MEM_freeN(stack);
+    MEM_delete(stack);
   }
 
   if (nearest_len) {
@@ -788,7 +789,7 @@ inline void kdtree_range_search_cb(const KDTree<CoordT> *tree,
   }
 
   if (stack != stack_default) {
-    MEM_freeN(stack);
+    MEM_delete(stack);
   }
 }
 

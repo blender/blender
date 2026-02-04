@@ -52,7 +52,7 @@ static void node_shader_buts_tangent(ui::Layout &layout, bContext *C, PointerRNA
 
 static void node_shader_init_tangent(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderTangent *attr = MEM_new_for_free<NodeShaderTangent>("NodeShaderTangent");
+  NodeShaderTangent *attr = MEM_new<NodeShaderTangent>("NodeShaderTangent");
   attr->axis = SHD_TANGENT_AXIS_Z;
   node->storage = attr;
 }

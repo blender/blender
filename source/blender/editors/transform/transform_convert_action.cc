@@ -783,8 +783,8 @@ static void createTransActionData(bContext *C, TransInfo *t)
   /* Allocate memory for data. */
   tc->data_len = count;
 
-  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransData(Action Editor)");
-  tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "transdata2d");
+  tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransData(Action Editor)");
+  tc->data_2d = MEM_new_array_zeroed<TransData2D>(tc->data_len, "transdata2d");
   td = tc->data;
   td2d = tc->data_2d;
 

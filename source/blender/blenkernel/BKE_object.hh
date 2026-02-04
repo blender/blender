@@ -412,6 +412,7 @@ bool BKE_object_parent_loop_check(const Object *parent, const Object *ob);
 
 void *BKE_object_tfm_backup(Object *ob);
 void BKE_object_tfm_restore(Object *ob, void *obtfm_pt);
+void BKE_object_tfm_free(void *obtfm_pt);
 
 struct ObjectTfmProtectedChannels {
   float loc[3], dloc[3];

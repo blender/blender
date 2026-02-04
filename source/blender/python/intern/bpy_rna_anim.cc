@@ -430,7 +430,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     result = success_count != 0;
   }
 
-  MEM_freeN(path_full);
+  MEM_delete(path_full);
 
   if (BPy_reports_to_error(&reports, PyExc_RuntimeError, false) == -1) {
     BKE_reports_free(&reports);
@@ -561,7 +561,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
               0);
   }
 
-  MEM_freeN(path_full);
+  MEM_delete(path_full);
 
   if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
     return nullptr;
@@ -642,7 +642,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
     DEG_relations_tag_update(CTX_data_main(context));
   }
 
-  MEM_freeN(path_full);
+  MEM_delete(path_full);
 
   return ret;
 }
@@ -684,7 +684,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
   result = ANIM_remove_driver(self->ptr->owner_id, path_full, index);
 
   if (path != path_full) {
-    MEM_freeN(path_full);
+    MEM_delete(path_full);
   }
 
   if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {

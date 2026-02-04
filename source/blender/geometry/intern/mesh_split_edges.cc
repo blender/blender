@@ -30,23 +30,25 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
   mesh.attribute_storage.wrap().resize(bke::AttrDomain::Point, mesh.verts_num);
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  for (const StringRef id : attributes.all_ids()) {
-    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(id);
-    if (meta_data.domain != bke::AttrDomain::Point) {
-      continue;
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
     }
-    if (meta_data.data_type == bke::AttrType::String) {
-      continue;
+    if (iter.domain != bke::AttrDomain::Point) {
+      return;
     }
-    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    if (iter.data_type == bke::AttrType::String) {
+      return;
+    }
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     if (!attribute) {
-      continue;
+      return;
     }
     bke::attribute_math::gather(attribute.span,
                                 new_to_old_verts_map,
                                 attribute.span.take_back(new_to_old_verts_map.size()));
     attribute.finish();
-  }
+  });
   if (float3 *orco = static_cast<float3 *>(
           CustomData_get_layer_for_write(&mesh.vert_data, CD_ORCO, mesh.verts_num)))
   {
@@ -71,26 +73,28 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
   mesh.attribute_storage.wrap().resize(bke::AttrDomain::Edge, mesh.edges_num);
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  for (const StringRef id : attributes.all_ids()) {
-    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(id);
-    if (meta_data.domain != bke::AttrDomain::Edge) {
-      continue;
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
     }
-    if (meta_data.data_type == bke::AttrType::String) {
-      continue;
+    if (iter.domain != bke::AttrDomain::Edge) {
+      return;
     }
-    if (id == ".edge_verts") {
+    if (iter.data_type == bke::AttrType::String) {
+      return;
+    }
+    if (iter.name == ".edge_verts") {
       /* Edge vertices are updated and combined with new edges separately. */
-      continue;
+      return;
     }
-    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+    bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     if (!attribute) {
-      continue;
+      return;
     }
     bke::attribute_math::gather(
         attribute.span, new_to_old_edge_map, attribute.span.take_back(new_to_old_edge_map.size()));
     attribute.finish();
-  }
+  });
 
   if (int *orig_indices = static_cast<int *>(
           CustomData_get_layer_for_write(&mesh.edge_data, CD_ORIGINDEX, mesh.edges_num)))

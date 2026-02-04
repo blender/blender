@@ -116,10 +116,11 @@ static void splineik_init_tree_from_pchan(Scene * /*scene*/,
 
     /* Setup new empty array for the points list. */
     if (ik_data->points) {
-      MEM_freeN(ik_data->points);
+      MEM_delete(ik_data->points);
     }
     ik_data->numpoints = ik_data->chainlen + 1;
-    ik_data->points = MEM_malloc_arrayN<float>(size_t(ik_data->numpoints), "Spline IK Binding");
+    ik_data->points = MEM_new_array_uninitialized<float>(size_t(ik_data->numpoints),
+                                                         "Spline IK Binding");
 
     /* Bind 'tip' of chain (i.e. first joint = tip of bone with the Spline IK Constraint). */
     ik_data->points[0] = 1.0f;
@@ -155,14 +156,14 @@ static void splineik_init_tree_from_pchan(Scene * /*scene*/,
    * since that would take precedence... */
   {
     /* Make a new tree. */
-    tSplineIK_Tree *tree = MEM_callocN<tSplineIK_Tree>("SplineIK Tree");
+    tSplineIK_Tree *tree = MEM_new_zeroed<tSplineIK_Tree>("SplineIK Tree");
     tree->type = CONSTRAINT_TYPE_SPLINEIK;
 
     tree->chainlen = segcount;
     tree->totlength = totlength;
 
     /* Copy over the array of links to bones in the chain (from tip to root). */
-    tree->chain = MEM_malloc_arrayN<bPoseChannel *>(size_t(segcount), "SplineIK Chain");
+    tree->chain = MEM_new_array_uninitialized<bPoseChannel *>(size_t(segcount), "SplineIK Chain");
     memcpy(tree->chain, pchan_chain, sizeof(bPoseChannel *) * segcount);
 
     /* Store reference to joint position array. */
@@ -769,7 +770,7 @@ static void splineik_execute_tree(
 
     /* free the tree info specific to SplineIK trees now */
     if (tree->chain) {
-      MEM_freeN(tree->chain);
+      MEM_delete(tree->chain);
     }
 
     /* free this tree */
@@ -792,9 +793,10 @@ void BKE_splineik_execute_tree(
 
 void BKE_pose_pchan_index_rebuild(bPose *pose)
 {
-  MEM_SAFE_FREE(pose->chan_array);
+  MEM_SAFE_DELETE(pose->chan_array);
   const int num_channels = BLI_listbase_count(&pose->chanbase);
-  pose->chan_array = MEM_malloc_arrayN<bPoseChannel *>(size_t(num_channels), "pose->chan_array");
+  pose->chan_array = MEM_new_array_uninitialized<bPoseChannel *>(size_t(num_channels),
+                                                                 "pose->chan_array");
   int pchan_index = 0;
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan != nullptr;
        pchan = pchan->next)

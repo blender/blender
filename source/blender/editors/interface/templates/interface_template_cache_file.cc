@@ -87,7 +87,7 @@ static void cache_file_layer_item(uiList * /*ui_list*/,
 
 uiListType *UI_UL_cache_file_layers()
 {
-  uiListType *list_type = MEM_callocN<uiListType>(__func__);
+  uiListType *list_type = MEM_new_zeroed<uiListType>(__func__);
 
   STRNCPY_UTF8(list_type->idname, "UI_UL_cache_file_layers");
   list_type->draw_item = cache_file_layer_item;

@@ -29,6 +29,7 @@ GHOST_ContextWGL::GHOST_ContextWGL(const GHOST_ContextParams &context_params,
                                    bool alphaBackground,
                                    HWND hWnd,
                                    HDC hDC,
+                                   bool own_window_handle,
                                    int contextProfileMask,
                                    int contextMajorVersion,
                                    int contextMinorVersion,
@@ -37,6 +38,7 @@ GHOST_ContextWGL::GHOST_ContextWGL(const GHOST_ContextParams &context_params,
     : GHOST_Context(context_params),
       h_wnd_(hWnd),
       h_DC_(hDC),
+      own_window_handle_(own_window_handle),
       context_profile_mask_(contextProfileMask),
       context_major_version_(contextMajorVersion),
       context_minor_version_(contextMinorVersion),
@@ -73,6 +75,8 @@ GHOST_ContextWGL::~GHOST_ContextWGL()
       WIN32_CHK(::wglDeleteContext(h_GLRC_));
     }
   }
+
+  releaseNativeHandles();
 
 #ifndef NDEBUG
   if (dummy_renderer_) {
@@ -670,6 +674,15 @@ GHOST_TSuccess GHOST_ContextWGL::releaseNativeHandles()
 {
   GHOST_TSuccess success = h_GLRC_ != s_sharedHGLRC || s_sharedCount == 1 ? GHOST_kSuccess :
                                                                             GHOST_kFailure;
+
+  if (own_window_handle_) {
+    if (h_DC_ != nullptr) {
+      WIN32_CHK(::ReleaseDC(h_wnd_, h_DC_));
+    }
+    if (h_wnd_ != nullptr) {
+      WIN32_CHK(::DestroyWindow(h_wnd_));
+    }
+  }
 
   h_wnd_ = nullptr;
   h_DC_ = nullptr;

@@ -245,7 +245,7 @@ static void image_panel_uv(const bContext *C, Panel *panel)
 
 void ED_uvedit_buttons_register(ARegionType *art)
 {
-  PanelType *pt = MEM_callocN<PanelType>(__func__);
+  PanelType *pt = MEM_new_zeroed<PanelType>(__func__);
 
   STRNCPY_UTF8(pt->idname, "IMAGE_PT_uv");
   STRNCPY_UTF8(pt->label, N_("UV Vertex")); /* XXX C panels unavailable through RNA bpy.types! */

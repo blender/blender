@@ -50,8 +50,8 @@ static void init_data(ModifierData *md)
   ClothModifierData *clmd = reinterpret_cast<ClothModifierData *>(md);
 
   INIT_DEFAULT_STRUCT_AFTER(clmd, modifier);
-  clmd->sim_parms = MEM_new_for_free<ClothSimSettings>(__func__);
-  clmd->coll_parms = MEM_new_for_free<ClothCollSettings>(__func__);
+  clmd->sim_parms = MEM_new<ClothSimSettings>(__func__);
+  clmd->coll_parms = MEM_new<ClothCollSettings>(__func__);
 
   clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
 
@@ -156,13 +156,13 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
   if (tclmd->sim_parms) {
     if (tclmd->sim_parms->effector_weights) {
-      MEM_freeN(tclmd->sim_parms->effector_weights);
+      MEM_delete(tclmd->sim_parms->effector_weights);
     }
-    MEM_freeN(tclmd->sim_parms);
+    MEM_delete(tclmd->sim_parms);
   }
 
   if (tclmd->coll_parms) {
-    MEM_freeN(tclmd->coll_parms);
+    MEM_delete(tclmd->coll_parms);
   }
 
   BKE_ptcache_free_list(&tclmd->ptcaches);
@@ -179,12 +179,12 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
         BLI_findlink(&tclmd->ptcaches, clmd_point_cache_index));
   }
 
-  tclmd->sim_parms = static_cast<ClothSimSettings *>(MEM_dupallocN(clmd->sim_parms));
+  tclmd->sim_parms = MEM_dupalloc(clmd->sim_parms);
   if (clmd->sim_parms->effector_weights) {
     tclmd->sim_parms->effector_weights = static_cast<EffectorWeights *>(
-        MEM_dupallocN(clmd->sim_parms->effector_weights));
+        MEM_dupalloc(clmd->sim_parms->effector_weights));
   }
-  tclmd->coll_parms = static_cast<ClothCollSettings *>(MEM_dupallocN(clmd->coll_parms));
+  tclmd->coll_parms = MEM_dupalloc(clmd->coll_parms);
   tclmd->clothObject = nullptr;
   tclmd->hairdata = nullptr;
   tclmd->solver_result = nullptr;
@@ -208,12 +208,12 @@ static void free_data(ModifierData *md)
 
     if (clmd->sim_parms) {
       if (clmd->sim_parms->effector_weights) {
-        MEM_freeN(clmd->sim_parms->effector_weights);
+        MEM_delete(clmd->sim_parms->effector_weights);
       }
-      MEM_freeN(clmd->sim_parms);
+      MEM_delete(clmd->sim_parms);
     }
     if (clmd->coll_parms) {
-      MEM_freeN(clmd->coll_parms);
+      MEM_delete(clmd->coll_parms);
     }
 
     if (md->flag & eModifierFlag_SharedCaches) {
@@ -225,11 +225,11 @@ static void free_data(ModifierData *md)
     clmd->point_cache = nullptr;
 
     if (clmd->hairdata) {
-      MEM_freeN(clmd->hairdata);
+      MEM_delete(clmd->hairdata);
     }
 
     if (clmd->solver_result) {
-      MEM_freeN(clmd->solver_result);
+      MEM_delete(clmd->solver_result);
     }
   }
 }

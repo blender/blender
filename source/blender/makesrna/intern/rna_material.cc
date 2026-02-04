@@ -171,10 +171,16 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
   Material *ma = id_cast<Material *>(ptr->owner_id);
 
   if (ma->nodetree) {
-    bNode *node = BKE_texpaint_slot_material_find_node(ma, ma->paint_active_slot);
+    std::pair<bNodeTree *, bNode *> found = BKE_texpaint_slot_material_find_node(
+        ma, ma->paint_active_slot);
 
-    if (node) {
-      bke::node_set_active(*ma->nodetree, *node);
+    if (found.second) {
+      BLI_assert(found.first != nullptr);
+      bke::node_set_active(*found.first, *found.second);
+      /* Tag nodetree for viewport update (if node is found in a nested group). */
+      if (ma->nodetree != found.first) {
+        DEG_id_tag_update(&found.first->id, ID_RECALC_SYNC_TO_EVAL);
+      }
     }
   }
 
@@ -327,7 +333,7 @@ void rna_mtex_texture_slots_clear(ID *self_id, bContext *C, ReportList *reports,
 
   if (mtex_ar[index]) {
     id_us_min(id_cast<ID *>(mtex_ar[index]->tex));
-    MEM_freeN(mtex_ar[index]);
+    MEM_delete(mtex_ar[index]);
     mtex_ar[index] = nullptr;
     DEG_id_tag_update(self_id, 0);
   }
@@ -696,11 +702,15 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_MATERIAL_STROKE_SHOW);
   RNA_def_property_ui_text(prop, "Show Stroke", "Show stroke lines of this material");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+  RNA_def_property_deprecated(
+      prop, "Unused but kept for compatibility with older versions of Blender.", 510, 600);
 
   prop = RNA_def_property(srna, "show_fill", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_MATERIAL_FILL_SHOW);
   RNA_def_property_ui_text(prop, "Show Fill", "Show stroke fills of this material");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+  RNA_def_property_deprecated(
+      prop, "Unused but kept for compatibility with older versions of Blender.", 510, 600);
 
   /* Mode to align Dots and Boxes to drawing path and object rotation */
   prop = RNA_def_property(srna, "alignment_mode", PROP_ENUM, PROP_NONE);

@@ -40,7 +40,7 @@ static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   ARegion *region;
   SpaceInfo *sinfo;
 
-  sinfo = MEM_new_for_free<SpaceInfo>("initinfo");
+  sinfo = MEM_new<SpaceInfo>("initinfo");
   sinfo->spacetype = SPACE_INFO;
 
   sinfo->rpt_mask = INFO_RPT_OP;
@@ -83,7 +83,7 @@ static void info_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *info_duplicate(SpaceLink *sl)
 {
-  SpaceInfo *sinfon = static_cast<SpaceInfo *>(MEM_dupallocN(sl));
+  SpaceInfo *sinfon = MEM_dupalloc(reinterpret_cast<SpaceInfo *>(sl));
 
   /* clear or remove stuff from old */
 
@@ -268,7 +268,7 @@ void ED_spacetype_info()
   st->blend_write = info_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype info region");
+  art = MEM_new_zeroed<ARegionType>("spacetype info region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 
@@ -279,7 +279,7 @@ void ED_spacetype_info()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype info region");
+  art = MEM_new_zeroed<ARegionType>("spacetype info region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
 

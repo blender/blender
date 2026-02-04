@@ -105,7 +105,7 @@ else()
   )
 endif()
 
-set(_openexr_LIBRARIES)
+set(_openexr_LIBRARIES "")
 foreach(COMPONENT ${_openexr_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 

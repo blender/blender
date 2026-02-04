@@ -140,11 +140,11 @@ static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *acti
 
 HeapSimple *BLI_heapsimple_new_ex(uint reserve_num)
 {
-  HeapSimple *heap = MEM_callocN<HeapSimple>(__func__);
+  HeapSimple *heap = MEM_new_zeroed<HeapSimple>(__func__);
   /* ensure we have at least one so we can keep doubling it */
   heap->size = 0;
   heap->bufsize = std::max(1u, reserve_num);
-  heap->tree = MEM_calloc_arrayN<HeapSimpleNode>(heap->bufsize, "BLIHeapSimpleTree");
+  heap->tree = MEM_new_array_zeroed<HeapSimpleNode>(heap->bufsize, "BLIHeapSimpleTree");
   return heap;
 }
 
@@ -161,8 +161,8 @@ void BLI_heapsimple_free(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
     }
   }
 
-  MEM_freeN(heap->tree);
-  MEM_freeN(heap);
+  MEM_delete(heap->tree);
+  MEM_delete(heap);
 }
 
 void BLI_heapsimple_clear(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
@@ -181,7 +181,7 @@ void BLI_heapsimple_insert(HeapSimple *heap, float value, void *ptr)
   if (UNLIKELY(heap->size >= heap->bufsize)) {
     heap->bufsize *= 2;
     heap->tree = static_cast<HeapSimpleNode *>(
-        MEM_reallocN(heap->tree, heap->bufsize * sizeof(*heap->tree)));
+        MEM_realloc_uninitialized(heap->tree, heap->bufsize * sizeof(*heap->tree)));
   }
 
   heapsimple_up(heap, heap->size++, value, ptr);

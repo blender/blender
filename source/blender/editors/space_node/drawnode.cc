@@ -1639,7 +1639,6 @@ void draw_nodespace_back_pix(const bContext &C,
      */
     if (snode.edittree) {
       bNode *node = static_cast<bNode *>(snode.edittree->nodes.first);
-      const rctf *viewer_border = &snode.nodetree->viewer_border;
       while (node) {
         if (node->flag & NODE_SELECT) {
           if (node->typeinfo->draw_backdrop) {
@@ -1647,26 +1646,6 @@ void draw_nodespace_back_pix(const bContext &C,
           }
         }
         node = node->next;
-      }
-
-      if ((snode.nodetree->flag & NTREE_VIEWER_BORDER) &&
-          viewer_border->xmin < viewer_border->xmax && viewer_border->ymin < viewer_border->ymax)
-      {
-        rcti pixel_border;
-        BLI_rcti_init(&pixel_border,
-                      x + snode.zoom * viewer_border->xmin * ibuf->x,
-                      x + snode.zoom * viewer_border->xmax * ibuf->x,
-                      y + snode.zoom * viewer_border->ymin * ibuf->y,
-                      y + snode.zoom * viewer_border->ymax * ibuf->y);
-
-        uint pos = GPU_vertformat_attr_add(
-            immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
-        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-        immUniformThemeColor(TH_ACTIVE);
-
-        immDrawBorderCorners(pos, &pixel_border, 1.0f, 1.0f);
-
-        immUnbindProgram();
       }
     }
   }

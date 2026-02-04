@@ -55,9 +55,9 @@ static void test_texture_read()
   EXPECT_EQ(ucol, *rgba16u_data);
   EXPECT_EQ(fcol, *rgba32f_data);
 
-  MEM_freeN(rgba32u_data);
-  MEM_freeN(rgba16u_data);
-  MEM_freeN(rgba32f_data);
+  MEM_delete(rgba32u_data);
+  MEM_delete(rgba16u_data);
+  MEM_delete(rgba32f_data);
 
   GPU_texture_free(rgba32u);
   GPU_texture_free(rgba16u);
@@ -88,7 +88,7 @@ static void test_texture_1d()
   for (int index : IndexRange(SIZE)) {
     EXPECT_EQ(clear_color, data[index]);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   GPU_texture_free(tex);
 
@@ -118,7 +118,7 @@ static void test_texture_1d_array()
   for (int index : IndexRange(SIZE * LAYERS)) {
     EXPECT_EQ(clear_color, data[index]);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   GPU_texture_free(tex);
 
@@ -136,7 +136,7 @@ static void test_texture_1d_array_upload()
   GPU_render_begin();
 
   int total_size = LAYERS * SIZE * 4;
-  float *data_in = MEM_calloc_arrayN<float>(total_size, __func__);
+  float *data_in = MEM_new_array_zeroed<float>(total_size, __func__);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   gpu::Texture *tex = GPU_texture_create_1d_array(
@@ -148,8 +148,8 @@ static void test_texture_1d_array_upload()
   GPU_texture_free(tex);
 
   EXPECT_EQ(memcmp(data_in, data_out, sizeof(float) * total_size), 0);
-  MEM_freeN(data_in);
-  MEM_freeN(data_out);
+  MEM_delete(data_in);
+  MEM_delete(data_out);
 
   GPU_render_end();
 }
@@ -173,7 +173,7 @@ static void test_texture_2d_array()
   for (int index : IndexRange(SIZE * SIZE * LAYERS)) {
     EXPECT_EQ(clear_color, data[index]);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   GPU_texture_free(tex);
 
@@ -188,7 +188,7 @@ static void test_texture_2d_array_upload()
   GPU_render_begin();
 
   int total_size = LAYERS * SIZE * SIZE * 4;
-  float *data_in = MEM_calloc_arrayN<float>(total_size, __func__);
+  float *data_in = MEM_new_array_zeroed<float>(total_size, __func__);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   gpu::Texture *tex = GPU_texture_create_2d_array(
@@ -200,8 +200,8 @@ static void test_texture_2d_array_upload()
   GPU_texture_free(tex);
 
   EXPECT_EQ(memcmp(data_in, data_out, sizeof(float) * total_size), 0);
-  MEM_freeN(data_in);
-  MEM_freeN(data_out);
+  MEM_delete(data_in);
+  MEM_delete(data_out);
 
   GPU_render_end();
 }
@@ -224,7 +224,7 @@ static void test_texture_cube()
   for (int index : IndexRange(SIZE * SIZE * 6)) {
     EXPECT_EQ(clear_color, data[index]);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   GPU_texture_free(tex);
 
@@ -248,7 +248,7 @@ static void test_texture_cube_array()
   for (int index : IndexRange(SIZE * SIZE * 6 * LAYERS)) {
     EXPECT_EQ(clear_color, data[index]);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   GPU_texture_free(tex);
 
@@ -273,7 +273,7 @@ static void test_texture_3d()
   for (int index : IndexRange(SIZE * SIZE * SIZE)) {
     EXPECT_EQ(clear_color, data[index]);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   GPU_texture_free(tex);
 
@@ -305,7 +305,7 @@ static void test_texture_copy()
   for (int index : IndexRange(SIZE * SIZE)) {
     EXPECT_EQ(color, data[index]);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   GPU_texture_free(src_tx);
   GPU_texture_free(dst_tx);
@@ -316,7 +316,7 @@ GPU_TEST(texture_copy)
 
 template<typename DataType> static DataType *generate_test_data(size_t data_len)
 {
-  DataType *data = MEM_malloc_arrayN<DataType>(data_len, __func__);
+  DataType *data = MEM_new_array_uninitialized<DataType>(data_len, __func__);
   for (int i : IndexRange(data_len)) {
     if (std::is_same<DataType, float>()) {
       data[i] = (DataType)(i % 8) / 8.0f;
@@ -356,8 +356,8 @@ static void texture_create_upload_read()
   }
   EXPECT_FALSE(failed);
 
-  MEM_freeN(read_data);
-  MEM_freeN(data);
+  MEM_delete(read_data);
+  MEM_delete(data);
 
   GPU_texture_free(texture);
 }
@@ -385,8 +385,8 @@ static void texture_create_upload_read_with_bias(float max_allowed_bias)
   }
   EXPECT_LE(max_used_bias, max_allowed_bias);
 
-  MEM_freeN(read_data);
-  MEM_freeN(data);
+  MEM_delete(read_data);
+  MEM_delete(data);
 
   GPU_texture_free(texture);
 }
@@ -415,8 +415,8 @@ static void texture_create_upload_read_pixel()
   }
   EXPECT_FALSE(failed);
 
-  MEM_freeN(read_data);
-  MEM_freeN(data);
+  MEM_delete(read_data);
+  MEM_delete(data);
 
   GPU_texture_free(texture);
 }
@@ -1031,7 +1031,7 @@ static void test_texture_update_sub_no_unpack_row_length()
   GPU_texture_clear(texture, GPU_DATA_FLOAT, &clear_color);
 
   const float4 texture_color(0.0f, 1.0f, 0.0f, 1.0f);
-  float4 *texture_data = MEM_malloc_arrayN<float4>(sub_size.x * sub_size.y, __func__);
+  float4 *texture_data = MEM_new_array_uninitialized<float4>(sub_size.x * sub_size.y, __func__);
   for (int i = 0; i < sub_size.x * sub_size.y; i++) {
     texture_data[i] = texture_color;
   }
@@ -1067,8 +1067,8 @@ static void test_texture_update_sub_no_unpack_row_length()
     }
   }
 
-  MEM_freeN(texture_data);
-  MEM_freeN(texture_data_read);
+  MEM_delete(texture_data);
+  MEM_delete(texture_data_read);
   GPU_texture_free(texture);
 }
 GPU_TEST(texture_update_sub_no_unpack_row_length);
@@ -1090,7 +1090,7 @@ static void test_texture_update_sub_unpack_row_length()
 
   const float4 texture_color(0.0f, 1.0f, 0.0f, 1.0f);
   const float4 texture_color_off(1.0f, 0.0f, 0.0f, 1.0f);
-  float4 *texture_data = MEM_malloc_arrayN<float4>(size.x * size.y, __func__);
+  float4 *texture_data = MEM_new_array_uninitialized<float4>(size.x * size.y, __func__);
   for (int x = 0; x < size.x; x++) {
     for (int y = 0; y < size.y; y++) {
       int index = x + y * size.x;
@@ -1139,8 +1139,8 @@ static void test_texture_update_sub_unpack_row_length()
     }
   }
 
-  MEM_freeN(texture_data);
-  MEM_freeN(texture_data_read);
+  MEM_delete(texture_data);
+  MEM_delete(texture_data_read);
   GPU_texture_free(texture);
 }
 GPU_TEST(texture_update_sub_unpack_row_length);

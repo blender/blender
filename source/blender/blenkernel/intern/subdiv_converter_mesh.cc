@@ -195,8 +195,8 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   const int num_vert = mesh->verts_num;
   /* Initialize memory required for the operations. */
   if (storage->loop_uv_indices == nullptr) {
-    storage->loop_uv_indices = MEM_malloc_arrayN<int>(size_t(mesh->corners_num),
-                                                      "loop uv vertex index");
+    storage->loop_uv_indices = MEM_new_array_uninitialized<int>(size_t(mesh->corners_num),
+                                                                "loop uv vertex index");
   }
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
       storage->faces, storage->corner_verts, uv_map, num_vert, float2(STD_UV_CONNECT_LIMIT), true);
@@ -241,10 +241,10 @@ static int get_face_corner_uv_index(const OpenSubdiv_Converter *converter,
 static void free_user_data(const OpenSubdiv_Converter *converter)
 {
   ConverterStorage *user_data = static_cast<ConverterStorage *>(converter->user_data);
-  MEM_SAFE_FREE(user_data->loop_uv_indices);
-  MEM_freeN(user_data->manifold_vertex_index);
-  MEM_freeN(user_data->manifold_vertex_index_reverse);
-  MEM_freeN(user_data->manifold_edge_index_reverse);
+  MEM_SAFE_DELETE(user_data->loop_uv_indices);
+  MEM_delete(user_data->manifold_vertex_index);
+  MEM_delete(user_data->manifold_vertex_index_reverse);
+  MEM_delete(user_data->manifold_edge_index_reverse);
   MEM_delete(user_data);
 }
 
@@ -290,11 +290,12 @@ static void initialize_manifold_index_array(const BitSpan not_used_map,
 {
   int *indices = nullptr;
   if (r_indices != nullptr) {
-    indices = MEM_malloc_arrayN<int>(size_t(num_elements), "manifold indices");
+    indices = MEM_new_array_uninitialized<int>(size_t(num_elements), "manifold indices");
   }
   int *indices_reverse = nullptr;
   if (r_indices_reverse != nullptr) {
-    indices_reverse = MEM_malloc_arrayN<int>(size_t(num_elements), "manifold indices reverse");
+    indices_reverse = MEM_new_array_uninitialized<int>(size_t(num_elements),
+                                                       "manifold indices reverse");
   }
   int offset = 0;
   for (int i = 0; i < num_elements; i++) {

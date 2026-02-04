@@ -9,6 +9,9 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_ID.h"
+
+#include "DNA_brush_enums.h"
+#include "DNA_brush_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -26,6 +29,7 @@
 #include "BKE_asset.hh"
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
+#include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -76,7 +80,7 @@ static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode 
   separate_node.parent = node.parent;
   separate_node.location[0] = node.location[0] - 10.0f;
   separate_node.location[1] = node.location[1];
-  NodeCMPCombSepColor *storage = MEM_new_for_free<NodeCMPCombSepColor>(__func__);
+  NodeCMPCombSepColor *storage = MEM_new<NodeCMPCombSepColor>(__func__);
   storage->mode = CMP_NODE_COMBSEP_COLOR_RGB;
   separate_node.storage = storage;
 
@@ -96,7 +100,7 @@ static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode 
   set_alpha_node.parent = node.parent;
   set_alpha_node.location[0] = node.location[0] - 10.0f;
   set_alpha_node.location[1] = node.location[1];
-  set_alpha_node.storage = MEM_new_for_free<NodeCMPCombSepColor>(__func__);
+  set_alpha_node.storage = MEM_new<NodeCMPCombSepColor>(__func__);
 
   bNodeSocket &set_alpha_image_input = version_node_add_socket(
       node_tree, set_alpha_node, SOCK_IN, "NodeSocketColor", "Image");
@@ -151,7 +155,7 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
   separate_alpha_node.parent = node.parent;
   separate_alpha_node.location[0] = node.location[0] - 10.0f;
   separate_alpha_node.location[1] = node.location[1];
-  NodeCombSepColor *separate_alpha_storage = MEM_new_for_free<NodeCombSepColor>(__func__);
+  NodeCombSepColor *separate_alpha_storage = MEM_new<NodeCombSepColor>(__func__);
   separate_alpha_storage->mode = NODE_COMBSEP_COLOR_RGB;
   separate_alpha_node.storage = separate_alpha_storage;
 
@@ -174,7 +178,7 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
   separate_color_node.parent = node.parent;
   separate_color_node.location[0] = node.location[0] - 10.0f;
   separate_color_node.location[1] = node.location[1];
-  NodeCombSepColor *separate_color_storage = MEM_new_for_free<NodeCombSepColor>(__func__);
+  NodeCombSepColor *separate_color_storage = MEM_new<NodeCombSepColor>(__func__);
   separate_color_storage->mode = NODE_COMBSEP_COLOR_RGB;
   separate_color_node.storage = separate_color_storage;
 
@@ -193,7 +197,7 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
   combine_color_node.parent = node.parent;
   combine_color_node.location[0] = node.location[0] - 10.0f;
   combine_color_node.location[1] = node.location[1];
-  NodeCombSepColor *combine_color_storage = MEM_new_for_free<NodeCombSepColor>(__func__);
+  NodeCombSepColor *combine_color_storage = MEM_new<NodeCombSepColor>(__func__);
   combine_color_storage->mode = NODE_COMBSEP_COLOR_RGB;
   combine_color_node.storage = combine_color_storage;
 
@@ -434,7 +438,8 @@ static void do_version_light_remove_use_nodes(Main *bmain, Light *light)
    * simulate the same effect by creating a new Light Output node and setting it to active. */
   bNodeTree *ntree = light->nodetree;
   if (ntree == nullptr) {
-    /* In case the light was defined through Python API it might have been missing a node tree. */
+    /* In case the light was defined through Python API it might have been missing a node tree.
+     */
     ntree = bke::node_tree_add_tree_embedded(
         bmain, &light->id, "Light Node Tree Versioning", "ShaderNodeTree");
   }
@@ -485,13 +490,125 @@ static void do_version_light_remove_use_nodes(Main *bmain, Light *light)
   new_output.location[1] = emission.location[1];
 }
 
-void do_versions_after_linking_510(FileData * /*fd*/, Main *bmain)
+/* For cycles, the Denoising Albedo render pass is now registered after the Denoising Normal pass
+ * to match the compositor Denoise node. So we swap the order of Denoising Albedo and Denoising
+ * Normal sockets in the Render Layers node that has been saved with the old order. */
+static void do_version_render_layers_node_albedo_normal_swap(bNode &node)
 {
-  /* Some blend files were saved with an invalid active viewer key, possibly due to a bug that was
-   * fixed already in c8cb24121f, but blend files were never updated. So starting in 5.1, we fix
-   * those files by essentially doing what ED_node_set_active_viewer_key is supposed to do at load
-   * time during versioning. Note that the invalid active viewer will just cause a harmless assert,
-   * so this does not need to exist in previous releases. */
+  bNodeSocket *socket_denoise_normal = nullptr;
+  bNodeSocket *socket_denoise_albedo = nullptr;
+  for (bNodeSocket &socket : node.outputs) {
+    if (STREQ(socket.identifier, "Denoising Normal")) {
+      socket_denoise_normal = &socket;
+    }
+    if (STREQ(socket.identifier, "Denoising Albedo")) {
+      socket_denoise_albedo = &socket;
+    }
+  }
+  if (socket_denoise_albedo && socket_denoise_normal) {
+    BLI_listbase_swaplinks(&node.outputs, socket_denoise_normal, socket_denoise_albedo);
+  }
+}
+
+/* Some nodes no longer have storage but their storage is still allocated at write time for
+ * forward compatibility. This only happens during writes from 4.5, so we need to free this
+ * storage again when loading any file from 4.5. But before this versioning was done, it was
+ * possible to save a file from 4.5 in 5.0 or 5.1 and it would still have the storage, so we also
+ * need to include versions up to the current 5.1 subversion. */
+static void free_compositor_forward_compatibility_storage(bNode &node)
+{
+  if (!node.storage) {
+    return;
+  }
+
+  switch (node.type_legacy) {
+    case CMP_NODE_BOKEHIMAGE:
+      MEM_delete(static_cast<NodeBokehImage *>(node.storage));
+      break;
+    case CMP_NODE_MASK:
+      MEM_delete(static_cast<NodeMask *>(node.storage));
+      break;
+    case CMP_NODE_ANTIALIASING:
+      MEM_delete(static_cast<NodeAntiAliasingData *>(node.storage));
+      break;
+    case CMP_NODE_VECBLUR:
+      MEM_delete(static_cast<NodeBlurData *>(node.storage));
+      break;
+    case CMP_NODE_CHROMA_MATTE:
+    case CMP_NODE_COLOR_MATTE:
+    case CMP_NODE_DIFF_MATTE:
+    case CMP_NODE_LUMA_MATTE:
+      MEM_delete(static_cast<NodeChroma *>(node.storage));
+      break;
+    case CMP_NODE_COLORCORRECTION:
+      MEM_delete(static_cast<NodeColorCorrection *>(node.storage));
+      break;
+    case CMP_NODE_MASK_BOX:
+      MEM_delete(static_cast<NodeBoxMask *>(node.storage));
+      break;
+    case CMP_NODE_MASK_ELLIPSE:
+      MEM_delete(static_cast<NodeEllipseMask *>(node.storage));
+      break;
+    case CMP_NODE_SUNBEAMS_DEPRECATED:
+      MEM_delete(static_cast<NodeSunBeams *>(node.storage));
+      break;
+    case CMP_NODE_DBLUR:
+      MEM_delete(static_cast<NodeDBlurData *>(node.storage));
+      break;
+    case CMP_NODE_BILATERALBLUR:
+      MEM_delete(static_cast<NodeBilateralBlurData *>(node.storage));
+      break;
+    case CMP_NODE_CROP:
+      MEM_delete(static_cast<NodeTwoXYs *>(node.storage));
+      break;
+    case CMP_NODE_COLORBALANCE:
+      MEM_delete(static_cast<NodeColorBalance *>(node.storage));
+      break;
+    default:
+      return;
+  }
+
+  node.storage = nullptr;
+}
+
+static void convert_brush_flags_to_type(Brush &brush)
+{
+  if (brush.flag & BRUSH_UNUSED_1) {
+    brush.flag &= ~BRUSH_UNUSED_1;
+    brush.stroke_method = BRUSH_STROKE_AIRBRUSH;
+  }
+  else if (brush.flag & BRUSH_UNUSED_2) {
+    brush.flag &= ~BRUSH_UNUSED_2;
+    brush.stroke_method = BRUSH_STROKE_ANCHORED;
+  }
+  else if (brush.flag & BRUSH_UNUSED_3) {
+    brush.flag &= ~BRUSH_UNUSED_3;
+    brush.stroke_method = BRUSH_STROKE_SPACE;
+  }
+  else if (brush.flag & BRUSH_UNUSED_4) {
+    brush.flag &= ~BRUSH_UNUSED_4;
+    brush.stroke_method = BRUSH_STROKE_DRAG_DOT;
+  }
+  else if (brush.flag & BRUSH_UNUSED_5) {
+    brush.flag &= ~BRUSH_UNUSED_5;
+    brush.stroke_method = BRUSH_STROKE_LINE;
+  }
+  else if (brush.flag & BRUSH_UNUSED_6) {
+    brush.flag &= ~BRUSH_UNUSED_6;
+    brush.stroke_method = BRUSH_STROKE_CURVE;
+  }
+  else {
+    brush.stroke_method = BRUSH_STROKE_DOTS;
+  }
+}
+
+void do_versions_after_linking_510(FileData *fd, Main *bmain)
+{
+  /* Some blend files were saved with an invalid active viewer key, possibly due to a bug that
+   * was fixed already in c8cb24121f, but blend files were never updated. So starting in 5.1, we
+   * fix those files by essentially doing what ED_node_set_active_viewer_key is supposed to do at
+   * load time during versioning. Note that the invalid active viewer will just cause a harmless
+   * assert, so this does not need to exist in previous releases. */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 0)) {
     for (bScreen &screen : bmain->screens) {
       for (ScrArea &area : screen.areabase) {
@@ -510,6 +627,44 @@ void do_versions_after_linking_510(FileData * /*fd*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 0)) {
     version_clear_unused_strip_flags(*bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 24)) {
+    /* Note: For legacy Grease Pencil objects (#OB_GPENCIL_LEGACY) this is handled as part of
+     * bke::greasepencil::convert::legacy_main. */
+    bke::greasepencil::convert::material_stroke_fill_toggles_to_attributes(
+        *bmain, {}, *fd->reports);
+    /* Set the stroke mode for all brushes. */
+    for (Brush &brush : bmain->brushes) {
+      if (BrushGpencilSettings *settings = brush.gpencil_settings) {
+        if (Material *material = settings->material) {
+          BLI_assert(material->gp_style != nullptr);
+          SET_FLAG_FROM_TEST(settings->flag2,
+                             (material->gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0,
+                             GP_BRUSH_USE_STROKE);
+          SET_FLAG_FROM_TEST(settings->flag2,
+                             (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0,
+                             GP_BRUSH_USE_FILL);
+        }
+        else {
+          settings->flag2 |= GP_BRUSH_USE_STROKE;
+          settings->flag2 &= ~GP_BRUSH_USE_FILL;
+        }
+      }
+    }
+    /* Set the color to transparent for when the stroke/fill is disabled. */
+    for (Material &material : bmain->materials) {
+      if (material.gp_style == nullptr) {
+        continue;
+      }
+      MaterialGPencilStyle &gp_style = *material.gp_style;
+      if ((gp_style.flag & GP_MATERIAL_STROKE_SHOW) == 0) {
+        gp_style.stroke_rgba[3] = 0.0f;
+      }
+      if ((gp_style.flag & GP_MATERIAL_FILL_SHOW) == 0) {
+        gp_style.fill_rgba[3] = 0.0f;
+      }
+    }
   }
 
   /**
@@ -635,7 +790,7 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         if (ELEM(node.type_legacy, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
           for (bNodeSocket &socket : node.outputs) {
             if (socket.storage) {
-              MEM_freeN(socket.storage);
+              MEM_delete_void(socket.storage);
               socket.storage = nullptr;
             }
           }
@@ -690,11 +845,59 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     for (Scene &scene : bmain->scenes) {
       SequencerToolSettings *seq_ts = seq::tool_settings_ensure(&scene);
       constexpr short SEQ_SNAP_TO_FRAME_RANGE_OLD = (1 << 8);
-      /* Snap to frame range was bit 8, now bit 9, to make room for snap to increment in bit 8. */
+      /* Snap to frame range was bit 8, now bit 9, to make room for snap to increment in bit 8.
+       */
       if (seq_ts->snap_mode & SEQ_SNAP_TO_FRAME_RANGE_OLD) {
         seq_ts->snap_mode &= ~SEQ_SNAP_TO_FRAME_RANGE_OLD;
         seq_ts->snap_mode |= SEQ_SNAP_TO_FRAME_RANGE;
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 21)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_R_LAYERS) {
+            do_version_render_layers_node_albedo_normal_swap(node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 22)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        for (bNode &node : node_tree->nodes) {
+          free_compositor_forward_compatibility_storage(node);
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 23)) {
+    for (Brush &brush : bmain->brushes) {
+      convert_brush_flags_to_type(brush);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 24)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        /* The 'Viewer Region' option was removed from the UI. */
+        node_tree->flag &= ~NTREE_VIEWER_BORDER;
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 25)) {
+    for (Scene &scene : bmain->scenes) {
+      scene.eevee.direct_light_intensity = 1.0f;
+      scene.eevee.indirect_light_intensity = 1.0f;
     }
   }
 

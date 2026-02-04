@@ -147,7 +147,7 @@ string HIPRTDevice::compile_kernel_get_common_cflags(const uint kernel_features)
 {
   string cflags = HIPDevice::compile_kernel_get_common_cflags(kernel_features);
 
-  cflags += " -D __HIPRT__ ";
+  cflags += " -D __KERNEL_HIPRT__ ";
 
   return cflags;
 }

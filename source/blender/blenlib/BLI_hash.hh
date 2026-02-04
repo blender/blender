@@ -61,6 +61,7 @@
  *     };
  */
 
+#include <bit>
 #include <memory>
 #include <string>
 #include <utility>
@@ -81,7 +82,7 @@ namespace blender {
  * In the case of an enum type, the default hash is just to cast the enum value to an integer.
  */
 template<typename T> struct DefaultHash {
-  uint64_t operator()(const T &value) const
+  constexpr uint64_t operator()(const T &value) const
   {
     if constexpr (std::is_enum_v<T>) {
       /* For enums use the value as hash directly. */
@@ -94,7 +95,7 @@ template<typename T> struct DefaultHash {
     }
   }
 
-  template<typename U> uint64_t operator()(const U &value) const
+  template<typename U> constexpr uint64_t operator()(const U &value) const
   {
     /* Try calling the static `T::hash_as(value)` function with the given value. The returned hash
      * should be "compatible" with `T::hash()`. Usually that means that if `value` is converted to
@@ -109,7 +110,7 @@ template<typename T> struct DefaultHash {
  * Use the same hash function for const and non const variants of a type.
  */
 template<typename T> struct DefaultHash<const T> {
-  uint64_t operator()(const T &value) const
+  constexpr uint64_t operator()(const T &value) const
   {
     return DefaultHash<T>{}(value);
   }
@@ -117,7 +118,7 @@ template<typename T> struct DefaultHash<const T> {
 
 #define TRIVIAL_DEFAULT_INT_HASH(TYPE) \
   template<> struct DefaultHash<TYPE> { \
-    uint64_t operator()(TYPE value) const \
+    constexpr uint64_t operator()(TYPE value) const \
     { \
       return uint64_t(value); \
     } \
@@ -142,28 +143,28 @@ TRIVIAL_DEFAULT_INT_HASH(uint64_t);
  * One should try to avoid using floats as keys in hash tables, but sometimes it is convenient.
  */
 template<> struct DefaultHash<float> {
-  uint64_t operator()(float value) const
+  constexpr uint64_t operator()(float value) const
   {
     /* Explicit `uint64_t` cast to suppress CPPCHECK warning. */
-    return uint64_t(*reinterpret_cast<uint32_t *>(&value));
+    return uint64_t(std::bit_cast<uint32_t>(value));
   }
 };
 
 template<> struct DefaultHash<double> {
-  uint64_t operator()(double value) const
+  constexpr uint64_t operator()(double value) const
   {
-    return *reinterpret_cast<uint64_t *>(&value);
+    return std::bit_cast<uint64_t>(value);
   }
 };
 
 template<> struct DefaultHash<bool> {
-  uint64_t operator()(bool value) const
+  constexpr uint64_t operator()(bool value) const
   {
     return uint64_t((value != false) * 1298191);
   }
 };
 
-inline uint64_t hash_string(StringRef str)
+constexpr uint64_t hash_string(StringRef str)
 {
   uint64_t hash = 5381;
   for (char c : str) {
@@ -177,28 +178,28 @@ template<> struct DefaultHash<std::string> {
    * Take a #StringRef as parameter to support heterogeneous lookups in hash table implementations
    * when std::string is used as key.
    */
-  uint64_t operator()(StringRef value) const
+  constexpr uint64_t operator()(StringRef value) const
   {
     return hash_string(value);
   }
 };
 
 template<> struct DefaultHash<StringRef> {
-  uint64_t operator()(StringRef value) const
+  constexpr uint64_t operator()(StringRef value) const
   {
     return hash_string(value);
   }
 };
 
 template<> struct DefaultHash<StringRefNull> {
-  uint64_t operator()(StringRef value) const
+  constexpr uint64_t operator()(StringRef value) const
   {
     return hash_string(value);
   }
 };
 
 template<> struct DefaultHash<std::string_view> {
-  uint64_t operator()(StringRef value) const
+  constexpr uint64_t operator()(StringRef value) const
   {
     return hash_string(value);
   }
@@ -208,7 +209,7 @@ template<> struct DefaultHash<std::string_view> {
  * While we cannot guarantee that the lower 4 bits of a pointer are zero, it is often the case.
  */
 template<typename T> struct DefaultHash<T *> {
-  uint64_t operator()(const T *value) const
+  constexpr uint64_t operator()(const T *value) const
   {
     uintptr_t ptr = uintptr_t(value);
     uint64_t hash = uint64_t(ptr >> 4);
@@ -221,7 +222,8 @@ static constexpr std::array<uint64_t, 5> default_hash_factors = {
     19349669, 83492791, 3632623, 8789800933, 7235126189};
 
 template<size_t... I, typename... Args>
-inline uint64_t get_default_hash_array(std::index_sequence<I...> /*indices*/, const Args &...args)
+constexpr uint64_t get_default_hash_array(std::index_sequence<I...> /*indices*/,
+                                          const Args &...args)
 {
   static_assert(sizeof...(Args) == sizeof...(I));
   static_assert(sizeof...(Args) <= default_hash_factors.size());
@@ -231,7 +233,7 @@ inline uint64_t get_default_hash_array(std::index_sequence<I...> /*indices*/, co
 }  // namespace blenlib_detail
 
 template<typename T, typename... Args>
-inline uint64_t get_default_hash(const T &v, const Args &...args)
+constexpr uint64_t get_default_hash(const T &v, const Args &...args)
 {
   return DefaultHash<std::decay_t<T>>{}(v) ^
          blenlib_detail::get_default_hash_array(std::make_index_sequence<sizeof...(Args)>(),
@@ -240,7 +242,7 @@ inline uint64_t get_default_hash(const T &v, const Args &...args)
 
 /** Support hashing different kinds of pointer types. */
 template<typename T> struct PointerHashes {
-  template<typename U> uint64_t operator()(const U &value) const
+  template<typename U> constexpr uint64_t operator()(const U &value) const
   {
     return get_default_hash(&*value);
   }
@@ -250,14 +252,14 @@ template<typename T> struct DefaultHash<std::unique_ptr<T>> : public PointerHash
 template<typename T> struct DefaultHash<std::shared_ptr<T>> : public PointerHashes<T> {};
 
 template<typename T> struct DefaultHash<std::reference_wrapper<T>> {
-  uint64_t operator()(const std::reference_wrapper<T> &value) const
+  constexpr uint64_t operator()(const std::reference_wrapper<T> &value) const
   {
     return get_default_hash(value.get());
   }
 };
 
 template<typename T1, typename T2> struct DefaultHash<std::pair<T1, T2>> {
-  uint64_t operator()(const std::pair<T1, T2> &value) const
+  constexpr uint64_t operator()(const std::pair<T1, T2> &value) const
   {
     return get_default_hash(value.first, value.second);
   }

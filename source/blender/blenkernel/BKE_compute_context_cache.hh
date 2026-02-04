@@ -28,6 +28,8 @@ class ComputeContextCache {
   /** The allocated computed contexts that need to be destructed in the end. */
   Vector<destruct_ptr<ComputeContext>> cache_;
 
+  Map<std::pair<const ComputeContext *, uint32_t>, const DataBlockComputeContext *>
+      data_block_contexts_cache_;
   Map<std::pair<const ComputeContext *, int>, const ModifierComputeContext *>
       modifier_contexts_cache_;
   Map<const ComputeContext *, const OperatorComputeContext *> operator_contexts_cache_;
@@ -45,6 +47,11 @@ class ComputeContextCache {
       evaluate_closure_contexts_cache_;
 
  public:
+  const DataBlockComputeContext &for_data_block(const ComputeContext *parent,
+                                                const uint32_t orig_session_uid,
+                                                const ID *id = nullptr);
+  const DataBlockComputeContext &for_data_block(const ComputeContext *parent, const ID &id);
+
   const ModifierComputeContext &for_modifier(const ComputeContext *parent,
                                              const NodesModifierData &nmd);
   const ModifierComputeContext &for_modifier(const ComputeContext *parent, int modifier_uid);

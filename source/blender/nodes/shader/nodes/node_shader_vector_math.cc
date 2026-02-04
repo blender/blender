@@ -164,6 +164,8 @@ static const char *gpu_shader_get_name(int mode)
 
     case NODE_VECTOR_MATH_SNAP:
       return "vector_math_snap";
+    case NODE_VECTOR_MATH_ROUND:
+      return "vector_math_round";
     case NODE_VECTOR_MATH_FLOOR:
       return "vector_math_floor";
     case NODE_VECTOR_MATH_CEIL:
@@ -237,7 +239,8 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
                                           NODE_VECTOR_MATH_ABSOLUTE,
                                           NODE_VECTOR_MATH_FRACTION,
                                           NODE_VECTOR_MATH_NORMALIZE,
-                                          NODE_VECTOR_MATH_SIGN));
+                                          NODE_VECTOR_MATH_SIGN,
+                                          NODE_VECTOR_MATH_ROUND));
   bke::node_set_socket_availability(*ntree,
                                     *sockC,
                                     ELEM(node->custom1,
@@ -456,6 +459,9 @@ NODE_SHADER_MATERIALX_BEGIN
       break;
     case NODE_VECTOR_MATH_ABSOLUTE:
       res = x.abs();
+      break;
+    case NODE_VECTOR_MATH_ROUND:
+      res = (x + val(0.5f)).floor();
       break;
     case NODE_VECTOR_MATH_FLOOR:
       res = x.floor();

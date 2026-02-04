@@ -100,7 +100,7 @@ static gpu::Texture *gpu_texture_create_tile_mapping(Image *ima, const int multi
 
   /* create image */
   int width = max_tile + 1;
-  float *data = MEM_calloc_arrayN<float>(size_t(width) * 8, __func__);
+  float *data = MEM_new_array_zeroed<float>(size_t(width) * 8, __func__);
   for (int i = 0; i < width; i++) {
     data[4 * i] = -1.0f;
   }
@@ -125,7 +125,7 @@ static gpu::Texture *gpu_texture_create_tile_mapping(Image *ima, const int multi
                                                   data);
   GPU_texture_mipmap_mode(tex, false, false);
 
-  MEM_freeN(data);
+  MEM_delete(data);
 
   return tex;
 }
@@ -158,7 +158,7 @@ static gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
 
     if (ibuf) {
-      PackTile *packtile = MEM_callocN<PackTile>(__func__);
+      PackTile *packtile = MEM_new_zeroed<PackTile>(__func__);
       packtile->tile = &tile;
       packtile->boxpack.w = ibuf->x;
       packtile->boxpack.h = ibuf->y;
@@ -789,7 +789,7 @@ static void gpu_texture_update_from_ibuf(
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
     if (ibuf->channels != 4 || scaled || !store_premultiplied) {
-      rect_float = MEM_malloc_arrayN<float>(4 * size_t(w) * size_t(h), __func__);
+      rect_float = MEM_new_array_uninitialized<float>(4 * size_t(w) * size_t(h), __func__);
       if (rect_float == nullptr) {
         return;
       }
@@ -812,7 +812,7 @@ static void gpu_texture_update_from_ibuf(
     {
       /* sRGB or scene linear or scaled down non-color data, store as byte texture that the GPU
        * can decode directly. */
-      rect = MEM_malloc_arrayN<uchar>(4 * size_t(w) * size_t(h), __func__);
+      rect = MEM_new_array_uninitialized<uchar>(4 * size_t(w) * size_t(h), __func__);
       if (rect == nullptr) {
         return;
       }
@@ -826,7 +826,7 @@ static void gpu_texture_update_from_ibuf(
     }
     else {
       /* Other colorspace, store as float texture to avoid precision loss. */
-      rect_float = MEM_malloc_arrayN<float>(4 * size_t(w) * size_t(h), __func__);
+      rect_float = MEM_new_array_uninitialized<float>(4 * size_t(w) * size_t(h), __func__);
       if (rect_float == nullptr) {
         return;
       }
@@ -871,10 +871,10 @@ static void gpu_texture_update_from_ibuf(
 
   /* Free buffers if needed. */
   if (rect && rect != ibuf->byte_buffer.data) {
-    MEM_freeN(rect);
+    MEM_delete(rect);
   }
   if (rect_float && rect_float != ibuf->float_buffer.data) {
-    MEM_freeN(rect_float);
+    MEM_delete(rect_float);
   }
 
   if (GPU_mipmap_enabled()) {

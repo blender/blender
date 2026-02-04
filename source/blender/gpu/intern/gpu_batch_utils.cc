@@ -34,9 +34,9 @@ gpu::Batch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
   BLI_assert(polys_flat_len == polys_len * 2);
 
   /* Over alloc in both cases */
-  float (*verts)[2] = MEM_malloc_arrayN<float[2]>(polys_len, __func__);
+  float (*verts)[2] = MEM_new_array_uninitialized<float[2]>(polys_len, __func__);
   float (*verts_step)[2] = verts;
-  uint(*tris)[3] = MEM_malloc_arrayN<uint[3]>(polys_len, __func__);
+  uint(*tris)[3] = MEM_new_array_uninitialized<uint[3]>(polys_len, __func__);
   uint(*tris_step)[3] = tris;
 
   const float range_uchar[2] = {
@@ -107,8 +107,8 @@ gpu::Batch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
   }
   gpu::IndexBuf *indexbuf = GPU_indexbuf_build(&elb);
 
-  MEM_freeN(tris);
-  MEM_freeN(verts);
+  MEM_delete(tris);
+  MEM_delete(verts);
 
   return GPU_batch_create_ex(
       GPU_PRIM_TRIS, vbo, indexbuf, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
@@ -124,7 +124,7 @@ gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
 
   /* Over alloc */
   /* Lines are pairs of (x, y) byte locations packed into an int32_t. */
-  int32_t *lines = MEM_malloc_arrayN<int32_t>(polys_len, __func__);
+  int32_t *lines = MEM_new_array_uninitialized<int32_t>(polys_len, __func__);
   int32_t *lines_step = lines;
 
   const float range_uchar[2] = {
@@ -211,7 +211,7 @@ gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
     }
   }
   BLI_assert(vbo_len_capacity == GPU_vertbuf_raw_used(&pos_step));
-  MEM_freeN(lines);
+  MEM_delete(lines);
   return GPU_batch_create_ex(GPU_PRIM_LINES, vbo, nullptr, GPU_BATCH_OWNS_VBO);
 }
 

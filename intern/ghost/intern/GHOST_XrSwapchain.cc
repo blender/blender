@@ -8,11 +8,8 @@
 
 #include <cassert>
 
-#include "GHOST_C-api.h"
-
 #include "GHOST_IXrGraphicsBinding.hh"
 #include "GHOST_XrException.hh"
-#include "GHOST_XrSession.hh"
 #include "GHOST_Xr_intern.hh"
 
 #include "GHOST_XrSwapchain.hh"
@@ -61,6 +58,7 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
     throw GHOST_XrException(
         "Error: No format matching OpenXR runtime supported swapchain formats found.");
   }
+  gpu_format_ = *chosen_format;
 
   create_info.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT |
                            XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
@@ -86,6 +84,7 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_XrSwapchain &&other)
       image_width_(other.image_width_),
       image_height_(other.image_height_),
       format_(other.format_),
+      gpu_format_(other.gpu_format_),
       is_srgb_buffer_(other.is_srgb_buffer_)
 {
   /* Prevent xrDestroySwapchain call for the moved out item. */
@@ -126,6 +125,11 @@ void GHOST_XrSwapchain::updateCompositionLayerProjectViewSubImage(XrSwapchainSub
 GHOST_TXrSwapchainFormat GHOST_XrSwapchain::getFormat() const
 {
   return format_;
+}
+
+int64_t GHOST_XrSwapchain::getGPUFormat() const
+{
+  return gpu_format_;
 }
 
 bool GHOST_XrSwapchain::isBufferSRGB() const

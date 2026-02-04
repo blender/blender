@@ -121,6 +121,8 @@ void node_operatortypes()
 
   WM_operatortype_append(NODE_OT_sockets_sync);
 
+  WM_operatortype_append(NODE_OT_link_drag_operation_test);
+
   for (bke::bNodeType *ntype : bke::node_types_get()) {
     if (ntype->register_operators) {
       ntype->register_operators();

@@ -64,8 +64,8 @@
 
 #include "paint_intern.hh"
 
-#include "sculpt_color.hh"
-#include "sculpt_intern.hh"
+#include "mesh/sculpt_color.hh"
+#include "mesh/sculpt_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Sample Color Operator

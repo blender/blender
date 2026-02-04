@@ -236,7 +236,7 @@ static void bm_grid_fill_array(BMesh *bm,
 #endif
 
   if (use_interp_simple || use_vert_interp || use_loop_interp) {
-    weight_table = MEM_malloc_arrayN<float[4]>(xtot * ytot, __func__);
+    weight_table = MEM_new_array_uninitialized<float[4]>(xtot * ytot, __func__);
     barycentric_weights_v2_grid_cache(xtot, ytot, weight_table);
   }
   else {
@@ -246,11 +246,11 @@ static void bm_grid_fill_array(BMesh *bm,
   /* Store loops */
   if (use_loop_interp) {
     /* x2 because each edge connects 2 loops */
-    larr_x_a = MEM_malloc_arrayN<BMLoop *[2]>((xtot - 1), __func__);
-    larr_x_b = MEM_malloc_arrayN<BMLoop *[2]>((xtot - 1), __func__);
+    larr_x_a = MEM_new_array_uninitialized<BMLoop *[2]>((xtot - 1), __func__);
+    larr_x_b = MEM_new_array_uninitialized<BMLoop *[2]>((xtot - 1), __func__);
 
-    larr_y_a = MEM_malloc_arrayN<BMLoop *[2]>((ytot - 1), __func__);
-    larr_y_b = MEM_malloc_arrayN<BMLoop *[2]>((ytot - 1), __func__);
+    larr_y_a = MEM_new_array_uninitialized<BMLoop *[2]>((ytot - 1), __func__);
+    larr_y_b = MEM_new_array_uninitialized<BMLoop *[2]>((ytot - 1), __func__);
 
     /* fill in the loops */
     for (x = 0; x < xtot - 1; x++) {
@@ -448,14 +448,14 @@ static void bm_grid_fill_array(BMesh *bm,
   }
 
   if (use_loop_interp) {
-    MEM_freeN(larr_x_a);
-    MEM_freeN(larr_y_a);
-    MEM_freeN(larr_x_b);
-    MEM_freeN(larr_y_b);
+    MEM_delete(larr_x_a);
+    MEM_delete(larr_y_a);
+    MEM_delete(larr_x_b);
+    MEM_delete(larr_y_b);
   }
 
   if (weight_table) {
-    MEM_freeN(weight_table);
+    MEM_delete(weight_table);
   }
 
 #undef XY
@@ -488,7 +488,7 @@ static void bm_grid_fill(BMesh *bm,
   ListBaseT<LinkData> *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
   ListBaseT<LinkData> *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
 
-  BMVert **v_grid = MEM_calloc_arrayN<BMVert *>(size_t(xtot * ytot), __func__);
+  BMVert **v_grid = MEM_new_array_zeroed<BMVert *>(size_t(xtot * ytot), __func__);
   /**
    * <pre>
    *           estore_b
@@ -554,7 +554,7 @@ static void bm_grid_fill(BMesh *bm,
 #endif
 
   bm_grid_fill_array(bm, v_grid, xtot, ytot, mat_nr, use_smooth, use_flip, use_interp_simple);
-  MEM_freeN(v_grid);
+  MEM_delete(v_grid);
 
 #undef USE_FLIP_DETECT
 }

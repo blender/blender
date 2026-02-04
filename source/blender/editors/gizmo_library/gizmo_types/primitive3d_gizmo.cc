@@ -238,7 +238,7 @@ static wmOperatorStatus gizmo_primitive_invoke(bContext * /*C*/,
                                                wmGizmo *gz,
                                                const wmEvent * /*event*/)
 {
-  GizmoInteraction *inter = MEM_callocN<GizmoInteraction>(__func__);
+  GizmoInteraction *inter = MEM_new_zeroed<GizmoInteraction>(__func__);
 
   WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
 

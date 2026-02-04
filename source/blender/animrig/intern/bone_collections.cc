@@ -61,7 +61,7 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
 
   /* NOTE: the collection name may change after the collection is added to an
    * armature, to ensure it is unique within the armature. */
-  BoneCollection *bcoll = MEM_new_for_free<BoneCollection>(__func__);
+  BoneCollection *bcoll = MEM_new<BoneCollection>(__func__);
 
   STRNCPY_UTF8(bcoll->name, name);
   bcoll->flags = default_flags;
@@ -91,7 +91,7 @@ void ANIM_bonecoll_free(BoneCollection *bcoll, const bool do_id_user_count)
 static void add_reverse_pointers(BoneCollection *bcoll)
 {
   for (BoneCollectionMember &member : bcoll->bones) {
-    BoneCollectionReference *ref = MEM_new_for_free<BoneCollectionReference>(__func__);
+    BoneCollectionReference *ref = MEM_new<BoneCollectionReference>(__func__);
     ref->bcoll = bcoll;
     BLI_addtail(&member.bone->runtime.collections, ref);
   }
@@ -157,9 +157,9 @@ static void bonecoll_insert_at_index(bArmature *armature, BoneCollection *bcoll,
   BLI_assert(index <= armature->collection_array_num);
 
   armature->collection_array = reinterpret_cast<BoneCollection **>(
-      MEM_reallocN_id(armature->collection_array,
-                      sizeof(BoneCollection *) * (armature->collection_array_num + 1),
-                      __func__));
+      MEM_realloc_uninitialized_id(armature->collection_array,
+                                   sizeof(BoneCollection *) * (armature->collection_array_num + 1),
+                                   __func__));
 
   /* To keep the memory consistent, insert the new element at the end of the
    * now-grown array, then rotate it into place. */
@@ -250,7 +250,7 @@ BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature,
 static BoneCollection *copy_and_update_ownership(const bArmature *armature_dst,
                                                  const BoneCollection *bcoll_to_copy)
 {
-  BoneCollection *bcoll = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_to_copy));
+  BoneCollection *bcoll = MEM_dupalloc(bcoll_to_copy);
 
   /* Reset the child_index and child_count properties. These are unreliable when
    * coming from an override, as the original array might have been completely
@@ -867,14 +867,14 @@ void ANIM_armature_bonecoll_is_expanded_set(BoneCollection *bcoll, bool is_expan
 /* Store the bone's membership on the collection. */
 static void add_membership(BoneCollection *bcoll, Bone *bone)
 {
-  BoneCollectionMember *member = MEM_new_for_free<BoneCollectionMember>(__func__);
+  BoneCollectionMember *member = MEM_new<BoneCollectionMember>(__func__);
   member->bone = bone;
   BLI_addtail(&bcoll->bones, member);
 }
 /* Store reverse membership on the bone. */
 static void add_reference(Bone *bone, BoneCollection *bcoll)
 {
-  BoneCollectionReference *ref = MEM_new_for_free<BoneCollectionReference>(__func__);
+  BoneCollectionReference *ref = MEM_new<BoneCollectionReference>(__func__);
   ref->bcoll = bcoll;
   BLI_addtail(&bone->runtime.collections, ref);
 }
@@ -906,7 +906,7 @@ bool ANIM_armature_bonecoll_assign_editbone(BoneCollection *bcoll, EditBone *ebo
   /* Store membership on the edit bone. Bones will be rebuilt when the armature
    * goes out of edit mode, and by then the newly created bones will be added to
    * the actual collection on the Armature. */
-  BoneCollectionReference *ref = MEM_new_for_free<BoneCollectionReference>(__func__);
+  BoneCollectionReference *ref = MEM_new<BoneCollectionReference>(__func__);
   ref->bcoll = bcoll;
   BLI_addtail(&ebone->bone_collections, ref);
 
@@ -1402,13 +1402,13 @@ Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_membership(
   BLI_assert(*bcoll_array_dst == nullptr);
   BLI_assert(*bcoll_array_dst_num == 0);
 
-  *bcoll_array_dst = MEM_malloc_arrayN<BoneCollection *>(bcoll_array_src_num, __func__);
+  *bcoll_array_dst = MEM_new_array_uninitialized<BoneCollection *>(bcoll_array_src_num, __func__);
   *bcoll_array_dst_num = bcoll_array_src_num;
 
   Map<BoneCollection *, BoneCollection *> bcoll_map{};
   for (int i = 0; i < bcoll_array_src_num; i++) {
     BoneCollection *bcoll_src = bcoll_array_src[i];
-    BoneCollection *bcoll_dst = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_src));
+    BoneCollection *bcoll_dst = MEM_dupalloc(bcoll_src);
 
     /* This will be rebuilt from the edit bones, so we don't need to copy it. */
     BLI_listbase_clear(&bcoll_dst->bones);
@@ -1451,9 +1451,9 @@ void ANIM_bonecoll_array_free(BoneCollection ***bcoll_array,
      * list, in which case this of Bone pointers may not be empty. */
     BLI_freelistN(&bcoll->bones);
 
-    MEM_freeN(bcoll);
+    MEM_delete(bcoll);
   }
-  MEM_SAFE_FREE(*bcoll_array);
+  MEM_SAFE_DELETE(*bcoll_array);
 
   *bcoll_array_num = 0;
 }

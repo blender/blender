@@ -82,7 +82,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   this->custom_knot_num = 0;
 
   if (curve_num > 0) {
-    this->curve_offsets = MEM_malloc_arrayN<int>(size_t(this->curve_num) + 1, __func__);
+    this->curve_offsets = MEM_new_array_uninitialized<int>(size_t(this->curve_num) + 1, __func__);
     this->runtime->curve_offsets_sharing_info = implicit_sharing::info_for_mem_free(
         this->curve_offsets);
 #ifndef NDEBUG
@@ -249,7 +249,15 @@ void CurvesGeometry::fill_curve_types(const CurveType type)
     this->attributes_for_write().remove("curve_type");
   }
   else {
-    this->curve_types_for_write().fill(type);
+    const GPointer value(CPPType::get<int8_t>(), &type);
+    Attribute::SingleData data = Attribute::SingleData::from_value(value);
+    if (Attribute *attr = this->attribute_storage.wrap().lookup("curve_type")) {
+      attr->assign_data(std::move(data));
+    }
+    else {
+      this->attribute_storage.wrap().add(
+          "curve_type", AttrDomain::Curve, AttrType::Int8, std::move(data));
+    }
   }
   this->runtime->type_counts.fill(0);
   this->runtime->type_counts[type] = this->curves_num();
@@ -280,8 +288,8 @@ std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &typ
   CountsType counts;
   counts.fill(0);
 
-  if (types.is_single()) {
-    counts[types.get_internal_single()] = types.size();
+  if (const std::optional<int8_t> single = types.get_if_single()) {
+    counts[*single] = types.size();
     return counts;
   }
 
@@ -1683,13 +1691,15 @@ void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     if (bezier_handle_names.contains(iter.name)) {
       return;
     }
 
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
       reverse_curve_point_data<T>(*this, curves_to_reverse, attribute.span.typed<T>());
     });
     attribute.finish();
@@ -1816,8 +1826,7 @@ static GVArray adapt_curve_domain_point_to_curve(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       Array<T> values(curves.curves_num());
       adapt_curve_domain_point_to_curve_impl<T>(curves, varray.typed<T>(), values);
@@ -1849,8 +1858,7 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
   GVArray new_varray;
-  attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     Array<T> values(curves.points_num());
     adapt_curve_domain_curve_to_point_impl<T>(curves, varray.typed<T>(), values);
     new_varray = VArray<T>::from_container(std::move(values));
@@ -1942,10 +1950,15 @@ CurvesGeometry::BlendWriteData::BlendWriteData(ResourceScope &scope)
 {
 }
 
-void CurvesGeometry::blend_write_prepare(CurvesGeometry::BlendWriteData &write_data)
+void CurvesGeometry::blend_write_prepare(CurvesGeometry::BlendWriteData &write_data,
+                                         const bool use_5_0_compatibility)
 {
   CustomData_reset(&this->curve_data_legacy);
-  attribute_storage_blend_write_prepare(this->attribute_storage.wrap(), write_data.attribute_data);
+  attribute_storage_blend_write_prepare(
+      this->attribute_storage.wrap(),
+      use_5_0_compatibility,
+      [&](const AttrDomain domain) { return this->attributes().domain_size(domain); },
+      write_data.attribute_data);
   CustomData_blend_write_prepare(this->point_data,
                                  AttrDomain::Point,
                                  this->points_num(),

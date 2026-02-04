@@ -62,29 +62,29 @@ constexpr bool is_supported_grid_type = is_same_any_v<GridT,
 template<typename Fn> inline void to_typed_grid(const openvdb::GridBase &grid_base, Fn &&fn)
 {
   const VolumeGridType grid_type = get_type(grid_base);
-  BKE_volume_grid_type_to_static_type(grid_type, [&](auto type_tag) {
-    using GridT = typename decltype(type_tag)::type;
-    if constexpr (is_supported_grid_type<GridT>) {
-      fn(static_cast<const GridT &>(grid_base));
-    }
-    else {
-      BLI_assert_unreachable();
-    }
-  });
+  BKE_volume_grid_type_to_static_type(grid_type,
+                                      [&]<std::derived_from<openvdb::GridBase> GridT>() {
+                                        if constexpr (is_supported_grid_type<GridT>) {
+                                          fn(static_cast<const GridT &>(grid_base));
+                                        }
+                                        else {
+                                          BLI_assert_unreachable();
+                                        }
+                                      });
 }
 
 template<typename Fn> inline void to_typed_grid(openvdb::GridBase &grid_base, Fn &&fn)
 {
   const VolumeGridType grid_type = get_type(grid_base);
-  BKE_volume_grid_type_to_static_type(grid_type, [&](auto type_tag) {
-    using GridT = typename decltype(type_tag)::type;
-    if constexpr (is_supported_grid_type<GridT>) {
-      fn(static_cast<GridT &>(grid_base));
-    }
-    else {
-      BLI_assert_unreachable();
-    }
-  });
+  BKE_volume_grid_type_to_static_type(grid_type,
+                                      [&]<std::derived_from<openvdb::GridBase> GridT>() {
+                                        if constexpr (is_supported_grid_type<GridT>) {
+                                          fn(static_cast<GridT &>(grid_base));
+                                        }
+                                        else {
+                                          BLI_assert_unreachable();
+                                        }
+                                      });
 }
 
 /** Create a grid with the same activated voxels and internal nodes as the given grid. */
@@ -111,9 +111,28 @@ void set_mask_leaf_buffer_from_bools(openvdb::BoolGrid &grid,
                                      Span<openvdb::Coord> voxels);
 
 void set_grid_background(openvdb::GridBase &grid_base, const GPointer value);
+void set_inactive_values(openvdb::GridBase &grid_base, const GPointer value);
 
 /** See #openvdb::tools::pruneInactive. */
 void prune_inactive(openvdb::GridBase &grid_base);
+
+/**
+ * Sample the tree at the given coordinates.
+ *
+ * \param grid_type: Data type of the tree. This is technically redundant but can help a little
+ *   with performance.
+ * \param tree_base: The tree to sample.
+ * \param xs, ys, zs: Coordinates to sample.
+ * \param mask: Subset of indices that should be sampled.
+ * \param r_values: Output buffer to store the sampled values.
+ */
+void sample_tree_indices(const VolumeGridType grid_type,
+                         const openvdb::TreeBase &tree_base,
+                         Span<int> xs,
+                         Span<int> ys,
+                         Span<int> zs,
+                         const IndexMask &mask,
+                         GMutableSpan r_values);
 
 }  // namespace blender::bke::volume_grid
 

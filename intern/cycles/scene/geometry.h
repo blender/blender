@@ -229,6 +229,8 @@ class GeometryManager {
 
     VISIBILITY_MODIFIED = (1 << 11),
 
+    VOLUME_MODIFIED = (1 << 14),
+
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,
 

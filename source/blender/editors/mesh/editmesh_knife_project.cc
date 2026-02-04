@@ -76,7 +76,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
           int a;
           BPoint *bp;
           bool is_cyclic = (nu.flagu & CU_NURB_CYCLIC) != 0;
-          float (*mval)[2] = MEM_malloc_arrayN<float[2]>(nu.pntsu + is_cyclic, __func__);
+          float (*mval)[2] = MEM_new_array_uninitialized<float[2]>(nu.pntsu + is_cyclic, __func__);
 
           for (bp = nu.bp, a = 0; a < nu.pntsu; a++, bp++) {
             copy_v2_v2(mval[a], ED_view3d_project_float_v2_m4(region, bp->vec, projmat));

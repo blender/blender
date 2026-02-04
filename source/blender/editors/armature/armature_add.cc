@@ -63,7 +63,7 @@ namespace blender {
 
 EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
 {
-  EditBone *bone = MEM_new_for_free<EditBone>("eBone");
+  EditBone *bone = MEM_new<EditBone>("eBone");
 
   STRNCPY_UTF8(bone->name, name);
   ED_armature_ebone_unique_name(arm->edbo, bone->name, nullptr);
@@ -544,7 +544,7 @@ static void update_duplicate_action_constraint_settings(
       char *old_path = new_curve->rna_path;
 
       new_curve->rna_path = BLI_string_replaceN(old_path, orig_bone->name, dup_bone->name);
-      MEM_freeN(old_path);
+      MEM_delete(old_path);
 
       /* FIXME: deal with the case where this F-Curve already exists. */
 
@@ -1084,7 +1084,7 @@ EditBone *duplicateEditBoneObjects(EditBone *cur_bone,
                                    Object *src_ob,
                                    Object *dst_ob)
 {
-  EditBone *e_bone = MEM_new_for_free<EditBone>("addup_editbone");
+  EditBone *e_bone = MEM_new<EditBone>("addup_editbone");
 
   /* Copy data from old bone to new bone */
   ED_armature_ebone_copy(e_bone, cur_bone);
@@ -1650,7 +1650,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
           }
 
           totbone++;
-          newbone = MEM_new_for_free<EditBone>("extrudebone");
+          newbone = MEM_new<EditBone>("extrudebone");
 
           if (do_extrude == TIP_EXTRUDE) {
             copy_v3_v3(newbone->head, ebone->tail);
@@ -1905,7 +1905,7 @@ static wmOperatorStatus armature_subdivide_exec(bContext *C, wmOperator *op)
       float val2[3];
       float val3[3];
 
-      newbone = MEM_new_for_free<EditBone>("ebone subdiv", *ebone);
+      newbone = MEM_new<EditBone>("ebone subdiv", *ebone);
       BLI_addtail(arm->edbo, newbone);
 
       /* calculate location of newbone->head */

@@ -415,7 +415,7 @@ void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
                                             size_t pad_bytes,
                                             size_t *r_size);
 
-void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
+char *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
 /**
  * Return the text file data with:
  *
@@ -444,7 +444,7 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
  * }
  * \endcode
  */
-void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
+char *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
                                                     bool trim_trailing_space,
                                                     size_t pad_bytes,
                                                     size_t *r_size);

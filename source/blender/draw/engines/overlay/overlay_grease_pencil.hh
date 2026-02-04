@@ -343,26 +343,67 @@ class GreasePencil : Overlay {
       const bke::CurvesGeometry &curves = info.drawing.strokes();
       const OffsetIndices<int> points_by_curve = curves.evaluated_points_by_curve();
       const bke::AttributeAccessor attributes = curves.attributes();
+      const std::optional<GroupedSpan<int3>> triangles = info.drawing.triangles();
       const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
           "material_index", bke::AttrDomain::Curve, 0);
       const VArray<bool> cyclic = *attributes.lookup_or_default<bool>(
           "cyclic", bke::AttrDomain::Curve, false);
 
+      const VArray<bool> hide_stroke = *attributes.lookup_or_default<bool>(
+          "hide_stroke", bke::AttrDomain::Curve, false);
+      const VArray<int> fill_ids = *attributes.lookup_or_default<int>(
+          "fill_id", bke::AttrDomain::Curve, 0);
+
       IndexMaskMemory memory;
       const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
           *ob, info.drawing, memory);
+      const std::optional<GroupedSpan<int>> fills = info.drawing.fills();
 
-      visible_strokes.foreach_index([&](const int stroke_i) {
-        const IndexRange points = points_by_curve[stroke_i];
-        const int material_index = stroke_materials[stroke_i];
+      const bool hide_onion = info.onion_id != 0;
+
+      int fill_index = 0;
+
+      Array<int> fill_index_by_curves(curves.curves_num(), -1);
+      Array<int> first_curves(curves.curves_num());
+      array_utils::fill_index_range<int>(first_curves);
+
+      for (const int curve_i : curves.curves_range()) {
+        const bool is_filled = fill_ids[curve_i] != 0;
+        const bool active_filled = is_filled && (fill_index_by_curves[curve_i] == -1);
+
+        /* Keep track of already rendered fills. */
+        if (active_filled) {
+          const Span<int> fill = (*fills)[fill_index];
+          const int first_curve = fill.first();
+          for (const int pos : fill.index_range()) {
+            const int curve_i = fill[pos];
+            fill_index_by_curves[curve_i] = fill_index;
+            first_curves[curve_i] = first_curve;
+          }
+
+          fill_index++;
+        }
+      }
+
+      visible_strokes.foreach_index([&](const int curve_i) {
+        /* Will be `-1` if not a fill. */
+        const int fill_index = fill_index_by_curves[curve_i];
+
+        const bool is_filled = fill_index != -1;
+        const bool active_filled = is_filled && (first_curves[curve_i] == curve_i);
+
+        const int material_index = stroke_materials[curve_i];
         MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
-        const bool hide_onion = info.onion_id != 0;
         const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
 
-        const int num_stroke_triangles = (points.size() >= 3) ? (points.size() - 2) : 0;
+        const int num_stroke_triangles = (active_filled && triangles.has_value()) ?
+                                             (*triangles)[fill_index].size() :
+                                             0;
+
+        const IndexRange points = points_by_curve[curve_i];
         const int num_stroke_vertices = (points.size() +
-                                         int(cyclic[stroke_i] && (points.size() >= 3)));
+                                         int(cyclic[curve_i] && (points.size() >= 3)));
 
         if (hide_material || hide_onion) {
           t_offset += num_stroke_triangles;
@@ -372,21 +413,22 @@ class GreasePencil : Overlay {
 
         gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(scene, ob);
 
-        const bool show_stroke = (gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0;
-        const bool show_fill = (points.size() >= 3) &&
-                               (gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
+        const bool show_stroke = !hide_stroke[curve_i];
+        const bool show_fill = (num_stroke_triangles != 0) && active_filled;
 
         if (show_fill) {
-          int v_first = t_offset * 3;
-          int v_count = num_stroke_triangles * 3;
+          const int v_first = t_offset * 3;
+          const int v_count = num_stroke_triangles * 3;
           pass.draw(geom, 1, v_count, v_first, res_handle, select_id.get());
         }
 
-        t_offset += num_stroke_triangles;
+        if (active_filled) {
+          t_offset += num_stroke_triangles;
+        }
 
         if (show_stroke) {
-          int v_first = t_offset * 3;
-          int v_count = num_stroke_vertices * 2 * 3;
+          const int v_first = t_offset * 3;
+          const int v_count = num_stroke_vertices * 2 * 3;
           pass.draw(geom, 1, v_count, v_first, res_handle, select_id.get());
         }
         t_offset += num_stroke_vertices * 2;

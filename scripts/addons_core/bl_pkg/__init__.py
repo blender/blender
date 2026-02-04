@@ -20,7 +20,7 @@ bl_info = {
 from typing import TYPE_CHECKING, TypeAlias
 
 if "bpy" in locals():
-    # This doesn't need to be inline because sub-modules aren't important into the global name-space.
+    # This doesn't need to be inline because sub-modules aren't imported into the global name-space.
     # The check for `bpy` ensures this is always assigned before use.
     # pylint: disable-next=used-before-assignment
     _local_module_reload()
@@ -145,13 +145,12 @@ def manifest_compatible_with_wheel_data_or_error(
             python_versions_test = python_versions_from_wheels(wheels_rel)
         except Exception as ex:
             # This should only ever happen for invalid wheels.
-            python_versions_test = "Error extracting Python version from wheels: {:s} from \"{:s}\"".format(
-                str(ex),
-                pkg_manifest_filepath,
-            )
+            # Contextual information is included when the error is printed,
+            # so there is no need to add a prefix with additional context.
+            python_versions_test = str(ex)
 
         if isinstance(python_versions_test, str):
-            print("Error parsing wheel versions: {:s} from \"{:s}\"".format(
+            print("Error extracting Python version from wheels: {:s} from \"{:s}\"".format(
                 python_versions_test,
                 pkg_manifest_filepath,
             ))
@@ -369,7 +368,7 @@ def repos_to_notify():
 
         # WARNING: this could be a more expensive check, use a "reasonable" guess.
         # This is technically incorrect because knowing if a repository has any installed
-        # packages requires reading it's meta-data and comparing it with the directory contents.
+        # packages requires reading its meta-data and comparing it with the directory contents.
         # Chances are - if the directory contains *any* directories containing a package manifest
         # this means it has packages installed.
         #
@@ -542,7 +541,7 @@ def _remote_asset_libraries_sync_all_periodic():
 
 
 @bpy.app.handlers.persistent
-def extenion_repos_sync(repo, *_):
+def extension_repos_sync(repo, *_):
     # Ignore in background mode as this is for the UI to stay in sync.
     # Automated tasks must sync explicitly.
     if bpy.app.background:
@@ -578,7 +577,7 @@ def extenion_repos_sync(repo, *_):
 
 
 @bpy.app.handlers.persistent
-def extenion_repos_files_clear(directory, _):
+def extension_repos_files_clear(directory, _):
     # Perform a "safe" file deletion by only removing files known to be either
     # packages or known extension meta-data.
     #
@@ -611,11 +610,11 @@ def extenion_repos_files_clear(directory, _):
 # -----------------------------------------------------------------------------
 # Wrap Handlers
 
-_monkeypatch_extenions_repos_update_dirs = set()
+_monkeypatch_extensions_repos_update_dirs = set()
 
 
-def monkeypatch_extenions_repos_update_pre_impl():
-    _monkeypatch_extenions_repos_update_dirs.clear()
+def monkeypatch_extensions_repos_update_pre_impl():
+    _monkeypatch_extensions_repos_update_dirs.clear()
 
     extension_repos = bpy.context.preferences.extensions.repos
     for repo_item in extension_repos:
@@ -625,10 +624,10 @@ def monkeypatch_extenions_repos_update_pre_impl():
         if directory is None:
             continue
 
-        _monkeypatch_extenions_repos_update_dirs.add(directory)
+        _monkeypatch_extensions_repos_update_dirs.add(directory)
 
 
-def monkeypatch_extenions_repos_update_post_impl():
+def monkeypatch_extensions_repos_update_post_impl():
     import os
     from . import bl_extension_ops
 
@@ -646,13 +645,14 @@ def monkeypatch_extenions_repos_update_post_impl():
         # Happens for newly added extension directories.
         if not os.path.exists(directory):
             continue
-        if directory in _monkeypatch_extenions_repos_update_dirs:
+        if directory in _monkeypatch_extensions_repos_update_dirs:
             continue
-        # Ignore missing because the new repo might not have a JSON file.
         repo_cache_store.refresh_remote_from_directory(directory=directory, error_fn=print, force=True)
+        # Ignore missing because the local JSON (local data about the remote repository)
+        # might not exist yet for a new repo.
         repo_cache_store.refresh_local_from_directory(directory=directory, error_fn=print, ignore_missing=True)
 
-    _monkeypatch_extenions_repos_update_dirs.clear()
+    _monkeypatch_extensions_repos_update_dirs.clear()
 
     # Based on changes, the statistics may need to be re-calculated.
     repo_stats_calc()
@@ -662,7 +662,7 @@ def monkeypatch_extenions_repos_update_post_impl():
 def monkeypatch_extensions_repos_update_pre(*_):
     print_debug("PRE:")
     try:
-        monkeypatch_extenions_repos_update_pre_impl()
+        monkeypatch_extensions_repos_update_pre_impl()
     except Exception as ex:
         print_debug("ERROR", str(ex))
     try:
@@ -672,14 +672,14 @@ def monkeypatch_extensions_repos_update_pre(*_):
 
 
 @bpy.app.handlers.persistent
-def monkeypatch_extenions_repos_update_post(*_):
+def monkeypatch_extensions_repos_update_post(*_):
     print_debug("POST:")
     try:
-        monkeypatch_extenions_repos_update_post.fn_orig()
+        monkeypatch_extensions_repos_update_post.fn_orig()
     except Exception as ex:
         print_debug("ERROR", str(ex))
     try:
-        monkeypatch_extenions_repos_update_post_impl()
+        monkeypatch_extensions_repos_update_post_impl()
     except Exception as ex:
         print_debug("ERROR", str(ex))
 
@@ -704,7 +704,7 @@ def monkeypatch_install():
     # pylint: disable-next=protected-access
     fn_orig = addon_utils._initialize_extension_repos_post
 
-    fn_override = monkeypatch_extenions_repos_update_post
+    fn_override = monkeypatch_extensions_repos_update_post
     for i, fn in enumerate(handlers):
         if fn is fn_orig:
             handlers[i] = fn_override
@@ -726,7 +726,7 @@ def monkeypatch_uninstall():
     # pylint: disable-next=protected-access
     handlers = bpy.app.handlers._extension_repos_update_post
 
-    fn_override = monkeypatch_extenions_repos_update_post
+    fn_override = monkeypatch_extensions_repos_update_post
     for i, fn in enumerate(handlers):
         if fn is fn_override:
             handlers[i] = fn_override.fn_orig
@@ -887,12 +887,12 @@ def register():
     )
     WindowManager.extension_show_panel_installed = BoolProperty(
         name="Show Installed Extensions",
-        description="Only show installed extensions",
+        description="Show the installed extensions panel",
         default=True,
     )
     WindowManager.extension_show_panel_available = BoolProperty(
-        name="Show Installed Extensions",
-        description="Only show installed extensions",
+        name="Show Available Extensions",
+        description="Show the available extensions panel",
         default=True,
     )
     WindowManager.extension_repo_filter = EnumProperty(
@@ -920,11 +920,11 @@ def register():
 
     # pylint: disable-next=protected-access
     handlers = bpy.app.handlers._extension_repos_sync
-    handlers.append(extenion_repos_sync)
+    handlers.append(extension_repos_sync)
 
     # pylint: disable-next=protected-access
     handlers = bpy.app.handlers._extension_repos_files_clear
-    handlers.append(extenion_repos_files_clear)
+    handlers.append(extension_repos_files_clear)
 
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
@@ -968,13 +968,13 @@ def unregister():
 
     # pylint: disable-next=protected-access
     handlers = bpy.app.handlers._extension_repos_sync
-    if extenion_repos_sync in handlers:
-        handlers.remove(extenion_repos_sync)
+    if extension_repos_sync in handlers:
+        handlers.remove(extension_repos_sync)
 
     # pylint: disable-next=protected-access
     handlers = bpy.app.handlers._extension_repos_files_clear
-    if extenion_repos_files_clear in handlers:
-        handlers.remove(extenion_repos_files_clear)
+    if extension_repos_files_clear in handlers:
+        handlers.remove(extension_repos_files_clear)
 
     # pylint: disable-next=protected-access
     handlers = bpy.app.handlers._remote_asset_libraries_sync

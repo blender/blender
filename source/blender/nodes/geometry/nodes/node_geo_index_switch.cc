@@ -192,13 +192,13 @@ static void node_operators()
 
 static void node_init(bNodeTree *tree, bNode *node)
 {
-  NodeIndexSwitch *data = MEM_new_for_free<NodeIndexSwitch>(__func__);
+  NodeIndexSwitch *data = MEM_new<NodeIndexSwitch>(__func__);
   data->data_type = tree->type == NTREE_GEOMETRY ? SOCK_FLOAT : SOCK_RGBA;
   data->next_identifier = 0;
 
   BLI_assert(data->items == nullptr);
   const int default_items_num = 2;
-  data->items = MEM_new_array_for_free<IndexSwitchItem>(default_items_num, __func__);
+  data->items = MEM_new_array<IndexSwitchItem>(default_items_num, __func__);
   for (const int i : IndexRange(default_items_num)) {
     data->items[i].identifier = data->next_identifier++;
   }
@@ -463,13 +463,13 @@ static void node_rna(StructRNA *srna)
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<IndexSwitchItemsAccessor>(*node);
-  MEM_freeN(reinterpret_cast<NodeIndexSwitch *>(node->storage));
+  MEM_delete(reinterpret_cast<NodeIndexSwitch *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeIndexSwitch &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_new_for_free<NodeIndexSwitch>(__func__, dna::shallow_copy(src_storage));
+  auto *dst_storage = MEM_new<NodeIndexSwitch>(__func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<IndexSwitchItemsAccessor>(*src_node, *dst_node);

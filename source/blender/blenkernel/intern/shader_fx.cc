@@ -56,7 +56,8 @@ void BKE_shaderfx_init()
 ShaderFxData *BKE_shaderfx_new(int type)
 {
   const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(type));
-  ShaderFxData *fx = static_cast<ShaderFxData *>(MEM_callocN(fxi->struct_size, fxi->struct_name));
+  ShaderFxData *fx = static_cast<ShaderFxData *>(
+      MEM_new_zeroed(fxi->struct_size, fxi->struct_name));
 
   /* NOTE: this name must be made unique later. */
   STRNCPY_UTF8(fx->name, DATA_(fxi->name));
@@ -103,10 +104,10 @@ void BKE_shaderfx_free_ex(ShaderFxData *fx, const int flag)
     fxi->free_data(fx);
   }
   if (fx->error) {
-    MEM_freeN(fx->error);
+    MEM_delete(fx->error);
   }
 
-  MEM_freeN(fx);
+  MEM_delete(fx);
 }
 
 void BKE_shaderfx_free(ShaderFxData *fx)

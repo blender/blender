@@ -92,7 +92,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeScaleData *data = MEM_new_for_free<NodeScaleData>(__func__);
+  NodeScaleData *data = MEM_new<NodeScaleData>(__func__);
   node->storage = data;
 }
 

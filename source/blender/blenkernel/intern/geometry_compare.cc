@@ -288,7 +288,7 @@ static bool values_different(const T value1,
     return compare_threshold_relative(value1_f[component_i], value2_f[component_i], threshold);
   }
   if constexpr (std::is_same_v<T, float4x4>) {
-    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 4);
+    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 16);
     return compare_threshold_relative(
         value1.base_ptr()[component_i], value2.base_ptr()[component_i], threshold);
   }
@@ -548,16 +548,16 @@ static bool ignored_attribute(const StringRef id)
 static std::optional<GeoMismatch> verify_attributes_compatible(
     const AttributeAccessor &attributes1, const AttributeAccessor &attributes2)
 {
-  Set<StringRefNull> attribute_ids1 = attributes1.all_ids();
-  Set<StringRefNull> attribute_ids2 = attributes2.all_ids();
-  attribute_ids1.remove_if(ignored_attribute);
-  attribute_ids2.remove_if(ignored_attribute);
+  Set<StringRefNull> names_1 = attributes1.all_names();
+  Set<StringRefNull> names_2 = attributes2.all_names();
+  names_1.remove_if(ignored_attribute);
+  names_2.remove_if(ignored_attribute);
 
-  if (attribute_ids1 != attribute_ids2) {
+  if (names_1 != names_2) {
     /* Disabled for now due to tests not being up to date. */
     // return GeoMismatch::Attributes;
   }
-  for (const StringRef id : attribute_ids1) {
+  for (const StringRef id : names_1) {
     GAttributeReader reader1 = attributes1.lookup(id);
     GAttributeReader reader2 = attributes2.lookup(id);
     if (!reader1 || !reader2) {
@@ -586,13 +586,13 @@ static std::optional<GeoMismatch> sort_domain_using_attributes(
 {
 
   /* We only need the ids from one geometry, since we know they have the same attributes. */
-  Set<StringRefNull> attribute_ids = attributes1.all_ids();
+  Set<StringRefNull> names = attributes1.all_names();
   for (const StringRef name : excluded_attributes) {
-    attribute_ids.remove_as(name);
+    names.remove_as(name);
   }
-  attribute_ids.remove_if(ignored_attribute);
+  names.remove_if(ignored_attribute);
 
-  for (const StringRef id : attribute_ids) {
+  for (const StringRef id : names) {
     if (!attributes2.contains(id)) {
       /* Only needed right now since some test meshes don't have the same attributes. */
       return GeoMismatch::Attributes;
@@ -607,8 +607,7 @@ static std::optional<GeoMismatch> sort_domain_using_attributes(
 
     std::optional<GeoMismatch> mismatch = {};
 
-    attribute_math::convert_to_static_type(reader1.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    attribute_math::to_static_type(reader1.varray.type(), [&]<typename T>() {
       const VArraySpan<T> values1 = reader1.varray.typed<T>();
       const VArraySpan<T> values2 = reader2.varray.typed<T>();
 

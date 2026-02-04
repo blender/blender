@@ -84,22 +84,22 @@ static void icon_free(void *val)
     Icon_Geom *obj = static_cast<Icon_Geom *>(icon->obj);
     if (obj->mem) {
       /* coords & colors are part of this memory. */
-      MEM_freeN(obj->mem);
+      MEM_delete(obj->mem);
     }
     else {
-      MEM_freeN(obj->coords);
-      MEM_freeN(obj->colors);
+      MEM_delete(obj->coords);
+      MEM_delete(obj->colors);
     }
-    MEM_freeN(icon->obj);
+    MEM_delete(obj);
   }
 
   if (icon->drawinfo_free) {
     icon->drawinfo_free(icon->drawinfo);
   }
   else if (icon->drawinfo) {
-    MEM_freeN(icon->drawinfo);
+    MEM_delete_void(icon->drawinfo);
   }
-  MEM_freeN(icon);
+  MEM_delete(icon);
 }
 
 static void icon_free_data(int icon_id, Icon *icon)
@@ -192,7 +192,7 @@ void BKE_icons_free()
   }
   gIcons.clear();
 
-  BLI_linklist_lockfree_free(&g_icon_delete_queue, MEM_freeN);
+  BLI_linklist_lockfree_free(&g_icon_delete_queue, MEM_delete_void);
 }
 
 void BKE_icons_deferred_free()
@@ -209,7 +209,7 @@ void BKE_icons_deferred_free()
       icon_free(icon);
     }
   }
-  BLI_linklist_lockfree_clear(&g_icon_delete_queue, MEM_freeN);
+  BLI_linklist_lockfree_clear(&g_icon_delete_queue, MEM_delete_void);
 }
 
 void BKE_icon_changed(const int icon_id)
@@ -245,7 +245,7 @@ void BKE_icon_changed(const int icon_id)
 
 static Icon *icon_create(int icon_id, int obj_type, void *obj)
 {
-  Icon *new_icon = MEM_mallocN<Icon>(__func__);
+  Icon *new_icon = MEM_new_uninitialized<Icon>(__func__);
 
   new_icon->obj_type = obj_type;
   new_icon->obj = obj;
@@ -483,6 +483,72 @@ std::optional<IconBufferRef> BKE_icon_get_buffer(const int icon_id, const eIconS
   return std::nullopt;
 }
 
+static IconBufferRef construct_icon_buffer(const int width,
+                                           const int height,
+                                           const int channels,
+                                           const uint8_t *buffer)
+{
+  BLI_assert(buffer != nullptr);
+  BLI_assert(width >= 0);
+  BLI_assert(height >= 0);
+  BLI_assert(channels >= 0);
+
+  return IconBufferRef{
+      .width = width,
+      .height = height,
+      .channels = channels,
+      .buffer = Span(buffer, width * height * channels),
+  };
+}
+
+static std::optional<IconBufferRef> icon_buffer_from_preview(const PreviewImage *preview,
+                                                             const eIconSizes size)
+{
+  if (!preview->rect[size]) {
+    return std::nullopt;
+  }
+
+  const int num_channels = 4; /* #PreviewImage always has 4 color channels. */
+  return construct_icon_buffer(preview->w[size],
+                               preview->h[size],
+                               num_channels,
+                               reinterpret_cast<uint8_t *>(preview->rect[size]));
+}
+
+std::optional<IconBufferRef> BKE_icon_get_buffer(const int icon_id, const eIconSizes size)
+{
+  const Icon *icon = icon_ghash_lookup(icon_id);
+  if (!icon) {
+    CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
+    return std::nullopt;
+  }
+
+  switch (icon->obj_type) {
+    case ICON_DATA_IMBUF: {
+      const ImBuf *ibuf = static_cast<ImBuf *>(icon->obj);
+      return construct_icon_buffer(ibuf->x, ibuf->y, ibuf->channels, ibuf->byte_buffer.data);
+    }
+    case ICON_DATA_ID: {
+      const ID *id = static_cast<ID *>(icon->obj);
+      if (PreviewImage *preview = BKE_previewimg_id_get(id)) {
+        return icon_buffer_from_preview(preview, size);
+      }
+      break;
+    }
+    case ICON_DATA_PREVIEW: {
+      if (const PreviewImage *preview = static_cast<PreviewImage *>(icon->obj)) {
+        if (preview->flag[size] & PRV_RENDERING) {
+          return std::nullopt;
+        }
+        return icon_buffer_from_preview(preview, size);
+      }
+      break;
+    }
+  }
+
+  return std::nullopt;
+}
+
 Icon *BKE_icon_get(const int icon_id)
 {
   BLI_assert(BLI_thread_is_main());
@@ -510,7 +576,7 @@ void BKE_icon_set(const int icon_id, Icon *icon)
 
 static void icon_add_to_deferred_delete_queue(int icon_id)
 {
-  DeferredIconDeleteNode *node = MEM_mallocN<DeferredIconDeleteNode>(__func__);
+  DeferredIconDeleteNode *node = MEM_new_uninitialized<DeferredIconDeleteNode>(__func__);
   node->icon_id = icon_id;
   /* Doesn't need lock. */
   BLI_linklist_lockfree_insert(&g_icon_delete_queue, reinterpret_cast<LockfreeLinkNode *>(node));
@@ -624,7 +690,7 @@ Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len)
   }
   p += 4;
 
-  Icon_Geom *geom = MEM_mallocN<Icon_Geom>(__func__);
+  Icon_Geom *geom = MEM_new_uninitialized<Icon_Geom>(__func__);
   geom->coords_range[0] = int(*p++);
   geom->coords_range[1] = int(*p++);
   /* x, y ignored for now */

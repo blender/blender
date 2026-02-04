@@ -134,7 +134,7 @@ bConstraintOb *BKE_constraints_make_evalob(
   bConstraintOb *cob;
 
   /* create regardless of whether we have any data! */
-  cob = MEM_callocN<bConstraintOb>("bConstraintOb");
+  cob = MEM_new_zeroed<bConstraintOb>("bConstraintOb");
 
   /* NOTE(@ton): For system time, part of de-globalization, code nicer later with local time. */
   cob->scene = scene;
@@ -249,7 +249,7 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
   }
 
   /* Free temporary struct. */
-  MEM_freeN(cob);
+  MEM_delete(cob);
 }
 
 /* -------------- Space-Conversion API -------------- */
@@ -880,7 +880,7 @@ static bool default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
 /* TODO: cope with getting rotation order... */
 #define SINGLETARGET_GET_TARS(con, datatar, datasubtarget, ct, list) \
   { \
-    ct = MEM_new_for_free<bConstraintTarget>("tempConstraintTarget"); \
+    ct = MEM_new<bConstraintTarget>("tempConstraintTarget"); \
 \
     ct->tar = datatar; \
     STRNCPY_UTF8(ct->subtarget, datasubtarget); \
@@ -915,7 +915,7 @@ static bool default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
 /* TODO: cope with getting rotation order... */
 #define SINGLETARGETNS_GET_TARS(con, datatar, ct, list) \
   { \
-    ct = MEM_new_for_free<bConstraintTarget>("tempConstraintTarget"); \
+    ct = MEM_new<bConstraintTarget>("tempConstraintTarget"); \
 \
     ct->tar = datatar; \
     ct->space = con->tarspace; \
@@ -4629,7 +4629,7 @@ static void splineik_free(bConstraint *con)
   bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con->data);
 
   /* binding array */
-  MEM_SAFE_FREE(data->points);
+  MEM_SAFE_DELETE(data->points);
 }
 
 static void splineik_copy(bConstraint *con, bConstraint *srccon)
@@ -4638,7 +4638,7 @@ static void splineik_copy(bConstraint *con, bConstraint *srccon)
   bSplineIKConstraint *dst = static_cast<bSplineIKConstraint *>(con->data);
 
   /* copy the binding array */
-  dst->points = static_cast<float *>(MEM_dupallocN(src->points));
+  dst->points = MEM_dupalloc(src->points);
 }
 
 static void splineik_new_data(void *cdata)
@@ -5599,7 +5599,7 @@ static const bke::GeometryComponent *find_source_component(const bke::GeometrySe
 static void geometry_attribute_free_data(bConstraint *con)
 {
   bGeometryAttributeConstraint *data = static_cast<bGeometryAttributeConstraint *>(con->data);
-  MEM_SAFE_FREE(data->attribute_name);
+  MEM_SAFE_DELETE(data->attribute_name);
 }
 
 static void geometry_attribute_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -5930,7 +5930,7 @@ void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)
     }
 
     /* free constraint data now */
-    MEM_freeN(con->data);
+    MEM_delete_void(con->data);
   }
 }
 
@@ -6109,7 +6109,7 @@ void BKE_constraint_panel_expand(bConstraint *con)
 /* Creates a new constraint, initializes its data, and returns it */
 static bConstraint *add_new_constraint_internal(const char *name, short type)
 {
-  bConstraint *con = MEM_new_for_free<bConstraint>("Constraint");
+  bConstraint *con = MEM_new<bConstraint>("Constraint");
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(type);
   const char *newName;
 
@@ -6128,7 +6128,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
   /* Determine a basic name, and info */
   if (cti) {
     /* initialize constraint data */
-    con->data = MEM_callocN(cti->size, cti->struct_name);
+    con->data = MEM_new_zeroed(cti->size, cti->struct_name);
 
     /* only constraints that change any settings need this */
     if (cti->new_data) {
@@ -6292,7 +6292,7 @@ static void constraint_copy_data_ex(bConstraint *dst,
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(src);
 
   /* make a new copy of the constraint's data */
-  dst->data = MEM_dupallocN(dst->data);
+  dst->data = MEM_dupalloc_void(dst->data);
 
   /* only do specific constraints if required */
   if (cti) {
@@ -6316,7 +6316,7 @@ static void constraint_copy_data_ex(bConstraint *dst,
 
 bConstraint *BKE_constraint_duplicate_ex(bConstraint *src, const int flag, const bool do_extern)
 {
-  bConstraint *dst = static_cast<bConstraint *>(MEM_dupallocN(src));
+  bConstraint *dst = MEM_dupalloc(src);
   constraint_copy_data_ex(dst, src, flag, do_extern);
   dst->next = dst->prev = nullptr;
   return dst;
@@ -6605,7 +6605,7 @@ void BKE_constraint_target_matrix_get(Depsgraph *depsgraph,
 
   if (cti && cti->get_constraint_targets) {
     /* make 'constraint-ob' */
-    cob = MEM_callocN<bConstraintOb>("tempConstraintOb");
+    cob = MEM_new_zeroed<bConstraintOb>("tempConstraintOb");
     cob->type = ownertype;
     cob->scene = scene;
     cob->depsgraph = depsgraph;
@@ -6660,7 +6660,7 @@ void BKE_constraint_target_matrix_get(Depsgraph *depsgraph,
     if (cti->flush_constraint_targets) {
       cti->flush_constraint_targets(con, &targets, true);
     }
-    MEM_freeN(cob);
+    MEM_delete(cob);
   }
   else {
     /* invalid constraint - perhaps... */

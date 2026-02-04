@@ -41,7 +41,7 @@ void VKIndexBuffer::ensure_updated()
 
   if (!data_uploaded_ && buffer_.is_mapped()) {
     buffer_.update_immediately(data_);
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
   else {
     VKContext &context = *VKContext::get();
@@ -60,7 +60,7 @@ void VKIndexBuffer::ensure_updated()
           "drawing artifacts due to read from uninitialized memory.");
       buffer_.clear(context, 0u);
     }
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 
   data_uploaded_ = true;

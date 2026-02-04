@@ -2528,7 +2528,7 @@ void bmesh_kernel_vert_separate(
   if (r_vout != nullptr) {
     BMVert **verts;
 
-    verts = MEM_malloc_arrayN<BMVert *>(verts_num, __func__);
+    verts = MEM_new_array_uninitialized<BMVert *>(verts_num, __func__);
     *r_vout = verts;
 
     verts[0] = v;

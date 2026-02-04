@@ -223,7 +223,7 @@ bool BKE_mesh_calc_islands_loop_face_edgeseam(Span<float3> vert_positions,
  * \param sharp_faces: Optional (possibly empty) span.
  * \param r_totgroup: The total number of groups, 1 or more.
  * \return Face aligned array of group index values, starting at 1 (0 being used as 'invalid'
- * flag). Note that it's the callers responsibility to MEM_freeN the returned array.
+ * flag). Note that it's the callers responsibility to MEM_delete the returned array.
  */
 int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 OffsetIndices<int> faces,
@@ -251,7 +251,7 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
  * \param sharp_faces: Optional (possibly empty) span.
  * \param r_totgroup: The total number of groups, 1 or more.
  * \return Face aligned array of group bit-flags values (i.e. always powers of 2), starting at 1 (0
- * being used as 'invalid' flag). Note that it's the callers responsibility to MEM_freeN the
+ * being used as 'invalid' flag). Note that it's the callers responsibility to MEM_delete the
  * returned array.
  */
 int *BKE_mesh_calc_smoothgroups_bitflags(int edges_num,

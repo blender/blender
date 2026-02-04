@@ -117,7 +117,7 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
 
 static void WIDGETGROUP_tool_generic_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = MEM_mallocN<wmGizmoWrapper>(__func__);
+  wmGizmoWrapper *wwrapper = MEM_new_uninitialized<wmGizmoWrapper>(__func__);
   wwrapper->gizmo = tool_generic_create_gizmo(C, gzgroup);
   gzgroup->customdata = wwrapper;
 

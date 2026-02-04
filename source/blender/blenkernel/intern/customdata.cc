@@ -110,13 +110,13 @@ bool CustomData_MeshMasks_are_matching(const CustomData_MeshMasks *mask_ref,
  * \{ */
 
 struct LayerTypeInfo {
-  int size; /* the memory size of one element of this layer's data */
-  int alignment;
+  int size = 0; /* the memory size of one element of this layer's data */
+  int alignment = 0;
 
   /** name of the struct used, for file writing */
-  const char *structname;
+  const char *structname = nullptr;
   /** number of structs per element, for file writing */
-  int structnum;
+  int structnum = 0;
 
   /**
    * default layer name.
@@ -124,21 +124,21 @@ struct LayerTypeInfo {
    * \note when null this is a way to ensure there is only ever one item
    * see: CustomData_layertype_is_singleton().
    */
-  const char *defaultname;
+  const char *defaultname = nullptr;
 
   /**
    * a function to copy count elements of this layer's data
    * (deep copy if appropriate)
    * if null, memcpy is used
    */
-  cd_copy copy;
+  cd_copy copy = nullptr;
 
   /**
    * a function to destruct this layer's data.
    *
    * \note implementations should make sure that the data pointer itself is not freed.
    */
-  cd_free free;
+  cd_free free = nullptr;
 
   /**
    * a function to interpolate between count source elements of this
@@ -151,47 +151,47 @@ struct LayerTypeInfo {
    * \note in some cases `dest` pointer is in `sources` so all functions have to take this
    * into account and delay applying changes while reading from sources. See #32395.
    */
-  cd_interp interp;
+  cd_interp interp = nullptr;
 
   /** a function to swap the data in corners of the element */
-  void (*swap)(void *data, const int *corner_indices);
+  void (*swap)(void *data, const int *corner_indices) = nullptr;
 
   /**
    * Set values to the type's default. If undefined, the default is assumed to be zeroes.
    * Memory pointed to by #data is expected to be uninitialized.
    */
-  cd_set_default_value set_default_value;
+  cd_set_default_value set_default_value = nullptr;
   /**
    * Construct and fill a valid value for the type. Necessary for non-trivial types.
    * Memory pointed to by #data is expected to be uninitialized.
    */
-  void (*construct)(void *data, int count);
+  void (*construct)(void *data, int count) = nullptr;
 
   /** A function used by mesh validating code, must ensures passed item has valid data. */
-  cd_validate validate;
+  cd_validate validate = nullptr;
 
   /** Functions necessary for geometry collapse. */
-  bool (*equal)(const void *data1, const void *data2);
-  void (*multiply)(void *data, float fac);
-  void (*initminmax)(void *min, void *max);
-  void (*add)(void *data1, const void *data2);
-  void (*dominmax)(const void *data1, void *min, void *max);
-  void (*copyvalue)(const void *source, void *dest, int mixmode, const float mixfactor);
+  bool (*equal)(const void *data1, const void *data2) = nullptr;
+  void (*multiply)(void *data, float fac) = nullptr;
+  void (*initminmax)(void *min, void *max) = nullptr;
+  void (*add)(void *data1, const void *data2) = nullptr;
+  void (*dominmax)(const void *data1, void *min, void *max) = nullptr;
+  void (*copyvalue)(const void *source, void *dest, int mixmode, const float mixfactor) = nullptr;
 
   /** A function to read data from a cdf file. */
-  bool (*read)(CDataFile *cdf, void *data, int count);
+  bool (*read)(CDataFile *cdf, void *data, int count) = nullptr;
 
   /** A function to write data to a cdf file. */
-  bool (*write)(CDataFile *cdf, const void *data, int count);
+  bool (*write)(CDataFile *cdf, const void *data, int count) = nullptr;
 
   /** A function to determine file size. */
-  size_t (*filesize)(CDataFile *cdf, const void *data, int count);
+  size_t (*filesize)(CDataFile *cdf, const void *data, int count) = nullptr;
 
   /**
    * A function to determine max allowed number of layers,
    * should be null or return -1 if no limit.
    */
-  int (*layers_max)();
+  int (*layers_max)() = nullptr;
 };
 
 /** \} */
@@ -210,7 +210,8 @@ static void layerCopy_mdeformvert(const void *source, void *dest, const int coun
     MDeformVert *dvert = static_cast<MDeformVert *>(POINTER_OFFSET(dest, i * size));
 
     if (dvert->totweight) {
-      MDeformWeight *dw = MEM_malloc_arrayN<MDeformWeight>(size_t(dvert->totweight), __func__);
+      MDeformWeight *dw = MEM_new_array_uninitialized<MDeformWeight>(size_t(dvert->totweight),
+                                                                     __func__);
 
       memcpy(dw, dvert->dw, dvert->totweight * sizeof(*dw));
       dvert->dw = dw;
@@ -225,7 +226,7 @@ static void layerFree_mdeformvert(void *data, const int count)
 {
   for (MDeformVert &dvert : MutableSpan(static_cast<MDeformVert *>(data), count)) {
     if (dvert.dw) {
-      MEM_freeN(dvert.dw);
+      MEM_delete(dvert.dw);
       dvert.dw = nullptr;
       dvert.totweight = 0;
     }
@@ -295,11 +296,11 @@ static void layerInterp_mdeformvert(const void **sources,
   }
   else {
     if (dvert->dw) {
-      MEM_freeN(dvert->dw);
+      MEM_delete(dvert->dw);
     }
 
     if (totweight) {
-      dvert->dw = MEM_malloc_arrayN<MDeformWeight>(size_t(totweight), __func__);
+      dvert->dw = MEM_new_array_uninitialized<MDeformWeight>(size_t(totweight), __func__);
     }
   }
 
@@ -599,19 +600,19 @@ static void layerSwap_mdisps(void *data, const int *ci)
       /* happens when face changed vertex count in edit mode
        * if it happened, just forgot displacement */
 
-      MEM_freeN(s->disps);
+      MEM_delete(s->disps);
       s->totdisp = (s->totdisp / corners) * nverts;
-      s->disps = MEM_calloc_arrayN<float[3]>(s->totdisp, "mdisp swap");
+      s->disps = MEM_new_array_zeroed<float[3]>(s->totdisp, "mdisp swap");
       return;
     }
 
-    float (*d)[3] = MEM_calloc_arrayN<float[3]>(s->totdisp, "mdisps swap");
+    float (*d)[3] = MEM_new_array_zeroed<float[3]>(s->totdisp, "mdisps swap");
 
     for (int S = 0; S < corners; S++) {
       memcpy(d + cornersize * S, s->disps + cornersize * ci[S], sizeof(float[3]) * cornersize);
     }
 
-    MEM_freeN(s->disps);
+    MEM_delete(s->disps);
     s->disps = d;
   }
 }
@@ -623,8 +624,8 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
 
   for (int i = 0; i < count; i++) {
     if (s[i].disps) {
-      d[i].disps = static_cast<float (*)[3]>(MEM_dupallocN(s[i].disps));
-      d[i].hidden = static_cast<uint *>(MEM_dupallocN(s[i].hidden));
+      d[i].disps = MEM_dupalloc(s[i].disps);
+      d[i].hidden = MEM_dupalloc(s[i].hidden);
     }
     else {
       d[i].disps = nullptr;
@@ -640,8 +641,8 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
 static void layerFree_mdisps(void *data, const int count)
 {
   for (MDisps &d : MutableSpan(static_cast<MDisps *>(data), count)) {
-    MEM_SAFE_FREE(d.disps);
-    MEM_SAFE_FREE(d.hidden);
+    MEM_SAFE_DELETE(d.disps);
+    MEM_SAFE_DELETE(d.hidden);
     d.totdisp = 0;
     d.level = 0;
   }
@@ -658,7 +659,7 @@ static bool layerRead_mdisps(CDataFile *cdf, void *data, const int count)
 
   for (int i = 0; i < count; i++) {
     if (!d[i].disps) {
-      d[i].disps = MEM_calloc_arrayN<float[3]>(d[i].totdisp, "mdisps read");
+      d[i].disps = MEM_new_array_zeroed<float[3]>(d[i].totdisp, "mdisps read");
     }
 
     if (!cdf_read_data(cdf, sizeof(float[3]) * d[i].totdisp, d[i].disps)) {
@@ -743,7 +744,7 @@ static void layerCopy_grid_paint_mask(const void *source, void *dest, const int 
 
   for (int i = 0; i < count; i++) {
     if (s[i].data) {
-      d[i].data = static_cast<float *>(MEM_dupallocN(s[i].data));
+      d[i].data = MEM_dupalloc(s[i].data);
       d[i].level = s[i].level;
     }
     else {
@@ -756,7 +757,7 @@ static void layerCopy_grid_paint_mask(const void *source, void *dest, const int 
 static void layerFree_grid_paint_mask(void *data, const int count)
 {
   for (GridPaintMask &gpm : MutableSpan(static_cast<GridPaintMask *>(data), count)) {
-    MEM_SAFE_FREE(gpm.data);
+    MEM_SAFE_DELETE(gpm.data);
     gpm.level = 0;
   }
 }
@@ -1482,556 +1483,475 @@ static void layerDefault_propfloat4x4(void *data, const int count)
 
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 0: CD_MVERT */ /* DEPRECATED */
-    {sizeof(MVert),
-     alignof(MVert),
-     "MVert",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MVert),
+        .alignment = alignof(MVert),
+        .structname = "MVert",
+        .structnum = 1,
+    },
     /* 1: CD_MSTICKY */ /* DEPRECATED */
-    {sizeof(float[2]),
-     alignof(float2),
-     "",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(float[2]),
+        .alignment = alignof(float2),
+        .structname = "",
+        .structnum = 1,
+    },
     /* 2: CD_MDEFORMVERT */
-    {sizeof(MDeformVert),
-     alignof(MDeformVert),
-     "MDeformVert",
-     1,
-     nullptr,
-     layerCopy_mdeformvert,
-     layerFree_mdeformvert,
-     layerInterp_mdeformvert,
-     nullptr,
-     nullptr,
-     layerConstruct_mdeformvert},
+    {
+        .size = sizeof(MDeformVert),
+        .alignment = alignof(MDeformVert),
+        .structname = "MDeformVert",
+        .structnum = 1,
+        .copy = layerCopy_mdeformvert,
+        .free = layerFree_mdeformvert,
+        .interp = layerInterp_mdeformvert,
+        .construct = layerConstruct_mdeformvert,
+    },
     /* 3: CD_MEDGE */ /* DEPRECATED */
-    {sizeof(MEdge),
-     alignof(MEdge),
-     "MEdge",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MEdge),
+        .alignment = alignof(MEdge),
+        .structname = "MEdge",
+        .structnum = 1,
+    },
     /* 4: CD_MFACE */
-    {sizeof(MFace),
-     alignof(MFace),
-     "MFace",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MFace),
+        .alignment = alignof(MFace),
+        .structname = "MFace",
+        .structnum = 1,
+    },
     /* 5: CD_MTFACE */
-    {sizeof(MTFace),
-     alignof(MTFace),
-     "MTFace",
-     1,
-     N_("UVMap"),
-     layerCopy_tface,
-     nullptr,
-     layerInterp_tface,
-     layerSwap_tface,
-     nullptr,
-     layerDefault_tface,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerMaxNum_tface},
+    {
+        .size = sizeof(MTFace),
+        .alignment = alignof(MTFace),
+        .structname = "MTFace",
+        .structnum = 1,
+        .defaultname = N_("UVMap"),
+        .copy = layerCopy_tface,
+        .interp = layerInterp_tface,
+        .swap = layerSwap_tface,
+        .construct = layerDefault_tface,
+        .layers_max = layerMaxNum_tface,
+    },
     /* 6: CD_MCOL */
     /* 4 MCol structs per face */
-    {sizeof(MCol[4]),
-     alignof(MCol[4]),
-     "MCol",
-     4,
-     N_("Col"),
-     nullptr,
-     nullptr,
-     layerInterp_mcol,
-     layerSwap_mcol,
-     layerDefault_mcol},
+    {
+        .size = sizeof(MCol[4]),
+        .alignment = alignof(MCol[4]),
+        .structname = "MCol",
+        .structnum = 4,
+        .defaultname = N_("Col"),
+        .interp = layerInterp_mcol,
+        .swap = layerSwap_mcol,
+        .set_default_value = layerDefault_mcol,
+    },
     /* 7: CD_ORIGINDEX */
-    {sizeof(int),
-     alignof(int),
-     "",
-     0,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerDefault_origindex},
+    {
+        .size = sizeof(int),
+        .alignment = alignof(int),
+        .structname = "",
+        .structnum = 0,
+        .set_default_value = layerDefault_origindex,
+    },
     /* 8: CD_NORMAL */
     /* 3 floats per normal vector */
-    {sizeof(float[3]),
-     alignof(float3),
-     "vec3f",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerInterp_normal,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerCopyValue_normal},
+    {
+        .size = sizeof(float[3]),
+        .alignment = alignof(float3),
+        .structname = "vec3f",
+        .structnum = 1,
+        .interp = layerInterp_normal,
+        .copyvalue = layerCopyValue_normal,
+    },
     /* 9: CD_FACEMAP */ /* DEPRECATED */
-    {sizeof(int), alignof(int), ""},
+    {
+        .size = sizeof(int),
+        .alignment = alignof(int),
+        .structname = "",
+    },
     /* 10: CD_PROP_FLOAT */
-    {sizeof(MFloatProperty),
-     alignof(float),
-     "MFloatProperty",
-     1,
-     N_("Float"),
-     layerCopy_propFloat,
-     nullptr,
-     layerInterp_propFloat,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerValidate_propFloat},
+    {
+        .size = sizeof(MFloatProperty),
+        .alignment = alignof(float),
+        .structname = "MFloatProperty",
+        .structnum = 1,
+        .defaultname = N_("Float"),
+        .copy = layerCopy_propFloat,
+        .interp = layerInterp_propFloat,
+        .validate = layerValidate_propFloat,
+    },
     /* 11: CD_PROP_INT32 */
-    {sizeof(MIntProperty),
-     alignof(int),
-     "MIntProperty",
-     1,
-     N_("Int"),
-     nullptr,
-     nullptr,
-     layerInterp_propInt,
-     nullptr},
+    {
+        .size = sizeof(MIntProperty),
+        .alignment = alignof(int),
+        .structname = "MIntProperty",
+        .structnum = 1,
+        .defaultname = N_("Int"),
+        .interp = layerInterp_propInt,
+    },
     /* 12: CD_PROP_STRING */
-    {sizeof(MStringProperty),
-     alignof(MStringProperty),
-     "MStringProperty",
-     1,
-     N_("String"),
-     layerCopy_propString,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MStringProperty),
+        .alignment = alignof(MStringProperty),
+        .structname = "MStringProperty",
+        .structnum = 1,
+        .defaultname = N_("String"),
+        .copy = layerCopy_propString,
+    },
     /* 13: CD_ORIGSPACE */
-    {sizeof(OrigSpaceFace),
-     alignof(OrigSpaceFace),
-     "OrigSpaceFace",
-     1,
-     N_("UVMap"),
-     layerCopy_origspace_face,
-     nullptr,
-     layerInterp_origspace_face,
-     layerSwap_origspace_face,
-     layerDefault_origspace_face},
+    {
+        .size = sizeof(OrigSpaceFace),
+        .alignment = alignof(OrigSpaceFace),
+        .structname = "OrigSpaceFace",
+        .structnum = 1,
+        .defaultname = N_("UVMap"),
+        .copy = layerCopy_origspace_face,
+        .interp = layerInterp_origspace_face,
+        .swap = layerSwap_origspace_face,
+        .set_default_value = layerDefault_origspace_face,
+    },
     /* 14: CD_ORCO */
-    {sizeof(float[3]),
-     alignof(float3),
-     "",
-     0,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(float[3]),
+        .alignment = alignof(float3),
+        .structname = "",
+        .structnum = 0,
+    },
     /* 15: CD_MTEXPOLY */ /* DEPRECATED */
     /* NOTE: when we expose the UV Map / TexFace split to the user,
      * change this back to face Texture. */
-    {sizeof(int), alignof(int), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    {
+        .size = sizeof(int),
+        .alignment = alignof(int),
+        .structname = "",
+        .structnum = 0,
+    },
     /* 16: CD_MLOOPUV */ /* DEPRECATED */
-    {sizeof(MLoopUV), alignof(MLoopUV), "MLoopUV", 1, N_("UVMap")},
+    {
+        .size = sizeof(MLoopUV),
+        .alignment = alignof(MLoopUV),
+        .structname = "MLoopUV",
+        .structnum = 1,
+        .defaultname = N_("UVMap"),
+    },
     /* 17: CD_PROP_BYTE_COLOR */
-    {sizeof(MLoopCol),
-     alignof(MLoopCol),
-     "MLoopCol",
-     1,
-     N_("Col"),
-     nullptr,
-     nullptr,
-     layerInterp_mloopcol,
-     nullptr,
-     layerDefault_mloopcol,
-     nullptr,
-     nullptr,
-     layerEqual_mloopcol,
-     layerMultiply_mloopcol,
-     layerInitMinMax_mloopcol,
-     layerAdd_mloopcol,
-     layerDoMinMax_mloopcol,
-     layerCopyValue_mloopcol,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MLoopCol),
+        .alignment = alignof(MLoopCol),
+        .structname = "MLoopCol",
+        .structnum = 1,
+        .defaultname = N_("Col"),
+        .interp = layerInterp_mloopcol,
+        .set_default_value = layerDefault_mloopcol,
+        .equal = layerEqual_mloopcol,
+        .multiply = layerMultiply_mloopcol,
+        .initminmax = layerInitMinMax_mloopcol,
+        .add = layerAdd_mloopcol,
+        .dominmax = layerDoMinMax_mloopcol,
+        .copyvalue = layerCopyValue_mloopcol,
+    },
     /* 18: CD_TANGENT */ /* DEPRECATED */
-    {sizeof(float[4]), alignof(float[4]), "", 0, N_("Tangent")},
+    {
+        .size = sizeof(float[4]),
+        .alignment = alignof(float[4]),
+        .structname = "",
+        .structnum = 0,
+        .defaultname = N_("Tangent"),
+    },
     /* 19: CD_MDISPS */
-    {sizeof(MDisps),
-     alignof(MDisps),
-     "MDisps",
-     1,
-     nullptr,
-     layerCopy_mdisps,
-     layerFree_mdisps,
-     nullptr,
-     layerSwap_mdisps,
-     nullptr,
-     layerConstruct_mdisps,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerRead_mdisps,
-     layerWrite_mdisps,
-     layerFilesize_mdisps},
+    {
+        .size = sizeof(MDisps),
+        .alignment = alignof(MDisps),
+        .structname = "MDisps",
+        .structnum = 1,
+        .copy = layerCopy_mdisps,
+        .free = layerFree_mdisps,
+        .swap = layerSwap_mdisps,
+        .construct = layerConstruct_mdisps,
+        .read = layerRead_mdisps,
+        .write = layerWrite_mdisps,
+        .filesize = layerFilesize_mdisps,
+    },
     /* 20: CD_PREVIEW_MCOL */
-    {sizeof(float4x4),
-     alignof(float4x4),
-     "mat4x4f",
-     1,
-     N_("4 by 4 Float Matrix"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerDefault_propfloat4x4},
+    {
+        .size = sizeof(float4x4),
+        .alignment = alignof(float4x4),
+        .structname = "mat4x4f",
+        .structnum = 1,
+        .defaultname = N_("4 by 4 Float Matrix"),
+        .set_default_value = layerDefault_propfloat4x4,
+    },
     /* 21: CD_ID_MCOL */ /* DEPRECATED */
-    {sizeof(MCol[4]),
-     alignof(MCol[4]),
-     "",
-     0,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MCol[4]),
+        .alignment = alignof(MCol[4]),
+        .structname = "",
+        .structnum = 0,
+    },
     /* 22: CD_PROP_INT16_2D */
-    {sizeof(short2),
-     alignof(short2),
-     "vec2s",
-     1,
-     N_("2D 16-Bit Integer"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(short2),
+        .alignment = alignof(short2),
+        .structname = "vec2s",
+        .structnum = 1,
+        .defaultname = N_("2D 16-Bit Integer"),
+    },
     /* 23: CD_CLOTH_ORCO */
-    {sizeof(float[3]),
-     alignof(float[3]),
-     "",
-     0,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(float[3]),
+        .alignment = alignof(float[3]),
+        .structname = "",
+        .structnum = 0,
+    },
     /* 24: CD_RECAST */
-    {sizeof(MRecast),
-     alignof(MRecast),
-     "MRecast",
-     1,
-     N_("Recast"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MRecast),
+        .alignment = alignof(MRecast),
+        .structname = "MRecast",
+        .structnum = 1,
+        .defaultname = N_("Recast"),
+    },
     /* 25: CD_MPOLY */ /* DEPRECATED */
-    {sizeof(MPoly),
-     alignof(MPoly),
-     "MPoly",
-     1,
-     N_("NGon Face"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MPoly),
+        .alignment = alignof(MPoly),
+        .structname = "MPoly",
+        .structnum = 1,
+        .defaultname = N_("NGon Face"),
+    },
     /* 26: CD_MLOOP */ /* DEPRECATED */
-    {sizeof(MLoop),
-     alignof(MLoop),
-     "MLoop",
-     1,
-     N_("NGon Face-Vertex"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MLoop),
+        .alignment = alignof(MLoop),
+        .structname = "MLoop",
+        .structnum = 1,
+        .defaultname = N_("NGon Face-Vertex"),
+    },
     /* 27: CD_SHAPE_KEYINDEX */
-    {sizeof(int), alignof(int), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    {
+        .size = sizeof(int),
+        .alignment = alignof(int),
+        .structname = "",
+        .structnum = 0,
+    },
     /* 28: CD_SHAPEKEY */
-    {sizeof(float[3]),
-     alignof(float[3]),
-     "",
-     0,
-     N_("ShapeKey"),
-     nullptr,
-     nullptr,
-     layerInterp_shapekey},
+    {
+        .size = sizeof(float[3]),
+        .alignment = alignof(float[3]),
+        .structname = "",
+        .structnum = 0,
+        .defaultname = N_("ShapeKey"),
+        .interp = layerInterp_shapekey,
+    },
     /* 29: CD_BWEIGHT */ /* DEPRECATED */
-    {sizeof(MFloatProperty), alignof(MFloatProperty), "MFloatProperty", 1},
+    {
+        .size = sizeof(MFloatProperty),
+        .alignment = alignof(MFloatProperty),
+        .structname = "MFloatProperty",
+        .structnum = 1,
+    },
     /* 30: CD_CREASE */ /* DEPRECATED */
-    {sizeof(float), alignof(float), ""},
+    {
+        .size = sizeof(float),
+        .alignment = alignof(float),
+        .structname = "",
+    },
     /* 31: CD_ORIGSPACE_MLOOP */
-    {sizeof(OrigSpaceLoop),
-     alignof(OrigSpaceLoop),
-     "OrigSpaceLoop",
-     1,
-     N_("OS Loop"),
-     nullptr,
-     nullptr,
-     layerInterp_mloop_origspace,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerEqual_mloop_origspace,
-     layerMultiply_mloop_origspace,
-     layerInitMinMax_mloop_origspace,
-     layerAdd_mloop_origspace,
-     layerDoMinMax_mloop_origspace,
-     layerCopyValue_mloop_origspace},
+    {
+        .size = sizeof(OrigSpaceLoop),
+        .alignment = alignof(OrigSpaceLoop),
+        .structname = "OrigSpaceLoop",
+        .structnum = 1,
+        .defaultname = N_("OS Loop"),
+        .interp = layerInterp_mloop_origspace,
+        .equal = layerEqual_mloop_origspace,
+        .multiply = layerMultiply_mloop_origspace,
+        .initminmax = layerInitMinMax_mloop_origspace,
+        .add = layerAdd_mloop_origspace,
+        .dominmax = layerDoMinMax_mloop_origspace,
+        .copyvalue = layerCopyValue_mloop_origspace,
+    },
     /* 32: CD_PREVIEW_MLOOPCOL */ /* DEPRECATED */ /* UNUSED */
     {},
     /* 33: CD_BM_ELEM_PYPTR */
-    {sizeof(void *),
-     alignof(void *),
-     "",
-     1,
-     nullptr,
-     layerCopy_bmesh_elem_py_ptr,
-     layerFree_bmesh_elem_py_ptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(void *),
+        .alignment = alignof(void *),
+        .structname = "",
+        .structnum = 1,
+        .copy = layerCopy_bmesh_elem_py_ptr,
+        .free = layerFree_bmesh_elem_py_ptr,
+    },
     /* 34: CD_PAINT_MASK */ /* DEPRECATED */
-    {sizeof(float), alignof(float), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    {
+        .size = sizeof(float),
+        .alignment = alignof(float),
+        .structname = "",
+        .structnum = 0,
+    },
     /* 35: CD_GRID_PAINT_MASK */
-    {sizeof(GridPaintMask),
-     alignof(GridPaintMask),
-     "GridPaintMask",
-     1,
-     nullptr,
-     layerCopy_grid_paint_mask,
-     layerFree_grid_paint_mask,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerConstruct_grid_paint_mask},
+    {
+        .size = sizeof(GridPaintMask),
+        .alignment = alignof(GridPaintMask),
+        .structname = "GridPaintMask",
+        .structnum = 1,
+        .copy = layerCopy_grid_paint_mask,
+        .free = layerFree_grid_paint_mask,
+        .construct = layerConstruct_grid_paint_mask,
+    },
     /* 36: CD_MVERT_SKIN */
-    {sizeof(MVertSkin),
-     alignof(MVertSkin),
-     "MVertSkin",
-     1,
-     nullptr,
-     layerCopy_mvert_skin,
-     nullptr,
-     layerInterp_mvert_skin,
-     nullptr,
-     layerDefault_mvert_skin},
+    {
+        .size = sizeof(MVertSkin),
+        .alignment = alignof(MVertSkin),
+        .structname = "MVertSkin",
+        .structnum = 1,
+        .copy = layerCopy_mvert_skin,
+        .interp = layerInterp_mvert_skin,
+        .set_default_value = layerDefault_mvert_skin,
+    },
     /* 37: CD_FREESTYLE_EDGE */ /* DEPRECATED */
-    {sizeof(FreestyleEdge), alignof(FreestyleEdge), "FreestyleEdge", 1},
+    {
+        .size = sizeof(FreestyleEdge),
+        .alignment = alignof(FreestyleEdge),
+        .structname = "FreestyleEdge",
+        .structnum = 1,
+    },
     /* 38: CD_FREESTYLE_FACE */ /* DEPRECATED */
-    {sizeof(FreestyleFace), alignof(FreestyleFace), "FreestyleFace", 1},
+    {
+        .size = sizeof(FreestyleFace),
+        .alignment = alignof(FreestyleFace),
+        .structname = "FreestyleFace",
+        .structnum = 1,
+    },
     /* 39: CD_MLOOPTANGENT */
-    {sizeof(float[4]),
-     alignof(float[4]),
-     "",
-     0,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(float[4]),
+        .alignment = alignof(float[4]),
+        .structname = "",
+        .structnum = 0,
+    },
     /* 40: CD_TESSLOOPNORMAL */
-    {sizeof(short[4][3]),
-     alignof(short[4][3]),
-     "",
-     0,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerSwap_flnor,
-     nullptr},
+    {
+        .size = sizeof(short[4][3]),
+        .alignment = alignof(short[4][3]),
+        .structname = "",
+        .structnum = 0,
+        .swap = layerSwap_flnor,
+    },
     /* 41: CD_CUSTOMLOOPNORMAL */ /* DEPRECATED */
-    {sizeof(short[2]), alignof(short[2]), "vec2s", 1},
+    {
+        .size = sizeof(short[2]),
+        .alignment = alignof(short[2]),
+        .structname = "vec2s",
+        .structnum = 1,
+    },
     /* 42: CD_SCULPT_FACE_SETS */ /* DEPRECATED */
-    {sizeof(int), alignof(int), ""},
+    {
+        .size = sizeof(int),
+        .alignment = alignof(int),
+        .structname = "",
+    },
     /* 43: CD_LOCATION */
-    {sizeof(float[3]),
-     alignof(float[3]),
-     "vec3f",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(float[3]),
+        .alignment = alignof(float[3]),
+        .structname = "vec3f",
+        .structnum = 1,
+    },
     /* 44: CD_RADIUS */
-    {sizeof(float),
-     alignof(float),
-     "MFloatProperty",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(float),
+        .alignment = alignof(float),
+        .structname = "MFloatProperty",
+        .structnum = 1,
+    },
     /* 45: CD_PROP_INT8 */
-    {sizeof(int8_t),
-     alignof(int8_t),
-     "MInt8Property",
-     1,
-     N_("Int8"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(int8_t),
+        .alignment = alignof(int8_t),
+        .structname = "MInt8Property",
+        .structnum = 1,
+        .defaultname = N_("Int8"),
+    },
     /* 46: CD_PROP_INT32_2D */
-    {sizeof(int2),
-     alignof(int2),
-     "vec2i",
-     1,
-     N_("Int 2D"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(int2),
+        .alignment = alignof(int2),
+        .structname = "vec2i",
+        .structnum = 1,
+        .defaultname = N_("Int 2D"),
+    },
     /* 47: CD_PROP_COLOR */
-    {sizeof(MPropCol),
-     alignof(MPropCol),
-     "MPropCol",
-     1,
-     N_("Color"),
-     nullptr,
-     nullptr,
-     layerInterp_propcol,
-     nullptr,
-     layerDefault_propcol,
-     nullptr,
-     nullptr,
-     layerEqual_propcol,
-     layerMultiply_propcol,
-     layerInitMinMax_propcol,
-     layerAdd_propcol,
-     layerDoMinMax_propcol,
-     layerCopyValue_propcol,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(MPropCol),
+        .alignment = alignof(MPropCol),
+        .structname = "MPropCol",
+        .structnum = 1,
+        .defaultname = N_("Color"),
+        .interp = layerInterp_propcol,
+        .set_default_value = layerDefault_propcol,
+        .equal = layerEqual_propcol,
+        .multiply = layerMultiply_propcol,
+        .initminmax = layerInitMinMax_propcol,
+        .add = layerAdd_propcol,
+        .dominmax = layerDoMinMax_propcol,
+        .copyvalue = layerCopyValue_propcol,
+    },
     /* 48: CD_PROP_FLOAT3 */
-    {sizeof(float[3]),
-     alignof(float3),
-     "vec3f",
-     1,
-     N_("Float3"),
-     nullptr,
-     nullptr,
-     layerInterp_propfloat3,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerValidate_propfloat3,
-     nullptr,
-     layerMultiply_propfloat3,
-     nullptr,
-     layerAdd_propfloat3},
+    {
+        .size = sizeof(float[3]),
+        .alignment = alignof(float3),
+        .structname = "vec3f",
+        .structnum = 1,
+        .defaultname = N_("Float3"),
+        .interp = layerInterp_propfloat3,
+        .validate = layerValidate_propfloat3,
+        .multiply = layerMultiply_propfloat3,
+        .add = layerAdd_propfloat3,
+    },
     /* 49: CD_PROP_FLOAT2 */
-    {sizeof(float[2]),
-     alignof(float2),
-     "vec2f",
-     1,
-     N_("Float2"),
-     nullptr,
-     nullptr,
-     layerInterp_propfloat2,
-     nullptr,
-     nullptr,
-     nullptr,
-     layerValidate_propfloat2,
-     layerEqual_propfloat2,
-     layerMultiply_propfloat2,
-     layerInitMinMax_propfloat2,
-     layerAdd_propfloat2,
-     layerDoMinMax_propfloat2,
-     layerCopyValue_propfloat2},
+    {
+        .size = sizeof(float[2]),
+        .alignment = alignof(float2),
+        .structname = "vec2f",
+        .structnum = 1,
+        .defaultname = N_("Float2"),
+        .interp = layerInterp_propfloat2,
+        .validate = layerValidate_propfloat2,
+        .equal = layerEqual_propfloat2,
+        .multiply = layerMultiply_propfloat2,
+        .initminmax = layerInitMinMax_propfloat2,
+        .add = layerAdd_propfloat2,
+        .dominmax = layerDoMinMax_propfloat2,
+        .copyvalue = layerCopyValue_propfloat2,
+    },
     /* 50: CD_PROP_BOOL */
-    {sizeof(bool),
-     alignof(bool),
-     "bool",
-     1,
-     N_("Boolean"),
-     nullptr,
-     nullptr,
-     layerInterp_propbool,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(bool),
+        .alignment = alignof(bool),
+        .structname = "bool",
+        .structnum = 1,
+        .defaultname = N_("Boolean"),
+        .interp = layerInterp_propbool,
+    },
     /* 51: CD_HAIRLENGTH */ /* DEPRECATED */ /* UNUSED */
-    {sizeof(float),
-     alignof(float),
-     "float",
-     1,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    {
+        .size = sizeof(float),
+        .alignment = alignof(float),
+        .structname = "float",
+        .structnum = 1,
+    },
     /* 52: CD_PROP_QUATERNION */
-    {sizeof(float[4]),
-     alignof(float4),
-     "vec4f",
-     1,
-     N_("Quaternion"),
-     nullptr,
-     nullptr,
-     layerInterp_propquaternion,
-     nullptr,
-     layerDefault_propquaternion},
+    {
+        .size = sizeof(float[4]),
+        .alignment = alignof(float4),
+        .structname = "vec4f",
+        .structnum = 1,
+        .defaultname = N_("Quaternion"),
+        .interp = layerInterp_propquaternion,
+        .set_default_value = layerDefault_propquaternion,
+    },
 };
 
 static_assert(sizeof(mat4x4f) == sizeof(float4x4));
@@ -2259,7 +2179,7 @@ static void *copy_layer_data(const eCustomDataType type, const void *data, const
 {
   const LayerTypeInfo &type_info = *layerType_getInfo(type);
   const int64_t size_in_bytes = int64_t(totelem) * type_info.size;
-  void *new_data = MEM_mallocN_aligned(size_in_bytes, type_info.alignment, __func__);
+  void *new_data = MEM_new_uninitialized_aligned(size_in_bytes, type_info.alignment, __func__);
   if (type_info.copy) {
     type_info.copy(data, new_data, totelem);
   }
@@ -2275,7 +2195,7 @@ static void free_layer_data(const eCustomDataType type, const void *data, const 
   if (type_info.free) {
     type_info.free(const_cast<void *>(data), totelem);
   }
-  MEM_freeN(const_cast<void *>(data));
+  MEM_delete_void(const_cast<void *>(data));
 }
 
 static bool customdata_merge_internal(const CustomData *source,
@@ -2477,7 +2397,7 @@ void CustomData_realloc(CustomData *data,
     const int64_t old_size_in_bytes = int64_t(old_size) * typeInfo->size;
     const int64_t new_size_in_bytes = int64_t(new_size) * typeInfo->size;
 
-    void *new_layer_data = (new_size > 0) ? MEM_mallocN_aligned(
+    void *new_layer_data = (new_size > 0) ? MEM_new_uninitialized_aligned(
                                                 new_size_in_bytes, typeInfo->alignment, __func__) :
                                             nullptr;
     if (old_size_in_bytes > 0) {
@@ -2535,7 +2455,7 @@ void CustomData_init_from(const CustomData *source,
   CustomData_reset(dest);
 
   if (source->external) {
-    dest->external = static_cast<CustomDataExternal *>(MEM_dupallocN(source->external));
+    dest->external = MEM_dupalloc(source->external);
   }
 
   CustomData_merge(source, dest, mask, totelem);
@@ -2550,7 +2470,7 @@ void CustomData_init_layout_from(const CustomData *source,
   CustomData_reset(dest);
 
   if (source->external) {
-    dest->external = static_cast<CustomDataExternal *>(MEM_dupallocN(source->external));
+    dest->external = MEM_dupalloc(source->external);
   }
 
   CustomData_merge_layout(source, dest, mask, alloctype, totelem);
@@ -2569,7 +2489,7 @@ static void customData_free_layer__internal(CustomDataLayer *layer)
 static void CustomData_external_free(CustomData *data)
 {
   if (data->external) {
-    MEM_freeN(data->external);
+    MEM_delete(data->external);
     data->external = nullptr;
   }
 }
@@ -2587,7 +2507,7 @@ void CustomData_free(CustomData *data)
   }
 
   if (data->layers) {
-    MEM_freeN(data->layers);
+    MEM_delete(data->layers);
   }
 
   CustomData_external_free(data);
@@ -2812,8 +2732,8 @@ bool CustomData_layer_is_anonymous(const CustomData *data, eCustomDataType type,
 
 static void customData_resize(CustomData *data, const int grow_amount)
 {
-  data->layers = static_cast<CustomDataLayer *>(
-      MEM_reallocN(data->layers, (data->maxlayer + grow_amount) * sizeof(CustomDataLayer)));
+  data->layers = static_cast<CustomDataLayer *>(MEM_realloc_uninitialized(
+      data->layers, (data->maxlayer + grow_amount) * sizeof(CustomDataLayer)));
   data->maxlayer += grow_amount;
 }
 
@@ -2863,12 +2783,13 @@ static CustomDataLayer *customData_add_layer__internal(
     switch (*alloctype) {
       case CD_SET_DEFAULT: {
         if (totelem > 0) {
-          new_layer.data = MEM_mallocN_aligned(size_in_bytes, type_info.alignment, alloc_name);
+          new_layer.data = MEM_new_uninitialized_aligned(
+              size_in_bytes, type_info.alignment, alloc_name);
           if (type_info.set_default_value) {
             type_info.set_default_value(new_layer.data, totelem);
           }
           else {
-            /* Alternatively, #MEM_calloc_arrayN is faster, but has no aligned version. */
+            /* Alternatively, #MEM_new_array_zeroed is faster, but has no aligned version. */
             memset(new_layer.data, 0, size_in_bytes);
           }
         }
@@ -2876,7 +2797,8 @@ static CustomDataLayer *customData_add_layer__internal(
       }
       case CD_CONSTRUCT: {
         if (totelem > 0) {
-          new_layer.data = MEM_mallocN_aligned(size_in_bytes, type_info.alignment, alloc_name);
+          new_layer.data = MEM_new_uninitialized_aligned(
+              size_in_bytes, type_info.alignment, alloc_name);
           if (type_info.construct) {
             type_info.construct(new_layer.data, totelem);
           }
@@ -2887,7 +2809,7 @@ static CustomDataLayer *customData_add_layer__internal(
   }
   else {
     if (totelem == 0 && sharing_info_to_assign == nullptr) {
-      MEM_SAFE_FREE(layer_data_to_assign);
+      MEM_SAFE_DELETE_VOID(layer_data_to_assign);
     }
     else {
       new_layer.data = layer_data_to_assign;
@@ -3290,7 +3212,7 @@ void CustomData_interp(const CustomData *source,
 
   /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
-    sources = MEM_malloc_arrayN<const void *>(size_t(count), __func__);
+    sources = MEM_new_array_uninitialized<const void *>(size_t(count), __func__);
   }
 
   /* If no weights are given, generate default ones to produce an average result. */
@@ -3298,7 +3220,7 @@ void CustomData_interp(const CustomData *source,
   float *default_weights = nullptr;
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
-                          MEM_malloc_arrayN<float>(size_t(count), __func__) :
+                          MEM_new_array_uninitialized<float>(size_t(count), __func__) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -3347,10 +3269,10 @@ void CustomData_interp(const CustomData *source,
   }
 
   if (count > SOURCE_BUF_SIZE) {
-    MEM_freeN(sources);
+    MEM_delete(sources);
   }
   if (!ELEM(default_weights, nullptr, default_weights_buf)) {
-    MEM_freeN(default_weights);
+    MEM_delete(default_weights);
   }
 }
 
@@ -3568,12 +3490,12 @@ bool CustomData_bmesh_merge_layout(const CustomData *source,
    * the new allocation */
   CustomData destold = *dest;
   if (destold.layers) {
-    destold.layers = static_cast<CustomDataLayer *>(MEM_dupallocN(destold.layers));
+    destold.layers = MEM_dupalloc(destold.layers);
   }
 
   if (CustomData_merge_layout(source, dest, mask, alloctype, 0) == false) {
     if (destold.layers) {
-      MEM_freeN(destold.layers);
+      MEM_delete(destold.layers);
     }
     return false;
   }
@@ -3641,7 +3563,7 @@ bool CustomData_bmesh_merge_layout(const CustomData *source,
     BLI_mempool_destroy(destold.pool);
   }
   if (destold.layers) {
-    MEM_freeN(destold.layers);
+    MEM_delete(destold.layers);
   }
   return true;
 }
@@ -4050,7 +3972,7 @@ void CustomData_bmesh_interp(
 
   /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
-    sources = MEM_malloc_arrayN<const void *>(size_t(count), __func__);
+    sources = MEM_new_array_uninitialized<const void *>(size_t(count), __func__);
   }
 
   /* If no weights are given, generate default ones to produce an average result. */
@@ -4058,7 +3980,7 @@ void CustomData_bmesh_interp(
   float *default_weights = nullptr;
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
-                          MEM_malloc_arrayN<float>(size_t(count), __func__) :
+                          MEM_new_array_uninitialized<float>(size_t(count), __func__) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -4078,10 +4000,10 @@ void CustomData_bmesh_interp(
   }
 
   if (count > SOURCE_BUF_SIZE) {
-    MEM_freeN(sources);
+    MEM_delete(sources);
   }
   if (!ELEM(default_weights, nullptr, default_weights_buf)) {
-    MEM_freeN(default_weights);
+    MEM_delete(default_weights);
   }
 }
 
@@ -4256,7 +4178,7 @@ static bool CustomData_layer_ensure_data_exists(CustomDataLayer *layer, size_t c
     case CD_PROP_BOOL:   /* See #84935. */
     case CD_MLOOPUV:     /* See #90620. */
     case CD_PROP_FLOAT2: /* See #90620. */
-      layer->data = MEM_calloc_arrayN(
+      layer->data = MEM_new_array_zeroed(
           count, typeInfo->size, layerType_getName(eCustomDataType(layer->type)));
       BLI_assert(layer->data);
       if (typeInfo->set_default_value) {
@@ -4527,7 +4449,7 @@ void CustomData_external_add(CustomData *data,
   }
 
   if (!external) {
-    external = MEM_new_for_free<CustomDataExternal>(__func__);
+    external = MEM_new<CustomDataExternal>(__func__);
     data->external = external;
   }
   STRNCPY(external->filepath, filepath);
@@ -4619,7 +4541,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     copy_cd = type_info->copy;
   }
 
-  void *tmp_dst = MEM_mallocN(data_size, __func__);
+  void *tmp_dst = MEM_new_uninitialized(data_size, __func__);
 
   if (count > 1 && !interp_cd) {
     /* We just choose highest weighted source. */
@@ -4657,7 +4579,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     }
   }
 
-  MEM_freeN(tmp_dst);
+  MEM_delete_void(tmp_dst);
 }
 
 void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLayerMap *laymap,
@@ -4731,7 +4653,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
   }
 
   if (data_src) {
-    tmp_data_src = MEM_malloc_arrayN<const void *>(tmp_buff_size, __func__);
+    tmp_data_src = MEM_new_array_uninitialized<const void *>(tmp_buff_size, __func__);
   }
 
   if (int(data_type) & CD_FAKE) {
@@ -4763,8 +4685,8 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
     if (tmp_data_src) {
       if (UNLIKELY(sources_num > tmp_buff_size)) {
         tmp_buff_size = size_t(sources_num);
-        tmp_data_src = static_cast<const void **>(
-            MEM_reallocN((void *)tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size));
+        tmp_data_src = static_cast<const void **>(MEM_realloc_uninitialized(
+            (void *)tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size));
       }
 
       for (int j = 0; j < sources_num; j++) {
@@ -4788,7 +4710,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
     std::get<GMutableVArraySpan>(laymap->data_dst).save();
   }
 
-  MEM_SAFE_FREE(tmp_data_src);
+  MEM_SAFE_DELETE(tmp_data_src);
 }
 
 /** \} */

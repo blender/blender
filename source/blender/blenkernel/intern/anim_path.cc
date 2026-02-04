@@ -69,7 +69,7 @@ void BKE_anim_path_calc_data(Object *ob)
   }
 
   /* Free old data. */
-  MEM_SAFE_FREE(ob->runtime->curve_cache->anim_path_accum_length);
+  MEM_SAFE_DELETE(ob->runtime->curve_cache->anim_path_accum_length);
 
   /* We only use the first curve. */
   BevList *bl = static_cast<BevList *>(ob->runtime->curve_cache->bev.first);
@@ -87,7 +87,7 @@ void BKE_anim_path_calc_data(Object *ob)
    * In this case either calculate a single length (for a cyclic) curve or nothing.
    * While not useful, it's harmless too. */
   const int seg_size = get_bevlist_seg_array_size(bl);
-  float *len_data = MEM_malloc_arrayN<float>(size_t(seg_size), "calcpathdist");
+  float *len_data = MEM_new_array_uninitialized<float>(size_t(seg_size), "calcpathdist");
   ob->runtime->curve_cache->anim_path_accum_length = len_data;
 
   BevPoint *bp_arr = bl->bevpoints;

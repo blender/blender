@@ -1465,7 +1465,7 @@ static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
     }
   }
 
-  MEM_freeN(done_loops);
+  MEM_delete(done_loops);
   return changed;
 }
 
@@ -1551,7 +1551,7 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
     }
   }
 
-  MEM_freeN(done_loops);
+  MEM_delete(done_loops);
 }
 
 /**
@@ -1598,7 +1598,7 @@ static void bm_mesh_loops_custom_normals_set(BMesh *bm,
   float (*custom_lnors)[3] = new_lnors;
 
   if (new_lnors == nullptr) {
-    custom_lnors = MEM_malloc_arrayN<float[3]>(bm->totloop, __func__);
+    custom_lnors = MEM_new_array_uninitialized<float[3]>(bm->totloop, __func__);
 
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
@@ -1642,7 +1642,7 @@ static void bm_mesh_loops_custom_normals_set(BMesh *bm,
       bm, r_lnors_spacearr, r_clnors_data, cd_loop_clnors_offset, custom_lnors);
 
   if (custom_lnors != new_lnors) {
-    MEM_freeN(custom_lnors);
+    MEM_delete(custom_lnors);
   }
 }
 
@@ -1798,7 +1798,7 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
     }
   }
 
-  MEM_freeN(done_verts);
+  MEM_delete(done_verts);
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY;
 }
 
@@ -1933,7 +1933,7 @@ static void bm_lnorspace_ensure_from_free_normals(BMesh *bm)
 void BM_lnorspace_update(BMesh *bm)
 {
   if (bm->lnor_spacearr == nullptr) {
-    bm->lnor_spacearr = MEM_callocN<MLoopNorSpaceArray>(__func__);
+    bm->lnor_spacearr = MEM_new_zeroed<MLoopNorSpaceArray>(__func__);
   }
   if (bm->lnor_spacearr->lspacearr == nullptr) {
     bm_lnorspace_ensure_from_free_normals(bm);
@@ -1962,7 +1962,7 @@ void BM_lnorspace_err(BMesh *bm)
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
   bool clear = true;
 
-  MLoopNorSpaceArray *temp = MEM_callocN<MLoopNorSpaceArray>(__func__);
+  MLoopNorSpaceArray *temp = MEM_new_zeroed<MLoopNorSpaceArray>(__func__);
   temp->lspacearr = nullptr;
 
   BKE_lnor_spacearr_init(temp, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
@@ -1992,7 +1992,7 @@ void BM_lnorspace_err(BMesh *bm)
     }
   }
   BKE_lnor_spacearr_free(temp);
-  MEM_freeN(temp);
+  MEM_delete(temp);
   BLI_assert(clear);
 
   bm->spacearr_dirty &= ~BM_SPACEARR_DIRTY_ALL;
@@ -2247,9 +2247,9 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init_with_htype(
 
   BLI_assert(bm->spacearr_dirty == 0);
 
-  BMLoopNorEditDataArray *lnors_ed_arr = MEM_callocN<BMLoopNorEditDataArray>(__func__);
-  lnors_ed_arr->lidx_to_lnor_editdata = MEM_calloc_arrayN<BMLoopNorEditData *>(bm->totloop,
-                                                                               __func__);
+  BMLoopNorEditDataArray *lnors_ed_arr = MEM_new_zeroed<BMLoopNorEditDataArray>(__func__);
+  lnors_ed_arr->lidx_to_lnor_editdata = MEM_new_array_zeroed<BMLoopNorEditData *>(bm->totloop,
+                                                                                  __func__);
 
   BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   const int cd_custom_normal_offset = CustomData_get_offset_named(
@@ -2283,7 +2283,7 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init_with_htype(
 
   if (totloopsel) {
     BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata =
-        MEM_malloc_arrayN<BMLoopNorEditData>(totloopsel, __func__);
+        MEM_new_array_uninitialized<BMLoopNorEditData>(totloopsel, __func__);
 
     BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
       BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
@@ -2297,7 +2297,7 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init_with_htype(
     lnors_ed_arr->totloop = totloopsel;
   }
 
-  MEM_freeN(loops);
+  MEM_delete(loops);
   lnors_ed_arr->cd_custom_normal_offset = cd_custom_normal_offset;
   return lnors_ed_arr;
 }
@@ -2310,9 +2310,9 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
 
 void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr)
 {
-  MEM_SAFE_FREE(lnors_ed_arr->lnor_editdata);
-  MEM_SAFE_FREE(lnors_ed_arr->lidx_to_lnor_editdata);
-  MEM_freeN(lnors_ed_arr);
+  MEM_SAFE_DELETE(lnors_ed_arr->lnor_editdata);
+  MEM_SAFE_DELETE(lnors_ed_arr->lidx_to_lnor_editdata);
+  MEM_delete(lnors_ed_arr);
 }
 
 /** \} */
@@ -2373,7 +2373,7 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
   }
 
   if (bm->lnor_spacearr == nullptr) {
-    bm->lnor_spacearr = MEM_callocN<MLoopNorSpaceArray>(__func__);
+    bm->lnor_spacearr = MEM_new_zeroed<MLoopNorSpaceArray>(__func__);
   }
 
   bm_mesh_loops_custom_normals_set(bm,

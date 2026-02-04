@@ -137,6 +137,7 @@ set(SRC
   intern/grease_pencil.cc
   intern/grease_pencil_attributes.cc
   intern/grease_pencil_convert_legacy.cc
+  intern/grease_pencil_fills.cc
   intern/grease_pencil_vertex_groups.cc
   intern/icons.cc
   intern/icons_rasterize.cc
@@ -411,6 +412,7 @@ set(SRC
   BKE_grease_pencil.h
   BKE_grease_pencil.hh
   BKE_grease_pencil_legacy_convert.hh
+  BKE_grease_pencil_fills.hh
   BKE_grease_pencil_vertex_groups.hh
   BKE_icons.hh
   BKE_id_hash.hh
@@ -500,6 +502,7 @@ set(SRC
   BKE_shrinkwrap.hh
   BKE_softbody.h
   BKE_sound.hh
+  BKE_sound_types.hh
   BKE_speaker.hh
   BKE_studiolight.h
   BKE_subdiv.hh

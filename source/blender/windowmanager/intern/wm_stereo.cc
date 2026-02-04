@@ -22,7 +22,8 @@
 
 #include "BLT_translation.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_IWindow.hh"
+#include "GHOST_Types.hh"
 
 #include "ED_screen.hh"
 
@@ -141,12 +142,12 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
 {
   const bScreen *screen = WM_window_get_active_screen(win);
   const Scene *scene = WM_window_get_active_scene(win);
+  const GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
 
   /* Some 3d methods change the window arrangement, thus they shouldn't
    * toggle on/off just because there is no 3d elements being drawn. */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
-    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin)) ==
-           GHOST_kWindowStateFullScreen;
+    return ghost_window->getState() == GHOST_kWindowStateFullScreen;
   }
 
   if ((skip_stereo3d_check == false) && (ED_screen_stereo3d_required(screen, scene) == false)) {
@@ -156,8 +157,7 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
   /* Some 3d methods change the window arrangement, thus they shouldn't
    * toggle on/off just because there is no 3d elements being drawn. */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
-    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin)) ==
-           GHOST_kWindowStateFullScreen;
+    return ghost_window->getState() == GHOST_kWindowStateFullScreen;
   }
 
   return true;
@@ -246,7 +246,7 @@ static void wm_stereo3d_set_init(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  Stereo3dData *s3dd = MEM_new_for_free<Stereo3dData>(__func__);
+  Stereo3dData *s3dd = MEM_new<Stereo3dData>(__func__);
   op->customdata = s3dd;
 
   /* Store the original win stereo 3d settings in case of cancel. */
@@ -325,7 +325,7 @@ wmOperatorStatus wm_stereo3d_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  MEM_freeN(s3dd);
+  MEM_delete(s3dd);
   op->customdata = nullptr;
 
   if (ok) {
@@ -401,7 +401,7 @@ bool wm_stereo3d_set_check(bContext * /*C*/, wmOperator * /*op*/)
 void wm_stereo3d_set_cancel(bContext * /*C*/, wmOperator *op)
 {
   Stereo3dData *s3dd = static_cast<Stereo3dData *>(op->customdata);
-  MEM_freeN(s3dd);
+  MEM_delete(s3dd);
   op->customdata = nullptr;
 }
 

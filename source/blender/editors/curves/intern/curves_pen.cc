@@ -306,6 +306,10 @@ static ClosestElement find_closest_element(const PenToolOperation &ptd, const fl
     const bke::CurvesGeometry &curves = ptd.get_curves(curves_index);
     const float4x4 layer_to_object = ptd.layer_to_object_per_curves[curves_index];
 
+    if (curves.is_empty()) {
+      continue;
+    }
+
     IndexMaskMemory memory;
     const IndexMask bezier_points = ptd.visible_bezier_handle_points(curves_index, memory);
     const IndexMask editable_curves = ptd.editable_curves(curves_index, memory);
@@ -824,9 +828,7 @@ static void add_single_point_and_curve(const PenToolOperation &ptd,
   const int material_index = ptd.vc.obact->actcol - 1;
   if (material_index != -1) {
     bke::SpanAttributeWriter<int> material_indexes = attributes.lookup_or_add_for_write_span<int>(
-        "material_index",
-        bke::AttrDomain::Curve,
-        bke::AttributeInitVArray(VArray<int>::from_single(0, curves.curves_num())));
+        "material_index", bke::AttrDomain::Curve, bke::AttributeInitValue(0));
     material_indexes.span.last() = material_index;
     material_indexes.finish();
     curve_attributes_to_skip.add("material_index");

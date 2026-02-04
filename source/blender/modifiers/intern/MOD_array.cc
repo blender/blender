@@ -163,10 +163,10 @@ static void dm_mvert_map_doubles(int *doubles_map,
   source_end = source_start + source_verts_num;
 
   /* build array of MVerts to be tested for merging */
-  SortVertsElem *sorted_verts_target = MEM_malloc_arrayN<SortVertsElem>(size_t(target_verts_num),
-                                                                        __func__);
-  SortVertsElem *sorted_verts_source = MEM_malloc_arrayN<SortVertsElem>(size_t(source_verts_num),
-                                                                        __func__);
+  SortVertsElem *sorted_verts_target = MEM_new_array_uninitialized<SortVertsElem>(
+      size_t(target_verts_num), __func__);
+  SortVertsElem *sorted_verts_source = MEM_new_array_uninitialized<SortVertsElem>(
+      size_t(source_verts_num), __func__);
 
   /* Copy target vertices index and cos into SortVertsElem array */
   svert_from_mvert(sorted_verts_target, vert_positions, target_start, target_end);
@@ -261,8 +261,8 @@ static void dm_mvert_map_doubles(int *doubles_map,
     doubles_map[sve_source->vertex_num] = best_target_vertex;
   }
 
-  MEM_freeN(sorted_verts_source);
-  MEM_freeN(sorted_verts_target);
+  MEM_delete(sorted_verts_source);
+  MEM_delete(sorted_verts_target);
 }
 
 static void mesh_merge_transform(Mesh *result,
@@ -566,7 +566,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   if (use_merge) {
     /* Will need full_doubles_map for handling merge */
-    full_doubles_map = MEM_malloc_arrayN<int>(size_t(result_nverts), __func__);
+    full_doubles_map = MEM_new_array_uninitialized<int>(size_t(result_nverts), __func__);
     copy_vn_i(full_doubles_map, result_nverts, -1);
   }
 
@@ -850,14 +850,14 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
           *tmp, MutableSpan<int>{full_doubles_map, result->verts_num}, tot_doubles, false);
       BKE_id_free(nullptr, tmp);
     }
-    MEM_freeN(full_doubles_map);
+    MEM_delete(full_doubles_map);
   }
 
   if (vgroup_start_cap_remap) {
-    MEM_freeN(vgroup_start_cap_remap);
+    MEM_delete(vgroup_start_cap_remap);
   }
   if (vgroup_end_cap_remap) {
-    MEM_freeN(vgroup_end_cap_remap);
+    MEM_delete(vgroup_end_cap_remap);
   }
 
   return result;

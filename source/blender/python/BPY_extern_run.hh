@@ -146,10 +146,7 @@ bool BPY_run_string_exec_with_locals(bContext *C, StringRefNull script, IDProper
  * of the `std::optional`.
  */
 std::optional<IDProperty *> BPY_run_string_exec_with_locals_return_idprop(
-    bContext *C,
-    blender::StringRefNull script,
-    IDProperty &locals,
-    blender::StringRefNull result_var_name);
+    bContext *C, StringRefNull script, IDProperty &locals, StringRefNull result_var_name);
 
 /** \} */
 

@@ -13,7 +13,8 @@
 #  include "BLI_string.h"
 #  include "BLI_threads.h"
 #  include "CLG_log.h"
-#  include "GHOST_C-api.h"
+#  include "GHOST_IContext.hh"
+#  include "GHOST_ISystem.hh"
 #  include "GPU_context.hh"
 #  include "GPU_init_exit.hh"
 #  include "gpu_capabilities_private.hh"
@@ -173,19 +174,20 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   SharedSemaphore end_semaphore(name + "_END", true);
   SharedSemaphore close_semaphore(name + "_CLOSE", true);
 
-  GHOST_SystemHandle ghost_system = GHOST_CreateSystemBackground();
+  GHOST_ISystem::createSystemBackground();
+  GHOST_ISystem *ghost_system = GHOST_ISystem::getSystem();
   BLI_assert(ghost_system);
   GPU_backend_ghost_system_set(ghost_system);
   GHOST_GPUSettings gpu_settings = {0};
   gpu_settings.context_type = GHOST_kDrawingContextTypeOpenGL;
-  GHOST_ContextHandle ghost_context = GHOST_CreateGPUContext(ghost_system, gpu_settings);
+  GHOST_IContext *ghost_context = ghost_system->createOffscreenContext(gpu_settings);
   if (ghost_context == nullptr) {
     std::cerr << "Compilation Subprocess: Failed to initialize GHOST context for "
               << subprocess_name << "\n";
-    GHOST_DisposeSystem(ghost_system);
+    GHOST_ISystem::disposeSystem();
     return;
   }
-  GHOST_ActivateGPUContext(ghost_context);
+  ghost_context->activateDrawingContext();
   GPUContext *gpu_context = GPU_context_create(nullptr, ghost_context);
   GPU_init();
 
@@ -194,7 +196,7 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   while (true) {
     /* Process events to avoid crashes on Wayland.
      * See https://bugreports.qt.io/browse/QTBUG-81504 */
-    GHOST_ProcessEvents(ghost_system, false);
+    ghost_system->processEvents(false);
 
 #  ifdef _WIN32
     start_semaphore.decrement();
@@ -303,8 +305,8 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
 
   GPU_exit();
   GPU_context_discard(gpu_context);
-  GHOST_DisposeGPUContext(ghost_system, ghost_context);
-  GHOST_DisposeSystem(ghost_system);
+  ghost_system->disposeContext(ghost_context);
+  GHOST_ISystem::disposeSystem();
 }
 
 namespace gpu {

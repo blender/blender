@@ -521,9 +521,22 @@ class RENDER_PT_eevee_denoise(RenderButtonsPanel, Panel):
         col.prop(props, "denoise_bilateral")
 
 
+class RENDER_PT_eevee_light_paths(RenderButtonsPanel, Panel):
+    bl_label = "Light Paths"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        pass
+
+
 class RENDER_PT_eevee_clamping(RenderButtonsPanel, Panel):
     bl_label = "Clamping"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "RENDER_PT_eevee_light_paths"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
@@ -574,6 +587,27 @@ class RENDER_PT_eevee_clamping_volume(RenderButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(props, "clamp_volume_direct", text="Direct Light")
         col.prop(props, "clamp_volume_indirect", text="Indirect Light")
+
+
+class RENDER_PT_eevee_light_paths_intensity(RenderButtonsPanel, Panel):
+    bl_label = "Intensity"
+    bl_parent_id = "RENDER_PT_eevee_light_paths"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        scene = context.scene
+        props = scene.eevee
+
+        col = layout.column(align=True)
+        col.prop(props, "direct_light_intensity", text="Direct Light")
+        col.prop(props, "indirect_light_intensity", text="Indirect Light")
 
 
 class RENDER_PT_eevee_sampling_shadows(RenderButtonsPanel, Panel):
@@ -1131,9 +1165,11 @@ classes = (
     RENDER_PT_eevee_sampling_render,
     RENDER_PT_eevee_sampling_shadows,
     RENDER_PT_eevee_sampling_advanced,
+    RENDER_PT_eevee_light_paths,
     RENDER_PT_eevee_clamping,
     RENDER_PT_eevee_clamping_surface,
     RENDER_PT_eevee_clamping_volume,
+    RENDER_PT_eevee_light_paths_intensity,
     RENDER_PT_eevee_raytracing_presets,
     RENDER_PT_eevee_raytracing,
     RENDER_PT_eevee_screen_trace,

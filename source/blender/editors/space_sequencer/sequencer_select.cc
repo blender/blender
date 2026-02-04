@@ -425,7 +425,7 @@ static wmOperatorStatus sequencer_de_select_all_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(scene) && retiming_overlay_enabled(CTX_wm_space_seq(C))) {
+  if (seq::retiming_keys_are_selected(scene) && retiming_overlay_enabled(CTX_wm_space_seq(C))) {
     return sequencer_retiming_select_all_exec(C, op);
   }
 
@@ -742,7 +742,7 @@ static Strip *strip_select_from_preview(
     }
 
     if (isect) {
-      SeqSelect_Link *slink = MEM_callocN<SeqSelect_Link>(__func__);
+      SeqSelect_Link *slink = MEM_new_zeroed<SeqSelect_Link>(__func__);
       slink->strip = strip;
       slink->center_dist_sq = center_dist_sq_test;
       BLI_addtail(&strips_ordered, slink);
@@ -1181,7 +1181,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  const bool was_retiming = sequencer_retiming_mode_is_active(scene);
+  const bool was_retiming = seq::retiming_keys_are_selected(scene);
 
   MouseCoords mouse_co(v2d, RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y"));
 
@@ -1191,7 +1191,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   SeqRetimingKey *key = retiming_mouseover_key_get(scene, v2d, mouse_co.region, &strip_key_owner);
 
   if (strip_key_owner != nullptr && retiming_overlay_enabled(CTX_wm_space_seq(C)) &&
-      seq::retiming_data_is_editable(strip_key_owner))
+      seq::retiming_show_keys(strip_key_owner))
   {
     /* If no key was found, the mouse cursor may still intersect with a "fake key" that has not
      * been realized yet. */
@@ -2123,7 +2123,7 @@ static wmOperatorStatus sequencer_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (sequencer_retiming_mode_is_active(scene) && retiming_overlay_enabled(CTX_wm_space_seq(C))) {
+  if (seq::retiming_keys_are_selected(scene) && retiming_overlay_enabled(CTX_wm_space_seq(C))) {
     return sequencer_retiming_box_select_exec(C, op);
   }
 

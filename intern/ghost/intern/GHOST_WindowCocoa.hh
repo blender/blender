@@ -233,6 +233,8 @@ class GHOST_WindowCocoa : public GHOST_Window {
 
   void setNativePixelSize();
 
+  void updateDrawingSize();
+
   /** public function to get the window containing the view */
   BlenderWindow *getViewWindow() const
   {

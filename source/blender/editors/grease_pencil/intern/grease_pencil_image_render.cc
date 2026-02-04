@@ -286,11 +286,6 @@ static gpu::UniformBuf *create_shader_ubo(const RegionView3D &rv3d,
   copy_v2_v2(data.viewport, float2(win_size));
   data.pixsize = rv3d.pixsize;
   data.objscale = math::average(float3(object.scale));
-  /* TODO Was based on the GP_DATA_STROKE_KEEPTHICKNESS flag which is currently not converted. */
-  data.keep_size = false;
-  data.pixfactor = 1.0f;
-  /* X-ray mode always to 3D space to avoid wrong Z-depth calculation (#60051). */
-  data.xraymode = GP_XRAY_3DSPACE;
   data.caps_start = cap_start;
   data.caps_end = cap_end;
   data.fill_stroke = is_fill_stroke;
@@ -340,9 +335,7 @@ static void draw_grease_pencil_stroke(const float4x4 &transform,
                                           indices.size() + cyclic_add + 2);
 
   auto draw_point = [&](const int point_i) {
-    constexpr const float radius_to_pixel_factor =
-        1.0f / bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-    const float thickness = radii[point_i] * radius_scale * radius_to_pixel_factor;
+    const float thickness = 4.0f * radii[point_i] * radius_scale;
 
     immAttr4fv(attr_color, colors[point_i]);
     immAttr1f(attr_thickness, std::max(thickness, min_stroke_thickness));
@@ -404,6 +397,8 @@ static void draw_grease_pencil_stroke(const float4x4 &transform,
 }
 
 static void draw_dots(const float4x4 &transform,
+                      const RegionView3D &rv3d,
+                      const Object &object,
                       const IndexRange indices,
                       Span<float3> positions,
                       const VArray<float> &radii,
@@ -425,15 +420,22 @@ static void draw_dots(const float4x4 &transform,
 
   immBegin(GPU_PRIM_POINTS, indices.size());
 
+  /* Includes viewport zoom factor and perspective projection. The point shader does not include
+   * these factors internally, unlike the line shader. */
+  const float objscale = math::average(float3(object.scale));
+  const float pixel_scale = 4.0f * radius_scale * objscale / rv3d.pixsize;
   for (const int point_i : indices) {
-    constexpr const float radius_to_pixel_factor =
-        1.0f / bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-    const float thickness = radii[point_i] * radius_scale * radius_to_pixel_factor;
+    const float3 &position = positions[point_i];
+    float perspective_factor = 1.0f;
+    if (rv3d.is_persp) {
+      const float3 view_position = math::transform_point(float4x4(rv3d.persmat), position);
+      perspective_factor = math::safe_rcp(view_position.z);
+    }
+    const float thickness = std::max(radii[point_i] * pixel_scale * perspective_factor, 1.0f);
 
     immAttr4fv(attr_color, colors[point_i]);
-    /* NOTE: extra factor 0.5 for point size to match rendering. */
-    immAttr1f(attr_size, std::max(thickness, min_stroke_thickness) * 0.5f);
-    immVertex3fv(attr_pos, math::transform_point(transform, positions[point_i]));
+    immAttr1f(attr_size, thickness);
+    immVertex3fv(attr_pos, math::transform_point(transform, position));
   }
 
   immEnd();
@@ -643,8 +645,14 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
       case GP_MATERIAL_MODE_DOT:
       case GP_MATERIAL_MODE_SQUARE:
         /* NOTE: Squares don't have their own shader, render as dots too. */
-        draw_dots(
-            transform, points_by_curve[stroke_i], positions, radii, eval_colors, radius_scale);
+        draw_dots(transform,
+                  rv3d,
+                  object,
+                  points_by_curve[stroke_i],
+                  positions,
+                  radii,
+                  eval_colors,
+                  radius_scale);
         break;
     }
   });

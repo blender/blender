@@ -76,9 +76,6 @@ class GHOST_Window : public GHOST_IWindow {
     return context_ != nullptr;
   }
 
-  /** \copydoc #GHOST_IWindow::getOSWindow */
-  void *getOSWindow() const override;
-
   /** \copydoc #GHOST_IWindow::setPath */
   void setPath(const char * /*filepath*/) override
   {
@@ -142,15 +139,10 @@ class GHOST_Window : public GHOST_IWindow {
                                GHOST_Rect *bounds,
                                int32_t mouse_ungrab_xy[2]) override;
 
-  /** \copydoc #GHOST_IWindow::getCursorGrabBounds */
-  GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) const override;
-
   void getCursorGrabState(GHOST_TGrabCursorMode &mode,
                           GHOST_TAxisFlag &wrap_axis,
                           GHOST_Rect &bounds,
                           bool &use_software_cursor) override;
-  /** \copydoc #GHOST_IWindow::getCursorGrabUseSoftwareDisplay */
-  bool getCursorGrabUseSoftwareDisplay() override;
 
   /** \copydoc #GHOST_IWindow::setProgressBar */
   GHOST_TSuccess setProgressBar(float /*progress*/) override
@@ -172,14 +164,8 @@ class GHOST_Window : public GHOST_IWindow {
   /** \copydoc #GHOST_IWindow::setAcceptDragOperation */
   void setAcceptDragOperation(bool can_accept) override;
 
-  /** \copydoc #GHOST_IWindow::canAcceptDragOperation */
-  bool canAcceptDragOperation() const override;
-
   /** \copydoc #GHOST_IWindow::setModifiedState */
   GHOST_TSuccess setModifiedState(bool is_unsaved_changes) override;
-
-  /** \copydoc #GHOST_IWindow::getModifiedState */
-  bool getModifiedState() override;
 
   /** \copydoc #GHOST_IWindow::getDrawingContextType */
   inline GHOST_TDrawingContextType getDrawingContextType() override;
@@ -220,7 +206,7 @@ class GHOST_Window : public GHOST_IWindow {
   unsigned int getDefaultFramebuffer() override;
 
 #ifdef WITH_VULKAN_BACKEND
-  /** \copydoc #GHOST_GetVulkanSwapChainFormat */
+  /** \copydoc #GHOST_IContext::getVulkanHandles */
   virtual GHOST_TSuccess getVulkanSwapChainFormat(
       GHOST_VulkanSwapChainData *r_swap_chain_data) override;
 #endif
@@ -271,6 +257,24 @@ class GHOST_Window : public GHOST_IWindow {
   }
 #endif /* WITH_INPUT_IME */
 
+  /**
+   * Returns the associated OS object/handle.
+   * \return The associated OS object/handle.
+   */
+  virtual void *getOSWindow() const;
+
+  /**
+   * Returns acceptance of the dropped object.
+   * Usually called by the "object dropped" event handling function.
+   */
+  virtual bool canAcceptDragOperation() const;
+
+  /**
+   * Gets the cursor grab region, if unset the window is used.
+   * Reset when grab is disabled.
+   */
+  virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) const;
+
  protected:
   /**
    * Tries to install a rendering context in this window.
@@ -309,6 +313,17 @@ class GHOST_Window : public GHOST_IWindow {
     cursor_generator->free_fn(cursor_generator);
     return GHOST_kFailure;
   };
+
+  /**
+   * Return true when a software cursor should be used.
+   */
+  virtual bool getCursorGrabUseSoftwareDisplay();
+
+  /**
+   * Gets the window "modified" status, indicating unsaved changes.
+   * \return True if there are unsaved changes
+   */
+  virtual bool getModifiedState();
 
   GHOST_TSuccess releaseNativeHandles();
 

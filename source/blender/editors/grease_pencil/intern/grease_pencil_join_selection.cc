@@ -150,10 +150,12 @@ void reverse_points_of(bke::CurvesGeometry &dst_curves, const IndexRange points_
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
 
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
       reverse_point_data<T>(points_to_reverse, attribute.span.typed<T>());
     });
     attribute.finish();

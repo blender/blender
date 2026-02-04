@@ -473,7 +473,7 @@ pxr::TfToken USDGenericMeshWriter::get_subdiv_scheme(const SubsurfModifierData *
 
   if (subsurfData) {
     if (subsurfData->subdivType == SUBSURF_TYPE_CATMULL_CLARK) {
-      if (usd_export_context_.export_params.export_subdiv == USD_SUBDIV_BEST_MATCH) {
+      if (usd_export_context_.export_params.export_subdiv == SubdivExportMode::Match) {
         /* If a subdivision modifier exists, and it uses Catmull-Clark, then apply Catmull-Clark
          * SubD scheme. */
         subdiv_scheme = pxr::UsdGeomTokens->catmullClark;

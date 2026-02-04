@@ -19,6 +19,9 @@
 namespace blender {
 
 struct GPUMaterial;
+namespace draw {
+struct MeshBatchCache;
+};
 namespace gpu {
 class Batch;
 class UniformBuf;
@@ -55,7 +58,7 @@ void DRW_curve_batch_cache_free(Curve *cu);
 
 void DRW_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode);
 void DRW_mesh_batch_cache_validate(Mesh &mesh);
-void DRW_mesh_batch_cache_free(void *batch_cache);
+void DRW_mesh_batch_cache_free(draw::MeshBatchCache *batch_cache);
 
 void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode);
 void DRW_lattice_batch_cache_validate(Lattice *lt);

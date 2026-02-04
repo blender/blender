@@ -49,7 +49,7 @@ class ArrayDataImplicitSharing : public ImplicitSharingInfo {
   {
     if (data_ != nullptr) {
       type_.destruct_n(data_, size_);
-      MEM_freeN(data_);
+      MEM_delete_void(data_);
     }
     MEM_delete(this);
   }
@@ -57,7 +57,7 @@ class ArrayDataImplicitSharing : public ImplicitSharingInfo {
   void delete_data_only() override
   {
     type_.destruct_n(data_, size_);
-    MEM_freeN(data_);
+    MEM_delete_void(data_);
     data_ = nullptr;
     size_ = 0;
   }
@@ -72,10 +72,11 @@ Attribute::ArrayData Attribute::ArrayData::from_value(const GPointer &value,
 
   /* Prefer `calloc` to zeroing after allocation since it is faster. */
   if (BLI_memory_is_zero(value_ptr, type.size)) {
-    data.data = MEM_calloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
+    data.data = MEM_new_array_zeroed_aligned(domain_size, type.size, type.alignment, __func__);
   }
   else {
-    data.data = MEM_malloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
+    data.data = MEM_new_array_uninitialized_aligned(
+        domain_size, type.size, type.alignment, __func__);
     type.fill_construct_n(value_ptr, data.data, domain_size);
   }
 
@@ -108,7 +109,8 @@ Attribute::ArrayData Attribute::ArrayData::from_uninitialized(const CPPType &typ
                                                               const int64_t domain_size)
 {
   Attribute::ArrayData data{};
-  data.data = MEM_malloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
+  data.data = MEM_new_array_uninitialized_aligned(
+      domain_size, type.size, type.alignment, __func__);
   data.size = domain_size;
   BLI_assert(type.is_trivially_destructible);
   data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.data));
@@ -127,7 +129,7 @@ Attribute::SingleData Attribute::SingleData::from_value(const GPointer &value)
 {
   Attribute::SingleData data{};
   const CPPType &type = *value.type();
-  data.value = MEM_mallocN_aligned(type.size, type.alignment, __func__);
+  data.value = MEM_new_uninitialized_aligned(type.size, type.alignment, __func__);
   type.copy_construct(value.get(), data.value);
   BLI_assert(type.is_trivially_destructible);
   data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.value));
@@ -421,7 +423,13 @@ static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &rea
       if (data.size != 0 && !data.data) {
         return std::nullopt;
       }
-      return Attribute::ArrayData{data.data, data.size, ImplicitSharingPtr<>(data.sharing_info)};
+      Attribute::ArrayData array_data{
+          data.data, data.size, ImplicitSharingPtr<>(data.sharing_info)};
+      if (data.is_single) {
+        const CPPType &cpp_type = attribute_type_to_cpp_type(AttrType(dna_attr_type));
+        return Attribute::SingleData::from_value(GPointer(cpp_type, data.data));
+      }
+      return array_data;
     }
     case int8_t(AttrStorageType::Single): {
       BLO_read_struct(&reader, AttributeSingle, &dna_attr.data);
@@ -479,7 +487,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
   for (const int i : IndexRange(this->dna_attributes_num)) {
     blender::Attribute &dna_attr = this->dna_attributes[i];
     BLO_read_string(&reader, &dna_attr.name);
-    BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(dna_attr.name); });
+    BLI_SCOPED_DEFER([&]() { MEM_SAFE_DELETE(dna_attr.name); });
 
     const std::optional<AttrDomain> domain = read_attr_domain(dna_attr.domain);
     if (!domain) {
@@ -488,7 +496,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
 
     std::optional<Attribute::DataVariant> data = read_attr_data(
         reader, dna_attr.storage_type, dna_attr.data_type, dna_attr);
-    BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(dna_attr.data); });
+    BLI_SCOPED_DEFER([&]() { MEM_SAFE_DELETE_VOID(dna_attr.data); });
     if (!data) {
       continue;
     }
@@ -505,7 +513,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
   }
 
   /* These fields are not used at runtime. */
-  MEM_SAFE_FREE(this->dna_attributes);
+  MEM_SAFE_DELETE(this->dna_attributes);
   this->dna_attributes_num = 0;
 }
 
@@ -559,6 +567,8 @@ static void write_array_data(BlendWriter &writer,
 }
 
 void attribute_storage_blend_write_prepare(AttributeStorage &data,
+                                           const bool use_5_0_compatibility,
+                                           FunctionRef<int(AttrDomain)> get_domain_size,
                                            AttributeStorage::BlendWriteData &write_data)
 {
   for (Attribute &attr : data) {
@@ -566,7 +576,6 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
     attribute_dna.name = attr.name().c_str();
     attribute_dna.data_type = int16_t(attr.data_type());
     attribute_dna.domain = int8_t(attr.domain());
-    attribute_dna.storage_type = int8_t(attr.storage_type());
 
     /* The idea is to use a separate DNA struct for each #AttrStorageType. They each need to have a
      * unique address (while writing a specific ID anyway) in order to be identified when
@@ -574,19 +583,40 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
      * Using a #ResourceScope is a simple way to get pointer stability when adding every new data
      * struct without the cost of many small allocations or unnecessary overhead of storing a full
      * array for every storage type. */
+    const auto create_dna_array = [&](const Attribute::ArrayData &array_data) -> AttributeArray & {
+      auto &array_dna = write_data.scope.construct<AttributeArray>();
+      array_dna.data = array_data.data;
+      array_dna.sharing_info = array_data.sharing_info.get();
+      array_dna.size = array_data.size;
+      return array_dna;
+    };
 
     if (const auto *data = std::get_if<Attribute::ArrayData>(&attr.data())) {
-      auto &array_dna = write_data.scope.construct<blender::AttributeArray>();
-      array_dna.data = data->data;
-      array_dna.sharing_info = data->sharing_info.get();
-      array_dna.size = data->size;
-      attribute_dna.data = &array_dna;
+      attribute_dna.storage_type = int8_t(AttrStorageType::Array);
+      attribute_dna.data = &create_dna_array(*data);
     }
     else if (const auto *data = std::get_if<Attribute::SingleData>(&attr.data())) {
-      auto &single_dna = write_data.scope.construct<blender::AttributeSingle>();
-      single_dna.data = data->value;
-      single_dna.sharing_info = data->sharing_info.get();
-      attribute_dna.data = &single_dna;
+      if (use_5_0_compatibility) {
+        attribute_dna.storage_type = int8_t(AttrStorageType::Array);
+        /* Convert single value storage to array storage for forward compatibility.
+         * See #AttributeArray::is_single) comment for more details. */
+        const CPPType &cpp_type = attribute_type_to_cpp_type(attr.data_type());
+        const GPointer value(cpp_type, data->value);
+        const int domain_size = get_domain_size(attr.domain());
+        auto &array_data = write_data.scope.construct<Attribute::ArrayData>(
+            Attribute::ArrayData::from_value(value, domain_size));
+
+        auto &array_dna = create_dna_array(array_data);
+        array_dna.is_single = true;
+        attribute_dna.data = &array_dna;
+      }
+      else {
+        attribute_dna.storage_type = int8_t(AttrStorageType::Single);
+        auto &single_dna = write_data.scope.construct<blender::AttributeSingle>();
+        single_dna.data = data->value;
+        single_dna.sharing_info = data->sharing_info.get();
+        attribute_dna.data = &single_dna;
+      }
     }
 
     write_data.attributes.append(attribute_dna);

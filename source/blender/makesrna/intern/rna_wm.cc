@@ -1439,7 +1439,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   }
 
   /* create a new keyconf-prefs type */
-  kpt_rt = MEM_mallocN<wmKeyConfigPrefType_Runtime>("keyconfigpreftype");
+  kpt_rt = MEM_new_uninitialized<wmKeyConfigPrefType_Runtime>("keyconfigpreftype");
   memcpy(kpt_rt, &dummy_kpt_rt, sizeof(dummy_kpt_rt));
 
   BKE_keyconfig_pref_type_add(kpt_rt);
@@ -1920,7 +1920,7 @@ static bool rna_Operator_unregister(Main *bmain, StructRNA *type)
    * they are 2 different srna's. */
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
-  MEM_freeN(idname);
+  MEM_delete(idname);
   return true;
 }
 
@@ -2831,6 +2831,18 @@ static void rna_def_window(BlenderRNA *brna)
   RNA_api_window(srna);
 }
 
+static void rna_def_windows(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+
+  RNA_def_property_srna(cprop, "Windows");
+  srna = RNA_def_struct(brna, "Windows", nullptr);
+  RNA_def_struct_sdna(srna, "wmWindowManager");
+  RNA_def_struct_ui_text(srna, "Windows", "Collection of windows");
+
+  RNA_api_windows(srna);
+}
+
 /* curve.splines */
 static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -2910,6 +2922,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
   prop = RNA_def_property(srna, "windows", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Window");
   RNA_def_property_ui_text(prop, "Windows", "Open windows");
+  rna_def_windows(brna, prop);
 
   prop = RNA_def_property(srna, "keyconfigs", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "KeyConfig");

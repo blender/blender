@@ -27,7 +27,7 @@ static int node_shader_gpu_wavelength(GPUMaterial *mat,
                                       GPUNodeStack *out)
 {
   const int size = CM_TABLE + 1;
-  float *data = MEM_malloc_arrayN<float>(size * 4, "cie_xyz texture");
+  float *data = MEM_new_array_uninitialized<float>(size * 4, "cie_xyz texture");
 
   IMB_colormanagement_wavelength_to_rgb_table(data, size);
 

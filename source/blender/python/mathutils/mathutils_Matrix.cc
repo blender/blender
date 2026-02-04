@@ -2446,12 +2446,12 @@ static int Matrix_getbuffer(PyObject *obj, Py_buffer *view, int flags)
   }
   if (flags & PyBUF_ND) {
     view->ndim = 2;
-    view->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(view->ndim), __func__);
+    view->shape = MEM_new_array_uninitialized<Py_ssize_t>(size_t(view->ndim), __func__);
     view->shape[0] = self->row_num;
     view->shape[1] = self->col_num;
   }
   if (flags & PyBUF_STRIDES) {
-    view->strides = MEM_malloc_arrayN<Py_ssize_t>(size_t(view->ndim), __func__);
+    view->strides = MEM_new_array_uninitialized<Py_ssize_t>(size_t(view->ndim), __func__);
     view->strides[0] = sizeof(float); /* step between lines in column-major */
     view->strides[1] = Py_ssize_t(self->row_num) * sizeof(float); /* step between columns */
   }
@@ -2472,8 +2472,8 @@ static void Matrix_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
       PyErr_Print();
     }
   }
-  MEM_SAFE_FREE(view->shape);
-  MEM_SAFE_FREE(view->strides);
+  MEM_SAFE_DELETE(view->shape);
+  MEM_SAFE_DELETE(view->strides);
 }
 
 static PyBufferProcs Matrix_as_buffer = {

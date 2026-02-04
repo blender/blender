@@ -108,7 +108,7 @@ void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt)
   BLI_remlink(lb, funcstore);
 
   if (funcstore->alloc) {
-    MEM_freeN(funcstore);
+    MEM_delete(funcstore);
   }
 }
 

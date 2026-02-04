@@ -351,13 +351,13 @@ const ColorSpace *LibOCIOConfig::get_sorted_color_space_by_index(const int index
 const ColorSpace *LibOCIOConfig::get_color_space_by_interop_id(StringRefNull interop_id) const
 {
   for (const LibOCIOColorSpace &color_space : color_spaces_) {
-    if (color_space.interop_id() == interop_id) {
+    if (color_space.interop_id() == interop_id && color_space.is_primary_interop_id()) {
       return &color_space;
     }
   }
 
   for (const LibOCIOColorSpace &color_space : inactive_color_spaces_) {
-    if (color_space.interop_id() == interop_id) {
+    if (color_space.interop_id() == interop_id && color_space.is_primary_interop_id()) {
       return &color_space;
     }
   }

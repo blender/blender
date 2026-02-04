@@ -458,6 +458,10 @@ static bool gwl_window_state_set_for_xdg(xdg_toplevel *toplevel,
       }
       break;
     case GHOST_kWindowStateMaximized: {
+      /* Unset fullscreen before maximizing (required by the XDG shell spec). */
+      if (state_current == GHOST_kWindowStateFullScreen) {
+        xdg_toplevel_unset_fullscreen(toplevel);
+      }
       xdg_toplevel_set_maximized(toplevel);
       break;
     }
@@ -466,6 +470,10 @@ static bool gwl_window_state_set_for_xdg(xdg_toplevel *toplevel,
       break;
     }
     case GHOST_kWindowStateFullScreen: {
+      /* Unset maximized before going fullscreen (required by the XDG shell spec). */
+      if (state_current == GHOST_kWindowStateMaximized) {
+        xdg_toplevel_unset_maximized(toplevel);
+      }
       xdg_toplevel_set_fullscreen(toplevel, nullptr);
       break;
     }
@@ -944,11 +952,14 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
          * Given the issue is quite obscure and not actually part of a "reasonable" use case.
          * I'm going to accept the limitation. */
         win->ghost_window->csd_elem_active_type_set(GHOST_kCSDTypeBody);
-
-        /* In cases where geometry of the window doesn't change, we need to make
-         * sure that the decor gets redrawn to correctly show the new state we are in. */
-        win->ghost_window->notify_decor_redraw();
       }
+    }
+
+    /* Must run on all state change so the "Decor" redraw event is always sent. */
+    if (state_changed) {
+      /* In cases where geometry of the window doesn't change, we need to make
+       * sure that the decor gets redrawn to correctly show the new state we are in. */
+      win->ghost_window->notify_decor_redraw();
     }
   }
 #endif /* WITH_GHOST_CSD */

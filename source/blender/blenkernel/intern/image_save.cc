@@ -694,7 +694,7 @@ bool BKE_image_save(
       }
       image_save_update_filepath(ima, opts->filepath, opts);
     }
-    MEM_freeN(udim_pattern);
+    MEM_delete(udim_pattern);
   }
 
   if (colorspace_changed) {
@@ -724,7 +724,7 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
     return rect;
   }
 
-  float *output_rect = static_cast<float *>(MEM_dupallocN(rect));
+  float *output_rect = MEM_dupalloc(rect);
   tmp_output_rects.append(output_rect);
 
   const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(
@@ -740,8 +740,8 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
 static float *image_exr_from_rgb_to_bw(
     float *input_buffer, int width, int height, int channels, Vector<float *> &temporary_buffers)
 {
-  float *gray_scale_output = MEM_malloc_arrayN<float>(size_t(width) * size_t(height),
-                                                      "Gray Scale Buffer For EXR");
+  float *gray_scale_output = MEM_new_array_uninitialized<float>(size_t(width) * size_t(height),
+                                                                "Gray Scale Buffer For EXR");
   temporary_buffers.append(gray_scale_output);
 
   threading::parallel_for(IndexRange(height), 1, [&](const IndexRange sub_y_range) {
@@ -761,8 +761,8 @@ static float *image_exr_opaque_alpha_buffer(int width,
                                             int height,
                                             Vector<float *> &temporary_buffers)
 {
-  float *alpha_output = MEM_malloc_arrayN<float>(size_t(width) * size_t(height),
-                                                 "Opaque Alpha Buffer For EXR");
+  float *alpha_output = MEM_new_array_uninitialized<float>(size_t(width) * size_t(height),
+                                                           "Opaque Alpha Buffer For EXR");
   temporary_buffers.append(alpha_output);
 
   threading::parallel_for(IndexRange(height), 1, [&](const IndexRange sub_y_range) {
@@ -1065,7 +1065,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   }
 
   for (float *rect : tmp_output_rects) {
-    MEM_freeN(rect);
+    MEM_delete(rect);
   }
 
   IMB_exr_close(exrhandle);

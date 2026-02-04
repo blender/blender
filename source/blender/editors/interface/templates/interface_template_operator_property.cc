@@ -328,7 +328,7 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
 {
   /* Copied from #wm_operator_create.
    * Create a slimmed down operator suitable only for UI drawing. */
-  wmOperator *op = MEM_new_for_free<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
+  wmOperator *op = MEM_new<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
   STRNCPY_UTF8(op->idname, ot->idname);
   op->type = ot;
 
@@ -412,7 +412,7 @@ void template_collection_exporters(Layout *layout, bContext *C)
 
   /* Register the exporter list type on first use. */
   static const uiListType *exporter_item_list = []() {
-    uiListType *lt = MEM_callocN<uiListType>(__func__);
+    uiListType *lt = MEM_new_zeroed<uiListType>(__func__);
     STRNCPY_UTF8(lt->idname, "COLLECTION_UL_exporter_list");
     lt->draw_item = draw_exporter_item;
     WM_uilisttype_add(lt);

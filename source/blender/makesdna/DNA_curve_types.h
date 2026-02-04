@@ -30,6 +30,10 @@ struct Material;
 struct Object;
 struct VFont;
 
+namespace draw {
+struct CurveBatchCache;
+}
+
 /* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
@@ -265,7 +269,11 @@ struct Curve {
    * specified. The effective radius is a function of the bevel point radius and the taper radius.
    */
   char taper_radius_mode = CU_TAPER_RADIUS_OVERRIDE;
-  char _pad[3] = {};
+  /** Triangulation solver for filling 2D curves. */
+  char fill_solver = CU_FILL_SOLVER_SWEEP_LINE;
+  /** Fill rule for CDT fill solver. */
+  char fill_rule = CU_FILL_RULE_EVEN_ODD;
+  char _pad[1] = {};
 
   /* font part */
   float spacing = 1.0f, linedist = 1.0, shear = 0, fsize = 1.0, wordspace = 1.0, ulpos = 0,
@@ -325,7 +333,7 @@ struct Curve {
    */
   const struct Curves *curve_eval = nullptr;
 
-  void *batch_cache = nullptr;
+  draw::CurveBatchCache *batch_cache = nullptr;
 
 #ifdef __cplusplus
   /** Get the largest material index used by the curves or `nullopt` if there are none. */

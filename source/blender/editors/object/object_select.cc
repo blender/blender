@@ -1414,7 +1414,7 @@ static wmOperatorStatus object_select_random_exec(bContext *C, wmOperator *op)
   Vector<PointerRNA> ctx_data_list;
   CTX_data_selectable_bases(C, &ctx_data_list);
   int elem_map_len = 0;
-  Base **elem_map = MEM_malloc_arrayN<Base *>(ctx_data_list.size(), __func__);
+  Base **elem_map = MEM_new_array_uninitialized<Base *>(ctx_data_list.size(), __func__);
 
   for (PointerRNA &ptr : ctx_data_list) {
     elem_map[elem_map_len++] = static_cast<Base *>(ptr.data);
@@ -1425,7 +1425,7 @@ static wmOperatorStatus object_select_random_exec(bContext *C, wmOperator *op)
   for (int i = 0; i < count_select; i++) {
     base_select(elem_map[i], eObjectSelect_Mode(select));
   }
-  MEM_freeN(elem_map);
+  MEM_delete(elem_map);
 
   Scene *scene = CTX_data_scene(C);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);

@@ -75,7 +75,7 @@ void keyingset_info_unregister(Main *bmain, KeyingSetInfo *keyingset_info)
       BLI_remlink_safe(&scene->keyingsets, &keyingset);
     }
 
-    MEM_freeN(&keyingset);
+    MEM_delete(&keyingset);
   }
 
   BLI_freelinkN(&keyingset_type_infos, keyingset_info);

@@ -38,19 +38,14 @@ bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &pointcloud,
   if (attributes.contains(attribute_name)) {
     return attributes.lookup_for_write_span(attribute_name);
   }
-  const int domain_size = pointcloud.totpoint;
   switch (create_type) {
     case bke::AttrType::Bool:
-      attributes.add(attribute_name,
-                     selection_domain,
-                     bke::AttrType::Bool,
-                     bke::AttributeInitVArray(VArray<bool>::from_single(true, domain_size)));
+      attributes.add(
+          attribute_name, selection_domain, bke::AttrType::Bool, bke::AttributeInitValue(true));
       break;
     case bke::AttrType::Float:
-      attributes.add(attribute_name,
-                     selection_domain,
-                     bke::AttrType::Float,
-                     bke::AttributeInitVArray(VArray<float>::from_single(1.0f, domain_size)));
+      attributes.add(
+          attribute_name, selection_domain, bke::AttrType::Float, bke::AttributeInitValue(1.0f));
       break;
     default:
       BLI_assert_unreachable();

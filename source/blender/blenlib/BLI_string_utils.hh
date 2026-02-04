@@ -26,7 +26,7 @@ struct ListBase;
 
 /**
  * string with all instances of substr_old replaced with substr_new,
- * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
+ * Returns a copy of the c-string \a str into a newly #MEM_new_uninitialized'd
  * and returns it.
  *
  * \note A rather wasteful string-replacement utility, though this shall do for now.
@@ -46,6 +46,16 @@ char *BLI_string_replaceN(const char *__restrict str,
  * In-place replacement all occurrences of needle in haystack with other.
  */
 void BLI_string_replace(std::string &haystack, StringRef needle, StringRef other);
+
+/**
+ * Prepend positive numeric strings with a figure space character (U+2007) for
+ * their width to be aligned with negative numbers. Useful for proportional fonts
+ * where a regular space does not have the same width as a minus sign character.
+ *
+ * \param str: The numeric string to pad (unchanged if starts with '-')
+ * \return The padded string with figure space prepended if positive
+ */
+std::string BLI_string_pad_number_sign(blender::StringRef str);
 
 /**
  * In-place replace every \a src to \a dst in \a str.

@@ -313,8 +313,7 @@ static void try_convert_single_object(Object &curves_ob,
   settings.totpart = 0;
   psys_changed_type(&surface_ob, particle_system);
 
-  MutableSpan<ParticleData> particles{MEM_new_array_for_free<ParticleData>(hair_num, __func__),
-                                      hair_num};
+  MutableSpan<ParticleData> particles{MEM_new_array<ParticleData>(hair_num, __func__), hair_num};
 
   /* The old hair system still uses #MFace, so make sure those are available on the mesh. */
   BKE_mesh_tessface_calc(&surface_me);
@@ -359,7 +358,7 @@ static void try_convert_single_object(Object &curves_ob,
 
     ParticleData &particle = particles[new_hair_i];
     const int num_keys = points.size();
-    MutableSpan<HairKey> hair_keys{MEM_calloc_arrayN<HairKey>(num_keys, __func__), num_keys};
+    MutableSpan<HairKey> hair_keys{MEM_new_array_zeroed<HairKey>(num_keys, __func__), num_keys};
 
     particle.hair = hair_keys.data();
     particle.totkey = hair_keys.size();
@@ -806,7 +805,8 @@ static wmOperatorStatus curves_set_selection_domain_exec(bContext *C, wmOperator
     for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
       if (const GVArray src = *attributes.lookup(selection_name, domain)) {
         const CPPType &type = src.type();
-        void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size, __func__);
+        void *dst = MEM_new_array_uninitialized(
+            attributes.domain_size(domain), type.size, __func__);
         src.materialize(dst);
 
         attributes.remove(selection_name);
@@ -815,7 +815,7 @@ static wmOperatorStatus curves_set_selection_domain_exec(bContext *C, wmOperator
                             bke::cpp_type_to_attribute_type(type),
                             bke::AttributeInitMoveArray(dst)))
         {
-          MEM_freeN(dst);
+          MEM_delete_void(dst);
         }
       }
     }
@@ -1204,7 +1204,7 @@ static wmOperatorStatus surface_set_exec(bContext *C, wmOperator *op)
     Object &curves_ob = *selected_ob;
     Curves &curves_id = *id_cast<Curves *>(curves_ob.data);
 
-    MEM_SAFE_FREE(curves_id.surface_uv_map);
+    MEM_SAFE_DELETE(curves_id.surface_uv_map);
     if (!new_uv_map_name.is_empty()) {
       curves_id.surface_uv_map = BLI_strdupn(new_uv_map_name.data(), new_uv_map_name.size());
     }

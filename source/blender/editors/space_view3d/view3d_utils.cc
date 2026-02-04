@@ -817,7 +817,7 @@ bool ED_view3d_camera_lock_undo_grouped_push(const char *str,
 
 static void view3d_boxview_clip(ScrArea *area)
 {
-  BoundBox *bb = MEM_new_for_free<BoundBox>("clipbb");
+  BoundBox *bb = MEM_new<BoundBox>("clipbb");
   float clip[6][4];
   float x1 = 0.0f, y1 = 0.0f, z1 = 0.0f, ofs[3] = {0.0f, 0.0f, 0.0f};
 
@@ -902,13 +902,13 @@ static void view3d_boxview_clip(ScrArea *area)
         rv3d->rflag |= RV3D_CLIPPING;
         memcpy(rv3d->clip, clip, sizeof(clip));
         if (rv3d->clipbb) {
-          MEM_freeN(rv3d->clipbb);
+          MEM_delete(rv3d->clipbb);
         }
-        rv3d->clipbb = static_cast<BoundBox *>(MEM_dupallocN(bb));
+        rv3d->clipbb = MEM_dupalloc(bb);
       }
     }
   }
-  MEM_freeN(bb);
+  MEM_delete(bb);
 }
 
 /**
@@ -1114,7 +1114,7 @@ void ED_view3d_autodist_last_set(wmWindow *win,
   ED_view3d_autodist_last_clear(win);
 
   if (WM_event_consecutive_gesture_test(event)) {
-    View3D_AutoDistLast *autodepth_last = MEM_callocN<View3D_AutoDistLast>(__func__);
+    View3D_AutoDistLast *autodepth_last = MEM_new_zeroed<View3D_AutoDistLast>(__func__);
 
     autodepth_last->has_depth = has_depth;
     copy_v3_v3(autodepth_last->ofs, ofs);
@@ -1164,7 +1164,7 @@ static float view_autodist_depth_margin(ARegion *region, const int mval[2], int 
   ViewDepths depth_temp = {0};
   view3d_depths_rect_create(region, &rect, &depth_temp);
   float depth_close = view3d_depth_near(&depth_temp);
-  MEM_SAFE_FREE(depth_temp.depths);
+  MEM_SAFE_DELETE(depth_temp.depths);
   return depth_close;
 }
 

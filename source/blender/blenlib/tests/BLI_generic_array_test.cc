@@ -66,7 +66,7 @@ TEST(generic_array, CopyConstructor)
 
 TEST(generic_array, BufferAndSizeConstructor)
 {
-  int32_t *values = MEM_malloc_arrayN<int32_t>(12, __func__);
+  int32_t *values = MEM_new_array_uninitialized<int32_t>(12, __func__);
   void *buffer = static_cast<void *>(values);
   GArray array(CPPType::get<int32_t>(), buffer, 4);
   EXPECT_FALSE(array.data() == nullptr);

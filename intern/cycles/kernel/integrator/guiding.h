@@ -39,8 +39,9 @@ struct GuidingRISSample {
   Spectrum eval{zero_spectrum()};
 };
 
-ccl_device_forceinline bool calculate_ris_target(ccl_private GuidingRISSample *ris_sample,
-                                                 const ccl_private float guiding_sampling_prob)
+ccl_device_forceinline bool calculate_ris_target(
+    ccl_attr_maybe_unused ccl_private GuidingRISSample *ris_sample,
+    ccl_attr_maybe_unused const ccl_private float guiding_sampling_prob)
 {
 #if defined(__PATH_GUIDING__)
   const float pi_factor = 2.0f;
@@ -81,9 +82,10 @@ ccl_device_forceinline pgl_point3f guiding_point3f(const float3 v)
 /* Records/Adds a new path segment with the current path vertex on a surface.
  * If the path is not terminated this call is usually followed by a call of
  * guiding_record_surface_bounce. */
-ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
-                                                           IntegratorState state,
-                                                           const ccl_private ShaderData *sd)
+ccl_device_forceinline void guiding_record_surface_segment(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const ccl_private ShaderData *sd)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -107,14 +109,15 @@ ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
 }
 
 /* Records the surface scattering event at the current vertex position of the segment. */
-ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
-                                                          IntegratorState state,
-                                                          const Spectrum weight,
-                                                          const float pdf,
-                                                          const float3 N,
-                                                          const float3 wo,
-                                                          const float2 roughness,
-                                                          const float eta)
+ccl_device_forceinline void guiding_record_surface_bounce(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const Spectrum weight,
+    ccl_attr_maybe_unused const float pdf,
+    ccl_attr_maybe_unused const float3 N,
+    ccl_attr_maybe_unused const float3 wo,
+    ccl_attr_maybe_unused const float2 roughness,
+    ccl_attr_maybe_unused const float eta)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   if (!kernel_data.integrator.train_guiding) {
@@ -143,10 +146,11 @@ ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
 }
 
 /* Records the emission at the current surface intersection (physical or virtual) */
-ccl_device_forceinline void guiding_record_surface_emission(KernelGlobals kg,
-                                                            IntegratorState state,
-                                                            const Spectrum Le,
-                                                            const float mis_weight)
+ccl_device_forceinline void guiding_record_surface_emission(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const Spectrum Le,
+    ccl_attr_maybe_unused const float mis_weight)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -168,10 +172,11 @@ ccl_device_forceinline void guiding_record_surface_emission(KernelGlobals kg,
  * of the sub surface scattering boundary.
  * If the path is not terminated this call is usually followed by a call of
  * guiding_record_bssrdf_weight and guiding_record_bssrdf_bounce. */
-ccl_device_forceinline void guiding_record_bssrdf_segment(KernelGlobals kg,
-                                                          IntegratorState state,
-                                                          const float3 P,
-                                                          const float3 wi)
+ccl_device_forceinline void guiding_record_bssrdf_segment(ccl_attr_maybe_unused KernelGlobals kg,
+                                                          ccl_attr_maybe_unused IntegratorState
+                                                              state,
+                                                          ccl_attr_maybe_unused const float3 P,
+                                                          ccl_attr_maybe_unused const float3 wi)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -196,10 +201,11 @@ ccl_device_forceinline void guiding_record_bssrdf_segment(KernelGlobals kg,
 
 /* Records the transmission of the path at the point of entry while passing
  * the surface boundary. */
-ccl_device_forceinline void guiding_record_bssrdf_weight(KernelGlobals kg,
-                                                         IntegratorState state,
-                                                         const Spectrum weight,
-                                                         const Spectrum albedo)
+ccl_device_forceinline void guiding_record_bssrdf_weight(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const Spectrum weight,
+    ccl_attr_maybe_unused const Spectrum albedo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -225,13 +231,14 @@ ccl_device_forceinline void guiding_record_bssrdf_weight(KernelGlobals kg,
  * If not terminated this function is usually followed by a call of
  * guiding_record_volume_transmission to record the transmittance between the point of entry and
  * the point of exit. */
-ccl_device_forceinline void guiding_record_bssrdf_bounce(KernelGlobals kg,
-                                                         IntegratorState state,
-                                                         const float pdf,
-                                                         const float3 N,
-                                                         const float3 wo,
-                                                         const Spectrum weight,
-                                                         const Spectrum albedo)
+ccl_device_forceinline void guiding_record_bssrdf_bounce(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const float pdf,
+    ccl_attr_maybe_unused const float3 N,
+    ccl_attr_maybe_unused const float3 wo,
+    ccl_attr_maybe_unused const Spectrum weight,
+    ccl_attr_maybe_unused const Spectrum albedo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -258,10 +265,11 @@ ccl_device_forceinline void guiding_record_bssrdf_bounce(KernelGlobals kg,
 /* Records/Adds a new path segment with the current path vertex being inside a volume.
  * If the path is not terminated this call is usually followed by a call of
  * guiding_record_volume_bounce. */
-ccl_device_forceinline void guiding_record_volume_segment(KernelGlobals kg,
-                                                          IntegratorState state,
-                                                          const float3 P,
-                                                          const float3 I)
+ccl_device_forceinline void guiding_record_volume_segment(ccl_attr_maybe_unused KernelGlobals kg,
+                                                          ccl_attr_maybe_unused IntegratorState
+                                                              state,
+                                                          ccl_attr_maybe_unused const float3 P,
+                                                          ccl_attr_maybe_unused const float3 I)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -286,12 +294,13 @@ ccl_device_forceinline void guiding_record_volume_segment(KernelGlobals kg,
 }
 
 /* Records the volume scattering event at the current vertex position of the segment. */
-ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
-                                                         IntegratorState state,
-                                                         const Spectrum weight,
-                                                         const float pdf,
-                                                         const float3 wo,
-                                                         const float roughness)
+ccl_device_forceinline void guiding_record_volume_bounce(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const Spectrum weight,
+    ccl_attr_maybe_unused const float pdf,
+    ccl_attr_maybe_unused const float3 wo,
+    ccl_attr_maybe_unused const float roughness)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   if (!kernel_data.integrator.train_guiding) {
@@ -319,9 +328,10 @@ ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
 
 /* Records the transmission (a.k.a. transmittance weight) between the current path segment
  * and the next one, when the path is inside or passes a volume. */
-ccl_device_forceinline void guiding_record_volume_transmission(KernelGlobals kg,
-                                                               IntegratorState state,
-                                                               const float3 transmittance_weight)
+ccl_device_forceinline void guiding_record_volume_transmission(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const float3 transmittance_weight)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -349,9 +359,10 @@ ccl_device_forceinline void guiding_record_volume_transmission(KernelGlobals kg,
 }
 
 /* Records the emission of a volume at the vertex of the current path segment. */
-ccl_device_forceinline void guiding_record_volume_emission(KernelGlobals kg,
-                                                           IntegratorState state,
-                                                           const Spectrum Le)
+ccl_device_forceinline void guiding_record_volume_emission(ccl_attr_maybe_unused KernelGlobals kg,
+                                                           ccl_attr_maybe_unused IntegratorState
+                                                               state,
+                                                           ccl_attr_maybe_unused const Spectrum Le)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -376,7 +387,9 @@ ccl_device_forceinline void guiding_record_volume_emission(KernelGlobals kg,
  * a call of guiding_record_surface_emission, if the intersected light source
  * emits light in the direction of the path. */
 ccl_device_forceinline void guiding_record_light_surface_segment(
-    KernelGlobals kg, IntegratorState state, const ccl_private Intersection *ccl_restrict isect)
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const ccl_private Intersection *ccl_restrict isect)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -410,10 +423,10 @@ ccl_device_forceinline void guiding_record_light_surface_segment(
  * intersects with a background light (e.g., background color,
  * distant light, or env map). The vertex for this segment is placed along
  * the current ray far out the scene. */
-ccl_device_forceinline void guiding_record_background(KernelGlobals kg,
-                                                      IntegratorState state,
-                                                      const Spectrum L,
-                                                      const float mis_weight)
+ccl_device_forceinline void guiding_record_background(ccl_attr_maybe_unused KernelGlobals kg,
+                                                      ccl_attr_maybe_unused IntegratorState state,
+                                                      ccl_attr_maybe_unused const Spectrum L,
+                                                      ccl_attr_maybe_unused const float mis_weight)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -440,8 +453,8 @@ ccl_device_forceinline void guiding_record_background(KernelGlobals kg,
 
 /* Records direct lighting from either next event estimation or a dedicated BSDF
  * sampled shadow ray. */
-ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
-                                                        IntegratorShadowState state)
+ccl_device_forceinline void guiding_record_direct_light(
+    ccl_attr_maybe_unused KernelGlobals kg, ccl_attr_maybe_unused IntegratorShadowState state)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -479,7 +492,9 @@ ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
 /* Record Russian Roulette */
 /* Records the probability of continuing the path at the current path segment. */
 ccl_device_forceinline void guiding_record_continuation_probability(
-    KernelGlobals kg, IntegratorState state, const float continuation_probability)
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const float continuation_probability)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -499,11 +514,11 @@ ccl_device_forceinline void guiding_record_continuation_probability(
 
 /* Write a set of path guiding related debug information (e.g., guiding probability at first
  * bounce) into separate rendering passes. */
-ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
-                                                       IntegratorState state,
-                                                       const ccl_private ShaderData *sd,
-                                                       ccl_global float *ccl_restrict
-                                                           render_buffer)
+ccl_device_forceinline void guiding_write_debug_passes(
+    ccl_attr_maybe_unused KernelGlobals kg,
+    ccl_attr_maybe_unused IntegratorState state,
+    ccl_attr_maybe_unused const ccl_private ShaderData *sd,
+    ccl_attr_maybe_unused ccl_global float *ccl_restrict render_buffer)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
 #  ifdef WITH_CYCLES_DEBUG
@@ -550,10 +565,10 @@ ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
 
 /* Guided BSDFs */
 
-ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
-                                              const float3 P,
-                                              const float3 N,
-                                              ccl_private float &rand)
+ccl_device_forceinline bool guiding_bsdf_init(ccl_attr_maybe_unused KernelGlobals kg,
+                                              ccl_attr_maybe_unused const float3 P,
+                                              ccl_attr_maybe_unused const float3 N,
+                                              ccl_attr_maybe_unused ccl_private float &rand)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   if (guiding_ssd->Init(guiding_guiding_field, guiding_point3f(P), rand)) {
@@ -564,9 +579,9 @@ ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
   return false;
 }
 
-ccl_device_forceinline float guiding_bsdf_sample(KernelGlobals kg,
-                                                 const float2 rand_bsdf,
-                                                 ccl_private float3 *wo)
+ccl_device_forceinline float guiding_bsdf_sample(ccl_attr_maybe_unused KernelGlobals kg,
+                                                 ccl_attr_maybe_unused const float2 rand_bsdf,
+                                                 ccl_attr_maybe_unused ccl_private float3 *wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   pgl_vec3f pgl_wo;
@@ -579,7 +594,8 @@ ccl_device_forceinline float guiding_bsdf_sample(KernelGlobals kg,
 #endif
 }
 
-ccl_device_forceinline float guiding_bsdf_pdf(KernelGlobals kg, const float3 wo)
+ccl_device_forceinline float guiding_bsdf_pdf(ccl_attr_maybe_unused KernelGlobals kg,
+                                              ccl_attr_maybe_unused const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   return guiding_ssd->PDF(guiding_vec3f(wo));
@@ -588,8 +604,8 @@ ccl_device_forceinline float guiding_bsdf_pdf(KernelGlobals kg, const float3 wo)
 #endif
 }
 
-ccl_device_forceinline float guiding_surface_incoming_radiance_pdf(KernelGlobals kg,
-                                                                   const float3 wo)
+ccl_device_forceinline float guiding_surface_incoming_radiance_pdf(
+    ccl_attr_maybe_unused KernelGlobals kg, ccl_attr_maybe_unused const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   return guiding_ssd->IncomingRadiancePDF(guiding_vec3f(wo));
@@ -600,8 +616,11 @@ ccl_device_forceinline float guiding_surface_incoming_radiance_pdf(KernelGlobals
 
 /* Guided Volume Phases */
 
-ccl_device_forceinline bool guiding_phase_init(
-    KernelGlobals kg, const float3 P, const float3 D, const float g, ccl_private float &rand)
+ccl_device_forceinline bool guiding_phase_init(ccl_attr_maybe_unused KernelGlobals kg,
+                                               ccl_attr_maybe_unused const float3 P,
+                                               ccl_attr_maybe_unused const float3 D,
+                                               ccl_attr_maybe_unused const float g,
+                                               ccl_attr_maybe_unused ccl_private float &rand)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   /* we do not need to guide almost delta phase functions */
@@ -618,9 +637,9 @@ ccl_device_forceinline bool guiding_phase_init(
   return false;
 }
 
-ccl_device_forceinline float guiding_phase_sample(KernelGlobals kg,
-                                                  const float2 rand_phase,
-                                                  ccl_private float3 *wo)
+ccl_device_forceinline float guiding_phase_sample(ccl_attr_maybe_unused KernelGlobals kg,
+                                                  ccl_attr_maybe_unused const float2 rand_phase,
+                                                  ccl_attr_maybe_unused ccl_private float3 *wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   pgl_vec3f pgl_wo;
@@ -633,7 +652,8 @@ ccl_device_forceinline float guiding_phase_sample(KernelGlobals kg,
 #endif
 }
 
-ccl_device_forceinline float guiding_phase_pdf(KernelGlobals kg, const float3 wo)
+ccl_device_forceinline float guiding_phase_pdf(ccl_attr_maybe_unused KernelGlobals kg,
+                                               ccl_attr_maybe_unused const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   return guiding_vsd->PDF(guiding_vec3f(wo));

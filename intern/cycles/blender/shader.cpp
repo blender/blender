@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/shader.h"
+#include "kernel/svm/types.h"
 #include "scene/background.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -1053,6 +1054,7 @@ static ShaderNode *add_node(Scene *scene,
     NormalMapNode *nmap = graph->create_node<NormalMapNode>();
     nmap->set_space((NodeNormalMapSpace)storage.space);
     nmap->set_attribute(ustring(storage.uv_map));
+    nmap->set_convention((NodeNormalMapConvention)storage.convention);
     node = nmap;
   }
   else if (b_node.is_type("ShaderNodeRadialTiling")) {
@@ -1097,6 +1099,11 @@ static ShaderNode *add_node(Scene *scene,
     OutputAOVNode *aov = graph->create_node<OutputAOVNode>();
     aov->set_name(ustring(storage.name));
     node = aov;
+  }
+  else if (b_node.is_type("ShaderNodeRaycast")) {
+    RaycastNode *raycast = graph->create_node<RaycastNode>();
+    raycast->set_only_local(b_node.custom1);
+    node = raycast;
   }
 
   if (node) {

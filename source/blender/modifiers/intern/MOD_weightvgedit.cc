@@ -201,9 +201,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   /* Get org weights, assuming 0.0 for vertices not in given vgroup. */
-  org_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
-  new_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
-  dw = MEM_malloc_arrayN<MDeformWeight *>(size_t(verts_num), __func__);
+  org_w = MEM_new_array_uninitialized<float>(size_t(verts_num), __func__);
+  new_w = MEM_new_array_uninitialized<float>(size_t(verts_num), __func__);
+  dw = MEM_new_array_uninitialized<MDeformWeight *>(size_t(verts_num), __func__);
   for (i = 0; i < verts_num; i++) {
     dw[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
     if (dw[i]) {
@@ -272,9 +272,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 #endif
 
   /* Freeing stuff. */
-  MEM_freeN(org_w);
-  MEM_freeN(new_w);
-  MEM_freeN(dw);
+  MEM_delete(org_w);
+  MEM_delete(new_w);
+  MEM_delete(dw);
 
   mesh->runtime->is_original_bmesh = false;
 

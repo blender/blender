@@ -199,7 +199,7 @@ struct MeshToBMeshLayerInfo {
   /** The mesh's #CustomDataLayer::data. When null, the BMesh block is set to its default value. */
   const void *mesh_data;
   /** The size of every custom data element. */
-  size_t elem_size;
+  size_t mesh_stride;
 };
 
 /**
@@ -228,11 +228,13 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
         case bke::AttrStorageType::Array: {
           const auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data());
           info.mesh_data = array_data.data;
+          info.mesh_stride = bke::attribute_type_to_cpp_type(attr->data_type()).size;
           break;
         }
         case bke::AttrStorageType::Single: {
-          BLI_assert_unreachable();
-          info.mesh_data = nullptr;
+          const auto &single_data = std::get<bke::Attribute::SingleData>(attr->data());
+          info.mesh_data = single_data.value;
+          info.mesh_stride = 0;
           break;
         }
       }
@@ -245,9 +247,9 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
       if (mesh_layer_index != -1) {
         BLI_assert((CD_TYPE_AS_MASK(type) & CD_MASK_PROP_ALL) == 0);
         info.mesh_data = mesh_data.layers[mesh_layer_index].data;
+        info.mesh_stride = CustomData_get_elem_size(&bm_layer);
       }
     }
-    info.elem_size = CustomData_get_elem_size(&bm_layer);
     infos.append(info);
 
     per_type_index[type]++;
@@ -264,7 +266,7 @@ static void mesh_attributes_copy_to_bmesh_block(CustomData &data,
   for (const MeshToBMeshLayerInfo &info : copy_info) {
     if (info.mesh_data) {
       CustomData_data_copy_value(info.type,
-                                 POINTER_OFFSET(info.mesh_data, info.elem_size * mesh_index),
+                                 POINTER_OFFSET(info.mesh_data, info.mesh_stride * mesh_index),
                                  POINTER_OFFSET(header.data, info.bmesh_offset));
     }
     else {
@@ -343,10 +345,10 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
       CustomData_free_layer_named(&mesh_ldata, name);
     }
 
-    MEM_SAFE_FREE(mesh_vdata.layers);
-    MEM_SAFE_FREE(mesh_edata.layers);
-    MEM_SAFE_FREE(mesh_pdata.layers);
-    MEM_SAFE_FREE(mesh_ldata.layers);
+    MEM_SAFE_DELETE(mesh_vdata.layers);
+    MEM_SAFE_DELETE(mesh_edata.layers);
+    MEM_SAFE_DELETE(mesh_pdata.layers);
+    MEM_SAFE_DELETE(mesh_ldata.layers);
   });
 
   if (mesh->verts_num == 0) {
@@ -728,7 +730,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, const int old_verts_num)
   /* Caller needs to ensure this. */
   BLI_assert(old_verts_num > 0);
 
-  vertMap = MEM_calloc_arrayN<BMVert *>(old_verts_num, "vertMap");
+  vertMap = MEM_new_array_zeroed<BMVert *>(old_verts_num, "vertMap");
   if (cd_shape_keyindex_offset != -1) {
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
       const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
@@ -928,7 +930,7 @@ static void bm_to_mesh_shape(BMesh *bm,
 
     const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, actkey_uuid);
 
-    ofs = MEM_malloc_arrayN<float[3]>(bm->totvert, __func__);
+    ofs = MEM_new_array_uninitialized<float[3]>(bm->totvert, __func__);
     int i;
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
       const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
@@ -942,7 +944,7 @@ static void bm_to_mesh_shape(BMesh *bm,
         /* If there are new vertices in the mesh, we can't propagate the offset
          * because it will only work for the existing vertices and not the new
          * ones, creating a mess when doing e.g. subdivide + translate. */
-        MEM_freeN(ofs);
+        MEM_delete(ofs);
         ofs = nullptr;
         dependent.reset();
         break;
@@ -989,7 +991,7 @@ static void bm_to_mesh_shape(BMesh *bm,
         /* Use memory in-place. */
       }
       else {
-        currkey.data = MEM_reallocN(currkey.data, key->elemsize * bm->totvert);
+        currkey.data = MEM_realloc_uninitialized(currkey.data, key->elemsize * bm->totvert);
         currkey.totelem = bm->totvert;
       }
       currkey_data = static_cast<float (*)[3]>(currkey.data);
@@ -1041,7 +1043,7 @@ static void bm_to_mesh_shape(BMesh *bm,
       }
 
       currkey_data = static_cast<float (*)[3]>(
-          MEM_mallocN(key->elemsize * bm->totvert, "currkey->data"));
+          MEM_new_uninitialized(key->elemsize * bm->totvert, "currkey->data"));
 
       int i;
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
@@ -1066,13 +1068,13 @@ static void bm_to_mesh_shape(BMesh *bm,
 
       currkey.totelem = bm->totvert;
       if (currkey.data) {
-        MEM_freeN(currkey.data);
+        MEM_delete_void(currkey.data);
       }
       currkey.data = currkey_data;
     }
   }
 
-  MEM_SAFE_FREE(ofs);
+  MEM_SAFE_DELETE(ofs);
 }
 
 /** \} */
@@ -1159,7 +1161,7 @@ static void bmesh_to_mesh_calc_object_remap(Main &bmain,
   }
 
   if (vertMap) {
-    MEM_freeN(vertMap);
+    MEM_delete(vertMap);
   }
 }
 
@@ -1622,11 +1624,11 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   }
 
   if (const char *name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2)) {
-    MEM_SAFE_FREE(mesh->active_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh->active_uv_map_attribute);
     mesh->active_uv_map_attribute = BLI_strdup(name);
   }
   if (const char *name = CustomData_get_render_layer_name(&bm->ldata, CD_PROP_FLOAT2)) {
-    MEM_SAFE_FREE(mesh->default_uv_map_attribute);
+    MEM_SAFE_DELETE(mesh->default_uv_map_attribute);
     mesh->default_uv_map_attribute = BLI_strdup(name);
   }
 
@@ -1740,9 +1742,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
       [&]() {
         mesh->totselect = BLI_listbase_count(&(bm->selected));
 
-        MEM_SAFE_FREE(mesh->mselect);
+        MEM_SAFE_DELETE(mesh->mselect);
         if (mesh->totselect != 0) {
-          mesh->mselect = MEM_malloc_arrayN<MSelect>(mesh->totselect, "Mesh selection history");
+          mesh->mselect = MEM_new_array_uninitialized<MSelect>(mesh->totselect,
+                                                               "Mesh selection history");
         }
 
         for (const auto [i, selected] : bm->selected.enumerate()) {

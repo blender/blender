@@ -50,12 +50,12 @@ static void file_close(FileReader *reader)
 {
   RawFileReader *rawfile = reinterpret_cast<RawFileReader *>(reader);
   close(rawfile->filedes);
-  MEM_freeN(rawfile);
+  MEM_delete(rawfile);
 }
 
 FileReader *BLI_filereader_new_file(int filedes)
 {
-  RawFileReader *rawfile = MEM_callocN<RawFileReader>(__func__);
+  RawFileReader *rawfile = MEM_new_zeroed<RawFileReader>(__func__);
 
   rawfile->filedes = filedes;
 

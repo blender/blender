@@ -113,7 +113,7 @@ void GLUniformBuf::bind(int slot)
 
   if (data_ != nullptr) {
     this->update(data_);
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 
   slot_ = slot;
@@ -132,7 +132,7 @@ void GLUniformBuf::bind_as_ssbo(int slot)
   }
   if (data_ != nullptr) {
     this->update(data_);
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slot, ubo_id_);

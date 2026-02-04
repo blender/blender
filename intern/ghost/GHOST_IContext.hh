@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 #ifdef WITH_VULKAN_BACKEND
 #  include <functional>

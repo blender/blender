@@ -111,7 +111,7 @@ void OBJMesh::clear()
   normal_coords_ = {};
   face_order_ = {};
   if (face_smooth_groups_) {
-    MEM_freeN(face_smooth_groups_);
+    MEM_delete(face_smooth_groups_);
     face_smooth_groups_ = nullptr;
   }
 }

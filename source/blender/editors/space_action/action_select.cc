@@ -267,7 +267,7 @@ static bool actkeys_is_key_at_position(bAnimContext *ac, float region_x, float r
       ac, filter, region_x, region_y, &ale, &selx, &frame, &found, &is_selected);
 
   if (ale != nullptr) {
-    MEM_freeN(ale);
+    MEM_delete(ale);
   }
   return found;
 }
@@ -1175,7 +1175,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 
     case ACTKEYS_COLUMNSEL_CFRA: /* current frame */
       /* make a single CfraElem for storing this */
-      ce = MEM_callocN<CfraElem>("cfraElem");
+      ce = MEM_new_zeroed<CfraElem>("cfraElem");
       BLI_addtail(&ked.cfra_elem_list, ce);
 
       ce->cfra = float(scene->r.cfra);
@@ -1383,14 +1383,14 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
     }
 
     /* build up map of whether F-Curve's keyframes should be selected or not */
-    ked.data = MEM_callocN(fcu->totvert, "selmap actEdit more");
+    ked.data = MEM_new_zeroed(fcu->totvert, "selmap actEdit more");
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, build_cb, nullptr);
 
     /* based on this map, adjust the selection status of the keyframes */
     ANIM_fcurve_keyframes_loop(&ked, fcu, nullptr, bezt_selmap_flush, nullptr);
 
     /* free the selmap used here */
-    MEM_freeN(ked.data);
+    MEM_delete_void(ked.data);
     ked.data = nullptr;
   }
 
@@ -2039,7 +2039,7 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
     ANIM_animdata_update(ac, &anim_data);
 
     /* free this channel */
-    MEM_freeN(ale);
+    MEM_delete(ale);
   }
 
   return ret_value;

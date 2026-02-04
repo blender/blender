@@ -103,11 +103,6 @@ Array<float> make_gaussian_blur_kernel(float rad, int size)
 
 static void init_noop(Strip * /*strip*/) {}
 
-static void free_default(Strip *strip, const bool /*do_id_user*/)
-{
-  MEM_SAFE_FREE(strip->effectdata);
-}
-
 static int num_inputs_default()
 {
   return 2;
@@ -115,7 +110,7 @@ static int num_inputs_default()
 
 static void copy_effect_default(Strip *dst, const Strip *src, const int /*flag*/)
 {
-  dst->effectdata = MEM_dupallocN(src->effectdata);
+  dst->effectdata = MEM_dupalloc_void(src->effectdata);
 }
 
 static StripEarlyOut early_out_noop(const Strip * /*strip*/, float /*fac*/)
@@ -175,7 +170,7 @@ EffectHandle effect_handle_get(StripType strip_type)
 
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
-  rval.free = free_default;
+  rval.free = nullptr;
   rval.early_out = early_out_noop;
   rval.execute = nullptr;
   rval.copy = copy_effect_default;
@@ -242,7 +237,7 @@ static EffectHandle effect_handle_for_blend_mode_get(StripBlendMode blend)
 
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
-  rval.free = free_default;
+  rval.free = nullptr;
   rval.early_out = early_out_noop;
   rval.execute = nullptr;
   rval.copy = nullptr;

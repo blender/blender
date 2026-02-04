@@ -170,7 +170,7 @@ struct WindowRuntime {
   wmEvent *eventstate = nullptr;
 
   /**
-   * The time when the key is pressed in milliseconds (see #GHOST_GetEventTime).
+   * The time when the key is pressed in milliseconds (see #GHOST_IEvent::getTime).
    * Used to detect double-click events.
    */
   uint64_t eventstate_prev_press_time_ms = 0;

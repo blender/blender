@@ -693,15 +693,16 @@ static void bb_allocateData(FluidObjectBB *bb, bool use_velocity, bool use_influ
   bb->total_cells = res[0] * res[1] * res[2];
   copy_v3_v3_int(bb->res, res);
 
-  bb->numobjs = MEM_calloc_arrayN<float>(bb->total_cells, "fluid_bb_numobjs");
+  bb->numobjs = MEM_new_array_zeroed<float>(bb->total_cells, "fluid_bb_numobjs");
   if (use_influence) {
-    bb->influence = MEM_calloc_arrayN<float>(bb->total_cells, "fluid_bb_influence");
+    bb->influence = MEM_new_array_zeroed<float>(bb->total_cells, "fluid_bb_influence");
   }
   if (use_velocity) {
-    bb->velocity = MEM_calloc_arrayN<float>(3 * size_t(bb->total_cells), "fluid_bb_velocity");
+    bb->velocity = MEM_new_array_zeroed<float>(3 * size_t(bb->total_cells), "fluid_bb_velocity");
   }
 
-  bb->distances = MEM_malloc_arrayN<float>(size_t(bb->total_cells), "fluid_bb_distances");
+  bb->distances = MEM_new_array_uninitialized<float>(size_t(bb->total_cells),
+                                                     "fluid_bb_distances");
   copy_vn_fl(bb->distances, bb->total_cells, FLT_MAX);
 
   bb->valid = true;
@@ -710,16 +711,16 @@ static void bb_allocateData(FluidObjectBB *bb, bool use_velocity, bool use_influ
 static void bb_freeData(FluidObjectBB *bb)
 {
   if (bb->numobjs) {
-    MEM_freeN(bb->numobjs);
+    MEM_delete(bb->numobjs);
   }
   if (bb->influence) {
-    MEM_freeN(bb->influence);
+    MEM_delete(bb->influence);
   }
   if (bb->velocity) {
-    MEM_freeN(bb->velocity);
+    MEM_delete(bb->velocity);
   }
   if (bb->distances) {
-    MEM_freeN(bb->distances);
+    MEM_delete(bb->distances);
   }
 }
 
@@ -1023,14 +1024,14 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* TODO(sebbas): Make initialization of vertex velocities optional? */
     {
-      vert_vel = MEM_calloc_arrayN<float>(3 * size_t(numverts), "manta_obs_velocity");
+      vert_vel = MEM_new_array_zeroed<float>(3 * size_t(numverts), "manta_obs_velocity");
 
       if (fes->numverts != numverts || !fes->verts_old) {
         if (fes->verts_old) {
-          MEM_freeN(fes->verts_old);
+          MEM_delete(fes->verts_old);
         }
 
-        fes->verts_old = MEM_calloc_arrayN<float>(3 * size_t(numverts), "manta_obs_verts_old");
+        fes->verts_old = MEM_new_array_zeroed<float>(3 * size_t(numverts), "manta_obs_verts_old");
         fes->numverts = numverts;
       }
       else {
@@ -1098,7 +1099,7 @@ static void obstacles_from_mesh(Object *coll_ob,
     }
 
     if (vert_vel) {
-      MEM_freeN(vert_vel);
+      MEM_delete(vert_vel);
     }
     BKE_id_free(nullptr, mesh);
   }
@@ -1310,7 +1311,7 @@ static void update_obstacles(Depsgraph *depsgraph,
   ensure_obstaclefields(fds);
 
   /* Allocate effector map for each effector object. */
-  bb_maps = MEM_calloc_arrayN<FluidObjectBB>(numeffecobjs, "fluid_effector_bb_maps");
+  bb_maps = MEM_new_array_zeroed<FluidObjectBB>(numeffecobjs, "fluid_effector_bb_maps");
 
   /* Initialize effector map for each effector object. */
   compute_obstaclesemission(scene,
@@ -1462,7 +1463,7 @@ static void update_obstacles(Depsgraph *depsgraph,
 
   BKE_collision_objects_free(effecobjs);
   if (bb_maps) {
-    MEM_freeN(bb_maps);
+    MEM_delete(bb_maps);
   }
 }
 
@@ -1558,10 +1559,10 @@ static void emit_from_particles(Object *flow_ob,
       totchild = psys->totchild * psys->part->disp / 100;
     }
 
-    particle_pos = MEM_calloc_arrayN<float>(3 * size_t(totpart + totchild),
-                                            "manta_flow_particles_pos");
-    particle_vel = MEM_calloc_arrayN<float>(3 * size_t(totpart + totchild),
-                                            "manta_flow_particles_vel");
+    particle_pos = MEM_new_array_zeroed<float>(3 * size_t(totpart + totchild),
+                                               "manta_flow_particles_pos");
+    particle_vel = MEM_new_array_zeroed<float>(3 * size_t(totpart + totchild),
+                                               "manta_flow_particles_vel");
 
     /* setup particle radius emission if enabled */
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
@@ -1682,10 +1683,10 @@ static void emit_from_particles(Object *flow_ob,
 
     /* free data */
     if (particle_pos) {
-      MEM_freeN(particle_pos);
+      MEM_delete(particle_pos);
     }
     if (particle_vel) {
-      MEM_freeN(particle_vel);
+      MEM_delete(particle_vel);
     }
 
     psys_sim_data_free(&sim);
@@ -2088,13 +2089,13 @@ static void emit_from_mesh(
                                                          bke::AttrDomain::Corner);
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
-      vert_vel = MEM_calloc_arrayN<float>(3 * size_t(numverts), "manta_flow_velocity");
+      vert_vel = MEM_new_array_zeroed<float>(3 * size_t(numverts), "manta_flow_velocity");
 
       if (ffs->numverts != numverts || !ffs->verts_old) {
         if (ffs->verts_old) {
-          MEM_freeN(ffs->verts_old);
+          MEM_delete(ffs->verts_old);
         }
-        ffs->verts_old = MEM_calloc_arrayN<float>(3 * size_t(numverts), "manta_flow_verts_old");
+        ffs->verts_old = MEM_new_array_zeroed<float>(3 * size_t(numverts), "manta_flow_verts_old");
         ffs->numverts = numverts;
       }
       else {
@@ -2171,7 +2172,7 @@ static void emit_from_mesh(
     }
 
     if (vert_vel) {
-      MEM_freeN(vert_vel);
+      MEM_delete(vert_vel);
     }
     BKE_id_free(nullptr, mesh);
   }
@@ -2813,7 +2814,7 @@ static void update_flowsfluids(Depsgraph *depsgraph,
   ensure_flowsfields(fds);
 
   /* Allocate emission map for each flow object. */
-  bb_maps = MEM_calloc_arrayN<FluidObjectBB>(numflowobjs, "fluid_flow_bb_maps");
+  bb_maps = MEM_new_array_zeroed<FluidObjectBB>(numflowobjs, "fluid_flow_bb_maps");
 
   /* Initialize emission map for each flow object. */
   compute_flowsemission(scene,
@@ -3057,7 +3058,7 @@ static void update_flowsfluids(Depsgraph *depsgraph,
 
   BKE_collision_objects_free(flowobjs);
   if (bb_maps) {
-    MEM_freeN(bb_maps);
+    MEM_delete(bb_maps);
   }
 }
 
@@ -3696,13 +3697,13 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
       depsgraph, ob, fds->fluid_group, &numobj, eModifierType_Fluid);
   update_flowsflags(fds, objs, numobj);
   if (objs) {
-    MEM_freeN(objs);
+    MEM_delete(objs);
   }
   objs = BKE_collision_objects_create(
       depsgraph, ob, fds->effector_group, &numobj, eModifierType_Fluid);
   update_obstacleflags(fds, objs, numobj);
   if (objs) {
-    MEM_freeN(objs);
+    MEM_delete(objs);
   }
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
@@ -4426,7 +4427,7 @@ void BKE_fluid_particle_system_create(Main *bmain,
 
   /* add particle system */
   part = BKE_particlesettings_add(bmain, pset_name);
-  psys = MEM_new_for_free<ParticleSystem>(__func__);
+  psys = MEM_new<ParticleSystem>(__func__);
 
   part->type = psys_type;
   part->totpart = 0;
@@ -4666,7 +4667,7 @@ static void fluid_modifier_freeDomain(FluidModifierData *fmd)
       BLI_rw_mutex_free(static_cast<ThreadRWMutex *>(fmd->domain->fluid_mutex));
     }
 
-    MEM_SAFE_FREE(fmd->domain->effector_weights);
+    MEM_SAFE_DELETE(fmd->domain->effector_weights);
 
     if (!(fmd->modifier.flag & eModifierFlag_SharedCaches)) {
       BKE_ptcache_free_list(&(fmd->domain->ptcaches[0]));
@@ -4674,10 +4675,10 @@ static void fluid_modifier_freeDomain(FluidModifierData *fmd)
     }
 
     if (fmd->domain->coba) {
-      MEM_freeN(fmd->domain->coba);
+      MEM_delete(fmd->domain->coba);
     }
 
-    MEM_freeN(fmd->domain);
+    MEM_delete(fmd->domain);
     fmd->domain = nullptr;
   }
 }
@@ -4690,11 +4691,11 @@ static void fluid_modifier_freeFlow(FluidModifierData *fmd)
     }
     fmd->flow->mesh = nullptr;
 
-    MEM_SAFE_FREE(fmd->flow->verts_old);
+    MEM_SAFE_DELETE(fmd->flow->verts_old);
     fmd->flow->numverts = 0;
     fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
 
-    MEM_freeN(fmd->flow);
+    MEM_delete(fmd->flow);
     fmd->flow = nullptr;
   }
 }
@@ -4707,11 +4708,11 @@ static void fluid_modifier_freeEffector(FluidModifierData *fmd)
     }
     fmd->effector->mesh = nullptr;
 
-    MEM_SAFE_FREE(fmd->effector->verts_old);
+    MEM_SAFE_DELETE(fmd->effector->verts_old);
     fmd->effector->numverts = 0;
     fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
 
-    MEM_freeN(fmd->effector);
+    MEM_delete(fmd->effector);
     fmd->effector = nullptr;
   }
 }
@@ -4744,12 +4745,12 @@ static void fluid_modifier_reset_ex(FluidModifierData *fmd, bool need_lock)
     fmd->domain->active_fields = 0;
   }
   else if (fmd->flow) {
-    MEM_SAFE_FREE(fmd->flow->verts_old);
+    MEM_SAFE_DELETE(fmd->flow->verts_old);
     fmd->flow->numverts = 0;
     fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
   }
   else if (fmd->effector) {
-    MEM_SAFE_FREE(fmd->effector->verts_old);
+    MEM_SAFE_DELETE(fmd->effector->verts_old);
     fmd->effector->numverts = 0;
     fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
   }
@@ -4782,7 +4783,7 @@ void BKE_fluid_modifier_create_type_data(FluidModifierData *fmd)
       fluid_modifier_freeDomain(fmd);
     }
 
-    fmd->domain = MEM_new_for_free<FluidDomainSettings>(__func__);
+    fmd->domain = MEM_new<FluidDomainSettings>(__func__);
     fmd->domain->fmd = fmd;
 
     /* Turn off incompatible options. */
@@ -4814,7 +4815,7 @@ void BKE_fluid_modifier_create_type_data(FluidModifierData *fmd)
       fluid_modifier_freeFlow(fmd);
     }
 
-    fmd->flow = MEM_new_for_free<FluidFlowSettings>(__func__);
+    fmd->flow = MEM_new<FluidFlowSettings>(__func__);
     fmd->flow->fmd = fmd;
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
@@ -4822,7 +4823,7 @@ void BKE_fluid_modifier_create_type_data(FluidModifierData *fmd)
       fluid_modifier_freeEffector(fmd);
     }
 
-    fmd->effector = MEM_new_for_free<FluidEffectorSettings>(__func__);
+    fmd->effector = MEM_new<FluidEffectorSettings>(__func__);
     fmd->effector->fmd = fmd;
   }
 }
@@ -4843,9 +4844,9 @@ void BKE_fluid_modifier_copy(const FluidModifierData *fmd, FluidModifierData *tf
     tfds->force_group = fds->force_group;
     tfds->effector_group = fds->effector_group;
     if (tfds->effector_weights) {
-      MEM_freeN(tfds->effector_weights);
+      MEM_delete(tfds->effector_weights);
     }
-    tfds->effector_weights = static_cast<EffectorWeights *>(MEM_dupallocN(fds->effector_weights));
+    tfds->effector_weights = MEM_dupalloc(fds->effector_weights);
 
     /* adaptive domain options */
     tfds->adapt_margin = fds->adapt_margin;
@@ -4976,7 +4977,7 @@ void BKE_fluid_modifier_copy(const FluidModifierData *fmd, FluidModifierData *tf
     tfds->display_thickness = fds->display_thickness;
     tfds->show_gridlines = fds->show_gridlines;
     if (fds->coba) {
-      tfds->coba = static_cast<ColorBand *>(MEM_dupallocN(fds->coba));
+      tfds->coba = MEM_dupalloc(fds->coba);
     }
     tfds->vector_scale = fds->vector_scale;
     tfds->vector_draw_type = fds->vector_draw_type;

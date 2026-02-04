@@ -448,7 +448,7 @@ static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, const int le
 {
   if (level < gpm->level) {
     const int gridsize = CCG_grid_size(level);
-    float *data = MEM_calloc_arrayN<float>(size_t(square_i(gridsize)), __func__);
+    float *data = MEM_new_array_zeroed<float>(size_t(square_i(gridsize)), __func__);
 
     for (int y = 0; y < gridsize; y++) {
       for (int x = 0; x < gridsize; x++) {
@@ -456,7 +456,7 @@ static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, const int le
       }
     }
 
-    MEM_freeN(gpm->data);
+    MEM_delete(gpm->data);
     gpm->data = data;
     gpm->level = level;
   }
@@ -489,7 +489,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, const int
           MDisps *mdisp = &mdisps[corner];
           const int totdisp = multires_grid_tot[lvl];
 
-          float (*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, "multires disps");
+          float (*disps)[3] = MEM_new_array_zeroed<float[3]>(totdisp, "multires disps");
 
           if (mdisp->disps != nullptr) {
             float (*ndisps)[3] = disps;
@@ -498,11 +498,11 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, const int
             multires_copy_grid(ndisps, hdisps, nsize, hsize);
             if (mdisp->hidden) {
               BLI_bitmap *gh = multires_mdisps_downsample_hidden(mdisp->hidden, mdisp->level, lvl);
-              MEM_freeN(mdisp->hidden);
+              MEM_delete(mdisp->hidden);
               mdisp->hidden = gh;
             }
 
-            MEM_freeN(mdisp->disps);
+            MEM_delete(mdisp->disps);
           }
 
           mdisp->disps = disps;
@@ -754,7 +754,7 @@ void multires_topology_changed(Mesh *mesh)
     if (!mdisp->totdisp || !mdisp->disps) {
       if (grid) {
         mdisp->totdisp = grid;
-        mdisp->disps = MEM_calloc_arrayN<float[3]>(mdisp->totdisp, "mdisp topology");
+        mdisp->disps = MEM_new_array_zeroed<float[3]>(mdisp->totdisp, "mdisp topology");
       }
 
       continue;
@@ -781,7 +781,7 @@ void multires_ensure_external_read(Mesh *mesh, const int top_level)
 
   for (int i = 0; i < totloop; ++i) {
     if (mdisps[i].level != top_level) {
-      MEM_SAFE_FREE(mdisps[i].disps);
+      MEM_SAFE_DELETE(mdisps[i].disps);
     }
 
     /* NOTE: CustomData_external_read will take care of allocation of displacement vectors if

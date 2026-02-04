@@ -271,10 +271,10 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
           break;
         }
 
-        PreviewImage *result = static_cast<PreviewImage *>(MEM_dupallocN(preview_from_file));
+        PreviewImage *result = MEM_dupalloc(preview_from_file);
         result->runtime = MEM_new<bke::PreviewImageRuntime>(__func__);
         bhead = blo_blendhandle_read_preview_rects(fd, bhead, result, preview_from_file);
-        MEM_freeN(preview_from_file);
+        MEM_delete(preview_from_file);
         return result;
       }
     }
@@ -437,7 +437,7 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
   }
 
   if (bfd->user) {
-    MEM_freeN(bfd->user);
+    MEM_delete(bfd->user);
   }
 
   MEM_delete(bfd);

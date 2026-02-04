@@ -136,9 +136,14 @@ class WheelModuleParams(NamedTuple):
 
 
 def path_to_url(path: str) -> str:
+    import sys
     from urllib.parse import urljoin
     from urllib.request import pathname2url
-    return urljoin('file:', pathname2url(path))
+    # Python 3.14+: pathname2url returns '///path' (RFC 8089), use 'file://' base.
+    file_prefix = "file://" if sys.version_info >= (3, 14) else "file:"
+    result = urljoin(file_prefix, pathname2url(path))
+    assert result.startswith('file:///')
+    return result
 
 
 def pause_until_keyboard_interrupt() -> None:
@@ -1238,6 +1243,105 @@ class TestBlockList(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         )
 
         # Install the package into Blender.
+
+
+class TestUnknownType(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+
+    def test_unknown_type_skipped(self) -> None:
+        """
+        Check that packages with unknown types are silently skipped.
+        This allows repositories to contain extensions for future Blender versions
+        without causing errors in older versions.
+        """
+        import json
+
+        repo_id = "test_repo_unknown_type"
+        repo_name = "MyTestRepoUnknownType"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        pkg_idnames = (
+            "my_addon_pkg",
+            "my_other_addon_pkg",
+        )
+
+        # Create packages with known types.
+        for pkg_idname in pkg_idnames:
+            self.build_package(pkg_idname=pkg_idname)
+
+        # Generate the repository.
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, "found 2 packages.\n")
+
+        # Now modify the index.json to add entries with unknown types.
+        index_json_path = os.path.join(TEMP_DIR_REMOTE, "index.json")
+        with open(index_json_path, "r", encoding="utf-8") as fh:
+            repo_data = json.load(fh)
+
+        # Add packages with unknown types - these should be silently skipped.
+        unknown_type_packages = [
+            {
+                "id": "my_future_keymap",
+                "name": "My Future Keymap",
+                "tagline": "A keymap from the future",
+                "version": "1.0.0",
+                "type": "keymap",  # Unknown type.
+                "maintainer": "Test <test@test.com>",
+                "license": ["SPDX:GPL-2.0-or-later"],
+                "blender_version_min": "4.2.0",
+                "schema_version": "1.0.0",
+                "archive_size": 1024,
+                "archive_hash": "sha256:0" * 64,
+                "archive_url": "./my_future_keymap.zip",
+            },
+            {
+                "id": "my_future_asset_library",
+                "name": "My Future Asset Library",
+                "tagline": "Assets from the future",
+                "version": "2.0.0",
+                "type": "brush-set",  # Unknown type.
+                "maintainer": "Test <test@test.com>",
+                "license": ["SPDX:GPL-2.0-or-later"],
+                "blender_version_min": "4.2.0",
+                "schema_version": "1.0.0",
+                "archive_size": 2048,
+                "archive_hash": "sha256:0" * 64,
+                "archive_url": "./my_future_asset_library.zip",
+            },
+        ]
+        repo_data["data"].extend(unknown_type_packages)
+
+        with open(index_json_path, "w", encoding="utf-8") as fh:
+            json.dump(repo_data, fh, indent=2)
+
+        # Sync the repository - should succeed without errors about unknown types.
+        stdout = run_blender_extensions_no_errors((
+            "sync",
+        ))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Extensions list for \"{:s}\" updated".format(repo_name),
+        )
+
+        # List packages - should only show the known add-on types, not the unknown types.
+        stdout = run_blender_extensions_no_errors(("list",))
+        self.assertEqual(
+            stdout,
+            (
+                '''Repository: "{:s}" (id={:s})\n'''
+                '''  my_addon_pkg: "My Addon Pkg", This is a tagline\n'''
+                '''  my_other_addon_pkg: "My Other Addon Pkg", This is a tagline\n'''
+            ).format(repo_name, repo_id)
+        )
+
+        # Verify unknown type packages are NOT in the output.
+        self.assertNotIn("my_future_keymap", stdout)
+        self.assertNotIn("my_future_asset_library", stdout)
+        self.assertNotIn("keymap", stdout)
+        self.assertNotIn("brush-set", stdout)
 
 
 def main() -> None:

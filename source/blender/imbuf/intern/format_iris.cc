@@ -321,8 +321,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     size_t tablen = size_t(ysize) * size_t(zsize_file) * sizeof(int);
     MFILE_SEEK(inf, HEADER_SIZE);
 
-    uint *starttab = MEM_malloc_arrayN<uint>(tablen, "iris starttab");
-    uint *lengthtab = MEM_malloc_arrayN<uint>(tablen, "iris endtab");
+    uint *starttab = MEM_new_array_uninitialized<uint>(tablen, "iris starttab");
+    uint *lengthtab = MEM_new_array_uninitialized<uint>(tablen, "iris endtab");
 
 #define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
   if (UNLIKELY((p) > mem_end)) { \
@@ -451,8 +451,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     }
 #undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
   fail_rle:
-    MEM_freeN(starttab);
-    MEM_freeN(lengthtab);
+    MEM_delete(starttab);
+    MEM_delete(lengthtab);
 
     if (!ibuf) {
       return nullptr;
@@ -836,12 +836,12 @@ static bool output_iris(const char *filepath,
 
   tablen = ysize * zsize * sizeof(int);
 
-  image = MEM_mallocN<IRIS_Header>("iris image");
-  starttab = MEM_malloc_arrayN<uint>(size_t(tablen), "iris starttab");
-  lengthtab = MEM_malloc_arrayN<uint>(size_t(tablen), "iris lengthtab");
+  image = MEM_new_uninitialized<IRIS_Header>("iris image");
+  starttab = MEM_new_array_uninitialized<uint>(size_t(tablen), "iris starttab");
+  lengthtab = MEM_new_array_uninitialized<uint>(size_t(tablen), "iris lengthtab");
   rlebuflen = 1.05 * xsize + 10;
-  rlebuf = MEM_malloc_arrayN<uchar>(size_t(rlebuflen), "iris rlebuf");
-  lumbuf = MEM_malloc_arrayN<uint>(size_t(xsize), "iris lumbuf");
+  rlebuf = MEM_new_array_uninitialized<uchar>(size_t(rlebuflen), "iris rlebuf");
+  lumbuf = MEM_new_array_uninitialized<uint>(size_t(xsize), "iris lumbuf");
 
   memset(image, 0, sizeof(IRIS_Header));
   image->imagic = IRIS_MAGIC;
@@ -894,11 +894,11 @@ static bool output_iris(const char *filepath,
   fseek(outf, HEADER_SIZE, SEEK_SET);
   goodwrite *= writetab(outf, starttab, tablen);
   goodwrite *= writetab(outf, lengthtab, tablen);
-  MEM_freeN(image);
-  MEM_freeN(starttab);
-  MEM_freeN(lengthtab);
-  MEM_freeN(rlebuf);
-  MEM_freeN(lumbuf);
+  MEM_delete(image);
+  MEM_delete(starttab);
+  MEM_delete(lengthtab);
+  MEM_delete(rlebuf);
+  MEM_delete(lumbuf);
   fclose(outf);
   if (goodwrite) {
     return true;

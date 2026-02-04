@@ -389,20 +389,19 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
       PointerRNA ptr = RNA_pointer_create_discrete(&clip->id, RNA_MovieTrackingTrack, track);
 
       block_emboss_set(block, ui::EmbossType::None);
-      ui::Button *but = uiDefIconButR_prop(block,
-                                           ui::ButtonType::IconToggle,
-                                           icon,
-                                           v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD,
-                                           y - UI_UNIT_Y / 2.0f,
-                                           UI_UNIT_X,
-                                           UI_UNIT_Y,
-                                           &ptr,
-                                           chan_prop_lock,
-                                           0,
-                                           0,
-                                           0,
-                                           std::nullopt);
-      button_retval_set(but, 1);
+      uiDefIconButR_prop(block,
+                         ui::ButtonType::IconToggle,
+                         icon,
+                         v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD,
+                         y - UI_UNIT_Y / 2.0f,
+                         UI_UNIT_X,
+                         UI_UNIT_Y,
+                         &ptr,
+                         chan_prop_lock,
+                         0,
+                         0,
+                         0,
+                         std::nullopt);
       block_emboss_set(block, ui::EmbossType::Emboss);
     }
 

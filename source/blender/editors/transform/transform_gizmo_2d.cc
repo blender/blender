@@ -206,7 +206,7 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup2D *ggd = MEM_callocN<GizmoGroup2D>(__func__);
+  GizmoGroup2D *ggd = MEM_new_zeroed<GizmoGroup2D>(__func__);
 
   ggd->translate_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->translate_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -255,7 +255,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
         break;
       }
       case SI_MODE_MASK: {
-        if (ED_mask_selected_minmax(C, r_min, r_max, false)) {
+        if (ED_mask_selected_minmax(C, r_min, r_max, false, false)) {
           has_select = true;
         }
         break;
@@ -382,7 +382,9 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
   return has_select;
 }
 
-static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
+static bool gizmo2d_calc_transform_pivot(const bContext *C,
+                                         bool handles_as_knot_selected_only,
+                                         float r_pivot[2])
 {
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
@@ -397,7 +399,8 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
             sima, scene, view_layer, r_pivot, sima->around, &has_select);
         break;
       case SI_MODE_MASK:
-        ED_mask_center_from_pivot_ex(C, area, r_pivot, sima->around, &has_select);
+        ED_mask_center_from_pivot_ex(
+            C, area, sima->around, handles_as_knot_selected_only, r_pivot, &has_select);
         break;
       default:
         break;
@@ -450,7 +453,7 @@ static wmOperatorStatus gizmo2d_modal(bContext *C,
   ARegion *region = CTX_wm_region(C);
   float origin[3];
 
-  gizmo2d_calc_transform_pivot(C, origin);
+  gizmo2d_calc_transform_pivot(C, false, origin);
   gizmo2d_origin_to_region(region, origin);
   WM_gizmo_set_matrix_location(widget, origin);
 
@@ -582,7 +585,7 @@ static void gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   GizmoGroup2D *ggd = static_cast<GizmoGroup2D *>(gzgroup->customdata);
   bool has_select;
   if (ggd->no_cage) {
-    has_select = gizmo2d_calc_transform_pivot(C, ggd->origin);
+    has_select = gizmo2d_calc_transform_pivot(C, false, ggd->origin);
   }
   else {
     has_select = gizmo2d_calc_bounds(C, ggd->origin, ggd->min, ggd->max);
@@ -815,7 +818,7 @@ static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Resize2D *ggd = MEM_callocN<GizmoGroup_Resize2D>(__func__);
+  GizmoGroup_Resize2D *ggd = MEM_new_zeroed<GizmoGroup_Resize2D>(__func__);
 
   ggd->gizmo_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->gizmo_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -827,8 +830,8 @@ static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
 static void gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Resize2D *ggd = static_cast<GizmoGroup_Resize2D *>(gzgroup->customdata);
-  float origin[3];
-  const bool has_select = gizmo2d_calc_transform_pivot(C, origin);
+  float origin[2];
+  const bool has_select = gizmo2d_calc_transform_pivot(C, true, origin);
 
   if (has_select == false) {
     for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
@@ -977,7 +980,7 @@ static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Rotate2D *ggd = MEM_callocN<GizmoGroup_Rotate2D>(__func__);
+  GizmoGroup_Rotate2D *ggd = MEM_new_zeroed<GizmoGroup_Rotate2D>(__func__);
 
   ggd->gizmo = WM_gizmo_new_ptr(gzt_button, gzgroup, nullptr);
 
@@ -987,8 +990,8 @@ static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
 static void gizmo2d_rotate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Rotate2D *ggd = static_cast<GizmoGroup_Rotate2D *>(gzgroup->customdata);
-  float origin[3];
-  const bool has_select = gizmo2d_calc_transform_pivot(C, origin);
+  float origin[2];
+  const bool has_select = gizmo2d_calc_transform_pivot(C, true, origin);
 
   if (has_select == false) {
     ggd->gizmo->flag |= WM_GIZMO_HIDDEN;

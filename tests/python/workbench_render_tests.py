@@ -100,7 +100,7 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    blocklist = []
+    blocklist = ["raycast_hit.blend", "raycast_normal.blend", "raycast_position.blend"]
     if args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
 

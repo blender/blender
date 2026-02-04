@@ -71,7 +71,7 @@ static Color sample_pixel_gpu(Context &context,
   output.release();
 
   Color sampled_color = Color(pixel);
-  MEM_freeN(pixel);
+  MEM_delete(pixel);
 
   return sampled_color;
 }

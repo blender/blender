@@ -46,7 +46,7 @@ UniformBuf::UniformBuf(size_t size, const char *name)
 
 UniformBuf::~UniformBuf()
 {
-  MEM_SAFE_FREE(data_);
+  MEM_SAFE_DELETE_VOID(data_);
 }
 
 }  // namespace gpu
@@ -220,7 +220,7 @@ gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs, co
 
   buffer_from_list_inputs_sort(inputs);
   size_t buffer_size = buffer_size_from_list(inputs);
-  void *data = MEM_mallocN(buffer_size, __func__);
+  void *data = MEM_new_uninitialized(buffer_size, __func__);
   buffer_fill_from_list(data, inputs);
 
   UniformBuf *ubo = nullptr;

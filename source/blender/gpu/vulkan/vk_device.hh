@@ -363,7 +363,7 @@ class VKDevice : public NonCopyable {
     return samplers_;
   }
 
-  void init(void *ghost_context);
+  void init(GHOST_IContext *ghost_context);
   void reinit();
   void deinit();
   bool is_initialized() const

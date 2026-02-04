@@ -46,7 +46,7 @@ if(APPLE)
   if(WITH_PYTHON_MODULE)
     set(PYTHON_LINKFLAGS "-undefined dynamic_lookup")
   else()
-    set(PYTHON_LINKFLAGS)
+    set(PYTHON_LINKFLAGS "")
   endif()
 else()
   # See: http://docs.python.org/extending/embedding.html#linking-requirements
@@ -84,6 +84,17 @@ set(_python_SEARCH_DIRS
 
 # only search for the dirs if we haven't already
 if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_LIB_PATH_DEF))
+  # When PYTHON_ROOT_DIR is set, remove matching paths from CMAKE_IGNORE_PATH
+  # so system Python installations (e.g. /usr) can be found.
+  if(PYTHON_ROOT_DIR AND CMAKE_IGNORE_PATH)
+    set(_cmake_ignore_path_backup ${CMAKE_IGNORE_PATH})
+    # Strip trailing slash and match with "/" suffix to avoid
+    # false matches (e.g. "/usr" matching "/usrfoo").
+    string(REGEX REPLACE "/$" "" _python_root_rstrip_slash "${PYTHON_ROOT_DIR}")
+    list(FILTER CMAKE_IGNORE_PATH EXCLUDE REGEX "^${_python_root_rstrip_slash}/")
+    unset(_python_root_rstrip_slash)
+  endif()
+
   set(_PYTHON_ABI_FLAGS_TEST
     "u; "  # release
     "du;d" # debug
@@ -95,6 +106,17 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
     # endif()
     string(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
 
+    set(_python_INCLUDE_PATH_SUFFIXES
+      include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+    )
+    if(DEFINED CMAKE_LIBRARY_ARCHITECTURE)
+      if(CMAKE_LIBRARY_ARCHITECTURE)
+        list(APPEND _python_INCLUDE_PATH_SUFFIXES
+          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+        )
+      endif()
+    endif()
+
     if(NOT DEFINED PYTHON_INCLUDE_DIR)
       find_path(PYTHON_INCLUDE_DIR
         NAMES
@@ -102,8 +124,7 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
         HINTS
           ${_python_SEARCH_DIRS}
         PATH_SUFFIXES
-          include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+          ${_python_INCLUDE_PATH_SUFFIXES}
       )
     endif()
 
@@ -114,8 +135,7 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
         HINTS
           ${_python_SEARCH_DIRS}
         PATH_SUFFIXES
-          include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+          ${_python_INCLUDE_PATH_SUFFIXES}
       )
       if((NOT PYTHON_INCLUDE_CONFIG_DIR) AND PYTHON_INCLUDE_DIR)
         # Fallback...
@@ -173,8 +193,15 @@ if((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
 
   unset(_CURRENT_ABI_FLAGS)
   unset(_CURRENT_PATH)
+  unset(_python_INCLUDE_PATH_SUFFIXES)
 
   unset(_PYTHON_ABI_FLAGS_TEST)
+
+  # Restore CMAKE_IGNORE_PATH if it was modified.
+  if(DEFINED _cmake_ignore_path_backup)
+    set(CMAKE_IGNORE_PATH ${_cmake_ignore_path_backup})
+    unset(_cmake_ignore_path_backup)
+  endif()
 endif()
 
 unset(_IS_INC_DEF)

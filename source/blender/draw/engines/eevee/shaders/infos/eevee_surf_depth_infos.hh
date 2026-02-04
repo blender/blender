@@ -37,6 +37,8 @@
 GPU_SHADER_CREATE_INFO(eevee_surf_depth)
 DEFINE("MAT_DEPTH")
 FRAGMENT_SOURCE("eevee_surf_depth_frag.glsl")
+FRAGMENT_OUT(PREPASS_FRAG_OUT_NORMAL, float4, out_normal)
+FRAGMENT_OUT(PREPASS_FRAG_OUT_OB_ID, uint, out_object_id)
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(eevee_sampling_data)
 ADDITIONAL_INFO(eevee_utility_texture)

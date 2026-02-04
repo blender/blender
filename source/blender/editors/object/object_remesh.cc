@@ -354,7 +354,7 @@ static void voxel_size_edit_cancel(bContext *C, wmOperator *op)
 
   ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
 
-  MEM_freeN(cd);
+  MEM_delete(cd);
 
   ED_workspace_status_text(C, nullptr);
 }
@@ -392,7 +392,7 @@ static wmOperatorStatus voxel_size_edit_modal(bContext *C, wmOperator *op, const
   {
     ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
     mesh->remesh_voxel_size = cd->voxel_size;
-    MEM_freeN(cd);
+    MEM_delete(cd);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
@@ -441,7 +441,7 @@ static wmOperatorStatus voxel_size_edit_invoke(bContext *C, wmOperator *op, cons
   Object *active_object = CTX_data_active_object(C);
   Mesh *mesh = id_cast<Mesh *>(active_object->data);
 
-  VoxelSizeEditCustomData *cd = MEM_callocN<VoxelSizeEditCustomData>(
+  VoxelSizeEditCustomData *cd = MEM_new_zeroed<VoxelSizeEditCustomData>(
       "Voxel Size Edit OP Custom Data");
 
   /* Initial operator Custom Data setup. */
@@ -689,8 +689,8 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
   const Span<int> corner_edges = mesh->corner_edges();
 
   bool is_manifold_consistent = true;
-  char *edge_faces = MEM_calloc_arrayN<char>(mesh->edges_num, "remesh_manifold_check");
-  int *edge_vert = MEM_malloc_arrayN<int>(mesh->edges_num, "remesh_consistent_check");
+  char *edge_faces = MEM_new_array_zeroed<char>(mesh->edges_num, "remesh_manifold_check");
+  int *edge_vert = MEM_new_array_uninitialized<int>(mesh->edges_num, "remesh_consistent_check");
 
   for (uint i = 0; i < mesh->edges_num; i++) {
     edge_vert[i] = -1;
@@ -730,8 +730,8 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
     }
   }
 
-  MEM_freeN(edge_faces);
-  MEM_freeN(edge_vert);
+  MEM_delete(edge_faces);
+  MEM_delete(edge_vert);
 
   return is_manifold_consistent;
 }
@@ -739,7 +739,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
 static void quadriflow_free_job(void *customdata)
 {
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
-  MEM_freeN(qj);
+  MEM_delete(qj);
 }
 
 /* called by quadriflowjob, only to check job 'stop' value */
@@ -956,7 +956,7 @@ static void quadriflow_end_job(void *customdata)
 
 static wmOperatorStatus quadriflow_remesh_exec(bContext *C, wmOperator *op)
 {
-  QuadriFlowJob *job = MEM_mallocN<QuadriFlowJob>("QuadriFlowJob");
+  QuadriFlowJob *job = MEM_new_uninitialized<QuadriFlowJob>("QuadriFlowJob");
 
   job->op = op;
   job->owner = CTX_data_active_object(C);

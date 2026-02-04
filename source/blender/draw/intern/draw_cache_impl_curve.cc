@@ -200,7 +200,7 @@ static CurveRenderData *curve_render_data_create(Curve *cu,
                                                  CurveCache *ob_curve_cache,
                                                  const int types)
 {
-  CurveRenderData *rdata = MEM_callocN<CurveRenderData>(__func__);
+  CurveRenderData *rdata = MEM_new_zeroed<CurveRenderData>(__func__);
   rdata->types = types;
   ListBaseT<Nurb> *nurbs;
 
@@ -250,10 +250,10 @@ static void curve_render_data_free(CurveRenderData *rdata)
 {
 #if 0
   if (rdata->loose_verts) {
-    MEM_freeN(rdata->loose_verts);
+    MEM_delete(rdata->loose_verts);
   }
 #endif
-  MEM_freeN(rdata);
+  MEM_delete(rdata);
 }
 
 static int curve_render_data_overlay_verts_len_get(const CurveRenderData *rdata)
@@ -333,7 +333,7 @@ struct CurveBatchCache {
 
 static bool curve_batch_cache_valid(Curve *cu)
 {
-  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
+  CurveBatchCache *cache = cu->batch_cache;
 
   if (cache == nullptr) {
     return false;
@@ -358,10 +358,10 @@ static bool curve_batch_cache_valid(Curve *cu)
 
 static void curve_batch_cache_init(Curve *cu)
 {
-  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
+  CurveBatchCache *cache = cu->batch_cache;
 
   if (!cache) {
-    cache = MEM_callocN<CurveBatchCache>(__func__);
+    cache = MEM_new_zeroed<CurveBatchCache>(__func__);
     cu->batch_cache = cache;
   }
   else {
@@ -394,12 +394,12 @@ void DRW_curve_batch_cache_validate(Curve *cu)
 
 static CurveBatchCache *curve_batch_cache_get(Curve *cu)
 {
-  return static_cast<CurveBatchCache *>(cu->batch_cache);
+  return cu->batch_cache;
 }
 
 void DRW_curve_batch_cache_dirty_tag(Curve *cu, int mode)
 {
-  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
+  CurveBatchCache *cache = cu->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -420,7 +420,7 @@ void DRW_curve_batch_cache_dirty_tag(Curve *cu, int mode)
 
 static void curve_batch_cache_clear(Curve *cu)
 {
-  CurveBatchCache *cache = static_cast<CurveBatchCache *>(cu->batch_cache);
+  CurveBatchCache *cache = cu->batch_cache;
   if (!cache) {
     return;
   }
@@ -446,7 +446,7 @@ static void curve_batch_cache_clear(Curve *cu)
 void DRW_curve_batch_cache_free(Curve *cu)
 {
   curve_batch_cache_clear(cu);
-  MEM_SAFE_FREE(cu->batch_cache);
+  MEM_SAFE_DELETE(cu->batch_cache);
 }
 
 /* -------------------------------------------------------------------- */

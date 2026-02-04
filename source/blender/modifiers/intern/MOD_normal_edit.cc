@@ -134,7 +134,7 @@ static void mix_normals(const float mix_factor,
   int i;
 
   if (dvert) {
-    facs = MEM_malloc_arrayN<float>(size_t(corner_verts.size()), __func__);
+    facs = MEM_new_array_uninitialized<float>(size_t(corner_verts.size()), __func__);
     BKE_defvert_extract_vgroup_to_loopweights(
         dvert, defgrp_index, verts_num, corner_verts, use_invert_vgroup, facs);
   }
@@ -168,7 +168,7 @@ static void mix_normals(const float mix_factor,
         (mix_limit < float(M_PI)) ? min_ff(fac, mix_limit / angle_v3v3(*no_new, *no_old)) : fac);
   }
 
-  MEM_SAFE_FREE(facs);
+  MEM_SAFE_DELETE(facs);
 }
 
 /* Check face normals and new loop normals are compatible, otherwise flip faces
@@ -222,7 +222,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 
   const bool do_facenors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
 
-  float (*cos)[3] = MEM_malloc_arrayN<float[3]>(size_t(vert_positions.size()), __func__);
+  float (*cos)[3] = MEM_new_array_uninitialized<float[3]>(size_t(vert_positions.size()), __func__);
   Array<float3> nos(corner_verts.size());
   float3 size;
 
@@ -320,8 +320,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                        nos,
                                        clnors);
 
-  MEM_freeN(cos);
-  MEM_freeN(done_verts);
+  MEM_delete(cos);
+  MEM_delete(done_verts);
 }
 
 static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
@@ -370,7 +370,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     }
   }
   else {
-    float (*cos)[3] = MEM_malloc_arrayN<float[3]>(size_t(positions.size()), __func__);
+    float (*cos)[3] = MEM_new_array_uninitialized<float[3]>(size_t(positions.size()), __func__);
     generate_vert_coordinates(mesh, ob, ob_target, nullptr, positions.size(), cos, nullptr);
 
     BLI_bitmap *done_verts = BLI_BITMAP_NEW(size_t(positions.size()), __func__);
@@ -389,8 +389,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
       nos[i] = co;
     }
 
-    MEM_freeN(done_verts);
-    MEM_freeN(cos);
+    MEM_delete(done_verts);
+    MEM_delete(cos);
   }
 
   if (!corner_normals.is_empty()) {

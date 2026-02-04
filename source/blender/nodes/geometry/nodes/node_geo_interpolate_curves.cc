@@ -485,8 +485,7 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       if (!dst_generic) {
         return;
       }
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
 
@@ -519,8 +518,7 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
         return;
       }
 
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
 
@@ -778,7 +776,7 @@ static GeometrySet generate_interpolated_curves(
                           all_neighbor_weights);
 
   if (guide_curves_id.mat != nullptr) {
-    child_curves_id->mat = static_cast<Material **>(MEM_dupallocN(guide_curves_id.mat));
+    child_curves_id->mat = MEM_dupalloc(guide_curves_id.mat);
     child_curves_id->totcol = guide_curves_id.totcol;
   }
 

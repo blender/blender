@@ -62,7 +62,7 @@ GPUMatrixState *GPU_matrix_state_create()
         {0.0f, 0.0f, 0.0f, 1.0f} \
   }
 
-  GPUMatrixState *state = MEM_mallocN<GPUMatrixState>(__func__);
+  GPUMatrixState *state = MEM_new_uninitialized<GPUMatrixState>(__func__);
   const MatrixStack identity_stack = {{MATRIX_4X4_IDENTITY}, 0};
 
   state->model_view_stack = state->projection_stack = identity_stack;
@@ -75,7 +75,7 @@ GPUMatrixState *GPU_matrix_state_create()
 
 void GPU_matrix_state_discard(GPUMatrixState *state)
 {
-  MEM_freeN(state);
+  MEM_delete(state);
 }
 
 static void gpu_matrix_state_active_set_dirty(bool value)

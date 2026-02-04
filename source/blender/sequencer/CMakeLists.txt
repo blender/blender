@@ -129,6 +129,7 @@ set(LIB
   PRIVATE bf::windowmanager
   bf_compositor
   PRIVATE bf::dependencies::optional::audaspace
+  PRIVATE bf::dependencies::optional::fftw3
 )
 
 if(WITH_AUDASPACE)

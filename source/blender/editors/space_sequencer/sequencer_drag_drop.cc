@@ -47,8 +47,7 @@
 /* For querying audio files. */
 #ifdef WITH_AUDASPACE
 #  include "BKE_sound.hh"
-#  include <AUD_Sound.h>
-#  include <AUD_Special.h>
+#  include <file/File.h>
 #endif
 
 /* Own include. */
@@ -549,18 +548,17 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
   if (job_data->only_audio) {
 #ifdef WITH_AUDASPACE
     /* Get the sound file length */
-    AUD_Sound *sound = AUD_Sound_file(job_data->path);
+    AUD_Sound sound = AUD_Sound(new aud::File(job_data->path));
     if (sound != nullptr) {
 
-      AUD_SoundInfo info = AUD_getInfo(sound);
-      if (eSoundChannels(info.specs.channels) != SOUND_CHANNELS_INVALID) {
+      SoundInfo info = bke::sound_info_get(sound);
+      if (info.specs.channels != SOUND_CHANNELS_INVALID) {
         g_drop_coords.audio_length = info.length;
       }
       /* The playback rate is defined by the scene. This will be computed later in
        * #update_overlay_strip_position_data, when we know the scene from the context. So set it to
        * 0 for now. */
       g_drop_coords.playback_rate = 0.0f;
-      AUD_Sound_free(sound);
       return;
     }
 #endif
@@ -577,14 +575,13 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
     MOV_close(anim);
 #ifdef WITH_AUDASPACE
     /* Try to load sound and see if the video has a sound channel. */
-    AUD_Sound *sound = AUD_Sound_file(job_data->path);
+    AUD_Sound sound = AUD_Sound(new aud::File(job_data->path));
     if (sound != nullptr) {
 
-      AUD_SoundInfo info = AUD_getInfo(sound);
-      if (eSoundChannels(info.specs.channels) != SOUND_CHANNELS_INVALID) {
+      SoundInfo info = bke::sound_info_get(sound);
+      if (info.specs.channels != SOUND_CHANNELS_INVALID) {
         g_drop_coords.channel_len = 2;
       }
-      AUD_Sound_free(sound);
     }
 #endif
   }
@@ -593,7 +590,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
 static void free_prefetch_data_fn(void *custom_data)
 {
   DropJobData *job_data = static_cast<DropJobData *>(custom_data);
-  MEM_freeN(job_data);
+  MEM_delete(job_data);
 }
 
 static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
@@ -610,7 +607,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
                               eWM_JobFlag(0),
                               WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
-  DropJobData *job_data = MEM_mallocN<DropJobData>("SeqDragDropPreviewData");
+  DropJobData *job_data = MEM_new_uninitialized<DropJobData>("SeqDragDropPreviewData");
   get_drag_path(C, drag, job_data->path);
 
   job_data->only_audio = only_audio;

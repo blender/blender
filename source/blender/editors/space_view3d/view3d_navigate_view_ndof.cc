@@ -613,7 +613,7 @@ static float ndof_read_zbuf_rect(ARegion *region, const rcti &rect, int r_xy[2])
     depth_near = view3d_depth_near(&depth_temp);
   }
 
-  MEM_SAFE_FREE(depth_temp.depths);
+  MEM_SAFE_DELETE(depth_temp.depths);
 
   return depth_near;
 }

@@ -63,7 +63,7 @@ void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_loopt
   BM_mesh_data_free(em->bm);
   BMesh *tmpbm = BM_mesh_copy(backup->bmcopy);
   *em->bm = *tmpbm;
-  MEM_freeN(tmpbm);
+  MEM_delete(tmpbm);
   tmpbm = nullptr;
 
   if (recalc_looptris) {
@@ -75,7 +75,7 @@ void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool rec
 {
   BM_mesh_data_free(em->bm);
   *em->bm = *backup->bmcopy;
-  MEM_freeN(backup->bmcopy);
+  MEM_delete(backup->bmcopy);
   backup->bmcopy = nullptr;
   if (recalc_looptris) {
     BKE_editmesh_looptris_calc(em);
@@ -86,7 +86,7 @@ void EDBM_redo_state_free(BMBackup *backup)
 {
   if (backup->bmcopy) {
     BM_mesh_data_free(backup->bmcopy);
-    MEM_freeN(backup->bmcopy);
+    MEM_delete(backup->bmcopy);
   }
 }
 
@@ -498,13 +498,13 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool re
   if (totuv == 0) {
     return nullptr;
   }
-  UvVertMap *vmap = MEM_callocN<UvVertMap>("UvVertMap");
+  UvVertMap *vmap = MEM_new_zeroed<UvVertMap>("UvVertMap");
   if (!vmap) {
     return nullptr;
   }
 
-  vmap->vert = MEM_calloc_arrayN<UvMapVert *>(totverts, "UvMapVert_pt");
-  UvMapVert *buf = vmap->buf = MEM_calloc_arrayN<UvMapVert>(totuv, "UvMapVert");
+  vmap->vert = MEM_new_array_zeroed<UvMapVert *>(totverts, "UvMapVert_pt");
+  UvMapVert *buf = vmap->buf = MEM_new_array_zeroed<UvMapVert>(totuv, "UvMapVert");
 
   if (!vmap->vert || !vmap->buf) {
     BKE_mesh_uv_vert_map_free(vmap);
@@ -596,7 +596,8 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
   }
 
   /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
-  element_map->head_table = MEM_malloc_arrayN<UvElement *>(element_map->total_uvs, __func__);
+  element_map->head_table = MEM_new_array_uninitialized<UvElement *>(element_map->total_uvs,
+                                                                     __func__);
   UvElement **head_table = element_map->head_table;
   for (int i = 0; i < element_map->total_uvs; i++) {
     UvElement *head = element_map->storage + i;
@@ -617,7 +618,7 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
 int *BM_uv_element_map_ensure_unique_index(UvElementMap *element_map)
 {
   if (!element_map->unique_index_table) {
-    element_map->unique_index_table = MEM_calloc_arrayN<int>(element_map->total_uvs, __func__);
+    element_map->unique_index_table = MEM_new_array_zeroed<int>(element_map->total_uvs, __func__);
 
     int j = 0;
     for (int i = 0; i < element_map->total_uvs; i++) {
@@ -687,7 +688,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   int nislands = 0;
   int islandbufsize = 0;
   int stack_upper_bound = total_uvs;
-  UvElement **stack_uv = MEM_malloc_arrayN<UvElement *>(stack_upper_bound, __func__);
+  UvElement **stack_uv = MEM_new_array_uninitialized<UvElement *>(stack_upper_bound, __func__);
   int stacksize_uv = 0;
   for (int i = 0; i < total_uvs; i++) {
     UvElement *element = element_map->storage + i;
@@ -759,8 +760,8 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   }
   BLI_assert(islandbufsize == total_uvs);
 
-  MEM_SAFE_FREE(stack_uv);
-  MEM_SAFE_FREE(element_map->head_table);
+  MEM_SAFE_DELETE(stack_uv);
+  MEM_SAFE_DELETE(element_map->head_table);
 
   return nislands;
 }
@@ -775,11 +776,11 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   int islandbufsize = 0;
 
   /* map holds the map from current vmap->buf to the new, sorted map */
-  uint *map = MEM_malloc_arrayN<uint>(totuv, __func__);
-  BMFace **stack = MEM_malloc_arrayN<BMFace *>(bm->totface, __func__);
-  UvElement *islandbuf = MEM_calloc_arrayN<UvElement>(totuv, __func__);
+  uint *map = MEM_new_array_uninitialized<uint>(totuv, __func__);
+  BMFace **stack = MEM_new_array_uninitialized<BMFace *>(bm->totface, __func__);
+  UvElement *islandbuf = MEM_new_array_zeroed<UvElement>(totuv, __func__);
   /* Island number for BMFaces. */
-  int *island_number = MEM_calloc_arrayN<int>(bm->totface, __func__);
+  int *island_number = MEM_new_array_zeroed<int>(bm->totface, __func__);
   copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
 
   const BMUVOffsets uv_offsets = BM_uv_map_offsets_get(bm);
@@ -843,7 +844,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  MEM_SAFE_FREE(island_number);
+  MEM_SAFE_DELETE(island_number);
 
   /* remap */
   for (int i = 0; i < bm->totvert; i++) {
@@ -853,9 +854,9 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  element_map->island_indices = MEM_calloc_arrayN<int>(nislands, __func__);
-  element_map->island_total_uvs = MEM_calloc_arrayN<int>(nislands, __func__);
-  element_map->island_total_unique_uvs = MEM_calloc_arrayN<int>(nislands, __func__);
+  element_map->island_indices = MEM_new_array_zeroed<int>(nislands, __func__);
+  element_map->island_total_uvs = MEM_new_array_zeroed<int>(nislands, __func__);
+  element_map->island_total_unique_uvs = MEM_new_array_zeroed<int>(nislands, __func__);
   int j = 0;
   for (int i = 0; i < totuv; i++) {
     UvElement *next = element_map->storage[i].next;
@@ -872,12 +873,12 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  MEM_SAFE_FREE(element_map->storage);
+  MEM_SAFE_DELETE(element_map->storage);
   element_map->storage = islandbuf;
   islandbuf = nullptr;
   element_map->total_islands = nislands;
-  MEM_SAFE_FREE(stack);
-  MEM_SAFE_FREE(map);
+  MEM_SAFE_DELETE(stack);
+  MEM_SAFE_DELETE(map);
 }
 
 /** Return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b`. */
@@ -1050,12 +1051,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     return nullptr;
   }
 
-  UvElementMap *element_map = MEM_callocN<UvElementMap>("UvElementMap");
+  UvElementMap *element_map = MEM_new_zeroed<UvElementMap>("UvElementMap");
   element_map->total_uvs = totuv;
-  element_map->vertex = MEM_calloc_arrayN<UvElement *>(bm->totvert, "UvElementVerts");
-  element_map->storage = MEM_calloc_arrayN<UvElement>(totuv, "UvElement");
+  element_map->vertex = MEM_new_array_zeroed<UvElement *>(bm->totvert, "UvElementVerts");
+  element_map->storage = MEM_new_array_zeroed<UvElement>(totuv, "UvElement");
 
-  bool *winding = use_winding ? MEM_calloc_arrayN<bool>(bm->totface, "winding") : nullptr;
+  bool *winding = use_winding ? MEM_new_array_zeroed<bool>(bm->totface, "winding") : nullptr;
 
   UvElement *buf = element_map->storage;
   int j;
@@ -1169,7 +1170,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   if (!use_seams) {
     BLI_assert(seam_visited_set.is_empty());
   }
-  MEM_SAFE_FREE(winding);
+  MEM_SAFE_DELETE(winding);
 
   /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
    * Now we should sort uv's in islands. */
@@ -1192,26 +1193,26 @@ void BM_uv_vert_map_free(UvVertMap *vmap)
 {
   if (vmap) {
     if (vmap->vert) {
-      MEM_freeN(vmap->vert);
+      MEM_delete(vmap->vert);
     }
     if (vmap->buf) {
-      MEM_freeN(vmap->buf);
+      MEM_delete(vmap->buf);
     }
-    MEM_freeN(vmap);
+    MEM_delete(vmap);
   }
 }
 
 void BM_uv_element_map_free(UvElementMap *element_map)
 {
   if (element_map) {
-    MEM_SAFE_FREE(element_map->storage);
-    MEM_SAFE_FREE(element_map->vertex);
-    MEM_SAFE_FREE(element_map->head_table);
-    MEM_SAFE_FREE(element_map->unique_index_table);
-    MEM_SAFE_FREE(element_map->island_indices);
-    MEM_SAFE_FREE(element_map->island_total_uvs);
-    MEM_SAFE_FREE(element_map->island_total_unique_uvs);
-    MEM_SAFE_FREE(element_map);
+    MEM_SAFE_DELETE(element_map->storage);
+    MEM_SAFE_DELETE(element_map->vertex);
+    MEM_SAFE_DELETE(element_map->head_table);
+    MEM_SAFE_DELETE(element_map->unique_index_table);
+    MEM_SAFE_DELETE(element_map->island_indices);
+    MEM_SAFE_DELETE(element_map->island_total_uvs);
+    MEM_SAFE_DELETE(element_map->island_total_unique_uvs);
+    MEM_SAFE_DELETE(element_map);
   }
 }
 

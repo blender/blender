@@ -15,6 +15,7 @@
 
 #include "BKE_colortools.hh"
 
+#include "GPU_context.hh"
 #include "GPU_immediate.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -66,7 +67,7 @@ bool GPUTextures::initialize_common()
 GPUCurveMappping::~GPUCurveMappping()
 {
   if (lut) {
-    MEM_freeN(lut);
+    MEM_delete(lut);
   }
 
   if (texture) {
@@ -80,7 +81,7 @@ GPUCurveMappping::~GPUCurveMappping()
 void GPUCurveMappping::rasterize(CurveMapping &curve_mapping)
 {
   if (lut) {
-    MEM_freeN(lut);
+    MEM_delete(lut);
   }
 
   BKE_curvemapping_init(&curve_mapping);
@@ -492,9 +493,9 @@ bool GPUShaderBinder::create_gpu_shader(
   info.define("texture3D", "texture");
 
   /* Work around unsupported in keyword in Metal GLSL emulation. */
-#if OS_MAC
-  info.define("in", "");
-#endif
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    info.define("in", "");
+  }
 
   info.typedef_source("ocio_shader_shared.hh");
   info.sampler(internal::TextureSlot::IMAGE, ImageType::Float2D, "image_texture");

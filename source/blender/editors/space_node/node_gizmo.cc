@@ -150,7 +150,7 @@ static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmGizmoGroupType 
 
 static void WIDGETGROUP_node_transform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = MEM_mallocN<wmGizmoWrapper>(__func__);
+  wmGizmoWrapper *wwrapper = MEM_new_uninitialized<wmGizmoWrapper>(__func__);
 
   wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
 
@@ -557,10 +557,9 @@ static void gizmo_node_box_mask_prop_matrix_set(const wmGizmo *gz,
 
   size_input->default_value_typed<bNodeSocketValueVector>()->value[0] = size[0];
   size_input->default_value_typed<bNodeSocketValueVector>()->value[1] = size[1] / aspect;
-  position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = rct.xmin +
-                                                                            size_value.x / 2;
+  position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = rct.xmin + size[0] / 2;
   position_input->default_value_typed<bNodeSocketValueVector>()->value[1] = rct.ymin +
-                                                                            size_value.y / 2;
+                                                                            size[1] / aspect / 2;
 
   gizmo_node_bbox_update(mask_group);
 }
@@ -786,7 +785,7 @@ static bool WIDGETGROUP_node_glare_poll(const bContext *C, wmGizmoGroupType * /*
 
 static void WIDGETGROUP_node_glare_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  NodeGlareWidgetGroup *glare_group = MEM_mallocN<NodeGlareWidgetGroup>(__func__);
+  NodeGlareWidgetGroup *glare_group = MEM_new_uninitialized<NodeGlareWidgetGroup>(__func__);
 
   glare_group->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, nullptr);
   wmGizmo *gz = glare_group->gizmo;
@@ -891,7 +890,7 @@ static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmGizmoGroupType
 
 static void WIDGETGROUP_node_corner_pin_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  NodeCornerPinWidgetGroup *cpin_group = MEM_mallocN<NodeCornerPinWidgetGroup>(__func__);
+  NodeCornerPinWidgetGroup *cpin_group = MEM_new_uninitialized<NodeCornerPinWidgetGroup>(__func__);
   const wmGizmoType *gzt_move_3d = WM_gizmotype_find("GIZMO_GT_move_3d", false);
 
   for (int i = 0; i < 4; i++) {

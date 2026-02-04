@@ -807,7 +807,13 @@ def _download_queued_items(
             while connection.poll():
                 try:
                     received_msg: PipeMessage = connection.recv()
-                except EOFError:
+                except (EOFError, OSError):
+                    # The Python documentation mentions EOFError, but in
+                    # practice I (Sybren) have also seen a ConnectionResetError
+                    # being raised when Blender shuts down uncleanly. The
+                    # implementation of .send() shows that it can also raise an
+                    # OSError, which is the superclass of ConnectionResetError
+                    # as well, so that's why that's caught here.
                     log.warning("Blender is no longer running, shutting down the downloader process")
                     do_shutdown.set()
                     return
@@ -832,7 +838,12 @@ def _download_queued_items(
             log.info("sending message %s", queued_msg)
             try:
                 connection.send(queued_msg)
-            except BrokenPipeError:
+            except OSError:
+                # The Python documentation doesn't mention any exceptions for
+                # the .send() function. In practice, I (Sybren) have seen a
+                # BrokenPipeError being raised. The implementation of .send()
+                # shows that it can also raise an OSError, which is the
+                # superclass of BrokenPipeError as well.
                 log.warning("Blender is no longer running, shutting down the downloader process")
                 do_shutdown.set()
                 return
@@ -1238,7 +1249,7 @@ class MetadataProviderFilesystem(MetadataProvider):
         dir = meta_path.parent
         dir.mkdir(mode=0o700, parents=True, exist_ok=True)
 
-        # See load() for an explanation of the numer of tries & wait time.
+        # See load() for an explanation of the number of tries & wait time.
         meta_file, unlocker = locking.mutex_lock_and_open_with_retry(
             meta_path, 'wb', max_tries=20, wait_time_sec=0.1)
 

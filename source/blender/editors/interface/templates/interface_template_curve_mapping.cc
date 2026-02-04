@@ -118,7 +118,6 @@ static Block *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap_v
                     0.0,
                     0.0,
                     "");
-  button_retval_set(bt, 1);
   button_func_set(bt, [cumap](bContext & /*C*/) { BKE_curvemapping_changed(cumap, false); });
 
   block_align_begin(block);
@@ -203,7 +202,6 @@ static Block *curvemap_tools_func(
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [cumap](bContext &C) {
       BKE_curvemapping_reset_view(cumap);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -222,7 +220,6 @@ static Block *curvemap_tools_func(
                                      UI_UNIT_Y,
                                      nullptr,
                                      "");
-      button_retval_set(but, 1);
       button_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
         BKE_curvemapping_changed(cumap, false);
@@ -242,7 +239,6 @@ static Block *curvemap_tools_func(
                                      UI_UNIT_Y,
                                      nullptr,
                                      "");
-      button_retval_set(but, 1);
       button_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag |= CUMA_EXTEND_EXTRAPOLATE;
         BKE_curvemapping_changed(cumap, false);
@@ -264,7 +260,6 @@ static Block *curvemap_tools_func(
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [cumap, cb, reset_mode](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
       BKE_curvemap_reset(cuma, &cumap->clipr, cumap->preset, reset_mode);
@@ -631,7 +626,6 @@ static void curvemap_buttons_layout(Layout *layout,
                       0.0,
                       0.0,
                       TIP_("Auto handle"));
-    button_retval_set(bt, 1);
     button_func_set(bt, [cumap, cb](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
       BKE_curvemap_handle_set(cuma, HD_AUTO);
@@ -655,7 +649,6 @@ static void curvemap_buttons_layout(Layout *layout,
                       0.0,
                       0.0,
                       TIP_("Vector handle"));
-    button_retval_set(bt, 1);
     button_func_set(bt, [cumap, cb](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
       BKE_curvemap_handle_set(cuma, HD_VECT);
@@ -677,7 +670,6 @@ static void curvemap_buttons_layout(Layout *layout,
                       0.0,
                       0.0,
                       TIP_("Auto clamped"));
-    button_retval_set(bt, 1);
     button_func_set(bt, [cumap, cb](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
       BKE_curvemap_handle_set(cuma, HD_AUTO_ANIM);

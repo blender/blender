@@ -24,14 +24,14 @@ void WM_generic_callback_free(wmGenericCallback *callback)
   if (callback->free_user_data) {
     callback->free_user_data(callback->user_data);
   }
-  MEM_freeN(callback);
+  MEM_delete(callback);
 }
 
 static void do_nothing(bContext * /*C*/, void * /*user_data*/) {}
 
 wmGenericCallback *WM_generic_callback_steal(wmGenericCallback *callback)
 {
-  wmGenericCallback *new_callback = static_cast<wmGenericCallback *>(MEM_dupallocN(callback));
+  wmGenericCallback *new_callback = MEM_dupalloc(callback);
   callback->exec = do_nothing;
   callback->free_user_data = nullptr;
   callback->user_data = nullptr;
@@ -51,7 +51,7 @@ void WM_generic_user_data_free(wmGenericUserData *wm_userdata)
       wm_userdata->free_fn(wm_userdata->data);
     }
     else {
-      MEM_freeN(wm_userdata->data);
+      MEM_delete_void(wm_userdata->data);
     }
   }
 }

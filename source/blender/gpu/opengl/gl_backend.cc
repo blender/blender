@@ -367,11 +367,24 @@ void GLBackend::platform_exit()
 
 TexturePool *GLBackend::texturepool_alloc()
 {
-  if (G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL) {
-    CLOG_INFO(&LOG, "Using texture pool \"TexturePoolImpl\".");
+  bool use_fallback = false;
+  /* Fallback: disable backend pool on --debug-gpu-no-texture-pool. */
+  use_fallback |= bool(G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL);
+  /* Fallback: disable backend pool on any Intel driver; glTextureView is inconsistently
+   * broken on Intel HD and newer integrated cards, and output of the vendor string doesn't
+   * differentiate e.g. an Arc V140 from an Arc B750 :( */
+  use_fallback |= (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) ||
+                   GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY));
+  /* Fallback: disable backend pool on closed source AMD driver; glTextureView
+   * breaks framebuffers for several formats. This is not an issue on Mesa. */
+  use_fallback |= (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL));
+
+  if (use_fallback) {
+    CLOG_TRACE(&LOG, "Using texture pool \"TexturePoolImpl\".");
     return new TexturePoolImpl();
   }
-  CLOG_INFO(&LOG, "Using texture pool \"GLTexturePool\".");
+
+  CLOG_TRACE(&LOG, "Using texture pool \"GLTexturePool\".");
   return new GLTexturePool();
 }
 

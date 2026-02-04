@@ -279,8 +279,9 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
     Object * /*ob*/, ClothModifierData *clmd, float (*initial_cos)[3], float /*step*/, float dt)
 {
   Cloth *cloth = clmd->clothObject;
-  float (*cos)[3] = MEM_calloc_arrayN<float[3]>(cloth->mvert_num, "cos cloth_calc_helper_forces");
-  float *masses = MEM_calloc_arrayN<float>(cloth->mvert_num, "cos cloth_calc_helper_forces");
+  float (*cos)[3] = MEM_new_array_zeroed<float[3]>(cloth->mvert_num,
+                                                   "cos cloth_calc_helper_forces");
+  float *masses = MEM_new_array_zeroed<float>(cloth->mvert_num, "cos cloth_calc_helper_forces");
   LinkNode *node;
   ClothSpring *spring;
   ClothVertex *cv;
@@ -348,8 +349,8 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(
     // copy_v3_v3(cv->tx, cos[i]);
   }
 
-  MEM_freeN(cos);
-  MEM_freeN(masses);
+  MEM_delete(cos);
+  MEM_delete(masses);
 
   return 1;
 }
@@ -670,7 +671,8 @@ static void cloth_calc_force(Scene *scene,
       mul_v3_fl(hydrostatic_vector, fluid_density);
 
       /* Compute an array of per-vertex hydrostatic pressure, and subtract the average. */
-      hydrostatic_pressure = MEM_malloc_arrayN<float>(mvert_num, "hydrostatic pressure gradient");
+      hydrostatic_pressure = MEM_new_array_uninitialized<float>(mvert_num,
+                                                                "hydrostatic pressure gradient");
 
       cloth_calc_pressure_gradient(clmd, hydrostatic_vector, hydrostatic_pressure);
 
@@ -692,7 +694,7 @@ static void cloth_calc_force(Scene *scene,
     }
 
     if (hydrostatic_pressure) {
-      MEM_freeN(hydrostatic_pressure);
+      MEM_delete(hydrostatic_pressure);
     }
   }
 
@@ -702,7 +704,7 @@ static void cloth_calc_force(Scene *scene,
     bool has_wind = false, has_force = false;
 
     /* cache per-vertex forces to avoid redundant calculation */
-    float (*winvec)[3] = MEM_calloc_arrayN<float[3]>(mvert_num * 2, "effector forces");
+    float (*winvec)[3] = MEM_new_array_zeroed<float[3]>(mvert_num * 2, "effector forces");
     float (*forcevec)[3] = is_not_hair ? winvec + mvert_num : winvec;
 
     for (i = 0; i < cloth->mvert_num; i++) {
@@ -770,7 +772,7 @@ static void cloth_calc_force(Scene *scene,
 #endif
     }
 
-    MEM_freeN(winvec);
+    MEM_delete(winvec);
   }
 
   /* calculate spring forces */
@@ -1282,7 +1284,7 @@ int SIM_cloth_solve(Depsgraph *depsgraph,
   BKE_sim_debug_data_clear_category("collision");
 
   if (!clmd->solver_result) {
-    clmd->solver_result = MEM_callocN<ClothSolverResult>("cloth solver result");
+    clmd->solver_result = MEM_new_zeroed<ClothSolverResult>("cloth solver result");
   }
   cloth_clear_result(clmd);
 

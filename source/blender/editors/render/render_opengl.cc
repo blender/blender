@@ -190,7 +190,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
     rv = static_cast<RenderView *>(rr->views.first);
 
     if (rv == nullptr) {
-      rv = MEM_new_for_free<RenderView>("new opengl render view");
+      rv = MEM_new<RenderView>("new opengl render view");
       BLI_addtail(&rr->views, rv);
     }
 
@@ -200,7 +200,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
       IMB_freeImBuf(rv_del->ibuf);
 
-      MEM_freeN(rv_del);
+      MEM_delete(rv_del);
     }
   }
   else {
@@ -224,7 +224,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
         IMB_freeImBuf(rv_del->ibuf);
 
-        MEM_freeN(rv_del);
+        MEM_delete(rv_del);
       }
     }
 
@@ -238,7 +238,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
           BLI_findstring(&rr->views, srv.name, offsetof(SceneRenderView, name)));
 
       if (rv == nullptr) {
-        rv = MEM_new_for_free<RenderView>("new opengl render view");
+        rv = MEM_new<RenderView>("new opengl render view");
         STRNCPY_UTF8(rv->name, srv.name);
         BLI_addtail(&rr->views, rv);
       }
@@ -316,7 +316,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
       ED_annotation_draw_ex(scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
       G.f &= ~G_FLAG_RENDER_VIEWPORT;
 
-      gp_rect = MEM_malloc_arrayN<uchar>(4 * sizex * sizey, "offscreen rect");
+      gp_rect = MEM_new_array_uninitialized<uchar>(4 * sizex * sizey, "offscreen rect");
       GPU_offscreen_read_color(oglrender->ofs, GPU_DATA_UBYTE, gp_rect);
 
       for (i = 0; i < sizex * sizey * 4; i += 4) {
@@ -325,7 +325,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
       GPU_offscreen_unbind(oglrender->ofs, true);
       DRW_gpu_context_disable();
 
-      MEM_freeN(gp_rect);
+      MEM_delete(gp_rect);
     }
   }
   else {
@@ -812,7 +812,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->is_sequencer = is_sequencer;
   if (is_sequencer) {
     oglrender->sseq = CTX_wm_space_seq(C);
-    ImBuf **ibufs_arr = MEM_calloc_arrayN<ImBuf *>(oglrender->views_len, __func__);
+    ImBuf **ibufs_arr = MEM_new_array_zeroed<ImBuf *>(oglrender->views_len, __func__);
     oglrender->seq_data.ibufs_arr = ibufs_arr;
   }
 
@@ -908,7 +908,7 @@ static void screen_opengl_render_end(OGLRender *oglrender)
     oglrender->task_pool = nullptr;
   }
 
-  MEM_SAFE_FREE(oglrender->render_frames);
+  MEM_SAFE_DELETE(oglrender->render_frames);
 
   if (!oglrender->movie_writers.is_empty()) {
     if (BKE_imtype_is_movie(oglrender->scene->r.im_format.imtype)) {
@@ -929,7 +929,7 @@ static void screen_opengl_render_end(OGLRender *oglrender)
     oglrender->viewport = nullptr;
   }
 
-  MEM_SAFE_FREE(oglrender->seq_data.ibufs_arr);
+  MEM_SAFE_DELETE(oglrender->seq_data.ibufs_arr);
 
   oglrender->scene->customdata_mask_modal = CustomData_MeshMasks{};
 
@@ -1125,7 +1125,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
     return false;
   }
   Scene *scene = oglrender->scene;
-  WriteTaskData *task_data = MEM_new_for_free<WriteTaskData>("write task data");
+  WriteTaskData *task_data = MEM_new<WriteTaskData>("write task data");
   task_data->rr = rr;
   task_data->tmp_scene = dna::shallow_copy(*scene);
   {

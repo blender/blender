@@ -135,7 +135,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       Mesh *mesh = curve_to_mesh(
           curves.geometry.wrap(), profile_set, context, scale_field, fill_caps, attribute_filter);
       if (mesh != nullptr) {
-        mesh->mat = static_cast<Material **>(MEM_dupallocN(curves.mat));
+        mesh->mat = MEM_dupalloc(curves.mat);
         mesh->totcol = curves.totcol;
       }
       geometry_set.replace_mesh(mesh);

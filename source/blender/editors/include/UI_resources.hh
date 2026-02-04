@@ -85,6 +85,7 @@ enum ThemeColorID {
   TH_HILITE,
 
   TH_GRID,
+  TH_GRID_MAJOR,
   TH_WIRE,
   TH_WIRE_INNER,
   TH_WIRE_EDIT,

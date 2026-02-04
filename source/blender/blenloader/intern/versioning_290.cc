@@ -161,10 +161,10 @@ static void strip_convert_transform_crop(const Scene *scene,
                                          const eSpaceSeq_Proxy_RenderSize render_size)
 {
   if (strip->data->transform == nullptr) {
-    strip->data->transform = MEM_new_for_free<StripTransform>(__func__);
+    strip->data->transform = MEM_new<StripTransform>(__func__);
   }
   if (strip->data->crop == nullptr) {
-    strip->data->crop = MEM_new_for_free<StripCrop>(__func__);
+    strip->data->crop = MEM_new<StripCrop>(__func__);
   }
 
   StripCrop *c = strip->data->crop;
@@ -255,10 +255,10 @@ static void strip_convert_transform_crop(const Scene *scene,
 
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
   strip_convert_transform_animation(strip, scene, path, image_size_x, scene->r.xsch);
-  MEM_freeN(path);
+  MEM_delete(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
   strip_convert_transform_animation(strip, scene, path, image_size_y, scene->r.ysch);
-  MEM_freeN(path);
+  MEM_delete(path);
 
   strip->flag &= ~use_transform_flag;
   strip->flag &= ~use_crop_flag;
@@ -332,22 +332,22 @@ static void strip_convert_transform_crop_2(const Scene *scene,
   BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_x", name_esc);
   strip_convert_transform_animation_2(scene, path, scale_to_fit_factor);
-  MEM_freeN(path);
+  MEM_delete(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_y", name_esc);
   strip_convert_transform_animation_2(scene, path, scale_to_fit_factor);
-  MEM_freeN(path);
+  MEM_delete(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_x", name_esc);
   strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
-  MEM_freeN(path);
+  MEM_delete(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
   strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
-  MEM_freeN(path);
+  MEM_delete(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_y", name_esc);
   strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
-  MEM_freeN(path);
+  MEM_delete(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
   strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
-  MEM_freeN(path);
+  MEM_delete(path);
 }
 
 static void strip_convert_transform_crop_lb_2(const Scene *scene,
@@ -422,9 +422,9 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
       bNodeSocket *dest_socket = bke::node_find_socket(node, SOCK_IN, new_name);
       BLI_assert(source_socket && dest_socket);
       if (dest_socket->default_value) {
-        MEM_freeN(dest_socket->default_value);
+        MEM_delete_void(dest_socket->default_value);
       }
-      dest_socket->default_value = MEM_dupallocN(source_socket->default_value);
+      dest_socket->default_value = MEM_dupalloc_void(source_socket->default_value);
     }
   }
 }
@@ -1617,7 +1617,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           if (node.type_legacy != CMP_NODE_SETALPHA) {
             continue;
           }
-          NodeSetAlpha *storage = MEM_new_for_free<NodeSetAlpha>("NodeSetAlpha");
+          NodeSetAlpha *storage = MEM_new<NodeSetAlpha>("NodeSetAlpha");
           storage->mode = CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
           node.storage = storage;
         }
@@ -1687,7 +1687,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       }
       for (bNode &node : ntree->nodes) {
         if (node.type_legacy == GEO_NODE_OBJECT_INFO && node.storage == nullptr) {
-          NodeGeometryObjectInfo *data = MEM_new_for_free<NodeGeometryObjectInfo>(__func__);
+          NodeGeometryObjectInfo *data = MEM_new<NodeGeometryObjectInfo>(__func__);
           data->transform_space = GEO_NODE_TRANSFORM_SPACE_RELATIVE;
           node.storage = data;
         }

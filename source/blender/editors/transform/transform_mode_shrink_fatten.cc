@@ -10,6 +10,7 @@
 #include <fmt/format.h>
 
 #include "BLI_math_vector.h"
+#include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 
 #include "BKE_report.hh"
@@ -119,9 +120,10 @@ static void applyShrinkFatten(TransInfo *t)
     /* Default header print. */
     if (unit.system != USER_UNIT_NONE) {
       char unit_str[64];
+      const int precision = t->modifiers & MOD_PRECISION ? 6 : 4;
       BKE_unit_value_as_string_scaled(
-          unit_str, sizeof(unit_str), distance, -4, B_UNIT_LENGTH, unit, true);
-      fmt::format_to(fmt::appender(str), "{}", unit_str);
+          unit_str, sizeof(unit_str), distance, precision * -1, B_UNIT_LENGTH, unit, true);
+      fmt::format_to(fmt::appender(str), "{}", BLI_string_pad_number_sign(unit_str).c_str());
     }
     else {
       fmt::format_to(fmt::appender(str), "{:.4f}", distance);
@@ -199,7 +201,7 @@ static void initShrinkFatten(TransInfo *t, wmOperator *op)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_LENGTH;
 
-  ShrinkFattenCustomData *custom_data = MEM_callocN<ShrinkFattenCustomData>(__func__);
+  ShrinkFattenCustomData *custom_data = MEM_new_zeroed<ShrinkFattenCustomData>(__func__);
   t->custom.mode.data = custom_data;
   t->custom.mode.free_cb = [](TransInfo *t, TransDataContainer *, TransCustomData *custom_data) {
     ShrinkFattenCustomData *data = static_cast<ShrinkFattenCustomData *>(custom_data->data);
@@ -207,7 +209,7 @@ static void initShrinkFatten(TransInfo *t, wmOperator *op)
     /* WORKAROUND: Use #T_ALT_TRANSFORM to indicate the value of the "use_even_offset" property in
      * `saveTransform`. */
     SET_FLAG_FROM_TEST(t->flag, data->mode == EVEN_THICKNESS_ON, T_ALT_TRANSFORM);
-    MEM_freeN(data);
+    MEM_delete(data);
     custom_data->data = nullptr;
   };
 

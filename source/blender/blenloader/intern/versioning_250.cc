@@ -565,7 +565,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
                                                              int in_out)
 {
   //  bNodeSocketType *stype = ntreeGetSocketType(type);
-  bNodeSocket *gsock = MEM_new_for_free<bNodeSocket>("bNodeSocket");
+  bNodeSocket *gsock = MEM_new<bNodeSocket>("bNodeSocket");
 
   STRNCPY_UTF8(gsock->name, name);
   gsock->type = type;
@@ -577,7 +577,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
   gsock->limit = (in_out == SOCK_IN ? 0xFFF : 1);
 
   //  if (stype->value_structsize > 0)
-  //      gsock->default_value = MEM_callocN(stype->value_structsize, "default socket value");
+  //      gsock->default_value = MEM_new_zeroed(stype->value_structsize, "default socket value");
 
   BLI_addtail(in_out == SOCK_IN ? &ngroup->inputs_legacy : &ngroup->outputs_legacy, gsock);
 
@@ -606,7 +606,7 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
 
   switch (sock->type) {
     case SOCK_FLOAT:
-      valfloat = MEM_new_for_free<bNodeSocketValueFloat>("default socket value");
+      valfloat = MEM_new<bNodeSocketValueFloat>("default socket value");
       valfloat->value = sock->ns.vec[0];
       valfloat->min = sock->ns.min;
       valfloat->max = sock->ns.max;
@@ -614,7 +614,7 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
       sock->default_value = valfloat;
       break;
     case SOCK_VECTOR:
-      valvector = MEM_new_for_free<bNodeSocketValueVector>("default socket value");
+      valvector = MEM_new<bNodeSocketValueVector>("default socket value");
       copy_v3_v3(valvector->value, sock->ns.vec);
       valvector->min = sock->ns.min;
       valvector->max = sock->ns.max;
@@ -622,7 +622,7 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
       sock->default_value = valvector;
       break;
     case SOCK_RGBA:
-      valrgba = MEM_new_for_free<bNodeSocketValueRGBA>("default socket value");
+      valrgba = MEM_new<bNodeSocketValueRGBA>("default socket value");
       copy_v4_v4(valrgba->value, sock->ns.vec);
       sock->default_value = valrgba;
       break;
@@ -799,7 +799,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ob.totcol && ob.matbits == nullptr) {
         int a;
 
-        ob.matbits = MEM_calloc_arrayN<char>(ob.totcol, "ob->matbits");
+        ob.matbits = MEM_new_array_zeroed<char>(ob.totcol, "ob->matbits");
         for (a = 0; a < ob.totcol; a++) {
           ob.matbits[a] = (ob.colbits & (1 << a)) != 0;
         }
@@ -1843,7 +1843,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = MEM_new_for_free<bNodeLink>("link");
+            bNodeLink *link = MEM_new<bNodeLink>("link");
             BLI_addtail(&ntree.links, link);
             link->fromnode = nullptr;
             link->fromsock = gsock;
@@ -1868,7 +1868,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = MEM_new_for_free<bNodeLink>("link");
+            bNodeLink *link = MEM_new<bNodeLink>("link");
             BLI_addtail(&ntree.links, link);
             link->fromnode = &node;
             link->fromsock = &sock;

@@ -141,7 +141,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
         const uint vert_tot = mesh->verts_num;
         uint i;
 
-        vweights = MEM_malloc_arrayN<float>(vert_tot, __func__);
+        vweights = MEM_new_array_uninitialized<float>(vert_tot, __func__);
 
         if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
           for (i = 0; i < vert_tot; i++) {
@@ -193,7 +193,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   if (vweights) {
-    MEM_freeN(vweights);
+    MEM_delete(vweights);
   }
 
   updateFaceCount(ctx, dmd, bm->totface);

@@ -135,15 +135,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Array<GMutableSpan> list_values(lists.size());
   for (const int i : lists.index_range()) {
-    list_values[i] = {
-        lists[i]->cpp_type(), std::get<List::ArrayData>(lists[i]->data()).data, count};
+    list_values[i] = {lists[i]->cpp_type(),
+                      const_cast<void *>(std::get<List::ArrayData>(lists[i]->data()).data),
+                      count};
   }
 
   ListFieldContext context;
   fn::FieldEvaluator evaluator{context, count};
   for (const int i : fields.index_range()) {
-    GMutableSpan values(
-        lists[i]->cpp_type(), std::get<List::ArrayData>(lists[i]->data()).data, count);
+    GMutableSpan values(lists[i]->cpp_type(),
+                        const_cast<void *>(std::get<List::ArrayData>(lists[i]->data()).data),
+                        count);
     evaluator.add_with_destination(std::move(fields[i]), values);
   }
 
@@ -158,19 +160,19 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->storage = MEM_new_for_free<GeometryNodeFieldToList>(__func__);
+  node->storage = MEM_new<GeometryNodeFieldToList>(__func__);
 }
 
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<ItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_delete_void(node->storage);
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const GeometryNodeFieldToList &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<GeometryNodeFieldToList>(__func__, src_storage);
+  auto *dst_storage = MEM_new<GeometryNodeFieldToList>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ItemsAccessor>(*src_node, *dst_node);

@@ -4,7 +4,7 @@
 set(AUDASPACE_STANDALONE FALSE)
 set(BUILD_DEMOS FALSE)  # "Build and install demos"
 set(SHARED_LIBRARY FALSE)  # "Build Shared Library"
-set(WITH_C TRUE)  # "Build C Module"
+set(WITH_C FALSE)  # "Build C Module"
 set(WITH_DOCS FALSE)  # "Build C++ HTML Documentation with Doxygen"
 set(WITH_FFMPEG ${WITH_CODEC_FFMPEG})  # "Build With FFMPEG"
 if(DEFINED WITH_FFTW3 AND WITH_FFTW3) # "Build With FFTW"

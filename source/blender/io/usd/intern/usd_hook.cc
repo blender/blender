@@ -275,14 +275,14 @@ class USDMaterialImportContext {
       return python::make_tuple(asset_path, false);
     }
 
-    const char *textures_dir = params_.import_textures_mode == USD_TEX_IMPORT_PACK ?
+    const char *textures_dir = params_.import_textures_mode == TexImportMode::Pack ?
                                    temp_textures_dir() :
                                    params_.import_textures_dir;
 
-    const eUSDTexNameCollisionMode name_collision_mode = params_.import_textures_mode ==
-                                                                 USD_TEX_IMPORT_PACK ?
-                                                             USD_TEX_NAME_COLLISION_OVERWRITE :
-                                                             params_.tex_name_collision_mode;
+    const TexNameCollisionMode name_collision_mode = params_.import_textures_mode ==
+                                                             TexImportMode::Pack ?
+                                                         TexNameCollisionMode::Overwrite :
+                                                         params_.tex_name_collision_mode;
 
     std::string import_path = import_asset(
         asset_path, textures_dir, name_collision_mode, reports_);
@@ -292,7 +292,7 @@ class USDMaterialImportContext {
       return python::make_tuple(asset_path, false);
     }
 
-    const bool is_temporary = params_.import_textures_mode == USD_TEX_IMPORT_PACK;
+    const bool is_temporary = params_.import_textures_mode == TexImportMode::Pack;
     return python::make_tuple(import_path, is_temporary);
   }
 };

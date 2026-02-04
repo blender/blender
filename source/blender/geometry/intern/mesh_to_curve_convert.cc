@@ -23,9 +23,9 @@ static auto filter_builtin_attributes(const bke::AttributeAccessor &mesh_attribu
                                       Set<StringRef> &storage,
                                       const bke::AttributeFilter &attribute_filter)
 {
-  for (const StringRef id : mesh_attributes.all_ids()) {
-    if (mesh_attributes.is_builtin(id) && !curves_attributes.is_builtin(id)) {
-      storage.add(id);
+  for (const StringRef name : mesh_attributes.all_names()) {
+    if (mesh_attributes.is_builtin(name) && !curves_attributes.is_builtin(name)) {
+      storage.add(name);
     }
   }
   return bke::attribute_filter_with_skip_ref(attribute_filter, storage);

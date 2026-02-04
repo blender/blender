@@ -64,7 +64,7 @@ class VKUpdateBufferNode : public VKNodeInfo<VKNodeType::UPDATE_BUFFER,
 
   void free_data(Data &data)
   {
-    MEM_freeN(data.data);
+    MEM_delete_void(data.data);
     data.data = nullptr;
   }
 };

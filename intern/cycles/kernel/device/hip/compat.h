@@ -48,6 +48,7 @@ typedef unsigned long long uint64_t;
 #define ccl_restrict __restrict__
 #define ccl_align(n) __align__(n)
 #define ccl_optional_struct_init
+#define ccl_attr_maybe_unused [[maybe_unused]]
 
 #define kernel_assert(cond)
 

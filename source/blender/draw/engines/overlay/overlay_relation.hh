@@ -186,7 +186,7 @@ class Relations : Overlay {
       }
       /* NOTE: Don't use #BKE_constraints_clear_evalob here as that will reset `ob->constinv`.
        */
-      MEM_freeN(cob);
+      MEM_delete(cob);
     }
   }
 

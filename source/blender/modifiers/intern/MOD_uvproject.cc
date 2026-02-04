@@ -267,7 +267,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     int j;
     for (j = 0; j < projectors_num; j++) {
       if (projectors[j].uci) {
-        MEM_freeN(projectors[j].uci);
+        MEM_delete_void(projectors[j].uci);
       }
     }
   }

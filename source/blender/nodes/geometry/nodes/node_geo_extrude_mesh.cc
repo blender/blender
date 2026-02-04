@@ -70,7 +70,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryExtrudeMesh *data = MEM_new_for_free<NodeGeometryExtrudeMesh>(__func__);
+  NodeGeometryExtrudeMesh *data = MEM_new<NodeGeometryExtrudeMesh>(__func__);
   data->mode = GEO_NODE_EXTRUDE_MESH_FACES;
   node->storage = data;
 }
@@ -96,8 +96,7 @@ static void remove_non_propagated_attributes(MutableAttributeAccessor attributes
                                              const AttributeFilter &attribute_filter)
 {
   Vector<std::string> names_to_remove;
-  const Set<StringRefNull> all_names = attributes.all_ids();
-  for (const StringRefNull name : all_names) {
+  for (const StringRefNull name : attributes.all_names()) {
     if (attribute_filter.allow_skip(name)) {
       names_to_remove.append(name);
     }
@@ -226,8 +225,7 @@ static void copy_with_mixing(const GSpan src,
                              GMutableSpan dst)
 {
   BLI_assert(selection.size() == dst.size());
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
     copy_with_mixing(src.typed<T>(), src_groups, selection, dst.typed<T>());
   });
 }
@@ -255,19 +253,21 @@ static void copy_with_mixing(const GSpan src,
                              const Span<int> selection,
                              GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
     copy_with_mixing(src.typed<T>(), src_groups, selection, dst.typed<T>());
   });
 }
 
 using IDsByDomain = std::array<Vector<StringRef>, ATTR_DOMAIN_NUM>;
 
-static IDsByDomain attribute_ids_by_domain(const AttributeAccessor attributes,
-                                           const Set<StringRef> &skip)
+static IDsByDomain get_transfer_attribute_ids(const AttributeAccessor attributes,
+                                              const Set<StringRef> &skip)
 {
   IDsByDomain ids_by_domain;
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
@@ -399,8 +399,8 @@ static void extrude_mesh_vertices(Mesh &mesh,
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   remove_non_propagated_attributes(attributes, attribute_filter);
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(attributes,
-                                                            {"position", ".edge_verts"});
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(attributes,
+                                                               {"position", ".edge_verts"});
 
   Array<int> vert_to_edge_offsets;
   Array<int> vert_to_edge_indices;
@@ -629,7 +629,7 @@ static void extrude_mesh_edges(Mesh &mesh,
               new_face_range.size(),
               new_loop_range.size());
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(
       attributes, {"position", ".edge_verts", ".corner_vert", ".corner_edge"});
 
   MutableSpan<int2> edges = mesh.edges_for_write();
@@ -723,8 +723,7 @@ static void extrude_mesh_edges(Mesh &mesh,
    * to the original edge of their face. */
   for (const StringRef id : ids_by_domain[int(AttrDomain::Corner)]) {
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-    bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
       MutableSpan<T> data = attribute.span.typed<T>();
       MutableSpan<T> new_data = data.slice(new_loop_range);
       edge_selection.foreach_index(
@@ -969,7 +968,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
               side_face_range.size(),
               side_loop_range.size());
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(
       attributes, {".corner_vert", ".corner_edge", ".edge_verts"});
 
   MutableSpan<int2> edges = mesh.edges_for_write();
@@ -1262,7 +1261,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
               side_face_range.size(),
               side_loop_range.size());
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(
       attributes, {"position", ".edge_verts", ".corner_vert", ".corner_edge"});
 
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
@@ -1363,8 +1362,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
 
     for (const StringRef id : ids_by_domain[int(AttrDomain::Edge)]) {
       GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-      bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
         MutableSpan<T> data = attribute.span.typed<T>();
         MutableSpan<T> dst = data.slice(connect_edge_range);
         threading::parallel_for(dst.index_range(), 1024, [&](const IndexRange range) {

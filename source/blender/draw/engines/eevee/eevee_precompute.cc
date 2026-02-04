@@ -46,7 +46,7 @@ Precompute::Precompute(draw::Manager &manager, PrecomputeType type, int3 table_e
 
 Precompute::~Precompute()
 {
-  MEM_SAFE_FREE(raw_data_);
+  MEM_SAFE_DELETE(raw_data_);
 }
 
 }  // namespace blender::eevee

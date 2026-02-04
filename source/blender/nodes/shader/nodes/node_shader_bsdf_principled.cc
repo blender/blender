@@ -118,7 +118,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(3.8f)
       .subtype(PROP_FACTOR)
       .short_label("IOR")
-      .description("Index of Refraction (IOR) used for rays that enter the subsurface component");
+      .description("Index of Refraction (IOR) used for rays that enter the subsurface component")
+      .make_available([](bNode &node) { node.custom2 = SHD_SUBSURFACE_RANDOM_WALK_SKIN; });
 #define SOCK_SUBSURFACE_IOR_ID 11
   sss.add_input<decl::Float>("Subsurface Anisotropy")
       .default_value(0.0f)
@@ -130,7 +131,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Directionality of volume scattering within the subsurface medium. "
           "Zero scatters uniformly in all directions, with higher values "
           "scattering more strongly forward. For example, skin has been measured "
-          "to have an anisotropy of 0.8");
+          "to have an anisotropy of 0.8")
+      .make_available([](bNode &node) { node.custom2 = SHD_SUBSURFACE_RANDOM_WALK; });
 #define SOCK_SUBSURFACE_ANISOTROPY_ID 12
 
   /* Panel for Specular settings. */
@@ -744,6 +746,7 @@ void register_node_type_sh_bsdf_principled()
   ntype.enum_name_legacy = "BSDF_PRINCIPLED";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_shader_nodes_poll;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
   ntype.initfunc = file_ns::node_shader_init_principled;

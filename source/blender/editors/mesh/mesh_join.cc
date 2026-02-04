@@ -90,7 +90,7 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
       const MDeformVert &src = src_dverts[vert];
       MDeformVert &dst = dvert[vert_ranges[i][vert]];
       dst = src;
-      dst.dw = MEM_malloc_arrayN<MDeformWeight>(src.totweight, __func__);
+      dst.dw = MEM_new_array_uninitialized<MDeformWeight>(src.totweight, __func__);
       for (const int weight : IndexRange(src.totweight)) {
         dst.dw[weight].def_nr = index_map[src.dw[weight].def_nr];
         dst.dw[weight].weight = src.dw[weight].weight;
@@ -200,7 +200,7 @@ static void join_shape_keys(Main *bmain,
   VectorSet<std::string> key_names;
   if (Key *key = active_mesh.key) {
     for (KeyBlock &kb : key->block) {
-      kb.data = MEM_reallocN(kb.data, sizeof(float3) * dst_verts_num);
+      kb.data = MEM_realloc_uninitialized(kb.data, sizeof(float3) * dst_verts_num);
       kb.totelem = dst_verts_num;
       key_names.add_new(kb.name);
       key_blocks.append(&kb);
@@ -226,7 +226,7 @@ static void join_shape_keys(Main *bmain,
       if (key_names.add_as(src_kb.name)) {
         KeyBlock *dst_kb = BKE_keyblock_add(active_mesh.key, src_kb.name);
         BKE_keyblock_copy_settings(dst_kb, &src_kb);
-        dst_kb->data = MEM_malloc_arrayN<float3>(dst_verts_num, __func__);
+        dst_kb->data = MEM_new_array_uninitialized<float3>(dst_verts_num, __func__);
         dst_kb->totelem = dst_verts_num;
 
         /* Initialize the new shape key data with the base positions for the active object. */
@@ -270,6 +270,52 @@ static void join_shape_keys(Main *bmain,
   }
 }
 
+static bool try_join_single_value_attribute(const Span<const Object *> objects_to_join,
+                                            const StringRef name,
+                                            const bke::AttrDomain domain,
+                                            const bke::AttrType data_type,
+                                            bke::MutableAttributeAccessor dst_attributes)
+{
+  const auto get_single_value = [&](const Object &object) {
+    const Mesh &src_mesh = *id_cast<const Mesh *>(object.data);
+    const bke::AttributeAccessor attributes = src_mesh.attributes();
+    const GVArray src = *attributes.lookup_or_default(name, domain, data_type);
+    const CommonVArrayInfo info = src.common_info();
+    if (info.type != CommonVArrayInfo::Type::Single) {
+      return GPointer();
+    }
+    return GPointer(src.type(), info.data);
+  };
+  const GPointer first_value = get_single_value(*objects_to_join.first());
+  if (!first_value) {
+    return false;
+  }
+  const bool all_equal = threading::parallel_reduce(
+      objects_to_join.index_range().drop_front(1),
+      8,
+      true,
+      [&](const IndexRange range, bool value) {
+        if (!value) {
+          return false;
+        }
+        for (const int i : range) {
+          const GPointer value = get_single_value(*objects_to_join[i]);
+          if (!value) {
+            return false;
+          }
+          if (!value.type()->is_equal(value.get(), first_value.get())) {
+            return false;
+          }
+        }
+        return true;
+      },
+      std::logical_and<bool>());
+  if (!all_equal) {
+    return false;
+  }
+  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
+}
+
 static void join_generic_attributes(const Span<const Object *> objects_to_join,
                                     const VectorSet<std::string> &all_vertex_group_names,
                                     const OffsetIndices<int> vert_ranges,
@@ -309,7 +355,7 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
 
   bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
 
-  const Set<StringRefNull> attribute_names = dst_attributes.all_ids();
+  const Set<StringRefNull> attribute_names = dst_attributes.all_names();
   for (const int attr_i : names.index_range()) {
     const StringRef name = names[attr_i];
     const bke::AttrDomain domain = kinds[attr_i].domain;
@@ -323,9 +369,6 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
             owner, dst_attributes, name, meta_data->domain, meta_data->data_type, nullptr);
       }
     }
-    else {
-      dst_attributes.add(name, domain, data_type, bke::AttributeInitConstruct());
-    }
   }
 
   for (const int attr_i : names.index_range()) {
@@ -333,7 +376,13 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
     const bke::AttrDomain domain = kinds[attr_i].domain;
     const bke::AttrType data_type = kinds[attr_i].data_type;
 
-    bke::GSpanAttributeWriter dst = dst_attributes.lookup_for_write_span(name);
+    if (try_join_single_value_attribute(objects_to_join, name, domain, data_type, dst_attributes))
+    {
+      continue;
+    }
+
+    bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_span(
+        name, domain, data_type);
     for (const int i : objects_to_join.index_range()) {
       const Mesh &src_mesh = *id_cast<const Mesh *>(objects_to_join[i]->data);
       const bke::AttributeAccessor src_attributes = src_mesh.attributes();
@@ -576,7 +625,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
                                        corner_ranges.total_size());
   BKE_mesh_copy_parameters_for_eval(dst_mesh, active_mesh);
   BLI_freelistN(&dst_mesh->vertex_group_names);
-  MEM_SAFE_FREE(dst_mesh->mat);
+  MEM_SAFE_DELETE(dst_mesh->mat);
   dst_mesh->totcol = 0;
 
   /* Inverse transform for all selected meshes in this object,
@@ -710,9 +759,9 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
       id_us_min(&ma->id);
     }
   }
-  MEM_SAFE_FREE(active_object->mat);
-  MEM_SAFE_FREE(active_object->matbits);
-  MEM_SAFE_FREE(active_mesh->mat);
+  MEM_SAFE_DELETE(active_object->mat);
+  MEM_SAFE_DELETE(active_object->matbits);
+  MEM_SAFE_DELETE(active_mesh->mat);
 
   /* If the object had no slots, don't add an empty one. */
   if (active_object->totcol == 0 && materials.size() == 1 && materials[0] == nullptr) {
@@ -728,8 +777,8 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
         id_us_plus(id_cast<ID *>(ma));
       }
     }
-    active_object->mat = MEM_calloc_arrayN<Material *>(totcol, __func__);
-    active_object->matbits = MEM_calloc_arrayN<char>(totcol, __func__);
+    active_object->mat = MEM_new_array_zeroed<Material *>(totcol, __func__);
+    active_object->matbits = MEM_new_array_zeroed<char>(totcol, __func__);
   }
 
   active_object->totcol = active_mesh->totcol = totcol;

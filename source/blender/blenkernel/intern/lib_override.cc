@@ -109,7 +109,7 @@ BLI_INLINE IDOverrideLibraryRuntime *override_library_runtime_ensure(
     IDOverrideLibrary *liboverride)
 {
   if (liboverride->runtime == nullptr) {
-    liboverride->runtime = MEM_new_for_free<IDOverrideLibraryRuntime>(__func__);
+    liboverride->runtime = MEM_new<IDOverrideLibraryRuntime>(__func__);
   }
   return liboverride->runtime;
 }
@@ -173,7 +173,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   BLI_assert(local_id->override_library == nullptr);
 
   /* Else, generate new empty override. */
-  local_id->override_library = MEM_new_for_free<IDOverrideLibrary>(__func__);
+  local_id->override_library = MEM_new<IDOverrideLibrary>(__func__);
   local_id->override_library->reference = reference_id;
   if (reference_id) {
     id_us_plus(local_id->override_library->reference);
@@ -258,11 +258,11 @@ void BKE_lib_override_library_free(IDOverrideLibrary **liboverride, const bool d
     if ((*liboverride)->runtime->rna_path_to_override_properties != nullptr) {
       BLI_ghash_free((*liboverride)->runtime->rna_path_to_override_properties, nullptr, nullptr);
     }
-    MEM_SAFE_FREE((*liboverride)->runtime);
+    MEM_SAFE_DELETE((*liboverride)->runtime);
   }
 
   BKE_lib_override_library_clear(*liboverride, do_id_user);
-  MEM_freeN(*liboverride);
+  MEM_delete(*liboverride);
   *liboverride = nullptr;
 }
 
@@ -587,7 +587,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     if ((reference_id->tag & ID_TAG_DOIT) != 0 && reference_id->lib == reference_library &&
         BKE_idtype_idcode_is_linkable(GS(reference_id->name)))
     {
-      todo_id_iter = MEM_callocN<LinkData>(__func__);
+      todo_id_iter = MEM_new_zeroed<LinkData>(__func__);
       todo_id_iter->data = reference_id;
       BLI_addtail(&todo_ids, todo_id_iter);
     }
@@ -3432,7 +3432,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
     }
 
     LinkNodePair *id_resync_roots = id_roots.lookup_or_add_cb(
-        hierarchy_root, []() { return MEM_callocN<LinkNodePair>(__func__); });
+        hierarchy_root, []() { return MEM_new_zeroed<LinkNodePair>(__func__); });
     BLI_linklist_append(id_resync_roots, id_iter);
   }
   FOREACH_MAIN_ID_END;
@@ -3747,7 +3747,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
   for (LinkNodePair *pair : id_roots.values()) {
-    MEM_freeN(pair);
+    MEM_delete(pair);
   }
 
   /* In some fairly rare (and degenerate) cases, some root ID from other liboverrides may have been
@@ -3786,30 +3786,59 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   }
   ID *id_owner = cb_data->owner_id;
   ID *id = *cb_data->id_pointer;
-  if (id != nullptr && ID_IS_LINKED(id) && id->lib != id_owner->lib) {
-    const int owner_library_indirect_level = ID_IS_LINKED(id_owner) ?
-                                                 id_owner->lib->runtime->temp_index :
-                                                 0;
+  if (id != nullptr && ID_IS_LINKED(id)) {
+    /* Archive libraries, used to store packed data, should not be processed here, as conceptually
+     * they are the same thing as the source/real library when it comes to dependency. And they can
+     * easily lead to fake cyclic dependencies, as packed IDs that depend on each other may end up
+     * in different archived libraries.
+     *
+     * Bottom line being, only consider 'real' libraries for dependencies here, the archive ones
+     * only add noise and artefacts, and do not need to be processed. */
+    auto get_real_library = [](ID *id) -> Library * {
+      if (!ID_IS_LINKED(id)) {
+        return nullptr;
+      }
+      Library *id_lib_valid = id->lib;
+      if (id_lib_valid->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+        BLI_assert(ID_IS_PACKED(id));
+        BLI_assert(id_lib_valid->archive_parent_library);
+        id_lib_valid = id_lib_valid->archive_parent_library;
+      }
+      return id_lib_valid;
+    };
+
+    Library *id_lib = get_real_library(id);
+    BLI_assert(id_lib);
+    Library *id_owner_lib = get_real_library(id_owner);
+    if (id_lib == id_owner_lib) {
+      return IDWALK_RET_NOP;
+    }
+
+    const int owner_library_indirect_level = id_owner_lib ? id_owner_lib->runtime->temp_index : 0;
     if (owner_library_indirect_level > 100) {
       CLOG_ERROR(&LOG_RESYNC,
                  "Levels of indirect usages of libraries is way too high, there are most likely "
                  "dependency loops, skipping further building loops (involves at least '%s' from "
                  "'%s' and '%s' from '%s')",
                  id_owner->name,
-                 id_owner->lib->filepath,
+                 id_owner_lib->filepath,
                  id->name,
-                 id->lib->filepath);
-      return IDWALK_RET_NOP;
+                 id_lib->filepath);
+      /* Ensure a library part of a dependency is not considered as a root one (i.e. it does not
+       * get a `0` temp index). */
+      if (id->lib->runtime->temp_index > 0) {
+        return IDWALK_RET_NOP;
+      }
     }
-    if (owner_library_indirect_level > 90) {
+    else if (owner_library_indirect_level > 90) {
       CLOG_WARN(
           &LOG_RESYNC,
           "Levels of indirect usages of libraries is suspiciously too high, there are most likely "
           "dependency loops (involves at least '%s' from '%s' and '%s' from '%s')",
           id_owner->name,
-          id_owner->lib->filepath,
+          id_owner_lib->filepath,
           id->name,
-          id->lib->filepath);
+          id_lib->filepath);
     }
 
     if (owner_library_indirect_level >= id->lib->runtime->temp_index) {
@@ -4079,7 +4108,7 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
   IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride, rna_path);
 
   if (op == nullptr) {
-    op = MEM_new_for_free<IDOverrideLibraryProperty>(__func__);
+    op = MEM_new<IDOverrideLibraryProperty>(__func__);
     op->rna_path = BLI_strdup(rna_path);
     BLI_addtail(&liboverride->properties, op);
 
@@ -4129,7 +4158,7 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
 {
   BLI_assert(op->rna_path != nullptr);
 
-  MEM_freeN(op->rna_path);
+  MEM_delete(op->rna_path);
 
   for (IDOverrideLibraryPropertyOperation &opop : op->operations) {
     lib_override_library_property_operation_clear(&opop);
@@ -4151,7 +4180,7 @@ bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *libove
   }
 
   /* Switch over the RNA path. */
-  MEM_SAFE_FREE(liboverride_property->rna_path);
+  MEM_SAFE_DELETE(liboverride_property->rna_path);
   liboverride_property->rna_path = BLI_strdup(new_rna_path);
 
   /* Put property back into the lookup mapping, using the new RNA path. */
@@ -4371,7 +4400,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
       r_strict);
 
   if (opop == nullptr) {
-    opop = MEM_new_for_free<IDOverrideLibraryPropertyOperation>(__func__);
+    opop = MEM_new<IDOverrideLibraryPropertyOperation>(__func__);
     opop->operation = operation;
     if (subitem_locname) {
       opop->subitem_local_name = BLI_strdup(subitem_locname);
@@ -4415,10 +4444,10 @@ void lib_override_library_property_operation_copy(IDOverrideLibraryPropertyOpera
 void lib_override_library_property_operation_clear(IDOverrideLibraryPropertyOperation *opop)
 {
   if (opop->subitem_reference_name) {
-    MEM_freeN(opop->subitem_reference_name);
+    MEM_delete(opop->subitem_reference_name);
   }
   if (opop->subitem_local_name) {
-    MEM_freeN(opop->subitem_local_name);
+    MEM_delete(opop->subitem_local_name);
   }
 }
 

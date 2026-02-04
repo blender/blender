@@ -457,7 +457,7 @@ IndexMask spreadsheet_filter_rows(const SpaceSpreadsheet &sspreadsheet,
 
 SpreadsheetRowFilter *spreadsheet_row_filter_new()
 {
-  SpreadsheetRowFilter *row_filter = MEM_new_for_free<SpreadsheetRowFilter>(__func__);
+  SpreadsheetRowFilter *row_filter = MEM_new<SpreadsheetRowFilter>(__func__);
   row_filter->flag = (SPREADSHEET_ROW_FILTER_UI_EXPAND | SPREADSHEET_ROW_FILTER_ENABLED);
   row_filter->operation = SPREADSHEET_ROW_FILTER_LESS;
   row_filter->threshold = 0.01f;
@@ -479,8 +479,8 @@ SpreadsheetRowFilter *spreadsheet_row_filter_copy(const SpreadsheetRowFilter *sr
 
 void spreadsheet_row_filter_free(SpreadsheetRowFilter *row_filter)
 {
-  MEM_SAFE_FREE(row_filter->value_string);
-  MEM_freeN(row_filter);
+  MEM_SAFE_DELETE(row_filter->value_string);
+  MEM_delete(row_filter);
 }
 
 }  // namespace blender::ed::spreadsheet

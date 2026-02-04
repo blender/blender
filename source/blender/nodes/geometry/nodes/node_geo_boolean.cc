@@ -227,8 +227,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  MEM_SAFE_FREE(result->mat);
-  result->mat = MEM_malloc_arrayN<Material *>(size_t(materials.size()), __func__);
+  MEM_SAFE_DELETE(result->mat);
+  result->mat = MEM_new_array_uninitialized<Material *>(size_t(materials.size()), __func__);
   result->totcol = materials.size();
   MutableSpan(result->mat, result->totcol).copy_from(materials);
 

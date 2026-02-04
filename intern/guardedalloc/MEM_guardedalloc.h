@@ -7,27 +7,33 @@
  *
  * \brief Read \ref MEMPage
  *
- * \page MEMPage Guarded memory(de)allocation
+ * \page MEMPage Blender memory allocation and freeing
  *
- * \section aboutmem C++-style & C-style guarded memory allocation
+ * \section aboutmem About the MEM allocator module
  *
- * \subsection memabout About the MEM allocator module
+ * \subsection Guarded memory allocation
  *
- * MEM provides guarded memory management. All allocated memory is enclosed by pads, to detect
- * out-of-bound writes. All blocks are placed in a linked list, so they remain reachable at all
- * times. There is no back-up in case the linked-list related data is lost.
+ * MEM provides guarded memory management when using the --debug-memory option. All allocated
+ * memory is then enclosed by pads, to detect out-of-bound writes. All allocations are named
+ * to detect the source of memory leaks and print memory usage at runtime with the
+ * "Memory Statistics" operator.
  *
- * It provides C++ template versions of the `new`/`delete` operators (#MEM_new and #MEM_delete),
- * which are the preferred way to create and delete data in new C++ code.
+ * \subsection How to use the MEM API
  *
- * It also provides C++ template versions of [cm]alloc and related API, which provides improved
- * type safety, ensures that the allocated types are trivial, and reduces the casting verbosity by
- * directly returning a pointer of the expected type. These are the preferred API when C++ code
- * needs to allocate or free data in a C-compatible way (e.g. because it needs to interact with
- * other 'legacy' code using C-based memory management).
+ * MEM provides C++ template versions of the `new`/`delete` operators (#MEM_new and #MEM_delete),
+ * which are the preferred way to create and delete data in new code.
  *
- * Finally, the original C-compatible, type-agnostic allocation API (#MEM_mallocN, #MEM_freeN,
- * etc.) is kept for a few specific use-cases. Its usage should be avoided as much as possible.
+ * It also provides #MEM_new_uninitialized and #MEM_new_zeroed functions that behave like malloc
+ * and calloc respectively. These provide improved type safety, ensure that the allocated types
+ * are trivial, and reduce the casting verbosity by directly returning a pointer of the expected
+ * type. This memory should be freed with either #MEM_delete or #MEM_delete_void.
+ *
+ * There are a few reasons to use these functions:
+ * - Performance: When allocating large arrays like image buffers or mesh attributes that will
+ *   be initialized soon after, doing an uninitialized memory allocation is faster.
+ * - Low level code: Core data structures and other low level code that directly allocate untyped
+ *   memory buffers and provide their own type safety.
+ * - Legacy: Code that has not yet been updated to follow current conventions.
  *
  * \subsection memdependencies Dependencies
  * - `stdlib`
@@ -44,7 +50,7 @@
 #include "../../source/blender/blenlib/BLI_compiler_attrs.h"
 #include "../../source/blender/blenlib/BLI_sys_types.h"
 
-#include <string.h>
+#include <cstring>
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,7 +81,7 @@ extern size_t (*MEM_allocN_len)(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
  *
  * It is illegal to call this function with data allocated by #MEM_new.
  */
-void MEM_freeN(void *vmemh);
+void MEM_delete_void(void *vmemh);
 
 #if 0 /* UNUSED */
 /**
@@ -87,36 +93,37 @@ extern short (*MEM_testN)(void *vmemh);
 /**
  * Duplicates a block of memory, and returns a pointer to the
  * newly allocated block.
- * NULL-safe; will return NULL when receiving a NULL pointer. */
-void *MEM_dupallocN(const void *vmemh) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
+ * NULL-safe; will return NULL when receiving a NULL pointer.
+ *
+ * Use this version only for void pointers. */
+void *MEM_dupalloc_void(const void *vmemh) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Reallocates a block of memory, and returns pointer to the newly
  * allocated block, the old one is freed. this is not as optimized
  * as a system realloc but just makes a new allocation and copies
  * over from existing memory. */
-extern void *(*MEM_reallocN_id)(void *vmemh,
-                                size_t len,
-                                const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+extern void *(*MEM_realloc_uninitialized_id)(
+    void *vmemh, size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(2);
 
 /**
  * A variant of realloc which zeros new bytes
  */
-extern void *(*MEM_recallocN_id)(void *vmemh,
-                                 size_t len,
-                                 const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+extern void *(*MEM_realloc_zeroed_id)(void *vmemh,
+                                      size_t len,
+                                      const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(2);
 
-#define MEM_reallocN(vmemh, len) MEM_reallocN_id(vmemh, len, __func__)
-#define MEM_recallocN(vmemh, len) MEM_recallocN_id(vmemh, len, __func__)
+#define MEM_realloc_uninitialized(vmemh, len) MEM_realloc_uninitialized_id(vmemh, len, __func__)
+#define MEM_realloc_zeroed(vmemh, len) MEM_realloc_zeroed_id(vmemh, len, __func__)
 
 /**
  * Allocate a block of memory of size len, with tag name str. The
  * memory is cleared. The name must be static, because only a
  * pointer to it is stored!
  */
-void *MEM_callocN(size_t len, const char *str) ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1)
+void *MEM_new_zeroed(size_t len, const char *str) ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1)
     ATTR_NONNULL(2);
 
 /**
@@ -124,16 +131,16 @@ void *MEM_callocN(size_t len, const char *str) ATTR_WARN_UNUSED_RESULT ATTR_ALLO
  * str, aborting in case of integer overflows to prevent vulnerabilities.
  * The memory is cleared. The name must be static, because only a
  * pointer to it is stored! */
-void *MEM_calloc_arrayN(size_t len,
-                        size_t size,
-                        const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+void *MEM_new_array_zeroed(size_t len,
+                           size_t size,
+                           const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 
 /**
  * Allocate a block of memory of size len, with tag name str. The
  * name must be a static, because only a pointer to it is stored!
  */
-void *MEM_mallocN(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+void *MEM_new_uninitialized(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 /**
@@ -141,24 +148,24 @@ void *MEM_mallocN(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSE
  * aborting in case of integer overflow to prevent vulnerabilities. The
  * name must be a static, because only a pointer to it is stored!
  */
-void *MEM_malloc_arrayN(size_t len,
-                        size_t size,
-                        const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+void *MEM_new_array_uninitialized(size_t len,
+                                  size_t size,
+                                  const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(3);
 
 /**
  * Allocate an aligned block of memory of size len, with tag name str. The
  * name must be a static, because only a pointer to it is stored!
  */
-void *MEM_mallocN_aligned(size_t len,
-                          size_t alignment,
-                          const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
+void *MEM_new_uninitialized_aligned(size_t len,
+                                    size_t alignment,
+                                    const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 
 /**
  * Allocate an aligned block of memory that remains uninitialized.
  */
-extern void *(*MEM_malloc_arrayN_aligned)(
+extern void *(*MEM_new_array_uninitialized_aligned)(
     size_t len,
     size_t size,
     size_t alignment,
@@ -168,41 +175,12 @@ extern void *(*MEM_malloc_arrayN_aligned)(
 /**
  * Allocate an aligned block of memory that is initialized with zeros.
  */
-extern void *(*MEM_calloc_arrayN_aligned)(
+extern void *(*MEM_new_array_zeroed_aligned)(
     size_t len,
     size_t size,
     size_t alignment,
     const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1, 2)
     ATTR_NONNULL(4);
-
-#ifdef __cplusplus
-/** Implicitly uses the templated, type-safe version of #MEM_freeN<T>, unless `v` is `void *`. */
-#  define MEM_SAFE_FREE(v) \
-    do { \
-      if (v) { \
-        MEM_freeN(v); \
-        (v) = nullptr; \
-      } \
-    } while (0)
-
-/** Wrapper for MEM_SAFE_FREE() as deallocator for std::unique_ptr. */
-struct MEM_freeN_smart_ptr_deleter {
-  void operator()(void *pointer) const noexcept
-  {
-    MEM_SAFE_FREE(pointer);
-  }
-};
-
-#else
-#  define MEM_SAFE_FREE(v) \
-    do { \
-      void **_v = (void **)&(v); \
-      if (*_v) { \
-        MEM_freeN(*_v); \
-        *_v = NULL; \
-      } \
-    } while (0)
-#endif
 
 /** \} */
 
@@ -218,18 +196,18 @@ struct MEM_freeN_smart_ptr_deleter {
  * Print a list of the names and sizes of all allocated memory
  * blocks. as a python dict for easy investigation.
  */
-extern void (*MEM_printmemlist_pydict)(void);
+extern void (*MEM_printmemlist_pydict)();
 
 /**
  * Print a list of the names and sizes of all allocated memory blocks.
  */
-extern void (*MEM_printmemlist)(void);
+extern void (*MEM_printmemlist)();
 
 /** calls the function on all allocated memory blocks. */
 extern void (*MEM_callbackmemlist)(void (*func)(void *));
 
 /** Print statistics about memory usage */
-extern void (*MEM_printmemlist_stats)(void);
+extern void (*MEM_printmemlist_stats)();
 
 /** Set the callback function for error output. */
 extern void (*MEM_set_error_callback)(void (*func)(const char *));
@@ -239,21 +217,21 @@ extern void (*MEM_set_error_callback)(void (*func)(const char *));
  *
  * \retval true for correct memory, false for corrupted memory.
  */
-extern bool (*MEM_consistency_check)(void);
+extern bool (*MEM_consistency_check)();
 
 /** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
-extern void (*MEM_set_memory_debug)(void);
+extern void (*MEM_set_memory_debug)();
 
 /** Memory usage stats. */
-extern size_t (*MEM_get_memory_in_use)(void);
+extern size_t (*MEM_get_memory_in_use)();
 /** Get amount of memory blocks in use. */
-extern unsigned int (*MEM_get_memory_blocks_in_use)(void);
+extern unsigned int (*MEM_get_memory_blocks_in_use)();
 
 /** Reset the peak memory statistic to zero. */
-extern void (*MEM_reset_peak_memory)(void);
+extern void (*MEM_reset_peak_memory)();
 
 /** Get the peak memory usage in bytes, including `mmap` allocations. */
-extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
+extern size_t (*MEM_get_peak_memory)() ATTR_WARN_UNUSED_RESULT;
 
 /** Overhead for lockfree allocator (use to avoid slop-space). */
 #define MEM_SIZE_OVERHEAD sizeof(size_t)
@@ -358,7 +336,7 @@ constexpr bool is_trivial_after_construction = std::is_trivially_copyable_v<T> &
 
 /**
  * Allocate new memory for an object of type #T, and construct it.
- * #MEM_delete must be used to delete the object. Calling #MEM_freeN on it is illegal.
+ * #MEM_delete must be used to delete the object. Calling #MEM_delete_void on it is illegal.
  *
  * Do not assume that this ever zero-initializes memory (even when it does), explicitly initialize.
  *
@@ -374,67 +352,24 @@ template<typename T, typename... Args>
 inline T *MEM_new(const char *allocation_name, Args &&...args)
 {
   void *buffer = mem_guarded::internal::mem_mallocN_aligned_ex(
-      sizeof(T), alignof(T), allocation_name, mem_guarded::internal::AllocationType::NEW_DELETE);
-  return new (buffer) T(std::forward<Args>(args)...);
-}
-
-/**
- * Allocate new memory for an object of type #T, and construct it with its default constructor.
- * Both #MEM_delete and #MEM_freeN can be used to delete the object.
- *
- * Designed to be used with 'pseudo-POD' types, that are trivially copyable and destructible, but
- * not trivially constructible. Once constructed, this data can be managed as a C-type one (using
- * `MEM_dupallocN`, `MEM_freeN`, safely assigned to a void pointer and freed as such, etc.).
- *
- * The typical use-cases are C-like structs containing only trivial data, that define default
- * values for (some of) their members.
- *
- * \note This function uses 'default initialization' on zero-initialized memory, _not_ 'value
- * initialization'. This means that even if a user-defined default constructor is provided,
- * non-explicitly initialized data will be zero-initialized. For POD types (e.g. pure C-style
- * structs), its behavior is functionally identical to using `MEM_callocN<T>()`.
- *
- * \warning This function is intended as a temporary work-around during the process of converting
- * Blender data management from C-style (alloc/free) to C++-style (new/delete). It will be removed
- * once not needed anymore (i.e. mainly when there is no more need to dupalloc and free untyped
- * data stored in void pointers).
- */
-template<typename T, typename... Args>
-inline T *MEM_new_for_free(const char *allocation_name, Args &&...args)
-{
-#  ifdef _MSC_VER
-  static_assert(std::is_trivially_destructible_v<T>,
-                "MEM_new_for_free can only construct types that are trivially copyable and "
-                "destructible, use MEM_new instead.");
-#  else
-  static_assert(mem_guarded::internal::is_trivial_after_construction<T>,
-                "MEM_new_for_free can only construct types that are trivially copyable and "
-                "destructible, use MEM_new instead.");
-#  endif
-  void *buffer;
-  /* There is no lower level #calloc with an alignment parameter, so unless the alignment is less
-   * than or equal to what we'd get by default, we have to fall back to #memset unfortunately. */
-  if (alignof(T) <= MEM_MIN_CPP_ALIGNMENT) {
-    buffer = MEM_callocN(sizeof(T), allocation_name);
-  }
-  else {
-    buffer = mem_guarded::internal::mem_mallocN_aligned_ex(
-        sizeof(T), alignof(T), allocation_name, mem_guarded::internal::AllocationType::ALLOC_FREE);
-    memset(buffer, 0, sizeof(T));
-  }
+      sizeof(T),
+      alignof(T),
+      allocation_name,
+      std::is_trivially_destructible_v<T> ? mem_guarded::internal::DestructorType::Trivial :
+                                            mem_guarded::internal::DestructorType::NonTrivial);
   return new (buffer) T(std::forward<Args>(args)...);
 }
 
 /**
  * Allocate new memory for an array of objects with type #T, and construct them.
  *
- * See #MEM_new_for_free for initialization logic.
+ * See #MEM_new for initialization logic. Unlike #MEM_new this is only supported for trivially
+ * destructible types. This makes it safe to use #MEM_delete on arrays without the need for an
+ * equivalent of the delete [] operator.
  *
- * This is only supported for trivially destructible types. For other types, use
- * a data structure like Vector instead.
+ * In new code it is preferred to use data structures like Vector instead, whenever possible.
  */
-template<typename T>
-inline T *MEM_new_array_for_free(const size_t length, const char *allocation_name)
+template<typename T> inline T *MEM_new_array(const size_t length, const char *allocation_name)
 {
 #  ifdef _MSC_VER
   static_assert(
@@ -446,7 +381,7 @@ inline T *MEM_new_array_for_free(const size_t length, const char *allocation_nam
       "For non-trivially copyable and destructible types, use higher level types like Vector.");
 #  endif
   T *buffer = static_cast<T *>(
-      MEM_malloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
+      MEM_new_array_uninitialized_aligned(length, sizeof(T), alignof(T), allocation_name));
   for (size_t i = 0; i < length; i++) {
     new (buffer + i) T();
   }
@@ -484,10 +419,14 @@ template<typename T> inline void MEM_delete(const T *ptr)
       return static_cast<const void *>(ptr);
     }
   }();
+  /* Explicitly don't call destructor when not needed, also because it doesn't work
+   * for pointers like float (*x)[2]. */
+  if constexpr (!std::is_trivially_destructible_v<T>) {
+    ptr->~T();
+  }
   /* C++ allows destruction of `const` objects, so the pointer is allowed to be `const`. */
-  ptr->~T();
   mem_guarded::internal::mem_freeN_ex(const_cast<void *>(complete_ptr),
-                                      mem_guarded::internal::AllocationType::NEW_DELETE);
+                                      mem_guarded::internal::DestructorType::NonTrivial);
 }
 
 /**
@@ -502,6 +441,26 @@ template<typename T> inline void MEM_delete(const T *ptr)
       } \
     } while (0)
 
+/**
+ * Helper shortcut to #MEM_delete_void, that also ensures that the target pointer is set to nullptr
+ * after deleting it.
+ */
+#  define MEM_SAFE_DELETE_VOID(v) \
+    do { \
+      if (v) { \
+        MEM_delete_void(v); \
+        (v) = nullptr; \
+      } \
+    } while (0)
+
+/** Wrapper for MEM_SAFE_DELETE<() as deallocator for std::unique_ptr. */
+template<typename T> struct MEM_smart_ptr_deleter {
+  void operator()(T *pointer) const noexcept
+  {
+    MEM_SAFE_DELETE(pointer);
+  }
+};
+
 /** Define overloaded new/delete operators for C++ types. */
 #  define MEM_CXX_CLASS_ALLOC_FUNCS(_id) \
    public: \
@@ -511,18 +470,18 @@ template<typename T> inline void MEM_delete(const T *ptr)
           num_bytes, \
           __STDCPP_DEFAULT_NEW_ALIGNMENT__, \
           _id, \
-          mem_guarded::internal::AllocationType::NEW_DELETE); \
+          mem_guarded::internal::DestructorType::NonTrivial); \
     } \
     void *operator new(size_t num_bytes, std::align_val_t alignment) \
     { \
       return mem_guarded::internal::mem_mallocN_aligned_ex( \
-          num_bytes, size_t(alignment), _id, mem_guarded::internal::AllocationType::NEW_DELETE); \
+          num_bytes, size_t(alignment), _id, mem_guarded::internal::DestructorType::NonTrivial); \
     } \
     void operator delete(void *mem) \
     { \
       if (mem) { \
         mem_guarded::internal::mem_freeN_ex(mem, \
-                                            mem_guarded::internal::AllocationType::NEW_DELETE); \
+                                            mem_guarded::internal::DestructorType::NonTrivial); \
       } \
     } \
     void *operator new[](size_t num_bytes) \
@@ -531,7 +490,7 @@ template<typename T> inline void MEM_delete(const T *ptr)
           num_bytes, \
           __STDCPP_DEFAULT_NEW_ALIGNMENT__, \
           _id "[]", \
-          mem_guarded::internal::AllocationType::NEW_DELETE); \
+          mem_guarded::internal::DestructorType::NonTrivial); \
     } \
     void *operator new[](size_t num_bytes, std::align_val_t alignment) \
     { \
@@ -539,13 +498,13 @@ template<typename T> inline void MEM_delete(const T *ptr)
           num_bytes, \
           size_t(alignment), \
           _id "[]", \
-          mem_guarded::internal::AllocationType::NEW_DELETE); \
+          mem_guarded::internal::DestructorType::NonTrivial); \
     } \
     void operator delete[](void *mem) \
     { \
       if (mem) { \
         mem_guarded::internal::mem_freeN_ex(mem, \
-                                            mem_guarded::internal::AllocationType::NEW_DELETE); \
+                                            mem_guarded::internal::DestructorType::NonTrivial); \
       } \
     } \
     void *operator new(size_t /*count*/, void *ptr) \
@@ -585,10 +544,10 @@ template<typename T> inline void MEM_delete(const T *ptr)
  * used instead. While this should be avoided in C++ code, it is still required in some cases, e.g.
  * for ID allocation based on #IDTypeInfo::struct_size.
  *
- * #MEM_freeN must be used to free a pointer returned by this call. Calling #MEM_delete on it is
- * illegal.
+ * #MEM_delete must be used to free a pointer returned by this call. In legacy code,
+ * #MEM_delete_void may also be used if the type is trivially destructible.
  */
-template<typename T> inline T *MEM_callocN(const char *allocation_name)
+template<typename T> inline T *MEM_new_zeroed(const char *allocation_name)
 {
 #  ifdef _MSC_VER
   static_assert(std::is_trivially_constructible_v<T>,
@@ -596,15 +555,16 @@ template<typename T> inline T *MEM_callocN(const char *allocation_name)
 #  else
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
 #  endif
-  return static_cast<T *>(MEM_calloc_arrayN_aligned(1, sizeof(T), alignof(T), allocation_name));
+  return static_cast<T *>(MEM_new_array_zeroed_aligned(1, sizeof(T), alignof(T), allocation_name));
 }
 
 /**
- * Type-safe version of #MEM_calloc_arrayN/#MEM_calloc_array_alignedN.
+ * Type-safe version of #MEM_new_array_zeroed/#MEM_new_array_zeroed_aligned.
  *
- * It has the same restrictions and limitations as the type-safe version of #MEM_callocN<T>.
+ * It has the same restrictions and limitations as the type-safe version of #MEM_new_zeroed<T>.
  */
-template<typename T> inline T *MEM_calloc_arrayN(const size_t length, const char *allocation_name)
+template<typename T>
+inline T *MEM_new_array_zeroed(const size_t length, const char *allocation_name)
 {
 #  ifdef _MSC_VER
   static_assert(std::is_trivially_constructible_v<T>,
@@ -613,7 +573,7 @@ template<typename T> inline T *MEM_calloc_arrayN(const size_t length, const char
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
 #  endif
   return static_cast<T *>(
-      MEM_calloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
+      MEM_new_array_zeroed_aligned(length, sizeof(T), alignof(T), allocation_name));
 }
 
 /**
@@ -624,26 +584,10 @@ template<typename T> inline T *MEM_calloc_arrayN(const size_t length, const char
  * used instead. While this should be avoided in C++ code, it is still required in some cases, e.g.
  * for ID allocation based on #IDTypeInfo::struct_size.
  *
- * #MEM_freeN must be used to free a pointer returned by this call. Calling #MEM_delete on it is
- * illegal.
+ * #MEM_delete_void must be used to free a pointer returned by this call. Calling #MEM_delete on it
+ * is illegal.
  */
-template<typename T> inline T *MEM_mallocN(const char *allocation_name)
-{
-#  ifdef _MSC_VER
-  static_assert(std::is_trivially_constructible_v<T>,
-                "For non-trivial types, MEM_new must be used.");
-#  else
-  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
-#  endif
-  return static_cast<T *>(MEM_malloc_arrayN_aligned(1, sizeof(T), alignof(T), allocation_name));
-}
-
-/**
- * Type-safe version of #MEM_malloc_arrayN/#MEM_malloc_array_alignedN.
- *
- * It has the same restrictions and limitations as the type-safe version of #MEM_mallocN<T>.
- */
-template<typename T> inline T *MEM_malloc_arrayN(const size_t length, const char *allocation_name)
+template<typename T> inline T *MEM_new_uninitialized(const char *allocation_name)
 {
 #  ifdef _MSC_VER
   static_assert(std::is_trivially_constructible_v<T>,
@@ -652,51 +596,60 @@ template<typename T> inline T *MEM_malloc_arrayN(const size_t length, const char
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
 #  endif
   return static_cast<T *>(
-      MEM_malloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
+      MEM_new_array_uninitialized_aligned(1, sizeof(T), alignof(T), allocation_name));
 }
 
 /**
- * Allocate memory for an object of type #T and memory-copy `other` into it.
- * Only applicable for trivial types.
+ * Type-safe version of #MEM_new_array_uninitialized/#MEM_new_uninitialized_aligned.
  *
- * This function works around the problem of copy-constructing DNA structs which contains
- * deprecated fields: some compilers will generate access deprecated field warnings in implicitly
- * defined copy constructors.
- *
- * This is a better alternative to the C-style implementation of #MEM_dupallocN, unless the source
- * is an array or of a non-fully-defined type.
+ * It has the same restrictions and limitations as the type-safe version of
+ * #MEM_new_uninitialized<T>.
  */
-template<typename T> inline T *MEM_dupallocN(const char *allocation_name, const T &other)
+template<typename T>
+inline T *MEM_new_array_uninitialized(const size_t length, const char *allocation_name)
 {
 #  ifdef _MSC_VER
-  static_assert(std::is_trivially_assignable_v<T &, T> && std::is_trivially_destructible_v<T>,
-                "MEM_dupallocN can only duplicate types that are trivially copyable and "
-                "destructible, use MEM_new instead.");
+  static_assert(std::is_trivially_constructible_v<T>,
+                "For non-trivial types, MEM_new must be used.");
 #  else
-  static_assert(mem_guarded::internal::is_trivial_after_construction<T>,
-                "MEM_dupallocN can only duplicate types that are trivially copyable and "
-                "destructible, use MEM_new instead.");
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new must be used.");
 #  endif
-  T *new_object = static_cast<T *>(MEM_mallocN_aligned(sizeof(T), alignof(T), allocation_name));
-  if (new_object) {
-    memcpy(new_object, &other, sizeof(T));
-  }
-  return new_object;
+  return static_cast<T *>(
+      MEM_new_array_uninitialized_aligned(length, sizeof(T), alignof(T), allocation_name));
 }
 
-template<typename T> inline void MEM_freeN(T *ptr)
+/**
+ * Duplicates a block of memory, and returns a pointer to the newly allocated block.
+ * NULL-safe; will return NULL when receiving a NULL pointer.
+ *
+ * Only supported for trivially copyable types, use #MEM_new for other types.
+ * */
+template<typename T> inline T *MEM_dupalloc(const T *other)
 {
 #  ifdef _MSC_VER
-  static_assert(std::is_trivially_destructible_v<T>,
-                "MEM_freeN can only free types that are trivially copyable and destructible, use "
-                "MEM_delete instead.");
+  /* TODO: Add back is_trivially_copyable_v condition, temporarily disabled
+   * because of build error on MSVC. */
+  static_assert(/*std::is_trivially_copyable_v<T> &&*/ std::is_trivially_destructible_v<T>,
+                "MEM_dupalloc can only duplicate types that are trivially copyable and "
+                "destructible, use MEM_new instead.");
 #  else
-  static_assert(mem_guarded::internal::is_trivial_after_construction<T>,
-                "MEM_freeN can only free types that are trivially copyable and destructible, use "
-                "MEM_delete instead.");
+  static_assert(std::is_trivially_copyable_v<T> &&
+                    mem_guarded::internal::is_trivial_after_construction<T>,
+                "MEM_dupalloc can only duplicate types that are trivially copyable and "
+                "destructible, use MEM_new instead.");
 #  endif
+
+  static_assert(!std::is_void_v<T>);
+
+  return static_cast<T *>(MEM_dupalloc_void(other));
+}
+
+template<typename T> inline void MEM_delete_void(T *ptr)
+{
+  static_assert(std::is_void_v<T>,
+                "MEM_delete_void only supported for void pointer, use MEM_delete instead");
   mem_guarded::internal::mem_freeN_ex(const_cast<void *>(static_cast<const void *>(ptr)),
-                                      mem_guarded::internal::AllocationType::ALLOC_FREE);
+                                      mem_guarded::internal::DestructorType::Trivial);
 }
 
 /** \} */

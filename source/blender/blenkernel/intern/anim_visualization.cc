@@ -55,7 +55,7 @@ void animviz_free_motionpath_cache(bMotionPath *mpath)
 
   /* free the path if necessary */
   if (mpath->points) {
-    MEM_freeN(mpath->points);
+    MEM_delete(mpath->points);
   }
 
   GPU_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
@@ -78,7 +78,7 @@ void animviz_free_motionpath(bMotionPath *mpath)
   animviz_free_motionpath_cache(mpath);
 
   /* now the instance itself */
-  MEM_freeN(mpath);
+  MEM_delete(mpath);
 }
 
 /* ------------------- */
@@ -91,8 +91,8 @@ bMotionPath *animviz_copy_motionpath(const bMotionPath *mpath_src)
     return nullptr;
   }
 
-  mpath_dst = static_cast<bMotionPath *>(MEM_dupallocN(mpath_src));
-  mpath_dst->points = static_cast<bMotionPathVert *>(MEM_dupallocN(mpath_src->points));
+  mpath_dst = MEM_dupalloc(mpath_src);
+  mpath_dst->points = MEM_dupalloc(mpath_src->points);
 
   /* should get recreated on draw... */
   mpath_dst->points_vbo = nullptr;
@@ -168,7 +168,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
     animviz_free_motionpath_cache(mpath);
   }
   else {
-    mpath = MEM_new_for_free<bMotionPath>("bMotionPath");
+    mpath = MEM_new<bMotionPath>("bMotionPath");
     *dst = mpath;
   }
 
@@ -204,7 +204,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
   mpath->flag |= MOTIONPATH_FLAG_LINES;
 
   /* Allocate a cache. */
-  mpath->points = MEM_new_array_for_free<bMotionPathVert>(mpath->length, "bMotionPathVerts");
+  mpath->points = MEM_new_array<bMotionPathVert>(mpath->length, "bMotionPathVerts");
 
   /* Tag viz settings as currently having some path(s) which use it. */
   avs->path_bakeflag |= MOTIONPATH_BAKE_HAS_PATHS;

@@ -67,13 +67,13 @@ struct RangeTask {
     if (settings->func_free != nullptr && userdata_chunk != nullptr) {
       settings->func_free(userdata, userdata_chunk);
     }
-    MEM_SAFE_FREE(userdata_chunk);
+    MEM_SAFE_DELETE_VOID(userdata_chunk);
   }
 
   void init_chunk(void *from_chunk)
   {
     if (from_chunk) {
-      userdata_chunk = MEM_mallocN(settings->userdata_chunk_size, "RangeTask");
+      userdata_chunk = MEM_new_uninitialized(settings->userdata_chunk_size, "RangeTask");
       memcpy(userdata_chunk, from_chunk, settings->userdata_chunk_size);
     }
     else {

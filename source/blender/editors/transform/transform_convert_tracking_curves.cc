@@ -132,9 +132,10 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
     return;
   }
 
-  td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransTracking TransData");
-  td2d = tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransTracking TransData2D");
-  tc->custom.type.data = tdt = MEM_calloc_arrayN<TransDataTrackingCurves>(
+  td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransTracking TransData");
+  td2d = tc->data_2d = MEM_new_array_zeroed<TransData2D>(tc->data_len,
+                                                         "TransTracking TransData2D");
+  tc->custom.type.data = tdt = MEM_new_array_zeroed<TransDataTrackingCurves>(
       tc->data_len, "TransTracking TransDataTracking");
   tc->custom.type.free_cb = nullptr;
 

@@ -381,7 +381,7 @@ static void get_keyframe_values_create_reports(ReportList *reports,
               RNA_property_ui_name(prop),
               str_failed_indices);
 
-  MEM_freeN(str_failed_indices);
+  MEM_delete(str_failed_indices);
 }
 
 static Vector<float> get_keyframe_values(PointerRNA *ptr, PropertyRNA *prop, const bool visual_key)
@@ -669,7 +669,7 @@ int clear_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_
 
   if (adt->slot_handle) {
     Vector<FCurve *> fcurves;
-    foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+    foreach_fcurve_in_action_slot_editable(action, adt->slot_handle, [&](FCurve &fcurve) {
       if (rna_path.index.has_value() && rna_path.index.value() != fcurve.array_index) {
         return;
       }

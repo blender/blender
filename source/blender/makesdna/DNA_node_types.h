@@ -660,6 +660,12 @@ enum {
   SHD_SPACE_BLENDER_WORLD = 4,
 };
 
+/* normal map, convention */
+enum {
+  SHD_NORMAL_MAP_CONVENTION_OPENGL = 0,
+  SHD_NORMAL_MAP_CONVENTION_DIRECTX = 1,
+};
+
 enum {
   SHD_AO_INSIDE = 1,
   SHD_AO_LOCAL = 2,
@@ -764,6 +770,7 @@ enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_MULTIPLY_ADD = 26,
   NODE_VECTOR_MATH_POWER = 27,
   NODE_VECTOR_MATH_SIGN = 28,
+  NODE_VECTOR_MATH_ROUND = 29,
 };
 
 enum NodeBooleanMathOperation {
@@ -1266,6 +1273,14 @@ enum GeometryNodeRaycastMapMode {
 enum GeometryNodeCurveFillMode {
   GEO_NODE_CURVE_FILL_MODE_TRIANGULATED = 0,
   GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
+};
+
+/** See #CDT_output_type in BLI_delaunay_2d.hh for winding rule details. */
+enum GeometryNodeCurveFillRule {
+  /** Even-odd winding rule for hole detection. */
+  GEO_NODE_CURVE_FILL_RULE_EVEN_ODD = 0,
+  /** Non-zero winding rule. */
+  GEO_NODE_CURVE_FILL_RULE_NON_ZERO = 1,
 };
 
 enum GeometryNodeMeshToPointsMode {
@@ -2812,6 +2827,8 @@ struct NodeShaderNormalMap {
 
   int space = 0;
   char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64] = "";
+  char convention = SHD_NORMAL_MAP_CONVENTION_OPENGL;
+  char _pad[7];
 };
 
 struct NodeRadialTiling {
@@ -3259,7 +3276,10 @@ struct NodeGeometryRaycast {
 struct NodeGeometryCurveFill {
   DNA_DEFINE_CXX_METHODS(NodeGeometryCurveFill)
 
+  /** #GeometryNodeCurveFillMode. */
   uint8_t mode = 0;
+  /** #GeometryNodeCurveFillRule. */
+  uint8_t fill_rule = 0;
 };
 
 struct NodeGeometryMeshToPoints {

@@ -128,7 +128,7 @@ void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult)
   wm_uilisttype_unlink(bmain, ult);
 
   bool ok = get_list_type_map().remove(ult);
-  MEM_freeN(ult);
+  MEM_delete(ult);
 
   BLI_assert(ok);
   UNUSED_VARS_NDEBUG(ok);
@@ -145,7 +145,7 @@ void WM_uilisttype_free()
     if (ult->rna_ext.free) {
       ult->rna_ext.free(ult->rna_ext.data);
     }
-    MEM_freeN(ult);
+    MEM_delete(ult);
   }
 
   get_list_type_map().clear();

@@ -322,9 +322,9 @@ static void rna_Depsgraph_update(Depsgraph *depsgraph, Main *bmain, ReportList *
 
 static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
+  iter->internal.custom = MEM_new_zeroed<BLI_Iterator>(__func__);
   DEGObjectIterData *data = MEM_new<DEGObjectIterData>(__func__);
-  DEGObjectIterSettings *deg_iter_settings = MEM_callocN<DEGObjectIterSettings>(__func__);
+  DEGObjectIterSettings *deg_iter_settings = MEM_new_zeroed<DEGObjectIterSettings>(__func__);
   deg_iter_settings->depsgraph = static_cast<Depsgraph *>(ptr->data);
   deg_iter_settings->flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
@@ -346,12 +346,12 @@ static void rna_Depsgraph_objects_next(CollectionPropertyIterator *iter)
 
 static void rna_Depsgraph_objects_end(CollectionPropertyIterator *iter)
 {
-  DEGObjectIterData *data = static_cast<DEGObjectIterData *>(
-      (static_cast<BLI_Iterator *>(iter->internal.custom))->data);
-  DEG_iterator_objects_end(static_cast<BLI_Iterator *>(iter->internal.custom));
-  MEM_freeN(data->settings);
+  BLI_Iterator *bli_iter = static_cast<BLI_Iterator *>(iter->internal.custom);
+  DEGObjectIterData *data = static_cast<DEGObjectIterData *>(bli_iter->data);
+  DEG_iterator_objects_end(bli_iter);
+  MEM_delete(data->settings);
   MEM_delete(data);
-  MEM_freeN(iter->internal.custom);
+  MEM_delete(bli_iter);
 }
 
 static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
@@ -381,7 +381,7 @@ static void rna_Depsgraph_object_instances_begin(CollectionPropertyIterator *ite
 {
   RNA_Depsgraph_Instances_Iterator *di_it = MEM_new<RNA_Depsgraph_Instances_Iterator>(__func__);
   iter->internal.custom = di_it;
-  DEGObjectIterSettings *deg_iter_settings = MEM_callocN<DEGObjectIterSettings>(__func__);
+  DEGObjectIterSettings *deg_iter_settings = MEM_new_zeroed<DEGObjectIterSettings>(__func__);
   deg_iter_settings->depsgraph = static_cast<Depsgraph *>(ptr->data);
   deg_iter_settings->flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
@@ -432,7 +432,7 @@ static void rna_Depsgraph_object_instances_end(CollectionPropertyIterator *iter)
     DEGObjectIterData *data = &di_it->deg_data[i];
     if (i == 0) {
       /* Is shared between both iterators. */
-      MEM_freeN(data->settings);
+      MEM_delete(data->settings);
     }
     DEG_iterator_objects_end(&di->iter);
 
@@ -458,8 +458,8 @@ static PointerRNA rna_Depsgraph_object_instances_get(CollectionPropertyIterator 
 
 static void rna_Depsgraph_ids_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
-  DEGIDIterData *data = MEM_callocN<DEGIDIterData>(__func__);
+  iter->internal.custom = MEM_new_zeroed<BLI_Iterator>(__func__);
+  DEGIDIterData *data = MEM_new_zeroed<DEGIDIterData>(__func__);
 
   data->graph = static_cast<Depsgraph *>(ptr->data);
 
@@ -476,9 +476,10 @@ static void rna_Depsgraph_ids_next(CollectionPropertyIterator *iter)
 
 static void rna_Depsgraph_ids_end(CollectionPropertyIterator *iter)
 {
-  DEG_iterator_ids_end(static_cast<BLI_Iterator *>(iter->internal.custom));
-  MEM_freeN((static_cast<BLI_Iterator *>(iter->internal.custom))->data);
-  MEM_freeN(iter->internal.custom);
+  BLI_Iterator *bli_iter = static_cast<BLI_Iterator *>(iter->internal.custom);
+  DEG_iterator_ids_end(bli_iter);
+  MEM_delete(static_cast<DEGIDIterData *>(bli_iter->data));
+  MEM_delete(bli_iter);
 }
 
 static PointerRNA rna_Depsgraph_ids_get(CollectionPropertyIterator *iter)
@@ -489,8 +490,8 @@ static PointerRNA rna_Depsgraph_ids_get(CollectionPropertyIterator *iter)
 
 static void rna_Depsgraph_updates_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
-  DEGIDIterData *data = MEM_callocN<DEGIDIterData>(__func__);
+  iter->internal.custom = MEM_new_zeroed<BLI_Iterator>(__func__);
+  DEGIDIterData *data = MEM_new_zeroed<DEGIDIterData>(__func__);
 
   data->graph = static_cast<Depsgraph *>(ptr->data);
   data->only_updated = true;

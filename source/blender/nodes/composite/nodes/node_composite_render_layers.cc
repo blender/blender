@@ -257,7 +257,7 @@ static void node_extra_info(NodeExtraInfoParams &parameters)
   bool is_any_pass_used = false;
   for (const bNodeSocket *output : parameters.node.output_sockets()) {
     /* Combined pass is always available. */
-    if (StringRef(output->name) == "Image" || StringRef(output->name) == "Alpha") {
+    if (STR_ELEM(output->name, "Image", "Alpha", "Grease Pencil")) {
       continue;
     }
     if (output->is_logically_linked()) {

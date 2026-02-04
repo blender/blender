@@ -158,7 +158,7 @@ static void task_mempool_iter_tls_func(void * /*userdata*/,
 
   EXPECT_TRUE(data != nullptr);
   if (task_data->accumulate_items == nullptr) {
-    task_data->accumulate_items = MEM_callocN<ListBaseT<LinkData>>(__func__);
+    task_data->accumulate_items = MEM_new_zeroed<ListBaseT<LinkData>>(__func__);
   }
 
   /* Flip to prove this has been touched. */
@@ -176,7 +176,7 @@ static void task_mempool_iter_tls_reduce(const void *__restrict /*userdata*/,
 
   if (data_chunk->accumulate_items != nullptr) {
     if (join_chunk->accumulate_items == nullptr) {
-      join_chunk->accumulate_items = MEM_callocN<ListBaseT<LinkData>>(__func__);
+      join_chunk->accumulate_items = MEM_new_zeroed<ListBaseT<LinkData>>(__func__);
     }
     BLI_movelisttolist(join_chunk->accumulate_items, data_chunk->accumulate_items);
   }
@@ -185,7 +185,7 @@ static void task_mempool_iter_tls_reduce(const void *__restrict /*userdata*/,
 static void task_mempool_iter_tls_free(const void * /*userdata*/, void *__restrict userdata_chunk)
 {
   TaskMemPool_Chunk *task_data = static_cast<TaskMemPool_Chunk *>(userdata_chunk);
-  MEM_freeN(task_data->accumulate_items);
+  MEM_delete(task_data->accumulate_items);
 }
 
 TEST(task, MempoolIterTLS)
@@ -228,7 +228,7 @@ TEST(task, MempoolIterTLS)
   EXPECT_EQ(number_accum, (ITEMS_NUM * (ITEMS_NUM + 1)) / 2);
 
   BLI_freelistN(tls_data.accumulate_items);
-  MEM_freeN(tls_data.accumulate_items);
+  MEM_delete(tls_data.accumulate_items);
 
   BLI_mempool_destroy(mempool);
   BLI_threadapi_exit();

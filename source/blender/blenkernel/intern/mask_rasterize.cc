@@ -211,7 +211,7 @@ MaskRasterHandle *BKE_maskrasterize_handle_new()
 {
   MaskRasterHandle *mr_handle;
 
-  mr_handle = MEM_new_for_free<MaskRasterHandle>("MaskRasterHandle");
+  mr_handle = MEM_new<MaskRasterHandle>("MaskRasterHandle");
 
   return mr_handle;
 }
@@ -224,11 +224,11 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
   for (uint i = 0; i < layers_tot; i++, layer++) {
 
     if (layer->face_array) {
-      MEM_freeN(layer->face_array);
+      MEM_delete(layer->face_array);
     }
 
     if (layer->face_coords) {
-      MEM_freeN(layer->face_coords);
+      MEM_delete(layer->face_coords);
     }
 
     if (layer->buckets_face) {
@@ -237,16 +237,16 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
       for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
         uint *face_index = layer->buckets_face[bucket_index];
         if (face_index) {
-          MEM_freeN(face_index);
+          MEM_delete(face_index);
         }
       }
 
-      MEM_freeN(layer->buckets_face);
+      MEM_delete(layer->buckets_face);
     }
   }
 
-  MEM_freeN(mr_handle->layers);
-  MEM_freeN(mr_handle);
+  MEM_delete(mr_handle->layers);
+  MEM_delete(mr_handle);
 }
 
 static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2],
@@ -430,8 +430,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
     float (*cos)[3] = layer->face_coords;
 
     const uint bucket_tot = layer->buckets_x * layer->buckets_y;
-    LinkNode **bucketstore = MEM_calloc_arrayN<LinkNode *>(bucket_tot, __func__);
-    uint *bucketstore_tot = MEM_calloc_arrayN<uint>(bucket_tot, __func__);
+    LinkNode **bucketstore = MEM_new_array_zeroed<LinkNode *>(bucket_tot, __func__);
+    uint *bucketstore_tot = MEM_new_array_zeroed<uint>(bucket_tot, __func__);
 
     uint face_index;
 
@@ -529,12 +529,12 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
     if (true) {
       /* Now convert link-nodes into arrays for faster per pixel access. */
-      uint **buckets_face = MEM_calloc_arrayN<uint *>(bucket_tot, __func__);
+      uint **buckets_face = MEM_new_array_zeroed<uint *>(bucket_tot, __func__);
       uint bucket_index;
 
       for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
         if (bucketstore_tot[bucket_index]) {
-          uint *bucket = MEM_calloc_arrayN<uint>((bucketstore_tot[bucket_index] + 1), __func__);
+          uint *bucket = MEM_new_array_zeroed<uint>((bucketstore_tot[bucket_index] + 1), __func__);
           LinkNode *bucket_node;
 
           buckets_face[bucket_index] = bucket;
@@ -555,8 +555,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
       layer->buckets_face = buckets_face;
     }
 
-    MEM_freeN(bucketstore);
-    MEM_freeN(bucketstore_tot);
+    MEM_delete(bucketstore);
+    MEM_delete(bucketstore_tot);
   }
 
   BLI_memarena_free(arena);
@@ -582,8 +582,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
   MemArena *sf_arena;
 
   mr_handle->layers_tot = uint(BLI_listbase_count(&mask->masklayers));
-  mr_handle->layers = MEM_new_array_for_free<MaskRasterLayer>(mr_handle->layers_tot,
-                                                              "MaskRasterLayer");
+  mr_handle->layers = MEM_new_array<MaskRasterLayer>(mr_handle->layers_tot, "MaskRasterLayer");
   BLI_rctf_init_minmax(&mr_handle->bounds);
 
   sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
@@ -618,7 +617,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
     }
 
     tot_splines = uint(BLI_listbase_count(&masklay->splines));
-    open_spline_ranges = MEM_new_array_for_free<MaskRasterSplineInfo>(tot_splines, __func__);
+    open_spline_ranges = MEM_new_array<MaskRasterSplineInfo>(tot_splines, __func__);
 
     BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 
@@ -688,7 +687,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         if (do_mask_aa == true) {
           if (do_feather == false) {
             tot_diff_feather_points = tot_diff_point;
-            diff_feather_points = MEM_calloc_arrayN<float[2]>(tot_diff_feather_points, __func__);
+            diff_feather_points = MEM_new_array_zeroed<float[2]>(tot_diff_feather_points,
+                                                                 __func__);
             /* add single pixel feather */
             maskrasterize_spline_differentiate_point_outset(
                 diff_feather_points, diff_points, tot_diff_point, pixel_size, false);
@@ -759,8 +759,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           if (diff_feather_points) {
 
             if (spline.flag & MASK_SPLINE_NOINTERSECT) {
-              diff_feather_points_flip = MEM_calloc_arrayN<float[2]>(tot_diff_feather_points,
-                                                                     "diff_feather_points_flip");
+              diff_feather_points_flip = MEM_new_array_zeroed<float[2]>(
+                  tot_diff_feather_points, "diff_feather_points_flip");
 
               float co_diff[2];
               for (j = 0; j < tot_diff_point; j++) {
@@ -819,7 +819,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
             }
 
             if (diff_feather_points_flip) {
-              MEM_freeN(diff_feather_points_flip);
+              MEM_delete(diff_feather_points_flip);
               diff_feather_points_flip = nullptr;
             }
 
@@ -893,11 +893,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       }
 
       if (diff_points) {
-        MEM_freeN(diff_points);
+        MEM_delete(diff_points);
       }
 
       if (diff_feather_points) {
-        MEM_freeN(diff_feather_points);
+        MEM_delete(diff_feather_points);
       }
     }
 
@@ -914,7 +914,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       ListBaseT<ScanFillEdge> isect_remedgebase = {nullptr, nullptr};
 
       /* now we have all the splines */
-      face_coords = MEM_calloc_arrayN<float[3]>(sf_vert_tot, "maskrast_face_coords");
+      face_coords = MEM_new_array_zeroed<float[3]>(sf_vert_tot, "maskrast_face_coords");
 
       /* init bounds */
       BLI_rctf_init_minmax(&bounds);
@@ -949,8 +949,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         uint sf_vert_tot_isect = uint(BLI_listbase_count(&sf_ctx.fillvertbase));
         uint i = sf_vert_tot;
 
-        face_coords = static_cast<float (*)[3]>(
-            MEM_reallocN(face_coords, sizeof(float[3]) * (sf_vert_tot + sf_vert_tot_isect)));
+        face_coords = static_cast<float (*)[3]>(MEM_realloc_uninitialized(
+            face_coords, sizeof(float[3]) * (sf_vert_tot + sf_vert_tot_isect)));
 
         cos = (&face_coords[sf_vert_tot][0]);
 
@@ -989,7 +989,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         }
 
         if (sf_edge_array_num > 0) {
-          sf_edge_array = MEM_malloc_arrayN<ScanFillEdge *>(size_t(sf_edge_array_num), __func__);
+          sf_edge_array = MEM_new_array_uninitialized<ScanFillEdge *>(size_t(sf_edge_array_num),
+                                                                      __func__);
           uint edge_index = 0;
           for (int pass = 0; pass < 2; pass++) {
             for (ScanFillEdge &sf_edge : *lb_array[pass]) {
@@ -1011,8 +1012,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         BLI_movelisttolist(&sf_ctx.filledgebase, &isect_remedgebase);
       }
 
-      face_array = MEM_malloc_arrayN<uint[4]>(size_t(sf_tri_tot) + size_t(tot_feather_quads),
-                                              "maskrast_face_index");
+      face_array = MEM_new_array_uninitialized<uint[4]>(
+          size_t(sf_tri_tot) + size_t(tot_feather_quads), "maskrast_face_index");
       face_index = 0;
 
       /* faces */
@@ -1050,7 +1051,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           tot_boundary_found++;
 #endif
         }
-        MEM_freeN(sf_edge_array);
+        MEM_delete(sf_edge_array);
       }
 
 #ifdef USE_SCANFILL_EDGE_WORKAROUND
@@ -1173,7 +1174,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         }
       }
 
-      MEM_freeN(open_spline_ranges);
+      MEM_delete(open_spline_ranges);
 
 #if 0
       fprintf(stderr,
@@ -1210,8 +1211,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           BLI_rctf_union(&mr_handle->bounds, &bounds);
         }
         else {
-          MEM_freeN(face_coords);
-          MEM_freeN(face_array);
+          MEM_delete(face_coords);
+          MEM_delete(face_array);
 
           layer_bucket_init_dummy(layer);
         }

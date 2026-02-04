@@ -244,7 +244,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   if (pimd->flag & eParticleInstanceFlag_UseSize) {
     float *si;
-    si = size = MEM_calloc_arrayN<float>(part_end, __func__);
+    si = size = MEM_new_array_zeroed<float>(part_end, __func__);
 
     if (pimd->flag & eParticleInstanceFlag_Parents) {
       for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++) {
@@ -333,10 +333,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
   if (mloopcols_index) {
-    vert_part_index = MEM_calloc_arrayN<int>(maxvert, "vertex part index array");
+    vert_part_index = MEM_new_array_zeroed<int>(maxvert, "vertex part index array");
   }
   if (mloopcols_value) {
-    vert_part_value = MEM_calloc_arrayN<float>(maxvert, "vertex part value array");
+    vert_part_value = MEM_new_array_zeroed<float>(maxvert, "vertex part value array");
   }
 
   for (p = part_start, p_skip = 0; p < part_end; p++) {
@@ -516,11 +516,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   psys_sim_data_free(&sim);
 
   if (size) {
-    MEM_freeN(size);
+    MEM_delete(size);
   }
 
-  MEM_SAFE_FREE(vert_part_index);
-  MEM_SAFE_FREE(vert_part_value);
+  MEM_SAFE_DELETE(vert_part_index);
+  MEM_SAFE_DELETE(vert_part_value);
 
   mloopcols_index.finish();
   mloopcols_value.finish();

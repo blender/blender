@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(LAME_EXTRA_ARGS)
+set(LAME_EXTRA_ARGS "")
 if(MSVC)
   if(BLENDER_PLATFORM_ARM)
     set(LAME_ARCH ARM64)

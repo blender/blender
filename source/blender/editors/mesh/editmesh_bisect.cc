@@ -152,11 +152,11 @@ static wmOperatorStatus mesh_bisect_invoke(bContext *C, wmOperator *op, const wm
     wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
     BisectData *opdata;
 
-    opdata = MEM_mallocN<BisectData>("inset_operator_data");
+    opdata = MEM_new_uninitialized<BisectData>("inset_operator_data");
     gesture->user_data.data = opdata;
 
     opdata->backup_len = objects.size();
-    opdata->backup = MEM_calloc_arrayN<BisectData::BisectDataBackup>(objects.size(), __func__);
+    opdata->backup = MEM_new_array_zeroed<BisectData::BisectDataBackup>(objects.size(), __func__);
 
     /* Store the mesh backups. */
     for (const int ob_index : objects.index_range()) {
@@ -189,7 +189,7 @@ static void edbm_bisect_exit(BisectData *opdata)
       EDBM_redo_state_free(&opdata->backup[ob_index].mesh_backup);
     }
   }
-  MEM_freeN(opdata->backup);
+  MEM_delete(opdata->backup);
 }
 
 static wmOperatorStatus mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -689,7 +689,7 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  GizmoGroup *ggd = MEM_callocN<GizmoGroup>(__func__);
+  GizmoGroup *ggd = MEM_new_zeroed<GizmoGroup>(__func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);

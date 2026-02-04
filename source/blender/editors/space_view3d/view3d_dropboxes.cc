@@ -207,7 +207,7 @@ static std::string view3d_mat_drop_tooltip(bContext *C,
                                            const int xy[2],
                                            wmDropBox * /*drop*/)
 {
-  const char *name = WM_drag_get_item_name(drag);
+  const std::string name = WM_drag_get_item_name(drag);
   ARegion *region = CTX_wm_region(C);
   const int mval[2] = {
       xy[0] - region->winrct.xmin,

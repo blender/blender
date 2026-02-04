@@ -152,12 +152,12 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
 
   /* allocate memory for temporary areas */
   gps->tot_triangles = gps->totpoints - 2;
-  uint(*tmp_triangles)[3] = MEM_malloc_arrayN<uint[3]>(size_t(gps->tot_triangles),
-                                                       "GP Stroke temp triangulation");
-  float (*points2d)[2] = MEM_malloc_arrayN<float[2]>(size_t(gps->totpoints),
-                                                     "GP Stroke temp 2d points");
-  float (*uv)[2] = MEM_malloc_arrayN<float[2]>(size_t(gps->totpoints),
-                                               "GP Stroke temp 2d uv data");
+  uint(*tmp_triangles)[3] = MEM_new_array_uninitialized<uint[3]>(size_t(gps->tot_triangles),
+                                                                 "GP Stroke temp triangulation");
+  float (*points2d)[2] = MEM_new_array_uninitialized<float[2]>(size_t(gps->totpoints),
+                                                               "GP Stroke temp 2d points");
+  float (*uv)[2] = MEM_new_array_uninitialized<float[2]>(size_t(gps->totpoints),
+                                                         "GP Stroke temp 2d uv data");
 
   int direction = 0;
 
@@ -177,9 +177,8 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
 
   /* Save triangulation data. */
   if (gps->tot_triangles > 0) {
-    MEM_SAFE_FREE(gps->triangles);
-    gps->triangles = MEM_new_array_for_free<bGPDtriangle>(gps->tot_triangles,
-                                                          "GP Stroke triangulation");
+    MEM_SAFE_DELETE(gps->triangles);
+    gps->triangles = MEM_new_array<bGPDtriangle>(gps->tot_triangles, "GP Stroke triangulation");
 
     for (int i = 0; i < gps->tot_triangles; i++) {
       memcpy(gps->triangles[i].verts, tmp_triangles[i], sizeof(uint[3]));
@@ -193,16 +192,16 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
   else {
     /* No triangles needed - Free anything allocated previously */
     if (gps->triangles) {
-      MEM_freeN(gps->triangles);
+      MEM_delete(gps->triangles);
     }
 
     gps->triangles = nullptr;
   }
 
   /* clear memory */
-  MEM_SAFE_FREE(tmp_triangles);
-  MEM_SAFE_FREE(points2d);
-  MEM_SAFE_FREE(uv);
+  MEM_SAFE_DELETE(tmp_triangles);
+  MEM_SAFE_DELETE(points2d);
+  MEM_SAFE_DELETE(uv);
 }
 
 void BKE_gpencil_stroke_uv_update(bGPDstroke *gps)
@@ -231,7 +230,7 @@ void BKE_gpencil_stroke_geometry_update(bGPdata * /*gpd*/, bGPDstroke *gps)
   }
   else {
     gps->tot_triangles = 0;
-    MEM_SAFE_FREE(gps->triangles);
+    MEM_SAFE_DELETE(gps->triangles);
   }
 
   /* calc uv data along the stroke */
@@ -259,7 +258,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
   /* create new stroke */
   bGPDstroke *join_stroke = BKE_gpencil_stroke_duplicate(gps_first, false, true);
 
-  join_stroke->points = MEM_new_array_for_free<bGPDspoint>(totpoints, __func__);
+  join_stroke->points = MEM_new_array<bGPDspoint>(totpoints, __func__);
   join_stroke->totpoints = totpoints;
   join_stroke->flag &= ~GP_STROKE_CYCLIC;
 
@@ -293,7 +292,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
 
   /* Copy over vertex weight data (if available) */
   if ((gps_first->dvert != nullptr) || (gps_last->dvert != nullptr)) {
-    join_stroke->dvert = MEM_calloc_arrayN<MDeformVert>(totpoints, __func__);
+    join_stroke->dvert = MEM_new_array_zeroed<MDeformVert>(totpoints, __func__);
     MDeformVert *dvert_src = nullptr;
     MDeformVert *dvert_dst = nullptr;
 
@@ -317,7 +316,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
       }
 
       if ((dvert_src) && (dvert_src->dw)) {
-        dvert_dst->dw = static_cast<MDeformWeight *>(MEM_dupallocN(dvert_src->dw));
+        dvert_dst->dw = MEM_dupalloc(dvert_src->dw);
       }
     }
   }
@@ -355,8 +354,8 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
    * 2) Each island gets converted to a new stroke
    * If the number of points is <= limit, the stroke is deleted. */
 
-  tGPDeleteIsland *islands = MEM_calloc_arrayN<tGPDeleteIsland>((gps->totpoints + 1) / 2,
-                                                                "gp_point_islands");
+  tGPDeleteIsland *islands = MEM_new_array_zeroed<tGPDeleteIsland>((gps->totpoints + 1) / 2,
+                                                                   "gp_point_islands");
   bool in_island = false;
   int num_islands = 0;
 
@@ -416,8 +415,8 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       new_stroke->totpoints = island->end_idx - island->start_idx + 1;
 
       /* Copy over the relevant point data */
-      new_stroke->points = MEM_new_array_for_free<bGPDspoint>(new_stroke->totpoints,
-                                                              "gp delete stroke fragment");
+      new_stroke->points = MEM_new_array<bGPDspoint>(new_stroke->totpoints,
+                                                     "gp delete stroke fragment");
       memcpy(static_cast<void *>(new_stroke->points),
              gps->points + island->start_idx,
              sizeof(bGPDspoint) * new_stroke->totpoints);
@@ -425,8 +424,8 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       /* Copy over vertex weight data (if available) */
       if (gps->dvert != nullptr) {
         /* Copy over the relevant vertex-weight points */
-        new_stroke->dvert = MEM_calloc_arrayN<MDeformVert>(new_stroke->totpoints,
-                                                           "gp delete stroke fragment weight");
+        new_stroke->dvert = MEM_new_array_zeroed<MDeformVert>(new_stroke->totpoints,
+                                                              "gp delete stroke fragment weight");
         memcpy(new_stroke->dvert,
                gps->dvert + island->start_idx,
                sizeof(MDeformVert) * new_stroke->totpoints);
@@ -437,7 +436,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
           MDeformVert *dvert_src = &gps->dvert[e];
           MDeformVert *dvert_dst = &new_stroke->dvert[i];
           if (dvert_src->dw) {
-            dvert_dst->dw = static_cast<MDeformWeight *>(MEM_dupallocN(dvert_src->dw));
+            dvert_dst->dw = MEM_dupalloc(dvert_src->dw);
           }
           e++;
         }
@@ -495,7 +494,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
   }
 
   /* free islands */
-  MEM_freeN(islands);
+  MEM_delete(islands);
 
   /* Delete the old stroke */
   BLI_remlink(&gpf->strokes, gps);

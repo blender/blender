@@ -101,7 +101,7 @@ void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget *> &r_targe
   /* Object itself first. */
   if ((ob->avs.recalc & ANIMVIZ_RECALC_PATHS) && (ob->mpath)) {
     /* New target for object. */
-    mpt = MEM_callocN<MPathTarget>("MPathTarget Ob");
+    mpt = MEM_new_zeroed<MPathTarget>("MPathTarget Ob");
     mpt->mpath = ob->mpath;
     mpt->ob = ob;
 
@@ -114,7 +114,7 @@ void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget *> &r_targe
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       if ((pchan.bone) && ANIM_bonecoll_is_visible_pchan(arm, &pchan) && (pchan.mpath)) {
         /* New target for bone. */
-        mpt = MEM_callocN<MPathTarget>("MPathTarget PoseBone");
+        mpt = MEM_new_zeroed<MPathTarget>("MPathTarget PoseBone");
         mpt->mpath = pchan.mpath;
         mpt->ob = ob;
         mpt->pchan = &pchan;
@@ -127,7 +127,7 @@ void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget *> &r_targe
 void animviz_free_motionpath_targets(Vector<MPathTarget *> &targets)
 {
   for (MPathTarget *mpt : targets) {
-    MEM_freeN(mpt);
+    MEM_delete(mpt);
   }
   targets.clear_and_shrink();
 }

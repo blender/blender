@@ -66,7 +66,7 @@ find_library(GMPXX_LIBRARY
 )
 
 if(GMP_INCLUDE_DIR)
-  set(_version_regex "^#define[ \t]+__GNU_MP_VERSION[ \t]+\"([^\"]+)\".*")
+  set(_version_regex "^#define[ \t]+__GNU_MP_VERSION[ \t]+([0-9]+).*")
   file(STRINGS "${GMP_INCLUDE_DIR}/gmp.h"
     GMP_VERSION REGEX "${_version_regex}")
   string(REGEX REPLACE "${_version_regex}" "\\1"

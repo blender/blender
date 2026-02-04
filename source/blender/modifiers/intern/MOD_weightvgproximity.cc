@@ -473,9 +473,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   /* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight. */
-  tidx = MEM_malloc_arrayN<int>(size_t(verts_num), __func__);
-  tw = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
-  tdw = MEM_malloc_arrayN<MDeformWeight *>(size_t(verts_num), __func__);
+  tidx = MEM_new_array_uninitialized<int>(size_t(verts_num), __func__);
+  tw = MEM_new_array_uninitialized<float>(size_t(verts_num), __func__);
+  tdw = MEM_new_array_uninitialized<MDeformWeight *>(size_t(verts_num), __func__);
   for (i = 0; i < verts_num; i++) {
     MDeformWeight *_dw = BKE_defvert_find_index(&dvert[i], defgrp_index);
     if (_dw) {
@@ -486,27 +486,27 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
   /* If no vertices found, return org data! */
   if (index_num == 0) {
-    MEM_freeN(tidx);
-    MEM_freeN(tw);
-    MEM_freeN(tdw);
+    MEM_delete(tidx);
+    MEM_delete(tw);
+    MEM_delete(tdw);
     return mesh;
   }
   if (index_num != verts_num) {
-    indices = MEM_malloc_arrayN<int>(size_t(index_num), __func__);
+    indices = MEM_new_array_uninitialized<int>(size_t(index_num), __func__);
     memcpy(indices, tidx, sizeof(int) * index_num);
-    org_w = MEM_malloc_arrayN<float>(size_t(index_num), __func__);
+    org_w = MEM_new_array_uninitialized<float>(size_t(index_num), __func__);
     memcpy(org_w, tw, sizeof(float) * index_num);
-    dw = MEM_malloc_arrayN<MDeformWeight *>(size_t(index_num), __func__);
+    dw = MEM_new_array_uninitialized<MDeformWeight *>(size_t(index_num), __func__);
     memcpy(dw, tdw, sizeof(MDeformWeight *) * index_num);
-    MEM_freeN(tw);
-    MEM_freeN(tdw);
+    MEM_delete(tw);
+    MEM_delete(tdw);
   }
   else {
     org_w = tw;
     dw = tdw;
   }
-  new_w = MEM_malloc_arrayN<float>(size_t(index_num), __func__);
-  MEM_freeN(tidx);
+  new_w = MEM_new_array_uninitialized<float>(size_t(index_num), __func__);
+  MEM_delete(tidx);
 
   const Span<float3> positions = mesh->vert_positions();
 
@@ -533,12 +533,15 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
         BKE_mesh_wrapper_ensure_mdata(target_mesh);
 
         SpaceTransform loc2trgt;
-        float *dists_v = use_trgt_verts ? MEM_malloc_arrayN<float>(size_t(index_num), __func__) :
-                                          nullptr;
-        float *dists_e = use_trgt_edges ? MEM_malloc_arrayN<float>(size_t(index_num), __func__) :
-                                          nullptr;
-        float *dists_f = use_trgt_faces ? MEM_malloc_arrayN<float>(size_t(index_num), __func__) :
-                                          nullptr;
+        float *dists_v = use_trgt_verts ?
+                             MEM_new_array_uninitialized<float>(size_t(index_num), __func__) :
+                             nullptr;
+        float *dists_e = use_trgt_edges ?
+                             MEM_new_array_uninitialized<float>(size_t(index_num), __func__) :
+                             nullptr;
+        float *dists_f = use_trgt_faces ?
+                             MEM_new_array_uninitialized<float>(size_t(index_num), __func__) :
+                             nullptr;
 
         BLI_SPACE_TRANSFORM_SETUP(&loc2trgt, ob, obr);
         get_vert2geom_distance(
@@ -553,9 +556,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           }
         }
 
-        MEM_SAFE_FREE(dists_v);
-        MEM_SAFE_FREE(dists_e);
-        MEM_SAFE_FREE(dists_f);
+        MEM_SAFE_DELETE(dists_v);
+        MEM_SAFE_DELETE(dists_e);
+        MEM_SAFE_DELETE(dists_f);
       }
       /* Else, fall back to default obj2vert behavior. */
       else {
@@ -609,10 +612,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 #endif
 
   /* Freeing stuff. */
-  MEM_freeN(org_w);
-  MEM_freeN(new_w);
-  MEM_freeN(dw);
-  MEM_SAFE_FREE(indices);
+  MEM_delete(org_w);
+  MEM_delete(new_w);
+  MEM_delete(dw);
+  MEM_SAFE_DELETE(indices);
 
 #ifdef USE_TIMEIT
   TIMEIT_END(perf);

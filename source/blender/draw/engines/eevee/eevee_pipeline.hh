@@ -139,6 +139,24 @@ class ShadowPipeline {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Prepass
+ *
+ * Helper class for handling prepasses in Forward and Deferred pipelines.
+ * \{ */
+
+class Prepass : public PassMain {
+  PassMain::Sub *prepass_subpasses[2 /*double sided*/][2 /*moving*/][2 /*write id*/] = {
+      {{nullptr}}};
+
+ public:
+  Prepass(const char *name) : PassMain(name) {};
+  void setup_subpasses(DRWState common_state);
+  PassMain::Sub *add(blender::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Forward Pass
  *
  * Handles alpha blended surfaces and NPR materials (using Closure to RGBA).
@@ -148,11 +166,7 @@ class ForwardPipeline {
  private:
   Instance &inst_;
 
-  PassMain prepass_ps_ = {"Prepass"};
-  PassMain::Sub *prepass_single_sided_static_ps_ = nullptr;
-  PassMain::Sub *prepass_single_sided_moving_ps_ = nullptr;
-  PassMain::Sub *prepass_double_sided_static_ps_ = nullptr;
-  PassMain::Sub *prepass_double_sided_moving_ps_ = nullptr;
+  Prepass prepass_ps_ = {"Prepass"};
 
   PassMain opaque_ps_ = {"Shading"};
   PassMain::Sub *opaque_single_sided_ps_ = nullptr;
@@ -218,11 +232,7 @@ class ForwardPipeline {
  * \{ */
 
 struct DeferredLayerBase {
-  PassMain prepass_ps_ = {"Prepass"};
-  PassMain::Sub *prepass_single_sided_static_ps_ = nullptr;
-  PassMain::Sub *prepass_single_sided_moving_ps_ = nullptr;
-  PassMain::Sub *prepass_double_sided_static_ps_ = nullptr;
-  PassMain::Sub *prepass_double_sided_moving_ps_ = nullptr;
+  Prepass prepass_ps_ = {"Prepass"};
 
   PassMain gbuffer_ps_ = {"Shading"};
   /* Shaders that use the ClosureToRGBA node needs to be rendered first.
@@ -651,6 +661,7 @@ class PlanarProbePipeline : DeferredLayerBase {
 
   void render(View &view,
               gpu::Texture *depth_layer_tx,
+              Framebuffer &prepass_fb,
               Framebuffer &gbuffer,
               Framebuffer &combined_fb,
               int2 extent);
@@ -780,6 +791,8 @@ class PipelineModule {
   UtilityTexture utility_tx;
   PipelineInfoData &data;
 
+  bool has_raycast = false;
+
   PipelineModule(Instance &inst, PipelineInfoData &data)
       : background(inst),
         world(inst),
@@ -803,6 +816,8 @@ class PipelineModule {
     shadow.sync();
     volume.sync();
     capture.sync();
+
+    has_raycast = false;
   }
 
   void end_sync()
@@ -819,6 +834,10 @@ class PipelineModule {
                               eMaterialPipeline pipeline_type,
                               eMaterialProbe probe_capture)
   {
+    if (GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST)) {
+      has_raycast = true;
+    }
+
     if (probe_capture == MAT_PROBE_REFLECTION) {
       switch (pipeline_type) {
         case MAT_PIPE_PREPASS_DEFERRED:

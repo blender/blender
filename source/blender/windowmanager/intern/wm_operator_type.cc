@@ -216,7 +216,7 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
 
   if (ot->rna_ext.srna) {
     /* A Python operator, allocates its own string. */
-    MEM_freeN(ot->idname);
+    MEM_delete(ot->idname);
   }
 
   MEM_delete(ot);
@@ -301,7 +301,7 @@ struct MacroData {
 static void wm_macro_start(wmOperator *op)
 {
   if (op->customdata == nullptr) {
-    op->customdata = MEM_callocN<MacroData>("MacroData");
+    op->customdata = MEM_new_zeroed<MacroData>("MacroData");
   }
 }
 
@@ -319,7 +319,7 @@ static wmOperatorStatus wm_macro_end(wmOperator *op, wmOperatorStatus retval)
   /* If modal is ending, free custom data. */
   if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
     if (md) {
-      MEM_freeN(md);
+      MEM_delete(md);
       op->customdata = nullptr;
     }
   }
@@ -560,7 +560,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
 
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
 {
-  wmOperatorTypeMacro *otmacro = MEM_new_for_free<wmOperatorTypeMacro>("wmOperatorTypeMacro");
+  wmOperatorTypeMacro *otmacro = MEM_new<wmOperatorTypeMacro>("wmOperatorTypeMacro");
 
   STRNCPY(otmacro->idname, idname);
 

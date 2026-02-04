@@ -338,8 +338,8 @@ enum PassType {
   PASS_TRANSMISSION_COLOR,
   /* No Scatter color since it's tricky to define what it would even mean. */
   PASS_MIST,
-  PASS_DENOISING_NORMAL,
   PASS_DENOISING_ALBEDO,
+  PASS_DENOISING_NORMAL,
   PASS_DENOISING_DEPTH,
   PASS_DENOISING_PREVIOUS,
   PASS_RENDER_TIME,
@@ -1067,7 +1067,7 @@ struct VolumeStack {
 /* Struct to gather multiple nearby intersections. */
 struct LocalIntersection {
   int num_hits;
-  struct Intersection hits[LOCAL_MAX_HITS];
+  Intersection hits[LOCAL_MAX_HITS];
   float3 Ng[LOCAL_MAX_HITS];
 };
 
@@ -1293,9 +1293,9 @@ struct ccl_align(16) KernelData {
   /* Device specific BVH. */
 #ifdef __KERNEL_OPTIX__
   OptixTraversableHandle device_bvh;
-#elif defined __METALRT__
+#elif defined __KERNEL_METALRT__
   metalrt_as_type device_bvh;
-#elif defined(__HIPRT__)
+#elif defined(__KERNEL_HIPRT__)
   void *device_bvh;
 #else
 #  ifdef __EMBREE__

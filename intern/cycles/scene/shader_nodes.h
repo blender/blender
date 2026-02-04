@@ -435,10 +435,9 @@ class ConvertNode : public ShaderNode {
   ustring value_string;
 
   static const int MAX_TYPE = 13;
-  static bool register_types();
+  static bool register_types(const NodeType *node_types[MAX_TYPE][MAX_TYPE]);
   static unique_ptr<Node> create(const NodeType *type);
-  static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
-  static bool initialized;
+  static const NodeType *(&get_node_types())[MAX_TYPE][MAX_TYPE];
 };
 
 class BsdfBaseNode : public ShaderNode {
@@ -1680,6 +1679,7 @@ class NormalMapNode : public ShaderNode {
   NODE_SOCKET_API(ustring, attribute)
   NODE_SOCKET_API(float, strength)
   NODE_SOCKET_API(float3, color)
+  NODE_SOCKET_API(int, convention)
 };
 
 class RadialTilingNode : public ShaderNode {
@@ -1762,6 +1762,26 @@ class VectorDisplacementNode : public ShaderNode {
   NODE_SOCKET_API(float3, vector)
   NODE_SOCKET_API(float, midlevel)
   NODE_SOCKET_API(float, scale)
+};
+
+class RaycastNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(RaycastNode)
+
+  bool has_spatial_varying() override
+  {
+    return true;
+  }
+  uint get_feature() override
+  {
+    return KERNEL_FEATURE_NODE_RAYTRACE;
+  }
+
+  NODE_SOCKET_API(float3, position)
+  NODE_SOCKET_API(float3, direction)
+  NODE_SOCKET_API(float, length)
+
+  NODE_SOCKET_API(bool, only_local)
 };
 
 CCL_NAMESPACE_END

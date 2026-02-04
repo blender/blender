@@ -18,7 +18,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 #include "GHOST_XrException.hh"
 #include "GHOST_XrSession.hh"
 #include "GHOST_Xr_intern.hh"
@@ -425,6 +425,7 @@ static blender::Vector<blender::StringRefNull> openxr_ext_names_from_wm_gpu_bind
 
     case GHOST_kXrGraphicsVulkan:
 #ifdef WITH_VULKAN_BACKEND
+      extension_names.append(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME);
       extension_names.append(XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME);
 #endif
       break;
@@ -486,6 +487,9 @@ void GHOST_XrContext::getExtensionsToEnable(
 
   /* Meta/Facebook passthrough extension. */
   try_ext.push_back(XR_FB_PASSTHROUGH_EXTENSION_NAME);
+
+  /* Multi-vendor local floor extension. */
+  try_ext.push_back(XR_EXT_LOCAL_FLOOR_EXTENSION_NAME);
 
   r_ext_names.reserve(try_ext.size() + graphics_binding_types.size());
 
@@ -591,7 +595,7 @@ void GHOST_XrContext::startSession(const GHOST_XrSessionBeginInfo *begin_info)
   if (session_ == nullptr) {
     session_ = std::make_unique<GHOST_XrSession>(*this);
   }
-  session_->start(begin_info);
+  session_->start();
 }
 
 void GHOST_XrContext::endSession()

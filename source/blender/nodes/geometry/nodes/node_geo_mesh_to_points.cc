@@ -49,7 +49,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMeshToPoints *data = MEM_new_for_free<NodeGeometryMeshToPoints>(__func__);
+  NodeGeometryMeshToPoints *data = MEM_new<NodeGeometryMeshToPoints>(__func__);
   data->mode = GEO_NODE_MESH_TO_POINTS_VERTICES;
   node->storage = data;
 }
@@ -104,10 +104,18 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   }
 
   MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
-  SpanAttributeWriter radius = dst_attributes.lookup_or_add_for_write_only_span<float>(
-      "radius", AttrDomain::Point);
-  array_utils::gather(evaluator.get_evaluated(1), selection, radius.span);
-  radius.finish();
+  {
+    const VArray<float> radii = evaluator.get_evaluated<float>(1);
+    if (const std::optional<float> radius = radii.get_if_single()) {
+      dst_attributes.add<float>("radius", AttrDomain::Point, bke::AttributeInitValue(*radius));
+    }
+    else {
+      SpanAttributeWriter attr = dst_attributes.lookup_or_add_for_write_only_span<float>(
+          "radius", AttrDomain::Point);
+      array_utils::gather(radii, selection, attr.span);
+      attr.finish();
+    }
+  }
 
   bke::GeometrySet::GatheredAttributes attributes;
   geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
@@ -129,7 +137,14 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     }
 
     const StringRef dst_name = src_name == ".select_vert" ? ".selection" : src_name;
-    if (share_arrays && src.domain == domain && src.sharing_info && src.varray.is_span()) {
+    if (src.varray.is_single()) {
+      const CPPType &type = src.varray.type();
+      BUFFER_FOR_CPP_TYPE_VALUE(type, value);
+      src.varray.get_internal_single(value);
+      dst_attributes.add(
+          dst_name, domain, data_type, bke::AttributeInitValue(GPointer(type, value)));
+    }
+    else if (share_arrays && src.domain == domain && src.sharing_info && src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
       dst_attributes.add(dst_name, AttrDomain::Point, data_type, init);

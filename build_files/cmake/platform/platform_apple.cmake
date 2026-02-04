@@ -249,41 +249,6 @@ if(WITH_IMAGE_WEBP)
   find_package(WebP REQUIRED)
 endif()
 
-# With Blender 4.4 libraries there is no more Boost. This code is only
-# here until we can reasonably assume everyone has upgraded to them.
-if(WITH_BOOST)
-  if(DEFINED LIBDIR AND NOT EXISTS "${LIBDIR}/boost")
-    set(WITH_BOOST OFF)
-    set(BOOST_LIBRARIES)
-    set(BOOST_PYTHON_LIBRARIES)
-    set(BOOST_INCLUDE_DIR)
-  endif()
-endif()
-
-if(WITH_BOOST)
-  set(Boost_NO_BOOST_CMAKE ON)
-  set(Boost_ROOT ${LIBDIR}/boost)
-  set(Boost_NO_SYSTEM_PATHS ON)
-  set(_boost_FIND_COMPONENTS)
-  if(WITH_USD AND USD_PYTHON_SUPPORT)
-    list(APPEND _boost_FIND_COMPONENTS python${PYTHON_VERSION_NO_DOTS})
-  endif()
-  set(Boost_NO_WARN_NEW_VERSIONS ON)
-  find_package(Boost COMPONENTS ${_boost_FIND_COMPONENTS})
-
-  # Boost Python is the only library Blender directly depends on, though USD headers.
-  if(WITH_USD AND USD_PYTHON_SUPPORT)
-    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
-  endif()
-  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
-  set(BOOST_DEFINITIONS)
-
-  mark_as_advanced(Boost_LIBRARIES)
-  mark_as_advanced(Boost_INCLUDE_DIRS)
-  unset(_boost_FIND_COMPONENTS)
-endif()
-add_bundled_libraries(boost/lib)
-
 if(WITH_CODEC_FFMPEG)
   string(APPEND PLATFORM_LINKFLAGS " -liconv") # ffmpeg needs it !
 endif()
@@ -308,7 +273,9 @@ if(WITH_OPENVDB)
   else()
     unset(BLOSC_LIBRARIES CACHE)
   endif()
-  set(OPENVDB_DEFINITIONS)
+  if(OPENVDB_FOUND)
+    set(OPENVDB_DEFINITIONS "")
+  endif()
 endif()
 add_bundled_libraries(openvdb/lib)
 

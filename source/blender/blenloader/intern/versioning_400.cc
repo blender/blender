@@ -667,7 +667,7 @@ static void version_replace_principled_hair_model(bNodeTree *ntree)
     if (node.type_legacy != SH_NODE_BSDF_HAIR_PRINCIPLED) {
       continue;
     }
-    NodeShaderHairPrincipled *data = MEM_new_for_free<NodeShaderHairPrincipled>(__func__);
+    NodeShaderHairPrincipled *data = MEM_new<NodeShaderHairPrincipled>(__func__);
     data->model = SHD_PRINCIPLED_HAIR_CHIANG;
     data->parametrization = node.custom1;
 
@@ -678,7 +678,7 @@ static void version_replace_principled_hair_model(bNodeTree *ntree)
 static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &legacy_socket,
                                                                const eNodeSocketInOut in_out)
 {
-  bNodeTreeInterfaceSocket *new_socket = MEM_new_for_free<bNodeTreeInterfaceSocket>(__func__);
+  bNodeTreeInterfaceSocket *new_socket = MEM_new<bNodeTreeInterfaceSocket>(__func__);
   new_socket->item.item_type = NODE_INTERFACE_SOCKET;
 
   /* Move reusable data. */
@@ -721,7 +721,7 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
   const int num_inputs = BLI_listbase_count(&ntree->inputs_legacy);
   const int num_outputs = BLI_listbase_count(&ntree->outputs_legacy);
   tree_interface.root_panel.items_num = num_inputs + num_outputs;
-  tree_interface.root_panel.items_array = MEM_malloc_arrayN<bNodeTreeInterfaceItem *>(
+  tree_interface.root_panel.items_array = MEM_new_array_uninitialized<bNodeTreeInterfaceItem *>(
       size_t(tree_interface.root_panel.items_num), __func__);
 
   /* Convert outputs first to retain old outputs/inputs ordering. */
@@ -896,7 +896,7 @@ static void version_copy_socket(bNodeTreeInterfaceSocket &dst,
     dst.properties = IDP_CopyProperty_ex(src.properties, 0);
   }
   if (src.socket_data != nullptr) {
-    dst.socket_data = MEM_dupallocN(src.socket_data);
+    dst.socket_data = MEM_dupalloc_void(src.socket_data);
     /* No user count increment needed, gets reset after versioning. */
   }
 }
@@ -955,13 +955,13 @@ static void version_nodes_insert_item(bNodeTreeInterfacePanel &parent,
 
   MutableSpan<bNodeTreeInterfaceItem *> old_items = {parent.items_array, parent.items_num};
   parent.items_num++;
-  parent.items_array = MEM_calloc_arrayN<bNodeTreeInterfaceItem *>(parent.items_num, __func__);
+  parent.items_array = MEM_new_array_zeroed<bNodeTreeInterfaceItem *>(parent.items_num, __func__);
   parent.items().take_front(position).copy_from(old_items.take_front(position));
   parent.items().drop_front(position + 1).copy_from(old_items.drop_front(position));
   parent.items()[position] = &socket.item;
 
   if (old_items.data()) {
-    MEM_freeN(old_items.data());
+    MEM_delete(old_items.data());
   }
 }
 
@@ -976,7 +976,7 @@ static void version_node_group_split_socket(bNodeTreeInterface &tree_interface,
   }
 
   bNodeTreeInterfaceSocket *csocket = static_cast<bNodeTreeInterfaceSocket *>(
-      MEM_dupallocN(&socket));
+      MEM_dupalloc(&socket));
   /* Generate a new unique identifier.
    * This might break existing links, but the identifiers were duplicate anyway. */
   char *dst_identifier = BLI_sprintfN("Socket_%d", tree_interface.next_uid++);
@@ -1170,7 +1170,7 @@ static void enable_geometry_nodes_is_modifier(Main &bmain)
         return true;
       }
       if (!group.geometry_node_asset_traits) {
-        group.geometry_node_asset_traits = MEM_new_for_free<GeometryNodeAssetTraits>(__func__);
+        group.geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
       }
       group.geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
       return false;
@@ -1386,7 +1386,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == SH_NODE_TEX_NOISE) {
             if (!node.storage) {
-              NodeTexNoise *tex = MEM_new_for_free<NodeTexNoise>(__func__);
+              NodeTexNoise *tex = MEM_new<NodeTexNoise>(__func__);
               BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
               BKE_texture_colormapping_default(&tex->base.color_mapping);
               tex->dimensions = 3;
@@ -1497,22 +1497,22 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
      * but have to be freed after loading and versioning. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       for (bNodeSocket &legacy_socket : ntree->inputs_legacy.items_mutable()) {
-        MEM_SAFE_FREE(legacy_socket.default_attribute_name);
-        MEM_SAFE_FREE(legacy_socket.default_value);
+        MEM_SAFE_DELETE(legacy_socket.default_attribute_name);
+        MEM_SAFE_DELETE_VOID(legacy_socket.default_value);
         if (legacy_socket.prop) {
           IDP_FreeProperty(legacy_socket.prop);
         }
         MEM_delete(legacy_socket.runtime);
-        MEM_freeN(&legacy_socket);
+        MEM_delete(&legacy_socket);
       }
       for (bNodeSocket &legacy_socket : ntree->outputs_legacy.items_mutable()) {
-        MEM_SAFE_FREE(legacy_socket.default_attribute_name);
-        MEM_SAFE_FREE(legacy_socket.default_value);
+        MEM_SAFE_DELETE(legacy_socket.default_attribute_name);
+        MEM_SAFE_DELETE_VOID(legacy_socket.default_value);
         if (legacy_socket.prop) {
           IDP_FreeProperty(legacy_socket.prop);
         }
         MEM_delete(legacy_socket.runtime);
-        MEM_freeN(&legacy_socket);
+        MEM_delete(&legacy_socket);
       }
       BLI_listbase_clear(&ntree->inputs_legacy);
       BLI_listbase_clear(&ntree->outputs_legacy);

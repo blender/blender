@@ -69,7 +69,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveToPoints *data = MEM_new_for_free<NodeGeometryCurveToPoints>(__func__);
+  NodeGeometryCurveToPoints *data = MEM_new<NodeGeometryCurveToPoints>(__func__);
 
   data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
   node->storage = data;

@@ -8,6 +8,7 @@
 
 #include <cstring>
 
+#include "DNA_space_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -35,7 +36,7 @@ static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*sce
   ARegion *region;
   SpaceStatusBar *sstatusbar;
 
-  sstatusbar = MEM_new_for_free<SpaceStatusBar>("init statusbar");
+  sstatusbar = MEM_new<SpaceStatusBar>("init statusbar");
   sstatusbar->spacetype = SPACE_STATUSBAR;
 
   /* header region */
@@ -55,7 +56,7 @@ static void statusbar_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 {
-  SpaceStatusBar *sstatusbarn = static_cast<SpaceStatusBar *>(MEM_dupallocN(sl));
+  SpaceStatusBar *sstatusbarn = MEM_dupalloc(reinterpret_cast<SpaceStatusBar *>(sl));
 
   /* clear or remove stuff from old */
 
@@ -146,7 +147,7 @@ void ED_spacetype_statusbar()
   st->blend_write = statusbar_space_blend_write;
 
   /* regions: header window */
-  art = MEM_callocN<ARegionType>("spacetype statusbar header region");
+  art = MEM_new_zeroed<ARegionType>("spacetype statusbar header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = 0.8f * HEADERY;
   art->prefsizex = UI_UNIT_X * 5; /* Mainly to avoid glitches */

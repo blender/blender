@@ -129,7 +129,7 @@ void ED_keyframes_add(FCurve *fcu, int num_keys_to_add)
   }
 
   fcu->bezt = static_cast<BezTriple *>(
-      MEM_recallocN(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + num_keys_to_add)));
+      MEM_realloc_zeroed(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + num_keys_to_add)));
   BezTriple *bezt = fcu->bezt + fcu->totvert; /* Pointer to the first new one. */
 
   fcu->totvert += num_keys_to_add;
@@ -566,7 +566,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
   }
 
   if (free) {
-    MEM_freeN(item_array);
+    MEM_delete(item_array);
   }
 
   popup_menu_end(C, pup);
@@ -771,7 +771,7 @@ static wmOperatorStatus clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
 
       Action &action = dna_action->wrap();
       Vector<FCurve *> fcurves_to_delete;
-      foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+      foreach_fcurve_in_action_slot_editable(action, adt->slot_handle, [&](FCurve &fcurve) {
         if (can_delete_fcurve(&fcurve, ob)) {
           fcurves_to_delete.append(&fcurve);
         }
@@ -885,7 +885,7 @@ static wmOperatorStatus clear_anim_vse_exec(bContext *C, wmOperator *op)
 
   Action &action = dna_action->wrap();
   Vector<FCurve *> fcurves_to_delete;
-  foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+  foreach_fcurve_in_action_slot_editable(action, adt->slot_handle, [&](FCurve &fcurve) {
     for (const std::string &strip_path : selected_strips_rna_paths) {
       if (fcurve_belongs_to_strip(fcurve, strip_path)) {
         fcurves_to_delete.append(&fcurve);
@@ -1032,7 +1032,7 @@ static wmOperatorStatus delete_key_vse_without_keying_set(bContext *C, wmOperato
   VectorSet<std::string> modified_strips;
   Vector<FCurve *> modified_fcurves;
 
-  foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+  foreach_fcurve_in_action_slot_editable(action, adt->slot_handle, [&](FCurve &fcurve) {
     std::string changed_strip;
     for (const std::string &strip_path : selected_strips_rna_paths) {
       if (fcurve_belongs_to_strip(fcurve, strip_path)) {
@@ -1160,7 +1160,7 @@ static wmOperatorStatus delete_key_v3d_without_keying_set(bContext *C, wmOperato
 
       Action &action = act->wrap();
       Vector<FCurve *> modified_fcurves;
-      foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
+      foreach_fcurve_in_action_slot_editable(action, adt->slot_handle, [&](FCurve &fcurve) {
         if (!can_delete_key(&fcurve, ob, op->reports)) {
           return;
         }

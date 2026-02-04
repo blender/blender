@@ -400,13 +400,19 @@ static void selectconnected_posebonechildren(Object &ob,
                                              bPoseChannel &pose_bone,
                                              const bool extend)
 {
-  animrig::pose_bone_descendent_depth_iterator(*ob.pose, pose_bone, [extend](bPoseChannel &child) {
+  animrig::pose_bone_descendent_depth_iterator(*ob.pose, pose_bone, [&](bPoseChannel &child) {
     if (!child.bone) {
       BLI_assert_unreachable();
       return false;
     }
-    /* Stop when unconnected child is encountered, or when unselectable bone is encountered. */
-    if (!(child.bone->flag & BONE_CONNECTED) || (child.bone->flag & BONE_UNSELECTABLE)) {
+    /* pose_bone_descendent_depth_iterator also visits `pose_bone` itself, and that should
+     * always be (de)selected, because it's always "connected" to itself. */
+    const bool is_input_bone = (&child == &pose_bone);
+    const bool is_connected = is_input_bone || (child.bone->flag & BONE_CONNECTED);
+    const bool is_selectable = (child.bone->flag & BONE_UNSELECTABLE) == 0;
+    const bool is_ok = is_selectable && is_connected;
+    if (!is_ok) {
+      /* Stop when unconnected child or unselectable bone is encountered. */
       return false;
     }
 
@@ -483,7 +489,8 @@ void POSE_OT_select_linked_pick(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Select Connected";
   ot->idname = "POSE_OT_select_linked_pick";
-  ot->description = "Select bones linked by parent/child connections under the mouse cursor";
+  ot->description =
+      "Select bones linked by connected parent/child relationships under the mouse cursor";
 
   /* callbacks */
   /* leave 'exec' unset */
@@ -546,7 +553,8 @@ void POSE_OT_select_linked(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Select Connected";
   ot->idname = "POSE_OT_select_linked";
-  ot->description = "Select all bones linked by parent/child connections to the current selection";
+  ot->description =
+      "Select all bones linked by connected parent/child relationships from the current selection";
 
   /* callbacks */
   ot->exec = pose_select_linked_exec;

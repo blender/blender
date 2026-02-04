@@ -107,8 +107,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
   FileAssetSelectParams *asset_params = sfile->asset_params;
 
   if (!asset_params) {
-    asset_params = sfile->asset_params = MEM_new_for_free<FileAssetSelectParams>(
-        "FileAssetSelectParams");
+    asset_params = sfile->asset_params = MEM_new<FileAssetSelectParams>("FileAssetSelectParams");
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
     asset_params->asset_library_ref.type = ASSET_LIBRARY_ALL;
     asset_params->asset_library_ref.custom_library_index = -1;
@@ -154,7 +153,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 
   /* create new parameters if necessary */
   if (!sfile->params) {
-    sfile->params = MEM_new_for_free<FileSelectParams>("fileselparams");
+    sfile->params = MEM_new<FileSelectParams>("fileselparams");
     /* set path to most recently opened .blend */
     BLI_path_split_dir_file(blendfile_path,
                             sfile->params->dir,
@@ -283,7 +282,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
       /* Protection against Python scripts not setting proper size limit. */
       char *glob = RNA_property_string_get_alloc(op->ptr, prop, nullptr, 0, nullptr);
-      BLI_SCOPED_DEFER([&]() { MEM_freeN(glob); });
+      BLI_SCOPED_DEFER([&]() { MEM_delete(glob); });
       STRNCPY_UTF8(params->filter_glob, glob);
       /* Fix stupid things that truncating might have generated,
        * like last group being a 'match everything' wildcard-only one... */
@@ -1043,7 +1042,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   int numfiles;
 
   if (sfile->layout == nullptr) {
-    sfile->layout = MEM_callocN<FileLayout>("file_layout");
+    sfile->layout = MEM_new_zeroed<FileLayout>("file_layout");
     sfile->layout->dirty = true;
   }
   else if (sfile->layout->dirty == false) {

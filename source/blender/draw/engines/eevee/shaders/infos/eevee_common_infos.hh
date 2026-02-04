@@ -60,9 +60,9 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_gbuffer_data)
 DEFINE("GBUFFER_LOAD")
-SAMPLER(11, usampler2DArray, gbuf_header_tx)
-SAMPLER(14, sampler2DArray, gbuf_closure_tx)
-SAMPLER(15, sampler2DArray, gbuf_normal_tx)
+SAMPLER(GBUF_HEADER_TEX_SLOT, usampler2DArray, gbuf_header_tx)
+SAMPLER(GBUF_CLOSURE_TEX_SLOT, sampler2DArray, gbuf_closure_tx)
+SAMPLER(GBUF_NORMAL_TEX_SLOT, sampler2DArray, gbuf_normal_tx)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_render_pass_out)

@@ -120,8 +120,24 @@ void BKE_previewimg_ensure(PreviewImage *prv, int size);
  * Managing the downloading and loading is done externally, e.g. with #PreviewLoadJob.
  */
 bool BKE_previewimg_is_online(const PreviewImage *prv);
-std::optional<blender::StringRefNull> BKE_previewimg_deferred_filepath_get(
-    const PreviewImage *prv);
+/**
+ * Get the file path associated with a deferred preview (a preview that needs loading from disk and
+ * potentially downloading before that). For previews with #THB_SOURCE_DIRECT (see
+ * #BKE_previewimg_deferred_thumb_source_get()), this is the path to the preview directly. For
+ * others, this is a path to the previewed item, such as an image file or data-block inside a
+ * .blend file. The #PreviewLoadJob and the `IMB_thumbs.hh` API handle the actual loading with this
+ * path.
+ * \return The file path associated with the preview, or no value if the preview is not a deferred
+ *   preview (meaning it doesn't have a file path associated).
+ */
+std::optional<StringRefNull> BKE_previewimg_deferred_filepath_get(const PreviewImage *prv);
+/**
+ * Get the #ThumbSource for this deferred preview (a preview that needs loading from disk and
+ * potentially downloading before that), indicating what external resource the preview is created
+ * from.
+ * \return The #ThumbSource for this preview, or no value if the preview is not a deferred preview
+ *   (meaning it isn't loaded from an external source).
+ */
 std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *prv);
 
 /**
@@ -145,6 +161,7 @@ PreviewImage *BKE_previewimg_cached_get(const char *name);
  */
 PreviewImage *BKE_previewimg_cached_ensure(const char *name);
 
+/* TODO rename this. */
 /**
  * Generate a #PreviewImage from given `filepath`, using thumbnails management, if not yet
  * existing. Does not actually generate the preview, #BKE_previewimg_ensure() must be called for
@@ -154,9 +171,19 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                    const char *filepath,
                                                    int source,
                                                    bool force_update);
+/* TODO rename this. */
+/**
+ * Create a #PreviewImage that is marked as "needs downloading" to \a dst_filepath before loading
+ * from disk. Unlike the name suggests, this does not actually generate, load or read the preview.
+ * Call #BKE_previewimg_ensure() for that (blocking), or attach the preview to a UI button as
+ * preview icon (non-blocking, on-demand load). Also see #PreviewLoadJob for non-blocking loading.
+ *
+ * \param force_update: Clear the preview's data, so it will be re-loaded once actual loading is
+ *   triggered.
+ */
 PreviewImage *BKE_previewimg_online_thumbnail_read(const char *name,
                                                    const char *dst_filepath,
-                                                   const bool force_update);
+                                                   bool force_update);
 
 void BKE_previewimg_cached_release(const char *name);
 

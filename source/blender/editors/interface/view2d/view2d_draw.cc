@@ -116,7 +116,7 @@ static int calculate_grid_step(const int base, const float pixel_width, const fl
 }
 
 /* Mostly the same as `calculate_grid_step, except in can divide into the 0-1 range. */
-static float calculate_grid_step_subframes(const int base,
+static float calculate_grid_step_fractions(const int base,
                                            const float pixel_width,
                                            const float view_width)
 {
@@ -133,31 +133,29 @@ static float calculate_grid_step_subframes(const int base,
 /* Draw parallel lines
  ************************************/
 
-struct ParallelLinesSet {
-  float offset;
-  float distance;
-};
-
-static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
-                                          float region_start,
-                                          float region_end,
+/**
+ * Calculate the amount of lines to draw and the starting position in view space (frame or value).
+ *
+ * \param line_distance value distance between lines.
+ * \param view_bounds the value bounds visible in the region. x has to be lower than y.
+ */
+static void get_parallel_lines_draw_steps(const float line_distance,
+                                          const float2 view_bounds,
                                           float *r_first,
                                           uint *r_steps)
 {
-  if (region_start >= region_end) {
+  if (view_bounds.x >= view_bounds.y) {
     *r_first = 0;
     *r_steps = 0;
     return;
   }
 
-  BLI_assert(lines->distance > 0);
-  BLI_assert(region_start <= region_end);
+  BLI_assert(line_distance > 0);
 
-  *r_first = ceilf((region_start - lines->offset) / lines->distance) * lines->distance +
-             lines->offset;
+  *r_first = ceilf(view_bounds.x / line_distance) * line_distance;
 
-  if (region_start <= *r_first && region_end >= *r_first) {
-    *r_steps = std::max(0.0f, floorf((region_end - *r_first) / lines->distance)) + 1;
+  if (view_bounds.x <= *r_first && view_bounds.y >= *r_first) {
+    *r_steps = std::max(0.0f, floorf((view_bounds.y - *r_first) / line_distance)) + 1;
   }
   else {
     *r_steps = 0;
@@ -165,24 +163,25 @@ static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
 }
 
 /**
- * \param rect_mask: Region size in pixels.
+ * \param rect_mask Region size in pixels.
+ * \param line_distance Distance in view space (frame or value) between lines.
  */
-static void draw_parallel_lines(const ParallelLinesSet *lines,
+static void draw_parallel_lines(const float line_distance,
                                 const rctf *rect,
                                 const rcti *rect_mask,
                                 const uchar color[3],
-                                char direction)
+                                const char direction)
 {
   float first;
   uint steps, steps_max;
 
   if (direction == 'v') {
-    get_parallel_lines_draw_steps(lines, rect->xmin, rect->xmax, &first, &steps);
+    get_parallel_lines_draw_steps(line_distance, {rect->xmin, rect->xmax}, &first, &steps);
     steps_max = BLI_rcti_size_x(rect_mask);
   }
   else {
     BLI_assert(direction == 'h');
-    get_parallel_lines_draw_steps(lines, rect->ymin, rect->ymax, &first, &steps);
+    get_parallel_lines_draw_steps(line_distance, {rect->ymin, rect->ymax}, &first, &steps);
     steps_max = BLI_rcti_size_y(rect_mask);
   }
 
@@ -217,14 +216,14 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
 
   if (direction == 'v') {
     for (uint i = 0; i < steps; i++) {
-      const float xpos = first + i * lines->distance;
+      const float xpos = first + i * line_distance;
       immVertex2f(pos, xpos, rect->ymin);
       immVertex2f(pos, xpos, rect->ymax);
     }
   }
   else {
     for (uint i = 0; i < steps; i++) {
-      const float ypos = first + i * lines->distance;
+      const float ypos = first + i * line_distance;
       immVertex2f(pos, rect->xmin, ypos);
       immVertex2f(pos, rect->xmax, ypos);
     }
@@ -235,13 +234,13 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
 }
 
 static void view2d_draw_lines_internal(const View2D *v2d,
-                                       const ParallelLinesSet *lines,
+                                       const float line_distance,
                                        const uchar color[3],
                                        char direction)
 {
   GPU_matrix_push_projection();
   view2d_view_ortho(v2d);
-  draw_parallel_lines(lines, &v2d->cur, &v2d->mask, color, direction);
+  draw_parallel_lines(line_distance, &v2d->cur, &v2d->mask, color, direction);
   GPU_matrix_pop_projection();
 }
 
@@ -253,7 +252,6 @@ static void view2d_draw_lines(const View2D *v2d,
   if (display_minor_lines) {
     uchar minor_color[3];
     theme::get_color_shade_3ubv(TH_GRID, 16, minor_color);
-    ParallelLinesSet minor_lines;
     int distance_int;
     if (major_distance > 1) {
       distance_int = round_fl_to_int(major_distance);
@@ -266,23 +264,19 @@ static void view2d_draw_lines(const View2D *v2d,
       distance_int = round_fl_to_int(major_distance * subframe_range);
     }
     const int divisor = get_divisor(distance_int);
-    minor_lines.distance = major_distance / divisor;
-    minor_lines.offset = 0;
+    const float line_distance = major_distance / divisor;
     const int pixel_width = BLI_rcti_size_x(&v2d->mask) + 1;
     const float view_width = BLI_rctf_size_x(&v2d->cur);
 
     if ((pixel_width / view_width) * (major_distance / divisor) > MIN_MAJOR_LINE_DISTANCE / 5) {
-      view2d_draw_lines_internal(v2d, &minor_lines, minor_color, direction);
+      view2d_draw_lines_internal(v2d, line_distance, minor_color, direction);
     }
   }
 
   {
     uchar major_color[3];
     theme::get_color_3ubv(TH_GRID, major_color);
-    ParallelLinesSet major_lines;
-    major_lines.distance = major_distance;
-    major_lines.offset = 0;
-    view2d_draw_lines_internal(v2d, &major_lines, major_color, direction);
+    view2d_draw_lines_internal(v2d, major_distance, major_color, direction);
   }
 }
 
@@ -290,15 +284,18 @@ static void view2d_draw_lines(const View2D *v2d,
  **************************************************/
 
 using PositionToString =
-    void (*)(void *user_data, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy);
+    void (*)(void *user_data, float value, float step, char *r_str, uint str_maxncpy);
 
+/**
+ * \param distance is the distance between lines in the data unit of the v2d (frame or value).
+ */
 static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const View2D *v2d,
-                                             float distance,
+                                             const float distance,
                                              const rcti *rect,
                                              PositionToString to_string,
                                              void *to_string_data,
-                                             int colorid)
+                                             const int colorid)
 {
   if (view2d_scale_get_x(v2d) <= 0.0f) {
     return;
@@ -307,14 +304,11 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   float start;
   uint steps;
   {
-    ParallelLinesSet lines;
-    lines.distance = distance;
-    lines.offset = 0;
-    get_parallel_lines_draw_steps(&lines,
-                                  view2d_region_to_view_x(v2d, rect->xmin),
-                                  view2d_region_to_view_x(v2d, rect->xmax),
-                                  &start,
-                                  &steps);
+    get_parallel_lines_draw_steps(
+        distance,
+        {view2d_region_to_view_x(v2d, rect->xmin), view2d_region_to_view_x(v2d, rect->xmax)},
+        &start,
+        &steps);
     const uint steps_max = BLI_rcti_size_x(&v2d->mask) + 1;
     if (UNLIKELY(steps >= steps_max)) {
       return;
@@ -382,14 +376,11 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   float start;
   uint steps;
   {
-    ParallelLinesSet lines;
-    lines.distance = distance;
-    lines.offset = 0;
-    get_parallel_lines_draw_steps(&lines,
-                                  view2d_region_to_view_y(v2d, rect->ymin),
-                                  view2d_region_to_view_y(v2d, rect->ymax),
-                                  &start,
-                                  &steps);
+    get_parallel_lines_draw_steps(
+        distance,
+        {view2d_region_to_view_y(v2d, rect->ymin), view2d_region_to_view_y(v2d, rect->ymax)},
+        &start,
+        &steps);
     const uint steps_max = BLI_rcti_size_y(&v2d->mask) + 1;
     if (UNLIKELY(steps >= steps_max)) {
       return;
@@ -434,44 +425,48 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   GPU_matrix_pop_projection();
 }
 
-static void view_to_string__frame_number(
-    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, char *r_str, uint str_maxncpy)
-{
-  BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(v2d_pos));
-}
-
-static void view_to_string__time(
-    void *user_data, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
+/**
+ * Generates a timecode string with the time represented by `frame`.
+ * The timecode formatting depends on the user preferences.
+ *
+ * \param user_data has to be a `Scene *` so we can get the frames per second.
+ */
+static void frame_to_time_string(
+    void *user_data, const float frame, const float step, char *r_str, const uint str_maxncpy)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
 
   int brevity_level = -1;
-  if (U.timecode_style == USER_TIMECODE_MINIMAL && v2d_step >= scene->frames_per_second()) {
+  if (U.timecode_style == USER_TIMECODE_MINIMAL && step >= scene->frames_per_second()) {
     brevity_level = 1;
   }
 
   BLI_timecode_string_from_time(r_str,
                                 str_maxncpy,
                                 brevity_level,
-                                v2d_pos / float(scene->frames_per_second()),
+                                frame / float(scene->frames_per_second()),
                                 scene->frames_per_second(),
                                 U.timecode_style);
 }
 
-static void view_to_string__value(
-    void * /*user_data*/, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
+/**
+ * Generates a string based on the given `frame`.
+ * Depending on `step` the returned string has 0 - 3 decimal positions.
+ */
+static void frame_to_string(
+    void * /*user_data*/, const float frame, const float step, char *r_str, const uint str_maxncpy)
 {
-  if (v2d_step >= 1.0f * UI_SCALE_FAC) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(v2d_pos));
+  if (step >= 1.0f) {
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(frame));
   }
-  else if (v2d_step >= 0.5f * UI_SCALE_FAC) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", v2d_pos);
+  else if (step >= 0.5f) {
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", frame);
   }
-  else if (v2d_step >= 0.01f * UI_SCALE_FAC) {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", v2d_pos);
+  else if (step >= 0.01f) {
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", frame);
   }
   else {
-    BLI_snprintf_utf8(r_str, str_maxncpy, "%.3f", v2d_pos);
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.3f", frame);
   }
 }
 
@@ -481,132 +476,101 @@ static void view_to_string__value(
 float view2d_grid_resolution_x__frames_or_seconds(const View2D *v2d, const Scene *scene)
 {
   const int fps = round_db_to_int(scene->frames_per_second());
-  return calculate_grid_step_subframes(
+  return calculate_grid_step_fractions(
       fps, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
 }
 
 float view2d_grid_resolution_y__values(const View2D *v2d, const int base)
 {
-  return calculate_grid_step_subframes(
+  return calculate_grid_step_fractions(
       base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
 }
 
 /* Line Drawing API
  **************************************************/
 
-void view2d_draw_lines_x__discrete_values(const View2D *v2d,
-                                          const int base,
-                                          bool display_minor_lines)
+void view2d_draw_lines_x(const View2D *v2d,
+                         const bool display_seconds,
+                         const bool show_fractions,
+                         bool draw_minor_lines,
+                         const int base)
 {
-  const float major_line_distance = calculate_grid_step(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  view2d_draw_lines(
-      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
+  float major_line_distance;
+  /* Fractions are only drawn when not showing a timecode. See `view2d_draw_scale_x`. */
+  if (show_fractions && !display_seconds) {
+    major_line_distance = calculate_grid_step_fractions(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+  }
+  else {
+    major_line_distance = calculate_grid_step(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+    draw_minor_lines = draw_minor_lines && (major_line_distance > 1);
+  }
+  /* The extra check for minor line drawing here is so minor lines are *not* drawn
+   * below a distance of 1. */
+  view2d_draw_lines(v2d, major_line_distance, draw_minor_lines, 'v');
 }
 
-void view2d_draw_lines_x__values(const View2D *v2d, const int base)
+void view2d_draw_lines_x_frames(const View2D *v2d,
+                                const Scene *scene,
+                                const bool display_seconds,
+                                const bool show_fractions,
+                                const bool draw_minor_lines)
 {
-  const float major_line_distance = calculate_grid_step_subframes(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  view2d_draw_lines(v2d, major_line_distance, true, 'v');
+  const int fps = round_db_to_int(scene->frames_per_second());
+  view2d_draw_lines_x(v2d, display_seconds, show_fractions, draw_minor_lines, fps);
 }
 
-void view2d_draw_lines_y__values(const View2D *v2d, const int base)
+void view2d_draw_lines_y(const View2D *v2d, const bool show_fractions, const int base)
 {
-  const float major_line_distance = calculate_grid_step_subframes(
-      base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+  float major_line_distance;
+  if (show_fractions) {
+    major_line_distance = calculate_grid_step_fractions(
+        base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+  }
+  else {
+    major_line_distance = calculate_grid_step(
+        base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+  }
   view2d_draw_lines(v2d, major_line_distance, true, 'h');
-}
-
-void view2d_draw_lines_x__discrete_time(const View2D *v2d,
-                                        const int base,
-                                        bool display_minor_lines)
-{
-  const float major_line_distance = calculate_grid_step(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  view2d_draw_lines(
-      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
-}
-
-void view2d_draw_lines_x__discrete_frames_or_seconds(const View2D *v2d,
-                                                     const Scene *scene,
-                                                     bool display_seconds,
-                                                     bool display_minor_lines)
-{
-  /* Rounding fractional frame-rates for drawing. */
-  const int fps = round_db_to_int(scene->frames_per_second());
-  if (display_seconds) {
-    view2d_draw_lines_x__discrete_time(v2d, fps, display_minor_lines);
-  }
-  else {
-    view2d_draw_lines_x__discrete_values(v2d, fps, display_minor_lines);
-  }
-}
-
-void view2d_draw_lines_x__frames_or_seconds(const View2D *v2d,
-                                            const Scene *scene,
-                                            bool display_seconds)
-{
-  const int fps = round_db_to_int(scene->frames_per_second());
-  if (display_seconds) {
-    view2d_draw_lines_x__discrete_time(v2d, fps, true);
-  }
-  else {
-    view2d_draw_lines_x__values(v2d, fps);
-  }
 }
 
 /* Scale indicator text drawing API
  **************************************************/
 
-void view2d_draw_scale_y__values(
-    const ARegion *region, const View2D *v2d, const rcti *rect, int colorid, const int base)
+void view2d_draw_scale_y(
+    const ARegion *region, const View2D *v2d, const rcti *rect, const int colorid, const int base)
 {
-  const float step = calculate_grid_step_subframes(
+  const float step = calculate_grid_step_fractions(
       base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
-  draw_vertical_scale_indicators(
-      region, v2d, step, 0.0f, rect, view_to_string__value, nullptr, colorid);
+  draw_vertical_scale_indicators(region, v2d, step, 0.0f, rect, frame_to_string, nullptr, colorid);
 }
 
-void view2d_draw_scale_x__discrete_frames_or_seconds(const ARegion *region,
-                                                     const View2D *v2d,
-                                                     const rcti *rect,
-                                                     const Scene *scene,
-                                                     bool display_seconds,
-                                                     int colorid,
-                                                     const int base)
+void view2d_draw_scale_x(const ARegion *region,
+                         const View2D *v2d,
+                         const rcti *rect,
+                         const Scene *scene,
+                         const bool display_seconds,
+                         const bool show_fractions,
+                         const int colorid,
+                         const int base)
 {
-  const float step = calculate_grid_step(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-  if (display_seconds) {
-    draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
+  float step;
+  /* The timecode string does not change on fractions of a frame so it makes no sense to display
+   * that. */
+  if (show_fractions && !display_seconds) {
+    step = calculate_grid_step_fractions(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
   }
   else {
-    draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__frame_number, nullptr, colorid);
+    step = calculate_grid_step(base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
   }
-}
-
-void view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
-                                            const View2D *v2d,
-                                            const rcti *rect,
-                                            const Scene *scene,
-                                            bool display_seconds,
-                                            int colorid,
-                                            const int base)
-{
   if (display_seconds) {
-    const float step = calculate_grid_step(
-        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
     draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
+        region, v2d, step, rect, frame_to_time_string, (void *)scene, colorid);
   }
   else {
-    const float step = calculate_grid_step_subframes(
-        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
-    draw_horizontal_scale_indicators(
-        region, v2d, step, rect, view_to_string__value, nullptr, colorid);
+    draw_horizontal_scale_indicators(region, v2d, step, rect, frame_to_string, nullptr, colorid);
   }
 }
 

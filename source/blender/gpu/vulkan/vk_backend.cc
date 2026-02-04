@@ -8,8 +8,6 @@
 
 #include <sstream>
 
-#include "GHOST_C-api.h"
-
 #include "BLI_path_utils.hh"
 #include "BLI_threads.h"
 
@@ -154,10 +152,10 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.geometryShader == VK_FALSE) {
     missing_capabilities.append("geometry shaders");
   }
+#endif
   if (features.features.vertexPipelineStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("vertex pipeline stores and atomics");
   }
-#endif
   if (features.features.multiViewport == VK_FALSE) {
     missing_capabilities.append("multi viewport");
   }
@@ -337,10 +335,10 @@ void VKBackend::platform_init()
            GPU_ARCHITECTURE_IMR);
 }
 
-static void init_device_list(GHOST_ContextHandle ghost_context)
+static void init_device_list(GHOST_IContext *ghost_context)
 {
   GHOST_VulkanHandles vulkan_handles = {};
-  GHOST_GetVulkanHandles(ghost_context, &vulkan_handles);
+  ghost_context->getVulkanHandles(vulkan_handles);
 
   uint32_t physical_devices_count = 0;
   vkEnumeratePhysicalDevices(vulkan_handles.instance, &physical_devices_count, nullptr);
@@ -500,6 +498,16 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.vertex_input_dynamic_state = false;
   }
 
+  /* Disable vertex input dynamic state for Qualcomm devices (#153414).
+   *
+   * TODO: We should re-validate vertex input dynamic state as there are multiple vendors with
+   * similar issues. It might be an oversight. Will wait for feedback from the driver developers
+   * and perfrom some out of bounds error checks.
+   */
+  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    extensions.vertex_input_dynamic_state = false;
+  }
+
   /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel
    * performance is better when disabled (20%). On Qualcomm devices the improvement can be
    * substantial (16% on shader_balls.blend).
@@ -588,11 +596,11 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   context.render_graph().add_node(dispatch_indirect_info);
 }
 
-Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
+Context *VKBackend::context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context)
 {
   if (ghost_window) {
     BLI_assert(ghost_context == nullptr);
-    ghost_context = GHOST_GetDrawingContext(static_cast<GHOST_WindowHandle>(ghost_window));
+    ghost_context = ghost_window->getDrawingContext();
   }
 
   BLI_assert(ghost_context != nullptr);
@@ -600,16 +608,16 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device.init(ghost_context);
     device.extensions_get().log();
     device.workarounds_get().log();
-    init_device_list(static_cast<GHOST_ContextHandle>(ghost_context));
+    init_device_list(ghost_context);
   }
 
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device.context_register(*context);
-  GHOST_SetVulkanSwapBuffersCallbacks(static_cast<GHOST_ContextHandle>(ghost_context),
-                                      VKContext::swap_buffer_draw_callback,
-                                      VKContext::swap_buffer_acquired_callback,
-                                      VKContext::openxr_acquire_framebuffer_image_callback,
-                                      VKContext::openxr_release_framebuffer_image_callback);
+  ghost_context->setVulkanSwapBuffersCallbacks(
+      VKContext::swap_buffer_draw_callback,
+      VKContext::swap_buffer_acquired_callback,
+      VKContext::openxr_acquire_framebuffer_image_callback,
+      VKContext::openxr_release_framebuffer_image_callback);
 
   return context;
 }
@@ -657,10 +665,10 @@ Texture *VKBackend::texture_alloc(const char *name)
 TexturePool *VKBackend::texturepool_alloc()
 {
   if (G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL) {
-    CLOG_INFO(&LOG, "Using texture pool \"TexturePoolImpl\".");
+    CLOG_TRACE(&LOG, "Using texture pool \"TexturePoolImpl\".");
     return new TexturePoolImpl();
   }
-  CLOG_INFO(&LOG, "Using texture pool \"VKTexturePool\".");
+  CLOG_TRACE(&LOG, "Using texture pool \"VKTexturePool\".");
   return new VKTexturePool();
 }
 

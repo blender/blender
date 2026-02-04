@@ -49,7 +49,7 @@ struct FieldToGridItemsAccessor : public socket_items::SocketItemsAccessorDefaul
 
   static void destruct_item(GeometryNodeFieldToGridItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

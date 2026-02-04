@@ -541,7 +541,7 @@ static wmOperatorStatus duplicate_metaelems_exec(bContext *C, wmOperator * /*op*
     if (ml) {
       while (ml) {
         if (ml->flag & SELECT) {
-          newml = static_cast<MetaElem *>(MEM_dupallocN(ml));
+          newml = MEM_dupalloc(ml);
           BLI_addtail(mb->editelems, newml);
           mb->lastelem = newml;
           ml->flag &= ~SELECT;
@@ -601,7 +601,7 @@ static wmOperatorStatus delete_metaelems_exec(bContext *C, wmOperator * /*op*/)
             mb->lastelem = nullptr;
           }
           BLI_remlink(mb->editelems, ml);
-          MEM_freeN(ml);
+          MEM_delete(ml);
         }
         ml = next;
       }

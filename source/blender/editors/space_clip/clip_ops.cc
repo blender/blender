@@ -383,7 +383,7 @@ static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
   SpaceClip *sc = CTX_wm_space_clip(C);
   ViewPanData *vpd;
 
-  op->customdata = vpd = MEM_callocN<ViewPanData>("ClipViewPanData");
+  op->customdata = vpd = MEM_new_zeroed<ViewPanData>("ClipViewPanData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
@@ -422,7 +422,7 @@ static void view_pan_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(vpd);
+  MEM_delete(vpd);
 }
 
 static wmOperatorStatus view_pan_exec(bContext *C, wmOperator *op)
@@ -563,7 +563,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   ARegion *region = CTX_wm_region(C);
   ViewZoomData *vpd;
 
-  op->customdata = vpd = MEM_callocN<ViewZoomData>("ClipViewZoomData");
+  op->customdata = vpd = MEM_new_zeroed<ViewZoomData>("ClipViewZoomData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
@@ -604,7 +604,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(vpd);
+  MEM_delete(vpd);
 }
 
 static wmOperatorStatus view_zoom_exec(bContext *C, wmOperator *op)
@@ -1344,11 +1344,11 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
       return nullptr;
     }
 
-    mem = MEM_calloc_arrayN<uchar>(size, "movieclip proxy memory file");
+    mem = MEM_new_array_zeroed<uchar>(size, "movieclip proxy memory file");
 
     if (BLI_read(file, mem, size) != size) {
       close(file);
-      MEM_freeN(mem);
+      MEM_delete(mem);
       return nullptr;
     }
 
@@ -1395,7 +1395,7 @@ static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
 
     IMB_freeImBuf(ibuf);
 
-    MEM_freeN(mem);
+    MEM_delete(mem);
   }
 }
 
@@ -1431,7 +1431,7 @@ static void do_sequence_proxy(void *pjv,
   queue.progress = progress;
 
   TaskPool *task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW);
-  handles = MEM_calloc_arrayN<ProxyThread>(tot_thread, "proxy threaded handles");
+  handles = MEM_new_array_zeroed<ProxyThread>(tot_thread, "proxy threaded handles");
   for (int i = 0; i < tot_thread; i++) {
     ProxyThread *handle = &handles[i];
 
@@ -1460,7 +1460,7 @@ static void do_sequence_proxy(void *pjv,
     }
   }
 
-  MEM_freeN(handles);
+  MEM_delete(handles);
 }
 
 static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)

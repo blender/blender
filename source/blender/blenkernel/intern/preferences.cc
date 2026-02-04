@@ -62,7 +62,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
                                                      const char *name,
                                                      const char *dirpath)
 {
-  bUserAssetLibrary *library = MEM_new_for_free<bUserAssetLibrary>(__func__);
+  bUserAssetLibrary *library = MEM_new<bUserAssetLibrary>(__func__);
 
   BLI_addtail(&userdef->asset_libraries, library);
   if (userdef->experimental.no_data_block_packing) {
@@ -264,7 +264,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
                                                        const char *module,
                                                        const char *custom_dirpath)
 {
-  bUserExtensionRepo *repo = MEM_new_for_free<bUserExtensionRepo>(__func__);
+  bUserExtensionRepo *repo = MEM_new<bUserExtensionRepo>(__func__);
   BLI_addtail(&userdef->extension_repos, repo);
 
   /* Set the unique ID-name. */
@@ -296,7 +296,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
 void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo *repo)
 {
   if (repo->access_token) {
-    MEM_freeN(repo->access_token);
+    MEM_delete(repo->access_token);
   }
   BLI_freelinkN(&userdef->extension_repos, repo);
 }
@@ -520,6 +520,32 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_url_prefix(
   return nullptr;
 }
 
+int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
+                                             const bUserExtensionRepo *repo)
+{
+  return BLI_findindex(&userdef->extension_repos, repo);
+}
+
+void BKE_preferences_extension_repo_read_data(BlendDataReader *reader, bUserExtensionRepo *repo)
+{
+  if (repo->access_token) {
+    BLO_read_string(reader, &repo->access_token);
+  }
+}
+
+void BKE_preferences_extension_repo_write_data(BlendWriter *writer, const bUserExtensionRepo *repo)
+{
+  if (repo->access_token) {
+    BLO_write_string(writer, repo->access_token);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Web/remote utilities
+ * \{ */
+
 int BKE_preferences_remote_scheme_end(const char *url)
 {
   /* Technically the "://" are not part of the scheme, so subtract 3 from the return value. */
@@ -538,8 +564,7 @@ int BKE_preferences_remote_scheme_end(const char *url)
   return 0;
 }
 
-void BKE_preferences_remote_to_name(const char *remote_url,
-                                    char name[sizeof(bUserExtensionRepo::name)])
+void BKE_preferences_remote_to_name(const char *remote_url, char name[MAX_NAME])
 {
 #ifdef _WIN32
   const bool is_win32 = true;
@@ -598,33 +623,12 @@ void BKE_preferences_remote_to_name(const char *remote_url,
     }
   }
 
-  BLI_strncpy_utf8(
-      name, remote_url, std::min(size_t(c - remote_url) + 1, sizeof(bUserExtensionRepo::name)));
+  BLI_strncpy_utf8(name, remote_url, std::min(size_t(c - remote_url) + 1, size_t(MAX_NAME)));
 
   if (is_win32) {
     if (is_file) {
       BLI_path_slash_native(name);
     }
-  }
-}
-
-int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
-                                             const bUserExtensionRepo *repo)
-{
-  return BLI_findindex(&userdef->extension_repos, repo);
-}
-
-void BKE_preferences_extension_repo_read_data(BlendDataReader *reader, bUserExtensionRepo *repo)
-{
-  if (repo->access_token) {
-    BLO_read_string(reader, &repo->access_token);
-  }
-}
-
-void BKE_preferences_extension_repo_write_data(BlendWriter *writer, const bUserExtensionRepo *repo)
-{
-  if (repo->access_token) {
-    BLO_write_string(writer, repo->access_token);
   }
 }
 
@@ -637,7 +641,7 @@ void BKE_preferences_extension_repo_write_data(BlendWriter *writer, const bUserE
 static bUserAssetShelfSettings *asset_shelf_settings_new(UserDef *userdef,
                                                          const char *shelf_idname)
 {
-  bUserAssetShelfSettings *settings = MEM_new_for_free<bUserAssetShelfSettings>(__func__);
+  bUserAssetShelfSettings *settings = MEM_new<bUserAssetShelfSettings>(__func__);
   BLI_addtail(&userdef->asset_shelves_settings, settings);
   STRNCPY(settings->shelf_idname, shelf_idname);
   BLI_assert(BLI_listbase_is_empty(&settings->enabled_catalog_paths));

@@ -470,4 +470,10 @@ bool node_socket_not_black(const GPUNodeStack &socket)
   return socket.link || socket.vec[0] > 1e-5f || socket.vec[1] > 1e-5f || socket.vec[2] > 1e-5f;
 }
 
+void search_link_ops_for_shader_bsdf_node(nodes::GatherLinkSearchOpParams &params)
+{
+  static Set<std::string> skip_socket_identifiers = {"Weight"};
+  nodes::search_filtered_link_ops_for_basic_node(params, skip_socket_identifiers);
+}
+
 }  // namespace blender

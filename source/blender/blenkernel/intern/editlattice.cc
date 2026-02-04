@@ -32,13 +32,13 @@ void BKE_editlattice_free(Object *ob)
     Lattice *editlt = lt->editlatt->latt;
 
     if (editlt->def) {
-      MEM_freeN(editlt->def);
+      MEM_delete(editlt->def);
     }
     if (editlt->dvert) {
       BKE_defvert_array_free(editlt->dvert, editlt->pntsu * editlt->pntsv * editlt->pntsw);
     }
-    MEM_freeN(editlt);
-    MEM_freeN(lt->editlatt);
+    MEM_delete(editlt);
+    MEM_delete(lt->editlatt);
 
     lt->editlatt = nullptr;
   }
@@ -55,13 +55,14 @@ void BKE_editlattice_make(Object *obedit)
   if (actkey) {
     BKE_keyblock_convert_to_lattice(actkey, lt);
   }
-  lt->editlatt = MEM_new_for_free<EditLatt>("editlatt");
-  lt->editlatt->latt = static_cast<Lattice *>(MEM_dupallocN(lt));
-  lt->editlatt->latt->def = static_cast<BPoint *>(MEM_dupallocN(lt->def));
+  lt->editlatt = MEM_new<EditLatt>("editlatt");
+  lt->editlatt->latt = MEM_dupalloc(lt);
+  lt->editlatt->latt->def = MEM_dupalloc(lt->def);
 
   if (lt->dvert) {
     int tot = lt->pntsu * lt->pntsv * lt->pntsw;
-    lt->editlatt->latt->dvert = MEM_malloc_arrayN<MDeformVert>(size_t(tot), "Lattice MDeformVert");
+    lt->editlatt->latt->dvert = MEM_new_array_uninitialized<MDeformVert>(size_t(tot),
+                                                                         "Lattice MDeformVert");
     BKE_defvert_array_copy(lt->editlatt->latt->dvert, lt->dvert, tot);
   }
 
@@ -81,9 +82,9 @@ void BKE_editlattice_load(Object *obedit)
   lt = id_cast<Lattice *>(obedit->data);
   editlt = lt->editlatt->latt;
 
-  MEM_freeN(lt->def);
+  MEM_delete(lt->def);
 
-  lt->def = static_cast<BPoint *>(MEM_dupallocN(editlt->def));
+  lt->def = MEM_dupalloc(editlt->def);
 
   lt->flag = editlt->flag;
 
@@ -110,11 +111,11 @@ void BKE_editlattice_load(Object *obedit)
     tot = editlt->pntsu * editlt->pntsv * editlt->pntsw;
 
     if (actkey->data) {
-      MEM_freeN(actkey->data);
+      MEM_delete_void(actkey->data);
     }
 
     fp = static_cast<float *>(
-        actkey->data = MEM_calloc_arrayN(tot, size_t(lt->key->elemsize), "actkey->data"));
+        actkey->data = MEM_new_array_zeroed(tot, size_t(lt->key->elemsize), "actkey->data"));
     actkey->totelem = tot;
 
     bp = editlt->def;
@@ -133,7 +134,7 @@ void BKE_editlattice_load(Object *obedit)
   if (editlt->dvert) {
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
 
-    lt->dvert = MEM_malloc_arrayN<MDeformVert>(size_t(tot), "Lattice MDeformVert");
+    lt->dvert = MEM_new_array_uninitialized<MDeformVert>(size_t(tot), "Lattice MDeformVert");
     BKE_defvert_array_copy(lt->dvert, editlt->dvert, tot);
   }
 }

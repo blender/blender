@@ -933,7 +933,7 @@ static void test_eevee_shadow_finalize()
       }
     }
 
-    MEM_SAFE_FREE(pixels);
+    MEM_SAFE_DELETE(pixels);
 
     /** The layout of these expected strings is Y down. */
     StringRefNull expected_pages =
@@ -1552,7 +1552,7 @@ static void test_eevee_shadow_tilemap_amend()
         "0000000000000000 0000000000000000\n";
 
     EXPECT_EQ(expected_offset_lod0, stringify_offset(0));
-    MEM_SAFE_FREE(pixels);
+    MEM_SAFE_DELETE(pixels);
   }
 
   GPU_shader_unbind();

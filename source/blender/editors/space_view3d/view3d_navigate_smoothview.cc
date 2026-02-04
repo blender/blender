@@ -349,7 +349,7 @@ void ED_view3d_smooth_view_ex(
 
     /* Keep track of running timer! */
     if (rv3d->sms == nullptr) {
-      rv3d->sms = MEM_mallocN<SmoothView3DStore>("smoothview v3d");
+      rv3d->sms = MEM_new_uninitialized<SmoothView3DStore>("smoothview v3d");
     }
     *rv3d->sms = sms;
     if (rv3d->smooth_timer) {
@@ -475,7 +475,7 @@ static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
     rv3d->view_axis_roll = sms->org_view_axis_roll;
   }
 
-  MEM_freeN(rv3d->sms);
+  MEM_delete(rv3d->sms);
   rv3d->sms = nullptr;
 
   WM_event_timer_remove(wm, win, rv3d->smooth_timer);
@@ -624,7 +624,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 void view3d_smooth_free(RegionView3D *rv3d)
 {
-  MEM_SAFE_FREE(rv3d->sms);
+  MEM_SAFE_DELETE(rv3d->sms);
 }
 
 /** \} */

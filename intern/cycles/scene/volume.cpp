@@ -156,18 +156,13 @@ class VolumeMeshBuilder {
 
   void add_padding(const int pad_size);
 
-  void create_mesh(vector<float3> &vertices,
-                   vector<int> &indices,
-                   const float face_overlap_avoidance,
-                   const bool ray_marching);
+  void create_mesh(vector<float3> &vertices, vector<int> &indices, const bool ray_marching);
 
   void generate_vertices_and_quads(vector<int3> &vertices_is,
                                    vector<QuadData> &quads,
                                    const bool ray_marching);
 
-  void convert_object_space(const vector<int3> &vertices,
-                            vector<float3> &out_vertices,
-                            const float face_overlap_avoidance);
+  void convert_object_space(const vector<int3> &vertices, vector<float3> &out_vertices);
 
   void convert_quads_to_tris(const vector<QuadData> &quads, vector<int> &tris);
 
@@ -212,7 +207,6 @@ void VolumeMeshBuilder::add_padding(const int pad_size)
 
 void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
                                     vector<int> &indices,
-                                    const float face_overlap_avoidance,
                                     const bool ray_marching)
 {
   /* We create vertices in index space (is), and only convert them to object
@@ -222,7 +216,7 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
 
   generate_vertices_and_quads(vertices_is, quads, ray_marching);
 
-  convert_object_space(vertices_is, vertices, face_overlap_avoidance);
+  convert_object_space(vertices_is, vertices);
 
   convert_quads_to_tris(quads, indices);
 }
@@ -335,22 +329,15 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
 }
 
 void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
-                                             vector<float3> &out_vertices,
-                                             const float face_overlap_avoidance)
+                                             vector<float3> &out_vertices)
 {
-  /* compute the offset for the face overlap avoidance */
-  openvdb::Coord dim = bbox.dim();
-
-  const float3 cell_size = make_float3(1.0f / dim.x(), 1.0f / dim.y(), 1.0f / dim.z());
-  const float3 point_offset = cell_size * face_overlap_avoidance;
-
   out_vertices.reserve(vertices.size());
 
   for (size_t i = 0; i < vertices.size(); ++i) {
     openvdb::math::Vec3d p = topology_grid->indexToWorld(
         openvdb::math::Vec3d(vertices[i].x, vertices[i].y, vertices[i].z));
     const float3 vertex = make_float3((float)p.x(), (float)p.y(), (float)p.z());
-    out_vertices.push_back(vertex + point_offset);
+    out_vertices.push_back(vertex);
   }
 }
 
@@ -686,18 +673,11 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
 
   builder.add_padding(pad_size);
 
-  /* Slightly offset vertex coordinates to avoid overlapping faces with other
-   * volumes or meshes. The proper solution would be to improve intersection in
-   * the kernel to support robust handling of multiple overlapping faces or use
-   * an all-hit intersection similar to shadows. */
-  const float face_overlap_avoidance = 0.1f *
-                                       hash_uint_to_float(hash_string(volume->name.c_str()));
-
   /* Create mesh. */
   vector<float3> vertices;
   vector<int> indices;
   const bool ray_marching = scene->integrator->get_volume_ray_marching();
-  builder.create_mesh(vertices, indices, face_overlap_avoidance, ray_marching);
+  builder.create_mesh(vertices, indices, ray_marching);
 
   volume->reserve_mesh(vertices.size(), indices.size() / 3);
   volume->used_shaders.clear();
@@ -813,6 +793,12 @@ void VolumeManager::tag_update(const Geometry *geometry)
 void VolumeManager::tag_update_indices()
 {
   update_root_indices_ = true;
+}
+
+void VolumeManager::tag_update_algorithm()
+{
+  need_rebuild_ = true;
+  algorithm_modified_ = true;
 }
 
 bool VolumeManager::is_homogeneous_volume(const Object *object, const Shader *shader)
@@ -1200,7 +1186,7 @@ void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene)
   assert(scene->integrator->get_volume_ray_marching());
 
   if (!need_update_step_size && !dscene->volume_step_size.is_modified() &&
-      !scene->integrator->volume_step_rate_is_modified() && last_algorithm == RAY_MARCHING)
+      !scene->integrator->volume_step_rate_is_modified() && !algorithm_modified_)
   {
     return;
   }
@@ -1233,17 +1219,17 @@ void VolumeManager::device_update(Device *device,
 {
   if (scene->integrator->get_volume_ray_marching()) {
     /* No need to update octree for ray marching. */
-    if (last_algorithm == NULL_SCATTERING) {
+    if (algorithm_modified_) {
       dscene->volume_tree_nodes.free();
       dscene->volume_tree_roots.free();
       dscene->volume_tree_root_ids.free();
     }
     update_step_size(scene, dscene);
-    last_algorithm = RAY_MARCHING;
+    algorithm_modified_ = false;
     return;
   }
 
-  if (need_rebuild_ || last_algorithm == RAY_MARCHING) {
+  if (need_rebuild_) {
     /* Data needed for volume shader evaluation. */
     device->const_copy_to("data", &dscene->data, sizeof(dscene->data));
 
@@ -1269,10 +1255,10 @@ void VolumeManager::device_update(Device *device,
     update_visualization_ = false;
   }
 
-  if (last_algorithm == RAY_MARCHING) {
+  if (algorithm_modified_) {
     dscene->volume_step_size.free();
+    algorithm_modified_ = false;
   }
-  last_algorithm = NULL_SCATTERING;
 }
 
 void VolumeManager::device_free(DeviceScene *dscene)

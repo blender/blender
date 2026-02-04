@@ -13,6 +13,7 @@
 #ifdef WITH_OPENVDB
 #  include <openvdb/Grid.h>
 #  include <openvdb/tools/Prune.h>
+#  include <openvdb/tools/ValueTransformer.h>
 #endif
 
 namespace blender::bke::volume_grid {
@@ -292,7 +293,8 @@ GVolumeGrid VolumeGridData::copy() const
   std::lock_guard lock{mutex_};
   this->ensure_grid_loaded();
   /* Can't use #MEM_new because the default constructor is private. */
-  VolumeGridData *new_copy = new (MEM_mallocN(sizeof(VolumeGridData), __func__)) VolumeGridData();
+  VolumeGridData *new_copy = new (MEM_new_uninitialized(sizeof(VolumeGridData), __func__))
+      VolumeGridData();
   /* Makes a deep copy of the meta-data but shares the tree. */
   new_copy->grid_ = grid_->copyGrid();
   new_copy->tree_sharing_info_ = tree_sharing_info_;
@@ -702,15 +704,15 @@ openvdb::GridBase::Ptr create_grid_with_topology(const openvdb::MaskTree &topolo
                                                  const VolumeGridType grid_type)
 {
   openvdb::GridBase::Ptr grid;
-  BKE_volume_grid_type_to_static_type(grid_type, [&](auto type_tag) {
-    using GridT = typename decltype(type_tag)::type;
-    using TreeT = typename GridT::TreeType;
-    using ValueType = typename TreeT::ValueType;
-    const ValueType background{};
-    auto tree = std::make_shared<TreeT>(topology, background, openvdb::TopologyCopy());
-    grid = openvdb::createGrid(std::move(tree));
-    grid->setTransform(transform.copy());
-  });
+  BKE_volume_grid_type_to_static_type(
+      grid_type, [&]<std::derived_from<openvdb::GridBase> GridT>() {
+        using TreeT = typename GridT::TreeType;
+        using ValueType = typename TreeT::ValueType;
+        const ValueType background{};
+        auto tree = std::make_shared<TreeT>(topology, background, openvdb::TopologyCopy());
+        grid = openvdb::createGrid(std::move(tree));
+        grid->setTransform(transform.copy());
+      });
   return grid;
 }
 
@@ -801,9 +803,68 @@ void set_grid_background(openvdb::GridBase &grid_base, const GPointer value)
   });
 }
 
+void set_inactive_values(openvdb::GridBase &grid_base, const GPointer value)
+{
+  to_typed_grid(grid_base, [&](auto &grid) {
+    using GridT = std::decay_t<decltype(grid)>;
+    using ValueType = typename GridT::ValueType;
+    auto &tree = grid.tree();
+
+    BLI_assert(value.type()->size == sizeof(ValueType));
+    const ValueType &new_value = *static_cast<const ValueType *>(value.get());
+
+    openvdb::tools::foreach(tree.beginValueOff(), [&](const typename GridT::ValueOffIter &iter) {
+      iter.setValue(new_value);
+    });
+  });
+}
+
 void prune_inactive(openvdb::GridBase &grid_base)
 {
   to_typed_grid(grid_base, [&](auto &grid) { openvdb::tools::pruneInactive(grid.tree()); });
+}
+
+template<typename T>
+static void sample_tree_indices(const bke::OpenvdbTreeType<T> &tree,
+                                const Span<int> x,
+                                const Span<int> y,
+                                const Span<int> z,
+                                const IndexMask &mask,
+                                MutableSpan<T> dst)
+{
+  using TreeType = bke::OpenvdbTreeType<T>;
+  using TreeValueT = typename TreeType::ValueType;
+  using AccessorT = typename TreeType::ConstUnsafeAccessor;
+  using TraitsT = typename bke::VolumeGridTraits<T>;
+  /* Can use unsafe accessor because we know that the tree topology is not modified while we access
+   * it here. This reduces a significant amount of overhead. */
+  AccessorT accessor = const_cast<TreeType &>(tree).getConstUnsafeAccessor();
+
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
+    TreeValueT value = accessor.getValue(openvdb::Coord(x[i], y[i], z[i]));
+    dst[i] = TraitsT::to_blender(value);
+  });
+}
+
+void sample_tree_indices(const VolumeGridType grid_type,
+                         const openvdb::TreeBase &tree_base,
+                         Span<int> xs,
+                         Span<int> ys,
+                         Span<int> zs,
+                         const IndexMask &mask,
+                         GMutableSpan r_values)
+{
+  BLI_assert(grid_type == get_type(tree_base));
+  BKE_volume_grid_type_to_blender_value_type(grid_type, [&]<typename T>() {
+    if constexpr (is_same_any_v<T, bool, float, int, float3>) {
+      sample_tree_indices<T>(static_cast<const bke::OpenvdbTreeType<T> &>(tree_base),
+                             xs,
+                             ys,
+                             zs,
+                             mask,
+                             r_values.typed<T>());
+    }
+  });
 }
 
 #endif /* WITH_OPENVDB */

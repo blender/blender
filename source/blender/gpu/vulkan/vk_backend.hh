@@ -60,7 +60,7 @@ class VKBackend : public GPUBackend {
   void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override;
   void compute_dispatch_indirect(StorageBuf *indirect_buf) override;
 
-  Context *context_alloc(void *ghost_window, void *ghost_context) override;
+  Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context) override;
 
   Batch *batch_alloc() override;
   Fence *fence_alloc() override;

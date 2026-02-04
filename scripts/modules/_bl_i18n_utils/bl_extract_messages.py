@@ -1088,6 +1088,10 @@ def dump_asset_messages(msgs, reports, settings):
                     if node.bl_idname == "GeometryNodeWarning" and node.inputs['Message'].default_value:
                         warning_data = asset_data.setdefault("warnings", [])
                         warning_data.append(node.inputs['Message'].default_value)
+                    if node.bl_idname == "GeometryNodeMenuSwitch" and node.enum_items:
+                        enum_data = asset_data.setdefault("menu_items", [])
+                        for enum_item in node.enum_items:
+                            enum_data.append((enum_item.name, enum_item.description))
 
     for asset_file in sorted(asset_files):
         for asset in sorted(asset_files[asset_file], key=lambda a: a["name"]):
@@ -1120,6 +1124,18 @@ def dump_asset_messages(msgs, reports, settings):
                     msgsrc = f"Warning from node group {name}, file {asset_file}"
                     process_msg(
                         msgs, settings.DEFAULT_CONTEXT, warning, msgsrc,
+                        reports, None, settings,
+                    )
+            if "menu_items" in asset:
+                for item_name, item_description in sorted(asset["menu_items"]):
+                    msgsrc = f"Menu item name from node group {name}, file {asset_file}"
+                    process_msg(
+                        msgs, settings.DEFAULT_CONTEXT, item_name, msgsrc,
+                        reports, None, settings,
+                    )
+                    msgsrc = f"Menu item description from node group {name}, file {asset_file}"
+                    process_msg(
+                        msgs, settings.DEFAULT_CONTEXT, item_description, msgsrc,
                         reports, None, settings,
                     )
 

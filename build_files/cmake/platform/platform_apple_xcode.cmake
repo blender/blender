@@ -100,8 +100,8 @@ else()
 endif()
 
 # Require a relatively recent Xcode version.
-if(${XCODE_VERSION} VERSION_LESS 10.0)
-  message(FATAL_ERROR "Only Xcode version 10.0 and newer is supported")
+if(${XCODE_VERSION} VERSION_LESS 16.0)
+  message(FATAL_ERROR "Only Xcode version 16.0 and newer is supported")
 endif()
 
 # Collect list of OSX system versions which will be used to detect path to corresponding SDK.
@@ -125,9 +125,9 @@ if(OSX_SYSTEM MATCHES "([0-9]+)\\.([0-9]+)\\.([0-9]+)")
 endif()
 
 # Loop through all possible versions and pick the first one which resolves to a valid SDK path.
-set(OSX_SDK_PATH)
+set(OSX_SDK_PATH "")
 set(OSX_SDK_FOUND FALSE)
-set(OSX_SDKROOT)
+set(OSX_SDKROOT "")
 foreach(OSX_SDK_VERSION ${OSX_SDK_TEST_VERSIONS})
   set(CURRENT_OSX_SDK_PATH "${XCODE_SDK_DIR}/MacOSX${OSX_SDK_VERSION}.sdk")
   if(EXISTS ${CURRENT_OSX_SDK_PATH})

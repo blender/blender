@@ -70,13 +70,13 @@ static PyObject *bpy_app_icons_new_triangles(PyObject * /*self*/, PyObject *args
   }
 
   const size_t items_num = size_t(tris_len) * 3;
-  uchar(*coords)[2] = MEM_malloc_arrayN<uchar[2]>(items_num, __func__);
-  uchar(*colors)[4] = MEM_malloc_arrayN<uchar[4]>(items_num, __func__);
+  uchar(*coords)[2] = MEM_new_array_uninitialized<uchar[2]>(items_num, __func__);
+  uchar(*colors)[4] = MEM_new_array_uninitialized<uchar[4]>(items_num, __func__);
 
   memcpy(coords, PyBytes_AS_STRING(py_coords), sizeof(*coords) * items_num);
   memcpy(colors, PyBytes_AS_STRING(py_colors), sizeof(*colors) * items_num);
 
-  Icon_Geom *geom = MEM_mallocN<Icon_Geom>(__func__);
+  Icon_Geom *geom = MEM_new_uninitialized<Icon_Geom>(__func__);
   geom->coords_len = tris_len;
   geom->coords_range[0] = coords_range[0];
   geom->coords_range[1] = coords_range[1];

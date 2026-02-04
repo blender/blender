@@ -309,7 +309,7 @@ struct DynamicPaintBakeJob {
 static void dpaint_bake_free(void *customdata)
 {
   DynamicPaintBakeJob *job = static_cast<DynamicPaintBakeJob *>(customdata);
-  MEM_freeN(job);
+  MEM_delete(job);
 }
 
 static void dpaint_bake_endjob(void *customdata)
@@ -492,7 +492,7 @@ static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
   canvas->error[0] = '\0';
   canvas->flags |= MOD_DPAINT_BAKING;
 
-  DynamicPaintBakeJob *job = MEM_mallocN<DynamicPaintBakeJob>("DynamicPaintBakeJob");
+  DynamicPaintBakeJob *job = MEM_new_uninitialized<DynamicPaintBakeJob>("DynamicPaintBakeJob");
   job->bmain = CTX_data_main(C);
   job->scene = scene_eval;
   job->depsgraph = depsgraph;

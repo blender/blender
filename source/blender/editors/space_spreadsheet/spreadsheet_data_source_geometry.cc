@@ -361,7 +361,12 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     column_display_name = "Viewer";
   }
 
-  return std::make_unique<ColumnValues>(column_display_name, std::move(varray));
+  StringRef description;
+  if (varray.is_single()) {
+    description = TIP_("Stored as single value");
+  }
+
+  return std::make_unique<ColumnValues>(column_display_name, std::move(varray), description);
 }
 
 int GeometryDataSource::tot_rows() const
@@ -593,8 +598,15 @@ void VolumeDataSource::foreach_default_column_ids(
     return;
   }
 
-  for (const char *name :
-       {"Grid Name", "Data Type", "Class", "Extent", "Voxels", "Leaf Voxels", "Tiles", "Size"})
+  for (const char *name : {"Grid Name",
+                           "Data Type",
+                           "Class",
+                           "Voxel Extent",
+                           "Min Voxel",
+                           "Voxels",
+                           "Leaf Voxels",
+                           "Tiles",
+                           "Size"})
   {
     SpreadsheetColumnID column_id{const_cast<char *>(name)};
     fn(column_id, false);
@@ -674,12 +686,19 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
             [volume](const int64_t index) {
               return BKE_volume_grid_get(volume, index)->size_in_bytes();
             }),
+        "",
         ColumnValueDisplayHint::Bytes);
   }
-  if (STREQ(column_id.name, "Extent")) {
+  if (STREQ(column_id.name, "Voxel Extent")) {
     return std::make_unique<ColumnValues>(
-        IFACE_("Extent"), VArray<int3>::from_std_func(size, [volume](const int64_t index) {
+        IFACE_("Voxel Extent"), VArray<int3>::from_std_func(size, [volume](const int64_t index) {
           return int3(BKE_volume_grid_get(volume, index)->active_bounds().dim().asPointer());
+        }));
+  }
+  if (STREQ(column_id.name, "Min Voxel")) {
+    return std::make_unique<ColumnValues>(
+        IFACE_("Min Voxel"), VArray<int3>::from_std_func(size, [volume](const int64_t index) {
+          return int3(BKE_volume_grid_get(volume, index)->active_bounds().min().asPointer());
         }));
   }
 #else
@@ -712,8 +731,14 @@ void VolumeGridDataSource::foreach_default_column_ids(
     return;
   }
 
-  for (const char *name :
-       {"Data Type", "Class", "Extent", "Voxels", "Leaf Voxels", "Tiles", "Size"})
+  for (const char *name : {"Data Type",
+                           "Class",
+                           "Voxel Extent",
+                           "Min Voxel",
+                           "Voxels",
+                           "Leaf Voxels",
+                           "Tiles",
+                           "Size"})
   {
     SpreadsheetColumnID column_id{const_cast<char *>(name)};
     fn(column_id, false);
@@ -754,11 +779,16 @@ std::unique_ptr<ColumnValues> VolumeGridDataSource::get_column_values(
   if (STREQ(column_id.name, "Size")) {
     const int64_t size = grid.size_in_bytes();
     return std::make_unique<ColumnValues>(
-        IFACE_("Size"), VArray<int64_t>::from_single(size, 1), ColumnValueDisplayHint::Bytes);
+        IFACE_("Size"), VArray<int64_t>::from_single(size, 1), "", ColumnValueDisplayHint::Bytes);
   }
-  if (STREQ(column_id.name, "Extent")) {
+  if (STREQ(column_id.name, "Voxel Extent")) {
     const int3 extent = int3(grid.active_bounds().dim().asPointer());
-    return std::make_unique<ColumnValues>(IFACE_("Extent"), VArray<int3>::from_single(extent, 1));
+    return std::make_unique<ColumnValues>(IFACE_("Voxel Extent"),
+                                          VArray<int3>::from_single(extent, 1));
+  }
+  if (STREQ(column_id.name, "Min Voxel")) {
+    const int3 min = int3(grid.active_bounds().min().asPointer());
+    return std::make_unique<ColumnValues>(IFACE_("Min Voxel"), VArray<int3>::from_single(min, 1));
   }
   return {};
 }
@@ -1153,6 +1183,9 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
     return lookup_bundle_path(bundle, table_id.viewer_item_bundle_path);
   }
   if (value.is_list()) {
+    return value;
+  }
+  if (value.is_volume_grid()) {
     return value;
   }
   return {};

@@ -363,7 +363,7 @@ ccl_device_inline
 #endif
     float
     surface_shader_bsdf_eval(KernelGlobals kg,
-                             IntegratorState state,
+                             ccl_attr_maybe_unused IntegratorState state,
                              ccl_private ShaderData *sd,
                              const float3 wo,
                              ccl_private BsdfEval *bsdf_eval,

@@ -67,7 +67,6 @@ void ED_operatormacros_sequencer();
 Strip *special_preview_get();
 void special_preview_set(bContext *C, const int mval[2]);
 void special_preview_clear();
-bool sequencer_retiming_mode_is_active(const Scene *scene);
 /**
  * Returns collection with selected strips presented to user. If operation is done in preview,
  * collection is limited to selected presented strips, that can produce image output at current

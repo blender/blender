@@ -441,7 +441,7 @@ void ED_imbuf_sample_exit(bContext *C, wmOperator *op)
 
   ED_region_draw_cb_exit(info->art, info->draw_handle);
   ED_area_tag_redraw(CTX_wm_area(C));
-  MEM_freeN(info);
+  MEM_delete(info);
 }
 
 wmOperatorStatus ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -469,7 +469,7 @@ wmOperatorStatus ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEve
     }
   }
 
-  ImageSampleInfo *info = MEM_callocN<ImageSampleInfo>("ImageSampleInfo");
+  ImageSampleInfo *info = MEM_new_zeroed<ImageSampleInfo>("ImageSampleInfo");
 
   info->art = region->runtime->type;
   info->draw_handle = ED_region_draw_cb_activate(

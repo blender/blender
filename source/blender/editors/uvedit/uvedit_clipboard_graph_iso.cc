@@ -32,8 +32,8 @@ namespace blender {
 GraphISO::GraphISO(int n)
 {
   this->n = n;
-  label = MEM_malloc_arrayN<uint>(n, __func__);
-  adjmat = MEM_malloc_arrayN<uint8_t *>(n, __func__);
+  label = MEM_new_array_uninitialized<uint>(n, __func__);
+  adjmat = MEM_new_array_uninitialized<uint8_t *>(n, __func__);
 
   /* \note Allocation of `n * n` bytes total! */
 
@@ -43,7 +43,7 @@ GraphISO::GraphISO(int n)
      * Better still is to use a different algorithm. See for example:
      * https://www.uni-ulm.de/fileadmin/website_uni_ulm/iui.inst.190/Mitarbeiter/toran/beatcs09.pdf
      */
-    adjmat[i] = MEM_calloc_arrayN<uint8_t>(n * sizeof *adjmat[i], __func__);
+    adjmat[i] = MEM_new_array_zeroed<uint8_t>(n * sizeof *adjmat[i], __func__);
   }
   degree = nullptr;
 }
@@ -51,12 +51,12 @@ GraphISO::GraphISO(int n)
 GraphISO::~GraphISO()
 {
   for (int i = 0; i < n; i++) {
-    MEM_freeN(adjmat[i]);
+    MEM_delete(adjmat[i]);
   }
-  MEM_freeN(adjmat);
-  MEM_freeN(label);
+  MEM_delete(adjmat);
+  MEM_delete(label);
   if (degree) {
-    MEM_freeN(degree);
+    MEM_delete(degree);
   }
 }
 
@@ -72,7 +72,7 @@ void GraphISO::calculate_degrees() const
   if (degree) {
     return;
   }
-  degree = MEM_malloc_arrayN<uint>(n, __func__);
+  degree = MEM_new_array_uninitialized<uint>(n, __func__);
   for (int v = 0; v < n; v++) {
     int row_count = 0;
     for (int w = 0; w < n; w++) {
@@ -102,7 +102,7 @@ GraphISO *GraphISO::sort_vertices_by_degree() const
 {
   calculate_degrees();
 
-  int *vv = MEM_malloc_arrayN<int>(n, __func__);
+  int *vv = MEM_new_array_uninitialized<int>(n, __func__);
   for (int i = 0; i < n; i++) {
     vv[i] = i;
   }
@@ -122,7 +122,7 @@ GraphISO *GraphISO::sort_vertices_by_degree() const
   }
   subg->calculate_degrees();
 
-  MEM_freeN(vv);
+  MEM_delete(vv);
   return subg;
 }
 
@@ -320,10 +320,10 @@ static void maximum_common_subgraph_internal(int incumbent[][2],
 {
   int min = std::min(n0, n1);
 
-  uint8_t (*cur)[2] = MEM_malloc_arrayN<uint8_t[2]>(min, __func__);
-  uint8_t (*domains)[BDS] = MEM_malloc_arrayN<uint8_t[BDS]>(min * min, __func__);
-  uint8_t *left = MEM_malloc_arrayN<uint8_t>(n0, __func__);
-  uint8_t *right = MEM_malloc_arrayN<uint8_t>(n1, __func__);
+  uint8_t (*cur)[2] = MEM_new_array_uninitialized<uint8_t[2]>(min, __func__);
+  uint8_t (*domains)[BDS] = MEM_new_array_uninitialized<uint8_t[BDS]>(min * min, __func__);
+  uint8_t *left = MEM_new_array_uninitialized<uint8_t>(n0, __func__);
+  uint8_t *right = MEM_new_array_uninitialized<uint8_t>(n1, __func__);
 
   uint8_t v, w, *bd;
   int bd_pos = 0;
@@ -371,10 +371,10 @@ static void maximum_common_subgraph_internal(int incumbent[][2],
     }
   }
 
-  MEM_freeN(cur);
-  MEM_freeN(domains);
-  MEM_freeN(right);
-  MEM_freeN(left);
+  MEM_delete(cur);
+  MEM_delete(domains);
+  MEM_delete(right);
+  MEM_delete(left);
 }
 
 static bool check_automorphism(const GraphISO *g0,

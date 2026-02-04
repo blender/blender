@@ -51,12 +51,12 @@ static void subdiv_mesh_prepare_accumulator(SubdivDeformContext *ctx, int num_ve
   if (!ctx->have_displacement) {
     return;
   }
-  ctx->accumulated_counters = MEM_calloc_arrayN<int>(num_vertices, __func__);
+  ctx->accumulated_counters = MEM_new_array_zeroed<int>(num_vertices, __func__);
 }
 
 static void subdiv_mesh_context_free(SubdivDeformContext *ctx)
 {
-  MEM_SAFE_FREE(ctx->accumulated_counters);
+  MEM_SAFE_DELETE(ctx->accumulated_counters);
 }
 
 /** \} */

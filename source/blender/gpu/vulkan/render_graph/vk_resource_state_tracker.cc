@@ -68,6 +68,16 @@ void VKResourceStateTracker::add_image(VkImage vk_image,
   add_image(vk_image, use_subresource_tracking, {}, name);
 }
 
+void VKResourceStateTracker::add_aliased_image(VkImage vk_image,
+                                               bool use_subresource_tracking,
+                                               const char *name)
+{
+  add_image(vk_image,
+            use_subresource_tracking,
+            {VK_ACCESS_NONE, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_IMAGE_LAYOUT_UNDEFINED},
+            name);
+}
+
 void VKResourceStateTracker::add_swapchain_image(VkImage vk_image, const char *name)
 {
   add_image(vk_image,

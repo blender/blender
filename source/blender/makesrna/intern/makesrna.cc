@@ -244,8 +244,8 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   }
 
   /* Now compare the files: */
-  arr_new = MEM_malloc_arrayN<char>(size_t(len_new), "rna_cmp_file_new");
-  arr_org = MEM_malloc_arrayN<char>(size_t(len_org), "rna_cmp_file_org");
+  arr_new = MEM_new_array_uninitialized<char>(size_t(len_new), "rna_cmp_file_new");
+  arr_org = MEM_new_array_uninitialized<char>(size_t(len_org), "rna_cmp_file_org");
 
   if (fread(arr_new, sizeof(char), len_new, fp_new) != len_new) {
     CLOG_ERROR(&LOG, "unable to read file %s for comparison.", tmpfile);
@@ -261,8 +261,8 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
 
   cmp = memcmp(arr_new, arr_org, len_new);
 
-  MEM_freeN(arr_new);
-  MEM_freeN(arr_org);
+  MEM_delete(arr_new);
+  MEM_delete(arr_org);
 
   if (cmp) {
     REN_IF_DIFF;
@@ -364,8 +364,8 @@ static void rna_construct_wrapper_function_name(
 
 void *rna_alloc_from_buffer(const char *buffer, int buffer_size)
 {
-  AllocDefRNA *alloc = MEM_callocN<AllocDefRNA>("AllocDefRNA");
-  alloc->mem = MEM_mallocN(buffer_size, __func__);
+  AllocDefRNA *alloc = MEM_new_zeroed<AllocDefRNA>("AllocDefRNA");
+  alloc->mem = MEM_new_uninitialized(buffer_size, __func__);
   memcpy(alloc->mem, buffer, buffer_size);
   rna_addtail(&DefRNA.allocs, alloc);
   return alloc->mem;
@@ -373,8 +373,8 @@ void *rna_alloc_from_buffer(const char *buffer, int buffer_size)
 
 void *rna_calloc(int buffer_size)
 {
-  AllocDefRNA *alloc = MEM_callocN<AllocDefRNA>("AllocDefRNA");
-  alloc->mem = MEM_callocN(buffer_size, __func__);
+  AllocDefRNA *alloc = MEM_new_zeroed<AllocDefRNA>("AllocDefRNA");
+  alloc->mem = MEM_new_zeroed(buffer_size, __func__);
   rna_addtail(&DefRNA.allocs, alloc);
   return alloc->mem;
 }
@@ -491,7 +491,7 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
       if (parm->flag_parameter & PARM_RNAPTR) {
         return "PointerRNA";
       }
-      return rna_find_dna_type(reinterpret_cast<const char *>(pparm->type));
+      return rna_find_dna_type(reinterpret_cast<const char *>(pparm->pointer_type));
     }
     case PROP_COLLECTION: {
       return "CollectionVector";
@@ -749,13 +749,13 @@ static char *rna_def_property_get_func(
         if (dp->dnapointerlevel == 0) {
           fprintf(f,
                   "    return RNA_pointer_create_with_parent(*ptr, RNA_%s, &data->%s);\n",
-                  reinterpret_cast<const char *>(pprop->type),
+                  reinterpret_cast<const char *>(pprop->pointer_type),
                   dp->dnaname);
         }
         else {
           fprintf(f,
                   "    return RNA_pointer_create_with_parent(*ptr, RNA_%s, data->%s);\n",
-                  reinterpret_cast<const char *>(pprop->type),
+                  reinterpret_cast<const char *>(pprop->pointer_type),
                   dp->dnaname);
         }
       }
@@ -830,7 +830,7 @@ static char *rna_def_property_get_func(
             fprintf(f, "    unsigned int i;\n");
             fprintf(f, "    unsigned int len = %s(ptr, arraylen);\n\n", lenfunc);
             fprintf(f, "    for (i = 0; i < len; i++) {\n");
-            MEM_freeN(lenfunc);
+            MEM_delete(lenfunc);
           }
           else {
             fprintf(f, "    unsigned int i;\n\n");
@@ -1132,13 +1132,13 @@ static char *rna_def_property_set_func(
         if (dp->dnapointerlevel == 1) {
           /* Handle allocated char pointer properties. */
           fprintf(f,
-                  "    if (data->%s != nullptr) { MEM_freeN(data->%s); }\n",
+                  "    if (data->%s != nullptr) { MEM_delete(data->%s); }\n",
                   dp->dnaname,
                   dp->dnaname);
           fprintf(f, "    const size_t length = strlen(value);\n");
           fprintf(f, "    if (length > 0) {\n");
           fprintf(f,
-                  "        data->%s = MEM_malloc_arrayN<char>(length + 1, __func__);\n",
+                  "        data->%s = MEM_new_array_uninitialized<char>(length + 1, __func__);\n",
                   dp->dnaname);
           fprintf(f, "        memcpy(data->%s, value, length + 1);\n", dp->dnaname);
           fprintf(f, "    } else { data->%s = nullptr; }\n", dp->dnaname);
@@ -1179,9 +1179,9 @@ static char *rna_def_property_set_func(
         rna_print_data_get(f, dp);
 
         PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(dp->prop);
-        StructRNA *type = (pprop->type) ?
-                              rna_find_struct(reinterpret_cast<const char *>(pprop->type)) :
-                              nullptr;
+        StructRNA *type = (pprop->pointer_type) ? rna_find_struct(reinterpret_cast<const char *>(
+                                                      pprop->pointer_type)) :
+                                                  nullptr;
 
         if (prop->flag & PROP_ID_SELF_CHECK) {
           /* No pointers to self allowed. */
@@ -1264,7 +1264,7 @@ static char *rna_def_property_set_func(
             fprintf(f, "    unsigned int len = %s(ptr, arraylen);\n\n", lenfunc);
             rna_clamp_value_range(f, prop);
             fprintf(f, "    for (i = 0; i < len; i++) {\n");
-            MEM_freeN(lenfunc);
+            MEM_delete(lenfunc);
           }
           else {
             fprintf(f, "    unsigned int i;\n\n");
@@ -1808,20 +1808,20 @@ static char *rna_def_property_lookup_string_func(FILE *f,
   fprintf(f, "                }\n");
   fprintf(f, "            }\n");
   fprintf(f, "            else {\n");
-  fprintf(f, "                name = MEM_malloc_arrayN<char>(size_t(namelen) + 1,\n");
+  fprintf(f, "                name = MEM_new_array_uninitialized<char>(size_t(namelen) + 1,\n");
   fprintf(f, "                                               \"name string\");\n");
   fprintf(f,
           "                %s_%s_get(&iter.ptr, name);\n",
           item_name_base->identifier,
           rna_safe_id(item_name_prop->identifier));
   fprintf(f, "                if (strcmp(name, key) == 0) {\n");
-  fprintf(f, "                    MEM_freeN(name);\n\n");
+  fprintf(f, "                    MEM_delete(name);\n\n");
   fprintf(f, "                    found = true;\n");
   fprintf(f, "                    *r_ptr = iter.ptr;\n");
   fprintf(f, "                    break;\n");
   fprintf(f, "                }\n");
   fprintf(f, "                else {\n");
-  fprintf(f, "                    MEM_freeN(name);\n");
+  fprintf(f, "                    MEM_delete(name);\n");
   fprintf(f, "                }\n");
   fprintf(f, "            }\n");
   fprintf(f, "        }\n");
@@ -2160,7 +2160,7 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
           f, srna, prop, dp, reinterpret_cast<const char *>(pprop->get)));
       pprop->set = reinterpret_cast<PropPointerSetFunc>(rna_def_property_set_func(
           f, srna, prop, dp, reinterpret_cast<const char *>(pprop->set)));
-      if (!pprop->type) {
+      if (!pprop->pointer_type) {
         CLOG_ERROR(
             &LOG, "%s.%s, pointer must have a struct type.", srna->identifier, prop->identifier);
         DefRNA.error = true;
@@ -2715,15 +2715,17 @@ static void rna_auto_types()
           PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(dp.prop);
           StructRNA *type;
 
-          if (!pprop->type && !pprop->get) {
-            pprop->type = reinterpret_cast<StructRNA *>(
+          if (!pprop->pointer_type && !pprop->get) {
+            pprop->pointer_type = reinterpret_cast<StructRNA *>(
                 const_cast<char *>(rna_find_type(dp.dnatype)));
           }
 
           /* Only automatically define `PROP_ID_REFCOUNT` if it was not already explicitly set or
            * cleared by calls to `RNA_def_property_flag` or `RNA_def_property_clear_flag`. */
-          if ((pprop->flag_internal & PROP_INTERN_PTR_ID_REFCOUNT_FORCED) == 0 && pprop->type) {
-            type = rna_find_struct(reinterpret_cast<const char *>(pprop->type));
+          if ((pprop->flag_internal & PROP_INTERN_PTR_ID_REFCOUNT_FORCED) == 0 &&
+              pprop->pointer_type)
+          {
+            type = rna_find_struct(reinterpret_cast<const char *>(pprop->pointer_type));
             if (type && (type->flag & STRUCT_ID_REFCOUNT)) {
               pprop->flag |= PROP_ID_REFCOUNT;
             }
@@ -2912,14 +2914,18 @@ static void rna_generate_blender(BlenderRNA *brna, FILE *f)
           "BlenderRNA rna_blender_rna_create()\n"
           "{\n"
           "\tBlenderRNA brna{};\n");
+
   /* Allocate the structs before creating their definitions, so they can reference each other out
    * of their definition order.*/
-  for (std::unique_ptr<StructRNA> &srna : brna->structs) {
-    fprintf(f,
-            "\tbrna.structs.append(std::make_unique<StructRNA>());\n"
-            "\tRNA_%s = brna.structs.last().get();\n",
-            srna->identifier);
+  fprintf(f, "\tbrna.structs.resize(%d);\n", int(brna->structs.size()));
+  fprintf(f,
+          "\tfor (const int i : brna.structs.index_range()) {\n"
+          "\t\tbrna.structs[i] = std::make_unique<StructRNA>();\n"
+          "\t}\n");
+  for (const int i : brna->structs.index_range()) {
+    fprintf(f, "\tRNA_%s = brna.structs[%d].get();\n", brna->structs[i]->identifier, i);
   }
+
   for (std::unique_ptr<StructRNA> &srna : brna->structs) {
     fprintf(f, "\tregister_struct_%s(brna);\n", srna->identifier);
   }
@@ -3241,8 +3247,8 @@ static void rna_generate_property_decl(FILE *f,
   if (nest != nullptr) {
     size_t len = strlen(nest);
 
-    strnest = MEM_malloc_arrayN<char>(len + 2, "rna_generate_property -> strnest");
-    errnest = MEM_malloc_arrayN<char>(len + 2, "rna_generate_property -> errnest");
+    strnest = MEM_new_array_uninitialized<char>(len + 2, "rna_generate_property -> strnest");
+    errnest = MEM_new_array_uninitialized<char>(len + 2, "rna_generate_property -> errnest");
 
     strnest[0] = '_';
     memcpy(strnest + 1, nest, len + 1);
@@ -3289,8 +3295,8 @@ static void rna_generate_property_decl(FILE *f,
       prop->identifier);
 
   if (freenest) {
-    MEM_freeN(strnest);
-    MEM_freeN(errnest);
+    MEM_delete(strnest);
+    MEM_delete(errnest);
   }
 }
 
@@ -3302,8 +3308,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
   if (nest != nullptr) {
     size_t len = strlen(nest);
 
-    strnest = MEM_malloc_arrayN<char>(len + 2, "rna_generate_property -> strnest");
-    errnest = MEM_malloc_arrayN<char>(len + 2, "rna_generate_property -> errnest");
+    strnest = MEM_new_array_uninitialized<char>(len + 2, "rna_generate_property -> strnest");
+    errnest = MEM_new_array_uninitialized<char>(len + 2, "rna_generate_property -> errnest");
 
     strnest[0] = '_';
     memcpy(strnest + 1, nest, len + 1);
@@ -3502,7 +3508,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 
       /* XXX This systematically enforces that flag on ID pointers...
        * we'll probably have to revisit. :/ */
-      StructRNA *type = rna_find_struct(reinterpret_cast<const char *>(pprop->type));
+      StructRNA *type = rna_find_struct(reinterpret_cast<const char *>(pprop->pointer_type));
       if (type && (type->flag & STRUCT_ID) &&
           !(prop->flag_internal & PROP_INTERN_PTR_OWNERSHIP_FORCED))
       {
@@ -3784,8 +3790,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
               rna_function_string(pprop->set),
               rna_function_string(pprop->type_fn),
               rna_function_string(pprop->poll));
-      if (pprop->type) {
-        fprintf(f, "RNA_%s\n", reinterpret_cast<const char *>(pprop->type));
+      if (pprop->pointer_type) {
+        fprintf(f, "RNA_%s\n", reinterpret_cast<const char *>(pprop->pointer_type));
       }
       else {
         fprintf(f, "nullptr\n");
@@ -3817,8 +3823,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
   fprintf(f, "\t};\n");
 
   if (freenest) {
-    MEM_freeN(strnest);
-    MEM_freeN(errnest);
+    MEM_delete(strnest);
+    MEM_delete(errnest);
   }
 }
 

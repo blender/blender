@@ -78,7 +78,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 static void freeBind(CorrectiveSmoothModifierData *csmd)
 {
   implicit_sharing::free_shared_data(&csmd->bind_coords, &csmd->bind_coords_sharing_info);
-  MEM_SAFE_FREE(csmd->delta_cache.deltas);
+  MEM_SAFE_DELETE(csmd->delta_cache.deltas);
 
   csmd->bind_coords_num = 0;
 }
@@ -127,7 +127,7 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
   const Span<int> corner_edges = mesh->corner_edges();
 
   /* Flag boundary edges so only boundaries are set to 1. */
-  uint8_t *boundaries = MEM_calloc_arrayN<uint8_t>(size_t(edges.size()), __func__);
+  uint8_t *boundaries = MEM_new_array_zeroed<uint8_t>(size_t(edges.size()), __func__);
 
   for (const int64_t i : faces.index_range()) {
     for (const int edge : corner_edges.slice(faces[i])) {
@@ -143,7 +143,7 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
     }
   }
 
-  MEM_freeN(boundaries);
+  MEM_delete(boundaries);
 }
 
 /* -------------------------------------------------------------------- */
@@ -166,10 +166,10 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   struct SmoothingData_Simple {
     float delta[3];
   };
-  SmoothingData_Simple *smooth_data = MEM_calloc_arrayN<SmoothingData_Simple>(
+  SmoothingData_Simple *smooth_data = MEM_new_array_zeroed<SmoothingData_Simple>(
       size_t(vertexCos.size()), __func__);
 
-  float *vertex_edge_count_div = MEM_calloc_arrayN<float>(size_t(vertexCos.size()), __func__);
+  float *vertex_edge_count_div = MEM_new_array_zeroed<float>(size_t(vertexCos.size()), __func__);
 
   /* calculate as floats to avoid int->float conversion in #smooth_iter */
   for (i = 0; i < edges_num; i++) {
@@ -220,8 +220,8 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
     }
   }
 
-  MEM_freeN(vertex_edge_count_div);
-  MEM_freeN(smooth_data);
+  MEM_delete(vertex_edge_count_div);
+  MEM_delete(smooth_data);
 }
 
 /* -------------------------------------------------------------------- */
@@ -245,11 +245,11 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
     float delta[3];
     float edge_length_sum;
   };
-  SmoothingData_Weighted *smooth_data = MEM_calloc_arrayN<SmoothingData_Weighted>(
+  SmoothingData_Weighted *smooth_data = MEM_new_array_zeroed<SmoothingData_Weighted>(
       size_t(vertexCos.size()), __func__);
 
   /* calculate as floats to avoid int->float conversion in #smooth_iter */
-  float *vertex_edge_count = MEM_calloc_arrayN<float>(size_t(vertexCos.size()), __func__);
+  float *vertex_edge_count = MEM_new_array_zeroed<float>(size_t(vertexCos.size()), __func__);
   for (i = 0; i < edges_num; i++) {
     vertex_edge_count[edges[i][0]] += 1.0f;
     vertex_edge_count[edges[i][1]] += 1.0f;
@@ -317,8 +317,8 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
     }
   }
 
-  MEM_freeN(vertex_edge_count);
-  MEM_freeN(smooth_data);
+  MEM_delete(vertex_edge_count);
+  MEM_delete(smooth_data);
 }
 
 static void smooth_iter(CorrectiveSmoothModifierData *csmd,
@@ -349,7 +349,7 @@ static void smooth_verts(CorrectiveSmoothModifierData *csmd,
 
   if (dvert || (csmd->flag & MOD_CORRECTIVESMOOTH_PIN_BOUNDARY)) {
 
-    smooth_weights = MEM_malloc_arrayN<float>(size_t(vertexCos.size()), __func__);
+    smooth_weights = MEM_new_array_uninitialized<float>(size_t(vertexCos.size()), __func__);
 
     if (dvert) {
       mesh_get_weights(dvert,
@@ -370,7 +370,7 @@ static void smooth_verts(CorrectiveSmoothModifierData *csmd,
   smooth_iter(csmd, mesh, vertexCos, smooth_weights, uint(csmd->repeat));
 
   if (smooth_weights) {
-    MEM_freeN(smooth_weights);
+    MEM_delete(smooth_weights);
   }
 }
 
@@ -509,17 +509,18 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
 
   uint l_index;
 
-  float (*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
-                                                                 __func__);
+  float (*tangent_spaces)[3][3] = MEM_new_array_uninitialized<float[3][3]>(
+      size_t(corner_verts.size()), __func__);
 
   if (csmd->delta_cache.deltas_num != uint(corner_verts.size())) {
-    MEM_SAFE_FREE(csmd->delta_cache.deltas);
+    MEM_SAFE_DELETE(csmd->delta_cache.deltas);
   }
 
   /* allocate deltas if they have not yet been allocated, otherwise we will just write over them */
   if (!csmd->delta_cache.deltas) {
     csmd->delta_cache.deltas_num = uint(corner_verts.size());
-    csmd->delta_cache.deltas = MEM_malloc_arrayN<float[3]>(size_t(corner_verts.size()), __func__);
+    csmd->delta_cache.deltas = MEM_new_array_uninitialized<float[3]>(size_t(corner_verts.size()),
+                                                                     __func__);
   }
 
   smooth_verts(csmd, mesh, dvert, defgrp_index, smooth_vertex_coords);
@@ -540,7 +541,7 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
     mul_v3_m3v3(csmd->delta_cache.deltas[l_index], imat, delta);
   }
 
-  MEM_SAFE_FREE(tangent_spaces);
+  MEM_SAFE_DELETE(tangent_spaces);
 }
 
 static void correctivesmooth_modifier_do(ModifierData *md,
@@ -573,7 +574,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   {
     if (DEG_is_active(depsgraph)) {
       BLI_assert(csmd->bind_coords == nullptr);
-      csmd->bind_coords = MEM_malloc_arrayN<float[3]>(size_t(vertexCos.size()), __func__);
+      csmd->bind_coords = MEM_new_array_uninitialized<float[3]>(size_t(vertexCos.size()),
+                                                                __func__);
       csmd->bind_coords_sharing_info = implicit_sharing::info_for_mem_free(csmd->bind_coords);
       memcpy(csmd->bind_coords, vertexCos.data(), size_t(vertexCos.size_in_bytes()));
       csmd->bind_coords_num = uint(vertexCos.size());
@@ -689,11 +691,12 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
     const float scale = csmd->scale;
 
-    float (*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
-                                                                   __func__);
-    float *tangent_weights = MEM_malloc_arrayN<float>(size_t(corner_verts.size()), __func__);
-    float *tangent_weights_per_vertex = MEM_malloc_arrayN<float>(size_t(vertexCos.size()),
-                                                                 __func__);
+    float (*tangent_spaces)[3][3] = MEM_new_array_uninitialized<float[3][3]>(
+        size_t(corner_verts.size()), __func__);
+    float *tangent_weights = MEM_new_array_uninitialized<float>(size_t(corner_verts.size()),
+                                                                __func__);
+    float *tangent_weights_per_vertex = MEM_new_array_uninitialized<float>(
+        size_t(vertexCos.size()), __func__);
 
     calc_tangent_spaces(
         mesh, vertexCos, tangent_spaces, tangent_weights, tangent_weights_per_vertex);
@@ -712,9 +715,9 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       madd_v3_v3fl(vertexCos[v_index], delta, scale);
     }
 
-    MEM_freeN(tangent_spaces);
-    MEM_freeN(tangent_weights);
-    MEM_freeN(tangent_weights_per_vertex);
+    MEM_delete(tangent_spaces);
+    MEM_delete(tangent_weights);
+    MEM_delete(tangent_weights_per_vertex);
   }
 
 #ifdef DEBUG_TIME
@@ -725,7 +728,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
   /* when the modifier fails to execute */
 error:
-  MEM_SAFE_FREE(csmd->delta_cache.deltas);
+  MEM_SAFE_DELETE(csmd->delta_cache.deltas);
   csmd->delta_cache.deltas_num = 0;
 }
 

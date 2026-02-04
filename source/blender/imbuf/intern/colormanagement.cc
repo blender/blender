@@ -288,7 +288,7 @@ static bool colormanage_hashcmp(const void *av, const void *bv)
 static MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 {
   if (!ibuf->colormanage_cache) {
-    ibuf->colormanage_cache = MEM_callocN<ColormanageCache>("imbuf colormanage cache");
+    ibuf->colormanage_cache = MEM_new_zeroed<ColormanageCache>("imbuf colormanage cache");
   }
 
   if (!ibuf->colormanage_cache->moviecache) {
@@ -308,7 +308,7 @@ static MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 static void colormanage_cachedata_set(ImBuf *ibuf, ColormanageCacheData *data)
 {
   if (!ibuf->colormanage_cache) {
-    ibuf->colormanage_cache = MEM_callocN<ColormanageCache>("imbuf colormanage cache");
+    ibuf->colormanage_cache = MEM_new_zeroed<ColormanageCache>("imbuf colormanage cache");
   }
 
   ibuf->colormanage_cache->data = data;
@@ -450,7 +450,7 @@ static void colormanage_cache_put(ImBuf *ibuf,
 
   /* Store data which is needed to check whether cached buffer
    * could be used for color managed display settings. */
-  cache_data = MEM_callocN<ColormanageCacheData>("color manage cache imbuf data");
+  cache_data = MEM_new_zeroed<ColormanageCacheData>("color manage cache imbuf data");
   cache_data->look = view_settings->look;
   cache_data->exposure = view_settings->exposure;
   cache_data->gamma = view_settings->gamma;
@@ -648,7 +648,10 @@ void colormanagement_init()
 
   /* Then use fallback. */
   if (g_config == nullptr) {
+#ifdef WITH_OPENCOLORIO
+    /* Without OpenColorIO this just adds noise. */
     CLOG_STR_INFO_NOCHECK(&LOG, "Using fallback mode for management");
+#endif
     g_config = ocio::Config::create_fallback();
     colormanage_load_config(*g_config);
   }
@@ -726,21 +729,21 @@ static bool colormanage_use_look(const char *look_name, const char *view_name)
 
 void colormanage_cache_free(ImBuf *ibuf)
 {
-  MEM_SAFE_FREE(ibuf->display_buffer_flags);
+  MEM_SAFE_DELETE(ibuf->display_buffer_flags);
 
   if (ibuf->colormanage_cache) {
     ColormanageCacheData *cache_data = colormanage_cachedata_get(ibuf);
     MovieCache *moviecache = colormanage_moviecache_get(ibuf);
 
     if (cache_data) {
-      MEM_freeN(cache_data);
+      MEM_delete(cache_data);
     }
 
     if (moviecache) {
       IMB_moviecache_free(moviecache);
     }
 
-    MEM_freeN(ibuf->colormanage_cache);
+    MEM_delete(ibuf->colormanage_cache);
 
     ibuf->colormanage_cache = nullptr;
   }
@@ -927,12 +930,14 @@ static bool colormanage_check_display_settings(ColorManagedDisplaySettings *disp
     }
   }
 
-  CLOG_WARN(&LOG,
-            "Display \"%s\" used by %s not found, setting to \"%s\".",
-            display_settings->display_device,
-            what,
-            new_display_name.c_str());
-
+  /* Don't warn when only one display is available (e.g. fallback config). */
+  if (g_config->get_num_displays() > 1) {
+    CLOG_WARN(&LOG,
+              "Display \"%s\" used by %s not found, setting to \"%s\".",
+              display_settings->display_device,
+              what,
+              new_display_name.c_str());
+  }
   STRNCPY_UTF8(display_settings->display_device, new_display_name.c_str());
   return false;
 }
@@ -1000,11 +1005,14 @@ static bool colormanage_check_view_settings(ColorManagedDisplaySettings *display
     if (!view) {
       StringRefNull new_view_name = colormanage_find_matching_view_name(display, view_name);
       if (!new_view_name.is_empty()) {
-        CLOG_WARN(&LOG,
-                  "%s view \"%s\" not found, setting to \"%s\".",
-                  what,
-                  view_settings->view_transform,
-                  new_view_name.c_str());
+        /* Don't warn when only one view is available (e.g. fallback config). */
+        if (display->get_num_views() > 1) {
+          CLOG_WARN(&LOG,
+                    "%s view \"%s\" not found, setting to \"%s\".",
+                    what,
+                    view_settings->view_transform,
+                    new_view_name.c_str());
+        }
         STRNCPY_UTF8(view_settings->view_transform, new_view_name.c_str());
         ok = false;
       }
@@ -1017,12 +1025,14 @@ static bool colormanage_check_view_settings(ColorManagedDisplaySettings *display
   else {
     const ocio::Look *look = g_config->get_look_by_name(view_settings->look);
     if (look == nullptr) {
-      CLOG_WARN(&LOG,
-                "%s look \"%s\" not found, setting default \"%s\".",
-                what,
-                view_settings->look,
-                default_look_name);
-
+      /* Don't warn when only one look is available (e.g. fallback config). */
+      if (g_config->get_num_looks() > 1) {
+        CLOG_WARN(&LOG,
+                  "%s look \"%s\" not found, setting default \"%s\".",
+                  what,
+                  view_settings->look,
+                  default_look_name);
+      }
       STRNCPY_UTF8(view_settings->look, default_look_name);
       ok = false;
     }
@@ -1353,20 +1363,47 @@ const char *IMB_colormanagement_srgb_colorspace_name_get()
   return global_role_default_byte;
 }
 
+static Vector<char> imb_icc_profile_from_filepath(StringRef filepath)
+{
+  if (filepath.is_empty()) {
+    return {};
+  }
+  fstream f(filepath, std::ios::binary | std::ios::in | std::ios::ate);
+  if (!f.is_open()) {
+    return {};
+  }
+
+  const std::streamsize size = f.tellg();
+  if (size <= 0) {
+    return {};
+  }
+
+  Vector<char> icc_profile(size);
+  f.seekg(0, std::ios::beg);
+  if (!f.read(icc_profile.data(), icc_profile.size())) {
+    icc_profile.clear();
+  }
+  return icc_profile;
+}
+
 Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspace)
 {
-  /* ICC profiles shipped with Blender are named after the OpenColorIO interop ID. */
-  Vector<char> icc_profile;
+  /* First try icc_profile attribute from the config. */
+  Vector<char> icc_profile = imb_icc_profile_from_filepath(colorspace->icc_profile_path());
+  if (!icc_profile.is_empty()) {
+    return icc_profile;
+  }
 
+  /* Try ICC profiles shipped with Blender based on interop ID. */
   const StringRefNull interop_id = colorspace->interop_id();
   if (interop_id.is_empty()) {
-    return icc_profile;
+    return {};
   }
 
   const std::optional<std::string> dir = BKE_appdir_folder_id(BLENDER_DATAFILES,
                                                               "colormanagement");
   if (!dir.has_value()) {
-    return icc_profile;
+    return {};
   }
 
   char icc_filename[FILE_MAX];
@@ -1376,30 +1413,15 @@ Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspa
   char icc_filepath[FILE_MAX];
   BLI_path_join(icc_filepath, sizeof(icc_filepath), dir->c_str(), "icc", icc_filename);
 
-  fstream f(icc_filepath, std::ios::binary | std::ios::in | std::ios::ate);
-  if (!f.is_open()) {
+  icc_profile = imb_icc_profile_from_filepath(icc_filepath);
+  if (icc_profile.is_empty()) {
     /* If we can't find a scene referred filename, try display referred. */
-    StringRef icc_filepath_ref = icc_filepath;
+    const StringRef icc_filepath_ref = icc_filepath;
     if (icc_filepath_ref.endswith("_scene.icc")) {
-      std::string icc_filepath_display = icc_filepath_ref.drop_suffix(strlen("_scene.icc")) +
-                                         "_display.icc";
-      f.open(icc_filepath_display, std::ios::binary | std::ios::in | std::ios::ate);
+      const std::string icc_filepath_display = icc_filepath_ref.drop_suffix(strlen("_scene.icc")) +
+                                               "_display.icc";
+      icc_profile = imb_icc_profile_from_filepath(icc_filepath_display.c_str());
     }
-
-    if (!f.is_open()) {
-      return icc_profile;
-    }
-  }
-
-  std::streamsize size = f.tellg();
-  if (size <= 0) {
-    return icc_profile;
-  }
-  icc_profile.resize(size);
-
-  f.seekg(0, std::ios::beg);
-  if (!f.read(icc_profile.data(), icc_profile.size())) {
-    icc_profile.clear();
   }
 
   return icc_profile;
@@ -1475,7 +1497,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     cicp[3] = CICP_RANGE_FULL;
     return true;
   }
-  if (interop_id == "g24_rec2020_display") {
+  if (interop_id == "blender:g24_rec2020_display") {
     /* There is no gamma 2.4 TRC, but BT.709 is close. */
     cicp[0] = CICP_PRI_REC2020;
     cicp[1] = CICP_TRC_BT709;
@@ -1533,7 +1555,7 @@ const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
     interop_id = "g22_rec709_display";
   }
   else if (cicp[0] == CICP_PRI_REC2020 && cicp[1] == CICP_TRC_BT709) {
-    interop_id = "g24_rec2020_display";
+    interop_id = "blender:g24_rec2020_display";
   }
   else if (cicp[0] == CICP_PRI_REC709 && cicp[1] == CICP_TRC_BT709) {
     if (output == ColorManagedFileOutput::Video) {
@@ -1839,7 +1861,7 @@ static void do_display_buffer_apply_thread(DisplayBufferThread *handle)
   int channels = handle->channels;
   int width = handle->width;
   int height = handle->tot_line;
-  float *linear_buffer = MEM_malloc_arrayN<float>(
+  float *linear_buffer = MEM_new_array_uninitialized<float>(
       size_t(channels) * size_t(width) * size_t(height), "color conversion linear buffer");
 
   bool is_straight_alpha;
@@ -1884,7 +1906,7 @@ static void do_display_buffer_apply_thread(DisplayBufferThread *handle)
     }
   }
 
-  MEM_freeN(linear_buffer);
+  MEM_delete(linear_buffer);
 }
 
 static void display_buffer_apply_threaded(ImBuf *ibuf,
@@ -2885,8 +2907,8 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
 
   /* ensure color management bit fields exists */
   if (!ibuf->display_buffer_flags) {
-    ibuf->display_buffer_flags = MEM_calloc_arrayN<uint>(g_config->get_num_displays(),
-                                                         "imbuf display_buffer_flags");
+    ibuf->display_buffer_flags = MEM_new_array_zeroed<uint>(g_config->get_num_displays(),
+                                                            "imbuf display_buffer_flags");
   }
   else if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
     /* all display buffers were marked as invalid from other areas,
@@ -2905,7 +2927,7 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
     return display_buffer;
   }
 
-  display_buffer = MEM_malloc_arrayN<uchar>(
+  display_buffer = MEM_new_array_uninitialized<uchar>(
       DISPLAY_BUFFER_CHANNELS * size_t(ibuf->x) * size_t(ibuf->y), "imbuf display buffer");
 
   colormanage_display_buffer_process(
@@ -2942,8 +2964,8 @@ void IMB_display_buffer_transform_apply(uchar *display_buffer,
   ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(view_settings,
                                                                                  display_settings);
 
-  buffer = MEM_malloc_arrayN<float>(size_t(channels) * size_t(width) * size_t(height),
-                                    "display transform temp buffer");
+  buffer = MEM_new_array_uninitialized<float>(size_t(channels) * size_t(width) * size_t(height),
+                                              "display transform temp buffer");
   memcpy(buffer, linear_buffer, size_t(channels) * width * height * sizeof(float));
 
   IMB_colormanagement_processor_apply(cm_processor, buffer, width, height, channels, predivide);
@@ -2962,7 +2984,7 @@ void IMB_display_buffer_transform_apply(uchar *display_buffer,
                              width,
                              width);
 
-  MEM_freeN(buffer);
+  MEM_delete(buffer);
 }
 
 void IMB_display_buffer_release(void *cache_handle)
@@ -3628,7 +3650,7 @@ void IMB_colormanagement_working_space_convert(Main *bmain,
          * has to be duplicated before being converted to avoid changing the original. */
         const Span<ColorGeometry4f> src_data(*item.value.data_ptrs.first(), item.value.max_size);
 
-        auto *dst_data = MEM_malloc_arrayN<ColorGeometry4f>(
+        auto *dst_data = MEM_new_array_uninitialized<ColorGeometry4f>(
             src_data.size(), "IMB_colormanagement_working_space_convert");
         const ImplicitSharingPtr<> sharing_ptr(implicit_sharing::info_for_mem_free(dst_data));
 
@@ -3860,7 +3882,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
       channels = 4;
     }
 
-    display_buffer_float = MEM_malloc_arrayN<float>(
+    display_buffer_float = MEM_new_array_uninitialized<float>(
         size_t(channels) * size_t(width) * size_t(height), "display buffer for dither");
   }
 
@@ -3972,7 +3994,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
                                width,
                                ymin);
 
-    MEM_freeN(display_buffer_float);
+    MEM_delete(display_buffer_float);
   }
 }
 

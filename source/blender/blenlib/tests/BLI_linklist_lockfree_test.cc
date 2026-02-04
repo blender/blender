@@ -72,7 +72,7 @@ void concurrent_insert(TaskPool *__restrict pool, void *taskdata)
 {
   LockfreeLinkList *list = static_cast<LockfreeLinkList *>(BLI_task_pool_user_data(pool));
   CHECK_NOTNULL(list);
-  IndexedNode *node = MEM_mallocN<IndexedNode>("test node");
+  IndexedNode *node = MEM_new_uninitialized<IndexedNode>("test node");
   node->index = POINTER_AS_INT(taskdata);
   BLI_linklist_lockfree_insert(list, reinterpret_cast<LockfreeLinkNode *>(node));
 }
@@ -95,7 +95,7 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   BLI_task_pool_work_and_wait(pool);
   /* Verify we've got all the data properly inserted. */
   EXPECT_EQ(list.head, &list.dummy_node);
-  bool *visited_nodes = MEM_calloc_arrayN<bool>(nodes_num, "visited nodes");
+  bool *visited_nodes = MEM_new_array_zeroed<bool>(nodes_num, "visited nodes");
   /* First, we make sure that none of the nodes are added twice. */
   for (LockfreeLinkNode *node_v = BLI_linklist_lockfree_begin(&list); node_v != nullptr;
        node_v = node_v->next)
@@ -110,9 +110,9 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   for (int node_index = 0; node_index < nodes_num; ++node_index) {
     EXPECT_TRUE(visited_nodes[node_index]);
   }
-  MEM_freeN(visited_nodes);
+  MEM_delete(visited_nodes);
   /* Cleanup data. */
-  BLI_linklist_lockfree_free(&list, MEM_freeN);
+  BLI_linklist_lockfree_free(&list, MEM_delete_void);
   BLI_task_pool_free(pool);
 }
 

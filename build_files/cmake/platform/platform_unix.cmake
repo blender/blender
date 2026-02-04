@@ -93,10 +93,6 @@ if(DEFINED LIBDIR)
   include(platform_old_libs_update)
 
   set(WITH_STATIC_LIBS ON)
-  set(Boost_NO_BOOST_CMAKE ON)
-  set(Boost_ROOT ${LIBDIR}/boost)
-  set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)
-  set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
   set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
   set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
@@ -169,21 +165,23 @@ endif()
 add_bundled_libraries(vulkan/lib)
 
 function(check_freetype_for_brotli)
-  if((DEFINED HAVE_BROTLI AND HAVE_BROTLI) AND
-     (DEFINED HAVE_BROTLI_INC AND ("${HAVE_BROTLI_INC}" STREQUAL "${FREETYPE_INCLUDE_DIRS}")))
-    # Pass, the includes didn't change, use the cached value.
-  else()
-    unset(HAVE_BROTLI CACHE)
-    include(CheckSymbolExists)
-    set(CMAKE_REQUIRED_INCLUDES ${FREETYPE_INCLUDE_DIRS})
-    check_symbol_exists(FT_CONFIG_OPTION_USE_BROTLI "freetype/config/ftconfig.h" HAVE_BROTLI)
-    unset(CMAKE_REQUIRED_INCLUDES)
-    if(NOT HAVE_BROTLI)
-      unset(HAVE_BROTLI CACHE)
-      message(FATAL_ERROR "Freetype needs to be compiled with brotli support!")
+  if((DEFINED HAVE_BROTLI) AND (DEFINED HAVE_BROTLI_INC))
+    if(HAVE_BROTLI AND ("${HAVE_BROTLI_INC}" STREQUAL "${FREETYPE_INCLUDE_DIRS}"))
+      # Pass, the includes didn't change, use the cached value.
+      return()
     endif()
-    set(HAVE_BROTLI_INC "${FREETYPE_INCLUDE_DIRS}" CACHE INTERNAL "")
   endif()
+
+  unset(HAVE_BROTLI CACHE)
+  include(CheckSymbolExists)
+  set(CMAKE_REQUIRED_INCLUDES ${FREETYPE_INCLUDE_DIRS})
+  check_symbol_exists(FT_CONFIG_OPTION_USE_BROTLI "freetype/config/ftconfig.h" HAVE_BROTLI)
+  unset(CMAKE_REQUIRED_INCLUDES)
+  if(NOT HAVE_BROTLI)
+    unset(HAVE_BROTLI CACHE)
+    message(FATAL_ERROR "Freetype needs to be compiled with brotli support!")
+  endif()
+  set(HAVE_BROTLI_INC "${FREETYPE_INCLUDE_DIRS}" CACHE INTERNAL "")
 endfunction()
 
 if(NOT WITH_SYSTEM_FREETYPE)
@@ -408,6 +406,9 @@ endif()
 if(WITH_OPENVDB)
   find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
+  if(OPENVDB_FOUND)
+    set(OPENVDB_DEFINITIONS "")
+  endif()
 endif()
 add_bundled_libraries(openvdb/lib)
 
@@ -438,53 +439,6 @@ if(WITH_MATERIALX)
   set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
 endif()
 add_bundled_libraries(materialx/lib)
-
-# With Blender 4.4 libraries there is no more Boost. But Linux distros may have
-# older versions of libs like USD with a header dependency on Boost, so can't
-# remove this entirely yet.
-if(WITH_BOOST)
-  if(DEFINED LIBDIR AND NOT EXISTS "${LIBDIR}/boost")
-    set(WITH_BOOST OFF)
-    set(BOOST_LIBRARIES)
-    set(BOOST_PYTHON_LIBRARIES)
-    set(BOOST_INCLUDE_DIR)
-  endif()
-endif()
-
-if(WITH_BOOST)
-  # uses in build instructions to override include and library variables
-  if(NOT BOOST_CUSTOM)
-    if(WITH_STATIC_LIBS)
-      set(Boost_USE_STATIC_LIBS OFF)
-    endif()
-    set(Boost_USE_MULTITHREADED ON)
-    set(__boost_packages)
-    if(WITH_USD AND USD_PYTHON_SUPPORT)
-      list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
-    endif()
-    set(Boost_NO_WARN_NEW_VERSIONS ON)
-    find_package(Boost 1.48 COMPONENTS ${__boost_packages})
-    if(NOT Boost_FOUND)
-      # try to find non-multithreaded if -mt not found, this flag
-      # doesn't matter for us, it has nothing to do with thread
-      # safety, but keep it to not disturb build setups
-      set(Boost_USE_MULTITHREADED OFF)
-      find_package(Boost 1.48 COMPONENTS ${__boost_packages})
-    endif()
-    unset(__boost_packages)
-    mark_as_advanced(Boost_DIR)  # why doesn't boost do this?
-    mark_as_advanced(Boost_INCLUDE_DIR)  # why doesn't boost do this?
-  endif()
-
-  # Boost Python is the only library Blender directly depends on, though USD headers.
-  if(WITH_USD AND USD_PYTHON_SUPPORT)
-    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
-  endif()
-  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
-  set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
-  set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
-endif()
-add_bundled_libraries(boost/lib)
 
 if(WITH_PUGIXML)
   find_package_wrapper(PugiXML)
@@ -541,7 +495,7 @@ if(WITH_OPENSUBDIV)
   find_package(OpenSubdiv)
 
   set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBRARIES})
-  set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
+  set(OPENSUBDIV_LIBPATH "")  # TODO, remove and reference the absolute path everywhere
 
   set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
 endif()
@@ -952,21 +906,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
       unset(LD_VERSION)
     endif()
     unset(MOLD_BIN)
-  endif()
-
-  if(WITH_LINKER_GOLD AND _IS_LINKER_DEFAULT)
-    execute_process(
-      COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version
-      ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-    if("${LD_VERSION}" MATCHES "GNU gold")
-      string(APPEND CMAKE_EXE_LINKER_FLAGS    " -fuse-ld=gold")
-      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-      set(_IS_LINKER_DEFAULT OFF)
-    else()
-      message(STATUS "GNU gold linker isn't available, using the default system linker.")
-    endif()
-    unset(LD_VERSION)
   endif()
 
   if(WITH_LINKER_LLD AND _IS_LINKER_DEFAULT)

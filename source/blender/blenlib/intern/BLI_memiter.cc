@@ -117,7 +117,7 @@ static void memiter_init(BLI_memiter *mi)
 
 BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 {
-  BLI_memiter *mi = MEM_callocN<BLI_memiter>("BLI_memiter");
+  BLI_memiter *mi = MEM_new_zeroed<BLI_memiter>("BLI_memiter");
   memiter_init(mi);
 
   /* Small values are used for tests to check for correctness,
@@ -150,7 +150,7 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
       chunk_size_in_bytes = elem_size + uint(sizeof(data_t[2]));
     }
     uint chunk_size = data_offset_from_size(chunk_size_in_bytes);
-    BLI_memiter_chunk *chunk = static_cast<BLI_memiter_chunk *>(MEM_mallocN(
+    BLI_memiter_chunk *chunk = static_cast<BLI_memiter_chunk *>(MEM_new_uninitialized(
         sizeof(BLI_memiter_chunk) + (chunk_size * sizeof(data_t)), "BLI_memiter_chunk"));
 
     if (mi->head == nullptr) {
@@ -211,10 +211,10 @@ static void memiter_free_data(BLI_memiter *mi)
   while (chunk) {
     BLI_memiter_chunk *chunk_next = chunk->next;
 
-    /* Unpoison memory because MEM_freeN might overwrite it. */
+    /* Unpoison memory because MEM_delete_void might overwrite it. */
     BLI_asan_unpoison(chunk, MEM_allocN_len(chunk));
 
-    MEM_freeN(chunk);
+    MEM_delete(chunk);
     chunk = chunk_next;
   }
 }
@@ -222,7 +222,7 @@ static void memiter_free_data(BLI_memiter *mi)
 void BLI_memiter_destroy(BLI_memiter *mi)
 {
   memiter_free_data(mi);
-  MEM_freeN(mi);
+  MEM_delete(mi);
 }
 
 void BLI_memiter_clear(BLI_memiter *mi)

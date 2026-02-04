@@ -22,7 +22,7 @@ namespace blender {
 
 void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data)
 {
-  BMFace **faces_array_all = MEM_malloc_arrayN<BMFace *>(bm->totface, __func__);
+  BMFace **faces_array_all = MEM_new_array_uninitialized<BMFace *>(bm->totface, __func__);
   /*
    * - Create an array of faces based on 'filter_fn'.
    *   First part of array for match, for non-match.
@@ -104,7 +104,7 @@ void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_da
     } while ((l_iter = l_iter->next) != l_first);
   }
 
-  MEM_freeN(faces_array_all);
+  MEM_delete(faces_array_all);
 }
 
 }  // namespace blender

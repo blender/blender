@@ -7,12 +7,12 @@
  */
 #include <string>
 
-namespace blender {
-
 #if defined(WIN32)
 #  include <Windows.h>
 #  include <intrin.h>
 #endif
+
+namespace blender {
 
 /* The code below is duplicated from system.c from bf_blenlib. This is on purpose, since bf_blenlib
  * may be build with CPU flags that are not available on the current cpu so we can't link it. */
@@ -97,9 +97,7 @@ static __attribute__((constructor)) void cpu_check()
 {
 #  ifdef __x86_64
   if (!cpu_supports_sse42()) {
-    std::string error = "Unsupported CPU - " + std::string(cpu_brand_string()) +
-                        "\nBlender requires a CPU with SSE42 support.";
-    printf("%s\n", error.c_str());
+    printf("Unsupported CPU - %s\nBlender requires a CPU with SSE42 support.", cpu_brand_string());
     exit(-1);
   }
   return;

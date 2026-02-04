@@ -363,10 +363,13 @@ static int mesh_remap_interp_face_data_get(const IndexRange face,
 
   if (size_t(sources_num) > *buff_size) {
     *buff_size = size_t(sources_num);
-    *vcos = static_cast<float (*)[3]>(MEM_reallocN(*vcos, sizeof(**vcos) * *buff_size));
-    *indices = static_cast<int *>(MEM_reallocN(*indices, sizeof(**indices) * *buff_size));
+    *vcos = static_cast<float (*)[3]>(
+        MEM_realloc_uninitialized(*vcos, sizeof(**vcos) * *buff_size));
+    *indices = static_cast<int *>(
+        MEM_realloc_uninitialized(*indices, sizeof(**indices) * *buff_size));
     if (do_weights) {
-      *weights = static_cast<float *>(MEM_reallocN(*weights, sizeof(**weights) * *buff_size));
+      *weights = static_cast<float *>(
+          MEM_realloc_uninitialized(*weights, sizeof(**weights) * *buff_size));
     }
   }
 
@@ -543,9 +546,9 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       const Span<int> tri_faces = me_src->corner_tri_faces();
 
       size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
-      float (*vcos)[3] = MEM_malloc_arrayN<float[3]>(tmp_buff_size, __func__);
-      int *indices = MEM_malloc_arrayN<int>(tmp_buff_size, __func__);
-      float *weights = MEM_malloc_arrayN<float>(tmp_buff_size, __func__);
+      float (*vcos)[3] = MEM_new_array_uninitialized<float[3]>(tmp_buff_size, __func__);
+      int *indices = MEM_new_array_uninitialized<int>(tmp_buff_size, __func__);
+      float *weights = MEM_new_array_uninitialized<float>(tmp_buff_size, __func__);
 
       treedata = me_src->bvh_corner_tris();
 
@@ -639,9 +642,9 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
         }
       }
 
-      MEM_freeN(vcos);
-      MEM_freeN(indices);
-      MEM_freeN(weights);
+      MEM_delete(vcos);
+      MEM_delete(indices);
+      MEM_delete(weights);
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh vertex mapping mode (%d)!", mode);
@@ -690,8 +693,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         float hit_dist;
         int index;
       };
-      HitData *v_dst_to_src_map = MEM_malloc_arrayN<HitData>(size_t(vert_positions_dst.size()),
-                                                             __func__);
+      HitData *v_dst_to_src_map = MEM_new_array_uninitialized<HitData>(
+          size_t(vert_positions_dst.size()), __func__);
 
       for (i = 0; i < vert_positions_dst.size(); i++) {
         v_dst_to_src_map[i].hit_dist = -1.0f;
@@ -802,7 +805,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         }
       }
 
-      MEM_freeN(v_dst_to_src_map);
+      MEM_delete(v_dst_to_src_map);
     }
     else if (mode == MREMAP_MODE_EDGE_NEAREST) {
       treedata = me_src->bvh_edges();
@@ -887,9 +890,10 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const int numedges_src = me_src->edges_num;
 
       /* Subtleness - this one we can allocate only max number of cast rays per edges! */
-      int *indices = MEM_malloc_arrayN<int>(size_t(min_ii(numedges_src, num_rays_max)), __func__);
+      int *indices = MEM_new_array_uninitialized<int>(size_t(min_ii(numedges_src, num_rays_max)),
+                                                      __func__);
       /* Here it's simpler to just allocate for all edges :/ */
-      float *weights = MEM_malloc_arrayN<float>(size_t(numedges_src), __func__);
+      float *weights = MEM_new_array_uninitialized<float>(size_t(numedges_src), __func__);
 
       treedata = me_src->bvh_edges();
 
@@ -981,8 +985,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         }
       }
 
-      MEM_freeN(indices);
-      MEM_freeN(weights);
+      MEM_delete(indices);
+      MEM_delete(weights);
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh edge mapping mode (%d)!", mode);
@@ -1071,7 +1075,7 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
   BLI_bitmap *done_edges = BLI_BITMAP_NEW(numedges, __func__);
 
   const int node_num = islands ? island_face_map->count : int(faces.size());
-  uchar *face_status = MEM_calloc_arrayN<uchar>(size_t(node_num), __func__);
+  uchar *face_status = MEM_new_array_zeroed<uchar>(size_t(node_num), __func__);
   float (*face_centers)[3];
 
   int pidx_isld;
@@ -1138,8 +1142,8 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
     face_status[pidx_isld] = POLY_COMPLETE;
   }
 
-  MEM_freeN(done_edges);
-  MEM_freeN(face_status);
+  MEM_delete(done_edges);
+  MEM_delete(face_status);
 }
 
 #undef POLY_UNSET
@@ -1267,9 +1271,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     size_t islands_res_buff_size = MREMAP_DEFAULT_BUFSIZE;
 
     if (!use_from_vert) {
-      vcos_interp = MEM_malloc_arrayN<float[3]>(buff_size_interp, __func__);
-      indices_interp = MEM_malloc_arrayN<int>(buff_size_interp, __func__);
-      weights_interp = MEM_malloc_arrayN<float>(buff_size_interp, __func__);
+      vcos_interp = MEM_new_array_uninitialized<float[3]>(buff_size_interp, __func__);
+      indices_interp = MEM_new_array_uninitialized<int>(buff_size_interp, __func__);
+      weights_interp = MEM_new_array_uninitialized<float>(buff_size_interp, __func__);
     }
 
     {
@@ -1338,7 +1342,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       num_trees = use_islands ? island_store.islands_num : 1;
       treedata.reinitialize(num_trees);
       if (isld_steps_src) {
-        as_graphdata = MEM_calloc_arrayN<BLI_AStarGraph>(size_t(num_trees), __func__);
+        as_graphdata = MEM_new_array_zeroed<BLI_AStarGraph>(size_t(num_trees), __func__);
       }
 
       if (use_islands) {
@@ -1354,7 +1358,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       num_trees = 1;
       treedata.reinitialize(1);
       if (isld_steps_src) {
-        as_graphdata = MEM_callocN<BLI_AStarGraph>(__func__);
+        as_graphdata = MEM_new_zeroed<BLI_AStarGraph>(__func__);
       }
     }
 
@@ -1428,9 +1432,10 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
 
     /* And check each dest face! */
-    islands_res = MEM_malloc_arrayN<IslandResult *>(size_t(num_trees), __func__);
+    islands_res = MEM_new_array_uninitialized<IslandResult *>(size_t(num_trees), __func__);
     for (tindex = 0; tindex < num_trees; tindex++) {
-      islands_res[tindex] = MEM_malloc_arrayN<IslandResult>(islands_res_buff_size, __func__);
+      islands_res[tindex] = MEM_new_array_uninitialized<IslandResult>(islands_res_buff_size,
+                                                                      __func__);
     }
     const Span<int> tri_faces = me_src->corner_tri_faces();
 
@@ -1453,8 +1458,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       if (size_t(face_dst.size()) > islands_res_buff_size) {
         islands_res_buff_size = size_t(face_dst.size()) + MREMAP_DEFAULT_BUFSIZE;
         for (tindex = 0; tindex < num_trees; tindex++) {
-          islands_res[tindex] = static_cast<IslandResult *>(
-              MEM_reallocN(islands_res[tindex], sizeof(**islands_res) * islands_res_buff_size));
+          islands_res[tindex] = static_cast<IslandResult *>(MEM_realloc_uninitialized(
+              islands_res[tindex], sizeof(**islands_res) * islands_res_buff_size));
         }
       }
 
@@ -1949,32 +1954,32 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
 
     for (tindex = 0; tindex < num_trees; tindex++) {
-      MEM_freeN(islands_res[tindex]);
+      MEM_delete(islands_res[tindex]);
       if (isld_steps_src) {
         BLI_astar_graph_free(&as_graphdata[tindex]);
       }
     }
-    MEM_freeN(islands_res);
+    MEM_delete(islands_res);
     BKE_mesh_loop_islands_free(&island_store);
     if (isld_steps_src) {
-      MEM_freeN(as_graphdata);
+      MEM_delete(as_graphdata);
       BLI_astar_solution_free(&as_solution);
     }
 
     if (face_to_corner_tri_map_src) {
-      MEM_freeN(face_to_corner_tri_map_src);
+      MEM_delete(face_to_corner_tri_map_src);
     }
     if (face_to_corner_tri_map_src_buff) {
-      MEM_freeN(face_to_corner_tri_map_src_buff);
+      MEM_delete(face_to_corner_tri_map_src_buff);
     }
     if (vcos_interp) {
-      MEM_freeN(vcos_interp);
+      MEM_delete(vcos_interp);
     }
     if (indices_interp) {
-      MEM_freeN(indices_interp);
+      MEM_delete(indices_interp);
     }
     if (weights_interp) {
-      MEM_freeN(weights_interp);
+      MEM_delete(weights_interp);
     }
   }
 }
@@ -2075,13 +2080,13 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
       const size_t numfaces_src = size_t(me_src->faces_num);
 
       /* Here it's simpler to just allocate for all faces :/ */
-      int *indices = MEM_malloc_arrayN<int>(numfaces_src, __func__);
-      float *weights = MEM_malloc_arrayN<float>(numfaces_src, __func__);
+      int *indices = MEM_new_array_uninitialized<int>(numfaces_src, __func__);
+      float *weights = MEM_new_array_uninitialized<float>(numfaces_src, __func__);
 
       size_t tmp_face_size = MREMAP_DEFAULT_BUFSIZE;
-      float (*face_vcos_2d)[2] = MEM_malloc_arrayN<float[2]>(tmp_face_size, __func__);
+      float (*face_vcos_2d)[2] = MEM_new_array_uninitialized<float[2]>(tmp_face_size, __func__);
       /* Tessellated 2D face, always (num_loops - 2) triangles. */
-      int (*tri_vidx_2d)[3] = MEM_malloc_arrayN<int[3]>(tmp_face_size - 2, __func__);
+      int (*tri_vidx_2d)[3] = MEM_new_array_uninitialized<int[3]>(tmp_face_size - 2, __func__);
 
       for (const int64_t i : faces_dst.index_range()) {
         /* For each dst face, we sample some rays from it (2D grid in pnor space)
@@ -2118,9 +2123,9 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
         if (UNLIKELY(size_t(face.size()) > tmp_face_size)) {
           tmp_face_size = size_t(face.size());
           face_vcos_2d = static_cast<float (*)[2]>(
-              MEM_reallocN(face_vcos_2d, sizeof(*face_vcos_2d) * tmp_face_size));
+              MEM_realloc_uninitialized(face_vcos_2d, sizeof(*face_vcos_2d) * tmp_face_size));
           tri_vidx_2d = static_cast<int (*)[3]>(
-              MEM_reallocN(tri_vidx_2d, sizeof(*tri_vidx_2d) * (tmp_face_size - 2)));
+              MEM_realloc_uninitialized(tri_vidx_2d, sizeof(*tri_vidx_2d) * (tmp_face_size - 2)));
         }
 
         axis_dominant_v3_to_m3(to_pnor_2d_mat, tmp_no);
@@ -2237,10 +2242,10 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
         }
       }
 
-      MEM_freeN(tri_vidx_2d);
-      MEM_freeN(face_vcos_2d);
-      MEM_freeN(indices);
-      MEM_freeN(weights);
+      MEM_delete(tri_vidx_2d);
+      MEM_delete(face_vcos_2d);
+      MEM_delete(indices);
+      MEM_delete(weights);
       BLI_rng_free(rng);
     }
     else {

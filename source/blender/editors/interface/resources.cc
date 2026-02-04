@@ -337,6 +337,9 @@ const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
         case TH_GRID:
           cp = ts->grid;
           break;
+        case TH_GRID_MAJOR:
+          cp = ts->grid_major;
+          break;
         case TH_TIME_SCRUB_BACKGROUND:
           cp = btheme->regions.scrubbing.back;
           break;
@@ -1124,7 +1127,7 @@ void init_default()
   bTheme *btheme = static_cast<bTheme *>(
       BLI_findstring(&U.themes, U_theme_default.name, offsetof(bTheme, name)));
   if (btheme == nullptr) {
-    btheme = MEM_callocN<bTheme>(__func__);
+    btheme = MEM_new_zeroed<bTheme>(__func__);
     STRNCPY_UTF8(btheme->name, U_theme_default.name);
     BLI_addhead(&U.themes, btheme);
   }

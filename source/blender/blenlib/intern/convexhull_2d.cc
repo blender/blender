@@ -317,8 +317,8 @@ int BLI_convexhull_2d(Span<float2> points, int r_points[])
     }
     return points_num;
   }
-  int *points_map = MEM_malloc_arrayN<int>(size_t(points_num), __func__);
-  float2 *points_sort = MEM_malloc_arrayN<float2>(size_t(points_num), __func__);
+  int *points_map = MEM_new_array_uninitialized<int>(size_t(points_num), __func__);
+  float2 *points_sort = MEM_new_array_uninitialized<float2>(size_t(points_num), __func__);
 
   for (int i = 0; i < points_num; i++) {
     points_map[i] = i;
@@ -354,8 +354,8 @@ int BLI_convexhull_2d(Span<float2> points, int r_points[])
     r_points[i] = points_map[r_points[i]];
   }
 
-  MEM_freeN(points_map);
-  MEM_freeN(points_sort);
+  MEM_delete(points_map);
+  MEM_delete(points_sort);
 
   const int points_hull_num = (points_hull_range[1] - points_hull_range[0]) + 1;
   BLI_assert(points_hull_num <= points_num);
@@ -791,21 +791,22 @@ float BLI_convexhull_aabb_fit_points_2d(Span<float2> points)
   BLI_assert(points_num >= 0);
   float angle = 0.0f;
 
-  int *index_map = MEM_malloc_arrayN<int>(size_t(points_num), __func__);
+  int *index_map = MEM_new_array_uninitialized<int>(size_t(points_num), __func__);
 
   int points_hull_num = BLI_convexhull_2d(points, index_map);
 
   if (points_hull_num > 1) {
-    float (*points_hull)[2] = MEM_malloc_arrayN<float[2]>(size_t(points_hull_num), __func__);
+    float (*points_hull)[2] = MEM_new_array_uninitialized<float[2]>(size_t(points_hull_num),
+                                                                    __func__);
     for (int j = 0; j < points_hull_num; j++) {
       copy_v2_v2(points_hull[j], points[index_map[j]]);
     }
 
     angle = convexhull_aabb_fit_hull_2d(points_hull, points_hull_num);
-    MEM_freeN(points_hull);
+    MEM_delete(points_hull);
   }
 
-  MEM_freeN(index_map);
+  MEM_delete(index_map);
 
   return angle;
 }

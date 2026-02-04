@@ -120,9 +120,17 @@ void Instance::antialiasing_draw(Manager &manager)
   GPU_framebuffer_bind(this->scene_fb);
   manager.submit(this->smaa_resolve_ps);
 
-  if (this->use_separate_pass) {
+  if (this->need_grease_pencil_pass) {
     GPU_framebuffer_bind(this->gpencil_pass_fb);
     GPU_framebuffer_clear(this->gpencil_pass_fb, GPU_COLOR_BIT, float4(0, 0, 0, 0), 0, 0);
+    manager.submit(this->smaa_resolve_ps);
+  }
+
+  /* The engine might not support passes, so check if the combined pass actually exists before
+   * rendering grease pencil to it. */
+  const bool combined_pass_exists = DRW_viewport_pass_texture_exists(RE_PASSNAME_COMBINED);
+  if (this->need_combined_pass && combined_pass_exists) {
+    GPU_framebuffer_bind(this->combined_pass_fb);
     manager.submit(this->smaa_resolve_ps);
   }
 }

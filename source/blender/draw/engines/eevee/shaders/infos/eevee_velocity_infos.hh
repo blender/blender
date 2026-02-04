@@ -52,7 +52,7 @@ STORAGE_BUF(VELOCITY_GEO_PREV_BUF_SLOT, read, float4, velocity_geo_prev_buf[])
 STORAGE_BUF(VELOCITY_GEO_NEXT_BUF_SLOT, read, float4, velocity_geo_next_buf[])
 STORAGE_BUF(VELOCITY_INDIRECTION_BUF_SLOT, read, VelocityIndex, velocity_indirection_buf[])
 VERTEX_OUT(eevee_velocity_surface_iface)
-FRAGMENT_OUT(0, float4, out_velocity)
+FRAGMENT_OUT(PREPASS_FRAG_OUT_VELOCITY, float4, out_velocity)
 ADDITIONAL_INFO(eevee_velocity_camera)
 GPU_SHADER_CREATE_END()
 

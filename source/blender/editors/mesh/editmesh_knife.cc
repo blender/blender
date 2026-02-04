@@ -3043,7 +3043,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
   kcd->linehits = std::move(linehits);
 
-  MEM_freeN(results);
+  MEM_delete(results);
 }
 
 /** \} */

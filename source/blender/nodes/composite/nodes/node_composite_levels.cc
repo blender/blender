@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <cmath>
-
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -52,122 +50,82 @@ class LevelsOperation : public NodeOperation {
 
   void execute() override
   {
-    if (get_input("Image").is_single_value()) {
-      execute_single_value();
+    if (this->get_input("Image").is_single_value()) {
+      this->execute_single_value();
       return;
     }
 
-    const float mean = compute_mean();
+    const float4 mean = this->compute_mean();
 
-    Result &mean_result = get_result("Mean");
+    Result &mean_result = this->get_result("Mean");
     if (mean_result.should_compute()) {
       mean_result.allocate_single_value();
-      mean_result.set_single_value(mean);
+      this->set_output(mean, mean_result);
     }
 
-    Result &standard_deviation_result = get_result("Standard Deviation");
+    Result &standard_deviation_result = this->get_result("Standard Deviation");
     if (standard_deviation_result.should_compute()) {
-      const float standard_deviation = compute_standard_deviation(mean);
+      const float4 standard_deviation = this->compute_standard_deviation(mean);
       standard_deviation_result.allocate_single_value();
-      standard_deviation_result.set_single_value(standard_deviation);
+      this->set_output(standard_deviation, standard_deviation_result);
     }
   }
 
   void execute_single_value()
   {
-    Result &standard_deviation_result = get_result("Standard Deviation");
+    Result &standard_deviation_result = this->get_result("Standard Deviation");
     if (standard_deviation_result.should_compute()) {
       standard_deviation_result.allocate_single_value();
       standard_deviation_result.set_single_value(0.0f);
     }
 
-    Result &mean_result = get_result("Mean");
+    Result &mean_result = this->get_result("Mean");
     if (!mean_result.should_compute()) {
       return;
     }
 
     mean_result.allocate_single_value();
-    const float3 input = float3(get_input("Image").get_single_value<Color>());
+    this->set_output(float4(this->get_input("Image").get_single_value<Color>()), mean_result);
+  }
 
-    switch (get_channel()) {
+  float4 compute_mean()
+  {
+    const Result &input = this->get_input("Image");
+    return sum_color(this->context(), input) / math::reduce_mul(input.domain().data_size);
+  }
+
+  float4 compute_standard_deviation(float4 mean)
+  {
+    const Result &input = this->get_input("Image");
+    const float4 sum_of_squared_difference_to_mean = sum_squared_difference_color(
+        this->context(), input, mean);
+    const float4 mean_squared_difference_to_mean = sum_of_squared_difference_to_mean /
+                                                   math::reduce_mul(input.domain().data_size);
+    return math::sqrt(mean_squared_difference_to_mean);
+  }
+
+  void set_output(const float4 value, Result &output)
+  {
+    switch (this->get_channel()) {
       case CMP_NODE_LEVLES_RED:
-        mean_result.set_single_value(input.x);
-        break;
+        output.set_single_value(value.x);
+        return;
       case CMP_NODE_LEVLES_GREEN:
-        mean_result.set_single_value(input.y);
-        break;
+        output.set_single_value(value.y);
+        return;
       case CMP_NODE_LEVLES_BLUE:
-        mean_result.set_single_value(input.z);
-        break;
+        output.set_single_value(value.z);
+        return;
       case CMP_NODE_LEVLES_LUMINANCE_BT709:
-        mean_result.set_single_value(math::dot(input, float3(luminance_coefficients_bt709_)));
-        break;
+        output.set_single_value(math::dot(value.xyz(), float3(luminance_coefficients_bt709_)));
+        return;
       case CMP_NODE_LEVLES_LUMINANCE: {
         float luminance_coefficients[3];
         IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-        mean_result.set_single_value(math::dot(input, float3(luminance_coefficients)));
-        break;
+        output.set_single_value(math::dot(value.xyz(), float3(luminance_coefficients)));
+        return;
       }
     }
-  }
-
-  float compute_mean()
-  {
-    const Result &input = get_input("Image");
-    return compute_sum() / (input.domain().data_size.x * input.domain().data_size.y);
-  }
-
-  float compute_sum()
-  {
-    const Result &input = get_input("Image");
-    switch (get_channel()) {
-      case CMP_NODE_LEVLES_RED:
-        return sum_red(context(), input);
-      case CMP_NODE_LEVLES_GREEN:
-        return sum_green(context(), input);
-      case CMP_NODE_LEVLES_BLUE:
-        return sum_blue(context(), input);
-      case CMP_NODE_LEVLES_LUMINANCE_BT709:
-        return sum_luminance(context(), input, float3(luminance_coefficients_bt709_));
-      case CMP_NODE_LEVLES_LUMINANCE: {
-        float luminance_coefficients[3];
-        IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-        return sum_luminance(context(), input, float3(luminance_coefficients));
-      }
-    }
-
-    return 0.0f;
-  }
-
-  float compute_standard_deviation(float mean)
-  {
-    const Result &input = get_input("Image");
-    const float sum = compute_sum_squared_difference(mean);
-    return std::sqrt(sum / (input.domain().data_size.x * input.domain().data_size.y));
-  }
-
-  float compute_sum_squared_difference(float subtrahend)
-  {
-    const Result &input = get_input("Image");
-    switch (get_channel()) {
-      case CMP_NODE_LEVLES_RED:
-        return sum_red_squared_difference(context(), input, subtrahend);
-      case CMP_NODE_LEVLES_GREEN:
-        return sum_green_squared_difference(context(), input, subtrahend);
-      case CMP_NODE_LEVLES_BLUE:
-        return sum_blue_squared_difference(context(), input, subtrahend);
-      case CMP_NODE_LEVLES_LUMINANCE_BT709:
-        return sum_luminance_squared_difference(
-            context(), input, float3(luminance_coefficients_bt709_), subtrahend);
-      case CMP_NODE_LEVLES_LUMINANCE: {
-        float luminance_coefficients[3];
-        IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-        return sum_luminance_squared_difference(
-            context(), input, float3(luminance_coefficients), subtrahend);
-      }
-    }
-
-    return 0.0f;
   }
 
   CMPNodeLevelsChannel get_channel()

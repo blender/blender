@@ -611,9 +611,9 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   const BMCustomDataCopyMap loop_map = CustomData_bmesh_copy_map_calc(bm_old->ldata,
                                                                       bm_new->ldata);
 
-  vtable = MEM_malloc_arrayN<BMVert *>(bm_old->totvert, "BM_mesh_copy vtable");
-  etable = MEM_malloc_arrayN<BMEdge *>(bm_old->totedge, "BM_mesh_copy etable");
-  ftable = MEM_malloc_arrayN<BMFace *>(bm_old->totface, "BM_mesh_copy ftable");
+  vtable = MEM_new_array_uninitialized<BMVert *>(bm_old->totvert, "BM_mesh_copy vtable");
+  etable = MEM_new_array_uninitialized<BMEdge *>(bm_old->totedge, "BM_mesh_copy etable");
+  ftable = MEM_new_array_uninitialized<BMFace *>(bm_old->totface, "BM_mesh_copy ftable");
 
   BM_ITER_MESH_INDEX (v, &iter, bm_old, BM_VERTS_OF_MESH, i) {
     /* copy between meshes so can't use 'example' argument */
@@ -699,9 +699,9 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
     }
   }
 
-  MEM_freeN(etable);
-  MEM_freeN(vtable);
-  MEM_freeN(ftable);
+  MEM_delete(etable);
+  MEM_delete(vtable);
+  MEM_delete(ftable);
 
   /* Copy various settings. */
   bm_new->shapenr = bm_old->shapenr;

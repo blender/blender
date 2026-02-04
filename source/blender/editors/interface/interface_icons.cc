@@ -142,19 +142,19 @@ static const IconType icontypes[] = {
 static DrawInfo *def_internal_icon(
     ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type, int theme_color)
 {
-  Icon *new_icon = MEM_callocN<Icon>(__func__);
+  Icon *new_icon = MEM_new_zeroed<Icon>(__func__);
 
   new_icon->obj = nullptr; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  DrawInfo *di = MEM_callocN<DrawInfo>(__func__);
+  DrawInfo *di = MEM_new_zeroed<DrawInfo>(__func__);
   di->type = type;
 
   if (type == ICON_TYPE_SVG_MONO) {
     di->data.texture.theme_color = theme_color;
   }
   else if (type == ICON_TYPE_BUFFER) {
-    IconImage *iimg = MEM_callocN<IconImage>(__func__);
+    IconImage *iimg = MEM_new_zeroed<IconImage>(__func__);
     iimg->w = size;
     iimg->h = size;
 
@@ -162,7 +162,7 @@ static DrawInfo *def_internal_icon(
     if (bbuf) {
       int y, imgsize;
 
-      iimg->rect = MEM_malloc_arrayN<uint8_t>(size * size * sizeof(uint), __func__);
+      iimg->rect = MEM_new_array_uninitialized<uint8_t>(size * size * sizeof(uint), __func__);
 
       /* Here we store the rect in the icon - same as before */
       if (size == bbuf->x && size == bbuf->y && xofs == 0 && yofs == 0) {
@@ -191,12 +191,12 @@ static DrawInfo *def_internal_icon(
 
 static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 {
-  Icon *new_icon = MEM_callocN<Icon>("texicon");
+  Icon *new_icon = MEM_new_zeroed<Icon>("texicon");
 
   new_icon->obj = nullptr; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  DrawInfo *di = MEM_callocN<DrawInfo>("drawinfo");
+  DrawInfo *di = MEM_new_zeroed<DrawInfo>("drawinfo");
   di->type = ICON_TYPE_VECTOR;
   di->data.vector.func = drawFunc;
 
@@ -1033,9 +1033,9 @@ void icons_free_drawinfo(void *drawinfo)
   if (di->type == ICON_TYPE_BUFFER) {
     if (di->data.buffer.image) {
       if (di->data.buffer.image->rect) {
-        MEM_freeN(di->data.buffer.image->rect);
+        MEM_delete(di->data.buffer.image->rect);
       }
-      MEM_freeN(di->data.buffer.image);
+      MEM_delete(di->data.buffer.image);
     }
   }
   else if (di->type == ICON_TYPE_GEOM) {
@@ -1044,7 +1044,7 @@ void icons_free_drawinfo(void *drawinfo)
     }
   }
 
-  MEM_freeN(di);
+  MEM_delete(di);
 }
 
 /**
@@ -1054,7 +1054,7 @@ static DrawInfo *icon_create_drawinfo(Icon *icon)
 {
   const int icon_data_type = icon->obj_type;
 
-  DrawInfo *di = MEM_callocN<DrawInfo>("di_icon");
+  DrawInfo *di = MEM_new_zeroed<DrawInfo>("di_icon");
 
   if (ELEM(icon_data_type, ICON_DATA_ID, ICON_DATA_PREVIEW)) {
     di->type = ICON_TYPE_PREVIEW;
@@ -1137,7 +1137,7 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
     if (!ED_preview_use_image_size(prv_img, size)) {
       prv_img->w[size] = render_size;
       prv_img->h[size] = render_size;
-      prv_img->rect[size] = MEM_calloc_arrayN<uint>(render_size * render_size, "prv_rect");
+      prv_img->rect[size] = MEM_new_array_zeroed<uint>(render_size * render_size, "prv_rect");
     }
   }
 }
@@ -1232,12 +1232,12 @@ void icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
           wmWindowManager *wm = CTX_wm_manager(C);
           StudioLight *sl = static_cast<StudioLight *>(icon->obj);
           BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, wm);
-          IconImage *img = MEM_callocN<IconImage>(__func__);
+          IconImage *img = MEM_new_zeroed<IconImage>(__func__);
 
           img->w = STUDIOLIGHT_ICON_SIZE;
           img->h = STUDIOLIGHT_ICON_SIZE;
           const size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
-          img->rect = MEM_malloc_arrayN<uint8_t>(size, __func__);
+          img->rect = MEM_new_array_uninitialized<uint8_t>(size, __func__);
           memset(img->rect, 0, size);
           di->data.buffer.image = img;
 
@@ -1247,9 +1247,9 @@ void icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
                                       "Generating StudioLight icon...",
                                       eWM_JobFlag(0),
                                       WM_JOB_TYPE_STUDIOLIGHT);
-          Icon **tmp = MEM_callocN<Icon *>(__func__);
+          Icon **tmp = MEM_new_zeroed<Icon *>(__func__);
           *tmp = icon;
-          WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
+          WM_jobs_customdata_set(wm_job, tmp, MEM_delete_void);
           WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
           WM_jobs_callbacks(
               wm_job, ui_studiolight_icon_job_exec, nullptr, nullptr, ui_studiolight_icon_job_end);

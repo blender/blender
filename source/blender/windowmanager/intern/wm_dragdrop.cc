@@ -52,7 +52,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
@@ -118,7 +118,7 @@ ListBaseT<wmDropBox> *WM_dropboxmap_find(const char *idname, int spaceid, int re
     }
   }
 
-  wmDropBoxMap *dm = MEM_callocN<wmDropBoxMap>(__func__);
+  wmDropBoxMap *dm = MEM_new_zeroed<wmDropBoxMap>(__func__);
   STRNCPY_UTF8(dm->idname, idname);
   dm->spaceid = spaceid;
   dm->regionid = regionid;
@@ -140,7 +140,7 @@ wmDropBox *WM_dropbox_add(ListBaseT<wmDropBox> *lb,
     return nullptr;
   }
 
-  wmDropBox *drop = MEM_callocN<wmDropBox>(__func__);
+  wmDropBox *drop = MEM_new_zeroed<wmDropBox>(__func__);
   drop->poll = poll;
   drop->copy = copy;
   drop->cancel = cancel;
@@ -449,7 +449,7 @@ void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
       break;
     }
     default:
-      MEM_freeN(poin);
+      MEM_delete_void(poin);
       break;
   }
 }
@@ -534,7 +534,7 @@ static wmDropBox *dropbox_active(bContext *C,
           if (disabled_hint) {
             drag->drop_state.disabled_info = disabled_hint;
             if (free_disabled_info) {
-              MEM_SAFE_FREE(disabled_hint);
+              MEM_SAFE_DELETE(disabled_hint);
             }
           }
         }
@@ -684,7 +684,7 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
   }
 
   /* Add to list. */
-  wmDragID *drag_id = MEM_callocN<wmDragID>(__func__);
+  wmDragID *drag_id = MEM_new_zeroed<wmDragID>(__func__);
   drag_id->id = id;
   drag_id->from_parent = from_parent;
   BLI_addtail(&drag->ids, drag_id);
@@ -871,7 +871,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag, const asset_system::AssetRepresen
   /* No guarantee that the same asset isn't added twice. */
 
   /* Add to list. */
-  wmDragAssetListItem *drag_asset = MEM_callocN<wmDragAssetListItem>(__func__);
+  wmDragAssetListItem *drag_asset = MEM_new_zeroed<wmDragAssetListItem>(__func__);
   ID *local_id = asset->local_id();
   if (local_id) {
     drag_asset->is_external = false;
@@ -1064,28 +1064,28 @@ static void wm_drop_redalert_draw(const StringRef redalert_str, int x, int y)
   ui::fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
 }
 
-const char *WM_drag_get_item_name(wmDrag *drag)
+const std::string WM_drag_get_item_name(wmDrag *drag)
 {
   switch (drag->type) {
     case WM_DRAG_ID: {
       ID *id = WM_drag_get_local_ID(drag, 0);
-      bool single = BLI_listbase_is_single(&drag->ids);
+      const int dragged_ids = BLI_listbase_count(&drag->ids);
 
-      if (single) {
+      if (dragged_ids == 1) {
         return id->name + 2;
       }
       if (id) {
-        return BKE_idtype_idcode_to_name_plural(GS(id->name));
+        return std::to_string(dragged_ids) + " " + BKE_idtype_idcode_to_name_plural(GS(id->name));
       }
       break;
     }
     case WM_DRAG_ASSET: {
       const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-      return asset_drag->asset->get_name().c_str();
+      return asset_drag->asset->get_name();
     }
     case WM_DRAG_PATH: {
       const wmDragPath *path_drag_data = static_cast<const wmDragPath *>(drag->poin);
-      return path_drag_data->tooltip.c_str();
+      return path_drag_data->tooltip;
     }
     case WM_DRAG_NAME:
       return static_cast<const char *>(drag->poin);
@@ -1171,7 +1171,7 @@ static void wm_drag_draw_item_name(wmDrag *drag, const int x, const int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const uchar text_col[] = {255, 255, 255, 255};
-  ui::fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
+  ui::fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag).c_str(), text_col);
 }
 
 void WM_drag_draw_item_name_fn(bContext * /*C*/, wmWindow *win, wmDrag *drag, const int xy[2])

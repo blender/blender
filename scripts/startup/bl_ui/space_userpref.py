@@ -128,14 +128,14 @@ class USERPREF_MT_save_load(Menu):
         layout.operator_context = 'EXEC_AREA'
         if prefs.use_preferences_save:
             layout.operator("wm.save_userpref", text="Save Preferences")
+
+        layout.operator_context = 'INVOKE_AREA'
         sub_revert = layout.column(align=True)
         # NOTE: regarding `factory_startup`. To correctly show the active state of this menu item,
         # the user preferences themselves would need to have a `factory_startup` state.
         # Since showing an active menu item whenever factory-startup is used is not such a problem, leave this as-is.
         sub_revert.active = prefs.is_dirty or bpy.app.factory_startup
         sub_revert.operator("wm.read_userpref", text="Revert to Saved Preferences")
-
-        layout.operator_context = 'INVOKE_AREA'
 
         app_template = prefs.app_template
         if app_template:
@@ -743,10 +743,9 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
             layout.label(text="A restart of Blender is required", icon='INFO')
 
         if system.gpu_backend == 'VULKAN':
-            col = layout.column()
-            col.label(text="Current Vulkan backend limitations:", icon='INFO')
-            col.label(text="\u2022 Low performance in VR", icon='BLANK1')
             if sys.platform == "win32" and gpu.platform.device_type_get() == 'QUALCOMM':
+                col = layout.column()
+                col.label(text="Current Vulkan backend limitations:", icon='INFO')
                 col.label(text="\u2022 Windows on ARM requires driver 31.0.112.0 or higher", icon='BLANK1')
 
 

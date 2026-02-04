@@ -104,7 +104,6 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [coba, cb](bContext &C) {
       colorband_flip(&C, coba);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -122,7 +121,6 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, false);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -140,7 +138,6 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, true);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -165,7 +162,6 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
     button_func_set(but, [coba, cb](bContext &C) {
       BKE_colorband_init(coba, true);
       ED_undo_push(&C, "Reset Color Ramp");

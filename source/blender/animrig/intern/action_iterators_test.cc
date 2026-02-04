@@ -60,9 +60,9 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   Slot &monkey_slot = action->slot_add();
 
   /* Try iterating an empty action. */
-  Vector<FCurve *> no_fcurves;
+  Vector<const FCurve *> no_fcurves;
   foreach_fcurve_in_action_slot(
-      *action, cube_slot.handle, [&](FCurve &fcurve) { no_fcurves.append(&fcurve); });
+      *action, cube_slot.handle, [&](const FCurve &fcurve) { no_fcurves.append(&fcurve); });
 
   ASSERT_TRUE(no_fcurves.is_empty());
 
@@ -85,18 +85,18 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
   }
 
   /* Get all FCurves. */
-  Vector<FCurve *> cube_fcurves;
+  Vector<const FCurve *> cube_fcurves;
   foreach_fcurve_in_action_slot(
-      *action, cube_slot.handle, [&](FCurve &fcurve) { cube_fcurves.append(&fcurve); });
+      *action, cube_slot.handle, [&](const FCurve &fcurve) { cube_fcurves.append(&fcurve); });
 
   ASSERT_EQ(cube_fcurves.size(), 3);
-  for (FCurve *fcurve : cube_fcurves) {
+  for (const FCurve *fcurve : cube_fcurves) {
     ASSERT_STREQ(fcurve->rna_path, "location");
   }
 
   /* Get only FCurves with index 0 which should be 1. */
-  Vector<FCurve *> monkey_fcurves;
-  foreach_fcurve_in_action_slot(*action, monkey_slot.handle, [&](FCurve &fcurve) {
+  Vector<const FCurve *> monkey_fcurves;
+  foreach_fcurve_in_action_slot(*action, monkey_slot.handle, [&](const FCurve &fcurve) {
     if (fcurve.array_index == 0) {
       monkey_fcurves.append(&fcurve);
     }
@@ -107,10 +107,11 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 
   /* Slots handles are just numbers. Passing in a slot handle that doesn't exist should return
    * nothing. */
-  Vector<FCurve *> invalid_slot_fcurves;
-  foreach_fcurve_in_action_slot(*action,
-                                monkey_slot.handle + cube_slot.handle,
-                                [&](FCurve &fcurve) { invalid_slot_fcurves.append(&fcurve); });
+  Vector<const FCurve *> invalid_slot_fcurves;
+  foreach_fcurve_in_action_slot(
+      *action, monkey_slot.handle + cube_slot.handle, [&](const FCurve &fcurve) {
+        invalid_slot_fcurves.append(&fcurve);
+      });
   ASSERT_TRUE(invalid_slot_fcurves.is_empty());
 }
 

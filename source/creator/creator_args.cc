@@ -92,6 +92,7 @@ namespace blender {
  * so it's preferable that known arguments are documented.
  */
 struct BuildDefs {
+  bool apple;
   bool win32;
   bool with_cycles;
   bool with_ffmpeg;
@@ -100,6 +101,7 @@ struct BuildDefs {
   bool with_opencolorio;
   bool with_opengl_backend;
   bool with_renderdoc;
+  bool with_input_ndof;
   bool with_vulkan_backend;
   bool with_xr_openxr;
 };
@@ -116,6 +118,9 @@ static void build_defs_init(BuildDefs *build_defs, bool force_all)
 
   memset(build_defs, 0x0, sizeof(*build_defs));
 
+#  ifdef __APPLE__
+  build_defs->apple = true;
+#  endif
 #  ifdef WIN32
   build_defs->win32 = true;
 #  endif
@@ -139,6 +144,9 @@ static void build_defs_init(BuildDefs *build_defs, bool force_all)
 #  endif
 #  ifdef WITH_RENDERDOC
   build_defs->with_renderdoc = true;
+#  endif
+#  ifdef WITH_INPUT_NDOF
+  build_defs->with_input_ndof = true;
 #  endif
 #  ifdef WITH_VULKAN_BACKEND
   build_defs->with_vulkan_backend = true;
@@ -335,7 +343,7 @@ static int *parse_int_relative_clamp_n(
     }
   }
 
-  int *values = MEM_malloc_arrayN<int>(size_t(len), __func__);
+  int *values = MEM_new_array_uninitialized<int>(size_t(len), __func__);
   int i = 0;
   while (true) {
     const char *str_end = strchr(str, sep);
@@ -363,7 +371,7 @@ static int *parse_int_relative_clamp_n(
   return values;
 
 fail:
-  MEM_freeN(values);
+  MEM_delete(values);
   return nullptr;
 }
 
@@ -391,7 +399,7 @@ static int (*parse_int_range_relative_clamp_n(const char *str,
     }
   }
 
-  int (*values)[2] = MEM_malloc_arrayN<int[2]>(size_t(len), __func__);
+  int (*values)[2] = MEM_new_array_uninitialized<int[2]>(size_t(len), __func__);
   int i = 0;
   while (true) {
     const char *str_end_range;
@@ -428,7 +436,7 @@ static int (*parse_int_range_relative_clamp_n(const char *str,
   return values;
 
 fail:
-  MEM_freeN(values);
+  MEM_delete(values);
   return nullptr;
 }
 
@@ -448,7 +456,7 @@ fail:
 #  ifdef WIN32
 static char **argv_duplicate(const char **argv, int argc)
 {
-  char **argv_copy = MEM_malloc_arrayN<char *>(size_t(argc), __func__);
+  char **argv_copy = MEM_new_array_uninitialized<char *>(size_t(argc), __func__);
   for (int i = 0; i < argc; i++) {
     argv_copy[i] = BLI_strdup(argv[i]);
   }
@@ -458,9 +466,9 @@ static char **argv_duplicate(const char **argv, int argc)
 static void argv_free(char **argv, int argc)
 {
   for (int i = 0; i < argc; i++) {
-    MEM_freeN(argv[i]);
+    MEM_delete(argv[i]);
   }
-  MEM_freeN(argv);
+  MEM_delete(argv);
 }
 #  endif /* !WIN32 */
 
@@ -481,7 +489,7 @@ static bool main_arg_deferred_is_set()
 static void main_arg_deferred_setup(BA_ArgCallback func, int argc, const char **argv, void *data)
 {
   BLI_assert(app_state.main_arg_deferred == nullptr);
-  BA_ArgCallback_Deferred *d = MEM_callocN<BA_ArgCallback_Deferred>(__func__);
+  BA_ArgCallback_Deferred *d = MEM_new_zeroed<BA_ArgCallback_Deferred>(__func__);
   d->func = func;
   d->argc = argc;
   d->argv = argv;
@@ -500,7 +508,7 @@ void main_arg_deferred_free()
 #  ifdef WIN32
   argv_free(const_cast<char **>(d->argv), d->argc);
 #  endif
-  MEM_freeN(d);
+  MEM_delete(d);
 }
 
 static void main_arg_deferred_exit_code_set(int exit_code)
@@ -895,6 +903,15 @@ static void print_help(bArgs *ba, bool all)
         "  $BLENDER_OCIO              Path to override the OpenColorIO configuration file.\n"
         "                             If not set, the 'OCIO' environment variable is used.\n");
   }
+
+  /* Non `BLENDER_` prefixed, conventions from 3rd party libraries or the operating system. */
+
+  if ((!defs.win32 && !defs.apple && defs.with_input_ndof) || all) {
+    PRINT(
+        "  $SPNAV_SOCKET              The socket path to connect to the 3D-mouse daemon "
+        "(Unix only).\n");
+  }
+
   if (defs.win32 || all) {
     PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");
   }
@@ -1986,7 +2003,7 @@ static bool arg_handle_extension_registration(const bool do_register, const bool
   bool result = WM_platform_associate_set(do_register, all_users, &error_msg);
   if (error_msg) {
     fprintf(stderr, "Error: %s\n", error_msg);
-    MEM_freeN(error_msg);
+    MEM_delete(error_msg);
   }
   return result;
 #  endif
@@ -2409,7 +2426,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
       }
       RE_SetReports(re, nullptr);
       BKE_reports_free(&reports);
-      MEM_freeN(frame_range_arr);
+      MEM_delete(frame_range_arr);
       return 1;
     }
     fprintf(stderr, "\nError: frame number must follow '%s'.\n", arg_id);
@@ -2642,7 +2659,7 @@ static const char arg_handle_python_expr_run_doc[] =
     "\tRun the given expression as a Python script.\n"
     "\n"
     "\tThe expression may be a complete multi-line script;\n"
-    "\tyou are limited only by the platforms maximum argument length.";
+    "\tyou are limited only by the platform's maximum argument length.";
 static int arg_handle_python_expr_run(int argc, const char **argv, void *data)
 {
   bContext *C = static_cast<bContext *>(data);

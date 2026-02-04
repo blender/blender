@@ -63,7 +63,7 @@ static void gpencil_modifier_free_data(GpencilModifierData *md)
     case eGpencilModifierType_Tint: {
       TintGpencilModifierData *mmd = reinterpret_cast<TintGpencilModifierData *>(md);
 
-      MEM_SAFE_FREE(mmd->colorband);
+      MEM_SAFE_DELETE(mmd->colorband);
       if (mmd->curve_intensity) {
         BKE_curvemapping_free(mmd->curve_intensity);
       }
@@ -114,13 +114,13 @@ static void gpencil_modifier_free_data(GpencilModifierData *md)
     case eGpencilModifierType_Time: {
       TimeGpencilModifierData *gpmd = reinterpret_cast<TimeGpencilModifierData *>(md);
 
-      MEM_SAFE_FREE(gpmd->segments);
+      MEM_SAFE_DELETE(gpmd->segments);
       break;
     }
     case eGpencilModifierType_Dash: {
       DashGpencilModifierData *dmd = reinterpret_cast<DashGpencilModifierData *>(md);
 
-      MEM_SAFE_FREE(dmd->segments);
+      MEM_SAFE_DELETE(dmd->segments);
       break;
     }
     case eGpencilModifierType_Shrinkwrap: {
@@ -370,10 +370,10 @@ void BKE_gpencil_modifier_free_ex(GpencilModifierData *md, const int flag)
 
   gpencil_modifier_free_data(md);
   if (md->error) {
-    MEM_freeN(md->error);
+    MEM_delete(md->error);
   }
 
-  MEM_freeN(md);
+  MEM_delete(md);
 }
 
 void BKE_gpencil_modifier_free(GpencilModifierData *md)

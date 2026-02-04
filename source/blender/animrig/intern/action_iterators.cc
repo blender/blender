@@ -39,6 +39,33 @@ void foreach_fcurve_in_action(Action &action, FunctionRef<void(FCurve &fcurve)> 
   }
 }
 
+void foreach_fcurve_in_action_slot_editable(Action &action,
+                                            slot_handle_t handle,
+                                            FunctionRef<void(FCurve &fcurve)> callback)
+{
+  /* Once layers can be locked, this needs to be checked here. */
+  assert_baklava_phase_1_invariants(action);
+  for (Layer *layer : action.layers()) {
+    for (Strip *strip : layer->strips()) {
+      if (strip->type() != Strip::Type::Keyframe) {
+        continue;
+      }
+      for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
+        if (bag->slot_handle != handle) {
+          continue;
+        }
+        for (FCurve *fcu : bag->fcurves()) {
+          BLI_assert(fcu != nullptr);
+          if (fcu->flag & FCURVE_PROTECTED) {
+            continue;
+          }
+          callback(*fcu);
+        }
+      }
+    }
+  }
+}
+
 void foreach_fcurve_in_action_slot(Action &action,
                                    slot_handle_t handle,
                                    FunctionRef<void(FCurve &fcurve)> callback)

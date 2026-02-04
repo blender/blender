@@ -105,7 +105,7 @@ class subcmd_utils:
             *,
             use_local: bool,
     ) -> list[tuple[int, str]] | str:
-        # Takes a terse lists of package names and expands to repo index and name list,
+        # Takes a terse list of package names and expands to repo index and pkg_id list,
         # returning an error string if any can't be resolved.
         from . import repo_cache_store_ensure
         from .bl_extension_ops import extension_repos_read
@@ -327,7 +327,7 @@ class subcmd_pkg:
         try:
             bpy.ops.extensions.package_upgrade_all()
         except RuntimeError:
-            return False  # The error will have been printed.
+            return False  # The error was reported (and printed) by the operator.
         return True
 
     @staticmethod
@@ -359,7 +359,7 @@ class subcmd_pkg:
         try:
             bpy.ops.extensions.package_install_marked(enable_on_install=enable_on_install)
         except RuntimeError:
-            return False  # The error will have been printed.
+            return False  # The error was reported (and printed) by the operator.
 
         if not no_prefs:
             if enable_on_install:
@@ -387,7 +387,7 @@ class subcmd_pkg:
         try:
             bpy.ops.extensions.package_uninstall_marked()
         except RuntimeError:
-            return False  # The error will have been printed.
+            return False  # The error was reported (and printed) by the operator.
 
         if not no_prefs:
             blender_preferences_write()
@@ -414,7 +414,7 @@ class subcmd_pkg:
                 enable_on_install=enable_on_install,
             )
         except RuntimeError:
-            return False  # The error will have been printed.
+            return False  # The error was reported (and printed) by the operator.
         except Exception as ex:
             sys.stderr.write(str(ex))
             sys.stderr.write("\n")
@@ -470,7 +470,7 @@ class subcmd_repo:
     ) -> bool:
         from bpy import context
 
-        # This could be allowed the Python API doesn't prevent it.
+        # This could be allowed, the Python API doesn't prevent it.
         # However this is not going to do what the user would expect so disallow it.
         if url:
             if source == 'SYSTEM':
@@ -663,7 +663,7 @@ def cli_extension_args_sync(subparsers: "argparse._SubParsersAction[argparse.Arg
 
 
 def cli_extension_args_upgrade(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
-    # Implement "update".
+    # Implement "upgrade".
     subparse = subparsers.add_parser(
         "update",
         help="Upgrade any outdated packages.",

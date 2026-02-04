@@ -72,4 +72,8 @@ void main()
   out_velocity = velocity_surface(interp.P + motion.prev, interp.P, interp.P + motion.next);
   out_velocity = velocity_pack(out_velocity);
 #endif
+
+  /* Always written, but may be optimized out by framebuffer/subpass setup. */
+  out_normal.rgb = normalize(interp.N) * 0.5f + 0.5f;
+  out_object_id = drw_resource_id() & 0xFFFF;
 }

@@ -30,7 +30,7 @@ struct LexerBase {
 
   /** Token type per token. */
   MutableSpan<TokenType> token_types;
-  /** End of the raw token before whitespace removing. */
+  /** End of the raw token before white-space removing. */
   MutableSpan<uint32_t> token_ends;
   /** Ranges of characters per token. */
   OffsetIndices token_offsets;
@@ -67,7 +67,7 @@ struct SimpleLexer : LexerBase {
 };
 
 /**
- * Allow recognition of common operators and numbers. Merge whitespaces.
+ * Allow recognition of common operators and numbers. Merge white-spaces.
  */
 struct ExpressionLexer : LexerBase {
   void lexical_analysis(std::string_view input)
@@ -81,7 +81,7 @@ struct ExpressionLexer : LexerBase {
 };
 
 /**
- * Allow recognition of operators and numbers. Merge whitespaces.
+ * Allow recognition of operators and numbers. Merge white-spaces.
  * However, doesn't merge angle bracket with other tokens in order to use them for template
  * expressions parsing.
  */

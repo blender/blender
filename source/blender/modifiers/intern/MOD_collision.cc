@@ -52,13 +52,13 @@ static void free_data(ModifierData *md)
       collmd->bvhtree = nullptr;
     }
 
-    MEM_SAFE_FREE(collmd->x);
-    MEM_SAFE_FREE(collmd->xnew);
-    MEM_SAFE_FREE(collmd->current_x);
-    MEM_SAFE_FREE(collmd->current_xnew);
-    MEM_SAFE_FREE(collmd->current_v);
+    MEM_SAFE_DELETE(collmd->x);
+    MEM_SAFE_DELETE(collmd->xnew);
+    MEM_SAFE_DELETE(collmd->current_x);
+    MEM_SAFE_DELETE(collmd->current_xnew);
+    MEM_SAFE_DELETE(collmd->current_v);
 
-    MEM_SAFE_FREE(collmd->vert_tris);
+    MEM_SAFE_DELETE(collmd->vert_tris);
 
     collmd->time_x = collmd->time_xnew = -1000;
     collmd->mvert_num = 0;
@@ -122,7 +122,7 @@ static void deform_verts(ModifierData *md,
     if (collmd->time_xnew == -1000) { /* first time */
 
       mvert_num = mesh->verts_num;
-      collmd->x = MEM_malloc_arrayN<float[3]>(size_t(mvert_num), __func__);
+      collmd->x = MEM_new_array_uninitialized<float[3]>(size_t(mvert_num), __func__);
       MutableSpan(reinterpret_cast<float3 *>(collmd->x), mvert_num)
           .copy_from(mesh->vert_positions());
 
@@ -131,18 +131,17 @@ static void deform_verts(ModifierData *md,
         mul_m4_v3(ob->object_to_world().ptr(), collmd->x[i]);
       }
 
-      collmd->xnew = static_cast<float (*)[3]>(MEM_dupallocN(collmd->x)); /* Frame end position. */
-      collmd->current_x = static_cast<float (*)[3]>(MEM_dupallocN(collmd->x)); /* Inter-frame. */
-      collmd->current_xnew = static_cast<float (*)[3]>(
-          MEM_dupallocN(collmd->x));                                           /* Inter-frame. */
-      collmd->current_v = static_cast<float (*)[3]>(MEM_dupallocN(collmd->x)); /* Inter-frame. */
+      collmd->xnew = MEM_dupalloc(collmd->x);         /* Frame end position. */
+      collmd->current_x = MEM_dupalloc(collmd->x);    /* Inter-frame. */
+      collmd->current_xnew = MEM_dupalloc(collmd->x); /* Inter-frame. */
+      collmd->current_v = MEM_dupalloc(collmd->x);    /* Inter-frame. */
 
       collmd->mvert_num = mvert_num;
 
       {
         const Span<int3> corner_tris = mesh->corner_tris();
         collmd->tri_num = corner_tris.size();
-        int (*vert_tris)[3] = MEM_malloc_arrayN<int[3]>(collmd->tri_num, __func__);
+        int (*vert_tris)[3] = MEM_new_array_uninitialized<int[3]>(collmd->tri_num, __func__);
         bke::mesh::vert_tris_from_corner_tris(
             mesh->corner_verts(),
             corner_tris,
@@ -251,9 +250,9 @@ static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
   collmd->xnew = newdataadr(fd, collmd->xnew);
   collmd->mfaces = newdataadr(fd, collmd->mfaces);
 
-  collmd->current_x = MEM_calloc_arrayN<float[3]>(collmd->mvert_num, "current_x");
-  collmd->current_xnew = MEM_calloc_arrayN<float[3]>(collmd->mvert_num, "current_xnew");
-  collmd->current_v = MEM_calloc_arrayN<float[3]>(collmd->mvert_num, "current_v");
+  collmd->current_x = MEM_new_array_zeroed<float[3]>(collmd->mvert_num, "current_x");
+  collmd->current_xnew = MEM_new_array_zeroed<float[3]>(collmd->mvert_num, "current_xnew");
+  collmd->current_v = MEM_new_array_zeroed<float[3]>(collmd->mvert_num, "current_v");
 #endif
 
   collmd->x = nullptr;

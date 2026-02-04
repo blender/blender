@@ -116,7 +116,7 @@ static void compute_preview_gpu(Context &context,
     }
   });
 
-  MEM_freeN(preview_pixels);
+  MEM_delete(preview_pixels);
   IMB_colormanagement_processor_free(color_processor);
 }
 

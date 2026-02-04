@@ -364,10 +364,9 @@ void GHOST_ContextMTL::metalInitFramebuffer()
 void GHOST_ContextMTL::metalUpdateFramebuffer()
 {
   @autoreleasepool {
-    const NSRect bounds = [metal_view_ bounds];
-    const NSSize backingSize = [metal_view_ convertSizeToBacking:bounds.size];
-    const size_t width = size_t(backingSize.width);
-    const size_t height = size_t(backingSize.height);
+    const NSSize drawableSize = metal_layer_.drawableSize;
+    const size_t width = size_t(drawableSize.width);
+    const size_t height = size_t(drawableSize.height);
 
     if (default_framebuffer_metal_texture_[current_swapchain_index].texture &&
         default_framebuffer_metal_texture_[current_swapchain_index].texture.width == width &&

@@ -225,20 +225,29 @@ void view2d_dot_grid_draw(const View2D *v2d,
 /**
  * Draw horizontal lines.
  *
- * \param base: Defines in what step the lines are drawn.
- * Depending on the zoom level of the `v2d` the step is a full fraction of the given base.
+ * \param base Defines in what distance the lines are drawn. Depending on the zoom level of the
+ * `v2d` the distance is always a full fraction or multiple of the given base.
  */
-void view2d_draw_lines_y__values(const View2D *v2d, int base);
-void view2d_draw_lines_x__values(const View2D *v2d, int base);
-void view2d_draw_lines_x__discrete_values(const View2D *v2d, int base, bool display_minor_lines);
-void view2d_draw_lines_x__discrete_time(const View2D *v2d, int base, bool display_minor_lines);
-void view2d_draw_lines_x__discrete_frames_or_seconds(const View2D *v2d,
-                                                     const Scene *scene,
-                                                     bool display_seconds,
-                                                     bool display_minor_lines);
-void view2d_draw_lines_x__frames_or_seconds(const View2D *v2d,
-                                            const Scene *scene,
-                                            bool display_seconds);
+void view2d_draw_lines_y(const View2D *v2d, bool show_fractions, int base);
+/**
+ * Draw vertical lines. Where lines are drawn is determined by the zoom factor and `base`.
+ *
+ * \param show_fractions If true, lines will be drawn between full values too.
+ * \param draw_minor_lines If true, draw extra lines with less visual weight to further break down
+ * the view area.
+ * \param base Defines in what distance the lines are drawn. Depending on the zoom level of the
+ * `v2d` the distance is always a full fraction or multiple of the given base.
+ */
+void view2d_draw_lines_x(
+    const View2D *v2d, bool display_seconds, bool show_fractions, bool draw_minor_lines, int base);
+/**
+ * Wrapper around `view2d_draw_lines_x` that calculates the `base` from the `scene` framerate.
+ */
+void view2d_draw_lines_x_frames(const View2D *v2d,
+                                const Scene *scene,
+                                bool display_seconds,
+                                bool show_fractions,
+                                bool draw_minor_lines);
 
 float view2d_grid_resolution_x__frames_or_seconds(const View2D *v2d, const Scene *scene);
 float view2d_grid_resolution_y__values(const View2D *v2d, int base);
@@ -246,30 +255,26 @@ float view2d_grid_resolution_y__values(const View2D *v2d, int base);
 /**
  * Scale indicator text drawing.
  */
-void view2d_draw_scale_y__values(
+void view2d_draw_scale_y(
     const ARegion *region, const View2D *v2d, const rcti *rect, int colorid, int base);
 /**
  * Draw a text scale in either frames or seconds.
- * The minimum step distance is 1, meaning no sub-frame indicators will be drawn.
+ *
+ * \param display_seconds If true, the scale is interpreted as seconds and will draw a timecode.
+ * \param show_fractions If true, fractional scales will be drawn when zoomed in far enough.
+ * Otherwise the minimum step distance is clamped to 1, meaning only whole number indicators will
+ * be drawn even when zoomed in. If `display_seconds` is true, this setting will always be false.
+ * \param base Defines in what distance the numbers are drawn. Depending on the zoom level of the
+ * `v2d` the distance is always a full fraction or multiple of the given base.
  */
-void view2d_draw_scale_x__discrete_frames_or_seconds(const ARegion *region,
-                                                     const View2D *v2d,
-                                                     const rcti *rect,
-                                                     const Scene *scene,
-                                                     bool display_seconds,
-                                                     int colorid,
-                                                     int base);
-/**
- * Draw a text scale in either frames or seconds.
- * This can draw indicators on sub-frames, e.g. "1.5".
- */
-void view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
-                                            const View2D *v2d,
-                                            const rcti *rect,
-                                            const Scene *scene,
-                                            bool display_seconds,
-                                            int colorid,
-                                            int base);
+void view2d_draw_scale_x(const ARegion *region,
+                         const View2D *v2d,
+                         const rcti *rect,
+                         const Scene *scene,
+                         bool display_seconds,
+                         bool show_fractions,
+                         int colorid,
+                         int base);
 
 /** \} */
 

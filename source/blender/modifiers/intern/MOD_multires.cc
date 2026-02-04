@@ -72,7 +72,7 @@ static void free_runtime_data(void *runtime_data_v)
   if (runtime_data->subdiv != nullptr) {
     bke::subdiv::free(runtime_data->subdiv);
   }
-  MEM_freeN(runtime_data);
+  MEM_delete(runtime_data);
 }
 
 static void free_data(ModifierData *md)
@@ -85,7 +85,7 @@ static MultiresRuntimeData *multires_ensure_runtime(MultiresModifierData *mmd)
 {
   MultiresRuntimeData *runtime_data = static_cast<MultiresRuntimeData *>(mmd->modifier.runtime);
   if (runtime_data == nullptr) {
-    runtime_data = MEM_callocN<MultiresRuntimeData>(__func__);
+    runtime_data = MEM_new_zeroed<MultiresRuntimeData>(__func__);
     mmd->modifier.runtime = runtime_data;
   }
   return runtime_data;

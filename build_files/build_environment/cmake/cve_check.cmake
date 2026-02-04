@@ -24,7 +24,7 @@
 # Because not all deps are downloaded (ie python packages) but can still have a
 # xxx_CPE declared loop over all variables and look for variables ending in CPE.
 
-set(SBOMCONTENTS)
+set(SBOMCONTENTS "")
 get_cmake_property(_variableNames VARIABLES)
 foreach(_variableName ${_variableNames})
   if(_variableName MATCHES "CPE$")

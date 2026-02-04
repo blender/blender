@@ -64,6 +64,10 @@ static bool can_draw_retiming(const TimelineDrawContext &ctx, const StripDrawCon
     return false;
   }
 
+  if (!seq::retiming_show_keys(strip_ctx.strip)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -128,15 +132,14 @@ static void retiming_key_draw(const TimelineDrawContext &ctx,
   const float left_min = ui::view2d_view_to_region_x(v2d, strip_ctx.left_handle) + (size / 2);
   float key_position = ui::view2d_view_to_region_x(v2d, key_frame);
   CLAMP(key_position, left_min, right_max);
-  const float alpha = seq::retiming_data_is_editable(strip) ? 1.0f : 0.3f;
 
   draw_keyframe_shape(key_position,
                       bottom,
                       size,
-                      is_selected && seq::retiming_data_is_editable(strip),
+                      is_selected,
                       key_type,
                       KEYFRAME_SHAPE_BOTH,
-                      alpha,
+                      1.0,
                       &sh_bindings,
                       0,
                       0);
@@ -150,10 +153,6 @@ static bool fake_keys_draw(const TimelineDrawContext &ctx,
 {
   const Strip *strip = strip_ctx.strip;
   const Scene *scene = ctx.scene;
-
-  if (!seq::retiming_is_active(strip) && !seq::retiming_data_is_editable(strip)) {
-    return false;
-  }
 
   const int left_key_frame = seq::left_fake_key_frame_get(scene, strip);
   if (seq::retiming_key_get_by_frame(scene, strip, left_key_frame) == nullptr) {
@@ -274,8 +273,7 @@ void sequencer_retiming_draw_segments(const TimelineDrawContext &ctx,
     const float top = y_center + size * width_fac;
 
     uchar color[4];
-    if (seq::retiming_data_is_editable(strip) &&
-        (ctx.retiming_selection.contains(const_cast<SeqRetimingKey *>(&key)) ||
+    if ((ctx.retiming_selection.contains(const_cast<SeqRetimingKey *>(&key)) ||
          ctx.retiming_selection.contains(const_cast<SeqRetimingKey *>(&key - 1))))
     {
       color[0] = 166;

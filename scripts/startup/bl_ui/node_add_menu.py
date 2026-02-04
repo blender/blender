@@ -64,8 +64,8 @@ def add_node_type_with_outputs(context, layout, node_type, subnames, *, label=No
     )
 
 
-def add_color_mix_node(context, layout):
-    return AddNodeMenu.color_mix_node(context, layout)
+def add_color_mix_node(context, layout, search_weight=0.0):
+    return AddNodeMenu.color_mix_node(context, layout, search_weight=search_weight)
 
 
 def add_empty_group(layout):
@@ -242,12 +242,12 @@ class NodeMenu(Menu):
         return operators
 
     @classmethod
-    def color_mix_node(cls, context, layout):
+    def color_mix_node(cls, context, layout, search_weight=0.0):
         """The 'Mix Color' node, with its different blend modes available while in search."""
         label = iface_("Mix Color")
 
         operators = []
-        props = cls.node_operator(layout, "ShaderNodeMix", label=label, translate=False)
+        props = cls.node_operator(layout, "ShaderNodeMix", label=label, translate=False, search_weight=search_weight)
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'RGBA'"
@@ -264,6 +264,7 @@ class NodeMenu(Menu):
                         iface_(item.name, translation_context),
                     ),
                     translate=False,
+                    search_weight=search_weight,
                 )
                 prop = props.settings.add()
                 prop.name = "data_type"

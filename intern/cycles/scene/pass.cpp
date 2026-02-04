@@ -87,8 +87,8 @@ const NodeEnum *Pass::get_type_enum()
     pass_type_enum.insert("glossy_color", PASS_GLOSSY_COLOR);
     pass_type_enum.insert("transmission_color", PASS_TRANSMISSION_COLOR);
     pass_type_enum.insert("mist", PASS_MIST);
-    pass_type_enum.insert("denoising_normal", PASS_DENOISING_NORMAL);
     pass_type_enum.insert("denoising_albedo", PASS_DENOISING_ALBEDO);
+    pass_type_enum.insert("denoising_normal", PASS_DENOISING_NORMAL);
     pass_type_enum.insert("denoising_depth", PASS_DENOISING_DEPTH);
     pass_type_enum.insert("denoising_previous", PASS_DENOISING_PREVIOUS);
     pass_type_enum.insert("volume_majorant", PASS_VOLUME_MAJORANT);

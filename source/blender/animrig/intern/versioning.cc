@@ -100,9 +100,10 @@ void convert_legacy_animato_action(bAction &dna_action)
   Channelbag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
   const int fcu_count = BLI_listbase_count(&action.curves);
   const int group_count = BLI_listbase_count(&action.groups);
-  bag.fcurve_array = MEM_calloc_arrayN<FCurve *>(fcu_count, "Action versioning - fcurves");
+  bag.fcurve_array = MEM_new_array_zeroed<FCurve *>(fcu_count, "Action versioning - fcurves");
   bag.fcurve_array_num = fcu_count;
-  bag.group_array = MEM_calloc_arrayN<bActionGroup *>(group_count, "Action versioning - groups");
+  bag.group_array = MEM_new_array_zeroed<bActionGroup *>(group_count,
+                                                         "Action versioning - groups");
   bag.group_array_num = group_count;
 
   int fcurve_index = 0;

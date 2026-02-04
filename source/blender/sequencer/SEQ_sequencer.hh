@@ -8,6 +8,7 @@
  * \ingroup sequencer
  */
 
+#include "BKE_sound_types.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
@@ -73,8 +74,8 @@ struct StripRuntime {
 
   SessionUID session_uid = {};
   StripRuntimeFlag flag = StripRuntimeFlag::None;
-  void *scene_sound = nullptr;        /* AUD_SequenceEntry */
-  void *sound_time_stretch = nullptr; /* AUD_Sound */
+  AUD_SequenceEntry scene_sound;
+  AUD_Sound sound_time_stretch;
   float sound_time_stretch_fps = 0.0f;
 
   Vector<MovieReader *, 1> movie_readers;

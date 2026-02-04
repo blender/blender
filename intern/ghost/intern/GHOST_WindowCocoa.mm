@@ -386,6 +386,10 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       [metal_layer_ removeAllAnimations];
       metal_layer_.device = metalDevice;
 
+      if (context_params.vsync != GHOST_kVSyncModeUnset) {
+        metal_layer_.displaySyncEnabled = (context_params.vsync == GHOST_kVSyncModeOff) ? NO : YES;
+      }
+
       if (type == GHOST_kDrawingContextTypeMetal) {
         /* Enable EDR support. This is done by:
          * 1. Using a floating point render target, so that values outside 0..1 can be used
@@ -421,18 +425,12 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       view = opengl_view_;
     }
 
-    if (system_cocoa_->native_pixel_) {
-      /* Needs to happen early when building with the 10.14 SDK, otherwise
-       * has no effect until resizing the window. */
-      if ([view respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
-        view.wantsBestResolutionOpenGLSurface = YES;
-      }
-    }
-
     window_.contentView = view;
     window_.initialFirstResponder = view;
 
     [window_ makeKeyAndOrderFront:nil];
+
+    updateDrawingSize();
 
     setDrawingContextType(type);
     updateDrawingContext();
@@ -798,13 +796,11 @@ NSScreen *GHOST_WindowCocoa::getPrimaryScreen()
 /* called for event, when window leaves monitor to another */
 void GHOST_WindowCocoa::setNativePixelSize()
 {
-  NSView *view = (opengl_view_) ? opengl_view_ : metal_view_;
-  const NSRect backingBounds = [view convertRectToBacking:[view bounds]];
-
   GHOST_Rect rect;
   getClientBounds(rect);
 
-  native_pixel_size_ = float(backingBounds.size.width) / float(rect.getWidth());
+  CAMetalLayer *metalLayer = (CAMetalLayer *)metal_view_.layer;
+  native_pixel_size_ = float(metalLayer.drawableSize.width) / float(rect.getWidth());
 }
 
 /**
@@ -892,6 +888,21 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 /* --------------------------------------------------------------------
  * Drawing context.
  */
+
+void GHOST_WindowCocoa::updateDrawingSize()
+{
+  NSSize viewSize = metal_view_.bounds.size;
+  NSSize backingSize = viewSize;
+
+  if (system_cocoa_->native_pixel_) {
+    backingSize = [metal_view_ convertSizeToBacking:viewSize];
+  }
+
+  CAMetalLayer *metalLayer = (CAMetalLayer *)metal_view_.layer;
+
+  metalLayer.contentsScale = backingSize.height / viewSize.height;
+  metalLayer.drawableSize = NSSizeToCGSize(backingSize);
+}
 
 GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType type)
 {

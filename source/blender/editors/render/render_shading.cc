@@ -558,7 +558,7 @@ static wmOperatorStatus material_slot_copy_exec(bContext *C, wmOperator * /*op*/
 
   Material ***matar_object = &ob->mat;
 
-  Material **matar = MEM_calloc_arrayN<Material *>(size_t(ob->totcol), __func__);
+  Material **matar = MEM_new_array_zeroed<Material *>(size_t(ob->totcol), __func__);
   for (int i = ob->totcol; i--;) {
     matar[i] = ob->matbits[i] ? (*matar_object)[i] : (*matar_obdata)[i];
   }
@@ -591,7 +591,7 @@ static wmOperatorStatus material_slot_copy_exec(bContext *C, wmOperator * /*op*/
   }
   CTX_DATA_END;
 
-  MEM_freeN(matar);
+  MEM_delete(matar);
 
   return OPERATOR_FINISHED;
 }
@@ -646,7 +646,7 @@ static wmOperatorStatus material_slot_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  slot_remap = MEM_malloc_arrayN<uint>(ob->totcol, __func__);
+  slot_remap = MEM_new_array_uninitialized<uint>(ob->totcol, __func__);
 
   range_vn_u(slot_remap, ob->totcol, 0);
 
@@ -655,7 +655,7 @@ static wmOperatorStatus material_slot_move_exec(bContext *C, wmOperator *op)
 
   BKE_object_material_remap(ob, slot_remap);
 
-  MEM_freeN(slot_remap);
+  MEM_delete(slot_remap);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -2880,7 +2880,7 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
         bmain, &nodetree->id, paste_material_nodetree_ids_decref, nullptr, IDWALK_NOP);
 
     bke::node_tree_free_embedded_tree(nodetree);
-    MEM_freeN(nodetree);
+    MEM_delete(nodetree);
     ma->nodetree = nullptr;
   }
 
@@ -3033,7 +3033,7 @@ static void paste_mtex_copybuf(ID *id)
 
   if (mtex) {
     if (*mtex == nullptr) {
-      *mtex = MEM_new_for_free<MTex>("mtex copy");
+      *mtex = MEM_new<MTex>("mtex copy");
     }
     else if ((*mtex)->tex) {
       id_us_min(&(*mtex)->tex->id);

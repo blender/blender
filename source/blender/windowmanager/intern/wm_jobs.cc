@@ -88,8 +88,15 @@ struct wmJob {
    */
   void (*update)(void *);
   /**
-   * Called for each timer step.
-   * Executed in main thread.
+   * Optional, called for each timer step while the job is running. Can be used to send messages to
+   * the running job. For example, online asset library loading uses this to get status updates
+   * from the downloader to the loading job, like that it's done downloading some files that are
+   * now ready to be processed.
+   *
+   * Should be used for messaging to the job only, must _not_ be used to modify the running job,
+   * like changing the timer, replacing the custom data pointer, etc.
+   *
+   * Executed in the main thread.
    */
   void (*timer_step)(void *);
   /**
@@ -227,7 +234,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
   wmJob *wm_job = wm_job_find(wm, owner, job_type);
 
   if (wm_job == nullptr) {
-    wm_job = MEM_callocN<wmJob>("new job");
+    wm_job = MEM_new_zeroed<wmJob>("new job");
 
     BLI_addtail(&wm->runtime->jobs, wm_job);
     wm_job->win = win;
@@ -239,7 +246,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
     wm_job->main_thread_mutex = BLI_ticket_mutex_alloc();
     WM_job_main_thread_lock_acquire(wm_job);
 
-    wm_job->worker_status.reports = MEM_new_for_free<ReportList>(__func__);
+    wm_job->worker_status.reports = MEM_new<ReportList>(__func__);
     BKE_reports_init(wm_job->worker_status.reports, RPT_STORE | RPT_PRINT);
     BKE_report_print_level_set(wm_job->worker_status.reports, RPT_WARNING);
 
@@ -571,7 +578,7 @@ static void wm_job_free(wmWindowManager *wm, wmJob *wm_job)
   BLI_assert(BLI_listbase_is_empty(&wm_job->worker_status.reports->list));
   BKE_reports_free(wm_job->worker_status.reports);
   MEM_delete(wm_job->worker_status.reports);
-  MEM_freeN(wm_job);
+  MEM_delete(wm_job);
 
   wm_jobs_update_qos(wm);
 }

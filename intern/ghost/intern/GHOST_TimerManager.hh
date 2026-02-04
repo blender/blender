@@ -11,7 +11,7 @@
 
 #include <vector>
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 class GHOST_TimerTask;
 

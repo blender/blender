@@ -130,8 +130,8 @@ KERNEL_STRUCT_MEMBER(film, float, mist_start)
 KERNEL_STRUCT_MEMBER(film, float, mist_inv_depth)
 KERNEL_STRUCT_MEMBER(film, float, mist_falloff)
 /* Denoising. */
-KERNEL_STRUCT_MEMBER(film, int, pass_denoising_normal)
 KERNEL_STRUCT_MEMBER(film, int, pass_denoising_albedo)
+KERNEL_STRUCT_MEMBER(film, int, pass_denoising_normal)
 KERNEL_STRUCT_MEMBER(film, int, pass_denoising_depth)
 /* AOVs. */
 KERNEL_STRUCT_MEMBER(film, int, pass_aov_color)

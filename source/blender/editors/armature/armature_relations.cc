@@ -100,15 +100,16 @@ static void joined_armature_fix_links_constraints(Main *bmain,
       BKE_constraint_targets_flush(&con, &targets, false);
     }
 
-    /* action constraint? (pose constraints only) */
-    if (con.type == CONSTRAINT_TYPE_ACTION) {
+    /* If it's an action constraint on the source object that's being joined,
+     * also remap the channels in the action. (Pose constraints only.) */
+    if (con.type == CONSTRAINT_TYPE_ACTION && ob == srcArm) {
       bActionConstraint *data = static_cast<bActionConstraint *>(con.data);
 
       if (data->act) {
         BKE_action_fix_paths_rename(&tarArm->id,
                                     data->act,
                                     data->action_slot_handle,
-                                    "pose.bones[",
+                                    "pose.bones",
                                     pchan->name,
                                     curbone->name,
                                     0,
@@ -489,7 +490,7 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       BKE_fcurves_main_cb(bmain, [&](ID *id, FCurve *fcu) {
         joined_armature_fix_animdata_cb(bmain, id, fcu, ob_iter, ob_active, names_map);
       });
-      BLI_ghash_free(names_map, MEM_freeN, nullptr);
+      BLI_ghash_free(names_map, MEM_delete_void, nullptr);
 
       /* Only copy over animdata now, after all the remapping has been done,
        * so that we don't have to worry about ambiguities re which armature

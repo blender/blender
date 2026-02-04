@@ -178,7 +178,7 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
 /* `wm_message_bus_remote_io.cc` */
 
 struct wmMsgParams_RemoteIO {
-  /* Owned, needs freeing with `MEM_freeN()`. */
+  /* Owned, needs freeing with `MEM_delete_void()`. */
   const char *remote_url;
 };
 

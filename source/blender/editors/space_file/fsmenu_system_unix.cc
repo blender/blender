@@ -115,7 +115,7 @@ static GHash *fsmenu_xdg_user_dirs_parse(const char *home)
 static void fsmenu_xdg_user_dirs_free(GHash *xdg_map)
 {
   if (xdg_map != nullptr) {
-    BLI_ghash_free(xdg_map, MEM_freeN, MEM_freeN);
+    BLI_ghash_free(xdg_map, MEM_delete_void, MEM_delete_void);
   }
 }
 

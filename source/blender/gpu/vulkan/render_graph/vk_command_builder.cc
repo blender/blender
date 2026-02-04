@@ -524,7 +524,9 @@ void VKCommandBuilder::add_buffer_read_barriers(VKRenderGraph &render_graph,
       resource_state.vk_pipeline_stages |= node_stages;
     }
 
-    add_buffer_barrier(resource.buffer.vk_buffer, r_barrier, wait_access, link.vk_access_flags);
+    if (wait_access != VK_ACCESS_NONE) {
+      add_buffer_barrier(resource.buffer.vk_buffer, r_barrier, wait_access, link.vk_access_flags);
+    }
   }
 }
 
@@ -664,15 +666,17 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
       resource_state.vk_pipeline_stages |= node_stages;
     }
 
-    add_image_barrier(resource.image.vk_image,
-                      r_barrier,
-                      wait_access,
-                      link.vk_access_flags,
-                      resource_state.image_layout,
-                      link.vk_image_layout,
-                      link.vk_image_aspect,
-                      {});
-    resource_state.image_layout = link.vk_image_layout;
+    if (wait_access != VK_ACCESS_NONE || link.vk_image_layout != resource_state.image_layout) {
+      add_image_barrier(resource.image.vk_image,
+                        r_barrier,
+                        wait_access,
+                        link.vk_access_flags,
+                        resource_state.image_layout,
+                        link.vk_image_layout,
+                        link.vk_image_aspect,
+                        {});
+      resource_state.image_layout = link.vk_image_layout;
+    }
   }
 }
 

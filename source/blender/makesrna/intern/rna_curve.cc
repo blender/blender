@@ -137,6 +137,34 @@ static const EnumPropertyItem curve3d_fill_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem fill_solver_items[] = {
+    {CU_FILL_SOLVER_SWEEP_LINE,
+     "SWEEP_LINE",
+     0,
+     "Sweep Line",
+     "Fast without support for self-intersection"},
+    {CU_FILL_SOLVER_CDT,
+     "CDT",
+     0,
+     "Delaunay",
+     "Constrained Delaunay Triangulation (CDT), robust with support for self-intersections"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem fill_rule_items[] = {
+    {CU_FILL_RULE_EVEN_ODD,
+     "EVEN_ODD",
+     0,
+     "Even-Odd",
+     "Alternate inside/outside based on crossing count"},
+    {CU_FILL_RULE_NONZERO,
+     "NONZERO",
+     0,
+     "Non-Zero",
+     "Overlapping curves with the same winding direction are filled as a union"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem curve2d_fill_mode_items[] = {
     {0, "NONE", 0, "None", ""},
@@ -598,16 +626,16 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
   cu->pos = len_chars;
 
   if (cu->str) {
-    MEM_freeN(cu->str);
+    MEM_delete(cu->str);
   }
   if (cu->strinfo) {
-    MEM_freeN(cu->strinfo);
+    MEM_delete(cu->strinfo);
   }
 
-  cu->str = MEM_malloc_arrayN<char>(len_bytes + sizeof(char32_t), "str");
+  cu->str = MEM_new_array_uninitialized<char>(len_bytes + sizeof(char32_t), "str");
   memcpy(cu->str, value, len_bytes + 1);
 
-  cu->strinfo = MEM_new_array_for_free<CharInfo>((len_chars + 4), "strinfo");
+  cu->strinfo = MEM_new_array<CharInfo>((len_chars + 4), "strinfo");
 }
 
 static void rna_Nurb_update_cyclic_u(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -692,15 +720,15 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports
 
 static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 {
-  Nurb *nu = MEM_new_for_free<Nurb>("spline.new");
+  Nurb *nu = MEM_new<Nurb>("spline.new");
 
   if (type == CU_BEZIER) {
-    BezTriple *bezt = MEM_callocN<BezTriple>("spline.new.bezt");
+    BezTriple *bezt = MEM_new_zeroed<BezTriple>("spline.new.bezt");
     bezt->radius = 1.0;
     nu->bezt = bezt;
   }
   else {
-    BPoint *bp = MEM_callocN<BPoint>("spline.new.bp");
+    BPoint *bp = MEM_new_zeroed<BPoint>("spline.new.bp");
     bp->radius = 1.0f;
     nu->bp = bp;
   }
@@ -1177,7 +1205,7 @@ static void rna_def_font(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, prop_overflow_items);
   RNA_def_property_enum_default(prop, CU_OVERFLOW_NONE);
   RNA_def_property_ui_text(
-      prop, "Textbox Overflow", "Handle the text behavior when it does not fit in the text boxes");
+      prop, "TextBox Overflow", "Handle the text behavior when it does not fit in the text boxes");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   /* number values */
@@ -1247,7 +1275,7 @@ static void rna_def_font(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "text_boxes", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "tb", "totbox");
   RNA_def_property_struct_type(prop, "TextBox");
-  RNA_def_property_ui_text(prop, "Textboxes", "");
+  RNA_def_property_ui_text(prop, "TextBoxes", "");
 
   prop = RNA_def_property(srna, "active_textbox", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "actbox");
@@ -1366,28 +1394,28 @@ static void rna_def_textbox(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "x");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -50.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox X Offset", "");
+  RNA_def_property_ui_text(prop, "TextBox X Offset", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "y");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -50.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox Y Offset", "");
+  RNA_def_property_ui_text(prop, "TextBox Y Offset", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "w");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox Width", "");
+  RNA_def_property_ui_text(prop, "TextBox Width", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "h");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 50.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Textbox Height", "");
+  RNA_def_property_ui_text(prop, "TextBox Height", "");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   RNA_def_struct_path_func(srna, "rna_TextBox_path");
@@ -1824,6 +1852,18 @@ static void rna_def_curve(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, curve3d_fill_mode_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Curve_fill_mode_itemf");
   RNA_def_property_ui_text(prop, "Fill Mode", "Mode of filling curve");
+  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+  prop = RNA_def_property(srna, "fill_solver", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "fill_solver");
+  RNA_def_property_enum_items(prop, fill_solver_items);
+  RNA_def_property_ui_text(prop, "Fill Solver", "Triangulation solver for filling 2D curves");
+  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+  prop = RNA_def_property(srna, "fill_rule", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "fill_rule");
+  RNA_def_property_enum_items(prop, fill_rule_items);
+  RNA_def_property_ui_text(prop, "Fill Rule", "Fill rule for Delaunay fill solver");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "twist_mode", PROP_ENUM, PROP_NONE);

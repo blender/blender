@@ -60,6 +60,6 @@ if(NOT APPLE)
 endif()
 
 if(WITH_GTESTS)
-  set(INC_SYS)
+  set(INC_SYS "")
   blender_add_test_suite_executable(cycles "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 endif()

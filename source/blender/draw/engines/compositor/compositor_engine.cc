@@ -211,20 +211,20 @@ class Context : public compositor::Context {
    * returns an unallocated result instead. */
   compositor::Result get_pass_result(const char *pass_name)
   {
-    /* The combined pass is a special case where we return the viewport color texture, because it
-     * includes Grease Pencil objects since GP is drawn using their own engine. */
+    /* Return the pass that was written by the engine if such pass was found. */
+    if (DRW_viewport_pass_texture_exists(pass_name)) {
+      gpu::Texture *pass_texture = DRW_viewport_pass_texture_get(pass_name).gpu_texture();
+      compositor::Result pass = compositor::Result(*this, GPU_texture_format(pass_texture));
+      pass.wrap_external(pass_texture);
+      return pass;
+    }
+
+    /* The combined pass is a special case where we return the viewport color texture if the engine
+     * didn't provide a combined pass. */
     if (STREQ(pass_name, RE_PASSNAME_COMBINED)) {
       gpu::Texture *combined_texture = DRW_context_get()->viewport_texture_list_get()->color;
       compositor::Result pass = compositor::Result(*this, GPU_texture_format(combined_texture));
       pass.wrap_external(combined_texture);
-      return pass;
-    }
-
-    /* Return the pass that was written by the engine if such pass was found. */
-    gpu::Texture *pass_texture = DRW_viewport_pass_texture_get(pass_name).gpu_texture();
-    if (pass_texture) {
-      compositor::Result pass = compositor::Result(*this, GPU_texture_format(pass_texture));
-      pass.wrap_external(pass_texture);
       return pass;
     }
 
@@ -351,8 +351,12 @@ class Context : public compositor::Context {
           this->create_result(ResultType::Color, ResultPrecision::Half));
       if (input_socket == node_group.interface_inputs()[0]) {
         /* First socket is the viewport combined pass. */
-        gpu::Texture *combined_texture = DRW_context_get()->viewport_texture_list_get()->color;
-        input_result->wrap_external(combined_texture);
+        const int active_view_layer_index = BLI_findstringindex(
+            &scene_->view_layers, DRW_context_get()->view_layer->name, offsetof(ViewLayer, name));
+        Result combined_pass = this->get_pass(
+            scene_, active_view_layer_index, RE_PASSNAME_COMBINED);
+        input_result->share_data(combined_pass);
+        combined_pass.release();
       }
       else {
         /* The rest of the sockets are not supported. */

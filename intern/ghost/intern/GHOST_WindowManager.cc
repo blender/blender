@@ -96,7 +96,8 @@ GHOST_IWindow *GHOST_WindowManager::getWindowAssociatedWithOSWindow(const void *
   std::vector<GHOST_IWindow *>::iterator iter;
 
   for (iter = windows_.begin(); iter != windows_.end(); ++iter) {
-    if ((*iter)->getOSWindow() == osWindow) {
+    GHOST_Window *window = static_cast<GHOST_Window *>(*iter);
+    if (window->getOSWindow() == osWindow) {
       return *iter;
     }
   }

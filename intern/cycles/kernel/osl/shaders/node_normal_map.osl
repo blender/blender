@@ -9,11 +9,16 @@ shader node_normal_map(float Strength = 1.0,
                        string space = "tangent",
                        string attr_name = "geom:undisplaced_tangent",
                        string attr_sign_name = "geom:undisplaced_tangent_sign",
+                       string convention = "opengl",
                        output normal Normal = N)
 {
   color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
   int is_backfacing = backfacing();
   int linear_interpolate_strength = 0;
+
+  if (convention == "directx") {
+    mcolor[1] = -mcolor[1];
+  }
 
   if (space == "tangent") {
     vector tangent;

@@ -130,7 +130,7 @@ static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
   /* Cache the F-Curve values for `keyed_frames`. */
   const int fcurve_flag = fkc->fcurve->flag;
   fkc->fcurve->flag |= FCURVE_MOD_OFF;
-  fkc->fcurve_eval = MEM_malloc_arrayN<float>(size_t(keyed_frames_len), __func__);
+  fkc->fcurve_eval = MEM_new_array_uninitialized<float>(size_t(keyed_frames_len), __func__);
   for (int frame_index = 0; frame_index < keyed_frames_len; frame_index++) {
     const float evaltime = keyed_frames[frame_index];
     fkc->fcurve_eval[frame_index] = evaluate_fcurve_only_curve(fkc->fcurve, evaltime);
@@ -138,7 +138,7 @@ static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
   fkc->fcurve->flag = fcurve_flag;
 
   /* Cache the #BezTriple for `keyed_frames`, or leave as nullptr. */
-  fkc->bezt_array = MEM_malloc_arrayN<BezTriple *>(size_t(keyed_frames_len), __func__);
+  fkc->bezt_array = MEM_new_array_uninitialized<BezTriple *>(size_t(keyed_frames_len), __func__);
   BezTriple *bezt = fkc->fcurve->bezt;
   BezTriple *bezt_end = fkc->fcurve->bezt + fkc->fcurve->totvert;
 
@@ -378,15 +378,15 @@ static void action_flip_pchan(Object *ob_arm,
     BKE_fcurve_handles_recalc_ex(*fcurve_array[i], eBezTriple_Flag(0));
   }
 
-  MEM_freeN(keyed_frames);
+  MEM_delete(keyed_frames);
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
     FCurve_KeyCache *fkc = reinterpret_cast<FCurve_KeyCache *>(&fkc_pchan) + chan;
     if (fkc->fcurve_eval) {
-      MEM_freeN(fkc->fcurve_eval);
+      MEM_delete(fkc->fcurve_eval);
     }
     if (fkc->bezt_array) {
-      MEM_freeN(fkc->bezt_array);
+      MEM_delete(fkc->bezt_array);
     }
   }
 }
@@ -434,7 +434,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
       char name_flip_esc[MAXBONENAME * 2];
       BLI_str_escape(name_flip_esc, name_flip, sizeof(name_flip_esc));
       char *path_flip = BLI_sprintfN("pose.bones[\"%s%s", name_flip_esc, name_esc_end);
-      MEM_freeN(fcu->rna_path);
+      MEM_delete(fcu->rna_path);
       fcu->rna_path = path_flip;
 
       if (fcu->grp != nullptr) {

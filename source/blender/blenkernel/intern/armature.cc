@@ -100,7 +100,7 @@ static void copy_bone_collection(bArmature *armature_dst,
                                  const BoneCollection *bcoll_src,
                                  const int lib_id_flag)
 {
-  bcoll_dst = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_src));
+  bcoll_dst = MEM_dupalloc(bcoll_src);
 
   /* ID properties. */
   if (bcoll_dst->prop) {
@@ -173,7 +173,7 @@ static void armature_copy_data(Main * /*bmain*/,
   /* Duplicate bone collections & assignments. */
   if (armature_src->collection_array) {
     armature_dst->collection_array = static_cast<BoneCollection **>(
-        MEM_dupallocN(armature_src->collection_array));
+        MEM_dupalloc(armature_src->collection_array));
     armature_dst->collection_array_num = armature_src->collection_array_num;
     for (int i = 0; i < armature_src->collection_array_num; i++) {
       copy_bone_collection(armature_dst,
@@ -204,7 +204,7 @@ static void armature_free_data(ID *id)
       BLI_freelistN(&bcoll->bones);
       ANIM_bonecoll_free(bcoll, false);
     }
-    MEM_freeN(armature->collection_array);
+    MEM_delete(armature->collection_array);
   }
   armature->collection_array = nullptr;
   armature->collection_array_num = 0;
@@ -215,7 +215,7 @@ static void armature_free_data(ID *id)
   /* free editmode data */
   if (armature->edbo) {
     BKE_armature_editbonelist_free(armature->edbo, false);
-    MEM_freeN(armature->edbo);
+    MEM_delete(armature->edbo);
     armature->edbo = nullptr;
   }
 }
@@ -417,8 +417,8 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
   /* Read as listbase, but convert to an array on the armature. */
   BLO_read_struct_list(reader, BoneCollection, &arm->collections_legacy);
   arm->collection_array_num = BLI_listbase_count(&arm->collections_legacy);
-  arm->collection_array = MEM_malloc_arrayN<BoneCollection *>(size_t(arm->collection_array_num),
-                                                              __func__);
+  arm->collection_array = MEM_new_array_uninitialized<BoneCollection *>(
+      size_t(arm->collection_array_num), __func__);
   {
 
     int min_child_index = 0;
@@ -587,7 +587,7 @@ void BKE_armature_editbonelist_free(ListBaseT<EditBone> *lb, const bool do_id_us
       IDP_FreeProperty_ex(edit_bone.system_properties, do_id_user);
     }
     BLI_remlink_safe(lb, &edit_bone);
-    MEM_freeN(&edit_bone);
+    MEM_delete(&edit_bone);
   }
 }
 
@@ -1659,23 +1659,23 @@ static void allocate_bbone_cache(bPoseChannel *pchan,
     BKE_pose_channel_free_bbone_cache(runtime);
 
     runtime->bbone_segments = segments;
-    runtime->bbone_rest_mats = MEM_malloc_arrayN<Mat4>(1 + uint(segments),
-                                                       "bPoseChannel_Runtime::bbone_rest_mats");
-    runtime->bbone_pose_mats = MEM_malloc_arrayN<Mat4>(1 + uint(segments),
-                                                       "bPoseChannel_Runtime::bbone_pose_mats");
-    runtime->bbone_deform_mats = MEM_malloc_arrayN<Mat4>(
+    runtime->bbone_rest_mats = MEM_new_array_uninitialized<Mat4>(
+        1 + uint(segments), "bPoseChannel_Runtime::bbone_rest_mats");
+    runtime->bbone_pose_mats = MEM_new_array_uninitialized<Mat4>(
+        1 + uint(segments), "bPoseChannel_Runtime::bbone_pose_mats");
+    runtime->bbone_deform_mats = MEM_new_array_uninitialized<Mat4>(
         2 + uint(segments), "bPoseChannel_Runtime::bbone_deform_mats");
-    runtime->bbone_dual_quats = MEM_new_array_for_free<DualQuat>(
-        1 + uint(segments), "bPoseChannel_Runtime::bbone_dual_quats");
+    runtime->bbone_dual_quats = MEM_new_array<DualQuat>(1 + uint(segments),
+                                                        "bPoseChannel_Runtime::bbone_dual_quats");
   }
 
   /* If the segment count changed, the array was deallocated and nulled above. */
   if (use_boundaries && !runtime->bbone_segment_boundaries) {
-    runtime->bbone_segment_boundaries = MEM_new_array_for_free<bPoseChannel_BBoneSegmentBoundary>(
+    runtime->bbone_segment_boundaries = MEM_new_array<bPoseChannel_BBoneSegmentBoundary>(
         1 + uint(segments), "bPoseChannel_Runtime::bbone_segment_boundaries");
   }
   else if (!use_boundaries) {
-    MEM_SAFE_FREE(runtime->bbone_segment_boundaries);
+    MEM_SAFE_DELETE(runtime->bbone_segment_boundaries);
   }
 }
 
@@ -2882,7 +2882,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   /* only done here */
   if (ob->pose == nullptr) {
     /* create new pose */
-    ob->pose = MEM_new_for_free<bPose>("new pose");
+    ob->pose = MEM_new<bPose>("new pose");
 
     /* set default settings for animviz */
     animviz_settings_init(&ob->pose->avs);

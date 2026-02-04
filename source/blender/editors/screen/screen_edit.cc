@@ -65,7 +65,7 @@ static ScrArea *screen_addarea_ex(ScrAreaMap *area_map,
                                   ScrVert *bottom_right,
                                   const eSpace_Type space_type)
 {
-  ScrArea *area = MEM_new_for_free<ScrArea>("addscrarea");
+  ScrArea *area = MEM_new<ScrArea>("addscrarea");
 
   area->v1 = bottom_left;
   area->v2 = top_left;
@@ -96,7 +96,7 @@ static void screen_delarea(bContext *C, bScreen *screen, ScrArea *area)
   BKE_screen_area_free(area);
 
   BLI_remlink(&screen->areabase, area);
-  MEM_freeN(area);
+  MEM_delete(area);
 }
 
 ScrArea *area_split(const wmWindow *win,
@@ -522,17 +522,25 @@ static bool screen_area_join_ex(bContext *C,
     if (side1) {
       rcti rect = {side1->v1->vec.x, side1->v3->vec.x, side1->v1->vec.y, side1->v3->vec.y};
       /* Close side1 but not by joining with the area that we just split. */
-      if (screen_area_close(C, reports, screen, side1, (offset1 > 0) ? sa2 : sa1)) {
+      if (screen_area_close(C, reports, screen, side1, sa1)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+        if (sa1->spacetype == SPACE_OUTLINER) {
+          /* Outliner needs a full rebuild. #153395. */
+          ED_area_tag_redraw(sa1);
+        }
       }
     }
     if (side2) {
       rcti rect = {side2->v1->vec.x, side2->v3->vec.x, side2->v1->vec.y, side2->v3->vec.y};
       /* Close side2 but not by joining with the area that we just split. */
-      if (screen_area_close(C, reports, screen, side2, (offset2 > 0) ? sa1 : sa2)) {
+      if (screen_area_close(C, reports, screen, side2, sa1)) {
         screen_animate_area_highlight(
             CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+        if (sa1->spacetype == SPACE_OUTLINER) {
+          /* Outliner needs a full rebuild. #153395. */
+          ED_area_tag_redraw(sa1);
+        }
       }
     }
   }
@@ -907,7 +915,7 @@ void ED_region_exit(bContext *C, ARegion *region)
   /* The region is not in a state that it can be visible in anymore. Reinitializing is needed. */
   region->runtime->visible = false;
 
-  MEM_SAFE_FREE(region->runtime->headerstr);
+  MEM_SAFE_DELETE(region->runtime->headerstr);
 
   if (region->runtime->regiontimer) {
     WM_event_timer_remove(wm, win, region->runtime->regiontimer);
@@ -1050,7 +1058,15 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 
     if (actedge) {
       if (screen_geom_edge_is_horizontal(actedge)) {
-        WM_cursor_set(win, WM_CURSOR_Y_MOVE);
+        rcti screen_rect;
+        WM_window_screen_rect_calc(win, &screen_rect);
+        /* Check if edge is at top of screen (with small threshold that scales with interface). */
+        if (actedge->v1->vec.y >= screen_rect.ymax - int(2.0f * UI_SCALE_FAC)) {
+          WM_cursor_set(win, WM_CURSOR_DEFAULT);
+        }
+        else {
+          WM_cursor_set(win, WM_CURSOR_Y_MOVE);
+        }
       }
       else {
         WM_cursor_set(win, WM_CURSOR_X_MOVE);
@@ -1249,7 +1265,7 @@ static void screen_global_area_refresh(wmWindow *win,
     screen_area_spacelink_add(WM_window_get_active_scene(win), area, space_type);
 
     /* Data specific to global areas. */
-    area->global = MEM_new_for_free<ScrGlobalAreaData>(__func__);
+    area->global = MEM_new<ScrGlobalAreaData>(__func__);
     area->global->size_max = height_max;
     area->global->size_min = height_min;
     area->global->align = align;
@@ -1925,7 +1941,7 @@ void ED_screen_animation_timer(
   }
 
   if (enable) {
-    ScreenAnimData *sad = MEM_callocN<ScreenAnimData>("ScreenAnimData");
+    ScreenAnimData *sad = MEM_new_zeroed<ScreenAnimData>("ScreenAnimData");
 
     screen->animtimer = WM_event_timer_add(wm, win, TIMER0, (1.0 / scene->frames_per_second()));
 
@@ -2009,7 +2025,7 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 
   DEG_time_tag_update(bmain);
 
-  void *camera = BKE_scene_camera_switch_find(scene);
+  void *camera = BKE_scene_camera_switch_find(scene, int(BKE_scene_ctime_get(scene)));
   if (camera && scene->camera != camera) {
     scene->camera = static_cast<Object *>(camera);
     /* are there cameras in the views that are not in the scene? */

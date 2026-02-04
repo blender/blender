@@ -124,7 +124,7 @@ ccl_device_inline float3 make_float3(const float3 a)
 
 #if defined __METAL_PRINTF__
 #  define print_float3(label, a) \
-    metal::os_log_default.log_debug(label ":  %.8f %.8f %.8f", a.x, a.y, a.z)
+    metal::os_log_default.log_debug(label ":  %.8f %.8f %.8f", (a).x, (a).y, (a).z)
 #else
 ccl_device_inline void print_float3(const ccl_private char *label, const float3 a)
 {

@@ -2,8 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Notifications used by:
-# - The preferences when checking first displaying the extensions view.
+# Notifications are only used when "Online Access" is allowed (off by default):
+#
+# Notifications are currently used by:
+# - The preferences when first displaying the extensions view.
+# - On startup, when the status bar is shown (with a delayed timer).
 
 __all__ = (
     "update_non_blocking",
@@ -52,7 +55,7 @@ def sync_status_count_outdated_extensions(repos_notify):
     # directories are still valid before calculating their outdated packages.
     #
     # This could be handled a few different ways, ignore the outcome entirely or calculate what's left.
-    # Opt for calculating what we can since ignoring the results entirely might mean updated aren't displayed
+    # Opt for calculating what we can since ignoring the results entirely might mean updates aren't displayed
     # in the status bar when they should be, accepting that a new notification might need to be calculated
     # again for a correct result (repositories may have been enabled for example too).
     repos = repo_cache_store_refresh_from_prefs(repo_cache_store)
@@ -77,10 +80,10 @@ def sync_status_count_outdated_extensions(repos_notify):
 # -----------------------------------------------------------------------------
 # Update Iterator
 #
-# This is a black-box which handled running the updates, yielding status text.
+# This is a black-box which handles running the updates, yielding status text.
 
 def sync_calc_stale_repo_directories(repos_notify):
-    # Check for the unlikely event that the state of repositories has changed since checking for updated began.
+    # Check for the unlikely event that the state of repositories has changed since checking for updates began.
     # Do this by checking for directories since renaming or even disabling a repository need not prevent the
     # listing from being updated. Only detect changes to the (directory + URL) which define the source/destination.
     repo_state_from_prefs = set(
@@ -110,7 +113,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
 
     Another reason this is needed is exiting Blender will close the sync sub-processes,
     this is OK as long as the final location of the repositories JSON isn't being written
-    to the moment Blender and it's sub-processes exit.
+    to the moment Blender and its sub-processes exit.
     """
     # TODO: handle the case of cruft being left behind, perhaps detect previous
     # files created with a `unique_ext` (`@{HEX}` extension) and removing them.
@@ -136,11 +139,11 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
             has_error = False
             if directory in repo_directories_stale:
                 # Unlikely but possible repositories change or are removed after check starts.
-                sys.stderr.write("Warning \"{:s}\" has changed or been removed (skipping)\n".format(directory))
+                sys.stderr.write("Warning: \"{:s}\" has changed or been removed (skipping)\n".format(directory))
                 any_stale_errors = True
                 has_error = True
             elif (lock_result_for_repo := lock_result[directory]) is not None:
-                sys.stderr.write("Warning \"{:s}\" locking \"{:s}\"\n".format(lock_result_for_repo, directory))
+                sys.stderr.write("Warning: locking \"{:s}\" failed: {:s}\n".format(directory, lock_result_for_repo))
                 any_lock_errors = True
                 has_error = True
 
@@ -367,7 +370,7 @@ class NotifyHandle:
         return True
 
     def run_ensure(self):
-        # Return false if there is no work to do (skip this notification).
+        # Return True if already running, otherwise return the result of run().
         if self.is_running():
             return True
         return self.run()
@@ -500,7 +503,7 @@ def _ui_refresh_timer_impl():
     if sync_info is ...:
         _ui_refresh_apply()
         if len(_notify_queue) <= 1:
-            # Keep `_notify_queuy[0]` because we may want to keep accessing the text even when updates are complete.
+            # Keep `_notify_queue[0]` because we may want to keep accessing the text even when updates are complete.
             if wm.extensions_updates == WM_EXTENSIONS_UPDATE_CHECKING:
                 wm.extensions_updates = WM_EXTENSIONS_UPDATE_UNSET
             return None
@@ -582,7 +585,7 @@ def _region_refresh_registered():
 
 
 def update_non_blocking(*, repos_fn, immediate=False):
-    # Perform a non-blocking update on ``repos``.
+    # Perform a non-blocking update using ``repos_fn``.
     # Updates are queued in case some are already running.
     # `repos_fn` A generator or function that returns a list of ``(RepoItem, do_online_sync)`` pairs.
     # Some repositories don't check for update on startup for example

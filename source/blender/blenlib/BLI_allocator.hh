@@ -42,13 +42,14 @@ class GuardedAllocator {
  public:
   void *allocate(size_t size, size_t alignment, const char *name)
   {
-    /* Should we use MEM_mallocN, when alignment is small? If yes, how small must alignment be? */
-    return MEM_mallocN_aligned(size, alignment, name);
+    /* Should we use MEM_new_uninitialized, when alignment is small? If yes, how small must
+     * alignment be? */
+    return MEM_new_uninitialized_aligned(size, alignment, name);
   }
 
   void deallocate(void *ptr)
   {
-    MEM_freeN(ptr);
+    MEM_delete_void(ptr);
   }
 };
 
@@ -63,12 +64,12 @@ template<size_t Alignment = 64ul> class GuardedAlignedAllocator {
 
   void *allocate(size_t size, size_t alignment, const char *name)
   {
-    return MEM_mallocN_aligned(size, std::max(alignment, min_alignment), name);
+    return MEM_new_uninitialized_aligned(size, std::max(alignment, min_alignment), name);
   }
 
   void deallocate(void *ptr)
   {
-    MEM_freeN(ptr);
+    MEM_delete_void(ptr);
   }
 };
 

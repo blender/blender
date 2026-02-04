@@ -51,8 +51,8 @@ static void lattice_init_data(ID *id)
 
   INIT_DEFAULT_STRUCT_AFTER(lattice, id);
 
-  lattice->def = MEM_callocN<BPoint>("lattvert"); /* temporary */
-  BKE_lattice_resize(lattice, 2, 2, 2, nullptr);  /* creates a uniform lattice */
+  lattice->def = MEM_new_zeroed<BPoint>("lattvert"); /* temporary */
+  BKE_lattice_resize(lattice, 2, 2, 2, nullptr);     /* creates a uniform lattice */
 }
 
 static void lattice_copy_data(Main *bmain,
@@ -64,7 +64,7 @@ static void lattice_copy_data(Main *bmain,
   Lattice *lattice_dst = id_cast<Lattice *>(id_dst);
   const Lattice *lattice_src = id_cast<const Lattice *>(id_src);
 
-  lattice_dst->def = static_cast<BPoint *>(MEM_dupallocN(lattice_src->def));
+  lattice_dst->def = MEM_dupalloc(lattice_src->def);
 
   if (lattice_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_in_lib(bmain,
@@ -79,7 +79,8 @@ static void lattice_copy_data(Main *bmain,
 
   if (lattice_src->dvert) {
     int tot = lattice_src->pntsu * lattice_src->pntsv * lattice_src->pntsw;
-    lattice_dst->dvert = MEM_malloc_arrayN<MDeformVert>(size_t(tot), "Lattice MDeformVert");
+    lattice_dst->dvert = MEM_new_array_uninitialized<MDeformVert>(size_t(tot),
+                                                                  "Lattice MDeformVert");
     BKE_defvert_array_copy(lattice_dst->dvert, lattice_src->dvert, tot);
   }
 
@@ -95,7 +96,7 @@ static void lattice_free_data(ID *id)
 
   BLI_freelistN(&lattice->vertex_group_names);
 
-  MEM_SAFE_FREE(lattice->def);
+  MEM_SAFE_DELETE(lattice->def);
   if (lattice->dvert) {
     BKE_defvert_array_free(lattice->dvert, lattice->pntsu * lattice->pntsv * lattice->pntsw);
     lattice->dvert = nullptr;
@@ -104,14 +105,14 @@ static void lattice_free_data(ID *id)
     Lattice *editlt = lattice->editlatt->latt;
 
     if (editlt->def) {
-      MEM_freeN(editlt->def);
+      MEM_delete(editlt->def);
     }
     if (editlt->dvert) {
       BKE_defvert_array_free(editlt->dvert, lattice->pntsu * lattice->pntsv * lattice->pntsw);
     }
 
-    MEM_freeN(editlt);
-    MEM_freeN(lattice->editlatt);
+    MEM_delete(editlt);
+    MEM_delete(lattice->editlatt);
     lattice->editlatt = nullptr;
   }
 }
@@ -288,8 +289,8 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
     }
   }
 
-  vert_coords = MEM_malloc_arrayN<float[3]>(size_t(u_new) * size_t(v_new) * size_t(w_new),
-                                            "tmp_vcos");
+  vert_coords = MEM_new_array_uninitialized<float[3]>(
+      size_t(u_new) * size_t(v_new) * size_t(w_new), "tmp_vcos");
 
   calc_lat_fudu(lt->flag, u_new, &fu, &du);
   calc_lat_fudu(lt->flag, v_new, &fv, &dv);
@@ -365,9 +366,9 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
   lt->pntsw = w_new;
 
   lt->actbp = LT_ACTBP_NONE;
-  MEM_freeN(lt->def);
-  lt->def = MEM_calloc_arrayN<BPoint>(size_t(lt->pntsu) * size_t(lt->pntsv) * size_t(lt->pntsw),
-                                      "lattice bp");
+  MEM_delete(lt->def);
+  lt->def = MEM_new_array_zeroed<BPoint>(size_t(lt->pntsu) * size_t(lt->pntsv) * size_t(lt->pntsw),
+                                         "lattice bp");
 
   bp = lt->def;
 
@@ -375,7 +376,7 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
     copy_v3_v3(bp->vec, vert_coords[i]);
   }
 
-  MEM_freeN(vert_coords);
+  MEM_delete(vert_coords);
 }
 
 Lattice *BKE_lattice_add(Main *bmain, const char *name)
@@ -518,7 +519,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   BKE_object_free_derived_caches(ob);
   if (ob->runtime->curve_cache == nullptr) {
-    ob->runtime->curve_cache = MEM_callocN<CurveCache>("CurveCache for lattice");
+    ob->runtime->curve_cache = MEM_new_zeroed<CurveCache>("CurveCache for lattice");
   }
 
   Lattice *lt = id_cast<Lattice *>(ob->data);

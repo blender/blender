@@ -66,16 +66,16 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
  * Return true if the attribute should be copied/interpolated to the result curves.
  * Don't output attributes that correspond to curve types that have no curves in the result.
  */
-static bool interpolate_attribute_to_curves(const StringRef attribute_id,
+static bool interpolate_attribute_to_curves(const StringRef name,
                                             const std::array<int, CURVE_TYPES_NUM> &type_counts)
 {
-  if (bke::attribute_name_is_anonymous(attribute_id)) {
+  if (bke::attribute_name_is_anonymous(name)) {
     return true;
   }
-  if (ELEM(attribute_id, "handle_type_left", "handle_type_right", "handle_left", "handle_right")) {
+  if (ELEM(name, "handle_type_left", "handle_type_right", "handle_left", "handle_right")) {
     return type_counts[CURVE_TYPE_BEZIER] != 0;
   }
-  if (ELEM(attribute_id, "nurbs_weight")) {
+  if (ELEM(name, "nurbs_weight")) {
     return type_counts[CURVE_TYPE_NURBS] != 0;
   }
   return true;
@@ -84,7 +84,7 @@ static bool interpolate_attribute_to_curves(const StringRef attribute_id,
 /**
  * Return true if the attribute should be copied to poly curves.
  */
-static bool interpolate_attribute_to_poly_curve(const StringRef attribute_id)
+static bool interpolate_attribute_to_poly_curve(const StringRef name)
 {
   static const Set<StringRef> no_interpolation{{
       "handle_type_left",
@@ -93,7 +93,7 @@ static bool interpolate_attribute_to_poly_curve(const StringRef attribute_id)
       "handle_left",
       "nurbs_weight",
   }};
-  return !no_interpolation.contains(attribute_id);
+  return !no_interpolation.contains(name);
 }
 
 /**
@@ -102,22 +102,29 @@ static bool interpolate_attribute_to_poly_curve(const StringRef attribute_id)
 static void retrieve_attribute_spans(const Span<StringRef> ids,
                                      const CurvesGeometry &src_curves,
                                      CurvesGeometry &dst_curves,
-                                     Vector<GVArraySpan> &src,
-                                     Vector<GMutableSpan> &dst,
-                                     Vector<bke::GSpanAttributeWriter> &dst_attributes)
+                                     Vector<GVArraySpan> &src_arrays,
+                                     Vector<GMutableSpan> &dst_arrays,
+                                     Vector<bke::GSpanAttributeWriter> &dst_writers)
 {
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   for (const int i : ids.index_range()) {
-    const bke::GAttributeReader src_attribute = src_attributes.lookup(ids[i],
-                                                                      bke::AttrDomain::Point);
-    src.append(src_attribute.varray);
+    GVArray src_attribute = *src_attributes.lookup(ids[i], bke::AttrDomain::Point);
+    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src_attribute.type());
 
-    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src_attribute.varray.type());
-    bke::GSpanAttributeWriter dst_attribute =
-        dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
-            ids[i], bke::AttrDomain::Point, data_type);
-    dst.append(dst_attribute.span);
-    dst_attributes.append(std::move(dst_attribute));
+    const CommonVArrayInfo info = src_attribute.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attribute.type(), info.data));
+      dst_attributes.add(ids[i], bke::AttrDomain::Point, data_type, init);
+      continue;
+    }
+
+    src_arrays.append(std::move(src_attribute));
+
+    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        ids[i], bke::AttrDomain::Point, data_type);
+    dst_arrays.append(dst_attribute.span);
+    dst_writers.append(std::move(dst_attribute));
   }
 }
 
@@ -337,8 +344,7 @@ static void resample_to_uniform(const CurvesGeometry &src_curves,
      * curve's "evaluated points", then use linear interpolation to sample to the result. */
     for (const int i_attribute : attributes.dst.index_range()) {
       const CPPType &type = attributes.src[i_attribute].type();
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         Span<T> src = attributes.src[i_attribute].typed<T>();
         MutableSpan<T> dst = attributes.dst[i_attribute].typed<T>();
 

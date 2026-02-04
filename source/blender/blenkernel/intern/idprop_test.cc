@@ -99,7 +99,7 @@ TEST(idproperties, ReprGroup)
     uint result_len;
     char *c_str = IDP_reprN(prop, &result_len);
     std::string result = std::string(c_str, result_len);
-    MEM_freeN(c_str);
+    MEM_delete(c_str);
     return result;
   };
 

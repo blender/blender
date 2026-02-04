@@ -282,7 +282,7 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
 {
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (sipo->ads == nullptr) {
-    sipo->ads = MEM_new_for_free<bDopeSheet>("GraphEdit DopeSheet");
+    sipo->ads = MEM_new<bDopeSheet>("GraphEdit DopeSheet");
     sipo->ads->source = reinterpret_cast<ID *>(ac->scene);
   }
   ac->ads = sipo->ads;
@@ -340,7 +340,7 @@ static bool nlaedit_get_context(bAnimContext *ac, SpaceNla *snla)
 {
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (snla->ads == nullptr) {
-    snla->ads = MEM_new_for_free<bDopeSheet>("NlaEdit DopeSheet");
+    snla->ads = MEM_new<bDopeSheet>("NlaEdit DopeSheet");
   }
   ac->ads = snla->ads;
 
@@ -663,7 +663,7 @@ static bAnimListElem *make_new_animlistelem(
   }
 
   /* Allocate and set generic data. */
-  bAnimListElem *ale = MEM_callocN<bAnimListElem>("bAnimListElem");
+  bAnimListElem *ale = MEM_new_zeroed<bAnimListElem>("bAnimListElem");
 
   ale->data = data;
   ale->type = datatype;
@@ -1453,13 +1453,13 @@ static size_t animfilter_fcurves_span(bAnimContext *ac,
     /* Filtering by name needs a way to look up the name, which is easiest if
      * there is already an #bAnimListElem. */
     if (filter_by_name && !ale_name_matches_dopesheet_filter(*ac->ads, *ale)) {
-      MEM_freeN(ale);
+      MEM_delete(ale);
       continue;
     }
 
     if (filter_mode & ANIMFILTER_TMP_PEEK) {
       /* Found an animation channel, which is good enough for the 'TMP_PEEK' mode. */
-      MEM_freeN(ale);
+      MEM_delete(ale);
       return 1;
     }
 
@@ -3659,7 +3659,7 @@ static Base **animdata_filter_ds_sorted_bases(bAnimContext *ac,
   size_t tot_bases = BLI_listbase_count(object_bases);
   size_t num_bases = 0;
 
-  Base **sorted_bases = MEM_calloc_arrayN<Base *>(tot_bases, "Dopesheet Usable Sorted Bases");
+  Base **sorted_bases = MEM_new_array_zeroed<Base *>(tot_bases, "Dopesheet Usable Sorted Bases");
   for (Base &base : *object_bases) {
     const eObjectMode object_mode = eObjectMode(base.object->mode);
     if (animdata_filter_base_is_ok(ac, &base, object_mode, filter_mode)) {
@@ -3758,7 +3758,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
       /* TODO: store something to validate whether any changes are needed? */
 
       /* free temporary data */
-      MEM_freeN(sorted_bases);
+      MEM_delete(sorted_bases);
     }
   }
   else {

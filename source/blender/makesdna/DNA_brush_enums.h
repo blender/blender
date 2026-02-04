@@ -12,52 +12,6 @@
 
 namespace blender {
 
-/* BrushGpencilSettings->preset_type.
- * Use a range for each group and not continuous values. */
-enum eGPBrush_Presets {
-  GP_BRUSH_PRESET_UNKNOWN = 0,
-
-  /* Draw 1-99. */
-  GP_BRUSH_PRESET_AIRBRUSH = 1,
-  GP_BRUSH_PRESET_INK_PEN = 2,
-  GP_BRUSH_PRESET_INK_PEN_ROUGH = 3,
-  GP_BRUSH_PRESET_MARKER_BOLD = 4,
-  GP_BRUSH_PRESET_MARKER_CHISEL = 5,
-  GP_BRUSH_PRESET_PEN = 6,
-  GP_BRUSH_PRESET_PENCIL_SOFT = 7,
-  GP_BRUSH_PRESET_PENCIL = 8,
-  GP_BRUSH_PRESET_FILL_AREA = 9,
-  GP_BRUSH_PRESET_ERASER_SOFT = 10,
-  GP_BRUSH_PRESET_ERASER_HARD = 11,
-  GP_BRUSH_PRESET_ERASER_POINT = 12,
-  GP_BRUSH_PRESET_ERASER_STROKE = 13,
-  GP_BRUSH_PRESET_TINT = 14,
-
-  /* Vertex Paint 100-199. */
-  GP_BRUSH_PRESET_VERTEX_DRAW = 100,
-  GP_BRUSH_PRESET_VERTEX_BLUR = 101,
-  GP_BRUSH_PRESET_VERTEX_AVERAGE = 102,
-  GP_BRUSH_PRESET_VERTEX_SMEAR = 103,
-  GP_BRUSH_PRESET_VERTEX_REPLACE = 104,
-
-  /* Sculpt 200-299. */
-  GP_BRUSH_PRESET_SMOOTH_STROKE = 200,
-  GP_BRUSH_PRESET_STRENGTH_STROKE = 201,
-  GP_BRUSH_PRESET_THICKNESS_STROKE = 202,
-  GP_BRUSH_PRESET_GRAB_STROKE = 203,
-  GP_BRUSH_PRESET_PUSH_STROKE = 204,
-  GP_BRUSH_PRESET_TWIST_STROKE = 205,
-  GP_BRUSH_PRESET_PINCH_STROKE = 206,
-  GP_BRUSH_PRESET_RANDOMIZE_STROKE = 207,
-  GP_BRUSH_PRESET_CLONE_STROKE = 208,
-
-  /* Weight Paint 300-399. */
-  GP_BRUSH_PRESET_WEIGHT_DRAW = 300,
-  GP_BRUSH_PRESET_WEIGHT_BLUR = 301,
-  GP_BRUSH_PRESET_WEIGHT_AVERAGE = 302,
-  GP_BRUSH_PRESET_WEIGHT_SMEAR = 303,
-};
-
 /* BrushGpencilSettings->flag */
 enum eGPDbrush_Flag {
   /* brush use pressure */
@@ -136,6 +90,10 @@ enum eGPDbrush_Flag2 {
   GP_BRUSH_USE_STRENGTH_RAND_PRESS = (1 << 10),
   /* Brush use UV random pressure */
   GP_BRUSH_USE_UV_RAND_PRESS = (1 << 11),
+  /* Brush creates curves that use the stroke. */
+  GP_BRUSH_USE_STROKE = (1 << 12),
+  /* Brush creates curves that use the fill. */
+  GP_BRUSH_USE_FILL = (1 << 13),
 };
 
 /* BrushGpencilSettings->fill_draw_mode */
@@ -363,9 +321,20 @@ enum eBrushGradientSourceFill {
   BRUSH_GRADIENT_RADIAL = 1, /* gradient from spacing */
 };
 
+/** #Brush.stroke_method */
+enum eBrushStrokeType {
+  BRUSH_STROKE_DOTS = 0,
+  BRUSH_STROKE_AIRBRUSH = 1,
+  BRUSH_STROKE_ANCHORED = 2,
+  BRUSH_STROKE_SPACE = 3,
+  BRUSH_STROKE_DRAG_DOT = 4,
+  BRUSH_STROKE_LINE = 5,
+  BRUSH_STROKE_CURVE = 6,
+};
+
 /** #Brush.flag */
 enum eBrushFlags {
-  BRUSH_AIRBRUSH = (1 << 0),
+  BRUSH_UNUSED_1 = (1 << 0),
   BRUSH_INVERT_TO_SCRAPE_FILL = (1 << 1),
   BRUSH_ALPHA_PRESSURE = (1 << 2),
   BRUSH_SIZE_PRESSURE = (1 << 3),
@@ -373,9 +342,9 @@ enum eBrushFlags {
   BRUSH_SPACING_PRESSURE = (1 << 5),
   BRUSH_ORIGINAL_PLANE = (1 << 6),
   BRUSH_GRAB_ACTIVE_VERTEX = (1 << 7),
-  BRUSH_ANCHORED = (1 << 8),
+  BRUSH_UNUSED_2 = (1 << 8),
   BRUSH_DIR_IN = (1 << 9),
-  BRUSH_SPACE = (1 << 10),
+  BRUSH_UNUSED_3 = (1 << 10),
   BRUSH_SMOOTH_STROKE = (1 << 11),
   BRUSH_PERSISTENT = (1 << 12),
   BRUSH_ACCUMULATE = (1 << 13),
@@ -388,15 +357,15 @@ enum eBrushFlags {
   BRUSH_LOCK_SIZE = (1 << 20),
   BRUSH_USE_GRADIENT = (1 << 21),
   BRUSH_EDGE_TO_EDGE = (1 << 22),
-  BRUSH_DRAG_DOT = (1 << 23),
+  BRUSH_UNUSED_4 = (1 << 23),
   BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
   BRUSH_FRONTFACE_FALLOFF = (1 << 25),
   BRUSH_PLANE_TRIM = (1 << 26),
   BRUSH_FRONTFACE = (1 << 27),
   /* BRUSH_CUSTOM_ICON = (1 << 28), */
-  BRUSH_LINE = (1 << 29),
+  BRUSH_UNUSED_5 = (1 << 29),
   BRUSH_ABSOLUTE_JITTER = (1 << 30),
-  BRUSH_CURVE = (1u << 31),
+  BRUSH_UNUSED_6 = (1u << 31),
 };
 
 /** #Brush.sampling_flag */

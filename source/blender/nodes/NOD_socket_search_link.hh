@@ -6,6 +6,7 @@
 
 #include <functional>
 
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -154,6 +155,12 @@ class GatherLinkSearchOpParams {
  * these criteria do not apply and the function just tries its best without asserting.
  */
 void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params);
+
+/**
+ * Same as search_link_ops_for_basic_node with additional filtering to exclude sockets.
+ */
+void search_filtered_link_ops_for_basic_node(GatherLinkSearchOpParams &params,
+                                             const Set<std::string> &skip_socket_identifiers);
 
 void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
                                       Span<SocketDeclaration *> declarations);

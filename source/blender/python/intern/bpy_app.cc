@@ -777,7 +777,7 @@ static PyObject *bpy_app_help_text(PyObject * /*self*/, PyObject *args, PyObject
 
   char *buf = BPY_python_app_help_text_fn(all);
   PyObject *result = PyUnicode_FromString(buf);
-  MEM_freeN(buf);
+  MEM_delete(buf);
   return result;
 }
 

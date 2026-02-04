@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'e3ae31b49e53')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-20 10:29+0000\n"
+"POT-Creation-Date: 2026-02-02 14:51+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -2453,10 +2453,6 @@ msgid "Scale of small capitals"
 msgstr "Mažų raidžių dydis"
 
 
-msgid "Textboxes"
-msgstr "Teksto laukai"
-
-
 msgid "Active Texture"
 msgstr "Aktyvi tekstūra"
 
@@ -3097,10 +3093,6 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
-msgid "Import"
-msgstr "Importuoti"
-
-
 msgid "Layout"
 msgstr "Išdėstymas/Maketas"
 
@@ -3111,6 +3103,10 @@ msgstr "Pritaikyti"
 
 msgid "Track"
 msgstr "Sekti"
+
+
+msgid "Import"
+msgstr "Importuoti"
 
 
 msgid "Animals"

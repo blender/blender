@@ -67,12 +67,12 @@ static off64_t memory_seek(FileReader *reader, off64_t offset, int whence)
 
 static void memory_close_raw(FileReader *reader)
 {
-  MEM_freeN(reader);
+  MEM_delete(reader);
 }
 
 FileReader *BLI_filereader_new_memory(const void *data, size_t len)
 {
-  MemoryReader *mem = MEM_callocN<MemoryReader>(__func__);
+  MemoryReader *mem = MEM_new_zeroed<MemoryReader>(__func__);
 
   mem->data = static_cast<const char *>(data);
   mem->length = len;
@@ -110,7 +110,7 @@ static void memory_close_mmap(FileReader *reader)
 {
   MemoryReader *mem = reinterpret_cast<MemoryReader *>(reader);
   BLI_mmap_free(mem->mmap);
-  MEM_freeN(mem);
+  MEM_delete(mem);
 }
 
 FileReader *BLI_filereader_new_mmap(int filedes)
@@ -120,7 +120,7 @@ FileReader *BLI_filereader_new_mmap(int filedes)
     return nullptr;
   }
 
-  MemoryReader *mem = MEM_callocN<MemoryReader>(__func__);
+  MemoryReader *mem = MEM_new_zeroed<MemoryReader>(__func__);
 
   mem->mmap = mmap;
   mem->length = BLI_mmap_get_length(mmap);

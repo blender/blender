@@ -31,7 +31,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     ${SRC_KERNEL_DEVICE_HIP_HEADERS}
     $<TARGET_PROPERTY:cycles_kernel,INTERFACE_SOURCES>
   )
-  set(hip_fatbins)
+  set(hip_fatbins "")
 
   macro(CYCLES_HIP_KERNEL_ADD arch name flags sources experimental)
     set(format "fatbin")
@@ -48,7 +48,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
         ${HIP_HIPCC_EXECUTABLE})
     else()
       set(hip_command ${HIP_HIPCC_EXECUTABLE})
-      set(hip_flags)
+      set(hip_flags "")
     endif()
 
     # There's a few bugs in the HIP compiler causing some scenes to fail to render,
@@ -60,7 +60,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     if(WIN32 AND ((${arch} MATCHES "gfx90[a-z0-9]+") OR (${HIP_VERSION} STREQUAL "6.1.40252")))
       set(hip_opt_flags "-O1")
     else()
-      set(hip_opt_flags)
+      set(hip_opt_flags "")
     endif()
 
     set(hip_flags

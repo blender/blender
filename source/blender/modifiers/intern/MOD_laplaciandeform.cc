@@ -94,7 +94,7 @@ struct LaplacianSystem {
 
 static LaplacianSystem *newLaplacianSystem()
 {
-  LaplacianSystem *sys = MEM_callocN<LaplacianSystem>(__func__);
+  LaplacianSystem *sys = MEM_new_zeroed<LaplacianSystem>(__func__);
 
   sys->is_matrix_computed = false;
   sys->has_solution = false;
@@ -125,32 +125,32 @@ static LaplacianSystem *initLaplacianSystem(int verts_num,
   sys->anchors_num = anchors_num;
   sys->repeat = iterations;
   STRNCPY(sys->anchor_grp_name, defgrpName);
-  sys->co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
-  sys->no = MEM_calloc_arrayN<float[3]>(verts_num, __func__);
-  sys->delta = MEM_calloc_arrayN<float[3]>(verts_num, __func__);
-  sys->tris = MEM_malloc_arrayN<uint[3]>(size_t(tris_num), __func__);
-  sys->index_anchors = MEM_malloc_arrayN<int>(size_t(anchors_num), __func__);
-  sys->unit_verts = MEM_calloc_arrayN<int>(verts_num, __func__);
+  sys->co = MEM_new_array_uninitialized<float[3]>(size_t(verts_num), __func__);
+  sys->no = MEM_new_array_zeroed<float[3]>(verts_num, __func__);
+  sys->delta = MEM_new_array_zeroed<float[3]>(verts_num, __func__);
+  sys->tris = MEM_new_array_uninitialized<uint[3]>(size_t(tris_num), __func__);
+  sys->index_anchors = MEM_new_array_uninitialized<int>(size_t(anchors_num), __func__);
+  sys->unit_verts = MEM_new_array_zeroed<int>(verts_num, __func__);
   return sys;
 }
 
 static void deleteLaplacianSystem(LaplacianSystem *sys)
 {
-  MEM_SAFE_FREE(sys->co);
-  MEM_SAFE_FREE(sys->no);
-  MEM_SAFE_FREE(sys->delta);
-  MEM_SAFE_FREE(sys->tris);
-  MEM_SAFE_FREE(sys->index_anchors);
-  MEM_SAFE_FREE(sys->unit_verts);
-  MEM_SAFE_FREE(sys->ringf_indices);
-  MEM_SAFE_FREE(sys->ringv_indices);
-  MEM_SAFE_FREE(sys->ringf_map);
-  MEM_SAFE_FREE(sys->ringv_map);
+  MEM_SAFE_DELETE(sys->co);
+  MEM_SAFE_DELETE(sys->no);
+  MEM_SAFE_DELETE(sys->delta);
+  MEM_SAFE_DELETE(sys->tris);
+  MEM_SAFE_DELETE(sys->index_anchors);
+  MEM_SAFE_DELETE(sys->unit_verts);
+  MEM_SAFE_DELETE(sys->ringf_indices);
+  MEM_SAFE_DELETE(sys->ringv_indices);
+  MEM_SAFE_DELETE(sys->ringf_map);
+  MEM_SAFE_DELETE(sys->ringv_map);
 
   if (sys->context) {
     EIG_linear_solver_delete(sys->context);
   }
-  MEM_SAFE_FREE(sys);
+  MEM_SAFE_DELETE(sys);
 }
 
 static void createFaceRingMap(const int mvert_tot,
@@ -161,7 +161,7 @@ static void createFaceRingMap(const int mvert_tot,
 {
   int indices_num = 0;
   int *indices, *index_iter;
-  MeshElemMap *map = MEM_calloc_arrayN<MeshElemMap>(mvert_tot, __func__);
+  MeshElemMap *map = MEM_new_array_zeroed<MeshElemMap>(mvert_tot, __func__);
 
   for (const int i : corner_tris.index_range()) {
     const int3 &tri = corner_tris[i];
@@ -171,7 +171,7 @@ static void createFaceRingMap(const int mvert_tot,
       indices_num++;
     }
   }
-  indices = MEM_calloc_arrayN<int>(indices_num, __func__);
+  indices = MEM_new_array_zeroed<int>(indices_num, __func__);
   index_iter = indices;
   for (int i = 0; i < mvert_tot; i++) {
     map[i].indices = index_iter;
@@ -195,7 +195,7 @@ static void createVertRingMap(const int mvert_tot,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
-  MeshElemMap *map = MEM_calloc_arrayN<MeshElemMap>(mvert_tot, __func__);
+  MeshElemMap *map = MEM_new_array_zeroed<MeshElemMap>(mvert_tot, __func__);
   int i, vid[2], indices_num = 0;
   int *indices, *index_iter;
 
@@ -206,7 +206,7 @@ static void createVertRingMap(const int mvert_tot,
     map[vid[1]].count++;
     indices_num += 2;
   }
-  indices = MEM_calloc_arrayN<int>(indices_num, __func__);
+  indices = MEM_new_array_zeroed<int>(indices_num, __func__);
   index_iter = indices;
   for (i = 0; i < mvert_tot; i++) {
     map[i].indices = index_iter;
@@ -543,7 +543,8 @@ static void initSystem(
   const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
   if (isValidVertexGroup(lmd, ob, mesh)) {
-    int *index_anchors = MEM_malloc_arrayN<int>(size_t(verts_num), __func__); /* Over-allocate. */
+    int *index_anchors = MEM_new_array_uninitialized<int>(size_t(verts_num),
+                                                          __func__); /* Over-allocate. */
 
     STACK_DECLARE(index_anchors);
 
@@ -575,8 +576,8 @@ static void initSystem(
     sys = static_cast<LaplacianSystem *>(lmd->cache_system);
     memcpy(sys->index_anchors, index_anchors, sizeof(int) * anchors_num);
     memcpy(sys->co, vertexCos, sizeof(float[3]) * verts_num);
-    MEM_freeN(index_anchors);
-    lmd->vertexco = MEM_malloc_arrayN<float>(3 * size_t(verts_num), __func__);
+    MEM_delete(index_anchors);
+    lmd->vertexco = MEM_new_array_uninitialized<float>(3 * size_t(verts_num), __func__);
     lmd->vertexco_sharing_info = implicit_sharing::info_for_mem_free(lmd->vertexco);
     memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * verts_num);
     lmd->verts_num = verts_num;
@@ -658,7 +659,7 @@ static void LaplacianDeformModifier_do(
     sys = static_cast<LaplacianSystem *>(lmd->cache_system);
     if (sysdif) {
       if (ELEM(sysdif, LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS, LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP)) {
-        filevertexCos = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
+        filevertexCos = MEM_new_array_uninitialized<float[3]>(size_t(verts_num), __func__);
         memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
         implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
         lmd->verts_num = 0;
@@ -666,7 +667,7 @@ static void LaplacianDeformModifier_do(
         lmd->cache_system = nullptr;
         initSystem(lmd, ob, mesh, filevertexCos, verts_num);
         sys = static_cast<LaplacianSystem *>(lmd->cache_system); /* may have been reallocated */
-        MEM_SAFE_FREE(filevertexCos);
+        MEM_SAFE_DELETE(filevertexCos);
         if (sys) {
           laplacianDeformPreview(sys, vertexCos);
         }
@@ -702,13 +703,14 @@ static void LaplacianDeformModifier_do(
       lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
     }
     else if (lmd->verts_num > 0 && lmd->verts_num == verts_num) {
-      filevertexCos = MEM_malloc_arrayN<float[3]>(size_t(verts_num), "TempDeformCoordinates");
+      filevertexCos = MEM_new_array_uninitialized<float[3]>(size_t(verts_num),
+                                                            "TempDeformCoordinates");
       memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
       implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
       lmd->verts_num = 0;
       initSystem(lmd, ob, mesh, filevertexCos, verts_num);
       sys = static_cast<LaplacianSystem *>(lmd->cache_system);
-      MEM_SAFE_FREE(filevertexCos);
+      MEM_SAFE_DELETE(filevertexCos);
       laplacianDeformPreview(sys, vertexCos);
     }
     else {

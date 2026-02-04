@@ -277,6 +277,13 @@ ccl_device_inline Transform transform_translate(const float x, const float y, fl
   return transform_translate(make_float3(x, y, z));
 }
 
+ccl_device_inline void transform_translate(Transform &T, const float3 t)
+{
+  T.x.w += t.x;
+  T.y.w += t.y;
+  T.z.w += t.z;
+}
+
 ccl_device_inline Transform transform_scale(const float3 s)
 {
   return make_transform(s.x, 0, 0, 0, 0, s.y, 0, 0, 0, 0, s.z, 0);

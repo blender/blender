@@ -192,7 +192,7 @@ static void set_accessibility_property(const pxr::UsdAttribute &attr,
 
 void set_id_props_from_prim(ID *id,
                             const pxr::UsdPrim &prim,
-                            const eUSDPropertyImportMode property_import_mode,
+                            const PropertyImportMode property_import_mode,
                             const pxr::UsdTimeCode time_code)
 {
   for (const auto &api : pxr::UsdUIAccessibilityAPI::GetAll(prim)) {
@@ -207,7 +207,7 @@ void set_id_props_from_prim(ID *id,
     return;
   }
 
-  bool all_custom_attrs = (property_import_mode == USD_ATTR_IMPORT_ALL);
+  bool all_custom_attrs = (property_import_mode == PropertyImportMode::All);
 
   for (const pxr::UsdAttribute &attr : attribs) {
     if (!attr.IsCustom()) {

@@ -121,7 +121,7 @@ ccl_device_inline int4 make_int4(const float4 f)
 
 #if defined __METAL_PRINTF__
 #  define print_float4(label, a) \
-    metal::os_log_default.log_debug(label ": %.8f %.8f %.8f %.8f", a.x, a.y, a.z, a.w)
+    metal::os_log_default.log_debug(label ": %.8f %.8f %.8f %.8f", (a).x, (a).y, (a).z, (a).w)
 #else
 ccl_device_inline void print_float4(const ccl_private char *label, const float4 a)
 {

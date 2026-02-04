@@ -546,9 +546,17 @@ void Film::sync()
    *
    * Compute shader is also used to work around Metal/Intel iGPU issues concerning
    * read write support for array textures. In this case the copy_ps_ is used to
-   * copy the right color/value to the framebuffer. */
+   * copy the right color/value to the framebuffer.
+   *
+   * It is also disabled for Windows on ARM as certain GPU/Driver combinations will cause a driver
+   * compiler crash. There is no way to detect up front when this is the case.
+   *
+   * See #153463
+   */
   use_compute_ = !inst_.is_viewport() ||
-                 GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY);
+                 GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY) ||
+                 GPU_type_matches_ex(
+                     GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_VULKAN);
 
   eShaderType shader = use_compute_ ? FILM_COMP : FILM_FRAG;
 
@@ -988,13 +996,6 @@ void Film::write_viewport_compositor_passes()
     const eViewLayerEEVEEPassType pass_type = eViewLayerEEVEEPassType(
         viewport_compositor_enabled_passes_ & (1 << i));
     if (pass_type == 0) {
-      continue;
-    }
-
-    /* The compositor will use the viewport color texture as the combined pass because the viewport
-     * texture will include Grease Pencil, so no need to write the combined pass from the engine
-     * side. */
-    if (pass_type == EEVEE_RENDER_PASS_COMBINED) {
       continue;
     }
 

@@ -34,7 +34,7 @@ void channels_ensure(ListBaseT<SeqTimelineChannel> *channels)
 {
   /* Allocate channels. Channel 0 is never used, but allocated to prevent off by 1 issues. */
   for (int i = 0; i < MAX_CHANNELS + 1; i++) {
-    SeqTimelineChannel *channel = MEM_new_for_free<SeqTimelineChannel>("seq timeline channel");
+    SeqTimelineChannel *channel = MEM_new<SeqTimelineChannel>("seq timeline channel");
     SNPRINTF_UTF8(channel->name, DATA_("Channel %d"), i);
     channel->index = i;
     BLI_addtail(channels, channel);
@@ -46,7 +46,7 @@ void channels_duplicate(ListBaseT<SeqTimelineChannel> *channels_dst,
 {
   for (SeqTimelineChannel &channel : *channels_src) {
     SeqTimelineChannel *channel_duplicate = static_cast<SeqTimelineChannel *>(
-        MEM_dupallocN(&channel));
+        MEM_dupalloc(&channel));
     BLI_addtail(channels_dst, channel_duplicate);
   }
 }
@@ -54,7 +54,7 @@ void channels_duplicate(ListBaseT<SeqTimelineChannel> *channels_dst,
 void channels_free(ListBaseT<SeqTimelineChannel> *channels)
 {
   for (SeqTimelineChannel &channel : channels->items_mutable()) {
-    MEM_freeN(&channel);
+    MEM_delete(&channel);
   }
 }
 

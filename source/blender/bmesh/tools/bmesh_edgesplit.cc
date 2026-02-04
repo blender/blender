@@ -97,7 +97,7 @@ void BM_mesh_edgesplit(BMesh *bm,
                 }
               }
             }
-            MEM_freeN(vtar);
+            MEM_delete(vtar);
           }
           else {
             BM_vert_separate_hflag(bm, v, BM_ELEM_TAG, copy_select, nullptr, nullptr);

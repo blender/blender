@@ -625,7 +625,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   }
 
   /* create a new KeyingSetInfo type */
-  ksi = MEM_mallocN<KeyingSetInfo>("python keying set info");
+  ksi = MEM_new_uninitialized<KeyingSetInfo>("python keying set info");
   memcpy(ksi, &dummy_ksi, sizeof(KeyingSetInfo));
 
   /* set RNA-extensions info */
@@ -704,7 +704,7 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
   KS_Path *ksp = static_cast<KS_Path *>(ptr->data);
 
   if (ksp->rna_path) {
-    MEM_freeN(ksp->rna_path);
+    MEM_delete(ksp->rna_path);
   }
 
   if (value[0]) {

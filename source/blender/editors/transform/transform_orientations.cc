@@ -524,7 +524,7 @@ TransformOrientation *addMatrixSpace(bContext *C,
 
   /* If not, create a new one. */
   if (ts == nullptr) {
-    ts = MEM_new_for_free<TransformOrientation>("UserTransSpace from matrix");
+    ts = MEM_new<TransformOrientation>("UserTransSpace from matrix");
     BLI_addtail(transform_orientations, ts);
     STRNCPY_UTF8(ts->name, name);
   }

@@ -541,15 +541,22 @@ void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
   bke::Attribute *attr = ptr->data_as<bke::Attribute>();
   const int domain_size = accessor.domain_size(attr->domain());
   const CPPType &type = bke::attribute_type_to_cpp_type(attr->data_type());
+
+  auto begin_array = [&]() {
+    const auto &data = std::get<bke::Attribute::ArrayData>(attr->data_for_write());
+    rna_iterator_array_begin(iter, ptr, data.data, type.size, domain_size, false, nullptr);
+  };
   switch (attr->storage_type()) {
     case bke::AttrStorageType::Array: {
-      const auto &data = std::get<bke::Attribute::ArrayData>(attr->data_for_write());
-      rna_iterator_array_begin(iter, ptr, data.data, type.size, domain_size, false, nullptr);
+      begin_array();
       break;
     }
     case bke::AttrStorageType::Single: {
-      /* TODO: Access to single values is unimplemented for now. */
-      iter->valid = false;
+      /* Convert storage to array data until single-value access API is developed. */
+      const auto &data = std::get<bke::Attribute::SingleData>(attr->data());
+      const GPointer value(type, data.value);
+      attr->assign_data(bke::Attribute::ArrayData::from_value(value, domain_size));
+      begin_array();
       break;
     }
   }
@@ -1139,7 +1146,7 @@ static void rna_AttributeGroupMesh_default_color_name_set(PointerRNA *ptr, const
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = id_cast<Mesh *>(id);
-    MEM_SAFE_FREE(mesh->default_color_attribute);
+    MEM_SAFE_DELETE(mesh->default_color_attribute);
     if (value[0]) {
       mesh->default_color_attribute = BLI_strdup(value);
     }
@@ -1165,7 +1172,7 @@ static void rna_AttributeGroupMesh_active_color_name_set(PointerRNA *ptr, const 
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = id_cast<Mesh *>(id);
-    MEM_SAFE_FREE(mesh->active_color_attribute);
+    MEM_SAFE_DELETE(mesh->active_color_attribute);
     if (value[0]) {
       mesh->active_color_attribute = BLI_strdup(value);
     }

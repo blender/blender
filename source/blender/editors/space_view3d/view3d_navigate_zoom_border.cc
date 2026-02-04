@@ -76,7 +76,7 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
     /* find the closest Z pixel */
     depth_close = view3d_depth_near(&depth_temp);
 
-    MEM_SAFE_FREE(depth_temp.depths);
+    MEM_SAFE_DELETE(depth_temp.depths);
   }
 
   /* Resize border to the same ratio as the window. */

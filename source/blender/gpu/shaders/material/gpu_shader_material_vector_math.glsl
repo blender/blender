@@ -163,6 +163,13 @@ void vector_math_sign(
 }
 
 [[node]]
+void vector_math_round(
+    float3 a, float3 b, float3 c, float scale, float3 &outVector, float &outValue)
+{
+  outVector = floor(a + 0.5f);
+}
+
+[[node]]
 void vector_math_minimum(
     float3 a, float3 b, float3 c, float scale, float3 &outVector, float &outValue)
 {

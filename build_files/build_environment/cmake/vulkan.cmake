@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(VULKAN_HEADERS_EXTRA_ARGS)
+set(VULKAN_HEADERS_EXTRA_ARGS "")
 
 ExternalProject_Add(external_vulkan_headers
   URL file://${PACKAGE_DIR}/${VULKAN_HEADERS_FILE}
@@ -42,7 +42,7 @@ add_dependencies(
   external_vulkan_headers
 )
 
-set(SPIRV_HEADERS_EXTRA_ARGS)
+set(SPIRV_HEADERS_EXTRA_ARGS "")
 
 ExternalProject_Add(external_spirv_headers
   URL file://${PACKAGE_DIR}/${SPIRV_HEADERS_FILE}

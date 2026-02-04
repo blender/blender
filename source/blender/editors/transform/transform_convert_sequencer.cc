@@ -270,7 +270,7 @@ static void free_transform_custom_data(TransCustomData *custom_data)
 {
   if ((custom_data->data != nullptr) && custom_data->use_free) {
     TransSeq *ts = static_cast<TransSeq *>(custom_data->data);
-    MEM_freeN(ts->tdseq);
+    MEM_delete(ts->tdseq);
     MEM_delete(ts);
     custom_data->data = nullptr;
   }
@@ -600,9 +600,9 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
   tc->custom.type.data = ts = MEM_new<TransSeq>(__func__);
   tc->custom.type.use_free = true;
-  td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransSeq TransData");
-  td2d = tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransSeq TransData2D");
-  ts->tdseq = tdsq = MEM_calloc_arrayN<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
+  td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransSeq TransData");
+  td2d = tc->data_2d = MEM_new_array_zeroed<TransData2D>(tc->data_len, "TransSeq TransData2D");
+  ts->tdseq = tdsq = MEM_new_array_zeroed<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
 
   /* Custom data to enable edge panning during transformation. */
   view2d_edge_pan_init(t->context,

@@ -152,7 +152,7 @@ static void clg_str_init(CLogStringBuf *cstr, char *buf_stack, uint buf_stack_le
 static void clg_str_free(CLogStringBuf *cstr)
 {
   if (cstr->is_alloc) {
-    MEM_freeN(cstr->data);
+    MEM_delete(cstr->data);
   }
 }
 
@@ -163,11 +163,11 @@ static void clg_str_reserve(CLogStringBuf *cstr, const uint len)
     cstr->len_alloc = std::max(len, cstr->len_alloc);
 
     if (cstr->is_alloc) {
-      cstr->data = static_cast<char *>(MEM_reallocN(cstr->data, cstr->len_alloc));
+      cstr->data = static_cast<char *>(MEM_realloc_uninitialized(cstr->data, cstr->len_alloc));
     }
     else {
       /* Copy the static buffer. */
-      char *data = MEM_malloc_arrayN<char>(cstr->len_alloc, __func__);
+      char *data = MEM_new_array_uninitialized<char>(cstr->len_alloc, __func__);
       memcpy(data, cstr->data, cstr->len);
       cstr->data = data;
       cstr->is_alloc = true;
@@ -264,7 +264,7 @@ static void clg_str_indent_multiline(CLogStringBuf *cstr, const uint indent_len)
 
   cstr->len_alloc = cstr->len + (num_newlines * indent_len);
   cstr->len = 0;
-  cstr->data = MEM_malloc_arrayN<char>(cstr->len_alloc, __func__);
+  cstr->data = MEM_new_array_uninitialized<char>(cstr->len_alloc, __func__);
   cstr->is_alloc = true;
 
   for (uint i = 0; i < old_len; i++) {
@@ -277,7 +277,7 @@ static void clg_str_indent_multiline(CLogStringBuf *cstr, const uint indent_len)
   }
 
   if (old_is_alloc) {
-    MEM_freeN(old_data);
+    MEM_delete(old_data);
   }
 }
 
@@ -388,10 +388,10 @@ static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
         return (bool)i;
       }
       if (flt->match[0] == '*' && flt->match[len - 1] == '*') {
-        char *match = MEM_calloc_arrayN<char>(len - 1, __func__);
+        char *match = MEM_new_array_zeroed<char>(len - 1, __func__);
         memcpy(match, flt->match + 1, len - 2);
         const bool success = (strstr(identifier, match) != nullptr);
-        MEM_freeN(match);
+        MEM_delete(match);
         if (success) {
           return (bool)i;
         }
@@ -428,7 +428,7 @@ static CLG_LogType *clg_ctx_type_find_by_name(CLogContext *ctx, const char *iden
 static CLG_LogType *clg_ctx_type_register(CLogContext *ctx, const char *identifier)
 {
   assert(clg_ctx_type_find_by_name(ctx, identifier) == nullptr);
-  CLG_LogType *ty = MEM_callocN<CLG_LogType>(__func__);
+  CLG_LogType *ty = MEM_new_zeroed<CLG_LogType>(__func__);
   ty->next = ctx->types;
   ctx->types = ty;
   strncpy(ty->identifier, identifier, sizeof(ty->identifier) - 1);
@@ -784,7 +784,7 @@ static void clg_ctx_type_filter_append(CLG_IDFilter **flt_list,
     return;
   }
   CLG_IDFilter *flt = static_cast<CLG_IDFilter *>(
-      MEM_callocN(sizeof(*flt) + type_match_len + 1, __func__));
+      MEM_new_zeroed(sizeof(*flt) + type_match_len + 1, __func__));
   flt->next = *flt_list;
   *flt_list = flt;
   memcpy(flt->match, type_match, type_match_len);
@@ -818,7 +818,7 @@ static void CLG_ctx_level_set(CLogContext *ctx, CLG_Level level)
 
 static CLogContext *CLG_ctx_init()
 {
-  CLogContext *ctx = MEM_callocN<CLogContext>(__func__);
+  CLogContext *ctx = MEM_new_zeroed<CLogContext>(__func__);
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_init(&ctx->types_lock, nullptr);
 #endif
@@ -837,7 +837,7 @@ static void CLG_ctx_free(CLogContext *ctx)
   while (ctx->types != nullptr) {
     CLG_LogType *item = ctx->types;
     ctx->types = item->next;
-    MEM_freeN(item);
+    MEM_delete(item);
   }
 
   for (CLG_LogRef *ref = *clg_all_refs_p(); ref; ref = ref->next) {
@@ -848,13 +848,13 @@ static void CLG_ctx_free(CLogContext *ctx)
     while (ctx->filters[i] != nullptr) {
       CLG_IDFilter *item = ctx->filters[i];
       ctx->filters[i] = item->next;
-      MEM_freeN(item);
+      MEM_delete(item);
     }
   }
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_destroy(&ctx->types_lock);
 #endif
-  MEM_freeN(ctx);
+  MEM_delete(ctx);
 }
 
 /** \} */

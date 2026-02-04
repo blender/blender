@@ -102,11 +102,11 @@ void GPUPlatformGlobal::init(GPUDeviceType gpu_device,
 
 void GPUPlatformGlobal::clear()
 {
-  MEM_SAFE_FREE(vendor);
-  MEM_SAFE_FREE(renderer);
-  MEM_SAFE_FREE(version);
-  MEM_SAFE_FREE(support_key);
-  MEM_SAFE_FREE(gpu_name);
+  MEM_SAFE_DELETE(vendor);
+  MEM_SAFE_DELETE(renderer);
+  MEM_SAFE_DELETE(version);
+  MEM_SAFE_DELETE(support_key);
+  MEM_SAFE_DELETE(gpu_name);
   devices.clear_and_shrink();
   device_uuid.reinitialize(0);
   device_luid.reinitialize(0);

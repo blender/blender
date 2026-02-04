@@ -9,22 +9,35 @@
 #include "CLG_log.h"
 
 #include <cstdio>
+#include <cstdlib> /* For `getenv`. */
 #include <spnav.h>
 #include <unistd.h>
 
-static const char *spnav_sock_path = "/var/run/spnav.sock";
+static const char *spnav_sock_path_default = "/var/run/spnav.sock";
+
+static const char *spnav_sock_path_get()
+{
+  /* The `SPNAV_SOCKET` environment variable convention
+   * comes from LIBSPNAV 1.2, see: `src/spnav.c`. */
+  const char *env_path = getenv("SPNAV_SOCKET");
+  return env_path ? env_path : spnav_sock_path_default;
+}
 
 static CLG_LogRef LOG = {"ghost.ndof"};
 
 GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
     : GHOST_NDOFManager(sys), available_(false)
 {
+  const char *spnav_sock_path = spnav_sock_path_get();
   if (access(spnav_sock_path, F_OK) != 0) {
     CLOG_DEBUG(&LOG, "'spacenavd' not found at \"%s\"", spnav_sock_path);
   }
   else if (spnav_open() != -1) {
     CLOG_DEBUG(&LOG, "'spacenavd' found at\"%s\"", spnav_sock_path);
     available_ = true;
+
+    /* Only used for logging as of LIBSPNAV 1.2. */
+    spnav_client_name("blender");
 
     /* determine exactly which device (if any) is plugged in */
 

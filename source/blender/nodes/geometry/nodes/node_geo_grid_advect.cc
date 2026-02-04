@@ -265,25 +265,25 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const VolumeGridType grid_type = grid->grid_type();
 
-  BKE_volume_grid_type_to_static_type(grid_type, [&](auto grid_type_tag) {
-    using GridType = typename decltype(grid_type_tag)::type;
-    if constexpr (std::is_same_v<GridType, openvdb::FloatGrid> ||
-                  std::is_same_v<GridType, openvdb::Int32Grid> ||
-                  std::is_same_v<GridType, openvdb::Vec3fGrid>)
-    {
-      typename GridType::Ptr result = advect_grid(
-          static_cast<const GridType &>(grid->grid(tree_token)),
-          velocity_vdb_grid,
-          time_step,
-          scheme,
-          limiter);
-      params.set_output("Grid", bke::GVolumeGrid(std::move(result)));
-    }
-    else {
-      params.error_message_add(NodeWarningType::Error, "Unsupported grid type for advection");
-      params.set_default_remaining_outputs();
-    }
-  });
+  BKE_volume_grid_type_to_static_type(
+      grid_type, [&]<std::derived_from<openvdb::GridBase> GridType>() {
+        if constexpr (std::is_same_v<GridType, openvdb::FloatGrid> ||
+                      std::is_same_v<GridType, openvdb::Int32Grid> ||
+                      std::is_same_v<GridType, openvdb::Vec3fGrid>)
+        {
+          typename GridType::Ptr result = advect_grid(
+              static_cast<const GridType &>(grid->grid(tree_token)),
+              velocity_vdb_grid,
+              time_step,
+              scheme,
+              limiter);
+          params.set_output("Grid", bke::GVolumeGrid(std::move(result)));
+        }
+        else {
+          params.error_message_add(NodeWarningType::Error, "Unsupported grid type for advection");
+          params.set_default_remaining_outputs();
+        }
+      });
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

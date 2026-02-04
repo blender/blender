@@ -77,9 +77,9 @@ int64_t MTLContext::frame_latency[MTL_FRAME_AVERAGE_COUNT] = {0};
 /** \name GHOST Context interaction.
  * \{ */
 
-void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
+void MTLContext::set_ghost_context(GHOST_IContext *ghostCtxHandle)
 {
-  GHOST_Context *ghost_ctx = reinterpret_cast<GHOST_Context *>(ghostCtxHandle);
+  GHOST_Context *ghost_ctx = static_cast<GHOST_Context *>(ghostCtxHandle);
   BLI_assert(ghost_ctx != nullptr);
 
   /* Release old MTLTexture handle */
@@ -167,10 +167,10 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   }
 }
 
-void MTLContext::set_ghost_window(GHOST_WindowHandle ghostWinHandle)
+void MTLContext::set_ghost_window(GHOST_IWindow *ghostWinHandle)
 {
-  GHOST_Window *ghostWin = reinterpret_cast<GHOST_Window *>(ghostWinHandle);
-  this->set_ghost_context((GHOST_ContextHandle)(ghostWin ? ghostWin->getContext() : nullptr));
+  GHOST_Window *ghostWin = static_cast<GHOST_Window *>(ghostWinHandle);
+  this->set_ghost_context(ghostWin ? ghostWin->getContext() : nullptr);
 }
 
 /** \} */
@@ -180,7 +180,7 @@ void MTLContext::set_ghost_window(GHOST_WindowHandle ghostWinHandle)
  * \{ */
 
 /* Placeholder functions */
-MTLContext::MTLContext(void *ghost_window, void *ghost_context)
+MTLContext::MTLContext(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context)
     : memory_manager(*this), main_command_buffer(*this)
 {
   /* Init debug. */
@@ -412,10 +412,10 @@ void MTLContext::activate()
 
   /* Re-apply ghost window/context for resizing */
   if (ghost_window_) {
-    this->set_ghost_window((GHOST_WindowHandle)ghost_window_);
+    this->set_ghost_window(ghost_window_);
   }
   else if (ghost_context_) {
-    this->set_ghost_context((GHOST_ContextHandle)ghost_context_);
+    this->set_ghost_context(ghost_context_);
   }
 
   /* Reset UBO bind state. */

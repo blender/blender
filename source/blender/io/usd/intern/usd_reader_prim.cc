@@ -31,9 +31,9 @@ void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCo
     return;
   }
 
-  eUSDPropertyImportMode property_import_mode = this->import_params_.property_import_mode;
+  PropertyImportMode property_import_mode = this->import_params_.property_import_mode;
 
-  if (property_import_mode == USD_ATTR_IMPORT_NONE) {
+  if (property_import_mode == PropertyImportMode::None) {
     return;
   }
 

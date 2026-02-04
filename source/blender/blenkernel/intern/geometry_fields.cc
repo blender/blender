@@ -607,8 +607,7 @@ void copy_with_checked_indices(const GVArray &src,
                                const IndexMask &mask,
                                GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
     copy_with_checked_indices(src.typed<T>(), indices, mask, dst.typed<T>());
   });
 }
@@ -794,9 +793,9 @@ static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
   return attributes.add(id_to_create, domain, data_type, init);
 }
 
-static bool attribute_data_matches_varray(const GAttributeReader &attribute, const GVArray &varray)
+static bool attribute_data_matches_varray(const GAttributeReader &attribute,
+                                          const CommonVArrayInfo &varray_info)
 {
-  const CommonVArrayInfo varray_info = varray.common_info();
   if (varray_info.type != CommonVArrayInfo::Type::Span) {
     return false;
   }
@@ -805,6 +804,13 @@ static bool attribute_data_matches_varray(const GAttributeReader &attribute, con
     return false;
   }
   return varray_info.data == attribute_info.data;
+}
+
+static bool try_assign_single_value(MutableAttributeAccessor &attributes,
+                                    const StringRef name,
+                                    const GPointer value)
+{
+  return attributes.assign_data(name, AttributeInitValue(value));
 }
 
 static void initialize_new_data(MutableAttributeAccessor &attributes,
@@ -834,18 +840,18 @@ static void initialize_new_data(MutableAttributeAccessor &attributes,
 
 bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
                                     const fn::FieldContext &field_context,
-                                    const Span<StringRef> attribute_ids,
+                                    const Span<StringRef> names,
                                     const AttrDomain domain,
                                     const fn::Field<bool> &selection,
                                     const Span<fn::GField> fields)
 {
-  BLI_assert(attribute_ids.size() == fields.size());
+  BLI_assert(names.size() == fields.size());
   const int domain_size = attributes.domain_size(domain);
   if (domain_size == 0) {
     bool all_added = true;
-    for (const int i : attribute_ids.index_range()) {
+    for (const int i : names.index_range()) {
       const bke::AttrType data_type = bke::cpp_type_to_attribute_type(fields[i].cpp_type());
-      all_added &= attributes.add(attribute_ids[i], domain, data_type, AttributeInitConstruct{});
+      all_added &= attributes.add(names[i], domain, data_type, AttributeInitConstruct{});
     }
     return all_added;
   }
@@ -862,17 +868,24 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
   };
   Vector<StoreResult> results_to_store;
 
+  ResourceScope scope;
+
   struct AddResult {
     int input_index;
-    int evaluator_index;
-    void *buffer;
+    struct Single {
+      void *value;
+    };
+    struct Array {
+      void *data;
+    };
+    std::variant<Single, Array> new_data;
   };
   Vector<AddResult> results_to_add;
 
   bool success = true;
 
-  for (const int input_index : attribute_ids.index_range()) {
-    const StringRef id = attribute_ids[input_index];
+  for (const int input_index : names.index_range()) {
+    const StringRef id = names[input_index];
     const CPPType &type = fields[input_index].cpp_type();
     const bke::AttrType data_type = bke::cpp_type_to_attribute_type(type);
 
@@ -904,43 +917,70 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
       }
     }
 
-    /* Could avoid allocating a new buffer if:
-     * - The field does not depend on that attribute (we can't easily check for that yet). */
-    void *buffer = MEM_mallocN_aligned(type.size * domain_size, type.alignment, __func__);
-    if (!selection_is_full) {
-      initialize_new_data(attributes, domain, domain_size, id, type, data_type, buffer);
-    }
+    if (field.node().depends_on_input() || !selection_is_full) {
+      /* Could avoid allocating a new buffer if:
+       * - The field does not depend on that attribute (we can't easily check for that yet). */
+      void *buffer = MEM_new_uninitialized_aligned(
+          type.size * domain_size, type.alignment, __func__);
+      if (!selection_is_full) {
+        initialize_new_data(attributes, domain, domain_size, id, type, data_type, buffer);
+      }
 
-    GMutableSpan dst(type, buffer, domain_size);
-    const int evaluator_index = evaluator.add_with_destination(field, dst);
-    results_to_add.append({input_index, evaluator_index, buffer});
+      GMutableSpan dst(type, buffer, domain_size);
+      evaluator.add_with_destination(field, dst);
+      results_to_add.append({input_index, AddResult::Array{buffer}});
+    }
+    else {
+      void *value = scope.allocate_owned(field.cpp_type());
+      fn::evaluate_constant_field(field, value);
+      results_to_add.append({input_index, AddResult::Single{value}});
+    }
   }
 
   evaluator.evaluate();
   const IndexMask &mask = evaluator.get_evaluated_selection_as_mask();
 
   for (const StoreResult &result : results_to_store) {
-    const StringRef id = attribute_ids[result.input_index];
+    const StringRef id = names[result.input_index];
     const GVArray &result_data = evaluator.get_evaluated(result.evaluator_index);
+    const CommonVArrayInfo info = result_data.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      if (try_assign_single_value(attributes, id, GPointer(result_data.type(), info.data))) {
+        continue;
+      }
+    }
     const GAttributeReader dst = attributes.lookup(id);
-    if (!attribute_data_matches_varray(dst, result_data)) {
+    if (!attribute_data_matches_varray(dst, info)) {
       GSpanAttributeWriter dst_mut = attributes.lookup_for_write_span(id);
       array_utils::copy(result_data, mask, dst_mut.span);
       dst_mut.finish();
     }
   }
 
-  for (const AddResult &result : results_to_add) {
-    const StringRef id = attribute_ids[result.input_index];
+  for (AddResult &result : results_to_add) {
+    const StringRef id = names[result.input_index];
     attributes.remove(id);
     const CPPType &type = fields[result.input_index].cpp_type();
     const bke::AttrType data_type = bke::cpp_type_to_attribute_type(type);
-    if (!attributes.add(id, domain, data_type, AttributeInitMoveArray(result.buffer))) {
-      /* If the name corresponds to a builtin attribute, removing the attribute might fail if
-       * it's required, adding the attribute might fail if the domain or type is incorrect. */
-      type.destruct_n(result.buffer, domain_size);
-      MEM_freeN(result.buffer);
-      success = false;
+    if (auto *array = std::get_if<AddResult::Array>(&result.new_data)) {
+      if (!attributes.add(id, domain, data_type, AttributeInitMoveArray(array->data))) {
+        /* If the name corresponds to a builtin attribute, removing the attribute might fail if
+         * it's required, adding the attribute might fail if the domain or type is incorrect. */
+        type.destruct_n(array->data, domain_size);
+        MEM_delete_void(array->data);
+        success = false;
+      }
+    }
+    else {
+      const auto value = std::get<AddResult::Single>(result.new_data);
+      if (!attributes.add(
+              id,
+              domain,
+              data_type,
+              AttributeInitVArray(GVArray::from_single_ref(type, domain_size, value.value))))
+      {
+        success = false;
+      }
     }
   }
 
@@ -948,7 +988,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
 }
 
 bool try_capture_fields_on_geometry(GeometryComponent &component,
-                                    const Span<StringRef> attribute_ids,
+                                    const Span<StringRef> names,
                                     const AttrDomain domain,
                                     const fn::Field<bool> &selection,
                                     const Span<fn::GField> fields)
@@ -973,7 +1013,7 @@ bool try_capture_fields_on_geometry(GeometryComponent &component,
           const bool success = try_capture_fields_on_geometry(
               drawing->strokes_for_write().attributes_for_write(),
               field_context,
-              attribute_ids,
+              names,
               domain,
               selection,
               fields);
@@ -993,16 +1033,16 @@ bool try_capture_fields_on_geometry(GeometryComponent &component,
   MutableAttributeAccessor attributes = *component.attributes_for_write();
   const GeometryFieldContext field_context{component, domain};
   return try_capture_fields_on_geometry(
-      attributes, field_context, attribute_ids, domain, selection, fields);
+      attributes, field_context, names, domain, selection, fields);
 }
 
 bool try_capture_fields_on_geometry(GeometryComponent &component,
-                                    const Span<StringRef> attribute_ids,
+                                    const Span<StringRef> names,
                                     const AttrDomain domain,
                                     const Span<fn::GField> fields)
 {
   const fn::Field<bool> selection = fn::make_constant_field<bool>(true);
-  return try_capture_fields_on_geometry(component, attribute_ids, domain, selection, fields);
+  return try_capture_fields_on_geometry(component, names, domain, selection, fields);
 }
 
 std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &component,

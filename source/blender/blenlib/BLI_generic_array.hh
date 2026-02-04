@@ -51,12 +51,21 @@ class GArray {
    * Create and allocate a new array, with elements default constructed
    * (which does not do anything for trivial types).
    */
-  GArray(const CPPType &type, int64_t size, Allocator allocator = {}) : GArray(type, allocator)
+  GArray(const CPPType &type, int64_t size, Allocator allocator = {})
+      : GArray(type, size, NoInitialization{}, allocator)
+  {
+    type_->default_construct_n(data_, size_);
+  }
+
+  GArray(const CPPType &type,
+         const int64_t size,
+         NoInitialization /*not_init_tag*/,
+         Allocator allocator = {})
+      : GArray(type, allocator)
   {
     BLI_assert(size >= 0);
     size_ = size;
     data_ = this->allocate(size_);
-    type_->default_construct_n(data_, size_);
   }
 
   /**

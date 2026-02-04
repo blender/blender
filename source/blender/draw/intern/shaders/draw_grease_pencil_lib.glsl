@@ -351,7 +351,8 @@ float4 gpencil_vertex(float4 viewport_res,
       }
 
       if (is_last) {
-        int first_stroke_id = point_data1.stroke_id;
+        PointData point_data3 = decode_ma(ma3);
+        int first_stroke_id = point_data3.stroke_id;
         ma3 = floatBitsToInt(texelFetch(gp_pos_tx, (first_stroke_id + 2) * 3 + 1));
         pos3 = texelFetch(gp_pos_tx, (first_stroke_id + 2) * 3 + 0);
       }

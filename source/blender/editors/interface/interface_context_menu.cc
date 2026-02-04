@@ -410,7 +410,7 @@ static void ui_but_user_menu_add(bContext *C, Button *but, bUserMenu *um)
           char *expr_result = nullptr;
           if (BPY_run_string_as_string(C, expr_imports, expr, nullptr, &expr_result)) {
             drawstr = expr_result;
-            MEM_freeN(expr_result);
+            MEM_delete(expr_result);
           }
           else {
             BLI_assert(0);
@@ -1072,7 +1072,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
       }
     }
     if (um_array) {
-      MEM_freeN(um_array);
+      MEM_delete(um_array);
     }
 
     if (!item_found) {

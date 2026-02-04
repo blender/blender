@@ -107,7 +107,7 @@ endif()
 list(APPEND PLATFORM_LINKLIBS
   ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32 version
   advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp Shlwapi
-  pathcch Shcore Dwmapi Crypt32 Bcrypt
+  pathcch Shcore Dwmapi Crypt32 Bcrypt Mpr
 )
 
 if(WITH_INPUT_IME)
@@ -612,77 +612,6 @@ if(WITH_PYTHON)
   )
 endif()
 
-if(NOT WITH_WINDOWS_FIND_MODULES)
-  set(BOOST ${LIBDIR}/boost)
-  set(BOOST_INCLUDE_DIR ${BOOST}/include)
-  set(BOOST_LIBPATH ${BOOST}/lib)
-
-  # With Blender 4.4 libraries there is no more Boost. This code is only
-  # here until we can reasonably assume everyone has upgraded to them.
-  if(EXISTS "${LIBDIR}" AND NOT EXISTS "${BOOST}")
-    set(WITH_BOOST OFF)
-    set(BOOST_LIBRARIES)
-    set(BOOST_PYTHON_LIBRARIES)
-    set(BOOST_INCLUDE_DIR)
-  else()
-    # For older libraries when boost is off, we still need to install the dlls when
-    # since some of the other dependencies may need them. For this to work, BOOST_VERSION,
-    # BOOST_POSTFIX, and BOOST_DEBUG_POSTFIX need to be set.
-    set(BOOST_VERSION_HEADER ${BOOST_INCLUDE_DIR}/boost/version.hpp)
-    if(EXISTS ${BOOST_VERSION_HEADER})
-      file(STRINGS "${BOOST_VERSION_HEADER}" BOOST_LIB_VERSION REGEX "#define BOOST_LIB_VERSION ")
-      if(BOOST_LIB_VERSION MATCHES "#define BOOST_LIB_VERSION \"([0-9_]+)\"")
-        set(BOOST_VERSION "${CMAKE_MATCH_1}")
-      endif()
-    endif()
-    if(NOT BOOST_VERSION)
-      message(FATAL_ERROR "Unable to determine Boost version")
-    endif()
-    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-      set(BOOST_POSTFIX "vc143-mt-a64-${BOOST_VERSION}")
-      set(BOOST_DEBUG_POSTFIX "vc143-mt-gyd-a64-${BOOST_VERSION}")
-      set(BOOST_PREFIX "")
-    else()
-      set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
-      set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
-      set(BOOST_PREFIX "")
-    endif()
-  endif()
-endif()
-
-if(WITH_BOOST)
-  set(boost_extra_libs)
-  set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
-  set(Boost_USE_MULTITHREADED ON) # suffix -mt
-  set(Boost_USE_STATIC_LIBS ON) # suffix -s
-  if(WITH_WINDOWS_FIND_MODULES)
-    find_package(Boost COMPONENTS ${boost_extra_libs})
-  endif()
-  if(NOT Boost_FOUND)
-    warn_hardcoded_paths(BOOST)
-    # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
-    # Note, as ARM64 was introduced in 4.x, this check is not needed
-    set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_DEBUG_POSTFIX}.lib)
-    if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
-      set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
-      set(BOOST_PREFIX "lib")
-    endif()
-    if(EXISTS ${BOOST_34_TRIGGER_FILE})
-      # Boost Python is the only library Blender directly depends on, though USD headers.
-      if(WITH_USD)
-        set(BOOST_PYTHON_LIBRARIES
-          debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_DEBUG_POSTFIX}.lib
-          optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_POSTFIX}.lib
-        )
-      endif()
-    endif()
-  else() # we found boost using find_package
-    set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
-    set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
-  endif()
-
-  set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
-endif()
 unset(_PYTHON_VERSION)
 unset(_PYTHON_VERSION_NO_DOTS)
 
@@ -822,7 +751,7 @@ if(WITH_OPENIMAGEDENOISE)
       debug ${OPENIMAGEDENOISE_LIBPATH}/dnnl_d.lib
     )
   endif()
-  set(OPENIMAGEDENOISE_DEFINITIONS)
+  set(OPENIMAGEDENOISE_DEFINITIONS "")
 endif()
 
 if(WITH_MANIFOLD)
@@ -1316,13 +1245,44 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
-  file(GLOB _sycl_pi_runtime_libraries_glob
-    ${SYCL_ROOT_DIR}/bin/pi_*.dll
+  file(GLOB _sycl_unified_runtime_libraries_glob
     ${SYCL_ROOT_DIR}/bin/ur_*.dll
   )
-  list(REMOVE_ITEM _sycl_pi_runtime_libraries_glob "${SYCL_ROOT_DIR}/bin/pi_opencl.dll")
-  list(APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
-  unset(_sycl_pi_runtime_libraries_glob)
+  # Cycles doesn't currently support the OpenCL backend
+  list(FILTER _sycl_unified_runtime_libraries_glob EXCLUDE REGEX "opencl")
+
+  foreach(sycl_unified_runtime_library IN LISTS _sycl_unified_runtime_libraries_glob)
+    # We do not know, which library we would discover first, debug or release, so we check for both.
+    string(REPLACE ".dll" "d.dll" sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    # In case we are processing release version (no "d.dll" to replace), then
+    # sycl_unified_runtime_library_release will be identical to sycl_unified_runtime_library,
+    # there is a safe guard against it below.
+    string(REPLACE "d.dll" ".dll" sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+
+    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_debug} debug_index)
+    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_release} release_index)
+    if(NOT debug_index EQUAL -1)
+      set (sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+    elseif(NOT release_index EQUAL -1 AND NOT sycl_unified_runtime_library_release STREQUAL sycl_unified_runtime_library)
+      set (sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    else()
+      # If there is no debug pair version of the library, then we are assuming
+      # that this dll dependency is unique, and should be just added as both
+      # release and debug dependency.
+      set (sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+      set (sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    endif()
+    list(FIND _sycl_runtime_libraries ${sycl_unified_runtime_library_release} found_index)
+    if (found_index EQUAL -1)
+      list(APPEND _sycl_runtime_libraries RELEASE ${sycl_unified_runtime_library_release})
+      list(APPEND _sycl_runtime_libraries DEBUG ${sycl_unified_runtime_library_debug})
+      # NOTE(Sirgienko) Due to a bug in DPC++ runtime, in versions 6.2 and 6.3
+      # at least, the debug builds need the release versions of the
+      # unified-runtime adapters to be installed.
+      list(APPEND _sycl_runtime_libraries DEBUG ${sycl_unified_runtime_library_release})
+    endif()
+  endforeach()
+  unset(_sycl_unified_runtime_libraries_glob)
 
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)

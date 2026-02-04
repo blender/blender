@@ -123,8 +123,7 @@ static void blur_isolate_highlights(const float4 *in,
 
 static void init_glow_effect(Strip *strip)
 {
-  MEM_SAFE_FREE(strip->effectdata);
-  GlowVars *data = MEM_new_for_free<GlowVars>("glowvars");
+  GlowVars *data = MEM_new<GlowVars>("glowvars");
   strip->effectdata = data;
   data->fMini = 0.25f;
   data->fClamp = 1.0f;
@@ -132,6 +131,15 @@ static void init_glow_effect(Strip *strip)
   data->dDist = 3.0f;
   data->dQuality = 3;
   data->bNoComp = 0;
+}
+
+static void free_glow_effect(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    GlowVars *data = static_cast<GlowVars *>(strip->effectdata);
+    MEM_delete(data);
+    strip->effectdata = nullptr;
+  }
 }
 
 static int num_inputs_glow()
@@ -243,6 +251,7 @@ void glow_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_glow_effect;
   rval.num_inputs = num_inputs_glow;
+  rval.free = free_glow_effect;
   rval.execute = do_glow_effect;
 }
 

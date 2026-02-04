@@ -87,7 +87,7 @@ eEditMesh_PreSelPreviewAction EDBM_preselect_action_get(EditMesh_PreSelElem *pse
 
 EditMesh_PreSelElem *EDBM_preselect_elem_create()
 {
-  EditMesh_PreSelElem *psel = MEM_callocN<EditMesh_PreSelElem>(__func__);
+  EditMesh_PreSelElem *psel = MEM_new_zeroed<EditMesh_PreSelElem>(__func__);
   psel->preview_action = PRESELECT_ACTION_TRANSFORM;
   return psel;
 }
@@ -96,24 +96,24 @@ void EDBM_preselect_elem_destroy(EditMesh_PreSelElem *psel)
 {
   EDBM_preselect_elem_clear(psel);
   EDBM_preselect_preview_clear(psel);
-  MEM_freeN(psel);
+  MEM_delete(psel);
 }
 
 void EDBM_preselect_preview_clear(EditMesh_PreSelElem *psel)
 {
-  MEM_SAFE_FREE(psel->preview_tris);
+  MEM_SAFE_DELETE(psel->preview_tris);
   psel->preview_tris_len = 0;
 
-  MEM_SAFE_FREE(psel->preview_lines);
+  MEM_SAFE_DELETE(psel->preview_lines);
   psel->preview_lines_len = 0;
 }
 
 void EDBM_preselect_elem_clear(EditMesh_PreSelElem *psel)
 {
-  MEM_SAFE_FREE(psel->edges);
+  MEM_SAFE_DELETE(psel->edges);
   psel->edges_len = 0;
 
-  MEM_SAFE_FREE(psel->verts);
+  MEM_SAFE_DELETE(psel->verts);
   psel->verts_len = 0;
 }
 
@@ -219,7 +219,7 @@ static void view3d_preselect_mesh_elem_update_from_vert(EditMesh_PreSelElem *pse
                                                         BMVert *eve,
                                                         const Span<float3> vert_positions)
 {
-  float (*verts)[3] = MEM_mallocN<float[3]>(__func__);
+  float (*verts)[3] = MEM_new_uninitialized<float[3]>(__func__);
   vcos_get(eve, verts[0], vert_positions);
   psel->verts = verts;
   psel->verts_len = 1;
@@ -230,7 +230,7 @@ static void view3d_preselect_mesh_elem_update_from_edge(EditMesh_PreSelElem *pse
                                                         BMEdge *eed,
                                                         const Span<float3> vert_positions)
 {
-  float (*edges)[2][3] = MEM_mallocN<float[2][3]>(__func__);
+  float (*edges)[2][3] = MEM_new_uninitialized<float[2][3]>(__func__);
   vcos_get_pair(&eed->v1, edges[0], vert_positions);
   psel->edges = edges;
   psel->edges_len = 1;
@@ -266,8 +266,8 @@ static void view3d_preselect_update_preview_triangle_from_vert(
     ED_view3d_win_to_3d_int(vc->v3d, vc->region, center, mval, center);
     mul_m4_v3(vc->obedit->world_to_object().ptr(), center);
 
-    psel->preview_tris = MEM_malloc_arrayN<float[3][3]>(2, __func__);
-    psel->preview_lines = MEM_malloc_arrayN<float[2][3]>(4, __func__);
+    psel->preview_tris = MEM_new_array_uninitialized<float[3][3]>(2, __func__);
+    psel->preview_lines = MEM_new_array_uninitialized<float[2][3]>(4, __func__);
 
     copy_v3_v3(psel->preview_tris[0][0], e_pair[0]->v1->co);
     copy_v3_v3(psel->preview_tris[0][1], e_pair[0]->v2->co);
@@ -309,7 +309,7 @@ static void view3d_preselect_update_preview_triangle_from_face(EditMesh_PreSelEl
                                                                BMFace *efa,
                                                                const int /*mval*/[2])
 {
-  float (*preview_lines)[2][3] = MEM_malloc_arrayN<float[2][3]>(efa->len, __func__);
+  float (*preview_lines)[2][3] = MEM_new_array_uninitialized<float[2][3]>(efa->len, __func__);
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
   int i = 0;
@@ -324,8 +324,8 @@ static void view3d_preselect_update_preview_triangle_from_edge(
     EditMesh_PreSelElem *psel, ViewContext *vc, BMesh * /*bm*/, BMEdge *eed, const int mval[2])
 {
   float center[3];
-  psel->preview_tris = MEM_malloc_arrayN<float[3][3]>(1, __func__);
-  psel->preview_lines = MEM_malloc_arrayN<float[2][3]>(3, __func__);
+  psel->preview_tris = MEM_new_array_uninitialized<float[3][3]>(1, __func__);
+  psel->preview_lines = MEM_new_array_uninitialized<float[2][3]>(3, __func__);
   mid_v3_v3v3(center, eed->v1->co, eed->v2->co);
   mul_m4_v3(vc->obedit->object_to_world().ptr(), center);
   ED_view3d_win_to_3d_int(vc->v3d, vc->region, center, mval, center);
@@ -352,7 +352,7 @@ static void view3d_preselect_mesh_elem_update_from_face(EditMesh_PreSelElem *pse
                                                         BMFace *efa,
                                                         const Span<float3> vert_positions)
 {
-  float (*edges)[2][3] = MEM_malloc_arrayN<float[2][3]>(efa->len, __func__);
+  float (*edges)[2][3] = MEM_new_array_uninitialized<float[2][3]>(efa->len, __func__);
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
   int i = 0;

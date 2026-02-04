@@ -108,7 +108,7 @@ struct DepthBufCache {
 static DepthBufCache *depth_buf_malloc(uint rect_len)
 {
   DepthBufCache *rect = static_cast<DepthBufCache *>(
-      MEM_mallocN(sizeof(DepthBufCache) + sizeof(depth_t) * rect_len, __func__));
+      MEM_new_uninitialized(sizeof(DepthBufCache) + sizeof(depth_t) * rect_len, __func__));
   rect->id = SELECT_ID_NONE;
   return rect;
 }
@@ -369,13 +369,13 @@ void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelect
   }
 
   if (mode == GPU_SELECT_PICK_ALL) {
-    ps->all.hits = MEM_malloc_arrayN<DepthID>(ALLOC_DEPTHS, __func__);
+    ps->all.hits = MEM_new_array_uninitialized<DepthID>(ALLOC_DEPTHS, __func__);
     ps->all.hits_len = 0;
     ps->all.hits_len_alloc = ALLOC_DEPTHS;
   }
   else {
     /* Set to 0xff for #SELECT_ID_NONE. */
-    ps->nearest.rect_id = MEM_malloc_arrayN<uint>(ps->dst.rect_len, __func__);
+    ps->nearest.rect_id = MEM_new_array_uninitialized<uint>(ps->dst.rect_len, __func__);
     memset(ps->nearest.rect_id, 0xff, sizeof(uint) * ps->dst.rect_len);
   }
 }
@@ -423,7 +423,7 @@ static void gpu_select_load_id_pass_all(const DepthBufCache *rect_curr)
   if (UNLIKELY(ps->all.hits_len == ps->all.hits_len_alloc)) {
     ps->all.hits_len_alloc += ALLOC_DEPTHS;
     ps->all.hits = static_cast<DepthID *>(
-        MEM_reallocN(ps->all.hits, ps->all.hits_len_alloc * sizeof(*ps->all.hits)));
+        MEM_realloc_uninitialized(ps->all.hits, ps->all.hits_len_alloc * sizeof(*ps->all.hits)));
   }
   DepthID *d = &ps->all.hits[ps->all.hits_len++];
   d->id = id;
@@ -588,7 +588,7 @@ uint gpu_select_pick_end()
 
     /* Over allocate (unlikely we have as many depths as pixels). */
     uint depth_data_len_first_pass = 0;
-    depth_data = MEM_malloc_arrayN<DepthID>(ps->dst.rect_len, __func__);
+    depth_data = MEM_new_array_uninitialized<DepthID>(ps->dst.rect_len, __func__);
 
     /* Partially de-duplicating copy,
      * when contiguous ID's are found - update their closest depth.
@@ -670,16 +670,16 @@ uint gpu_select_pick_end()
     hits++;
   }
 
-  MEM_freeN(depth_data);
+  MEM_delete(depth_data);
 
-  MEM_SAFE_FREE(ps->gpu.rect_depth);
-  MEM_SAFE_FREE(ps->gpu.rect_depth_test);
+  MEM_SAFE_DELETE(ps->gpu.rect_depth);
+  MEM_SAFE_DELETE(ps->gpu.rect_depth_test);
 
   if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
     /* 'hits' already freed as 'depth_data' */
   }
   else {
-    MEM_freeN(ps->nearest.rect_id);
+    MEM_delete(ps->nearest.rect_id);
     ps->nearest.rect_id = nullptr;
   }
 

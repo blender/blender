@@ -16,6 +16,7 @@ namespace blender {
 
 struct AnimData;
 struct MDeformVert;
+struct tGPspoint;
 
 /** #bGPDspoint.flag */
 enum eGPDspoint_Flag {
@@ -265,12 +266,6 @@ enum eGP_OnionModes {
   GP_ONION_MODE_ABSOLUTE = 0,
   GP_ONION_MODE_RELATIVE = 1,
   GP_ONION_MODE_SELECTED = 2,
-};
-
-/* X-ray modes (Depth Ordering). */
-enum eGP_DepthOrdering {
-  GP_XRAY_FRONT = 0,
-  GP_XRAY_3DSPACE = 1,
 };
 
 /* draw modes (Use 2D or 3D position) */
@@ -666,7 +661,7 @@ struct bGPdata_Runtime {
   DNA_DEFINE_CXX_METHODS(bGPdata_Runtime)
 
   /** Stroke buffer. */
-  void *sbuffer = nullptr;
+  tGPspoint *sbuffer = nullptr;
 
   /** Animation playing flag. */
   short playing = 0;

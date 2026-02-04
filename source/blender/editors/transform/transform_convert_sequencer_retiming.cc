@@ -102,7 +102,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   if ((custom_data->data != nullptr) && custom_data->use_free) {
     TransSeq *ts = static_cast<TransSeq *>(custom_data->data);
-    MEM_freeN(ts->tdseq);
+    MEM_delete(ts->tdseq);
     MEM_delete(ts);
     custom_data->data = nullptr;
   }
@@ -158,8 +158,9 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
         /* Ensure that this key cannot pass the next key. */
         ts->offset_clamp.xmax = min_ii(key_next->strip_frame_index - key->strip_frame_index - 1,
                                        ts->offset_clamp.xmax);
-        /* XXX: There is an off-by-one error for the last "fake" key's `strip_frame_index`, which
-         * is 1 less than it should be. This is not an immediate issue but should be fixed. */
+        /* TODO(john): There is an off-by-one error for the last "fake" key's `strip_frame_index`,
+         * which is 1 less than it should be. This is not an immediate issue but should be fixed.
+         */
       }
       if (key->strip_frame_index != 0) {
         /* Ensure that this key cannot pass the previous key. */
@@ -191,9 +192,9 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
   tc->custom.type.data = ts;
   tc->custom.type.use_free = true;
 
-  TransData *td = MEM_calloc_arrayN<TransData>(tc->data_len, "TransSeq TransData");
-  TransData2D *td2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransSeq TransData2D");
-  TransDataSeq *tdseq = MEM_calloc_arrayN<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
+  TransData *td = MEM_new_array_zeroed<TransData>(tc->data_len, "TransSeq TransData");
+  TransData2D *td2d = MEM_new_array_zeroed<TransData2D>(tc->data_len, "TransSeq TransData2D");
+  TransDataSeq *tdseq = MEM_new_array_zeroed<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
   tc->data = td;
   tc->data_2d = td2d;
   ts->tdseq = tdseq;
@@ -218,7 +219,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
     const TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdseq->strip;
 
-    if (!seq::retiming_data_is_editable(strip)) {
+    if (!seq::retiming_show_keys(strip)) {
       continue;
     }
 
@@ -243,7 +244,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
       seq::retiming_transition_key_frame_set(t->scene, strip, key, round_fl_to_int(new_frame));
     }
     else {
-      seq::retiming_key_frame_set(t->scene, strip, key, new_frame, true);
+      seq::retiming_key_frame_set(t->scene, strip, key, new_frame);
     }
 
     seq::relations_invalidate_cache(t->scene, strip);

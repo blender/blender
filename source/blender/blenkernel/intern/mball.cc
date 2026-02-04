@@ -74,7 +74,7 @@ static void metaball_copy_data(Main * /*bmain*/,
 
   BLI_duplicatelist(&metaball_dst->elems, &metaball_src->elems);
 
-  metaball_dst->mat = static_cast<Material **>(MEM_dupallocN(metaball_src->mat));
+  metaball_dst->mat = MEM_dupalloc(metaball_src->mat);
 
   metaball_dst->editelems = nullptr;
   metaball_dst->lastelem = nullptr;
@@ -84,7 +84,7 @@ static void metaball_free_data(ID *id)
 {
   MetaBall *metaball = id_cast<MetaBall *>(id);
 
-  MEM_SAFE_FREE(metaball->mat);
+  MEM_SAFE_DELETE(metaball->mat);
 
   BLI_freelistN(&metaball->elems);
 }
@@ -175,7 +175,7 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 
 MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 {
-  MetaElem *ml = MEM_new_for_free<MetaElem>(__func__);
+  MetaElem *ml = MEM_new<MetaElem>(__func__);
 
   unit_qt(ml->quat);
 
@@ -662,7 +662,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
 
   const MetaBall *mball = id_cast<MetaBall *>(ob->data);
-  mesh->mat = static_cast<Material **>(MEM_dupallocN(mball->mat));
+  mesh->mat = MEM_dupalloc(mball->mat);
   mesh->totcol = mball->totcol;
 
   if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {

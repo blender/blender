@@ -263,7 +263,7 @@ void IDP_print(const IDProperty *prop)
   char *repr = IDP_reprN(prop, nullptr);
   printf("IDProperty(%p): ", prop);
   puts(repr);
-  MEM_freeN(repr);
+  MEM_delete(repr);
 }
 
 const char *IDP_type_str(const eIDPropertyType type, const short sub_type)

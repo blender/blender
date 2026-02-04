@@ -112,7 +112,7 @@ BLI_INLINE CacheArchiveHandle *handle_from_archive(AlembicArchiveData *archive)
  */
 static void add_object_path(ListBaseT<CacheObjectPath> *object_paths, const IObject &object)
 {
-  CacheObjectPath *abc_path = MEM_new_for_free<CacheObjectPath>("CacheObjectPath");
+  CacheObjectPath *abc_path = MEM_new<CacheObjectPath>("CacheObjectPath");
   STRNCPY(abc_path->path, object.getFullName().c_str());
   BLI_addtail(object_paths, abc_path);
 }

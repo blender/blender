@@ -215,6 +215,7 @@ set(OPENGL_SRC
   opengl/gl_state.cc
   opengl/gl_storage_buffer.cc
   opengl/gl_texture.cc
+  opengl/gl_texture_pool.cc
   opengl/gl_uniform_buffer.cc
   opengl/gl_vertex_array.cc
   opengl/gl_vertex_buffer.cc
@@ -649,6 +650,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_hair.glsl
   shaders/material/gpu_shader_material_holdout.glsl
   shaders/material/gpu_shader_material_hue_sat_val.glsl
+  shaders/material/gpu_shader_material_implicit_defaults.glsl
   shaders/material/gpu_shader_material_invert.glsl
   shaders/material/gpu_shader_material_layer_weight.glsl
   shaders/material/gpu_shader_material_light_falloff.glsl
@@ -668,6 +670,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_particle_info.glsl
   shaders/material/gpu_shader_material_point_info.glsl
   shaders/material/gpu_shader_material_principled.glsl
+  shaders/material/gpu_shader_material_raycast.glsl
   shaders/material/gpu_shader_material_ray_portal.glsl
   shaders/material/gpu_shader_material_refraction.glsl
   shaders/material/gpu_shader_material_repeat_zone.glsl
@@ -710,7 +713,6 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_volume_coefficients.glsl
   shaders/material/gpu_shader_material_voronoi.glsl
   shaders/material/gpu_shader_material_wireframe.glsl
-  shaders/material/gpu_shader_material_world_normals.glsl
 
   shaders/gpu_shader_gpencil_stroke_vert.glsl
   shaders/gpu_shader_gpencil_stroke_frag.glsl
@@ -799,7 +801,7 @@ endif()
 if(WITH_METAL_BACKEND)
   list(APPEND GLSL_SRC ${MTL_BACKEND_GLSL_SRC})
 
-  set(MSL_C)
+  set(MSL_C "")
   foreach(MSL_FILE ${MSL_SRC})
     data_to_c_simple(${MSL_FILE} MSL_C)
   endforeach()
@@ -821,12 +823,12 @@ set(GLSL_INC
   vulkan/shaders
 )
 
-set(GLSL_C)
+set(GLSL_C "")
 foreach(GLSL_FILE ${GLSL_SRC})
   glsl_to_c(${GLSL_FILE} GLSL_C GLSL_INC)
 endforeach()
 
-set(SHADER_C)
+set(SHADER_C "")
 list(APPEND SHADER_C ${GLSL_C})
 if(WITH_METAL_BACKEND)
   list(APPEND SHADER_C ${MSL_C})
@@ -912,8 +914,8 @@ endif()
 
 
 if(WITH_GTESTS)
-  set(TEST_SRC)
-  set(TEST_INC)
+  set(TEST_SRC "")
+  set(TEST_INC "")
   set(TEST_LIB
     bf_intern_ghost
     bf_imbuf

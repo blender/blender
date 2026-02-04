@@ -6,7 +6,7 @@
 # every dependency we have, this is used by the release manager to
 # update the licensing document.
 
-set(HTMLCONTENTS)
+set(HTMLCONTENTS "")
 get_cmake_property(_variableNames VARIABLES)
 foreach(_variableName ${_variableNames})
   if(_variableName MATCHES "_URI$")

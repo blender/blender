@@ -111,6 +111,7 @@ struct StripDrawContext {
   bool missing_media;
   bool is_connected;
   bool is_muted;
+  bool has_retiming;
 };
 
 struct TimelineDrawContext {

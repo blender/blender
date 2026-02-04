@@ -142,7 +142,7 @@ static IDPropertyUIDataEnumItem *idprop_enum_items_from_py(PyObject *seq_fast, i
   PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
   int i;
 
-  items = MEM_new_array_for_free<IDPropertyUIDataEnumItem>(seq_len, __func__);
+  items = MEM_new_array<IDPropertyUIDataEnumItem>(seq_len, __func__);
   r_items_num = seq_len;
 
   for (i = 0; i < seq_len; i++) {
@@ -155,7 +155,7 @@ static IDPropertyUIDataEnumItem *idprop_enum_items_from_py(PyObject *seq_fast, i
       items[i].identifier = nullptr;
     }
     else {
-      MEM_freeN(items);
+      MEM_delete(items);
       PyErr_SetString(PyExc_TypeError,
                       "expected a tuple containing "
                       "(identifier, name, description) and optionally an "
@@ -182,12 +182,12 @@ static bool idprop_ui_data_update_int_default(IDProperty *idprop,
     }
 
     Py_ssize_t len = PySequence_Size(default_value);
-    int *new_default_array = MEM_malloc_arrayN<int>(size_t(len), __func__);
+    int *new_default_array = MEM_new_array_uninitialized<int>(size_t(len), __func__);
     if (PyC_AsArray(
             new_default_array, sizeof(int), default_value, len, &PyLong_Type, "ui_data_update") ==
         -1)
     {
-      MEM_freeN(new_default_array);
+      MEM_delete(new_default_array);
       return false;
     }
 
@@ -348,7 +348,7 @@ static bool idprop_ui_data_update_bool_default(IDProperty *idprop,
     }
 
     Py_ssize_t len = PySequence_Size(default_value);
-    int8_t *new_default_array = MEM_malloc_arrayN<int8_t>(size_t(len), __func__);
+    int8_t *new_default_array = MEM_new_array_uninitialized<int8_t>(size_t(len), __func__);
     if (PyC_AsArray(new_default_array,
                     sizeof(int8_t),
                     default_value,
@@ -356,7 +356,7 @@ static bool idprop_ui_data_update_bool_default(IDProperty *idprop,
                     &PyBool_Type,
                     "ui_data_update") == -1)
     {
-      MEM_freeN(new_default_array);
+      MEM_delete(new_default_array);
       return false;
     }
 
@@ -438,7 +438,7 @@ static bool idprop_ui_data_update_float_default(IDProperty *idprop,
     }
 
     Py_ssize_t len = PySequence_Size(default_value);
-    double *new_default_array = MEM_malloc_arrayN<double>(size_t(len), __func__);
+    double *new_default_array = MEM_new_array_uninitialized<double>(size_t(len), __func__);
     if (PyC_AsArray(new_default_array,
                     sizeof(double),
                     default_value,
@@ -446,7 +446,7 @@ static bool idprop_ui_data_update_float_default(IDProperty *idprop,
                     &PyFloat_Type,
                     "ui_data_update") == -1)
     {
-      MEM_freeN(new_default_array);
+      MEM_delete(new_default_array);
       return false;
     }
 
@@ -962,12 +962,18 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
     return nullptr;
   }
 
+  IDProperty *src_prop = ui_manager_src->property;
+  if ((property->type != src_prop->type) || property->subtype != src_prop->subtype) {
+    PyErr_SetString(PyExc_TypeError, "Properties type does not match.");
+    return nullptr;
+  }
+
   if (property->ui_data != nullptr) {
     IDP_ui_data_free(property);
   }
 
   if (ui_manager_src->property && ui_manager_src->property->ui_data) {
-    property->ui_data = IDP_ui_data_copy(ui_manager_src->property);
+    property->ui_data = IDP_ui_data_copy(src_prop);
   }
 
   Py_RETURN_NONE;

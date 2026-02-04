@@ -95,7 +95,7 @@ static void fcm_generator_free(FModifier *fcm)
 
   /* free polynomial coefficients array */
   if (data->coefficients) {
-    MEM_freeN(data->coefficients);
+    MEM_delete(data->coefficients);
   }
 }
 
@@ -106,7 +106,7 @@ static void fcm_generator_copy(FModifier *fcm, const FModifier *src)
 
   /* copy coefficients array? */
   if (ogen->coefficients) {
-    gen->coefficients = static_cast<float *>(MEM_dupallocN(ogen->coefficients));
+    gen->coefficients = MEM_dupalloc(ogen->coefficients);
   }
 }
 
@@ -118,7 +118,7 @@ static void fcm_generator_new_data(void *mdata)
   /* set default generator to be linear 0-1 (gradient = 1, y-offset = 0) */
   data->poly_order = 1;
   data->arraysize = 2;
-  cp = data->coefficients = MEM_calloc_arrayN<float>(2, "FMod_Generator_Coefs");
+  cp = data->coefficients = MEM_new_array_zeroed<float>(2, "FMod_Generator_Coefs");
   cp[0] = 0; /* y-offset */
   cp[1] = 1; /* gradient */
 }
@@ -135,7 +135,7 @@ static void fcm_generator_verify(FModifier *fcm)
       /* arraysize needs to be order+1, so resize if not */
       if (data->arraysize != arraysize_new) {
         data->coefficients = static_cast<float *>(
-            MEM_recallocN(data->coefficients, sizeof(float) * arraysize_new));
+            MEM_realloc_zeroed(data->coefficients, sizeof(float) * arraysize_new));
         data->arraysize = arraysize_new;
       }
       break;
@@ -146,7 +146,7 @@ static void fcm_generator_verify(FModifier *fcm)
       /* arraysize needs to be (2 * order), so resize if not */
       if (data->arraysize != arraysize_new) {
         data->coefficients = static_cast<float *>(
-            MEM_recallocN(data->coefficients, sizeof(float) * arraysize_new));
+            MEM_realloc_zeroed(data->coefficients, sizeof(float) * arraysize_new));
         data->arraysize = arraysize_new;
       }
       break;
@@ -169,7 +169,7 @@ static void fcm_generator_evaluate(const FCurve * /*fcu*/,
     case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
     {
       /* we overwrite cvalue with the sum of the polynomial */
-      float *powers = MEM_calloc_arrayN<float>(data->arraysize, "Poly Powers");
+      float *powers = MEM_new_array_zeroed<float>(data->arraysize, "Poly Powers");
       float value = 0.0f;
 
       /* for each x^n, precalculate value based on previous one first... this should be
@@ -202,7 +202,7 @@ static void fcm_generator_evaluate(const FCurve * /*fcu*/,
 
       /* cleanup */
       if (powers) {
-        MEM_freeN(powers);
+        MEM_delete(powers);
       }
       break;
     }
@@ -388,7 +388,7 @@ static void fcm_envelope_free(FModifier *fcm)
 
   /* free envelope data array */
   if (env->data) {
-    MEM_freeN(env->data);
+    MEM_delete(env->data);
   }
 }
 
@@ -399,7 +399,7 @@ static void fcm_envelope_copy(FModifier *fcm, const FModifier *src)
 
   /* copy envelope data array */
   if (oenv->data) {
-    env->data = static_cast<FCM_EnvelopeData *>(MEM_dupallocN(oenv->data));
+    env->data = MEM_dupalloc(oenv->data);
   }
 }
 
@@ -997,6 +997,112 @@ static FModifierTypeInfo FMI_STEPPED = {
     /*evaluate_modifier*/ nullptr,
 };
 
+/* Smooth F-Curve Modifier  --------------------------- */
+
+static void fcm_smooth_new_data(void *mdata)
+{
+  FMod_Smooth *data = (FMod_Smooth *)mdata;
+
+  data->sigma = 0.33f;
+  data->filter_width = 6;
+}
+
+/** Evaluate the F-Curve at a certain point, by locally smoothing the values around that point. */
+static float fcm_smooth_frame(const FCurve *fcu,
+                              const FModifier *fcm,
+                              const int evaltime,
+                              const float default_value)
+{
+  FMod_Smooth *data = (FMod_Smooth *)fcm->data;
+
+  const float sigma = data->sigma;
+  const int filter_width = data->filter_width;
+
+  /* If filter_width is too small, the smoothing weight will become zero. */
+  BLI_assert(filter_width >= 0.1);
+
+  /* Hold variables for weight, so we can compensate for the influence of the modifier. */
+  float total_weighted_value = 0.0f;
+  float total_weight = 0.0f;
+
+  /* Define sampling window around the frame using the filder width. */
+  const int start_frame = floorf(evaltime - filter_width);
+  const int end_frame = ceilf(evaltime + filter_width);
+
+  const float two_sigma_sq = 2.0f * sigma * sigma;
+
+  /* Sampling loop. */
+  for (float sample_time = start_frame; sample_time <= end_frame; ++sample_time) {
+    const float sample_distance = sample_time - evaltime;
+
+    /* Normalize sigma to filter width.
+     * This makes it consistent with the behavior in GRAPH_OT_gaussian_smooth. */
+    const float sample_dis_norm = sample_distance / filter_width;
+    const float weight = expf(-(sample_dis_norm * sample_dis_norm) / two_sigma_sq);
+
+    const float sample_value = evaluate_fcurve_unmodified(fcu, sample_time);
+
+    total_weighted_value += sample_value * weight;
+    total_weight += weight;
+  }
+
+  if (total_weight <= 0.0f) {
+    BLI_assert_unreachable();
+    return default_value;
+  }
+
+  return total_weighted_value / total_weight;
+}
+
+static void fcm_smooth_evaluate(
+    const FCurve *fcu, const FModifier *fcm, float *cvalue, float evaltime, void * /*storage*/)
+{
+  /* Check if evaltime is an integer, with FLT_EPSILON tolerance. */
+  const bool is_integer_frame = (fabs(roundf(evaltime) - evaltime) <= FLT_EPSILON);
+
+  /* If the evaltime is an integer frame, we directly calculate the value. */
+  if (is_integer_frame) {
+    *cvalue = fcm_smooth_frame(fcu, fcm, evaltime, *cvalue);
+    return;
+  }
+
+  /* Otherwise, we linearly interpolate.
+   * The Gaussian function requires knowing the distance from a sample to its neighboring frames.
+   * However, F-Curve modifiers work as continuous functions, so we cannot access discrete keyframe
+   * positions. Instead, we sample each integer frame, then linearly interpolate to find the value
+   * at evaltime. This means that subframes won't contribute to the smoothing, but it is not
+   * possible to know their positions.
+   * The F-Curve is sampled using a fixed-size window of at least one frame, to prevent aliasing
+   * that can occur when there is high frequency data (on sub-frames).
+   */
+  const float prev_frame = floorf(evaltime);
+  const float next_frame = ceilf(evaltime);
+
+  float prev_value = evaluate_fcurve_unmodified(fcu, prev_frame);
+  float next_value = evaluate_fcurve_unmodified(fcu, next_frame);
+
+  prev_value = fcm_smooth_frame(fcu, fcm, prev_frame, prev_value);
+  next_value = fcm_smooth_frame(fcu, fcm, next_frame, prev_value);
+
+  *cvalue = interpf(next_value, prev_value, evaltime - prev_frame);
+}
+
+static FModifierTypeInfo FMI_SMOOTH = {
+    /*type*/ FMODIFIER_TYPE_SMOOTH,
+    /*size*/ sizeof(FMod_Smooth),
+    /*acttype*/ FMI_TYPE_REPLACE_VALUES,
+    /*requires_flag*/ FMI_REQUIRES_ORIGINAL_DATA,
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_ACTION, "Smooth"),
+    /*struct_name*/ "FMod_Smooth",
+    /*storage_size*/ 0,
+    /*free_data*/ nullptr,
+    /*copy_data*/ nullptr,
+    /*new_data*/ fcm_smooth_new_data,
+    /*verify_data*/ nullptr /*fcm_noise_verify*/,
+    /*evaluate_modifier_time*/ nullptr,
+    /*evaluate_modifier*/ fcm_smooth_evaluate,
+};
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1023,6 +1129,7 @@ static void fmods_init_typeinfo()
   fmodifiersTypeInfo[FMODIFIER_TYPE_PYTHON] = nullptr;
   fmodifiersTypeInfo[FMODIFIER_TYPE_LIMITS] = &FMI_LIMITS;
   fmodifiersTypeInfo[FMODIFIER_TYPE_STEPPED] = &FMI_STEPPED;
+  fmodifiersTypeInfo[FMODIFIER_TYPE_SMOOTH] = &FMI_SMOOTH;
 
 #ifndef NDEBUG
   /* Check that the array indices are correct. */
@@ -1082,17 +1189,17 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
   }
 
   /* special checks for whether modifier can be added */
-  if ((modifiers->first) && (type == FMODIFIER_TYPE_CYCLES)) {
-    /* cycles modifier must be first in stack, so for now, don't add if it can't be */
+  if ((modifiers->first) && (fmi->requires_flag & FMI_REQUIRES_ORIGINAL_DATA)) {
+    /* Modifiers requiring original data must be first in stack, so for now, don't add if it can't
+     * be. */
     /* TODO: perhaps there is some better way, but for now, */
-    CLOG_STR_ERROR(&LOG,
-                   "Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be "
-                   "first in stack.");
+    CLOG_ERROR(
+        &LOG, "Cannot add '%s' modifier to F-Curve, as it can only be first in stack.", fmi->name);
     return nullptr;
   }
 
   /* add modifier itself */
-  fcm = MEM_new_for_free<FModifier>("F-Curve Modifier");
+  fcm = MEM_new<FModifier>("F-Curve Modifier");
   fcm->type = type;
   fcm->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT; /* Expand the main panel, not the sub-panels. */
   fcm->curve = owner_fcu;
@@ -1108,7 +1215,7 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
   }
 
   /* add modifier's data */
-  fcm->data = MEM_callocN(fmi->size, fmi->struct_name);
+  fcm->data = MEM_new_zeroed(fmi->size, fmi->struct_name);
 
   /* init custom settings if necessary */
   if (fmi->new_data) {
@@ -1135,12 +1242,12 @@ FModifier *copy_fmodifier(const FModifier *src)
   }
 
   /* copy the base data, clearing the links */
-  dst = static_cast<FModifier *>(MEM_dupallocN(src));
+  dst = MEM_dupalloc(src);
   dst->next = dst->prev = nullptr;
   dst->curve = nullptr;
 
   /* make a new copy of the F-Modifier's data */
-  dst->data = MEM_dupallocN(src->data);
+  dst->data = MEM_dupalloc_void(src->data);
 
   /* only do specific constraints if required */
   if (fmi && fmi->copy_data) {
@@ -1169,7 +1276,7 @@ void copy_fmodifiers(ListBaseT<FModifier> *dst, const ListBaseT<FModifier> *src)
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
     /* make a new copy of the F-Modifier's data */
-    fcm->data = MEM_dupallocN(fcm->data);
+    fcm->data = MEM_dupalloc_void(fcm->data);
     fcm->curve = nullptr;
 
     /* only do specific constraints if required */
@@ -1198,7 +1305,7 @@ bool remove_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
     }
 
     /* free modifier's data (fcm->data) */
-    MEM_freeN(fcm->data);
+    MEM_delete_void(fcm->data);
   }
 
   /* remove modifier from stack */
@@ -1215,7 +1322,7 @@ bool remove_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
 
   /* XXX this case can probably be removed some day, as it shouldn't happen... */
   CLOG_STR_ERROR(&LOG, "no modifier stack given");
-  MEM_freeN(fcm);
+  MEM_delete(fcm);
   return false;
 }
 
