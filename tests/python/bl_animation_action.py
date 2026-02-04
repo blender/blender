@@ -866,6 +866,26 @@ class ReplaceAction(unittest.TestCase):
         self.assertEqual(self.obj_nla.animation_data.action, None)
         self.assertEqual(self.obj_nla.animation_data.nla_tracks[0].strips[0].action, self.initial_action)
 
+    def test_action_remap_new(self):
+        self.assertEqual(self.obj_animated.animation_data.action, self.initial_action)
+
+        bpy.ops.anim.replace_action_new(
+            old_session_uid=self.initial_action.session_uid)
+
+        new_action = bpy.data.actions["Action"]
+        self.assertEqual(self.obj_animated.animation_data.action, new_action)
+        # The new action should have the same slots as the previous one.
+        self.assertNotEqual(self.obj_animated.animation_data.action_slot, None)
+        self.assertEqual(self.obj_no_slot_after.animation_data.action, new_action)
+        self.assertEqual(self.obj_no_slot_before.animation_data.action, new_action)
+        self.assertEqual(self.armature.animation_data.action, new_action)
+
+        # The operator shouldn't touch the NLA or action constraints.
+        self.assertEqual(self.obj_action_constraint.animation_data.action, None)
+        self.assertEqual(self.obj_action_constraint.constraints[0].action, self.initial_action)
+        self.assertEqual(self.obj_nla.animation_data.action, None)
+        self.assertEqual(self.obj_nla.animation_data.nla_tracks[0].strips[0].action, self.initial_action)
+
 
 def main():
     global args

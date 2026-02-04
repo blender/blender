@@ -1329,6 +1329,64 @@ static void ANIM_OT_merge_animation(wmOperatorType *ot)
 /** \name Replace Animation
  * \{ */
 
+static bool replace_action_common_poll(bContext *C)
+{
+  Object *active_object = CTX_data_active_object(C);
+  if (!active_object) {
+    return false;
+  }
+  AnimData *adt = BKE_animdata_from_id(&active_object->id);
+  if (!adt || !adt->action) {
+    return false;
+  }
+  return true;
+}
+
+static void replace_action_common_failure_report(const Span<ID *> failures, ReportList &reports)
+{
+  if (failures.size() == 0) {
+    return;
+  }
+  std::string report = "Replacing the action failed on: ";
+  for (ID *id : failures) {
+    report += id->name + 2;
+  }
+  BKE_report(&reports, RPT_WARNING, report.c_str());
+}
+
+/**
+ * Goes through all IDs in Main and replaces any uses of `old_action` in AnimData.action with
+ * `new_action`.
+ */
+static Vector<ID *> replace_action(Main &bmain,
+                                   const animrig::Action &old_action,
+                                   animrig::Action &new_action)
+{
+  Vector<ID *> failures;
+  ID *id;
+  /* Cannot use the Action Slot user map because some action assignments may be missing a slot
+   * assignment and those should also be remapped. */
+  FOREACH_MAIN_ID_BEGIN (&bmain, id) {
+    AnimData *adt = BKE_animdata_from_id(id);
+    if (!adt || !adt->action || adt->action != &old_action) {
+      continue;
+    }
+    if (!ID_IS_EDITABLE(id) && !ID_IS_OVERRIDE_LIBRARY(id)) {
+      continue;
+    }
+    const bool success = animrig::assign_action(&new_action, {*id, *adt});
+    DEG_id_tag_update(id, ID_RECALC_ALL);
+    if (!success) {
+      failures.append(id);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  DEG_relations_tag_update(&bmain);
+  DEG_id_tag_update(&new_action.id, ID_RECALC_ALL);
+  return failures;
+}
+
 static wmOperatorStatus replace_action_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1348,36 +1406,8 @@ static wmOperatorStatus replace_action_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Vector<ID *> failures;
-  ID *id;
-  /* Cannot use the Action Slot user map because some action assignments may be missing a slot
-   * assignment and those should also be remapped. */
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    AnimData *adt = BKE_animdata_from_id(id);
-    if (!adt || !adt->action || adt->action != old_action) {
-      continue;
-    }
-    if (!ID_IS_EDITABLE(id) && !ID_IS_OVERRIDE_LIBRARY(id)) {
-      continue;
-    }
-    const bool success = animrig::assign_action(new_action, {*id, *adt});
-    DEG_id_tag_update(id, ID_RECALC_ALL);
-    if (!success) {
-      failures.append(id);
-    }
-  }
-  FOREACH_MAIN_ID_END;
-
-  if (failures.size() > 0) {
-    std::string report = "Replacing the action failed on: ";
-    for (ID *id : failures) {
-      report += id->name + 2;
-    }
-    BKE_report(op->reports, RPT_WARNING, report.c_str());
-  }
-
-  DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&new_action->id, ID_RECALC_ALL);
+  Vector<ID *> failures = replace_action(*bmain, old_action->wrap(), new_action->wrap());
+  replace_action_common_failure_report(failures, *op->reports);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
 
@@ -1401,19 +1431,6 @@ static wmOperatorStatus replace_action_invoke(bContext *C,
   return WM_operator_props_dialog_popup(C, op, 400, IFACE_("Replace Action"), IFACE_("Replace"));
 }
 
-static bool replace_action_poll(bContext *C)
-{
-  Object *active_object = CTX_data_active_object(C);
-  if (!active_object) {
-    return false;
-  }
-  AnimData *adt = BKE_animdata_from_id(&active_object->id);
-  if (!adt || !adt->action) {
-    return false;
-  }
-  return true;
-}
-
 static void replace_action_ui(bContext *C, wmOperator *op)
 {
   ui::Layout &layout = *op->layout;
@@ -1434,7 +1451,7 @@ static void ANIM_OT_replace_action(wmOperatorType *ot)
   ot->invoke = replace_action_invoke;
   ot->exec = replace_action_exec;
   ot->ui = replace_action_ui;
-  ot->poll = replace_action_poll;
+  ot->poll = replace_action_common_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -1459,6 +1476,75 @@ static void ANIM_OT_replace_action(wmOperatorType *ot)
       "The replacement Action's session uid to remap all selected Action's users to",
       0,
       0);
+}
+
+static wmOperatorStatus replace_action_new_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  const uint32_t old_session_uid = RNA_int_get(op->ptr, "old_session_uid");
+  bAction *old_dna_action = reinterpret_cast<bAction *>(
+      BKE_libblock_find_session_uid(bmain, ID_AC, old_session_uid));
+
+  if (!old_dna_action) {
+    BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Invalid UID for old Action");
+    return OPERATOR_CANCELLED;
+  }
+
+  animrig::Action &old_action = old_dna_action->wrap();
+  animrig::Action &new_action = animrig::action_add(*bmain, DATA_("Action"));
+  for (animrig::Slot *old_slot : old_action.slots()) {
+    animrig::Slot &new_slot = new_action.slot_add();
+    new_action.slot_identifier_define(new_slot, old_slot->identifier);
+  }
+
+  Vector<ID *> failures = replace_action(*bmain, old_action, new_action);
+  replace_action_common_failure_report(failures, *op->reports);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus replace_action_new_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const blender::wmEvent * /* event */)
+{
+  Object *active_object = CTX_data_active_object(C);
+  BLI_assert(active_object != nullptr);
+  AnimData *adt = BKE_animdata_from_id(&active_object->id);
+  bAction *dna_action = adt->action;
+  BLI_assert(dna_action != nullptr);
+  RNA_int_set(op->ptr, "old_session_uid", int(dna_action->id.session_uid));
+
+  return replace_action_new_exec(C, op);
+}
+
+/**
+ * Like ANIM_OT_replace_action but creates a new action to assign to all users of the given action.
+ */
+static void ANIM_OT_replace_action_new(wmOperatorType *ot)
+{
+  ot->name = "Replace with new Action";
+  ot->idname = "ANIM_OT_replace_action_new";
+  ot->description =
+      "Swap all users of one action to a new action. This ignores the NLA and Action Constraints";
+
+  ot->invoke = replace_action_new_invoke;
+  ot->exec = replace_action_new_exec;
+  ot->poll = replace_action_common_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "old_session_uid",
+                                  0,
+                                  0,
+                                  0,
+                                  "Old Action",
+                                  "Old Action's session uid to replace",
+                                  0,
+                                  0);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
@@ -1516,6 +1602,7 @@ void ED_operatortypes_anim()
 
   WM_operatortype_append(ANIM_OT_merge_animation);
   WM_operatortype_append(ANIM_OT_replace_action);
+  WM_operatortype_append(ANIM_OT_replace_action_new);
 
   WM_operatortype_append(ed::animrig::POSELIB_OT_create_pose_asset);
   WM_operatortype_append(ed::animrig::POSELIB_OT_asset_modify);
