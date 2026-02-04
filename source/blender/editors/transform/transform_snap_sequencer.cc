@@ -205,7 +205,7 @@ static VectorSet<Strip *> query_snap_targets_timeline(Scene *scene,
                                                       const Span<Strip *> snap_sources,
                                                       const bool exclude_selected)
 {
-  Editing *ed = seq::editing_get(scene);
+  Editing *ed = seq::editing_ensure(scene);
   ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
   ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   const short snap_flag = seq::tool_settings_snap_flag_get(scene);
