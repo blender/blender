@@ -97,9 +97,7 @@ static __attribute__((constructor)) void cpu_check()
 {
 #  ifdef __x86_64
   if (!cpu_supports_sse42()) {
-    std::string error = "Unsupported CPU - " + std::string(cpu_brand_string()) +
-                        "\nBlender requires a CPU with SSE42 support.";
-    printf("%s\n", error.c_str());
+    printf("Unsupported CPU - %s\nBlender requires a CPU with SSE42 support.", cpu_brand_string());
     exit(-1);
   }
   return;
