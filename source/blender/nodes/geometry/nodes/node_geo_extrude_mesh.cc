@@ -260,11 +260,14 @@ static void copy_with_mixing(const GSpan src,
 
 using IDsByDomain = std::array<Vector<StringRef>, ATTR_DOMAIN_NUM>;
 
-static IDsByDomain attribute_ids_by_domain(const AttributeAccessor attributes,
-                                           const Set<StringRef> &skip)
+static IDsByDomain get_transfer_attribute_ids(const AttributeAccessor attributes,
+                                              const Set<StringRef> &skip)
 {
   IDsByDomain ids_by_domain;
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
@@ -396,8 +399,8 @@ static void extrude_mesh_vertices(Mesh &mesh,
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   remove_non_propagated_attributes(attributes, attribute_filter);
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(attributes,
-                                                            {"position", ".edge_verts"});
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(attributes,
+                                                               {"position", ".edge_verts"});
 
   Array<int> vert_to_edge_offsets;
   Array<int> vert_to_edge_indices;
@@ -626,7 +629,7 @@ static void extrude_mesh_edges(Mesh &mesh,
               new_face_range.size(),
               new_loop_range.size());
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(
       attributes, {"position", ".edge_verts", ".corner_vert", ".corner_edge"});
 
   MutableSpan<int2> edges = mesh.edges_for_write();
@@ -965,7 +968,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
               side_face_range.size(),
               side_loop_range.size());
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(
       attributes, {".corner_vert", ".corner_edge", ".edge_verts"});
 
   MutableSpan<int2> edges = mesh.edges_for_write();
@@ -1258,7 +1261,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
               side_face_range.size(),
               side_loop_range.size());
 
-  const IDsByDomain ids_by_domain = attribute_ids_by_domain(
+  const IDsByDomain ids_by_domain = get_transfer_attribute_ids(
       attributes, {"position", ".edge_verts", ".corner_vert", ".corner_edge"});
 
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
