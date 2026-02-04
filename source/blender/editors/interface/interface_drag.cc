@@ -42,7 +42,8 @@ void button_drag_set_asset(Button *but,
   wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, import_settings);
 
   but->dragtype = WM_DRAG_ASSET;
-  def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
+  def_but_icon(
+      but, icon, BUT_ICON_PREVIEW); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
   if (but->dragflag & BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
   }
