@@ -84,10 +84,11 @@ BLOCKLIST_OPTIX_OSL_LIMITED = [
 
 # Blocklist for SVM tests that fail when forced to run with OptiX OSL
 BLOCKLIST_OPTIX_OSL_ALL = BLOCKLIST_OPTIX_OSL_LIMITED + [
-    # OptiX OSL does support AO or Bevel
+    # OptiX OSL does support AO, Bevel or Raycast
     'ambient_occlusion.*.blend',
     'bake_bevel.blend',
     'bevel.blend',
+    'raycast.*.blend',
     'principled_bsdf_bevel_emission_137420.blend',
     # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
     'dicing_camera.blend',

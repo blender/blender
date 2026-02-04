@@ -5,16 +5,21 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
+#include "infos/eevee_raycast_infos.hh"
 #include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
+SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
 
+#include "draw_intersect_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_nodetree_closures_lib.glsl"
+#include "eevee_ray_trace_screen_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
+#include "eevee_sampling_lib.glsl"
 #include "eevee_utility_tx_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
@@ -282,6 +287,74 @@ float ambient_occlusion_eval(float3 normal,
 #  endif
 #else
   return 1.0f;
+#endif
+}
+
+void raycast_eval(float3 position,
+                  float3 direction,
+                  float max_distance,
+                  bool self_only,
+                  bool &is_hit,
+                  bool &self_hit,
+                  float &hit_distance,
+                  float3 &hit_position,
+                  float3 &hit_normal)
+{
+  is_hit = false;
+  self_hit = false;
+  hit_distance = max_distance;
+  hit_position = float3(0.0f);
+  hit_normal = float3(0.0f);
+
+  direction = normalize(direction);
+
+#if defined(MAT_RAYCAST)
+  float3 ws_start = position;
+  float3 ws_end = position + direction * max_distance;
+  if (!clip_ray(
+          ws_start, ws_end, direction, max_distance, drw_view_culling().frustum_planes.planes))
+  {
+    return;
+  }
+
+  {
+    /* Offset the start to prevent wrong intersection due to depth precission. */
+    float3 vs_start = drw_point_world_to_view(ws_start);
+    float start_depth = drw_depth_view_to_screen(vs_start.z);
+    float offset_depth = uintBitsToFloat(floatBitsToUint(start_depth) + 2);
+    float offset_delta = abs(drw_depth_screen_to_view(offset_depth) - vs_start.z);
+    ws_start += direction * offset_delta;
+  }
+
+  float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
+  float jitter = interleaved_gradient_noise(gl_FragCoord.xy, 1.0f, noise_offset);
+  float thickness_noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_X);
+  float thickness_jitter =
+      interleaved_gradient_noise(gl_FragCoord.xy, 1.0f, thickness_noise_offset) * 0.5f + 0.5f;
+  float thickness = uniform_buf.raytrace.thickness * thickness_jitter;
+
+  float2 hit_uv = float2(0.0f);
+  uint self_id = drw_resource_id() & 0xFFFF;
+
+  float result = raytrace_screen_2(drw_point_world_to_view(ws_start),
+                                   drw_point_world_to_view(ws_end),
+                                   drw_normal_world_to_view(direction),
+                                   hiz_tx,
+                                   thickness,
+                                   64,
+                                   jitter,
+                                   object_id_tx,
+                                   self_only ? self_id : 0,
+                                   hit_uv);
+  if (result >= 0.0f) {
+    is_hit = true;
+    hit_position = ws_start + direction * result;
+    hit_distance = distance(position, hit_position);
+    hit_normal = normalize(texture(prepass_normal_tx, hit_uv).xyz * 2.0f - 1.0f);
+    int2 hit_texel = int2(hit_uv * float2(textureSize(object_id_tx, 0)));
+    uint hit_id = texelFetch(object_id_tx, hit_texel, 0).x;
+    self_hit = self_only || (hit_id == self_id);
+  }
 #endif
 }
 

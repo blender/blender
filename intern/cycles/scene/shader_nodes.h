@@ -1765,4 +1765,24 @@ class VectorDisplacementNode : public ShaderNode {
   NODE_SOCKET_API(float, scale)
 };
 
+class RaycastNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(RaycastNode)
+
+  bool has_spatial_varying() override
+  {
+    return true;
+  }
+  uint get_feature() override
+  {
+    return KERNEL_FEATURE_NODE_RAYTRACE;
+  }
+
+  NODE_SOCKET_API(float3, position)
+  NODE_SOCKET_API(float3, direction)
+  NODE_SOCKET_API(float, length)
+
+  NODE_SOCKET_API(bool, only_local)
+};
+
 CCL_NAMESPACE_END

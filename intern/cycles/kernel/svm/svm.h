@@ -81,6 +81,7 @@
 #ifdef __SHADER_RAYTRACE__
 #  include "kernel/svm/ao.h"
 #  include "kernel/svm/bevel.h"
+#  include "kernel/svm/raycast.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -454,6 +455,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       break;
       SVM_CASE(NODE_AMBIENT_OCCLUSION)
       svm_node_ao<node_feature_mask>(kg, state, sd, stack, node);
+      break;
+      SVM_CASE(NODE_RAYCAST)
+      svm_node_raycast<node_feature_mask>(kg, state, sd, stack, node);
       break;
 #endif
       SVM_CASE(NODE_AOV_START)

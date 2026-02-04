@@ -1100,6 +1100,11 @@ static ShaderNode *add_node(Scene *scene,
     aov->set_name(ustring(storage.name));
     node = aov;
   }
+  else if (b_node.is_type("ShaderNodeRaycast")) {
+    RaycastNode *raycast = graph->create_node<RaycastNode>();
+    raycast->set_only_local(b_node.custom1);
+    node = raycast;
+  }
 
   if (node) {
     node->name = b_node.name;

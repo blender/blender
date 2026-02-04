@@ -93,6 +93,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/ramp_util.h
   svm/radial_tiling.h
   svm/radial_tiling_shared.h
+  svm/raycast.h
   svm/sepcomb_color.h
   svm/sepcomb_vector.h
   svm/sky.h

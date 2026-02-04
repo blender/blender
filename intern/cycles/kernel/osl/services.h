@@ -321,8 +321,10 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_path_transmission_depth;
   static ustring u_path_portal_depth;
   static ustring u_trace;
+  static ustring u_traceset_only_local;
   static ustring u_hit;
   static ustring u_hitdist;
+  static ustring u_hitself;
   static ustring u_N;
   static ustring u_Ng;
   static ustring u_P;

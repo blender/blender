@@ -110,8 +110,10 @@ ustring OSLRenderServices::u_path_transparent_depth("path:transparent_depth");
 ustring OSLRenderServices::u_path_transmission_depth("path:transmission_depth");
 ustring OSLRenderServices::u_path_portal_depth("path:portal_depth");
 ustring OSLRenderServices::u_trace("trace");
+ustring OSLRenderServices::u_traceset_only_local("__only_local__");
 ustring OSLRenderServices::u_hit("hit");
 ustring OSLRenderServices::u_hitdist("hitdist");
+ustring OSLRenderServices::u_hitself("hitself");
 ustring OSLRenderServices::u_N("N");
 ustring OSLRenderServices::u_Ng("Ng");
 ustring OSLRenderServices::u_P("P");
@@ -1588,15 +1590,30 @@ bool OSLRenderServices::trace(TraceOpt &options,
   tracedata->setup = false;
   tracedata->init = true;
   tracedata->hit = false;
+  tracedata->self_hit = false;
 
   /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
     return false;
   }
 
-  /* Ray-trace, leaving out shadow opaque to avoid early exit. */
-  const uint visibility = PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE;
-  tracedata->hit = scene_intersect(kg, &ray, visibility, &tracedata->isect);
+  if (options.traceset == u_traceset_only_local) {
+    LocalIntersection local_isect;
+    scene_intersect_local(kg, &ray, &local_isect, sd->object, nullptr, 1);
+    if (local_isect.num_hits > 0) {
+      tracedata->isect = local_isect.hits[0];
+      tracedata->hit = true;
+      tracedata->self_hit = true;
+    }
+  }
+  else {
+    /* Ray-trace, leaving out shadow opaque to avoid early exit. */
+    const uint visibility = PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE;
+    tracedata->hit = scene_intersect(kg, &ray, visibility, &tracedata->isect);
+    if (tracedata->hit) {
+      tracedata->self_hit = tracedata->isect.object == sd->object;
+    }
+  }
   return tracedata->hit;
 }
 
@@ -1628,6 +1645,9 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
         tracedata->setup = true;
       }
 
+      if (name == u_hitself) {
+        return set_attribute(float(tracedata->self_hit), type, derivatives, val);
+      }
       if (name == u_N) {
         return set_attribute(sd->N, type, derivatives, val);
       }

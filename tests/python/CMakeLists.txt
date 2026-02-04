@@ -767,6 +767,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     node_inlining
     pointcloud
     principled_bsdf
+    raycast
     shader
     shadow
     shadow_catcher

@@ -71,6 +71,7 @@ void register_node_type_sh_output_world();
 void register_node_type_sh_particle_info();
 void register_node_type_sh_point_info();
 void register_node_type_sh_radial_tiling();
+void register_node_type_sh_raycast();
 void register_node_type_sh_rgb();
 void register_node_type_sh_rgbtobw();
 void register_node_type_sh_script();
