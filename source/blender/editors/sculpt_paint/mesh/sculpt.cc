@@ -65,6 +65,8 @@
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.hh"
@@ -5958,6 +5960,11 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
   if (brush_type_is_mask(brush.sculpt_brush_type)) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
     BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
+
+    ed::sculpt_paint::mask_overlay_check(*C, *op);
+  }
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
+    ed::sculpt_paint::face_set_overlay_check(*C, *op);
   }
   if (!brush_type_is_attribute_only(brush.sculpt_brush_type) &&
       report_if_shape_key_is_locked(ob, op->reports))
@@ -8187,6 +8194,50 @@ void filter_above_plane_factors(const Span<float3> positions,
   for (const int i : positions.index_range()) {
     if (plane_point_side_v3(plane, positions[i]) > 0.0f) {
       factors[i] = 0.0f;
+    }
+  }
+}
+
+void mask_overlay_check(bContext &C, wmOperator &op)
+{
+  View3D *v3d = CTX_wm_view3d(&C);
+  if (!v3d) {
+    return;
+  }
+
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+    BKE_report(op.reports, RPT_WARNING, RPT_("Viewport overlays are disabled"));
+  }
+  else {
+    if (!(v3d->overlay.flag & V3D_OVERLAY_SCULPT_SHOW_MASK)) {
+      v3d->overlay.flag |= V3D_OVERLAY_SCULPT_SHOW_MASK;
+      WM_event_add_notifier(&C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+    }
+
+    if (v3d->overlay.sculpt_mode_mask_opacity == 0.0f) {
+      BKE_report(op.reports, RPT_WARNING, RPT_("Mask overlay opacity is currently set to 0"));
+    }
+  }
+}
+
+void face_set_overlay_check(bContext &C, wmOperator &op)
+{
+  View3D *v3d = CTX_wm_view3d(&C);
+  if (!v3d) {
+    return;
+  }
+
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+    BKE_report(op.reports, RPT_WARNING, RPT_("Viewport overlays are disabled"));
+  }
+  else {
+    if (!(v3d->overlay.flag & V3D_OVERLAY_SCULPT_SHOW_FACE_SETS)) {
+      v3d->overlay.flag |= V3D_OVERLAY_SCULPT_SHOW_FACE_SETS;
+      WM_event_add_notifier(&C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+    }
+
+    if (v3d->overlay.sculpt_mode_face_sets_opacity == 0.0f) {
+      BKE_report(op.reports, RPT_WARNING, RPT_("Face Sets overlay opacity is currently set to 0"));
     }
   }
 }

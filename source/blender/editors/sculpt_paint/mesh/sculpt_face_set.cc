@@ -411,6 +411,8 @@ static wmOperatorStatus create_op_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  ed::sculpt_paint::face_set_overlay_check(*C, *op);
+
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (pbvh.type() == bke::pbvh::Type::BMesh) {
     /* Dyntopo not supported. */
@@ -707,6 +709,8 @@ static wmOperatorStatus init_op_exec(bContext *C, wmOperator *op)
   if (!BKE_base_is_visible(v3d, base)) {
     return OPERATOR_CANCELLED;
   }
+
+  ed::sculpt_paint::face_set_overlay_check(*C, *op);
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
@@ -1536,6 +1540,10 @@ static wmOperatorStatus edit_op_exec(bContext *C, wmOperator *op)
   const EditMode mode = EditMode(RNA_enum_get(op->ptr, "mode"));
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
+  if (ELEM(mode, EditMode::Grow, EditMode::Shrink)) {
+    ed::sculpt_paint::face_set_overlay_check(*C, *op);
+  }
+
   switch (mode) {
     case EditMode::DeleteGeometry:
       edit_modify_geometry(C, ob, active_face_set, modify_hidden, op);
@@ -1834,6 +1842,7 @@ static wmOperatorStatus gesture_box_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   init_operation(*gesture_data, *op);
+  ed::sculpt_paint::face_set_overlay_check(*C, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
@@ -1856,6 +1865,7 @@ static wmOperatorStatus gesture_lasso_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   init_operation(*gesture_data, *op);
+  ed::sculpt_paint::face_set_overlay_check(*C, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
@@ -1878,6 +1888,7 @@ static wmOperatorStatus gesture_line_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   init_operation(*gesture_data, *op);
+  ed::sculpt_paint::face_set_overlay_check(*C, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
@@ -1900,6 +1911,7 @@ static wmOperatorStatus gesture_polyline_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   init_operation(*gesture_data, *op);
+  ed::sculpt_paint::face_set_overlay_check(*C, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }

@@ -2766,6 +2766,13 @@ static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const 
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, needs_colors);
 
+  if (ss.expand_cache->target == TargetType::Mask) {
+    ed::sculpt_paint::mask_overlay_check(*C, *op);
+  }
+  else if (ss.expand_cache->target == TargetType::FaceSets) {
+    ed::sculpt_paint::face_set_overlay_check(*C, *op);
+  }
+
   /* Do nothing when the mesh has 0 vertices. */
   const int totvert = SCULPT_vertex_count_get(ob);
   if (totvert == 0) {

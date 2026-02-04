@@ -745,6 +745,8 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
   BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
 
+  ed::sculpt_paint::mask_overlay_check(*C, *op);
+
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   SculptSession &ss = *ob.runtime->sculpt_session;

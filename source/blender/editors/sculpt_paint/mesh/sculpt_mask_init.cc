@@ -112,6 +112,9 @@ static wmOperatorStatus sculpt_mask_init_exec(bContext *C, wmOperator *op)
   if (!BKE_base_is_visible(v3d, base)) {
     return OPERATOR_CANCELLED;
   }
+
+  ed::sculpt_paint::mask_overlay_check(*C, *op);
+
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.runtime->sculpt_session;

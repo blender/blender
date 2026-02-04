@@ -982,6 +982,9 @@ void SCULPT_OT_face_set_polyline_gesture(wmOperatorType *ot);
 
 namespace ed::sculpt_paint {
 
+void mask_overlay_check(bContext &C, wmOperator &op);
+void face_set_overlay_check(bContext &C, wmOperator &op);
+
 void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 void SCULPT_OT_paint_mask_extract(wmOperatorType *ot);
 void SCULPT_OT_face_set_extract(wmOperatorType *ot);
