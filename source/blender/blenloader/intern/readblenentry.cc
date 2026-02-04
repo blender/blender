@@ -174,7 +174,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
       }
 
       const char *name = idname + 2;
-      BLODataBlockInfo *info = MEM_new_uninitialized<BLODataBlockInfo>(__func__);
+      BLODataBlockInfo *info = MEM_new<BLODataBlockInfo>(__func__);
 
       /* Lastly, read asset data from the following blocks. */
       if (asset_meta_data) {

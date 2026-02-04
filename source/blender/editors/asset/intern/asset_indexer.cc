@@ -12,6 +12,7 @@
 #include <optional>
 
 #include "ED_asset_indexer.hh"
+#include "asset_index.hh"
 
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
@@ -31,6 +32,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"
+#include "BKE_preferences.h"
 
 #include "CLG_log.h"
 
@@ -214,18 +216,9 @@ static void init_value_from_file_indexer_entries(DictionaryValue &result,
   result.append(ATTRIBUTE_ENTRIES, entries);
 }
 
-static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
-                                          const DictionaryValue &entry)
+AssetMetaData *asset_metadata_from_dictionary(const DictionaryValue &entry)
 {
-  const StringRef idcode_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_NAME);
-
-  indexer_entry.idcode = GS(idcode_name.data());
-
-  idcode_name.substr(2).copy_utf8_truncated(indexer_entry.datablock_info.name);
-
   AssetMetaData *asset_data = BKE_asset_metadata_create();
-  indexer_entry.datablock_info.asset_data = asset_data;
-  indexer_entry.datablock_info.free_asset_data = true;
 
   if (const std::optional<StringRef> value = entry.lookup_str(ATTRIBUTE_ENTRIES_DESCRIPTION)) {
     asset_data->description = BLI_strdupn(value->data(), value->size());
@@ -240,11 +233,17 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
     asset_data->license = BLI_strdupn(value->data(), value->size());
   }
 
-  const StringRefNull catalog_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_CATALOG_NAME);
-  STRNCPY_UTF8(asset_data->catalog_simple_name, catalog_name.c_str());
+  if (const std::optional<StringRefNull> catalog_name = entry.lookup_str(
+          ATTRIBUTE_ENTRIES_CATALOG_NAME))
+  {
+    STRNCPY_UTF8(asset_data->catalog_simple_name, catalog_name->c_str());
+  }
 
-  const StringRefNull catalog_id = *entry.lookup_str(ATTRIBUTE_ENTRIES_CATALOG_ID);
-  asset_data->catalog_id = CatalogID(catalog_id);
+  if (const std::optional<StringRefNull> catalog_id = entry.lookup_str(
+          ATTRIBUTE_ENTRIES_CATALOG_ID))
+  {
+    asset_data->catalog_id = CatalogID(*catalog_id);
+  }
 
   if (const ArrayValue *array_value = entry.lookup_array(ATTRIBUTE_ENTRIES_TAGS)) {
     for (const std::shared_ptr<Value> &item : array_value->elements()) {
@@ -255,6 +254,21 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   if (const std::shared_ptr<Value> *value = entry.lookup(ATTRIBUTE_ENTRIES_PROPERTIES)) {
     asset_data->properties = convert_from_serialize_value(**value);
   }
+
+  return asset_data;
+}
+
+static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
+                                          const DictionaryValue &entry)
+{
+  const StringRef idcode_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_NAME);
+
+  indexer_entry.idcode = GS(idcode_name.data());
+
+  idcode_name.substr(2).copy_utf8_truncated(indexer_entry.datablock_info.name);
+
+  indexer_entry.datablock_info.asset_data = asset_metadata_from_dictionary(entry);
+  indexer_entry.datablock_info.free_asset_data = true;
 }
 
 static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
@@ -268,7 +282,7 @@ static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
 
   int num_entries_read = 0;
   for (const std::shared_ptr<Value> &element : entries->elements()) {
-    FileIndexerEntry *entry = MEM_new_zeroed<FileIndexerEntry>(__func__);
+    FileIndexerEntry *entry = MEM_new<FileIndexerEntry>(__func__);
     init_indexer_entry_from_value(*entry, *element->as_dictionary_value());
 
     BLI_linklist_prepend(&indexer_entries.entries, entry);
@@ -697,9 +711,11 @@ static eFileIndexerResult read_index(const char *filename,
     return FILE_INDEXER_NEEDS_UPDATE;
   }
 
-  const int read_entries_len = contents->extract_into(*entries);
-  CLOG_INFO(&LOG, "Read %d entries for \"%s\".", read_entries_len, filename);
-  *r_read_entries_len = read_entries_len;
+  if (entries) {
+    const int read_entries_len = contents->extract_into(*entries);
+    CLOG_INFO(&LOG, "Read %d entries for \"%s\".", read_entries_len, filename);
+    *r_read_entries_len = read_entries_len;
+  }
 
   return FILE_INDEXER_ENTRIES_LOADED;
 }

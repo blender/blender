@@ -43,7 +43,7 @@ constexpr FileIndexerType default_indexer()
 static FileIndexerEntry *file_indexer_entry_create_from_datablock_info(
     BLODataBlockInfo *datablock_info, const int idcode)
 {
-  FileIndexerEntry *entry = MEM_new_uninitialized<FileIndexerEntry>(__func__);
+  FileIndexerEntry *entry = MEM_new<FileIndexerEntry>(__func__);
   entry->idcode = idcode;
   /* Shallow copy data-block info and mark original as having its asset data ownership stolen. */
   entry->datablock_info = *datablock_info;
