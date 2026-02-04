@@ -456,13 +456,13 @@ static void frame_to_time_string(
 static void frame_to_string(
     void * /*user_data*/, const float frame, const float step, char *r_str, const uint str_maxncpy)
 {
-  if (step >= 1.0f * UI_SCALE_FAC) {
+  if (step >= 1.0f) {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(frame));
   }
-  else if (step >= 0.5f * UI_SCALE_FAC) {
+  else if (step >= 0.5f) {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", frame);
   }
-  else if (step >= 0.01f * UI_SCALE_FAC) {
+  else if (step >= 0.01f) {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", frame);
   }
   else {
