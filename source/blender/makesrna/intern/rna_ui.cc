@@ -455,8 +455,8 @@ static StructRNA *rna_Panel_register(Main *bmain,
 
 static StructRNA *rna_Panel_refine(PointerRNA *ptr)
 {
-  Panel *menu = static_cast<Panel *>(ptr->data);
-  return (menu->type && menu->type->rna_ext.srna) ? menu->type->rna_ext.srna : RNA_Panel;
+  Panel *panel = static_cast<Panel *>(ptr->data);
+  return (panel->type && panel->type->rna_ext.srna) ? panel->type->rna_ext.srna : RNA_Panel;
 }
 
 static StructRNA *rna_Panel_custom_data_typef(PointerRNA *ptr)
