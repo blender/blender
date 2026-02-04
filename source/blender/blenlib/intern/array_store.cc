@@ -88,6 +88,7 @@
  */
 
 #include <algorithm>
+#include <bit>
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
@@ -843,15 +844,6 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
  *
  * \{ */
 
-static inline uint32_t rotl32(uint32_t n, uint c)
-{
-  /* NOTE: can be replaced with `std::rotl` with C++ 20. */
-  /* NOTE: Expected to optimize to a single bit-roll on x64. */
-  constexpr uint mask = (8 * sizeof(n) - 1);
-  c &= mask;
-  return (n << c) | (n >> ((-c) & mask));
-}
-
 #define HASH_INIT (5381)
 
 /**
@@ -867,7 +859,7 @@ static inline uint32_t rotl32(uint32_t n, uint c)
 
 #define HASH_VALUE_IMPL_ADD(h, value) \
   { \
-    h = rotl32(h, 5) + (value); \
+    h = std::rotl(h, 5) + (value); \
   } \
   ((void)0)
 
@@ -1039,7 +1031,7 @@ BLI_INLINE void hash_accum_impl(hash_key *hash_array, const size_t i_dst, const 
   /* Tested to give good results when accumulating unique values from an array of booleans.
    * (least unused cells in the `BTableRef **table`). */
   BLI_assert(i_dst < i_ahead);
-  hash_array[i_dst] = rotl32(hash_array[i_dst], 3) + hash_array[i_ahead];
+  hash_array[i_dst] = std::rotl(hash_array[i_dst], 3) + hash_array[i_ahead];
 }
 
 static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
