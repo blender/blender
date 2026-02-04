@@ -470,6 +470,7 @@
     <view_3d>
       <ThemeView3D
         grid="#00000033"
+        grid_major="#00000066"
         clipping_border_3d="#606060ff"
         wire="#000000"
         wire_edit="#000000"

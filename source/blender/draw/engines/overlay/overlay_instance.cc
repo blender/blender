@@ -364,7 +364,8 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   /* Emphasize division lines lighter instead of darker, if background is darker than grid. */
   const bool is_bg_darker = reduce_add(gb.colors.grid.xyz()) + 0.12f >
                             reduce_add(gb.colors.background.xyz());
-  ui::theme::get_color_shade_4fv(TH_GRID, (is_bg_darker) ? 30 : -10, gb.colors.grid_emphasis);
+  ui::theme::get_color_shade_4fv(
+      TH_GRID_MAJOR, (is_bg_darker) ? 20 : -10, gb.colors.grid_emphasis);
 
   /* Grid Axis */
   ui::theme::get_color_blend_shade_4fv(TH_GRID, TH_AXIS_X, 0.85f, -20, gb.colors.grid_axis_x);
