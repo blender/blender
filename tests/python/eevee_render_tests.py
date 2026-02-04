@@ -126,6 +126,10 @@ def setup():
         # Light-probes
         eevee.gi_cubemap_resolution = '256'
 
+        # Light-path intensity
+        eevee.direct_light_intensity = 1.0
+        eevee.indirect_light_intensity = 1.0
+
         # Only include the plane in probes
         for ob in scene.objects:
             if ob.type == 'LIGHT' and not skip_shadow_setup:

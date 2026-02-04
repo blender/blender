@@ -153,6 +153,26 @@ class Sampling {
     return clamp_data_.surface_indirect != 0.0f;
   }
 
+  bool use_direct_scale() const
+  {
+    return clamp_data_.direct_scale != 1.0f;
+  }
+
+  float direct_scale() const
+  {
+    return clamp_data_.direct_scale;
+  }
+
+  bool use_indirect_scale() const
+  {
+    return clamp_data_.indirect_scale != 1.0f;
+  }
+
+  float indirect_scale() const
+  {
+    return clamp_data_.indirect_scale;
+  }
+
   /* Return true if we are starting a new motion blur step. We need to run sync again since
    * depsgraph was updated by MotionBlur::step(). */
   bool do_render_sync() const

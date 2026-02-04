@@ -200,6 +200,9 @@ void main()
   direct_radiance = colorspace_brightness_clamp_max(direct_radiance, clamp_direct);
   indirect_radiance = colorspace_brightness_clamp_max(indirect_radiance, clamp_indirect);
 
+  direct_radiance *= uniform_buf.clamp.direct_scale;
+  indirect_radiance *= uniform_buf.clamp.indirect_scale;
+
   scattering += direct_radiance + indirect_radiance;
 #endif
 

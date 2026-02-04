@@ -894,6 +894,13 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 25)) {
+    for (Scene &scene : bmain->scenes) {
+      scene.eevee.direct_light_intensity = 1.0f;
+      scene.eevee.indirect_light_intensity = 1.0f;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
