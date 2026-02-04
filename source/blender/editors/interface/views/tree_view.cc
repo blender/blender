@@ -1002,7 +1002,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                              tree_view.sort_alpha_.get(),
                              0,
                              0,
-                             TIP_(""));
+                             TIP_("Sort items alphabetically"));
       button_flag_disable(but, BUT_UNDO);
     }
   }
