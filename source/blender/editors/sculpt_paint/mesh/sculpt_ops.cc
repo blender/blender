@@ -626,7 +626,7 @@ static float color_delta_get(const float3 &color_a,
 {
   float len = math::distance(color_a, color_b);
   /* Normalize len to the (0, 1) range. */
-  len = len / math::numbers::sqrt3_v<float>;
+  len = len / std::numbers::sqrt3_v<float>;
 
   if (len < threshold - MASK_BY_COLOR_SLOPE) {
     len = 1.0f;
@@ -686,7 +686,7 @@ static void mask_by_color_contiguous_mesh(const Depsgraph &depsgraph,
     new_mask[to_v] = new_vertex_mask;
 
     float len = math::distance(current_color.xyz(), active_color.xyz());
-    len = len / math::numbers::sqrt3_v<float>;
+    len = len / std::numbers::sqrt3_v<float>;
     return len <= threshold;
   });
 

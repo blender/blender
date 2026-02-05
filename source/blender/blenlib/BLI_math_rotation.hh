@@ -409,49 +409,61 @@ template<typename T> QuaternionBase<T> to_quaternion(const CartesianBasis &rotat
     case map(AxisSigned::Z_POS, AxisSigned::X_POS, AxisSigned::Y_POS):
       return QuaternionBase<T>{T(0.5), T(-0.5), T(-0.5), T(-0.5)};
     case map(AxisSigned::Y_NEG, AxisSigned::X_POS, AxisSigned::Z_POS):
-      return QuaternionBase<T>{T(rcp(numbers::sqrt2)), T(0), T(0), T(-rcp(numbers::sqrt2))};
+      return QuaternionBase<T>{
+          T(rcp(std::numbers::sqrt2)), T(0), T(0), T(-rcp(std::numbers::sqrt2))};
     case map(AxisSigned::Z_NEG, AxisSigned::X_POS, AxisSigned::Y_NEG):
       return QuaternionBase<T>{T(0.5), T(0.5), T(0.5), T(-0.5)};
     case map(AxisSigned::Y_POS, AxisSigned::X_POS, AxisSigned::Z_NEG):
-      return QuaternionBase<T>{T(0), T(rcp(numbers::sqrt2)), T(rcp(numbers::sqrt2)), T(0)};
+      return QuaternionBase<T>{
+          T(0), T(rcp(std::numbers::sqrt2)), T(rcp(std::numbers::sqrt2)), T(0)};
     case map(AxisSigned::Z_NEG, AxisSigned::Y_POS, AxisSigned::X_POS):
-      return QuaternionBase<T>{T(rcp(numbers::sqrt2)), T(0), T(rcp(numbers::sqrt2)), T(0)};
+      return QuaternionBase<T>{
+          T(rcp(std::numbers::sqrt2)), T(0), T(rcp(std::numbers::sqrt2)), T(0)};
     case map(AxisSigned::Z_POS, AxisSigned::Y_POS, AxisSigned::X_NEG):
-      return QuaternionBase<T>{T(rcp(numbers::sqrt2)), T(0), T(-rcp(numbers::sqrt2)), T(0)};
+      return QuaternionBase<T>{
+          T(rcp(std::numbers::sqrt2)), T(0), T(-rcp(std::numbers::sqrt2)), T(0)};
     case map(AxisSigned::X_NEG, AxisSigned::Y_POS, AxisSigned::Z_NEG):
       return QuaternionBase<T>{T(0), T(0), T(1), T(0)};
     case map(AxisSigned::Y_POS, AxisSigned::Z_POS, AxisSigned::X_POS):
       return QuaternionBase<T>{T(0.5), T(0.5), T(0.5), T(0.5)};
     case map(AxisSigned::X_NEG, AxisSigned::Z_POS, AxisSigned::Y_POS):
-      return QuaternionBase<T>{T(0), T(0), T(rcp(numbers::sqrt2)), T(rcp(numbers::sqrt2))};
+      return QuaternionBase<T>{
+          T(0), T(0), T(rcp(std::numbers::sqrt2)), T(rcp(std::numbers::sqrt2))};
     case map(AxisSigned::Y_NEG, AxisSigned::Z_POS, AxisSigned::X_NEG):
       return QuaternionBase<T>{T(0.5), T(0.5), T(-0.5), T(-0.5)};
     case map(AxisSigned::X_POS, AxisSigned::Z_POS, AxisSigned::Y_NEG):
-      return QuaternionBase<T>{T(rcp(numbers::sqrt2)), T(rcp(numbers::sqrt2)), T(0), T(0)};
+      return QuaternionBase<T>{
+          T(rcp(std::numbers::sqrt2)), T(rcp(std::numbers::sqrt2)), T(0), T(0)};
     case map(AxisSigned::Z_NEG, AxisSigned::X_NEG, AxisSigned::Y_POS):
       return QuaternionBase<T>{T(0.5), T(-0.5), T(0.5), T(0.5)};
     case map(AxisSigned::Y_POS, AxisSigned::X_NEG, AxisSigned::Z_POS):
-      return QuaternionBase<T>{T(rcp(numbers::sqrt2)), T(0), T(0), T(rcp(numbers::sqrt2))};
+      return QuaternionBase<T>{
+          T(rcp(std::numbers::sqrt2)), T(0), T(0), T(rcp(std::numbers::sqrt2))};
     case map(AxisSigned::Z_POS, AxisSigned::X_NEG, AxisSigned::Y_NEG):
       return QuaternionBase<T>{T(0.5), T(0.5), T(-0.5), T(0.5)};
     case map(AxisSigned::Y_NEG, AxisSigned::X_NEG, AxisSigned::Z_NEG):
-      return QuaternionBase<T>{T(0), T(-rcp(numbers::sqrt2)), T(rcp(numbers::sqrt2)), T(0)};
+      return QuaternionBase<T>{
+          T(0), T(-rcp(std::numbers::sqrt2)), T(rcp(std::numbers::sqrt2)), T(0)};
     case map(AxisSigned::Z_POS, AxisSigned::Y_NEG, AxisSigned::X_POS):
-      return QuaternionBase<T>{T(0), T(rcp(numbers::sqrt2)), T(0), T(rcp(numbers::sqrt2))};
+      return QuaternionBase<T>{
+          T(0), T(rcp(std::numbers::sqrt2)), T(0), T(rcp(std::numbers::sqrt2))};
     case map(AxisSigned::X_NEG, AxisSigned::Y_NEG, AxisSigned::Z_POS):
       return QuaternionBase<T>{T(0), T(0), T(0), T(1)};
     case map(AxisSigned::Z_NEG, AxisSigned::Y_NEG, AxisSigned::X_NEG):
-      return QuaternionBase<T>{T(0), T(-rcp(numbers::sqrt2)), T(0), T(rcp(numbers::sqrt2))};
+      return QuaternionBase<T>{
+          T(0), T(-rcp(std::numbers::sqrt2)), T(0), T(rcp(std::numbers::sqrt2))};
     case map(AxisSigned::X_POS, AxisSigned::Y_NEG, AxisSigned::Z_NEG):
       return QuaternionBase<T>{T(0), T(1), T(0), T(0)};
     case map(AxisSigned::Y_NEG, AxisSigned::Z_NEG, AxisSigned::X_POS):
       return QuaternionBase<T>{T(0.5), T(-0.5), T(0.5), T(-0.5)};
     case map(AxisSigned::X_POS, AxisSigned::Z_NEG, AxisSigned::Y_POS):
-      return QuaternionBase<T>{T(rcp(numbers::sqrt2)), T(-rcp(numbers::sqrt2)), T(0), T(0)};
+      return QuaternionBase<T>{
+          T(rcp(std::numbers::sqrt2)), T(-rcp(std::numbers::sqrt2)), T(0), T(0)};
     case map(AxisSigned::Y_POS, AxisSigned::Z_NEG, AxisSigned::X_NEG):
       return QuaternionBase<T>{T(0.5), T(-0.5), T(-0.5), T(0.5)};
     case map(AxisSigned::X_NEG, AxisSigned::Z_NEG, AxisSigned::Y_NEG):
-      return QuaternionBase<T>{T(0), T(0), T(-rcp(numbers::sqrt2)), T(rcp(numbers::sqrt2))};
+      return QuaternionBase<T>{
+          T(0), T(0), T(-rcp(std::numbers::sqrt2)), T(rcp(std::numbers::sqrt2))};
   }
 }
 

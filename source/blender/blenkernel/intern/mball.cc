@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <numbers>
 #include <optional>
 
 #include "DNA_ID.h"
@@ -226,7 +227,7 @@ float2 BKE_mball_element_display_radius_calc_with_stiffness(const MetaElem *ml)
       /* Display radius. */
       ml->rad,
       /* Display stiffness. */
-      ml->rad * atanf(ml->s) * float(2.0 / math::numbers::pi),
+      ml->rad * atanf(ml->s) * float(2.0 / std::numbers::pi),
   };
 
   if (ml->type == MB_CUBE) {

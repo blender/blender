@@ -7,7 +7,6 @@
 
 #include "BLI_hash.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -80,7 +79,7 @@ BokehKernel::~BokehKernel()
  * from its center. */
 static float compute_exterior_angle(int sides)
 {
-  return (math::numbers::pi * 2.0f) / sides;
+  return (std::numbers::pi * 2.0f) / sides;
 }
 
 static float compute_rotation(float angle, int sides)
@@ -88,7 +87,7 @@ static float compute_rotation(float angle, int sides)
   /* Offset the rotation such that the second vertex of the regular polygon lies on the positive
    * y axis, which is 90 degrees minus the angle that it makes with the positive x axis assuming
    * the first vertex lies on the positive x axis. */
-  const float offset = (math::numbers::pi / 2.0f) - compute_exterior_angle(sides);
+  const float offset = (std::numbers::pi / 2.0f) - compute_exterior_angle(sides);
   return angle - offset;
 }
 
@@ -170,7 +169,7 @@ static float bokeh(const float2 point,
    * the polar angle of the given point, taking rotation into account. This essentially finds the
    * vertex closest to the given point in the clock-wise direction. */
   float angle = math::mod_periodic(math::atan2(point.y, point.x) + rotation,
-                                   2.0f * math::numbers::pi_v<float>);
+                                   2.0f * std::numbers::pi_v<float>);
   int vertex_index = int(angle / exterior_angle);
 
   /* Compute the shortest distance between the origin and the polygon edge composed from the

@@ -37,7 +37,6 @@
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
-#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -1333,7 +1332,7 @@ static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
   switch (node->custom2) {
     case CMP_NODE_SPLIT_HORIZONTAL: {
       rotation_input->default_value_typed<bNodeSocketValueFloat>()->value =
-          -math::numbers::pi_v<float> / 2.0f;
+          -std::numbers::pi_v<float> / 2.0f;
       position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = factor;
       /* The y-coordinate doesn't matter in this case, so set the value to 0.5 so that the gizmo
        * appears nicely at the center. */

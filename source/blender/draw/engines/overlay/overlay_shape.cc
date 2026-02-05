@@ -205,7 +205,7 @@ static Vector<float2> ring_vertices(const float radius,
                                     const bool half = false)
 {
   Vector<float2> verts;
-  const float full = (half ? 1.0f : 2.0f) * math::numbers::pi;
+  const float full = (half ? 1.0f : 2.0f) * std::numbers::pi;
   for (const int angle_i : IndexRange(segments + (half ? 1 : 0))) {
     const float angle = (full * angle_i) / segments;
     verts.append(radius * float2(math::cos(angle), math::sin(angle)));
@@ -955,7 +955,7 @@ ShapeCache::ShapeCache()
     verts.append({{0.0f, 0.0f, 0.0f}, VCLASS_NONE});
     /* Cone silhouette */
     for (const int angle_i : IndexRange(circle_nsegments + 1)) {
-      const float angle = (2.0f * math::numbers::pi * angle_i) / circle_nsegments;
+      const float angle = (2.0f * std::numbers::pi * angle_i) / circle_nsegments;
       const float s = sinf(-angle);
       const float c = cosf(-angle);
       verts.append({{s, c, -1.0f}, VCLASS_LIGHT_SPOT_SHAPE});

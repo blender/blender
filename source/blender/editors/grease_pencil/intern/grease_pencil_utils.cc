@@ -24,7 +24,6 @@
 #include "BLI_bounds.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
-#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -1616,7 +1615,7 @@ static float pixel_radius_to_world_space_radius(const RegionView3D *rv3d,
   ED_view3d_win_to_delta(region, xy_delta, zfac, delta);
 
   const float scale = math::length(
-      math::transform_direction(to_world, float3(math::numbers::inv_sqrt3)));
+      math::transform_direction(to_world, float3(std::numbers::inv_sqrt3)));
 
   return math::safe_divide(math::length(delta), scale);
 }

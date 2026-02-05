@@ -482,7 +482,7 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
                          (flip ? -1.0f : 1.0f);
 
   /* TODO: Test to see if the sqrt2 extra factor can be removed */
-  const float initial_radius_squared = math::square(ss.cache->radius * math::numbers::sqrt2);
+  const float initial_radius_squared = math::square(ss.cache->radius * std::numbers::sqrt2);
 
   const bool use_original = !ss.cache->accum;
   const IndexMask initial_node_mask = gather_nodes(pbvh,
