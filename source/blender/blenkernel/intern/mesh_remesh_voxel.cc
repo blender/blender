@@ -508,6 +508,8 @@ static void gather_attributes(const Span<StringRef> ids,
 
 void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
 {
+  MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
+
   /* Gather attributes to transfer for each domain. This makes it possible to skip
    * building index maps and even the main BVH tree if there are no attributes. */
   const AttributeAccessor src_attributes = src.attributes();
@@ -518,6 +520,16 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   src_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (ELEM(iter.name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
       return;
+    }
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      const GVArray src_attr = *iter.get();
+      const CommonVArrayInfo info = src_attr.common_info();
+      if (info.type == CommonVArrayInfo::Type::Single) {
+        const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
+        if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+          return;
+        }
+      }
     }
     switch (iter.domain) {
       case AttrDomain::Point:
@@ -564,8 +576,6 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   const Span<float3> dst_positions = dst.vert_positions();
   const OffsetIndices dst_faces = dst.faces();
   const Span<int> dst_corner_verts = dst.corner_verts();
-
-  MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
 
   if (!point_ids.is_empty() || !corner_ids.is_empty()) {
     Array<int> vert_nearest_tris(dst_positions.size());

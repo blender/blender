@@ -60,6 +60,7 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
                          vert_indices,
                          curves_attributes);
 
+  /* Transfer attributes from edge, face, and corner domains to curve points. */
   mesh_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain == bke::AttrDomain::Point) {
       return;
@@ -77,6 +78,15 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     if (!src) {
       return;
     }
+
+    const CommonVArrayInfo info = src.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src.varray.type(), info.data));
+      if (curves_attributes.add(iter.name, bke::AttrDomain::Point, iter.data_type, init)) {
+        return;
+      }
+    }
+
     bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
         iter.name, bke::AttrDomain::Point, iter.data_type);
     if (!dst) {

@@ -477,9 +477,18 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       return;
     }
 
-    if (iter.domain == AttrDomain::Curve) {
-      const GVArraySpan src_generic = *iter.get(AttrDomain::Curve, type);
+    const GVArray src_attr = *iter.get();
+    const CommonVArrayInfo info = src_attr.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const GPointer value(src_attr.type(), info.data);
+      if (children_attributes.add(iter.name, iter.domain, type, bke::AttributeInitValue(value))) {
+        return;
+      }
+    }
 
+    const GVArraySpan src_generic = src_attr;
+
+    if (iter.domain == AttrDomain::Curve) {
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
           iter.name, AttrDomain::Curve, type);
       if (!dst_generic) {
@@ -511,7 +520,6 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
     }
     else {
       BLI_assert(iter.domain == AttrDomain::Point);
-      const GVArraySpan src_generic = *iter.get(AttrDomain::Point, type);
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
           iter.name, AttrDomain::Point, type);
       if (!dst_generic) {
