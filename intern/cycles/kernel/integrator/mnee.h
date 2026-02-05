@@ -150,21 +150,14 @@ ccl_device_inline void mnee_setup_manifold_vertex(KernelGlobals kg,
   if (sd_vtx->type & PRIMITIVE_TRIANGLE) {
     /* Load triangle vertices and normals. */
     triangle_vertices_and_normals(kg, sd_vtx, verts, normals);
-
-    /* Compute refined position (same code as in triangle_point_from_uv). */
-    sd_vtx->P = (1.f - isect->u - isect->v) * verts[0] + isect->u * verts[1] + isect->v * verts[2];
-    if (!(sd_vtx->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-      const Transform tfm = object_get_transform(kg, sd_vtx);
-      sd_vtx->P = transform_point(&tfm, sd_vtx->P);
-    }
   }
   else { /* if (sd_vtx->type & PRIMITIVE_MOTION_TRIANGLE) */
     /* Load triangle vertices and normals. */
     motion_triangle_vertices_and_normals(kg, sd_vtx, verts, normals);
-
-    /* Compute refined position. */
-    sd_vtx->P = motion_triangle_point_from_uv(kg, sd_vtx, isect->u, isect->v, verts);
   }
+
+  /* Compute refined position. */
+  sd_vtx->P = triangle_point_from_uv_and_verts(kg, sd_vtx, isect->u, isect->v, verts);
 
   /* Instance transform. */
   if (!(sd_vtx->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
