@@ -3909,7 +3909,6 @@ static void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache
   const char *target_asset = brush_type_is_paint(cur_brush->sculpt_brush_type) ? "Blur" : "Smooth";
   if (!BKE_paint_brush_set_essentials(bmain, paint, target_asset)) {
     BKE_paint_brush_set(paint, cur_brush);
-    CLOG_WARN(&LOG, "Unable to switch to the 'Smooth' essentials brush asset");
     CLOG_WARN(&LOG, "Unable to switch to the '%s' essentials brush asset", target_asset);
     cache->saved_active_brush = nullptr;
     return;
