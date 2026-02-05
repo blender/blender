@@ -43,12 +43,15 @@ class PDFExporter : public GreasePencilExporter {
   bool create_document();
   bool add_page(Scene &scene);
 
-  void write_stroke_to_polyline(const float4x4 &transform,
-                                const Span<float3> positions,
-                                const bool cyclic,
-                                const ColorGeometry4f &color,
-                                const float opacity,
-                                std::optional<float> width);
+  void write_path(const float4x4 &transform,
+                  Span<float3> positions,
+                  const OffsetIndices<int> points_by_curve,
+                  const Span<int> shape,
+                  const VArray<bool> &cyclic,
+                  const VArray<int8_t> &types,
+                  const ColorGeometry4f &color,
+                  const float opacity,
+                  std::optional<float> width);
   bool write_to_file(StringRefNull filepath);
 };
 
@@ -145,20 +148,23 @@ void PDFExporter::export_grease_pencil_layer(const Object &object,
 
   const float4x4 layer_to_world = layer.to_world_space(object);
 
-  auto write_stroke = [&](const Span<float3> positions,
-                          const Span<float3> /*positions_left*/,
-                          const Span<float3> /*positions_right*/,
-                          const bool cyclic,
-                          const int8_t /*type*/,
-                          const ColorGeometry4f &color,
-                          const float opacity,
-                          const std::optional<float> width,
-                          const bool /*round_cap*/,
-                          const bool /*is_outline*/) {
-    write_stroke_to_polyline(layer_to_world, positions, cyclic, color, opacity, width);
+  auto write_shape = [&](const Span<float3> positions,
+                         const Span<float3> /*positions_left*/,
+                         const Span<float3> /*positions_right*/,
+                         const OffsetIndices<int> points_by_curve,
+                         const Span<int> shape,
+                         const VArray<bool> &cyclic,
+                         const VArray<int8_t> &types,
+                         const ColorGeometry4f &color,
+                         const float opacity,
+                         const std::optional<float> width,
+                         const bool /*round_cap*/,
+                         const bool /*is_outline*/) {
+    write_path(
+        layer_to_world, positions, points_by_curve, shape, cyclic, types, color, opacity, width);
   };
 
-  foreach_stroke_in_layer(object, layer, drawing, write_stroke);
+  foreach_shape_in_layer(object, layer, drawing, write_shape);
 }
 
 bool PDFExporter::create_document()
@@ -208,12 +214,15 @@ bool PDFExporter::add_page(Scene &scene)
   return true;
 }
 
-void PDFExporter::write_stroke_to_polyline(const float4x4 &transform,
-                                           const Span<float3> positions,
-                                           const bool cyclic,
-                                           const ColorGeometry4f &color,
-                                           const float opacity,
-                                           const std::optional<float> width)
+void PDFExporter::write_path(const float4x4 &transform,
+                             const Span<float3> positions,
+                             const OffsetIndices<int> points_by_curve,
+                             const Span<int> shape,
+                             const VArray<bool> &cyclic,
+                             const VArray<int8_t> & /*types*/,
+                             const ColorGeometry4f &color,
+                             const float opacity,
+                             std::optional<float> width)
 {
   if (width) {
     HPDF_Page_SetLineJoin(page_, HPDF_ROUND_JOIN);
@@ -245,17 +254,22 @@ void PDFExporter::write_stroke_to_polyline(const float4x4 &transform,
     HPDF_Page_SetExtGState(page_, gstate);
   }
 
-  for (const int i : positions.index_range()) {
-    const float2 screen_co = this->project_to_screen(transform, positions[i]);
-    if (i == 0) {
-      HPDF_Page_MoveTo(page_, screen_co.x, screen_co.y);
+  for (const int curve_i : shape) {
+    const IndexRange points = points_by_curve[curve_i];
+    const Span<float3> curve_pos = positions.slice(points);
+
+    for (const int i : curve_pos.index_range()) {
+      const float2 screen_co = this->project_to_screen(transform, curve_pos[i]);
+      if (i == 0) {
+        HPDF_Page_MoveTo(page_, screen_co.x, screen_co.y);
+      }
+      else {
+        HPDF_Page_LineTo(page_, screen_co.x, screen_co.y);
+      }
     }
-    else {
-      HPDF_Page_LineTo(page_, screen_co.x, screen_co.y);
+    if (cyclic[curve_i]) {
+      HPDF_Page_ClosePath(page_);
     }
-  }
-  if (cyclic) {
-    HPDF_Page_ClosePath(page_);
   }
 
   if (width) {
