@@ -62,9 +62,9 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object, const bool a
   }
   if (object.type == OB_EMPTY && object.instance_collection != nullptr) {
     Collection &collection = *object.instance_collection;
-    std::unique_ptr<Instances> instances = std::make_unique<Instances>();
-    const int handle = instances->add_reference(collection);
-    instances->add_instance(handle, float4x4::identity());
+    auto instances = std::make_unique<Instances>(1);
+    instances->reference_handles_for_write().first() = instances->add_reference(collection);
+    instances->transforms_for_write().first() = float4x4::identity();
     return GeometrySet::from_instances(instances.release());
   }
 

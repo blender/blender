@@ -88,19 +88,20 @@ static void grease_pencil_to_mesh(GeometrySet &geometry_set,
     return;
   }
 
-  bke::Instances *instances = new bke::Instances();
-  for (Mesh *mesh : mesh_by_layer) {
+  bke::Instances *instances = new bke::Instances(mesh_by_layer.size());
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+  instances->transforms_for_write().fill(float4x4::identity());
+  for (const int i : mesh_by_layer.index_range()) {
+    Mesh *mesh = mesh_by_layer[i];
     if (!mesh) {
       /* Add an empty reference so the number of layers and instances match.
        * This makes it easy to reconstruct the layers afterwards and keep their attributes.
        * Although in this particular case we don't propagate the attributes. */
-      const int handle = instances->add_reference(bke::InstanceReference());
-      instances->add_instance(handle, float4x4::identity());
+      handles[i] = instances->add_reference(bke::InstanceReference());
       continue;
     }
     GeometrySet temp_set = GeometrySet::from_mesh(mesh);
-    const int handle = instances->add_reference(bke::InstanceReference{temp_set});
-    instances->add_instance(handle, float4x4::identity());
+    handles[i] = instances->add_reference(bke::InstanceReference{std::move(temp_set)});
   }
 
   bke::copy_attributes(geometry_set.get_grease_pencil()->attributes(),

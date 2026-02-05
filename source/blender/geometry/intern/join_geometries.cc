@@ -55,7 +55,7 @@ static void fill_new_attribute(const Span<const GeometryComponent *> src_compone
     GVArraySpan src_span{read_attribute};
     const void *src_buffer = src_span.data();
     void *dst_buffer = dst_span[offset];
-    cpp_type.copy_assign_n(src_buffer, dst_buffer, domain_num);
+    cpp_type.copy_construct_n(src_buffer, dst_buffer, domain_num);
 
     offset += domain_num;
   }
@@ -146,8 +146,7 @@ static void join_instances(const Span<const GeometryComponent *> src_components,
   }
   const OffsetIndices offsets = offset_indices::accumulate_counts_to_offsets(offsets_data);
 
-  std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
-  dst_instances->resize(offsets.total_size());
+  auto dst_instances = std::make_unique<bke::Instances>(offsets.total_size());
 
   MutableSpan<int> all_handles = dst_instances->reference_handles_for_write();
 

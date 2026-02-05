@@ -61,10 +61,11 @@ static void node_geo_exec(GeoNodeExecParams params)
         Vector<bke::GeometrySet> geometries;
         OBJ_import_geometries(&import_params, geometries);
 
-        bke::Instances *instances = new bke::Instances();
-        for (GeometrySet geometry : geometries) {
-          const int handle = instances->add_reference(bke::InstanceReference{std::move(geometry)});
-          instances->add_instance(handle, float4x4::identity());
+        bke::Instances *instances = new bke::Instances(geometries.size());
+        MutableSpan<int> handles = instances->reference_handles_for_write();
+        instances->transforms_for_write().fill(float4x4::identity());
+        for (const int i : geometries.index_range()) {
+          handles[i] = instances->add_reference(bke::InstanceReference{std::move(geometries[i])});
         }
 
         auto cached_value = std::make_unique<LoadObjCache>();

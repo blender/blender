@@ -74,8 +74,7 @@ static std::unique_ptr<bke::Instances> add_instances_from_component(
     return {};
   }
 
-  auto dst_component = std::make_unique<bke::Instances>();
-  dst_component->resize(selection.size());
+  auto dst_component = std::make_unique<bke::Instances>(selection.size());
 
   MutableSpan<int> dst_handles = dst_component->reference_handles_for_write();
   MutableSpan<float4x4> dst_transforms = dst_component->transforms_for_write();
@@ -214,6 +213,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       using namespace bke::greasepencil;
       const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
       auto instances_per_layer = std::make_unique<bke::Instances>();
+
+      Vector<int> handles;
+      Vector<float4x4> transforms;
       for (const int layer_index : grease_pencil.layers().index_range()) {
         const Layer &layer = grease_pencil.layer(layer_index);
         const Drawing *drawing = grease_pencil.get_eval_drawing(layer);
@@ -226,8 +228,8 @@ static void node_geo_exec(GeoNodeExecParams params)
           /* Add an empty reference so the number of layers and instances match.
            * This makes it easy to reconstruct the layers afterwards and keep their attributes.
            * Although in this particular case we don't propagate the attributes. */
-          const int handle = instances_per_layer->add_reference(bke::InstanceReference());
-          instances_per_layer->add_instance(handle, layer_transform);
+          handles.append(instances_per_layer->add_reference(bke::InstanceReference()));
+          transforms.append(layer_transform);
           continue;
         }
         /* TODO: Attributes are not propagating from the curves or the points. */
@@ -237,10 +239,14 @@ static void node_geo_exec(GeoNodeExecParams params)
                 src_curves.attributes(), instance, field_context, params, attribute_filter))
         {
           GeometrySet temp_set = GeometrySet::from_instances(layer_instances.release());
-          const int handle = instances_per_layer->add_reference(bke::InstanceReference{temp_set});
-          instances_per_layer->add_instance(handle, layer_transform);
+          handles.append(instances_per_layer->add_reference(bke::InstanceReference{temp_set}));
+          transforms.append(layer_transform);
         }
       }
+
+      instances_per_layer->resize(handles.size());
+      instances_per_layer->reference_handles_for_write().copy_from(handles);
+      instances_per_layer->transforms_for_write().copy_from(transforms);
 
       bke::copy_attributes(geometry_set.get_grease_pencil()->attributes(),
                            bke::AttrDomain::Layer,

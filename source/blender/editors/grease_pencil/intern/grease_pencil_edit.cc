@@ -2640,8 +2640,7 @@ static bke::GeometrySet join_geometries_with_transforms(Span<bke::GeometrySet> g
 {
   BLI_assert(geometries.size() == transforms.size());
 
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
-  instances->resize(geometries.size());
+  auto instances = std::make_unique<bke::Instances>(geometries.size());
   transforms.materialize(instances->transforms_for_write());
   MutableSpan<int> handles = instances->reference_handles_for_write();
   for (const int i : geometries.index_range()) {

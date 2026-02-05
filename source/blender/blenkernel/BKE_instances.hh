@@ -135,6 +135,7 @@ class Instances {
 
  public:
   Instances();
+  Instances(int size);
   Instances(Instances &&other);
   Instances(const Instances &other);
   ~Instances();
@@ -145,10 +146,9 @@ class Instances {
   /**
    * Resize the transform, handles, and attributes to the specified capacity.
    *
-   * \note This function should be used carefully, only when it's guaranteed
-   * that the data will be filled.
+   * \warning Attribute values for newly added elements must be *initialized* by the caller.
    */
-  void resize(int capacity);
+  void resize(int size);
 
   /**
    * Returns a handle for the given reference.
@@ -161,12 +161,6 @@ class Instances {
    */
   int add_new_reference(const InstanceReference &reference);
   std::optional<int> find_reference_handle(const InstanceReference &query);
-  /**
-   * Add a reference to the instance reference with an index specified by the #instance_handle
-   * argument. For adding many instances, using #resize and accessing the transform array
-   * directly is preferred.
-   */
-  void add_instance(int instance_handle, const float4x4 &transform);
 
   Span<InstanceReference> references() const;
   MutableSpan<InstanceReference> references_for_write();
