@@ -1755,6 +1755,16 @@ class PreviewLoadJob {
     eIconSizes icon_size;
     std::atomic<PreviewState> state = PreviewState::NotStarted;
 
+    /**
+     * Indicates whether this RequestedPreview is queued in todo_queue_ (see below).
+     *
+     * Guard access with todo_queue_mutex_.
+     *
+     * This is _only_ used to ensure a request is never queued more than once. This field should
+     * _not_ be used for any other purpose (as that would introduce race conditions).
+     */
+    bool is_queued = false;
+
     RequestedPreview(PreviewImage *preview, eIconSizes icon_size)
         : preview(preview), icon_size(icon_size)
     {
@@ -1765,8 +1775,19 @@ class PreviewLoadJob {
     }
   };
 
-  /** The previews that are still to be loaded from disk. */
+  /**
+   * The previews that are still to be loaded from disk.
+   * Don't access directly, use #todo_queue_push() and #todo_queue_pop().
+   */
   ThreadQueue *todo_queue_; /* RequestedPreview * */
+  /** Common mutex for accessing RequestedPreview::is_queued. */
+  std::mutex todo_queue_mutex_;
+
+  /** Push the RequestedPreview to the 'todo' queue, ensuring it is only queued once. */
+  void todo_queue_push(RequestedPreview *preview);
+  /** Pop an item off the 'todo' queue, waiting at most wait_time_msec for an item to appear. */
+  RequestedPreview *todo_queue_pop(int wait_time_msec);
+
   /**
    * Maps the file path identifying the preview + the requested icon size to the preview
    * request.
@@ -1853,6 +1874,9 @@ void PreviewLoadJob::load_jobless(PreviewImage *preview, const eIconSizes icon_s
   end_fn(&job_data);
 }
 
+/**
+ * Called when the preview is requested by the UI for drawing (or something close to that).
+ */
 void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes icon_size)
 {
   BLI_assert(BLI_thread_is_main());
@@ -1903,9 +1927,61 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
     }
   }
 
-  BLI_thread_queue_push(todo_queue_, request, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
+  /* NOTE: The request gets pushed to the queue, even when state == PreviewState::Downloading, even
+   * though PreviewLoadJob::run_fn immediately discards any queued request with that state. The
+   * reason is that, between this push and that discard, the download may be done, and thus the
+   * status of the request change. */
+  this->todo_queue_push(request);
 }
 
+void PreviewLoadJob::todo_queue_push(PreviewLoadJob::RequestedPreview *request)
+{
+  std::lock_guard lock(this->todo_queue_mutex_);
+  if (request->is_queued) {
+    return;
+  }
+
+  BLI_thread_queue_push(todo_queue_, request, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
+  request->is_queued = true;
+}
+
+PreviewLoadJob::RequestedPreview *PreviewLoadJob::todo_queue_pop(const int wait_time_msec)
+{
+  RequestedPreview *request = static_cast<RequestedPreview *>(
+      BLI_thread_queue_pop_timeout(this->todo_queue_, wait_time_msec));
+
+  /* Only acquire the lock after the waiting. In the hypothetical case that
+   * BLI_thread_queue_pop_timeout() would be called while this lock was acquired, nobody else would
+   * be able to acquire the lock to actually push something onto the queue (because run_fn() below
+   * is calling this pop function in quick succession; the only thing slowing it down is the
+   * waiting time here).
+   *
+   * There still is a chance of a harmless race condition, when todo_queue_push() executes between
+   * the pop above and the lock below. This is harmless, because:
+   *
+   * - The request is still marked as 'is queued', even though it was just popped off.
+   * - This means the push function will not push it again.
+   * - This can happen any number of times, making all the pushes no-ops.
+   * - If this pop function gets called in the mean time, the queue does not contain this request.
+   * - Once the lock below is acquired, the request is marked as 'not queued', and returned to the
+   *   caller.
+   *
+   * The end state is that the request was still only returned by a pop function once, even though
+   * its 'is queued' status was slightly misleading in the mean time. This is why that field is
+   * documented as "do not use for anything else".
+   */
+  std::lock_guard lock(this->todo_queue_mutex_);
+
+  if (!request) {
+    return nullptr;
+  }
+  request->is_queued = false;
+  return request;
+}
+
+/**
+ * Static function, can be called at any time, even before the actual preview-loading job exists.
+ */
 void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
                                            const StringRef preview_full_filepath)
 {
@@ -1924,6 +2000,7 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
    * 'LoadingFromDisk' and push it to the TODO queue, to trigger the actual loading from disk. */
   {
     std::lock_guard lock(load_job->requested_previews_mutex_);
+    /* See if this download can be matched to one or more preview requests (from the UI). */
     for (int size = 0; size < NUM_ICON_SIZES; size++) {
       const std::pair key = std::make_pair(preview_full_filepath, eIconSizes(size));
       std::unique_ptr<RequestedPreview> *request_uptr = load_job->requested_previews_.lookup_ptr(
@@ -1938,8 +2015,9 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
         continue;
       }
 
+      /* Ensure the request from the UI gets answered, this is done in PreviewLoadJob::run_fn. */
       request->state = PreviewState::LoadingFromDisk;
-      BLI_thread_queue_push(load_job->todo_queue_, request, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
+      load_job->todo_queue_push(request);
     }
   }
 
@@ -1969,8 +2047,7 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
    * state. This way previews that are done downloading don't need to be re-requested to actually
    * show up. */
   while (has_work && !worker_status->stop) {
-    RequestedPreview *request = static_cast<RequestedPreview *>(
-        BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100));
+    RequestedPreview *request = job_data->todo_queue_pop(100);
 
     if (worker_status->stop) {
       break;
@@ -1994,7 +2071,18 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
     }
 
     BLI_assert(request);
-    if (request->state != PreviewState::LoadingFromDisk) {
+    /* Should never happen, because preview requests are only queued once they are 'started'. */
+    BLI_assert(request->state != PreviewState::NotStarted);
+    /* Should never happen, because the request only goes to these states at the end of this loop
+     * body, in which case the request has already been popped off the queue. So it shouldn't be
+     * seen here. */
+    BLI_assert(!ELEM(request->state, PreviewState::Ready, PreviewState::Failed));
+
+    if (request->state == PreviewState::Downloading) {
+      /* This request can be safely remain popped off the queue, as the on_download_completed()
+       * function will push it back on once the download is complete. This job loop will be kept
+       * alive while things are downloading anyway, independent of todo_queue_ (see the `has_work`
+       * check above). */
       continue;
     }
 
