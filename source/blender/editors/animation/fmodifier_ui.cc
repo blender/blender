@@ -381,8 +381,8 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
 
       char xval[32];
 
-      /* The first value gets a "Coefficient" label. */
-      STRNCPY_UTF8(xval, N_("Coefficient"));
+      /* The first value gets the mathematical "Constant" label. */
+      STRNCPY_UTF8(xval, N_("Constant"));
 
       for (int i = 0; i < data->arraysize; i++) {
         col.prop(ptr, prop, i, 0, UI_ITEM_NONE, IFACE_(xval), ICON_NONE);
