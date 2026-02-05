@@ -1392,6 +1392,13 @@ static void region_azones_add(const bScreen *screen, ScrArea *area, ARegion *reg
     return;
   }
 
+  /* Quad View center resizing zone. */
+  if (region->alignment == RGN_ALIGN_QSPLIT &&
+      region->runtime->quadview_index == bke::ARegionQuadviewIndex::BottomLeft)
+  {
+    quadview_azone_init(area, region);
+  }
+
   region_azones_add_edge(area, region, RGN_ALIGN_ENUM_FROM_MASK(region->alignment), is_fullscreen);
 
   /* For a split region also continue the azone edge from the next region if this region is aligned
@@ -2259,12 +2266,6 @@ void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area)
 
     /* Some AZones use View2D data which is only updated in region init, so call that first! */
     region_azones_add(screen, area, &region);
-
-    if (region.alignment == RGN_ALIGN_QSPLIT &&
-        region.runtime->quadview_index == bke::ARegionQuadviewIndex::BottomLeft)
-    {
-      quadview_azone_init(area, &region);
-    }
   }
 
   /* Avoid re-initializing tools while resizing areas & regions. */
