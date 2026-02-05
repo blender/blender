@@ -15,7 +15,6 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_volume.hh"
 
-#include "BLI_endian_defines.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_utils.hh"
@@ -293,13 +292,6 @@ std::optional<ImplicitSharingInfoAndData> BlobReadSharing::read_shared(
   return data;
 }
 
-static StringRefNull get_endian_io_name(const int endian)
-{
-  BLI_assert(endian == L_ENDIAN);
-  UNUSED_VARS_NDEBUG(endian);
-  return "little";
-}
-
 static StringRefNull get_domain_io_name(const AttrDomain domain)
 {
   const char *io_name = "unknown";
@@ -350,53 +342,6 @@ static std::optional<AttrStorageType> get_storage_type_from_io_name(const String
   return AttrStorageType(storage_type);
 }
 
-/**
- * Write the data, always in little endian.
- */
-static std::shared_ptr<DictionaryValue> write_blob_raw_data_with_endian(
-    BlobWriter &blob_writer,
-    BlobWriteSharing &blob_sharing,
-    const void *data,
-    const int64_t size_in_bytes)
-{
-  auto io_data = blob_sharing.write_deduplicated(blob_writer, data, size_in_bytes);
-  BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
-  return io_data;
-}
-
-/**
- * Read data of an into an array.
- *
- * \returns True if successful, false if reading fails, or endian switch would be needed.
- */
-[[nodiscard]] static bool read_blob_raw_data_with_endian(const BlobReader &blob_reader,
-                                                         const DictionaryValue &io_data,
-                                                         const int64_t element_size,
-                                                         const int64_t elements_num,
-                                                         void *r_data)
-{
-  const std::optional<BlobSlice> slice = BlobSlice::deserialize(io_data);
-  if (!slice) {
-    return false;
-  }
-  if (slice->range.size() != element_size * elements_num) {
-    return false;
-  }
-  if (!blob_reader.read(*slice, r_data)) {
-    return false;
-  }
-  const StringRefNull stored_endian = io_data.lookup_str("endian").value_or("little");
-  const StringRefNull current_endian = get_endian_io_name(ENDIAN_ORDER);
-  const bool need_endian_switch = stored_endian != current_endian;
-  if (need_endian_switch) {
-    /* NOTE: this is endianness-sensitive. */
-    /* Blender only builds on little endian systems, and reads little endian data here. */
-    return false;
-  }
-  return true;
-}
-
-/** Write bytes ignoring endianness. */
 static std::shared_ptr<DictionaryValue> write_blob_raw_bytes(BlobWriter &blob_writer,
                                                              BlobWriteSharing &blob_sharing,
                                                              const void *data,
@@ -405,7 +350,6 @@ static std::shared_ptr<DictionaryValue> write_blob_raw_bytes(BlobWriter &blob_wr
   return blob_sharing.write_deduplicated(blob_writer, data, size_in_bytes);
 }
 
-/** Read bytes ignoring endianness. */
 [[nodiscard]] static bool read_blob_raw_bytes(const BlobReader &blob_reader,
                                               const DictionaryValue &io_data,
                                               const int64_t bytes_num,
@@ -425,53 +369,14 @@ static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob
                                                                 BlobWriteSharing &blob_sharing,
                                                                 const GSpan data)
 {
-  const CPPType &type = data.type();
-  BLI_assert(type.is_trivial);
-  if (type.size == 1 || type.is<ColorGeometry4b>()) {
-    return write_blob_raw_bytes(blob_writer, blob_sharing, data.data(), data.size_in_bytes());
-  }
-  return write_blob_raw_data_with_endian(
-      blob_writer, blob_sharing, data.data(), data.size_in_bytes());
+  return write_blob_raw_bytes(blob_writer, blob_sharing, data.data(), data.size_in_bytes());
 }
 
 [[nodiscard]] static bool read_blob_simple_gspan(const BlobReader &blob_reader,
                                                  const DictionaryValue &io_data,
                                                  GMutableSpan r_data)
 {
-  const CPPType &type = r_data.type();
-  BLI_assert(type.is_trivial);
-  if (type.size == 1 || type.is<ColorGeometry4b>()) {
-    return read_blob_raw_bytes(blob_reader, io_data, r_data.size_in_bytes(), r_data.data());
-  }
-  if (type.is_any<int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, type.size, r_data.size(), r_data.data());
-  }
-  if (type.is_any<float2, int2>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(int32_t), r_data.size() * 2, r_data.data());
-  }
-  if (type.is_any<short2>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(short), r_data.size() * 2, r_data.data());
-  }
-  if (type.is<float3>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 3, r_data.data());
-  }
-  if (type.is<float4x4>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 16, r_data.data());
-  }
-  if (type.is<ColorGeometry4f>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
-  }
-  if (type.is<math::Quaternion>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
-  }
-  return false;
+  return read_blob_raw_bytes(blob_reader, io_data, r_data.size_in_bytes(), r_data.data());
 }
 
 static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
