@@ -3555,11 +3555,12 @@ static void filelist_remote_asset_library_update_loading_flags(RemoteLibraryRequ
 /* Called when starting the job (from the main thread). */
 static void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary &library)
 {
-  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
-    BLI_assert_unreachable();
+  if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
     return;
   }
-
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    return;
+  }
   if ((job_params->filelist->flags & FL_ASSETS_INCLUDE_ONLINE) == 0) {
     return;
   }
@@ -3588,11 +3589,6 @@ static void filelist_start_job_remote_asset_library(FileListReadJob *job_params)
 static void filelist_start_job_all_asset_library(FileListReadJob *job_params)
 {
   Set<StringRef> requested_urls;
-
-  if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
-    /* No remote asset libraries in the 'All' library, unless the experimental flag is enabled. */
-    return;
-  }
 
   asset_system::foreach_registered_remote_library([&](bUserAssetLibrary &library) {
     if (!requested_urls.contains(library.remote_url)) {
@@ -3699,6 +3695,12 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
                   job_params->remote_library_requests.lookup_ptr(*remote_url))
           {
             remote_asset_library_load(job_params, **request, stop, do_update, &progress_this);
+          }
+          /* When online assets or online access are disabled, there will be no requests. In that
+           * case, just list the assets that are downloaded already. */
+          else {
+            filelist_readjob_recursive_dir_add_items(
+                true, job_params, stop, do_update, &progress_this);
           }
         }
         /* Simple directory based reading. */
