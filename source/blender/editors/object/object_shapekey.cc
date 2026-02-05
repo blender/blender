@@ -418,7 +418,7 @@ static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
     }
 
     if (RNA_boolean_get(op->ptr, "apply_mix")) {
-      float *arr = BKE_key_evaluate_object_ex(ob, nullptr, nullptr, 0, ob->data);
+      float *arr = BKE_key_evaluate_object_ex(ob, nullptr, nullptr, 0, std::nullopt, ob->data);
       MEM_delete(arr);
     }
     changed = BKE_object_shapekey_free(bmain, ob);
@@ -916,6 +916,127 @@ void OBJECT_OT_shape_key_make_basis(wmOperatorType *ot)
   ot->exec = shape_key_make_basis_exec;
 
   /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shape Key Make Basis Operator
+ * \{ */
+
+static bool shape_key_apply_to_basis_poll(bContext *C)
+{
+  if (!shape_key_exists_poll(C)) {
+    return false;
+  }
+
+  Object *ob = context_object(C);
+  if (ob->type != OB_MESH) {
+    return false;
+  }
+  /* 0 = nothing active, 1 = basis key active. */
+  return ob->shapenr > 1;
+}
+
+static void add_arrays(const MutableSpan<float3> a, const Span<float3> b)
+{
+  BLI_assert(a.size() == b.size());
+  threading::parallel_for(a.index_range(), 2048, [&](const IndexRange range) {
+    for (const int i : range) {
+      a[i] += b[i];
+    }
+  });
+}
+
+static wmOperatorStatus shape_key_apply_to_basis_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Object *ob = CTX_data_active_object(C);
+  Key *key = BKE_key_from_object(ob);
+  KeyBlock *basis_key = static_cast<KeyBlock *>(key->block.first);
+  MutableSpan<float3> basis_data(static_cast<float3 *>(basis_key->data), basis_key->totelem);
+  Mesh &mesh = id_cast<Mesh &>(*ob->data);
+
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
+
+  int locked_count = 0;
+  Array<bool> keys_to_process(BLI_listbase_count(&key->block), false);
+  for (const auto [i, kb] : key->block.enumerate()) {
+    if (!shape_key_is_selected(*ob, kb, i)) {
+      continue;
+    }
+    if (kb.flag & KEYBLOCK_LOCKED_SHAPE) {
+      locked_count++;
+      continue;
+    }
+    keys_to_process[i] = true;
+  }
+
+  if (locked_count != 0) {
+    BKE_reportf(op->reports, RPT_INFO, "Skipped %d locked shape keys", locked_count);
+  }
+
+  if (!keys_to_process.as_span().contains(true)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  int totelem_dummy;
+  BKE_key_evaluate_object_ex(ob,
+                             &totelem_dummy,
+                             positions.cast<float>().data(),
+                             sizeof(float3) * positions.size(),
+                             keys_to_process,
+                             nullptr);
+
+  Array<float3> translations(positions.size());
+  for (const int i : positions.index_range()) {
+    translations[i] = positions[i] - basis_data[i];
+  }
+
+  basis_data.copy_from(positions);
+
+  Set<KeyBlock *> processed_keys;
+  for (const auto [i, kb] : key->block.enumerate()) {
+    if (keys_to_process[i]) {
+      processed_keys.add_new(&kb);
+    }
+  }
+  for (KeyBlock *kb : processed_keys) {
+    BKE_object_shapekey_remove(bmain, ob, kb);
+  }
+
+  if (const std::optional<Array<bool>> dependent = BKE_keyblock_get_dependent_keys(key, 0)) {
+    for (const auto [i, kb] : key->block.enumerate()) {
+      if (&kb == basis_key) {
+        continue;
+      }
+      if (!(*dependent)[i]) {
+        continue;
+      }
+      MutableSpan<float3> kb_data(static_cast<float3 *>(kb.data), kb.totelem);
+      add_arrays(kb_data, translations);
+    }
+  }
+
+  /* Make the basis key active. */
+  ob->shapenr = 1;
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_apply_to_basis(wmOperatorType *ot)
+{
+  ot->name = "Apply to Basis Key";
+  ot->idname = "OBJECT_OT_shape_key_apply_to_basis";
+  ot->description = "Appply deformations of selected shape keys to the basis key, removing them";
+
+  ot->poll = shape_key_apply_to_basis_poll;
+  ot->exec = shape_key_apply_to_basis_exec;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
