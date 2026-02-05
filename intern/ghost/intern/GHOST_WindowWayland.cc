@@ -1503,13 +1503,23 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor, mode);
     }
 
-    /* Commit needed to so configure callback runs. */
-    wl_surface_commit(window_->wl.surface);
+    /* NOTE(@ideasman42): when the display is dispatched in a loop
+     * starting full-screen intermittently creates windows the wrong size for GNOME (46 .. 49.3).
+     * The problem is reasonably involved - in short, creating the windows instance early
+     * causes the full-screen dimensions to be set too early, pushing the window off the monitor
+     * when it *is* set to it's correct size, see: #153796 for details.
+     *
+     * The down side of *not* running this loop is we may not get the correct output scale,
+     * which could cause the UI to refresh at a different UI-scale on startup. */
+    if (state != GHOST_kWindowStateFullScreen) {
+      /* Commit needed to so configure callback runs. */
+      wl_surface_commit(window_->wl.surface);
 
-    /* Failure exits with an error, simply prevent an eternal loop. */
-    while (!decor.initial_configure_seen && !ghost_wl_display_report_error_if_set(display)) {
-      wl_display_flush(display);
-      wl_display_dispatch(display);
+      /* Failure exits with an error, simply prevent an eternal loop. */
+      while (!decor.initial_configure_seen && !ghost_wl_display_report_error_if_set(display)) {
+        wl_display_flush(display);
+        wl_display_dispatch(display);
+      }
     }
   }
 #ifdef WITH_GHOST_CSD
