@@ -247,6 +247,8 @@ bool supports_dyntopo(const Brush &brush);
 bool supports_accumulate(const Brush &brush);
 bool supports_topology_rake(const Brush &brush);
 bool supports_auto_smooth(const Brush &brush);
+bool supports_normal_radius(const Brush &brush);
+bool supports_hardness(const Brush &brush);
 bool supports_height(const Brush &brush);
 bool supports_plane_height(const Brush &brush);
 bool supports_plane_depth(const Brush &brush);

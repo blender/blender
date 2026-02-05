@@ -792,16 +792,18 @@ def brush_settings(layout, context, brush, popover=False):
         sculpt_brush_type = brush.sculpt_brush_type
 
         # normal_radius_factor
-        layout.prop(brush, "normal_radius_factor", slider=True)
+        if capabilities.has_normal_radius:
+            layout.prop(brush, "normal_radius_factor", slider=True)
 
         if capabilities.has_tilt:
             layout.prop(brush, "tilt_strength_factor", slider=True)
 
         row = layout.row(align=True)
-        row.prop(brush, "hardness", slider=True)
-        if capabilities.has_hardness_pressure:
-            row.prop(brush, "invert_hardness_pressure", text="")
-            row.prop(brush, "use_hardness_pressure", text="")
+        if capabilities.has_hardness:
+            row.prop(brush, "hardness", slider=True)
+            if capabilities.has_hardness_pressure:
+                row.prop(brush, "invert_hardness_pressure", text="")
+                row.prop(brush, "use_hardness_pressure", text="")
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
