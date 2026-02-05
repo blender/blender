@@ -71,6 +71,8 @@
  *   These indices are also used to maintain correct indices for hook modifiers and vertex parents.
  */
 
+#include <algorithm>
+
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -92,6 +94,7 @@
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -1357,23 +1360,88 @@ static void bmesh_block_copy_to_mesh_attributes(const Span<BMeshToMeshLayerInfo>
   }
 }
 
-static void bm_to_mesh_verts(const BMesh &bm,
+class AttrSingleValueChecker {
+  Vector<bke::Attribute *, 8> attrs_;
+  Array<GSpan, 8> spans_;
+  Array<std::atomic<bool>, 8> can_be_single_;
+
+ public:
+  AttrSingleValueChecker(bke::AttributeStorage &storage,
+                         const bke::AttrDomain domain,
+                         const Set<StringRef> &skip_names)
+  {
+    for (bke::Attribute &attr : storage) {
+      if (attr.domain() != domain) {
+        continue;
+      }
+      if (skip_names.contains(attr.name())) {
+        continue;
+      }
+      attrs_.append(&attr);
+    }
+    spans_.reinitialize(attrs_.size());
+    for (const int attr_i : attrs_.index_range()) {
+      BLI_assert(attrs_[attr_i]->storage_type() == bke::AttrStorageType::Array);
+      const auto &data = std::get<bke::Attribute::ArrayData>(attrs_[attr_i]->data());
+      const CPPType &type = bke::attribute_type_to_cpp_type(attrs_[attr_i]->data_type());
+      spans_[attr_i] = GSpan(type, data.data, data.size);
+    }
+    can_be_single_.reinitialize(attrs_.size());
+    std::ranges::fill(can_be_single_, true);
+  }
+
+  /**
+   * \note Before calling this function, the attribute values for the first element must be set.
+   * That's particularly important if this is called from a thread.
+   */
+  void check_range(const IndexRange range)
+  {
+    for (const int attr_i : attrs_.index_range()) {
+      if (!can_be_single_[attr_i].load(std::memory_order_relaxed)) {
+        continue;
+      }
+      bke::attribute_math::to_static_type(attrs_[attr_i]->data_type(), [&]<typename T>() {
+        const Span<T> data = spans_[attr_i].typed<T>();
+        const T &first = data.first();
+        if (std::any_of(range.begin(), range.end(), [&](const int i) { return data[i] != first; }))
+        {
+          can_be_single_[attr_i].store(false, std::memory_order_relaxed);
+        }
+      });
+    }
+  }
+
+  /** \note This will invalidate existing references to attribute data. */
+  void optimize_storage()
+  {
+    for (const int attr_i : attrs_.index_range()) {
+      if (spans_[attr_i].is_empty()) {
+        continue;
+      }
+      if (can_be_single_[attr_i]) {
+        const GPointer value(spans_[attr_i].type(), spans_[attr_i][0]);
+        attrs_[attr_i]->assign_data(bke::Attribute::SingleData::from_value(value));
+      }
+    }
+  }
+};
+
+static void bm_to_mesh_verts(Mesh &mesh,
                              const Span<const BMVert *> bm_verts,
-                             Mesh &mesh,
+                             const Span<BMeshToMeshLayerInfo> copy_info,
+                             AttrSingleValueChecker &single_checker,
                              MutableSpan<bool> select_vert,
                              MutableSpan<bool> hide_vert)
 {
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(
-      bm.vdata, bke::AttrDomain::Point, mesh);
   MutableSpan<float3> dst_vert_positions = mesh.vert_positions_for_write();
 
   std::atomic<bool> any_loose_vert = false;
-  threading::parallel_for(dst_vert_positions.index_range(), 1024, [&](const IndexRange range) {
+  const auto process_verts = [&](const IndexRange range) {
     bool any_loose_vert_local = false;
     for (const int vert_i : range) {
       const BMVert &src_vert = *bm_verts[vert_i];
       copy_v3_v3(dst_vert_positions[vert_i], src_vert.co);
-      bmesh_block_copy_to_mesh_attributes(info, vert_i, src_vert.head.data);
+      bmesh_block_copy_to_mesh_attributes(copy_info, vert_i, src_vert.head.data);
       any_loose_vert_local = any_loose_vert_local || src_vert.e == nullptr;
     }
     if (any_loose_vert_local) {
@@ -1389,6 +1457,13 @@ static void bm_to_mesh_verts(const BMesh &bm,
         hide_vert[vert_i] = BM_elem_flag_test(bm_verts[vert_i], BM_ELEM_HIDDEN);
       }
     }
+  };
+
+  process_verts(bm_verts.index_range().take_front(1));
+
+  threading::parallel_for(bm_verts.index_range().drop_front(1), 1024, [&](const IndexRange range) {
+    process_verts(range);
+    single_checker.check_range(range);
   });
 
   if (!any_loose_vert) {
@@ -1396,25 +1471,24 @@ static void bm_to_mesh_verts(const BMesh &bm,
   }
 }
 
-static void bm_to_mesh_edges(const BMesh &bm,
+static void bm_to_mesh_edges(Mesh &mesh,
                              const Span<const BMEdge *> bm_edges,
-                             Mesh &mesh,
+                             const Span<BMeshToMeshLayerInfo> copy_info,
+                             AttrSingleValueChecker &single_checker,
                              MutableSpan<bool> select_edge,
                              MutableSpan<bool> hide_edge,
                              MutableSpan<bool> sharp_edge,
                              MutableSpan<bool> uv_seams)
 {
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(
-      bm.edata, bke::AttrDomain::Edge, mesh);
   MutableSpan<int2> dst_edges = mesh.edges_for_write();
 
   std::atomic<bool> any_loose_edge = false;
-  threading::parallel_for(dst_edges.index_range(), 512, [&](const IndexRange range) {
+  const auto process_edges = [&](const IndexRange range) {
     bool any_loose_edge_local = false;
     for (const int edge_i : range) {
       const BMEdge &src_edge = *bm_edges[edge_i];
       dst_edges[edge_i] = int2(BM_elem_index_get(src_edge.v1), BM_elem_index_get(src_edge.v2));
-      bmesh_block_copy_to_mesh_attributes(info, edge_i, src_edge.head.data);
+      bmesh_block_copy_to_mesh_attributes(copy_info, edge_i, src_edge.head.data);
       any_loose_edge_local |= BM_edge_is_wire(&src_edge);
     }
     if (any_loose_edge_local) {
@@ -1440,6 +1514,13 @@ static void bm_to_mesh_edges(const BMesh &bm,
         uv_seams[edge_i] = BM_elem_flag_test(bm_edges[edge_i], BM_ELEM_SEAM);
       }
     }
+  };
+
+  process_edges(bm_edges.index_range().take_front(1));
+
+  threading::parallel_for(dst_edges.index_range(), 512, [&](const IndexRange range) {
+    process_edges(range);
+    single_checker.check_range(range);
   });
 
   if (!any_loose_edge) {
@@ -1447,9 +1528,10 @@ static void bm_to_mesh_edges(const BMesh &bm,
   }
 }
 
-static void bm_to_mesh_faces(const BMesh &bm,
+static void bm_to_mesh_faces(Mesh &mesh,
                              const Span<const BMFace *> bm_faces,
-                             Mesh &mesh,
+                             const Span<BMeshToMeshLayerInfo> copy_info,
+                             AttrSingleValueChecker &single_checker,
                              MutableSpan<bool> select_poly,
                              MutableSpan<bool> hide_poly,
                              MutableSpan<bool> sharp_faces,
@@ -1457,14 +1539,14 @@ static void bm_to_mesh_faces(const BMesh &bm,
                              MutableSpan<int> material_indices)
 {
   BKE_mesh_face_offsets_ensure_alloc(&mesh);
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(
-      bm.pdata, bke::AttrDomain::Face, mesh);
+
   MutableSpan<int> dst_face_offsets = mesh.face_offsets_for_write();
-  threading::parallel_for(bm_faces.index_range(), 1024, [&](const IndexRange range) {
+
+  const auto process_faces = [&](const IndexRange range) {
     for (const int face_i : range) {
       const BMFace &src_face = *bm_faces[face_i];
       dst_face_offsets[face_i] = BM_elem_index_get(BM_FACE_FIRST_LOOP(&src_face));
-      bmesh_block_copy_to_mesh_attributes(info, face_i, src_face.head.data);
+      bmesh_block_copy_to_mesh_attributes(copy_info, face_i, src_face.head.data);
     }
     if (!select_poly.is_empty()) {
       for (const int face_i : range) {
@@ -1491,6 +1573,13 @@ static void bm_to_mesh_faces(const BMesh &bm,
         uv_select_face[face_i] = BM_elem_flag_test(bm_faces[face_i], BM_ELEM_SELECT_UV);
       }
     }
+  };
+
+  process_faces(bm_faces.index_range().take_front(1));
+
+  threading::parallel_for(bm_faces.index_range().drop_front(1), 1024, [&](const IndexRange range) {
+    process_faces(range);
+    single_checker.check_range(range);
   });
 }
 
@@ -1521,25 +1610,23 @@ static void add_bm_cd_to_mesh(const BMesh &bm,
   }
 }
 
-static void bm_to_mesh_loops(const BMesh &bm,
+static void bm_to_mesh_loops(Mesh &mesh,
                              const Span<const BMLoop *> bm_loops,
-                             Mesh &mesh,
+                             const Span<BMeshToMeshLayerInfo> copy_info,
+                             AttrSingleValueChecker &single_checker,
                              MutableSpan<bool> uv_select_vert,
                              MutableSpan<bool> uv_select_edge)
 {
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(
-      bm.ldata, bke::AttrDomain::Corner, mesh);
-
   MutableSpan<int> dst_corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = mesh.corner_edges_for_write();
-
   const bool need_uv_select = !uv_select_vert.is_empty() && !uv_select_edge.is_empty();
-  threading::parallel_for(dst_corner_verts.index_range(), 1024, [&](const IndexRange range) {
+
+  const auto process_corners = [&](const IndexRange range) {
     for (const int loop_i : range) {
       const BMLoop &src_loop = *bm_loops[loop_i];
       dst_corner_verts[loop_i] = BM_elem_index_get(src_loop.v);
       dst_corner_edges[loop_i] = BM_elem_index_get(src_loop.e);
-      bmesh_block_copy_to_mesh_attributes(info, loop_i, src_loop.head.data);
+      bmesh_block_copy_to_mesh_attributes(copy_info, loop_i, src_loop.head.data);
     }
 
     if (need_uv_select) {
@@ -1549,6 +1636,13 @@ static void bm_to_mesh_loops(const BMesh &bm,
         uv_select_edge[loop_i] = BM_elem_flag_test(&src_loop, BM_ELEM_SELECT_UV_EDGE);
       }
     }
+  };
+
+  process_corners(bm_loops.index_range().take_front(1));
+
+  threading::parallel_for(dst_corner_verts.index_range(), 1024, [&](const IndexRange range) {
+    process_corners(range);
+    single_checker.check_range(range);
   });
 }
 
@@ -1693,29 +1787,53 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   attrs.add<int>(".corner_vert", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
   attrs.add<int>(".corner_edge", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
 
+  const Vector<BMeshToMeshLayerInfo> vert_copy_info = bm_to_mesh_copy_info_calc(
+      bm->vdata, bke::AttrDomain::Point, *mesh);
+  const Vector<BMeshToMeshLayerInfo> edge_copy_info = bm_to_mesh_copy_info_calc(
+      bm->edata, bke::AttrDomain::Edge, *mesh);
+  const Vector<BMeshToMeshLayerInfo> face_copy_info = bm_to_mesh_copy_info_calc(
+      bm->pdata, bke::AttrDomain::Face, *mesh);
+  const Vector<BMeshToMeshLayerInfo> corner_copy_info = bm_to_mesh_copy_info_calc(
+      bm->ldata, bke::AttrDomain::Corner, *mesh);
+  AttrSingleValueChecker vert_single_checker(
+      mesh->attribute_storage.wrap(), bke::AttrDomain::Point, {"position"});
+  AttrSingleValueChecker edge_single_checker(
+      mesh->attribute_storage.wrap(), bke::AttrDomain::Edge, {".edge_verts"});
+  AttrSingleValueChecker face_single_checker(
+      mesh->attribute_storage.wrap(), bke::AttrDomain::Face, {});
+  AttrSingleValueChecker corner_single_checker(
+      mesh->attribute_storage.wrap(), bke::AttrDomain::Corner, {".corner_vert", ".corner_edge"});
+
   /* Loop over all elements in parallel, copying attributes and building the Mesh topology. */
   threading::parallel_invoke(
       (mesh->faces_num + mesh->edges_num) > 1024,
       [&]() {
-        bm_to_mesh_verts(*bm, vert_table, *mesh, select_vert.span, hide_vert.span);
+        bm_to_mesh_verts(*mesh,
+                         vert_table,
+                         vert_copy_info,
+                         vert_single_checker,
+                         select_vert.span,
+                         hide_vert.span);
         if (mesh->key) {
           bm_to_mesh_shape(
               bm, mesh->key, mesh->vert_positions_for_write(), params->active_shapekey_to_mvert);
         }
       },
       [&]() {
-        bm_to_mesh_edges(*bm,
+        bm_to_mesh_edges(*mesh,
                          edge_table,
-                         *mesh,
+                         edge_copy_info,
+                         edge_single_checker,
                          select_edge.span,
                          hide_edge.span,
                          sharp_edge.span,
                          uv_seams.span);
       },
       [&]() {
-        bm_to_mesh_faces(*bm,
+        bm_to_mesh_faces(*mesh,
                          face_table,
-                         *mesh,
+                         face_copy_info,
+                         face_single_checker,
                          select_poly.span,
                          hide_poly.span,
                          sharp_face.span,
@@ -1726,7 +1844,12 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
         }
       },
       [&]() {
-        bm_to_mesh_loops(*bm, loop_table, *mesh, uv_select_vert.span, uv_select_edge.span);
+        bm_to_mesh_loops(*mesh,
+                         loop_table,
+                         corner_copy_info,
+                         corner_single_checker,
+                         uv_select_vert.span,
+                         uv_select_edge.span);
         /* Topology could be changed, ensure #CD_MDISPS are ok. */
         multires_topology_changed(mesh);
         for (const int i : loop_layers_not_to_copy) {
@@ -1794,6 +1917,11 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
   uv_select_edge.finish();
   uv_select_face.finish();
   material_index.finish();
+
+  vert_single_checker.optimize_storage();
+  edge_single_checker.optimize_storage();
+  face_single_checker.optimize_storage();
+  corner_single_checker.optimize_storage();
 }
 
 void BM_mesh_bm_to_me_compact(BMesh &bm,
@@ -1964,23 +2092,49 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
   attrs.add<int>(".corner_vert", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
   attrs.add<int>(".corner_edge", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
 
+  const Vector<BMeshToMeshLayerInfo> vert_copy_info = bm_to_mesh_copy_info_calc(
+      bm.vdata, bke::AttrDomain::Point, mesh);
+  const Vector<BMeshToMeshLayerInfo> edge_copy_info = bm_to_mesh_copy_info_calc(
+      bm.edata, bke::AttrDomain::Edge, mesh);
+  const Vector<BMeshToMeshLayerInfo> face_copy_info = bm_to_mesh_copy_info_calc(
+      bm.pdata, bke::AttrDomain::Face, mesh);
+  const Vector<BMeshToMeshLayerInfo> corner_copy_info = bm_to_mesh_copy_info_calc(
+      bm.ldata, bke::AttrDomain::Corner, mesh);
+  AttrSingleValueChecker vert_single_checker(
+      mesh.attribute_storage.wrap(), bke::AttrDomain::Point, {"position"});
+  AttrSingleValueChecker edge_single_checker(
+      mesh.attribute_storage.wrap(), bke::AttrDomain::Edge, {".edge_verts"});
+  AttrSingleValueChecker face_single_checker(
+      mesh.attribute_storage.wrap(), bke::AttrDomain::Face, {});
+  AttrSingleValueChecker corner_single_checker(
+      mesh.attribute_storage.wrap(), bke::AttrDomain::Corner, {".corner_vert", ".corner_edge"});
+
   /* Loop over all elements in parallel, copying attributes and building the Mesh topology. */
   threading::parallel_invoke(
       use_threading,
-      [&]() { bm_to_mesh_verts(bm, vert_table, mesh, select_vert.span, hide_vert.span); },
       [&]() {
-        bm_to_mesh_edges(bm,
+        bm_to_mesh_verts(mesh,
+                         vert_table,
+                         vert_copy_info,
+                         vert_single_checker,
+                         select_vert.span,
+                         hide_vert.span);
+      },
+      [&]() {
+        bm_to_mesh_edges(mesh,
                          edge_table,
-                         mesh,
+                         edge_copy_info,
+                         edge_single_checker,
                          select_edge.span,
                          hide_edge.span,
                          sharp_edge.span,
                          uv_seams.span);
       },
       [&]() {
-        bm_to_mesh_faces(bm,
+        bm_to_mesh_faces(mesh,
                          face_table,
-                         mesh,
+                         face_copy_info,
+                         face_single_checker,
                          select_poly.span,
                          hide_poly.span,
                          sharp_face.span,
@@ -1991,7 +2145,12 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
         }
       },
       [&]() {
-        bm_to_mesh_loops(bm, loop_table, mesh, uv_select_vert.span, uv_select_edge.span);
+        bm_to_mesh_loops(mesh,
+                         loop_table,
+                         corner_copy_info,
+                         corner_single_checker,
+                         uv_select_vert.span,
+                         uv_select_edge.span);
         for (const int i : loop_layers_not_to_copy) {
           bm.ldata.layers[i].flag &= ~CD_FLAG_NOCOPY;
         }
@@ -2011,6 +2170,11 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
     uv_select_edge.finish();
     uv_select_face.finish();
     material_index.finish();
+
+    vert_single_checker.optimize_storage();
+    edge_single_checker.optimize_storage();
+    face_single_checker.optimize_storage();
+    corner_single_checker.optimize_storage();
   }
 }
 
