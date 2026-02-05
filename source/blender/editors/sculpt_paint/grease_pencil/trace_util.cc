@@ -184,10 +184,10 @@ bke::CurvesGeometry trace_to_curves(const Trace &trace,
   curves.offsets_for_write().copy_from(offsets);
 
   /* Construct all curves as Bezier curves. */
-  curves.curve_types_for_write().fill(CURVE_TYPE_BEZIER);
-  curves.update_curve_types();
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
   /* All trace curves are cyclic. */
-  curves.cyclic_for_write().fill(true);
+  curves.attributes_for_write().add<bool>(
+      "cyclic", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
 
   MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
   MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();

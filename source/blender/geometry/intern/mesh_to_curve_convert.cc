@@ -263,7 +263,8 @@ static bke::CurvesGeometry create_curves_for_faces(const Mesh &mesh,
   }
 
   BKE_defgroup_copy_list(&curves.vertex_group_names, &mesh.vertex_group_names);
-  curves.cyclic_for_write().fill(true);
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  attributes.add<bool>("cyclic", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
   curves.fill_curve_types(CURVE_TYPE_POLY);
   return curves;
 }
