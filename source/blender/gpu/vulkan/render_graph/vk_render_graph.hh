@@ -88,7 +88,8 @@ class VKRenderGraph : public NonCopyable {
     std::string name;
     ColorTheme4f color;
 
-    BLI_STRUCT_EQUALITY_OPERATORS_2(DebugGroup, name, color)
+    friend bool operator==(const DebugGroup &a, const DebugGroup &b) = default;
+
     uint64_t hash() const
     {
       return get_default_hash<std::string, ColorTheme4f>(name, color);

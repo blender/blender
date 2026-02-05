@@ -7,7 +7,6 @@
  */
 
 #include "BKE_global.hh"
-#include "BLI_struct_equality_utils.hh"
 
 #include "shader_tool/expression.hh"
 #include "shader_tool/intermediate.hh"
@@ -265,7 +264,10 @@ template<typename Trait, typename T = int> class ID {
     return id_;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(ID, id_)
+  friend bool operator==(const ID &a, const ID &b)
+  {
+    return a.id_ == b.id_;
+  }
 
   uint64_t hash() const
   {

@@ -74,7 +74,7 @@ struct NodeWarning {
     return get_default_hash(this->type, this->message);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(NodeWarning, type, message)
+  friend bool operator==(const NodeWarning &a, const NodeWarning &b) = default;
 };
 
 enum class NamedAttributeUsage {

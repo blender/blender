@@ -1221,7 +1221,8 @@ struct ViewerDataPath {
   int viewer_item;
   Vector<StringRef> bundles;
   SpreadsheetClosureInputOutput closure_input_output = SPREADSHEET_CLOSURE_NONE;
-  BLI_STRUCT_EQUALITY_OPERATORS_3(ViewerDataPath, viewer_item, bundles, closure_input_output);
+
+  friend bool operator==(const ViewerDataPath &a, const ViewerDataPath &b) = default;
 
   ViewerDataPath() = default;
   explicit ViewerDataPath(const SpreadsheetTableIDGeometry &table_id)

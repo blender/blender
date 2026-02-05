@@ -13,7 +13,6 @@
 #include <string>
 
 #include "BLI_string_ref.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_sys_types.h"
 
 #include "BLI_vector_set.hh"
@@ -33,8 +32,9 @@ struct DRW_MeshCDMask {
   bool tan_orco = false;
   bool sculpt_overlays = false;
   bool edit_uv = false;
-  BLI_STRUCT_EQUALITY_OPERATORS_6(
-      DRW_MeshCDMask, uv.as_span(), tan.as_span(), orco, tan_orco, sculpt_overlays, edit_uv);
+
+  friend bool operator==(const DRW_MeshCDMask &a, const DRW_MeshCDMask &b) = default;
+
   void clear()
   {
     uv.clear_and_keep_capacity();

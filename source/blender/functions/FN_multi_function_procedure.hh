@@ -67,7 +67,7 @@ class InstructionCursor {
 
   Type type() const;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_3(InstructionCursor, type_, instruction_, branch_output_)
+  friend bool operator==(const InstructionCursor &a, const InstructionCursor &b) = default;
 };
 
 /**

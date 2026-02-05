@@ -20,7 +20,6 @@
 #include <ostream>
 
 #include "BLI_math_base.hh"
-#include "BLI_struct_equality_utils.hh"
 
 namespace blender::math {
 
@@ -146,7 +145,7 @@ template<typename T> struct AngleRadianBase {
     return *this;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(AngleRadianBase, value_)
+  friend auto operator<=>(const AngleRadianBase &a, const AngleRadianBase &b) = default;
 
   friend std::ostream &operator<<(std::ostream &stream, const AngleRadianBase &rot)
   {
@@ -342,7 +341,7 @@ template<typename T> struct AngleCartesianBase {
     return *this;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(AngleCartesianBase, cos_, sin_)
+  friend bool operator==(const AngleCartesianBase &a, const AngleCartesianBase &b) = default;
 
   friend std::ostream &operator<<(std::ostream &stream, const AngleCartesianBase &rot)
   {

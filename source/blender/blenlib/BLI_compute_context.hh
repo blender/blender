@@ -36,7 +36,6 @@
 
 #include "BLI_cache_mutex.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_struct_equality_utils.hh"
 
 namespace blender {
 
@@ -55,7 +54,7 @@ struct ComputeContextHash {
     return v1;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(ComputeContextHash, v1, v2)
+  friend bool operator==(const ComputeContextHash &a, const ComputeContextHash &b) = default;
 
   /**
    * Standard way to create a compute context hash.

@@ -21,7 +21,6 @@
  */
 
 #include "BLI_map.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_vector.hh"
 
 namespace blender {
@@ -168,7 +167,7 @@ template<typename Key, typename Value> class MultiValueMap {
     map_.clear_and_shrink();
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(MultiValueMap, map_)
+  friend bool operator==(const MultiValueMap &a, const MultiValueMap &b) = default;
 };
 
 }  // namespace blender

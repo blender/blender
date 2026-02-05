@@ -68,7 +68,7 @@ class ParamType {
   bool is_output_or_mutable() const;
   bool is_output() const;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(ParamType, interface_type_, data_type_)
+  friend bool operator==(const ParamType &a, const ParamType &b) = default;
 };
 
 /* -------------------------------------------------------------------- */

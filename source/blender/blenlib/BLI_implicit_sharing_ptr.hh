@@ -12,7 +12,6 @@
 #include <utility>
 
 #include "BLI_implicit_sharing.hh"
-#include "BLI_struct_equality_utils.hh"
 
 namespace blender {
 
@@ -141,7 +140,7 @@ template<typename T = ImplicitSharingInfo, bool IsStrong = true> class ImplicitS
     return get_default_hash(data);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(ImplicitSharingPtr, data_)
+  friend bool operator==(const ImplicitSharingPtr &a, const ImplicitSharingPtr &b) = default;
 
   friend bool operator==(const T *a, const ImplicitSharingPtr &b)
   {

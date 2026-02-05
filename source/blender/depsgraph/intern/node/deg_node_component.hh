@@ -10,7 +10,6 @@
 
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_id.hh"
@@ -46,7 +45,7 @@ struct ComponentNode : public Node {
     }
 
     std::string identifier() const;
-    BLI_STRUCT_EQUALITY_OPERATORS_3(OperationIDKey, opcode, name_tag, name);
+    friend bool operator==(const OperationIDKey &a, const OperationIDKey &b) = default;
     uint64_t hash() const
     {
       return get_default_hash(opcode, name_tag, name);

@@ -6,7 +6,6 @@
 
 #include "BLI_generic_key.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_utility_mixins.hh"
 
 namespace blender {
@@ -26,7 +25,10 @@ class GenericStringKey : public GenericKey, NonMovable {
     return get_default_hash(value_ref_);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(GenericStringKey, value_ref_)
+  friend bool operator==(const GenericStringKey &a, const GenericStringKey &b)
+  {
+    return a.value_ref_ == b.value_ref_;
+  }
 
   bool equal_to(const GenericKey &other) const override
   {

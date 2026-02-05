@@ -5,7 +5,6 @@
 #pragma once
 
 #include "BLI_hash.hh"
-#include "BLI_struct_equality_utils.hh"
 
 namespace blender::nodes {
 
@@ -31,7 +30,7 @@ struct MenuValue {
     return get_default_hash(this->value);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(MenuValue, value)
+  friend bool operator==(const MenuValue &a, const MenuValue &b) = default;
 };
 
 }  // namespace blender::nodes

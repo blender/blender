@@ -11,7 +11,6 @@
 #include <optional>
 #include <string>
 
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_ID_enums.h"
@@ -49,7 +48,7 @@ struct BakeDataBlockID {
 
   friend std::ostream &operator<<(std::ostream &stream, const BakeDataBlockID &id);
 
-  BLI_STRUCT_EQUALITY_OPERATORS_3(BakeDataBlockID, type, id_name, lib_name)
+  friend bool operator==(const BakeDataBlockID &a, const BakeDataBlockID &b) = default;
 };
 
 /**

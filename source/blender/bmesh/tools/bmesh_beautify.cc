@@ -53,7 +53,7 @@ struct EdRotState {
    */
   int2 f_pair;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(EdRotState, v_pair, f_pair)
+  friend bool operator==(const EdRotState &a, const EdRotState &b) = default;
 
   uint64_t hash() const
   {

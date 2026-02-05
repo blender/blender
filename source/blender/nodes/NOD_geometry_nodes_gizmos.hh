@@ -39,11 +39,7 @@ struct TreeGizmoPropagation {
   MultiValueMap<ie::SocketElem, ie::SocketElem> gizmo_inputs_by_node_inputs;
   MultiValueMap<ie::GroupInputElem, ie::SocketElem> gizmo_inputs_by_group_inputs;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_4(TreeGizmoPropagation,
-                                  gizmo_nodes,
-                                  gizmo_inputs_by_value_nodes,
-                                  gizmo_inputs_by_node_inputs,
-                                  gizmo_inputs_by_group_inputs)
+  friend bool operator==(const TreeGizmoPropagation &a, const TreeGizmoPropagation &b) = default;
 };
 
 /**

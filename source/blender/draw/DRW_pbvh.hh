@@ -12,7 +12,6 @@
 
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_paint_bvh.hh"
@@ -52,7 +51,7 @@ using AttributeRequest = std::variant<CustomRequest, GenericRequest>;
 struct ViewportRequest {
   Vector<AttributeRequest> attributes;
   bool use_coarse_grids;
-  BLI_STRUCT_EQUALITY_OPERATORS_2(ViewportRequest, attributes, use_coarse_grids);
+  friend bool operator==(const ViewportRequest &a, const ViewportRequest &b) = default;
   uint64_t hash() const;
 };
 

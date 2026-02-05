@@ -18,7 +18,6 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
-#include "BLI_struct_equality_utils.hh"
 
 #include "BKE_attribute_filters.hh"
 
@@ -95,13 +94,15 @@ struct AttributeMetaData {
   AttrDomain domain;
   AttrType data_type;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(AttributeMetaData, domain, data_type)
+  friend bool operator==(const AttributeMetaData &a, const AttributeMetaData &b) = default;
 };
 
 struct AttributeDomainAndType {
   AttrDomain domain;
   AttrType data_type;
-  BLI_STRUCT_EQUALITY_OPERATORS_2(AttributeDomainAndType, domain, data_type)
+
+  friend bool operator==(const AttributeDomainAndType &a,
+                         const AttributeDomainAndType &b) = default;
 };
 
 /**

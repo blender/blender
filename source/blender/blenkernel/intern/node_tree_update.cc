@@ -717,7 +717,7 @@ class NodeTreeMainUpdater {
     bNodeSocket *to;
     int multi_input_sort_id = 0;
 
-    BLI_STRUCT_EQUALITY_OPERATORS_3(InternalLink, from, to, multi_input_sort_id);
+    friend bool operator==(const InternalLink &a, const InternalLink &b) = default;
   };
 
   const bNodeLink *first_non_dangling_link(const bNodeTree & /*ntree*/,

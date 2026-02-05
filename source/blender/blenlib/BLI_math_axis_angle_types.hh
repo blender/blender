@@ -78,7 +78,7 @@ template<typename T, typename AngleT> struct AxisAngleBase {
 
   /** Operators. */
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(AxisAngleBase, axis_, angle_)
+  friend bool operator==(const AxisAngleBase &a, const AxisAngleBase &b) = default;
 
   friend std::ostream &operator<<(std::ostream &stream, const AxisAngleBase &rot)
   {
