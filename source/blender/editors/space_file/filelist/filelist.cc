@@ -2078,7 +2078,10 @@ struct FileListReadJob {
   Mutex lock;
   char main_filepath[FILE_MAX] = "";
   Main *current_main = nullptr;
+  wmWindowManager *wm = nullptr;
   FileList *filelist = nullptr;
+
+  ReportList reports;
 
   /**
    * The path currently being read, relative to the filelist root directory.
@@ -3327,6 +3330,9 @@ static void filelist_readjob_endjob(void *flrjv)
 
   flrj->filelist->flags &= ~FL_IS_PENDING;
   flrj->filelist->flags |= FL_IS_READY;
+
+  WM_reports_from_reports_move(flrj->wm, &flrj->reports);
+  BKE_reports_free(&flrj->reports);
 }
 
 static void filelist_readjob_free(void *flrjv)
@@ -3379,6 +3385,7 @@ static void filelist_readjob_start_ex(FileList *filelist,
   flrj = MEM_new<FileListReadJob>(__func__);
   flrj->filelist = filelist;
   flrj->current_main = bmain;
+  flrj->wm = CTX_wm_manager(C);
   STRNCPY(flrj->main_filepath, BKE_main_blendfile_path(bmain));
   if ((filelist->flags & FL_FORCE_RESET_MAIN_FILES) && !(filelist->flags & FL_FORCE_RESET) &&
       (filelist->filelist.entries_num != FILEDIR_NBR_ENTRIES_UNSET))
@@ -3388,6 +3395,8 @@ static void filelist_readjob_start_ex(FileList *filelist,
   if (filelist->flags & FL_RELOAD_ASSET_LIBRARY) {
     flrj->reload_asset_library = true;
   }
+  BKE_reports_init(&flrj->reports, RPT_STORE | RPT_PRINT);
+  BKE_report_print_level_set(&flrj->reports, RPT_WARNING);
 
   filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_RELOAD_ASSET_LIBRARY |
                        FL_IS_READY);
