@@ -2721,15 +2721,6 @@ void CustomData_set_layer_flag(CustomData *data, const eCustomDataType type, con
   }
 }
 
-bool CustomData_layer_is_anonymous(const CustomData *data, eCustomDataType type, int n)
-{
-  const int layer_index = CustomData_get_layer_index_n(data, type, n);
-
-  BLI_assert(layer_index >= 0);
-
-  return bke::attribute_name_is_anonymous(data->layers[layer_index].name);
-}
-
 static void customData_resize(CustomData *data, const int grow_amount)
 {
   data->layers = static_cast<CustomDataLayer *>(MEM_realloc_uninitialized(
@@ -4196,25 +4187,6 @@ static bool CustomData_layer_ensure_data_exists(CustomDataLayer *layer, size_t c
       CLOG_WARN(&LOG, "CustomDataLayer->data is null for type %d.", layer->type);
       break;
   }
-  return false;
-}
-
-bool CustomData_layer_validate(CustomDataLayer *layer, const uint totitems, const bool do_fixes)
-{
-  BLI_assert(layer);
-  const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer->type));
-  BLI_assert(typeInfo);
-
-  if (do_fixes) {
-    CustomData_layer_ensure_data_exists(layer, totitems);
-  }
-
-  BLI_assert((totitems == 0) || layer->data);
-
-  if (typeInfo->validate != nullptr) {
-    return typeInfo->validate(layer->data, totitems, do_fixes);
-  }
-
   return false;
 }
 
