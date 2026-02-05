@@ -61,20 +61,71 @@ static void fill_new_attribute(const Span<const GeometryComponent *> src_compone
   }
 }
 
-void join_attributes(const Span<const GeometryComponent *> src_components,
-                     GeometryComponent &result,
-                     const Span<StringRef> ignored_attributes)
+static bool try_join_single_value_attribute(const Span<const GeometryComponent *> src_components,
+                                            const StringRef name,
+                                            const bke::AttrDomain domain,
+                                            const bke::AttrType data_type,
+                                            bke::MutableAttributeAccessor dst_attributes)
+{
+  const auto get_single_value = [&](const GeometryComponent &component) {
+    const bke::AttributeAccessor attributes = *component.attributes();
+    const GVArray src = *attributes.lookup_or_default(name, domain, data_type);
+    const CommonVArrayInfo info = src.common_info();
+    if (info.type != CommonVArrayInfo::Type::Single) {
+      return GPointer();
+    }
+    return GPointer(src.type(), info.data);
+  };
+  const GPointer first_value = get_single_value(*src_components.first());
+  if (!first_value) {
+    return false;
+  }
+  const bool all_equal = threading::parallel_reduce(
+      src_components.index_range().drop_front(1),
+      64,
+      true,
+      [&](const IndexRange range, bool value) {
+        if (!value) {
+          return false;
+        }
+        for (const int i : range) {
+          const GPointer value = get_single_value(*src_components[i]);
+          if (!value) {
+            return false;
+          }
+          if (!value.type()->is_equal(value.get(), first_value.get())) {
+            return false;
+          }
+        }
+        return true;
+      },
+      std::logical_and<bool>());
+  if (!all_equal) {
+    return false;
+  }
+  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
+}
+
+static void join_attributes(const Span<const GeometryComponent *> src_components,
+                            GeometryComponent &result,
+                            const Span<StringRef> ignored_attributes)
 {
   const GeometrySet::GatheredAttributes info = get_final_attribute_info(src_components,
                                                                         ignored_attributes);
+  bke::MutableAttributeAccessor dst_attributes = *result.attributes_for_write();
 
   for (const int i : info.names.index_range()) {
     const StringRef name = info.names[i];
     const AttributeDomainAndType &meta_data = info.kinds[i];
 
-    bke::GSpanAttributeWriter write_attribute =
-        result.attributes_for_write()->lookup_or_add_for_write_only_span(
-            name, meta_data.domain, meta_data.data_type);
+    if (try_join_single_value_attribute(
+            src_components, name, meta_data.domain, meta_data.data_type, dst_attributes))
+    {
+      continue;
+    }
+
+    bke::GSpanAttributeWriter write_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        name, meta_data.domain, meta_data.data_type);
     if (!write_attribute) {
       continue;
     }
