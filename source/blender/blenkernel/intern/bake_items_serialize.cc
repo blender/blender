@@ -314,6 +314,13 @@ static StringRefNull get_data_type_io_name(const eCustomDataType data_type)
   return io_name;
 }
 
+static StringRefNull get_storage_type_io_name(const AttrStorageType storage_type)
+{
+  const char *io_name = "unknown";
+  RNA_enum_id_from_value(rna_enum_attr_storage_type_items, int(storage_type), &io_name);
+  return io_name;
+}
+
 static std::optional<AttrDomain> get_domain_from_io_name(const StringRefNull io_name)
 {
   int domain;
@@ -330,6 +337,17 @@ static std::optional<eCustomDataType> get_data_type_from_io_name(const StringRef
     return std::nullopt;
   }
   return eCustomDataType(domain);
+}
+
+static std::optional<AttrStorageType> get_storage_type_from_io_name(const StringRefNull io_name)
+{
+  int storage_type;
+  if (!RNA_enum_value_from_identifier(
+          rna_enum_attr_storage_type_items, io_name.c_str(), &storage_type))
+  {
+    return std::nullopt;
+  }
+  return AttrStorageType(storage_type);
 }
 
 /**
@@ -559,36 +577,71 @@ template<typename T>
     if (!cpp_type) {
       return false;
     }
-    const int domain_size = attributes.domain_size(*domain);
-    const ImplicitSharingInfo *attribute_sharing_info;
-    const void *attribute_data = read_blob_shared_simple_gspan(
-        *io_data, blob_reader, blob_sharing, *cpp_type, domain_size, &attribute_sharing_info);
-    if (!attribute_data) {
-      return false;
-    }
-    BLI_SCOPED_DEFER([&]() { attribute_sharing_info->remove_user_and_delete_if_last(); });
 
-    if (attributes.contains(*name)) {
-      /* If the attribute exists already, copy the values over to the existing array. */
-      GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_only_span(
-          *name, *domain, *custom_data_type_to_attr_type(*data_type));
-      if (!attribute) {
-        return false;
+    const AttrStorageType storage_type = [&]() {
+      if (const std::optional<StringRefNull> str = io_attribute->lookup_str("storage_type")) {
+        return get_storage_type_from_io_name(*str).value_or(AttrStorageType::Array);
       }
-      cpp_type->copy_assign_n(attribute_data, attribute.span.data(), domain_size);
-      attribute.finish();
-    }
-    else {
-      /* Add a new attribute that shares the data. */
-      if (!attributes.add(*name,
-                          *domain,
-                          *custom_data_type_to_attr_type(*data_type),
-                          AttributeInitShared(attribute_data, *attribute_sharing_info)))
-      {
-        return false;
+      return AttrStorageType::Array;
+    }();
+    switch (storage_type) {
+      case AttrStorageType::Array: {
+        const int domain_size = attributes.domain_size(*domain);
+        const ImplicitSharingInfo *attribute_sharing_info;
+        const void *attribute_data = read_blob_shared_simple_gspan(
+            *io_data, blob_reader, blob_sharing, *cpp_type, domain_size, &attribute_sharing_info);
+        if (!attribute_data) {
+          return false;
+        }
+        BLI_SCOPED_DEFER([&]() { attribute_sharing_info->remove_user_and_delete_if_last(); });
+
+        if (attributes.contains(*name)) {
+          /* If the attribute exists already, copy the values over to the existing array. */
+          GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_only_span(
+              *name, *domain, *custom_data_type_to_attr_type(*data_type));
+          if (!attribute) {
+            return false;
+          }
+          cpp_type->copy_assign_n(attribute_data, attribute.span.data(), domain_size);
+          attribute.finish();
+        }
+        else {
+          /* Add a new attribute that shares the data. */
+          if (!attributes.add(*name,
+                              *domain,
+                              *custom_data_type_to_attr_type(*data_type),
+                              AttributeInitShared(attribute_data, *attribute_sharing_info)))
+          {
+            return false;
+          }
+        }
+        break;
+      }
+      case AttrStorageType::Single: {
+        const ImplicitSharingInfo *sharing_info;
+        const void *value = read_blob_shared_simple_gspan(
+            *io_data, blob_reader, blob_sharing, *cpp_type, 1, &sharing_info);
+        if (!value) {
+          return false;
+        }
+        BLI_SCOPED_DEFER([&]() { sharing_info->remove_user_and_delete_if_last(); });
+
+        const AttributeInitValue init(GPointer(*cpp_type, value));
+        if (attributes.contains(*name)) {
+          if (!attributes.assign_data(*name, init)) {
+            return false;
+          }
+        }
+        else {
+          if (!attributes.add(*name, *domain, *custom_data_type_to_attr_type(*data_type), init)) {
+            return false;
+          }
+        }
+        break;
       }
     }
   }
+
   return true;
 }
 
@@ -1059,13 +1112,24 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     io_attribute->append_str("type", type_name);
 
     const GAttributeReader attribute = iter.get();
+    const CommonVArrayInfo info = attribute.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      io_attribute->append_str("storage_type", get_storage_type_io_name(AttrStorageType::Single));
+      const GSpan attribute_span(attribute.varray.type(), info.data, 1);
+      io_attribute->append("data",
+                           write_blob_shared_simple_gspan(
+                               blob_writer, blob_sharing, attribute_span, attribute.sharing_info));
+      return;
+    }
+    /* Save "storage_type" with a default of ARRAY; don't store it in this case. */
     const GVArraySpan attribute_span(attribute.varray);
     io_attribute->append("data",
-                         write_blob_shared_simple_gspan(
-                             blob_writer,
-                             blob_sharing,
-                             attribute_span,
-                             attribute.varray.is_span() ? attribute.sharing_info : nullptr));
+                         write_blob_shared_simple_gspan(blob_writer,
+                                                        blob_sharing,
+                                                        attribute_span,
+                                                        info.type == CommonVArrayInfo::Type::Span ?
+                                                            attribute.sharing_info :
+                                                            nullptr));
   });
   return io_attributes;
 }
