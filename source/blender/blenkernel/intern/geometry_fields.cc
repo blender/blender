@@ -973,12 +973,8 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
     }
     else {
       const auto value = std::get<AddResult::Single>(result.new_data);
-      if (!attributes.add(
-              id,
-              domain,
-              data_type,
-              AttributeInitVArray(GVArray::from_single_ref(type, domain_size, value.value))))
-      {
+      const AttributeInitValue init(GPointer(type, value.value));
+      if (!attributes.add(id, domain, data_type, init)) {
         success = false;
       }
     }
