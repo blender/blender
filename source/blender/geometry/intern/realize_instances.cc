@@ -508,6 +508,66 @@ static VectorSet<int> gather_all_fill_ids(const VArray<int> &fill_ids)
   return index_by_fill_ids;
 }
 
+struct TaskAttrInfo {
+  Span<std::optional<GVArray>> attributes;
+  const AttributeFallbacksArray &fallbacks;
+};
+
+static bool try_join_single_value_attribute(
+    const int tasks_num,
+    const OrderedAttributes &ordered_attributes,
+    const FunctionRef<TaskAttrInfo(int)> get_task_attributes,
+    const int attr_index,
+    bke::MutableAttributeAccessor dst_attributes)
+{
+  const bke::AttrType data_type = ordered_attributes.kinds[attr_index].data_type;
+  const auto get_single_value = [&](const int task_index) -> GPointer {
+    const TaskAttrInfo task_info = get_task_attributes(task_index);
+    if (task_info.attributes[attr_index].has_value()) {
+      const CommonVArrayInfo info = task_info.attributes[attr_index]->common_info();
+      if (info.type != CommonVArrayInfo::Type::Single) {
+        return GPointer();
+      }
+      return GPointer(task_info.attributes[attr_index]->type(), info.data);
+    }
+    const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
+    if (const void *value = task_info.fallbacks.array[attr_index]) {
+      return GPointer(type, value);
+    }
+    return GPointer(type, type.default_value());
+  };
+  const GPointer first_value = get_single_value(0);
+  if (!first_value) {
+    return false;
+  }
+  const bool all_equal = threading::parallel_reduce(
+      IndexRange(tasks_num).drop_front(1),
+      32,
+      true,
+      [&](const IndexRange range, bool value) {
+        if (!value) {
+          return false;
+        }
+        for (const int i : range) {
+          const GPointer value = get_single_value(i);
+          if (!value) {
+            return false;
+          }
+          if (!value.type()->is_equal(value.get(), first_value.get())) {
+            return false;
+          }
+        }
+        return true;
+      },
+      std::logical_and<bool>());
+  if (!all_equal) {
+    return false;
+  }
+  const StringRef name = ordered_attributes.names[attr_index];
+  const bke::AttrDomain domain = ordered_attributes.kinds[attr_index].domain;
+  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Gather Realize Tasks
  * \{ */
@@ -1283,66 +1343,6 @@ static void add_instance_attributes_to_single_geometry(
                    data_type,
                    bke::AttributeInitValue(GPointer(cpp_type, value)));
   }
-}
-
-struct TaskAttrInfo {
-  Span<std::optional<GVArray>> attributes;
-  const AttributeFallbacksArray &fallbacks;
-};
-
-static bool try_join_single_value_attribute(
-    const int tasks_num,
-    const OrderedAttributes &ordered_attributes,
-    const FunctionRef<TaskAttrInfo(int)> get_task_attributes,
-    const int attr_index,
-    bke::MutableAttributeAccessor dst_attributes)
-{
-  const bke::AttrType data_type = ordered_attributes.kinds[attr_index].data_type;
-  const auto get_single_value = [&](const int task_index) -> GPointer {
-    const TaskAttrInfo task_info = get_task_attributes(task_index);
-    if (task_info.attributes[attr_index].has_value()) {
-      const CommonVArrayInfo info = task_info.attributes[attr_index]->common_info();
-      if (info.type != CommonVArrayInfo::Type::Single) {
-        return GPointer();
-      }
-      return GPointer(task_info.attributes[attr_index]->type(), info.data);
-    }
-    const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
-    if (const void *value = task_info.fallbacks.array[attr_index]) {
-      return GPointer(type, value);
-    }
-    return GPointer(type, type.default_value());
-  };
-  const GPointer first_value = get_single_value(0);
-  if (!first_value) {
-    return false;
-  }
-  const bool all_equal = threading::parallel_reduce(
-      IndexRange(tasks_num).drop_front(1),
-      32,
-      true,
-      [&](const IndexRange range, bool value) {
-        if (!value) {
-          return false;
-        }
-        for (const int i : range) {
-          const GPointer value = get_single_value(i);
-          if (!value) {
-            return false;
-          }
-          if (!value.type()->is_equal(value.get(), first_value.get())) {
-            return false;
-          }
-        }
-        return true;
-      },
-      std::logical_and<bool>());
-  if (!all_equal) {
-    return false;
-  }
-  const StringRef name = ordered_attributes.names[attr_index];
-  const bke::AttrDomain domain = ordered_attributes.kinds[attr_index].domain;
-  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
 }
 
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
