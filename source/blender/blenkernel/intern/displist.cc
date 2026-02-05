@@ -581,8 +581,8 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
   for (const Vector<int> &face : result.face) {
     BLI_assert(face.size() == 3);
     index[0] = face[0];
-    index[1] = flip_normal ? face[2] : face[1];
-    index[2] = flip_normal ? face[1] : face[2];
+    index[1] = flip_normal ? face[1] : face[2];
+    index[2] = flip_normal ? face[2] : face[1];
     index += 3;
   }
 
