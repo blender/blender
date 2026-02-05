@@ -26,11 +26,6 @@ def list_assets(blendfile: Path, asset_library_root: Path) -> tuple[api_models.F
 
     blendfile_info = _blendfile_info(blendfile, asset_library_root)
 
-    # TODO: when this is possible, get the version of Blender used to write this
-    # blendfile (bpy.data.version when you open it 'for real'), rather than the
-    # currently-running version.
-    blendfile_info.blender_version = ".".join(map(str, bpy.app.version))
-
     # Tell Blender to only load asset data-blocks.
     with bpy.data.libraries.load(str(blendfile), assets_only=True) as (
         data_from,
@@ -38,6 +33,10 @@ def list_assets(blendfile: Path, asset_library_root: Path) -> tuple[api_models.F
     ):
         for attr in dir(data_to):
             setattr(data_to, attr, getattr(data_from, attr))
+
+        # Convert the Blender version to a string.
+        blend_version = ".".join(map(str, data_from.version))
+        blendfile_info.blender_version = blend_version
 
     # Get the last modification timestamp of the blend file, to compare against
     # the thumbnails.
