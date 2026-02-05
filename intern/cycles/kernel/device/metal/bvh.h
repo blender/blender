@@ -451,8 +451,10 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
       /* Record geometric normal */
       int prim_type = kernel_data_fetch(objects, local_object).primitive_type;
 
+      /* Number of hits counted can be higher than recorded due to reservoir sampling. */
       local_isect->num_hits = num_hits;
-      for (int hit = 0; hit < num_hits; hit++) {
+      const int num_recorded_hits = min(payload.num_hits, max_hits);
+      for (int hit = 0; hit < num_recorded_hits; hit++) {
         const uint prim = payload.hits[hit].prim + primitive_id_offset;
         local_isect->hits[hit].prim = prim;
         local_isect->hits[hit].t = payload.hits[hit].t;
