@@ -31,8 +31,11 @@ void BKE_curvemapping_set_defaults(CurveMapping *cumap,
                                    float maxy,
                                    short default_handle_type);
 CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
+void BKE_curvemapping_free_data_single(CurveMapping *cumap, int index);
 void BKE_curvemapping_free_data(CurveMapping *cumap);
 void BKE_curvemapping_free(CurveMapping *cumap);
+void BKE_curvemapping_copy_data_single(
+    CurveMapping *target, const CurveMapping *cumap, int to_idx, int from_idx, bool make_copy);
 void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap);
 CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap);
 void BKE_curvemapping_set_black_white_ex(const float black[3],
@@ -129,6 +132,7 @@ void BKE_curvemapping_evaluate_premulRGBF(const CurveMapping *cumap,
 bool BKE_curvemapping_RGBA_does_something(const CurveMapping *cumap);
 void BKE_curvemapping_table_F(const CurveMapping *cumap, float **array, int *size);
 void BKE_curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *size);
+int BKE_curvemapping_num_channels(const CurveMapping *cumap);
 
 /** Get the minimum x value of each curve map table. */
 void BKE_curvemapping_get_range_minimums(const CurveMapping *curve_mapping, float minimums[4]);
