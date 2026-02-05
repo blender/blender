@@ -35,6 +35,13 @@ const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_mesh_walk_delimit_edge_loop_items[] = {
+    {BMW_DELIMIT_EDGE_MARK_SEAM, "SEAM", 0, "Seam", "Delimit edge loop selection at seams"},
+    {BMW_DELIMIT_EDGE_MARK_SHARP,
+     "SHARP",
+     0,
+     "Sharp",
+     "Delimit edge loop selection at sharp edges"},
+    {BMW_DELIMIT_EDGE_LOOP_NGONS, "NGONS", 0, "N-gons", "Stop boundary selection at n-gons"},
     {BMW_DELIMIT_EDGE_LOOP_INNER_CORNERS,
      "INNER_CORNERS",
      0,
@@ -46,7 +53,6 @@ const EnumPropertyItem rna_enum_mesh_walk_delimit_edge_loop_items[] = {
      "Outer Corners",
      "Stop boundary selection at vertices with two edges when they share a face that is not an "
      "n-gon"},
-    {BMW_DELIMIT_EDGE_LOOP_NGONS, "NGONS", 0, "N-gons", "Stop boundary selection at n-gons"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
