@@ -265,9 +265,7 @@ static bool compare_node_depth(const bNode *a, const bNode *b)
 void tree_draw_order_update(bNodeTree &ntree)
 {
   Array<bNode *> sort_nodes = ntree.all_nodes();
-  std::sort(sort_nodes.begin(), sort_nodes.end(), [](bNode *a, bNode *b) {
-    return a->ui_order < b->ui_order;
-  });
+  std::ranges::sort(sort_nodes, [](bNode *a, bNode *b) { return a->ui_order < b->ui_order; });
   std::stable_sort(sort_nodes.begin(), sort_nodes.end(), compare_node_depth);
   for (const int i : sort_nodes.index_range()) {
     sort_nodes[i]->ui_order = i;
@@ -280,9 +278,8 @@ Array<bNode *> tree_draw_order_calc_nodes(bNodeTree &ntree)
   if (nodes.is_empty()) {
     return {};
   }
-  std::sort(nodes.begin(), nodes.end(), [](const bNode *a, const bNode *b) {
-    return a->ui_order < b->ui_order;
-  });
+  std::ranges::sort(nodes,
+                    [](const bNode *a, const bNode *b) { return a->ui_order < b->ui_order; });
   return nodes;
 }
 
@@ -292,9 +289,8 @@ Array<bNode *> tree_draw_order_calc_nodes_reversed(bNodeTree &ntree)
   if (nodes.is_empty()) {
     return {};
   }
-  std::sort(nodes.begin(), nodes.end(), [](const bNode *a, const bNode *b) {
-    return a->ui_order > b->ui_order;
-  });
+  std::ranges::sort(nodes,
+                    [](const bNode *a, const bNode *b) { return a->ui_order > b->ui_order; });
   return nodes;
 }
 
@@ -2421,11 +2417,9 @@ static std::string named_attribute_tooltip(bContext * /*C*/, void *argN, const S
   for (auto &&item : arg.usage_by_attribute.items()) {
     sorted_used_attribute.append({item.key, item.value});
   }
-  std::sort(sorted_used_attribute.begin(),
-            sorted_used_attribute.end(),
-            [](const NameWithUsage &a, const NameWithUsage &b) {
-              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) < 0;
-            });
+  std::ranges::sort(sorted_used_attribute, [](const NameWithUsage &a, const NameWithUsage &b) {
+    return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) < 0;
+  });
 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRefNull name = attribute.name;
@@ -4313,7 +4307,7 @@ static void node_draw_zones_and_frames(const ARegion &region,
     BLI_assert_unreachable();
     return 0.0f;
   };
-  std::sort(draw_order.begin(), draw_order.end(), [&](const ZoneOrNode &a, const ZoneOrNode &b) {
+  std::ranges::sort(draw_order, [&](const ZoneOrNode &a, const ZoneOrNode &b) {
     /* Draw zones with smaller bounding box on top to make them visible. */
     return get_zone_or_node_width(a) > get_zone_or_node_width(b);
   });

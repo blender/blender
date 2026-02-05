@@ -128,7 +128,7 @@ static std::optional<Vector<ZoneRelation>> get_direct_zone_relations(
       }
     }
   }
-  std::sort(transitive_relations.begin(), transitive_relations.end(), std::greater<>());
+  std::ranges::sort(transitive_relations, std::greater<>());
 
   Vector<ZoneRelation> zone_relations = all_zone_relations.as_span();
   for (const int i : transitive_relations) {

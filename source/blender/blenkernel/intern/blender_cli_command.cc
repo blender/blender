@@ -138,9 +138,9 @@ int BKE_blender_cli_command_exec(bContext *C, const char *id, const int argc, co
 void BKE_blender_cli_command_print_help()
 {
   /* As `g_command_handlers` isn't ordered, sorting in-place is acceptable. */
-  std::sort(g_command_handlers.begin(),
-            g_command_handlers.end(),
-            [](const CommandHandlerPtr &a, const CommandHandlerPtr &b) { return a->id < b->id; });
+  std::ranges::sort(
+      g_command_handlers,
+      [](const CommandHandlerPtr &a, const CommandHandlerPtr &b) { return a->id < b->id; });
 
   for (int pass = 0; pass < 2; pass++) {
     std::cout << ((pass == 0) ? "Blender Command Listing:" :

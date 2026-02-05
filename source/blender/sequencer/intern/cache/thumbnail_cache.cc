@@ -307,17 +307,16 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
     }
 
     /* Sort requests by file, stream and increasing frame index. */
-    std::sort(requests.begin(),
-              requests.end(),
-              [](const ThumbnailCache::Request &a, const ThumbnailCache::Request &b) {
-                if (a.file_path != b.file_path) {
-                  return a.file_path < b.file_path;
-                }
-                if (a.stream_index != b.stream_index) {
-                  return a.stream_index < b.stream_index;
-                }
-                return a.frame_index < b.frame_index;
-              });
+    std::ranges::sort(requests,
+                      [](const ThumbnailCache::Request &a, const ThumbnailCache::Request &b) {
+                        if (a.file_path != b.file_path) {
+                          return a.file_path < b.file_path;
+                        }
+                        if (a.stream_index != b.stream_index) {
+                          return a.stream_index < b.stream_index;
+                        }
+                        return a.frame_index < b.frame_index;
+                      });
 
     /* Note: we could process thumbnail cache requests somewhat in parallel,
      * but let's not do that so that UI responsiveness is not affected much.

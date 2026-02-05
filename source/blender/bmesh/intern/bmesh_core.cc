@@ -2237,9 +2237,8 @@ bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b)
 
   for (const int side : IndexRange(2)) {
     if (loops_pair[side].size() > 1) {
-      std::sort(loops_pair[side].begin(), loops_pair[side].end(), [](BMLoop *a, BMLoop *b) {
-        return a->f->len < b->f->len;
-      });
+      std::ranges::sort(loops_pair[side],
+                        [](BMLoop *a, BMLoop *b) { return a->f->len < b->f->len; });
     }
   }
 

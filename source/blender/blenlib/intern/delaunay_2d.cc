@@ -1520,7 +1520,7 @@ template<typename T> void initial_triangulation(CDTArrangement<T> *cdt)
     sites[i].v = cdt->verts[i];
     sites[i].orig_index = i;
   }
-  std::sort(sites.begin(), sites.end(), site_lexicographic_sort<T>);
+  std::ranges::sort(sites, site_lexicographic_sort<T>);
   find_site_merges(sites);
   dc_triangulate(cdt, sites);
 }
@@ -2433,11 +2433,9 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
       i++;
     }
   }
-  std::sort(dissolvable_edges.begin(),
-            dissolvable_edges.end(),
-            [](const EdgeToSort<T> &a, const EdgeToSort<T> &b) -> bool {
-              return (a.len_squared < b.len_squared);
-            });
+  std::ranges::sort(dissolvable_edges, [](const EdgeToSort<T> &a, const EdgeToSort<T> &b) -> bool {
+    return (a.len_squared < b.len_squared);
+  });
   for (EdgeToSort<T> &ets : dissolvable_edges) {
     CDTEdge<T> *e = ets.e;
     SymEdge<T> *se = &e->symedges[0];

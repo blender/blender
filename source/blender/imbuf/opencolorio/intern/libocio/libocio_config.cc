@@ -122,7 +122,7 @@ void LibOCIOConfig::initialize_active_color_spaces()
   /* Create index array for access to the color space in alphabetic order. */
   sorted_color_space_index_.resize(num_color_spaces);
   std::iota(sorted_color_space_index_.begin(), sorted_color_space_index_.end(), 0);
-  std::sort(sorted_color_space_index_.begin(), sorted_color_space_index_.end(), [&](int a, int b) {
+  std::ranges::sort(sorted_color_space_index_, [&](int a, int b) {
     return color_spaces_[a].name() < color_spaces_[b].name();
   });
 }

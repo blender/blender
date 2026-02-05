@@ -480,7 +480,7 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
    * so the order of strokes can be maintained. */
   Array<int> sorted_pairs(dst_curve_num);
   array_utils::fill_index_range(sorted_pairs.as_mutable_span());
-  std::sort(sorted_pairs.begin(), sorted_pairs.end(), [&](const int a, const int b) {
+  std::ranges::sort(sorted_pairs, [&](const int a, const int b) {
     const int from_frame_a = curve_pairs.from_frames[a];
     const int to_frame_a = curve_pairs.to_frames[a];
     const int from_frame_b = curve_pairs.from_frames[b];

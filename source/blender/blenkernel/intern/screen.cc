@@ -1364,11 +1364,9 @@ static void remove_least_recently_used_panel_states(Panel &panel, const int64_t 
   if (all_states.size() <= max_kept) {
     return;
   }
-  std::sort(all_states.begin(),
-            all_states.end(),
-            [](const LayoutPanelState *a, const LayoutPanelState *b) {
-              return a->last_used < b->last_used;
-            });
+  std::ranges::sort(all_states, [](const LayoutPanelState *a, const LayoutPanelState *b) {
+    return a->last_used < b->last_used;
+  });
   for (LayoutPanelState *state : all_states.as_span().drop_back(max_kept)) {
     BLI_remlink(&panel.layout_panel_states, state);
     layout_panel_state_delete(state);

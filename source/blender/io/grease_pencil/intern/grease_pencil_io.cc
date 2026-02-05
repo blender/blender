@@ -349,7 +349,7 @@ Vector<GreasePencilExporter::ObjectInfo> GreasePencilExporter::retrieve_objects(
   }
 
   /* Sort list of objects from point of view. */
-  std::sort(objects.begin(), objects.end(), [](const ObjectInfo &info1, const ObjectInfo &info2) {
+  std::ranges::sort(objects, [](const ObjectInfo &info1, const ObjectInfo &info2) {
     return info1.depth < info2.depth;
   });
 

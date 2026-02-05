@@ -592,7 +592,7 @@ Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
     symm_verts.append(*nearest);
   }
 
-  std::sort(symm_verts.begin(), symm_verts.end());
+  std::ranges::sort(symm_verts);
   return symm_verts;
 }
 
@@ -625,7 +625,7 @@ Vector<int> find_symm_verts_grids(const Object &object,
     symm_verts.append(nearest->to_index(key));
   }
 
-  std::sort(symm_verts.begin(), symm_verts.end());
+  std::ranges::sort(symm_verts);
   return symm_verts;
 }
 
@@ -657,7 +657,7 @@ Vector<int> find_symm_verts_bmesh(const Object &object,
     symm_verts.append(BM_elem_index_get(*nearest));
   }
 
-  std::sort(symm_verts.begin(), symm_verts.end());
+  std::ranges::sort(symm_verts);
   return symm_verts;
 }
 

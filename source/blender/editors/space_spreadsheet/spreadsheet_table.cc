@@ -316,7 +316,7 @@ void spreadsheet_table_remove_unused(SpaceSpreadsheet &sspreadsheet)
     for (const SpreadsheetTable *table : Span(sspreadsheet.tables, sspreadsheet.num_tables)) {
       last_used_times.append(table->last_used);
     }
-    std::sort(last_used_times.begin(), last_used_times.end());
+    std::ranges::sort(last_used_times);
     min_last_used = last_used_times[sspreadsheet.num_tables - max_tables];
   }
 
@@ -378,7 +378,7 @@ void spreadsheet_table_remove_unused_columns(SpreadsheetTable &table)
       last_used_times.append(column->last_used);
     }
   }
-  std::sort(last_used_times.begin(), last_used_times.end());
+  std::ranges::sort(last_used_times);
   const int min_last_used = last_used_times[max_unavailable_columns_target];
 
   dna::array::remove_if<SpreadsheetColumn *>(

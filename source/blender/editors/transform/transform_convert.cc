@@ -96,7 +96,7 @@ static void make_sorted_index_map(TransDataContainer *tc, FunctionRef<bool(int, 
 
   const MutableSpan sorted_index_span(tc->sorted_index_map, tc->data_len);
   array_utils::fill_index_range(sorted_index_span);
-  std::sort(sorted_index_span.begin(), sorted_index_span.end(), compare);
+  std::ranges::sort(sorted_index_span, compare);
 }
 
 /**

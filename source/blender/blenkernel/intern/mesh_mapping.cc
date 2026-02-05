@@ -277,7 +277,7 @@ static void sort_small_groups(const OffsetIndices<int> groups,
   threading::parallel_for(groups.index_range(), grain_size, [&](const IndexRange range) {
     for (const int64_t index : range) {
       MutableSpan<int> group = indices.slice(groups[index]);
-      std::sort(group.begin(), group.end());
+      std::ranges::sort(group);
     }
   });
 }

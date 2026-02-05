@@ -227,31 +227,30 @@ void VolumeProbeModule::set_view(View & /*view*/)
   int world_grid_index = 0;
   {
     /* Stable sorting of grids. */
-    std::sort(
-        grid_loaded.begin(), grid_loaded.end(), [](const VolumeProbe *a, const VolumeProbe *b) {
-          float volume_a = math::determinant(float3x3(a->object_to_world));
-          float volume_b = math::determinant(float3x3(b->object_to_world));
-          if (volume_a != volume_b) {
-            /* Smallest first. */
-            return volume_a < volume_b;
-          }
-          /* Volumes are identical. Any arbitrary criteria can be used to sort them.
-           * Use position to avoid unstable result caused by depsgraph non deterministic eval
-           * order. This could also become a priority parameter. */
-          float3 _a = a->object_to_world.location();
-          float3 _b = b->object_to_world.location();
-          if (_a.x != _b.x) {
-            return _a.x < _b.x;
-          }
-          if (_a.y != _b.y) {
-            return _a.y < _b.y;
-          }
-          if (_a.z != _b.z) {
-            return _a.z < _b.z;
-          }
-          /* Fallback to memory address, since there's no good alternative. */
-          return a < b;
-        });
+    std::ranges::sort(grid_loaded, [](const VolumeProbe *a, const VolumeProbe *b) {
+      float volume_a = math::determinant(float3x3(a->object_to_world));
+      float volume_b = math::determinant(float3x3(b->object_to_world));
+      if (volume_a != volume_b) {
+        /* Smallest first. */
+        return volume_a < volume_b;
+      }
+      /* Volumes are identical. Any arbitrary criteria can be used to sort them.
+       * Use position to avoid unstable result caused by depsgraph non deterministic eval
+       * order. This could also become a priority parameter. */
+      float3 _a = a->object_to_world.location();
+      float3 _b = b->object_to_world.location();
+      if (_a.x != _b.x) {
+        return _a.x < _b.x;
+      }
+      if (_a.y != _b.y) {
+        return _a.y < _b.y;
+      }
+      if (_a.z != _b.z) {
+        return _a.z < _b.z;
+      }
+      /* Fallback to memory address, since there's no good alternative. */
+      return a < b;
+    });
 
     /* Insert grids in UBO in sorted order. */
     int grids_len = 0;

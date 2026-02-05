@@ -950,7 +950,7 @@ static void sort_by_signed_triangle_index(Vector<int> &g,
     find_flap_vert(tri, e, &rev);
     signed_g[i] = rev ? -g[i] : g[i];
   }
-  std::sort(signed_g.begin(), signed_g.end());
+  std::ranges::sort(signed_g);
 
   for (int i : g.index_range()) {
     g[i] = abs(signed_g[i]);
@@ -3223,10 +3223,9 @@ static void do_dissolve(FaceMergeState *fms)
     return;
   }
   /* Things look nicer if we dissolve the longer edges first. */
-  std::sort(
-      dissolve_edges.begin(), dissolve_edges.end(), [fms](const int &a, const int &b) -> bool {
-        return (fms->edge[a].len_squared > fms->edge[b].len_squared);
-      });
+  std::ranges::sort(dissolve_edges, [fms](const int &a, const int &b) -> bool {
+    return (fms->edge[a].len_squared > fms->edge[b].len_squared);
+  });
   if (dbg_level > 0) {
     std::cout << "Sorted dissolvable edges: " << dissolve_edges << "\n";
   }

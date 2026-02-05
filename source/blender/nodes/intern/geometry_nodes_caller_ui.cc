@@ -838,7 +838,7 @@ static void draw_warnings(const bContext *C,
   for (const int i : warnings.index_range()) {
     warnings[i] = &tree_log->all_warnings[i];
   }
-  std::sort(warnings.begin(), warnings.end(), [](const NodeWarning *a, const NodeWarning *b) {
+  std::ranges::sort(warnings, [](const NodeWarning *a, const NodeWarning *b) {
     const int severity_a = node_warning_type_severity(a->type);
     const int severity_b = node_warning_type_severity(b->type);
     if (severity_a > severity_b) {
@@ -957,11 +957,9 @@ static void draw_named_attributes_panel(ui::Layout &layout, Object &object, Node
   for (auto &&item : usage_by_attribute.items()) {
     sorted_used_attribute.append({item.key, item.value});
   }
-  std::sort(sorted_used_attribute.begin(),
-            sorted_used_attribute.end(),
-            [](const NameWithUsage &a, const NameWithUsage &b) {
-              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) < 0;
-            });
+  std::ranges::sort(sorted_used_attribute, [](const NameWithUsage &a, const NameWithUsage &b) {
+    return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) < 0;
+  });
 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRef attribute_name = attribute.name;

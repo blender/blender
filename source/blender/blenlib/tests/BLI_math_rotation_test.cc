@@ -259,7 +259,7 @@ static void test_sin_cos_from_fraction_symmetry(const int range)
     coords.append_unchecked(sin_cos_fl);
   }
   /* Sort, then count unique items. */
-  std::sort(coords.begin(), coords.end(), [](const float2 &a, const float2 &b) {
+  std::ranges::sort(coords, [](const float2 &a, const float2 &b) {
     float delta = b[0] - a[0];
     if (delta == 0.0f) {
       delta = b[1] - a[1];

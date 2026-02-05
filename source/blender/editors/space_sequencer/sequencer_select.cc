@@ -1068,7 +1068,7 @@ static Vector<Strip *> padded_strips_under_mouse_get(const Scene *scene,
     strips.append(&strip);
   }
 
-  std::sort(strips.begin(), strips.end(), [&](const Strip *strip1, const Strip *strip2) {
+  std::ranges::sort(strips, [&](const Strip *strip1, const Strip *strip2) {
     return strip_to_frame_distance(scene, v2d, strip1, mouse_co[0]) <
            strip_to_frame_distance(scene, v2d, strip2, mouse_co[0]);
   });

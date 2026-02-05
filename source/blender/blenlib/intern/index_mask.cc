@@ -747,7 +747,7 @@ IndexMask IndexMask::from_initializers(const Span<Initializer> initializers,
   }
   Vector<int64_t> values_vec;
   values_vec.extend(values.begin(), values.end());
-  std::sort(values_vec.begin(), values_vec.end());
+  std::ranges::sort(values_vec);
   return IndexMask::from_indices(values_vec.as_span(), memory);
 }
 

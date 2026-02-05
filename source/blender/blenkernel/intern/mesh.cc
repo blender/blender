@@ -763,7 +763,7 @@ static void build_vertex_groups_for_leaves(const int verts_num,
 
       new (&verts_per_leaf[i]) Array<int>(verts.size());
       std::copy(verts.begin(), verts.end(), verts_per_leaf[i].begin());
-      std::sort(verts_per_leaf[i].begin(), verts_per_leaf[i].end());
+      std::ranges::sort(verts_per_leaf[i]);
       group.corner_count = corners_count;
     }
   });

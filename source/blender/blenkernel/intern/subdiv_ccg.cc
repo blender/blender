@@ -839,8 +839,8 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG &subdiv_ccg,
   Vector<int> adjacent_verts(adjacent_vert_set.begin(), adjacent_vert_set.end());
   Vector<int> adjacent_edges(adjacent_edge_set.begin(), adjacent_edge_set.end());
 
-  std::sort(adjacent_verts.begin(), adjacent_verts.end());
-  std::sort(adjacent_edges.begin(), adjacent_edges.end());
+  std::ranges::sort(adjacent_verts);
+  std::ranges::sort(adjacent_edges);
 
   IndexMaskMemory memory;
   subdiv_ccg_average_boundaries(

@@ -223,7 +223,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
       for (const FramesMapKeyT key : dst_frames.keys()) {
         sorted_keys[i++] = key;
       }
-      std::sort(sorted_keys.begin(), sorted_keys.end());
+      std::ranges::sort(sorted_keys);
     }
 
     Array<Vector<int>> src_drawing_indices_by_frame(sorted_keys.size());

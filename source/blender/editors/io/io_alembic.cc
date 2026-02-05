@@ -539,9 +539,8 @@ static int get_sequence_len(const char *filepath, int *ofs)
 
   closedir(dir);
 
-  std::sort(frames.begin(), frames.end(), [](const CacheFrame &a, const CacheFrame &b) {
-    return a.framenr < b.framenr;
-  });
+  std::ranges::sort(
+      frames, [](const CacheFrame &a, const CacheFrame &b) { return a.framenr < b.framenr; });
 
   if (frames.is_empty()) {
     return -1;

@@ -133,11 +133,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       entries.append({handle, &(child_object->id.name[2]), transform});
     }
 
-    std::sort(entries.begin(),
-              entries.end(),
-              [](const InstanceListEntry &a, const InstanceListEntry &b) {
-                return BLI_strcasecmp_natural(a.name, b.name) < 0;
-              });
+    std::ranges::sort(entries, [](const InstanceListEntry &a, const InstanceListEntry &b) {
+      return BLI_strcasecmp_natural(a.name, b.name) < 0;
+    });
     for (const InstanceListEntry &entry : entries) {
       instances->add_instance(entry.handle, entry.transform);
     }

@@ -403,7 +403,7 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
       }
       nodes.append(node);
     }
-    std::sort(nodes.begin(), nodes.end(), [](const ufbx_node *a, const ufbx_node *b) {
+    std::ranges::sort(nodes, [](const ufbx_node *a, const ufbx_node *b) {
       int ncmp = strcmp(a->name.data, b->name.data);
       if (ncmp != 0) {
         return ncmp < 0;

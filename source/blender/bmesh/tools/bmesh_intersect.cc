@@ -180,9 +180,7 @@ static void edge_verts_sort(const float co[3], LinkBase *v_ls_base)
     vert_sort[i].v = v;
   }
 
-  std::sort(vert_sort.begin(), vert_sort.end(), [](const VertSort &a, const VertSort &b) {
-    return a.val < b.val;
-  });
+  std::ranges::sort(vert_sort, [](const VertSort &a, const VertSort &b) { return a.val < b.val; });
 
   for (i = 0, node = v_ls_base->list; i < v_ls_base->list_len; i++, node = node->next) {
     node->link = vert_sort[i].v;
@@ -935,7 +933,7 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
     const float eps = FLT_EPSILON * 10;
     num_isect = 1; /* always count first */
 
-    std::sort(z_buffer.begin(), z_buffer.end());
+    std::ranges::sort(z_buffer);
 
     const float *depth_arr = z_buffer.data();
     float depth_last = depth_arr[0];

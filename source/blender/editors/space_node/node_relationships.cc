@@ -277,9 +277,8 @@ static Vector<bNodeSocket *> get_available_sorted_inputs(const bNodeTree *ntree,
     }
   }
 
-  std::sort(inputs.begin(), inputs.end(), [](const bNodeSocket *a, const bNodeSocket *b) {
-    return a->type > b->type;
-  });
+  std::ranges::sort(inputs,
+                    [](const bNodeSocket *a, const bNodeSocket *b) { return a->type > b->type; });
 
   return inputs;
 }
@@ -338,7 +337,7 @@ static void sort_multi_input_socket_links_with_drag(bNodeSocket &socket,
 
   links.append({&drag_link, cursor});
 
-  std::sort(links.begin(), links.end(), [](const LinkAndPosition a, const LinkAndPosition b) {
+  std::ranges::sort(links, [](const LinkAndPosition a, const LinkAndPosition b) {
     return a.multi_socket_position.y < b.multi_socket_position.y;
   });
 
@@ -354,7 +353,7 @@ void update_multi_input_indices_for_removed_links(bNode &node)
       continue;
     }
     Vector<bNodeLink *, 8> links = socket->directly_linked_links();
-    std::sort(links.begin(), links.end(), [](const bNodeLink *a, const bNodeLink *b) {
+    std::ranges::sort(links, [](const bNodeLink *a, const bNodeLink *b) {
       return a->multi_input_sort_id < b->multi_input_sort_id;
     });
 
@@ -373,7 +372,7 @@ static void snode_autoconnect(bContext &C,
   Vector<bNode *> sorted_nodes = get_selected_nodes(*ntree).extract_vector();
 
   /* Sort nodes left to right. */
-  std::sort(sorted_nodes.begin(), sorted_nodes.end(), [](const bNode *a, const bNode *b) {
+  std::ranges::sort(sorted_nodes, [](const bNode *a, const bNode *b) {
     return a->location[0] < b->location[0];
   });
 

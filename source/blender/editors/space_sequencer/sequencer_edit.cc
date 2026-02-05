@@ -381,9 +381,8 @@ const Strip *get_scene_strip_for_time_sync(const Scene *sequencer_scene)
   });
   Vector<Strip *> strips = query_strips.extract_vector();
   /* Sort strips by channel. */
-  std::sort(strips.begin(), strips.end(), [](const Strip *a, const Strip *b) {
-    return a->channel > b->channel;
-  });
+  std::ranges::sort(strips,
+                    [](const Strip *a, const Strip *b) { return a->channel > b->channel; });
   /* Get the top-most scene strip. */
   for (const Strip *strip : strips) {
     if (strip->type == STRIP_TYPE_SCENE) {

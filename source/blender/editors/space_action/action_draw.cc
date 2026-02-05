@@ -762,7 +762,7 @@ static void timeline_cache_draw_geometry_nodes(const Span<CacheRange> cache_rang
   }
   Vector<int> status_change_frames;
   status_change_frames.extend(status_change_frames_set.begin(), status_change_frames_set.end());
-  std::sort(status_change_frames.begin(), status_change_frames.end());
+  std::ranges::sort(status_change_frames);
   const OffsetIndices<int> frame_ranges = status_change_frames.as_span();
 
   GPU_matrix_push();
