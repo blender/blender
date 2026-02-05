@@ -141,6 +141,10 @@ std::string to_gpu_format_string(VkFormat format)
     return STRINGIFY(blender_enum);
   switch (format) {
     GPU_TEXTURE_TARGET_FORMAT_EXPAND(CASE)
+
+    case VK_FORMAT_UNDEFINED:
+      return "UNDEFINED";
+
     default:
       BLI_assert_unreachable();
       break;
