@@ -19,8 +19,10 @@ struct MenuValue {
   MenuValue() = default;
   explicit MenuValue(const int value) : value(value) {}
 
-  template<typename EnumT, BLI_ENABLE_IF((std::is_enum_v<EnumT>))>
-  MenuValue(const EnumT value) : value(int(value))
+  template<typename EnumT>
+  MenuValue(const EnumT value)
+    requires(std::is_enum_v<EnumT>)
+      : value(int(value))
   {
   }
 

@@ -109,11 +109,10 @@ template<typename Ret, typename... Params> class FunctionRef<Ret(Params...)> {
    * It is still possible to reference another `FunctionRef` by first wrapping it in
    * another lambda.
    */
-  template<typename Callable,
-           BLI_ENABLE_IF((
-               !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Callable>>, FunctionRef>)),
-           BLI_ENABLE_IF((std::is_invocable_r_v<Ret, Callable, Params...>))>
+  template<typename Callable>
   FunctionRef(Callable &&callable)
+    requires(!std::is_same_v<std::remove_cv_t<std::remove_reference_t<Callable>>, FunctionRef> &&
+             std::is_invocable_r_v<Ret, Callable, Params...>)
       : callback_(callback_fn<typename std::remove_reference_t<Callable>>),
         callable_(intptr_t(&callable))
   {

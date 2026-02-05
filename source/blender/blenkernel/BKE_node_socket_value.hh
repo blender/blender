@@ -96,11 +96,10 @@ class SocketValueVariant {
    * Create a variant based on the given value. This works for primitive types. For more complex
    * types use #set explicitly. Alternatively, one can use the #From or #ConstructIn utilities.
    */
-  template<typename T,
-           /* The enable-if is necessary to avoid overriding the copy/moveconstructors. */
-           BLI_ENABLE_IF((std::is_trivial_v<std::decay_t<T>> ||
-                          is_same_any_v<std::decay_t<T>, std::string>))>
+  template<typename T>
   explicit SocketValueVariant(T &&value)
+      /* Required to avoid overriding the copy/move-constructors. */
+    requires(std::is_trivial_v<std::decay_t<T>> || is_same_any_v<std::decay_t<T>, std::string>)
   {
     this->set(std::forward<T>(value));
   }
