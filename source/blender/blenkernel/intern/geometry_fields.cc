@@ -944,9 +944,11 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
     const StringRef id = names[result.input_index];
     const GVArray &result_data = evaluator.get_evaluated(result.evaluator_index);
     const CommonVArrayInfo info = result_data.common_info();
-    if (info.type == CommonVArrayInfo::Type::Single) {
-      if (try_assign_single_value(attributes, id, GPointer(result_data.type(), info.data))) {
-        continue;
+    if (selection_is_full) {
+      if (info.type == CommonVArrayInfo::Type::Single) {
+        if (try_assign_single_value(attributes, id, GPointer(result_data.type(), info.data))) {
+          continue;
+        }
       }
     }
     const GAttributeReader dst = attributes.lookup(id);
