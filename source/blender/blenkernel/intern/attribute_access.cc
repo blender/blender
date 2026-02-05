@@ -873,8 +873,10 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
     const CPPType &type = varray.type();
     const GPointer value = get_default_for_fill(attributes, type, iter.name);
     const CommonVArrayInfo info = varray.common_info();
-    if (type.is_equal(value.get(), info.data)) {
-      return;
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      if (type.is_equal(value.get(), info.data)) {
+        return;
+      }
     }
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     GMutableSpan data = attribute.span.slice(range);
