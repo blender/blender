@@ -453,8 +453,7 @@ class VKDevice : public NonCopyable {
   Span<std::reference_wrapper<VKContext>> contexts_get() const;
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
-  static void debug_print(std::ostream &os, const VKDiscardPool &discard_pool);
-  void debug_print();
+  void debug_print() const;
 
   /** \} */
 

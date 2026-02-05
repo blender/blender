@@ -137,6 +137,8 @@ class VKDiscardPool {
    * Otherwise a device discard pool is used.
    */
   static VKDiscardPool &discard_pool_get();
+
+  friend std::ostream &operator<<(std::ostream &os, const VKDiscardPool &discard_pool);
 };
 
 }  // namespace blender::gpu
