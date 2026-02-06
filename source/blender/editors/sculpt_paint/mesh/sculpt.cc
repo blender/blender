@@ -200,7 +200,7 @@ int active_face_set_get(const Object &object)
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
       if (!face_sets || !ss.active_face_index) {
-        return SCULPT_FACE_SET_NONE;
+        return face_set_none_id;
       }
       return face_sets[*ss.active_face_index];
     }
@@ -209,16 +209,16 @@ int active_face_set_get(const Object &object)
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArray face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
       if (!face_sets || !ss.active_grid_index) {
-        return SCULPT_FACE_SET_NONE;
+        return face_set_none_id;
       }
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg,
                                                                *ss.active_grid_index);
       return face_sets[face_index];
     }
     case bke::pbvh::Type::BMesh:
-      return SCULPT_FACE_SET_NONE;
+      return face_set_none_id;
   }
-  return SCULPT_FACE_SET_NONE;
+  return face_set_none_id;
 }
 
 }  // namespace face_set
@@ -229,7 +229,7 @@ int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
                       const Span<int> face_sets,
                       const int vert)
 {
-  int face_set = SCULPT_FACE_SET_NONE;
+  int face_set = face_set_none_id;
   for (const int face : vert_to_face_map[vert]) {
     face_set = std::max(face_sets[face], face_set);
   }
@@ -244,7 +244,7 @@ int vert_face_set_get(const SubdivCCG &subdiv_ccg, const Span<int> face_sets, co
 
 int vert_face_set_get(const int /*face_set_offset*/, const BMVert & /*vert*/)
 {
-  return SCULPT_FACE_SET_NONE;
+  return face_set_none_id;
 }
 
 bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
@@ -253,7 +253,7 @@ bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
                        const int face_set)
 {
   if (face_sets.is_empty()) {
-    return face_set == SCULPT_FACE_SET_NONE;
+    return face_set == face_set_none_id;
   }
   const Span<int> faces = vert_to_face_map[vert];
   return std::any_of(
@@ -266,7 +266,7 @@ bool vert_has_face_set(const SubdivCCG &subdiv_ccg,
                        const int face_set)
 {
   if (face_sets.is_empty()) {
-    return face_set == SCULPT_FACE_SET_NONE;
+    return face_set == face_set_none_id;
   }
   const int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid);
   return face_sets[face] == face_set;
@@ -275,7 +275,7 @@ bool vert_has_face_set(const SubdivCCG &subdiv_ccg,
 bool vert_has_face_set(const int face_set_offset, const BMVert &vert, const int face_set)
 {
   if (face_set_offset == -1) {
-    return face_set == SCULPT_FACE_SET_NONE;
+    return face_set == face_set_none_id;
   }
   BMIter iter;
   BMFace *face;

@@ -507,7 +507,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
                      RNA_float_get(op->ptr, "strength"));
   const SculptSession &ss = *ob.runtime->sculpt_session;
   filter::Cache *filter_cache = ss.filter_cache;
-  filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
+  filter_cache->active_face_set = face_set_none_id;
   if (auto_mask::is_enabled(sd, ob, nullptr)) {
     auto_mask::filter_cache_ensure(*depsgraph, sd, ob);
   }

@@ -2211,7 +2211,7 @@ static bool set_initial_components_for_mouse(bContext *C,
   expand_cache.initial_active_vert = *initial_vert;
   expand_cache.initial_active_face_set = face_set::active_face_set_get(ob);
 
-  if (expand_cache.next_face_set == SCULPT_FACE_SET_NONE) {
+  if (expand_cache.next_face_set == face_set_none_id) {
     /* Only set the next face set once, otherwise this ID will constantly update to a new one each
      * time this function is called for using a new initial vertex from a different cursor
      * position. */
@@ -2277,12 +2277,12 @@ static int active_face_set_id_get(Object &object, Cache &expand_cache)
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
       if (!ss.active_face_index) {
-        return SCULPT_FACE_SET_NONE;
+        return face_set_none_id;
       }
       return expand_cache.original_face_sets[*ss.active_face_index];
     case bke::pbvh::Type::Grids: {
       if (!ss.active_grid_index) {
-        return SCULPT_FACE_SET_NONE;
+        return face_set_none_id;
       }
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(*ss.subdiv_ccg,
                                                                *ss.active_grid_index);
@@ -2293,7 +2293,7 @@ static int active_face_set_id_get(Object &object, Cache &expand_cache)
       BLI_assert(false);
     }
   }
-  return SCULPT_FACE_SET_NONE;
+  return face_set_none_id;
 }
 
 static void sculpt_expand_status(bContext *C, wmOperator *op, Cache *expand_cache)

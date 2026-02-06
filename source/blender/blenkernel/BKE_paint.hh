@@ -324,8 +324,6 @@ float3 BKE_paint_randomize_color(const BrushColorJitterSettings &color_jitter,
 void BKE_paint_blend_write(BlendWriter *writer, Paint *paint);
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint);
 
-#define SCULPT_FACE_SET_NONE 0
-
 /* Data used for displaying extra visuals while using the Pose brush */
 struct SculptPoseIKChainPreview {
   Array<float3> initial_orig_coords;

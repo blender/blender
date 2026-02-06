@@ -2080,7 +2080,7 @@ static void apply_filter_forces_mesh(const Depsgraph &depsgraph,
   const auto_mask::Cache *automasking = auto_mask::active_cache_get(ss);
   auto_mask::calc_vert_factors(depsgraph, object, automasking, node, verts, factors);
 
-  if (ss.filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
+  if (ss.filter_cache->active_face_set != face_set_none_id) {
     for (const int i : verts.index_range()) {
       const int vert = verts[i];
       if (!face_set::vert_has_face_set(
@@ -2151,7 +2151,7 @@ static void apply_filter_forces_grids(const Depsgraph &depsgraph,
   const auto_mask::Cache *automasking = auto_mask::active_cache_get(ss);
   auto_mask::calc_grids_factors(depsgraph, object, automasking, node, grids, factors);
 
-  if (ss.filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
+  if (ss.filter_cache->active_face_set != face_set_none_id) {
     for (const int i : grids.index_range()) {
       if (!face_set::vert_has_face_set(
               subdiv_ccg, face_sets, grids[i], ss.filter_cache->active_face_set))
@@ -2220,7 +2220,7 @@ static void apply_filter_forces_bmesh(const Depsgraph &depsgraph,
   const auto_mask::Cache *automasking = auto_mask::active_cache_get(ss);
   auto_mask::calc_vert_factors(depsgraph, object, automasking, node, verts, factors);
 
-  if (ss.filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
+  if (ss.filter_cache->active_face_set != face_set_none_id) {
     const int face_set_offset = CustomData_get_offset_named(
         &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
     int i = 0;
@@ -2454,7 +2454,7 @@ static wmOperatorStatus sculpt_cloth_filter_invoke(bContext *C,
     ss.filter_cache->active_face_set = face_set::active_face_set_get(ob);
   }
   else {
-    ss.filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
+    ss.filter_cache->active_face_set = face_set_none_id;
   }
 
   const int force_axis = RNA_enum_get(op->ptr, "force_axis");

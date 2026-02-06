@@ -130,7 +130,7 @@ void initialize_none_to_id(Mesh *mesh, const int new_id)
   }
 
   for (const int i : face_sets.span.index_range()) {
-    if (face_sets.span[i] == SCULPT_FACE_SET_NONE) {
+    if (face_sets.span[i] == face_set_none_id) {
       face_sets.span[i] = new_id;
     }
   }
@@ -140,12 +140,12 @@ void initialize_none_to_id(Mesh *mesh, const int new_id)
 int active_update_and_get(bContext *C, Object &ob, const float mval[2])
 {
   if (!ob.runtime->sculpt_session) {
-    return SCULPT_FACE_SET_NONE;
+    return face_set_none_id;
   }
 
   CursorGeometryInfo gi;
   if (!cursor_geometry_info_update(C, &gi, mval, false)) {
-    return SCULPT_FACE_SET_NONE;
+    return face_set_none_id;
   }
 
   return active_face_set_get(ob);
@@ -1285,7 +1285,7 @@ static bool check_single_face_set(const Object &object, const bool check_visible
   if (face_sets.is_empty()) {
     return true;
   }
-  int first_face_set = SCULPT_FACE_SET_NONE;
+  int first_face_set = face_set_none_id;
   if (check_visible_only) {
     for (const int i : face_sets.index_range()) {
       if (!hide_poly.is_empty() && hide_poly[i]) {
@@ -1299,7 +1299,7 @@ static bool check_single_face_set(const Object &object, const bool check_visible
     first_face_set = face_sets[0];
   }
 
-  if (first_face_set == SCULPT_FACE_SET_NONE) {
+  if (first_face_set == face_set_none_id) {
     return true;
   }
 
