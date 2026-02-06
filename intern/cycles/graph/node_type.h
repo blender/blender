@@ -134,7 +134,10 @@ struct NodeType {
                        Type type = NONE,
                        const NodeType *base = nullptr);
   static const NodeType *find(ustring name);
+
+ private:
   static unordered_map<ustring, NodeType> &types();
+  static thread_mutex types_mutex_;
 };
 
 /* Node Definition Macros
