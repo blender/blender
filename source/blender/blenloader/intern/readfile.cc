@@ -3730,6 +3730,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   if (!main->is_read_invalid) {
     blo_do_versions_510(fd, lib, main);
   }
+  if (!main->is_read_invalid) {
+    blo_do_versions_520(fd, lib, main);
+  }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
   /* WATCH IT 2!: #UserDef struct init see #do_versions_userdef() above! */
@@ -3794,6 +3797,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_510(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_520(fd, main);
   }
 
   main->is_locked_for_linking = false;
