@@ -219,7 +219,8 @@ ccl_device float3 svm_bevel(
       else if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
         float3 verts[3];
         motion_triangle_vertices(kg, sd->object, isect.hits[hit].prim, sd->time, verts);
-        hit_P = motion_triangle_point_from_uv(kg, sd, isect.hits[hit].u, isect.hits[hit].v, verts);
+        hit_P = triangle_point_from_uv_and_verts(
+            kg, sd, isect.hits[hit].u, isect.hits[hit].v, verts);
       }
 #  endif /* __OBJECT_MOTION__ */
 
@@ -241,11 +242,11 @@ ccl_device float3 svm_bevel(
         const float v = isect.hits[hit].v;
 
         if (sd->type == PRIMITIVE_TRIANGLE) {
-          N = triangle_smooth_normal(kg, N, prim, u, v);
+          N = triangle_smooth_normal(kg, N, object, object_flag, prim, u, v);
         }
 #  ifdef __OBJECT_MOTION__
         else if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
-          N = motion_triangle_smooth_normal(kg, N, sd->object, prim, u, v, sd->time);
+          N = motion_triangle_smooth_normal(kg, N, object, prim, u, v, sd->time);
         }
 #  endif /* __OBJECT_MOTION__ */
       }

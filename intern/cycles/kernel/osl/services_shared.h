@@ -67,7 +67,8 @@ ccl_device bool attribute_bump_map_normal(KernelGlobals kg,
   object_inverse_normal_transform(kg, sd, &Ng);
 
   if (sd->type == PRIMITIVE_TRIANGLE) {
-    f.val = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v, sd->du, sd->dv, f.dx, f.dy);
+    f.val = triangle_smooth_normal(
+        kg, Ng, sd->object, sd->object_flag, sd->prim, sd->u, sd->v, sd->du, sd->dv, f.dx, f.dy);
   }
   else {
     assert(sd->type & PRIMITIVE_MOTION_TRIANGLE);

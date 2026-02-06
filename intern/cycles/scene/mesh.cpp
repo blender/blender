@@ -28,11 +28,17 @@ CCL_NAMESPACE_BEGIN
 
 struct MikkMeshWrapper {
   MikkMeshWrapper(const Mesh *mesh,
-                  const float3 *normal,
+                  const packed_normal *vertex_normal,
+                  const packed_normal *corner_normal,
                   const float2 *uv,
                   float3 *tangent,
                   float *tangent_sign)
-      : mesh(mesh), normal(normal), uv(uv), tangent(tangent), tangent_sign(tangent_sign)
+      : mesh(mesh),
+        vertex_normal(vertex_normal),
+        corner_normal(corner_normal),
+        uv(uv),
+        tangent(tangent),
+        tangent_sign(tangent_sign)
   {
   }
 
@@ -82,8 +88,9 @@ struct MikkMeshWrapper {
   {
     float3 vN;
     if (mesh->get_smooth()[face_num]) {
-      const int vertex_index = VertexIndex(face_num, vert_num);
-      vN = normal[vertex_index];
+      vN = ((corner_normal) ? corner_normal[CornerIndex(face_num, vert_num)] :
+                              vertex_normal[VertexIndex(face_num, vert_num)])
+               .decode();
     }
     else {
       const Mesh::Triangle tri = mesh->get_triangle(face_num);
@@ -108,7 +115,8 @@ struct MikkMeshWrapper {
 
   const Mesh *mesh;
 
-  const float3 *normal;
+  const packed_normal *vertex_normal;
+  const packed_normal *corner_normal;
   const float2 *uv;
 
   float3 *tangent;
@@ -127,12 +135,14 @@ static void mikk_compute_tangents(Attribute *attr_uv,
   AttributeSet &attributes = mesh->attributes;
 
   Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-  if (attr_vN == nullptr) {
+  Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (attr_vN == nullptr && attr_cN == nullptr) {
     /* no normals */
     return;
   }
 
-  const float3 *normal = attr_vN->data_float3();
+  const packed_normal *vertex_normal = attr_vN ? attr_vN->data_normal() : nullptr;
+  const packed_normal *corner_normal = attr_cN ? attr_cN->data_normal() : nullptr;
   const float2 *uv = (attr_uv) ? attr_uv->data_float2() : nullptr;
 
   const ustring name = ustring((attr_uv) ? attr_uv->name.string() + tangent_postfix :
@@ -160,7 +170,7 @@ static void mikk_compute_tangents(Attribute *attr_uv,
     tangent_sign = attr_sign->data_float();
   }
 
-  MikkMeshWrapper userdata(mesh, normal, uv, tangent, tangent_sign);
+  MikkMeshWrapper userdata(mesh, vertex_normal, corner_normal, uv, tangent, tangent_sign);
   /* Compute tangents. */
   mikk::Mikktspace(userdata).genTangSpace();
 }
@@ -534,13 +544,21 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
   if (attr_mP) {
     Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
     Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
-    float3 *P = verts.data();
-    float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
+    const float3 *P = verts.data();
     const size_t numverts = verts.size();
 
     std::copy_n(P, numverts, attr_mP->data_float3() + motion_step * numverts);
-    if (attr_mN) {
-      std::copy_n(N, numverts, attr_mN->data_float3() + motion_step * numverts);
+    if (attr_mN && attr_N) {
+      const packed_normal *N = attr_N->data_normal();
+      std::copy_n(N, numverts, attr_mN->data_normal() + motion_step * numverts);
+    }
+
+    Attribute *attr_mcN = attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
+    Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+    if (attr_mcN && attr_cN) {
+      const size_t numcorners = triangles.size();
+      packed_normal *N = attr_cN->data_normal();
+      std::copy_n(N, numcorners, attr_mcN->data_normal() + motion_step * numcorners);
     }
   }
 }
@@ -626,6 +644,28 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
 
   tag_verts_modified();
 
+  Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+  if (attr_vN) {
+    const Transform ntfm = transform_normal;
+    const size_t num_verts = verts.size();
+    packed_normal *vN = attr_vN->data_normal();
+
+    for (size_t i = 0; i < num_verts; i++) {
+      vN[i] = packed_normal(normalize(transform_direction(&ntfm, vN[i].decode())));
+    }
+  }
+
+  Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (attr_cN) {
+    const Transform ntfm = transform_normal;
+    const size_t num_corners = triangles.size();
+    packed_normal *cN = attr_cN->data_normal();
+
+    for (size_t i = 0; i < num_corners; i++) {
+      cN[i] = packed_normal(normalize(transform_direction(&ntfm, cN[i].decode())));
+    }
+  }
+
   if (apply_to_motion) {
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
@@ -643,10 +683,24 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
     if (attr_N) {
       const Transform ntfm = transform_normal;
       const size_t steps_size = verts.size() * (motion_steps - 1);
-      float3 *normal_steps = attr_N->data_float3();
+      packed_normal *normal_steps = attr_N->data_normal();
 
       for (size_t i = 0; i < steps_size; i++) {
-        normal_steps[i] = normalize(transform_direction(&ntfm, normal_steps[i]));
+        normal_steps[i] = packed_normal(
+            normalize(transform_direction(&ntfm, normal_steps[i].decode())));
+      }
+    }
+
+    Attribute *attr_mcN = attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
+
+    if (attr_mcN) {
+      const Transform ntfm = transform_normal;
+      const size_t steps_size = triangles.size() * (motion_steps - 1);
+      packed_normal *normal_steps = attr_mcN->data_normal();
+
+      for (size_t i = 0; i < steps_size; i++) {
+        normal_steps[i] = packed_normal(
+            normalize(transform_direction(&ntfm, normal_steps[i].decode())));
       }
     }
   }
@@ -654,6 +708,18 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
 
 void Mesh::add_vertex_normals()
 {
+  if (attributes.find(ATTR_STD_CORNER_NORMAL)) {
+    /* Not needed if we already have corner normals overriding these.
+     * If there is motion blur without motion corner normals we can't
+     * render correctly, discard corner normals. */
+    if (has_motion_blur() && !attributes.find(ATTR_STD_MOTION_CORNER_NORMAL)) {
+      attributes.remove(ATTR_STD_CORNER_NORMAL);
+    }
+    else {
+      return;
+    }
+  }
+
   const bool flip = transform_negative_scaled;
   const size_t verts_size = verts.size();
   const size_t triangles_size = num_triangles();
@@ -664,26 +730,26 @@ void Mesh::add_vertex_normals()
     Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
 
     float3 *verts_ptr = verts.data();
-    float3 *vN = attr_vN->data_float3();
+    packed_normal *vN = attr_vN->data_normal();
 
     /* compute vertex normals */
-    std::fill_n(vN, verts.size(), zero_float3());
+    vector<float3> vN_float(verts_size, zero_float3());
 
     for (size_t i = 0; i < triangles_size; i++) {
       const float3 fN = get_triangle(i).compute_normal(verts_ptr);
       for (size_t j = 0; j < 3; j++) {
-        vN[get_triangle(i).v[j]] += fN;
+        vN_float[get_triangle(i).v[j]] += fN;
       }
     }
 
     if (flip) {
       for (size_t i = 0; i < verts_size; i++) {
-        vN[i] = -normalize(vN[i]);
+        vN[i] = packed_normal(-normalize(vN_float[i]));
       }
     }
     else {
       for (size_t i = 0; i < verts_size; i++) {
-        vN[i] = normalize(vN[i]);
+        vN[i] = packed_normal(normalize(vN_float[i]));
       }
     }
   }
@@ -698,27 +764,27 @@ void Mesh::add_vertex_normals()
 
     for (int step = 0; step < motion_steps - 1; step++) {
       float3 *mP = attr_mP->data_float3() + step * verts.size();
-      float3 *mN = attr_mN->data_float3() + step * verts.size();
+      packed_normal *mN = attr_mN->data_normal() + step * verts.size();
 
       /* compute */
-      std::fill_n(mN, verts.size(), zero_float3());
+      vector<float3> mN_float(verts_size, zero_float3());
 
       for (size_t i = 0; i < triangles_size; i++) {
         const Triangle tri = get_triangle(i);
         const float3 fN = tri.compute_normal(mP);
         for (size_t j = 0; j < 3; j++) {
-          mN[tri.v[j]] += fN;
+          mN_float[tri.v[j]] += fN;
         }
       }
 
       if (flip) {
         for (size_t i = 0; i < verts_size; i++) {
-          mN[i] = -normalize(mN[i]);
+          mN[i] = packed_normal(-normalize(mN_float[i]));
         }
       }
       else {
         for (size_t i = 0; i < verts_size; i++) {
-          mN[i] = normalize(mN[i]);
+          mN[i] = packed_normal(normalize(mN_float[i]));
         }
       }
     }
@@ -728,10 +794,10 @@ void Mesh::add_vertex_normals()
   if (!subd_attributes.find(ATTR_STD_VERTEX_NORMAL) && get_num_subd_faces()) {
     /* get attributes */
     Attribute *attr_vN = subd_attributes.add(ATTR_STD_VERTEX_NORMAL);
-    float3 *vN = attr_vN->data_float3();
+    packed_normal *vN = attr_vN->data_normal();
 
     /* compute vertex normals */
-    std::fill_n(vN, verts.size(), zero_float3());
+    vector<float3> vN_float(verts_size, zero_float3());
 
     for (size_t i = 0; i < get_num_subd_faces(); i++) {
       const SubdFace face = get_subd_face(i);
@@ -739,18 +805,18 @@ void Mesh::add_vertex_normals()
 
       for (size_t j = 0; j < face.num_corners; j++) {
         const size_t corner = subd_face_corners[face.start_corner + j];
-        vN[corner] += fN;
+        vN_float[corner] += fN;
       }
     }
 
     if (flip) {
       for (size_t i = 0; i < verts_size; i++) {
-        vN[i] = -normalize(vN[i]);
+        vN[i] = packed_normal(-normalize(vN_float[i]));
       }
     }
     else {
       for (size_t i = 0; i < verts_size; i++) {
-        vN[i] = normalize(vN[i]);
+        vN[i] = packed_normal(normalize(vN_float[i]));
       }
     }
   }
@@ -776,8 +842,8 @@ void Mesh::add_undisplaced(Scene *scene)
     if (attr_N) {
       Attribute *attr = attributes.add(ATTR_STD_NORMAL_UNDISPLACED);
 
-      size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(float3);
-      std::copy_n(attr_N->data_float3(), size, attr->data_float3());
+      size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(packed_normal);
+      std::copy_n(attr_N->data_normal(), size, attr->data_normal());
     }
   }
 }
@@ -807,7 +873,7 @@ void Mesh::update_tangents(Scene *scene, bool undisplaced)
     return;
   }
 
-  assert(attributes.find(ATTR_STD_VERTEX_NORMAL));
+  assert(attributes.find(ATTR_STD_VERTEX_NORMAL) || attributes.find(ATTR_STD_CORNER_NORMAL));
 
   ccl::set<ustring> uv_maps;
   Attribute *attr_std_uv = attributes.find(ATTR_STD_UV);
@@ -879,32 +945,6 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
     }
 
     tri_shader[i] = shader_id;
-  }
-}
-
-void Mesh::pack_normals(packed_float3 *vnormal)
-{
-  Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-  if (attr_vN == nullptr) {
-    /* Happens on objects with just hair. */
-    return;
-  }
-
-  const bool do_transform = transform_applied;
-  const Transform ntfm = transform_normal;
-
-  float3 *vN = attr_vN->data_float3();
-  const size_t verts_size = verts.size();
-
-  if (do_transform) {
-    for (size_t i = 0; i < verts_size; i++) {
-      vnormal[i] = safe_normalize(transform_direction(&ntfm, vN[i]));
-    }
-  }
-  else {
-    for (size_t i = 0; i < verts_size; i++) {
-      vnormal[i] = vN[i];
-    }
   }
 }
 

@@ -166,11 +166,11 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
   float3 N[3];
 
   if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
-    motion_triangle_vertices_and_normals(kg, sd->object, sd->prim, sd->time, V, N);
+    motion_triangle_vertices_and_normals(kg, sd, V, N);
   }
   else {
     kernel_assert(sd->type == PRIMITIVE_TRIANGLE);
-    triangle_vertices_and_normals(kg, sd->prim, V, N);
+    triangle_vertices_and_normals(kg, sd, V, N);
   }
 
   const float u = 1.0f - sd->u - sd->v;

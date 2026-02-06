@@ -26,26 +26,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/**
- * Use the barycentric coordinates to get the intersection location
- */
-ccl_device_inline float3 motion_triangle_point_from_uv(KernelGlobals kg,
-                                                       ccl_private ShaderData *sd,
-                                                       const float u,
-                                                       const float v,
-                                                       const float3 verts[3])
-{
-  /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
-  float3 P = verts[0] + u * (verts[1] - verts[0]) + v * (verts[2] - verts[0]);
-
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_transform(kg, sd);
-    P = transform_point(&tfm, P);
-  }
-
-  return P;
-}
-
 /* Ray intersection. We simply compute the vertex positions at the given ray
  * time and do a ray intersection with the resulting triangle.
  */

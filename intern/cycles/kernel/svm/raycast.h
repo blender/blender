@@ -100,7 +100,7 @@ ccl_device RaycastResult svm_raycast(KernelGlobals kg,
   /* Compute smooth normal. */
   if (shader & SHADER_SMOOTH_NORMAL) {
     if (isect.type == PRIMITIVE_TRIANGLE) {
-      result.normal = triangle_smooth_normal(kg, Ng, prim, u, v);
+      result.normal = triangle_smooth_normal(kg, Ng, object, object_flag, prim, u, v);
     }
 #  ifdef __OBJECT_MOTION__
     else if (isect.type == PRIMITIVE_MOTION_TRIANGLE) {

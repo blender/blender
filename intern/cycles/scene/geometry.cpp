@@ -229,6 +229,10 @@ static void update_device_flags_attribute(uint32_t &device_update_flags,
         device_update_flags |= ATTR_UCHAR4_MODIFIED;
         break;
       }
+      case AttrKernelDataType::NORMAL: {
+        device_update_flags |= ATTR_NORMAL_MODIFIED;
+        break;
+      }
       case AttrKernelDataType::NUM: {
         break;
       }
@@ -253,6 +257,9 @@ static void update_attribute_realloc_flags(uint32_t &device_update_flags,
   }
   if (attributes.modified(AttrKernelDataType::UCHAR4)) {
     device_update_flags |= ATTR_UCHAR4_NEEDS_REALLOC;
+  }
+  if (attributes.modified(AttrKernelDataType::NORMAL)) {
+    device_update_flags |= ATTR_NORMAL_NEEDS_REALLOC;
   }
 }
 
@@ -519,7 +526,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
 
     if (device_update_flags & DEVICE_MESH_DATA_NEEDS_REALLOC) {
       dscene->tri_verts.tag_realloc();
-      dscene->tri_vnormal.tag_realloc();
       dscene->tri_vindex.tag_realloc();
       dscene->tri_shader.tag_realloc();
     }
@@ -580,11 +586,18 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     dscene->attributes_uchar4.tag_modified();
   }
 
+  if (device_update_flags & ATTR_NORMAL_NEEDS_REALLOC) {
+    dscene->attributes_map.tag_realloc();
+    dscene->attributes_normal.tag_realloc();
+  }
+  else if (device_update_flags & ATTR_NORMAL_MODIFIED) {
+    dscene->attributes_normal.tag_modified();
+  }
+
   if (device_update_flags & DEVICE_MESH_DATA_MODIFIED) {
     /* if anything else than vertices or shaders are modified, we would need to reallocate, so
      * these are the only arrays that can be updated */
     dscene->tri_verts.tag_modified();
-    dscene->tri_vnormal.tag_modified();
     dscene->tri_shader.tag_modified();
   }
 
@@ -682,7 +695,7 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
     }
 
     for (Attribute &attr : geom->attributes.attributes) {
-      if (attr.element != ATTR_ELEMENT_VOXEL) {
+      if (!(attr.element & ATTR_ELEMENT_VOXEL)) {
         continue;
       }
 
@@ -927,6 +940,7 @@ void GeometryManager::device_update(Device *device,
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (displace(device, scene, mesh, progress)) {
             displacement_done = true;
+            need_flags_update = true;
           }
         }
       }
@@ -1104,7 +1118,6 @@ void GeometryManager::device_update(Device *device,
   dscene->tri_verts.clear_modified();
   dscene->tri_shader.clear_modified();
   dscene->tri_vindex.clear_modified();
-  dscene->tri_vnormal.clear_modified();
   dscene->curves.clear_modified();
   dscene->curve_keys.clear_modified();
   dscene->curve_segments.clear_modified();
@@ -1116,6 +1129,7 @@ void GeometryManager::device_update(Device *device,
   dscene->attributes_float3.clear_modified();
   dscene->attributes_float4.clear_modified();
   dscene->attributes_uchar4.clear_modified();
+  dscene->attributes_normal.clear_modified();
 }
 
 void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool force_free)
@@ -1130,7 +1144,6 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->prim_time.free_if_need_realloc(force_free);
   dscene->tri_verts.free_if_need_realloc(force_free);
   dscene->tri_shader.free_if_need_realloc(force_free);
-  dscene->tri_vnormal.free_if_need_realloc(force_free);
   dscene->tri_vindex.free_if_need_realloc(force_free);
   dscene->curves.free_if_need_realloc(force_free);
   dscene->curve_keys.free_if_need_realloc(force_free);
@@ -1143,6 +1156,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->attributes_float3.free_if_need_realloc(force_free);
   dscene->attributes_float4.free_if_need_realloc(force_free);
   dscene->attributes_uchar4.free_if_need_realloc(force_free);
+  dscene->attributes_normal.free_if_need_realloc(force_free);
 
   /* Signal for shaders like displacement not to do ray tracing. */
   dscene->data.bvh.bvh_layout = BVH_LAYOUT_NONE;

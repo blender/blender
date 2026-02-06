@@ -20,6 +20,7 @@
 
 #include "kernel/geom/motion_triangle.h"
 #include "kernel/geom/motion_triangle_intersect.h"
+#include "kernel/geom/triangle_intersect.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -46,7 +47,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg, ccl_priv
   motion_triangle_vertices(kg, sd->object, tri_vindex, numsteps, numverts, step, t, verts);
 
   /* Compute refined position. */
-  sd->P = motion_triangle_point_from_uv(kg, sd, sd->u, sd->v, verts);
+  sd->P = triangle_point_from_uv_and_verts(kg, sd, sd->u, sd->v, verts);
   /* Compute face normal. */
   float3 Ng;
   if (object_negative_scale_applied(sd->object_flag)) {
@@ -65,7 +66,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg, ccl_priv
   /* Compute smooth normal. */
   if (sd->shader & SHADER_SMOOTH_NORMAL) {
     sd->N = motion_triangle_smooth_normal(
-        kg, Ng, sd->object, tri_vindex, numsteps, step, t, sd->u, sd->v);
+        kg, Ng, sd->object, sd->prim, tri_vindex, numsteps, step, t, sd->u, sd->v);
   }
 }
 

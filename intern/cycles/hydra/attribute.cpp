@@ -37,17 +37,32 @@ void ApplyPrimvars(AttributeSet &attributes,
       static_assert(sizeof(GfVec2f) == sizeof(float2));
       break;
     case HdTypeFloatVec3: {
-      attrType = CCL_NS::TypeVector;
-      size *= sizeof(float3);
-      // The Cycles "float3" data type is padded to "float4", so need to convert the array
       const auto &valueData = value.Get<VtVec3fArray>();
-      VtArray<float3> valueConverted;
-      valueConverted.reserve(valueData.size());
-      for (const GfVec3f &vec : valueData) {
-        valueConverted.push_back(make_float3(vec[0], vec[1], vec[2]));
+
+      if (elem & ATTR_ELEMENT_IS_NORMAL) {
+        attrType = CCL_NS::TypeNormal;
+        size = valueData.size() * sizeof(packed_normal);
+
+        VtArray<packed_normal> valueConverted;
+        valueConverted.reserve(valueData.size());
+        for (const GfVec3f &vec : valueData) {
+          valueConverted.push_back(packed_normal(make_float3(vec[0], vec[1], vec[2])));
+        }
+        data = valueConverted.data();
+        value = std::move(valueConverted);
       }
-      data = valueConverted.data();
-      value = std::move(valueConverted);
+      else {
+        attrType = CCL_NS::TypeVector;
+        size = valueData.size() * sizeof(float3);
+        // The Cycles "float3" data type is padded to "float4", so need to convert the array
+        VtArray<float3> valueConverted;
+        valueConverted.reserve(valueData.size());
+        for (const GfVec3f &vec : valueData) {
+          valueConverted.push_back(make_float3(vec[0], vec[1], vec[2]));
+        }
+        data = valueConverted.data();
+        value = std::move(valueConverted);
+      }
       break;
     }
     case HdTypeFloatVec4:
