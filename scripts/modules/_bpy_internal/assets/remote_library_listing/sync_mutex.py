@@ -18,6 +18,8 @@ __all__ = (
 # - unlock function
 _mutex_locks: dict[Path, tuple[io.IOBase, Path, Callable[[io.IOBase], None]]] = {}
 
+_registered_atexit = False
+
 
 def mutex_lock(local_library_path: Path) -> bool:
     """Lock the library for syncing.
@@ -32,8 +34,14 @@ def mutex_lock(local_library_path: Path) -> bool:
     :returns: true if the lock was created succesfully, false if some other
         Blender already locked this library.
     """
+    global _registered_atexit
 
+    import atexit
     import sys
+
+    if not _registered_atexit:
+        atexit.register(_unlock_all)
+        _registered_atexit = True
 
     # Choose platform-dependent _obtain_lock(file) and _release_lock() functions.
     if sys.platform == "win32":
@@ -103,3 +111,17 @@ def mutex_unlock(local_library_path: Path) -> None:
         # Ignore errors when deleting the file. By now another process may have
         # recreated it and locked it again.
         pass
+
+
+def _unlock_all() -> None:
+    """Unlock all file mutexes.
+
+    This is automatically called when the Python interpreter exits.
+
+    From the OS perspective it's not necessary, as all locks are automatically
+    released when the process stops. However, Python will complain with a
+    ResourceWarning if any open files are not closed.
+    """
+
+    for local_library_path in list(_mutex_locks.keys()):
+        mutex_unlock(local_library_path)
