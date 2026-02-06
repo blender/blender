@@ -1,6 +1,3 @@
-struct DRWShadingGroup;
-namespace blender {
-
 /* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -10,6 +7,9 @@ namespace blender {
  */
 
 #pragma once
+
+struct DRWShadingGroup;
+namespace blender {
 
 enum ShaderFxMode {
   eShaderFxMode_Realtime = (1 << 0),

@@ -1,6 +1,3 @@
-struct RangeTreeUInt;
-namespace blender {
-
 /* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -10,6 +7,9 @@ namespace blender {
 /** \file
  * \ingroup bmesh
  */
+
+struct RangeTreeUInt;
+namespace blender {
 
 struct BMFace;
 struct BMVert;
