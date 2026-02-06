@@ -475,6 +475,11 @@ if(UNIX AND NOT APPLE)
   )
 endif()
 
+# needed for BLI_subprocess.cc when using the mold linker.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND LIB rt)
+endif()
+
 # no need to compile object files for inline headers.
 set_source_files_properties(
   intern/math_base_inline.cc
