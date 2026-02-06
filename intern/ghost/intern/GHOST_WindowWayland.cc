@@ -1144,14 +1144,55 @@ static void xdg_toplevel_handle_configure_bounds(void *data,
     decor.initial_bounds[1] = height;
   }
 }
-static void xdg_toplevel_handle_wm_capabilities(void * /*data*/,
+static void xdg_toplevel_handle_wm_capabilities(void *data,
                                                 xdg_toplevel * /*xdg_toplevel*/,
-                                                wl_array * /*capabilities*/)
+                                                wl_array *capabilities)
 {
   /* Only available in interface version 5. */
   CLOG_DEBUG(LOG, "wm_capabilities");
 
-  /* NOTE: this would be useful if blender had CSD. */
+#ifdef WITH_GHOST_CSD
+  /* Build a bit-mask of supported button types. Close is always supported. */
+  uint32_t type_mask = (1 << GHOST_kCSDTypeButtonClose) | (1 << GHOST_kCSDTypeTitlebar);
+  uint32_t *cap;
+  WL_ARRAY_FOR_EACH (cap, capabilities) {
+    switch (*cap) {
+      case XDG_TOPLEVEL_WM_CAPABILITIES_WINDOW_MENU:
+        type_mask |= 1 << GHOST_kCSDTypeButtonMenu;
+        break;
+      case XDG_TOPLEVEL_WM_CAPABILITIES_MAXIMIZE:
+        type_mask |= 1 << GHOST_kCSDTypeButtonMaximize;
+        break;
+      case XDG_TOPLEVEL_WM_CAPABILITIES_MINIMIZE:
+        type_mask |= 1 << GHOST_kCSDTypeButtonMinimize;
+        break;
+    }
+  }
+
+  /* Filter the base CSD layout to only include supported buttons. */
+  GWL_Window *win = static_cast<GWL_Window *>(data);
+  const GHOST_CSD_Layout &layout_base = win->ghost_system->csd_layout_base_get();
+  GHOST_CSD_Layout layout = {};
+
+  int dst = 0;
+  for (int src = 0; src < layout_base.buttons_num; src++) {
+    GHOST_TCSD_Type type = layout_base.buttons[src];
+    if (type_mask & (1 << type)) {
+      layout.buttons[dst++] = type;
+    }
+  }
+  layout.buttons_num = dst;
+  win->ghost_system->setWindowCSD_Layout(layout);
+
+  /* NOTE(@ideasman42): don't trigger a redraw here.
+   * In practice this callback runs on newly created windows,
+   * so an event such as #GHOST_kEventWindowUpdateDecor is likely
+   * to add an extra redraw for newly created windows. */
+
+#else
+  (void)data;
+  (void)capabilities;
+#endif
 }
 
 static const xdg_toplevel_listener xdg_toplevel_listener = {

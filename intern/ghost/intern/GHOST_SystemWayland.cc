@@ -1546,6 +1546,10 @@ struct GWL_Display {
    * When true, try to draw our own CSD.
    */
   bool use_window_frame_csd = false;
+#ifdef WITH_GHOST_CSD
+  /** The base CSD layout (unfiltered by wm_capabilities). */
+  GHOST_CSD_Layout csd_layout_base = {0};
+#endif
 
   /* Threaded event handling. */
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -8064,6 +8068,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
     }
 
     this->setWindowCSD_Layout(csd_layout);
+    display_->csd_layout_base = csd_layout;
   }
 #endif /* WITH_GHOST_CSD */
 
@@ -9751,6 +9756,13 @@ bool GHOST_SystemWayland::use_window_frame_csd_get() const
 {
   return display_->use_window_frame_csd;
 }
+
+#ifdef WITH_GHOST_CSD
+const GHOST_CSD_Layout &GHOST_SystemWayland::csd_layout_base_get() const
+{
+  return display_->csd_layout_base;
+}
+#endif
 
 /** \} */
 

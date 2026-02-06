@@ -270,6 +270,9 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool use_window_frame_get() const;
   bool use_window_frame_csd_get() const;
+#ifdef WITH_GHOST_CSD
+  const GHOST_CSD_Layout &csd_layout_base_get() const;
+#endif
 
   static const char *xdg_app_id_get();
 
