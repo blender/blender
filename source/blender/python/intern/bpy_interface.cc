@@ -88,6 +88,7 @@ static int py_call_level = 0;
 
 /* Set by command line arguments before Python starts. */
 static bool py_use_system_env = false;
+static bool py_use_user_env = false;
 
 // #define TIME_PY_RUN /* Simple python tests. prints on exit. */
 
@@ -352,17 +353,24 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 #ifndef WITH_PYTHON_MODULE
   BLI_assert_msg(Py_IsInitialized() == 0, "Python has already been initialized");
 
+  /* It's necessary to disable isolation so `user-site-packages` can be used.
+   * Leave everything else disabled (mainly environment variables). */
+  const std::optional<bool> isolated_override = ((py_use_system_env == false) &&
+                                                 (py_use_user_env == true)) ?
+                                                    std::optional(false) :
+                                                    std::nullopt;
+
   /* #PyPreConfig (early-configuration). */
   {
     PyPreConfig preconfig;
     PyStatus status;
 
     /* To narrow down reports where the systems Python is inexplicably used, see: #98131. */
-    CLOG_DEBUG(
-        BPY_LOG_INTERFACE,
-        "Initializing %s support for the systems Python environment such as 'PYTHONPATH' and "
-        "the user-site directory.",
-        py_use_system_env ? "*with*" : "*without*");
+    CLOG_DEBUG(BPY_LOG_INTERFACE,
+               "Initializing %s support for the systems Python environment such as 'PYTHONPATH', "
+               "%s support for the user-site directory.",
+               py_use_system_env ? "*with*" : "*without*",
+               py_use_user_env ? "*with*" : "*without*");
 
     if (py_use_system_env) {
       PyPreConfig_InitPythonConfig(&preconfig);
@@ -372,6 +380,10 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
        * Since an incorrect 'PYTHONPATH' causes difficult to debug errors, see: #72807.
        * An alternative to setting `preconfig.use_environment = 0` */
       PyPreConfig_InitIsolatedConfig(&preconfig);
+    }
+
+    if (isolated_override) {
+      preconfig.isolated = isolated_override.value();
     }
 
     /* Force UTF8 on all platforms, since this is what's used for Blender's internal strings,
@@ -419,6 +431,10 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
       config.install_signal_handlers = 1;
     }
 
+    if (isolated_override) {
+      config.isolated = isolated_override.value();
+    }
+
     /* Suppress error messages when calculating the module search path.
      * While harmless, it's noisy. */
     config.pathconfig_warnings = 0;
@@ -448,14 +464,22 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
       }
     }
 
-    /* Allow the user site directory because this is used
-     * when PIP installing packages from Blender, see: #104000.
+    /* By default, use an isolated environment unless the user passes in:
+     * `--python-use-user-env`.
      *
-     * NOTE(@ideasman42): While an argument can be made for isolating Blender's Python
-     * from the users home directory entirely, an alternative directory should be used in that
-     * case - so PIP can be used to install packages. Otherwise PIP will install packages to a
-     * directory which us not in the users `sys.path`, see `site.USER_BASE` for details. */
-    // config.user_site_directory = py_use_system_env;
+     * This is a somewhat contentious issue since Python developers may want to access
+     * modules from their user path. The problem with this is it's possible for this path
+     * to contain modules that override Blender's bundled Python modules and user modules
+     * may not be binary compatible with Blender.
+     * So it's possible for the existence of user modules to "break" Blender.
+     * Given this situation, default to an isolated environment with command line arguments
+     * to enable *user* and *system* Python settings, see: #107137.
+     *
+     * - See also related reports about users site packages failing to load, see: #104000, #106963.
+     * - See `site.USER_BASE` for the location PIP will install user packages
+     *   this could be customized if we want to support a separate "blender-user" user path.
+     */
+    config.user_site_directory = py_use_user_env;
 
     /* While `sys.argv` is set, we don't want Python to interpret it. */
     config.parse_argv = 0;
@@ -688,6 +712,26 @@ void BPY_python_use_system_env()
 {
   BLI_assert(!Py_IsInitialized());
   py_use_system_env = true;
+
+  /* NOTE: it's debatable if enabling the system-environment should enable the user-environment.
+   *
+   * While in principle it's possible a developer wants to access user site-packages
+   * in an otherwise isolated environment. The intent with the system-environment was
+   * to disable all isolation, so Python developers have a convenient way to access
+   * the full Python environment.
+   *
+   * Having to pass in multiple arguments to achieve this goes against the original intention.
+   *
+   * If a developer wants to enable the system-environment and disable user-environment
+   * this can be achieved by running with the environment variable `PYTHONNOUSERSITE=1`
+   * along with the argument `--python-use-system-env`. */
+  py_use_user_env = true;
+}
+
+void BPY_python_use_user_env()
+{
+  BLI_assert(!Py_IsInitialized());
+  py_use_user_env = true;
 }
 
 bool BPY_python_use_system_env_get()

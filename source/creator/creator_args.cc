@@ -728,6 +728,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--python-console");
   BLI_args_print_arg_doc(ba, "--python-exit-code");
   BLI_args_print_arg_doc(ba, "--python-use-system-env");
+  BLI_args_print_arg_doc(ba, "--python-use-user-env");
   BLI_args_print_arg_doc(ba, "--addons");
 
   PRINT("\n");
@@ -2731,15 +2732,29 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void * /
 }
 
 static const char arg_handle_python_use_system_env_set_doc[] =
-    "\n\t"
-    "Allow Python to use system environment variables such as 'PYTHONPATH' and the user "
-    "site-packages directory.";
+    "\n"
+    "\tAllow Python to use system environment variables such as 'PYTHONPATH'.\n"
+    "\tThis also enables user environment, see: '--python-use-user-env'.";
 static int arg_handle_python_use_system_env_set(int /*argc*/,
                                                 const char ** /*argv*/,
                                                 void * /*data*/)
 {
 #  ifdef WITH_PYTHON
   BPY_python_use_system_env();
+#  endif
+  return 0;
+}
+
+static const char arg_handle_python_use_user_env_set_doc[] =
+    "\n"
+    "\tAllow Python to use users site-packages directory.\n"
+    "\tThis disables full isolation for the Python environment.";
+static int arg_handle_python_use_user_env_set(int /*argc*/,
+                                              const char ** /*argv*/,
+                                              void * /*data*/)
+{
+#  ifdef WITH_PYTHON
+  BPY_python_use_user_env();
 #  endif
   return 0;
 }
@@ -2923,6 +2938,8 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   BLI_args_pass_set(ba, ARG_PASS_ENVIRONMENT);
   BLI_args_add(
       ba, nullptr, "--python-use-system-env", CB(arg_handle_python_use_system_env_set), nullptr);
+  BLI_args_add(
+      ba, nullptr, "--python-use-user-env", CB(arg_handle_python_use_user_env_set), nullptr);
 
   /* Note that we could add used environment variables too. */
   BLI_args_add(
