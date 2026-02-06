@@ -166,7 +166,7 @@ static void layer_pointclouds_to_instances(const Span<PointCloud *> pointcloud_b
                                            GeometrySet &geometry)
 {
   if (!pointcloud_by_layer.is_empty()) {
-    bke::Instances *instances = new bke::Instances(pointcloud_by_layer.size());
+    auto instances = std::make_unique<bke::Instances>(pointcloud_by_layer.size());
     MutableSpan<int> handles = instances->reference_handles_for_write();
     instances->transforms_for_write().fill(float4x4::identity());
     for (const int i : pointcloud_by_layer.index_range()) {
@@ -190,7 +190,7 @@ static void layer_pointclouds_to_instances(const Span<PointCloud *> pointcloud_b
     InstancesComponent &dst_component = geometry.get_component_for_write<InstancesComponent>();
     GeometrySet new_instances = geometry::join_geometries(
         {GeometrySet::from_instances(dst_component.release()),
-         GeometrySet::from_instances(instances)},
+         GeometrySet::from_instances(std::move(instances))},
         attribute_filter);
     dst_component.replace(new_instances.get_component_for_write<InstancesComponent>().release());
   }

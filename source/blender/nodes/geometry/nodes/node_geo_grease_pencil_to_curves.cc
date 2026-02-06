@@ -55,7 +55,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  bke::Instances *instances = new bke::Instances(layer_selection.size());
+  auto instances = std::make_unique<bke::Instances>(layer_selection.size());
   MutableSpan<int> handles = instances->reference_handles_for_write();
   MutableSpan<float4x4> transforms = instances->transforms_for_write();
 
@@ -131,7 +131,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  GeometrySet curves_geometry = GeometrySet::from_instances(instances);
+  GeometrySet curves_geometry = GeometrySet::from_instances(std::move(instances));
   curves_geometry.name = std::move(grease_pencil_geometry.name);
   curves_geometry.copy_bundle_from(grease_pencil_geometry);
 

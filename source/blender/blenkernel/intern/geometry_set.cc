@@ -455,6 +455,13 @@ GeometrySet GeometrySet::from_instances(Instances *instances, GeometryOwnershipT
   return geometry_set;
 }
 
+GeometrySet GeometrySet::from_instances(std::unique_ptr<Instances> instances)
+{
+  GeometrySet geometry_set;
+  geometry_set.replace_instances(instances.release(), GeometryOwnershipType::Owned);
+  return geometry_set;
+}
+
 GeometrySet GeometrySet::from_grease_pencil(GreasePencil *grease_pencil,
                                             GeometryOwnershipType ownership)
 {

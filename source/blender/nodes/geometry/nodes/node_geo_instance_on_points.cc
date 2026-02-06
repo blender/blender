@@ -205,7 +205,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         if (std::unique_ptr<bke::Instances> instances = add_instances_from_component(
                 *component.attributes(), instance, field_context, params, attribute_filter))
         {
-          component_instances.append(GeometrySet::from_instances(instances.release()));
+          component_instances.append(GeometrySet::from_instances(std::move(instances)));
         }
       }
     }
@@ -238,7 +238,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         if (std::unique_ptr<bke::Instances> layer_instances = add_instances_from_component(
                 src_curves.attributes(), instance, field_context, params, attribute_filter))
         {
-          GeometrySet temp_set = GeometrySet::from_instances(layer_instances.release());
+          GeometrySet temp_set = GeometrySet::from_instances(std::move(layer_instances));
           handles.append(instances_per_layer->add_reference(bke::InstanceReference{temp_set}));
           transforms.append(layer_transform);
         }
@@ -254,7 +254,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                            attribute_filter,
                            instances_per_layer->attributes_for_write());
 
-      component_instances.append(GeometrySet::from_instances(instances_per_layer.release()));
+      component_instances.append(GeometrySet::from_instances(std::move(instances_per_layer)));
     }
 
     GeometrySet dst_instances = geometry::join_geometries(component_instances, attribute_filter);

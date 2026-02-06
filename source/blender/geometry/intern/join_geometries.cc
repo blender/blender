@@ -220,8 +220,7 @@ static void join_component_type(const bke::GeometryComponent::Type component_typ
       break;
   }
 
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
-  instances->resize(components.size());
+  auto instances = std::make_unique<bke::Instances>(components.size());
   instances->transforms_for_write().fill(float4x4::identity());
   MutableSpan<int> handles = instances->reference_handles_for_write();
   Map<const GeometryComponent *, int> handle_by_component;
@@ -239,7 +238,7 @@ static void join_component_type(const bke::GeometryComponent::Type component_typ
   options.realize_instance_attributes = false;
   options.attribute_filter = attribute_filter;
   GeometrySet joined_components =
-      realize_instances(GeometrySet::from_instances(instances.release()), options).geometry;
+      realize_instances(GeometrySet::from_instances(std::move(instances)), options).geometry;
   result.add(joined_components.get_component_for_write(component_type));
 }
 

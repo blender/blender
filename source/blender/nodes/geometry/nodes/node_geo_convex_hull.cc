@@ -246,7 +246,7 @@ static void convex_hull_grease_pencil(GeometrySet &geometry_set)
   auto &dst_component = geometry_set.get_component_for_write<InstancesComponent>();
   GeometrySet new_instances = geometry::join_geometries(
       {GeometrySet::from_instances(dst_component.release()),
-       GeometrySet::from_instances(instances.release())},
+       GeometrySet::from_instances(std::move(instances))},
       {});
   dst_component.replace(new_instances.get_component_for_write<InstancesComponent>().release());
   geometry_set.replace_grease_pencil(nullptr);

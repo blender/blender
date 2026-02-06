@@ -32,8 +32,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   instances->transforms_for_write().fill(float4x4::identity());
 
-  GeometrySet new_geometry = GeometrySet::from_instances(instances.release());
-  params.set_output("Instances", std::move(new_geometry));
+  params.set_output("Instances", GeometrySet::from_instances(std::move(instances)));
 }
 
 static void node_register()
