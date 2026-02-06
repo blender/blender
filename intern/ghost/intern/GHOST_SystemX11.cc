@@ -314,9 +314,9 @@ uint64_t GHOST_SystemX11::ms_from_input_time(Time timestamp) const
     timestamp_prev = timestamp;
   }
 
-  if (UNLIKELY(timestamp < timestamp_prev)) {
+  if (timestamp < timestamp_prev) [[unlikely]] {
     /* Only rollover if this is within a reasonable range. */
-    if (UNLIKELY(timestamp_prev - timestamp > UINT32_MAX / 2)) {
+    if (timestamp_prev - timestamp > UINT32_MAX / 2) [[unlikely]] {
       timestamp_offset += uint64_t(UINT32_MAX) + 1;
     }
   }

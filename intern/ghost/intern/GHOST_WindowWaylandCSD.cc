@@ -60,31 +60,22 @@ static std::optional<std::string> command_exec(const char *cmd, const size_t out
   return result.str();
 }
 
-static const char *strchr_or_end(const char *str, const char ch)
-{
-  const char *p = str;
-  while (!ELEM(*p, ch, '\0')) {
-    p++;
-  }
-  return p;
-}
-
-static bool string_elem_split_by_delim(const char *haystack, const char delim, const char *needle)
+static bool string_elem_split_by_delim(std::string_view haystack,
+                                       const char delim,
+                                       std::string_view needle)
 {
   /* Local copy of #BLI_string_elem_split_by_delim (would be a bad level call). */
 
   /* May be zero, returns true when an empty span exists. */
-  const size_t needle_len = strlen(needle);
-  const char *p = haystack, *p_next;
-  while (true) {
-    p_next = strchr_or_end(p, delim);
-    if ((size_t(p_next - p) == needle_len) && (memcmp(p, needle, needle_len) == 0)) {
+  while (!haystack.empty()) {
+    const size_t pos = haystack.find(delim);
+    if (haystack.substr(0, pos) == needle) {
       return true;
     }
-    if (*p_next == '\0') {
+    if (pos == std::string_view::npos) {
       break;
     }
-    p = p_next + 1;
+    haystack.remove_prefix(pos + 1);
   }
   return false;
 }
