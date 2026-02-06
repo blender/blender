@@ -273,6 +273,7 @@ gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info
 #endif
 
   info.builtins_ |= BuiltinBits::NO_BUFFER_TYPE_LINTING;
+  info.builtins_ |= BuiltinBits::NO_PREPROCESSOR;
 
   auto preprocess_source = [&](const std::string &input_src) {
     std::string processed_str;
@@ -831,6 +832,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
   for (const shader::ShaderCreateInfo::FragOut &frag_out : info.fragment_outputs_) {
     shader->fragment_output_bits |= 1u << frag_out.index;
   }
+
+  shader->skip_preprocessor = bool(specialized_info.builtins_ & BuiltinBits::NO_PREPROCESSOR);
 
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
