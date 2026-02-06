@@ -286,7 +286,7 @@ static float isect_vert_calc_z(int vert_index,
   const double2 &vert_co = result.vert[vert_index];
 
   /* Find a face edge in the original edge info. */
-  for (const int orig_id : result.edge_orig[edge_index]) {
+  for (const uint32_t orig_id : result.edge_orig[edge_index]) {
     if (orig_id < result.face_edge_offset) {
       /* Standalone edge - skip. */
       continue;
