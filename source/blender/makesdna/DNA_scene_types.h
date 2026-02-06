@@ -1868,7 +1868,8 @@ enum eSnapMode {
   SCE_SNAP_TO_KEYS = (1 << 3),
   SCE_SNAP_TO_STRIPS = (1 << 4),
 
-  /** #ToolSettings::snap_mode and #ToolSettings::snap_node_mode and #ToolSettings.snap_uv_mode */
+  /** #ToolSettings::snap_mode and #ToolSettings::snap_node_mode and #ToolSettings.snap_uv_mode and
+     #ToolSettings::snap_mode_tools */
   SCE_SNAP_TO_POINT = (1 << 0),
   SCE_SNAP_TO_EDGE_MIDPOINT = (1 << 1),
   SCE_SNAP_TO_EDGE_ENDPOINT = (1 << 2),
@@ -1887,8 +1888,14 @@ enum eSnapMode {
 };
 ENUM_OPERATORS(eSnapMode)
 
+/**
+ * \note The exact value here is used in an enum, any changes require versioning.
+ */
 #define SCE_SNAP_TO_VERTEX (SCE_SNAP_TO_POINT | SCE_SNAP_TO_EDGE_ENDPOINT)
 
+/**
+ * \note The exact value here is used in an enum, any changes require versioning.
+ */
 #define SCE_SNAP_TO_GEOM \
   (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE | SCE_SNAP_TO_FACE_MIDPOINT | \
    SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)
