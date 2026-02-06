@@ -241,7 +241,7 @@ void view2d_draw_lines_y(const View2D *v2d, bool show_fractions, int base);
 void view2d_draw_lines_x(
     const View2D *v2d, bool display_seconds, bool show_fractions, bool draw_minor_lines, int base);
 /**
- * Wrapper around `view2d_draw_lines_x` that calculates the `base` from the `scene` framerate.
+ * Wrapper around `view2d_draw_lines_x` that calculates the `base` from the `scene` frame-rate.
  */
 void view2d_draw_lines_x_frames(const View2D *v2d,
                                 const Scene *scene,
@@ -260,7 +260,7 @@ void view2d_draw_scale_y(
 /**
  * Draw a text scale in either frames or seconds.
  *
- * \param display_seconds If true, the scale is interpreted as seconds and will draw a timecode.
+ * \param display_seconds If true, the scale is interpreted as seconds and will draw a time-code.
  * \param show_fractions If true, fractional scales will be drawn when zoomed in far enough.
  * Otherwise the minimum step distance is clamped to 1, meaning only whole number indicators will
  * be drawn even when zoomed in. If `display_seconds` is true, this setting will always be false.

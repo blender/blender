@@ -301,7 +301,7 @@ void ImageManager::load_image_metadata(Image *img)
   }
 
   /* Isolate threading since we are holding a mutex lock and metadata loading
-   * may involve multithreadeding from e.g. the texture cache generation or host
+   * may involve multi-threading from e.g. the texture cache generation or host
    * application processing. */
   isolate_task([&]() {
     ImageMetaData &metadata = img->metadata;

@@ -63,7 +63,7 @@ struct FillCache {
    * used as group IDs (arbitrary integers, not indices!).
    *
    * The #fill_map is an index mapping where groups are the consecutive indices of curves in each
-   * fill (ordered by the first occurance of the fill ID).
+   * fill (ordered by the first occurrence of the fill ID).
    * The #fill_offsets are offset indices into #fill_map where each range represents a fill.
    *
    * For example:
@@ -74,7 +74,7 @@ struct FillCache {
    * fill_map:     2 4 6 5 7 8
    * fill_offsets: 0     3 4   6
    * fills:        _____ _ ___
-   *               a     c b           (ordered by the first occurance in `fill_id`)
+   *               a     c b           (ordered by the first occurrence in `fill_id`)
    */
   Vector<int> fill_map;
   Vector<int> fill_offsets;
