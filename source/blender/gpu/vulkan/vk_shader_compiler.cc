@@ -207,6 +207,9 @@ static bool compile_ex(shaderc::Compiler &compiler,
   shaderc::CompileOptions options;
   bool do_optimize = true;
   options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    do_optimize = false;
+  }
   /* WORKAROUND: Qualcomm driver can crash when handling optimized SPIR-V. */
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     do_optimize = false;
