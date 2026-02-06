@@ -10,8 +10,6 @@
 #include <cstdio>
 #include <stdexcept>
 
-/* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
-#undef SEP
 #include <fmt/format.h>
 
 #include "stl_data.hh"

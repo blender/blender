@@ -722,13 +722,13 @@ bool BLI_path_abs_from_cwd(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
  * \{ */
 
 #ifdef WIN32
-#  define SEP '\\'
-#  define ALTSEP '/'
+constexpr char SEP = '\\';
+constexpr char ALTSEP = '/';
 #  define SEP_STR "\\"
 #  define ALTSEP_STR "/"
 #else
-#  define SEP '/'
-#  define ALTSEP '\\'
+constexpr char SEP = '/';
+constexpr char ALTSEP = '\\';
 #  define SEP_STR "/"
 #  define ALTSEP_STR "\\"
 #endif
