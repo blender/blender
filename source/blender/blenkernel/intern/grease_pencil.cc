@@ -597,7 +597,7 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
               return -1;
             }
             /* Just get the first point if there are multiple at the same position. */
-            return result.vert_orig[vert].first();
+            return int(result.vert_orig[vert].first());
           };
 
           for (const int i : result.face.index_range()) {
