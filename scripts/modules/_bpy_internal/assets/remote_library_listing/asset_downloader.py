@@ -119,8 +119,7 @@ def download_preview(
         age_in_seconds = time.time() - stat.st_mtime
         if age_in_seconds < PREVIEW_DOWNLOAD_AGE_THRESHOLD_SEC:
             # The local file is still fresh, just pretend we just downloaded it.
-            wm = bpy.context.window_manager
-            wm.asset_library_status_ping_loaded_new_preview(asset_library_url, str(dst_filepath))
+            bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(asset_library_url, str(dst_filepath))
             return
 
     try:
@@ -147,8 +146,7 @@ def _asset_download_done(
     _http_req_descr: http_dl.RequestDescription,
     _preview_local_path: Path,
 ) -> None:
-    wm = bpy.context.window_manager
-    wm.asset_library_status_ping_loaded_new_assets(downloader.remote_url)
+    bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(downloader.remote_url)
 
 
 def _preview_download_done(
@@ -175,8 +173,7 @@ def _preview_download_done(
     preview_local_path.touch()
 
     # Poke Blender so it knows there's a thumbnail update.
-    wm = bpy.context.window_manager
-    wm.asset_library_status_ping_loaded_new_preview(downloader.remote_url, str(preview_local_path))
+    bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(downloader.remote_url, str(preview_local_path))
 
 
 def downloader_status(asset_library_url: str) -> DownloadStatus:

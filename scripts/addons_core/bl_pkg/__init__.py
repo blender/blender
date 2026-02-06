@@ -493,18 +493,19 @@ def _remote_asset_library_sync_done(downloader: _RemoteAssetListingDownloader) -
     """
     from _bpy_internal.assets.remote_library_listing import sync_mutex
     from _bpy_internal.assets.remote_library_listing.listing_downloader import DownloadStatus
+    from bpy.types import WindowManager
 
     try:
         _downloaders.remove(downloader)
 
-        wm = bpy.context.window_manager
         match downloader.status:
             case DownloadStatus.LOADING:
                 print("Unexpected: `on_done_callback` called while downloader status is loading")
             case DownloadStatus.FINISHED_SUCCESSFULLY:
-                wm.asset_library_status_finished_loading(downloader.remote_url)
+                WindowManager.asset_library_status_finished_loading(downloader.remote_url)
             case DownloadStatus.FAILED:
-                wm.asset_library_status_failed_loading(downloader.remote_url, message=downloader.error_message)
+                WindowManager.asset_library_status_failed_loading(
+                    downloader.remote_url, message=downloader.error_message)
     finally:
         sync_mutex.mutex_unlock(downloader.local_path)
 
@@ -514,18 +515,15 @@ def _remote_asset_library_sync_update(downloader: _RemoteAssetListingDownloader)
 
     # Only call `asset_library_status_ping_still_loading()` if the loading is still going on.
     if downloader.status == DownloadStatus.LOADING:
-        wm = bpy.context.window_manager
-        wm.asset_library_status_ping_still_loading(downloader.remote_url)
+        bpy.types.WindowManager.asset_library_status_ping_still_loading(downloader.remote_url)
 
 
 def _remote_asset_library_sync_metafiles_done(downloader: _RemoteAssetListingDownloader) -> None:
-    wm = bpy.context.window_manager
-    wm.asset_library_status_ping_metafiles_in_place(downloader.remote_url)
+    bpy.types.WindowManager.asset_library_status_ping_metafiles_in_place(downloader.remote_url)
 
 
 def _remote_asset_library_sync_new_page_done(downloader: _RemoteAssetListingDownloader) -> None:
-    wm = bpy.context.window_manager
-    wm.asset_library_status_ping_loaded_new_pages(downloader.remote_url)
+    bpy.types.WindowManager.asset_library_status_ping_loaded_new_pages(downloader.remote_url)
 
 
 def _remote_asset_library_sync_all_periodic():
