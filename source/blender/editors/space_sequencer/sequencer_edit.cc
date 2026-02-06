@@ -562,60 +562,123 @@ void SEQUENCER_OT_gap_insert(wmOperatorType *ot)
 /** \name Snap Strips to the Current Frame Operator
  * \{ */
 
+static int mouse_frame_side_get(View2D *v2d, short mouse_x, int frame)
+{
+  int mval[2];
+  float mouseloc[2];
+
+  mval[0] = mouse_x;
+  mval[1] = 0;
+
+  /* Choose the side based on which side of the current frame the mouse is on. */
+  ui::view2d_region_to_view(v2d, mval[0], mval[1], &mouseloc[0], &mouseloc[1]);
+
+  return mouseloc[0] > frame ? seq::SIDE_RIGHT : seq::SIDE_LEFT;
+}
+
 static wmOperatorStatus sequencer_snap_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
 
   Editing *ed = seq::editing_get(scene);
   const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
-  int snap_frame;
+  const bool keep_offset = RNA_boolean_get(op->ptr, "keep_offset");
+  const int snap_frame = RNA_int_get(op->ptr, "frame");
+  const int snap_side = RNA_enum_get(op->ptr, "side");
 
-  snap_frame = RNA_int_get(op->ptr, "frame");
+  VectorSet<Strip *> selected = seq::query_selected_strips(ed->current_strips());
+  selected.remove_if([&](Strip *strip) { return seq::transform_is_locked(channels, strip); });
 
-  /* Check meta-strips. */
-  for (Strip &strip : *ed->current_strips()) {
-    if (strip.flag & SEQ_SELECT && !seq::transform_is_locked(channels, &strip) &&
-        seq::transform_strip_can_be_translated(&strip))
-    {
-      if ((strip.flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) == 0) {
-        seq::transform_translate_strip(scene, &strip, (snap_frame - strip.startofs) - strip.start);
+  if (selected.is_empty()) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* This lambda is used for snapping strips whose handles are not selected. NOTE that the behavior
+   * feels more natural when a cursor on the right side of the playhead means that the whole strip
+   * ends up on the right, and left side -> whole strip on the left. This code ensures that. */
+  auto delta_from_snap_side_get = [&](Strip *strip) {
+    return (snap_side == seq::SIDE_RIGHT) ? snap_frame - strip->left_handle() :
+                                            snap_frame - strip->right_handle(scene);
+  };
+
+  std::optional<int> group_delta;
+  if (keep_offset) {
+    /* If handles are selected, choose active strip handle as the anchor
+     * to calculate the offset for the entire strip group. */
+    Strip *strip = seq::select_active_get(scene);
+
+    /* Ensure active strip always participates in the operation to avoid inconsistent snapping. */
+    if (!(strip->flag & SEQ_SELECT)) {
+      strip->flag |= SEQ_SELECT;
+      selected.add(strip);
+    }
+
+    const bool left_sel = strip->flag & SEQ_LEFTSEL;
+    const bool right_sel = strip->flag & SEQ_RIGHTSEL;
+
+    if (left_sel) {
+      group_delta = snap_frame - strip->left_handle();
+    }
+    if (right_sel) {
+      const int right_delta = snap_frame - strip->right_handle(scene);
+      if (!group_delta.has_value() || math::abs(right_delta) < group_delta) {
+        group_delta = right_delta;
       }
-      else {
-        if (strip.flag & SEQ_LEFTSEL) {
-          strip.left_handle_set(scene, snap_frame);
-        }
-        else { /* SEQ_RIGHTSEL */
-          strip.right_handle_set(scene, snap_frame);
-        }
-      }
+    }
 
-      seq::relations_invalidate_cache(scene, &strip);
+    /* No handles selected: choose either left or right of active
+     * strip based on mouse position relative to playhead. */
+    if (!group_delta.has_value()) {
+      group_delta = delta_from_snap_side_get(strip);
     }
   }
 
-  /* Test for effects and overlap. */
-  for (Strip &strip : *ed->current_strips()) {
-    if (strip.flag & SEQ_SELECT && !seq::transform_is_locked(channels, &strip)) {
-      strip.runtime->flag &= ~seq::StripRuntimeFlag::Overlap;
-      if (seq::transform_test_overlap(scene, ed->current_strips(), &strip)) {
-        seq::transform_seqbase_shuffle(ed->current_strips(), &strip, scene);
-      }
+  for (Strip *strip : selected) {
+    if (!seq::transform_strip_can_be_translated(strip)) {
+      continue;
+    }
+    const bool left_sel = strip->flag & SEQ_LEFTSEL;
+    const bool right_sel = strip->flag & SEQ_RIGHTSEL;
+
+    if (left_sel) {
+      strip->left_handle_set(scene,
+                             group_delta ? (strip->left_handle() + *group_delta) : snap_frame);
+    }
+    if (right_sel) {
+      strip->right_handle_set(
+          scene, group_delta ? (strip->right_handle(scene) + *group_delta) : snap_frame);
+    }
+
+    if (!left_sel && !right_sel) {
+      seq::transform_translate_strip(
+          scene, strip, group_delta ? *group_delta : delta_from_snap_side_get(strip));
+    }
+    seq::relations_invalidate_cache(scene, strip);
+  }
+
+  /* Test for overlap and shuffle. */
+  for (Strip *strip : selected) {
+    strip->runtime->flag &= ~seq::StripRuntimeFlag::Overlap;
+    if (seq::transform_test_overlap(scene, ed->current_strips(), strip)) {
+      seq::transform_seqbase_shuffle(ed->current_strips(), strip, scene);
     }
   }
 
-  /* Recalculate bounds of effect strips, offsetting the keyframes if not snapping any handle. */
-  for (Strip &strip : *ed->current_strips()) {
-    if (strip.is_effect()) {
-      const bool either_handle_selected = (strip.flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) != 0;
+  /* Recalculate bounds of effect strips, offsetting the keyframes if not snapping any handles. */
+  for (Strip *strip : selected) {
+    if (strip->is_effect()) {
+      const bool either_handle_selected = (strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) != 0;
 
-      if (strip.input1 && (strip.input1->flag & SEQ_SELECT)) {
+      if (strip->input1 && (strip->input1->flag & SEQ_SELECT)) {
         if (!either_handle_selected) {
-          seq::offset_animdata(scene, &strip, (snap_frame - strip.left_handle()));
+          seq::offset_animdata(
+              scene, strip, group_delta ? *group_delta : (snap_frame - strip->left_handle()));
         }
       }
-      else if (strip.input2 && (strip.input2->flag & SEQ_SELECT)) {
+      else if (strip->input2 && (strip->input2->flag & SEQ_SELECT)) {
         if (!either_handle_selected) {
-          seq::offset_animdata(scene, &strip, (snap_frame - strip.left_handle()));
+          seq::offset_animdata(
+              scene, strip, group_delta ? *group_delta : (snap_frame - strip->left_handle()));
         }
       }
     }
@@ -627,17 +690,23 @@ static wmOperatorStatus sequencer_snap_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static wmOperatorStatus sequencer_snap_invoke(bContext *C,
-                                              wmOperator *op,
-                                              const wmEvent * /*event*/)
+static wmOperatorStatus sequencer_snap_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
 
-  int snap_frame;
-
-  snap_frame = scene->r.cfra;
-
+  int snap_frame = scene->r.cfra;
   RNA_int_set(op->ptr, "frame", snap_frame);
+
+  int snap_side = RNA_enum_get(op->ptr, "side");
+  if (ED_operator_sequencer_active(C) && v2d) {
+    snap_side = mouse_frame_side_get(v2d, event->mval[0], snap_frame);
+  }
+  else {
+    snap_side = seq::SIDE_LEFT;
+  }
+
+  RNA_enum_set(op->ptr, "side", snap_side);
   return sequencer_snap_exec(C, op);
 }
 
@@ -646,7 +715,9 @@ void SEQUENCER_OT_snap(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Snap Strips to the Current Frame";
   ot->idname = "SEQUENCER_OT_snap";
-  ot->description = "Frame where selected strips will be snapped";
+  ot->description =
+      "Snap strips to the current frame, using the active strip as the anchor, and the mouse "
+      "cursor relative to the playhead to determine the side of the playhead to snap to";
 
   /* API callbacks. */
   ot->invoke = sequencer_snap_invoke;
@@ -654,7 +725,7 @@ void SEQUENCER_OT_snap(wmOperatorType *ot)
   ot->poll = sequencer_edit_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   RNA_def_int(ot->srna,
               "frame",
@@ -665,6 +736,23 @@ void SEQUENCER_OT_snap(wmOperatorType *ot)
               "Frame where selected strips will be snapped",
               INT_MIN,
               INT_MAX);
+
+  PropertyRNA *prop;
+  prop = RNA_def_enum(
+      ot->srna,
+      "side",
+      prop_snap_side_types,
+      seq::SIDE_LEFT,
+      "Snap Side",
+      "Which side of the playhead strips should snap to when no handles are selected");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  RNA_def_boolean(
+      ot->srna,
+      "keep_offset",
+      true,
+      "Keep Offset",
+      "Whether the selection should be snapped as a whole or by each individual strip");
 }
 
 /** \} */
@@ -1688,27 +1776,19 @@ void SEQUENCER_OT_swap_inputs(wmOperatorType *ot)
 /** \name Split Strips Operator
  * \{ */
 
-static int mouse_frame_side(View2D *v2d, short mouse_x, int frame)
-{
-  int mval[2];
-  float mouseloc[2];
-
-  mval[0] = mouse_x;
-  mval[1] = 0;
-
-  /* Choose the side based on which side of the current frame the mouse is on. */
-  ui::view2d_region_to_view(v2d, mval[0], mval[1], &mouseloc[0], &mouseloc[1]);
-
-  return mouseloc[0] > frame ? seq::SIDE_RIGHT : seq::SIDE_LEFT;
-}
-
 static const EnumPropertyItem prop_split_types[] = {
     {seq::SPLIT_SOFT, "SOFT", 0, "Soft", ""},
     {seq::SPLIT_HARD, "HARD", 0, "Hard", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem prop_side_types[] = {
+const EnumPropertyItem prop_snap_side_types[] = {
+    {seq::SIDE_LEFT, "LEFT", 0, "Left", ""},
+    {seq::SIDE_RIGHT, "RIGHT", 0, "Right", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+const EnumPropertyItem prop_split_side_types[] = {
     {seq::SIDE_MOUSE, "MOUSE", 0, "Mouse Position", ""},
     {seq::SIDE_LEFT, "LEFT", 0, "Left", ""},
     {seq::SIDE_RIGHT, "RIGHT", 0, "Right", ""},
@@ -1833,7 +1913,7 @@ static wmOperatorStatus sequencer_split_invoke(bContext *C, wmOperator *op, cons
 
   if (split_side == seq::SIDE_MOUSE) {
     if (ED_operator_sequencer_active(C) && v2d) {
-      split_side = mouse_frame_side(v2d, event->mval[0], split_frame);
+      split_side = mouse_frame_side_get(v2d, event->mval[0], split_frame);
     }
     else {
       split_side = seq::SIDE_BOTH;
@@ -1934,7 +2014,7 @@ void SEQUENCER_OT_split(wmOperatorType *ot)
 
   prop = RNA_def_enum(ot->srna,
                       "side",
-                      prop_side_types,
+                      prop_split_side_types,
                       seq::SIDE_MOUSE,
                       "Side",
                       "The side that remains selected after splitting");

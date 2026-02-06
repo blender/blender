@@ -2050,7 +2050,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
   /* Properties. */
   RNA_def_enum(ot->srna,
                "side",
-               prop_side_types,
+               prop_split_side_types,
                seq::SIDE_BOTH,
                "Side",
                "The side to which the selection is applied");
