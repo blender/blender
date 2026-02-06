@@ -6,13 +6,16 @@
 
 #include "opensubdiv_evaluator_capi.hh"
 
-#ifdef __APPLE__
+#ifdef WITH_METAL_BACKEND
 #  include <opensubdiv/osd/mtlPatchShaderSource.h>
-#else
+#endif
+#if defined(WITH_VULKAN_BACKEND) || defined(WITH_OPENGL_BACKEND)
 #  include <opensubdiv/osd/glslPatchShaderSource.h>
 #endif
 
 #include "MEM_guardedalloc.h"
+
+#include "GPU_context.hh"
 
 #include "internal/evaluator/evaluator_cache_impl.h"
 
@@ -42,9 +45,11 @@ const char *openSubdiv_getGLSLPatchBasisSource()
         "#define OsdPatchParam_host_shared_ OsdPatchParam\n"
         "#define OsdPatchArray_host_shared_ OsdPatchArray\n"
         "#define OsdPatchCoord_host_shared_ OsdPatchCoord\n";
-#ifdef __APPLE__
+
+#ifdef WITH_METAL_BACKEND
     patch_basis_source += OpenSubdiv::Osd::MTLPatchShaderSource::GetPatchBasisShaderSource();
-#else
+#endif
+#if defined(WITH_OPENGL_BACKEND) || defined(WITH_VULKAN_BACKEND)
     patch_basis_source += OpenSubdiv::Osd::GLSLPatchShaderSource::GetPatchBasisShaderSource();
 #endif
   }

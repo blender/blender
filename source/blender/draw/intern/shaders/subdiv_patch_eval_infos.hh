@@ -8,6 +8,10 @@
 #  include "gpu_shader_compat.hh"
 
 #  include "draw_subdiv_shader_shared.hh"
+
+/* `osd_patch_defines.glsl` must be included before `osd_patch_basis.glsl` */
+#  include "osd_patch_defines.glsl"
+
 #  include "osd_patch_basis.glsl"
 #endif
 
@@ -20,14 +24,8 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_basis)
-#ifdef __APPLE__
-/* Match definition from OPenSubdiv which defines OSD_PATCH_BASIS_METAL as 1. Matching it here
- * avoids possible re-definition warning at runtime. */
-DEFINE_VALUE("OSD_PATCH_BASIS_METAL", "1")
-#else
-DEFINE("OSD_PATCH_BASIS_GLSL")
-#endif
 DEFINE("OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES")
+TYPEDEF_SOURCE("osd_patch_defines.glsl")
 TYPEDEF_SOURCE("osd_patch_basis.glsl")
 COMPUTE_SOURCE("subdiv_patch_evaluation_comp.glsl")
 STORAGE_BUF(PATCH_EVALUATION_SOURCE_VERTEX_BUFFER_BUF_SLOT, read, float, srcVertexBuffer[])
