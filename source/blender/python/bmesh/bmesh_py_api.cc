@@ -38,7 +38,7 @@ PyDoc_STRVAR(
     bpy_bm_new_doc,
     ".. method:: new(*, use_operators=True)\n"
     "\n"
-    "   :arg use_operators: Support calling operators in :mod:`bmesh.ops` (uses some "
+    "   :param use_operators: Support calling operators in :mod:`bmesh.ops` (uses some "
     "extra memory per vert/edge/face).\n"
     "   :type use_operators: bool\n"
     "   :return: Return a new, empty BMesh.\n"
@@ -71,7 +71,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return a BMesh from this mesh, currently the mesh must already be in editmode.\n"
     "\n"
-    "   :arg mesh: The editmode mesh.\n"
+    "   :param mesh: The editmode mesh.\n"
     "   :type mesh: :class:`bpy.types.Mesh`\n"
     "   :return: the BMesh associated with this mesh.\n"
     "   :rtype: :class:`bmesh.types.BMesh`\n");
@@ -104,11 +104,11 @@ PyDoc_STRVAR(
     "   Update the mesh after changes to the BMesh in editmode,\n"
     "   optionally recalculating n-gon tessellation.\n"
     "\n"
-    "   :arg mesh: The editmode mesh.\n"
+    "   :param mesh: The editmode mesh.\n"
     "   :type mesh: :class:`bpy.types.Mesh`\n"
-    "   :arg loop_triangles: Option to recalculate n-gon tessellation.\n"
+    "   :param loop_triangles: Option to recalculate n-gon tessellation.\n"
     "   :type loop_triangles: bool\n"
-    "   :arg destructive: Use when geometry has been added or removed.\n"
+    "   :param destructive: Use when geometry has been added or removed.\n"
     "   :type destructive: bool\n");
 static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {

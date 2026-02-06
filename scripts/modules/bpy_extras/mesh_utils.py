@@ -17,7 +17,7 @@ def mesh_linked_uv_islands(mesh):
     """
     Returns lists of polygon indices connected by UV islands.
 
-    :arg mesh: the mesh used to group with.
+    :param mesh: the mesh used to group with.
     :type mesh: :class:`bpy.types.Mesh`
     :return: list of lists containing polygon indices
     :rtype: list[list[int]]
@@ -86,7 +86,7 @@ def mesh_linked_triangles(mesh):
     Splits the mesh into connected triangles, use this for separating cubes from
     other mesh elements within 1 mesh data-block.
 
-    :arg mesh: the mesh used to group with.
+    :param mesh: the mesh used to group with.
     :type mesh: :class:`bpy.types.Mesh`
     :return: Lists of lists containing triangles.
     :rtype: list[list[:class:`bpy.types.MeshLoopTriangle`]]
@@ -236,13 +236,13 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
     index lists. Designed to be used for importers that need indices for an
     ngon to create from existing verts.
 
-    :arg from_data: Either a mesh, or a list/tuple of 3D vectors.
+    :param from_data: Either a mesh, or a list/tuple of 3D vectors.
     :type from_data: :class:`bpy.types.Mesh` | list[Sequence[float]] | tuple[Sequence[float]]
-    :arg indices: a list of indices to use this list
+    :param indices: a list of indices to use this list
        is the ordered closed poly-line
        to fill, and can be a subset of the data given.
     :type indices: list[int]
-    :arg fix_loops: If this is enabled poly-lines
+    :param fix_loops: If this is enabled poly-lines
        that use loops to make multiple
        poly-lines are dealt with correctly.
     :type fix_loops: bool
@@ -427,9 +427,9 @@ def triangle_random_points(num_points, loop_triangles):
     """
     Generates a list of random points over mesh loop triangles.
 
-    :arg num_points: The number of random points to generate on each triangle.
+    :param num_points: The number of random points to generate on each triangle.
     :type num_points: int
-    :arg loop_triangles: Sequence of the triangles to generate points on.
+    :param loop_triangles: Sequence of the triangles to generate points on.
     :type loop_triangles: Sequence[:class:`bpy.types.MeshLoopTriangle`]
     :return: List of random points over all triangles.
     :rtype: list[:class:`mathutils.Vector`]

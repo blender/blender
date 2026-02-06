@@ -78,9 +78,9 @@ PyDoc_STRVAR(
     "\n"
     "   Resize the image.\n"
     "\n"
-    "   :arg size: New size.\n"
+    "   :param size: New size.\n"
     "   :type size: tuple[int, int]\n"
-    "   :arg method: Method of resizing ('FAST', 'BILINEAR')\n"
+    "   :param method: Method of resizing ('FAST', 'BILINEAR')\n"
     "   :type method: str\n");
 static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
@@ -134,9 +134,9 @@ PyDoc_STRVAR(
     "\n"
     "   Crop the image.\n"
     "\n"
-    "   :arg min: X, Y minimum.\n"
+    "   :param min: X, Y minimum.\n"
     "   :type min: tuple[int, int]\n"
-    "   :arg max: X, Y maximum.\n"
+    "   :param max: X, Y maximum.\n"
     "   :type max: tuple[int, int]\n");
 static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
@@ -506,7 +506,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new image.\n"
     "\n"
-    "   :arg size: The size of the image in pixels.\n"
+    "   :param size: The size of the image in pixels.\n"
     "   :type size: tuple[int, int]\n"
     "   :return: the newly created image.\n"
     "   :rtype: :class:`ImBuf`\n");
@@ -570,7 +570,7 @@ PyDoc_STRVAR(
     "\n"
     "   Load an image from a file.\n"
     "\n"
-    "   :arg filepath: the filepath of the image.\n"
+    "   :param filepath: the filepath of the image.\n"
     "   :type filepath: str | bytes\n"
     "   :return: the newly loaded image.\n"
     "   :rtype: :class:`ImBuf`\n");
@@ -618,7 +618,7 @@ PyDoc_STRVAR(
     "\n"
     "   Load an image from a buffer.\n"
     "\n"
-    "   :arg buffer: A buffer containing the image data.\n"
+    "   :param buffer: A buffer containing the image data.\n"
     "   :type buffer: collections.abc.Buffer\n"
     "   :return: the newly loaded image.\n"
     "   :rtype: :class:`ImBuf`\n");
@@ -679,9 +679,9 @@ PyDoc_STRVAR(
     "\n"
     "   Write an image.\n"
     "\n"
-    "   :arg image: the image to write.\n"
+    "   :param image: the image to write.\n"
     "   :type image: :class:`ImBuf`\n"
-    "   :arg filepath: Optional filepath of the image (fallback to the images file path).\n"
+    "   :param filepath: Optional filepath of the image (fallback to the images file path).\n"
     "   :type filepath: str | bytes | None\n");
 static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {

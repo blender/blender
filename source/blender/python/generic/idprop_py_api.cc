@@ -1693,9 +1693,9 @@ PyDoc_STRVAR(
     "\n"
     "   :raises KeyError: When the item doesn't exist.\n"
     "\n"
-    "   :arg key: Name of item to remove.\n"
+    "   :param key: Name of item to remove.\n"
     "   :type key: str\n"
-    "   :arg default: Value to return when key isn't found, otherwise raise an exception.\n"
+    "   :param default: Value to return when key isn't found, otherwise raise an exception.\n"
     "   :type default: Any\n");
 static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
 {
@@ -1898,7 +1898,7 @@ PyDoc_STRVAR(
     "\n"
     "   Update key, values.\n"
     "\n"
-    "   :arg other: Updates the values in the group with this.\n"
+    "   :param other: Updates the values in the group with this.\n"
     /* TODO: replace `Any` with an alias for all types an ID property can use. */
     "   :type other: :class:`IDPropertyGroup` | dict[str, Any]\n");
 static PyObject *BPy_IDGroup_update(BPy_IDProperty *self, PyObject *value)

@@ -92,9 +92,9 @@ def execfile(filepath, *, mod=None):
     """
     Execute a file path as a Python script.
 
-    :arg filepath: Path of the script to execute.
+    :param filepath: Path of the script to execute.
     :type filepath: str
-    :arg mod: Optional cached module, the result of a previous execution.
+    :param mod: Optional cached module, the result of a previous execution.
     :type mod: ModuleType | None
     :return: The module which can be passed back in as ``mod``.
     :rtype: ModuleType
@@ -178,9 +178,9 @@ def modules_from_path(path, loaded_modules):
     """
     Load all modules in a path and return them as a list.
 
-    :arg path: this path is scanned for scripts and packages.
+    :param path: this path is scanned for scripts and packages.
     :type path: str
-    :arg loaded_modules: already loaded module names, files matching these
+    :param loaded_modules: already loaded module names, files matching these
        names will be ignored.
     :type loaded_modules: set[ModuleType]
     :return: all loaded modules.
@@ -232,13 +232,13 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
     """
     Load scripts and run each modules register function.
 
-    :arg reload_scripts: Causes all scripts to have their unregister method
+    :param reload_scripts: Causes all scripts to have their unregister method
        called before loading.
     :type reload_scripts: bool
-    :arg refresh_scripts: only load scripts which are not already loaded
+    :param refresh_scripts: only load scripts which are not already loaded
        as modules.
     :type refresh_scripts: bool
-    :arg extensions: Loads additional scripts (add-ons & app-templates).
+    :param extensions: Loads additional scripts (add-ons & app-templates).
     :type extensions: bool
     """
     use_time = use_class_register_check = _bpy.app.debug_python
@@ -380,7 +380,7 @@ def load_scripts_extensions(*, reload_scripts=False):
     """
     Load extensions scripts (add-ons and app-templates)
 
-    :arg reload_scripts: Causes all scripts to have their unregister method
+    :param reload_scripts: Causes all scripts to have their unregister method
        called before loading.
     :type reload_scripts: bool
     """
@@ -428,15 +428,15 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True,
     """
     Returns a list of valid script paths.
 
-    :arg subdir: Optional subdir.
+    :param subdir: Optional subdir.
     :type subdir: str
-    :arg user_pref: Include the user preference script paths.
+    :param user_pref: Include the user preference script paths.
     :type user_pref: bool
-    :arg check_all: Include local, user and system paths rather just the paths Blender uses.
+    :param check_all: Include local, user and system paths rather just the paths Blender uses.
     :type check_all: bool
-    :arg use_user: Include user paths
+    :param use_user: Include user paths
     :type use_user: bool
-    :arg use_system_environment: Include BLENDER_SYSTEM_SCRIPTS variable path
+    :param use_system_environment: Include BLENDER_SYSTEM_SCRIPTS variable path
     :type use_system_environment: bool
     :return: script paths.
     :rtype: list[str]
@@ -519,7 +519,7 @@ def app_template_paths(*, path=None):
     """
     Returns valid application template paths.
 
-    :arg path: Optional subdir.
+    :param path: Optional subdir.
     :type path: str
     :return: App template paths.
     :rtype: Iterator[str]
@@ -547,7 +547,7 @@ def preset_paths(subdir):
     """
     Returns a list of paths for a specific preset.
 
-    :arg subdir: preset subdirectory (must not be an absolute path).
+    :param subdir: preset subdirectory (must not be an absolute path).
     :type subdir: str
     :return: Script paths.
     :rtype: list[str]
@@ -578,7 +578,7 @@ def register_preset_path(path):
     """
     Register a preset search path.
 
-    :arg path: preset directory (must be an absolute path).
+    :param path: preset directory (must be an absolute path).
 
        This path must contain a "presets" subdirectory which will typically contain presets for add-ons.
 
@@ -602,7 +602,7 @@ def unregister_preset_path(path):
     """
     Unregister a preset search path.
 
-    :arg path: preset directory (must be an absolute path).
+    :param path: preset directory (must be an absolute path).
 
        This must match the registered path exactly.
     :type path: str
@@ -646,7 +646,7 @@ def is_path_builtin(path):
     """
     Returns True if the path is one of the built-in paths used by Blender.
 
-    :arg path: Path you want to check if it is in the built-in settings directory
+    :param path: Path you want to check if it is in the built-in settings directory
     :type path: str
     :rtype: bool
     """
@@ -674,7 +674,7 @@ def is_path_extension(path):
     """
     Returns True if the path is from an extensions repository.
 
-    :arg path: Path to check if it is within an extension repository.
+    :param path: Path to check if it is within an extension repository.
     :type path: str
     :rtype: bool
     """
@@ -696,7 +696,7 @@ def smpte_from_seconds(time, *, fps=None, fps_base=None):
 
     If *fps* and *fps_base* are not given the current scene is used.
 
-    :arg time: time in seconds.
+    :param time: time in seconds.
     :type time: int | float | datetime.timedelta
     :return: the frame string.
     :rtype: str
@@ -716,7 +716,7 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
 
     If *fps* and *fps_base* are not given the current scene is used.
 
-    :arg frame: frame number.
+    :param frame: frame number.
     :type frame: int | float
     :return: the frame string.
     :rtype: str
@@ -749,7 +749,7 @@ def time_from_frame(frame, *, fps=None, fps_base=None):
 
     If *fps* and *fps_base* are not given the current scene is used.
 
-    :arg frame: number.
+    :param frame: number.
     :type frame: int | float
     :return: the time in seconds.
     :rtype: datetime.timedelta
@@ -775,7 +775,7 @@ def time_to_frame(time, *, fps=None, fps_base=None):
 
     If *fps* and *fps_base* are not given the current scene is used.
 
-    :arg time: time in seconds.
+    :param time: time in seconds.
     :type time: float | int | datetime.timedelta
     :return: The frame.
     :rtype: float | int | datetime.timedelta
@@ -878,11 +878,11 @@ def user_resource(resource_type, *, path="", create=False):
     """
     Return a user resource path (normally from the users home directory).
 
-    :arg resource_type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'EXTENSIONS'].
+    :param resource_type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'EXTENSIONS'].
     :type resource_type: str
-    :arg path: Optional subdirectory.
+    :param path: Optional subdirectory.
     :type path: str
-    :arg create: Treat the path as a directory and create it if its not existing.
+    :param create: Treat the path as a directory and create it if its not existing.
     :type create: bool
     :return: a path.
     :rtype: str
@@ -920,11 +920,11 @@ def extension_path_user(package, *, path="", create=False):
        because it is cleared each upgrade and the users may not have write permissions
        to the repository (typically "System" repositories).
 
-    :arg package: The ``__package__`` of the extension.
+    :param package: The ``__package__`` of the extension.
     :type package: str
-    :arg path: Optional subdirectory.
+    :param path: Optional subdirectory.
     :type path: str
-    :arg create: Treat the path as a directory and create it if its not existing.
+    :param create: Treat the path as a directory and create it if its not existing.
     :type create: bool
     :return: a path.
     :rtype: str
@@ -962,7 +962,7 @@ def register_classes_factory(classes):
     Utility function to create register and unregister functions
     which simply registers and unregisters a sequence of classes.
 
-    :arg classes: Sequence of classes to register and unregister.
+    :param classes: Sequence of classes to register and unregister.
     :type classes: Sequence[type]
     :return: register and unregister functions.
     :rtype: tuple[Callable[[], None], Callable[[], None]]
@@ -989,9 +989,9 @@ def register_submodule_factory(module_name, submodule_names):
        Modules are registered in the order given,
        unregistered in reverse order.
 
-    :arg module_name: The module name, typically ``__name__``.
+    :param module_name: The module name, typically ``__name__``.
     :type module_name: str
-    :arg submodule_names: List of submodule names to load and unload.
+    :param submodule_names: List of submodule names to load and unload.
     :type submodule_names: list[str]
     :return: register and unregister functions.
     :rtype: tuple[Callable[[], None], Callable[[], None]]
@@ -1026,13 +1026,13 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
     """
     Register a tool in the toolbar.
 
-    :arg tool_cls: A tool subclass.
+    :param tool_cls: A tool subclass.
     :type tool_cls: type[:class:`bpy.types.WorkSpaceTool`]
-    :arg after: Optional identifiers this tool will be added after.
+    :param after: Optional identifiers this tool will be added after.
     :type after: Sequence[str] | set[str] | None
-    :arg separator: When true, add a separator before this tool.
+    :param separator: When true, add a separator before this tool.
     :type separator: bool
-    :arg group: When true, add a new nested group of tools.
+    :param group: When true, add a new nested group of tools.
     :type group: bool
     """
     space_type = tool_cls.bl_space_type
@@ -1341,11 +1341,11 @@ def make_rna_paths(struct_name, prop_name, enum_name):
     """
     Create RNA "paths" from given names.
 
-    :arg struct_name: Name of a RNA struct (like e.g. "Scene").
+    :param struct_name: Name of a RNA struct (like e.g. "Scene").
     :type struct_name: str
-    :arg prop_name: Name of a RNA struct's property.
+    :param prop_name: Name of a RNA struct's property.
     :type prop_name: str
-    :arg enum_name: Name of a RNA enum identifier.
+    :param enum_name: Name of a RNA enum identifier.
     :type enum_name: str
     :return: A triple of three "RNA paths"
        (most_complete_path, "struct.prop", "struct.prop:'enum'").

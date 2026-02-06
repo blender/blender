@@ -12,14 +12,14 @@ def draw_circle_2d(position, color, radius, *, segments=None):
     """
     Draw a circle.
 
-    :arg position: 2D position where the circle will be drawn.
+    :param position: 2D position where the circle will be drawn.
     :type position: Sequence[float]
-    :arg color: Color of the circle (RGBA).
+    :param color: Color of the circle (RGBA).
        To use transparency blend must be set to ``ALPHA``, see: :func:`gpu.state.blend_set`.
     :type color: Sequence[float]
-    :arg radius: Radius of the circle.
+    :param radius: Radius of the circle.
     :type radius: float
-    :arg segments: How many segments will be used to draw the circle.
+    :param segments: How many segments will be used to draw the circle.
         Higher values give better results but the drawing will take longer.
         If None or not specified, an automatic value will be calculated.
     :type segments: int | None
@@ -62,16 +62,16 @@ def draw_texture_2d(texture, position, width, height, is_scene_linear_with_rec70
     """
     Draw a 2d texture.
 
-    :arg texture: GPUTexture to draw (e.g. gpu.texture.from_image(image) for :class:`bpy.types.Image`).
+    :param texture: GPUTexture to draw (e.g. gpu.texture.from_image(image) for :class:`bpy.types.Image`).
     :type texture: :class:`gpu.types.GPUTexture`
-    :arg position: Position of the lower left corner.
+    :param position: Position of the lower left corner.
     :type position: 2D Vector
-    :arg width: Width of the image when drawn (not necessarily
+    :param width: Width of the image when drawn (not necessarily
         the original width of the texture).
     :type width: float
-    :arg height: Height of the image when drawn.
+    :param height: Height of the image when drawn.
     :type height: float
-    :arg is_scene_linear_with_rec709_srgb_target:
+    :param is_scene_linear_with_rec709_srgb_target:
         True if the `texture` is stored in scene linear color space and
         the destination frame-buffer uses the Rec.709 sRGB color space
         (which is true when drawing textures acquired from :class:`bpy.types.Image` inside a

@@ -336,7 +336,7 @@ PyDoc_STRVAR(
     "\n"
     "   Get maximum number of work groups that may be dispatched to a compute shader.\n"
     "\n"
-    "   :arg index: Index of the dimension.\n"
+    "   :param index: Index of the dimension.\n"
     "   :type index: int\n"
     "   :return: Maximum number of work groups for the queried dimension.\n"
     "   :rtype: int\n");
@@ -361,7 +361,7 @@ PyDoc_STRVAR(
     "\n"
     "   Get maximum size of a work group that may be dispatched to a compute shader.\n"
     "\n"
-    "   :arg index: Index of the dimension.\n"
+    "   :param index: Index of the dimension.\n"
     "   :type index: int\n"
     "   :return: Maximum size of a work group for the queried dimension.\n"
     "   :rtype: int\n");

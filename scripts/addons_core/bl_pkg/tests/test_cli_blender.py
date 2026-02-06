@@ -254,7 +254,7 @@ def run_blender(
         force_script_and_pause: bool = False,
 ) -> tuple[int, str, str]:
     """
-    :arg force_script_and_pause:
+    :param force_script_and_pause:
        When true, write out a shell script and wait,
        this lets the developer run the command manually which is useful as the temporary directories
        are removed once the test finished.

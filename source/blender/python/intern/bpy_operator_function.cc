@@ -273,7 +273,7 @@ PyDoc_STRVAR(
     "\n"
     "Test if the operator can be executed in the current context.\n"
     "\n"
-    ":arg context: Execution context (optional)\n"
+    ":param context: Execution context (optional)\n"
     ":type context: str\n"
     ":return: True if the operator can be executed\n"
     ":rtype: bool\n");
@@ -487,11 +487,11 @@ PyDoc_STRVAR(
     "\n"
     "   Execute the operator with the given parameters.\n"
     "\n"
-    "   :arg context: Execution context (optional)\n"
+    "   :param context: Execution context (optional)\n"
     "   :type context: str\n"
-    "   :arg undo: Force undo behavior (optional)\n"
+    "   :param undo: Force undo behavior (optional)\n"
     "   :type undo: bool\n"
-    "   :arg kwargs: Operator properties\n"
+    "   :param kwargs: Operator properties\n"
     "   :return: Set of completion status flags\n"
     "   :rtype: set[str]\n");
 PyTypeObject BPyOpFunctionType = {

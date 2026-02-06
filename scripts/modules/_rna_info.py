@@ -403,7 +403,7 @@ class InfoPropertyRNA:
             enum_descr_override=None,
     ):
         """
-        :arg enum_descr_override: Optionally override items for enum.
+        :param enum_descr_override: Optionally override items for enum.
            Otherwise expand the literal items.
         :type enum_descr_override: str | None
         """

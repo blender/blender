@@ -34,7 +34,7 @@ namespace blender {
  * \{ */
 
 #define BPY_MSGBUS_RNA_MSGKEY_DOC \
-  "   :arg key: Represents the type of data being subscribed to\n" \
+  "   :param key: Represents the type of data being subscribed to\n" \
   "\n" \
   "      Arguments include\n" \
   "      - A property instance.\n" \
@@ -197,9 +197,9 @@ PyDoc_STRVAR(
     "   Register a message bus subscription. It will be cleared when another blend file is\n"
     "   loaded, or can be cleared explicitly via :func:`bpy.msgbus.clear_by_owner`.\n"
     "\n" BPY_MSGBUS_RNA_MSGKEY_DOC
-    "   :arg owner: Handle for this subscription (compared by identity).\n"
+    "   :param owner: Handle for this subscription (compared by identity).\n"
     "   :type owner: Any\n"
-    "   :arg options: Change the behavior of the subscriber.\n"
+    "   :param options: Change the behavior of the subscriber.\n"
     "\n"
     "      - ``PERSISTENT`` when set, the subscriber will be kept when remapping ID data.\n"
     "\n"

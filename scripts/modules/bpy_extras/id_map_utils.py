@@ -31,9 +31,9 @@ def get_all_referenced_ids(id, ref_map):
     """
     Return a set of IDs directly or indirectly referenced by id.
 
-    :arg id: Datablock whose references we're interested in.
+    :param id: Datablock whose references we're interested in.
     :type id: bpy.types.ID
-    :arg ref_map: The global ID reference map, retrieved from get_id_reference_map()
+    :param ref_map: The global ID reference map, retrieved from get_id_reference_map()
     :type ref_map: dict[bpy.types.ID, set[bpy.types.ID]]
     :return: Set of datablocks referenced by `id`.
     :rtype: set[bpy.types.ID]

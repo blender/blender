@@ -52,7 +52,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create an inlined shader node tree from a material.\n"
     "\n"
-    "   :arg material: The material to inline the node tree of.\n"
+    "   :param material: The material to inline the node tree of.\n"
     "   :type material: bpy.types.Material\n");
 static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_material(PyObject * /*self*/,
                                                                          PyObject *args,
@@ -90,7 +90,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create an inlined shader node tree from a light.\n"
     "\n"
-    "   :arg light: The light to online the node tree of.\n"
+    "   :param light: The light to online the node tree of.\n"
     "   :type light: bpy.types.Light\n");
 static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_light(PyObject * /*self*/,
                                                                       PyObject *args,
@@ -127,7 +127,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create an inlined shader node tree from a world.\n"
     "\n"
-    "   :arg world: The world to inline the node tree of.\n"
+    "   :param world: The world to inline the node tree of.\n"
     "   :type world: bpy.types.World\n");
 static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_world(PyObject * /*self*/,
                                                                       PyObject *args,

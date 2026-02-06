@@ -154,14 +154,14 @@ def bake_action(
         bake_options,
 ):
     """
-    :arg obj: Object to bake.
+    :param obj: Object to bake.
     :type obj: :class:`bpy.types.Object`
-    :arg action: An action to bake the data into, or None for a new action
+    :param action: An action to bake the data into, or None for a new action
        to be created.
     :type action: :class:`bpy.types.Action` | None
-    :arg frames: Frames to bake.
+    :param frames: Frames to bake.
     :type frames: int
-    :arg bake_options: Options for baking.
+    :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
     :return: Action or None.
     :rtype: :class:`bpy.types.Action` | None
@@ -186,9 +186,9 @@ def bake_action_objects(
     """
     A version of :func:`bake_action_objects_iter` that takes frames and returns the output.
 
-    :arg frames: Frames to bake.
+    :param frames: Frames to bake.
     :type frames: iterable of int
-    :arg bake_options: Options for baking.
+    :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
 
     :return: A sequence of Action or None types (aligned with ``object_action_pairs``)
@@ -211,10 +211,10 @@ def bake_action_objects_iter(
     """
     An coroutine that bakes actions for multiple objects.
 
-    :arg object_action_pairs: Sequence of object action tuples,
+    :param object_action_pairs: Sequence of object action tuples,
        action is the destination for the baked data. When None a new action will be created.
     :type object_action_pairs: Sequence of (:class:`bpy.types.Object`, :class:`bpy.types.Action`)
-    :arg bake_options: Options for baking.
+    :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
     """
     scene = bpy.context.scene
@@ -247,12 +247,12 @@ def bake_action_iter(
     """
     An coroutine that bakes action for a single object.
 
-    :arg obj: Object to bake.
+    :param obj: Object to bake.
     :type obj: :class:`bpy.types.Object`
-    :arg action: An action to bake the data into, or None for a new action
+    :param action: An action to bake the data into, or None for a new action
        to be created.
     :type action: :class:`bpy.types.Action` | None
-    :arg bake_options: Boolean options of what to include into the action bake.
+    :param bake_options: Boolean options of what to include into the action bake.
     :type bake_options: :class:`anim_utils.BakeOptions`
 
     :return: an action or None
@@ -724,7 +724,7 @@ class KeyframesCo:
         Assumes the action is new, that it has no F-curves. Otherwise, the only difference between versions is
         performance and implementation simplicity.
 
-        :arg group_name: Name of the Group that F-curves are added to.
+        :param group_name: Name of the Group that F-curves are added to.
         """
         linear_enum_values = [
             bpy.types.Keyframe.bl_rna.properties["interpolation"].enum_items["LINEAR"].value
@@ -756,7 +756,7 @@ class KeyframesCo:
         Assumes the action already exists, that it might already have F-curves. Otherwise, the
         only difference between versions is performance and implementation simplicity.
 
-        :arg lookup_fcurves: : This is only used for efficiency.
+        :param lookup_fcurves: : This is only used for efficiency.
            It's a substitute for ``channelbag.fcurves.find()`` which is a potentially expensive linear search.
         """
         linear_enum_values = [

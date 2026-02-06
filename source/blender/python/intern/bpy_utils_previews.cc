@@ -37,7 +37,7 @@ PyDoc_STRVAR(
     "\n"
     "   Generate a new empty preview.\n"
     "\n"
-    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :param name: The name (unique id) identifying the preview.\n"
     "   :type name: str\n"
     "   :return: The Preview matching given name, or a new empty one.\n"
     "   :rtype: :class:`bpy.types.ImagePreview`\n"
@@ -66,14 +66,14 @@ PyDoc_STRVAR(
     "\n"
     "   Generate a new preview from given file path.\n"
     "\n"
-    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :param name: The name (unique id) identifying the preview.\n"
     "   :type name: str\n"
-    "   :arg filepath: The file path to generate the preview from.\n"
+    "   :param filepath: The file path to generate the preview from.\n"
     "   :type filepath: str | bytes\n"
-    "   :arg filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
+    "   :param filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
     "].\n"
     "   :type filetype: str\n"
-    "   :arg force_reload: If True, force running thumbnail manager even if preview already "
+    "   :param force_reload: If True, force running thumbnail manager even if preview already "
     "exists in cache.\n"
     "   :type force_reload: bool\n"
     "   :return: The Preview matching given name, or a new empty one.\n"
@@ -135,7 +135,7 @@ PyDoc_STRVAR(
     "   Release (free) a previously created preview.\n"
     "\n"
     "\n"
-    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :param name: The name (unique id) identifying the preview.\n"
     "   :type name: str\n");
 static PyObject *bpy_utils_previews_release(PyObject * /*self*/, PyObject *args)
 {

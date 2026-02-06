@@ -30,9 +30,9 @@ PyDoc_STRVAR(
     "\n"
     "   Calculate barycentric weights for a point on a polygon.\n"
     "\n"
-    "   :arg veclist: Sequence of 3D positions.\n"
+    "   :param veclist: Sequence of 3D positions.\n"
     "   :type veclist: Sequence[Sequence[float]]\n"
-    "   :arg pt: 2D or 3D position.\n"
+    "   :param pt: 2D or 3D position.\n"
     "   :type pt: Sequence[float]\n"
     "   :return: list of per-vector weights.\n"
     "   :rtype: list[float]\n");
