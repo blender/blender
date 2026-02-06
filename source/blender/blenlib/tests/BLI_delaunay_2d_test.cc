@@ -1471,7 +1471,7 @@ template<typename T> void nonzero_winding_edge_split_test()
  *    0-----------3
  * \endcode
  *
- * Face 0: 0,1,2,3 forming a bowtie where edges 0->1 and 2->3 cross.
+ * Face 0: 0,1,2,3 forming a bow-tie where edges 0->1 and 2->3 cross.
  * Vertices: 0=(-1,-1), 1=(1,1), 2=(-1,1), 3=(1,-1)
  * Edge 0->1: (-1,-1) to (1,1) - diagonal up-right
  * Edge 2->3: (-1,1) to (1,-1) - diagonal down-right, crosses edge 0->1

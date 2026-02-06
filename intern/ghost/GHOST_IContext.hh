@@ -100,8 +100,8 @@ class GHOST_IContext {
    * \param swap_buffer_draw_callback: Function pointer to be called when acquired swap buffer is
    *     released, allowing Vulkan backend to update the swap chain.
    * \param swap_buffer_acquired_callback: Function to be called at when swap buffer is acquired.
-   *     Allowing Vulkan backend to update the framebuffer. It is also called when no swap chain
-   *     exists indicating that the window was minimuzed.
+   *     Allowing Vulkan backend to update the frame-buffer. It is also called when no swap chain
+   *     exists indicating that the window was minimized.
    * \param openxr_acquire_image_callback: Function to be called when an image needs to be acquired
    *     to be drawn to an OpenXR swap-chain.
    * \param openxr_release_image_callback: Function to be called after an image has been drawn to

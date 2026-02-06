@@ -341,7 +341,7 @@ static float isect_vert_calc_z(int vert_index,
 }
 
 /**
- * Scanfill-based triangulation (original algorithm).
+ * Scan-fill based triangulation (original algorithm).
  */
 static void displist_fill_scanfill(const ListBaseT<DispList> *dispbase,
                                    ListBaseT<DispList> *to,

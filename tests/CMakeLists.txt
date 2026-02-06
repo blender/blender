@@ -66,7 +66,7 @@ set(TEST_BLENDER_EXE_PARAMS
 # instead of being interpreted as a list item separator by CMake.
 # So this additional variable is always added after `TEST_BLENDER_EXE_PARAMS`, always as-is.
 set(TEST_BLENDER_EXE_PARAMS_NO_THUMB
-  # Python expression to disable thumbnails creation on blendfile saving.
+  # Python expression to disable thumbnails creation on blend-file saving.
   --python-expr [=[import bpy\;bpy.context.preferences.filepaths.file_preview_type='NONE']=]
 )
 

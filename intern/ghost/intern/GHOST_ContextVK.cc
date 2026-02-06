@@ -1515,7 +1515,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     GHOST_InstanceVK &instance_vk = vulkan_instance.value();
     instance_vk.extensions.enable(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, true);
 
-    /* Some XR platforms load functions without knowning if they were replaced by a core
+    /* Some XR platforms load functions without knowing if they were replaced by a core
      * function. Monado for example always uses the extension functions. Due to maintenance changes
      * drivers now only return the function pointer when the extension is enabled.
      *

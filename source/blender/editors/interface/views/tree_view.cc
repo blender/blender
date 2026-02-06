@@ -909,7 +909,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
   if (tree_view.scroll_active_into_view_on_draw_) {
     if (!is_active_visible) {
-      /* Don't scroll the list when active item is alredy in view. */
+      /* Don't scroll the list when active item is already in view. */
       tree_view.scroll_active_into_view();
     }
   }
