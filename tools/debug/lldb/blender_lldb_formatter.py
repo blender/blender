@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
 """
 LLDB pretty printer for Blender types
 
