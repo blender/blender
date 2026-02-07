@@ -190,6 +190,11 @@ source/blender/gpu/shader_tool/.*                       @fclem
 source/blender/gpu/shaders/.*                           @fclem
 
 # --------------------------------------------------
+# VSE.
+source/blender/sequencer/.*                  @eliphaz 
+source/blender/editors/space_sequencer/.*    @eliphaz
+
+# --------------------------------------------------
 # XR
 source/blender/windowmanager/xr/.*                     @Brainzman
 intern/ghost/intern/GHOST_Xr.*                         @Brainzman
