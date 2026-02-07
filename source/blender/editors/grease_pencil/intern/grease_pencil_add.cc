@@ -94,12 +94,6 @@ static const ColorTemplate gp_monkey_material_eyes = {
     {0.847f, 0.723f, 0.599f, 1.0f},
 };
 
-static const ColorTemplate gp_monkey_material_pupils = {
-    N_("Pupils"),
-    {0.0f, 0.0f, 0.0f, 1.0f},
-    {0.0f, 0.0f, 0.0f, 1.0f},
-};
-
 static std::array<float3, 175> stroke_positions({
     float3(-1.281f, 0.0f, -0.315f), float3(-1.269f, 0.0f, -0.302f), float3(-1.261f, 0.0f, -0.293f),
     float3(-1.251f, 0.0f, -0.282f), float3(-1.241f, 0.0f, -0.271f), float3(-1.23f, 0.0f, -0.259f),
@@ -1213,7 +1207,6 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
 
   int color_black = add_material_from_template(bmain, object, gp_monkey_material_black);
   int color_eyes = add_material_from_template(bmain, object, gp_monkey_material_eyes);
-  int color_pupils = add_material_from_template(bmain, object, gp_monkey_material_pupils);
   int color_skin = add_material_from_template(bmain, object, gp_monkey_material_skin);
   int color_skin_light = add_material_from_template(bmain, object, gp_monkey_material_skin_light);
   int color_skin_shadow = add_material_from_template(
@@ -1230,8 +1223,8 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
       color_black,
       color_black,
       color_black,
-      color_pupils,
-      color_pupils,
+      color_black,
+      color_black,
       color_black,
       color_black,
       color_black,
