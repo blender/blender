@@ -715,7 +715,7 @@ PyDoc_STRVAR(
     "\n"
     "   Check whether a job of the given type is running.\n"
     "\n"
-    "   :arg job_type: job type in :ref:`rna_enum_wm_job_type_items`.\n"
+    "   :param job_type: job type in :ref:`rna_enum_wm_job_type_items`.\n"
     "   :type job_type: str\n"
     "   :return: Whether a job of the given type is currently running.\n"
     "   :rtype: bool\n");
@@ -755,7 +755,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the help text as a string.\n"
     "\n"
-    "   :arg all: Return all arguments, "
+    "   :param all: Return all arguments, "
     "even those which aren't available for the current platform.\n"
     "   :type all: bool\n"
     "   :return: Help text.\n"

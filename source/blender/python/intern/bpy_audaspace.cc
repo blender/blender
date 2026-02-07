@@ -42,7 +42,7 @@ static PyMethodDef meth_sound_from_pointer[] = {
      METH_O,
      "_sound_from_pointer(pointer)\n\n"
      "Returns the corresponding :class:`Factory` object.\n\n"
-     ":arg pointer: The pointer to the bSound object as long.\n"
+     ":param pointer: The pointer to the bSound object as long.\n"
      ":type pointer: long\n"
      ":return: The corresponding :class:`Factory` object.\n"
      ":rtype: :class:`Factory`"}};

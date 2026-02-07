@@ -259,11 +259,11 @@ PyDoc_STRVAR(
     "\n"
     "   Add an attribute with qualifier of type *smooth* to the interface block.\n"
     "\n"
-    "   :arg type: One of these types:\n"
+    "   :param type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
     "\n"
     "   :type type: str\n"
-    "   :arg name: name of the attribute.\n"
+    "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_interface_info_smooth(BPyGPUStageInterfaceInfo *self, PyObject *args)
 {
@@ -285,11 +285,11 @@ PyDoc_STRVAR(
     "\n"
     "   Add an attribute with qualifier of type ``flat`` to the interface block.\n"
     "\n"
-    "   :arg type: One of these types:\n"
+    "   :param type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
     "\n"
     "   :type type: str\n"
-    "   :arg name: name of the attribute.\n"
+    "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_interface_info_flat(BPyGPUStageInterfaceInfo *self, PyObject *args)
 {
@@ -311,11 +311,11 @@ PyDoc_STRVAR(
     "\n"
     "   Add an attribute with qualifier of type ``no_perspective`` to the interface block.\n"
     "\n"
-    "   :arg type: One of these types:\n"
+    "   :param type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
     "\n"
     "   :type type: str\n"
-    "   :arg name: name of the attribute.\n"
+    "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_interface_info_no_perspective(BPyGPUStageInterfaceInfo *self,
                                                      PyObject *args)
@@ -449,7 +449,7 @@ PyDoc_STRVAR(
     "\n"
     "   List of varyings between shader stages.\n"
     "\n"
-    "   :arg name: Name of the interface block.\n"
+    "   :param name: Name of the interface block.\n"
     "   :type name: str\n");
 PyTypeObject BPyGPUStageInterfaceInfo_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
@@ -528,13 +528,13 @@ PyDoc_STRVAR(
     "\n"
     "   Add a vertex shader input attribute.\n"
     "\n"
-    "   :arg slot: The attribute index.\n"
+    "   :param slot: The attribute index.\n"
     "   :type slot: int\n"
-    "   :arg type: One of these types:\n"
+    "   :param type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
     "\n"
     "   :type type: str\n"
-    "   :arg name: name of the attribute.\n"
+    "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_shader_info_vertex_in(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
@@ -563,7 +563,7 @@ PyDoc_STRVAR(
     "\n"
     "   Add a vertex shader output interface block.\n"
     "\n"
-    "   :arg interface: Object describing the block.\n"
+    "   :param interface: Object describing the block.\n"
     "   :type interface: :class:`gpu.types.GPUStageInterfaceInfo`\n");
 static PyObject *pygpu_shader_info_vertex_out(BPyGPUShaderCreateInfo *self,
                                               BPyGPUStageInterfaceInfo *o)
@@ -591,15 +591,15 @@ PyDoc_STRVAR(
     "\n"
     "   Specify a fragment output corresponding to a framebuffer target slot.\n"
     "\n"
-    "   :arg slot: The attribute index.\n"
+    "   :param slot: The attribute index.\n"
     "   :type slot: int\n"
-    "   :arg type: One of these types:\n"
+    "   :param type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
     "\n"
     "   :type type: str\n"
-    "   :arg name: Name of the attribute.\n"
+    "   :param name: Name of the attribute.\n"
     "   :type name: str\n"
-    "   :arg blend: Dual Source Blending Index. It can be 'NONE', 'SRC_0' or 'SRC_1'.\n"
+    "   :param blend: Dual Source Blending Index. It can be 'NONE', 'SRC_0' or 'SRC_1'.\n"
     "   :type blend: str\n");
 static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
                                                 PyObject *args,
@@ -664,7 +664,7 @@ PyDoc_STRVAR(
     "   This function alters the behavior of the optimization to allow those operations\n"
     "   to be performed.\n"
     "\n"
-    "   :arg value: Depth write value. "
+    "   :param value: Depth write value. "
     "It can be 'UNCHANGED' (default), 'ANY', 'GREATER' or 'LESS'.\n"
     "      :UNCHANGED: disables depth write in a fragment shader and execution of the"
     "fragments can be optimized away.\n"
@@ -695,13 +695,13 @@ PyDoc_STRVAR(
     "   Specify a uniform variable whose type can be one of those declared in "
     ":meth:`gpu.types.GPUShaderCreateInfo.typedef_source`.\n"
     "\n"
-    "   :arg slot: The uniform variable index.\n"
+    "   :param slot: The uniform variable index.\n"
     "   :type slot: int\n"
-    "   :arg type_name: Name of the data type. "
+    "   :param type_name: Name of the data type. "
     "It can be a struct type defined in the source passed through the "
     ":meth:`gpu.types.GPUShaderCreateInfo.typedef_source`.\n"
     "   :type type_name: str\n"
-    "   :arg name: The uniform variable name.\n"
+    "   :param name: The uniform variable name.\n"
     "   :type name: str\n");
 static PyObject *pygpu_shader_info_uniform_buf(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
@@ -732,20 +732,20 @@ PyDoc_STRVAR(
     "\n"
     "   Specify an image resource used for arbitrary load and store operations.\n"
     "\n"
-    "   :arg slot: The image resource index.\n"
+    "   :param slot: The image resource index.\n"
     "   :type slot: int\n"
-    "   :arg format: The GPUTexture format that is passed to the shader. Possible "
+    "   :param format: The GPUTexture format that is passed to the shader. Possible "
     "values are:\n"
     "\n" PYDOC_TEX_FORMAT_ITEMS
     "   :type format: str\n"
-    "   :arg type: The data type describing how the image is to be read in the shader. "
+    "   :param type: The data type describing how the image is to be read in the shader. "
     "Possible values are:\n"
     "\n" PYDOC_IMAGE_TYPES
     "\n"
     "   :type type: str\n"
-    "   :arg name: The image resource name.\n"
+    "   :param name: The image resource name.\n"
     "   :type name: str\n"
-    "   :arg qualifiers: Set containing values that describe how the image resource is to be "
+    "   :param qualifiers: Set containing values that describe how the image resource is to be "
     "read or written. Possible values are:\n"
     "" PYDOC_QUALIFIERS
     ""
@@ -829,14 +829,14 @@ PyDoc_STRVAR(
     "\n"
     "   Specify an image texture sampler.\n"
     "\n"
-    "   :arg slot: The image texture sampler index.\n"
+    "   :param slot: The image texture sampler index.\n"
     "   :type slot: int\n"
-    "   :arg type: The data type describing the format of each sampler unit. Possible values "
+    "   :param type: The data type describing the format of each sampler unit. Possible values "
     "are:\n"
     "\n" PYDOC_IMAGE_TYPES
     "\n"
     "   :type type: str\n"
-    "   :arg name: The image texture sampler name.\n"
+    "   :param name: The image texture sampler name.\n"
     "   :type name: str\n");
 static PyObject *pygpu_shader_info_sampler(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
@@ -954,13 +954,14 @@ PyDoc_STRVAR(
     "\n"
     "   Specify a global access constant.\n"
     "\n"
-    "   :arg type: One of these types:\n"
+    "   :param type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
     "\n"
     "   :type type: str\n"
-    "   :arg name: Name of the constant.\n"
+    "   :param name: Name of the constant.\n"
     "   :type name: str\n"
-    "   :arg size: If not zero, indicates that the constant is an array with the specified size.\n"
+    "   :param size: If not zero, indicates that the constant is an array "
+    "with the specified size.\n"
     "   :type size: int\n");
 static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
                                                  PyObject *args,
@@ -1017,7 +1018,7 @@ PyDoc_STRVAR(
     "\n"
     "      \"void main {gl_Position = vec4(pos, 1.0);}\"\n"
     "\n"
-    "   :arg source: The vertex shader source code.\n"
+    "   :param source: The vertex shader source code.\n"
     "   :type source: str\n"
     "\n"
     "   .. seealso:: `GLSL Cross Compilation "
@@ -1063,7 +1064,7 @@ PyDoc_STRVAR(
     "         imageStore(img_output, index, color);\n"
     "      }\"\"\"\n"
     "\n"
-    "   :arg source: The compute shader source code.\n"
+    "   :param source: The compute shader source code.\n"
     "   :type source: str\n"
     "\n"
     "   .. seealso:: `GLSL Cross Compilation "
@@ -1105,7 +1106,7 @@ PyDoc_STRVAR(
     "\n"
     "      \"void main {fragColor = vec4(0.0, 0.0, 0.0, 1.0);}\"\n"
     "\n"
-    "   :arg source: The fragment shader source code.\n"
+    "   :param source: The fragment shader source code.\n"
     "   :type source: str\n"
     "\n"
     "   .. seealso:: `GLSL Cross Compilation "
@@ -1148,7 +1149,7 @@ PyDoc_STRVAR(
     "\n"
     "      \"struct MyType {int foo; float bar;};\"\n"
     "\n"
-    "   :arg source: The source code defining types.\n"
+    "   :param source: The source code defining types.\n"
     "   :type source: str\n");
 static PyObject *pygpu_shader_info_typedef_source(BPyGPUShaderCreateInfo *self, PyObject *o)
 {
@@ -1189,9 +1190,9 @@ PyDoc_STRVAR(
     "\n"
     "      #define name value\n"
     "\n"
-    "   :arg name: Token name.\n"
+    "   :param name: Token name.\n"
     "   :type name: str\n"
-    "   :arg value: Text that replaces token occurrences.\n"
+    "   :param value: Text that replaces token occurrences.\n"
     "   :type value: str\n");
 static PyObject *pygpu_shader_info_define(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
@@ -1227,11 +1228,11 @@ PyDoc_STRVAR(
     "\n"
     "   Specify the local group size for compute shaders.\n"
     "\n"
-    "   :arg x: The local group size in the x dimension.\n"
+    "   :param x: The local group size in the x dimension.\n"
     "   :type x: int\n"
-    "   :arg y: The local group size in the y dimension. Optional. Defaults to 1.\n"
+    "   :param y: The local group size in the y dimension. Optional. Defaults to 1.\n"
     "   :type y: int\n"
-    "   :arg z: The local group size in the z dimension. Optional. Defaults to 1.\n"
+    "   :param z: The local group size in the z dimension. Optional. Defaults to 1.\n"
     "   :type z: int\n");
 static PyObject *pygpu_shader_info_local_group_size(BPyGPUShaderCreateInfo *self, PyObject *args)
 {

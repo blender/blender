@@ -185,10 +185,10 @@ PyDoc_STRVAR(
     "\n"
     "   Contains an index buffer.\n"
     "\n"
-    "   :arg type: The primitive type this index buffer is composed of.\n"
+    "   :param type: The primitive type this index buffer is composed of.\n"
     "      Possible values are [``POINTS``, ``LINES``, ``TRIS``, ``LINES_ADJ``, ``TRIS_ADJ``].\n"
     "   :type type: str\n"
-    "   :arg seq: Indices this index buffer will contain.\n"
+    "   :param seq: Indices this index buffer will contain.\n"
     "      Whether a 1D or 2D sequence is required depends on the type.\n"
     "      Optionally the sequence can support the buffer protocol.\n"
     "   :type seq: Buffer | Sequence[int] | Sequence[Sequence[int]]\n");

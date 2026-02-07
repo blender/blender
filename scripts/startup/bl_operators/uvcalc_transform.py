@@ -110,9 +110,9 @@ def is_loop_edge_uv_selected_fn_from_context(scene, bm):
 def is_island_uv_selected(island, any_edge, face_select_test_fn):
     # Returns True if the island is UV selected.
     #
-    # :arg island: list of faces to query.
+    # :param island: list of faces to query.
     # :type island: Sequence[:class:`BMFace`]
-    # :arg any_edge: use edge selection instead of vertex selection.
+    # :param any_edge: use edge selection instead of vertex selection.
     # :type any_edge: bool
     # :return: list of lists containing polygon indices.
     # :rtype: bool
@@ -125,9 +125,9 @@ def is_island_uv_selected(island, any_edge, face_select_test_fn):
 def island_uv_bounds(island, uv_layer):
     # The UV bounds of UV island.
     #
-    # :arg island: list of faces to query.
+    # :param island: list of faces to query.
     # :type island: Sequence[:class:`BMFace`]
-    # :arg uv_layer: the UV layer to source UVs from.
+    # :param uv_layer: the UV layer to source UVs from.
     # :return: U-min, V-min, U-max, V-max.
     # :rtype: list[float]
     minmax = [1e30, 1e30, -1e30, -1e30]
@@ -144,9 +144,9 @@ def island_uv_bounds(island, uv_layer):
 def island_uv_bounds_center(island, uv_layer):
     # The UV bounds center of UV island.
     #
-    # :arg island: list of faces to query.
+    # :param island: list of faces to query.
     # :type island: Sequence[:class:`BMFace`]
-    # :arg uv_layer: the UV layer to source UVs from.
+    # :param uv_layer: the UV layer to source UVs from.
     # :return: U, V center.
     # :rtype: tuple[float, float]
     minmax = island_uv_bounds(island, uv_layer)

@@ -191,12 +191,12 @@ PyDoc_STRVAR(
     "\n"
     "   Register a command, accessible via the (``-c`` / ``--command``) command-line argument.\n"
     "\n"
-    "   :arg id: The command identifier (must pass an ``str.isidentifier`` check).\n"
+    "   :param id: The command identifier (must pass an ``str.isidentifier`` check).\n"
     "\n"
     "      If the ``id`` is already registered, a warning is printed and "
     "the command is inaccessible to prevent accidents invoking the wrong command.\n"
     "   :type id: str\n"
-    "   :arg execute: Callback, taking a single list of strings and returns an int.\n"
+    "   :param execute: Callback, taking a single list of strings and returns an int.\n"
     "      The arguments are built from all command-line arguments following the command id.\n"
     "      The return value should be 0 for success, 1 on failure "
     "(specific error codes from the ``os`` module can also be used).\n"
@@ -254,7 +254,7 @@ PyDoc_STRVAR(
     "\n"
     "   Unregister a CLI command.\n"
     "\n"
-    "   :arg handle: The return value of :func:`register_cli_command`.\n"
+    "   :param handle: The return value of :func:`register_cli_command`.\n"
     "   :type handle: capsule\n");
 static PyObject *bpy_cli_command_unregister(PyObject * /*self*/, PyObject *value)
 {

@@ -202,9 +202,9 @@ PyDoc_STRVAR(
     "\n"
     "   Return Euler representation of the quaternion.\n"
     "\n"
-    "   :arg order: Rotation order.\n"
+    "   :param order: Rotation order.\n"
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n"
-    "   :arg euler_compat: Optional euler argument the new euler will be made\n"
+    "   :param euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
     "      Useful for converting a series of matrices to animation curves.\n"
     "   :type euler_compat: :class:`Euler`\n"
@@ -339,7 +339,7 @@ PyDoc_STRVAR(
     "   Split the rotation into a swing quaternion with the specified\n"
     "   axis fixed at zero, and the remaining twist rotation angle.\n"
     "\n"
-    "   :arg axis: Twist axis as a string.\n"
+    "   :param axis: Twist axis as a string.\n"
     "   :type axis: Literal['X', 'Y', 'Z']\n"
     "   :return: Swing, twist angle.\n"
     "   :rtype: tuple[:class:`Quaternion`, float]\n");
@@ -423,7 +423,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the cross product of this quaternion and another.\n"
     "\n"
-    "   :arg other: The other quaternion to perform the cross product with.\n"
+    "   :param other: The other quaternion to perform the cross product with.\n"
     "   :type other: :class:`Quaternion`\n"
     "   :return: The cross product.\n"
     "   :rtype: :class:`Quaternion`\n");
@@ -459,7 +459,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the dot product of this quaternion and another.\n"
     "\n"
-    "   :arg other: The other quaternion to perform the dot product with.\n"
+    "   :param other: The other quaternion to perform the dot product with.\n"
     "   :type other: :class:`Quaternion`\n"
     "   :return: The dot product.\n"
     "   :rtype: float\n");
@@ -493,7 +493,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns a quaternion representing the rotational difference.\n"
     "\n"
-    "   :arg other: second quaternion.\n"
+    "   :param other: second quaternion.\n"
     "   :type other: :class:`Quaternion`\n"
     "   :return: the rotational difference between the two quat rotations.\n"
     "   :rtype: :class:`Quaternion`\n");
@@ -532,9 +532,9 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the interpolation of two quaternions.\n"
     "\n"
-    "   :arg other: value to interpolate with.\n"
+    "   :param other: value to interpolate with.\n"
     "   :type other: :class:`Quaternion`\n"
-    "   :arg factor: The interpolation value in [0.0, 1.0].\n"
+    "   :param factor: The interpolation value in [0.0, 1.0].\n"
     "   :type factor: float\n"
     "   :return: The interpolated rotation.\n"
     "   :rtype: :class:`Quaternion`\n");
@@ -586,7 +586,7 @@ PyDoc_STRVAR(
     "\n"
     "   Rotates the quaternion by another mathutils value.\n"
     "\n"
-    "   :arg other: rotation component of mathutils value\n"
+    "   :param other: rotation component of mathutils value\n"
     "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n");
 static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 {
@@ -619,7 +619,7 @@ PyDoc_STRVAR(
     "   Make this quaternion compatible with another,\n"
     "   so interpolating between them works as intended.\n"
     "\n"
-    "   :arg other: The other quaternion to make compatible with.\n"
+    "   :param other: The other quaternion to make compatible with.\n"
     "   :type other: :class:`Quaternion`\n");
 static PyObject *Quaternion_make_compatible(QuaternionObject *self, PyObject *value)
 {
@@ -1885,9 +1885,9 @@ PyDoc_STRVAR(
     "\n"
     "   This object gives access to Quaternions in Blender.\n"
     "\n"
-    "   :arg seq: size 3 or 4\n"
+    "   :param seq: size 3 or 4\n"
     "   :type seq: :class:`Vector`\n"
-    "   :arg angle: rotation angle, in radians\n"
+    "   :param angle: rotation angle, in radians\n"
     "   :type angle: float\n"
     "\n"
     "   The constructor takes arguments in various forms:\n"

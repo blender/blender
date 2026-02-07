@@ -252,7 +252,7 @@ def check(module_name):
     """
     Returns the loaded state of the addon.
 
-    :arg module_name: The name of the addon and module.
+    :param module_name: The name of the addon and module.
     :type module_name: str
     :return: (loaded_default, loaded_state)
     :rtype: tuple[bool, bool]
@@ -313,17 +313,17 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
     """
     Enables an addon by name.
 
-    :arg module_name: the name of the addon and module.
+    :param module_name: the name of the addon and module.
     :type module_name: str
-    :arg default_set: Set the user-preference.
+    :param default_set: Set the user-preference.
     :type default_set: bool
-    :arg persistent: Ensure the addon is enabled for the entire session (after loading new files).
+    :param persistent: Ensure the addon is enabled for the entire session (after loading new files).
     :type persistent: bool
-    :arg refresh_handled: When true, :func:`extensions_refresh` must have been called with ``module_name``
+    :param refresh_handled: When true, :func:`extensions_refresh` must have been called with ``module_name``
        included in ``addon_modules_pending``.
        This should be used to avoid many calls to refresh extensions when enabling multiple add-ons at once.
     :type refresh_handled: bool
-    :arg handle_error: Called in the case of an error, taking an exception argument.
+    :param handle_error: Called in the case of an error, taking an exception argument.
     :type handle_error: Callable[[Exception], None] | None
     :return: the loaded module or None on failure.
     :rtype: ModuleType
@@ -539,11 +539,11 @@ def disable(module_name, *, default_set=False, refresh_handled=False, handle_err
     """
     Disables an addon by name.
 
-    :arg module_name: The name of the addon and module.
+    :param module_name: The name of the addon and module.
     :type module_name: str
-    :arg default_set: Set the user-preference.
+    :param default_set: Set the user-preference.
     :type default_set: bool
-    :arg handle_error: Called in the case of an error, taking an exception argument.
+    :param handle_error: Called in the case of an error, taking an exception argument.
     :type handle_error: Callable[[Exception], None] | None
     """
     import sys
@@ -1425,7 +1425,7 @@ _ext_manifest_filename_toml = "blender_manifest.toml"
 def _extension_module_name_decompose(package):
     # Returns the repository module name and the extensions ID from an extensions module name (``__package__``).
     #
-    # :arg module_name: The extensions module name.
+    # :param module_name: The extensions module name.
     # :type module_name: str
     # :return: (repo_module_name, extension_id)
     # :rtype: tuple[str, str]
@@ -1852,12 +1852,12 @@ def extensions_refresh(
     Ensure data relating to extensions is up to date.
     This should be called after extensions on the file-system have changed.
 
-    :arg ensure_wheels: When true, refresh installed wheels with wheels used by extensions.
+    :param ensure_wheels: When true, refresh installed wheels with wheels used by extensions.
     :type ensure_wheels: bool
-    :arg addon_modules_pending: Refresh these add-ons by listing their package names, as if they are enabled.
+    :param addon_modules_pending: Refresh these add-ons by listing their package names, as if they are enabled.
        This is needed so wheels can be setup before the add-on is enabled.
     :type addon_modules_pending: Sequence[str] | None
-    :arg handle_error: Called in the case of an error, taking an exception argument.
+    :param handle_error: Called in the case of an error, taking an exception argument.
     :type handle_error: Callable[[Exception], None] | None
     """
 

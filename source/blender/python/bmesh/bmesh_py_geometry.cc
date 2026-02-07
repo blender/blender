@@ -26,9 +26,9 @@ PyDoc_STRVAR(
     "\n"
     "   Tests if the projection of a point is inside a face (using the face's normal).\n"
     "\n"
-    "   :arg face: The face to test.\n"
+    "   :param face: The face to test.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n"
-    "   :arg point: The point to test.\n"
+    "   :param point: The point to test.\n"
     "   :type point: float triplet\n"
     "   :return: True when the projection of the point is in the face.\n"
     "   :rtype: bool\n");

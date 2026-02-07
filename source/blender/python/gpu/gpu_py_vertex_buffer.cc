@@ -268,9 +268,9 @@ PyDoc_STRVAR(
     "\n"
     "   Insert data into the buffer for a single attribute.\n"
     "\n"
-    "   :arg id: Either the name or the id of the attribute.\n"
+    "   :param id: Either the name or the id of the attribute.\n"
     "   :type id: int | str\n"
-    "   :arg data: Buffer or sequence of data that should be stored in the buffer\n"
+    "   :param data: Buffer or sequence of data that should be stored in the buffer\n"
     "   :type data: Buffer | "
     "Sequence[float] | Sequence[int] | Sequence[Sequence[float]] | Sequence[Sequence[int]]\n");
 static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
@@ -355,9 +355,9 @@ PyDoc_STRVAR(
     "\n"
     "   Contains a VBO.\n"
     "\n"
-    "   :arg format: Vertex format.\n"
+    "   :param format: Vertex format.\n"
     "   :type format: :class:`gpu.types.GPUVertFormat`\n"
-    "   :arg len: Amount of vertices that will fit into this buffer.\n"
+    "   :param len: Amount of vertices that will fit into this buffer.\n"
     "   :type len: int\n");
 PyTypeObject BPyGPUVertBuf_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)

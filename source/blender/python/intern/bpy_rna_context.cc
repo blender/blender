@@ -523,9 +523,9 @@ PyDoc_STRVAR(
     "\n"
     "   Set context member logging options for this temporary override.\n"
     "\n"
-    "   :arg enable: Enable logging of context member access.\n"
+    "   :param enable: Enable logging of context member access.\n"
     "   :type enable: bool\n"
-    "   :arg hide_missing: When true, suppress logging access to members that\n"
+    "   :param hide_missing: When true, suppress logging access to members that\n"
     "      are not available in the current context.\n"
     "   :type hide_missing: bool\n");
 static PyObject *bpy_rna_context_temp_override_logging_set(BPyContextTempOverride *self,
@@ -690,9 +690,9 @@ PyDoc_STRVAR(
     "\n"
     "   Context manager to temporarily override members in the context.\n"
     "\n"
-    "   :arg window: Window override or None.\n"
+    "   :param window: Window override or None.\n"
     "   :type window: :class:`bpy.types.Window`\n"
-    "   :arg screen: Screen override or None.\n"
+    "   :param screen: Screen override or None.\n"
     "\n"
     "      .. note:: Switching to or away from full-screen areas & temporary screens "
     "isn't supported. Passing in these screens will raise an exception, "
@@ -703,11 +703,11 @@ PyDoc_STRVAR(
     "and potentially the scene (when pinned).\n"
     "\n"
     "   :type screen: :class:`bpy.types.Screen`\n"
-    "   :arg area: Area override or None.\n"
+    "   :param area: Area override or None.\n"
     "   :type area: :class:`bpy.types.Area`\n"
-    "   :arg region: Region override or None.\n"
+    "   :param region: Region override or None.\n"
     "   :type region: :class:`bpy.types.Region`\n"
-    "   :arg keywords: Additional keywords override context members.\n"
+    "   :param keywords: Additional keywords override context members.\n"
     "   :return: The context manager.\n"
     "   :rtype: ContextTempOverride\n");
 static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObject *kwds)

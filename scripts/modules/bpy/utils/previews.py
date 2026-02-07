@@ -118,7 +118,7 @@ def remove(pcoll):
     """
     Remove the specified previews collection.
 
-    :arg pcoll: Preview collection to close.
+    :param pcoll: Preview collection to close.
     :type pcoll: :class:`ImagePreviewCollection`
     """
     pcoll.close()

@@ -543,12 +543,12 @@ def apply_action(
         debug: bool,
 ) -> None:
     """
-    :arg local_dir:
+    :param local_dir:
        The location wheels are stored.
        Typically: ``~/.config/blender/4.2/extensions/.local``.
 
        WARNING: files under this directory may be removed.
-    :arg local_dir_site_packages:
+    :param local_dir_site_packages:
        The path which wheels are extracted into.
        Typically: ``~/.config/blender/4.2/extensions/.local/lib/python3.11/site-packages``.
     """

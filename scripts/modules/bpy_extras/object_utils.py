@@ -27,9 +27,9 @@ def add_object_align_init(context, operator):
     """
     Return a matrix using the operator settings and view context.
 
-    :arg context: The context to use.
+    :param context: The context to use.
     :type context: :class:`bpy.types.Context`
-    :arg operator: The operator, checked for location and rotation properties.
+    :param operator: The operator, checked for location and rotation properties.
     :type operator: :class:`bpy.types.Operator`
     :return: the matrix from the context and settings.
     :rtype: :class:`mathutils.Matrix`
@@ -87,13 +87,13 @@ def object_data_add(context, obdata, operator=None, name=None):
     Add an object using the view context and preference to initialize the
     location, rotation and layer.
 
-    :arg context: The context to use.
+    :param context: The context to use.
     :type context: :class:`bpy.types.Context`
-    :arg obdata: Valid object data to used for the new object or None.
+    :param obdata: Valid object data to used for the new object or None.
     :type obdata: :class:`bpy.types.ID` | None
-    :arg operator: The operator, checked for location and rotation properties.
+    :param operator: The operator, checked for location and rotation properties.
     :type operator: :class:`bpy.types.Operator`
-    :arg name: Optional name
+    :param name: Optional name
     :type name: str
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.Object`
@@ -238,11 +238,11 @@ def world_to_camera_view(scene, obj, coord):
     Takes shift-x/y, lens angle and sensor size into account
     as well as perspective/ortho projections.
 
-    :arg scene: Scene to use for frame size.
+    :param scene: Scene to use for frame size.
     :type scene: :class:`bpy.types.Scene`
-    :arg obj: Camera object.
+    :param obj: Camera object.
     :type obj: :class:`bpy.types.Object`
-    :arg coord: World space location.
+    :param coord: World space location.
     :type coord: :class:`mathutils.Vector`
     :return: a vector where X and Y map to the view plane and
        Z is the depth on the view axis.
@@ -276,9 +276,9 @@ def object_report_if_active_shape_key_is_locked(obj, operator):
 
     If the object has no shape keys, there is nothing to lock, and the function returns False.
 
-    :arg obj: Object to check.
+    :param obj: Object to check.
     :type obj: :class:`bpy.types.Object`
-    :arg operator: Currently running operator to report the error through. Use None to suppress emitting the message.
+    :param operator: Currently running operator to report the error through. Use None to suppress emitting the message.
     :type operator: :class:`bpy.types.Operator`
     :return: True if the shape key was locked.
     """

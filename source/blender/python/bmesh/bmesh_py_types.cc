@@ -1345,7 +1345,7 @@ PyDoc_STRVAR(
     "\n"
     "   Writes this BMesh data into an existing Mesh data-block.\n"
     "\n"
-    "   :arg mesh: The mesh data to write into.\n"
+    "   :param mesh: The mesh data to write into.\n"
     "   :type mesh: :class:`bpy.types.Mesh`\n");
 static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 {
@@ -1399,15 +1399,15 @@ PyDoc_STRVAR(
     "   Initialize this bmesh from existing object data-block (only meshes are currently "
     "supported).\n"
     "\n"
-    "   :arg object: The object data to load.\n"
+    "   :param object: The object data to load.\n"
     "   :type object: :class:`bpy.types.Object`\n"
-    "   :arg depsgraph: The dependency graph for evaluated data.\n"
+    "   :param depsgraph: The dependency graph for evaluated data.\n"
     "   :type depsgraph: :class:`bpy.types.Depsgraph`\n"
-    "   :arg cage: Get the mesh as a deformed cage.\n"
+    "   :param cage: Get the mesh as a deformed cage.\n"
     "   :type cage: bool\n"
-    "   :arg face_normals: Calculate face normals.\n"
+    "   :param face_normals: Calculate face normals.\n"
     "   :type face_normals: bool\n"
-    "   :arg vertex_normals: Calculate vertex normals.\n"
+    "   :param vertex_normals: Calculate vertex normals.\n"
     "   :type vertex_normals: bool\n");
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
@@ -1505,15 +1505,15 @@ PyDoc_STRVAR(
     "\n"
     "   Initialize this bmesh from existing mesh data-block.\n"
     "\n"
-    "   :arg mesh: The mesh data to load.\n"
+    "   :param mesh: The mesh data to load.\n"
     "   :type mesh: :class:`bpy.types.Mesh`\n"
-    "   :arg face_normals: Calculate face normals.\n"
+    "   :param face_normals: Calculate face normals.\n"
     "   :type face_normals: bool\n"
-    "   :arg vertex_normals: Calculate vertex normals.\n"
+    "   :param vertex_normals: Calculate vertex normals.\n"
     "   :type vertex_normals: bool\n"
-    "   :arg use_shape_key: Use the locations from a shape key.\n"
+    "   :param use_shape_key: Use the locations from a shape key.\n"
     "   :type use_shape_key: bool\n"
-    "   :arg shape_key_index: The shape key index to use.\n"
+    "   :param shape_key_index: The shape key index to use.\n"
     "   :type shape_key_index: int\n"
     "\n"
     "   .. note::\n"
@@ -1573,7 +1573,8 @@ PyDoc_STRVAR(
     "   Flush selection based on the current mode current "
     ":class:`bmesh.types.BMesh.select_mode`.\n"
     "\n"
-    "   :arg flush_down: Flush selection down from faces to edges & verts or from edges to verts. "
+    "   :param flush_down: Flush selection down from faces to edges & verts "
+    "or from edges to verts. "
     "This option is ignored when vertex selection mode is enabled.\n"
     "   :type flush_down: bool\n");
 static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self, PyObject *args, PyObject *kw)
@@ -1615,7 +1616,7 @@ PyDoc_STRVAR(
     "\n"
     "   Flush selection from vertices, independent of the current selection mode.\n"
     "\n"
-    "   :arg select: flush selection or de-selected elements.\n"
+    "   :param select: flush selection or de-selected elements.\n"
     "   :type select: bool\n");
 static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 {
@@ -1641,7 +1642,8 @@ PyDoc_STRVAR(
     "\n"
     "   Flush selection based on the current mode current :class:`BMesh.select_mode`.\n"
     "\n"
-    "   :arg flush_down: Flush selection down from faces to edges & verts or from edges to verts. "
+    "   :param flush_down: Flush selection down from faces to edges & verts "
+    "or from edges to verts. "
     "This option is ignored when vertex selection mode is enabled.\n"
     "   :type flush_down: bool\n");
 static PyObject *bpy_bmesh_uv_select_flush_mode(BPy_BMesh *self, PyObject *args, PyObject *kw)
@@ -1677,7 +1679,7 @@ PyDoc_STRVAR(
     "\n"
     "   Flush selection from UV vertices to edges & faces independent of the selection mode.\n"
     "\n"
-    "   :arg select: Flush selection or de-selected elements.\n"
+    "   :param select: Flush selection or de-selected elements.\n"
     "   :type select: bool\n"
     "\n"
     "   .. note::\n"
@@ -1710,7 +1712,7 @@ PyDoc_STRVAR(
     "\n"
     "   Flush selection from UV vertices to contiguous UV's independent of the selection mode.\n"
     "\n"
-    "   :arg select: Flush selection or de-selected elements.\n"
+    "   :param select: Flush selection or de-selected elements.\n"
     "   :type select: bool\n"
     "\n"
     "   .. note::\n"
@@ -1749,7 +1751,7 @@ PyDoc_STRVAR(
     "\n"
     "   Sync selection from mesh to UVs.\n"
     "\n"
-    "   :arg sticky_select_mode: Behavior when flushing from the mesh to UV selection "
+    "   :param sticky_select_mode: Behavior when flushing from the mesh to UV selection "
     "|UV_STICKY_SELECT_MODE_REF|. "
     "This should only be used when preparing to create a UV selection.\n"
     "   :type sticky_select_mode: |UV_STICKY_SELECT_MODE_TYPE|\n"
@@ -1834,15 +1836,15 @@ PyDoc_STRVAR(
     "\n"
     "   This is a close equivalent to selecting in the UV editor.\n"
     "\n"
-    "   :arg select: The selection state to set.\n"
+    "   :param select: The selection state to set.\n"
     "   :type select: bool\n"
-    "   :arg loop_verts: Loop verts to operate on.\n"
+    "   :param loop_verts: Loop verts to operate on.\n"
     "   :type loop_verts: Iterable[:class:`bmesh.types.BMLoop`]\n"
-    "   :arg loop_edges: Loop edges to operate on.\n"
+    "   :param loop_edges: Loop edges to operate on.\n"
     "   :type loop_edges: Iterable[:class:`bmesh.types.BMLoop`]\n"
-    "   :arg faces: Faces to operate on.\n"
+    "   :param faces: Faces to operate on.\n"
     "   :type faces: Iterable[:class:`bmesh.types.BMFace`]\n"
-    "   :arg sticky_select_mode: See |UV_STICKY_SELECT_MODE_REF|.\n"
+    "   :param sticky_select_mode: See |UV_STICKY_SELECT_MODE_REF|.\n"
     "   :type sticky_select_mode: |UV_STICKY_SELECT_MODE_TYPE|\n"
     "\n"
     "   .. note::\n"
@@ -1986,15 +1988,15 @@ PyDoc_STRVAR(
     "   An equivalent to selecting from the 3D viewport "
     "for selection operations that support maintaining a synchronized UV selection.\n"
     "\n"
-    "   :arg select: The selection state to set.\n"
+    "   :param select: The selection state to set.\n"
     "   :type select: bool\n"
-    "   :arg verts: Verts to operate on.\n"
+    "   :param verts: Verts to operate on.\n"
     "   :type verts: Iterable[:class:`bmesh.types.BMVert`]\n"
-    "   :arg edges: Edges to operate on.\n"
+    "   :param edges: Edges to operate on.\n"
     "   :type edges: Iterable[:class:`bmesh.types.BMEdge`]\n"
-    "   :arg faces: Faces to operate on.\n"
+    "   :param faces: Faces to operate on.\n"
     "   :type faces: Iterable[:class:`bmesh.types.BMFace`]\n"
-    "   :arg sticky_select_mode: See |UV_STICKY_SELECT_MODE_REF|.\n"
+    "   :param sticky_select_mode: See |UV_STICKY_SELECT_MODE_REF|.\n"
     "   :type sticky_select_mode: |UV_STICKY_SELECT_MODE_TYPE|\n");
 static PyObject *bpy_bmesh_uv_select_foreach_set_from_mesh(BPy_BMesh *self,
                                                            PyObject *args,
@@ -2142,9 +2144,9 @@ PyDoc_STRVAR(
     "\n"
     "   Transform the mesh (optionally filtering flagged data only).\n"
     "\n"
-    "   :arg matrix: 4x4 transform matrix.\n"
+    "   :param matrix: 4x4 transform matrix.\n"
     "   :type matrix: :class:`mathutils.Matrix`\n"
-    "   :arg filter: Flag to filter vertices.\n"
+    "   :param filter: Flag to filter vertices.\n"
     "   :type filter: set[Literal[" BPY_BM_HFLAG_ALL_STR "]]\n");
 static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject *kw)
 {
@@ -2212,7 +2214,7 @@ PyDoc_STRVAR(
     "\n"
     "   Calculate mesh volume based on face normals.\n"
     "\n"
-    "   :arg signed: when signed is true, negative values may be returned.\n"
+    "   :param signed: when signed is true, negative values may be returned.\n"
     "   :type signed: bool\n"
     "   :return: The volume of the mesh.\n"
     "   :rtype: float\n");
@@ -2277,7 +2279,7 @@ PyDoc_STRVAR(
     "   This is different from the *select* attribute because it updates the selection "
     "state of associated geometry.\n"
     "\n"
-    "   :arg select: Select or de-select.\n"
+    "   :param select: Select or de-select.\n"
     "   :type select: bool\n"
     "\n"
     "   .. note::\n"
@@ -2310,7 +2312,7 @@ PyDoc_STRVAR(
     "   This is different from the *hide* attribute because it updates the selection and "
     "hide state of associated geometry.\n"
     "\n"
-    "   :arg hide: Hidden or visible.\n"
+    "   :param hide: Hidden or visible.\n"
     "   :type hide: bool\n");
 static PyObject *bpy_bm_elem_hide_set(BPy_BMElem *self, PyObject *value)
 {
@@ -2399,9 +2401,9 @@ PyDoc_STRVAR(
     "\n"
     "   Interpolate the customdata from a vert between 2 other verts.\n"
     "\n"
-    "   :arg vert_pair: The verts between which to interpolate data from.\n"
+    "   :param vert_pair: The verts between which to interpolate data from.\n"
     "   :type vert_pair: Sequence[:class:`bmesh.types.BMVert`]\n"
-    "   :arg fac: The interpolation factor.\n"
+    "   :param fac: The interpolation factor.\n"
     "   :type fac: float\n");
 static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *args)
 {
@@ -2439,7 +2441,7 @@ PyDoc_STRVAR(
     "   Interpolate the customdata from a face onto this loop (the loops vert should "
     "overlap the face).\n"
     "\n"
-    "   :arg face: The face to interpolate data from.\n"
+    "   :param face: The face to interpolate data from.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *args)
 {
@@ -2468,7 +2470,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the angle between this vert's two connected edges.\n"
     "\n"
-    "   :arg fallback: return this when the vert doesn't have 2 edges\n"
+    "   :param fallback: return this when the vert doesn't have 2 edges\n"
     "      (instead of raising a :exc:`ValueError`).\n"
     "   :type fallback: Any\n"
     "   :return: Angle between edges in radians.\n"
@@ -2561,7 +2563,7 @@ PyDoc_STRVAR(
     bpy_bmedge_calc_face_angle_doc,
     ".. method:: calc_face_angle(fallback=None)\n"
     "\n"
-    "   :arg fallback: return this when the edge doesn't have 2 faces\n"
+    "   :param fallback: return this when the edge doesn't have 2 faces\n"
     "      (instead of raising a :exc:`ValueError`).\n"
     "   :type fallback: Any\n"
     "   :return: The angle between 2 connected faces in radians.\n"
@@ -2601,7 +2603,7 @@ PyDoc_STRVAR(
     bpy_bmedge_calc_face_angle_signed_doc,
     ".. method:: calc_face_angle_signed(fallback=None)\n"
     "\n"
-    "   :arg fallback: return this when the edge doesn't have 2 faces\n"
+    "   :param fallback: return this when the edge doesn't have 2 faces\n"
     "      (instead of raising a :exc:`ValueError`).\n"
     "   :type fallback: Any\n"
     "   :return: The angle between 2 connected faces in radians (negative for concave join).\n"
@@ -2644,7 +2646,7 @@ PyDoc_STRVAR(
     "   Return the tangent at this edge relative to a face (pointing inward into the face).\n"
     "   This uses the face normal for calculation.\n"
     "\n"
-    "   :arg loop: The loop used for tangent calculation.\n"
+    "   :param loop: The loop used for tangent calculation.\n"
     "   :type loop: :class:`bmesh.types.BMLoop`\n"
     "   :return: a normalized vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
@@ -2671,7 +2673,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the other vertex on this edge or None if the vertex is not used by this edge.\n"
     "\n"
-    "   :arg vert: a vert in this edge.\n"
+    "   :param vert: a vert in this edge.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
     "   :return: The edges other vert.\n"
     "   :rtype: :class:`bmesh.types.BMVert` | None\n");
@@ -2730,9 +2732,9 @@ PyDoc_STRVAR(
     "\n"
     "   Interpolate the customdata from another face onto this one (faces should overlap).\n"
     "\n"
-    "   :arg face: The face to interpolate data from.\n"
+    "   :param face: The face to interpolate data from.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n"
-    "   :arg vert: When True, also copy vertex data.\n"
+    "   :param vert: When True, also copy vertex data.\n"
     "   :type vert: bool\n");
 static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *args)
 {
@@ -2768,9 +2770,9 @@ PyDoc_STRVAR(
     "\n"
     "   Make a copy of this face.\n"
     "\n"
-    "   :arg verts: When set, the faces verts will be duplicated too.\n"
+    "   :param verts: When set, the faces verts will be duplicated too.\n"
     "   :type verts: bool\n"
-    "   :arg edges: When set, the faces edges will be duplicated too.\n"
+    "   :param edges: When set, the faces edges will be duplicated too.\n"
     "   :type edges: bool\n"
     "   :return: The newly created face.\n"
     "   :rtype: :class:`bmesh.types.BMFace`\n");
@@ -2814,7 +2816,7 @@ PyDoc_STRVAR(
     "\n"
     "   Select the face.\n"
     "\n"
-    "   :arg select: Select or de-select.\n"
+    "   :param select: Select or de-select.\n"
     "   :type select: bool\n"
     "\n"
     "   .. note::\n"
@@ -3037,11 +3039,11 @@ PyDoc_STRVAR(
     "   Interpolate the customdata from a face onto this loop (the loops vert should "
     "overlap the face).\n"
     "\n"
-    "   :arg face: The face to interpolate data from.\n"
+    "   :param face: The face to interpolate data from.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n"
-    "   :arg vert: When enabled, interpolate the loops vertex data (optional).\n"
+    "   :param vert: When enabled, interpolate the loops vertex data (optional).\n"
     "   :type vert: bool\n"
-    "   :arg multires: When enabled, interpolate the loops multires data (optional).\n"
+    "   :param multires: When enabled, interpolate the loops multires data (optional).\n"
     "   :type multires: bool\n");
 static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *args)
 {
@@ -3080,7 +3082,7 @@ PyDoc_STRVAR(
     "\n"
     "   Select the UV vertex.\n"
     "\n"
-    "   :arg select: Select or de-select.\n"
+    "   :param select: Select or de-select.\n"
     "   :type select: bool\n"
     "\n"
     "   .. note::\n"
@@ -3111,7 +3113,7 @@ PyDoc_STRVAR(
     "\n"
     "   Set the UV edge selection state.\n"
     "\n"
-    "   :arg select: Select or de-select.\n"
+    "   :param select: Select or de-select.\n"
     "   :type select: bool\n"
     "\n"
     "   .. note::\n"
@@ -3193,9 +3195,9 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new vertex.\n"
     "\n"
-    "   :arg co: The initial location of the vertex (optional argument).\n"
+    "   :param co: The initial location of the vertex (optional argument).\n"
     "   :type co: float triplet\n"
-    "   :arg example: Existing vert to initialize settings.\n"
+    "   :param example: Existing vert to initialize settings.\n"
     "   :type example: :class:`bmesh.types.BMVert`\n"
     "   :return: The newly created vertex.\n"
     "   :rtype: :class:`bmesh.types.BMVert`\n");
@@ -3253,9 +3255,9 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new edge from a given pair of verts.\n"
     "\n"
-    "   :arg verts: Vertex pair.\n"
+    "   :param verts: Vertex pair.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
-    "   :arg example: Existing edge to initialize settings (optional argument).\n"
+    "   :param example: Existing edge to initialize settings (optional argument).\n"
     "   :type example: :class:`bmesh.types.BMEdge`\n"
     "   :return: The newly created edge.\n"
     "   :rtype: :class:`bmesh.types.BMEdge`\n");
@@ -3328,9 +3330,9 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new face from a given set of verts.\n"
     "\n"
-    "   :arg verts: Sequence of 3 or more verts.\n"
+    "   :param verts: Sequence of 3 or more verts.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
-    "   :arg example: Existing face to initialize settings (optional argument).\n"
+    "   :param example: Existing face to initialize settings (optional argument).\n"
     "   :type example: :class:`bmesh.types.BMFace`\n"
     "   :return: The newly created face.\n"
     "   :rtype: :class:`bmesh.types.BMFace`\n");
@@ -3405,7 +3407,7 @@ PyDoc_STRVAR(
     "\n"
     "   Remove a vert.\n"
     "\n"
-    "   :arg vert: The vert to remove.\n"
+    "   :param vert: The vert to remove.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n");
 static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 {
@@ -3433,7 +3435,7 @@ PyDoc_STRVAR(
     "\n"
     "   Remove an edge.\n"
     "\n"
-    "   :arg edge: The edge to remove.\n"
+    "   :param edge: The edge to remove.\n"
     "   :type edge: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 {
@@ -3461,7 +3463,7 @@ PyDoc_STRVAR(
     "\n"
     "   Remove a face.\n"
     "\n"
-    "   :arg face: The face to remove.\n"
+    "   :param face: The face to remove.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 {
@@ -3489,9 +3491,9 @@ PyDoc_STRVAR(
     "\n"
     "   Return an edge which uses the **verts** passed.\n"
     "\n"
-    "   :arg verts: Sequence of verts.\n"
+    "   :param verts: Sequence of verts.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
-    "   :arg fallback: Return this value if nothing is found.\n"
+    "   :param fallback: Return this value if nothing is found.\n"
     "   :type fallback: Any\n"
     "   :return: The edge found or None\n"
     "   :rtype: :class:`bmesh.types.BMEdge`\n");
@@ -3538,9 +3540,9 @@ PyDoc_STRVAR(
     "\n"
     "   Return a face which uses the **verts** passed.\n"
     "\n"
-    "   :arg verts: Sequence of verts.\n"
+    "   :param verts: Sequence of verts.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
-    "   :arg fallback: Return this value if nothing is found.\n"
+    "   :param fallback: Return this value if nothing is found.\n"
     "   :type fallback: Any\n"
     "   :return: The face found or None\n"
     "   :rtype: :class:`bmesh.types.BMFace`\n");
@@ -3668,12 +3670,12 @@ PyDoc_STRVAR(
     "   Indices of elements are not changed, :class:`bmesh.types.BMElemSeq.index_update` "
     "can be used for that.\n"
     "\n"
-    "   :arg key: The key that sets the ordering of the elements.\n"
+    "   :param key: The key that sets the ordering of the elements.\n"
     "   :type key: Callable[["
     ":class:`bmesh.types.BMVert` | "
     ":class:`bmesh.types.BMEdge` | "
     ":class:`bmesh.types.BMFace`], int] | None\n"
-    "   :arg reverse: Reverse the order of the elements\n"
+    "   :param reverse: Reverse the order of the elements\n"
     "   :type reverse: bool\n"
     "\n"
     "   .. note::\n"

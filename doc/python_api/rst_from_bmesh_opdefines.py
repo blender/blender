@@ -400,7 +400,7 @@ def main():
         # -- done
 
         # all ops get this arg
-        fw("   :arg bm: The bmesh to operate on.\n")
+        fw("   :param bm: The bmesh to operate on.\n")
         fw("   :type bm: :class:`bmesh.types.BMesh`\n")
 
         args_out_wash = get_args_wash(args_out, args_out_index, True)
@@ -410,7 +410,7 @@ def main():
                 comment = "Undocumented."
 
             # Indent a block to support multiple lines.
-            fw("   :arg {:s}:\n{:s}\n".format(name, textwrap.indent(comment, "      ")))
+            fw("   :param {:s}:\n{:s}\n".format(name, textwrap.indent(comment, "      ")))
             fw("   :type {:s}: {:s}\n".format(name, tp))
 
         if args_out_wash:
