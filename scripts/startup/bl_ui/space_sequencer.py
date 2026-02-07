@@ -284,10 +284,31 @@ class SEQUENCER_PT_sequencer_overlay_strips(Panel):
         col.prop(overlay_settings, "show_fcurves", text="Animation Curves")
 
         col = split.column()
-        col.prop(overlay_settings, "show_thumbnails", text="Thumbnails")
         col.prop(overlay_settings, "show_strip_tag_color", text="Color Tags")
         col.prop(overlay_settings, "show_strip_offset", text="Offsets")
         col.prop(overlay_settings, "show_strip_retiming", text="Retiming")
+
+
+class SEQUENCER_PT_sequencer_overlay_thumbnails(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_parent_id = "SEQUENCER_PT_overlay"
+    bl_label = "Thumbnails"
+
+    @classmethod
+    def poll(cls, context):
+        st = context.space_data
+        return st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
+
+    def draw(self, context):
+        st = context.space_data
+        overlay_settings = st.timeline_overlay
+        layout = self.layout
+
+        layout.active = st.show_overlays
+
+        row = layout.row()
+        row.prop(overlay_settings, "thumbnail_display_style", expand=True)
 
 
 class SEQUENCER_PT_sequencer_overlay_waveforms(Panel):
@@ -2076,6 +2097,7 @@ classes = (
     SEQUENCER_PT_preview_overlay,
     SEQUENCER_PT_sequencer_overlay,
     SEQUENCER_PT_sequencer_overlay_strips,
+    SEQUENCER_PT_sequencer_overlay_thumbnails,
     SEQUENCER_PT_sequencer_overlay_waveforms,
 
 
