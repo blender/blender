@@ -188,7 +188,7 @@ void OpenGLDisplayDriver::graphics_interop_deactivate()
  * Drawing.
  */
 
-void OpenGLDisplayDriver::clear()
+void OpenGLDisplayDriver::zero()
 {
   texture_.need_zero = true;
 }

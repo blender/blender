@@ -24,7 +24,7 @@ class OpenGLDisplayDriver : public DisplayDriver {
   void graphics_interop_activate() override;
   void graphics_interop_deactivate() override;
 
-  void clear() override;
+  void zero() override;
 
   void set_zoom(const float zoom_x, const float zoom_y);
 
