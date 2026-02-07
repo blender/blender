@@ -75,7 +75,6 @@ bool imb_save_avif(ImBuf *ibuf, const char *filepath, int flags)
 
   file_spec.attribute("Compression", fmt::format("avif:{}", int(ibuf->foptions.quality)));
   file_spec.attribute("oiio:BitsPerSample", bits_per_sample);
-  file_spec.attribute("oiio:UnassociatedAlpha", 1);
 
   return imb_oiio_write(ctx, filepath, file_spec);
 }
