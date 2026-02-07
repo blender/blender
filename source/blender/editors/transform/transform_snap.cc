@@ -159,8 +159,11 @@ bool transformModeUseSnap(const TransInfo *t)
     return true;
   }
 
-  /* The VSE has its own snapping options with no ability to snap while scaling/rotating yet. */
-  if (t->spacetype == SPACE_SEQ && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+  /* In the VSE preview, for rotate/scale, we want snap disabled by default, with increment snap on
+   * `ctrl`. Do this by returning `false` here, which sets/unsets the necessary flags elsewhere. */
+  if (t->spacetype == SPACE_SEQ && t->region->regiontype == RGN_TYPE_PREVIEW &&
+      ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+  {
     return false;
   }
 
@@ -863,7 +866,7 @@ static void initSnappingMode(TransInfo *t)
     t->tsnap.mode = SCE_SNAP_TO_INCREMENT;
   }
 
-  if ((t->spacetype != SPACE_VIEW3D) || (t->flag & T_NO_PROJECT)) {
+  if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_SEQ) || (t->flag & T_NO_PROJECT)) {
     /* Force project off when not supported. */
     t->tsnap.mode &= ~(SCE_SNAP_INDIVIDUAL_PROJECT | SCE_SNAP_INDIVIDUAL_NEAREST);
   }

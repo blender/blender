@@ -346,6 +346,16 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
         break;
       }
       case bke::AttrStorageType::Single: {
+        int &i = index_in_type.lookup_or_add(type, 0);
+        BLI_SCOPED_DEFER([&]() { i++; });
+        if (CustomData_layertype_is_dynamic(type)) {
+          bcd.non_trivial_arrays.lookup_or_add_default(type).append(ImplicitSharingInfoAndData{});
+          break;
+        }
+        const int stride = CustomData_sizeof(type);
+        BLI_array_store_at_size_ensure(
+            &um_arraystore.bs_stride[bs_index], stride, array_chunk_size_calc(stride));
+        bcd.trivial_arrays.lookup_or_add_default(type).append(nullptr);
         break;
       }
     }

@@ -3024,14 +3024,22 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
     return false;
   }
 
+  /* External render engines like Cycles do not have access to the pbvh::Tree
+   * like Eevee does, and need evaluated mesh geometry to render from. */
+  const bool external_engine = rv3d && rv3d->view_render != nullptr;
+
   if (pbvh->type() == bke::pbvh::Type::Mesh) {
-    /* Regular mesh only draws from pbvh::Tree without modifiers and shape keys, or for
-     * external engines that do not have access to the pbvh::Tree like Eevee does. */
-    const bool external_engine = rv3d && rv3d->view_render != nullptr;
+    /* Regular mesh only draws from pbvh::Tree without modifiers and shape keys,
+     * and without external render engine. */
     return !(ss->shapekey_active || ss->deform_modifiers_active || external_engine);
   }
 
-  /* Multires and dyntopo always draw directly from the pbvh::Tree. */
+  if (pbvh->type() == bke::pbvh::Type::BMesh) {
+    /* Dyntopo draws from pbvh::Tree, except for external render engines. */
+    return !external_engine;
+  }
+
+  /* Multires always draws directly from the pbvh::Tree. */
   return true;
 }
 
