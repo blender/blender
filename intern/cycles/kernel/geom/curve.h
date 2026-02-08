@@ -80,7 +80,7 @@ ccl_device dual<T> curve_attribute(KernelGlobals kg,
    * detail level always. maybe a derivative based on the hair density
    * could be computed somehow? */
 
-  if (desc.element == ATTR_ELEMENT_CURVE) {
+  if (desc.element & ATTR_ELEMENT_CURVE) {
     return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
   }
   return make_zero<dual<T>>();
