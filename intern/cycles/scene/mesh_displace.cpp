@@ -142,15 +142,29 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     return false;
   }
 
-  /* Add undisplaced attributes right before doing displacement. */
-  mesh->add_undisplaced(scene);
-
   const size_t num_verts = mesh->verts.size();
   const size_t num_triangles = mesh->num_triangles();
 
   if (num_triangles == 0) {
     return false;
   }
+
+  /* Corner normals can't be preserved through displacement, replace with vertex normals. */
+  bool need_recompute_vertex_normals = false;
+  bool need_recompute_all_vertex_normals = false;
+
+  if (mesh->attributes.find(ATTR_STD_CORNER_NORMAL) ||
+      mesh->attributes.find(ATTR_STD_MOTION_CORNER_NORMAL))
+  {
+    mesh->attributes.remove(ATTR_STD_CORNER_NORMAL);
+    mesh->attributes.remove(ATTR_STD_MOTION_CORNER_NORMAL);
+    need_recompute_vertex_normals = true;
+    need_recompute_all_vertex_normals = true;
+    mesh->add_vertex_normals();
+  }
+
+  /* Add undisplaced attributes right before doing displacement. */
+  mesh->add_undisplaced(scene);
 
   const string msg = string_printf("Computing Displacement %s", mesh->name.c_str());
   progress.set_status("Updating Mesh", msg);
@@ -184,23 +198,6 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
   /* For displacement method both, we don't need to recompute the vertex normals
    * as bump mapping in the shader will already alter the vertex normal, so we start
    * from the non-displaced vertex normals to avoid applying the perturbation twice. */
-  bool need_recompute_vertex_normals = false;
-  bool need_recompute_all_vertex_normals = false;
-
-  /* Corner normals can't be preserved through displacement. */
-  if (mesh->attributes.find(ATTR_STD_CORNER_NORMAL)) {
-    mesh->attributes.remove(ATTR_STD_CORNER_NORMAL);
-    mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
-    need_recompute_vertex_normals = true;
-    need_recompute_all_vertex_normals = true;
-  }
-  if (mesh->attributes.find(ATTR_STD_MOTION_CORNER_NORMAL)) {
-    mesh->attributes.remove(ATTR_STD_MOTION_CORNER_NORMAL);
-    mesh->attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
-    need_recompute_vertex_normals = true;
-    need_recompute_all_vertex_normals = true;
-  }
-
   for (Node *node : mesh->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_displacement && shader->get_displacement_method() == DISPLACE_TRUE) {
