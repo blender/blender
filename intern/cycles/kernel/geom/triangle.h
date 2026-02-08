@@ -301,7 +301,7 @@ ccl_device dual<T> triangle_attribute(KernelGlobals kg,
     return result;
   }
 
-  if (desc.element == ATTR_ELEMENT_FACE) {
+  if (desc.element & ATTR_ELEMENT_FACE) {
     return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
   }
   return make_zero<dual<T>>();

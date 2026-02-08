@@ -59,8 +59,8 @@ ccl_device_inline AttributeDescriptor find_attribute(const ccl_global AttributeM
   AttributeDescriptor desc;
   desc.element = (AttributeElement)attr_map.element;
 
-  if (prim == PRIM_NONE && desc.element != ATTR_ELEMENT_MESH &&
-      desc.element != ATTR_ELEMENT_VOXEL && desc.element != ATTR_ELEMENT_OBJECT)
+  if (prim == PRIM_NONE &&
+      !(desc.element & (ATTR_ELEMENT_MESH | ATTR_ELEMENT_VOXEL | ATTR_ELEMENT_OBJECT)))
   {
     return attribute_not_found();
   }
