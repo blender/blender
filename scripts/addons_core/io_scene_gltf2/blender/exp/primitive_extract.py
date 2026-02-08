@@ -14,6 +14,7 @@ from ..com.gltf2_blender_utils import fast_structured_np_unique
 from .material.materials import get_base_material, get_active_uvmap_index, get_new_material_texture_shared
 from .material.texture_info import gather_udim_texture_info
 from . import skins as gltf2_blender_gather_skins
+from . attribute_utils import extract_attribute_data
 
 
 def extract_primitives(
@@ -1332,54 +1333,26 @@ class PrimitiveCreator:
         return data_dots, data_dots_edges, data_dots_points
 
     def __get_layer_attribute(self, attr):
-        if attr['blender_domain'] in ['CORNER']:
-            data = np.empty(len(self.blender_mesh.loops) * attr['len'], dtype=attr['type'])
-        elif attr['blender_domain'] in ['POINT']:
-            data = np.empty(len(self.blender_mesh.vertices) * attr['len'], dtype=attr['type'])
-        elif attr['blender_domain'] in ['EDGE']:
-            data = np.empty(len(self.blender_mesh.edges) * attr['len'], dtype=attr['type'])
-        elif attr['blender_domain'] in ['FACE']:
-            data = np.empty(len(self.blender_mesh.polygons) * attr['len'], dtype=attr['type'])
-        else:
+
+        size = {
+            "CORNER": len(self.blender_mesh.loops),
+            "POINT": len(self.blender_mesh.vertices),
+            "EDGE": len(self.blender_mesh.edges),
+            "FACE": len(self.blender_mesh.polygons)
+        }.get(attr['blender_domain'], 0)
+
+        if size == 0:
             self.export_settings['log'].error("domain not known")
 
-        if attr['blender_data_type'] == "BYTE_COLOR":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('color', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "INT8":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "FLOAT2":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('vector', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "BOOLEAN":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "STRING":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "FLOAT_COLOR":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('color', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "FLOAT_VECTOR":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('vector', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "QUATERNION":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "FLOAT4X4":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "FLOAT_VECTOR_4":  # Specific case for tangent
-            pass
-        elif attr['blender_data_type'] == "INT":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
-            data = data.reshape(-1, attr['len'])
-        elif attr['blender_data_type'] == "FLOAT":
-            self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
-            data = data.reshape(-1, attr['len'])
-        else:
-            self.export_settings['log'].error("blender type not found " + attr['blender_data_type'])
+        data = extract_attribute_data(
+            self.blender_mesh.attributes[attr['blender_attribute_index']],
+            size,
+            attr['type'],
+            attr['blender_data_type'],
+            attr['blender_domain'],
+            attr['len'],
+            self.export_settings
+        )
 
         if attr['blender_domain'] in ['CORNER']:
             for i in range(attr['len']):

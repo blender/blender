@@ -111,6 +111,9 @@ def __gather_extras(blender_data,
 
     if export_settings['gltf_extras']:
         extras = generate_extras(blender_data) or {}
+    # Not for point clouds
+    if blender_data.id_type == "POINTCLOUD":
+        return extras if extras else None
 
     # Not for GN Instances
     if export_settings['gltf_morph'] and blender_data.shape_keys and ((blender_data.is_evaluated is True and blender_data.get(
@@ -153,6 +156,11 @@ def __gather_weights(blender_data,
                      modifiers: Optional[bpy.types.ObjectModifiers],
                      export_settings
                      ) -> Optional[List[float]]:
+
+    # Not for Point Clouds
+    if blender_data.id_type == "POINTCLOUD":
+        return None
+
     if not export_settings['gltf_morph'] or not blender_data.shape_keys:
         return None
 

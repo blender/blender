@@ -9,6 +9,7 @@ from ...io.com import gltf2_io, constants as gltf2_io_constants, gltf2_io_extens
 from ...blender.com.data_path import get_sk_exported
 from ...io.exp import binary_data as gltf2_io_binary_data
 from .cache import cached, cached_by_key
+from . import pointcloud
 from . import primitive_extract as gltf2_blender_gather_primitives_extract
 from . import primitive_attributes as gltf2_blender_gather_primitive_attributes
 from .accessors import gather_accessor, array_to_accessor
@@ -140,8 +141,17 @@ def __gather_cache_primitives(
     """
     primitives = []
 
-    blender_primitives, additional_materials_udim, shared_attributes = gltf2_blender_gather_primitives_extract.extract_primitives(
-        materials, blender_data, uuid_for_skined_data, vertex_groups, modifiers, export_settings)
+    if type(blender_data).__name__ == "PointCloud":
+        # Point clouds
+        blender_primitives = pointcloud.gather_point_cloud(blender_data, export_settings)
+        additional_materials_udim = [None] * len(blender_primitives)
+        shared_attributes = None
+
+    else:
+        # Mesh
+
+        blender_primitives, additional_materials_udim, shared_attributes = gltf2_blender_gather_primitives_extract.extract_primitives(
+            materials, blender_data, uuid_for_skined_data, vertex_groups, modifiers, export_settings)
 
     if shared_attributes is not None:
 
@@ -237,6 +247,11 @@ def __gather_attributes(blender_primitive, blender_data, modifiers, export_setti
 
 def __gather_targets(blender_primitive, blender_data, modifiers, export_settings):
     if export_settings['gltf_morph']:
+
+        # Not for Point Clouds
+        if type(blender_data).__name__ == "PointCloud":
+            return None
+
         targets = []
         if blender_data.shape_keys is not None:
             morph_index = 0
