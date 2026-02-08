@@ -380,7 +380,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
         linear_interpolate_strength = true;
       }
       else {
-        normal = triangle_smooth_normal_unnormalized(kg, sd);
+        normal = triangle_smooth_normal_unnormalized_object_space(kg, sd);
       }
     }
     else {
