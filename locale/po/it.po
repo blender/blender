@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -5360,6 +5360,18 @@ msgid "Threshold in screen space used for the simplify algorithm. Points within 
 msgstr "Soglia nello spazio schermo utilizzata per semplificare l'algoritmo. punti all'interno di questa soglia sono trattati come se fossero in linea retta."
 
 
+msgid "Stroke"
+msgstr "Tratto"
+
+
+msgid "Fill"
+msgstr "Riempi"
+
+
+msgid "Both"
+msgstr "Entrambi"
+
+
 msgid "Active Layer"
 msgstr "Livello Attivo"
 
@@ -5524,16 +5536,8 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Definisce come il colore del vertice influenza i tratti"
 
 
-msgid "Stroke"
-msgstr "Tratto"
-
-
 msgid "Vertex Color affects to Stroke only"
 msgstr "Il Colore del Vertice influenza solo il Tratto"
-
-
-msgid "Fill"
-msgstr "Riempi"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -17975,10 +17979,6 @@ msgid "Viewer Region"
 msgstr "Regione Spettatore"
 
 
-msgid "Use boundaries for viewer nodes and composite backdrop"
-msgstr "Utilizza i bordi per i nodi di visualizzazione e la composizione sullo sfondo"
-
-
 msgid "Node tree consisting of linked nodes used for geometries"
 msgstr "Albero nodi costituito da nodi collegati utilizzati per le geometrie"
 
@@ -24566,22 +24566,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
 msgid "Read"
 msgstr "Lettura"
 
@@ -24592,10 +24576,6 @@ msgstr "Scrittura"
 
 msgid "Sample"
 msgstr "Campione"
-
-
-msgid "Names"
-msgstr "Nomi"
 
 
 msgid "Primitives"
@@ -24610,172 +24590,64 @@ msgid "Clean Up"
 msgstr "Ripulisci"
 
 
-msgid "Pivot Point"
-msgstr "Punto di Perno"
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
 
 
-msgid "Snap"
-msgstr "Aggancia"
+msgid "Names"
+msgstr "Nomi"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
 
 
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
+msgid "Metaball"
+msgstr "Metaball"
 
 
-msgid "Automasking"
-msgstr "Automascheramento"
+msgid "Kerning"
+msgstr "Crenatura"
 
 
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
 
 
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
+msgid "Merge"
+msgstr "Unisci"
 
 
-msgid "Mirror"
-msgstr "Specchia"
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
 
 
-msgid "UV Mapping"
-msgstr "Mappatura UV"
+msgid "Set Face Strength"
+msgstr "Imposta Intensità Faccia"
 
 
-msgid "Local View"
-msgstr "Vista Locale"
+msgid "Select by Face Strength"
+msgstr "Seleziona per Intensità delle Facce"
 
 
-msgid "Viewpoint"
-msgstr "Punto di vista"
+msgid "Face Data"
+msgstr "Dati Faccia"
 
 
-msgid "Navigation"
-msgstr "Navigazione"
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
 
 
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Light"
-msgstr "Luce"
-
-
-msgid "Light Probe"
-msgstr "Sensore di Luce"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
 
 
 msgid "Apply"
 msgstr "Applica"
 
 
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
-
-
-msgid "Asset"
-msgstr "Risorsa"
-
-
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Convert"
-msgstr "Converti"
-
-
-msgid "Link/Transfer Data"
-msgstr "Collega/Trasferisci Dati"
-
-
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Face Sets Init"
-msgstr "Init Sets di Facce"
-
-
-msgid "Random Mask"
-msgstr "Maschera Casuale"
-
-
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
+msgid "Bone Collections"
+msgstr "Raccolte di Ossa"
 
 
 msgid "In-Betweens"
@@ -24786,56 +24658,184 @@ msgid "Propagate"
 msgstr "Propaga"
 
 
-msgid "Bone Collections"
-msgstr "Raccolte di Ossa"
+msgid "Layout"
+msgstr "Layout"
 
 
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
 
 
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
+msgid "Face Sets Init"
+msgstr "Init Sets di Facce"
 
 
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
+msgid "Random Mask"
+msgstr "Maschera Casuale"
 
 
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
+msgid "Adjust"
+msgstr "Regola"
 
 
-msgid "Face Data"
-msgstr "Dati Faccia"
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Convert"
+msgstr "Converti"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Link/Transfer Data"
+msgstr "Collega/Trasferisci Dati"
+
+
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Asset"
+msgstr "Risorsa"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Light Probe"
+msgstr "Sensore di Luce"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
+
+
+msgid "Snap"
+msgstr "Aggancia"
 
 
 msgid "Instances"
 msgstr "Istanze"
 
 
-msgid "Select by Face Strength"
-msgstr "Seleziona per Intensità delle Facce"
-
-
-msgid "Set Face Strength"
-msgstr "Imposta Intensità Faccia"
+msgid "Mirror"
+msgstr "Specchia"
 
 
 msgid "Import"
 msgstr "Importa"
 
 
-msgid "Merge"
-msgstr "Unisci"
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
 
 
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
 
 
-msgid "Kerning"
-msgstr "Crenatura"
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Keyframe Insert Pie"
@@ -32224,6 +32224,10 @@ msgid "Mix Shader"
 msgstr "Mescola Shader"
 
 
+msgid "OpenGL"
+msgstr "OpenCL"
+
+
 msgid "Space of the input normal"
 msgstr "Spazio della normale d'ingresso"
 
@@ -38127,10 +38131,6 @@ msgstr "Appiattisci"
 
 msgid "Side"
 msgstr "Lato"
-
-
-msgid "Both"
-msgstr "Entrambi"
 
 
 msgctxt "Operator"
@@ -50252,64 +50252,64 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Selectability & Visibility"
-msgstr "Selezionabilità e Visibilità"
-
-
-msgid "Shadow Settings"
-msgstr "Impostazioni Ombra"
-
-
-msgid "SSAO Settings"
-msgstr "Impostazioni SSAO"
-
-
-msgid "Cavity"
-msgstr "Cavità"
-
-
-msgid "Render Pass"
-msgstr "Passaggi Render"
-
-
-msgid "Compositor"
-msgstr "Compositore"
-
-
-msgid "Overlays"
-msgstr "Sovrapposizioni"
-
-
-msgid "Guides"
-msgstr "Guide"
-
-
-msgid "Motion Tracking"
-msgstr "Tracciatura Movimento"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
+msgid "Guides"
+msgstr "Guide"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
+
+
+msgid "Motion Tracking"
+msgstr "Tracciatura Movimento"
+
+
+msgid "Overlays"
+msgstr "Sovrapposizioni"
+
+
+msgid "Compositor"
+msgstr "Compositore"
+
+
+msgid "Render Pass"
+msgstr "Passaggi Render"
+
+
+msgid "Cavity"
+msgstr "Cavità"
+
+
+msgid "SSAO Settings"
+msgstr "Impostazioni SSAO"
+
+
+msgid "Shadow Settings"
+msgstr "Impostazioni Ombra"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selezionabilità e Visibilità"
 
 
 msgid "Chain Scaling"
@@ -52904,10 +52904,6 @@ msgstr "Limite Texture GL"
 
 msgid "Limit the texture size to save graphics memory"
 msgstr "Limite dimensione Texture salvata in memoria grafica"
-
-
-msgid "OpenGL"
-msgstr "OpenCL"
 
 
 msgid "Metal"
@@ -59211,10 +59207,6 @@ msgid "Draw Normals"
 msgstr "Disegna Normali"
 
 
-msgid "Display 3D curve normals in editmode"
-msgstr "Mostra le normali delle curve 3D in modalità Modifica"
-
-
 msgid "Display Bevel Weights"
 msgstr "Visualizza Pesi Smussatura"
 
@@ -64955,10 +64947,6 @@ msgstr "Aggiunge un nuovo punto-controllo all'inviluppo sul fotogramma corrente"
 
 msgid "Delete envelope control point"
 msgstr "Cancella punto di controllo involucro"
-
-
-msgid "Coefficient"
-msgstr "Coefficiente"
 
 
 msgid "Remove animation from selected objects?"

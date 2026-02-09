@@ -2050,6 +2050,9 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
   BKE_scene_camera_switch_update(scene);
   BKE_screen_view3d_scene_sync(screen, scene);
   DEG_relations_tag_update(CTX_data_main(C));
+  /* Need to sync to all windows so cameras are updated in viewports there. */
+  wmWindowManager *wm = CTX_wm_manager(C);
+  WM_windows_scene_data_sync(&wm->windows, scene);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, nullptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, nullptr);

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
-"PO-Revision-Date: 2026-02-02 11:37+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"PO-Revision-Date: 2026-02-08 17:51+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -6023,6 +6023,18 @@ msgid "Threshold in screen space used for the simplify algorithm. Points within 
 msgstr "Prag v prostoru zaslona, ki se uporablja za algoritem poenostavitve. Točke pod pragom obravnavamo, kot da ležijo na premici."
 
 
+msgid "Stroke"
+msgstr "Poteza"
+
+
+msgid "Fill"
+msgstr "Zapolni"
+
+
+msgid "Both"
+msgstr "Oboje"
+
+
 msgid "Active Layer"
 msgstr "Aktivna plast"
 
@@ -6211,16 +6223,8 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Določa, kako barva oglišč vpliva na poteze"
 
 
-msgid "Stroke"
-msgstr "Poteza"
-
-
 msgid "Vertex Color affects to Stroke only"
 msgstr "Barva oglišča vpliva le na potezo"
-
-
-msgid "Fill"
-msgstr "Zapolni"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -15566,6 +15570,10 @@ msgid "Vertex Group"
 msgstr "Skupina oglišč"
 
 
+msgid "Name of vertex group which determines surface emission rate"
+msgstr "Ime skupine oglišč, ki določa hitrost oddajanje s površine"
+
+
 msgid "Flow Behavior"
 msgstr "Obnašanje pretoka"
 
@@ -15618,12 +15626,20 @@ msgid "Flame Rate"
 msgstr "Pogostost plamenov"
 
 
+msgid "Texture that controls emission strength"
+msgstr "Tekstura, ki določa jakost oddajanja"
+
+
 msgid "Color of smoke"
 msgstr "Barva dima"
 
 
 msgid "Surface Emission"
 msgstr "Oddajanje površine"
+
+
+msgid "Height (in domain grid units) of fluid emission above the mesh surface. Higher values result in emission further away from the mesh surface. If this value and the emitter size are smaller than the domain grid unit, fluid will not be created"
+msgstr "Višina oddajanja kapljevine (v enotah domenske regularne mreže) nad površino geometrijske mreže. Višje vrednosti pomenijo, da se bo kapljevina pojavljala dlje od mrežne površine. Če sta ta vrednost in velikost oddajnika manjša od enote domenske regularne mreže, se kapljevina ne bo ustvarila"
 
 
 msgid "Temperature Difference"
@@ -15665,8 +15681,16 @@ msgid "Set Size"
 msgstr "Nastavi velikost"
 
 
+msgid "Treat this object as a planar and unclosed mesh. Fluid will only be emitted from the mesh surface and based on the surface emission value."
+msgstr "Ta objekt obravnavaj kot ploskovno in odprto mrežno geometrijo Kapljevino bo oddajala samo mrežna površina glede na vrednost oddajanja površine."
+
+
 msgid "Use Texture"
 msgstr "Uporabi teksturo"
+
+
+msgid "Use a texture to control emission strength"
+msgstr "Jakost oddajanja uravnava s teksturo"
 
 
 msgid "Initial"
@@ -15679,6 +15703,10 @@ msgstr "Normale"
 
 msgid "Volume Emission"
 msgstr "Oddajanje prostornine"
+
+
+msgid "Controls fluid emission from within the mesh (higher value results in greater emissions from inside the mesh)"
+msgstr "Uravnava oddajanje kapljevine iz notranjosti mrežne geometrije (višja vrednost pomeni, da bo več kapljevine izviralo iz notranjosti mreže)"
 
 
 msgid "Color of the corresponding socket type in the node editor"
@@ -17583,6 +17611,22 @@ msgid "Smudge colors by grabbing and dragging them"
 msgstr "Razmažeš barve tako, da jih zagrabiš in povlečeš"
 
 
+msgid "Paint weight in active vertex group"
+msgstr "Barvanje utežitve na aktivni skupini oglišč"
+
+
+msgid "Blur weight in active vertex group"
+msgstr "Zabris utežitve na aktivni skupini oglišč"
+
+
+msgid "Average weight in active vertex group"
+msgstr "Povprečenje utežitve na aktivni skupini oglišč"
+
+
+msgid "Smear weight in active vertex group"
+msgstr "Razmaz utežitve na aktivni skupini oglišč"
+
+
 msgid "Gradient Spacing"
 msgstr "Razmik preliva"
 
@@ -17714,6 +17758,10 @@ msgid "Plane Trim"
 msgstr "Ravninsko prilagajanje"
 
 
+msgid "If a vertex is further away from offset plane than this, then it is not affected"
+msgstr "Če je oglišče od odmične ravnine oddaljeno dlje od te razdalje, nanj ni vpliva"
+
+
 msgid "Deformation"
 msgstr "Deformacija"
 
@@ -17756,6 +17804,10 @@ msgstr "PK množic lic"
 
 msgid "Smooth Iterations"
 msgstr "Iteracije glajenja"
+
+
+msgid "Smooth iterations applied after calculating the pose factor of each vertex"
+msgstr "Izvedeno postopno glajenje po izračunu pozirnega količnika za vsako oglišče"
 
 
 msgid "Rake"
@@ -18006,6 +18058,10 @@ msgid "Per Vertex Displacement"
 msgstr "Na odmikanje posameznega oglišča"
 
 
+msgid "How much the position of each individual vertex influences the final result"
+msgstr "Koliko položaj vsakega posameznega oglišča vpliva na končni izid"
+
+
 msgid "Shape Preservation"
 msgstr "Ohranjanje oblike"
 
@@ -18082,8 +18138,16 @@ msgid "Custom Cavity Curve"
 msgstr "Reliefna krivulja po meri"
 
 
+msgid "Affect only vertices that share face sets with the active vertex"
+msgstr "Vpliva samo na oglišča, ki so v istih množicah lic kot aktivno oglišče"
+
+
 msgid "Area Normal"
 msgstr "Površinska normala"
+
+
+msgid "Affect only vertices connected to the active vertex under the brush"
+msgstr "Vpliva samo na oglišča, ki so povezana z aktivnim ogliščem pod čopičem"
 
 
 msgid "View Normal"
@@ -21508,6 +21572,10 @@ msgid "Particles/Face"
 msgstr "Delci na lice"
 
 
+msgid "Emission locations per face (0 = automatic)"
+msgstr "Število oddajnih točk na posameznem licu (0 = samodejno)"
+
+
 msgid "Virtual Parents"
 msgstr "Navidezni starši"
 
@@ -22653,10 +22721,6 @@ msgstr "Uradno podprto"
 
 msgid "Community"
 msgstr "Skupnost"
-
-
-msgid "Testing"
-msgstr "Testiranje"
 
 
 msgid "Addon Tags"
@@ -25609,22 +25673,6 @@ msgid "Use Material Mask"
 msgstr "Uporabi masko materiala"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
-
-
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
-
-
 msgid "Read"
 msgstr "Branje"
 
@@ -25635,10 +25683,6 @@ msgstr "Zapiši"
 
 msgid "Sample"
 msgstr "Vzorčenje"
-
-
-msgid "Names"
-msgstr "Imena"
 
 
 msgid "Primitives"
@@ -25653,172 +25697,48 @@ msgid "Clean Up"
 msgstr "Počisti"
 
 
-msgid "Pivot Point"
-msgstr "Osišče"
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
 
 
-msgid "Snap"
-msgstr "Pritrdi"
+msgid "Names"
+msgstr "Imena"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Slabljenje sorazmernega urejanja"
+msgid "Special Characters"
+msgstr "Posebni znaki"
 
 
-msgid "Mask Edit"
-msgstr "Urejanje maske"
+msgid "Metaball"
+msgstr "Metažoga"
 
 
-msgid "Automasking"
-msgstr "Samodejno maskiranje"
+msgid "Kerning"
+msgstr "Spodsekavanje"
 
 
-msgid "Mirror"
-msgstr "Zrcali"
+msgid "Merge"
+msgstr "Združi"
 
 
-msgid "UV Mapping"
-msgstr "Preslikanje UV"
+msgid "Set Face Strength"
+msgstr "Nastavi krepkost lica"
 
 
-msgid "Local View"
-msgstr "Krajevni pogled"
+msgid "Select by Face Strength"
+msgstr "Izberi glede na krepkost lica"
 
 
-msgid "Viewpoint"
-msgstr "Gledišče"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnava pogleda"
-
-
-msgid "Align View to Active"
-msgstr "Poravnaj pogled na aktivno"
-
-
-msgid "View Regions"
-msgstr "Področja pogleda"
-
-
-msgid "Select More/Less"
-msgstr "Izberi več / manj"
-
-
-msgid "Layout"
-msgstr "Ureditev"
-
-
-msgid "Select Similar"
-msgstr "Izberi sorodne"
-
-
-msgid "Select All by Trait"
-msgstr "Izberi vse po značilnosti"
-
-
-msgid "Select Linked"
-msgstr "Izberi povezano"
-
-
-msgid "Select Loops"
-msgstr "Izberi zanke"
-
-
-msgid "Render Preview"
-msgstr "Predogled upodobitve"
-
-
-msgid "Adjust"
-msgstr "Prilagoditev"
-
-
-msgid "Assign Material"
-msgstr "Dodeli material"
-
-
-msgid "Keying"
-msgstr "Ključenje"
-
-
-msgid "Tracking"
-msgstr "Sledenje"
-
-
-msgid "Utilities"
-msgstr "Pripomočki"
-
-
-msgid "Creative"
-msgstr "Ustvarjanje"
-
-
-msgid "Light"
-msgstr "Luč"
-
-
-msgid "Light Probe"
-msgstr "Svetlobna sonda"
-
-
-msgid "Add Image"
-msgstr "Dodaj sliko"
-
-
-msgid "Relations"
-msgstr "Razmerja"
-
-
-msgid "Rigid Body"
-msgstr "Togo telo"
+msgid "Face Data"
+msgstr "Podatki lic"
 
 
 msgid "Apply"
 msgstr "Uveljavi"
 
 
-msgid "Track"
-msgstr "Obriši"
-
-
-msgid "Quick Effects"
-msgstr "Učinki na hitro"
-
-
-msgid "Asset"
-msgstr "Sredstvo"
-
-
-msgid "Make Single User"
-msgstr "Naredi edinstveno uporabniku"
-
-
-msgid "Convert"
-msgstr "Pretvori"
-
-
-msgid "Link/Transfer Data"
-msgstr "Poveži / prenesi podatke"
-
-
-msgid "Hooks"
-msgstr "Kavlji"
-
-
-msgid "Trim/Add"
-msgstr "Poreži / dodaj"
-
-
-msgid "Random Mask"
-msgstr "Naključna maska"
-
-
-msgid "Clear Transform"
-msgstr "Počisti transformacijo"
+msgid "Bone Collections"
+msgstr "Zbirke kosti"
 
 
 msgid "In-Betweens"
@@ -25829,52 +25749,196 @@ msgid "Propagate"
 msgstr "Razširjanje"
 
 
-msgid "Bone Collections"
-msgstr "Zbirke kosti"
+msgid "Layout"
+msgstr "Ureditev"
 
 
-msgid "Face Data"
-msgstr "Podatki lic"
+msgid "Clear Transform"
+msgstr "Počisti transformacijo"
+
+
+msgid "Random Mask"
+msgstr "Naključna maska"
+
+
+msgid "Render Preview"
+msgstr "Predogled upodobitve"
+
+
+msgid "Trim/Add"
+msgstr "Poreži / dodaj"
+
+
+msgid "Adjust"
+msgstr "Prilagoditev"
+
+
+msgid "Keying"
+msgstr "Ključenje"
+
+
+msgid "Convert"
+msgstr "Pretvori"
+
+
+msgid "Tracking"
+msgstr "Sledenje"
+
+
+msgid "Hooks"
+msgstr "Kavlji"
+
+
+msgid "Utilities"
+msgstr "Pripomočki"
+
+
+msgid "Link/Transfer Data"
+msgstr "Poveži / prenesi podatke"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Creative"
+msgstr "Ustvarjanje"
+
+
+msgid "Make Single User"
+msgstr "Naredi edinstveno uporabniku"
+
+
+msgid "Asset"
+msgstr "Sredstvo"
+
+
+msgid "Quick Effects"
+msgstr "Učinki na hitro"
+
+
+msgid "Light"
+msgstr "Luč"
+
+
+msgid "Track"
+msgstr "Obriši"
+
+
+msgid "Rigid Body"
+msgstr "Togo telo"
+
+
+msgid "Light Probe"
+msgstr "Svetlobna sonda"
+
+
+msgid "Relations"
+msgstr "Razmerja"
+
+
+msgid "Add Image"
+msgstr "Dodaj sliko"
+
+
+msgid "Assign Material"
+msgstr "Dodeli material"
+
+
+msgid "Select More/Less"
+msgstr "Izberi več / manj"
+
+
+msgid "Select Loops"
+msgstr "Izberi zanke"
+
+
+msgid "Select Linked"
+msgstr "Izberi povezano"
+
+
+msgid "Select Similar"
+msgstr "Izberi sorodne"
+
+
+msgid "Select All by Trait"
+msgstr "Izberi vse po značilnosti"
+
+
+msgid "Align View"
+msgstr "Poravnava pogleda"
+
+
+msgid "View Regions"
+msgstr "Področja pogleda"
+
+
+msgid "Align View to Active"
+msgstr "Poravnaj pogled na aktivno"
+
+
+msgid "Viewpoint"
+msgstr "Gledišče"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Local View"
+msgstr "Krajevni pogled"
+
+
+msgid "UV Mapping"
+msgstr "Preslikanje UV"
+
+
+msgid "Automasking"
+msgstr "Samodejno maskiranje"
 
 
 msgid "Gizmo"
 msgstr "Manipulator"
 
 
+msgid "Snap"
+msgstr "Pritrdi"
+
+
 msgid "Instances"
 msgstr "Primerki"
 
 
-msgid "Select by Face Strength"
-msgstr "Izberi glede na krepkost lica"
-
-
-msgid "Set Face Strength"
-msgstr "Nastavi krepkost lica"
+msgid "Mirror"
+msgstr "Zrcali"
 
 
 msgid "Import"
 msgstr "Uvozi"
 
 
-msgid "Merge"
-msgstr "Združi"
-
-
 msgid "Deprecated"
 msgstr "Zastarelo"
 
 
-msgid "Special Characters"
-msgstr "Posebni znaki"
+msgid "Mask Edit"
+msgstr "Urejanje maske"
 
 
-msgid "Kerning"
-msgstr "Spodsekavanje"
+msgid "Proportional Editing Falloff"
+msgstr "Slabljenje sorazmernega urejanja"
+
+
+msgid "Pivot Point"
+msgstr "Osišče"
 
 
 msgid "List"
 msgstr "Seznam"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Animals"
@@ -32106,6 +32170,14 @@ msgid "Background"
 msgstr "Ozadje"
 
 
+msgid ""
+"Add background light emission.\n"
+"Note: This node should only be used for the world surface output"
+msgstr ""
+"Doda svetlobno emisijo iz ozadja.\n"
+"Pozor: To vozlišče uporabite le na izhodu površine sveta"
+
+
 msgid "Blackbody"
 msgstr "Črno telo"
 
@@ -32260,6 +32332,10 @@ msgstr "Objektni prostor"
 
 msgid "Specular BSDF"
 msgstr "Zrcalna BSDF"
+
+
+msgid "Lambertian emission shader"
+msgstr "Lambertov emisijski senčilnik"
 
 
 msgid "Float Curve"
@@ -32613,6 +32689,10 @@ msgid "Generate a normal vector and a dot product"
 msgstr "Generira normalni vektor in skalarni produkt"
 
 
+msgid "OpenGL"
+msgstr "OpenGL"
+
+
 msgid "AOV Output"
 msgstr "Izhod AOV"
 
@@ -32643,6 +32723,14 @@ msgstr "Informacije o delcu"
 
 msgid "Point Info"
 msgstr "Informacije o točki"
+
+
+msgid ""
+"Generate an OSL shader from a file or text data-block.\n"
+"Note: OSL shaders are not supported on all GPU backends"
+msgstr ""
+"Generira senčilnik OSL iz datoteke ali besedilnega podatkovnega bloka.\n"
+"Pozor: Nekatera grafična zaledja ne podpirajo senčilnikov OSL"
 
 
 msgid "Bytecode"
@@ -37674,6 +37762,10 @@ msgid "GPU Instances"
 msgstr "Primerki GPU"
 
 
+msgid "Export using EXT_mesh_gpu_instancing. Limited to children of a given Empty. Multiple materials might be omitted"
+msgstr "Izvozi z EXT_mesh_gpu_instancing. Omejeno na otroke podane praznice. Lahko preskoči več materialov"
+
+
 msgid "Full Collection Hierarchy"
 msgstr "Celotna hierarhija zbirke"
 
@@ -38507,10 +38599,6 @@ msgid "Side"
 msgstr "Stran"
 
 
-msgid "Both"
-msgstr "Oboje"
-
-
 msgid "Only Active"
 msgstr "Samo aktivno"
 
@@ -39275,6 +39363,10 @@ msgstr "Prilepi sliko"
 
 msgid "Emission Strength"
 msgstr "Moč emisije"
+
+
+msgid "Strength of emission"
+msgstr "Jakost emisije"
 
 
 msgid "Name After"
@@ -49440,100 +49532,12 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
-msgid "Active Tool"
-msgstr "Aktivno orodje"
+msgid "VR"
+msgstr "VR"
 
 
-msgid "View Lock"
-msgstr "Zaklep pogleda"
-
-
-msgid "Selectability & Visibility"
-msgstr "Izbirljivost in vidnost"
-
-
-msgid "Wireframe Color"
-msgstr "Barva žičnega modela"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavitve senc"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavitve SSAO"
-
-
-msgid "Cavity"
-msgstr "Relief"
-
-
-msgid "Render Pass"
-msgstr "Obhod upodabljanja"
-
-
-msgid "Compositor"
-msgstr "Stavitelj slik"
-
-
-msgid "Overlays"
-msgstr "Pomagala"
-
-
-msgid "Guides"
-msgstr "Vodnice"
-
-
-msgid "Viewer Node"
-msgstr "Predogledno vozlišče"
-
-
-msgid "Motion Tracking"
-msgstr "Obrisovanje gibanja"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mrežni urejevalni način"
-
-
-msgid "Measurement"
-msgstr "Meritev"
-
-
-msgid "Curve Edit Mode"
-msgstr "Krivuljni urejevalni način"
-
-
-msgid "Curves Edit Mode"
-msgstr "Urejevalni način za krivulje"
-
-
-msgid "Transform Orientations"
-msgstr "Usmerjenost transformacij"
-
-
-msgid "Stroke Placement"
-msgstr "Postavitev poteze"
-
-
-msgid "Drawing Plane"
-msgstr "Risalna ravnina"
-
-
-msgid "Grease Pencil Options"
-msgstr "Možnosti Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Četverni pogled"
-
-
-msgid "Onion Skin"
-msgstr "Čebuljenje"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopija"
+msgid "VR Info"
+msgstr "Informacije VR"
 
 
 msgid "glTF"
@@ -49544,24 +49548,112 @@ msgid "glTF Animations"
 msgstr "Animacije glTF"
 
 
-msgid "Multi Frame"
-msgstr "Multiokvir"
+msgid "Viewport Debug"
+msgstr "Razhroščevanje 3D pogleda"
 
 
 msgid "Auto-Masking"
 msgstr "Samodejno maskiranje"
 
 
-msgid "Viewport Debug"
-msgstr "Razhroščevanje 3D pogleda"
+msgid "Multi Frame"
+msgstr "Multiokvir"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Stereoscopy"
+msgstr "Stereoskopija"
 
 
-msgid "VR Info"
-msgstr "Informacije VR"
+msgid "Quad View"
+msgstr "Četverni pogled"
+
+
+msgid "Onion Skin"
+msgstr "Čebuljenje"
+
+
+msgid "Curves Edit Mode"
+msgstr "Urejevalni način za krivulje"
+
+
+msgid "Drawing Plane"
+msgstr "Risalna ravnina"
+
+
+msgid "Grease Pencil Options"
+msgstr "Možnosti Grease Pencil"
+
+
+msgid "Guides"
+msgstr "Vodnice"
+
+
+msgid "Stroke Placement"
+msgstr "Postavitev poteze"
+
+
+msgid "Transform Orientations"
+msgstr "Usmerjenost transformacij"
+
+
+msgid "Curve Edit Mode"
+msgstr "Krivuljni urejevalni način"
+
+
+msgid "Measurement"
+msgstr "Meritev"
+
+
+msgid "Viewer Node"
+msgstr "Predogledno vozlišče"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mrežni urejevalni način"
+
+
+msgid "Motion Tracking"
+msgstr "Obrisovanje gibanja"
+
+
+msgid "Overlays"
+msgstr "Pomagala"
+
+
+msgid "Compositor"
+msgstr "Stavitelj slik"
+
+
+msgid "Render Pass"
+msgstr "Obhod upodabljanja"
+
+
+msgid "Cavity"
+msgstr "Relief"
+
+
+msgid "Wireframe Color"
+msgstr "Barva žičnega modela"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavitve SSAO"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavitve senc"
+
+
+msgid "Selectability & Visibility"
+msgstr "Izbirljivost in vidnost"
+
+
+msgid "View Lock"
+msgstr "Zaklep pogleda"
+
+
+msgid "Active Tool"
+msgstr "Aktivno orodje"
 
 
 msgid "Import Settings"
@@ -52038,8 +52130,8 @@ msgid "GPU Backend"
 msgstr "Zaledje GPE"
 
 
-msgid "OpenGL"
-msgstr "OpenGL"
+msgid "GPU backend to use (requires restarting Blender for changes to take effect)"
+msgstr "Katero grafično zaledje naj se uporabi (spremembe bodo uveljavljene ob ponovnem zagonu Blenderja)"
 
 
 msgid "Metal"
@@ -52054,12 +52146,28 @@ msgid "Device"
 msgstr "Naprava"
 
 
+msgid "Auto detect best GPU for running Blender"
+msgstr "Samodejno zazna najboljši GPE za Blender"
+
+
+msgid "Number of shader compilation threads or subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). A higher number increases the RAM usage while reducing compilation time. A value of 0 will use automatic configuration. (OpenGL only)"
+msgstr "Količina niti ali podprocesov za prevajanje senčilnikov, navzgor omejena z največjim številom niti, ki ga podpira CPE (za uveljavitev sprememb je treba Blender ponovno zagnati). Večje število poveča porabo delovnega pomnilnika, a tudi skrajša čas prevajanja. Vrednost 0 pomeni, da bo število določeno samodejno. (Samo OpenGL)"
+
+
 msgid "Image Display Method"
 msgstr "Metoda prikaza slike"
 
 
+msgid "Automatically choose method based on GPU and image"
+msgstr "Samodejno izbere metodo glede na GPE in sliko"
+
+
 msgid "2D Texture"
 msgstr "2D tekstura"
+
+
+msgid "Use CPU for display transform and display image with 2D texture"
+msgstr "Za prikazno transformacijo uporabi CPE in prikaže sliko z 2D teksturo"
 
 
 msgid "GLSL"
@@ -52116,6 +52224,10 @@ msgstr "Skaliranje vmesnika"
 
 msgid "GPU Subdivision"
 msgstr "Delitev z GPE"
+
+
+msgid "Enable GPU acceleration for evaluating the last subdivision surface modifiers in the stack"
+msgstr "Omogoči pospešeno računanje deljenja z grafično kartico na modifikatorjih deljenja, ki so zadnji na skladu"
 
 
 msgid "Allow Online Access"
@@ -52468,6 +52580,10 @@ msgstr "Pokaži različico"
 
 msgid "Show VRAM"
 msgstr "Pokaži VRAM"
+
+
+msgid "Show GPU video memory usage"
+msgstr "Pokaže porabo video pomnilnika na GPE"
 
 
 msgid "Tooltips"
@@ -53035,6 +53151,10 @@ msgid "Auto"
 msgstr "Samodejno"
 
 
+msgid "Automatically determine if the surface should be treated as a light for sampling, based on estimated emission intensity"
+msgstr "Glede na predvideno jakost emisije samodejno določi, ali naj se za potrebe vzorčenja površina obravnava kot svetilo"
+
+
 msgctxt "Light"
 msgid "Front"
 msgstr "Spredaj"
@@ -53090,6 +53210,10 @@ msgid "Render Time"
 msgstr "Čas upodabljanja"
 
 
+msgid "Reports time per pixel in milliseconds. Supported only on CPU render devices"
+msgstr "Sporoči čas izvajanja na pikslu v milisekundah. Na voljo samo pri upodabljanju na CPE"
+
+
 msgid "Use Denoising"
 msgstr "Uporabi razšumljanje"
 
@@ -53104,6 +53228,10 @@ msgstr "Posredna volumetrika"
 
 msgid "AO Bounces"
 msgstr "Odboji AZ"
+
+
+msgid "Automatically reduce the randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts"
+msgstr "S samodejnim zmanjšanjem naključnosti med piksli poveča učinkovitost upodabljanja na GPE. Na končni upodobitvi bodo morda nepravilnosti"
 
 
 msgid "Filter Glossy"
@@ -53158,6 +53286,10 @@ msgid "Adaptive Compile"
 msgstr "Prilagodljivo prevajanje"
 
 
+msgid "Compile the Cycles GPU kernel with only the feature set required for the current scene"
+msgstr "Prevede grafično jedro Cycles samo z naborom funkcionalnosti, ki so potrebne za trenutno sceno"
+
+
 msgid "Use Spatial Splits"
 msgstr "Uporabi prostorske delitve"
 
@@ -53194,8 +53326,24 @@ msgid "High performance"
 msgstr "Visoka učinkovitost"
 
 
+msgid "Denoise on GPU"
+msgstr "Razšumljanje z grafično kartico"
+
+
+msgid "Perform denoising on GPU devices configured in the system tab in the user preferences. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled"
+msgstr "Izvede razšumljanje na grafičnih karticah, ki so nastavljene v zavihku \"Sistem\" v uporabniških nastavitvah. Razšumljanje bo precej hitrejše kot na CPE, vendar zahteva več spomina na grafični kartici. To možnost lahko onemogočite, če upodabljate večje prizore, ki porabijo več grafičnega pomnilnika"
+
+
+msgid "Use CPU for rendering"
+msgstr "Za upodabljanje uporabi CPE"
+
+
 msgid "GPU Compute"
 msgstr "GPE"
+
+
+msgid "Use GPU compute device for rendering, configured in the system tab in the user preferences"
+msgstr "Za upodabljanje uporabi grafično računsko napravo, ki je nastavljena v zavihku \"Sistem\" v uporabniških nastavitvah"
 
 
 msgid "Dicing Camera"
@@ -53286,6 +53434,10 @@ msgid "Start Denoising"
 msgstr "Začetek razšumljanja"
 
 
+msgid "Denoise Preview on GPU"
+msgstr "Predogled razšumljanja z GPE"
+
+
 msgid "Pause Preview"
 msgstr "Premor predogleda"
 
@@ -53328,6 +53480,10 @@ msgstr "Pravilo naključnega vzorčenja, s katerim si pomaga integrator"
 
 msgid "Scrambling Distance"
 msgstr "Jakost stepanja"
+
+
+msgid "Reduce randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts if set too low"
+msgstr "S samodejnim zmanjšanjem naključnosti med piksli poveča učinkovitost upodabljanja na GPE. Na končni upodobitvi bodo morda nepravilnosti, če je vrednost prenizka"
 
 
 msgid "Seed value for integrator to get different noise patterns"
@@ -53388,6 +53544,10 @@ msgstr "Volumenski odboji"
 
 msgid "Max Steps"
 msgstr "Največ korakov"
+
+
+msgid "Show the Emission render pass"
+msgstr "Pokaže obhod upodabljanja emisije"
 
 
 msgid "Show the Ambient Occlusion render pass"
@@ -53464,6 +53624,10 @@ msgstr "ID jezika"
 
 msgid "Active Language"
 msgstr "Aktivni jezik"
+
+
+msgid "Naming components for emission maps"
+msgstr "Imenske komponente za emisijske teksture"
 
 
 msgid "Gloss"
@@ -53894,6 +54058,10 @@ msgid "Deliver Ambient Occlusion pass"
 msgstr "Porodi obhod ambientnega zastiranja"
 
 
+msgid "Deliver emission pass"
+msgstr "Ponudi emisijski obhod"
+
+
 msgctxt "Scene"
 msgid "Object Index"
 msgstr "Indeks objekta"
@@ -53923,8 +54091,16 @@ msgid "Render Passes"
 msgstr "Obhodi upodabljanja"
 
 
+msgid "Use the CPU to process the denoise node"
+msgstr "Za obdelavo v vozlišču razšumljanja uporabi CPE"
+
+
 msgid "GPU"
 msgstr "GPE"
+
+
+msgid "Use the GPU to process the denoise node if available, otherwise fallback to CPU"
+msgstr "Za vozlišče razšumljanja uporabi GPE, če je to mogoče, sicer pa CPE"
 
 
 msgid "Compositor Device"
@@ -54067,12 +54243,20 @@ msgid "Render Views"
 msgstr "Upodabljalni pogledi"
 
 
+msgid "Maximum number of CPU cores to use simultaneously while rendering (for multi-core/CPU systems)"
+msgstr "Največ koliko procesorskih jeder naj se izkoristi za upodabljanje (za sisteme z večjedrnimi procesorji)"
+
+
 msgid "Threads Mode"
 msgstr "Način nitenja"
 
 
 msgid "Auto-Detect"
 msgstr "Samodejno zaznaj"
+
+
+msgid "Automatically determine the number of threads, based on CPUs"
+msgstr "Glede na CPE-je samodejno določi količino niti"
 
 
 msgid "Render Region"
@@ -54535,6 +54719,10 @@ msgid "Clamp Glossy"
 msgstr "Obreži sijajnost"
 
 
+msgid "Size of the irradiance pool, a bigger pool size allows for more irradiance grid in the scene but might not fit into GPU memory and decrease performance"
+msgstr "Velikost zajema obsevanosti. Večji zajem omogoča podrobnejši izračun obsevanosti v sceni, vendar ga morda ne bo mogoče naložiti v grafični spomin v enem kosu, kar lahko poslabša učinkovitost upodabljanja"
+
+
 msgid "16 MB"
 msgstr "16 MB"
 
@@ -54605,6 +54793,10 @@ msgstr "Metoda sledenja"
 
 msgid "Screen-Trace"
 msgstr "Zaslonsko sledenje"
+
+
+msgid "Size of the shadow pool, a bigger pool size allows for more shadows in the scene but might not fit into GPU memory"
+msgstr "Velikost zajema senc. Večji zajem omogoča upodobitev več senc v sceni, vendar ga morda ne bo mogoče naložiti v grafični pomnilnik v enem kosu"
 
 
 msgid "Render Samples"
@@ -57561,6 +57753,14 @@ msgid "Strand / Particle"
 msgstr "Pramen / delec"
 
 
+msgid "Emission Time Factor"
+msgstr "Faktor časa oddajanja"
+
+
+msgid "Amount texture affects particle emission time"
+msgstr "Koliko tekstura učinkuje na čas oddajanja delcev"
+
+
 msgid "Twist Factor"
 msgstr "Faktor zvijanja"
 
@@ -57591,6 +57791,10 @@ msgstr "Grobost"
 
 msgid "Emission Time"
 msgstr "Čas oddajanja"
+
+
+msgid "Affect the emission time of the particles"
+msgstr "Učinkuje na čas oddajanja delcev"
 
 
 msgid "Clip Editor"
@@ -58814,6 +59018,16 @@ msgstr "Pokaži žico"
 
 msgid "Show Performance"
 msgstr "Pokaži učinkovitost"
+
+
+msgid ""
+"Display viewport performance timings:\n"
+" • Evaluation: Time to evaluate the dependency graph.\n"
+" • Synchronization: Time to build the GPU buffers."
+msgstr ""
+"Prikaže časovno učinkovitost 3D pogleda:\n"
+" • Ovrednotenje: čas, potreben za izračune na grafu odvisnosti.\n"
+" • Usklajevanje: čas, potreben za izdelavo grafičnih medpomnilnikov."
 
 
 msgid "Relationship Lines"
@@ -61123,12 +61337,32 @@ msgid "Blender was compiled without a viewport denoiser"
 msgstr "Blender je bil zgrajen brez razšumnika 3D pogleda"
 
 
+msgid "Use CUDA for GPU acceleration"
+msgstr "Uporabi CUDO za grafično računsko pospeševaje"
+
+
+msgid "Use OptiX for GPU acceleration"
+msgstr "Uporabi OptiX za grafično računsko pospeševanje"
+
+
+msgid "Use HIP for GPU acceleration"
+msgstr "Uporabi HIP za grafično računsko pospeševanje"
+
+
+msgid "Use Metal for GPU acceleration"
+msgstr "Uporabi Metal za grafično računsko pospeševanje"
+
+
+msgid "Use oneAPI for GPU acceleration"
+msgstr "Uporabi oneAPI za grafično računsko pospeševanje"
+
+
 msgid "No compatible GPUs found for Cycles"
-msgstr "Za Cycles ne najdem kompatibilnih grafičnih kartic"
+msgstr "Za Cycles ne najdem združljivih grafičnih kartic"
 
 
 msgid "Requires NVIDIA GPU with compute capability %s"
-msgstr "Zahteva GPE znamke NVIDIA z zmožnostjo %s"
+msgstr "Zahteva grafično kartico znamke NVIDIA z zmožnostjo %s"
 
 
 msgid "and NVIDIA driver version %s or newer"
@@ -61136,7 +61370,7 @@ msgstr "in gonilnik NVIDIA različice %s ali novejšega"
 
 
 msgid "Requires AMD GPU with RDNA architecture"
-msgstr "Zahteva GPE znamke AMD z arhitekturo RDNA"
+msgstr "Zahteva grafično kartico znamke AMD z arhitekturo RDNA"
 
 
 msgid "or AMD Radeon Pro %s driver or newer"
@@ -61144,7 +61378,7 @@ msgstr "ali gonilnik AMD Radeon Pro %s ali novejši"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture"
-msgstr "Zahteva GPE znamke Intel z arhitekturo Xe-HPG"
+msgstr "Zahteva grafično kartico znamke Intel z arhitekturo Xe-HPG"
 
 
 msgid "or AMD driver version %s or newer"
@@ -61156,7 +61390,7 @@ msgstr "in gonilnik Windows različice %s ali novejšega"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture and"
-msgstr "Zahteva GPE znamke Intel z arhitekturo Xe-HPG in"
+msgstr "Zahteva grafično kartico znamke Intel z arhitekturo Xe-HPG in"
 
 
 msgid "  - intel-level-zero-gpu or intel-compute-runtime version"
@@ -66313,11 +66547,6 @@ msgstr "Kopiraj na izbrane trakove ..."
 
 
 msgctxt "Operator"
-msgid "Toggle Retiming Keys"
-msgstr "Preklopi časovne ključe"
-
-
-msgctxt "Operator"
 msgid "Slip Strip Contents"
 msgstr "Prevrti vsebino traku"
 
@@ -71171,6 +71400,10 @@ msgid "Error: Not enough memory to bake {}."
 msgstr "Napak: Ni dovolj pomnilnika, da zapečem {}."
 
 
+msgid "Error: Could not allocate shadow atlas. Most likely out of GPU memory."
+msgstr "Napaka: Ni bilo mogoče dodeliti spomina atlasu senc. Najverjetneje je zmanjkalo grafičnega pomnilnika."
+
+
 msgid "Error: Reached max shadow updates."
 msgstr "Napak: Dosežena zgornja meja posodobitev senc."
 
@@ -71305,10 +71538,6 @@ msgstr "Dodaj kontrolno točko"
 
 msgid "Delete Modifier"
 msgstr "Izbriši modifikator"
-
-
-msgid "Coefficient"
-msgstr "Koeficient"
 
 
 msgctxt "Action"
@@ -71785,16 +72014,16 @@ msgid "Eyes"
 msgstr "Oči"
 
 
-msgid "Pupils"
-msgstr "Zenice"
-
-
 msgid "Nothing selected"
 msgstr "Nič ni izbrano"
 
 
 msgid "Active layer is not editable"
 msgstr "Aktivne plasti ni mogoče urejati"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "Ni aktivne plasti Grease Pencil"
 
 
 msgid "Active object is not a selected Grease Pencil"
@@ -71859,10 +72088,6 @@ msgstr "Ni aktivnega objekta ali pa ta ni tipa Grease Pencil"
 
 msgid "Baking Line Art..."
 msgstr "Pečem Line Art ..."
-
-
-msgid "No active Grease Pencil layer"
-msgstr "Ni aktivne plasti Grease Pencil"
 
 
 msgid "Active layer is locked or hidden"
@@ -74749,6 +74974,10 @@ msgid " Named Attributes"
 msgstr " Poimenovani atributi"
 
 
+msgid "Render size too large for GPU, use CPU compositor instead"
+msgstr "Velikost upodabljanja je prevelika za grafično kartico, stavljenje slik bo izvedeno s CPE"
+
+
 msgid "Compositing..."
 msgstr "Stavim slike ..."
 
@@ -76326,10 +76555,6 @@ msgid "Topology Mapping"
 msgstr "Preslikava topologije"
 
 
-msgid "Face Count: %d"
-msgstr "Število lic: %d"
-
-
 msgid "EdgeSplit"
 msgstr "LocevanjeRobov"
 
@@ -76701,6 +76926,14 @@ msgstr "Izhodne skupine oglišč"
 
 msgid "Adaptive Subdivision"
 msgstr "Prilagodljiva delitev"
+
+
+msgid "Sharp edges or custom normals detected, disabling GPU subdivision"
+msgstr "Zaznavam ostre robove ali po meri normale, onemogočam deljenje z GPE"
+
+
+msgid "Using both CPU and GPU subdivision"
+msgstr "Uporablja deljenje s CPE in GPE"
 
 
 msgid "SurfaceDeform"
@@ -78168,6 +78401,10 @@ msgid "Anisotropic Rotation"
 msgstr "Anizotropna rotacija"
 
 
+msgid "Emission Color"
+msgstr "Barva emisije"
+
+
 msgctxt "NodeTree"
 msgid "Specular Tint"
 msgstr "Odtenek zrcaljenja"
@@ -78190,6 +78427,14 @@ msgstr "Moč emisije"
 
 msgid "Blends between a dielectric and metallic material model. At 0.0 the material consists of a diffuse or transmissive base layer, with a specular reflection layer on top. A value of 1.0 gives a fully specular reflection tinted with the base color, without diffuse reflection or transmission"
 msgstr "Kombinira modela dielektričnega in kovinskega materiala. Pri vrednosti 0.0 material tvori temeljna plast razpršitve ali prepustnosti, ki jo prekriva plast zrcalne odbojnosti. Vrednost 1.0 vrne popolno zrcalno odbojnost, obarvano s temeljno barvo, brez razpršene odbojnosti ali prepuščanja"
+
+
+msgid "Color of light emission from the surface"
+msgstr "Barva svetlobne emisije na površini"
+
+
+msgid "Strength of the emitted light. A value of 1.0 ensures that the object in the image has the exact same color as the Emission Color"
+msgstr "Moč oddane svetlobe. Vrednost 1.0 poskrbi, da ima objekt na sliki enako barvo, kot je nastavljena za emisijsko barvo"
 
 
 msgid "IOR Level"
@@ -78405,6 +78650,10 @@ msgid "Diameter"
 msgstr "Premer"
 
 
+msgid "Emission Coefficients"
+msgstr "Koeficienti emisije"
+
+
 msgid "Patterns"
 msgstr "Vzorci"
 
@@ -78435,6 +78684,10 @@ msgstr "W4"
 
 msgid "iScale"
 msgstr "iVelikost"
+
+
+msgid "Cannot initialize the GPU"
+msgstr "Ni mogoče inicializirati GPE"
 
 
 msgid "Channel %d"

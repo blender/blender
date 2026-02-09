@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -1525,16 +1525,20 @@ msgid "Saturation"
 msgstr "Zasićenost"
 
 
-msgid "Active Layer"
-msgstr "Aktivni sloj"
-
-
 msgid "Stroke"
 msgstr "Potez"
 
 
 msgid "Fill"
 msgstr "Ispuna"
+
+
+msgid "Both"
+msgstr "Obe"
+
+
+msgid "Active Layer"
+msgstr "Aktivni sloj"
 
 
 msgid "Background Image"
@@ -6262,10 +6266,6 @@ msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Drvo čvorova koji čine čvorovi za slaganje"
 
 
-msgid "Use boundaries for viewer nodes and composite backdrop"
-msgstr "Koristi okvir za čvorove prikaza i složenu pozadinu"
-
-
 msgid "Edit"
 msgstr "Uredi"
 
@@ -8489,16 +8489,8 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Show/Hide"
@@ -8509,92 +8501,20 @@ msgid "Names"
 msgstr "Imena"
 
 
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
+msgid "Special Characters"
+msgstr "Specijalni znaci"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Relations"
-msgstr "Odnosi"
-
-
-msgid "Rigid Body"
-msgstr "Kruto telo"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Quick Effects"
-msgstr "Brzi efekti"
-
-
-msgid "Hooks"
-msgstr "Udice"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
 msgid "Toggle Bone Options"
 msgstr "Manje/više informacija"
 
 
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
+msgid "Merge"
+msgstr "Sjedini"
 
 
 msgid "Disable Bone Options"
@@ -8605,16 +8525,96 @@ msgid "Mesh Select Mode"
 msgstr "Mod izbora mreže"
 
 
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Propagate"
+msgstr "Prenesi"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
 msgid "Import"
 msgstr "Uvoz"
 
 
-msgid "Merge"
-msgstr "Sjedini"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Basic"
@@ -13816,10 +13816,6 @@ msgstr "Izravnavanje"
 
 msgid "Side"
 msgstr "Sa strane"
-
-
-msgid "Both"
-msgstr "Obe"
 
 
 msgctxt "Operator"
@@ -19114,12 +19110,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Motion Tracking"
-msgstr "Praćenje pokreta"
-
-
 msgid "Transform Orientations"
 msgstr "Transformacija orijentacija"
+
+
+msgid "Motion Tracking"
+msgstr "Praćenje pokreta"
 
 
 msgid "Bone Constraints"
@@ -22275,10 +22271,6 @@ msgstr "Prikaži Z osu"
 
 msgid "Draw Normals"
 msgstr "Prikaži normale"
-
-
-msgid "Display 3D curve normals in editmode"
-msgstr "Prikaži normale 3D krive u režimu izmene"
 
 
 msgid "Face Angles"

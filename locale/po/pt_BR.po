@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -4072,6 +4072,18 @@ msgid "Show Lasso"
 msgstr "Mostrar Laço"
 
 
+msgid "Stroke"
+msgstr "Traços"
+
+
+msgid "Fill"
+msgstr "Preencher"
+
+
+msgid "Both"
+msgstr "Ambos"
+
+
 msgid "Active Layer"
 msgstr "Camada ativa"
 
@@ -4142,14 +4154,6 @@ msgstr "Aparar Extremidades do Traço"
 
 msgid "UV Random"
 msgstr "UV Aleatório"
-
-
-msgid "Stroke"
-msgstr "Traços"
-
-
-msgid "Fill"
-msgstr "Preencher"
 
 
 msgid "Stroke & Fill"
@@ -14769,10 +14773,6 @@ msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Árvore de nós consistindo de nós conectados para composição."
 
 
-msgid "Use boundaries for viewer nodes and composite backdrop"
-msgstr "Usa limitações para nós do visualizador e pano de fundo de composição."
-
-
 msgid "Edit"
 msgstr "Editar"
 
@@ -21219,16 +21219,12 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Math"
-msgstr "Matemática"
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Show/Hide"
@@ -21239,140 +21235,40 @@ msgid "Names"
 msgstr "Nomes"
 
 
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
 
 
-msgid "Snap"
-msgstr "Atrair"
+msgid "Merge"
+msgstr "Fundir"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Face Data"
+msgstr "Dados das faces"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
 
 
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
 
 
 msgid "Apply"
 msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
 
 
 msgid "In-Betweens"
@@ -21383,40 +21279,144 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
+msgid "Layout"
+msgstr "Organizar"
 
 
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
+msgid "Clear Transform"
+msgstr "Limpar transformações"
 
 
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
 
 
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
+msgid "Keying"
+msgstr "Inserção de chaves"
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Snap"
+msgstr "Atrair"
 
 
 msgid "Instances"
 msgstr "Instâncias"
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
 msgid "Import"
 msgstr "Importar"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Basic"
@@ -34495,10 +34495,6 @@ msgid "Side"
 msgstr "Lado"
 
 
-msgid "Both"
-msgstr "Ambos"
-
-
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "Filtro de descontinuidade para Euler"
@@ -38986,10 +38982,6 @@ msgstr "Re-escalona a vista de maneira que você possa ver os nós selecionados.
 msgctxt "Operator"
 msgid "Viewer Region"
 msgstr "Região da janela de visualização 3D"
-
-
-msgid "Set the boundaries for viewer operations"
-msgstr "Configura as margens para as operações de visualização dos nós."
 
 
 msgctxt "Operator"
@@ -48223,24 +48215,24 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
 
 
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
 
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -58445,10 +58437,6 @@ msgstr "Mostrar eixo Z"
 
 msgid "Draw Normals"
 msgstr "Desenhar normais"
-
-
-msgid "Display 3D curve normals in editmode"
-msgstr "Mostra as normais das curvas 3D no modo de edição."
 
 
 msgid "Display weights created for the Bevel modifier"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -1283,16 +1283,16 @@ msgid "Smooth"
 msgstr "Lygumas"
 
 
+msgid "Fill"
+msgstr "Užpildyti"
+
+
 msgid "Random Settings"
 msgstr "Atsitiktiniai nustatymai"
 
 
 msgid "Mode Type"
 msgstr "Veiksenos tipas"
-
-
-msgid "Fill"
-msgstr "Užpildyti"
 
 
 msgctxt "File browser"
@@ -3093,12 +3093,12 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
-msgid "Layout"
-msgstr "Išdėstymas/Maketas"
-
-
 msgid "Apply"
 msgstr "Pritaikyti"
+
+
+msgid "Layout"
+msgstr "Išdėstymas/Maketas"
 
 
 msgid "Track"
@@ -3226,6 +3226,10 @@ msgstr "Importuoti „PLY“"
 
 msgid "Import STL"
 msgstr "Importuoti „STL“"
+
+
+msgid "OpenGL"
+msgstr "„OpenGL“"
 
 
 msgid "Vector Math"
@@ -3646,10 +3650,6 @@ msgstr "Garso išvesties įrenginys"
 
 msgid "No device - there will be no audio output"
 msgstr "Nėra įrenginio – nebus jokios garso išvesties"
-
-
-msgid "OpenGL"
-msgstr "„OpenGL“"
 
 
 msgid "Language"
