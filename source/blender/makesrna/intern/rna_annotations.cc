@@ -24,11 +24,13 @@
 
 #  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
+#  include "BLI_memory_utils.hh"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
 #  include "BLI_string_utils.hh"
 
 #  include "BKE_animsys.h"
+#  include "BKE_gpencil_geom_legacy.h"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.hh"
 #  include "BKE_report.hh"
@@ -246,11 +248,202 @@ static const EnumPropertyItem *rna_annotation_active_layer_itemf(bContext *C,
   return item;
 }
 
+static bGPDstroke *rna_annotation_stroke_new(bGPDframe *frame)
+{
+  /* Use MEM_new<T> for struct allocation. */
+  bGPDstroke *stroke = MEM_new<bGPDstroke>("gp_stroke");
+  if (stroke == nullptr) {
+    return nullptr;
+  }
+
+  /* Set some default values. */
+  stroke->thickness = 1;
+  stroke->fill_opacity_fac = 1.0f;
+  stroke->hardness = 1.0f;
+  stroke->uv_scale = 1.0f;
+  stroke->flag = GP_STROKE_3DSPACE;
+  stroke->mat_nr = 0;
+  stroke->caps[0] = GP_STROKE_CAP_ROUND;
+  stroke->caps[1] = GP_STROKE_CAP_ROUND;
+
+  BLI_addtail(&frame->strokes, stroke);
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA, nullptr);
+  return stroke;
+}
+
+static void rna_annotation_stroke_remove(bGPDframe *frame,
+                                         ReportList *reports,
+                                         PointerRNA *stroke_ptr)
+{
+  bGPDstroke *stroke = static_cast<bGPDstroke *>(stroke_ptr->data);
+
+  if (BLI_findindex(&frame->strokes, stroke) == -1) {
+    BKE_reportf(reports, RPT_ERROR, "Stroke not found in frame");
+    return;
+  }
+
+  BLI_remlink(&frame->strokes, stroke);
+  BKE_gpencil_free_stroke(stroke);
+
+  /* Clear ptrs. */
+  stroke_ptr->data = nullptr;
+  stroke_ptr->type = nullptr;
+
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA, nullptr);
+}
+
+static void rna_annotation_stroke_point_add(bGPDstroke *stroke,
+                                            const int count,
+                                            const float pressure,
+                                            const float strength)
+{
+  /* Count is always >=1(RNA min set to 1). */
+  if (count <= 0) {
+    return;
+  }
+
+  const int old_count = stroke->totpoints;
+  const int new_count = old_count + count;
+
+  bGPDspoint *old_points = stroke->points;
+  stroke->points = MEM_new_array<bGPDspoint>(new_count, "gp_stroke_points");
+
+  /* Copy existing points using assignment (void* cast to avoid -Wclass-memaccess). */
+  if (old_points && old_count > 0) {
+    uninitialized_move_n(old_points, old_count, stroke->points);
+  }
+
+  for (int i = old_count; i < new_count; i++) {
+    bGPDspoint *pt = &stroke->points[i];
+    pt->pressure = pressure;
+    pt->strength = strength;
+    pt->time = 0.0f;
+    pt->x = 0.0f;
+    pt->y = 0.0f;
+    pt->z = 0.0f;
+  }
+
+  if (old_points) {
+    MEM_delete(old_points);
+  }
+
+  stroke->totpoints = new_count;
+
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA, nullptr);
+}
+
+static void rna_annotation_stroke_point_remove(bGPDstroke *stroke,
+                                               ReportList *reports,
+                                               const int index)
+{
+  if (stroke->totpoints <= 0) {
+    BKE_report(reports, RPT_ERROR, "Stroke has no points");
+    return;
+  }
+
+  if (index < 0 || index >= stroke->totpoints) {
+    BKE_reportf(reports, RPT_ERROR, "Index %d out of range [0, %d]", index, stroke->totpoints - 1);
+    return;
+  }
+
+  if (stroke->totpoints == 1) {
+    BKE_report(reports, RPT_ERROR, "Cannot remove last point from stroke");
+    return;
+  }
+
+  const int new_count = stroke->totpoints - 1;
+
+  bGPDspoint *old_points = stroke->points;
+  stroke->points = MEM_new_array<bGPDspoint>(new_count, "gp_stroke_points");
+
+  /* Copy points before removed index. */
+  if (index > 0) {
+    uninitialized_move_n(old_points, index, stroke->points);
+  }
+
+  /* Copy points after removed index. */
+  if (index < new_count) {
+    uninitialized_move_n(&old_points[index + 1], new_count - index, &stroke->points[index]);
+  }
+
+  MEM_delete(old_points);
+
+  stroke->totpoints = new_count;
+
+  WM_main_add_notifier(NC_GPENCIL | ND_DATA, nullptr);
+}
+
 }  // namespace blender
 
 #else
 
 namespace blender {
+
+static void rna_def_annotation_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  PropertyRNA *parm;
+  FunctionRNA *func;
+
+  RNA_def_property_srna(cprop, "AnnotationStrokes");
+  srna = RNA_def_struct(brna, "AnnotationStrokes", nullptr);
+  RNA_def_struct_sdna(srna, "bGPDframe");
+  RNA_def_struct_ui_text(srna, "Annotation Strokes", "Collection of annotation strokes");
+
+  func = RNA_def_function(srna, "new", "rna_annotation_stroke_new");
+  RNA_def_function_ui_description(func, "Add a new annotation stroke");
+  parm = RNA_def_pointer(func, "stroke", "AnnotationStroke", "", "The newly created stroke");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_annotation_stroke_remove");
+  RNA_def_function_ui_description(func, "Remove an annotation stroke");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "stroke", "AnnotationStroke", "", "The stroke to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+}
+
+static void rna_def_annotation_stroke_points_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  PropertyRNA *parm;
+  FunctionRNA *func;
+
+  RNA_def_property_srna(cprop, "AnnotationStrokePoints");
+  srna = RNA_def_struct(brna, "AnnotationStrokePoints", nullptr);
+  RNA_def_struct_sdna(srna, "bGPDstroke");
+  RNA_def_struct_ui_text(
+      srna, "Annotation Stroke Points", "Collection of annotation stroke points");
+
+  func = RNA_def_function(srna, "add", "rna_annotation_stroke_point_add");
+  RNA_def_function_ui_description(func, "Add point(s) to the stroke");
+  parm = RNA_def_int(func, "count", 1, 1, INT_MAX, "Count", "Number of points to add", 1, 100);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_float(func,
+                "pressure",
+                1.0f,
+                0.0f,
+                FLT_MAX,
+                "Pressure",
+                "Pressure/radius for new points",
+                0.0f,
+                10.0f);
+  RNA_def_float(func,
+                "strength",
+                1.0f,
+                0.0f,
+                1.0f,
+                "Strength",
+                "Color strength/opacity for new points",
+                0.0f,
+                1.0f);
+
+  func = RNA_def_function(srna, "remove", "rna_annotation_stroke_point_remove");
+  RNA_def_function_ui_description(func, "Remove a point from the stroke");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Index of point to remove", 0, 10000);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+}
 
 static void rna_def_annotation_stroke_point(BlenderRNA *brna)
 {
@@ -282,6 +475,25 @@ static void rna_def_annotation_stroke(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "points", "totpoints");
   RNA_def_property_struct_type(prop, "AnnotationStrokePoint");
   RNA_def_property_ui_text(prop, "Stroke Points", "Stroke data points");
+  rna_def_annotation_stroke_points_api(brna, prop);
+
+  /* Display Mode. */
+  static const EnumPropertyItem stroke_display_mode_items[] = {
+      {GP_STROKE_3DSPACE, "3DSPACE", 0, "3D Space", "Stroke is in 3D space"},
+      {GP_STROKE_2DSPACE,
+       "2DSPACE",
+       0,
+       "2D Space",
+       "Stroke is in 2D space, locked to the camera view"},
+      {GP_STROKE_2DIMAGE, "2DIMAGE", 0, "2D Image", "Stroke is in 2D image/UV space"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  prop = RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
+  RNA_def_property_enum_items(prop, stroke_display_mode_items);
+  RNA_def_property_ui_text(prop, "Display Mode", "Coordinate space that stroke is in");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 }
 
 static void rna_def_annotation_frame(BlenderRNA *brna)
@@ -299,6 +511,7 @@ static void rna_def_annotation_frame(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "strokes", nullptr);
   RNA_def_property_struct_type(prop, "AnnotationStroke");
   RNA_def_property_ui_text(prop, "Strokes", "Freehand curves defining the sketch on this frame");
+  rna_def_annotation_strokes_api(brna, prop);
 
   /* Frame Number */
   prop = RNA_def_property(srna, "frame_number", PROP_INT, PROP_NONE);

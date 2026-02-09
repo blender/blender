@@ -323,6 +323,11 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_grease_pencil.py
 )
 
+add_blender_test(
+  script_pyapi_annotations
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_annotations.py
+)
+
 # ------------------------------------------------------------------------------
 # DATA MANAGEMENT TESTS
 # ------------------------------------------------------------------------------
