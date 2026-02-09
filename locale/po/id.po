@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -5516,6 +5516,14 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Faktor Penyederhanaan menggunakan algoritma adaptif"
 
 
+msgid "Stroke"
+msgstr "Sapuan"
+
+
+msgid "Fill"
+msgstr "Isi"
+
+
 msgid "Active Layer"
 msgstr "Layer Aktif"
 
@@ -5668,16 +5676,8 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Mendefinisikan bagaimana warna titik sudut mempengaruhi sapuan"
 
 
-msgid "Stroke"
-msgstr "Sapuan"
-
-
 msgid "Vertex Color affects to Stroke only"
 msgstr "Warna Titik Sudut hanya mempengaruhi Sapuan"
-
-
-msgid "Fill"
-msgstr "Isi"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -15691,18 +15691,6 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Sample"
 msgstr "Sampel"
 
@@ -15711,40 +15699,48 @@ msgid "Names"
 msgstr "Nama"
 
 
-msgid "Snap"
-msgstr "Jepret"
+msgid "Metaball"
+msgstr "Metabola"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
+msgid "Apply"
+msgstr "Tetapkan"
 
 
 msgid "Layout"
 msgstr "Tata Letak"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
 msgid "Tracking"
 msgstr "Pelacakan"
+
+
+msgid "Hooks"
+msgstr "Kait"
 
 
 msgid "Utilities"
 msgstr "Utilitas"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
 msgid "Light"
 msgstr "Cahaya"
+
+
+msgid "Track"
+msgstr "Lacak"
 
 
 msgid "Light Probe"
@@ -15755,36 +15751,40 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
-msgid "Track"
-msgstr "Lacak"
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
+msgid "Snap"
+msgstr "Jepret"
+
+
 msgid "Instances"
 msgstr "Contoh-contoh"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Import"
 msgstr "Impor"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Animals"

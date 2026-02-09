@@ -1,22 +1,22 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
-"PO-Revision-Date: 2025-07-23 14:52+0000\n"
-"Last-Translator: Lisa <blendergirl@tutanota.com>\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"PO-Revision-Date: 2026-02-09 06:08+0000\n"
+"Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.12.1"
+"X-Generator: Weblate 5.14.3"
 
 
 msgid "Shader AOV"
-msgstr "Schaduw AOV"
+msgstr "Shader AOV"
 
 
 msgid "Valid"
@@ -24,7 +24,7 @@ msgstr "Geldig"
 
 
 msgid "Is the name of the AOV conflicting"
-msgstr "Is de naam van de AOV-conflicterende"
+msgstr "Is de naam van de AOV strijdig"
 
 
 msgid "Name"
@@ -52,19 +52,59 @@ msgstr "Waarde"
 
 
 msgid "List of AOVs"
-msgstr "Lijst van AOV's"
+msgstr "Lijst van AOVs"
 
 
 msgid "Collection of AOVs"
-msgstr "Collectie van AOV's"
+msgstr "Collectie van AOVs"
+
+
+msgid "Animation Channel Bag"
+msgstr "Animatie Kanalen Zak"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Collectie van animatie-kanalen, meestal geassocieerd met een actie-slot"
 
 
 msgid "F-Curves"
 msgstr "F-Curves"
 
 
+msgid "The individual F-Curves that animate the slot"
+msgstr "De individuele F-Curves die het slot animeren"
+
+
 msgid "F-Curve Groups"
 msgstr "F-Curve groepen"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "Groepen van F-Curves voor weergave-doeleinden, bijv. in de dopesheet en graph editor"
+
+
+msgid "Slot"
+msgstr "Slot"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "Het Slot waar de Channelbag's animatiedata voor is"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "Verzameling van F-Curves voor een specifiek actie-slot, op een specifieke strook"
+
+
+msgid "Collection of f-curve groups"
+msgstr "Collectie van f-curve groepen"
+
+
+msgid "Animation Channels for Slots"
+msgstr "Animatie Kanalen voor Slots"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "Voor elk actieslot, een lijst aan animatiekanalen dat voor dat slot bedoeld zijn"
 
 
 msgid "Action Group"
@@ -200,7 +240,7 @@ msgstr "Actie groep is vergrendeld"
 
 
 msgid "Mute"
-msgstr "Zet Uit"
+msgstr "Demp"
 
 
 msgid "Action group is muted"
@@ -227,6 +267,18 @@ msgid "Expanded in Graph Editor"
 msgstr "Uitgebreid in grafiek bewerker"
 
 
+msgid "Action group is expanded in graph editor"
+msgstr "Actie groep wordt getoond in graph editor"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Vastzetten in Graph Editor"
+
+
+msgid "Action Layer"
+msgstr "Actie Laag"
+
+
 msgid "Strips"
 msgstr "Strook"
 
@@ -235,16 +287,24 @@ msgid "The list of strips that are on this animation layer"
 msgstr "De lijst met stroken van deze animatielaag"
 
 
+msgid "Action Layers"
+msgstr "Actie Lagen"
+
+
+msgid "Collection of animation layers"
+msgstr "Collectie van animatielagen"
+
+
 msgid "Action Pose Markers"
-msgstr "Actieve Pose Markeerpunt"
+msgstr "Actie Pose Markeerpunten"
 
 
 msgid "Collection of timeline markers"
-msgstr "Verzameling van tijdlijn markeerpunten"
+msgstr "Collectie van tijdlijn markeerpunten"
 
 
 msgid "Active Pose Marker"
-msgstr "Actieve Markeerpunt"
+msgstr "Actieve Pose Markeerpunt"
 
 
 msgid "Active pose marker for this action"
@@ -252,11 +312,15 @@ msgstr "Actief pose markeerpunt voor deze actie"
 
 
 msgid "Active Pose Marker Index"
-msgstr "Index van de actieve Pose Marker"
+msgstr "Actieve Pose Markeerpunten Index"
 
 
 msgid "Index of active pose marker"
-msgstr "Index van actieve pose markeerpunt"
+msgstr "Index van actieve pose markeerpunten"
+
+
+msgid "Action slot"
+msgstr "Actie slot"
 
 
 msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
@@ -265,6 +329,59 @@ msgstr "Aanduiding voor een reeks kanalen in deze actie, die kan worden gebruikt
 
 msgid "Active"
 msgstr "Actief"
+
+
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Of dit de actieve slot is, kan worden ingesteld door toe te wijzen aan action.slots.active"
+
+
+msgid "Slot Handle"
+msgstr "Slot Handvat"
+
+
+msgid ""
+"Number specific to this Slot, unique within the Action.\n"
+"This is used, for example, on a ActionKeyframeStrip to look up the ActionChannelbag for this Slot"
+msgstr ""
+"Getal specifiek voor dit Slot, uniek binnen de actie.\n"
+"Dit wordt bijvoorbeeld gebruikt op een ActionKeyframeStrip om de ActionChannelbag voor dit Slot op te zoeken"
+
+
+msgid "Slot Identifier"
+msgstr "Slot Identificatie"
+
+
+msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
+msgstr "Gebruikt om een actie met een data-blok te verbinden, om de juiste slot handle te vinden. Dat is de weergavenaam, waar twee karakters aan voorafgaan die worden bepaald door het ID type van het slot"
+
+
+msgid "Slot Display Name"
+msgstr "Slot Weergavenaam"
+
+
+msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
+msgstr "Naam van het slot, om in de gebruikersinterface af te beelden. Deze naam is samen met het data-block type van het slot uniek binnen deze Actie"
+
+
+msgid "Selection state of the slot"
+msgstr "Selectiestatus van het slot"
+
+
+msgid "Show Expanded"
+msgstr "Toon Vergroot"
+
+
+msgid "Expanded state of the slot"
+msgstr "Vergrootte status van het slot"
+
+
+msgid "Type of data-block that this slot is intended to animate; can be set when 'UNSPECIFIED' but is otherwise read-only"
+msgstr "Type data-blok dat dit slot hoort te animeren; kan worden ingesteld wanneer 'ONGESPECIFICEERD' maar is anders enkel leesbaar"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Actie"
 
 
 msgctxt "ID"
@@ -278,8 +395,48 @@ msgstr "Cachebestand"
 
 
 msgctxt "ID"
+msgid "Camera"
+msgstr "Camera"
+
+
+msgctxt "ID"
 msgid "Collection"
 msgstr "Collectie"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Curve"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Curves"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Lettertype"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Afbeelding"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Rooster"
 
 
 msgctxt "ID"
@@ -288,8 +445,38 @@ msgstr "Bibliotheek"
 
 
 msgctxt "ID"
+msgid "Light"
+msgstr "Licht"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Licht Probe"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materiaal"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Mesh"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmclip"
+
+
+msgctxt "ID"
 msgid "Object"
 msgstr "Object"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Verf Curve"
 
 
 msgctxt "ID"
@@ -328,6 +515,11 @@ msgstr "Volume"
 
 
 msgctxt "ID"
+msgid "Window Manager"
+msgstr "Vensterbeheerder"
+
+
+msgctxt "ID"
 msgid "Workspace"
 msgstr "Werkomgeving"
 
@@ -335,6 +527,39 @@ msgstr "Werkomgeving"
 msgctxt "ID"
 msgid "World"
 msgstr "Wereld"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Ongespecificeerd"
+
+
+msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
+msgstr "Nog niet gespecificeerd. Wanneer dit slot voor het eerst aan een data-blok gekoppeld wordt, zal het naar het type van dat data-blok worden ingesteld"
+
+
+msgid "Active slot for this action"
+msgstr "Actieve slot voor deze actie"
+
+
+msgid "Keyframe"
+msgstr "Keyframe"
+
+
+msgid "Strip with a set of F-Curves for each action slot"
+msgstr "Strook met een set F-Curves voor elk actieslot"
+
+
+msgid "Keyframe Animation Strip"
+msgstr "Keyframe Animatie Strook"
+
+
+msgid "Add-on"
+msgstr "Add-on"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "Python add-ons worden automatisch geladen"
 
 
 msgid "Module"
@@ -345,60 +570,408 @@ msgid "Module name"
 msgstr "Module naam"
 
 
+msgid "Add-on Preferences"
+msgstr "Add-on Voorkeuren"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "Apparaat te gebruiken voor berekeningen (renderen met Cycles)"
+
+
+msgid "Kernel Optimization"
+msgstr "Kernel Optimalisatie"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Kernels kunnen worden geoptimaliseerd op basis van de inhoud van de scène. Geoptimaliseerde kernels worden aan het begin van een render opgevraagd. Als er geen geoptimaliseerde kernels beschikbaar zijn, zal het renderen gebruik maken van generieke kernels totdat de geoptimaliseerde set beschikbaar is in de cache. Dit kan voor korte tijd (tientallen seconden) leiden tot extra CPU-gebruik"
+
+
+msgid "Off"
+msgstr "Uit"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Schakel kerneloptimalisatie uit. Langzaamste weergave, geen extra CPU-gebruik op de achtergrond"
+
+
+msgid "Intersection only"
+msgstr "Alleen snijpunt"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Optimaliseer alleen intersection kernels. Snellere weergave, verwaarloosbaar extra CPU-gebruik op de achtergrond"
+
+
 msgid "Full"
 msgstr "Volledig"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Optimaliseer alle kernels. De snelste weergave, kan resulteren in extra CPU-gebruik op de achtergrond"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT voor ray tracing gebruikt minder geheugen voor scenes die uitgebreid van curves gebruik maken, en kan in specifieke gevallen betere prestaties geven"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Zet MetalRT uit (gebruikt BVH2 layout voor intersectiequery's)"
+
+
+msgid "On"
+msgstr "Aan"
 
 
 msgid "Auto"
 msgstr "Auto"
 
 
+msgid "Automatically pick the fastest intersection method"
+msgstr "Kies automatisch de snelste intersectie methode"
+
+
+msgid "Distribute memory across devices"
+msgstr "Verdeel geheugen over apparaten"
+
+
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Maak meer ruimte voor grote scènes door het geheugen te verdelen over onderling verbonden apparaten (bijvoorbeeld via NVLink) in plaats van het te dupliceren"
+
+
+msgid "HIP RT"
+msgstr "HIP RT"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
+msgstr "HIP RT maakt AMD hardware ray tracing op RDNA2 en hoger mogelijk"
+
+
+msgid "Embree on GPU"
+msgstr "Embree op GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree op GPU maakt het gebruik van hardware ray tracing op Intel GPU's mogelijk, wat betere algehele prestaties oplevert"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materialen_varianten_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Toont de glTF UI om materiaalvarianten te beheren"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Sta glTF Embedded format toe"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "glTF UI weergeven om animaties te beheren"
+
+
+msgid "glTFpack file path"
+msgstr "flTFpack bestandspad"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Pad naar gltfpack binary"
+
+
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Weergeeft glTF Material Output node in Shader Editor (Menu Toevoegen > Output)"
+
+
+msgid "        Filter by Name"
+msgstr "        Filter op Naam"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "Toon enkel sneltoetsen die deze tekst in hun naam hebben"
+
+
 msgid "Always"
 msgstr "Altijd"
+
+
+msgid "Non-Shader"
+msgstr "Niet-Shader"
+
+
+msgid "Collapse in all cases except for shaders"
+msgstr "Altijd samenvouwen behalve met shaders"
+
+
+msgid "Never"
+msgstr "Nooit"
+
+
+msgid "Never collapse the new merge nodes"
+msgstr "Nooit de nieuwe merge nodes samenvouwen"
+
+
+msgid "Mix Node Position"
+msgstr "Mix Node Positie"
 
 
 msgid "Center"
 msgstr "Midden"
 
 
+msgid "Place the Mix node between the two nodes"
+msgstr "Plaats de Mix node tussen de twee nodes"
+
+
 msgid "Bottom"
 msgstr "Onderkant"
+
+
+msgid "Place the Mix node at the same height as the lowest node"
+msgstr "Plaats de Mix node op dezelfde hoogte als de laagste node"
+
+
+msgid "Show Hotkey List"
+msgstr "Toon Hotkey Lijst"
+
+
+msgid "Expand this box into a list of all the hotkeys for functions in this addon"
+msgstr "Bereid deze box uit tot een lijst van alle sneltoetsen voor functies in deze addon"
+
+
+msgid "Fribidi Library"
+msgstr "Fribidi Bibliotheek"
+
+
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "De door FriBidi C gecompileerde bibliotheek (.so onder Linux, .dll onder Windows...), zul je deze waarschijnlijk moeten bewerken als je onder Windows werkt, b.v. met behulp van degene die is opgenomen in de Blender bibliotheken repository."
+
+
+msgid "The bf-translation repository"
+msgstr "De bf-vertaling repository"
+
+
+msgid "Import Paths"
+msgstr "Importeer Paden"
+
+
+msgid "Additional paths to add to sys.path (';' separated)"
+msgstr "Aanvullende paden om toe te voegen aan sys.path (';' gescheiden)"
+
+
+msgid "Source Root"
+msgstr "Bron Wortel"
+
+
+msgid "The Blender source root path"
+msgstr "De Blender bron wortel pad"
+
+
+msgid "A cache storing validated msgids, to avoid re-spellchecking them"
+msgstr "Een cache slaat gevalideerde msgids op, om herhalingen van spellingschecks te voorkomen"
+
+
+msgid "Warn Msgid Not Capitalized"
+msgstr "Waarschuw Msgid Geen Hoofdletter"
+
+
+msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
+msgstr "Waarschuw voor berichten die niet met een hoofdletter starten (met een paar toegestane uitzonderingen!)"
+
+
+msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
+msgstr "De naam van een json-bestand dat die instellingen opslaat (helaas, Blender's systeem werkt hier niet)"
+
+
+msgid "User Add-ons"
+msgstr "Gebruiker Add-ons"
+
+
+msgid "Collection of add-ons"
+msgstr "Collectie van add-ons"
 
 
 msgid "Animation Data"
 msgstr "Animatie Data"
 
 
+msgid "Animation data for data-block"
+msgstr "Animatie data voor data-blok"
+
+
 msgid "Action"
 msgstr "Actie"
+
+
+msgid "Active Action for this data-block"
+msgstr "Actieve Actie voor dit data-blok"
+
+
+msgid "Action Blending"
+msgstr "Actie Blending"
+
+
+msgid "Method used for combining Active Action's result with result of NLA stack"
+msgstr "Methode gebruikt om Actieve Actie's resultaten met resulaten van NLA stack te combineren"
 
 
 msgid "Replace"
 msgstr "Vervangen"
 
 
+msgid "The strip values replace the accumulated results by amount specified by influence"
+msgstr "De strookwaarden vervangen de geaccumuleerde resultaten met de hoeveelheid gespecificeerd door invloed"
+
+
 msgid "Combine"
 msgstr "Combineer"
+
+
+msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
+msgstr "De waarden van de strook worden gecombineerd met opgetelde resultaten door juist gebruik te maken van optelling, vermenigvuldiging, of quaternion wiskunde, op basis van kanaal type"
 
 
 msgid "Add"
 msgstr "Toevoegen"
 
 
+msgid "Weighted result of strip is added to the accumulated results"
+msgstr "Gewogen resultaat van strook is aan de opgetelde resultaten toegevoegd"
+
+
 msgid "Subtract"
 msgstr "Aftrekken"
+
+
+msgid "Weighted result of strip is removed from the accumulated results"
+msgstr "Gewogen resultaat van strook is van de opgetelde resultaten afgetrokken"
 
 
 msgid "Multiply"
 msgstr "Vermenigvuldigen"
 
 
+msgid "Weighted result of strip is multiplied with the accumulated results"
+msgstr "Gewogen resultaat van strook is met de opgetelde resultaten vermenigvuldigd"
+
+
+msgid "Action Extrapolation"
+msgstr "Actie Extrapolatie"
+
+
 msgid "Nothing"
 msgstr "Niets"
 
 
+msgid "Strip has no influence past its extents"
+msgstr "Strook heeft geen invloed voorbij omvang"
+
+
+msgid "Hold"
+msgstr "Vasthouden"
+
+
+msgid "Only hold last frame"
+msgstr "Alleen laatste frame vasthouden"
+
+
 msgid "Action Influence"
 msgstr "Invloed Actie"
+
+
+msgid "Amount the Active Action contributes to the result of the NLA stack"
+msgstr "Hoeveelheid die de Actieve Actie bijdraagt aan het resultaat van de NLA stack"
+
+
+msgid "The slot identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right slot when assigning an Action"
+msgstr "Het slot toont welk sub-set van de Actie als voor dit data-blok wordt gezien, en z'n naam wordt gebruikt om het juiste slot te vinden wanneer een Actie wordt toegewezen"
+
+
+msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
+msgstr "Een getal dat aantoont welk sub-set van de Actie wordt gezien als voor dit data-blok"
+
+
+msgid "Slots"
+msgstr "Slots"
+
+
+msgid "The list of slots in this animation data-block"
+msgstr "De lijst aan slots in dit animatie data-blok"
+
+
+msgid "Drivers"
+msgstr "Drivers"
+
+
+msgid "The Drivers/Expressions for this data-block"
+msgstr "De Drivers/Uitdrukkingen voor dit data-blok"
+
+
+msgid "Last Action Slot Identifier"
+msgstr "Laatste Actie Slot Identificator"
+
+
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this data-block, and its identifier is used to find the right slot when assigning an Action."
+msgstr "De identificator van het meest recent aangewezen actie slot. Het slot toont aan welk sub-set van de Actie als voor dit data-blok wordt gezien, en z'n identificator wordt gebruikt om het juiste slot te vinden wanneer een actie wordt toegewezen."
+
+
+msgid "NLA Tracks"
+msgstr "NLA Sporen"
+
+
+msgid "NLA Tracks (i.e. Animation Layers)"
+msgstr "NLA Sporen (d.w.z. Animatie Lagen)"
+
+
+msgid "NLA Evaluation Enabled"
+msgstr "NLA Evaluatie Aangezet"
+
+
+msgid "NLA stack is evaluated when evaluating this block"
+msgstr "NLA stack wordt geëvalueerd wanneer je dit blok evalueert"
+
+
+msgid "Collection of Driver F-Curves"
+msgstr "Collectie van Driver F-Curves"
+
+
+msgid "Animation Visualization"
+msgstr "Animatie Visualisatie"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "Instellingen voor de visualisatie van beweging"
+
+
+msgid "Motion Paths"
+msgstr "Bewegingspaden"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "Instellingen Bewegingspaden voor visualisatie"
+
+
+msgid "Motion Path Settings"
+msgstr "Bewegingspad Instellingen"
+
+
+msgid "Motion Path settings for animation visualization"
+msgstr "Bewegingspad instellingen voor animatie visualisatie"
+
+
+msgid "Heads"
+msgstr "Hoofden"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Bereken paden van botten vanaf hoofden"
+
+
+msgid "Tails"
+msgstr "Staarten"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Bereken paden van botten vanaf staarten"
 
 
 msgid "After Current"
@@ -409,8 +982,16 @@ msgid "Before Current"
 msgstr "Voor Huidige"
 
 
+msgid "Number of frames to show before the current frame (only for 'Around Frame' Onion-skinning method)"
+msgstr "Aantal frames te tonen voor de huidige frame (alleen voor 'Around Frame' Onion-skinning methode)"
+
+
 msgid "End Frame"
 msgstr "Eindframe"
+
+
+msgid "End frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
+msgstr "Eindframe van bereik aan paden om te tonen/berekenen (niet voor 'Around Frame' Onion-skinning methode)"
 
 
 msgid "Start Frame"
@@ -421,8 +1002,48 @@ msgid "Frame Step"
 msgstr "Frame Stap"
 
 
+msgid "Has Motion Paths"
+msgstr "Heeft bewegingspaden"
+
+
+msgid "Paths Range"
+msgstr "Paden Bereik"
+
+
+msgid "Type of range to calculate for Motion Paths"
+msgstr "Type bereik te berekenen voor Bewegingspaden"
+
+
+msgid "All Keys"
+msgstr "Alle Toetsen"
+
+
+msgid "Selected Keys"
+msgstr "Geselecteerde Toetsen"
+
+
+msgid "Scene Frame Range"
+msgstr "Scene Frame Bereik"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "Het hele Scene / Preview bereik"
+
+
+msgid "Manually determined frame range"
+msgstr "Handmatig bepaald frame bereik"
+
+
 msgid "Show Frame Numbers"
 msgstr "Toon Framenummer"
+
+
+msgid "Show frame numbers on Motion Paths"
+msgstr "Toon frame nummers op Bewegingspaden"
+
+
+msgid "Paths Type"
+msgstr "Paden Type"
 
 
 msgid "Around Frame"
@@ -433,36 +1054,156 @@ msgid "In Range"
 msgstr "In Bereik"
 
 
+msgid "Collection of related sketches on a particular frame"
+msgstr "Collectie aan gerelateerde schetsen op een specifiek frame"
+
+
 msgid "Frame Number"
 msgstr "Framenummer"
+
+
+msgid "The frame on which this sketch appears"
+msgstr "Het frame waarop deze schets verschijnt"
+
+
+msgid "Frame is selected for editing in the Dope Sheet"
+msgstr "Frame is geselecteerd voor bewerken in de Dope Sheet"
+
+
+msgid "Strokes"
+msgstr "Stroken"
+
+
+msgid "Collection of related sketches"
+msgstr "Collectie aan gerelateerde schetsen"
 
 
 msgid "Active Frame"
 msgstr "Actieve Frame"
 
 
+msgid "Frame currently being displayed for this layer"
+msgstr "Frame wordt op dit moment afgebeeld voor deze laag"
+
+
 msgid "Hide"
 msgstr "Verberg"
+
+
+msgid "Set annotation Visibility"
+msgstr "Annotatie Zichtbaarheid instellen"
+
+
+msgid "After Color"
+msgstr "Kleur Na"
+
+
+msgid "Frames After"
+msgstr "Frames Na"
+
+
+msgid "Maximum number of frames to show after current frame"
+msgstr "Maximaal aantal frames te tonen na huidige frame"
 
 
 msgid "Before Color"
 msgstr "Voor Kleur"
 
 
+msgid "Frames Before"
+msgstr "Frames Voor"
+
+
+msgid "Maximum number of frames to show before current frame"
+msgstr "Maximaal aantal frames te tonen voor huidige frame"
+
+
 msgid "Opacity"
 msgstr "Ondoorzichtigheid"
+
+
+msgid "Annotation Layer Opacity"
+msgstr "Annotatie Laag Doorzichtbaarheid"
+
+
+msgid "Color for all strokes in this layer"
+msgstr "Kleur voor alle stroken in deze laag"
 
 
 msgid "Frames"
 msgstr "Frames"
 
 
+msgid "Sketches for this layer on different frames"
+msgstr "Schetsen voor deze laag op andere frames"
+
+
 msgid "Info"
 msgstr "Info"
 
 
+msgid "Layer name"
+msgstr "Laag naam"
+
+
+msgid "Ruler"
+msgstr "Liniaal"
+
+
+msgid "This is a special ruler layer"
+msgstr "Dit is een speciale liniaal laag"
+
+
 msgid "Locked"
 msgstr "Vergrendeld"
+
+
+msgid "Protect layer from further editing and/or frame changes"
+msgstr "Bescherm laag van verdere bewerking en/of frame veranderingen"
+
+
+msgid "Frame Locked"
+msgstr "Frame Ontgrendeld"
+
+
+msgid "Lock current frame displayed by layer"
+msgstr "Vergrendel huidige frame getoond per laag"
+
+
+msgid "Layer is selected for editing in the Dope Sheet"
+msgstr "Laag is geselecteerd voor bewerken in de Dope Sheet"
+
+
+msgid "Make the layer display in front of objects"
+msgstr "Maak de laag voor objecten zichtbaar"
+
+
+msgid "Thickness"
+msgstr "Dikte"
+
+
+msgid "Thickness of annotation strokes"
+msgstr "Dikte van annotatie stroken"
+
+
+msgid "Note/Layer to add annotation strokes to"
+msgstr "Notitie/Laag om annotatie stroken aan toe te voegen"
+
+
+msgid "Default"
+msgstr "Standaard"
+
+
+msgid "Stroke Points"
+msgstr "Strook Punten"
+
+
+msgid "Stroke data points"
+msgstr "Strook datapunten"
+
+
+msgid "Annotation Stroke Point"
+msgstr "Annotatie Strook Punt"
 
 
 msgid "Coordinates"
@@ -473,16 +1214,36 @@ msgid "Any Type"
 msgstr "Elk Type"
 
 
+msgid "RNA type used for pointers to any possible data"
+msgstr "RNA type gebruikt voor verwijzingen naar elk mogelijke data"
+
+
+msgid "Area in a subdivided screen, containing an editor"
+msgstr "Gebied in een opgedeeld scherm, dat een bewerker bevat"
+
+
 msgid "Height"
 msgstr "Hoogte"
+
+
+msgid "Area height"
+msgstr "Gebied hoogte"
 
 
 msgid "Regions"
 msgstr "Regio’s"
 
 
+msgid "Regions this area is subdivided in"
+msgstr "Regio's in dit gebied zijn opgedeeld in"
+
+
 msgid "Show Menus"
 msgstr "Menu's Weergeven"
+
+
+msgid "Show menus in the header"
+msgstr "Toon menu's in de header"
 
 
 msgid "Spaces"
@@ -493,24 +1254,120 @@ msgid "Editor Type"
 msgstr "Editor Type"
 
 
+msgid "Current editor type for this area"
+msgstr "Huidige bewerker type voor dit gebied"
+
+
 msgid "Empty"
 msgstr "Leeg"
+
+
+msgid "3D Viewport"
+msgstr "eD Viewport"
+
+
+msgid "Manipulate objects in a 3D environment"
+msgstr "Manipuleer objecten in een 3D omgeving"
+
+
+msgid "UV/Image Editor"
+msgstr "UV/Afbeelding Bewerker"
+
+
+msgid "View and edit images and UV Maps"
+msgstr "Bekijk en bewerk afbeeldingen en UV Maps"
+
+
+msgid "Node Editor"
+msgstr "Node Bewerker"
+
+
+msgid "Video Sequencer"
+msgstr "Video Sequencer"
+
+
+msgid "Non-linear editor for arranging and mixing scenes, video, audio, and effects"
+msgstr "Niet-lineaire bewerker voor het schikken en mixen van scenes, video, audio, en effecten"
+
+
+msgid "Movie Clip Editor"
+msgstr "Film Clip Bewerker"
+
+
+msgid "Dope Sheet"
+msgstr "Dope Sheet"
+
+
+msgid "Edit drivers and keyframe interpolation"
+msgstr "Bewerk drivers en keyframe interpolatie"
+
+
+msgid "Nonlinear Animation"
+msgstr "Niet-lineaire Animatie"
+
+
+msgid "Combine and layer Actions"
+msgstr "Combineer en breng lagen aan in Acties"
 
 
 msgid "Text Editor"
 msgstr "Tekstbewerker"
 
 
+msgid "Edit scripts and in-file documentation"
+msgstr "Bewerk scripts en in-bestand documentatie"
+
+
+msgid "Python Console"
+msgstr "Python Console"
+
+
+msgid "Interactive programmatic console for advanced editing and script development"
+msgstr "Interactieve programmatische console voor geavanceerd bewerken en script ontwikkeling"
+
+
+msgid "Log of operations, warnings and error messages"
+msgstr "Logboek van operations, waarschuwingen en error-berichten"
+
+
+msgid "Top Bar"
+msgstr "Bovenste Balk"
+
+
+msgid "Global bar at the top of the screen for global per-window settings"
+msgstr "Globale balk bovenin het scherm voor globale per-venster instellingen"
+
+
 msgid "Status Bar"
 msgstr "Statusbalk"
+
+
+msgid "Global bar at the bottom of the screen for general status information"
+msgstr "Globale balk onderin het scherm voor algemene status informatie"
 
 
 msgid "Properties"
 msgstr "Eigenschappen"
 
 
+msgid "Edit properties of active object and related data-blocks"
+msgstr "Bewerk eigenschappen van actief object en gerelateerde data-blokken"
+
+
 msgid "File Browser"
 msgstr "Bestandsverkenner"
+
+
+msgid "Browse for files and assets"
+msgstr "Blader door bestanden en assets"
+
+
+msgid "Spreadsheet"
+msgstr "Spreadsheet"
+
+
+msgid "Explore geometry data in a table"
+msgstr "Verken geometrische data in een tabel"
 
 
 msgid "Preferences"
@@ -521,16 +1378,36 @@ msgid "Width"
 msgstr "Breedte"
 
 
+msgid "Area width"
+msgstr "Gebied breedte"
+
+
 msgid "X Position"
 msgstr "X Positie"
+
+
+msgid "The window relative vertical location of the area"
+msgstr "De verticale locatie van het gebied relatief aan het venster"
 
 
 msgid "Y Position"
 msgstr "Y Positie"
 
 
+msgid "The window relative horizontal location of the area"
+msgstr "De horizontale locatie van het gebied relatief aan het venster"
+
+
+msgid "Collection of spaces"
+msgstr "Collectie aan ruimten"
+
+
 msgid "Active Space"
 msgstr "Actieve Ruimte"
+
+
+msgid "Space currently being displayed in this area"
+msgstr "Ruimte dat op dit moment in dit gebied wordt getoond"
 
 
 msgid "Armature Bones"
@@ -542,7 +1419,27 @@ msgstr "Collectie van skelet-botten"
 
 
 msgid "Active Bone"
-msgstr "Actief Bot"
+msgstr "Actieve Bone"
+
+
+msgid "Armature's active bone"
+msgstr "Armature's actieve bone"
+
+
+msgid "Active EditBone"
+msgstr "Actieve EditBone"
+
+
+msgid "User Asset Libraries"
+msgstr "Gebruiker Asset Bibliotheken"
+
+
+msgid "Asset Library Reference"
+msgstr "Asset Bibliotheek Referentie"
+
+
+msgid "Active Tag"
+msgstr "Actieve Label"
 
 
 msgid "Author"
@@ -577,12 +1474,20 @@ msgid "Brushes"
 msgstr "Kwasten"
 
 
+msgid "Cache Files"
+msgstr "Cache Bestanden"
+
+
 msgid "Cameras"
 msgstr "Camera's"
 
 
 msgid "Curves"
-msgstr "Krommes"
+msgstr "Curves"
+
+
+msgid "Hair Curves"
+msgstr "Haar Curves"
 
 
 msgid "Fonts"
@@ -590,7 +1495,7 @@ msgstr "Lettertypen"
 
 
 msgid "Grease Pencil"
-msgstr "Vetkrijt"
+msgstr "Grease Pencil"
 
 
 msgid "Collections"
@@ -633,6 +1538,10 @@ msgid "Texts"
 msgstr "Teksten"
 
 
+msgid "Volumes"
+msgstr "Volumes"
+
+
 msgid "Worlds"
 msgstr "Werelden"
 
@@ -649,8 +1558,16 @@ msgid "Vector"
 msgstr "Vector"
 
 
+msgid "Quaternion"
+msgstr "Quaternion"
+
+
 msgid "2D Vector"
 msgstr "2D Vector"
+
+
+msgid "Byte Color"
+msgstr "Byte Kleur"
 
 
 msgid "Domain"
@@ -669,8 +1586,28 @@ msgid "Face"
 msgstr "Vlak"
 
 
+msgid "Instance"
+msgstr "Instantie"
+
+
 msgid "Layer"
 msgstr "Laag"
+
+
+msgid "Is Internal"
+msgstr "Is Intern"
+
+
+msgid "Active Attribute Index"
+msgstr "Actieve Attribute Index"
+
+
+msgid "Active Color"
+msgstr "Actieve Kleur"
+
+
+msgid "Active Color Index"
+msgstr "Actieve Kleur Index"
 
 
 msgid "Object"
@@ -733,6 +1670,14 @@ msgid "Split Materials"
 msgstr "Splits Materialen"
 
 
+msgid "Above Surface"
+msgstr "Boven Oppervlak"
+
+
+msgid "Active Camera"
+msgstr "Actieve Camera"
+
+
 msgid "Control Point"
 msgstr "Controlepunt"
 
@@ -751,6 +1696,10 @@ msgstr "Annotatie"
 
 msgid "Filename"
 msgstr "Bestandsnaam"
+
+
+msgid "Grease Pencil data-blocks"
+msgstr "Grease Pencil data-blokken"
 
 
 msgid "File Has Unsaved Changes"
@@ -777,6 +1726,10 @@ msgid "Collection of actions"
 msgstr "Collectie van acties"
 
 
+msgid "Main Armatures"
+msgstr "Hoofdarmaturen"
+
+
 msgid "Collection of armatures"
 msgstr "Collectie van skeletten"
 
@@ -797,6 +1750,18 @@ msgid "Collection of fonts"
 msgstr "Collectie van lettertypen"
 
 
+msgid "Main Grease Pencils"
+msgstr "Hoofd Grease Pencils"
+
+
+msgid "Main Hair Curves"
+msgstr "Hoofd Haar Curves"
+
+
+msgid "Collection of hair curves"
+msgstr "Collectie van haar curves"
+
+
 msgid "Collection of images"
 msgstr "Collectie van afbeeldingen"
 
@@ -809,8 +1774,20 @@ msgid "Collection of lights"
 msgstr "Collectie van lampen"
 
 
+msgid "Main Line Styles"
+msgstr "Hoofd Lijnstijlen"
+
+
+msgid "Main Materials"
+msgstr "Hoofd Materialen"
+
+
 msgid "Collection of materials"
 msgstr "Collectie van materialen"
+
+
+msgid "Main Node Trees"
+msgstr "Hoofd Node Bomen"
 
 
 msgid "Main Objects"
@@ -827,6 +1804,14 @@ msgstr "Collectie van paletten"
 
 msgid "Main Particle Settings"
 msgstr "Belangrijkste Deeltjesinstellingen"
+
+
+msgid "Main Point Clouds"
+msgstr "Hoofd Punt Wolken"
+
+
+msgid "Collection of point clouds"
+msgstr "Collectie van puntwolken"
 
 
 msgid "Collection of scenes"
@@ -897,8 +1882,16 @@ msgid "Automatic"
 msgstr "Automatisch"
 
 
+msgid "Scale In"
+msgstr "Inschalen"
+
+
 msgid "Children"
 msgstr "Kinderen"
+
+
+msgid "B-Bone"
+msgstr "B-Bone"
 
 
 msgid "Selectable"
@@ -925,8 +1918,24 @@ msgid "Visible"
 msgstr "Zichtbaar"
 
 
+msgid "Active Collection"
+msgstr "Actieve Collectie"
+
+
+msgid "Active Collection Index"
+msgstr "Actieve Collectie Index"
+
+
 msgid "Has Color"
 msgstr "Heeft Kleur"
+
+
+msgid "Has Weight"
+msgstr "Heeft Gewicht"
+
+
+msgid "Curves Sculpt Brush Settings"
+msgstr "Curves Sculpt Borstel Instellingen"
 
 
 msgctxt "Operator"
@@ -937,6 +1946,18 @@ msgstr "Toevoegen"
 msgctxt "Operator"
 msgid "Remove"
 msgstr "Verwijder"
+
+
+msgid "Interpolate Length"
+msgstr "Lengte Interpoleren"
+
+
+msgid "Interpolate Shape"
+msgstr "Vorm Interpoleren"
+
+
+msgid "Grease Pencil Brush Settings"
+msgstr "Grease Pencil Borstel Instellingen"
 
 
 msgid "Mode"
@@ -955,8 +1976,26 @@ msgid "Vertex Color"
 msgstr "Kleur van Punt"
 
 
+msgctxt "GPencil"
+msgid "Round"
+msgstr "Rond"
+
+
+msgctxt "GPencil"
+msgid "Flat"
+msgstr "Plat"
+
+
+msgid "Curve Sensitivity"
+msgstr "Curve Gevoeligheid"
+
+
 msgid "All"
 msgstr "Alle"
+
+
+msgid "Edit Lines"
+msgstr "Aanpassen Lijnen"
 
 
 msgid "Precision"
@@ -971,8 +2010,17 @@ msgid "Simplify"
 msgstr "Versimpel"
 
 
+msgctxt "Amount"
+msgid "Smooth"
+msgstr "Glad"
+
+
 msgid "Show Lines"
 msgstr "Toon Lijnen"
+
+
+msgid "Fill"
+msgstr "Vul"
 
 
 msgid "Active Layer"
@@ -985,10 +2033,6 @@ msgstr "Willekeurige Instellingen"
 
 msgid "Mode Type"
 msgstr "Type Modus"
-
-
-msgid "Fill"
-msgstr "Vul"
 
 
 msgid "Object Path"
@@ -1096,7 +2140,7 @@ msgstr "Weergave"
 
 
 msgid "Curve"
-msgstr "Kromme"
+msgstr "Curve"
 
 
 msgid "Exposure"
@@ -1338,6 +2382,11 @@ msgstr "Kwast instellingen"
 
 msgid "Particle Systems"
 msgstr "Deeltjessystemen"
+
+
+msgctxt "Brush"
+msgid "Smooth"
+msgstr "Glad"
 
 
 msgid "Erase Paint"
@@ -1589,7 +2638,7 @@ msgstr "Krul"
 
 
 msgid "Gradient"
-msgstr "Verloop"
+msgstr "Gradiënt"
 
 
 msgid "2D"
@@ -1896,6 +2945,10 @@ msgid "Full Name"
 msgstr "Volledige Naam"
 
 
+msgid "Library Override"
+msgstr "Bibliotheek Overschrijven"
+
+
 msgid "Users"
 msgstr "Gebruikers"
 
@@ -1979,6 +3032,11 @@ msgid "Constant"
 msgstr "Constant"
 
 
+msgctxt "Curves"
+msgid "Smooth"
+msgstr "Glad"
+
+
 msgid "Cloth Simulation"
 msgstr "Kledingsimulatie"
 
@@ -1991,12 +3049,27 @@ msgid "Projected"
 msgstr "Geprojecteerd"
 
 
+msgctxt "GPencil"
+msgid "Smooth"
+msgstr "Glad"
+
+
 msgid "Draw"
 msgstr "Potlood"
 
 
 msgid "Brush"
 msgstr "Kwast"
+
+
+msgctxt "Mask"
+msgid "Smooth"
+msgstr "Glad"
+
+
+msgctxt "Brush"
+msgid "Cloth"
+msgstr "Doek"
 
 
 msgid "Elastic"
@@ -2200,6 +3273,11 @@ msgstr "Vervagen"
 
 
 msgctxt "Light"
+msgid "Light"
+msgstr "Licht"
+
+
+msgctxt "Light"
 msgid "Type"
 msgstr "Type"
 
@@ -2231,16 +3309,66 @@ msgid "Resolution Y"
 msgstr "Y resolutie"
 
 
+msgctxt "Material"
+msgid "Flat"
+msgstr "Plat"
+
+
+msgctxt "Material"
 msgid "Cube"
 msgstr "Kubus"
 
 
+msgid "Cube"
+msgstr "Kubus"
+
+
+msgctxt "Material"
+msgid "Hair"
+msgstr "Haar"
+
+
+msgid "Hair strands"
+msgstr "Haarstrengen"
+
+
+msgctxt "Material"
+msgid "Shader Ball"
+msgstr "Shader Bal"
+
+
+msgid "Shader ball"
+msgstr "Shader bal"
+
+
+msgctxt "Material"
 msgid "Cloth"
-msgstr "Kleding"
+msgstr "Doek"
+
+
+msgid "Cloth"
+msgstr "Doek"
+
+
+msgctxt "Material"
+msgid "Fluid"
+msgstr "Vloeistof"
+
+
+msgid "Refraction Depth"
+msgstr "Lichtbreking Diepte"
+
+
+msgid "Approximate the thickness of the object to compute two refraction events (0 is disabled) (Deprecated)"
+msgstr "Benader de dikte van het object om de twee lichtbrekingsevenementen te berekenen (0 is uitgezet) (Verouderd)"
 
 
 msgid "Roughness of the material"
 msgstr "Ruwheid van het materiaal"
+
+
+msgid "Attribute"
+msgstr "Attribuut"
 
 
 msgid "Converter"
@@ -2268,7 +3396,7 @@ msgstr "Beeldhouwen"
 
 
 msgid "Tool"
-msgstr "Gereedschap"
+msgstr "Tool"
 
 
 msgid "Active Material"
@@ -2303,12 +3431,21 @@ msgid "Circle"
 msgstr "Cirkel"
 
 
+msgid "Line Art"
+msgstr "Line Art"
+
+
 msgid "Rigid Body Settings"
 msgstr "Star Lichaam Instellingen"
 
 
 msgid "Rigid Body Constraint"
 msgstr "Star Lichaam Beperking"
+
+
+msgctxt "ID"
+msgid "Hair Curves"
+msgstr "Haar Curves"
 
 
 msgid "Shadow Visibility"
@@ -2438,6 +3575,10 @@ msgstr "Dempen"
 
 msgid "Mute the speaker"
 msgstr "Demp de speaker"
+
+
+msgid "Blend"
+msgstr "Blend"
 
 
 msgid "Mirror X"
@@ -2669,6 +3810,11 @@ msgid "Min Angle"
 msgstr "Minimale Hoek"
 
 
+msgctxt "FreestyleLineStyle"
+msgid "Smooth"
+msgstr "Glad"
+
+
 msgctxt "Curve"
 msgid "Falloff"
 msgstr "Afvlakking"
@@ -2694,48 +3840,12 @@ msgid "Names"
 msgstr "Namen"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
 msgid "Layout"
 msgstr "Indeling"
 
 
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
 
 
 msgid "Convert"
@@ -2746,8 +3856,44 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Import"
@@ -2771,6 +3917,15 @@ msgid "Key"
 msgstr "Sleutel"
 
 
+msgid "Files"
+msgstr "Bestanden"
+
+
+msgctxt "Operator"
+msgid "Blend"
+msgstr "Blend"
+
+
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Glad"
@@ -2779,6 +3934,10 @@ msgstr "Glad"
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "Spiegel"
+
+
+msgid "Node"
+msgstr "Node"
 
 
 msgid "Add Modifier"
@@ -2879,7 +4038,7 @@ msgstr "Tijdsverschuiving"
 
 
 msgid "Array"
-msgstr "Reeks"
+msgstr "Array"
 
 
 msgid "Build"
@@ -3017,6 +4176,11 @@ msgid "World"
 msgstr "Wereld"
 
 
+msgctxt "Modifier"
+msgid "Smooth"
+msgstr "Glad"
+
+
 msgctxt "Operator"
 msgid "Bend"
 msgstr "Buig"
@@ -3024,6 +4188,11 @@ msgstr "Buig"
 
 msgid "Origin"
 msgstr "Origin"
+
+
+msgctxt "Mesh"
+msgid "Flat"
+msgstr "Plat"
 
 
 msgid "Flip Normals"
@@ -3127,6 +4296,11 @@ msgstr "Y as"
 
 msgid "Z axis"
 msgstr "Z as"
+
+
+msgctxt "Image"
+msgid "Flat"
+msgstr "Plat"
 
 
 msgid "Sun Rotation"
@@ -4200,7 +5374,7 @@ msgstr "Maak Spook Kromme"
 
 msgctxt "Operator"
 msgid "Hide Curves"
-msgstr "Verberg Krommes"
+msgstr "Verberg Curves"
 
 
 msgid "Next Keyframe"
@@ -4228,7 +5402,7 @@ msgstr "Keer Om"
 
 
 msgid "Flat"
-msgstr "Vlak"
+msgstr "Plat"
 
 
 msgid "Limit"
@@ -4577,6 +5751,16 @@ msgstr "Voeg UV Bol Toe"
 
 msgid "Sharp Edges"
 msgstr "Scherpe Randen"
+
+
+msgctxt "Mesh"
+msgid "Vertex Groups"
+msgstr "Vertex Groepen"
+
+
+msgctxt "Mesh"
+msgid "Material"
+msgstr "Materiaal"
 
 
 msgctxt "Operator"
@@ -5295,6 +6479,10 @@ msgstr "Selecteer Gekoppeld"
 msgctxt "Operator"
 msgid "Apply Visual Transform to Pose"
 msgstr "Pas Visuele Transformatie Toe aan Pose"
+
+
+msgid "MatCap"
+msgstr "MatCap"
 
 
 msgctxt "Operator"
@@ -6033,6 +7221,11 @@ msgid "Select new objects"
 msgstr "Selecteer nieuwe objecten"
 
 
+msgctxt "ID"
+msgid "Volumes"
+msgstr "Volumes"
+
+
 msgctxt "Operator"
 msgid "Call Menu"
 msgstr "Roep Menu"
@@ -6291,6 +7484,11 @@ msgid "Shape Key"
 msgstr "Sleutelvorm"
 
 
+msgctxt "File browser"
+msgid "Volumes"
+msgstr "Volumes"
+
+
 msgctxt "Operator"
 msgid "Annotate"
 msgstr "Annotatie"
@@ -6427,6 +7625,131 @@ msgid "Curve"
 msgstr "Kromme"
 
 
+msgctxt "Render Layer"
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Freestyle Animation"
+msgstr "Freestyle Animatie"
+
+
+msgid "Face Marks"
+msgstr "Vlak Markeringen"
+
+
+msgid "Freestyle Alpha"
+msgstr "Freestyle Alpha"
+
+
+msgid "Freestyle Color"
+msgstr "Freestyle Kleur"
+
+
+msgid "Freestyle Geometry"
+msgstr "Freestyle Geometrie"
+
+
+msgid "Freestyle Strokes"
+msgstr "Freestyle Stroken"
+
+
+msgid "Splitting"
+msgstr "Splitsing"
+
+
+msgid "Split Pattern"
+msgstr "Splits Patroon"
+
+
+msgid "Freestyle Texture"
+msgstr "Freestyle Textuur"
+
+
+msgid "Freestyle Thickness"
+msgstr "Freestyle Dikte"
+
+
+msgid "Filter Add-ons"
+msgstr "Filter Add-ons"
+
+
+msgid "Particle in a particle system"
+msgstr "Deeltje in een deeltjessysteem"
+
+
+msgid "Alive State"
+msgstr "Levende Staat"
+
+
+msgid "Dying"
+msgstr "Stervend"
+
+
+msgid "Birth Time"
+msgstr "Geboorte Tijd"
+
+
+msgid "Die Time"
+msgstr "Dood Tijd"
+
+
+msgid "Exists"
+msgstr "Bestaat"
+
+
+msgid "Particle Location"
+msgstr "Deeltje Locatie"
+
+
+msgid "Previous Rotation"
+msgstr "Vorige Rotatie"
+
+
+msgid "Previous Particle Velocity"
+msgstr "Vorige Snelheid Deeltje"
+
+
+msgid "Particle Velocity"
+msgstr "Snelheid Deeltje"
+
+
+msgid "Particle Brush"
+msgstr "Deeltjes Borstel"
+
+
+msgid "Particle editing brush"
+msgstr "Deeltjes bewerkingsborstel"
+
+
+msgid "Particle count"
+msgstr "Hoeveelheid deeltjes"
+
+
+msgid "Make hairs longer"
+msgstr "Maak haren langer"
+
+
+msgid "Make hairs shorter"
+msgstr "Maak haren korter"
+
+
+msgid "Sub"
+msgstr "Sub"
+
+
+msgid "Radius of the brush in pixels"
+msgstr "Straal van de borstel in pixels"
+
+
+msgid "Brush steps"
+msgstr "Borstel stappen"
+
+
+msgid "Brush strength"
+msgstr "Borstel sterkte"
+
+
 msgid "Custom Object"
 msgstr "Aangepast Object"
 
@@ -6539,6 +7862,16 @@ msgid "Seconds"
 msgstr "Seconden"
 
 
+msgctxt "Unit"
+msgid "Quaternion"
+msgstr "Quaternion"
+
+
+msgctxt "Unit"
+msgid "Camera"
+msgstr "Camera"
+
+
 msgid "Find/Replace"
 msgstr "Vind/Vervang"
 
@@ -6581,6 +7914,10 @@ msgstr "Aantal horizontale pixels in the gerenderde afbeelding"
 
 msgid "Number of vertical pixels in the rendered image"
 msgstr "Aantal verticale pixels in de gerenderde afbeelding"
+
+
+msgid "Antialiasing"
+msgstr "Antialiasing"
 
 
 msgid "Lock Interface"
@@ -6799,6 +8136,20 @@ msgid "Use Annotations"
 msgstr "Gebruik Annotaties"
 
 
+msgctxt "Light"
+msgid "MatCap"
+msgstr "MatCap"
+
+
+msgid "Collection of studio lights"
+msgstr "Collectie van studiolichten"
+
+
+msgctxt "Image"
+msgid "Cube"
+msgstr "Kubus"
+
+
 msgid "Force Field"
 msgstr "Krachtveld"
 
@@ -6919,6 +8270,11 @@ msgid "Error Message"
 msgstr "Foutmelding"
 
 
+msgctxt "Color"
+msgid "Light"
+msgstr "Licht"
+
+
 msgid "Search"
 msgstr "Zoeken"
 
@@ -6945,7 +8301,7 @@ msgstr "Lettertype"
 
 msgctxt "WindowManager"
 msgid "Grease Pencil"
-msgstr "Vetkrijt"
+msgstr "Grease Pencil"
 
 
 msgctxt "WindowManager"
@@ -7109,6 +8465,19 @@ msgstr "Toevoegen"
 
 msgid "Options:"
 msgstr "Opties:"
+
+
+msgctxt "Operator"
+msgid "Action"
+msgstr "Actie"
+
+
+msgid "Use the plus button to add list entries"
+msgstr "Gebruik de plusknop om items aan de lijst toe te voegen"
+
+
+msgid "Collection {:s} has the same uid {:d} as {:s}"
+msgstr "Collectie {:s} heeft dezelfde uid {:d} als {:s}"
 
 
 msgctxt "Operator"
@@ -7903,6 +9272,11 @@ msgid "Active Camera"
 msgstr "Actieve Camera"
 
 
+msgctxt "View3D"
+msgid "Camera"
+msgstr "Camera"
+
+
 msgctxt "Operator"
 msgid "Child"
 msgstr "Kind"
@@ -8040,7 +9414,7 @@ msgstr "Hernoem Actief Object..."
 
 msgctxt "Operator"
 msgid "Flat"
-msgstr "Vlak"
+msgstr "Plat"
 
 
 msgctxt "Operator"
@@ -8312,12 +9686,25 @@ msgid "Surface"
 msgstr "Oppervlak"
 
 
+msgctxt "Action"
+msgid "Smooth"
+msgstr "Glad"
+
+
+msgid "LineStyle"
+msgstr "LijnStijl"
+
+
 msgid "%i frames found!"
 msgstr "%i frames gevonden!"
 
 
 msgid "RenderView"
 msgstr "RenderView"
+
+
+msgid "volumes"
+msgstr "volumes"
 
 
 msgid "Unable to read"
@@ -8334,10 +9721,6 @@ msgstr "Verborgen %d"
 
 msgid "Delete Modifier"
 msgstr "Verwijder Aanpasser"
-
-
-msgid "Coefficient"
-msgstr "Coëfficiënt"
 
 
 msgid "Too many points selected: %d"
@@ -8915,6 +10298,11 @@ msgid "Crease Edges"
 msgstr "Vouwranden"
 
 
+msgctxt "Mesh"
+msgid "Smooth"
+msgstr "Glad"
+
+
 msgid "Old"
 msgstr "Oud"
 
@@ -9024,4 +10412,36 @@ msgstr "Poses Bibliotheek"
 
 msgid "Import-Export"
 msgstr "Importeren-Exporteren"
+
+
+msgctxt "Preferences"
+msgid "Camera"
+msgstr "Camera"
+
+
+msgctxt "Preferences"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "Preferences"
+msgid "Material"
+msgstr "Materiaal"
+
+
+msgctxt "Preferences"
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "camera"
+msgstr "camera"
+
+
+msgid "clipboard"
+msgstr "klembord"
+
+
+msgid "files"
+msgstr "bestanden"
 

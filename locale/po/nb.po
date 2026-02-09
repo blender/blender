@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -5332,10 +5332,6 @@ msgid "Arabic - ﺔﻴﺑﺮﻌﻟﺍ"
 msgstr "Arabisk – ﺔﻴﺑﺮﻌﻟﺍ"
 
 
-msgid "Locale code: ar_EG. Translation progress: 24%"
-msgstr "Lokalkode: ar_EG. Status på oversettelse: 24 %"
-
-
 msgid "Basque - Euskara"
 msgstr "Baskisk – Euskara"
 
@@ -5504,10 +5500,6 @@ msgid "Korean - 한국어"
 msgstr "Koreansk – 한국어"
 
 
-msgid "Locale code: ko_KR. Translation progress: 50%"
-msgstr "Lokalkode: ko_KR. Status på oversettelse: 50 %"
-
-
 msgid "Kyrgyz - Кыргыз тили"
 msgstr "Kirgisisk – Кыргыз тили"
 
@@ -5620,10 +5612,6 @@ msgid "Swahili - Kiswahili"
 msgstr "Swahili – Kiswahili"
 
 
-msgid "Locale code: sw. Translation progress: 73%"
-msgstr "Lokalkode: sw. Status på oversettelse: 73 %"
-
-
 msgid "Swedish - Svenska"
 msgstr "Svensk – Svenska"
 
@@ -5632,20 +5620,12 @@ msgid "Tamil - தமிழ்"
 msgstr "Tamil – தமிழ்"
 
 
-msgid "Locale code: ta. Translation progress: 94%"
-msgstr "Lokalkode: ta. Status på oversettelse: 94 %"
-
-
 msgid "Thai - ภาษาไทย"
 msgstr "Thai – ภาษาไทย"
 
 
 msgid "Turkish - Türkçe"
 msgstr "Tyrkisk – Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 79%"
-msgstr "Lokalkode: tr_TR. Status på oversettelse: 79 %"
 
 
 msgid "Ukrainian - Українська"
@@ -5658,10 +5638,6 @@ msgstr "Lokalkode: uk_UA. Status på oversettelse: 57 %"
 
 msgid "Urdu - وُدرُا"
 msgstr "Urdu – وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 87%"
-msgstr "Lokalkode: ur. Status på oversettelse: 87 %"
 
 
 msgid "Vietnamese - Tiếng Việt"

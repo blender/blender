@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -4163,6 +4163,18 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Faktor der Vereinfachung mit adaptivem Algorithmus"
 
 
+msgid "Stroke"
+msgstr "Pinselstrich"
+
+
+msgid "Fill"
+msgstr "Füllen"
+
+
+msgid "Both"
+msgstr "Beides"
+
+
 msgid "Active Layer"
 msgstr "Aktive Ebene"
 
@@ -4311,16 +4323,8 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Definiert, wie sich die Eckpunktfarbe auf die Striche auswirkt"
 
 
-msgid "Stroke"
-msgstr "Pinselstrich"
-
-
 msgid "Vertex Color affects to Stroke only"
 msgstr "Eckpunktfarbe wirkt sich nur auf Strich aus"
-
-
-msgid "Fill"
-msgstr "Füllen"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -18706,22 +18710,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Math"
-msgstr "Mathematisch"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
 msgid "Read"
 msgstr "Lesen"
 
@@ -18734,10 +18722,6 @@ msgid "Sample"
 msgstr "Beispiel"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
 msgid "Primitives"
 msgstr "Grundkörper"
 
@@ -18746,60 +18730,144 @@ msgid "Clean Up"
 msgstr "Aufräumen"
 
 
-msgid "Pivot Point"
-msgstr "Drehpunkt"
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
 
 
-msgid "Snap"
-msgstr "Einrasten"
+msgid "Names"
+msgstr "Namen"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
+msgid "Special Characters"
+msgstr "Sonderzeichen"
 
 
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
 
 
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
+msgid "Hooks"
+msgstr "Haken"
 
 
-msgid "Local View"
-msgstr "Lokale Ansicht"
+msgid "Math"
+msgstr "Mathematisch"
 
 
-msgid "Viewpoint"
-msgstr "Ansicht"
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
 
 
-msgid "Navigation"
-msgstr "Navigation"
+msgid "Asset"
+msgstr "Asset"
 
 
-msgid "Align View"
-msgstr "Ansicht ausrichten"
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
 
 
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
+msgid "Light"
+msgstr "Licht"
 
 
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
 
 
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
 
 
 msgid "Select Similar"
@@ -18810,124 +18878,60 @@ msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
 
 
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
+msgid "Align View"
+msgstr "Ansicht ausrichten"
 
 
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
+msgid "Viewpoint"
+msgstr "Ansicht"
 
 
-msgid "Tracking"
-msgstr "Verfolgen"
+msgid "Navigation"
+msgstr "Navigation"
 
 
-msgid "Light"
-msgstr "Licht"
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
+msgid "Snap"
+msgstr "Einrasten"
 
 
 msgid "Instances"
 msgstr "Instanzen"
 
 
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
 msgid "Import"
 msgstr "Importieren"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
 
 
-msgid "Special Characters"
-msgstr "Sonderzeichen"
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
 
 
-msgid "Kerning"
-msgstr "Kerning"
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assets"
@@ -29169,10 +29173,6 @@ msgid "Side"
 msgstr "Seite"
 
 
-msgid "Both"
-msgstr "Beides"
-
-
 msgctxt "Operator"
 msgid "Add F-Curve Modifier"
 msgstr "F-Kurven Modifikator hinzufügen"
@@ -38871,64 +38871,16 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
+msgid "VR"
+msgstr "VR"
 
 
-msgid "View Lock"
-msgstr "Ansicht sperren"
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
 
 
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Cavity"
-msgstr "Hohlraum"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
-
-
-msgid "Compositor"
-msgstr "Setzer"
-
-
-msgid "Overlays"
-msgstr "Überlagerungen"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
 
 
 msgid "Quad View"
@@ -38939,16 +38891,64 @@ msgid "Onion Skin"
 msgstr "Zwiebelhaut"
 
 
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
+msgid "Drawing Plane"
+msgstr "Malfläche"
 
 
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
+msgid "Guides"
+msgstr "Hilfslinien"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
+msgid "Overlays"
+msgstr "Überlagerungen"
+
+
+msgid "Compositor"
+msgstr "Setzer"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
+msgid "Cavity"
+msgstr "Hohlraum"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
+
+
+msgid "View Lock"
+msgstr "Ansicht sperren"
+
+
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
 
 
 msgid "Chain Scaling"
@@ -53959,10 +53959,6 @@ msgstr "Modifier löschen"
 
 msgid "Delete envelope control point"
 msgstr "Einhüllenden-Kontrollpunkt löschen"
-
-
-msgid "Coefficient"
-msgstr "Koeffizient"
 
 
 msgid "Keying set failed to insert any keyframes"
