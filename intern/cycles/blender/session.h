@@ -111,6 +111,7 @@ class BlenderSession {
   double last_status_time;
 
   int width, height;
+  float pixelsize;
   bool preview_osl;
   double start_resize_time;
 
