@@ -84,19 +84,22 @@ static int get_divisor(const int distance)
  * \param base: Defines how the step is calculated.
  * The returned step is either a full fraction or a multiple of that number.
  */
-static int calculate_grid_step(const int base, const float pixel_width, const float view_width)
+static int calculate_grid_step(const int base,
+                               const float pixel_width,
+                               const float view_width,
+                               const float min_distance)
 {
-  if (IS_EQF(view_width, 0.0f) || base == 0) {
+  if (IS_EQF(view_width, 0.0f)) {
     return 1;
   }
   const float pixels_per_view_unit = pixel_width / view_width;
-  int distance = base;
-  if (pixels_per_view_unit * distance > MIN_MAJOR_LINE_DISTANCE) {
+  int distance = max_ii(base, 1);
+  if (pixels_per_view_unit * distance > min_distance) {
     /* Shrink the distance. */
     while (distance > 1) {
       const int divisor = get_divisor(distance);
       const int result = (distance / divisor);
-      if (pixels_per_view_unit * result < MIN_MAJOR_LINE_DISTANCE) {
+      if (pixels_per_view_unit * result < min_distance) {
         /* If the distance would fall below the threshold, stop dividing. */
         break;
       }
@@ -107,7 +110,7 @@ static int calculate_grid_step(const int base, const float pixel_width, const fl
     /* Grow the distance, doubling every time. Break just before hitting an integer overflow. This
      * creates a drawing issue after hitting the limit where the numbers will overlap but that is
      * better than an endless loop. See #150543. */
-    while (pixels_per_view_unit * distance < MIN_MAJOR_LINE_DISTANCE && distance < (1 << 30)) {
+    while (pixels_per_view_unit * distance < min_distance && distance < (1 << 30)) {
       distance *= 2;
     }
   }
@@ -118,15 +121,17 @@ static int calculate_grid_step(const int base, const float pixel_width, const fl
 /* Mostly the same as `calculate_grid_step, except in can divide into the 0-1 range. */
 static float calculate_grid_step_fractions(const int base,
                                            const float pixel_width,
-                                           const float view_width)
+                                           const float view_width,
+                                           const float min_distance)
 {
-  float distance = calculate_grid_step(base, pixel_width, view_width);
+  float distance = calculate_grid_step(base, pixel_width, view_width, min_distance);
   if (distance > 1) {
     return distance;
   }
 
   /* Using `calculate_grid_step` to break down subframe_range simulating a larger view. */
-  distance = calculate_grid_step(subframe_range, pixel_width, view_width * subframe_range);
+  distance = calculate_grid_step(
+      subframe_range, pixel_width, view_width * subframe_range, min_distance);
   return distance / subframe_range;
 }
 
@@ -138,24 +143,27 @@ static float calculate_grid_step_fractions(const int base,
  *
  * \param line_distance value distance between lines.
  * \param view_bounds the value bounds visible in the region. x has to be lower than y.
+ * \param r_start_value the value on which the first line should be drawn.
+ * \param r_steps how many lines should be drawn.
+ *
+ * \returns an unsigned integer indicating how many lines can be drawn.
  */
 static void get_parallel_lines_draw_steps(const float line_distance,
                                           const float2 view_bounds,
-                                          float *r_first,
+                                          float *r_start_value,
                                           uint *r_steps)
 {
   if (view_bounds.x >= view_bounds.y) {
-    *r_first = 0;
+    r_start_value = 0;
     *r_steps = 0;
     return;
   }
 
   BLI_assert(line_distance > 0);
+  *r_start_value = ceilf(view_bounds.x / line_distance) * line_distance;
 
-  *r_first = ceilf(view_bounds.x / line_distance) * line_distance;
-
-  if (view_bounds.x <= *r_first && view_bounds.y >= *r_first) {
-    *r_steps = std::max(0.0f, floorf((view_bounds.y - *r_first) / line_distance)) + 1;
+  if (view_bounds.x <= *r_start_value && view_bounds.y >= *r_start_value) {
+    *r_steps = std::max(0.0f, floorf((view_bounds.y - *r_start_value) / line_distance)) + 1;
   }
   else {
     *r_steps = 0;
@@ -172,16 +180,18 @@ static void draw_parallel_lines(const float line_distance,
                                 const uchar color[3],
                                 const char direction)
 {
-  float first;
+  float start_value;
   uint steps, steps_max;
 
   if (direction == 'v') {
-    get_parallel_lines_draw_steps(line_distance, {rect->xmin, rect->xmax}, &first, &steps);
+    const float2 view_bounds = {rect->xmin, rect->xmax};
+    get_parallel_lines_draw_steps(line_distance, view_bounds, &start_value, &steps);
     steps_max = BLI_rcti_size_x(rect_mask);
   }
   else {
     BLI_assert(direction == 'h');
-    get_parallel_lines_draw_steps(line_distance, {rect->ymin, rect->ymax}, &first, &steps);
+    const float2 view_bounds = {rect->ymin, rect->ymax};
+    get_parallel_lines_draw_steps(line_distance, view_bounds, &start_value, &steps);
     steps_max = BLI_rcti_size_y(rect_mask);
   }
 
@@ -216,14 +226,14 @@ static void draw_parallel_lines(const float line_distance,
 
   if (direction == 'v') {
     for (uint i = 0; i < steps; i++) {
-      const float xpos = first + i * line_distance;
+      const float xpos = start_value + i * line_distance;
       immVertex2f(pos, xpos, rect->ymin);
       immVertex2f(pos, xpos, rect->ymax);
     }
   }
   else {
     for (uint i = 0; i < steps; i++) {
-      const float ypos = first + i * line_distance;
+      const float ypos = start_value + i * line_distance;
       immVertex2f(pos, rect->xmin, ypos);
       immVertex2f(pos, rect->xmax, ypos);
     }
@@ -284,7 +294,7 @@ static void view2d_draw_lines(const View2D *v2d,
  **************************************************/
 
 using PositionToString =
-    void (*)(void *user_data, float value, float step, char *r_str, uint str_maxncpy);
+    void (*)(const Scene *scene, float value, float step, char *r_str, uint str_maxncpy);
 
 /**
  * \param distance is the distance between lines in the data unit of the v2d (frame or value).
@@ -294,21 +304,19 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const float distance,
                                              const rcti *rect,
                                              PositionToString to_string,
-                                             void *to_string_data,
+                                             const Scene *scene,
                                              const int colorid)
 {
   if (view2d_scale_get_x(v2d) <= 0.0f) {
     return;
   }
 
-  float start;
+  float start_value;
   uint steps;
   {
-    get_parallel_lines_draw_steps(
-        distance,
-        {view2d_region_to_view_x(v2d, rect->xmin), view2d_region_to_view_x(v2d, rect->xmax)},
-        &start,
-        &steps);
+    const float2 view_bounds = {view2d_region_to_view_x(v2d, rect->xmin),
+                                view2d_region_to_view_x(v2d, rect->xmax)};
+    get_parallel_lines_draw_steps(distance, view_bounds, &start_value, &steps);
     const uint steps_max = BLI_rcti_size_x(&v2d->mask) + 1;
     if (UNLIKELY(steps >= steps_max)) {
       return;
@@ -324,36 +332,13 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   BLF_batch_draw_begin();
 
   const float ypos = rect->ymin + 4 * UI_SCALE_FAC;
-  const float xmin = rect->xmin;
-  const float xmax = rect->xmax;
-
   char text[32];
-
-  /* Calculate max_label_count and draw_frequency based on largest visible label. */
-  int draw_frequency;
-  {
-    to_string(to_string_data, start, 0, text, sizeof(text));
-    const float left_text_width = BLF_width(font_id, text, strlen(text));
-    to_string(to_string_data, start + steps * distance, 0, text, sizeof(text));
-    const float right_text_width = BLF_width(font_id, text, strlen(text));
-    const float max_text_width = max_ff(left_text_width, right_text_width);
-    const float max_label_count = (BLI_rcti_size_x(&v2d->mask) + 1) / (max_text_width + 6.0f);
-    draw_frequency = ceil(float(steps) / max_label_count);
-  }
-
-  if (draw_frequency != 0) {
-    const int start_index = abs(int(start / distance)) % draw_frequency;
-    for (uint i = start_index; i < steps; i += draw_frequency) {
-      const float xpos_view = start + i * distance;
-      const float xpos_region = view2d_view_to_region_x(v2d, xpos_view);
-      to_string(to_string_data, xpos_view, distance, text, sizeof(text));
-      const float text_width = BLF_width(font_id, text, strlen(text));
-
-      if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
-        BLF_draw_default(
-            xpos_region - std::trunc(text_width / 2.0f), ypos, 0.0f, text, sizeof(text));
-      }
-    }
+  for (uint i = 0; i < steps; i++) {
+    const float xpos_view = start_value + i * distance;
+    const float xpos_region = view2d_view_to_region_x(v2d, xpos_view);
+    to_string(scene, xpos_view, distance, text, sizeof(text));
+    const float text_width = BLF_width(font_id, text, strlen(text));
+    BLF_draw_default(xpos_region - std::trunc(text_width / 2.0f), ypos, 0.0f, text, sizeof(text));
   }
 
   BLF_batch_draw_end();
@@ -366,7 +351,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
                                            float display_offset,
                                            const rcti *rect,
                                            PositionToString to_string,
-                                           void *to_string_data,
+                                           const Scene *scene,
                                            int colorid)
 {
   if (view2d_scale_get_y(v2d) <= 0.0f) {
@@ -376,11 +361,9 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   float start;
   uint steps;
   {
-    get_parallel_lines_draw_steps(
-        distance,
-        {view2d_region_to_view_y(v2d, rect->ymin), view2d_region_to_view_y(v2d, rect->ymax)},
-        &start,
-        &steps);
+    const float2 view_bounds = {view2d_region_to_view_y(v2d, rect->ymin),
+                                view2d_region_to_view_y(v2d, rect->ymax)};
+    get_parallel_lines_draw_steps(distance, view_bounds, &start, &steps);
     const uint steps_max = BLI_rcti_size_y(&v2d->mask) + 1;
     if (UNLIKELY(steps >= steps_max)) {
       return;
@@ -411,7 +394,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
     const float ypos_view = start + i * distance;
     const float ypos_region = view2d_view_to_region_y(v2d, ypos_view + display_offset);
     char text[32];
-    to_string(to_string_data, ypos_view, distance, text, sizeof(text));
+    to_string(scene, ypos_view, distance, text, sizeof(text));
 
     if (ypos_region - y_offset >= ymin && ypos_region + y_offset <= ymax) {
       BLF_draw_default(xpos, ypos_region - y_offset, 0.0f, text, sizeof(text));
@@ -432,10 +415,8 @@ static void draw_vertical_scale_indicators(const ARegion *region,
  * \param user_data has to be a `Scene *` so we can get the frames per second.
  */
 static void frame_to_time_string(
-    void *user_data, const float frame, const float step, char *r_str, const uint str_maxncpy)
+    const Scene *scene, const float frame, const float step, char *r_str, const uint str_maxncpy)
 {
-  const Scene *scene = static_cast<const Scene *>(user_data);
-
   int brevity_level = -1;
   if (U.timecode_style == USER_TIMECODE_MINIMAL && step >= scene->frames_per_second()) {
     brevity_level = 1;
@@ -453,8 +434,11 @@ static void frame_to_time_string(
  * Generates a string based on the given `frame`.
  * Depending on `step` the returned string has 0 - 3 decimal positions.
  */
-static void frame_to_string(
-    void * /*user_data*/, const float frame, const float step, char *r_str, const uint str_maxncpy)
+static void frame_to_string(const Scene * /*user_data*/,
+                            const float frame,
+                            const float step,
+                            char *r_str,
+                            const uint str_maxncpy)
 {
   if (step >= 1.0f) {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(frame));
@@ -470,40 +454,85 @@ static void frame_to_string(
   }
 }
 
+/**
+ * Returns the width of a label in the given data bounds in pixels.
+ */
+static float get_label_width(PositionToString to_string,
+                             const Scene *scene,
+                             const float2 data_bounds)
+{
+  const int font_id = BLF_set_default();
+  char text[32];
+  /* Using abs to remove the influence of the minus sign on the text width. The padding added
+   * should make up for that. This avoids flickering when scrolling horizontally around the 0
+   * point.  */
+  to_string(scene, abs(data_bounds.x), 0, text, sizeof(text));
+  const float left_text_width = BLF_width(font_id, text, strlen(text));
+  to_string(scene, abs(data_bounds.y), 0, text, sizeof(text));
+  const float right_text_width = BLF_width(font_id, text, strlen(text));
+  const float max_text_width = max_ff(left_text_width, right_text_width);
+
+  constexpr int text_padding = 6;
+  return max_text_width + text_padding;
+}
+
+/**
+ * Calculate the minimum distance between lines. This depends also on the label that is drawn on
+ * the lines since they shouldn't overlap.
+ */
+static float get_min_line_distance_x(const View2D *v2d,
+                                     const Scene *scene,
+                                     const bool display_seconds)
+{
+  const float2 view_range = {v2d->cur.xmin, v2d->cur.xmax};
+  PositionToString to_string;
+  if (display_seconds) {
+    to_string = frame_to_time_string;
+  }
+  else {
+    to_string = frame_to_string;
+  }
+  const float label_width = get_label_width(to_string, scene, view_range);
+  return max_ff(MIN_MAJOR_LINE_DISTANCE, label_width);
+}
+
 /* Grid Resolution API
  **************************************************/
 
-float view2d_grid_resolution_x__frames_or_seconds(const View2D *v2d, const Scene *scene)
+float view2d_grid_resolution_x(const View2D *v2d, const Scene *scene, const bool display_seconds)
 {
+  const float min_line_distance = get_min_line_distance_x(v2d, scene, display_seconds);
   const int fps = round_db_to_int(scene->frames_per_second());
   return calculate_grid_step_fractions(
-      fps, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+      fps, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur), min_line_distance);
 }
 
 float view2d_grid_resolution_y__values(const View2D *v2d, const int base)
 {
   return calculate_grid_step_fractions(
-      base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+      base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur), MIN_MAJOR_LINE_DISTANCE);
 }
 
 /* Line Drawing API
  **************************************************/
 
 void view2d_draw_lines_x(const View2D *v2d,
+                         const Scene *scene,
                          const bool display_seconds,
                          const bool show_fractions,
                          bool draw_minor_lines,
                          const int base)
 {
+  const float min_line_distance = get_min_line_distance_x(v2d, scene, display_seconds);
   float major_line_distance;
   /* Fractions are only drawn when not showing a timecode. See `view2d_draw_scale_x`. */
   if (show_fractions && !display_seconds) {
     major_line_distance = calculate_grid_step_fractions(
-        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur), min_line_distance);
   }
   else {
     major_line_distance = calculate_grid_step(
-        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur), min_line_distance);
     draw_minor_lines = draw_minor_lines && (major_line_distance > 1);
   }
   /* The extra check for minor line drawing here is so minor lines are *not* drawn
@@ -518,19 +547,23 @@ void view2d_draw_lines_x_frames(const View2D *v2d,
                                 const bool draw_minor_lines)
 {
   const int fps = round_db_to_int(scene->frames_per_second());
-  view2d_draw_lines_x(v2d, display_seconds, show_fractions, draw_minor_lines, fps);
+  view2d_draw_lines_x(v2d, scene, display_seconds, show_fractions, draw_minor_lines, fps);
 }
 
 void view2d_draw_lines_y(const View2D *v2d, const bool show_fractions, const int base)
 {
   float major_line_distance;
   if (show_fractions) {
-    major_line_distance = calculate_grid_step_fractions(
-        base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+    major_line_distance = calculate_grid_step_fractions(base,
+                                                        BLI_rcti_size_y(&v2d->mask) + 1,
+                                                        BLI_rctf_size_y(&v2d->cur),
+                                                        MIN_MAJOR_LINE_DISTANCE);
   }
   else {
-    major_line_distance = calculate_grid_step(
-        base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+    major_line_distance = calculate_grid_step(base,
+                                              BLI_rcti_size_y(&v2d->mask) + 1,
+                                              BLI_rctf_size_y(&v2d->cur),
+                                              MIN_MAJOR_LINE_DISTANCE);
   }
   view2d_draw_lines(v2d, major_line_distance, true, 'h');
 }
@@ -542,7 +575,7 @@ void view2d_draw_scale_y(
     const ARegion *region, const View2D *v2d, const rcti *rect, const int colorid, const int base)
 {
   const float step = calculate_grid_step_fractions(
-      base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur));
+      base, BLI_rcti_size_y(&v2d->mask) + 1, BLI_rctf_size_y(&v2d->cur), MIN_MAJOR_LINE_DISTANCE);
   draw_vertical_scale_indicators(region, v2d, step, 0.0f, rect, frame_to_string, nullptr, colorid);
 }
 
@@ -555,19 +588,22 @@ void view2d_draw_scale_x(const ARegion *region,
                          const int colorid,
                          const int base)
 {
+  const float min_line_distance = get_min_line_distance_x(v2d, scene, display_seconds);
   float step;
   /* The timecode string does not change on fractions of a frame so it makes no sense to display
    * that. */
   if (show_fractions && !display_seconds) {
     step = calculate_grid_step_fractions(
-        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur), min_line_distance);
   }
   else {
-    step = calculate_grid_step(base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
+    step = calculate_grid_step(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur), min_line_distance);
   }
+
   if (display_seconds) {
     draw_horizontal_scale_indicators(
-        region, v2d, step, rect, frame_to_time_string, (void *)scene, colorid);
+        region, v2d, step, rect, frame_to_time_string, scene, colorid);
   }
   else {
     draw_horizontal_scale_indicators(region, v2d, step, rect, frame_to_string, nullptr, colorid);

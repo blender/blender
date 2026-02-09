@@ -268,7 +268,7 @@ void clip_draw_graph(SpaceClip *sc, ARegion *region, Scene *scene)
   View2D *v2d = &region->v2d;
 
   /* grid */
-  ui::view2d_draw_lines_x(v2d, false, true, true, 10);
+  ui::view2d_draw_lines_x(v2d, scene, false, true, true, 10);
   ui::view2d_draw_lines_y(v2d, true, 10);
 
   if (clip) {
