@@ -216,6 +216,9 @@ class BaseGenerator:
         self.view_layer = context.view_layer
         self.layer_collection = context.layer_collection
         self.collection = self.layer_collection.collection
+        if self.collection.override_library:
+            raise RuntimeError(
+                "Cannot generate rig into a library override collection. Select a different collection in the outliner")
         self.metarig = metarig
 
         # List of all rig instances
