@@ -676,8 +676,8 @@ void RE_FreeUnusedGPUResources()
 
     if (do_free) {
       re_gpu_texture_caches_free(re);
-      if (!re->display_shared) {
-        RE_display_free(re);
+      if (re->display && !re->display_shared) {
+        re->display->free_gpu_context();
       }
 
       /* We also free the resources from the interactive compositor render of the scene if one
@@ -686,8 +686,10 @@ void RE_FreeUnusedGPUResources()
           RenderGlobal.interactive_compositor_renders.lookup_default(re->owner, nullptr);
       if (interactive_compositor_render) {
         re_gpu_texture_caches_free(interactive_compositor_render);
-        if (!interactive_compositor_render->display_shared) {
-          RE_display_free(interactive_compositor_render);
+        if (!interactive_compositor_render->display &&
+            !interactive_compositor_render->display_shared)
+        {
+          interactive_compositor_render->display->free_gpu_context();
         }
       }
     }
@@ -962,7 +964,7 @@ void RE_display_share(Render *re, const Render *parent_re)
 
 void RE_display_free(Render *re)
 {
-  /* Re-initializing with a new RenderDisplay will free the GPU contexts. */
+  /* Re-initializing with a new RenderDisplay will free the GPU contexts and all callbacks. */
   RE_display_init(re);
 }
 
