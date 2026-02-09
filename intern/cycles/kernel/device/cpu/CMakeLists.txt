@@ -40,8 +40,8 @@ if(DEFINED CYCLES_KERNEL_FLAGS)
   set_source_files_properties(kernel.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
 endif()
 
-if(CXX_HAS_AVX2)
-  set_source_files_properties(kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_FLAGS}")
+if(CXX_HAS_AVX2 AND CXX_HAS_F16C)
+  set_source_files_properties(kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_F16C_FLAGS}")
 endif()
 
 # Warnings to avoid using doubles in the kernel.

@@ -34,6 +34,7 @@ endif()
 if(WITH_CYCLES_NATIVE_ONLY)
   set(CXX_HAS_SSE42 FALSE)
   set(CXX_HAS_AVX2 FALSE)
+  set(CXX_HAS_F16C FALSE)
   add_definitions(
     -DWITH_KERNEL_NATIVE
   )
@@ -71,16 +72,15 @@ elseif(SUPPORTS_NEON_BUILD AND SSE2NEON_FOUND)
   # Disable the CXX_HAS_* flags so we don't add any SSE or AVX compiler flags.
   set(CXX_HAS_SSE42 FALSE)
   set(CXX_HAS_AVX2 FALSE)
+  set(CXX_HAS_F16C FALSE)
 elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CXX_HAS_SSE42 TRUE)
   set(CXX_HAS_AVX2 TRUE)
+  set(CXX_HAS_F16C TRUE)
 
-  # /arch:AVX for VC2012 and above
-  if(NOT MSVC_VERSION LESS 1700)
-    set(CYCLES_AVX2_FLAGS "/arch:AVX /arch:AVX2")
-  elseif(NOT CMAKE_CL_64)
-    set(CYCLES_AVX2_FLAGS "/arch:SSE2")
-  endif()
+  # No separate f16c flag for MSVC.
+  set(CYCLES_AVX2_FLAGS "/arch:AVX2")
+  set(CYCLES_AVX2_F16C_FLAGS "${CYCLES_AVX2_FLAGS}")
 
   # there is no /arch:SSE3, but intrinsics are available anyway
   if(CMAKE_CL_64)
@@ -91,34 +91,40 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
   check_cxx_compiler_flag(-msse4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(-mavx2 CXX_HAS_AVX2)
+  check_cxx_compiler_flag(-mf16c CXX_HAS_F16C)
 
   if(CXX_HAS_SSE42)
     set(CYCLES_SSE42_FLAGS "-msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2")
-    if(CXX_HAS_AVX2)
+    if(CXX_HAS_AVX2 AND CXX_HAS_F16C)
       set(CYCLES_AVX2_FLAGS "${CYCLES_SSE42_FLAGS} -mavx -mavx2 -mfma -mlzcnt -mbmi -mbmi2 -mf16c")
+      set(CYCLES_AVX2_F16C_FLAGS "${CYCLES_AVX2_FLAGS} -mf16c")
     endif()
   endif()
 
 elseif(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(/QxSSE4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(/QxCORE-AVX2 CXX_HAS_AVX2)
+  set(CXX_HAS_F16C CXX_HAS_AVX) # Same flag enables AVX, FMA and F16C
 
   if(CXX_HAS_SSE42)
     set(CYCLES_SSE42_FLAGS "/QxSSE4.2")
 
-    if(CXX_HAS_AVX2)
+    if(CXX_HAS_AVX2 AND CXX_HAS_F16C)
       set(CYCLES_AVX2_FLAGS "/QxCORE-AVX2")
+      set(CYCLES_AVX2_F16C_FLAGS "${CYCLES_AVX2_FLAGS}")
     endif()
   endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(-xsse4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(-xcore-avx2 CXX_HAS_AVX2)
+  set(CXX_HAS_F16C CXX_HAS_AVX) # Same flag enables AVX, FMA and F16C
 
   if(CXX_HAS_SSE42)
     set(CYCLES_SSE42_FLAGS "-xsse4.2")
 
-    if(CXX_HAS_AVX2)
+    if(CXX_HAS_AVX2 AND CXX_HAS_F16C)
       set(CYCLES_AVX2_FLAGS "-xcore-avx2")
+      set(CYCLES_AVX2_F16C_FLAGS "${CYCLES_AVX2_FLAGS}")
     endif()
   endif()
 endif()
