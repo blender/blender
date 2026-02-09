@@ -789,7 +789,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     start_time = Clock::now();
   }
 
-  CLOG_INFO(&LOG, "Compiling Shader \"%s\"", orig_info.name_.c_str());
+  CLOG_DEBUG(&LOG, "Compiling Shader \"%s\"", orig_info.name_.c_str());
 
   Shader *shader = GPUBackend::get()->shader_alloc(orig_info.name_.c_str());
 
