@@ -8536,7 +8536,7 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
 
             col = layout.column()
             col.separator()
-            col.prop_menu_enum(gp_settings, "vertex_mode", text="Mode")
+            col.prop(gp_settings, "vertex_mode", text="")
             col.separator()
 
         if brush.gpencil_brush_type not in {'FILL', 'CUTTER', 'ERASE'}:
