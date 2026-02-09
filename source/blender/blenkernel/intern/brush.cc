@@ -171,7 +171,7 @@ static void brush_free_data(ID *id)
 
   MEM_SAFE_DELETE(brush->gradient);
 
-  BKE_previewimg_free(&(brush->preview));
+  BKE_previewimg_id_free(&brush->id);
 }
 
 static void brush_make_local(Main *bmain, ID *id, const int flags)

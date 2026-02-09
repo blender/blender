@@ -127,7 +127,7 @@ static void texture_free_data(ID *id)
   MEM_SAFE_DELETE(texture->coba);
 
   BKE_icon_id_delete(id_cast<ID *>(texture));
-  BKE_previewimg_free(&texture->preview);
+  BKE_previewimg_id_free(&texture->id);
 }
 
 static void texture_foreach_id(ID *id, LibraryForeachIDData *data)

@@ -2350,6 +2350,8 @@ void ED_preview_icon_job(
   ip->id = id;
 
   prv_img->flag[icon_size] |= PRV_RENDERING;
+  /* Warn main thread code that this preview is being rendered and cannot be freed. */
+  prv_img->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
   icon_preview_add_size(
       ip, prv_img->rect[icon_size], prv_img->w[icon_size], prv_img->h[icon_size]);

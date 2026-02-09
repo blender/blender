@@ -213,8 +213,9 @@ PreviewImage *BKE_previewimg_id_get(const ID *id)
 void BKE_previewimg_id_free(ID *id)
 {
   PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
-  if (prv_p) {
-    BKE_previewimg_free(prv_p);
+  if (prv_p && *prv_p) {
+    BKE_previewimg_deferred_release(*prv_p);
+    *prv_p = nullptr;
   }
 }
 

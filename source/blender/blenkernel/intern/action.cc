@@ -234,7 +234,7 @@ static void action_free_data(ID *id)
 
   /* Free markers & preview. */
   BLI_freelistN(&action.markers);
-  BKE_previewimg_free(&action.preview);
+  BKE_previewimg_id_free(&action.id);
 
   BLI_assert(action.is_empty());
 }

@@ -162,7 +162,7 @@ static void material_free_data(ID *id)
 
   MEM_SAFE_DELETE(material->gp_style);
 
-  BKE_previewimg_free(&material->preview);
+  BKE_previewimg_id_free(&material->id);
 
   BKE_icon_id_delete(id_cast<ID *>(material));
 }

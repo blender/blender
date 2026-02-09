@@ -310,7 +310,7 @@ static void ntree_free_data(ID *id)
   }
 
   MEM_SAFE_DELETE(ntree->description);
-  BKE_previewimg_free(&ntree->preview);
+  BKE_previewimg_id_free(&ntree->id);
   MEM_delete(ntree->runtime);
 }
 

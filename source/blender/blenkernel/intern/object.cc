@@ -328,7 +328,7 @@ static void object_free_data(ID *id)
     ob->runtime->curve_cache = nullptr;
   }
 
-  BKE_previewimg_free(&ob->preview);
+  BKE_previewimg_id_free(&ob->id);
 
   MEM_SAFE_DELETE(ob->lightgroup);
   BKE_light_linking_delete(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
