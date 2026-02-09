@@ -929,6 +929,7 @@ static bool vfont_to_curve(Object *ob,
             }
             i = j - 1;
             offset.x = ct->offset.x;
+            wnr = ct->wordnr;
             BLI_assert(&ct[1] == &chartransdata[i + 1]);
             ct[1].do_break = 1;
             ct[1].is_wrap = 1;
