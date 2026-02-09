@@ -158,34 +158,34 @@ static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_PT = {
-    /*id_code*/ PointCloud::id_type,
-    /*id_filter*/ FILTER_ID_PT,
-    /*dependencies_id_types*/ FILTER_ID_MA,
-    /*main_listbase_index*/ INDEX_ID_PT,
-    /*struct_size*/ sizeof(PointCloud),
-    /*name*/ "PointCloud",
-    /*name_plural*/ N_("pointclouds"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_POINTCLOUD,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = PointCloud::id_type,
+    .id_filter = FILTER_ID_PT,
+    .dependencies_id_types = FILTER_ID_MA,
+    .main_listbase_index = INDEX_ID_PT,
+    .struct_size = sizeof(PointCloud),
+    .name = "PointCloud",
+    .name_plural = N_("pointclouds"),
+    .translation_context = BLT_I18NCONTEXT_ID_POINTCLOUD,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ pointcloud_init_data,
-    /*copy_data*/ pointcloud_copy_data,
-    /*free_data*/ pointcloud_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ pointcloud_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ pointcloud_foreach_working_space_color,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = pointcloud_init_data,
+    .copy_data = pointcloud_copy_data,
+    .free_data = pointcloud_free_data,
+    .make_local = nullptr,
+    .foreach_id = pointcloud_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = pointcloud_foreach_working_space_color,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ pointcloud_blend_write,
-    /*blend_read_data*/ pointcloud_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = pointcloud_blend_write,
+    .blend_read_data = pointcloud_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 Span<float3> PointCloud::positions() const

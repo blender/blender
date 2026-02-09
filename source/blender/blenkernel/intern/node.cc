@@ -2162,35 +2162,35 @@ static AssetTypeInfo AssetType_NT = {
 };
 
 IDTypeInfo IDType_ID_NT = {
-    /*id_code*/ bNodeTree::id_type,
-    /*id_filter*/ FILTER_ID_NT,
+    .id_code = bNodeTree::id_type,
+    .id_filter = FILTER_ID_NT,
     /* IDProps of nodes, and #bNode.id, can use any type of ID. */
-    /*dependencies_id_types*/ FILTER_ID_ALL,
-    /*main_listbase_index*/ INDEX_ID_NT,
-    /*struct_size*/ sizeof(bNodeTree),
-    /*name*/ "NodeTree",
-    /*name_plural*/ N_("node_groups"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_NODETREE,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ &AssetType_NT,
+    .dependencies_id_types = FILTER_ID_ALL,
+    .main_listbase_index = INDEX_ID_NT,
+    .struct_size = sizeof(bNodeTree),
+    .name = "NodeTree",
+    .name_plural = N_("node_groups"),
+    .translation_context = BLT_I18NCONTEXT_ID_NODETREE,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = &AssetType_NT,
 
-    /*init_data*/ bke::ntree_init_data,
-    /*copy_data*/ bke::ntree_copy_data,
-    /*free_data*/ bke::ntree_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ bke::node_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ bke::node_foreach_path,
-    /*foreach_working_space_color*/ bke::node_foreach_working_space_color,
-    /*owner_pointer_get*/ bke::node_owner_pointer_get,
+    .init_data = bke::ntree_init_data,
+    .copy_data = bke::ntree_copy_data,
+    .free_data = bke::ntree_free_data,
+    .make_local = nullptr,
+    .foreach_id = bke::node_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = bke::node_foreach_path,
+    .foreach_working_space_color = bke::node_foreach_working_space_color,
+    .owner_pointer_get = bke::node_owner_pointer_get,
 
-    /*blend_write*/ bke::ntree_blend_write,
-    /*blend_read_data*/ bke::ntree_blend_read_data,
-    /*blend_read_after_liblink*/ bke::ntree_blend_read_after_liblink,
+    .blend_write = bke::ntree_blend_write,
+    .blend_read_data = bke::ntree_blend_read_data,
+    .blend_read_after_liblink = bke::ntree_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 namespace bke {

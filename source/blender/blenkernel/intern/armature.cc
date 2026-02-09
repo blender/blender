@@ -498,35 +498,35 @@ static void armature_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *
 }
 
 IDTypeInfo IDType_ID_AR = {
-    /*id_code*/ bArmature::id_type,
-    /*id_filter*/ FILTER_ID_AR,
+    .id_code = bArmature::id_type,
+    .id_filter = FILTER_ID_AR,
     /* IDProps of armature bones can use any type of ID. */
-    /*dependencies_id_types*/ FILTER_ID_ALL,
-    /*main_listbase_index*/ INDEX_ID_AR,
-    /*struct_size*/ sizeof(bArmature),
-    /*name*/ "Armature",
-    /*name_plural*/ N_("armatures"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_ARMATURE,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .dependencies_id_types = FILTER_ID_ALL,
+    .main_listbase_index = INDEX_ID_AR,
+    .struct_size = sizeof(bArmature),
+    .name = "Armature",
+    .name_plural = N_("armatures"),
+    .translation_context = BLT_I18NCONTEXT_ID_ARMATURE,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ armature_init_data,
-    /*copy_data*/ armature_copy_data,
-    /*free_data*/ armature_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ armature_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = armature_init_data,
+    .copy_data = armature_copy_data,
+    .free_data = armature_free_data,
+    .make_local = nullptr,
+    .foreach_id = armature_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ armature_blend_write,
-    /*blend_read_data*/ armature_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = armature_blend_write,
+    .blend_read_data = armature_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ armature_undo_preserve,
+    .blend_read_undo_preserve = armature_undo_preserve,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /** \} */

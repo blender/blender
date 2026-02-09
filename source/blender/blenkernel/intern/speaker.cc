@@ -48,34 +48,34 @@ static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 }
 
 IDTypeInfo IDType_ID_SPK = {
-    /*id_code*/ Speaker::id_type,
-    /*id_filter*/ FILTER_ID_SPK,
-    /*dependencies_id_types*/ FILTER_ID_SO,
-    /*main_listbase_index*/ INDEX_ID_SPK,
-    /*struct_size*/ sizeof(Speaker),
-    /*name*/ "Speaker",
-    /*name_plural*/ N_("speakers"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_SPEAKER,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = Speaker::id_type,
+    .id_filter = FILTER_ID_SPK,
+    .dependencies_id_types = FILTER_ID_SO,
+    .main_listbase_index = INDEX_ID_SPK,
+    .struct_size = sizeof(Speaker),
+    .name = "Speaker",
+    .name_plural = N_("speakers"),
+    .translation_context = BLT_I18NCONTEXT_ID_SPEAKER,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ speaker_init_data,
-    /*copy_data*/ nullptr,
-    /*free_data*/ nullptr,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ speaker_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = speaker_init_data,
+    .copy_data = nullptr,
+    .free_data = nullptr,
+    .make_local = nullptr,
+    .foreach_id = speaker_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ speaker_blend_write,
-    /*blend_read_data*/ nullptr,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = speaker_blend_write,
+    .blend_read_data = nullptr,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 Speaker *BKE_speaker_add(Main *bmain, const char *name)

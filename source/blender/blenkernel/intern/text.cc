@@ -227,34 +227,34 @@ static void text_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_TXT = {
-    /*id_code*/ Text::id_type,
-    /*id_filter*/ FILTER_ID_TXT,
-    /*dependencies_id_types*/ 0,
-    /*main_listbase_index*/ INDEX_ID_TXT,
-    /*struct_size*/ sizeof(Text),
-    /*name*/ "Text",
-    /*name_plural*/ N_("texts"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_TEXT,
-    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = Text::id_type,
+    .id_filter = FILTER_ID_TXT,
+    .dependencies_id_types = 0,
+    .main_listbase_index = INDEX_ID_TXT,
+    .struct_size = sizeof(Text),
+    .name = "Text",
+    .name_plural = N_("texts"),
+    .translation_context = BLT_I18NCONTEXT_ID_TEXT,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ text_init_data,
-    /*copy_data*/ text_copy_data,
-    /*free_data*/ text_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ nullptr,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ text_foreach_path,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = text_init_data,
+    .copy_data = text_copy_data,
+    .free_data = text_free_data,
+    .make_local = nullptr,
+    .foreach_id = nullptr,
+    .foreach_cache = nullptr,
+    .foreach_path = text_foreach_path,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ text_blend_write,
-    /*blend_read_data*/ text_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = text_blend_write,
+    .blend_read_data = text_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /** \} */

@@ -87,34 +87,34 @@ using namespace bke::id;
 static CLG_LogRef LOG = {"lib.id"};
 
 IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
-    /*id_code*/ ID_LINK_PLACEHOLDER,
-    /*id_filter*/ 0,
-    /*dependencies_id_types*/ 0,
-    /*main_listbase_index*/ INDEX_ID_NULL,
-    /*struct_size*/ sizeof(ID),
-    /*name*/ "LinkPlaceholder",
-    /*name_plural*/ N_("link_placeholders"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_ID,
-    /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING,
-    /*asset_type_info*/ nullptr,
+    .id_code = ID_LINK_PLACEHOLDER,
+    .id_filter = 0,
+    .dependencies_id_types = 0,
+    .main_listbase_index = INDEX_ID_NULL,
+    .struct_size = sizeof(ID),
+    .name = "LinkPlaceholder",
+    .name_plural = N_("link_placeholders"),
+    .translation_context = BLT_I18NCONTEXT_ID_ID,
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ nullptr,
-    /*copy_data*/ nullptr,
-    /*free_data*/ nullptr,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ nullptr,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = nullptr,
+    .copy_data = nullptr,
+    .free_data = nullptr,
+    .make_local = nullptr,
+    .foreach_id = nullptr,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ nullptr,
-    /*blend_read_data*/ nullptr,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = nullptr,
+    .blend_read_data = nullptr,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /* GS reads the memory pointed at in a specific ordering.

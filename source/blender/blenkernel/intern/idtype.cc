@@ -45,6 +45,82 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
 
 static std::array<IDTypeInfo *, INDEX_ID_MAX> id_types;
 
+/** Check that no member remains uninitialized. */
+static bool id_type_is_valid(const IDTypeInfo &id_type)
+{
+  if (id_type.id_code == ID_LINK_PLACEHOLDER) {
+    return false;
+  }
+  if (id_type.id_filter == 0) {
+    return false;
+  }
+  if (id_type.main_listbase_index == INDEX_ID_MAX) {
+    return false;
+  }
+  if (id_type.struct_size == 0) {
+    return false;
+  }
+  if (id_type.name == nullptr) {
+    return false;
+  }
+  if (id_type.name_plural == nullptr) {
+    return false;
+  }
+  if (id_type.translation_context == nullptr) {
+    return false;
+  }
+  if (id_type.asset_type_info == id_type.InvalidPointer<AssetTypeInfo *>()) {
+    return false;
+  }
+  if (id_type.init_data == id_type.InvalidPointer<IDTypeInitDataFunction>()) {
+    return false;
+  }
+  if (id_type.copy_data == id_type.InvalidPointer<IDTypeCopyDataFunction>()) {
+    return false;
+  }
+  if (id_type.free_data == id_type.InvalidPointer<IDTypeFreeDataFunction>()) {
+    return false;
+  }
+  if (id_type.make_local == id_type.InvalidPointer<IDTypeMakeLocalFunction>()) {
+    return false;
+  }
+  if (id_type.foreach_id == id_type.InvalidPointer<IDTypeForeachIDFunction>()) {
+    return false;
+  }
+  if (id_type.foreach_cache == id_type.InvalidPointer<IDTypeForeachCacheFunction>()) {
+    return false;
+  }
+  if (id_type.foreach_path == id_type.InvalidPointer<IDTypeForeachPathFunction>()) {
+    return false;
+  }
+  if (id_type.foreach_working_space_color == id_type.InvalidPointer<IDTypeForeachColorFunction>())
+  {
+    return false;
+  }
+  if (id_type.owner_pointer_get == id_type.InvalidPointer<IDTypeEmbeddedOwnerPointerGetFunction>())
+  {
+    return false;
+  }
+  if (id_type.blend_write == id_type.InvalidPointer<IDTypeBlendWriteFunction>()) {
+    return false;
+  }
+  if (id_type.blend_read_data == id_type.InvalidPointer<IDTypeBlendReadDataFunction>()) {
+    return false;
+  }
+  if (id_type.blend_read_after_liblink ==
+      id_type.InvalidPointer<IDTypeBlendReadAfterLiblinkFunction>())
+  {
+    return false;
+  }
+  if (id_type.blend_read_undo_preserve == id_type.InvalidPointer<IDTypeBlendReadUndoPreserve>()) {
+    return false;
+  }
+  if (id_type.lib_override_apply_post == id_type.InvalidPointer<IDTypeLibOverrideApplyPost>()) {
+    return false;
+  }
+  return true;
+}
+
 static void id_type_init()
 {
   int init_types_num = 0;
@@ -52,6 +128,7 @@ static void id_type_init()
 #define INIT_TYPE(_id_code) \
   { \
     BLI_assert(IDType_##_id_code.main_listbase_index == INDEX_##_id_code); \
+    BLI_assert(id_type_is_valid(IDType_##_id_code)); \
     id_types[INDEX_##_id_code] = &IDType_##_id_code; \
     init_types_num++; \
   } \

@@ -270,34 +270,34 @@ static void volume_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 }
 
 IDTypeInfo IDType_ID_VO = {
-    /*id_code*/ Volume::id_type,
-    /*id_filter*/ FILTER_ID_VO,
-    /*dependencies_id_types*/ FILTER_ID_MA,
-    /*main_listbase_index*/ INDEX_ID_VO,
-    /*struct_size*/ sizeof(Volume),
-    /*name*/ "Volume",
-    /*name_plural*/ N_("volumes"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_VOLUME,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = Volume::id_type,
+    .id_filter = FILTER_ID_VO,
+    .dependencies_id_types = FILTER_ID_MA,
+    .main_listbase_index = INDEX_ID_VO,
+    .struct_size = sizeof(Volume),
+    .name = "Volume",
+    .name_plural = N_("volumes"),
+    .translation_context = BLT_I18NCONTEXT_ID_VOLUME,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ volume_init_data,
-    /*copy_data*/ volume_copy_data,
-    /*free_data*/ volume_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ volume_foreach_id,
-    /*foreach_cache*/ volume_foreach_cache,
-    /*foreach_path*/ volume_foreach_path,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = volume_init_data,
+    .copy_data = volume_copy_data,
+    .free_data = volume_free_data,
+    .make_local = nullptr,
+    .foreach_id = volume_foreach_id,
+    .foreach_cache = volume_foreach_cache,
+    .foreach_path = volume_foreach_path,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ volume_blend_write,
-    /*blend_read_data*/ volume_blend_read_data,
-    /*blend_read_after_liblink*/ volume_blend_read_after_liblink,
+    .blend_write = volume_blend_write,
+    .blend_read_data = volume_blend_read_data,
+    .blend_read_after_liblink = volume_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 void BKE_volume_init_grids(Volume *volume)

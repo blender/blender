@@ -143,34 +143,34 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_CV = {
-    /*id_code*/ Curves::id_type,
-    /*id_filter*/ FILTER_ID_CV,
-    /*dependencies_id_types*/ FILTER_ID_MA | FILTER_ID_OB,
-    /*main_listbase_index*/ INDEX_ID_CV,
-    /*struct_size*/ sizeof(Curves),
-    /*name*/ "Curves",
-    /*name_plural*/ N_("hair_curves"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_CURVES,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = Curves::id_type,
+    .id_filter = FILTER_ID_CV,
+    .dependencies_id_types = FILTER_ID_MA | FILTER_ID_OB,
+    .main_listbase_index = INDEX_ID_CV,
+    .struct_size = sizeof(Curves),
+    .name = "Curves",
+    .name_plural = N_("hair_curves"),
+    .translation_context = BLT_I18NCONTEXT_ID_CURVES,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ curves_init_data,
-    /*copy_data*/ curves_copy_data,
-    /*free_data*/ curves_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ curves_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ curves_foreach_working_space_color,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = curves_init_data,
+    .copy_data = curves_copy_data,
+    .free_data = curves_free_data,
+    .make_local = nullptr,
+    .foreach_id = curves_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = curves_foreach_working_space_color,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ curves_blend_write,
-    /*blend_read_data*/ curves_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = curves_blend_write,
+    .blend_read_data = curves_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 Curves *BKE_curves_add(Main *bmain, const char *name)

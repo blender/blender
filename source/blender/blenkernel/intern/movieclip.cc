@@ -293,34 +293,34 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_MC = {
-    /*id_code*/ MovieClip::id_type,
-    /*id_filter*/ FILTER_ID_MC,
-    /*dependencies_id_types*/ FILTER_ID_GD_LEGACY | FILTER_ID_IM,
-    /*main_listbase_index*/ INDEX_ID_MC,
-    /*struct_size*/ sizeof(MovieClip),
-    /*name*/ "MovieClip",
-    /*name_plural*/ N_("movieclips"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_MOVIECLIP,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = MovieClip::id_type,
+    .id_filter = FILTER_ID_MC,
+    .dependencies_id_types = FILTER_ID_GD_LEGACY | FILTER_ID_IM,
+    .main_listbase_index = INDEX_ID_MC,
+    .struct_size = sizeof(MovieClip),
+    .name = "MovieClip",
+    .name_plural = N_("movieclips"),
+    .translation_context = BLT_I18NCONTEXT_ID_MOVIECLIP,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ movie_clip_init_data,
-    /*copy_data*/ movie_clip_copy_data,
-    /*free_data*/ movie_clip_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ movie_clip_foreach_id,
-    /*foreach_cache*/ movie_clip_foreach_cache,
-    /*foreach_path*/ movie_clip_foreach_path,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = movie_clip_init_data,
+    .copy_data = movie_clip_copy_data,
+    .free_data = movie_clip_free_data,
+    .make_local = nullptr,
+    .foreach_id = movie_clip_foreach_id,
+    .foreach_cache = movie_clip_foreach_cache,
+    .foreach_path = movie_clip_foreach_path,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ movieclip_blend_write,
-    /*blend_read_data*/ movieclip_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = movieclip_blend_write,
+    .blend_read_data = movieclip_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /*********************** movieclip buffer loaders *************************/

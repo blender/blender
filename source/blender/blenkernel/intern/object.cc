@@ -1074,35 +1074,35 @@ static AssetTypeInfo AssetType_OB = {
 };
 
 IDTypeInfo IDType_ID_OB = {
-    /*id_code*/ Object::id_type,
-    /*id_filter*/ FILTER_ID_OB,
-    /* Could be more specific, but simpler to just always say 'yes' here. */
-    /*dependencies_id_types*/ FILTER_ID_ALL,
-    /*main_listbase_index*/ INDEX_ID_OB,
-    /*struct_size*/ sizeof(Object),
-    /*name*/ "Object",
-    /*name_plural*/ N_("objects"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_OBJECT,
-    /*flags*/ 0,
-    /*asset_type_info*/ &AssetType_OB,
+    .id_code = Object::id_type,
+    .id_filter = FILTER_ID_OB,
+    /* Could be more specific, but simpler to just always say 'yes' here.*/
+    .dependencies_id_types = FILTER_ID_ALL,
+    .main_listbase_index = INDEX_ID_OB,
+    .struct_size = sizeof(Object),
+    .name = "Object",
+    .name_plural = N_("objects"),
+    .translation_context = BLT_I18NCONTEXT_ID_OBJECT,
+    .flags = 0,
+    .asset_type_info = &AssetType_OB,
 
-    /*init_data*/ object_init_data,
-    /*copy_data*/ object_copy_data,
-    /*free_data*/ object_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ object_foreach_id,
-    /*foreach_cache*/ object_foreach_cache,
-    /*foreach_path*/ object_foreach_path,
-    /*foreach_working_space_color*/ object_foreach_working_space_color,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = object_init_data,
+    .copy_data = object_copy_data,
+    .free_data = object_free_data,
+    .make_local = nullptr,
+    .foreach_id = object_foreach_id,
+    .foreach_cache = object_foreach_cache,
+    .foreach_path = object_foreach_path,
+    .foreach_working_space_color = object_foreach_working_space_color,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ object_blend_write,
-    /*blend_read_data*/ object_blend_read_data,
-    /*blend_read_after_liblink*/ object_blend_read_after_liblink,
+    .blend_write = object_blend_write,
+    .blend_read_data = object_blend_read_data,
+    .blend_read_after_liblink = object_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ object_lib_override_apply_post,
+    .lib_override_apply_post = object_lib_override_apply_post,
 };
 
 void BKE_object_workob_clear(Object *workob)
