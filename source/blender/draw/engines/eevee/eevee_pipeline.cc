@@ -436,12 +436,15 @@ PassMain::Sub *ForwardPipeline::prepass_opaque_add(blender::Material *blender_ma
   return prepass_ps_.add(blender_mat, gpumat, has_motion);
 }
 
-PassMain::Sub *ForwardPipeline::material_opaque_add(blender::Material *blender_mat,
+PassMain::Sub *ForwardPipeline::material_opaque_add(const Object *ob,
+                                                    blender::Material *blender_mat,
                                                     GPUMaterial *gpumat)
 {
   BLI_assert_msg(GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false,
                  "Forward Transparent should be registered directly without calling "
                  "PipelineModule::material_add()");
+  has_holdout_ |= GPU_material_flag_get(gpumat, GPU_MATFLAG_HOLDOUT) ||
+                  ob->visibility_flag & OB_HOLDOUT;
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ? opaque_single_sided_ps_ :
                                                                           opaque_double_sided_ps_;
   has_opaque_ = true;
@@ -486,7 +489,8 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   }
   has_colored_transparency_ |= GPU_material_flag_get(gpumat,
                                                      GPU_MATFLAG_TRANSPARENT_MAYBE_COLORED) != 0;
-  has_holdout_ |= GPU_material_flag_get(gpumat, GPU_MATFLAG_HOLDOUT) != 0;
+  has_holdout_ |= GPU_material_flag_get(gpumat, GPU_MATFLAG_HOLDOUT) ||
+                  ob->visibility_flag & OB_HOLDOUT;
   has_transparent_ = true;
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
@@ -583,7 +587,7 @@ void ForwardPipeline::render(View &view,
 
   transparent_fb.bind();
 
-  if (has_colored_transparency_) {
+  if (use_colored_transparency()) {
     /* Split channel targets. Radiance in 1st channel, transmittance in 2nd channel. */
     transparent_fb.clear_color(float4(0.0f, 1.0f, 0.0f, 0.0f));
   }
