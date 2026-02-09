@@ -5,15 +5,7 @@
 #include "infos/engine_image_infos.hh"
 
 #include "draw_colormanagement_lib.glsl"
-
-/* Keep in sync with image_engine.c */
-#define IMAGE_DRAW_FLAG_SHOW_ALPHA (1 << 0)
-#define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
-#define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
-#define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
-
-#define FAR_DISTANCE far_near_distances.x
-#define NEAR_DISTANCE far_near_distances.y
+#include "image_engine_lib.glsl"
 
 void main()
 {
@@ -26,20 +18,6 @@ void main()
 
   float4 tex_color = texelFetch(image_tx, uvs_clamped - offset, 0);
 
-  if ((draw_flags & IMAGE_DRAW_FLAG_APPLY_ALPHA) != 0) {
-    if (!is_image_premultiplied) {
-      tex_color.rgb *= tex_color.a;
-    }
-  }
-  if ((draw_flags & IMAGE_DRAW_FLAG_DEPTH) != 0) {
-    tex_color = smoothstep(FAR_DISTANCE, NEAR_DISTANCE, tex_color);
-  }
-
-  if ((draw_flags & IMAGE_DRAW_FLAG_SHUFFLING) != 0) {
-    tex_color = float4(dot(tex_color, shuffle));
-  }
-  if ((draw_flags & IMAGE_DRAW_FLAG_SHOW_ALPHA) == 0) {
-    tex_color.a = 1.0f;
-  }
-  out_color = tex_color;
+  out_color = image_engine_apply_parameters(
+      tex_color, draw_flags, is_image_premultiplied, shuffle, FAR_DISTANCE, NEAR_DISTANCE);
 }

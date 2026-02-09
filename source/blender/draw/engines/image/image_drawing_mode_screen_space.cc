@@ -4,7 +4,7 @@
 
 #include "draw_view_data.hh"
 
-#include "image_drawing_mode.hh"
+#include "image_drawing_mode_screen_space.hh"
 #include "image_instance.hh"
 #include "image_shader.hh"
 

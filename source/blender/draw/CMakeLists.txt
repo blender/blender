@@ -88,7 +88,8 @@ set(SRC
   intern/draw_view_data.cc
   intern/draw_volume.cc
   engines/compositor/compositor_engine.cc
-  engines/image/image_drawing_mode.cc
+  engines/image/image_drawing_mode_image_space.cc
+  engines/image/image_drawing_mode_screen_space.cc
   engines/image/image_engine.cc
   engines/image/image_shader.cc
   engines/eevee/eevee_ambient_occlusion.cc
@@ -224,9 +225,9 @@ set(SRC
   engines/gpencil/gpencil_shader.hh
   engines/image/image_batches.hh
   engines/image/image_buffer_cache.hh
-  engines/image/image_drawing_mode.hh
+  engines/image/image_drawing_mode_image_space.hh
+  engines/image/image_drawing_mode_screen_space.hh
   engines/image/image_engine.h
-  engines/image/image_enums.hh
   engines/image/image_instance.hh
   engines/image/image_partial_updater.hh
   engines/image/image_private.hh
@@ -839,6 +840,11 @@ set(GLSL_SRC
   engines/image/shaders/image_engine_color_vert.glsl
   engines/image/shaders/image_engine_depth_frag.glsl
   engines/image/shaders/image_engine_depth_vert.glsl
+  engines/image/shaders/image_engine_image_frag.glsl
+  engines/image/shaders/image_engine_image_tiled_frag.glsl
+  engines/image/shaders/image_engine_lib.glsl
+
+  engines/image/image_shader_shared.hh
 
   # This test doesn't depend on gpu_shader_test, so it's always included.
   intern/shaders/draw_curves_test.glsl

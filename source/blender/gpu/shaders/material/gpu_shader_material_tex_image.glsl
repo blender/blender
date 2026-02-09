@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_bicubic_sampler_lib.glsl"
+#include "gpu_shader_tiled_image_lookup_lib.glsl"
 
 [[node]]
 void point_texco_remap_square(float3 vin, float3 &vout)
@@ -185,33 +186,11 @@ void node_tex_image_empty(float3 co, float4 &color, float &alpha)
   alpha = 0.0f;
 }
 
-bool node_tex_tile_lookup(float3 &co, sampler2DArray ima, sampler1DArray map)
-{
-  float2 tile_pos = floor(co.xy);
-
-  if (tile_pos.x < 0 || tile_pos.y < 0 || tile_pos.x >= 10) {
-    return false;
-  }
-  float tile = 10 * tile_pos.y + tile_pos.x;
-  if (tile >= textureSize(map, 0).x) {
-    return false;
-  }
-  /* Fetch tile information. */
-  float tile_layer = texelFetch(map, int2(tile, 0), 0).x;
-  if (tile_layer < 0) {
-    return false;
-  }
-  float4 tile_info = texelFetch(map, int2(tile, 1), 0);
-
-  co = float3(((co.xy - tile_pos) * tile_info.zw) + tile_info.xy, tile_layer);
-  return true;
-}
-
 [[node]]
 void node_tex_tile_linear(
     float3 co, sampler2DArray ima, sampler1DArray map, float4 &color, float &alpha)
 {
-  if (node_tex_tile_lookup(co, ima, map)) {
+  if (tiled_image_lookup(co, ima, map)) {
     color = texture(ima, co);
   }
   else {
@@ -225,7 +204,7 @@ void node_tex_tile_linear(
 void node_tex_tile_cubic(
     float3 co, sampler2DArray ima, sampler1DArray map, float4 &color, float &alpha)
 {
-  if (node_tex_tile_lookup(co, ima, map)) {
+  if (tiled_image_lookup(co, ima, map)) {
     float2 tex_size = float2(textureSize(ima, 0).xy);
 
     co.xy *= tex_size;

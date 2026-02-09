@@ -30,7 +30,7 @@ namespace image_engine {
  * Abstract class for a drawing mode of the image engine.
  *
  * The drawing mode decides how to draw the image on the screen. Each way how to draw would have
- * its own subclass. For now there is only a single drawing mode. #DefaultDrawingMode.
+ * its own subclass.
  */
 class AbstractDrawingMode {
  public:
