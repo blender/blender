@@ -29,9 +29,9 @@ set(SRC_HEADERS
 )
 
 set(LIB
-  cycles_device
-  cycles_integrator
-  cycles_util
+  PUBLIC cycles_device
+  PUBLIC cycles_integrator
+  PUBLIC cycles_util
 )
 
 include_directories(${INC})

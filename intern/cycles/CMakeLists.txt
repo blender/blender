@@ -203,11 +203,6 @@ add_definitions(
   -DCCL_NAMESPACE_END=}
 )
 
-include_directories(
-  SYSTEM
-  ${PUGIXML_INCLUDE_DIR}
-)
-
 if(WITH_CYCLES_DEBUG)
   add_definitions(-DWITH_CYCLES_DEBUG)
 endif()
@@ -304,57 +299,26 @@ if(WITH_CYCLES_EMBREE)
     endif()
   endif()
   add_definitions(-DEMBREE_MAJOR_VERSION=${EMBREE_MAJOR_VERSION})
-  include_directories(
-    SYSTEM
-    ${EMBREE_INCLUDE_DIRS}
-  )
 endif()
 
 if(WITH_OPENIMAGEDENOISE)
   add_definitions(-DWITH_OPENIMAGEDENOISE)
-  include_directories(
-    SYSTEM
-    ${OPENIMAGEDENOISE_INCLUDE_DIRS}
-  )
 endif()
 
-# Includes that might be overridden by USD last, to avoid compiling
-# against the wrong versions of other libraries.
-include_directories(
-  SYSTEM
-  ${TBB_INCLUDE_DIRS}
-)
-
 if(WITH_OPENVDB)
-  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
-  include_directories(
-    SYSTEM
-    ${OPENVDB_INCLUDE_DIRS}
-  )
+  add_definitions(-DWITH_OPENVDB)
 endif()
 
 if(WITH_NANOVDB)
   add_definitions(-DWITH_NANOVDB)
-  include_directories(
-    SYSTEM
-    ${NANOVDB_INCLUDE_DIR}
-  )
 endif()
 
 if(WITH_OPENSUBDIV)
   add_definitions(-DWITH_OPENSUBDIV)
-  include_directories(
-    SYSTEM
-    ${OPENSUBDIV_INCLUDE_DIRS}
-  )
 endif()
 
 if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
-  include_directories(
-    SYSTEM
-    ${OPENCOLORIO_INCLUDE_DIRS}
-  )
 endif()
 
 if(WITH_CYCLES_PATH_GUIDING)
@@ -368,11 +332,6 @@ if(WITH_CYCLES_PATH_GUIDING)
   # 4 = 3 + training the guiding fields
   # 5 = 4 + querying the trained guiding for sampling (full path guiding)
   add_definitions(-DPATH_GUIDING_LEVEL=5)
-
-  include_directories(
-    SYSTEM
-    ${OPENPGL_INCLUDE_DIR}
-  )
 endif()
 
 # NaN debugging

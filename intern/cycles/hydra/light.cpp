@@ -95,7 +95,7 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
     }
     else {
       /* Convert from intensity to radiant flux. */
-      strength *= M_PI;
+      strength *= M_PI_F;
     }
 
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->normalize);

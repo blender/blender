@@ -6,15 +6,20 @@
 
 #ifdef WITH_OPENSUBDIV
 
-#  include "subd/patch.h"
-
-#  include "util/unique_ptr.h"
-#  include "util/vector.h"
+/* OpenSubdiv headers use M_PI. */
+#  if defined(_MSC_VER) && !defined(_USE_MATH_DEFINES)
+#    define _USE_MATH_DEFINES
+#  endif
 
 #  include <opensubdiv/far/patchMap.h>
 #  include <opensubdiv/far/patchTableFactory.h>
 #  include <opensubdiv/far/primvarRefiner.h>
 #  include <opensubdiv/far/topologyRefinerFactory.h>
+
+#  include "subd/patch.h"
+
+#  include "util/unique_ptr.h"
+#  include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

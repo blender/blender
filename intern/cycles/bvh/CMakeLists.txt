@@ -55,8 +55,9 @@ set(SRC_HEADERS
 )
 
 set(LIB
-  cycles_scene
-  cycles_util
+  PUBLIC cycles_scene
+  PUBLIC cycles_util
+  PUBLIC bf::dependencies::optional::embree
 )
 
 include_directories(${INC})
