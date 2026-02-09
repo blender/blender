@@ -1205,6 +1205,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
       }
       break;
     case GHOST_kEventNativeResolutionChange:
+      window->updateDrawingSize();
 
       if (native_pixel_) {
         window->setNativePixelSize();
