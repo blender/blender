@@ -282,7 +282,7 @@ class GHOST_DeviceVK {
         vk_physical_device, &queue_family_count, queue_families.data());
 
     generic_queue_family = 0;
-    for (const auto &queue_family : queue_families) {
+    for (const VkQueueFamilyProperties &queue_family : queue_families) {
       /* Every VULKAN implementation by spec must have one queue family that support both graphics
        * and compute pipelines. We select this one; compute only queue family hints at asynchronous
        * compute implementations. */
@@ -393,7 +393,7 @@ struct GHOST_InstanceVK {
 
     int best_device_score = -1;
     int device_index = -1;
-    for (const auto &physical_device : physical_devices) {
+    for (const VkPhysicalDevice &physical_device : physical_devices) {
       GHOST_DeviceVK device_vk(physical_device, false);
       device_index++;
 
@@ -1096,7 +1096,7 @@ static GHOST_TSuccess selectPresentMode(const GHOST_TVSyncModes vsync,
   if (vsync != GHOST_kVSyncModeUnset) {
     const bool vsync_off = (vsync == GHOST_kVSyncModeOff);
     if (vsync_off) {
-      for (auto present_mode : presents) {
+      for (const VkPresentModeKHR present_mode : presents) {
         if (present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
           *r_presentMode = present_mode;
           return GHOST_kSuccess;
@@ -1113,7 +1113,7 @@ static GHOST_TSuccess selectPresentMode(const GHOST_TVSyncModes vsync,
   /* TODO: select the correct presentation mode based on the actual being performed by the user.
    * When low latency is required (paint cursor) we should select mailbox, otherwise we can do FIFO
    * to reduce CPU/GPU usage. */
-  for (auto present_mode : presents) {
+  for (const VkPresentModeKHR present_mode : presents) {
     if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
       *r_presentMode = present_mode;
       return GHOST_kSuccess;
