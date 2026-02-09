@@ -242,7 +242,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   const bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME);
   if (region->winy > min_height) {
     if (sipo->mode == SIPO_MODE_DRIVERS) {
-      ui::view2d_draw_lines_x(v2d, false, true, true, driver_step);
+      ui::view2d_draw_lines_x(v2d, scene, false, true, true, driver_step);
     }
     else {
       ui::view2d_draw_lines_x_frames(v2d, scene, display_seconds, true, true);
