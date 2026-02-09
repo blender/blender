@@ -211,7 +211,7 @@ ccl_device_inline half4 float4_to_half4(const float4 f)
   vst1_u16(reinterpret_cast<uint16_t *>(&r),
            vreinterpret_u16_f16(vcvt_f16_f32(float32x4_t{f.x, f.y, f.z, f.w})));
   return r;
-#elif defined(__F16C__)
+#elif defined(__KERNEL_SSE__) && defined(__F16C__)
   half4 r;
   const __m128i h = _mm_cvtps_ph(_mm_loadu_ps(&f.x),
                                  _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
@@ -235,7 +235,7 @@ ccl_device_inline float4 half4_to_float4(const half4 h)
   vst1q_f32(&r.x,
             vcvt_f32_f16(vreinterpret_f16_u16(vld1_u16(reinterpret_cast<const uint16_t *>(&h)))));
   return r;
-#elif defined(__F16C__)
+#elif defined(__KERNEL_SSE__) && defined(__F16C__)
   float4 r;
   _mm_storeu_ps(&r.x, _mm_cvtph_ps(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(&h))));
   return r;
@@ -251,7 +251,7 @@ ccl_device_inline half3 float3_to_half3(const float3 f)
 #elif defined(__ARM_NEON) || defined(_M_ARM64)
   const uint16x4_t h = vreinterpret_u16_f16(vcvt_f16_f32(float32x4_t{f.x, f.y, f.z, 0.0f}));
   return {half(vget_lane_u16(h, 0)), half(vget_lane_u16(h, 1)), half(vget_lane_u16(h, 2))};
-#elif defined(__F16C__)
+#elif defined(__KERNEL_SSE__) && defined(__F16C__)
   const __m128i h = _mm_cvtps_ph(_mm_set_ps(0.0f, f.z, f.y, f.x),
                                  _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
   return {half(uint16_t(_mm_extract_epi16(h, 0))),
@@ -271,7 +271,7 @@ ccl_device_inline float3 half3_to_float3(const half3 h)
   const float32x4_t f = vcvt_f32_f16(
       vreinterpret_f16_u16(uint16x4_t{uint16_t(h.x), uint16_t(h.y), uint16_t(h.z), 0}));
   return make_float3(vgetq_lane_f32(f, 0), vgetq_lane_f32(f, 1), vgetq_lane_f32(f, 2));
-#elif defined(__F16C__)
+#elif defined(__KERNEL_SSE__) && defined(__F16C__)
   const __m128i v = _mm_set_epi16(0, 0, 0, 0, 0, uint16_t(h.z), uint16_t(h.y), uint16_t(h.x));
   const __m128 f = _mm_cvtph_ps(v);
   return make_float3(float4(f));
