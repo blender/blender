@@ -411,7 +411,7 @@ static void scene_free_data(ID *id)
   BKE_image_format_free(&scene->r.im_format);
   BKE_image_format_free(&scene->r.bake.im_format);
 
-  BKE_previewimg_free(&scene->preview);
+  BKE_previewimg_id_free(&scene->id);
   BKE_curvemapping_free_data(&scene->r.mblur_shutter_curve);
 
   for (ViewLayer &view_layer : scene->view_layers.items_mutable()) {

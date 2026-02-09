@@ -183,7 +183,7 @@ static void collection_free_data(ID *id)
   Collection *collection = id_cast<Collection *>(id);
 
   /* No animation-data here. */
-  BKE_previewimg_free(&collection->preview);
+  BKE_previewimg_id_free(&collection->id);
 
   BLI_freelistN(&collection->gobject);
   if (collection->runtime->gobject_hash) {

@@ -108,7 +108,7 @@ static void light_free_data(ID *id)
     la->nodetree = nullptr;
   }
 
-  BKE_previewimg_free(&la->preview);
+  BKE_previewimg_id_free(&la->id);
   BKE_icon_id_delete(&la->id);
   la->id.icon_id = 0;
 }

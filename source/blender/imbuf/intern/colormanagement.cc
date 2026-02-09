@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <string>
 
 #include "DNA_ID.h"
 #include "DNA_color_types.h"
@@ -634,14 +635,29 @@ void colormanagement_init()
       char configfile[FILE_MAX];
       BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
 
-      g_config = ocio::Config::create_from_file(configfile);
+      /* OpenColorIO has issues with "$" in paths, as it uses that for variable expansion
+       * and there appears to be no way to escape the symbol.
+       *
+       * Work aroud it by setting the environment variable, which may also be useful for
+       * plug-ins to inherit the Blender OCIO config. */
+      std::optional<std::string> old_ocio_env;
+      if (ocio_env) {
+        old_ocio_env = ocio_env;
+      }
+      BLI_setenv("OCIO", configfile);
+      g_config = ocio::Config::create_from_environment();
 
+      bool ok = false;
       if (g_config != nullptr) {
-        const bool ok = colormanage_load_config(*g_config);
+        ok = colormanage_load_config(*g_config);
         if (!ok) {
           CLOG_ERROR(&LOG, "Failed to load bundled config");
           colormanage_free_config();
         }
+      }
+
+      if (!ok) {
+        BLI_setenv("OCIO", old_ocio_env.has_value() ? old_ocio_env->c_str() : nullptr);
       }
     }
   }

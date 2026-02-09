@@ -89,7 +89,7 @@ static void screen_free_data(ID *id)
 
   BKE_screen_area_map_free(AREAMAP_FROM_SCREEN(screen));
 
-  BKE_previewimg_free(&screen->preview);
+  BKE_previewimg_id_free(&screen->id);
 
   /* Region and timer are freed by the window manager. */
   /* Cannot use MEM_SAFE_DELETE, as #wmTooltipState type is only defined in `WM_types.hh`, which is

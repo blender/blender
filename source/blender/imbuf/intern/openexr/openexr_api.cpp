@@ -386,9 +386,9 @@ struct _RGBAZ {
 
 using RGBAZ = _RGBAZ;
 
-static half float_to_half_safe(const float value)
+static half float_to_half_safe(const float value, const float max_val = HALF_MAX)
 {
-  return half(clamp_f(value, -HALF_MAX, HALF_MAX));
+  return half(clamp_f(value, -max_val, max_val));
 }
 
 bool imb_is_a_openexr(const uchar *mem, const size_t size)
@@ -400,7 +400,7 @@ bool imb_is_a_openexr(const uchar *mem, const size_t size)
   return Imf::isImfMagic((const char *)mem);
 }
 
-static int openexr_jpg_like_quality_to_dwa_quality(int q)
+static int openexr_jpg_like_quality_to_dwa_compression_level(int q)
 {
   q = math::clamp(q, 0, 100);
 
@@ -411,6 +411,24 @@ static int openexr_jpg_like_quality_to_dwa_quality(int q)
   constexpr int x1 = 90, y1 = 45;
   q = y0 + (q - x0) * (y1 - y0) / (x1 - x0);
   return q;
+}
+
+static float compression_half_max(const int compression, const int quality)
+{
+  if (ELEM(compression, R_IMF_EXR_CODEC_DWAA, R_IMF_EXR_CODEC_DWAB)) {
+    /* Empirically determined margin to prevent DWAA/DWAB lossy compression
+     * from overshooting to infinity. The DWA compression uses log2-luminance
+     * DCT, and overshoot increases with the compression level.
+     *
+     * Tested with randomized pixel patterns across various compression levels
+     * to find a tight bound. */
+    const int level = openexr_jpg_like_quality_to_dwa_compression_level(quality);
+    const float margin = (level <= 50) ? (2048.0f + 32.0f * level) :
+                                         (3624.0f + 128.0f * (level - 50));
+    return HALF_MAX - margin;
+  }
+
+  return HALF_MAX;
 }
 
 static void openexr_header_compression(Header *header, int compression, int quality)
@@ -443,11 +461,11 @@ static void openexr_header_compression(Header *header, int compression, int qual
 #if OPENEXR_VERSION_MAJOR > 2 || (OPENEXR_VERSION_MAJOR >= 2 && OPENEXR_VERSION_MINOR >= 2)
     case R_IMF_EXR_CODEC_DWAA:
       header->compression() = DWAA_COMPRESSION;
-      header->dwaCompressionLevel() = openexr_jpg_like_quality_to_dwa_quality(quality);
+      header->dwaCompressionLevel() = openexr_jpg_like_quality_to_dwa_compression_level(quality);
       break;
     case R_IMF_EXR_CODEC_DWAB:
       header->compression() = DWAB_COMPRESSION;
-      header->dwaCompressionLevel() = openexr_jpg_like_quality_to_dwa_quality(quality);
+      header->dwaCompressionLevel() = openexr_jpg_like_quality_to_dwa_compression_level(quality);
       break;
 #endif
 #if COMBINED_OPENEXR_VERSION >= 30400
@@ -583,10 +601,12 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
   try {
     Header header(width, height);
 
-    openexr_header_compression(
-        &header, ibuf->foptions.flag & OPENEXR_CODEC_MASK, ibuf->foptions.quality);
+    const int compression = ibuf->foptions.flag & OPENEXR_CODEC_MASK;
+    openexr_header_compression(&header, compression, ibuf->foptions.quality);
     openexr_header_metadata_global(&header, ibuf->metadata, ibuf->ppm);
     openexr_header_metadata_colorspace(&header, ibuf);
+
+    const float half_max_val = compression_half_max(compression, ibuf->foptions.quality);
 
     /* create channels */
     header.channels().insert("R", Channel(HALF));
@@ -627,10 +647,10 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
         from = ibuf->float_buffer.data + int64_t(channels) * i * width;
 
         for (int j = ibuf->x; j > 0; j--) {
-          to->r = float_to_half_safe(from[0]);
-          to->g = float_to_half_safe((channels >= 2) ? from[1] : from[0]);
-          to->b = float_to_half_safe((channels >= 3) ? from[2] : from[0]);
-          to->a = float_to_half_safe((channels >= 4) ? from[3] : 1.0f);
+          to->r = float_to_half_safe(from[0], half_max_val);
+          to->g = float_to_half_safe((channels >= 2) ? from[1] : from[0], half_max_val);
+          to->b = float_to_half_safe((channels >= 3) ? from[2] : from[0], half_max_val);
+          to->a = float_to_half_safe((channels >= 4) ? from[3] : 1.0f, half_max_val);
           to++;
           from += channels;
         }
@@ -840,6 +860,7 @@ struct ExrHandle {
 
   bool write_multipart = false;
   bool has_layer_pass_names = false;
+  float half_max_val = HALF_MAX;
 
   int tilex = 0, tiley = 0;
   int width = 0, height = 0;
@@ -1016,6 +1037,7 @@ bool IMB_exr_begin_write(ExrHandle *handle,
   handle->height = height;
 
   openexr_header_compression(&header, compress, quality);
+  handle->half_max_val = compression_half_max(compress, quality);
 
   if (!handle->write_multipart) {
     /* If we're writing single part, we can only add one colorspace even if there are
@@ -1207,7 +1229,7 @@ void IMB_exr_write_channels(ExrHandle *handle)
         const float *rect = echan.rect;
         half *cur = current_rect_half;
         for (size_t i = 0; i < num_pixels; i++, cur++) {
-          *cur = float_to_half_safe(rect[i * echan.xstride]);
+          *cur = float_to_half_safe(rect[i * echan.xstride], handle->half_max_val);
         }
         half *rect_to_write = current_rect_half + (handle->height - 1L) * handle->width;
         frameBuffer.insert(

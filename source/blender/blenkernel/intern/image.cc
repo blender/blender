@@ -206,7 +206,7 @@ static void image_free_data(ID *id)
   MEM_SAFE_DELETE(image->stereo3d_format);
 
   BKE_icon_id_delete(&image->id);
-  BKE_previewimg_free(&image->preview);
+  BKE_previewimg_id_free(&image->id);
 
   BLI_freelistN(&image->tiles);
 

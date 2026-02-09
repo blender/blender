@@ -59,7 +59,7 @@ static void world_free_data(ID *id)
   GPU_material_free(&wrld->gpumaterial);
 
   BKE_icon_id_delete(id_cast<ID *>(wrld));
-  BKE_previewimg_free(&wrld->preview);
+  BKE_previewimg_id_free(&wrld->id);
 
   MEM_SAFE_DELETE(wrld->lightgroup);
 }

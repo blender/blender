@@ -12,7 +12,6 @@ CCL_NAMESPACE_BEGIN
 
 static bool validate_cpu_capabilities()
 {
-
 #if defined(__KERNEL_AVX2__)
   return system_cpu_support_avx2();
 #elif defined(__KERNEL_AVX__)
