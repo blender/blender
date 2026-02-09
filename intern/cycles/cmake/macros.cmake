@@ -138,9 +138,7 @@ macro(cycles_external_libraries_append libraries)
     ${ZLIB_LIBRARIES}
     ${CMAKE_DL_LIBS}
   )
-  if(NOT WITH_PYTHON_MODULE)
-    list(APPEND ${libraries} ${PYTHON_LIBRARIES})
-  endif()
+  list(APPEND ${libraries} bf::dependencies::optional::python)
 
   if(DEFINED PTHREADS_LIBRARIES)
     list(APPEND ${libraries}
