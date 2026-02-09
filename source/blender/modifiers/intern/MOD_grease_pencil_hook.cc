@@ -177,7 +177,7 @@ static void deform_drawing(const ModifierData &md,
   const float3 cent = use_uniform ? math::transform_point(mat_uniform, float3(mmd.cent)) :
                                     float3(mmd.cent);
 
-  float4x4 dmat;
+  float4x4 dmat = mmd.object->object_to_world();
   /* Get world-space matrix of target, corrected for the space the verts are in. */
   if (mmd.subtarget[0]) {
     bPoseChannel *pchan = BKE_pose_channel_find_name(mmd.object->pose, mmd.subtarget);
@@ -185,10 +185,6 @@ static void deform_drawing(const ModifierData &md,
       /* Bone target if there's a matching pose-channel. */
       dmat = mmd.object->object_to_world() * float4x4(pchan->pose_mat);
     }
-  }
-  else {
-    /* Just object target. */
-    dmat = mmd.object->object_to_world();
   }
   float4x4 use_mat = ob.world_to_object() * dmat * float4x4(mmd.parentinv);
 
