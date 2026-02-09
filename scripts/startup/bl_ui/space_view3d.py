@@ -31,6 +31,30 @@ from bpy.app.translations import (
 )
 
 
+def _toggle_xray_operator(layout, context, text=None):
+    # The X-ray toggle has to have special logic since it affects a different property in pose mode.
+    # See #70433 and #58661.
+    view = context.space_data
+    obj = context.active_object
+    object_mode = 'OBJECT' if obj is None else obj.mode
+    has_pose_mode = (
+        (object_mode == 'POSE') or
+        (object_mode == 'WEIGHT_PAINT' and context.pose_object is not None)
+    )
+    if has_pose_mode:
+        draw_depressed = view.overlay.show_xray_bone
+    elif view.shading.type == 'WIREFRAME':
+        draw_depressed = view.shading.show_xray_wireframe
+    else:
+        draw_depressed = view.shading.show_xray
+    layout.operator(
+        "view3d.toggle_xray",
+        text=text,
+        icon='XRAY',
+        depress=draw_depressed,
+    )
+
+
 class VIEW3D_HT_tool_header(Header):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOL_HEADER'
@@ -1072,20 +1096,7 @@ class VIEW3D_HT_header(Header):
         row = layout.row()
         row.active = (object_mode == 'EDIT') or (shading.type in {'WIREFRAME', 'SOLID'})
 
-        # While exposing `shading.show_xray(_wireframe)` is correct.
-        # this hides the key shortcut from users: #70433.
-        if has_pose_mode:
-            draw_depressed = overlay.show_xray_bone
-        elif shading.type == 'WIREFRAME':
-            draw_depressed = shading.show_xray_wireframe
-        else:
-            draw_depressed = shading.show_xray
-        row.operator(
-            "view3d.toggle_xray",
-            text="",
-            icon='XRAY',
-            depress=draw_depressed,
-        )
+        _toggle_xray_operator(row, context, text="")
 
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
@@ -6067,25 +6078,7 @@ class VIEW3D_MT_shading_ex_pie(Menu):
         pie.prop_enum(view.shading, "type", value='WIREFRAME')
         pie.prop_enum(view.shading, "type", value='SOLID')
 
-        # Note this duplicates "view3d.toggle_xray" logic, so we can see the active item: #58661.
-        if context.pose_object:
-            pie.prop(view.overlay, "show_xray_bone", icon='XRAY')
-        else:
-            xray_active = (
-                (context.mode == 'EDIT_MESH') or
-                (view.shading.type in {'SOLID', 'WIREFRAME'})
-            )
-            if xray_active:
-                sub = pie
-            else:
-                sub = pie.row()
-                sub.active = False
-            sub.prop(
-                view.shading,
-                "show_xray_wireframe" if (view.shading.type == 'WIREFRAME') else "show_xray",
-                text="Toggle X-Ray",
-                icon='XRAY',
-            )
+        _toggle_xray_operator(pie, context)
 
         pie.prop(view.overlay, "show_overlays", text="Toggle Overlays", icon='OVERLAY')
 
