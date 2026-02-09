@@ -407,11 +407,12 @@ void VKContext::swap_buffer_acquired_callback()
   context->swap_buffer_acquired_handler();
 }
 
-void VKContext::swap_buffer_draw_callback(const GHOST_VulkanSwapChainData *swap_chain_data)
+void VKContext::swap_buffer_draw_callback(const GHOST_VulkanSwapChainData *swap_chain_data,
+                                          bool wait_for_submission)
 {
   VKContext *context = VKContext::get();
   BLI_assert(context);
-  context->swap_buffer_draw_handler(*swap_chain_data);
+  context->swap_buffer_draw_handler(*swap_chain_data, wait_for_submission);
 }
 
 void VKContext::swap_buffer_acquired_handler()
@@ -419,7 +420,8 @@ void VKContext::swap_buffer_acquired_handler()
   sync_backbuffer();
 }
 
-void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
+void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_chain_data,
+                                         bool wait_for_submission)
 {
   const bool do_blit_to_swapchain = swap_chain_data.image != VK_NULL_HANDLE;
   const bool use_shader = swap_chain_data.surface_format.colorSpace ==
@@ -484,14 +486,24 @@ void VKContext::swap_buffer_draw_handler(const GHOST_VulkanSwapChainData &swap_c
   render_graph.add_node(synchronization);
   GPU_debug_group_end();
 
-  flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::WAIT_FOR_SUBMISSION |
-                         RenderGraphFlushFlags::RENEW_RENDER_GRAPH,
+  wait_for_submission |= swap_chain_data.submission_fence != VK_NULL_HANDLE;
+  flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::RENEW_RENDER_GRAPH |
+                         (wait_for_submission ? RenderGraphFlushFlags::WAIT_FOR_SUBMISSION :
+                                                RenderGraphFlushFlags::NONE),
                      VK_PIPELINE_STAGE_TRANSFER_BIT,
                      swap_chain_data.acquire_semaphore,
                      swap_chain_data.present_semaphore,
                      swap_chain_data.submission_fence);
-
-  device.resources.remove_image(swap_chain_data.image);
+  /* Discard/remove not owning swapchain handlers.
+   * During a regular swapchain update, NVIDIA can use the same image multiple times in a row.
+   * Placing these images in the discard pool results in incorrect state, best to remove them
+   * directly. */
+  if (wait_for_submission) {
+    device.resources.remove_image(swap_chain_data.image);
+  }
+  else {
+    discard_pool.discard_swapchain_image(swap_chain_data.image);
+  }
 #if 0
   device.debug_print();
 #endif

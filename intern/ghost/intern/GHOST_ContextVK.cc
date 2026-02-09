@@ -945,7 +945,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
   if (swapchain_ == VK_NULL_HANDLE) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
     if (swap_buffer_draw_callback_) {
-      swap_buffer_draw_callback_(&swap_chain_data);
+      swap_buffer_draw_callback_(&swap_chain_data, true);
     }
     return GHOST_kSuccess;
   }
@@ -974,7 +974,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
 
   vkResetFences(vk_device, 1, &submission_frame_data.submission_fence);
   if (swap_buffer_draw_callback_) {
-    swap_buffer_draw_callback_(&swap_chain_data);
+    swap_buffer_draw_callback_(&swap_chain_data, true);
   }
 
   VkPresentInfoKHR present_info = {};
@@ -1059,7 +1059,7 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(GHOST_VulkanHandles &r_handles)
 }
 
 GHOST_TSuccess GHOST_ContextVK::setVulkanSwapBuffersCallbacks(
-    std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffer_draw_callback,
+    std::function<void(const GHOST_VulkanSwapChainData *, bool)> swap_buffer_draw_callback,
     std::function<void(void)> swap_buffer_acquired_callback,
     std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback,
     std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback)

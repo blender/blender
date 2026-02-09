@@ -79,6 +79,7 @@ class VKDiscardPool {
   friend class VKBackend;
 
  private:
+  TimelineResources<VkImage> swapchain_images_;
   TimelineResources<std::pair<VkImage, VmaAllocation>> images_;
   TimelineResources<std::pair<VkBuffer, VmaAllocation>> buffers_;
   TimelineResources<VkImageView> image_views_;
@@ -95,6 +96,7 @@ class VKDiscardPool {
  public:
   void deinit(VKDevice &device);
 
+  void discard_swapchain_image(VkImage vk_image);
   void discard_image(VkImage vk_image, VmaAllocation vma_allocation);
   void discard_image_view(VkImageView vk_image_view);
   void discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation);
