@@ -318,7 +318,7 @@ void raycast_eval(float3 position,
   }
 
   {
-    /* Offset the start to prevent wrong intersection due to depth precission. */
+    /* Offset the start to prevent wrong intersection due to depth precision. */
     float3 vs_start = drw_point_world_to_view(ws_start);
     float start_depth = drw_depth_view_to_screen(vs_start.z);
     float offset_depth = uintBitsToFloat(floatBitsToUint(start_depth) + 2);

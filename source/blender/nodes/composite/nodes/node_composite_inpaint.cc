@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_base.hh"
-#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -244,7 +243,7 @@ class InpaintOperation : public NodeOperation {
        * inpainting distance since areas outside of the clamp range only indirectly affect the
        * inpainting region due to blurring and thus needn't use higher blur radii. */
       float blur_window_size = math::min(float(max_distance), distance_to_boundary) /
-                               math::numbers::sqrt2;
+                               std::numbers::sqrt2;
       bool skip_smoothing = distance_to_boundary > (max_distance * 2.0f);
       float smoothing_radius = skip_smoothing ? 0.0f : blur_window_size;
       smoothing_radius_image.store_pixel(texel, smoothing_radius);

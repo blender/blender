@@ -318,9 +318,8 @@ void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
   }
 
   /* sort by angle and magic! - we have our ngon */
-  std::sort(vang.begin(), vang.end(), [](const AngleIndex &a, const AngleIndex &b) {
-    return a.first < b.first;
-  });
+  std::ranges::sort(vang,
+                    [](const AngleIndex &a, const AngleIndex &b) { return a.first < b.first; });
 
   /* --- */
 

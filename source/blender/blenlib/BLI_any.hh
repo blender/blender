@@ -196,8 +196,10 @@ class Any {
   /**
    * Constructs a new #Any that contains the given value.
    */
-  template<typename T, BLI_ENABLE_IF((!is_same_any_v<T>))>
-  Any(T &&value) : Any(std::in_place_type<T>, std::forward<T>(value))
+  template<typename T>
+  Any(T &&value)
+    requires(!is_same_any_v<T>)
+      : Any(std::in_place_type<T>, std::forward<T>(value))
   {
   }
 

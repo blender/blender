@@ -776,7 +776,7 @@ struct GeoNodesObjectGizmoID {
   const Object *object_orig;
   bke::NodeGizmoID gizmo_id;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(GeoNodesObjectGizmoID, object_orig, gizmo_id)
+  friend bool operator==(const GeoNodesObjectGizmoID &a, const GeoNodesObjectGizmoID &b) = default;
 
   uint64_t hash() const
   {

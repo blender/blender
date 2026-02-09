@@ -372,7 +372,7 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
         if (attr_normal) {
           /* NOTE: the geometry normals are not computed for legacy particle hairs. This hair
            * system is expected to be deprecated. */
-          attr_normal->add(make_float3(0.0f, 0.0f, 0.0f));
+          attr_normal->add(packed_normal(make_float3(0.0f, 0.0f, 0.0f)));
         }
 
         num_curve_keys++;
@@ -866,12 +866,13 @@ static void export_hair_curves(Scene *scene,
 
   if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
     /* Get geometry normals. */
-    float3 *attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_float3();
+    packed_normal *attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_normal();
     vector<blender::float3> point_normals(positions.size());
     blender::bke::curves_normals_point_domain_calc(
         b_curves, {point_normals.data(), int64_t(point_normals.size())});
     for (const int i : positions.index_range()) {
-      attr_normal[i] = make_float3(point_normals[i][0], point_normals[i][1], point_normals[i][2]);
+      attr_normal[i] = packed_normal(
+          make_float3(point_normals[i][0], point_normals[i][1], point_normals[i][2]));
     }
   }
 

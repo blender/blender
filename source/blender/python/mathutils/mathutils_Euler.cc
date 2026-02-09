@@ -242,9 +242,9 @@ PyDoc_STRVAR(
     "   Rotates the euler a certain amount and returning a unique euler rotation\n"
     "   (no 720 degree pitches).\n"
     "\n"
-    "   :arg axis: An axis string.\n"
+    "   :param axis: An axis string.\n"
     "   :type axis: Literal['X', 'Y', 'Z']\n"
-    "   :arg angle: angle in radians.\n"
+    "   :param angle: angle in radians.\n"
     "   :type angle: float\n");
 static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
 {
@@ -283,7 +283,7 @@ PyDoc_STRVAR(
     "\n"
     "   Rotates the euler by another mathutils value.\n"
     "\n"
-    "   :arg other: rotation component of mathutils value\n"
+    "   :param other: rotation component of mathutils value\n"
     "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n");
 static PyObject *Euler_rotate(EulerObject *self, PyObject *value)
 {
@@ -314,7 +314,7 @@ PyDoc_STRVAR(
     "   Make this euler compatible with another,\n"
     "   so interpolating between them works as intended.\n"
     "\n"
-    "   :arg other: Other euler rotation.\n"
+    "   :param other: Other euler rotation.\n"
     "   :type other: :class:`Euler`\n"
     "\n"
     "   .. note:: the rotation order is not taken into account for this function.\n");
@@ -951,9 +951,9 @@ PyDoc_STRVAR(
     "   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on "
     "Wikipedia.\n"
     "\n"
-    "   :arg angles: (X, Y, Z) angles in radians.\n"
+    "   :param angles: (X, Y, Z) angles in radians.\n"
     "   :type angles: Sequence[float]\n"
-    "   :arg order: Euler rotation order.\n"
+    "   :param order: Euler rotation order.\n"
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n");
 PyTypeObject euler_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)

@@ -418,7 +418,9 @@ void BPY_id_release(ID *id)
 }
 
 #ifdef USE_PEDANTIC_WRITE
-static bool rna_disallow_writes = false;
+/* Thread local as e.g. Python handlers in the render thread should not be
+ * affected by Python UI drawing method in the main thread. */
+static thread_local bool rna_disallow_writes = false;
 
 static bool rna_id_write_error(PointerRNA *ptr, PyObject *key)
 {
@@ -3747,9 +3749,9 @@ PyDoc_STRVAR(
     "\n"
     "   Check if a property is set, use for testing operator properties.\n"
     "\n"
-    "   :arg property: Property name.\n"
+    "   :param property: Property name.\n"
     "   :type property: str\n"
-    "   :arg ghost: Used for operators that re-run with previous settings.\n"
+    "   :param ghost: Used for operators that re-run with previous settings.\n"
     "      In this case the property is not marked as set,\n"
     "      yet the value from the previous execution is used.\n"
     "\n"
@@ -3797,7 +3799,7 @@ PyDoc_STRVAR(
     "\n"
     "   Unset a property, will use default value afterward.\n"
     "\n"
-    "   :arg property: Property name.\n"
+    "   :param property: Property name.\n"
     "   :type property: str\n");
 static PyObject *pyrna_struct_property_unset(BPy_StructRNA *self, PyObject *args)
 {
@@ -3830,7 +3832,7 @@ PyDoc_STRVAR(
     "\n"
     "   Check if a property is hidden.\n"
     "\n"
-    "   :arg property: Property name.\n"
+    "   :param property: Property name.\n"
     "   :type property: str\n"
     "   :return: True when the property is hidden.\n"
     "   :rtype: bool\n");
@@ -3863,7 +3865,7 @@ PyDoc_STRVAR(
     "\n"
     "   Check if a property is readonly.\n"
     "\n"
-    "   :arg property: Property name.\n"
+    "   :param property: Property name.\n"
     "   :type property: str\n"
     "   :return: True when the property is readonly (not writable).\n"
     "   :rtype: bool\n");
@@ -3896,7 +3898,7 @@ PyDoc_STRVAR(
     "\n"
     "   Check if a property is overridable.\n"
     "\n"
-    "   :arg property: Property name.\n"
+    "   :param property: Property name.\n"
     "   :type property: str\n"
     "   :return: True when the property is overridable.\n"
     "   :rtype: bool\n");
@@ -3929,9 +3931,9 @@ PyDoc_STRVAR(
     "\n"
     "   Define a property as overridable or not (only for custom properties!).\n"
     "\n"
-    "   :arg property: Property name.\n"
+    "   :param property: Property name.\n"
     "   :type property: str\n"
-    "   :arg overridable: Overridable status to set.\n"
+    "   :param overridable: Overridable status to set.\n"
     "   :type overridable: bool\n"
     "   :return: True when the overridable status of the property was successfully set.\n"
     "   :rtype: bool\n");
@@ -3966,9 +3968,9 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the property from the path, raise an exception when not found.\n"
     "\n"
-    "   :arg path: path which this property resolves.\n"
+    "   :param path: path which this property resolves.\n"
     "   :type path: str\n"
-    "   :arg coerce: optional argument, when True, the property will be converted\n"
+    "   :param coerce: optional argument, when True, the property will be converted\n"
     "      into its Python representation.\n"
     "   :type coerce: bool\n"
     "   :return: Property value or property object.\n"
@@ -4025,9 +4027,9 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the full data path to this struct (as a string) from the bpy module.\n"
     "\n"
-    "   :arg property: Optional property name to get the full path from\n"
+    "   :param property: Optional property name to get the full path from\n"
     "   :type property: str\n"
-    "   :arg index: Optional index of the property.\n"
+    "   :param index: Optional index of the property.\n"
     "      \"-1\" means that the property has no indices.\n"
     "   :type index: int\n"
     "   :return: The full path to the data.\n"
@@ -4157,7 +4159,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the data path from the ID to this object (string).\n"
     "\n"
-    "   :arg property: Optional property name which can be used if the path is\n"
+    "   :param property: Optional property name which can be used if the path is\n"
     "      to a property of this object.\n"
     "   :type property: str\n"
     "   :return: The path from :class:`bpy.types.bpy_struct.id_data`\n"
@@ -4350,7 +4352,7 @@ PyDoc_STRVAR(
     pyrna_struct_bl_rna_get_subclass_py_doc,
     ".. classmethod:: bl_rna_get_subclass_py(id, default=None, /)\n"
     "\n"
-    "   :arg id: The RNA type identifier.\n"
+    "   :param id: The RNA type identifier.\n"
     "   :type id: str\n"
     "   :return: The class or default when not found.\n"
     "   :rtype: type\n");
@@ -4374,7 +4376,7 @@ PyDoc_STRVAR(
     pyrna_struct_bl_rna_get_subclass_doc,
     ".. classmethod:: bl_rna_get_subclass(id, default=None, /)\n"
     "\n"
-    "   :arg id: The RNA type identifier.\n"
+    "   :param id: The RNA type identifier.\n"
     "   :type id: str\n"
     "   :return: The RNA type or default when not found.\n"
     "   :rtype: :class:`bpy.types.Struct` subclass\n");
@@ -4603,7 +4605,7 @@ PyDoc_STRVAR(
     ".. method:: id_properties_ui(key, /)\n"
     "\n"
     "   :return: Return an object used to manage an IDProperty's UI data.\n"
-    "   :arg key: String name of the property.\n"
+    "   :param key: String name of the property.\n"
     "   :type key: str.\n"
     "   :rtype: :class:`bpy.types.IDPropertyUIManager`\n");
 static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *args)
@@ -5209,7 +5211,7 @@ PyDoc_STRVAR(
     "\n"
     "   This is a function to remove an item from a collection.\n"
     "\n"
-    "   :arg index: Index of the item to be removed.\n"
+    "   :param index: Index of the item to be removed.\n"
     "   :type index: int\n");
 static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyObject *value)
 {
@@ -5261,9 +5263,9 @@ PyDoc_STRVAR(
     "\n"
     "   This is a function to move an item in a collection.\n"
     "\n"
-    "   :arg src_index: Source item index.\n"
+    "   :param src_index: Source item index.\n"
     "   :type src_index: int\n"
-    "   :arg dst_index: Destination item index.\n"
+    "   :param dst_index: Destination item index.\n"
     "   :type dst_index: int\n");
 static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObject *args)
 {
@@ -5455,9 +5457,9 @@ PyDoc_STRVAR(
     "   Returns the value of the custom property assigned to key or default\n"
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
-    "   :arg key: The key associated with the custom property.\n"
+    "   :param key: The key associated with the custom property.\n"
     "   :type key: str\n"
-    "   :arg default: Optional argument for the value to return if\n"
+    "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
     "   :type default: Any\n"
     "   :return: Custom property value or default.\n"
@@ -5502,9 +5504,9 @@ PyDoc_STRVAR(
     "   Remove and return the value of the custom property assigned to key or default\n"
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
-    "   :arg key: The key associated with the custom property.\n"
+    "   :param key: The key associated with the custom property.\n"
     "   :type key: str\n"
-    "   :arg default: Optional argument for the value to return if\n"
+    "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
     "   :type default: Any\n"
     "   :return: Custom property value or default.\n"
@@ -5577,9 +5579,9 @@ PyDoc_STRVAR(
     "   Returns the value of the item assigned to key or default when not found\n"
     "   (matches Python's dictionary function of the same name).\n"
     "\n"
-    "   :arg key: The identifier for the collection member.\n"
+    "   :param key: The identifier for the collection member.\n"
     "   :type key: str\n"
-    "   :arg default: Optional argument for the value to return if\n"
+    "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
     "   :type default: Any\n");
 static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args)
@@ -5631,7 +5633,7 @@ PyDoc_STRVAR(
     "   Returns the index of a key in a collection or -1 when not found\n"
     "   (matches Python's string find function of the same name).\n"
     "\n"
-    "   :arg key: The identifier for the collection member.\n"
+    "   :param key: The identifier for the collection member.\n"
     "   :type key: str\n"
     "   :return: index of the key.\n"
     "   :rtype: int\n");
@@ -10203,7 +10205,7 @@ PyDoc_STRVAR(
     "\n"
     "   Register a subclass of a Blender type class.\n"
     "\n"
-    "   :arg cls: Registerable Blender class type.\n"
+    "   :param cls: Registerable Blender class type.\n"
     "   :type cls: " BPY_TYPEDEF_REGISTERABLE_DOC
     "\n"
     "\n"
@@ -10456,7 +10458,7 @@ PyDoc_STRVAR(
     "\n"
     "   Unload the Python class from blender.\n"
     "\n"
-    "   :arg cls: Blender type class, \n"
+    "   :param cls: Blender type class, \n"
     "      see :mod:`bpy.utils.register_class` for classes which can \n"
     "      be registered.\n"
     "   :type cls: " BPY_TYPEDEF_REGISTERABLE_DOC

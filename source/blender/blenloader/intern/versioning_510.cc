@@ -901,6 +901,19 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 27)) {
+    for (Scene &scene : bmain->scenes) {
+      if (scene.toolsettings) {
+        const short snap_geom_old = SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE |
+                                    SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR;
+        static_assert(snap_geom_old == 63);
+        if (scene.toolsettings->snap_mode_tools == snap_geom_old) {
+          scene.toolsettings->snap_mode_tools = SCE_SNAP_TO_GEOM;
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

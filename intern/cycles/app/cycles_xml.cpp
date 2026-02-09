@@ -460,11 +460,11 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     /* Vertex normals */
     if (xml_read_float3_array(VN, node, Attribute::standard_name(ATTR_STD_VERTEX_NORMAL))) {
       Attribute *attr = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
-      float3 *fdata = attr->data_float3();
+      packed_normal *fdata = attr->data_normal();
 
       /* Loop over the normals */
       for (auto n : VN) {
-        fdata[0] = n;
+        fdata[0] = packed_normal(n);
         fdata++;
       }
     }

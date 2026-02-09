@@ -2242,7 +2242,13 @@ static bool wm_file_write(bContext *C,
     /* Run this function after because the file can't be written before the blend is. */
     if (ibuf_thumb) {
       IMB_thumb_delete(filepath, THB_FAIL); /* Without this a failed thumb overrides. */
-      ibuf_thumb = IMB_thumb_create(filepath, THB_LARGE, THB_SOURCE_BLEND, ibuf_thumb);
+      /* `IMB_thumb_create()` may return nullptr, `ibuf_thumb` may then leak that buffers' memory.
+       */
+      ImBuf *saved_ibuf_thumb = IMB_thumb_create(
+          filepath, THB_LARGE, THB_SOURCE_BLEND, ibuf_thumb);
+      if (saved_ibuf_thumb) {
+        ibuf_thumb = saved_ibuf_thumb;
+      }
     }
   }
 

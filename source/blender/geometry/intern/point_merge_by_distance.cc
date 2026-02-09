@@ -131,7 +131,17 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
     }
 
     bke::GAttributeReader src_attribute = src_attributes.lookup(id);
-    bke::attribute_math::to_static_type(src_attribute.varray.type(), [&]<typename T>() {
+    const bke::AttrType type = bke::cpp_type_to_attribute_type(src_attribute.varray.type());
+
+    const CommonVArrayInfo info = src_attribute.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attribute.varray.type(), info.data));
+      if (dst_attributes.add(id, bke::AttrDomain::Point, type, init)) {
+        continue;
+      }
+    }
+
+    bke::attribute_math::to_static_type(type, [&]<typename T>() {
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
         bke::SpanAttributeWriter<T> dst_attribute =
             dst_attributes.lookup_or_add_for_write_only_span<T>(id, bke::AttrDomain::Point);

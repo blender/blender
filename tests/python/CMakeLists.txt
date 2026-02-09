@@ -52,6 +52,7 @@ function(add_blender_test testname)
     ""
     "${TEST_BLENDER_EXE}"
     ${TEST_BLENDER_EXE_PARAMS}
+    "${TEST_BLENDER_EXE_PARAMS_NO_THUMB}"
     ${ARGN}
   )
 endfunction()
@@ -66,6 +67,7 @@ function(add_blender_test_allow_error testname)
     ""
     "${TEST_BLENDER_EXE}"
     ${EXE_PARAMS}
+    "${TEST_BLENDER_EXE_PARAMS_NO_THUMB}"
     ${ARGN}
   )
 endfunction()
@@ -125,6 +127,7 @@ if(WITH_UI_TESTS)
       -p 0 0 800 600
       --gpu-backend ${backend}
       "${EXE_PARAMS}"
+      "${TEST_BLENDER_EXE_PARAMS_NO_THUMB}"
       "${ARGN}"
     )
   endfunction()

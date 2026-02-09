@@ -884,7 +884,7 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
       if (desc.offset != ATTR_STD_NOT_FOUND) {
         return get_object_attribute(kg, sd, desc, type, derivatives, val);
       }
-      float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
+      float3 f = triangle_smooth_normal_unnormalized(kg, sd);
       return set_attribute(f, type, derivatives, val);
     }
     else {

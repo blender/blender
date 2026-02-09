@@ -1070,7 +1070,7 @@ int Operators::sort(BinaryPredicate1D &pred)
   }
   PredicateWrapper wrapper(pred);
   try {
-    std::sort(_current_set->begin(), _current_set->end(), wrapper);
+    std::ranges::sort(*_current_set, wrapper);
   }
   catch (std::runtime_error &e) {
     cerr << "Warning: Operator.sort(): " << e.what() << endl;

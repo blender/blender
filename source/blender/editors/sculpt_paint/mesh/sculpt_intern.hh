@@ -126,6 +126,8 @@ enum class UpdateType {
   FaceSet,
 };
 
+static constexpr int face_set_none_id = 0;
+
 }  // namespace ed::sculpt_paint
 
 /* Factor of brush to have rake point following behind
@@ -259,7 +261,7 @@ struct StrokeCache {
   SculptRakeData rake_data;
 
   /* The face set being painted. */
-  int paint_face_set = SCULPT_FACE_SET_NONE;
+  int paint_face_set = face_set_none_id;
 
   /**
    * Symmetry index between 0 and 7 bit combo.
@@ -981,6 +983,9 @@ void SCULPT_OT_face_set_polyline_gesture(wmOperatorType *ot);
 }  // namespace ed::sculpt_paint::face_set
 
 namespace ed::sculpt_paint {
+
+void mask_overlay_check(bContext &C, wmOperator &op);
+void face_set_overlay_check(bContext &C, wmOperator &op);
 
 void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 void SCULPT_OT_paint_mask_extract(wmOperatorType *ot);

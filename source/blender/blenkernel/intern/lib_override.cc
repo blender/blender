@@ -3793,7 +3793,7 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
      * in different archived libraries.
      *
      * Bottom line being, only consider 'real' libraries for dependencies here, the archive ones
-     * only add noise and artefacts, and do not need to be processed. */
+     * only add noise and artifacts, and do not need to be processed. */
     auto get_real_library = [](ID *id) -> Library * {
       if (!ID_IS_LINKED(id)) {
         return nullptr;

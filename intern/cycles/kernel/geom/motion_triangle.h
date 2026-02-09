@@ -17,6 +17,7 @@
 
 #include "kernel/bvh/util.h"
 
+#include "kernel/geom/attribute.h"
 #include "kernel/geom/triangle.h"
 
 CCL_NAMESPACE_BEGIN
@@ -52,31 +53,48 @@ ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
 }
 
 ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
+                                                        const int object,
+                                                        const int object_flag,
+                                                        const int prim,
                                                         const uint3 tri_vindex,
                                                         int offset,
-                                                        const int numverts,
                                                         const int numsteps,
                                                         int step,
                                                         float3 normals[3])
 {
   if (step == numsteps) {
-    /* center step: regular vertex location */
-    normals[0] = kernel_data_fetch(tri_vnormal, tri_vindex.x);
-    normals[1] = kernel_data_fetch(tri_vnormal, tri_vindex.y);
-    normals[2] = kernel_data_fetch(tri_vnormal, tri_vindex.z);
+    /* Center step in the regular attribute. */
+    offset = kernel_data_fetch(objects, object).normal_attr_offset;
   }
   else {
-    /* center step is not stored in this array */
+    /* Other steps in the motion attribute, compensate for missing center step. */
     if (step > numsteps) {
       step--;
     }
-
-    offset += step * numverts;
-
-    normals[0] = kernel_data_fetch(attributes_float3, offset + tri_vindex.x);
-    normals[1] = kernel_data_fetch(attributes_float3, offset + tri_vindex.y);
-    normals[2] = kernel_data_fetch(attributes_float3, offset + tri_vindex.z);
   }
+
+  int i0, i1, i2;
+
+  if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
+    if (step != numsteps) {
+      offset += step * kernel_data_fetch(objects, object).numprims * 3;
+    }
+
+    i0 = prim * 3 + 0;
+    i1 = prim * 3 + 1;
+    i2 = prim * 3 + 2;
+  }
+  else {
+    if (step != numsteps) {
+      offset += step * kernel_data_fetch(objects, object).numverts;
+    }
+
+    i0 = tri_vindex.x;
+    i1 = tri_vindex.y;
+    i2 = tri_vindex.z;
+  }
+
+  attribute_data_fetch_normals(kg, offset, i0, i1, i2, normals);
 }
 
 ccl_device_inline void motion_triangle_compute_info(KernelGlobals kg,
@@ -139,22 +157,28 @@ ccl_device_inline void motion_triangle_vertices(
 
 ccl_device_inline void motion_triangle_normals(KernelGlobals kg,
                                                const int object,
+                                               const int prim,
                                                const uint3 tri_vindex,
                                                const int numsteps,
-                                               const int numverts,
                                                const int step,
                                                const float t,
                                                float3 normals[3])
 {
   /* Find attribute. */
-  const int offset = intersection_find_attribute(kg, object, ATTR_STD_MOTION_VERTEX_NORMAL);
+  const int object_flag = kernel_data_fetch(object_flag, object);
+  const int offset = intersection_find_attribute(kg,
+                                                 object,
+                                                 (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) ?
+                                                     ATTR_STD_MOTION_CORNER_NORMAL :
+                                                     ATTR_STD_MOTION_VERTEX_NORMAL);
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
   /* Fetch normals. */
   float3 next_normals[3];
-  motion_triangle_normals_for_step(kg, tri_vindex, offset, numverts, numsteps, step, normals);
   motion_triangle_normals_for_step(
-      kg, tri_vindex, offset, numverts, numsteps, step + 1, next_normals);
+      kg, object, object_flag, prim, tri_vindex, offset, numsteps, step, normals);
+  motion_triangle_normals_for_step(
+      kg, object, object_flag, prim, tri_vindex, offset, numsteps, step + 1, next_normals);
 
   /* Interpolate between steps. */
   normals[0] = normalize((1.0f - t) * normals[0] + t * next_normals[0]);
@@ -163,26 +187,25 @@ ccl_device_inline void motion_triangle_normals(KernelGlobals kg,
 }
 
 ccl_device_inline void motion_triangle_vertices_and_normals(KernelGlobals kg,
-                                                            const int object,
-                                                            const int prim,
-                                                            const float time,
+                                                            const ccl_private ShaderData *sd,
                                                             float3 verts[3],
                                                             float3 normals[3])
 {
-  int numsteps;
-  int step;
+  const int object = sd->object;
+  int numsteps, step;
   float t;
   uint3 tri_vindex;
-  motion_triangle_compute_info(kg, object, time, prim, &tri_vindex, &numsteps, &step, &t);
+  motion_triangle_compute_info(kg, object, sd->time, sd->prim, &tri_vindex, &numsteps, &step, &t);
 
   const int numverts = kernel_data_fetch(objects, object).numverts;
   motion_triangle_vertices(kg, object, tri_vindex, numsteps, numverts, step, t, verts);
-  motion_triangle_normals(kg, object, tri_vindex, numsteps, numverts, step, t, normals);
+  motion_triangle_normals(kg, object, sd->prim, tri_vindex, numsteps, step, t, normals);
 }
 
 ccl_device_inline float3 motion_triangle_smooth_normal(KernelGlobals kg,
                                                        const float3 Ng,
                                                        const int object,
+                                                       const int prim,
                                                        const uint3 tri_vindex,
                                                        const int numsteps,
                                                        const int step,
@@ -191,8 +214,7 @@ ccl_device_inline float3 motion_triangle_smooth_normal(KernelGlobals kg,
                                                        const float v)
 {
   float3 normals[3];
-  const int numverts = kernel_data_fetch(objects, object).numverts;
-  motion_triangle_normals(kg, object, tri_vindex, numsteps, numverts, step, t, normals);
+  motion_triangle_normals(kg, object, prim, tri_vindex, numsteps, step, t, normals);
 
   /* Interpolate between normals. */
   const float w = 1.0f - u - v;
@@ -215,7 +237,7 @@ ccl_device_inline float3 motion_triangle_smooth_normal(KernelGlobals kg,
   uint3 tri_vindex;
   motion_triangle_compute_info(kg, object, time, prim, &tri_vindex, &numsteps, &step, &t);
 
-  return motion_triangle_smooth_normal(kg, Ng, object, tri_vindex, numsteps, step, t, u, v);
+  return motion_triangle_smooth_normal(kg, Ng, object, prim, tri_vindex, numsteps, step, t, u, v);
 }
 
 /* Compute motion triangle normals at the hit position, and offsetted positions in x and y
@@ -238,8 +260,7 @@ ccl_device_inline float3 motion_triangle_smooth_normal(KernelGlobals kg,
   motion_triangle_compute_info(kg, object, time, prim, &tri_vindex, &numsteps, &step, &t);
 
   float3 n[3];
-  const int numverts = kernel_data_fetch(objects, object).numverts;
-  motion_triangle_normals(kg, object, tri_vindex, numsteps, numverts, step, t, n);
+  motion_triangle_normals(kg, object, prim, tri_vindex, numsteps, step, t, n);
 
   const float3 N = safe_normalize(triangle_interpolate(u, v, n[0], n[1], n[2]));
   N_x = safe_normalize(triangle_interpolate(u + du.dx, v + dv.dx, n[0], n[1], n[2]));

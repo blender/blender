@@ -748,9 +748,8 @@ void MTLWriter::write_materials(const char *blen_filepath,
   BLI_path_slash_native(blen_filedir);
   BLI_path_normalize(blen_filedir);
 
-  std::sort(mtlmaterials_.begin(),
-            mtlmaterials_.end(),
-            [](const MTLMaterial &a, const MTLMaterial &b) { return a.name < b.name; });
+  std::ranges::sort(mtlmaterials_,
+                    [](const MTLMaterial &a, const MTLMaterial &b) { return a.name < b.name; });
   Set<std::pair<std::string, std::string>> copy_set;
   for (const MTLMaterial &mtlmat : mtlmaterials_) {
     fmt_handler_.write_string("");

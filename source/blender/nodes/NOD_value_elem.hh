@@ -20,7 +20,6 @@
 #include <variant>
 
 #include "BLI_hash.hh"
-#include "BLI_struct_equality_utils.hh"
 
 #include "DNA_node_types.h"
 
@@ -37,7 +36,7 @@ struct PrimitiveValueElem {
     return this->affected;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(PrimitiveValueElem, affected)
+  friend bool operator==(const PrimitiveValueElem &a, const PrimitiveValueElem &b) = default;
 
   void merge(const PrimitiveValueElem &other)
   {
@@ -87,7 +86,7 @@ struct VectorElem {
     return this->x || this->y || this->z;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_3(VectorElem, x, y, z)
+  friend bool operator==(const VectorElem &a, const VectorElem &b) = default;
 
   uint64_t hash() const
   {
@@ -129,7 +128,7 @@ struct RotationElem {
     return this->euler || this->axis || this->angle;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_3(RotationElem, euler, axis, angle)
+  friend bool operator==(const RotationElem &a, const RotationElem &b) = default;
 
   uint64_t hash() const
   {
@@ -168,7 +167,7 @@ struct MatrixElem {
     return this->translation || this->rotation || this->scale || this->any_non_transform;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_4(MatrixElem, translation, rotation, scale, any_non_transform)
+  friend bool operator==(const MatrixElem &a, const MatrixElem &b) = default;
 
   uint64_t hash() const
   {
@@ -257,7 +256,7 @@ struct ElemVariant {
         this->elem);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(ElemVariant, elem)
+  friend bool operator==(const ElemVariant &a, const ElemVariant &b) = default;
 };
 
 /** Utility struct to pair a socket with a value element. */
@@ -270,7 +269,7 @@ struct SocketElem {
     return get_default_hash(this->socket, this->elem);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(SocketElem, socket, elem)
+  friend bool operator==(const SocketElem &a, const SocketElem &b) = default;
 };
 
 /** Utility struct to pair a group input index with a value element. */
@@ -283,7 +282,7 @@ struct GroupInputElem {
     return get_default_hash(this->group_input_index, this->elem);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(GroupInputElem, group_input_index, elem)
+  friend bool operator==(const GroupInputElem &a, const GroupInputElem &b) = default;
 };
 
 /** Utility struct to pair a value node with a value element. */
@@ -296,7 +295,7 @@ struct ValueNodeElem {
     return get_default_hash(this->node, this->elem);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(ValueNodeElem, node, elem)
+  friend bool operator==(const ValueNodeElem &a, const ValueNodeElem &b) = default;
 };
 
 /**

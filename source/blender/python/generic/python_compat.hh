@@ -24,6 +24,4 @@
 /* TODO: Support: `PyDict_Pop`, it has different arguments. */
 #endif
 
-#if PY_VERSION_HEX >= 0x030d0000 /* >= 3.13 */
 int _PyArg_CheckPositional(const char *name, Py_ssize_t nargs, Py_ssize_t min, Py_ssize_t max);
-#endif

@@ -54,7 +54,20 @@ endif()
 # Standard Blender arguments for running tests.
 # Specify exit code so that if a Python script error happens, the test fails.
 set(TEST_BLENDER_EXE_PARAMS
-  --background --factory-startup --debug-memory --debug-exit-on-error --python-exit-code 1
+  --background
+  --factory-startup
+  --debug-memory
+  --debug-exit-on-error
+  --python-exit-code 1
+)
+
+# The `TEST_BLENDER_EXE_PARAMS` list might be edited in some cases (see e.g. `add_blender_test_allow_error`).
+# This will break in case a parameter contains a `;` that should remain literal,
+# instead of being interpreted as a list item separator by CMake.
+# So this additional variable is always added after `TEST_BLENDER_EXE_PARAMS`, always as-is.
+set(TEST_BLENDER_EXE_PARAMS_NO_THUMB
+  # Python expression to disable thumbnails creation on blend-file saving.
+  --python-expr [=[import bpy\;bpy.context.preferences.filepaths.file_preview_type='NONE']=]
 )
 
 # Python CTests

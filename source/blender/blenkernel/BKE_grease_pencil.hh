@@ -59,18 +59,22 @@ struct FillCache {
    * A cache of all the fills in the drawing.
    *
    * Uses the "fill_id" attribute to create groups of curves (fills) that are triangulated
-   * together. A fill ID of 0 indicates that the corresponding curve is not filled.
+   * together. A fill ID of 0 indicates that the corresponding curve is not filled. Values != 0 are
+   * used as group IDs (arbitrary integers, not indices!).
+   *
    * The #fill_map is an index mapping where groups are the consecutive indices of curves in each
-   * fill (ordered by the first occurance of the fill ID). The #fill_offsets are offset indices
-   * into #fill_map where each range represents a fill.
+   * fill (ordered by the first occurrence of the fill ID).
+   * The #fill_offsets are offset indices into #fill_map where each range represents a fill.
    *
    * For example:
    *
    * curve index:  0 1 2 3 4 5 6 7 8
-   * fill_id:      0 0 1 0 1 4 1 3 3
-   * fill_map:         2 4 6 5   7 8
-   * fill_offsets:     0     3   4   6
-   * fills:            _____ _   ___
+   * fill_id:      0 0 a 0 a c a b b   (a, b, c are some integers != 0)
+   *
+   * fill_map:     2 4 6 5 7 8
+   * fill_offsets: 0     3 4   6
+   * fills:        _____ _ ___
+   *               a     c b           (ordered by the first occurrence in `fill_id`)
    */
   Vector<int> fill_map;
   Vector<int> fill_offsets;

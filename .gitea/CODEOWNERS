@@ -190,6 +190,11 @@ source/blender/gpu/shader_tool/.*                       @fclem
 source/blender/gpu/shaders/.*                           @fclem
 
 # --------------------------------------------------
+# VSE.
+source/blender/sequencer/.*                  @eliphaz 
+source/blender/editors/space_sequencer/.*    @eliphaz
+
+# --------------------------------------------------
 # XR
 source/blender/windowmanager/xr/.*                     @Brainzman
 intern/ghost/intern/GHOST_Xr.*                         @Brainzman
@@ -224,3 +229,8 @@ build_files/buildbot/.*         @bartvdbraak
 build_files/config/.*           @bartvdbraak
 .gitea/workflows/.*             @bartvdbraak
 .github/.*                      @bartvdbraak
+
+# --------------------------------------------------
+# glTF
+scripts/addons_core/io_scene_gltf2/.*       @JulienDuroure
+extern/draco/.*                             @JulienDuroure

@@ -413,7 +413,7 @@ static Vector<StringRefNull> set_to_vector_stable(Set<StringRefNull> &set)
     source_files.append(str);
   }
   /* Sort dependencies to avoid random order causing shader caching to fail (see #108289). */
-  std::sort(source_files.begin(), source_files.end());
+  std::ranges::sort(source_files);
   return source_files;
 }
 

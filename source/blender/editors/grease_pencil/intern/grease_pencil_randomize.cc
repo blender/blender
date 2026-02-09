@@ -100,7 +100,7 @@ float randomize_rotation(const BrushGpencilSettings &settings,
     random_factor *= BKE_curvemapping_evaluateF(settings.curve_rand_uv, 0, pressure);
   }
 
-  const float random_rotation = random_factor * math::numbers::pi;
+  const float random_rotation = random_factor * std::numbers::pi;
   return math::interpolate(0.0f, random_rotation, settings.uv_random);
 }
 
@@ -125,7 +125,7 @@ float randomize_rotation(const BrushGpencilSettings &settings,
     random_factor *= BKE_curvemapping_evaluateF(settings.curve_rand_uv, 0, pressure);
   }
 
-  const float random_rotation = random_factor * math::numbers::pi;
+  const float random_rotation = random_factor * std::numbers::pi;
   return math::interpolate(0.0f, random_rotation, settings.uv_random);
 }
 

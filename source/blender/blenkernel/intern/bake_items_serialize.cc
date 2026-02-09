@@ -15,7 +15,6 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_volume.hh"
 
-#include "BLI_endian_defines.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_utils.hh"
@@ -293,13 +292,6 @@ std::optional<ImplicitSharingInfoAndData> BlobReadSharing::read_shared(
   return data;
 }
 
-static StringRefNull get_endian_io_name(const int endian)
-{
-  BLI_assert(endian == L_ENDIAN);
-  UNUSED_VARS_NDEBUG(endian);
-  return "little";
-}
-
 static StringRefNull get_domain_io_name(const AttrDomain domain)
 {
   const char *io_name = "unknown";
@@ -311,6 +303,13 @@ static StringRefNull get_data_type_io_name(const eCustomDataType data_type)
 {
   const char *io_name = "unknown";
   RNA_enum_id_from_value(rna_enum_attribute_type_items, data_type, &io_name);
+  return io_name;
+}
+
+static StringRefNull get_storage_type_io_name(const AttrStorageType storage_type)
+{
+  const char *io_name = "unknown";
+  RNA_enum_id_from_value(rna_enum_attr_storage_type_items, int(storage_type), &io_name);
   return io_name;
 }
 
@@ -332,53 +331,17 @@ static std::optional<eCustomDataType> get_data_type_from_io_name(const StringRef
   return eCustomDataType(domain);
 }
 
-/**
- * Write the data, always in little endian.
- */
-static std::shared_ptr<DictionaryValue> write_blob_raw_data_with_endian(
-    BlobWriter &blob_writer,
-    BlobWriteSharing &blob_sharing,
-    const void *data,
-    const int64_t size_in_bytes)
+static std::optional<AttrStorageType> get_storage_type_from_io_name(const StringRefNull io_name)
 {
-  auto io_data = blob_sharing.write_deduplicated(blob_writer, data, size_in_bytes);
-  BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
-  return io_data;
+  int storage_type;
+  if (!RNA_enum_value_from_identifier(
+          rna_enum_attr_storage_type_items, io_name.c_str(), &storage_type))
+  {
+    return std::nullopt;
+  }
+  return AttrStorageType(storage_type);
 }
 
-/**
- * Read data of an into an array.
- *
- * \returns True if successful, false if reading fails, or endian switch would be needed.
- */
-[[nodiscard]] static bool read_blob_raw_data_with_endian(const BlobReader &blob_reader,
-                                                         const DictionaryValue &io_data,
-                                                         const int64_t element_size,
-                                                         const int64_t elements_num,
-                                                         void *r_data)
-{
-  const std::optional<BlobSlice> slice = BlobSlice::deserialize(io_data);
-  if (!slice) {
-    return false;
-  }
-  if (slice->range.size() != element_size * elements_num) {
-    return false;
-  }
-  if (!blob_reader.read(*slice, r_data)) {
-    return false;
-  }
-  const StringRefNull stored_endian = io_data.lookup_str("endian").value_or("little");
-  const StringRefNull current_endian = get_endian_io_name(ENDIAN_ORDER);
-  const bool need_endian_switch = stored_endian != current_endian;
-  if (need_endian_switch) {
-    /* NOTE: this is endianness-sensitive. */
-    /* Blender only builds on little endian systems, and reads little endian data here. */
-    return false;
-  }
-  return true;
-}
-
-/** Write bytes ignoring endianness. */
 static std::shared_ptr<DictionaryValue> write_blob_raw_bytes(BlobWriter &blob_writer,
                                                              BlobWriteSharing &blob_sharing,
                                                              const void *data,
@@ -387,7 +350,6 @@ static std::shared_ptr<DictionaryValue> write_blob_raw_bytes(BlobWriter &blob_wr
   return blob_sharing.write_deduplicated(blob_writer, data, size_in_bytes);
 }
 
-/** Read bytes ignoring endianness. */
 [[nodiscard]] static bool read_blob_raw_bytes(const BlobReader &blob_reader,
                                               const DictionaryValue &io_data,
                                               const int64_t bytes_num,
@@ -407,53 +369,14 @@ static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob
                                                                 BlobWriteSharing &blob_sharing,
                                                                 const GSpan data)
 {
-  const CPPType &type = data.type();
-  BLI_assert(type.is_trivial);
-  if (type.size == 1 || type.is<ColorGeometry4b>()) {
-    return write_blob_raw_bytes(blob_writer, blob_sharing, data.data(), data.size_in_bytes());
-  }
-  return write_blob_raw_data_with_endian(
-      blob_writer, blob_sharing, data.data(), data.size_in_bytes());
+  return write_blob_raw_bytes(blob_writer, blob_sharing, data.data(), data.size_in_bytes());
 }
 
 [[nodiscard]] static bool read_blob_simple_gspan(const BlobReader &blob_reader,
                                                  const DictionaryValue &io_data,
                                                  GMutableSpan r_data)
 {
-  const CPPType &type = r_data.type();
-  BLI_assert(type.is_trivial);
-  if (type.size == 1 || type.is<ColorGeometry4b>()) {
-    return read_blob_raw_bytes(blob_reader, io_data, r_data.size_in_bytes(), r_data.data());
-  }
-  if (type.is_any<int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, type.size, r_data.size(), r_data.data());
-  }
-  if (type.is_any<float2, int2>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(int32_t), r_data.size() * 2, r_data.data());
-  }
-  if (type.is_any<short2>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(short), r_data.size() * 2, r_data.data());
-  }
-  if (type.is<float3>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 3, r_data.data());
-  }
-  if (type.is<float4x4>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 16, r_data.data());
-  }
-  if (type.is<ColorGeometry4f>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
-  }
-  if (type.is<math::Quaternion>()) {
-    return read_blob_raw_data_with_endian(
-        blob_reader, io_data, sizeof(float), r_data.size() * 4, r_data.data());
-  }
-  return false;
+  return read_blob_raw_bytes(blob_reader, io_data, r_data.size_in_bytes(), r_data.data());
 }
 
 static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
@@ -559,36 +482,71 @@ template<typename T>
     if (!cpp_type) {
       return false;
     }
-    const int domain_size = attributes.domain_size(*domain);
-    const ImplicitSharingInfo *attribute_sharing_info;
-    const void *attribute_data = read_blob_shared_simple_gspan(
-        *io_data, blob_reader, blob_sharing, *cpp_type, domain_size, &attribute_sharing_info);
-    if (!attribute_data) {
-      return false;
-    }
-    BLI_SCOPED_DEFER([&]() { attribute_sharing_info->remove_user_and_delete_if_last(); });
 
-    if (attributes.contains(*name)) {
-      /* If the attribute exists already, copy the values over to the existing array. */
-      GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_only_span(
-          *name, *domain, *custom_data_type_to_attr_type(*data_type));
-      if (!attribute) {
-        return false;
+    const AttrStorageType storage_type = [&]() {
+      if (const std::optional<StringRefNull> str = io_attribute->lookup_str("storage_type")) {
+        return get_storage_type_from_io_name(*str).value_or(AttrStorageType::Array);
       }
-      cpp_type->copy_assign_n(attribute_data, attribute.span.data(), domain_size);
-      attribute.finish();
-    }
-    else {
-      /* Add a new attribute that shares the data. */
-      if (!attributes.add(*name,
-                          *domain,
-                          *custom_data_type_to_attr_type(*data_type),
-                          AttributeInitShared(attribute_data, *attribute_sharing_info)))
-      {
-        return false;
+      return AttrStorageType::Array;
+    }();
+    switch (storage_type) {
+      case AttrStorageType::Array: {
+        const int domain_size = attributes.domain_size(*domain);
+        const ImplicitSharingInfo *attribute_sharing_info;
+        const void *attribute_data = read_blob_shared_simple_gspan(
+            *io_data, blob_reader, blob_sharing, *cpp_type, domain_size, &attribute_sharing_info);
+        if (!attribute_data) {
+          return false;
+        }
+        BLI_SCOPED_DEFER([&]() { attribute_sharing_info->remove_user_and_delete_if_last(); });
+
+        if (attributes.contains(*name)) {
+          /* If the attribute exists already, copy the values over to the existing array. */
+          GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_only_span(
+              *name, *domain, *custom_data_type_to_attr_type(*data_type));
+          if (!attribute) {
+            return false;
+          }
+          cpp_type->copy_assign_n(attribute_data, attribute.span.data(), domain_size);
+          attribute.finish();
+        }
+        else {
+          /* Add a new attribute that shares the data. */
+          if (!attributes.add(*name,
+                              *domain,
+                              *custom_data_type_to_attr_type(*data_type),
+                              AttributeInitShared(attribute_data, *attribute_sharing_info)))
+          {
+            return false;
+          }
+        }
+        break;
+      }
+      case AttrStorageType::Single: {
+        const ImplicitSharingInfo *sharing_info;
+        const void *value = read_blob_shared_simple_gspan(
+            *io_data, blob_reader, blob_sharing, *cpp_type, 1, &sharing_info);
+        if (!value) {
+          return false;
+        }
+        BLI_SCOPED_DEFER([&]() { sharing_info->remove_user_and_delete_if_last(); });
+
+        const AttributeInitValue init(GPointer(*cpp_type, value));
+        if (attributes.contains(*name)) {
+          if (!attributes.assign_data(*name, init)) {
+            return false;
+          }
+        }
+        else {
+          if (!attributes.add(*name, *domain, *custom_data_type_to_attr_type(*data_type), init)) {
+            return false;
+          }
+        }
+        break;
       }
     }
   }
+
   return true;
 }
 
@@ -902,8 +860,7 @@ static std::unique_ptr<Instances> try_load_instances(const DictionaryValue &io_g
     return nullptr;
   }
 
-  std::unique_ptr<Instances> instances = std::make_unique<Instances>();
-  instances->resize(num_instances);
+  std::unique_ptr<Instances> instances = std::make_unique<Instances>(num_instances);
 
   for (const auto &io_reference_value : io_references->elements()) {
     const DictionaryValue *io_reference = io_reference_value->as_dictionary_value();
@@ -1059,13 +1016,24 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     io_attribute->append_str("type", type_name);
 
     const GAttributeReader attribute = iter.get();
+    const CommonVArrayInfo info = attribute.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      io_attribute->append_str("storage_type", get_storage_type_io_name(AttrStorageType::Single));
+      const GSpan attribute_span(attribute.varray.type(), info.data, 1);
+      io_attribute->append("data",
+                           write_blob_shared_simple_gspan(
+                               blob_writer, blob_sharing, attribute_span, attribute.sharing_info));
+      return;
+    }
+    /* Save "storage_type" with a default of ARRAY; don't store it in this case. */
     const GVArraySpan attribute_span(attribute.varray);
     io_attribute->append("data",
-                         write_blob_shared_simple_gspan(
-                             blob_writer,
-                             blob_sharing,
-                             attribute_span,
-                             attribute.varray.is_span() ? attribute.sharing_info : nullptr));
+                         write_blob_shared_simple_gspan(blob_writer,
+                                                        blob_sharing,
+                                                        attribute_span,
+                                                        info.type == CommonVArrayInfo::Type::Span ?
+                                                            attribute.sharing_info :
+                                                            nullptr));
   });
   return io_attributes;
 }

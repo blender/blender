@@ -681,14 +681,14 @@ PyDoc_STRVAR(
     "\n"
     "   For Python access to GPU functions requiring a pointer.\n"
     "\n"
-    "   :arg format: Format type to interpret the buffer.\n"
+    "   :param format: Format type to interpret the buffer.\n"
     "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
     "``10_11_11_REV``.\n"
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
-    "   :arg dimensions: Array describing the dimensions.\n"
+    "   :param dimensions: Array describing the dimensions.\n"
     "   :type dimensions: int\n"
-    "   :arg data: Optional data array.\n"
+    "   :param data: Optional data array.\n"
     "   :type data: Buffer | Sequence[float] | Sequence[int]\n");
 PyTypeObject BPyGPU_BufferType = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)

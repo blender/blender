@@ -75,6 +75,7 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_lock", icon='UNLOCKED', text="Unlock All").action = 'UNLOCK'
         layout.separator()
         layout.operator("object.shape_key_make_basis", text="Make Basis")
+        layout.operator("object.shape_key_apply_to_basis", text="Apply to Basis")
         layout.separator()
         props = layout.operator("object.shape_key_remove", text="Apply All")
         props.all = True
@@ -90,6 +91,7 @@ class MESH_MT_shape_key_tree_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("object.shape_key_make_basis", text="Make Basis")
+        layout.operator("object.shape_key_apply_to_basis", text="Apply to Basis")
         layout.operator("object.shape_key_copy", icon='DUPLICATE', text="Duplicate")
         layout.separator()
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move After Basis").type = 'TOP'

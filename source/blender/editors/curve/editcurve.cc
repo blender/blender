@@ -183,7 +183,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBaseT<Nurb> *origBase
         /* We cannot keep *any* reference to curve obdata,
          * it might be replaced and freed while editcurve remain in use
          * (in viewport render case e.g.). Note that we could use a pool to avoid
-         * lots of malloc's here, but... not really a problem for now. */
+         * lots of allocations here, but... not really a problem for now. */
         BezTriple *origbezt_cpy = MEM_new_uninitialized<BezTriple>(__func__);
         *origbezt_cpy = *origbezt;
         keyIndex = init_cvKeyIndex(origbezt_cpy, key_index, nu_index, pt_index, vertex_index);

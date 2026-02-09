@@ -207,6 +207,8 @@ const SocketType *NodeType::find_output(ustring name) const
 
 /* Node Type Registry */
 
+thread_mutex NodeType::types_mutex_;
+
 unordered_map<ustring, NodeType> &NodeType::types()
 {
   static unordered_map<ustring, NodeType> _types;
@@ -216,6 +218,9 @@ unordered_map<ustring, NodeType> &NodeType::types()
 NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const NodeType *base_)
 {
   const ustring name(name_);
+
+  /* Types can be lazily registered from multiple threads. */
+  thread_scoped_lock lock(types_mutex_);
 
   if (types().find(name) != types().end()) {
     LOG_ERROR << "Node type " << name_ << " registered twice";
@@ -233,6 +238,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
 
 const NodeType *NodeType::find(ustring name)
 {
+  thread_scoped_lock lock(types_mutex_);
   const unordered_map<ustring, NodeType>::iterator it = types().find(name);
   return (it == types().end()) ? nullptr : &it->second;
 }

@@ -133,13 +133,16 @@ static void node_geo_exec(GeoNodeExecParams params)
       entries.append({handle, &(child_object->id.name[2]), transform});
     }
 
-    std::sort(entries.begin(),
-              entries.end(),
-              [](const InstanceListEntry &a, const InstanceListEntry &b) {
-                return BLI_strcasecmp_natural(a.name, b.name) < 0;
-              });
-    for (const InstanceListEntry &entry : entries) {
-      instances->add_instance(entry.handle, entry.transform);
+    std::ranges::sort(entries, [](const InstanceListEntry &a, const InstanceListEntry &b) {
+      return BLI_strcasecmp_natural(a.name, b.name) < 0;
+    });
+
+    instances->resize(entries.size());
+    MutableSpan<int> handles = instances->reference_handles_for_write();
+    MutableSpan<float4x4> transforms = instances->transforms_for_write();
+    for (const int i : entries.index_range()) {
+      handles[i] = entries[i].handle;
+      transforms[i] = entries[i].transform;
     }
   }
   else {
@@ -149,10 +152,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       transform = self_object->world_to_object() * transform;
     }
 
-    const int handle = instances->add_reference(*collection);
-    instances->add_instance(handle, transform);
+    instances->resize(1);
+    instances->reference_handles_for_write().first() = instances->add_reference(*collection);
+    instances->transforms_for_write().first() = transform;
   }
-  GeometrySet geometry = GeometrySet::from_instances(instances.release());
+  GeometrySet geometry = GeometrySet::from_instances(std::move(instances));
   geometry.name = collection->id.name + 2;
 
   params.set_output("Instances", std::move(geometry));

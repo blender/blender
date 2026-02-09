@@ -595,33 +595,21 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
       "curve_type", "material_index", "cyclic", "hardness", "fill_opacity"};
   Set<std::string> skip_point_attributes = {"position", "radius", "opacity"};
 
-  curves.curve_types_for_write().fill(CURVE_TYPE_POLY);
-  curves.update_curve_types();
+  curves.fill_curve_types(CURVE_TYPE_POLY);
 
   /* Note: We can assume that the writers here will be valid since we created new curves. */
-  bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
-      "material_index", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
-      "cyclic", bke::AttrDomain::Curve);
-  bke::SpanAttributeWriter<float> hardnesses = attributes.lookup_or_add_for_write_span<float>(
-      "hardness", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
-  bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
-      "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
+  attributes.add<int>(
+      "material_index", bke::AttrDomain::Curve, bke::AttributeInitValue(material_index));
+  attributes.add<bool>("cyclic", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
+  attributes.add<float>("hardness", bke::AttrDomain::Curve, bke::AttributeInitValue(hardness));
+  /* TODO: `fill_opacities` are currently always 1.0f for the new strokes. Maybe this should be a
+   * parameter. */
+  attributes.add<float>("fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
+
   bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
       "radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
   bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
       "opacity", bke::AttrDomain::Point, bke::AttributeInitValue(1.0f));
-
-  cyclic.span.fill(true);
-  materials.span.fill(material_index);
-  hardnesses.span.fill(hardness);
-  /* TODO: `fill_opacities` are currently always 1.0f for the new strokes. Maybe this should be a
-   * parameter. */
-
-  cyclic.finish();
-  materials.finish();
-  hardnesses.finish();
-  fill_opacities.finish();
 
   for (const int point_i : curves.points_range()) {
     const int pixel_index = boundary.pixels[point_i];

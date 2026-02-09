@@ -19,6 +19,7 @@
 #include <wayland-client.h>
 
 #include <mutex>
+#include <span>
 #include <string>
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -255,7 +256,7 @@ class GHOST_SystemWayland : public GHOST_System {
   struct zxdg_decoration_manager_v1 *xdg_decor_manager_get();
   /* End `xdg_decor`. */
 
-  const std::vector<GWL_Output *> &outputs_get() const;
+  const std::span<GWL_Output *const> outputs_get() const;
 
   struct wl_shm *wl_shm_get() const;
 
@@ -269,6 +270,9 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool use_window_frame_get() const;
   bool use_window_frame_csd_get() const;
+#ifdef WITH_GHOST_CSD
+  const GHOST_CSD_Layout &csd_layout_base_get() const;
+#endif
 
   static const char *xdg_app_id_get();
 

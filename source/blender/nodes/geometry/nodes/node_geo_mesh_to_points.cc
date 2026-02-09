@@ -137,16 +137,18 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     }
 
     const StringRef dst_name = src_name == ".select_vert" ? ".selection" : src_name;
-    if (src.varray.is_single()) {
+    const CommonVArrayInfo info = src.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
       const CPPType &type = src.varray.type();
-      BUFFER_FOR_CPP_TYPE_VALUE(type, value);
-      src.varray.get_internal_single(value);
-      dst_attributes.add(
-          dst_name, domain, data_type, bke::AttributeInitValue(GPointer(type, value)));
+      const bke::AttributeInitValue init(GPointer(type, info.data));
+      dst_attributes.add(dst_name, domain, data_type, init);
+      continue;
     }
-    else if (share_arrays && src.domain == domain && src.sharing_info && src.varray.is_span()) {
-      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
-                                          *src.sharing_info);
+
+    if (share_arrays && src.domain == domain && src.sharing_info &&
+        info.type == CommonVArrayInfo::Type::Span)
+    {
+      const bke::AttributeInitShared init(info.data, *src.sharing_info);
       dst_attributes.add(dst_name, AttrDomain::Point, data_type, init);
     }
     else {

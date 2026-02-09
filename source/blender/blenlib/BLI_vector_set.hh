@@ -312,6 +312,11 @@ class VectorSet {
     return Span<Key>(keys_, this->size());
   }
 
+  friend bool operator==(const VectorSet &a, const VectorSet &b)
+  {
+    return a.as_span() == b.as_span();
+  }
+
   /**
    * Get a Span referencing the keys vector. The referenced memory buffer is only valid as
    * long as the vector set is not changed.

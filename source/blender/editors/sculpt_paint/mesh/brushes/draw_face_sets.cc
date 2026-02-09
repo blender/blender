@@ -433,7 +433,7 @@ void do_draw_face_sets_brush(const Depsgraph &depsgraph,
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  if (object.runtime->sculpt_session->cache->paint_face_set == SCULPT_FACE_SET_NONE) {
+  if (object.runtime->sculpt_session->cache->paint_face_set == face_set_none_id) {
     if (object.runtime->sculpt_session->cache->invert) {
       /* When inverting the brush, pick the paint face mask ID from the mesh. */
       object.runtime->sculpt_session->cache->paint_face_set = face_set::active_face_set_get(

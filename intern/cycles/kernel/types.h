@@ -670,23 +670,46 @@ enum AttributePrimitive {
 };
 
 enum AttributeElement {
+  /* Elements for regular domains. */
   ATTR_ELEMENT_NONE = 0,
   ATTR_ELEMENT_OBJECT = (1 << 0),
   ATTR_ELEMENT_MESH = (1 << 1),
   ATTR_ELEMENT_FACE = (1 << 2),
   ATTR_ELEMENT_VERTEX = (1 << 3),
-  ATTR_ELEMENT_VERTEX_MOTION = (1 << 4),
-  ATTR_ELEMENT_CORNER = (1 << 5),
-  ATTR_ELEMENT_CORNER_BYTE = (1 << 6),
-  ATTR_ELEMENT_CURVE = (1 << 7),
-  ATTR_ELEMENT_CURVE_KEY = (1 << 8),
-  ATTR_ELEMENT_CURVE_KEY_MOTION = (1 << 9),
-  ATTR_ELEMENT_VOXEL = (1 << 10)
+  ATTR_ELEMENT_CORNER = (1 << 4),
+  ATTR_ELEMENT_CURVE = (1 << 5),
+  ATTR_ELEMENT_CURVE_KEY = (1 << 6),
+  ATTR_ELEMENT_VOXEL = (1 << 7),
+
+  /* Elements with special encoding where the data type for storage does not
+   * match the data type returned when reading the attribute and needs a
+   * conversion or interpolation when reading. */
+  ATTR_ELEMENT_IS_MOTION = (1 << 8),
+  ATTR_ELEMENT_IS_NORMAL = (1 << 9),
+  ATTR_ELEMENT_IS_BYTE = (1 << 10),
+
+  /* Only these combinations are supported by the kernel and can be
+   * created on geometry. */
+  ATTR_ELEMENT_VERTEX_MOTION = ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_IS_MOTION,
+  ATTR_ELEMENT_VERTEX_NORMAL = ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_IS_NORMAL,
+  ATTR_ELEMENT_VERTEX_NORMAL_MOTION = ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_IS_NORMAL |
+                                      ATTR_ELEMENT_IS_MOTION,
+
+  ATTR_ELEMENT_CORNER_BYTE = ATTR_ELEMENT_CORNER | ATTR_ELEMENT_IS_BYTE,
+  ATTR_ELEMENT_CORNER_NORMAL = ATTR_ELEMENT_CORNER | ATTR_ELEMENT_IS_NORMAL,
+  ATTR_ELEMENT_CORNER_NORMAL_MOTION = ATTR_ELEMENT_CORNER | ATTR_ELEMENT_IS_NORMAL |
+                                      ATTR_ELEMENT_IS_MOTION,
+
+  ATTR_ELEMENT_CURVE_KEY_MOTION = ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_IS_MOTION,
+  ATTR_ELEMENT_CURVE_KEY_NORMAL = ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_IS_NORMAL,
+  ATTR_ELEMENT_CURVE_KEY_NORMAL_MOTION = ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_IS_NORMAL |
+                                         ATTR_ELEMENT_IS_MOTION,
 };
 
 enum AttributeStandard {
   ATTR_STD_NONE = 0,
   ATTR_STD_VERTEX_NORMAL,
+  ATTR_STD_CORNER_NORMAL,
   ATTR_STD_UV,
   ATTR_STD_UV_TANGENT,
   ATTR_STD_UV_TANGENT_SIGN,
@@ -700,6 +723,7 @@ enum AttributeStandard {
   ATTR_STD_NORMAL_UNDISPLACED,
   ATTR_STD_MOTION_VERTEX_POSITION,
   ATTR_STD_MOTION_VERTEX_NORMAL,
+  ATTR_STD_MOTION_CORNER_NORMAL,
   ATTR_STD_PARTICLE,
   ATTR_STD_CURVE_INTERCEPT,
   ATTR_STD_CURVE_LENGTH,
@@ -923,6 +947,8 @@ enum ShaderDataObjectFlag : uint {
   SD_OBJECT_CAUSTICS_RECEIVER = (1u << 10),
   /* object has attribute for volume motion */
   SD_OBJECT_HAS_VOLUME_MOTION = (1u << 11),
+  /* Geometry has per-corner normals instead of per-vertex. */
+  SD_OBJECT_HAS_CORNER_NORMALS = (1u << 12),
 
   /* object is using caustics */
   SD_OBJECT_CAUSTICS = (SD_OBJECT_CAUSTICS_CASTER | SD_OBJECT_CAUSTICS_RECEIVER),
@@ -931,7 +957,7 @@ enum ShaderDataObjectFlag : uint {
                      SD_OBJECT_NEGATIVE_SCALE | SD_OBJECT_HAS_VOLUME |
                      SD_OBJECT_INTERSECTS_VOLUME | SD_OBJECT_SHADOW_CATCHER |
                      SD_OBJECT_HAS_VOLUME_ATTRIBUTES | SD_OBJECT_CAUSTICS |
-                     SD_OBJECT_HAS_VOLUME_MOTION)
+                     SD_OBJECT_HAS_VOLUME_MOTION | SD_OBJECT_HAS_CORNER_NORMALS)
 };
 
 struct ccl_align(16) ShaderData {
@@ -1331,13 +1357,14 @@ struct KernelObject {
   float dupli_generated[3];
   float dupli_uv[2];
 
-  int numkeys;
-  int num_geom_steps;
-  int num_tfm_steps;
+  uint16_t num_geom_steps;
+  uint16_t num_tfm_steps;
   int numverts;
+  int numprims;
 
   uint attribute_map_offset;
   uint motion_offset;
+  int normal_attr_offset;
 
   float cryptomatte_object;
   float cryptomatte_asset;

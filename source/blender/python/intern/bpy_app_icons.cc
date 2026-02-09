@@ -29,11 +29,11 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new icon from triangle geometry.\n"
     "\n"
-    "   :arg range: Pair of ints.\n"
+    "   :param range: Pair of ints.\n"
     "   :type range: tuple[int, int]\n"
-    "   :arg coords: Sequence of bytes (6 floats for one triangle) for (X, Y) coordinates.\n"
+    "   :param coords: Sequence of bytes (6 floats for one triangle) for (X, Y) coordinates.\n"
     "   :type coords: bytes\n"
-    "   :arg colors: Sequence of bytes (12 for one triangles) for RGBA.\n"
+    "   :param colors: Sequence of bytes (12 for one triangles) for RGBA.\n"
     "   :type colors: bytes\n"
     "   :return: Unique icon value (pass to interface ``icon_value`` argument).\n"
     "   :rtype: int\n");
@@ -94,7 +94,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new icon from triangle geometry.\n"
     "\n"
-    "   :arg filepath: File path.\n"
+    "   :param filepath: File path.\n"
     "   :type filepath: str | bytes.\n"
     "   :return: Unique icon value (pass to interface ``icon_value`` argument).\n"
     "   :rtype: int\n");

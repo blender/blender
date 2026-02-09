@@ -143,7 +143,7 @@ PyDoc_STRVAR(
     "\n"
     "   A context manager that temporarily creates blender file data.\n"
     "\n"
-    "   :arg filepath: The file path for the newly temporary data. "
+    "   :param filepath: The file path for the newly temporary data. "
     "When None, the path of the currently open file is used.\n"
     "   :type filepath: str | bytes | None\n"
     "\n"

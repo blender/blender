@@ -1,4 +1,5 @@
 /* SPDX-FileCopyrightText: 2011-2026 Blender Authors
+ *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include <cstdio>

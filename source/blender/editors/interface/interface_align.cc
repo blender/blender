@@ -396,7 +396,7 @@ void block_align_calc(Block *block, const ARegion *region)
   /* This will give us ButAlign items regrouped by align group, vertical and horizontal location.
    * Note that, given how buttons are defined in UI code,
    * butal_array shall already be "nearly sorted"... */
-  std::sort(butal_array.begin(), butal_array.end(), block_align_butal_cmp);
+  std::ranges::sort(butal_array, block_align_butal_cmp);
 
   /* Second loop: for each pair of buttons in the same align group,
    * we compute their potential proximity. Note that each pair is checked only once, and that we

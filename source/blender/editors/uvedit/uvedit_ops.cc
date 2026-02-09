@@ -2572,7 +2572,7 @@ static bool uv_copy_mirrored_faces(
       sorted_verts[loop_index] = l->v;
     }
     if (valid) {
-      std::sort(sorted_verts.begin(), sorted_verts.end());
+      std::ranges::sort(sorted_verts);
       sorted_verts_to_face.add(std::move(sorted_verts), f);
     }
   }
@@ -2582,7 +2582,7 @@ static bool uv_copy_mirrored_faces(
     for (int index = 0; index < sorted_verts.size(); index++) {
       mirror_verts[index] = vmap.lookup_default(sorted_verts[index], nullptr);
     }
-    std::sort(mirror_verts.begin(), mirror_verts.end());
+    std::ranges::sort(mirror_verts);
     BMFace *f_src = sorted_verts_to_face.lookup_default(mirror_verts, nullptr);
     if (f_src) {
       if (f_src != f_dst) {

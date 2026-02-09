@@ -223,7 +223,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
       for (const FramesMapKeyT key : dst_frames.keys()) {
         sorted_keys[i++] = key;
       }
-      std::sort(sorted_keys.begin(), sorted_keys.end());
+      std::ranges::sort(sorted_keys);
     }
 
     Array<Vector<int>> src_drawing_indices_by_frame(sorted_keys.size());
@@ -334,6 +334,14 @@ void merge_layers(const GreasePencil &src_grease_pencil,
       return;
     }
     bke::GAttributeReader src_attribute = iter.get();
+    const CommonVArrayInfo info = src_attribute.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attribute.varray.type(), info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
+
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, bke::AttrDomain::Layer, iter.data_type);
     if (!dst_attribute) {

@@ -301,6 +301,7 @@ struct GeometrySet {
   /**
    * Create a new geometry set that only contains the given instances.
    */
+  static GeometrySet from_instances(std::unique_ptr<Instances> instances);
   static GeometrySet from_instances(
       Instances *instances, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
   /**

@@ -282,7 +282,7 @@ class GHOST_DeviceVK {
         vk_physical_device, &queue_family_count, queue_families.data());
 
     generic_queue_family = 0;
-    for (const auto &queue_family : queue_families) {
+    for (const VkQueueFamilyProperties &queue_family : queue_families) {
       /* Every VULKAN implementation by spec must have one queue family that support both graphics
        * and compute pipelines. We select this one; compute only queue family hints at asynchronous
        * compute implementations. */
@@ -393,7 +393,7 @@ struct GHOST_InstanceVK {
 
     int best_device_score = -1;
     int device_index = -1;
-    for (const auto &physical_device : physical_devices) {
+    for (const VkPhysicalDevice &physical_device : physical_devices) {
       GHOST_DeviceVK device_vk(physical_device, false);
       device_index++;
 
@@ -945,7 +945,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
   if (swapchain_ == VK_NULL_HANDLE) {
     GHOST_VulkanSwapChainData swap_chain_data = {};
     if (swap_buffer_draw_callback_) {
-      swap_buffer_draw_callback_(&swap_chain_data);
+      swap_buffer_draw_callback_(&swap_chain_data, true);
     }
     return GHOST_kSuccess;
   }
@@ -974,7 +974,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
 
   vkResetFences(vk_device, 1, &submission_frame_data.submission_fence);
   if (swap_buffer_draw_callback_) {
-    swap_buffer_draw_callback_(&swap_chain_data);
+    swap_buffer_draw_callback_(&swap_chain_data, true);
   }
 
   VkPresentInfoKHR present_info = {};
@@ -1059,7 +1059,7 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(GHOST_VulkanHandles &r_handles)
 }
 
 GHOST_TSuccess GHOST_ContextVK::setVulkanSwapBuffersCallbacks(
-    std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffer_draw_callback,
+    std::function<void(const GHOST_VulkanSwapChainData *, bool)> swap_buffer_draw_callback,
     std::function<void(void)> swap_buffer_acquired_callback,
     std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback,
     std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback)
@@ -1096,7 +1096,7 @@ static GHOST_TSuccess selectPresentMode(const GHOST_TVSyncModes vsync,
   if (vsync != GHOST_kVSyncModeUnset) {
     const bool vsync_off = (vsync == GHOST_kVSyncModeOff);
     if (vsync_off) {
-      for (auto present_mode : presents) {
+      for (const VkPresentModeKHR present_mode : presents) {
         if (present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
           *r_presentMode = present_mode;
           return GHOST_kSuccess;
@@ -1113,7 +1113,7 @@ static GHOST_TSuccess selectPresentMode(const GHOST_TVSyncModes vsync,
   /* TODO: select the correct presentation mode based on the actual being performed by the user.
    * When low latency is required (paint cursor) we should select mailbox, otherwise we can do FIFO
    * to reduce CPU/GPU usage. */
-  for (auto present_mode : presents) {
+  for (const VkPresentModeKHR present_mode : presents) {
     if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
       *r_presentMode = present_mode;
       return GHOST_kSuccess;
@@ -1515,7 +1515,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     GHOST_InstanceVK &instance_vk = vulkan_instance.value();
     instance_vk.extensions.enable(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, true);
 
-    /* Some XR platforms load functions without knowning if they were replaced by a core
+    /* Some XR platforms load functions without knowing if they were replaced by a core
      * function. Monado for example always uses the extension functions. Due to maintenance changes
      * drivers now only return the function pointer when the extension is enabled.
      *

@@ -52,9 +52,14 @@ void key_curve_normal_weights(float t, float data[4], KeyInterpolationType type)
  * Returns key coordinates (+ tilt) when key applied, NULL otherwise.
  *
  * \param obdata: if given, also update that geometry with the result of the shape keys evaluation.
+ * \param keys_to_process: If provided, only evaluate the keys at indices set to true.
  */
-float *BKE_key_evaluate_object_ex(
-    Object *ob, int *r_totelem, float *arr, size_t arr_size, ID *obdata);
+float *BKE_key_evaluate_object_ex(Object *ob,
+                                  int *r_totelem,
+                                  float *arr,
+                                  size_t arr_size,
+                                  std::optional<Span<bool>> keys_to_process,
+                                  ID *obdata);
 float *BKE_key_evaluate_object(Object *ob, int *r_totelem);
 
 /**

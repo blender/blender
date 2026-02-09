@@ -1056,7 +1056,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
   BitVector<> is_weighted(vert_positions.size());
   Set<int> visited_face_sets;
 
-  SegmentData current_data = {std::get<int>(ss.active_vert()), SCULPT_FACE_SET_NONE};
+  SegmentData current_data = {std::get<int>(ss.active_vert()), face_set_none_id};
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   Vector<int> neighbors;
@@ -1088,7 +1088,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
 
       /* First iteration. Continue expanding using topology until a vertex is outside the brush
        * radius to determine the first face set. */
-      if (current_data.face_set == SCULPT_FACE_SET_NONE) {
+      if (current_data.face_set == face_set_none_id) {
 
         pose_factor[to_v] = 1.0f;
         is_weighted[to_v].set();
@@ -1227,7 +1227,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
   BitVector<> is_weighted(grids_num);
   Set<int> visited_face_sets;
 
-  SegmentData current_data = {ss.active_vert_index(), SCULPT_FACE_SET_NONE};
+  SegmentData current_data = {ss.active_vert_index(), face_set_none_id};
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   SubdivCCGNeighbors neighbors;
@@ -1264,7 +1264,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
 
           /* First iteration. Continue expanding using topology until a vertex is outside the brush
            * radius to determine the first face set. */
-          if (current_data.face_set == SCULPT_FACE_SET_NONE) {
+          if (current_data.face_set == face_set_none_id) {
 
             pose_factor[to_v_i] = 1.0f;
             is_weighted[to_v_i].set();
@@ -1363,7 +1363,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_grids(Object &object,
 
     if (!next_segment_data) {
       /* It is possible that when traversing neighbors that we no longer have any vertices that
-       * have not been assigned to a face set when trying to find the next segement's starting
+       * have not been assigned to a face set when trying to find the next segment's starting
        * point. All further segments are invalid in this case. */
       break;
     }
@@ -1396,7 +1396,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
   BitVector<> is_weighted(verts_num);
   Set<int> visited_face_sets;
 
-  SegmentData current_data = {std::get<BMVert *>(ss.active_vert()), SCULPT_FACE_SET_NONE};
+  SegmentData current_data = {std::get<BMVert *>(ss.active_vert()), face_set_none_id};
 
   const int symm = SCULPT_mesh_symmetry_xyz_get(object);
   BMeshNeighborVerts neighbors;
@@ -1430,7 +1430,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
 
       /* First iteration. Continue expanding using topology until a vertex is outside the brush
        * radius to determine the first face set. */
-      if (current_data.face_set == SCULPT_FACE_SET_NONE) {
+      if (current_data.face_set == face_set_none_id) {
 
         pose_factor[to_v_i] = 1.0f;
         is_weighted[to_v_i].set();
@@ -1655,8 +1655,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
   Array<int> floodfill_step(mesh.verts_num);
   floodfill_step[active_vert] = 1;
 
-  int masked_face_set = SCULPT_FACE_SET_NONE;
-  int target_face_set = SCULPT_FACE_SET_NONE;
+  int masked_face_set = face_set_none_id;
+  int target_face_set = face_set_none_id;
   int masked_face_set_it = 0;
   flood_fill::FillDataMesh step_floodfill(mesh.verts_num, ss.fake_neighbors.fake_neighbor_index);
   step_floodfill.add_initial(active_vert);
@@ -1677,7 +1677,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
           masked_face_set_it = floodfill_step[to_v];
         }
 
-        if (target_face_set == SCULPT_FACE_SET_NONE) {
+        if (target_face_set == face_set_none_id) {
           target_face_set = to_face_set;
         }
       }
@@ -1740,8 +1740,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
   Array<int> floodfill_step(grids_num);
   floodfill_step[active_vert_index] = 1;
 
-  int masked_face_set = SCULPT_FACE_SET_NONE;
-  int target_face_set = SCULPT_FACE_SET_NONE;
+  int masked_face_set = face_set_none_id;
+  int target_face_set = face_set_none_id;
   int masked_face_set_it = 0;
   flood_fill::FillDataGrids step_floodfill(grids_num, ss.fake_neighbors.fake_neighbor_index);
   step_floodfill.add_initial(SubdivCCGCoord::from_index(key, active_vert_index));
@@ -1773,7 +1773,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_grids(const Depsgraph
               masked_face_set_it = floodfill_step[to_v_i];
             }
 
-            if (target_face_set == SCULPT_FACE_SET_NONE) {
+            if (target_face_set == face_set_none_id) {
               target_face_set = to_face_set;
             }
           }
@@ -1838,8 +1838,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_bmesh(const Depsgraph
   Array<int> floodfill_step(verts_num);
   floodfill_step[active_vert_index] = 1;
 
-  int masked_face_set = SCULPT_FACE_SET_NONE;
-  int target_face_set = SCULPT_FACE_SET_NONE;
+  int masked_face_set = face_set_none_id;
+  int target_face_set = face_set_none_id;
   int masked_face_set_it = 0;
   flood_fill::FillDataBMesh step_floodfill(verts_num, ss.fake_neighbors.fake_neighbor_index);
   step_floodfill.add_initial(active_vert);
@@ -1863,7 +1863,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_bmesh(const Depsgraph
           masked_face_set_it = floodfill_step[to_v_i];
         }
 
-        if (target_face_set == SCULPT_FACE_SET_NONE) {
+        if (target_face_set == face_set_none_id) {
           target_face_set = to_face_set;
         }
       }

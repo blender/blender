@@ -83,9 +83,9 @@ def _disable(template_id, *, handle_error=None):
     """
     Disables a template by name.
 
-    :arg template_id: The name of the template and module.
+    :param template_id: The name of the template and module.
     :type template_id: str
-    :arg handle_error: Called in the case of an error,
+    :param handle_error: Called in the case of an error,
        taking an exception argument.
     :type handle_error: Callable[[Exception], None] | None
     """

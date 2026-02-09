@@ -36,6 +36,7 @@ set(SRC
 )
 
 set(LIB
+  PUBLIC bf::dependencies::openimageio
   ${TBB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )
@@ -119,6 +120,7 @@ set(SRC_HEADERS
   types_int3.h
   types_int4.h
   types_int8.h
+  types_normal.h
   types_spectrum.h
   types_rgbe.h
   types_uchar2.h

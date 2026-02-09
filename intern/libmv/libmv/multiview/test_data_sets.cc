@@ -95,7 +95,7 @@ NViewDataSet NRealisticCamerasFull(int nviews,
   }
 
   for (size_t i = 0; i < nviews; ++i) {
-    Vec3 camera_center, t, jitter, lookdir;
+    Vec3 camera_center, jitter, lookdir;
 
     double theta = i * 2 * M_PI / nviews;
     camera_center << sin(theta), 0.0, cos(theta);
@@ -170,7 +170,7 @@ NViewDataSet NRealisticCamerasSparse(int nviews,
   size_t j_visible = 0;
   Vec3 X;
   for (size_t i = 0; i < nviews; ++i) {
-    Vec3 camera_center, t, jitter, lookdir;
+    Vec3 camera_center, jitter, lookdir;
 
     double theta = i * 2 * M_PI / nviews;
     camera_center << sin(theta), 0.0, cos(theta);

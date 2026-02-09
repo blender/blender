@@ -20,13 +20,13 @@
 
 #include "DRW_render.hh"
 
-#include "image_enums.hh"
+#include "image_shader_shared.hh"
 #include "image_space.hh"
 
 namespace blender::image_engine {
 
 struct ShaderParameters {
-  ImageDrawFlags flags = ImageDrawFlags::DEFAULT;
+  eImageDrawFlags flags = IMAGE_DRAW_FLAG_DEFAULT;
   float4 shuffle;
   float2 far_near;
   bool use_premul_alpha = false;
@@ -36,7 +36,7 @@ struct ShaderParameters {
               blender::Image *image,
               ImBuf *image_buffer)
   {
-    flags = ImageDrawFlags::DEFAULT;
+    flags = IMAGE_DRAW_FLAG_DEFAULT;
     shuffle = float4(1.0f);
     far_near = float2(100.0f, 0.0f);
 

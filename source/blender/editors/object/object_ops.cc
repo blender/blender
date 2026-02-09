@@ -233,6 +233,7 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_shape_key_move);
   WM_operatortype_append(OBJECT_OT_shape_key_lock);
   WM_operatortype_append(OBJECT_OT_shape_key_make_basis);
+  WM_operatortype_append(OBJECT_OT_shape_key_apply_to_basis);
 
   WM_operatortype_append(OBJECT_OT_collection_add);
   WM_operatortype_append(OBJECT_OT_collection_link);

@@ -24,6 +24,9 @@
 
 #include "gpu_shader_compat.hh"
 
+/* `osd_patch_defines.glsl` must be included before `osd_patch_basis.glsl` */
+#include "osd_patch_defines.glsl"
+
 #include "osd_patch_basis.glsl"
 
 /* Runtime create info. */

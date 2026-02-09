@@ -29,6 +29,13 @@ namespace blender::meshintersect {
 
 using namespace blender::math;
 
+/**
+ * Use a power of 10 for the face_edge_offset for easier debugging of encoded edge IDs.
+ * Disabled because rounding up can add considerable overhead to the per-face encoding space,
+ * reducing the number of faces that fit before overflow (see #153708).
+ */
+static constexpr bool USE_POW10_FACE_EDGE_OFFSET_ROUND_UP = false;
+
 /* Throughout this file, template argument T will be an
  * arithmetic-like type, like float, double, or mpq_class. */
 
@@ -185,7 +192,7 @@ template<typename T> struct CDTVert {
   /** Some edge attached to it. */
   SymEdge<T> *symedge{nullptr};
   /** Set of corresponding vertex input ids. Not used if don't need_ids. */
-  Set<int> input_ids;
+  Set<uint32_t> input_ids;
   /** Index into array that #CDTArrangement keeps. */
   int index{-1};
   /** Index of a CDTVert that this has merged to. -1 if no merge. */
@@ -201,7 +208,7 @@ template<typename T> struct CDTEdge {
   /** Set of input edge ids that this is part of.
    * If don't need_ids, then should contain 0 if it is a constrained edge,
    * else empty. */
-  Set<int> input_ids;
+  Set<uint32_t> input_ids;
   /** The directed edges for this edge. */
   SymEdge<T> symedges[2]{SymEdge<T>(), SymEdge<T>()};
 
@@ -214,7 +221,7 @@ template<typename T> struct CDTFace {
   /** Set of input face ids that this is part of.
    * If don't need_ids, then should contain 0 if it is part of a constrained face,
    * else empty. */
-  Set<int> input_ids;
+  Set<uint32_t> input_ids;
   /** Used by algorithms operating on CDT structures. */
   int visit_index{0};
   /** Marks this face no longer used. */
@@ -322,7 +329,7 @@ template<typename T> class CDT_state {
    * Edge ids for face start with this, and each face gets this much index space
    * to encode positions within the face.
    */
-  int face_edge_offset;
+  uint32_t face_edge_offset;
   /** How close before coords considered equal. */
   T epsilon;
   /** Do we need to track ids? */
@@ -626,7 +633,7 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
             << " font-size=\"small\">[";
           f << trunc_ptr(face);
           if (face->input_ids.size() > 0) {
-            for (int id : face->input_ids) {
+            for (uint32_t id : face->input_ids) {
               f << " " << id;
             }
           }
@@ -885,9 +892,11 @@ CDT_state<T>::CDT_state(
 }
 
 /* Is any id in (range_start, range_start+1, ... , range_end) in id_list? */
-static bool id_range_in_list(const Set<int> &id_list, int range_start, int range_end)
+static bool id_range_in_list(const Set<uint32_t> &id_list,
+                             uint32_t range_start,
+                             uint32_t range_end)
 {
-  for (int id : id_list) {
+  for (uint32_t id : id_list) {
     if (id >= range_start && id <= range_end) {
       return true;
     }
@@ -895,14 +904,14 @@ static bool id_range_in_list(const Set<int> &id_list, int range_start, int range
   return false;
 }
 
-static void add_to_input_ids(Set<int> &dst, int input_id)
+static void add_to_input_ids(Set<uint32_t> &dst, uint32_t input_id)
 {
   dst.add(input_id);
 }
 
-static void add_list_to_input_ids(Set<int> &dst, const Set<int> &src)
+static void add_list_to_input_ids(Set<uint32_t> &dst, const Set<uint32_t> &src)
 {
-  for (int value : src) {
+  for (uint32_t value : src) {
     dst.add(value);
   }
 }
@@ -1520,7 +1529,7 @@ template<typename T> void initial_triangulation(CDTArrangement<T> *cdt)
     sites[i].v = cdt->verts[i];
     sites[i].orig_index = i;
   }
-  std::sort(sites.begin(), sites.end(), site_lexicographic_sort<T>);
+  std::ranges::sort(sites, site_lexicographic_sort<T>);
   find_site_merges(sites);
   dc_triangulate(cdt, sites);
 }
@@ -1914,7 +1923,7 @@ template<typename T> void dump_crossings(const Span<CrossData<T>> crossings)
  */
 template<typename T>
 void add_edge_constraint(
-    CDT_state<T> *cdt_state, CDTVert<T> *v1, CDTVert<T> *v2, int input_id, LinkNode **r_edges)
+    CDT_state<T> *cdt_state, CDTVert<T> *v1, CDTVert<T> *v2, uint32_t input_id, LinkNode **r_edges)
 {
   constexpr int dbg_level = 0;
   if (dbg_level > 0) {
@@ -2141,9 +2150,9 @@ void add_edge_constraint(
  */
 template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CDT_input<T> &input)
 {
-  int ne = input.edge.size();
+  uint32_t ne = uint32_t(input.edge.size());
   int nv = input.vert.size();
-  for (int i = 0; i < ne; i++) {
+  for (uint32_t i = 0; i < ne; i++) {
     int iv1 = input.edge[i].first;
     int iv2 = input.edge[i].second;
     if (iv1 < 0 || iv1 >= nv || iv2 < 0 || iv2 >= nv) {
@@ -2152,7 +2161,7 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
     }
     CDTVert<T> *v1 = cdt_state->cdt.get_vert_resolve_merge(iv1);
     CDTVert<T> *v2 = cdt_state->cdt.get_vert_resolve_merge(iv2);
-    int id = cdt_state->need_ids ? i : 0;
+    uint32_t id = cdt_state->need_ids ? i : 0;
     add_edge_constraint(cdt_state, v1, v2, id, nullptr);
   }
   cdt_state->face_edge_offset = ne;
@@ -2177,8 +2186,11 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
  * complicated algorithm (using "inside" tests and a parity rule) to decide on the interior.
  */
 template<typename T>
-void add_face_ids(
-    CDT_state<T> *cdt_state, SymEdge<T> *face_symedge, int face_id, int fedge_start, int fedge_end)
+void add_face_ids(CDT_state<T> *cdt_state,
+                  SymEdge<T> *face_symedge,
+                  uint32_t face_id,
+                  uint32_t fedge_start,
+                  uint32_t fedge_end)
 {
   /* Can't loop forever since eventually would visit every face. */
   cdt_state->visit_count++;
@@ -2207,13 +2219,14 @@ void add_face_ids(
 }
 
 /* Return a power of 10 that is greater than or equal to x. */
-static int power_of_10_greater_equal_to(int x)
+[[maybe_unused]]
+static uint32_t power_of_10_greater_equal_to(uint32_t x)
 {
-  if (x <= 0) {
+  if (x == 0) {
     return 1;
   }
-  int ans = 1;
-  BLI_assert(x < std::numeric_limits<int>::max() / 10);
+  uint32_t ans = 1;
+  BLI_assert(x < std::numeric_limits<uint32_t>::max() / 10);
   while (ans < x) {
     ans *= 10;
   }
@@ -2241,18 +2254,27 @@ int add_face_constraints(CDT_state<T> *cdt_state,
   SymEdge<T> *face_symedge0 = nullptr;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
 
-  int maxflen = 0;
+  uint32_t maxflen = 0;
   for (const int f : input_faces.index_range()) {
-    maxflen = std::max<int>(maxflen, input_faces[f].size());
+    maxflen = std::max<uint32_t>(maxflen, input_faces[f].size());
   }
-  /* For convenience in debugging, make face_edge_offset be a power of 10. */
-  cdt_state->face_edge_offset = power_of_10_greater_equal_to(
-      std::max(maxflen, cdt_state->face_edge_offset));
+  if constexpr (USE_POW10_FACE_EDGE_OFFSET_ROUND_UP) {
+    /* For convenience in debugging, make face_edge_offset be a power of 10. */
+    cdt_state->face_edge_offset = power_of_10_greater_equal_to(
+        std::max(maxflen, cdt_state->face_edge_offset));
+  }
+  else {
+    cdt_state->face_edge_offset = std::max(maxflen, cdt_state->face_edge_offset);
+  }
   /* The original_edge encoding scheme doesn't work if the following is false.
    * If we really have that many faces and that large a max face length that when multiplied
-   * together the are >= INT_MAX, then the Delaunay calculation will take unreasonably long anyway.
+   * together the are >= UINT32_MAX, then the Delaunay calculation will take unreasonably
+   * long anyway.
    */
-  BLI_assert(std::numeric_limits<int>::max() / cdt_state->face_edge_offset > input_faces.size());
+  BLI_assert(
+      input_faces.is_empty() ||
+      (cdt_state->face_edge_offset != 0 &&
+       std::numeric_limits<uint32_t>::max() / cdt_state->face_edge_offset > input_faces.size()));
   int faces_added = 0;
   for (const int f : input_faces.index_range()) {
     const Span<int> face = input_faces[f];
@@ -2260,9 +2282,9 @@ int add_face_constraints(CDT_state<T> *cdt_state,
       /* Ignore faces with fewer than 3 vertices. */
       continue;
     }
-    int fedge_start = (f + 1) * cdt_state->face_edge_offset;
+    uint32_t fedge_start = uint32_t(f + 1) * cdt_state->face_edge_offset;
     for (const int i : face.index_range()) {
-      int face_edge_id = fedge_start + i;
+      uint32_t face_edge_id = fedge_start + uint32_t(i);
       int iv1 = face[i];
       int iv2 = face[(i + 1) % face.size()];
       if (iv1 < 0 || iv1 >= nv || iv2 < 0 || iv2 >= nv) {
@@ -2273,7 +2295,7 @@ int add_face_constraints(CDT_state<T> *cdt_state,
       CDTVert<T> *v1 = cdt->get_vert_resolve_merge(iv1);
       CDTVert<T> *v2 = cdt->get_vert_resolve_merge(iv2);
       LinkNode *edge_list;
-      int id = cdt_state->need_ids ? face_edge_id : 0;
+      uint32_t id = cdt_state->need_ids ? face_edge_id : 0;
       add_edge_constraint(cdt_state, v1, v2, id, &edge_list);
       /* Set a new face_symedge0 each time since earlier ones may not
        * survive later symedge splits. Really, just want the one when
@@ -2310,18 +2332,18 @@ int add_face_constraints(CDT_state<T> *cdt_state,
       }
       BLI_linklist_free(edge_list, nullptr);
     }
-    int fedge_end = fedge_start + face.size() - 1;
+    uint32_t fedge_end = fedge_start + uint32_t(face.size()) - 1;
     if (face_symedge0 != nullptr) {
       /* We need to propagate face ids to all faces that represent #f, if #need_ids.
        * Even if `need_ids == false`, we need to propagate at least the fact that
        * the face ids set would be non-empty if the output type is one of the ones
        * making valid BMesh faces. */
-      int id = cdt_state->need_ids ? f : 0;
+      uint32_t id = cdt_state->need_ids ? uint32_t(f) : 0;
       add_face_ids(cdt_state, face_symedge0, id, fedge_start, fedge_end);
       if (cdt_state->need_ids ||
           ELEM(output_type, CDT_CONSTRAINTS_VALID_BMESH, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES))
       {
-        add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
+        add_face_ids(cdt_state, face_symedge0, uint32_t(f), fedge_start, fedge_end);
       }
     }
   }
@@ -2433,11 +2455,9 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
       i++;
     }
   }
-  std::sort(dissolvable_edges.begin(),
-            dissolvable_edges.end(),
-            [](const EdgeToSort<T> &a, const EdgeToSort<T> &b) -> bool {
-              return (a.len_squared < b.len_squared);
-            });
+  std::ranges::sort(dissolvable_edges, [](const EdgeToSort<T> &a, const EdgeToSort<T> &b) -> bool {
+    return (a.len_squared < b.len_squared);
+  });
   for (EdgeToSort<T> &ets : dissolvable_edges) {
     CDTEdge<T> *e = ets.e;
     SymEdge<T> *se = &e->symedges[0];
@@ -2986,7 +3006,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
       if (v->merge_to_index != -1) {
         if (cdt_state->need_ids) {
           if (i < cdt_state->input_vert_num) {
-            add_to_input_ids(cdt->verts[v->merge_to_index]->input_ids, i);
+            add_to_input_ids(cdt->verts[v->merge_to_index]->input_ids, uint32_t(i));
           }
         }
         vert_to_output_map[i] = vert_to_output_map[v->merge_to_index];
@@ -2995,7 +3015,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
   }
   result.vert = Array<VecBase<T, 2>>(nv);
   if (cdt_state->need_ids) {
-    result.vert_orig = Array<Vector<int>>(nv);
+    result.vert_orig = Array<Vector<uint32_t>>(nv);
   }
   int i_out = 0;
   for (int i = 0; i < verts_size; ++i) {
@@ -3004,9 +3024,9 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
       result.vert[i_out] = v->co.exact;
       if (cdt_state->need_ids) {
         if (i < cdt_state->input_vert_num) {
-          result.vert_orig[i_out].append(i);
+          result.vert_orig[i_out].append(uint32_t(i));
         }
-        for (int vert : v->input_ids) {
+        for (uint32_t vert : v->input_ids) {
           result.vert_orig[i_out].append(vert);
         }
       }
@@ -3020,7 +3040,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
   });
   result.edge = Array<std::pair<int, int>>(ne);
   if (cdt_state->need_ids) {
-    result.edge_orig = Array<Vector<int>>(ne);
+    result.edge_orig = Array<Vector<uint32_t>>(ne);
   }
   int e_out = 0;
   for (const CDTEdge<T> *e : cdt->edges) {
@@ -3029,7 +3049,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
       int vo2 = vert_to_output_map[e->symedges[1].vert->index];
       result.edge[e_out] = std::pair<int, int>(vo1, vo2);
       if (cdt_state->need_ids) {
-        for (int edge : e->input_ids) {
+        for (uint32_t edge : e->input_ids) {
           result.edge_orig[e_out].append(edge);
         }
       }
@@ -3043,7 +3063,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
   });
   result.face = Array<Vector<int>>(nf);
   if (cdt_state->need_ids) {
-    result.face_orig = Array<Vector<int>>(nf);
+    result.face_orig = Array<Vector<uint32_t>>(nf);
   }
   int f_out = 0;
   for (const CDTFace<T> *f : cdt->faces) {
@@ -3056,7 +3076,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
         se = se->next;
       } while (se != se_start);
       if (cdt_state->need_ids) {
-        for (int face : f->input_ids) {
+        for (uint32_t face : f->input_ids) {
           result.face_orig[f_out].append(face);
         }
       }

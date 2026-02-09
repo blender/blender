@@ -185,7 +185,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
       if (data.size() != 0) {
         if (sort_required) {
-          std::sort(data.begin(), data.end());
+          std::ranges::sort(data);
           median = median_of_sorted_span(data);
 
           min = data.first();
@@ -277,9 +277,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
       if (data.size() != 0) {
         if (sort_required) {
-          std::sort(data_x.begin(), data_x.end());
-          std::sort(data_y.begin(), data_y.end());
-          std::sort(data_z.begin(), data_z.end());
+          std::ranges::sort(data_x);
+          std::ranges::sort(data_y);
+          std::ranges::sort(data_z);
 
           const float x_median = median_of_sorted_span(data_x);
           const float y_median = median_of_sorted_span(data_y);

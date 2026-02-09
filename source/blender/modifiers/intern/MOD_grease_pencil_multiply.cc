@@ -101,20 +101,23 @@ static bke::CurvesGeometry duplicate_strokes(const bke::CurvesGeometry &curves,
   bke::GeometrySet masked_geo = bke::GeometrySet::from_curves(masked_curves_id);
   bke::GeometrySet unselected_geo = bke::GeometrySet::from_curves(unselected_curves_id);
 
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  auto instances = std::make_unique<bke::Instances>(count + 1);
   const int masked_handle = instances->add_reference(bke::InstanceReference{masked_geo});
   const int unselected_handle = instances->add_reference(bke::InstanceReference{unselected_geo});
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+  instances->transforms_for_write().fill(float4x4::identity());
 
   for ([[maybe_unused]] const int i : IndexRange(count)) {
-    instances->add_instance(masked_handle, float4x4::identity());
+    handles[i] = unselected_handle;
   }
-  instances->add_instance(unselected_handle, float4x4::identity());
+  handles[count] = masked_handle;
 
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = true;
   options.realize_instance_attributes = true;
   bke::GeometrySet result_geo = geometry::realize_instances(
-                                    bke::GeometrySet::from_instances(instances.release()), options)
+                                    bke::GeometrySet::from_instances(std::move(instances)),
+                                    options)
                                     .geometry;
   return std::move(result_geo.get_curves_for_write()->geometry.wrap());
 }

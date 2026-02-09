@@ -84,7 +84,7 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
   if (desc.element & (ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
     return kernel_data_fetch(attributes_float4, desc.offset);
   }
-  if (desc.element == ATTR_ELEMENT_VOXEL) {
+  if (desc.element & ATTR_ELEMENT_VOXEL) {
     /* todo: optimize this so we don't have to transform both here and in
      * kernel_image_interp_3d when possible. Also could optimize for the
      * common case where transform is translation/scale only. */

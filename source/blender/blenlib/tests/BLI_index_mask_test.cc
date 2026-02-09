@@ -228,7 +228,7 @@ TEST(index_mask, FromBitsBenchmark)
     current = int(current * 1.3);
   }
   set_bit_nums.append(size);
-  std::sort(set_bit_nums.begin(), set_bit_nums.end());
+  std::ranges::sort(set_bit_nums);
 
   for (const int set_bit_num : set_bit_nums) {
     benchmark_uniform_bit_distribution(size, set_bit_num, iterations);

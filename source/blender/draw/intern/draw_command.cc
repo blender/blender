@@ -569,11 +569,9 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
                                         multi_draw_buf->prototype_count_);
 
   /* This emulates the GPU sorting but without the unstable draw order. */
-  std::sort(
-      prototypes.begin(), prototypes.end(), [](const DrawPrototype &a, const DrawPrototype &b) {
-        return (a.group_id < b.group_id) ||
-               (a.group_id == b.group_id && a.res_index > b.res_index);
-      });
+  std::ranges::sort(prototypes, [](const DrawPrototype &a, const DrawPrototype &b) {
+    return (a.group_id < b.group_id) || (a.group_id == b.group_id && a.res_index > b.res_index);
+  });
 
   /* Compute prefix sum to have correct offsets. */
   uint prefix_sum = 0u;

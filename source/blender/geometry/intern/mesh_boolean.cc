@@ -140,6 +140,14 @@ void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
     if (!reader) {
       return;
     }
+
+    const CommonVArrayInfo info = reader.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(reader.varray.type(), info.data));
+      output_attrs.add(iter.name, bke::AttrDomain::Point, iter.data_type, init);
+      return;
+    }
+
     writers.append(
         output_attrs.lookup_or_add_for_write_span(iter.name, iter.domain, iter.data_type));
     readers.append(input_attrs.lookup_or_default(iter.name, iter.domain, iter.data_type));

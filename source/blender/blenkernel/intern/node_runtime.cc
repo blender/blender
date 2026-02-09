@@ -139,11 +139,10 @@ static void update_directly_linked_links_and_sockets(const bNodeTree &ntree)
   }
   for (bNodeSocket *socket : tree_runtime.input_sockets) {
     if (socket->flag & SOCK_MULTI_INPUT) {
-      std::sort(socket->runtime->directly_linked_links.begin(),
-                socket->runtime->directly_linked_links.end(),
-                [&](const bNodeLink *a, const bNodeLink *b) {
-                  return a->multi_input_sort_id > b->multi_input_sort_id;
-                });
+      std::ranges::sort(socket->runtime->directly_linked_links,
+                        [&](const bNodeLink *a, const bNodeLink *b) {
+                          return a->multi_input_sort_id > b->multi_input_sort_id;
+                        });
     }
   }
   for (bNodeSocket *socket : tree_runtime.input_sockets) {

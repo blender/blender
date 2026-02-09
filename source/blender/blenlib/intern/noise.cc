@@ -16,7 +16,6 @@
 #include "BLI_math_base.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_noise.hh"
 #include "BLI_utildefines.h"
@@ -2258,12 +2257,12 @@ static float2 compute_2d_gabor_kernel(const float2 position,
                                       const float orientation)
 {
   const float distance_squared = math::length_squared(position);
-  const float hann_window = 0.5f + 0.5f * math::cos(math::numbers::pi * distance_squared);
-  const float gaussian_envelop = math::exp(-math::numbers::pi * distance_squared);
+  const float hann_window = 0.5f + 0.5f * math::cos(std::numbers::pi * distance_squared);
+  const float gaussian_envelop = math::exp(-std::numbers::pi * distance_squared);
   const float windowed_gaussian_envelope = gaussian_envelop * hann_window;
 
   const float2 frequency_vector = frequency * float2(cos(orientation), sin(orientation));
-  const float angle = 2.0f * math::numbers::pi * math::dot(position, frequency_vector);
+  const float angle = 2.0f * std::numbers::pi * math::dot(position, frequency_vector);
   const float2 phasor = float2(math::cos(angle), math::sin(angle));
 
   return windowed_gaussian_envelope * phasor;
@@ -2336,7 +2335,7 @@ static float2 compute_2d_gabor_noise_cell(const float2 cell,
      * that the random orientation range spans pi as opposed to two pi, that's because the Gabor
      * kernel is symmetric around pi. */
     const float random_orientation = (noise::hash_float_to_float(seed_for_orientation) - 0.5f) *
-                                     math::numbers::pi;
+                                     std::numbers::pi;
     const float orientation = base_orientation + random_orientation * isotropy;
 
     const float2 kernel_center = noise::hash_float_to_float2(seed_for_kernel_center);
@@ -2390,12 +2389,12 @@ static float2 compute_3d_gabor_kernel(const float3 position,
                                       const float3 orientation)
 {
   const float distance_squared = math::length_squared(position);
-  const float hann_window = 0.5f + 0.5f * math::cos(math::numbers::pi * distance_squared);
-  const float gaussian_envelop = math::exp(-math::numbers::pi * distance_squared);
+  const float hann_window = 0.5f + 0.5f * math::cos(std::numbers::pi * distance_squared);
+  const float gaussian_envelop = math::exp(-std::numbers::pi * distance_squared);
   const float windowed_gaussian_envelope = gaussian_envelop * hann_window;
 
   const float3 frequency_vector = frequency * orientation;
-  const float angle = 2.0f * math::numbers::pi * math::dot(position, frequency_vector);
+  const float angle = 2.0f * std::numbers::pi * math::dot(position, frequency_vector);
   const float2 phasor = float2(math::cos(angle), math::sin(angle));
 
   return windowed_gaussian_envelope * phasor;
@@ -2406,7 +2405,7 @@ static float2 compute_3d_gabor_kernel(const float3 position,
  * instead of 4 for the 2D case. Similarly, the limit evaluates to 1 / (4 * sqrt(2)). */
 static float compute_3d_gabor_standard_deviation()
 {
-  const float integral_of_gabor_squared = 1.0f / (4.0f * math::numbers::sqrt2);
+  const float integral_of_gabor_squared = 1.0f / (4.0f * std::numbers::sqrt2);
   const float second_moment = 0.5f;
   return math::sqrt(gabor_impulses_count * second_moment * integral_of_gabor_squared);
 }
@@ -2432,7 +2431,7 @@ static float3 compute_3d_orientation(const float3 orientation,
    * base orientation. Linearly interpolate between the two cases using the isotropy factor. Note
    * that the random orientation range is to pi as opposed to two pi, that's because the Gabor
    * kernel is symmetric around pi. */
-  const float2 random_angles = noise::hash_float_to_float2(seed) * math::numbers::pi;
+  const float2 random_angles = noise::hash_float_to_float2(seed) * std::numbers::pi;
   inclination += random_angles.x * isotropy;
   azimuth += random_angles.y * isotropy;
 
@@ -2532,7 +2531,7 @@ void gabor(const float2 coordinates,
   /* Compute the phase based on equation (9) in Tricard's paper. But remap the phase into the
    * [0, 1] range. */
   if (r_phase) {
-    *r_phase = (math::atan2(phasor.y, phasor.x) + math::numbers::pi) / (2.0f * math::numbers::pi);
+    *r_phase = (math::atan2(phasor.y, phasor.x) + std::numbers::pi) / (2.0f * std::numbers::pi);
   }
 
   /* Compute the intensity based on equation (8) in Tricard's paper. */
@@ -2572,7 +2571,7 @@ void gabor(const float3 coordinates,
   /* Compute the phase based on equation (9) in Tricard's paper. But remap the phase into the
    * [0, 1] range. */
   if (r_phase) {
-    *r_phase = (math::atan2(phasor.y, phasor.x) + math::numbers::pi) / (2.0f * math::numbers::pi);
+    *r_phase = (math::atan2(phasor.y, phasor.x) + std::numbers::pi) / (2.0f * std::numbers::pi);
   }
 
   /* Compute the intensity based on equation (8) in Tricard's paper. */

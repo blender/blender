@@ -2586,7 +2586,7 @@ Vector<ID *> BKE_id_ordered_list(const ListBaseT<ID> *lb)
     ordered.append(&id);
   }
 
-  std::sort(ordered.begin(), ordered.end(), id_order_compare);
+  std::ranges::sort(ordered, id_order_compare);
 
   for (const int i : ordered.index_range()) {
     if (int *order = id_order_get(ordered[i])) {

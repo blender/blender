@@ -31,7 +31,6 @@
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_basis_types.hh"
-#include "BLI_struct_equality_utils.hh"
 
 namespace blender::math {
 
@@ -187,7 +186,7 @@ template<typename T> struct EulerXYZBase : public EulerBase<T> {
     return {-a.xyz_.x, -a.xyz_.y, -a.xyz_.z};
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(EulerXYZBase, xyz_)
+  friend bool operator==(const EulerXYZBase &a, const EulerXYZBase &b) = default;
 
   friend std::ostream &operator<<(std::ostream &stream, const EulerXYZBase &rot)
   {
@@ -334,7 +333,7 @@ template<typename T> struct Euler3Base : public EulerBase<T> {
     return {-a.xyz_, a.order_};
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(Euler3Base, xyz_, order_)
+  friend bool operator==(const Euler3Base &a, const Euler3Base &b) = default;
 
   friend std::ostream &operator<<(std::ostream &stream, const Euler3Base &rot)
   {

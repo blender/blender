@@ -34,6 +34,8 @@ class ShaderModule {
   /** Shaders */
   ShaderPtr depth = shader("image_engine_depth_shader");
   ShaderPtr color = shader("image_engine_color_shader");
+  ShaderPtr image = shader("image_engine_image_shader");
+  ShaderPtr image_tiled = shader("image_engine_image_tiled_shader");
 
   /** Module */
   /** Only to be used by Instance constructor. */

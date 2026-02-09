@@ -311,8 +311,15 @@ bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry &src_curv
     if (iter.domain != bke::AttrDomain::Point) {
       return;
     }
-
     bke::GAttributeReader src_attribute = iter.get();
+    const CommonVArrayInfo info = src_attribute.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attribute.varray.type(), info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
+
     bke::attribute_math::to_static_type(src_attribute.varray.type(), [&]<typename T>() {
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
         bke::SpanAttributeWriter<T> dst_attribute =

@@ -381,7 +381,7 @@ static void primitive_calulate_curve_positions(PrimitiveToolOperation &ptd,
       const float2 offset = control_points[control_point_first] - center;
       for (const int i : new_positions.index_range()) {
         const float t = i / float(new_points_num);
-        const float a = t * math::numbers::pi * 2.0f;
+        const float a = t * std::numbers::pi * 2.0f;
         new_positions[i] = offset * float2(sinf(a), cosf(a)) + center;
       }
       return;
@@ -928,7 +928,7 @@ static void grease_pencil_primitive_exit(bContext *C, wmOperator *op, const bool
 static float2 snap_diagonals(float2 p)
 {
   using namespace math;
-  return sign(p) * float2(1.0f / numbers::sqrt2) * length(p);
+  return sign(p) * float2(1.0f / std::numbers::sqrt2) * length(p);
 }
 
 /* Using Chebyshev distance instead of Euclidean. */

@@ -138,15 +138,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet geometry_set;
   if (params.extract_input<bool>("As Instance")) {
-    std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
-    const int handle = instances->add_reference(*object);
+    auto instances = std::make_unique<bke::Instances>(1);
+    instances->reference_handles_for_write().first() = instances->add_reference(*object);
     if (transform_space_relative) {
-      instances->add_instance(handle, *geometry_transform);
+      instances->transforms_for_write().first() = *geometry_transform;
     }
     else {
-      instances->add_instance(handle, float4x4::identity());
+      instances->transforms_for_write().first() = float4x4::identity();
     }
-    geometry_set = GeometrySet::from_instances(instances.release());
+    geometry_set = GeometrySet::from_instances(std::move(instances));
   }
   else {
     geometry_set = bke::object_get_evaluated_geometry_set(*object);

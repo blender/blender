@@ -80,21 +80,23 @@ class GreasePencilExporter {
 
   Vector<ObjectInfo> retrieve_objects() const;
 
-  using WriteStrokeFn = FunctionRef<void(const Span<float3> positions,
-                                         const Span<float3> positions_left,
-                                         const Span<float3> positions_right,
-                                         bool cyclic,
-                                         int8_t type,
-                                         const ColorGeometry4f &color,
-                                         float opacity,
-                                         std::optional<float> width,
-                                         bool round_cap,
-                                         bool is_outline)>;
+  using WriteShapeFn = FunctionRef<void(const Span<float3> positions,
+                                        const Span<float3> positions_left,
+                                        const Span<float3> positions_right,
+                                        const OffsetIndices<int> points_by_curve,
+                                        const Span<int> shape,
+                                        const VArray<bool> &cyclic,
+                                        const VArray<int8_t> &types,
+                                        const ColorGeometry4f &color,
+                                        float opacity,
+                                        std::optional<float> width,
+                                        bool round_cap,
+                                        bool is_outline)>;
 
-  void foreach_stroke_in_layer(const Object &object,
-                               const bke::greasepencil::Layer &layer,
-                               const bke::greasepencil::Drawing &drawing,
-                               WriteStrokeFn stroke_fn);
+  void foreach_shape_in_layer(const Object &object,
+                              const bke::greasepencil::Layer &layer,
+                              const bke::greasepencil::Drawing &drawing,
+                              WriteShapeFn shape_fn);
 
   float2 project_to_screen(const float4x4 &transform, const float3 &position) const;
 

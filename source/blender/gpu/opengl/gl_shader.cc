@@ -1275,8 +1275,10 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
   std::string full_name = this->name_get() + "_" + stage_name_get(gl_stage);
 
   dump_source_to_disk(this->name_get(), full_name, ".glsl", concat_source);
-  concat_source = run_preprocessor(concat_source);
-  dump_source_to_disk(this->name_get(), full_name + ".expanded", ".glsl", concat_source);
+  if (!this->skip_preprocessor) {
+    concat_source = run_preprocessor(concat_source);
+    dump_source_to_disk(this->name_get(), full_name + ".expanded", ".glsl", concat_source);
+  }
 
   /* Patch line directives so that we can make error reporting consistent. */
   size_t start_pos = 0;

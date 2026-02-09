@@ -635,7 +635,7 @@ static float paint_space_stroke_spacing(const ViewContext &vc,
   float spacing = brush->spacing;
 
   /* apply spacing pressure */
-  if (brush->stroke_method & BRUSH_STROKE_SPACE && brush->flag & BRUSH_SPACING_PRESSURE) {
+  if (brush->stroke_method == BRUSH_STROKE_SPACE && brush->flag & BRUSH_SPACING_PRESSURE) {
     spacing = spacing * (1.5f - pressure);
   }
 

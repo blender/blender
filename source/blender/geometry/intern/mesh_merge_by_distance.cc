@@ -1486,10 +1486,18 @@ static void mix_attributes(const bke::AttributeAccessor src_attributes,
     if (skip_names.contains(iter.name)) {
       return;
     }
-    const GVArraySpan src_attr = *iter.get();
+    const GVArray src_attr = *iter.get();
+    const CommonVArrayInfo info = src_attr.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
+    const GVArraySpan src_span = src_attr;
     bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
-    mix_src_indices(src_attr, dst_to_src, dst_attr.span);
+    mix_src_indices(src_span, dst_to_src, dst_attr.span);
     dst_attr.finish();
   });
 }
@@ -1743,6 +1751,13 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       return;
     }
     const GVArray src_attr = *iter.get();
+    const CommonVArrayInfo info = src_attr.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
     const CPPType &type = src_attr.type();
     bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);

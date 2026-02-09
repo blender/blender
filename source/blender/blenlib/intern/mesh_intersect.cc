@@ -1764,7 +1764,7 @@ static void do_cdt(CDT_data &cd)
 static int get_cdt_edge_orig(
     int i0, int i1, const CDT_data &cd, const IMesh &in_tm, bool *r_is_intersect)
 {
-  int foff = cd.cdt_out.face_edge_offset;
+  uint32_t foff = cd.cdt_out.face_edge_offset;
   *r_is_intersect = false;
   int e = NO_INDEX;
   if (cd.verts_to_edge.size() > 0) {
@@ -1790,12 +1790,12 @@ static int get_cdt_edge_orig(
    * then want to set *r_is_intersect to true. */
   int face_eorig = NO_INDEX;
   bool have_non_face_eorig = false;
-  for (int orig_index : cd.cdt_out.edge_orig[e]) {
+  for (uint32_t orig_index : cd.cdt_out.edge_orig[e]) {
     /* orig_index encodes the triangle and pos within the triangle of the input edge. */
     if (orig_index >= foff) {
       if (face_eorig == NO_INDEX) {
-        int in_face_index = (orig_index / foff) - 1;
-        int pos = orig_index % foff;
+        uint32_t in_face_index = (orig_index / foff) - 1;
+        int pos = int(orig_index % foff);
         /* We need to retrieve the edge orig field from the Face used to populate the
          * in_face_index'th face of the CDT, at the pos'th position of the face. */
         int in_tm_face_index = cd.input_face[in_face_index];
@@ -2052,16 +2052,16 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
     }
     Map<std::pair<int, int>, int> verts_to_edge;
     populate_cdt_edge_map(verts_to_edge, cdt_out);
-    int foff = cdt_out.face_edge_offset;
+    uint32_t foff = cdt_out.face_edge_offset;
     for (int i = 0; i < 3; ++i) {
       std::pair<int, int> vpair(i_v_out[i], i_v_out[(i + 1) % 3]);
       std::pair<int, int> vpair_canon = sorted_int_pair(vpair);
       int e_out = verts_to_edge.lookup_default(vpair_canon, NO_INDEX);
       BLI_assert(e_out != NO_INDEX);
       eo[i] = NO_INDEX;
-      for (int orig : cdt_out.edge_orig[e_out]) {
+      for (uint32_t orig : cdt_out.edge_orig[e_out]) {
         if (orig >= foff) {
-          int pos = orig % foff;
+          int pos = int(orig % foff);
           BLI_assert(pos < f->size());
           eo[i] = f->edge_orig[pos];
           break;

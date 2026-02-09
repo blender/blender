@@ -226,6 +226,7 @@ DEF_ENUM(rna_enum_context_mode_items)
 DEF_ENUM(rna_enum_preference_section_items)
 
 DEF_ENUM(rna_enum_attribute_type_items)
+DEF_ENUM(rna_enum_attr_storage_type_items)
 DEF_ENUM(rna_enum_color_attribute_type_items)
 DEF_ENUM(rna_enum_attribute_type_with_auto_items)
 DEF_ENUM(rna_enum_attribute_domain_items)

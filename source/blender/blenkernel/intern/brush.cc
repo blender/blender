@@ -1799,6 +1799,16 @@ bool supports_auto_smooth(const Brush &brush)
   return !ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_MASK, SCULPT_BRUSH_TYPE_SMOOTH) &&
          !is_paint_tool(brush);
 }
+bool supports_normal_radius(const Brush &brush)
+{
+  /* TODO: This setting is closely tied to #supports_sculpt_plane, they should be merged in some
+   * way. Update after initial commit to avoid confusing PRs. */
+  return !ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_POSE);
+}
+bool supports_hardness(const Brush &brush)
+{
+  return brush.sculpt_brush_type != SCULPT_BRUSH_TYPE_POSE;
+}
 bool supports_height(const Brush &brush)
 {
   return brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_LAYER;
@@ -1862,10 +1872,11 @@ bool supports_sculpt_plane(const Brush &brush)
 {
   /* TODO: Should the face set brush be here...? */
   return !ELEM(brush.sculpt_brush_type,
-               SCULPT_BRUSH_TYPE_INFLATE,
                SCULPT_BRUSH_TYPE_MASK,
+               SCULPT_BRUSH_TYPE_SMOOTH,
+               SCULPT_BRUSH_TYPE_INFLATE,
                SCULPT_BRUSH_TYPE_PINCH,
-               SCULPT_BRUSH_TYPE_SMOOTH);
+               SCULPT_BRUSH_TYPE_POSE);
 }
 bool supports_color(const Brush &brush)
 {

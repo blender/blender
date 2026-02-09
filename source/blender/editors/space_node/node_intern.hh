@@ -88,10 +88,9 @@ struct NodeAndSocket {
 
   friend bool operator==(const NodeAndSocket &a, const NodeAndSocket &b)
   {
-    return (&a.node == &b.node) && (a.in_out == b.in_out) &&
-           (a.socket_identifier == b.socket_identifier);
+    return &a.node == &b.node && a.in_out == b.in_out &&
+           a.socket_identifier == b.socket_identifier;
   }
-  BLI_STRUCT_DERIVED_UNEQUAL_OPERATOR(NodeAndSocket)
 };
 
 /**
@@ -149,7 +148,6 @@ struct MutableNodeAndSocket {
     return (&a.node == &b.node) && (a.in_out == b.in_out) &&
            (a.socket_identifier == b.socket_identifier);
   }
-  BLI_STRUCT_DERIVED_UNEQUAL_OPERATOR(MutableNodeAndSocket)
 };
 
 template<> struct DefaultHash<NodeAndSocket> {

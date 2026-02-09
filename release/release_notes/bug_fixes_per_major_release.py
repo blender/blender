@@ -224,7 +224,7 @@ LIST_OF_OFFICIAL_BLENDER_VERSIONS = (
     # 4.x.
     '4.0', '4.1', '4.2', '4.3', '4.4', '4.5',
     # 5.x.
-    '5.0', '5.1',
+    '5.0', '5.1', '5.2',
 )
 
 # Catch duplicates

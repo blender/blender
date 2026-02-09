@@ -3387,7 +3387,7 @@ struct DepsgraphKey {
     return get_default_hash(this->view_layer);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_1(DepsgraphKey, view_layer)
+  friend bool operator==(const DepsgraphKey &a, const DepsgraphKey &b) = default;
 };
 
 static void depsgraph_key_value_free(void *value)

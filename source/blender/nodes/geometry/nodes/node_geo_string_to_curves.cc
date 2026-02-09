@@ -501,12 +501,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   /* Create and add instances. */
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  auto instances = std::make_unique<bke::Instances>();
   Map<int, int> char_handles = create_curve_instances(params, *layout, *instances);
   add_instances_from_handles(*instances, char_handles, *layout);
   create_attributes(params, *layout, *instances);
 
-  params.set_output("Curve Instances", GeometrySet::from_instances(instances.release()));
+  params.set_output("Curve Instances", GeometrySet::from_instances(std::move(instances)));
 }
 
 static void node_register()

@@ -96,8 +96,10 @@ template<typename T> class Span {
     BLI_assert(size >= 0);
   }
 
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<U, T>))>
-  constexpr Span(const U *start, int64_t size) : data_(static_cast<const T *>(start)), size_(size)
+  template<typename U>
+  constexpr Span(const U *start, int64_t size)
+    requires(is_span_convertible_pointer_v<U, T>)
+      : data_(static_cast<const T *>(start)), size_(size)
   {
     BLI_assert(size >= 0);
   }
@@ -125,8 +127,10 @@ template<typename T> class Span {
    * Support implicit conversions like the one below:
    *   Span<T *> -> Span<const T *>
    */
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<U, T>))>
-  constexpr Span(Span<U> span) : data_(static_cast<const T *>(span.data())), size_(span.size())
+  template<typename U>
+  constexpr Span(Span<U> span)
+    requires(is_span_convertible_pointer_v<U, T>)
+      : data_(static_cast<const T *>(span.data())), size_(span.size())
   {
   }
 
@@ -470,8 +474,9 @@ template<typename T> class MutableSpan {
    * Support implicit conversions like the one below:
    *   MutableSpan<T *> -> MutableSpan<const T *>
    */
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<U, T>))>
+  template<typename U>
   constexpr MutableSpan(MutableSpan<U> span)
+    requires(is_span_convertible_pointer_v<U, T>)
       : data_(static_cast<T *>(span.data())), size_(span.size())
   {
   }
@@ -481,8 +486,9 @@ template<typename T> class MutableSpan {
     return Span<T>(data_, size_);
   }
 
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
+  template<typename U>
   constexpr operator Span<U>() const
+    requires(is_span_convertible_pointer_v<T, U>)
   {
     return Span<U>(static_cast<const U *>(data_), size_);
   }

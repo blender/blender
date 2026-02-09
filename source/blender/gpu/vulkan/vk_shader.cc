@@ -1230,9 +1230,9 @@ std::string VKShader::workaround_geometry_shader_source_create(
 
   ss << "void main()\n";
   ss << "{\n";
-  for (auto i : IndexRange(3)) {
-    for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
-      for (auto &inout : iface->inouts) {
+  for (int i : IndexRange(3)) {
+    for (const StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
+      for (const StageInterfaceInfo::InOut &inout : iface->inouts) {
         ss << "  " << iface->instance_name << "_out." << inout.name;
         ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
       }

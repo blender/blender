@@ -94,7 +94,7 @@ PyDoc_STRVAR(
     "   Create a geometry set from the evaluated geometry of an evaluated object.\n"
     "   Typically, it's more convenient to use :func:`bpy.types.Object.evaluated_geometry`.\n"
     "\n"
-    "   :arg evaluated_object: The evaluated object to create a geometry set from.\n"
+    "   :param evaluated_object: The evaluated object to create a geometry set from.\n"
     "   :type evaluated_object: bpy.types.Object\n");
 static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * /*self*/,
                                                                      PyObject *args,
@@ -148,9 +148,11 @@ static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * 
 
   GeometrySet geometry;
   if (is_instance_collection) {
-    bke::Instances *instances = new bke::Instances();
-    instances->add_new_reference(bke::InstanceReference{*evaluated_object->instance_collection});
-    instances->add_instance(0, float4x4::identity());
+    bke::Instances *instances = new bke::Instances(1);
+    const int handle = instances->add_new_reference(
+        bke::InstanceReference{*evaluated_object->instance_collection});
+    instances->reference_handles_for_write().first() = handle;
+    instances->transforms_for_write().first() = float4x4::identity();
     geometry.replace_instances(instances);
   }
   else {

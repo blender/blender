@@ -99,23 +99,28 @@ CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, 
   return cumap;
 }
 
+void BKE_curvemapping_free_data_single(CurveMapping *cumap, int index)
+{
+  if (cumap->cm[index].curve) {
+    MEM_delete(cumap->cm[index].curve);
+    cumap->cm[index].curve = nullptr;
+  }
+  if (cumap->cm[index].table) {
+    MEM_delete(cumap->cm[index].table);
+    cumap->cm[index].table = nullptr;
+  }
+  if (cumap->cm[index].premultable) {
+    MEM_delete(cumap->cm[index].premultable);
+    cumap->cm[index].premultable = nullptr;
+  }
+}
+
 void BKE_curvemapping_free_data(CurveMapping *cumap)
 {
   int a;
 
   for (a = 0; a < CM_TOT; a++) {
-    if (cumap->cm[a].curve) {
-      MEM_delete(cumap->cm[a].curve);
-      cumap->cm[a].curve = nullptr;
-    }
-    if (cumap->cm[a].table) {
-      MEM_delete(cumap->cm[a].table);
-      cumap->cm[a].table = nullptr;
-    }
-    if (cumap->cm[a].premultable) {
-      MEM_delete(cumap->cm[a].premultable);
-      cumap->cm[a].premultable = nullptr;
-    }
+    BKE_curvemapping_free_data_single(cumap, a);
   }
 }
 
@@ -127,6 +132,27 @@ void BKE_curvemapping_free(CurveMapping *cumap)
   }
 }
 
+void BKE_curvemapping_copy_data_single(
+    CurveMapping *target, const CurveMapping *cumap, int to_idx, int from_idx, bool make_copy)
+{
+  if (make_copy) {
+    target->cm[to_idx] = dna::shallow_copy(cumap->cm[from_idx]);
+  }
+
+  if (cumap->cm[from_idx].curve) {
+    target->cm[to_idx].curve = static_cast<CurveMapPoint *>(
+        MEM_dupalloc(cumap->cm[from_idx].curve));
+  }
+  if (cumap->cm[from_idx].table) {
+    target->cm[to_idx].table = static_cast<CurveMapPoint *>(
+        MEM_dupalloc(cumap->cm[from_idx].table));
+  }
+  if (cumap->cm[from_idx].premultable) {
+    target->cm[to_idx].premultable = static_cast<CurveMapPoint *>(
+        MEM_dupalloc(cumap->cm[from_idx].premultable));
+  }
+}
+
 void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 {
   int a;
@@ -134,16 +160,7 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
   *target = dna::shallow_copy(*cumap);
 
   for (a = 0; a < CM_TOT; a++) {
-    if (cumap->cm[a].curve) {
-      target->cm[a].curve = MEM_dupalloc(cumap->cm[a].curve);
-    }
-    if (cumap->cm[a].table) {
-      target->cm[a].table = MEM_dupalloc(cumap->cm[a].table);
-    }
-    if (cumap->cm[a].premultable) {
-      target->cm[a].premultable = static_cast<CurveMapPoint *>(
-          MEM_dupalloc(cumap->cm[a].premultable));
-    }
+    BKE_curvemapping_copy_data_single(target, cumap, a, a, false);
   }
 }
 
@@ -1410,6 +1427,21 @@ void BKE_curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *
       (*array)[a * 4 + 3] = cumap->cm[3].table[a].y;
     }
   }
+}
+
+int BKE_curvemapping_num_channels(const CurveMapping *cumap)
+{
+  if (cumap->cm[3].totpoint > 0) {
+    return 4;
+  }
+  if (cumap->cm[2].totpoint > 0) {
+    return 3;
+  }
+  if (cumap->cm[1].totpoint > 0) {
+    return 2;
+  }
+
+  return 1;
 }
 
 void BKE_curvemapping_blend_write(BlendWriter *writer, const CurveMapping *cumap)

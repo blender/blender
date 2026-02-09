@@ -8,9 +8,13 @@
 
 #include "BKE_context.hh"
 
-#include "DRW_engine.hh"
+#include "GPU_capabilities.hh"
 
-#include "image_drawing_mode.hh"
+#include "DRW_engine.hh"
+#include "draw_view_data.hh"
+
+#include "image_drawing_mode_image_space.hh"
+#include "image_drawing_mode_screen_space.hh"
 #include "image_private.hh"
 #include "image_space.hh"
 #include "image_space_image.hh"
@@ -40,9 +44,8 @@ static inline std::unique_ptr<AbstractSpaceAccessor> space_accessor_from_space(
 class Instance : public DrawEngine {
  private:
   std::unique_ptr<AbstractSpaceAccessor> space_;
+  std::unique_ptr<AbstractDrawingMode> drawing_mode_;
   Main *main_;
-
-  ScreenSpaceDrawingMode drawing_mode_;
 
  public:
   const ARegion *region;
@@ -50,10 +53,6 @@ class Instance : public DrawEngine {
   Manager *manager = nullptr;
 
  public:
-  Instance() : drawing_mode_(*this) {}
-
-  virtual ~Instance() = default;
-
   StringRefNull name_get() final
   {
     return "UV/Image";
@@ -68,10 +67,54 @@ class Instance : public DrawEngine {
     manager = DRW_manager_get();
   }
 
+  /* Constructs either a screen space or an image space drawing mode depending on if the image can
+   * fit in a GPU texture. So we just need to retrieve the image buffer and check if its size is
+   * safe for GPU use. */
+  std::unique_ptr<AbstractDrawingMode> get_drawing_mode()
+  {
+    if (this->state.image->source != IMA_SRC_TILED) {
+      void *lock;
+      const bool is_viewer = this->state.image->source == IMA_SRC_VIEWER;
+      ImBuf *buffer = BKE_image_acquire_ibuf(
+          this->state.image, space_->get_image_user(), is_viewer ? &lock : nullptr);
+      BLI_SCOPED_DEFER([&]() {
+        BKE_image_release_ibuf(this->state.image, buffer, is_viewer ? lock : nullptr);
+      });
+
+      /* Buffer does not exist or image will not fit in a GPU texture, use screen space drawing. */
+      if (!buffer || (!buffer->float_buffer.data && !buffer->byte_buffer.data) ||
+          !GPU_is_safe_texture_size(buffer->x, buffer->y))
+      {
+        return std::make_unique<ScreenSpaceDrawingMode>(*this);
+      }
+
+      /* Image can fit in a GPU texture, use image space drawing. */
+      return std::make_unique<ImageSpaceDrawingMode>(*this);
+    }
+
+    for (ImageTile &tile : this->state.image->tiles) {
+      ImageTileWrapper image_tile(&tile);
+      ImageUser tile_user = space_->get_image_user() ? *space_->get_image_user() :
+                                                       ImageUser{.scene = nullptr};
+      tile_user.tile = image_tile.get_tile_number();
+      ImBuf *buffer = BKE_image_acquire_ibuf(this->state.image, &tile_user, nullptr);
+      BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(this->state.image, buffer, nullptr); });
+      if (!buffer) {
+        continue;
+      }
+
+      /* Image will not fit in a GPU texture, use screen space drawing. */
+      if (!GPU_is_safe_texture_size(buffer->x, buffer->y)) {
+        return std::make_unique<ScreenSpaceDrawingMode>(*this);
+      }
+    }
+
+    /* Image can fit in a GPU texture, use image space drawing. */
+    return std::make_unique<ImageSpaceDrawingMode>(*this);
+  }
+
   void begin_sync() final
   {
-    drawing_mode_.begin_sync();
-
     /* Setup full screen view matrix. */
     float4x4 viewmat = math::projection::orthographic(
         0.0f, float(region->winx), 0.0f, float(region->winy), 0.0f, 1.0f);
@@ -79,7 +122,15 @@ class Instance : public DrawEngine {
     state.view.sync(viewmat, winmat);
     state.flags.do_tile_drawing = false;
 
-    image_sync();
+    this->image_sync();
+    if (this->state.image) {
+      this->drawing_mode_ = this->get_drawing_mode();
+      drawing_mode_->begin_sync();
+      drawing_mode_->image_sync(state.image, space_->get_image_user());
+    }
+    else {
+      drawing_mode_.reset();
+    }
   }
 
   void image_sync()
@@ -116,7 +167,6 @@ class Instance : public DrawEngine {
     else {
       BKE_image_multiview_index(state.image, iuser);
     }
-    drawing_mode_.image_sync(state.image, iuser);
   }
 
   void object_sync(ObjectRef & /*obref*/, Manager & /*manager*/) final {}
@@ -126,8 +176,14 @@ class Instance : public DrawEngine {
   void draw(Manager & /*manager*/) final
   {
     DRW_submission_start();
-    drawing_mode_.draw_viewport();
-    drawing_mode_.draw_finish();
+    if (drawing_mode_) {
+      drawing_mode_->draw_viewport();
+      drawing_mode_->draw_finish();
+    }
+    else {
+      GPU_framebuffer_clear_color_depth(
+          DRW_context_get()->viewport_framebuffer_list_get()->default_fb, float4(0.0), 1.0f);
+    }
     state.image = nullptr;
     DRW_submission_end();
   }

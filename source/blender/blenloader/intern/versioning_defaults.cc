@@ -185,7 +185,8 @@ static void blo_update_defaults_screen(bScreen *screen,
                                     SEQ_TIMELINE_SHOW_STRIP_DURATION | SEQ_TIMELINE_SHOW_GRID |
                                     SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG |
                                     SEQ_TIMELINE_SHOW_STRIP_RETIMING |
-                                    SEQ_TIMELINE_WAVEFORMS_HALF | SEQ_TIMELINE_SHOW_THUMBNAILS;
+                                    SEQ_TIMELINE_WAVEFORMS_HALF |
+                                    SEQ_TIMELINE_STRIP_END_THUMBNAILS;
       seq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_OUTLINE_SELECTED;
       seq->cache_overlay.flag = SEQ_CACHE_SHOW | SEQ_CACHE_SHOW_FINAL_OUT;
       seq->draw_flag |= SEQ_DRAW_TRANSFORM_PREVIEW;

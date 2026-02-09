@@ -195,10 +195,12 @@ static bool compile_ex(shaderc::Compiler &compiler,
   Shader::dump_source_to_disk(
       shader.name_get(), full_name, ".glsl", shader_module.combined_sources);
 
-  shader_module.combined_sources = Shader::run_preprocessor(shader_module.combined_sources);
+  if (!shader.skip_preprocessor) {
+    shader_module.combined_sources = Shader::run_preprocessor(shader_module.combined_sources);
 
-  Shader::dump_source_to_disk(
-      shader.name_get(), full_name + ".expanded", ".glsl", shader_module.combined_sources);
+    Shader::dump_source_to_disk(
+        shader.name_get(), full_name + ".expanded", ".glsl", shader_module.combined_sources);
+  }
 
   if (read_spirv_from_disk(shader_module)) {
     return true;
@@ -207,6 +209,9 @@ static bool compile_ex(shaderc::Compiler &compiler,
   shaderc::CompileOptions options;
   bool do_optimize = true;
   options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    do_optimize = false;
+  }
   /* WORKAROUND: Qualcomm driver can crash when handling optimized SPIR-V. */
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     do_optimize = false;

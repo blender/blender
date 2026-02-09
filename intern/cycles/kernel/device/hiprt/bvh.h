@@ -222,7 +222,7 @@ ccl_device_inline bool motion_triangle_custom_volume_intersect(const hiprtRay &r
   if (bvh_volume_anyhit_triangle_filter(
           kg, object, prim, payload->ray_self, payload->ray_visibility))
   {
-    return true;
+    return false;
   }
 
   Intersection isect;

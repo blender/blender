@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_numbers.hh"
+#include <numbers>
 
 #include "GPU_shader.hh"
 
@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Line position where the image should be split");
   b.add_input<decl::Float>("Rotation")
-      .default_value(math::numbers::pi_v<float> / 4.0f)
+      .default_value(std::numbers::pi_v<float> / 4.0f)
       .subtype(PROP_ANGLE)
       .description("Line angle where the image should be split");
 

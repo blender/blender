@@ -259,7 +259,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
         return None
     if blender_object and blender_object.type in ['CURVE', 'SURFACE', 'FONT']:
         return __gather_mesh_from_blender_nonmesh(blender_object, export_settings)
-    if blender_object is None and type(vnode.data).__name__ not in ["Mesh"]:
+    if blender_object is None and type(vnode.data).__name__ not in ["Mesh", "PointCloud"]:
         return None  # TODO
     if blender_object is None:
         # GN instance
@@ -278,16 +278,17 @@ def __gather_mesh(vnode, blender_object, export_settings):
             return None
 
     else:
-        if blender_object.type != "MESH":
+        if blender_object.type not in ["MESH", "POINTCLOUD"]:
             return None
         # For duplis instancer, when show is off -> export as empty
         if vnode.force_as_empty is True:
             return None
         # Be sure that object is valid (no NaN for example)
-        res = blender_object.data.validate()
-        if res is True:
-            export_settings['log'].warning("Mesh " + blender_object.data.name +
-                                           " is not valid, and may be exported wrongly")
+        if blender_object.type == "MESH":
+            res = blender_object.data.validate()
+            if res is True:
+                export_settings['log'].warning("Mesh " + blender_object.data.name +
+                                               " is not valid, and may be exported wrongly")
 
         modifiers = blender_object.modifiers
         if len(modifiers) == 0:

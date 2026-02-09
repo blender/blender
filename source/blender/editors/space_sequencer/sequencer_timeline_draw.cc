@@ -1292,6 +1292,27 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     }
     data.col_background = color_pack(col);
 
+    const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag &
+                                  SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
+                                 (ctx.sseq->timeline_overlay.flag &
+                                  SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+    /* Darker color band for thumbnail strips. */
+    if (show_overlay && seq::strip_can_have_thumbnail(scene, strip.strip) && show_thumbnails) {
+      /* The more negative the offset, darker the color. */
+      const int color_offset = -20;
+      uchar col_in[3] = {col[0], col[1], col[2]};
+      uchar col_out[3];
+
+      ui::theme::get_color_shade_3ubv(col_in, color_offset, col_out);
+
+      col[0] = col_out[0];
+      col[1] = col_out[1];
+      col[2] = col_out[2];
+
+      data.flags |= GPU_SEQ_FLAG_COLOR_BAND;
+      data.col_color_band = color_pack(col);
+    }
+
     /* Color band state. */
     if (show_overlay && (strip.strip->type == STRIP_TYPE_COLOR)) {
       data.flags |= GPU_SEQ_FLAG_COLOR_BAND;

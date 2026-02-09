@@ -365,6 +365,13 @@ if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   endif()
 endif()
 
+find_package(Eigen3 REQUIRED CONFIG)
+
+if (WITH_LIBMV)
+  find_package(Ceres REQUIRED CONFIG)
+endif()
+add_bundled_libraries(ceres/lib)
+
 set(ZSTD_ROOT_DIR ${LIBDIR}/zstd)
 find_package(Zstd REQUIRED)
 

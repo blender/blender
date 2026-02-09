@@ -3730,6 +3730,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   if (!main->is_read_invalid) {
     blo_do_versions_510(fd, lib, main);
   }
+  if (!main->is_read_invalid) {
+    blo_do_versions_520(fd, lib, main);
+  }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
   /* WATCH IT 2!: #UserDef struct init see #do_versions_userdef() above! */
@@ -3794,6 +3797,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_510(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_520(fd, main);
   }
 
   main->is_locked_for_linking = false;
@@ -4781,7 +4787,20 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
           UNUSED_VARS_NDEBUG(packed_id, id_bhead);
           continue;
         }
-        BLI_assert(ELEM(main_it->curlib->runtime->filedata, fd, nullptr));
+        /* Since an archive library is an abstract, local storage for packed data, in complex
+         * production files with many layers of libraries, a single archive library may end up
+         * 'containing' packed IDs from _different_ sources (reminder, packed IDs are stored in
+         * their _user_ blendfiles).
+         *
+         * This 'local merge' of all 'instances' of the same archive libraries and their packed IDs
+         * across all of the dependencies means that, across several iterations of ID expanding
+         * from several different real library dependencies, a same local archive library (and its
+         * Main) may be re-used for different filedata.
+         *
+         * So asserting that `BLI_assert(ELEM(main_it->curlib->runtime->filedata, fd, nullptr));`
+         * is not possible here (though _usually_ true). Instead, simply ensure that the chosen
+         * archive library does not own its filedata (it never should!), before overriding it. */
+        BLI_assert(!main_it->curlib->runtime->is_filedata_owner);
         main_it->curlib->runtime->filedata = fd;
         main_it->curlib->runtime->is_filedata_owner = false;
         BLI_assert(main_it->versionfile != 0);

@@ -508,6 +508,66 @@ static VectorSet<int> gather_all_fill_ids(const VArray<int> &fill_ids)
   return index_by_fill_ids;
 }
 
+struct TaskAttrInfo {
+  Span<std::optional<GVArray>> attributes;
+  const AttributeFallbacksArray &fallbacks;
+};
+
+static bool try_join_single_value_attribute(
+    const int tasks_num,
+    const OrderedAttributes &ordered_attributes,
+    const FunctionRef<TaskAttrInfo(int)> get_task_attributes,
+    const int attr_index,
+    bke::MutableAttributeAccessor dst_attributes)
+{
+  const bke::AttrType data_type = ordered_attributes.kinds[attr_index].data_type;
+  const auto get_single_value = [&](const int task_index) -> GPointer {
+    const TaskAttrInfo task_info = get_task_attributes(task_index);
+    if (task_info.attributes[attr_index].has_value()) {
+      const CommonVArrayInfo info = task_info.attributes[attr_index]->common_info();
+      if (info.type != CommonVArrayInfo::Type::Single) {
+        return GPointer();
+      }
+      return GPointer(task_info.attributes[attr_index]->type(), info.data);
+    }
+    const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
+    if (const void *value = task_info.fallbacks.array[attr_index]) {
+      return GPointer(type, value);
+    }
+    return GPointer(type, type.default_value());
+  };
+  const GPointer first_value = get_single_value(0);
+  if (!first_value) {
+    return false;
+  }
+  const bool all_equal = threading::parallel_reduce(
+      IndexRange(tasks_num).drop_front(1),
+      32,
+      true,
+      [&](const IndexRange range, bool value) {
+        if (!value) {
+          return false;
+        }
+        for (const int i : range) {
+          const GPointer value = get_single_value(i);
+          if (!value) {
+            return false;
+          }
+          if (!value.type()->is_equal(value.get(), first_value.get())) {
+            return false;
+          }
+        }
+        return true;
+      },
+      std::logical_and<bool>());
+  if (!all_equal) {
+    return false;
+  }
+  const StringRef name = ordered_attributes.names[attr_index];
+  const bke::AttrDomain domain = ordered_attributes.kinds[attr_index].domain;
+  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Gather Realize Tasks
  * \{ */
@@ -1059,18 +1119,8 @@ static void execute_instances_tasks(
   }
   const OffsetIndices offsets = offset_indices::accumulate_counts_to_offsets(offsets_data);
 
-  std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
-  dst_instances->resize(offsets.total_size());
-
-  /* Makes sure generic output attributes exists. */
-  for (const int attribute_index : all_instances_attributes.index_range()) {
-    const bke::AttrDomain domain = bke::AttrDomain::Instance;
-    const StringRef id = all_instances_attributes.names[attribute_index];
-    const bke::AttrType type = all_instances_attributes.kinds[attribute_index].data_type;
-    dst_instances->attributes_for_write()
-        .lookup_or_add_for_write_only_span(id, domain, type)
-        .finish();
-  }
+  auto dst_instances = std::make_unique<bke::Instances>(offsets.total_size());
+  bke::MutableAttributeAccessor dst_attributes = dst_instances->attributes_for_write();
 
   MutableSpan<float4x4> all_transforms = dst_instances->transforms_for_write();
   MutableSpan<int> all_handles = dst_instances->reference_handles_for_write();
@@ -1080,7 +1130,6 @@ static void execute_instances_tasks(
         *src_components[component_index]);
     const bke::Instances &src_instances = *src_component.get();
     const float4x4 &src_base_transform = src_base_transforms[component_index];
-    const Span<const void *> attribute_fallback_array = attribute_fallback[component_index].array;
     const Span<bke::InstanceReference> src_references = src_instances.references();
     Array<int> handle_map(src_references.size());
 
@@ -1088,25 +1137,6 @@ static void execute_instances_tasks(
       handle_map[src_handle] = dst_instances->add_reference(src_references[src_handle]);
     }
     const IndexRange dst_range = offsets[component_index];
-    for (const int attribute_index : all_instances_attributes.index_range()) {
-      const StringRef id = all_instances_attributes.names[attribute_index];
-      const bke::AttrType type = all_instances_attributes.kinds[attribute_index].data_type;
-      const CPPType &cpp_type = bke::attribute_type_to_cpp_type(type);
-      bke::GSpanAttributeWriter write_attribute =
-          dst_instances->attributes_for_write().lookup_for_write_span(id);
-      GMutableSpan dst_span = write_attribute.span;
-
-      const void *attribute_ptr;
-      if (attribute_fallback_array[attribute_index] != nullptr) {
-        attribute_ptr = attribute_fallback_array[attribute_index];
-      }
-      else {
-        attribute_ptr = cpp_type.default_value();
-      }
-
-      cpp_type.fill_assign_n(attribute_ptr, dst_span.slice(dst_range).data(), dst_range.size());
-      write_attribute.finish();
-    }
 
     const Span<int> src_handles = src_instances.reference_handles();
     array_utils::gather(handle_map.as_span(), src_handles, all_handles.slice(dst_range));
@@ -1117,17 +1147,66 @@ static void execute_instances_tasks(
     }
   }
 
-  r_realized_geometry.replace_instances(dst_instances.release());
-  auto &dst_component = r_realized_geometry.get_component_for_write<bke::InstancesComponent>();
-
-  Vector<const bke::GeometryComponent *> for_join_attributes;
-  for (const bke::GeometryComponentPtr &component : src_components) {
-    for_join_attributes.append(component.get());
+  Array<Array<std::optional<GVArray>>> attributes_by_component(src_components.size());
+  for (const int component_index : src_components.index_range()) {
+    const auto &src_component = static_cast<const bke::InstancesComponent &>(
+        *src_components[component_index]);
+    const bke::AttributeAccessor attributes = *src_component.attributes();
+    attributes_by_component[component_index].reinitialize(all_instances_attributes.size());
+    for (const int attr_index : all_instances_attributes.index_range()) {
+      if (const GVArray attr = *attributes.lookup(
+              all_instances_attributes.names[attr_index],
+              all_instances_attributes.kinds[attr_index].domain,
+              all_instances_attributes.kinds[attr_index].data_type))
+      {
+        attributes_by_component[component_index][attr_index] = attr;
+      }
+    }
   }
-  /* Join attribute values from the 'unselected' instances, as they aren't included otherwise.
-   * Omit instance_transform and .reference_index to prevent them from overwriting the correct
-   * attributes of the realized instances. */
-  join_attributes(for_join_attributes, dst_component, {".reference_index", "instance_transform"});
+
+  for (const int attribute_index : all_instances_attributes.index_range()) {
+    const StringRef id = all_instances_attributes.names[attribute_index];
+    const bke::AttrType type = all_instances_attributes.kinds[attribute_index].data_type;
+    if (ELEM(id, "instance_transform", ".reference_index")) {
+      continue;
+    }
+
+    if (try_join_single_value_attribute(
+            src_components.size(),
+            all_instances_attributes,
+            [&](const int task_index) -> TaskAttrInfo {
+              return {.attributes = attributes_by_component[task_index],
+                      .fallbacks = attribute_fallback[task_index]};
+            },
+            attribute_index,
+            dst_attributes))
+    {
+      continue;
+    }
+
+    bke::GSpanAttributeWriter write_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        id, bke::AttrDomain::Instance, type);
+    GMutableSpan dst_span = write_attribute.span;
+    const CPPType &cpp_type = dst_span.type();
+    for (const int component_index : src_components.index_range()) {
+      const Span<std::optional<GVArray>> src_attributes = attributes_by_component[component_index];
+      const Span<const void *> fallbacks = attribute_fallback[component_index].array;
+      const IndexRange dst_range = offsets[component_index];
+
+      if (src_attributes[attribute_index].has_value()) {
+        threaded_copy(*src_attributes[attribute_index], dst_span.slice(dst_range));
+      }
+      else {
+        const void *fallback = fallbacks[attribute_index] ? fallbacks[attribute_index] :
+                                                            cpp_type.default_value();
+        threaded_fill({cpp_type, fallback}, dst_span);
+      }
+
+      write_attribute.finish();
+    }
+  }
+
+  r_realized_geometry.replace_instances(dst_instances.release());
 }
 
 /** \} */
@@ -1283,66 +1362,6 @@ static void add_instance_attributes_to_single_geometry(
                    data_type,
                    bke::AttributeInitValue(GPointer(cpp_type, value)));
   }
-}
-
-struct TaskAttrInfo {
-  Span<std::optional<GVArray>> attributes;
-  const AttributeFallbacksArray &fallbacks;
-};
-
-static bool try_join_single_value_attribute(
-    const int tasks_num,
-    const OrderedAttributes &ordered_attributes,
-    const FunctionRef<TaskAttrInfo(int)> get_task_attributes,
-    const int attr_index,
-    bke::MutableAttributeAccessor dst_attributes)
-{
-  const bke::AttrType data_type = ordered_attributes.kinds[attr_index].data_type;
-  const auto get_single_value = [&](const int task_index) -> GPointer {
-    const TaskAttrInfo task_info = get_task_attributes(task_index);
-    if (task_info.attributes[attr_index].has_value()) {
-      const CommonVArrayInfo info = task_info.attributes[attr_index]->common_info();
-      if (info.type != CommonVArrayInfo::Type::Single) {
-        return GPointer();
-      }
-      return GPointer(task_info.attributes[attr_index]->type(), info.data);
-    }
-    const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
-    if (const void *value = task_info.fallbacks.array[attr_index]) {
-      return GPointer(type, value);
-    }
-    return GPointer(type, type.default_value());
-  };
-  const GPointer first_value = get_single_value(0);
-  if (!first_value) {
-    return false;
-  }
-  const bool all_equal = threading::parallel_reduce(
-      IndexRange(tasks_num).drop_front(1),
-      32,
-      true,
-      [&](const IndexRange range, bool value) {
-        if (!value) {
-          return false;
-        }
-        for (const int i : range) {
-          const GPointer value = get_single_value(i);
-          if (!value) {
-            return false;
-          }
-          if (!value.type()->is_equal(value.get(), first_value.get())) {
-            return false;
-          }
-        }
-        return true;
-      },
-      std::logical_and<bool>());
-  if (!all_equal) {
-    return false;
-  }
-  const StringRef name = ordered_attributes.names[attr_index];
-  const bke::AttrDomain domain = ordered_attributes.kinds[attr_index].domain;
-  return dst_attributes.add(name, domain, data_type, bke::AttributeInitValue(first_value));
 }
 
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,

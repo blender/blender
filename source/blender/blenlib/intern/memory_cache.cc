@@ -203,7 +203,7 @@ static void try_enforce_limit()
     keys_with_time.append({accessor->second.last_use_time, key});
   }
   /* Sort the items so that the newest keys come first. */
-  std::sort(keys_with_time.begin(), keys_with_time.end());
+  std::ranges::sort(keys_with_time);
   std::reverse(keys_with_time.begin(), keys_with_time.end());
 
   /* Count used memory starting at the most recently touched element. Stop at the element when the

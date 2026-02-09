@@ -42,12 +42,10 @@ if(WITH_LIBMV)
   )
 
   list(APPEND INC_SYS
-    ../../extern/ceres/include
-    ../../extern/ceres/config
   )
 
   list(APPEND LIB
-    extern_ceres
+    PRIVATE bf::dependencies::optional::ceres
     PUBLIC bf::dependencies::optional::tbb
     PRIVATE bf::dependencies::zlib
 

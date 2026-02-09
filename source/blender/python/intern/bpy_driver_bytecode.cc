@@ -1,4 +1,4 @@
-/* SP{DX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,12 +18,10 @@
 
 #ifdef USE_BYTECODE_SECURE
 #  include <opcode.h>
-#  if PY_VERSION_HEX >= 0x030d0000 /* >=3.13 */
 /* WARNING(@ideasman42): Using `Py_BUILD_CORE` is a last resort,
  * the alternative would be not to inspect OP-CODES at all. */
-#    define Py_BUILD_CORE
-#    include <internal/pycore_code.h>
-#  endif
+#  define Py_BUILD_CORE
+#  include <internal/pycore_code.h>
 #endif
 
 namespace blender {

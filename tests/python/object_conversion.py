@@ -49,7 +49,7 @@ class ConversionTypeTestHelper:
         """
         Run a single test from self.tests list.
 
-        :arg test_name: int - name of test
+        :param test_name: int - name of test
         :return: bool - True if test passed, False otherwise.
         """
         case = None

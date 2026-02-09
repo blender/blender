@@ -140,7 +140,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   std::shared_ptr<char[]> search_string_{new char[256 /*UI_MAX_NAME_STR*/]{}};
 
   /**
-   * When true, sort elements alphabatically.
+   * When true, sort elements alphabetically.
    */
   std::shared_ptr<char> sort_alpha_ = std::make_shared<char>(0);
 
@@ -296,6 +296,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   int count_parents() const;
 
   void on_filter() override;
+  StringRefNull label() const;
 
  protected:
   /** See AbstractViewItem::get_rename_string(). */

@@ -51,6 +51,7 @@
 #include <algorithm>
 #include <atomic>
 #include <optional>
+#include <string_view>
 #include <thread>
 #include <unordered_set>
 
@@ -237,9 +238,9 @@ static bool use_gnome_confine_hack = false;
  */
 #define USE_NON_LATIN_KB_WORKAROUND
 
-#define WL_NAME_UNSET uint32_t(-1)
+constexpr uint32_t WL_NAME_UNSET = uint32_t(-1);
 
-#define WL_SERIAL_NONE uint32_t(0)
+constexpr uint32_t WL_SERIAL_NONE = uint32_t(0);
 
 /**
  * Initializer for GHOST integer coordinates from `wl_fixed_t`,
@@ -341,7 +342,7 @@ enum {
   MOD_INDEX_OS = 3,
   MOD_INDEX_HYPER = 4,
 };
-#define MOD_INDEX_NUM (MOD_INDEX_HYPER + 1)
+constexpr int MOD_INDEX_NUM = MOD_INDEX_HYPER + 1;
 
 struct GWL_ModifierInfo {
   /** Only for printing messages. */
@@ -437,7 +438,7 @@ static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const ch
  * From XKB internals, use for converting a scan-code from WAYLAND to a #xkb_keycode_t.
  * Ideally this wouldn't need a local define.
  */
-#define EVDEV_OFFSET 8
+constexpr int EVDEV_OFFSET = 8;
 
 /**
  * Wayland cursor shape protocol types.
@@ -523,9 +524,8 @@ enum class GWL_TabletTool_EventTypes {
   /* Mouse button number 4. */
   Stylus3_Down,
   Stylus3_Up,
-
-#define GWL_TabletTool_FrameTypes_NUM (int(GWL_TabletTool_EventTypes::Stylus3_Up) + 1)
 };
+constexpr int GWL_TabletTool_FrameTypes_NUM = int(GWL_TabletTool_EventTypes::Stylus3_Up) + 1;
 
 static const GHOST_TButton gwl_tablet_tool_ebutton[] = {
     GHOST_kButtonMaskLeft,    /* `Stylus0_*`. */
@@ -1322,7 +1322,7 @@ static void gwl_seat_key_repeat_timer_fn(GHOST_ITimerTask *task, uint64_t time_m
 
   GWL_Seat *seat = payload->seat;
   wl_surface *wl_surface_focus = seat->keyboard.wl.surface_window;
-  if (UNLIKELY(wl_surface_focus == nullptr)) {
+  if (wl_surface_focus == nullptr) [[unlikely]] {
     return;
   }
 
@@ -1546,6 +1546,10 @@ struct GWL_Display {
    * When true, try to draw our own CSD.
    */
   bool use_window_frame_csd = false;
+#ifdef WITH_GHOST_CSD
+  /** The base CSD layout (unfiltered by wm_capabilities). */
+  GHOST_CSD_Layout csd_layout_base = {0};
+#endif
 
   /* Threaded event handling. */
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -1655,10 +1659,8 @@ static void gwl_display_destroy(GWL_Display *display)
 
 static int gwl_display_seat_index(GWL_Display *display, const GWL_Seat *seat)
 {
-  std::vector<GWL_Seat *>::iterator iter = std::find(
-      display->seats.begin(), display->seats.end(), seat);
-  const int index = (iter != display->seats.cend()) ? std::distance(display->seats.begin(), iter) :
-                                                      -1;
+  const auto iter = std::ranges::find(display->seats, seat);
+  const int index = (iter != display->seats.cend()) ? int(iter - display->seats.begin()) : -1;
   GHOST_ASSERT(index != -1, "invalid internal state");
   return index;
 }
@@ -1672,7 +1674,7 @@ static int gwl_display_seat_index(GWL_Display *display, const GWL_Seat *seat)
  */
 static GWL_Seat *gwl_display_seat_active_get(const GWL_Display *display)
 {
-  if (UNLIKELY(display->seats.empty())) {
+  if (display->seats.empty()) [[unlikely]] {
     return nullptr;
   }
   return display->seats[display->seats_active_index];
@@ -1680,7 +1682,7 @@ static GWL_Seat *gwl_display_seat_active_get(const GWL_Display *display)
 
 static bool gwl_display_seat_active_set(GWL_Display *display, const GWL_Seat *seat)
 {
-  if (UNLIKELY(display->seats.empty())) {
+  if (display->seats.empty()) [[unlikely]] {
     return false;
   }
   const int index = gwl_display_seat_index(display, seat);
@@ -2080,8 +2082,11 @@ static void ghost_wayland_log_handler_background(const char *msg, va_list arg)
 {
   /* This is fine in background mode, we will try to fall back to headless GPU context.
    * Happens when render farm process runs without user login session. */
-  if (strstr(msg, "error: XDG_RUNTIME_DIR not set in the environment") ||
-      strstr(msg, "error: XDG_RUNTIME_DIR is invalid or not set in the environment"))
+  const std::string_view msg_view(msg);
+  if (msg_view.find("error: XDG_RUNTIME_DIR not set in the environment") !=
+          std::string_view::npos ||
+      msg_view.find("error: XDG_RUNTIME_DIR is invalid or not set in the environment") !=
+          std::string_view::npos)
   {
     return;
   }
@@ -2209,7 +2214,7 @@ static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t sym, const uint32
 {
   GHOST_TKey gkey = xkb_map_gkey(sym);
 
-  if (UNLIKELY(gkey == GHOST_kKeyUnknown)) {
+  if (gkey == GHOST_kKeyUnknown) [[unlikely]] {
     /* Fall back to physical location for keys that would otherwise do nothing. */
     switch (key) {
       case KEY_GRAVE: {
@@ -2325,7 +2330,7 @@ static std::vector<std::string_view> gwl_clipboard_uri_ranges(const char *data_b
     pos = data.find(lf, pos);
 
     size_t end = pos;
-    if (UNLIKELY(end == std::string::npos)) {
+    if (end == std::string::npos) [[unlikely]] {
       /* Note that most well behaved file managers will add a trailing newline,
        * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
       end = data.size();
@@ -2571,7 +2576,7 @@ static wl_buffer *ghost_wl_buffer_create_for_image(wl_shm *shm,
             *r_buffer_data_size = size_t(buffer_size);
           }
         }
-        if (UNLIKELY(buffer == nullptr)) {
+        if (buffer == nullptr) [[unlikely]] {
           munmap(buffer_data, buffer_size);
         }
       }
@@ -2596,7 +2601,7 @@ static ssize_t read_exhaustive(const int fd, void *data, size_t nbytes)
         nbytes_read += nbytes_extra;
       }
       else {
-        if (UNLIKELY(nbytes_extra < 0)) {
+        if (nbytes_extra < 0) [[unlikely]] {
           nbytes_read = nbytes_extra; /* Error. */
         }
         break;
@@ -2627,7 +2632,7 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
     ByteChunk **chunk_link_p = &chunk_first;
     ByteChunk *chunk = chunk_first;
     while (true) {
-      if (UNLIKELY(chunk == nullptr)) {
+      if (chunk == nullptr) [[unlikely]] {
         errno = ENOMEM;
         ok = false;
         break;
@@ -2636,7 +2641,7 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
       /* Using `read` causes issues with GNOME, see: #106040). */
       const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(ByteChunk::data));
       if (len_chunk <= 0) {
-        if (UNLIKELY(len_chunk < 0)) {
+        if (len_chunk < 0) [[unlikely]] {
           ok = false;
         }
         if (chunk == chunk_first) {
@@ -2659,7 +2664,7 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
   char *buf = nullptr;
   if (ok) {
     buf = static_cast<char *>(malloc(len + (nil_terminate ? 1 : 0)));
-    if (UNLIKELY(buf == nullptr)) {
+    if (buf == nullptr) [[unlikely]] {
       errno = ENOMEM;
       ok = false;
     }
@@ -3049,7 +3054,7 @@ static void keyboard_depressed_state_key_event(GWL_Seat *seat,
     int16_t &value = seat->key_depressed.mods[index];
     if (etype == GHOST_kEventKeyUp) {
       value -= 1;
-      if (UNLIKELY(value < 0)) {
+      if (value < 0) [[unlikely]] {
         CLOG_WARN(LOG, "modifier (%d) has negative keys held (%d)!", index, value);
         value = 0;
       }
@@ -3134,7 +3139,7 @@ static bool gwl_window_csd_active_elem_motion(GWL_Seat *seat,
     }
   }
   /* Ignore this function if the event doesn't overlap anything. */
-  if (UNLIKELY(i == elems_num)) {
+  if (i == elems_num) [[unlikely]] {
     return false;
   }
 
@@ -3688,9 +3693,8 @@ static void data_source_handle_send(void *data,
   CLOG_DEBUG(LOG, "send");
 
   auto write_file_fn = [](GWL_Seat *seat, const int fd) {
-    if (UNLIKELY(write(fd,
-                       seat->data_source->buffer_out.data,
-                       seat->data_source->buffer_out.data_size) < 0))
+    if (write(fd, seat->data_source->buffer_out.data, seat->data_source->buffer_out.data_size) < 0)
+        [[unlikely]]
     {
       CLOG_WARN(LOG, "error writing to clipboard: %s", std::strerror(errno));
     }
@@ -3964,7 +3968,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
   const char *mime_receive = "";
   for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order); i++) {
     const char *type = ghost_wl_mime_preference_order[i];
-    if (data_offer->types.count(type)) {
+    if (data_offer->types.contains(type)) {
       mime_receive = type;
       break;
     }
@@ -4385,7 +4389,7 @@ static void pointer_handle_axis(void *data,
    * discrete "steps". This allows supporting smooth-scrolling without "touch" gesture support. */
   CLOG_DEBUG(LOG, "axis (axis=%u, value=%d)", axis, value);
   const int index = pointer_axis_as_index(axis);
-  if (UNLIKELY(index == -1)) {
+  if (index == -1) [[unlikely]] {
     return;
   }
   seat->pointer_scroll.smooth_xy[index] = value;
@@ -4411,8 +4415,9 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
       const uint32_t serial = seat->pointer_events.frame_pending.frame_serial[ty_index];
 #endif
       switch (ty) {
+        using enum GWL_Pointer_EventTypes;
         /* Use motion for pressure and tilt as there are no explicit event types for these. */
-        case GWL_Pointer_EventTypes::Motion: {
+        case Motion: {
           const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
           seat->system->pushEvent_maybe_pending(std::make_unique<GHOST_EventCursor>(
               event_ms, GHOST_kEventCursorMove, win, UNPACK2(event_xy), GHOST_TABLET_DATA_NONE));
@@ -4425,7 +4430,7 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
 #endif /* WITH_GHOST_CSD */
           break;
         }
-        case GWL_Pointer_EventTypes::Scroll: {
+        case Scroll: {
           GWL_SeatStatePointerScroll &ps = seat->pointer_scroll;
 
           /* The scroll data is "interpreted" before generating the events,
@@ -4553,23 +4558,23 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
 #ifdef NDEBUG
         default:
 #else /* Warn when any events aren't handled (in debug builds). */
-        case GWL_Pointer_EventTypes::Button0_Down:
-        case GWL_Pointer_EventTypes::Button0_Up:
-        case GWL_Pointer_EventTypes::Button1_Down:
-        case GWL_Pointer_EventTypes::Button1_Up:
-        case GWL_Pointer_EventTypes::Button2_Down:
-        case GWL_Pointer_EventTypes::Button2_Up:
-        case GWL_Pointer_EventTypes::Button3_Down:
-        case GWL_Pointer_EventTypes::Button3_Up:
-        case GWL_Pointer_EventTypes::Button4_Down:
-        case GWL_Pointer_EventTypes::Button4_Up:
-        case GWL_Pointer_EventTypes::Button5_Down:
-        case GWL_Pointer_EventTypes::Button5_Up:
-        case GWL_Pointer_EventTypes::Button6_Down:
-        case GWL_Pointer_EventTypes::Button6_Up:
+        case Button0_Down:
+        case Button0_Up:
+        case Button1_Down:
+        case Button1_Up:
+        case Button2_Down:
+        case Button2_Up:
+        case Button3_Down:
+        case Button3_Up:
+        case Button4_Down:
+        case Button4_Up:
+        case Button5_Down:
+        case Button5_Up:
+        case Button6_Down:
+        case Button6_Up:
 #endif
         {
-          const int button_enum_offset = int(ty) - int(GWL_Pointer_EventTypes::Button0_Down);
+          const int button_enum_offset = int(ty) - int(Button0_Down);
           const int button_index = button_enum_offset / 2;
           const bool button_down = (button_index * 2) == button_enum_offset;
           const GHOST_TButton ebutton = gwl_pointer_events_ebutton[button_index];
@@ -4630,7 +4635,7 @@ static void pointer_handle_axis_discrete(void *data,
    * The non-discrete version of this function is used for touch-pad. */
   CLOG_DEBUG(LOG, "axis_discrete (axis=%u, discrete=%d)", axis, discrete);
   const int index = pointer_axis_as_index(axis);
-  if (UNLIKELY(index == -1)) {
+  if (index == -1) [[unlikely]] {
     return;
   }
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
@@ -4647,7 +4652,7 @@ static void pointer_handle_axis_value120(void *data,
   /* Only available in interface version 8. */
   CLOG_DEBUG(LOG, "axis_value120 (axis=%u, value120=%d)", axis, value120);
   const int index = pointer_axis_as_index(axis);
-  if (UNLIKELY(index == -1)) {
+  if (index == -1) [[unlikely]] {
     return;
   }
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
@@ -4665,7 +4670,7 @@ static void pointer_handle_axis_relative_direction(void *data,
   /* Only available in interface version 9. */
   CLOG_DEBUG(LOG, "axis_relative_direction (axis=%u, direction=%u)", axis, direction);
   const int index = pointer_axis_as_index(axis);
-  if (UNLIKELY(index == -1)) {
+  if (index == -1) [[unlikely]] {
     return;
   }
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
@@ -5131,11 +5136,12 @@ static void touch_seat_handle_frame(void *data, wl_touch * /*touch*/)
     GHOST_ASSERT(touch_events_num <= ARRAY_SIZE(touch_events), "Buffer overflow");
 
     /* Ensure events are ordered in time. */
-    if (UNLIKELY(touch_events_num > 1)) {
-      std::sort(touch_events,
-                touch_events + touch_events_num,
-                [](std::unique_ptr<GHOST_Event> &event_a, std::unique_ptr<GHOST_Event> &event_b)
-                    -> bool { return event_a->getTime() < event_b->getTime(); });
+    if (touch_events_num > 1) [[unlikely]] {
+      std::ranges::sort(std::span(touch_events, touch_events_num),
+                        [](const std::unique_ptr<GHOST_Event> &event_a,
+                           const std::unique_ptr<GHOST_Event> &event_b) {
+                          return event_a->getTime() < event_b->getTime();
+                        });
     }
 
     for (int i = 0; i < touch_events_num; i++) {
@@ -5478,10 +5484,11 @@ static void tablet_tool_handle_frame(void *data,
       const uint32_t serial = tablet_tool->frame_pending.frame_serial[ty_index];
 #endif
       switch (ty) {
+        using enum GWL_TabletTool_EventTypes;
         /* Use motion for pressure and tilt as there are no explicit event types for these. */
-        case GWL_TabletTool_EventTypes::Motion:
-        case GWL_TabletTool_EventTypes::Pressure:
-        case GWL_TabletTool_EventTypes::Tilt: {
+        case Motion:
+        case Pressure:
+        case Tilt: {
           /* Only one motion event per frame. */
           if (has_motion) {
             break;
@@ -5511,17 +5518,17 @@ static void tablet_tool_handle_frame(void *data,
 #ifdef NDEBUG
         default:
 #else /* Warn when any events aren't handled (in debug builds). */
-        case GWL_TabletTool_EventTypes::Stylus0_Down:
-        case GWL_TabletTool_EventTypes::Stylus0_Up:
-        case GWL_TabletTool_EventTypes::Stylus1_Down:
-        case GWL_TabletTool_EventTypes::Stylus1_Up:
-        case GWL_TabletTool_EventTypes::Stylus2_Down:
-        case GWL_TabletTool_EventTypes::Stylus2_Up:
-        case GWL_TabletTool_EventTypes::Stylus3_Down:
-        case GWL_TabletTool_EventTypes::Stylus3_Up:
+        case Stylus0_Down:
+        case Stylus0_Up:
+        case Stylus1_Down:
+        case Stylus1_Up:
+        case Stylus2_Down:
+        case Stylus2_Up:
+        case Stylus3_Down:
+        case Stylus3_Up:
 #endif
         {
-          const int button_enum_offset = int(ty) - int(GWL_TabletTool_EventTypes::Stylus0_Down);
+          const int button_enum_offset = int(ty) - int(Stylus0_Down);
           const int button_index = button_enum_offset / 2;
           const bool button_down = (button_index * 2) == button_enum_offset;
           const GHOST_TButton ebutton = gwl_tablet_tool_ebutton[button_index];
@@ -5540,7 +5547,7 @@ static void tablet_tool_handle_frame(void *data,
 #endif
           break;
         }
-        case GWL_TabletTool_EventTypes::Wheel: {
+        case Wheel: {
           seat->system->pushEvent_maybe_pending(
               std::make_unique<GHOST_EventWheel>(event_ms,
                                                  win,
@@ -5814,7 +5821,7 @@ static void keyboard_handle_enter(void *data,
     std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
 #endif
     /* Should have been cleared on leave, set here just in case. */
-    if (UNLIKELY(seat->key_repeat.timer)) {
+    if (seat->key_repeat.timer) [[unlikely]] {
       keyboard_handle_key_repeat_cancel(seat);
     }
 
@@ -6325,9 +6332,9 @@ static void primary_selection_source_send(void *data,
   GWL_PrimarySelection *primary = static_cast<GWL_PrimarySelection *>(data);
 
   auto write_file_fn = [](GWL_PrimarySelection *primary, const int fd) {
-    if (UNLIKELY(write(fd,
-                       primary->data_source->buffer_out.data,
-                       primary->data_source->buffer_out.data_size) < 0))
+    if (write(fd,
+              primary->data_source->buffer_out.data,
+              primary->data_source->buffer_out.data_size) < 0) [[unlikely]]
     {
       CLOG_WARN(LOG, "error writing to primary clipboard: %s", std::strerror(errno));
     }
@@ -7244,14 +7251,10 @@ static void gwl_registry_wl_output_remove(GWL_Display *display,
     zxdg_output_v1_destroy(output->xdg.output);
   }
   wl_output_destroy(output->wl.output);
-  std::vector<GWL_Output *>::iterator iter = std::find(
-      display->outputs.begin(), display->outputs.end(), output);
-  const int index = (iter != display->outputs.cend()) ?
-                        std::distance(display->outputs.begin(), iter) :
-                        -1;
-  GHOST_ASSERT(index != -1, "invalid internal state");
   /* NOTE: always erase even when `on_exit` because `output->xdg_output` is cleared later. */
-  display->outputs.erase(display->outputs.begin() + index);
+  GHOST_ASSERT(std::ranges::find(display->outputs, output) != display->outputs.end(),
+               "invalid internal state");
+  std::erase(display->outputs, output);
   delete output;
 }
 
@@ -7434,17 +7437,15 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
   /* Remove the seat. */
   wl_seat_destroy(seat->wl.seat);
 
-  std::vector<GWL_Seat *>::iterator iter = std::find(
-      display->seats.begin(), display->seats.end(), seat);
-  const int index = (iter != display->seats.cend()) ? std::distance(display->seats.begin(), iter) :
-                                                      -1;
-  GHOST_ASSERT(index != -1, "invalid internal state");
+  const auto iter = std::ranges::find(display->seats, seat);
+  GHOST_ASSERT(iter != display->seats.end(), "invalid internal state");
 
   if (!on_exit) {
+    const int index = int(iter - display->seats.begin());
     if (display->seats_active_index >= index) {
       display->seats_active_index -= 1;
     }
-    display->seats.erase(display->seats.begin() + index);
+    display->seats.erase(iter);
   }
   delete seat;
 }
@@ -8067,6 +8068,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
     }
 
     this->setWindowCSD_Layout(csd_layout);
+    display_->csd_layout_base = csd_layout;
   }
 #endif /* WITH_GHOST_CSD */
 
@@ -8135,7 +8137,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
   bool any_processed = false;
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  if (UNLIKELY(has_pending_actions_for_window.exchange(false))) {
+  if (has_pending_actions_for_window.exchange(false)) [[unlikely]] {
     std::lock_guard lock_server_guard{*server_mutex};
     for (GHOST_IWindow *iwin : getWindowManager()->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
@@ -8166,7 +8168,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
     }
     display_->events_pending.clear();
 
-    if (UNLIKELY(display_->events_pending.capacity() > events_pending_default_size)) {
+    if (display_->events_pending.capacity() > events_pending_default_size) [[unlikely]] {
       /* Avoid over allocation in the case of occasional delay between processing events
        * causing many events to be collected and making this into a large array. */
       display_->events_pending.shrink_to_fit();
@@ -8247,7 +8249,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -8276,7 +8278,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
   /* Use local #GWL_KeyboardDepressedState to check which key is pressed.
    * Use XKB as the source of truth, if there is any discrepancy. */
   for (int i = 0; i < MOD_INDEX_NUM; i++) {
-    if (UNLIKELY(seat->xkb_keymap_mod_index[i] == XKB_MOD_INVALID)) {
+    if (seat->xkb_keymap_mod_index[i] == XKB_MOD_INVALID) [[unlikely]] {
       continue;
     }
 
@@ -8297,7 +8299,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
       /* This shouldn't be needed, but guard against any possibility of modifiers being stuck.
        * Warn so if this happens it can be investigated. */
       if (val) {
-        if (UNLIKELY(!(val_l || val_r))) {
+        if (!(val_l || val_r)) [[unlikely]] {
           CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
                     "modifier (%s) state is inconsistent (GHOST held keys do not match XKB)",
                     mod_info.display_name);
@@ -8308,7 +8310,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
         }
       }
       else {
-        if (UNLIKELY(val_l || val_r)) {
+        if (val_l || val_r) [[unlikely]] {
           CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
                     "modifier (%s) state is inconsistent (GHOST released keys do not match XKB)",
                     mod_info.display_name);
@@ -8334,7 +8336,7 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
   const GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
@@ -8355,7 +8357,7 @@ static const char *system_clipboard_text_mime_type(
 {
   const char *ghost_supported_types[] = {ghost_wl_mime_text_utf8, ghost_wl_mime_text_plain};
   for (size_t i = 0; i < ARRAY_SIZE(ghost_supported_types); i++) {
-    if (data_offer_types.count(ghost_supported_types[i])) {
+    if (data_offer_types.contains(ghost_supported_types[i])) {
       return ghost_supported_types[i];
     }
   }
@@ -8368,7 +8370,7 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display,
                                                     size_t *r_data_len)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return nullptr;
   }
   GWL_PrimarySelection *primary = &seat->primary_selection;
@@ -8384,7 +8386,7 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display,
                                    mime_receive_override :
                                    system_clipboard_text_mime_type(data_offer->types);
     GHOST_ASSERT((mime_receive_override == nullptr) ||
-                     data_offer->types.count(mime_receive_override) != 0,
+                     data_offer->types.contains(mime_receive_override),
                  "Mime type override not found in data offer, caller must check");
 
     if (mime_receive) {
@@ -8430,7 +8432,7 @@ static char *system_clipboard_get(GWL_Display *display,
                                   size_t *r_data_len)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return nullptr;
   }
   std::mutex &mutex = seat->data_offer_copy_paste_mutex;
@@ -8445,7 +8447,7 @@ static char *system_clipboard_get(GWL_Display *display,
                                    mime_receive_override :
                                    system_clipboard_text_mime_type(data_offer->types);
     GHOST_ASSERT((mime_receive_override == nullptr) ||
-                     data_offer->types.count(mime_receive_override) != 0,
+                     data_offer->types.contains(mime_receive_override),
                  "Mime type override not found in data offer, caller must check");
 
     if (mime_receive) {
@@ -8509,7 +8511,7 @@ static void system_clipboard_put_primary_selection(GWL_Display *display, const c
     return;
   }
   GWL_Seat *seat = gwl_display_seat_active_get(display);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return;
   }
   GWL_PrimarySelection *primary = &seat->primary_selection;
@@ -8546,7 +8548,7 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
     return;
   }
   GWL_Seat *seat = gwl_display_seat_active_get(display);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return;
   }
   std::lock_guard lock{seat->data_source_mutex};
@@ -8594,7 +8596,7 @@ GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage() const
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -8606,10 +8608,10 @@ GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage() const
 
   GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
   if (data_offer) {
-    if (data_offer->types.count(ghost_wl_mime_img_png)) {
+    if (data_offer->types.contains(ghost_wl_mime_img_png)) {
       result = GHOST_kSuccess;
     }
-    else if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
+    else if (data_offer->types.contains(ghost_wl_mime_text_uri_list)) {
       const bool nil_terminate = true;
       size_t data_buf_len = 0;
       char *data = system_clipboard_get(
@@ -8642,7 +8644,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return nullptr;
   }
 
@@ -8655,7 +8657,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
     /* Check if the source offers a supported mime type.
      * This check could be skipped, because the paste option is not supposed to be enabled
      * otherwise. */
-    if (data_offer->types.count(ghost_wl_mime_img_png)) {
+    if (data_offer->types.contains(ghost_wl_mime_img_png)) {
       size_t data_len = 0;
       char *data = system_clipboard_get(display_, false, ghost_wl_mime_img_png, &data_len);
 
@@ -8666,7 +8668,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
         free(data);
       }
     }
-    else if (data_offer->types.count(ghost_wl_mime_text_uri_list)) {
+    else if (data_offer->types.contains(ghost_wl_mime_text_uri_list)) {
       const bool nil_terminate = true;
       size_t data_len = 0;
       char *data = system_clipboard_get(
@@ -8705,7 +8707,7 @@ GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int
 
   /* Create a #wl_data_source object. */
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
   std::lock_guard lock(seat->data_source_mutex);
@@ -8763,7 +8765,7 @@ uint64_t GHOST_SystemWayland::getMilliSeconds() const
   return (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
 }
 
-static GHOST_TSuccess getCursorPositionClientRelative_impl(
+[[nodiscard]] static GHOST_TSuccess getCursorPositionClientRelative_impl(
     const GWL_SeatStatePointer *seat_state_pointer,
     const GHOST_WindowWayland *win,
     int32_t &x,
@@ -8801,10 +8803,10 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
   return GHOST_kSuccess;
 }
 
-static GHOST_TSuccess setCursorPositionClientRelative_impl(GWL_Seat *seat,
-                                                           GHOST_WindowWayland *win,
-                                                           const int32_t x,
-                                                           const int32_t y)
+[[nodiscard]] static GHOST_TSuccess setCursorPositionClientRelative_impl(GWL_Seat *seat,
+                                                                         GHOST_WindowWayland *win,
+                                                                         const int32_t x,
+                                                                         const int32_t y)
 {
   /* NOTE(@ideasman42): Regarding Cursor Warp Support:
    *
@@ -8855,7 +8857,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPositionClientRelative(const GHOST_
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
   const GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
@@ -8875,7 +8877,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPositionClientRelative(GHOST_IWindo
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(window);
@@ -8889,7 +8891,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
   const GWL_SeatStatePointer *seat_state_pointer = gwl_seat_state_pointer_active(seat);
@@ -8914,7 +8916,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int
 #endif
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -9178,7 +9180,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
   /* Caller must lock `server_mutex`. */
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -9236,7 +9238,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCurs
 {
   /* No need to lock `server_mutex`. */
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -9360,7 +9362,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const GHOST_CursorGe
 {
   /* Caller needs to lock `server_mutex`. */
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
   /* If we were using a wayland cursor shape, be sure to free it up before we try to use any
@@ -9406,7 +9408,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const GHOST_CursorGe
                                                             scale,
                                                             bitmap_size,
                                                             hot_spot);
-  if (UNLIKELY(buffer == nullptr)) {
+  if (buffer == nullptr) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -9430,7 +9432,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_bitmap_get(GHOST_CursorBitmapRef *bit
 {
   /* Caller must lock `server_mutex`. */
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -9457,7 +9459,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_visibility_set(const bool visible)
 {
   /* Caller must lock `server_mutex`. */
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return GHOST_kFailure;
   }
 
@@ -9517,7 +9519,7 @@ bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrab
 {
   /* Caller must lock `server_mutex`. */
   const GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return false;
   }
 
@@ -9730,7 +9732,7 @@ zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decor_manager_get()
 
 /* End `xdg_decor`. */
 
-const std::vector<GWL_Output *> &GHOST_SystemWayland::outputs_get() const
+const std::span<GWL_Output *const> GHOST_SystemWayland::outputs_get() const
 {
   return display_->outputs;
 }
@@ -9755,6 +9757,13 @@ bool GHOST_SystemWayland::use_window_frame_csd_get() const
   return display_->use_window_frame_csd;
 }
 
+#ifdef WITH_GHOST_CSD
+const GHOST_CSD_Layout &GHOST_SystemWayland::csd_layout_base_get() const
+{
+  return display_->csd_layout_base;
+}
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -9773,7 +9782,7 @@ void GHOST_SystemWayland::ime_begin(const GHOST_WindowWayland *win,
                                     const bool completed) const
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return;
   }
   if (seat->wp.text_input == nullptr) {
@@ -9835,7 +9844,7 @@ void GHOST_SystemWayland::ime_begin(const GHOST_WindowWayland *win,
 void GHOST_SystemWayland::ime_end(const GHOST_WindowWayland * /*window*/) const
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return;
   }
 
@@ -9894,7 +9903,7 @@ uint64_t GHOST_SystemWayland::ms_from_input_time(const uint32_t timestamp_as_uin
   uint64_t timestamp = uint64_t(timestamp_as_uint);
 
   GWL_DisplayTimeStamp &input_timestamp = display_->input_timestamp;
-  if (UNLIKELY(timestamp_as_uint < input_timestamp.last)) {
+  if (timestamp_as_uint < input_timestamp.last) [[unlikely]] {
     /* NOTE(@ideasman42): Sometimes event times are out of order,
      * while this should _never_ happen, it occasionally does:
      * - With accepting IME text with GNOME-v45.2 the timestamp is in seconds, see:
@@ -9968,7 +9977,7 @@ void GHOST_SystemWayland::seat_active_set(const GWL_Seat *seat)
 wl_seat *GHOST_SystemWayland::wl_seat_active_get_with_input_serial(uint32_t &serial)
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return nullptr;
   }
 
@@ -10038,18 +10047,18 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
   if (window_manager) {
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
-      const std::vector<GWL_Output *> &outputs = win->outputs_get();
-      if (!(std::find(outputs.begin(), outputs.end(), output) == outputs.cend())) {
+      const std::span<GWL_Output *const> outputs = win->outputs_get();
+      if (std::ranges::find(outputs, output) != outputs.end()) {
         win->outputs_changed_update_scale_tag();
       }
     }
   }
   for (GWL_Seat *seat : display_->seats) {
-    if (seat->pointer.outputs.count(output)) {
+    if (seat->pointer.outputs.contains(output)) {
       update_cursor_scale(seat, seat->cursor, &seat->pointer);
     }
 
-    if (seat->tablet.outputs.count(output)) {
+    if (seat->tablet.outputs.contains(output)) {
       update_cursor_scale(seat, seat->cursor, &seat->tablet);
     }
   }
@@ -10066,12 +10075,12 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   /* Caller must lock `server_mutex`. */
 
   /* Ignore, if the required protocols are not supported. */
-  if (UNLIKELY(!display_->wp.relative_pointer_manager || !display_->wp.pointer_constraints)) {
+  if (!display_->wp.relative_pointer_manager || !display_->wp.pointer_constraints) [[unlikely]] {
     return false;
   }
 
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
+  if (!seat) [[unlikely]] {
     return false;
   }
   /* No change, success. */

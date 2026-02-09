@@ -224,7 +224,9 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   int decimate_type = RNA_enum_get(ptr, "decimate_type");
   char count_info[64];
-  SNPRINTF(count_info, RPT_("Face Count: %d"), RNA_int_get(ptr, "face_count"));
+  char face_count_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
+  BLI_str_format_int_grouped(face_count_str, RNA_int_get(ptr, "face_count"));
+  SNPRINTF(count_info, RPT_("Face Count: %s"), face_count_str);
 
   layout.prop(ptr, "decimate_type", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 

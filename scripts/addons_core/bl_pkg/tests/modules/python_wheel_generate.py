@@ -59,7 +59,7 @@ def generate_from_file_data(
         package_contents: dict[str, bytes],
 ) -> tuple[str, bytes]:
     """
-    :arg package_contents:
+    :param package_contents:
        The package contents.
        - The key is a path.
        - The value is file contents.

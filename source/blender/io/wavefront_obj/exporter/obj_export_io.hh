@@ -14,8 +14,6 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
-/* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
-#undef SEP
 #include <fmt/format.h>
 
 namespace blender::io::obj {

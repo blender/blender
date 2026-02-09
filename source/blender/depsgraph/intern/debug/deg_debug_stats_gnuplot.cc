@@ -95,7 +95,7 @@ void write_stats_data(const DebugContext &ctx)
     stats.append(entry);
   }
   /* Sort the data. */
-  std::sort(stats.begin(), stats.end(), stat_entry_comparator);
+  std::ranges::sort(stats, stat_entry_comparator);
   /* We limit number of entries, otherwise things become unreadable. */
   stats.resize(min_ii(stats.size(), 32));
   std::reverse(stats.begin(), stats.end());

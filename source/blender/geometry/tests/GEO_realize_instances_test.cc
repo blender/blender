@@ -66,16 +66,16 @@ TEST_F(RealizeInstancesTest, InstanceAttributeToBuiltinCurvesAttribute)
   create_test_curves(curves_id->geometry.wrap(), {0, 3});
   bke::GeometrySet curves_geometry = GeometrySet::from_curves(curves_id);
 
-  Instances *instances = new Instances();
+  auto instances = std::make_unique<Instances>(2);
   const int handle = instances->add_reference(bke::InstanceReference{curves_geometry});
   /* The issue only occurs with 2 or more instances. In case of a single instance the code takes a
    * special path that does not run cause this problem. */
-  instances->add_instance(handle, float4x4::identity());
-  instances->add_instance(handle, float4x4::identity());
+  instances->reference_handles_for_write().fill(handle);
+  instances->transforms_for_write().fill(float4x4::identity());
   /* This attribute will be converted to the point domain, where it is invalid on curves. */
   instances->attributes_for_write().add<float>(
       "curve_type", AttrDomain::Instance, AttributeInitDefaultValue());
-  bke::GeometrySet instances_geometry = GeometrySet::from_instances(instances);
+  bke::GeometrySet instances_geometry = GeometrySet::from_instances(std::move(instances));
 
   geometry::RealizeInstancesOptions options;
   options.realize_instance_attributes = true;

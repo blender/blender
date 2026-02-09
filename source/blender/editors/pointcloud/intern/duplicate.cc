@@ -22,6 +22,9 @@ static void duplicate_points(PointCloud &pointcloud, const IndexMask &mask)
   PointCloud *new_pointcloud = BKE_pointcloud_new_nomain(pointcloud.totpoint + mask.size());
   bke::MutableAttributeAccessor dst_attributes = new_pointcloud->attributes_for_write();
   pointcloud.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     const GVArray src = *iter.get();
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);

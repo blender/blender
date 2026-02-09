@@ -38,6 +38,7 @@ enum eImbFileType {
 #ifdef WITH_IMAGE_WEBP
   IMB_FTYPE_WEBP = 14,
 #endif
+  IMB_FTYPE_AVIF = 15,
 };
 
 /** NOTE: Keep in sync with #MovieClipProxy.build_size_flag */

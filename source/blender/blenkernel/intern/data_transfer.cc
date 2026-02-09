@@ -742,6 +742,11 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
       src_names.append(iter.name);
     }
   });
+  if (src_names.is_empty()) {
+    /* Can happen for colors, since we go over both CD_PROP_COLOR and CD_PROP_BYTE_COLOR. */
+    return true;
+  }
+
   Vector<std::string> dst_names;
   mesh_dst.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain == domain && iter.data_type == attr_type) {
@@ -792,10 +797,10 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
       name_dst = [&]() -> StringRef {
         switch (cddata_type) {
           case CD_PROP_FLOAT2:
-            return mesh_src.active_uv_map_name();
+            return mesh_dst.active_uv_map_name();
           case CD_PROP_COLOR:
           case CD_PROP_BYTE_COLOR:
-            return StringRef(mesh_src.active_color_attribute);
+            return StringRef(mesh_dst.active_color_attribute);
           default:
             BLI_assert_unreachable();
             return "";

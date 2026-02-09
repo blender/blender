@@ -132,7 +132,22 @@ ExternalProject_Add(external_openimageio
   PATCH_COMMAND
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/openimageio.diff
+      ${PATCH_DIR}/openimageio.diff &&
+    ${PATCH_CMD} -p 1 -N -d
+      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
+      ${PATCH_DIR}/openimageio_heif_no_hvec_5013.diff &&
+    ${PATCH_CMD} -p 1 -N -d
+      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
+      ${PATCH_DIR}/openimageio_webp_check_5016.diff &&
+    ${PATCH_CMD} -p 1 -N -d
+      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
+      ${PATCH_DIR}/openimageio_heif_ioproxy_5017.diff &&
+    ${PATCH_CMD} -p 1 -N -d
+      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
+      ${PATCH_DIR}/openimageio_heif_multi_save_5018.diff &&
+    ${PATCH_CMD} -p 1 -N -d
+      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
+      ${PATCH_DIR}/openimageio_webp_alpha_5020.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio
     ${DEFAULT_CMAKE_FLAGS}
@@ -201,6 +216,9 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_openimageio after_install
       COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/openimageio/lib/cmake/OpenImageIO/OpenImageIOTargets-debug.cmake
+        ${HARVEST_TARGET}/openimageio/lib/cmake/OpenImageIO/OpenImageIOTargets-debug.cmake
+      COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/openimageio/lib/OpenImageIO_d.lib
         ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy
@@ -220,10 +238,9 @@ if(WIN32)
     )
   endif()
 else()
-  harvest_rpath_bin(external_openimageio openimageio/bin openimageio/bin "idiff")
-  harvest_rpath_bin(external_openimageio openimageio/bin openimageio/bin "maketx")
-  harvest_rpath_bin(external_openimageio openimageio/bin openimageio/bin "oiiotool")
+  harvest_rpath_bin(external_openimageio openimageio/bin openimageio/bin "*")
   harvest(external_openimageio openimageio/include openimageio/include "*")
+  harvest(external_openimageio openimageio/lib/cmake/OpenImageIO openimageio/lib/cmake/OpenImageIO "*.cmake")
   harvest_rpath_lib(external_openimageio openimageio/lib openimageio/lib "*${SHAREDLIBEXT}*")
   harvest_rpath_python(external_openimageio
     openimageio/lib/python${PYTHON_SHORT_VERSION}

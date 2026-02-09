@@ -31,8 +31,10 @@ class GMutablePointer {
 
   GMutablePointer(const CPPType &type, void *data = nullptr) : GMutablePointer(&type, data) {}
 
-  template<typename T, BLI_ENABLE_IF(!std::is_void_v<T>)>
-  GMutablePointer(T *data) : GMutablePointer(&CPPType::get<T>(), data)
+  template<typename T>
+  GMutablePointer(T *data)
+    requires(!std::is_void_v<T>)
+      : GMutablePointer(&CPPType::get<T>(), data)
   {
   }
 
@@ -100,8 +102,10 @@ class GPointer {
 
   GPointer(const CPPType &type, const void *data = nullptr) : type_(&type), data_(data) {}
 
-  template<typename T, BLI_ENABLE_IF((!std::is_void_v<T>))>
-  GPointer(T *data) : GPointer(&CPPType::get<T>(), data)
+  template<typename T>
+  GPointer(T *data)
+    requires(!std::is_void_v<T>)
+      : GPointer(&CPPType::get<T>(), data)
   {
   }
 

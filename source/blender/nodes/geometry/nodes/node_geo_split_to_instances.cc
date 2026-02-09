@@ -244,8 +244,7 @@ static void split_instance_groups(const InstancesComponent &component,
       const IndexMask &mask = split_groups.group_masks[group_index];
       const int group_id = split_groups.group_ids[group_index];
 
-      bke::Instances *group_instances = new bke::Instances();
-      group_instances->resize(mask.size());
+      auto group_instances = std::make_unique<bke::Instances>(mask.size());
 
       for (const bke::InstanceReference &reference : src_instances.references()) {
         group_instances->add_reference(reference);
@@ -260,7 +259,7 @@ static void split_instance_groups(const InstancesComponent &component,
       group_instances->remove_unused_references();
 
       GeometrySet &group_geometry = *geometry_by_group_id.lookup(group_id);
-      group_geometry.replace_instances(group_instances);
+      group_geometry.replace_instances(group_instances.release());
     }
   });
 }
@@ -309,10 +308,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         component, selection_field, group_id_field, attribute_filter, geometry_by_group_id);
   }
 
-  bke::Instances *dst_instances = new bke::Instances();
-  GeometrySet dst_geometry = GeometrySet::from_instances(dst_instances);
-  const int total_groups_num = geometry_by_group_id.size();
-  dst_instances->resize(total_groups_num);
+  auto dst_instances = std::make_unique<bke::Instances>(geometry_by_group_id.size());
 
   std::optional<std::string> dst_group_id_attribute_id =
       params.get_output_anonymous_attribute_id_if_needed("Group ID");
@@ -334,10 +330,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     dst_instances->add_reference(std::move(group_geometry));
   }
 
+  geometry::debug_randomize_instance_order(dst_instances.get());
+
+  GeometrySet dst_geometry = GeometrySet::from_instances(std::move(dst_instances));
   dst_geometry.name = src_geometry.name;
   dst_geometry.copy_bundle_from(src_geometry);
-
-  geometry::debug_randomize_instance_order(dst_instances);
 
   params.set_output("Instances", std::move(dst_geometry));
 }

@@ -187,7 +187,8 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
     if (sd->type == PRIMITIVE_TRIANGLE) {
       /* smooth normal */
       if (sd->shader & SHADER_SMOOTH_NORMAL) {
-        sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
+        sd->N = triangle_smooth_normal(
+            kg, Ng, sd->object, sd->object_flag, sd->prim, sd->u, sd->v);
 
         if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
           object_normal_transform_auto(kg, sd, &sd->N);

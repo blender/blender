@@ -226,11 +226,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size());
     bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
     pointcloud->positions_for_write().copy_from(positions);
-    bke::SpanAttributeWriter<float> point_radii =
-        point_attributes.lookup_or_add_for_write_only_span<float>("radius", AttrDomain::Point);
-
-    point_radii.span.fill(0.05f);
-    point_radii.finish();
+    point_attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.05f));
 
     geometry::debug_randomize_point_order(pointcloud);
 

@@ -429,7 +429,7 @@ PyDoc_STRVAR(
     "\n"
     "   Copy data from another layer.\n"
     "\n"
-    "   :arg other: Another layer to copy from.\n"
+    "   :param other: Another layer to copy from.\n"
     "   :type other: :class:`bmesh.types.BMLayerItem`\n");
 static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerItem *value)
 {
@@ -510,7 +510,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new layer\n"
     "\n"
-    "   :arg name: Optional name argument (will be made unique).\n"
+    "   :param name: Optional name argument (will be made unique).\n"
     "   :type name: str\n"
     "   :return: The newly created layer.\n"
     "   :rtype: :class:`bmesh.types.BMLayerItem`\n");
@@ -562,7 +562,7 @@ PyDoc_STRVAR(
     "\n"
     "   Remove a layer\n"
     "\n"
-    "   :arg layer: The layer to remove.\n"
+    "   :param layer: The layer to remove.\n"
     "   :type layer: :class:`bmesh.types.BMLayerItem`\n");
 static PyObject *bpy_bmlayercollection_remove(BPy_BMLayerCollection *self, BPy_BMLayerItem *value)
 {
@@ -705,9 +705,9 @@ PyDoc_STRVAR(
     "   Returns the value of the layer matching the key or default\n"
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
-    "   :arg key: The key associated with the layer.\n"
+    "   :param key: The key associated with the layer.\n"
     "   :type key: str\n"
-    "   :arg default: Optional argument for the value to return if\n"
+    "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
     "   :type default: Any\n");
 static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject *args)

@@ -15,7 +15,6 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_mutex.hh"
 #include "BLI_set.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -97,10 +96,7 @@ struct NodeLinkKey {
     return get_default_hash(this->to_node_id_, this->input_socket_index_, this->input_link_index_);
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_3(NodeLinkKey,
-                                  to_node_id_,
-                                  input_socket_index_,
-                                  input_link_index_);
+  friend bool operator==(const NodeLinkKey &a, const NodeLinkKey &b) = default;
 };
 
 struct LoggedZoneGraphs {

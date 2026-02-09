@@ -358,7 +358,7 @@ PyDoc_STRVAR(
     "\n"
     "   Multiply the current stack matrix.\n"
     "\n"
-    "   :arg matrix: A 4x4 matrix.\n"
+    "   :param matrix: A 4x4 matrix.\n"
     "   :type matrix: :class:`mathutils.Matrix`\n");
 static PyObject *pygpu_matrix_multiply_matrix(PyObject * /*self*/, PyObject *value)
 {
@@ -379,7 +379,7 @@ PyDoc_STRVAR(
     "\n"
     "   Scale the current stack matrix.\n"
     "\n"
-    "   :arg scale: Scale the current stack matrix with 2 or 3 floats.\n"
+    "   :param scale: Scale the current stack matrix with 2 or 3 floats.\n"
     "   :type scale: Sequence[float]\n");
 static PyObject *pygpu_matrix_scale(PyObject * /*self*/, PyObject *value)
 {
@@ -406,7 +406,7 @@ PyDoc_STRVAR(
     pygpu_matrix_scale_uniform_doc,
     ".. function:: scale_uniform(scale)\n"
     "\n"
-    "   :arg scale: Scale the current stack matrix.\n"
+    "   :param scale: Scale the current stack matrix.\n"
     "   :type scale: float\n");
 static PyObject *pygpu_matrix_scale_uniform(PyObject * /*self*/, PyObject *value)
 {
@@ -428,7 +428,7 @@ PyDoc_STRVAR(
     "\n"
     "   Translate the current stack matrix.\n"
     "\n"
-    "   :arg offset: Translate the current stack matrix with 2 or 3 floats.\n"
+    "   :param offset: Translate the current stack matrix with 2 or 3 floats.\n"
     "   :type offset: Sequence[float]\n");
 static PyObject *pygpu_matrix_translate(PyObject * /*self*/, PyObject *value)
 {
@@ -489,7 +489,7 @@ PyDoc_STRVAR(
     "\n"
     "   Load a matrix into the stack.\n"
     "\n"
-    "   :arg matrix: A 4x4 matrix.\n"
+    "   :param matrix: A 4x4 matrix.\n"
     "   :type matrix: :class:`mathutils.Matrix`\n");
 static PyObject *pygpu_matrix_load_matrix(PyObject * /*self*/, PyObject *value)
 {
@@ -510,7 +510,7 @@ PyDoc_STRVAR(
     "\n"
     "   Load a projection matrix into the stack.\n"
     "\n"
-    "   :arg matrix: A 4x4 matrix.\n"
+    "   :param matrix: A 4x4 matrix.\n"
     "   :type matrix: :class:`mathutils.Matrix`\n");
 static PyObject *pygpu_matrix_load_projection_matrix(PyObject * /*self*/, PyObject *value)
 {

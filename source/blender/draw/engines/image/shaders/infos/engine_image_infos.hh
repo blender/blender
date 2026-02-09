@@ -6,6 +6,7 @@
 #  pragma once
 
 #  include "draw_view_infos.hh"
+#  include "gpu_shader_fullscreen_infos.hh"
 #endif
 
 #include "gpu_shader_create_info.hh"
@@ -46,5 +47,32 @@ FRAGMENT_SOURCE("image_engine_depth_frag.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
 DEPTH_WRITE(DepthWrite::ANY)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(image_engine_image_shared)
+FRAGMENT_OUT(0, float4, out_color)
+PUSH_CONSTANT(float4x4, image_matrix)
+PUSH_CONSTANT(float4, shuffle)
+PUSH_CONSTANT(float2, far_near_distances)
+PUSH_CONSTANT(int, draw_flags)
+PUSH_CONSTANT(bool, is_image_premultiplied)
+ADDITIONAL_INFO(gpu_fullscreen)
+DEPTH_WRITE(DepthWrite::ANY)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(image_engine_image_shader)
+ADDITIONAL_INFO(image_engine_image_shared)
+PUSH_CONSTANT(bool, is_repeated)
+SAMPLER(0, sampler2D, image_tx)
+FRAGMENT_SOURCE("image_engine_image_frag.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(image_engine_image_tiled_shader)
+ADDITIONAL_INFO(image_engine_image_shared)
+SAMPLER(0, sampler2DArray, image_tile_array)
+SAMPLER(1, sampler1DArray, image_tile_data)
+FRAGMENT_SOURCE("image_engine_image_tiled_frag.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

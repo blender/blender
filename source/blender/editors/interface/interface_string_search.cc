@@ -83,7 +83,7 @@ void write_recent_searches_file()
   for (const auto item : storage.cache.logical_time_by_str.items()) {
     values.append({item.value, item.key});
   }
-  std::sort(values.begin(), values.end());
+  std::ranges::sort(values);
 
   fstream file(*path, std::ios::out);
   for (const auto &item : values) {

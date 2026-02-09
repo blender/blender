@@ -42,24 +42,24 @@ def draw_ui_list(
     """
     Draw a UIList with Add/Remove/Move buttons and a menu.
 
-    :arg layout: UILayout to draw the list in.
+    :param layout: UILayout to draw the list in.
     :type layout: :class:`UILayout`
-    :arg context: Blender context to get the list data from.
+    :param context: Blender context to get the list data from.
     :type context: :class:`Context`
-    :arg class_name: Name of the UIList class to draw. The default is the UIList class that ships with Blender.
+    :param class_name: Name of the UIList class to draw. The default is the UIList class that ships with Blender.
     :type class_name: str
-    :arg unique_id: Unique identifier to differentiate this from other UI lists.
+    :param unique_id: Unique identifier to differentiate this from other UI lists.
     :type unique_id: str
-    :arg list_path: Data path of the list relative to context, eg. "object.vertex_groups".
+    :param list_path: Data path of the list relative to context, eg. "object.vertex_groups".
     :type list_path: str
-    :arg active_index_path: Data path of the list active index integer relative to context,
+    :param active_index_path: Data path of the list active index integer relative to context,
        eg. "object.vertex_groups.active_index".
     :type active_index_path: str
-    :arg insertion_operators: Whether to draw Add/Remove buttons.
+    :param insertion_operators: Whether to draw Add/Remove buttons.
     :type insertion_operators: bool
-    :arg move_operators: Whether to draw Move Up/Down buttons.
+    :param move_operators: Whether to draw Move Up/Down buttons.
     :type move_operators: str
-    :arg menu_class_name: Identifier of a Menu that should be drawn as a drop-down.
+    :param menu_class_name: Identifier of a Menu that should be drawn as a drop-down.
     :type menu_class_name: str
 
     :returns: The right side column.

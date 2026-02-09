@@ -8028,7 +8028,7 @@ NODE_DEFINE(RaycastNode)
   SOCKET_OUT_FLOAT(is_self_hit, "Self Hit");
   SOCKET_OUT_FLOAT(hit_distance, "Hit Distance");
   SOCKET_OUT_POINT(hit_position, "Hit Position");
-  SOCKET_OUT_NORMAL(hit_position, "Hit Normal");
+  SOCKET_OUT_NORMAL(hit_normal, "Hit Normal");
 
   SOCKET_BOOLEAN(only_local, "Only Local", false);
 

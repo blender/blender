@@ -386,6 +386,15 @@ set(ZLIB_DIR ${LIBDIR}/zlib)
 set(fmt_DIR ${LIBDIR}/fmt/lib/cmake/config)
 find_package(fmt REQUIRED CONFIG)
 
+set(Eigen3_DIR ${LIBDIR}/eigen)
+find_package(Eigen3 REQUIRED CONFIG)
+
+if(WITH_LIBMV)
+  set(absl_DIR ${LIBDIR}/abseil)
+  set(Ceres_DIR ${LIBDIR}/ceres)
+  find_package(Ceres REQUIRED CONFIG)
+endif()
+
 windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.
 windows_find_package(PNG)
 if(NOT PNG_FOUND)
@@ -501,57 +510,13 @@ if(WITH_CODEC_FFMPEG)
   endif()
 endif()
 
+set(openjph_ROOT ${LIBDIR}/openjph)
+
 if(WITH_IMAGE_OPENEXR)
-  # Imath and OpenEXR have a single combined build option and include and library variables
-  # used by the rest of the build system.
-  set(IMATH_ROOT_DIR ${LIBDIR}/imath)
-  set(IMATH_VERSION "3.14")
-  windows_find_package(IMATH REQUIRED)
-  if(NOT IMATH_FOUND)
-    set(IMATH ${LIBDIR}/imath)
-    set(IMATH_INCLUDE_DIR ${IMATH}/include)
-    set(IMATH_INCLUDE_DIRS ${IMATH_INCLUDE_DIR} ${IMATH}/include/Imath)
-    set(IMATH_LIBPATH ${IMATH}/lib)
-    if(EXISTS ${IMATH_LIBPATH}/Imath_s.lib)
-      set(IMATH_POSTFIX _s)
-    endif()
-    set(IMATH_LIBRARIES
-      optimized ${IMATH_LIBPATH}/Imath${IMATH_POSTFIX}.lib
-      debug ${IMATH_LIBPATH}/Imath${IMATH_POSTFIX}_d.lib
-    )
-  endif()
-  set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
-  set(OPENEXR_VERSION "3.14")
-  windows_find_package(OPENEXR REQUIRED)
-  if(NOT OpenEXR_FOUND)
-    warn_hardcoded_paths(OpenEXR)
-    set(OPENEXR ${LIBDIR}/openexr)
-    set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-    set(OPENEXR_INCLUDE_DIRS
-      ${OPENEXR_INCLUDE_DIR}
-      ${IMATH_INCLUDE_DIRS}
-      ${OPENEXR_INCLUDE_DIR}/OpenEXR
-    )
-    set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-    # Check if the blender 3.3 lib static library exists
-    # if not assume this is a 3.4+ dynamic version.
-    if(EXISTS "${OPENEXR_LIBPATH}/OpenEXR_s.lib")
-      set(OPENEXR_POSTFIX _s)
-    endif()
-    set(OPENEXR_LIBRARIES
-      optimized ${OPENEXR_LIBPATH}/Iex${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/IlmThread${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/OpenEXR${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/OpenEXRCore${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/OpenEXRUtil${OPENEXR_POSTFIX}.lib
-      debug ${OPENEXR_LIBPATH}/Iex${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/IlmThread${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/OpenEXR${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/OpenEXRCore${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/OpenEXRUtil${OPENEXR_POSTFIX}_d.lib
-      ${IMATH_LIBRARIES}
-    )
-  endif()
+  set(IMATH_ROOT ${LIBDIR}/imath)
+  find_package(IMATH REQUIRED CONFIG)
+  set(OpenEXR_ROOT ${LIBDIR}/openexr)
+  find_package(OpenEXR REQUIRED CONFIG)
 endif()
 
 # Try to find tiff first then complain and set static and maybe wrong paths
@@ -615,23 +580,8 @@ endif()
 unset(_PYTHON_VERSION)
 unset(_PYTHON_VERSION_NO_DOTS)
 
-windows_find_package(OpenImageIO)
-if(NOT OpenImageIO_FOUND)
-  set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
-  set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
-  set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
-  set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
-  set(OIIO_OPTIMIZED
-    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib
-    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib
-  )
-  set(OIIO_DEBUG
-    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib
-    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib
-  )
-  set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
-  set(OPENIMAGEIO_TOOL "${OPENIMAGEIO}/bin/oiiotool.exe")
-endif()
+set(OpenImageIO_ROOT ${LIBDIR}/OpenImageIO)
+find_package(OpenImageIO REQUIRED CONFIG)
 
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH "Path to the LLVM installation")
@@ -909,48 +859,8 @@ endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_OSL)
   set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
-  set(OSL_SHADER_DIR ${CYCLES_OSL}/shaders)
-  # Shaders have moved around a bit between OSL versions, check multiple locations
-  if(NOT EXISTS "${OSL_SHADER_DIR}")
-    set(OSL_SHADER_DIR ${CYCLES_OSL}/share/OSL/shaders)
-  endif()
-  find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_NOISE NAMES oslnoise PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_EXEC_DEBUG NAMES oslexec_d PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_COMP_DEBUG NAMES oslcomp_d PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_QUERY_DEBUG NAMES oslquery_d PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_NOISE_DEBUG NAMES oslnoise_d PATHS ${CYCLES_OSL}/lib)
-  list(APPEND OSL_LIBRARIES
-    optimized ${OSL_LIB_COMP}
-    optimized ${OSL_LIB_EXEC}
-    optimized ${OSL_LIB_QUERY}
-    debug ${OSL_LIB_EXEC_DEBUG}
-    debug ${OSL_LIB_COMP_DEBUG}
-    debug ${OSL_LIB_QUERY_DEBUG}
-    ${PUGIXML_LIBRARIES}
-  )
-  if(OSL_LIB_NOISE)
-    list(APPEND OSL_LIBRARIES optimized ${OSL_LIB_NOISE})
-  endif()
-  if(OSL_LIB_NOISE_DEBUG)
-    list(APPEND OSL_LIBRARIES debug ${OSL_LIB_NOISE_DEBUG})
-  endif()
-  find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
-  find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
-  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MAJOR
-       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+[0-9]+.*$")
-  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MINOR
-       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+[0-9]+.*$")
-  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_PATCH
-       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+[0-9]+.*$")
-  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+([.0-9]+).*"
-         "\\1" OSL_LIBRARY_VERSION_MAJOR ${OSL_LIBRARY_VERSION_MAJOR})
-  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+([.0-9]+).*"
-         "\\1" OSL_LIBRARY_VERSION_MINOR ${OSL_LIBRARY_VERSION_MINOR})
-  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+([.0-9]+).*"
-         "\\1" OSL_LIBRARY_VERSION_PATCH ${OSL_LIBRARY_VERSION_PATCH})
+  set(OSL_ROOT ${CYCLES_OSL}) 
+  find_package(OSL REQUIRED CONFIG) 
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)

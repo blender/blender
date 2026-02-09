@@ -361,9 +361,9 @@ Array<bke::Instances *> extract_instances(const bke::Instances &instances,
     const bke::InstanceReference &old_reference = src_references[old_handle];
     const float4x4 &old_transform = src_transforms[instance_i];
 
-    Instances *element = new Instances();
-    const int new_handle = element->add_new_reference(old_reference);
-    element->add_instance(new_handle, old_transform);
+    Instances *element = new Instances(1);
+    element->reference_handles_for_write().first() = element->add_new_reference(old_reference);
+    element->transforms_for_write().first() = old_transform;
 
     bke::gather_attributes(src_attributes,
                            AttrDomain::Instance,

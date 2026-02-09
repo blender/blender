@@ -92,7 +92,7 @@ void Manager::sync_layer_attributes()
     id_list.append(id);
   }
 
-  std::sort(id_list.begin(), id_list.end());
+  std::ranges::sort(id_list);
 
   /* Look up the attributes. */
   int count = 0, size = layer_attributes_buf.end() - layer_attributes_buf.begin();

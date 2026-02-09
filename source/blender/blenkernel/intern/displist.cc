@@ -286,7 +286,7 @@ static float isect_vert_calc_z(int vert_index,
   const double2 &vert_co = result.vert[vert_index];
 
   /* Find a face edge in the original edge info. */
-  for (const int orig_id : result.edge_orig[edge_index]) {
+  for (const uint32_t orig_id : result.edge_orig[edge_index]) {
     if (orig_id < result.face_edge_offset) {
       /* Standalone edge - skip. */
       continue;
@@ -341,7 +341,7 @@ static float isect_vert_calc_z(int vert_index,
 }
 
 /**
- * Scanfill-based triangulation (original algorithm).
+ * Scan-fill based triangulation (original algorithm).
  */
 static void displist_fill_scanfill(const ListBaseT<DispList> *dispbase,
                                    ListBaseT<DispList> *to,
@@ -581,8 +581,8 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
   for (const Vector<int> &face : result.face) {
     BLI_assert(face.size() == 3);
     index[0] = face[0];
-    index[1] = flip_normal ? face[2] : face[1];
-    index[2] = flip_normal ? face[1] : face[2];
+    index[1] = flip_normal ? face[1] : face[2];
+    index[2] = flip_normal ? face[2] : face[1];
     index += 3;
   }
 

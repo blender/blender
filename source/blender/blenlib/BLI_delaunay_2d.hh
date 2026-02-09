@@ -177,6 +177,10 @@ template<typename T> class CDT_input {
  * For edges, the edge_orig triple can also say which original face
  * edge is part of a given output edge. See the comment below for how
  * to decode the entries in the edge_orig table.
+ *
+ * \note Regarding `uint32_t`: Each input face reserves a block of IDs
+ * to encode its edges. These blocks stack up with the number of faces,
+ * so `uint32_t` is used to provide sufficient range (see #153708).
  */
 template<typename T> class CDT_result {
  public:
@@ -185,7 +189,7 @@ template<typename T> class CDT_result {
   Array<Vector<int>> face;
   /* The orig vectors are only populated if the need_ids input field is true. */
   /** For each output vert, which input verts correspond to it? */
-  Array<Vector<int>> vert_orig;
+  Array<Vector<uint32_t>> vert_orig;
   /**
    * For each output edge, which input edges does it overlap?
    * The input edge ids are encoded as follows:
@@ -195,11 +199,11 @@ template<typename T> class CDT_result {
    *      the edge index by face_edge_offset; "a" will be the input face + 1,
    *      and "b" will be a position within that face.
    */
-  Array<Vector<int>> edge_orig;
+  Array<Vector<uint32_t>> edge_orig;
   /** For each output face, which original faces does it overlap? */
-  Array<Vector<int>> face_orig;
+  Array<Vector<uint32_t>> face_orig;
   /** Used to encode edge_orig (see above). */
-  int face_edge_offset;
+  uint32_t face_edge_offset;
 };
 
 CDT_result<double> delaunay_2d_calc(const CDT_input<double> &input, CDT_output_type output_type);

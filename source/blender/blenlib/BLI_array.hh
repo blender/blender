@@ -86,8 +86,10 @@ class Array {
   /**
    * Create a new array that contains copies of all values.
    */
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
-  Array(Span<U> values, Allocator allocator = {}) : Array(NoExceptConstructor(), allocator)
+  template<typename U>
+  Array(Span<U> values, Allocator allocator = {})
+    requires(std::is_convertible_v<U, T>)
+      : Array(NoExceptConstructor(), allocator)
   {
     const int64_t size = values.size();
     data_ = this->get_buffer_for_size(size);
@@ -98,8 +100,9 @@ class Array {
   /**
    * Create a new array that contains copies of all values.
    */
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
+  template<typename U>
   Array(const std::initializer_list<U> &values, Allocator allocator = {})
+    requires(std::is_convertible_v<U, T>)
       : Array(Span<U>(values), allocator)
   {
   }
@@ -228,14 +231,16 @@ class Array {
     return MutableSpan<T>(data_, size_);
   }
 
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
+  template<typename U>
   operator Span<U>() const
+    requires(is_span_convertible_pointer_v<T, U>)
   {
     return Span<U>(data_, size_);
   }
 
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
+  template<typename U>
   operator MutableSpan<U>()
+    requires(is_span_convertible_pointer_v<T, U>)
   {
     return MutableSpan<U>(data_, size_);
   }

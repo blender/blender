@@ -1,0 +1,29 @@
+Fix openexr trying to pull in libdeflate even if it has been included as a
+static library.
+
+diff -Naur openexr/cmake/OpenEXRConfig.cmake.in openexr/cmake/OpenEXRConfig.cmake.in
+--- openexr/cmake/OpenEXRConfig.cmake.in	2026-01-16 13:44:08.143001800 -0800
++++ openexr/cmake/OpenEXRConfig.cmake.in	2026-01-21 15:51:39.475353400 -0800
+@@ -14,7 +14,7 @@
+ 
+ find_dependency(Imath)
+ 
+-if (@libdeflate_FOUND@)
++if (@libdeflate_FOUND@ AND @EXR_DEFLATE_SHARED@)
+   find_dependency(libdeflate)
+ endif()
+ 
+diff -Naur openexr/cmake/OpenEXRSetup.cmake openexr/cmake/OpenEXRSetup.cmake
+--- openexr/cmake/OpenEXRSetup.cmake	2026-01-16 13:44:08.143001800 -0800
++++ openexr/cmake/OpenEXRSetup.cmake	2026-01-21 15:51:28.225418400 -0800
+@@ -212,8 +212,10 @@
+   if(libdeflate_FOUND)
+     if(TARGET libdeflate::libdeflate_shared)
+       set(EXR_DEFLATE_LIB libdeflate::libdeflate_shared)
++      set(EXR_DEFLATE_SHARED 1)
+     else()
+       set(EXR_DEFLATE_LIB libdeflate::libdeflate_static)
++      set(EXR_DEFLATE_SHARED 0)
+     endif()
+     set(EXR_DEFLATE_VERSION ${libdeflate_VERSION})
+     message(STATUS "Using libdeflate from ${libdeflate_DIR}")

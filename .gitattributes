@@ -50,6 +50,7 @@
 *.abc filter=lfs diff=lfs merge=lfs -text
 *.avi filter=lfs diff=lfs merge=lfs -text
 *.blend_DISABLED filter=lfs diff=lfs merge=lfs -text
+*.fbx_DISABLED filter=lfs diff=lfs merge=lfs -text
 *.bphys filter=lfs diff=lfs merge=lfs -text
 *.cin filter=lfs diff=lfs merge=lfs -text
 *.dpx filter=lfs diff=lfs merge=lfs -text
@@ -101,4 +102,6 @@
 *.dat filter=lfs diff=lfs merge=lfs -text
 *.csv filter=lfs diff=lfs merge=lfs -text
 *.icc filter=lfs diff=lfs merge=lfs -text
+*.avif filter=lfs diff=lfs merge=lfs -text
+*.heic filter=lfs diff=lfs merge=lfs -text
 scripts/modules/_bpy_internal/assets/remote_library_listing/*_openapi.py linguist-generated=true

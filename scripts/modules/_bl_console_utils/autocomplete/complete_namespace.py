@@ -29,9 +29,9 @@ def is_struct_seq(obj):
 def complete_names(word, namespace):
     """Complete variable names or attributes
 
-    :arg word: word to be completed
+    :param word: word to be completed
     :type word: str
-    :arg namespace: namespace
+    :param namespace: namespace
     :type namespace: dict[str, Any]
     :returns: completion matches
     :rtype: list of str
@@ -52,12 +52,12 @@ def complete_indices(word, namespace, *, obj=None, base=None):
     * integer numbers for list
     * any keys for dictionary
 
-    :arg word: word to be completed
+    :param word: word to be completed
     :type word: str
-    :arg namespace: namespace
+    :param namespace: namespace
     :type namespace: dict
-    :arg obj: object evaluated from base
-    :arg base: sub-string which can be evaluated into an object.
+    :param obj: object evaluated from base
+    :param base: sub-string which can be evaluated into an object.
     :type base: str
     :returns: completion matches
     :rtype: list of str
@@ -105,11 +105,11 @@ def complete(word, namespace, *, private=True):
     """Complete word within a namespace with the standard rlcompleter
     module. Also supports index or key access [].
 
-    :arg word: word to be completed
+    :param word: word to be completed
     :type word: str
-    :arg namespace: namespace
+    :param namespace: namespace
     :type namespace: dict
-    :arg private: whether private attribute/methods should be returned
+    :param private: whether private attribute/methods should be returned
     :type private: bool
     :returns: completion matches
     :rtype: list of str

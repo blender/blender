@@ -111,26 +111,36 @@ static bke::CurvesGeometry create_mirror_copies(const Object &ob,
   std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
   const int base_handle = instances->add_reference(bke::InstanceReference{base_geo});
   const int mirror_handle = instances->add_reference(bke::InstanceReference{mirror_geo});
+
+  Vector<int> handles;
+  Vector<float4x4> transforms;
   for (const int mirror_x : IndexRange(use_mirror_x ? 2 : 1)) {
     for (const int mirror_y : IndexRange(use_mirror_y ? 2 : 1)) {
       for (const int mirror_z : IndexRange(use_mirror_z ? 2 : 1)) {
         if (mirror_x == 0 && mirror_y == 0 && mirror_z == 0) {
-          instances->add_instance(base_handle, float4x4::identity());
+          handles.append(base_handle);
+          transforms.append(float4x4::identity());
         }
         else {
           const float4x4 matrix = get_mirror_matrix(
               ob, mmd, bool(mirror_x), bool(mirror_y), bool(mirror_z));
-          instances->add_instance(mirror_handle, matrix);
+          handles.append(mirror_handle);
+          transforms.append(matrix);
         }
       }
     }
   }
 
+  instances->resize(handles.size());
+  instances->reference_handles_for_write().copy_from(handles);
+  instances->transforms_for_write().copy_from(transforms);
+
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = true;
   options.realize_instance_attributes = false;
   bke::GeometrySet result_geo = geometry::realize_instances(
-                                    bke::GeometrySet::from_instances(instances.release()), options)
+                                    bke::GeometrySet::from_instances(std::move(instances)),
+                                    options)
                                     .geometry;
   return std::move(result_geo.get_curves_for_write()->geometry.wrap());
 }

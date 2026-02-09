@@ -376,7 +376,7 @@ TexturePool *GLBackend::texturepool_alloc()
   use_fallback |= (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) ||
                    GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY));
   /* Fallback: disable backend pool on closed source AMD driver; glTextureView
-   * breaks framebuffers for several formats. This is not an issue on Mesa. */
+   * breaks frame-buffers for several formats. This is not an issue on Mesa. */
   use_fallback |= (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL));
 
   if (use_fallback) {

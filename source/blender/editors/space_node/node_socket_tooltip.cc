@@ -706,7 +706,7 @@ class SocketTooltipBuilder {
     else {
       this->add_text_field_mono(TIP_("Values:"));
       Vector<geo_log::BundleValueLog::Item> sorted_items = bundle_log.items;
-      std::sort(sorted_items.begin(), sorted_items.end(), [](const auto &a, const auto &b) {
+      std::ranges::sort(sorted_items, [](const auto &a, const auto &b) {
         return BLI_strcasecmp_natural(a.key.c_str(), b.key.c_str()) < 0;
       });
       for (const geo_log::BundleValueLog::Item &item : sorted_items) {

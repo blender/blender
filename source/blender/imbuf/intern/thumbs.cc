@@ -21,6 +21,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_system.h"
+#include "BLI_tempfile.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
@@ -492,6 +493,17 @@ static ImBuf *thumb_create_or_fail(const char *file_path,
   return img;
 }
 
+/**
+ * Do not generate thumbnails for 'temp' file paths (i.e. contained into system-defined temp
+ * directory).
+ */
+static bool skip_thumbnails_for_filepath(const char *filepath)
+{
+  char temp_dir[FILE_MAX];
+  BLI_temp_directory_path_get(temp_dir, sizeof(temp_dir));
+  return BLI_path_contains(temp_dir, filepath);
+}
+
 ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source, ImBuf *img)
 {
   if (source == THB_SOURCE_DIRECT) {
@@ -499,6 +511,10 @@ ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source
      * `filepath`. */
     BLI_assert_msg(source != THB_SOURCE_DIRECT,
                    "Writing thumbnails with direct source isn't implemented");
+    return nullptr;
+  }
+
+  if (skip_thumbnails_for_filepath(filepath)) {
     return nullptr;
   }
 
@@ -568,6 +584,10 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
     IMB_byte_from_float(thumb);
     IMB_free_float_pixels(thumb);
     return thumb;
+  }
+
+  if (skip_thumbnails_for_filepath(file_or_lib_path)) {
+    return nullptr;
   }
 
   char path_buff[FILE_MAX_LIBEXTRA];

@@ -55,10 +55,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  bke::Instances *instances = new bke::Instances();
+  auto instances = std::make_unique<bke::Instances>(layer_selection.size());
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+  MutableSpan<float4x4> transforms = instances->transforms_for_write();
+
   std::optional<int> empty_geometry_handle;
 
-  layer_selection.foreach_index([&](const int layer_i) {
+  layer_selection.foreach_index([&](const int layer_i, const int pos) {
     const bke::greasepencil::Layer &layer = *layers[layer_i];
     const bke::greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(layer);
     const float4x4 transform = layer.local_transform();
@@ -66,7 +69,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (!empty_geometry_handle.has_value()) {
         empty_geometry_handle = instances->add_reference(bke::InstanceReference());
       }
-      instances->add_instance(*empty_geometry_handle, transform);
+      handles[pos] = *empty_geometry_handle;
+      transforms[pos] = transform;
       return;
     }
     const bke::CurvesGeometry &layer_strokes = drawing->strokes();
@@ -75,8 +79,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     curves_id->totcol = grease_pencil->material_array_num;
     GeometrySet curves_geometry = GeometrySet::from_curves(curves_id);
     curves_geometry.name = layer.name();
-    const int handle = instances->add_reference(std::move(curves_geometry));
-    instances->add_instance(handle, transform);
+    handles[pos] = instances->add_reference(std::move(curves_geometry));
+    transforms[pos] = transform;
   });
 
   const bke::AttributeAccessor grease_pencil_attributes = grease_pencil->attributes();
@@ -127,7 +131,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  GeometrySet curves_geometry = GeometrySet::from_instances(instances);
+  GeometrySet curves_geometry = GeometrySet::from_instances(std::move(instances));
   curves_geometry.name = std::move(grease_pencil_geometry.name);
   curves_geometry.copy_bundle_from(grease_pencil_geometry);
 

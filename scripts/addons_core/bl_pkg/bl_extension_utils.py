@@ -2194,9 +2194,9 @@ class RepoLock:
 
     def __init__(self, *, repo_directories: Sequence[str], cookie: str):
         """
-        :arg repo_directories:
+        :param repo_directories:
             Directories to attempt to lock.
-        :arg cookie:
+        :param cookie:
             A path which is used as a reference.
             It must point to a path that exists.
             When a lock exists, check if the cookie path exists, if it doesn't, allow acquiring the lock.

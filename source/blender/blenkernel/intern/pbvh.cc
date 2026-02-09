@@ -104,7 +104,7 @@ BLI_NOINLINE static void build_mesh_leaf_nodes(const int verts_num,
 
       new (&verts_per_node[i]) Array<int>(verts.size());
       std::copy(verts.begin(), verts.end(), verts_per_node[i].begin());
-      std::sort(verts_per_node[i].begin(), verts_per_node[i].end());
+      std::ranges::sort(verts_per_node[i]);
     }
   });
 
@@ -2656,7 +2656,7 @@ IndexMask search_nodes(const Tree &pbvh,
         }
       },
       pbvh.nodes_);
-  std::sort(indices.begin(), indices.end());
+  std::ranges::sort(indices);
   return IndexMask::from_indices(indices.as_span(), memory);
 }
 

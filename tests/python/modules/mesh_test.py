@@ -46,10 +46,10 @@ class ModifierSpec:
         """
         Constructs a modifier spec.
 
-        :arg modifier_name: str - name of object modifier, e.g. "myFirstSubsurfModif"
-        :arg modifier_type: str - type of object modifier, e.g. "SUBSURF"
-        :arg modifier_parameters: dict - {name : val} dictionary giving modifier parameters, e.g. {"quality" : 4}
-        :arg frame_end: int - frame at which simulation needs to be baked or modifier needs to be applied.
+        :param modifier_name: str - name of object modifier, e.g. "myFirstSubsurfModif"
+        :param modifier_type: str - type of object modifier, e.g. "SUBSURF"
+        :param modifier_parameters: dict - {name : val} dictionary giving modifier parameters, e.g. {"quality" : 4}
+        :param frame_end: int - frame at which simulation needs to be baked or modifier needs to be applied.
         """
         self.modifier_name = modifier_name
         self.modifier_type = modifier_type
@@ -70,7 +70,7 @@ class MultiModifierSpec:
         """
         Constructs a multi-modifier spec.
 
-        :arg modifiers - list of modifier specs
+        :param modifiers - list of modifier specs
         """
         self.modifiers = modifiers
 
@@ -87,10 +87,10 @@ class ParticleSystemSpec:
         """
         Constructs a particle system spec.
 
-        :arg modifier_name: str - name of object modifier, e.g. "Particles"
-        :arg modifier_type: str - type of object modifier, e.g. "PARTICLE_SYSTEM"
-        :arg modifier_parameters: dict - {name : val} dictionary giving modifier parameters, e.g. {"seed" : 1}
-        :arg frame_end: int - the last frame of the simulation at which the modifier is applied
+        :param modifier_name: str - name of object modifier, e.g. "Particles"
+        :param modifier_type: str - type of object modifier, e.g. "PARTICLE_SYSTEM"
+        :param modifier_parameters: dict - {name : val} dictionary giving modifier parameters, e.g. {"seed" : 1}
+        :param frame_end: int - the last frame of the simulation at which the modifier is applied
         """
         self.modifier_name = modifier_name
         self.modifier_type = modifier_type
@@ -119,10 +119,10 @@ class OperatorSpecEditMode:
         """
         Constructs an OperatorSpecEditMode. Raises ValueError if selec_mode is invalid.
 
-        :arg operator_name: str - name of mesh operator from bpy.ops.mesh, e.g. "bevel" or "fill"
-        :arg operator_parameters: dict - {name : val} dictionary containing operator parameters.
-        :arg select_mode: str - mesh selection mode, must be either 'VERT', 'EDGE' or 'FACE'
-        :arg selection: sequence - vertices/edges/faces indices to select, e.g. [0, 9, 10].
+        :param operator_name: str - name of mesh operator from bpy.ops.mesh, e.g. "bevel" or "fill"
+        :param operator_parameters: dict - {name : val} dictionary containing operator parameters.
+        :param select_mode: str - mesh selection mode, must be either 'VERT', 'EDGE' or 'FACE'
+        :param selection: sequence - vertices/edges/faces indices to select, e.g. [0, 9, 10].
         :arg: select_history: bool - load selection into bmesh selection history.
         """
         self.operator_name = operator_name
@@ -147,8 +147,8 @@ class OperatorSpecObjectMode:
 
     def __init__(self, operator_name: str, operator_parameters: dict):
         """
-        :arg operator_name: str - name of the object operator from bpy.ops.object, e.g. "shade_smooth" or "shape_keys"
-        :arg operator_parameters: dict - contains operator parameters.
+        :param operator_name: str - name of the object operator from bpy.ops.object, e.g. "shade_smooth" or "shape_keys"
+        :param operator_parameters: dict - contains operator parameters.
         """
         self.operator_name = operator_name
         self.operator_parameters = operator_parameters
@@ -167,9 +167,9 @@ class DeformModifierSpec:
         """
         Constructs a Deform Modifier spec (for user input).
 
-        :arg frame_number: int - the frame at which animated keyframe is inserted
-        :arg modifier_list: ModifierSpec - contains modifiers
-        :arg object_operator_spec: OperatorSpecObjectMode - contains object operators
+        :param frame_number: int - the frame at which animated keyframe is inserted
+        :param modifier_list: ModifierSpec - contains modifiers
+        :param object_operator_spec: OperatorSpecObjectMode - contains object operators
         """
         self.frame_number = frame_number
         self.modifier_list = modifier_list
@@ -193,13 +193,13 @@ class MeshTest(ABC):
             allow_index_change=False,
             do_compare=True):
         """
-        :arg test_object_name: str - Name of object of mesh type to run the operations on.
-        :arg exp_object_name: str - Name of object of mesh type that has the expected
+        :param test_object_name: str - Name of object of mesh type to run the operations on.
+        :param exp_object_name: str - Name of object of mesh type that has the expected
                                 geometry after running the operations.
-        :arg test_name: str - Name of the test.
-        :arg allow_index_change: Allow the test to pass even if the mesh element indices are different.
-        :arg threshold: exponent: To allow variations and accept difference to a certain degree.
-        :arg do_compare: bool - True if we want to compare the test and expected objects, False otherwise.
+        :param test_name: str - Name of the test.
+        :param allow_index_change: Allow the test to pass even if the mesh element indices are different.
+        :param threshold: exponent: To allow variations and accept difference to a certain degree.
+        :param do_compare: bool - True if we want to compare the test and expected objects, False otherwise.
         """
         self.test_object_name = test_object_name
         self.exp_object_name = exp_object_name
@@ -349,7 +349,7 @@ class MeshTest(ABC):
         """
         Do selection on a mesh.
 
-        :arg mesh: bpy.types.Mesh - input mesh
+        :param mesh: bpy.types.Mesh - input mesh
         :arg: select_mode: str - selection mode. Must be 'VERT', 'EDGE' or 'FACE'
         :arg: selection: sequence - indices of selection.
         :arg: select_history: bool - load selection into bmesh selection history
@@ -416,9 +416,9 @@ class MeshTest(ABC):
         """
         Compares evaluated object data with expected object data.
 
-        :arg evaluated_object: first object for comparison.
-        :arg expected_object: second object for comparison.
-        :arg threshold: exponent: To allow variations and accept difference to a certain degree.
+        :param evaluated_object: first object for comparison.
+        :param expected_object: second object for comparison.
+        :param threshold: exponent: To allow variations and accept difference to a certain degree.
         :return: dict: Contains results of different comparisons.
         """
         objects = bpy.data.objects
@@ -493,12 +493,12 @@ class SpecMeshTest(MeshTest):
         """
         Constructor for SpecMeshTest.
 
-        :arg test_name: str - Name of the test.
-        :arg test_object_name: str - Name of object of mesh type to run the operations on.
-        :arg exp_object_name: str - Name of object of mesh type that has the expected
+        :param test_name: str - Name of the test.
+        :param test_object_name: str - Name of object of mesh type to run the operations on.
+        :param exp_object_name: str - Name of object of mesh type that has the expected
                               geometry after running the operations.
-        :arg operations_stack: list - stack holding operations to perform on the test_object.
-        :arg apply_modifier: bool - True if we want to apply the modifiers right after adding them to the object.
+        :param operations_stack: list - stack holding operations to perform on the test_object.
+        :param apply_modifier: bool - True if we want to apply the modifiers right after adding them to the object.
                                   - True if we want to apply the modifier to list of modifiers, after some operation.
                              This affects operations of type ModifierSpec and DeformModifierSpec.
         """
@@ -602,8 +602,8 @@ class SpecMeshTest(MeshTest):
         """
         Add modifier to object.
 
-        :arg test_object: bpy.types.Object - Blender object to apply modifier on.
-        :arg modifier_spec: ModifierSpec - ModifierSpec object with parameters
+        :param test_object: bpy.types.Object - Blender object to apply modifier on.
+        :param modifier_spec: ModifierSpec - ModifierSpec object with parameters
         """
         bakers_list = ['CLOTH', 'SOFT_BODY', 'DYNAMIC_PAINT', 'FLUID']
         scene = bpy.context.scene
@@ -716,8 +716,8 @@ class SpecMeshTest(MeshTest):
         """
         Apply operator on test object.
 
-        :arg test_object: bpy.types.Object - Blender object to apply operator on.
-        :arg operator: OperatorSpecEditMode - OperatorSpecEditMode object with parameters.
+        :param test_object: bpy.types.Object - Blender object to apply operator on.
+        :param operator: OperatorSpecEditMode - OperatorSpecEditMode object with parameters.
         """
         self.do_selection(
             test_object.data,
@@ -864,14 +864,14 @@ class RunTest:
         """
         Construct a test suite.
 
-        :arg tests: list - list of modifier or operator test cases. Each element in the list must contain the
+        :param tests: list - list of modifier or operator test cases. Each element in the list must contain the
         following in the correct order:
              0) test_name: str - unique test name
              1) test_object_name: bpy.Types.Object - test object
              2) expected_object_name: bpy.Types.Object - expected object
              3) modifiers or operators: list - list of mesh_test.ModifierSpec objects or
              mesh_test.OperatorSpecEditMode objects
-        :arg do_compare: bool - Whether the result mesh will be compared with the provided golden mesh. When set to False
+        :param do_compare: bool - Whether the result mesh will be compared with the provided golden mesh. When set to False
         the modifier is not applied so the result can be examined inside Blender.
         """
         self.tests = tests
@@ -929,7 +929,7 @@ class RunTest:
         """
         Run a single test from self.tests list.
 
-        :arg test_name: int - name of test
+        :param test_name: int - name of test
         :return: bool - True if test passed, False otherwise.
         """
         case = None

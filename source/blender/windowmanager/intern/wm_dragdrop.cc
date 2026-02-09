@@ -102,9 +102,9 @@ struct wmDragPrefetchHandler {
   std::function<void(bContext &C, wmDrag &drag)> on_drag_start;
 };
 
-static blender::Vector<wmDragPrefetchHandler> &global_prefetch_handlers()
+static Vector<wmDragPrefetchHandler> &global_prefetch_handlers()
 {
-  static blender::Vector<wmDragPrefetchHandler> storage;
+  static Vector<wmDragPrefetchHandler> storage;
   return storage;
 }
 

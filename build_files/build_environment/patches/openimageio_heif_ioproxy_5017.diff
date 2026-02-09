@@ -1,0 +1,249 @@
+commit 52814b0904eef35fa3ac3b635f2aa6e2ee9e4959
+Author: Brecht Van Lommel <brecht@blender.org>
+Date:   Fri Jan 23 20:37:55 2026 +0100
+
+    feat(heif): Add IOProxy for input and output
+    
+    Add IOProxy support similar to other file formats.
+    
+    MyHeifWriter was renamed for consistency with other code.
+    
+    Signed-off-by: Brecht Van Lommel <brecht@blender.org>
+
+diff --git a/src/doc/builtinplugins.rst b/src/doc/builtinplugins.rst
+index f6eea37ef..05c66fe35 100644
+--- a/src/doc/builtinplugins.rst
++++ b/src/doc/builtinplugins.rst
+@@ -806,6 +806,10 @@ attributes are supported:
+        having Orientation 1). If zero, then libheif will not reorient the
+        image and the Orientation metadata will be set to reflect the camera
+        orientation.
++   * - ``oiio:ioproxy``
++     - ptr
++     - Pointer to a ``Filesystem::IOProxy`` that will handle the I/O, for
++       example by reading from memory rather than the file system.
+ 
+ **Configuration settings for HEIF output**
+ 
+@@ -824,6 +828,10 @@ control aspects of the writing itself:
+      - If supplied, can be ``"heic"`` or ``"avif"``, but may optionally have a
+        quality value appended, like ``"heic:90"``. Quality can be 1-100, with
+        100 meaning lossless. The default is 75.
++   * - ``oiio:ioproxy``
++     - ptr
++     - Pointer to a ``Filesystem::IOProxy`` that will handle the I/O, for
++       example by writing to memory rather than the file system.
+ 
+ 
+ 
+diff --git a/src/heif.imageio/heifinput.cpp b/src/heif.imageio/heifinput.cpp
+index 9e0230a86..f4b78aae6 100644
+--- a/src/heif.imageio/heifinput.cpp
++++ b/src/heif.imageio/heifinput.cpp
+@@ -32,6 +32,35 @@
+ 
+ OIIO_PLUGIN_NAMESPACE_BEGIN
+ 
++
++class HeifReader final : public heif::Context::Reader {
++public:
++    HeifReader(Filesystem::IOProxy* ioproxy)
++        : m_ioproxy(ioproxy)
++    {
++        m_ioproxy->seek(0);
++    }
++    int64_t get_position() const override { return m_ioproxy->tell(); }
++    int read(void* data, size_t size) override
++    {
++        return m_ioproxy->read(data, size) == size ? 0 : -1;
++    }
++    int seek(int64_t position) override
++    {
++        return m_ioproxy->seek(position) ? 0 : -1;
++    }
++    heif_reader_grow_status wait_for_file_size(int64_t target_size) override
++    {
++        return target_size <= int64_t(m_ioproxy->size())
++                   ? heif_reader_grow_status_size_reached
++                   : heif_reader_grow_status_size_beyond_eof;
++    }
++
++private:
++    Filesystem::IOProxy* m_ioproxy;
++};
++
++
+ class HeifInput final : public ImageInput {
+ public:
+     HeifInput() {}
+@@ -39,13 +68,13 @@ public:
+     const char* format_name(void) const override { return "heif"; }
+     int supports(string_view feature) const override
+     {
+-        return feature == "exif"
++        return feature == "exif" || feature == "ioproxy"
+ #if LIBHEIF_HAVE_VERSION(1, 9, 0)
+                || feature == "cicp"
+ #endif
+             ;
+     }
+-    bool valid_file(const std::string& filename) const override;
++    bool valid_file(Filesystem::IOProxy* ioproxy) const override;
+     bool open(const std::string& name, ImageSpec& newspec) override;
+     bool open(const std::string& name, ImageSpec& newspec,
+               const ImageSpec& config) override;
+@@ -67,6 +96,7 @@ private:
+     bool m_do_associate            = false;
+     bool m_reorient                = true;
+     std::unique_ptr<heif::Context> m_ctx;
++    std::unique_ptr<HeifReader> m_reader;
+     heif_item_id m_primary_id;             // id of primary image
+     std::vector<heif_item_id> m_item_ids;  // ids of all other images
+     heif::ImageHandle m_ihandle;
+@@ -74,7 +104,6 @@ private:
+ };
+ 
+ 
+-
+ void
+ oiio_heif_init()
+ {
+@@ -111,10 +140,12 @@ OIIO_PLUGIN_EXPORTS_END
+ 
+ 
+ bool
+-HeifInput::valid_file(const std::string& filename) const
++HeifInput::valid_file(Filesystem::IOProxy* ioproxy) const
+ {
++    if (!ioproxy || ioproxy->mode() != Filesystem::IOProxy::Mode::Read)
++        return false;
+     uint8_t magic[12];
+-    if (Filesystem::read_bytes(filename, magic, sizeof(magic)) != sizeof(magic))
++    if (ioproxy->pread(magic, sizeof(magic), 0) != sizeof(magic))
+         return false;
+     heif_filetype_result filetype_check = heif_check_filetype(magic,
+                                                               sizeof(magic));
+@@ -141,7 +172,12 @@ HeifInput::open(const std::string& name, ImageSpec& newspec,
+     m_filename = name;
+     m_subimage = -1;
+ 
++    ioproxy_retrieve_from_config(config);
++    if (!ioproxy_use_or_open(name))
++        return false;
++
+     m_ctx.reset(new heif::Context);
++    m_reader.reset(new HeifReader(ioproxy()));
+     m_himage  = heif::Image();
+     m_ihandle = heif::ImageHandle();
+ 
+@@ -150,8 +186,7 @@ HeifInput::open(const std::string& name, ImageSpec& newspec,
+     m_reorient = config.get_int_attribute("oiio:reorient", 1);
+ 
+     try {
+-        m_ctx->read_from_file(name);
+-        // FIXME: should someday be read_from_reader to give full flexibility
++        m_ctx->read_from_reader(*m_reader);
+ 
+         m_item_ids   = m_ctx->get_list_of_top_level_image_IDs();
+         m_primary_id = m_ctx->get_primary_image_ID();
+@@ -187,6 +222,7 @@ HeifInput::close()
+     m_himage  = heif::Image();
+     m_ihandle = heif::ImageHandle();
+     m_ctx.reset();
++    m_reader.reset();
+     m_subimage                = -1;
+     m_num_subimages           = 0;
+     m_associated_alpha        = true;
+diff --git a/src/heif.imageio/heifoutput.cpp b/src/heif.imageio/heifoutput.cpp
+index 309bc53ac..d93e8ab39 100644
+--- a/src/heif.imageio/heifoutput.cpp
++++ b/src/heif.imageio/heifoutput.cpp
+@@ -29,7 +29,8 @@ public:
+     const char* format_name(void) const override { return "heif"; }
+     int supports(string_view feature) const override
+     {
+-        return feature == "alpha" || feature == "exif" || feature == "tiles"
++        return feature == "alpha" || feature == "exif" || feature == "ioproxy"
++               || feature == "tiles"
+ #if LIBHEIF_HAVE_VERSION(1, 9, 0)
+                || feature == "cicp"
+ #endif
+@@ -58,12 +59,9 @@ private:
+ };
+ 
+ 
+-
+-namespace {
+-
+-class MyHeifWriter final : public heif::Context::Writer {
++class HeifWriter final : public heif::Context::Writer {
+ public:
+-    MyHeifWriter(Filesystem::IOProxy* ioproxy)
++    HeifWriter(Filesystem::IOProxy* ioproxy)
+         : m_ioproxy(ioproxy)
+     {
+     }
+@@ -84,9 +82,6 @@ private:
+     Filesystem::IOProxy* m_ioproxy = nullptr;
+ };
+ 
+-}  // namespace
+-
+-
+ 
+ OIIO_PLUGIN_EXPORTS_BEGIN
+ 
+@@ -114,6 +109,11 @@ HeifOutput::open(const std::string& name, const ImageSpec& newspec,
+ 
+     m_filename = name;
+ 
++    ioproxy_retrieve_from_config(m_spec);
++    if (!ioproxy_use_or_open(name)) {
++        return false;
++    }
++
+     m_bitdepth = m_spec.format.size() > TypeUInt8.size() ? 10 : 8;
+     m_bitdepth = m_spec.get_int_attribute("oiio:BitsPerSample", m_bitdepth);
+     if (m_bitdepth == 10 || m_bitdepth == 12) {
+@@ -221,7 +221,9 @@ HeifOutput::write_tile(int x, int y, int z, TypeDesc format, const void* data,
+ bool
+ HeifOutput::close()
+ {
+-    if (!m_ctx) {  // already closed
++    if (!m_ctx || !ioproxy_opened()) {  // already closed
++        m_ctx.reset();
++        ioproxy_clear();
+         return true;
+     }
+ 
+@@ -286,25 +288,20 @@ HeifOutput::close()
+ #endif
+         }
+         m_ctx->set_primary_image(m_ihandle);
+-        Filesystem::IOFile ioproxy(m_filename, Filesystem::IOProxy::Write);
+-        if (ioproxy.mode() != Filesystem::IOProxy::Write) {
+-            errorfmt("Could not open \"{}\"", m_filename);
+-            ok = false;
+-        } else {
+-            MyHeifWriter writer(&ioproxy);
+-            m_ctx->write(writer);
+-        }
++        HeifWriter writer(ioproxy());
++        m_ctx->write(writer);
+     } catch (const heif::Error& err) {
+         std::string e = err.get_message();
+         errorfmt("{}", e.empty() ? "unknown exception" : e.c_str());
+-        return false;
++        ok = false;
+     } catch (const std::exception& err) {
+         std::string e = err.what();
+         errorfmt("{}", e.empty() ? "unknown exception" : e.c_str());
+-        return false;
++        ok = false;
+     }
+ 
+     m_ctx.reset();
++    ioproxy_clear();
+     return ok;
+ }
+ 

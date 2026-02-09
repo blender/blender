@@ -1625,57 +1625,66 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
     bke::AttributeAccessor join_attrs = joined_mesh->attributes();
 
     join_attrs.foreach_attribute([&](const bke::AttributeIter &iter) {
-      if (ELEM(iter.name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
+      if (iter.domain == bke::AttrDomain::Corner) {
+        /* Handled separately below. */
         return;
       }
-      Span<int> out_to_in_map;
-      bool do_copy = true;
-      bool do_material_remap = false;
+      if (ELEM(iter.name,
+               "position",
+               ".edge_verts",
+               ".corner_vert",
+               ".corner_edge",
+               "material_index"))
+      {
+        return;
+      }
+      const GVArray src = *iter.get();
+      const CommonVArrayInfo info = src.common_info();
+      if (info.type == CommonVArrayInfo::Type::Single) {
+        const bke::AttributeInitValue init(GPointer(src.type(), info.data));
+        output_attrs.add(iter.name, bke::AttrDomain::Point, iter.data_type, init);
+        return;
+      }
+      const GVArraySpan src_span = src;
+      bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span(
+          iter.name, iter.domain, iter.data_type);
       switch (iter.domain) {
         case bke::AttrDomain::Point: {
-          out_to_in_map = out_to_in.ensure_vertex_map();
+          copy_attribute_using_map(src_span, out_to_in.ensure_vertex_map(), dst.span);
           break;
         }
         case bke::AttrDomain::Face: {
-          out_to_in_map = out_to_in.ensure_face_map();
-          /* If #material_remaps is non-empty, we need to use that map to set the
-           * face "material_index" property instead of taking it from the joined mesh.
-           * This should only happen if the user wants something other than the default
-           * "transfer the materials" mode, which has already happened in the joined mesh.
-           */
-          do_material_remap = !material_remaps.is_empty() && iter.name == "material_index";
+          copy_attribute_using_map(src_span, out_to_in.ensure_face_map(), dst.span);
           break;
         }
         case bke::AttrDomain::Edge: {
-          out_to_in_map = out_to_in.ensure_edge_map();
-          break;
-        }
-        case bke::AttrDomain::Corner: {
-          /* Handled separately below. */
+          copy_attribute_using_map(src_span, out_to_in.ensure_edge_map(), dst.span);
           break;
         }
         default: {
           BLI_assert_unreachable();
-          do_copy = false;
           break;
         }
       }
-      if (do_copy) {
-        if (dbg_level > 0) {
-          std::cout << "copy_attribute_using_map, name = " << iter.name << "\n";
-        }
-        bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span(
-            iter.name, iter.domain, iter.data_type);
-        if (do_material_remap) {
-          set_material_from_map(
-              out_to_in_map, material_remaps, meshes, mesh_offsets, dst.span.typed<int>());
-        }
-        else {
-          copy_attribute_using_map(GVArraySpan(*iter.get()), out_to_in_map, dst.span);
-        }
-        dst.finish();
-      }
+      dst.finish();
     });
+
+    if (join_attrs.contains("material_index")) {
+      /* If #material_remaps is non-empty, we need to use that map to set the
+       * face "material_index" property instead of taking it from the joined mesh.
+       * This should only happen if the user wants something other than the default
+       * "transfer the materials" mode, which has already happened in the joined mesh. */
+      bke::SpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span<int>(
+          "material_index", bke::AttrDomain::Face);
+      if (material_remaps.is_empty()) {
+        const VArraySpan src = *join_attrs.lookup<int>("material_index");
+        copy_attribute_using_map(src, out_to_in.ensure_face_map(), dst.span);
+      }
+      else {
+        set_material_from_map(
+            out_to_in.ensure_face_map(), material_remaps, meshes, mesh_offsets, dst.span);
+      }
+    }
 
     interpolate_corner_attributes(output_attrs,
                                   join_attrs,

@@ -56,7 +56,9 @@ class SubdAttributeInterpolation {
                                      const int motion_step = 0);
 
   template<typename T>
-  void setup_attribute_corner_linear(const Attribute &subd_attr, Attribute &mesh_attr);
+  void setup_attribute_corner_linear(const Attribute &subd_attr,
+                                     Attribute &mesh_attr,
+                                     const int motion_step = 0);
 
 #ifdef WITH_OPENSUBDIV
   template<typename T>

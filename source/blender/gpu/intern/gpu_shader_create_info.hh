@@ -489,6 +489,9 @@ enum class BuiltinBits {
   /* On metal, tag the shader to use argument buffer to overcome the 16 sampler limit. */
   USE_SAMPLER_ARG_BUFFER = (1 << 20),
 
+  /* Disable our own GPU shader preprocessor optimizer in case we can't ensure the
+   * input is within spec. */
+  NO_PREPROCESSOR = (1 << 27),
   /** If true, will bypass check that all buffer types have been linted by shader tool
    * (e.g. using [[host_shared]]). This is needed for struct that are not parsed or are
    * not yet supported by the host_shared check (false negative). */

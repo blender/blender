@@ -139,9 +139,7 @@ static char *generate(Map<std::string, std::string> &messages, size_t *r_output_
   for (const auto message_items_iter : messages.items()) {
     items.append(Item(message_items_iter));
   }
-  std::sort(items.begin(), items.end(), [](const Item &a, const Item &b) -> bool {
-    return a.key < b.key;
-  });
+  std::ranges::sort(items, [](const Item &a, const Item &b) -> bool { return a.key < b.key; });
 
   Offset *offsets = MEM_new_array_zeroed<Offset>(num_keys, __func__);
   uint32_t tot_keys_len = 0;

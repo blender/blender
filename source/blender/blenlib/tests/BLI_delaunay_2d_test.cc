@@ -95,12 +95,12 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
 /* Find an original index in a table mapping new to original.
  * Return -1 if not found.
  */
-static int get_orig_index(const Span<Vector<int>> out_to_orig, int orig_index)
+static int get_orig_index(const Span<Vector<uint32_t>> out_to_orig, int orig_index)
 {
   int n = int(out_to_orig.size());
   for (int i = 0; i < n; ++i) {
-    for (int orig : out_to_orig[i]) {
-      if (orig == orig_index) {
+    for (uint32_t orig : out_to_orig[i]) {
+      if (orig == uint32_t(orig_index)) {
         return i;
       }
     }
@@ -172,7 +172,7 @@ int get_output_edge_index(const CDT_result<T> &out, int out_index_1, int out_ind
 }
 
 template<typename T>
-bool output_edge_has_input_id(const CDT_result<T> &out, int out_edge_index, int in_edge_index)
+bool output_edge_has_input_id(const CDT_result<T> &out, int out_edge_index, uint32_t in_edge_index)
 {
   return out_edge_index < int(out.edge_orig.size()) &&
          out.edge_orig[out_edge_index].contains(in_edge_index);
@@ -215,7 +215,7 @@ int get_output_tri_index(const CDT_result<T> &out,
 }
 
 template<typename T>
-bool output_face_has_input_id(const CDT_result<T> &out, int out_face_index, int in_face_index)
+bool output_face_has_input_id(const CDT_result<T> &out, int out_face_index, uint32_t in_face_index)
 {
   return out_face_index < int(out.face_orig.size()) &&
          out.face_orig[out_face_index].contains(in_face_index);
@@ -1471,7 +1471,7 @@ template<typename T> void nonzero_winding_edge_split_test()
  *    0-----------3
  * \endcode
  *
- * Face 0: 0,1,2,3 forming a bowtie where edges 0->1 and 2->3 cross.
+ * Face 0: 0,1,2,3 forming a bow-tie where edges 0->1 and 2->3 cross.
  * Vertices: 0=(-1,-1), 1=(1,1), 2=(-1,1), 3=(1,-1)
  * Edge 0->1: (-1,-1) to (1,1) - diagonal up-right
  * Edge 2->3: (-1,1) to (1,-1) - diagonal down-right, crosses edge 0->1
@@ -2196,9 +2196,13 @@ template<typename T> void cutacrosstri_test()
     int fe1b_out = get_output_edge_index(out, v4_out, v2_out);
     EXPECT_NE(fe1b_out, -1);
     if (fe1a_out != 0 && fe1b_out != 0) {
+      /* Face 0, edge 1 is encoded as (0 + 1) * face_edge_offset + 1. */
+      uint32_t face0_edge1 = out.face_edge_offset + 1;
       EXPECT_EQ(e0_out, get_orig_index(out.edge_orig, 0));
-      EXPECT_TRUE(out.edge_orig[fe1a_out].size() == 1 && out.edge_orig[fe1a_out][0] == 11);
-      EXPECT_TRUE(out.edge_orig[fe1b_out].size() == 1 && out.edge_orig[fe1b_out][0] == 11);
+      EXPECT_TRUE(out.edge_orig[fe1a_out].size() == 1 &&
+                  out.edge_orig[fe1a_out][0] == face0_edge1);
+      EXPECT_TRUE(out.edge_orig[fe1b_out].size() == 1 &&
+                  out.edge_orig[fe1b_out][0] == face0_edge1);
     }
     int e_diag = get_output_edge_index(out, v0_out, v4_out);
     EXPECT_NE(e_diag, -1);
@@ -2632,7 +2636,7 @@ template<typename T> void twofaceedgeoverlap_test()
     EXPECT_EQ(v_out[0], v_out[3]);
     EXPECT_EQ(v_out[2], v_out[5]);
     int e01 = get_output_edge_index(out, v_out[0], v_out[1]);
-    int foff = out.face_edge_offset;
+    uint32_t foff = out.face_edge_offset;
     EXPECT_TRUE(output_edge_has_input_id(out, e01, foff + 1));
     int e1i = get_output_edge_index(out, v_out[1], v_int);
     EXPECT_TRUE(output_edge_has_input_id(out, e1i, foff + 0));

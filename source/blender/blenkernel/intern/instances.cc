@@ -71,24 +71,42 @@ MutableAttributeAccessor Instances::attributes_for_write()
   return MutableAttributeAccessor(this, instance_attribute_accessor_functions());
 }
 
-static void convert_collection_to_instances(const Collection &collection,
-                                            bke::Instances &instances)
+static std::unique_ptr<bke::Instances> convert_collection_to_instances(
+    const Collection &collection)
 {
+  const int instances_num = BLI_listbase_count(&collection.children) +
+                            BLI_listbase_count(&collection.gobject);
+
+  auto instances = std::make_unique<bke::Instances>(instances_num);
+
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+  MutableSpan<float4x4> transforms = instances->transforms_for_write();
+
+  int i = 0;
+
   for (CollectionChild &collection_child : collection.children) {
     float4x4 transform = float4x4::identity();
     transform.location() += float3(collection_child.collection->instance_offset);
     transform.location() -= float3(collection.instance_offset);
-    const int handle = instances.add_reference(*collection_child.collection);
-    instances.add_instance(handle, transform);
+    transforms[i] = transform;
+
+    handles[i] = instances->add_reference(*collection_child.collection);
+
+    i++;
   }
 
   for (CollectionObject &collection_object : collection.gobject) {
     float4x4 transform = float4x4::identity();
     transform.location() -= float3(collection.instance_offset);
     transform *= (collection_object.ob)->object_to_world();
-    const int handle = instances.add_reference(*collection_object.ob);
-    instances.add_instance(handle, transform);
+    transforms[i] = transform;
+
+    handles[i] = instances->add_reference(*collection_object.ob);
+
+    i++;
   }
+
+  return instances;
 }
 
 void InstanceReference::to_geometry_set(GeometrySet &r_geometry_set) const
@@ -102,8 +120,7 @@ void InstanceReference::to_geometry_set(GeometrySet &r_geometry_set) const
     }
     case Type::Collection: {
       const Collection &collection = this->collection();
-      std::unique_ptr<bke::Instances> instances_ptr = std::make_unique<bke::Instances>();
-      convert_collection_to_instances(collection, *instances_ptr);
+      std::unique_ptr<bke::Instances> instances_ptr = convert_collection_to_instances(collection);
       r_geometry_set.replace_instances(instances_ptr.release());
       break;
     }
@@ -148,6 +165,11 @@ uint64_t InstanceReference::hash() const
 
 Instances::Instances() = default;
 
+Instances::Instances(const int size) : instances_num_(size)
+{
+  attributes_.resize(AttrDomain::Instance, size);
+}
+
 Instances::Instances(Instances &&other)
     : references_(std::move(other.references_)),
       instances_num_(other.instances_num_),
@@ -188,28 +210,10 @@ Instances &Instances::operator=(Instances &&other)
   return *this;
 }
 
-void Instances::resize(int capacity)
+void Instances::resize(int size)
 {
-  const int old_size = this->instances_num();
-  attributes_.resize(AttrDomain::Instance, capacity);
-  instances_num_ = capacity;
-  if (capacity > old_size) {
-    fill_attribute_range_default(this->attributes_for_write(),
-                                 AttrDomain::Instance,
-                                 {},
-                                 IndexRange::from_begin_end(old_size, capacity));
-  }
-}
-
-void Instances::add_instance(const int instance_handle, const float4x4 &transform)
-{
-  BLI_assert(instance_handle >= 0);
-  BLI_assert(instance_handle < references_.size());
-  instances_num_++;
-  attributes_.resize(AttrDomain::Instance, instances_num_);
-  this->reference_handles_for_write().last() = instance_handle;
-  this->transforms_for_write().last() = transform;
-  this->tag_reference_handles_changed();
+  attributes_.resize(AttrDomain::Instance, size);
+  instances_num_ = size;
 }
 
 Span<int> Instances::reference_handles() const

@@ -82,7 +82,10 @@ ExternalProject_Add(external_osl
       ${PATCH_DIR}/osl_ptx_version.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/osl/src/external_osl <
-      ${PATCH_DIR}/osl_supports_isa_thread.diff
+      ${PATCH_DIR}/osl_supports_isa_thread.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/osl/src/external_osl <
+      ${PATCH_DIR}/osl_relative_inc_cmake.diff
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/osl
@@ -128,6 +131,9 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_osl after_install
       COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/osl/lib/cmake/OSL/OSLTargets-debug.cmake
+        ${HARVEST_TARGET}/osl/lib/cmake/OSL/OSLTargets-debug.cmake
+      COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/osl/lib/oslcomp_d.lib
         ${HARVEST_TARGET}/osl/lib/oslcomp_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy
@@ -159,8 +165,10 @@ if(WIN32)
     )
   endif()
 else()
-  harvest_rpath_bin(external_osl osl/bin osl/bin "oslc")
+  harvest_rpath_bin(external_osl osl/bin osl/bin "*")
   harvest(external_osl osl/include osl/include "*.h")
+  # Cmake files first because harvest_rpath_lib edits them.
+  harvest(external_osl osl/lib/cmake/OSL osl/lib/cmake/OSL "*.cmake")
   harvest_rpath_lib(external_osl osl/lib osl/lib "*${SHAREDLIBEXT}*")
   harvest(external_osl osl/share/OSL/shaders osl/share/OSL/shaders "*.h")
   harvest_rpath_python(external_osl

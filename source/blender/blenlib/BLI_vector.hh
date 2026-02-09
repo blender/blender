@@ -170,8 +170,10 @@ class Vector {
   /**
    * Create a vector from a span. The values in the vector are copy constructed.
    */
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
-  Vector(Span<U> values, Allocator allocator = {}) : Vector(NoExceptConstructor(), allocator)
+  template<typename U>
+  Vector(Span<U> values, Allocator allocator = {})
+    requires(std::is_convertible_v<U, T>)
+      : Vector(NoExceptConstructor(), allocator)
   {
     const int64_t size = values.size();
     this->reserve(size);
@@ -179,8 +181,9 @@ class Vector {
     this->increase_size_by_unchecked(size);
   }
 
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
+  template<typename U>
   explicit Vector(MutableSpan<U> values, Allocator allocator = {})
+    requires(std::is_convertible_v<U, T>)
       : Vector(values.as_span(), allocator)
   {
   }
@@ -191,23 +194,27 @@ class Vector {
    * This allows you to write code like:
    * Vector<int> vec = {3, 4, 5};
    */
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
-  Vector(const std::initializer_list<U> &values) : Vector(Span<U>(values))
+  template<typename U>
+  Vector(const std::initializer_list<U> &values)
+    requires(std::is_convertible_v<U, T>)
+      : Vector(Span<U>(values))
   {
   }
 
   Vector(const std::initializer_list<T> &values) : Vector(Span<T>(values)) {}
 
-  template<typename U, size_t N, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
-  Vector(const std::array<U, N> &values) : Vector(Span(values))
+  template<typename U, size_t N>
+  Vector(const std::array<U, N> &values)
+    requires(std::is_convertible_v<U, T>)
+      : Vector(Span(values))
   {
   }
 
-  template<typename InputIt,
-           /* This constructor should not be called with e.g. Vector(3, 10), because that is
-            * expected to produce the vector (10, 10, 10). */
-           BLI_ENABLE_IF((!std::is_convertible_v<InputIt, int>))>
+  template<typename InputIt>
   Vector(InputIt first, InputIt last, Allocator allocator = {})
+      /* This constructor should not be called with e.g. Vector(3, 10), because that is
+       * expected to produce the vector (10, 10, 10). */
+    requires(!std::is_convertible_v<InputIt, int>)
       : Vector(NoExceptConstructor(), allocator)
   {
     for (InputIt current = first; current != last; ++current) {
@@ -366,14 +373,16 @@ class Vector {
     return MutableSpan<T>(begin_, this->size());
   }
 
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
+  template<typename U>
   operator Span<U>() const
+    requires(is_span_convertible_pointer_v<T, U>)
   {
     return Span<U>(begin_, this->size());
   }
 
-  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
+  template<typename U>
   operator MutableSpan<U>()
+    requires(is_span_convertible_pointer_v<T, U>)
   {
     return MutableSpan<U>(begin_, this->size());
   }

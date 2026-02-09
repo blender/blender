@@ -1070,7 +1070,7 @@ static void fcm_smooth_evaluate(
    * The Gaussian function requires knowing the distance from a sample to its neighboring frames.
    * However, F-Curve modifiers work as continuous functions, so we cannot access discrete keyframe
    * positions. Instead, we sample each integer frame, then linearly interpolate to find the value
-   * at evaltime. This means that subframes won't contribute to the smoothing, but it is not
+   * at evaltime. This means that sub-frames won't contribute to the smoothing, but it is not
    * possible to know their positions.
    * The F-Curve is sampled using a fixed-size window of at least one frame, to prevent aliasing
    * that can occur when there is high frequency data (on sub-frames).

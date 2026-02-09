@@ -671,19 +671,21 @@ void resize_curves(bke::CurvesGeometry &curves,
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
   /* Copy point attributes and default initialize newly added point ranges. */
-  const bke::AttrDomain domain(bke::AttrDomain::Point);
   const OffsetIndices<int> src_offsets = curves.points_by_curve();
   const OffsetIndices<int> dst_offsets = dst_curves.points_by_curve();
   const bke::AttributeAccessor src_attributes = curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.domain != domain || bke::attribute_name_is_anonymous(iter.name)) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
       return;
     }
-    const GVArraySpan src = *iter.get(domain);
+    if (iter.domain != bke::AttrDomain::Point) {
+      return;
+    }
+    const GVArraySpan src = *iter.get();
     const CPPType &type = src.type();
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, domain, iter.data_type);
+        iter.name, iter.domain, iter.data_type);
     if (!dst) {
       return;
     }

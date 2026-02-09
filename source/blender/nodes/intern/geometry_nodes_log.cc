@@ -79,15 +79,14 @@ FieldInfoLog::FieldInfoLog(const GField &field) : type(field.cpp_type())
                         field_input_nodes->deduplicated_nodes.end());
   }
 
-  std::sort(
-      field_inputs.begin(), field_inputs.end(), [](const FieldInput &a, const FieldInput &b) {
-        const int index_a = int(a.category());
-        const int index_b = int(b.category());
-        if (index_a == index_b) {
-          return a.socket_inspection_name().size() < b.socket_inspection_name().size();
-        }
-        return index_a < index_b;
-      });
+  std::ranges::sort(field_inputs, [](const FieldInput &a, const FieldInput &b) {
+    const int index_a = int(a.category());
+    const int index_b = int(b.category());
+    if (index_a == index_b) {
+      return a.socket_inspection_name().size() < b.socket_inspection_name().size();
+    }
+    return index_a < index_b;
+  });
 
   for (const FieldInput &field_input : field_inputs) {
     this->input_tooltips.append(field_input.socket_inspection_name());

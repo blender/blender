@@ -122,7 +122,6 @@ class Dogleg {
                             Scalar alpha,
                             Parameters* dx_dl,
                             Scalar* beta) {
-    Parameters a, b_minus_a;
     // Solve for Dogleg step dx_dl.
     if (dx_gn.norm() < radius) {
       *dx_dl = dx_gn;
@@ -135,7 +134,7 @@ class Dogleg {
     } else {
       Parameters a = alpha * dx_sd;
       const Parameters& b = dx_gn;
-      b_minus_a = a - b;
+      Parameters b_minus_a = a - b;
       Scalar Mbma2 = b_minus_a.squaredNorm();
       Scalar Ma2 = a.squaredNorm();
       Scalar c = a.dot(b_minus_a);

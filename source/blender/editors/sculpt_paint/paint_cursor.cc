@@ -566,7 +566,7 @@ static int project_brush_radius_grease_pencil(ViewContext *vc,
   ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
 
   const float scale = math::length(
-      math::transform_direction(to_world, float3(math::numbers::inv_sqrt3)));
+      math::transform_direction(to_world, float3(std::numbers::inv_sqrt3)));
   return math::safe_divide(scale * radius, math::length(delta));
 }
 

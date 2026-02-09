@@ -75,10 +75,6 @@ if(WITH_GHOST_X11 AND WITH_GHOST_XDND)
   add_subdirectory(xdnd)
 endif()
 
-if(WITH_LIBMV)
-  add_subdirectory(ceres)
-endif()
-
 if(WITH_LIBMV OR WITH_GTESTS)
   if(NOT WITH_SYSTEM_GFLAGS)
     add_subdirectory(gflags)

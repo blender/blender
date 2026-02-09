@@ -85,24 +85,23 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
 
   MatBase() = default;
 
-/* Workaround issue with template BLI_ENABLE_IF((Size == 2)) not working. */
-#define BLI_ENABLE_IF_MAT(_size, _test) int S = _size, BLI_ENABLE_IF((S _test))
-
-  template<BLI_ENABLE_IF_MAT(NumCol, == 2)> MatBase(col_type _x, col_type _y)
+  MatBase(col_type _x, col_type _y)
+    requires(NumCol == 2)
   {
     (*this)[0] = _x;
     (*this)[1] = _y;
   }
 
-  template<BLI_ENABLE_IF_MAT(NumCol, == 3)> MatBase(col_type _x, col_type _y, col_type _z)
+  MatBase(col_type _x, col_type _y, col_type _z)
+    requires(NumCol == 3)
   {
     (*this)[0] = _x;
     (*this)[1] = _y;
     (*this)[2] = _z;
   }
 
-  template<BLI_ENABLE_IF_MAT(NumCol, == 4)>
   MatBase(col_type _x, col_type _y, col_type _z, col_type _w)
+    requires(NumCol == 4)
   {
     (*this)[0] = _x;
     (*this)[1] = _y;
@@ -136,8 +135,6 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
     }
   }
 
-#undef BLI_ENABLE_IF_MAT
-
   /** Conversion from pointers (from C-style vectors). */
 
   explicit MatBase(const T *ptr)
@@ -145,7 +142,9 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
     unroll<NumCol>([&](auto i) { (*this)[i] = reinterpret_cast<const col_type *>(ptr)[i]; });
   }
 
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))> explicit MatBase(const U *ptr)
+  template<typename U>
+  explicit MatBase(const U *ptr)
+    requires(std::is_convertible_v<U, T>)
   {
     unroll<NumCol>([&](auto i) { (*this)[i] = ptr[i]; });
   }

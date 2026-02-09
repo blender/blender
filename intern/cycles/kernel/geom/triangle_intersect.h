@@ -141,6 +141,27 @@ ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
   return P;
 }
 
+/**
+ * Use the barycentric coordinates to get the intersection location,
+ * but with vertex coordinates specified.
+ */
+ccl_device_inline float3 triangle_point_from_uv_and_verts(KernelGlobals kg,
+                                                          ccl_private ShaderData *sd,
+                                                          const float u,
+                                                          const float v,
+                                                          const float3 verts[3])
+{
+  /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
+  float3 P = verts[0] + u * (verts[1] - verts[0]) + v * (verts[2] - verts[0]);
+
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    const Transform tfm = object_get_transform(kg, sd);
+    P = transform_point(&tfm, P);
+  }
+
+  return P;
+}
+
 ccl_device_inline void triangle_shader_setup(KernelGlobals kg, ccl_private ShaderData *sd)
 {
   sd->shader = kernel_data_fetch(tri_shader, sd->prim);
@@ -154,7 +175,7 @@ ccl_device_inline void triangle_shader_setup(KernelGlobals kg, ccl_private Shade
 
   /* Smooth normal. */
   if (sd->shader & SHADER_SMOOTH_NORMAL) {
-    sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
+    sd->N = triangle_smooth_normal(kg, Ng, sd->object, sd->object_flag, sd->prim, sd->u, sd->v);
   }
 
 #ifdef __DPDU__

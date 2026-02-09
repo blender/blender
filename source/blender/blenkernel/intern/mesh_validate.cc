@@ -45,7 +45,7 @@ class ErrorMessages {
   ErrorMessages(const bool verbose) : verbose_(verbose) {}
   ~ErrorMessages()
   {
-    std::sort(messages.begin(), messages.end());
+    std::ranges::sort(messages);
     for (const std::string &message : messages) {
       CLOG_ERROR(&LOG, "%s", message.c_str());
     }

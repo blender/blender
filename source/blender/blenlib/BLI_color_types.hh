@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {
@@ -114,7 +113,7 @@ template<typename ChannelStorageType, eSpace Space, eAlpha Alpha> class ColorRGB
     return &r;
   }
 
-  BLI_STRUCT_EQUALITY_OPERATORS_4(ColorRGBA, r, g, b, a)
+  friend bool operator==(const ColorRGBA &a, const ColorRGBA &b) = default;
 
   uint64_t hash() const
   {
@@ -142,8 +141,10 @@ class ColorSceneLinear4f final : public ColorRGBA<float, eSpace::SceneLinear, Al
   {
   }
 
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, float>))>
-  constexpr explicit ColorSceneLinear4f(U value) : ColorSceneLinear4f(float(value))
+  template<typename U>
+  constexpr explicit ColorSceneLinear4f(U value)
+    requires(std::is_convertible_v<U, float>)
+      : ColorSceneLinear4f(float(value))
   {
   }
 

@@ -1864,7 +1864,7 @@ void MESH_OT_select_edge_loop_multi(wmOperatorType *ot)
                     "delimit_edge_loop",
                     rna_enum_mesh_walk_delimit_edge_loop_items,
                     BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS | BMW_DELIMIT_EDGE_LOOP_NGONS,
-                    "Boundary Delimit",
+                    "Delimit",
                     "Delimit edge loop selection");
 }
 
@@ -2365,7 +2365,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
                     "delimit_edge_loop",
                     rna_enum_mesh_walk_delimit_edge_loop_items,
                     BMW_DELIMIT_EDGE_LOOP_OUTER_CORNERS | BMW_DELIMIT_EDGE_LOOP_NGONS,
-                    "Boundary Delimit",
+                    "Delimit",
                     "Delimit edge loop selection");
   /* Only shown when face-select mode is enabled. */
   RNA_def_enum_flag(ot->srna,
