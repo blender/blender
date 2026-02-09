@@ -686,7 +686,7 @@ void RE_FreeUnusedGPUResources()
           RenderGlobal.interactive_compositor_renders.lookup_default(re->owner, nullptr);
       if (interactive_compositor_render) {
         re_gpu_texture_caches_free(interactive_compositor_render);
-        if (!interactive_compositor_render->display &&
+        if (interactive_compositor_render->display &&
             !interactive_compositor_render->display_shared)
         {
           interactive_compositor_render->display->free_gpu_context();
