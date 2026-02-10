@@ -141,8 +141,6 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_user_map_doc,
-    /* NOTE: These documented default values (None) are here just to signal that these parameters
-     * are optional. Explicitly passing None is not valid, and will raise a TypeError. */
     ".. method:: user_map(*, subset=None, key_types=None, value_types=None)\n"
     "\n"
     "   Returns a mapping of all ID data-blocks in current ``bpy.data`` to a set of all "
@@ -153,11 +151,11 @@ PyDoc_STRVAR(
     "\n"
     "   :param subset: When passed, only these data-blocks and their users will be "
     "included as keys/values in the map.\n"
-    "   :type subset: Sequence[:class:`bpy.types.ID`]\n"
+    "   :type subset: Sequence[:class:`bpy.types.ID`] | None\n"
     "   :param key_types: Filter the keys mapped by ID types.\n"
-    "   :type key_types: set[str]\n"
+    "   :type key_types: set[str] | None\n"
     "   :param value_types: Filter the values in the set by ID types.\n"
-    "   :type value_types: set[str]\n"
+    "   :type value_types: set[str] | None\n"
     "   :return: dictionary that maps data-blocks ID's to their users.\n"
     "   :rtype: dict[:class:`bpy.types.ID`, set[:class:`bpy.types.ID`]]\n");
 static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
@@ -170,10 +168,12 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
   ListBaseT<ID> *lb;
   ID *id;
 
-  PyObject *subset = nullptr;
+  PyObject *subset = Py_None;
 
   PyObject *key_types = nullptr;
+  PyC_TypeOrNone key_types_or_none = {&PySet_Type, &key_types};
   PyObject *val_types = nullptr;
+  PyC_TypeOrNone val_types_or_none = {&PySet_Type, &val_types};
   BLI_bitmap *key_types_bitmap = nullptr;
   BLI_bitmap *val_types_bitmap = nullptr;
 
@@ -185,14 +185,20 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
   static _PyArg_Parser _parser = {
       "|$" /* Optional keyword only arguments. */
       "O"  /* `subset` */
-      "O!" /* `key_types` */
-      "O!" /* `value_types` */
+      "O&" /* `key_types` */
+      "O&" /* `value_types` */
       ":user_map",
       _keywords,
       nullptr,
   };
-  if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &subset, &PySet_Type, &key_types, &PySet_Type, &val_types))
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kwds,
+                                        &_parser,
+                                        &subset,
+                                        PyC_ParseTypeOrNone,
+                                        &key_types_or_none,
+                                        PyC_ParseTypeOrNone,
+                                        &val_types_or_none))
   {
     return nullptr;
   }
@@ -213,7 +219,7 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
     }
   }
 
-  if (subset) {
+  if (subset != Py_None) {
     PyObject *subset_fast = PySequence_Fast(subset, "user_map");
     if (subset_fast == nullptr) {
       goto error;
@@ -371,15 +377,15 @@ PyDoc_STRVAR(
     "\n"
     "   :param subset: When given, only these data-blocks and their used file paths "
     "will be included as keys/values in the map.\n"
-    "   :type subset: sequence\n"
+    "   :type subset: Sequence[:class:`bpy.types.ID`] | None\n"
     "   :param key_types: When given, filter the keys mapped by ID types. "
     "Ignored if ``subset`` is also given.\n"
-    "   :type key_types: set[str]\n"
+    "   :type key_types: set[str] | None\n"
     "   :param include_libraries: Include library file paths of linked data. False by default.\n"
     "   :type include_libraries: bool\n"
     "   :return: dictionary of :class:`bpy.types.ID` instances, with sets of file path "
     "strings as their values.\n"
-    "   :rtype: dict\n");
+    "   :rtype: dict[:class:`bpy.types.ID`, set[str]]\n");
 static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwds)
 {
   Main *bmain = pyrna_bmain_FromPyObject(self);
@@ -387,9 +393,10 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
     return nullptr;
   }
 
-  PyObject *subset = nullptr;
+  PyObject *subset = Py_None;
 
   PyObject *key_types = nullptr;
+  PyC_TypeOrNone key_types_or_none = {&PySet_Type, &key_types};
   PyObject *include_libraries = nullptr;
   BLI_bitmap *key_types_bitmap = nullptr;
 
@@ -402,7 +409,7 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
   static _PyArg_Parser _parser = {
       "|$" /* Optional keyword only arguments. */
       "O"  /* `subset` */
-      "O!" /* `key_types` */
+      "O&" /* `key_types` */
       "O!" /* `include_libraries` */
       ":file_path_map",
       _keywords,
@@ -412,8 +419,8 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
                                         kwds,
                                         &_parser,
                                         &subset,
-                                        &PySet_Type,
-                                        &key_types,
+                                        PyC_ParseTypeOrNone,
+                                        &key_types_or_none,
                                         &PyBool_Type,
                                         &include_libraries))
   {
@@ -436,7 +443,7 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
 
   filepathmap_data.include_libraries = (include_libraries == Py_True);
 
-  if (subset) {
+  if (subset != Py_None) {
     PyObject *subset_fast = PySequence_Fast(subset, "subset");
     if (subset_fast == nullptr) {
       goto error;
@@ -671,10 +678,10 @@ PyDoc_STRVAR(
     "   :type visit_path_fn: Callable[[:class:`bpy.types.ID`, str, Any], str|None]\n"
     "   :param subset: When given, only these data-blocks and their used file paths "
     "will be visited.\n"
-    "   :type subset: set[str]\n"
+    "   :type subset: set[str] | None\n"
     "   :param visit_types: When given, only visit data-blocks of these types. Ignored if "
     "``subset`` is also given.\n"
-    "   :type visit_types: set[str]\n"
+    "   :type visit_types: set[str] | None\n"
     "   :type flags: set[str]\n"
     "   :param flags: Set of flags that influence which data-blocks are visited. See "
     ":ref:`rna_enum_file_path_foreach_flag_items`.\n");
@@ -686,8 +693,9 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
   }
 
   PyObject *visit_path_fn = nullptr;
-  PyObject *subset = nullptr;
+  PyObject *subset = Py_None;
   PyObject *visit_types = nullptr;
+  PyC_TypeOrNone visit_types_or_none = {&PySet_Type, &visit_types};
   std::unique_ptr<BLI_bitmap, MEM_smart_ptr_deleter<BLI_bitmap>> visit_types_bitmap;
   PyObject *py_flags = nullptr;
 
@@ -699,7 +707,7 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
       "O!" /* `visit_path_fn` */
       "|$" /* Optional keyword only arguments. */
       "O"  /* `subset` */
-      "O!" /* `visit_types` */
+      "O&" /* `visit_types` */
       "O!" /* `flags` */
       ":file_path_foreach",
       _keywords,
@@ -711,8 +719,8 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
                                         &PyFunction_Type,
                                         &visit_path_fn,
                                         &subset,
-                                        &PySet_Type,
-                                        &visit_types,
+                                        PyC_ParseTypeOrNone,
+                                        &visit_types_or_none,
                                         &PySet_Type,
                                         &py_flags))
   {
@@ -747,7 +755,7 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
   filepathforeach_data.visit_path_fn = visit_path_fn;
   filepathforeach_data.seen_error = false;
 
-  if (subset) {
+  if (subset != Py_None) {
     /* Visit the given subset of IDs. */
     PyObject *subset_fast = PySequence_Fast(subset, "subset");
     if (!subset_fast) {
@@ -883,7 +891,8 @@ PyDoc_STRVAR(
     "   :param do_recursive: Recursively check for unused IDs, ensuring no orphaned one "
     "remain after a single run of that function, defaults to False\n"
     "   :type do_recursive: bool, optional\n"
-    "   :return: The number of deleted IDs.\n");
+    "   :return: The number of deleted IDs.\n"
+    "   :rtype: int\n");
 static PyObject *bpy_orphans_purge(PyObject *self, PyObject *args, PyObject *kwds)
 {
   Main *bmain = pyrna_bmain_FromPyObject(self);

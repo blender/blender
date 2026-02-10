@@ -138,6 +138,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
   PyC_StringEnum pygpu_textureformat = {pygpu_textureformat_items,
                                         int(gpu::TextureFormat::UNORM_8_8_8_8)};
   BPyGPUBuffer *pybuffer_obj = nullptr;
+  PyC_TypeOrNone pybuffer_or_none = PyC_TYPE_OR_NONE_INIT(&BPyGPU_BufferType, &pybuffer_obj);
   char err_out[256] = "unknown error. See console";
 
   static const char *_keywords[] = {"size", "layers", "is_cubemap", "format", "data", nullptr};
@@ -147,7 +148,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
       "i"  /* `layers` */
       "p"  /* `is_cubemap` */
       "O&" /* `format` */
-      "O!" /* `data` */
+      "O&" /* `data` */
       ":GPUTexture.__new__",
       _keywords,
       nullptr,
@@ -160,8 +161,8 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
                                         &is_cubemap,
                                         PyC_ParseStringEnum,
                                         &pygpu_textureformat,
-                                        &BPyGPU_BufferType,
-                                        &pybuffer_obj))
+                                        PyC_ParseTypeOrNone,
+                                        &pybuffer_or_none))
   {
     return nullptr;
   }
@@ -811,7 +812,7 @@ PyDoc_STRVAR(
     "      ``DEPTH_COMPONENT16``.\n"
     "   :type format: str\n"
     "   :param data: Buffer object to fill the texture.\n"
-    "   :type data: :class:`gpu.types.Buffer`\n");
+    "   :type data: :class:`gpu.types.Buffer` | None\n");
 PyTypeObject BPyGPUTexture_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUTexture",

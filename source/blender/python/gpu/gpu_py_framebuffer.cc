@@ -568,7 +568,7 @@ PyDoc_STRVAR(
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
     "   :param data: Optional Buffer object to fill with the pixels values.\n"
-    "   :type data: :class:`gpu.types.Buffer`\n"
+    "   :type data: :class:`gpu.types.Buffer` | None\n"
     "   :return: The Buffer with the read pixels.\n"
     "   :rtype: :class:`gpu.types.Buffer`\n");
 static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
@@ -581,6 +581,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
   PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items,
                                      int(gpu::TextureFormat::UNORM_8_8_8_8)};
   BPyGPUBuffer *py_buffer = nullptr;
+  PyC_TypeOrNone py_buffer_or_none = PyC_TYPE_OR_NONE_INIT(&BPyGPU_BufferType, &py_buffer);
 
   static const char *_keywords[] = {
       "x", "y", "xsize", "ysize", "channels", "slot", "format", "data", nullptr};
@@ -593,7 +594,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
       "I"  /* `slot` */
       "O&" /* `format` */
       "|$" /* Optional keyword only arguments. */
-      "O!" /* `data` */
+      "O&" /* `data` */
       ":read_color",
       _keywords,
       nullptr,
@@ -609,8 +610,8 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
                                         &slot,
                                         PyC_ParseStringEnum,
                                         &pygpu_dataformat,
-                                        &BPyGPU_BufferType,
-                                        &py_buffer))
+                                        PyC_ParseTypeOrNone,
+                                        &py_buffer_or_none))
   {
     return nullptr;
   }
@@ -690,7 +691,7 @@ PyDoc_STRVAR(
     "   :param ysize: Height of the pixel rectangle.\n"
     "   :type ysize: int\n"
     "   :param data: Optional Buffer object to fill with the pixels values.\n"
-    "   :type data: :class:`gpu.types.Buffer`\n"
+    "   :type data: :class:`gpu.types.Buffer` | None\n"
     "   :return: The Buffer with the read pixels.\n"
     "   :rtype: :class:`gpu.types.Buffer`\n");
 static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
@@ -700,6 +701,7 @@ static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
   int x, y, w, h;
   BPyGPUBuffer *py_buffer = nullptr;
+  PyC_TypeOrNone py_buffer_or_none = PyC_TYPE_OR_NONE_INIT(&BPyGPU_BufferType, &py_buffer);
 
   static const char *_keywords[] = {"x", "y", "xsize", "ysize", "data", nullptr};
   static _PyArg_Parser _parser = {
@@ -708,13 +710,13 @@ static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
       "i"  /* `xsize` */
       "i"  /* `ysize` */
       "|$" /* Optional keyword only arguments. */
-      "O!" /* `data` */
+      "O&" /* `data` */
       ":read_depth",
       _keywords,
       nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer))
+          args, kwds, &_parser, &x, &y, &w, &h, PyC_ParseTypeOrNone, &py_buffer_or_none))
   {
     return nullptr;
   }

@@ -2147,25 +2147,27 @@ PyDoc_STRVAR(
     "   :param matrix: 4x4 transform matrix.\n"
     "   :type matrix: :class:`mathutils.Matrix`\n"
     "   :param filter: Flag to filter vertices.\n"
-    "   :type filter: set[Literal[" BPY_BM_HFLAG_ALL_STR "]]\n");
+    "   :type filter: set[Literal[" BPY_BM_HFLAG_ALL_STR "]] | None\n");
 static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject *kw)
 {
-  static const char *kwlist[] = {"matrix", "filter", nullptr};
-
   MatrixObject *mat;
   PyObject *filter = nullptr;
+  PyC_TypeOrNone filter_or_none = {&PySet_Type, &filter};
   int filter_flags = 0;
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTupleAndKeywords(args,
-                                   kw,
-                                   "O!|$O!:transform",
-                                   const_cast<char **>(kwlist),
-                                   &matrix_Type,
-                                   &mat,
-                                   &PySet_Type,
-                                   &filter))
+  static const char *_keywords[] = {"matrix", "filter", nullptr};
+  static _PyArg_Parser _parser = {
+      "O!" /* `matrix` */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `filter` */
+      ":transform",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &matrix_Type, &mat, PyC_ParseTypeOrNone, &filter_or_none))
   {
     return nullptr;
   }
@@ -3195,24 +3197,36 @@ static PyObject *bpy_bmloop_calc_tangent(BPy_BMLoop *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmvertseq_new_doc,
-    ".. method:: new(co=(0.0, 0.0, 0.0), example=None)\n"
+    ".. method:: new(co=(0.0, 0.0, 0.0), source=None)\n"
     "\n"
     "   Create a new vertex.\n"
     "\n"
     "   :param co: The initial location of the vertex (optional argument).\n"
     "   :type co: float triplet\n"
-    "   :param example: Existing vert to initialize settings.\n"
-    "   :type example: :class:`bmesh.types.BMVert`\n"
+    "   :param source: Existing vert to initialize settings.\n"
+    "   :type source: :class:`bmesh.types.BMVert` | None\n"
     "   :return: The newly created vertex.\n"
     "   :rtype: :class:`bmesh.types.BMVert`\n");
-static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
+static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args, PyObject *kw)
 {
   PyObject *py_co = nullptr;
-  BPy_BMVert *py_vert_example = nullptr; /* optional */
+  BPy_BMVert *py_vert_source = nullptr; /* optional */
+  PyC_TypeOrNone py_vert_source_or_none = PyC_TYPE_OR_NONE_INIT(&BPy_BMVert_Type, &py_vert_source);
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "|OO!:verts.new", &py_co, &BPy_BMVert_Type, &py_vert_example)) {
+  static const char *_keywords[] = {"", "source", nullptr};
+  static _PyArg_Parser _parser = {
+      "|"  /* Optional arguments. */
+      "O"  /* `co` */
+      "O&" /* `source` */
+      ":verts.new",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &py_co, PyC_ParseTypeOrNone, &py_vert_source_or_none))
+  {
     return nullptr;
   }
 
@@ -3220,8 +3234,8 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
   BMVert *v;
   float co[3] = {0.0f, 0.0f, 0.0f};
 
-  if (py_vert_example) {
-    BPY_BM_CHECK_OBJ(py_vert_example);
+  if (py_vert_source) {
+    BPY_BM_CHECK_OBJ(py_vert_source);
   }
 
   if (py_co && mathutils_array_parse(co, 3, 3, py_co, "verts.new(co)") == -1) {
@@ -3236,14 +3250,14 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
     return nullptr;
   }
 
-  if (py_vert_example) {
-    if (py_vert_example->bm == bm) {
-      BM_elem_attrs_copy(bm, py_vert_example->v, v);
+  if (py_vert_source) {
+    if (py_vert_source->bm == bm) {
+      BM_elem_attrs_copy(bm, py_vert_source->v, v);
     }
     else {
       const BMCustomDataCopyMap cd_vert_map = CustomData_bmesh_copy_map_calc(
-          py_vert_example->bm->vdata, bm->vdata);
-      BM_elem_attrs_copy(bm, cd_vert_map, py_vert_example->v, v);
+          py_vert_source->bm->vdata, bm->vdata);
+      BM_elem_attrs_copy(bm, cd_vert_map, py_vert_source->v, v);
     }
   }
 
@@ -3255,25 +3269,37 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmedgeseq_new_doc,
-    ".. method:: new(verts, example=None)\n"
+    ".. method:: new(verts, source=None)\n"
     "\n"
     "   Create a new edge from a given pair of verts.\n"
     "\n"
     "   :param verts: Vertex pair.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
-    "   :param example: Existing edge to initialize settings (optional argument).\n"
-    "   :type example: :class:`bmesh.types.BMEdge`\n"
+    "   :param source: Existing edge to initialize settings (optional argument).\n"
+    "   :type source: :class:`bmesh.types.BMEdge` | None\n"
     "   :return: The newly created edge.\n"
     "   :rtype: :class:`bmesh.types.BMEdge`\n");
-static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
+static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args, PyObject *kw)
 {
   const char *error_prefix = "edges.new(...)";
   PyObject *vert_seq;
-  BPy_BMEdge *py_edge_example = nullptr; /* optional */
+  BPy_BMEdge *py_edge_source = nullptr; /* optional */
+  PyC_TypeOrNone py_edge_source_or_none = PyC_TYPE_OR_NONE_INIT(&BPy_BMEdge_Type, &py_edge_source);
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O|O!:edges.new", &vert_seq, &BPy_BMEdge_Type, &py_edge_example)) {
+  static const char *_keywords[] = {"", "source", nullptr};
+  static _PyArg_Parser _parser = {
+      "O"  /* `verts` */
+      "|"  /* Optional arguments. */
+      "O&" /* `source` */
+      ":edges.new",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &vert_seq, PyC_ParseTypeOrNone, &py_edge_source_or_none))
+  {
     return nullptr;
   }
 
@@ -3281,8 +3307,8 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
   BMEdge *e;
   PyObject *ret = nullptr;
 
-  if (py_edge_example) {
-    BPY_BM_CHECK_OBJ(py_edge_example);
+  if (py_edge_source) {
+    BPY_BM_CHECK_OBJ(py_edge_source);
   }
 
   Py_ssize_t vert_seq_num; /* Always 2. */
@@ -3305,14 +3331,14 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
     goto cleanup;
   }
 
-  if (py_edge_example) {
-    if (py_edge_example->bm == bm) {
-      BM_elem_attrs_copy(bm, py_edge_example->e, e);
+  if (py_edge_source) {
+    if (py_edge_source->bm == bm) {
+      BM_elem_attrs_copy(bm, py_edge_source->e, e);
     }
     else {
       const BMCustomDataCopyMap cd_edge_map = CustomData_bmesh_copy_map_calc(
-          py_edge_example->bm->edata, bm->edata);
-      BM_elem_attrs_copy(bm, cd_edge_map, py_edge_example->e, e);
+          py_edge_source->bm->edata, bm->edata);
+      BM_elem_attrs_copy(bm, cd_edge_map, py_edge_source->e, e);
     }
   }
 
@@ -3330,25 +3356,37 @@ cleanup:
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmfaceseq_new_doc,
-    ".. method:: new(verts, example=None)\n"
+    ".. method:: new(verts, source=None)\n"
     "\n"
     "   Create a new face from a given set of verts.\n"
     "\n"
     "   :param verts: Sequence of 3 or more verts.\n"
     "   :type verts: Sequence[:class:`bmesh.types.BMVert`]\n"
-    "   :param example: Existing face to initialize settings (optional argument).\n"
-    "   :type example: :class:`bmesh.types.BMFace`\n"
+    "   :param source: Existing face to initialize settings (optional argument).\n"
+    "   :type source: :class:`bmesh.types.BMFace` | None\n"
     "   :return: The newly created face.\n"
     "   :rtype: :class:`bmesh.types.BMFace`\n");
-static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
+static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args, PyObject *kw)
 {
   const char *error_prefix = "faces.new(...)";
   PyObject *vert_seq;
-  BPy_BMFace *py_face_example = nullptr; /* optional */
+  BPy_BMFace *py_face_source = nullptr; /* optional */
+  PyC_TypeOrNone py_face_source_or_none = PyC_TYPE_OR_NONE_INIT(&BPy_BMFace_Type, &py_face_source);
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O|O!:faces.new", &vert_seq, &BPy_BMFace_Type, &py_face_example)) {
+  static const char *_keywords[] = {"", "source", nullptr};
+  static _PyArg_Parser _parser = {
+      "O"  /* `verts` */
+      "|"  /* Optional arguments. */
+      "O&" /* `source` */
+      ":faces.new",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &vert_seq, PyC_ParseTypeOrNone, &py_face_source_or_none))
+  {
     return nullptr;
   }
 
@@ -3358,8 +3396,8 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
   BMFace *f_new;
 
-  if (py_face_example) {
-    BPY_BM_CHECK_OBJ(py_face_example);
+  if (py_face_source) {
+    BPY_BM_CHECK_OBJ(py_face_source);
   }
 
   Py_ssize_t vert_seq_num;
@@ -3381,7 +3419,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
   f_new = BM_face_create_verts(bm,
                                vert_array,
                                vert_seq_num,
-                               py_face_example ? py_face_example->f : nullptr,
+                               py_face_source ? py_face_source->f : nullptr,
                                BM_CREATE_NOP,
                                true);
 
@@ -4187,7 +4225,10 @@ static PyMethodDef bpy_bmelemseq_methods[] = {
 };
 
 static PyMethodDef bpy_bmvertseq_methods[] = {
-    {"new", reinterpret_cast<PyCFunction>(bpy_bmvertseq_new), METH_VARARGS, bpy_bmvertseq_new_doc},
+    {"new",
+     reinterpret_cast<PyCFunction>(bpy_bmvertseq_new),
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bmvertseq_new_doc},
     {"remove",
      reinterpret_cast<PyCFunction>(bpy_bmvertseq_remove),
      METH_O,
@@ -4210,7 +4251,10 @@ static PyMethodDef bpy_bmvertseq_methods[] = {
 };
 
 static PyMethodDef bpy_bmedgeseq_methods[] = {
-    {"new", reinterpret_cast<PyCFunction>(bpy_bmedgeseq_new), METH_VARARGS, bpy_bmedgeseq_new_doc},
+    {"new",
+     reinterpret_cast<PyCFunction>(bpy_bmedgeseq_new),
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bmedgeseq_new_doc},
     {"remove",
      reinterpret_cast<PyCFunction>(bpy_bmedgeseq_remove),
      METH_O,
@@ -4238,7 +4282,10 @@ static PyMethodDef bpy_bmedgeseq_methods[] = {
 };
 
 static PyMethodDef bpy_bmfaceseq_methods[] = {
-    {"new", reinterpret_cast<PyCFunction>(bpy_bmfaceseq_new), METH_VARARGS, bpy_bmfaceseq_new_doc},
+    {"new",
+     reinterpret_cast<PyCFunction>(bpy_bmfaceseq_new),
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_bmfaceseq_new_doc},
     {"remove",
      reinterpret_cast<PyCFunction>(bpy_bmfaceseq_remove),
      METH_O,

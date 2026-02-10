@@ -208,16 +208,16 @@ PyDoc_STRVAR(
     "\n"
     "   Find nearest point to ``co``.\n"
     "\n"
-    "   :param co: 3D coordinates.\n"
+    "   :param co: 3D coordinate.\n"
     "   :type co: Sequence[float]\n"
     "   :param filter: function which takes an index and returns True for indices to "
     "include in the search.\n"
-    "   :type filter: Callable[[int], bool]\n"
+    "   :type filter: Callable[[int], bool] | None\n"
     "   :return: Returns (position, index, distance).\n"
     "   :rtype: tuple[:class:`Vector`, int, float]\n");
 static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
-  PyObject *py_co, *py_filter = nullptr;
+  PyObject *py_co, *py_filter = Py_None;
   float co[3];
   KDTreeNearest_3d nearest;
   const char *keywords[] = {"co", "filter", nullptr};
@@ -239,7 +239,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 
   nearest.index = -1;
 
-  if (py_filter == nullptr) {
+  if (py_filter == Py_None) {
     kdtree_3d_find_nearest(self->obj, co, &nearest);
   }
   else {
