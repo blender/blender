@@ -406,8 +406,8 @@ PyDoc_STRVAR(
     "   This representation consists of the rotation axis multiplied by the rotation angle.\n"
     "   Such a representation is useful for interpolation between multiple orientations.\n"
     "\n"
-    "   :return: exponential map.\n"
-    "   :rtype: :class:`Vector` of size 3\n"
+    "   :return: 3D exponential map.\n"
+    "   :rtype: :class:`Vector`\n"
     "\n"
     "   To convert back to a quaternion, pass it to the :class:`Quaternion` constructor.\n");
 static PyObject *Quaternion_to_exponential_map(QuaternionObject *self)
@@ -1898,7 +1898,7 @@ PyDoc_STRVAR(
     "   This object gives access to Quaternions in Blender.\n"
     "\n"
     "   :param seq: size 3 or 4\n"
-    "   :type seq: :class:`Vector`\n"
+    "   :type seq: Sequence[float]\n"
     "   :param angle: rotation angle, in radians\n"
     "   :type angle: float\n"
     "\n"

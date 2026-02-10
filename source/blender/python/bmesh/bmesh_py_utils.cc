@@ -364,7 +364,7 @@ PyDoc_STRVAR(
     "   :param ccw: When True the edge will be rotated counter clockwise.\n"
     "   :type ccw: bool\n"
     "   :return: The newly rotated edge.\n"
-    "   :rtype: :class:`bmesh.types.BMEdge`\n");
+    "   :rtype: :class:`bmesh.types.BMEdge` | None\n");
 static PyObject *bpy_bm_utils_edge_rotate(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMEdge *py_edge;
@@ -620,7 +620,7 @@ PyDoc_STRVAR(
     "   :param remove: Remove the edges and vertices between the faces.\n"
     "   :type remove: bool\n"
     "   :return: The newly created face or None on failure.\n"
-    "   :rtype: :class:`bmesh.types.BMFace`\n");
+    "   :rtype: :class:`bmesh.types.BMFace` | None\n");
 static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "face_join(...)";
@@ -669,7 +669,7 @@ PyDoc_STRVAR(
     "   :param vert: A vertex in the face to separate.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
     "   :return: The newly created vertex or None on failure.\n"
-    "   :rtype: :class:`bmesh.types.BMVert`\n"
+    "   :rtype: :class:`bmesh.types.BMVert` | None\n"
     "\n"
     "   .. note::\n"
     "\n"
@@ -747,7 +747,7 @@ PyDoc_STRVAR(
     "   :param loop: The loop to separate.\n"
     "   :type loop: :class:`bmesh.types.BMLoop`\n"
     "   :return: The newly created vertex or None on failure.\n"
-    "   :rtype: :class:`bmesh.types.BMVert`\n");
+    "   :rtype: :class:`bmesh.types.BMVert` | None\n");
 static PyObject *bpy_bm_utils_loop_separate(PyObject * /*self*/, BPy_BMLoop *value)
 {
   BMesh *bm;

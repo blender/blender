@@ -696,7 +696,7 @@ PyDoc_STRVAR(
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
     "   :param dimensions: Array describing the dimensions.\n"
-    "   :type dimensions: int\n"
+    "   :type dimensions: int | Sequence[int]\n"
     "   :param data: Optional data array.\n"
     "   :type data: Buffer | Sequence[float] | Sequence[int]\n");
 PyTypeObject BPyGPU_BufferType = {

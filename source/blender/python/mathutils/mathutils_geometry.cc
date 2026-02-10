@@ -1719,7 +1719,7 @@ PyDoc_STRVAR(
     "   :param vert_coords: Vertex coordinates (2d)\n"
     "   :type vert_coords: Sequence[:class:`mathutils.Vector`]\n"
     "   :param edges: Edges, as pairs of indices in ``vert_coords``\n"
-    "   :type edges: Sequence[Sequence[int, int]]\n"
+    "   :type edges: Sequence[tuple[int, int]]\n"
     "   :param faces: Faces, each sublist is a face, "
     "as indices in ``vert_coords`` (CCW oriented).\n"
     "   :type faces: Sequence[Sequence[int]]\n"

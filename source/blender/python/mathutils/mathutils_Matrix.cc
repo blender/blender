@@ -1680,7 +1680,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param fallback: Set the matrix to this value when the inverse cannot be calculated\n"
     "      (instead of raising a :exc:`ValueError` exception).\n"
-    "   :type fallback: :class:`Matrix`\n"
+    "   :type fallback: :class:`Matrix` | None\n"
     "\n"
     "   .. seealso:: `Inverse matrix <https://en.wikipedia.org/wiki/Inverse_matrix>`__ on "
     "Wikipedia.\n");

@@ -3538,7 +3538,7 @@ PyDoc_STRVAR(
     "   :param fallback: Return this value if nothing is found.\n"
     "   :type fallback: Any\n"
     "   :return: The edge found or None\n"
-    "   :rtype: :class:`bmesh.types.BMEdge`\n");
+    "   :rtype: :class:`bmesh.types.BMEdge` | None\n");
 static PyObject *bpy_bmedgeseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 {
   const char *error_prefix = "edges.get(...)";
@@ -3587,7 +3587,7 @@ PyDoc_STRVAR(
     "   :param fallback: Return this value if nothing is found.\n"
     "   :type fallback: Any\n"
     "   :return: The face found or None\n"
-    "   :rtype: :class:`bmesh.types.BMFace`\n");
+    "   :rtype: :class:`bmesh.types.BMFace` | None\n");
 static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 {
   const char *error_prefix = "faces.get(...)";

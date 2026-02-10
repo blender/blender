@@ -310,7 +310,7 @@ PyDoc_STRVAR(
     "   :type module_name: str\n"
     "   :param translations_dict: A dictionary built like that:\n"
     "      ``{locale: {msg_key: msg_translation, ...}, ...}``\n"
-    "   :type translations_dict: dict[str, dict[str, str]]\n"
+    "   :type translations_dict: dict[str, dict[tuple[str, str], str]]\n"
     "\n");
 static PyObject *app_translations_py_messages_register(BlenderAppTranslations *self,
                                                        PyObject *args,

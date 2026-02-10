@@ -3417,7 +3417,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "      This function must take 2 values (self, context) and return None.\n" \
   "      *Warning* there are no safety checks to avoid infinite recursion.\n" \
   "   :type update: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.Context`], " \
-  "None]\n"
+  "None] | None\n"
 
 #define BPY_PROPDEF_POLL_DOC \
   "   :param poll: Function that determines whether an item is valid for this property.\n" \
@@ -3427,7 +3427,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "but it is still possible to assign an \"invalid\" item to the property directly.\n" \
   "\n" \
   "   :type poll: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.ID`], " \
-  "bool]\n"
+  "bool] | None\n"
 
 #define BPY_PROPDEF_GET_DOC(ty) \
   "   :param get: Function to be called when this value is 'read', and the default,\n" \
@@ -3437,7 +3437,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "      .. note:: Defining this callback without a matching ``set`` one will make " \
   "the property read-only (even if ``READ_ONLY`` option is not set)." \
   "\n" \
-  "   :type get: Callable[[:class:`bpy.types.bpy_struct`], " ty "]\n"
+  "   :type get: Callable[[:class:`bpy.types.bpy_struct`], " ty "] | None\n"
 
 #define BPY_PROPDEF_SET_DOC(ty) \
   "   :param set: Function to be called when this value is 'written', and the default,\n" \
@@ -3446,7 +3446,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "\n" \
   "      .. note:: Defining this callback without a matching ``get`` one is invalid." \
   "\n" \
-  "   :type set: Callable[[:class:`bpy.types.bpy_struct`, " ty "], None]\n"
+  "   :type set: Callable[[:class:`bpy.types.bpy_struct`, " ty "], None] | None\n"
 
 #define BPY_PROPDEF_GET_TRANSFORM_DOC(ty) \
   "   :param get_transform: Function to be called when this value is 'read',\n" \
@@ -3458,7 +3458,8 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "      .. note:: The callback is responsible to ensure that value limits of the property " \
   "(min/max, length...) are respected. Otherwise a ValueError exception is raised.\n" \
   "\n" \
-  "   :type get_transform: Callable[[:class:`bpy.types.bpy_struct`, " ty ", bool], " ty "]\n"
+  "   :type get_transform: Callable[[:class:`bpy.types.bpy_struct`, " ty ", bool], " ty \
+  "] | None\n"
 
 #define BPY_PROPDEF_SET_TRANSFORM_DOC(ty) \
   "   :param set_transform: Function to be called when this value is 'written',\n" \
@@ -3473,7 +3474,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "length...) are respected. Otherwise a ValueError exception is raised.\n" \
   "\n" \
   "   :type set_transform: " \
-  "Callable[[:class:`bpy.types.bpy_struct`, " ty ", " ty ", bool], " ty "]\n"
+  "Callable[[:class:`bpy.types.bpy_struct`, " ty ", " ty ", bool], " ty "] | None\n"
 
 #define BPY_PROPDEF_SEARCH_DOC \
   "   :param search: Function to be called to show candidates " \
@@ -3486,7 +3487,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "        is additional information about the candidate.\n" \
   "   :type search: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.Context`, str], " \
   "Iterable[str | tuple[str, str]]" \
-  "]\n" \
+  "] | None\n" \
   "   :param search_options: Set of strings in:\n" \
   "\n" \
   "      - 'SORT' sorts the resulting items.\n" \
@@ -5116,7 +5117,7 @@ PyDoc_STRVAR(
     "instead.\n"
     "      WARNING: Strings cannot be specified for dynamic enums\n"
     "      (i.e. if a callback function is given as *items* parameter).\n"
-    "   :type default: str | int | set[str]\n"
+    "   :type default: str | int | set[str] | None\n"
     BPY_PROPDEF_OPTIONS_ENUM_DOC
     BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
     BPY_PROPDEF_TAGS_DOC
@@ -5679,7 +5680,7 @@ PyDoc_STRVAR(
     "   Removes a dynamically defined property.\n"
     "\n"
     "   :param cls: The class containing the property (must be a positional argument).\n"
-    "   :type cls: type\n"
+    "   :type cls: type[:class:`bpy.types.bpy_struct`]\n"
     "   :param attr: Property name (must be passed as a keyword).\n"
     "   :type attr: str\n"
     "\n"

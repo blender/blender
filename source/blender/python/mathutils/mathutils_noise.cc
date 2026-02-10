@@ -614,7 +614,7 @@ PyDoc_STRVAR(
     "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
     "   :param octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n" BPY_NOISE_BASIS_ENUM_DOC
+    "   :type octaves: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The fractal Brownian motion noise value.\n"
     "   :rtype: float\n");
 static PyObject *M_Noise_fractal(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -671,7 +671,7 @@ PyDoc_STRVAR(
     "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
     "   :param octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n" BPY_NOISE_BASIS_ENUM_DOC
+    "   :type octaves: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The multifractal noise value.\n"
     "   :rtype: float\n");
 static PyObject *M_Noise_multi_fractal(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -730,12 +730,12 @@ PyDoc_STRVAR(
     "   :type noise_type1: Literal['BLENDER', 'PERLIN_ORIGINAL', 'PERLIN_NEW', "
     "'VORONOI_F1', 'VORONOI_F2', "
     "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', "
-    "'CELLNOISE'].\n"
+    "'CELLNOISE']\n"
     "   :param noise_type2: A noise type string.\n"
     "   :type noise_type2: Literal['BLENDER', 'PERLIN_ORIGINAL', 'PERLIN_NEW', "
     "'VORONOI_F1', 'VORONOI_F2', "
     "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', "
-    "'CELLNOISE'].\n"
+    "'CELLNOISE']\n"
     "   :return: The variable lacunarity noise value.\n"
     "   :rtype: float\n");
 static PyObject *M_Noise_variable_lacunarity(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -801,7 +801,7 @@ PyDoc_STRVAR(
     "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
     "   :param octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n"
+    "   :type octaves: float\n"
     "   :param offset: The height of the terrain above 'sea level'.\n"
     "   :type offset: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The heterogeneous terrain value.\n"
@@ -861,7 +861,7 @@ PyDoc_STRVAR(
     "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
     "   :param octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n"
+    "   :type octaves: float\n"
     "   :param offset: The height of the terrain above 'sea level'.\n"
     "   :type offset: float\n"
     "   :param gain: Scaling applied to the values.\n"
@@ -926,7 +926,7 @@ PyDoc_STRVAR(
     "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
     "   :param octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n"
+    "   :type octaves: float\n"
     "   :param offset: The height of the terrain above 'sea level'.\n"
     "   :type offset: float\n"
     "   :param gain: Scaling applied to the values.\n"

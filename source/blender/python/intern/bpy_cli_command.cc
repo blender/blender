@@ -200,7 +200,7 @@ PyDoc_STRVAR(
     "      The arguments are built from all command-line arguments following the command id.\n"
     "      The return value should be 0 for success, 1 on failure "
     "(specific error codes from the ``os`` module can also be used).\n"
-    "   :type execute: callable\n"
+    "   :type execute: Callable[[list[str]], int]\n"
     "   :return: The command handle which can be passed to :func:`unregister_cli_command`.\n"
     "\n"
     "      This uses Python's capsule type "

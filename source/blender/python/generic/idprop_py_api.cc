@@ -1853,7 +1853,7 @@ PyDoc_STRVAR(
     "   Return the keys associated with this group.\n"
     "\n"
     "   :return: The keys.\n"
-    "   :rtype: idprop.types.IDPropertyGroupViewKeys\n");
+    "   :rtype: :class:`IDPropertyGroupViewKeys`\n");
 static PyObject *BPy_IDGroup_keys(BPy_IDProperty *self)
 {
   return BPy_IDGroup_ViewKeys_CreatePyObject(self);
@@ -1949,7 +1949,7 @@ PyDoc_STRVAR(
     "   Return a purely Python version of the group.\n"
     "\n"
     "   :return: A dictionary representation of the group.\n"
-    "   :rtype: dict\n");
+    "   :rtype: dict[str, Any]\n");
 static PyObject *BPy_IDGroup_to_dict(BPy_IDProperty *self)
 {
   return BPy_IDGroup_MapDataToPy(self->prop);
@@ -2205,7 +2205,7 @@ PyDoc_STRVAR(
     "   Return the array as a list.\n"
     "\n"
     "   :return: The array as a list.\n"
-    "   :rtype: list\n");
+    "   :rtype: list[int] | list[float]\n");
 static PyObject *BPy_IDArray_to_list(BPy_IDArray *self)
 {
   return BPy_IDGroup_MapDataToPy(self->prop);
