@@ -167,6 +167,7 @@ def object_data_add(context, obdata, operator=None, name=None):
 
 class AddObjectHelper:
     def align_update_callback(self, _context):
+        """Update callback for the align property, resets rotation for world alignment."""
         if self.align == 'WORLD':
             self.rotation.zero()
 

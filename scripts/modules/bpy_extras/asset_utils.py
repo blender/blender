@@ -19,6 +19,8 @@ from bpy.types import (
 
 
 class SpaceAssetInfo:
+    """Utility class for checking if a space is an asset browser."""
+
     @classmethod
     def is_asset_browser(cls, space_data: bpy.types.Space):
         return space_data and space_data.type == 'FILE_BROWSER' and space_data.browse_mode == 'ASSETS'
@@ -29,6 +31,8 @@ class SpaceAssetInfo:
 
 
 class AssetBrowserPanel:
+    """Mixin class for panels that should only show in the asset browser."""
+
     bl_space_type = 'FILE_BROWSER'
 
     @classmethod
@@ -41,6 +45,8 @@ class AssetBrowserPanel:
 
 
 class AssetMetaDataPanel:
+    """Mixin class for panels that display asset metadata in the asset browser."""
+
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOL_PROPS'
 

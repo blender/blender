@@ -798,6 +798,20 @@ def time_to_frame(time, *, fps=None, fps_base=None):
 
 
 def preset_find(name, preset_path, *, display_name=False, ext=".py"):
+    """
+    Search for a preset by name.
+
+    :param name: The preset name.
+    :type name: str
+    :param preset_path: The preset subdirectory (e.g. ``"keyconfig"``).
+    :type preset_path: str
+    :param display_name: When True, search by display name instead of filename.
+    :type display_name: bool
+    :param ext: The file extension for the preset.
+    :type ext: str
+    :return: The file path of the preset or None if not found.
+    :rtype: str | None
+    """
     if not name:
         return None
 
@@ -819,8 +833,10 @@ def preset_find(name, preset_path, *, display_name=False, ext=".py"):
 
 
 def keyconfig_init():
-    # Key configuration initialization and refresh, called from the Blender
-    # window manager on startup and refresh.
+    """
+    Initialize and refresh key configurations, called from the Blender
+    window manager on startup and refresh.
+    """
     default_config = "Blender"
     active_config = _preferences.keymap.active_keyconfig
 
@@ -836,6 +852,14 @@ def keyconfig_init():
 
 
 def keyconfig_set(filepath, *, report=None):
+    """
+    Load and activate a key configuration from a file.
+
+    :param filepath: The file path to the key configuration preset.
+    :type filepath: str
+    :param report: An optional callable for reporting errors.
+    :type report: Callable[[set[str], str], None] | None
+    """
     from os.path import basename, splitext
 
     if _bpy.app.debug_python:
@@ -1151,6 +1175,12 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
 
 
 def unregister_tool(tool_cls):
+    """
+    Unregister a previously registered tool.
+
+    :param tool_cls: The tool class to unregister.
+    :type tool_cls: type[:class:`bpy.types.WorkSpaceTool`]
+    """
     space_type = tool_cls.bl_space_type
     context_mode = tool_cls.bl_context_mode
 
@@ -1245,14 +1275,33 @@ _manual_map = [_blender_default_map]
 
 
 def register_manual_map(manual_hook):
+    """
+    Register a function to provide manual URL mappings.
+
+    :param manual_hook: A callable that returns ``(prefix, mapping)``
+       where *mapping* is a sequence of ``(pattern, url)`` pairs.
+    :type manual_hook: Callable[[], tuple[str, list[tuple[str, str]]]]
+    """
     _manual_map.append(manual_hook)
 
 
 def unregister_manual_map(manual_hook):
+    """
+    Unregister a previously registered manual map hook.
+
+    :param manual_hook: The hook function to remove.
+    :type manual_hook: Callable[[], tuple[str, list[tuple[str, str]]]]
+    """
     _manual_map.remove(manual_hook)
 
 
 def manual_map():
+    """
+    Yield manual URL mappings from all registered hooks.
+
+    :return: An iterator of ``(prefix, mapping)`` pairs.
+    :rtype: Iterator[tuple[str, list[tuple[str, str]]]]
+    """
     # reverse so default is called last
     for cb in reversed(_manual_map):
         try:

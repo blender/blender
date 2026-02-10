@@ -405,6 +405,14 @@ def create_derived_objects(depsgraph, objects):
 
 
 def unpack_list(list_of_tuples):
+    """
+    Flatten a sequence of tuples into a single list.
+
+    :param list_of_tuples: A sequence of tuples to unpack.
+    :type list_of_tuples: Sequence[tuple]
+    :return: A flat list of all values.
+    :rtype: list
+    """
     flat_list = []
     flat_list_extend = flat_list.extend  # a tiny bit faster
     for t in list_of_tuples:
@@ -414,6 +422,15 @@ def unpack_list(list_of_tuples):
 
 # same as above except that it adds 0 for triangle faces
 def unpack_face_list(list_of_tuples):
+    """
+    Unpack a list of faces (triangles or quads) into a flat list,
+    padding triangles with a zero to fit into groups of four.
+
+    :param list_of_tuples: A sequence of face index tuples (3 or 4 elements each).
+    :type list_of_tuples: Sequence[tuple[int, ...]]
+    :return: A flat list of face indices, padded with zeros.
+    :rtype: list[int]
+    """
     # allocate the entire list
     flat_ls = [0] * (len(list_of_tuples) * 4)
     i = 0
