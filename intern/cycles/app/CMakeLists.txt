@@ -66,7 +66,7 @@ if(APPLE AND NOT CYCLES_STANDALONE_REPOSITORY)
   set(app_output_dir Blender.app/Contents/MacOS)
   set(app_install_dir Blender.app/Contents/MacOS)
 else()
-  set(app_install ${CMAKE_INSTALL_PREFIX})
+  set(app_install_dir ${CMAKE_INSTALL_PREFIX})
 endif()
 
 # Application build targets

@@ -623,7 +623,7 @@ void colormanagement_init()
 
   if (ocio_env && ocio_env[0] != '\0') {
     g_config() = ocio::Config::create_from_environment();
-    if (g_config != nullptr) {
+    if (g_config() != nullptr) {
       CLOG_INFO_NOCHECK(
           &LOG, "Using %s=%s", (blender_ocio_env) ? "BLENDER_OCIO" : "OCIO", ocio_env);
       const bool ok = colormanage_load_config(*g_config());
@@ -659,7 +659,7 @@ void colormanagement_init()
       g_config() = ocio::Config::create_from_environment();
 
       bool ok = false;
-      if (g_config != nullptr) {
+      if (g_config() != nullptr) {
         ok = colormanage_load_config(*g_config());
         if (!ok) {
           CLOG_ERROR(&LOG, "Failed to load bundled config");

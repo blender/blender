@@ -214,13 +214,13 @@ const char *ColorSpaceManager::colorspace_interop_id(ustring colorspace)
   }
   if (colorspace == u_colorspace_scene_linear) {
     const char *interop_id = get_scene_linear_interop_id(false);
-    if (!strcmp(interop_id, "unknown")) {
+    if (strcmp(interop_id, "unknown") != 0) {
       return interop_id;
     }
   }
   else if (colorspace == u_colorspace_scene_linear_srgb) {
     const char *interop_id = get_scene_linear_interop_id(true);
-    if (!strcmp(interop_id, "unknown")) {
+    if (strcmp(interop_id, "unknown") != 0) {
       return interop_id;
     }
   }
