@@ -574,7 +574,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   RE_engines_exit();
 
   ED_preview_free_dbase(); /* Frees a Main dbase, before #BKE_blender_free! */
-  ED_preview_restart_queue_free();
   ed::asset::list::storage_exit();
 
   BKE_tracking_clipboard_free();

@@ -472,6 +472,7 @@ void BKE_previewimg_render_start(PreviewImage *prv, const int size, const bool u
   BLI_assert(BLI_thread_is_main());
 
   prv->flag[size] |= PRV_RENDERING;
+  prv->runtime->tag[size] &= ~PRV_TAG_RESTART_RENDERING;
 
   /* When rendering as a job in another thread, tag so that main thread will not
    * free it and defer deletion to the job. */
@@ -517,6 +518,23 @@ void BKE_previewimg_render_end(PreviewImage *prv,
   }
 }
 
+bool BKE_previewimg_render_restart(PreviewImage *prv, const int size)
+{
+  BLI_assert(BLI_thread_is_main());
+
+  if (prv->flag[size] & PRV_USER_EDITED) {
+    /* Don't modify custom previews. */
+    return false;
+  }
+
+  if (prv->runtime->tag[size] & PRV_TAG_RESTART_RENDERING) {
+    prv->runtime->tag[size] &= ~PRV_TAG_RESTART_RENDERING;
+    return true;
+  }
+
+  return false;
+}
+
 bool BKE_previewimg_is_rendering(const PreviewImage *prv, const int size)
 {
   return (prv->flag[size] & PRV_RENDERING);
@@ -524,7 +542,8 @@ bool BKE_previewimg_is_rendering(const PreviewImage *prv, const int size)
 
 bool BKE_previewimg_is_finished(const PreviewImage *prv, const int size)
 {
-  return !(prv->flag[size] & PRV_RENDERING);
+  return !(prv->flag[size] & PRV_RENDERING) &&
+         !(prv->runtime->tag[size] & PRV_TAG_RESTART_RENDERING);
 }
 
 bool BKE_previewimg_is_invalid(const PreviewImage *prv, const int size)
@@ -566,11 +585,14 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
       BLO_read_uint32_array(reader, prv->w[i] * prv->h[i], &prv->rect[i]);
     }
 
-    /* PRV_RENDERING is a runtime only flag currently, but don't mess with it on undo! It gets
-     * special handling in #memfile_undosys_restart_unfinished_id_previews() then. */
-    if (!BLO_read_data_is_undo(reader)) {
-      prv->flag[i] &= ~PRV_RENDERING;
+    /* PRV_RENDERING is a runtime only flag currently, but for undo indicates that we need
+     * to restart prevew renders. See ED_preview_restart_work. */
+    if (BLO_read_data_is_undo(reader)) {
+      if ((prv->flag[i] & PRV_RENDERING) && !(prv->flag[i] & PRV_USER_EDITED)) {
+        prv->runtime->tag[i] |= PRV_TAG_RESTART_RENDERING;
+      }
     }
+    prv->flag[i] &= ~PRV_RENDERING;
   }
 }
 

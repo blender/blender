@@ -157,6 +157,7 @@ enum PreviewImageRenderEndStatus {
 
 void BKE_previewimg_render_start(PreviewImage *prv, int size, bool using_job);
 void BKE_previewimg_render_end(PreviewImage *prv, int size, PreviewImageRenderEndStatus status);
+bool BKE_previewimg_render_restart(PreviewImage *prv, int size);
 bool BKE_previewimg_is_rendering(const PreviewImage *prv, int size);
 bool BKE_previewimg_is_finished(const PreviewImage *prv, int size);
 

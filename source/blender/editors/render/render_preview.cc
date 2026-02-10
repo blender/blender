@@ -2409,45 +2409,25 @@ void ED_preview_online_download_finished(wmWindowManager *wm,
   PreviewLoadJob::on_download_completed(wm, preview_full_filepath);
 }
 
-struct PreviewRestartQueueEntry {
-  PreviewRestartQueueEntry *next, *prev;
-
-  enum eIconSizes size;
-  ID *id;
-};
-
-static ListBaseT<PreviewRestartQueueEntry> G_restart_previews_queue;
-
-void ED_preview_restart_queue_free()
+void ED_preview_restart_work(const bContext *C)
 {
-  BLI_freelistN(&G_restart_previews_queue);
-}
+  Main *bmain = CTX_data_main(C);
 
-void ED_preview_restart_queue_add(ID *id, enum eIconSizes size)
-{
-  PreviewRestartQueueEntry *queue_entry = MEM_new_zeroed<PreviewRestartQueueEntry>(__func__);
-  queue_entry->size = size;
-  queue_entry->id = id;
-  BLI_addtail(&G_restart_previews_queue, queue_entry);
-}
-
-void ED_preview_restart_queue_work(const bContext *C)
-{
-  for (PreviewRestartQueueEntry &queue_entry : G_restart_previews_queue.items_mutable()) {
-    PreviewImage *preview = BKE_previewimg_id_get(queue_entry.id);
+  ID *id = nullptr;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    PreviewImage *preview = BKE_previewimg_id_get(id);
     if (!preview) {
       continue;
     }
-    if (preview->flag[queue_entry.size] & PRV_USER_EDITED) {
-      /* Don't touch custom previews. */
-      continue;
+
+    for (int i = 0; i < NUM_ICON_SIZES; i++) {
+      if (BKE_previewimg_render_restart(preview, i)) {
+        BKE_previewimg_clear_single(preview, eIconSizes(i));
+        ui::icon_render_id(C, nullptr, id, eIconSizes(i), true);
+      }
     }
-
-    BKE_previewimg_clear_single(preview, queue_entry.size);
-    ui::icon_render_id(C, nullptr, queue_entry.id, queue_entry.size, true);
-
-    BLI_freelinkN(&G_restart_previews_queue, &queue_entry);
   }
+  FOREACH_MAIN_ID_END;
 }
 
 /** \} */

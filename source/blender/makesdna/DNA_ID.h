@@ -621,6 +621,8 @@ enum {
   PRV_TAG_DEFERRED_DELETE = (1 << 2),
   /** This deferred preview could not be loaded (e.g. not found on disk). */
   PRV_TAG_DEFERRED_INVALID = (1 << 3),
+  /* Rendering was interrupted and needs restart. */
+  PRV_TAG_RESTART_RENDERING = (1 << 4),
 };
 
 /**
