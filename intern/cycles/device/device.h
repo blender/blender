@@ -320,12 +320,12 @@ class Device {
   /* Indicted whether device types and devices lists were initialized. */
   static bool need_types_update, need_devices_update;
   static thread_mutex device_mutex;
-  static vector<DeviceInfo> cuda_devices;
-  static vector<DeviceInfo> optix_devices;
-  static vector<DeviceInfo> cpu_devices;
-  static vector<DeviceInfo> hip_devices;
-  static vector<DeviceInfo> metal_devices;
-  static vector<DeviceInfo> oneapi_devices;
+  static vector<DeviceInfo> &cuda_devices();
+  static vector<DeviceInfo> &optix_devices();
+  static vector<DeviceInfo> &cpu_devices();
+  static vector<DeviceInfo> &hip_devices();
+  static vector<DeviceInfo> &metal_devices();
+  static vector<DeviceInfo> &oneapi_devices();
   static uint devices_initialized_mask;
 };
 
