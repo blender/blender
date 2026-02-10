@@ -226,7 +226,8 @@ def main():
     # Now convert into rst.
     fout = open(OUT_RST, 'w', encoding="utf-8")
     fw = fout.write
-    fw(HEADER)
+    # By convention, ensure a blank line after the last directive in `HEADER`.
+    fw("{:s}\n\n".format(HEADER.rstrip("\n")))
     for comment, b in blocks_py:
         args_in = None
         args_out = None
@@ -289,10 +290,10 @@ def main():
                 elif tp == BMO_OP_SLOT_INT:
                     if tp_sub == BMO_OP_SLOT_SUBTYPE_INT_ENUM:
                         default_value = enums.split(",", 1)[0].strip("[")
-                        tp_str = "enum in " + enums + ", default " + default_value
+                        tp_str = "Literal{:s}".format(enums)
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_INT_FLAG:
                         default_value = 'set()'
-                        tp_str = "set of flags from " + enums + ", default " + default_value
+                        tp_str = "set[Literal{:s}]".format(enums)
                     else:
                         tp_str = "int"
                         default_value = '0'
@@ -306,7 +307,7 @@ def main():
                     tp_str = ":class:`mathutils.Vector`"
                     default_value = 'mathutils.Vector()'
                     if not is_ret:
-                        tp_str += " or any sequence of 3 floats"
+                        comment = (comment + "\n\n" if comment else "") + "Accepts any sequence of 3 floats."
                 elif tp == BMO_OP_SLOT_PTR:
                     assert tp_sub is not None
                     if 'if None' in comment:
@@ -322,6 +323,7 @@ def main():
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_STRUCT:
                         # XXX Used for CurveProfile only currently I think (bevel code),
                         #     but think the idea is that pointer is for any type?
+                        # tp_str = ":class:`bpy.types.CurveProfile`"
                         tp_str = ":class:`bpy.types.bpy_struct`"
                     else:
                         assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp_sub])
@@ -339,33 +341,40 @@ def main():
                     assert ls  # Must be at least one.
 
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE:
-                        tp_str = "/".join(ls)
+                        tp_str = " | ".join(ls)
                     else:
-                        tp_str = "list of ({:s})".format(", ".join(ls))
+                        tp_str = "list[{:s}]".format(" | ".join(ls))
                         default_value = '[]'
 
                     del ls
                 elif tp == BMO_OP_SLOT_MAPPING:
+                    elem_union = (
+                        ":class:`bmesh.types.BMVert` | "
+                        ":class:`bmesh.types.BMEdge` | "
+                        ":class:`bmesh.types.BMFace`"
+                    )
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_MAP_EMPTY:
-                        tp_str = "set of vert/edge/face type"
+                        tp_str = "set[{:s}]".format(elem_union)
                         default_value = 'set()'
                     else:
-                        tp_str = "dict mapping vert/edge/face types to "
                         default_value = '{}'
                         if tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_BOOL:
-                            tp_str += "bool"
+                            tp_str = "dict[{:s}, bool]".format(elem_union)
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INT:
-                            tp_str += "int"
+                            tp_str = "dict[{:s}, int]".format(elem_union)
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_FLT:
-                            tp_str += "float"
+                            tp_str = "dict[{:s}, float]".format(elem_union)
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
-                            tp_str += ":class:`bmesh.types.BMVert`/:class:`bmesh.types.BMEdge`/:class:`bmesh.types.BMFace`"
+                            tp_str = "dict[{:s}, {:s}]".format(elem_union, elem_union)
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
-                            tp_str += "unknown internal data, not compatible with Python"
+                            tp_str = "dict"
                         else:
                             assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp_sub])
                 else:
                     assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp])
+
+                if default_value == 'None':
+                    tp_str = "{:s} | None".format(tp_str)
 
                 args_wash.append((name, default_value, tp_str, comment))
             return args_wash
@@ -419,7 +428,9 @@ def main():
             for (name, _, tp, comment) in args_out_wash:
                 assert name.endswith(".out")
                 name = name[:-4]
-                fw("      - ``{:s}``:\n{:s}\n\n".format(name, textwrap.indent(comment, "        ")))
+                fw("      - ``{:s}``:\n{:s}\n".format(
+                    name, "{:s}\n".format(textwrap.indent(comment, "        ")) if comment else "",
+                ))
                 fw("        **type** {:s}\n".format(tp))
 
             fw("\n")
