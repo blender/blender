@@ -45,6 +45,7 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
 
 static std::array<IDTypeInfo *, INDEX_ID_MAX> id_types;
 
+#ifndef NDEBUG
 /** Check that no member remains uninitialized. */
 static bool id_type_is_valid(const IDTypeInfo &id_type)
 {
@@ -120,6 +121,7 @@ static bool id_type_is_valid(const IDTypeInfo &id_type)
   }
   return true;
 }
+#endif
 
 static void id_type_init()
 {
