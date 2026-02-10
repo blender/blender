@@ -1908,8 +1908,11 @@ static void ui_do_animate(bContext *C, Panel *panel)
   HandlePanelData *data = static_cast<HandlePanelData *>(panel->activedata);
   ARegion *region = CTX_wm_region(C);
 
-  float fac = (BLI_time_now_seconds() - data->starttime) / ANIMATION_TIME;
-  fac = min_ff(sqrtf(fac), 1.0f);
+  float fac = 1.0f;
+  if (!(U.uiflag & USER_REDUCE_MOTION)) {
+    fac = (BLI_time_now_seconds() - data->starttime) / ANIMATION_TIME;
+    fac = min_ff(sqrtf(fac), 1.0f);
+  }
 
   if (uiAlignPanelStep(region, fac, false)) {
     ED_region_tag_redraw(region);
