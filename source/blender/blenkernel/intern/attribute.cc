@@ -335,6 +335,12 @@ bool BKE_attribute_rename(AttributeOwner &owner,
     if (old_name == BKE_id_attributes_default_color_name(&mesh->id)) {
       BKE_id_attributes_default_color_set(&mesh->id, new_name);
     }
+    if (old_name == mesh->active_uv_map_name()) {
+      mesh->uv_maps_active_set(new_name);
+    }
+    if (old_name == mesh->default_uv_map_name()) {
+      mesh->uv_maps_default_set(new_name);
+    }
   }
 
   attributes.rename(old_name, new_name);
