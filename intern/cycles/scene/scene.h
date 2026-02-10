@@ -209,6 +209,8 @@ class Scene : public NodeOwner {
   bool has_volume();
   bool has_volume_modified() const;
   void tag_has_volume_modified();
+  /* Check if we use multiple importance sampling for any light in the scene. */
+  bool use_light_mis() const;
 
   /* This function is used to create a node of a specified type instead of
    * calling 'new', and sets the scene as the owner of the node.

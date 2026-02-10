@@ -811,6 +811,22 @@ void Scene::tag_has_volume_modified()
   has_volume_modified_ = true;
 }
 
+bool Scene::use_light_mis() const
+{
+  for (const Object *object : objects) {
+    if (!object->get_geometry()->is_light()) {
+      continue;
+    }
+
+    const Light *light = static_cast<const Light *>(object->get_geometry());
+    if (light->get_is_enabled() && light->get_use_mis() && light->is_traceable()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 template<class T> T *Scene::create_light_node()
 {
   unique_ptr<T> node = make_unique<T>();

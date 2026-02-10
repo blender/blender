@@ -1377,55 +1377,47 @@ void LightManager::device_update_background(Device *device,
   dscene->light_background_conditional_cdf.copy_to_device();
 }
 
-void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
+void LightManager::count_lights(KernelIntegrator *kintegrator, const Scene *scene)
 {
-  /* Counts lights in the scene. */
   size_t num_lights = 0;
   size_t num_portals = 0;
   size_t num_background_lights = 0;
   size_t num_distant_lights = 0;
-  bool use_light_mis = false;
 
-  for (Object *object : scene->objects) {
+  for (const Object *object : scene->objects) {
     if (!object->get_geometry()->is_light()) {
       continue;
     }
 
-    Light *light = static_cast<Light *>(object->get_geometry());
+    const Light *light = static_cast<const Light *>(object->get_geometry());
     if (light->is_enabled) {
       num_lights++;
       num_distant_lights += light->is_distant_light();
       num_background_lights += light->is_background_light();
-
-      if (light->is_point_light() || light->is_spot_light()) {
-        use_light_mis |= (static_cast<const PointLight *>(light)->get_radius() > 0.0f &&
-                          light->use_mis);
-      }
-      else if (light->is_area_light()) {
-        use_light_mis |= light->use_mis;
-      }
     }
-    if (light->is_portal_light()) {
-      num_portals++;
-    }
+    num_portals += light->is_portal_light();
   }
 
   /* Update integrator settings. */
-  KernelIntegrator *kintegrator = &dscene->data.integrator;
-  kintegrator->use_light_tree = scene->integrator->get_use_light_tree();
   kintegrator->num_lights = num_lights;
   kintegrator->num_distant_lights = num_distant_lights;
   kintegrator->num_background_lights = num_background_lights;
-  kintegrator->use_light_mis = use_light_mis;
-
   kintegrator->num_portals = num_portals;
   kintegrator->portal_offset = num_lights;
+}
+
+void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
+{
+  KernelIntegrator *kintegrator = &dscene->data.integrator;
+  kintegrator->use_light_tree = scene->integrator->get_use_light_tree();
+  kintegrator->use_light_mis = scene->use_light_mis();
 
   /* Create KernelLight for every portal and enabled light in the scene. */
-  KernelLight *klights = dscene->lights.alloc(num_lights + num_portals);
+  count_lights(kintegrator, scene);
+  KernelLight *klights = dscene->lights.alloc(kintegrator->num_lights + kintegrator->num_portals);
 
   int light_index = 0;
-  int portal_index = num_lights;
+  int portal_index = kintegrator->num_lights;
 
   for (const Object *object : scene->objects) {
     if (!object->get_geometry()->is_light()) {
@@ -1443,7 +1435,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     }
   }
 
-  LOG_INFO << "Number of lights sent to the device: " << num_lights;
+  LOG_INFO << "Number of lights sent to the device: " << kintegrator->num_lights;
 
   dscene->lights.copy_to_device();
 }
