@@ -2195,9 +2195,9 @@ def km_image(params):
         items.extend([
             # Old pivot.
             ("wm.context_set_enum", {"type": 'COMMA', "value": 'PRESS'},
-             {"properties": [("data_path", "space_data.pivot_point"), ("value", 'CENTER')]}),
+             {"properties": [("data_path", "space_data.pivot_point"), ("value", 'BOUNDING_BOX_CENTER')]}),
             ("wm.context_set_enum", {"type": 'COMMA', "value": 'PRESS', "ctrl": True},
-             {"properties": [("data_path", "space_data.pivot_point"), ("value", 'MEDIAN')]}),
+             {"properties": [("data_path", "space_data.pivot_point"), ("value", 'MEDIAN_POINT')]}),
             ("wm.context_set_enum", {"type": 'PERIOD', "value": 'PRESS'},
              {"properties": [("data_path", "space_data.pivot_point"), ("value", 'CURSOR')]}),
 
