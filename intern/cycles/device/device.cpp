@@ -37,13 +37,44 @@ CCL_NAMESPACE_BEGIN
 bool Device::need_types_update = true;
 bool Device::need_devices_update = true;
 thread_mutex Device::device_mutex;
-vector<DeviceInfo> Device::cuda_devices;
-vector<DeviceInfo> Device::optix_devices;
-vector<DeviceInfo> Device::cpu_devices;
-vector<DeviceInfo> Device::hip_devices;
-vector<DeviceInfo> Device::metal_devices;
-vector<DeviceInfo> Device::oneapi_devices;
 uint Device::devices_initialized_mask = 0;
+
+/* Lazily init inside function so they get destructed before guardedalloc leak check. */
+vector<DeviceInfo> &Device::cuda_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::optix_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::cpu_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::hip_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::metal_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::oneapi_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
 
 /* Device */
 
@@ -236,12 +267,12 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & (DEVICE_MASK_CUDA | DEVICE_MASK_OPTIX)) {
     if (!(devices_initialized_mask & DEVICE_MASK_CUDA)) {
       if (device_cuda_init()) {
-        device_cuda_info(cuda_devices);
+        device_cuda_info(cuda_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_CUDA;
     }
     if (mask & DEVICE_MASK_CUDA) {
-      for (DeviceInfo &info : cuda_devices) {
+      for (DeviceInfo &info : cuda_devices()) {
         devices.push_back(info);
       }
     }
@@ -252,11 +283,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_OPTIX) {
     if (!(devices_initialized_mask & DEVICE_MASK_OPTIX)) {
       if (device_optix_init()) {
-        device_optix_info(cuda_devices, optix_devices);
+        device_optix_info(cuda_devices(), optix_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_OPTIX;
     }
-    for (DeviceInfo &info : optix_devices) {
+    for (DeviceInfo &info : optix_devices()) {
       devices.push_back(info);
     }
   }
@@ -266,11 +297,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_HIP) {
     if (!(devices_initialized_mask & DEVICE_MASK_HIP)) {
       if (device_hip_init()) {
-        device_hip_info(hip_devices);
+        device_hip_info(hip_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_HIP;
     }
-    for (DeviceInfo &info : hip_devices) {
+    for (DeviceInfo &info : hip_devices()) {
       devices.push_back(info);
     }
   }
@@ -280,11 +311,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_ONEAPI) {
     if (!(devices_initialized_mask & DEVICE_MASK_ONEAPI)) {
       if (device_oneapi_init()) {
-        device_oneapi_info(oneapi_devices);
+        device_oneapi_info(oneapi_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_ONEAPI;
     }
-    for (DeviceInfo &info : oneapi_devices) {
+    for (DeviceInfo &info : oneapi_devices()) {
       devices.push_back(info);
     }
   }
@@ -292,10 +323,10 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
 
   if (mask & DEVICE_MASK_CPU) {
     if (!(devices_initialized_mask & DEVICE_MASK_CPU)) {
-      device_cpu_info(cpu_devices);
+      device_cpu_info(cpu_devices());
       devices_initialized_mask |= DEVICE_MASK_CPU;
     }
-    for (const DeviceInfo &info : cpu_devices) {
+    for (const DeviceInfo &info : cpu_devices()) {
       devices.push_back(info);
     }
   }
@@ -304,11 +335,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_METAL) {
     if (!(devices_initialized_mask & DEVICE_MASK_METAL)) {
       if (device_metal_init()) {
-        device_metal_info(metal_devices);
+        device_metal_info(metal_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_METAL;
     }
-    for (const DeviceInfo &info : metal_devices) {
+    for (const DeviceInfo &info : metal_devices()) {
       devices.push_back(info);
     }
   }
@@ -473,12 +504,12 @@ void Device::tag_update()
 void Device::free_memory()
 {
   devices_initialized_mask = 0;
-  cuda_devices.free_memory();
-  optix_devices.free_memory();
-  hip_devices.free_memory();
-  oneapi_devices.free_memory();
-  cpu_devices.free_memory();
-  metal_devices.free_memory();
+  cuda_devices().free_memory();
+  optix_devices().free_memory();
+  hip_devices().free_memory();
+  oneapi_devices().free_memory();
+  cpu_devices().free_memory();
+  metal_devices().free_memory();
 }
 
 unique_ptr<DeviceQueue> Device::gpu_queue_create()

@@ -58,16 +58,28 @@ void output_aov(float4 color, float value, uint hash)
 
   /* If a candidate was found by hash, output to texture array layer. */
   if (hash_index < total_len) {
+    /* Object holdout. */
+    eObjectInfoFlag ob_flag = drw_object_infos().flag;
+    if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
+      g_holdout = 1.0f;
+    }
+    g_holdout = saturate(g_holdout);
+
     /* Value hashes are stored after color hashes, so the index tells us the AOV type. */
     bool is_value = hash_index >= uint(uniform_buf.render_pass.aovs.color_len);
     uint aov_index = hash_index - (is_value ? uniform_buf.render_pass.aovs.color_len : 0u);
+
+    /* Apply holdout to relevant AOV type. */
+    float4 out_aov = is_value ? float4(value) : color;
+    out_aov *= 1.0f - g_holdout;
+
     if (is_value) {
       uint render_pass_index = uniform_buf.render_pass.value_len + aov_index;
-      imageStoreFast(rp_value_img, int3(int2(gl_FragCoord.xy), render_pass_index), float4(value));
+      imageStoreFast(rp_value_img, int3(int2(gl_FragCoord.xy), render_pass_index), out_aov);
     }
     else {
       uint render_pass_index = uniform_buf.render_pass.color_len + aov_index;
-      imageStoreFast(rp_color_img, int3(int2(gl_FragCoord.xy), render_pass_index), color);
+      imageStoreFast(rp_color_img, int3(int2(gl_FragCoord.xy), render_pass_index), out_aov);
     }
   }
 #endif

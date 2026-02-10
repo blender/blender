@@ -117,14 +117,34 @@ void VKTexture::copy_to(Texture *tex)
 
 void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
-  if (format == GPU_DATA_UINT_24_8_DEPRECATED) {
-    float clear_depth = 0.0f;
-    convert_host_to_device(&clear_depth,
-                           data,
-                           1,
-                           format,
-                           TextureFormat::SFLOAT_32_DEPTH_UINT_8,
-                           TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+  /* Relay depth/stencil clearing to clear_depth_stencil. This branch can be used by pyGPU. */
+  if (bool(format_flag_ & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL))) {
+    float clear_depth = 1.0f;
+    switch (format) {
+      case GPU_DATA_FLOAT:
+        clear_depth = *static_cast<const float *>(data);
+        break;
+
+      case GPU_DATA_UINT_24_8_DEPRECATED:
+        convert_host_to_device(&clear_depth,
+                               data,
+                               1,
+                               format,
+                               TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                               TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+        break;
+
+      case GPU_DATA_HALF_FLOAT:
+      case GPU_DATA_INT:
+      case GPU_DATA_UINT:
+      case GPU_DATA_UBYTE:
+      case GPU_DATA_10_11_11_REV:
+      case GPU_DATA_2_10_10_10_REV:
+        /* Can only clear depth/stencil textures with float/uin24_8 data format. Texture will be
+         * cleared to 1.0 depth. */
+        BLI_assert_unreachable();
+        break;
+    }
     clear_depth_stencil(GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_depth, 0u, std::nullopt);
     return;
   }
