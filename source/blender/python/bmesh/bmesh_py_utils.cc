@@ -395,7 +395,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_split_doc,
-    ".. method:: face_split(face, vert_a, vert_b, *, coords=(), use_exist=True, example=None)\n"
+    ".. method:: face_split(face, vert_a, vert_b, *, coords=(), use_exist=True, source=None)\n"
     "\n"
     "   Face split with optional intermediate points.\n"
     "\n"
@@ -410,15 +410,12 @@ PyDoc_STRVAR(
     "   :param use_exist: Use an existing edge if it exists (only used when *coords* argument is "
     "empty or omitted)\n"
     "   :type use_exist: bool\n"
-    "   :param example: Newly created edge will copy settings from this one.\n"
-    "   :type example: :class:`bmesh.types.BMEdge`\n"
+    "   :param source: Newly created edge will copy settings from this one.\n"
+    "   :type source: :class:`bmesh.types.BMEdge` | None\n"
     "   :return: The newly created face or None on failure.\n"
     "   :rtype: tuple[:class:`bmesh.types.BMFace`, :class:`bmesh.types.BMLoop`]\n");
 static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
-  static const char *kwlist[] = {
-      "face", "vert_a", "vert_b", "coords", "use_exist", "example", nullptr};
-
   BPy_BMFace *py_face;
   BPy_BMVert *py_vert_a;
   BPy_BMVert *py_vert_b;
@@ -426,7 +423,8 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
   /* optional */
   PyObject *py_coords = nullptr;
   bool edge_exists = true;
-  BPy_BMEdge *py_edge_example = nullptr;
+  BPy_BMEdge *py_edge_source = nullptr;
+  PyC_TypeOrNone py_edge_source_or_none = PyC_TYPE_OR_NONE_INIT(&BPy_BMEdge_Type, &py_edge_source);
 
   float *coords;
   int ncoords = 0;
@@ -436,21 +434,34 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
   BMLoop *l_new = nullptr;
   BMLoop *l_a, *l_b;
 
-  if (!PyArg_ParseTupleAndKeywords(args,
-                                   kw,
-                                   "O!O!O!|$OO&O!:face_split",
-                                   const_cast<char **>(kwlist),
-                                   &BPy_BMFace_Type,
-                                   &py_face,
-                                   &BPy_BMVert_Type,
-                                   &py_vert_a,
-                                   &BPy_BMVert_Type,
-                                   &py_vert_b,
-                                   &py_coords,
-                                   PyC_ParseBool,
-                                   &edge_exists,
-                                   &BPy_BMEdge_Type,
-                                   &py_edge_example))
+  static const char *_keywords[] = {
+      "face", "vert_a", "vert_b", "coords", "use_exist", "source", nullptr};
+  static _PyArg_Parser _parser = {
+      "O!" /* `face` */
+      "O!" /* `vert_a` */
+      "O!" /* `vert_b` */
+      "|$" /* Optional keyword only arguments. */
+      "O"  /* `coords` */
+      "O&" /* `use_exist` */
+      "O&" /* `source` */
+      ":face_split",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kw,
+                                        &_parser,
+                                        &BPy_BMFace_Type,
+                                        &py_face,
+                                        &BPy_BMVert_Type,
+                                        &py_vert_a,
+                                        &BPy_BMVert_Type,
+                                        &py_vert_b,
+                                        &py_coords,
+                                        PyC_ParseBool,
+                                        &edge_exists,
+                                        PyC_ParseTypeOrNone,
+                                        &py_edge_source_or_none))
   {
     return nullptr;
   }
@@ -459,8 +470,8 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
   BPY_BM_CHECK_OBJ(py_vert_a);
   BPY_BM_CHECK_OBJ(py_vert_b);
 
-  if (py_edge_example) {
-    BPY_BM_CHECK_OBJ(py_edge_example);
+  if (py_edge_source) {
+    BPY_BM_CHECK_OBJ(py_edge_source);
   }
 
   /* this doubles for checking that the verts are in the same mesh */
@@ -504,7 +515,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
                             (float (*)[3])coords,
                             ncoords,
                             &l_new,
-                            py_edge_example ? py_edge_example->e : nullptr);
+                            py_edge_source ? py_edge_source->e : nullptr);
     PyMem_Free(coords);
   }
   else {
@@ -513,7 +524,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
                           l_a,
                           l_b,
                           &l_new,
-                          py_edge_example ? py_edge_example->e : nullptr,
+                          py_edge_source ? py_edge_source->e : nullptr,
                           edge_exists);
   }
 

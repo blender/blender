@@ -330,7 +330,7 @@ PyDoc_STRVAR(
     "   :type set: Callable[[tuple[float, ...]], Any]\n"
     "   :param range: Function that returns a (min, max) tuple for gizmos that use a range. "
     "The returned value is not used.\n"
-    "   :type range: callable\n");
+    "   :type range: callable | None\n");
 static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
@@ -380,6 +380,10 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
 
   gz = params.gz_with_target_type.gz;
   gz_prop_type = params.gz_with_target_type.gz_prop_type;
+
+  if (params.py_fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET] == Py_None) {
+    params.py_fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET] = nullptr;
+  }
 
   {
     const int slots_required = 2;
