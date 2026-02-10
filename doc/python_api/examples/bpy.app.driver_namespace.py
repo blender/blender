@@ -18,7 +18,7 @@ File Loading & Order of Initialization
 
          import os
          import bpy
-         blend_dir = os.path.normalize(os.path.join(__file__, "..", ".."))
+         blend_dir = os.path.normpath(os.path.join(__file__, "..", ".."))
          bpy.utils.execfile(os.path.join(blend_dir, "driver_namespace.py"))
 
       Using ``__file__`` ensures the text resolves to the expected path even when library-linked from another file.
@@ -33,7 +33,7 @@ File Loading & Order of Initialization
    since opening a file clears the name-space.
 
    It is possible to run a script via the ``--python`` command line argument, before the blend file.
-   This can register a load-post handler (:mod:`bpy.app.handlers.load_post`) that initialized the name-space.
+   This can register a load-post handler (:mod:`bpy.app.handlers.load_post`) that initializes the name-space.
    While this works for background tasks it has the downside that opening the file from the file selector
    won't setup the name-space.
 """

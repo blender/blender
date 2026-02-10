@@ -116,7 +116,7 @@ PyDoc_STRVAR(
     pygpu_platform_backend_type_get_doc,
     ".. function:: backend_type_get()\n"
     "\n"
-    "   Get actuve GPU backend.\n"
+    "   Get active GPU backend.\n"
     "\n"
     "   :return: Backend type ('OPENGL', 'VULKAN', 'METAL', 'NONE', 'UNKNOWN').\n"
     "   :rtype: str\n");

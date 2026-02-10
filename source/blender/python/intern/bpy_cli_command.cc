@@ -187,7 +187,7 @@ class BPyCommandHandler : public CommandHandler {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_cli_command_register_doc,
-    ".. method:: register_cli_command(id, execute)\n"
+    ".. function:: register_cli_command(id, execute)\n"
     "\n"
     "   Register a command, accessible via the (``-c`` / ``--command``) command-line argument.\n"
     "\n"
@@ -250,7 +250,7 @@ static PyObject *bpy_cli_command_register(PyObject * /*self*/, PyObject *args, P
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_cli_command_unregister_doc,
-    ".. method:: unregister_cli_command(handle)\n"
+    ".. function:: unregister_cli_command(handle)\n"
     "\n"
     "   Unregister a CLI command.\n"
     "\n"

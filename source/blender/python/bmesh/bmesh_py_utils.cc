@@ -251,7 +251,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param vert: The vert to be separated.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
-    "   :param edges: The edges to separated.\n"
+    "   :param edges: The edges to separate.\n"
     "   :type edges: Sequence[:class:`bmesh.types.BMEdge`]\n"
     "   :return: The newly separated verts (including the vertex passed).\n"
     "   :rtype: tuple[:class:`bmesh.types.BMVert`, ...]\n");
@@ -407,7 +407,7 @@ PyDoc_STRVAR(
     "   :type vert_b: :class:`bmesh.types.BMVert`\n"
     "   :param coords: Optional sequence of 3D points in between *vert_a* and *vert_b*.\n"
     "   :type coords: Sequence[Sequence[float]]\n"
-    "   :param use_exist: .Use an existing edge if it exists (Only used when *coords* argument is "
+    "   :param use_exist: Use an existing edge if it exists (only used when *coords* argument is "
     "empty or omitted)\n"
     "   :type use_exist: bool\n"
     "   :param example: Newly created edge will copy settings from this one.\n"
@@ -657,8 +657,8 @@ PyDoc_STRVAR(
     "   :type face: :class:`bmesh.types.BMFace`\n"
     "   :param vert: A vertex in the face to separate.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
-    "   :return vert: The newly created vertex or None on failure.\n"
-    "   :rtype vert: :class:`bmesh.types.BMVert`\n"
+    "   :return: The newly created vertex or None on failure.\n"
+    "   :rtype: :class:`bmesh.types.BMVert`\n"
     "\n"
     "   .. note::\n"
     "\n"
@@ -704,7 +704,7 @@ static PyObject *bpy_bm_utils_face_vert_separate(PyObject * /*self*/, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_flip_doc,
-    ".. method:: face_flip(faces)\n"
+    ".. method:: face_flip(face)\n"
     "\n"
     "   Flip the faces direction.\n"
     "\n"
@@ -735,8 +735,8 @@ PyDoc_STRVAR(
     "\n"
     "   :param loop: The loop to separate.\n"
     "   :type loop: :class:`bmesh.types.BMLoop`\n"
-    "   :return vert: The newly created vertex or None on failure.\n"
-    "   :rtype vert: :class:`bmesh.types.BMVert`\n");
+    "   :return: The newly created vertex or None on failure.\n"
+    "   :rtype: :class:`bmesh.types.BMVert`\n");
 static PyObject *bpy_bm_utils_loop_separate(PyObject * /*self*/, BPy_BMLoop *value)
 {
   BMesh *bm;
@@ -772,6 +772,8 @@ PyDoc_STRVAR(
     "\n"
     "   Check UV selection state for consistency issues.\n"
     "\n"
+    "   :param bm: The BMesh to check.\n"
+    "   :type bm: :class:`bmesh.types.BMesh`\n"
     "   :param sync: Check the data is properly synchronized "
     "between UV's and the underlying mesh. "
     "Failure to synchronize with the mesh selection "
@@ -980,7 +982,7 @@ static PyMethodDef BPy_BM_utils_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BM_utils_doc,
-    "This module provides access to blenders bmesh data structures.");
+    "This module provides access to Blender's bmesh data structures.");
 static PyModuleDef BPy_BM_utils_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.utils",

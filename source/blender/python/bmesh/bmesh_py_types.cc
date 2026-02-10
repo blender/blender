@@ -224,7 +224,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void * /*fla
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmvertseq_doc,
-    "This meshes vert sequence (read-only).\n"
+    "This mesh's vert sequence (read-only).\n"
     "\n"
     ":type: :class:`bmesh.types.BMVertSeq`\n");
 static PyObject *bpy_bmvertseq_get(BPy_BMesh *self, void * /*closure*/)
@@ -236,7 +236,7 @@ static PyObject *bpy_bmvertseq_get(BPy_BMesh *self, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmedgeseq_doc,
-    "This meshes edge sequence (read-only).\n"
+    "This mesh's edge sequence (read-only).\n"
     "\n"
     ":type: :class:`bmesh.types.BMEdgeSeq`\n");
 static PyObject *bpy_bmedgeseq_get(BPy_BMesh *self, void * /*closure*/)
@@ -248,7 +248,7 @@ static PyObject *bpy_bmedgeseq_get(BPy_BMesh *self, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmfaceseq_doc,
-    "This meshes face sequence (read-only).\n"
+    "This mesh's face sequence (read-only).\n"
     "\n"
     ":type: :class:`bmesh.types.BMFaceSeq`\n");
 static PyObject *bpy_bmfaceseq_get(BPy_BMesh *self, void * /*closure*/)
@@ -260,7 +260,7 @@ static PyObject *bpy_bmfaceseq_get(BPy_BMesh *self, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopseq_doc,
-    "This meshes loops (read-only).\n"
+    "This mesh's loops (read-only).\n"
     "\n"
     ":type: :class:`bmesh.types.BMLoopSeq`\n"
     "\n"
@@ -1315,7 +1315,7 @@ PyDoc_STRVAR(
     "   .. note::\n"
     "\n"
     "      The BMesh is freed automatically, typically when the script finishes executing.\n"
-    "      However in some cases its hard to predict when this will be and its useful to\n"
+    "      However in some cases it's hard to predict when this will be and it's useful to\n"
     "      explicitly free the data.\n");
 static PyObject *bpy_bmesh_free(BPy_BMesh *self)
 {
@@ -1570,7 +1570,7 @@ PyDoc_STRVAR(
     bpy_bmesh_select_flush_mode_doc,
     ".. method:: select_flush_mode(*, flush_down=False)\n"
     "\n"
-    "   Flush selection based on the current mode current "
+    "   Flush selection based on the current mode "
     ":class:`bmesh.types.BMesh.select_mode`.\n"
     "\n"
     "   :param flush_down: Flush selection down from faces to edges & verts "
@@ -1640,7 +1640,7 @@ PyDoc_STRVAR(
     bpy_bmesh_uv_select_flush_mode_doc,
     ".. method:: uv_select_flush_mode(*, flush_down=False)\n"
     "\n"
-    "   Flush selection based on the current mode current :class:`BMesh.select_mode`.\n"
+    "   Flush selection based on the current mode :class:`bmesh.types.BMesh.select_mode`.\n"
     "\n"
     "   :param flush_down: Flush selection down from faces to edges & verts "
     "or from edges to verts. "
@@ -2286,7 +2286,7 @@ PyDoc_STRVAR(
     "\n"
     "      This only flushes down, so selecting a face will select all its "
     "vertices but de-selecting a vertex "
-    "      won't de-select all the faces that use it, before finishing with a mesh "
+    "won't de-select all the faces that use it, before finishing with a mesh "
     "typically flushing is still needed.\n");
 static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 {
@@ -2334,7 +2334,11 @@ PyDoc_STRVAR(
     bpy_bm_elem_copy_from_doc,
     ".. method:: copy_from(other)\n"
     "\n"
-    "   Copy values from another element of matching type.\n");
+    "   Copy values from another element of matching type.\n"
+    "\n"
+    "   :param other: Another element of matching type to copy from.\n"
+    "   :type other: :class:`bmesh.types.BMVert` | :class:`bmesh.types.BMEdge` | "
+    ":class:`bmesh.types.BMFace` | :class:`bmesh.types.BMLoop`\n");
 static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -2438,7 +2442,7 @@ PyDoc_STRVAR(
     bpy_bmvert_copy_from_face_interp_doc,
     ".. method:: copy_from_face_interp(face)\n"
     "\n"
-    "   Interpolate the customdata from a face onto this loop (the loops vert should "
+    "   Interpolate the customdata from a face onto this vert (the vert should "
     "overlap the face).\n"
     "\n"
     "   :param face: The face to interpolate data from.\n"
@@ -2823,7 +2827,7 @@ PyDoc_STRVAR(
     "\n"
     "      Currently this only flushes down, so selecting a face will select all its "
     "vertices but de-selecting a vertex "
-    "      won't de-select all the faces that use it, before finishing with a mesh "
+    "won't de-select all the faces that use it, before finishing with a mesh "
     "typically flushing is still needed.\n");
 static PyObject *bpy_bmface_uv_select_set(BPy_BMFace *self, PyObject *value)
 {
@@ -3089,7 +3093,7 @@ PyDoc_STRVAR(
     "\n"
     "      Currently this only flushes down, so selecting an edge will select all its "
     "vertices but de-selecting a vertex "
-    "      won't de-select the edges & faces that use it, before finishing with a mesh "
+    "won't de-select the edges & faces that use it, before finishing with a mesh "
     "typically flushing with :class:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
 static PyObject *bpy_bmloop_uv_select_vert_set(BPy_BMLoop *self, PyObject *value)
 {
@@ -5012,7 +5016,7 @@ PyDoc_STRVAR(
     "Literal['SHARED_LOCATION', 'DISABLED', 'SHARED_VERTEX']\n"
     "\n"
     ".. |UV_SELECT_FLUSH_MODE_NEEDED| replace:: "
-    "This function selection-mode independent, "
+    "This function is selection-mode independent, "
     "typically :class:`bmesh.types.BMesh.uv_select_flush_mode` should be called afterwards.\n"
     "\n"
     ".. |UV_SELECT_SYNC_TO_MESH_NEEDED| replace:: "

@@ -57,7 +57,7 @@ def region_2d_to_origin_3d(region, rv3d, coord, *, clamp=None):
        Orthographic views have a less obvious origin,
        the far clip is used to define the viewport near/far extents.
        Since far clip can be a very large value,
-       the result may give with numeric precision issues.
+       the result may have numeric precision issues.
 
        To avoid this problem, you can optionally clamp the far clip to a
        smaller value based on the data you're operating on.

@@ -64,8 +64,8 @@ def draw_texture_2d(texture, position, width, height, is_scene_linear_with_rec70
 
     :param texture: GPUTexture to draw (e.g. gpu.texture.from_image(image) for :class:`bpy.types.Image`).
     :type texture: :class:`gpu.types.GPUTexture`
-    :param position: Position of the lower left corner.
-    :type position: 2D Vector
+    :param position: 2D position of the lower left corner.
+    :type position: Sequence[float]
     :param width: Width of the image when drawn (not necessarily
         the original width of the texture).
     :type width: float

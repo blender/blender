@@ -256,7 +256,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create a vector filled with a range of values.\n"
     "\n"
-    "    This method can also be called with a single argument, "
+    "   This method can also be called with a single argument, "
     "in which case the argument is interpreted as ``stop`` and ``start`` defaults to 0.\n"
     "\n"
     "   :param start: The start of the range used to fill the vector.\n"

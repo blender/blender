@@ -514,7 +514,7 @@ PyDoc_STRVAR(
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
     "   :type format: str\n"
     "   :param value: Sequence each representing the value to fill. Sizes 1..4 are supported.\n"
-    "   :type value: Sequence[float]\n");
+    "   :type value: Sequence[float] | Sequence[int]\n");
 static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -593,7 +593,9 @@ PyDoc_STRVAR(
     ".. method:: read()\n"
     "\n"
     "   Creates a buffer with the value of all pixels.\n"
-    "\n");
+    "\n"
+    "   :return: The Buffer with the read pixels.\n"
+    "   :rtype: :class:`gpu.types.Buffer`\n");
 static PyObject *pygpu_texture_read(BPyGPUTexture *self)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);

@@ -14,7 +14,12 @@ def find_base_socket_type(socket):
     Find the base class of the socket.
 
     Sockets can have a subtype such as NodeSocketFloatFactor,
-    but only the base type is allowed, e. g. NodeSocketFloat
+    but only the base type is allowed, e.g. NodeSocketFloat
+
+    :param socket: The socket to find the base type for.
+    :type socket: :class:`bpy.types.NodeSocket`
+    :return: The base socket type identifier.
+    :rtype: str
     """
     if socket.type == 'CUSTOM':
         # Custom socket types are used directly
@@ -58,6 +63,11 @@ def connect_sockets(input, output):
     Group Input and Group Output nodes).
 
     It replaces node_tree.links.new(input, output)
+
+    :param input: The input socket.
+    :type input: :class:`bpy.types.NodeSocket`
+    :param output: The output socket.
+    :type output: :class:`bpy.types.NodeSocket`
     """
     import bpy
 

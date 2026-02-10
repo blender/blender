@@ -89,7 +89,7 @@ def object_data_add(context, obdata, operator=None, name=None):
 
     :param context: The context to use.
     :type context: :class:`bpy.types.Context`
-    :param obdata: Valid object data to used for the new object or None.
+    :param obdata: Valid object data to be used for the new object or None.
     :type obdata: :class:`bpy.types.ID` | None
     :param operator: The operator, checked for location and rotation properties.
     :type operator: :class:`bpy.types.Operator`
@@ -198,7 +198,12 @@ class AddObjectHelper:
 def object_add_grid_scale(context):
     """
     Return scale which should be applied on object
-    data to align it to grid scale
+    data to align it to grid scale.
+
+    :param context: The context.
+    :type context: :class:`bpy.types.Context`
+    :return: The grid scale.
+    :rtype: float
     """
 
     space_data = context.space_data
@@ -211,7 +216,12 @@ def object_add_grid_scale(context):
 
 def object_add_grid_scale_apply_operator(operator, context):
     """
-    Scale an operators distance values by the grid size.
+    Scale an operator's distance values by the grid size.
+
+    :param operator: The operator to scale.
+    :type operator: :class:`bpy.types.Operator`
+    :param context: The context.
+    :type context: :class:`bpy.types.Context`
     """
     # This is a Python version of the C++ function `WM_operator_view3d_unit_defaults`.
     grid_scale = object_add_grid_scale(context)
@@ -280,8 +290,9 @@ def object_report_if_active_shape_key_is_locked(obj, operator):
     :param obj: Object to check.
     :type obj: :class:`bpy.types.Object`
     :param operator: Currently running operator to report the error through. Use None to suppress emitting the message.
-    :type operator: :class:`bpy.types.Operator`
+    :type operator: :class:`bpy.types.Operator` | None
     :return: True if the shape key was locked.
+    :rtype: bool
     """
     key = obj.active_shape_key
 

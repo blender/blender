@@ -402,7 +402,12 @@ def load_scripts_extensions(*, reload_scripts=False):
 
 
 def script_path_user():
-    """returns the env var and falls back to home dir or None"""
+    """
+    Return the user script path or None.
+
+    :return: The user script path, or None if not found.
+    :rtype: str | None
+    """
     path = _user_resource('SCRIPTS')
     return _os.path.normpath(path) if path else None
 
@@ -698,6 +703,10 @@ def smpte_from_seconds(time, *, fps=None, fps_base=None):
 
     :param time: time in seconds.
     :type time: int | float | datetime.timedelta
+    :param fps: Frames per second, if not given the current scene is used.
+    :type fps: float | None
+    :param fps_base: Frames per second base, if not given the current scene is used.
+    :type fps_base: float | None
     :return: the frame string.
     :rtype: str
     """
@@ -718,6 +727,10 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
 
     :param frame: frame number.
     :type frame: int | float
+    :param fps: Frames per second, if not given the current scene is used.
+    :type fps: float | None
+    :param fps_base: Frames per second base, if not given the current scene is used.
+    :type fps_base: float | None
     :return: the frame string.
     :rtype: str
     """
@@ -745,12 +758,16 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
 
 def time_from_frame(frame, *, fps=None, fps_base=None):
     """
-    Returns the time from a frame number .
+    Returns the time from a frame number.
 
     If *fps* and *fps_base* are not given the current scene is used.
 
     :param frame: number.
     :type frame: int | float
+    :param fps: Frames per second, if not given the current scene is used.
+    :type fps: float | None
+    :param fps_base: Frames per second base, if not given the current scene is used.
+    :type fps_base: float | None
     :return: the time in seconds.
     :rtype: datetime.timedelta
     """
@@ -1374,6 +1391,8 @@ _manual_language_codes = {
 
 def manual_language_code(default="en"):
     """
+    :param default: The fallback language code to use when the current language is unavailable.
+    :type default: str
     :return:
        The language code used for user manual URL component based on the current language user-preference,
        falling back to the ``default`` when unavailable.
@@ -1398,7 +1417,7 @@ def make_rna_paths(struct_name, prop_name, enum_name):
     :type enum_name: str
     :return: A triple of three "RNA paths"
        (most_complete_path, "struct.prop", "struct.prop:'enum'").
-       If no enum_name is given, the third element will always be void.
+       If no enum_name is given, the third element will always be empty.
     :rtype: tuple[str, str, str]
     """
     src = src_rna = src_enum = ""

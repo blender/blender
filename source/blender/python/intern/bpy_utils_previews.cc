@@ -62,7 +62,7 @@ static PyObject *bpy_utils_previews_new(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_utils_previews_load_doc,
-    ".. method:: load(name, filepath, filetype, force_reload=False)\n"
+    ".. method:: load(name, filepath, file_type, force_reload=False)\n"
     "\n"
     "   Generate a new preview from given file path.\n"
     "\n"
@@ -70,9 +70,9 @@ PyDoc_STRVAR(
     "   :type name: str\n"
     "   :param filepath: The file path to generate the preview from.\n"
     "   :type filepath: str | bytes\n"
-    "   :param filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
+    "   :param file_type: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
     "].\n"
-    "   :type filetype: str\n"
+    "   :type file_type: str\n"
     "   :param force_reload: If True, force running thumbnail manager even if preview already "
     "exists in cache.\n"
     "   :type force_reload: bool\n"

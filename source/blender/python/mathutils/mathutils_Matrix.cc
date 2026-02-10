@@ -1322,7 +1322,7 @@ PyDoc_STRVAR(
     "   Return an Euler representation of the rotation matrix\n"
     "   (3x3 or 4x4 matrix only).\n"
     "\n"
-    "   :param order: A rotation order string."
+    "   :param order: A rotation order string.\n"
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n"
     "   :param euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
@@ -1986,8 +1986,8 @@ PyDoc_STRVAR(
     Matrix_lerp_doc,
     ".. method:: lerp(other, factor, /)\n"
     "\n"
-    "   Returns the interpolation of two matrices. Uses polar decomposition, see"
-    "   \"Matrix Animation and Polar Decomposition\", Shoemake and Duff, 1992.\n"
+    "   Returns the interpolation of two matrices. Uses polar decomposition, see "
+    "\"Matrix Animation and Polar Decomposition\", Shoemake and Duff, 1992.\n"
     "\n"
     "   :param other: value to interpolate with.\n"
     "   :type other: :class:`Matrix`\n"
@@ -3385,7 +3385,7 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void * /*closure*/
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_is_orthogonal_axis_vectors_doc,
-    "True if this matrix has got orthogonal axis vectors, 3x3 and 4x4 only, "
+    "True if this matrix has orthogonal axis vectors, 3x3 and 4x4 only, "
     "(read-only).\n"
     "\n"
     ":type: bool\n");

@@ -318,7 +318,7 @@ PyDoc_STRVAR(
     pygpu_hdr_support_get_doc,
     ".. function:: hdr_support_get()\n"
     "\n"
-    "  Return whether GPU backend supports High Dynamic range for viewport.\n"
+    "   Return whether GPU backend supports High Dynamic range for viewport.\n"
     "\n"
     "   :return: HDR support available.\n"
     "   :rtype: bool\n");

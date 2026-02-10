@@ -945,7 +945,7 @@ PyDoc_STRVAR(
     pygpu_shader_from_builtin_doc,
     ".. function:: from_builtin(shader_name, *, config='DEFAULT')\n"
     "\n"
-    "   Shaders that are embedded in the blender internal code (see :ref:`built-in-shaders`).\n"
+    "   Shaders that are embedded in the Blender internal code (see :ref:`built-in-shaders`).\n"
     "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
     "   which can be edited by the :mod:`gpu.matrix` module.\n"
     "\n"
