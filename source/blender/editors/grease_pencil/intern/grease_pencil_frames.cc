@@ -703,15 +703,26 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
 
   const int offset = calculate_offset(offset_mode, ac->scene->r.cfra, clipboard);
 
-  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
-                      ANIMFILTER_FOREDIT | ANIMFILTER_SEL);
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-
-  ANIM_animdata_filter(
-      ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
-
   /* Check if single channel in buffer (disregard names if so). */
   const bool from_single_channel = clipboard.copy_buffer.size() == 1;
+  bool match_names = !from_single_channel;
+
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  /* Only paste into selected layers. */
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+                ANIMFILTER_FOREDIT | ANIMFILTER_SEL);
+  ANIM_animdata_filter(
+      ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+  if (BLI_listbase_is_empty(&anim_data)) {
+    /* If no layers are selected at all, make even unselected layers "targets" for pasting. */
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+              ANIMFILTER_FOREDIT);
+    ANIM_animdata_filter(
+        ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+    /* In this case, always match names though (otherwise we would paste from a single channel into
+     * all others). */
+    match_names = true;
+  }
 
   for (bAnimListElem &ale : anim_data) {
     /* Only deal with GPlayers (case of calls from general dope-sheet). */
@@ -721,7 +732,7 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
     GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
     Layer &layer = *reinterpret_cast<Layer *>(ale.data);
     const std::string layer_name = layer.name();
-    if (!from_single_channel && !clipboard.copy_buffer.contains(layer_name)) {
+    if (match_names && !clipboard.copy_buffer.contains(layer_name)) {
       continue;
     }
     const KeyframeClipboard::LayerBufferItem layer_buffer =
