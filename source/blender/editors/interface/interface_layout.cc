@@ -5895,18 +5895,28 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
 
   /* This check may be paranoid, this function might run outside the context of a popup or can run
    * in popovers that are not supposed to support refreshing, see #ui_popover_create_block. */
-  if (block->handle && block->handle->region) {
+  const bool support_layout_panel = block->handle && block->handle->region;
+  if (support_layout_panel) {
     /* Allow popovers to contain collapsible sections, see #Layout::popover. */
     popup_dummy_panel_set(block->handle->region, block, pt->idname);
   }
 
-  Item *item_last = layout->items().is_empty() ? nullptr : layout->items().last();
-
+  Layout *body = nullptr;
   /* Draw main panel. */
   if (show_header) {
-    Layout *row = &layout->row(false);
+    Layout *header = nullptr;
+    if (support_layout_panel && !(pt->flag & PANEL_TYPE_NO_HEADER)) {
+      layout->separator(0.1f);
+      PanelLayout panel_layout = layout->panel(C, panel->type->idname, false);
+      header = panel_layout.header;
+      body = panel_layout.body;
+    }
+    else {
+      header = &layout->row(false);
+      body = &layout->column(false);
+    }
     if (pt->draw_header) {
-      panel->layout = row;
+      panel->layout = header;
       pt->draw_header(C, panel);
       panel->layout = nullptr;
     }
@@ -5914,31 +5924,45 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
     /* draw_header() is often used to add a checkbox to the header. If we add the label like below
      * the label is disconnected from the checkbox, adding a weird looking gap. As workaround, let
      * the checkbox add the label instead. */
-    if (!ui_layout_has_panel_label(row, pt)) {
-      row->label(CTX_IFACE_(pt->translation_context, pt->label), ICON_NONE);
+    if (!ui_layout_has_panel_label(header, pt)) {
+      header->label(CTX_IFACE_(pt->translation_context, pt->label), ICON_NONE);
     }
   }
+  else {
+    body = &layout->column(false);
+  }
 
-  panel->layout = layout;
-  pt->draw(C, panel);
-  panel->layout = nullptr;
+  if (body) {
+    panel->layout = body;
+    pt->draw(C, panel);
+    panel->layout = nullptr;
+  }
   BLI_assert(panel->runtime->custom_data_ptr == nullptr);
 
   BKE_panel_free(panel);
-
+  if (!body) {
+    return;
+  }
   /* Draw child panels. */
+  Layout *prev_sub_col = nullptr;
   for (LinkData &link : pt->children) {
     PanelType *child_pt = static_cast<PanelType *>(link.data);
-
     if (child_pt->poll == nullptr || child_pt->poll(C, child_pt)) {
       /* Add space if something was added to the layout. */
-      if (!layout->items().is_empty() && item_last != layout->items().last()) {
-        layout->separator();
-        item_last = layout->items().last();
+      if (prev_sub_col && prev_sub_col->items().size() > 0) {
+        Item *last_sub_child = prev_sub_col->items().last();
+        Layout *last_sub_layout = ELEM(last_sub_child->type(),
+                                       ItemType::LayoutPanelBody,
+                                       ItemType::LayoutColumn) ?
+                                      static_cast<Layout *>(last_sub_child) :
+                                      nullptr;
+        if (last_sub_layout && !last_sub_layout->items().is_empty()) {
+          last_sub_layout->separator(0.2f);
+        }
       }
-
-      Layout *col = &layout->column(false);
-      ui_paneltype_draw_impl(C, child_pt, col, true);
+      Layout *sub_col = &body->column(false);
+      ui_paneltype_draw_impl(C, child_pt, sub_col, true);
+      prev_sub_col = sub_col;
     }
   }
 }
