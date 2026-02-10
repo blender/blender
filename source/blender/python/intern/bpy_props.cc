@@ -3362,6 +3362,10 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :param unit: Enumerator in :ref:`rna_enum_property_unit_items`.\n" \
   "   :type unit: str\n"
 
+#define BPY_PROPDEF_DEFAULT_DOC(ty) \
+  "   :param default: The default value for this property.\n" \
+  "   :type default: " ty "\n"
+
 #define BPY_PROPDEF_NUM_MIN_DOC_(ty) \
   "   :param min: Hard minimum, trying to assign a value below " \
   "will silently assign this minimum instead.\n" \
@@ -3545,10 +3549,24 @@ PyDoc_STRVAR(
     "set_transform=None)\n"
     "\n"
     "   Returns a new boolean property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_OPTIONS_DOC
-        BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_DOC
-            BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("bool") BPY_PROPDEF_SET_DOC("bool")
-                BPY_PROPDEF_GET_TRANSFORM_DOC("bool") BPY_PROPDEF_SET_TRANSFORM_DOC("bool"));
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
+    BPY_PROPDEF_DEFAULT_DOC("bool")
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_SUBTYPE_NUMBER_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("bool")
+    BPY_PROPDEF_SET_DOC("bool")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("bool")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("bool")
+    /* clang-format on */
+);
 static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3720,14 +3738,26 @@ PyDoc_STRVAR(
     "set_transform=None)\n"
     "\n"
     "   Returns a new vector boolean property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
     "   :param default: sequence of booleans the length of *size*.\n"
-    "   :type default: Sequence[bool]\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-        BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
-            BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[bool]")
-                BPY_PROPDEF_SET_DOC("tuple[bool, ...]")
-                    BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[bool]")
-                        BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[bool]"));
+    "   :type default: Sequence[bool]\n"
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC
+    BPY_PROPDEF_VECSIZE_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("Sequence[bool]")
+    BPY_PROPDEF_SET_DOC("tuple[bool, ...]")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[bool]")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[bool]")
+    /* clang-format on */
+);
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3930,12 +3960,27 @@ PyDoc_STRVAR(
     "set_transform=None)\n"
     "\n"
     "   Returns a new int property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
-        BPY_PROPDEF_NUM_MINMAX_DOC("int") BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("int")
-            BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-                BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_DOC BPY_PROPDEF_UPDATE_DOC
-                    BPY_PROPDEF_GET_DOC("int") BPY_PROPDEF_SET_DOC("int")
-                        BPY_PROPDEF_GET_TRANSFORM_DOC("int") BPY_PROPDEF_SET_TRANSFORM_DOC("int"));
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
+    BPY_PROPDEF_DEFAULT_DOC("int")
+    BPY_PROPDEF_NUM_MINMAX_DOC("int")
+    BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("int")
+    BPY_PROPDEF_INT_STEP_DOC
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_SUBTYPE_NUMBER_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("int")
+    BPY_PROPDEF_SET_DOC("int")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("int")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("int")
+    /* clang-format on */
+);
 static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -4110,16 +4155,29 @@ PyDoc_STRVAR(
     "set_transform=None)\n"
     "\n"
     "   Returns a new vector int property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
     "   :param default: sequence of ints the length of *size*.\n"
-    "   :type default: Sequence[int]\n" BPY_PROPDEF_NUM_MINMAX_DOC("int")
-        BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("int")
-            BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-                BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
-                    BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[int]")
-                        BPY_PROPDEF_SET_DOC("tuple[int, ...]")
-                            BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[int]")
-                                BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[int]"));
+    "   :type default: Sequence[int]\n"
+    BPY_PROPDEF_NUM_MINMAX_DOC("int")
+    BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("int")
+    BPY_PROPDEF_INT_STEP_DOC
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC
+    BPY_PROPDEF_VECSIZE_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("Sequence[int]")
+    BPY_PROPDEF_SET_DOC("tuple[int, ...]")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[int]")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[int]")
+    /* clang-format on */
+);
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -4328,13 +4386,29 @@ PyDoc_STRVAR(
     "set_transform=None)\n"
     "\n"
     "   Returns a new float (single precision) property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_NUM_MINMAX_DOC(
-        "float") BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("float")
-        BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC BPY_PROPDEF_OPTIONS_DOC
-            BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_DOC
-                BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("float")
-                    BPY_PROPDEF_SET_DOC("float") BPY_PROPDEF_GET_TRANSFORM_DOC("float")
-                        BPY_PROPDEF_SET_TRANSFORM_DOC("float"));
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
+    BPY_PROPDEF_DEFAULT_DOC("float")
+    BPY_PROPDEF_NUM_MINMAX_DOC("float")
+    BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("float")
+    BPY_PROPDEF_FLOAT_STEP_DOC
+    BPY_PROPDEF_FLOAT_PREC_DOC
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_SUBTYPE_NUMBER_DOC
+    BPY_PROPDEF_UNIT_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("float")
+    BPY_PROPDEF_SET_DOC("float")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("float")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("float")
+    /* clang-format on */
+);
 static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -4523,17 +4597,31 @@ PyDoc_STRVAR(
     "set_transform=None)\n"
     "\n"
     "   Returns a new vector float property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
     "   :param default: Sequence of floats the length of *size*.\n"
-    "   :type default: Sequence[float]\n" BPY_PROPDEF_NUM_MINMAX_DOC(
-        "float") BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("float")
-        BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC
-            BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC
-                BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_VECSIZE_DOC
-                    BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[float]")
-                        BPY_PROPDEF_SET_DOC("tuple[float, ...]")
-                            BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[float]")
-                                BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[float]"));
+    "   :type default: Sequence[float]\n"
+    BPY_PROPDEF_NUM_MINMAX_DOC("float")
+    BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("float")
+    BPY_PROPDEF_FLOAT_STEP_DOC
+    BPY_PROPDEF_FLOAT_PREC_DOC
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC
+    BPY_PROPDEF_UNIT_DOC
+    BPY_PROPDEF_VECSIZE_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("Sequence[float]")
+    BPY_PROPDEF_SET_DOC("tuple[float, ...]")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[float]")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[float]")
+    /* clang-format on */
+);
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -4754,15 +4842,28 @@ PyDoc_STRVAR(
     "search_options={'SUGGESTION'})\n"
     "\n"
     "   Returns a new string property definition.\n"
-    "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
     "   :param default: initializer string.\n"
     "   :type default: str\n"
     "   :param maxlen: maximum length of the string.\n"
-    "   :type maxlen: int\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-        BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_STRING_DOC BPY_PROPDEF_UPDATE_DOC
-            BPY_PROPDEF_GET_DOC("str") BPY_PROPDEF_SET_DOC("str")
-                BPY_PROPDEF_GET_TRANSFORM_DOC("str") BPY_PROPDEF_SET_TRANSFORM_DOC("str")
-                    BPY_PROPDEF_SEARCH_DOC);
+    "   :type maxlen: int\n"
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_SUBTYPE_STRING_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("str")
+    BPY_PROPDEF_SET_DOC("str")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("str")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("str")
+    BPY_PROPDEF_SEARCH_DOC
+    /* clang-format on */
+);
 static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -5003,17 +5104,29 @@ PyDoc_STRVAR(
     "tuple[str, str, str, int] | "
     "tuple[str, str, str, str | int, int] | "
     "None]"
-    "]\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC BPY_PROPDEF_CTXT_DOC
+    "]\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
     "   :param default: The default value for this enum, a string from the identifiers used in "
     "*items*, or integer matching an item number.\n"
     "      If the *ENUM_FLAG* option is used this must be a set of such string identifiers "
     "instead.\n"
     "      WARNING: Strings cannot be specified for dynamic enums\n"
     "      (i.e. if a callback function is given as *items* parameter).\n"
-    "   :type default: str | int | set[str]\n" BPY_PROPDEF_OPTIONS_ENUM_DOC
-        BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_UPDATE_DOC
-            BPY_PROPDEF_GET_DOC("int") BPY_PROPDEF_SET_DOC("int")
-                BPY_PROPDEF_GET_TRANSFORM_DOC("int") BPY_PROPDEF_SET_TRANSFORM_DOC("int"));
+    "   :type default: str | int | set[str]\n"
+    BPY_PROPDEF_OPTIONS_ENUM_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    BPY_PROPDEF_GET_DOC("int")
+    BPY_PROPDEF_SET_DOC("int")
+    BPY_PROPDEF_GET_TRANSFORM_DOC("int")
+    BPY_PROPDEF_SET_TRANSFORM_DOC("int")
+    /* clang-format on */
+);
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -5264,9 +5377,19 @@ PyDoc_STRVAR(
     "update=None)\n"
     "\n"
     "   Returns a new pointer property definition.\n"
-    "\n" BPY_PROPDEF_POINTER_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
-        BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-            BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_POLL_DOC BPY_PROPDEF_UPDATE_DOC
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_POINTER_TYPE_DOC
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
+    BPY_PROPDEF_TAGS_DOC
+    BPY_PROPDEF_POLL_DOC
+    BPY_PROPDEF_UPDATE_DOC
+    /* clang-format on */
     "\n"
     ".. note:: Pointer properties do not support storing references to embedded IDs "
     "(e.g. :class:`bpy.types.Scene.collection`, :class:`bpy.types.Material.node_tree`).\n"
@@ -5419,9 +5542,18 @@ PyDoc_STRVAR(
     "tags=set())\n"
     "\n"
     "   Returns a new collection property definition.\n"
-    "\n" BPY_PROPDEF_COLLECTION_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
-        BPY_PROPDEF_CTXT_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC
-            BPY_PROPDEF_TAGS_DOC);
+    "\n"
+    /* Auto-format wrapping result is hard to read. */
+    /* clang-format off */
+    BPY_PROPDEF_COLLECTION_TYPE_DOC
+    BPY_PROPDEF_NAME_DOC
+    BPY_PROPDEF_DESC_DOC
+    BPY_PROPDEF_CTXT_DOC
+    BPY_PROPDEF_OPTIONS_DOC
+    BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC
+    BPY_PROPDEF_TAGS_DOC
+    /* clang-format on */
+);
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
