@@ -379,9 +379,6 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 
 bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 {
-  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
-  int filter;
-
   Scene *scene = ac->scene;
   bool no_name = false;
   int offset = 0;
@@ -412,14 +409,20 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
       break;
   }
 
-  /* filter data */
-  /* TODO: try doing it with selection, then without selection limits. */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
-            ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  /* Only paste into selected layers. */
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT |
+                ANIMFILTER_NODUPLIS | ANIMFILTER_SEL);
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+  if (BLI_listbase_is_empty(&anim_data)) {
+    /* If no cannels are selected at all, make even unselected layers "targets" for pasting. */
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+              ANIMFILTER_FOREDIT);
+    ANIM_animdata_filter(
+        ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+  }
 
-  /* from selected channels */
   for (bAnimListElem &ale : anim_data) {
     /* Only deal with GPlayers (case of calls from general dope-sheet). */
     if (ale.type != ANIMTYPE_GPLAYER) {

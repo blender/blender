@@ -831,12 +831,11 @@ static wmOperatorStatus grease_pencil_primitive_invoke(bContext *C,
     ColorGeometry4f color_base;
     copy_v3_v3(color_base, ptd.brush->color);
     color_base.a = ptd.settings->vertex_factor;
-    ptd.vertex_color = ELEM(ptd.settings->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH) ?
+
+    ptd.vertex_color = (ptd.settings->flag2 & GP_BRUSH_USE_STROKE) ?
                            std::make_optional(color_base) :
                            std::nullopt;
-    ptd.fill_color = ELEM(ptd.settings->vertex_mode, GPPAINT_MODE_FILL, GPPAINT_MODE_BOTH) ?
-                         std::make_optional(color_base) :
-                         std::nullopt;
+    ptd.fill_color = ptd.use_fill ? std::make_optional(color_base) : std::nullopt;
   }
   else {
     ptd.vertex_color = std::nullopt;

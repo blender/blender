@@ -640,15 +640,14 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
     copy_v3_v3(vertex_color, brush.color);
     vertex_color.a = brush.gpencil_settings->vertex_factor;
 
-    if (ELEM(brush.gpencil_settings->vertex_mode, GPPAINT_MODE_FILL, GPPAINT_MODE_BOTH)) {
-      skip_curve_attributes.add("fill_color");
-      bke::SpanAttributeWriter<ColorGeometry4f> fill_colors =
-          attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color",
-                                                                   bke::AttrDomain::Curve);
-      fill_colors.span.fill(vertex_color);
-      fill_colors.finish();
-    }
-    if (ELEM(brush.gpencil_settings->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH)) {
+    skip_curve_attributes.add("fill_color");
+    bke::SpanAttributeWriter<ColorGeometry4f> fill_colors =
+        attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color",
+                                                                 bke::AttrDomain::Curve);
+    fill_colors.span.fill(vertex_color);
+    fill_colors.finish();
+
+    if (brush.gpencil_settings->flag2 & GP_BRUSH_USE_STROKE) {
       skip_point_attributes.add("vertex_color");
       bke::SpanAttributeWriter<ColorGeometry4f> vertex_colors =
           attributes.lookup_or_add_for_write_span<ColorGeometry4f>("vertex_color",

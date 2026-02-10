@@ -1658,10 +1658,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext &pcontext)
 
         const bool use_vertex_color = ed::sculpt_paint::greasepencil::brush_using_vertex_color(
             pcontext.scene->toolsettings->gp_paint, brush);
-        const bool use_vertex_color_stroke = use_vertex_color &&
-                                             ELEM(brush->gpencil_settings->vertex_mode,
-                                                  GPPAINT_MODE_STROKE,
-                                                  GPPAINT_MODE_BOTH);
+        const bool use_vertex_color_stroke = use_vertex_color;
         if (use_vertex_color_stroke) {
           IMB_colormanagement_scene_linear_to_srgb_v3(color, brush->color);
         }

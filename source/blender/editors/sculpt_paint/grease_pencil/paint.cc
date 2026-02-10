@@ -296,10 +296,10 @@ struct PaintOperationExecutor {
       ColorGeometry4f color_base;
       copy_v3_v3(color_base, brush_->color);
       color_base.a = settings_->vertex_factor;
-      if (ELEM(settings_->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH)) {
+      if (settings_->flag2 & GP_BRUSH_USE_STROKE) {
         vertex_color_ = color_base;
       }
-      if (ELEM(settings_->vertex_mode, GPPAINT_MODE_FILL, GPPAINT_MODE_BOTH)) {
+      if (settings_->flag2 & GP_BRUSH_USE_FILL) {
         fill_color_ = color_base;
       }
     }
