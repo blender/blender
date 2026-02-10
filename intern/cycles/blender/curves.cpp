@@ -624,8 +624,7 @@ void BlenderSync::sync_particle_hair(Hair *hair,
 
   /* create vertex color attributes */
   if (!motion) {
-    int vcol_num = 0;
-
+    blender::Vector<blender::StringRef> vcol_names;
     b_mesh.attributes().foreach_attribute([&](const blender::bke::AttributeIter &iter) {
       if (iter.data_type != blender::bke::AttrType::ColorByte) {
         return;
@@ -633,14 +632,18 @@ void BlenderSync::sync_particle_hair(Hair *hair,
       if (iter.domain != blender::bke::AttrDomain::Corner) {
         return;
       }
-      if (!hair->need_attribute(scene, ustring(iter.name.c_str()))) {
+      vcol_names.append(iter.name);
+    });
+
+    for (const int vcol_num : vcol_names.index_range()) {
+      const ustring name = ustring(std::string_view(vcol_names[vcol_num]));
+      if (!hair->need_attribute(scene, name)) {
         return;
       }
 
       ObtainCacheParticleVcol(hair, &b_mesh, &b_ob, &CData, !preview, vcol_num);
 
-      Attribute *attr_vcol = hair->attributes.add(
-          ustring(iter.name.c_str()), TypeRGBA, ATTR_ELEMENT_CURVE);
+      Attribute *attr_vcol = hair->attributes.add(name, TypeRGBA, ATTR_ELEMENT_CURVE);
 
       float4 *fdata = attr_vcol->data_float4();
 
@@ -652,23 +655,17 @@ void BlenderSync::sync_particle_hair(Hair *hair,
           fdata[i++] = color_srgb_to_linear_v4(CData.curve_vcol[curve]);
         }
       }
-    });
+    }
   }
 
   /* create UV attributes */
   if (!motion) {
-    int uv_num = 0;
-
-    b_mesh.attributes().foreach_attribute([&](const blender::bke::AttributeIter &iter) {
-      if (iter.data_type != blender::bke::AttrType::Float2) {
-        return;
-      }
-      if (iter.domain != blender::bke::AttrDomain::Corner) {
-        return;
-      }
-      const bool active_render = iter.name == b_mesh.default_uv_map_name();
+    const blender::VectorSet<blender::StringRefNull> uv_names = b_mesh.uv_map_names();
+    const ustring default_name = ustring(std::string_view(b_mesh.default_uv_map_name()));
+    for (const int uv_num : uv_names.index_range()) {
+      const ustring name = ustring(std::string_view(uv_names[uv_num]));
+      const bool active_render = name == default_name;
       const AttributeStandard std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-      const ustring name = ustring(iter.name.c_str());
 
       /* UV map */
       if (hair->need_attribute(scene, name) || hair->need_attribute(scene, std)) {
@@ -693,7 +690,7 @@ void BlenderSync::sync_particle_hair(Hair *hair,
           }
         }
       }
-    });
+    }
   }
 
   hair->curve_shape = scene->params.hair_shape;
