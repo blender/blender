@@ -8522,15 +8522,12 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
         is_pin_vertex = gp_settings.brush_draw_mode == 'VERTEXCOLOR'
         is_vertex = settings.color_mode == 'VERTEXCOLOR' or brush.gpencil_brush_type == 'TINT' or is_pin_vertex
 
+        layout.prop(gp_settings, "stroke_type", expand=True)
+
         if brush.gpencil_brush_type not in {'ERASE', 'CUTTER', 'EYEDROPPER'} and is_vertex:
             split = layout.split(factor=0.1)
             split.prop(brush, "color", text="")
             split.template_color_picker(brush, "color", value_slider=True)
-
-            col = layout.column()
-            col.separator()
-            col.prop(gp_settings, "vertex_mode", text="")
-            col.separator()
 
         if brush.gpencil_brush_type not in {'FILL', 'CUTTER', 'ERASE'}:
             if brush.use_locked_size == 'VIEW':
@@ -9020,8 +9017,9 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
 
         gp_settings = brush.gpencil_settings
         if brush.gpencil_brush_type in {'DRAW', 'FILL'}:
-            row = layout.row(align=True)
-            row.prop(gp_settings, "vertex_mode", text="Mode")
+            if ob.mode == 'VERTEX_GREASE_PENCIL':
+                row = layout.row(align=True)
+                row.prop(gp_settings, "vertex_mode", text="Mode")
             row = layout.row(align=True)
             row.prop(gp_settings, "vertex_color_factor", slider=True, text="Mix Factor")
 
