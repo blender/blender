@@ -49,10 +49,10 @@ def abspath(path, *, start=None, library=None):
     :type path: str | bytes
     :param start: Relative to this path,
        when not set the current filename is used.
-    :type start: str | bytes
+    :type start: str | bytes | None
     :param library: The library this path is from. This is only included for
        convenience, when the library is not None its path replaces *start*.
-    :type library: :class:`bpy.types.Library`
+    :type library: :class:`bpy.types.Library` | None
     :return: The absolute path.
     :rtype: str
     """
@@ -88,7 +88,7 @@ def relpath(path, *, start=None):
     :type path: str | bytes
     :param start: Relative to this path,
        when not set the current filename is used.
-    :type start: str | bytes
+    :type start: str | bytes | None
     :return: The relative path.
     :rtype: str
     """

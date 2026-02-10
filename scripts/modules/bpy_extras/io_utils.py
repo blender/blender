@@ -144,7 +144,7 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
     :param axis_up: The default up axis.
     :type axis_up: str
     :return: A class decorator.
-    :rtype: Callable
+    :rtype: Callable[[type], type]
     """
 
     def wrapper(cls):
@@ -530,7 +530,7 @@ def path_reference(
     :type copy_subdir: str
     :param copy_set: collect from/to pairs when mode='COPY',
        pass to *path_reference_copy* when exporting is done.
-    :type copy_set: set[tuple[str, str]]
+    :type copy_set: set[tuple[str, str]] | None
     :param library: The library this path is relative to.
     :type library: :class:`bpy.types.Library` | None
     :return: the new filepath.
@@ -628,11 +628,11 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
     :param name_dict: This is used to cache namespace to ensure no collisions
        occur, this should be an empty dict initially and only modified by this
        function.
-    :type name_dict: dict
+    :type name_dict: dict[Any, str]
     :param name_max: Maximum length of the name. When ``-1`` the name is unlimited.
     :type name_max: int
     :param clean_func: Function to call on *name* before creating a unique value.
-    :type clean_func: function
+    :type clean_func: Callable[[str], str] | None
     :param sep: Separator to use when between the name and a number when a
        duplicate name is found.
     :type sep: str

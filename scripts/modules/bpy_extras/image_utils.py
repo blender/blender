@@ -44,7 +44,7 @@ def load_image(
        the CONVERT_CALLBACK can take the path for a GIF (for example),
        convert it to a PNG and return the PNG's path.
        For formats blender can read, simply return the path that is given.
-    :type convert_callback: function
+    :type convert_callback: Callable[[str], str] | None
     :param verbose: If True, print extra information when searching for the image.
     :type verbose: bool
     :param relpath: If not None, make the file relative to this path.
