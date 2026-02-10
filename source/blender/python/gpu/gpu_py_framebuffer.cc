@@ -563,10 +563,9 @@ PyDoc_STRVAR(
     "   :param slot: The framebuffer slot to read data from.\n"
     "   :type slot: int\n"
     "   :param format: The format that describes the content of a single channel.\n"
-    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
-    "``10_11_11_REV``.\n"
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
-    "   :type format: str\n"
+    "   :type format: " PYDOC_DATAFORMAT_LITERAL
+    "\n"
     "   :param data: Optional Buffer object to fill with the pixels values.\n"
     "   :type data: :class:`gpu.types.Buffer` | None\n"
     "   :return: The Buffer with the read pixels.\n"
