@@ -23,6 +23,13 @@
 #include "gpu_py_framebuffer.hh"
 #include "gpu_py_state.hh" /* own include */
 
+/* Doc-string Literal types. */
+#define PYDOC_BLEND_LITERAL \
+  "Literal['NONE', 'ALPHA', 'ALPHA_PREMULT', 'ADDITIVE', " \
+  "'ADDITIVE_PREMULT', 'MULTIPLY', 'SUBTRACT', 'INVERT']"
+#define PYDOC_DEPTHTEST_LITERAL \
+  "Literal['NONE', 'ALWAYS', 'LESS', 'LESS_EQUAL', 'EQUAL', 'GREATER', 'GREATER_EQUAL']"
+
 namespace blender {
 
 /* -------------------------------------------------------------------- */
@@ -94,7 +101,7 @@ PyDoc_STRVAR(
     //"      * ``OIT``.\n"
     //"      * ``BACKGROUND`` .\n"
     //"      * ``CUSTOM`` .\n"
-    "   :type mode: str\n");
+    "   :type mode: " PYDOC_BLEND_LITERAL "\n");
 static PyObject *pygpu_state_blend_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -158,9 +165,7 @@ PyDoc_STRVAR(
     "   Defines the depth_test equation.\n"
     "\n"
     "   :param mode: The depth test equation name.\n"
-    "      Possible values are ``NONE``, ``ALWAYS``, ``LESS``, ``LESS_EQUAL``, ``EQUAL``, "
-    "``GREATER`` and ``GREATER_EQUAL``.\n"
-    "   :type mode: str\n");
+    "   :type mode: " PYDOC_DEPTHTEST_LITERAL "\n");
 static PyObject *pygpu_state_depth_test_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -459,8 +464,8 @@ PyDoc_STRVAR(
     "\n"
     "   Specify whether none, front-facing or back-facing facets can be culled.\n"
     "\n"
-    "   :param culling: ``NONE``, ``FRONT`` or ``BACK``.\n"
-    "   :type culling: str\n");
+    "   :param culling: The face culling mode.\n"
+    "   :type culling: Literal['NONE', 'FRONT', 'BACK']\n");
 static PyObject *pygpu_state_face_culling_set(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;

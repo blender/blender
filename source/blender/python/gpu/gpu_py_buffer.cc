@@ -691,10 +691,9 @@ PyDoc_STRVAR(
     "   For Python access to GPU functions requiring a pointer.\n"
     "\n"
     "   :param format: Format type to interpret the buffer.\n"
-    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
-    "``10_11_11_REV``.\n"
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
-    "   :type format: str\n"
+    "   :type format: " PYDOC_DATAFORMAT_LITERAL
+    "\n"
     "   :param dimensions: Array describing the dimensions.\n"
     "   :type dimensions: int | Sequence[int]\n"
     "   :param data: Optional data array.\n"

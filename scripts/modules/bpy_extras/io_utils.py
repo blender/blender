@@ -140,9 +140,9 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
     with specified default values (axes).
 
     :param axis_forward: The default forward axis.
-    :type axis_forward: str
+    :type axis_forward: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
     :param axis_up: The default up axis.
-    :type axis_up: str
+    :type axis_up: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
     :return: A class decorator.
     :rtype: Callable[[type], type]
     """
@@ -315,17 +315,17 @@ _axis_convert_num = {'X': 0, 'Y': 1, 'Z': 2, '-X': 3, '-Y': 4, '-Z': 5}
 
 def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     """
-    Each argument is an axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    Each argument is an axis
     where the first 2 are a source and the second 2 are the target.
 
     :param from_forward: Source forward axis.
-    :type from_forward: str
+    :type from_forward: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
     :param from_up: Source up axis.
-    :type from_up: str
+    :type from_up: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
     :param to_forward: Target forward axis.
-    :type to_forward: str
+    :type to_forward: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
     :param to_up: Target up axis.
-    :type to_up: str
+    :type to_up: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
     :return: The conversion matrix.
     :rtype: :class:`mathutils.Matrix`
     """
@@ -517,15 +517,14 @@ def path_reference(
     :param filepath: the file path to return,
        supporting blenders relative '//' prefix.
     :type filepath: str
-    :param base_src: the directory the *filepath* is relative too
+    :param base_src: the directory the *filepath* is relative to
        (normally the blend file).
     :type base_src: str
     :param base_dst: the directory the *filepath* will be referenced from
        (normally the export path).
     :type base_dst: str
-    :param mode: the method used get the path in
-       ['AUTO', 'ABSOLUTE', 'RELATIVE', 'MATCH', 'STRIP', 'COPY']
-    :type mode: str
+    :param mode: the method used to reference the path.
+    :type mode: Literal['AUTO', 'ABSOLUTE', 'RELATIVE', 'MATCH', 'STRIP', 'COPY']
     :param copy_subdir: the subdirectory of *base_dst* to use when mode='COPY'.
     :type copy_subdir: str
     :param copy_set: collect from/to pairs when mode='COPY',

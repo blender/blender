@@ -982,8 +982,8 @@ class Gizmo(_StructRNA):
         """
         Create a new shape that can be passed to :class:`Gizmo.draw_custom_shape`.
 
-        :param type: The type of shape to create in (POINTS, LINES, TRIS, LINE_STRIP).
-        :type type: str
+        :param type: The type of shape to create.
+        :type type: Literal['POINTS', 'LINES', 'TRIS', 'LINE_STRIP']
         :param verts: Sequence of 2D or 3D coordinates.
         :type verts: Sequence[Sequence[float]]
         :return: The newly created shape (the return type make change).

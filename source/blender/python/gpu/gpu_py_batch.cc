@@ -602,9 +602,8 @@ PyDoc_STRVAR(
     "   Reusable container for drawable geometry.\n"
     "\n"
     "   :param type: The primitive type of geometry to be drawn.\n"
-    "      Possible values are ``POINTS``, ``LINES``, ``TRIS``, ``LINE_STRIP``, ``LINE_LOOP``, "
-    "``TRI_STRIP``, ``TRI_FAN``, ``LINES_ADJ``, ``TRIS_ADJ`` and ``LINE_STRIP_ADJ``.\n"
-    "   :type type: str\n"
+    "   :type type: " PYDOC_PRIMTYPE_LITERAL
+    "\n"
     "   :param buf: Vertex buffer containing all or some of the attributes required for drawing.\n"
     "   :type buf: :class:`gpu.types.GPUVertBuf`\n"
     "   :param elem: An optional index buffer.\n"

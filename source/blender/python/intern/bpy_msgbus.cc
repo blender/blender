@@ -207,7 +207,7 @@ PyDoc_STRVAR(
     "\n"
     "      - ``PERSISTENT`` when set, the subscriber will be kept when remapping ID data.\n"
     "\n"
-    "   :type options: set[str]\n"
+    "   :type options: set[Literal['PERSISTENT']]\n"
     "\n"
     ".. note::\n"
     "\n"
