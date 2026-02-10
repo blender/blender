@@ -1595,7 +1595,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
       break;
     }
 
-    if (prv->runtime->tag & PRV_TAG_DEFFERED_DELETE) {
+    if (prv->runtime->tag & PRV_TAG_DEFERRED_DELETE) {
       /* Non-thread-protected reading is not an issue here. */
       continue;
     }
@@ -1688,14 +1688,14 @@ static void icon_preview_endjob(void *customdata)
 
   if (ip->owner) {
     PreviewImage *prv_img = static_cast<PreviewImage *>(ip->owner);
-    prv_img->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+    prv_img->runtime->tag &= ~PRV_TAG_DEFERRED_RENDERING;
 
     for (IconPreviewSize &icon_size : ip->sizes) {
       int size_index = icon_previewimg_size_index_get(&icon_size, prv_img);
       BKE_previewimg_finish(prv_img, size_index);
     }
 
-    if (prv_img->runtime->tag & PRV_TAG_DEFFERED_DELETE) {
+    if (prv_img->runtime->tag & PRV_TAG_DEFERRED_DELETE) {
       BKE_previewimg_deferred_release(prv_img);
     }
 
@@ -1726,7 +1726,7 @@ class PreviewLoadJob {
     /** Set when the request was fully handled and successfully got the preview. */
     Ready,
     /** Set to true if the request was handled but didn't result in a valid preview.
-     * #PRV_TAG_DEFFERED_INVALID will be set in response. */
+     * #PRV_TAG_DEFERRED_INVALID will be set in response. */
     Failed,
   };
 
@@ -1872,7 +1872,7 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
 
   preview->flag[icon_size] |= PRV_RENDERING;
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
-  preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
+  preview->runtime->tag |= PRV_TAG_DEFERRED_RENDERING;
 
   const bool is_downloading = BKE_previewimg_is_online(preview) &&
                               !PreviewLoadJob::known_downloaded_previews().contains_as(*path);
@@ -2116,15 +2116,15 @@ void PreviewLoadJob::finish_request(RequestedPreview &request)
 
   PreviewImage *preview = request.preview;
 
-  preview->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+  preview->runtime->tag &= ~PRV_TAG_DEFERRED_RENDERING;
   if (request.state == PreviewState::Failed) {
-    preview->runtime->tag |= PRV_TAG_DEFFERED_INVALID;
+    preview->runtime->tag |= PRV_TAG_DEFERRED_INVALID;
   }
   BKE_previewimg_finish(preview, request.icon_size);
 
   BLI_assert_msg(BLI_thread_is_main(),
                  "Deferred releasing of preview images should only run on the main thread");
-  if (preview->runtime->tag & PRV_TAG_DEFFERED_DELETE) {
+  if (preview->runtime->tag & PRV_TAG_DEFERRED_DELETE) {
     BLI_assert(preview->runtime->deferred_loading_data);
     BKE_previewimg_deferred_release(preview);
   }
@@ -2334,7 +2334,7 @@ void ED_preview_icon_job(
 
   prv_img->flag[icon_size] |= PRV_RENDERING;
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
-  prv_img->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
+  prv_img->runtime->tag |= PRV_TAG_DEFERRED_RENDERING;
 
   icon_preview_add_size(
       ip, prv_img->rect[icon_size], prv_img->w[icon_size], prv_img->h[icon_size]);

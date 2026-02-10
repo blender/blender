@@ -264,9 +264,9 @@ void BKE_previewimg_deferred_release(PreviewImage *prv)
     return;
   }
 
-  if (prv->runtime->tag & PRV_TAG_DEFFERED_RENDERING) {
+  if (prv->runtime->tag & PRV_TAG_DEFERRED_RENDERING) {
     /* We cannot delete the preview while it is being loaded in another thread... */
-    prv->runtime->tag |= PRV_TAG_DEFFERED_DELETE;
+    prv->runtime->tag |= PRV_TAG_DEFERRED_DELETE;
     return;
   }
   if (prv->runtime->icon_id) {
@@ -471,7 +471,7 @@ bool BKE_previewimg_is_finished(const PreviewImage *prv, const int size)
 
 bool BKE_previewimg_is_invalid(const PreviewImage *prv)
 {
-  return (prv->runtime->tag & PRV_TAG_DEFFERED_INVALID) != 0;
+  return (prv->runtime->tag & PRV_TAG_DEFERRED_INVALID) != 0;
 }
 
 void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
