@@ -182,7 +182,7 @@ def modules_from_path(path, loaded_modules):
     :type path: str
     :param loaded_modules: already loaded module names, files matching these
        names will be ignored.
-    :type loaded_modules: set[ModuleType]
+    :type loaded_modules: set[str]
     :return: all loaded modules.
     :rtype: list[ModuleType]
     """
@@ -434,7 +434,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True,
     Returns a list of valid script paths.
 
     :param subdir: Optional subdir.
-    :type subdir: str
+    :type subdir: str | None
     :param user_pref: Include the user preference script paths.
     :type user_pref: bool
     :param check_all: Include local, user and system paths rather just the paths Blender uses.
@@ -525,7 +525,7 @@ def app_template_paths(*, path=None):
     Returns valid application template paths.
 
     :param path: Optional subdir.
-    :type path: str
+    :type path: str | None
     :return: App template paths.
     :rtype: Iterator[str]
     """

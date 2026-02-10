@@ -160,7 +160,7 @@ def bake_action(
        to be created.
     :type action: :class:`bpy.types.Action` | None
     :param frames: Frames to bake.
-    :type frames: int
+    :type frames: Iterable[int]
     :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
     :return: Action or None.
@@ -190,7 +190,7 @@ def bake_action_objects(
        action is the destination for the baked data. When None a new action will be created.
     :type object_action_pairs: Sequence[tuple[:class:`bpy.types.Object`, :class:`bpy.types.Action` | None]]
     :param frames: Frames to bake.
-    :type frames: iterable of int
+    :type frames: Iterable[int]
     :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
     :return: A sequence of Action or None types (aligned with ``object_action_pairs``)
@@ -215,7 +215,7 @@ def bake_action_objects_iter(
 
     :param object_action_pairs: Sequence of object action tuples,
        action is the destination for the baked data. When None a new action will be created.
-    :type object_action_pairs: Sequence[tuple[:class:`bpy.types.Object`, :class:`bpy.types.Action`]]
+    :type object_action_pairs: Sequence[tuple[:class:`bpy.types.Object`, :class:`bpy.types.Action` | None]]
     :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
     :return: A generator that yields None for each frame, then finally

@@ -30,7 +30,7 @@ def add_object_align_init(context, operator):
     :param context: The context to use.
     :type context: :class:`bpy.types.Context`
     :param operator: The operator, checked for location and rotation properties.
-    :type operator: :class:`bpy.types.Operator`
+    :type operator: :class:`bpy.types.Operator` | None
     :return: the matrix from the context and settings.
     :rtype: :class:`mathutils.Matrix`
     """
@@ -92,9 +92,9 @@ def object_data_add(context, obdata, operator=None, name=None):
     :param obdata: Valid object data to be used for the new object or None.
     :type obdata: :class:`bpy.types.ID` | None
     :param operator: The operator, checked for location and rotation properties.
-    :type operator: :class:`bpy.types.Operator`
+    :type operator: :class:`bpy.types.Operator` | None
     :param name: Optional name
-    :type name: str
+    :type name: str | None
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.Object`
     """
