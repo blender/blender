@@ -79,8 +79,19 @@ def connect_sockets(input, output):
     return input_node.id_data.links.new(input, output, handle_dynamic_sockets=True)
 
 
-# XXX Names are not unique. Returns the first match.
 def find_node_input(node, name):
+    """
+    Find a node input socket by name.
+
+    Note that names are not unique, returns the first match.
+
+    :param node: The node to search.
+    :type node: :class:`bpy.types.Node`
+    :param name: The name of the input socket.
+    :type name: str
+    :return: The input socket or None if not found.
+    :rtype: :class:`bpy.types.NodeSocket` | None
+    """
     for input in node.inputs:
         if input.name == name:
             return input

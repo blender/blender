@@ -76,6 +76,14 @@ def addon_keymap_unregister(keymap_data):
 # Utility Functions
 
 def keyconfig_test(kc):
+    """
+    Test a key configuration for duplicate key-map item assignments.
+
+    :param kc: The key configuration to test.
+    :type kc: :class:`bpy.types.KeyConfig`
+    :return: True if any duplicates were found.
+    :rtype: bool
+    """
     from bl_keymap_utils.io import kmi_args_as_data
 
     def _kmistr(kmi, is_modal):
