@@ -44,7 +44,7 @@ namespace nodes {
 
 bool socket_type_has_attribute_toggle(const eNodeSocketDatatype type)
 {
-  return socket_type_supports_fields(type);
+  return socket_type_supports_attributes(type);
 }
 
 bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)

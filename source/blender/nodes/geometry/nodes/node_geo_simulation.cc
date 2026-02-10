@@ -173,10 +173,11 @@ static void draw_simulation_state(const bContext *C,
     socket_items::ui::draw_active_item_props<SimulationItemsAccessor>(
         ntree, output_node, [&](PointerRNA *item_ptr) {
           NodeSimulationItem &active_item = storage.items[storage.active_index];
+          const auto socket_type = eNodeSocketDatatype(active_item.socket_type);
           panel->use_property_split_set(true);
           panel->use_property_decorate_set(false);
           panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-          if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
+          if (socket_type_supports_attributes(socket_type)) {
             panel->prop(item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           }
         });
@@ -412,7 +413,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                            .socket_name_ptr(
                                &node_tree->id, *SimulationItemsAccessor::item_srna, &item, "name");
     auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
-    if (socket_type_supports_fields(socket_type)) {
+    if (socket_type_supports_attributes(socket_type)) {
       /* If it's below a geometry input it may be a field evaluated on that geometry. */
       input_decl.supports_field().structure_type(StructureType::Dynamic);
       output_decl.dependent_field({input_decl.index()});
@@ -748,7 +749,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                            .socket_name_ptr(
                                &tree->id, *SimulationItemsAccessor::item_srna, &item, "name");
     auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
-    if (socket_type_supports_fields(socket_type)) {
+    if (socket_type_supports_attributes(socket_type)) {
       /* If it's below a geometry input it may be a field evaluated on that geometry. */
       input_decl.supports_field().structure_type(StructureType::Dynamic);
       output_decl.dependent_field({input_decl.index()});

@@ -36,6 +36,7 @@ const EnumPropertyItem rna_enum_node_match_string_items[] = {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::String>("String").optional_label().is_default_link_socket();
   b.add_input<decl::Menu>("Operation")
       .static_items(rna_enum_node_match_string_items)
