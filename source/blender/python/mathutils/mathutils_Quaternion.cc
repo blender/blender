@@ -206,7 +206,7 @@ PyDoc_STRVAR(
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n"
     "   :param euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
-    "      Useful for converting a series of matrices to animation curves.\n"
+    "      Useful for converting a series of quaternions to animation curves.\n"
     "   :type euler_compat: :class:`Euler`\n"
     "   :return: Euler representation of the quaternion.\n"
     "   :rtype: :class:`Euler`\n");
@@ -1545,7 +1545,7 @@ static PyNumberMethods Quaternion_NumMethods = {
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_axis_doc,
-    "Quaternion axis value.\n"
+    "Quaternion component value.\n"
     "\n"
     ":type: float\n");
 static PyObject *Quaternion_axis_get(QuaternionObject *self, void *type)

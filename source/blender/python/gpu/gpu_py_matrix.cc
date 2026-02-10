@@ -406,7 +406,9 @@ PyDoc_STRVAR(
     pygpu_matrix_scale_uniform_doc,
     ".. function:: scale_uniform(scale)\n"
     "\n"
-    "   :param scale: Scale the current stack matrix.\n"
+    "   Scale the current stack matrix uniformly.\n"
+    "\n"
+    "   :param scale: Uniform scale factor.\n"
     "   :type scale: float\n");
 static PyObject *pygpu_matrix_scale_uniform(PyObject * /*self*/, PyObject *value)
 {

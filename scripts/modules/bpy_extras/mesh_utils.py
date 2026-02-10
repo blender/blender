@@ -139,6 +139,8 @@ def mesh_linked_triangles(mesh):
 
 def edge_face_count_dict(mesh):
     """
+    :param mesh: The mesh to count edges for.
+    :type mesh: :class:`bpy.types.Mesh`
     :return: Dictionary of edge keys with their value set to the number of faces using each edge.
     :rtype: dict[tuple[int, int], int]
     """
@@ -159,7 +161,9 @@ def edge_face_count_dict(mesh):
 
 def edge_face_count(mesh):
     """
-    :return: list face users for each item in mesh.edges.
+    :param mesh: The mesh to count edges for.
+    :type mesh: :class:`bpy.types.Mesh`
+    :return: list of face users for each item in mesh.edges.
     :rtype: list[int]
     """
     edge_face_count = edge_face_count_dict(mesh)
@@ -169,14 +173,18 @@ def edge_face_count(mesh):
 
 def edge_loops_from_edges(mesh, edges=None):
     """
-    Edge loops defined by edges
+    Edge loops defined by edges.
 
-    Takes me.edges or a list of edges and returns the edge loops
+    Takes mesh.edges or a list of edges and returns the edge loops
+    as a list of vertex indices.
+    Closed loops have matching start and end values.
 
-    return a list of vertex indices.
-    [ [1, 6, 7, 2], ...]
-
-    closed loops have matching start and end values.
+    :param mesh: The mesh to extract edge loops from.
+    :type mesh: :class:`bpy.types.Mesh`
+    :param edges: Edges to use, or None to use all edges in the mesh.
+    :type edges: list[:class:`bpy.types.MeshEdge`] | None
+    :return: A list of edge loops, each a list of vertex indices.
+    :rtype: list[list[int]]
     """
     line_polys = []
 
@@ -238,14 +246,17 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
 
     :param from_data: Either a mesh, or a list/tuple of 3D vectors.
     :type from_data: :class:`bpy.types.Mesh` | list[Sequence[float]] | tuple[Sequence[float]]
-    :param indices: a list of indices to use this list
-       is the ordered closed poly-line
-       to fill, and can be a subset of the data given.
+    :param indices: a list of indices to use.
+       This list is the ordered closed poly-line to fill, and can be a subset of the data given.
     :type indices: list[int]
     :param fix_loops: If this is enabled poly-lines
        that use loops to make multiple
        poly-lines are dealt with correctly.
     :type fix_loops: bool
+    :param debug_print: Print debug information to the console.
+    :type debug_print: bool
+    :return: Tessellated faces as a list of triangle index tuples.
+    :rtype: list[tuple[int, int, int]]
     """
 
     from mathutils.geometry import tessellate_polygon

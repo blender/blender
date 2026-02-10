@@ -87,7 +87,7 @@ PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__bool_doc,
     "Generic boolean custom-data layer.\n"
     "\n"
-    ":type: :class:`bmesh.types.BMLayerCollection` of boolean\n");
+    ":type: :class:`bmesh.types.BMLayerCollection` of bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__float_vector_doc,
@@ -506,7 +506,7 @@ static PyObject *bpy_bmlayercollection_verify(BPy_BMLayerCollection *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayercollection_new_doc,
-    ".. method:: new(name)\n"
+    ".. method:: new(name=\"\")\n"
     "\n"
     "   Create a new layer\n"
     "\n"
@@ -709,7 +709,9 @@ PyDoc_STRVAR(
     "   :type key: str\n"
     "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Any\n");
+    "   :type default: Any\n"
+    "   :return: The layer matching the key or the default value.\n"
+    "   :rtype: :class:`bmesh.types.BMLayerItem` | Any\n");
 static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject *args)
 {
   const char *key;

@@ -162,9 +162,9 @@ PyDoc_STRVAR(
     "\n"
     "   Balance the tree.\n"
     "\n"
-    ".. note::\n"
+    "   .. note::\n"
     "\n"
-    "   This builds the entire tree, avoid calling after each insertion.\n");
+    "      This builds the entire tree, avoid calling after each insertion.\n");
 static PyObject *py_kdtree_balance(PyKDTree *self)
 {
   kdtree_3d_balance(self->obj);
@@ -420,14 +420,14 @@ static PyMethodDef PyKDTree_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     py_KDtree_doc,
-    "KdTree(size) -> new kd-tree initialized to hold ``size`` items.\n"
+    "KDTree(size) -> new kd-tree initialized to hold ``size`` items.\n"
     "\n"
-    "   :param size: Number of items.\n"
-    "   :type size: int\n"
+    ":param size: Number of items.\n"
+    ":type size: int\n"
     "\n"
     ".. note::\n"
     "\n"
-    "   :class:`KDTree.balance` must have been called before using any of the ``find`` "
+    "   :meth:`KDTree.balance` must have been called before using any of the ``find`` "
     "methods.\n");
 PyTypeObject PyKDTree_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)

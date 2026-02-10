@@ -218,6 +218,15 @@ static PyObject *pygpu_buffer_to_list(BPyGPUBuffer *self)
   return list;
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_buffer_to_list_doc,
+    ".. method:: to_list()\n"
+    "\n"
+    "   Return the buffer as a list.\n"
+    "\n"
+    "   :return: The buffer as a list.\n"
+    "   :rtype: list\n");
 static PyObject *pygpu_buffer_to_list_recursive(BPyGPUBuffer *self)
 {
   PyObject *list;
@@ -576,7 +585,7 @@ static PyMethodDef pygpu_buffer__tp_methods[] = {
     {"to_list",
      reinterpret_cast<PyCFunction>(pygpu_buffer_to_list_recursive),
      METH_NOARGS,
-     "return the buffer as a list"},
+     pygpu_buffer_to_list_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 

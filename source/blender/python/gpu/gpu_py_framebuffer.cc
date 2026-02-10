@@ -500,10 +500,14 @@ PyDoc_STRVAR(
     "   Set the viewport for this framebuffer object.\n"
     "   Note: The viewport state is not saved upon framebuffer rebind.\n"
     "\n"
-    "   :param x, y: lower left corner of the viewport_set rectangle, in pixels.\n"
-    "   :type x, y: int\n"
-    "   :param xsize, ysize: width and height of the viewport_set.\n"
-    "   :type xsize, ysize: int\n");
+    "   :param x: Lower left corner x of the viewport rectangle, in pixels.\n"
+    "   :type x: int\n"
+    "   :param y: Lower left corner y of the viewport rectangle, in pixels.\n"
+    "   :type y: int\n"
+    "   :param xsize: Width of the viewport.\n"
+    "   :type xsize: int\n"
+    "   :param ysize: Height of the viewport.\n"
+    "   :type ysize: int\n");
 static PyObject *pygpu_framebuffer_viewport_set(BPyGPUFrameBuffer *self, PyObject *args)
 {
   int x, y, xsize, ysize;
@@ -520,7 +524,10 @@ PyDoc_STRVAR(
     pygpu_framebuffer_viewport_get_doc,
     ".. method:: viewport_get()\n"
     "\n"
-    "   Returns position and dimension to current viewport.\n");
+    "   Returns position and dimension to current viewport.\n"
+    "\n"
+    "   :return: The viewport as ``(x, y, width, height)``.\n"
+    "   :rtype: tuple[int, int, int, int]\n");
 static PyObject *pygpu_framebuffer_viewport_get(BPyGPUFrameBuffer *self)
 {
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
@@ -543,9 +550,14 @@ PyDoc_STRVAR(
     "\n"
     "   Read a block of pixels from the frame buffer.\n"
     "\n"
-    "   :param x, y: Lower left corner of a rectangular block of pixels.\n"
-    "   :param xsize, ysize: Dimensions of the pixel rectangle.\n"
-    "   :type x, y, xsize, ysize: int\n"
+    "   :param x: Lower left corner x of a rectangular block of pixels.\n"
+    "   :type x: int\n"
+    "   :param y: Lower left corner y of a rectangular block of pixels.\n"
+    "   :type y: int\n"
+    "   :param xsize: Width of the pixel rectangle.\n"
+    "   :type xsize: int\n"
+    "   :param ysize: Height of the pixel rectangle.\n"
+    "   :type ysize: int\n"
     "   :param channels: Number of components to read.\n"
     "   :type channels: int\n"
     "   :param slot: The framebuffer slot to read data from.\n"
@@ -669,10 +681,14 @@ PyDoc_STRVAR(
     "\n"
     "   Read a pixel depth block from the frame buffer.\n"
     "\n"
-    "   :param x, y: Lower left corner of a rectangular block of pixels.\n"
-    "   :type x, y: int\n"
-    "   :param xsize, ysize: Dimensions of the pixel rectangle.\n"
-    "   :type xsize, ysize: int\n"
+    "   :param x: Lower left corner x of a rectangular block of pixels.\n"
+    "   :type x: int\n"
+    "   :param y: Lower left corner y of a rectangular block of pixels.\n"
+    "   :type y: int\n"
+    "   :param xsize: Width of the pixel rectangle.\n"
+    "   :type xsize: int\n"
+    "   :param ysize: Height of the pixel rectangle.\n"
+    "   :type ysize: int\n"
     "   :param data: Optional Buffer object to fill with the pixels values.\n"
     "   :type data: :class:`gpu.types.Buffer`\n"
     "   :return: The Buffer with the read pixels.\n"

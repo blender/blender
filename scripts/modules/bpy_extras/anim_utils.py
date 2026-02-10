@@ -186,11 +186,13 @@ def bake_action_objects(
     """
     A version of :func:`bake_action_objects_iter` that takes frames and returns the output.
 
+    :param object_action_pairs: Sequence of object action tuples,
+       action is the destination for the baked data. When None a new action will be created.
+    :type object_action_pairs: Sequence[tuple[:class:`bpy.types.Object`, :class:`bpy.types.Action` | None]]
     :param frames: Frames to bake.
     :type frames: iterable of int
     :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
-
     :return: A sequence of Action or None types (aligned with ``object_action_pairs``)
     :rtype: Sequence[:class:`bpy.types.Action`]
     """
@@ -209,13 +211,16 @@ def bake_action_objects_iter(
         bake_options,
 ):
     """
-    An coroutine that bakes actions for multiple objects.
+    A coroutine that bakes actions for multiple objects.
 
     :param object_action_pairs: Sequence of object action tuples,
        action is the destination for the baked data. When None a new action will be created.
-    :type object_action_pairs: Sequence of (:class:`bpy.types.Object`, :class:`bpy.types.Action`)
+    :type object_action_pairs: Sequence[tuple[:class:`bpy.types.Object`, :class:`bpy.types.Action`]]
     :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
+    :return: A generator that yields None for each frame, then finally
+       yields a tuple of actions (aligned with *object_action_pairs*).
+    :rtype: Generator
     """
     scene = bpy.context.scene
     frame_back = scene.frame_current
@@ -245,18 +250,17 @@ def bake_action_iter(
         bake_options,
 ):
     """
-    An coroutine that bakes action for a single object.
+    A coroutine that bakes action for a single object.
 
     :param obj: Object to bake.
     :type obj: :class:`bpy.types.Object`
     :param action: An action to bake the data into, or None for a new action
        to be created.
     :type action: :class:`bpy.types.Action` | None
-    :param bake_options: Boolean options of what to include into the action bake.
+    :param bake_options: Options for baking.
     :type bake_options: :class:`anim_utils.BakeOptions`
-
     :return: an action or None
-    :rtype: :class:`bpy.types.Action`
+    :rtype: :class:`bpy.types.Action` | None
     """
     # -------------------------------------------------------------------------
     # Helper Functions and vars

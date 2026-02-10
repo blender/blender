@@ -76,11 +76,11 @@ class ImagePreviewCollection(dict):
         return p
     new.__doc__ = _utils_previews.new.__doc__
 
-    def load(self, name, path, path_type, force_reload=False):
+    def load(self, name, filepath, file_type, force_reload=False):
         if name in self:
             raise KeyError("key {!r} already exists".format(name))
         p = self[name] = _utils_previews.load(
-            self._gen_key(name), path, path_type, force_reload)
+            self._gen_key(name), filepath, file_type, force_reload)
         return p
     load.__doc__ = _utils_previews.load.__doc__
 

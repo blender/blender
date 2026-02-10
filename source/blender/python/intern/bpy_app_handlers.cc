@@ -83,7 +83,7 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"render_complete", "on completion of render job. " RENDER_ARG},
     {"render_cancel", "on canceling a render job. " RENDER_ARG},
 
-    {"load_pre", "on loading a new blend file (before)." FILEPATH_LOAD_ARG},
+    {"load_pre", "on loading a new blend file (before). " FILEPATH_LOAD_ARG},
     {"load_post", "on loading a new blend file (after). " FILEPATH_LOAD_ARG},
     {"load_post_fail", "on failure to load a new blend file (after). " FILEPATH_LOAD_ARG},
 

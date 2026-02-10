@@ -153,13 +153,13 @@ static float frand()
   "   :type noise_basis: Literal['BLENDER', 'PERLIN_ORIGINAL', 'PERLIN_NEW', " \
   "'VORONOI_F1', 'VORONOI_F2', " \
   "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', " \
-  "'CELLNOISE'].\n"
+  "'CELLNOISE']\n"
 
 #define BPY_NOISE_METRIC_ENUM_DOC \
   "   :param distance_metric: A distance metric string.\n" \
   "   :type distance_metric: Literal['DISTANCE', 'DISTANCE_SQUARED', 'MANHATTAN', " \
   "'CHEBYCHEV', " \
-  "'MINKOVSKY', 'MINKOVSKY_HALF', 'MINKOVSKY_FOUR'].\n"
+  "'MINKOVSKY', 'MINKOVSKY_HALF', 'MINKOVSKY_FOUR']\n"
 
 /* Noise basis enum */
 #define DEFAULT_NOISE_TYPE TEX_STDPERLIN
@@ -372,7 +372,7 @@ PyDoc_STRVAR(
     M_Noise_seed_set_doc,
     ".. function:: seed_set(seed, /)\n"
     "\n"
-    "   Sets the random seed used for random_unit_vector, and random.\n"
+    "   Sets the random seed used for random_unit_vector, random_vector, and random.\n"
     "\n"
     "   :param seed: Seed used for the random generator.\n"
     "      When seed is zero, the current time will be used instead.\n"

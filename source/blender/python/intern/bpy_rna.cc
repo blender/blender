@@ -4604,9 +4604,9 @@ PyDoc_STRVAR(
     pyrna_struct_id_properties_ui_doc,
     ".. method:: id_properties_ui(key, /)\n"
     "\n"
-    "   :return: Return an object used to manage an IDProperty's UI data.\n"
     "   :param key: String name of the property.\n"
-    "   :type key: str.\n"
+    "   :type key: str\n"
+    "   :return: An object used to manage an IDProperty's UI data.\n"
     "   :rtype: :class:`bpy.types.IDPropertyUIManager`\n");
 static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *args)
 {
@@ -4652,7 +4652,7 @@ PyDoc_STRVAR(
     pyrna_struct_id_properties_clear_doc,
     ".. method:: id_properties_clear()\n"
     "\n"
-    "   :return: Remove the parent group for an RNA struct's custom IDProperties.\n");
+    "   Remove the parent group for an RNA struct's custom IDProperties.\n");
 static PyObject *pyrna_struct_id_properties_clear(BPy_StructRNA *self)
 {
   PYRNA_STRUCT_CHECK_OBJ(self);
@@ -10459,7 +10459,7 @@ PyDoc_STRVAR(
     "   Unload the Python class from blender.\n"
     "\n"
     "   :param cls: Blender type class, \n"
-    "      see :mod:`bpy.utils.register_class` for classes which can \n"
+    "      see :func:`bpy.utils.register_class` for classes which can \n"
     "      be registered.\n"
     "   :type cls: " BPY_TYPEDEF_REGISTERABLE_DOC
     "\n"

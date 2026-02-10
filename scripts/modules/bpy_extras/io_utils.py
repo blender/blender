@@ -138,6 +138,13 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
     """
     A decorator for import/export classes, generating properties needed by the axis conversion system and IO helpers,
     with specified default values (axes).
+
+    :param axis_forward: The default forward axis.
+    :type axis_forward: str
+    :param axis_up: The default up axis.
+    :type axis_up: str
+    :return: A class decorator.
+    :rtype: Callable
     """
 
     def wrapper(cls):
@@ -310,6 +317,16 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     """
     Each argument is an axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z']
     where the first 2 are a source and the second 2 are the target.
+
+    :param from_forward: Source forward axis.
+    :type from_forward: str
+    :param from_up: Source up axis.
+    :type from_up: str
+    :param to_forward: Target forward axis.
+    :type to_forward: str
+    :param to_up: Target up axis.
+    :type to_up: str
+    :return: The conversion matrix.
     :rtype: :class:`mathutils.Matrix`
     """
     from mathutils import Matrix
@@ -375,7 +392,7 @@ def create_derived_objects(depsgraph, objects):
 
     :param depsgraph: The evaluated depsgraph.
     :type depsgraph: :class:`bpy.types.Depsgraph`
-    :param objects: A sequencer of objects.
+    :param objects: A sequence of objects.
     :type objects: Sequence[:class:`bpy.types.Object`]
     :return: A dictionary where each key is an object from ``objects``,
        values are lists of (object, matrix) tuples representing instances.
@@ -452,6 +469,11 @@ def poll_file_object_drop(context):
     """
     A default implementation for FileHandler poll_drop methods. Allows for both the 3D Viewport and
     the Outliner (in ViewLayer display mode) to be targets for file drag and drop.
+
+    :param context: The context.
+    :type context: :class:`bpy.types.Context`
+    :return: Whether the drop target is valid.
+    :rtype: bool
     """
     area = context.area
     if not area:
@@ -607,11 +629,15 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
        occur, this should be an empty dict initially and only modified by this
        function.
     :type name_dict: dict
+    :param name_max: Maximum length of the name. When ``-1`` the name is unlimited.
+    :type name_max: int
     :param clean_func: Function to call on *name* before creating a unique value.
     :type clean_func: function
     :param sep: Separator to use when between the name and a number when a
        duplicate name is found.
     :type sep: str
+    :return: A unique name.
+    :rtype: str
     """
     name_new = name_dict.get(key)
     if name_new is None:
