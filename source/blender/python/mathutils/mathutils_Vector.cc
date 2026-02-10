@@ -811,7 +811,7 @@ PyDoc_STRVAR(
     "   Return a quaternion rotation from the vector and the track and up axis.\n"
     "\n"
     "   :param track: Track axis string.\n"
-    "   :type track: Literal['-', 'X', 'Y', 'Z', '-X', '-Y', '-Z']\n"
+    "   :type track: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']\n"
     "   :param up: Up axis string.\n"
     "   :type up: Literal['X', 'Y', 'Z']\n"
     "   :return: rotation from the vector and the track and up axis.\n"

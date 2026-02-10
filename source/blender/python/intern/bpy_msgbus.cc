@@ -202,7 +202,7 @@ PyDoc_STRVAR(
     "   :param args: Arguments passed to the callback.\n"
     "   :type args: tuple\n"
     "   :param notify: The callback function.\n"
-    "   :type notify: callable\n"
+    "   :type notify: Callable[..., None]\n"
     "   :param options: Change the behavior of the subscriber.\n"
     "\n"
     "      - ``PERSISTENT`` when set, the subscriber will be kept when remapping ID data.\n"

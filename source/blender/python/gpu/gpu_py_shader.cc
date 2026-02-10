@@ -271,7 +271,7 @@ PyDoc_STRVAR(
     "   :param location: Location of the uniform variable to be modified.\n"
     "   :type location: int\n"
     "   :param buffer: Buffer object with format matching the uniform.\n"
-    "   :type buffer: object exposing buffer interface\n"
+    "   :type buffer: Buffer\n"
     "   :param length: Size of the uniform data type.\n"
     "   :type length: int\n"
     "   :param count: Specifies the number of elements that are to be modified.\n"
