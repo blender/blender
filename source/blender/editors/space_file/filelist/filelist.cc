@@ -755,7 +755,7 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
 
   if (preview_in_memory) {
     /* TODO(mano-wii): No need to use the thread API here. */
-    BLI_assert(BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW));
+    BLI_assert(!BKE_previewimg_is_rendering(preview_in_memory, ICON_SIZE_PREVIEW));
     preview->filepath[0] = '\0';
     ImBuf *imbuf = BKE_previewimg_to_imbuf(preview_in_memory, ICON_SIZE_PREVIEW);
     if (imbuf) {

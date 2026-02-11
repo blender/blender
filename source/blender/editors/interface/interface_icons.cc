@@ -1280,7 +1280,7 @@ bool icon_is_preview_deferred_loading(const int icon_id, const bool big)
 
     if (prv) {
       const int size = big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON;
-      return (prv->flag[size] & PRV_RENDERING) != 0;
+      return !BKE_previewimg_is_finished(prv, size);
     }
   }
 
@@ -1846,7 +1846,8 @@ static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job)
 {
   /* changed only ever set by dynamic icons */
-  if ((pi->flag[size] & PRV_CHANGED) || (!pi->rect[size] && !BKE_previewimg_is_invalid(pi))) {
+  if ((pi->flag[size] & PRV_CHANGED) || (!pi->rect[size] && !BKE_previewimg_is_invalid(pi, size)))
+  {
     /* create the rect if necessary */
     icon_set_image(C, scene, id, pi, eIconSizes(size), use_job);
 

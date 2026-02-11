@@ -157,7 +157,7 @@ static void memfile_undosys_unfinished_id_previews_restart(ID *id)
       continue;
     }
 
-    if (!BKE_previewimg_is_finished(preview, i)) {
+    if (BKE_previewimg_is_rendering(preview, i)) {
       ED_preview_restart_queue_add(id, eIconSizes(i));
     }
   }

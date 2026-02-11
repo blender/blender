@@ -1585,8 +1585,9 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
       break;
     }
 
-    if (prv->runtime->tag & PRV_TAG_DEFERRED_DELETE) {
-      /* Non-thread-protected reading is not an issue here. */
+    /* Non-thread-protected reading is not an issue here, because we are only trying
+     * to avoid unnecessary work when the preview is to be deleted. */
+    if (prv->runtime->tag[icon_size] & PRV_TAG_DEFERRED_DELETE) {
       continue;
     }
 
@@ -1614,7 +1615,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
       continue;
     }
 
-    BLI_assert(!BKE_previewimg_is_finished(prv, i));
+    BLI_assert(BKE_previewimg_is_rendering(prv, i));
 
     if (ip->id != nullptr) {
       switch (GS(ip->id->name)) {
@@ -1646,26 +1647,26 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
   }
 }
 
-static void icon_preview_endjob(void *customdata)
+static void icon_preview_endjob(void *customdata, const PreviewImageRenderEndStatus status)
 {
   IconPreview *ip = static_cast<IconPreview *>(customdata);
 
   if (ip->owner) {
     PreviewImage *prv_img = static_cast<PreviewImage *>(ip->owner);
-    prv_img->runtime->tag &= ~PRV_TAG_DEFERRED_RENDERING;
 
     for (int i = 0; i < NUM_ICON_SIZES; i++) {
       if (ip->render_size[i]) {
-        BKE_previewimg_finish(prv_img, i);
+        BKE_previewimg_render_end(prv_img, eIconSizes(i), status);
       }
-    }
-
-    if (prv_img->runtime->tag & PRV_TAG_DEFERRED_DELETE) {
-      BKE_previewimg_deferred_release(prv_img);
     }
 
     ip->owner = nullptr;
   }
+}
+
+static void icon_preview_endjob(void *customdata)
+{
+  icon_preview_endjob(customdata, PRV_RENDER_STATUS_FINISHED);
 }
 
 /**
@@ -1827,7 +1828,7 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
 {
   BLI_assert(BLI_thread_is_main());
   BLI_assert(preview->runtime->deferred_loading_data);
-  BLI_assert_msg(!(preview->flag[icon_size] & PRV_RENDERING),
+  BLI_assert_msg(!BKE_previewimg_is_rendering(preview, icon_size),
                  "Preview was already requested and is being loaded");
   std::optional<StringRefNull> path = BKE_previewimg_deferred_filepath_get(preview);
   if (!path) {
@@ -1835,9 +1836,7 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
     return;
   }
 
-  preview->flag[icon_size] |= PRV_RENDERING;
-  /* Warn main thread code that this preview is being rendered and cannot be freed. */
-  preview->runtime->tag |= PRV_TAG_DEFERRED_RENDERING;
+  BKE_previewimg_render_start(preview, icon_size, true);
 
   const bool is_downloading = BKE_previewimg_is_online(preview) &&
                               !PreviewLoadJob::known_downloaded_previews().contains_as(*path);
@@ -2081,18 +2080,10 @@ void PreviewLoadJob::finish_request(RequestedPreview &request)
 
   PreviewImage *preview = request.preview;
 
-  preview->runtime->tag &= ~PRV_TAG_DEFERRED_RENDERING;
-  if (request.state == PreviewState::Failed) {
-    preview->runtime->tag |= PRV_TAG_DEFERRED_INVALID;
-  }
-  BKE_previewimg_finish(preview, request.icon_size);
-
-  BLI_assert_msg(BLI_thread_is_main(),
-                 "Deferred releasing of preview images should only run on the main thread");
-  if (preview->runtime->tag & PRV_TAG_DEFERRED_DELETE) {
-    BLI_assert(preview->runtime->deferred_loading_data);
-    BKE_previewimg_deferred_release(preview);
-  }
+  BKE_previewimg_render_end(preview,
+                            request.icon_size,
+                            request.state == PreviewState::Failed ? PRV_RENDER_STATUS_FAILED :
+                                                                    PRV_RENDER_STATUS_FINISHED);
 }
 
 void PreviewLoadJob::update_fn(void *customdata)
@@ -2136,7 +2127,7 @@ void PreviewLoadJob::free_fn(void *customdata)
 
 static void icon_preview_free(void *customdata)
 {
-  icon_preview_endjob(customdata);
+  icon_preview_endjob(customdata, PRV_RENDER_STATUS_CANCELLED);
 
   IconPreview *ip = static_cast<IconPreview *>(customdata);
 
@@ -2195,7 +2186,7 @@ void ED_preview_icon_render(
 {
   /* Deferred loading of previews from the file system. */
   if (prv_img->runtime->deferred_loading_data) {
-    if (prv_img->flag[icon_size] & PRV_RENDERING) {
+    if (BKE_previewimg_is_rendering(prv_img, icon_size)) {
       /* Already in the queue, don't add it again. */
       return;
     }
@@ -2227,14 +2218,13 @@ void ED_preview_icon_render(
   ip.owner = BKE_previewimg_id_ensure(id);
   ip.id = id;
 
-  prv_img->flag[icon_size] |= PRV_RENDERING;
-
+  BKE_previewimg_render_start(prv_img, icon_size, false);
   ip.render_size[icon_size] = true;
 
   wmJobWorkerStatus worker_status = {};
   icon_preview_startjob_all_sizes(&ip, &worker_status);
 
-  icon_preview_endjob(&ip);
+  icon_preview_endjob(&ip, PRV_RENDER_STATUS_FINISHED);
 
   if (ip.id_copy != nullptr) {
     preview_id_copy_free(ip.id_copy);
@@ -2246,7 +2236,7 @@ void ED_preview_icon_job(
 {
   /* Deferred loading of previews from the file system. */
   if (prv_img->runtime->deferred_loading_data) {
-    if (prv_img->flag[icon_size] & PRV_RENDERING) {
+    if (BKE_previewimg_is_rendering(prv_img, icon_size)) {
       /* Already in the queue, don't add it again. */
       return;
     }
@@ -2297,10 +2287,7 @@ void ED_preview_icon_job(
   ip->owner = prv_img;
   ip->id = id;
 
-  prv_img->flag[icon_size] |= PRV_RENDERING;
-  /* Warn main thread code that this preview is being rendered and cannot be freed. */
-  prv_img->runtime->tag |= PRV_TAG_DEFERRED_RENDERING;
-
+  BKE_previewimg_render_start(prv_img, icon_size, true);
   ip->render_size[icon_size] = true;
 
   /* setup job */

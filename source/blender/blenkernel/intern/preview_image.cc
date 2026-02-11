@@ -78,6 +78,31 @@ static PreviewImage *previewimg_deferred_create(const char *filepath, ThumbSourc
   return prv;
 }
 
+static void previewimg_free_or_defer(PreviewImage **prv)
+{
+  if (*prv == nullptr) {
+    return;
+  }
+
+  BLI_assert(BLI_thread_is_main());
+
+  bool do_delete = true;
+
+  /* If a preview is still being rendered, tag it for deferred deletion in
+   * BKE_previewimg_render_end. */
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    if ((*prv)->runtime->tag[i] & PRV_TAG_DEFERRED_RENDERING) {
+      (*prv)->runtime->tag[i] |= PRV_TAG_DEFERRED_DELETE;
+      do_delete = false;
+    }
+  }
+
+  if (do_delete) {
+    BKE_previewimg_free(prv);
+  }
+  *prv = nullptr;
+}
+
 PreviewImage *BKE_previewimg_create()
 {
   PreviewImage *prv = MEM_new<PreviewImage>(__func__);
@@ -94,6 +119,10 @@ PreviewImage *BKE_previewimg_create()
 void BKE_previewimg_free(PreviewImage **prv)
 {
   if (prv && (*prv)) {
+    if ((*prv)->runtime->icon_id) {
+      BKE_icon_delete((*prv)->runtime->icon_id);
+    }
+
     for (int i = 0; i < NUM_ICON_SIZES; i++) {
       if ((*prv)->rect[i]) {
         MEM_delete((*prv)->rect[i]);
@@ -213,9 +242,8 @@ PreviewImage *BKE_previewimg_id_get(const ID *id)
 void BKE_previewimg_id_free(ID *id)
 {
   PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
-  if (prv_p && *prv_p) {
-    BKE_previewimg_deferred_release(*prv_p);
-    *prv_p = nullptr;
+  if (prv_p) {
+    previewimg_free_or_defer(prv_p);
   }
 }
 
@@ -239,9 +267,7 @@ void BKE_previewimg_id_custom_set(ID *id, const char *filepath)
   /* Thumbnail previews must use the deferred pipeline. But we force them to be immediately
    * generated here still. */
 
-  if (*prv) {
-    BKE_previewimg_deferred_release(*prv);
-  }
+  previewimg_free_or_defer(prv);
   *prv = previewimg_deferred_create(filepath, THB_SOURCE_IMAGE);
 
   /* Can't lazy-render the preview on access. ID previews are saved to files and we want them to be
@@ -256,23 +282,6 @@ void BKE_previewimg_id_custom_set(ID *id, const char *filepath)
 bool BKE_previewimg_id_supports_jobs(const ID *id)
 {
   return ELEM(GS(id->name), ID_OB, ID_MA, ID_TE, ID_LA, ID_WO, ID_IM, ID_BR, ID_GR, ID_SCE);
-}
-
-void BKE_previewimg_deferred_release(PreviewImage *prv)
-{
-  if (!prv) {
-    return;
-  }
-
-  if (prv->runtime->tag & PRV_TAG_DEFERRED_RENDERING) {
-    /* We cannot delete the preview while it is being loaded in another thread... */
-    prv->runtime->tag |= PRV_TAG_DEFERRED_DELETE;
-    return;
-  }
-  if (prv->runtime->icon_id) {
-    BKE_icon_delete(prv->runtime->icon_id);
-  }
-  BKE_previewimg_free(&prv);
 }
 
 PreviewImage *BKE_previewimg_cached_get(const char *name)
@@ -356,7 +365,7 @@ void BKE_previewimg_cached_release(const char *name)
   BLI_assert(BLI_thread_is_main());
   CachedPreviewMap &cache = get_cached_previews_map();
   PreviewImage *prv = cache.pop_default_as(name, nullptr);
-  BKE_previewimg_deferred_release(prv);
+  previewimg_free_or_defer(&prv);
 }
 
 void BKE_previewimg_ensure(PreviewImage *prv, const int size)
@@ -458,20 +467,69 @@ ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, const int size)
   return ima;
 }
 
-void BKE_previewimg_finish(PreviewImage *prv, const int size)
+void BKE_previewimg_render_start(PreviewImage *prv, const int size, const bool using_job)
 {
-  /* Previews may be calculated on a thread. */
-  atomic_fetch_and_and_int16(&prv->flag[size], ~PRV_RENDERING);
+  BLI_assert(BLI_thread_is_main());
+
+  prv->flag[size] |= PRV_RENDERING;
+
+  /* When rendering as a job in another thread, tag so that main thread will not
+   * free it and defer deletion to the job. */
+  if (using_job) {
+    prv->runtime->tag[size] |= PRV_TAG_DEFERRED_RENDERING;
+  }
+}
+
+void BKE_previewimg_render_end(PreviewImage *prv,
+                               const int size,
+                               const PreviewImageRenderEndStatus status)
+{
+  BLI_assert(BLI_thread_is_main());
+
+  bool do_delete = false;
+
+  prv->runtime->tag[size] &= ~PRV_TAG_DEFERRED_RENDERING;
+  if (status == PRV_RENDER_STATUS_FAILED) {
+    prv->runtime->tag[size] |= PRV_TAG_DEFERRED_INVALID;
+  }
+
+  /* When job is cancelled for e.g. undo, PRV_RENDERING remains so that
+   * it can resume when going back to that undo step. */
+  if (status != PRV_RENDER_STATUS_CANCELLED) {
+    prv->flag[size] &= ~PRV_RENDERING;
+  }
+
+  /* Check if we need to do deferred deletion and it's safe to do so. */
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    if (prv->runtime->tag[i] & PRV_TAG_DEFERRED_RENDERING) {
+      /* Another size is still rendering, */
+      return;
+    }
+    if (prv->runtime->tag[i] & PRV_TAG_DEFERRED_DELETE) {
+      /* Deferred deletion is needed. */
+      do_delete = true;
+    }
+  }
+
+  if (do_delete) {
+    BLI_assert(prv->runtime->deferred_loading_data);
+    BKE_previewimg_free(&prv);
+  }
+}
+
+bool BKE_previewimg_is_rendering(const PreviewImage *prv, const int size)
+{
+  return (prv->flag[size] & PRV_RENDERING);
 }
 
 bool BKE_previewimg_is_finished(const PreviewImage *prv, const int size)
 {
-  return (prv->flag[size] & PRV_RENDERING) == 0;
+  return !(prv->flag[size] & PRV_RENDERING);
 }
 
-bool BKE_previewimg_is_invalid(const PreviewImage *prv)
+bool BKE_previewimg_is_invalid(const PreviewImage *prv, const int size)
 {
-  return (prv->runtime->tag & PRV_TAG_DEFERRED_INVALID) != 0;
+  return (prv->runtime->tag[size] & PRV_TAG_DEFERRED_INVALID) != 0;
 }
 
 void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
