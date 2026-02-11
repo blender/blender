@@ -739,7 +739,7 @@ struct Block {
   [[nodiscard]] Button *next_but(const Button *but) const;
   [[nodiscard]] Button *prev_but(const Button *but) const;
 
-  static constexpr Button &button_ptr_dereference(const std::unique_ptr<Button> &button)
+  static Button &button_ptr_dereference(const std::unique_ptr<Button> &button)
   {
     return *button;
   }
