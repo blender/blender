@@ -129,12 +129,30 @@ ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
   }
 #  endif
 
+  BVHShadowAllPayload payload;
+
+  /* A bit of a tricky initialization:
+   * - Some backends require extra ray information for custom motion blur intersection.
+   * - Some backends utilize registers to pass commonly accessed data to the trace calls. */
+#  if !defined(__KERNEL_OPTIX__)
+  BVH_PAYLOAD_BASE(payload).ray_self = ray->self;
+  BVH_PAYLOAD_BASE(payload).ray_visibility = visibility;
+#    if defined(__KERNEL_HIPRT__)
+  BVH_PAYLOAD_BASE(payload).ray_time = ray->time;
+#    endif
+#  endif
+
+  payload.state = state;
+  payload.max_transparent_hits = max_transparent_hits;
+  payload.max_record_isect_t = ray->tmax;
+
 #  ifdef __EMBREE__
   IF_USING_EMBREE
   {
     if (kernel_data.device_bvh) {
-      kernel_embree_intersect_shadow_all(
-          kg, state, ray, visibility, max_transparent_hits, num_recorded_hits, throughput);
+      kernel_embree_intersect_shadow_all(kg, ray, payload);
+      *num_recorded_hits = payload.num_recorded_hits;
+      *throughput = payload.throughput;
       return;
     }
   }
@@ -142,23 +160,6 @@ ccl_device_intersect void scene_intersect_shadow_all(KernelGlobals kg,
 
   IF_NOT_USING_EMBREE
   {
-    BVHShadowAllPayload payload;
-
-    /* A bit of a tricky initialization:
-     * - Some backends require extra ray information for custom motion blur intersection.
-     * - Some backends utilize registers to pass commonly accessed data to the trace calls. */
-#  if !defined(__KERNEL_OPTIX__)
-    BVH_PAYLOAD_BASE(payload).ray_self = ray->self;
-    BVH_PAYLOAD_BASE(payload).ray_visibility = visibility;
-#    if defined(__KERNEL_HIPRT__)
-    BVH_PAYLOAD_BASE(payload).ray_time = ray->time;
-#    endif
-#  endif
-
-    payload.state = state;
-    payload.max_transparent_hits = max_transparent_hits;
-    payload.max_record_isect_t = ray->tmax;
-
 #  if defined(__BVH2__)
     scene_intersect_shadow_all_bvh2(kg, ray, payload);
 #  elif defined(__KERNEL_HIPRT__)

@@ -18,6 +18,7 @@
 #  include "kernel/device/cpu/globals.h"
 #endif
 
+#include "kernel/bvh/intersect_filter.h"
 #include "kernel/bvh/types.h"
 #include "kernel/bvh/util.h"
 #include "kernel/geom/object.h"
@@ -66,14 +67,13 @@ struct CCLFirstHitContext : public RTCRayQueryContext {
 };
 
 struct CCLShadowContext : public RTCRayQueryContext {
+#if defined(__KERNEL_ONEAPI__)
+  ONEAPIKernelContext *oneapi_kernel_context;
+#else
   KernelGlobals kg;
-  const Ray *ray;
-  IntegratorShadowState isect_s;
-  float throughput;
-  float max_t;
-  numhit_t max_transparent_hits;
-  numhit_t num_transparent_hits;
-  numhit_t num_recorded_hits;
+#endif
+
+  BVHShadowAllPayload *payload;
 };
 
 struct CCLLocalContext : public RTCRayQueryContext {
@@ -257,118 +257,28 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
   assert(args->N == 1);
 
   const RTCRay *ray = (RTCRay *)args->ray;
-  RTCHit *hit = (RTCHit *)args->hit;
+  const RTCHit *hit = (RTCHit *)args->hit;
+
   CCLShadowContext *ctx = (CCLShadowContext *)(args->context);
+  BVHShadowAllPayload &payload = *ctx->payload;
+
 #ifdef __KERNEL_ONEAPI__
   KernelGlobalsGPU *kg = nullptr;
 #else
   const ThreadKernelGlobalsCPU *kg = ctx->kg;
 #endif
-  const Ray *cray = ctx->ray;
 
-  Intersection current_isect;
+  Intersection isect;
   kernel_embree_convert_hit(
-      kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
-  if (intersection_skip_self_shadow(cray->self, current_isect.object, current_isect.prim)) {
-    *args->valid = 0;
-    return;
-  }
+      kg, ray, hit, &isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
 
-#ifdef __SHADOW_LINKING__
-  if (intersection_skip_shadow_link(kg, cray->self, current_isect.object)) {
-    *args->valid = 0;
-    return;
-  }
-#endif
-
-  /* If no transparent shadows, all light is blocked. */
-  const int flags = intersection_get_shader_flags(kg, current_isect.prim, current_isect.type);
-  if ((flags & SD_HAS_TRANSPARENT_SHADOW) == 0) {
-    ctx->throughput = 0.0f;
-    return;
-  }
-
-  if (intersection_skip_shadow_already_recoded(
-          ctx->isect_s, current_isect.object, current_isect.prim, ctx->num_recorded_hits))
+  if (!bvh_shadow_all_anyhit_filter<ISECT_TEST_ALL & ~ISECT_TEST_VISIBILITY_FLAG>(
+          kg, payload.state, payload, payload.base.ray_self, 0, isect))
   {
-    *args->valid = 0;
     return;
   }
 
-  /* Only count transparent bounces, volume bounds bounces are counted during shading. */
-  ctx->num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
-  if (ctx->num_transparent_hits > ctx->max_transparent_hits) {
-    /* Max number of hits exceeded. */
-    ctx->throughput = 0.0f;
-    return;
-  }
-
-  /* Always use baked shadow transparency for curves. */
-  if (current_isect.type & PRIMITIVE_CURVE) {
-    ctx->throughput *= intersection_curve_shadow_transparency(
-        kg, current_isect.object, current_isect.prim, current_isect.type, current_isect.u);
-
-    if (ctx->throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-      ctx->throughput = 0.0f;
-      return;
-    }
-    *args->valid = 0;
-    return;
-  }
-
-  numhit_t isect_index = ctx->num_recorded_hits;
-
-  /* Always increase the number of recorded hits, even beyond the maximum,
-   * so that we can detect this and trace another ray if needed.
-   * More details about the related logic can be found in implementation of
-   * "shadow_intersections_has_remaining" and "integrate_transparent_shadow"
-   * functions. */
-  ++ctx->num_recorded_hits;
-
-  /* This tells Embree to continue tracing. */
   *args->valid = 0;
-
-  const numhit_t max_record_hits = numhit_t(INTEGRATOR_SHADOW_ISECT_SIZE);
-  /* If the maximum number of hits was reached, replace the furthest intersection
-   * with a closer one so we get the N closest intersections. */
-  if (isect_index >= max_record_hits) {
-    /* When recording only N closest hits, max_t will always only decrease.
-     * So let's test if we are already not meeting criteria and can skip max_t recalculation. */
-    if (current_isect.t >= ctx->max_t) {
-      return;
-    }
-
-    float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
-    numhit_t max_recorded_hit = numhit_t(0);
-    float second_largest_t = 0.0f;
-
-    for (numhit_t i = numhit_t(1); i < max_record_hits; ++i) {
-      const float isect_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, i, t);
-      if (isect_t > max_t) {
-        second_largest_t = max_t;
-        max_recorded_hit = i;
-        max_t = isect_t;
-      }
-      else if (isect_t > second_largest_t) {
-        second_largest_t = isect_t;
-      }
-    }
-
-    if (isect_index == max_record_hits && current_isect.t >= max_t) {
-      /* `ctx->max_t` was initialized to `ray->tmax` before the index exceeds the limit. Now that
-       * we have looped through the array, we can properly clamp `ctx->max_t`. */
-      ctx->max_t = max_t;
-      return;
-    }
-
-    isect_index = max_recorded_hit;
-
-    /* After replacing `max_t` with `current_isect.t`, the new largest t would be either
-     * `current_isect.t` or the second largest t before. */
-    ctx->max_t = max(second_largest_t, current_isect.t);
-  }
-
-  integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
 }
 
 ccl_device_forceinline void kernel_embree_filter_occluded_local_func_impl(
@@ -533,7 +443,7 @@ kernel_embree_filter_occluded_shadow_all_func_static(const RTCFilterFunctionNArg
 {
   RTCHit *hit = (RTCHit *)args->hit;
   CCLShadowContext *ctx = (CCLShadowContext *)(args->context);
-  ONEAPIKernelContext *context = static_cast<ONEAPIKernelContext *>(ctx->kg);
+  ONEAPIKernelContext *context = ctx->oneapi_kernel_context;
   context->kernel_embree_filter_occluded_shadow_all_func_impl(args);
 }
 
@@ -688,42 +598,29 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
 
 #ifdef __TRANSPARENT_SHADOWS__
 ccl_device_intersect void kernel_embree_intersect_shadow_all(KernelGlobals kg,
-                                                             IntegratorShadowState state,
                                                              const ccl_private Ray *ray,
-                                                             const uint visibility,
-                                                             const uint max_transparent_hits,
-                                                             ccl_private uint *num_recorded_hits,
-                                                             ccl_private float *throughput)
+                                                             BVHShadowAllPayload &payload)
 {
   CCLShadowContext ctx;
   rtcInitRayQueryContext(&ctx);
-#  ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko): Cycles GPU back-ends passes nullptr to KernelGlobals and
-   * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
-   * as a class context (Metal, oneAPI). So we need to pass this context here
-   * in order to have an access to it later in Embree filter functions on GPU. */
-  ctx.kg = (KernelGlobals)this;
+#  if defined(__KERNEL_ONEAPI__)
+  ctx.oneapi_kernel_context = this;
 #  else
   ctx.kg = kg;
 #  endif
-  ctx.num_transparent_hits = ctx.num_recorded_hits = numhit_t(0);
-  ctx.throughput = 1.0f;
-  ctx.isect_s = state;
-  ctx.max_transparent_hits = numhit_t(max_transparent_hits);
-  ctx.max_t = ray->tmax;
-  ctx.ray = ray;
+  ctx.payload = &payload;
+
   RTCRay rtc_ray;
-  kernel_embree_setup_ray(*ray, rtc_ray, visibility);
+  kernel_embree_setup_ray(*ray, rtc_ray, payload.base.ray_visibility);
+
   RTCOccludedArguments args;
   rtcInitOccludedArguments(&args);
   args.filter = reinterpret_cast<RTCFilterFunctionN>(
       kernel_embree_filter_occluded_shadow_all_func);
   args.feature_mask = CYCLES_EMBREE_USED_FEATURES;
   args.context = &ctx;
-  rtcTraversableOccluded1(kernel_data.device_bvh, &rtc_ray, &args);
 
-  *num_recorded_hits = ctx.num_recorded_hits;
-  *throughput = ctx.throughput;
+  rtcTraversableOccluded1(kernel_data.device_bvh, &rtc_ray, &args);
 }
 #endif
 
