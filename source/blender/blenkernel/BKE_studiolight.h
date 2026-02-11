@@ -10,6 +10,8 @@
  * Studio lighting for the 3dview
  */
 
+#include <string>
+
 #include "DNA_listBase.h"
 
 #include "BLI_sys_types.h"
@@ -82,6 +84,7 @@ struct StudioLight {
   StudioLightImage matcap_specular;
   struct ImBuf *equirect_radiance_buffer;
   gpu::Texture *equirect_radiance_gputexture;
+  std::string equirect_working_space;
   SolidLight light[STUDIOLIGHT_MAX_LIGHT];
   float light_ambient[3];
 

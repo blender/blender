@@ -53,6 +53,7 @@ using draw::View;
  * \{ */
 struct LookdevParameters {
   std::string hdri;
+  std::string working_space;
   float rot_z = 0.0f;
   float background_opacity = 0.0f;
   float intensity = 1.0f;
