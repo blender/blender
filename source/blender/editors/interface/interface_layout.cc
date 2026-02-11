@@ -5928,7 +5928,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
     }
   }
   else {
-    body = &layout->column(false);
+    body = layout;
   }
 
   if (body) {
