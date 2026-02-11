@@ -713,11 +713,8 @@ bool ED_view3d_camera_autokey(
         rna_paths.append({"rotation_axis_angle"});
         break;
 
-      case ROT_MODE_EUL:
-        rna_paths.append({"rotation_euler"});
-        break;
-
       default:
+        rna_paths.append({"rotation_euler"});
         break;
     }
   }
