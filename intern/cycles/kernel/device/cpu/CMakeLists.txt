@@ -27,7 +27,7 @@ set(SRC_KERNEL_DEVICE_CPU_HEADERS
 )
 
 set(LIB
-
+  PUBLIC cycles_util
 )
 
 # -----------------------------------------------------------------------------

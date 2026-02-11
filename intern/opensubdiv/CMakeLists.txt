@@ -77,7 +77,6 @@ if(WITH_OPENSUBDIV)
 
   if(WIN32)
     add_definitions(-DNOMINMAX)
-    add_definitions(-D_USE_MATH_DEFINES)
   endif()
 
   if(WITH_METAL_BACKEND)

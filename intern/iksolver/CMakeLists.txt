@@ -10,10 +10,6 @@ set(INC
 set(INC_SYS
 )
 
-if(WIN32)
-  add_definitions(-D_USE_MATH_DEFINES)
-endif()
-
 set(SRC
   intern/IK_QJacobian.cpp
   intern/IK_QJacobianSolver.cpp

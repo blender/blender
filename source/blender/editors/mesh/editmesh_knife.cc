@@ -8,10 +8,6 @@
  * Interactive editmesh knife tool.
  */
 
-#ifdef _MSC_VER
-#  define _USE_MATH_DEFINES
-#endif
-
 #include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"

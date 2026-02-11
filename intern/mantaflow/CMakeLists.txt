@@ -11,10 +11,6 @@ else()
 endif()
 
 if(WIN32)
-  add_definitions(-D_USE_MATH_DEFINES)
-endif()
-
-if(WIN32)
   # Some files in `./extern` are being included which brings up a bunch of
   # "unreferenced formal parameter" warnings.
   # So restore warn C4100 (unreferenced formal parameter) back to w4
