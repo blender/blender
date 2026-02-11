@@ -8617,8 +8617,10 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
 
         if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
             split = layout.split(factor=0.1)
-            split.prop(settings.unified_paint_settings, "color", text="")
-            split.template_color_picker(settings.unified_paint_settings, "color", value_slider=True)
+            ups = settings.unified_paint_settings
+            prop_owner = ups if ups.use_unified_color else brush
+            split.prop(prop_owner, "color", text="")
+            split.template_color_picker(prop_owner, "color", value_slider=True)
 
             col = layout.column()
             col.separator()
