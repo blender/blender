@@ -471,19 +471,19 @@ gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
                                         gpu::TextureFormat::SFLOAT_32_32_32 :
                                         gpu::TextureFormat::SFLOAT_32_32_32_32;
 
-  /* TODO(sergey): Use utility to assign the texture. */
-  ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
-                                            rpass->rectx,
-                                            rpass->recty,
-                                            1,
-                                            format,
-                                            GPU_TEXTURE_USAGE_GENERAL,
-                                            nullptr);
-
-  if (ibuf->gpu.texture) {
-    GPU_texture_update(ibuf->gpu.texture, GPU_DATA_FLOAT, ibuf->float_buffer.data);
+  gpu::Texture *texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
+                                                rpass->rectx,
+                                                rpass->recty,
+                                                1,
+                                                format,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                nullptr);
+  if (texture) {
+    GPU_texture_update(texture, GPU_DATA_FLOAT, ibuf->float_buffer.data);
     re->result_has_gpu_texture_caches = true;
   }
+
+  IMB_assign_gpu_texture(ibuf, texture);
 
   return ibuf->gpu.texture;
 }

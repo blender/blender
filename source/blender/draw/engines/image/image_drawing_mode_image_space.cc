@@ -32,6 +32,21 @@ void ImageSpaceDrawingMode::image_sync(blender::Image *image, ImageUser *iuser) 
   const GPUSamplerState sampler = {.filtering = GPU_SAMPLER_FILTERING_DEFAULT,
                                    .extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT,
                                    .extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT};
+
+  /* Check if the image buffer already has a GPU texture and use it directly. */
+  if (image->source != IMA_SRC_TILED) {
+    void *lock;
+    const bool is_viewer = image->source == IMA_SRC_VIEWER;
+    ImBuf *buffer = BKE_image_acquire_ibuf(image, iuser, is_viewer ? &lock : nullptr);
+    BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(image, buffer, is_viewer ? lock : nullptr); });
+    if (buffer->gpu.texture) {
+      pass.push_constant("is_repeated", instance_.state.flags.do_tile_drawing);
+      pass.bind_texture("image_tx", buffer->gpu.texture, sampler);
+      pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+      return;
+    }
+  }
+
   switch (image->source) {
     case IMA_SRC_VIEWER: {
       pass.push_constant("is_repeated", instance_.state.flags.do_tile_drawing);
