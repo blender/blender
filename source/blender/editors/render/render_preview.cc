@@ -141,12 +141,6 @@ struct ShaderPreview {
   Main *pr_main;
 };
 
-struct IconPreviewSize {
-  IconPreviewSize *next, *prev;
-  int sizex, sizey;
-  uint *rect;
-};
-
 struct IconPreview {
   Main *bmain;
   Depsgraph *depsgraph; /* May be nullptr (see #WM_OT_previews_ensure). */
@@ -155,7 +149,8 @@ struct IconPreview {
   /** May be nullptr! (see #ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()). */
   ID *id;
   ID *id_copy;
-  ListBaseT<IconPreviewSize> sizes;
+  /* Which icon sizes to render. */
+  bool render_size[NUM_ICON_SIZES];
 
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
    * on before the ID can be represented as an image, for example when rendering an Action. */
@@ -890,7 +885,9 @@ static Scene *object_preview_scene_create(const ObjectPreviewData *preview_data,
   return scene;
 }
 
-static void object_preview_render(IconPreview *preview, IconPreviewSize *preview_sized)
+static void object_preview_render(const PreviewImage *prv_img,
+                                  IconPreview *preview,
+                                  const eIconSizes icon_size)
 {
   Main *preview_main = BKE_main_new();
   char err_out[256] = "unknown";
@@ -902,8 +899,8 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
   /* Act on a copy. */
   preview_data.object = id_cast<Object *>(preview->id_copy);
   preview_data.cfra = preview->scene->r.cfra;
-  preview_data.sizex = preview_sized->sizex;
-  preview_data.sizey = preview_sized->sizey;
+  preview_data.sizex = prv_img->w[icon_size];
+  preview_data.sizey = prv_img->h[icon_size];
 
   Depsgraph *depsgraph;
   Scene *scene = object_preview_scene_create(&preview_data, &depsgraph);
@@ -921,8 +918,8 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
                                                       &shading,
                                                       OB_TEXTURE,
                                                       DEG_get_evaluated(depsgraph, scene->camera),
-                                                      preview_sized->sizex,
-                                                      preview_sized->sizey,
+                                                      prv_img->w[icon_size],
+                                                      prv_img->h[icon_size],
                                                       IB_byte_data,
                                                       V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS,
                                                       R_ALPHAPREMUL,
@@ -933,7 +930,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
   /* TODO: color-management? */
 
   if (ibuf) {
-    icon_copy_rect(ibuf, preview_sized->sizex, preview_sized->sizey, preview_sized->rect);
+    icon_copy_rect(ibuf, prv_img->w[icon_size], prv_img->h[icon_size], prv_img->rect[icon_size]);
     IMB_freeImBuf(ibuf);
   }
 
@@ -1008,7 +1005,9 @@ static void action_preview_render_cleanup(IconPreview *preview, PoseBackup *pose
 /* Render a pose from the scene camera. It is assumed that the scene camera is
  * capturing the pose. The pose is applied temporarily to the current object
  * before rendering. */
-static void action_preview_render(IconPreview *preview, IconPreviewSize *preview_sized)
+static void action_preview_render(const PreviewImage *prv_img,
+                                  IconPreview *preview,
+                                  const eIconSizes icon_size)
 {
   char err_out[256] = "";
 
@@ -1037,8 +1036,8 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
                                                       nullptr,
                                                       OB_SOLID,
                                                       camera_eval,
-                                                      preview_sized->sizex,
-                                                      preview_sized->sizey,
+                                                      prv_img->w[icon_size],
+                                                      prv_img->h[icon_size],
                                                       IB_byte_data,
                                                       V3D_OFSDRAW_NONE,
                                                       R_ADDSKY,
@@ -1054,7 +1053,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
   }
 
   if (ibuf) {
-    icon_copy_rect(ibuf, preview_sized->sizex, preview_sized->sizey, preview_sized->rect);
+    icon_copy_rect(ibuf, prv_img->w[icon_size], prv_img->h[icon_size], prv_img->rect[icon_size]);
     IMB_freeImBuf(ibuf);
   }
 }
@@ -1070,8 +1069,9 @@ static bool scene_preview_is_supported(const Scene *scene)
   return scene->camera != nullptr;
 }
 
-static void scene_preview_render(IconPreview *preview,
-                                 IconPreviewSize *preview_sized,
+static void scene_preview_render(const PreviewImage *prv_img,
+                                 IconPreview *preview,
+                                 const eIconSizes icon_size,
                                  ReportList *reports)
 {
   Depsgraph *depsgraph = preview->depsgraph;
@@ -1098,8 +1098,8 @@ static void scene_preview_render(IconPreview *preview,
                                                       nullptr,
                                                       OB_SOLID,
                                                       camera_eval,
-                                                      preview_sized->sizex,
-                                                      preview_sized->sizey,
+                                                      prv_img->w[icon_size],
+                                                      prv_img->h[icon_size],
                                                       IB_byte_data,
                                                       V3D_OFSDRAW_NONE,
                                                       R_ADDSKY,
@@ -1117,7 +1117,7 @@ static void scene_preview_render(IconPreview *preview,
   }
 
   if (ibuf) {
-    icon_copy_rect(ibuf, preview_sized->sizex, preview_sized->sizey, preview_sized->rect);
+    icon_copy_rect(ibuf, prv_img->w[icon_size], prv_img->h[icon_size], prv_img->rect[icon_size]);
     IMB_freeImBuf(ibuf);
   }
 }
@@ -1519,8 +1519,9 @@ static void common_preview_startjob(void *customdata, wmJobWorkerStatus *worker_
  * Some ID types already have their own, more focused rendering (only objects right now). This is
  * for the other ones, which all share #ShaderPreview and some functions.
  */
-static void other_id_types_preview_render(IconPreview *ip,
-                                          IconPreviewSize *cur_size,
+static void other_id_types_preview_render(const PreviewImage *prv_img,
+                                          IconPreview *ip,
+                                          const eIconSizes icon_size,
                                           const ePreviewRenderMethod pr_method,
                                           wmJobWorkerStatus *worker_status)
 {
@@ -1532,10 +1533,10 @@ static void other_id_types_preview_render(IconPreview *ip,
   /* Construct shader preview from image size and preview custom-data. */
   sp->scene = ip->scene;
   sp->owner = ip->owner;
-  sp->sizex = cur_size->sizex;
-  sp->sizey = cur_size->sizey;
+  sp->sizex = prv_img->w[icon_size];
+  sp->sizey = prv_img->h[icon_size];
   sp->pr_method = pr_method;
-  sp->pr_rect = cur_size->rect;
+  sp->pr_rect = prv_img->rect[icon_size];
   sp->id = ip->id;
   sp->id_copy = ip->id_copy;
   sp->bmain = ip->bmain;
@@ -1564,28 +1565,17 @@ static void other_id_types_preview_render(IconPreview *ip,
 
 /* exported functions */
 
-/**
- * Find the index to map \a icon_size to data in \a preview_image.
- */
-static int icon_previewimg_size_index_get(const IconPreviewSize *icon_size,
-                                          const PreviewImage *preview_image)
-{
-  for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    if ((preview_image->w[i] == icon_size->sizex) && (preview_image->h[i] == icon_size->sizey)) {
-      return i;
-    }
-  }
-
-  BLI_assert_msg(0, "The searched icon size does not match any in the preview image");
-  return -1;
-}
-
 static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus *worker_status)
 {
   IconPreview *ip = static_cast<IconPreview *>(customdata);
 
-  for (IconPreviewSize &cur_size : ip->sizes) {
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
+    const eIconSizes icon_size = eIconSizes(i);
+    if (ip->render_size[icon_size] == false) {
+      continue;
+    }
+
     /* Is this a render job or a deferred loading job? */
     const ePreviewRenderMethod pr_method = (prv->runtime->deferred_loading_data) ?
                                                PR_ICON_DEFERRED :
@@ -1624,19 +1614,14 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
       continue;
     }
 
-#ifndef NDEBUG
-    {
-      int size_index = icon_previewimg_size_index_get(&cur_size, prv);
-      BLI_assert(!BKE_previewimg_is_finished(prv, size_index));
-    }
-#endif
+    BLI_assert(!BKE_previewimg_is_finished(prv, i));
 
     if (ip->id != nullptr) {
       switch (GS(ip->id->name)) {
         case ID_OB:
           if (object_preview_is_type_supported(id_cast<Object *>(ip->id))) {
             /* Much simpler than the ShaderPreview mess used for other ID types. */
-            object_preview_render(ip, &cur_size);
+            object_preview_render(prv, ip, icon_size);
           }
           continue;
         case ID_GR:
@@ -1644,42 +1629,21 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
               reinterpret_cast<const Collection *>(ip->id)));
           /* A collection instance empty was created, so this can just reuse the object preview
            * rendering. */
-          object_preview_render(ip, &cur_size);
+          object_preview_render(prv, ip, icon_size);
           continue;
         case ID_AC:
-          action_preview_render(ip, &cur_size);
+          action_preview_render(prv, ip, icon_size);
           continue;
         case ID_SCE:
-          scene_preview_render(ip, &cur_size, worker_status->reports);
+          scene_preview_render(prv, ip, icon_size, worker_status->reports);
           continue;
         default:
           /* Fall through to the same code as the `ip->id == nullptr` case. */
           break;
       }
     }
-    other_id_types_preview_render(ip, &cur_size, pr_method, worker_status);
+    other_id_types_preview_render(prv, ip, icon_size, pr_method, worker_status);
   }
-}
-
-static void icon_preview_add_size(IconPreview *ip, uint *rect, int sizex, int sizey)
-{
-  IconPreviewSize *cur_size = static_cast<IconPreviewSize *>(ip->sizes.first);
-
-  while (cur_size) {
-    if (cur_size->sizex == sizex && cur_size->sizey == sizey) {
-      /* requested size is already in list, no need to add it again */
-      return;
-    }
-
-    cur_size = cur_size->next;
-  }
-
-  IconPreviewSize *new_size = MEM_new_zeroed<IconPreviewSize>("IconPreviewSize");
-  new_size->sizex = sizex;
-  new_size->sizey = sizey;
-  new_size->rect = rect;
-
-  BLI_addtail(&ip->sizes, new_size);
 }
 
 static void icon_preview_endjob(void *customdata)
@@ -1690,9 +1654,10 @@ static void icon_preview_endjob(void *customdata)
     PreviewImage *prv_img = static_cast<PreviewImage *>(ip->owner);
     prv_img->runtime->tag &= ~PRV_TAG_DEFERRED_RENDERING;
 
-    for (IconPreviewSize &icon_size : ip->sizes) {
-      int size_index = icon_previewimg_size_index_get(&icon_size, prv_img);
-      BKE_previewimg_finish(prv_img, size_index);
+    for (int i = 0; i < NUM_ICON_SIZES; i++) {
+      if (ip->render_size[i]) {
+        BKE_previewimg_finish(prv_img, i);
+      }
     }
 
     if (prv_img->runtime->tag & PRV_TAG_DEFERRED_DELETE) {
@@ -2179,7 +2144,6 @@ static void icon_preview_free(void *customdata)
     preview_id_copy_free(ip->id_copy);
   }
 
-  BLI_freelistN(&ip->sizes);
   MEM_delete(ip);
 }
 
@@ -2265,15 +2229,13 @@ void ED_preview_icon_render(
 
   prv_img->flag[icon_size] |= PRV_RENDERING;
 
-  icon_preview_add_size(
-      &ip, prv_img->rect[icon_size], prv_img->w[icon_size], prv_img->h[icon_size]);
+  ip.render_size[icon_size] = true;
 
   wmJobWorkerStatus worker_status = {};
   icon_preview_startjob_all_sizes(&ip, &worker_status);
 
   icon_preview_endjob(&ip);
 
-  BLI_freelistN(&ip.sizes);
   if (ip.id_copy != nullptr) {
     preview_id_copy_free(ip.id_copy);
   }
@@ -2311,7 +2273,10 @@ void ED_preview_icon_job(
   /* render all resolutions from suspended job too */
   old_ip = static_cast<IconPreview *>(WM_jobs_customdata_get(wm_job));
   if (old_ip) {
-    BLI_movelisttolist(&ip->sizes, &old_ip->sizes);
+    for (int i = 0; i < NUM_ICON_SIZES; i++) {
+      ip->render_size[i] = old_ip->render_size[i];
+      old_ip->render_size[i] = false;
+    }
   }
 
   /* customdata for preview thread */
@@ -2336,8 +2301,7 @@ void ED_preview_icon_job(
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
   prv_img->runtime->tag |= PRV_TAG_DEFERRED_RENDERING;
 
-  icon_preview_add_size(
-      ip, prv_img->rect[icon_size], prv_img->w[icon_size], prv_img->h[icon_size]);
+  ip->render_size[icon_size] = true;
 
   /* setup job */
   WM_jobs_customdata_set(wm_job, ip, icon_preview_free);
