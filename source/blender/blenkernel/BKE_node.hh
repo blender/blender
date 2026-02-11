@@ -632,6 +632,14 @@ void node_register_type(bNodeType &ntype);
 void node_unregister_type(bNodeType &ntype);
 void node_register_alias(bNodeType &nt, StringRef alias);
 
+/**
+ * Set the node type \a idname and \a type_legacy to "undefined" to prevent future access to broken
+ * nodes. This should be used for nodes with missing data that cannot be fixed and should be
+ * permanently disabled.
+ * \warning The node type is not recoverable afterwards!
+ */
+void node_set_undefined_type(bNode &node);
+
 Span<bNodeType *> node_types_get();
 
 bNodeSocketType *node_socket_type_find(StringRef idname);

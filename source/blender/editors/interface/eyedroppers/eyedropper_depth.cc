@@ -22,6 +22,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8.h"
 
+#include "BLT_translation.hh"
+
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
@@ -288,7 +290,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
                                    false);
         }
         else {
-          STRNCPY_UTF8(ddr->name, "Nothing under cursor");
+          STRNCPY_UTF8(ddr->name, RPT_("Nothing under cursor"));
         }
       }
     }

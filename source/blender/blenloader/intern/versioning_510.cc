@@ -56,6 +56,9 @@ namespace blender {
  * and set it to the result using a set alpha node. */
 static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode &node)
 {
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const NodeShaderMix *data = reinterpret_cast<NodeShaderMix *>(node.storage);
   if (data->data_type != SOCK_RGBA) {
     return;
@@ -131,6 +134,9 @@ static void do_version_mix_node_mix_mode_compositor(bNodeTree &node_tree, bNode 
  * and set it to the result using a pair of separate and combine color nodes. */
 static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &node)
 {
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const NodeShaderMix *data = reinterpret_cast<NodeShaderMix *>(node.storage);
   if (data->data_type != SOCK_RGBA) {
     return;

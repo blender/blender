@@ -638,6 +638,9 @@ static void do_version_points_to_volume_options_to_inputs(bNodeTree &ntree, bNod
   if (bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const NodeGeometryPointsToVolume &storage = *static_cast<NodeGeometryPointsToVolume *>(
       node.storage);
   bNodeSocket &socket = version_node_add_socket(
@@ -664,6 +667,9 @@ static void do_version_volume_to_mesh_options_to_inputs(bNodeTree &ntree, bNode 
   if (bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const NodeGeometryVolumeToMesh &storage = *static_cast<NodeGeometryVolumeToMesh *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(
       ntree, node, SOCK_IN, "NodeSocketMenu", "Resolution Mode");
@@ -685,6 +691,9 @@ static void do_version_fill_curve_options_to_inputs(bNodeTree &ntree, bNode &nod
   if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const auto &storage = *static_cast<NodeGeometryCurveFill *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Mode");
   socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.mode;
@@ -693,6 +702,9 @@ static void do_version_fill_curve_options_to_inputs(bNodeTree &ntree, bNode &nod
 static void do_version_fillet_curve_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryCurveFillet *>(node.storage);
@@ -705,6 +717,9 @@ static void do_version_resample_curve_options_to_inputs(bNodeTree &ntree, bNode 
   if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const auto &storage = *static_cast<NodeGeometryCurveResample *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Mode");
   socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.mode;
@@ -713,6 +728,9 @@ static void do_version_resample_curve_options_to_inputs(bNodeTree &ntree, bNode 
 static void do_version_distribute_points_in_volume_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryDistributePointsInVolume *>(node.storage);
@@ -725,6 +743,9 @@ static void do_version_merge_by_distance_options_to_inputs(bNodeTree &ntree, bNo
   if (bke::node_find_socket(node, SOCK_IN, "Mode")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const auto &storage = *static_cast<NodeGeometryMergeByDistance *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Mode");
   socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.mode;
@@ -733,6 +754,9 @@ static void do_version_merge_by_distance_options_to_inputs(bNodeTree &ntree, bNo
 static void do_version_mesh_to_volume_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryMeshToVolume *>(node.storage);
@@ -744,6 +768,9 @@ static void do_version_mesh_to_volume_options_to_inputs(bNodeTree &ntree, bNode 
 static void do_version_raycast_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryRaycast *>(node.storage);
@@ -793,6 +820,9 @@ static void do_version_set_curve_normal_options_to_inputs(bNodeTree &ntree, bNod
 
 static void do_version_subdivision_surface_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   auto &storage = *static_cast<NodeGeometrySubdivisionSurface *>(node.storage);
   if (!bke::node_find_socket(node, SOCK_IN, "UV Smooth")) {
     bNodeSocket &socket = version_node_add_socket(
@@ -818,6 +848,9 @@ static void do_version_uv_pack_islands_options_to_inputs(bNodeTree &ntree, bNode
 static void do_version_uv_unwrap_options_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Method")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
   const auto &storage = *static_cast<NodeGeometryUVUnwrap *>(node.storage);
@@ -986,6 +1019,9 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
 {
   bke::node_tree_set_type(*node_tree);
 
+  if (!version_node_ensure_storage_or_invalidate(*node)) {
+    return;
+  }
   const TexMapping &texture_mapping = *static_cast<TexMapping *>(node->storage);
   const bool use_min = texture_mapping.flag & TEXMAP_CLIP_MIN;
   const bool use_max = texture_mapping.flag & TEXMAP_CLIP_MAX;
@@ -1701,6 +1737,9 @@ static void do_version_blur_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   const auto &storage = *static_cast<NodeBlurData *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Type");
   socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.filtertype;
@@ -1729,6 +1768,9 @@ static void do_version_dilate_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
   bNodeSocket &type_socket = version_node_add_socket(
       ntree, node, SOCK_IN, "NodeSocketMenu", "Type");
   type_socket.default_value_typed<bNodeSocketValueMenu>()->value = node.custom1;
@@ -1744,6 +1786,9 @@ static void do_version_tone_map_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   const auto &storage = *static_cast<NodeTonemap *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Type");
@@ -1753,6 +1798,9 @@ static void do_version_tone_map_menus_to_inputs(bNodeTree &ntree, bNode &node)
 static void do_version_lens_distortion_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Type")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -1766,6 +1814,9 @@ static void do_version_kuwahara_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   const auto &storage = *static_cast<NodeKuwaharaData *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Type");
@@ -1775,6 +1826,9 @@ static void do_version_kuwahara_menus_to_inputs(bNodeTree &ntree, bNode &node)
 static void do_version_denoise_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Prefilter")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -1790,6 +1844,9 @@ static void do_version_denoise_menus_to_inputs(bNodeTree &ntree, bNode &node)
 static void do_version_translate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -1810,6 +1867,9 @@ static void do_version_transform_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   const auto &storage = *static_cast<NodeTransformData *>(node.storage);
   bNodeSocket &interpolation_socket = version_node_add_socket(
@@ -1826,6 +1886,9 @@ static void do_version_transform_menus_to_inputs(bNodeTree &ntree, bNode &node)
 static void do_version_corner_pin_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -1846,6 +1909,9 @@ static void do_version_map_uv_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   const auto &storage = *static_cast<NodeMapUVData *>(node.storage);
   bNodeSocket &interpolation_socket = version_node_add_socket(
@@ -1862,6 +1928,9 @@ static void do_version_map_uv_menus_to_inputs(bNodeTree &ntree, bNode &node)
 static void do_version_scale_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -1889,6 +1958,9 @@ static void do_version_rotate_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   const auto &storage = *static_cast<NodeRotateData *>(node.storage);
   bNodeSocket &interpolation_socket = version_node_add_socket(
@@ -1905,6 +1977,9 @@ static void do_version_rotate_menus_to_inputs(bNodeTree &ntree, bNode &node)
 static void do_version_displace_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Interpolation")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -1972,6 +2047,9 @@ static void do_version_keying_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Feather Falloff")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   const auto &storage = *static_cast<NodeKeyingData *>(node.storage);
   bNodeSocket &feather_falloff_socket = version_node_add_socket(
@@ -2005,6 +2083,9 @@ static void do_version_movie_distortion_menus_to_inputs(bNodeTree &ntree, bNode 
 static void do_version_glare_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Type")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -2170,6 +2251,9 @@ static void do_version_set_alpha_menus_to_inputs(bNodeTree &ntree, bNode &node)
   if (bke::node_find_socket(node, SOCK_IN, "Type")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   const auto &storage = *static_cast<NodeSetAlpha *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Type");
@@ -2179,6 +2263,9 @@ static void do_version_set_alpha_menus_to_inputs(bNodeTree &ntree, bNode &node)
 static void do_version_channel_matte_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Color Space")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -2245,6 +2332,9 @@ static void do_version_distance_matte_menus_to_inputs(bNodeTree &ntree, bNode &n
   if (bke::node_find_socket(node, SOCK_IN, "Color Space")) {
     return;
   }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
+    return;
+  }
 
   auto &storage = *static_cast<NodeChroma *>(node.storage);
   bNodeSocket &socket = version_node_add_socket(
@@ -2255,6 +2345,9 @@ static void do_version_distance_matte_menus_to_inputs(bNodeTree &ntree, bNode &n
 static void do_version_color_spill_menus_to_inputs(bNodeTree &ntree, bNode &node)
 {
   if (bke::node_find_socket(node, SOCK_IN, "Spill Channel")) {
+    return;
+  }
+  if (!version_node_ensure_storage_or_invalidate(node)) {
     return;
   }
 
@@ -2291,6 +2384,9 @@ static void version_dynamic_viewer_node_items(bNodeTree &ntree)
   for (bNode &node : ntree.nodes) {
     if (node.type_legacy != GEO_NODE_VIEWER) {
       continue;
+    }
+    if (!version_node_ensure_storage_or_invalidate(node)) {
+      return;
     }
     NodeGeometryViewer *storage = static_cast<NodeGeometryViewer *>(node.storage);
     const int input_sockets_num = BLI_listbase_count(&node.inputs);
@@ -2956,6 +3052,9 @@ static void do_version_texture_gradient_clamp(bNodeTree *node_tree)
     if (node.type_legacy != SH_NODE_TEX_GRADIENT) {
       continue;
     }
+    if (!version_node_ensure_storage_or_invalidate(node)) {
+      return;
+    }
     auto *data = static_cast<NodeTexGradient *>(node.storage);
     if (!ELEM(data->gradient_type, SHD_BLEND_LINEAR, SHD_BLEND_QUADRATIC, SHD_BLEND_DIAGONAL)) {
       /* Nothing to do. No changes for other gradient types. */
@@ -3535,6 +3634,9 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
       for (bNode &node : node_tree->nodes) {
         if (node.type_legacy != CMP_NODE_OUTPUT_FILE) {
           continue;
+        }
+        if (!version_node_ensure_storage_or_invalidate(node)) {
+          return;
         }
 
         NodeCompositorFileOutput *storage = static_cast<NodeCompositorFileOutput *>(node.storage);

@@ -629,8 +629,10 @@ static void versioning_node_hue_correct_set_wrappng(bNodeTree *ntree)
     for (bNode &node : ntree->nodes.items_mutable()) {
 
       if (node.type_legacy == CMP_NODE_HUECORRECT) {
-        CurveMapping *cumap = static_cast<CurveMapping *>(node.storage);
-        hue_correct_set_wrapping(cumap);
+        if (version_node_ensure_storage_or_invalidate(node)) {
+          CurveMapping *cumap = static_cast<CurveMapping *>(node.storage);
+          hue_correct_set_wrapping(cumap);
+        }
       }
     }
   }
@@ -987,6 +989,9 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
         if (node.type_legacy != CMP_NODE_BLUR) {
           continue;
         }
+        if (!version_node_ensure_storage_or_invalidate(node)) {
+          continue;
+        }
 
         NodeBlurData &blur_data = *static_cast<NodeBlurData *>(node.storage);
 
@@ -1278,6 +1283,9 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
         if (node.type_legacy != GEO_NODE_CAPTURE_ATTRIBUTE) {
           continue;
         }
+        if (!version_node_ensure_storage_or_invalidate(node)) {
+          continue;
+        }
         NodeGeometryAttributeCapture *storage = static_cast<NodeGeometryAttributeCapture *>(
             node.storage);
         if (storage->next_identifier > 0) {
@@ -1314,6 +1322,9 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
       }
       for (bNode &node : ntree->nodes) {
         if (node.type_legacy != CMP_NODE_CURVE_RGB) {
+          continue;
+        }
+        if (!version_node_ensure_storage_or_invalidate(node)) {
           continue;
         }
 

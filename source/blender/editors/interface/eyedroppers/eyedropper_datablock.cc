@@ -174,7 +174,7 @@ static void datadropper_id_sample_pt(
               id = ob->data;
             }
             else {
-              SNPRINTF_UTF8(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);
+              SNPRINTF_UTF8(ddr->name, RPT_("Incompatible, expected a %s"), ddr->idcode_name);
             }
           }
 

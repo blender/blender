@@ -374,6 +374,19 @@ bNodeLink &version_node_add_link(
   return *link;
 }
 
+bool version_node_ensure_storage_or_invalidate(bNode &node)
+{
+  /* Accept node if storage is valid. */
+  if (node.storage != nullptr) {
+    return true;
+  }
+
+  /* Invalidate the type identifiers to prevent invalid access where storage data is expected
+   * (#154086). */
+  bke::node_set_undefined_type(node);
+  return false;
+}
+
 bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
                                                   bNode *node,
                                                   int in_out,
