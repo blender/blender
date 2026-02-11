@@ -265,9 +265,11 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       if (ntree->type != NTREE_CUSTOM) {
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == CMP_NODE_COLORBALANCE) {
-            NodeColorBalance *n = static_cast<NodeColorBalance *>(node.storage);
-            n->input_temperature = n->output_temperature = 6500.0f;
-            n->input_tint = n->output_tint = 10.0f;
+            if (version_node_ensure_storage_or_invalidate(node)) {
+              NodeColorBalance *n = static_cast<NodeColorBalance *>(node.storage);
+              n->input_temperature = n->output_temperature = 6500.0f;
+              n->input_tint = n->output_tint = 10.0f;
+            }
           }
         }
       }
@@ -305,6 +307,9 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
       for (bNode &node : ntree->nodes) {
         if (node.type_legacy != CMP_NODE_OUTPUT_FILE) {
+          continue;
+        }
+        if (!version_node_ensure_storage_or_invalidate(node)) {
           continue;
         }
 

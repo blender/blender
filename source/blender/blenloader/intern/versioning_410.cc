@@ -125,6 +125,9 @@ static void versioning_update_noise_texture_node(bNodeTree *ntree)
     if (node.type_legacy != SH_NODE_TEX_NOISE) {
       continue;
     }
+    if (!version_node_ensure_storage_or_invalidate(node)) {
+      continue;
+    }
 
     (static_cast<NodeTexNoise *>(node.storage))->type = SHD_NOISE_FBM;
 
@@ -184,6 +187,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
   version_node_input_socket_name(ntree, SH_NODE_TEX_MUSGRAVE_DEPRECATED, "Dimension", "Roughness");
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy != SH_NODE_TEX_MUSGRAVE_DEPRECATED) {
+      continue;
+    }
+    if (!version_node_ensure_storage_or_invalidate(node)) {
       continue;
     }
 
@@ -1047,8 +1053,10 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_COMPOSIT) {
         for (bNode &node : ntree->nodes) {
           if (node.type_legacy == CMP_NODE_KEYING) {
-            NodeKeyingData &keying_data = *static_cast<NodeKeyingData *>(node.storage);
-            keying_data.edge_kernel_radius = max_ii(keying_data.edge_kernel_radius - 1, 0);
+            if (version_node_ensure_storage_or_invalidate(node)) {
+              NodeKeyingData &keying_data = *static_cast<NodeKeyingData *>(node.storage);
+              keying_data.edge_kernel_radius = max_ii(keying_data.edge_kernel_radius - 1, 0);
+            }
           }
         }
       }

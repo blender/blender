@@ -2949,9 +2949,11 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
 
   for (bNode &node : node_tree->nodes) {
     if (node.type_legacy == CMP_NODE_ALPHAOVER) {
-      NodeTwoFloats *storage = static_cast<NodeTwoFloats *>(node.storage);
-      MEM_delete(storage);
-      node.storage = nullptr;
+      if (version_node_ensure_storage_or_invalidate(node)) {
+        NodeTwoFloats *storage = static_cast<NodeTwoFloats *>(node.storage);
+        MEM_delete(storage);
+        node.storage = nullptr;
+      }
     }
   }
 }
@@ -3044,6 +3046,9 @@ static void do_version_scale_node_remove_translate(bNodeTree *node_tree)
     if (link.fromnode->type_legacy != CMP_NODE_SCALE) {
       continue;
     }
+    if (!version_node_ensure_storage_or_invalidate(*link.fromnode)) {
+      continue;
+    }
 
     if (link.fromnode->custom1 != CMP_NODE_SCALE_RENDER_SIZE) {
       continue;
@@ -3114,6 +3119,9 @@ static void do_version_blur_defocus_nodes_remove_gamma(bNodeTree *node_tree)
     if (!ELEM(link.tonode->type_legacy, CMP_NODE_BLUR, CMP_NODE_DEFOCUS)) {
       continue;
     }
+    if (!version_node_ensure_storage_or_invalidate(*link.tonode)) {
+      continue;
+    }
 
     if (link.tonode->type_legacy == CMP_NODE_BLUR &&
         !bool(static_cast<NodeBlurData *>(link.tonode->storage)->gamma))
@@ -3150,6 +3158,9 @@ static void do_version_blur_defocus_nodes_remove_gamma(bNodeTree *node_tree)
 
   for (bNodeLink &link : node_tree->links.items_reversed_mutable()) {
     if (!ELEM(link.fromnode->type_legacy, CMP_NODE_BLUR, CMP_NODE_DEFOCUS)) {
+      continue;
+    }
+    if (!version_node_ensure_storage_or_invalidate(*link.fromnode)) {
       continue;
     }
 
@@ -3199,6 +3210,9 @@ static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTre
     if (!STREQ(node.idname, "CompositorNodeOutputFile")) {
       continue;
     }
+    if (!version_node_ensure_storage_or_invalidate(node)) {
+      continue;
+    }
 
     NodeCompositorFileOutput *node_data = static_cast<NodeCompositorFileOutput *>(node.storage);
     version_escape_curly_braces(node_data->directory, FILE_MAX);
@@ -3217,6 +3231,9 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
 {
   for (bNode &node : node_tree->nodes) {
     if (!STREQ(node.idname, "CompositorNodeTranslate")) {
+      continue;
+    }
+    if (!version_node_ensure_storage_or_invalidate(node)) {
       continue;
     }
 

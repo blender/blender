@@ -2069,7 +2069,7 @@ static void ntree_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   /* Set `node->typeinfo` pointers. This is done in lib linking, after the
    * first versioning that can change types still without functions that
    * update the `typeinfo` pointers. Versioning after lib linking needs
-   * these top be valid. */
+   * these to be valid. */
   node_tree_set_type(*ntree);
 
   /* For nodes with static socket layout, add/remove sockets as needed
@@ -5180,6 +5180,13 @@ static bool can_read_node_type(const bNode &node)
   if (ELEM(node.type_legacy, NODE_CUSTOM, NODE_CUSTOM_GROUP)) {
     return true;
   }
+  /* Nodes that require storage but don't have any storage data are invalid. */
+  if (node.storage == nullptr) {
+    const bNodeType *node_type = node_type_find(node.idname);
+    if (!node_type || !node_type->storagename.empty()) {
+      return false;
+    }
+  }
   if (node.type_legacy < NODE_LEGACY_TYPE_GENERATION_START) {
     /* Check known built-in types. */
     static Set<int> known_types = get_known_node_types_set();
@@ -5189,17 +5196,14 @@ static bool can_read_node_type(const bNode &node)
   return node_type_find(node.idname) != nullptr;
 }
 
-static void node_replace_undefined_types(bNode *node)
+void node_set_undefined_type(bNode &node)
 {
-  /* If the node type is built-in but unknown, the node cannot be read. */
-  if (!can_read_node_type(*node)) {
-    node->type_legacy = NODE_CUSTOM;
-    /* This type name is arbitrary, it just has to be unique enough to not match a future node
-     * idname. Includes the old type identifier for debugging purposes. */
-    const std::string old_idname = node->idname;
-    SNPRINTF_UTF8(node->idname, "Undefined[%s]", old_idname.c_str());
-    node->typeinfo = &NodeTypeUndefined;
-  }
+  node.type_legacy = NODE_CUSTOM;
+  /* This type name is arbitrary, it just has to be unique enough to not match a future node
+   * idname. Includes the old type identifier for debugging purposes. */
+  const std::string old_idname = node.idname;
+  SNPRINTF_UTF8(node.idname, "Undefined[%s]", old_idname.c_str());
+  node.typeinfo = &NodeTypeUndefined;
 }
 
 void node_tree_update_all_new(Main &main)
@@ -5213,7 +5217,10 @@ void node_tree_update_all_new(Main &main)
    * replaced in those late versioning steps. */
   FOREACH_NODETREE_BEGIN (&main, ntree, owner_id) {
     for (bNode *node : ntree->all_nodes()) {
-      node_replace_undefined_types(node);
+      /* If the node type is built-in but unknown, the node cannot be read. */
+      if (!can_read_node_type(*node)) {
+        node_set_undefined_type(*node);
+      }
     }
   }
   FOREACH_NODETREE_END;
