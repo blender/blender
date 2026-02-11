@@ -376,7 +376,6 @@ char BKE_imtype_valid_channels(const char imtype)
     case R_IMF_IMTYPE_TIFF:
     case R_IMF_IMTYPE_IRIS:
     case R_IMF_IMTYPE_OPENEXR:
-    case R_IMF_IMTYPE_AVIF:
       chan_flag |= IMA_CHAN_FLAG_BW;
       break;
   }
