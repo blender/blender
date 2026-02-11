@@ -898,7 +898,7 @@ class ANIM_OT_version_bone_hide_property(Operator):
             self.report({'WARNING'}, rpt_("No armature animation was modified"))
             return {'CANCELLED'}
 
-        self.report({'INFO'}, rpt_(f"Modified the animation of {len(modified_armatures)} armatures"))
+        self.report({'INFO'}, rpt_("Modified the animation of {:d} armatures").format(len(modified_armatures)))
         for screen in bpy.data.screens:
             for area in screen.areas:
                 area.tag_redraw()

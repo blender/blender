@@ -1131,9 +1131,9 @@ bool WM_operator_poll_or_report_error(bContext *C, wmOperatorType *ot, ReportLis
   CTX_wm_operator_poll_msg_clear(C);
   BKE_reportf(reports,
               RPT_ERROR,
-              "Invalid context: \"%s\", %s",
-              CTX_IFACE_(ot->translation_context, ot->name),
-              msg ? msg : IFACE_("poll failed"));
+              RPT_("Invalid context: \"%s\", %s"),
+              CTX_RPT_(ot->translation_context, ot->name),
+              msg ? RPT_(msg) : RPT_("poll failed"));
   if (msg_free) {
     MEM_delete(msg);
   }
@@ -2139,8 +2139,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
 
   {
     std::string header_text = fmt::format(
-        "{} {}",
-        IFACE_("Input pending "),
+        fmt::runtime(IFACE_("Input pending {}")),
         drawstr.is_empty() ? CTX_IFACE_(ot->translation_context, ot->name) : drawstr);
     if (area != nullptr) {
       ED_area_status_text(area, header_text.c_str());
