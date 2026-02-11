@@ -638,7 +638,7 @@ void BlenderSync::sync_particle_hair(Hair *hair,
     for (const int vcol_num : vcol_names.index_range()) {
       const ustring name = ustring(std::string_view(vcol_names[vcol_num]));
       if (!hair->need_attribute(scene, name)) {
-        return;
+        continue;
       }
 
       ObtainCacheParticleVcol(hair, &b_mesh, &b_ob, &CData, !preview, vcol_num);
