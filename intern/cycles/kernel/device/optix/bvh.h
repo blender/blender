@@ -173,7 +173,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
 
   Intersection isect = get_intersection();
-  if (!bvh_shadow_all_anyhit_filter<true>(
+  if (!bvh_shadow_all_anyhit_filter<ISECT_TEST_ALL>(
           kg, payload->state, *payload, ray->self, ray_visibility, isect))
   {
     optixTerminateRay();

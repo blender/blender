@@ -213,12 +213,12 @@ ccl_device_inline
             }
 
             if (hit) {
-              if (!bvh_shadow_all_anyhit_filter<false>(kg,
-                                                       payload.state,
-                                                       payload,
-                                                       payload.base.ray_self,
-                                                       payload.base.ray_visibility,
-                                                       isect))
+              if (!bvh_shadow_all_anyhit_filter<ISECT_TEST_NONE>(kg,
+                                                                 payload.state,
+                                                                 payload,
+                                                                 payload.base.ray_self,
+                                                                 payload.base.ray_visibility,
+                                                                 isect))
               {
                 return;
               }

@@ -239,8 +239,9 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   constexpr uint enabled_primitive_types = (intersection_type == METALRT_HIT_CURVE) ?
                                                PRIMITIVE_CURVE :
                                                (PRIMITIVE_ALL & ~PRIMITIVE_CURVE);
-  return context.bvh_shadow_all_anyhit_filter<true, enabled_primitive_types>(
-      kg, payload.state, payload, payload.base.ray_self, payload.base.ray_visibility, isect);
+  return context
+      .bvh_shadow_all_anyhit_filter<MetalKernelContext::ISECT_TEST_ALL, enabled_primitive_types>(
+          kg, payload.state, payload, payload.base.ray_self, payload.base.ray_visibility, isect);
 
 #  else  /* __TRANSPARENT_SHADOWS__ */
   payload.throughput = 0.0f;

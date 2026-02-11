@@ -346,7 +346,7 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   KernelGlobals kg = nullptr;
   Intersection isect;
   set_intersect_point(hit, &isect);
-  return bvh_shadow_all_anyhit_filter<true, PRIMITIVE_ALL & ~PRIMITIVE_CURVE>(
+  return bvh_shadow_all_anyhit_filter<ISECT_TEST_ALL, PRIMITIVE_ALL & ~PRIMITIVE_CURVE>(
       kg, payload->state, *payload, payload->ray_self, payload->ray_visibility, isect);
 }
 
@@ -358,7 +358,7 @@ ccl_device_inline bool shadow_intersection_filter_curve(const hiprtRay &ray,
   KernelGlobals kg = nullptr;
   Intersection isect;
   set_intersect_point(hit, &isect);
-  return bvh_shadow_all_anyhit_filter<true, PRIMITIVE_CURVE>(
+  return bvh_shadow_all_anyhit_filter<ISECT_TEST_ALL, PRIMITIVE_CURVE>(
       kg, payload->state, *payload, payload->ray_self, payload->ray_visibility, isect);
 }
 

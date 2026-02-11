@@ -27,6 +27,17 @@
 
 CCL_NAMESPACE_BEGIN
 
+enum IntersectionTest : uint {
+  ISECT_TEST_NONE = 0,
+
+  ISECT_TEST_VISIBILITY_FLAG = (1 << 0),
+  ISECT_TEST_SHADOW_LINKING = (1 << 1),
+  ISECT_TEST_SELF_SHADOW = (1 << 2),
+
+  ISECT_TEST_ALL = (ISECT_TEST_VISIBILITY_FLAG | ISECT_TEST_SHADOW_LINKING |
+                    ISECT_TEST_SELF_SHADOW),
+};
+
 /* Special tricks to subclass payload.
  * The issue here is Metal does not support subclassing, but HIP-RT had performance issues with
  * composition in the past (see !136823). */
@@ -115,7 +126,7 @@ BVH_SHADOW_ALL_PAYLOAD_SUBCLASS(BVHShadowAllPayload, BVHPayload)
  *   function will consider the shadow ray to be blocked.
  * - If a transparent surface is hit, the intersection is recorded into the shadow_isect array in
  *   the state. The closest N intersections are recorded. */
-template<bool perform_intersection_tests, uint enabled_primitive_types = PRIMITIVE_ALL>
+template<uint perform_intersection_tests, uint enabled_primitive_types = PRIMITIVE_ALL>
 ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
     KernelGlobals kg,
     IntegratorShadowState state,
@@ -125,19 +136,23 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
     const Intersection isect)
 
 {
-  if constexpr (perform_intersection_tests) {
 #if defined(__VISIBILITY_FLAG__)
+  if constexpr ((perform_intersection_tests & ISECT_TEST_VISIBILITY_FLAG) != 0) {
     if ((kernel_data_fetch(objects, isect.object).visibility & ray_visibility) == 0) {
       return true;
     }
+  }
 #endif
 
 #if defined(__SHADOW_LINKING__)
+  if constexpr ((perform_intersection_tests & ISECT_TEST_SHADOW_LINKING) != 0) {
     if (intersection_skip_shadow_link(kg, ray_self, isect.object)) {
       return true;
     }
+  }
 #endif
 
+  if constexpr ((perform_intersection_tests & ISECT_TEST_SELF_SHADOW) != 0) {
     if (intersection_skip_self_shadow(ray_self, isect.object, isect.prim)) {
       return true;
     }
