@@ -2025,6 +2025,8 @@ struct EditSourceButStore {
 struct EditSourceStore {
   Button but_orig;
   Map<const Button *, std::unique_ptr<EditSourceButStore>> hash;
+
+  EditSourceStore(const Button &but) : but_orig{but} {};
 };
 
 /* should only ever be set while the edit source operator is running */
@@ -2039,8 +2041,7 @@ static void ui_editsource_active_but_set(Button *but)
 {
   BLI_assert(ui_editsource_info == nullptr);
 
-  ui_editsource_info = MEM_new<EditSourceStore>(__func__);
-  ui_editsource_info->but_orig = *but;
+  ui_editsource_info = MEM_new<EditSourceStore>(__func__, *but);
 }
 
 static void ui_editsource_active_but_clear()
@@ -2135,9 +2136,8 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
     for (Block &block_base : region->runtime->uiblocks) {
       Block *block_pair[2] = {&block_base, block_base.oldblock};
       for (Block *block : Span(block_pair, block_pair[1] ? 2 : 1)) {
-        for (int i = 0; i < block->buttons.size(); i++) {
-          const Button *but = block->buttons[i].get();
-          valid_buttons_in_region.add(but);
+        for (Button &but : block->buttons()) {
+          valid_buttons_in_region.add(&but);
         }
       }
     }

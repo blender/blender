@@ -547,7 +547,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
         ui::block_layout_set_current(block, column);
 
         column->label(IFACE_(cname), ICON_NODE);
-        but = block->buttons.last().get();
+        but = block->buttons_ptrs.last().get();
 
         first = 0;
       }
@@ -632,7 +632,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
 
   if (sock->link) {
     column->label(IFACE_("Link"), ICON_NONE);
-    but = block->buttons.last().get();
+    but = block->buttons_ptrs.last().get();
     but->drawflag = ui::BUT_TEXT_LEFT;
 
     but = uiDefBut(block,

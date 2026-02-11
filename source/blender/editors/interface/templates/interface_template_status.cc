@@ -437,7 +437,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       row.emboss_set(EmbossType::None);
       /* This operator also works fine for blocked extensions. */
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
-      Button *but = layout->block()->buttons.last().get();
+      Button *but = layout->block()->buttons_ptrs.last().get();
       uchar color[4];
       theme::get_color_4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -462,7 +462,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       else {
         row.emboss_set(EmbossType::None);
         row.op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
-        Button *but = layout->block()->buttons.last().get();
+        Button *but = layout->block()->buttons_ptrs.last().get();
         uchar color[4];
         theme::get_color_4ubv(TH_TEXT, color);
         copy_v4_v4_uchar(but->col, color);
@@ -486,7 +486,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       }
       row.emboss_set(EmbossType::None);
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
-      Button *but = layout->block()->buttons.last().get();
+      Button *but = layout->block()->buttons_ptrs.last().get();
       uchar color[4];
       theme::get_color_4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);

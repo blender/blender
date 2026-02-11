@@ -359,31 +359,31 @@ void block_align_calc(Block *block, const ARegion *region)
 
   const int sides_to_ui_but_align_flags[4] = SIDE_TO_BUT_ALIGN;
 
-  Vector<ButAlign, 256> butal_array(block->buttons.size());
+  Vector<ButAlign, 256> butal_array(block->buttons_ptrs.size());
 
   int n = 0;
   /* First loop: Initialize ButAlign data for each button and clear their align flag.
    * Tabs get some special treatment here, they get aligned to region border. */
-  for (const std::unique_ptr<Button> &but : block->buttons) {
+  for (Button &but : block->buttons()) {
     /* special case: tabs need to be aligned to a region border, drawflag tells which one */
-    if (but->type == ButtonType::Tab) {
-      block_align_but_to_region(but.get(), region);
+    if (but.type == ButtonType::Tab) {
+      block_align_but_to_region(&but, region);
     }
     else {
       /* Clear old align flags. */
-      but->drawflag &= ~BUT_ALIGN_ALL;
+      but.drawflag &= ~BUT_ALIGN_ALL;
     }
 
-    if (but->alignnr == 0) {
+    if (but.alignnr == 0) {
       continue;
     }
     ButAlign &butal = butal_array[n++];
     butal = {};
-    butal.but = but.get();
-    butal.borders[LEFT] = &but->rect.xmin;
-    butal.borders[RIGHT] = &but->rect.xmax;
-    butal.borders[DOWN] = &but->rect.ymin;
-    butal.borders[TOP] = &but->rect.ymax;
+    butal.but = &but;
+    butal.borders[LEFT] = &but.rect.xmin;
+    butal.borders[RIGHT] = &but.rect.xmax;
+    butal.borders[DOWN] = &but.rect.ymin;
+    butal.borders[TOP] = &but.rect.ymax;
     butal.dists = float4{FLT_MAX};
   }
   butal_array.resize(n);

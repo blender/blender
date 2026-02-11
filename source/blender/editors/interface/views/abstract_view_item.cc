@@ -202,12 +202,12 @@ static AbstractViewItem *find_item_from_rename_button(const Button &rename_but)
   /* A minimal sanity check, can't do much more here. */
   BLI_assert(rename_but.type == ButtonType::Text && rename_but.poin);
 
-  for (const std::unique_ptr<Button> &but : rename_but.block->buttons) {
-    if (but->type != ButtonType::ViewItem) {
+  for (Button &but : rename_but.block->buttons()) {
+    if (but.type != ButtonType::ViewItem) {
       continue;
     }
 
-    ButtonViewItem *view_item_but = static_cast<ButtonViewItem *>(but.get());
+    ButtonViewItem *view_item_but = static_cast<ButtonViewItem *>(&but);
     AbstractViewItem *item = view_item_but->view_item;
     const AbstractView &view = item->get_view();
 

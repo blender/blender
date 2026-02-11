@@ -1319,7 +1319,7 @@ void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
     /* evil, force shortcut flag */
     {
       Block *block = layout.block();
-      Button *but = block->buttons.last().get();
+      Button *but = block->buttons_ptrs.last().get();
       but->flag |= BUT_HAS_SEP_CHAR;
     }
   }
