@@ -397,6 +397,7 @@ void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *new
 void BLO_read_glob_list(BlendDataReader *reader, ListBase *list);
 BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
 struct Library *BLO_read_data_current_library(BlendDataReader *reader);
+void BLO_read_data_set_need_preview_render_restart(BlendDataReader *reader);
 
 /** \} */
 

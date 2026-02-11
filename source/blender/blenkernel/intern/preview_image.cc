@@ -590,6 +590,7 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
     if (BLO_read_data_is_undo(reader)) {
       if ((prv->flag[i] & PRV_RENDERING) && !(prv->flag[i] & PRV_USER_EDITED)) {
         prv->runtime->tag[i] |= PRV_TAG_RESTART_RENDERING;
+        BLO_read_data_set_need_preview_render_restart(reader);
       }
     }
     prv->flag[i] &= ~PRV_RENDERING;

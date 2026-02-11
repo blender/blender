@@ -2413,6 +2413,10 @@ void ED_preview_restart_work(const bContext *C)
 {
   Main *bmain = CTX_data_main(C);
 
+  if (!bmain->need_preview_render_restart) {
+    return;
+  }
+
   ID *id = nullptr;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     PreviewImage *preview = BKE_previewimg_id_get(id);
@@ -2428,6 +2432,8 @@ void ED_preview_restart_work(const bContext *C)
     }
   }
   FOREACH_MAIN_ID_END;
+
+  bmain->need_preview_render_restart = false;
 }
 
 /** \} */

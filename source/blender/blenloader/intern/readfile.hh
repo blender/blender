@@ -197,6 +197,11 @@ struct FileData {
 
   /** Opaque handle to the storage system used for non-static allocation strings. */
   void *storage_handle = nullptr;
+
+  /**
+   * Set when reading a file from undo with incomplete preview, to trigger restart of preview jobs.
+   */
+  bool need_preview_render_restart = false;
 };
 
 /**
