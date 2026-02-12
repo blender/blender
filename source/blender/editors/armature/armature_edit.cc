@@ -860,7 +860,7 @@ static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
   }
 
   /* updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
+  WM_event_add_notifier(C, NC_OBJECT | ND_ARMATURE_STRUCTURE, obedit);
   DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
 
   /* free points */

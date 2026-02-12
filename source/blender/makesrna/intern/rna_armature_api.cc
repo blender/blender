@@ -129,7 +129,7 @@ static bool rna_BoneCollection_assign_abstract(BoneCollection *bcoll,
     bPoseChannel *pchan = static_cast<bPoseChannel *>(bone_ptr->data);
     const bool made_any_change = assign_bone(bcoll, pchan->bone);
     if (made_any_change) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
     }
     return made_any_change;
   }
@@ -138,7 +138,7 @@ static bool rna_BoneCollection_assign_abstract(BoneCollection *bcoll,
     Bone *bone = static_cast<Bone *>(bone_ptr->data);
     const bool made_any_change = assign_bone(bcoll, bone);
     if (made_any_change) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
     }
     return made_any_change;
   }
@@ -147,7 +147,7 @@ static bool rna_BoneCollection_assign_abstract(BoneCollection *bcoll,
     EditBone *ebone = static_cast<EditBone *>(bone_ptr->data);
     const bool made_any_change = assign_ebone(bcoll, ebone);
     if (made_any_change) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, nullptr);
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
     }
     return made_any_change;
   }

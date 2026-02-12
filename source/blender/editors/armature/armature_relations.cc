@@ -787,7 +787,7 @@ static wmOperatorStatus separate_armature_exec(bContext *C, wmOperator *op)
     ok = true;
 
     /* NOTE: notifier might evolve. */
-    WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob_old);
+    WM_event_add_notifier(C, NC_OBJECT | ND_ARMATURE_STRUCTURE, ob_old);
   }
 
   /* Recalculate/redraw + cleanup */
