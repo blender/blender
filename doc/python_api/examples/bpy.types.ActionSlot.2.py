@@ -8,6 +8,8 @@ and ``MESuzanne`` and the name (``Suzanne``) can be shared between them. This is
 so that the slots and the datablocks can have the same name.
 
 """
+import bpy
+
 # Actions creation.
 action = bpy.data.actions.new("SuzanneAction")
 

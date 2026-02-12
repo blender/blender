@@ -8,7 +8,16 @@ Action has been assigned; it is a list of action slots of that Action, but only 
 are actually compatible with the owner of anim_data (in this case, Suzanne).
 
 """
-# If there are multiple slots on the Action, pick the first one that's compatible
+import bpy
+
+# Assume Suzanne mesh is present in the scene.
+suzanne = bpy.data.objects["Suzanne"]
+
+# Create an action with an object slot.
+action = bpy.data.actions.new("SuzanneAction")
+action.slots.new(id_type='OBJECT', name="Suzanne")
+
+# If there are multiple slots on the Action, pick the first one that's compatible.
 anim_data = suzanne.animation_data_create()
 anim_data.action = action
 assert anim_data.action_suitable_slots, "expecting at least one suitable slot"
