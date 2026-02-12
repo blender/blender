@@ -140,7 +140,7 @@ class IMemStream : public Imf::IStream {
     /* OpenEXR requests chunks of 4096 bytes even if the file is smaller than that. Return
      * zeros when reading up to 2x that amount past the end of the file.
      * This was fixed after the OpenEXR 3.3.2 release, but not in an official release yet. */
-    if (n + _exrpos < _exrsize + 8192) {
+    if (_exrpos < _exrsize && (n + _exrpos < _exrsize + 8192)) {
       const size_t remainder = _exrsize - _exrpos;
       if (remainder > 0) {
         memcpy(c, (void *)(&_exrbuf[_exrpos]), remainder);
