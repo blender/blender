@@ -304,10 +304,11 @@ def main():
                     tp_str = ":class:`mathutils.Matrix`"
                     default_value = 'mathutils.Matrix.Identity(4)'
                 elif tp == BMO_OP_SLOT_VEC:
-                    tp_str = ":class:`mathutils.Vector`"
                     default_value = 'mathutils.Vector()'
-                    if not is_ret:
-                        comment = (comment + "\n\n" if comment else "") + "Accepts any sequence of 3 floats."
+                    if is_ret:
+                        tp_str = ":class:`mathutils.Vector`"
+                    else:
+                        tp_str = "Sequence[float]"
                 elif tp == BMO_OP_SLOT_PTR:
                     assert tp_sub is not None
                     if 'if None' in comment:
@@ -342,6 +343,7 @@ def main():
 
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE:
                         tp_str = " | ".join(ls)
+                        default_value = 'None'
                     else:
                         tp_str = "list[{:s}]".format(" | ".join(ls))
                         default_value = '[]'

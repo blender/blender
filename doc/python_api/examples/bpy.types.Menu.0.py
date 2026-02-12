@@ -15,7 +15,7 @@ convention for menus.
 .. note::
 
    Menus have their :class:`UILayout.operator_context` initialized as
-   'EXEC_REGION_WIN' rather than 'INVOKE_REGION_WIN' (see :ref:`Execution Context <operator-execution_context>`).
+   'EXEC_REGION_WIN' rather than 'INVOKE_REGION_WIN' (see :ref:`Execution Context <rna_enum_operator_context_items>`).
    If the operator context needs to initialize inputs from the
    :class:`Operator.invoke` function, then this needs to be explicitly set.
    When a menu is added to UI elements such as a panel or header,

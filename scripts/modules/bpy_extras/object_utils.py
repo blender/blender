@@ -192,6 +192,14 @@ class AddObjectHelper:
 
     @classmethod
     def poll(cls, context):
+        """
+        Check the scene is not linked from a library.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :return: True when the scene is local (not linked from a library).
+        :rtype: bool
+        """
         return context.scene.library is None
 
 

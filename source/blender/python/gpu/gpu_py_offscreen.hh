@@ -18,6 +18,7 @@ struct GPUOffScreen;
 struct GPUViewport;
 
 extern PyTypeObject BPyGPUOffScreen_Type;
+extern PyTypeObject PyGPUOffscreenStackContext_Type;
 
 #define BPyGPUOffScreen_Check(v) (Py_TYPE(v) == &BPyGPUOffScreen_Type)
 

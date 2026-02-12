@@ -858,6 +858,7 @@ PyMODINIT_FUNC PyInit_mathutils()
   /* each type has its own new() function */
   PyModule_AddType(mod, &vector_Type);
   PyModule_AddType(mod, &matrix_Type);
+  PyModule_AddType(mod, &matrix_access_Type);
   PyModule_AddType(mod, &euler_Type);
   PyModule_AddType(mod, &quaternion_Type);
   PyModule_AddType(mod, &color_Type);

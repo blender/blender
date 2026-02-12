@@ -420,14 +420,16 @@ static PyMethodDef PyKDTree_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     py_KDtree_doc,
-    "KDTree(size) -> new kd-tree initialized to hold ``size`` items.\n"
+    ".. class:: KDTree(size)\n"
     "\n"
-    ":param size: Number of items.\n"
-    ":type size: int\n"
+    "   KDTree(size) -> new kd-tree initialized to hold up to ``size`` items.\n"
     "\n"
-    ".. note::\n"
+    "   :param size: Maximum number of items.\n"
+    "   :type size: int\n"
     "\n"
-    "   :meth:`KDTree.balance` must have been called before using any of the ``find`` "
+    "   .. note::\n"
+    "\n"
+    "      :meth:`KDTree.balance` must have been called before using any of the ``find`` "
     "methods.\n");
 PyTypeObject PyKDTree_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
