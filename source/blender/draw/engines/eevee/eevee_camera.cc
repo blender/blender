@@ -76,8 +76,8 @@ void Camera::init()
   float overscan = 0.0f;
   if ((inst_.scene->eevee.flag & SCE_EEVEE_OVERSCAN) && (inst_.drw_view || inst_.render)) {
     overscan = inst_.scene->eevee.overscan / 100.0f;
-    if (inst_.drw_view && (inst_.rv3d->dist == 0.0f || v3d_camera_params_get().lens == 0.0f)) {
-      /* In these cases we need to use the v3d winmat as-is. */
+    if (inst_.is_xr()) {
+      /* In XR we need to use the v3d winmat as-is. */
       overscan = 0.0f;
     }
   }
@@ -137,9 +137,14 @@ void Camera::sync()
     data.viewmat = inst_.drw_view->viewmat();
     data.viewinv = inst_.drw_view->viewinv();
 
-    CameraParams params = v3d_camera_params_get();
+    if (inst_.is_xr()) {
+      /* In XR we need to use the v3d winmat as-is. */
+      data.winmat = inst_.drw_view->winmat();
+      data.wininv = inst_.drw_view->wininv();
+    }
+    else {
+      CameraParams params = v3d_camera_params_get();
 
-    if (inst_.rv3d->dist > 0.0f && params.lens > 0.0f) {
       BKE_camera_params_compute_viewplane(&params, UNPACK2(display_extent), 1.0f, 1.0f);
 
       BLI_assert(BLI_rctf_size_x(&params.viewplane) > 0.0f);
@@ -153,21 +158,6 @@ void Camera::sync()
                                      params.viewplane,
                                      overscan_,
                                      data.winmat.ptr());
-    }
-    else {
-      /* Can happen for the case of XR or if `rv3d->dist == 0`.
-       * In this case the produced winmat is degenerate. So just revert to the input matrix. */
-      data.winmat = inst_.drw_view->winmat();
-      if (!camera_eval) {
-        /* Apply the render region, but only for non-camera views. See #153033. */
-        /* FIXME(@pragma37): This is still broken with Camera View + Render Region + Fly/Walk
-         * Navigation. Untangle this whole walk/fly navigation projection matrix mess. */
-        float2 film_center = float2(film_offset) + float2(film_extent) / 2.0f;
-        float2 uv_offset = float2(0.5f) - (film_center / float2(display_extent));
-        data.winmat = math::projection::translate(data.winmat, uv_offset * 2.0f);
-        data.winmat = math::from_scale<float4x4>(float4(1.0f / data.uv_scale, 1.0f, 1.0f)) *
-                      data.winmat;
-      }
     }
   }
   else if (inst_.render) {
@@ -192,14 +182,6 @@ void Camera::sync()
     data.viewmat = float4x4::identity();
     data.viewinv = float4x4::identity();
     data.winmat = math::projection::perspective(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
-  }
-
-  /* Compute a part of the frustum planes. In some cases (#134320, #148258)
-   * the window matrix becomes degenerate during render or draw_view.
-   * Simply fall back to something we can render with. */
-  float bottom = (-data.winmat[3][1] - 1.0f) / data.winmat[1][1];
-  if (std::isnan(bottom) || std::isinf(std::abs(bottom))) {
-    data.winmat = math::projection::orthographic(0.01f, 0.01f, 0.01f, 0.01f, -1000.0f, +1000.0f);
   }
 
   data.wininv = math::invert(data.winmat);
