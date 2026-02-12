@@ -621,6 +621,8 @@ MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 StaticMethodType = type(staticmethod(lambda: None))
 from types import (
+    BuiltinFunctionType,
+    BuiltinMethodType,
     MemberDescriptorType,
     MethodType,
     FunctionType,
@@ -1205,8 +1207,14 @@ def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
     for key, descr in descr_items:
         if type(descr) == StaticMethodType:
             descr = getattr(value, key)
-            write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
-            fw("\n")
+            if type(descr) in {BuiltinMethodType, BuiltinFunctionType}:
+                # CAPI-defined static methods already contain RST directives
+                # in their docstrings, write them directly.
+                write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
+                fw("\n")
+            else:
+                # Python-defined static methods need signature extraction.
+                pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
 
     fw("\n\n")
 
