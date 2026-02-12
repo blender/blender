@@ -626,20 +626,30 @@ from types import (
     FunctionType,
 )
 
-_BPY_STRUCT_FAKE = "bpy_struct"
-_BPY_PROP_FAKE = "bpy_prop"
-_BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
-_BPY_PROP_COLLECTION_IDPROP_FAKE = "bpy_prop_collection_idprop"
+# These are C-API defined types (accessible via `bpy.types`) that are not known to RNA.
+# The RNA wrapping code in `bpy_rna.cc` uses these types when creating `PyObject`s
+# for RNA data. They define methods Python developers use, but since they are not RNA
+# structs they are not discovered automatically and must be documented explicitly.
+#
+# There are two separate hierarchies (see `bpy_rna.cc` for the definitive type hierarchy):
+#
+# - `bpy_struct`: base for all RNA struct instances.
+# - `bpy_prop` -> `bpy_prop_collection` -> `bpy_prop_collection_idprop`:
+#   used when RNA collection properties are accessed from Python.
+#
+USE_PYCAPI_TYPES = True
 
-if _BPY_PROP_COLLECTION_FAKE:
-    _BPY_PROP_COLLECTION_ID = ":class:`{:s}`".format(_BPY_PROP_COLLECTION_FAKE)
-else:
-    _BPY_PROP_COLLECTION_ID = "collection"
+_BPY_STRUCT_PYCAPI = "bpy_struct"
+_BPY_PROP_PYCAPI = "bpy_prop"
+_BPY_PROP_COLLECTION_PYCAPI = "bpy_prop_collection"
+_BPY_PROP_COLLECTION_IDPROP_PYCAPI = "bpy_prop_collection_idprop"
 
-if _BPY_STRUCT_FAKE:
-    bpy_struct = bpy.types.bpy_struct
-else:
-    bpy_struct = None
+_BPY_PROP_COLLECTION_ID = ":class:`{:s}`".format(_BPY_PROP_COLLECTION_PYCAPI) if USE_PYCAPI_TYPES else "collection"
+
+bpy_struct = bpy.types.bpy_struct if USE_PYCAPI_TYPES else None
+bpy_prop = bpy.types.bpy_prop if USE_PYCAPI_TYPES else None
+bpy_prop_collection = bpy.types.bpy_prop_collection if USE_PYCAPI_TYPES else None
+bpy_prop_collection_idprop = bpy.types.bpy_prop_collection_idprop if USE_PYCAPI_TYPES else None
 
 
 def import_value_from_module(module_name, import_name):
@@ -1542,6 +1552,15 @@ def pyrna2sphinx(basepath):
     if FILTER_BPY_OPS is not None:
         ops = {k: v for k, v in ops.items() if v.module_name in FILTER_BPY_OPS}
 
+    # Build set of struct identifiers that are collection wrappers
+    # (e.g. BlendDataObjects wraps ``BlendData.objects``).  These should
+    # inherit from ``bpy_prop_collection`` rather than ``bpy_struct``.
+    _collection_wrapper_ids: set[str] = set()
+    for _struct in structs.values():
+        for _prop in _struct.properties:
+            if _prop.type == "collection" and _prop.srna is not None:
+                _collection_wrapper_ids.add(_prop.srna.identifier)
+
     def write_param(ident, fw, prop, is_return=False):
         if is_return:
             id_name = "return"
@@ -1601,9 +1620,14 @@ def pyrna2sphinx(basepath):
         base_id = getattr(struct.base, "identifier", "")
         struct_id = struct.identifier
 
-        if _BPY_STRUCT_FAKE:
+        if USE_PYCAPI_TYPES:
             if not base_id:
-                base_id = _BPY_STRUCT_FAKE
+                # Collection wrapper structs inherit from `bpy_prop_collection`,
+                # all other root structs inherit from `bpy_struct`.
+                if struct_id in _collection_wrapper_ids:
+                    base_id = _BPY_PROP_COLLECTION_PYCAPI
+                else:
+                    base_id = _BPY_STRUCT_PYCAPI
 
         if base_id:
             title = "{:s}({:s})".format(struct_id, base_id)
@@ -1619,8 +1643,15 @@ def pyrna2sphinx(basepath):
 
         base_ids = [base.identifier for base in struct.get_bases()]
 
-        if _BPY_STRUCT_FAKE:
-            base_ids.append(_BPY_STRUCT_FAKE)
+        if USE_PYCAPI_TYPES:
+            if not base_ids:
+                if struct_id in _collection_wrapper_ids:
+                    base_ids.append(_BPY_PROP_COLLECTION_PYCAPI)
+                    base_ids.append(_BPY_PROP_PYCAPI)
+                else:
+                    base_ids.append(_BPY_STRUCT_PYCAPI)
+            else:
+                base_ids.append(_BPY_STRUCT_PYCAPI)
 
         base_ids.reverse()
 
@@ -1644,9 +1675,12 @@ def pyrna2sphinx(basepath):
 
         base_id = getattr(struct.base, "identifier", "")
 
-        if _BPY_STRUCT_FAKE:
+        if USE_PYCAPI_TYPES:
             if not base_id:
-                base_id = _BPY_STRUCT_FAKE
+                if struct_id in _collection_wrapper_ids:
+                    base_id = _BPY_PROP_COLLECTION_PYCAPI
+                else:
+                    base_id = _BPY_STRUCT_PYCAPI
 
         if base_id:
             fw(".. class:: {:s}({:s})\n\n".format(struct_id, base_id))
@@ -1802,22 +1836,21 @@ def pyrna2sphinx(basepath):
 
         lines = []
 
-        if struct.base or _BPY_STRUCT_FAKE:
+        if struct.base or USE_PYCAPI_TYPES:
             bases = list(reversed(struct.get_bases()))
 
             # Properties.
             del lines[:]
 
-            if _BPY_STRUCT_FAKE:
+            if USE_PYCAPI_TYPES:
                 descr_items = [
                     (key, descr) for key, descr in sorted(bpy_struct.__dict__.items())
                     if not key.startswith("__")
                 ]
 
-            if _BPY_STRUCT_FAKE:
                 for key, descr in descr_items:
                     if type(descr) == GetSetDescriptorType:
-                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_FAKE, key))
+                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_PYCAPI, key))
 
             for base in bases:
                 for prop in base.properties:
@@ -1839,10 +1872,10 @@ def pyrna2sphinx(basepath):
             # Functions.
             del lines[:]
 
-            if _BPY_STRUCT_FAKE:
+            if USE_PYCAPI_TYPES:
                 for key, descr in descr_items:
                     if type(descr) == MethodDescriptorType:
-                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_FAKE, key))
+                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_PYCAPI, key))
 
             for base in bases:
                 for func in base.functions:
@@ -1896,7 +1929,7 @@ def pyrna2sphinx(basepath):
                 continue
             write_struct(struct)
 
-        def fake_bpy_type(
+        def bpy_pycapi_type(
                 class_module_name,
                 class_value,
                 class_name,
@@ -1950,41 +1983,34 @@ def pyrna2sphinx(basepath):
                     py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key, is_class=True)
             file.close()
 
-        # Write fake classes.
-        if _BPY_STRUCT_FAKE:
-            class_value = bpy_struct
-            fake_bpy_type(
-                "bpy.types", class_value, _BPY_STRUCT_FAKE,
+        # Write Python C-API classes.
+        if USE_PYCAPI_TYPES:
+            bpy_pycapi_type(
+                "bpy.types", bpy_struct, _BPY_STRUCT_PYCAPI,
                 "built-in base class for all classes in bpy.types.",
                 use_subclasses=True,
                 base_class=None,
             )
 
-        if _BPY_PROP_FAKE:
-            class_value = bpy.types.bpy_prop
-            fake_bpy_type(
-                "bpy.types", class_value, _BPY_PROP_FAKE,
+            bpy_pycapi_type(
+                "bpy.types", bpy_prop, _BPY_PROP_PYCAPI,
                 "built-in base class for all property classes.",
                 use_subclasses=False,
-                base_class=_BPY_STRUCT_FAKE,
+                base_class=None,
             )
 
-        if _BPY_PROP_COLLECTION_FAKE:
-            class_value = bpy.types.bpy_prop_collection
-            fake_bpy_type(
-                "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
+            bpy_pycapi_type(
+                "bpy.types", bpy_prop_collection, _BPY_PROP_COLLECTION_PYCAPI,
                 "built-in class used for all collections.",
                 use_subclasses=False,
-                base_class=_BPY_PROP_FAKE,
+                base_class=_BPY_PROP_PYCAPI,
             )
 
-        if _BPY_PROP_COLLECTION_IDPROP_FAKE:
-            class_value = bpy.types.bpy_prop_collection_idprop
-            fake_bpy_type(
-                "bpy.types", class_value, _BPY_PROP_COLLECTION_IDPROP_FAKE,
+            bpy_pycapi_type(
+                "bpy.types", bpy_prop_collection_idprop, _BPY_PROP_COLLECTION_IDPROP_PYCAPI,
                 "built-in class used for user defined collections.",
                 use_subclasses=False,
-                base_class=_BPY_PROP_COLLECTION_FAKE,
+                base_class=_BPY_PROP_COLLECTION_PYCAPI,
             )
 
     # Operators.
