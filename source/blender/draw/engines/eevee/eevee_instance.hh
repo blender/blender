@@ -312,6 +312,11 @@ class Instance : public DrawEngine {
     return is_light_bake;
   }
 
+  bool is_xr() const
+  {
+    return draw_ctx && draw_ctx->mode == DRWContext::VIEWPORT_XR;
+  }
+
   bool overlays_enabled() const
   {
     return overlays_enabled_;
