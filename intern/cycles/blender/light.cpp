@@ -124,10 +124,10 @@ void BlenderSync::sync_background_light(blender::bScreen *b_screen, blender::Vie
     if (update) {
       /* Lights should be shadow catchers by default. */
       object->set_is_shadow_catcher(true);
-      object->set_lightgroup(
-          ustring((b_world && b_world->lightgroup) ? b_world->lightgroup->name : ""));
     }
 
+    object->set_lightgroup(
+        ustring((b_world && b_world->lightgroup) ? b_world->lightgroup->name : ""));
     object->set_asset_name(ustring(b_world->id.name + 2));
 
     /* Create geometry. */
