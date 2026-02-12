@@ -1204,6 +1204,12 @@ def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
         if type(descr) == GetSetDescriptorType:
             py_descr2sphinx("   ", fw, descr, module_name, type_name, key, is_class=True)
 
+    # Needed for pure Python classes.
+    for key, descr in descr_items:
+        if type(descr) == classmethod:
+            descr = getattr(value, key)
+            pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
+
     for key, descr in descr_items:
         if type(descr) == StaticMethodType:
             descr = getattr(value, key)
