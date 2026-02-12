@@ -652,7 +652,7 @@ void PathTrace::denoise(const RenderWork &render_work)
 void PathTrace::denoise_volume_guiding_buffers(const RenderWork &render_work,
                                                const bool has_volume)
 {
-  if (!has_volume || !render_scheduler_.volume_guiding_need_denoise()) {
+  if (!has_volume || !render_work.volume_guiding_denoise) {
     return;
   }
 
