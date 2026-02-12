@@ -190,7 +190,7 @@ include(cmake/abseil.cmake)
 include(cmake/eigen.cmake)
 include(cmake/ceres.cmake)
 # Keep these last.
-include(cmake/deps_html.cmake)
+include(cmake/deps_md.cmake)
 include(cmake/cve_check.cmake)
 
 if(UNIX)

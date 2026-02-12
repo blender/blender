@@ -1,0 +1,18 @@
+# Blender Library Dependencies
+
+This file contains a table with all the libraries Blender uses to build its library dependencies.
+Some of the libraries might not be shipped in the library directory as some of them are only used at build time.
+
+NOTE: Some libraries listed here might not be relevant for your platform.
+
+## Library List
+
+| Library Name | Version | Homepage |
+|--------------|---------|----------|
+@TABLE_CONTENTS@
+
+## Basic Dependency Lists
+
+These are auto generated basic dependency lists for each library.
+
+@DEPS_CONTENTS@
