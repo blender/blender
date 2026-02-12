@@ -7,7 +7,6 @@
 /** \file
  * \ingroup sequencer
  */
-
 #include <ctime>
 
 #include "MEM_guardedalloc.h"
@@ -2029,7 +2028,12 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
   Scene *orig_scene = prefetch_get_original_scene(context);
   ImBuf *out = nullptr;
   if (!context->skip_cache && !context->is_proxy_render) {
-    out = final_image_cache_get(orig_scene, seqbasep, timeline_frame, context->view_id, chanshown);
+    out = final_image_cache_get(orig_scene,
+                                seqbasep,
+                                timeline_frame,
+                                context->view_id,
+                                chanshown,
+                                {context->rectx, context->recty});
   }
 
   Vector<Strip *> strips = seq_shown_strips_get(
@@ -2049,8 +2053,13 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     if (out && (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) && !context->skip_cache &&
         !context->is_proxy_render)
     {
-      final_image_cache_put(
-          orig_scene, seqbasep, timeline_frame, context->view_id, chanshown, out);
+      final_image_cache_put(orig_scene,
+                            seqbasep,
+                            timeline_frame,
+                            context->view_id,
+                            chanshown,
+                            {context->rectx, context->recty},
+                            out);
     }
   }
 

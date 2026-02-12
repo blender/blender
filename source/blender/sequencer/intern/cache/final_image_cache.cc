@@ -32,16 +32,19 @@ struct FinalImageCache {
     int timeline_frame;
     int view_id;
     int display_channel;
+    int2 image_size;
 
-    const uint64_t hash() const
+    uint64_t hash() const
     {
-      return get_default_hash(seqbasep, timeline_frame, view_id, display_channel);
+      uint64_t h = get_default_hash(seqbasep, timeline_frame, view_id, display_channel);
+      return get_default_hash(h, image_size);
     }
 
     bool operator==(const Key &other) const
     {
       return seqbasep == other.seqbasep && timeline_frame == other.timeline_frame &&
-             view_id == other.view_id && display_channel == other.display_channel;
+             view_id == other.view_id && display_channel == other.display_channel &&
+             image_size == image_size;
     }
   };
   Map<Key, ImBuf *> map_;
@@ -79,12 +82,13 @@ static FinalImageCache *query_final_image_cache(const Scene *scene)
 
 ImBuf *final_image_cache_get(Scene *scene,
                              const ListBase *seqbasep,
-                             const float timeline_frame,
-                             const int view_id,
-                             const int display_channel)
+                             float timeline_frame,
+                             int view_id,
+                             int display_channel,
+                             int2 image_size)
 {
   const FinalImageCache::Key key = {
-      seqbasep, int(math::round(timeline_frame)), view_id, display_channel};
+      seqbasep, int(math::round(timeline_frame)), view_id, display_channel, image_size};
 
   ImBuf *res = nullptr;
   {
@@ -107,10 +111,11 @@ void final_image_cache_put(Scene *scene,
                            const float timeline_frame,
                            const int view_id,
                            const int display_channel,
+                           int2 image_size,
                            ImBuf *image)
 {
   const FinalImageCache::Key key = {
-      seqbasep, int(math::round(timeline_frame)), view_id, display_channel};
+      seqbasep, int(math::round(timeline_frame)), view_id, display_channel, image_size};
 
   IMB_refImBuf(image);
 
