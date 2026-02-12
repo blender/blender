@@ -1343,88 +1343,41 @@ if bpy.app.build_options.experimental_features:
 
 
 def pycontext2sphinx(basepath):
-    # Only use once. very irregular.
-
+    # Not actually a module, only write this file so we can reference in the TOC.
     filepath = os.path.join(basepath, "bpy.context.rst")
-    file = open(filepath, "w", encoding="utf-8")
-    fw = file.write
-    fw(title_string("Context Access (bpy.context)", "="))
-    fw(".. module:: bpy.context\n")
-    fw("\n")
-    fw("The context members available depend on the area of Blender which is currently being accessed.\n")
-    fw("\n")
-    fw("Note that all context values are read-only,\n")
-    fw("but may be modified through the data API or by running operators.\n\n")
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(title_string("Context Access (bpy.context)", "="))
+        fw(".. module:: bpy.context\n")
+        fw("\n")
+        fw("The context members available depend on the area of Blender which is currently being accessed.\n")
+        fw("\n")
+        fw("Note that all context values are read-only,\n")
+        fw("but may be modified through the data API or by running operators.\n")
+        fw("\n")
+        fw(".. data:: context\n")
+        fw("\n")
+        fw("   Access to the current window-manager and data context.\n")
+        fw("\n")
+        fw("   :type: :class:`bpy.types.Context`\n")
 
-    # Track all unique properties to properly use `noindex`.
-    unique = set()
 
-    def write_contex_cls():
+def pycontext_members2sphinx(indent, fw, written_props):
+    # Write context members into `bpy.types.Context`.
 
-        fw(title_string("Global Context", "-"))
-        fw("These properties are available in any contexts.\n\n")
-
-        # Very silly. could make these global and only access once:
-        # `structs, funcs, ops, props = rna_info.BuildRNAInfo()`.
-        structs, funcs, ops, props = rna_info_BuildRNAInfo_cache()
-        struct = structs[("", "Context")]
-        struct_blacklist = RNA_BLACKLIST.get(struct.identifier, ())
-        del structs, funcs, ops, props
-
-        sorted_struct_properties = struct.properties[:]
-        sorted_struct_properties.sort(key=lambda prop: prop.identifier)
-
-        # First write RNA.
-        for prop in sorted_struct_properties:
-            # Support blacklisting props.
-            if prop.identifier in struct_blacklist:
-                continue
-            # No need to check if there are duplicates yet as it's known there wont be.
-            unique.add(prop.identifier)
-
-            enum_descr_override = None
-            if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
-                enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
-
-            type_descr = prop.get_type_description(
-                class_fmt=":class:`bpy.types.{:s}`",
-                mathutils_fmt=":class:`mathutils.{:s}`",
-                literal_fmt="``{!r}``",  # String with quotes.
-                collection_id=_BPY_PROP_COLLECTION_ID,
-                enum_descr_override=enum_descr_override,
-            )
-            fw(".. data:: {:s}\n\n".format(prop.identifier))
-            if prop.description:
-                fw("   {:s}\n\n".format(prop.description))
-            if (deprecated := prop.deprecated) is not None:
-                fw(pyrna_deprecated_directive("   ", deprecated))
-
-            # Special exception, can't use generic code here for enums.
-            if prop.type == "enum":
-                # If the link has been written, no need to inline the enum items.
-                enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
-                if enum_text:
-                    write_indented_lines("   ", fw, enum_text)
-                    fw("\n")
-                del enum_text
-            # End enum exception.
-
-            fw("   :type: {:s}\n\n".format(type_descr))
-
-    write_contex_cls()
-    del write_contex_cls
-    # End.
+    # Track all unique properties to avoid duplicates.
+    unique = set(written_props)
 
     # Internal API call only intended to be used to extract context members.
     from _bpy import context_members
     context_member_map = context_members()
     del context_members
 
-    # Track unique for `context_strings` to validate `context_type_map`.
+    # Track all context strings to validate `context_type_map`.
     unique_context_strings = set()
     for ctx_str, ctx_members in sorted(context_member_map.items()):
         subsection = "{:s} Context".format(ctx_str.split("_")[0].title())
-        fw("\n{:s}\n{:s}\n\n".format(subsection, (len(subsection) * "-")))
+        fw("\n{:s}.. rubric:: {:s}\n\n".format(indent, subsection))
         for member in ctx_members:
             unique_all_len = len(unique)
             unique.add(member)
@@ -1432,10 +1385,10 @@ def pycontext2sphinx(basepath):
 
             unique_context_strings.add(member)
 
-            fw(".. data:: {:s}\n".format(member))
+            fw("{:s}.. data:: {:s}\n".format(indent, member))
             # Avoid warnings about the member being included multiple times.
             if member_visited:
-                fw("   :noindex:\n")
+                fw("{:s}   :noindex:\n".format(indent))
             fw("\n")
 
             if (member_types := context_type_map.get(member)) is None:
@@ -1450,10 +1403,7 @@ def pycontext2sphinx(basepath):
             type_strs = []
             for member_type, is_seq in member_types:
                 if member_type.isidentifier():
-                    class_str = ":class:`{:s}{:s}`".format(
-                        "bpy.types." if member_type not in PRIMITIVE_TYPE_NAMES else "",
-                        member_type,
-                    )
+                    class_str = ":class:`{:s}`".format(member_type)
                     if is_seq:
                         type_strs.append("Sequence[{:s}]".format(class_str))
                     else:
@@ -1461,8 +1411,12 @@ def pycontext2sphinx(basepath):
                 else:
                     type_strs.append(member_type)
 
-            fw("   :type: {:s}\n\n".format(" | ".join(type_strs)))
-            write_example_ref("   ", fw, "bpy.context." + member)
+            fw("{:s}   :type: {:s}\n\n".format(indent, " | ".join(type_strs)))
+            write_example_ref(indent + "   ", fw, "bpy.context." + member)
+
+    # A bit of a hack: add a trailing rubric so that the methods which follow
+    # aren't visually grouped under the last context heading.
+    fw("\n{:s}.. rubric:: Methods\n\n".format(indent))
 
     # Generate type-map:
     # for member in sorted(unique_context_strings):
@@ -1474,8 +1428,6 @@ def pycontext2sphinx(basepath):
             ))
     else:
         pass  # Will have raised an error above.
-
-    file.close()
 
 
 def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
@@ -1757,6 +1709,12 @@ def pyrna2sphinx(basepath):
             # End enum exception.
 
             fw("      :type: {:s}\n\n".format(type_descr))
+
+        # Screen context members (only for Context struct).
+        if struct_id == "Context":
+            written_props = {prop.identifier for prop in sorted_struct_properties
+                             if prop.identifier not in struct_blacklist}
+            pycontext_members2sphinx("   ", fw, written_props)
 
         # Python attributes.
         py_properties = struct.get_py_properties()
