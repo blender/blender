@@ -61,7 +61,7 @@ class Grid : Overlay {
     if (state.is_space_image()) {
       float3 tile_scale(grid_ubo_.clip_rect.x, grid_ubo_.clip_rect.y, 0.0f);
       const float4 color_back = math::interpolate(
-          res.theme.colors.background, res.theme.colors.grid, 0.33);
+          res.theme.colors.background, res.theme.colors.grid, 0.5f);
 
       auto &sub = grid_ps_.sub("grid_background");
       sub.shader_set(res.shaders->grid_background.get());
@@ -225,7 +225,7 @@ class Grid : Overlay {
 
     /* Set `grid_flag_` dependent on view configuration. */
     if (rv3d->is_persp || rv3d->view == RV3D_VIEW_USER) {
-      /* Perspective; set selected axes and plane (floor = XY) bits. */
+      /* Perspective/orthographic; set selected axes and plane (floor = XY) bits. */
       axis_flag_ |= (show_axis_x ? AXIS_X : OVERLAY_GridBits(0));
       axis_flag_ |= (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
       axis_flag_ |= (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
@@ -243,7 +243,7 @@ class Grid : Overlay {
       }
     }
     else {
-      /* Orthographic; set selected axes and plane bits dependent on the specific view
+      /* Fixed plane orthographic: set axis/plane bits dependent on the view
        * (top, right, left, etc.) that is selected. */
       if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
         axis_flag_ = (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0)) |
@@ -261,9 +261,18 @@ class Grid : Overlay {
         grid_flag_ = (show_ortho ? PLANE_XZ : OVERLAY_GridBits(0));
       }
 
-      /* If any axes are set, set SHOW_AXES. If `grid` is toggled, set SHOW_GRID. */
-      axis_flag_ |= (axis_flag_ ? SHOW_AXES : OVERLAY_GridBits(0));
-      grid_flag_ |= (grid_flag_ ? SHOW_GRID : OVERLAY_GridBits(0));
+      /* If any axes are set, set SHOW_AXES. If `grid` is toggled, set SHOW_GRID.
+       * We also set `GRID_BEHIND_GEOMETRY` for fixed plane views, to place it on
+       * the far plane. */
+      axis_flag_ |= (axis_flag_ ? (SHOW_AXES | GRID_BEHIND_GEOMETRY) : OVERLAY_GridBits(0));
+      grid_flag_ |= (grid_flag_ ? (SHOW_GRID | GRID_BEHIND_GEOMETRY) : OVERLAY_GridBits(0));
+
+      /* Axes are passed to the grid flag for correct occlusion. */
+      if (grid_flag_) {
+        grid_flag_ |= (show_axis_x ? AXIS_X : OVERLAY_GridBits(0));
+        grid_flag_ |= (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
+        grid_flag_ |= (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
+      }
     }
 
     /* Query grid scales from unit/scaling; this range suffices for user-visible levels. */
@@ -312,8 +321,10 @@ class Grid : Overlay {
       float3 camera_offs = drw_view_position - dist * drw_view_forward;
       grid_ubo_.offset = camera_offs.xy();
     }
-    else { /* Orthographic, Image/UV view. */
-      grid_ubo_.offset = drw_view_position.xy();
+    else { /* Orthographic. */
+      float3 camera_offs = drw_view_position -
+                           drw_view_forward * dot(drw_view_position, drw_view_forward);
+      grid_ubo_.offset = camera_offs.xy();
     }
 
     /* Find the lowest relevant grid level + fractional. */
