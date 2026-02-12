@@ -14,10 +14,10 @@ texture = gpu.texture.from_image(image)
 
 shader = gpu.shader.from_builtin('IMAGE_SCENE_LINEAR_TO_REC709_SRGB')
 batch = batch_for_shader(
-    shader, 'TRI_FAN',
+    shader, 'TRI_STRIP',
     {
-        "pos": ((100, 100), (200, 100), (200, 200), (100, 200)),
-        "texCoord": ((0, 0), (1, 0), (1, 1), (0, 1)),
+        "pos": ((100, 100), (200, 100), (100, 200), (200, 200)),
+        "texCoord": ((0, 0), (1, 0), (0, 1), (1, 1)),
     },
 )
 
