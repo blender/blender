@@ -54,30 +54,6 @@ class BlenderDisplayShader {
   int tex_coord_attribute_location_ = -1;
 };
 
-/* Implementation of display rendering shader used in the case when render engine does not support
- * display space shader. */
-class BlenderFallbackDisplayShader : public BlenderDisplayShader {
- public:
-  ~BlenderFallbackDisplayShader() override;
-
-  blender::gpu::Shader *bind(const int width, const int height) override;
-  void unbind() override;
-
- protected:
-  blender::gpu::Shader *get_shader_program() override;
-
-  void create_shader_if_needed();
-  void destroy_shader();
-
-  blender::gpu::Shader *shader_program_ = nullptr;
-  int image_texture_location_ = -1;
-  int fullscreen_location_ = -1;
-
-  /* Shader compilation attempted. Which means, that if the shader program is 0 then compilation or
-   * linking has failed. Do not attempt to re-compile the shader. */
-  bool shader_compile_attempted_ = false;
-};
-
 class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  public:
   BlenderDisplaySpaceShader(blender::RenderEngine &b_engine, blender::Scene &b_scene);

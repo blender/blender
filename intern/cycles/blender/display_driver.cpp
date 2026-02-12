@@ -28,11 +28,7 @@ unique_ptr<BlenderDisplayShader> BlenderDisplayShader::create(blender::RenderEng
                                                               blender::Scene &b_scene)
 {
   /* See #engine_support_display_space_shader in rna_render.cc. */
-  if (true) {
-    return make_unique<BlenderDisplaySpaceShader>(b_engine, b_scene);
-  }
-
-  return make_unique<BlenderFallbackDisplayShader>();
+  return make_unique<BlenderDisplaySpaceShader>(b_engine, b_scene);
 }
 
 int BlenderDisplayShader::get_position_attrib_location()
@@ -53,88 +49,6 @@ int BlenderDisplayShader::get_tex_coord_attrib_location()
                                                                       tex_coord_attribute_name);
   }
   return tex_coord_attribute_location_;
-}
-
-/* --------------------------------------------------------------------
- * BlenderFallbackDisplayShader.
- */
-static blender::gpu::Shader *compile_fallback_shader()
-{
-  /* NOTE: Compilation errors are logged to console. */
-  blender::gpu::Shader *shader = blender::GPU_shader_create_from_info_name(
-      "gpu_shader_cycles_display_fallback");
-  return shader;
-}
-
-BlenderFallbackDisplayShader::~BlenderFallbackDisplayShader()
-{
-  destroy_shader();
-}
-
-blender::gpu::Shader *BlenderFallbackDisplayShader::bind(const int width, const int height)
-{
-  create_shader_if_needed();
-
-  if (!shader_program_) {
-    return nullptr;
-  }
-
-  /* Bind shader now to enable uniform assignment. */
-  blender::GPU_shader_bind(shader_program_);
-  const int slot = 0;
-  blender::GPU_shader_uniform_int_ex(shader_program_, image_texture_location_, 1, 1, &slot);
-  float size[2];
-  size[0] = width;
-  size[1] = height;
-  blender::GPU_shader_uniform_float_ex(shader_program_, fullscreen_location_, 2, 1, size);
-  return shader_program_;
-}
-
-void BlenderFallbackDisplayShader::unbind()
-{
-  blender::GPU_shader_unbind();
-}
-
-blender::gpu::Shader *BlenderFallbackDisplayShader::get_shader_program()
-{
-  return shader_program_;
-}
-
-void BlenderFallbackDisplayShader::create_shader_if_needed()
-{
-  if (shader_program_ || shader_compile_attempted_) {
-    return;
-  }
-
-  shader_compile_attempted_ = true;
-
-  shader_program_ = compile_fallback_shader();
-  if (!shader_program_) {
-    LOG_ERROR << "Failed to compile fallback shader";
-    return;
-  }
-
-  image_texture_location_ = blender::GPU_shader_get_uniform(shader_program_, "image_texture");
-  if (image_texture_location_ < 0) {
-    LOG_ERROR << "Shader doesn't contain the 'image_texture' uniform.";
-    destroy_shader();
-    return;
-  }
-
-  fullscreen_location_ = blender::GPU_shader_get_uniform(shader_program_, "fullscreen");
-  if (fullscreen_location_ < 0) {
-    LOG_ERROR << "Shader doesn't contain the 'fullscreen' uniform.";
-    destroy_shader();
-    return;
-  }
-}
-
-void BlenderFallbackDisplayShader::destroy_shader()
-{
-  if (shader_program_) {
-    blender::GPU_shader_free(shader_program_);
-    shader_program_ = nullptr;
-  }
 }
 
 /* --------------------------------------------------------------------
