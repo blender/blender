@@ -654,7 +654,7 @@ static PyTypeObject BPyBLFImBufContext_Type = {
 PyDoc_STRVAR(
     /* Wrap. */
     py_blf_bind_imbuf_doc,
-    ".. function:: bind_imbuf(fontid, imbuf)\n"
+    ".. function:: bind_imbuf(fontid, imbuf, *, display_name=None)\n"
     "\n"
     "   Context manager to draw text into an image buffer instead of the GPU's context.\n"
     "\n"
@@ -663,6 +663,8 @@ PyDoc_STRVAR(
     "   :type fontid: int\n"
     "   :param imbuf: The image to draw into.\n"
     "   :type imbuf: :class:`imbuf.types.ImBuf`\n"
+    "   :param display_name: Ignored, kept for backwards compatibility.\n"
+    "   :type display_name: str | None\n"
 
     "   :return: The BLF ImBuf context manager.\n"
     "   :rtype: BLFImBufContext\n");

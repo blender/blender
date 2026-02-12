@@ -194,9 +194,14 @@ static PyMethodDef pygpu_matrix_stack_context__tp_methods[] = {
 #  endif
 #endif
 
-static PyTypeObject PyGPUMatrixStackContext_Type = {
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_matrix_stack_context__tp_doc,
+    "Context manager for matrix stack push/pop.");
+
+PyTypeObject PyGPUMatrixStackContext_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "GPUMatrixStackContext",
+    /*tp_name*/ "MatrixStackContext",
     /*tp_basicsize*/ sizeof(BPyGPU_MatrixStackContext),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -215,7 +220,7 @@ static PyTypeObject PyGPUMatrixStackContext_Type = {
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT,
-    /*tp_doc*/ nullptr,
+    /*tp_doc*/ pygpu_matrix_stack_context__tp_doc,
     /*tp_traverse*/ nullptr,
     /*tp_clear*/ nullptr,
     /*tp_richcompare*/ nullptr,
@@ -326,7 +331,10 @@ PyDoc_STRVAR(
     pygpu_matrix_push_pop_doc,
     ".. function:: push_pop()\n"
     "\n"
-    "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n");
+    "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n"
+    "\n"
+    "   :return: The context manager.\n"
+    "   :rtype: :class:`gpu.types.MatrixStackContext`\n");
 static PyObject *pygpu_matrix_push_pop(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -339,7 +347,10 @@ PyDoc_STRVAR(
     pygpu_matrix_push_pop_projection_doc,
     ".. function:: push_pop_projection()\n"
     "\n"
-    "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n");
+    "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n"
+    "\n"
+    "   :return: The context manager.\n"
+    "   :rtype: :class:`gpu.types.MatrixStackContext`\n");
 static PyObject *pygpu_matrix_push_pop_projection(PyObject * /*self*/)
 {
   return pygpu_matrix_push_pop_impl(PYGPU_MATRIX_TYPE_PROJECTION);
@@ -712,10 +723,6 @@ PyObject *bpygpu_matrix_init()
   PyObject *submodule;
 
   submodule = PyModule_Create(&pygpu_matrix_module_def);
-
-  if (PyType_Ready(&PyGPUMatrixStackContext_Type) < 0) {
-    return nullptr;
-  }
 
   return submodule;
 }

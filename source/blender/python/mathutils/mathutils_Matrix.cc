@@ -717,7 +717,7 @@ PyDoc_STRVAR(
     "   :type size: int\n"
     "   :param axis: an axis string or a 3D Vector Object\n"
     "      (optional when size is 2).\n"
-    "   :type axis: Literal['X', 'Y', 'Z'] | :class:`Vector`\n"
+    "   :type axis: Literal['X', 'Y', 'Z'] | Sequence[float]\n"
     "   :return: A new rotation matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
@@ -803,7 +803,7 @@ PyDoc_STRVAR(
     "   Create a matrix representing a translation.\n"
     "\n"
     "   :param vector: The translation vector.\n"
-    "   :type vector: :class:`Vector`\n"
+    "   :type vector: Sequence[float]\n"
     "   :return: An identity matrix with a translation.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
@@ -829,7 +829,7 @@ PyDoc_STRVAR(
     "   Create a diagonal (scaling) matrix using the values from the vector.\n"
     "\n"
     "   :param vector: The vector of values for the diagonal.\n"
-    "   :type vector: :class:`Vector`\n"
+    "   :type vector: Sequence[float]\n"
     "   :return: A diagonal matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 /** Diagonal constructor: `mathutils.Matrix.Diagonal()`. */
@@ -865,7 +865,7 @@ PyDoc_STRVAR(
     "   :param size: The size of the scale matrix to construct [2, 4].\n"
     "   :type size: int\n"
     "   :param axis: Direction to influence scale. (optional).\n"
-    "   :type axis: :class:`Vector`\n"
+    "   :type axis: Sequence[float]\n"
     "   :return: A new scale matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
@@ -953,7 +953,7 @@ PyDoc_STRVAR(
     "   :param axis: An axis string,\n"
     "      where a single axis is for a 2D matrix.\n"
     "      Or a vector for an arbitrary axis\n"
-    "   :type axis: Literal['X', 'Y', 'XY', 'XZ', 'YZ'] | :class:`Vector`\n"
+    "   :type axis: Literal['X', 'Y', 'XY', 'XZ', 'YZ'] | Sequence[float]\n"
     "   :param size: The size of the projection matrix to construct [2, 4].\n"
     "   :type size: int\n"
     "   :return: A new projection matrix.\n"
@@ -1178,12 +1178,12 @@ PyDoc_STRVAR(
     "   Any of the inputs may be replaced with None if not needed.\n"
     "\n"
     "   :param location: The translation component.\n"
-    "   :type location: :class:`Vector` | None\n"
+    "   :type location: Sequence[float] | None\n"
     "   :param rotation: The rotation component as a "
     "3x3 matrix, quaternion, euler or None for no rotation.\n"
     "   :type rotation: :class:`Matrix` | :class:`Quaternion` | :class:`Euler` | None\n"
     "   :param scale: The scale component.\n"
-    "   :type scale: :class:`Vector` | None\n"
+    "   :type scale: Sequence[float] | None\n"
     "   :return: Combined transformation as a 4x4 matrix. \n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
@@ -3284,7 +3284,7 @@ PyDoc_STRVAR(
     Matrix_row_doc,
     "Access the matrix by rows (default), (read-only).\n"
     "\n"
-    ":type: Matrix Access\n");
+    ":type: :class:`MatrixAccess`\n");
 static PyObject *Matrix_row_get(MatrixObject *self, void * /*closure*/)
 {
   return MatrixAccess_CreatePyObject(self, MAT_ACCESS_ROW);
@@ -3295,7 +3295,7 @@ PyDoc_STRVAR(
     Matrix_col_doc,
     "Access the matrix by columns, 3x3 and 4x4 only, (read-only).\n"
     "\n"
-    ":type: Matrix Access\n");
+    ":type: :class:`MatrixAccess`\n");
 static PyObject *Matrix_col_get(MatrixObject *self, void * /*closure*/)
 {
   return MatrixAccess_CreatePyObject(self, MAT_ACCESS_COL);
@@ -4108,6 +4108,11 @@ static PyMappingMethods MatrixAccess_AsMapping = {
 /** \name Matrix-Access Type: Python Object Definition
  * \{ */
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    matrix_access_doc,
+    "An indexable type for accessing matrix rows or columns as :class:`Vector` types.\n");
+
 PyTypeObject matrix_access_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "MatrixAccess",
@@ -4129,7 +4134,7 @@ PyTypeObject matrix_access_Type = {
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    /*tp_doc*/ nullptr,
+    /*tp_doc*/ matrix_access_doc,
     /*tp_traverse*/ reinterpret_cast<traverseproc>(MatrixAccess_traverse),
     /*tp_clear*/ reinterpret_cast<inquiry>(MatrixAccess_clear),
     /*tp_richcompare*/ nullptr /* MatrixAccess_richcmpr */ /* TODO. */,

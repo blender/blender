@@ -28,7 +28,7 @@
 
 namespace blender {
 
-#define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT', 'OBJECT_IO'"
+#define PYDOC_SOURCE_TYPES_LITERAL "Literal['IMAGE', 'MOVIE', 'BLEND', 'FONT', 'OBJECT_IO']"
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -70,9 +70,9 @@ PyDoc_STRVAR(
     "   :type name: str\n"
     "   :param filepath: The file path to generate the preview from.\n"
     "   :type filepath: str | bytes\n"
-    "   :param file_type: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
-    "].\n"
-    "   :type file_type: str\n"
+    "   :param file_type: The type of file, needed to generate the preview.\n"
+    "   :type file_type: " PYDOC_SOURCE_TYPES_LITERAL
+    "\n"
     "   :param force_reload: If True, force running thumbnail manager even if preview already "
     "exists in cache.\n"
     "   :type force_reload: bool\n"
@@ -85,7 +85,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 {
   char *name;
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
-  /* Be sure to keep these in sync with #STR_SOURCE_TYPES. */
+  /* Be sure to keep these in sync with #PYDOC_SOURCE_TYPES_LITERAL. */
   const PyC_StringEnumItems path_type_items[] = {
       {THB_SOURCE_IMAGE, "IMAGE"},
       {THB_SOURCE_MOVIE, "MOVIE"},

@@ -461,6 +461,29 @@ RST_NOINDEX_ATTR = {
     ("bpy.types", "RenderEngine", "render"),
 }
 
+# Underscore-prefixed attributes to include in documentation
+# (these would otherwise be skipped). Maps module name to the identifiers.
+# NOTE: every inclusion must justify itself as this is something we should typically avoid.
+_PRIVATE_ATTR_INCLUDE = {
+    "bpy.props": {
+        # Without this type documented, the correct type can't be referenced for `bpy.props` definition.
+        "_PropertyDeferred",
+    },
+}
+
+
+def _is_attr_private(module_name, attribute):
+    """Check if an attribute should be skipped as private (underscore-prefixed)."""
+    if not attribute.startswith("_"):
+        return False
+    exceptions = _PRIVATE_ATTR_INCLUDE.get(module_name)
+    if exceptions is None:
+        return True
+    if attribute not in exceptions:
+        return True
+    return False
+
+
 MODULE_GROUPING = {
     "bmesh.types": (
         ("Base Mesh Type", "-"),
@@ -1053,7 +1076,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
     module_dir_value_type = []
 
     for attribute in module_dir:
-        if attribute.startswith("_"):
+        if _is_attr_private(module_name, attribute):
             continue
 
         if attribute in attribute_set:
@@ -1181,7 +1204,7 @@ context_type_map = {
     # Support multiple types for each item, where each list item is a possible type:
     # `context_member: [(RNA type, is_collection), ...]`
     "active_action": [("Action", False)],
-    "active_annotation_layer": [("GPencilLayer", False)],
+    "active_annotation_layer": [("AnnotationLayer", False)],
     "active_bone": [("EditBone", False), ("Bone", False)],
     "active_file": [("FileSelectEntry", False)],
     "active_node": [("Node", False)],
@@ -1214,10 +1237,10 @@ context_type_map = {
     "editable_bones": [("EditBone", True)],
     "editable_objects": [("Object", True)],
     "editable_fcurves": [("FCurve", True)],
-    "fluid": [("FluidSimulationModifier", False)],
+    "fluid": [("FluidModifier", False)],
     "gpencil": [("GreasePencil", False)],
     "grease_pencil": [("GreasePencil", False)],
-    "curves": [("Hair Curves", False)],
+    "curves": [("Curves", False)],
     "id": [("ID", False)],
     "image_paint_object": [("Object", False)],
     "lattice": [("Lattice", False)],
@@ -1401,17 +1424,18 @@ def pycontext2sphinx(basepath):
             type_strs = []
             for member_type, is_seq in member_types:
                 if member_type.isidentifier():
-                    type_strs.append(
-                        "{:s}:class:`{:s}{:s}`".format(
-                            "sequence of " if is_seq else "",
-                            "bpy.types." if member_type not in PRIMITIVE_TYPE_NAMES else "",
-                            member_type,
-                        )
+                    class_str = ":class:`{:s}{:s}`".format(
+                        "bpy.types." if member_type not in PRIMITIVE_TYPE_NAMES else "",
+                        member_type,
                     )
+                    if is_seq:
+                        type_strs.append("Sequence[{:s}]".format(class_str))
+                    else:
+                        type_strs.append(class_str)
                 else:
                     type_strs.append(member_type)
 
-            fw("   :type: {:s}\n\n".format(" or ".join(type_strs)))
+            fw("   :type: {:s}\n\n".format(" | ".join(type_strs)))
             write_example_ref("   ", fw, "bpy.context." + member)
 
     # Generate type-map:
@@ -1989,6 +2013,9 @@ def pyrna2sphinx(basepath):
                 fw("\n")
                 for prop in op.args:
                     write_param("   ", fw, prop)
+
+                fw("   :return: Result of the operator call.\n")
+                fw("   :rtype: set[Literal[:ref:`rna_enum_operator_return_items`]]\n")
 
                 location = op.get_location()
                 if location != (None, None):

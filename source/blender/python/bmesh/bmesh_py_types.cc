@@ -279,65 +279,64 @@ PyDoc_STRVAR(
     bpy_bmvert_link_edges_doc,
     "Edges connected to this vertex (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMEdge`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMEdge`]\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmvert_link_faces_doc,
     "Faces connected to this vertex (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMFace`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMFace`]\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmvert_link_loops_doc,
     "Loops that use this vertex (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMLoop`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMLoop`]\n");
 /* edge */
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmedge_verts_doc,
     "Verts this edge uses (always 2), (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of "
-    ":class:`bmesh.types.BMVert`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMVert`]\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmedge_link_faces_doc,
     "Faces connected to this edge, (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMFace`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMFace`]\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmedge_link_loops_doc,
     "Loops connected to this edge, (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMLoop`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMLoop`]\n");
 /* face */
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmface_verts_doc,
     "Verts of this face, (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMVert`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMVert`]\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmface_edges_doc,
     "Edges of this face, (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMEdge`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMEdge`]\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmface_loops_doc,
     "Loops of this face, (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMLoop`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMLoop`]\n");
 /* loop */
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloops_link_loops_doc,
     "Loops connected to this loop, (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMElemSeq` of :class:`bmesh.types.BMLoop`\n");
+    ":type: :class:`bmesh.types.BMElemSeq`\\ [:class:`bmesh.types.BMLoop`]\n");
 
 static PyObject *bpy_bmelemseq_elem_get(BPy_BMElem *self, void *itype)
 {
@@ -3202,7 +3201,7 @@ PyDoc_STRVAR(
     "   Create a new vertex.\n"
     "\n"
     "   :param co: The initial location of the vertex (optional argument).\n"
-    "   :type co: float triplet\n"
+    "   :type co: tuple[float, float, float] | Sequence[float]\n"
     "   :param source: Existing vert to initialize settings.\n"
     "   :type source: :class:`bmesh.types.BMVert` | None\n"
     "   :return: The newly created vertex.\n"

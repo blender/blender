@@ -60,6 +60,15 @@ class ExportHelper:
     check_extension = True
 
     def invoke(self, context, _event):
+        """
+        Invoke the file selector for exporting, setting a default filepath
+        based on the current blend file name.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :return: The operator return value.
+        :rtype: set[str]
+        """
         import os
         if not self.filepath:
             blend_filepath = context.blend_data.filepath
@@ -74,6 +83,12 @@ class ExportHelper:
         return {'RUNNING_MODAL'}
 
     def check(self, _context):
+        """
+        Validate the filepath and axis conversion settings.
+
+        :return: True when a property was updated.
+        :rtype: bool
+        """
         import os
         change_ext = False
         change_axis = _check_axis_conversion(self)
@@ -105,10 +120,30 @@ class ImportHelper:
     )
 
     def invoke(self, context, _event):
+        """
+        Invoke the file selector for importing.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :return: The operator return value.
+        :rtype: set[str]
+        """
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
     def invoke_popup(self, context, confirm_text=""):
+        """
+        Invoke as a popup confirmation dialog when a filepath is already set,
+        otherwise fall back to the file selector.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :param confirm_text: Label for the confirm button,
+           defaults to the operator label.
+        :type confirm_text: str
+        :return: The operator return value.
+        :rtype: set[str]
+        """
         if self.properties.is_property_set("filepath"):
             title = self.filepath
             if len(self.files) > 1:
@@ -131,6 +166,12 @@ class ImportHelper:
         return {'RUNNING_MODAL'}
 
     def check(self, _context):
+        """
+        Validate axis conversion settings.
+
+        :return: True when a property was updated.
+        :rtype: bool
+        """
         return _check_axis_conversion(self)
 
 
