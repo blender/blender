@@ -60,6 +60,12 @@ enum ImageAlphaType {
   IMAGE_ALPHA_NUM_TYPES,
 };
 
+/* Image format types */
+enum ImageFormatType {
+  IMAGE_FORMAT_PLAIN,
+  IMAGE_FORMAT_EQUIANGULAR,
+};
+
 /* Extension types for image.
  *
  * Defines how the image is extrapolated past its original bounds. */

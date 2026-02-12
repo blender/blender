@@ -27,17 +27,20 @@ string path_filename(const string &path);
 string path_dirname(const string &path);
 string path_join(const string &dir, const string &file);
 string path_escape(const string &path);
+string path_normalize(const string &path);
 bool path_is_relative(const string &path);
+string path_make_relative(const string &path, const string &base);
 
 /* file info */
 size_t path_file_size(const string &path);
 bool path_exists(const string &path);
 bool path_is_directory(const string &path);
+bool path_is_file(const string &path);
 string path_files_md5_hash(const string &dir);
 uint64_t path_modified_time(const string &path);
 
 /* directory utility */
-void path_create_directories(const string &path);
+bool path_create_directories(const string &path);
 
 /* file read/write utilities */
 FILE *path_fopen(const string &path, const string &mode);

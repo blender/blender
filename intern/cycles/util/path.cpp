@@ -15,6 +15,7 @@
 #include <OpenImageIO/sysutil.h>
 
 #include <cstdio>
+#include <filesystem>
 
 #include <sys/stat.h>
 
@@ -284,6 +285,24 @@ size_t find_last_slash(const string &path)
   return string::npos;
 }
 
+std::filesystem::path std_filesystem_path_from_string(const string &p)
+{
+#ifdef _WIN32
+  return std::filesystem::path(string_to_wstring(p));
+#else
+  return std::filesystem::path(p);
+#endif
+}
+
+string std_filesystem_path_to_string(const std::filesystem::path &p)
+{
+#ifdef _WIN32
+  return string_from_wstring(p.native());
+#else
+  return p.string();
+#endif
+}
+
 } /* namespace */
 
 static char *path_specials(const string &sub)
@@ -441,24 +460,43 @@ string path_escape(const string &path)
   return result;
 }
 
+string path_normalize(const string &path)
+{
+  std::string normpath = std_filesystem_path_to_string(
+      std_filesystem_path_from_string(path).lexically_normal().make_preferred());
+#ifdef _WIN32
+  string_replace(normpath, "\\", "/");
+#endif
+  return normpath;
+}
+
 bool path_is_relative(const string &path)
 {
-#ifdef _WIN32
-#  ifdef HAVE_SHLWAPI_H
-  return PathIsRelative(path.c_str());
-#  else  /* HAVE_SHLWAPI_H */
-  if (path.size() >= 3) {
-    return !(((path[0] >= 'a' && path[0] <= 'z') || (path[0] >= 'A' && path[0] <= 'Z')) &&
-             path[1] == ':' && path[2] == DIR_SEP);
+  return std_filesystem_path_from_string(path).is_relative();
+}
+
+string path_make_relative(const string &path_, const string &base_)
+{
+  const auto path = std_filesystem_path_from_string(path_);
+  const auto base = std_filesystem_path_from_string(base_);
+
+  if (!path.is_absolute() && base.is_absolute()) {
+    return path_;
   }
-  return true;
-#  endif /* HAVE_SHLWAPI_H */
-#else    /* _WIN32 */
-  if (path.empty()) {
-    return true;
+
+  /* Don't make relative between different drives. */
+  const auto root_name = path.root_name();
+  if (root_name != base.root_name()) {
+    return path_;
   }
-  return path[0] != DIR_SEP;
-#endif   /* _WIN32 */
+
+  /* Also don't make relative if root directories are different. This prevents
+   * typical cases like making relative to /tmp. */
+  if (root_name.empty() && path.root_directory() != path.root_directory()) {
+    return path_;
+  }
+
+  return std_filesystem_path_to_string(path.lexically_relative(base));
 }
 
 #ifdef _WIN32
@@ -588,6 +626,15 @@ bool path_is_directory(const string &path)
   return S_ISDIR(st.st_mode);
 }
 
+bool path_is_file(const string &path)
+{
+  path_stat_t st;
+  if (path_stat(path, &st) != 0) {
+    return false;
+  }
+  return !S_ISDIR(st.st_mode);
+}
+
 static void path_files_md5_hash_recursive(MD5Hash &hash, const string &dir)
 {
   if (path_exists(dir)) {
@@ -644,10 +691,10 @@ static bool create_directories_recursivey(const string &path)
   return path_is_directory(path);
 }
 
-void path_create_directories(const string &filepath)
+bool path_create_directories(const string &filepath)
 {
   const string path = path_dirname(filepath);
-  create_directories_recursivey(path);
+  return create_directories_recursivey(path);
 }
 
 bool path_write_binary(const string &path, const vector<uint8_t> &binary)
