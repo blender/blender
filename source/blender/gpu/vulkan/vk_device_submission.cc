@@ -157,9 +157,6 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
   Vector<VkCommandBuffer> command_buffers_unused;
   TimelineResources<VkCommandBuffer> command_buffers_in_use;
   VkCommandBuffer vk_command_buffer = VK_NULL_HANDLE;
-  Vector<VkCommandBuffer> unsubmitted_command_buffers;
-  Vector<VkSubmitInfo> submit_infos;
-  submit_infos.reserve(2);
   std::optional<render_graph::VKCommandBufferWrapper> command_buffer;
   uint64_t previous_gc_timeline = 0;
   uint64_t num_nodes = 0;
@@ -174,15 +171,6 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
     uint64_t current_timeline = device->submission_finished_timeline_get();
     if (assign_if_different(previous_gc_timeline, current_timeline)) {
       device->orphaned_data.destroy_discarded_resources(*device, current_timeline);
-    }
-
-    /* End current command buffer when we need to wait for a semaphore. In this case all previous
-     * recorded commands can run before the wait semaphores. The commands that must be guarded by
-     * the semaphores are part of the new submitted render graph. */
-    if (submit_task->wait_semaphore != VK_NULL_HANDLE && command_buffer.has_value()) {
-      command_buffer->end_recording();
-      unsubmitted_command_buffers.append(vk_command_buffer);
-      command_buffer.reset();
     }
 
     if (!command_buffer.has_value()) {
@@ -225,26 +213,14 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
     num_nodes += node_handles.size();
 
     if (submit_task->submit_to_device) {
-      /* Create submit infos for previous command buffers. */
-      submit_infos.clear();
-      if (!unsubmitted_command_buffers.is_empty()) {
-        VkSubmitInfo vk_submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                                       nullptr,
-                                       0,
-                                       nullptr,
-                                       nullptr,
-                                       uint32_t(unsubmitted_command_buffers.size()),
-                                       unsubmitted_command_buffers.data(),
-                                       0,
-                                       nullptr};
-        submit_infos.append(vk_submit_info);
-      }
-
       /* Finalize current command buffer. */
       command_buffer->end_recording();
-      unsubmitted_command_buffers.append(vk_command_buffer);
 
-      uint32_t wait_semaphore_len = submit_task->wait_semaphore == VK_NULL_HANDLE ? 0 : 1;
+      uint32_t wait_semaphore_len = submit_task->wait_semaphore == VK_NULL_HANDLE ? 1 : 2;
+      VkSemaphore wait_semaphores[2] = {device->vk_timeline_semaphore_,
+                                        submit_task->wait_semaphore};
+      uint64_t wait_semaphore_values[2] = {submit_task->timeline - 1, 0};
+
       uint32_t signal_semaphore_len = submit_task->signal_semaphore == VK_NULL_HANDLE ? 1 : 2;
       VkSemaphore signal_semaphores[2] = {device->vk_timeline_semaphore_,
                                           submit_task->signal_semaphore};
@@ -253,45 +229,34 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
       VkTimelineSemaphoreSubmitInfo vk_timeline_semaphore_submit_info = {
           VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
           nullptr,
-          0,
-          nullptr,
+          wait_semaphore_len,
+          wait_semaphore_values,
           signal_semaphore_len,
           signal_semaphore_values};
       VkSubmitInfo vk_submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
                                      &vk_timeline_semaphore_submit_info,
                                      wait_semaphore_len,
-                                     &submit_task->wait_semaphore,
+                                     wait_semaphores,
                                      &submit_task->wait_dst_stage_mask,
                                      1,
-                                     &unsubmitted_command_buffers.last(),
+                                     &vk_command_buffer,
                                      signal_semaphore_len,
                                      signal_semaphores};
-      submit_infos.append(vk_submit_info);
 
-      CLOG_TRACE(&LOG,
-                 "Submitting %u render graph nodes in %u command buffers using %u submit infos.",
-                 uint32_t(num_nodes),
-                 uint32_t(unsubmitted_command_buffers.size()),
-                 uint32_t(submit_infos.size()));
+      CLOG_TRACE(&LOG, "Submitting %u render graph nodes to device.", uint32_t(num_nodes));
       num_nodes = 0;
 
       {
         std::scoped_lock lock_queue(*device->queue_mutex_);
-        vkQueueSubmit(device->vk_queue_,
-                      submit_infos.size(),
-                      submit_infos.data(),
-                      submit_task->signal_fence);
+        vkQueueSubmit(device->vk_queue_, 1, &vk_submit_info, submit_task->signal_fence);
       }
       if (submit_task->wait_for_submission != nullptr) {
         std::unique_lock<Mutex> lock(submit_task->wait_for_submission->is_submitted_mutex);
         submit_task->wait_for_submission->is_submitted = true;
         submit_task->wait_for_submission->is_submitted_condition.notify_one();
       }
+      command_buffers_in_use.append_timeline(submit_task->timeline, vk_command_buffer);
       vk_command_buffer = VK_NULL_HANDLE;
-      for (VkCommandBuffer vk_command_buffer : unsubmitted_command_buffers) {
-        command_buffers_in_use.append_timeline(submit_task->timeline, vk_command_buffer);
-      }
-      unsubmitted_command_buffers.clear();
       command_buffer.reset();
     }
 
