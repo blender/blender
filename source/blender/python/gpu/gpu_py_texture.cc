@@ -31,6 +31,55 @@
 
 #include "gpu_py_texture.hh" /* own include */
 
+/* Doc-string Literal type for texture formats. */
+
+#define PYDOC_TEX_FORMAT_LITERAL \
+  "Literal[" \
+  "'RGBA8UI', " \
+  "'RGBA8I', " \
+  "'RGBA8', " \
+  "'RGBA32UI', " \
+  "'RGBA32I', " \
+  "'RGBA32F', " \
+  "'RGBA16UI', " \
+  "'RGBA16I', " \
+  "'RGBA16F', " \
+  "'RGBA16', " \
+  "'RG8UI', " \
+  "'RG8I', " \
+  "'RG8', " \
+  "'RG32UI', " \
+  "'RG32I', " \
+  "'RG32F', " \
+  "'RG16UI', " \
+  "'RG16I', " \
+  "'RG16F', " \
+  "'RG16', " \
+  "'R8UI', " \
+  "'R8I', " \
+  "'R8', " \
+  "'R32UI', " \
+  "'R32I', " \
+  "'R32F', " \
+  "'R16UI', " \
+  "'R16I', " \
+  "'R16F', " \
+  "'R16', " \
+  "'R11F_G11F_B10F', " \
+  "'DEPTH32F_STENCIL8', " \
+  "'DEPTH24_STENCIL8', " \
+  "'SRGB8_A8', " \
+  "'RGB16F', " \
+  "'SRGB8_A8_DXT1', " \
+  "'SRGB8_A8_DXT3', " \
+  "'SRGB8_A8_DXT5', " \
+  "'RGBA8_DXT1', " \
+  "'RGBA8_DXT3', " \
+  "'RGBA8_DXT5', " \
+  "'DEPTH_COMPONENT32F', " \
+  "'DEPTH_COMPONENT24', " \
+  "'DEPTH_COMPONENT16']"
+
 namespace blender {
 
 /* -------------------------------------------------------------------- */
@@ -138,6 +187,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
   PyC_StringEnum pygpu_textureformat = {pygpu_textureformat_items,
                                         int(gpu::TextureFormat::UNORM_8_8_8_8)};
   BPyGPUBuffer *pybuffer_obj = nullptr;
+  PyC_TypeOrNone pybuffer_or_none = PyC_TYPE_OR_NONE_INIT(&BPyGPU_BufferType, &pybuffer_obj);
   char err_out[256] = "unknown error. See console";
 
   static const char *_keywords[] = {"size", "layers", "is_cubemap", "format", "data", nullptr};
@@ -147,7 +197,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
       "i"  /* `layers` */
       "p"  /* `is_cubemap` */
       "O&" /* `format` */
-      "O!" /* `data` */
+      "O&" /* `data` */
       ":GPUTexture.__new__",
       _keywords,
       nullptr,
@@ -160,8 +210,8 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
                                         &is_cubemap,
                                         PyC_ParseStringEnum,
                                         &pygpu_textureformat,
-                                        &BPyGPU_BufferType,
-                                        &pybuffer_obj))
+                                        PyC_ParseTypeOrNone,
+                                        &pybuffer_or_none))
   {
     return nullptr;
   }
@@ -509,12 +559,11 @@ PyDoc_STRVAR(
     "   Fill texture with specific value.\n"
     "\n"
     "   :param format: The format that describes the content of a single item.\n"
-    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
-    "``10_11_11_REV``.\n"
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
-    "   :type format: str\n"
+    "   :type format: " PYDOC_DATAFORMAT_LITERAL
+    "\n"
     "   :param value: Sequence each representing the value to fill. Sizes 1..4 are supported.\n"
-    "   :type value: Sequence[float]\n");
+    "   :type value: Sequence[float] | Sequence[int]\n");
 static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -593,7 +642,9 @@ PyDoc_STRVAR(
     ".. method:: read()\n"
     "\n"
     "   Creates a buffer with the value of all pixels.\n"
-    "\n");
+    "\n"
+    "   :return: The Buffer with the read pixels.\n"
+    "   :rtype: :class:`gpu.types.Buffer`\n");
 static PyObject *pygpu_texture_read(BPyGPUTexture *self)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -762,54 +813,13 @@ PyDoc_STRVAR(
     "   :type layers: int\n"
     "   :param is_cubemap: Indicates the creation of a cubemap texture.\n"
     "   :type is_cubemap: bool\n"
-    "   :param format: Internal data format inside GPU memory. Possible values are:\n"
-    "      ``RGBA8UI``,\n"
-    "      ``RGBA8I``,\n"
-    "      ``RGBA8``,\n"
-    "      ``RGBA32UI``,\n"
-    "      ``RGBA32I``,\n"
-    "      ``RGBA32F``,\n"
-    "      ``RGBA16UI``,\n"
-    "      ``RGBA16I``,\n"
-    "      ``RGBA16F``,\n"
-    "      ``RGBA16``,\n"
-    "      ``RG8UI``,\n"
-    "      ``RG8I``,\n"
-    "      ``RG8``,\n"
-    "      ``RG32UI``,\n"
-    "      ``RG32I``,\n"
-    "      ``RG32F``,\n"
-    "      ``RG16UI``,\n"
-    "      ``RG16I``,\n"
-    "      ``RG16F``,\n"
-    "      ``RG16``,\n"
-    "      ``R8UI``,\n"
-    "      ``R8I``,\n"
-    "      ``R8``,\n"
-    "      ``R32UI``,\n"
-    "      ``R32I``,\n"
-    "      ``R32F``,\n"
-    "      ``R16UI``,\n"
-    "      ``R16I``,\n"
-    "      ``R16F``,\n"
-    "      ``R16``,\n"
-    "      ``R11F_G11F_B10F``,\n"
-    "      ``DEPTH32F_STENCIL8``,\n"
-    "      ``DEPTH24_STENCIL8`` (deprecated, use ``DEPTH32F_STENCIL8``),\n"
-    "      ``SRGB8_A8``,\n"
-    "      ``RGB16F``,\n"
-    "      ``SRGB8_A8_DXT1``,\n"
-    "      ``SRGB8_A8_DXT3``,\n"
-    "      ``SRGB8_A8_DXT5``,\n"
-    "      ``RGBA8_DXT1``,\n"
-    "      ``RGBA8_DXT3``,\n"
-    "      ``RGBA8_DXT5``,\n"
-    "      ``DEPTH_COMPONENT32F``,\n"
-    "      ``DEPTH_COMPONENT24``, (deprecated, use ``DEPTH_COMPONENT32F``),\n"
-    "      ``DEPTH_COMPONENT16``.\n"
-    "   :type format: str\n"
+    "   :param format: Internal data format inside GPU memory.\n"
+    "      ``DEPTH24_STENCIL8`` is deprecated, use ``DEPTH32F_STENCIL8``.\n"
+    "      ``DEPTH_COMPONENT24`` is deprecated, use ``DEPTH_COMPONENT32F``.\n"
+    "   :type format: " PYDOC_TEX_FORMAT_LITERAL
+    "\n"
     "   :param data: Buffer object to fill the texture.\n"
-    "   :type data: :class:`gpu.types.Buffer`\n");
+    "   :type data: :class:`gpu.types.Buffer` | None\n");
 PyTypeObject BPyGPUTexture_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUTexture",

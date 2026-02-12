@@ -134,7 +134,7 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
 
 /* Interpolate smooth vertex normal from vertices */
 
-ccl_device_forceinline float3 triangle_smooth_normal_unnormalized(
+ccl_device_inline float3 triangle_smooth_normal(
     KernelGlobals kg, float3 Ng, int object, int object_flag, int prim, float u, float v)
 {
   const int normal_offset = kernel_data_fetch(objects, object).normal_attr_offset;
@@ -152,22 +152,9 @@ ccl_device_forceinline float3 triangle_smooth_normal_unnormalized(
     i2 = tri_vindex.z;
   }
 
-  const float3 N = attribute_data_interpolate_normals(kg, normal_offset, i0, i1, i2, u, v);
+  const float3 N = safe_normalize(
+      attribute_data_interpolate_normals(kg, normal_offset, i0, i1, i2, u, v));
   return is_zero(N) ? Ng : N;
-}
-
-ccl_device_inline float3 triangle_smooth_normal(
-    KernelGlobals kg, float3 Ng, int object, int object_flag, int prim, float u, float v)
-{
-  return safe_normalize(
-      triangle_smooth_normal_unnormalized(kg, Ng, object, object_flag, prim, u, v));
-}
-
-ccl_device_inline float3 triangle_smooth_normal_unnormalized(KernelGlobals kg,
-                                                             ccl_private const ShaderData *sd)
-{
-  return triangle_smooth_normal_unnormalized(
-      kg, sd->Ng, sd->object, sd->object_flag, sd->prim, sd->u, sd->v);
 }
 
 /* Compute triangle normals at the hit position, and offsetted positions in x and y direction for
@@ -209,6 +196,40 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
   N_x = is_zero(N_x) ? Ng : N_x;
   N_y = is_zero(N_y) ? Ng : N_y;
   return is_zero(N) ? Ng : N;
+}
+
+/* Special variation for normal mapping, where we want to match the unnormalized object
+ * space interpolation as assumed by normal map baking exactly. An exact match avoids
+ * discontinuities across UV seams.*/
+ccl_device_inline float3 triangle_smooth_normal_unnormalized_object_space(
+    KernelGlobals kg, ccl_private const ShaderData *sd)
+{
+  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_attr_offset;
+  int i0, i1, i2;
+
+  if (sd->object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
+    i0 = sd->prim * 3 + 0;
+    i1 = sd->prim * 3 + 1;
+    i2 = sd->prim * 3 + 2;
+  }
+  else {
+    const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+    i0 = tri_vindex.x;
+    i1 = tri_vindex.y;
+    i2 = tri_vindex.z;
+  }
+
+  float3 n[3];
+  attribute_data_fetch_normals(kg, normal_offset, i0, i1, i2, n);
+
+  if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
+    object_inverse_normal_transform(kg, sd, &n[0]);
+    object_inverse_normal_transform(kg, sd, &n[1]);
+    object_inverse_normal_transform(kg, sd, &n[2]);
+  }
+
+  const float3 N = safe_normalize(triangle_interpolate(sd->u, sd->v, n[0], n[1], n[2]));
+  return is_zero(N) ? sd->Ng : N;
 }
 
 /* Ray differentials on triangle */

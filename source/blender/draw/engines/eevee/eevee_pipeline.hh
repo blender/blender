@@ -206,7 +206,9 @@ class ForwardPipeline {
   PassMain::Sub *prepass_opaque_add(blender::Material *blender_mat,
                                     GPUMaterial *gpumat,
                                     bool has_motion);
-  PassMain::Sub *material_opaque_add(blender::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *material_opaque_add(const Object *ob,
+                                     blender::Material *blender_mat,
+                                     GPUMaterial *gpumat);
 
   PassMain::Sub *prepass_transparent_add(const Object *ob,
                                          blender::Material *blender_mat,
@@ -828,7 +830,7 @@ class PipelineModule {
     forward.end_sync();
   }
 
-  PassMain::Sub *material_add(Object * /*ob*/ /* TODO remove. */,
+  PassMain::Sub *material_add(Object *ob,
                               blender::Material *blender_mat,
                               GPUMaterial *gpumat,
                               eMaterialPipeline pipeline_type,
@@ -878,7 +880,7 @@ class PipelineModule {
       case MAT_PIPE_DEFERRED:
         return deferred.material_add(blender_mat, gpumat);
       case MAT_PIPE_FORWARD:
-        return forward.material_opaque_add(blender_mat, gpumat);
+        return forward.material_opaque_add(ob, blender_mat, gpumat);
       case MAT_PIPE_SHADOW:
         return shadow.surface_material_add(blender_mat, gpumat);
       case MAT_PIPE_CAPTURE:

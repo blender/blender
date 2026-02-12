@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -4966,6 +4966,18 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Sababu ya Kurahisisha kwa kutumia algoriti inayobadilika"
 
 
+msgid "Stroke"
+msgstr "Kiharusi"
+
+
+msgid "Fill"
+msgstr "Jaza"
+
+
+msgid "Both"
+msgstr "Zote mbili"
+
+
 msgid "Active Layer"
 msgstr "Tabaka Inayotumika"
 
@@ -5134,16 +5146,8 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Inafafanua jinsi rangi ya kipeo inavyoathiri kwa mipigo"
 
 
-msgid "Stroke"
-msgstr "Kiharusi"
-
-
 msgid "Vertex Color affects to Stroke only"
 msgstr "Rangi ya Vertex huathiri kwa Kiharusi pekee"
-
-
-msgid "Fill"
-msgstr "Jaza"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -21078,10 +21082,6 @@ msgid "Viewer Region"
 msgstr "Eneo la Mtazamaji"
 
 
-msgid "Use boundaries for viewer nodes and composite backdrop"
-msgstr "Tumia mipaka kwa nodi za watazamaji na mandhari yenye mchanganyiko"
-
-
 msgid "Geometry Node Tree"
 msgstr "Mti wa Nodi ya Jiometri"
 
@@ -28397,18 +28397,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Math"
-msgstr "Hisabati"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
 msgid "Read"
 msgstr "Soma"
 
@@ -28429,28 +28417,28 @@ msgid "Clean Up"
 msgstr "Safisha"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
 
 
-msgid "Snap"
-msgstr "Picha"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Merge"
+msgstr "Unganisha"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Apply"
+msgstr "Tumia"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Layout"
 msgstr "Mpangilio"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
 
 
 msgid "Adjust"
@@ -28469,6 +28457,14 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
+msgid "Math"
+msgstr "Hisabati"
+
+
+msgid "Asset"
+msgstr "Mali"
+
+
 msgid "Light"
 msgstr "Mwanga"
 
@@ -28477,32 +28473,36 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
-msgid "Apply"
-msgstr "Tumia"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
-msgid "Asset"
-msgstr "Mali"
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Instances"
 msgstr "Matukio"
 
 
+msgid "Mirror"
+msgstr "Kioo"
+
+
 msgid "Import"
 msgstr "Ingiza"
 
 
-msgid "Merge"
-msgstr "Unganisha"
-
-
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
 msgid "Keyframe Insert Pie"
@@ -51622,10 +51622,6 @@ msgid "Equalize selected keyframes' right handles"
 msgstr "Sawazisha vishikio vya kulia vya fremu kuu zilizochaguliwa"
 
 
-msgid "Both"
-msgstr "Zote mbili"
-
-
 msgid "Equalize both of a keyframe's handles"
 msgstr "Sawazisha vishikio vyote viwili vya fremu muhimu"
 
@@ -58466,10 +58462,6 @@ msgid "Viewer Region"
 msgstr "Eneo la Watazamaji"
 
 
-msgid "Set the boundaries for viewer operations"
-msgstr "Weka mipaka ya shughuli za mtazamaji"
-
-
 msgctxt "Operator"
 msgid "Add Object"
 msgstr "Ongeza Kitu"
@@ -63765,10 +63757,6 @@ msgstr "Wazazi"
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Chagua Imeunganishwa"
-
-
-msgid "Select bones linked by parent/child connections under the mouse cursor"
-msgstr "Chagua mifupa iliyounganishwa na viunganishi vya mzazi/mtoto chini ya kishale cha kipanya"
 
 
 msgctxt "Operator"
@@ -72830,80 +72818,80 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
-
-
-msgid "Compositor"
-msgstr "Mtunzi"
-
-
-msgid "Viewer Node"
-msgstr "Njia ya Mtazamaji"
-
-
-msgid "Motion Tracking"
-msgstr "Kufuatilia Mwendo"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Njia ya Kuhariri Mesh"
-
-
-msgid "Measurement"
-msgstr "Kipimo"
-
-
-msgid "Curve Edit Mode"
-msgstr "Njia ya Kuhariri Curve"
-
-
-msgid "Transform Orientations"
-msgstr "Badilisha Mielekeo"
-
-
-msgid "Stroke Placement"
-msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
-
-
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
-
-
-msgid "Multi Frame"
-msgstr "Fremu nyingi"
-
-
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+msgid "Viewport Debug"
+msgstr "Utatuzi wa kituo cha kutazama"
 
 
 msgid "Curves Sculpt Parameter Falloff"
 msgstr "Curves Sculpt Parameta Falloff"
 
 
-msgid "Viewport Debug"
-msgstr "Utatuzi wa kituo cha kutazama"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+
+
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Multi Frame"
+msgstr "Fremu nyingi"
+
+
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
+
+
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
+
+
+msgid "Stroke Placement"
+msgstr "Uwekaji wa Kiharusi"
+
+
+msgid "Transform Orientations"
+msgstr "Badilisha Mielekeo"
+
+
+msgid "Curve Edit Mode"
+msgstr "Njia ya Kuhariri Curve"
+
+
+msgid "Measurement"
+msgstr "Kipimo"
+
+
+msgid "Viewer Node"
+msgstr "Njia ya Mtazamaji"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Njia ya Kuhariri Mesh"
+
+
+msgid "Motion Tracking"
+msgstr "Kufuatilia Mwendo"
+
+
+msgid "Compositor"
+msgstr "Mtunzi"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
 
 
 msgid "Motion Blur"
@@ -88151,10 +88139,6 @@ msgid "Display Handles"
 msgstr "Nchi za Maonyesho"
 
 
-msgid "Limit the display of curve handles in edit mode"
-msgstr "Punguza onyesho la vishikizo vya curve katika hali ya kuhariri"
-
-
 msgid "Strength of the fade effect"
 msgstr "Nguvu ya athari ya kufifia"
 
@@ -88277,10 +88261,6 @@ msgstr "Onyesha Uwekeleaji wa Mshale wa 3D"
 
 msgid "Draw Normals"
 msgstr "Chora Kawaida"
-
-
-msgid "Display 3D curve normals in editmode"
-msgstr "Onyesha kanuni za curve za 3D katika modi ya kuhariri"
 
 
 msgid "Display Bevel Weights"
@@ -96814,11 +96794,6 @@ msgstr "Badilisha Data"
 
 
 msgctxt "Operator"
-msgid "Toggle Retiming Keys"
-msgstr "Geuza Vifunguo vya Kuweka Muda tena"
-
-
-msgctxt "Operator"
 msgid "Slip Strip Contents"
 msgstr "Yaliyomo kwenye Ukanda wa Kuteleza"
 
@@ -100716,10 +100691,6 @@ msgid "Delete envelope control point"
 msgstr "Futa sehemu ya kudhibiti bahasha"
 
 
-msgid "Coefficient"
-msgstr "Mgawo"
-
-
 msgid "No RNA pointer available to retrieve values for this F-curve"
 msgstr "Hakuna kielekezi cha RNA kinachopatikana kupata thamani za safu hii ya F"
 
@@ -101359,10 +101330,6 @@ msgid "Eyes"
 msgstr "Macho"
 
 
-msgid "Pupils"
-msgstr "Wanafunzi"
-
-
 msgid "Material '%s' could not be found"
 msgstr "Nyenzo '%s' haikuweza kupatikana"
 
@@ -101383,6 +101350,10 @@ msgid "No Grease Pencil frame to draw on"
 msgstr "Hakuna fremu ya Penseli ya Grisi ya kuchora"
 
 
+msgid "No active Grease Pencil layer"
+msgstr "Hakuna safu inayotumika ya Penseli ya Grisi"
+
+
 msgid "There is no layer '%s'"
 msgstr "Hakuna safu '%s'"
 
@@ -101401,10 +101372,6 @@ msgstr "Tabaka tayari limeongezwa"
 
 msgid "Unable to find layer to add"
 msgstr "Haijaweza kupata safu ya kuongeza"
-
-
-msgid "No active Grease Pencil layer"
-msgstr "Hakuna safu inayotumika ya Penseli ya Grisi"
 
 
 msgid "Active layer is locked or hidden"
@@ -108673,10 +108640,6 @@ msgstr "Uhamisho wa Data"
 
 msgid "Topology Mapping"
 msgstr "Ramani ya Topolojia"
-
-
-msgid "Face Count: %d"
-msgstr "Idadi ya Nyuso: %d"
 
 
 msgid "Modifier requires more than 3 input faces"

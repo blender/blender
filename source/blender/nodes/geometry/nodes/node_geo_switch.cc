@@ -37,7 +37,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &true_decl = b.add_input(socket_type, "True");
   auto &output_decl = b.add_output(socket_type, "Output");
 
-  if (socket_type_supports_fields(socket_type)) {
+  if (socket_type_supports_attributes(socket_type)) {
     switch_decl.supports_field();
     false_decl.supports_field();
     true_decl.supports_field();

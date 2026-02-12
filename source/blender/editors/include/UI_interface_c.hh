@@ -1081,6 +1081,11 @@ const ColorManagedDisplay *button_cm_display_get(Button &but);
 void button_placeholder_set(Button *but, StringRef placeholder_text);
 
 /**
+ * Unselect any text selection in the button's text field.
+ */
+void button_clear_selection(Button *but);
+
+/**
  * Special button case, only draw it when used actively, for outliner etc.
  *
  * Needed for temporarily rename buttons, such as in outliner or file-select,

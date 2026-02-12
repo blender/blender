@@ -2023,11 +2023,20 @@ static wmOperatorStatus grease_pencil_move_to_layer_exec(bContext *C, wmOperator
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   std::string target_layer_name = RNA_string_get(op->ptr, "target_layer_name");
+  std::string target_group_name = RNA_string_get(op->ptr, "target_group_name");
   const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
   TreeNode *target_node = nullptr;
 
   if (add_new_layer) {
     target_node = &grease_pencil.add_layer(target_layer_name).as_node();
+
+    if (!target_group_name.empty()) {
+      TreeNode *group_node = grease_pencil.find_node_by_name(target_group_name);
+
+      if (group_node && group_node->is_group()) {
+        grease_pencil.move_node_into(*target_node, group_node->as_group());
+      }
+    }
   }
   else {
     target_node = grease_pencil.find_node_by_name(target_layer_name);
@@ -2151,6 +2160,13 @@ static void GREASE_PENCIL_OT_move_to_layer(wmOperatorType *ot)
   prop = RNA_def_string(
       ot->srna, "target_layer_name", nullptr, INT16_MAX, "Name", "Target Grease Pencil Layer");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_string(ot->srna,
+                        "target_group_name",
+                        nullptr,
+                        INT16_MAX,
+                        "Target Group",
+                        "Group to add the new layer to");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "add_new_layer", false, "New Layer", "Move selection to a new layer");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);

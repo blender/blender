@@ -15,7 +15,11 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "CLG_log.h"
+
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
 
 void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
                                                    render_graph::VKResourceAccessInfo &access_info,
@@ -111,9 +115,19 @@ void VKDescriptorSetTracker::update_resource_access_info_binding_sampler(
     render_graph::VKResourceAccessInfo &access_info)
 {
   const BindSpaceTextures::Elem *elem_ptr = state_manager.textures_.get(resource_binding.binding);
-  if (!elem_ptr) {
+  if (!elem_ptr || elem_ptr->resource == nullptr) {
     /* Unbound resource. */
-    BLI_assert_unreachable();
+    if (bool(G.debug & G_DEBUG_GPU)) {
+      VKContext &context = *VKContext::get();
+      const VKShader &shader = *static_cast<const VKShader *>(context.shader);
+      const VKShaderInterface &interface = shader.interface_get();
+      const ShaderInput &shader_input = *interface.texture_get(resource_binding.binding);
+      CLOG_ERROR(&LOG,
+                 "Missing Texture bind at slot %d : %s > %s",
+                 shader_input.binding,
+                 shader.name_get().c_str(),
+                 interface.input_name_get(&shader_input));
+    }
     return;
   }
   const BindSpaceTextures::Elem &elem = *elem_ptr;
@@ -290,9 +304,8 @@ void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,
                                                    const VKResourceBinding &resource_binding)
 {
   const BindSpaceTextures::Elem *elem_ptr = state_manager.textures_.get(resource_binding.binding);
-  if (!elem_ptr) {
+  if (!elem_ptr || elem_ptr->resource == nullptr) {
     /* Unbound resource. */
-    BLI_assert_unreachable();
     return;
   }
   const BindSpaceTextures::Elem &elem = *elem_ptr;

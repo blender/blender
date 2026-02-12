@@ -122,6 +122,13 @@ void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, ImBufOwnership ow
 void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
 
 /**
+ * Assign the GPU texture of the buffer to the given texture. The current GPU texture is release.
+ *
+ * \note Does not modify the topology (width, height, number of channels).
+ */
+void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture);
+
+/**
  * Assign the content and the color space of the corresponding buffer the data from the given
  * buffer.
  *

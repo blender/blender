@@ -4379,7 +4379,7 @@ PyDoc_STRVAR(
     "   :param id: The RNA type identifier.\n"
     "   :type id: str\n"
     "   :return: The RNA type or default when not found.\n"
-    "   :rtype: :class:`bpy.types.Struct` subclass\n");
+    "   :rtype: :class:`bpy.types.Struct`\n");
 static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
 {
   const char *id;
@@ -4604,9 +4604,9 @@ PyDoc_STRVAR(
     pyrna_struct_id_properties_ui_doc,
     ".. method:: id_properties_ui(key, /)\n"
     "\n"
-    "   :return: Return an object used to manage an IDProperty's UI data.\n"
     "   :param key: String name of the property.\n"
-    "   :type key: str.\n"
+    "   :type key: str\n"
+    "   :return: An object used to manage an IDProperty's UI data.\n"
     "   :rtype: :class:`bpy.types.IDPropertyUIManager`\n");
 static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *args)
 {
@@ -4652,7 +4652,7 @@ PyDoc_STRVAR(
     pyrna_struct_id_properties_clear_doc,
     ".. method:: id_properties_clear()\n"
     "\n"
-    "   :return: Remove the parent group for an RNA struct's custom IDProperties.\n");
+    "   Remove the parent group for an RNA struct's custom IDProperties.\n");
 static PyObject *pyrna_struct_id_properties_clear(BPy_StructRNA *self)
 {
   PYRNA_STRUCT_CHECK_OBJ(self);
@@ -5295,9 +5295,9 @@ PyDoc_STRVAR(
     /* Wrap. */
     pyrna_struct_get_id_data_doc,
     "The :class:`bpy.types.ID` object this data-block is from or None, "
-    "(not available for all data types)\n"
+    "(not available for all data types) (readonly)\n"
     "\n"
-    ":type: :class:`bpy.types.ID`, (readonly)\n");
+    ":type: :class:`bpy.types.ID`\n");
 static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self, void * /*closure*/)
 {
   /* Used for struct and pointer since both have a ptr. */
@@ -5583,7 +5583,9 @@ PyDoc_STRVAR(
     "   :type key: str\n"
     "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Any\n");
+    "   :type default: Any\n"
+    "   :return: The collection member or default.\n"
+    "   :rtype: :class:`bpy_struct`\n");
 static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args)
 {
   PointerRNA newptr;
@@ -10184,7 +10186,9 @@ void BPY_free_srna_pytype(StructRNA *srna)
   ":class:`bpy.types.AddonPreferences` | " \
   ":class:`bpy.types.NodeTree` | " \
   ":class:`bpy.types.Node` | " \
-  ":class:`bpy.types.NodeSocket`" \
+  ":class:`bpy.types.NodeSocket` | " \
+  ":class:`bpy.types.Gizmo` | " \
+  ":class:`bpy.types.GizmoGroup`" \
   "]"
 
 /**
@@ -10459,7 +10463,7 @@ PyDoc_STRVAR(
     "   Unload the Python class from blender.\n"
     "\n"
     "   :param cls: Blender type class, \n"
-    "      see :mod:`bpy.utils.register_class` for classes which can \n"
+    "      see :func:`bpy.utils.register_class` for classes which can \n"
     "      be registered.\n"
     "   :type cls: " BPY_TYPEDEF_REGISTERABLE_DOC
     "\n"

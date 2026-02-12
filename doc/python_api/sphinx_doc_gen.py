@@ -386,13 +386,13 @@ EXTRA_SOURCE_FILES = (
     "../../../scripts/templates_py/ui_panel_simple.py",
     "../../../scripts/templates_py/ui_previews_custom_icon.py",
     "../examples/bmesh.ops.1.py",
-    "../examples/bpy.app.translations.py",
+    "../examples/bpy.app.translations.0.py",
 )
 
 
 # Examples.
 EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
-EXAMPLE_SET = set(os.path.splitext(f)[0] for f in os.listdir(EXAMPLES_DIR) if f.endswith(".py"))
+EXAMPLE_SET = set(f.removesuffix(".0.py") for f in os.listdir(EXAMPLES_DIR) if f.endswith(".0.py"))
 EXAMPLE_SET_USED = set()
 
 # RST files directory.
@@ -460,6 +460,29 @@ RST_NOINDEX_ATTR = {
     # is registered and called from C++ code where the attribute is accessed from the instance.
     ("bpy.types", "RenderEngine", "render"),
 }
+
+# Underscore-prefixed attributes to include in documentation
+# (these would otherwise be skipped). Maps module name to the identifiers.
+# NOTE: every inclusion must justify itself as this is something we should typically avoid.
+_PRIVATE_ATTR_INCLUDE = {
+    "bpy.props": {
+        # Without this type documented, the correct type can't be referenced for `bpy.props` definition.
+        "_PropertyDeferred",
+    },
+}
+
+
+def _is_attr_private(module_name, attribute):
+    """Check if an attribute should be skipped as private (underscore-prefixed)."""
+    if not attribute.startswith("_"):
+        return False
+    exceptions = _PRIVATE_ATTR_INCLUDE.get(module_name)
+    if exceptions is None:
+        return True
+    if attribute not in exceptions:
+        return True
+    return False
+
 
 MODULE_GROUPING = {
     "bmesh.types": (
@@ -598,24 +621,37 @@ MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 StaticMethodType = type(staticmethod(lambda: None))
 from types import (
+    BuiltinFunctionType,
+    BuiltinMethodType,
     MemberDescriptorType,
     MethodType,
     FunctionType,
 )
 
-_BPY_STRUCT_FAKE = "bpy_struct"
-_BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
-_BPY_PROP_COLLECTION_IDPROP_FAKE = "bpy_prop_collection_idprop"
+# These are C-API defined types (accessible via `bpy.types`) that are not known to RNA.
+# The RNA wrapping code in `bpy_rna.cc` uses these types when creating `PyObject`s
+# for RNA data. They define methods Python developers use, but since they are not RNA
+# structs they are not discovered automatically and must be documented explicitly.
+#
+# There are two separate hierarchies (see `bpy_rna.cc` for the definitive type hierarchy):
+#
+# - `bpy_struct`: base for all RNA struct instances.
+# - `bpy_prop` -> `bpy_prop_collection` -> `bpy_prop_collection_idprop`:
+#   used when RNA collection properties are accessed from Python.
+#
+USE_PYCAPI_TYPES = True
 
-if _BPY_PROP_COLLECTION_FAKE:
-    _BPY_PROP_COLLECTION_ID = ":class:`{:s}`".format(_BPY_PROP_COLLECTION_FAKE)
-else:
-    _BPY_PROP_COLLECTION_ID = "collection"
+_BPY_STRUCT_PYCAPI = "bpy_struct"
+_BPY_PROP_PYCAPI = "bpy_prop"
+_BPY_PROP_COLLECTION_PYCAPI = "bpy_prop_collection"
+_BPY_PROP_COLLECTION_IDPROP_PYCAPI = "bpy_prop_collection_idprop"
 
-if _BPY_STRUCT_FAKE:
-    bpy_struct = bpy.types.bpy_struct
-else:
-    bpy_struct = None
+_BPY_PROP_COLLECTION_ID = ":class:`{:s}`".format(_BPY_PROP_COLLECTION_PYCAPI) if USE_PYCAPI_TYPES else "collection"
+
+bpy_struct = bpy.types.bpy_struct if USE_PYCAPI_TYPES else None
+bpy_prop = bpy.types.bpy_prop if USE_PYCAPI_TYPES else None
+bpy_prop_collection = bpy.types.bpy_prop_collection if USE_PYCAPI_TYPES else None
+bpy_prop_collection_idprop = bpy.types.bpy_prop_collection_idprop if USE_PYCAPI_TYPES else None
 
 
 def import_value_from_module(module_name, import_name):
@@ -707,7 +743,7 @@ def write_example_ref(ident, fw, example_id, ext="py"):
     if example_id in EXAMPLE_SET:
 
         # Extract the comment.
-        filepath = os.path.join("..", "examples", "{:s}.{:s}".format(example_id, ext))
+        filepath = os.path.join("..", "examples", "{:s}.0.{:s}".format(example_id, ext))
         filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
 
         text, line_no, line_no_has_content = example_extract_docstring(filepath_full)
@@ -840,7 +876,7 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
         write_example_ref(ident + "   ", fw, module_name + "." + identifier)
 
 
-def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
+def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier, is_class):
     if identifier.startswith("_"):
         return
 
@@ -849,7 +885,8 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
         doc = undocumented_message(module_name, type_name, identifier)
 
     if type(descr) == GetSetDescriptorType:
-        fw(ident + ".. attribute:: {:s}\n\n".format(identifier))
+        directive = "attribute" if is_class else "data"
+        fw(ident + ".. {:s}:: {:s}\n\n".format(directive, identifier))
         # NOTE: `RST_NOINDEX_ATTR` currently not supported (as it's not used).
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
@@ -1015,7 +1052,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             module_name_split = module_name
 
         if type(descr) == types.GetSetDescriptorType:
-            py_descr2sphinx("", fw, descr, module_name_split, type_name, key)
+            py_descr2sphinx("", fw, descr, module_name_split, type_name, key, is_class=False)
             attribute_set.add(key)
         del module_name_split
     descr_sorted = []
@@ -1040,7 +1077,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             continue
 
         type_name = value_type.__name__
-        py_descr2sphinx("", fw, descr, module_name, type_name, key)
+        py_descr2sphinx("", fw, descr, module_name, type_name, key, is_class=False)
 
         attribute_set.add(key)
 
@@ -1053,7 +1090,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
     module_dir_value_type = []
 
     for attribute in module_dir:
-        if attribute.startswith("_"):
+        if _is_attr_private(module_name, attribute):
             continue
 
         if attribute in attribute_set:
@@ -1152,7 +1189,7 @@ def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
 
     for key, descr in descr_items:
         if type(descr) == ClassMethodDescriptorType:
-            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key, is_class=True)
 
     # Needed for pure Python classes.
     for key, descr in descr_items:
@@ -1161,17 +1198,29 @@ def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
 
     for key, descr in descr_items:
         if type(descr) == MethodDescriptorType:
-            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key, is_class=True)
 
     for key, descr in descr_items:
         if type(descr) == GetSetDescriptorType:
-            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key, is_class=True)
+
+    # Needed for pure Python classes.
+    for key, descr in descr_items:
+        if type(descr) == classmethod:
+            descr = getattr(value, key)
+            pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
 
     for key, descr in descr_items:
         if type(descr) == StaticMethodType:
             descr = getattr(value, key)
-            write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
-            fw("\n")
+            if type(descr) in {BuiltinMethodType, BuiltinFunctionType}:
+                # CAPI-defined static methods already contain RST directives
+                # in their docstrings, write them directly.
+                write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
+                fw("\n")
+            else:
+                # Python-defined static methods need signature extraction.
+                pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
 
     fw("\n\n")
 
@@ -1181,7 +1230,7 @@ context_type_map = {
     # Support multiple types for each item, where each list item is a possible type:
     # `context_member: [(RNA type, is_collection), ...]`
     "active_action": [("Action", False)],
-    "active_annotation_layer": [("GPencilLayer", False)],
+    "active_annotation_layer": [("AnnotationLayer", False)],
     "active_bone": [("EditBone", False), ("Bone", False)],
     "active_file": [("FileSelectEntry", False)],
     "active_node": [("Node", False)],
@@ -1214,10 +1263,10 @@ context_type_map = {
     "editable_bones": [("EditBone", True)],
     "editable_objects": [("Object", True)],
     "editable_fcurves": [("FCurve", True)],
-    "fluid": [("FluidSimulationModifier", False)],
+    "fluid": [("FluidModifier", False)],
     "gpencil": [("GreasePencil", False)],
     "grease_pencil": [("GreasePencil", False)],
-    "curves": [("Hair Curves", False)],
+    "curves": [("Curves", False)],
     "id": [("ID", False)],
     "image_paint_object": [("Object", False)],
     "lattice": [("Lattice", False)],
@@ -1293,89 +1342,59 @@ if bpy.app.build_options.experimental_features:
         context_type_map[key] = value
 
 
+def write_type_info(ident, fw, type_info):
+    """Write descriptive info (array dims, range, default, qualifiers) on a line after the description."""
+    if type_info:
+        # Qualifier tokens (starting at "(") are stored individually so they
+        # can be tested with ``"readonly" in type_info`` etc.
+        # Items before the opening paren are comma-joined, qualifier tokens
+        # are raw-joined (they carry their own separators).
+        try:
+            qual_start = type_info.index("(")
+        except ValueError:
+            qual_start = len(type_info)
+        info_str = ", ".join(type_info[:qual_start])
+        qual_str = "".join(type_info[qual_start:])
+        sep = ", " if info_str and qual_str else ""
+        fw("{:s}{:s}{:s}{:s}\n\n".format(ident, info_str, sep, qual_str))
+
+
 def pycontext2sphinx(basepath):
-    # Only use once. very irregular.
-
+    # Not actually a module, only write this file so we can reference in the TOC.
     filepath = os.path.join(basepath, "bpy.context.rst")
-    file = open(filepath, "w", encoding="utf-8")
-    fw = file.write
-    fw(title_string("Context Access (bpy.context)", "="))
-    fw(".. module:: bpy.context\n")
-    fw("\n")
-    fw("The context members available depend on the area of Blender which is currently being accessed.\n")
-    fw("\n")
-    fw("Note that all context values are read-only,\n")
-    fw("but may be modified through the data API or by running operators.\n\n")
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(title_string("Context Access (bpy.context)", "="))
+        fw(".. module:: bpy.context\n")
+        fw("\n")
+        fw("The context members available depend on the area of Blender which is currently being accessed.\n")
+        fw("\n")
+        fw("Note that all context values are read-only,\n")
+        fw("but may be modified through the data API or by running operators.\n")
+        fw("\n")
+        fw(".. data:: context\n")
+        fw("\n")
+        fw("   Access to the current window-manager and data context.\n")
+        fw("\n")
+        fw("   :type: :class:`bpy.types.Context`\n")
 
-    # Track all unique properties to properly use `noindex`.
-    unique = set()
 
-    def write_contex_cls():
+def pycontext_members2sphinx(indent, fw, written_props):
+    # Write context members into `bpy.types.Context`.
 
-        fw(title_string("Global Context", "-"))
-        fw("These properties are available in any contexts.\n\n")
-
-        # Very silly. could make these global and only access once:
-        # `structs, funcs, ops, props = rna_info.BuildRNAInfo()`.
-        structs, funcs, ops, props = rna_info_BuildRNAInfo_cache()
-        struct = structs[("", "Context")]
-        struct_blacklist = RNA_BLACKLIST.get(struct.identifier, ())
-        del structs, funcs, ops, props
-
-        sorted_struct_properties = struct.properties[:]
-        sorted_struct_properties.sort(key=lambda prop: prop.identifier)
-
-        # First write RNA.
-        for prop in sorted_struct_properties:
-            # Support blacklisting props.
-            if prop.identifier in struct_blacklist:
-                continue
-            # No need to check if there are duplicates yet as it's known there wont be.
-            unique.add(prop.identifier)
-
-            enum_descr_override = None
-            if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
-                enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
-
-            type_descr = prop.get_type_description(
-                class_fmt=":class:`bpy.types.{:s}`",
-                mathutils_fmt=":class:`mathutils.{:s}`",
-                literal_fmt="``{!r}``",  # String with quotes.
-                collection_id=_BPY_PROP_COLLECTION_ID,
-                enum_descr_override=enum_descr_override,
-            )
-            fw(".. data:: {:s}\n\n".format(prop.identifier))
-            if prop.description:
-                fw("   {:s}\n\n".format(prop.description))
-            if (deprecated := prop.deprecated) is not None:
-                fw(pyrna_deprecated_directive("   ", deprecated))
-
-            # Special exception, can't use generic code here for enums.
-            if prop.type == "enum":
-                # If the link has been written, no need to inline the enum items.
-                enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
-                if enum_text:
-                    write_indented_lines("   ", fw, enum_text)
-                    fw("\n")
-                del enum_text
-            # End enum exception.
-
-            fw("   :type: {:s}\n\n".format(type_descr))
-
-    write_contex_cls()
-    del write_contex_cls
-    # End.
+    # Track all unique properties to avoid duplicates.
+    unique = set(written_props)
 
     # Internal API call only intended to be used to extract context members.
     from _bpy import context_members
     context_member_map = context_members()
     del context_members
 
-    # Track unique for `context_strings` to validate `context_type_map`.
+    # Track all context strings to validate `context_type_map`.
     unique_context_strings = set()
     for ctx_str, ctx_members in sorted(context_member_map.items()):
         subsection = "{:s} Context".format(ctx_str.split("_")[0].title())
-        fw("\n{:s}\n{:s}\n\n".format(subsection, (len(subsection) * "-")))
+        fw("\n{:s}.. rubric:: {:s}\n\n".format(indent, subsection))
         for member in ctx_members:
             unique_all_len = len(unique)
             unique.add(member)
@@ -1383,10 +1402,10 @@ def pycontext2sphinx(basepath):
 
             unique_context_strings.add(member)
 
-            fw(".. data:: {:s}\n".format(member))
+            fw("{:s}.. data:: {:s}\n".format(indent, member))
             # Avoid warnings about the member being included multiple times.
             if member_visited:
-                fw("   :noindex:\n")
+                fw("{:s}   :noindex:\n".format(indent))
             fw("\n")
 
             if (member_types := context_type_map.get(member)) is None:
@@ -1401,18 +1420,20 @@ def pycontext2sphinx(basepath):
             type_strs = []
             for member_type, is_seq in member_types:
                 if member_type.isidentifier():
-                    type_strs.append(
-                        "{:s}:class:`{:s}{:s}`".format(
-                            "sequence of " if is_seq else "",
-                            "bpy.types." if member_type not in PRIMITIVE_TYPE_NAMES else "",
-                            member_type,
-                        )
-                    )
+                    class_str = ":class:`{:s}`".format(member_type)
+                    if is_seq:
+                        type_strs.append("Sequence[{:s}]".format(class_str))
+                    else:
+                        type_strs.append(class_str)
                 else:
                     type_strs.append(member_type)
 
-            fw("   :type: {:s}\n\n".format(" or ".join(type_strs)))
-            write_example_ref("   ", fw, "bpy.context." + member)
+            fw("{:s}   :type: {:s}\n\n".format(indent, " | ".join(type_strs)))
+            write_example_ref(indent + "   ", fw, "bpy.context." + member)
+
+    # A bit of a hack: add a trailing rubric so that the methods which follow
+    # aren't visually grouped under the last context heading.
+    fw("\n{:s}.. rubric:: Methods\n\n".format(indent))
 
     # Generate type-map:
     # for member in sorted(unique_context_strings):
@@ -1424,8 +1445,6 @@ def pycontext2sphinx(basepath):
             ))
     else:
         pass  # Will have raised an error above.
-
-    file.close()
 
 
 def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
@@ -1516,6 +1535,15 @@ def pyrna2sphinx(basepath):
     if FILTER_BPY_OPS is not None:
         ops = {k: v for k, v in ops.items() if v.module_name in FILTER_BPY_OPS}
 
+    # Build set of struct identifiers that are collection wrappers
+    # (e.g. BlendDataObjects wraps ``BlendData.objects``).  These should
+    # inherit from ``bpy_prop_collection`` rather than ``bpy_struct``.
+    _collection_wrapper_ids: set[str] = set()
+    for _struct in structs.values():
+        for _prop in _struct.properties:
+            if _prop.type == "collection" and _prop.srna is not None:
+                _collection_wrapper_ids.add(_prop.srna.identifier)
+
     def write_param(ident, fw, prop, is_return=False):
         if is_return:
             id_name = "return"
@@ -1539,7 +1567,7 @@ def pyrna2sphinx(basepath):
             enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
             kwargs["enum_descr_override"] = enum_descr_override
 
-        type_descr = prop.get_type_description(**kwargs)
+        type_descr, _type_info = prop.get_type_description(**kwargs)
 
         # If the link has been written, no need to inline the enum items.
         enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
@@ -1575,9 +1603,14 @@ def pyrna2sphinx(basepath):
         base_id = getattr(struct.base, "identifier", "")
         struct_id = struct.identifier
 
-        if _BPY_STRUCT_FAKE:
+        if USE_PYCAPI_TYPES:
             if not base_id:
-                base_id = _BPY_STRUCT_FAKE
+                # Collection wrapper structs inherit from `bpy_prop_collection`,
+                # all other root structs inherit from `bpy_struct`.
+                if struct_id in _collection_wrapper_ids:
+                    base_id = _BPY_PROP_COLLECTION_PYCAPI
+                else:
+                    base_id = _BPY_STRUCT_PYCAPI
 
         if base_id:
             title = "{:s}({:s})".format(struct_id, base_id)
@@ -1593,8 +1626,15 @@ def pyrna2sphinx(basepath):
 
         base_ids = [base.identifier for base in struct.get_bases()]
 
-        if _BPY_STRUCT_FAKE:
-            base_ids.append(_BPY_STRUCT_FAKE)
+        if USE_PYCAPI_TYPES:
+            if not base_ids:
+                if struct_id in _collection_wrapper_ids:
+                    base_ids.append(_BPY_PROP_COLLECTION_PYCAPI)
+                    base_ids.append(_BPY_PROP_PYCAPI)
+                else:
+                    base_ids.append(_BPY_STRUCT_PYCAPI)
+            else:
+                base_ids.append(_BPY_STRUCT_PYCAPI)
 
         base_ids.reverse()
 
@@ -1618,9 +1658,12 @@ def pyrna2sphinx(basepath):
 
         base_id = getattr(struct.base, "identifier", "")
 
-        if _BPY_STRUCT_FAKE:
+        if USE_PYCAPI_TYPES:
             if not base_id:
-                base_id = _BPY_STRUCT_FAKE
+                if struct_id in _collection_wrapper_ids:
+                    base_id = _BPY_PROP_COLLECTION_PYCAPI
+                else:
+                    base_id = _BPY_STRUCT_PYCAPI
 
         if base_id:
             fw(".. class:: {:s}({:s})\n\n".format(struct_id, base_id))
@@ -1648,7 +1691,7 @@ def pyrna2sphinx(basepath):
             if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
                 enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
 
-            type_descr = prop.get_type_description(
+            type_descr, type_info = prop.get_type_description(
                 class_fmt=":class:`{:s}`",
                 mathutils_fmt=":class:`mathutils.{:s}`",
                 literal_fmt="``{!r}``",  # String with quotes.
@@ -1656,7 +1699,7 @@ def pyrna2sphinx(basepath):
                 enum_descr_override=enum_descr_override,
             )
             # Read-only properties use "data" directive, variables properties use "attribute" directive.
-            if "readonly" in type_descr:
+            if "readonly" in type_info:
                 fw("   .. data:: {:s}\n".format(identifier))
             else:
                 fw("   .. attribute:: {:s}\n".format(identifier))
@@ -1682,7 +1725,15 @@ def pyrna2sphinx(basepath):
                 del enum_text
             # End enum exception.
 
+            write_type_info("      ", fw, type_info)
+
             fw("      :type: {:s}\n\n".format(type_descr))
+
+        # Screen context members (only for Context struct).
+        if struct_id == "Context":
+            written_props = {prop.identifier for prop in sorted_struct_properties
+                             if prop.identifier not in struct_blacklist}
+            pycontext_members2sphinx("   ", fw, written_props)
 
         # Python attributes.
         py_properties = struct.get_py_properties()
@@ -1694,7 +1745,7 @@ def pyrna2sphinx(basepath):
         # C/Python attributes: `GetSetDescriptorType`.
         key = descr = None
         for key, descr in sorted(struct.get_py_c_properties_getset()):
-            py_descr2sphinx("   ", fw, descr, "bpy.types", struct_id, key)
+            py_descr2sphinx("   ", fw, descr, "bpy.types", struct_id, key, is_class=True)
         del key, descr
 
         for func in struct.functions:
@@ -1734,7 +1785,7 @@ def pyrna2sphinx(basepath):
                     if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
                         enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
 
-                    type_descr = prop.get_type_description(
+                    type_descr, _type_info = prop.get_type_description(
                         as_ret=True, class_fmt=":class:`{:s}`",
                         mathutils_fmt=":class:`mathutils.{:s}`",
                         literal_fmt="``{!r}``",  # String with quotes.
@@ -1776,22 +1827,21 @@ def pyrna2sphinx(basepath):
 
         lines = []
 
-        if struct.base or _BPY_STRUCT_FAKE:
+        if struct.base or USE_PYCAPI_TYPES:
             bases = list(reversed(struct.get_bases()))
 
             # Properties.
             del lines[:]
 
-            if _BPY_STRUCT_FAKE:
+            if USE_PYCAPI_TYPES:
                 descr_items = [
                     (key, descr) for key, descr in sorted(bpy_struct.__dict__.items())
                     if not key.startswith("__")
                 ]
 
-            if _BPY_STRUCT_FAKE:
                 for key, descr in descr_items:
                     if type(descr) == GetSetDescriptorType:
-                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_FAKE, key))
+                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_PYCAPI, key))
 
             for base in bases:
                 for prop in base.properties:
@@ -1813,10 +1863,10 @@ def pyrna2sphinx(basepath):
             # Functions.
             del lines[:]
 
-            if _BPY_STRUCT_FAKE:
+            if USE_PYCAPI_TYPES:
                 for key, descr in descr_items:
                     if type(descr) == MethodDescriptorType:
-                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_FAKE, key))
+                        lines.append("   - :class:`{:s}.{:s}`\n".format(_BPY_STRUCT_PYCAPI, key))
 
             for base in bases:
                 for func in base.functions:
@@ -1870,7 +1920,7 @@ def pyrna2sphinx(basepath):
                 continue
             write_struct(struct)
 
-        def fake_bpy_type(
+        def bpy_pycapi_type(
                 class_module_name,
                 class_value,
                 class_name,
@@ -1900,7 +1950,10 @@ def pyrna2sphinx(basepath):
                     fw("subclasses --- \n" + ", ".join((":class:`{:s}`".format(s))
                        for s in sorted(subclass_ids)) + "\n\n")
 
-            fw(".. class:: {:s}\n\n".format(class_name))
+            if base_class is not None:
+                fw(".. class:: {:s}({:s})\n\n".format(class_name, base_class))
+            else:
+                fw(".. class:: {:s}\n\n".format(class_name))
             fw("   {:s}\n\n".format(descr_str))
             fw("   .. note::\n\n")
             fw("      Note that :class:`{:s}.{:s}` is not actually available from within Blender,\n"
@@ -1914,39 +1967,41 @@ def pyrna2sphinx(basepath):
             for key, descr in descr_items:
                 # `GetSetDescriptorType`, `GetSetDescriptorType` types are not documented yet.
                 if type(descr) == MethodDescriptorType:
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
+                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key, is_class=True)
 
             for key, descr in descr_items:
                 if type(descr) == GetSetDescriptorType:
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
+                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key, is_class=True)
             file.close()
 
-        # Write fake classes.
-        if _BPY_STRUCT_FAKE:
-            class_value = bpy_struct
-            fake_bpy_type(
-                "bpy.types", class_value, _BPY_STRUCT_FAKE,
+        # Write Python C-API classes.
+        if USE_PYCAPI_TYPES:
+            bpy_pycapi_type(
+                "bpy.types", bpy_struct, _BPY_STRUCT_PYCAPI,
                 "built-in base class for all classes in bpy.types.",
                 use_subclasses=True,
                 base_class=None,
             )
 
-        if _BPY_PROP_COLLECTION_FAKE:
-            class_value = bpy.types.bpy_prop_collection
-            fake_bpy_type(
-                "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
-                "built-in class used for all collections.",
+            bpy_pycapi_type(
+                "bpy.types", bpy_prop, _BPY_PROP_PYCAPI,
+                "built-in base class for all property classes.",
                 use_subclasses=False,
                 base_class=None,
             )
 
-        if _BPY_PROP_COLLECTION_IDPROP_FAKE:
-            class_value = bpy.types.bpy_prop_collection_idprop
-            fake_bpy_type(
-                "bpy.types", class_value, _BPY_PROP_COLLECTION_IDPROP_FAKE,
+            bpy_pycapi_type(
+                "bpy.types", bpy_prop_collection, _BPY_PROP_COLLECTION_PYCAPI,
+                "built-in class used for all collections.",
+                use_subclasses=False,
+                base_class=_BPY_PROP_PYCAPI,
+            )
+
+            bpy_pycapi_type(
+                "bpy.types", bpy_prop_collection_idprop, _BPY_PROP_COLLECTION_IDPROP_PYCAPI,
                 "built-in class used for user defined collections.",
                 use_subclasses=False,
-                base_class=_BPY_PROP_COLLECTION_FAKE,
+                base_class=_BPY_PROP_COLLECTION_PYCAPI,
             )
 
     # Operators.
@@ -1989,6 +2044,9 @@ def pyrna2sphinx(basepath):
                 fw("\n")
                 for prop in op.args:
                     write_param("   ", fw, prop)
+
+                fw("   :return: Result of the operator call.\n")
+                fw("   :rtype: set[Literal[:ref:`rna_enum_operator_return_items`]]\n")
 
                 location = op.get_location()
                 if location != (None, None):
@@ -2256,7 +2314,7 @@ def write_rst_data(basepath):
         fw("\n")
         fw("   :type: :class:`bpy.types.BlendData`\n")
         fw("\n")
-        fw(".. literalinclude:: ../examples/bpy.data.py\n")
+        fw(".. literalinclude:: ../examples/bpy.data.0.py\n")
 
     EXAMPLE_SET_USED.add("bpy.data")
 

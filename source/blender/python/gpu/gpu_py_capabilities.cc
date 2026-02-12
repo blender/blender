@@ -247,7 +247,7 @@ PyDoc_STRVAR(
     "   Get supported extensions in the current context.\n"
     "\n"
     "   :return: Extensions.\n"
-    "   :rtype: tuple[str]\n");
+    "   :rtype: tuple[str, ...]\n");
 static PyObject *pygpu_extensions_get(PyObject * /*self*/)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -318,7 +318,7 @@ PyDoc_STRVAR(
     pygpu_hdr_support_get_doc,
     ".. function:: hdr_support_get()\n"
     "\n"
-    "  Return whether GPU backend supports High Dynamic range for viewport.\n"
+    "   Return whether GPU backend supports High Dynamic range for viewport.\n"
     "\n"
     "   :return: HDR support available.\n"
     "   :rtype: bool\n");

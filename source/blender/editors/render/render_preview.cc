@@ -1686,26 +1686,6 @@ static void icon_preview_endjob(void *customdata)
 {
   IconPreview *ip = static_cast<IconPreview *>(customdata);
 
-  if (ip->id) {
-
-#if 0
-    if (GS(ip->id->name) == ID_MA) {
-      Material *ma = (Material *)ip->id;
-      PreviewImage *prv_img = ma->preview;
-      int i;
-
-      /* signal to gpu texture */
-      for (i = 0; i < NUM_ICON_SIZES; i++) {
-        if (prv_img->gputexture[i]) {
-          GPU_texture_free(prv_img->gputexture[i]);
-          prv_img->gputexture[i] = nullptr;
-          WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ip->id);
-        }
-      }
-    }
-#endif
-  }
-
   if (ip->owner) {
     PreviewImage *prv_img = static_cast<PreviewImage *>(ip->owner);
     prv_img->runtime->tag &= ~PRV_TAG_DEFFERED_RENDERING;
@@ -1716,9 +1696,10 @@ static void icon_preview_endjob(void *customdata)
     }
 
     if (prv_img->runtime->tag & PRV_TAG_DEFFERED_DELETE) {
-      BLI_assert(prv_img->runtime->deferred_loading_data);
       BKE_previewimg_deferred_release(prv_img);
     }
+
+    ip->owner = nullptr;
   }
 }
 
@@ -2190,6 +2171,8 @@ void PreviewLoadJob::free_fn(void *customdata)
 
 static void icon_preview_free(void *customdata)
 {
+  icon_preview_endjob(customdata);
+
   IconPreview *ip = static_cast<IconPreview *>(customdata);
 
   if (ip->id_copy) {
@@ -2350,6 +2333,8 @@ void ED_preview_icon_job(
   ip->id = id;
 
   prv_img->flag[icon_size] |= PRV_RENDERING;
+  /* Warn main thread code that this preview is being rendered and cannot be freed. */
+  prv_img->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
   icon_preview_add_size(
       ip, prv_img->rect[icon_size], prv_img->w[icon_size], prv_img->h[icon_size]);

@@ -167,37 +167,37 @@ static void shapekey_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *i
 }
 
 IDTypeInfo IDType_ID_KE = {
-    /*id_code*/ Key::id_type,
-    /*id_filter*/ FILTER_ID_KE,
+    .id_code = Key::id_type,
+    .id_filter = FILTER_ID_KE,
     /* Warning! key->from, could be more types in future? */
-    /*dependencies_id_types*/ FILTER_ID_ME | FILTER_ID_CU_LEGACY | FILTER_ID_LT,
-    /*main_listbase_index*/ INDEX_ID_KE,
-    /*struct_size*/ sizeof(Key),
-    /*name*/ "Key",
-    /*name_plural*/ N_("shape_keys"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_SHAPEKEY,
-    /*flags*/ IDTYPE_FLAGS_NO_LIBLINKING,
-    /*asset_type_info*/ nullptr,
+    .dependencies_id_types = FILTER_ID_ME | FILTER_ID_CU_LEGACY | FILTER_ID_LT,
+    .main_listbase_index = INDEX_ID_KE,
+    .struct_size = sizeof(Key),
+    .name = "Key",
+    .name_plural = N_("shape_keys"),
+    .translation_context = BLT_I18NCONTEXT_ID_SHAPEKEY,
+    .flags = IDTYPE_FLAGS_NO_LIBLINKING,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ nullptr,
-    /*copy_data*/ shapekey_copy_data,
-    /*free_data*/ shapekey_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ shapekey_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ nullptr,
+    .init_data = nullptr,
+    .copy_data = shapekey_copy_data,
+    .free_data = shapekey_free_data,
+    .make_local = nullptr,
+    .foreach_id = shapekey_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = nullptr,
     /* A bit weird, due to shape-keys not being strictly speaking embedded data... But they also
      * share a lot with those (non linkable, only ever used by one owner ID, etc.). */
-    /*owner_pointer_get*/ shapekey_owner_pointer_get,
+    .owner_pointer_get = shapekey_owner_pointer_get,
 
-    /*blend_write*/ shapekey_blend_write,
-    /*blend_read_data*/ shapekey_blend_read_data,
-    /*blend_read_after_liblink*/ shapekey_blend_read_after_liblink,
+    .blend_write = shapekey_blend_write,
+    .blend_read_data = shapekey_blend_read_data,
+    .blend_read_after_liblink = shapekey_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 #define KEY_MODE_DUMMY 0 /* Use where mode isn't checked for. */

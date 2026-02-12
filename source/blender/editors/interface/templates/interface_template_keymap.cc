@@ -85,24 +85,23 @@ void uiTemplateKeymapItemProperties(Layout *layout, PointerRNA *ptr)
 
   if (propptr.data) {
     Block *block = layout->block();
-    int i = layout->block()->buttons.size() - 1;
+    const int old_but_count = layout->block()->buttons_ptrs.size();
 
     WM_operator_properties_sanitize(&propptr, false);
     template_keymap_item_properties(*layout, nullptr, &propptr);
-    if (i < 0) {
+    if (old_but_count < 0) {
       return;
     }
     /* attach callbacks to compensate for missing properties update,
      * we don't know which keymap (item) is being modified there */
-    for (; i < block->buttons.size(); i++) {
-      Button *but = block->buttons[i].get();
+    for (Button &but : block->buttons() | std::views::drop(old_but_count)) {
       /* operator buttons may store props for use (file selector, #36492) */
-      if (but->rnaprop) {
-        button_func_set(but, keymap_item_modified, ptr->data, nullptr);
+      if (but.rnaprop) {
+        button_func_set(&but, keymap_item_modified, ptr->data, nullptr);
 
         /* Otherwise the keymap will be re-generated which we're trying to edit,
          * see: #47685 */
-        button_flag_enable(but, BUT_UPDATE_DELAY);
+        button_flag_enable(&but, BUT_UPDATE_DELAY);
       }
     }
   }

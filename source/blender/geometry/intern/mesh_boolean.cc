@@ -144,7 +144,7 @@ void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
     const CommonVArrayInfo info = reader.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
       const bke::AttributeInitValue init(GPointer(reader.varray.type(), info.data));
-      output_attrs.add(iter.name, bke::AttrDomain::Point, iter.data_type, init);
+      output_attrs.add(iter.name, iter.domain, iter.data_type, init);
       return;
     }
 
@@ -705,6 +705,12 @@ static void gather_attributes_with_check(const bke::AttributeAccessor src_attrib
       return;
     }
     const bke::GAttributeReader src = iter.get(src_domain);
+    const CommonVArrayInfo info = src.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src.varray.type(), info.data));
+      dst_attributes.add(iter.name, iter.domain, iter.data_type, init);
+      return;
+    }
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, dst_domain, iter.data_type);
     if (!dst) {

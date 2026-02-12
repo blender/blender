@@ -215,4 +215,34 @@ bool is_viewport_compositor_used(const bContext &context)
   return false;
 }
 
+bool node_tree_has_linked_file_output(const bNodeTree *node_tree)
+{
+  if (node_tree == nullptr) {
+    return false;
+  }
+
+  node_tree->ensure_topology_cache();
+  for (const bNode *node : node_tree->nodes_by_type("CompositorNodeOutputFile")) {
+    if (!node->is_muted()) {
+      for (const bNodeSocket &input : node->inputs) {
+        if (input.is_directly_linked()) {
+          return true;
+        }
+      }
+    }
+  }
+
+  for (const bNode *node : node_tree->group_nodes()) {
+    if (node->is_muted() || !node->id) {
+      continue;
+    }
+
+    if (node_tree_has_linked_file_output(reinterpret_cast<const bNodeTree *>(node->id))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 }  // namespace blender::bke::compositor

@@ -353,18 +353,17 @@ static void colorband_buttons_layout(Layout &layout,
     }
 
     /* Some special (rather awkward) treatment to update UI state on certain property changes. */
-    for (int i = block->buttons.size() - 1; i >= 0; i--) {
-      Button *but = block->buttons[i].get();
-      if (but->rnapoin.data != ptr.data) {
+    for (Button &but : block->buttons() | std::views::reverse) {
+      if (but.rnapoin.data != ptr.data) {
         continue;
       }
-      if (!but->rnaprop) {
+      if (!but.rnaprop) {
         continue;
       }
 
-      const char *prop_identifier = RNA_property_identifier(but->rnaprop);
+      const char *prop_identifier = RNA_property_identifier(but.rnaprop);
       if (STREQ(prop_identifier, "position")) {
-        button_func_set(but, colorband_update_cb, but, coba);
+        button_func_set(&but, colorband_update_cb, &but, coba);
       }
 
       if (STREQ(prop_identifier, "color")) {

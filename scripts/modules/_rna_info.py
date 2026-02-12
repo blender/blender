@@ -20,6 +20,12 @@ script_paths = bpy.utils.script_paths()
 
 _FAKE_STRUCT_SUBCLASS = True
 
+# Map RNA type names to Python type names.
+_RNA_TYPE_TO_PYTHON = {
+    "string": "str",
+    "boolean": "bool",
+}
+
 
 def _get_direct_attr(rna_type, attr):
     props = getattr(rna_type, attr)
@@ -403,129 +409,155 @@ class InfoPropertyRNA:
             enum_descr_override=None,
     ):
         """
+        Return a ``(type_hint, type_info)`` pair.
+
+        ``type_hint`` follows Python type-hint conventions as closely as possible
+        (e.g. ``bool``, ``Literal['A', 'B']``, ``Matrix``).
+
+        ``type_info`` is a list of human-readable strings that describe array
+        dimensions, numeric range, default value, and qualifiers such as
+        ``(readonly)`` or ``(never None)``.
+
         :param enum_descr_override: Optionally override items for enum.
            Otherwise expand the literal items.
         :type enum_descr_override: str | None
         """
         type_str = ""
+        type_info = []
+
         if self.fixed_type is None:
-            type_str += self.type
+            type_str += _RNA_TYPE_TO_PYTHON.get(self.type, self.type)
             if self.type == "string" and self.subtype == "BYTE_STRING":
-                type_str = "byte string"
+                type_str = "bytes"
             if self.array_length:
                 if self.array_dimensions[1] != 0:
-                    dimension_str = " of {:s} items".format(
+                    type_info.append("multi-dimensional array of {:s} items".format(
                         " * ".join(str(d) for d in self.array_dimensions if d != 0)
-                    )
-                    type_str += " multi-dimensional array" + dimension_str
+                    ))
                 else:
-                    dimension_str = " of {:d} items".format(self.array_length)
-                    type_str += " array" + dimension_str
+                    type_info.append("array of {:d} items".format(self.array_length))
 
                 # Describe mathutils types; logic mirrors pyrna_math_object_from_array
                 if self.type == "float":
                     if self.subtype == "MATRIX":
                         if self.array_length in {9, 16}:
-                            type_str = (mathutils_fmt.format("Matrix")) + dimension_str
+                            type_str = mathutils_fmt.format("Matrix")
                     elif self.subtype in {"COLOR", "COLOR_GAMMA"}:
                         if self.array_length == 3:
-                            type_str = (mathutils_fmt.format("Color")) + dimension_str
+                            type_str = mathutils_fmt.format("Color")
                     elif self.subtype in {"EULER", "QUATERNION"}:
                         if self.array_length == 3:
-                            type_str = (mathutils_fmt.format("Euler")) + " rotation" + dimension_str
+                            type_str = mathutils_fmt.format("Euler")
                         elif self.array_length == 4:
-                            type_str = (mathutils_fmt.format("Quaternion")) + " rotation" + dimension_str
+                            type_str = mathutils_fmt.format("Quaternion")
                     elif self.subtype in {
                             'COORDINATES', 'TRANSLATION', 'DIRECTION', 'VELOCITY',
                             'ACCELERATION', 'XYZ', 'XYZ_LENGTH',
                     }:
                         if 2 <= self.array_length <= 4:
-                            type_str = (mathutils_fmt.format("Vector")) + dimension_str
+                            type_str = mathutils_fmt.format("Vector")
 
             if self.type in {"float", "int"}:
-                type_str += " in [{:s}, {:s}]".format(range_str(self.min), range_str(self.max))
+                type_info.append("in [{:s}, {:s}]".format(range_str(self.min), range_str(self.max)))
             elif self.type == "enum":
-                enum_descr = enum_descr_override
-                if not enum_descr:
-                    if self.is_enum_flag:
-                        enum_descr = "{{{:s}}}".format(", ".join((literal_fmt.format(s[0])) for s in self.enum_items))
-                    else:
-                        enum_descr = "[{:s}]".format(", ".join((literal_fmt.format(s[0])) for s in self.enum_items))
-                if self.is_enum_flag:
-                    type_str += " set in {:s}".format(enum_descr)
+                if enum_descr_override:
+                    enum_items_str = enum_descr_override
                 else:
-                    type_str += " in {:s}".format(enum_descr)
-                del enum_descr
-
-            if not (as_arg or as_ret):
-                # write default property, ignore function args for this.
-                match self.type:
-                    case "pointer":
-                        pass
-                    case "enum":
-                        if self.is_enum_flag:
-                            # Can't use `self.default_str`, because need to reformat each item with `literal_fmt`.
-                            if self.default:
-                                default_str = "{{{:s}}}".format(
-                                    ", ".join(literal_fmt.format(s) for s in sorted(self.default))
-                                )
-                            else:
-                                # Needed to account for an empty `{}` being a `dict`, not a `set`.
-                                default_str = "set()"
-                            type_str += ", default {:s}".format(default_str)
-                        else:
-                            # Empty enums typically only occur for enums which are dynamically generated.
-                            # In that case showing a default isn't helpful.
-                            if self.default:
-                                type_str += ", default {:s}".format(literal_fmt.format(self.default))
-                    case _:
-                        type_str += ", default {:s}".format(self.default_str)
+                    enum_items_str = ", ".join("'{:s}'".format(s[0]) for s in self.enum_items)
+                if not enum_items_str:
+                    # Dynamically generated enums have no static items,
+                    # fall back to a plain string type.
+                    if self.is_enum_flag:
+                        type_str = "set[str]"
+                    else:
+                        type_str = "str"
+                elif self.is_enum_flag:
+                    type_str = "set[Literal[{:s}]]".format(enum_items_str)
+                else:
+                    type_str = "Literal[{:s}]".format(enum_items_str)
 
         else:
             if self.type == "collection":
+                # When class_fmt uses RST inline markup (backtick-delimited),
+                # insert ``\ `` before ``[`` so docutils recognizes the end
+                # of the first role.
+                bracket_open = "\\ [" if "`" in class_fmt else "["
                 if self.collection_type:
-                    collection_str = (
-                        class_fmt.format(self.collection_type.identifier) +
-                        " {:s} of ".format(collection_id)
+                    type_str += "{:s}{:s}{:s}]".format(
+                        class_fmt.format(self.collection_type.identifier),
+                        bracket_open,
+                        class_fmt.format(self.fixed_type.identifier),
                     )
                 else:
-                    collection_str = "{:s} of ".format(collection_id)
+                    # collection_id may already contain ``:class:`` markup.
+                    bracket_open_id = "\\ [" if "`" in collection_id else bracket_open
+                    type_str += "{:s}{:s}{:s}]".format(
+                        collection_id,
+                        bracket_open_id,
+                        class_fmt.format(self.fixed_type.identifier),
+                    )
             else:
-                collection_str = ""
+                type_str += class_fmt.format(self.fixed_type.identifier)
 
-            type_str += collection_str + (class_fmt.format(self.fixed_type.identifier))
+        if not (as_arg or as_ret):
+            # Write default property, ignore function args for this.
+            match self.type:
+                case "pointer":
+                    pass
+                case "enum":
+                    if self.is_enum_flag:
+                        if self.default:
+                            default_str = "{{{:s}}}".format(
+                                ", ".join(literal_fmt.format(s) for s in sorted(self.default))
+                            )
+                        else:
+                            # Needed to account for an empty `{}` being a `dict`, not a `set`.
+                            default_str = "set()"
+                        type_info.append("default {:s}".format(default_str))
+                    else:
+                        # Empty enums typically only occur for enums which are dynamically generated.
+                        # In that case showing a default isn't helpful.
+                        if self.default:
+                            type_info.append("default {:s}".format(literal_fmt.format(self.default)))
+                case _:
+                    type_info.append("default {:s}".format(self.default_str))
 
-        # setup qualifiers for this value.
-        type_info = []
+        # Setup qualifiers for this value.
+        qualifiers = []
         if as_ret:
             pass
         elif as_arg:
             if not self.is_required:
-                type_info.append("optional")
+                qualifiers.append("optional")
             if self.is_argument_optional:
-                type_info.append("optional for registration")
+                qualifiers.append("optional for registration")
         else:  # readonly is only useful for self's, not args
             if self.is_readonly:
-                type_info.append("readonly")
+                qualifiers.append("readonly")
 
         if self.is_never_none:
-            type_info.append("never None")
+            qualifiers.append("never None")
 
         if self.is_path_supports_blend_relative:
-            type_info.append("blend relative ``//`` prefix supported")
+            qualifiers.append("blend relative ``//`` prefix supported")
 
         if self.is_path_supports_templates:
-            type_info.append(
+            qualifiers.append(
                 "Supports `template expressions "
                 "<https://docs.blender.org/manual/en/{:d}.{:d}/files/file_paths.html#path-templates>`_".format(
                     *bpy.app.version[:2],
                 ),
             )
 
-        if type_info:
-            type_str += ", ({:s})".format(", ".join(type_info))
+        if qualifiers:
+            type_info.append("(")
+            for i, q in enumerate(qualifiers):
+                if i > 0:
+                    type_info.append(", ")
+                type_info.append(q)
+            type_info.append(")")
 
-        return type_str
+        return type_str, type_info
 
     def __str__(self):
         txt = ""

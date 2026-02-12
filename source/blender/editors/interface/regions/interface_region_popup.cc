@@ -96,14 +96,14 @@ static void ui_popup_block_position(wmWindow *window,
 
   /* Compute block size in window space, based on buttons contained in it. */
   if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
-    if (!block->buttons.is_empty()) {
+    if (!block->buttons_ptrs.is_empty()) {
       BLI_rctf_init_minmax(&block->rect);
 
-      for (const std::unique_ptr<Button> &bt : block->buttons) {
+      for (Button &bt : block->buttons()) {
         if (block->content_hints & BLOCK_CONTAINS_SUBMENU_BUT) {
-          bt->rect.xmax += UI_MENU_SUBMENU_PADDING;
+          bt.rect.xmax += UI_MENU_SUBMENU_PADDING;
         }
-        BLI_rctf_union(&block->rect, &bt->rect);
+        BLI_rctf_union(&block->rect, &bt.rect);
       }
     }
     else {
@@ -119,10 +119,10 @@ static void ui_popup_block_position(wmWindow *window,
   const float max_radius = (0.5f * U.widget_unit);
 
   if (delta >= 0 && delta < max_radius) {
-    for (const std::unique_ptr<Button> &bt : block->buttons) {
+    for (Button &bt : block->buttons()) {
       /* Only trim the right most buttons in multi-column popovers. */
-      if (bt->rect.xmax == block->rect.xmax) {
-        bt->rect.xmax -= delta;
+      if (bt.rect.xmax == block->rect.xmax) {
+        bt.rect.xmax -= delta;
       }
     }
     block->rect.xmax -= delta;
@@ -314,13 +314,13 @@ static void ui_popup_block_position(wmWindow *window,
   }
 
   /* Apply offset, buttons in window coords. */
-  for (const std::unique_ptr<Button> &bt : block->buttons) {
-    block_to_window_rctf(butregion, but->block, &bt->rect, &bt->rect);
+  for (Button &bt : block->buttons()) {
+    block_to_window_rctf(butregion, but->block, &bt.rect, &bt.rect);
 
-    BLI_rctf_translate(&bt->rect, offset_x, offset_y);
+    BLI_rctf_translate(&bt.rect, offset_x, offset_y);
 
     /* ui_but_update recalculates drawstring size in pixels */
-    button_update(bt.get());
+    button_update(&bt);
   }
 
   BLI_rctf_translate(&block->rect, offset_x, offset_y);
@@ -507,9 +507,9 @@ static void ui_popup_block_clip(wmWindow *window, Block *block)
 
   /* ensure menu items draw inside left/right boundary */
   const float xofs = block->rect.xmin - xmin_orig;
-  for (const std::unique_ptr<Button> &bt : block->buttons) {
-    bt->rect.xmin += xofs;
-    bt->rect.xmax += xofs;
+  for (Button &bt : block->buttons()) {
+    bt.rect.xmin += xofs;
+    bt.rect.xmax += xofs;
   }
 }
 
@@ -517,40 +517,40 @@ void popup_block_scrolltest(Block *block)
 {
   block->flag &= ~(BLOCK_CLIPBOTTOM | BLOCK_CLIPTOP);
 
-  for (const std::unique_ptr<Button> &bt : block->buttons) {
-    bt->flag &= ~UI_SCROLLED;
+  for (Button &bt : block->buttons()) {
+    bt.flag &= ~UI_SCROLLED;
   }
 
-  if (block->buttons.size() < 2) {
+  if (block->buttons_ptrs.size() < 2) {
     return;
   }
 
   /* mark buttons that are outside boundary */
-  for (const std::unique_ptr<Button> &bt : block->buttons) {
-    if (bt->rect.ymax < block->rect.ymin) {
-      bt->flag |= UI_SCROLLED;
+  for (Button &bt : block->buttons()) {
+    if (bt.rect.ymax < block->rect.ymin) {
+      bt.flag |= UI_SCROLLED;
     }
-    if (bt->rect.ymin > block->rect.ymax) {
-      bt->flag |= UI_SCROLLED;
+    if (bt.rect.ymin > block->rect.ymax) {
+      bt.flag |= UI_SCROLLED;
     }
-    if (bt->rect.ymin < block->rect.ymin) {
+    if (bt.rect.ymin < block->rect.ymin) {
       block->flag |= BLOCK_CLIPBOTTOM;
     }
-    if (bt->rect.ymax > block->rect.ymax) {
+    if (bt.rect.ymax > block->rect.ymax) {
       block->flag |= BLOCK_CLIPTOP;
     }
   }
 
   /* mark buttons overlapping arrows, if we have them */
-  for (const std::unique_ptr<Button> &bt : block->buttons) {
+  for (Button &bt : block->buttons()) {
     if (block->flag & BLOCK_CLIPBOTTOM) {
-      if (bt->rect.ymax < block->rect.ymin + UI_MENU_SCROLL_MOUSE) {
-        bt->flag |= UI_SCROLLED;
+      if (bt.rect.ymax < block->rect.ymin + UI_MENU_SCROLL_MOUSE) {
+        bt.flag |= UI_SCROLLED;
       }
     }
     if (block->flag & BLOCK_CLIPTOP) {
-      if (bt->rect.ymin > block->rect.ymax - UI_MENU_SCROLL_MOUSE) {
-        bt->flag |= UI_SCROLLED;
+      if (bt.rect.ymin > block->rect.ymax - UI_MENU_SCROLL_MOUSE) {
+        bt.flag |= UI_SCROLLED;
       }
     }
   }
@@ -824,9 +824,9 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
 
     /* lastly set the buttons at the center of the pie menu, ready for animation */
     if (U.pie_animation_timeout > 0) {
-      for (const std::unique_ptr<Button> &but_iter : block->buttons) {
-        if (but_iter->pie_dir != UI_RADIAL_NONE) {
-          BLI_rctf_recenter(&but_iter->rect, UNPACK2(block->pie_data.pie_center_spawned));
+      for (Button &but_iter : block->buttons()) {
+        if (but_iter.pie_dir != UI_RADIAL_NONE) {
+          BLI_rctf_recenter(&but_iter.rect, UNPACK2(block->pie_data.pie_center_spawned));
         }
       }
     }
@@ -868,9 +868,9 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
     /* Popups can change size, fix scroll offset if a panel was closed. */
     float ymin = FLT_MAX;
     float ymax = -FLT_MAX;
-    for (const std::unique_ptr<Button> &bt : block->buttons) {
-      ymin = min_ff(ymin, bt->rect.ymin);
-      ymax = max_ff(ymax, bt->rect.ymax);
+    for (const Button &bt : block->buttons()) {
+      ymin = min_ff(ymin, bt.rect.ymin);
+      ymax = max_ff(ymax, bt.rect.ymax);
     }
     const int scroll_pad = block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f;
     const float scroll_min = std::min(block->rect.ymax - ymax - scroll_pad, 0.0f);
@@ -878,9 +878,9 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
     handle->scrolloffset = std::clamp(handle->scrolloffset, scroll_min, scroll_max);
     /* apply scroll offset */
     if (handle->scrolloffset != 0.0f) {
-      for (const std::unique_ptr<Button> &bt : block->buttons) {
-        bt->rect.ymin += handle->scrolloffset;
-        bt->rect.ymax += handle->scrolloffset;
+      for (Button &bt : block->buttons()) {
+        bt.rect.ymin += handle->scrolloffset;
+        bt.rect.ymax += handle->scrolloffset;
       }
     }
     /* Layout panels are relative to `block->rect.ymax`. Rather than a

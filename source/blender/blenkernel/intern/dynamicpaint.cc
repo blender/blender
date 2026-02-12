@@ -3446,7 +3446,6 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
 #endif
   {
     ibuf->ftype = IMB_FTYPE_PNG;
-    ibuf->foptions.quality = 15;
   }
 
   /* Save image */

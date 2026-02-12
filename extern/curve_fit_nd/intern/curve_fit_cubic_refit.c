@@ -43,7 +43,9 @@
  *   While re-fitting, remove knots that fall below the error threshold.
  */
 #ifdef _MSC_VER
+#ifndef _USE_MATH_DEFINES
 #  define _USE_MATH_DEFINES
+#endif
 #endif
 
 #include <math.h>

@@ -196,6 +196,9 @@ yum -y install -y  \
 # Required by Blender build option: `WITH_JACK`.
 yum -y install jack-audio-connection-kit-devel
 
+# Ensure that sudo is installed (e.g., when using docker)
+yum -y install sudo
+
 # AMD's ROCM
 # Based on instructions from:
 # https://rocm.docs.amd.com/projects/install-on-linux/en/latest/how-to/native-install/rhel.html

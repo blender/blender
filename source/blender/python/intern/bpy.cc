@@ -317,8 +317,8 @@ PyDoc_STRVAR(
     "\n"
     "   Return the base path for storing system files.\n"
     "\n"
-    "   :param type: string in ['USER', 'LOCAL', 'SYSTEM'].\n"
-    "   :type type: str\n"
+    "   :param type: The resource type.\n"
+    "   :type type: Literal['USER', 'LOCAL', 'SYSTEM']\n"
     "   :param major: major version, defaults to current.\n"
     "   :type major: int\n"
     "   :param minor: minor version, defaults to current.\n"
@@ -370,7 +370,7 @@ PyDoc_STRVAR(
     "   :param code: The code to test.\n"
     "   :type code: code\n"
     "   :param namespace: The namespace of values which are allowed.\n"
-    "   :type namespace: dict[str, Any]\n"
+    "   :type namespace: dict[str, Any] | None\n"
     "   :param verbose: Print the reason for considering insecure to the ``stderr``.\n"
     "   :type verbose: bool\n"
     "   :return: True when the script is considered trusted.\n"
@@ -379,12 +379,13 @@ static PyObject *bpy_driver_secure_code_test(PyObject * /*self*/, PyObject *args
 {
   PyObject *py_code;
   PyObject *py_namespace = nullptr;
+  PyC_TypeOrNone py_namespace_or_none = {&PyDict_Type, &py_namespace};
   bool verbose = false;
   static const char *_keywords[] = {"code", "namespace", "verbose", nullptr};
   static _PyArg_Parser _parser = {
       "O!" /* `expression` */
       "|$" /* Optional keyword only arguments. */
-      "O!" /* `namespace` */
+      "O&" /* `namespace` */
       "O&" /* `verbose` */
       ":driver_secure_code_test",
       _keywords,
@@ -395,8 +396,8 @@ static PyObject *bpy_driver_secure_code_test(PyObject * /*self*/, PyObject *args
                                         &_parser,
                                         &PyCode_Type,
                                         &py_code,
-                                        &PyDict_Type,
-                                        &py_namespace,
+                                        PyC_ParseTypeOrNone,
+                                        &py_namespace_or_none,
                                         PyC_ParseBool,
                                         &verbose))
   {

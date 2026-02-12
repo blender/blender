@@ -182,7 +182,7 @@ def modules_from_path(path, loaded_modules):
     :type path: str
     :param loaded_modules: already loaded module names, files matching these
        names will be ignored.
-    :type loaded_modules: set[ModuleType]
+    :type loaded_modules: set[str]
     :return: all loaded modules.
     :rtype: list[ModuleType]
     """
@@ -402,7 +402,12 @@ def load_scripts_extensions(*, reload_scripts=False):
 
 
 def script_path_user():
-    """returns the env var and falls back to home dir or None"""
+    """
+    Return the user script path or None.
+
+    :return: The user script path, or None if not found.
+    :rtype: str | None
+    """
     path = _user_resource('SCRIPTS')
     return _os.path.normpath(path) if path else None
 
@@ -429,7 +434,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True,
     Returns a list of valid script paths.
 
     :param subdir: Optional subdir.
-    :type subdir: str
+    :type subdir: str | None
     :param user_pref: Include the user preference script paths.
     :type user_pref: bool
     :param check_all: Include local, user and system paths rather just the paths Blender uses.
@@ -520,7 +525,7 @@ def app_template_paths(*, path=None):
     Returns valid application template paths.
 
     :param path: Optional subdir.
-    :type path: str
+    :type path: str | None
     :return: App template paths.
     :rtype: Iterator[str]
     """
@@ -698,6 +703,10 @@ def smpte_from_seconds(time, *, fps=None, fps_base=None):
 
     :param time: time in seconds.
     :type time: int | float | datetime.timedelta
+    :param fps: Frames per second, if not given the current scene is used.
+    :type fps: float | None
+    :param fps_base: Frames per second base, if not given the current scene is used.
+    :type fps_base: float | None
     :return: the frame string.
     :rtype: str
     """
@@ -718,6 +727,10 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
 
     :param frame: frame number.
     :type frame: int | float
+    :param fps: Frames per second, if not given the current scene is used.
+    :type fps: float | None
+    :param fps_base: Frames per second base, if not given the current scene is used.
+    :type fps_base: float | None
     :return: the frame string.
     :rtype: str
     """
@@ -745,12 +758,16 @@ def smpte_from_frame(frame, *, fps=None, fps_base=None):
 
 def time_from_frame(frame, *, fps=None, fps_base=None):
     """
-    Returns the time from a frame number .
+    Returns the time from a frame number.
 
     If *fps* and *fps_base* are not given the current scene is used.
 
     :param frame: number.
     :type frame: int | float
+    :param fps: Frames per second, if not given the current scene is used.
+    :type fps: float | None
+    :param fps_base: Frames per second base, if not given the current scene is used.
+    :type fps_base: float | None
     :return: the time in seconds.
     :rtype: datetime.timedelta
     """
@@ -798,6 +815,20 @@ def time_to_frame(time, *, fps=None, fps_base=None):
 
 
 def preset_find(name, preset_path, *, display_name=False, ext=".py"):
+    """
+    Search for a preset by name.
+
+    :param name: The preset name.
+    :type name: str
+    :param preset_path: The preset subdirectory (e.g. ``"keyconfig"``).
+    :type preset_path: str
+    :param display_name: When True, search by display name instead of filename.
+    :type display_name: bool
+    :param ext: The file extension for the preset.
+    :type ext: str
+    :return: The file path of the preset or None if not found.
+    :rtype: str | None
+    """
     if not name:
         return None
 
@@ -819,8 +850,10 @@ def preset_find(name, preset_path, *, display_name=False, ext=".py"):
 
 
 def keyconfig_init():
-    # Key configuration initialization and refresh, called from the Blender
-    # window manager on startup and refresh.
+    """
+    Initialize and refresh key configurations, called from the Blender
+    window manager on startup and refresh.
+    """
     default_config = "Blender"
     active_config = _preferences.keymap.active_keyconfig
 
@@ -836,6 +869,14 @@ def keyconfig_init():
 
 
 def keyconfig_set(filepath, *, report=None):
+    """
+    Load and activate a key configuration from a file.
+
+    :param filepath: The file path to the key configuration preset.
+    :type filepath: str
+    :param report: An optional callable for reporting errors.
+    :type report: Callable[[set[str], str], None] | None
+    """
     from os.path import basename, splitext
 
     if _bpy.app.debug_python:
@@ -878,8 +919,8 @@ def user_resource(resource_type, *, path="", create=False):
     """
     Return a user resource path (normally from the users home directory).
 
-    :param resource_type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'EXTENSIONS'].
-    :type resource_type: str
+    :param resource_type: The resource type.
+    :type resource_type: Literal['DATAFILES', 'CONFIG', 'SCRIPTS', 'EXTENSIONS']
     :param path: Optional subdirectory.
     :type path: str
     :param create: Treat the path as a directory and create it if its not existing.
@@ -1151,6 +1192,12 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
 
 
 def unregister_tool(tool_cls):
+    """
+    Unregister a previously registered tool.
+
+    :param tool_cls: The tool class to unregister.
+    :type tool_cls: type[:class:`bpy.types.WorkSpaceTool`]
+    """
     space_type = tool_cls.bl_space_type
     context_mode = tool_cls.bl_context_mode
 
@@ -1245,14 +1292,33 @@ _manual_map = [_blender_default_map]
 
 
 def register_manual_map(manual_hook):
+    """
+    Register a function to provide manual URL mappings.
+
+    :param manual_hook: A callable that returns ``(prefix, mapping)``
+       where *mapping* is a sequence of ``(pattern, url)`` pairs.
+    :type manual_hook: Callable[[], tuple[str, list[tuple[str, str]]]]
+    """
     _manual_map.append(manual_hook)
 
 
 def unregister_manual_map(manual_hook):
+    """
+    Unregister a previously registered manual map hook.
+
+    :param manual_hook: The hook function to remove.
+    :type manual_hook: Callable[[], tuple[str, list[tuple[str, str]]]]
+    """
     _manual_map.remove(manual_hook)
 
 
 def manual_map():
+    """
+    Yield manual URL mappings from all registered hooks.
+
+    :return: An iterator of ``(prefix, mapping)`` pairs.
+    :rtype: Iterator[tuple[str, list[tuple[str, str]]]]
+    """
     # reverse so default is called last
     for cb in reversed(_manual_map):
         try:
@@ -1325,6 +1391,8 @@ _manual_language_codes = {
 
 def manual_language_code(default="en"):
     """
+    :param default: The fallback language code to use when the current language is unavailable.
+    :type default: str
     :return:
        The language code used for user manual URL component based on the current language user-preference,
        falling back to the ``default`` when unavailable.
@@ -1349,7 +1417,7 @@ def make_rna_paths(struct_name, prop_name, enum_name):
     :type enum_name: str
     :return: A triple of three "RNA paths"
        (most_complete_path, "struct.prop", "struct.prop:'enum'").
-       If no enum_name is given, the third element will always be void.
+       If no enum_name is given, the third element will always be empty.
     :rtype: tuple[str, str, str]
     """
     src = src_rna = src_enum = ""

@@ -47,7 +47,6 @@ class LibOCIOConfig : public Config {
   ~LibOCIOConfig();
 
   static std::unique_ptr<Config> create_from_environment();
-  static std::unique_ptr<Config> create_from_file(StringRefNull filename);
 
   /* Color space information. */
   float3 get_default_luma_coefs() const override;

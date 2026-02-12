@@ -602,7 +602,10 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
   if (t->spacetype == SPACE_GRAPH) {
     View2D *v2d = &t->region->v2d;
     Scene *scene = t->scene;
-    aspect[0] = ui::view2d_grid_resolution_x__frames_or_seconds(v2d, scene);
+    SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(t->area->spacedata.first);
+    const bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) &&
+                                 (sipo->flag & SIPO_DRAWTIME);
+    aspect[0] = ui::view2d_grid_resolution_x(v2d, scene, display_seconds);
     aspect[1] = ui::view2d_grid_resolution_y__values(v2d, 10);
   }
 

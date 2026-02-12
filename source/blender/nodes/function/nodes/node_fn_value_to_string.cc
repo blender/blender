@@ -18,6 +18,7 @@ namespace blender::nodes::node_fn_value_to_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   const bNode *node = b.node_or_null();
 
   if (node != nullptr) {

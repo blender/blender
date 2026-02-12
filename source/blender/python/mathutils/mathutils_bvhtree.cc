@@ -462,8 +462,8 @@ PyDoc_STRVAR(
     "\n"
     "   Find the nearest elements (typically face index) to a point in the distance range.\n"
     "\n"
-    "   :param co: Find nearest elements to this point.\n"
-    "   :type co: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
+    "   :param origin: Find nearest elements to this point.\n"
+    "   :type origin: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
         PYBVH_FIND_GENERIC_RETURN_LIST_DOC);
 static PyObject *py_bvhtree_find_nearest_range(PyBVHTree *self, PyObject *args)
 {
@@ -558,7 +558,7 @@ PyDoc_STRVAR(
     "   :param other_tree: Other tree to perform overlap test on.\n"
     "   :type other_tree: :class:`BVHTree`\n"
     "   :return: Returns a list of unique index pairs,"
-    "      the first index referencing this tree, the second referencing the **other_tree**.\n"
+    " the first index referencing this tree, the second referencing the **other_tree**.\n"
     "   :rtype: list[tuple[int, int]]\n");
 static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
 {
@@ -636,7 +636,7 @@ PyDoc_STRVAR(
     C_BVHTree_FromPolygons_doc,
     ".. classmethod:: FromPolygons(vertices, polygons, *, all_triangles=False, epsilon=0.0)\n"
     "\n"
-    "   BVH tree constructed geometry passed in as arguments.\n"
+    "   BVH tree constructed from geometry passed in as arguments.\n"
     "\n"
     "   :param vertices: float triplets each representing ``(x, y, z)``\n"
     "   :type vertices: Sequence[Sequence[float]]\n"
@@ -644,7 +644,9 @@ PyDoc_STRVAR(
     "   :type polygons: Sequence[Sequence[int]]\n"
     "   :param all_triangles: Use when all **polygons** are triangles for more efficient "
     "conversion.\n"
-    "   :type all_triangles: bool\n" PYBVH_FROM_GENERIC_EPSILON_DOC);
+    "   :type all_triangles: bool\n" PYBVH_FROM_GENERIC_EPSILON_DOC
+    "   :return: BVHTree from polygon data.\n"
+    "   :rtype: :class:`BVHTree`\n");
 static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyObject *kwargs)
 {
   const char *error_prefix = "BVHTree.FromPolygons";
@@ -931,7 +933,9 @@ PyDoc_STRVAR(
     "   BVH tree based on :class:`BMesh` data.\n"
     "\n"
     "   :param bmesh: BMesh data.\n"
-    "   :type bmesh: :class:`BMesh`\n" PYBVH_FROM_GENERIC_EPSILON_DOC);
+    "   :type bmesh: :class:`BMesh`\n" PYBVH_FROM_GENERIC_EPSILON_DOC
+    "   :return: BVHTree from BMesh data.\n"
+    "   :rtype: :class:`BVHTree`\n");
 static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObject *kwargs)
 {
   const char *keywords[] = {"bmesh", "epsilon", nullptr};
@@ -1124,7 +1128,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
 PyDoc_STRVAR(
     /* Wrap. */
     C_BVHTree_FromObject_doc,
-    ".. classmethod:: FromObject(object, depsgraph, *, deform=True, render=False, "
+    ".. classmethod:: FromObject(object, depsgraph, *, deform=True, "
     "cage=False, epsilon=0.0)\n"
     "\n"
     "   BVH tree based on :class:`Object` data.\n"
@@ -1136,7 +1140,9 @@ PyDoc_STRVAR(
     "   :param deform: Use mesh with deformations.\n"
     "   :type deform: bool\n"
     "   :param cage: Use modifiers cage.\n"
-    "   :type cage: bool\n" PYBVH_FROM_GENERIC_EPSILON_DOC);
+    "   :type cage: bool\n" PYBVH_FROM_GENERIC_EPSILON_DOC
+    "   :return: BVHTree from Object data.\n"
+    "   :rtype: :class:`BVHTree`\n");
 static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObject *kwargs)
 {
   /* NOTE: options here match #bpy_bmesh_from_object. */

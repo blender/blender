@@ -717,7 +717,7 @@ PyDoc_STRVAR(
     "   :type size: int\n"
     "   :param axis: an axis string or a 3D Vector Object\n"
     "      (optional when size is 2).\n"
-    "   :type axis: Literal['X', 'Y', 'Z'] | :class:`Vector`\n"
+    "   :type axis: Literal['X', 'Y', 'Z'] | Sequence[float]\n"
     "   :return: A new rotation matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
@@ -803,7 +803,7 @@ PyDoc_STRVAR(
     "   Create a matrix representing a translation.\n"
     "\n"
     "   :param vector: The translation vector.\n"
-    "   :type vector: :class:`Vector`\n"
+    "   :type vector: Sequence[float]\n"
     "   :return: An identity matrix with a translation.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
@@ -829,7 +829,7 @@ PyDoc_STRVAR(
     "   Create a diagonal (scaling) matrix using the values from the vector.\n"
     "\n"
     "   :param vector: The vector of values for the diagonal.\n"
-    "   :type vector: :class:`Vector`\n"
+    "   :type vector: Sequence[float]\n"
     "   :return: A diagonal matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 /** Diagonal constructor: `mathutils.Matrix.Diagonal()`. */
@@ -865,7 +865,7 @@ PyDoc_STRVAR(
     "   :param size: The size of the scale matrix to construct [2, 4].\n"
     "   :type size: int\n"
     "   :param axis: Direction to influence scale. (optional).\n"
-    "   :type axis: :class:`Vector`\n"
+    "   :type axis: Sequence[float]\n"
     "   :return: A new scale matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
@@ -953,7 +953,7 @@ PyDoc_STRVAR(
     "   :param axis: An axis string,\n"
     "      where a single axis is for a 2D matrix.\n"
     "      Or a vector for an arbitrary axis\n"
-    "   :type axis: Literal['X', 'Y', 'XY', 'XZ', 'YZ'] | :class:`Vector`\n"
+    "   :type axis: Literal['X', 'Y', 'XY', 'XZ', 'YZ'] | Sequence[float]\n"
     "   :param size: The size of the projection matrix to construct [2, 4].\n"
     "   :type size: int\n"
     "   :return: A new projection matrix.\n"
@@ -1178,12 +1178,12 @@ PyDoc_STRVAR(
     "   Any of the inputs may be replaced with None if not needed.\n"
     "\n"
     "   :param location: The translation component.\n"
-    "   :type location: :class:`Vector` | None\n"
+    "   :type location: Sequence[float] | None\n"
     "   :param rotation: The rotation component as a "
     "3x3 matrix, quaternion, euler or None for no rotation.\n"
     "   :type rotation: :class:`Matrix` | :class:`Quaternion` | :class:`Euler` | None\n"
     "   :param scale: The scale component.\n"
-    "   :type scale: :class:`Vector` | None\n"
+    "   :type scale: Sequence[float] | None\n"
     "   :return: Combined transformation as a 4x4 matrix. \n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
@@ -1322,12 +1322,12 @@ PyDoc_STRVAR(
     "   Return an Euler representation of the rotation matrix\n"
     "   (3x3 or 4x4 matrix only).\n"
     "\n"
-    "   :param order: A rotation order string."
+    "   :param order: A rotation order string.\n"
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n"
     "   :param euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
     "      Useful for converting a series of matrices to animation curves.\n"
-    "   :type euler_compat: :class:`Euler`\n"
+    "   :type euler_compat: :class:`Euler` | None\n"
     "   :return: Euler representation of the matrix.\n"
     "   :rtype: :class:`Euler`\n");
 static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
@@ -1336,6 +1336,7 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
   short order = EULER_ORDER_XYZ;
   float eul[3], eul_compatf[3];
   EulerObject *eul_compat = nullptr;
+  PyC_TypeOrNone eul_compat_or_none = PyC_TYPE_OR_NONE_INIT(&euler_Type, &eul_compat);
 
   float mat[3][3];
 
@@ -1343,7 +1344,18 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
     return nullptr;
   }
 
-  if (!PyArg_ParseTuple(args, "|sO!:to_euler", &order_str, &euler_Type, &eul_compat)) {
+  static const char *_keywords[] = {"", "", nullptr};
+  static _PyArg_Parser _parser = {
+      "|"  /* Optional arguments. */
+      "s"  /* `order` */
+      "O&" /* `euler_compat` */
+      ":to_euler",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, nullptr, &_parser, &order_str, PyC_ParseTypeOrNone, &eul_compat_or_none))
+  {
     return nullptr;
   }
 
@@ -1620,9 +1632,12 @@ static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, b
       return true;
     }
     case 1: {
+      PyObject *arg = PyTuple_GET_ITEM(args, 0);
+      if (arg == Py_None) {
+        return true;
+      }
       if (check_type) {
-        const MatrixObject *fallback = reinterpret_cast<const MatrixObject *> PyTuple_GET_ITEM(
-            args, 0);
+        const MatrixObject *fallback = reinterpret_cast<const MatrixObject *>(arg);
         if (!MatrixObject_Check(fallback)) {
           PyErr_SetString(PyExc_TypeError,
                           "Matrix.invert: "
@@ -1665,7 +1680,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param fallback: Set the matrix to this value when the inverse cannot be calculated\n"
     "      (instead of raising a :exc:`ValueError` exception).\n"
-    "   :type fallback: :class:`Matrix`\n"
+    "   :type fallback: :class:`Matrix` | None\n"
     "\n"
     "   .. seealso:: `Inverse matrix <https://en.wikipedia.org/wiki/Inverse_matrix>`__ on "
     "Wikipedia.\n");
@@ -1683,12 +1698,10 @@ static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
     return nullptr;
   }
 
-  if (matrix_invert_internal(self, self->matrix)) {
-    /* pass */
-  }
-  else {
-    if (PyTuple_GET_SIZE(args) == 1) {
-      MatrixObject *fallback = reinterpret_cast<MatrixObject *> PyTuple_GET_ITEM(args, 0);
+  if (!matrix_invert_internal(self, self->matrix)) {
+    PyObject *arg;
+    if (PyTuple_GET_SIZE(args) == 1 && ((arg = PyTuple_GET_ITEM(args, 0)) != Py_None)) {
+      MatrixObject *fallback = reinterpret_cast<MatrixObject *>(arg);
 
       if (BaseMath_ReadCallback(fallback) == -1) {
         return nullptr;
@@ -1740,10 +1753,10 @@ static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
     /* pass */
   }
   else {
-    if (PyTuple_GET_SIZE(args) == 1) {
-      PyObject *fallback = PyTuple_GET_ITEM(args, 0);
-      Py_INCREF(fallback);
-      return fallback;
+    PyObject *arg;
+    if (PyTuple_GET_SIZE(args) == 1 && ((arg = PyTuple_GET_ITEM(args, 0)) != Py_None)) {
+      Py_INCREF(arg);
+      return arg;
     }
 
     matrix_invert_raise_degenerate();
@@ -1986,8 +1999,8 @@ PyDoc_STRVAR(
     Matrix_lerp_doc,
     ".. method:: lerp(other, factor, /)\n"
     "\n"
-    "   Returns the interpolation of two matrices. Uses polar decomposition, see"
-    "   \"Matrix Animation and Polar Decomposition\", Shoemake and Duff, 1992.\n"
+    "   Returns the interpolation of two matrices. Uses polar decomposition, see "
+    "\"Matrix Animation and Polar Decomposition\", Shoemake and Duff, 1992.\n"
     "\n"
     "   :param other: value to interpolate with.\n"
     "   :type other: :class:`Matrix`\n"
@@ -3271,7 +3284,7 @@ PyDoc_STRVAR(
     Matrix_row_doc,
     "Access the matrix by rows (default), (read-only).\n"
     "\n"
-    ":type: Matrix Access\n");
+    ":type: :class:`MatrixAccess`\n");
 static PyObject *Matrix_row_get(MatrixObject *self, void * /*closure*/)
 {
   return MatrixAccess_CreatePyObject(self, MAT_ACCESS_ROW);
@@ -3282,7 +3295,7 @@ PyDoc_STRVAR(
     Matrix_col_doc,
     "Access the matrix by columns, 3x3 and 4x4 only, (read-only).\n"
     "\n"
-    ":type: Matrix Access\n");
+    ":type: :class:`MatrixAccess`\n");
 static PyObject *Matrix_col_get(MatrixObject *self, void * /*closure*/)
 {
   return MatrixAccess_CreatePyObject(self, MAT_ACCESS_COL);
@@ -3385,7 +3398,7 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void * /*closure*/
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_is_orthogonal_axis_vectors_doc,
-    "True if this matrix has got orthogonal axis vectors, 3x3 and 4x4 only, "
+    "True if this matrix has orthogonal axis vectors, 3x3 and 4x4 only, "
     "(read-only).\n"
     "\n"
     ":type: bool\n");
@@ -4095,6 +4108,11 @@ static PyMappingMethods MatrixAccess_AsMapping = {
 /** \name Matrix-Access Type: Python Object Definition
  * \{ */
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    matrix_access_doc,
+    "An indexable type for accessing matrix rows or columns as :class:`Vector` types.\n");
+
 PyTypeObject matrix_access_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "MatrixAccess",
@@ -4116,7 +4134,7 @@ PyTypeObject matrix_access_Type = {
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    /*tp_doc*/ nullptr,
+    /*tp_doc*/ matrix_access_doc,
     /*tp_traverse*/ reinterpret_cast<traverseproc>(MatrixAccess_traverse),
     /*tp_clear*/ reinterpret_cast<inquiry>(MatrixAccess_clear),
     /*tp_richcompare*/ nullptr /* MatrixAccess_richcmpr */ /* TODO. */,

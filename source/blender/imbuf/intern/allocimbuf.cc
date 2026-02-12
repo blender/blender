@@ -418,6 +418,12 @@ void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, const ImBufOwnersh
   }
 }
 
+void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
+{
+  IMB_free_gpu_textures(ibuf);
+  ibuf->gpu.texture = texture;
+}
+
 void IMB_assign_byte_buffer(ImBuf *ibuf,
                             const ImBufByteBuffer &buffer,
                             const ImBufOwnership ownership)
@@ -524,8 +530,6 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
   ibuf->y = y;
   ibuf->planes = planes;
   ibuf->ftype = IMB_FTYPE_PNG;
-  /* The '15' means, set compression to low ratio but not time consuming. */
-  ibuf->foptions.quality = 15;
   /* float option, is set to other values when buffers get assigned. */
   ibuf->channels = 4;
   /* IMB_DPI_DEFAULT -> pixels-per-meter. */

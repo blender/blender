@@ -218,6 +218,15 @@ static PyObject *pygpu_buffer_to_list(BPyGPUBuffer *self)
   return list;
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_buffer_to_list_doc,
+    ".. method:: to_list()\n"
+    "\n"
+    "   Return the buffer as a list.\n"
+    "\n"
+    "   :return: The buffer as a list.\n"
+    "   :rtype: list\n");
 static PyObject *pygpu_buffer_to_list_recursive(BPyGPUBuffer *self)
 {
   PyObject *list;
@@ -576,7 +585,7 @@ static PyMethodDef pygpu_buffer__tp_methods[] = {
     {"to_list",
      reinterpret_cast<PyCFunction>(pygpu_buffer_to_list_recursive),
      METH_NOARGS,
-     "return the buffer as a list"},
+     pygpu_buffer_to_list_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -682,12 +691,11 @@ PyDoc_STRVAR(
     "   For Python access to GPU functions requiring a pointer.\n"
     "\n"
     "   :param format: Format type to interpret the buffer.\n"
-    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
-    "``10_11_11_REV``.\n"
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
-    "   :type format: str\n"
+    "   :type format: " PYDOC_DATAFORMAT_LITERAL
+    "\n"
     "   :param dimensions: Array describing the dimensions.\n"
-    "   :type dimensions: int\n"
+    "   :type dimensions: int | Sequence[int]\n"
     "   :param data: Optional data array.\n"
     "   :type data: Buffer | Sequence[float] | Sequence[int]\n");
 PyTypeObject BPyGPU_BufferType = {

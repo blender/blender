@@ -117,14 +117,34 @@ void VKTexture::copy_to(Texture *tex)
 
 void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
-  if (format == GPU_DATA_UINT_24_8_DEPRECATED) {
-    float clear_depth = 0.0f;
-    convert_host_to_device(&clear_depth,
-                           data,
-                           1,
-                           format,
-                           TextureFormat::SFLOAT_32_DEPTH_UINT_8,
-                           TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+  /* Relay depth/stencil clearing to clear_depth_stencil. This branch can be used by pyGPU. */
+  if (bool(format_flag_ & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL))) {
+    float clear_depth = 1.0f;
+    switch (format) {
+      case GPU_DATA_FLOAT:
+        clear_depth = *static_cast<const float *>(data);
+        break;
+
+      case GPU_DATA_UINT_24_8_DEPRECATED:
+        convert_host_to_device(&clear_depth,
+                               data,
+                               1,
+                               format,
+                               TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                               TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+        break;
+
+      case GPU_DATA_HALF_FLOAT:
+      case GPU_DATA_INT:
+      case GPU_DATA_UINT:
+      case GPU_DATA_UBYTE:
+      case GPU_DATA_10_11_11_REV:
+      case GPU_DATA_2_10_10_10_REV:
+        /* Can only clear depth/stencil textures with float/uin24_8 data format. Texture will be
+         * cleared to 1.0 depth. */
+        BLI_assert_unreachable();
+        break;
+    }
     clear_depth_stencil(GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_depth, 0u, std::nullopt);
     return;
   }
@@ -404,19 +424,22 @@ void VKTexture::update_sub(int mip,
   }
 
   VKDevice &device = VKBackend::get().device;
+
+  const bool is_sequential_packed = ELEM(unpack_row_length, 0, extent.x);
+  /* Do conversion on CPU side. Allocating a staging buffer for these cases is less effective as
+   * it has overhead of the render graph, pipeline barriers and layout transitions.  Staging
+   * buffers are optimized for sequential access which adds overhead when using multi-threading. */
   const bool needs_data_conversion = needs_conversion(format, format_, device_format_);
+  Vector<uint8_t> device_compatible_data;
+  if (needs_data_conversion && is_sequential_packed) {
+    device_compatible_data.resize(device_memory_size);
+    convert_host_to_device(
+        device_compatible_data.data(), data, sample_len, format, format_, device_format_);
+    data = device_compatible_data.data();
+  }
+
   const bool use_host_image_copy = !has_data_ && data != nullptr && allow_host_image_copy_;
   if (use_host_image_copy) {
-    Vector<uint8_t> device_compatible_data;
-
-    /* Do conversion on CPU side. Allocating a staging buffer for these cases is less effective as
-     * it has overhead of the render graph, pipeline barriers and layout transitions. */
-    if (needs_data_conversion) {
-      device_compatible_data.resize(device_memory_size);
-      convert_host_to_device(
-          device_compatible_data.data(), data, sample_len, format, format_, device_format_);
-    }
-
     VkImageAspectFlags vk_image_aspects = to_vk_image_aspect_single_bit(
         to_vk_image_aspect_flag_bits(device_format_), false);
     VkHostImageLayoutTransitionInfoEXT image_layout_transition = {
@@ -435,7 +458,7 @@ void VKTexture::update_sub(int mip,
     VkMemoryToImageCopyEXT vk_memory_to_image_copy = {
         VK_STRUCTURE_TYPE_MEMORY_TO_IMAGE_COPY_EXT,
         nullptr,
-        device_compatible_data.is_empty() ? data : device_compatible_data.data(),
+        data,
         unpack_row_length,
         0,
         {vk_image_aspects, uint32_t(mip), uint32_t(start_layer), uint32_t(layers)},
@@ -469,9 +492,11 @@ void VKTexture::update_sub(int mip,
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
      * other cases we unpack the rows to reduce the size of the staging buffer and data transfer.
      */
-    if (ELEM(unpack_row_length, 0, extent.x)) {
-      convert_host_to_device(
-          staging_buffer.mapped_memory_get(), data, sample_len, format, format_, device_format_);
+    if (is_sequential_packed) {
+      /* Data has already been converted, only need to copy.
+       * NOTE: Don't use multi-threaded copy as staging buffer is optimized for sequential access.
+       */
+      memcpy(staging_buffer.mapped_memory_get(), data, device_memory_size);
     }
     else {
       BLI_assert_msg(!is_compressed,

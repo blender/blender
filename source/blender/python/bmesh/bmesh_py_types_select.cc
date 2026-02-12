@@ -31,8 +31,8 @@ PyDoc_STRVAR(
     bpy_bmeditselseq_active_doc,
     "The last selected element or None (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMVert`, "
-    ":class:`bmesh.types.BMEdge` or :class:`bmesh.types.BMFace`\n");
+    ":type: :class:`bmesh.types.BMVert` | "
+    ":class:`bmesh.types.BMEdge` | :class:`bmesh.types.BMFace` | None\n");
 static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void * /*closure*/)
 {
   BMEditSelection *ese;
@@ -85,7 +85,10 @@ PyDoc_STRVAR(
     bpy_bmeditselseq_add_doc,
     ".. method:: add(element)\n"
     "\n"
-    "   Add an element to the selection history (no action taken if its already added).\n");
+    "   Add an element to the selection history (no action taken if its already added).\n"
+    "\n"
+    "   :param element: The element to add.\n"
+    "   :type element: :class:`BMVert` | :class:`BMEdge` | :class:`BMFace`\n");
 static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 {
   const char *error_prefix = "select_history.add(...)";
@@ -111,7 +114,10 @@ PyDoc_STRVAR(
     bpy_bmeditselseq_remove_doc,
     ".. method:: remove(element)\n"
     "\n"
-    "   Remove an element from the selection history.\n");
+    "   Remove an element from the selection history.\n"
+    "\n"
+    "   :param element: The element to remove.\n"
+    "   :type element: :class:`BMVert` | :class:`BMEdge` | :class:`BMFace`\n");
 static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 {
   const char *error_prefix = "select_history.remove(...)";
@@ -142,7 +148,10 @@ PyDoc_STRVAR(
     "\n"
     "   Discard an element from the selection history.\n"
     "\n"
-    "   Like remove but doesn't raise an error when the elements not in the selection list.\n");
+    "   Like remove but doesn't raise an error when the elements not in the selection list.\n"
+    "\n"
+    "   :param element: The element to discard.\n"
+    "   :type element: :class:`BMVert` | :class:`BMEdge` | :class:`BMFace`\n");
 static PyObject *bpy_bmeditselseq_discard(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 {
   const char *error_prefix = "select_history.discard()";

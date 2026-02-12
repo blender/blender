@@ -511,6 +511,101 @@ int PyC_ParseBool(PyObject *o, void *p)
   return 1;
 }
 
+int PyC_ParseTypeOrNone(PyObject *o, void *p)
+{
+  PyC_TypeOrNone *data = static_cast<PyC_TypeOrNone *>(p);
+  if (o == Py_None) {
+    *data->value_p = nullptr;
+    return 1;
+  }
+  if (!PyObject_TypeCheck(o, data->type)) {
+    PyErr_Format(PyExc_TypeError,
+                 "expected %.200s or None, not %.200s",
+                 data->type->tp_name,
+                 Py_TYPE(o)->tp_name);
+    return 0;
+  }
+  *data->value_p = o;
+  return 1;
+}
+
+int PyC_ParseOptionalInt(PyObject *o, void *p)
+{
+  std::optional<int> *value_p = static_cast<std::optional<int> *>(p);
+  if (o == Py_None) {
+    value_p->reset();
+    return 1;
+  }
+  const int value = PyC_Long_AsI32(o);
+  if (value == -1 && PyErr_Occurred()) {
+    return 0;
+  }
+  *value_p = value;
+  return 1;
+}
+
+int PyC_ParseOptionalDouble(PyObject *o, void *p)
+{
+  std::optional<double> *value_p = static_cast<std::optional<double> *>(p);
+  if (o == Py_None) {
+    value_p->reset();
+    return 1;
+  }
+  const double value = PyFloat_AsDouble(o);
+  if (value == -1.0 && PyErr_Occurred()) {
+    return 0;
+  }
+  *value_p = value;
+  return 1;
+}
+
+int PyC_ParseOptionalFloat(PyObject *o, void *p)
+{
+  std::optional<float> *value_p = static_cast<std::optional<float> *>(p);
+  if (o == Py_None) {
+    value_p->reset();
+    return 1;
+  }
+  const double value = PyFloat_AsDouble(o);
+  if (value == -1.0 && PyErr_Occurred()) {
+    return 0;
+  }
+  *value_p = float(value);
+  return 1;
+}
+
+int PyC_ParseOptionalUInt(PyObject *o, void *p)
+{
+  std::optional<uint> *value_p = static_cast<std::optional<uint> *>(p);
+  if (o == Py_None) {
+    value_p->reset();
+    return 1;
+  }
+  const uint value = PyC_Long_AsU32(o);
+  if (value == uint(-1) && PyErr_Occurred()) {
+    return 0;
+  }
+  *value_p = value;
+  return 1;
+}
+
+int PyC_ParseOptionalBool(PyObject *o, void *p)
+{
+  std::optional<bool> *value_p = static_cast<std::optional<bool> *>(p);
+  if (o == Py_None) {
+    value_p->reset();
+    return 1;
+  }
+  long value;
+  if (((value = PyLong_AsLong(o)) == -1) || !ELEM(value, 0, 1)) {
+    PyErr_Format(
+        PyExc_ValueError, "expected a bool, int (0/1), or None, got %s", Py_TYPE(o)->tp_name);
+    return 0;
+  }
+  *value_p = value ? true : false;
+  return 1;
+}
+
 int PyC_ParseStringEnum(PyObject *o, void *p)
 {
   PyC_StringEnum *e = static_cast<PyC_StringEnum *>(p);

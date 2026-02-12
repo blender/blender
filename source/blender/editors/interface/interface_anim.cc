@@ -129,21 +129,21 @@ static Button *ui_but_anim_decorate_find_attached_button(ButtonDecorator *but)
 
   BLI_assert(button_is_decorator(but));
   BLI_assert(but->decorated_rnapoin.data && but->decorated_rnaprop);
-  if (but->block->buttons.is_empty()) {
+  if (but->block->buttons_ptrs.is_empty()) {
     return nullptr;
   }
   int i = but->block->but_index(but);
-  i = i > 0 ? i - 1 : but->block->buttons.size() - 1;
+  i = i > 0 ? i - 1 : but->block->buttons_ptrs.size() - 1;
   const int start = i;
   do {
-    but_iter = but->block->buttons[i].get();
+    but_iter = but->block->buttons_ptrs[i].get();
     if (but_iter != but &&
         button_rna_equals_ex(
             but_iter, &but->decorated_rnapoin, but->decorated_rnaprop, but->decorated_rnaindex))
     {
       return but_iter;
     }
-    i = i > 0 ? i - 1 : but->block->buttons.size() - 1;
+    i = i > 0 ? i - 1 : but->block->buttons_ptrs.size() - 1;
   } while (i != start);
 
   return nullptr;

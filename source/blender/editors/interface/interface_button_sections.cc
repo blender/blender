@@ -75,8 +75,8 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
         continue;
       }
 
-      for (const std::unique_ptr<Button> &but : block.buttons) {
-        if (but->type == ButtonType::SeprSpacer) {
+      for (const Button &but : block.buttons()) {
+        if (but.type == ButtonType::SeprSpacer) {
           /* Start a new section. */
           if (has_section_content) {
             finish_section_fn(cur_section_bounds);
@@ -89,7 +89,7 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
         }
 
         rcti but_pixelrect;
-        button_to_pixelrect(&but_pixelrect, region, &block, but.get());
+        button_to_pixelrect(&but_pixelrect, region, &block, &but);
         BLI_rcti_do_minmax_rcti(&cur_section_bounds, &but_pixelrect);
         has_section_content = true;
       }

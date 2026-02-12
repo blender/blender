@@ -107,7 +107,7 @@ static void rna_PoseBone_visibility_update(Main * /* bmain */,
                                            PointerRNA *ptr)
 {
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->owner_id);
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, ptr->owner_id);
 }
 
 static void rna_Pose_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)

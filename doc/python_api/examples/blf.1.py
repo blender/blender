@@ -2,7 +2,7 @@
 Drawing Text to an Image
 ++++++++++++++++++++++++
 
-Example showing how text can be draw into an image.
+Example showing how text can be drawn into an image.
 This can be done by binding an image buffer (:mod:`imbuf`) to the font's ID.
 """
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-12-11 18:12+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -6067,6 +6067,18 @@ msgid "Threshold in screen space used for the simplify algorithm. Points within 
 msgstr "Threshold in screen space used for the simplify algorithm. Points within this threshold are treated as if they were in a straight line."
 
 
+msgid "Stroke"
+msgstr "Stroke"
+
+
+msgid "Fill"
+msgstr "Fill"
+
+
+msgid "Both"
+msgstr "Both"
+
+
 msgid "Active Layer"
 msgstr "Active Layer"
 
@@ -6255,16 +6267,8 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Defines how vertex colour affect to the strokes"
 
 
-msgid "Stroke"
-msgstr "Stroke"
-
-
 msgid "Vertex Color affects to Stroke only"
 msgstr "Vertex Colour affects to Stroke only"
-
-
-msgid "Fill"
-msgstr "Fill"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -25555,10 +25559,6 @@ msgid "Viewer Region"
 msgstr "Viewer Region"
 
 
-msgid "Use boundaries for viewer nodes and composite backdrop"
-msgstr "Use boundaries for viewer nodes and composite backdrop"
-
-
 msgid "Geometry Node Tree"
 msgstr "Geometry Node Tree"
 
@@ -29816,14 +29816,6 @@ msgstr "Community"
 
 msgid "Maintained by community developers"
 msgstr "Maintained by community developers"
-
-
-msgid "Testing"
-msgstr "Testing"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Newly contributed scripts (excluded from release builds)"
 
 
 msgid "Addon Tags"
@@ -34874,22 +34866,6 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
 msgid "Read"
 msgstr "Read"
 
@@ -34900,10 +34876,6 @@ msgstr "Write"
 
 msgid "Sample"
 msgstr "Sample"
-
-
-msgid "Names"
-msgstr "Names"
 
 
 msgid "Primitives"
@@ -34918,188 +34890,68 @@ msgid "Clean Up"
 msgstr "Clean Up"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Point"
+msgid "Show/Hide"
+msgstr "Show/Hide"
 
 
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracking"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Creative"
-msgstr "Creative"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Add Image"
-msgstr "Add Image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Apply"
-
-
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Convert"
-msgstr "Convert"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
+msgid "Names"
+msgstr "Names"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "Sculpt Set Pivot"
 
 
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
+msgid "Special Characters"
+msgstr "Special Characters"
 
 
-msgid "Random Mask"
-msgstr "Random Mask"
+msgid "Metaball"
+msgstr "Metaball"
 
 
-msgid "Clear Transform"
-msgstr "Clear Transform"
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
 
 
 msgid "In-Betweens"
@@ -35110,68 +34962,208 @@ msgid "Propagate"
 msgstr "Propagate"
 
 
-msgid "Bone Collections"
-msgstr "Bone Collections"
+msgid "Layout"
+msgstr "Layout"
 
 
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
+msgid "Clear Transform"
+msgstr "Clear Transform"
 
 
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
 
 
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
+msgid "Random Mask"
+msgstr "Random Mask"
 
 
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
-msgid "Face Data"
-msgstr "Face Data"
+msgid "Trim/Add"
+msgstr "Trim/Add"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Creative"
+msgstr "Creative"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Automasking"
+msgstr "Automasking"
 
 
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
+msgid "Snap"
+msgstr "Snap"
+
+
 msgid "Instances"
 msgstr "Instances"
 
 
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "Import"
 msgstr "Import"
 
 
-msgid "Merge"
-msgstr "Merge"
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
 
 
 msgid "Deprecated"
 msgstr "Deprecated"
 
 
-msgid "Special Characters"
-msgstr "Special Characters"
+msgid "Mask Edit"
+msgstr "Mask Edit"
 
 
-msgid "Kerning"
-msgstr "Kerning"
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
 
 
 msgid "List"
 msgstr "List"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Keyframe Insert Pie"
@@ -50290,6 +50282,10 @@ msgid "Generate a perturbed normal from an RGB normal map image. Typically used 
 msgstr "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
 
 
+msgid "OpenGL"
+msgstr "OpenGL"
+
+
 msgid "Space of the input normal"
 msgstr "Space of the input normal"
 
@@ -64119,10 +64115,6 @@ msgid "Equalize selected keyframes' right handles"
 msgstr "Equalise selected keyframes' right handles"
 
 
-msgid "Both"
-msgstr "Both"
-
-
 msgid "Equalize both of a keyframe's handles"
 msgstr "Equalise both of a keyframe's handles"
 
@@ -73033,10 +73025,6 @@ msgid "Viewer Region"
 msgstr "Viewer Region"
 
 
-msgid "Set the boundaries for viewer operations"
-msgstr "Set the boundaries for viewer operations"
-
-
 msgid "Viewer Index"
 msgstr "Viewer Index"
 
@@ -79313,10 +79301,6 @@ msgstr "Select all bones that have the same parent as currently selected bones"
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Select Connected"
-
-
-msgid "Select bones linked by parent/child connections under the mouse cursor"
-msgstr "Select bones linked by parent/child connections under the mouse cursor"
 
 
 msgctxt "Operator"
@@ -91273,74 +91257,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Wireframe Color"
-msgstr "Wireframe Colour"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
-msgid "Compositor"
-msgstr "Compositor"
-
-
-msgid "Overlays"
-msgstr "Overlays"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Viewer Node"
-msgstr "Viewer Node"
-
-
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
-
-
 msgid "glTF Variants"
 msgstr "glTF Variants"
 
@@ -91349,32 +91265,12 @@ msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
 
 
-msgid "Transform Orientations"
-msgstr "Transform Orientations"
+msgid "VR"
+msgstr "VR"
 
 
-msgid "Stroke Placement"
-msgstr "Stroke Placement"
-
-
-msgid "Drawing Plane"
-msgstr "Drawing Plane"
-
-
-msgid "Grease Pencil Options"
-msgstr "Grease Pencil Options"
-
-
-msgid "Quad View"
-msgstr "Quad View"
-
-
-msgid "Onion Skin"
-msgstr "Onion Skin"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopy"
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "glTF"
@@ -91385,16 +91281,8 @@ msgid "glTF Animations"
 msgstr "glTF Animations"
 
 
-msgid "Multi Frame"
-msgstr "Multi Frame"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
 
 
 msgid "Curves Sculpt Parameter Falloff"
@@ -91405,16 +91293,112 @@ msgid "Curves Grow/Shrink Scaling"
 msgstr "Curves Grow/Shrink Scaling"
 
 
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
 
 
-msgid "VR Info"
-msgstr "VR Info"
+msgid "Multi Frame"
+msgstr "Multi Frame"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopy"
+
+
+msgid "Quad View"
+msgstr "Quad View"
+
+
+msgid "Onion Skin"
+msgstr "Onion Skin"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
+
+
+msgid "Drawing Plane"
+msgstr "Drawing Plane"
+
+
+msgid "Grease Pencil Options"
+msgstr "Grease Pencil Options"
+
+
+msgid "Guides"
+msgstr "Guides"
+
+
+msgid "Stroke Placement"
+msgstr "Stroke Placement"
+
+
+msgid "Transform Orientations"
+msgstr "Transform Orientations"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
+msgid "Viewer Node"
+msgstr "Viewer Node"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Overlays"
+msgstr "Overlays"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Wireframe Color"
+msgstr "Wireframe Colour"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Active Tool"
+msgstr "Active Tool"
 
 
 msgid "Import Settings"
@@ -96058,10 +96042,6 @@ msgid "GPU backend to use (requires restarting Blender for changes to take effec
 msgstr "GPU backend to use (requires restarting Blender for changes to take effect)"
 
 
-msgid "OpenGL"
-msgstr "OpenGL"
-
-
 msgid "Use OpenGL backend"
 msgstr "Use OpenGL backend"
 
@@ -96582,10 +96562,6 @@ msgid "Arabic - ﺔﻴﺑﺮﻌﻟﺍ"
 msgstr "Arabic - ﺔﻴﺑﺮﻌﻟﺍ"
 
 
-msgid "Locale code: ar_EG. Translation progress: 24%"
-msgstr "Locale code: ar_EG. Translation progress: 24%"
-
-
 msgid "Basque - Euskara"
 msgstr "Basque - Euskara"
 
@@ -96750,10 +96726,6 @@ msgid "Korean - 한국어"
 msgstr "Korean - 한국어"
 
 
-msgid "Locale code: ko_KR. Translation progress: 50%"
-msgstr "Locale code: ko_KR. Translation progress: 50%"
-
-
 msgid "Kyrgyz - Кыргыз тили"
 msgstr "Kyrgyz - Кыргыз тили"
 
@@ -96862,10 +96834,6 @@ msgid "Swahili - Kiswahili"
 msgstr "Swahili - Kiswahili"
 
 
-msgid "Locale code: sw. Translation progress: 73%"
-msgstr "Locale code: sw. Translation progress: 73%"
-
-
 msgid "Swedish - Svenska"
 msgstr "Swedish - Svenska"
 
@@ -96874,20 +96842,12 @@ msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
 
 
-msgid "Locale code: ta. Translation progress: 94%"
-msgstr "Locale code: ta. Translation progress: 94%"
-
-
 msgid "Thai - ภาษาไทย"
 msgstr "Thai - ภาษาไทย"
 
 
 msgid "Turkish - Türkçe"
 msgstr "Turkish - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 79%"
-msgstr "Locale code: tr_TR. Translation progress: 79%"
 
 
 msgid "Ukrainian - Українська"
@@ -96900,10 +96860,6 @@ msgstr "Locale code: uk_UA. Translation progress: 57%"
 
 msgid "Urdu - وُدرُا"
 msgstr "Urdu - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 87%"
-msgstr "Locale code: ur. Translation progress: 87%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -112946,10 +112902,6 @@ msgid "Display Handles"
 msgstr "Display Handles"
 
 
-msgid "Limit the display of curve handles in edit mode"
-msgstr "Limit the display of curve handles in edit mode"
-
-
 msgid "Strength of the fade effect"
 msgstr "Strength of the fade effect"
 
@@ -113116,10 +113068,6 @@ msgstr "Display 3D Cursor Overlay"
 
 msgid "Draw Normals"
 msgstr "Draw Normals"
-
-
-msgid "Display 3D curve normals in editmode"
-msgstr "Display 3D curve normals in editmode"
 
 
 msgid "Display Bevel Weights"
@@ -125984,11 +125932,6 @@ msgstr "Copy to Selected Strips..."
 
 
 msgctxt "Operator"
-msgid "Toggle Retiming Keys"
-msgstr "Toggle Retiming Keys"
-
-
-msgctxt "Operator"
 msgid "Slip Strip Contents"
 msgstr "Slip Strip Contents"
 
@@ -131766,10 +131709,6 @@ msgid "Delete envelope control point"
 msgstr "Delete envelope control point"
 
 
-msgid "Coefficient"
-msgstr "Coefficient"
-
-
 msgctxt "Action"
 msgid "A"
 msgstr "A"
@@ -132776,10 +132715,6 @@ msgid "Eyes"
 msgstr "Eyes"
 
 
-msgid "Pupils"
-msgstr "Pupils"
-
-
 msgid "Bake Object Transform to Grease Pencil"
 msgstr "Bake Object Transform to Grease Pencil"
 
@@ -132822,6 +132757,10 @@ msgstr "No Grease Pencil frame to draw on"
 
 msgid "Couldn't find matching layer, pasting into active layer"
 msgstr "Couldn't find matching layer, pasting into active layer"
+
+
+msgid "No active Grease Pencil layer"
+msgstr "No active Grease Pencil layer"
 
 
 msgid "Active object is not a selected Grease Pencil"
@@ -132890,10 +132829,6 @@ msgstr "No active object, or active object isn't a Grease Pencil object"
 
 msgid "Baking Line Art..."
 msgstr "Baking Line Art..."
-
-
-msgid "No active Grease Pencil layer"
-msgstr "No active Grease Pencil layer"
 
 
 msgid "Active layer is locked or hidden"
@@ -144471,10 +144406,6 @@ msgid "Topology Mapping"
 msgstr "Topology Mapping"
 
 
-msgid "Face Count: %d"
-msgstr "Face Count: %d"
-
-
 msgid "Modifier requires more than 3 input faces"
 msgstr "Modifier requires more than 3 input faces"
 
@@ -148048,6 +147979,18 @@ msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Values larger than the threshold are inside the generated mesh"
 
 
+msgid "X coordinate of the voxel in index space, or the minimum X coordinate of a tile"
+msgstr "X coordinate of the voxel in index space, or the minimum X coordinate of a tile"
+
+
+msgid "Y coordinate of the voxel in index space, or the minimum Y coordinate of a tile"
+msgstr "Y coordinate of the voxel in index space, or the minimum Y coordinate of a tile"
+
+
+msgid "Z coordinate of the voxel in index space, or the minimum Z coordinate of a tile"
+msgstr "Z coordinate of the voxel in index space, or the minimum Z coordinate of a tile"
+
+
 msgid "Frame Count"
 msgstr "Frame Count"
 
@@ -148353,18 +148296,6 @@ msgstr "Extent Y"
 
 msgid "Extent Z"
 msgstr "Extent Z"
-
-
-msgid "X coordinate of the voxel in index space, or the minimum X coordinate of a tile"
-msgstr "X coordinate of the voxel in index space, or the minimum X coordinate of a tile"
-
-
-msgid "Y coordinate of the voxel in index space, or the minimum Y coordinate of a tile"
-msgstr "Y coordinate of the voxel in index space, or the minimum Y coordinate of a tile"
-
-
-msgid "Z coordinate of the voxel in index space, or the minimum Z coordinate of a tile"
-msgstr "Z coordinate of the voxel in index space, or the minimum Z coordinate of a tile"
 
 
 msgid "True if the field is evaluated on a tile, i.e. on multiple voxels at once. If this is false, the extent is always 1"

@@ -22,11 +22,11 @@ def load_image(
 ):
     """
     Return an image from the file path with options to search multiple paths
-    and return a placeholder if its not found.
+    and return a placeholder if it's not found.
 
-    :param filepath: The image filename
+    :param imagepath: The image filename
        If a path precedes it, this will be searched as well.
-    :type filepath: str
+    :type imagepath: str
     :param dirname: is the directory where the image may be located - any file at
        the end will be ignored.
     :type dirname: str
@@ -44,7 +44,9 @@ def load_image(
        the CONVERT_CALLBACK can take the path for a GIF (for example),
        convert it to a PNG and return the PNG's path.
        For formats blender can read, simply return the path that is given.
-    :type convert_callback: function
+    :type convert_callback: Callable[[str], str] | None
+    :param verbose: If True, print extra information when searching for the image.
+    :type verbose: bool
     :param relpath: If not None, make the file relative to this path.
     :type relpath: str | None
     :param check_existing: If true,

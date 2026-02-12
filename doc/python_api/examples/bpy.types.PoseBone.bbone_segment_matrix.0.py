@@ -3,6 +3,7 @@ This example shows how to use B-Bone segment matrices to emulate deformation
 produced by the Armature modifier or constraint when assigned to the given bone
 (without Preserve Volume). The coordinates are processed in armature Pose space:
 """
+import bpy
 
 
 def bbone_deform_matrix(pose_bone, point):

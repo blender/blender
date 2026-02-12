@@ -310,7 +310,7 @@ static void ntree_free_data(ID *id)
   }
 
   MEM_SAFE_DELETE(ntree->description);
-  BKE_previewimg_free(&ntree->preview);
+  BKE_previewimg_id_free(&ntree->id);
   MEM_delete(ntree->runtime);
 }
 
@@ -2069,7 +2069,7 @@ static void ntree_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   /* Set `node->typeinfo` pointers. This is done in lib linking, after the
    * first versioning that can change types still without functions that
    * update the `typeinfo` pointers. Versioning after lib linking needs
-   * these top be valid. */
+   * these to be valid. */
   node_tree_set_type(*ntree);
 
   /* For nodes with static socket layout, add/remove sockets as needed
@@ -2162,35 +2162,35 @@ static AssetTypeInfo AssetType_NT = {
 };
 
 IDTypeInfo IDType_ID_NT = {
-    /*id_code*/ bNodeTree::id_type,
-    /*id_filter*/ FILTER_ID_NT,
+    .id_code = bNodeTree::id_type,
+    .id_filter = FILTER_ID_NT,
     /* IDProps of nodes, and #bNode.id, can use any type of ID. */
-    /*dependencies_id_types*/ FILTER_ID_ALL,
-    /*main_listbase_index*/ INDEX_ID_NT,
-    /*struct_size*/ sizeof(bNodeTree),
-    /*name*/ "NodeTree",
-    /*name_plural*/ N_("node_groups"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_NODETREE,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ &AssetType_NT,
+    .dependencies_id_types = FILTER_ID_ALL,
+    .main_listbase_index = INDEX_ID_NT,
+    .struct_size = sizeof(bNodeTree),
+    .name = "NodeTree",
+    .name_plural = N_("node_groups"),
+    .translation_context = BLT_I18NCONTEXT_ID_NODETREE,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = &AssetType_NT,
 
-    /*init_data*/ bke::ntree_init_data,
-    /*copy_data*/ bke::ntree_copy_data,
-    /*free_data*/ bke::ntree_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ bke::node_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ bke::node_foreach_path,
-    /*foreach_working_space_color*/ bke::node_foreach_working_space_color,
-    /*owner_pointer_get*/ bke::node_owner_pointer_get,
+    .init_data = bke::ntree_init_data,
+    .copy_data = bke::ntree_copy_data,
+    .free_data = bke::ntree_free_data,
+    .make_local = nullptr,
+    .foreach_id = bke::node_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = bke::node_foreach_path,
+    .foreach_working_space_color = bke::node_foreach_working_space_color,
+    .owner_pointer_get = bke::node_owner_pointer_get,
 
-    /*blend_write*/ bke::ntree_blend_write,
-    /*blend_read_data*/ bke::ntree_blend_read_data,
-    /*blend_read_after_liblink*/ bke::ntree_blend_read_after_liblink,
+    .blend_write = bke::ntree_blend_write,
+    .blend_read_data = bke::ntree_blend_read_data,
+    .blend_read_after_liblink = bke::ntree_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 namespace bke {
@@ -5180,6 +5180,13 @@ static bool can_read_node_type(const bNode &node)
   if (ELEM(node.type_legacy, NODE_CUSTOM, NODE_CUSTOM_GROUP)) {
     return true;
   }
+  /* Nodes that require storage but don't have any storage data are invalid. */
+  if (node.storage == nullptr) {
+    const bNodeType *node_type = node_type_find(node.idname);
+    if (!node_type || !node_type->storagename.empty()) {
+      return false;
+    }
+  }
   if (node.type_legacy < NODE_LEGACY_TYPE_GENERATION_START) {
     /* Check known built-in types. */
     static Set<int> known_types = get_known_node_types_set();
@@ -5189,17 +5196,14 @@ static bool can_read_node_type(const bNode &node)
   return node_type_find(node.idname) != nullptr;
 }
 
-static void node_replace_undefined_types(bNode *node)
+void node_set_undefined_type(bNode &node)
 {
-  /* If the node type is built-in but unknown, the node cannot be read. */
-  if (!can_read_node_type(*node)) {
-    node->type_legacy = NODE_CUSTOM;
-    /* This type name is arbitrary, it just has to be unique enough to not match a future node
-     * idname. Includes the old type identifier for debugging purposes. */
-    const std::string old_idname = node->idname;
-    SNPRINTF_UTF8(node->idname, "Undefined[%s]", old_idname.c_str());
-    node->typeinfo = &NodeTypeUndefined;
-  }
+  node.type_legacy = NODE_CUSTOM;
+  /* This type name is arbitrary, it just has to be unique enough to not match a future node
+   * idname. Includes the old type identifier for debugging purposes. */
+  const std::string old_idname = node.idname;
+  SNPRINTF_UTF8(node.idname, "Undefined[%s]", old_idname.c_str());
+  node.typeinfo = &NodeTypeUndefined;
 }
 
 void node_tree_update_all_new(Main &main)
@@ -5213,7 +5217,10 @@ void node_tree_update_all_new(Main &main)
    * replaced in those late versioning steps. */
   FOREACH_NODETREE_BEGIN (&main, ntree, owner_id) {
     for (bNode *node : ntree->all_nodes()) {
-      node_replace_undefined_types(node);
+      /* If the node type is built-in but unknown, the node cannot be read. */
+      if (!can_read_node_type(*node)) {
+        node_set_undefined_type(*node);
+      }
     }
   }
   FOREACH_NODETREE_END;

@@ -101,7 +101,8 @@ class BlenderSync {
   static SessionParams get_session_params(blender::RenderEngine &b_engine,
                                           blender::UserDef &b_preferences,
                                           blender::Scene &b_scene,
-                                          bool background);
+                                          bool background,
+                                          float pixelsize);
   static bool get_session_pause(blender::Scene &b_scene, bool background);
   static BufferParams get_buffer_params(blender::View3D *b_v3d,
                                         blender::RegionView3D *b_rv3d,

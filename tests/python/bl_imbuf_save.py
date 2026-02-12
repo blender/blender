@@ -18,6 +18,7 @@ args = None
 
 TEMPLATE_RGBA08 = "template-rgba08.png"
 TEMPLATE_RGBA32 = "template-rgba32.exr"
+TEMPLATE_HIGH_VALUES = "extreme_values/template-high-values.exr"
 
 
 class ImBufTest(AbstractImBufTest):
@@ -31,7 +32,7 @@ class ImBufTest(AbstractImBufTest):
     def _load_template_image(self, name, template_name):
         image_path = str(self.test_dir.joinpath(template_name))
         bpy.ops.image.open(filepath=image_path)
-        img = bpy.data.images[template_name]
+        img = bpy.data.images[pathlib.Path(template_name).name]
         img.name = name
         return img
 
@@ -45,8 +46,9 @@ class ImBufTest(AbstractImBufTest):
         for s in settings:
             if s == "color_depth":
                 name += str(settings[s]).rjust(2, '0') + "-"
-            # do not embed exr quality into test file name
-            elif not (s == "quality" and ext == "exr"):
+            # do not embed exr quality into test file name unless it is DWAA/DWAB
+            elif not (s == "quality" and ext == "exr" and
+                      settings.get("exr_codec") not in ("DWAA", "DWAB")):
                 name += str(settings[s]) + "-"
 
             setattr(image_settings, s, settings[s])
@@ -59,6 +61,7 @@ class ImBufTest(AbstractImBufTest):
         loaders = {
             "rgba08": lambda name: self._load_template_image(name, TEMPLATE_RGBA08),
             "rgba32": lambda name: self._load_template_image(name, TEMPLATE_RGBA32),
+            "high-values": lambda name: self._load_template_image(name, TEMPLATE_HIGH_VALUES),
         }
 
         # Load the template image and assign it the image name
@@ -142,6 +145,15 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
+
+    def test_save_exr_dwa_high_values(self):
+        self.skip_if_format_missing("OPENEXR")
+
+        # Tests for correct clamping of values that exceed HALF_MAX.
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 100})
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 90})
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 75})
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 50})
 
     def test_save_hdr(self):
         self.check(src="rgba08", ext="hdr", settings={"file_format": "HDR", "color_mode": "BW"})

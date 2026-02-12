@@ -21,17 +21,6 @@ std::unique_ptr<Config> Config::create_from_environment()
   return nullptr;
 }
 
-std::unique_ptr<Config> Config::create_from_file(const StringRefNull filename)
-{
-#if defined(WITH_OPENCOLORIO)
-  return LibOCIOConfig::create_from_file(filename);
-#else
-  (void)filename;
-#endif
-
-  return nullptr;
-}
-
 std::unique_ptr<Config> Config::create_fallback()
 {
   return std::make_unique<FallbackConfig>();

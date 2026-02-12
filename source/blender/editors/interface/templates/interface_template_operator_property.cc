@@ -175,10 +175,10 @@ static AutoPropButsReturn template_operator_property_buts_draw_single(
 
   const bool is_popup = (block->flag & BLOCK_KEEP_OPEN) != 0;
 
-  for (const std::unique_ptr<Button> &but : block->buttons) {
+  for (Button &but : block->buttons()) {
     /* no undo for buttons for operator redo panels */
     if (!(layout_flags & TEMPLATE_OP_PROPS_ALLOW_UNDO_PUSH)) {
-      button_flag_disable(but.get(), BUT_UNDO);
+      button_flag_disable(&but, BUT_UNDO);
     }
 
     /* Only do this if we're not refreshing an existing UI. */
@@ -189,9 +189,8 @@ static AutoPropButsReturn template_operator_property_buts_draw_single(
        * - this is used for allowing operators with popups to rename stuff with fewer clicks
        */
       if (is_popup) {
-        if ((but->rnaprop == op->type->prop) && ELEM(but->type, ButtonType::Text, ButtonType::Num))
-        {
-          button_focus_on_enter_event(CTX_wm_window(C), but.get());
+        if ((but.rnaprop == op->type->prop) && ELEM(but.type, ButtonType::Text, ButtonType::Num)) {
+          button_focus_on_enter_event(CTX_wm_window(C), &but);
         }
       }
     }

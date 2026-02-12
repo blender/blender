@@ -823,7 +823,9 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
                TEX_NODE_CURVE_RGB,
                TEX_NODE_CURVE_TIME))
       {
-        callback(static_cast<CurveMapping *>(node.storage));
+        if (version_node_ensure_storage_or_invalidate(node)) {
+          callback(static_cast<CurveMapping *>(node.storage));
+        }
       }
     }
   }
@@ -2170,13 +2172,15 @@ static void update_wave_node_directions_and_offset(bNodeTree *ntree)
 {
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy == SH_NODE_TEX_WAVE) {
-      NodeTexWave *tex = static_cast<NodeTexWave *>(node.storage);
-      tex->bands_direction = SHD_WAVE_BANDS_DIRECTION_DIAGONAL;
-      tex->rings_direction = SHD_WAVE_RINGS_DIRECTION_SPHERICAL;
+      if (version_node_ensure_storage_or_invalidate(node)) {
+        NodeTexWave *tex = static_cast<NodeTexWave *>(node.storage);
+        tex->bands_direction = SHD_WAVE_BANDS_DIRECTION_DIAGONAL;
+        tex->rings_direction = SHD_WAVE_RINGS_DIRECTION_SPHERICAL;
 
-      if (tex->wave_profile == SHD_WAVE_PROFILE_SIN) {
-        bNodeSocket *sockPhaseOffset = bke::node_find_socket(node, SOCK_IN, "Phase Offset");
-        *version_cycles_node_socket_float_value(sockPhaseOffset) = M_PI_2;
+        if (tex->wave_profile == SHD_WAVE_PROFILE_SIN) {
+          bNodeSocket *sockPhaseOffset = bke::node_find_socket(node, SOCK_IN, "Phase Offset");
+          *version_cycles_node_socket_float_value(sockPhaseOffset) = M_PI_2;
+        }
       }
     }
   }

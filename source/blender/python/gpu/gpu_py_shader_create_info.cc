@@ -37,10 +37,7 @@ using gpu::shader::Type;
 #ifdef USE_PYGPU_SHADER_INFO_IMAGE_METHOD
 using gpu::shader::Qualifier;
 
-#  define PYDOC_QUALIFIERS \
-    "      - ``NO_RESTRICT``\n" \
-    "      - ``READ``\n" \
-    "      - ``WRITE``\n"
+#  define PYDOC_QUALIFIERS_LITERAL "Literal['NO_RESTRICT', 'READ', 'WRITE']"
 static const PyC_FlagSet pygpu_qualifiers[] = {
     {int(Qualifier::no_restrict), "NO_RESTRICT"},
     {int(Qualifier::read), "READ"},
@@ -49,22 +46,23 @@ static const PyC_FlagSet pygpu_qualifiers[] = {
 };
 #endif
 
-#define PYDOC_TYPE_LIST \
-  "      - ``FLOAT``\n" \
-  "      - ``VEC2``\n" \
-  "      - ``VEC3``\n" \
-  "      - ``VEC4``\n" \
-  "      - ``MAT3``\n" \
-  "      - ``MAT4``\n" \
-  "      - ``UINT``\n" \
-  "      - ``UVEC2``\n" \
-  "      - ``UVEC3``\n" \
-  "      - ``UVEC4``\n" \
-  "      - ``INT``\n" \
-  "      - ``IVEC2``\n" \
-  "      - ``IVEC3``\n" \
-  "      - ``IVEC4``\n" \
-  "      - ``BOOL``\n"
+#define PYDOC_TYPE_LITERAL \
+  "Literal[" \
+  "'FLOAT', " \
+  "'VEC2', " \
+  "'VEC3', " \
+  "'VEC4', " \
+  "'MAT3', " \
+  "'MAT4', " \
+  "'UINT', " \
+  "'UVEC2', " \
+  "'UVEC3', " \
+  "'UVEC4', " \
+  "'INT', " \
+  "'IVEC2', " \
+  "'IVEC3', " \
+  "'IVEC4', " \
+  "'BOOL']"
 const PyC_StringEnumItems pygpu_attrtype_items[] = {
     {int(Type::float_t), "FLOAT"},
     {int(Type::float2_t), "VEC2"},
@@ -84,39 +82,40 @@ const PyC_StringEnumItems pygpu_attrtype_items[] = {
     {0, nullptr},
 };
 
-#define PYDOC_IMAGE_TYPES \
-  "      - ``FLOAT_BUFFER``\n" \
-  "      - ``FLOAT_1D``\n" \
-  "      - ``FLOAT_1D_ARRAY``\n" \
-  "      - ``FLOAT_2D``\n" \
-  "      - ``FLOAT_2D_ARRAY``\n" \
-  "      - ``FLOAT_3D``\n" \
-  "      - ``FLOAT_CUBE``\n" \
-  "      - ``FLOAT_CUBE_ARRAY``\n" \
-  "      - ``INT_BUFFER``\n" \
-  "      - ``INT_1D``\n" \
-  "      - ``INT_1D_ARRAY``\n" \
-  "      - ``INT_2D``\n" \
-  "      - ``INT_2D_ARRAY``\n" \
-  "      - ``INT_3D``\n" \
-  "      - ``INT_CUBE``\n" \
-  "      - ``INT_CUBE_ARRAY``\n" \
-  "      - ``UINT_BUFFER``\n" \
-  "      - ``UINT_1D``\n" \
-  "      - ``UINT_1D_ARRAY``\n" \
-  "      - ``UINT_2D``\n" \
-  "      - ``UINT_2D_ARRAY``\n" \
-  "      - ``UINT_3D``\n" \
-  "      - ``UINT_CUBE``\n" \
-  "      - ``UINT_CUBE_ARRAY``\n" \
-  "      - ``SHADOW_2D``\n" \
-  "      - ``SHADOW_2D_ARRAY``\n" \
-  "      - ``SHADOW_CUBE``\n" \
-  "      - ``SHADOW_CUBE_ARRAY``\n" \
-  "      - ``DEPTH_2D``\n" \
-  "      - ``DEPTH_2D_ARRAY``\n" \
-  "      - ``DEPTH_CUBE``\n" \
-  "      - ``DEPTH_CUBE_ARRAY``\n"
+#define PYDOC_IMAGE_TYPES_LITERAL \
+  "Literal[" \
+  "'FLOAT_BUFFER', " \
+  "'FLOAT_1D', " \
+  "'FLOAT_1D_ARRAY', " \
+  "'FLOAT_2D', " \
+  "'FLOAT_2D_ARRAY', " \
+  "'FLOAT_3D', " \
+  "'FLOAT_CUBE', " \
+  "'FLOAT_CUBE_ARRAY', " \
+  "'INT_BUFFER', " \
+  "'INT_1D', " \
+  "'INT_1D_ARRAY', " \
+  "'INT_2D', " \
+  "'INT_2D_ARRAY', " \
+  "'INT_3D', " \
+  "'INT_CUBE', " \
+  "'INT_CUBE_ARRAY', " \
+  "'UINT_BUFFER', " \
+  "'UINT_1D', " \
+  "'UINT_1D_ARRAY', " \
+  "'UINT_2D', " \
+  "'UINT_2D_ARRAY', " \
+  "'UINT_3D', " \
+  "'UINT_CUBE', " \
+  "'UINT_CUBE_ARRAY', " \
+  "'SHADOW_2D', " \
+  "'SHADOW_2D_ARRAY', " \
+  "'SHADOW_CUBE', " \
+  "'SHADOW_CUBE_ARRAY', " \
+  "'DEPTH_2D', " \
+  "'DEPTH_2D_ARRAY', " \
+  "'DEPTH_CUBE', " \
+  "'DEPTH_CUBE_ARRAY']"
 static const PyC_StringEnumItems pygpu_imagetype_items[] = {
     {int(ImageType::FloatBuffer), "FLOAT_BUFFER"},
     {int(ImageType::Float1D), "FLOAT_1D"},
@@ -174,51 +173,52 @@ static const PyC_StringEnumItems pygpu_depth_write_items[] = {
     {0, nullptr},
 };
 
-#define PYDOC_TEX_FORMAT_ITEMS \
-  "      - ``RGBA8UI``\n" \
-  "      - ``RGBA8I``\n" \
-  "      - ``RGBA8``\n" \
-  "      - ``RGBA32UI``\n" \
-  "      - ``RGBA32I``\n" \
-  "      - ``RGBA32F``\n" \
-  "      - ``RGBA16UI``\n" \
-  "      - ``RGBA16I``\n" \
-  "      - ``RGBA16F``\n" \
-  "      - ``RGBA16``\n" \
-  "      - ``RG8UI``\n" \
-  "      - ``RG8I``\n" \
-  "      - ``RG8``\n" \
-  "      - ``RG32UI``\n" \
-  "      - ``RG32I``\n" \
-  "      - ``RG32F``\n" \
-  "      - ``RG16UI``\n" \
-  "      - ``RG16I``\n" \
-  "      - ``RG16F``\n" \
-  "      - ``RG16``\n" \
-  "      - ``R8UI``\n" \
-  "      - ``R8I``\n" \
-  "      - ``R8``\n" \
-  "      - ``R32UI``\n" \
-  "      - ``R32I``\n" \
-  "      - ``R32F``\n" \
-  "      - ``R16UI``\n" \
-  "      - ``R16I``\n" \
-  "      - ``R16F``\n" \
-  "      - ``R16``\n" \
-  "      - ``R11F_G11F_B10F``\n" \
-  "      - ``DEPTH32F_STENCIL8``\n" \
-  "      - ``DEPTH24_STENCIL8`` (deprecated, use ``DEPTH32F_STENCIL8``)\n" \
-  "      - ``SRGB8_A8``\n" \
-  "      - ``RGB16F``\n" \
-  "      - ``SRGB8_A8_DXT1``\n" \
-  "      - ``SRGB8_A8_DXT3``\n" \
-  "      - ``SRGB8_A8_DXT5``\n" \
-  "      - ``RGBA8_DXT1``\n" \
-  "      - ``RGBA8_DXT3``\n" \
-  "      - ``RGBA8_DXT5``\n" \
-  "      - ``DEPTH_COMPONENT32F``\n" \
-  "      - ``DEPTH_COMPONENT24`` (deprecated, use ``DEPTH_COMPONENT32F``)\n" \
-  "      - ``DEPTH_COMPONENT16``\n"
+#define PYDOC_TEX_FORMAT_LITERAL \
+  "Literal[" \
+  "'RGBA8UI', " \
+  "'RGBA8I', " \
+  "'RGBA8', " \
+  "'RGBA32UI', " \
+  "'RGBA32I', " \
+  "'RGBA32F', " \
+  "'RGBA16UI', " \
+  "'RGBA16I', " \
+  "'RGBA16F', " \
+  "'RGBA16', " \
+  "'RG8UI', " \
+  "'RG8I', " \
+  "'RG8', " \
+  "'RG32UI', " \
+  "'RG32I', " \
+  "'RG32F', " \
+  "'RG16UI', " \
+  "'RG16I', " \
+  "'RG16F', " \
+  "'RG16', " \
+  "'R8UI', " \
+  "'R8I', " \
+  "'R8', " \
+  "'R32UI', " \
+  "'R32I', " \
+  "'R32F', " \
+  "'R16UI', " \
+  "'R16I', " \
+  "'R16F', " \
+  "'R16', " \
+  "'R11F_G11F_B10F', " \
+  "'DEPTH32F_STENCIL8', " \
+  "'DEPTH24_STENCIL8', " \
+  "'SRGB8_A8', " \
+  "'RGB16F', " \
+  "'SRGB8_A8_DXT1', " \
+  "'SRGB8_A8_DXT3', " \
+  "'SRGB8_A8_DXT5', " \
+  "'RGBA8_DXT1', " \
+  "'RGBA8_DXT3', " \
+  "'RGBA8_DXT5', " \
+  "'DEPTH_COMPONENT32F', " \
+  "'DEPTH_COMPONENT24', " \
+  "'DEPTH_COMPONENT16']"
 extern const PyC_StringEnumItems pygpu_tex_format_items[];
 
 /* -------------------------------------------------------------------- */
@@ -259,10 +259,9 @@ PyDoc_STRVAR(
     "\n"
     "   Add an attribute with qualifier of type *smooth* to the interface block.\n"
     "\n"
-    "   :param type: One of these types:\n"
-    "\n" PYDOC_TYPE_LIST
+    "   :param type: The data type of the attribute.\n"
+    "   :type type: " PYDOC_TYPE_LITERAL
     "\n"
-    "   :type type: str\n"
     "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_interface_info_smooth(BPyGPUStageInterfaceInfo *self, PyObject *args)
@@ -285,10 +284,9 @@ PyDoc_STRVAR(
     "\n"
     "   Add an attribute with qualifier of type ``flat`` to the interface block.\n"
     "\n"
-    "   :param type: One of these types:\n"
-    "\n" PYDOC_TYPE_LIST
+    "   :param type: The data type of the attribute.\n"
+    "   :type type: " PYDOC_TYPE_LITERAL
     "\n"
-    "   :type type: str\n"
     "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_interface_info_flat(BPyGPUStageInterfaceInfo *self, PyObject *args)
@@ -311,10 +309,9 @@ PyDoc_STRVAR(
     "\n"
     "   Add an attribute with qualifier of type ``no_perspective`` to the interface block.\n"
     "\n"
-    "   :param type: One of these types:\n"
-    "\n" PYDOC_TYPE_LIST
+    "   :param type: The data type of the attribute.\n"
+    "   :type type: " PYDOC_TYPE_LITERAL
     "\n"
-    "   :type type: str\n"
     "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_interface_info_no_perspective(BPyGPUStageInterfaceInfo *self,
@@ -530,10 +527,9 @@ PyDoc_STRVAR(
     "\n"
     "   :param slot: The attribute index.\n"
     "   :type slot: int\n"
-    "   :param type: One of these types:\n"
-    "\n" PYDOC_TYPE_LIST
+    "   :param type: The data type of the attribute.\n"
+    "   :type type: " PYDOC_TYPE_LITERAL
     "\n"
-    "   :type type: str\n"
     "   :param name: name of the attribute.\n"
     "   :type name: str\n");
 static PyObject *pygpu_shader_info_vertex_in(BPyGPUShaderCreateInfo *self, PyObject *args)
@@ -593,14 +589,13 @@ PyDoc_STRVAR(
     "\n"
     "   :param slot: The attribute index.\n"
     "   :type slot: int\n"
-    "   :param type: One of these types:\n"
-    "\n" PYDOC_TYPE_LIST
+    "   :param type: The data type of the output.\n"
+    "   :type type: " PYDOC_TYPE_LITERAL
     "\n"
-    "   :type type: str\n"
     "   :param name: Name of the attribute.\n"
     "   :type name: str\n"
-    "   :param blend: Dual Source Blending Index. It can be 'NONE', 'SRC_0' or 'SRC_1'.\n"
-    "   :type blend: str\n");
+    "   :param blend: Dual Source Blending Index.\n"
+    "   :type blend: Literal['NONE', 'SRC_0', 'SRC_1']\n");
 static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
                                                 PyObject *args,
                                                 PyObject *kwds)
@@ -658,22 +653,21 @@ PyDoc_STRVAR(
     "\n"
     "   This optimization does not affect the final rendering, and is typically\n"
     "   possible when the fragment does not change the depth programmatically.\n"
-    "   There are, however a class of operations on the depth in the shader which\n"
+    "   There is, however, a class of operations on the depth in the shader which\n"
     "   could still be performed while allowing the early depth test to operate.\n"
     "\n"
     "   This function alters the behavior of the optimization to allow those operations\n"
     "   to be performed.\n"
     "\n"
-    "   :param value: Depth write value. "
-    "It can be 'UNCHANGED' (default), 'ANY', 'GREATER' or 'LESS'.\n"
-    "      :UNCHANGED: disables depth write in a fragment shader and execution of the"
+    "   :param value: Depth write value.\n"
+    "      :UNCHANGED: disables depth write in a fragment shader and execution of the "
     "fragments can be optimized away.\n"
     "      :ANY: enables depth write in a fragment shader for any fragments\n"
-    "      :GREATER: enables depth write in a fragment shader for depth values that"
+    "      :GREATER: enables depth write in a fragment shader for depth values that "
     "are greater than the depth value in the output buffer.\n"
-    "      :LESS: enables depth write in a fragment shader for depth values that"
+    "      :LESS: enables depth write in a fragment shader for depth values that "
     "are less than the depth value in the output buffer.\n"
-    "   :type value: str\n");
+    "   :type value: Literal['UNCHANGED', 'ANY', 'GREATER', 'LESS']\n");
 static PyObject *pygpu_shader_info_depth_write(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
   PyC_StringEnum depth_write = {pygpu_depth_write_items, int(DepthWrite::UNCHANGED)};
@@ -734,22 +728,17 @@ PyDoc_STRVAR(
     "\n"
     "   :param slot: The image resource index.\n"
     "   :type slot: int\n"
-    "   :param format: The GPUTexture format that is passed to the shader. Possible "
-    "values are:\n"
-    "\n" PYDOC_TEX_FORMAT_ITEMS
-    "   :type format: str\n"
-    "   :param type: The data type describing how the image is to be read in the shader. "
-    "Possible values are:\n"
-    "\n" PYDOC_IMAGE_TYPES
+    "   :param format: The GPUTexture format that is passed to the shader.\n"
+    "   :type format: " PYDOC_TEX_FORMAT_LITERAL
     "\n"
-    "   :type type: str\n"
+    "   :param type: The data type describing how the image is to be read in the shader.\n"
+    "   :type type: " PYDOC_IMAGE_TYPES_LITERAL
+    "\n"
     "   :param name: The image resource name.\n"
     "   :type name: str\n"
     "   :param qualifiers: Set containing values that describe how the image resource is to be "
-    "read or written. Possible values are:\n"
-    "" PYDOC_QUALIFIERS
-    ""
-    "   :type qualifiers: set[str]\n");
+    "read or written.\n"
+    "   :type qualifiers: set[" PYDOC_QUALIFIERS_LITERAL "]\n");
 static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                          PyObject *args,
                                          PyObject *kwds)
@@ -831,11 +820,9 @@ PyDoc_STRVAR(
     "\n"
     "   :param slot: The image texture sampler index.\n"
     "   :type slot: int\n"
-    "   :param type: The data type describing the format of each sampler unit. Possible values "
-    "are:\n"
-    "\n" PYDOC_IMAGE_TYPES
+    "   :param type: The data type describing the format of each sampler unit.\n"
+    "   :type type: " PYDOC_IMAGE_TYPES_LITERAL
     "\n"
-    "   :type type: str\n"
     "   :param name: The image texture sampler name.\n"
     "   :type name: str\n");
 static PyObject *pygpu_shader_info_sampler(BPyGPUShaderCreateInfo *self, PyObject *args)
@@ -954,10 +941,9 @@ PyDoc_STRVAR(
     "\n"
     "   Specify a global access constant.\n"
     "\n"
-    "   :param type: One of these types:\n"
-    "\n" PYDOC_TYPE_LIST
+    "   :param type: The data type of the constant.\n"
+    "   :type type: " PYDOC_TYPE_LITERAL
     "\n"
-    "   :type type: str\n"
     "   :param name: Name of the constant.\n"
     "   :type name: str\n"
     "   :param size: If not zero, indicates that the constant is an array "
@@ -1016,7 +1002,7 @@ PyDoc_STRVAR(
     "\n"
     "   .. code-block:: python\n"
     "\n"
-    "      \"void main {gl_Position = vec4(pos, 1.0);}\"\n"
+    "      \"void main() {gl_Position = vec4(pos, 1.0);}\"\n"
     "\n"
     "   :param source: The vertex shader source code.\n"
     "   :type source: str\n"
@@ -1104,7 +1090,7 @@ PyDoc_STRVAR(
     "\n"
     "   .. code-block:: python\n"
     "\n"
-    "      \"void main {fragColor = vec4(0.0, 0.0, 0.0, 1.0);}\"\n"
+    "      \"void main() {fragColor = vec4(0.0, 0.0, 0.0, 1.0);}\"\n"
     "\n"
     "   :param source: The fragment shader source code.\n"
     "   :type source: str\n"

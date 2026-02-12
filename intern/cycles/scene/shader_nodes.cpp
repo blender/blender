@@ -928,6 +928,10 @@ void SkyTextureNode::simplify_settings(Scene * /* scene */)
 
   sun_elevation = new_sun_elevation;
   sun_rotation = new_sun_rotation;
+
+  if (is_modified()) {
+    handle.clear();
+  }
 }
 
 void SkyTextureNode::compile(SVMCompiler &compiler)

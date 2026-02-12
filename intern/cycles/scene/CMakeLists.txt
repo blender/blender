@@ -88,34 +88,24 @@ set(SRC_HEADERS
 )
 
 set(LIB
-  cycles_bvh
-  cycles_device
-  cycles_integrator
-  cycles_subd
-  cycles_util
+  PUBLIC cycles_bvh
+  PUBLIC cycles_device
+  PUBLIC cycles_integrator
+  PUBLIC cycles_subd
+  PUBLIC cycles_util
+  PRIVATE bf::dependencies::optional::openvdb
+  PRIVATE bf::dependencies::optional::nanovdb
 )
 
 if(CYCLES_STANDALONE_REPOSITORY)
-  list(APPEND LIB extern_sky)
+  list(APPEND LIB PRIVATE extern_sky)
 else()
-  list(APPEND LIB bf_intern_sky)
+  list(APPEND LIB PRIVATE bf_intern_sky)
 endif()
 
 if(WITH_CYCLES_OSL)
   list(APPEND LIB
-    cycles_kernel_osl
-  )
-endif()
-
-if(WITH_OPENVDB)
-  list(APPEND LIB
-    bf::dependencies::optional::openvdb
-  )
-endif()
-
-if(WITH_NANOVDB)
-  list(APPEND INC_SYS
-    ${NANOVDB_INCLUDE_DIRS}
+    PRIVATE cycles_kernel_osl
   )
 endif()
 

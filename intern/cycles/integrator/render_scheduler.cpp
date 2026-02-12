@@ -355,6 +355,9 @@ RenderWork RenderScheduler::get_render_work()
   render_work.adaptive_sampling.threshold = work_adaptive_threshold();
   render_work.adaptive_sampling.reset = false;
 
+  /* Denoise volume guiding at power of two samples, but not needed when done. */
+  render_work.volume_guiding_denoise = is_power_of_two(state_.num_rendered_samples) && !done();
+
   bool denoiser_delayed;
   bool denoiser_ready_to_display;
   render_work.tile.denoise = work_need_denoise(denoiser_delayed, denoiser_ready_to_display);
@@ -989,20 +992,6 @@ float RenderScheduler::work_adaptive_threshold() const
   }
 
   return max(state_.adaptive_sampling_threshold, adaptive_sampling_.threshold);
-}
-
-bool RenderScheduler::volume_guiding_need_denoise() const
-{
-  if (!is_power_of_two(get_num_rendered_samples())) {
-    return false;
-  }
-
-  if (done()) {
-    /* No need to denoise after the last sample. */
-    return false;
-  }
-
-  return true;
 }
 
 bool RenderScheduler::work_need_denoise(bool &delayed, bool &ready_to_display)

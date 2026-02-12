@@ -307,6 +307,16 @@ static void panel_delete(ARegion *region, ListBaseT<Panel> *panels, Panel *panel
   BKE_panel_free(panel);
 }
 
+static void panel_exit_state_recursive(const bContext *C, Panel &panel)
+{
+  if (panel.activedata != nullptr) {
+    panel_activate_state(C, &panel, PANEL_STATE_EXIT);
+  }
+  for (Panel &child : panel.children) {
+    panel_exit_state_recursive(C, child);
+  }
+}
+
 void panels_free_instanced(const bContext *C, ARegion *region)
 {
   /* Delete panels with the instanced flag. */
@@ -317,9 +327,10 @@ void panels_free_instanced(const bContext *C, ARegion *region)
     if ((panel.type->flag & PANEL_TYPE_INSTANCED) == 0) {
       continue;
     }
-    /* Make sure the panel's handler is removed before deleting it. */
-    if (C != nullptr && panel.activedata != nullptr) {
-      panel_activate_state(C, &panel, PANEL_STATE_EXIT);
+    /* Make sure any active handler is removed from this this panel or its children before deleting
+     * them. */
+    if (C != nullptr) {
+      panel_exit_state_recursive(C, panel);
     }
 
     /* Free panel's custom data. */
@@ -859,9 +870,9 @@ static void ui_offset_panel_block(Block *block)
 
   const int ofsy = block->panel->sizey - style->panelspace;
 
-  for (const std::unique_ptr<Button> &but : block->buttons) {
-    but->rect.ymin += ofsy;
-    but->rect.ymax += ofsy;
+  for (Button &but : block->buttons()) {
+    but.rect.ymin += ofsy;
+    but.rect.ymax += ofsy;
   }
 
   block->rect.xmax = block->panel->sizex;
@@ -940,8 +951,8 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
   if (parent_panel != nullptr && panel_is_closed(parent_panel)) {
     /* The parent panel is closed, so this panel can be completely removed. */
     block_set_search_only(block, true);
-    for (const std::unique_ptr<Button> &but : block->buttons) {
-      but->flag |= UI_HIDDEN;
+    for (Button &but : block->buttons()) {
+      but.flag |= UI_HIDDEN;
     }
   }
   else if (panel_is_closed(panel)) {
@@ -1908,8 +1919,11 @@ static void ui_do_animate(bContext *C, Panel *panel)
   HandlePanelData *data = static_cast<HandlePanelData *>(panel->activedata);
   ARegion *region = CTX_wm_region(C);
 
-  float fac = (BLI_time_now_seconds() - data->starttime) / ANIMATION_TIME;
-  fac = min_ff(sqrtf(fac), 1.0f);
+  float fac = 1.0f;
+  if (!(U.uiflag & USER_REDUCE_MOTION)) {
+    fac = (BLI_time_now_seconds() - data->starttime) / ANIMATION_TIME;
+    fac = min_ff(sqrtf(fac), 1.0f);
+  }
 
   if (uiAlignPanelStep(region, fac, false)) {
     ED_region_tag_redraw(region);

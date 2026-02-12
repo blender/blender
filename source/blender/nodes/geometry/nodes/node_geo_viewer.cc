@@ -226,7 +226,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     auto &input_decl = b.add_input(socket_type, name, identifier)
                            .socket_name_ptr(
                                &tree->id, *GeoViewerItemsAccessor::item_srna, &item, "name");
-    if (socket_type_supports_fields(socket_type)) {
+    if (socket_type_supports_attributes(socket_type)) {
       input_decl.field_on_all();
     }
     input_decl.structure_type(StructureType::Dynamic);
@@ -257,7 +257,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
     if (socket_type == SOCK_GEOMETRY) {
       has_geometry_input = true;
     }
-    else if (socket_type_supports_fields(socket_type)) {
+    else if (socket_type_supports_attributes(socket_type)) {
       has_potential_field_input = true;
     }
   }
@@ -323,7 +323,7 @@ static void log_viewer_attribute(const bNode &node, geo_eval_log::ViewerNodeLog 
     if (!last_geometry_identifier) {
       continue;
     }
-    if (!socket_type_supports_fields(type.type)) {
+    if (!socket_type_supports_attributes(type.type)) {
       continue;
     }
     /* Changing the `value` field doesn't change the hash or equality of the item. */

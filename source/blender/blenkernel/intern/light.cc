@@ -108,7 +108,7 @@ static void light_free_data(ID *id)
     la->nodetree = nullptr;
   }
 
-  BKE_previewimg_free(&la->preview);
+  BKE_previewimg_id_free(&la->id);
   BKE_icon_id_delete(&la->id);
   la->id.icon_id = 0;
 }
@@ -168,34 +168,34 @@ static void light_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_LA = {
-    /*id_code*/ Light::id_type,
-    /*id_filter*/ FILTER_ID_LA,
-    /*dependencies_id_types*/ FILTER_ID_TE,
-    /*main_listbase_index*/ INDEX_ID_LA,
-    /*struct_size*/ sizeof(Light),
-    /*name*/ "Light",
-    /*name_plural*/ N_("lights"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_LIGHT,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = Light::id_type,
+    .id_filter = FILTER_ID_LA,
+    .dependencies_id_types = FILTER_ID_TE,
+    .main_listbase_index = INDEX_ID_LA,
+    .struct_size = sizeof(Light),
+    .name = "Light",
+    .name_plural = N_("lights"),
+    .translation_context = BLT_I18NCONTEXT_ID_LIGHT,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ light_init_data,
-    /*copy_data*/ light_copy_data,
-    /*free_data*/ light_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ light_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ light_foreach_working_space_color,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = light_init_data,
+    .copy_data = light_copy_data,
+    .free_data = light_free_data,
+    .make_local = nullptr,
+    .foreach_id = light_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = light_foreach_working_space_color,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ light_blend_write,
-    /*blend_read_data*/ light_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = light_blend_write,
+    .blend_read_data = light_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 Light *BKE_light_add(Main *bmain, const char *name)

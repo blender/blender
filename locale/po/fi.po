@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -3077,6 +3077,14 @@ msgid "Show Lasso"
 msgstr "Näytä lasso"
 
 
+msgid "Stroke"
+msgstr "Piirto"
+
+
+msgid "Fill"
+msgstr "Täytä"
+
+
 msgid "Active Layer"
 msgstr "Aktiivinen taso"
 
@@ -3177,16 +3185,8 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Määritteen miten kärkiväri vaikuttaa viivoihin"
 
 
-msgid "Stroke"
-msgstr "Piirto"
-
-
 msgid "Vertex Color affects to Stroke only"
 msgstr "Kärkiväri vaikuttaa ainoastaan viivaan"
-
-
-msgid "Fill"
-msgstr "Täytä"
 
 
 msgid "Vertex Color affects to Fill only"
@@ -7248,22 +7248,6 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Math"
-msgstr "Matematiikka"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
 msgid "Read"
 msgstr "Lue"
 
@@ -7272,36 +7256,44 @@ msgid "Write"
 msgstr "Kirjoita"
 
 
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
 msgid "Names"
 msgstr "Nimet"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Metaball"
+msgstr "Metapallo"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
+msgid "Random Mask"
+msgstr "Satunnainen maski"
 
 
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
+msgid "Hooks"
+msgstr "Koukut"
 
 
 msgid "Utilities"
 msgstr "Työkalut"
 
 
+msgid "Math"
+msgstr "Matematiikka"
+
+
 msgid "Light"
 msgstr "Valo"
+
+
+msgid "Track"
+msgstr "Raide"
 
 
 msgid "Light Probe"
@@ -7312,20 +7304,24 @@ msgid "Add Image"
 msgstr "Lisää kuva"
 
 
-msgid "Track"
-msgstr "Raide"
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Hooks"
-msgstr "Koukut"
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Instances"
@@ -7334,6 +7330,10 @@ msgstr "Instanssit"
 
 msgid "Import"
 msgstr "Tuo"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Basic"
@@ -13708,10 +13708,6 @@ msgstr "Harnaa"
 
 msgid "Eyes"
 msgstr "Silmät"
-
-
-msgid "Pupils"
-msgstr "Pupillit"
 
 
 msgid "Nothing selected"

@@ -234,7 +234,7 @@ static void action_free_data(ID *id)
 
   /* Free markers & preview. */
   BLI_freelistN(&action.markers);
-  BKE_previewimg_free(&action.preview);
+  BKE_previewimg_id_free(&action.id);
 
   BLI_assert(action.is_empty());
 }
@@ -738,38 +738,38 @@ static AssetTypeInfo AssetType_AC = {
 }  // namespace bke
 
 IDTypeInfo IDType_ID_AC = {
-    /*id_code*/ bAction::id_type,
-    /*id_filter*/ FILTER_ID_AC,
+    .id_code = bAction::id_type,
+    .id_filter = FILTER_ID_AC,
 
     /* This value will be set dynamically in `BKE_idtype_init()` to only include
      * animatable ID types (see `animrig::Slot::users()`). */
-    /*dependencies_id_types*/ FILTER_ID_ALL,
+    .dependencies_id_types = FILTER_ID_ALL,
 
-    /*main_listbase_index*/ INDEX_ID_AC,
-    /*struct_size*/ sizeof(bAction),
-    /*name*/ "Action",
-    /*name_plural*/ "actions",
-    /*translation_context*/ BLT_I18NCONTEXT_ID_ACTION,
-    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
-    /*asset_type_info*/ &bke::AssetType_AC,
+    .main_listbase_index = INDEX_ID_AC,
+    .struct_size = sizeof(bAction),
+    .name = "Action",
+    .name_plural = "actions",
+    .translation_context = BLT_I18NCONTEXT_ID_ACTION,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = &bke::AssetType_AC,
 
-    /*init_data*/ bke::action_init_data,
-    /*copy_data*/ bke::action_copy_data,
-    /*free_data*/ bke::action_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ bke::action_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = bke::action_init_data,
+    .copy_data = bke::action_copy_data,
+    .free_data = bke::action_free_data,
+    .make_local = nullptr,
+    .foreach_id = bke::action_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ bke::action_blend_write,
-    /*blend_read_data*/ bke::action_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = bke::action_blend_write,
+    .blend_read_data = bke::action_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /* ***************** Library data level operations on action ************** */

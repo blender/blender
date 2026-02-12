@@ -39,7 +39,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &input_value = b.add_input(data_type, "Value").hide_value();
   auto &output_value = b.add_output(data_type, "Value").align_with_previous();
 
-  if (nodes::socket_type_supports_fields(data_type)) {
+  if (socket_type_supports_attributes(data_type)) {
     input_value.supports_field();
     output_value.dependent_field().reference_pass_all();
   }

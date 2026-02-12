@@ -176,7 +176,7 @@ static BMOpDefine bmo_smooth_vert_def = {
 /*
  * Vertex Smooth Laplacian.
  *
- * Smooths vertices by using Laplacian smoothing propose by.
+ * Smooths vertices by using Laplacian smoothing proposed by
  * Desbrun, et al. Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow.
  */
 static BMOpDefine bmo_smooth_laplacian_vert_def = {
@@ -441,7 +441,7 @@ static BMOpDefine bmo_mirror_def = {
 /*
  * Find Doubles.
  *
- * Takes input verts and find vertices they should weld to.
+ * Takes input verts and finds vertices they should weld to.
  * Outputs a mapping slot suitable for use with the weld verts BMOP.
  *
  * If keep_verts is used, vertices outside that set can only be merged
@@ -487,7 +487,7 @@ static BMOpDefine bmo_remove_doubles_def = {
         {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         /* Limit the search for doubles by connected geometry. */
         {"use_connected", BMO_OP_SLOT_BOOL},
-        /* Minimum distance. */
+        /* Maximum distance. */
         {"dist", BMO_OP_SLOT_FLT},
         {{'\0'}},
     },
@@ -1024,7 +1024,7 @@ static BMOpDefine bmo_translate_def = {
 /*
  * Scale.
  *
- * Scales vertices by an offset.
+ * Scales vertices by a factor.
  */
 static BMOpDefine bmo_scale_def = {
     /*opname*/ "scale",
@@ -1084,7 +1084,7 @@ static BMOpDefine bmo_object_load_bmesh_def = {
     /*opname*/ "object_load_bmesh",
     /*slot_types_in*/
     {
-        /* Pointer to an scene structure. */
+        /* Pointer to a scene structure. */
         {"scene", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_SCENE)},
 
         /* Pointer to an object structure. */
@@ -1184,7 +1184,7 @@ static BMOpDefine bmo_extrude_edge_only_def = {
     /*opname*/ "extrude_edge_only",
     /*slot_types_in*/
     {
-        /* Input vertices. */
+        /* Input edges. */
         {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         /* Create faces with reversed direction. */
         {"use_normal_flip", BMO_OP_SLOT_BOOL},
@@ -1285,9 +1285,9 @@ static BMOpDefine bmo_connect_verts_concave_def = {
 };
 
 /*
- * Connect Verts Across non Planer Faces.
+ * Connect Verts Across non Planar Faces.
  *
- * Split faces by connecting edges along non planer **faces**.
+ * Split faces by connecting edges along non planar **faces**.
  */
 static BMOpDefine bmo_connect_verts_nonplanar_def = {
     /*opname*/ "connect_verts_nonplanar",
@@ -1692,7 +1692,7 @@ static BMOpDefine bmo_subdivide_edgering_def = {
     /*opname*/ "subdivide_edgering",
     /*slot_types_in*/
     {
-        /* Input vertices. */
+        /* Input edges. */
         {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         /* Interpolation method. */
         {"interp_mode",
@@ -1744,9 +1744,9 @@ static BMOpDefine bmo_bisect_plane_def = {
         {"plane_no", BMO_OP_SLOT_VEC},
         /* Snap axis aligned verts to the center. */
         {"use_snap_center", BMO_OP_SLOT_BOOL},
-        /* When enabled. remove all geometry on the positive side of the plane. */
+        /* When enabled, remove all geometry on the positive side of the plane. */
         {"clear_outer", BMO_OP_SLOT_BOOL},
-        /* When enabled. remove all geometry on the negative side of the plane. */
+        /* When enabled, remove all geometry on the negative side of the plane. */
         {"clear_inner", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -1815,7 +1815,7 @@ static BMOpDefine bmo_duplicate_def = {
     {
         /* Input geometry. */
         {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-        /* Destination bmesh, if None will use current on. */
+        /* Destination bmesh, if None will use current one. */
         {"dest", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_BMESH)},
         {"use_select_history", BMO_OP_SLOT_BOOL},
         {"use_edge_flip_from_face", BMO_OP_SLOT_BOOL},
@@ -1867,7 +1867,7 @@ static BMOpDefine bmo_split_def = {
         {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         /* Destination bmesh, if None will use current one. */
         {"dest", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_BMESH)},
-        /* When enabled. don't duplicate loose verts/edges. */
+        /* When enabled, don't duplicate loose verts/edges. */
         {"use_only_faces", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -1920,7 +1920,7 @@ static BMOpDefine bmo_spin_def = {
         {"use_merge", BMO_OP_SLOT_BOOL},
         /* Create faces with reversed direction. */
         {"use_normal_flip", BMO_OP_SLOT_BOOL},
-        /* Duplicate or extrude?. */
+        /* Duplicate the geometry, otherwise extrude. */
         {"use_duplicate", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -2091,7 +2091,7 @@ static BMOpDefine bmo_create_grid_def = {
 /*
  * Create UV Sphere.
  *
- * Creates a grid with a variable number of subdivisions
+ * Creates a UV sphere with a variable number of subdivisions.
  */
 static BMOpDefine bmo_create_uvsphere_def = {
     /*opname*/ "create_uvsphere",
@@ -2099,7 +2099,7 @@ static BMOpDefine bmo_create_uvsphere_def = {
     {
         /* Number of u segments. */
         {"u_segments", BMO_OP_SLOT_INT},
-        /* Number of v segment. */
+        /* Number of v segments. */
         {"v_segments", BMO_OP_SLOT_INT},
         /* Radius. */
         {"radius", BMO_OP_SLOT_FLT},
@@ -2123,7 +2123,7 @@ static BMOpDefine bmo_create_uvsphere_def = {
 /*
  * Create Ico-Sphere.
  *
- * Creates a grid with a variable number of subdivisions
+ * Creates an ico-sphere with a variable number of subdivisions.
  */
 static BMOpDefine bmo_create_icosphere_def = {
     /*opname*/ "create_icosphere",
@@ -2193,7 +2193,7 @@ static BMOpDefine bmo_create_cone_def = {
         {"segments", BMO_OP_SLOT_INT},
         /* Radius of one end. */
         {"radius1", BMO_OP_SLOT_FLT},
-        /* Radius of the opposite. */
+        /* Radius of the opposite end. */
         {"radius2", BMO_OP_SLOT_FLT},
         /* Distance between ends. */
         {"depth", BMO_OP_SLOT_FLT},
@@ -2370,12 +2370,12 @@ static BMOpDefine bmo_bevel_def = {
          BMO_OP_SLOT_INT,
          to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
          bmo_enum_bevel_miter_type},
-        /* Outer miter kind. */
+        /* Inner miter kind. */
         {"miter_inner",
          BMO_OP_SLOT_INT,
          to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
          bmo_enum_bevel_miter_type},
-        /* Amount to offset beveled edge. */
+        /* Amount to spread the miter. */
         {"spread", BMO_OP_SLOT_FLT},
         /* CurveProfile, if None ignored */
         {"custom_profile", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_STRUCT)},

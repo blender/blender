@@ -52,6 +52,24 @@
 
 #include "CLG_log.h"
 
+/* Doc-string Literal types. */
+
+#define PYDOC_INSERTKEY_OPTIONS_LITERAL \
+  "Literal[" \
+  "'INSERTKEY_NEEDED', " \
+  "'INSERTKEY_VISUAL', " \
+  "'INSERTKEY_REPLACE', " \
+  "'INSERTKEY_AVAILABLE', " \
+  "'INSERTKEY_CYCLE_AWARE']"
+#define PYDOC_KEYTYPE_LITERAL \
+  "Literal[" \
+  "'KEYFRAME', " \
+  "'BREAKDOWN', " \
+  "'MOVING_HOLD', " \
+  "'EXTREME', " \
+  "'JITTER', " \
+  "'GENERATED']"
+
 namespace blender {
 
 /* for keyframes and drivers */
@@ -292,7 +310,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
 }
 
 char pyrna_struct_keyframe_insert_doc[] =
-    ".. method:: keyframe_insert(data_path, /, *, index=-1, "
+    ".. method:: keyframe_insert(data_path, *, index=-1, "
     "frame=bpy.context.scene.frame_current, "
     "group=\"\", options=set(), keytype='KEYFRAME')\n"
     "\n"
@@ -320,10 +338,11 @@ char pyrna_struct_keyframe_insert_doc[] =
     "      - ``INSERTKEY_AVAILABLE`` Only insert into already existing F-Curves.\n"
     "      - ``INSERTKEY_CYCLE_AWARE`` Take cyclic extrapolation into account "
     "(Cycle-Aware Keying option).\n"
-    "   :type options: set[str]\n"
-    "   :param keytype: Type of the key: 'KEYFRAME', 'BREAKDOWN', 'MOVING_HOLD', 'EXTREME', "
-    "'JITTER', or 'GENERATED'\n"
-    "   :type keytype: str\n"
+    "   :type options: set[" PYDOC_INSERTKEY_OPTIONS_LITERAL
+    "]\n"
+    "   :param keytype: Type of the key.\n"
+    "   :type keytype: " PYDOC_KEYTYPE_LITERAL
+    "\n"
     "   :return: Success of keyframe insertion.\n"
     "   :rtype: bool\n";
 PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyObject *kw)
@@ -448,7 +467,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 }
 
 char pyrna_struct_keyframe_delete_doc[] =
-    ".. method:: keyframe_delete(data_path, /, *, index=-1, "
+    ".. method:: keyframe_delete(data_path, *, index=-1, "
     "frame=bpy.context.scene.frame_current, "
     "group=\"\")\n"
     "\n"

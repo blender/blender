@@ -48,23 +48,8 @@ std::unique_ptr<Config> LibOCIOConfig::create_from_environment()
   return nullptr;
 }
 
-std::unique_ptr<Config> LibOCIOConfig::create_from_file(const StringRefNull filename)
-{
-  try {
-    OCIO_NAMESPACE::ConstConfigRcPtr ocio_config = OCIO_NAMESPACE::Config::CreateFromFile(
-        filename.c_str());
-    if (!ocio_config) {
-      return nullptr;
-    }
-
-    return std::unique_ptr<LibOCIOConfig>(new LibOCIOConfig(ocio_config));
-  }
-  catch (OCIO_NAMESPACE::Exception &exception) {
-    report_exception(exception);
-  }
-
-  return nullptr;
-}
+/* Note there is no CreateFromFile based method here, as it has issues with paths
+ * containing "$" due to the variable expansion feature. */
 
 LibOCIOConfig::LibOCIOConfig(const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config)
 {

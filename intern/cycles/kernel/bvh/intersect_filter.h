@@ -174,7 +174,7 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
    * NOTE: Currently, spatial splits are not used with OptiX, so there is no need to check whether
    * the intersection has been already recorded. */
 #  if !defined(__KERNEL_OPTIX__)
-  if constexpr (enabled_primitive_types & (PRIMITIVE_ALL & ~PRIMITIVE_CURVE)) {
+  if constexpr ((enabled_primitive_types & (PRIMITIVE_ALL & ~PRIMITIVE_CURVE)) != 0) {
     if ((isect.type & PRIMITIVE_CURVE) == 0) {
       if (intersection_skip_shadow_already_recoded(
               state, isect.object, isect.prim, num_recorded_hits))
@@ -195,7 +195,7 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
   }
 
 #  if defined(__HAIR__)
-  if constexpr (enabled_primitive_types & PRIMITIVE_CURVE) {
+  if constexpr ((enabled_primitive_types & PRIMITIVE_CURVE) != 0) {
     /* Always use baked shadow transparency for curves. */
     if (isect.type & PRIMITIVE_CURVE) {
       payload.throughput *= intersection_curve_shadow_transparency(
@@ -217,7 +217,7 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
 
   /* If the filter function only handles curves, it is known for the fact that nothing is to be
    * recorded: curves accumulated baked transparency. Skip this code for a curve-only case. */
-  if constexpr (enabled_primitive_types & (PRIMITIVE_ALL & ~PRIMITIVE_CURVE)) {
+  if constexpr ((enabled_primitive_types & (PRIMITIVE_ALL & ~PRIMITIVE_CURVE)) != 0) {
     /* Always increase the number of recorded hits, even beyond the maximum, so that we can detect
      * this and trace another ray if needed. */
     num_recorded_hits += 1;

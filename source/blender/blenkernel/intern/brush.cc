@@ -171,7 +171,7 @@ static void brush_free_data(ID *id)
 
   MEM_SAFE_DELETE(brush->gradient);
 
-  BKE_previewimg_free(&(brush->preview));
+  BKE_previewimg_id_free(&brush->id);
 }
 
 static void brush_make_local(Main *bmain, ID *id, const int flags)
@@ -518,35 +518,34 @@ static AssetTypeInfo AssetType_BR = {
 };
 
 IDTypeInfo IDType_ID_BR = {
-    /*id_code*/ Brush::id_type,
-    /*id_filter*/ FILTER_ID_BR,
-    /*dependencies_id_types*/
-    (FILTER_ID_IM | FILTER_ID_PC | FILTER_ID_TE | FILTER_ID_MA),
-    /*main_listbase_index*/ INDEX_ID_BR,
-    /*struct_size*/ sizeof(Brush),
-    /*name*/ "Brush",
-    /*name_plural*/ N_("brushes"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_BRUSH,
-    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NO_MEMFILE_UNDO,
-    /*asset_type_info*/ &AssetType_BR,
+    .id_code = Brush::id_type,
+    .id_filter = FILTER_ID_BR,
+    .dependencies_id_types = (FILTER_ID_IM | FILTER_ID_PC | FILTER_ID_TE | FILTER_ID_MA),
+    .main_listbase_index = INDEX_ID_BR,
+    .struct_size = sizeof(Brush),
+    .name = "Brush",
+    .name_plural = N_("brushes"),
+    .translation_context = BLT_I18NCONTEXT_ID_BRUSH,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NO_MEMFILE_UNDO,
+    .asset_type_info = &AssetType_BR,
 
-    /*init_data*/ brush_init_data,
-    /*copy_data*/ brush_copy_data,
-    /*free_data*/ brush_free_data,
-    /*make_local*/ brush_make_local,
-    /*foreach_id*/ brush_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ brush_foreach_working_space_color,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = brush_init_data,
+    .copy_data = brush_copy_data,
+    .free_data = brush_free_data,
+    .make_local = brush_make_local,
+    .foreach_id = brush_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = brush_foreach_working_space_color,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ brush_blend_write,
-    /*blend_read_data*/ brush_blend_read_data,
-    /*blend_read_after_liblink*/ brush_blend_read_after_liblink,
+    .blend_write = brush_blend_write,
+    .blend_read_data = brush_blend_read_data,
+    .blend_read_after_liblink = brush_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 static RNG *brush_rng;

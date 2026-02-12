@@ -58,12 +58,6 @@ class Config {
   static std::unique_ptr<Config> create_from_environment();
 
   /**
-   * Create OpenColorIO configuration using configuration from the given configuration file.
-   * If there is an error creating the configuration nullptr is returned.
-   */
-  static std::unique_ptr<Config> create_from_file(StringRefNull filename);
-
-  /**
    * Create fallback implementation which is always guaranteed to work.
    *
    * It is used in cases actual OpenColorIO configuration has failed to be created so that Blender

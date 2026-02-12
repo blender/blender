@@ -10,6 +10,7 @@ namespace blender::nodes::node_fn_slice_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_input<decl::String>("String").optional_label();

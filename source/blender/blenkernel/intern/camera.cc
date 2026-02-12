@@ -250,34 +250,34 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_CA = {
-    /*id_code*/ Camera::id_type,
-    /*id_filter*/ FILTER_ID_CA,
-    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_IM,
-    /*main_listbase_index*/ INDEX_ID_CA,
-    /*struct_size*/ sizeof(Camera),
-    /*name*/ "Camera",
-    /*name_plural*/ N_("cameras"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_CAMERA,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = Camera::id_type,
+    .id_filter = FILTER_ID_CA,
+    .dependencies_id_types = FILTER_ID_OB | FILTER_ID_IM,
+    .main_listbase_index = INDEX_ID_CA,
+    .struct_size = sizeof(Camera),
+    .name = "Camera",
+    .name_plural = N_("cameras"),
+    .translation_context = BLT_I18NCONTEXT_ID_CAMERA,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ camera_init_data,
-    /*copy_data*/ camera_copy_data,
-    /*free_data*/ camera_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ camera_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ camera_foreach_path,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = camera_init_data,
+    .copy_data = camera_copy_data,
+    .free_data = camera_free_data,
+    .make_local = nullptr,
+    .foreach_id = camera_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = camera_foreach_path,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ camera_blend_write,
-    /*blend_read_data*/ camera_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = camera_blend_write,
+    .blend_read_data = camera_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /** \} */
@@ -403,6 +403,11 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
   else {
     params->lens = 35.0f;
   }
+
+  /* Ensure it's possible to compute a valid projection matrix. */
+  params->lens = math::max(params->lens, 1e-9f);
+  params->ortho_scale = math::max(params->ortho_scale, 1e-9f);
+  params->clip_end = math::max(params->clip_end, params->clip_start + 1e-3f);
 }
 
 void BKE_camera_params_from_view3d(CameraParams *params,
@@ -447,6 +452,11 @@ void BKE_camera_params_from_view3d(CameraParams *params,
     /* perspective view */
     params->zoom = CAMERA_PARAM_ZOOM_INIT_PERSP;
   }
+
+  /* Ensure it's possible to compute a valid projection matrix. */
+  params->lens = math::max(params->lens, 1e-9f);
+  params->ortho_scale = math::max(params->ortho_scale, 1e-9f);
+  params->clip_end = math::max(params->clip_end, params->clip_start + 1e-3f);
 }
 
 void BKE_camera_params_compute_viewplane(

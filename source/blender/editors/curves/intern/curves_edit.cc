@@ -676,35 +676,39 @@ void resize_curves(bke::CurvesGeometry &curves,
   const bke::AttributeAccessor src_attributes = curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
-      return;
-    }
     if (iter.domain != bke::AttrDomain::Point) {
       return;
     }
-    const GVArraySpan src = *iter.get();
+    const GVArray src = *iter.get();
     const CPPType &type = src.type();
+    const CommonVArrayInfo info = src.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(type, info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
     if (!dst) {
       return;
     }
-
+    const GVArraySpan src_span(src);
     curves_to_resize.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange src_points = src_offsets[curve_i];
       const IndexRange dst_points = dst_offsets[curve_i];
       if (dst_points.size() < src_points.size()) {
         const int src_excees = src_points.size() - dst_points.size();
-        dst.span.slice(dst_points).copy_from(src.slice(src_points.drop_back(src_excees)));
+        dst.span.slice(dst_points).copy_from(src_span.slice(src_points.drop_back(src_excees)));
       }
       else {
         const int dst_excees = dst_points.size() - src_points.size();
-        dst.span.slice(dst_points.drop_back(dst_excees)).copy_from(src.slice(src_points));
+        dst.span.slice(dst_points.drop_back(dst_excees)).copy_from(src_span.slice(src_points));
         GMutableSpan dst_end_slice = dst.span.slice(dst_points.take_back(dst_excees));
         type.value_initialize_n(dst_end_slice.data(), dst_end_slice.size());
       }
     });
-    array_utils::copy_group_to_group(src_offsets, dst_offsets, curves_to_copy, src, dst.span);
+    array_utils::copy_group_to_group(src_offsets, dst_offsets, curves_to_copy, src_span, dst.span);
     dst.finish();
   });
 

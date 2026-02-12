@@ -122,7 +122,6 @@ if platform.system() == "Darwin":
 
 BLOCKLIST_GPU = [
     # Uninvestigated differences with GPU.
-    'image_log.blend',
     'glass_mix_40964.blend',
     'filter_glossy_refraction_45609.blend',
     'bevel_mblur.blend',

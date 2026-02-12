@@ -81,6 +81,11 @@ class Instance : public DrawEngine {
         BKE_image_release_ibuf(this->state.image, buffer, is_viewer ? lock : nullptr);
       });
 
+      /* The image buffer already have a GPU texture, so use image space drawing. */
+      if (buffer && buffer->gpu.texture) {
+        return std::make_unique<ImageSpaceDrawingMode>(*this);
+      }
+
       /* Buffer does not exist or image will not fit in a GPU texture, use screen space drawing. */
       if (!buffer || (!buffer->float_buffer.data && !buffer->byte_buffer.data) ||
           !GPU_is_safe_texture_size(buffer->x, buffer->y))

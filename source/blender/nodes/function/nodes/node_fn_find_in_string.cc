@@ -10,6 +10,7 @@ namespace blender::nodes::node_fn_find_in_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::String>("String").optional_label();
   b.add_input<decl::String>("Search");
   b.add_output<decl::Int>("First Found");

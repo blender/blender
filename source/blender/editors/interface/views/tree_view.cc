@@ -279,11 +279,11 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
 
 static ButtonViewItem *find_first_view_item_but(const Block &block, const AbstractTreeView &view)
 {
-  for (const std::unique_ptr<Button> &but : block.buttons) {
-    if (but->type != ButtonType::ViewItem) {
+  for (Button &but : block.buttons()) {
+    if (but.type != ButtonType::ViewItem) {
       continue;
     }
-    auto *view_item_but = static_cast<ButtonViewItem *>(but.get());
+    auto *view_item_but = static_cast<ButtonViewItem *>(&but);
     if (&view_item_but->view_item->get_view() == &view) {
       return view_item_but;
     }

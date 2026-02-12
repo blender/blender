@@ -199,11 +199,15 @@ PyDoc_STRVAR(
     "\n" BPY_MSGBUS_RNA_MSGKEY_DOC
     "   :param owner: Handle for this subscription (compared by identity).\n"
     "   :type owner: Any\n"
+    "   :param args: Arguments passed to the callback.\n"
+    "   :type args: tuple\n"
+    "   :param notify: The callback function.\n"
+    "   :type notify: Callable[..., None]\n"
     "   :param options: Change the behavior of the subscriber.\n"
     "\n"
     "      - ``PERSISTENT`` when set, the subscriber will be kept when remapping ID data.\n"
     "\n"
-    "   :type options: set[str]\n"
+    "   :type options: set[Literal['PERSISTENT']]\n"
     "\n"
     ".. note::\n"
     "\n"
@@ -370,7 +374,10 @@ PyDoc_STRVAR(
     bpy_msgbus_clear_by_owner_doc,
     ".. function:: clear_by_owner(owner)\n"
     "\n"
-    "   Clear all subscribers using this owner.\n");
+    "   Clear all subscribers using this owner.\n"
+    "\n"
+    "   :param owner: The owner handle passed to :func:`subscribe_rna`.\n"
+    "   :type owner: Any\n");
 static PyObject *bpy_msgbus_clear_by_owner(PyObject * /*self*/, PyObject *py_owner)
 {
   bContext *C = BPY_context_get();

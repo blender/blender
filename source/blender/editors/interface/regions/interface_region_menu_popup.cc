@@ -126,15 +126,15 @@ static Button *ui_popup_menu_memory__internal(Block *block, Button *but)
   }
 
   /* get */
-  for (const std::unique_ptr<Button> &but_iter : block->buttons) {
+  for (Button &but_iter : block->buttons()) {
     /* Prevent labels (typically headings), from being returned in the case the text
      * happens to matches one of the menu items.
      * Skip separators too as checking them is redundant. */
-    if (ELEM(but_iter->type, ButtonType::Label, ButtonType::Sepr, ButtonType::SeprLine)) {
+    if (ELEM(but_iter.type, ButtonType::Label, ButtonType::Sepr, ButtonType::SeprLine)) {
       continue;
     }
-    if (mem[hash_mod] == ui_popup_string_hash(but_iter->str, but_iter->flag & BUT_HAS_SEP_CHAR)) {
-      return but_iter.get();
+    if (mem[hash_mod] == ui_popup_string_hash(but_iter.str, but_iter.flag & BUT_HAS_SEP_CHAR)) {
+      return &but_iter;
     }
   }
 
@@ -322,16 +322,16 @@ static Block *block_func_POPUP(bContext *C, PopupBlockHandle *handle, void *arg_
         /* position mouse at 0.8*width of the button and below the tile
          * on the first item */
         offset[0] = 0;
-        for (const std::unique_ptr<Button> &but_iter : block->buttons) {
+        for (const Button &but_iter : block->buttons()) {
           offset[0] = min_ii(offset[0],
-                             -(but_iter->rect.xmin + 0.8f * BLI_rctf_size_x(&but_iter->rect)));
+                             -(but_iter.rect.xmin + 0.8f * BLI_rctf_size_x(&but_iter.rect)));
         }
 
         offset[1] = 2.1 * UI_UNIT_Y;
 
-        for (const std::unique_ptr<Button> &but_iter : block->buttons) {
-          if (button_is_editable(but_iter.get())) {
-            but_activate = but_iter.get();
+        for (Button &but_iter : block->buttons()) {
+          if (button_is_editable(&but_iter)) {
+            but_activate = &but_iter;
             break;
           }
         }
@@ -815,10 +815,10 @@ void popup_block_template_confirm_op(Layout *layout,
     const Button *but_ref = block->last_but();
     *r_ptr = row.op(ot, confirm_text, icon, row.operator_context(), UI_ITEM_NONE);
 
-    if (block->buttons.is_empty() || but_ref == block->buttons.last().get()) {
+    if (block->buttons_ptrs.is_empty() || but_ref == block->buttons_ptrs.last().get()) {
       return nullptr;
     }
-    return block->buttons.last().get();
+    return block->buttons_ptrs.last().get();
   };
 
   auto cancel_fn = [&row, &cancel_text, &show_cancel]() -> Button * {

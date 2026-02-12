@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/half.h"
+#include "util/math_int2.h"
 #include "util/types.h"
 #include "util/vector.h"
 

@@ -770,7 +770,7 @@ class KDTreeTesting(unittest.TestCase):
         k.balance()
         # not callable
         with self.assertRaises(TypeError):
-            k.find((0,) * 3, filter=None)
+            k.find((0,) * 3, filter=True)
         # no args
         with self.assertRaises(TypeError):
             k.find((0,) * 3, filter=lambda: None)

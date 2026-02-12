@@ -537,6 +537,19 @@ bool socket_type_supports_fields(const eNodeSocketDatatype socket_type)
               SOCK_INT,
               SOCK_ROTATION,
               SOCK_MENU,
+              SOCK_MATRIX,
+              SOCK_STRING);
+}
+
+bool socket_type_supports_attributes(const eNodeSocketDatatype socket_type)
+{
+  return ELEM(socket_type,
+              SOCK_FLOAT,
+              SOCK_VECTOR,
+              SOCK_RGBA,
+              SOCK_BOOLEAN,
+              SOCK_INT,
+              SOCK_ROTATION,
               SOCK_MATRIX);
 }
 

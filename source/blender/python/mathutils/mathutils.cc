@@ -668,7 +668,10 @@ int _BaseMathObject_RaiseBufferViewExc(BaseMathObject *self, Py_buffer *view, in
 
 /* #BaseMathObject generic functions for all mathutils types. */
 
-char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (read-only).";
+char BaseMathObject_owner_doc[] =
+    "The item this is wrapping or None (read-only).\n"
+    "\n"
+    ":type: Any";
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void * /*closure*/)
 {
   PyObject *ret = self->cb_user ? self->cb_user : Py_None;
@@ -702,7 +705,8 @@ char BaseMathObject_freeze_doc[] =
     "\n"
     "   After this the object can be hashed, used in dictionaries & sets.\n"
     "\n"
-    "   :return: An instance of this object.\n";
+    "   :return: An instance of this object.\n"
+    "   :rtype: Self\n";
 PyObject *BaseMathObject_freeze(BaseMathObject *self)
 {
   if ((self->flag & BASE_MATH_FLAG_IS_WRAP) || (self->cb_user != nullptr)) {
@@ -854,6 +858,7 @@ PyMODINIT_FUNC PyInit_mathutils()
   /* each type has its own new() function */
   PyModule_AddType(mod, &vector_Type);
   PyModule_AddType(mod, &matrix_Type);
+  PyModule_AddType(mod, &matrix_access_Type);
   PyModule_AddType(mod, &euler_Type);
   PyModule_AddType(mod, &quaternion_Type);
   PyModule_AddType(mod, &color_Type);

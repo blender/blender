@@ -371,12 +371,12 @@ static ARegion *wm_searchbox_tooltip_init(
   *r_exit_on_event = true;
 
   for (Block &block : region->runtime->uiblocks) {
-    for (const std::unique_ptr<Button> &but : block.buttons) {
-      if (but->type != ButtonType::SearchMenu) {
+    for (Button &but : block.buttons()) {
+      if (but.type != ButtonType::SearchMenu) {
         continue;
       }
 
-      ButtonSearch *search_but = static_cast<ButtonSearch *>(but.get());
+      ButtonSearch *search_but = static_cast<ButtonSearch *>(&but);
       if (!search_but->item_tooltip_fn) {
         continue;
       }

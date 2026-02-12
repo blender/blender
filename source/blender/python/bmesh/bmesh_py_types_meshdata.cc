@@ -656,7 +656,9 @@ PyDoc_STRVAR(
     "   :type key: int\n"
     "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Any\n");
+    "   :type default: Any\n"
+    "   :return: The deform weight or the default when not found.\n"
+    "   :rtype: float | Any\n");
 static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
 {
   int key;

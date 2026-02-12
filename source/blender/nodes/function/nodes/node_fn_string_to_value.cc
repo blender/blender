@@ -20,6 +20,7 @@ namespace blender::nodes::node_fn_string_to_value_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::String>("String").optional_label();
 
   const bNode *node = b.node_or_null();

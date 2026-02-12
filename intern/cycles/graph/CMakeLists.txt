@@ -23,7 +23,8 @@ set(SRC_HEADERS
 )
 
 set(LIB
-  cycles_util
+  PUBLIC cycles_util
+  PUBLIC bf::dependencies::optional::pugixml
 )
 
 include_directories(${INC})

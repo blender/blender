@@ -498,7 +498,7 @@ static void template_texture_user_menu(bContext *C, ui::Layout *layout, void * /
     /* add label per category */
     if (!last_category || !STREQ(last_category, user.category)) {
       layout->label(IFACE_(user.category), ICON_NONE);
-      but = block->buttons.last().get();
+      but = block->buttons_ptrs.last().get();
       but->drawflag = ui::BUT_TEXT_LEFT;
     }
 

@@ -83,6 +83,11 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
   static constexpr int col_len = NumCol;
   static constexpr int row_len = NumRow;
 
+  /**
+   * Construct a matrix with uninitialized values.
+   *
+   * To zero-initialize the matrix, use `MatBase<T, NumCol, NumRow> matrix = {}`.
+   */
   MatBase() = default;
 
   MatBase(col_type _x, col_type _y)

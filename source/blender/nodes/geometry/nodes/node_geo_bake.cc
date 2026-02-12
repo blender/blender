@@ -72,7 +72,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                            .socket_name_ptr(
                                &ntree->id, *BakeItemsAccessor::item_srna, &item, "name");
     auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
-    if (socket_type_supports_fields(socket_type)) {
+    if (socket_type_supports_attributes(socket_type)) {
       input_decl.supports_field();
       if (item.flag & GEO_NODE_BAKE_ITEM_IS_ATTRIBUTE) {
         output_decl.field_source();
@@ -132,10 +132,11 @@ static void draw_bake_items(const bContext *C, ui::Layout &layout, PointerRNA no
     socket_items::ui::draw_active_item_props<BakeItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
           const NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
+          const auto socket_type = eNodeSocketDatatype(active_item.socket_type);
           panel->use_property_split_set(true);
           panel->use_property_decorate_set(false);
           panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-          if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
+          if (socket_type_supports_attributes(socket_type)) {
             panel->prop(item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
             panel->prop(item_ptr, "is_attribute", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           }

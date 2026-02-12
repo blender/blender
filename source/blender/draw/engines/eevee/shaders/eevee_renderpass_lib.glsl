@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "gpu_shader_utildefines_lib.glsl"
 #include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_render_pass_out)
@@ -40,7 +41,7 @@ void clear_aovs()
 #endif
 }
 
-void output_aov(float4 color, float value, uint hash)
+void output_aov(float4 color, float value, uint hash, float holdout, eObjectInfoFlag ob_flag)
 {
 #if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
   uint total_len = uniform_buf.render_pass.aovs.color_len + uniform_buf.render_pass.aovs.value_len;
@@ -58,16 +59,27 @@ void output_aov(float4 color, float value, uint hash)
 
   /* If a candidate was found by hash, output to texture array layer. */
   if (hash_index < total_len) {
+    /* Object holdout. */
+    if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
+      holdout = 1.0f;
+    }
+    holdout = saturate(holdout);
+
     /* Value hashes are stored after color hashes, so the index tells us the AOV type. */
     bool is_value = hash_index >= uint(uniform_buf.render_pass.aovs.color_len);
     uint aov_index = hash_index - (is_value ? uniform_buf.render_pass.aovs.color_len : 0u);
+
+    /* Apply holdout to relevant AOV type. */
+    float4 out_aov = is_value ? float4(value) : color;
+    out_aov *= 1.0f - holdout;
+
     if (is_value) {
       uint render_pass_index = uniform_buf.render_pass.value_len + aov_index;
-      imageStoreFast(rp_value_img, int3(int2(gl_FragCoord.xy), render_pass_index), float4(value));
+      imageStoreFast(rp_value_img, int3(int2(gl_FragCoord.xy), render_pass_index), out_aov);
     }
     else {
       uint render_pass_index = uniform_buf.render_pass.color_len + aov_index;
-      imageStoreFast(rp_color_img, int3(int2(gl_FragCoord.xy), render_pass_index), color);
+      imageStoreFast(rp_color_img, int3(int2(gl_FragCoord.xy), render_pass_index), out_aov);
     }
   }
 #endif

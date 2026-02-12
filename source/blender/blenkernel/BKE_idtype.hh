@@ -17,6 +17,8 @@
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_sys_types.h"
 
+#include "DNA_ID.h"
+
 namespace blender {
 
 struct AssetTypeInfo;
@@ -24,8 +26,6 @@ struct BPathForeachPathData;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
-struct ID;
-struct Library;
 struct LibraryForeachIDData;
 struct Main;
 
@@ -149,12 +149,12 @@ struct IDTypeInfo {
    * Unique identifier of this type, either as a short or an array of two chars, see
    * DNA_ID_enums.h's ID_XX enums.
    */
-  short id_code;
+  short id_code = ID_LINK_PLACEHOLDER;
   /**
    * Bit-flag matching id_code, used for filtering (e.g. in file browser), see DNA_ID.h's
    * FILTER_ID_XX enums.
    */
-  uint64_t id_filter;
+  uint64_t id_filter = 0;
 
   /**
    * Known types of ID dependencies.
@@ -162,17 +162,17 @@ struct IDTypeInfo {
    * Used by #BKE_library_id_can_use_filter_id, together with additional runtime heuristics, to
    * generate a filter value containing only ID types that given ID could be using.
    */
-  uint64_t dependencies_id_types;
+  uint64_t dependencies_id_types = 0;
 
   /**
    * Define the position of this data-block type in the virtual list of all data in a Main that is
    * returned by `BKE_main_lists_get()`.
    * Very important, this has to be unique and below INDEX_ID_MAX, see DNA_ID.h.
    */
-  int main_listbase_index;
+  int main_listbase_index = INDEX_ID_MAX;
 
   /** Memory size of a data-block of that type. */
-  size_t struct_size;
+  size_t struct_size = 0;
 
   /**
    * The user visible name for this data-block, also used as default name for a new data-block.
@@ -181,82 +181,90 @@ struct IDTypeInfo {
    * (`my_blendfile.blend/<IDType.name>/my_id_name`, e.g. `boat-v001.blend/Collection/PR-boat` for
    * the `GRPR-boat` Collection ID in `boat-v001.blend`).
    */
-  const char *name;
+  const char *name = nullptr;
   /** Plural version of the user-visible name. */
-  const char *name_plural;
+  const char *name_plural = nullptr;
   /** Translation context to use for UI messages related to that type of data-block. */
-  const char *translation_context;
+  const char *translation_context = nullptr;
 
   /** Generic info flags about that data-block type. */
-  uint32_t flags;
+  uint32_t flags = 0;
+
+  /** Utils to define invalid pointers for all data & callbacks below. */
+  template<class T> static constexpr T InvalidPointer()
+  {
+    return reinterpret_cast<T>(UINTPTR_MAX);
+  }
 
   /**
    * Information and callbacks for assets, based on the type of asset.
    */
-  AssetTypeInfo *asset_type_info;
+  AssetTypeInfo *asset_type_info = InvalidPointer<AssetTypeInfo *>();
 
   /* ********** ID management callbacks ********** */
 
   /**
    * Initialize a new, empty calloc'ed data-block. May be NULL if there is nothing to do.
    */
-  IDTypeInitDataFunction init_data;
+  IDTypeInitDataFunction init_data = InvalidPointer<IDTypeInitDataFunction>();
 
   /**
    * Copy the given data-block's data from source to destination.
    * May be NULL if mere memory-copy of the ID struct itself is enough.
    */
-  IDTypeCopyDataFunction copy_data;
+  IDTypeCopyDataFunction copy_data = InvalidPointer<IDTypeCopyDataFunction>();
 
   /**
    * Free the data of the data-block (NOT the ID itself). May be NULL if there is nothing to do.
    */
-  IDTypeFreeDataFunction free_data;
+  IDTypeFreeDataFunction free_data = InvalidPointer<IDTypeFreeDataFunction>();
 
   /**
    * Make a linked data-block local. May be NULL if default behavior from
    * `BKE_lib_id_make_local_generic()` is enough.
    */
-  IDTypeMakeLocalFunction make_local;
+  IDTypeMakeLocalFunction make_local = InvalidPointer<IDTypeMakeLocalFunction>();
 
   /**
    * Called by `BKE_library_foreach_ID_link()` to apply a callback over all other ID usages (ID
    * pointers) of given data-block.
    */
-  IDTypeForeachIDFunction foreach_id;
+  IDTypeForeachIDFunction foreach_id = InvalidPointer<IDTypeForeachIDFunction>();
 
   /**
    * Iterator over all cache pointers of given ID.
    */
-  IDTypeForeachCacheFunction foreach_cache;
+  IDTypeForeachCacheFunction foreach_cache = InvalidPointer<IDTypeForeachCacheFunction>();
 
   /**
    * Iterator over all file paths of given ID.
    */
-  IDTypeForeachPathFunction foreach_path;
+  IDTypeForeachPathFunction foreach_path = InvalidPointer<IDTypeForeachPathFunction>();
 
   /**
    * Iterator to edit all scene linear RGB colors of given ID.
    * Alpha should not be premultiplied in the RGB values.
    */
-  IDTypeForeachColorFunction foreach_working_space_color;
+  IDTypeForeachColorFunction foreach_working_space_color =
+      InvalidPointer<IDTypeForeachColorFunction>();
 
   /**
    * For embedded IDs, return the address of the pointer to their owner ID.
    */
-  IDTypeEmbeddedOwnerPointerGetFunction owner_pointer_get;
+  IDTypeEmbeddedOwnerPointerGetFunction owner_pointer_get =
+      InvalidPointer<IDTypeEmbeddedOwnerPointerGetFunction>();
 
   /* ********** Callbacks for reading and writing .blend files. ********** */
 
   /**
    * Write all structs that should be saved in a .blend file.
    */
-  IDTypeBlendWriteFunction blend_write;
+  IDTypeBlendWriteFunction blend_write = InvalidPointer<IDTypeBlendWriteFunction>();
 
   /**
    * Update pointers for all structs directly owned by this data block.
    */
-  IDTypeBlendReadDataFunction blend_read_data;
+  IDTypeBlendReadDataFunction blend_read_data = InvalidPointer<IDTypeBlendReadDataFunction>();
 
   /**
    * Used to do some validation and/or complex processing on the ID after it has been fully read
@@ -264,7 +272,8 @@ struct IDTypeInfo {
    *
    * Note that this is still called _before_ the `do_versions_after_linking` versioning code.
    */
-  IDTypeBlendReadAfterLiblinkFunction blend_read_after_liblink;
+  IDTypeBlendReadAfterLiblinkFunction blend_read_after_liblink =
+      InvalidPointer<IDTypeBlendReadAfterLiblinkFunction>();
 
   /**
    * Allow an ID type to preserve some of its data across (memfile) undo steps.
@@ -275,14 +284,16 @@ struct IDTypeInfo {
    * its type with `IDTYPE_FLAGS_NO_MEMFILE_UNDO`, since that flag allows more aggressive
    * optimizations in readfile code for memfile undo.
    */
-  IDTypeBlendReadUndoPreserve blend_read_undo_preserve;
+  IDTypeBlendReadUndoPreserve blend_read_undo_preserve =
+      InvalidPointer<IDTypeBlendReadUndoPreserve>();
 
   /**
    * Called after library override operations have been applied.
    *
    * \note Currently needed for some update operation on point caches.
    */
-  IDTypeLibOverrideApplyPost lib_override_apply_post;
+  IDTypeLibOverrideApplyPost lib_override_apply_post =
+      InvalidPointer<IDTypeLibOverrideApplyPost>();
 };
 
 /* ********** Declaration of each IDTypeInfo. ********** */

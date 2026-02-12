@@ -212,34 +212,34 @@ static void library_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id
 }
 
 IDTypeInfo IDType_ID_LI = {
-    /*id_code*/ Library::id_type,
-    /*id_filter*/ FILTER_ID_LI,
-    /*dependencies_id_types*/ FILTER_ID_LI,
-    /*main_listbase_index*/ INDEX_ID_LI,
-    /*struct_size*/ sizeof(Library),
-    /*name*/ "Library",
-    /*name_plural*/ N_("libraries"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_LIBRARY,
-    /*flags*/ IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NEVER_UNUSED,
-    /*asset_type_info*/ nullptr,
+    .id_code = Library::id_type,
+    .id_filter = FILTER_ID_LI,
+    .dependencies_id_types = FILTER_ID_LI,
+    .main_listbase_index = INDEX_ID_LI,
+    .struct_size = sizeof(Library),
+    .name = "Library",
+    .name_plural = N_("libraries"),
+    .translation_context = BLT_I18NCONTEXT_ID_LIBRARY,
+    .flags = IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NEVER_UNUSED,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ library_init_data,
-    /*copy_data*/ library_copy_data,
-    /*free_data*/ library_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ library_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ library_foreach_path,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = library_init_data,
+    .copy_data = library_copy_data,
+    .free_data = library_free_data,
+    .make_local = nullptr,
+    .foreach_id = library_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = library_foreach_path,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ library_blend_write_data,
-    /*blend_read_data*/ library_blend_read_data,
-    /*blend_read_after_liblink*/ library_blend_read_after_liblink,
+    .blend_write = library_blend_write_data,
+    .blend_read_data = library_blend_read_data,
+    .blend_read_after_liblink = library_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)

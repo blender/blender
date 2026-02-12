@@ -62,7 +62,8 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
                                                         int step,
                                                         float3 normals[3])
 {
-  if (step == numsteps) {
+  const bool is_center_step = step == numsteps;
+  if (is_center_step) {
     /* Center step in the regular attribute. */
     offset = kernel_data_fetch(objects, object).normal_attr_offset;
   }
@@ -76,7 +77,7 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
   int i0, i1, i2;
 
   if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
-    if (step != numsteps) {
+    if (!is_center_step) {
       offset += step * kernel_data_fetch(objects, object).numprims * 3;
     }
 
@@ -85,7 +86,7 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
     i2 = prim * 3 + 2;
   }
   else {
-    if (step != numsteps) {
+    if (!is_center_step) {
       offset += step * kernel_data_fetch(objects, object).numverts;
     }
 

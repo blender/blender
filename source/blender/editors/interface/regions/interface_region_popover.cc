@@ -212,14 +212,14 @@ static Block *block_func_POPOVER(bContext *C, PopupBlockHandle *handle, void *ar
     block->minbounds = UI_MENU_WIDTH_MIN;
 
     if (!handle->refresh) {
-      Button *but = nullptr;
-      Button *but_first = nullptr;
-      for (const std::unique_ptr<Button> &but_iter : block->buttons) {
-        if ((but_first == nullptr) && button_is_editable(but_iter.get())) {
-          but_first = but_iter.get();
+      const Button *but = nullptr;
+      const Button *but_first = nullptr;
+      for (const Button &but_iter : block->buttons()) {
+        if ((but_first == nullptr) && button_is_editable(&but_iter)) {
+          but_first = &but_iter;
         }
-        if (but_iter->flag & (UI_SELECT | UI_SELECT_DRAW)) {
-          but = but_iter.get();
+        if (but_iter.flag & (UI_SELECT | UI_SELECT_DRAW)) {
+          but = &but_iter;
           break;
         }
       }

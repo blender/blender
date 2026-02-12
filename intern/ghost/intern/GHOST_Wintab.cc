@@ -6,8 +6,6 @@
  * \ingroup GHOST
  */
 
-#define _USE_MATH_DEFINES
-
 #include "GHOST_Wintab.hh"
 
 GHOST_Wintab *GHOST_Wintab::loadWintabUnsafe(HWND hwnd)

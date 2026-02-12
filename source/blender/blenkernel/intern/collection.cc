@@ -183,7 +183,7 @@ static void collection_free_data(ID *id)
   Collection *collection = id_cast<Collection *>(id);
 
   /* No animation-data here. */
-  BKE_previewimg_free(&collection->preview);
+  BKE_previewimg_id_free(&collection->id);
 
   BLI_freelistN(&collection->gobject);
   if (collection->runtime->gobject_hash) {
@@ -383,34 +383,34 @@ static void collection_blend_read_after_liblink(BlendLibReader * /*reader*/, ID 
 }
 
 IDTypeInfo IDType_ID_GR = {
-    /*id_code*/ Collection::id_type,
-    /*id_filter*/ FILTER_ID_GR,
-    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_GR,
-    /*main_listbase_index*/ INDEX_ID_GR,
-    /*struct_size*/ sizeof(Collection),
-    /*name*/ "Collection",
-    /*name_plural*/ N_("collections"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_COLLECTION,
-    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = Collection::id_type,
+    .id_filter = FILTER_ID_GR,
+    .dependencies_id_types = FILTER_ID_OB | FILTER_ID_GR,
+    .main_listbase_index = INDEX_ID_GR,
+    .struct_size = sizeof(Collection),
+    .name = "Collection",
+    .name_plural = N_("collections"),
+    .translation_context = BLT_I18NCONTEXT_ID_COLLECTION,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ collection_init_data,
-    /*copy_data*/ collection_copy_data,
-    /*free_data*/ collection_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ collection_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ collection_owner_pointer_get,
+    .init_data = collection_init_data,
+    .copy_data = collection_copy_data,
+    .free_data = collection_free_data,
+    .make_local = nullptr,
+    .foreach_id = collection_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = collection_owner_pointer_get,
 
-    /*blend_write*/ collection_blend_write,
-    /*blend_read_data*/ collection_blend_read_data,
-    /*blend_read_after_liblink*/ collection_blend_read_after_liblink,
+    .blend_write = collection_blend_write,
+    .blend_read_data = collection_blend_read_data,
+    .blend_read_after_liblink = collection_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /** \} */

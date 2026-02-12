@@ -167,9 +167,13 @@ static PyMethodDef pygpu_offscreen_stack_context__tp_methods[] = {
 #  endif
 #endif
 
-static PyTypeObject PyGPUOffscreenStackContext_Type = {
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_offscreen_stack_context__tp_doc,
+    "Context manager for off-screen framebuffer binding.");
+PyTypeObject PyGPUOffscreenStackContext_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "GPUFrameBufferStackContext",
+    /*tp_name*/ "OffScreenStackContext",
     /*tp_basicsize*/ sizeof(OffScreenStackContext),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ reinterpret_cast<destructor>(pygpu_offscreen_stack_context__tp_dealloc),
@@ -188,7 +192,7 @@ static PyTypeObject PyGPUOffscreenStackContext_Type = {
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT,
-    /*tp_doc*/ nullptr,
+    /*tp_doc*/ pygpu_offscreen_stack_context__tp_doc,
     /*tp_traverse*/ nullptr,
     /*tp_clear*/ nullptr,
     /*tp_richcompare*/ nullptr,
@@ -224,7 +228,10 @@ PyDoc_STRVAR(
     pygpu_offscreen_bind_doc,
     ".. method:: bind()\n"
     "\n"
-    "   Context manager to ensure balanced bind calls, even in the case of an error.\n");
+    "   Context manager to ensure balanced bind calls, even in the case of an error.\n"
+    "\n"
+    "   :return: A context manager for the off-screen binding.\n"
+    "   :rtype: :class:`gpu.types.OffScreenStackContext`\n");
 static PyObject *pygpu_offscreen_bind(BPyGPUOffScreen *self)
 {
   OffScreenStackContext *ret = PyObject_New(OffScreenStackContext,
@@ -601,13 +608,8 @@ PyDoc_STRVAR(
     "   :type width: int\n"
     "   :param height: Vertical dimension of the buffer.\n"
     "   :type height: int\n"
-    "   :param format: Internal data format inside GPU memory for color attachment "
-    "texture. Possible values are:\n"
-    "      ``RGBA8``,\n"
-    "      ``RGBA16``,\n"
-    "      ``RGBA16F``,\n"
-    "      ``RGBA32F``.\n"
-    "   :type format: str\n");
+    "   :param format: Internal data format inside GPU memory for color attachment texture.\n"
+    "   :type format: Literal['RGBA8', 'RGBA16', 'RGBA16F', 'RGBA32F']\n");
 PyTypeObject BPyGPUOffScreen_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUOffScreen",

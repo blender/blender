@@ -59,26 +59,16 @@ set(SRC_HEADERS
 )
 
 set(LIB
-  cycles_device
+  PUBLIC cycles_device
 
   # NOTE: Is required for RenderBuffers access. Might consider moving files around a bit to
   # avoid such cyclic dependency.
-  cycles_session
+  PUBLIC cycles_session
 
-  cycles_util
+  PUBLIC cycles_util
+  PRIVATE bf::dependencies::optional::openimagedenoise
+  PRIVATE bf::dependencies::optional::openpgl
 )
-
-if(WITH_OPENIMAGEDENOISE)
-  list(APPEND LIB
-    ${OPENIMAGEDENOISE_LIBRARIES}
-  )
-endif()
-
-if(WITH_CYCLES_PATH_GUIDING)
-  list(APPEND LIB
-    ${OPENPGL_LIBRARIES}
-  )
-endif()
 
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})

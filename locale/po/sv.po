@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -2628,6 +2628,18 @@ msgid "Visual Aids"
 msgstr "Visuella hjälpmedel"
 
 
+msgid "Stroke"
+msgstr "Streck"
+
+
+msgid "Fill"
+msgstr "Fyll"
+
+
+msgid "Both"
+msgstr "Båda"
+
+
 msgid "Active Layer"
 msgstr "Aktivt lager"
 
@@ -2662,14 +2674,6 @@ msgstr "Använd tryck"
 
 msgid "Outline"
 msgstr "Kontur"
-
-
-msgid "Stroke"
-msgstr "Streck"
-
-
-msgid "Fill"
-msgstr "Fyll"
 
 
 msgid "Stroke & Fill"
@@ -9331,32 +9335,12 @@ msgid "Use Material Mask"
 msgstr "Använd materialmask"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
 msgid "Read"
 msgstr "Läs"
 
 
 msgid "Write"
 msgstr "Skriv"
-
-
-msgid "Names"
-msgstr "Namn"
 
 
 msgid "Primitives"
@@ -9367,40 +9351,32 @@ msgid "Clean Up"
 msgstr "Städa upp"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
+msgid "Show/Hide"
+msgstr "Visa/dölj"
 
 
-msgid "Snap"
-msgstr "Snäpp"
+msgid "Names"
+msgstr "Namn"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
-msgid "Local View"
-msgstr "Lokal vy"
+msgid "Metaball"
+msgstr "Metaboll"
 
 
-msgid "Viewpoint"
-msgstr "Visningspunkt"
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
-msgid "Navigation"
-msgstr "Navigering"
+msgid "Apply"
+msgstr "Applicera"
 
 
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
+msgid "Propagate"
+msgstr "Propagera"
 
 
 msgid "Layout"
@@ -9411,80 +9387,108 @@ msgid "Adjust"
 msgstr "Justera"
 
 
-msgid "Assign Material"
-msgstr "Tilldela material"
+msgid "Convert"
+msgstr "Konvertera"
 
 
 msgid "Utilities"
 msgstr "Verktyg"
 
 
-msgid "Light"
-msgstr "Ljus"
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
 
 
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
+msgid "Math"
+msgstr "Matematik"
 
 
 msgid "Asset"
 msgstr "Tillgång"
 
 
-msgid "Convert"
-msgstr "Konvertera"
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
 
 
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
+msgid "Light"
+msgstr "Ljus"
 
 
-msgid "Propagate"
-msgstr "Propagera"
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Snap"
+msgstr "Snäpp"
 
 
 msgid "Instances"
 msgstr "Instanser"
 
 
+msgid "Mirror"
+msgstr "Spegla"
+
+
 msgid "Import"
 msgstr "Importera"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
 
 
 msgid "Deprecated"
 msgstr "Föråldrad"
 
 
-msgid "Special Characters"
-msgstr "Specialtecken"
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Animals"
@@ -11829,6 +11833,10 @@ msgstr "Till radianer"
 
 msgid "Mix two input colors"
 msgstr "Blanda två inputfärger"
+
+
+msgid "OpenGL"
+msgstr "OpenGL"
 
 
 msgid "Cycles"
@@ -15623,10 +15631,6 @@ msgstr "Ta bort alla synliga drivare som anses ogiltiga"
 
 msgid "Replace Existing"
 msgstr "Ersätt befintlig"
-
-
-msgid "Both"
-msgstr "Båda"
 
 
 msgctxt "Operator"
@@ -21284,36 +21288,36 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
-
-
-msgid "Cavity"
-msgstr "Hålrum"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Measurement"
-msgstr "Mätning"
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Stroke Placement"
 msgstr "Streckplacering"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Measurement"
+msgstr "Mätning"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
+
+
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
 
 
 msgid "Import Settings"
@@ -22552,10 +22556,6 @@ msgstr "GPU-backend"
 
 msgid "GPU backend to use (requires restarting Blender for changes to take effect)"
 msgstr "GPU-backend att använda (kräver att starta om Blender för att ändringen ska träda i kraft)"
-
-
-msgid "OpenGL"
-msgstr "OpenGL"
 
 
 msgid "Use OpenGL backend"
@@ -30484,10 +30484,6 @@ msgstr "Lägg till kontrollpunkt"
 
 msgid "Delete Modifier"
 msgstr "Ta bort modifierare"
-
-
-msgid "Coefficient"
-msgstr "Koefficient"
 
 
 msgctxt "Action"

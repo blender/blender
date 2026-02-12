@@ -59,7 +59,7 @@ static void world_free_data(ID *id)
   GPU_material_free(&wrld->gpumaterial);
 
   BKE_icon_id_delete(id_cast<ID *>(wrld));
-  BKE_previewimg_free(&wrld->preview);
+  BKE_previewimg_id_free(&wrld->id);
 
   MEM_SAFE_DELETE(wrld->lightgroup);
 }
@@ -187,34 +187,34 @@ static void world_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_WO = {
-    /*id_code*/ World::id_type,
-    /*id_filter*/ FILTER_ID_WO,
-    /*dependencies_id_types*/ FILTER_ID_TE,
-    /*main_listbase_index*/ INDEX_ID_WO,
-    /*struct_size*/ sizeof(World),
-    /*name*/ "World",
-    /*name_plural*/ N_("worlds"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_WORLD,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = World::id_type,
+    .id_filter = FILTER_ID_WO,
+    .dependencies_id_types = FILTER_ID_TE,
+    .main_listbase_index = INDEX_ID_WO,
+    .struct_size = sizeof(World),
+    .name = "World",
+    .name_plural = N_("worlds"),
+    .translation_context = BLT_I18NCONTEXT_ID_WORLD,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ world_init_data,
-    /*copy_data*/ world_copy_data,
-    /*free_data*/ world_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ world_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ world_foreach_working_space_color,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = world_init_data,
+    .copy_data = world_copy_data,
+    .free_data = world_free_data,
+    .make_local = nullptr,
+    .foreach_id = world_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = world_foreach_working_space_color,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ world_blend_write,
-    /*blend_read_data*/ world_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = world_blend_write,
+    .blend_read_data = world_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 World *BKE_world_add(Main *bmain, const char *name)

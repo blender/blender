@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'1ece094312b3')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 14:51+0000\n"
+"POT-Creation-Date: 2026-02-09 09:47+0000\n"
 "PO-Revision-Date: 2025-09-04 22:59+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -1784,6 +1784,10 @@ msgid "Saturation"
 msgstr "Saturație"
 
 
+msgid "Both"
+msgstr "Ambele"
+
+
 msgid "Object Path"
 msgstr "Calea Obiectului"
 
@@ -2132,12 +2136,16 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Apply"
+msgstr "Aplicare"
 
 
 msgid "Layout"
 msgstr "Aspect"
+
+
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Tracking"
@@ -2152,12 +2160,8 @@ msgid "Add Image"
 msgstr "Adăugare Imagine"
 
 
-msgid "Apply"
-msgstr "Aplicare"
-
-
-msgid "Convert"
-msgstr "Convertire"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Marker"
@@ -2366,10 +2370,6 @@ msgstr "Proprietăți Personalizate"
 
 msgid "Open"
 msgstr "Deschidere"
-
-
-msgid "Both"
-msgstr "Ambele"
 
 
 msgctxt "Operator"

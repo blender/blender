@@ -124,7 +124,7 @@ static wmOperatorStatus bone_collection_add_exec(bContext *C, wmOperator * /*op*
   ANIM_armature_bonecoll_active_set(armature, bcoll);
   /* TODO: ensure the ancestors of the new bone collection are all expanded. */
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -150,7 +150,7 @@ static wmOperatorStatus bone_collection_remove_exec(bContext *C, wmOperator * /*
   ANIM_armature_bonecoll_remove(armature, armature->runtime.active_collection);
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
   DEG_id_tag_update(&armature->id, ID_RECALC_SELECT);
 
   return OPERATOR_FINISHED;
@@ -258,7 +258,7 @@ static void bone_collection_assign_pchans(bContext *C,
   }
   FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
 
   bArmature *arm = id_cast<bArmature *>(ob->data);
   DEG_id_tag_update(&arm->id, ID_RECALC_SELECT); /* Recreate the draw buffers. */
@@ -346,7 +346,6 @@ static bool bone_collection_assign_named_mode_specific(bContext *C,
       *had_bones_to_assign = true;
       *made_any_changes |= assign_bone_func(bcoll, pchan->bone);
 
-      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
       DEG_id_tag_update(&arm->id, ID_RECALC_SELECT); /* Recreate the draw buffers. */
       return true;
@@ -989,7 +988,7 @@ static wmOperatorStatus add_or_move_to_collection_exec(bContext *C,
   DEG_id_tag_update(&arm->id, ID_RECALC_SELECT); /* Recreate the draw buffers. */
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
   return OPERATOR_FINISHED;
 }
 

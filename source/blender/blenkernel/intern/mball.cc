@@ -136,34 +136,34 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_MB = {
-    /*id_code*/ MetaBall::id_type,
-    /*id_filter*/ FILTER_ID_MB,
-    /*dependencies_id_types*/ FILTER_ID_MA,
-    /*main_listbase_index*/ INDEX_ID_MB,
-    /*struct_size*/ sizeof(MetaBall),
-    /*name*/ "Metaball",
-    /*name_plural*/ N_("metaballs"),
-    /*translation_context*/ BLT_I18NCONTEXT_ID_METABALL,
-    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info*/ nullptr,
+    .id_code = MetaBall::id_type,
+    .id_filter = FILTER_ID_MB,
+    .dependencies_id_types = FILTER_ID_MA,
+    .main_listbase_index = INDEX_ID_MB,
+    .struct_size = sizeof(MetaBall),
+    .name = "Metaball",
+    .name_plural = N_("metaballs"),
+    .translation_context = BLT_I18NCONTEXT_ID_METABALL,
+    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = nullptr,
 
-    /*init_data*/ metaball_init_data,
-    /*copy_data*/ metaball_copy_data,
-    /*free_data*/ metaball_free_data,
-    /*make_local*/ nullptr,
-    /*foreach_id*/ metaball_foreach_id,
-    /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
-    /*foreach_working_space_color*/ nullptr,
-    /*owner_pointer_get*/ nullptr,
+    .init_data = metaball_init_data,
+    .copy_data = metaball_copy_data,
+    .free_data = metaball_free_data,
+    .make_local = nullptr,
+    .foreach_id = metaball_foreach_id,
+    .foreach_cache = nullptr,
+    .foreach_path = nullptr,
+    .foreach_working_space_color = nullptr,
+    .owner_pointer_get = nullptr,
 
-    /*blend_write*/ metaball_blend_write,
-    /*blend_read_data*/ metaball_blend_read_data,
-    /*blend_read_after_liblink*/ nullptr,
+    .blend_write = metaball_blend_write,
+    .blend_read_data = metaball_blend_read_data,
+    .blend_read_after_liblink = nullptr,
 
-    /*blend_read_undo_preserve*/ nullptr,
+    .blend_read_undo_preserve = nullptr,
 
-    /*lib_override_apply_post*/ nullptr,
+    .lib_override_apply_post = nullptr,
 };
 
 /* Functions */

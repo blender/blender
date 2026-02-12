@@ -45,12 +45,14 @@ def abspath(path, *, start=None, library=None):
     Returns the absolute path relative to the current blend file
     using the "//" prefix.
 
+    :param path: The path to convert to absolute.
+    :type path: str | bytes
     :param start: Relative to this path,
        when not set the current filename is used.
-    :type start: str | bytes
+    :type start: str | bytes | None
     :param library: The library this path is from. This is only included for
        convenience, when the library is not None its path replaces *start*.
-    :type library: :class:`bpy.types.Library`
+    :type library: :class:`bpy.types.Library` | None
     :return: The absolute path.
     :rtype: str
     """
@@ -86,7 +88,7 @@ def relpath(path, *, start=None):
     :type path: str | bytes
     :param start: Relative to this path,
        when not set the current filename is used.
-    :type start: str | bytes
+    :type start: str | bytes | None
     :return: The relative path.
     :rtype: str
     """
@@ -106,11 +108,13 @@ def relpath(path, *, start=None):
 
 def is_subdir(path, directory):
     """
-    Returns true if *path* in a subdirectory of *directory*.
+    Returns true if *path* is in a subdirectory of *directory*.
     Both paths must be absolute.
 
     :param path: An absolute path.
     :type path: str | bytes
+    :param directory: The parent directory to check against.
+    :type directory: str | bytes
     :return: Whether or not the path is a subdirectory.
     :rtype: bool
     """
@@ -202,7 +206,7 @@ _display_name_literals = {
 
 def display_name(name, *, has_ext=True, title_case=True):
     """
-    Creates a display string from name to be used menus and the user interface.
+    Creates a display string from name to be used in menus and the user interface.
     Intended for use with filenames and module names.
 
     :param name: The name to be used for displaying the user interface.
@@ -251,7 +255,7 @@ def display_name_to_filepath(name):
 def display_name_from_filepath(name):
     """
     Returns the path stripped of directory and extension,
-    ensured to be utf8 compatible.
+    ensured to be UTF-8 compatible.
 
     :param name: The file path to convert.
     :type name: str
@@ -403,6 +407,8 @@ def basename(path):
 
     Use for Windows compatibility.
 
+    :param path: The path to get the base name of.
+    :type path: str | bytes
     :return: The base name of the given path.
     :rtype: str
     """
