@@ -3724,6 +3724,7 @@ static void rna_def_object(BlenderRNA *brna)
                                 "rna_Object_lightgroup_set");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Lightgroup", "Lightgroup that the object belongs to");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
   /* Light Linking. */
   prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
