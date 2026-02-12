@@ -1747,12 +1747,7 @@ class NodeTreeMainUpdater {
             socket_hash = get_socket_ptr_hash(socket);
           }
           else {
-            if (internal_input->type == socket.type) {
-              socket_hash = *hash_by_socket_id[internal_input->index_in_tree()];
-            }
-            else {
-              socket_hash = get_socket_ptr_hash(socket);
-            }
+            socket_hash = *hash_by_socket_id[internal_input->index_in_tree()];
           }
         }
         else {
