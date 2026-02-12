@@ -1199,7 +1199,7 @@ static void execute_instances_tasks(
       else {
         const void *fallback = fallbacks[attribute_index] ? fallbacks[attribute_index] :
                                                             cpp_type.default_value();
-        threaded_fill({cpp_type, fallback}, dst_span);
+        threaded_fill({cpp_type, fallback}, dst_span.slice(dst_range));
       }
 
       write_attribute.finish();
