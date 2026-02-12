@@ -1342,6 +1342,23 @@ if bpy.app.build_options.experimental_features:
         context_type_map[key] = value
 
 
+def write_type_info(ident, fw, type_info):
+    """Write descriptive info (array dims, range, default, qualifiers) on a line after the description."""
+    if type_info:
+        # Qualifier tokens (starting at "(") are stored individually so they
+        # can be tested with ``"readonly" in type_info`` etc.
+        # Items before the opening paren are comma-joined, qualifier tokens
+        # are raw-joined (they carry their own separators).
+        try:
+            qual_start = type_info.index("(")
+        except ValueError:
+            qual_start = len(type_info)
+        info_str = ", ".join(type_info[:qual_start])
+        qual_str = "".join(type_info[qual_start:])
+        sep = ", " if info_str and qual_str else ""
+        fw("{:s}{:s}{:s}{:s}\n\n".format(ident, info_str, sep, qual_str))
+
+
 def pycontext2sphinx(basepath):
     # Not actually a module, only write this file so we can reference in the TOC.
     filepath = os.path.join(basepath, "bpy.context.rst")
@@ -1550,7 +1567,7 @@ def pyrna2sphinx(basepath):
             enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
             kwargs["enum_descr_override"] = enum_descr_override
 
-        type_descr = prop.get_type_description(**kwargs)
+        type_descr, _type_info = prop.get_type_description(**kwargs)
 
         # If the link has been written, no need to inline the enum items.
         enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
@@ -1674,7 +1691,7 @@ def pyrna2sphinx(basepath):
             if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
                 enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
 
-            type_descr = prop.get_type_description(
+            type_descr, type_info = prop.get_type_description(
                 class_fmt=":class:`{:s}`",
                 mathutils_fmt=":class:`mathutils.{:s}`",
                 literal_fmt="``{!r}``",  # String with quotes.
@@ -1682,7 +1699,7 @@ def pyrna2sphinx(basepath):
                 enum_descr_override=enum_descr_override,
             )
             # Read-only properties use "data" directive, variables properties use "attribute" directive.
-            if "readonly" in type_descr:
+            if "readonly" in type_info:
                 fw("   .. data:: {:s}\n".format(identifier))
             else:
                 fw("   .. attribute:: {:s}\n".format(identifier))
@@ -1707,6 +1724,8 @@ def pyrna2sphinx(basepath):
                     fw("\n")
                 del enum_text
             # End enum exception.
+
+            write_type_info("      ", fw, type_info)
 
             fw("      :type: {:s}\n\n".format(type_descr))
 
@@ -1766,7 +1785,7 @@ def pyrna2sphinx(basepath):
                     if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
                         enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
 
-                    type_descr = prop.get_type_description(
+                    type_descr, _type_info = prop.get_type_description(
                         as_ret=True, class_fmt=":class:`{:s}`",
                         mathutils_fmt=":class:`mathutils.{:s}`",
                         literal_fmt="``{!r}``",  # String with quotes.
