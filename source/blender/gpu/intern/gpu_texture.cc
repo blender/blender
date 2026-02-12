@@ -393,7 +393,8 @@ gpu::Texture *GPU_texture_create_compressed_2d(const char *name,
   if (data) {
     size_t ofs = 0;
     for (int mip = 0; mip < mip_len; mip++) {
-      int extent[3], offset[3] = {0, 0, 0};
+      int extent[3] = {1, 1, 1};
+      int offset[3] = {0, 0, 0};
       tex->mip_size_get(mip, extent);
 
       size_t size = ((extent[0] + 3) / 4) * ((extent[1] + 3) / 4) * to_block_size(tex_format);
