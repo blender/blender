@@ -4,6 +4,8 @@ Finding Action Slot Users
 To return a list of the data-blocks that are animated by a specific slot of an Action, use the ``users()`` method of the ActionSlot.
 
 """
+import bpy
+
 # Iterate through all actions in the Blender data.
 print("Action & slot users:")
 for action in bpy.data.actions:
