@@ -386,13 +386,13 @@ EXTRA_SOURCE_FILES = (
     "../../../scripts/templates_py/ui_panel_simple.py",
     "../../../scripts/templates_py/ui_previews_custom_icon.py",
     "../examples/bmesh.ops.1.py",
-    "../examples/bpy.app.translations.py",
+    "../examples/bpy.app.translations.0.py",
 )
 
 
 # Examples.
 EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
-EXAMPLE_SET = set(os.path.splitext(f)[0] for f in os.listdir(EXAMPLES_DIR) if f.endswith(".py"))
+EXAMPLE_SET = set(f.removesuffix(".0.py") for f in os.listdir(EXAMPLES_DIR) if f.endswith(".0.py"))
 EXAMPLE_SET_USED = set()
 
 # RST files directory.
@@ -707,7 +707,7 @@ def write_example_ref(ident, fw, example_id, ext="py"):
     if example_id in EXAMPLE_SET:
 
         # Extract the comment.
-        filepath = os.path.join("..", "examples", "{:s}.{:s}".format(example_id, ext))
+        filepath = os.path.join("..", "examples", "{:s}.0.{:s}".format(example_id, ext))
         filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
 
         text, line_no, line_no_has_content = example_extract_docstring(filepath_full)
@@ -2256,7 +2256,7 @@ def write_rst_data(basepath):
         fw("\n")
         fw("   :type: :class:`bpy.types.BlendData`\n")
         fw("\n")
-        fw(".. literalinclude:: ../examples/bpy.data.py\n")
+        fw(".. literalinclude:: ../examples/bpy.data.0.py\n")
 
     EXAMPLE_SET_USED.add("bpy.data")
 
