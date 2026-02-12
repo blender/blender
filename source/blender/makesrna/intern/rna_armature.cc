@@ -718,7 +718,7 @@ static void rna_EditBone_hide_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
-  WM_main_add_notifier(NC_OBJECT | ND_POSE, arm);
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, arm);
   DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
@@ -730,7 +730,8 @@ static void rna_Bone_hide_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
   if (bone->flag & (BONE_HIDDEN_A | BONE_UNSELECTABLE)) {
     bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
-  WM_main_add_notifier(NC_OBJECT | ND_POSE, arm);
+
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, arm);
   DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
 }
 

@@ -278,7 +278,7 @@ static wmOperatorStatus pose_calculate_paths_exec(bContext *C, wmOperator *op)
 #endif
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -353,7 +353,7 @@ static wmOperatorStatus pose_update_paths_exec(bContext *C, wmOperator *op)
   ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -421,7 +421,7 @@ static wmOperatorStatus pose_clear_paths_exec(bContext *C, wmOperator *op)
   pose_clear_paths(ob, only_selected);
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -477,7 +477,7 @@ static wmOperatorStatus pose_update_paths_range_exec(bContext *C, wmOperator * /
 
   /* tag for updates */
   DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -520,11 +520,12 @@ static wmOperatorStatus pose_flip_names_exec(bContext *C, wmOperator *op)
 
     BLI_freelistN(&bones_names);
 
-    /* since we renamed stuff... */
+    /* Since we renamed stuff... */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_RENAME, ob->data);
 
-    /* NOTE: notifier might evolve. */
-    WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+    /* Update animation channels */
+    WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);
   }
   FOREACH_OBJECT_IN_MODE_END;
 
@@ -571,11 +572,12 @@ static wmOperatorStatus pose_autoside_names_exec(bContext *C, wmOperator *op)
     }
 
     if (ob_prev != ob) {
-      /* since we renamed stuff... */
+      /* Since we renamed stuff... */
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_RENAME, ob->data);
 
-      /* NOTE: notifier might evolve. */
-      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+      /* Update animation channels */
+      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);
       ob_prev = ob;
     }
   }
@@ -632,7 +634,7 @@ static wmOperatorStatus pose_bone_rotmode_exec(bContext *C, wmOperator *op)
       /* Notifiers and updates. */
       DEG_id_tag_update(reinterpret_cast<ID *>(ob), ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
-      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
       prev_ob = ob;
     }
   }
