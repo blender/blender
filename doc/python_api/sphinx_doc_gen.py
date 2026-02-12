@@ -863,7 +863,7 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
         write_example_ref(ident + "   ", fw, module_name + "." + identifier)
 
 
-def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
+def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier, is_class):
     if identifier.startswith("_"):
         return
 
@@ -872,7 +872,8 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
         doc = undocumented_message(module_name, type_name, identifier)
 
     if type(descr) == GetSetDescriptorType:
-        fw(ident + ".. attribute:: {:s}\n\n".format(identifier))
+        directive = "attribute" if is_class else "data"
+        fw(ident + ".. {:s}:: {:s}\n\n".format(directive, identifier))
         # NOTE: `RST_NOINDEX_ATTR` currently not supported (as it's not used).
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
@@ -1038,7 +1039,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             module_name_split = module_name
 
         if type(descr) == types.GetSetDescriptorType:
-            py_descr2sphinx("", fw, descr, module_name_split, type_name, key)
+            py_descr2sphinx("", fw, descr, module_name_split, type_name, key, is_class=False)
             attribute_set.add(key)
         del module_name_split
     descr_sorted = []
@@ -1063,7 +1064,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             continue
 
         type_name = value_type.__name__
-        py_descr2sphinx("", fw, descr, module_name, type_name, key)
+        py_descr2sphinx("", fw, descr, module_name, type_name, key, is_class=False)
 
         attribute_set.add(key)
 
@@ -1175,7 +1176,7 @@ def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
 
     for key, descr in descr_items:
         if type(descr) == ClassMethodDescriptorType:
-            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key, is_class=True)
 
     # Needed for pure Python classes.
     for key, descr in descr_items:
@@ -1184,11 +1185,11 @@ def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
 
     for key, descr in descr_items:
         if type(descr) == MethodDescriptorType:
-            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key, is_class=True)
 
     for key, descr in descr_items:
         if type(descr) == GetSetDescriptorType:
-            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key, is_class=True)
 
     for key, descr in descr_items:
         if type(descr) == StaticMethodType:
@@ -1718,7 +1719,7 @@ def pyrna2sphinx(basepath):
         # C/Python attributes: `GetSetDescriptorType`.
         key = descr = None
         for key, descr in sorted(struct.get_py_c_properties_getset()):
-            py_descr2sphinx("   ", fw, descr, "bpy.types", struct_id, key)
+            py_descr2sphinx("   ", fw, descr, "bpy.types", struct_id, key, is_class=True)
         del key, descr
 
         for func in struct.functions:
@@ -1938,11 +1939,11 @@ def pyrna2sphinx(basepath):
             for key, descr in descr_items:
                 # `GetSetDescriptorType`, `GetSetDescriptorType` types are not documented yet.
                 if type(descr) == MethodDescriptorType:
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
+                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key, is_class=True)
 
             for key, descr in descr_items:
                 if type(descr) == GetSetDescriptorType:
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
+                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key, is_class=True)
             file.close()
 
         # Write fake classes.
