@@ -324,16 +324,16 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     return false;
   }
 
-  if (this->shader_library_frag_ == nil && this->shader_library_frag_ == nil &&
+  if (this->shader_library_vert_ == nil && this->shader_library_frag_ == nil &&
       this->shader_library_comp_ == nil)
   {
     /* All compilations failed. */
     return false;
   }
 
-  const bool is_compute = (this->shader_library_frag_ == nil && this->shader_library_frag_ == nil);
+  const bool is_compute = (this->shader_library_vert_ == nil && this->shader_library_frag_ == nil);
 
-  if (!is_compute && (this->shader_library_frag_ == nil || this->shader_library_frag_ == nil)) {
+  if (!is_compute && (this->shader_library_vert_ == nil || this->shader_library_frag_ == nil)) {
     /* One stage failed to compile. */
     return false;
   }
