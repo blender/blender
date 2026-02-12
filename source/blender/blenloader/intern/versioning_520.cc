@@ -10,6 +10,7 @@
 
 #include "DNA_ID.h"
 
+#include "BLI_listbase_iterator.hh"
 #include "BLI_sys_types.h"
 
 #include "BKE_main.hh"
@@ -34,8 +35,13 @@ void do_versions_after_linking_520(FileData * /*fd*/, Main * /*bmain*/)
    */
 }
 
-void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main * /*bmain*/)
+void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 1)) {
+    for (Scene &scene : bmain->scenes) {
+      scene.r.mode |= R_SAVE_OUTPUT;
+    }
+  }
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

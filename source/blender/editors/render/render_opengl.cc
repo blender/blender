@@ -967,6 +967,11 @@ static bool screen_opengl_render_anim_init(wmOperator *op)
   OGLRender *oglrender = static_cast<OGLRender *>(op->customdata);
   Scene *scene = oglrender->scene;
 
+  if (!(scene->r.mode & R_SAVE_OUTPUT)) {
+    BKE_report(op->reports, RPT_ERROR, "Render output disabled in Output properties");
+    return false;
+  }
+
   ImageFormatData image_format;
   BKE_image_format_init_for_write(&image_format, scene, nullptr, true);
 

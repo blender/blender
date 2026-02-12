@@ -46,6 +46,7 @@
 #include "BKE_callbacks.hh"
 #include "BKE_camera.h"
 #include "BKE_colortools.hh"
+#include "BKE_compositor.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
@@ -173,8 +174,12 @@ static void render_callback_exec_id(Render *re, Main *bmain, ID *id, eCbEvent ev
 /** \name Allocation & Free
  * \{ */
 
-static bool do_write_image_or_movie(
-    Render *re, Main *bmain, Scene *scene, const int totvideos, const char *filepath_override);
+static bool do_write_image_or_movie(Render *re,
+                                    Main *bmain,
+                                    Scene *scene,
+                                    const int totvideos,
+                                    const char *filepath_override,
+                                    const bool write_anim);
 
 /* default callbacks, set in each new render */
 static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, rcti * /*rect*/) {}
@@ -1673,34 +1678,17 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
   return true;
 }
 
-static bool node_tree_has_file_output(const bNodeTree *node_tree)
-{
-  node_tree->ensure_topology_cache();
-  for (const bNode *node : node_tree->nodes_by_type("CompositorNodeOutputFile")) {
-    if (!node->is_muted()) {
-      return true;
-    }
-  }
-
-  for (const bNode *node : node_tree->group_nodes()) {
-    if (node->is_muted() || !node->id) {
-      continue;
-    }
-
-    if (node_tree_has_file_output(reinterpret_cast<const bNodeTree *>(node->id))) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 static bool scene_has_compositor_output(Scene *scene)
 {
+  if (scene->compositing_node_group == nullptr) {
+    return false;
+  }
+
   if (node_tree_has_group_output(scene->compositing_node_group)) {
     return true;
   }
-  return node_tree_has_file_output(scene->compositing_node_group);
+
+  return bke::compositor::node_tree_has_linked_file_output(scene->compositing_node_group);
 }
 
 /* Identify if the compositor can run on the GPU. Currently, this only checks if the compositor is
@@ -1989,7 +1977,7 @@ void RE_RenderFrame(Render *re,
             nullptr);
 
         if (errors.is_empty()) {
-          do_write_image_or_movie(re, bmain, scene, 0, filepath_override);
+          do_write_image_or_movie(re, bmain, scene, 0, filepath_override, false);
         }
         else {
           BKE_report_path_template_errors(re->reports, RPT_ERROR, rd.pic, errors);
@@ -2182,8 +2170,12 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
   return ok;
 }
 
-static bool do_write_image_or_movie(
-    Render *re, Main *bmain, Scene *scene, const int totvideos, const char *filepath_override)
+static bool do_write_image_or_movie(Render *re,
+                                    Main *bmain,
+                                    Scene *scene,
+                                    const int totvideos,
+                                    const char *filepath_override,
+                                    const bool write_anim)
 {
   char filepath[FILE_MAX];
   RenderResult rres;
@@ -2192,8 +2184,9 @@ static bool do_write_image_or_movie(
   RenderEngineType *re_type = RE_engines_find(re->r.engine);
 
   /* Only disable file writing if postprocessing is also disabled. */
-  const bool do_write_file = !(re_type->flag & RE_USE_NO_IMAGE_SAVE) ||
-                             (re_type->flag & RE_USE_POSTPROCESS);
+  const bool do_write_file = (!(re_type->flag & RE_USE_NO_IMAGE_SAVE) ||
+                              (re_type->flag & RE_USE_POSTPROCESS)) &&
+                             write_anim;
 
   if (do_write_file) {
     RE_AcquireResultImageViews(re, &rres);
@@ -2357,10 +2350,13 @@ void RE_RenderAnim(Render *re,
   const bool is_movie = BKE_imtype_is_movie(image_format.imtype);
   const bool is_multiview_name = ((rd.scemode & R_MULTIVIEW) != 0 &&
                                   (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
+  const bool write_anim = (scene->r.mode & R_SAVE_OUTPUT);
 
-  /* Only disable file writing if postprocessing is also disabled. */
-  const bool do_write_file = !(re_type->flag & RE_USE_NO_IMAGE_SAVE) ||
-                             (re_type->flag & RE_USE_POSTPROCESS);
+  /* Disable file writing if postprocessing is also disabled or if it's explicitly disabled by the
+   * user. */
+  const bool do_write_file = (!(re_type->flag & RE_USE_NO_IMAGE_SAVE) ||
+                              (re_type->flag & RE_USE_POSTPROCESS)) &&
+                             write_anim;
 
   render_init_depsgraph(re);
 
@@ -2533,7 +2529,7 @@ void RE_RenderAnim(Render *re,
     const bool should_write = !(re->flag & R_SKIP_WRITE);
     if (re->display->test_break() == 0) {
       if (!G.is_break && should_write) {
-        if (!do_write_image_or_movie(re, bmain, scene, totvideos, nullptr)) {
+        if (!do_write_image_or_movie(re, bmain, scene, totvideos, nullptr, write_anim)) {
           G.is_break = true;
         }
       }
