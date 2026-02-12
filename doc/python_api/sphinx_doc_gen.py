@@ -627,6 +627,7 @@ from types import (
 )
 
 _BPY_STRUCT_FAKE = "bpy_struct"
+_BPY_PROP_FAKE = "bpy_prop"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
 _BPY_PROP_COLLECTION_IDPROP_FAKE = "bpy_prop_collection_idprop"
 
@@ -1925,7 +1926,10 @@ def pyrna2sphinx(basepath):
                     fw("subclasses --- \n" + ", ".join((":class:`{:s}`".format(s))
                        for s in sorted(subclass_ids)) + "\n\n")
 
-            fw(".. class:: {:s}\n\n".format(class_name))
+            if base_class is not None:
+                fw(".. class:: {:s}({:s})\n\n".format(class_name, base_class))
+            else:
+                fw(".. class:: {:s}\n\n".format(class_name))
             fw("   {:s}\n\n".format(descr_str))
             fw("   .. note::\n\n")
             fw("      Note that :class:`{:s}.{:s}` is not actually available from within Blender,\n"
@@ -1956,13 +1960,22 @@ def pyrna2sphinx(basepath):
                 base_class=None,
             )
 
+        if _BPY_PROP_FAKE:
+            class_value = bpy.types.bpy_prop
+            fake_bpy_type(
+                "bpy.types", class_value, _BPY_PROP_FAKE,
+                "built-in base class for all property classes.",
+                use_subclasses=False,
+                base_class=_BPY_STRUCT_FAKE,
+            )
+
         if _BPY_PROP_COLLECTION_FAKE:
             class_value = bpy.types.bpy_prop_collection
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
                 "built-in class used for all collections.",
                 use_subclasses=False,
-                base_class=None,
+                base_class=_BPY_PROP_FAKE,
             )
 
         if _BPY_PROP_COLLECTION_IDPROP_FAKE:
