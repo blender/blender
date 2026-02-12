@@ -1642,7 +1642,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
       const CommonVArrayInfo info = src.common_info();
       if (info.type == CommonVArrayInfo::Type::Single) {
         const bke::AttributeInitValue init(GPointer(src.type(), info.data));
-        output_attrs.add(iter.name, bke::AttrDomain::Point, iter.data_type, init);
+        output_attrs.add(iter.name, iter.domain, iter.data_type, init);
         return;
       }
       const GVArraySpan src_span = src;
