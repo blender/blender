@@ -53,12 +53,13 @@ static bool custom_library_is_valid(const bUserAssetLibrary *user_library)
     return false;
   }
 
-  /* Don't check if the path exists on disk. If an invalid library path is used, the Asset Browser
-   * can give a nice hint on what's wrong, so include such items in menus the user can choose from.
-   */
-  const bool check_directory_exists = false;
-
-  return BKE_preferences_asset_library_is_valid(&U, user_library, check_directory_exists);
+  return BKE_preferences_asset_library_is_valid(
+      &U,
+      user_library,
+      /* Don't check if the path exists on disk. If an invalid library path is used, the Asset
+       * Browser can give a nice hint on what's wrong, so include such items in menus the user can
+       * choose from. */
+      /*check_directory_exists=*/false);
 }
 
 AssetLibraryReference library_reference_from_enum_value(int value)
@@ -116,7 +117,6 @@ static void rna_enum_add_custom_libraries(EnumPropertyItem **item,
   }
 }
 
-/* TODO: Cleanup booleans - use flags instead. */
 const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_readonly,
                                                             const bool include_current_file,
                                                             const bool include_remote_libraries)
@@ -162,7 +162,11 @@ const EnumPropertyItem *custom_libraries_rna_enum_itemf()
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
-  rna_enum_add_custom_libraries(&item, &totitem, /*include_remote_libraries=*/false);
+  rna_enum_add_custom_libraries(
+      &item,
+      &totitem,
+      /* This function should return local/on-disk libraries only, so skip remote ones. */
+      /*include_remote_libraries=*/false);
 
   RNA_enum_item_end(&item, &totitem);
   return item;

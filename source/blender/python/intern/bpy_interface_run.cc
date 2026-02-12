@@ -373,6 +373,7 @@ static bool bpy_run_string_exec_with_locals_acquire_gil(
     FunctionRef<void(PyObject *py_locals)> on_exec_ok)
 {
   PyGILState_STATE gilstate;
+  bContext *prev_context = BPY_context_get();
   bpy_context_set(C, &gilstate);
 
   PyObject *main_mod_backup = PyC_MainModule_Backup();
@@ -387,6 +388,10 @@ static bool bpy_run_string_exec_with_locals_acquire_gil(
 
   PyC_MainModule_Restore(main_mod_backup);
   bpy_context_clear(C, &gilstate);
+
+  if (prev_context != C) {
+    bpy_context_set(prev_context, &gilstate);
+  }
 
   return ok;
 }

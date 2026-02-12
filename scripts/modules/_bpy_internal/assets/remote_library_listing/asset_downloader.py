@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Blender Authors
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -119,7 +119,7 @@ def download_preview(
         age_in_seconds = time.time() - stat.st_mtime
         if age_in_seconds < PREVIEW_DOWNLOAD_AGE_THRESHOLD_SEC:
             # The local file is still fresh, just pretend we just downloaded it.
-            bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(asset_library_url, str(dst_filepath))
+            bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(str(dst_filepath))
             return
 
     try:
@@ -173,7 +173,7 @@ def _preview_download_done(
     preview_local_path.touch()
 
     # Poke Blender so it knows there's a thumbnail update.
-    bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(downloader.remote_url, str(preview_local_path))
+    bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(str(preview_local_path))
 
 
 def downloader_status(asset_library_url: str) -> DownloadStatus:

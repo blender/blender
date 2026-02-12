@@ -190,6 +190,13 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
  */
 const int8_t REMOTE_LIBRARY_DIRNAME_LEN = 16;
 
+/**
+ * Determine the directory name of the asset library's on-disk cache for downloaded files.
+ *
+ * This is based on the remote URL of the library, and not the library name. As the name can be
+ * user-chosen. the URL is a more stable identifier. And if there happen to be multiple libraries
+ * in the preferences, with the same URL, they'll share the same cache.
+ */
 static void asset_library_directory_name(blender::StringRef remote_url,
                                          /* Buffer for the directory name + null-terminator. */
                                          char identifier_buf[REMOTE_LIBRARY_DIRNAME_LEN + 1])

@@ -67,7 +67,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * Constructs an asset representation for an external ID stored on disk. The asset will not be
    * editable.
    *
-   * For online assets, use the version with #download_dst_filepath below.
+   * For online assets, use the version with #online_info below.
    */
   AssetRepresentation(StringRef relative_asset_path,
                       StringRef name,
@@ -76,8 +76,6 @@ class AssetRepresentation : NonCopyable, NonMovable {
                       AssetLibrary &owner_asset_library);
   /**
    * Constructs an asset representation for an external ID stored online (requiring download).
-   *
-   * \param download_dst_filepath: See #download_dst_filepath() getter.
    */
   AssetRepresentation(StringRef relative_asset_path,
                       StringRef name,
@@ -108,12 +106,8 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * #BKE_previewimg_ensure() (not asynchronous).
    *
    * For online assets this triggers downloading of the preview.
-   *
-   * \param C: Context is needed because this may call into Python to do the downloading.
-   *     Annoyingly this is always non-const, so some callers may have to cast away const. The
-   *     downloader and the APIs it calls could be made to work without context.
    */
-  void ensure_previewable(bContext &C, ReportList *reports = nullptr);
+  void ensure_previewable(const bContext &C, ReportList *reports = nullptr);
   /**
    * Get the preview of this asset.
    *
@@ -164,8 +158,10 @@ class AssetRepresentation : NonCopyable, NonMovable {
   std::optional<StringRefNull> online_asset_preview_hash() const;
 
   /**
-   * If the asset is marked as online, removes the online data and marking, turning it into a
-   * regular on-disk asset.
+   * Turn the online asset into a normal asset. This removes the online data, and the "is online"
+   * marking, turning it into a regular on-disk asset.
+   *
+   * No-op if this is not an online asset.
    */
   void online_asset_mark_downloaded();
 

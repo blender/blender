@@ -77,7 +77,7 @@ AssetWeakReference AssetRepresentation::make_weak_reference() const
   return AssetWeakReference::make_reference(owner_asset_library_, library_relative_identifier());
 }
 
-void AssetRepresentation::ensure_previewable(bContext &C, ReportList *reports)
+void AssetRepresentation::ensure_previewable(const bContext &C, ReportList *reports)
 {
   if (ID *id = this->local_id()) {
     PreviewImage *preview = BKE_previewimg_id_get(id);

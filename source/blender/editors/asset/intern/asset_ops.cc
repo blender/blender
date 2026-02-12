@@ -1529,19 +1529,19 @@ static void ASSET_OT_screenshot_preview(wmOperatorType *ot)
 static Vector<const asset_system::AssetRepresentation *> selected_or_active_assets(
     const bContext *C)
 {
+  /* Convert RNA pointers to their data. */
   Vector<PointerRNA> asset_pointers = CTX_data_collection_get(C, "selected_assets");
-
   Vector<const asset_system::AssetRepresentation *> assets(asset_pointers.size());
-
-  std::transform(
-      asset_pointers.begin(), asset_pointers.end(), assets.begin(), [](const PointerRNA &ptr) {
-        return static_cast<asset_system::AssetRepresentation *>(ptr.data);
-      });
+  for (int i : asset_pointers.index_range()) {
+    assets[i] = static_cast<asset_system::AssetRepresentation *>(asset_pointers[i].data);
+  }
 
   if (!assets.is_empty()) {
+    /* There were selected assets, so return those. */
     return assets;
   }
 
+  /* No selected assets, so return the active asset.  */
   if (const asset_system::AssetRepresentation *active_asset = CTX_wm_asset(C)) {
     assets.append(active_asset);
   }

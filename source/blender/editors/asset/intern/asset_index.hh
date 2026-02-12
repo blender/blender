@@ -13,14 +13,14 @@
 #include <memory>
 #include <variant>
 
-struct AssetMetaData;
 namespace blender {
+struct AssetMetaData;
 class StringRefNull;
-}  // namespace blender
-namespace blender::io::serialize {
+namespace io::serialize {
 class DictionaryValue;
 class Value;
-}  // namespace blender::io::serialize
+}  // namespace io::serialize
+}  // namespace blender
 
 namespace blender::ed::asset::index {
 
@@ -71,8 +71,9 @@ template<typename T = std::monostate> class ReadingResult {
    * Construct a valueless success result.
    * Only enabled if T == std::monostate.
    */
-  template<typename U = T, typename = std::enable_if_t<std::is_same_v<U, std::monostate>>>
+  template<typename U = T>
   static ReadingResult Success()
+    requires(std::is_same_v<U, std::monostate>)
   {
     return ReadingResult(Type::Success);
   }
@@ -81,8 +82,9 @@ template<typename T = std::monostate> class ReadingResult {
    * Construct a valued success result.
    * Only enabled if T != std::monostate.
    */
-  template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, std::monostate>>>
+  template<typename U = T>
   static ReadingResult Success(T value)
+    requires(!std::is_same_v<U, std::monostate>)
   {
     ReadingResult result(Type::Success);
     result.success_value = std::move(value);
@@ -172,8 +174,9 @@ template<typename T = std::monostate> class ReadingResult {
    * Get a reference to the result's success value, similar to `std::optional<T>`.
    * Only valid if this result is successful and there is an actual success value.
    */
-  template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, std::monostate>>>
+  template<typename U = T>
   T &operator*()
+    requires(!std::is_same_v<U, std::monostate>)
   {
     BLI_assert_msg(is_success() || !success_value.has_value(),
                    "Attempted to access value of non-success ReadingResult");
@@ -184,8 +187,9 @@ template<typename T = std::monostate> class ReadingResult {
    * Get a reference to the result's success value, similar to `std::optional<T>`.
    * Only valid if this result is successful and there is an actual success value.
    */
-  template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, std::monostate>>>
+  template<typename U = T>
   const T &operator*() const
+    requires(!std::is_same_v<U, std::monostate>)
   {
     BLI_assert_msg(is_success() || !success_value.has_value(),
                    "Attempted to access value of non-success ReadingResult");
@@ -196,8 +200,9 @@ template<typename T = std::monostate> class ReadingResult {
    * Get a pointer to the result's success value, similar to `std::optional<T>`.
    * Only valid if this result is successful and there is an actual success value.
    */
-  template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, std::monostate>>>
+  template<typename U = T>
   T *operator->()
+    requires(!std::is_same_v<U, std::monostate>)
   {
     T &success_value = **this;
     return &success_value;
@@ -207,8 +212,9 @@ template<typename T = std::monostate> class ReadingResult {
    * Get a pointer to the result's success value, similar to `std::optional<T>`.
    * Only valid if this result is successful and there is an actual success value.
    */
-  template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, std::monostate>>>
+  template<typename U = T>
   const T *operator->() const
+    requires(!std::is_same_v<U, std::monostate>)
   {
     const T &success_value = **this;
     return &success_value;

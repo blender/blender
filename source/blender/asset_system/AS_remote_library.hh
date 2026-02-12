@@ -88,10 +88,10 @@ class AssetRepresentation;
  */
 void remote_library_request_download(const bUserAssetLibrary &library_definition);
 
-void remote_library_request_asset_download(bContext &C,
+void remote_library_request_asset_download(const bContext &C,
                                            const AssetRepresentation &asset,
                                            ReportList *reports);
-void remote_library_request_preview_download(bContext &C,
+void remote_library_request_preview_download(const bContext &C,
                                              const AssetRepresentation &asset,
                                              const StringRef dst_filepath,
                                              ReportList *reports);
@@ -156,9 +156,7 @@ class RemoteLibraryLoadingStatus {
   /** Let the state know that the loading is still ongoing, resetting the timeout. */
   static void ping_still_loading(StringRef url);
   static void ping_new_pages(StringRef url);
-  static void ping_new_preview(const bContext &C,
-                               StringRef library_url,
-                               StringRef preview_full_filepath);
+  static void ping_new_preview(const bContext &C, StringRef preview_full_filepath);
   static void ping_new_assets(const bContext &C, StringRef url);
   static void ping_metafiles_in_place(StringRef url);
   static void set_finished(StringRef url);

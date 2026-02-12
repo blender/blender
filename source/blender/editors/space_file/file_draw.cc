@@ -581,10 +581,10 @@ static void file_draw_string_mulitline_clipped(const rcti *rect,
   fontstyle_draw_multiline_clipped(&fs, rect, string, col, align);
 }
 
-static rcti file_measure_string_multiline(blender::StringRef string, const int wrap_width)
+static rcti file_measure_string_multiline(const StringRef string, const int wrap_width)
 {
   if (string[0] == '\0' || wrap_width < 1) {
-    return {0, 0, 0, 0};
+    return {.xmin = 0, .xmax = 0, .ymin = 0, .ymax = 0};
   }
 
   const uiStyle *style = ui::style_get();
@@ -609,7 +609,7 @@ static rcti file_measure_string_multiline(blender::StringRef string, const int w
  */
 static void file_draw_string_multiline(int sx,
                                        int sy,
-                                       blender::StringRef string,
+                                       const StringRef string,
                                        int wrap_width,
                                        int line_height,
                                        const uchar text_col[4],
@@ -923,7 +923,7 @@ static void file_draw_indicator_icons(const FileList *files,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
                                       const bool has_special_file_image,
-                                      eDirEntry_SelectFlag selflag)
+                                      const eDirEntry_SelectFlag selflag)
 {
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
   const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
@@ -1467,7 +1467,7 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     if (FILE_IMGDISPLAY == params->display) {
       if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) && !filelist_loading) {
-        filelist_online_asset_preview_request(const_cast<bContext *>(C), file);
+        filelist_online_asset_preview_request(C, file);
         /* Trigger the preview loader to wait until the download is done and load the preview from
          * disk. Has to be done explicitly here because the preview isn't attached to a button. */
         if (!file->asset->is_local_id()) {
@@ -1515,7 +1515,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     else {
       const BIFIconID icon = [&]() {
         if (file->asset) {
-          file->asset->ensure_previewable(const_cast<bContext &>(*C));
+          file->asset->ensure_previewable(*C);
 
           if (filelist_loading) {
             return BIFIconID(ICON_PREVIEW_LOADING);
@@ -1790,7 +1790,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
   int sx = round_fl_to_int(BLI_rctf_cent_x(&v2d->tot) - box_width / 2.0f);
   int sy = round_fl_to_int(BLI_rctf_cent_y(&v2d->tot) + box_height / 2.0f);
 
-  ui::Block *block = ui::block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  ui::Block *block = ui::block_begin(C, region, __func__, ui::EmbossType::Emboss);
 
   uiDefBut(block,
            ui::ButtonType::Roundbox,
@@ -1824,7 +1824,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
     ui::Button *but = uiDefIconTextButO(block,
                                         ui::ButtonType::But,
                                         "WM_OT_context_set_boolean",
-                                        blender::wm::OpCallContext::InvokeDefault,
+                                        wm::OpCallContext::InvokeDefault,
                                         ICON_X,
                                         "Continue Offline",
                                         sx,
@@ -1839,7 +1839,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
     uiDefIconTextButO(block,
                       ui::ButtonType::But,
                       "extensions.userpref_allow_online",
-                      blender::wm::OpCallContext::InvokeDefault,
+                      wm::OpCallContext::InvokeDefault,
                       ICON_CHECKMARK,
                       "Allow Online Access",
                       sx + button_width + pad_x,
@@ -1899,7 +1899,7 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
   int sx = round_fl_to_int(BLI_rctf_cent_x(&v2d->tot) - box_width / 2.0f);
   int sy = round_fl_to_int(BLI_rctf_cent_y(&v2d->tot) + box_height / 2.0f);
 
-  ui::Block *block = ui::block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  ui::Block *block = ui::block_begin(C, region, __func__, ui::EmbossType::Emboss);
 
   uiDefBut(block,
            ui::ButtonType::Roundbox,
@@ -1996,6 +1996,27 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
   }
 }
 
+static const bUserAssetLibrary *assetlib_as_remote_library(
+    const AssetLibraryReference &asset_library_ref)
+{
+  if (asset_library_ref.type != ASSET_LIBRARY_CUSTOM) {
+    return nullptr;
+  }
+
+  const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
+      &U, asset_library_ref.custom_library_index);
+  if (!library) {
+    return nullptr;
+  }
+
+  const bool is_remote_lib = library->flag & ASSET_LIBRARY_USE_REMOTE_URL;
+  if (!is_remote_lib) {
+    return nullptr;
+  }
+
+  return library;
+}
+
 bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegion *region)
 {
   char blendfile_path[FILE_MAX_LIBEXTRA];
@@ -2011,37 +2032,31 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
   if (is_asset_browser) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
 
-    const bUserAssetLibrary *remote_library = [&]() -> const bUserAssetLibrary * {
-      if (asset_params->asset_library_ref.type == ASSET_LIBRARY_CUSTOM) {
-        if (const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
-                &U, asset_params->asset_library_ref.custom_library_index))
-        {
-          if (library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-            return library;
-          }
-        }
-      }
-      return nullptr;
-    }();
+    const bUserAssetLibrary *remote_library = assetlib_as_remote_library(
+        asset_params->asset_library_ref);
+    const bool is_remote_library = remote_library != nullptr;
 
-    if (remote_library && ((G.f & G_FLAG_INTERNET_ALLOW) == 0) &&
-        ((U.extension_flag & USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED) == 0))
-    {
-      setup_view();
-      file_draw_asset_library_internet_access_required_hint(C, sfile, region);
-      return true;
+    if (is_remote_library) {
+      const bool is_online_allowed = G.f & G_FLAG_INTERNET_ALLOW;
+      const bool was_choice_made = U.extension_flag & USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED;
+      if (!is_online_allowed && !was_choice_made) {
+        setup_view();
+        file_draw_asset_library_internet_access_required_hint(C, sfile, region);
+        return true;
+      }
+      if (RemoteLibraryLoadingStatus::status(remote_library->remote_url) ==
+          RemoteLibraryLoadingStatus::Failure)
+      {
+        setup_view();
+        file_draw_asset_library_remote_loading_failed_hint(C, sfile, region, remote_library);
+        return true;
+      }
     }
-    if (remote_library && RemoteLibraryLoadingStatus::status(remote_library->remote_url) ==
-                              RemoteLibraryLoadingStatus::Failure)
-    {
-      setup_view();
-      file_draw_asset_library_remote_loading_failed_hint(C, sfile, region, remote_library);
-      return true;
-    }
+
     const bool is_on_disk_library = !ELEM(asset_params->asset_library_ref.type,
                                           ASSET_LIBRARY_LOCAL,
                                           ASSET_LIBRARY_ALL) &&
-                                    (remote_library == nullptr);
+                                    !is_remote_library;
 
     /* Check if the asset library exists. */
     if (is_on_disk_library && !filelist_is_dir(sfile->files, asset_params->base_params.dir)) {

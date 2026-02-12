@@ -5,8 +5,9 @@
 import sys
 import unittest
 
-from _bpy_internal.assets.remote_library_listing import asset_finder, json_parsing, hashing
+from _bpy_internal.assets.remote_library_listing import json_parsing, hashing
 from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
+from _bpy_internal.assets.remote_library_listing import cli_listing_generator_asset_finder as asset_finder
 
 import bpy
 

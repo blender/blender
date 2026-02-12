@@ -2704,56 +2704,57 @@ class USERPREF_PT_assets(AssetsPanel, Panel):
     def draw(self, context):
         prefs = context.preferences
 
-        # Check if the extensions "Welcome" panel should be displayed.
-        # Even though it can be dismissed it's quite "in-your-face" so only show when it's needed.
-        if (
-            # The user didn't dismiss.
-            (not prefs.extensions.use_online_access_handled) and
-            # Running offline.
-            (not bpy.app.online_access) and
-            # There is one or more libraries that require remote access.
-            any(library for library in prefs.filepaths.asset_libraries if
-                # repo.enabled and
-                library.use_remote_url)
+        # Check if the "Welcome" panel should be displayed.
+
+        if bpy.app.online_access or prefs.extensions.use_online_access_handled:
+            # Either online access is allowed, or the warning has already been dismissed. No need to draw.
+            return
+
+        has_online_library = any(
+            library.enabled and library.use_remote_url for library in prefs.filepaths.asset_libraries
+        )
+        if not has_online_library:
+            # No online libraries, so no need to draw.
+            return
+
+        layout = self.layout
+        layout_header, layout_panel = layout.panel("advanced", default_closed=False)
+        layout_header.label(text="Internet Access Required", icon='INTERNET_OFFLINE')
+
+        if layout_panel is None:
+            return
+
+        box = layout_panel.box()
+
+        # Text wrapping isn't supported, manually wrap.
+        for line in (
+                rpt_("Internet access is required to browse and download online assets."),
+                rpt_("You can adjust this later from \"System\" preferences."),
         ):
-            layout = self.layout
-            layout_header, layout_panel = layout.panel("advanced", default_closed=False)
-            layout_header.label(text="Internet Access Required", icon='INTERNET_OFFLINE')
+            box.label(text=line, translate=False)
 
-            if layout_panel is None:
-                return
+        # TODO: Link to the manual?
+        # row.operator(
+        #     "wm.url_open",
+        #     text="",
+        #     icon='URL',
+        #     emboss=False,
+        # ).url = (
+        #     "https://docs.blender.org/manual/"
+        #     "{:s}/{:d}.{:d}/editors/preferences/extensions.html#installing-extensions"
+        # ).format(
+        #     bpy.utils.manual_language_code(),
+        #     *bpy.app.version[:2],
+        # )
 
-            box = layout_panel.box()
+        row = box.row()
+        props = row.operator("wm.context_set_boolean", text="Continue Offline", icon='X')
+        props.data_path = "preferences.extensions.use_online_access_handled"
+        props.value = True
 
-            # Text wrapping isn't supported, manually wrap.
-            for line in (
-                    rpt_("Internet access is required to browse and download online assets."),
-                    rpt_("You can adjust this later from \"System\" preferences."),
-            ):
-                box.label(text=line, translate=False)
-
-            # TODO: Link to the manual?
-            # row.operator(
-            #     "wm.url_open",
-            #     text="",
-            #     icon='URL',
-            #     emboss=False,
-            # ).url = (
-            #     "https://docs.blender.org/manual/"
-            #     "{:s}/{:d}.{:d}/editors/preferences/extensions.html#installing-extensions"
-            # ).format(
-            #     bpy.utils.manual_language_code(),
-            #     *bpy.app.version[:2],
-            # )
-
-            row = box.row()
-            props = row.operator("wm.context_set_boolean", text="Continue Offline", icon='X')
-            props.data_path = "preferences.extensions.use_online_access_handled"
-            props.value = True
-
-            # The only reason to prefer this over `screen.userpref_show`
-            # is it will be disabled when `--offline-mode` is forced with a useful error for why.
-            row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
+        # The only reason to prefer this over `screen.userpref_show`
+        # is it will be disabled when `--offline-mode` is forced with a useful error for why.
+        row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
 
 
 class USERPREF_PT_assets_asset_libraries(AssetsPanel, Panel):
@@ -2812,10 +2813,6 @@ class USERPREF_UL_asset_libraries(UIList):
         row.prop(asset_library, "name", text="", icon=icon, emboss=False)
         row.prop(asset_library, "enabled", text="", emboss=False,
                  icon='CHECKBOX_HLT' if asset_library.enabled else 'CHECKBOX_DEHLT')
-
-        # Check the 'experimental' flag.
-        if asset_library.use_remote_url:
-            layout.enabled = context.preferences.experimental.use_remote_asset_libraries
 
     def filter_items(self, context, data, property):
         asset_libraries = getattr(data, property)

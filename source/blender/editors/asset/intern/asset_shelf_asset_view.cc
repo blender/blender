@@ -255,9 +255,8 @@ void AssetViewItem::build_grid_tile(const bContext &C, ui::Layout &layout) const
 
   /* Request preview when drawing. Grid views have an optimization to only draw items that are
    * actually visible, so only previews scrolled into view will be loaded this way. This reduces
-   * total loading time and memory footprint.
-   * A non-const context is needed because this may call into Python. See function comment. */
-  asset_.ensure_previewable(const_cast<bContext &>(C));
+   * total loading time and memory footprint. */
+  asset_.ensure_previewable(C);
 
   const int preview_id = [&]() -> int {
     /* Show loading icon while list is loading still. Previews might get pushed out of view again

@@ -11,6 +11,7 @@
 #include "BLI_fileops.h"
 #include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -121,31 +122,30 @@ void RemoteLibraryLoadingStatus::begin_loading(const StringRef url, const float 
 
 void RemoteLibraryLoadingStatus::ping_still_loading(const StringRef url)
 {
-  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return;
   }
 
-  if (status->status_ == RemoteLibraryLoadingStatus::Loading) {
-    status->reset_timeout();
+  if (this_->status_ == RemoteLibraryLoadingStatus::Loading) {
+    this_->reset_timeout();
   }
 }
 
 void RemoteLibraryLoadingStatus::ping_new_pages(const StringRef url)
 {
-  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return;
   }
 
-  if (status->status_ == RemoteLibraryLoadingStatus::Loading) {
-    status->reset_timeout();
-    status->last_new_pages_time_point_ = std::chrono::steady_clock::now();
+  if (this_->status_ == RemoteLibraryLoadingStatus::Loading) {
+    this_->reset_timeout();
+    this_->last_new_pages_time_point_ = std::chrono::steady_clock::now();
   }
 }
 
 void RemoteLibraryLoadingStatus::ping_new_preview(const bContext &C,
-                                                  const StringRef /*library_url*/,
                                                   const StringRef preview_full_filepath)
 {
   ED_preview_online_download_finished(CTX_wm_manager(&C), preview_full_filepath);
@@ -164,105 +164,105 @@ void RemoteLibraryLoadingStatus::ping_new_assets(const bContext &C, const String
 
 void RemoteLibraryLoadingStatus::ping_metafiles_in_place(const StringRef url)
 {
-  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return;
   }
 
-  status->metafiles_in_place_ = true;
+  this_->metafiles_in_place_ = true;
 }
 
 std::optional<RemoteLibraryLoadingStatus::Status> RemoteLibraryLoadingStatus::status(
     const StringRef url)
 {
-  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  const RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return {};
   }
 
-  return status->status_;
+  return this_->status_;
 }
 
 std::optional<bool> RemoteLibraryLoadingStatus::metafiles_in_place(const StringRef url)
 {
-  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  const RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return {};
   }
 
-  return status->metafiles_in_place_;
+  return this_->metafiles_in_place_;
 }
 
 std::optional<RemoteLibraryLoadingStatus::FileSystemTimePoint> RemoteLibraryLoadingStatus::
     loading_start_time(const StringRef url)
 {
-  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  const RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return {};
   }
-  if (status->status_ != Loading) {
+  if (this_->status_ != Loading) {
     return {};
   }
 
-  return status->loading_start_time_point_;
+  return this_->loading_start_time_point_;
 }
 
 std::optional<RemoteLibraryLoadingStatus::TimePoint> RemoteLibraryLoadingStatus::
     last_new_pages_time(const StringRef url)
 {
-  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  const RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return {};
   }
 
-  return status->last_new_pages_time_point_;
+  return this_->last_new_pages_time_point_;
 }
 
 void RemoteLibraryLoadingStatus::set_finished(const StringRef url)
 {
-  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return;
   }
 
-  if (status->status_ == RemoteLibraryLoadingStatus::Loading) {
-    status->status_ = RemoteLibraryLoadingStatus::Finished;
-    status->reset_timeout();
+  if (this_->status_ == RemoteLibraryLoadingStatus::Loading) {
+    this_->status_ = RemoteLibraryLoadingStatus::Finished;
+    this_->reset_timeout();
   }
 }
 
 void RemoteLibraryLoadingStatus::set_failure(const StringRef url,
                                              const std::optional<StringRefNull> failure_message)
 {
-  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return;
   }
 
-  if (status->status_ == RemoteLibraryLoadingStatus::Loading) {
-    status->status_ = RemoteLibraryLoadingStatus::Failure;
-    status->failure_message_ = failure_message;
-    status->reset_timeout();
+  if (this_->status_ == RemoteLibraryLoadingStatus::Loading) {
+    this_->status_ = RemoteLibraryLoadingStatus::Failure;
+    this_->failure_message_ = failure_message;
+    this_->reset_timeout();
   }
 }
 
 std::optional<StringRefNull> RemoteLibraryLoadingStatus::failure_message(const StringRef url)
 {
-  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status) {
+  const RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_) {
     return {};
   }
 
-  if (status->status_ == RemoteLibraryLoadingStatus::Failure) {
-    return status->failure_message_;
+  if (this_->status_ == RemoteLibraryLoadingStatus::Failure) {
+    return this_->failure_message_;
   }
   return {};
 }
 
 bool RemoteLibraryLoadingStatus::handle_timeout(const StringRef url)
 {
-  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
-  if (!status || status->status_ != RemoteLibraryLoadingStatus::Loading) {
+  RemoteLibraryLoadingStatus *this_ = library_to_status_map().lookup_ptr(url);
+  if (!this_ || this_->status_ != RemoteLibraryLoadingStatus::Loading) {
     /* Only handle timeouts while loading. */
     return false;
   }
@@ -271,18 +271,18 @@ bool RemoteLibraryLoadingStatus::handle_timeout(const StringRef url)
   /* Keep track of how long ago the timeout was checked last. This is to avoid blocking processes
    * from interfering with the timeout handling. If the timeout wasn't checked for a longer period
    * of time (more than `0.9 * timeout_`), we skip timeout handling. */
-  if ((now - status->last_timeout_handled_time_point_).count() > (0.9f * status->timeout_)) {
+  if ((now - this_->last_timeout_handled_time_point_).count() > (0.9f * this_->timeout_)) {
     return false;
   }
-  status->last_timeout_handled_time_point_ = now;
+  this_->last_timeout_handled_time_point_ = now;
 
-  const std::chrono::duration<float> elapsed = now - status->last_updated_time_point_;
-  if (elapsed.count() < status->timeout_) {
+  const std::chrono::duration<float> elapsed = now - this_->last_updated_time_point_;
+  if (elapsed.count() < this_->timeout_) {
     return false;
   }
 
-  status->status_ = RemoteLibraryLoadingStatus::Failure;
-  status->failure_message_ = RPT_("Asset system lost connection to downloader (timed out).");
+  this_->status_ = RemoteLibraryLoadingStatus::Failure;
+  this_->failure_message_ = RPT_("Asset system lost connection to downloader (timed out).");
   return true;
 }
 
@@ -342,7 +342,7 @@ void remote_library_request_download(const bUserAssetLibrary &library_definition
  * Download a single asset file.
  * \returns an 'ok' flag. If not ok, a report will be added to the report list.
  */
-static bool remote_library_request_asset_download_file(bContext &C,
+static bool remote_library_request_asset_download_file(const bContext &C,
                                                        ReportList *reports,
                                                        const StringRefNull asset_name,
                                                        const asset_system::AssetLibrary &library,
@@ -379,12 +379,16 @@ static bool remote_library_request_asset_download_file(bContext &C,
   IDP_AddToGroup(locals.get(), IDP_NewString(asset_url.url, "asset_url"));
   IDP_AddToGroup(locals.get(), IDP_NewString(asset_url.hash, "asset_hash"));
 
-  return BPY_run_string_exec_with_locals(&C, script, *locals);
+  bContext *mutable_ctx = CTX_copy(&C);
+  BLI_SCOPED_DEFER([&]() { CTX_free(mutable_ctx); });
+
+  /* TODO: report errors in the UI somehow. */
+  return BPY_run_string_exec_with_locals(mutable_ctx, script, *locals);
 }
 
 #endif
 
-void remote_library_request_asset_download(bContext &C,
+void remote_library_request_asset_download(const bContext &C,
                                            const AssetRepresentation &asset,
                                            ReportList *reports)
 {
@@ -439,7 +443,7 @@ void remote_library_request_asset_download(bContext &C,
 #endif
 }
 
-void remote_library_request_preview_download(bContext &C,
+void remote_library_request_preview_download(const bContext &C,
                                              const AssetRepresentation &asset,
                                              const StringRef dst_filepath,
                                              ReportList *reports)
@@ -489,12 +493,15 @@ void remote_library_request_preview_download(bContext &C,
     IDP_AddToGroup(locals.get(), IDP_NewString(*preview_hash, "preview_hash"));
     IDP_AddToGroup(locals.get(), IDP_NewString(dst_filepath, "dst_filepath"));
 
+    bContext *mutable_ctx = CTX_copy(&C);
+    BLI_SCOPED_DEFER([&]() { CTX_free(mutable_ctx); });
+
     /* TODO: report errors in the UI somehow. */
-    BPY_run_string_exec_with_locals(&C, script, *locals);
+    BPY_run_string_exec_with_locals(mutable_ctx, script, *locals);
   }
 
 #else
-  UNUSED_VARS(C, asset);
+  UNUSED_VARS(C, asset, dst_filepath);
   /* TODO should we use CLOG here? Otherwise every preview will trigger a report. */
   BKE_report(reports,
              RPT_ERROR,

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Blender Authors
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,7 +22,9 @@ from typing import Any
 
 import cattrs.preconf.json
 
-from . import asset_catalogs, asset_finder, hashing, listing_common, pagination, json_parsing
+from . import hashing, listing_asset_catalogs, listing_common, json_parsing
+from . import cli_listing_generator_asset_finder as asset_finder
+from . import cli_listing_generator_pagination as pagination
 from . import blender_asset_library_openapi as api_models
 
 SCHEMA_VERSION = "1.0.0"
@@ -150,7 +152,7 @@ def _write_json_files(
     asset_size_bytes = sum(file.size_in_bytes
                            for page in asset_index_pages
                            for file in page.files)
-    asset_cats = asset_catalogs.parse_catalogs(arguments.repository)
+    asset_cats = listing_asset_catalogs.parse_catalogs(arguments.repository)
     index = api_models.AssetLibraryIndexV1(
         schema_version=SCHEMA_VERSION,
         asset_size_bytes=asset_size_bytes,

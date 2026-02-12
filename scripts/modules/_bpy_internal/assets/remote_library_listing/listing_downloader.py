@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Blender Authors
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -27,7 +27,7 @@ from _bpy_internal.assets.remote_library_listing import blender_asset_library_op
 from _bpy_internal.assets.remote_library_listing import listing_common
 from _bpy_internal.assets.remote_library_listing import hashing
 from _bpy_internal.assets.remote_library_listing import http_metadata
-from _bpy_internal.assets.remote_library_listing import asset_catalogs
+from _bpy_internal.assets.remote_library_listing import listing_asset_catalogs
 from _bpy_internal.assets.remote_library_listing import json_parsing
 
 logger = logging.getLogger(__name__)
@@ -369,7 +369,7 @@ class RemoteAssetListingDownloader:
         assert self._library_meta, "By now the asset library metadata should be known"
         catalogs_file = self._locator.catalogs_file
         logger.info("Writing catalogs to %s", catalogs_file)
-        asset_catalogs.write(asset_index.catalogs or [], catalogs_file, self._library_meta)
+        listing_asset_catalogs.write(asset_index.catalogs or [], catalogs_file, self._library_meta)
 
         # Construct a "processed" version of the asset index file. This will be
         # what Blender reads, and thus it should reference local files, and not

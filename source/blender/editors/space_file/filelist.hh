@@ -65,8 +65,8 @@ void filelist_setfilter_options(FileList *filelist,
  */
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer);
 void filelist_remote_asset_library_refresh_online_assets_status(const FileList *filelist,
-                                                                blender::StringRef remote_url);
-void filelist_set_asset_include_online(FileList *filelist, const bool show_online_assets);
+                                                                StringRef remote_url);
+void filelist_set_asset_include_online(FileList *filelist, bool show_online_assets);
 /**
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
  * #FILE_SHOW_ASSETS_FROM_CATALOG. May be NULL otherwise.
@@ -89,7 +89,7 @@ void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
                                  char r_filepath[/*FILE_MAX_LIBEXTRA*/ 1282]);
 bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEntry *file);
-void filelist_online_asset_preview_request(bContext *C, FileDirEntry *entry);
+void filelist_online_asset_preview_request(const bContext *C, FileDirEntry *entry);
 ImBuf *filelist_file_get_preview_image(const FileDirEntry *file);
 ImBuf *filelist_geticon_special_file_image_ex(const FileDirEntry *file);
 /**

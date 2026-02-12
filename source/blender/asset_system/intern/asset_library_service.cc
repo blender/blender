@@ -103,7 +103,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
       }
 
       if (custom_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-        return this->get_remote_asset_library(custom_library);
+        return this->get_remote_asset_library(*custom_library);
       }
 
       std::string root_path = custom_library->dirpath;
@@ -124,13 +124,13 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 }
 
 AssetLibrary *AssetLibraryService::get_remote_asset_library(
-    const bUserAssetLibrary *custom_library)
+    const bUserAssetLibrary &custom_library)
 {
-  if (!custom_library->remote_url[0]) {
+  if (!custom_library.remote_url[0]) {
     return nullptr;
   }
 
-  const StringRefNull remote_url = custom_library->remote_url;
+  const StringRefNull remote_url = custom_library.remote_url;
 
   std::unique_ptr<RemoteAssetLibrary> *lib_uptr_ptr = remote_libraries_.lookup_ptr(remote_url);
   if (lib_uptr_ptr != nullptr) {
@@ -142,9 +142,9 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(
 
   std::unique_ptr<RemoteAssetLibrary> lib_uptr = std::make_unique<RemoteAssetLibrary>(
       remote_url,
-      custom_library->name,
+      custom_library.name,
       /* Constructor normalizes the path. */
-      custom_library->dirpath);
+      custom_library.dirpath);
   AssetLibrary *lib = lib_uptr.get();
   lib->load_or_reload_catalogs();
 

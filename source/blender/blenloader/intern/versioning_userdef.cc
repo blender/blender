@@ -1755,7 +1755,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  if (!USER_VERSION_ATLEAST(501, 27)) {
+  if (!USER_VERSION_ATLEAST(502, 2)) {
     userdef->uiflag2 |= USER_UIFLAG2_SHOW_ONLINE_ASSETS;
   }
 

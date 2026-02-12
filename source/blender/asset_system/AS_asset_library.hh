@@ -134,6 +134,14 @@ class AssetLibrary {
    * were loaded directly through a path.
    */
   virtual std::optional<AssetLibraryReference> library_reference() const = 0;
+
+  /**
+   * Return the URL of the remote asset library, or std::nullopt if this is not a remote library.
+   *
+   * Note: don't use this as a way to distinguish remote vs. local libraries. Either query the
+   * asset itself, or use #is_or_contains_remote_libraries(). The Essentials and All libraries may
+   * contain a mixture of remote and local assets.
+   */
   virtual std::optional<StringRefNull> remote_url() const;
 
   AssetCatalogService &catalog_service() const;
@@ -218,6 +226,12 @@ AssetLibraryReference all_library_reference();
 AssetLibraryReference current_file_library_reference();
 void all_library_reload_catalogs_if_dirty();
 
+/**
+ * Return whether this is a remote asset library, or contains remote assets.
+ *
+ * The All and Essentials libraries can (now resp. in the future) have a mixture of local & remote
+ * assets.
+ */
 bool is_or_contains_remote_libraries(const AssetLibraryReference &reference);
 
 }  // namespace asset_system

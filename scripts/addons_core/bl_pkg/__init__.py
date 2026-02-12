@@ -18,7 +18,7 @@ bl_info = {
 }
 
 from pathlib import Path
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING
 
 if "bpy" in locals():
     # This doesn't need to be inline because sub-modules aren't imported into the global name-space.
@@ -42,9 +42,9 @@ from bpy.props import (
 if TYPE_CHECKING:
     from _bpy_internal.assets.remote_library_listing import listing_downloader
 
-    _RemoteAssetListingDownloader: TypeAlias = listing_downloader.RemoteAssetListingDownloader
+    type _RemoteAssetListingDownloader = listing_downloader.RemoteAssetListingDownloader
 else:
-    _RemoteAssetListingDownloader: TypeAlias = object
+    type _RemoteAssetListingDownloader = object
 
 
 # Auto-refresh remote asset libraries once per day.
@@ -455,7 +455,8 @@ def remote_asset_library_sync(
     from _bpy_internal.assets.remote_library_listing import listing_downloader
 
     # Check if the download should happen at all.
-    if only_if_older_than_sec and listing_downloader.is_more_recent_than(asset_library_local_path, only_if_older_than_sec):
+    if only_if_older_than_sec and listing_downloader.is_more_recent_than(
+            asset_library_local_path, only_if_older_than_sec):
         return
 
     # Only actually start downloading if no other Blender is already syncing
@@ -534,7 +535,8 @@ def _remote_asset_library_sync_all_periodic():
         return
 
     for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
-        remote_asset_library_sync(asset_lib.remote_url, Path(asset_lib.path), only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
+        remote_asset_library_sync(asset_lib.remote_url, Path(asset_lib.path),
+                                  only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
 
 
 # -----------------------------------------------------------------------------

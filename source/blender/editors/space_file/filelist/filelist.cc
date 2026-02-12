@@ -141,15 +141,16 @@ static void remote_asset_library_refresh_online_assets_status(const FileList *fi
      * path points into some .blend on disk. */
     std::shared_ptr<asset_system::AssetRepresentation> asset = entry.asset.lock();
     std::string filepath = asset->full_library_path();
-    if (!filepath.empty()) {
-      BLI_assert(BLI_is_file(filepath.c_str()));
+    if (filepath.empty()) {
+      continue;
+    }
+    BLI_assert(BLI_is_file(filepath.c_str()));
 
-      entry.typeflag &= ~FILE_TYPE_ASSET_ONLINE;
-      asset->online_asset_mark_downloaded();
+    entry.typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+    asset->online_asset_mark_downloaded();
 
-      if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry.uid)) {
-        (*cached_entry)->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
-      }
+    if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry.uid)) {
+      (**cached_entry).typeflag &= ~FILE_TYPE_ASSET_ONLINE;
     }
   }
 }
@@ -557,10 +558,7 @@ static bool filelist_checkdir_remote_asset_library(const FileList * /*filelist*/
                                                    char /*dirpath*/[FILE_MAX_LIBEXTRA],
                                                    const bool /*do_change*/)
 {
-  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
-    return false;
-  }
-  return true;
+  return (G.f & G_FLAG_INTERNET_ALLOW) != 0;
 }
 
 static void filelist_entry_clear(FileDirEntry *entry)
@@ -818,7 +816,7 @@ static bool filelist_file_preview_load_poll(const FileDirEntry *entry)
   return true;
 }
 
-void filelist_online_asset_preview_request(bContext *C, FileDirEntry *entry)
+void filelist_online_asset_preview_request(const bContext *C, FileDirEntry *entry)
 {
   BLI_assert(entry->asset);
   BLI_assert(entry->asset->is_online());
@@ -2245,10 +2243,6 @@ struct FileListReadJob {
   wmWindowManager *wm = nullptr;
   FileList *filelist = nullptr;
 
-  /** Code requested to cancel the read job. */
-  /* TODO only remote asset library loading respects this so far. */
-  std::atomic<bool> cancel;
-
   ReportList reports;
 
   /**
@@ -2306,7 +2300,7 @@ static char *current_relpath_append(const FileListReadJob *job_params, const cha
     return BLI_strdup(filename);
   }
 
-  BLI_path_slash_ensure(relbase, sizeof(job_params->cur_relbase));
+  BLI_path_slash_ensure(relbase, sizeof(relbase));
 
   char relpath[FILE_MAX_LIBEXTRA];
   /* Using #BLI_path_join works but isn't needed as `rel_subdir` has a trailing slash. */
@@ -3207,29 +3201,23 @@ static void filelist_readjob_lib(FileListReadJob *job_params,
  */
 static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params, bool *do_update)
 {
-  FileList *tmp_filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+  BLI_assert(job_params->filelist->asset_library_ref);
 
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   *do_update = false;
 
-  if (job_params->filelist->asset_library_ref == nullptr) {
-    return;
-  }
-  if (tmp_filelist->asset_library && !job_params->load_asset_library &&
-      !job_params->reload_asset_library)
-  {
-    /* Asset library itself is already loaded. Load assets into this. */
-    job_params->load_asset_library = tmp_filelist->asset_library;
-    return;
+  /* See if loading is necessary (and then load). */
+  const bool is_force_reload = job_params->reload_asset_library;
+  if (!filelist->asset_library || is_force_reload) {
+    filelist->asset_library = AS_asset_library_load(job_params->current_main,
+                                                    *job_params->filelist->asset_library_ref);
+    job_params->reload_asset_library = false;
+    *do_update = true;
   }
 
-  /* Load asset catalogs, into the temp filelist for thread-safety.
-   * #filelist_readjob_endjob() will move it into the real filelist. */
-  tmp_filelist->asset_library = AS_asset_library_load(job_params->current_main,
-                                                      *job_params->filelist->asset_library_ref);
-  /* Set asset library to load (may be overridden later for loading nested ones). */
-  job_params->load_asset_library = tmp_filelist->asset_library;
-  job_params->reload_asset_library = false;
-  *do_update = true;
+  /* Not really necessary for this function to do, but otherwise it's up to the caller, and can be
+   * forgotten. */
+  job_params->load_asset_library = filelist->asset_library;
 }
 
 static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,

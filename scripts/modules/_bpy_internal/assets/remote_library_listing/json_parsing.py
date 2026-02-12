@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Blender Authors
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,13 +11,12 @@ __all__ = [
 
 import dataclasses
 import json
-from typing import Any, Type, TypeVar, Union
+from typing import Any, Type, TypeVar
 
 import cattrs
 import cattrs.preconf.json
 
 from . import blender_asset_library_openapi as api_models
-import _bpy_internal.assets.remote_library_listing.blender_asset_library_openapi
 
 # There is no common base class for dataclasses, so this type variable will have to act as a stand-in.
 APIModel = TypeVar("APIModel")
@@ -41,7 +40,7 @@ class ValidatingParser:
         # Basically cattrs told me to register a structure hook for this
         # specific type, and so that's what I (Sybren) did.
         self._converter.register_structure_hook(
-            Union[dict[str, api_models.CustomPropertyV1], None, list, float, int, str, bool],
+            api_models.CustomPropertiesV1 | list[Any] | float | int | str | bool,
             lambda value, _: value,
         )
 
