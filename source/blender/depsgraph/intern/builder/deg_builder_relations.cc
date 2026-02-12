@@ -2914,7 +2914,7 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
     ComponentKey camera_parameters_key(&camera->id, NodeType::PARAMETERS);
     ComponentKey dof_ob_key(&camera->dof.focus_object->id, NodeType::TRANSFORM);
     add_relation(dof_ob_key, camera_parameters_key, "Camera DOF");
-    if (camera->dof.focus_subtarget[0]) {
+    if (camera->dof.focus_object->type == OB_ARMATURE && camera->dof.focus_subtarget[0]) {
       OperationKey target_key(&camera->dof.focus_object->id,
                               NodeType::BONE,
                               camera->dof.focus_subtarget,
