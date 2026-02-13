@@ -1963,9 +1963,6 @@ def pyrna2sphinx(basepath):
             else:
                 fw(".. class:: {:s}\n\n".format(class_name))
             fw("   {:s}\n\n".format(descr_str))
-            fw("   .. note::\n\n")
-            fw("      Note that :class:`{:s}.{:s}` is not actually available from within Blender,\n"
-               "      it only exists for the purpose of documentation.\n\n".format(class_module_name, class_name))
 
             descr_items = [
                 (key, descr) for key, descr in sorted(class_value.__dict__.items())
