@@ -1342,21 +1342,21 @@ if bpy.app.build_options.experimental_features:
         context_type_map[key] = value
 
 
-def write_type_info(ident, fw, type_info):
-    """Write descriptive info (array dims, range, default, qualifiers) on a line after the description."""
+def format_description_and_type_info(description, type_info):
     if type_info:
-        # Qualifier tokens (starting at "(") are stored individually so they
-        # can be tested with ``"readonly" in type_info`` etc.
-        # Items before the opening paren are comma-joined, qualifier tokens
-        # are raw-joined (they carry their own separators).
-        try:
-            qual_start = type_info.index("(")
-        except ValueError:
-            qual_start = len(type_info)
-        info_str = ", ".join(type_info[:qual_start])
-        qual_str = "".join(type_info[qual_start:])
-        sep = ", " if info_str and qual_str else ""
-        fw("{:s}{:s}{:s}{:s}\n\n".format(ident, info_str, sep, qual_str))
+        # Add some information at the end of the description,
+        # this doesn't really fit all that well anywhere, but it's often short and not worth
+        # the vertical space used by having its own line.
+        # However, if the description is already multi-line, then we do need to add a separate line,
+        # otherwise this would get mixed up in dot-points or notes.
+        if "\n" in description:
+            sep = "\n\n"
+        elif description:
+            sep = " "
+        else:
+            sep = ""
+        description = "{:s}{:s}({:s})".format(description, sep, ", ".join(type_info))
+    return description
 
 
 def pycontext2sphinx(basepath):
@@ -1567,15 +1567,22 @@ def pyrna2sphinx(basepath):
             enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
             kwargs["enum_descr_override"] = enum_descr_override
 
-        type_descr, _type_info = prop.get_type_description(**kwargs)
+        type_descr, type_info = prop.get_type_description(**kwargs)
+
+        prop_name = prop.name
+
+        prop_description = format_description_and_type_info(prop.description, type_info)
 
         # If the link has been written, no need to inline the enum items.
         enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
-        if prop.name or prop.description or enum_text:
+        # Don't accidentally use this again (some value have been manipulated).
+        del prop
+
+        if prop_name or prop_description or enum_text:
             fw(ident + ":{:s}{:s}: ".format(id_name, identifier))
 
-            if prop.name or prop.description:
-                fw(", ".join(val for val in (prop.name, prop.description.replace("\n", "")) if val) + "\n")
+            if prop_name or prop_description:
+                fw(", ".join(val for val in (prop_name, prop_description.replace("\n", "")) if val) + "\n")
 
             # Special exception, can't use generic code here for enums.
             if enum_text:
@@ -1708,8 +1715,9 @@ def pyrna2sphinx(basepath):
                 fw("      :noindex:\n")
             fw("\n")
 
-            if prop.description:
-                write_indented_lines("      ", fw, prop.description, False)
+            prop_description = format_description_and_type_info(prop.description, type_info)
+            if prop_description:
+                write_indented_lines("      ", fw, prop_description, False)
                 fw("\n")
             if (deprecated := prop.deprecated) is not None:
                 fw(pyrna_deprecated_directive("      ", deprecated))
@@ -1724,8 +1732,6 @@ def pyrna2sphinx(basepath):
                     fw("\n")
                 del enum_text
             # End enum exception.
-
-            write_type_info("      ", fw, type_info)
 
             fw("      :type: {:s}\n\n".format(type_descr))
 
