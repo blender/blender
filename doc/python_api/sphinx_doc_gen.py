@@ -1986,13 +1986,13 @@ def pyrna2sphinx(basepath):
             ]
 
             for key, descr in descr_items:
-                # `GetSetDescriptorType`, `GetSetDescriptorType` types are not documented yet.
                 if type(descr) == MethodDescriptorType:
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key, is_class=True)
+                    py_descr2sphinx("   ", fw, descr, class_module_name, class_name, key, is_class=True)
 
             for key, descr in descr_items:
                 if type(descr) == GetSetDescriptorType:
-                    py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key, is_class=True)
+                    py_descr2sphinx("   ", fw, descr, class_module_name, class_name, key, is_class=True)
+
             file.close()
 
         # Write Python C-API classes.
