@@ -110,6 +110,8 @@ CCL_NAMESPACE_BEGIN
   if constexpr ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #define IF_KERNEL_NODES_FEATURE(feature) \
   if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#define IF_NOT_KERNEL_NODES_FEATURE(feature) \
+  if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) == 0U)
 
 /* Kernel Feature Guards
  *

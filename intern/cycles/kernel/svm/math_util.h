@@ -12,13 +12,14 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device void svm_vector_math(ccl_private float *value,
-                                ccl_private float3 *vector,
+template<class Float3Type, class FloatType>
+ccl_device void svm_vector_math(ccl_private FloatType *value,
+                                ccl_private Float3Type *vector,
                                 NodeVectorMathType type,
-                                const float3 a,
-                                const float3 b,
-                                const float3 c,
-                                float param1)
+                                const Float3Type a,
+                                const Float3Type b,
+                                const Float3Type c,
+                                const FloatType param1)
 {
   switch (type) {
     case NODE_VECTOR_MATH_ADD:
@@ -112,8 +113,8 @@ ccl_device void svm_vector_math(ccl_private float *value,
       *vector = tan(a);
       break;
     default:
-      *vector = zero_float3();
-      *value = 0.0f;
+      *vector = Float3Type(zero_float3());
+      *value = FloatType(0.0f);
   }
 }
 

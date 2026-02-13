@@ -31,7 +31,7 @@ ccl_device float3 rec709_to_rgb(KernelGlobals kg, const float3 rec709)
                          dot(make_float3(kernel_data.film.rec709_to_b), rec709));
 }
 
-ccl_device float linear_rgb_to_gray(KernelGlobals kg, const float3 c)
+template<class T> ccl_device auto linear_rgb_to_gray(KernelGlobals kg, const T c)
 {
   return dot(c, make_float3(kernel_data.film.rgb_to_y));
 }

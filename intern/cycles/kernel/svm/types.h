@@ -21,6 +21,7 @@ CCL_NAMESPACE_BEGIN
 
 enum ShaderNodeType {
 #define SHADER_NODE_TYPE(name) name,
+#define SHADER_NODE_TYPE_DERIVATIVE(name) name, name##_DERIVATIVE,
 #include "node_types_template.h"
 
   NODE_NUM
@@ -273,7 +274,8 @@ enum NodeConvert {
   NODE_CONVERT_VF,
   NODE_CONVERT_VI,
   NODE_CONVERT_IF,
-  NODE_CONVERT_IV
+  NODE_CONVERT_IV,
+  NODE_CONVERT_NONE,
 };
 
 enum NodeNoiseType {
