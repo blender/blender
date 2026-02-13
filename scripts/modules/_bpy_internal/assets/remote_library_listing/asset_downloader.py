@@ -14,7 +14,7 @@ import enum
 import logging
 import urllib.parse
 from pathlib import Path
-from typing import Callable, TypeAlias
+from typing import Callable
 
 import bpy
 
@@ -203,15 +203,15 @@ class AssetDownloader:
     _locator: RemoteAssetListingLocator
 
     # Called for download progres
-    OnUpdateCallback: TypeAlias = Callable[['AssetDownloader'], None]
+    type OnUpdateCallback = Callable[['AssetDownloader'], None]
     _on_update_callback: OnUpdateCallback
 
     # Called when the entire queue is 'done':
-    OnDoneCallback: TypeAlias = Callable[['AssetDownloader'], None]
+    type OnDoneCallback = Callable[['AssetDownloader'], None]
     _on_done_callback: OnDoneCallback
 
     # Called for each downloaded file being 'done':
-    OnAssetDoneCallback: TypeAlias = Callable[['AssetDownloader', http_dl.RequestDescription, Path], None]
+    type OnAssetDoneCallback = Callable[['AssetDownloader', http_dl.RequestDescription, Path], None]
     _on_asset_done_callback: OnAssetDoneCallback | None
 
     _bg_downloader: http_dl.BackgroundDownloader | None

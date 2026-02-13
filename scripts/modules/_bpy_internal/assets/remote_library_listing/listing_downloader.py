@@ -18,7 +18,13 @@ import logging
 import unicodedata
 import urllib.parse
 from pathlib import Path, PurePosixPath
-from typing import Callable, TypeAlias, Type
+from typing import Callable, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datetime import datetime as _datetime
+else:
+    type _datetime = object
+
 
 import bpy
 
@@ -31,7 +37,6 @@ from _bpy_internal.assets.remote_library_listing import listing_asset_catalogs
 from _bpy_internal.assets.remote_library_listing import json_parsing
 
 logger = logging.getLogger(__name__)
-
 
 # The resolution of the cache-busting 'stamp' used when fetching the top-level
 # JSON file of asset listings.
@@ -145,13 +150,13 @@ class RemoteAssetListingDownloader:
     """
     _locator: RemoteAssetListingLocator
 
-    OnUpdateCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
+    type OnUpdateCallback = Callable[['RemoteAssetListingDownloader'], None]
     _on_update_callback: OnUpdateCallback
-    OnDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
+    type OnDoneCallback = Callable[['RemoteAssetListingDownloader'], None]
     _on_done_callback: OnDoneCallback
-    OnMetafilesDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
+    type OnMetafilesDoneCallback = Callable[['RemoteAssetListingDownloader'], None]
     _on_metafiles_done_callback: OnMetafilesDoneCallback | None
-    OnPageDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
+    type OnPageDoneCallback = Callable[['RemoteAssetListingDownloader'], None]
     _on_page_done_callback: OnPageDoneCallback | None
 
     _bgdownloader: http_dl.BackgroundDownloader
@@ -466,7 +471,7 @@ class RemoteAssetListingDownloader:
             self.shutdown(DownloadStatus.FINISHED_SUCCESSFULLY)
 
     @staticmethod
-    def _cache_bust_stamp(*, _mocked_now=None) -> int:
+    def _cache_bust_stamp(*, _mocked_now: _datetime | None = None) -> int:
         """Construct a cache-busting number for the top-level JSON file.
 
         This is based on the time since the first commit in Blender's Git
