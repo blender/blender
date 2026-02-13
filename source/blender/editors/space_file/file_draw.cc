@@ -37,6 +37,7 @@
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_icons.hh"
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
 
@@ -62,6 +63,7 @@
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
@@ -701,7 +703,6 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                                       const FileDirEntry *file,
                                       const char *path,
                                       const rcti *tile_draw_rect,
-                                      const ImBuf *preview_image,
                                       const int file_type_icon)
 {
   /* Invisible button for dragging. */
@@ -722,25 +723,26 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                              0.0,
                              std::nullopt);
 
-  const ImBuf *drag_image = preview_image ? preview_image :
-                                            /* Larger directory or document icon. */
-                                            filelist_geticon_special_file_image_ex(file);
-  const float scale = (PREVIEW_DRAG_DRAW_SIZE * UI_SCALE_FAC) /
-                      std::max(drag_image->x, drag_image->y);
+  const ImBuf *preview_image = filelist_file_get_preview_image(file);
+  const ImBuf *drag_image = (preview_image || file->asset) ?
+                                preview_image :
+                                /* Larger directory or document icon. */
+                                filelist_geticon_special_file_image_ex(file);
+  const float scale = drag_image ? (PREVIEW_DRAG_DRAW_SIZE * UI_SCALE_FAC) /
+                                       std::max(drag_image->x, drag_image->y) :
+                                   1.0f;
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
   file_but_tooltip_func_set(sfile, file, but);
 }
 
 static void file_draw_preview(const FileDirEntry *file,
                               const rcti *tile_draw_rect,
-                              const ImBuf *imb,
+                              const IconBufferRef &preview,
                               FileLayout *layout,
                               const bool dimmed)
 {
-  BLI_assert(imb != nullptr);
-
   const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
-      imb->x, imb->y, *layout);
+      preview.width, preview.height, *layout);
 
   /* Additional offset to keep the scaled image centered. Difference between maximum
    * width/height and the actual width/height, divided by two for centering. */
@@ -770,15 +772,18 @@ static void file_draw_preview(const FileDirEntry *file,
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
+  const gpu::TextureFormat format = gpu::TextureFormat::UNORM_8_8_8_8;
+  BLI_assert_msg(preview.channels == 4, "preview images are expected to be 4 channels");
+
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
   immDrawPixelsTexTiled_scaling(&state,
                                 float(xmin),
                                 float(ymin),
-                                imb->x,
-                                imb->y,
-                                gpu::TextureFormat::UNORM_8_8_8_8,
+                                preview.width,
+                                preview.height,
+                                format,
                                 true,
-                                imb->byte_buffer.data,
+                                preview.buffer.data(),
                                 scale,
                                 scale,
                                 1.0f,
@@ -917,7 +922,8 @@ static void file_draw_indicator_icons(const FileList *files,
                                       const rcti *tile_draw_rect,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
-                                      const bool has_special_file_image)
+                                      const bool has_special_file_image,
+                                      const eDirEntry_SelectFlag selflag)
 {
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
   const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
@@ -975,23 +981,38 @@ static void file_draw_indicator_icons(const FileList *files,
     }
   }
 
-  const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
-  if (is_current_main_data) {
-    /* Smaller, fainter icon at the top-right indicating that the file represents data from the
-     * current file (from current #Main in fact). */
-    float icon_x, icon_y;
+  {
+    const float icon_x = float(tile_draw_rect->xmax) - (16.0f * UI_SCALE_FAC);
+    const float icon_y = float(tile_draw_rect->ymax) - (20.0f * UI_SCALE_FAC);
     const uchar light[4] = {255, 255, 255, 255};
-    icon_x = float(tile_draw_rect->xmax) - (16.0f * UI_SCALE_FAC);
-    icon_y = float(tile_draw_rect->ymax) - (20.0f * UI_SCALE_FAC);
-    ui::icon_draw_ex(icon_x,
-                     icon_y,
-                     ICON_CURRENT_FILE,
-                     1.0f / UI_SCALE_FAC,
-                     0.6f,
-                     0.0f,
-                     light,
-                     true,
-                     UI_NO_ICON_OVERLAY_TEXT);
+
+    const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
+    if (is_current_main_data) {
+      /* Smaller, fainter icon at the top-right indicating that the file represents data from the
+       * current file (from current #Main in fact). */
+      ui::icon_draw_ex(icon_x,
+                       icon_y,
+                       ICON_CURRENT_FILE,
+                       1.0f / UI_SCALE_FAC,
+                       0.6f,
+                       0.0f,
+                       light,
+                       true,
+                       UI_NO_ICON_OVERLAY_TEXT);
+    }
+    else if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) != 0) {
+      if (selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
+        ui::icon_draw_ex(icon_x,
+                         icon_y,
+                         ICON_INTERNET,
+                         1.0f / UI_SCALE_FAC,
+                         0.6f,
+                         0.0f,
+                         light,
+                         true,
+                         UI_NO_ICON_OVERLAY_TEXT);
+      }
+    }
   }
 }
 
@@ -1388,7 +1409,9 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     /* Handle preview timer here,
      * since it's filelist_file_cache_block() and filelist_cache_previews_update()
-     * which controls previews task. */
+     * which controls previews task.
+     * Note that online assets don't use this system.
+     */
     {
       const bool previews_running = filelist_cache_previews_running(files) &&
                                     !filelist_cache_previews_done(files);
@@ -1410,26 +1433,27 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   ui::theme::get_color_4ubv(TH_TEXT, text_col);
 
+  const bool filelist_loading = !filelist_is_ready(files);
+
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
-    eDirEntry_SelectFlag file_selflag;
     const int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;
 
     const rcti tile_draw_rect = tile_draw_rect_get(v2d, layout, i);
 
     file = filelist_file(files, i);
-    file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
+    eDirEntry_SelectFlag file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
+    if (params->highlight_file == i) {
+      file_selflag |= FILE_SEL_HIGHLIGHTED;
+    }
 
     char path[FILE_MAX_LIBEXTRA];
     filelist_file_get_full_path(files, file, path);
 
     if (!(file_selflag & FILE_SEL_EDITING)) {
-      if ((params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ||
-          (file_selflag & FILE_SEL_SELECTED))
-      {
+      if (file_selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
         int colorid = (file_selflag & FILE_SEL_SELECTED) ? TH_HILITE : TH_BACK;
-        int shade = (params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 :
-                                                                                             0;
+        int shade = (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 : 0;
         BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
 
         draw_tile_background(&tile_draw_rect, colorid, shade);
@@ -1442,8 +1466,21 @@ void file_draw_list(const bContext *C, ARegion *region)
     const bool is_hidden = (file->attributes & FILE_ATTR_HIDDEN);
 
     if (FILE_IMGDISPLAY == params->display) {
+      if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) && !filelist_loading) {
+        filelist_online_asset_preview_request(C, file);
+        /* Trigger the preview loader to wait until the download is done and load the preview from
+         * disk. Has to be done explicitly here because the preview isn't attached to a button. */
+        if (!file->asset->is_local_id()) {
+          ui::icon_render_id_ex(
+              C, nullptr, nullptr, ICON_SIZE_PREVIEW, true, file->asset->get_preview());
+        }
+      }
+
       const int file_type_icon = filelist_geticon_file_type(files, i, false);
-      const ImBuf *preview_imb = filelist_get_preview_image(files, i);
+      std::optional<IconBufferRef> preview_buf = file->preview_icon_id ?
+                                                     BKE_icon_get_buffer(file->preview_icon_id,
+                                                                         ICON_SIZE_PREVIEW) :
+                                                     std::nullopt;
 
       bool has_special_file_image = false;
 
@@ -1451,8 +1488,8 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (is_loading) {
         file_draw_loading_icon(&tile_draw_rect, thumb_icon_aspect, layout);
       }
-      else if (preview_imb) {
-        file_draw_preview(file, &tile_draw_rect, preview_imb, layout, is_hidden);
+      else if (preview_buf) {
+        file_draw_preview(file, &tile_draw_rect, *preview_buf, layout, is_hidden);
       }
       else {
         /* Larger folder or document icon, with file/folder type icon in the middle (if any). */
@@ -1467,18 +1504,18 @@ void file_draw_list(const bContext *C, ARegion *region)
                                 &tile_draw_rect,
                                 thumb_icon_aspect,
                                 file_type_icon,
-                                has_special_file_image);
+                                has_special_file_image,
+                                file_selflag);
 
       if (do_drag) {
         file_add_preview_drag_but(
-            sfile, block, layout, file, path, &tile_draw_rect, preview_imb, file_type_icon);
+            sfile, block, layout, file, path, &tile_draw_rect, file_type_icon);
       }
     }
     else {
-      const bool filelist_loading = !filelist_is_ready(files);
       const BIFIconID icon = [&]() {
         if (file->asset) {
-          file->asset->ensure_previewable();
+          file->asset->ensure_previewable(*C);
 
           if (filelist_loading) {
             return BIFIconID(ICON_PREVIEW_LOADING);

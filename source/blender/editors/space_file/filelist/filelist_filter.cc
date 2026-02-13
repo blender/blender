@@ -177,12 +177,17 @@ void prepare_filter_asset_library(const FileList *filelist, FileListFilter *filt
 
 bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
 {
-  const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
+  asset_system::AssetRepresentation *asset = file->get_asset();
+  const AssetMetaData &asset_data = asset->get_metadata();
 
   /* Not used yet for the asset view template. */
   if (filter->asset_catalog_filter &&
-      !file_is_asset_visible_in_catalog_filter_settings(filter->asset_catalog_filter, asset_data))
+      !file_is_asset_visible_in_catalog_filter_settings(filter->asset_catalog_filter, &asset_data))
   {
+    return false;
+  }
+
+  if (((filter->flags & FLF_ASSETS_HIDE_ONLINE) != 0) && asset->is_online()) {
     return false;
   }
 
@@ -368,6 +373,7 @@ void filelist_setfilter_options(FileList *filelist,
                                 const uint64_t filter,
                                 const uint64_t filter_id,
                                 const bool filter_assets_only,
+                                const bool filter_assets_hide_online,
                                 const char *filter_glob,
                                 const char *filter_search)
 {
@@ -387,6 +393,12 @@ void filelist_setfilter_options(FileList *filelist,
   }
   if (((filelist->filter_data.flags & FLF_ASSETS_ONLY) != 0) != (filter_assets_only != 0)) {
     filelist->filter_data.flags ^= FLF_ASSETS_ONLY;
+    update = true;
+  }
+  if (((filelist->filter_data.flags & FLF_ASSETS_HIDE_ONLINE) != 0) !=
+      (filter_assets_hide_online != 0))
+  {
+    filelist->filter_data.flags ^= FLF_ASSETS_HIDE_ONLINE;
     update = true;
   }
   if (filelist->filter_data.filter != filter) {

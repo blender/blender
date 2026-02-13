@@ -189,6 +189,7 @@ enum {
   FLF_HIDE_PARENT = 1 << 2,
   FLF_HIDE_LIB_DIR = 1 << 3,
   FLF_ASSETS_ONLY = 1 << 4,
+  FLF_ASSETS_HIDE_ONLINE = 1 << 5,
 };
 
 struct FileListReadJob;
@@ -242,6 +243,10 @@ struct FileList {
                        char dirpath[FILE_MAX_LIBEXTRA],
                        const bool do_change);
 
+  /** Called from the main thread when starting the job. */
+  void (*start_job_fn)(FileListReadJob *job_params);
+  /** Called from the main thread in regular intervals. */
+  void (*timer_step_fn)(FileListReadJob *job_params);
   /** Fill `filelist` (to be called by read job). */
   void (*read_job_fn)(FileListReadJob *job_params, bool *stop, bool *do_update, float *progress);
 
@@ -268,6 +273,7 @@ enum {
   /** Trigger a call to #AS_asset_library_load() to update asset catalogs (won't reload the actual
    * assets) */
   FL_RELOAD_ASSET_LIBRARY = 1 << 7,
+  FL_ASSETS_INCLUDE_ONLINE = 1 << 8,
 };
 
 /** #FileList.tags */

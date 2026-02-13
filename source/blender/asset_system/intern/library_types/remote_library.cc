@@ -11,6 +11,7 @@
 #include "BLI_fileops.h"
 #include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -497,7 +498,7 @@ void remote_library_request_preview_download(const bContext &C,
   }
 
 #else
-  UNUSED_VARS(C, asset);
+  UNUSED_VARS(C, asset, dst_filepath);
   /* TODO should we use CLOG here? Otherwise every preview will trigger a report. */
   BKE_report(reports,
              RPT_ERROR,

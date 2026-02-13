@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+#include "AS_asset_library.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -245,9 +247,12 @@ static void file_refresh(const bContext *C, ScrArea *area)
       params->filter,
       params->filter_id,
       (params->flag & FILE_ASSETS_ONLY) != 0,
+      asset_params && (asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE) != 0,
       params->filter_glob,
       params->filter_search);
   if (asset_params) {
+    filelist_set_asset_include_online(sfile->files,
+                                      !(asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE));
     filelist_set_asset_catalog_filter_options(
         sfile->files,
         eFileSel_Params_AssetCatalogVisibility(asset_params->asset_catalog_visibility),
@@ -524,6 +529,71 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
     /* All properties for this space type. */
     WM_msg_subscribe_rna(mbus, &ptr, prop, &msg_sub_value_area_tag_refresh, __func__);
+  }
+
+  /* Use online access option (for remote asset libraries). */
+  {
+    wmMsgSubscribeValue msg_sub_value_region_clear_remote_libraries{};
+    msg_sub_value_region_clear_remote_libraries.owner = region;
+    msg_sub_value_region_clear_remote_libraries.user_data = sfile;
+    msg_sub_value_region_clear_remote_libraries.notify = [](/* Follow wmMsgNotifyFn spec */
+                                                            bContext *C,
+                                                            wmMsgSubscribeKey * /*msg_key*/,
+                                                            wmMsgSubscribeValue *msg_val) {
+      SpaceFile *sfile = static_cast<SpaceFile *>(msg_val->user_data);
+      if (const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile)) {
+        if (blender::asset_system::is_or_contains_remote_libraries(
+                asset_params->asset_library_ref))
+        {
+          ED_fileselect_clear(CTX_wm_manager(C), sfile);
+        }
+      }
+    };
+    WM_msg_subscribe_rna_prop(mbus,
+                              nullptr,
+                              &U,
+                              PreferencesSystem,
+                              use_online_access,
+                              &msg_sub_value_region_clear_remote_libraries);
+  }
+
+  using namespace blender;
+
+  /* Online asset library downloader status updates. */
+  const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+  const asset_system::AssetLibrary *asset_library = filelist_asset_library(sfile->files);
+
+  if (asset_params && asset_library &&
+      asset_system::is_or_contains_remote_libraries(asset_params->asset_library_ref))
+  {
+    wmMsgSubscribeValue msg_sub_value_assets_downloaded{};
+    msg_sub_value_assets_downloaded.owner = region;
+    msg_sub_value_assets_downloaded.user_data = sfile;
+    msg_sub_value_assets_downloaded.notify =
+        [](bContext * /*C*/, wmMsgSubscribeKey * /*msg_key*/, wmMsgSubscribeValue *msg_val) {
+          SpaceFile *sfile = static_cast<SpaceFile *>(msg_val->user_data);
+          const asset_system::AssetLibrary *asset_library = filelist_asset_library(sfile->files);
+          const std::optional<StringRefNull> remote_url = asset_library->remote_url();
+          filelist_remote_asset_library_refresh_online_assets_status(sfile->files, *remote_url);
+          ED_region_tag_redraw(static_cast<ARegion *>(msg_val->owner));
+        };
+
+    const char *debug_subscr_name = __func__;
+    if (asset_library->library_type() == ASSET_LIBRARY_ALL) {
+      asset_library->foreach_loaded(
+          [mbus, &msg_sub_value_assets_downloaded, debug_subscr_name](
+              const asset_system::AssetLibrary &sub_library) {
+            if (std::optional<StringRefNull> remote_url = sub_library.remote_url()) {
+              WM_msg_subscribe_remote_io(
+                  mbus, *remote_url, &msg_sub_value_assets_downloaded, debug_subscr_name);
+            }
+          },
+          false);
+    }
+    else if (std::optional<StringRefNull> remote_url = asset_library->remote_url()) {
+      WM_msg_subscribe_remote_io(
+          mbus, *remote_url, &msg_sub_value_assets_downloaded, debug_subscr_name);
+    }
   }
 }
 

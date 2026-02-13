@@ -212,6 +212,8 @@ static const EnumPropertyItem rna_enum_preferences_asset_import_method_items[] =
 
 #ifdef RNA_RUNTIME
 
+#  include "AS_remote_library.hh"
+
 #  include "BLI_listbase.h"
 #  include "BLI_math_vector.h"
 #  include "BLI_memory_cache.hh"
@@ -251,6 +253,7 @@ static const EnumPropertyItem rna_enum_preferences_asset_import_method_items[] =
 #  include "MEM_CacheLimiterC-Api.h"
 #  include "MEM_guardedalloc.h"
 
+#  include "ED_asset_library.hh"
 #  include "ED_asset_list.hh"
 #  include "ED_screen.hh"
 
@@ -416,6 +419,16 @@ static void rna_userdef_asset_libraries_refresh(bContext *C, PointerRNA *ptr)
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 
   rna_userdef_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+}
+
+static void rna_userdef_asset_library_remote_sync_update(bContext *C, PointerRNA *ptr)
+{
+  bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
+  AssetLibraryReference library_ref = blender::ed::asset::user_library_to_library_ref(*library);
+  /* Make sure all visible instances of this asset library will be refreshed. */
+  blender::ed::asset::list::clear(&library_ref, C);
+  blender::asset_system::remote_library_request_download(*library);
+  rna_userdef_asset_libraries_refresh(C, ptr);
 }
 
 /**
@@ -5230,6 +5243,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "manually if Auto-Save Preferences is disabled");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  prop = RNA_def_property(srna, "show_online_assets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uiflag2", USER_UIFLAG2_SHOW_ONLINE_ASSETS);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Online Assets",
+      "When internet access is enabled, load and display online assets in asset shelves");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
   static const EnumPropertyItem header_align_items[] = {
       {0, "NONE", 0, "Keep Existing", "Keep existing header alignment"},
       {USER_HEADER_FROM_PREF, "TOP", 0, "Top", "Top aligned on load"},
@@ -6869,6 +6890,8 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   prop = RNA_def_property(srna, "remote_url", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "remote_url");
   RNA_def_property_ui_text(prop, "URL", "Remote URL to the asset library");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_asset_library_remote_sync_update");
 
   prop = RNA_def_property(srna, "import_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_preferences_asset_import_method_items);

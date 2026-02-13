@@ -27,14 +27,17 @@
 namespace blender {
 
 struct AssetMetaData;
+struct bContext;
 struct ID;
 struct PreviewImage;
+struct ReportList;
 
 namespace asset_system {
 
 class AssetLibrary;
 struct OnlineAssetInfo;
 struct OnlineAssetFile;
+struct URLWithHash;
 
 class AssetRepresentation : NonCopyable, NonMovable {
   /** Pointer back to the asset library that owns this asset representation. */
@@ -60,12 +63,26 @@ class AssetRepresentation : NonCopyable, NonMovable {
   friend class AssetLibrary;
 
  public:
-  /** Constructs an asset representation for an external ID. The asset will not be editable. */
+  /**
+   * Constructs an asset representation for an external ID stored on disk. The asset will not be
+   * editable.
+   *
+   * For online assets, use the version with #online_info below.
+   */
   AssetRepresentation(StringRef relative_asset_path,
                       StringRef name,
                       int id_type,
                       std::unique_ptr<AssetMetaData> metadata,
                       AssetLibrary &owner_asset_library);
+  /**
+   * Constructs an asset representation for an external ID stored online (requiring download).
+   */
+  AssetRepresentation(StringRef relative_asset_path,
+                      StringRef name,
+                      int id_type,
+                      std::unique_ptr<AssetMetaData> metadata,
+                      AssetLibrary &owner_asset_library,
+                      OnlineAssetInfo online_info);
   /**
    * Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable.
@@ -87,8 +104,10 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * to the preview but doesn't actually load it. To load it, attach its
    * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
    * #BKE_previewimg_ensure() (not asynchronous).
+   *
+   * For online assets this triggers downloading of the preview.
    */
-  void ensure_previewable();
+  void ensure_previewable(const bContext &C, ReportList *reports = nullptr);
   /**
    * Get the preview of this asset.
    *

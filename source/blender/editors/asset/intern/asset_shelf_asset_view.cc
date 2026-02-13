@@ -217,7 +217,7 @@ static std::optional<wmOperatorCallParams> create_asset_operator_params(
   return wmOperatorCallParams{ot, op_props, wm::OpCallContext::InvokeRegionWin};
 }
 
-void AssetViewItem::build_grid_tile(const bContext & /*C*/, ui::Layout &layout) const
+void AssetViewItem::build_grid_tile(const bContext &C, ui::Layout &layout) const
 {
   const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
@@ -256,7 +256,7 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, ui::Layout &layout) 
   /* Request preview when drawing. Grid views have an optimization to only draw items that are
    * actually visible, so only previews scrolled into view will be loaded this way. This reduces
    * total loading time and memory footprint. */
-  asset_.ensure_previewable();
+  asset_.ensure_previewable(C);
 
   const int preview_id = [&]() -> int {
     /* Show loading icon while list is loading still. Previews might get pushed out of view again

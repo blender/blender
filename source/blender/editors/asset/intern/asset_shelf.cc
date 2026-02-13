@@ -371,6 +371,31 @@ void region_message_subscribe(const wmRegionMessageSubscribeParams *params)
   msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
   WM_msg_subscribe_rna_prop(
       mbus, &workspace->id, workspace, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
+
+  {
+    wmMsgSubscribeValue msg_sub_value_region_clear_remote_libraries{};
+    msg_sub_value_region_clear_remote_libraries.owner = region;
+    msg_sub_value_region_clear_remote_libraries.user_data = region;
+    msg_sub_value_region_clear_remote_libraries.notify = [](/* Follow wmMsgNotifyFn spec */
+                                                            bContext *C,
+                                                            wmMsgSubscribeKey * /*msg_key*/,
+                                                            wmMsgSubscribeValue *msg_val) {
+      ARegion *region = static_cast<ARegion *>(msg_val->owner);
+      RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
+      AssetShelf *active_shelf = shelf_regiondata->active_shelf;
+      if (blender::asset_system::is_or_contains_remote_libraries(
+              active_shelf->settings.asset_library_reference))
+      {
+        asset::list::clear(&active_shelf->settings.asset_library_reference, C);
+      }
+    };
+    WM_msg_subscribe_rna_prop(mbus,
+                              nullptr,
+                              &U,
+                              PreferencesSystem,
+                              use_online_access,
+                              &msg_sub_value_region_clear_remote_libraries);
+  }
 }
 
 void region_init(wmWindowManager *wm, ARegion *region)

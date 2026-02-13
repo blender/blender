@@ -11,6 +11,7 @@
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
@@ -259,13 +260,23 @@ std::optional<StringRefNull> AssetLibrary::remote_url() const
   return {};
 };
 
+AssetCatalogService &AssetLibrary::catalog_service() const
+{
+  return *catalog_service_;
+}
+
+void AssetLibrary::refresh_catalogs()
+{
+  /* To be implemented by a subclass, like #OnDiskAssetLibrary::refresh_catalogs. */
+}
+
 void AssetLibrary::load_or_reload_catalogs()
 {
   {
     std::lock_guard lock{catalog_service_mutex_};
     /* Should never actually be the case, catalog service gets allocated with the asset library. */
     if (catalog_service_ == nullptr) {
-      auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
+      auto catalog_service = std::make_unique<AssetCatalogService>(*root_path_);
       catalog_service->load_from_disk();
       catalog_service_ = std::move(catalog_service);
       return;
@@ -281,14 +292,7 @@ void AssetLibrary::load_or_reload_catalogs()
   }
 }
 
-AssetCatalogService &AssetLibrary::catalog_service() const
-{
-  return *catalog_service_;
-}
-
-void AssetLibrary::refresh_catalogs() {}
-
-std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_asset(
+std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_on_disk_asset(
     StringRef relative_asset_path,
     StringRef name,
     const int id_type,
@@ -296,6 +300,17 @@ std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_asset(
 {
   return asset_storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
       relative_asset_path, name, id_type, std::move(metadata), *this));
+}
+
+std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_online_asset(
+    StringRef relative_asset_path,
+    StringRef name,
+    const int id_type,
+    std::unique_ptr<AssetMetaData> metadata,
+    OnlineAssetInfo online_info)
+{
+  return asset_storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
+      relative_asset_path, name, id_type, std::move(metadata), *this, online_info));
 }
 
 std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(ID &id)
@@ -448,10 +463,7 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   }
 
   for (const auto [i, asset_library] : U.asset_libraries.enumerate()) {
-    if (asset_library.flag & ASSET_LIBRARY_DISABLED) {
-      continue;
-    }
-    if (!BLI_is_dir(asset_library.dirpath)) {
+    if (!BKE_preferences_asset_library_is_valid(&U, &asset_library, true)) {
       continue;
     }
     AssetLibraryReference library_ref{};
@@ -487,6 +499,31 @@ void all_library_reload_catalogs_if_dirty()
 {
   AssetLibraryService *service = AssetLibraryService::get();
   service->reload_all_library_catalogs_if_dirty();
+}
+
+bool is_or_contains_remote_libraries(const AssetLibraryReference &reference)
+{
+  switch (reference.type) {
+    case ASSET_LIBRARY_ALL:
+      for (const bUserAssetLibrary &asset_library : U.asset_libraries) {
+        if (asset_library.flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+          return true;
+        }
+      }
+      break;
+    case ASSET_LIBRARY_CUSTOM: {
+      if (bUserAssetLibrary *asset_library =
+              AssetLibraryService::find_custom_asset_library_from_library_ref(reference))
+      {
+        if (asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+          return true;
+        }
+      }
+      break;
+    }
+  }
+
+  return false;
 }
 
 }  // namespace asset_system

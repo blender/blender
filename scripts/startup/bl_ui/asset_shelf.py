@@ -40,6 +40,9 @@ class ASSETSHELF_PT_filter(Panel):
         layout = self.layout
         prefs = context.preferences
 
+        # Filter option stored in the Preferences.
+        layout.prop(prefs.view, "show_online_assets", text="Online Assets")
+
 
 classes = (
     ASSETSHELF_PT_display,

@@ -496,6 +496,13 @@ static wmDropBox *dropbox_active(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event)
 {
+  if (wmDragAsset *asset_data = WM_drag_get_asset_data(drag, 0)) {
+    if (asset_data->asset->is_online()) {
+      drag->drop_state.disabled_info = RPT_("Downloading asset...");
+      return nullptr;
+    }
+  }
+
   for (wmEventHandler &handler_base : *handlers) {
     if (handler_base.type == WM_HANDLER_TYPE_DROPBOX) {
       wmEventHandler_Dropbox *handler = reinterpret_cast<wmEventHandler_Dropbox *>(&handler_base);

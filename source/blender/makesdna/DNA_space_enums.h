@@ -496,6 +496,12 @@ enum eFileAssetImportFlags {
   FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_APPEND = (1 << 1),
 };
 
+enum eFileSel_AssetParams_Flag {
+  /** Only show files available offline. More than a filter, it prevents downloading asset listings
+   * when enabled. */
+  FILE_ASSETS_HIDE_ONLINE = (1 << 0),
+};
+
 /** #SpaceFile.browse_mode (File Space Browsing Mode). */
 enum eFileBrowse_Mode {
   /* Regular Blender File Browser */
@@ -573,6 +579,7 @@ enum eFileSelectType {
   FILE_ASSET_LIBRARY = 4,
   /** Load all asset libraries. */
   FILE_ASSET_LIBRARY_ALL = 5,
+  FILE_ASSET_LIBRARY_REMOTE = 6,
 
   FILE_UNIX = 8,
   FILE_BLENDER = 8, /* don't display relative paths */
@@ -655,6 +662,8 @@ enum eFileSel_File_Types {
   FILE_TYPE_VOLUME = (1 << 19),
 
   FILE_TYPE_ASSET = (1 << 28),
+  /** Set together with #FILE_TYPE_ASSET when the asset is hosted online, not on disk. */
+  FILE_TYPE_ASSET_ONLINE = (1 << 29),
   /** An FS directory (i.e. S_ISDIR on its path is true). */
   FILE_TYPE_DIR = (1 << 30),
   FILE_TYPE_BLENDERLIB = (1u << 31),

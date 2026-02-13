@@ -9,12 +9,15 @@
 /* global includes */
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <memory>
 #include <optional>
 #include <sys/stat.h>
+#include <thread>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -25,6 +28,7 @@
 
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -63,6 +67,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
+#include "ED_asset_indexer.hh"
 #include "ED_fileselect.hh"
 
 #include "IMB_imbuf.hh"
@@ -85,6 +90,8 @@
 #include "filelist_intern.hh"
 
 namespace blender {
+using RemoteLibraryLoadingStatus = asset_system::RemoteLibraryLoadingStatus;
+using TimePoint = std::chrono::steady_clock::time_point;
 
 static ImBuf *gSpecialFileImages[int(SpecialFileImages::_Max)];
 
@@ -108,6 +115,13 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
                                          bool *stop,
                                          bool *do_update,
                                          float *progress);
+static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
+                                                  bool *stop,
+                                                  bool *do_update,
+                                                  float *progress);
+static void filelist_start_job_remote_asset_library(FileListReadJob *job_params);
+static void filelist_start_job_all_asset_library(FileListReadJob *job_params);
+static void filelist_timer_step_remote_asset_library(FileListReadJob *job_params);
 static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
                                                bool *stop,
                                                bool *do_update,
@@ -116,12 +130,78 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
 
+static void remote_asset_library_refresh_online_assets_status(const FileList *filelist)
+{
+  for (FileListInternEntry &entry : filelist->filelist_intern.entries) {
+    if ((entry.typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
+      continue;
+    }
+
+    /* #AssetRepresentation.full_library_path() will only return a non-empty string if the asset's
+     * path points into some .blend on disk. */
+    std::shared_ptr<asset_system::AssetRepresentation> asset = entry.asset.lock();
+    std::string filepath = asset->full_library_path();
+    if (filepath.empty()) {
+      continue;
+    }
+    BLI_assert(BLI_is_file(filepath.c_str()));
+
+    entry.typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+    asset->online_asset_mark_downloaded();
+
+    if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry.uid)) {
+      (**cached_entry).typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+    }
+  }
+}
+
+void filelist_remote_asset_library_refresh_online_assets_status(
+    const FileList *filelist, const blender::StringRef remote_url)
+{
+  if (!filelist->asset_library || !filelist->asset_library_ref) {
+    return;
+  }
+  if (remote_url.is_empty()) {
+    return;
+  }
+
+  if ((filelist->asset_library_ref->type == ASSET_LIBRARY_ALL) ||
+      (filelist->asset_library->remote_url() == remote_url))
+  {
+    remote_asset_library_refresh_online_assets_status(filelist);
+  }
+}
+
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
 {
   BLI_assert(filelist);
   BLI_assert(indexer);
 
   filelist->indexer = indexer;
+}
+
+void filelist_set_asset_include_online(FileList *filelist, const bool show_online_assets)
+{
+  if (!filelist->asset_library_ref ||
+      !asset_system::is_or_contains_remote_libraries(*filelist->asset_library_ref))
+  {
+    /* Online flag has no effect if not displaying online libraries. This function will be called
+     * again when switching libraries, so updating the flag here shouldn't be needed. Still do it
+     * for predictability. */
+    SET_FLAG_FROM_TEST(filelist->flags, show_online_assets, FL_ASSETS_INCLUDE_ONLINE);
+    return;
+  }
+
+  if (show_online_assets && ((filelist->flags & FL_ASSETS_INCLUDE_ONLINE) == 0)) {
+    /* Full refresh when enabling online assets, so online asset loading is triggered. */
+    filelist_tag_force_reset(filelist);
+    filelist->flags |= FL_ASSETS_INCLUDE_ONLINE;
+  }
+  else if (!show_online_assets && ((filelist->flags & FL_ASSETS_INCLUDE_ONLINE) != 0)) {
+    /* Simply filter out online assets when they were already loaded. */
+    filelist_tag_needs_filtering(filelist);
+    filelist->flags &= ~FL_ASSETS_INCLUDE_ONLINE;
+  }
 }
 
 void filelist_set_asset_catalog_filter_options(
@@ -218,7 +298,15 @@ bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEnt
   /* Actual preview loading is only started after the filelist is loaded, so the file isn't flagged
    * with #FILE_ENTRY_PREVIEW_LOADING yet. */
   const bool filelist_ready = filelist_is_ready(filelist);
-  return !filelist_ready || file->flags & FILE_ENTRY_PREVIEW_LOADING;
+  if (!filelist_ready) {
+    return true;
+  }
+  const PreviewImage *asset_preview = file->asset ? file->asset->get_preview() : nullptr;
+  if (asset_preview && (asset_preview->flag[ICON_SIZE_PREVIEW] & PRV_RENDERING)) {
+    return true;
+  }
+
+  return file->flags & FILE_ENTRY_PREVIEW_LOADING;
 }
 
 static FileDirEntry *filelist_geticon_get_file(FileList *filelist, const int index)
@@ -228,16 +316,11 @@ static FileDirEntry *filelist_geticon_get_file(FileList *filelist, const int ind
   return filelist_file(filelist, index);
 }
 
-ImBuf *filelist_get_preview_image(FileList *filelist, const int index)
-{
-  FileDirEntry *file = filelist_geticon_get_file(filelist, index);
-
-  return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : nullptr;
-}
-
 ImBuf *filelist_file_get_preview_image(const FileDirEntry *file)
 {
-  return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : nullptr;
+  return (file->preview_icon_id && BKE_icon_is_imbuf(file->preview_icon_id)) ?
+             BKE_icon_imbuf_get_buffer(file->preview_icon_id) :
+             nullptr;
 }
 
 static ImBuf *filelist_ensure_special_file_image(SpecialFileImages image, int icon)
@@ -471,6 +554,13 @@ static bool filelist_checkdir_return_always_valid(const FileList * /*filelist*/,
   return true;
 }
 
+static bool filelist_checkdir_remote_asset_library(const FileList * /*filelist*/,
+                                                   char /*dirpath*/[FILE_MAX_LIBEXTRA],
+                                                   const bool /*do_change*/)
+{
+  return (G.f & G_FLAG_INTERNET_ALLOW) != 0;
+}
+
 static void filelist_entry_clear(FileDirEntry *entry)
 {
   if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
@@ -482,7 +572,11 @@ static void filelist_entry_clear(FileDirEntry *entry)
   if (entry->redirection_path) {
     MEM_delete(entry->redirection_path);
   }
-  if (entry->preview_icon_id) {
+  if (entry->preview_icon_id &&
+      /* Online assets previews are managed by the general UI preview system, not the file browser
+       * one. Don't mess with them. */
+      ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0))
+  {
     BKE_icon_delete(entry->preview_icon_id);
     entry->preview_icon_id = 0;
   }
@@ -581,6 +675,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   BLI_assert(preview->flags &
              (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
               FILE_TYPE_OBJECT_IO | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
+  BLI_assert((preview->flags & FILE_TYPE_ASSET_ONLINE) == 0);
 
   if (preview->flags & FILE_TYPE_IMAGE) {
     source = THB_SOURCE_IMAGE;
@@ -655,6 +750,7 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
     {
       // printf("%s: DONE %d - %s - %p\n", __func__, preview->index, preview->path,
       // preview->img);
+      BLI_assert((preview->flags & FILE_TYPE_ASSET_ONLINE) == 0);
       if (preview->icon_id) {
         BKE_icon_delete(preview->icon_id);
       }
@@ -720,6 +816,26 @@ static bool filelist_file_preview_load_poll(const FileDirEntry *entry)
   return true;
 }
 
+void filelist_online_asset_preview_request(const bContext *C, FileDirEntry *entry)
+{
+  BLI_assert(entry->asset);
+  BLI_assert(entry->asset->is_online());
+
+  if (entry->preview_icon_id) {
+    return;
+  }
+
+  if (!filelist_file_preview_load_poll(entry)) {
+    return;
+  }
+
+  /* Request online preview if needed. */
+  if (entry->asset->is_online()) {
+    entry->asset->ensure_previewable(*C, CTX_wm_reports(C));
+    entry->preview_icon_id = entry->asset->get_preview()->runtime->icon_id;
+  }
+}
+
 /**
  * \return True if a new preview request was pushed, false otherwise (e.g. because the preview is
  * already loaded, invalid or not supported).
@@ -731,6 +847,12 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   BLI_assert(cache->flags & FLC_PREVIEWS_ACTIVE);
 
   if (entry->preview_icon_id) {
+    return false;
+  }
+
+  if (entry->typeflag & FILE_TYPE_ASSET_ONLINE) {
+    /* Online assets use the UI system for async preview loading (see #PreviewLoadJob)
+     * instead of the file browser one. */
     return false;
   }
 
@@ -862,17 +984,22 @@ void filelist_settype(FileList *filelist, short type)
   filelist->type = eFileSelectType(type);
   filelist->tags = 0;
   filelist->indexer = &file_indexer_noop;
+  filelist->check_dir_fn = nullptr;
+  filelist->start_job_fn = nullptr;
+  filelist->timer_step_fn = nullptr;
+  filelist->read_job_fn = nullptr;
+  filelist->prepare_filter_fn = nullptr;
+  filelist->filter_fn = nullptr;
+
   switch (filelist->type) {
     case FILE_MAIN:
       filelist->check_dir_fn = filelist_checkdir_main;
       filelist->read_job_fn = filelist_readjob_main;
-      filelist->prepare_filter_fn = nullptr;
       filelist->filter_fn = is_filtered_main;
       break;
     case FILE_LOADLIB:
       filelist->check_dir_fn = filelist_checkdir_lib;
       filelist->read_job_fn = filelist_readjob_lib;
-      filelist->prepare_filter_fn = nullptr;
       filelist->filter_fn = is_filtered_lib;
       break;
     case FILE_ASSET_LIBRARY:
@@ -890,8 +1017,19 @@ void filelist_settype(FileList *filelist, short type)
       filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_NO_THREADS |
                         FILELIST_TAGS_APPLY_FUZZY_SEARCH;
       break;
+    case FILE_ASSET_LIBRARY_REMOTE:
+      /* TODO rename to something like #is_valid_fn(). */
+      filelist->check_dir_fn = filelist_checkdir_remote_asset_library;
+      filelist->start_job_fn = filelist_start_job_remote_asset_library;
+      filelist->timer_step_fn = filelist_timer_step_remote_asset_library;
+      filelist->read_job_fn = filelist_readjob_remote_asset_library;
+      filelist->prepare_filter_fn = prepare_filter_asset_library;
+      filelist->filter_fn = is_filtered_asset_library;
+      break;
     case FILE_ASSET_LIBRARY_ALL:
       filelist->check_dir_fn = filelist_checkdir_return_always_valid;
+      filelist->start_job_fn = filelist_start_job_all_asset_library;
+      filelist->timer_step_fn = filelist_timer_step_remote_asset_library;
       filelist->read_job_fn = filelist_readjob_all_asset_library;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_asset_library;
@@ -900,7 +1038,6 @@ void filelist_settype(FileList *filelist, short type)
     default:
       filelist->check_dir_fn = filelist_checkdir_dir;
       filelist->read_job_fn = filelist_readjob_dir;
-      filelist->prepare_filter_fn = nullptr;
       filelist->filter_fn = is_filtered_file;
       break;
   }
@@ -1697,11 +1834,15 @@ bool filelist_cache_previews_update(FileList *filelist)
     /* Paranoid (should never happen currently
      * since we consume this queue from a single thread), but... */
     if (!preview) {
+      BLI_assert_unreachable();
       continue;
     }
     /* entry might have been removed from cache in the mean time,
      * we do not want to cache it again here. */
     entry = filelist_file_ex(filelist, preview->index, false);
+
+    BLI_assert_msg((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0,
+                   "Online assets shouldn't use the file preview loading system");
 
     // printf("%s: %d - %s - %p\n", __func__, preview->index, preview->filepath, preview->img);
 
@@ -2074,6 +2215,27 @@ struct TodoDir {
   char *dir;
 };
 
+struct RemoteLibraryRequest {
+  /** Directory the asset library files should be stored in (#bUserAssetLibrary.dirpath). */
+  std::string dirpath;
+
+  /** Code requested to cancel the read job. */
+  std::atomic<bool> cancel = false;
+
+  /** Is this asset library tagged as loading externally? Used for remote asset libraries to keep
+   * the filelist loading running while the library is being downloaded by other code. */
+  std::atomic<bool> is_downloading = false;
+
+  /** When downloading remote library pages, ignore pages older than this. They are from a previous
+   * download still. Uses the file system clock since others are not fit for file time-stamp
+   * comparisons. */
+  std::optional<RemoteLibraryLoadingStatus::FileSystemTimePoint> request_time = std::nullopt;
+
+  std::atomic<bool> metafiles_in_place = false;
+  RemoteLibraryLoadingStatus::TimePoint last_new_pages_time;
+  std::atomic<bool> new_pages_available = false;
+};
+
 struct FileListReadJob {
   Mutex lock;
   char main_filepath[FILE_MAX] = "";
@@ -2100,9 +2262,15 @@ struct FileListReadJob {
   /** Set to request a partial read that only adds files representing #Main data (IDs). Used when
    * #Main may have received changes of interest (e.g. asset removed or renamed). */
   bool only_main_data = false;
+
   /** Trigger a call to #AS_asset_library_load() to update asset catalogs (won't reload the actual
    * assets) */
-  bool reload_asset_library = false;
+  std::atomic<bool> reload_asset_library = false;
+
+  Map<std::string, std::unique_ptr<RemoteLibraryRequest>> remote_library_requests;
+
+  std::optional<std::function<void(const asset_system::AssetRepresentation &)>> on_asset_added =
+      std::nullopt;
 
   /** Shallow copy of #filelist for thread-safe access.
    *
@@ -2124,22 +2292,22 @@ struct FileListReadJob {
  */
 static char *current_relpath_append(const FileListReadJob *job_params, const char *filename)
 {
-  const char *relbase = job_params->cur_relbase;
+  char relbase[sizeof(job_params->cur_relbase)];
+  STRNCPY(relbase, job_params->cur_relbase);
 
   /* Early exit, nothing to join. */
   if (!relbase[0]) {
     return BLI_strdup(filename);
   }
 
-  BLI_assert(ELEM(relbase[strlen(relbase) - 1], SEP, ALTSEP));
-  BLI_assert(BLI_path_is_rel(relbase));
+  BLI_path_slash_ensure(relbase, sizeof(relbase));
 
   char relpath[FILE_MAX_LIBEXTRA];
   /* Using #BLI_path_join works but isn't needed as `rel_subdir` has a trailing slash. */
   BLI_string_join(relpath,
                   sizeof(relpath),
                   /* + 2 to remove "//" relative path prefix. */
-                  relbase + 2,
+                  BLI_path_is_rel(relbase) ? relbase + 2 : relbase,
                   filename);
 
   return BLI_strdup(relpath);
@@ -2356,12 +2524,14 @@ static FileListInternEntry *filelist_readjob_list_lib_group_create(
  * \warning: This "steals" the asset metadata from \a datablock_info. Not great design but fixing
  *           this requires redesigning things on the caller side for proper ownership management.
  */
-static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
-                                                    ListBaseT<FileListInternEntry> *entries,
-                                                    BLODataBlockInfo *datablock_info,
-                                                    const bool prefix_relpath_with_group_name,
-                                                    const int idcode,
-                                                    const char *group_name)
+static void filelist_readjob_list_lib_add_datablock(
+    FileListReadJob *job_params,
+    ListBaseT<FileListInternEntry> *entries,
+    BLODataBlockInfo *datablock_info,
+    const bool prefix_relpath_with_group_name,
+    const int idcode,
+    const char *group_name,
+    const std::optional<asset_system::OnlineAssetInfo> online_asset_info = std::nullopt)
 {
   FileListInternEntry *entry = MEM_new<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
@@ -2380,9 +2550,17 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
     }
 
     if (datablock_info->asset_data) {
+
       entry->typeflag |= FILE_TYPE_ASSET;
+      if (online_asset_info) {
+        entry->typeflag |= FILE_TYPE_ASSET_ONLINE;
+      }
 
       if (job_params->load_asset_library) {
+        /* We never want to add assets directly to the "All" library, always add to the actually
+         * containing one. */
+        BLI_assert((job_params->load_asset_library->library_type() != ASSET_LIBRARY_ALL));
+
         /* Take ownership over the asset data (shallow copies into unique_ptr managed memory) to
          * pass it on to the asset system. */
         std::unique_ptr metadata = std::make_unique<AssetMetaData>(
@@ -2393,8 +2571,18 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
         datablock_info->asset_data = metadata.get();
         datablock_info->free_asset_data = false;
 
-        entry->asset = job_params->load_asset_library->add_external_asset(
-            entry->relpath, datablock_info->name, idcode, std::move(metadata));
+        entry->asset = online_asset_info ?
+                           job_params->load_asset_library->add_external_online_asset(
+                               entry->relpath,
+                               datablock_info->name,
+                               idcode,
+                               std::move(metadata),
+                               *online_asset_info) :
+                           job_params->load_asset_library->add_external_on_disk_asset(
+                               entry->relpath, datablock_info->name, idcode, std::move(metadata));
+        if (job_params->on_asset_added) {
+          (*job_params->on_asset_added)(*entry->get_asset());
+        }
       }
     }
   }
@@ -3013,26 +3201,23 @@ static void filelist_readjob_lib(FileListReadJob *job_params,
  */
 static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params, bool *do_update)
 {
-  FileList *tmp_filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+  BLI_assert(job_params->filelist->asset_library_ref);
 
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
   *do_update = false;
 
-  if (job_params->filelist->asset_library_ref == nullptr) {
-    return;
-  }
-  if (tmp_filelist->asset_library != nullptr && job_params->reload_asset_library == false) {
-    /* Asset library itself is already loaded. Load assets into this. */
-    job_params->load_asset_library = tmp_filelist->asset_library;
-    return;
+  /* See if loading is necessary (and then load). */
+  const bool is_force_reload = job_params->reload_asset_library;
+  if (!filelist->asset_library || is_force_reload) {
+    filelist->asset_library = AS_asset_library_load(job_params->current_main,
+                                                    *job_params->filelist->asset_library_ref);
+    job_params->reload_asset_library = false;
+    *do_update = true;
   }
 
-  /* Load asset catalogs, into the temp filelist for thread-safety.
-   * #filelist_readjob_endjob() will move it into the real filelist. */
-  tmp_filelist->asset_library = AS_asset_library_load(job_params->current_main,
-                                                      *job_params->filelist->asset_library_ref);
-  /* Set asset library to load (may be overridden later for loading nested ones). */
-  job_params->load_asset_library = tmp_filelist->asset_library;
-  *do_update = true;
+  /* Not really necessary for this function to do, but otherwise it's up to the caller, and can be
+   * forgotten. */
+  job_params->load_asset_library = filelist->asset_library;
 }
 
 static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
@@ -3135,6 +3320,281 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
   }
 }
 
+/* TODO handle \a progress. */
+static void filelist_readjob_remote_asset_library_index_read(
+    FileListReadJob *job_params,
+    RemoteLibraryRequest &request,
+    bool *stop,
+    bool *do_update,
+    float * /*progress*/,
+    const Set<StringRef> already_downloaded_asset_identifiers)
+{
+  using namespace ed::asset;
+
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  char dirpath[FILE_MAX];
+  StringRef(request.dirpath).copy_utf8_truncated(dirpath);
+
+  BLI_path_normalize_dir(dirpath, sizeof(dirpath));
+  if (!BLI_is_dir(dirpath)) {
+    return;
+  }
+
+  /* #index::read_remote_listing() below calls this for every asset entry it finished reading from
+   * the asset listing pages. */
+  const auto process_asset_fn = [&](index::RemoteListingAssetEntry &entry) {
+    if (*stop || request.cancel) {
+      /* Cancel reading when requested. */
+      return false;
+    }
+
+    const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
+
+    /* Skip assets that are already listed with the downloaded assets. */
+    const StringRefNull asset_file = entry.online_info.asset_file();
+    {
+      BLI_assert(asset_file.endswith(".blend"));
+
+      /* Matches #asset_system::AssetRepresentation.library_relative_identifier(). */
+      char asset_identifier[FILE_MAX_LIBEXTRA];
+      BLI_string_join(asset_identifier,
+                      sizeof(asset_identifier),
+                      asset_file.c_str(),
+                      SEP_STR,
+                      group_name,
+                      SEP_STR,
+                      entry.datablock_info.name);
+      if (already_downloaded_asset_identifiers.contains(asset_identifier)) {
+        return true;
+      }
+    }
+
+    ListBaseT<FileListInternEntry> entries = {nullptr};
+
+    BLI_strncpy(job_params->cur_relbase, asset_file.c_str(), sizeof(job_params->cur_relbase));
+    filelist_readjob_list_lib_add_datablock(job_params,
+                                            &entries,
+                                            &entry.datablock_info,
+                                            true,
+                                            entry.idcode,
+                                            group_name,
+                                            entry.online_info);
+
+    int entries_num = 0;
+    for (FileListInternEntry &entry : entries) {
+      entry.uid = filelist_uid_generate(filelist);
+      char dir[FILE_MAX_LIBEXTRA];
+      entry.name = fileentry_uiname(dirpath, &entry, dir);
+      entry.free_name = true;
+      entries_num++;
+    }
+
+    if (filelist_readjob_append_entries(job_params, &entries, entries_num)) {
+      *do_update = true;
+    }
+    return true;
+  };
+  /* A busy wait function for while asset listing pages are being downloaded.
+   * #index::read_remote_listing() calls this every time it's done looking for new pages, until all
+   * pages are there (or until this returns false). */
+  const auto wait_for_pages_fn = [&]() {
+    while (true) {
+      if (*stop || request.cancel) {
+        return false;
+      }
+
+      /* Atomically test and reset the new pages flag. */
+      if (request.new_pages_available.exchange(false) || !request.is_downloading) {
+        /* New pages available or loading ended. Done waiting. */
+        return true;
+      }
+
+      /* Busy waiting for new files, with some sleeping to avoid wasting a lot of CPU
+       * cycles. */
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  };
+
+  if (!index::read_remote_listing(dirpath,
+                                  job_params->load_asset_library->name(),
+                                  job_params->reports,
+                                  process_asset_fn,
+                                  wait_for_pages_fn,
+                                  request.request_time))
+  {
+    return;
+  }
+}
+
+/* Used by the remote library loading job and the "All" library. */
+static void remote_asset_library_load(FileListReadJob *job_params,
+                                      RemoteLibraryRequest &request,
+                                      bool *stop,
+                                      bool *do_update,
+                                      float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  Set<StringRef> already_downloaded_asset_identifiers;
+  /* Get assets that were downloaded already. */
+  {
+    job_params->on_asset_added =
+        [&already_downloaded_asset_identifiers](const asset_system::AssetRepresentation &asset) {
+          already_downloaded_asset_identifiers.add(asset.library_relative_identifier());
+        };
+
+    float progress_on_disk = 0.0;
+
+    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, &progress_on_disk);
+    job_params->on_asset_added = std::nullopt;
+
+    /* A bit arbitrary: Let on-disk reading only take up to 10% of the total progress. We don't
+     * have enough data here to make a more informed choice. But practically the downloading is
+     * probably the bigger bottleneck than the listing of already downloaded assets directly from
+     * disk. For assets on disk there's the local asset index anyway, so listing them should be
+     * fast. Plus, giving 90% to the remaining work can make it feel like there's more steady
+     * progress towards the end, which is nicer for users. */
+    *progress = progress_on_disk * 0.1f;
+  }
+
+  BLI_assert(job_params->load_asset_library &&
+             (job_params->load_asset_library->library_type() != ASSET_LIBRARY_ALL));
+
+  while (request.is_downloading && !request.metafiles_in_place) {
+    /* Busy waiting for the metafiles, with some sleeping to avoid wasting a lot of CPU
+     * cycles. */
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+    if (*stop || request.cancel) {
+      return;
+    }
+  }
+
+  if ((filelist->flags & FL_ASSETS_INCLUDE_ONLINE) == 0) {
+    return;
+  }
+
+  /* Enforce latest catalogs from the downloader to be used. */
+  job_params->load_asset_library->load_or_reload_catalogs();
+
+  if (*stop || request.cancel) {
+    return;
+  }
+
+  filelist_readjob_remote_asset_library_index_read(
+      job_params, request, stop, do_update, progress, already_downloaded_asset_identifiers);
+}
+
+static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
+                                                  bool *stop,
+                                                  bool *do_update,
+                                                  float *progress)
+{
+  FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
+
+  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+             (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET));
+
+  /* A valid, but empty file-list from now. */
+  filelist->filelist.entries_num = 0;
+
+  filelist_readjob_load_asset_library_data(job_params, do_update);
+
+  BLI_assert_msg(job_params->remote_library_requests.size() == 1,
+                 "reading callback for a single remote library should only have a single remote "
+                 "library request registered (check what the starting callback is requesting)");
+  for (auto [url, request] : job_params->remote_library_requests.items()) {
+    remote_asset_library_load(job_params, *request, stop, do_update, progress);
+    break;
+  }
+}
+
+static bUserAssetLibrary *lookup_remote_library(const FileListReadJob *job_params)
+{
+  bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
+      &U, job_params->filelist->asset_library_ref->custom_library_index);
+  if (!library && !(library->flag & ASSET_LIBRARY_USE_REMOTE_URL)) {
+    return nullptr;
+  }
+
+  return library;
+}
+
+static void filelist_remote_asset_library_update_loading_flags(RemoteLibraryRequest &request,
+                                                               StringRef remote_url)
+{
+  /* On timeout the loading status will be set to cancelled. */
+  if (RemoteLibraryLoadingStatus::handle_timeout(remote_url)) {
+    request.cancel = true;
+  }
+
+  const auto last_new_pages_time = RemoteLibraryLoadingStatus::last_new_pages_time(remote_url);
+  if (last_new_pages_time && *last_new_pages_time != request.last_new_pages_time) {
+    request.new_pages_available = true;
+    request.last_new_pages_time = *last_new_pages_time;
+  }
+  request.is_downloading = RemoteLibraryLoadingStatus::status(remote_url) ==
+                           RemoteLibraryLoadingStatus::Loading;
+  request.metafiles_in_place =
+      RemoteLibraryLoadingStatus::metafiles_in_place(remote_url).value_or(false);
+}
+
+/* Called when starting the job (from the main thread). */
+static void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary &library)
+{
+  if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
+    return;
+  }
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    return;
+  }
+  if ((job_params->filelist->flags & FL_ASSETS_INCLUDE_ONLINE) == 0) {
+    return;
+  }
+
+  /* Check if the library's cache directory exists, otherwise, request download. */
+  if (!BLI_is_dir(library.dirpath)) {
+    blender::asset_system::remote_library_request_download(library);
+  }
+
+  std::unique_ptr<RemoteLibraryRequest> request = std::make_unique<RemoteLibraryRequest>();
+  request->dirpath = library.dirpath;
+  request->request_time = RemoteLibraryLoadingStatus::loading_start_time(library.remote_url);
+
+  filelist_remote_asset_library_update_loading_flags(*request, library.remote_url);
+
+  job_params->remote_library_requests.add(library.remote_url, std::move(request));
+}
+
+static void filelist_start_job_remote_asset_library(FileListReadJob *job_params)
+{
+  if (bUserAssetLibrary *library = lookup_remote_library(job_params)) {
+    remote_asset_library_request(job_params, *library);
+  }
+}
+
+static void filelist_start_job_all_asset_library(FileListReadJob *job_params)
+{
+  Set<StringRef> requested_urls;
+
+  asset_system::foreach_registered_remote_library([&](bUserAssetLibrary &library) {
+    if (!requested_urls.contains(library.remote_url)) {
+      requested_urls.add(library.remote_url);
+
+      remote_asset_library_request(job_params, library);
+    }
+  });
+}
+
+/* This may also be called for the "All" asset library. */
+static void filelist_timer_step_remote_asset_library(FileListReadJob *job_params)
+{
+  for (auto [url, request] : job_params->remote_library_requests.items()) {
+    filelist_remote_asset_library_update_loading_flags(*request, url);
+  }
+}
+
 static void filelist_readjob_main(FileListReadJob *job_params,
                                   bool *stop,
                                   bool *do_update,
@@ -3194,7 +3654,7 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 
   /* Count how many asset libraries need to be loaded, for progress reporting. Not very precise. */
   int library_count = 0;
-  asset_system::AssetLibrary::foreach_loaded([&library_count](auto &) { library_count++; }, false);
+  asset_system::AssetLibrary::foreach_loaded([&](const auto &) { library_count++; }, false);
 
   BLI_assert(filelist->asset_library != nullptr);
 
@@ -3217,13 +3677,38 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
         STRNCPY(filelist->filelist.root, root_path.c_str());
 
         float progress_this = 0.0f;
-        filelist_readjob_recursive_dir_add_items(
-            true, job_params, stop, do_update, &progress_this);
+        /* Online asset libraries: */
+        if (std::optional<std::string> remote_url = nested_library.remote_url()) {
+          if (std::unique_ptr<RemoteLibraryRequest> *request =
+                  job_params->remote_library_requests.lookup_ptr(*remote_url))
+          {
+            remote_asset_library_load(job_params, **request, stop, do_update, &progress_this);
+          }
+          /* When online assets or online access are disabled, there will be no requests. In that
+           * case, just list the assets that are downloaded already. */
+          else {
+            filelist_readjob_recursive_dir_add_items(
+                true, job_params, stop, do_update, &progress_this);
+          }
+        }
+        /* Simple directory based reading. */
+        else {
+          filelist_readjob_recursive_dir_add_items(
+              true, job_params, stop, do_update, &progress_this);
+        }
 
         libraries_done_count++;
         *progress = float(libraries_done_count) / library_count;
       },
       false);
+}
+
+static void filelist_readjob_initjob(void *flrjv)
+{
+  FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
+  if (flrj->filelist->start_job_fn) {
+    flrj->filelist->start_job_fn(flrj);
+  }
 }
 
 /**
@@ -3319,6 +3804,15 @@ static void filelist_readjob_update(void *flrjv)
   /* if no new_entries_num, this is NOP */
   BLI_movelisttolist(&fl_intern->entries, &new_entries);
   flrj->filelist->filelist.entries_num = std::max(entries_num, 0) + new_entries_num;
+}
+
+static void filelist_readjob_timer_step(void *flrjv)
+{
+  FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
+
+  if (flrj->filelist->timer_step_fn) {
+    flrj->filelist->timer_step_fn(flrj);
+  }
 }
 
 static void filelist_readjob_endjob(void *flrjv)
@@ -3428,11 +3922,12 @@ static void filelist_readjob_start_ex(FileList *filelist,
                        WM_JOB_PROGRESS,
                        filelist_jobtype_get(filelist));
   WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);
-  WM_jobs_timer(wm_job, 0.01, space_notifier, space_notifier | NA_JOB_FINISHED);
+  WM_jobs_timer(
+      wm_job, 0.01, space_notifier, space_notifier | NA_JOB_FINISHED, filelist_readjob_timer_step);
   WM_jobs_callbacks(wm_job,
                     filelist->asset_library_ref ? assetlibrary_readjob_startjob :
                                                   filelist_readjob_startjob,
-                    nullptr,
+                    filelist_readjob_initjob,
                     filelist_readjob_update,
                     filelist_readjob_endjob);
 

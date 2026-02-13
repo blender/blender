@@ -462,7 +462,8 @@ struct FileAssetSelectParams {
 
   short import_method = 0; /* eFileAssetImportMethod */
   short import_flags = 0;  /* eFileImportFlags */
-  char _pad2[4] = {};
+
+  int asset_flags = 0; /* #eFileSel_AssetParams_Flag */
 };
 
 /**

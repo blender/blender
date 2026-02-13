@@ -42,7 +42,8 @@ class AssetRepresentationTest : public AssetLibraryTestBase {
   {
     std::unique_ptr<AssetMetaData> dummy_metadata = std::make_unique<AssetMetaData>();
     return *library
-                .add_external_asset(relative_path, "Some asset name", 0, std::move(dummy_metadata))
+                .add_external_on_disk_asset(
+                    relative_path, "Some asset name", 0, std::move(dummy_metadata))
                 .lock();
   }
 

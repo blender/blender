@@ -104,6 +104,9 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview);
  */
 int BKE_icon_imbuf_create(ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
 ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
+/** The icon identified by \a icon_id is of an image buffer type. It was created from, owns and
+ * draws an image buffer (created with #BKE_icon_imbuf_create()). */
+bool BKE_icon_is_imbuf(int icon_id) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Simple wrapper to reference a drawable pixel buffer (non-owning).

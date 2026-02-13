@@ -102,6 +102,10 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
+      if (custom_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+        return this->get_remote_asset_library(*custom_library);
+      }
+
       std::string root_path = custom_library->dirpath;
       if (root_path.empty()) {
         return nullptr;
@@ -644,6 +648,12 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
 
   for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
     if (asset_lib_uptr->is_enabled()) {
+      fn(*asset_lib_uptr);
+    }
+  }
+
+  if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
+    for (const auto &asset_lib_uptr : remote_libraries_.values()) {
       fn(*asset_lib_uptr);
     }
   }

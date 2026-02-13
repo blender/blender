@@ -67,6 +67,13 @@ set(LIB
   PRIVATE bf::windowmanager
 )
 
+if(WITH_PYTHON)
+  list(APPEND INC
+    ../../python
+  )
+  add_definitions(-DWITH_PYTHON)
+endif()
+
 blender_add_lib(bf_editor_asset "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.hh
