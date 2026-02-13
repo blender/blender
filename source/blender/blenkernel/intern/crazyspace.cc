@@ -340,9 +340,11 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
   MultiresModifierData *mmd = get_multires_modifier(scene, &object_eval, false);
   const bool is_sculpt_mode = (object->mode & OB_MODE_SCULPT) != 0;
   const bool has_multires = mmd != nullptr && mmd->sculptlvl > 0;
+  const bool is_sculpt_base_mesh = mmd != nullptr &&
+                                   (mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh);
   const ModifierEvalContext mectx = {depsgraph, &object_eval, ModifierApplyFlag(0)};
 
-  if (is_sculpt_mode && has_multires) {
+  if (is_sculpt_mode && has_multires && !is_sculpt_base_mesh) {
     deformcos = {};
     deformmats = {};
     return modifiers_left_num;
@@ -352,6 +354,10 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
 
   for (; md; md = md->next) {
     if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
+      continue;
+    }
+
+    if (is_sculpt_base_mesh && md->type == eModifierType_Multires) {
       continue;
     }
 
