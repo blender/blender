@@ -392,7 +392,7 @@ EXTRA_SOURCE_FILES = (
 
 # Examples.
 EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
-EXAMPLE_SET = set(f.removesuffix(".0.py") for f in os.listdir(EXAMPLES_DIR) if f.endswith(".0.py"))
+EXAMPLE_SET = set(os.path.splitext(f)[0] for f in os.listdir(EXAMPLES_DIR) if f.endswith(".py"))
 EXAMPLE_SET_USED = set()
 
 # RST files directory.
@@ -739,43 +739,43 @@ def title_string(text, heading_char, double=False):
     return "{:s}\n{:s}\n\n".format(text, filler)
 
 
-def write_example_ref(ident, fw, example_id, ext="py"):
-    if example_id in EXAMPLE_SET:
+def write_example_ref_impl(ident, fw, example_id, ext):
+    # Extract the comment.
+    filepath = os.path.join("..", "examples", "{:s}.{:s}".format(example_id, ext))
+    filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
 
-        # Extract the comment.
-        filepath = os.path.join("..", "examples", "{:s}.0.{:s}".format(example_id, ext))
-        filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
-
-        text, line_no, line_no_has_content = example_extract_docstring(filepath_full)
-        if text:
-            # Ensure a blank line, needed since in some cases the indentation doesn't match the previous line.
-            # which causes Sphinx not to warn about bad indentation.
-            fw("\n")
-            for line in text.split("\n"):
-                fw("{:s}\n".format((ident + line).rstrip()))
-
+    text, line_no, line_no_has_content = example_extract_docstring(filepath_full)
+    if text:
+        # Ensure a blank line, needed since in some cases the indentation doesn't match the previous line.
+        # which causes Sphinx not to warn about bad indentation.
         fw("\n")
+        for line in text.split("\n"):
+            fw("{:s}\n".format((ident + line).rstrip()))
 
-        # Some files only contain a doc-string.
-        if line_no_has_content:
-            fw("{:s}.. literalinclude:: {:s}\n".format(ident, filepath))
-            if line_no > 0:
-                fw("{:s}   :lines: {:d}-\n".format(ident, line_no))
-            fw("\n")
-        EXAMPLE_SET_USED.add(example_id)
-    else:
-        if bpy.app.debug:
-            BPY_LOGGER.debug("\tskipping example: %s", example_id)
+    fw("\n")
 
-    # Support for numbered files `bpy.types.Operator` -> `bpy.types.Operator.1.py`.
-    i = 1
+    # Some files only contain a doc-string.
+    if line_no_has_content:
+        fw("{:s}.. literalinclude:: {:s}\n".format(ident, filepath))
+        if line_no > 0:
+            fw("{:s}   :lines: {:d}-\n".format(ident, line_no))
+        fw("\n")
+    EXAMPLE_SET_USED.add(example_id)
+
+
+def write_example_ref(ident, fw, example_id, ext="py"):
+    # Support for numbered files `bpy.types.Operator` -> `bpy.types.Operator.0.py`.
+    i = 0
     while True:
         example_id_num = "{:s}.{:d}".format(example_id, i)
         if example_id_num in EXAMPLE_SET:
-            write_example_ref(ident, fw, example_id_num, ext)
-            i += 1
+            write_example_ref_impl(ident, fw, example_id_num, ext)
         else:
-            break
+            # Allow numbers to start at 0 or 1,
+            # historically they started at 1, but now 0 is supported too.
+            if i > 0:
+                break
+        i += 1
 
 
 def write_indented_lines(ident, fn, text, strip=True):
