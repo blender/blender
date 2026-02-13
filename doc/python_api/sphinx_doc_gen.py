@@ -643,6 +643,7 @@ USE_PYCAPI_TYPES = True
 
 _BPY_STRUCT_PYCAPI = "bpy_struct"
 _BPY_PROP_PYCAPI = "bpy_prop"
+_BPY_PROP_ARRAY_PYCAPI = "bpy_prop_array"
 _BPY_PROP_COLLECTION_PYCAPI = "bpy_prop_collection"
 _BPY_PROP_COLLECTION_IDPROP_PYCAPI = "bpy_prop_collection_idprop"
 
@@ -650,6 +651,7 @@ _BPY_PROP_COLLECTION_ID = ":class:`{:s}`".format(_BPY_PROP_COLLECTION_PYCAPI) if
 
 bpy_struct = bpy.types.bpy_struct if USE_PYCAPI_TYPES else None
 bpy_prop = bpy.types.bpy_prop if USE_PYCAPI_TYPES else None
+bpy_prop_array = bpy.types.bpy_prop_array if USE_PYCAPI_TYPES else None
 bpy_prop_collection = bpy.types.bpy_prop_collection if USE_PYCAPI_TYPES else None
 bpy_prop_collection_idprop = bpy.types.bpy_prop_collection_idprop if USE_PYCAPI_TYPES else None
 
@@ -1994,6 +1996,13 @@ def pyrna2sphinx(basepath):
                 "built-in base class for all property classes.",
                 use_subclasses=False,
                 base_class=None,
+            )
+
+            bpy_pycapi_type(
+                "bpy.types", bpy_prop_array, _BPY_PROP_ARRAY_PYCAPI,
+                "built-in class used for array properties.",
+                use_subclasses=False,
+                base_class=_BPY_PROP_PYCAPI,
             )
 
             bpy_pycapi_type(
