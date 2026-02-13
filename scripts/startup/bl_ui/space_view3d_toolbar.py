@@ -102,6 +102,7 @@ class VIEW3D_PT_tools_object_options_transform(View3DPanel, Panel):
     bl_context = ".objectmode"  # dot on purpose (access from topbar)
     bl_label = "Transform"
     bl_parent_id = "VIEW3D_PT_tools_object_options"
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
