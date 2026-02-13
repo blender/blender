@@ -125,11 +125,6 @@ static bool resize_block_(OIIO::ImageBuf &dst,
                           bool envlatlmode)
 {
   int x0 = roi.xbegin, x1 = roi.xend, y0 = roi.ybegin, y1 = roi.yend;
-  const ImageSpec &srcspec(src.spec());
-  bool src_is_crop = (srcspec.x > srcspec.x || srcspec.y > srcspec.y || srcspec.z > srcspec.z ||
-                      srcspec.x + srcspec.width < srcspec.x + srcspec.width ||
-                      srcspec.y + srcspec.height < srcspec.y + srcspec.height ||
-                      srcspec.z + srcspec.depth < srcspec.z + srcspec.depth);
 
   const ImageSpec &dstspec(dst.spec());
   OIIO::span<float> pel = OIIO::OIIO_ALLOCA_SPAN(float, dstspec.nchannels);
@@ -139,8 +134,7 @@ static bool resize_block_(OIIO::ImageBuf &dst,
   float yscale = 1.0f / (float)dstspec.height;
   int nchannels = dst.nchannels();
   assert(dst.spec().format == TypeFloat);
-  OIIO::ImageBuf::WrapMode wrapmode = src_is_crop ? OIIO::ImageBuf::WrapBlack :
-                                                    OIIO::ImageBuf::WrapClamp;
+  OIIO::ImageBuf::WrapMode wrapmode = OIIO::ImageBuf::WrapClamp;
   OIIO::ImageBuf::ConstIterator<SRCTYPE> srcit(src);
   OIIO::ImageBuf::Iterator<float> d(dst, roi);
   for (int y = y0; y < y1; ++y) {
