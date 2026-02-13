@@ -359,7 +359,7 @@ bool BLI_file_alias_target(const char *filepath,
 }
 #endif
 
-int BLI_exists(const char *path)
+int BLI_file_stat_mode(const char *path)
 {
 #if defined(WIN32)
   BLI_stat_t st;
@@ -399,6 +399,18 @@ int BLI_exists(const char *path)
   }
 #endif
   return (st.st_mode);
+}
+
+bool BLI_exists(const char *path)
+{
+#ifdef WIN32
+  wchar_t *path_16 = alloc_utf16_from_8(path, 0);
+  const bool exists = (GetFileAttributesW(path_16) != INVALID_FILE_ATTRIBUTES);
+  free(path_16);
+  return exists;
+#else
+  return BLI_file_stat_mode(path) != 0;
+#endif
 }
 
 #ifdef WIN32
@@ -444,13 +456,27 @@ int BLI_stat(const char *path, struct stat *buffer)
 
 bool BLI_is_dir(const char *path)
 {
-  return S_ISDIR(BLI_exists(path));
+#ifdef WIN32
+  wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
+  const DWORD attr = GetFileAttributesW(tmp_16);
+  free(tmp_16);
+  return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY));
+#else
+  return S_ISDIR(BLI_file_stat_mode(path));
+#endif
 }
 
 bool BLI_is_file(const char *path)
 {
-  const int mode = BLI_exists(path);
+#ifdef WIN32
+  wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
+  const DWORD attr = GetFileAttributesW(tmp_16);
+  free(tmp_16);
+  return (attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY));
+#else
+  const int mode = BLI_file_stat_mode(path);
   return (mode && !S_ISDIR(mode));
+#endif
 }
 
 void *BLI_file_read_data_as_mem_from_handle(FILE *fp,

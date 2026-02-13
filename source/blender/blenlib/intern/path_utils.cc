@@ -1260,7 +1260,7 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t prog
   bool retval = false;
   int type;
 
-  type = BLI_exists(program_name);
+  type = BLI_file_stat_mode(program_name);
   if ((type == 0) || S_ISDIR(type)) {
     /* Typically 3-5, ".EXE", ".BAT"... etc. */
     const int ext_max = 12;
@@ -1284,7 +1284,7 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t prog
           memcpy(filename_ext, ext, ext_len);
           filename_ext[ext_len] = '\0';
 
-          type = BLI_exists(filename);
+          type = BLI_file_stat_mode(filename);
           if (type && (!S_ISDIR(type))) {
             retval = true;
             BLI_strncpy(program_name, filename, program_name_maxncpy);

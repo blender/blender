@@ -373,7 +373,7 @@ static bool dir_create_recursive(const char *dirname, const int len)
     if (dirname[0] && !BLI_path_is_win32_drive_only(dirname))
 #endif
     {
-      const int mode = BLI_exists(dirname);
+      const int mode = BLI_file_stat_mode(dirname);
       if (mode != 0) {
         if (!S_ISDIR(mode)) {
           ret = false;
@@ -415,7 +415,7 @@ static bool dir_create_recursive(const char *dirname, const int len)
 
 bool BLI_dir_create_recursive(const char *dirname)
 {
-  const int mode = BLI_exists(dirname);
+  const int mode = BLI_file_stat_mode(dirname);
   if (mode != 0) {
     /* The file exists, either it's a directory (ok), or not,
      * in which case this function can't do anything useful

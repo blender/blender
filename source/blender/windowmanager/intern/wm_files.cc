@@ -2126,7 +2126,7 @@ static bool wm_file_write(bContext *C,
   BKE_callback_exec_string(bmain, filepath, BKE_CB_EVT_SAVE_PRE);
 
   /* Check if file write permission is OK. */
-  if (const int st_mode = BLI_exists(filepath)) {
+  if (const int st_mode = BLI_file_stat_mode(filepath)) {
     bool ok = true;
 
     if (!BLI_file_is_writable(filepath)) {

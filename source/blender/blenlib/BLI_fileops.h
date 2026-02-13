@@ -33,10 +33,15 @@ namespace blender {
  * \{ */
 
 /**
+ * Returns true if the path (file or directory) exists.
+ */
+bool BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+/**
  * Returns the st_mode from stat-ing the specified path name, or 0 if stat fails
  * (most likely doesn't exist or no access).
  */
-int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_file_stat_mode(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
  * \return 0 on success.
