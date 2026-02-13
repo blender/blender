@@ -12,15 +12,36 @@
 
 namespace blender::image_engine {
 
+ImageSpaceDrawingMode::ImageSpaceDrawingMode(Instance &instance,
+                                             gpu::Texture *texture,
+                                             gpu::Texture *tile_mapping_texture)
+    : instance_(instance), texture_(texture), tile_mapping_texture_(tile_mapping_texture)
+{
+  GPU_texture_ref(texture_);
+  if (tile_mapping_texture_) {
+    GPU_texture_ref(tile_mapping_texture_);
+  }
+}
+
+ImageSpaceDrawingMode::~ImageSpaceDrawingMode()
+{
+  GPU_texture_free(texture_);
+  if (tile_mapping_texture_) {
+    GPU_texture_free(tile_mapping_texture_);
+  }
+}
+
 void ImageSpaceDrawingMode::begin_sync() const {}
 
-void ImageSpaceDrawingMode::image_sync(blender::Image *image, ImageUser *iuser) const
+void ImageSpaceDrawingMode::image_sync(blender::Image * /*image*/, ImageUser * /*iuser*/) const {}
+
+void ImageSpaceDrawingMode::draw_viewport() const
 {
   PassSimple &pass = instance_.state.image_ps;
   pass.init();
   pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
-  pass.shader_set(image->source == IMA_SRC_TILED ? ShaderModule::module_get().image_tiled.get() :
-                                                   ShaderModule::module_get().image.get());
+  pass.shader_set(tile_mapping_texture_ ? ShaderModule::module_get().image_tiled.get() :
+                                          ShaderModule::module_get().image.get());
   pass.push_constant("image_matrix", math::invert(float4x4(instance_.state.ss_to_texture)));
   pass.push_constant("far_near_distances", instance_.state.sh_params.far_near);
   pass.push_constant("shuffle", instance_.state.sh_params.shuffle);
@@ -33,43 +54,15 @@ void ImageSpaceDrawingMode::image_sync(blender::Image *image, ImageUser *iuser) 
                                    .extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT,
                                    .extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT};
 
-  /* Check if the image buffer already has a GPU texture and use it directly. */
-  if (image->source != IMA_SRC_TILED) {
-    void *lock;
-    const bool is_viewer = image->source == IMA_SRC_VIEWER;
-    ImBuf *buffer = BKE_image_acquire_ibuf(image, iuser, is_viewer ? &lock : nullptr);
-    BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(image, buffer, is_viewer ? lock : nullptr); });
-    if (buffer->gpu.texture) {
-      pass.push_constant("is_repeated", instance_.state.flags.do_tile_drawing);
-      pass.bind_texture("image_tx", buffer->gpu.texture, sampler);
-      pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-      return;
-    }
+  if (tile_mapping_texture_) {
+    pass.bind_texture("image_tile_array", texture_, sampler);
+    pass.bind_texture("image_tile_data", tile_mapping_texture_, sampler);
   }
-
-  switch (image->source) {
-    case IMA_SRC_VIEWER: {
-      pass.push_constant("is_repeated", instance_.state.flags.do_tile_drawing);
-      pass.bind_texture("image_tx", BKE_image_get_gpu_viewer_texture(image, iuser), sampler);
-      break;
-    }
-    case IMA_SRC_TILED: {
-      ImageGPUTextures gpu_tiles_textures = BKE_image_get_gpu_material_texture(image, iuser, true);
-      pass.bind_texture("image_tile_array", *gpu_tiles_textures.texture, sampler);
-      pass.bind_texture("image_tile_data", *gpu_tiles_textures.tile_mapping, sampler);
-      break;
-    }
-    default: {
-      pass.push_constant("is_repeated", instance_.state.flags.do_tile_drawing);
-      pass.bind_texture("image_tx", BKE_image_get_gpu_texture(image, iuser), sampler);
-      break;
-    }
+  else {
+    pass.push_constant("is_repeated", instance_.state.flags.do_tile_drawing);
+    pass.bind_texture("image_tx", texture_, sampler);
   }
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-}
-
-void ImageSpaceDrawingMode::draw_viewport() const
-{
   instance_.manager->submit(instance_.state.image_ps, instance_.state.view);
 }
 

@@ -636,6 +636,13 @@ gpu::Texture *BKE_image_get_gpu_texture(Image *image, ImageUser *iuser);
 gpu::Texture *BKE_image_get_gpu_viewer_texture(Image *image, ImageUser *iuser);
 
 /*
+ * Like BKE_image_get_gpu_viewer_texture, but the image buffer is provided explicitly.
+ */
+gpu::Texture *BKE_image_get_gpu_viewer_texture(Image *image,
+                                               ImageUser *iuser,
+                                               ImBuf *image_buffer);
+
+/*
  * Like BKE_image_get_gpu_texture, but can also return array and tile mapping texture for UDIM
  * tiles as used in material shaders.
  */
