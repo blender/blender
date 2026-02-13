@@ -51,6 +51,7 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
                                emission_sd,
                                INTEGRATOR_STATE(state, ray, P),
                                INTEGRATOR_STATE(state, ray, D),
+                               INTEGRATOR_STATE(state, ray, dD),
                                INTEGRATOR_STATE(state, ray, time));
 
   PROFILING_SHADER(emission_sd->object, emission_sd->shader);

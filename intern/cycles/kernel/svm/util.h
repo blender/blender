@@ -34,6 +34,30 @@ ccl_device_inline void stack_store_float3(ccl_private float *stack, const uint a
   copy_v3_v3(stack + a, f);
 }
 
+ccl_device_inline dual3 stack_load_float3(const ccl_private float *stack,
+                                          const uint a,
+                                          const bool derivative)
+{
+  dual3 result(stack_load_float3(stack, a));
+  if (derivative) {
+    result.dx = stack_load_float3(stack, a + 3);
+    result.dy = stack_load_float3(stack, a + 6);
+  }
+  return result;
+}
+
+ccl_device_inline void stack_store_float3(ccl_private float *stack,
+                                          const uint a,
+                                          const dual3 f,
+                                          const bool derivative)
+{
+  stack_store_float3(stack, a, f.val);
+  if (derivative) {
+    stack_store_float3(stack, a + 3, f.dx);
+    stack_store_float3(stack, a + 6, f.dy);
+  }
+}
+
 ccl_device_inline float stack_load_float(const ccl_private float *stack, const uint a)
 {
   kernel_assert(a < SVM_STACK_SIZE);
@@ -60,6 +84,30 @@ ccl_device_inline void stack_store_float(ccl_private float *stack, const uint a,
   kernel_assert(a < SVM_STACK_SIZE);
 
   stack[a] = f;
+}
+
+ccl_device_inline dual1 stack_load_float(const ccl_private float *stack,
+                                         const uint a,
+                                         const bool derivative)
+{
+  dual1 result(stack_load_float(stack, a));
+  if (derivative) {
+    result.dx = stack_load_float(stack, a + 1);
+    result.dy = stack_load_float(stack, a + 2);
+  }
+  return result;
+}
+
+ccl_device_inline void stack_store_float(ccl_private float *stack,
+                                         const uint a,
+                                         const dual1 f,
+                                         const bool derivative)
+{
+  stack_store_float(stack, a, f.val);
+  if (derivative) {
+    stack_store_float(stack, a + 1, f.dx);
+    stack_store_float(stack, a + 2, f.dy);
+  }
 }
 
 ccl_device_inline int stack_load_int(const ccl_private float *stack, const uint a)
@@ -155,6 +203,28 @@ ccl_device_forceinline float3 dPdx(const ccl_private ShaderData *sd)
 ccl_device_forceinline float3 dPdy(const ccl_private ShaderData *sd)
 {
   return sd->dPdu * sd->du.dy + sd->dPdv * sd->dv.dy;
+}
+
+ccl_device_inline dual3 shading_position(const ccl_private ShaderData *sd, const bool derivative)
+{
+  dual3 P(sd->P);
+  if (derivative) {
+    P.dx = dPdx(sd);
+    P.dy = dPdy(sd);
+  }
+  return P;
+}
+
+ccl_device_inline dual3 shading_incoming(const ccl_private ShaderData *sd, const bool derivative)
+{
+  dual3 I(sd->wi);
+  if (derivative) {
+    float3 dIdx, dIdy;
+    make_orthonormals(sd->wi, &dIdx, &dIdy);
+    I.dx = sd->dI * dIdx;
+    I.dy = sd->dI * dIdy;
+  }
+  return I;
 }
 
 CCL_NAMESPACE_END

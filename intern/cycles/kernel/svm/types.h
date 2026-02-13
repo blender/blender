@@ -273,7 +273,8 @@ enum NodeConvert {
   NODE_CONVERT_VF,
   NODE_CONVERT_VI,
   NODE_CONVERT_IF,
-  NODE_CONVERT_IV
+  NODE_CONVERT_IV,
+  NODE_CONVERT_NONE,
 };
 
 enum NodeNoiseType {

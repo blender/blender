@@ -66,7 +66,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
 
   /* Setup shader data. */
   ShaderData sd;
-  shader_setup_from_background(kg, &sd, ray_P, ray_D, ray_time);
+  shader_setup_from_background(kg, &sd, ray_P, ray_D, 0.0f, ray_time);
 
   /* Evaluate shader.
    * This is being evaluated for all BSDFs, so path flag does not contain a specific type.

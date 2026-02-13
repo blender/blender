@@ -678,6 +678,11 @@ ccl_device float bits_to_01(const uint bits)
   return bits * (1.0f / (float)0xFFFFFFFF);
 }
 
+ccl_device_inline bool is_zero(const float a)
+{
+  return a == 0.0f;
+}
+
 #if !defined(__KERNEL_GPU__)
 #  if defined(__GNUC__)
 ccl_device_inline uint popcount(const uint x)

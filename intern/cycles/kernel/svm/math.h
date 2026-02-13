@@ -32,7 +32,8 @@ ccl_device_noinline int svm_node_vector_math(KernelGlobals kg,
                                              const uint type,
                                              const uint inputs_stack_offsets,
                                              const uint outputs_stack_offsets,
-                                             int offset)
+                                             int offset,
+                                             const bool derivative)
 {
   uint value_stack_offset;
   uint vector_stack_offset;
@@ -43,30 +44,36 @@ ccl_device_noinline int svm_node_vector_math(KernelGlobals kg,
       inputs_stack_offsets, &a_stack_offset, &b_stack_offset, &param1_stack_offset);
   svm_unpack_node_uchar2(outputs_stack_offsets, &value_stack_offset, &vector_stack_offset);
 
-  const float3 a = stack_load_float3(stack, a_stack_offset);
-  const float3 b = stack_load_float3(stack, b_stack_offset);
-  float3 c = make_float3(0.0f, 0.0f, 0.0f);
-  const float param1 = stack_load_float(stack, param1_stack_offset);
-
-  float value;
-  float3 vector;
+  const dual3 a = stack_load_float3(stack, a_stack_offset, derivative);
+  const dual3 b = stack_load_float3(stack, b_stack_offset, derivative);
+  dual3 c;
+  const dual1 param1 = stack_load_float(stack, param1_stack_offset, derivative);
 
   /* 3 Vector Operators */
   if (type == NODE_VECTOR_MATH_WRAP || type == NODE_VECTOR_MATH_FACEFORWARD ||
       type == NODE_VECTOR_MATH_MULTIPLY_ADD)
   {
     const uint4 extra_node = read_node(kg, &offset);
-    c = stack_load_float3(stack, extra_node.x);
+    c = stack_load_float3(stack, extra_node.x, derivative);
   }
 
-  svm_vector_math(&value, &vector, (NodeVectorMathType)type, a, b, c, param1);
+  dual1 value;
+  dual3 vector;
+  if (derivative) {
+    svm_vector_math(&value, &vector, (NodeVectorMathType)type, a, b, c, param1);
+  }
+  else {
+    svm_vector_math(
+        &value.val, &vector.val, (NodeVectorMathType)type, a.val, b.val, c.val, param1.val);
+  }
 
   if (stack_valid(value_stack_offset)) {
-    stack_store_float(stack, value_stack_offset, value);
+    stack_store_float(stack, value_stack_offset, value, derivative);
   }
   if (stack_valid(vector_stack_offset)) {
-    stack_store_float3(stack, vector_stack_offset, vector);
+    stack_store_float3(stack, vector_stack_offset, vector, derivative);
   }
+
   return offset;
 }
 

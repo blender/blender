@@ -28,6 +28,18 @@ ccl_device float2 direction_to_equirectangular_range(const float3 dir, const flo
   return make_float2(u, v);
 }
 
+ccl_device dual2 direction_to_equirectangular_range(const dual3 dir, const float4 range)
+{
+  if (is_zero(dir)) {
+    return make_zero<dual2>();
+  }
+
+  const dual1 u = (atan2(dir.y(), dir.x()) - range.y) / range.x;
+  const dual1 v = (acos(dir.z() / len(dir)) - range.w) / range.z;
+
+  return make_float2(u, v);
+}
+
 ccl_device float3 equirectangular_range_to_direction(const float u,
                                                      const float v,
                                                      const float4 range)
@@ -38,6 +50,11 @@ ccl_device float3 equirectangular_range_to_direction(const float u,
 }
 
 ccl_device float2 direction_to_equirectangular(const float3 dir)
+{
+  return direction_to_equirectangular_range(dir, make_float4(-M_2PI_F, M_PI_F, -M_PI_F, M_PI_F));
+}
+
+ccl_device dual2 direction_to_equirectangular(const dual3 dir)
 {
   return direction_to_equirectangular_range(dir, make_float4(-M_2PI_F, M_PI_F, -M_PI_F, M_PI_F));
 }
@@ -230,6 +247,19 @@ ccl_device float2 direction_to_mirrorball(float3 dir)
 
   const float u = 0.5f * (dir.x + 1.0f);
   const float v = 0.5f * (dir.z + 1.0f);
+
+  return make_float2(u, v);
+}
+
+ccl_device dual2 direction_to_mirrorball(dual3 dir)
+{
+  /* inverse of mirrorball_to_direction */
+  dir.val.y -= 1.0f;
+
+  dir = dir * 0.5f * inversesqrt(-0.5f * dir.y());
+
+  const dual1 u = 0.5f * (dir.x() + 1.0f);
+  const dual1 v = 0.5f * (dir.z() + 1.0f);
 
   return make_float2(u, v);
 }

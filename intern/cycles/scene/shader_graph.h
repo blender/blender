@@ -59,15 +59,11 @@ enum ShaderNodeSpecialType {
   SHADER_SPECIAL_TYPE_LIGHT_PATH,
 };
 
-/* Input
- *
- * Input socket for a shader node. May be linked to an output or not. If not
- * linked, it will either get a fixed default value, or e.g. a texture
- * coordinate. */
+/* Base class for ShaderInput and ShaderOutput. */
 
-class ShaderInput {
+class ShaderIO {
  public:
-  ShaderInput(const SocketType &socket_type_, ShaderNode *parent_)
+  ShaderIO(const SocketType &socket_type_, ShaderNode *parent_)
       : socket_type(socket_type_), parent(parent_)
 
   {
@@ -77,15 +73,33 @@ class ShaderInput {
   {
     return socket_type.ui_name;
   }
-  int flags() const
-  {
-    return socket_type.flags;
-  }
   SocketType::Type type() const
   {
     return socket_type.type;
   }
 
+  const SocketType &socket_type;
+  ShaderNode *parent;
+
+  virtual void disconnect() {};
+
+  int stack_offset = SVM_STACK_INVALID; /* for SVM compiler */
+};
+
+/* Input
+ *
+ * Input socket for a shader node. May be linked to an output or not. If not
+ * linked, it will either get a fixed default value, or e.g. a texture
+ * coordinate. */
+
+class ShaderInput final : public ShaderIO {
+ public:
+  using ShaderIO::ShaderIO;
+
+  int flags() const
+  {
+    return socket_type.flags;
+  }
   void set(const float f)
   {
     ((Node *)parent)->set(socket_type, f);
@@ -99,12 +113,9 @@ class ShaderInput {
     ((Node *)parent)->set(socket_type, f);
   }
 
-  void disconnect();
+  void disconnect() override;
 
-  const SocketType &socket_type;
-  ShaderNode *parent;
   ShaderOutput *link = nullptr;
-  int stack_offset = SVM_STACK_INVALID; /* for SVM compiler */
 
   /* Keeps track of whether a constant was folded in this socket, to avoid over-optimizing when the
    * link is null. */
@@ -115,28 +126,13 @@ class ShaderInput {
  *
  * Output socket for a shader node. */
 
-class ShaderOutput {
+class ShaderOutput final : public ShaderIO {
  public:
-  ShaderOutput(const SocketType &socket_type_, ShaderNode *parent_)
-      : socket_type(socket_type_), parent(parent_)
-  {
-  }
+  using ShaderIO::ShaderIO;
 
-  ustring name() const
-  {
-    return socket_type.ui_name;
-  }
-  SocketType::Type type() const
-  {
-    return socket_type.type;
-  }
+  void disconnect() override;
 
-  void disconnect();
-
-  const SocketType &socket_type;
-  ShaderNode *parent;
   vector<ShaderInput *> links;
-  int stack_offset = SVM_STACK_INVALID; /* for SVM compiler */
 };
 
 /* Node
@@ -211,6 +207,26 @@ class ShaderNode : public Node {
   {
     return false;
   }
+  virtual ShaderNodeType shader_node_type() const
+  {
+    return NODE_NONE;
+  }
+  virtual bool is_texture_node_and_needs_derivatives(const SVMCompiler & /*compiler*/)
+  {
+    return false;
+  }
+  bool need_derivatives() const
+  {
+    return need_derivatives_;
+  }
+  void set_need_derivatives(const bool need_derivatives = true)
+  {
+    need_derivatives_ = need_derivatives;
+  }
+  uint derivative_bit() const
+  {
+    return uint(need_derivatives_) << DERIVATIVE_BIT;
+  }
 
   unique_ptr_vector<ShaderInput> inputs;
   unique_ptr_vector<ShaderOutput> outputs;
@@ -256,6 +272,8 @@ class ShaderNode : public Node {
   virtual bool equals(const ShaderNode &other);
 
  protected:
+  bool need_derivatives_ = false;
+
   /* Disconnect the input with the given name if it is connected.
    * Used to optimize away unused inputs. */
   void disconnect_unused_input(const char *name);
