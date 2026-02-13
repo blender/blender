@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -200,6 +201,12 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
 
   reshape_context->base_mesh = base_mesh;
   reshape_context->base_positions = base_mesh->vert_positions();
+  /* TODO: The following check can be replaced by ShapeKeyData struct member `basis_key_active`
+   * found in `sculpt_intern.hh`.*/
+  if (base_mesh->key && object->shapenr > 0) {
+    KeyBlock *kb = base_mesh->key->refkey;
+    reshape_context->basis_shape_key = kb;
+  }
   reshape_context->base_edges = base_mesh->edges();
   reshape_context->base_faces = base_mesh->faces();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
