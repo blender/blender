@@ -70,7 +70,6 @@ set(LIB
 )
 
 if(WIN32)
-  add_definitions(-DNOMINMAX)
   list(APPEND LIB
     PRIVATE bf::intern::utfconv
   )

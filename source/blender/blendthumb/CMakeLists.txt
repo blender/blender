@@ -40,8 +40,6 @@ if(WIN32)
     src/blendthumb_win32_dll.cc
   )
 
-  add_definitions(-DNOMINMAX)
-
   add_library(BlendThumb SHARED ${SRC} ${SRC_WIN32})
 
   setup_platform_linker_flags(BlendThumb)

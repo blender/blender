@@ -972,14 +972,6 @@ if(WITH_GTESTS)
   endif()
 endif()
 
-if(WITH_TBB)
-  if(WIN32)
-    # TBB includes Windows.h which will define min/max macros
-    # that will collide with the STL versions.
-    add_definitions(-DNOMINMAX)
-  endif()
-endif()
-
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::draw ALIAS bf_draw)
 

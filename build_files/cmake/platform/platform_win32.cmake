@@ -121,6 +121,7 @@ add_definitions(
   -D_CONSOLE
   -D_LIB
   -D_USE_MATH_DEFINES
+  -DNOMINMAX
 )
 
 # MSVC11 needs _ALLOW_KEYWORD_MACROS to build

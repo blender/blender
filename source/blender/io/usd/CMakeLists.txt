@@ -11,7 +11,7 @@ if(UNIX AND NOT APPLE)
 endif()
 if(WIN32)
   # We need to keep BOOST_DEBUG_PYTHON for the vendored copy of boost inside USD.
-  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -DBOOST_DEBUG_PYTHON)
+  add_definitions(-DWIN32_LEAN_AND_MEAN -DBOOST_DEBUG_PYTHON)
 endif()
 
 # Pre-compiled Linux libraries are made with GCC, and USD uses some extensions

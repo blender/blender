@@ -49,14 +49,6 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
 )
 
-if(WITH_TBB)
-  if(WIN32)
-    # TBB includes Windows.h which will define min/max macros
-    # that will collide with the STL versions.
-    add_definitions(-DNOMINMAX)
-  endif()
-endif()
-
 blender_add_lib(bf_functions "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::functions ALIAS bf_functions)
 

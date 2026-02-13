@@ -324,11 +324,15 @@ void GHOST_WindowWin32::adjustWindowRectForClosestMonitor(LPRECT win_rect,
   GetMonitorInfo(hmonitor, &monitor);
 
   /* Constrain requested size and position to fit within this monitor. */
-  LONG width = min(monitor.rcWork.right - monitor.rcWork.left, win_rect->right - win_rect->left);
-  LONG height = min(monitor.rcWork.bottom - monitor.rcWork.top, win_rect->bottom - win_rect->top);
-  win_rect->left = min(max(monitor.rcWork.left, win_rect->left), monitor.rcWork.right - width);
+  LONG width = std::min(monitor.rcWork.right - monitor.rcWork.left,
+                        win_rect->right - win_rect->left);
+  LONG height = std::min(monitor.rcWork.bottom - monitor.rcWork.top,
+                         win_rect->bottom - win_rect->top);
+  win_rect->left = std::min(std::max(monitor.rcWork.left, win_rect->left),
+                            monitor.rcWork.right - width);
   win_rect->right = win_rect->left + width;
-  win_rect->top = min(max(monitor.rcWork.top, win_rect->top), monitor.rcWork.bottom - height);
+  win_rect->top = std::min(std::max(monitor.rcWork.top, win_rect->top),
+                           monitor.rcWork.bottom - height);
   win_rect->bottom = win_rect->top + height;
 
   /* With Windows 10 and newer we can adjust for chrome that differs with DPI and scale. */
@@ -350,7 +354,7 @@ void GHOST_WindowWin32::adjustWindowRectForClosestMonitor(LPRECT win_rect,
   }
 
   /* But never allow a top position that can hide part of the title bar. */
-  win_rect->top = max(monitor.rcWork.top, win_rect->top);
+  win_rect->top = std::max(monitor.rcWork.top, win_rect->top);
 }
 
 bool GHOST_WindowWin32::getValid() const

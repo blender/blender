@@ -8,21 +8,7 @@
 
 #ifdef WITH_TBB
 /* Quiet top level deprecation message, unrelated to API usage here. */
-#  if defined(WIN32) && !defined(NOMINMAX)
-/* TBB includes Windows.h which will define min/max macros causing issues
- * when we try to use std::min and std::max later on. */
-#    define NOMINMAX
-#    define TBB_MIN_MAX_CLEANUP
-#  endif
 #  include <tbb/concurrent_hash_map.h>
-#  ifdef WIN32
-/* We cannot keep this defined, since other parts of the code deal with this on their own, leading
- * to multiple define warnings unless we un-define this, however we can only undefine this if we
- * were the ones that made the definition earlier. */
-#    ifdef TBB_MIN_MAX_CLEANUP
-#      undef NOMINMAX
-#    endif
-#  endif
 #else
 #  include "BLI_mutex.hh"
 #  include "BLI_set.hh"

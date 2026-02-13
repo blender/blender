@@ -199,10 +199,6 @@ set(LIB
   PRIVATE bf::dependencies::optional::potrace
 )
 
-if(WIN32)
-  add_definitions(-DNOMINMAX)
-endif()
-
 if(WITH_GTESTS)
   set(TEST_SRC
     mesh/mesh_brush_common_tests.cc

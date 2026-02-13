@@ -90,10 +90,10 @@ GHOST_Wintab *GHOST_Wintab::loadWintabUnsafe(HWND hwnd)
   const int maxQueue = 500;
   /* < 0 should realistically never happen, but given we cast to size_t later on better safe than
    * sorry. */
-  int queueSize = max(0, queueSizeGet(hctx.get()));
+  int queueSize = std::max(0, queueSizeGet(hctx.get()));
 
   while (queueSize < maxQueue) {
-    int testSize = min(queueSize + 16, maxQueue);
+    int testSize = std::min(queueSize + 16, maxQueue);
     if (queueSizeSet(hctx.get(), testSize)) {
       queueSize = testSize;
     }
