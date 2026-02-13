@@ -350,7 +350,7 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
 
 void BKE_image_ensure_gpu_texture(Image *image, ImageUser *iuser)
 {
-  if (!image) {
+  if (!image || !iuser) {
     return;
   }
 
