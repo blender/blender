@@ -124,7 +124,6 @@ enum LibraryForeachIDCallbackFlag {
 
   /** This ID pointer is runtime data and it should not affect the ID.deep_hash computation. */
   IDWALK_CB_HASH_IGNORE = (1 << 19),
-
 };
 ENUM_OPERATORS(LibraryForeachIDCallbackFlag);
 

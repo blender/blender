@@ -1031,7 +1031,7 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTa
     if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-    ID *to_id = *to_id_entry->id_pointer.to;
+    ID *to_id = to_id_entry->id_pointer.to;
     if (lib_override_hierarchy_dependencies_skip_check(id, to_id, is_override)) {
       continue;
     }
@@ -1079,7 +1079,7 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
     if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-    ID *to_id = *to_id_entry->id_pointer.to;
+    ID *to_id = to_id_entry->id_pointer.to;
     BLI_assert(ID_IS_LINKED(to_id));
     if (lib_override_hierarchy_dependencies_skip_check(id_owner, to_id, false)) {
       continue;
@@ -1347,7 +1347,7 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
     if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-    ID *to_id = *to_id_entry->id_pointer.to;
+    ID *to_id = to_id_entry->id_pointer.to;
     if (lib_override_hierarchy_dependencies_skip_check(id_owner, to_id, true)) {
       continue;
     }
@@ -1951,7 +1951,7 @@ static void lib_override_root_hierarchy_set(
     if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-    ID *to_id = *to_id_entry->id_pointer.to;
+    ID *to_id = to_id_entry->id_pointer.to;
     if (lib_override_hierarchy_dependencies_skip_check(id, to_id, true)) {
       continue;
     }
@@ -3146,7 +3146,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     if (lib_override_hierarchy_dependencies_relationship_skip_check(entry_item)) {
       continue;
     }
-    ID *id_to = *(entry_item->id_pointer.to);
+    ID *id_to = entry_item->id_pointer.to;
     /* Ensure the 'real' override is processed, in case `id_to` is e.g. an embedded ID, get its
      * owner instead. */
     BKE_lib_override_library_get(bmain, id_to, nullptr, &id_to);
@@ -3270,7 +3270,7 @@ static bool lib_override_resync_tagging_finalize_recursive_check_from(
     if (lib_override_hierarchy_dependencies_relationship_skip_check(to_id_entry)) {
       continue;
     }
-    ID *to_id = *(to_id_entry->id_pointer.to);
+    ID *to_id = to_id_entry->id_pointer.to;
     if (lib_override_library_main_resync_id_skip_check(to_id, library_indirect_level)) {
       continue;
     }
@@ -3527,7 +3527,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       if (lib_override_hierarchy_dependencies_relationship_skip_check(entry_item)) {
         continue;
       }
-      ID *id_to = *entry_item->id_pointer.to;
+      ID *id_to = entry_item->id_pointer.to;
 
       /* Case where this ID pointer was to a linked ID, that now needs to be overridden. */
       if (ID_IS_LINKED(id_to) && (id_to->lib != id->lib) && (id_to->tag & ID_TAG_DOIT) != 0) {
@@ -5094,8 +5094,8 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain,
       continue;
     }
     /* We only consider IDs from the same library. */
-    if (*to_id_entry->id_pointer.to != nullptr) {
-      ID *to_id = *to_id_entry->id_pointer.to;
+    if (to_id_entry->id_pointer.to != nullptr) {
+      ID *to_id = to_id_entry->id_pointer.to;
       if (to_id->override_library != nullptr) {
         lib_override_library_id_hierarchy_recursive_reset(bmain, to_id, do_reset_system_override);
       }

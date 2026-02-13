@@ -606,7 +606,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
       MainIDRelationsEntryItem *to_id_entry = static_cast<MainIDRelationsEntryItem *>(
           BLI_mempool_alloc(bmain_relations->entry_items_pool));
       to_id_entry->next = entry->to_ids;
-      to_id_entry->id_pointer.to = id_pointer;
+      to_id_entry->id_pointer.to = *id_pointer;
       to_id_entry->session_uid = (*id_pointer != nullptr) ? (*id_pointer)->session_uid :
                                                             MAIN_ID_SESSION_UID_UNSET;
       to_id_entry->usage_flag = cb_flag;

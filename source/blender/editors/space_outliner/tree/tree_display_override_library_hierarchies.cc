@@ -289,7 +289,7 @@ static void foreach_natural_hierarchy_child(const MainIDRelations &id_relations,
        to_id_entry = to_id_entry->next)
   {
     /* An ID pointed to (used) by the ID to recurse into. */
-    ID &target_id = **to_id_entry->id_pointer.to;
+    ID &target_id = *to_id_entry->id_pointer.to;
 
     /* Don't walk up the hierarchy, e.g. ignore pointers to parent collections. */
     if (to_id_entry->usage_flag & IDWALK_CB_LOOPBACK) {
