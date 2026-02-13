@@ -442,14 +442,13 @@ static bool paint_stroke_use_jitter(const PaintMode mode, const Brush &brush, co
   return use_jitter;
 }
 
-void paint_stroke_jitter_pos(Paint *paint,
-                             PaintMode mode,
-                             const Brush &brush,
-                             float pressure,
-                             BrushStrokeMode stroke_mode,
-                             float zoom_2d,
-                             const float mval[2],
-                             float r_mouse_out[2])
+float2 paint_stroke_jitter_pos(Paint *paint,
+                               PaintMode mode,
+                               const Brush &brush,
+                               float pressure,
+                               BrushStrokeMode stroke_mode,
+                               float zoom_2d,
+                               const float2 &mval)
 {
   if (paint_stroke_use_jitter(mode, brush, stroke_mode == BrushStrokeMode::Invert)) {
     float factor = zoom_2d;
@@ -458,21 +457,19 @@ void paint_stroke_jitter_pos(Paint *paint,
       factor *= BKE_curvemapping_evaluateF(brush.curve_jitter, 0, pressure);
     }
 
-    BKE_brush_jitter_pos(*paint, brush, mval, r_mouse_out);
+    float2 jittered_position = BKE_brush_jitter_pos(*paint, brush, mval);
 
     /* XXX: meh, this is round about because
      * BKE_brush_jitter_pos isn't written in the best way to
      * be reused here */
     if (factor != 1.0f) {
-      float2 delta;
-      sub_v2_v2v2(delta, r_mouse_out, mval);
-      mul_v2_fl(delta, factor);
-      add_v2_v2v2(r_mouse_out, mval, delta);
+      const float2 delta = (jittered_position - mval) * factor;
+      return mval + delta;
     }
+    return jittered_position;
   }
-  else {
-    copy_v2_v2(r_mouse_out, mval);
-  }
+
+  return mval;
 }
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
@@ -527,10 +524,9 @@ void PaintStroke::add_step(bContext *C, wmOperator *op, const float2 mval, float
     }
   }
 
-  float2 mouse_out;
   /* Get jitter position (same as mval if no jitter is used). */
-  paint_stroke_jitter_pos(
-      this->paint, mode, brush, pressure, stroke_mode_, zoom_2d_, mval, mouse_out);
+  float2 mouse_out = paint_stroke_jitter_pos(
+      this->paint, mode, brush, pressure, stroke_mode_, zoom_2d_, mval);
 
   float3 location;
   bool is_location_is_set;

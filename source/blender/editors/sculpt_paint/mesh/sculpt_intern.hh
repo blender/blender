@@ -774,7 +774,7 @@ void sculpt_apply_texture(const SculptSession &ss,
                           const float brush_point[3],
                           int thread_id,
                           float *r_value,
-                          float r_rgba[4]);
+                          float4 &r_rgba);
 
 /**
  * Calculates the vertex offset for a single vertex depending on the brush setting rgb as vector

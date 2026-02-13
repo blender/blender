@@ -608,14 +608,11 @@ bool vertex_paint_poll_ignore_tool(bContext *C)
 static ColorPaint4f vpaint_get_current_col(VPaint &vp, bool secondary)
 {
   const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
-  float color[4];
-  const float *brush_color = secondary ? BKE_brush_secondary_color_get(&vp.paint, brush) :
+  const float3 brush_color = secondary ? BKE_brush_secondary_color_get(&vp.paint, brush) :
                                          BKE_brush_color_get(&vp.paint, brush);
-  copy_v3_v3(color, brush_color);
 
-  color[3] = 1.0f; /* alpha isn't used, could even be removed to speedup paint a little */
-
-  return ColorPaint4f(color);
+  /* alpha isn't used, could even be removed to speedup paint a little */
+  return ColorPaint4f(brush_color.x, brush_color.y, brush_color.z, 1.0f);
 }
 
 /* wpaint has 'wpaint_blend' */
@@ -735,8 +732,8 @@ static Color vpaint_blend_stroke(const VPaint &vp,
 
 static void paint_and_tex_color_alpha_intern(const VPaint &vp,
                                              const ViewContext *vc,
-                                             const float co[3],
-                                             float r_rgba[4])
+                                             const float3 &co,
+                                             float4 &r_rgba)
 {
   const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
   const MTex *mtex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
@@ -1681,8 +1678,8 @@ static float paint_and_tex_color_alpha(const VPaint &vp,
                                        const float v_co[3],
                                        Color *r_color)
 {
-  ColorPaint4f rgba;
-  paint_and_tex_color_alpha_intern(vp, &vpd.vc, v_co, &rgba.r);
+  float4 rgba;
+  paint_and_tex_color_alpha_intern(vp, &vpd.vc, v_co, rgba);
 
   ColorPaint4f rgba_br = toFloat(vpd.paintcol);
   mul_v3_v3(rgba_br, rgba);

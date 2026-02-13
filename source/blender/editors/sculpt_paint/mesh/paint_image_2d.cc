@@ -429,7 +429,8 @@ static ImBuf *brush_painter_imbuf_new(
   for (y = 0; y < size; y++) {
     for (x = 0; x < size; x++) {
       /* sample texture and multiply with brush color */
-      float texco[3], rgba[4];
+      float3 texco;
+      float4 rgba;
 
       if (is_texbrush) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
@@ -519,7 +520,8 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
   for (y = origy; y < h; y++) {
     for (x = origx; x < w; x++) {
       /* sample texture and multiply with brush color */
-      float texco[3], rgba[4];
+      float3 texco;
+      float4 rgba;
 
       if (!use_texture_old) {
         if (is_texbrush) {

@@ -561,7 +561,6 @@ static wmOperatorStatus paint_exec(bContext *C, wmOperator *op)
   const Brush &brush = *BKE_paint_brush_for_read(&paint);
   float pressure;
   pressure = RNA_float_get(&firstpoint, "pressure");
-  float mouse_out[2];
   bool dummy;
   float dummy_location[3];
 
@@ -570,7 +569,8 @@ static wmOperatorStatus paint_exec(bContext *C, wmOperator *op)
   float zoomy;
   get_imapaint_zoom(C, &zoomx, &zoomy);
   float zoom_2d = std::max(zoomx, zoomy);
-  paint_stroke_jitter_pos(&paint, mode, brush, pressure, stroke_mode, zoom_2d, mouse, mouse_out);
+  float2 mouse_out = paint_stroke_jitter_pos(
+      &paint, mode, brush, pressure, stroke_mode, zoom_2d, mouse);
 
   stroke->update_for_exec(C, brush, mode, mouse, mouse_out, pressure, dummy_location, &dummy);
   wmOperatorStatus ret_val = stroke->exec(C, op);

@@ -200,7 +200,7 @@ static float falloff_value_vertex_get(const SculptSession &ss,
     return expand_cache.vert_falloff[vert];
   }
 
-  float rgba[4];
+  float4 rgba;
   const float avg = BKE_brush_sample_tex_3d(
       expand_cache.paint, brush, mtex, position, rgba, 0, ss.tex_pool);
 
