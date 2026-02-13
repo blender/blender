@@ -12,9 +12,11 @@ __all__ = (
 
 
 import os
-from os.path import join, dirname, normpath, abspath
-
+import shlex
 import subprocess
+import sys
+
+from os.path import join, dirname, normpath, abspath
 
 from typing import (
     Any,
@@ -25,8 +27,6 @@ from collections.abc import (
     Iterator,
     Sequence,
 )
-
-import shlex
 
 
 SOURCE_DIR = join(dirname(__file__), "..", "..")
