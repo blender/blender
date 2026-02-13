@@ -224,8 +224,7 @@ static const char *brush_type_identifier_get(const int brush_type, const PaintMo
 static bool brush_type_matches_active_tool(bContext *C, const int brush_type)
 {
   const bToolRef *active_tool = toolsystem_active_tool_from_context_or_view3d(C);
-
-  if (active_tool->runtime == nullptr) {
+  if (active_tool == nullptr || active_tool->runtime == nullptr) {
     /* Should only ever be null in background mode. */
     BLI_assert(G.background);
     return false;
