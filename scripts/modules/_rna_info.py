@@ -550,12 +550,7 @@ class InfoPropertyRNA:
             )
 
         if qualifiers:
-            type_info.append("(")
-            for i, q in enumerate(qualifiers):
-                if i > 0:
-                    type_info.append(", ")
-                type_info.append(q)
-            type_info.append(")")
+            type_info.extend(qualifiers)
 
         return type_str, type_info
 
