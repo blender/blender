@@ -353,8 +353,16 @@ static bool library_foreach_ID_link(Main *bmain,
       for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
            to_id_entry = to_id_entry->next)
       {
-        BKE_lib_query_foreachid_process(
-            &data, to_id_entry->id_pointer.to, to_id_entry->usage_flag);
+        /* NOTE: Since `use_bmain_relations` can only be true if `IDWALK_READONLY` is set, checking
+         * that the pointer is not modified is redundant (#BKE_lib_query_foreachid_process would
+         * already have asserted on it).
+         *
+         * Does not hurt to have that double-check here though, as it makes that expectation more
+         * obvious. */
+        ID *to_id_tmp = to_id_entry->id_pointer.to;
+        BKE_lib_query_foreachid_process(&data, &to_id_tmp, to_id_entry->usage_flag);
+        BLI_assert(to_id_tmp == to_id_entry->id_pointer.to);
+
         if (BKE_lib_query_foreachid_iter_stop(&data)) {
           library_foreach_ID_data_cleanup(&data);
           return false;
