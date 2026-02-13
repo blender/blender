@@ -20,10 +20,6 @@
 #include "device/oneapi/device.h"
 #include "device/optix/device.h"
 
-#ifdef WITH_HIPRT
-#  include <hiprtew.h>
-#endif
-
 #include "util/log.h"
 #include "util/math.h"
 #include "util/string.h"
@@ -248,9 +244,7 @@ vector<DeviceType> Device::available_types()
   types.push_back(DEVICE_ONEAPI);
 #endif
 #ifdef WITH_HIPRT
-  if (hiprtewInit()) {
-    types.push_back(DEVICE_HIPRT);
-  }
+  types.push_back(DEVICE_HIPRT);
 #endif
   return types;
 }

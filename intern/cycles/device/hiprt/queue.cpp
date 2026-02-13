@@ -6,6 +6,8 @@
 
 #  include "device/hiprt/queue.h"
 
+#  include <hiprt/hiprt.h>
+
 #  include "device/hip/graphics_interop.h"
 #  include "device/hip/kernel.h"
 #  include "device/hiprt/device_impl.h"

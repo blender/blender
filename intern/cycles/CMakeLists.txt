@@ -245,7 +245,7 @@ if(WITH_CYCLES_DEVICE_HIP)
 
   if(WITH_CYCLES_DEVICE_HIPRT)
     include_directories(
-      ${HIPRT_INCLUDE_DIR}
+      ${HIPRT_INCLUDE_DIRS}
     )
     add_definitions(-DWITH_HIPRT)
   endif()

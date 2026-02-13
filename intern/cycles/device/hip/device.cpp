@@ -141,7 +141,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
   }
 
 #  ifdef WITH_HIPRT
-  const bool has_hardware_raytracing = hiprtewInit();
+  const bool has_hardware_raytracing = HIPRTDevice::is_supported();
 #  else
   const bool has_hardware_raytracing = false;
 #  endif

@@ -58,11 +58,7 @@ add_dependencies(
 )
 
 if(WIN32)
-  # Strip version from shared library name.
   ExternalProject_Add_Step(external_hiprt after_install
-    COMMAND ${CMAKE_COMMAND} -E rename
-      ${LIBDIR}/hiprt/bin/hiprt${HIPRT_LIBRARY_VERSION}64.dll ${LIBDIR}/hiprt/bin/hiprt64.dll
-
     COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${LIBDIR}/hiprt
       ${HARVEST_TARGET}/hiprt
@@ -70,14 +66,6 @@ if(WIN32)
     DEPENDEES install
   )
 else()
-  # Strip version from shared library name.
-  ExternalProject_Add_Step(external_hiprt after_install
-    COMMAND ${CMAKE_COMMAND} -E rename
-      ${LIBDIR}/hiprt/bin/${LIBPREFIX}hiprt${HIPRT_LIBRARY_VERSION}64.so ${LIBDIR}/hiprt/bin/${LIBPREFIX}hiprt64.so
-
-
-    DEPENDEES install
-  )
   harvest(external_hiprt hiprt/include hiprt/include "*.h")
   harvest(external_hiprt hiprt/bin hiprt/lib "*${SHAREDLIBEXT}*")
   harvest(external_hiprt hiprt/bin hiprt/lib "*.hipfb")

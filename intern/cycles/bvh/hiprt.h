@@ -8,14 +8,9 @@
 
 #  include "bvh/bvh.h"
 #  include "bvh/params.h"
-
-#  ifdef WITH_HIP_DYNLOAD
-#    include <hiprtew.h>
-#  else
-#    include <hiprt/hiprt_types.h>
-#  endif
-
 #  include "device/memory.h"
+
+#  include <hiprt/hiprt_types.h>
 
 CCL_NAMESPACE_BEGIN
 

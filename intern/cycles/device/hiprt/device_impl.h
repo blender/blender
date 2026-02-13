@@ -11,11 +11,7 @@
 #  include "device/hip/queue.h"
 #  include "device/hiprt/queue.h"
 
-#  ifdef WITH_HIP_DYNLOAD
-#    include <hiprtew.h>
-#  else
-#    include <hiprt/hiprt_types.h>
-#  endif
+#  include <hiprt/hiprt_types.h>
 
 CCL_NAMESPACE_BEGIN
 
@@ -29,6 +25,8 @@ class BVHHIPRT;
 class HIPRTDevice : public HIPDevice {
 
  public:
+  static bool is_supported();
+
   BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const override;
 
   HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);

@@ -4,10 +4,12 @@
 
 #ifdef WITH_HIPRT
 
+#  include "device/hiprt/device_impl.h"
+
+#  include <hiprt/hiprt.h>
 #  include <iomanip>
 
 #  include "device/hip/util.h"
-#  include "device/hiprt/device_impl.h"
 #  include "kernel/device/hiprt/globals.h"
 
 #  include "util/log.h"
@@ -17,9 +19,12 @@
 #  include "util/string.h"
 #  include "util/time.h"
 #  include "util/types.h"
+#  include "util/vector.h"
 
-#  ifdef _WIN32
+#  if defined(_WIN32)
 #    include "util/windows.h"
+#  elif defined(__linux__)
+#    include <dlfcn.h>
 #  endif
 
 #  include "bvh/hiprt.h"
@@ -53,7 +58,47 @@ static void get_hiprt_transform(float matrix[][4], Transform &tfm)
   matrix[row][col++] = tfm.z.w;
 }
 
-class HIPRTDevice;
+bool HIPRTDevice::is_supported()
+{
+#  if defined(__linux__)
+  static bool is_initialized = false;
+  static bool is_supported = false;
+
+  if (is_initialized) {
+    return is_supported;
+  }
+  is_initialized = true;
+
+  /* The current version of HIP-RT requires libamdhip64.so which Fedora puts in a separate package
+   * than libamdhip64.so.6 as required by HIP. For now check for the existence of this. In the
+   * future update we'll make HIP-RT consistent, and this code can be removed. */
+  const vector<const char *> hip_paths = {
+      "libamdhip64.so",
+      "/opt/rocm/lib/libamdhip64.so",
+      "/opt/rocm/hip/lib/libamdhip64.so",
+  };
+
+  LOG_INFO << "Checking for libamdhip64.so";
+
+  for (const char *hip_path : hip_paths) {
+    void *hip_lib = dlopen(hip_path, RTLD_LAZY);
+    if (hip_lib) {
+      LOG_DEBUG << "Found libamdhip64.so at: " << hip_path;
+      is_supported = true;
+      dlclose(hip_lib);
+      break;
+    }
+  }
+
+  if (!is_supported) {
+    LOG_INFO << "libamdhip64.so not found, HIP-RT will be disabled";
+  }
+
+  return is_supported;
+#  else
+  return true;
+#  endif
+}
 
 BVHLayoutMask HIPRTDevice::get_bvh_layout_mask(const uint /* kernel_features */) const
 {
@@ -88,8 +133,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
   hiprt_context_input.ctxt = hipContext;
   hiprt_context_input.device = hipDevice;
   hiprt_context_input.deviceType = hiprtDeviceAMD;
-  hiprtError rt_result = hiprtCreateContext(
-      HIPRT_API_VERSION, hiprt_context_input, &hiprt_context);
+  hiprtError rt_result = hiprtCreateContext(HIPRT_API_VERSION, hiprt_context_input, hiprt_context);
 
   if (rt_result != hiprtSuccess) {
     set_error("Failed to create HIPRT context");
