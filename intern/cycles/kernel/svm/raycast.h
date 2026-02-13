@@ -114,7 +114,9 @@ ccl_device RaycastResult svm_raycast(KernelGlobals kg,
 
   /* Transform normals to world space. */
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    object_normal_transform(kg, sd, &result.normal);
+    Transform itfm;
+    object_fetch_transform_motion_test(kg, object, sd->time, &itfm);
+    result.normal = normalize(transform_direction_transposed(&itfm, result.normal));
   }
 
   return result;
