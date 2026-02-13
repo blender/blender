@@ -739,8 +739,8 @@ class Compositor {
         DRW_gpu_context_disable();
       }
       else {
-        GPU_render_end();
         GPU_context_active_set(nullptr);
+        GPU_render_end();
         GHOST_IContext *re_system_gpu_context = RE_system_gpu_context_get(&render_);
         WM_system_gpu_context_release(re_system_gpu_context);
       }
