@@ -105,6 +105,7 @@ static void node_init(const bContext *C, PointerRNA *node_pointer)
   NodeCompositorFileOutput *data = MEM_new<NodeCompositorFileOutput>(__func__);
   node->storage = data;
   data->save_as_render = true;
+  data->use_file_extension = true;
   data->file_name = BLI_strdup("file_name");
 
   BKE_image_format_init(&data->format);
@@ -189,7 +190,7 @@ static Vector<bke::path_templates::Error> compute_image_path(const StringRefNull
                                       &template_variables,
                                       frame_number,
                                       &format,
-                                      scene.r.scemode & R_EXTENSION,
+                                      bool(node_storage(node).use_file_extension),
                                       is_animation_render,
                                       BKE_scene_multiview_view_suffix_get(&scene.r, view));
 }
@@ -351,6 +352,9 @@ static void node_draw_buttons_extended(ui::Layout &layout,
   if (ui::Layout *panel = layout.panel(context, "output_paths", true, IFACE_("Output Paths"))) {
     const bNode &node = *node_pointer->data_as<bNode>();
     const ImageFormatData &node_format = *format_pointer.data_as<ImageFormatData>();
+
+    panel->prop(
+        node_pointer, "use_file_extension", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (is_multi_layer) {
       output_paths_layout(*panel, context, "", node, node_format);

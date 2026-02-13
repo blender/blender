@@ -2333,7 +2333,9 @@ struct NodeCompositorFileOutput {
   int active_item_index = 0;
   /* Apply the render part of the display transform when saving non-linear images. */
   char save_as_render = 0;
-  char _pad[7] = {};
+  /* Add a file extension to the file name. */
+  char use_file_extension = 0;
+  char _pad[6] = {};
 };
 
 struct NodeImageMultiFileSocket {
