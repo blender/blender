@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_key_types.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -34,7 +36,7 @@ struct MultiresReshapeContext {
   Object *object;
 
   MultiresModifierData *mmd;
-
+  struct KeyBlock *basis_shape_key;
   /* Base mesh from original object.
    * NOTE: Does NOT include any leading modifiers in it. */
   Mesh *base_mesh;
@@ -371,6 +373,12 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
  * desired locations.
  */
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context);
+
+/**
+ *Updating Shape key coordinates after apply base so as to maintain sync between mesh and
+ *shape key.
+ */
+void multires_reshape_apply_base_update_shape_key(MultiresReshapeContext *reshape_context);
 
 /**
  * Refine subdivision surface to the new positions of the base mesh.

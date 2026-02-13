@@ -263,6 +263,7 @@ void multiresModifier_base_apply(Depsgraph *depsgraph,
   if (mode == ApplyBaseMode::ForSubdivision) {
     multires_reshape_apply_base_refit_base_mesh(&reshape_context);
   }
+  multires_reshape_apply_base_update_shape_key(&reshape_context);
 
   /* Reshape to the stored final state.
    * Not that the base changed, so the subdiv is to be refined to the new positions. Unfortunately,
