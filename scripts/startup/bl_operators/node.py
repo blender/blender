@@ -536,6 +536,7 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
     def get_node_sockets(node):
         if node.bl_idname in {"NodeCombineBundle", "NodeSeparateBundle"}:
             return node.bundle_items
+        return None
 
     def transfer_node_sockets(self, old_node, new_node):
         old_items = self.get_node_sockets(old_node)
@@ -821,12 +822,13 @@ class NODE_OT_swap_zone(ZoneOperator, NodeSwapOperator, Operator):
 
         if node.bl_idname.startswith("GeometryNodeSimulation"):
             return output_node.state_items
-        elif node.bl_idname.startswith("GeometryNodeRepeat"):
+        if node.bl_idname.startswith("GeometryNodeRepeat"):
             return output_node.repeat_items
-        elif node.bl_idname == "NodeClosureInput":
+        if node.bl_idname == "NodeClosureInput":
             return output_node.input_items
-        elif node.bl_idname == "NodeClosureOutput":
+        if node.bl_idname == "NodeClosureOutput":
             return output_node.output_items
+        return None
 
     def transfer_zone_sockets(self, old_node, new_node):
         old_children = self.get_child_items(old_node)

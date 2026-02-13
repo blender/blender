@@ -17,7 +17,6 @@ import contextlib
 import os
 import re
 import shutil
-import sys
 import zipfile
 
 from collections.abc import (

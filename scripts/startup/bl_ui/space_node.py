@@ -942,7 +942,6 @@ class NODE_PT_quality(Panel):
         rd = scene.render
 
         snode = context.space_data
-        tree = snode.node_tree
 
         col = layout.column()
         col.prop(rd, "compositor_device", text="Device")
