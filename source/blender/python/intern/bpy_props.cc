@@ -292,14 +292,17 @@ static PyObject *bpy_prop_deferred_keywords_get(BPy_PropDeferred *self, void * /
   return ret;
 }
 
-/** Use underscore for these members so they're not displayed in generated docs. */
+/**
+ * While these should be private, historically they didn't use an underscore prefix.
+ * Keep them as-as some scripts use (`rigify` at least).
+ */
 static PyGetSetDef bpy_prop_deferred_getset[] = {
-    {"_function",
+    {"function",
      reinterpret_cast<getter>(bpy_prop_deferred_function_get),
      static_cast<setter>(nullptr),
      nullptr,
      nullptr},
-    {"_keywords",
+    {"keywords",
      reinterpret_cast<getter>(bpy_prop_deferred_keywords_get),
      static_cast<setter>(nullptr),
      nullptr,
