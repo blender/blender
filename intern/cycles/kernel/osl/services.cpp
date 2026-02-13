@@ -13,6 +13,7 @@
 
 #include "util/log.h"
 #include "util/string.h"
+#include "util/types_image.h"
 
 #include "kernel/geom/shader_data.h"
 

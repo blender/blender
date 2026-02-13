@@ -14,7 +14,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_mapping(ccl_private float *stack,
                                           const uint type,
                                           const uint inputs_stack_offsets,
-                                          const uint result_stack_offset)
+                                          const uint result_stack_offset,
+                                          const bool derivative)
 {
   uint vector_stack_offset;
   uint location_stack_offset;
@@ -26,13 +27,20 @@ ccl_device_noinline void svm_node_mapping(ccl_private float *stack,
                          &rotation_stack_offset,
                          &scale_stack_offset);
 
-  const float3 vector = stack_load_float3(stack, vector_stack_offset);
   const float3 location = stack_load_float3(stack, location_stack_offset);
   const float3 rotation = stack_load_float3(stack, rotation_stack_offset);
   const float3 scale = stack_load_float3(stack, scale_stack_offset);
 
-  const float3 result = svm_mapping((NodeMappingType)type, vector, location, rotation, scale);
-  stack_store_float3(stack, result_stack_offset, result);
+  if (derivative) {
+    const dual3 vector = stack_load_float3(stack, vector_stack_offset, derivative);
+    const dual3 result = svm_mapping((NodeMappingType)type, vector, location, rotation, scale);
+    stack_store_float3(stack, result_stack_offset, result, derivative);
+  }
+  else {
+    const float3 vector = stack_load_float3(stack, vector_stack_offset);
+    const float3 result = svm_mapping((NodeMappingType)type, vector, location, rotation, scale);
+    stack_store_float3(stack, result_stack_offset, result);
+  }
 }
 
 /* Texture Mapping */

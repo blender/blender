@@ -20,36 +20,41 @@ ccl_device_noinline void svm_node_geometry(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            const uint type,
-                                           const uint out_offset)
+                                           const uint out_offset,
+                                           const bool derivative)
 {
-  float3 data;
+  dual3 data;
 
   switch (type) {
     case NODE_GEOM_P:
-      data = sd->P;
+      data = shading_position(sd, derivative);
       break;
     case NODE_GEOM_N:
-      data = sd->N;
+      data.val = sd->N;
       break;
 #ifdef __DPDU__
     case NODE_GEOM_T:
-      data = primitive_tangent(kg, sd);
+      data = primitive_tangent(kg, sd, derivative);
       break;
 #endif
     case NODE_GEOM_I:
-      data = sd->wi;
+      data = shading_incoming(sd, derivative);
       break;
     case NODE_GEOM_Ng:
-      data = sd->Ng;
+      data.val = sd->Ng;
       break;
     case NODE_GEOM_uv:
-      data = make_float3(1.0f - sd->u - sd->v, sd->u, 0.0f);
+      data.val = make_float3(1.0f - sd->u - sd->v, sd->u, 0.0f);
+      if (derivative) {
+        data.dx = make_float3(-sd->du.dx - sd->dv.dx, sd->du.dx, 0.0f);
+        data.dy = make_float3(-sd->du.dy - sd->dv.dy, sd->du.dy, 0.0f);
+      }
       break;
     default:
-      data = make_float3(0.0f, 0.0f, 0.0f);
+      data.val = make_float3(0.0f, 0.0f, 0.0f);
   }
 
-  stack_store_float3(stack, out_offset, data);
+  stack_store_float3(stack, out_offset, data, derivative);
 }
 
 ccl_device_noinline void svm_node_geometry_bump_dx(KernelGlobals kg,
@@ -57,27 +62,32 @@ ccl_device_noinline void svm_node_geometry_bump_dx(KernelGlobals kg,
                                                    ccl_private float *stack,
                                                    const uint type,
                                                    const uint out_offset,
-                                                   const float bump_filter_width)
+                                                   const float bump_filter_width,
+                                                   const bool derivative)
 {
 #ifdef __RAY_DIFFERENTIALS__
-  float3 data;
+  dual3 data;
 
   switch (type) {
     case NODE_GEOM_P:
-      data = svm_node_bump_P_dx(sd, bump_filter_width);
+      data = svm_node_bump_P_dx(sd, bump_filter_width, derivative);
       break;
     case NODE_GEOM_uv: {
       const float u_x = sd->u + sd->du.dx * bump_filter_width;
       const float v_x = sd->v + sd->dv.dx * bump_filter_width;
-      data = make_float3(1.0f - u_x - v_x, u_x, 0.0f);
+      data.val = make_float3(1.0f - u_x - v_x, u_x, 0.0f);
+      if (derivative) {
+        data.dx = make_float3(-sd->du.dx - sd->dv.dx, sd->du.dx, 0.0f);
+        data.dy = make_float3(-sd->du.dy - sd->dv.dy, sd->du.dy, 0.0f);
+      }
       break;
     }
     default:
-      svm_node_geometry(kg, sd, stack, type, out_offset);
+      svm_node_geometry(kg, sd, stack, type, out_offset, derivative);
       return;
   }
 
-  stack_store_float3(stack, out_offset, data);
+  stack_store_float3(stack, out_offset, data, derivative);
 #else
   svm_node_geometry(kg, sd, stack, type, out_offset);
 #endif
@@ -88,27 +98,32 @@ ccl_device_noinline void svm_node_geometry_bump_dy(KernelGlobals kg,
                                                    ccl_private float *stack,
                                                    const uint type,
                                                    const uint out_offset,
-                                                   const float bump_filter_width)
+                                                   const float bump_filter_width,
+                                                   const bool derivative)
 {
 #ifdef __RAY_DIFFERENTIALS__
-  float3 data;
+  dual3 data;
 
   switch (type) {
     case NODE_GEOM_P:
-      data = svm_node_bump_P_dy(sd, bump_filter_width);
+      data = svm_node_bump_P_dy(sd, bump_filter_width, derivative);
       break;
     case NODE_GEOM_uv: {
       const float u_y = sd->u + sd->du.dy * bump_filter_width;
       const float v_y = sd->v + sd->dv.dy * bump_filter_width;
-      data = make_float3(1.0f - u_y - v_y, u_y, 0.0f);
+      data.val = make_float3(1.0f - u_y - v_y, u_y, 0.0f);
+      if (derivative) {
+        data.dx = make_float3(-sd->du.dx - sd->dv.dx, sd->du.dx, 0.0f);
+        data.dy = make_float3(-sd->du.dy - sd->dv.dy, sd->du.dy, 0.0f);
+      }
       break;
     }
     default:
-      svm_node_geometry(kg, sd, stack, type, out_offset);
+      svm_node_geometry(kg, sd, stack, type, out_offset, derivative);
       return;
   }
 
-  stack_store_float3(stack, out_offset, data);
+  stack_store_float3(stack, out_offset, data, derivative);
 #else
   svm_node_geometry(kg, sd, stack, type, out_offset);
 #endif

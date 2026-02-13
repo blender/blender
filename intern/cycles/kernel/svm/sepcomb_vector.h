@@ -13,31 +13,37 @@ CCL_NAMESPACE_BEGIN
 ccl_device void svm_node_combine_vector(ccl_private float *stack,
                                         const uint in_offset,
                                         const uint vector_index,
-                                        const uint out_offset)
+                                        const uint out_offset,
+                                        const bool derivative)
 {
-  const float vector = stack_load_float(stack, in_offset);
+  const dual1 vector = stack_load_float(stack, in_offset, derivative);
 
   if (stack_valid(out_offset)) {
-    stack_store_float(stack, out_offset + vector_index, vector);
+    stack_store_float(stack, out_offset + vector_index, vector.val);
+    if (derivative) {
+      stack_store_float(stack, out_offset + vector_index + 3, vector.dx);
+      stack_store_float(stack, out_offset + vector_index + 6, vector.dy);
+    }
   }
 }
 
 ccl_device void svm_node_separate_vector(ccl_private float *stack,
                                          const uint ivector_offset,
                                          const uint vector_index,
-                                         const uint out_offset)
+                                         const uint out_offset,
+                                         const bool derivative)
 {
-  const float3 vector = stack_load_float3(stack, ivector_offset);
+  const dual3 vector = stack_load_float3(stack, ivector_offset, derivative);
 
   if (stack_valid(out_offset)) {
     if (vector_index == 0) {
-      stack_store_float(stack, out_offset, vector.x);
+      stack_store_float(stack, out_offset, vector.x(), derivative);
     }
     else if (vector_index == 1) {
-      stack_store_float(stack, out_offset, vector.y);
+      stack_store_float(stack, out_offset, vector.y(), derivative);
     }
     else {
-      stack_store_float(stack, out_offset, vector.z);
+      stack_store_float(stack, out_offset, vector.z(), derivative);
     }
   }
 }

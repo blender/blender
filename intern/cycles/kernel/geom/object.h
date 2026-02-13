@@ -148,9 +148,10 @@ ccl_device_inline void object_position_transform(KernelGlobals kg,
 
 /* Transform position from world to object space */
 
+template<class T>
 ccl_device_inline void object_inverse_position_transform(KernelGlobals kg,
                                                          const ccl_private ShaderData *sd,
-                                                         ccl_private float3 *P)
+                                                         ccl_private T *P)
 {
 #ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {
@@ -161,6 +162,21 @@ ccl_device_inline void object_inverse_position_transform(KernelGlobals kg,
 
   const Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
   *P = transform_point(&tfm, *P);
+}
+
+ccl_device_inline void object_inverse_position_transform(KernelGlobals kg,
+                                                         const ccl_private ShaderData *sd,
+                                                         ccl_private dual3 *P,
+                                                         const bool derivative)
+{
+  if (sd->object != OBJECT_NONE) {
+    if (derivative) {
+      object_inverse_position_transform(kg, sd, P);
+    }
+    else {
+      object_inverse_position_transform(kg, sd, &(P->val));
+    }
+  }
 }
 
 /* Transform normal from world to object space */
@@ -185,10 +201,10 @@ ccl_device_inline void object_inverse_normal_transform(KernelGlobals kg,
 }
 
 /* Transform normal from object to world space */
-
+template<class T>
 ccl_device_inline void object_normal_transform(KernelGlobals kg,
                                                const ccl_private ShaderData *sd,
-                                               ccl_private float3 *N)
+                                               ccl_private T *N)
 {
 #ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {

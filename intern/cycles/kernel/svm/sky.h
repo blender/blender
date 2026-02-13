@@ -10,8 +10,10 @@
 #include "kernel/svm/util.h"
 
 #include "kernel/util/colorspace.h"
+#include "kernel/util/differential.h"
 
 #include "util/color.h"
+#include "util/defines.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -134,6 +136,7 @@ ccl_device float3 geographical_to_direction(const float lat, const float lon)
 }
 
 ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
+                                       ccl_private ShaderData *sd,
                                        const float3 dir,
                                        const uint32_t path_flag,
                                        const float3 pixel_bottom,
@@ -172,13 +175,14 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
   const float x = fractf((-direction.y - M_PI_2_F + sun_rotation) * M_1_2PI_F);
   /* Undo the non-linear transformation from the sky LUT */
   const float y = copysignf(sqrtf(fabsf(dir_elevation) * M_2_PI_F), dir_elevation) * 0.5f + 0.5f;
-  xyz += make_float3(kernel_image_interp(kg, texture_id, x, y));
+  xyz += make_float3(kernel_image_interp(kg, sd, texture_id, dual2(make_float2(x, y))));
 
   /* Convert to RGB */
   return xyz_to_rgb_clamped(kg, xyz);
 }
 
 ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
+                                         ccl_private ShaderData *sd,
                                          const uint32_t path_flag,
                                          ccl_private float *stack,
                                          const uint4 node,
@@ -299,7 +303,8 @@ ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
     const uint texture_id = __float_as_uint(data.w);
 
     /* Compute Sky */
-    rgb = sky_radiance_nishita(kg, dir, path_flag, pixel_bottom, pixel_top, sky_data, texture_id);
+    rgb = sky_radiance_nishita(
+        kg, sd, dir, path_flag, pixel_bottom, pixel_top, sky_data, texture_id);
   }
 
   stack_store_float3(stack, out_offset, rgb);

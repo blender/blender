@@ -49,6 +49,7 @@ ccl_device_inline size_t align_up(const size_t offset, const size_t alignment)
   return (offset + alignment - 1) & ~(alignment - 1);
 }
 
+/* Integer division with rounding up. */
 ccl_device_inline size_t divide_up(const size_t x, const size_t y)
 {
   return (x + y - 1) / y;

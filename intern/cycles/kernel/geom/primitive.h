@@ -146,15 +146,17 @@ ccl_device bool primitive_ptex(KernelGlobals kg,
 
 /* Surface tangent */
 
-ccl_device float3 primitive_tangent(KernelGlobals kg, ccl_private ShaderData *sd)
+ccl_device dual3 primitive_tangent(KernelGlobals kg,
+                                   ccl_private ShaderData *sd,
+                                   const bool derivative)
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
   if (sd->type & (PRIMITIVE_CURVE | PRIMITIVE_POINT)) {
 #  ifdef __DPDU__
-    return normalize(sd->dPdu);
+    return dual3(normalize(sd->dPdu));
   }
 #  else
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return make_zero<dual3>();
 #  endif
 #endif
 
@@ -162,16 +164,22 @@ ccl_device float3 primitive_tangent(KernelGlobals kg, ccl_private ShaderData *sd
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_GENERATED);
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
+    if (derivative) {
+      dual3 data = primitive_surface_attribute<float3>(kg, sd, desc, true, true);
+      data = make_float3(-(data.y() - 0.5f), (data.x() - 0.5f), dual1());
+      object_normal_transform(kg, sd, &data);
+      return cross(sd->N, normalize(cross(data, sd->N)));
+    }
     float3 data = primitive_surface_attribute<float3>(kg, sd, desc).val;
     data = make_float3(-(data.y - 0.5f), (data.x - 0.5f), 0.0f);
     object_normal_transform(kg, sd, &data);
-    return cross(sd->N, normalize(cross(data, sd->N)));
+    return dual3(cross(sd->N, normalize(cross(data, sd->N))));
   }
   /* otherwise use surface derivatives */
 #ifdef __DPDU__
-  return normalize(sd->dPdu);
+  return dual3(normalize(sd->dPdu));
 #else
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return make_zero<dual3>();
 #endif
 }
 

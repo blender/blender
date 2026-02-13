@@ -367,6 +367,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
                                                     ccl_private ShaderData *ccl_restrict sd,
                                                     const float3 ray_P,
                                                     const float3 ray_D,
+                                                    const float ray_dD,
                                                     const float ray_time)
 {
   /* for NDC coordinates */
@@ -391,16 +392,17 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
 
 #ifdef __DPDU__
   /* dPdu/dPdv */
-  sd->dPdu = zero_float3();
-  sd->dPdv = zero_float3();
+  /* Construct arbitrary local coordinate system. */
+  make_orthonormals(sd->Ng, &sd->dPdu, &sd->dPdv);
 #endif
 
 #ifdef __RAY_DIFFERENTIALS__
   /* differentials */
-  sd->dP = differential_zero_compact(); /* TODO: ray->dP */
-  sd->dI = differential_zero_compact();
-  sd->du = differential_zero();
-  sd->dv = differential_zero();
+  sd->dP = ray_dD;
+  sd->dI = differential_incoming_compact(ray_dD);
+  /* Make the uv coordinate system match the constructed local coordinate system. */
+  sd->du.dx = sd->dv.dy = sd->dP;
+  sd->du.dy = sd->dv.dx = 0.0f;
 #endif
 }
 

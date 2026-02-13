@@ -18,6 +18,7 @@
 
 #include "util/log.h"
 #include "util/progress.h"
+#include "util/queue.h"
 #include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
@@ -190,6 +191,14 @@ int SVMCompiler::stack_size(SocketType::Type type)
   return size;
 }
 
+int SVMCompiler::stack_size(const ShaderIO *io)
+{
+  const SocketType::Type type = io->type();
+  const bool derivative = io->parent->need_derivatives();
+
+  return derivative ? stack_size(type) * 3 : stack_size(type);
+}
+
 int SVMCompiler::stack_find_offset(const int size)
 {
   int offset = -1;
@@ -224,14 +233,14 @@ int SVMCompiler::stack_find_offset(const int size)
   return 0;
 }
 
-int SVMCompiler::stack_find_offset(SocketType::Type type)
+int SVMCompiler::stack_find_offset(const ShaderIO *io)
 {
-  return stack_find_offset(stack_size(type));
+  return stack_find_offset(stack_size(io));
 }
 
-void SVMCompiler::stack_clear_offset(SocketType::Type type, const int offset)
+void SVMCompiler::stack_clear_offset(const ShaderIO *io, const int offset)
 {
-  const int size = stack_size(type);
+  const int size = stack_size(io);
 
   for (int i = 0; i < size; i++) {
     active_stack.users[offset + i]--;
@@ -248,25 +257,22 @@ int SVMCompiler::stack_assign(ShaderInput *input)
       input->stack_offset = input->link->stack_offset;
     }
     else {
-      Node *node = input->parent;
+      const ShaderNode *node = input->parent;
 
       /* not linked to output -> add nodes to load default value */
-      input->stack_offset = stack_find_offset(input->type());
+      input->stack_offset = stack_find_offset(input);
 
       if (input->type() == SocketType::FLOAT) {
-        add_node(NODE_VALUE_F,
-                 __float_as_int(node->get_float(input->socket_type)),
-                 input->stack_offset);
+        add_value_node(
+            node, __float_as_int(node->get_float(input->socket_type)), input->stack_offset);
       }
       else if (input->type() == SocketType::INT) {
-        add_node(NODE_VALUE_F, node->get_int(input->socket_type), input->stack_offset);
+        add_value_node(node, node->get_int(input->socket_type), input->stack_offset);
       }
       else if (input->type() == SocketType::VECTOR || input->type() == SocketType::NORMAL ||
                input->type() == SocketType::POINT || input->type() == SocketType::COLOR)
       {
-
-        add_node(NODE_VALUE_V, input->stack_offset);
-        add_node(NODE_VALUE_V, node->get_float3(input->socket_type));
+        add_value_node(node, node->get_float3(input->socket_type), input->stack_offset);
       }
       else { /* should not get called for closure */
         assert(0);
@@ -281,7 +287,7 @@ int SVMCompiler::stack_assign(ShaderOutput *output)
 {
   /* if no stack offset assigned yet, find one */
   if (output->stack_offset == SVM_STACK_INVALID) {
-    output->stack_offset = stack_find_offset(output->type());
+    output->stack_offset = stack_find_offset(output);
   }
 
   return output->stack_offset;
@@ -335,8 +341,7 @@ void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
     assert(stack_size(output->type()) == stack_size(input->link->type()));
 
     output->stack_offset = input->link->stack_offset;
-
-    const int size = stack_size(output->type());
+    const int size = stack_size(output);
 
     for (int i = 0; i < size; i++) {
       active_stack.users[output->stack_offset + i]++;
@@ -367,7 +372,7 @@ void SVMCompiler::stack_clear_users(ShaderNode *node, ShaderNodeSet &done)
       }
 
       if (all_done) {
-        stack_clear_offset(output->type(), output->stack_offset);
+        stack_clear_offset(output, output->stack_offset);
         output->stack_offset = SVM_STACK_INVALID;
 
         for (ShaderInput *in : output->links) {
@@ -382,7 +387,7 @@ void SVMCompiler::stack_clear_temporary(ShaderNode *node)
 {
   for (ShaderInput *input : node->inputs) {
     if (!input->link && input->stack_offset != SVM_STACK_INVALID) {
-      stack_clear_offset(input->type(), input->stack_offset);
+      stack_clear_offset(input, input->stack_offset);
       input->stack_offset = SVM_STACK_INVALID;
     }
   }
@@ -408,18 +413,44 @@ void SVMCompiler::add_node(ShaderNodeType type, const int a, int b, const int c)
   svm_node_types_used[type] = true;
   current_svm_nodes.push_back_slow(make_int4(type, a, b, c));
 }
-
-void SVMCompiler::add_node(ShaderNodeType type, const float3 &f)
+void SVMCompiler::add_node_derivative(
+    const ShaderNodeType type, const uint derivative_bit, const int a, const int b, const int c)
 {
   svm_node_types_used[type] = true;
-  current_svm_nodes.push_back_slow(
-      make_int4(type, __float_as_int(f.x), __float_as_int(f.y), __float_as_int(f.z)));
+  add_node(type | derivative_bit, a, b, c);
+}
+
+void SVMCompiler::add_node(const ShaderNode *node, const int a, int b, const int c)
+{
+  const ShaderNodeType type = node->shader_node_type();
+  assert(type != NODE_NONE);
+  add_node_derivative(type, node->derivative_bit(), a, b, c);
+}
+
+void SVMCompiler::add_node(const ShaderNodeType type, const float3 &f, const uint derivative_bit)
+{
+  add_node_derivative(
+      type, derivative_bit, __float_as_int(f.x), __float_as_int(f.y), __float_as_int(f.z));
 }
 
 void SVMCompiler::add_node(const float4 &f)
 {
   current_svm_nodes.push_back_slow(make_int4(
       __float_as_int(f.x), __float_as_int(f.y), __float_as_int(f.z), __float_as_int(f.w)));
+}
+
+void SVMCompiler::add_value_node(const ShaderNode *node, const int value, const int stack_offset)
+{
+  add_node_derivative(NODE_VALUE_F, node->derivative_bit(), value, stack_offset);
+}
+
+void SVMCompiler::add_value_node(const ShaderNode *node,
+                                 const float3 &value,
+                                 const int stack_offset)
+{
+  const uint derivative_bit = node->derivative_bit();
+  add_node_derivative(NODE_VALUE_V, derivative_bit, stack_offset);
+  add_node(NODE_VALUE_V, value, derivative_bit);
 }
 
 uint SVMCompiler::attribute(ustring name)
@@ -750,6 +781,43 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
   state->nodes_done_flag[node->id] = true;
 }
 
+static void mark_nodes_requiring_derivatives(const SVMCompiler &compiler,
+                                             ShaderGraph *graph,
+                                             const ShaderType type)
+{
+  if (type == SHADER_TYPE_VOLUME) {
+    /* Only support derivatives for surface for now. */
+    return;
+  }
+  queue<ShaderNode *> traverse_queue;
+  ShaderNodeSet scheduled;
+  /* Check if texture nodes need derivatives. */
+  for (ShaderNode *node : graph->nodes) {
+    if (node->is_texture_node_and_needs_derivatives(compiler)) {
+      traverse_queue.push(node);
+      scheduled.insert(node);
+    }
+  }
+  /* Mark all ancestors of texture nodes as requiring derivatives, if the texture nodes themselves
+   * need derivatives. */
+  while (!traverse_queue.empty()) {
+    ShaderNode *node = traverse_queue.front();
+    traverse_queue.pop();
+    node->set_need_derivatives();
+    LOG_DEBUG << "Marking " << node->name << " as requiring derivatives";
+    for (ShaderInput *input : node->inputs) {
+      if (input->link == nullptr) {
+        continue;
+      }
+      if (scheduled.find(input->link->parent) != scheduled.end()) {
+        continue;
+      }
+      traverse_queue.push(input->link->parent);
+      scheduled.insert(input->link->parent);
+    }
+  }
+}
+
 void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType type)
 {
   /* Converting a shader graph into svm_nodes that can be executed
@@ -805,6 +873,8 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
       output->stack_offset = SVM_STACK_INVALID;
     }
   }
+
+  mark_nodes_requiring_derivatives(*this, graph, type);
 
   /* for the bump shader we need add a node to store the shader state */
   const bool need_bump_state = (type == SHADER_TYPE_BUMP) &&

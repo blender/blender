@@ -12,11 +12,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float3 svm_mapping(NodeMappingType type,
-                              const float3 vector,
-                              const float3 location,
-                              const float3 rotation,
-                              const float3 scale)
+template<class T>
+ccl_device T svm_mapping(NodeMappingType type,
+                         const T vector,
+                         const float3 location,
+                         const float3 rotation,
+                         const float3 scale)
 {
   const Transform rotationTransform = euler_to_transform(rotation);
   switch (type) {
@@ -30,7 +31,7 @@ ccl_device float3 svm_mapping(NodeMappingType type,
     case NODE_MAPPING_TYPE_NORMAL:
       return safe_normalize(transform_direction(&rotationTransform, safe_divide(vector, scale)));
     default:
-      return make_float3(0.0f, 0.0f, 0.0f);
+      return T(zero_float3());
   }
 }
 

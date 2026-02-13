@@ -32,30 +32,6 @@ ccl_device_inline float2 polar_to_cartesian(const float r, const float phi)
   return make_float2(r * cosf(phi), r * sinf(phi));
 }
 
-/* Transform p from a local coordinate system (spanned by X and Y) into global coordinates. */
-template<class T> ccl_device_inline T to_global(const float2 p, const T X, const T Y)
-{
-  return p.x * X + p.y * Y;
-}
-
-/* Transform p from a local coordinate system (spanned by X, Y and Z) into global coordinates. */
-template<class T> ccl_device_inline T to_global(const float3 p, const T X, const T Y, const T Z)
-{
-  return p.x * X + p.y * Y + p.z * Z;
-}
-
-/* Transform p from global coordinates into a local coordinate system (spanned by X and Y). */
-template<class T> ccl_device_inline float2 to_local(const T p, const T X, const T Y)
-{
-  return make_float2(dot(p, X), dot(p, Y));
-}
-
-/* Transform p from global coordinates into a local coordinate system (spanned by X, Y and Z). */
-template<class T> ccl_device_inline float3 to_local(const T p, const T X, const T Y, const T Z)
-{
-  return make_float3(dot(p, X), dot(p, Y), dot(p, Z));
-}
-
 ccl_device_inline float3 disk_to_hemisphere(const float2 p)
 {
   return make_float3(p.x, p.y, safe_sqrtf(1.0f - len_squared(p)));
