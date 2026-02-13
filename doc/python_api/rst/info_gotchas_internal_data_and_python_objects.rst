@@ -148,7 +148,7 @@ have been recalculated and are available to the script within the active view la
 No updates after changing UI context
 ------------------------------------
 
-Similar to the previous issue, some changes to the UI  may also not have an immediate effect. For example, setting
+Similar to the previous issue, some changes to the UI may also not have an immediate effect. For example, setting
 :class:`bpy.types.Window.workspace` doesn't seem to cause an observable effect in the immediately following code
 (:class:`bpy.types.Window.workspace` is still the same), but the UI will in fact reflect the change. Some of the
 properties that behave that way are:

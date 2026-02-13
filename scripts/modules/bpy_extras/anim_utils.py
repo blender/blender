@@ -16,7 +16,7 @@ __all__ = (
 
 import contextlib
 from dataclasses import dataclass
-from typing import Iterable, Optional, Union, Iterator
+from typing import Iterable
 from collections.abc import (
     Mapping,
     Sequence,
@@ -24,8 +24,8 @@ from collections.abc import (
 
 import bpy
 from bpy.types import (
-    Context, Action, ActionSlot, ActionChannelbag,
-    Object, PoseBone, KeyingSet,
+    Action, ActionSlot, ActionChannelbag,
+    PoseBone,
 )
 
 from rna_prop_ui import (

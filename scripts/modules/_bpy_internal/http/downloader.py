@@ -1246,8 +1246,8 @@ class MetadataProviderFilesystem(MetadataProvider):
         meta_json = converter.dumps(meta).encode()
         meta_path = self._metadata_path(http_req_descr)
 
-        dir = meta_path.parent
-        dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        dirpath = meta_path.parent
+        dirpath.mkdir(mode=0o700, parents=True, exist_ok=True)
 
         # See load() for an explanation of the number of tries & wait time.
         meta_file, unlocker = locking.mutex_lock_and_open_with_retry(

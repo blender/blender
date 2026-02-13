@@ -1388,7 +1388,7 @@ def pycontext2sphinx(basepath):
         fw("   :type: :class:`bpy.types.Context`\n")
 
 
-def pycontext_members2sphinx(indent, fw, written_props):
+def pycontext_members2sphinx(ident, fw, written_props):
     # Write context members into `bpy.types.Context`.
 
     # Track all unique properties to avoid duplicates.
@@ -1403,7 +1403,7 @@ def pycontext_members2sphinx(indent, fw, written_props):
     unique_context_strings = set()
     for ctx_str, ctx_members in sorted(context_member_map.items()):
         subsection = "{:s} Context".format(ctx_str.split("_")[0].title())
-        fw("\n{:s}.. rubric:: {:s}\n\n".format(indent, subsection))
+        fw("\n{:s}.. rubric:: {:s}\n\n".format(ident, subsection))
         for member in ctx_members:
             unique_all_len = len(unique)
             unique.add(member)
@@ -1411,10 +1411,10 @@ def pycontext_members2sphinx(indent, fw, written_props):
 
             unique_context_strings.add(member)
 
-            fw("{:s}.. data:: {:s}\n".format(indent, member))
+            fw("{:s}.. data:: {:s}\n".format(ident, member))
             # Avoid warnings about the member being included multiple times.
             if member_visited:
-                fw("{:s}   :noindex:\n".format(indent))
+                fw("{:s}   :noindex:\n".format(ident))
             fw("\n")
 
             if (member_types := context_type_map.get(member)) is None:
@@ -1437,12 +1437,12 @@ def pycontext_members2sphinx(indent, fw, written_props):
                 else:
                     type_strs.append(member_type)
 
-            fw("{:s}   :type: {:s}\n\n".format(indent, " | ".join(type_strs)))
-            write_example_ref(indent + "   ", fw, "bpy.context." + member)
+            fw("{:s}   :type: {:s}\n\n".format(ident, " | ".join(type_strs)))
+            write_example_ref(ident + "   ", fw, "bpy.context." + member)
 
     # A bit of a hack: add a trailing rubric so that the methods which follow
     # aren't visually grouped under the last context heading.
-    fw("\n{:s}.. rubric:: Methods\n\n".format(indent))
+    fw("\n{:s}.. rubric:: Methods\n\n".format(ident))
 
     # Generate type-map:
     # for member in sorted(unique_context_strings):

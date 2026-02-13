@@ -1,7 +1,9 @@
 """
 Finding Action Slot Users
 +++++++++++++++++++++++++
-To return a list of the data-blocks that are animated by a specific slot of an Action, use the ``users()`` method of the ActionSlot.
+
+To return a list of the data-blocks that are animated by a specific slot of an Action,
+use the ``users()`` method of the ActionSlot.
 
 """
 import bpy

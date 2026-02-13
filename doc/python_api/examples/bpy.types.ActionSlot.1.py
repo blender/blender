@@ -2,11 +2,13 @@
 Action Slots organize animation data within an action. Each action has slots with specific animation
 data. An animated data-block specifies an action and a slot, determining the animation data it uses.
 See the `Blender Manual <https://docs.blender.org/manual/en/5.1/animation/actions.html#action-slots>`_
-for how Action Slots are used, or the `technical documentation <https://developer.blender.org/docs/features/animation/>`_
+for how Action Slots are used, or the
+`technical documentation <https://developer.blender.org/docs/features/animation/>`_
 for details on the animation system's architecture.
 
 Create & Access an Action Slot
 ++++++++++++++++++++++++++++++
+
 To get started with Action Slots, you can easily create them by inserting a keyframe on an object. When you do this,
 Blender automatically creates an Action & Slot for that data-block.
 

@@ -12,11 +12,6 @@ __all__ = (
     "SpaceAssetInfo",
 )
 
-import bpy
-from bpy.types import (
-    Context,
-)
-
 
 class SpaceAssetInfo:
     """Utility class for checking if a space is an asset browser."""
