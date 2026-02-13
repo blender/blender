@@ -16,7 +16,7 @@ motion tracking and video editing.
 Project Pages
 -------------
 
-- [Main Website](http://www.blender.org)
+- [Main Website](https://www.blender.org)
 - [Reference Manual](https://docs.blender.org/manual/en/latest/index.html)
 - [User Community](https://www.blender.org/community/)
 
