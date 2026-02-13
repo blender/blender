@@ -1344,6 +1344,13 @@ if bpy.app.build_options.experimental_features:
         context_type_map[key] = value
 
 
+def format_operator_as_module(op_id):
+    # `FOO_OT_bar` -> `foo.bar`.
+    mod, _, fn = op_id.partition("_OT_")
+    assert fn, "Expected to have an `_OT_` separator."
+    return "{:s}.{:s}".format(mod.lower(), fn)
+
+
 def format_description_and_type_info(description, type_info):
     if type_info:
         # Add some information at the end of the description,
@@ -1571,8 +1578,17 @@ def pyrna2sphinx(basepath):
 
         type_descr, type_info = prop.get_type_description(**kwargs)
 
-        prop_name = prop.name
+        # Only for `bpy.ops.*` parameters.
+        if prop.fixed_type is not None and prop.fixed_type.is_operator_properties():
+            # Support operator macros where properties from another operator are passed in.
+            # These *would* be an `OperatorProperties` type, however, there isn't a convenient
+            # way to construct this data type, so - coercing them from a `dict` is supported.
+            # Since this is a special case in the RNA API, we need to override the type.
+            # Link to the operator to find the supported arguments.
+            type_info.append(":mod:`bpy.ops.{:s}` keyword arguments".format(format_operator_as_module(prop.identifier)))
+            type_descr = "dict[str, Any]"
 
+        prop_name = prop.name
         prop_description = format_description_and_type_info(prop.description, type_info)
 
         # If the link has been written, no need to inline the enum items.
@@ -1924,7 +1940,7 @@ def pyrna2sphinx(basepath):
     if "bpy.types" not in EXCLUDE_MODULES:
         for struct in structs.values():
             # TODO: rna_info should filter these out!
-            if "_OT_" in struct.identifier:
+            if struct.is_operator_properties():
                 continue
             write_struct(struct)
 
@@ -2040,7 +2056,15 @@ def pyrna2sphinx(basepath):
             ops_mod.sort(key=lambda op: op.func_name)
 
             for op in ops_mod:
-                args_str = ", ".join(prop.get_arg_default(force=True) for prop in op.args)
+                args = []
+                for prop in op.args:
+                    arg_default = prop.get_arg_default(force=True)
+                    # NOTE: prop.fixed_type.bl_rna.base.identifier == "OperatorProperties"
+                    if prop.fixed_type and prop.fixed_type.is_operator_properties():
+                        if arg_default.endswith("=None"):
+                            arg_default = arg_default.removesuffix("None") + "{}"
+                    args.append(arg_default)
+                args_str = ", ".join(args)
                 # All operator arguments are keyword only (denoted by the leading `*`).
                 fw(".. function:: {:s}({:s}{:s})\n\n".format(op.func_name, "*, " if args_str else "", args_str))
 

@@ -18,6 +18,8 @@ import bpy
 # use to strip python paths
 script_paths = bpy.utils.script_paths()
 
+_OperatorProperties = bpy.types.OperatorProperties
+
 _FAKE_STRUCT_SUBCLASS = True
 
 # Map RNA type names to Python type names.
@@ -241,6 +243,9 @@ class InfoStructRNA:
             if type(descr) == types.GetSetDescriptorType:
                 properties_getset.append((identifier, descr))
         return properties_getset
+
+    def is_operator_properties(self):
+        return isinstance(self.bl_rna, _OperatorProperties)
 
     def __str__(self):
 
