@@ -1795,7 +1795,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                                           y,
                                                           delta.x,
                                                           delta.y,
-                                                          event.isDirectionInvertedFromDevice));
+                                                          event.isDirectionInvertedFromDevice,
+                                                          GHOST_kTrackpadSourceTrackpad));
         }
       }
       break;
@@ -1811,7 +1812,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                                       y,
                                                       event.magnification * 125.0 + 0.1,
                                                       0,
-                                                      false));
+                                                      false,
+                                                      GHOST_kTrackpadSourceTrackpad));
       break;
     }
     case NSEventTypeSmartMagnify: {
@@ -1819,7 +1821,15 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       int32_t x, y;
       window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
       pushEvent(std::make_unique<GHOST_EventTrackpad>(
-          event.timestamp * 1000, window, GHOST_kTrackpadEventSmartMagnify, x, y, 0, 0, false));
+          event.timestamp * 1000,
+          window,
+          GHOST_kTrackpadEventSmartMagnify,
+          x,
+          y,
+          0,
+          0,
+          false,
+          GHOST_kTrackpadSourceTrackpad));
       break;
     }
     case NSEventTypeRotate: {
@@ -1833,7 +1843,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                                       y,
                                                       event.rotation * -5.0,
                                                       0,
-                                                      false));
+                                                      false,
+                                                      GHOST_kTrackpadSourceTrackpad));
     }
     default:
       return GHOST_kFailure;

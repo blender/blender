@@ -12,6 +12,9 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+
 #include "WM_api.hh"
 
 #include "ED_screen.hh"
@@ -347,7 +350,8 @@ static wmOperatorStatus viewrotate_invoke_impl(bContext *C,
 
   if (event_code == VIEW_CONFIRM) {
     /* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
-    const bool is_inverted = (event->flag & WM_EVENT_SCROLL_INVERT) &&
+    const bool is_touchscreen = (event->flag & WM_EVENT_SOURCE_TOUCHSCREEN) != 0;
+    const bool is_inverted = ((event->flag & WM_EVENT_SCROLL_INVERT) || is_touchscreen) &&
                              (event->type != MOUSEROTATE);
 
     int m_xy[2];
@@ -369,6 +373,19 @@ static wmOperatorStatus viewrotate_invoke_impl(bContext *C,
 
 static wmOperatorStatus viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  const bool use_touchscreen = RNA_boolean_get(op->ptr, "use_touchscreen");
+  const bool is_touchscreen = (event->flag & WM_EVENT_SOURCE_TOUCHSCREEN) != 0;
+  const bool is_two_finger = (event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS) != 0;
+
+  if (use_touchscreen) {
+    if (!is_touchscreen || is_two_finger) {
+      return OPERATOR_PASS_THROUGH;
+    }
+  }
+  else if (is_touchscreen) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
   return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_rotate);
 }
 
@@ -389,6 +406,12 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
 
   view3d_operator_properties_common(ot, V3D_OP_PROP_USE_MOUSE_INIT);
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "use_touchscreen",
+                                      false,
+                                      "Use Touchscreen",
+                                      "Use this keymap item only for touchscreen one-finger orbit");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */

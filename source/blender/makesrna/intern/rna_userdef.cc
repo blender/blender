@@ -827,6 +827,16 @@ static void rna_userdef_keyconfig_reload_update(bContext *C,
   USERDEF_TAG_DIRTY;
 }
 
+static void rna_userdef_input_devices_and_keyconfig_reload_update(bContext *C,
+                                                                  Main * /*bmain*/,
+                                                                  Scene * /*scene*/,
+                                                                  PointerRNA * /*ptr*/)
+{
+  WM_init_input_devices();
+  WM_keyconfig_reload(C);
+  USERDEF_TAG_DIRTY;
+}
+
 static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
 {
   UserDef *userdef = static_cast<UserDef *>(ptr->data);
@@ -7564,6 +7574,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_remote_asset_libraries", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Remote Asset Libraries", "Enable asset libraries served over HTTP/HTTPS");
+
+  prop = RNA_def_property(srna, "use_touchscreen_navigation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "use_touchscreen_navigation", 1);
+  RNA_def_property_ui_text(prop,
+                           "Touchscreen Navigation",
+                           "Enable native touchscreen gesture navigation in viewports/editors");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_userdef_input_devices_and_keyconfig_reload_update");
 
   prop = RNA_def_property(srna, "use_extensions_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

@@ -636,6 +636,12 @@ enum GHOST_TTrackpadEventSubTypes {
   GHOST_kTrackpadEventSmartMagnify
 };
 
+enum GHOST_TTrackpadSource {
+  GHOST_kTrackpadSourceUnknown = 0,
+  GHOST_kTrackpadSourceTrackpad,
+  GHOST_kTrackpadSourceTouchscreen,
+};
+
 struct GHOST_TEventTrackpadData {
   /** The event subtype */
   GHOST_TTrackpadEventSubTypes subtype;
@@ -649,6 +655,10 @@ struct GHOST_TEventTrackpadData {
   int32_t deltaY;
   /** The delta is inverted from the device due to system preferences. */
   char isDirectionInverted;
+  /** Input source (trackpad/touchscreen). */
+  GHOST_TTrackpadSource source;
+  /** Number of fingers involved in the gesture, 0 when unknown. */
+  uint32_t numFingers;
 };
 
 enum GHOST_TDragnDropTypes {

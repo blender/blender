@@ -348,6 +348,7 @@ def load():
             use_region_toggle_pie=kc_prefs.use_region_toggle_pie,
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
             use_v3d_mmb_pan=(kc_prefs.v3d_mmb_action == 'PAN'),
+            use_touchscreen_navigation=prefs.experimental.use_touchscreen_navigation,
             v3d_alt_mmb_drag_action=kc_prefs.v3d_alt_mmb_drag_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,

@@ -152,6 +152,9 @@ class GHOST_System : public GHOST_ISystem {
   /** \copydoc #GHOST_ISystem::setMultitouchGestures */
   void setMultitouchGestures(const bool use) override;
 
+  /** \copydoc #GHOST_ISystem::setTouchscreenGestures */
+  void setTouchscreenGestures(const bool use) override;
+
   /** \copydoc #GHOST_ISystem::setTabletAPI */
   void setTabletAPI(GHOST_TTabletAPI api) override;
   GHOST_TTabletAPI getTabletAPI();
@@ -288,6 +291,9 @@ class GHOST_System : public GHOST_ISystem {
 
   /** Use multi-touch gestures. */
   bool multitouch_gestures_;
+
+  /** Use native touchscreen gestures. */
+  bool touchscreen_gestures_;
 
   /** Which tablet API to use. */
   GHOST_TTabletAPI tablet_api_;

@@ -30,6 +30,7 @@ GHOST_System::GHOST_System()
       ndof_manager_(nullptr),
 #endif
       multitouch_gestures_(true),
+      touchscreen_gestures_(false),
       tablet_api_(GHOST_kTabletAutomatic),
       is_debug_enabled_(false)
 {
@@ -271,6 +272,11 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButton mask, bool &is_down) c
 void GHOST_System::setMultitouchGestures(const bool use)
 {
   multitouch_gestures_ = use;
+}
+
+void GHOST_System::setTouchscreenGestures(const bool use)
+{
+  touchscreen_gestures_ = use;
 }
 
 void GHOST_System::setTabletAPI(GHOST_TTabletAPI api)

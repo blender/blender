@@ -6126,6 +6126,13 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
         event.flag |= WM_EVENT_SCROLL_INVERT;
       }
 
+      if (pd->source == GHOST_kTrackpadSourceTouchscreen) {
+        event.flag |= WM_EVENT_SOURCE_TOUCHSCREEN;
+      }
+      if (pd->numFingers >= 2) {
+        event.flag |= WM_EVENT_MULTITOUCH_TWO_FINGERS;
+      }
+
 #if !defined(WIN32) && !defined(__APPLE__)
       /* Ensure "auto" is used when supported. */
       char trackpad_scroll_direction = U.trackpad_scroll_direction;

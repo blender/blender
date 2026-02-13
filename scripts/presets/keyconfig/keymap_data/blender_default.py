@@ -58,6 +58,8 @@ class Params:
         "use_v3d_tab_menu",
         # Use extended pie menu for shading.
         "use_v3d_shade_ex_pie",
+        # Enable touchscreen navigation bindings.
+        "use_touchscreen_navigation",
         # Swap orbit/pan keys (for 2D workflows).
         "use_v3d_mmb_pan",
         # Alt click to access tools.
@@ -118,6 +120,7 @@ class Params:
             use_fallback_tool_select_handled=True,
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
+            use_touchscreen_navigation=False,
             use_v3d_mmb_pan=False,
             use_alt_tool_or_cursor=False,
             use_alt_click_leader=False,
@@ -190,6 +193,7 @@ class Params:
         self.use_select_all_toggle = use_select_all_toggle
         self.use_v3d_tab_menu = use_v3d_tab_menu
         self.use_v3d_shade_ex_pie = use_v3d_shade_ex_pie
+        self.use_touchscreen_navigation = use_touchscreen_navigation
         self.use_v3d_mmb_pan = use_v3d_mmb_pan
         self.v3d_tilde_action = v3d_tilde_action
         self.v3d_alt_mmb_drag_action = v3d_alt_mmb_drag_action
@@ -1613,6 +1617,12 @@ def km_view3d(params):
         ("view3d.localview_remove_from", {"type": 'SLASH', "value": 'PRESS', "alt": True}, None),
         # Navigation.
         ("view3d.rotate", {"type": 'MOUSEROTATE', "value": 'ANY'}, None),
+        *(() if not params.use_touchscreen_navigation else (
+            ("view3d.move", {"type": 'TRACKPADPAN', "value": 'ANY'},
+             {"properties": [("use_touchscreen", True)]}),
+            ("view3d.rotate", {"type": 'TRACKPADPAN', "value": 'ANY'},
+             {"properties": [("use_touchscreen", True)]}),
+        )),
         *((
             ("view3d.rotate", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "shift": True}, None),
             ("view3d.move", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),

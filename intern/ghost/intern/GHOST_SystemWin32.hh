@@ -21,6 +21,8 @@
 #include <ole2.h> /* For drag-n-drop. */
 #include <windows.h>
 
+#include <memory>
+
 #include "GHOST_System.hh"
 
 class GHOST_EventButton;
@@ -31,6 +33,7 @@ class GHOST_EventWindow;
 class GHOST_EventDragnDrop;
 
 class GHOST_ContextD3D;
+class GHOST_TouchWin32;
 class GHOST_WindowWin32;
 
 /**
@@ -293,6 +296,11 @@ class GHOST_SystemWin32 : public GHOST_System {
    */
   void setTabletAPI(GHOST_TTabletAPI api) override;
 
+  /**
+   * Enable or disable native touchscreen gesture handling.
+   */
+  void setTouchscreenGestures(const bool use) override;
+
   /***************************************************************************************
    ** Debug Info
    ***************************************************************************************/
@@ -494,6 +502,9 @@ class GHOST_SystemWin32 : public GHOST_System {
   /** Wheel delta accumulators. */
   int wheel_delta_accum_vertical_;
   int wheel_delta_accum_horizontal_;
+
+  /** Native touchscreen gesture recognizer. */
+  std::unique_ptr<GHOST_TouchWin32> touch_win32_;
 };
 
 inline void GHOST_SystemWin32::handleKeyboardChange()

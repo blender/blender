@@ -1932,6 +1932,22 @@ class USERPREF_PT_input_touchpad(InputPanel, CenterAlignMixIn, Panel):
             row.prop(inputs, "touchpad_scroll_direction", text="Scroll Direction")
 
 
+class USERPREF_PT_input_touchscreen(InputPanel, CenterAlignMixIn, Panel):
+    bl_label = "Touchscreen"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, _context):
+        import sys
+        return sys.platform[:3] == "win"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+
+        col = layout.column()
+        col.prop(prefs.experimental, "use_touchscreen_navigation")
+
+
 class USERPREF_PT_input_tablet(InputPanel, CenterAlignMixIn, Panel):
     bl_label = "Tablet"
 
@@ -3079,6 +3095,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
             (
                 ({"property": "use_new_curves_tools"}, ("blender/blender/issues/68981", "#68981")),
                 ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
+                ({"property": "use_touchscreen_navigation"}, ("blender/blender/issues/142344", "#142344")),
             ),
         )
 
@@ -3185,6 +3202,7 @@ classes = (
     USERPREF_PT_input_mouse,
     USERPREF_PT_input_tablet,
     USERPREF_PT_input_touchpad,
+    USERPREF_PT_input_touchscreen,
     USERPREF_PT_input_ndof,
     USERPREF_PT_navigation_orbit,
     USERPREF_PT_navigation_zoom,

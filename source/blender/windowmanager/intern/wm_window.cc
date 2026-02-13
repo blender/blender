@@ -3009,6 +3009,7 @@ void WM_init_input_devices()
   }
 
   g_system->setMultitouchGestures((U.uiflag & USER_NO_MULTITOUCH_GESTURES) == 0);
+  g_system->setTouchscreenGestures(USER_EXPERIMENTAL_TEST(&U, use_touchscreen_navigation) != 0);
 
   switch (U.tablet_api) {
     case USER_TABLET_NATIVE:

@@ -406,6 +406,12 @@ class GHOST_ISystem {
   virtual void setMultitouchGestures(const bool use) = 0;
 
   /**
+   * Enable native touchscreen gestures if supported.
+   * \param use: Enable or disable.
+   */
+  virtual void setTouchscreenGestures(const bool use) = 0;
+
+  /**
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.
    * \param api: Enum indicating which API to use.
    */

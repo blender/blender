@@ -4540,7 +4540,8 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
                 -wl_fixed_to_int(ps.smooth_xy[1]),
                 /* NOTE: GHOST does not support per-axis inversion.
                  * Assume inversion is used or not. */
-                ps.inverted_xy[0] || ps.inverted_xy[1]));
+                ps.inverted_xy[0] || ps.inverted_xy[1],
+                GHOST_kTrackpadSourceTrackpad));
 
             ps.smooth_xy[0] = 0;
             ps.smooth_xy[1] = 0;
@@ -4847,7 +4848,8 @@ static void gesture_pinch_handle_update(void *data,
                                                 event_xy[1],
                                                 scale_as_delta_px,
                                                 0,
-                                                false));
+                                                false,
+                                                GHOST_kTrackpadSourceTrackpad));
     }
 
     if (rotation_as_delta_px) {
@@ -4859,7 +4861,8 @@ static void gesture_pinch_handle_update(void *data,
                                                 event_xy[1],
                                                 rotation_as_delta_px,
                                                 0,
-                                                false));
+                                                false,
+                                                GHOST_kTrackpadSourceTrackpad));
     }
   }
 }

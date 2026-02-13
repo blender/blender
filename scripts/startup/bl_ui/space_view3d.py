@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import sys
+
 import bpy
 from bpy.types import (
     Header,
@@ -1092,6 +1094,17 @@ class VIEW3D_HT_header(Header):
             (object_mode in {'EDIT_ARMATURE', 'OBJECT'} and VIEW3D_PT_overlay_bones.is_using_wireframe(context))
         ):
             sub.popover(panel="VIEW3D_PT_overlay_bones", text="", icon='POSE_HLT')
+
+        if sys.platform[:3] == "win":
+            # Quick access toggle for native touchscreen navigation.
+            row = layout.row(align=True)
+            row.prop(
+                context.preferences.experimental,
+                "use_touchscreen_navigation",
+                text="",
+                icon='GESTURE_PAN',
+                toggle=True,
+            )
 
         row = layout.row()
         row.active = (object_mode == 'EDIT') or (shading.type in {'WIREFRAME', 'SOLID'})

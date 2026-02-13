@@ -12,6 +12,7 @@ class Params:
         "action_mouse",
         "tool_mouse",
         "use_mouse_emulate_3_button",
+        "use_touchscreen_navigation",
 
     )
 
@@ -19,12 +20,14 @@ class Params:
             self,
             *,
             use_mouse_emulate_3_button=False,
+            use_touchscreen_navigation=False,
     ):
         self.tool_mouse = 'LEFTMOUSE'
         self.select_mouse = 'LEFTMOUSE'
         self.select_mouse_value = 'CLICK'
         self.action_mouse = 'RIGHTMOUSE'
         self.use_mouse_emulate_3_button = use_mouse_emulate_3_button
+        self.use_touchscreen_navigation = use_touchscreen_navigation
 
 
 # ------------------------------------------------------------------------------
@@ -693,6 +696,12 @@ def km_view3d(params):
         ("view3d.view_center_pick", {"type": 'F', "value": 'PRESS', "shift": True}, None),
         ("view3d.smoothview", {"type": 'TIMER1', "value": 'ANY', "any": True}, None),
         # Trackpad
+        *(() if not params.use_touchscreen_navigation else (
+            ("view3d.move", {"type": 'TRACKPADPAN', "value": 'ANY'},
+             {"properties": [("use_touchscreen", True)]}),
+            ("view3d.rotate", {"type": 'TRACKPADPAN', "value": 'ANY'},
+             {"properties": [("use_touchscreen", True)]}),
+        )),
         ("view3d.rotate", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
         ("view3d.rotate", {"type": 'MOUSEROTATE', "value": 'ANY'}, None),
         ("view3d.move", {"type": 'TRACKPADPAN', "value": 'ANY', "shift": True}, None),

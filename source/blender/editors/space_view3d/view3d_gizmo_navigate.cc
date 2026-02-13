@@ -63,7 +63,9 @@ enum {
   GZ_INDEX_CAMERA_LOCK = 7,
   GZ_INDEX_CAMERA_UNLOCK = 8,
 
-  GZ_INDEX_TOTAL = 9,
+  GZ_INDEX_TOUCHSCREEN = 9,
+
+  GZ_INDEX_TOTAL = 10,
 };
 
 struct NavigateGizmoInfo {
@@ -92,6 +94,11 @@ struct NavigateWidgetGroup {
 static void navigate_context_toggle_camera_lock_init(PointerRNA *ptr)
 {
   RNA_string_set(ptr, "data_path", "space_data.lock_camera");
+}
+
+static void navigate_context_toggle_touchscreen_navigation_init(PointerRNA *ptr)
+{
+  RNA_string_set(ptr, "data_path", "preferences.experimental.use_touchscreen_navigation");
 }
 
 static NavigateGizmoInfo g_navigate_params[GZ_INDEX_TOTAL] = {
@@ -148,6 +155,12 @@ static NavigateGizmoInfo g_navigate_params[GZ_INDEX_TOTAL] = {
         "GIZMO_GT_button_2d",
         ICON_VIEW_UNLOCKED,
         navigate_context_toggle_camera_lock_init,
+    },
+    {
+        "WM_OT_context_toggle",
+        "GIZMO_GT_button_2d",
+        ICON_GESTURE_PAN,
+        navigate_context_toggle_touchscreen_navigation_init,
     },
 };
 
@@ -238,7 +251,8 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
                     GZ_INDEX_CAMERA_OFF,
                     GZ_INDEX_CAMERA_ON,
                     GZ_INDEX_CAMERA_LOCK,
-                    GZ_INDEX_CAMERA_UNLOCK};
+                    GZ_INDEX_CAMERA_UNLOCK,
+                    GZ_INDEX_TOUCHSCREEN};
     for (int i = 0; i < ARRAY_SIZE(gz_ids); i++) {
       wmGizmo *gz = navgroup->gz_array[gz_ids[i]];
       RNA_boolean_set(gz->ptr, "show_drag", false);
@@ -400,6 +414,13 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
       gz->matrix_basis[3][1] = roundf(co[1] - (icon_offset_mini * icon_mini_slot++));
       WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
     }
+
+#ifdef WIN32
+    gz = navgroup->gz_array[GZ_INDEX_TOUCHSCREEN];
+    gz->matrix_basis[3][0] = roundf(co[0]);
+    gz->matrix_basis[3][1] = roundf(co[1] - (icon_offset_mini * icon_mini_slot++));
+    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+#endif
   }
 }
 

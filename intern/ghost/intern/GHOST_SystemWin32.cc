@@ -12,6 +12,7 @@
 #include "GHOST_EventDragnDrop.hh"
 #include "GHOST_EventTrackpad.hh"
 #include "GHOST_SystemWin32.hh"
+#include "GHOST_TouchWin32.hh"
 
 #ifndef _WIN32_IE
 #  define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
@@ -181,6 +182,8 @@ GHOST_SystemWin32::GHOST_SystemWin32() : has_performance_counter_(false), freq_(
   this->handleKeyboardChange();
   /* Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32. */
   OleInitialize(0);
+
+  touch_win32_ = std::make_unique<GHOST_TouchWin32>(*this);
 
 #ifdef WITH_INPUT_NDOF
   ndof_manager_ = new GHOST_NDOFManagerWin32(*this);
@@ -1096,13 +1099,21 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
 void GHOST_SystemWin32::processPointerEvent(
     uint type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
 {
+  GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
+
+  if (system->touchscreen_gestures_ && system->touch_win32_ &&
+      system->touch_win32_->processPointerEvent(type, window, wParam, lParam))
+  {
+    eventHandled = true;
+    return;
+  }
+
   /* Pointer events might fire when changing windows for a device which is set to use Wintab,
    * even when Wintab is left enabled but set to the bottom of Wintab overlap order. */
   if (!window->usingTabletAPI(GHOST_kTabletWinPointer)) {
     return;
   }
 
-  GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
   std::vector<GHOST_PointerInfoWin32> pointerInfo;
 
   if (window->getPointerInfo(pointerInfo, wParam, lParam) != GHOST_kSuccess) {
@@ -1491,6 +1502,14 @@ void GHOST_SystemWin32::setTabletAPI(GHOST_TTabletAPI api)
   }
 }
 
+void GHOST_SystemWin32::setTouchscreenGestures(const bool use)
+{
+  GHOST_System::setTouchscreenGestures(use);
+  if (!use && touch_win32_) {
+    touch_win32_->reset();
+  }
+}
+
 void GHOST_SystemWin32::initDebug(GHOST_Debug debug)
 {
   GHOST_System::initDebug(debug);
@@ -1615,7 +1634,8 @@ void GHOST_SystemWin32::processTrackpad()
                                               cursor_y,
                                               trackpad_info.x,
                                               trackpad_info.y,
-                                              trackpad_info.isScrollDirectionInverted));
+                                              trackpad_info.isScrollDirectionInverted,
+                                              GHOST_kTrackpadSourceTrackpad));
   }
   if (trackpad_info.scale != 0) {
     system->pushEvent(std::make_unique<GHOST_EventTrackpad>(getMessageTime(system),
@@ -1625,7 +1645,8 @@ void GHOST_SystemWin32::processTrackpad()
                                                             cursor_y,
                                                             trackpad_info.scale,
                                                             0,
-                                                            false));
+                                                            false,
+                                                            GHOST_kTrackpadSourceTrackpad));
   }
 }
 
@@ -1931,6 +1952,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           break;
         }
         case WM_POINTERLEAVE: {
+          if (system->touchscreen_gestures_ && system->touch_win32_) {
+            system->touch_win32_->processPointerLeave(wParam);
+          }
+
           uint32_t pointerId = GET_POINTERID_WPARAM(wParam);
           POINTER_INFO pointerInfo;
           if (!GetPointerInfo(pointerId, &pointerInfo)) {

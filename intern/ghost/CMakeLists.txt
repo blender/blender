@@ -429,6 +429,7 @@ elseif(WIN32)
     intern/GHOST_ContextD3D.cc
     intern/GHOST_DropTargetWin32.cc
     intern/GHOST_SystemWin32.cc
+    intern/GHOST_TouchWin32.cc
     intern/GHOST_TrackpadWin32.cc
     intern/GHOST_WindowWin32.cc
     intern/GHOST_Wintab.cc
@@ -437,6 +438,7 @@ elseif(WIN32)
     intern/GHOST_DropTargetWin32.hh
     intern/GHOST_SystemWin32.hh
     intern/GHOST_TaskbarWin32.hh
+    intern/GHOST_TouchWin32.hh
     intern/GHOST_TrackpadWin32.hh
     intern/GHOST_WindowWin32.hh
     intern/GHOST_Wintab.hh

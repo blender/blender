@@ -8,6 +8,9 @@
 
 #include "BKE_context.hh"
 
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+
 #include "WM_api.hh"
 
 #include "ED_screen.hh"
@@ -107,6 +110,19 @@ static wmOperatorStatus viewmove_invoke_impl(bContext *C,
 
 static wmOperatorStatus viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  const bool use_touchscreen = RNA_boolean_get(op->ptr, "use_touchscreen");
+  const bool is_touchscreen = (event->flag & WM_EVENT_SOURCE_TOUCHSCREEN) != 0;
+  const bool is_two_finger = (event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS) != 0;
+
+  if (use_touchscreen) {
+    if (!is_touchscreen || !is_two_finger) {
+      return OPERATOR_PASS_THROUGH;
+    }
+  }
+  else if (is_touchscreen) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
   return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_move);
 }
 
@@ -128,6 +144,12 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 
   /* properties */
   view3d_operator_properties_common(ot, V3D_OP_PROP_USE_MOUSE_INIT);
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "use_touchscreen",
+                                      false,
+                                      "Use Touchscreen",
+                                      "Use this keymap item only for touchscreen two-finger pan");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
