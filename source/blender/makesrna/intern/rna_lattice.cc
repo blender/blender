@@ -149,6 +149,8 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
     }
   }
 
+  lt->opntsu = lt->opntsv = lt->opntsw = 0;
+
   rna_Lattice_update_data(bmain, scene, ptr);
 }
 
