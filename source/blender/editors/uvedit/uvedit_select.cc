@@ -1673,8 +1673,7 @@ void uvedit_select_prepare_sync_select(const Scene *scene, BMesh *bm)
   ED_uvedit_sync_uvselect_ensure_if_needed(scene->toolsettings, bm);
 }
 
-/* We may want to use this eventually. */
-void uvedit_select_prepare_UNUSED(const Scene *scene, BMesh *bm)
+void uvedit_select_prepare(const Scene *scene, BMesh *bm)
 {
   const ToolSettings *ts = scene->toolsettings;
   if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
