@@ -54,6 +54,11 @@ ccl_device_inline size_t divide_up(const size_t x, const size_t y)
   return (x + y - 1) / y;
 }
 
+ccl_device_inline size_t divide_up_by_shift(const size_t x, const size_t y)
+{
+  return (x + ((1 << y) - 1)) >> y;
+}
+
 ccl_device_inline size_t round_up(const size_t x, const size_t multiple)
 {
   return ((x + multiple - 1) / multiple) * multiple;
