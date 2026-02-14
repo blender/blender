@@ -305,7 +305,7 @@ ccl_device int bsdf_hair_huang_setup(ccl_private ShaderData *sd,
     return 0;
   }
 
-  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION;
+  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
 
 #endif /* __HAIR__ */
