@@ -30,6 +30,7 @@
 // clang-format on
 
 #include "util/guiding.h"  // IWYU pragma: keep
+#include "util/list.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -37,9 +38,10 @@ CCL_NAMESPACE_BEGIN
 class CPUDevice : public Device {
  public:
   KernelGlobalsCPU kernel_globals;
+  vector<ThreadKernelGlobalsCPU> kernel_thread_globals_;
 
-  device_vector<KernelImageInfo> image_info;
-  bool need_image_info;
+  unique_ptr<device_vector<KernelImageInfo>> image_info;
+  list<unique_ptr<device_vector<KernelImageInfo>>> old_image_infos;
 
 #ifdef WITH_OSL
   OSLGlobals osl_globals;
@@ -60,10 +62,6 @@ class CPUDevice : public Device {
   ~CPUDevice() override;
 
   BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
-
-  /* Returns true if the image info was copied to the device (meaning, some more
-   * re-initialization might be needed). */
-  bool load_image_info();
 
   void mem_alloc(device_memory &mem) override;
   void mem_copy_to(device_memory &mem) override;
@@ -86,8 +84,8 @@ class CPUDevice : public Device {
 
   void *get_guiding_device() const override;
 
-  void get_cpu_kernel_thread_globals(
-      vector<ThreadKernelGlobalsCPU> &kernel_thread_globals) override;
+  vector<ThreadKernelGlobalsCPU> *acquire_cpu_kernel_thread_globals() override;
+  void release_cpu_kernel_thread_globals() override;
   OSLGlobals *get_cpu_osl_memory() override;
 
  protected:

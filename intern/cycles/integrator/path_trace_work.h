@@ -60,6 +60,9 @@ class PathTraceWork {
    * to an every call of the `render_samples()`. */
   virtual void init_execution() = 0;
 
+  /* Release resources acquired by init_execution(). */
+  virtual void deinit_execution() {}
+
   /* Render given number of samples as a synchronous blocking call.
    * The samples are added to the render buffer associated with this work. */
   virtual void render_samples(RenderStatistics &statistics,

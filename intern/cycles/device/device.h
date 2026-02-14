@@ -198,9 +198,11 @@ class Device {
 
   /* Get CPU kernel functions for native instruction set. */
   static const CPUKernels &get_cpu_kernels();
-  /* Get kernel globals to pass to kernels. */
-  virtual void get_cpu_kernel_thread_globals(
-      vector<ThreadKernelGlobalsCPU> & /*kernel_thread_globals*/);
+  /* Acquire thread globals for CPU kernel execution. Creates them if needed,
+   * and updates all data pointers from the device's kernel globals. */
+  virtual vector<ThreadKernelGlobalsCPU> *acquire_cpu_kernel_thread_globals();
+  /* Release thread globals, allowing them to be destroyed. */
+  virtual void release_cpu_kernel_thread_globals();
   /* Get OpenShadingLanguage memory buffer. */
   virtual OSLGlobals *get_cpu_osl_memory();
 
