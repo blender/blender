@@ -6,17 +6,22 @@
 #include "util/string.h"
 
 #ifdef _WIN32
+#  include <cstdio>
 #  if (!defined(FREE_WINDOWS))
 #    include <intrin.h>
 #  endif
 #  include "util/windows.h"
 #elif defined(__APPLE__)
+#  include <cstdint>
 #  include <sys/ioctl.h>
+#  include <sys/resource.h>
 #  include <sys/sysctl.h>
 #  include <sys/types.h>
 #  include <unistd.h>
 #else
+#  include <cstdint>
 #  include <sys/ioctl.h>
+#  include <sys/resource.h>
 #  include <unistd.h>
 #endif
 
@@ -261,6 +266,16 @@ uint64_t system_self_process_id()
   return GetCurrentProcessId();
 #else
   return getpid();
+#endif
+}
+
+size_t system_max_open_files()
+{
+#if defined(_WIN32)
+  return _getmaxstdio();
+#else
+  struct rlimit limit = {};
+  return (getrlimit(RLIMIT_NOFILE, &limit) == 0) ? limit.rlim_cur : SIZE_MAX;
 #endif
 }
 

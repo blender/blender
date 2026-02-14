@@ -24,4 +24,6 @@ size_t system_physical_ram();
 /* Get identifier of the currently running process. */
 uint64_t system_self_process_id();
 
+size_t system_max_open_files();
+
 CCL_NAMESPACE_END
