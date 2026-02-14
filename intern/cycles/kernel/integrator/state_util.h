@@ -8,6 +8,8 @@
 
 #include "kernel/integrator/state.h"
 
+#include "kernel/sample/lcg.h"
+
 #include "kernel/util/differential.h"
 
 CCL_NAMESPACE_BEGIN
@@ -547,6 +549,28 @@ ccl_device_inline int integrator_state_portal_bounce(KernelGlobals kg,
   return (kernel_data.kernel_features & KERNEL_FEATURE_NODE_PORTAL) ?
              INTEGRATOR_STATE(state, shadow_path, portal_bounce) :
              0;
+}
+
+ccl_device_inline uint integrator_state_lcg_init(ConstIntegratorShadowState state, const uint hash)
+{
+  return lcg_state_init(INTEGRATOR_STATE(state, shadow_path, rng_pixel),
+                        INTEGRATOR_STATE(state, shadow_path, rng_offset),
+                        INTEGRATOR_STATE(state, shadow_path, sample),
+                        hash);
+}
+
+ccl_device_inline uint integrator_state_lcg_init(ConstIntegratorState state, const uint hash)
+{
+  return lcg_state_init(INTEGRATOR_STATE(state, path, rng_pixel),
+                        INTEGRATOR_STATE(state, path, rng_offset),
+                        INTEGRATOR_STATE(state, path, sample),
+                        hash);
+}
+
+ccl_device_inline uint integrator_state_lcg_init(ConstIntegratorBakeState /*state*/,
+                                                 const uint /*hash*/)
+{
+  return 0;
 }
 
 CCL_NAMESPACE_END
