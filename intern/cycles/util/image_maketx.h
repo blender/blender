@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <string>
 
+#include "util/image_metadata.h"
 #include "util/param.h"
 #include "util/string.h"
 #include "util/types_image.h"
@@ -24,7 +25,8 @@ bool resolve_tx(const string &filepath,
                 ustring colorspace,
                 const ImageAlphaType alpha_type,
                 const ImageFormatType format_type,
-                std::string &out_filepath);
+                std::string &out_filepath,
+                ImageMetaData &out_metadata);
 
 bool make_tx(const string &filepath,
              const string &out_filepath,

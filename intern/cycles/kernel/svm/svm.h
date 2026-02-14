@@ -219,7 +219,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_ATTR)
       IF_KERNEL_NODES_FEATURE(VOLUME)
       {
+#ifdef __VOLUME__
         svm_node_attr_volume(kg, sd, stack, node);
+#endif
       }
       else {
         svm_node_attr_surface(kg, sd, stack, node);

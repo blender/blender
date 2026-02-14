@@ -203,6 +203,7 @@ ccl_device_noinline void svm_node_attr_derivative(KernelGlobals kg,
   }
 }
 
+#ifdef __VOLUME__
 /* Volume attribute node. Volumes have no derivatives or bump. */
 ccl_device_noinline void svm_node_attr_volume(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
@@ -228,5 +229,6 @@ ccl_device_noinline void svm_node_attr_volume(KernelGlobals kg,
     stack_store_float(stack, out_offset, volume_attribute_alpha(value));
   }
 }
+#endif
 
 CCL_NAMESPACE_END

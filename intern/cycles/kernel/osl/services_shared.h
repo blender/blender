@@ -680,6 +680,18 @@ ccl_device bool osl_shared_get_texture_info(KernelGlobals kg,
       return true;
     }
   }
+  else if (dataname == DeviceStrings::u_averagecolor) {
+    if (is_type_float3(datatype) || is_type_float4(datatype)) {
+      float *res = (float *)data;
+      res[0] = tex.average_color.x;
+      res[1] = tex.average_color.y;
+      res[2] = tex.average_color.z;
+      if (is_type_float4(datatype)) {
+        res[3] = tex.average_color.w;
+      }
+      return true;
+    }
+  }
 
   return false;
 }
@@ -705,8 +717,7 @@ ccl_device bool osl_shared_texture(KernelGlobals kg,
 
   switch (type) {
     case OSLTextureHandleType::IMAGE: {
-      const dual2 uv({s, t}, {dsdx, -dtdx}, {dsdy, -dtdy});
-
+      const dual2 uv({s, t}, {dsdx, dtdx}, {dsdy, dtdy});
       const float4 rgba = kernel_image_interp_with_udim(kg, sd, image_texture_or_udim_id, uv);
 
       rgba_to_nchannels(rgba, nchannels, result);
@@ -722,7 +733,7 @@ ccl_device bool osl_shared_texture(KernelGlobals kg,
       break;
     }
     case OSLTextureHandleType::BEVEL: {
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) && defined(__SHADER_RAYTRACE__)
       /* Bevel shader hack. */
       ConstIntegratorState state = sg->path_state;
       if (nchannels >= 3 && state != nullptr) {
@@ -734,11 +745,18 @@ ccl_device bool osl_shared_texture(KernelGlobals kg,
         result[2] = N.z;
         status = true;
       }
+#else
+      if (nchannels >= 3) {
+        result[0] = sd->N.x;
+        result[1] = sd->N.y;
+        result[2] = sd->N.z;
+        status = true;
+      }
 #endif
       break;
     }
     case OSLTextureHandleType::AO: {
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) && defined(__SHADER_RAYTRACE__)
       /* AO shader hack. */
       ConstIntegratorState state = sg->path_state;
       const OSL::TextureOpt *options = static_cast<const OSL::TextureOpt *>(opt_void);
@@ -759,6 +777,9 @@ ccl_device bool osl_shared_texture(KernelGlobals kg,
         result[0] = svm_ao(kg, state, sd, N, radius, num_samples, flags);
         status = true;
       }
+#else
+      result[0] = 1.0f;
+      status = true;
 #endif
       break;
     }

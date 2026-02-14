@@ -80,6 +80,8 @@ class CPUDevice : public Device {
   void image_alloc(device_image &mem);
   void image_free(device_image &mem);
 
+  bool has_unified_memory() const override;
+
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
   void *get_guiding_device() const override;
@@ -87,6 +89,8 @@ class CPUDevice : public Device {
   vector<ThreadKernelGlobalsCPU> *acquire_cpu_kernel_thread_globals() override;
   void release_cpu_kernel_thread_globals() override;
   OSLGlobals *get_cpu_osl_memory() override;
+  void set_image_cache_func(KernelImageLoadRequestedCPU image_load_requested_cpu,
+                            KernelImageLoadRequestedGPU image_load_requested_gpu) override;
 
  protected:
   bool load_kernels(uint /*kernel_features*/) override;

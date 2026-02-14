@@ -312,9 +312,9 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   }
 
   /* Check if mip levels are complete. */
-  has_tiles_and_mipmaps = has_tiles;
+  has_tiles_and_mipmaps = has_tiles && tile_size;
 
-  if (has_tiles && tile_size) {
+  if (has_tiles_and_mipmaps) {
     for (int miplevel = 0;; miplevel++) {
       if (!input.seek_subimage(0, miplevel)) {
         LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)

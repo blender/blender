@@ -13,6 +13,15 @@ CCL_NAMESPACE_BEGIN
 class Progress;
 class ImageMetaData;
 
+/* Parameters for image loading. */
+struct ImageLoaderParams {
+  bool use_texture_cache = true;
+  bool auto_texture_cache = true;
+  string texture_cache_path;
+  ustring colorspace;
+  ImageAlphaType alpha_type;
+};
+
 /* Image loader base class, that can be subclassed to load image data
  * from custom sources (file, memory, procedurally generated, etc). */
 class ImageLoader {
@@ -20,18 +29,10 @@ class ImageLoader {
   ImageLoader();
   virtual ~ImageLoader() = default;
 
-  /* Enable use of the texture cache for this image, if supported by the image loader. */
-  virtual bool resolve_texture_cache(const bool /*auto_generate*/,
-                                     const string & /*texture_cache_path*/,
-                                     const ustring & /*colorspace*/,
-                                     const ImageAlphaType /*alpha_type*/,
-                                     Progress & /*progress*/)
-  {
-    return false;
-  }
-
   /* Load metadata without actual image yet, should be fast. */
-  virtual bool load_metadata(ImageMetaData &metadata) = 0;
+  virtual bool load_metadata(ImageMetaData &metadata,
+                             const ImageLoaderParams &params,
+                             Progress &progress) = 0;
 
   /* Load full image pixels.
    * This is expected to call metadata.conform_pixels(). */

@@ -174,9 +174,7 @@ bool ShaderEval::eval_gpu(Device *device,
 
       if (cache_miss[0]) {
         /* Update image cache if needed. */
-        // TODO: add image cache update
-        /* TODO: this is expensive but needed to update image_info. */
-        queue->init_execution();
+        device->image_load_requested_gpu(*queue);
         cache_miss[0] = false;
 
         if (device->have_error() || progress_.get_cancel()) {
