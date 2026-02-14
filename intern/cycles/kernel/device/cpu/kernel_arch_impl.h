@@ -98,7 +98,8 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const ThreadKernelGlobalsCP
   (void)output;
   (void)offset;
 #else
-  kernel_displace_evaluate(kg, input, output, offset);
+  uint cache_miss_unused = false;
+  kernel_displace_evaluate(kg, input, output, &cache_miss_unused, offset);
 #endif
 }
 
@@ -114,7 +115,8 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const ThreadKernelGlobals
   (void)output;
   (void)offset;
 #else
-  kernel_background_evaluate(kg, input, output, offset);
+  uint cache_miss_unused = false;
+  kernel_background_evaluate(kg, input, output, &cache_miss_unused, offset);
 #endif
 }
 
@@ -131,7 +133,8 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
   (void)output;
   (void)offset;
 #else
-  kernel_curve_shadow_transparency_evaluate(kg, input, output, offset);
+  uint cache_miss_unused = false;
+  kernel_curve_shadow_transparency_evaluate(kg, input, output, &cache_miss_unused, offset);
 #endif
 }
 
@@ -147,7 +150,8 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_volume_density)(const ThreadKernelGlo
   (void)output;
   (void)offset;
 #else
-  kernel_volume_density_evaluate(kg, input, output, offset);
+  uint cache_miss_unused = false;
+  kernel_volume_density_evaluate(kg, input, output, &cache_miss_unused, offset);
 #endif
 }
 

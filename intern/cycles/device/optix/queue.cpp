@@ -85,7 +85,8 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
       kernel == DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY ||
       kernel == DEVICE_KERNEL_SHADER_EVAL_VOLUME_DENSITY)
   {
-    set_launch_param(offsetof(KernelParamsOptiX, offset), sizeof(int32_t), 2);
+    set_launch_param(offsetof(KernelParamsOptiX, shader_eval_cache_miss), sizeof(device_ptr), 2);
+    set_launch_param(offsetof(KernelParamsOptiX, shader_eval_offset), sizeof(int32_t), 3);
   }
 
   if (kernel == DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA) {

@@ -383,9 +383,11 @@ packed_float3 osl_eval_camera(const ThreadKernelGlobalsCPU *kg,
                               packed_float3 &dPdy,
                               packed_float3 &D,
                               packed_float3 &dDdx,
-                              packed_float3 &dDdy)
+                              packed_float3 &dDdy,
+                              ccl_private int &r_cache_miss)
 {
   if (!kg->osl.globals->camera_state) {
+    r_cache_miss = 0;
     return zero_spectrum();
   }
 
@@ -407,6 +409,8 @@ packed_float3 osl_eval_camera(const ThreadKernelGlobalsCPU *kg,
 
   ss->execute(
       *octx, *kg->osl.globals->camera_state, kg->osl.thread_index, 0, *globals, nullptr, output);
+
+  r_cache_miss = kg->osl.shader_globals.cache_miss;
 
   P = make_float3(output[0], output[1], output[2]);
   dPdx = make_float3(output[3], output[4], output[5]);

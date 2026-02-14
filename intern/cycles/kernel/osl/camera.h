@@ -23,6 +23,7 @@ ccl_device_inline void cameradata_to_shaderglobals(const packed_float3 sensor,
   globals->dPdx = dSdx;
   globals->dPdy = dSdy;
   globals->N = make_float3(rand_lens);
+  globals->cache_miss = 0;
 }
 
 #ifndef __KERNEL_GPU__
@@ -37,7 +38,8 @@ packed_float3 osl_eval_camera(KernelGlobals kg,
                               packed_float3 &dPdy,
                               packed_float3 &D,
                               packed_float3 &dDdx,
-                              packed_float3 &dDdy);
+                              packed_float3 &dDdy,
+                              ccl_private int &r_cache_miss);
 
 #else
 
@@ -51,7 +53,8 @@ ccl_device_inline packed_float3 osl_eval_camera(KernelGlobals kg,
                                                 packed_float3 &dPdy,
                                                 packed_float3 &D,
                                                 packed_float3 &dDdx,
-                                                packed_float3 &dDdy)
+                                                packed_float3 &dDdy,
+                                                ccl_private int &r_cache_miss)
 {
   ShaderGlobals globals;
   cameradata_to_shaderglobals(sensor, dSdx, dSdy, rand_lens, &globals);
@@ -66,6 +69,8 @@ ccl_device_inline packed_float3 osl_eval_camera(KernelGlobals kg,
                         /*shadeindex*/ 0,
                         /*interactive_params_ptr*/ (void *)nullptr);
 #  endif
+
+  r_cache_miss = globals.cache_miss;
 
   P = make_float3(output[0], output[1], output[2]);
   dPdx = make_float3(output[3], output[4], output[5]);

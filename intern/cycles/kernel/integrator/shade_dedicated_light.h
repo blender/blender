@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "kernel/integrator/state_flow.h"
 #include "kernel/light/distant.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
@@ -83,7 +84,7 @@ ccl_device bool shadow_linking_shade_light(KernelGlobals kg,
       kg, isect, ray, N, path_flag);
   if (light_eval.eval_fac == 0.0f) {
     /* No light to be sampled, so no direct light contribution either. */
-    return false;
+    return SHADER_EVAL_EMPTY;
   }
 
   const ccl_global KernelLight *klight = &kernel_data_fetch(lights, isect.prim);
@@ -101,7 +102,7 @@ ccl_device bool shadow_linking_shade_light(KernelGlobals kg,
   light_group = object_lightgroup(kg, klight->object_id);
   shader_id = klight->shader_id;
 
-  return true;
+  return SHADER_EVAL_OK;
 }
 
 ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
@@ -120,7 +121,7 @@ ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
 
 #  ifdef __VOLUME__
   if (emission_sd->flag & SD_HAS_ONLY_VOLUME) {
-    return false;
+    return SHADER_EVAL_EMPTY;
   }
 #  endif
 
@@ -130,7 +131,7 @@ ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
   light_group = object_lightgroup(kg, emission_sd->object);
   shader_id = emission_sd->shader;
 
-  return true;
+  return SHADER_EVAL_OK;
 }
 
 ccl_device void shadow_linking_shade(KernelGlobals kg, IntegratorState state)

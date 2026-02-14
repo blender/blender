@@ -706,7 +706,13 @@ ccl_device bool osl_shared_texture(KernelGlobals kg,
   switch (type) {
     case OSLTextureHandleType::IMAGE: {
       const dual2 uv({s, t}, {dsdx, dtdx}, {dsdy, dtdy});
-      const float4 rgba = kernel_image_interp_with_udim(kg, sd, image_texture_or_udim_id, uv);
+      bool miss = false;
+      const float4 rgba = kernel_image_interp_with_udim(
+          kg, sd, image_texture_or_udim_id, uv, &miss);
+      if (miss && !sd) {
+        sg->cache_miss = 1;
+      }
+
       rgba_to_nchannels(rgba, nchannels, result);
 
       status = true;
@@ -821,7 +827,11 @@ ccl_device bool osl_shared_environment(KernelGlobals kg,
     const dual3 R_dual(R, dRdx, dRdy);
     /* Environment call is always equirectangular. */
     const dual2 uv(direction_to_equirectangular(R_dual.val));
-    const float4 rgba = kernel_image_interp_with_udim(kg, sd, image_texture_or_udim_id, uv);
+    bool miss = false;
+    const float4 rgba = kernel_image_interp_with_udim(kg, sd, image_texture_or_udim_id, uv, &miss);
+    if (miss && !sd) {
+      sg->cache_miss = 1;
+    }
     rgba_to_nchannels(rgba, nchannels, result);
     return true;
   }

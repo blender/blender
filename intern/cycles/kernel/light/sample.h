@@ -41,13 +41,15 @@ ccl_device bool light_sample_shader_eval_nee_constant(KernelGlobals kg,
 
 /* Evaluate shader on light. Not supported for background and triangle lights, that happens
  * in shade_surface and shader_background. */
-ccl_device_noinline_cpu Spectrum light_sample_shader_eval_forward(KernelGlobals kg,
-                                                                  IntegratorState state,
-                                                                  const int light_id,
-                                                                  const float3 ray_P,
-                                                                  const float3 ray_D,
-                                                                  const float t,
-                                                                  const float time)
+ccl_device_noinline_cpu ShaderEvalResult
+light_sample_shader_eval_forward(KernelGlobals kg,
+                                 IntegratorState state,
+                                 const int light_id,
+                                 const float3 ray_P,
+                                 const float3 ray_D,
+                                 const float t,
+                                 const float time,
+                                 ccl_private Spectrum &r_eval)
 {
   const ccl_global KernelLight *klight = &kernel_data_fetch(lights, light_id);
 
@@ -89,6 +91,9 @@ ccl_device_noinline_cpu Spectrum light_sample_shader_eval_forward(KernelGlobals 
      * weak but we'd have to do multiple evaluations otherwise. */
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
         kg, state, emission_sd, nullptr, PATH_RAY_EMISSION);
+    if (emission_sd->flag & SD_CACHE_MISS) {
+      return SHADER_EVAL_CACHE_MISS;
+    }
 
     /* Evaluate closures. */
     eval = surface_shader_emission(emission_sd);
@@ -100,7 +105,9 @@ ccl_device_noinline_cpu Spectrum light_sample_shader_eval_forward(KernelGlobals 
         make_float3(klight->strength[0], klight->strength[1], klight->strength[2]));
   }
 
-  return eval;
+  r_eval = eval;
+
+  return SHADER_EVAL_OK;
 }
 
 /* Early path termination of shadow rays. */

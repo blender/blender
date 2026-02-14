@@ -134,6 +134,9 @@ struct ShaderGlobals {
   int flipHandedness;
   int backfacing;
 
+  /* Cycles specific */
+  int cache_miss;
+
   /* This part is Cycles-specific and ignored by OSL itself. */
 #ifndef __KERNEL_GPU__
   const struct IntegratorStateCPU *path_state;

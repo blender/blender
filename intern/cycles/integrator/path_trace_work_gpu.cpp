@@ -330,6 +330,32 @@ void PathTraceWorkGPU::init_execution()
       "integrator_state", &integrator_state_gpu_, sizeof(integrator_state_gpu_));
 }
 
+bool PathTraceWorkGPU::update_queue_counter_and_cache()
+{
+  /* Copy stats from the device. */
+  queue_->copy_from_device(integrator_queue_counter_);
+
+  if (!queue_->synchronize()) {
+    return false;
+  }
+
+  /* Update image cache if needed. */
+  /* TODO: If the number of kernels with cache misses is small compared to the total
+   * number of queued kernels, we could try asynchronously updating the image cache
+   * while continuing to work on the majority of states? */
+  IntegratorQueueCounter *queue_counter = integrator_queue_counter_.data();
+  if (queue_counter->cache_miss) {
+    LOG_DEBUG << "Image cache miss in GPU kernel, updating to load requested tiles";
+    // TODO: update images for cache miss
+    queue_counter->cache_miss = 0;
+    queue_->copy_to_device(integrator_queue_counter_);
+    /* TODO: this is expensive but needed to update image_info. */
+    queue_->init_execution();
+  }
+
+  return true;
+}
+
 void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
                                       const int start_sample,
                                       const int samples_num,
@@ -359,10 +385,7 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
      * paths to keep the device occupied. */
     bool finished;
     if (enqueue_work_tiles(finished)) {
-      /* Copy stats from the device. */
-      queue_->copy_from_device(integrator_queue_counter_);
-
-      if (!queue_->synchronize()) {
+      if (!update_queue_counter_and_cache()) {
         break; /* Stop on error. */
       }
     }
@@ -378,10 +401,7 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
 
     /* Enqueue on of the path iteration kernels. */
     if (enqueue_path_iteration()) {
-      /* Copy stats from the device. */
-      queue_->copy_from_device(integrator_queue_counter_);
-
-      if (!queue_->synchronize()) {
+      if (!update_queue_counter_and_cache()) {
         break; /* Stop on error. */
       }
     }
@@ -542,6 +562,20 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
   DCHECK_LE(work_size, max_num_paths_);
 
   switch (kernel) {
+    case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA: {
+      const int num_path_indices = work_size;
+      device_ptr null_tiles = 0;
+      int zero = 0;
+      const DeviceKernelArguments args(&null_tiles,
+                                       &zero,
+                                       &buffers_->buffer.device_pointer,
+                                       &zero,
+                                       &d_path_index,
+                                       &num_path_indices);
+
+      queue_->enqueue(kernel, work_size, args);
+      break;
+    }
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST: {
       /* Closest ray intersection kernels with integrator state and render buffer. */
       const DeviceKernelArguments args(
@@ -912,8 +946,10 @@ void PathTraceWorkGPU::enqueue_work_tiles(DeviceKernel kernel,
   device_ptr d_render_buffer = buffers_->buffer.device_pointer;
 
   /* Launch kernel. */
+  device_ptr null_ptr = 0;
+  int zero = 0;
   const DeviceKernelArguments args(
-      &d_work_tiles, &num_work_tiles, &d_render_buffer, &max_tile_work_size);
+      &d_work_tiles, &num_work_tiles, &d_render_buffer, &max_tile_work_size, &null_ptr, &zero);
 
   queue_->enqueue(kernel, max_tile_work_size * num_work_tiles, args);
 
