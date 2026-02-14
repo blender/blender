@@ -13,6 +13,7 @@
 
 #include "util/log.h"
 #include "util/progress.h"
+#include "util/scoped_defer.h"
 #include "util/tbb.h"
 
 CCL_NAMESPACE_BEGIN
@@ -83,6 +84,7 @@ bool ShaderEval::eval_cpu(Device *device,
 {
   vector<ThreadKernelGlobalsCPU> *kernel_thread_globals =
       device->acquire_cpu_kernel_thread_globals();
+  SCOPED_DEFER(device->release_cpu_kernel_thread_globals());
 
   /* Find required kernel function. */
   const CPUKernels &kernels = Device::get_cpu_kernels();
@@ -121,8 +123,6 @@ bool ShaderEval::eval_cpu(Device *device,
     });
   });
 
-  device->release_cpu_kernel_thread_globals();
-
   return success;
 }
 
@@ -152,6 +152,10 @@ bool ShaderEval::eval_gpu(Device *device,
   unique_ptr<DeviceQueue> queue = device->gpu_queue_create();
   queue->init_execution();
 
+  device_vector<uint> cache_miss(device, "ShaderEval cache_miss", MEM_READ_WRITE);
+  cache_miss.alloc(1);
+  cache_miss[0] = false;
+
   /* Execute work on GPU in chunk, so we can cancel.
    * TODO: query appropriate size from device. */
   const int32_t chunk_size = 1 << 21;
@@ -163,14 +167,38 @@ bool ShaderEval::eval_gpu(Device *device,
   for (int32_t d_offset = 0; d_offset < int32_t(work_size); d_offset += chunk_size) {
     int32_t d_work_size = std::min(chunk_size, int32_t(work_size) - d_offset);
 
-    const DeviceKernelArguments args(&d_input, &d_output, &d_offset, &d_work_size);
+    do {
+      if (device->have_error() || progress_.get_cancel()) {
+        return false;
+      }
 
-    queue->enqueue(kernel, d_work_size, args);
-    queue->synchronize();
+      if (cache_miss[0]) {
+        /* Update image cache if needed. */
+        // TODO: add image cache update
+        /* TODO: this is expensive but needed to update image_info. */
+        queue->init_execution();
+        cache_miss[0] = false;
 
-    if (progress_.get_cancel()) {
-      return false;
-    }
+        if (device->have_error() || progress_.get_cancel()) {
+          return false;
+        }
+      }
+
+      /* Execute shaders. */
+      queue->copy_to_device(cache_miss);
+      const DeviceKernelArguments args(
+          &d_input, &d_output, &cache_miss.device_pointer, &d_offset, &d_work_size);
+      queue->enqueue(kernel, d_work_size, args);
+      queue->copy_from_device(cache_miss);
+
+      if (!queue->synchronize()) {
+        return false;
+      }
+
+      /* Keep trying until there is no more cache miss. We could try to only re-execute
+       * items with cache misses, however all use the same shader so it's unlikely for
+       * there to be much divergence. */
+    } while (cache_miss[0]);
   }
 
   return true;

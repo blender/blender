@@ -11,7 +11,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline void cameradata_to_shaderglobals(const packed_float3 sensor,
+ccl_device_inline void cameradata_to_shaderglobals(ccl_private ShaderData *sd,
+                                                   const packed_float3 sensor,
                                                    const packed_float3 dSdx,
                                                    const packed_float3 dSdy,
                                                    const float2 rand_lens,
@@ -23,11 +24,14 @@ ccl_device_inline void cameradata_to_shaderglobals(const packed_float3 sensor,
   globals->dPdx = dSdx;
   globals->dPdy = dSdy;
   globals->N = make_float3(rand_lens);
+  globals->sd = sd;
+  globals->raytype = PATH_RAY_CAMERA;
 }
 
 #ifndef __KERNEL_GPU__
 
 packed_float3 osl_eval_camera(KernelGlobals kg,
+                              ccl_private ShaderData *sd,
                               const packed_float3 sensor,
                               const packed_float3 dSdx,
                               const packed_float3 dSdy,
@@ -42,6 +46,7 @@ packed_float3 osl_eval_camera(KernelGlobals kg,
 #else
 
 ccl_device_inline packed_float3 osl_eval_camera(KernelGlobals kg,
+                                                ccl_private ShaderData *sd,
                                                 const packed_float3 sensor,
                                                 const packed_float3 dSdx,
                                                 const packed_float3 dSdy,
@@ -54,7 +59,7 @@ ccl_device_inline packed_float3 osl_eval_camera(KernelGlobals kg,
                                                 packed_float3 &dDdy)
 {
   ShaderGlobals globals;
-  cameradata_to_shaderglobals(sensor, dSdx, dSdy, rand_lens, &globals);
+  cameradata_to_shaderglobals(sd, sensor, dSdx, dSdy, rand_lens, &globals);
 
   float output[21] = {0.0f};
 #  ifdef __KERNEL_OPTIX__

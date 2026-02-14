@@ -707,6 +707,7 @@ ccl_device bool osl_shared_texture(KernelGlobals kg,
     case OSLTextureHandleType::IMAGE: {
       const dual2 uv({s, t}, {dsdx, dtdx}, {dsdy, dtdy});
       const float4 rgba = kernel_image_interp_with_udim(kg, sd, image_texture_or_udim_id, uv);
+
       rgba_to_nchannels(rgba, nchannels, result);
 
       status = true;

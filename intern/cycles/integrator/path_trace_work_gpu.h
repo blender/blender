@@ -71,6 +71,8 @@ class PathTraceWorkGPU : public PathTraceWork {
   bool enqueue_path_iteration();
   void enqueue_path_iteration(DeviceKernel kernel, const int num_paths_limit = INT_MAX);
 
+  bool update_queue_counter_and_cache();
+
   void compute_queued_paths(DeviceKernel kernel, DeviceKernel queued_kernel);
   void compute_sorted_queued_paths(DeviceKernel queued_kernel, const int num_paths_limit);
 

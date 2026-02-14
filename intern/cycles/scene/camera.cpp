@@ -819,12 +819,14 @@ float Camera::world_to_raster_size(const float3 P)
      * may be a better way to do this, but calculating differentials from the
      * point directly ahead seems to produce good enough results. */
     if (camera_type == CAMERA_CUSTOM) {
+      int cache_miss = 0;
       camera_sample_custom(nullptr,
                            &kernel_camera,
                            kernel_camera_motion.data(),
                            0.5f * make_float2(full_width, full_height),
                            zero_float2(),
-                           &ray);
+                           &ray,
+                           cache_miss);
     }
     else {
 #if 0

@@ -289,6 +289,7 @@ enum ClosureLabel {
   LABEL_TRANSMIT_TRANSPARENT = 128,
   LABEL_SUBSURFACE_SCATTER = 256,
   LABEL_RAY_PORTAL = 512,
+  LABEL_CACHE_MISS = 1024,
 };
 
 /* Render Passes */
@@ -868,10 +869,12 @@ enum ShaderDataFlag {
   SD_BSDF_HAS_TRANSMISSION = (1 << 10),
   /* Shader has ray portal closure. */
   SD_RAY_PORTAL = (1 << 11),
+  /* Shader evaluation needs to be redone, because of texture cache miss */
+  SD_CACHE_MISS = (1 << 12),
 
   SD_CLOSURE_FLAGS = (SD_EMISSION | SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSSRDF | SD_HOLDOUT |
                       SD_EXTINCTION | SD_SCATTER | SD_IS_VOLUME_SHADER_EVAL |
-                      SD_BSDF_HAS_TRANSMISSION | SD_RAY_PORTAL),
+                      SD_BSDF_HAS_TRANSMISSION | SD_RAY_PORTAL | SD_CACHE_MISS),
 
   /* Shader flags. */
 
@@ -1647,6 +1650,12 @@ struct KernelShaderEvalInput {
   float u, v;
 };
 static_assert_align(KernelShaderEvalInput, 16);
+
+enum ShaderEvalResult {
+  SHADER_EVAL_EMPTY = 0,
+  SHADER_EVAL_OK = 1,
+  SHADER_EVAL_CACHE_MISS = 2,
+};
 
 /* Pre-computed sample table sizes for the tabulated Sobol sampler.
  *

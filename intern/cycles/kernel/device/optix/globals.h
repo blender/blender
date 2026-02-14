@@ -28,7 +28,8 @@ struct KernelParamsOptiX {
   /* Kernel arguments */
   const int *path_index_array;
   float *render_buffer;
-  int offset;
+  uint *shader_eval_cache_miss;
+  int shader_eval_offset;
 
   /* Init kernel arguments */
   int num_tiles;

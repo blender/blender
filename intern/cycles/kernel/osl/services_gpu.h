@@ -241,7 +241,7 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
   KernelGlobals kg = nullptr;
   ccl_private ShaderData *const sd = sg->sd;
 
-  if (sd == nullptr) {
+  if (sd->shader == SHADER_NONE) {
     /* Camera shader. */
     return osl_shared_get_camera_attribute(kg, sg, name, type, derivatives, res);
   }

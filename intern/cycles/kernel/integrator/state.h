@@ -99,6 +99,7 @@ struct IntegratorStateCPU {
  * for GPU rendering. */
 struct IntegratorQueueCounter {
   int num_queued[DEVICE_KERNEL_INTEGRATOR_NUM];
+  int cache_miss;
 };
 
 #if defined(__INTEGRATOR_GPU_PACKED_STATE__) && defined(__KERNEL_GPU__)
