@@ -32,6 +32,12 @@ class ImageMetaData {
   string colorspace_file_hint;
   const char *colorspace_file_format = "";
 
+  /* Input tile info. */
+  bool has_tiles_and_mipmaps = false;
+  uint32_t tile_size = 0;
+  float4 average_color = zero_float4();
+  bool tile_need_conform = true;
+
   /* Input NanoVDB data. */
   int64_t nanovdb_byte_size = 0;
   bool use_transform_3d = false;
@@ -78,6 +84,11 @@ class ImageMetaData {
                       const int64_t x_stride,
                       const int64_t in_y_stride,
                       const int64_t out_y_stride) const;
+
+ protected:
+  void detect_tiles(OIIO::ImageInput &input,
+                    const OIIO::ImageSpec &spec,
+                    OIIO::string_view filepath);
 };
 
 CCL_NAMESPACE_END
