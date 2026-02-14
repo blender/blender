@@ -96,6 +96,10 @@ void osl_eval_nodes_surface(const ThreadKernelGlobalsCPU *kg,
     kg->osl.shader_globals.path_state = nullptr;
     kg->osl.shader_globals.shadow_path_state = (const IntegratorShadowStateCPU *)state;
   }
+  else if constexpr (std::is_same_v<IntegratorGenericState, IntegratorBakeState>) {
+    kg->osl.shader_globals.path_state = nullptr;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
+  }
   else {
     kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
     kg->osl.shader_globals.shadow_path_state = nullptr;
@@ -206,10 +210,10 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE, IntegratorState>(const ThreadKernelGlob
 }
 
 template<>
-void osl_eval_nodes<SHADER_TYPE_SURFACE, std::nullptr_t>(const ThreadKernelGlobalsCPU *kg,
-                                                         std::nullptr_t state,
-                                                         ShaderData *sd,
-                                                         const uint32_t path_flag)
+void osl_eval_nodes<SHADER_TYPE_SURFACE, IntegratorBakeState>(const ThreadKernelGlobalsCPU *kg,
+                                                              IntegratorBakeState state,
+                                                              ShaderData *sd,
+                                                              const uint32_t path_flag)
 {
   osl_eval_nodes_surface(kg, state, sd, path_flag);
 }
@@ -233,6 +237,10 @@ void osl_eval_nodes_volume(const ThreadKernelGlobalsCPU *kg,
   if constexpr (std::is_same_v<IntegratorGenericState, IntegratorShadowState>) {
     kg->osl.shader_globals.path_state = nullptr;
     kg->osl.shader_globals.shadow_path_state = (const IntegratorShadowStateCPU *)state;
+  }
+  else if constexpr (std::is_same_v<IntegratorGenericState, IntegratorBakeState>) {
+    kg->osl.shader_globals.path_state = nullptr;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
   }
   else {
     kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
@@ -280,10 +288,10 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME, IntegratorState>(const ThreadKernelGloba
 }
 
 template<>
-void osl_eval_nodes<SHADER_TYPE_VOLUME, std::nullptr_t>(const ThreadKernelGlobalsCPU *kg,
-                                                        std::nullptr_t state,
-                                                        ShaderData *sd,
-                                                        const uint32_t path_flag)
+void osl_eval_nodes<SHADER_TYPE_VOLUME, IntegratorBakeState>(const ThreadKernelGlobalsCPU *kg,
+                                                             IntegratorBakeState state,
+                                                             ShaderData *sd,
+                                                             const uint32_t path_flag)
 {
   osl_eval_nodes_volume(kg, state, sd, path_flag);
 }
@@ -304,8 +312,15 @@ void osl_eval_nodes_displacement(const ThreadKernelGlobalsCPU *kg,
 
   /* Used by render-services. */
   kg->osl.shader_globals.kg = kg;
-  kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
-  kg->osl.shader_globals.shadow_path_state = nullptr;
+
+  if constexpr (std::is_same_v<IntegratorGenericState, IntegratorBakeState>) {
+    kg->osl.shader_globals.path_state = nullptr;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
+  }
+  else {
+    kg->osl.shader_globals.path_state = (const IntegratorStateCPU *)state;
+    kg->osl.shader_globals.shadow_path_state = nullptr;
+  }
 
   /* execute shader */
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
@@ -347,10 +362,11 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT, IntegratorState>(const ThreadKerne
 }
 
 template<>
-void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT, std::nullptr_t>(const ThreadKernelGlobalsCPU *kg,
-                                                              std::nullptr_t state,
-                                                              ShaderData *sd,
-                                                              const uint32_t path_flag)
+void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT, IntegratorBakeState>(
+    const ThreadKernelGlobalsCPU *kg,
+    IntegratorBakeState state,
+    ShaderData *sd,
+    const uint32_t path_flag)
 {
   osl_eval_nodes_displacement(kg, state, sd, path_flag);
 }

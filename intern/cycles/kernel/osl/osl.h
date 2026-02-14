@@ -195,7 +195,10 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
 #  ifdef __KERNEL_OPTIX__
   uint8_t closure_pool[1024];
   globals.closure_pool = closure_pool;
-  if constexpr (std::is_same_v<ConstIntegratorGenericState, ConstIntegratorShadowState>) {
+  if constexpr (std::is_same_v<ConstIntegratorGenericState, ConstIntegratorBakeState>) {
+    globals.shade_index = 0;
+  }
+  else if constexpr (std::is_same_v<ConstIntegratorGenericState, ConstIntegratorShadowState>) {
     globals.shade_index = -state - 1;
   }
   else {

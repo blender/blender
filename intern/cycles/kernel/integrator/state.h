@@ -24,8 +24,6 @@
  *
  * INTEGRATOR_STATE_ARRAY(state, x, index, y): read x[index].y
  * INTEGRATOR_STATE_ARRAY_WRITE(state, x, index, y): write x[index].y
- *
- * INTEGRATOR_STATE_NULL: use to pass empty state to other functions.
  */
 
 #include "kernel/types.h"
@@ -229,8 +227,8 @@ using IntegratorState = IntegratorStateCPU *;
 using ConstIntegratorState = const IntegratorStateCPU *;
 using IntegratorShadowState = IntegratorShadowStateCPU *;
 using ConstIntegratorShadowState = const IntegratorShadowStateCPU *;
-
-#  define INTEGRATOR_STATE_NULL nullptr
+struct IntegratorBakeState {};
+using ConstIntegratorBakeState = IntegratorBakeState;
 
 #  define INTEGRATOR_STATE(state, nested_struct, member) ((state)->nested_struct.member)
 #  define INTEGRATOR_STATE_WRITE(state, nested_struct, member) ((state)->nested_struct.member)
@@ -259,7 +257,8 @@ struct IntegratorShadowState {
 };
 using ConstIntegratorShadowState = IntegratorShadowState;
 
-#  define INTEGRATOR_STATE_NULL -1
+struct IntegratorBakeState {};
+using ConstIntegratorBakeState = IntegratorBakeState;
 
 #  ifdef __INTEGRATOR_GPU_PACKED_STATE__
 
