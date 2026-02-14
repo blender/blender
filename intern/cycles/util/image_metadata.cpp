@@ -7,8 +7,10 @@
 #include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/typedesc.h>
 
+#include "util/color.h"
 #include "util/colorspace.h"
 #include "util/image.h"
+#include "util/image_maketx.h"
 #include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/param.h"
@@ -148,6 +150,19 @@ void ImageMetaData::finalize(const ImageAlphaType alpha_type)
                           !(ColorSpaceManager::colorspace_is_data(colorspace) ||
                             alpha_type == IMAGE_ALPHA_IGNORE ||
                             alpha_type == IMAGE_ALPHA_CHANNEL_PACKED);
+
+  /* Convert average color to scene linear colorspace. */
+  if (!is_zero(average_color) && colorspace != u_colorspace_data &&
+      colorspace != u_colorspace_scene_linear)
+  {
+    if (colorspace == u_colorspace_scene_linear_srgb) {
+      average_color = color_srgb_to_linear_v4(average_color);
+    }
+    else {
+      ColorSpaceManager::to_scene_linear(
+          colorspace, &average_color.x, 1, 1, 0, true, false, ignore_alpha || is_channel_packed);
+    }
+  }
 }
 
 void ImageMetaData::make_float()
@@ -173,6 +188,136 @@ void ImageMetaData::make_float()
     case IMAGE_DATA_TYPE_NANOVDB_EMPTY:
     case IMAGE_DATA_NUM_TYPES:
       break;
+  }
+}
+
+static bool load_metadata_color(const ImageSpec &spec, const char *name, float4 &r_color)
+{
+  string_view metadata_color = spec.get_string_attribute(name);
+  if (metadata_color.size() == 0) {
+    return false;
+  }
+
+  vector<float> color;
+  while (metadata_color.size()) {
+    float val;
+    if (!OIIO::Strutil::parse_float(metadata_color, val)) {
+      break;
+    }
+    color.push_back(val);
+    if (!OIIO::Strutil::parse_char(metadata_color, ',')) {
+      break;
+    }
+  }
+
+  if (color.size() != size_t(spec.nchannels)) {
+    return false;
+  }
+
+  switch (spec.nchannels) {
+    case 1:
+      r_color = make_float4(color[0], color[0], color[0], 1.0f);
+      return true;
+    case 2:
+      r_color = make_float4(color[0], color[0], color[0], color[1]);
+      return true;
+    case 3:
+      r_color = make_float4(color[0], color[1], color[2], 1.0f);
+      return true;
+    case 4:
+      r_color = make_float4(color[0], color[1], color[2], color[3]);
+      return true;
+    default:
+      return false;
+  }
+}
+
+void ImageMetaData::detect_tiles(ImageInput &input,
+                                 const ImageSpec &spec,
+                                 OIIO::string_view filepath)
+{
+  if (spec.tile_width == 0) {
+    return;
+  }
+
+  const std::string software = spec.get_string_attribute("Software");
+  int tx_file_format_version = INT_MAX;
+  sscanf(software.c_str(), "Blender maketx v%d", &tx_file_format_version);
+
+  if (tx_file_format_version == INT_MAX) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but is missing blender:TxFileFormatVersion";
+    tile_need_conform = true;
+  }
+  else if (tx_file_format_version < 0 || tx_file_format_version > TX_FILE_FORMAT_VERSION) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but file format version " << tx_file_format_version
+              << " is not supported by this version of Cycles";
+    return;
+  }
+  else if (!(channels == 1 || channels == 4)) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but expected 1 or 4 channels, found " << channels;
+    tile_need_conform = true;
+  }
+  else {
+    tile_need_conform = false;
+  }
+
+  bool has_tiles = false;
+
+  if (!is_power_of_two(spec.tile_width)) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but tile size not power of two (" << spec.tile_width << ")";
+  }
+  else if (spec.tile_width != spec.tile_height) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but tile size is not square (" << spec.tile_width << "x"
+              << spec.tile_height << ")";
+  }
+  else if (spec.tile_depth != 1) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but depth is not 1";
+  }
+  else if (spec.tile_width < KERNEL_IMAGE_TEX_PADDING * 4) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but tile size too small (found " << spec.tile_width << ", minimum "
+              << KERNEL_IMAGE_TEX_PADDING * 4 << ")";
+  }
+  else if (width < spec.tile_width && height < spec.tile_width) {
+    /* We don't currently supporting using tiles for images smaller than the tile
+     * size, and it's also unnecessary. To enable this, we'd need to solve the
+     * problem where interpolation at tile pixel centers does not match full image
+     * sampling due to padding offset. */
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but image resolution is smaller than tile size";
+    has_tiles = true;
+  }
+  else {
+    tile_size = spec.tile_width;
+    has_tiles = true;
+  }
+
+  /* Check if mip levels are complete. */
+  has_tiles_and_mipmaps = has_tiles;
+
+  if (has_tiles && tile_size) {
+    for (int miplevel = 0;; miplevel++) {
+      if (!input.seek_subimage(0, miplevel)) {
+        LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+                  << " has tiles, but missing mip levels";
+        has_tiles_and_mipmaps = false;
+        break;
+      }
+
+      const int mip_width = width >> miplevel;
+      const int mip_height = height >> miplevel;
+      if (mip_width <= tile_size && mip_height <= tile_size) {
+        break;
+      }
+    }
+
+    input.seek_subimage(0, 0);
   }
 }
 
@@ -273,7 +418,19 @@ bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSp
    * but not composite image that we read. */
   is_cmyk = strcmp(in->format_name(), "jpeg") == 0 && channels == 4;
 
-  LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath) << ", " << width << "x" << height;
+  /* Load constant or average color. */
+  if (load_metadata_color(spec, "oiio:ConstantColor", average_color)) {
+    /* Could avoid loading tiles entirely for a bit more memory saving, or even
+     * constant folding in the shader nodes. */
+  }
+  else {
+    load_metadata_color(spec, "oiio:AverageColor", average_color);
+  }
+
+  detect_tiles(*in, spec, filepath);
+
+  LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath) << ", " << width << "x" << height
+            << ", " << (tile_size ? "tiled" : "untiled");
 
   if (r_spec) {
     *r_spec = spec;
