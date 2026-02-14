@@ -228,6 +228,9 @@ class device_memory {
     return elements * data_elements * datatype_size(data_type);
   }
 
+  const char *global_name() const;
+  virtual string log_name() const;
+
   /* Data information. */
   DataType data_type;
   int data_elements;
@@ -236,8 +239,6 @@ class device_memory {
   size_t data_width;
   size_t data_height;
   MemoryType type;
-  const char *name;
-  string name_storage;
 
   /* Pointers. */
   Device *device;
@@ -289,6 +290,7 @@ class device_memory {
   void device_copy_to();
   void device_move_to_host();
   void device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem);
+  void device_copy_merged_bitmap_from(const size_t y, const size_t w, size_t h);
   void device_zero();
 
   /* Memory can only be freed on host and device together. */
@@ -296,6 +298,7 @@ class device_memory {
 
   bool device_is_cpu();
 
+  const char *name_;
   device_ptr original_device_ptr;
   size_t original_device_size;
   Device *original_device;
@@ -425,6 +428,7 @@ template<typename T> class device_vector : public device_memory {
 
       host_and_device_free();
       host_pointer = new_ptr;
+      modified = true;
       assert(device_pointer == 0);
     }
 
@@ -444,6 +448,7 @@ template<typename T> class device_vector : public device_memory {
     data_width = 0;
     data_height = 0;
     host_pointer = from.steal_pointer();
+    modified = true;
     assert(device_pointer == 0);
   }
 
@@ -542,6 +547,12 @@ template<typename T> class device_vector : public device_memory {
     device_copy_from(y, w, h, sizeof(T));
   }
 
+  /* Copy from all devices and OR into host memory. */
+  void copy_merged_bitmap_from_device()
+  {
+    device_copy_merged_bitmap_from(0, data_size, 1);
+  }
+
   void zero_to_device()
   {
     device_zero();
@@ -594,6 +605,8 @@ class device_image : public device_memory {
                InterpolationType interpolation,
                ExtensionType extension);
   ~device_image() override;
+
+  string log_name() const override;
 
   void *alloc(const size_t width, const size_t height);
 

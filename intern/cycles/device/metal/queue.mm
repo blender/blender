@@ -583,7 +583,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         std::lock_guard<std::recursive_mutex> lock(metal_device_->metal_mem_map_mutex);
         for (auto &it : metal_device_->metal_mem_map) {
           const string c_integrator_queue_counter = "integrator_queue_counter";
-          if (it.first->name == c_integrator_queue_counter) {
+          if (it.first->global_name() == c_integrator_queue_counter) {
             if (IntegratorQueueCounter *queue_counter = (IntegratorQueueCounter *)
                                                             it.first->host_pointer)
             {

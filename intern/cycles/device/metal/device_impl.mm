@@ -603,16 +603,14 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
       }
     }
 
-    if (mem.name) {
-      LOG_DEBUG << "Buffer allocate: " << mem.name << ", "
-                << string_human_readable_number(mem.memory_size()) << " bytes. ("
-                << string_human_readable_size(mem.memory_size()) << ")";
-    }
+    LOG_DEBUG << "Buffer allocate: " << mem.log_name() << ", "
+              << string_human_readable_number(mem.memory_size()) << " bytes. ("
+              << string_human_readable_size(mem.memory_size()) << ")";
 
     mem.device_size = metal_buffer.allocatedSize;
     stats.mem_alloc(mem.device_size);
 
-    metal_buffer.label = [NSString stringWithFormat:@"%s", mem.name];
+    metal_buffer.label = [NSString stringWithFormat:@"%s", mem.log_name().c_str()];
 
     std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
 
@@ -963,7 +961,7 @@ void MetalDevice::global_alloc(device_memory &mem)
     generic_copy_to(mem);
   }
 
-  const_copy_to(mem.name, &mem.device_pointer, sizeof(mem.device_pointer));
+  const_copy_to(mem.global_name(), &mem.device_pointer, sizeof(mem.device_pointer));
 }
 
 void MetalDevice::global_free(device_memory &mem)
@@ -1092,7 +1090,7 @@ void MetalDevice::image_alloc(device_image &mem)
        */
       desc.allowGPUOptimizedContents = false;
 
-      LOG_DEBUG << "Texture 2D allocate: " << mem.name << ", "
+      LOG_DEBUG << "Texture 2D allocate: " << mem.log_name() << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 

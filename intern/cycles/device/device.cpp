@@ -653,7 +653,7 @@ void GPUDevice::move_textures_to_host(size_t size, const size_t headroom, const 
      * multiple backend devices could be moving the memory. The
      * first one will do it, and the rest will adopt the pointer. */
     if (max_mem) {
-      LOG_DEBUG << "Move memory from device to host: " << max_mem->name;
+      LOG_DEBUG << "Move memory from device to host: " << max_mem->log_name();
 
       /* Potentially need to call back into multi device, so pointer mapping
        * and peer devices are updated. This is also necessary since the device
@@ -751,11 +751,9 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
     }
   }
 
-  if (mem.name) {
-    LOG_DEBUG << "Buffer allocate: " << mem.name << ", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")" << status;
-  }
+  LOG_DEBUG << "Buffer allocate: " << mem.log_name() << ", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")" << status;
 
   mem.device_pointer = (device_ptr)device_pointer;
   mem.device_size = size;

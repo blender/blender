@@ -656,7 +656,7 @@ void HIPDevice::global_alloc(device_memory &mem)
     generic_copy_to(mem);
   }
 
-  const_copy_to(mem.name, &mem.device_pointer, sizeof(mem.device_pointer));
+  const_copy_to(mem.global_name(), &mem.device_pointer, sizeof(mem.device_pointer));
 }
 
 void HIPDevice::global_copy_to(device_memory &mem)
@@ -669,7 +669,7 @@ void HIPDevice::global_copy_to(device_memory &mem)
     generic_copy_to(mem);
   }
 
-  const_copy_to(mem.name, &mem.device_pointer, sizeof(mem.device_pointer));
+  const_copy_to(mem.global_name(), &mem.device_pointer, sizeof(mem.device_pointer));
 }
 
 void HIPDevice::global_free(device_memory &mem)

@@ -97,11 +97,9 @@ void CPUDevice::mem_alloc(device_memory &mem)
     assert(!"mem_alloc not supported for global memory.");
   }
   else {
-    if (mem.name) {
-      LOG_DEBUG << "Buffer allocate: " << mem.name << ", "
-                << string_human_readable_number(mem.memory_size()) << " bytes. ("
-                << string_human_readable_size(mem.memory_size()) << ")";
-    }
+    LOG_DEBUG << "Buffer allocate: " << mem.log_name() << ", "
+              << string_human_readable_number(mem.memory_size()) << " bytes. ("
+              << string_human_readable_size(mem.memory_size()) << ")";
 
     if (mem.type == MEM_DEVICE_ONLY) {
       size_t alignment = MIN_ALIGNMENT_DEVICE_MEMORY;
@@ -200,11 +198,11 @@ void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
 
 void CPUDevice::global_alloc(device_memory &mem)
 {
-  LOG_DEBUG << "Global memory allocate: " << mem.name << ", "
+  LOG_DEBUG << "Global memory allocate: " << mem.log_name() << ", "
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
-  kernel_global_memory_copy(&kernel_globals, mem.name, mem.host_pointer, mem.data_size);
+  kernel_global_memory_copy(&kernel_globals, mem.global_name(), mem.host_pointer, mem.data_size);
 
   mem.device_pointer = (device_ptr)mem.host_pointer;
   mem.device_size = mem.memory_size();
@@ -222,7 +220,7 @@ void CPUDevice::global_free(device_memory &mem)
 
 void CPUDevice::image_alloc(device_image &mem)
 {
-  LOG_DEBUG << "Texture allocate: " << mem.name << ", "
+  LOG_DEBUG << "Texture allocate: " << mem.log_name() << ", "
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 

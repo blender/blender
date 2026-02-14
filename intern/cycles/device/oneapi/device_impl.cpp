@@ -428,22 +428,18 @@ void OneapiDevice::mem_alloc(device_memory &mem)
     assert(!"mem_alloc not supported for global memory.");
   }
   else {
-    if (mem.name) {
-      LOG_TRACE << "OneapiDevice::mem_alloc: \"" << mem.name << "\", "
-                << string_human_readable_number(mem.memory_size()) << " bytes. ("
-                << string_human_readable_size(mem.memory_size()) << ")";
-    }
+    LOG_TRACE << "OneapiDevice::mem_alloc: \"" << mem.log_name() << "\", "
+              << string_human_readable_number(mem.memory_size()) << " bytes. ("
+              << string_human_readable_size(mem.memory_size()) << ")";
     generic_alloc(mem);
   }
 }
 
 void OneapiDevice::mem_copy_to(device_memory &mem)
 {
-  if (mem.name) {
-    LOG_TRACE << "OneapiDevice::mem_copy_to: \"" << mem.name << "\", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")";
-  }
+  LOG_TRACE << "OneapiDevice::mem_copy_to: \"" << mem.log_name() << "\", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
 
   /* After getting runtime errors we need to avoid performing oneAPI runtime operations
    * because the associated GPU context may be in an invalid state at this point. */
@@ -467,11 +463,9 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
 
 void OneapiDevice::mem_move_to_host(device_memory &mem)
 {
-  if (mem.name) {
-    LOG_TRACE << "OneapiDevice::mem_move_to_host: \"" << mem.name << "\", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")";
-  }
+  LOG_TRACE << "OneapiDevice::mem_move_to_host: \"" << mem.log_name() << "\", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
 
   /* After getting runtime errors we need to avoid performing oneAPI runtime operations
    * because the associated GPU context may be in an invalid state at this point. */
@@ -502,12 +496,10 @@ void OneapiDevice::mem_copy_from(
     const size_t size = (w > 0 || h > 0 || elem > 0) ? (elem * w * h) : mem.memory_size();
     const size_t offset = elem * y * w;
 
-    if (mem.name) {
-      LOG_TRACE << "OneapiDevice::mem_copy_from: \"" << mem.name << "\" object of "
-                << string_human_readable_number(mem.memory_size()) << " bytes. ("
-                << string_human_readable_size(mem.memory_size()) << ") from offset " << offset
-                << " data " << size << " bytes";
-    }
+    LOG_TRACE << "OneapiDevice::mem_copy_from: \"" << mem.log_name() << "\" object of "
+              << string_human_readable_number(mem.memory_size()) << " bytes. ("
+              << string_human_readable_size(mem.memory_size()) << ") from offset " << offset
+              << " data " << size << " bytes";
 
     /* After getting runtime errors we need to avoid performing oneAPI runtime operations
      * because the associated GPU context may be in an invalid state at this point. */
@@ -532,11 +524,9 @@ void OneapiDevice::mem_copy_from(
 
 void OneapiDevice::mem_zero(device_memory &mem)
 {
-  if (mem.name) {
-    LOG_TRACE << "OneapiDevice::mem_zero: \"" << mem.name << "\", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")\n";
-  }
+  LOG_TRACE << "OneapiDevice::mem_zero: \"" << mem.log_name() << "\", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
 
   /* After getting runtime errors we need to avoid performing oneAPI runtime operations
    * because the associated GPU context may be in an invalid state at this point. */
@@ -562,11 +552,9 @@ void OneapiDevice::mem_zero(device_memory &mem)
 
 void OneapiDevice::mem_free(device_memory &mem)
 {
-  if (mem.name) {
-    LOG_TRACE << "OneapiDevice::mem_free: \"" << mem.name << "\", "
-              << string_human_readable_number(mem.device_size) << " bytes. ("
-              << string_human_readable_size(mem.device_size) << ")\n";
-  }
+  LOG_TRACE << "OneapiDevice::mem_free: \"" << mem.log_name() << "\", "
+            << string_human_readable_number(mem.device_size) << " bytes. ("
+            << string_human_readable_size(mem.device_size) << ")";
 
   if (mem.type == MEM_GLOBAL) {
     global_free(mem);
@@ -638,17 +626,15 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
 
 void OneapiDevice::global_alloc(device_memory &mem)
 {
-  assert(mem.name);
-
   size_t size = mem.memory_size();
-  LOG_TRACE << "OneapiDevice::global_alloc \"" << mem.name << "\" object "
+  LOG_TRACE << "OneapiDevice::global_alloc \"" << mem.log_name() << "\" object "
             << string_human_readable_number(size) << " bytes. ("
             << string_human_readable_size(size) << ")";
 
   generic_alloc(mem);
   generic_copy_to(mem);
 
-  set_global_memory(device_queue_, kg_memory_, mem.name, (void *)mem.device_pointer);
+  set_global_memory(device_queue_, kg_memory_, mem.global_name(), (void *)mem.device_pointer);
 
   usm_memcpy(device_queue_, kg_memory_device_, kg_memory_, kg_memory_size_);
 }
@@ -786,7 +772,7 @@ void OneapiDevice::image_alloc(device_image &mem)
       desc = sycl::ext::oneapi::experimental::image_descriptor(
           {mem.data_width, mem.data_height, 0}, mem.data_elements, channel_type);
 
-      LOG_DEBUG << "Array 2D/3D allocate: " << mem.name << ", "
+      LOG_DEBUG << "Array 2D/3D allocate: " << mem.log_name() << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 

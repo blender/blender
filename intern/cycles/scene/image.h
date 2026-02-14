@@ -161,7 +161,6 @@ class ImageManager {
     bool need_load;
     bool builtin;
 
-    string mem_name;
     unique_ptr<device_image> mem;
 
     int users;

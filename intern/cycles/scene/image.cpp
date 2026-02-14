@@ -24,49 +24,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-namespace {
-
-const char *name_from_type(ImageDataType type)
-{
-  switch (type) {
-    case IMAGE_DATA_TYPE_FLOAT4:
-      return "float4";
-    case IMAGE_DATA_TYPE_BYTE4:
-      return "byte4";
-    case IMAGE_DATA_TYPE_HALF4:
-      return "half4";
-    case IMAGE_DATA_TYPE_FLOAT:
-      return "float";
-    case IMAGE_DATA_TYPE_BYTE:
-      return "byte";
-    case IMAGE_DATA_TYPE_HALF:
-      return "half";
-    case IMAGE_DATA_TYPE_USHORT4:
-      return "ushort4";
-    case IMAGE_DATA_TYPE_USHORT:
-      return "ushort";
-    case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
-      return "nanovdb_float";
-    case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
-      return "nanovdb_float3";
-    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
-      return "nanovdb_float4";
-    case IMAGE_DATA_TYPE_NANOVDB_FPN:
-      return "nanovdb_fpn";
-    case IMAGE_DATA_TYPE_NANOVDB_FP16:
-      return "nanovdb_fp16";
-    case IMAGE_DATA_TYPE_NANOVDB_EMPTY:
-      return "nanovdb_empty";
-    case IMAGE_DATA_NUM_TYPES:
-      assert(!"System enumerator type, should never be used");
-      return "";
-  }
-  assert(!"Unhandled image data type");
-  return "";
-}
-
-}  // namespace
-
 /* Image Handle */
 
 ImageHandle::ImageHandle() : manager(nullptr) {}
@@ -561,9 +518,6 @@ void ImageManager::device_load_image(Device *device,
   load_image_metadata(img);
   const ImageDataType type = img->metadata.type;
 
-  /* Name for debugging. */
-  img->mem_name = string_printf("tex_image_%s_%03d", name_from_type(type), (int)slot);
-
   /* Free previous texture in slot. */
   if (img->mem) {
     const thread_scoped_lock device_lock(device_mutex);
@@ -571,7 +525,7 @@ void ImageManager::device_load_image(Device *device,
   }
 
   img->mem = make_unique<device_image>(
-      device, img->mem_name.c_str(), slot, type, img->params.interpolation, img->params.extension);
+      device, "tex_image", slot, type, img->params.interpolation, img->params.extension);
   img->mem->info.use_transform_3d = img->metadata.use_transform_3d;
   img->mem->info.transform_3d = img->metadata.transform_3d;
 
