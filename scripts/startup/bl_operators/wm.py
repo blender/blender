@@ -1585,8 +1585,9 @@ class WM_OT_properties_edit(Operator):
         name="Value",
         description="Python value for unsupported custom property types",
     )
-
+    enum_items = None
     # Helper method to avoid repetitive code to retrieve a single value from sequences and non-sequences.
+
     @staticmethod
     def _convert_new_value_single(old_value, new_type):
         if hasattr(old_value, "__len__") and len(old_value) > 0:
@@ -1694,6 +1695,7 @@ class WM_OT_properties_edit(Operator):
             self.soft_min_int = rna_data["soft_min"]
             self.soft_max_int = rna_data["soft_max"]
             self.step_int = rna_data["step"]
+            self.enum_items = rna_data.get("items", None)
             self.use_soft_limits = (
                 self.min_int != self.soft_min_int or
                 self.max_int != self.soft_max_int
@@ -1784,6 +1786,7 @@ class WM_OT_properties_edit(Operator):
                 step=self.step_int,
                 default=self.default_int[0] if prop_type_new == 'INT' else self.default_int[:self.array_length],
                 description=self.description,
+                items=self.enum_items,
             )
         elif prop_type_new in {'BOOL', 'BOOL_ARRAY'}:
             ui_data = item.id_properties_ui(name)
