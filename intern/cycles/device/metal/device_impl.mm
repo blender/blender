@@ -1195,6 +1195,11 @@ void MetalDevice::image_free(device_image &mem)
   image_info_id_map[image_info_id] = nil;
 }
 
+bool MetalDevice::has_unified_memory() const
+{
+  return true;
+}
+
 unique_ptr<DeviceQueue> MetalDevice::gpu_queue_create()
 {
   return make_unique<MetalDeviceQueue>(this);

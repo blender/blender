@@ -133,6 +133,7 @@ class Device {
   }
 
   string error_msg;
+  KernelImageLoadRequestedGPU image_load_requested_gpu_;
 
   virtual device_ptr mem_alloc_sub_ptr(device_memory & /*mem*/, size_t /*offset*/, size_t /*size*/)
   {
@@ -206,6 +207,19 @@ class Device {
   /* Get OpenShadingLanguage memory buffer. */
   virtual OSLGlobals *get_cpu_osl_memory();
 
+  /* Image Cache. */
+  virtual void set_image_cache_func(KernelImageLoadRequestedCPU /*image_load_requested_cpu*/,
+                                    KernelImageLoadRequestedGPU image_load_requested_gpu)
+  {
+    image_load_requested_gpu_ = image_load_requested_gpu;
+  }
+  void image_load_requested_gpu(DeviceQueue &queue)
+  {
+    if (image_load_requested_gpu_) {
+      image_load_requested_gpu_(queue);
+    }
+  }
+
   /* Acceleration structure building. */
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit);
   /* Used by Metal and OptiX. */
@@ -237,6 +251,11 @@ class Device {
   virtual device_ptr mem_device_ptr(const device_memory &mem, Device *sub_device);
 
   virtual bool check_peer_access(Device * /*peer_device*/)
+  {
+    return false;
+  }
+
+  virtual bool has_unified_memory() const
   {
     return false;
   }

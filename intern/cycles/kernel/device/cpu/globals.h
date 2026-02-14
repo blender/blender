@@ -51,6 +51,8 @@ struct KernelGlobalsCPU {
 
   KernelData data = {};
 
+  KernelImageLoadRequestedCPU image_load_requested_cpu;
+
   ProfilingState profiler;
 };
 

@@ -137,8 +137,8 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
     const int width = info.width;
     const int height = info.height;
     int ix, iy;
-    frac(x * (float)width, &ix);
-    frac(y * (float)height, &iy);
+    frac(x, &ix);
+    frac(y, &iy);
     switch (info.extension) {
       case EXTENSION_REPEAT:
         ix = wrap_periodic(ix, width);
@@ -175,8 +175,8 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
     /* A -0.5 offset is used to center the linear samples around the sample point. */
     int ix, iy;
     int nix, niy;
-    const float tx = frac(x * (float)width - 0.5f, &ix);
-    const float ty = frac(y * (float)height - 0.5f, &iy);
+    const float tx = frac(x - 0.5f, &ix);
+    const float ty = frac(y - 0.5f, &iy);
     const TexT *data = (const TexT *)info.data;
 
     switch (info.extension) {
@@ -228,8 +228,8 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
 
     /* A -0.5 offset is used to center the cubic samples around the sample point. */
     int ix, iy;
-    const float tx = frac(x * (float)width - 0.5f, &ix);
-    const float ty = frac(y * (float)height - 0.5f, &iy);
+    const float tx = frac(x - 0.5f, &ix);
+    const float ty = frac(y - 0.5f, &iy);
 
     int pix, piy;
     int nix, niy;
@@ -326,50 +326,75 @@ template<typename TexT, typename OutT = float4> struct ImageInterpolator {
 #undef SET_CUBIC_SPLINE_WEIGHTS
 
 ccl_device float4 kernel_image_interp(KernelGlobals kg,
-                                      ccl_private ShaderData * /*sd*/,
+                                      ShaderData *sd,
                                       const int image_texture_id,
-                                      dual2 uv)
+                                      dual2 uv,
+                                      ccl_private bool *r_miss = nullptr)
 {
   if (image_texture_id == KERNEL_IMAGE_NONE) {
     return IMAGE_MISSING_RGBA;
   }
   const ccl_global KernelImageTexture &tex = kernel_data_fetch(image_textures, image_texture_id);
-  if (tex.image_info_id == KERNEL_IMAGE_NONE) {
-    return IMAGE_MISSING_RGBA;
-  }
-  const KernelImageInfo &info = kernel_data_fetch(image_info, tex.image_info_id);
-  const float x = uv.val.x;
-  const float y = uv.val.y;
+  const ccl_global KernelImageInfo *info;
 
-  if (UNLIKELY(!info.data)) {
+  float2 xy = zero_float2();
+
+  if (tex.tile_descriptor_offset != UINT_MAX) {
+    /* Wrapping. */
+    if (!kernel_image_tile_wrap(ExtensionType(tex.extension), uv.val)) {
+      return zero_float4();
+    }
+
+    /* Tile mapping */
+    const KernelTileDescriptor tile_descriptor = kernel_image_tile_map(
+        kg, sd, tex, image_texture_id, uv, xy, r_miss);
+
+    if (!kernel_tile_descriptor_loaded(tile_descriptor)) {
+      return (tile_descriptor == KERNEL_TILE_LOAD_FAILED) ? IMAGE_MISSING_RGBA : tex.average_color;
+    }
+
+    info = &kernel_data_fetch(image_info, kernel_tile_descriptor_image_info_id(tile_descriptor));
+  }
+  else {
+    /* Full image sampling. */
+    if (tex.image_info_id == KERNEL_IMAGE_NONE) {
+      return IMAGE_MISSING_RGBA;
+    }
+
+    /* Convert to pixel space. */
+    info = &kernel_data_fetch(image_info, tex.image_info_id);
+    xy = make_float2(uv.val.x * info->width, uv.val.y * info->height);
+  }
+
+  if (UNLIKELY(!info->data)) {
     return zero_float4();
   }
 
-  switch (info.data_type) {
+  switch (info->data_type) {
     case IMAGE_DATA_TYPE_HALF: {
-      const float f = ImageInterpolator<half, float>::interp(info, x, y);
+      const float f = ImageInterpolator<half, float>::interp(*info, xy.x, xy.y);
       return make_float4(f, f, f, 1.0f);
     }
     case IMAGE_DATA_TYPE_BYTE: {
-      const float f = ImageInterpolator<uchar, float>::interp(info, x, y);
+      const float f = ImageInterpolator<uchar, float>::interp(*info, xy.x, xy.y);
       return make_float4(f, f, f, 1.0f);
     }
     case IMAGE_DATA_TYPE_USHORT: {
-      const float f = ImageInterpolator<uint16_t, float>::interp(info, x, y);
+      const float f = ImageInterpolator<uint16_t, float>::interp(*info, xy.x, xy.y);
       return make_float4(f, f, f, 1.0f);
     }
     case IMAGE_DATA_TYPE_FLOAT: {
-      const float f = ImageInterpolator<float, float>::interp(info, x, y);
+      const float f = ImageInterpolator<float, float>::interp(*info, xy.x, xy.y);
       return make_float4(f, f, f, 1.0f);
     }
     case IMAGE_DATA_TYPE_HALF4:
-      return ImageInterpolator<half4>::interp(info, x, y);
+      return ImageInterpolator<half4>::interp(*info, xy.x, xy.y);
     case IMAGE_DATA_TYPE_BYTE4:
-      return ImageInterpolator<uchar4>::interp(info, x, y);
+      return ImageInterpolator<uchar4>::interp(*info, xy.x, xy.y);
     case IMAGE_DATA_TYPE_USHORT4:
-      return ImageInterpolator<ushort4>::interp(info, x, y);
+      return ImageInterpolator<ushort4>::interp(*info, xy.x, xy.y);
     case IMAGE_DATA_TYPE_FLOAT4:
-      return ImageInterpolator<float4>::interp(info, x, y);
+      return ImageInterpolator<float4>::interp(*info, xy.x, xy.y);
     default:
       assert(0);
       return IMAGE_MISSING_RGBA;
@@ -379,14 +404,15 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
 ccl_device_forceinline float4 kernel_image_interp_with_udim(KernelGlobals kg,
                                                             ShaderData *sd,
                                                             const int udim_id,
-                                                            dual2 uv)
+                                                            dual2 uv,
+                                                            ccl_private bool *r_miss = nullptr)
 {
   const int image_texture_id = kernel_image_udim_map(kg, udim_id, uv.val);
   if (image_texture_id == KERNEL_IMAGE_NONE) {
     return IMAGE_MISSING_RGBA;
   }
 
-  return kernel_image_interp(kg, sd, image_texture_id, uv);
+  return kernel_image_interp(kg, sd, image_texture_id, uv, r_miss);
 }
 
 } /* Namespace. */

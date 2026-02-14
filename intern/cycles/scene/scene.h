@@ -71,7 +71,14 @@ class SceneParams {
   int num_bvh_time_steps;
   int hair_subdivisions;
   CurveShapeType hair_shape;
-  int texture_limit;
+  float texture_resolution;
+
+  /* Use tx files if they exist. */
+  bool use_texture_cache = true;
+  /* Auto generate tx files. */
+  bool auto_texture_cache = false;
+  /* Relative (to the image file) or absolute directory for auto generating tx files. */
+  std::string texture_cache_path;
 
   bool background;
 
@@ -86,7 +93,7 @@ class SceneParams {
     num_bvh_time_steps = 0;
     hair_subdivisions = 3;
     hair_shape = CURVE_RIBBON;
-    texture_limit = 0;
+    texture_resolution = 1.0f;
     background = true;
   }
 
@@ -99,7 +106,10 @@ class SceneParams {
              use_bvh_unaligned_nodes == params.use_bvh_unaligned_nodes &&
              num_bvh_time_steps == params.num_bvh_time_steps &&
              hair_subdivisions == params.hair_subdivisions && hair_shape == params.hair_shape &&
-             texture_limit == params.texture_limit);
+             texture_resolution == params.texture_resolution &&
+             use_texture_cache == params.use_texture_cache &&
+             auto_texture_cache == params.auto_texture_cache &&
+             texture_cache_path == params.texture_cache_path);
   }
 
   int curve_subdivisions()

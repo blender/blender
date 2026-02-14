@@ -263,6 +263,11 @@ void CPUDevice::image_free(device_image &mem)
   }
 }
 
+bool CPUDevice::has_unified_memory() const
+{
+  return true;
+}
+
 void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
 #ifdef WITH_EMBREE
@@ -338,6 +343,12 @@ OSLGlobals *CPUDevice::get_cpu_osl_memory()
 #else
   return nullptr;
 #endif
+}
+
+void CPUDevice::set_image_cache_func(KernelImageLoadRequestedCPU image_load_requested_cpu,
+                                     KernelImageLoadRequestedGPU /*image_load_requested_gpu*/)
+{
+  kernel_globals.image_load_requested_cpu = image_load_requested_cpu;
 }
 
 bool CPUDevice::load_kernels(const uint /*kernel_features*/)

@@ -300,6 +300,8 @@ void *device_image::alloc(const size_t width, const size_t height)
 
   info.width = width;
   info.height = height;
+  info.inv_width = (width > 0) ? 1.0f / (float)width : 0.0f;
+  info.inv_height = (height > 0) ? 1.0f / (float)height : 0.0f;
 
   return host_pointer;
 }

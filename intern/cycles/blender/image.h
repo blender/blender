@@ -22,7 +22,9 @@ class BlenderImageLoader : public ImageLoader {
                      const int tile_number,
                      const bool is_preview_render);
 
-  bool load_metadata(ImageMetaData &metadata) override;
+  bool load_metadata(ImageMetaData &metadata,
+                     const ImageLoaderParams &params,
+                     Progress &progress) override;
   bool load_pixels(const ImageMetaData &metadata, void *pixels) override;
   string name() const override;
   bool equals(const ImageLoader &other) const override;

@@ -32,7 +32,9 @@ VDBImageLoader::VDBImageLoader(const string &grid_name, const float clipping)
 
 VDBImageLoader::~VDBImageLoader() = default;
 
-bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
+bool VDBImageLoader::load_metadata(ImageMetaData &metadata,
+                                   const ImageLoaderParams & /*params*/,
+                                   Progress & /*progress*/)
 {
 #ifdef WITH_NANOVDB
   load_grid();

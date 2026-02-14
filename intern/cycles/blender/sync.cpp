@@ -945,10 +945,10 @@ SceneParams BlenderSync::get_scene_params(blender::Scene &b_scene,
     texture_limit = RNA_enum_get(&cscene, "texture_limit");
   }
   if (texture_limit > 0 && (b_scene.r.mode & blender::R_SIMPLIFY) != 0) {
-    params.texture_limit = 1 << (texture_limit + 6);
+    params.texture_resolution = 1 << (texture_limit + 6);
   }
   else {
-    params.texture_limit = 0;
+    params.texture_resolution = 0;
   }
 
   params.bvh_layout = DebugFlags().cpu.bvh_layout;
