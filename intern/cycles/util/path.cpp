@@ -492,7 +492,7 @@ string path_make_relative(const string &path_, const string &base_)
 
   /* Also don't make relative if root directories are different. This prevents
    * typical cases like making relative to /tmp. */
-  if (root_name.empty() && path.root_directory() != path.root_directory()) {
+  if (root_name.empty() && path.root_directory() != base.root_directory()) {
     return path_;
   }
 
