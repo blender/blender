@@ -127,4 +127,6 @@ struct KernelImageTexture {
   Transform transform_3d = transform_zero();
 };
 
+#define KERNEL_IMAGE_TEX_PADDING 2
+
 CCL_NAMESPACE_END
