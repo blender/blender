@@ -115,7 +115,7 @@ ccl_device Spectrum camera_sample_perspective(KernelGlobals kg,
     differential3 dD;
     dD.dx = normalize(Dcenter + make_float3(kernel_data.cam.dx)) - Dcenter_normalized;
     dD.dy = normalize(Dcenter + make_float3(kernel_data.cam.dy)) - Dcenter_normalized;
-    ray->dD = differential_make_compact(dD);
+    ray->dD = differential_make_compact(dD) * kernel_data.cam.differential_scale;
 #endif
   }
   else {
@@ -156,8 +156,8 @@ ccl_device Spectrum camera_sample_perspective(KernelGlobals kg,
 
     dP.dy = Py - Pcenter;
     dD.dy = Dy - Dcenter;
-    ray->dD = differential_make_compact(dD);
-    ray->dP = differential_make_compact(dP);
+    ray->dD = differential_make_compact(dD) * kernel_data.cam.differential_scale;
+    ray->dP = differential_make_compact(dP) * kernel_data.cam.differential_scale;
 #endif
   }
 
@@ -225,7 +225,7 @@ ccl_device Spectrum camera_sample_orthographic(KernelGlobals kg,
   dP.dx = make_float3(kernel_data.cam.dx);
   dP.dy = make_float3(kernel_data.cam.dx);
 
-  ray->dP = differential_make_compact(dP);
+  ray->dP = differential_make_compact(dP) * kernel_data.cam.differential_scale;
   ray->dD = differential_zero_compact();
 #endif
 
@@ -282,7 +282,7 @@ ccl_device_inline void camera_sample_to_ray(ccl_constant KernelCamera *cam,
     Pcenter = transform_point(&cameratoworld, Pcenter);
     dP.dx = transform_point(&cameratoworld, Px) - Pcenter;
     dP.dy = transform_point(&cameratoworld, Py) - Pcenter;
-    ray->dP = differential_make_compact(dP);
+    ray->dP = differential_make_compact(dP) * cam->differential_scale;
   }
   else {
     ray->dP = differential_zero_compact();
@@ -292,7 +292,7 @@ ccl_device_inline void camera_sample_to_ray(ccl_constant KernelCamera *cam,
   Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
   dD.dx = normalize(transform_direction(&cameratoworld, Dx)) - Dcenter;
   dD.dy = normalize(transform_direction(&cameratoworld, Dy)) - Dcenter;
-  ray->dD = differential_make_compact(dD);
+  ray->dD = differential_make_compact(dD) * cam->differential_scale;
 #endif
 
   /* clipping */

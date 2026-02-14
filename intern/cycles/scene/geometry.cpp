@@ -789,7 +789,8 @@ void GeometryManager::device_update(Device *device,
   Camera *dicing_camera = scene->dicing_camera;
   if (num_tessellation) {
     dicing_camera->set_screen_size(dicing_camera->get_full_width(),
-                                   dicing_camera->get_full_height());
+                                   dicing_camera->get_full_height(),
+                                   dicing_camera->pixel_size);
     dicing_camera->update(scene);
   }
 

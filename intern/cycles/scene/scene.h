@@ -197,7 +197,7 @@ class Scene : public NodeOwner {
   void enable_update_stats();
 
   bool update(Progress &progress);
-  bool update_camera_resolution(Progress &progress, int width, int height);
+  bool update_camera_resolution(Progress &progress, int width, int height, int pixel_size);
 
   bool has_shadow_catcher();
   void tag_shadow_catcher_modified();
