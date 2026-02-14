@@ -753,14 +753,6 @@ ccl_device int integrate_surface(KernelGlobals kg,
       /* Evaluate shader. */
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_EVAL);
       surface_shader_eval<node_feature_mask>(kg, state, &sd, render_buffer, path_flag);
-
-      /* Initialize additional RNG for BSDFs. */
-      if (sd.flag & SD_BSDF_NEEDS_LCG) {
-        sd.lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_pixel),
-                                      INTEGRATOR_STATE(state, path, rng_offset),
-                                      INTEGRATOR_STATE(state, path, sample),
-                                      0xb4bc3953);
-      }
     }
 
 #ifdef __SUBSURFACE__

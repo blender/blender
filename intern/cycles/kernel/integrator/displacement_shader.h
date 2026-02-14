@@ -22,6 +22,7 @@ ccl_device void displacement_shader_eval(KernelGlobals kg,
                                          ConstIntegratorGenericState state,
                                          ccl_private ShaderData *sd)
 {
+  sd->lcg_state = 0;
   sd->num_closure = 0;
   sd->num_closure_left = 0;
 
