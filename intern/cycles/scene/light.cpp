@@ -56,8 +56,9 @@ static void shade_background_pixels(Device *device,
             float const v = (y + 0.5f) / height;
 
             KernelShaderEvalInput in;
-            in.object = OBJECT_NONE;
-            in.prim = PRIM_NONE;
+            /* Repurpose object and prim to pass resolution for ray differential. */
+            in.object = width;
+            in.prim = height;
             in.u = u;
             in.v = v;
             d_input_data[x + y * width] = in;
