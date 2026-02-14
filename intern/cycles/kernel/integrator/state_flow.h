@@ -97,6 +97,25 @@ ccl_device_forceinline void integrator_path_terminate(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
 }
 
+ccl_device_forceinline void integrator_path_cache_miss(IntegratorState state,
+                                                       const DeviceKernel /*current_kernel*/)
+{
+  /* Queued kernel and counter is unmodified, so it will be re-executed. */
+  kernel_integrator_state.queue_counter->cache_miss = true;
+}
+
+ccl_device_forceinline void integrator_path_cache_miss_sorted(IntegratorState state,
+                                                              const DeviceKernel current_kernel)
+{
+  /* Queued kernel and counter is unmodified, so it will be re-executed. */
+  kernel_integrator_state.queue_counter->cache_miss = true;
+
+#  if !defined(__KERNEL_LOCAL_ATOMIC_SORT__)
+  const int key_ = INTEGRATOR_STATE_WRITE(state, path, shader_sort_key);
+  atomic_fetch_and_add_uint32(&kernel_integrator_state.sort_key_counter[current_kernel][key_], 1);
+#  endif
+}
+
 ccl_device_forceinline IntegratorShadowState integrator_shadow_path_init(
     KernelGlobals kg, IntegratorState state, const DeviceKernel next_kernel, const bool is_ao)
 {
@@ -128,6 +147,13 @@ ccl_device_forceinline void integrator_shadow_path_terminate(IntegratorShadowSta
   atomic_fetch_and_sub_uint32(&kernel_integrator_state.queue_counter->num_queued[current_kernel],
                               1);
   INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
+}
+
+ccl_device_forceinline void integrator_shadow_path_cache_miss(
+    IntegratorShadowState state, const DeviceKernel /*current_kernel*/)
+{
+  /* Queued kernel and counter is unmodified, so it will be re-executed. */
+  kernel_integrator_state.queue_counter->cache_miss = true;
 }
 
 /* Sort first by truncated state index (for good locality), then by key (for good coherence). */
@@ -211,6 +237,18 @@ ccl_device_forceinline void integrator_path_terminate(KernelGlobals kg,
   (void)current_kernel;
 }
 
+ccl_device_forceinline void integrator_path_cache_miss(IntegratorState /*state*/,
+                                                       const DeviceKernel /*current_kernel*/)
+{
+  assert(!"CPU kernel does not use texture cache miss mechanism");
+}
+
+ccl_device_forceinline void integrator_path_cache_miss_sorted(
+    IntegratorState /*state*/, const DeviceKernel /*current_kernel*/)
+{
+  assert(!"CPU kernel does not use texture cache miss mechanism");
+}
+
 ccl_device_forceinline void integrator_path_next_sorted(KernelGlobals /*kg*/,
                                                         IntegratorState state,
                                                         const DeviceKernel current_kernel,
@@ -234,6 +272,8 @@ integrator_shadow_path_init(ccl_attr_maybe_unused KernelGlobals kg,
   if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = nullptr;
   }
+#  else
+  (void)kg;
 #  endif
   return shadow_state;
 }
@@ -251,6 +291,12 @@ ccl_device_forceinline void integrator_shadow_path_terminate(IntegratorShadowSta
 {
   INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
   (void)current_kernel;
+}
+
+ccl_device_forceinline void integrator_shadow_path_cache_miss(
+    IntegratorShadowState /*state*/, const DeviceKernel /*current_kernel*/)
+{
+  assert(!"CPU kernel does not use texture cache miss mechanism");
 }
 
 #endif

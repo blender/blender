@@ -41,11 +41,12 @@ KERNEL_STRUCT_MEMBER(shadow_path,
 /* Ratio of throughput to distinguish diffuse / glossy / transmission render passes. */
 KERNEL_STRUCT_MEMBER(shadow_path, PackedSpectrum, pass_diffuse_weight, KERNEL_FEATURE_LIGHT_PASSES)
 KERNEL_STRUCT_MEMBER(shadow_path, PackedSpectrum, pass_glossy_weight, KERNEL_FEATURE_LIGHT_PASSES)
-/* Number of intersections found by ray-tracing.
+/* Packed number of intersections found by ray-tracing, and on GPU also the resume hit index
+ * and skip_volume flag for cache miss handling.
  * Note that this is the total number of intersections for the shadow ray.
  * The number of recorded intersections in the shadow_isect array might be different as it contains
  * up INTEGRATOR_SHADOW_ISECT_SIZE closest intersections. */
-KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, num_hits, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, packed_num_hits, KERNEL_FEATURE_PATH_TRACING)
 /* Light group. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint8_t, lightgroup, KERNEL_FEATURE_PATH_TRACING)
 /* Path guiding. */

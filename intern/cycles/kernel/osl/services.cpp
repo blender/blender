@@ -206,7 +206,7 @@ bool OSLRenderServices::get_attribute(ShaderGlobals *globals,
   }
 
   const ThreadKernelGlobalsCPU *kg = globals->kg;
-  if (sd == nullptr) {
+  if (sd->shader == SHADER_NONE) {
     /* Camera shader. */
     return osl_shared_get_camera_attribute(kg, globals, name, type, derivatives, val);
   }

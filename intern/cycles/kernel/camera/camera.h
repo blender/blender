@@ -308,7 +308,8 @@ ccl_device_inline Spectrum camera_sample_custom(KernelGlobals kg,
                                                 const ccl_global DecomposedTransform *cam_motion,
                                                 const float2 raster,
                                                 const float2 rand_lens,
-                                                ccl_private Ray *ray)
+                                                ccl_private Ray *ray,
+                                                ccl_private int &r_cache_miss)
 {
 #ifdef WITH_OSL
   /* Transform raster position to camera space. */
@@ -316,9 +317,24 @@ ccl_device_inline Spectrum camera_sample_custom(KernelGlobals kg,
   float3 sensor = transform_perspective(&rastertocamera, make_float3(raster.x, raster.y, 0.0f));
   float3 dSdx = transform_perspective_direction(&rastertocamera, make_float3(1.0f, 0.0f, 0.0f));
   float3 dSdy = transform_perspective_direction(&rastertocamera, make_float3(0.0f, 1.0f, 0.0f));
+
+  ShaderDataTinyStorage sd_storage = {};
+  ccl_private ShaderData *sd = AS_SHADER_DATA(&sd_storage);
+  sd->object = OBJECT_NONE;
+  sd->prim = PRIM_NONE;
+  sd->shader = SHADER_NONE;
+  sd->type = PRIMITIVE_NONE;
+  sd->flag = 0;
+
   /* Execute OSL shader to sample position, direction and transmission. */
   packed_float3 P, dPdx, dPdy, D, dDdx, dDdy, throughput;
-  throughput = osl_eval_camera(kg, sensor, dSdx, dSdy, rand_lens, P, dPdx, dPdy, D, dDdx, dDdy);
+  r_cache_miss = false;
+  throughput = osl_eval_camera(
+      kg, sd, sensor, dSdx, dSdy, rand_lens, P, dPdx, dPdy, D, dDdx, dDdy);
+  if (sd->flag & SD_CACHE_MISS) {
+    r_cache_miss = true;
+    return zero_spectrum();
+  }
   /* Zero throughput indicates failed sampling. */
   if (is_zero(throughput)) {
     return zero_spectrum();
@@ -435,7 +451,8 @@ ccl_device_inline Spectrum camera_sample(KernelGlobals kg,
                                          const float2 filter_uv,
                                          const float time,
                                          const float2 lens_uv,
-                                         ccl_private Ray *ray)
+                                         ccl_private Ray *ray,
+                                         ccl_private int &r_cache_miss)
 {
   /* pixel filter */
   const int filter_table_offset = kernel_data.tables.filter_table_offset;
@@ -482,6 +499,7 @@ ccl_device_inline Spectrum camera_sample(KernelGlobals kg,
   }
 
   /* sample */
+  r_cache_miss = false;
   if (kernel_data.cam.type == CAMERA_PERSPECTIVE) {
     return camera_sample_perspective(kg, raster, lens_uv, ray);
   }
@@ -494,7 +512,8 @@ ccl_device_inline Spectrum camera_sample(KernelGlobals kg,
   }
   if (kernel_data.cam.type == CAMERA_CUSTOM) {
     const ccl_global DecomposedTransform *cam_motion = kernel_data_array(camera_motion);
-    return camera_sample_custom(kg, &kernel_data.cam, cam_motion, raster, lens_uv, ray);
+    return camera_sample_custom(
+        kg, &kernel_data.cam, cam_motion, raster, lens_uv, ray, r_cache_miss);
   }
   kernel_assert(false);
   return zero_spectrum();

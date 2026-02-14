@@ -374,6 +374,7 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT, IntegratorBakeState>(
 /* Camera */
 
 packed_float3 osl_eval_camera(const ThreadKernelGlobalsCPU *kg,
+                              ccl_private ShaderData *sd,
                               const packed_float3 sensor,
                               const packed_float3 dSdx,
                               const packed_float3 dSdy,
@@ -385,12 +386,12 @@ packed_float3 osl_eval_camera(const ThreadKernelGlobalsCPU *kg,
                               packed_float3 &dDdx,
                               packed_float3 &dDdy)
 {
-  if (!kg->osl.globals->camera_state) {
+  if (!kg || !kg->osl.globals->camera_state) {
     return zero_spectrum();
   }
 
   /* Setup shader globals from the sensor position. */
-  cameradata_to_shaderglobals(sensor, dSdx, dSdy, rand_lens, &kg->osl.shader_globals);
+  cameradata_to_shaderglobals(sd, sensor, dSdx, dSdy, rand_lens, &kg->osl.shader_globals);
 
   /* Clear trace data. */
   kg->osl.tracedata.init = false;

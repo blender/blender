@@ -14,6 +14,7 @@
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shadow_linking.h"
 #include "kernel/integrator/state.h"
+#include "kernel/integrator/state_flow.h"
 #include "kernel/integrator/volume_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
@@ -31,7 +32,8 @@ CCL_NAMESPACE_BEGIN
 enum VolumeIntegrateEvent {
   VOLUME_PATH_SCATTERED = 0,
   VOLUME_PATH_ATTENUATED = 1,
-  VOLUME_PATH_MISSED = 2
+  VOLUME_PATH_MISSED = 2,
+  VOLUME_PATH_CACHE_MISS = 3
 };
 
 #ifdef __VOLUME__
@@ -2821,6 +2823,10 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   VolumeIntegrateResult result = {};
   volume_integrate_null_scattering(kg, state, ray, &sd, &rng_state, render_buffer, &ls, result);
 
+  if (sd.flag & SD_CACHE_MISS) {
+    return VOLUME_PATH_CACHE_MISS;
+  }
+
   return volume_integrate_event(kg, state, ray, &sd, &rng_state, ls, result);
 }
 
@@ -2857,6 +2863,10 @@ volume_integrate_ray_marching(KernelGlobals kg,
   const float step_size = volume_stack_step_size<false>(kg, state);
   volume_integrate_ray_marching(
       kg, state, ray, &sd, &rng_state, render_buffer, step_size, &ls, result);
+
+  if (sd.flag & SD_CACHE_MISS) {
+    return VOLUME_PATH_CACHE_MISS;
+  }
 
   return volume_integrate_event(kg, state, ray, &sd, &rng_state, ls, result);
 }
@@ -2932,6 +2942,10 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
   integrator_shade_volume_setup(kg, state, &ray, &isect);
 
   const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
+  if (event == VOLUME_PATH_CACHE_MISS) {
+    integrator_path_cache_miss(state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+    return;
+  }
   integrator_next_kernel_after_shade_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(
       kg, state, render_buffer, &isect, event);
 
@@ -2948,6 +2962,10 @@ ccl_device void integrator_shade_volume_ray_marching(KernelGlobals kg,
   integrator_shade_volume_setup(kg, state, &ray, &isect);
 
   const VolumeIntegrateEvent event = volume_integrate_ray_marching(kg, state, &ray, render_buffer);
+  if (event == VOLUME_PATH_CACHE_MISS) {
+    integrator_path_cache_miss(state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING);
+    return;
+  }
   integrator_next_kernel_after_shade_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING>(
       kg, state, render_buffer, &isect, event);
 

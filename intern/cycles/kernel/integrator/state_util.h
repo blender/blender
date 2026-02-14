@@ -103,7 +103,7 @@ ccl_device_forceinline void integrator_state_write_shadow_ray_self(
   /* There is a bit of implicit knowledge about the way how the kernels are invoked and what the
    * state is actually storing. Special logic here is needed because the intersect_shadow kernel
    * might be called multiple times. This happens when the total number of intersections by the
-   * ray (shadow_path.num_hits) exceeds INTEGRATOR_SHADOW_ISECT_SIZE.
+   * ray (shadow_path.packed_num_hits) exceeds INTEGRATOR_SHADOW_ISECT_SIZE.
    *
    * Writing of the shadow_ray.self to the state happens only during the shadow ray setup, and
    * the shadow_isect array gets overwritten by the intersect_shadow kernel. It is important to
