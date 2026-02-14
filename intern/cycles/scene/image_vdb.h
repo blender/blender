@@ -17,7 +17,7 @@
 #  endif
 #endif
 
-#include "scene/image.h"
+#include "scene/image_loader.h"
 
 #include "util/transform.h"
 

@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "scene/image.h"
+#pragma once
+
+#include "scene/image_loader.h"
 
 CCL_NAMESPACE_BEGIN
 

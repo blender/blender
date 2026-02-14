@@ -6,7 +6,7 @@
 
 #include "DNA_image_types.h"
 
-#include "scene/image.h"
+#include "scene/image_loader.h"
 #include "scene/image_vdb.h"
 
 struct Image;

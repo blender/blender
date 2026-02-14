@@ -4,6 +4,8 @@
 
 #include "scene/image_sky.h"
 
+#include "util/image_metadata.h"
+
 #include "sky_nishita.h"
 
 CCL_NAMESPACE_BEGIN

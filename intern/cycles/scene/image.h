@@ -6,6 +6,9 @@
 
 #include "device/memory.h"
 
+#include "scene/image_cache.h"
+#include "scene/image_loader.h"
+
 #include "util/colorspace.h"
 #include "util/image_metadata.h"
 #include "util/string.h"
@@ -46,40 +49,6 @@ class ImageParams {
             extension == other.extension && alpha_type == other.alpha_type &&
             colorspace == other.colorspace && frame == other.frame);
   }
-};
-
-/* Image loader base class, that can be subclassed to load image data
- * from custom sources (file, memory, procedurally generated, etc). */
-class ImageLoader {
- public:
-  ImageLoader();
-  virtual ~ImageLoader() = default;
-
-  /* Load metadata without actual image yet, should be fast. */
-  virtual bool load_metadata(ImageMetaData &metadata) = 0;
-
-  /* Load actual image contents. */
-  virtual bool load_pixels(const ImageMetaData &metadata, void *pixels) = 0;
-
-  /* Name for logs and stats. */
-  virtual string name() const = 0;
-
-  /* Optional for OSL texture cache. */
-  virtual ustring osl_filepath() const;
-
-  /* Optional for tiled textures loaded externally. */
-  virtual int get_tile_number() const;
-
-  /* Free any memory used for loading metadata and pixels. */
-  virtual void cleanup() {};
-
-  /* Compare avoid loading the same image multiple times. */
-  virtual bool equals(const ImageLoader &other) const = 0;
-  static bool equals(const ImageLoader *a, const ImageLoader *b);
-
-  virtual bool is_vdb_loader() const;
-
-  /* Work around for no RTTI. */
 };
 
 /* Image Handle
@@ -138,10 +107,10 @@ class ImageManager {
 
   void device_update(Device *device, Scene *scene, Progress &progress);
   void device_update_slot(Device *device, Scene *scene, const size_t slot, Progress &progress);
-  void device_free(Device *device);
+  void device_free(Scene *scene);
 
   void device_load_builtin(Device *device, Scene *scene, Progress &progress);
-  void device_free_builtin(Device *device);
+  void device_free_builtin(Scene *scene);
 
   void set_osl_texture_system(void *texture_system);
   bool set_animation_frame_update(const int frame);
@@ -152,6 +121,8 @@ class ImageManager {
 
   bool need_update() const;
 
+  ImageCache image_cache;
+
   struct Image {
     ImageParams params;
     ImageMetaData metadata;
@@ -161,7 +132,7 @@ class ImageManager {
     bool need_load;
     bool builtin;
 
-    unique_ptr<device_image> mem;
+    device_image *mem = nullptr;
 
     int users;
     thread_mutex mutex;
@@ -186,11 +157,8 @@ class ImageManager {
 
   void load_image_metadata(Image *img);
 
-  template<TypeDesc::BASETYPE FileFormat, typename StorageType>
-  bool file_load_image(Image *img, const int texture_limit);
-
   void device_load_image(Device *device, Scene *scene, const size_t slot, Progress &progress);
-  void device_free_image(Device *device, const size_t slot);
+  void device_free_image(Scene *scene, const size_t slot);
 
   friend class ImageHandle;
 };

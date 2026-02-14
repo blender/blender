@@ -4,6 +4,7 @@
 
 #include "scene/image_vdb.h"
 
+#include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/nanovdb.h"
 #include "util/openvdb.h"
