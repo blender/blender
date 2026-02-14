@@ -38,6 +38,7 @@ struct KernelParamsOptiX {
   /* Global scene data and textures */
   KernelData data;
 #define KERNEL_DATA_ARRAY(type, name) const type *name;
+#define KERNEL_DATA_ARRAY_WRITABLE(type, name) type *name;
 #include "kernel/data_arrays.h"
 
   /* Integrator state */
@@ -58,6 +59,7 @@ extern "C"
 #define kernel_data kernel_params.data
 #define kernel_data_array(name) kernel_params.name
 #define kernel_data_fetch(name, index) kernel_params.name[(index)]
+#define kernel_data_write(name, index, value) kernel_params.name[(index)] = (value)
 #define kernel_integrator_state kernel_params.integrator_state
 
 CCL_NAMESPACE_END
