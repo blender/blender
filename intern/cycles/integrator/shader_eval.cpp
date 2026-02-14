@@ -81,8 +81,8 @@ bool ShaderEval::eval_cpu(Device *device,
                           device_vector<float> &output,
                           const int64_t work_size)
 {
-  vector<ThreadKernelGlobalsCPU> kernel_thread_globals;
-  device->get_cpu_kernel_thread_globals(kernel_thread_globals);
+  vector<ThreadKernelGlobalsCPU> *kernel_thread_globals =
+      device->acquire_cpu_kernel_thread_globals();
 
   /* Find required kernel function. */
   const CPUKernels &kernels = Device::get_cpu_kernels();
@@ -102,7 +102,7 @@ bool ShaderEval::eval_cpu(Device *device,
       }
 
       const int thread_index = tbb::this_task_arena::current_thread_index();
-      const ThreadKernelGlobalsCPU *kg = &kernel_thread_globals[thread_index];
+      const ThreadKernelGlobalsCPU *kg = &(*kernel_thread_globals)[thread_index];
 
       switch (type) {
         case SHADER_EVAL_DISPLACE:
@@ -120,6 +120,8 @@ bool ShaderEval::eval_cpu(Device *device,
       }
     });
   });
+
+  device->release_cpu_kernel_thread_globals();
 
   return success;
 }
