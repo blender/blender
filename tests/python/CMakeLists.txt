@@ -771,6 +771,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     image_colorspace
     image_data_types
     image_mapping
+    image_mipmap
     image_texture_limit
     integrator
     light

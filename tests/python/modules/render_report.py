@@ -235,6 +235,7 @@ class Report:
         'global_dir',
         'reference_dir',
         'reference_override_dir',
+        "test_name_suffix",
         'oiiotool',
         'pixelated',
         'fail_threshold',
@@ -259,6 +260,7 @@ class Report:
 
         self.reference_dir = 'reference_renders'
         self.reference_override_dir = None
+        self.test_name_suffix = ""
         self.oiiotool = oiiotool
         self.compare_engine = None
         self.fail_threshold = 0.016
@@ -304,6 +306,9 @@ class Report:
 
     def set_engine_name(self, engine_name):
         self.engine_name = engine_name
+
+    def set_test_name_suffix(self, suffix):
+        self.test_name_suffix = suffix
 
     def run(self, dirpath, blender, arguments_cb, batch=False, fail_silently=False):
         # Run tests and output report.
@@ -486,7 +491,7 @@ class Report:
         return pathlib.Path(relpath).as_posix()
 
     def _write_test_html(self, test_category, test_result):
-        name = test_result.name.replace('_', ' ')
+        name = test_result.name + self.test_name_suffix
 
         status = test_result.error if test_result.error else ""
         tr_style = """ class="table-danger" """ if test_result.error else ""
