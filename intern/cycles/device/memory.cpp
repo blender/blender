@@ -204,11 +204,11 @@ device_sub_ptr::~device_sub_ptr()
 
 device_image::device_image(Device *device,
                            const char *name,
-                           const uint slot,
+                           const uint image_info_id,
                            ImageDataType image_data_type,
                            InterpolationType interpolation,
                            ExtensionType extension)
-    : device_memory(device, name, MEM_IMAGE_TEXTURE), slot(slot)
+    : device_memory(device, name, MEM_IMAGE_TEXTURE), image_info_id(image_info_id)
 {
   switch (image_data_type) {
     case IMAGE_DATA_TYPE_FLOAT4:
@@ -268,7 +268,8 @@ string device_image::log_name() const
 {
   const char *name = (name_) ? name_ : "unknown";
   if (type == MEM_IMAGE_TEXTURE) {
-    return string_printf("%s_%s_%03u", name, name_from_type(ImageDataType(info.data_type)), slot);
+    return string_printf(
+        "%s_%s_%03u", name, name_from_type(ImageDataType(info.data_type)), image_info_id);
   }
   return name;
 }

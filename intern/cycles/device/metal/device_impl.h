@@ -80,7 +80,7 @@ class MetalDevice : public Device {
   bool is_texture(const KernelImageInfo &info);
   device_vector<KernelImageInfo> image_info;
   id<MTLBuffer> image_bindings = nil;
-  std::vector<id<MTLResource>> image_slot_map;
+  std::vector<id<MTLResource>> image_info_id_map;
 
   MetalPipelineType kernel_specialization_level = PSO_GENERIC;
 

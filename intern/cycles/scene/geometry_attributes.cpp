@@ -334,7 +334,7 @@ class AttributeTableBuilder {
     if (mattr->element & ATTR_ELEMENT_VOXEL) {
       /* store slot in offset value */
       const ImageHandle &handle = mattr->data_voxel();
-      offset = handle.svm_slot();
+      offset = handle.svm_image_texture_id();
     }
     else if (mattr->element & ATTR_ELEMENT_IS_BYTE) {
       offset = attr_uchar4.add(mattr->data_uchar4(), size, mattr->modified);

@@ -600,7 +600,7 @@ class device_image : public device_memory {
  public:
   device_image(Device *device,
                const char *name,
-               const uint slot,
+               const uint image_info_id,
                ImageDataType image_data_type,
                InterpolationType interpolation,
                ExtensionType extension);
@@ -617,7 +617,7 @@ class device_image : public device_memory {
 
   void copy_to_device();
 
-  uint slot = 0;
+  uint image_info_id = 0;
   KernelImageInfo info;
 
  protected:

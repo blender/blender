@@ -228,7 +228,7 @@ void CPUDevice::image_alloc(device_image &mem)
   mem.device_size = mem.memory_size();
   stats.mem_alloc(mem.device_size);
 
-  const uint slot = mem.slot;
+  const uint slot = mem.image_info_id;
   if (slot >= image_info.size()) {
     /* Allocate some slots in advance, to reduce amount of re-allocations. */
     image_info.resize(slot + 128);

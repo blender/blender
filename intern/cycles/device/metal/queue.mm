@@ -361,7 +361,7 @@ void MetalDeviceQueue::init_execution()
 
   device_vector<KernelImageInfo> &image_info = metal_device_->image_info;
   id<MTLBuffer> &image_bindings = metal_device_->image_bindings;
-  std::vector<id<MTLResource>> &image_slot_map = metal_device_->image_slot_map;
+  std::vector<id<MTLResource>> &image_info_id_map = metal_device_->image_info_id_map;
 
   /* Ensure image_info is allocated before populating. */
   image_info.copy_to_device();
@@ -369,14 +369,15 @@ void MetalDeviceQueue::init_execution()
   /* Populate texture bindings. */
   uint64_t *bindings = (uint64_t *)image_bindings.contents;
   memset(bindings, 0, image_bindings.length);
-  for (int slot = 0; slot < image_info.size(); ++slot) {
-    if (image_slot_map[slot]) {
-      if (metal_device_->is_texture(image_info[slot])) {
-        write_resource(bindings, id<MTLTexture>(image_slot_map[slot]), slot);
+  for (int image_info_id = 0; image_info_id < image_info.size(); ++image_info_id) {
+    if (image_info_id_map[image_info_id]) {
+      if (metal_device_->is_texture(image_info[image_info_id])) {
+        write_resource(bindings, id<MTLTexture>(image_info_id_map[image_info_id]), image_info_id);
       }
       else {
-        /* The GPU address of a 1D buffer texture is written into the slot data field. */
-        write_resource(&image_info[slot].data, id<MTLBuffer>(image_slot_map[slot]), 0);
+        /* The GPU address of a 1D buffer texture is written into the image_info_id data field. */
+        write_resource(
+            &image_info[image_info_id].data, id<MTLBuffer>(image_info_id_map[image_info_id]), 0);
       }
     }
   }

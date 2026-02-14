@@ -7,8 +7,6 @@
 #include "device/device.h"
 #include "device/memory.h"
 
-#include "util/hash.h"
-#include "util/map.h"
 #include "util/set.h"
 #include "util/unique_ptr_vector.h"
 
@@ -22,7 +20,7 @@ struct ImageTileStats;
 class ImageCache {
   thread_mutex device_mutex;
 
-  /* Full images: one device image per full texture. Indexed by slot. */
+  /* Full images: one device image per full texture. Indexed by image_info_id. */
   unique_ptr_vector<device_image> full_images;
 
   set<device_image *> updated_device_images;
@@ -35,12 +33,10 @@ class ImageCache {
   device_image *load_image_full(Device &device,
                                 ImageLoader &loader,
                                 const ImageMetaData &metadata,
-                                const InterpolationType interpolation,
-                                const ExtensionType extension,
                                 const int texture_limit,
-                                const uint slot);
+                                KernelImageTexture &tex);
 
-  void free_image(DeviceScene &dscene, const uint slot);
+  void free_image(DeviceScene &dscene, const KernelImageTexture &tex);
 
   void copy_to_device_if_modified(DeviceScene &dscene);
 
@@ -56,8 +52,8 @@ class ImageCache {
                            const ExtensionType extension,
                            const int64_t width,
                            const int64_t height,
-                           const uint slot);
-  void free_full(const uint slot);
+                           uint &iamge_info_id);
+  void free_full(const uint image_info_id);
 
   template<TypeDesc::BASETYPE FileFormat, typename StorageType>
   device_image *load_full(Device &device,
@@ -66,7 +62,7 @@ class ImageCache {
                           const InterpolationType interpolation,
                           const ExtensionType extension,
                           const int texture_limit,
-                          const uint slot);
+                          uint &image_info_id);
 };
 
 CCL_NAMESPACE_END

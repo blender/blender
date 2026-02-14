@@ -202,16 +202,17 @@ OutT kernel_image_interp_nanovdb(const ccl_global KernelImageInfo &info,
 
 ccl_device float4 kernel_image_interp_3d(KernelGlobals kg,
                                          ccl_private ShaderData *sd,
-                                         const int id,
+                                         const int image_texture_id,
                                          float3 P,
                                          InterpolationType interp,
                                          const bool stochastic)
 {
 #ifdef WITH_NANOVDB
-  const ccl_global KernelImageInfo &info = kernel_data_fetch(image_info, id);
+  const ccl_global KernelImageTexture &tex = kernel_data_fetch(image_textures, image_texture_id);
+  const ccl_global KernelImageInfo &info = kernel_data_fetch(image_info, tex.image_info_id);
 
-  if (info.use_transform_3d) {
-    P = transform_point(&info.transform_3d, P);
+  if (tex.use_transform_3d) {
+    P = transform_point(&tex.transform_3d, P);
   }
 
   InterpolationType interpolation = (interp == INTERPOLATION_NONE) ?

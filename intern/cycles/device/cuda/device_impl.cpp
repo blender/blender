@@ -891,12 +891,12 @@ void CUDADevice::image_alloc(device_image &mem)
   {
     /* Update image info. */
     thread_scoped_lock lock(image_info_mutex);
-    const uint slot = mem.slot;
-    if (slot >= image_info.size()) {
-      /* Allocate some slots in advance, to reduce amount of re-allocations. */
-      image_info.resize(slot + 128);
+    const uint image_info_id = mem.image_info_id;
+    if (image_info_id >= image_info.size()) {
+      /* Allocate some image_info_ids in advance, to reduce amount of re-allocations. */
+      image_info.resize(image_info_id + 128);
     }
-    image_info[slot] = tex_info;
+    image_info[image_info_id] = tex_info;
     need_image_info = true;
   }
 }
@@ -912,7 +912,8 @@ void CUDADevice::image_copy_to(device_image &mem)
     bool image_allocated = false;
     {
       thread_scoped_lock lock(image_info_mutex);
-      image_allocated = mem.slot < image_info.size() && image_info[mem.slot].data != 0;
+      image_allocated = mem.image_info_id < image_info.size() &&
+                        image_info[mem.image_info_id].data != 0;
     }
     if (!image_allocated) {
       image_alloc(mem);
@@ -947,7 +948,7 @@ void CUDADevice::image_free(device_image &mem)
   /* Always clear image info and image object, regardless of residency. */
   {
     thread_scoped_lock lock(image_info_mutex);
-    image_info[mem.slot] = KernelImageInfo();
+    image_info[mem.image_info_id] = KernelImageInfo();
   }
 
   if (cmem.texobject) {

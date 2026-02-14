@@ -176,7 +176,7 @@ class OSLCompiler {
 
   void parameter_texture(const char *name, ustring filename, ustring colorspace);
   void parameter_texture(const char *name, const ImageHandle &handle);
-  void parameter_texture_ies(const char *name, const int svm_slot);
+  void parameter_texture_ies(const char *name, const int svm_image_texture_id);
 
   ShaderType output_type()
   {

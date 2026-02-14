@@ -12,6 +12,8 @@ CCL_NAMESPACE_BEGIN
 /* Color to use when images are not found. */
 #define IMAGE_MISSING_RGBA make_float4(1, 0, 1, 1)
 
+#define KERNEL_IMAGE_NONE INT_MAX
+
 /* Interpolation types for images. */
 enum InterpolationType {
   INTERPOLATION_NONE = ~0,
@@ -82,7 +84,7 @@ enum ExtensionType {
   EXTENSION_NUM_TYPES,
 };
 
-/* Kernel data structure to describe image. */
+/* Kernel data structure describing device image objects. */
 struct KernelImageInfo {
   /* Pointer, offset or image/texture object depending on device. */
   uint64_t data = 0;
@@ -94,6 +96,22 @@ struct KernelImageInfo {
   /* Dimensions. */
   uint width = 0;
   uint height = 0;
+};
+
+/* Kernel data structure for image textures.
+ *
+ * This describes a logical image texture for the shading system, that may be stored
+ * in one or more device image objects described by KernelImageInfo. This is to
+ * support on demand loading of tiles. */
+struct KernelImageTexture {
+  /* Index into image object map. */
+  uint image_info_id = 0;
+  /* Image dimensions */
+  uint width = 0;
+  uint height = 0;
+  /* Interpolation and extension type. */
+  uint interpolation = INTERPOLATION_NONE;
+  uint extension = EXTENSION_REPEAT;
   /* Transform for 3D textures. */
   uint use_transform_3d = false;
   Transform transform_3d = transform_zero();

@@ -68,11 +68,11 @@ class ImageHandle {
 
   bool empty() const;
   int num_tiles() const;
-  int num_svm_slots() const;
+  int num_svm_image_texture_ids() const;
 
   ImageMetaData metadata();
-  int svm_slot(const int slot_index = 0) const;
-  vector<int4> get_svm_slots() const;
+  int svm_image_texture_id(const int image_texture_id_index = 0) const;
+  vector<int4> get_svm_image_texture_ids() const;
   device_image *image_memory() const;
 
   VDBImageLoader *vdb_loader() const;
@@ -80,7 +80,7 @@ class ImageHandle {
   ImageManager *get_manager() const;
 
  protected:
-  vector<size_t> slots;
+  vector<size_t> image_texture_ids;
   bool is_tiled = false;
   ImageManager *manager;
 
@@ -106,7 +106,10 @@ class ImageManager {
   ImageHandle add_image(vector<unique_ptr<ImageLoader>> &&loaders, const ImageParams &params);
 
   void device_update(Device *device, Scene *scene, Progress &progress);
-  void device_update_slot(Device *device, Scene *scene, const size_t slot, Progress &progress);
+  void device_update_image_texture_id(Device *device,
+                                      Scene *scene,
+                                      const size_t image_texture_id,
+                                      Progress &progress);
   void device_free(Scene *scene);
 
   void device_load_builtin(Device *device, Scene *scene, Progress &progress);
@@ -148,17 +151,23 @@ class ImageManager {
   vector<unique_ptr<Image>> images;
   void *osl_texture_system;
 
-  size_t add_image_slot(unique_ptr<ImageLoader> &&loader,
-                        const ImageParams &params,
-                        const bool builtin);
-  void add_image_user(const size_t slot);
-  void remove_image_user(const size_t slot);
-  Image *get_image_slot(const size_t slot);
+  size_t add_image_texture(unique_ptr<ImageLoader> &&loader,
+                           const ImageParams &params,
+                           const bool builtin);
+  void add_image_user(const size_t image_texture_id);
+  void remove_image_user(const size_t image_texture_id);
+  Image *get_image_texture(const size_t image_texture_id);
 
   void load_image_metadata(Image *img);
 
-  void device_load_image(Device *device, Scene *scene, const size_t slot, Progress &progress);
-  void device_free_image(Scene *scene, const size_t slot);
+  void device_load_image(Device *device,
+                         Scene *scene,
+                         const size_t image_texture_id,
+                         Progress &progress);
+  void device_free_image(Scene *scene, const size_t image_texture_id);
+
+  void device_resize_image_textures(Scene *scene);
+  void device_copy_image_textures(Scene *scene);
 
   friend class ImageHandle;
 };

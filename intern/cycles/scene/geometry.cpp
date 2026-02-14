@@ -655,10 +655,10 @@ void GeometryManager::device_update_displacement_images(Device *device,
           }
 
           ImageSlotTextureNode *image_node = static_cast<ImageSlotTextureNode *>(node);
-          for (int i = 0; i < image_node->handle.num_svm_slots(); i++) {
-            const int slot = image_node->handle.svm_slot(i);
-            if (slot != -1) {
-              bump_images.insert(slot);
+          for (int i = 0; i < image_node->handle.num_svm_image_texture_ids(); i++) {
+            const int image_texture_id = image_node->handle.svm_image_texture_id(i);
+            if (image_texture_id != -1) {
+              bump_images.insert(image_texture_id);
             }
           }
         }
@@ -674,9 +674,9 @@ void GeometryManager::device_update_displacement_images(Device *device,
   }
 #endif
 
-  for (const int slot : bump_images) {
-    pool.push([image_manager, device, scene, slot, &progress] {
-      image_manager->device_update_slot(device, scene, slot, progress);
+  for (const int image_texture_id : bump_images) {
+    pool.push([image_manager, device, scene, image_texture_id, &progress] {
+      image_manager->device_update_image_texture_id(device, scene, image_texture_id, progress);
     });
   }
   pool.wait_work();
@@ -700,16 +700,16 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
       }
 
       const ImageHandle &handle = attr.data_voxel();
-      const int slot = handle.svm_slot();
-      if (slot != -1) {
-        volume_images.insert(slot);
+      const int image_texture_id = handle.svm_image_texture_id();
+      if (image_texture_id != -1) {
+        volume_images.insert(image_texture_id);
       }
     }
   }
 
-  for (const int slot : volume_images) {
-    pool.push([image_manager, device, scene, slot, &progress] {
-      image_manager->device_update_slot(device, scene, slot, progress);
+  for (const int image_texture_id : volume_images) {
+    pool.push([image_manager, device, scene, image_texture_id, &progress] {
+      image_manager->device_update_image_texture_id(device, scene, image_texture_id, progress);
     });
   }
   pool.wait_work();

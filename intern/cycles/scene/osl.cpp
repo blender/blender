@@ -937,7 +937,7 @@ void OSLShaderManager::osl_image_slots(Device *device,
   for (OSLRenderServices *services : services_shared) {
     for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
       if (it->second.handle.get_manager() == image_manager) {
-        const int slot = it->second.handle.svm_slot();
+        const int slot = it->second.handle.svm_image_texture_id();
         image_slots.insert(slot);
       }
     }
@@ -1590,17 +1590,18 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
    * to get handle again. Note that this name must be unique between multiple
    * render sessions as the render services are shared. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
-  services->textures.insert(OSLUStringHash(filename),
-                            OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_slots()));
+  services->textures.insert(
+      OSLUStringHash(filename),
+      OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_image_texture_ids()));
   parameter(name, filename);
 }
 
-void OSLCompiler::parameter_texture_ies(const char *name, const int svm_slot)
+void OSLCompiler::parameter_texture_ies(const char *name, const int svm_image_texture_id)
 {
   /* IES light textures stored in SVM. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
   services->textures.insert(OSLUStringHash(filename),
-                            OSLTextureHandle(OSLTextureHandle::IES, svm_slot));
+                            OSLTextureHandle(OSLTextureHandle::IES, svm_image_texture_id));
   parameter(name, filename);
 }
 
@@ -1661,7 +1662,7 @@ void OSLCompiler::parameter_texture(const char * /*name*/,
 
 void OSLCompiler::parameter_texture(const char * /*name*/, const ImageHandle & /*handle*/) {}
 
-void OSLCompiler::parameter_texture_ies(const char * /*name*/, int /*svm_slot*/) {}
+void OSLCompiler::parameter_texture_ies(const char * /*name*/, int /*svm_image_texture_id*/) {}
 
 #endif /* WITH_OSL */
 

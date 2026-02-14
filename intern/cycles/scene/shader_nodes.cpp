@@ -404,7 +404,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
     /* If there only is one image (a very common case), we encode it as a negative value. */
     int num_nodes;
     if (handle.num_tiles() == 0) {
-      num_nodes = -handle.svm_slot();
+      num_nodes = -handle.svm_image_texture_id();
     }
     else {
       num_nodes = divide_up(handle.num_tiles(), 2);
@@ -422,10 +422,10 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
       for (int i = 0; i < num_nodes; i++) {
         int4 node;
         node.x = tiles[2 * i];
-        node.y = handle.svm_slot(2 * i);
+        node.y = handle.svm_image_texture_id(2 * i);
         if (2 * i + 1 < tiles.size()) {
           node.z = tiles[2 * i + 1];
-          node.w = handle.svm_slot(2 * i + 1);
+          node.w = handle.svm_image_texture_id(2 * i + 1);
         }
         else {
           node.z = -1;
@@ -436,9 +436,9 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
     }
   }
   else {
-    assert(handle.num_svm_slots() == 1);
+    assert(handle.num_svm_image_texture_ids() == 1);
     compiler.add_node(NODE_TEX_IMAGE_BOX,
-                      handle.svm_slot(),
+                      handle.svm_image_texture_id(),
                       compiler.encode_uchar4(vector_offset,
                                              compiler.stack_assign_if_linked(color_out),
                                              compiler.stack_assign_if_linked(alpha_out),
@@ -465,7 +465,7 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
-  if (handle.svm_slot() == -1) {
+  if (handle.svm_image_texture_id() == -1) {
     compiler.parameter_texture(
         "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
@@ -593,7 +593,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
   }
 
   compiler.add_node(NODE_TEX_ENVIRONMENT,
-                    handle.svm_slot(),
+                    handle.svm_image_texture_id(),
                     compiler.encode_uchar4(vector_offset,
                                            compiler.stack_assign_if_linked(color_out),
                                            compiler.stack_assign_if_linked(alpha_out),
@@ -617,7 +617,7 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
   const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
-  if (handle.svm_slot() == -1) {
+  if (handle.svm_image_texture_id() == -1) {
     compiler.parameter_texture(
         "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
@@ -1027,7 +1027,7 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
     compiler.add_node(__float_as_uint(sunsky.nishita_data[8]),
                       __float_as_uint(sunsky.nishita_data[9]),
                       __float_as_uint(sunsky.nishita_data[10]),
-                      handle.svm_slot());
+                      handle.svm_image_texture_id());
   }
 
   tex_mapping.compile_end(compiler, vector_in, vector_offset);

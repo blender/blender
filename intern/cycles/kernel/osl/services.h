@@ -41,26 +41,30 @@ struct ThreadKernelGlobalsCPU;
  * These are stored in a concurrent hash map, because OSL can compile multiple
  * shaders in parallel.
  *
- * NOTE: The svm_slots array contains a compressed mapping of tile to svm_slot pairs
- * stored as follows: x:tile_a, y:svm_slot_a, z:tile_b, w:svm_slot_b etc. */
+ * NOTE: The svm_image_texture_ids array contains a compressed mapping of tile to
+ * svm_image_texture_ids pairs stored as follows: x:tile_a,
+ * y:svm_image_texture_ids_a, z:tile_b, w:svm_image_texture_ids_b etc. */
 
 struct OSLTextureHandle {
   enum Type { OIIO, SVM, IES, BEVEL, AO };
 
-  OSLTextureHandle(Type type, const vector<int4> &svm_slots) : type(type), svm_slots(svm_slots) {}
+  OSLTextureHandle(Type type, const vector<int4> &svm_image_texture_ids)
+      : type(type), svm_image_texture_ids(svm_image_texture_ids)
+  {
+  }
 
-  OSLTextureHandle(Type type = OIIO, const int svm_slot = -1)
-      : OSLTextureHandle(type, {make_int4(0, svm_slot, -1, -1)})
+  OSLTextureHandle(Type type = OIIO, const int svm_image_texture_ids = -1)
+      : OSLTextureHandle(type, {make_int4(0, svm_image_texture_ids, -1, -1)})
   {
   }
 
   OSLTextureHandle(const ImageHandle &handle)
-      : type(SVM), svm_slots(handle.get_svm_slots()), handle(handle)
+      : type(SVM), svm_image_texture_ids(handle.get_svm_image_texture_ids()), handle(handle)
   {
   }
 
   Type type;
-  vector<int4> svm_slots;
+  vector<int4> svm_image_texture_ids;
   OSL::TextureSystem::TextureHandle *oiio_handle = nullptr;
   ColorSpaceProcessor *processor = nullptr;
   ImageHandle handle;

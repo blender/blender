@@ -9,8 +9,8 @@
 #include "scene/stats.h"
 
 #include "util/image.h"
-#include "util/image_metadata.h"
 #include "util/image_impl.h"
+#include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/types_image.h"
 
@@ -40,34 +40,37 @@ device_image &ImageCache::alloc_full(Device &device,
                                      ExtensionType extension,
                                      const int64_t width,
                                      const int64_t height,
-                                     const uint slot)
+                                     uint &image_info_id)
 {
   thread_scoped_lock device_lock(device_mutex);
 
+  image_info_id = full_images.size();
+
   unique_ptr<device_image> img = make_unique<device_image>(
-      &device, "tex_image", slot, type, interpolation, extension);
+      &device, "tex_image", image_info_id, type, interpolation, extension);
 
   img->alloc(width, height);
 
-  full_images.resize(std::max(size_t(slot + 1), full_images.size()));
-  full_images.replace(slot, std::move(img));
+  full_images.push_back(std::move(img));
 
-  device_image &mem = *full_images[slot];
+  device_image &mem = *full_images.back();
   updated_device_images.insert(&mem);
 
   return mem;
 }
 
-void ImageCache::free_full(const uint slot)
+void ImageCache::free_full(const uint image_info_id)
 {
   thread_scoped_lock device_lock(device_mutex);
-  full_images.steal(slot);
+  full_images.steal(image_info_id);
   full_images.trim();
 }
 
-void ImageCache::free_image(DeviceScene & /*dscene*/, const uint slot)
+void ImageCache::free_image(DeviceScene & /*dscene*/, const KernelImageTexture &tex)
 {
-  free_full(slot);
+  if (tex.image_info_id != KERNEL_IMAGE_NONE) {
+    free_full(uint(tex.image_info_id));
+  }
 }
 
 template<TypeDesc::BASETYPE FileFormat, typename StorageType>
@@ -77,7 +80,7 @@ device_image *ImageCache::load_full(Device &device,
                                     const InterpolationType interpolation,
                                     const ExtensionType extension,
                                     const int texture_limit,
-                                    const uint slot)
+                                    uint &image_info_id)
 {
   /* Ignore empty images. */
   if (!(metadata.channels > 0)) {
@@ -105,7 +108,8 @@ device_image *ImageCache::load_full(Device &device,
     mem = nullptr;
   }
   else {
-    mem = &alloc_full(device, metadata.type, interpolation, extension, width, height, slot);
+    mem = &alloc_full(
+        device, metadata.type, interpolation, extension, width, height, image_info_id);
     pixels = mem->data<StorageType>();
   }
 
@@ -138,8 +142,13 @@ device_image *ImageCache::load_full(Device &device,
                              &scaled_width,
                              &scaled_height);
 
-    mem = &alloc_full(
-        device, metadata.type, interpolation, extension, scaled_width, scaled_height, slot);
+    mem = &alloc_full(device,
+                      metadata.type,
+                      interpolation,
+                      extension,
+                      scaled_width,
+                      scaled_height,
+                      image_info_id);
     StorageType *texture_pixels = mem->data<StorageType>();
     std::copy_n(scaled_pixels.data(), scaled_pixels.size(), texture_pixels);
   }
@@ -150,47 +159,48 @@ device_image *ImageCache::load_full(Device &device,
 device_image *ImageCache::load_image_full(Device &device,
                                           ImageLoader &loader,
                                           const ImageMetaData &metadata,
-                                          const InterpolationType interpolation,
-                                          const ExtensionType extension,
                                           const int texture_limit,
-                                          const uint slot)
+                                          KernelImageTexture &tex)
 {
   const ImageDataType type = metadata.type;
+  const InterpolationType interpolation = InterpolationType(tex.interpolation);
+  const ExtensionType extension = ExtensionType(tex.extension);
   device_image *mem = nullptr;
+  uint image_info_id = KERNEL_IMAGE_NONE;
 
   /* Create new texture. */
   switch (type) {
     case IMAGE_DATA_TYPE_FLOAT4:
       mem = load_full<TypeDesc::FLOAT, float>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_FLOAT:
       mem = load_full<TypeDesc::FLOAT, float>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_BYTE4:
       mem = load_full<TypeDesc::UINT8, uchar>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_BYTE:
       mem = load_full<TypeDesc::UINT8, uchar>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_HALF4:
       mem = load_full<TypeDesc::HALF, half>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_HALF:
       mem = load_full<TypeDesc::HALF, half>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_USHORT:
       mem = load_full<TypeDesc::USHORT, uint16_t>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_USHORT4:
       mem = load_full<TypeDesc::USHORT, uint16_t>(
-          device, loader, metadata, interpolation, extension, texture_limit, slot);
+          device, loader, metadata, interpolation, extension, texture_limit, image_info_id);
       break;
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
@@ -200,7 +210,7 @@ device_image *ImageCache::load_image_full(Device &device,
     case IMAGE_DATA_TYPE_NANOVDB_EMPTY: {
 #ifdef WITH_NANOVDB
       mem = &alloc_full(
-          device, type, interpolation, extension, metadata.nanovdb_byte_size, 0, slot);
+          device, type, interpolation, extension, metadata.nanovdb_byte_size, 0, image_info_id);
 
       uint8_t *pixels = mem->data<uint8_t>();
       if (pixels) {
@@ -213,57 +223,7 @@ device_image *ImageCache::load_image_full(Device &device,
       break;
   }
 
-  /* On failure to load, create a 1x1 pink image. */
-  if (mem == nullptr && !is_nanovdb_type(type)) {
-    mem = &alloc_full(device, type, interpolation, extension, 1, 1, slot);
-    const int channels = (type == IMAGE_DATA_TYPE_FLOAT4 || type == IMAGE_DATA_TYPE_BYTE4 ||
-                          type == IMAGE_DATA_TYPE_HALF4 || type == IMAGE_DATA_TYPE_USHORT4) ?
-                             4 :
-                             1;
-
-    if (type == IMAGE_DATA_TYPE_FLOAT4 || type == IMAGE_DATA_TYPE_FLOAT) {
-      float *pixels = mem->data<float>();
-      pixels[0] = IMAGE_MISSING_RGBA.x;
-      if (channels == 4) {
-        pixels[1] = IMAGE_MISSING_RGBA.y;
-        pixels[2] = IMAGE_MISSING_RGBA.z;
-        pixels[3] = IMAGE_MISSING_RGBA.w;
-      }
-    }
-    else if (type == IMAGE_DATA_TYPE_BYTE4 || type == IMAGE_DATA_TYPE_BYTE) {
-      uchar *pixels = mem->data<uchar>();
-      pixels[0] = uchar(IMAGE_MISSING_RGBA.x * 255);
-      if (channels == 4) {
-        pixels[1] = uchar(IMAGE_MISSING_RGBA.y * 255);
-        pixels[2] = uchar(IMAGE_MISSING_RGBA.z * 255);
-        pixels[3] = uchar(IMAGE_MISSING_RGBA.w * 255);
-      }
-    }
-    else if (type == IMAGE_DATA_TYPE_HALF4 || type == IMAGE_DATA_TYPE_HALF) {
-      half *pixels = mem->data<half>();
-      pixels[0] = IMAGE_MISSING_RGBA.x;
-      if (channels == 4) {
-        pixels[1] = IMAGE_MISSING_RGBA.y;
-        pixels[2] = IMAGE_MISSING_RGBA.z;
-        pixels[3] = IMAGE_MISSING_RGBA.w;
-      }
-    }
-    else if (type == IMAGE_DATA_TYPE_USHORT4 || type == IMAGE_DATA_TYPE_USHORT) {
-      uint16_t *pixels = mem->data<uint16_t>();
-      pixels[0] = uint16_t(IMAGE_MISSING_RGBA.x * 65535);
-      if (channels == 4) {
-        pixels[1] = uint16_t(IMAGE_MISSING_RGBA.y * 65535);
-        pixels[2] = uint16_t(IMAGE_MISSING_RGBA.z * 65535);
-        pixels[3] = uint16_t(IMAGE_MISSING_RGBA.w * 65535);
-      }
-    }
-  }
-
-  /* Set 3D transform info for volumes. */
-  if (mem) {
-    mem->info.use_transform_3d = metadata.use_transform_3d;
-    mem->info.transform_3d = metadata.transform_3d;
-  }
+  tex.image_info_id = image_info_id;
 
   return mem;
 }

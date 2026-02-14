@@ -29,11 +29,11 @@ CCL_NAMESPACE_BEGIN
 ImageHandle::ImageHandle() : manager(nullptr) {}
 
 ImageHandle::ImageHandle(const ImageHandle &other)
-    : slots(other.slots), is_tiled(other.is_tiled), manager(other.manager)
+    : image_texture_ids(other.image_texture_ids), is_tiled(other.is_tiled), manager(other.manager)
 {
   /* Increase image user count. */
-  for (const size_t slot : slots) {
-    manager->add_image_user(slot);
+  for (const size_t image_texture_id : image_texture_ids) {
+    manager->add_image_user(image_texture_id);
   }
 }
 
@@ -42,10 +42,10 @@ ImageHandle &ImageHandle::operator=(const ImageHandle &other)
   clear();
   manager = other.manager;
   is_tiled = other.is_tiled;
-  slots = other.slots;
+  image_texture_ids = other.image_texture_ids;
 
-  for (const size_t slot : slots) {
-    manager->add_image_user(slot);
+  for (const size_t image_texture_id : image_texture_ids) {
+    manager->add_image_user(image_texture_id);
   }
 
   return *this;
@@ -58,102 +58,103 @@ ImageHandle::~ImageHandle()
 
 void ImageHandle::clear()
 {
-  for (const size_t slot : slots) {
-    manager->remove_image_user(slot);
+  for (const size_t image_texture_id : image_texture_ids) {
+    manager->remove_image_user(image_texture_id);
   }
 
-  slots.clear();
+  image_texture_ids.clear();
   manager = nullptr;
 }
 
 bool ImageHandle::empty() const
 {
-  return slots.empty();
+  return image_texture_ids.empty();
 }
 
 int ImageHandle::num_tiles() const
 {
-  return (is_tiled) ? slots.size() : 0;
+  return (is_tiled) ? image_texture_ids.size() : 0;
 }
 
-int ImageHandle::num_svm_slots() const
+int ImageHandle::num_svm_image_texture_ids() const
 {
-  return slots.size();
+  return image_texture_ids.size();
 }
 
 ImageMetaData ImageHandle::metadata()
 {
-  if (slots.empty()) {
+  if (image_texture_ids.empty()) {
     return ImageMetaData();
   }
 
-  ImageManager::Image *img = manager->get_image_slot(slots.front());
+  ImageManager::Image *img = manager->get_image_texture(image_texture_ids.front());
   manager->load_image_metadata(img);
   return img->metadata;
 }
 
-int ImageHandle::svm_slot(const int slot_index) const
+int ImageHandle::svm_image_texture_id(const int image_texture_id_index) const
 {
-  if (slot_index >= slots.size()) {
+  if (image_texture_id_index >= image_texture_ids.size()) {
     return -1;
   }
 
   if (manager->osl_texture_system) {
-    ImageManager::Image *img = manager->get_image_slot(slots[slot_index]);
+    ImageManager::Image *img = manager->get_image_texture(
+        image_texture_ids[image_texture_id_index]);
     if (!img->loader->osl_filepath().empty()) {
       return -1;
     }
   }
 
-  return slots[slot_index];
+  return image_texture_ids[image_texture_id_index];
 }
 
-vector<int4> ImageHandle::get_svm_slots() const
+vector<int4> ImageHandle::get_svm_image_texture_ids() const
 {
-  const size_t num_nodes = divide_up(slots.size(), 2);
+  const size_t num_nodes = divide_up(image_texture_ids.size(), 2);
 
-  vector<int4> svm_slots;
-  svm_slots.reserve(num_nodes);
+  vector<int4> svm_image_texture_ids;
+  svm_image_texture_ids.reserve(num_nodes);
   for (size_t i = 0; i < num_nodes; i++) {
     int4 node;
 
-    size_t slot = slots[2 * i];
-    node.x = manager->get_image_slot(slot)->loader->get_tile_number();
-    node.y = slot;
+    size_t image_texture_id = image_texture_ids[2 * i];
+    node.x = manager->get_image_texture(image_texture_id)->loader->get_tile_number();
+    node.y = image_texture_id;
 
-    if ((2 * i + 1) < slots.size()) {
-      slot = slots[2 * i + 1];
-      node.z = manager->get_image_slot(slot)->loader->get_tile_number();
-      node.w = slot;
+    if ((2 * i + 1) < image_texture_ids.size()) {
+      image_texture_id = image_texture_ids[2 * i + 1];
+      node.z = manager->get_image_texture(image_texture_id)->loader->get_tile_number();
+      node.w = image_texture_id;
     }
     else {
       node.z = -1;
       node.w = -1;
     }
 
-    svm_slots.push_back(node);
+    svm_image_texture_ids.push_back(node);
   }
 
-  return svm_slots;
+  return svm_image_texture_ids;
 }
 
 device_image *ImageHandle::image_memory() const
 {
-  if (slots.empty()) {
+  if (image_texture_ids.empty()) {
     return nullptr;
   }
 
-  ImageManager::Image *img = manager->get_image_slot(slots[0]);
+  ImageManager::Image *img = manager->get_image_texture(image_texture_ids[0]);
   return img ? img->mem : nullptr;
 }
 
 VDBImageLoader *ImageHandle::vdb_loader() const
 {
-  if (slots.empty()) {
+  if (image_texture_ids.empty()) {
     return nullptr;
   }
 
-  ImageManager::Image *img = manager->get_image_slot(slots[0]);
+  ImageManager::Image *img = manager->get_image_texture(image_texture_ids[0]);
 
   if (img == nullptr) {
     return nullptr;
@@ -179,7 +180,8 @@ ImageManager *ImageHandle::get_manager() const
 
 bool ImageHandle::operator==(const ImageHandle &other) const
 {
-  return manager == other.manager && is_tiled == other.is_tiled && slots == other.slots;
+  return manager == other.manager && is_tiled == other.is_tiled &&
+         image_texture_ids == other.image_texture_ids;
 }
 
 /* Image Manager */
@@ -193,8 +195,8 @@ ImageManager::ImageManager(const DeviceInfo & /*info*/)
 
 ImageManager::~ImageManager()
 {
-  for (size_t slot = 0; slot < images.size(); slot++) {
-    assert(!images[slot]);
+  for (size_t image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    assert(!images[image_texture_id]);
   }
 }
 
@@ -209,8 +211,8 @@ bool ImageManager::set_animation_frame_update(const int frame)
     const thread_scoped_lock device_lock(images_mutex);
     animation_frame = frame;
 
-    for (size_t slot = 0; slot < images.size(); slot++) {
-      if (images[slot] && images[slot]->params.animated) {
+    for (size_t image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+      if (images[image_texture_id] && images[image_texture_id]->params.animated) {
         return true;
       }
     }
@@ -253,10 +255,11 @@ void ImageManager::load_image_metadata(Image *img)
 
 ImageHandle ImageManager::add_image(const string &filename, const ImageParams &params)
 {
-  const size_t slot = add_image_slot(make_unique<OIIOImageLoader>(filename), params, false);
+  const size_t image_texture_id = add_image_texture(
+      make_unique<OIIOImageLoader>(filename), params, false);
 
   ImageHandle handle;
-  handle.slots.push_back(slot);
+  handle.image_texture_ids.push_back(image_texture_id);
   handle.manager = this;
   return handle;
 }
@@ -270,8 +273,9 @@ ImageHandle ImageManager::add_image(const string &filename,
   handle.is_tiled = !tiles.empty();
 
   if (!handle.is_tiled) {
-    const size_t slot = add_image_slot(make_unique<OIIOImageLoader>(filename), params, false);
-    handle.slots.push_back(slot);
+    const size_t image_texture_id = add_image_texture(
+        make_unique<OIIOImageLoader>(filename), params, false);
+    handle.image_texture_ids.push_back(image_texture_id);
     return handle;
   }
 
@@ -286,8 +290,9 @@ ImageHandle ImageManager::add_image(const string &filename,
     const int v = ((tile - 1001) / 10);
     string_replace(tile_filename, "<UVTILE>", string_printf("u%d_v%d", u + 1, v + 1));
 
-    const size_t slot = add_image_slot(make_unique<OIIOImageLoader>(tile_filename), params, false);
-    handle.slots.push_back(slot);
+    const size_t image_texture_id = add_image_texture(
+        make_unique<OIIOImageLoader>(tile_filename), params, false);
+    handle.image_texture_ids.push_back(image_texture_id);
   }
 
   return handle;
@@ -297,10 +302,10 @@ ImageHandle ImageManager::add_image(unique_ptr<ImageLoader> &&loader,
                                     const ImageParams &params,
                                     const bool builtin)
 {
-  const size_t slot = add_image_slot(std::move(loader), params, builtin);
+  const size_t image_texture_id = add_image_texture(std::move(loader), params, builtin);
 
   ImageHandle handle;
-  handle.slots.push_back(slot);
+  handle.image_texture_ids.push_back(image_texture_id);
   handle.manager = this;
   return handle;
 }
@@ -314,39 +319,39 @@ ImageHandle ImageManager::add_image(vector<unique_ptr<ImageLoader>> &&loaders,
   for (unique_ptr<ImageLoader> &loader : loaders) {
     unique_ptr<ImageLoader> local_loader;
     std::swap(loader, local_loader);
-    const size_t slot = add_image_slot(std::move(local_loader), params, true);
-    handle.slots.push_back(slot);
+    const size_t image_texture_id = add_image_texture(std::move(local_loader), params, true);
+    handle.image_texture_ids.push_back(image_texture_id);
   }
 
   handle.manager = this;
   return handle;
 }
 
-size_t ImageManager::add_image_slot(unique_ptr<ImageLoader> &&loader,
-                                    const ImageParams &params,
-                                    const bool builtin)
+size_t ImageManager::add_image_texture(unique_ptr<ImageLoader> &&loader,
+                                       const ImageParams &params,
+                                       const bool builtin)
 {
-  size_t slot;
+  size_t image_texture_id;
 
   const thread_scoped_lock device_lock(images_mutex);
 
   /* Find existing image. */
-  for (slot = 0; slot < images.size(); slot++) {
-    Image *img = images[slot].get();
+  for (image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    Image *img = images[image_texture_id].get();
     if (img && ImageLoader::equals(img->loader.get(), loader.get()) && img->params == params) {
       img->users++;
-      return slot;
+      return image_texture_id;
     }
   }
 
-  /* Find free slot. */
-  for (slot = 0; slot < images.size(); slot++) {
-    if (!images[slot]) {
+  /* Find free image_texture_id. */
+  for (image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    if (!images[image_texture_id]) {
       break;
     }
   }
 
-  if (slot == images.size()) {
+  if (image_texture_id == images.size()) {
     images.resize(images.size() + 1);
   }
 
@@ -360,26 +365,26 @@ size_t ImageManager::add_image_slot(unique_ptr<ImageLoader> &&loader,
   img->users = 1;
   img->mem = nullptr;
 
-  images[slot] = std::move(img);
+  images[image_texture_id] = std::move(img);
 
   need_update_ = true;
 
-  return slot;
+  return image_texture_id;
 }
 
-void ImageManager::add_image_user(const size_t slot)
+void ImageManager::add_image_user(const size_t image_texture_id)
 {
   const thread_scoped_lock device_lock(images_mutex);
-  Image *image = images[slot].get();
+  Image *image = images[image_texture_id].get();
   assert(image && image->users >= 1);
 
   image->users++;
 }
 
-void ImageManager::remove_image_user(const size_t slot)
+void ImageManager::remove_image_user(const size_t image_texture_id)
 {
   const thread_scoped_lock device_lock(images_mutex);
-  Image *image = images[slot].get();
+  Image *image = images[image_texture_id].get();
   assert(image && image->users >= 1);
 
   /* decrement user count */
@@ -393,23 +398,43 @@ void ImageManager::remove_image_user(const size_t slot)
   }
 }
 
-ImageManager::Image *ImageManager::get_image_slot(const size_t slot)
+ImageManager::Image *ImageManager::get_image_texture(const size_t image_texture_id)
 {
   /* Need mutex lock, images vector might get resized by another thread. */
   const thread_scoped_lock device_lock(images_mutex);
-  return images[slot].get();
+  return images[image_texture_id].get();
+}
+
+void ImageManager::device_resize_image_textures(Scene *scene)
+{
+  const thread_scoped_lock device_lock(device_mutex);
+  DeviceScene &dscene = scene->dscene;
+
+  if (dscene.image_textures.size() < images.size()) {
+    dscene.image_textures.resize(images.size());
+  }
+}
+
+void ImageManager::device_copy_image_textures(Scene *scene)
+{
+  image_cache.copy_to_device_if_modified(scene->dscene);
+
+  const thread_scoped_lock device_lock(device_mutex);
+  DeviceScene &dscene = scene->dscene;
+
+  dscene.image_textures.copy_to_device_if_modified();
 }
 
 void ImageManager::device_load_image(Device *device,
                                      Scene *scene,
-                                     const size_t slot,
+                                     const size_t image_texture_id,
                                      Progress &progress)
 {
   if (progress.get_cancel()) {
     return;
   }
 
-  Image *img = images[slot].get();
+  Image *img = images[image_texture_id].get();
 
   if (img->users == 0) {
     return;
@@ -419,22 +444,29 @@ void ImageManager::device_load_image(Device *device,
 
   load_image_metadata(img);
 
-  img->mem = image_cache.load_image_full(*device,
-                                         *img->loader,
-                                         img->metadata,
-                                         img->params.interpolation,
-                                         img->params.extension,
-                                         scene->params.texture_limit,
-                                         slot);
+  KernelImageTexture tex;
+  tex.width = img->metadata.width;
+  tex.height = img->metadata.height;
+  tex.interpolation = img->params.interpolation;
+  tex.extension = img->params.extension;
+  tex.use_transform_3d = img->metadata.use_transform_3d;
+  tex.transform_3d = img->metadata.transform_3d;
+
+  img->mem = image_cache.load_image_full(
+      *device, *img->loader, img->metadata, scene->params.texture_limit, tex);
+
+  /* Update image texture device data. */
+  scene->dscene.image_textures[image_texture_id] = tex;
+  scene->dscene.image_textures.tag_modified();
 
   /* Cleanup memory in image loader. */
   img->loader->cleanup();
   img->need_load = false;
 }
 
-void ImageManager::device_free_image(Scene *scene, size_t slot)
+void ImageManager::device_free_image(Scene *scene, size_t image_texture_id)
 {
-  Image *img = images[slot].get();
+  Image *img = images[image_texture_id].get();
   if (img == nullptr) {
     return;
   }
@@ -449,12 +481,12 @@ void ImageManager::device_free_image(Scene *scene, size_t slot)
   }
 
   if (img->mem) {
-    const thread_scoped_lock device_lock(device_mutex);
-    image_cache.free_image(scene->dscene, slot);
+    const KernelImageTexture &tex = scene->dscene.image_textures[image_texture_id];
+    image_cache.free_image(scene->dscene, tex);
     img->mem = nullptr;
   }
 
-  images[slot].reset();
+  images[image_texture_id].reset();
 }
 
 void ImageManager::device_update(Device *device, Scene *scene, Progress &progress)
@@ -469,15 +501,19 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
     }
   });
 
+  /* Resize devices arrays to match. */
+  device_resize_image_textures(scene);
+
+  /* Free and load images. */
   TaskPool pool;
-  for (size_t slot = 0; slot < images.size(); slot++) {
-    Image *img = images[slot].get();
+  for (size_t image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    Image *img = images[image_texture_id].get();
     if (img && img->users == 0) {
-      device_free_image(scene, slot);
+      device_free_image(scene, image_texture_id);
     }
     else if (img && img->need_load) {
-      pool.push([this, device, scene, slot, &progress] {
-        device_load_image(device, scene, slot, progress);
+      pool.push([this, device, scene, image_texture_id, &progress] {
+        device_load_image(device, scene, image_texture_id, progress);
       });
     }
   }
@@ -485,30 +521,30 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
   pool.wait_work();
 
   /* Copy device arrays. */
-  image_cache.copy_to_device_if_modified(scene->dscene);
+  device_copy_image_textures(scene);
 
   need_update_ = false;
 }
 
-void ImageManager::device_update_slot(Device *device,
-                                      Scene *scene,
-                                      const size_t slot,
-                                      Progress &progress)
+void ImageManager::device_update_image_texture_id(Device *device,
+                                                  Scene *scene,
+                                                  const size_t image_texture_id,
+                                                  Progress &progress)
 {
-  Image *img = images[slot].get();
+  Image *img = images[image_texture_id].get();
   assert(img != nullptr);
 
   if (img->users == 0) {
 
-    device_free_image(scene, slot);
+    device_free_image(scene, image_texture_id);
   }
 
   else if (img->need_load) {
-    device_load_image(device, scene, slot, progress);
+    device_load_image(device, scene, image_texture_id, progress);
   }
 
   /* Copy device arrays. */
-  image_cache.copy_to_device_if_modified(scene->dscene);
+  device_copy_image_textures(scene);
 }
 
 void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &progress)
@@ -519,12 +555,14 @@ void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &p
     return;
   }
 
+  device_resize_image_textures(scene);
+
   TaskPool pool;
-  for (size_t slot = 0; slot < images.size(); slot++) {
-    Image *img = images[slot].get();
+  for (size_t image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    Image *img = images[image_texture_id].get();
     if (img && img->need_load && img->builtin) {
-      pool.push([this, device, scene, slot, &progress] {
-        device_load_image(device, scene, slot, progress);
+      pool.push([this, device, scene, image_texture_id, &progress] {
+        device_load_image(device, scene, image_texture_id, progress);
       });
     }
   }
@@ -534,32 +572,35 @@ void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &p
 
 void ImageManager::device_free_builtin(Scene *scene)
 {
-  for (size_t slot = 0; slot < images.size(); slot++) {
-    Image *img = images[slot].get();
+  for (size_t image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    Image *img = images[image_texture_id].get();
     if (img && img->builtin) {
-      device_free_image(scene, slot);
+      device_free_image(scene, image_texture_id);
     }
   }
 }
 
 void ImageManager::device_free(Scene *scene)
 {
-  for (size_t slot = 0; slot < images.size(); slot++) {
-    device_free_image(scene, slot);
+  for (size_t image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    device_free_image(scene, image_texture_id);
   }
   images.clear();
 
   const thread_scoped_lock device_lock(device_mutex);
   image_cache.device_free(scene->dscene);
+  scene->dscene.image_textures.free();
 }
 
 void ImageManager::collect_statistics(RenderStats *stats)
 {
-  for (const unique_ptr<Image> &image : images) {
+  for (size_t image_texture_id = 0; image_texture_id < images.size(); image_texture_id++) {
+    Image *image = images[image_texture_id].get();
     if (!image || !image->mem) {
       /* Image may have been freed due to lack of users. */
       continue;
     }
+
     stats->image.textures.add_entry(
         NamedSizeEntry(image->loader->name(), image->mem->memory_size()));
   }

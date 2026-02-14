@@ -151,7 +151,7 @@ struct OSLTextureOptions {};
 
 #define OSL_TEXTURE_HANDLE_TYPE(handle) \
   ((unsigned int)((uintptr_t)(handle) & ((uintptr_t)0x3 << 30)))
-#define OSL_TEXTURE_HANDLE_SLOT(handle) \
+#define OSL_TEXTURE_HANDLE_ID(handle) \
   ((unsigned int)((uintptr_t)(handle) & ((uintptr_t)0x3FFFFFFF)))
 
 CCL_NAMESPACE_END
