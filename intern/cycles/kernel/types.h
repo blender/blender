@@ -1146,6 +1146,10 @@ struct KernelCamera {
   float4 dx;
   float4 dy;
 
+  /* Scale up differentials for progressive rendering, so that mip levels for the
+   * full resolution are used rather than loading unnecessary lower levels. */
+  float differential_scale;
+
   /* clipping */
   float nearclip;
   float cliplength;

@@ -165,9 +165,6 @@ Camera::Camera() : Node(get_node_type())
 {
   shutter_table_offset = TABLE_OFFSET_INVALID;
 
-  width = 1024;
-  height = 512;
-
   use_perspective_motion = false;
 
   shutter_curve.resize(RAMP_TABLE_SIZE);
@@ -491,6 +488,10 @@ void Camera::update(Scene *scene)
   /* store differentials */
   kcam->dx = make_float4(dx);
   kcam->dy = make_float4(dy);
+
+  /* Compensation for progressive rendering, so we use the same texture cache tiles
+   * as for the full render resolution rather. */
+  kcam->differential_scale = 0.5f * (width / float(full_width) + height / float(full_height));
 
   /* clipping */
   kcam->nearclip = nearclip;
@@ -871,7 +872,7 @@ bool Camera::use_motion() const
   return motion.size() > 1;
 }
 
-bool Camera::set_screen_size(const int width_, int height_)
+bool Camera::set_screen_size(const int width_, const int height_)
 {
   if (width_ != width || height_ != height) {
     width = width_;
