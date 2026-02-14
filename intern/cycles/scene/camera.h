@@ -195,9 +195,12 @@ class Camera : public Node {
   std::string script_name;
   map<ustring, pair<vector<uint8_t>, TypeDesc>> script_params;
 
+  /* Pixel size to render at lower res on high DPI screens. */
+  int pixel_size = 1;
+
  private:
-  int width;
-  int height;
+  int width = 1024;
+  int height = 512;
 
  public:
   /* functions */
@@ -225,7 +228,7 @@ class Camera : public Node {
 
   uint get_kernel_features() const;
 
-  bool set_screen_size(const int width_, int height_);
+  bool set_screen_size(const int width, int height, int pixel_size);
 
   void set_osl_camera(Scene *scene,
                       OSLCameraParamQuery &params,

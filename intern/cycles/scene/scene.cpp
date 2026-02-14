@@ -630,9 +630,9 @@ bool Scene::update(Progress &progress)
   return true;
 }
 
-bool Scene::update_camera_resolution(Progress &progress, int width, int height)
+bool Scene::update_camera_resolution(Progress &progress, int width, int height, int pixel_size)
 {
-  if (!camera->set_screen_size(width, height)) {
+  if (!camera->set_screen_size(width, height, pixel_size)) {
     return false;
   }
 
