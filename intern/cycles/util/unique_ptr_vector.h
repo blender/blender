@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cassert>
+#include <utility>
 
 #include "util/algorithm.h"
 #include "util/random_access_iterator_mixin.h"
@@ -35,9 +36,24 @@ template<typename T> class unique_ptr_vector {
     return local;
   }
 
+  T *back() const
+  {
+    return data.back().get();
+  }
+
   void push_back(unique_ptr<T> &&value)
   {
     data.push_back(std::move(value));
+  }
+
+  void replace(const size_t i, unique_ptr<T> &&value)
+  {
+    data[i] = std::move(value);
+  }
+
+  void resize(const size_t new_size)
+  {
+    data.resize(new_size);
   }
 
   bool empty() const
@@ -60,6 +76,12 @@ template<typename T> class unique_ptr_vector {
     data.free_memory();
   }
 
+  void erase_by_swap(const size_t index)
+  {
+    swap(data[index], data[data.size() - 1]);
+    data.resize(data.size() - 1);
+  }
+
   void erase(const T *value)
   {
     const size_t size = data.size();
@@ -80,11 +102,12 @@ template<typename T> class unique_ptr_vector {
     const size_t size = data.size();
     for (size_t i = 0; i < size; i++) {
       if (data[i].get() == value) {
-        swap(data[i], data[data.size() - 1]);
-        break;
+        erase_by_swap(i);
+        return;
       }
     }
-    data.resize(data.size() - 1);
+
+    assert(0);
   }
 
   void erase_in_set(const set<T *> &values)
@@ -101,6 +124,14 @@ template<typename T> class unique_ptr_vector {
     }
 
     data.resize(new_size);
+  }
+
+  /* Remove trailing null entries. */
+  void trim()
+  {
+    while (!data.empty() && !data.back()) {
+      data.pop_back();
+    }
   }
 
   /* Basic iterators for range based for loop. */
@@ -167,6 +198,53 @@ template<typename T> class unique_ptr_vector {
   Iterator end()
   {
     return Iterator{data.end()};
+  }
+
+  /* Iterator over vector with index. */
+  template<typename UniqueVectorU, typename U> struct EnumerateT {
+    UniqueVectorU &vec;
+
+    struct Iterator {
+      size_t index;
+      UniqueVectorU &vec;
+
+      bool operator!=(const Iterator &other) const
+      {
+        return index != other.index;
+      }
+
+      void operator++()
+      {
+        index++;
+      }
+
+      std::pair<size_t, U *> operator*() const
+      {
+        return std::make_pair(index, vec[index]);
+      }
+    };
+
+    Iterator begin()
+    {
+      return Iterator{0, vec};
+    }
+    Iterator end()
+    {
+      return Iterator{vec.size(), vec};
+    }
+  };
+
+  using Enumerate = EnumerateT<unique_ptr_vector<T>, T>;
+  using ConstEnumerate = EnumerateT<const unique_ptr_vector<T>, const T>;
+
+  Enumerate enumerate()
+  {
+    return Enumerate{*this};
+  }
+
+  ConstEnumerate enumerate() const
+  {
+    return ConstEnumerate{*this};
   }
 
   /* Cast to read-only regular vector for easier interop.
