@@ -105,6 +105,7 @@ set(SRC_HEADERS
   queue.h
   random_access_iterator_mixin.h
   rect.h
+  scoped_defer.h
   set.h
   simd.h
   semaphore.h
