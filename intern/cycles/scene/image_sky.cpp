@@ -27,7 +27,9 @@ SkyLoader::SkyLoader(const bool multiple_scattering,
 
 SkyLoader::~SkyLoader() = default;
 
-bool SkyLoader::load_metadata(ImageMetaData &metadata)
+bool SkyLoader::load_metadata(ImageMetaData &metadata,
+                              const ImageLoaderParams & /*params*/,
+                              Progress & /*progress*/)
 {
   metadata.width = 512;
   metadata.height = 256;

@@ -57,26 +57,25 @@ ccl_device float cubic_h1(const float a)
 /* Fast bicubic texture lookup using 4 bilinear lookups, adapted from CUDA samples. */
 template<typename T>
 ccl_device_noinline T kernel_image_interp_bicubic(const ccl_global KernelImageInfo &info,
-                                                  float x,
-                                                  float y)
+                                                  const float2 uv)
 {
   ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
 
-  x = (x * info.width) - 0.5f;
-  y = (y * info.height) - 0.5f;
+  const float x = (uv.x * (float)info.width) - 0.5f;
+  const float y = (uv.y * (float)info.height) - 0.5f;
 
-  float px = floorf(x);
-  float py = floorf(y);
-  float fx = x - px;
-  float fy = y - py;
+  const float px = floorf(x);
+  const float py = floorf(y);
+  const float fx = x - px;
+  const float fy = y - py;
 
-  float g0x = cubic_g0(fx);
-  float g1x = cubic_g1(fx);
+  const float g0x = cubic_g0(fx);
+  const float g1x = cubic_g1(fx);
   /* Note +0.5 offset to compensate for CUDA linear filtering convention. */
-  float x0 = (px + cubic_h0(fx) + 0.5f) / info.width;
-  float x1 = (px + cubic_h1(fx) + 0.5f) / info.width;
-  float y0 = (py + cubic_h0(fy) + 0.5f) / info.height;
-  float y1 = (py + cubic_h1(fy) + 0.5f) / info.height;
+  const float x0 = (px + cubic_h0(fx) + 0.5f) * info.inv_width;
+  const float x1 = (px + cubic_h1(fx) + 0.5f) * info.inv_width;
+  const float y0 = (py + cubic_h0(fy) + 0.5f) * info.inv_height;
+  const float y1 = (py + cubic_h1(fy) + 0.5f) * info.inv_height;
 
   return cubic_g0(fy) * (g0x * ccl_gpu_image_object_read_2D<T>(tex, x0, y0) +
                          g1x * ccl_gpu_image_object_read_2D<T>(tex, x1, y0)) +
@@ -84,42 +83,70 @@ ccl_device_noinline T kernel_image_interp_bicubic(const ccl_global KernelImageIn
                          g1x * ccl_gpu_image_object_read_2D<T>(tex, x1, y1));
 }
 
-ccl_device float4 kernel_image_interp(KernelGlobals kg, const int image_texture_id, const dual2 uv)
+ccl_device float4 kernel_image_interp(KernelGlobals kg,
+                                      ccl_private ShaderData *sd,
+                                      const int image_texture_id,
+                                      dual2 uv,
+                                      ccl_private bool *r_miss = nullptr)
 {
   if (image_texture_id == KERNEL_IMAGE_NONE) {
     return IMAGE_MISSING_RGBA;
   }
   const ccl_global KernelImageTexture &tex = kernel_data_fetch(image_textures, image_texture_id);
-  if (tex.image_info_id == KERNEL_IMAGE_NONE) {
-    return IMAGE_MISSING_RGBA;
+  const ccl_global KernelImageInfo *info;
+
+  if (tex.tile_descriptor_offset != UINT_MAX) {
+    /* Wrapping. */
+    if (!kernel_image_tile_wrap(ExtensionType(tex.extension), uv.val)) {
+      return zero_float4();
+    }
+
+    /* Tile mapping */
+    float2 xy = zero_float2();
+    const KernelTileDescriptor tile_descriptor = kernel_image_tile_map(
+        kg, sd, tex, image_texture_id, uv, xy, r_miss);
+
+    if (!kernel_tile_descriptor_loaded(tile_descriptor)) {
+      return (tile_descriptor == KERNEL_TILE_LOAD_FAILED) ? IMAGE_MISSING_RGBA : tex.average_color;
+    }
+
+    info = &kernel_data_fetch(image_info, kernel_tile_descriptor_image_info_id(tile_descriptor));
+
+    /* Convert to normalized space again. */
+    uv.val = make_float2(xy.x * info->inv_width, xy.y * info->inv_height);
   }
-  const ccl_global KernelImageInfo &info = kernel_data_fetch(image_info, tex.image_info_id);
-  const float x = uv.val.x;
-  const float y = uv.val.y;
+  else {
+    /* Full image sampling. */
+    if (tex.image_info_id == KERNEL_IMAGE_NONE) {
+      return IMAGE_MISSING_RGBA;
+    }
+
+    info = &kernel_data_fetch(image_info, tex.image_info_id);
+  }
 
   /* float4, byte4, ushort4 and half4 */
-  const int image_type = info.data_type;
-  if (image_type == IMAGE_DATA_TYPE_FLOAT4 || image_type == IMAGE_DATA_TYPE_BYTE4 ||
-      image_type == IMAGE_DATA_TYPE_HALF4 || image_type == IMAGE_DATA_TYPE_USHORT4)
+  const int texture_type = info->data_type;
+  if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
+      texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4)
   {
-    if (info.interpolation == INTERPOLATION_CUBIC || info.interpolation == INTERPOLATION_SMART) {
-      return kernel_image_interp_bicubic<float4>(info, x, y);
+    if (info->interpolation == INTERPOLATION_CUBIC || info->interpolation == INTERPOLATION_SMART) {
+      return kernel_image_interp_bicubic<float4>(*info, uv.val);
     }
     else {
-      ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
-      return ccl_gpu_image_object_read_2D<float4>(tex, x, y);
+      ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info->data;
+      return ccl_gpu_image_object_read_2D<float4>(tex, uv.val.x, uv.val.y);
     }
   }
   /* float, byte and half */
   else {
     float f;
 
-    if (info.interpolation == INTERPOLATION_CUBIC || info.interpolation == INTERPOLATION_SMART) {
-      f = kernel_image_interp_bicubic<float>(info, x, y);
+    if (info->interpolation == INTERPOLATION_CUBIC || info->interpolation == INTERPOLATION_SMART) {
+      f = kernel_image_interp_bicubic<float>(*info, uv.val);
     }
     else {
-      ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info.data;
-      f = ccl_gpu_image_object_read_2D<float>(tex, x, y);
+      ccl_gpu_image_object_2D tex = (ccl_gpu_image_object_2D)info->data;
+      f = ccl_gpu_image_object_read_2D<float>(tex, uv.val.x, uv.val.y);
     }
 
     return make_float4(f, f, f, 1.0f);
@@ -127,16 +154,17 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg, const int image_texture_
 }
 
 ccl_device_forceinline float4 kernel_image_interp_with_udim(KernelGlobals kg,
-                                                            ccl_private ShaderData * /*sd*/,
+                                                            ccl_private ShaderData *sd,
                                                             const int udim_id,
-                                                            dual2 uv)
+                                                            dual2 uv,
+                                                            ccl_private bool *r_miss = nullptr)
 {
   const int image_texture_id = kernel_image_udim_map(kg, udim_id, uv.val);
   if (image_texture_id == KERNEL_IMAGE_NONE) {
     return IMAGE_MISSING_RGBA;
   }
 
-  return kernel_image_interp(kg, image_texture_id, uv);
+  return kernel_image_interp(kg, sd, image_texture_id, uv, r_miss);
 }
 
 CCL_NAMESPACE_END

@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "scene/shader_nodes.h"
 #include "kernel/svm/types.h"
 #include "kernel/types.h"
+
 #include "scene/constant_fold.h"
 #include "scene/film.h"
 #include "scene/image.h"
@@ -14,6 +14,7 @@
 #include "scene/mesh.h"
 #include "scene/osl.h"
 #include "scene/scene.h"
+#include "scene/shader_nodes.h"
 #include "scene/svm.h"
 
 #include "sky_hosek.h"
@@ -381,8 +382,25 @@ void ImageTextureNode::update_images(const SVMCompiler &compiler)
 {
   if (handle.empty()) {
     ImageManager *image_manager = compiler.scene->image_manager.get();
-    cull_tiles(compiler.scene, compiler.current_graph);
+    const bool use_cache = image_manager->get_use_texture_cache();
+
+    if (!use_cache) {
+      cull_tiles(compiler.scene, compiler.current_graph);
+    }
+
     handle = image_manager->add_image(filename.string(), image_params(), tiles);
+
+    if (use_cache && !tiles.empty() && !image_manager->get_auto_texture_cache()) {
+      if (!handle.all_udim_tiled(compiler.progress)) {
+        cull_tiles(compiler.scene, compiler.current_graph);
+        handle = image_manager->add_image(filename.string(), image_params(), tiles);
+      }
+    }
+  }
+
+  const ImageMetaData metadata = handle.metadata(compiler.progress);
+  if (metadata.tile_size && compiler.scene->image_manager->get_use_texture_cache()) {
+    set_need_derivatives();
   }
 }
 
@@ -445,7 +463,20 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   if (handle.empty()) {
     cull_tiles(compiler.scene, compiler.current_graph);
     ImageManager *image_manager = compiler.scene->image_manager.get();
+    const bool use_cache = image_manager->get_use_texture_cache();
+
+    if (!use_cache) {
+      cull_tiles(compiler.scene, compiler.current_graph);
+    }
+
     handle = image_manager->add_image(filename.string(), image_params(), tiles);
+
+    if (use_cache && !tiles.empty() && !image_manager->get_auto_texture_cache()) {
+      if (!handle.all_udim_tiled(compiler.progress)) {
+        cull_tiles(compiler.scene, compiler.current_graph);
+        handle = image_manager->add_image(filename.string(), image_params(), tiles);
+      }
+    }
   }
 
   const ImageMetaData metadata = handle.metadata(compiler.progress);
@@ -553,6 +584,11 @@ void EnvironmentTextureNode::update_images(const SVMCompiler &compiler)
   if (handle.empty()) {
     ImageManager *image_manager = compiler.scene->image_manager.get();
     handle = image_manager->add_image(filename.string(), image_params());
+  }
+
+  const ImageMetaData metadata = handle.metadata(compiler.progress);
+  if (metadata.tile_size && compiler.scene->image_manager->get_use_texture_cache()) {
+    set_need_derivatives();
   }
 }
 

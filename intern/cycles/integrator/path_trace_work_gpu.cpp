@@ -346,11 +346,9 @@ bool PathTraceWorkGPU::update_queue_counter_and_cache()
   IntegratorQueueCounter *queue_counter = integrator_queue_counter_.data();
   if (queue_counter->cache_miss) {
     LOG_DEBUG << "Image cache miss in GPU kernel, updating to load requested tiles";
-    // TODO: update images for cache miss
+    device_->image_load_requested_gpu(*queue_);
     queue_counter->cache_miss = 0;
     queue_->copy_to_device(integrator_queue_counter_);
-    /* TODO: this is expensive but needed to update image_info. */
-    queue_->init_execution();
   }
 
   return true;

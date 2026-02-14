@@ -680,6 +680,18 @@ ccl_device bool osl_shared_get_texture_info(KernelGlobals kg,
       return true;
     }
   }
+  else if (dataname == DeviceStrings::u_averagecolor) {
+    if (is_type_float3(datatype) || is_type_float4(datatype)) {
+      float *res = (float *)data;
+      res[0] = tex.average_color.x;
+      res[1] = tex.average_color.y;
+      res[2] = tex.average_color.z;
+      if (is_type_float4(datatype)) {
+        res[3] = tex.average_color.w;
+      }
+      return true;
+    }
+  }
 
   return false;
 }

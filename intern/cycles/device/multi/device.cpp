@@ -314,6 +314,14 @@ class MultiDevice : public Device {
     return device_ptr(0);
   }
 
+  void set_image_cache_func(KernelImageLoadRequestedCPU image_load_requested_cpu,
+                            KernelImageLoadRequestedGPU image_load_requested_gpu) override
+  {
+    for (SubDevice &sub : devices) {
+      sub.device->set_image_cache_func(image_load_requested_cpu, image_load_requested_gpu);
+    }
+  }
+
   bool is_resident(device_ptr key, Device *sub_device) override
   {
     for (SubDevice &sub : devices) {
@@ -587,6 +595,16 @@ class MultiDevice : public Device {
     for (SubDevice &sub : devices) {
       sub.device->foreach_device(callback);
     }
+  }
+
+  bool has_unified_memory() const override
+  {
+    for (const SubDevice &sub : devices) {
+      if (sub.device->has_unified_memory()) {
+        return true;
+      }
+    }
+    return false;
   }
 };
 

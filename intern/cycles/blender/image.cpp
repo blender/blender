@@ -42,7 +42,9 @@ BlenderImageLoader::BlenderImageLoader(blender::Image *b_image,
   }
 }
 
-bool BlenderImageLoader::load_metadata(ImageMetaData &metadata)
+bool BlenderImageLoader::load_metadata(ImageMetaData &metadata,
+                                       const ImageLoaderParams & /*params*/,
+                                       Progress & /*progress*/)
 {
   bool is_float = false;
   bool is_data = false;
