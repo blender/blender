@@ -519,10 +519,15 @@ const CPUKernels &Device::get_cpu_kernels()
   return kernels;
 }
 
-void Device::get_cpu_kernel_thread_globals(
-    vector<ThreadKernelGlobalsCPU> & /*kernel_thread_globals*/)
+vector<ThreadKernelGlobalsCPU> *Device::acquire_cpu_kernel_thread_globals()
 {
   LOG_FATAL << "Device does not support CPU kernels.";
+  return nullptr;
+}
+
+void Device::release_cpu_kernel_thread_globals()
+{
+  /* No-op for non-CPU devices. */
 }
 
 OSLGlobals *Device::get_cpu_osl_memory()

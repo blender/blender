@@ -4,6 +4,7 @@
 
 #include "device/cpu/device_impl.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -41,8 +42,10 @@
 CCL_NAMESPACE_BEGIN
 
 CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_)
-    : Device(info_, stats_, profiler_, headless_), image_info(this, "image_info", MEM_GLOBAL)
+    : Device(info_, stats_, profiler_, headless_)
 {
+  image_info = make_unique<device_vector<KernelImageInfo>>(this, "image_info", MEM_GLOBAL);
+
   /* Pick any kernel, all of them are supposed to have same level of microarchitecture
    * optimization. */
   LOG_INFO << "Using " << get_cpu_kernels().integrator_init_from_camera.get_uarch_name()
@@ -55,7 +58,6 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
 #ifdef WITH_EMBREE
   embree_device = rtcNewDevice("verbose=0");
 #endif
-  need_image_info = false;
 }
 
 CPUDevice::~CPUDevice()
@@ -64,7 +66,7 @@ CPUDevice::~CPUDevice()
   rtcReleaseDevice(embree_device);
 #endif
 
-  image_info.free();
+  image_info->free();
 }
 
 BVHLayoutMask CPUDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
@@ -74,18 +76,6 @@ BVHLayoutMask CPUDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
   bvh_layout_mask |= BVH_LAYOUT_EMBREE;
 #endif /* WITH_EMBREE */
   return bvh_layout_mask;
-}
-
-bool CPUDevice::load_image_info()
-{
-  if (!need_image_info) {
-    return false;
-  }
-
-  image_info.copy_to_device();
-  need_image_info = false;
-
-  return true;
 }
 
 void CPUDevice::mem_alloc(device_memory &mem)
@@ -193,7 +183,13 @@ void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
     data->device_bvh = embree_traversable;
   }
 #endif
+
+  /* Update both the main one, and the per-thread globals in case of updates during
+   * render from e.g. the texture cache. */
   kernel_const_copy(&kernel_globals, name, host, size);
+  for (ThreadKernelGlobalsCPU &kg : kernel_thread_globals_) {
+    kernel_const_copy(&kg, name, host, size);
+  }
 }
 
 void CPUDevice::global_alloc(device_memory &mem)
@@ -202,7 +198,12 @@ void CPUDevice::global_alloc(device_memory &mem)
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
+  /* Update both the main one, and the per-thread globals in case of updates during
+   * render from e.g. the texture cache. */
   kernel_global_memory_copy(&kernel_globals, mem.global_name(), mem.host_pointer, mem.data_size);
+  for (ThreadKernelGlobalsCPU &kg : kernel_thread_globals_) {
+    kernel_global_memory_copy(&kg, mem.global_name(), mem.host_pointer, mem.data_size);
+  }
 
   mem.device_pointer = (device_ptr)mem.host_pointer;
   mem.device_size = mem.memory_size();
@@ -228,15 +229,29 @@ void CPUDevice::image_alloc(device_image &mem)
   mem.device_size = mem.memory_size();
   stats.mem_alloc(mem.device_size);
 
-  const uint slot = mem.image_info_id;
-  if (slot >= image_info.size()) {
-    /* Allocate some slots in advance, to reduce amount of re-allocations. */
-    image_info.resize(slot + 128);
+  const uint image_info_id = mem.image_info_id;
+  if (image_info_id >= image_info->size()) {
+    /* Geometric growth to amortize reallocation cost. */
+    const size_t new_size = max(size_t(image_info_id) + 128, image_info->size() * 2);
+
+    unique_ptr<device_vector<KernelImageInfo>> new_info =
+        make_unique<device_vector<KernelImageInfo>>(this, "image_info", MEM_GLOBAL);
+    new_info->resize(new_size);
+
+    if (image_info->size() > 0) {
+      std::copy_n(image_info->data(), image_info->size(), new_info->data());
+    }
+
+    /* Move old vector to backup list to keep memory alive for concurrent access. */
+    old_image_infos.push_back(std::move(image_info));
+    image_info = std::move(new_info);
+
+    /* Update kernel globals pointers immediately. */
+    image_info->copy_to_device();
   }
 
-  image_info[slot] = mem.info;
-  image_info[slot].data = (uint64_t)mem.host_pointer;
-  need_image_info = true;
+  (*image_info)[image_info_id] = mem.info;
+  (*image_info)[image_info_id].data = (uint64_t)mem.host_pointer;
 }
 
 void CPUDevice::image_free(device_image &mem)
@@ -245,7 +260,6 @@ void CPUDevice::image_free(device_image &mem)
     mem.device_pointer = 0;
     stats.mem_free(mem.device_size);
     mem.device_size = 0;
-    need_image_info = true;
   }
 }
 
@@ -298,17 +312,23 @@ void *CPUDevice::get_guiding_device() const
 #endif
 }
 
-void CPUDevice::get_cpu_kernel_thread_globals(
-    vector<ThreadKernelGlobalsCPU> &kernel_thread_globals)
+vector<ThreadKernelGlobalsCPU> *CPUDevice::acquire_cpu_kernel_thread_globals()
 {
-  /* Ensure latest image info is loaded into kernel globals before returning. */
-  load_image_info();
+  assert(kernel_thread_globals_.empty());
 
-  kernel_thread_globals.clear();
+  kernel_thread_globals_.clear();
   OSLGlobals *osl_globals = get_cpu_osl_memory();
   for (int i = 0; i < info.cpu_threads; i++) {
-    kernel_thread_globals.emplace_back(kernel_globals, osl_globals, profiler, i);
+    kernel_thread_globals_.emplace_back(kernel_globals, osl_globals, profiler, i);
   }
+
+  return &kernel_thread_globals_;
+}
+
+void CPUDevice::release_cpu_kernel_thread_globals()
+{
+  kernel_thread_globals_.clear();
+  old_image_infos.clear();
 }
 
 OSLGlobals *CPUDevice::get_cpu_osl_memory()
