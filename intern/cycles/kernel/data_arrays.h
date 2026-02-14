@@ -7,6 +7,9 @@
 #ifndef KERNEL_DATA_ARRAY
 #  define KERNEL_DATA_ARRAY(type, name)
 #endif
+#ifndef KERNEL_DATA_ARRAY_WRITABLE
+#  define KERNEL_DATA_ARRAY_WRITABLE(type, name) KERNEL_DATA_ARRAY(type, name)
+#endif
 
 /* BVH2, not used for OptiX or Embree. */
 KERNEL_DATA_ARRAY(float4, bvh_nodes)
@@ -92,3 +95,4 @@ KERNEL_DATA_ARRAY(KernelImageUDIM, image_texture_udims)
 KERNEL_DATA_ARRAY(KernelImageInfo, image_info)
 
 #undef KERNEL_DATA_ARRAY
+#undef KERNEL_DATA_ARRAY_WRITABLE
