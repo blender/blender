@@ -141,7 +141,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   prop = RNA_def_boolean(ot->srna,
                          "filter_backup",
                          (filter & FILE_TYPE_BLENDER_BACKUP) != 0,
-                         "Filter .blend files",
+                         "Filter backup .blend files",
                          "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(

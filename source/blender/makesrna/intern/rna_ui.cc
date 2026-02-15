@@ -1878,7 +1878,7 @@ static void rna_def_panel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "text", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "drawname");
-  RNA_def_property_ui_text(prop, "Text", "XXX todo");
+  RNA_def_property_ui_text(prop, "Text", "Override for the panel label in the UI");
 
   prop = RNA_def_property(srna, "custom_data", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Constraint");

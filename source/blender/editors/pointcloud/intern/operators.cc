@@ -130,7 +130,7 @@ static void POINTCLOUD_OT_select_all(wmOperatorType *ot)
 {
   ot->name = "(De)select All";
   ot->idname = "POINTCLOUD_OT_select_all";
-  ot->description = "(De)select all point cloud";
+  ot->description = "(De)select all points";
 
   ot->exec = select_all_exec;
   ot->poll = editable_pointcloud_poll;

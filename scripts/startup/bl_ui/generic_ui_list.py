@@ -227,8 +227,8 @@ class UILIST_OT_entry_move(GenericUIListOperator, Operator):
     direction: EnumProperty(
         name="Direction",
         items=(
-            ('UP', 'UP', 'UP'),
-            ('DOWN', 'DOWN', 'DOWN'),
+            ('UP', "Up", "Move the active entry up"),
+            ('DOWN', "Down", "Move the active entry down"),
         ),
         default='UP',
     )

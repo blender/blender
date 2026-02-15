@@ -3014,7 +3014,7 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Jump to Strip";
   ot->idname = "SEQUENCER_OT_strip_jump";
-  ot->description = "Move frame to previous edit point";
+  ot->description = "Move frame to next or previous edit point";
 
   /* API callbacks. */
   ot->exec = sequencer_strip_jump_exec;
