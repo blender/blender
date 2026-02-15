@@ -1217,12 +1217,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_enum(ot->srna,
-               "group",
-               select_group_items,
-               TRACK_CLEAR_REMAINED,
-               "Action",
-               "Clear action to execute");
+  RNA_def_enum(ot->srna, "group", select_group_items, 1, "Group", "Select tracks by group");
 }
 
 }  // namespace blender
