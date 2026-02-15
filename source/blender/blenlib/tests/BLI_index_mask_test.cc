@@ -561,6 +561,17 @@ TEST(index_mask, FromPredicate)
   }
 }
 
+TEST(index_mask, ToIndices)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int>({3, 6, 8, 9}, memory);
+  Vector<int64_t> indices = mask.to_indices<int64_t>();
+  EXPECT_EQ(indices[0], 3);
+  EXPECT_EQ(indices[1], 6);
+  EXPECT_EQ(indices[2], 8);
+  EXPECT_EQ(indices[3], 9);
+}
+
 TEST(index_mask, IndexIteratorConversionFuzzy)
 {
   RandomNumberGenerator rng;

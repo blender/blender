@@ -470,6 +470,7 @@ class IndexMask : private IndexMaskData {
    * size as the mask.
    */
   template<typename T> void to_indices(MutableSpan<T> r_indices) const;
+  template<typename T> Vector<T> to_indices() const;
   /**
    * Set the bits at indices in the mask to 1.
    */
@@ -1075,6 +1076,13 @@ void IndexMask::from_groups(const IndexMask &universe,
   for (const int64_t i : r_masks.index_range()) {
     r_masks[i] = IndexMask::from_indices<T>(indices_by_group[i], memory);
   }
+}
+
+template<typename T> inline Vector<T> IndexMask::to_indices() const
+{
+  Vector<T> indices(indices_num_);
+  this->to_indices<T>(indices);
+  return indices;
 }
 
 std::optional<IndexRange> inline IndexMask::to_range() const
