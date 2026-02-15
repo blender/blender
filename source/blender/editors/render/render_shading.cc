@@ -3157,7 +3157,7 @@ void TEXTURE_OT_slot_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste Texture Slot Settings";
   ot->idname = "TEXTURE_OT_slot_paste";
-  ot->description = "Copy the texture settings and nodes";
+  ot->description = "Paste the texture settings and nodes";
 
   /* API callbacks. */
   ot->exec = paste_mtex_exec;

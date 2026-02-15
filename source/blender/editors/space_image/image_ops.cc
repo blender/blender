@@ -942,7 +942,7 @@ void IMAGE_OT_view_cursor_center(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Cursor To Center View";
-  ot->description = "Set 2D Cursor To Center View location";
+  ot->description = "Set 2D cursor to center view location";
   ot->idname = "IMAGE_OT_view_cursor_center";
 
   /* API callbacks. */
@@ -1798,7 +1798,7 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Match Movie Length";
-  ot->description = "Set image's user's length to the one of this video";
+  ot->description = "Set the image's frame range to match the video's duration";
   ot->idname = "IMAGE_OT_match_movie_length";
 
   /* API callbacks. */

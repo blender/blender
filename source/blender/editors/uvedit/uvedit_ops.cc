@@ -830,7 +830,7 @@ static void UV_OT_arrange_islands(wmOperatorType *ot)
        "MAX",
        0,
        "Max",
-       "Align the islands to the left side of the island"},
+       "Align the islands to the max side of the island"},
       {int(UVAlignIslandMode::Center),
        "CENTER",
        0,

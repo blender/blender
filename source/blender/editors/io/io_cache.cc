@@ -317,7 +317,7 @@ void CACHEFILE_OT_layer_move(wmOperatorType *ot)
                layer_slot_move,
                0,
                "Direction",
-               "Direction to move the active vertex group towards");
+               "Direction to move the active layer towards");
 }
 
 }  // namespace blender

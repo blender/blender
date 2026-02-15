@@ -837,8 +837,15 @@ static wmOperatorStatus primitive_add_invoke(bContext *C,
 
 static void define_primitive_add_properties(wmOperatorType *ot)
 {
-  RNA_def_float(
-      ot->srna, "size", 100, -FLT_MAX, FLT_MAX, "Size", "Size of new circle", -FLT_MAX, FLT_MAX);
+  RNA_def_float(ot->srna,
+                "size",
+                100,
+                -FLT_MAX,
+                FLT_MAX,
+                "Size",
+                "Size of new primitive",
+                -FLT_MAX,
+                FLT_MAX);
   RNA_def_float_vector(ot->srna,
                        "location",
                        2,
@@ -846,7 +853,7 @@ static void define_primitive_add_properties(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX,
                        "Location",
-                       "Location of new circle",
+                       "Location of new primitive",
                        -FLT_MAX,
                        FLT_MAX);
 }

@@ -606,8 +606,8 @@ class LightMapPack(Operator):
     PREF_CONTEXT: bpy.props.EnumProperty(
         name="Selection",
         items=(
-            ('SEL_FACES', "Selected Faces", "Space all UVs evenly"),
-            ('ALL_FACES', "All Faces", "Average space UVs edge length of each loop"),
+            ('SEL_FACES', "Selected Faces", "Pack only selected faces"),
+            ('ALL_FACES', "All Faces", "Pack all faces in the mesh"),
         ),
     )
 

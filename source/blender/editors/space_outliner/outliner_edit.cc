@@ -305,7 +305,7 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 {
   ot->name = "Open/Close";
   ot->idname = "OUTLINER_OT_item_openclose";
-  ot->description = "Toggle whether item under cursor is enabled or closed";
+  ot->description = "Toggle whether item under cursor is open or closed";
 
   ot->invoke = outliner_item_openclose_invoke;
   ot->modal = outliner_item_openclose_modal;

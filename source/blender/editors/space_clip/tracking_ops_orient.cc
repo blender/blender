@@ -562,8 +562,8 @@ static wmOperatorStatus set_axis_exec(bContext *C, wmOperator *op)
 void CLIP_OT_set_axis(wmOperatorType *ot)
 {
   static const EnumPropertyItem axis_actions[] = {
-      {0, "X", 0, "X", "Align bundle align X axis"},
-      {1, "Y", 0, "Y", "Align bundle align Y axis"},
+      {0, "X", 0, "X", "Align bundle to X axis"},
+      {1, "Y", 0, "Y", "Align bundle to Y axis"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

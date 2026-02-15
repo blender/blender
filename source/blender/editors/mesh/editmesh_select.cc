@@ -1611,9 +1611,9 @@ void MESH_OT_select_mode(wmOperatorType *ot)
   PropertyRNA *prop;
 
   static const EnumPropertyItem actions_items[] = {
-      {0, "DISABLE", false, "Disable", "Disable selected markers"},
-      {1, "ENABLE", false, "Enable", "Enable selected markers"},
-      {2, "TOGGLE", false, "Toggle", "Toggle disabled flag for selected markers"},
+      {0, "DISABLE", false, "Disable", "Disable the selection mode"},
+      {1, "ENABLE", false, "Enable", "Enable the selection mode"},
+      {2, "TOGGLE", false, "Toggle", "Toggle the selection mode"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

@@ -1864,7 +1864,8 @@ void CURVE_OT_pen(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "delete_point", false, "Delete Point", "Delete an existing point");
   RNA_def_boolean(
       ot->srna, "insert_point", false, "Insert Point", "Insert Point into a curve segment");
-  RNA_def_boolean(ot->srna, "move_segment", false, "Move Segment", "Delete an existing point");
+  RNA_def_boolean(
+      ot->srna, "move_segment", false, "Move Segment", "Move an existing curve segment");
   RNA_def_boolean(
       ot->srna, "select_point", false, "Select Point", "Select a point or its handles");
   RNA_def_boolean(ot->srna, "move_point", false, "Move Point", "Move a point or its handles");
