@@ -30,6 +30,8 @@ if "bpy" in locals():
         importlib.reload(properties)
     if "presets" in locals():
         importlib.reload(presets)
+    if "maketx" in locals():
+        importlib.reload(maketx)
 
 import bpy
 
@@ -130,12 +132,16 @@ classes = (
 )
 
 
+cli_commands = []
+
+
 def register():
     from bpy.utils import register_class
     from . import ui
     from . import operators
     from . import properties
     from . import presets
+    from .maketx import maketx_command
     import atexit
 
     # Make sure we only registered the callback once.
@@ -154,6 +160,8 @@ def register():
 
     bpy.app.handlers.version_update.append(version_update.do_versions)
 
+    cli_commands.append(bpy.utils.register_cli_command("maketx", maketx_command))
+
 
 def unregister():
     from bpy.utils import unregister_class
@@ -163,6 +171,10 @@ def unregister():
     from . import presets
 
     bpy.app.handlers.version_update.remove(version_update.do_versions)
+
+    for cmd in cli_commands:
+        bpy.utils.unregister_cli_command(cmd)
+    cli_commands.clear()
 
     ui.unregister()
     operators.unregister()
