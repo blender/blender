@@ -7,6 +7,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"cycles"};
 
 void CCL_log_init()
@@ -65,3 +67,5 @@ void CCL_log_init()
       break;
   }
 }
+
+}  // namespace blender

@@ -14,9 +14,11 @@
 #include "session/denoising.h"
 #include "session/merge.h"
 
+#include "util/colorspace.h"
 #include "util/debug.h"
-
 #include "util/guiding.h"
+#include "util/image_maketx.h"
+#include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/openimagedenoise.h"
 #include "util/path.h"
@@ -718,6 +720,88 @@ static PyObject *set_device_override_func(PyObject * /*self*/, PyObject *arg)
   Py_RETURN_TRUE;
 }
 
+static PyObject *maketx_func(PyObject * /*self*/, PyObject *args, PyObject *keywords)
+{
+  static const char *keyword_list[] = {
+      "filepath", "colorspace", "alpha_type", "cache_dir", nullptr};
+
+  const char *filepath = nullptr;
+  const char *colorspace = "auto";
+  const char *alpha_type_str = "auto";
+  const char *cache_dir = "";
+
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   keywords,
+                                   "s|sss",
+                                   (char **)keyword_list,
+                                   &filepath,
+                                   &colorspace,
+                                   &alpha_type_str,
+                                   &cache_dir))
+  {
+    return nullptr;
+  }
+
+  /* Alpha type. */
+  ImageAlphaType alpha_type;
+  if (strcmp(alpha_type_str, "straight") == 0) {
+    alpha_type = IMAGE_ALPHA_UNASSOCIATED;
+  }
+  else if (strcmp(alpha_type_str, "premultiplied") == 0) {
+    alpha_type = IMAGE_ALPHA_ASSOCIATED;
+  }
+  else if (strcmp(alpha_type_str, "channel_packed") == 0) {
+    alpha_type = IMAGE_ALPHA_CHANNEL_PACKED;
+  }
+  else if (strcmp(alpha_type_str, "none") == 0) {
+    alpha_type = IMAGE_ALPHA_IGNORE;
+  }
+  else if (strcmp(alpha_type_str, "auto") == 0) {
+    alpha_type = IMAGE_ALPHA_AUTO;
+  }
+  else {
+    PyErr_Format(PyExc_ValueError, "Unknown alpha type: %s", alpha_type_str);
+    return nullptr;
+  }
+
+  /* Colorspace. */
+  const ustring colorspace_ustring = (strcmp(colorspace, "auto") == 0) ? u_colorspace_auto :
+                                                                         ustring(colorspace);
+
+  /* Resolve output path, and check if tx file is already up to date. */
+  string out_filepath;
+  ccl::ImageMetaData out_metadata;
+  const bool up_to_date = resolve_tx(filepath,
+                                     cache_dir,
+                                     colorspace_ustring,
+                                     alpha_type,
+                                     IMAGE_FORMAT_PLAIN,
+                                     out_filepath,
+                                     out_metadata);
+
+  if (out_filepath.empty()) {
+    LOG_ERROR << "Source image not found: " << filepath;
+    PyErr_Format(PyExc_RuntimeError, "Source image not found");
+    return nullptr;
+  }
+
+  /* Generate tx file if needed. */
+  if (!up_to_date) {
+    bool ok;
+    Py_BEGIN_ALLOW_THREADS;
+    ok = make_tx(filepath, out_filepath, colorspace_ustring, alpha_type, IMAGE_FORMAT_PLAIN);
+    Py_END_ALLOW_THREADS;
+
+    if (!ok) {
+      LOG_ERROR << "Failed to generate tx file";
+      PyErr_Format(PyExc_RuntimeError, "Failed to generate tx file");
+      return nullptr;
+    }
+  }
+
+  return pyunicode_from_string(out_filepath.c_str());
+}
+
 #ifdef __GNUC__
 #  ifdef __clang__
 #    pragma clang diagnostic push
@@ -761,6 +845,9 @@ static PyMethodDef methods[] = {
     {"get_device_types", get_device_types_func, METH_VARARGS, ""},
     {"set_device_override", set_device_override_func, METH_O, ""},
 
+    /* Texture cache */
+    {"maketx", (PyCFunction)maketx_func, METH_VARARGS | METH_KEYWORDS, ""},
+
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -786,7 +873,7 @@ static struct PyModuleDef module = {
 
 CCL_NAMESPACE_END
 
-void *CCL_python_module_init()
+void *blender::CCL_python_module_init()
 {
   PyObject *mod = PyModule_Create(&ccl::module);
 
