@@ -58,6 +58,10 @@ class ImageMetaData {
   bool is_rgba() const;
   TypeDesc typedesc() const;
 
+  /* Memory stats. */
+  size_t memory_size() const;
+  size_t pixel_memory_size() const;
+
   /* OpenImageIO metadata and pixel loading. */
   bool oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSpec *r_spec = nullptr);
   bool oiio_load_pixels(OIIO::string_view filepath, void *pixels, const bool flip_y = true) const;

@@ -71,6 +71,49 @@ TypeDesc ImageMetaData::typedesc() const
   return TypeUnknown;
 }
 
+size_t ImageMetaData::pixel_memory_size() const
+{
+  switch (type) {
+    case IMAGE_DATA_TYPE_BYTE:
+      return sizeof(uint8_t);
+    case IMAGE_DATA_TYPE_BYTE4:
+      return sizeof(uint8_t) * 4;
+    case IMAGE_DATA_TYPE_USHORT:
+      return sizeof(uint16_t);
+    case IMAGE_DATA_TYPE_USHORT4:
+      return sizeof(uint16_t) * 4;
+    case IMAGE_DATA_TYPE_HALF:
+    case IMAGE_DATA_TYPE_NANOVDB_FP16:
+      return sizeof(half);
+    case IMAGE_DATA_TYPE_HALF4:
+      return sizeof(half) * 4;
+    case IMAGE_DATA_TYPE_FLOAT:
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
+      return sizeof(float);
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
+      return sizeof(float) * 3;
+    case IMAGE_DATA_TYPE_FLOAT4:
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
+      return sizeof(float) * 4;
+    case IMAGE_DATA_TYPE_NANOVDB_FPN:
+    case IMAGE_DATA_TYPE_NANOVDB_EMPTY:
+    case IMAGE_DATA_NUM_TYPES:
+      break;
+  }
+
+  return 0;
+}
+
+size_t ImageMetaData::memory_size() const
+{
+  /* For NanoVDB, the byte size is stored directly. */
+  if (is_nanovdb_type(type)) {
+    return nanovdb_byte_size;
+  }
+
+  return width * height * pixel_memory_size();
+}
+
 void ImageMetaData::finalize(const ImageAlphaType alpha_type)
 {
   /* Convert used specified color spaces to one we know how to handle. */
