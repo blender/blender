@@ -280,4 +280,23 @@ TEST(field, IgnoredOutput)
   EXPECT_EQ(results.get(3), 5);
 }
 
+TEST(field, EvaluateWithVArrayPtr)
+{
+  VArray<int> dst_a;
+  VArraySpan<int> dst_b;
+
+  FieldContext field_context;
+  FieldEvaluator field_evaluator{field_context, 2};
+  field_evaluator.add(make_constant_field(10), &dst_a);
+  field_evaluator.add(make_constant_field(20), &dst_b);
+  field_evaluator.evaluate();
+
+  EXPECT_EQ(dst_a.size(), 2);
+  EXPECT_EQ(dst_b.size(), 2);
+  EXPECT_EQ(dst_a[0], 10);
+  EXPECT_EQ(dst_a[1], 10);
+  EXPECT_EQ(dst_b[0], 20);
+  EXPECT_EQ(dst_b[1], 20);
+}
+
 }  // namespace blender::fn::tests

@@ -438,6 +438,17 @@ class FieldEvaluator : NonMovable, NonCopyable {
     return field_index;
   }
 
+  template<typename T> int add(Field<T> field, VArraySpan<T> *varray_span_ptr)
+  {
+    const int field_index = fields_to_evaluate_.append_and_get_index(std::move(field));
+    dst_varrays_.append({});
+    output_pointer_infos_.append(OutputPointerInfo{
+        varray_span_ptr, [](void *dst, const GVArray &varray, ResourceScope & /*scope*/) {
+          *static_cast<VArraySpan<T> *>(dst) = varray.typed<T>();
+        }});
+    return field_index;
+  }
+
   /**
    * \return Index of the field in the evaluator which can be used in the #get_evaluated methods.
    */
