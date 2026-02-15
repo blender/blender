@@ -186,7 +186,7 @@ PyDoc_STRVAR(
     "\n"
     "   It's also possible to assign any number to this attribute for a scripts internal logic.\n"
     "\n"
-    "   To ensure the value is up to date - see :class:`bmesh.types.BMElemSeq.index_update`.\n");
+    "   To ensure the value is up to date - see :meth:`bmesh.types.BMElemSeq.index_update`.\n");
 static PyObject *bpy_bm_elem_index_get(BPy_BMElem *self, void * /*flag*/)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -1570,7 +1570,7 @@ PyDoc_STRVAR(
     ".. method:: select_flush_mode(*, flush_down=False)\n"
     "\n"
     "   Flush selection based on the current mode "
-    ":class:`bmesh.types.BMesh.select_mode`.\n"
+    ":attr:`bmesh.types.BMesh.select_mode`.\n"
     "\n"
     "   :param flush_down: Flush selection down from faces to edges & verts "
     "or from edges to verts. "
@@ -1639,7 +1639,7 @@ PyDoc_STRVAR(
     bpy_bmesh_uv_select_flush_mode_doc,
     ".. method:: uv_select_flush_mode(*, flush_down=False)\n"
     "\n"
-    "   Flush selection based on the current mode :class:`bmesh.types.BMesh.select_mode`.\n"
+    "   Flush selection based on the current mode :attr:`bmesh.types.BMesh.select_mode`.\n"
     "\n"
     "   :param flush_down: Flush selection down from faces to edges & verts "
     "or from edges to verts. "
@@ -3095,7 +3095,7 @@ PyDoc_STRVAR(
     "      Currently this only flushes down, so selecting an edge will select all its "
     "vertices but de-selecting a vertex "
     "won't de-select the edges & faces that use it, before finishing with a mesh "
-    "typically flushing with :class:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
+    "typically flushing with :meth:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
 static PyObject *bpy_bmloop_uv_select_vert_set(BPy_BMLoop *self, PyObject *value)
 {
   BMesh *bm = self->bm;
@@ -3126,7 +3126,7 @@ PyDoc_STRVAR(
     "      This only flushes down, so selecting an edge will select all its "
     "vertices but de-selecting a vertex "
     "won't de-select the faces that use it, before finishing with a mesh "
-    "typically flushing with :class:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
+    "typically flushing with :meth:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
 static PyObject *bpy_bmloop_uv_select_edge_set(BPy_BMLoop *self, PyObject *value)
 {
   BMesh *bm = self->bm;
@@ -3708,7 +3708,7 @@ PyDoc_STRVAR(
     ".. method:: sort(*, key=None, reverse=False)\n"
     "\n"
     "   Sort the elements of this sequence, using an optional custom sort key.\n"
-    "   Indices of elements are not changed, :class:`bmesh.types.BMElemSeq.index_update` "
+    "   Indices of elements are not changed, :meth:`bmesh.types.BMElemSeq.index_update` "
     "can be used for that.\n"
     "\n"
     "   :param key: The key that sets the ordering of the elements.\n"
@@ -5063,11 +5063,11 @@ PyDoc_STRVAR(
     "\n"
     ".. |UV_SELECT_FLUSH_MODE_NEEDED| replace:: "
     "This function is selection-mode independent, "
-    "typically :class:`bmesh.types.BMesh.uv_select_flush_mode` should be called afterwards.\n"
+    "typically :meth:`bmesh.types.BMesh.uv_select_flush_mode` should be called afterwards.\n"
     "\n"
     ".. |UV_SELECT_SYNC_TO_MESH_NEEDED| replace:: "
     "This function doesn't flush the selection to the mesh, "
-    "typically :class:`bmesh.types.BMesh.uv_select_sync_to_mesh` should be called afterwards.\n");
+    "typically :meth:`bmesh.types.BMesh.uv_select_sync_to_mesh` should be called afterwards.\n");
 static PyModuleDef BPy_BM_types_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.types",

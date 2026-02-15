@@ -791,7 +791,7 @@ PyDoc_STRVAR(
     "may cause tools not to behave properly.\n"
     "   :type sync: bool\n"
     "   :param flush: Check the selection has been properly flushed between elements "
-    "(based on the current :class:`BMesh.select_mode`).\n"
+    "(based on the current :attr:`bmesh.types.BMesh.select_mode`).\n"
     "   :type flush: bool\n"
     "   :param contiguous: Check connected UV's and edges have a matching selection state.\n"
     "   :type contiguous: bool\n"
