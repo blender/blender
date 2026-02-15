@@ -179,6 +179,8 @@ PyDoc_STRVAR(
     py_imbuf_copy_doc,
     ".. method:: copy()\n"
     "\n"
+    "   Return a copy of the image.\n"
+    "\n"
     "   :return: A copy of the image.\n"
     "   :rtype: :class:`ImBuf`\n");
 static PyObject *py_imbuf_copy(Py_ImBuf *self)
