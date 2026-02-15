@@ -259,9 +259,9 @@ static BMOpDefine bmo_planar_faces_def = {
  *
  * used to implement the select more/less tools.
  * this puts some geometry surrounding regions of
- * geometry in geom into geom.out.
+ * geometry in `geom` into `geom.out`.
  *
- * if use_faces is 0 then geom.out spits out verts and edges,
+ * if `use_faces` is 0 then `geom.out` spits out verts and edges,
  * otherwise it spits out faces.
  */
 static BMOpDefine bmo_region_extend_def = {
@@ -397,7 +397,7 @@ static BMOpDefine bmo_bisect_edges_def = {
  * Mirror.
  *
  * Mirrors geometry along an axis. The resulting geometry is welded on using
- * merge_dist. Pairs of original/mirrored vertices are welded using the merge_dist
+ * `merge_dist`. Pairs of original/mirrored vertices are welded using the `merge_dist`
  * parameter (which defines the minimum distance for welding to happen).
  */
 static BMOpDefine bmo_mirror_def = {
@@ -444,7 +444,7 @@ static BMOpDefine bmo_mirror_def = {
  * Takes input verts and finds vertices they should weld to.
  * Outputs a mapping slot suitable for use with the weld verts BMOP.
  *
- * If keep_verts is used, vertices outside that set can only be merged
+ * If `keep_verts` is used, vertices outside that set can only be merged
  * with vertices in that set.
  */
 static BMOpDefine bmo_find_doubles_def = {
@@ -1234,7 +1234,7 @@ static BMOpDefine bmo_extrude_vert_indiv_def = {
 /*
  * Connect Verts.
  *
- * Split faces by adding edges that connect **verts**.
+ * Split faces by adding edges that connect `verts`.
  */
 static BMOpDefine bmo_connect_verts_def = {
     /*opname*/ "connect_verts",
@@ -1262,7 +1262,7 @@ static BMOpDefine bmo_connect_verts_def = {
 /*
  * Connect Verts to form Convex Faces.
  *
- * Ensures all faces are convex **faces**.
+ * Ensures all faces are convex `faces`.
  */
 static BMOpDefine bmo_connect_verts_concave_def = {
     /*opname*/ "connect_verts_concave",
@@ -1287,7 +1287,7 @@ static BMOpDefine bmo_connect_verts_concave_def = {
 /*
  * Connect Verts Across non Planar Faces.
  *
- * Split faces by connecting edges along non planar **faces**.
+ * Split faces by connecting edges along non planar `faces`.
  */
 static BMOpDefine bmo_connect_verts_nonplanar_def = {
     /*opname*/ "connect_verts_nonplanar",
@@ -1314,7 +1314,7 @@ static BMOpDefine bmo_connect_verts_nonplanar_def = {
 /*
  * Connect Verts.
  *
- * Split faces by adding edges that connect **verts**.
+ * Split faces by adding edges that connect `verts`.
  */
 static BMOpDefine bmo_connect_vert_pair_def = {
     /*opname*/ "connect_vert_pair",
@@ -1352,7 +1352,7 @@ static BMOpDefine bmo_extrude_face_region_def = {
         {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         /* Input edges to explicitly exclude from extrusion. */
         {"edges_exclude", BMO_OP_SLOT_MAPPING, to_subtype_union(BMO_OP_SLOT_SUBTYPE_MAP_EMPTY)},
-        /* Keep original geometry (requires ``geom`` to include edges). */
+        /* Keep original geometry (requires `geom` to include edges). */
         {"use_keep_orig", BMO_OP_SLOT_BOOL},
         /* Create faces with reversed direction. */
         {"use_normal_flip", BMO_OP_SLOT_BOOL},
@@ -2040,7 +2040,7 @@ static BMOpDefine bmo_split_edges_def = {
 
         /* Optional tag verts, use to have greater control of splits. */
         {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
-        /* Use 'verts' for splitting, else just find verts to split from edges. */
+        /* Use `verts` for splitting, else just find verts to split from edges. */
         {"use_verts", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -2697,16 +2697,16 @@ static BMOpDefine bmo_poke_def = {
 /*
  * Convex Hull
  *
- * Builds a convex hull from the vertices in 'input'.
+ * Builds a convex hull from the vertices in `input`.
  *
- * If 'use_existing_faces' is true, the hull will not output triangles
+ * If `use_existing_faces` is true, the hull will not output triangles
  * that are covered by a pre-existing face.
  *
- * All hull vertices, faces, and edges are added to 'geom.out'. Any
+ * All hull vertices, faces, and edges are added to `geom.out`. Any
  * input elements that end up inside the hull (i.e. are not used by an
- * output face) are added to the 'interior_geom' slot. The
- * 'unused_geom' slot will contain all interior geometry that is
- * completely unused. Lastly, 'holes_geom' contains edges and faces
+ * output face) are added to the `geom_interior.out` slot. The
+ * `geom_unused.out` slot will contain all interior geometry that is
+ * completely unused. Lastly, `geom_holes.out` contains edges and faces
  * that were in the input and are part of the hull.
  */
 static BMOpDefine bmo_convex_hull_def = {
@@ -2738,12 +2738,12 @@ static BMOpDefine bmo_convex_hull_def = {
 /*
  * Symmetrize.
  *
- * Makes the mesh elements in the "input" slot symmetrical. Unlike
+ * Makes the mesh elements in the `input` slot symmetrical. Unlike
  * normal mirroring, it only copies in one direction, as specified by
- * the "direction" slot. The edges and faces that cross the plane of
+ * the `direction` slot. The edges and faces that cross the plane of
  * symmetry are split as needed to enforce symmetry.
  *
- * All new vertices, edges, and faces are added to the "geom.out" slot.
+ * All new vertices, edges, and faces are added to the `geom.out` slot.
  */
 static BMOpDefine bmo_symmetrize_def = {
     /*opname*/ "symmetrize",
