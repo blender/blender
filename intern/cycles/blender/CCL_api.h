@@ -4,10 +4,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 namespace blender {
 
 struct Image;
@@ -28,7 +24,3 @@ bool CCL_generate_texture_cache(const Image *image,
                                 const char *texture_cache_directory = "");
 
 }  // namespace blender
-
-#ifdef __cplusplus
-}
-#endif

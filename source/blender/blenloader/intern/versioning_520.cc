@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase_iterator.hh"
@@ -195,6 +196,11 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     fix_single_point_curves_custom_knots(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 15)) {
+    for (Scene &scene : bmain->scenes) {
+      scene.r.scemode |= R_USE_TEXTURE_CACHE;
+    }
+  }
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
