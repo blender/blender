@@ -955,7 +955,7 @@ PyDoc_STRVAR(
     "   :type tri_p2: :class:`mathutils.Vector`\n"
     "   :param tri_p3: Third point of the triangle\n"
     "   :type tri_p3: :class:`mathutils.Vector`\n"
-    "   :return: Point on the triangle's plane or None if its outside the triangle\n"
+    "   :return: Point on the triangle's plane or None if it's outside the triangle\n"
     "   :rtype: :class:`mathutils.Vector` | None\n");
 static PyObject *M_Geometry_intersect_point_tri(PyObject * /*self*/, PyObject *args)
 {

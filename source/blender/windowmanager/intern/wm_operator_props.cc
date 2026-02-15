@@ -551,7 +551,7 @@ void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
                        0.5f,
                        0.99f,
                        "Smooth Stroke Factor",
-                       "Higher values gives a smoother stroke",
+                       "Higher values give a smoother stroke",
                        0.5f,
                        0.99f);
   prop = RNA_def_int(ot->srna,

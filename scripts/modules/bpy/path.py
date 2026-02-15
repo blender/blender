@@ -417,7 +417,7 @@ def basename(path):
 
 def native_pathsep(path):
     """
-    Replace the path separator with the systems native ``os.sep``.
+    Replace the path separator with the system's native ``os.sep``.
 
     :param path: The path to replace.
     :type path: str

@@ -64,7 +64,7 @@ struct BPy_BMLoopUV {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_uv_doc,
-    "Loops UV (as a 2D Vector).\n"
+    "Loop UV (as a 2D Vector).\n"
     "\n"
     ":type: :class:`mathutils.Vector`\n");
 static PyObject *bpy_bmloopuv_uv_get(BPy_BMLoopUV *self, void * /*closure*/)

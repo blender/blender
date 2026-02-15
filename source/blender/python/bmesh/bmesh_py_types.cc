@@ -688,7 +688,7 @@ static PyObject *bpy_bmloop_edge_get(BPy_BMLoop *self, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloop_face_doc,
-    "The face this loop makes (read-only).\n"
+    "The face this loop belongs to (read-only).\n"
     "\n"
     ":type: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bmloop_face_get(BPy_BMLoop *self, void * /*closure*/)
@@ -2680,7 +2680,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param vert: a vert in this edge.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
-    "   :return: The edges other vert.\n"
+    "   :return: The edge's other vert.\n"
     "   :rtype: :class:`bmesh.types.BMVert` | None\n");
 static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
 {
@@ -2849,7 +2849,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the area of the face.\n"
     "\n"
-    "   :return: Return the area of the face.\n"
+    "   :return: The area of the face.\n"
     "   :rtype: float\n");
 static PyObject *bpy_bmface_calc_area(BPy_BMFace *self)
 {
@@ -2864,7 +2864,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the perimeter of the face.\n"
     "\n"
-    "   :return: Return the perimeter of the face.\n"
+    "   :return: The perimeter of the face.\n"
     "   :rtype: float\n");
 static PyObject *bpy_bmface_calc_perimeter(BPy_BMFace *self)
 {
@@ -3041,14 +3041,14 @@ PyDoc_STRVAR(
     bpy_bmloop_copy_from_face_interp_doc,
     ".. method:: copy_from_face_interp(face, vert=True, multires=True)\n"
     "\n"
-    "   Interpolate the customdata from a face onto this loop (the loops vert should "
+    "   Interpolate the customdata from a face onto this loop (the loop's vert should "
     "overlap the face).\n"
     "\n"
     "   :param face: The face to interpolate data from.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n"
-    "   :param vert: When enabled, interpolate the loops vertex data (optional).\n"
+    "   :param vert: When enabled, interpolate the loop's vertex data (optional).\n"
     "   :type vert: bool\n"
-    "   :param multires: When enabled, interpolate the loops multires data (optional).\n"
+    "   :param multires: When enabled, interpolate the loop's multires data (optional).\n"
     "   :type multires: bool\n");
 static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *args)
 {
@@ -3689,7 +3689,7 @@ PyDoc_STRVAR(
     bpy_bmelemseq_ensure_lookup_table_doc,
     ".. method:: ensure_lookup_table()\n"
     "\n"
-    "   Ensure internal data needed for int subscription is initialized with "
+    "   Ensure internal data needed for int subscript access is initialized with "
     "verts/edges/faces, eg ``bm.verts[index]``.\n"
     "\n"
     "   This needs to be called again after adding/removing data in this sequence.\n");
