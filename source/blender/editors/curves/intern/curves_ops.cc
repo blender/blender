@@ -944,7 +944,7 @@ static void CURVES_OT_select_random(wmOperatorType *ot)
 {
   ot->name = "Select Random";
   ot->idname = __func__;
-  ot->description = "Randomizes existing selection or create new random selection";
+  ot->description = "Randomize existing selection or create new random selection";
 
   ot->exec = select_random_exec;
   ot->poll = curves::editable_curves_poll;
@@ -1406,7 +1406,7 @@ static void CURVES_OT_cyclic_toggle(wmOperatorType *ot)
 {
   ot->name = "Toggle Cyclic";
   ot->idname = __func__;
-  ot->description = "Make active curve closed/opened loop";
+  ot->description = "Make active curve closed/open loop";
 
   ot->exec = cyclic_toggle::exec;
   ot->poll = editable_curves_in_edit_mode_poll;

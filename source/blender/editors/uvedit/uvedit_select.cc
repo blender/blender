@@ -6792,7 +6792,7 @@ static EnumPropertyItem uv_select_similar_type_items[] = {
      "WINDING",
      0,
      "Winding",
-     "Face direction defined by (clockwise or anti-clockwise winding (facing up or facing down)"},
+     "Face direction defined by clockwise or anti-clockwise winding (facing up or facing down)"},
     {UV_SSIM_FACE, "FACE", 0, "Amount of Faces in Island", ""},
     {0}};
 

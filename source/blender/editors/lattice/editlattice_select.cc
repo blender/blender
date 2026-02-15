@@ -328,7 +328,7 @@ void LATTICE_OT_select_more(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select More";
-  ot->description = "Select vertex directly linked to already selected ones";
+  ot->description = "Select vertices directly linked to already selected ones";
   ot->idname = "LATTICE_OT_select_more";
 
   /* API callbacks. */

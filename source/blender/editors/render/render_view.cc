@@ -328,7 +328,7 @@ void RENDER_OT_view_cancel(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Cancel Render View";
-  ot->description = "Cancel show render view";
+  ot->description = "Cancel showing the render view";
   ot->idname = "RENDER_OT_view_cancel";
 
   /* API callbacks. */

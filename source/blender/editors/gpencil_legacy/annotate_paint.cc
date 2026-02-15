@@ -2791,7 +2791,7 @@ void GPENCIL_OT_annotate(wmOperatorType *ot)
                        0.0f,
                        1.0f,
                        "Stabilizer Stroke Factor",
-                       "Higher values gives a smoother stroke",
+                       "Higher values give a smoother stroke",
                        0.0f,
                        1.0f);
   prop = RNA_def_int(ot->srna,

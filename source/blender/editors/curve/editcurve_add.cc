@@ -700,7 +700,7 @@ void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Surface Curve";
-  ot->description = "Construct a Nurbs surface Curve";
+  ot->description = "Construct a NURBS surface curve";
   ot->idname = "SURFACE_OT_primitive_nurbs_surface_curve_add";
 
   /* API callbacks. */
@@ -723,7 +723,7 @@ void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Surface Circle";
-  ot->description = "Construct a Nurbs surface Circle";
+  ot->description = "Construct a NURBS surface circle";
   ot->idname = "SURFACE_OT_primitive_nurbs_surface_circle_add";
 
   /* API callbacks. */
@@ -746,7 +746,7 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Surface Patch";
-  ot->description = "Construct a Nurbs surface Patch";
+  ot->description = "Construct a NURBS surface patch";
   ot->idname = "SURFACE_OT_primitive_nurbs_surface_surface_add";
 
   /* API callbacks. */
@@ -769,7 +769,7 @@ void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Surface Cylinder";
-  ot->description = "Construct a Nurbs surface Cylinder";
+  ot->description = "Construct a NURBS surface cylinder";
   ot->idname = "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
 
   /* API callbacks. */
@@ -792,7 +792,7 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Surface Sphere";
-  ot->description = "Construct a Nurbs surface Sphere";
+  ot->description = "Construct a NURBS surface sphere";
   ot->idname = "SURFACE_OT_primitive_nurbs_surface_sphere_add";
 
   /* API callbacks. */
@@ -815,7 +815,7 @@ void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Surface Torus";
-  ot->description = "Construct a Nurbs surface Torus";
+  ot->description = "Construct a NURBS surface torus";
   ot->idname = "SURFACE_OT_primitive_nurbs_surface_torus_add";
 
   /* API callbacks. */

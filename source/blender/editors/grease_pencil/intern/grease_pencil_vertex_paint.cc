@@ -407,7 +407,7 @@ static void GREASE_PENCIL_OT_vertex_color_set(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Vertex Paint Set Color";
   ot->idname = "GREASE_PENCIL_OT_vertex_color_set";
-  ot->description = "Set active color to all selected vertex";
+  ot->description = "Set active color to all selected vertices";
 
   /* API callbacks. */
   ot->exec = grease_pencil_vertex_paint_set_exec;

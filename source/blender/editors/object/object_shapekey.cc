@@ -1032,7 +1032,7 @@ void OBJECT_OT_shape_key_apply_to_basis(wmOperatorType *ot)
 {
   ot->name = "Apply to Basis Key";
   ot->idname = "OBJECT_OT_shape_key_apply_to_basis";
-  ot->description = "Appply deformations of selected shape keys to the basis key, removing them";
+  ot->description = "Apply deformations of selected shape keys to the basis key, removing them";
 
   ot->poll = shape_key_apply_to_basis_poll;
   ot->exec = shape_key_apply_to_basis_exec;
