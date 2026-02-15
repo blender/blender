@@ -7622,6 +7622,27 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
                            "meshes in the viewport");
   RNA_def_property_update(prop, 0, "rna_Scene_use_simplify_normals_update");
 
+  /* Texture Cache */
+  prop = RNA_def_property(srna, "use_texture_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "scemode", R_USE_TEXTURE_CACHE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Texture Cache",
+      "Load texture tiles at appropriate resolution on demand to reduce memory usage. This avoids "
+      "loading all textures into memory, at the cost of extra disk space and some perforamnce");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "use_auto_generate_texture_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "scemode", R_TEXTURE_CACHE_AUTO_GENERATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop,
+                           "Auto Generate Texture Cache",
+                           "Automatically create tx files from image files when rendering, if the "
+                           "files do not exist or are outdated. The path to store the texture "
+                           "cache files is configured in the preferences");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
   /* Grease Pencil - Simplify Options */
   prop = RNA_def_property(srna, "simplify_gpencil", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "simplify_gpencil", SIMPLIFY_GPENCIL_ENABLE);

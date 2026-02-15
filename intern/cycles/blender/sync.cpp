@@ -4,6 +4,8 @@
 
 #include "BKE_appdir.hh"
 #include "DEG_depsgraph_query.hh"
+#include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
 #include "RNA_prototypes.hh"
 #include "RNA_types.hh"
@@ -904,7 +906,9 @@ void BlenderSync::free_data_after_sync(blender::Depsgraph &b_depsgraph)
 
 /* Scene Parameters */
 
-SceneParams BlenderSync::get_scene_params(blender::Scene &b_scene,
+SceneParams BlenderSync::get_scene_params(blender::UserDef &b_preferences,
+                                          blender::Main &b_data,
+                                          blender::Scene &b_scene,
                                           const bool background,
                                           const bool use_developer_ui)
 {
@@ -937,23 +941,27 @@ SceneParams BlenderSync::get_scene_params(blender::Scene &b_scene,
   params.hair_shape = (CurveShapeType)get_enum(
       csscene, "shape", CURVE_NUM_SHAPE_TYPES, CURVE_THICK);
 
-  int texture_limit;
+  float texture_resolution;
   if (background) {
-    texture_limit = RNA_enum_get(&cscene, "texture_limit_render");
+    texture_resolution = RNA_float_get(&cscene, "texture_resolution_render");
   }
   else {
-    texture_limit = RNA_enum_get(&cscene, "texture_limit");
+    texture_resolution = RNA_float_get(&cscene, "texture_resolution");
   }
-  if (texture_limit > 0 && (b_scene.r.mode & blender::R_SIMPLIFY) != 0) {
-    params.texture_resolution = 1 << (texture_limit + 6);
+  if (texture_resolution < 1.0f && (b_scene.r.mode & blender::R_SIMPLIFY) != 0) {
+    params.texture_resolution = texture_resolution;
   }
   else {
-    params.texture_resolution = 0;
+    params.texture_resolution = 1.0f;
   }
 
   params.bvh_layout = DebugFlags().cpu.bvh_layout;
 
   params.background = background;
+  params.use_texture_cache = b_scene.r.scemode & blender::R_USE_TEXTURE_CACHE;
+  params.auto_texture_cache = b_scene.r.scemode & blender::R_TEXTURE_CACHE_AUTO_GENERATE;
+  params.texture_cache_path = blender_absolute_path(
+      b_data, nullptr, b_preferences.texture_cachedir);
 
   return params;
 }

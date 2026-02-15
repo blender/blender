@@ -101,7 +101,7 @@ def do_versions(self):
         library_versions.setdefault(library.version, []).append(library)
 
     # Do versioning per library, since they might have different versions.
-    max_need_versioning = (5, 0, 77)
+    max_need_versioning = (5, 2, 3)
     for version, libraries in library_versions.items():
         if version > max_need_versioning:
             continue
@@ -110,6 +110,17 @@ def do_versions(self):
         for scene in bpy.data.scenes:
             if scene.library not in libraries:
                 continue
+
+            # Texture limit enum replaced with texture resolution float.
+            # Convert assuming a 1024 image resolution.
+            if version <= (5, 2, 3):
+                cscene = scene.cycles
+                for prop_old, prop_new in (("texture_limit", "texture_resolution"),
+                                           ("texture_limit_render", "texture_resolution_render")):
+                    texture_limit_enum = cscene.get(prop_old, 0)
+                    if texture_limit_enum > 0:
+                        limit_pixels = 1 << (texture_limit_enum + 6)
+                        cscene[prop_new] = min(limit_pixels / 1024.0, 1.0)
 
             # Auto tiling is always enabled now
             if version <= (5, 0, 77):

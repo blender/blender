@@ -290,7 +290,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
       }
       else {
         bcam->custom_filepath = blender_absolute_path(
-            b_data, b_camera.id, b_camera.custom_filepath);
+            b_data, &b_camera.id, b_camera.custom_filepath);
       }
     }
   }
