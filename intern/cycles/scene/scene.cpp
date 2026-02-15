@@ -500,7 +500,7 @@ void Scene::device_free()
 void Scene::collect_statistics(RenderStats *stats)
 {
   geometry_manager->collect_statistics(this, stats);
-  image_manager->collect_statistics(stats);
+  image_manager->collect_statistics(stats, this);
 }
 
 void Scene::enable_update_stats()

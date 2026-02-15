@@ -5,6 +5,7 @@
 #pragma once
 
 #include "kernel/globals.h"
+#include "kernel/util/image_2d.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -124,6 +125,19 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
 
     return make_float4(f, f, f, 1.0f);
   }
+}
+
+ccl_device_forceinline float4 kernel_image_interp_with_udim(KernelGlobals kg,
+                                                            ccl_private ShaderData * /*sd*/,
+                                                            const int udim_id,
+                                                            float2 uv)
+{
+  const int image_texture_id = kernel_image_udim_map(kg, udim_id, uv);
+  if (image_texture_id == KERNEL_IMAGE_NONE) {
+    return IMAGE_MISSING_RGBA;
+  }
+
+  return kernel_image_interp(kg, image_texture_id, uv.x, uv.y);
 }
 
 CCL_NAMESPACE_END

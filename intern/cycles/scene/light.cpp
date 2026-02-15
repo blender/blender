@@ -1014,7 +1014,7 @@ void LightManager::device_update_background(Device *device,
     if (node->type == EnvironmentTextureNode::get_node_type()) {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;
       if (!env->handle.empty()) {
-        const ImageMetaData metadata = env->handle.metadata();
+        const ImageMetaData metadata = env->handle.metadata(progress);
         environment_res.x = max(environment_res.x, (int)metadata.width);
         environment_res.y = max(environment_res.y, (int)metadata.height);
       }

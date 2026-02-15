@@ -39,7 +39,7 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   assert(shader->graph);
 
   SVMCompiler::Summary summary;
-  SVMCompiler compiler(scene);
+  SVMCompiler compiler(scene, progress);
   compiler.background = (shader == scene->background->get_shader(scene));
   compiler.compile(shader, *svm_nodes, 0, &summary);
 
@@ -149,7 +149,7 @@ void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 
 /* Graph Compiler */
 
-SVMCompiler::SVMCompiler(Scene *scene) : scene(scene)
+SVMCompiler::SVMCompiler(Scene *scene, Progress &progress) : scene(scene), progress(progress)
 {
   max_stack_use = 0;
   current_type = SHADER_TYPE_SURFACE;

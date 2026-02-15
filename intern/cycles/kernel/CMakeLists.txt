@@ -238,6 +238,7 @@ set(SRC_KERNEL_UTIL_HEADERS
   util/colorspace.h
   util/differential.h
   util/ies.h
+  util/image_2d.h
   util/image_3d.h
   util/lookup_table.h
   util/nanovdb.h

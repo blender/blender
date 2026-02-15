@@ -645,7 +645,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
     }
 
     /* Create NanoVDB grid handle from image memory. */
-    device_image *image = handle.image_memory();
+    device_image *image = handle.vdb_image_memory();
     if (image == nullptr || image->host_pointer == nullptr ||
         image->info.data_type == IMAGE_DATA_TYPE_NANOVDB_EMPTY ||
         !is_nanovdb_type(image->info.data_type))
@@ -1181,7 +1181,7 @@ std::string VolumeManager::visualize_octree(const char *filename) const
   return filename_full;
 }
 
-void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene)
+void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene, Progress &progress)
 {
   assert(scene->integrator->get_volume_ray_marching());
 
@@ -1204,7 +1204,7 @@ void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene)
     }
 
     volume_step_size[object->index] = scene->integrator->get_volume_step_rate() *
-                                      object->compute_volume_step_size();
+                                      object->compute_volume_step_size(progress);
   }
 
   dscene->volume_step_size.copy_to_device();
@@ -1224,7 +1224,7 @@ void VolumeManager::device_update(Device *device,
       dscene->volume_tree_roots.free();
       dscene->volume_tree_root_ids.free();
     }
-    update_step_size(scene, dscene);
+    update_step_size(scene, dscene, progress);
     algorithm_modified_ = false;
     return;
   }

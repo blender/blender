@@ -114,7 +114,7 @@ class Object : public Node {
   int get_device_index() const;
 
   /* Compute step size from attributes, shaders, transforms. */
-  float compute_volume_step_size() const;
+  float compute_volume_step_size(Progress &progress) const;
 
   /* Check whether this object can be used as light-emissive. */
   bool usable_as_light() const;

@@ -283,7 +283,7 @@ ccl_device_extern bool rend_get_userdata(RSDeviceString name,
   return false;
 }
 
-ccl_device_extern bool rs_texture(ccl_private ShaderGlobals * /*sg*/,
+ccl_device_extern bool rs_texture(ccl_private ShaderGlobals *sg,
                                   RSDeviceString /*filename*/,
                                   ccl_private void *texture_handle,
                                   ccl_private void * /*texture_thread_info*/,
@@ -305,7 +305,9 @@ ccl_device_extern bool rs_texture(ccl_private ShaderGlobals * /*sg*/,
 
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
-      const float4 rgba = kernel_image_interp(nullptr, image_texture_id, s, 1.0f - t);
+      ccl_private ShaderData *sd = sg->sd;
+      const float4 rgba = kernel_image_interp_with_udim(
+          nullptr, sd, image_texture_id, make_float2(s, 1.0f - t));
       if (nchannels > 0) {
         result[0] = rgba.x;
       }

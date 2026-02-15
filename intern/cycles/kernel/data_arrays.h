@@ -88,7 +88,8 @@ KERNEL_DATA_ARRAY(int, volume_tree_root_ids)
 KERNEL_DATA_ARRAY(float, volume_step_size)
 
 /* image textures */
-KERNEL_DATA_ARRAY(KernelImageInfo, image_info)
 KERNEL_DATA_ARRAY(KernelImageTexture, image_textures)
+KERNEL_DATA_ARRAY(KernelImageUDIM, image_texture_udims)
+KERNEL_DATA_ARRAY(KernelImageInfo, image_info)
 
 #undef KERNEL_DATA_ARRAY

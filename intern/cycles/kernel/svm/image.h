@@ -18,14 +18,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float4
-svm_image_texture(KernelGlobals kg, const int id, const float x, float y, const uint flags)
+ccl_device float4 svm_image_texture(
+    KernelGlobals kg, ccl_private ShaderData *sd, const int id, const float2 uv, const uint flags)
 {
-  if (id == -1) {
-    return IMAGE_MISSING_RGBA;
-  }
-
-  float4 r = kernel_image_interp(kg, id, x, y);
+  float4 r = kernel_image_interp_with_udim(kg, sd, id, uv);
   const float alpha = r.w;
 
   if ((flags & NODE_IMAGE_ALPHA_UNASSOCIATE) && alpha != 1.0f && alpha != 0.0f) {
@@ -47,7 +43,7 @@ ccl_device_inline float3 texco_remap_square(const float3 co)
 }
 
 ccl_device_noinline int svm_node_tex_image(KernelGlobals kg,
-                                           ccl_private ShaderData * /*sd*/,
+                                           ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            const uint4 node,
                                            int offset)
@@ -73,50 +69,8 @@ ccl_device_noinline int svm_node_tex_image(KernelGlobals kg,
     tex_co = make_float2(co.x, co.y);
   }
 
-  /* TODO(lukas): Consider moving tile information out of the SVM node.
-   * KernelImageInfo seems a reasonable candidate. */
-  int id = -1;
-  const int num_nodes = (int)node.y;
-  if (num_nodes > 0) {
-    /* Remember the offset of the node following the tile nodes. */
-    const int next_offset = offset + num_nodes;
-
-    /* Find the tile that the UV lies in. */
-    const int tx = (int)tex_co.x;
-    const int ty = (int)tex_co.y;
-
-    /* Check that we're within a legitimate tile. */
-    if (tx >= 0 && ty >= 0 && tx < 10) {
-      const int tile = 1001 + 10 * ty + tx;
-
-      /* Find the index of the tile. */
-      for (int i = 0; i < num_nodes; i++) {
-        const uint4 tile_node = read_node(kg, &offset);
-        if (tile_node.x == tile) {
-          id = tile_node.y;
-          break;
-        }
-        if (tile_node.z == tile) {
-          id = tile_node.w;
-          break;
-        }
-      }
-
-      /* If we found the tile, offset the UVs to be relative to it. */
-      if (id != -1) {
-        tex_co.x -= tx;
-        tex_co.y -= ty;
-      }
-    }
-
-    /* Skip over the remaining nodes. */
-    offset = next_offset;
-  }
-  else {
-    id = -num_nodes;
-  }
-
-  const float4 f = svm_image_texture(kg, id, tex_co.x, tex_co.y, flags);
+  const int id = node.y;
+  const float4 f = svm_image_texture(kg, sd, id, tex_co, flags);
 
   if (stack_valid(out_offset)) {
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
@@ -212,15 +166,15 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
   /* Map so that no textures are flipped, rotation is somewhat arbitrary. */
   if (weight.x > 0.0f) {
     const float2 uv = make_float2((signed_N.x < 0.0f) ? 1.0f - co.y : co.y, co.z);
-    f += weight.x * svm_image_texture(kg, id, uv.x, uv.y, flags);
+    f += weight.x * svm_image_texture(kg, sd, id, uv, flags);
   }
   if (weight.y > 0.0f) {
     const float2 uv = make_float2((signed_N.y > 0.0f) ? 1.0f - co.x : co.x, co.z);
-    f += weight.y * svm_image_texture(kg, id, uv.x, uv.y, flags);
+    f += weight.y * svm_image_texture(kg, sd, id, uv, flags);
   }
   if (weight.z > 0.0f) {
     const float2 uv = make_float2((signed_N.z > 0.0f) ? 1.0f - co.y : co.y, co.x);
-    f += weight.z * svm_image_texture(kg, id, uv.x, uv.y, flags);
+    f += weight.z * svm_image_texture(kg, sd, id, uv, flags);
   }
 
   if (stack_valid(out_offset)) {
@@ -232,7 +186,7 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
 }
 
 ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
-                                                  ccl_private ShaderData * /*sd*/,
+                                                  ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
                                                   const uint4 node)
 {
@@ -257,7 +211,7 @@ ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
     uv = direction_to_mirrorball(co);
   }
 
-  const float4 f = svm_image_texture(kg, id, uv.x, uv.y, flags);
+  const float4 f = svm_image_texture(kg, sd, id, uv, flags);
 
   if (stack_valid(out_offset)) {
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));

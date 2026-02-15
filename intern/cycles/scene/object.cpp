@@ -293,7 +293,7 @@ uint Object::visibility_for_tracing() const
   return SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility & PATH_RAY_ALL_VISIBILITY);
 }
 
-float Object::compute_volume_step_size() const
+float Object::compute_volume_step_size(Progress &progress) const
 {
   if (geometry->is_light()) {
     /* World volume. */
@@ -343,7 +343,7 @@ float Object::compute_volume_step_size() const
     for (Attribute &attr : volume->attributes.attributes) {
       if (attr.element == ATTR_ELEMENT_VOXEL) {
         ImageHandle &handle = attr.data_voxel();
-        const ImageMetaData &metadata = handle.metadata();
+        const ImageMetaData &metadata = handle.metadata(progress);
         if (metadata.nanovdb_byte_size == 0) {
           continue;
         }

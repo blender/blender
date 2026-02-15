@@ -6,6 +6,7 @@
 
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
+#include "kernel/util/image_2d.h"
 
 #include "util/half.h"
 #include "util/types_image.h"
@@ -370,6 +371,19 @@ ccl_device float4 kernel_image_interp(KernelGlobals kg,
       assert(0);
       return IMAGE_MISSING_RGBA;
   }
+}
+
+ccl_device_forceinline float4 kernel_image_interp_with_udim(KernelGlobals kg,
+                                                            ShaderData * /*sd*/,
+                                                            const int udim_id,
+                                                            float2 uv)
+{
+  const int image_texture_id = kernel_image_udim_map(kg, udim_id, uv);
+  if (image_texture_id == KERNEL_IMAGE_NONE) {
+    return IMAGE_MISSING_RGBA;
+  }
+
+  return kernel_image_interp(kg, image_texture_id, uv.x, uv.y);
 }
 
 } /* Namespace. */

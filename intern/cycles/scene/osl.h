@@ -140,8 +140,10 @@ class OSLShaderManager : public ShaderManager {
                            const std::string &bytecode_hash = "",
                            const std::string &bytecode = "");
 
-  /* Get image slots used by OSL services on device. */
-  static void osl_image_slots(Device *device, ImageManager *image_manager, set<int> &image_slots);
+  /* Get image handles used by OSL services on device. */
+  static void osl_image_handles(Device *device,
+                                ImageManager *image_manager,
+                                set<const ImageSingle *> &image_handles);
 };
 
 #endif
@@ -151,7 +153,7 @@ class OSLShaderManager : public ShaderManager {
 class OSLCompiler {
  public:
 #ifdef WITH_OSL
-  OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Device *device);
+  OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Progress &progress, Device *device);
 #endif
   void compile(Shader *shader);
 
@@ -185,6 +187,7 @@ class OSLCompiler {
 
   bool background;
   Scene *scene;
+  Progress &progress;
 
  private:
 #ifdef WITH_OSL

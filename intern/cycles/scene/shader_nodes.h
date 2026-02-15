@@ -84,6 +84,8 @@ class ImageSlotTextureNode : public TextureNode {
     return TextureNode::equals(other) && handle == other_node.handle;
   }
 
+  virtual void update_images(const SVMCompiler &compiler) = 0;
+
   ImageHandle handle;
 };
 
@@ -104,6 +106,8 @@ class ImageTextureNode : public ImageSlotTextureNode {
   }
 
   ImageParams image_params() const;
+
+  void update_images(const SVMCompiler &compiler) override;
 
   /* Parameters. */
   NODE_SOCKET_API(ustring, filename)
@@ -138,6 +142,8 @@ class EnvironmentTextureNode : public ImageSlotTextureNode {
   }
 
   ImageParams image_params() const;
+
+  void update_images(const SVMCompiler &compiler) override;
 
   /* Parameters. */
   NODE_SOCKET_API(ustring, filename)

@@ -620,9 +620,8 @@ void GeometryManager::device_update_displacement_images(Device *device,
                                                         Progress &progress)
 {
   progress.set_status("Updating Displacement Images");
-  TaskPool pool;
   ImageManager *image_manager = scene->image_manager.get();
-  set<int> bump_images;
+  set<const ImageSingle *> bump_images;
 #ifdef WITH_OSL
   bool has_osl_node = false;
 #endif
@@ -655,11 +654,8 @@ void GeometryManager::device_update_displacement_images(Device *device,
           }
 
           ImageSlotTextureNode *image_node = static_cast<ImageSlotTextureNode *>(node);
-          for (int i = 0; i < image_node->handle.num_svm_image_texture_ids(); i++) {
-            const int image_texture_id = image_node->handle.svm_image_texture_id(i);
-            if (image_texture_id != -1) {
-              bump_images.insert(image_texture_id);
-            }
+          if (!image_node->handle.empty()) {
+            image_node->handle.add_to_set(bump_images);
           }
         }
       }
@@ -670,16 +666,11 @@ void GeometryManager::device_update_displacement_images(Device *device,
   /* If any OSL node is used for displacement, it may reference a texture. But it's
    * unknown which ones, so have to load them all. */
   if (has_osl_node) {
-    OSLShaderManager::osl_image_slots(device, image_manager, bump_images);
+    OSLShaderManager::osl_image_handles(device, image_manager, bump_images);
   }
 #endif
 
-  for (const int image_texture_id : bump_images) {
-    pool.push([image_manager, device, scene, image_texture_id, &progress] {
-      image_manager->device_update_image_texture_id(device, scene, image_texture_id, progress);
-    });
-  }
-  pool.wait_work();
+  image_manager->device_load_images(device, scene, progress, bump_images);
 }
 
 void GeometryManager::device_update_volume_images(Device *device, Scene *scene, Progress &progress)
@@ -687,7 +678,7 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
   progress.set_status("Updating Volume Images");
   TaskPool pool;
   ImageManager *image_manager = scene->image_manager.get();
-  set<int> volume_images;
+  set<const ImageSingle *> volume_images;
 
   for (Geometry *geom : scene->geometry) {
     if (!geom->is_modified()) {
@@ -700,19 +691,13 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
       }
 
       const ImageHandle &handle = attr.data_voxel();
-      const int image_texture_id = handle.svm_image_texture_id();
-      if (image_texture_id != -1) {
-        volume_images.insert(image_texture_id);
+      if (!handle.empty()) {
+        handle.add_to_set(volume_images);
       }
     }
   }
 
-  for (const int image_texture_id : volume_images) {
-    pool.push([image_manager, device, scene, image_texture_id, &progress] {
-      image_manager->device_update_image_texture_id(device, scene, image_texture_id, progress);
-    });
-  }
-  pool.wait_work();
+  image_manager->device_load_images(device, scene, progress, volume_images);
 }
 
 void GeometryManager::device_update(Device *device,

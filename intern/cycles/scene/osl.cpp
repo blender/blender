@@ -669,10 +669,11 @@ void OSLShaderManager::device_update_specific(Device *device,
   for (Shader *shader : scene->shaders) {
     assert(shader->graph);
 
-    auto compile = [scene, shader, background_shader](Device *sub_device, OSLGlobals *) {
+    auto compile = [scene, &progress, shader, background_shader](Device *sub_device,
+                                                                 OSLGlobals *) {
       OSL::ShadingSystem *ss = scene->osl_manager->get_shading_system(sub_device);
 
-      OSLCompiler compiler(ss, scene, sub_device);
+      OSLCompiler compiler(ss, scene, progress, sub_device);
       compiler.background = (shader == background_shader);
       compiler.compile(shader);
     };
@@ -923,10 +924,9 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
   return node;
 }
 
-/* Static function, so only this file needs to be compile with RTTT. */
-void OSLShaderManager::osl_image_slots(Device *device,
-                                       ImageManager *image_manager,
-                                       set<int> &image_slots)
+void OSLShaderManager::osl_image_handles(Device *device,
+                                         ImageManager *image_manager,
+                                         set<const ImageSingle *> &handles)
 {
   set<OSLRenderServices *> services_shared;
   device->foreach_device([&services_shared](Device *sub_device) {
@@ -936,9 +936,9 @@ void OSLShaderManager::osl_image_slots(Device *device,
 
   for (OSLRenderServices *services : services_shared) {
     for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
-      if (it->second.handle.get_manager() == image_manager) {
-        const int slot = it->second.handle.svm_image_texture_id();
-        image_slots.insert(slot);
+      const ImageHandle &handle = it->second.handle;
+      if (handle.get_manager() == image_manager && !handle.empty()) {
+        handle.add_to_set(handles);
       }
     }
   }
@@ -946,8 +946,9 @@ void OSLShaderManager::osl_image_slots(Device *device,
 
 /* Graph Compiler */
 
-OSLCompiler::OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Device *device)
+OSLCompiler::OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Progress &progress, Device *device)
     : scene(scene),
+      progress(progress),
       services(static_cast<OSLRenderServices *>(ss->renderer())),
       ss(ss),
       device(device)
@@ -1590,9 +1591,8 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
    * to get handle again. Note that this name must be unique between multiple
    * render sessions as the render services are shared. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
-  services->textures.insert(
-      OSLUStringHash(filename),
-      OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_image_texture_ids()));
+  services->textures.insert(OSLUStringHash(filename),
+                            OSLTextureHandle(OSLTextureHandle::SVM, handle.kernel_id()));
   parameter(name, filename);
 }
 

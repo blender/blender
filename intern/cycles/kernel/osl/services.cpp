@@ -313,15 +313,15 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
           it.clear();
           break;
         }
-        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(
-            OSL_TEXTURE_HANDLE_TYPE_SVM | it->second.svm_image_texture_ids[0].y);
+        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
+                                                                     it->second.id);
       case OSLTextureHandle::IES:
         if (!it->second.handle.empty() && it->second.handle.get_manager() != image_manager) {
           it.clear();
           break;
         }
-        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(
-            OSL_TEXTURE_HANDLE_TYPE_IES | it->second.svm_image_texture_ids[0].y);
+        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_IES |
+                                                                     it->second.id);
       case OSLTextureHandle::AO:
         return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(
             OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 1);
@@ -346,7 +346,7 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
   }
 
   return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
-                                                               handle.svm_image_texture_id());
+                                                               handle.kernel_id());
 }
 
 bool OSLRenderServices::good(OSL::TextureSystem::TextureHandle *texture_handle)
@@ -425,37 +425,8 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
       break;
     }
     case OSLTextureHandle::SVM: {
-      int id = -1;
-      if (handle->svm_image_texture_ids[0].w == -1) {
-        /* Packed single texture. */
-        id = handle->svm_image_texture_ids[0].y;
-      }
-      else {
-        /* Packed tiled texture. */
-        const int tx = (int)s;
-        const int ty = (int)t;
-        const int tile = 1001 + 10 * ty + tx;
-        for (const int4 &tile_node : handle->svm_image_texture_ids) {
-          if (tile_node.x == tile) {
-            id = tile_node.y;
-            break;
-          }
-          if (tile_node.z == tile) {
-            id = tile_node.w;
-            break;
-          }
-        }
-        s -= tx;
-        t -= ty;
-      }
-
-      float4 rgba;
-      if (id == -1) {
-        rgba = IMAGE_MISSING_RGBA;
-      }
-      else {
-        rgba = kernel_image_interp(kernel_globals, id, s, 1.0f - t);
-      }
+      const float4 rgba = kernel_image_interp_with_udim(
+          kernel_globals, sd, handle->id, make_float2(s, 1.0f - t));
 
       result[0] = rgba[0];
       if (nchannels > 1) {
@@ -472,7 +443,7 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
     }
     case OSLTextureHandle::IES: {
       /* IES light. */
-      result[0] = kernel_ies_interp(kernel_globals, handle->svm_image_texture_ids[0].y, s, t);
+      result[0] = kernel_ies_interp(kernel_globals, handle->id, s, t);
       status = true;
       break;
     }
@@ -558,10 +529,9 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
   switch (texture_type) {
     case OSLTextureHandle::SVM: {
       /* Packed texture. */
-      const int image_texture_id = handle->svm_image_texture_ids[0].y;
       const float3 P_float3 = make_float3(P.x, P.y, P.z);
       float4 rgba = kernel_image_interp_3d(
-          kernel_globals, globals->sd, image_texture_id, P_float3, INTERPOLATION_NONE, false);
+          kernel_globals, globals->sd, handle->id, P_float3, INTERPOLATION_NONE, false);
 
       result[0] = rgba[0];
       if (nchannels > 1) {

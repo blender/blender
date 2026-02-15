@@ -78,7 +78,7 @@ class VolumeManager {
   std::string visualize_octree(const char *filename) const;
 
   /* Step size for ray marching. */
-  void update_step_size(const Scene *, DeviceScene *);
+  void update_step_size(const Scene *, DeviceScene *, Progress &progress);
 
   /* One octree per object per shader. */
   std::map<std::pair<const Object *, const Shader *>, std::shared_ptr<Octree>> object_octrees_;

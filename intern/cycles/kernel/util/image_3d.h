@@ -250,7 +250,7 @@ ccl_device float4 kernel_image_interp_3d(KernelGlobals kg,
 #else
   (void)kg;
   (void)sd;
-  (void)id;
+  (void)image_texture_id;
   (void)P;
   (void)interp;
   (void)stochastic;

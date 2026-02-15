@@ -98,6 +98,12 @@ struct KernelImageInfo {
   uint height = 0;
 };
 
+/* KernelImageTexture index for UDIM tile. */
+struct KernelImageUDIM {
+  int tile;
+  int image_texture_id;
+};
+
 /* Kernel data structure for image textures.
  *
  * This describes a logical image texture for the shading system, that may be stored
@@ -105,7 +111,7 @@ struct KernelImageInfo {
  * support on demand loading of tiles. */
 struct KernelImageTexture {
   /* Index into image object map. */
-  uint image_info_id = 0;
+  uint image_info_id = KERNEL_IMAGE_NONE;
   /* Image dimensions */
   uint width = 0;
   uint height = 0;
