@@ -779,6 +779,8 @@ enum {
   R_SCEMODE_UNUSED_19 = 1 << 19, /* cleared */
   R_EXR_CACHE_FILE = 1 << 20,
   R_MULTIVIEW = 1 << 21,
+  R_USE_TEXTURE_CACHE = 1 << 22,
+  R_TEXTURE_CACHE_AUTO_GENERATE = 1 << 23,
 };
 
 /** #RenderData::stamp */
@@ -883,7 +885,7 @@ struct RenderData {
   /**
    * Flags for render settings. Use bit-masking to access the settings.
    */
-  int scemode = R_DOCOMP | R_DOSEQ | R_EXTENSION;
+  int scemode = R_DOCOMP | R_DOSEQ | R_EXTENSION | R_USE_TEXTURE_CACHE;
 
   /**
    * Flags for render settings. Use bit-masking to access the settings.

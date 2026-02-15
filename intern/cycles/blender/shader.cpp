@@ -255,7 +255,8 @@ static void set_default_value(ShaderInput *input,
     }
     case SocketType::STRING: {
       const auto &default_value = *b_sock.default_value_typed<blender::bNodeSocketValueString>();
-      node->set(socket, (ustring)blender_absolute_path(b_data, b_id, default_value.value).c_str());
+      node->set(socket,
+                (ustring)blender_absolute_path(b_data, &b_id, default_value.value).c_str());
       break;
     }
     default:
@@ -797,7 +798,7 @@ static ShaderNode *add_node(Scene *scene,
       }
       else {
         const string absolute_filepath = blender_absolute_path(
-            b_data, b_ntree.id, storage.filepath);
+            b_data, &b_ntree.id, storage.filepath);
         node = OSLShaderManager::osl_node(graph, scene, absolute_filepath, "");
       }
     }
@@ -1029,7 +1030,7 @@ static ShaderNode *add_node(Scene *scene,
     IESLightNode *ies = graph->create_node<IESLightNode>();
     switch (storage.mode) {
       case blender::NODE_IES_EXTERNAL:
-        ies->set_filename(ustring(blender_absolute_path(b_data, b_ntree.id, storage.filepath)));
+        ies->set_filename(ustring(blender_absolute_path(b_data, &b_ntree.id, storage.filepath)));
         break;
       case blender::NODE_IES_INTERNAL:
         ustring ies_content = ustring(get_text_datablock_content(b_node.id));
