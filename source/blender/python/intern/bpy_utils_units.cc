@@ -243,7 +243,7 @@ PyDoc_STRVAR(
     "   :type unit_category: str\n"
     "   :param value: The value to convert to a string.\n"
     "   :type value: float\n"
-    "   :param precision: Number of digits after the comma.\n"
+    "   :param precision: Number of digits after the decimal point.\n"
     "   :type precision: int\n"
     "   :param split_unit: Whether to use several units if needed (1m1cm), or always only "
     "one (1.01m).\n"

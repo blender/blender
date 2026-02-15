@@ -717,7 +717,7 @@ PyDoc_STRVAR(
     bpy_bm_utils_face_flip_doc,
     ".. method:: face_flip(face)\n"
     "\n"
-    "   Flip the faces direction.\n"
+    "   Flip the face's direction.\n"
     "\n"
     "   :param face: Face to flip.\n"
     "   :type face: :class:`bmesh.types.BMFace`\n");

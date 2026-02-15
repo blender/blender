@@ -148,7 +148,7 @@ PyDoc_STRVAR(
     "\n"
     "   Discard an element from the selection history.\n"
     "\n"
-    "   Like remove but doesn't raise an error when the elements not in the selection list.\n"
+    "   Like remove but doesn't raise an error when the element is not in the selection list.\n"
     "\n"
     "   :param element: The element to discard.\n"
     "   :type element: :class:`BMVert` | :class:`BMEdge` | :class:`BMFace`\n");

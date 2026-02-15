@@ -133,13 +133,13 @@ PyDoc_STRVAR(
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :param r: red channel 0.0 - 1.0.\n"
+    "   :param r: Red channel 0.0 - 1.0.\n"
     "   :type r: float\n"
-    "   :param g: green channel 0.0 - 1.0.\n"
+    "   :param g: Green channel 0.0 - 1.0.\n"
     "   :type g: float\n"
-    "   :param b: blue channel 0.0 - 1.0.\n"
+    "   :param b: Blue channel 0.0 - 1.0.\n"
     "   :type b: float\n"
-    "   :param a: alpha channel 0.0 - 1.0.\n"
+    "   :param a: Alpha channel 0.0 - 1.0.\n"
     "   :type a: float\n");
 static PyObject *py_blf_color(PyObject * /*self*/, PyObject *args)
 {
@@ -170,7 +170,7 @@ PyDoc_STRVAR(
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :param text: the text to draw.\n"
+    "   :param text: The text to draw.\n"
     "   :type text: str\n");
 static PyObject *py_blf_draw(PyObject * /*self*/, PyObject *args)
 {
@@ -197,7 +197,7 @@ PyDoc_STRVAR(
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :param text: the text to draw.\n"
+    "   :param text: The text to draw.\n"
     "   :type text: str\n");
 static PyObject *py_blf_draw_buffer(PyObject * /*self*/, PyObject *args)
 {
@@ -224,9 +224,9 @@ PyDoc_STRVAR(
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :param text: the text to draw.\n"
+    "   :param text: The text to measure.\n"
     "   :type text: str\n"
-    "   :return: the width and height of the text.\n"
+    "   :return: The width and height of the text.\n"
     "   :rtype: tuple[float, float]\n");
 static PyObject *py_blf_dimensions(PyObject * /*self*/, PyObject *args)
 {
@@ -455,9 +455,9 @@ PyDoc_STRVAR(
     "\n"
     "   Load a new font.\n"
     "\n"
-    "   :param filepath: the filepath of the font.\n"
+    "   :param filepath: The filepath of the font.\n"
     "   :type filepath: str | bytes\n"
-    "   :return: the new font's fontid or -1 if there was an error.\n"
+    "   :return: The new font's fontid or -1 if there was an error.\n"
     "   :rtype: int\n");
 static PyObject *py_blf_load(PyObject * /*self*/, PyObject *args)
 {
@@ -483,7 +483,7 @@ PyDoc_STRVAR(
     "\n"
     "   Unload an existing font.\n"
     "\n"
-    "   :param filepath: the filepath of the font.\n"
+    "   :param filepath: The filepath of the font.\n"
     "   :type filepath: str | bytes\n");
 static PyObject *py_blf_unload(PyObject * /*self*/, PyObject *args)
 {

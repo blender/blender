@@ -174,7 +174,7 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void * 
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayercollection_is_singleton_doc,
-    "True if there can exists only one layer of this type (read-only).\n"
+    "True if there can exist only one layer of this type (read-only).\n"
     "\n"
     ":type: bool\n");
 static PyObject *bpy_bmlayercollection_is_singleton_get(BPy_BMLayerItem *self, void * /*flag*/)
@@ -187,7 +187,7 @@ static PyObject *bpy_bmlayercollection_is_singleton_get(BPy_BMLayerItem *self, v
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayercollection_name_doc,
-    "The layers unique name (read-only).\n"
+    "The layer's unique name (read-only).\n"
     "\n"
     ":type: str\n");
 static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void * /*flag*/)
