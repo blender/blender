@@ -415,7 +415,7 @@ void NLA_OT_previewrange_set(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set Preview Range to Selected";
   ot->idname = "NLA_OT_previewrange_set";
-  ot->description = "Set Preview Range based on extends of selected strips";
+  ot->description = "Set Preview Range based on extents of selected strips";
 
   /* API callbacks. */
   ot->exec = nlaedit_previewrange_exec;

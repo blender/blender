@@ -590,7 +590,7 @@ static void GREASE_PENCIL_OT_delete(wmOperatorType *ot)
        0,
        "Only Strokes",
        "Delete only strokes and not fills"},
-      {int(DeleteMode::OnlyFills), "FILLS", 0, "Only Fills", "Delte only fills and not strokes"},
+      {int(DeleteMode::OnlyFills), "FILLS", 0, "Only Fills", "Delete only fills and not strokes"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

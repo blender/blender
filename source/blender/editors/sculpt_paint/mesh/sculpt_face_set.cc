@@ -584,12 +584,12 @@ void SCULPT_OT_face_sets_create(wmOperatorType *ot)
        "ALL",
        0,
        "Face Set Full Mesh",
-       "Create an unique face set with all faces in the sculpt"},
+       "Create a unique face set with all faces in the sculpt"},
       {int(CreateMode::Selection),
        "SELECTION",
        0,
        "Face Set from Edit Mode Selection",
-       "Create an face set corresponding to the Edit Mode face selection"},
+       "Create a face set corresponding to the Edit Mode face selection"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   RNA_def_enum(ot->srna, "mode", modes, int(CreateMode::Masked), "Mode", "");
@@ -1625,13 +1625,13 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
        "FAIR_POSITIONS",
        0,
        "Fair Positions",
-       "Creates a smooth as possible geometry patch from the face set minimizing changes in "
+       "Creates the smoothest possible geometry patch from the face set minimizing changes in "
        "vertex positions"},
       {int(EditMode::FairTangency),
        "FAIR_TANGENCY",
        0,
        "Fair Tangency",
-       "Creates a smooth as possible geometry patch from the face set minimizing changes in "
+       "Creates the smoothest possible geometry patch from the face set minimizing changes in "
        "vertex tangents"},
       {0, nullptr, 0, nullptr, nullptr},
   };

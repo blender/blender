@@ -2659,7 +2659,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_MAIN);
   RNA_def_function_ui_description(
       func, "Create animation data to this ID, note that not all ID types support this");
-  parm = RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or nullptr");
+  parm = RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or None");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "animation_data_clear", "rna_ID_animation_data_free");

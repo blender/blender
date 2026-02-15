@@ -6001,7 +6001,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Toggle Cyclic";
-  ot->description = "Make active spline closed/opened loop";
+  ot->description = "Make active spline closed/open loop";
   ot->idname = "CURVE_OT_cyclic_toggle";
 
   /* API callbacks. */

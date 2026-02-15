@@ -1291,7 +1291,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Metaball";
-  ot->description = "Add an metaball object to the scene";
+  ot->description = "Add a metaball object to the scene";
   ot->idname = "OBJECT_OT_metaball_add";
 
   /* API callbacks. */

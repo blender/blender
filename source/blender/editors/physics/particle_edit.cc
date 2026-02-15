@@ -3306,7 +3306,7 @@ void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Remove Doubles";
   ot->idname = "PARTICLE_OT_remove_doubles";
-  ot->description = "Remove selected particles close enough of others";
+  ot->description = "Remove selected particles close enough to others";
 
   /* API callbacks. */
   ot->exec = remove_doubles_exec;
