@@ -5,6 +5,8 @@
  *
  * Adapted code from Open Shading Language. */
 
+#pragma once
+
 #include "kernel/osl/types.h"
 
 #ifndef __KERNEL_GPU__
