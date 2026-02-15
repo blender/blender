@@ -117,6 +117,7 @@ if(WITH_CYCLES_OSL)
     osl/closures_setup.h
     osl/closures_template.h
     osl/services_gpu.h
+    osl/strings.h
     osl/types.h
   )
 endif()
