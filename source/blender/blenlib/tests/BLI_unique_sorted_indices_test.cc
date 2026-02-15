@@ -63,4 +63,27 @@ TEST(unique_sorted_indices, SplitToRangesAndSpans)
   EXPECT_EQ(std::get<IndexRange>(parts[3]), IndexRange(20, 5));
 }
 
+TEST(unique_sorted_indices, FindContentRange)
+{
+  {
+    Vector<int> data = {1, 2, 3, 4, 5};
+    EXPECT_EQ(find_content_range<int>(data, IndexRange()), IndexRange());
+    EXPECT_EQ(find_content_range<int>(data, IndexRange::from_begin_end_inclusive(2, 3)),
+              IndexRange::from_begin_end_inclusive(1, 2));
+    EXPECT_EQ(find_content_range<int>(data, IndexRange(100)), data.index_range());
+  }
+  {
+    Vector<int> data = {5, 100, 101, 1000};
+    EXPECT_EQ(find_content_range<int>(data, IndexRange::from_begin_end_inclusive(0, 4)),
+              IndexRange());
+    EXPECT_EQ(find_content_range<int>(data, IndexRange::from_begin_end_inclusive(0, 5)),
+              IndexRange::from_begin_end_inclusive(0, 0));
+    EXPECT_EQ(find_content_range<int>(data, IndexRange::from_begin_end_inclusive(5, 100)),
+              IndexRange::from_begin_end_inclusive(0, 1));
+    EXPECT_EQ(find_content_range<int>(data, IndexRange::from_begin_end_inclusive(101, 1000)),
+              IndexRange::from_begin_end_inclusive(2, 3));
+    EXPECT_EQ(find_content_range<int>(data, IndexRange(10000, 5)), IndexRange());
+  }
+}
+
 }  // namespace blender::unique_sorted_indices::tests
