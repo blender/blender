@@ -166,7 +166,7 @@ Class mix-in example:
    Modal operators are an exception, keeping their instance variable as Blender runs, see modal operator template.
 
 So once the class is registered with Blender, instancing the class and calling the functions is left up to Blender.
-In fact you cannot instance these classes from the script as you would expect with most Python API's.
+In fact you cannot instantiate these classes from the script as you would expect with most Python APIs.
 To run operators you can call them through the operator API, e.g:
 
 .. code-block:: python
@@ -328,7 +328,7 @@ using the ``bl_idname`` rather than the classes original name.
 
 .. note::
 
-   There are some exceptions to this for class names which aren't guarantee to be unique.
+   There are some exceptions to this for class names which aren't guaranteed to be unique.
    In this case use: :func:`bpy.types.Struct.bl_rna_get_subclass_py`.
 
 
@@ -452,7 +452,7 @@ This is equivalent to:
 Dynamic Class Definition (Advanced)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases the specifier for data may not be in Blender, for example a external render engines shader definitions,
+In some cases the specifier for data may not be in Blender, for example an external render engine's shader definitions,
 and it may be useful to define them as types and remove them on the fly.
 
 .. code-block:: python

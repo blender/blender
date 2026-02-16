@@ -16,7 +16,7 @@ but some areas are still being extended and improved.
 - Create new tools.
 - Create interactive tools.
 - Create new rendering engines that integrate with Blender.
-- Subscribe to changes to data and it's properties.
+- Subscribe to changes to data and its properties.
 - Define new settings in existing Blender data.
 - Draw in the 3D Viewport using Python.
 
@@ -405,7 +405,7 @@ Example of a matrix, vector multiplication:
 
 .. code-block:: python
 
-   bpy.context.object.matrix_world @ bpy.context.object.data.verts[0].co
+   bpy.context.object.matrix_world @ bpy.context.object.data.vertices[0].co
 
 .. note::
 
