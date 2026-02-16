@@ -51,6 +51,14 @@ logger = logging.getLogger(__name__)
 # is used.
 HTTP_CACHEBUST_RESOLUTION_SEC = 60
 
+# JSON files that are larger than this size will not be parsed. This prevents a
+# malicious server from effectively DOSsing Blender by sending it a huge JSON file.
+#
+# This is the size in MiB. The largest files in the remote asset listing are the
+# `assets-{number}.json` files. The server determines how large they are, but
+# typically they are in the order of 1 MB.
+MAX_JSON_FILE_SIZE_MB = 64
+
 
 class RemoteAssetListingLocator:
     """Construct paths for various components of a remote asset library.
@@ -264,6 +272,7 @@ class RemoteAssetListingDownloader:
                     'X-Blender': "{:d}.{:d}".format(*bpy.app.version),
                 },
                 timeout=300,
+                max_size_bytes=MAX_JSON_FILE_SIZE_MB * 1024 * 1024,
             ),
             on_callback_error=self._on_callback_error,
         )
@@ -588,6 +597,11 @@ class RemoteAssetListingDownloader:
             used_unsafe_file = False
 
         logger.info("Validating %s", path_to_load)
+
+        if path_to_load.stat().st_size > MAX_JSON_FILE_SIZE_MB * 1024 * 1024:
+            raise ValueError("{!s} is larger than {!d} MiB, rejecting the file to prevent memory issues".format(
+                path_to_load, MAX_JSON_FILE_SIZE_MB))
+
         json_data = path_to_load.read_bytes()
         parsed_data = self._parser.parse_and_validate(api_model, json_data)
 
