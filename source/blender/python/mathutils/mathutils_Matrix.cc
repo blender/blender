@@ -1911,10 +1911,12 @@ PyDoc_STRVAR(
     "\n"
     "   Rotates the matrix by another mathutils value.\n"
     "\n"
-    "   :param other: rotation component of mathutils value\n"
-    "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n"
+    "   .. note:: The matrix must be 3x3.\n"
     "\n"
-    "   .. note:: If any of the columns are not unit length this may not have desired results.\n");
+    "   .. note:: If any of the columns are not unit length this may not have desired results.\n"
+    "\n"
+    "   :param other: rotation component of mathutils value\n"
+    "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n");
 static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 {
   float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
@@ -3293,7 +3295,7 @@ static PyObject *Matrix_row_get(MatrixObject *self, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_col_doc,
-    "Access the matrix by columns, 3x3 and 4x4 only, (read-only).\n"
+    "Access the matrix by columns (read-only).\n"
     "\n"
     ":type: :class:`MatrixAccess`\n");
 static PyObject *Matrix_col_get(MatrixObject *self, void * /*closure*/)

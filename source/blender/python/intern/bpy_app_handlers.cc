@@ -95,8 +95,9 @@ static PyTypeObject BlenderAppCbType;
  */
 static PyStructSequence_Field app_cb_info_fields[] = {
     {"frame_change_pre",
-     "Called after frame change for playback and rendering, before any data is evaluated for the "
-     "new frame. This makes it possible to change data and relations (for example swap an object "
+     "Called when a frame change is triggered for playback and rendering, "
+     "before any data is evaluated for the new frame. "
+     "This makes it possible to change data and relations (for example swap an object "
      "to another mesh) for the new frame. Note that this handler is **not** to be used as 'before "
      "the frame changes' event. The dependency graph is not available in this handler, as data "
      "and relations may have been altered and the dependency graph has not yet been updated for "

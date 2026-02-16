@@ -413,7 +413,7 @@ static int bpy_app_global_flag_set__only_disable(PyObject * /*self*/,
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_debug_value_doc,
-    "Short, number which can be set to non-zero values for testing purposes.\n"
+    "Integer value which can be set to non-zero values for testing purposes.\n"
     "\n"
     ":type: int\n");
 static PyObject *bpy_app_debug_value_get(PyObject * /*self*/, void * /*closure*/)

@@ -50,7 +50,7 @@ PyDoc_STRVAR(
     "   :type v2: :class:`mathutils.Vector`\n"
     "   :param v3: Point3\n"
     "   :type v3: :class:`mathutils.Vector`\n"
-    "   :param ray: Direction of the projection\n"
+    "   :param ray: Direction of the ray\n"
     "   :type ray: :class:`mathutils.Vector`\n"
     "   :param orig: Origin\n"
     "   :type orig: :class:`mathutils.Vector`\n"
@@ -163,7 +163,7 @@ PyDoc_STRVAR(
     "   :type v3: :class:`mathutils.Vector`\n"
     "   :param v4: Second point of the second line\n"
     "   :type v4: :class:`mathutils.Vector`\n"
-    "   :return: The intersection on each line or None when the lines are co-linear.\n"
+    "   :return: The intersection on each line or None when the lines are parallel.\n"
     "   :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`] | None\n");
 static PyObject *M_Geometry_intersect_line_line(PyObject * /*self*/, PyObject *args)
 {
@@ -214,7 +214,7 @@ static PyObject *M_Geometry_intersect_line_line(PyObject * /*self*/, PyObject *a
   }
 
   if (result == 0) {
-    /* Collinear. */
+    /* Parallel. */
     Py_RETURN_NONE;
   }
 
@@ -441,7 +441,8 @@ PyDoc_STRVAR(
     M_Geometry_volume_tetrahedron_doc,
     ".. function:: volume_tetrahedron(v1, v2, v3, v4, /)\n"
     "\n"
-    "   Return the volume formed by a tetrahedron (points can be in any order).\n"
+    "   Return the absolute (unsigned) volume formed by a tetrahedron "
+    "(points can be in any order).\n"
     "\n"
     "   :param v1: Point1\n"
     "   :type v1: :class:`mathutils.Vector`\n"
@@ -483,13 +484,13 @@ PyDoc_STRVAR(
     "\n"
     "   .. warning:: Despite its name, this function works on segments, and not on lines.\n"
     "\n"
-    "   :param lineA_p1: First point of the first line\n"
+    "   :param lineA_p1: First point of the first segment\n"
     "   :type lineA_p1: :class:`mathutils.Vector`\n"
-    "   :param lineA_p2: Second point of the first line\n"
+    "   :param lineA_p2: Second point of the first segment\n"
     "   :type lineA_p2: :class:`mathutils.Vector`\n"
-    "   :param lineB_p1: First point of the second line\n"
+    "   :param lineB_p1: First point of the second segment\n"
     "   :type lineB_p1: :class:`mathutils.Vector`\n"
-    "   :param lineB_p2: Second point of the second line\n"
+    "   :param lineB_p2: Second point of the second segment\n"
     "   :type lineB_p2: :class:`mathutils.Vector`\n"
     "   :return: The point of intersection or None when not found\n"
     "   :rtype: :class:`mathutils.Vector` | None\n");
@@ -526,15 +527,15 @@ PyDoc_STRVAR(
     "   Calculate the intersection between a line (as 2 vectors) and a plane.\n"
     "   Returns a vector for the intersection or None.\n"
     "\n"
-    "   :param line_a: First point of the first line\n"
+    "   :param line_a: First point of the line\n"
     "   :type line_a: :class:`mathutils.Vector`\n"
-    "   :param line_b: Second point of the first line\n"
+    "   :param line_b: Second point of the line\n"
     "   :type line_b: :class:`mathutils.Vector`\n"
     "   :param plane_co: A point on the plane\n"
     "   :type plane_co: :class:`mathutils.Vector`\n"
     "   :param plane_no: The direction the plane is facing\n"
     "   :type plane_no: :class:`mathutils.Vector`\n"
-    "   :param no_flip: Not implemented\n"
+    "   :param no_flip: Currently ignored.\n"
     "   :type no_flip: bool\n"
     "   :return: The point of intersection or None when not found\n"
     "   :rtype: :class:`mathutils.Vector` | None\n");
@@ -1040,7 +1041,8 @@ PyDoc_STRVAR(
     ".. function:: intersect_point_tri_2d(pt, tri_p1, tri_p2, tri_p3, /)\n"
     "\n"
     "   Takes 4 vectors (using only the x and y coordinates): one is the point and the next 3 "
-    "define the triangle. Returns 1 if the point is within the triangle, otherwise 0.\n"
+    "define the triangle. Returns a non-zero value if the point is within the triangle, otherwise "
+    "0.\n"
     "\n"
     "   :param pt: Point\n"
     "   :type pt: :class:`mathutils.Vector`\n"
@@ -1050,7 +1052,7 @@ PyDoc_STRVAR(
     "   :type tri_p2: :class:`mathutils.Vector`\n"
     "   :param tri_p3: Third point of the triangle\n"
     "   :type tri_p3: :class:`mathutils.Vector`\n"
-    "   :return: 1 if the point is within the triangle, otherwise 0.\n"
+    "   :return: 1 if inside with CCW winding, -1 if inside with CW winding, otherwise 0.\n"
     "   :rtype: int\n");
 static PyObject *M_Geometry_intersect_point_tri_2d(PyObject * /*self*/, PyObject *args)
 {
@@ -1082,8 +1084,8 @@ PyDoc_STRVAR(
     "\n"
     "   Takes 5 vectors (using only the x and y coordinates): one is the point and the "
     "next 4 define the quad,\n"
-    "   only the x and y are used from the vectors. Returns 1 if the point is within the "
-    "quad, otherwise 0.\n"
+    "   only the x and y are used from the vectors. Returns a non-zero value if the point is "
+    "within the quad, otherwise 0.\n"
     "   Works only with convex quads without singular edges.\n"
     "\n"
     "   :param pt: Point\n"
@@ -1096,7 +1098,7 @@ PyDoc_STRVAR(
     "   :type quad_p3: :class:`mathutils.Vector`\n"
     "   :param quad_p4: Fourth point of the quad\n"
     "   :type quad_p4: :class:`mathutils.Vector`\n"
-    "   :return: 1 if the point is within the quad, otherwise 0.\n"
+    "   :return: 1 if inside with CCW winding, -1 if inside with CW winding, otherwise 0.\n"
     "   :rtype: int\n");
 static PyObject *M_Geometry_intersect_point_quad_2d(PyObject * /*self*/, PyObject *args)
 {

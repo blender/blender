@@ -1716,17 +1716,18 @@ static void IDGroup_View_init_type()
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IDGroup_pop_doc,
-    ".. method:: pop(key, default=None)\n"
+    ".. method:: pop(key, default)\n"
     "\n"
     "   Remove an item from the group, returning a Python representation.\n"
     "\n"
-    "   :raises KeyError: When the item doesn't exist.\n"
+    "   :raises KeyError: When the item doesn't exist and no *default* is given.\n"
     "\n"
     "   :param key: Name of item to remove.\n"
     "   :type key: str\n"
-    "   :param default: Value to return when key isn't found, otherwise raise an exception.\n"
+    "   :param default: Value to return when *key* isn't found "
+    "(optional, a :exc:`KeyError` is raised when omitted and the key is not found).\n"
     "   :type default: Any\n"
-    "   :return: A Python representation of the removed item.\n"
+    "   :return: A Python representation of the removed item, or *default*.\n"
     "   :rtype: Any\n");
 static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
 {
@@ -2240,7 +2241,7 @@ PyDoc_STRVAR(
     "   Return the array as a list.\n"
     "\n"
     "   :return: The array as a list.\n"
-    "   :rtype: list[int] | list[float]\n");
+    "   :rtype: list[int] | list[float] | list[bool]\n");
 static PyObject *BPy_IDArray_to_list(BPy_IDArray *self)
 {
   return BPy_IDGroup_MapDataToPy(self->prop);

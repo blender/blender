@@ -339,7 +339,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns a vector with random entries in the range (-1, 1).\n"
     "\n"
-    "   :param size: The size of the vector to be produced.\n"
+    "   :param size: The size of the vector to be produced, must be 2 or greater.\n"
     "   :type size: int\n"
     "   :return: The random vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
