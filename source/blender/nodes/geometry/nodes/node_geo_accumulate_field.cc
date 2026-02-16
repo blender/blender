@@ -211,48 +211,46 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
 
     GVArray g_output;
 
-    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
-      if constexpr (is_same_any_v<T, int, float, float3, float4x4>) {
-        Array<T> outputs(domain_size);
-        const VArray<T> values = g_values.typed<T>();
+    g_values.type().to_static_type<int, float, float3, float4x4>([&]<typename T>() {
+      Array<T> outputs(domain_size);
+      const VArray<T> values = g_values.typed<T>();
 
-        if (group_indices.is_single()) {
-          T accumulation = AccumulationInfo<T>::initial_value;
-          if (accumulation_mode_ == AccumulationMode::Leading) {
-            for (const int i : values.index_range()) {
-              accumulation = AccumulationInfo<T>::accumulate(accumulation, values[i]);
-              outputs[i] = accumulation;
-            }
-          }
-          else {
-            for (const int i : values.index_range()) {
-              outputs[i] = accumulation;
-              accumulation = AccumulationInfo<T>::accumulate(accumulation, values[i]);
-            }
+      if (group_indices.is_single()) {
+        T accumulation = AccumulationInfo<T>::initial_value;
+        if (accumulation_mode_ == AccumulationMode::Leading) {
+          for (const int i : values.index_range()) {
+            accumulation = AccumulationInfo<T>::accumulate(accumulation, values[i]);
+            outputs[i] = accumulation;
           }
         }
         else {
-          Map<int, T> accumulations;
-          if (accumulation_mode_ == AccumulationMode::Leading) {
-            for (const int i : values.index_range()) {
-              T &accumulation_value = accumulations.lookup_or_add(
-                  group_indices[i], AccumulationInfo<T>::initial_value);
-              accumulation_value = AccumulationInfo<T>::accumulate(accumulation_value, values[i]);
-              outputs[i] = accumulation_value;
-            }
-          }
-          else {
-            for (const int i : values.index_range()) {
-              T &accumulation_value = accumulations.lookup_or_add(
-                  group_indices[i], AccumulationInfo<T>::initial_value);
-              outputs[i] = accumulation_value;
-              accumulation_value = AccumulationInfo<T>::accumulate(accumulation_value, values[i]);
-            }
+          for (const int i : values.index_range()) {
+            outputs[i] = accumulation;
+            accumulation = AccumulationInfo<T>::accumulate(accumulation, values[i]);
           }
         }
-
-        g_output = VArray<T>::from_container(std::move(outputs));
       }
+      else {
+        Map<int, T> accumulations;
+        if (accumulation_mode_ == AccumulationMode::Leading) {
+          for (const int i : values.index_range()) {
+            T &accumulation_value = accumulations.lookup_or_add(
+                group_indices[i], AccumulationInfo<T>::initial_value);
+            accumulation_value = AccumulationInfo<T>::accumulate(accumulation_value, values[i]);
+            outputs[i] = accumulation_value;
+          }
+        }
+        else {
+          for (const int i : values.index_range()) {
+            T &accumulation_value = accumulations.lookup_or_add(
+                group_indices[i], AccumulationInfo<T>::initial_value);
+            outputs[i] = accumulation_value;
+            accumulation_value = AccumulationInfo<T>::accumulate(accumulation_value, values[i]);
+          }
+        }
+      }
+
+      g_output = VArray<T>::from_container(std::move(outputs));
     });
 
     return attributes.adapt_domain(std::move(g_output), source_domain_, context.domain());
@@ -323,29 +321,27 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
 
     GVArray g_outputs;
 
-    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
-      if constexpr (is_same_any_v<T, int, float, float3, float4x4>) {
-        const VArray<T> values = g_values.typed<T>();
-        if (group_indices.is_single()) {
-          T accumulation = AccumulationInfo<T>::initial_value;
-          for (const int i : values.index_range()) {
-            accumulation = AccumulationInfo<T>::accumulate(accumulation, values[i]);
-          }
-          g_outputs = VArray<T>::from_single(accumulation, domain_size);
+    g_values.type().to_static_type<int, float, float3, float4x4>([&]<typename T>() {
+      const VArray<T> values = g_values.typed<T>();
+      if (group_indices.is_single()) {
+        T accumulation = AccumulationInfo<T>::initial_value;
+        for (const int i : values.index_range()) {
+          accumulation = AccumulationInfo<T>::accumulate(accumulation, values[i]);
         }
-        else {
-          Map<int, T> accumulations;
-          for (const int i : values.index_range()) {
-            T &value = accumulations.lookup_or_add(group_indices[i],
-                                                   AccumulationInfo<T>::initial_value);
-            value = AccumulationInfo<T>::accumulate(value, values[i]);
-          }
-          Array<T> outputs(domain_size);
-          for (const int i : values.index_range()) {
-            outputs[i] = accumulations.lookup(group_indices[i]);
-          }
-          g_outputs = VArray<T>::from_container(std::move(outputs));
+        g_outputs = VArray<T>::from_single(accumulation, domain_size);
+      }
+      else {
+        Map<int, T> accumulations;
+        for (const int i : values.index_range()) {
+          T &value = accumulations.lookup_or_add(group_indices[i],
+                                                 AccumulationInfo<T>::initial_value);
+          value = AccumulationInfo<T>::accumulate(value, values[i]);
         }
+        Array<T> outputs(domain_size);
+        for (const int i : values.index_range()) {
+          outputs[i] = accumulations.lookup(group_indices[i]);
+        }
+        g_outputs = VArray<T>::from_container(std::move(outputs));
       }
     });
 

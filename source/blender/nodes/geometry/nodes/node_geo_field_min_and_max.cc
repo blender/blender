@@ -176,51 +176,49 @@ class FieldMinMaxInput final : public bke::GeometryFieldInput {
 
     GVArray g_outputs;
 
-    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
-      if constexpr (is_same_any_v<T, int, float, float3>) {
-        const VArray<T> values = g_values.typed<T>();
+    g_values.type().to_static_type<int, float, float3>([&]<typename T>() {
+      const VArray<T> values = g_values.typed<T>();
 
-        if (operation_ == Operation::Min) {
-          if (group_indices.is_single()) {
-            T result = MinMaxInfo<T>::min_initial_value;
-            for (const int i : values.index_range()) {
-              result = math::min(result, values[i]);
-            }
-            g_outputs = VArray<T>::from_single(result, domain_size);
+      if (operation_ == Operation::Min) {
+        if (group_indices.is_single()) {
+          T result = MinMaxInfo<T>::min_initial_value;
+          for (const int i : values.index_range()) {
+            result = math::min(result, values[i]);
           }
-          else {
-            Map<int, T> results;
-            for (const int i : values.index_range()) {
-              T &value = results.lookup_or_add(group_indices[i], MinMaxInfo<T>::min_initial_value);
-              value = math::min(value, values[i]);
-            }
-            Array<T> outputs(domain_size);
-            for (const int i : values.index_range()) {
-              outputs[i] = results.lookup(group_indices[i]);
-            }
-            g_outputs = VArray<T>::from_container(std::move(outputs));
-          }
+          g_outputs = VArray<T>::from_single(result, domain_size);
         }
         else {
-          if (group_indices.is_single()) {
-            T result = MinMaxInfo<T>::max_initial_value;
-            for (const int i : values.index_range()) {
-              result = math::max(result, values[i]);
-            }
-            g_outputs = VArray<T>::from_single(result, domain_size);
+          Map<int, T> results;
+          for (const int i : values.index_range()) {
+            T &value = results.lookup_or_add(group_indices[i], MinMaxInfo<T>::min_initial_value);
+            value = math::min(value, values[i]);
           }
-          else {
-            Map<int, T> results;
-            for (const int i : values.index_range()) {
-              T &value = results.lookup_or_add(group_indices[i], MinMaxInfo<T>::max_initial_value);
-              value = math::max(value, values[i]);
-            }
-            Array<T> outputs(domain_size);
-            for (const int i : values.index_range()) {
-              outputs[i] = results.lookup(group_indices[i]);
-            }
-            g_outputs = VArray<T>::from_container(std::move(outputs));
+          Array<T> outputs(domain_size);
+          for (const int i : values.index_range()) {
+            outputs[i] = results.lookup(group_indices[i]);
           }
+          g_outputs = VArray<T>::from_container(std::move(outputs));
+        }
+      }
+      else {
+        if (group_indices.is_single()) {
+          T result = MinMaxInfo<T>::max_initial_value;
+          for (const int i : values.index_range()) {
+            result = math::max(result, values[i]);
+          }
+          g_outputs = VArray<T>::from_single(result, domain_size);
+        }
+        else {
+          Map<int, T> results;
+          for (const int i : values.index_range()) {
+            T &value = results.lookup_or_add(group_indices[i], MinMaxInfo<T>::max_initial_value);
+            value = math::max(value, values[i]);
+          }
+          Array<T> outputs(domain_size);
+          for (const int i : values.index_range()) {
+            outputs[i] = results.lookup(group_indices[i]);
+          }
+          g_outputs = VArray<T>::from_container(std::move(outputs));
         }
       }
     });

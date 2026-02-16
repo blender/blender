@@ -187,54 +187,52 @@ class FieldAverageInput final : public bke::GeometryFieldInput {
 
     GVArray g_outputs;
 
-    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
-      if constexpr (is_same_any_v<T, int, float, float3>) {
-        const VArraySpan<T> values = g_values.typed<T>();
+    g_values.type().to_static_type<int, float, float3>([&]<typename T>() {
+      const VArraySpan<T> values = g_values.typed<T>();
 
-        if (operation_ == Operation::Mean) {
-          if (group_indices.is_single()) {
-            const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-            g_outputs = VArray<T>::from_single(mean, domain_size);
-          }
-          else {
-            Map<int, std::pair<T, int>> sum_and_counts;
-            for (const int i : values.index_range()) {
-              auto &pair = sum_and_counts.lookup_or_add(group_indices[i], std::make_pair(T(), 0));
-              pair.first = pair.first + values[i];
-              pair.second = pair.second + 1;
-            }
-
-            Array<T> outputs(domain_size);
-            for (const int i : values.index_range()) {
-              const auto &pair = sum_and_counts.lookup(group_indices[i]);
-              outputs[i] = pair.first / pair.second;
-            }
-            g_outputs = VArray<T>::from_container(std::move(outputs));
-          }
+      if (operation_ == Operation::Mean) {
+        if (group_indices.is_single()) {
+          const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
+          g_outputs = VArray<T>::from_single(mean, domain_size);
         }
         else {
-          if (group_indices.is_single()) {
-            Array<T> sorted_values(values);
-            T median = calculate_median<T>(sorted_values);
-            g_outputs = VArray<T>::from_single(median, domain_size);
+          Map<int, std::pair<T, int>> sum_and_counts;
+          for (const int i : values.index_range()) {
+            auto &pair = sum_and_counts.lookup_or_add(group_indices[i], std::make_pair(T(), 0));
+            pair.first = pair.first + values[i];
+            pair.second = pair.second + 1;
           }
-          else {
-            Map<int, Vector<T>> groups;
-            for (const int i : values.index_range()) {
-              groups.lookup_or_add(group_indices[i], Vector<T>()).append(values[i]);
-            }
 
-            Map<int, T> medians;
-            for (MutableMapItem<int, Vector<T>> group : groups.items()) {
-              medians.add(group.key, calculate_median<T>(group.value));
-            }
-
-            Array<T> outputs(domain_size);
-            for (const int i : values.index_range()) {
-              outputs[i] = medians.lookup(group_indices[i]);
-            }
-            g_outputs = VArray<T>::from_container(std::move(outputs));
+          Array<T> outputs(domain_size);
+          for (const int i : values.index_range()) {
+            const auto &pair = sum_and_counts.lookup(group_indices[i]);
+            outputs[i] = pair.first / pair.second;
           }
+          g_outputs = VArray<T>::from_container(std::move(outputs));
+        }
+      }
+      else {
+        if (group_indices.is_single()) {
+          Array<T> sorted_values(values);
+          T median = calculate_median<T>(sorted_values);
+          g_outputs = VArray<T>::from_single(median, domain_size);
+        }
+        else {
+          Map<int, Vector<T>> groups;
+          for (const int i : values.index_range()) {
+            groups.lookup_or_add(group_indices[i], Vector<T>()).append(values[i]);
+          }
+
+          Map<int, T> medians;
+          for (MutableMapItem<int, Vector<T>> group : groups.items()) {
+            medians.add(group.key, calculate_median<T>(group.value));
+          }
+
+          Array<T> outputs(domain_size);
+          for (const int i : values.index_range()) {
+            outputs[i] = medians.lookup(group_indices[i]);
+          }
+          g_outputs = VArray<T>::from_container(std::move(outputs));
         }
       }
     });

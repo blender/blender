@@ -124,10 +124,8 @@ void curve_simplify(const Span<float3> positions,
                     MutableSpan<bool> points_to_delete)
 
 {
-  bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
-    if constexpr (is_same_any_v<T, float, float2, float3>) {
-      curve_simplify(positions, cyclic, epsilon, attribute_data.typed<T>(), points_to_delete);
-    }
+  attribute_data.type().to_static_type<float, float2, float3>([&]<typename T>() {
+    curve_simplify(positions, cyclic, epsilon, attribute_data.typed<T>(), points_to_delete);
   });
 }
 
@@ -147,14 +145,12 @@ IndexMask simplify_curve_attribute(const Span<float3> positions,
       points_by_curve, curves_selection, true, points_to_delete.as_mutable_span());
   curves_selection.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
     const IndexRange points = points_by_curve[curve_i];
-    bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
-      if constexpr (is_same_any_v<T, float, float2, float3>) {
-        curve_simplify(positions.slice(points),
-                       cyclic[curve_i],
-                       epsilon,
-                       attribute_data.typed<T>().slice(points),
-                       points_to_delete.as_mutable_span().slice(points));
-      }
+    attribute_data.type().to_static_type<float, float2, float3>([&]<typename T>() {
+      curve_simplify(positions.slice(points),
+                     cyclic[curve_i],
+                     epsilon,
+                     attribute_data.typed<T>().slice(points),
+                     points_to_delete.as_mutable_span().slice(points));
     });
   });
   return IndexMask::from_bools(points_to_delete, memory);

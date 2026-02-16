@@ -156,86 +156,84 @@ class FieldVarianceInput final : public bke::GeometryFieldInput {
 
     GVArray g_outputs;
 
-    bke::attribute_math::to_static_type(g_values.type(), [&]<typename T>() {
-      if constexpr (is_same_any_v<T, int, float, float3>) {
-        const VArraySpan<T> values = g_values.typed<T>();
+    g_values.type().to_static_type<int, float, float3>([&]<typename T>() {
+      const VArraySpan<T> values = g_values.typed<T>();
 
-        if (operation_ == Operation::StdDev) {
-          if (group_indices.is_single()) {
-            const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-            const T sum_of_squared_diffs = std::reduce(
-                values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
-                  T difference = mean - value;
-                  return accumulator + difference * difference;
-                });
-            g_outputs = VArray<T>::from_single(math::sqrt(sum_of_squared_diffs / domain_size),
-                                               domain_size);
-          }
-          else {
-            Map<int, std::pair<T, int>> sum_and_counts;
-            Map<int, T> deviations;
-
-            for (const int i : values.index_range()) {
-              auto &pair = sum_and_counts.lookup_or_add(group_indices[i], std::make_pair(T(), 0));
-              pair.first = pair.first + values[i];
-              pair.second = pair.second + 1;
-            }
-
-            for (const int i : values.index_range()) {
-              const auto &pair = sum_and_counts.lookup(group_indices[i]);
-              T mean = pair.first / pair.second;
-              T deviation = (mean - values[i]);
-              deviation = deviation * deviation;
-
-              T &dev_sum = deviations.lookup_or_add(group_indices[i], T());
-              dev_sum = dev_sum + deviation;
-            }
-
-            Array<T> outputs(domain_size);
-            for (const int i : values.index_range()) {
-              const auto &pair = sum_and_counts.lookup(group_indices[i]);
-              outputs[i] = math::sqrt(deviations.lookup(group_indices[i]) / pair.second);
-            }
-            g_outputs = VArray<T>::from_container(std::move(outputs));
-          }
+      if (operation_ == Operation::StdDev) {
+        if (group_indices.is_single()) {
+          const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
+          const T sum_of_squared_diffs = std::reduce(
+              values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
+                T difference = mean - value;
+                return accumulator + difference * difference;
+              });
+          g_outputs = VArray<T>::from_single(math::sqrt(sum_of_squared_diffs / domain_size),
+                                             domain_size);
         }
         else {
-          if (group_indices.is_single()) {
-            const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-            const T sum_of_squared_diffs = std::reduce(
-                values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
-                  T difference = mean - value;
-                  return accumulator + difference * difference;
-                });
-            g_outputs = VArray<T>::from_single(sum_of_squared_diffs / domain_size, domain_size);
+          Map<int, std::pair<T, int>> sum_and_counts;
+          Map<int, T> deviations;
+
+          for (const int i : values.index_range()) {
+            auto &pair = sum_and_counts.lookup_or_add(group_indices[i], std::make_pair(T(), 0));
+            pair.first = pair.first + values[i];
+            pair.second = pair.second + 1;
           }
-          else {
-            Map<int, std::pair<T, int>> sum_and_counts;
-            Map<int, T> deviations;
 
-            for (const int i : values.index_range()) {
-              auto &pair = sum_and_counts.lookup_or_add(group_indices[i], std::make_pair(T(), 0));
-              pair.first = pair.first + values[i];
-              pair.second = pair.second + 1;
-            }
+          for (const int i : values.index_range()) {
+            const auto &pair = sum_and_counts.lookup(group_indices[i]);
+            T mean = pair.first / pair.second;
+            T deviation = (mean - values[i]);
+            deviation = deviation * deviation;
 
-            for (const int i : values.index_range()) {
-              const auto &pair = sum_and_counts.lookup(group_indices[i]);
-              T mean = pair.first / pair.second;
-              T deviation = (mean - values[i]);
-              deviation = deviation * deviation;
-
-              T &dev_sum = deviations.lookup_or_add(group_indices[i], T());
-              dev_sum = dev_sum + deviation;
-            }
-
-            Array<T> outputs(domain_size);
-            for (const int i : values.index_range()) {
-              const auto &pair = sum_and_counts.lookup(group_indices[i]);
-              outputs[i] = deviations.lookup(group_indices[i]) / pair.second;
-            }
-            g_outputs = VArray<T>::from_container(std::move(outputs));
+            T &dev_sum = deviations.lookup_or_add(group_indices[i], T());
+            dev_sum = dev_sum + deviation;
           }
+
+          Array<T> outputs(domain_size);
+          for (const int i : values.index_range()) {
+            const auto &pair = sum_and_counts.lookup(group_indices[i]);
+            outputs[i] = math::sqrt(deviations.lookup(group_indices[i]) / pair.second);
+          }
+          g_outputs = VArray<T>::from_container(std::move(outputs));
+        }
+      }
+      else {
+        if (group_indices.is_single()) {
+          const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
+          const T sum_of_squared_diffs = std::reduce(
+              values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
+                T difference = mean - value;
+                return accumulator + difference * difference;
+              });
+          g_outputs = VArray<T>::from_single(sum_of_squared_diffs / domain_size, domain_size);
+        }
+        else {
+          Map<int, std::pair<T, int>> sum_and_counts;
+          Map<int, T> deviations;
+
+          for (const int i : values.index_range()) {
+            auto &pair = sum_and_counts.lookup_or_add(group_indices[i], std::make_pair(T(), 0));
+            pair.first = pair.first + values[i];
+            pair.second = pair.second + 1;
+          }
+
+          for (const int i : values.index_range()) {
+            const auto &pair = sum_and_counts.lookup(group_indices[i]);
+            T mean = pair.first / pair.second;
+            T deviation = (mean - values[i]);
+            deviation = deviation * deviation;
+
+            T &dev_sum = deviations.lookup_or_add(group_indices[i], T());
+            dev_sum = dev_sum + deviation;
+          }
+
+          Array<T> outputs(domain_size);
+          for (const int i : values.index_range()) {
+            const auto &pair = sum_and_counts.lookup(group_indices[i]);
+            outputs[i] = deviations.lookup(group_indices[i]) / pair.second;
+          }
+          g_outputs = VArray<T>::from_container(std::move(outputs));
         }
       }
     });
