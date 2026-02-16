@@ -246,3 +246,7 @@ build_files/config/.*           @bartvdbraak
 # glTF
 scripts/addons_core/io_scene_gltf2/.*       @JulienDuroure
 extern/draco/.*                             @JulienDuroure
+
+# --------------------------------------------------
+# Asset System
+source/blender/asset_system/.* @JulianEisel
