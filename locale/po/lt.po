@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3093,12 +3093,12 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
-msgid "Apply"
-msgstr "Pritaikyti"
-
-
 msgid "Layout"
 msgstr "Išdėstymas/Maketas"
+
+
+msgid "Apply"
+msgstr "Pritaikyti"
 
 
 msgid "Track"

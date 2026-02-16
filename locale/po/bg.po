@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1148,24 +1148,8 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "Merge"
-msgstr "Слей"
-
-
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Light"
@@ -1176,12 +1160,28 @@ msgid "Rigid Body"
 msgstr "Твърдо тяло"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
 
 
 msgid "Import"
 msgstr "Внеси"
+
+
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "Cache"
@@ -1835,21 +1835,9 @@ msgid "Add Surface Circle"
 msgstr "Добави Повърхностен Кръг"
 
 
-msgid "Construct a Nurbs surface Circle"
-msgstr "Конструира Nurbs-повърхностен Кръг"
-
-
-msgid "Construct a Nurbs surface Curve"
-msgstr "Конструира Nurbs-повърхностна Крива"
-
-
 msgctxt "Operator"
 msgid "Add Surface Cylinder"
 msgstr "Добави Повърхностен Цилиндър"
-
-
-msgid "Construct a Nurbs surface Cylinder"
-msgstr "Конструира Nurbs-повърхностен Цилиндър"
 
 
 msgctxt "Operator"
@@ -1857,26 +1845,14 @@ msgid "Add Surface Sphere"
 msgstr "Добави Повърхностна Сфера"
 
 
-msgid "Construct a Nurbs surface Sphere"
-msgstr "Конструира Nurbs-повърхностна Сфера"
-
-
 msgctxt "Operator"
 msgid "Add Surface Patch"
 msgstr "Добави Повърхностно Парче"
 
 
-msgid "Construct a Nurbs surface Patch"
-msgstr "Конструира Nurbs-повърхностно Парче"
-
-
 msgctxt "Operator"
 msgid "Add Surface Torus"
 msgstr "Добави Nurbs-повърхностен Тороид"
-
-
-msgid "Construct a Nurbs surface Torus"
-msgstr "Конструира Nurbs-повърхностен Тороид"
 
 
 msgctxt "Operator"

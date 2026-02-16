@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8489,16 +8489,8 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
-
-
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
-
-
-msgid "Names"
-msgstr "Imena"
 
 
 msgid "Special Characters"
@@ -8509,96 +8501,12 @@ msgid "Metaball"
 msgstr "Meta lopta"
 
 
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
+msgid "Names"
+msgstr "Imena"
 
 
-msgid "Merge"
-msgstr "Sjedini"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
-msgid "Hooks"
-msgstr "Udice"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Quick Effects"
-msgstr "Brzi efekti"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Rigid Body"
-msgstr "Kruto telo"
-
-
-msgid "Relations"
-msgstr "Odnosi"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Snap"
@@ -8609,8 +8517,100 @@ msgid "Mirror"
 msgstr "Ogledalo"
 
 
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Hooks"
+msgstr "Udice"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Propagate"
+msgstr "Prenesi"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
 msgid "Import"
 msgstr "Uvoz"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Merge"
+msgstr "Sjedini"
 
 
 msgid "UV"
@@ -14940,10 +14940,6 @@ msgid "Minor Radius"
 msgstr "Sporedni poluprečnik"
 
 
-msgid "Radius of the torus' cross section"
-msgstr "Poluprečnik preseka prstena torusa"
-
-
 msgid "Minor Segments"
 msgstr "Sporedni delovi"
 
@@ -14988,10 +14984,6 @@ msgstr "Otkriva sva sakrivena temena, ivice i stranice"
 msgctxt "Operator"
 msgid "Rip"
 msgstr "Pocepaj"
-
-
-msgid "Disconnect vertex or edges from connected geometry"
-msgstr "Razdvaja temena ili ivice od povezane geometrije"
 
 
 msgid "Fill the ripped region"
@@ -15953,10 +15945,6 @@ msgstr "Deformacija meša"
 msgctxt "Operator"
 msgid "Add Metaball"
 msgstr "Dodaj meta-loptu"
-
-
-msgid "Add an metaball object to the scene"
-msgstr "Dodaje objekat meta-lopte na scenu"
 
 
 msgctxt "Operator"
@@ -17607,10 +17595,6 @@ msgid "Jump to Strip"
 msgstr "Iseci trake"
 
 
-msgid "Move frame to previous edit point"
-msgstr "Premesti kadar na prethodnu tačku uređenja"
-
-
 msgid "Next Strip"
 msgstr "Sledeća traka"
 
@@ -19110,12 +19094,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Transform Orientations"
-msgstr "Transformacija orijentacija"
-
-
 msgid "Motion Tracking"
 msgstr "Praćenje pokreta"
+
+
+msgid "Transform Orientations"
+msgstr "Transformacija orijentacija"
 
 
 msgid "Bone Constraints"
@@ -21559,6 +21543,16 @@ msgstr "Orig. širina"
 
 msgid "Original image width"
 msgstr "Originalna širina slike"
+
+
+msgctxt "Sequence"
+msgid "Color Balance"
+msgstr "Odnos boja"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "Krive"
 
 
 msgid "Adaptation"
@@ -25357,16 +25351,6 @@ msgstr "Očisti grupu temena"
 
 msgid "All render layers are disabled"
 msgstr "Sva pravila su prosečna"
-
-
-msgctxt "Sequence"
-msgid "Color Balance"
-msgstr "Odnos boja"
-
-
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "Krive"
 
 
 msgid "Strips must be the same length"

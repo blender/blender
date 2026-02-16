@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15695,32 +15695,36 @@ msgid "Sample"
 msgstr "Sampel"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Names"
+msgstr "Nama"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
+msgid "Snap"
+msgstr "Jepret"
 
 
 msgid "Layout"
 msgstr "Tata Letak"
 
 
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
 msgid "Tracking"
 msgstr "Pelacakan"
-
-
-msgid "Hooks"
-msgstr "Kait"
 
 
 msgid "Utilities"
@@ -15731,16 +15735,12 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Asset"
-msgstr "Aset"
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgid "Light"
 msgstr "Cahaya"
-
-
-msgid "Track"
-msgstr "Lacak"
 
 
 msgid "Light Probe"
@@ -15751,36 +15751,36 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
+msgid "Apply"
+msgstr "Tetapkan"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
+msgid "Track"
+msgstr "Lacak"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
 
 
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
-msgid "Snap"
-msgstr "Jepret"
-
-
 msgid "Instances"
 msgstr "Contoh-contoh"
 
 
-msgid "Mirror"
-msgstr "Cermin"
-
-
 msgid "Import"
 msgstr "Impor"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "UV"
@@ -21236,14 +21236,6 @@ msgid "Add new circle-shaped spline"
 msgstr "Tambah spline berbentuk-lingkaran baru"
 
 
-msgid "Location of new circle"
-msgstr "Lokasi lingkaran baru"
-
-
-msgid "Size of new circle"
-msgstr "Ukuran lingkaran baru"
-
-
 msgid "Add new square-shaped spline"
 msgstr "Tambah spline berbentuk-kotak baru"
 
@@ -22408,10 +22400,6 @@ msgstr "Pilih berdasarkan slot bahan aktif"
 msgctxt "Operator"
 msgid "Add Metaball"
 msgstr "Tambah Metabola"
-
-
-msgid "Add an metaball object to the scene"
-msgstr "Tambah objek metabola"
 
 
 msgid "Primitive"
@@ -24074,10 +24062,6 @@ msgstr "Gunakan Posisi Kursor"
 msgctxt "Operator"
 msgid "Jump to Strip"
 msgstr "Lompat ke Strip"
-
-
-msgid "Move frame to previous edit point"
-msgstr "Pindah frame ke titik edit sebelumnya"
 
 
 msgid "Use Strip Center"
@@ -27615,6 +27599,21 @@ msgstr "Koreksi untuk highlight"
 
 msgid "Mute this modifier"
 msgstr "Modus Pahat"
+
+
+msgctxt "Sequence"
+msgid "Color Balance"
+msgstr "Keseimbangan Warna"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "Kurva"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Keseimbangan Putih"
 
 
 msgid "Adaptation"
@@ -33682,21 +33681,6 @@ msgstr "Warna Standar"
 
 msgid "No border area selected"
 msgstr "Modus Sunting"
-
-
-msgctxt "Sequence"
-msgid "Color Balance"
-msgstr "Keseimbangan Warna"
-
-
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "Kurva"
-
-
-msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Keseimbangan Putih"
 
 
 msgid "Strips must have the same number of inputs"

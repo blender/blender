@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2585,10 +2585,6 @@ msgid "Dots"
 msgstr "बिन्दु्"
 
 
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
@@ -2597,52 +2593,8 @@ msgid "Names"
 msgstr "नाम"
 
 
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
 msgid "Snap"
@@ -2653,8 +2605,56 @@ msgid "Mirror"
 msgstr "दर्पण"
 
 
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
 msgid "Import"
 msgstr "आयात करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "UV"
@@ -4421,12 +4421,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7260,24 +7260,32 @@ msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Names"
-msgstr "Nimet"
-
-
 msgid "Metaball"
 msgstr "Metapallo"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "Names"
+msgstr "Nimet"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
-msgid "Hooks"
-msgstr "Koukut"
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Utilities"
@@ -7292,10 +7300,6 @@ msgid "Light"
 msgstr "Valo"
 
 
-msgid "Track"
-msgstr "Raide"
-
-
 msgid "Light Probe"
 msgstr "Valoluotain"
 
@@ -7304,24 +7308,16 @@ msgid "Add Image"
 msgstr "Lisää kuva"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
+msgid "Track"
+msgstr "Raide"
 
 
-msgid "Select Loops"
-msgstr "Valitse silmukat"
+msgid "Hooks"
+msgstr "Koukut"
 
 
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Random Mask"
+msgstr "Satunnainen maski"
 
 
 msgid "Instances"
@@ -7330,6 +7326,10 @@ msgstr "Instanssit"
 
 msgid "Import"
 msgstr "Tuo"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "UV"
@@ -11031,6 +11031,31 @@ msgstr "Käytä huomioita"
 msgctxt "Sound"
 msgid "Pan"
 msgstr "Panoroi"
+
+
+msgctxt "Sequence"
+msgid "Brightness/Contrast"
+msgstr "Kirkkaus/Kontrasti"
+
+
+msgctxt "Sequence"
+msgid "Color Balance"
+msgstr "Väritasapaino"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "Käyrät"
+
+
+msgctxt "Sequence"
+msgid "Hue Correct"
+msgstr "Sävykorjaus"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Valkotasapaino"
 
 
 msgid "Move along X axis"
@@ -16521,33 +16546,8 @@ msgstr "Kaikki renderöintitasot on poistettu käytöstä"
 
 
 msgctxt "Sequence"
-msgid "Brightness/Contrast"
-msgstr "Kirkkaus/Kontrasti"
-
-
-msgctxt "Sequence"
-msgid "Color Balance"
-msgstr "Väritasapaino"
-
-
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "Käyrät"
-
-
-msgctxt "Sequence"
-msgid "Hue Correct"
-msgstr "Sävykorjaus"
-
-
-msgctxt "Sequence"
 msgid "Tonemap"
 msgstr "Sävykartta"
-
-
-msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Valkotasapaino"
 
 
 msgctxt "Sequence"

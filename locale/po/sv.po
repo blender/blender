@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9343,20 +9343,16 @@ msgid "Write"
 msgstr "Skriv"
 
 
-msgid "Primitives"
-msgstr "Primitiver"
-
-
 msgid "Clean Up"
 msgstr "Städa upp"
 
 
+msgid "Primitives"
+msgstr "Primitiver"
+
+
 msgid "Show/Hide"
 msgstr "Visa/dölj"
-
-
-msgid "Names"
-msgstr "Namn"
 
 
 msgid "Special Characters"
@@ -9367,88 +9363,28 @@ msgid "Metaball"
 msgstr "Metaboll"
 
 
-msgid "Merge"
-msgstr "Sammanfoga"
+msgid "Names"
+msgstr "Namn"
 
 
-msgid "Apply"
-msgstr "Applicera"
+msgid "Pivot Point"
+msgstr "Fast punkt"
 
 
-msgid "Propagate"
-msgstr "Propagera"
+msgid "Snap"
+msgstr "Snäpp"
 
 
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Adjust"
-msgstr "Justera"
+msgid "Mirror"
+msgstr "Spegla"
 
 
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
+msgid "Local View"
+msgstr "Lokal vy"
 
 
 msgid "Viewpoint"
@@ -9459,20 +9395,84 @@ msgid "Navigation"
 msgstr "Navigering"
 
 
-msgid "Local View"
-msgstr "Lokal vy"
+msgid "Align View"
+msgstr "Justera vy"
 
 
-msgid "Snap"
-msgstr "Snäpp"
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Utilities"
+msgstr "Verktyg"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
+
+
+msgid "Propagate"
+msgstr "Propagera"
 
 
 msgid "Instances"
 msgstr "Instanser"
-
-
-msgid "Mirror"
-msgstr "Spegla"
 
 
 msgid "Import"
@@ -9483,8 +9483,8 @@ msgid "Deprecated"
 msgstr "Föråldrad"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "UV"
@@ -16574,14 +16574,6 @@ msgid "Name of new mask"
 msgstr "Namn på ny mask"
 
 
-msgid "Location of new circle"
-msgstr "Position av ny cirkel"
-
-
-msgid "Size of new circle"
-msgstr "Storlek på ny cirkel"
-
-
 msgctxt "Operator"
 msgid "Add Square"
 msgstr "Lägg till kvadrat"
@@ -17220,10 +17212,6 @@ msgstr "Behåll skarpa kanter"
 msgctxt "Operator"
 msgid "Select Shortest Path"
 msgstr "Markera kortaste vägen"
-
-
-msgid "Selected shortest path between two vertices/edges/faces"
-msgstr "Markera den kortaste vägen mellan två vertex/kanter/ytor"
 
 
 msgid "Use Duplicates"
@@ -18366,10 +18354,6 @@ msgid "Add Metaball"
 msgstr "Lägg till metaboll"
 
 
-msgid "Add an metaball object to the scene"
-msgstr "Lägg till ett metaboll-objekt i scenen"
-
-
 msgid "Primitive"
 msgstr "Primitiv"
 
@@ -18856,10 +18840,6 @@ msgid "Open/Close"
 msgstr "Öppna/stäng"
 
 
-msgid "Toggle whether item under cursor is enabled or closed"
-msgstr "Växla om objektet under musen är aktiverat eller stängt"
-
-
 msgid "Close or open all items"
 msgstr "Stäng eller öppna alla objekt"
 
@@ -19207,10 +19187,6 @@ msgstr "Linje"
 msgctxt "Operator"
 msgid "Cancel Render View"
 msgstr "Avbryt renderingsvy"
-
-
-msgid "Cancel show render view"
-msgstr "Avbryt visning av renderingsvy"
 
 
 msgid "Toggle show render view"
@@ -20210,10 +20186,6 @@ msgid "Move"
 msgstr "Flytta"
 
 
-msgid "UP"
-msgstr "UPP"
-
-
 msgctxt "Operator"
 msgid "Press Button"
 msgstr "Tryck knapp"
@@ -20259,6 +20231,10 @@ msgstr "Välj alla"
 msgctxt "Operator"
 msgid "Jump to Target"
 msgstr "Hoppa till mål"
+
+
+msgid "UP"
+msgstr "UPP"
 
 
 msgctxt "Operator"
@@ -21288,36 +21264,36 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Stroke Placement"
-msgstr "Streckplacering"
-
-
-msgid "Measurement"
-msgstr "Mätning"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
 
 
 msgid "Cavity"
 msgstr "Hålrum"
 
 
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
+msgid "Render Pass"
+msgstr "Renderingspass"
+
+
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Measurement"
+msgstr "Mätning"
+
+
+msgid "Stroke Placement"
+msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Import Settings"
@@ -24523,6 +24499,26 @@ msgstr "Använd anteckningar"
 
 msgid "Inverse Gain"
 msgstr "Invers nivå"
+
+
+msgctxt "Sequence"
+msgid "Brightness/Contrast"
+msgstr "Ljusstyrka/kontrast"
+
+
+msgctxt "Sequence"
+msgid "Color Balance"
+msgstr "Färgbalans"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "Kurvor"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Vitbalans"
 
 
 msgid "White Value"
@@ -33513,26 +33509,6 @@ msgstr "Kameran \"%s\" är inte en flerbildskamera"
 
 msgid "%s: failed to load '%s'"
 msgstr "%s: misslyckades med att läsa in '%s'"
-
-
-msgctxt "Sequence"
-msgid "Brightness/Contrast"
-msgstr "Ljusstyrka/kontrast"
-
-
-msgctxt "Sequence"
-msgid "Color Balance"
-msgstr "Färgbalans"
-
-
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "Kurvor"
-
-
-msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Vitbalans"
 
 
 msgctxt "Sequence"

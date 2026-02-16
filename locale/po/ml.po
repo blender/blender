@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-08-02 18:59+0000\n"
 "Last-Translator: Sarath Geeth <sarathgeeth@gmail.com>\n"
 "Language-Team: Malayalam <https://translate.blender.org/projects/blender-ui/ui/ml/>\n"
