@@ -61,10 +61,10 @@ modifier or constraint.
 
 Examples of this are:
 
-- :mod:`bpy.ops.texture.slot_move`
-- :mod:`bpy.ops.constraint.limitdistance_reset`
-- :mod:`bpy.ops.object.modifier_copy`
-- :mod:`bpy.ops.buttons.file_browse`
+- :func:`bpy.ops.texture.slot_move`
+- :func:`bpy.ops.constraint.limitdistance_reset`
+- :func:`bpy.ops.object.modifier_copy`
+- :func:`bpy.ops.buttons.file_browse`
 
 Another possibility is that you are the first person to attempt to use this operator
 in a script and some modifications need to be made to the operator to run in a different context.

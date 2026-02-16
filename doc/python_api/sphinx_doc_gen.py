@@ -1585,7 +1585,9 @@ def pyrna2sphinx(basepath):
             # way to construct this data type, so - coercing them from a `dict` is supported.
             # Since this is a special case in the RNA API, we need to override the type.
             # Link to the operator to find the supported arguments.
-            type_info.append(":mod:`bpy.ops.{:s}` keyword arguments".format(format_operator_as_module(prop.identifier)))
+            type_info.append(
+                ":func:`bpy.ops.{:s}` keyword arguments".format(format_operator_as_module(prop.identifier)),
+            )
             type_descr = "dict[str, Any]"
 
         prop_name = prop.name
