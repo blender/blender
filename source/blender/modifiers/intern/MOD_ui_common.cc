@@ -273,20 +273,28 @@ static void modifier_ops_extra_draw(bContext *C, ui::Layout *layout, void *md_v)
   layout->separator();
 
   /* Move to first. */
-  op_ptr = layout->op("OBJECT_OT_modifier_move_to_index",
-                      IFACE_("Move to First"),
-                      ICON_TRIA_UP,
-                      wm::OpCallContext::InvokeDefault,
-                      UI_ITEM_NONE);
-  RNA_int_set(&op_ptr, "index", 0);
+  {
+    ui::Layout &row = layout->row(false);
+    op_ptr = row.op("OBJECT_OT_modifier_move_to_index",
+                    IFACE_("Move to First"),
+                    ICON_TRIA_UP,
+                    wm::OpCallContext::InvokeDefault,
+                    UI_ITEM_NONE);
+    RNA_int_set(&op_ptr, "index", 0);
+    row.enabled_set(md->prev != nullptr);
+  }
 
   /* Move to last. */
-  op_ptr = layout->op("OBJECT_OT_modifier_move_to_index",
-                      IFACE_("Move to Last"),
-                      ICON_TRIA_DOWN,
-                      wm::OpCallContext::InvokeDefault,
-                      UI_ITEM_NONE);
-  RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
+  {
+    ui::Layout &row = layout->row(false);
+    op_ptr = row.op("OBJECT_OT_modifier_move_to_index",
+                    IFACE_("Move to Last"),
+                    ICON_TRIA_DOWN,
+                    wm::OpCallContext::InvokeDefault,
+                    UI_ITEM_NONE);
+    RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
+    row.enabled_set(md->next != nullptr);
+  }
 
   layout->separator();
 

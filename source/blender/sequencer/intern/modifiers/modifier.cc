@@ -117,22 +117,30 @@ static void modifier_ops_extra_draw(bContext *C, ui::Layout *layout, void *smd_v
   layout->separator();
 
   /* Move to first. */
-  op_ptr = layout->op("SEQUENCER_OT_strip_modifier_move_to_index",
-                      IFACE_("Move to First"),
-                      ICON_TRIA_UP,
-                      wm::OpCallContext::InvokeDefault,
-                      UI_ITEM_NONE);
-  RNA_string_set(&op_ptr, "modifier", smd->name);
-  RNA_int_set(&op_ptr, "index", 0);
+  {
+    ui::Layout &row = layout->row(false);
+    op_ptr = row.op("SEQUENCER_OT_strip_modifier_move_to_index",
+                    IFACE_("Move to First"),
+                    ICON_TRIA_UP,
+                    wm::OpCallContext::InvokeDefault,
+                    UI_ITEM_NONE);
+    RNA_string_set(&op_ptr, "modifier", smd->name);
+    RNA_int_set(&op_ptr, "index", 0);
+    row.enabled_set(smd->prev != nullptr);
+  }
 
   /* Move to last. */
-  op_ptr = layout->op("SEQUENCER_OT_strip_modifier_move_to_index",
-                      IFACE_("Move to Last"),
-                      ICON_TRIA_DOWN,
-                      wm::OpCallContext::InvokeDefault,
-                      UI_ITEM_NONE);
-  RNA_string_set(&op_ptr, "modifier", smd->name);
-  RNA_int_set(&op_ptr, "index", BLI_listbase_count(&strip->modifiers) - 1);
+  {
+    ui::Layout &row = layout->row(false);
+    op_ptr = row.op("SEQUENCER_OT_strip_modifier_move_to_index",
+                    IFACE_("Move to Last"),
+                    ICON_TRIA_DOWN,
+                    wm::OpCallContext::InvokeDefault,
+                    UI_ITEM_NONE);
+    RNA_string_set(&op_ptr, "modifier", smd->name);
+    RNA_int_set(&op_ptr, "index", BLI_listbase_count(&strip->modifiers) - 1);
+    row.enabled_set(smd->next != nullptr);
+  }
 }
 
 static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
