@@ -31,7 +31,7 @@ ID Data
 
 ID data-blocks are used in Blender as top-level data containers.
 From the user interface this isn't so obvious, but when developing you need to know about ID data-blocks.
-ID data types include Scene, Group, Object, Mesh, Workspace, World, Armature, Image and Texture.
+ID data types include Scene, Collection, Object, Mesh, Workspace, World, Armature, Image and Texture.
 For a full list see the subclasses of :class:`bpy.types.ID`.
 
 Here are some characteristics ID data-blocks share:
@@ -61,7 +61,7 @@ But you now know that you have to use ``.location`` and that it's an array of th
 
 So the next step is to find out where to access objects, go down to the bottom of the page to the references section,
 for objects there are many references, but one of the most common places to access objects is via the context.
-It's easy to be overwhelmed at this point since there ``Object`` get referenced in so many places:
+It's easy to be overwhelmed at this point since ``Object`` gets referenced in so many places:
 modifiers, functions, textures and constraints.
 But if you want to access any data the user has selected
 you typically only need to check the :mod:`bpy.context` references.
@@ -152,7 +152,7 @@ Start with the default scene and select the Modifiers tab, then add a Subdivisio
 Now hover your mouse over the button labeled *Levels Viewport*,
 The tooltip includes :class:`bpy.types.SubsurfModifier.levels` but you want the path from the object to this property.
 
-Note that the text copied won't include the ``bpy.data.collection["name"].`` component since its assumed that
+Note that the text copied won't include the ``bpy.data.collections["name"].`` component since its assumed that
 you won't be doing collection look-ups on every access and typically you'll want to use the context rather
 than access each :class:`bpy.types.ID` instance by name.
 

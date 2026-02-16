@@ -17,7 +17,7 @@ If you are accessing the bones through one of them, you may not have access to t
 Edit Bones
 ----------
 
-``bpy.context.object.data.edit_bones`` contains an edit bones;
+``bpy.context.object.data.edit_bones`` contains edit bones;
 to access them you must set the armature mode to Edit-Mode first (edit bones do not exist in Object or Pose-Mode).
 Use these to create new bones, set their head/tail or roll, change their parenting relationships to other bones, etc.
 

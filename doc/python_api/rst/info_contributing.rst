@@ -131,7 +131,7 @@ Each example file should follow this structure:
 Important Notes
 ~~~~~~~~~~~~~~~
 
-- The file must start with double triple-quotes ``"""`` (single-quoted doc-strings aren't recognized).
+- The file must start with triple double-quotes ``"""`` (single-quoted doc-strings aren't recognized).
 - Use section header underlines with ``+`` characters for the title.
 - Everything after the doc-string is included as code in the documentation.
 - To add additional code-blocks with text in between, add new files.

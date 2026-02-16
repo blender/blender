@@ -8,7 +8,7 @@
 Introduction
 ------------
 
-This API gives access the Blender's internal mesh editing API, featuring geometry connectivity data and
+This API gives access to Blender's internal mesh editing API, featuring geometry connectivity data and
 access to editing operations such as split, separate, collapse and dissolve.
 The features exposed closely follow the C API,
 giving Python access to the functions used by Blender's own mesh editing tools.
@@ -142,7 +142,7 @@ Selection / Flushing
 ^^^^^^^^^^^^^^^^^^^^
 
 As mentioned above, it is possible to create an invalid selection state
-(by selecting a state and then deselecting one of its vertices for example),
+(by selecting a face and then deselecting one of its vertices for example),
 mostly the best way to solve this is to flush the selection
 after performing a series of edits. This validates the selection state.
 

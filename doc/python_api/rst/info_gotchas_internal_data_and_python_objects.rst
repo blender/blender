@@ -20,10 +20,10 @@ requires some form of persistence.
 There are some exceptions to this rule. For example, IDs do store their Python instance, once created,
 and re-use it instead of re-creating a new Python object every time they are accessed from Python.
 And modal operators will keep their instance as long as the operator is running.
-However, this is done for performances purpose and is considered an internal implementation detail.
+However, this is done for performance purposes and is considered an internal implementation detail.
 Relying on this behavior from Python code side for any purpose is not recommended.
 
-Further more, Blender may free its internal data, in which case it will try to invalidate a known
+Furthermore, Blender may free its internal data, in which case it will try to invalidate a known
 Python object wrapping it. But this is not always possible, which can lead to invalid memory access and
 is another good reason to never store these in Python code in any persistent way.
 See also the :ref:`troubleshooting crashes <troubleshooting_crashes>` documentation.
@@ -107,7 +107,7 @@ If you need to select between local and library data, there is a feature in ``bp
    # where the second argument excludes library data from being returned.
    obj = bpy.data.objects["my_obj", None]
 
-   # Both the examples above also works for `get`.
+   # Both the examples above also work for `get`.
    obj = bpy.data.objects.get(("my_obj", None))
 
 
@@ -118,7 +118,7 @@ No updates after setting values
 -------------------------------
 
 Sometimes you want to modify values from Python and immediately access the updated values, e.g:
-Once changing the objects :class:`bpy.types.Object.location`
+After changing the object's :class:`bpy.types.Object.location`
 you may want to access its transformation right after from :class:`bpy.types.Object.matrix_world`,
 but this doesn't work as you might expect. There are similar issues with changes to the UI, that
 are covered in the next section.
@@ -171,7 +171,7 @@ fashion as well. Possible options include:
  - :mod:`bpy.app.timers`.
 
 It's also possible to depend on drawing callbacks although these should generally be avoided as failure to draw a
-hidden panel, region, cursor, etc. could cause your script to be unreliable
+hidden panel, region, cursor, etc. could cause your script to be unreliable.
 
 
 Can I redraw during script execution?
