@@ -444,9 +444,13 @@ bool BlenderSync::sync_object_attributes(blender::Object &b_ob,
         changed = true;
         attributes.push_back(new_param);
       }
-      else if (!(param->get<float4>() == value)) {
-        changed = true;
-        *param = new_param;
+      else {
+        /* Cannot use param->get<float4>, ParamValue storage is not guaranteed to be aligned. */
+        const float *param_data = static_cast<const float *>(param->data());
+        if (make_float4(param_data[0], param_data[1], param_data[2], param_data[3]) != value) {
+          changed = true;
+          *param = new_param;
+        }
       }
     }
   }
