@@ -1345,15 +1345,16 @@ void BKE_image_replace_imbuf(Image *image, ImBuf *ibuf)
 
   /* Keep generated image type flags consistent with the image buffer. */
   if (image->source == IMA_SRC_GENERATED) {
+    ImageTile *base_tile = BKE_image_get_tile(image, 0);
     if (ibuf->float_buffer.data) {
-      image->gen_flag |= IMA_GEN_FLOAT;
+      base_tile->gen_flag |= IMA_GEN_FLOAT;
     }
     else {
-      image->gen_flag &= ~IMA_GEN_FLOAT;
+      base_tile->gen_flag &= ~IMA_GEN_FLOAT;
     }
 
-    image->gen_x = ibuf->x;
-    image->gen_y = ibuf->y;
+    base_tile->gen_x = ibuf->x;
+    base_tile->gen_y = ibuf->y;
   }
 
   /* Consider image dirty since its content can not be re-created unless the image is explicitly
