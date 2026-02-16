@@ -9,6 +9,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
@@ -91,6 +93,7 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
   /* properties */
   prop = RNA_def_enum(ot->srna, "type", rna_enum_dummy_NULL_items, 0, "Type", "");
   RNA_def_enum_funcs(prop, filter_modifiers_by_sequence_type_itemf);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   ot->prop = prop;
 }
 
