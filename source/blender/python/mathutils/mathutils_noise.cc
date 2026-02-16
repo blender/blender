@@ -490,7 +490,7 @@ PyDoc_STRVAR(
     "   :type hard: bool\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :param amplitude_scale: The amplitude scaling factor.\n"
     "   :type amplitude_scale: float\n"
-    "   :param frequency_scale: The frequency scaling factor\n"
+    "   :param frequency_scale: The frequency scaling factor.\n"
     "   :type frequency_scale: float\n"
     "   :return: The turbulence value.\n"
     "   :rtype: float\n");
@@ -551,7 +551,7 @@ PyDoc_STRVAR(
     "   :type hard: bool\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :param amplitude_scale: The amplitude scaling factor.\n"
     "   :type amplitude_scale: float\n"
-    "   :param frequency_scale: The frequency scaling factor\n"
+    "   :param frequency_scale: The frequency scaling factor.\n"
     "   :type frequency_scale: float\n"
     "   :return: The turbulence vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
@@ -609,7 +609,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :param H: The fractal increment factor.\n"
+    "   :param H: The fractal increment parameter.\n"
     "   :type H: float\n"
     "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
@@ -666,7 +666,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :param H: The fractal increment factor.\n"
+    "   :param H: Determines the highest fractal dimension.\n"
     "   :type H: float\n"
     "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
@@ -1041,7 +1041,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns cell noise value at the specified position.\n"
     "\n"
-    "   :param position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the cell noise at.\n"
     "   :type position: :class:`mathutils.Vector`\n"
     "   :return: The cell noise value.\n"
     "   :rtype: float\n");
@@ -1068,7 +1068,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns cell noise vector at the specified position.\n"
     "\n"
-    "   :param position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the cell noise at.\n"
     "   :type position: :class:`mathutils.Vector`\n"
     "   :return: The cell noise vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");

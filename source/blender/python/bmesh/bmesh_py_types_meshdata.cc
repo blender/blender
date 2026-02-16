@@ -577,7 +577,7 @@ PyDoc_STRVAR(
     "   Return the group indices used by this vertex\n"
     "   (matching Python's dict.keys() functionality).\n"
     "\n"
-    "   :return: the deform group this vertex uses\n"
+    "   :return: The deform group indices this vertex uses.\n"
     "   :rtype: list[int]\n");
 static PyObject *bpy_bmdeformvert_keys(BPy_BMDeformVert *self)
 {

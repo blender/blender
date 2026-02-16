@@ -638,7 +638,7 @@ PyDoc_STRVAR(
     "\n"
     "   BVH tree constructed from geometry passed in as arguments.\n"
     "\n"
-    "   :param vertices: float triplets each representing ``(x, y, z)``\n"
+    "   :param vertices: float triplets each representing ``(x, y, z)`` coordinates.\n"
     "   :type vertices: Sequence[Sequence[float]]\n"
     "   :param polygons: Sequence of polygons, each containing indices to the vertices argument.\n"
     "   :type polygons: Sequence[Sequence[int]]\n"

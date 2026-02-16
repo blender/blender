@@ -239,8 +239,8 @@ PyDoc_STRVAR(
     Euler_rotate_axis_doc,
     ".. method:: rotate_axis(axis, angle, /)\n"
     "\n"
-    "   Rotates the euler a certain amount and returning a unique euler rotation\n"
-    "   (no 720 degree pitches).\n"
+    "   Rotates the euler a certain amount, wrapping the result to produce\n"
+    "   a unique euler rotation (no 720 degree pitches).\n"
     "\n"
     "   :param axis: An axis string.\n"
     "   :type axis: Literal['X', 'Y', 'Z']\n"

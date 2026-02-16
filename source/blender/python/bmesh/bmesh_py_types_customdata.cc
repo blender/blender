@@ -470,7 +470,7 @@ PyDoc_STRVAR(
     "\n"
     "   Create a new layer or return an existing active layer\n"
     "\n"
-    "   :return: The newly verified layer.\n"
+    "   :return: The newly created layer, or the existing active layer.\n"
     "   :rtype: :class:`bmesh.types.BMLayerItem`\n");
 static PyObject *bpy_bmlayercollection_verify(BPy_BMLayerCollection *self)
 {

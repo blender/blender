@@ -232,7 +232,7 @@ PyDoc_STRVAR(
     M_Geometry_intersect_sphere_sphere_2d_doc,
     ".. function:: intersect_sphere_sphere_2d(p_a, radius_a, p_b, radius_b, /)\n"
     "\n"
-    "   Returns 2 points between intersecting circles.\n"
+    "   Returns the 2 intersection points of two circles.\n"
     "\n"
     "   :param p_a: Center of the first circle\n"
     "   :type p_a: :class:`mathutils.Vector`\n"
@@ -242,7 +242,7 @@ PyDoc_STRVAR(
     "   :type p_b: :class:`mathutils.Vector`\n"
     "   :param radius_b: Radius of the second circle\n"
     "   :type radius_b: float\n"
-    "   :return: 2 points between intersecting circles or None when there is no intersection.\n"
+    "   :return: The 2 intersection points or None when there is no intersection.\n"
     "   :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`] | "
     "tuple[None, None]\n");
 static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject * /*self*/, PyObject *args)
@@ -1604,7 +1604,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param points: Sequence of 2D points.\n"
     "   :type points: Sequence[Sequence[float]]\n"
-    "   :return: angle\n"
+    "   :return: The rotation angle in radians for the best axis-aligned bounding box fit.\n"
     "   :rtype: float\n");
 static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
 {
@@ -1634,11 +1634,11 @@ PyDoc_STRVAR(
     M_Geometry_convex_hull_2d_doc,
     ".. function:: convex_hull_2d(points, /)\n"
     "\n"
-    "   Returns a list of indices into the list given\n"
+    "   Returns the indices of the points forming the convex hull, in counter-clockwise order.\n"
     "\n"
     "   :param points: Sequence of 2D points.\n"
     "   :type points: Sequence[Sequence[float]]\n"
-    "   :return: a list of indices\n"
+    "   :return: Indices of convex hull vertices in counter-clockwise order.\n"
     "   :rtype: list[int]\n");
 static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointlist)
 {

@@ -389,7 +389,7 @@ PyDoc_STRVAR(
     "   Create a vector by repeating the values in vector until the required size is reached.\n"
     "\n"
     "   :param vector: The vector to draw values from.\n"
-    "   :type vector: :class:`mathutils.Vector`\n"
+    "   :type vector: :class:`Vector`\n"
     "   :param size: The size of the vector to be created.\n"
     "   :type size: int\n"
     "   :return: A new vector.\n"
@@ -486,8 +486,9 @@ PyDoc_STRVAR(
     "\n"
     "   .. warning:: Normalizing a vector where all values are zero has no effect.\n"
     "\n"
-    "   .. note:: Normalize works for vectors of all sizes,\n"
-    "      however 4D Vectors w axis is left untouched.\n");
+    "   .. note:: For 4D vectors, only the x, y, z components are normalized;\n"
+    "      the w component is left untouched.\n"
+    "      The resulting 4D vector may not have unit length.\n");
 static PyObject *Vector_normalize(VectorObject *self)
 {
   const int vec_num = (self->vec_num == 4 ? 3 : self->vec_num);
