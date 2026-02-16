@@ -7,6 +7,8 @@
 
 #include "BLI_hash.h"
 
+#include "RNA_prototypes.hh"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
@@ -20,9 +22,42 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Value").default_value(0.0f).min(0.0f).max(1.0f);
 }
 
-static void node_shader_buts_output_aov(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
+static BIFIconID aov_icon(const ViewLayer *view_layer, PointerRNA *ptr)
 {
-  layout.prop(ptr, "aov_name", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  std::string aov_name = RNA_string_get(ptr, "aov_name");
+  if (aov_name.empty()) {
+    return ICON_RECORD_OFF;
+  }
+
+  const ViewLayerAOV *aov = static_cast<const ViewLayerAOV *>(
+      BLI_findstring(&view_layer->aovs, aov_name.c_str(), offsetof(ViewLayerAOV, name)));
+
+  if (aov) {
+    switch (aov->type) {
+      case AOV_TYPE_COLOR:
+        return ICON_NODE_SOCKET_RGBA;
+      case AOV_TYPE_VALUE:
+        return ICON_NODE_SOCKET_FLOAT;
+    }
+  }
+
+  return ICON_RECORD_OFF;
+}
+
+static void node_shader_buts_output_aov(ui::Layout &layout, bContext *C, PointerRNA *ptr)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  if (scene && view_layer) {
+    PointerRNA view_layer_rna_ptr = RNA_pointer_create_id_subdata(
+        scene->id, RNA_ViewLayer, view_layer);
+    layout.prop_search(
+        ptr, "aov_name", &view_layer_rna_ptr, "aovs", "", aov_icon(view_layer, ptr));
+  }
+  else {
+    layout.prop(ptr, "aov_name", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  }
 }
 
 static void node_shader_init_output_aov(bNodeTree * /*ntree*/, bNode *node)
