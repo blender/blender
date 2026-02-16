@@ -109,9 +109,10 @@ source/blender/imbuf/opencolorio/.*            @sergey @brecht
 
 # --------------------------------------------------
 # Grease Pencil.
-source/blender/editors/grease_pencil/.*           @filedescriptor
-source/blender/blenkernel/BKE_grease_pencil.*     @filedescriptor
-source/blender/blenkernel/intern/grease_pencil.*  @filedescriptor
+source/blender/editors/grease_pencil/.*                 @filedescriptor
+source/blender/editors/sculpt_paint/grease_pencil.*     @filedescriptor
+source/blender/blenkernel/BKE_grease_pencil.*           @filedescriptor
+source/blender/blenkernel/intern/grease_pencil.*        @filedescriptor
 
 # --------------------------------------------------
 # Geometry Nodes.
@@ -250,3 +251,12 @@ extern/draco/.*                             @JulienDuroure
 # --------------------------------------------------
 # Asset System
 source/blender/asset_system/.* @JulianEisel
+
+# --------------------------------------------------
+# Sculpt, Paint, Texture
+source/blender/blenkernel/BKE_paint.*           @Sean-Kim
+source/blender/blenkernel/intern/brush.*        @Sean-Kim
+source/blender/blenkernel/paint.*               @Sean-Kim
+source/blender/blenkernel/pbvh.*                @Sean-Kim
+source/blender/editors/sculpt_paint/paint_.*    @Sean-Kim
+source/blender/editors/sculpt_paint/mesh/.*     @Sean-Kim
