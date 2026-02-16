@@ -108,9 +108,9 @@ static bke::CurvesGeometry duplicate_strokes(const bke::CurvesGeometry &curves,
   instances->transforms_for_write().fill(float4x4::identity());
 
   for ([[maybe_unused]] const int i : IndexRange(count)) {
-    handles[i] = unselected_handle;
+    handles[i] = masked_handle;
   }
-  handles[count] = masked_handle;
+  handles[count] = unselected_handle;
 
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = true;
