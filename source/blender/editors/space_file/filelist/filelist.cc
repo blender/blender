@@ -1025,6 +1025,7 @@ void filelist_settype(FileList *filelist, short type)
       filelist->read_job_fn = filelist_readjob_remote_asset_library;
       filelist->prepare_filter_fn = prepare_filter_asset_library;
       filelist->filter_fn = is_filtered_asset_library;
+      filelist->tags |= FILELIST_TAGS_APPLY_FUZZY_SEARCH;
       break;
     case FILE_ASSET_LIBRARY_ALL:
       filelist->check_dir_fn = filelist_checkdir_return_always_valid;
