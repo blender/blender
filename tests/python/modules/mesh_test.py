@@ -240,6 +240,7 @@ class MeshTest(ABC):
         self.expected_object.name = self.exp_object_name
         x, y, z = self.test_object.location
         self.expected_object.location = (x, y + 10, z)
+        self.apply_operations(self.expected_object.name)
 
     def create_evaluated_object(self):
         """
