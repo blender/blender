@@ -257,11 +257,10 @@ static BMOpDefine bmo_planar_faces_def = {
 /*
  * Region Extend.
  *
- * used to implement the select more/less tools.
- * this puts some geometry surrounding regions of
- * geometry in `geom` into `geom.out`.
+ * Used to implement the select more/less tools.
+ * Puts geometry surrounding regions of geometry in `geom` into `geom.out`.
  *
- * if `use_faces` is 0 then `geom.out` spits out verts and edges,
+ * If `use_faces` is 0 then `geom.out` spits out verts and edges,
  * otherwise it spits out faces.
  */
 static BMOpDefine bmo_region_extend_def = {
@@ -550,8 +549,7 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
  * Average Vertices Face-vert Data.
  *
  * Merge uv/vcols associated with the input vertices at
- * the bounding box center. (I know, it's not averaging but
- * the vert_snap_to_bb_center is just too long).
+ * the bounding box center.
  */
 static BMOpDefine bmo_average_vert_facedata_def = {
     /*opname*/ "average_vert_facedata",
@@ -625,8 +623,8 @@ static BMOpDefine bmo_weld_verts_def = {
     {
         /* Maps welded vertices to verts they should weld to. */
         {"targetmap", BMO_OP_SLOT_MAPPING, {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},
-        /* Merged vertices to their centroid position,
-         * otherwise the position of the target vertex is used. */
+        /* Merge vertices to their centroid position,
+         * otherwise use the position of the target vertex. */
         {"use_centroid", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -732,7 +730,7 @@ static BMOpDefine bmo_contextual_create_def = {
         {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         /* Material to use. */
         {"mat_nr", BMO_OP_SLOT_INT},
-        /* Smooth to use. */
+        /* Set smooth shading on newly created faces. */
         {"use_smooth", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -834,7 +832,7 @@ static BMOpDefine bmo_holes_fill_def = {
     {
         /* Input edges. */
         {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
-        /* Number of face sides to fill. */
+        /* Maximum number of sides for holes to fill (holes with more edges are skipped). */
         {"sides", BMO_OP_SLOT_INT},
         {{'\0'}},
     },
@@ -923,7 +921,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
         {"mat_nr", BMO_OP_SLOT_INT},
         /* Smooth state to use. */
         {"use_smooth", BMO_OP_SLOT_BOOL},
-        /* Number of sides. */
+        /* Maximum number of sides for created faces. */
         {"sides", BMO_OP_SLOT_INT},
         {{'\0'}},
     },
@@ -1084,10 +1082,10 @@ static BMOpDefine bmo_object_load_bmesh_def = {
     /*opname*/ "object_load_bmesh",
     /*slot_types_in*/
     {
-        /* Pointer to a scene structure. */
+        /* The scene. */
         {"scene", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_SCENE)},
 
-        /* Pointer to an object structure. */
+        /* The object. */
         {"object", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_OBJECT)},
         {{'\0'}},
     },
@@ -1108,9 +1106,9 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
     /*slot_types_in*/
     {
 
-        /* Pointer to a mesh structure to fill in. */
+        /* The mesh to write into. */
         {"mesh", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_MESH)},
-        /* Pointer to an object structure. */
+        /* The object. */
         {"object", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_OBJECT)},
         {{'\0'}},
     },
@@ -1131,9 +1129,9 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
     /*opname*/ "mesh_to_bmesh",
     /*slot_types_in*/
     {
-        /* Pointer to a Mesh structure. */
+        /* The mesh to read from. */
         {"mesh", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_MESH)},
-        /* Pointer to an Object structure. */
+        /* The object. */
         {"object", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_OBJECT)},
         /* Load active shapekey coordinates into verts. */
         {"use_shapekey", BMO_OP_SLOT_BOOL},
@@ -1159,7 +1157,7 @@ static BMOpDefine bmo_extrude_discrete_faces_def = {
         {"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         /* Create faces with reversed direction. */
         {"use_normal_flip", BMO_OP_SLOT_BOOL},
-        /* Pass to duplicate. */
+        /* Preserve the selection history in the extruded geometry. */
         {"use_select_history", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -1188,7 +1186,7 @@ static BMOpDefine bmo_extrude_edge_only_def = {
         {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         /* Create faces with reversed direction. */
         {"use_normal_flip", BMO_OP_SLOT_BOOL},
-        /* Pass to duplicate. */
+        /* Preserve the selection history in the extruded geometry. */
         {"use_select_history", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -1206,7 +1204,7 @@ static BMOpDefine bmo_extrude_edge_only_def = {
 /*
  * Individual Vertex Extrude.
  *
- * Extrudes wire edges from vertices.
+ * Extrudes individual vertices, creating new vertices connected by wire edges.
  */
 static BMOpDefine bmo_extrude_vert_indiv_def = {
     /*opname*/ "extrude_vert_indiv",
@@ -1214,7 +1212,7 @@ static BMOpDefine bmo_extrude_vert_indiv_def = {
     {
         /* Input vertices. */
         {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
-        /* Pass to duplicate. */
+        /* Preserve the selection history in the extruded geometry. */
         {"use_select_history", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -1262,7 +1260,7 @@ static BMOpDefine bmo_connect_verts_def = {
 /*
  * Connect Verts to form Convex Faces.
  *
- * Ensures all faces are convex `faces`.
+ * Splits concave faces into convex faces.
  */
 static BMOpDefine bmo_connect_verts_concave_def = {
     /*opname*/ "connect_verts_concave",
@@ -1293,7 +1291,7 @@ static BMOpDefine bmo_connect_verts_nonplanar_def = {
     /*opname*/ "connect_verts_nonplanar",
     /*slot_types_in*/
     {
-        /* Total rotation angle (radians). */
+        /* Maximum angle of non-planarity before splitting (radians). */
         {"angle_limit", BMO_OP_SLOT_FLT},
         /* Input faces. */
         {"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
@@ -1312,9 +1310,9 @@ static BMOpDefine bmo_connect_verts_nonplanar_def = {
 };
 
 /*
- * Connect Verts.
+ * Connect Vert Pair.
  *
- * Split faces by adding edges that connect `verts`.
+ * Connect a pair of vertices by splitting faces along the shortest path between them.
  */
 static BMOpDefine bmo_connect_vert_pair_def = {
     /*opname*/ "connect_vert_pair",
@@ -1360,7 +1358,7 @@ static BMOpDefine bmo_extrude_face_region_def = {
         {"use_normal_from_adjacent", BMO_OP_SLOT_BOOL},
         /* Dissolve edges whose faces form a flat surface. */
         {"use_dissolve_ortho_edges", BMO_OP_SLOT_BOOL},
-        /* Pass to duplicate. */
+        /* Preserve the selection history in the extruded geometry. */
         {"use_select_history", BMO_OP_SLOT_BOOL},
         /* Skip flipping of input faces to preserve original orientation. */
         {"skip_input_flip", BMO_OP_SLOT_BOOL},
@@ -1473,7 +1471,7 @@ static BMOpDefine bmo_dissolve_limit_def = {
     /*opname*/ "dissolve_limit",
     /*slot_types_in*/
     {
-        /* Total rotation angle (radians). */
+        /* Maximum angle (radians) between face normals for dissolving. */
         {"angle_limit", BMO_OP_SLOT_FLT},
         /* Dissolve all vertices in between face boundaries. */
         {"use_dissolve_boundaries", BMO_OP_SLOT_BOOL},
@@ -1541,6 +1539,8 @@ static BMO_FlagSet bmo_enum_triangulate_ngon_method[] = {
 
 /*
  * Triangulate.
+ *
+ * Triangulate faces, splitting quads and n-gons into triangles.
  */
 static BMOpDefine bmo_triangulate_def = {
     /*opname*/ "triangulate",
@@ -1632,16 +1632,18 @@ static BMOpDefine bmo_subdivide_edges_def = {
          bmo_enum_falloff_type},
         /* Fractal randomness factor. */
         {"fractal", BMO_OP_SLOT_FLT},
-        /* Apply fractal displacement along normal only. */
+        /* Factor (0 to 1) controlling how much fractal displacement is restricted to the normal.
+         */
         {"along_normal", BMO_OP_SLOT_FLT},
         /* Number of cuts. */
         {"cuts", BMO_OP_SLOT_INT},
         /* Seed for the random number generator. */
         {"seed", BMO_OP_SLOT_INT},
-        /* Uses custom pointers. */
+        /* Internal use only, not accessible from Python. */
         {"custom_patterns",
          BMO_OP_SLOT_MAPPING,
          to_subtype_union(BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL)},
+        /* Mapping of edges to a float (0 to 1) controlling the cut position along each edge. */
         {"edge_percents", BMO_OP_SLOT_MAPPING, to_subtype_union(BMO_OP_SLOT_SUBTYPE_MAP_FLT)},
         /* Quad corner type. */
         {"quad_corner_type",
@@ -1654,7 +1656,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
         {"use_single_edge", BMO_OP_SLOT_BOOL},
         /* Only subdivide quads (for loop-cut). */
         {"use_only_quads", BMO_OP_SLOT_BOOL},
-        /* For making new primitives only. */
+        /* Project new vertices onto a sphere (used for spherical primitives). */
         {"use_sphere", BMO_OP_SLOT_BOOL},
         /* Maintain even offset when smoothing. */
         {"use_smooth_even", BMO_OP_SLOT_BOOL},
@@ -1740,7 +1742,7 @@ static BMOpDefine bmo_bisect_plane_def = {
         {"dist", BMO_OP_SLOT_FLT},
         /* Point on the plane. */
         {"plane_co", BMO_OP_SLOT_VEC},
-        /* Direction of the plane. */
+        /* Normal of the plane. */
         {"plane_no", BMO_OP_SLOT_VEC},
         /* Snap axis aligned verts to the center. */
         {"use_snap_center", BMO_OP_SLOT_BOOL},
@@ -1817,7 +1819,9 @@ static BMOpDefine bmo_duplicate_def = {
         {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         /* Destination bmesh, if None will use current one. */
         {"dest", BMO_OP_SLOT_PTR, to_subtype_union(BMO_OP_SLOT_SUBTYPE_PTR_BMESH)},
+        /* Preserve the selection history in the duplicated geometry. */
         {"use_select_history", BMO_OP_SLOT_BOOL},
+        /* Copy edge flip state from connected faces. */
         {"use_edge_flip_from_face", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
@@ -2046,7 +2050,7 @@ static BMOpDefine bmo_split_edges_def = {
     },
     /*slot_types_out*/
     {
-        /* Old output disconnected edges. */
+        /* The original edges that were disconnected. */
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
@@ -2179,7 +2183,7 @@ static BMOpDefine bmo_create_monkey_def = {
 /*
  * Create Cone.
  *
- * Creates a cone with variable depth at both ends
+ * Creates a cone with variable radius at both ends
  */
 static BMOpDefine bmo_create_cone_def = {
     /*opname*/ "create_cone",
@@ -2221,9 +2225,9 @@ static BMOpDefine bmo_create_circle_def = {
     /*opname*/ "create_circle",
     /*slot_types_in*/
     {
-        /* Whether or not to fill in the ends with faces. */
+        /* Whether or not to fill in the circle with a face. */
         {"cap_ends", BMO_OP_SLOT_BOOL},
-        /* Fill ends with triangles instead of ngons. */
+        /* Fill the circle with triangles instead of an n-gon. */
         {"cap_tris", BMO_OP_SLOT_BOOL},
         /* Number of vertices in the circle. */
         {"segments", BMO_OP_SLOT_INT},
@@ -2488,12 +2492,13 @@ static BMOpDefine bmo_solidify_def = {
     {
         /* Input geometry. */
         {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-        /* Thickness. */
+        /* Thickness of the solidified shell. */
         {"thickness", BMO_OP_SLOT_FLT},
         {{'\0'}},
     },
     /*slot_types_out*/
     {
+        /* Output geometry (new shell faces, edges, and vertices). */
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
@@ -2513,9 +2518,9 @@ static BMOpDefine bmo_inset_individual_def = {
     {
         /* Input faces. */
         {"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
-        /* Thickness. */
+        /* Inset distance from the boundary. */
         {"thickness", BMO_OP_SLOT_FLT},
-        /* Depth. */
+        /* Distance to raise or lower the inset face along its normal. */
         {"depth", BMO_OP_SLOT_FLT},
         /* Scale the offset to give more even thickness. */
         {"use_even_offset", BMO_OP_SLOT_BOOL},
@@ -2560,9 +2565,9 @@ static BMOpDefine bmo_inset_region_def = {
         {"use_relative_offset", BMO_OP_SLOT_BOOL},
         /* Inset the region along existing edges. */
         {"use_edge_rail", BMO_OP_SLOT_BOOL},
-        /* Thickness. */
+        /* Inset distance from the boundary. */
         {"thickness", BMO_OP_SLOT_FLT},
-        /* Depth. */
+        /* Distance to raise or lower the inset face along its normal. */
         {"depth", BMO_OP_SLOT_FLT},
         /* Outset rather than inset. */
         {"use_outset", BMO_OP_SLOT_BOOL},
@@ -2616,7 +2621,7 @@ static BMOpDefine bmo_wireframe_def = {
     {
         /* Input faces. */
         {"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
-        /* Thickness. */
+        /* Wire thickness. */
         {"thickness", BMO_OP_SLOT_FLT},
         /* Offset the thickness from the center. */
         {"offset", BMO_OP_SLOT_FLT},
