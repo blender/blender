@@ -398,7 +398,7 @@ Mathutils Types
 
 Accessible from :mod:`mathutils` are vectors, quaternions, Euler angles, matrix and color types.
 Some attributes such as :class:`bpy.types.Object.location`,
-:class:`bpy.types.PoseBone.rotation_euler` and :class:`bpy.types.Scene.cursor_location`
+:class:`bpy.types.PoseBone.rotation_euler` and :class:`bpy.types.View3DCursor.location`
 can be accessed as special math types which can be used together and manipulated in various useful ways.
 
 Example of a matrix, vector multiplication:

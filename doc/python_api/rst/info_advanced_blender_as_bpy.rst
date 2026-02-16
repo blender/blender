@@ -41,7 +41,7 @@ however there are some differences to be aware of.
 .. Sorted alphabetically as there isn't an especially a logical order to show them.
 
 Blender's Executable Access
-   The attribute :class:`bpy.app.binary_path` defaults to an empty string.
+   The attribute :attr:`bpy.app.binary_path` defaults to an empty string.
 
    If you wish to point this to the location of a known executable you may set the value.
 
@@ -60,7 +60,7 @@ Blender's Executable Access
          print("Unable to find blender!")
 
 Blender's Internal Modules
-   There are many modules included with Blender such as :mod:`gpu` and :mod:`mathuils`.
+   There are many modules included with Blender such as :mod:`gpu` and :mod:`mathutils`.
    It's important that these are imported after ``bpy`` or they will not be found.
 
 Command Line Arguments Unsupported
