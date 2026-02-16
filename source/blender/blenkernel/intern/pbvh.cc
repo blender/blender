@@ -1665,7 +1665,7 @@ Bounds<float3> bounds_get(const Tree &pbvh)
   return std::visit(
       [](auto &nodes) -> Bounds<float3> {
         if (nodes.is_empty()) {
-          return float3(0);
+          return Bounds<float3>(float3(0));
         }
         return nodes.first().bounds_;
       },
