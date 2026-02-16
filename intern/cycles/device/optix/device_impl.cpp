@@ -17,6 +17,7 @@
 #  include "scene/pointcloud.h"
 #  include "scene/scene.h"
 
+#  include "util/algorithm.h"
 #  include "util/debug.h"
 #  include "util/log.h"
 #  include "util/path.h"
@@ -1541,7 +1542,10 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
           verts = motion_keys->data_float3() + (step > center_step ? step - 1 : step) * num_verts;
         }
 
-        memcpy(vertex_data.data() + num_verts * step, verts, num_verts * sizeof(float3));
+        /* Direct copy from Cycles padded float3, needs to match float4 size. */
+        static_assert(sizeof(float3) == sizeof(float4));
+        std::copy_n(
+            verts, num_verts, reinterpret_cast<float3 *>(vertex_data.data() + num_verts * step));
       }
 
       /* Upload triangle data to GPU. */

@@ -689,7 +689,9 @@ static sycl::ext::oneapi::experimental::image_descriptor image_desc(const device
       channel_type = sycl::image_channel_type::fp16;
       break;
     default:
+      channel_type = sycl::image_channel_type::unorm_int8;
       assert(0);
+      break;
   }
 
   sycl::ext::oneapi::experimental::image_descriptor param;

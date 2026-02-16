@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 struct packed_normal {
   uint value;
 
-  ccl_device_inline_method packed_normal() = default;
+  packed_normal() = default;
 
   ccl_device_inline_method packed_normal(const float3 in)
   {
