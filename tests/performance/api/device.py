@@ -46,6 +46,21 @@ def get_gpu_device(args: None) -> list:
                     result.append({'type': f"{device.type}-OSL", 'name': device.name, 'index': index})
                 index += 1
 
+    # Get GPU backends
+    # TODO: Add support for Vulkan device selection even when backend isn't active.
+    # TODO: Cannot retrieve actual GPU name as the gpu module isn't initialized when run in background mode
+    #   !152683 adds support to use gpu module in background mode.
+    original_gpu_backend = prefs.system.gpu_backend
+    for gpu_backend in prefs.system.bl_rna.properties['gpu_backend'].enum_items:
+        try:
+            prefs.system.gpu_backend = gpu_backend.identifier
+        except TypeError:
+            # GPU backend isn't available.
+            pass
+        else:
+            result.append({'type': gpu_backend.identifier, 'name': gpu_backend.name})
+    prefs.system.gpu_backend = original_gpu_backend
+
     return result
 
 
@@ -70,7 +85,9 @@ class TestMachine:
             for gpu_device in gpu_devices:
                 device_type = gpu_device['type']
                 device_name = gpu_device['name']
-                device_id = gpu_device['type'] + "_" + str(gpu_device['index'])
+                device_id = device_type
+                if 'index' in gpu_device:
+                    device_id += "_" + str(gpu_device['index'])
                 self.devices.append(TestDevice(device_type, device_id, device_name, operating_system))
 
     def cpu_device(self) -> TestDevice:

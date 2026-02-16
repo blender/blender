@@ -269,7 +269,7 @@ class SculptBrushTest(api.Test):
     def category(self):
         return "sculpt"
 
-    def run(self, env, _device_id):
+    def run(self, env, _device_id, _gpu_backend):
         args = {
             'mode': self.mode,
             'brush_type': self.brush_type,
@@ -293,7 +293,7 @@ class SculptBrushAfterSpatialReorderingTest(api.Test):
     def category(self):
         return "sculpt"
 
-    def run(self, env, _device_id):
+    def run(self, env, _device_id, _gpu_backend):
         args = {
             'mode': self.mode,
             'brush_type': self.brush_type,
@@ -316,7 +316,7 @@ class SculptRebuildBVHTest(api.Test):
     def category(self):
         return "sculpt"
 
-    def run(self, env, _device_id):
+    def run(self, env, _device_id, _gpu_backend):
         args = {
             'mode': self.mode,
             'spatial_reorder': False,
@@ -338,7 +338,7 @@ class SculptRebuildSpatialBVHTest(api.Test):
     def category(self):
         return "sculpt"
 
-    def run(self, env, _device_id):
+    def run(self, env, _device_id, _gpu_backend):
         args = {
             'mode': self.mode,
             'spatial_reorder': True,
@@ -359,7 +359,7 @@ class SculptMultiresSubdivideTest(api.Test):
     def category(self):
         return "sculpt"
 
-    def run(self, env, _device_id):
+    def run(self, env, _device_id, _gpu_backend):
         result, _ = env.run_in_blender(_run_subdivide_test, {}, [self.filepath])
 
         return {'time': result}

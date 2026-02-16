@@ -4,6 +4,7 @@
 
 import abc
 import fnmatch
+import typing
 
 
 class Test:
@@ -25,6 +26,12 @@ class Test:
         """
         return False
 
+    def supported_device_types(self) -> typing.List[str]:
+        """
+        Supported device types when using multiple devices.
+        """
+        return ['CPU']
+
     def use_background(self) -> bool:
         """
         Test runs in background mode and requires no display.
@@ -32,7 +39,7 @@ class Test:
         return True
 
     @abc.abstractmethod
-    def run(self, env, device_id: str) -> dict:
+    def run(self, env, device_id: str, gpu_backend: str) -> dict:
         """
         Execute the test and report results.
         """

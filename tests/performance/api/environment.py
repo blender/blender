@@ -241,9 +241,11 @@ class TestEnvironment:
 
         return lines
 
-    def call_blender(self, args: list[str], foreground=False) -> list[str]:
+    def call_blender(self, args: list[str], foreground=False, gpu_backend='default') -> list[str]:
         # Execute Blender command with arguments.
         common_args = ['--factory-startup', '-noaudio', '--enable-autoexec', '--python-exit-code', '1']
+        if gpu_backend != 'default':
+            common_args += ['--gpu-backend', gpu_backend]
         if sys.platform == 'win32':
             # Set HighQoS level on Windows to avoid reduced performance when the window is out of focus.
             # See: https://learn.microsoft.com/en-us/windows/win32/procthread/quality-of-service
@@ -260,7 +262,8 @@ class TestEnvironment:
                        function: Callable[[dict], dict],
                        args: dict,
                        blender_args: list = [],
-                       foreground=False) -> dict:
+                       foreground=False,
+                       gpu_backend='default') -> dict:
         # Run function in a Blender instance. Arguments and return values are
         # passed as a Python object that must be serializable with pickle.
 
@@ -282,7 +285,7 @@ class TestEnvironment:
                       f'print("\\n{output_prefix}" + result.decode() + "\\n")')
 
         expr_args = blender_args + ['--python-expr', expression]
-        lines = self.call_blender(expr_args, foreground=foreground)
+        lines = self.call_blender(expr_args, foreground=foreground, gpu_backend=gpu_backend)
 
         # Parse output.
         for line in lines:

@@ -32,7 +32,7 @@ class BlendLoadTest(api.Test):
     def category(self):
         return "blend_load"
 
-    def run(self, env, device_id):
+    def run(self, env, device_id, gpu_backend):
         result, _ = env.run_in_blender(_run, str(self.filepath))
         return result
 

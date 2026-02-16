@@ -39,7 +39,7 @@ class AnimationTest(api.Test):
     def category(self):
         return "animation"
 
-    def run(self, env, device_id):
+    def run(self, env, device_id, gpu_backend):
         args = {}
         result, _ = env.run_in_blender(_run, args, [self.filepath])
         return result

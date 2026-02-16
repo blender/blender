@@ -162,7 +162,7 @@ class BPYRNATest(api.Test):
     def category(self):
         return "bpy_rna"
 
-    def run(self, env, device_id):
+    def run(self, env, device_id, gpu_backend):
         args = self.args
         args["iterations"] = self.iterations
         result, _ = env.run_in_blender(self.callback, args, ["--factory-startup"])
