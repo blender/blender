@@ -11,6 +11,7 @@ to implement.
 from __future__ import annotations
 
 import dataclasses
+import uuid
 from pathlib import Path, PurePosixPath
 
 from . import blender_asset_library_openapi as api_models
@@ -112,14 +113,35 @@ VERSION 1
 def write(catalogs: list[api_models.CatalogV1], catalog_filepath: Path,
           asset_library_meta: api_models.AssetLibraryMeta) -> None:
     """Create a catalog file from the list of catalogs."""
+    import re
 
     # TODO: this really should be using an RNA API.
 
-    header = _ASSET_CATS_HEADER.format(library_name=asset_library_meta.name)
+    # Sanitize the library name, as it should not contain any newlines for the Asset Catalog Definition File to be
+    # valid. To be on the safe side, just collapse all whitespace to spaces.
+    any_whitespace_re = re.compile(r'\s')
+    lib_name = any_whitespace_re.sub(' ', asset_library_meta.name)
+
+    header = _ASSET_CATS_HEADER.format(library_name=lib_name)
 
     with catalog_filepath.open("w", encoding="utf8") as catfile:
         print(header, file=catfile)
 
         for cat in sorted(catalogs, key=lambda cat: cat.path):
-            for uuid in cat.uuids:
-                print("{}:{}:{}".format(uuid, cat.path, cat.simple_name), file=catfile)
+            for cat_uuid_str in cat.uuids:
+                # Sanitize the catalogs before writing them.
+                try:
+                    cat_uuid = uuid.UUID(cat_uuid_str)
+                except ValueError:
+                    print("Asset Library has invalid UUID ({uuid!r}) for catalog {path!r}, skipping".format(
+                        uuid=cat_uuid_str, path=cat.path))
+                    continue
+
+                cat_path = any_whitespace_re.sub(' ', cat.path)
+
+                if isinstance(cat.simple_name, str):
+                    cat_simple_name = any_whitespace_re.sub(' ', cat.simple_name)
+                else:
+                    cat_simple_name = ""
+
+                print("{!s}:{!s}:{!s}".format(cat_uuid, cat_path, cat_simple_name), file=catfile)
