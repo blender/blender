@@ -92,6 +92,49 @@ bool modifier_persistent_uids_are_valid(const Strip &strip)
   return true;
 }
 
+static void modifier_ops_extra_draw(bContext *C, ui::Layout *layout, void *smd_v)
+{
+  Scene *sequencer_scene = CTX_data_sequencer_scene(C);
+  Strip *strip = seq::select_active_get(sequencer_scene);
+  if (!strip) {
+    return;
+  }
+  StripModifierData *smd = static_cast<StripModifierData *>(smd_v);
+
+  PointerRNA op_ptr;
+  /* Duplicate. */
+  op_ptr = layout->op("SEQUENCER_OT_strip_modifier_duplicate",
+                      CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
+                      ICON_DUPLICATE);
+  RNA_string_set(&op_ptr, "modifier", smd->name);
+  /* Copy to selected. */
+  op_ptr = layout->op("SEQUENCER_OT_strip_modifier_copy",
+                      CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
+                      0);
+  RNA_enum_set(&op_ptr, "type", /*SEQ_MODIFIER_COPY_APPEND*/ 1);
+  RNA_string_set(&op_ptr, "modifier", smd->name);
+
+  layout->separator();
+
+  /* Move to first. */
+  op_ptr = layout->op("SEQUENCER_OT_strip_modifier_move_to_index",
+                      IFACE_("Move to First"),
+                      ICON_TRIA_UP,
+                      wm::OpCallContext::InvokeDefault,
+                      UI_ITEM_NONE);
+  RNA_string_set(&op_ptr, "modifier", smd->name);
+  RNA_int_set(&op_ptr, "index", 0);
+
+  /* Move to last. */
+  op_ptr = layout->op("SEQUENCER_OT_strip_modifier_move_to_index",
+                      IFACE_("Move to Last"),
+                      ICON_TRIA_DOWN,
+                      wm::OpCallContext::InvokeDefault,
+                      UI_ITEM_NONE);
+  RNA_string_set(&op_ptr, "modifier", smd->name);
+  RNA_int_set(&op_ptr, "index", BLI_listbase_count(&strip->modifiers) - 1);
+}
+
 static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
@@ -119,6 +162,9 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
   sub = &row.row(true);
   sub->prop(ptr, "enable", UI_ITEM_NONE, "", ICON_NONE);
   buttons_number++;
+
+  /* Extra operators menu. */
+  row.menu_fn("", ICON_DOWNARROW_HLT, modifier_ops_extra_draw, smd);
 
   /* Delete button. */
   sub = &row.row(false);

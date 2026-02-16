@@ -124,6 +124,7 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_remove);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_move);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_copy);
+  WM_operatortype_append(SEQUENCER_OT_strip_modifier_duplicate);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_move_to_index);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_set_active);
   WM_operatortype_append(SEQUENCER_OT_strip_modifier_equalizer_redefine);
