@@ -7,7 +7,10 @@
 
 #include "BLI_hash.h"
 
+#include "RNA_access.hh"
 #include "RNA_prototypes.hh"
+
+#include "BKE_context.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
