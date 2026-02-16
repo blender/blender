@@ -288,6 +288,37 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
       }
     }
   }
+  else if (column_data.type().is<float4>()) {
+    const float4 value = row_filter.value_float4;
+    switch (row_filter.operation) {
+      case SPREADSHEET_ROW_FILTER_EQUAL: {
+        const float threshold_sq = pow2f(row_filter.threshold);
+        return apply_filter_operation(
+            column_data.typed<float4>(),
+            [&](const float4 cell) { return math::distance_squared(cell, value) <= threshold_sq; },
+            prev_mask,
+            memory);
+      }
+      case SPREADSHEET_ROW_FILTER_GREATER: {
+        return apply_filter_operation(
+            column_data.typed<float4>(),
+            [&](const float4 cell) {
+              return cell.x > value.x && cell.y > value.y && cell.z > value.z && cell.w > value.w;
+            },
+            prev_mask,
+            memory);
+      }
+      case SPREADSHEET_ROW_FILTER_LESS: {
+        return apply_filter_operation(
+            column_data.typed<float4>(),
+            [&](const float4 cell) {
+              return cell.x < value.x && cell.y < value.y && cell.z < value.z && cell.w < value.w;
+            },
+            prev_mask,
+            memory);
+      }
+    }
+  }
   else if (column_data.type().is<ColorGeometry4f>()) {
     const ColorGeometry4f value = row_filter.value_color;
     switch (row_filter.operation) {

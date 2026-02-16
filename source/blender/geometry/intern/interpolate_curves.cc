@@ -1215,7 +1215,8 @@ void interpolate_curves_with_samples(const CurvesGeometry &from_curves,
     const bool can_mix_attribute = ELEM(bke::cpp_type_to_attribute_type(dst.type()),
                                         bke::AttrType::Float,
                                         bke::AttrType::Float2,
-                                        bke::AttrType::Float3);
+                                        bke::AttrType::Float3,
+                                        bke::AttrType::Float4);
     if (can_mix_attribute && !src_from.is_empty() && !src_to.is_empty()) {
       array_utils::copy(GVArray::from_span(src_from), from_curve_mask, dst);
       array_utils::copy(GVArray::from_span(src_to), to_curve_mask, dst);

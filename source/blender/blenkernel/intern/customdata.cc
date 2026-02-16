@@ -1281,6 +1281,42 @@ static void layerInterp_propcol(const void **sources, const float *weights, int 
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Callbacks for (#float4, #CD_PROP_FLOAT4)
+ * \{ */
+
+static void layerInterp_propfloat4(const void **sources,
+                                   const float *weights,
+                                   int count,
+                                   void *dest)
+{
+  vec4f result = {0.0f, 0.0f, 0.0f, 0.0f};
+  for (int i = 0; i < count; i++) {
+    const float interp_weight = weights[i];
+    const vec4f *src = static_cast<const vec4f *>(sources[i]);
+    madd_v4_v4fl(&result.x, &src->x, interp_weight);
+  }
+  copy_v4_v4(static_cast<float *>(dest), &result.x);
+}
+
+static void layerMultiply_propfloat4(void *data, const float fac)
+{
+  vec4f *vec = static_cast<vec4f *>(data);
+  vec->x *= fac;
+  vec->y *= fac;
+  vec->z *= fac;
+  vec->w *= fac;
+}
+
+static void layerAdd_propfloat4(void *data1, const void *data2)
+{
+  vec4f *vec1 = static_cast<vec4f *>(data1);
+  const vec4f *vec2 = static_cast<const vec4f *>(data2);
+  vec1->x += vec2->x;
+  vec1->y += vec2->y;
+  vec1->z += vec2->z;
+}
+
+/* -------------------------------------------------------------------- */
 /** \name Callbacks for (#vec3f, #CD_PROP_FLOAT3)
  * \{ */
 
@@ -1704,13 +1740,16 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
         .structname = "",
         .structnum = 0,
     },
-    /* 24: CD_RECAST */
+    /* 24: CD_PROP_FLOAT4 */
     {
-        .size = sizeof(MRecast),
-        .alignment = alignof(MRecast),
-        .structname = "MRecast",
+        .size = sizeof(float4),
+        .alignment = alignof(float4),
+        .structname = "vec4f",
         .structnum = 1,
-        .defaultname = N_("Recast"),
+        .defaultname = N_("Float4"),
+        .interp = layerInterp_propfloat4,
+        .multiply = layerMultiply_propfloat4,
+        .add = layerAdd_propfloat4,
     },
     /* 25: CD_MPOLY */ /* DEPRECATED */
     {

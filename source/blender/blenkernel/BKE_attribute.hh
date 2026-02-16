@@ -60,6 +60,7 @@ enum class AttrType : int16_t {
   ColorFloat = 10,
   Quaternion = 11,
   String = 12,
+  Float4 = 13,
 };
 
 const CPPType &attribute_type_to_cpp_type(AttrType type);

@@ -387,6 +387,9 @@ static void read_array_data(BlendDataReader &reader,
       BLO_read_struct_array(
           &reader, MStringProperty, size, reinterpret_cast<MStringProperty **>(data));
       return;
+    case int8_t(AttrType::Float4):
+      BLO_read_float_array(&reader, size * 4, reinterpret_cast<float **>(data));
+      return;
     default:
       *data = nullptr;
       return;
@@ -562,6 +565,9 @@ static void write_array_data(BlendWriter &writer,
       break;
     case AttrType::String:
       writer.write_struct_array_cast<MStringProperty>(size, data);
+      break;
+    case AttrType::Float4:
+      BLO_write_float_array(&writer, size * 4, static_cast<const float *>(data));
       break;
   }
 }

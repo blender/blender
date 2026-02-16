@@ -61,6 +61,8 @@ StringRefNull rna_property_name_for_type(const bke::AttrType type)
       return "value_float_vector_2d";
     case bke::AttrType::Float3:
       return "value_float_vector_3d";
+    case bke::AttrType::Float4:
+      return "value_float_vector_4d";
     case bke::AttrType::ColorByte:
     case bke::AttrType::ColorFloat:
       return "value_color";
@@ -108,6 +110,16 @@ void register_rna_properties_for_attribute_types(StructRNA &srna)
                       "",
                       -FLT_MAX,
                       FLT_MAX);
+  RNA_def_float_array(&srna,
+                      "value_float_vector_4d",
+                      4,
+                      nullptr,
+                      -FLT_MAX,
+                      FLT_MAX,
+                      "Value",
+                      "",
+                      -FLT_MAX,
+                      FLT_MAX);
   RNA_def_int(&srna, "value_int", 0, INT_MIN, INT_MAX, "Value", "", INT_MIN, INT_MAX);
   RNA_def_int_array(
       &srna, "value_int_vector_2d", 2, nullptr, INT_MIN, INT_MAX, "Value", "", INT_MIN, INT_MAX);
@@ -129,6 +141,9 @@ GPointer rna_property_for_attribute_type_retrieve_value(PointerRNA &ptr,
       RNA_float_get_array(&ptr, prop_name.c_str(), static_cast<float *>(buffer));
       break;
     case bke::AttrType::Float3:
+      RNA_float_get_array(&ptr, prop_name.c_str(), static_cast<float *>(buffer));
+      break;
+    case bke::AttrType::Float4:
       RNA_float_get_array(&ptr, prop_name.c_str(), static_cast<float *>(buffer));
       break;
     case bke::AttrType::ColorFloat:
@@ -178,6 +193,9 @@ void rna_property_for_attribute_type_set_value(PointerRNA &ptr,
       break;
     case bke::AttrType::Float3:
       RNA_property_float_set_array(&ptr, &prop, *value.get<float3>());
+      break;
+    case bke::AttrType::Float4:
+      RNA_property_float_set_array(&ptr, &prop, *value.get<float4>());
       break;
     case bke::AttrType::ColorByte:
       RNA_property_float_set_array(&ptr, &prop, color::decode(*value.get<ColorGeometry4b>()));

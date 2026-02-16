@@ -55,6 +55,9 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
   if (type.is<float3>()) {
     return SPREADSHEET_VALUE_TYPE_FLOAT3;
   }
+  if (type.is<float4>()) {
+    return SPREADSHEET_VALUE_TYPE_FLOAT4;
+  }
   if (type.is<ColorGeometry4f>()) {
     return SPREADSHEET_VALUE_TYPE_COLOR;
   }

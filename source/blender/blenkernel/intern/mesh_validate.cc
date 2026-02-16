@@ -803,6 +803,9 @@ static bool validate_generic_attributes(const Mesh &mesh, const bool verbose, Me
         break;
       case AttrType::String:
         break;
+      case AttrType::Float4:
+        validate_float_attribute(iter, 4, verbose, all_attributes_valid, mesh_mut);
+        break;
     }
   });
   return all_attributes_valid;

@@ -1287,6 +1287,7 @@ struct SpreadsheetRowFilter {
   float threshold = 0;
   float value_float2[2] = {};
   float value_float3[3] = {};
+  float value_float4[4] = {};
   float value_color[4] = {};
   char _pad1[4] = {};
 };

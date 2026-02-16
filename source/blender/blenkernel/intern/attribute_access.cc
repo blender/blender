@@ -62,6 +62,8 @@ const CPPType &attribute_type_to_cpp_type(const AttrType type)
       return CPPType::get<math::Quaternion>();
     case AttrType::String:
       return CPPType::get<MStringProperty>();
+    case AttrType::Float4:
+      return CPPType::get<float4>();
   }
   BLI_assert_unreachable();
   return CPPType::get<bool>();
@@ -77,6 +79,9 @@ AttrType cpp_type_to_attribute_type(const CPPType &type)
   }
   if (type.is<float3>()) {
     return AttrType::Float3;
+  }
+  if (type.is<float4>()) {
+    return AttrType::Float4;
   }
   if (type.is<int>()) {
     return AttrType::Int32;
@@ -121,6 +126,8 @@ const CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
       return &CPPType::get<float2>();
     case CD_PROP_FLOAT3:
       return &CPPType::get<float3>();
+    case CD_PROP_FLOAT4:
+      return &CPPType::get<float4>();
     case CD_PROP_INT32:
       return &CPPType::get<int>();
     case CD_PROP_INT32_2D:
@@ -156,6 +163,9 @@ eCustomDataType cpp_type_to_custom_data_type(const CPPType &type)
   }
   if (type.is<float3>()) {
     return CD_PROP_FLOAT3;
+  }
+  if (type.is<float4>()) {
+    return CD_PROP_FLOAT4;
   }
   if (type.is<int>()) {
     return CD_PROP_INT32;
@@ -242,17 +252,19 @@ static int attribute_data_type_complexity(const AttrType data_type)
       return 6;
     case AttrType::Float3:
       return 7;
-    case AttrType::ColorByte:
+    case AttrType::Float4:
       return 8;
-    case AttrType::Quaternion:
+    case AttrType::ColorByte:
       return 9;
-    case AttrType::ColorFloat:
+    case AttrType::Quaternion:
       return 10;
-    case AttrType::Float4x4:
+    case AttrType::ColorFloat:
       return 11;
+    case AttrType::Float4x4:
+      return 12;
 #if 0 /* These attribute types are not supported yet. */
     case AttrType::String:
-      return 12;
+      return 13;
 #endif
     default:
       /* Only accept "generic" custom data types used by the attribute system. */

@@ -252,6 +252,11 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       this->draw_float_vector(params, Span(&value.x, 3));
       return;
     }
+    if (type.is<float4>()) {
+      const float4 value = *value_ptr.get<float4>();
+      this->draw_float_vector(params, Span(&value.x, 4));
+      return;
+    }
     if (type.is<ColorGeometry4f>()) {
       const ColorGeometry4f value = *value_ptr.get<ColorGeometry4f>();
       this->draw_float_vector(params, Span(&value.r, 4));
@@ -695,6 +700,17 @@ float ColumnValues::fit_column_values_width_px(const std::optional<int64_t> &max
           data_.typed<float3>(),
           [](const float3 value) {
             return fmt::format("{:.3f}  {:.3f}  {:.3f}", value.x, value.y, value.z);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_FLOAT4: {
+      return estimate_max_column_width<float4>(
+          get_min_width(12 * SPREADSHEET_WIDTH_UNIT),
+          fontid,
+          max_sample_size,
+          data_.typed<float4>(),
+          [](const float4 value) {
+            return fmt::format(
+                "{:.3f}  {:.3f}  {:.3f}  {:.3f}", value.x, value.y, value.z, value.w);
           });
     }
     case SPREADSHEET_VALUE_TYPE_COLOR: {

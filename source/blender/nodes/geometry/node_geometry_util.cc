@@ -71,6 +71,7 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item)
               CD_PROP_FLOAT,
               CD_PROP_FLOAT2,
               CD_PROP_FLOAT3,
+              CD_PROP_FLOAT4,
               CD_PROP_COLOR,
               CD_PROP_BOOL,
               CD_PROP_INT8,

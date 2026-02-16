@@ -101,6 +101,8 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
       return AttrType::ColorFloat;
     case CD_PROP_FLOAT3:
       return AttrType::Float3;
+    case CD_PROP_FLOAT4:
+      return AttrType::Float4;
     case CD_PROP_FLOAT2:
       return AttrType::Float2;
     case CD_PROP_BOOL:
@@ -205,6 +207,8 @@ std::optional<eCustomDataType> attr_type_to_custom_data_type(const AttrType attr
       return CD_PROP_FLOAT2;
     case AttrType::Float3:
       return CD_PROP_FLOAT3;
+    case AttrType::Float4:
+      return CD_PROP_FLOAT4;
     case AttrType::Float4x4:
       return CD_PROP_FLOAT4X4;
     case AttrType::ColorByte:

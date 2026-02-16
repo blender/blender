@@ -42,6 +42,7 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_INT16_2D, "INT16_2D", 0, "2D 16-Bit Integer Vector", "16-bit signed integer vector"},
     {CD_PROP_INT32_2D, "INT32_2D", 0, "2D Integer Vector", "32-bit signed integer vector"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_FLOAT4, "FLOAT4", 0, "4D Vector", "4D vector with floating-point values"},
     {CD_PROP_BYTE_COLOR,
      "BYTE_COLOR",
      0,
@@ -73,6 +74,7 @@ const EnumPropertyItem rna_enum_attribute_type_with_auto_items[] = {
     {CD_PROP_INT16_2D, "INT16_2D", 0, "2D 16-Bit Integer Vector", "16-bit signed integer vector"},
     {CD_PROP_INT32_2D, "INT32_2D", 0, "2D Integer Vector", "32-bit signed integer vector"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_FLOAT4, "FLOAT4", 0, "4D Vector", "4D vector with floating-point values"},
     {CD_PROP_BYTE_COLOR,
      "BYTE_COLOR",
      0,
@@ -304,6 +306,8 @@ static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
       return RNA_IntAttribute;
     case CD_PROP_FLOAT3:
       return RNA_FloatVectorAttribute;
+    case CD_PROP_FLOAT4:
+      return RNA_Float4Attribute;
     case CD_PROP_COLOR:
       return RNA_FloatColorAttribute;
     case CD_PROP_BYTE_COLOR:
@@ -1772,6 +1776,42 @@ static void rna_def_attribute_float2(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 }
 
+static void rna_def_attribute_float4(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* Float4 Attribute */
+  srna = RNA_def_struct(brna, "Float4Attribute", "Attribute");
+  RNA_def_struct_ui_text(
+      srna, "Float4 Attribute", "Geometry attribute that stores floating-point 4D vectors");
+
+  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Float4AttributeValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Attribute_data_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Attribute_data_length",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
+
+  /* Float4 Attribute Value */
+  srna = RNA_def_struct(brna, "Float4AttributeValue", nullptr);
+  RNA_def_struct_sdna(srna, "vec4f");
+  RNA_def_struct_ui_text(srna, "Float4 Attribute Value", "4D Vector value in geometry attribute");
+
+  prop = RNA_def_property(srna, "vector", PROP_FLOAT, PROP_DIRECTION);
+  RNA_def_property_ui_text(prop, "Vector", "4D vector");
+  RNA_def_property_float_sdna(prop, nullptr, "x");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
+}
+
 static void rna_def_attribute(BlenderRNA *brna)
 {
   PropertyRNA *prop;
@@ -1833,6 +1873,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_string(brna);
   rna_def_attribute_bool(brna);
   rna_def_attribute_float2(brna);
+  rna_def_attribute_float4(brna);
   rna_def_attribute_int8(brna);
 }
 

@@ -35,6 +35,7 @@ template<typename Fn> inline void to_static_type(const CPPType &cpp_type, Fn &&f
   cpp_type.to_static_type<float,
                           float2,
                           float3,
+                          float4,
                           int,
                           int2,
                           bool,
@@ -96,6 +97,11 @@ template<> inline float2 mix2(const float factor, const float2 &a, const float2 
 }
 
 template<> inline float3 mix2(const float factor, const float3 &a, const float3 &b)
+{
+  return math::interpolate(a, b, factor);
+}
+
+template<> inline float4 mix2(const float factor, const float4 &a, const float4 &b)
 {
   return math::interpolate(a, b, factor);
 }
@@ -163,6 +169,12 @@ inline float2 mix3(const float3 &weights, const float2 &v0, const float2 &v1, co
 
 template<>
 inline float3 mix3(const float3 &weights, const float3 &v0, const float3 &v1, const float3 &v2)
+{
+  return weights.x * v0 + weights.y * v1 + weights.z * v2;
+}
+
+template<>
+inline float4 mix3(const float3 &weights, const float4 &v0, const float4 &v1, const float4 &v2)
 {
   return weights.x * v0 + weights.y * v1 + weights.z * v2;
 }
@@ -255,6 +267,13 @@ inline float2 mix4(
 template<>
 inline float3 mix4(
     const float4 &weights, const float3 &v0, const float3 &v1, const float3 &v2, const float3 &v3)
+{
+  return weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3;
+}
+
+template<>
+inline float4 mix4(
+    const float4 &weights, const float4 &v0, const float4 &v1, const float4 &v2, const float4 &v3)
 {
   return weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3;
 }
@@ -566,6 +585,9 @@ template<> struct DefaultMixerStruct<float2> {
 };
 template<> struct DefaultMixerStruct<float3> {
   using type = SimpleMixer<float3>;
+};
+template<> struct DefaultMixerStruct<float4> {
+  using type = SimpleMixer<float4>;
 };
 template<> struct DefaultMixerStruct<ColorGeometry4f> {
   /* Use a special mixer for colors. ColorGeometry4f can't be added/multiplied, because this is not

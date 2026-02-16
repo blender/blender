@@ -1246,6 +1246,10 @@ static std::shared_ptr<io::serialize::Value> serialize_primitive_value(
       const float3 value = *static_cast<const float3 *>(value_ptr);
       return serialize_float_array({&value.x, 3});
     }
+    case CD_PROP_FLOAT4: {
+      const float4 value = *static_cast<const float4 *>(value_ptr);
+      return serialize_float_array({&value.x, 4});
+    }
     case CD_PROP_BOOL: {
       const bool value = *static_cast<const bool *>(value_ptr);
       return std::make_shared<io::serialize::BooleanValue>(value);
@@ -1369,6 +1373,9 @@ template<typename T>
     }
     case CD_PROP_FLOAT3: {
       return deserialize_float_array(io_value, {static_cast<float *>(r_value), 3});
+    }
+    case CD_PROP_FLOAT4: {
+      return deserialize_float_array(io_value, {static_cast<float *>(r_value), 4});
     }
     case CD_PROP_BOOL: {
       if (const io::serialize::BooleanValue *io_value_boolean = io_value.as_boolean_value()) {

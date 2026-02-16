@@ -277,6 +277,10 @@ static bool values_different(const T value1,
     ASSERT_AND_ASSUME(component_i >= 0 && component_i < 3);
     return compare_threshold_relative(value1[component_i], value2[component_i], threshold);
   }
+  if constexpr (is_same_any_v<T, float4>) {
+    ASSERT_AND_ASSUME(component_i >= 0 && component_i < 4);
+    return compare_threshold_relative(value1[component_i], value2[component_i], threshold);
+  }
   if constexpr (is_same_any_v<T, ColorGeometry4f>) {
     ASSERT_AND_ASSUME(component_i >= 0 && component_i < 4);
     return compare_threshold_relative(value1[component_i], value2[component_i], threshold);
