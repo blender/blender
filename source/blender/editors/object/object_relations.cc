@@ -54,6 +54,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_light_linking.h"
 #include "BKE_main.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh_types.hh"
@@ -1478,7 +1479,34 @@ enum {
   MAKE_LINKS_MODIFIERS = 6,
   MAKE_LINKS_FONTS = 7,
   MAKE_LINKS_SHADERFX = 8,
+  MAKE_LINKS_LIGHT_LINKING = 9,
+  MAKE_LINKS_SHADOW_LINKING = 10,
 };
+
+/* Matches has_geometry_visibility() from Python.
+ * Indicates whether an object has shading/visibility settings. */
+static bool has_geometry_visibility(const Object &object)
+{
+  if (ELEM(object.type,
+           OB_MESH,
+           OB_CURVES_LEGACY,
+           OB_SURF,
+           OB_FONT,
+           OB_MBALL,
+           OB_LAMP,
+           OB_VOLUME,
+           OB_POINTCLOUD,
+           OB_CURVES))
+  {
+    return true;
+  }
+
+  if (object.transflag & OB_DUPLICOLLECTION && object.instance_collection) {
+    return true;
+  }
+
+  return false;
+}
 
 /* Return true if make link data is allowed, false otherwise */
 static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst)
@@ -1523,6 +1551,9 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
         return true;
       }
       break;
+    case MAKE_LINKS_LIGHT_LINKING:
+    case MAKE_LINKS_SHADOW_LINKING:
+      return has_geometry_visibility(*ob_src) && has_geometry_visibility(*ob_dst);
   }
   return false;
 }
@@ -1661,6 +1692,12 @@ static wmOperatorStatus make_links_data_exec(bContext *C, wmOperator *op)
             DEG_id_tag_update(&ob_dst->id,
                               ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
             break;
+          case MAKE_LINKS_LIGHT_LINKING:
+            BKE_light_linking_copy_receiver_collection(bmain, *ob_dst, *ob_src);
+            break;
+          case MAKE_LINKS_SHADOW_LINKING:
+            BKE_light_linking_copy_blocker_collection(bmain, *ob_dst, *ob_src);
+            break;
         }
       }
     }
@@ -1737,6 +1774,16 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
        0,
        "Copy Grease Pencil Effects",
        "Replace Grease Pencil Effects"},
+      {MAKE_LINKS_LIGHT_LINKING,
+       "LIGHT_LINKING",
+       0,
+       "Copy Light Linking",
+       "Replace assigned Light Linking collection"},
+      {MAKE_LINKS_SHADOW_LINKING,
+       "SHADOW_LINKING",
+       0,
+       "Copy Shadow Linking",
+       "Replace assigned Shadow Linking collection"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

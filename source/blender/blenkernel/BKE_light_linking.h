@@ -43,6 +43,21 @@ void BKE_light_linking_copy(struct Object *object_dst,
                             const int copy_flags);
 
 /**
+ * Copy receiver or blocker collection from the source to the destination object.
+ * Performa user counter, and dependency graph relations tagging.
+ */
+void BKE_light_linking_copy_collection(Main *bmain,
+                                       Object &object_dst,
+                                       const Object &object_src,
+                                       LightLinkingType link_type);
+void BKE_light_linking_copy_receiver_collection(Main *bmain,
+                                                Object &object_dst,
+                                                const Object &object_src);
+void BKE_light_linking_copy_blocker_collection(Main *bmain,
+                                               Object &object_dst,
+                                               const Object &object_src);
+
+/**
  * Free the LightLinking data from the object.
  *
  * \param copy_flags: Flags controlling the copy process, see e.g. #LIB_ID_CREATE_NO_USER_REFCOUNT
