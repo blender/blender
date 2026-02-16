@@ -188,6 +188,10 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
               wm::OpCallContext::InvokeDefault,
               UI_ITEM_NONE);
   }
+  else if (scenes_len == 1) {
+    layout.label(IFACE_("Scene Strip"), ICON_SCENE_DATA);
+    layout.label(IFACE_("No other scenes."), ICON_NONE);
+  }
   else {
     layout.label(IFACE_("Scene Strip"), ICON_SCENE_DATA);
     const Scene *active_scene = CTX_data_sequencer_scene(C);
