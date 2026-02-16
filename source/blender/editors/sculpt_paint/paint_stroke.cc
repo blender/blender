@@ -1642,51 +1642,47 @@ wmOperatorStatus PaintStroke::exec(bContext *C, wmOperator *op)
   /* TODO: Temporary, used to facilitate removing bContext usage in subclasses */
   this->evil_C = C;
 
-  /* only when executed for the first time */
-  if (!stroke_started_) {
-    PointerRNA firstpoint;
-    PropertyRNA *strokeprop = RNA_struct_find_property(op->ptr, "stroke");
-
-    if (RNA_property_collection_lookup_int(op->ptr, strokeprop, 0, &firstpoint)) {
-      float2 mouse;
-      RNA_float_get_array(&firstpoint, "mouse", mouse);
-      stroke_started_ = this->test_start(op, mouse);
-    }
-  }
-
   const PaintMode mode = BKE_paintmode_get_active_from_context(C);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "override_location");
   const bool override_location = prop && RNA_property_boolean_get(op->ptr, prop) &&
                                  mode != PaintMode::Texture2D;
 
-  if (stroke_started_) {
-    RNA_BEGIN (op->ptr, itemptr, "stroke") {
-      float2 mval;
-      RNA_float_get_array(&itemptr, "mouse_event", mval);
+  RNA_BEGIN (op->ptr, itemptr, "stroke") {
+    float2 mval;
+    RNA_float_get_array(&itemptr, "mouse_event", mval);
 
-      const float pressure = RNA_float_get(&itemptr, "pressure");
-      float2 dummy_mouse;
-      RNA_float_get_array(&itemptr, "mouse", dummy_mouse);
+    if (!stroke_started_) {
+      stroke_started_ = this->test_start(op, mval);
+    }
 
-      float3 dummy_location;
-      bool dummy_is_set;
+    if (!stroke_started_) {
+      continue;
+    }
 
-      this->update(
-          C, *this->brush, mode, mval, dummy_mouse, pressure, dummy_location, &dummy_is_set);
+    /* This mimics `add_step` to update various properties on PaintRuntime. */
+    const float pressure = RNA_float_get(&itemptr, "pressure");
+    float2 mouse_out;
+    paint_stroke_jitter_pos(
+        this->paint, mode, *this->brush, pressure, stroke_mode_, zoom_2d_, mval, mouse_out);
 
-      if (override_location) {
-        float3 location;
-        if (this->get_location(location, mval, false)) {
-          RNA_float_set_array(&itemptr, "location", location);
-          this->update_step(op, &itemptr);
-        }
-      }
-      else {
+    /* TODO: This process misses updating some values at the moment, see `add_step` */
+    float3 dummy_location;
+    bool dummy_is_set;
+    this->update(C, *this->brush, mode, mval, mouse_out, pressure, dummy_location, &dummy_is_set);
+    RNA_float_set_array(&itemptr, "mouse", mouse_out);
+
+    if (override_location) {
+      float3 location;
+      if (this->get_location(location, mouse_out, false)) {
+        RNA_float_set_array(&itemptr, "location", location);
         this->update_step(op, &itemptr);
       }
     }
-    RNA_END;
+    else {
+      this->update_step(op, &itemptr);
+    }
   }
+  RNA_END;
 
   const bool ok = stroke_started_;
 
