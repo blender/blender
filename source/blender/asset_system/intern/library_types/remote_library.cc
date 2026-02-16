@@ -8,12 +8,14 @@
 
 #include <fmt/format.h>
 
+#include "BKE_report.hh"
 #include "BLI_fileops.h"
 #include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_threads.h"
 
 #include "BLT_translation.hh"
@@ -357,6 +359,35 @@ static bool remote_library_request_asset_download_file(const bContext &C,
         RPT_WARNING,
         "Asset listing does not indicate where the file should be downloaded to, for asset '%s'",
         asset_name.c_str());
+    return false;
+  }
+
+  /* Protect against maliciously constructed file paths. This code can just check & reject, as the
+   * actual sanitisation happens when the listing is downloaded (see `listing_downloader.py`). */
+  if (BLI_path_is_abs_from_cwd(dst_filepath.c_str())) {
+    /* Absolute file paths. */
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Asset '%s' references a file with an absolute path, which is not allowed",
+                asset_name.c_str());
+    return false;
+  }
+
+  /* Check '..' entries, which can be "../" at the start of the path, or "/../" in the middle of
+   * the path. */
+  std::string path_native(dst_filepath);
+  BLI_path_slash_native(path_native.data());
+
+  static constexpr char slash_dot_dot_slash[]{SEP, '.', '.', SEP, '\0'};
+  static constexpr char const *dot_dot_slash = slash_dot_dot_slash + 1;
+
+  if (path_native.starts_with(dot_dot_slash) ||
+      path_native.find(slash_dot_dot_slash) != std::string::npos)
+  {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Asset '%s' references a file with '..' in its path, which is not allowed",
+                asset_name.c_str());
     return false;
   }
 
