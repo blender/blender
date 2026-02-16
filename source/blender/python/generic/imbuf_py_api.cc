@@ -76,11 +76,11 @@ PyDoc_STRVAR(
     py_imbuf_resize_doc,
     ".. method:: resize(size, *, method='FAST')\n"
     "\n"
-    "   Resize the image.\n"
+    "   Resize the image in-place.\n"
     "\n"
     "   :param size: New size.\n"
     "   :type size: tuple[int, int]\n"
-    "   :param method: Method of resizing ('FAST', 'BILINEAR')\n"
+    "   :param method: Method of resizing ('FAST', 'BILINEAR').\n"
     "   :type method: str\n");
 static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
@@ -132,11 +132,11 @@ PyDoc_STRVAR(
     py_imbuf_crop_doc,
     ".. method:: crop(min, max)\n"
     "\n"
-    "   Crop the image.\n"
+    "   Crop the image in-place.\n"
     "\n"
-    "   :param min: X, Y minimum.\n"
+    "   :param min: Minimum pixel coordinates (X, Y), inclusive.\n"
     "   :type min: tuple[int, int]\n"
-    "   :param max: X, Y maximum.\n"
+    "   :param max: Maximum pixel coordinates (X, Y), inclusive.\n"
     "   :type max: tuple[int, int]\n");
 static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {

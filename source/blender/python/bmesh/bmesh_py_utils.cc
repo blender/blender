@@ -189,11 +189,11 @@ PyDoc_STRVAR(
     bpy_bm_utils_vert_splice_doc,
     ".. method:: vert_splice(vert, vert_target)\n"
     "\n"
-    "   Splice vert into vert_target.\n"
+    "   Splice vert into vert_target, merging them.\n"
     "\n"
     "   :param vert: The vertex to be removed.\n"
     "   :type vert: :class:`bmesh.types.BMVert`\n"
-    "   :param vert_target: The vertex to use.\n"
+    "   :param vert_target: The vertex to merge into.\n"
     "   :type vert_target: :class:`bmesh.types.BMVert`\n"
     "\n"
     "   .. note:: The verts mustn't share an edge or face.\n");

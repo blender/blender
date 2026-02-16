@@ -120,7 +120,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param co: Point 3d position.\n"
     "   :type co: Sequence[float]\n"
-    "   :param index: The index of the point.\n"
+    "   :param index: The index of the point (must be non-negative).\n"
     "   :type index: int\n");
 static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
@@ -266,7 +266,7 @@ PyDoc_STRVAR(
     "\n"
     "   Find nearest ``n`` points to ``co``.\n"
     "\n"
-    "   :param co: 3D coordinates.\n"
+    "   :param co: 3D coordinate.\n"
     "   :type co: Sequence[float]\n"
     "   :param n: Number of points to find.\n"
     "   :type n: int\n"
@@ -324,9 +324,9 @@ PyDoc_STRVAR(
     "\n"
     "   Find all points within ``radius`` of ``co``.\n"
     "\n"
-    "   :param co: 3D coordinates.\n"
+    "   :param co: 3D coordinate.\n"
     "   :type co: Sequence[float]\n"
-    "   :param radius: Distance to search for points.\n"
+    "   :param radius: Maximum distance to search for points.\n"
     "   :type radius: float\n"
     "   :return: Returns a list of tuples (position, index, distance).\n"
     "   :rtype: list[tuple[:class:`Vector`, int, float]]\n");

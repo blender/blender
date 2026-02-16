@@ -359,7 +359,7 @@ static PyObject *bpy_bmelemseq_elem_get(BPy_BMElem *self, void *itype)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_is_valid_doc,
-    "True when this element is valid (hasn't been removed).\n"
+    "True when this element is valid (hasn't been freed or removed).\n"
     "\n"
     ":type: bool\n");
 static PyObject *bpy_bm_is_valid_get(BPy_BMGeneric *self, void * /*closure*/)
@@ -2297,10 +2297,9 @@ PyDoc_STRVAR(
     "\n"
     "   .. note::\n"
     "\n"
-    "      This only flushes down, so selecting a face will select all its "
-    "vertices but de-selecting a vertex "
-    "won't de-select all the faces that use it, before finishing with a mesh "
-    "typically flushing is still needed.\n");
+    "      This flushes selection down (e.g. selecting a face also selects its edges and "
+    "vertices), but not up (e.g. de-selecting a vertex won't de-select faces that use it). "
+    "Before finishing with a mesh, flushing is typically still needed.\n");
 static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 {
   int param;
@@ -2349,9 +2348,8 @@ PyDoc_STRVAR(
     "\n"
     "   Copy values from another element of matching type.\n"
     "\n"
-    "   :param other: Another element of matching type to copy from.\n"
-    "   :type other: :class:`bmesh.types.BMVert` | :class:`bmesh.types.BMEdge` | "
-    ":class:`bmesh.types.BMFace` | :class:`bmesh.types.BMLoop`\n");
+    "   :param other: Another element of the same type to copy from.\n"
+    "   :type other: Self\n");
 static PyObject *bpy_bm_elem_copy_from(BPy_BMElem *self, BPy_BMElem *value)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -3102,17 +3100,16 @@ PyDoc_STRVAR(
     bpy_bmloop_uv_select_vert_set_doc,
     ".. method:: uv_select_vert_set(select)\n"
     "\n"
-    "   Select the UV vertex.\n"
+    "   Set the UV vertex selection state.\n"
     "\n"
     "   :param select: Select or de-select.\n"
     "   :type select: bool\n"
     "\n"
     "   .. note::\n"
     "\n"
-    "      Currently this only flushes down, so selecting an edge will select all its "
-    "vertices but de-selecting a vertex "
-    "won't de-select the edges & faces that use it, before finishing with a mesh "
-    "typically flushing with :meth:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
+    "      This does not flush selection, so selecting a vertex won't "
+    "select the edges & faces that use it. Before finishing with a mesh, "
+    "flushing with :meth:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
 static PyObject *bpy_bmloop_uv_select_vert_set(BPy_BMLoop *self, PyObject *value)
 {
   BMesh *bm = self->bm;
@@ -3140,10 +3137,10 @@ PyDoc_STRVAR(
     "\n"
     "   .. note::\n"
     "\n"
-    "      This only flushes down, so selecting an edge will select all its "
-    "vertices but de-selecting a vertex "
-    "won't de-select the faces that use it, before finishing with a mesh "
-    "typically flushing with :meth:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
+    "      This flushes selection down (selecting an edge also selects its "
+    "vertices), but not up (de-selecting a vertex won't de-select the edges & faces "
+    "that use it). Before finishing with a mesh, "
+    "flushing with :meth:`bmesh.types.BMesh.uv_select_flush_mode` is still needed.\n");
 static PyObject *bpy_bmloop_uv_select_edge_set(BPy_BMLoop *self, PyObject *value)
 {
   BMesh *bm = self->bm;

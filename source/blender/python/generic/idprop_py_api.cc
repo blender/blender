@@ -1880,9 +1880,9 @@ PyDoc_STRVAR(
     BPy_IDGroup_keys_doc,
     ".. method:: keys()\n"
     "\n"
-    "   Return the keys associated with this group.\n"
+    "   Return a view of the keys in the group.\n"
     "\n"
-    "   :return: The keys.\n"
+    "   :return: A view of the keys.\n"
     "   :rtype: :class:`IDPropertyGroupViewKeys`\n");
 static PyObject *BPy_IDGroup_keys(BPy_IDProperty *self)
 {
@@ -1908,7 +1908,7 @@ PyDoc_STRVAR(
     BPy_IDGroup_items_doc,
     ".. method:: items()\n"
     "\n"
-    "   Iterate through the items in the dict; behaves like dictionary method items.\n"
+    "   Return a view of the items in the group, behaves like dictionary method items.\n"
     "\n"
     "   :return: A view of the items.\n"
     "   :rtype: :class:`IDPropertyGroupViewItems`\n");
@@ -1934,7 +1934,11 @@ PyDoc_STRVAR(
     BPy_IDGroup_update_doc,
     ".. method:: update(other)\n"
     "\n"
-    "   Update key-value pairs.\n"
+    "   Update key-value pairs from *other*, overwriting existing keys.\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      Unlike :meth:`dict.update`, keyword arguments are not supported.\n"
     "\n"
     "   :param other: Updates the values in the group with this.\n"
     /* TODO: replace `Any` with an alias for all types an ID property can use. */
@@ -2194,7 +2198,9 @@ static PyObject *BPy_IDArray_repr(BPy_IDArray *self)
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_IDArray_get_typecode_doc,
-    "The type of the data in the array {'f': float, 'd': double, 'i': int, 'b': bool}.");
+    "The type of the data in the array "
+    "{'f': float (32-bit), 'd': double (64-bit), 'i': int, 'b': bool}. "
+    "Both 'f' and 'd' use Python's :class:`float` type but differ in storage precision.");
 static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self, void * /*closure*/)
 {
   const char *typecode;

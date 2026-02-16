@@ -631,7 +631,7 @@ PyDoc_STRVAR(
     "   Make this quaternion compatible with another,\n"
     "   so interpolating between them works as intended.\n"
     "\n"
-    "   :param other: The other quaternion to make compatible with.\n"
+    "   :param other: The reference quaternion to make this one compatible with.\n"
     "   :type other: :class:`Quaternion`\n");
 static PyObject *Quaternion_make_compatible(QuaternionObject *self, PyObject *value)
 {
