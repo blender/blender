@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
-"PO-Revision-Date: 2026-02-09 06:08+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
+"PO-Revision-Date: 2026-02-14 01:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.14.3"
+"X-Generator: Weblate 5.15.2"
 
 
 msgid "Shader AOV"
@@ -465,6 +465,11 @@ msgstr "Mesh"
 
 
 msgctxt "ID"
+msgid "Metaball"
+msgstr "Voeg Metaball toe"
+
+
+msgctxt "ID"
 msgid "Movie Clip"
 msgstr "Filmclip"
 
@@ -521,7 +526,7 @@ msgstr "Vensterbeheerder"
 
 msgctxt "ID"
 msgid "Workspace"
-msgstr "Werkomgeving"
+msgstr "Werkplaats"
 
 
 msgctxt "ID"
@@ -1450,20 +1455,128 @@ msgid "Description"
 msgstr "Beschrijving"
 
 
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+msgstr "Het type licentie waaronder deze asset gedistribueerd wordt. Een lege licentie-naam betekent niet gelijk dat deze vrij van licentievoorwaarden is. Neem contact op met de maker als er verduidelijking nodig is."
+
+
+msgid "Tags"
+msgstr "Tags"
+
+
+msgid "Asset Representation"
+msgstr "Asset Representatie"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Informatie over een entiteit dat het mogelijk maakt voor het asset-systeem om de entiteit als asset te behandelen"
+
+
+msgid "Full Library Path"
+msgstr "Vol Bibliotheek Pad"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "Het type data-blok, als de asset één vertegenwoordigt (anders 'GEEN')"
+
+
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Het locale data-blok dat deze asset vertegenwoordigt; alleen geldig als dat een data-blok in dit bestand is"
+
+
+msgid "Asset Metadata"
+msgstr "Asset Metadata"
+
+
+msgid "Additional information about the asset"
+msgstr "Overige informatie over de asset"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Regio's voor snelle toegang naar assets"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Kies het asset-bibliotheek om assets van te tonen"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Toon assets van alle vermelde asset bibliotheken"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Toon de assets momenteel beschikbaar in deze Blender sessie"
+
+
+msgid "Essentials"
+msgstr "Essenties"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Toon de basis-bouwblokken en utilities die met Blender komen"
+
+
 msgid "Custom"
 msgstr "Aangepast"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Toon assets van de asset-bibliotheek ingesteld in Voorkeuren"
+
+
+msgid "Activate Operator"
+msgstr "Activeer Operator"
+
+
+msgid "Default Preview Size"
+msgstr "Standaard Preview Grootte"
+
+
+msgid "Default size of the asset preview thumbnails in pixels"
+msgstr "Standaard grootte van de asset preview thumbnails in pixels"
+
+
+msgid "Drag Operator"
+msgstr "Sleep Operator"
+
+
+msgid "ID Name"
+msgstr "ID Naam"
 
 
 msgid "Options"
 msgstr "Opties"
 
 
+msgid "No Asset Dragging"
+msgstr "Niet Asset Slepen"
+
+
+msgid "Visible by Default"
+msgstr "Standaard zichtbaar"
+
+
+msgid "Store Enabled Catalogs in Preferences"
+msgstr "Opslaan Aangezette Catalogussen in Voorkeuren"
+
+
+msgid "Space Type"
+msgstr "Ruimte Type"
+
+
 msgid "Actions"
 msgstr "Acties"
 
 
+msgid "Show Action data-blocks"
+msgstr "Toon Actie data-blokken"
+
+
 msgid "Annotations"
 msgstr "Annotaties"
+
+
+msgid "Show Annotation data-blocks"
+msgstr "Toon Annotatie data-blokken"
 
 
 msgid "Armatures"
@@ -1474,24 +1587,48 @@ msgid "Brushes"
 msgstr "Kwasten"
 
 
+msgid "Show Brushes data-blocks"
+msgstr "Toon Borstels data-blokken"
+
+
 msgid "Cache Files"
 msgstr "Cache Bestanden"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Toon Cache Bestand data-blokken"
 
 
 msgid "Cameras"
 msgstr "Camera's"
 
 
+msgid "Show Camera data-blocks"
+msgstr "Toon Camera data-blokken"
+
+
 msgid "Curves"
 msgstr "Curves"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Toon Curve data-blokken"
 
 
 msgid "Hair Curves"
 msgstr "Haar Curves"
 
 
+msgid "Show/hide Curves data-blocks"
+msgstr "Toon/verberg Curves data-blokken"
+
+
 msgid "Fonts"
 msgstr "Lettertypen"
+
+
+msgid "Show Font data-blocks"
+msgstr "Toon Lettertype data-blokken"
 
 
 msgid "Grease Pencil"
@@ -1502,52 +1639,224 @@ msgid "Collections"
 msgstr "Collecties"
 
 
+msgid "Show Collection data-blocks"
+msgstr "Toon Collectie data-blokken"
+
+
 msgid "Images"
 msgstr "Afbeeldingen"
+
+
+msgid "Show Image data-blocks"
+msgstr "Toon Afbeelding data-blokken"
+
+
+msgid "Lattices"
+msgstr "Roosters"
+
+
+msgid "Show Lattice data-blocks"
+msgstr "Toon Rooster data-blokken"
 
 
 msgid "Lights"
 msgstr "Lichten"
 
 
+msgid "Show Light data-blocks"
+msgstr "Toon Licht data-blokken"
+
+
+msgid "Light Probes"
+msgstr "Licht Probes"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Toon Licht Probe data-blokken"
+
+
+msgid "Masks"
+msgstr "Maskers"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Toon Masker data-blokken"
+
+
 msgid "Materials"
 msgstr "Materialen"
+
+
+msgid "Show Material data-blocks"
+msgstr "Toon Materiaal data-blokken"
+
+
+msgid "Metaballs"
+msgstr "Metaballs"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Toon Metaball data-blokken"
+
+
+msgid "Movie Clips"
+msgstr "Film Clips"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Toon Film Clip data-blokken"
+
+
+msgid "Node Trees"
+msgstr "Node Bomen"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Toon Node Boom data-blokken"
 
 
 msgid "Objects"
 msgstr "Objecten"
 
 
+msgid "Show Object data-blocks"
+msgstr "Toon Object data-blokken"
+
+
+msgid "Paint Curves"
+msgstr "Verf Curves"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Toon Verf Curve data-blokken"
+
+
 msgid "Palettes"
 msgstr "Paletten"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Toon Palet data-blokken"
 
 
 msgid "Particles Settings"
 msgstr "Deeltjes Instellingen"
 
 
+msgid "Show Particle Settings data-blocks"
+msgstr "Toon Deeltjes Instellingen data-blokken"
+
+
+msgid "Point Clouds"
+msgstr "Punt Wolken"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Toon/verberg Punt Wolk data-blokken"
+
+
+msgid "Scenes"
+msgstr "Scenes"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Toon Scene data-blokken"
+
+
 msgid "Sounds"
 msgstr "Geluiden"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Toon Geluid data-blokken"
 
 
 msgid "Speakers"
 msgstr "Luidsprekers"
 
 
+msgid "Show Speaker data-blocks"
+msgstr "Toon Speaker data-blokken"
+
+
 msgid "Texts"
 msgstr "Teksten"
+
+
+msgid "Show Text data-blocks"
+msgstr "Toon Tekst data-blokken"
+
+
+msgid "Textures"
+msgstr "Texturen"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Toon Textuur data-blokken"
 
 
 msgid "Volumes"
 msgstr "Volumes"
 
 
+msgid "Show/hide Volume data-blocks"
+msgstr "Toon/verberg Volume data-blokken"
+
+
+msgid "Workspaces"
+msgstr "Werkplaatsen"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Toon werkplaats data-blokken"
+
+
 msgid "Worlds"
 msgstr "Werelden"
 
 
+msgid "Show World data-blocks"
+msgstr "Toon Wereld data-blokken"
+
+
+msgid "Preview Size"
+msgstr "Preview Grootte"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Grootte van de asset preview thumbnails in pixels"
+
+
+msgid "Display Filter"
+msgstr "Weergave Filter"
+
+
+msgid "Filter assets by name"
+msgstr "Filter assets op naam"
+
+
+msgid "Show Names"
+msgstr "Toon Namen"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible."
+msgstr "Toon de asset naam samen met de preview. Ander zal alleen de preview zichtbaar zijn."
+
+
+msgid "Asset Tag"
+msgstr "Asset Tag"
+
+
 msgid "Data Type"
 msgstr "Data Type"
+
+
+msgid "Floating-point value"
+msgstr "Floating-point waarde"
+
+
+msgid "Integer"
+msgstr "Geheel getal"
 
 
 msgid "True or false"
@@ -1558,12 +1867,44 @@ msgid "Vector"
 msgstr "Vector"
 
 
+msgid "3D vector with floating-point values"
+msgstr "3D vector met floating-point waarden"
+
+
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "RGBA kleur met 32-bit floating-point waarden"
+
+
 msgid "Quaternion"
 msgstr "Quaternion"
 
 
+msgid "Floating point quaternion rotation"
+msgstr "Floating point quaternion rotatie"
+
+
+msgid "4x4 Matrix"
+msgstr "4x4 Matrix"
+
+
+msgid "Floating point matrix"
+msgstr "Floating point matrix"
+
+
+msgid "String"
+msgstr "String"
+
+
+msgid "Text string"
+msgstr "Tekst string"
+
+
 msgid "2D Vector"
 msgstr "2D Vector"
+
+
+msgid "2D vector with floating-point values"
+msgstr "2D vector met floating-point waarden"
 
 
 msgid "Byte Color"
@@ -1586,6 +1927,10 @@ msgid "Face"
 msgstr "Vlak"
 
 
+msgid "Face Corner"
+msgstr "Vlak Hoek"
+
+
 msgid "Instance"
 msgstr "Instantie"
 
@@ -1596,6 +1941,27 @@ msgstr "Laag"
 
 msgid "Is Internal"
 msgstr "Is Intern"
+
+
+msgid "Is Required"
+msgstr "Is Vereist"
+
+
+msgctxt "Amount"
+msgid "Storage Type"
+msgstr "Opslag Type"
+
+
+msgid "Method used to store the data"
+msgstr "Methode gebruikt om data op te slaan"
+
+
+msgid "Store a value for every element"
+msgstr "Sla een waarde op voor elk element"
+
+
+msgid "Store a single value for the entire domain"
+msgstr "Sla een enkele waarde op voor het hele domein"
 
 
 msgid "Active Attribute Index"
@@ -1614,8 +1980,40 @@ msgid "Object"
 msgstr "Object"
 
 
+msgid "Tangent"
+msgstr "Raaklijn"
+
+
 msgid "File Path"
 msgstr "Bestandspad"
+
+
+msgid "Image Format"
+msgstr "Afbeelding Format"
+
+
+msgid "Margin"
+msgstr "Marge"
+
+
+msgid "Margin Type"
+msgstr "Marge Type"
+
+
+msgid "Adjacent Faces"
+msgstr "Aangrenzende Vlakken"
+
+
+msgid "Extend"
+msgstr "Uitbereiden"
+
+
+msgid "Extend border pixels outwards"
+msgstr "Bereid grens-pixels uit naar buiten"
+
+
+msgid "Max Ray Distance"
+msgstr "Max Ray Afstand"
 
 
 msgid "+X"
@@ -1636,6 +2034,10 @@ msgstr "-X"
 
 msgid "-Y"
 msgstr "-Y"
+
+
+msgid "-Z"
+msgstr "-Z"
 
 
 msgid "None"
@@ -1662,8 +2064,20 @@ msgid "Target"
 msgstr "Doel"
 
 
+msgid "Image Textures"
+msgstr "Afbeelding Texturen"
+
+
 msgid "Normals"
 msgstr "Normalen"
+
+
+msgid "Automatic Name"
+msgstr "Automatische Naam"
+
+
+msgid "Cage"
+msgstr "Kooi"
 
 
 msgid "Split Materials"
@@ -1686,40 +2100,248 @@ msgid "Free"
 msgstr "Vrij"
 
 
+msgid "Visibility status"
+msgstr "Zichtbaarheid status"
+
+
+msgid "Control Point selected"
+msgstr "Controle Punt geselecteerd"
+
+
+msgid "Control point selection status"
+msgstr "Controle punt selectie status"
+
+
+msgid "Tilt"
+msgstr "Kanteling"
+
+
 msgid "Weight"
 msgstr "Invloed"
+
+
+msgid "Blend-File Data"
+msgstr "Blend-Bestand Data"
+
+
+msgid "Main data structure representing a .blend file and all its data-blocks"
+msgstr "Hoofd-datastructuur dat een .blend-bestand en al z'n data-blokken vertegenwoordigt"
+
+
+msgid "Action data-blocks"
+msgstr "Actie data-blokken"
 
 
 msgid "Annotation"
 msgstr "Annotatie"
 
 
+msgid "Brush data-blocks"
+msgstr "Borstel data-blokken"
+
+
+msgid "Cache Files data-blocks"
+msgstr "Cache Bestanden data-blokken"
+
+
+msgid "Camera data-blocks"
+msgstr "Camera data-blokken"
+
+
+msgid "Collection data-blocks"
+msgstr "Collectie data-blokken"
+
+
+msgid "Color Space"
+msgstr "Kleur Ruimte"
+
+
+msgid "Information about the color space used for data-blocks in a blend file"
+msgstr "Informatie over de kleurruimte gebruikt voor data-blokken in een blend-bestand"
+
+
+msgid "Curve data-blocks"
+msgstr "Curve data-blokken"
+
+
 msgid "Filename"
 msgstr "Bestandsnaam"
+
+
+msgid "Path to the .blend file"
+msgstr "Pad naar het .blend bestand"
+
+
+msgid "Vector Fonts"
+msgstr "Vector Lettertypen"
+
+
+msgid "Vector font data-blocks"
+msgstr "Vector lettertypen data-blokken"
 
 
 msgid "Grease Pencil data-blocks"
 msgstr "Grease Pencil data-blokken"
 
 
+msgid "Hair curve data-blocks"
+msgstr "Haar curve data-blokken"
+
+
+msgid "Image data-blocks"
+msgstr "Afbeelding data-blokken"
+
+
 msgid "File Has Unsaved Changes"
 msgstr "Bestand Heeft Niet Opgeslagen Wijzigingen"
+
+
+msgid "Have recent edits been saved to disk"
+msgstr "Zijn recente bewerkingen naar schijf opgeslagen"
 
 
 msgid "File is Saved"
 msgstr "Bestand is Opgeslagen"
 
 
+msgid "Has the current session been saved to disk as a .blend file"
+msgstr "Is de huidige sessie opgeslagen naar de schijf als een .blend bestand"
+
+
+msgid "Lattice data-blocks"
+msgstr "Rooster data-blokken"
+
+
 msgid "Libraries"
 msgstr "Bibliotheken"
+
+
+msgid "Library data-blocks"
+msgstr "Bibliotheek data-blokken"
+
+
+msgid "Light Probe data-blocks"
+msgstr "Licht Probe data-blokken"
+
+
+msgid "Light data-blocks"
+msgstr "Licht data-blokken"
+
+
+msgid "Line Styles"
+msgstr "Lijn Stijlen"
+
+
+msgid "Line Style data-blocks"
+msgstr "Lijn Stijl data-blokken"
+
+
+msgid "Masks data-blocks"
+msgstr "Maskers data-blokken"
+
+
+msgid "Material data-blocks"
+msgstr "Materiaal data-blokken"
+
+
+msgid "Mesh data-blocks"
+msgstr "Mesh data-blokken"
+
+
+msgid "Metaball data-blocks"
+msgstr "Metaball data-blokken"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "Film Clip data-blokken"
+
+
+msgid "Node Groups"
+msgstr "Node Groepen"
+
+
+msgid "Node group data-blocks"
+msgstr "Node groep data-blokken"
+
+
+msgid "Object data-blocks"
+msgstr "Object data-blokken"
+
+
+msgid "Paint Curves data-blocks"
+msgstr "Verf Curves data-blokken"
+
+
+msgid "Palette data-blocks"
+msgstr "Palet data-blokken"
 
 
 msgid "Particles"
 msgstr "Deeltjes"
 
 
+msgid "Particle data-blocks"
+msgstr "Deeltje data-blokken"
+
+
+msgid "Point cloud data-blocks"
+msgstr "Punt wolk data-blokken"
+
+
+msgid "Scene data-blocks"
+msgstr "Scene data-blokken"
+
+
+msgid "Screens"
+msgstr "Schermen"
+
+
+msgid "Screen data-blocks"
+msgstr "Scherm data-blokken"
+
+
+msgid "Sound data-blocks"
+msgstr "Geluid data-blokken"
+
+
+msgid "Speaker data-blocks"
+msgstr "Speaker data-blokken"
+
+
+msgid "Text data-blocks"
+msgstr "Tekst data-blokken"
+
+
+msgid "Texture data-blocks"
+msgstr "Textuur data-blokken"
+
+
+msgid "Use Auto-Pack"
+msgstr "Gebruik Auto-Pack"
+
+
+msgid "Automatically pack all external data into .blend file"
+msgstr "Verpak automatisch alle externe data in een .blend bestand"
+
+
 msgid "Version"
 msgstr "Versie"
+
+
+msgid "File format version the .blend file was saved with"
+msgstr "Bestand-format versie waarmee het .blend bestand was opgeslagen"
+
+
+msgid "Volume data-blocks"
+msgstr "Volume data-blokken"
+
+
+msgid "Workspace data-blocks"
+msgstr "Werkplaats data-blokken"
+
+
+msgid "World data-blocks"
+msgstr "Wereld data-blokken"
 
 
 msgid "Collection of actions"
@@ -1738,12 +2360,20 @@ msgid "Collection of brushes"
 msgstr "Collectie van kwasten"
 
 
+msgid "Collection of cache files"
+msgstr "Collectie van cache bestanden"
+
+
 msgid "Collection of cameras"
 msgstr "Collectie van camera's"
 
 
 msgid "Collection of collections"
 msgstr "Collectie van collecties"
+
+
+msgid "Collection of curves"
+msgstr "Collectie van curves"
 
 
 msgid "Collection of fonts"
@@ -1778,6 +2408,14 @@ msgid "Main Line Styles"
 msgstr "Hoofd Lijnstijlen"
 
 
+msgid "Collection of line styles"
+msgstr "Collectie van lijnstijlen"
+
+
+msgid "Collection of masks"
+msgstr "Collectie van maskers"
+
+
 msgid "Main Materials"
 msgstr "Hoofd Materialen"
 
@@ -1786,8 +2424,20 @@ msgid "Collection of materials"
 msgstr "Collectie van materialen"
 
 
+msgid "Collection of meshes"
+msgstr "Collectie van meshes"
+
+
+msgid "Collection of movie clips"
+msgstr "Collectie van film clips"
+
+
 msgid "Main Node Trees"
 msgstr "Hoofd Node Bomen"
+
+
+msgid "Collection of node trees"
+msgstr "Collectie van node bomen"
 
 
 msgid "Main Objects"
@@ -1798,12 +2448,20 @@ msgid "Collection of objects"
 msgstr "Collectie van objecten"
 
 
+msgid "Collection of paint curves"
+msgstr "Collectie van verf curves"
+
+
 msgid "Collection of palettes"
 msgstr "Collectie van paletten"
 
 
 msgid "Main Particle Settings"
 msgstr "Belangrijkste Deeltjesinstellingen"
+
+
+msgid "Collection of particle settings"
+msgstr "Collectie van deeltjes-instellingen"
 
 
 msgid "Main Point Clouds"
@@ -1814,8 +2472,16 @@ msgid "Collection of point clouds"
 msgstr "Collectie van puntwolken"
 
 
+msgid "Collection of light probes"
+msgstr "Collectie van licht probes"
+
+
 msgid "Collection of scenes"
 msgstr "Collectie van scenes"
+
+
+msgid "Collection of screens"
+msgstr "Collectie van schermen"
 
 
 msgid "Collection of sounds"
@@ -1826,60 +2492,661 @@ msgid "Collection of speakers"
 msgstr "Collectie van luidsprekers"
 
 
+msgid "Collection of texts"
+msgstr "Collectie van teksten"
+
+
+msgid "Collection of textures"
+msgstr "Collectie van texturen"
+
+
+msgid "Collection of volumes"
+msgstr "Collectie van volumes"
+
+
 msgid "Collection of workspaces"
-msgstr "Collectie van werkomgevingen"
+msgstr "Collectie van werkplaatsen"
 
 
 msgid "Collection of worlds"
 msgstr "Collectie van werelden"
 
 
+msgid "Blend-File Color Space"
+msgstr "Blend-bestand Kleur Ruimte"
+
+
+msgid "Missing OpenColorIO Configuration"
+msgstr "Mist OpenColorIO Configuratie"
+
+
+msgid "A color space, view or display was not found, which likely means the OpenColorIO config used to create this blend file is missing"
+msgstr "Er was geen kleurruimte, beeld of weergave gevonden, wat waarschijnlijk betekent dat de OpenColorIO config gebruikt om dit blend bestand te creëren mist"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
+msgid "Only link data, instead of appending it"
+msgstr "Alleen data linken, in plaats van het bij te voegen"
+
+
+msgid "Set fake user on appended IDs"
+msgstr "Stel neppe gebruiker in op bijgevoegde IDs"
+
+
+msgid "Try to re-use previously appended matching IDs when appending them again, instead of creating local duplicates"
+msgstr "Probeer eerder bijgevoegde passende IDs te hergebruiken wanneer je ze weer bijvoegt, in plaats van locale duplicaten te creëren"
+
+
+msgid "Clear the asset data on append (it is always kept for linked data)"
+msgstr "Ruim de asset data in bijvoegen op (dit wordt altijd bewaard voor gelinkte data)"
+
+
+msgid "Automatically select imported objects"
+msgstr "Automatisch geselecteerde geïmporteerde objecten"
+
+
+msgid "Use the active Collection of the current View Layer to instantiate imported collections and objects"
+msgstr "Gebruik de actieve Collectie van de huidige Weergave Laag om geïmporteerde collecties en objecten te instantiëren"
+
+
+msgid "Instantiate object data IDs (i.e. create objects for them if needed)"
+msgstr "Instantiëer object data IDs (d.w.z. creëer objecten voor ze als nodig)"
+
+
+msgid "Instantiate collections as empties, instead of linking them into the current view layer"
+msgstr "Instantieëer collecties als leeg, in plaats van ze te linken binnen de huidige weergave laag"
+
+
+msgid "Current stage of the import process"
+msgstr "Huidige fase van het importeer proces"
+
+
+msgid "Blendfile import context has been initialized and filled with a list of items to import, no data has been linked or appended yet"
+msgstr "Blendbestand importeer context is geïnitieerd en gevuld met een lijst aan items om te importeren, er is nog geen data gelinkt of bijgevoegd"
+
+
+msgid "All data has been imported and is available in the list of \"import_items\""
+msgstr "Alle data is geïmporteerd en beschikbaar in de lijst \"importeer_items\""
+
+
+msgid "Blendfile Import Context Item"
+msgstr "Blendbestand Importeer Context Item"
+
+
+msgid "Append Action"
+msgstr "Voeg Actie bij"
+
+
+msgid "How this item has been handled by the append operation. Only set if the data has been appended"
+msgstr "Hoe dit item is behandeld door de bijvoeg-handeling. Alleen ingesteld als de data is bijgevoegd"
+
+
+msgid "Not yet defined"
+msgstr "Nog niet gedefinieerd"
+
+
+msgid "ID has been kept linked"
+msgstr "ID is gelinkt bewaard"
+
+
+msgid "An existing matching local ID has been re-used"
+msgstr "Een bestaand passend lokaal ID is hergebruikt"
+
+
+msgid "The newly linked ID has been made local"
+msgstr "Het net gelinkte ID is lokaal gemaakt"
+
+
+msgid "The linked ID had other unrelated usages, so it has been duplicated into a local copy"
+msgstr "Het gelinkte ID had andere ongerelateerde toepassingen, dus is het gedupliceerd naar een lokaal kopie"
+
+
+msgid "The imported ID. None until it has been linked or appended. May be the same as ``reusable_local_id`` when appended"
+msgstr "Het geïmporteerde ID. Niks tot het is gelinkt of bijgevoegd. Kan hetzelfde zijn als ``herbruikbaar_lokaal_id`` wanneer bijgevoegd"
+
+
+msgctxt "ID"
+msgid "ID Type"
+msgstr "ID Type"
+
+
+msgid "ID type of the item"
+msgstr "ID type van het item"
+
+
+msgid "Import Info"
+msgstr "Importeer Info"
+
+
+msgid "That item was added for an indirectly imported ID, as a dependency of another data-block"
+msgstr "Dat item is toegevoegd voor een indirect geïmporteerd ID, als een dependency voor een ander data-blok"
+
+
+msgid "Library Overridden ID"
+msgstr "Bibliotheek Overschreven ID"
+
+
+msgid "ID name of the item"
+msgstr "ID naam van het item"
+
+
+msgid "Reusable Local ID"
+msgstr "Herbruikbaar Lokaal ID"
+
+
+msgid "The already existing local ID that may be reused in append & reuse case. None until it has been found"
+msgstr "Het al bestaand lokaal ID dat kan worden hergebruikt in case bijvoegen & hergebruiken. Niks tot het gevonden is"
+
+
+msgid "Source Libraries"
+msgstr "Bron Bibliotheken"
+
+
+msgid "List of libraries to search and import that ID from. The ID will be imported from the first file in that list that contains it"
+msgstr "Lijst van bibliotheken om dat ID van te zoeken en importeren. Het ID zal worden geïmporteerd vanuit het eerste bestand in de lijst dat het bevat"
+
+
+msgid "Library ID representing the blendfile from which the ID was imported. None until the ID has been linked or appended"
+msgstr "Bibliotheek ID dat het blendbestand representeert waarvan het ID was geïmporteerd. Niks tot het ID is gelinkt of bijgevoegd"
+
+
+msgid "Blendfile Import Context Items"
+msgstr "Blendbestand Importeer Context Items"
+
+
+msgid "Collection of blendfile import context items"
+msgstr "Collectie van blendbestand importeer context items"
+
+
+msgid "Blendfile Import Context Libraries"
+msgstr "Blendbestand Importeer Context Bibliotheken"
+
+
+msgid "Collection of source libraries, i.e. blendfile paths"
+msgstr "Collectie van bron bibliotheken, d.w.z. blendbestand paden"
+
+
+msgid "Blendfile Import Context Library"
+msgstr "Blendbestand Importeer Context Bibliotheek"
+
+
+msgid "Blender RNA"
+msgstr "Blender RNA"
+
+
+msgid "Blender RNA structure definitions"
+msgstr "Blender RNA structuur definities"
+
+
+msgid "Structs"
+msgstr "Structs"
+
+
+msgid "Boid Rule"
+msgstr "Boid Regel"
+
+
+msgid "Boid rule name"
+msgstr "Boid regel naam"
+
+
+msgid "Go to assigned object or loudest assigned signal source"
+msgstr "Ga naar toegewezen object of luidste toegewezen signaalbron"
+
+
 msgid "Avoid"
 msgstr "Vermijd"
+
+
+msgid "Get away from assigned object or loudest assigned signal source"
+msgstr "Ga weg van toegewezen object of luidste toegewezen signaalbron"
+
+
+msgid "Avoid Collision"
+msgstr "Vermijd Collisies"
+
+
+msgid "Maneuver to avoid collisions with other boids and deflector objects in near future"
+msgstr "Manoeuvreer om collisies met andere boids en deflector objects te vermijden in de nabije toekomst"
 
 
 msgid "Separate"
 msgstr "Splits"
 
 
+msgid "Keep from going through other boids"
+msgstr "Voorkom dat het door andere boids heen gaat"
+
+
+msgid "Flock"
+msgstr "Kudde"
+
+
+msgid "Move to center of neighbors and match their velocity"
+msgstr "Verplaats naar midden van buren en match hun snelheden"
+
+
+msgid "Follow Leader"
+msgstr "Volg Leider"
+
+
+msgid "Follow a boid or assigned object"
+msgstr "Volg een boid of toegewezen object"
+
+
+msgid "Average Speed"
+msgstr "Gemiddelde Snelheid"
+
+
+msgid "Fight"
+msgstr "Strijd"
+
+
+msgid "Go to closest enemy and attack when in range"
+msgstr "Ga naar dichtstbijzijnde vijand en val aan wanneer binnen bereik"
+
+
+msgid "In Air"
+msgstr "In Lucht"
+
+
+msgid "Use rule when boid is flying"
+msgstr "Gebruik regel wanneer boid aan het vliegen is"
+
+
+msgid "On Land"
+msgstr "Op Land"
+
+
+msgid "Use rule when boid is on land"
+msgstr "Gebruik regel wanneer boid op land is"
+
+
+msgid "Level"
+msgstr "Level"
+
+
+msgid "How much velocity's z-component is kept constant"
+msgstr "In hoeverre de snelheid's z-component constant wordt gehouden"
+
+
 msgid "Speed"
 msgstr "Snelheid"
+
+
+msgid "Percentage of maximum speed"
+msgstr "Percentage van maximum snelheid"
+
+
+msgid "Fear Factor"
+msgstr "Angst Factor"
+
+
+msgid "Avoid object if danger from it is above this threshold"
+msgstr "Vermeid object als gevaar ervan boven deze drempelwaarde is"
+
+
+msgid "Object to avoid"
+msgstr "Object om te vermeiden"
+
+
+msgid "Predict"
+msgstr "Voorspel"
+
+
+msgid "Predict target movement"
+msgstr "Voorspel doelwit beweging"
+
+
+msgid "Look Ahead"
+msgstr "Kijk Vooruit"
+
+
+msgid "Time to look ahead in seconds"
+msgstr "Tijd om vooruit te kijken in seconden"
+
+
+msgid "Boids"
+msgstr "Boids"
+
+
+msgid "Avoid collision with other boids"
+msgstr "Vermijd collisie met andere boids"
 
 
 msgid "Deflectors"
 msgstr "Deflectoren"
 
 
+msgid "Attack boids at max this distance"
+msgstr "Val boids aan op maximaal deze afstand"
+
+
+msgid "Flee Distance"
+msgstr "Vlucht Afstand"
+
+
+msgid "Flee to this distance"
+msgstr "Vlucht naar deze afstand"
+
+
 msgid "Distance"
 msgstr "Afstand"
+
+
+msgid "Distance behind leader to follow"
+msgstr "Afstand achter leider om te volgen"
+
+
+msgid "Follow this object instead of a boid"
+msgstr "Volg dit object in plaats van een boid"
+
+
+msgid "Queue Size"
+msgstr "Wachtrij Lengte"
+
+
+msgid "How many boids in a line"
+msgstr "Hoe veel boids in een rij"
 
 
 msgid "Line"
 msgstr "Lijn"
 
 
+msgid "Follow leader in a line"
+msgstr "Volg leider in een rij"
+
+
+msgid "Goal object"
+msgstr "Doel object"
+
+
+msgid "Boid Settings"
+msgstr "Boid Instellingen"
+
+
+msgid "Settings for boid physics"
+msgstr "Instellingen voor boid natuurkunde"
+
+
+msgid "Accuracy"
+msgstr "Nauwkeurigheid"
+
+
+msgid "Accuracy of attack"
+msgstr "Nauwkeurigheid van aanval"
+
+
+msgid "Active Boid Rule"
+msgstr "Actieve Boid Regel"
+
+
+msgid "Active Boid State Index"
+msgstr "Actieve Boid Staat Index"
+
+
+msgid "Aggression"
+msgstr "Agressie"
+
+
+msgid "Boid will fight this times stronger enemy"
+msgstr "Boid zal met zoveel keer sterkere vijand vechten"
+
+
+msgid "Max Air Acceleration"
+msgstr "Max Lucht Acceleratie"
+
+
+msgid "Maximum acceleration in air (relative to maximum speed)"
+msgstr "Maximum acceleratie in de lucht (relatief tot maximum snelheid)"
+
+
+msgid "Max Air Angular Velocity"
+msgstr "Max Lucht Hoeksnelheid"
+
+
+msgid "Maximum angular velocity in air (relative to 180 degrees)"
+msgstr "Maximum hoeksnelheid in de lucht (relatief tot 180 graden)"
+
+
+msgid "Air Personal Space"
+msgstr "Lucht Persoonlijke Ruimte"
+
+
+msgid "Radius of boids personal space in air (% of particle size)"
+msgstr "Straal van boid's persoonlijke ruimte in de lucht (% van deeltjesgrootte)"
+
+
+msgid "Max Air Speed"
+msgstr "Max Lucht Snelheid"
+
+
+msgid "Maximum speed in air"
+msgstr "Maximum snelheid in de lucht"
+
+
+msgid "Min Air Speed"
+msgstr "Min Lucht Snelheid"
+
+
+msgid "Minimum speed in air (relative to maximum speed)"
+msgstr "Minimum snelheid in de lucht (relatief tot maximum snelheid)"
+
+
+msgid "Banking"
+msgstr "Bankieren"
+
+
+msgid "Amount of rotation around velocity vector on turns"
+msgstr "Hoeveelheid rotatie rond snelheidsvector in bochten"
+
+
+msgid "Health"
+msgstr "Gezondheid"
+
+
+msgid "Initial boid health when born"
+msgstr "Initiële gezondheid boid wanneer geboren"
+
+
+msgid "Boid height relative to particle size"
+msgstr "Boid lengte relatief tot deeltjesgrootte"
+
+
+msgid "Max Land Acceleration"
+msgstr "Max Land Acceleratie"
+
+
+msgid "Maximum acceleration on land (relative to maximum speed)"
+msgstr "Maximum acceleratie op land (relatief tot maximum snelheid)"
+
+
+msgid "Max Land Angular Velocity"
+msgstr "Max Land Hoeksnelheid"
+
+
+msgid "Maximum angular velocity on land (relative to 180 degrees)"
+msgstr "Maximum hoeksnelheid op land (relatief tot 180 graden)"
+
+
+msgid "Jump Speed"
+msgstr "Springsnelheid"
+
+
+msgid "Maximum speed for jumping"
+msgstr "Maximum snelheid voor springen"
+
+
+msgid "Land Personal Space"
+msgstr "Land Persoonlijke Ruimte"
+
+
+msgid "Radius of boids personal space on land (% of particle size)"
+msgstr "Straal van boid's persoonlijke ruimte op land (% van deeltjesgrootte)"
+
+
+msgid "Landing Smoothness"
+msgstr "Soepelheid Landing"
+
+
+msgid "How smoothly the boids land"
+msgstr "Hoe soepel de boids landen"
+
+
+msgid "Max Land Speed"
+msgstr "Max Land Snelheid"
+
+
+msgid "Maximum speed on land"
+msgstr "Maximum snelheid op land"
+
+
+msgid "How strong a force must be to start effecting a boid on land"
+msgstr "Hoe sterk een kracht moet zijn om invloed te hebben op een boid op land"
+
+
+msgid "Amount of rotation around side vector"
+msgstr "Hoeveelheid rotatie rond de zijvector"
+
+
 msgid "Range"
 msgstr "Bereik"
+
+
+msgid "Maximum distance from which a boid can attack"
+msgstr "Maximum afstand waarvan een boid kan aanvallen"
+
+
+msgid "Boid States"
+msgstr "Boid Statussen"
 
 
 msgid "Strength"
 msgstr "Kracht"
 
 
+msgid "Maximum caused damage on attack per second"
+msgstr "Maximum veroorzaakte schade van een aanval per seconde"
+
+
+msgid "Allow Climbing"
+msgstr "Klimmen Toestaan"
+
+
+msgid "Allow boids to climb goal objects"
+msgstr "Sta boids toe om doelobjecten te beklimmen"
+
+
+msgid "Allow Flight"
+msgstr "Vliegen Toestaan"
+
+
+msgid "Allow boids to move in air"
+msgstr "Sta boids toe om in de lucht te vliegen"
+
+
+msgid "Allow Land"
+msgstr "Land Toestaan"
+
+
+msgid "Allow boids to move on land"
+msgstr "Sta boids toe om op land te bewegen"
+
+
+msgid "Boid State"
+msgstr "Boid Status"
+
+
+msgid "Boid state for boid physics"
+msgstr "Boid status voor boid natuurkunde"
+
+
+msgid "Active Boid Rule Index"
+msgstr "Actieve Boid Regel Index"
+
+
 msgid "Falloff"
 msgstr "Afvlakking"
+
+
+msgid "Boid state name"
+msgstr "Boid status naam"
+
+
+msgid "Rule Fuzziness"
+msgstr "Regel Wazigheid"
+
+
+msgid "Boid Rules"
+msgstr "Boid Regels"
+
+
+msgid "Rule Evaluation"
+msgstr "Regel Evaluatie"
+
+
+msgid "How the rules in the list are evaluated"
+msgstr "Hoe de regels in de lijst worden geëvalueerd"
+
+
+msgid "Fuzzy"
+msgstr "Wazig"
+
+
+msgid "Rules are gone through top to bottom (only the first rule which effect is above fuzziness threshold is evaluated)"
+msgstr "Regels worden van boven tot onder doorgenomen (alleen de eerste regel waarvan het effect boven de wazigheidsdrempelwaarde zit wordt geëvalueerd)"
 
 
 msgid "Random"
 msgstr "Willekeurig"
 
 
+msgid "A random rule is selected for each boid"
+msgstr "Een willekeurige regel wordt geselecteerd voor elke boid"
+
+
+msgid "Average"
+msgstr "Gemiddeld"
+
+
+msgid "All rules are averaged"
+msgstr "Alle regels worden gemiddeld"
+
+
 msgid "Volume"
 msgstr "Volume"
 
 
+msgid "In X"
+msgstr "In X"
+
+
+msgid "In Z"
+msgstr "In Z"
+
+
+msgid "Out X"
+msgstr "Uit X"
+
+
+msgid "Out Z"
+msgstr "Uit Z"
+
+
 msgid "Automatic"
 msgstr "Automatisch"
+
+
+msgid "Absolute"
+msgstr "Absolute"
+
+
+msgid "Relative"
+msgstr "Relatief"
 
 
 msgid "Scale In"
@@ -1890,20 +3157,148 @@ msgid "Children"
 msgstr "Kinderen"
 
 
+msgid "Octahedral"
+msgstr "Achtvlakkig"
+
+
+msgid "Display bones as octahedral shape"
+msgstr "Toon botten als achtvlakkige vorm"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "Toon botten als simpele 2D lijnen met stippen"
+
+
 msgid "B-Bone"
 msgstr "B-Bone"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "Toon botten als dozen, waarmee de onderverdelingen en B-Splines worden getoond"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "Toon botten als uitgerekte bollen, waarmee de invloed van vervorming op volume wordt getoond"
+
+
+msgid "Wire"
+msgstr "Draad"
+
+
+msgid "Display bones as thin wires, showing subdivision and B-Splines"
+msgstr "Toon botten als dunne draden, waarmee de onderverdelingen en B-Splines worden getoond"
+
+
+msgid "Head"
+msgstr "Hoofd"
+
+
+msgid "Location of head end of the bone relative to its parent"
+msgstr "Locatie van hoofdeinde van het bot relatief aan z'n ouder"
+
+
+msgid "Bone is not visible when it is in Edit Mode"
+msgstr "Bot is niet zichtbaar wanneer het in Bewerk Modus is"
 
 
 msgid "Selectable"
 msgstr "Selecteerbaar"
 
 
+msgid "Bone is able to be selected"
+msgstr "Bot is selecteerbaar"
+
+
+msgid "Inherit Scale"
+msgstr "Schaal Overnemen"
+
+
+msgid "Specifies how the bone inherits scaling from the parent bone"
+msgstr "Specificeert hoe het bot schaal overneemt van het ouder-bot"
+
+
+msgid "Inherit all effects of parent scaling"
+msgstr "Neemt alle effecten over van ouder-schaal"
+
+
+msgid "Fix Shear"
+msgstr "Fix Kaalplukken"
+
+
+msgid "Inherit uniform scaling representing the overall change in the volume of the parent"
+msgstr "Neem uniforme schaal over dat de algemene veranderingen in de volume van de ouder vertegenwoordigt"
+
+
+msgid "Completely ignore parent scaling"
+msgstr "Negeer ouder schaal volledig"
+
+
+msgid "None (Legacy)"
+msgstr "Geen (Legacy)"
+
+
 msgid "Length"
 msgstr "Lengte"
 
 
+msgid "Length of the bone"
+msgstr "Lengte van het bot"
+
+
+msgid "Bone Matrix"
+msgstr "Bot Matrix"
+
+
+msgid "3×3 bone matrix"
+msgstr "3x3 bot matrix"
+
+
 msgid "Parent"
 msgstr "Ouder"
+
+
+msgid "Display Wire"
+msgstr "Draad Weergeven"
+
+
+msgid "Tail"
+msgstr "Staart"
+
+
+msgid "Connected"
+msgstr "Verbonden"
+
+
+msgid "Deform"
+msgstr "Vervorm"
+
+
+msgid "Enable Bone to deform geometry"
+msgstr "Sta Bot toe om geometrie te vervormen"
+
+
+msgid "Inherit End Roll"
+msgstr "End Roll Overnemen"
+
+
+msgid "Inherit Rotation"
+msgstr "Rotatie Overnemen"
+
+
+msgid "Bone inherits rotation or scale from parent bone"
+msgstr "Bot neemt rotatie of schaal over van ouder-bot"
+
+
+msgid "Local Location"
+msgstr "Lokale Locatie"
+
+
+msgid "Bone location is set in local space"
+msgstr "Bot-locatie is in lokale ruimte ingesteld"
+
+
+msgid "Scale Easing"
+msgstr "Schaal Vermindering"
 
 
 msgid "Bones"
@@ -1912,6 +3307,10 @@ msgstr "Botten"
 
 msgid "Index"
 msgstr "Index"
+
+
+msgid "Is Editable"
+msgstr "Is Bewerkbaar"
 
 
 msgid "Visible"
@@ -1999,7 +3398,7 @@ msgstr "Aanpassen Lijnen"
 
 
 msgid "Precision"
-msgstr "Nauwkeurigheid"
+msgstr "Precisie"
 
 
 msgid "Layer Mode"
@@ -2087,6 +3486,22 @@ msgid "Friction"
 msgstr "Wrijving"
 
 
+msgid "Air has normally some thickness which slows falling things down"
+msgstr "Lucht heeft normaal gezien wat dichtheid dat de val van objecten vertraagt"
+
+
+msgid "Amount of damping in bending behavior"
+msgstr "Hoeveelheid demping in buiggedrag"
+
+
+msgid "Bending Model"
+msgstr "Buiging Model"
+
+
+msgid "Physical model for simulating bending forces"
+msgstr "Fysiek model voor het simuleren van buigkrachten"
+
+
 msgid "Angular"
 msgstr "Hoekig"
 
@@ -2095,12 +3510,120 @@ msgid "Linear"
 msgstr "Lineair"
 
 
+msgid "Bending Stiffness"
+msgstr "Buiging Stijfte"
+
+
+msgid "How much the material resists bending"
+msgstr "Hoeveel het materiaal zich tegen buigen verzet"
+
+
+msgid "Bending Stiffness Maximum"
+msgstr "Buiging Stijfte Maximum"
+
+
+msgid "Maximum bending stiffness value"
+msgstr "Maximum buiging stijfte waarde"
+
+
+msgid "Compression Spring Damping"
+msgstr "Compressieveer Demping"
+
+
+msgid "Amount of damping in compression behavior"
+msgstr "Hoeveelheid demping in compressiegedrag"
+
+
+msgid "Compression Stiffness"
+msgstr "Compressie Stijfte"
+
+
+msgid "How much the material resists compression"
+msgstr "Hoeveel het materiaal compressie weerstaat"
+
+
+msgid "Compression Stiffness Maximum"
+msgstr "Compressie Stijfte Maximum"
+
+
+msgid "Maximum compression stiffness value"
+msgstr "Maximum compressie stijfte waarde"
+
+
+msgid "Maximum density of hair"
+msgstr "Maximum dichtheid van haar"
+
+
+msgid "Effector Weights"
+msgstr "Effector Gewichten"
+
+
+msgid "Fluid Density"
+msgstr "Vloeistof Dichtheid"
+
+
 msgid "Gravity"
 msgstr "Zwaartekracht"
 
 
+msgid "Gravity or external force vector"
+msgstr "Zwaartekracht of externe kracht vector"
+
+
+msgid "Internal Friction"
+msgstr "Interne Frictie"
+
+
+msgid "Internal Spring Max Diversion"
+msgstr "Interne Veer Max Afwijking"
+
+
+msgid "Internal Spring Max Length"
+msgstr "Interne Veer Max Lengte"
+
+
+msgid "Tension Stiffness"
+msgstr "Spanning Stijfte"
+
+
+msgid "How much the material resists stretching"
+msgstr "Hoeveel het materiaal strekken weerstaat"
+
+
+msgid "Tension Stiffness Maximum"
+msgstr "Spanning Stijfte Maximum"
+
+
+msgid "Maximum tension stiffness value"
+msgstr "Maximum spanning stijfte waarde"
+
+
+msgid "Vertex Mass"
+msgstr "Vertex Massa"
+
+
+msgid "The mass of each vertex on the cloth material"
+msgstr "De massa van elke vertex op het doekmateriaal"
+
+
+msgid "Pin Stiffness"
+msgstr "Pin Stijfte"
+
+
+msgid "Pin (vertex target position) spring stiffness"
+msgstr "Pin (vertex doelpositie) veer stijfte"
+
+
+msgid "Pressure Scale"
+msgstr "Druk Schaal"
+
+
 msgid "Quality"
 msgstr "Kwaliteit"
+
+
+msgid "Quality of the simulation in steps per frame (higher is better quality but slower)"
+msgstr "Kwaliteit van de simulatie in stappen per frame (hoger is betere kwaliteit maar langzamer)"
 
 
 msgid "Sew Cloth"
@@ -2115,28 +3638,264 @@ msgid "Success"
 msgstr "Succes"
 
 
+msgid "Computation was successful"
+msgstr "Berekening was succesvol"
+
+
+msgid "Numerical Issue"
+msgstr "Numeriek Probleem"
+
+
+msgid "The provided data did not satisfy the prerequisites"
+msgstr "De geleverde data heeft niet aan de voorwaarden voldaan"
+
+
+msgid "No Convergence"
+msgstr "Geen Convergentie"
+
+
+msgid "Iterative procedure did not converge"
+msgstr "Iteratieve procedure is niet geconvergeerd"
+
+
 msgid "Invalid Input"
 msgstr "Ongeldige Invoer"
+
+
+msgid "Collection Children"
+msgstr "Collectie Kinderen"
+
+
+msgid "Collection of child collections"
+msgstr "Collectie van kind-collecties"
+
+
+msgid "The file path used for exporting"
+msgstr "Het bestand pad gebruikt voor exporteren"
+
+
+msgid "Is Open"
+msgstr "Is Open"
+
+
+msgid "Whether the panel is expanded or closed"
+msgstr "Of het paneel is uitgebreid of gesloten"
+
+
+msgid "Collection of export handlers"
+msgstr "Collectie van export handlers"
+
+
+msgid "Link State"
+msgstr "Link Staat"
+
+
+msgid "Light or shadow receiving state of the object or collection"
+msgstr "Licht of schaduw ontvangende staat van het object of de collectie"
 
 
 msgid "Include"
 msgstr "Includeer"
 
 
+msgid "Object of a collection with its collection related settings"
+msgstr "Object van een collectie met z'n collectie-gerelateerde instellingen"
+
+
 msgid "Collection Objects"
 msgstr "Objecten Collectie"
+
+
+msgid "Collection of collection objects"
+msgstr "Collectie van collectie-objecten"
+
+
+msgid "Collision Settings"
+msgstr "Collisie Instellingen"
+
+
+msgid "Collision settings for object in physics simulation"
+msgstr "Collisie-instellingen voor objecten in natuurkundige simulatie"
+
+
+msgid "Absorption"
+msgstr "Absorptie"
+
+
+msgid "Damping Factor"
+msgstr "Demping Factor"
+
+
+msgid "Random Damping"
+msgstr "Willekeurige Demping"
+
+
+msgid "Random variation of damping"
+msgstr "Willekeurige variatie in demping"
+
+
+msgid "Friction Factor"
+msgstr "Frictie Factor"
+
+
+msgid "Amount of friction during particle collision"
+msgstr "Hoeveelheid frictie tijdens deeltjescollissie"
 
 
 msgid "Random Friction"
 msgstr "Willekeurige Wrijving"
 
 
+msgid "Random variation of friction"
+msgstr "Willekeurige variatie in frictie"
+
+
+msgid "Permeability"
+msgstr "Doordringbaarheid"
+
+
 msgid "Stickiness"
 msgstr "Kleverigheid"
 
 
+msgid "Amount of stickiness to surface collision"
+msgstr "Hoeveelheid plakkerigheid bij collisie op oppervlak"
+
+
+msgid "Enabled"
+msgstr "Aangezet"
+
+
+msgid "Single Sided"
+msgstr "Enkelzijdig"
+
+
+msgid "Kill Particles"
+msgstr "Deeltjes Doden"
+
+
+msgid "Color management specific to display device"
+msgstr "Kleurmanagement specifiek aan dit scherm"
+
+
 msgid "Display"
 msgstr "Weergave"
+
+
+msgid "Display Emulation"
+msgstr "Emulatie Weergeven"
+
+
+msgid "Control how images in the chosen display are mapped to the physical display"
+msgstr "Bepaal hoe afbeeldingen in het gekozen beeld worden gekoppeld aan het fysieke scherm"
+
+
+msgid "Display images consistent with most other applications, to preview images and video for export. A best effort is made to emulate the chosen display on the actual display device."
+msgstr "Toon afbeeldingen consistent met de meeste andere applicaties, om een voorbeeld te krijgen van afbeeldingen en video voor export. Er wordt alles aan gedaan om de gekozen weergave zo goed mogelijk na te bootsen op het daadwerkelijke beeldscherm."
+
+
+msgid "Input color space settings"
+msgstr "Input kleurruimte instellingen"
+
+
+msgid "Is Data"
+msgstr "Is Data"
+
+
+msgid "Input Color Space"
+msgstr "Input Kleurruimte"
+
+
+msgid "ACES 1.3 sRGB"
+msgstr "ACES 1.3 sRGB"
+
+
+msgid "ACES 1.0 Output Transform for SDR D65 video, limited to Rec.709 gamut"
+msgstr "ACES 1.0 Output Transformatie voor SDR D65 video, beperkt tot Rec.709 gamut"
+
+
+msgid "ACES 2.0 sRGB"
+msgstr "ACES 2.0 sRGB"
+
+
+msgid "ACES 2 Output Transform for 100 nit SDR Rec709"
+msgstr "ACES 2 Output Transformatie voor 100 nit SDR Rec709"
+
+
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
+
+
+msgid "ACEScc"
+msgstr "ACEScc"
+
+
+msgid "ACES color correction space, using AP1 primaries."
+msgstr "ACES kleurcorrectie ruimte, met gebruik van AP1 primaries."
+
+
+msgid "ACEScct"
+msgstr "ACEScct"
+
+
+msgid "AgX Base sRGB"
+msgstr "AgX Base sRGB"
+
+
+msgid "AgX Base Image Encoding for sRGB Display"
+msgstr "AgX Base Image Encoding voor sRGB Scherm"
+
+
+msgid "AgX Log"
+msgstr "AgX Log"
+
+
+msgid "Khronos PBR Neutral sRGB"
+msgstr "Khronos PBR Neutral sRGB"
+
+
+msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
+msgstr "Khronos PBR Neutral Image Encoding voor sRGB Scherm"
+
+
+msgid "Linear CIE-XYZ D65"
+msgstr "Linear CIE-XYZ D65"
+
+
+msgid "Linear CIE-XYZ E"
+msgstr "Linear CIE-XYZ E"
+
+
+msgid "Linear DCI-P3 D65"
+msgstr "Linear DCI-P3 D65"
+
+
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
+msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
+msgstr "BT.1886 2.4 Exponent EOTF Scherm, vaak gebruikt voor TVs"
+
+
+msgid "Rec.2020"
+msgstr "Rec.2020"
+
+
+msgid "BT.2020 2.4 Exponent EOTF Display"
+msgstr "BT.2020 2.4 Exponent EOTF Scherm"
+
+
+msgid "Rec.2100-HLG"
+msgstr "Rec.2100-HLG"
+
+
+msgid "Rec.2100-PQ"
+msgstr "Rec.2100-PQ"
+
+
+msgid "Color management settings used for displaying images on the display"
+msgstr "Kleurmanagement instellingen gebruikt voor het tonen van afbeeldingen op het scherm"
 
 
 msgid "Curve"
@@ -2147,12 +3906,96 @@ msgid "Exposure"
 msgstr "Belichting"
 
 
+msgid "Gamma"
+msgstr "Gamma"
+
+
+msgid "Additional gamma encoding after display transform, for output with custom gamma"
+msgstr "Extra gammacodering na de weergavetransformatie, voor output met aangepaste gamma"
+
+
+msgid "Is HDR"
+msgstr "Is HDR"
+
+
+msgid "Look"
+msgstr "Kijk"
+
+
+msgid "Additional transform applied before view transform for artistic needs"
+msgstr "Extra transformatie toegepast vóór de weergavetransformatie voor artistieke behoeften"
+
+
+msgid "Do not modify image in an artistic manner"
+msgstr "Bewerk afbeelding niet op artistieke wijze"
+
+
+msgid "Support Emulation"
+msgstr "Ondersteun Emulatie"
+
+
+msgid "Use Curves"
+msgstr "Gebruik Curves"
+
+
+msgid "Use RGB curved for pre-display transformation"
+msgstr "Gebruik RGB curved voor pre-weergave transformatie"
+
+
+msgid "Use White Balance"
+msgstr "Gebruik Witbalans"
+
+
 msgid "View"
 msgstr "Weergave"
 
 
 msgid "Temperature"
 msgstr "Temperatuur"
+
+
+msgid "Tint"
+msgstr "Tint"
+
+
+msgid "Blend color to mix with texture output color"
+msgstr "Buig kleur om te mixen met textuur output-kleur"
+
+
+msgid "Blend Factor"
+msgstr "Blend Factor"
+
+
+msgid "Blend Type"
+msgstr "Blend Type"
+
+
+msgid "Mode used to mix with texture output color"
+msgstr "Modus gebruikt om te mixen met textuur output-kleur"
+
+
+msgid "Mix"
+msgstr "Mix"
+
+
+msgid "Darken"
+msgstr "Verdonker"
+
+
+msgid "Lighten"
+msgstr "Verlicht"
+
+
+msgid "Overlay"
+msgstr "Overlay"
+
+
+msgid "Soft Light"
+msgstr "Zacht Licht"
+
+
+msgid "Linear Light"
+msgstr "Lineair Licht"
 
 
 msgid "Difference"
@@ -2167,20 +4010,100 @@ msgid "Brightness"
 msgstr "Helderheid"
 
 
+msgid "Adjust the brightness of the texture"
+msgstr "Pas de helderheid van de textuur aan"
+
+
+msgid "Color Ramp"
+msgstr "Kleurverloop"
+
+
 msgid "Contrast"
 msgstr "Contrast"
+
+
+msgid "Adjust the contrast of the texture"
+msgstr "Pas het contrast van de textuur aan"
+
+
+msgid "Adjust the saturation of colors in the texture"
+msgstr "Pas de saturatie van de kleuren in de textuur aan"
+
+
+msgid "Use Color Ramp"
+msgstr "Gebruik Kleurverschuiving"
 
 
 msgid "Color Mode"
 msgstr "Kleurmodus"
 
 
+msgid "Set color mode to use for interpolation"
+msgstr "Stel kleurmodus in voor gebruik bij interpolatie"
+
+
+msgid "RGB"
+msgstr "RGB"
+
+
+msgid "HSV"
+msgstr "HSV"
+
+
+msgid "HSL"
+msgstr "HSL"
+
+
+msgid "Elements"
+msgstr "Elementen"
+
+
+msgid "Color Interpolation"
+msgstr "Kleur Interpolatie"
+
+
+msgid "Set color interpolation"
+msgstr "Stel kleur interpolatie in"
+
+
+msgid "Near"
+msgstr "Vlakbij"
+
+
+msgid "Far"
+msgstr "Ver"
+
+
+msgid "Clockwise"
+msgstr "Met de klok mee"
+
+
+msgid "Counter-Clockwise"
+msgstr "Tegen de klok in"
+
+
+msgid "Interpolation"
+msgstr "Interpolatie"
+
+
+msgid "B-Spline"
+msgstr "B-Spline"
+
+
 msgid "Constant"
 msgstr "Constant"
 
 
+msgid "Alpha"
+msgstr "Alpha"
+
+
 msgid "Position"
 msgstr "Positie"
+
+
+msgid "Console Input"
+msgstr "Console Input"
 
 
 msgctxt "Text"
@@ -2210,6 +4133,10 @@ msgstr "Invloed"
 
 msgid "Disable"
 msgstr "Uitzetten"
+
+
+msgid "World Space"
+msgstr "Wereld Ruimte"
 
 
 msgid "Copy Location"
@@ -2278,6 +4205,10 @@ msgstr "Gebruik Rotatie"
 
 msgid "Camera"
 msgstr "Camera"
+
+
+msgid "Sample Index"
+msgstr "Sample Index"
 
 
 msgid "Copy Pose"
@@ -2678,11 +4609,11 @@ msgstr "Koppel"
 
 
 msgid "Append"
-msgstr "Toevoegen"
+msgstr "Bijvoegen"
 
 
 msgid "Append (Reuse Data)"
-msgstr "Toevoegen (Hergebruik Data)"
+msgstr "Bijvoegen (Hergebruik Data)"
 
 
 msgid "Additional"
@@ -3590,7 +5521,7 @@ msgstr "Spiegel Y"
 
 
 msgid "Workspace"
-msgstr "Werkomgeving"
+msgstr "Werkplaats"
 
 
 msgid "Animation"
@@ -3824,6 +5755,14 @@ msgid "Calculate Holes"
 msgstr "Bereken Gaten"
 
 
+msgid "Select Left Handle"
+msgstr "Selecteer Linker Handle"
+
+
+msgid "Select Right Handle"
+msgstr "Selecteer Rechter Handle"
+
+
 msgid "Active Point"
 msgstr "Actieve Punt"
 
@@ -3844,8 +5783,44 @@ msgid "Layout"
 msgstr "Indeling"
 
 
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
 
 
 msgid "Convert"
@@ -3856,44 +5831,8 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
 
 
 msgid "Import"
@@ -3946,6 +5885,10 @@ msgstr "Voeg Aanpasser Toe"
 
 msgid "Generate"
 msgstr "Genereer"
+
+
+msgid "Select Handle"
+msgstr "Selecteer Handle"
 
 
 msgid "Text to 3D Object"
@@ -4023,6 +5966,10 @@ msgstr "Wortel"
 
 msgid "Size X"
 msgstr "Grote X"
+
+
+msgid "Metaball type"
+msgstr "Voeg Metaball toe"
 
 
 msgid "Ball"
@@ -4272,6 +6219,10 @@ msgstr "Verplaats"
 
 msgid "Triangles"
 msgstr "Driehoeken"
+
+
+msgid "Sample Grid Index"
+msgstr "Sample Rooster Index"
 
 
 msgid "Set Position"
@@ -5006,6 +6957,11 @@ msgstr "Verwijder"
 
 
 msgctxt "Operator"
+msgid "History Append"
+msgstr "Geschiedenis bijvoegen"
+
+
+msgctxt "Operator"
 msgid "Insert"
 msgstr "Invoegen"
 
@@ -5043,6 +6999,11 @@ msgstr "Selectie Aan/Uit"
 
 
 msgctxt "Operator"
+msgid "Select Ends"
+msgstr "Selecteer Einden"
+
+
+msgctxt "Operator"
 msgid "Dissolve Vertices"
 msgstr "Los Punten Op"
 
@@ -5075,6 +7036,11 @@ msgstr "Buig"
 
 msgid "Edge Slide"
 msgstr "Glij over Rand"
+
+
+msgctxt "Operator"
+msgid "Recalculate Handles"
+msgstr "Herbereken Handles"
 
 
 msgctxt "Operator"
@@ -5367,6 +7333,10 @@ msgid "Set Cursor"
 msgstr "Zet Cursor"
 
 
+msgid "Replace existing driver variables, instead of just appending to the end of the existing list"
+msgstr "Vervang bestaande driver variabelen, in plaats van het bij te voegen aan het einde van een bestaande lijst"
+
+
 msgctxt "Operator"
 msgid "Create Ghost Curves"
 msgstr "Maak Spook Kromme"
@@ -5442,6 +7412,10 @@ msgid "Duplicate Layer"
 msgstr "Dupliceer Laag"
 
 
+msgid "Copy only active Layer, uncheck to append all layers"
+msgstr "Kopieer alleen actieve Laag, ontvink om alle lagen bij te voegen"
+
+
 msgctxt "Operator"
 msgid "Hide Layer(s)"
 msgstr "Verberg Laag/Lagen"
@@ -5465,6 +7439,14 @@ msgstr "Toon Alle Lagen"
 msgctxt "Operator"
 msgid "Copy Materials to Selected Object"
 msgstr "Kopieer Materiaal naar Geselecteerde Object"
+
+
+msgid "Append Materials of the active Grease Pencil to other object"
+msgstr "Voeg Materialen bij van het actieve Grease Pencil naar ander object"
+
+
+msgid "Append only active material, uncheck to append all materials"
+msgstr "Voeg alleen actieve materiaal bij, ontvink om alle materialen bij te voegen"
 
 
 msgctxt "Operator"
@@ -5713,6 +7695,11 @@ msgstr "Draai Normalen Om"
 
 msgid "Cut"
 msgstr "Knip"
+
+
+msgctxt "Mesh"
+msgid "Object Index"
+msgstr "Object Index"
 
 
 msgctxt "Operator"
@@ -6090,7 +8077,7 @@ msgstr "Selecteer Materiaalplek"
 
 msgctxt "Operator"
 msgid "Add Metaball"
-msgstr "Voeg Metabol toe"
+msgstr "Voeg Metaball toe"
 
 
 msgctxt "Operator"
@@ -6564,7 +8551,7 @@ msgstr "Verwijder Starre Lichamen"
 
 msgctxt "Operator"
 msgid "Change Collision Shape"
-msgstr "Verander Botsingvorm"
+msgstr "Verander Collisievorm"
 
 
 msgctxt "Operator"
@@ -6902,13 +8889,30 @@ msgid "Paste"
 msgstr "Plakken"
 
 
+msgid "Select Handles"
+msgstr "Selecteer Handles"
+
+
+msgctxt "Operator"
+msgid "Select Handle"
+msgstr "Selecteer Handle"
+
+
+msgid "Select strip handle"
+msgstr "Selecteer strook handle"
+
+
 msgctxt "Operator"
 msgid "Select Handles"
-msgstr "Selecteer Handvaten"
+msgstr "Selecteer Handles"
 
 
 msgid "Next Strip"
 msgstr "Volgende Strip"
+
+
+msgid "Append active modifiers to selected strips"
+msgstr "Voeg actieve modifiers bij aan geselecteerde stroken"
 
 
 msgid "Property"
@@ -7112,6 +9116,11 @@ msgstr "Selecteer Orientatie"
 
 
 msgctxt "Operator"
+msgid "Tilt"
+msgstr "Kantel"
+
+
+msgctxt "Operator"
 msgid "To Sphere"
 msgstr "Naal Bal"
 
@@ -7214,16 +9223,56 @@ msgstr "Rol Rechts"
 
 msgctxt "Operator"
 msgid "Append"
-msgstr "Toevoegen"
+msgstr "Bijvoegen"
+
+
+msgid "Append from a Library .blend file"
+msgstr "Bijvoegen van een Bibliotheek .blend bestand"
 
 
 msgid "Select new objects"
 msgstr "Selecteer nieuwe objecten"
 
 
+msgid "Try to re-use previously matching appended data-blocks instead of appending a new copy"
+msgstr "Probeer eerdere passende bijgevoegde datablokken te hergebruiken in plaats van een nieuw kopie bij te voegen"
+
+
+msgid "Link the objects or data-blocks rather than appending"
+msgstr "Link de objecten of data-blokken in plaats van bij te voegen"
+
+
+msgid "Set \"Fake User\" for appended items (except objects and collections)"
+msgstr "Stel \"Neppe Gebruiker\" in voor bijgevoegde items (behalve objecten en collecties)"
+
+
+msgid "Localize all appended data, including those indirectly linked from other libraries"
+msgstr "Lokaliseer alle bijgevoegde data, inclusief data direct gelinkt van andere bibliotheken"
+
+
+msgctxt "ID"
+msgid "Metaballs"
+msgstr "Metaballs"
+
+
 msgctxt "ID"
 msgid "Volumes"
 msgstr "Volumes"
+
+
+msgctxt "ID"
+msgid "Lattices"
+msgstr "Roosters"
+
+
+msgctxt "ID"
+msgid "Light Probes"
+msgstr "Licht Probes"
+
+
+msgctxt "ID"
+msgid "Scenes"
+msgstr "Scenes"
 
 
 msgctxt "Operator"
@@ -7269,6 +9318,10 @@ msgstr "Geheugen Statistieken"
 
 msgid "Object Properties"
 msgstr "Objecteigenschappen"
+
+
+msgid "Append mesh name to object name, separated by a '_'"
+msgstr "Voeg mesh-naam bij aan object-naam, gescheiden door een '_'"
 
 
 msgid "Open a Blender file"
@@ -7429,8 +9482,25 @@ msgid "New Window"
 msgstr "Nieuw Scherm"
 
 
+msgid "Add a new workspace by duplicating the current one or appending one from the user configuration"
+msgstr "Voeg een nieuwe werkplaats toe door de huidige te dupliceren of er een bij te voegen van de gebruikersconfiguratie"
+
+
+msgctxt "Operator"
+msgid "Append and Activate Workspace"
+msgstr "Werkplaats Bijvoegen en Activeren"
+
+
+msgid "Append a workspace and make it the active one in the current window"
+msgstr "Voeg een werkplaats bij en maak het de actieve binnen het huidige venster"
+
+
 msgid "Path to the library"
 msgstr "Pad naar de bibliotheek"
+
+
+msgid "Name of the workspace to append and activate"
+msgstr "Naam van de werkplaats om bij te voegen en activeren"
 
 
 msgctxt "Operator"
@@ -7884,6 +9954,11 @@ msgid "Render Time"
 msgstr "Render Tijd"
 
 
+msgctxt "Scene"
+msgid "Object Index"
+msgstr "Object Index"
+
+
 msgid "Engine"
 msgstr "Engine"
 
@@ -7929,7 +10004,7 @@ msgstr "Render Beeld"
 
 
 msgid "Collision Shape"
-msgstr "Botsingvorm"
+msgstr "Collissievorm"
 
 
 msgid "Bounciness"
@@ -7990,7 +10065,7 @@ msgstr "Toon Cursor"
 
 
 msgid "Show Handles"
-msgstr "Toon Handvaten"
+msgstr "Toon Handles"
 
 
 msgid "Show Paint"
@@ -8134,6 +10209,16 @@ msgstr "Geluid"
 
 msgid "Use Annotations"
 msgstr "Gebruik Annotaties"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "Krommes"
+
+
+msgctxt "Sequence"
+msgid "Hue Correct"
+msgstr "Hue Corrigeren"
 
 
 msgctxt "Light"
@@ -8505,7 +10590,11 @@ msgstr "Open..."
 
 msgctxt "Operator"
 msgid "Append..."
-msgstr "Toevoegen..."
+msgstr "Bijvoegen..."
+
+
+msgid "Metaball(s)"
+msgstr "Metaball(s)"
 
 
 msgctxt "Operator"
@@ -8892,6 +10981,10 @@ msgid "New Folder"
 msgstr "Nieuwe Map"
 
 
+msgid "When Appending"
+msgstr "Wanneer bij aan het voegen"
+
+
 msgid ".blend Files"
 msgstr ".blend Bestanden"
 
@@ -9189,12 +11282,12 @@ msgstr "Instellingen..."
 
 msgctxt "Operator"
 msgid "Previous Workspace"
-msgstr "Vorige Werkomgeving"
+msgstr "Vorige Werkplaats"
 
 
 msgctxt "Operator"
 msgid "Next Workspace"
-msgstr "Volgende Werkomgeving"
+msgstr "Volgende Werkplaats"
 
 
 msgctxt "Operator"
@@ -9240,6 +11333,10 @@ msgstr "Blender Versie"
 
 msgid "Show Warning"
 msgstr "Toon Waarschuwing"
+
+
+msgid "Default Handles"
+msgstr "Standaard Handles"
 
 
 msgid "XYZ to RGB"
@@ -9488,7 +11585,7 @@ msgstr "Zwak"
 
 msgctxt "Operator"
 msgid "Medium"
-msgstr "Gemiddeld"
+msgstr "Medium"
 
 
 msgctxt "Operator"
@@ -9677,6 +11774,10 @@ msgid "Loading failed: "
 msgstr "Laden gefaald: "
 
 
+msgid "Appended Data"
+msgstr "Bijgevoegde Data"
+
+
 msgid "Invalid resolution"
 msgstr "Ongeldige resolutie"
 
@@ -9695,6 +11796,14 @@ msgid "LineStyle"
 msgstr "LijnStijl"
 
 
+msgid "lattices"
+msgstr "Roosters"
+
+
+msgid "metaballs"
+msgstr "metaballs"
+
+
 msgid "%i frames found!"
 msgstr "%i frames gevonden!"
 
@@ -9703,8 +11812,16 @@ msgid "RenderView"
 msgstr "RenderView"
 
 
+msgid "textures"
+msgstr "texturen"
+
+
 msgid "volumes"
 msgstr "volumes"
+
+
+msgid "workspaces"
+msgstr "Werkplaatsen"
 
 
 msgid "Unable to read"
@@ -10140,8 +12257,24 @@ msgid "Failed to open window!"
 msgstr "Kan venster niet openen!"
 
 
+msgid "Show Header"
+msgstr "Toon Header"
+
+
+msgid "Append {}"
+msgstr "Bijvoegen {}"
+
+
+msgid "Append (Reuse) {}"
+msgstr "Bijvoegen (Hergebruik) {}"
+
+
 msgid "Quick Favorites"
 msgstr "Snelle Favorieten"
+
+
+msgid "Add Workspace"
+msgstr "Voeg Werkplaats toe"
 
 
 msgid "File not found '%s'"
@@ -10274,6 +12407,11 @@ msgid "Point is not found in given spline"
 msgstr "Punt is niet gevonden voor de opgegeven Spline"
 
 
+msgctxt "Render Layer"
+msgid "Shader AOV"
+msgstr "Shader AOV"
+
+
 msgid "No active window in context!"
 msgstr "Geen actieve venster in context!"
 
@@ -10296,6 +12434,10 @@ msgstr "Vervang Origineel"
 
 msgid "Crease Edges"
 msgstr "Vouwranden"
+
+
+msgid "Spline Index"
+msgstr "Spline Index"
 
 
 msgctxt "Mesh"
@@ -10347,16 +12489,6 @@ msgid "Cannot render, no camera"
 msgstr "Kan niet renderen, geen camera"
 
 
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "Krommes"
-
-
-msgctxt "Sequence"
-msgid "Hue Correct"
-msgstr "Hue Corrigeren"
-
-
 msgid "Save As..."
 msgstr "Opslaan Als..."
 
@@ -10387,6 +12519,10 @@ msgstr "Context scherm niet gezet"
 
 msgid "Not a library"
 msgstr "Geen bibliotheek"
+
+
+msgid "Cannot append data-block '%s' of type '%s'"
+msgstr "Kan data-blokken niet bijvoegen '%s' of typ '%s'"
 
 
 msgid "Toggle System Console"

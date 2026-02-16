@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23624,180 +23624,68 @@ msgid "Sample"
 msgstr "샘플"
 
 
-msgid "Primitives"
-msgstr "프리미티브"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
-
-
 msgid "Clean Up"
 msgstr "정리"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Show/Hide"
 msgstr "표시/숨기기"
 
 
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
 msgid "Special Characters"
 msgstr "특수 문자"
-
-
-msgid "Metaball"
-msgstr "메타볼"
 
 
 msgid "Kerning"
 msgstr "자간"
 
 
-msgid "Toggle Bone Options"
-msgstr "본 옵션을 토글"
+msgid "Metaball"
+msgstr "메타볼"
 
 
-msgid "Merge"
-msgstr "병합"
+msgid "Names"
+msgstr "이름"
 
 
-msgid "Disable Bone Options"
-msgstr "본 옵션을 사용 중지"
+msgid "Bone Roll"
+msgstr "본 롤"
 
 
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
+msgid "Pivot Point"
+msgstr "피벗 포인트"
 
 
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
+msgid "Snap"
+msgstr "스냅"
 
 
-msgid "Face Data"
-msgstr "페이스 데이터"
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
 
 
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Enable Bone Options"
-msgstr "본 옵션을 사용"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "Propagate"
-msgstr "전파"
+msgid "Mask Edit"
+msgstr "마스크 편집"
 
 
 msgid "Layout"
 msgstr "레이아웃"
 
 
-msgid "Clear Transform"
-msgstr "변환을 지우기"
+msgid "Mirror"
+msgstr "미러"
 
 
-msgid "Keying"
-msgstr "키잉"
+msgid "UV Mapping"
+msgstr "UV 맵핑"
 
 
-msgid "Tracking"
-msgstr "트래킹"
-
-
-msgid "Hooks"
-msgstr "후크"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Track"
-msgstr "트랙"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
-
-
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
+msgid "Local View"
+msgstr "로컬 뷰"
 
 
 msgid "Viewpoint"
@@ -23808,36 +23696,148 @@ msgid "Navigation"
 msgstr "네비게이션"
 
 
-msgid "Local View"
-msgstr "로컬 뷰"
+msgid "Align View"
+msgstr "뷰를 정렬"
 
 
-msgid "UV Mapping"
-msgstr "UV 맵핑"
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
 
 
-msgid "Snap"
-msgstr "스냅"
+msgid "View Regions"
+msgstr "뷰 지역"
 
 
-msgid "Mirror"
-msgstr "미러"
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Math"
+msgstr "수학"
+
+
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Hooks"
+msgstr "후크"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Toggle Bone Options"
+msgstr "본 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "본 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "본 옵션을 사용 중지"
 
 
 msgid "Import"
 msgstr "가져오기"
 
 
-msgid "Mask Edit"
-msgstr "마스크 편집"
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
+msgid "Face Data"
+msgstr "페이스 데이터"
 
 
-msgid "Pivot Point"
-msgstr "피벗 포인트"
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Merge"
+msgstr "병합"
 
 
 msgid "UV"
@@ -34909,10 +34909,6 @@ msgid "Select the file relative to the blend file"
 msgstr "Blend 파일에 상대적인 파일을 선택"
 
 
-msgid "Direction to move the active vertex group towards"
-msgstr "활성 버텍스 그룹을 향해 이동하는 방향"
-
-
 msgctxt "Operator"
 msgid "Open Cache File"
 msgstr "캐시 파일을 열기"
@@ -35501,14 +35497,6 @@ msgstr "축을 설정"
 
 msgid "Axis to use to align bundle along"
 msgstr "번들을 따라 정렬할 때 사용하는 축"
-
-
-msgid "Align bundle align X axis"
-msgstr "번들 정렬 X 축을 정렬"
-
-
-msgid "Align bundle align Y axis"
-msgstr "번들 정렬 Y 축을 정렬"
 
 
 msgctxt "Operator"
@@ -36283,10 +36271,6 @@ msgid "Clear the tilt of selected control points"
 msgstr "선택된 컨트롤 포인트의 기울기를 지우기"
 
 
-msgid "Make active spline closed/opened loop"
-msgstr "활성 스플라인 폐쇄/열린 루프를 만들기"
-
-
 msgid "Direction to make surface cyclic in"
 msgstr "다음에서 표면 사이클을 만드는 방향"
 
@@ -36807,10 +36791,6 @@ msgstr "이전 작업을 실행 취소"
 msgctxt "Operator"
 msgid "Undo History"
 msgstr "실행 취소 기록"
-
-
-msgid "Redo specific action in history"
-msgstr "기록에서 특정 작업을 다시 실행합니다"
 
 
 msgid "Item"
@@ -39165,10 +39145,6 @@ msgid "Match Movie Length"
 msgstr "무비 길이와 일치"
 
 
-msgid "Set image's user's length to the one of this video"
-msgstr "이미지의 사용자 길이를이 무비의 길이로 설정"
-
-
 msgctxt "Operator"
 msgid "New Image"
 msgstr "새로운 이미지"
@@ -39740,10 +39716,6 @@ msgid "Select mirrored lattice points"
 msgstr "미러된 래티스 포인트를 선택"
 
 
-msgid "Select vertex directly linked to already selected ones"
-msgstr "이미 선택한 하나로 연결된 버텍스를 즉시 선텍"
-
-
 msgid "Randomly select UVW control points"
 msgstr "UVW 컨트롤 포인트를 랜덤으로 선택"
 
@@ -40013,14 +39985,6 @@ msgstr "스플라인을 붙여 넣기"
 
 msgid "Add new circle-shaped spline"
 msgstr "새로운 원형 모양의 스플라인을 추가"
-
-
-msgid "Location of new circle"
-msgstr "새로운 원형의 위치"
-
-
-msgid "Size of new circle"
-msgstr "새로운 원형의 크기"
 
 
 msgctxt "Operator"
@@ -41604,10 +41568,6 @@ msgid "Minor Radius"
 msgstr "마이너 반경"
 
 
-msgid "Radius of the torus' cross section"
-msgstr "'토러스' 교차 섹션의 반경"
-
-
 msgid "Minor Segments"
 msgstr "마이너 부분"
 
@@ -41674,10 +41634,6 @@ msgstr "숨겨진 에지와 페이스, 버텍스를 모두 보이기"
 msgctxt "Operator"
 msgid "Rip"
 msgstr "떼어내기"
-
-
-msgid "Disconnect vertex or edges from connected geometry"
-msgstr "연결 지오메트리에서 버텍스 또는 에지를 연결 끊기"
 
 
 msgid "Fill the ripped region"
@@ -42025,10 +41981,6 @@ msgid "Select Shortest Path"
 msgstr "최단 경로를 선택"
 
 
-msgid "Selected shortest path between two vertices/edges/faces"
-msgstr "두 버텍스/에지/페이스 사이의 최단 경로를 선택"
-
-
 msgctxt "Operator"
 msgid "Smooth Normals Vectors"
 msgstr "스무스 노멀 벡터"
@@ -42272,10 +42224,6 @@ msgstr "페이스의 선택된 버텍스를 연결, 페이스를 분할"
 msgctxt "Operator"
 msgid "Split Concave Faces"
 msgstr "오목한 페이스를 분할"
-
-
-msgid "Make all faces convex"
-msgstr "모든면을 볼록으로 만듭니다"
 
 
 msgctxt "Operator"
@@ -43988,10 +43936,6 @@ msgid "Add Metaball"
 msgstr "메타볼을 추가"
 
 
-msgid "Add an metaball object to the scene"
-msgstr "씬에 메타볼 오브젝트를 추가"
-
-
 msgid "Primitive"
 msgstr "프리미티브"
 
@@ -45133,6 +45077,10 @@ msgid "Move the active vertex group up/down in the list"
 msgstr "목록에서 활성 버텍스 그룹을 위/아래로 움직입니다"
 
 
+msgid "Direction to move the active vertex group towards"
+msgstr "활성 버텍스 그룹을 향해 이동하는 방향"
+
+
 msgid "Normalize weights of the active vertex group, so that the highest ones are now 1.0"
 msgstr "활성 버택스 그룹의 웨이트를 노멀라이즈하여 최고점이 1.0이 되도록 합니다"
 
@@ -45736,10 +45684,6 @@ msgstr "요소를 다른 위치로 끌어서 놓기"
 msgctxt "Operator"
 msgid "Open/Close"
 msgstr "열기/닫기"
-
-
-msgid "Toggle whether item under cursor is enabled or closed"
-msgstr "커서 아래 항목이 사용 가능 또는 닫혀 있는지 여부를 토글합니다"
 
 
 msgid "Close or open all items"
@@ -46586,10 +46530,6 @@ msgid "Remove Doubles"
 msgstr "이중을 제거"
 
 
-msgid "Remove selected particles close enough of others"
-msgstr "선택한 입자를 다른 입자와 충분히 가깝게 제거"
-
-
 msgid "Threshold distance within which particles are removed"
 msgstr "입자가 제거되는 임계 값 거리"
 
@@ -47334,10 +47274,6 @@ msgstr "둥근"
 msgctxt "Operator"
 msgid "Cancel Render View"
 msgstr "렌더 뷰를 취소"
-
-
-msgid "Cancel show render view"
-msgstr "렌더 뷰 표시를 취소"
 
 
 msgctxt "Operator"
@@ -49078,10 +49014,6 @@ msgid "Jump to Strip"
 msgstr "스트립으로 이동"
 
 
-msgid "Move frame to previous edit point"
-msgstr "프레임을 이전 편집 지점으로 이동"
-
-
 msgid "Next Strip"
 msgstr "다음 스트립"
 
@@ -49358,17 +49290,9 @@ msgid "Add Surface Circle"
 msgstr "표면 원형을 추가"
 
 
-msgid "Construct a Nurbs surface Circle"
-msgstr "넙스 표면 원형을 만들기"
-
-
 msgctxt "Operator"
 msgid "Add Surface Curve"
 msgstr "표면 커브를 추가"
-
-
-msgid "Construct a Nurbs surface Curve"
-msgstr "넙스 표면 커브를 만들기"
 
 
 msgctxt "Operator"
@@ -49376,17 +49300,9 @@ msgid "Add Surface Cylinder"
 msgstr "표면 실린더를 추가"
 
 
-msgid "Construct a Nurbs surface Cylinder"
-msgstr "넙스 표면 실린더를 만들기"
-
-
 msgctxt "Operator"
 msgid "Add Surface Sphere"
 msgstr "표면 구체를 추가"
-
-
-msgid "Construct a Nurbs surface Sphere"
-msgstr "넙스 표면 구체를 만들기"
 
 
 msgctxt "Operator"
@@ -49394,17 +49310,9 @@ msgid "Add Surface Patch"
 msgstr "표면 패치를 추가"
 
 
-msgid "Construct a Nurbs surface Patch"
-msgstr "넙스 표면 패치를 만들기"
-
-
 msgctxt "Operator"
 msgid "Add Surface Torus"
 msgstr "표면 토러스를 추가"
-
-
-msgid "Construct a Nurbs surface Torus"
-msgstr "넙스 표면 토러스를 만들기"
 
 
 msgctxt "Operator"
@@ -49437,10 +49345,6 @@ msgstr "텍스처 위 아래로 슬롯을 이동"
 msgctxt "Operator"
 msgid "Paste Texture Slot Settings"
 msgstr "텍스처 슬롯 설정을 붙여 넣기"
-
-
-msgid "Copy the texture settings and nodes"
-msgstr "텍스처 설정 및 노드를 복사"
 
 
 msgctxt "Operator"
@@ -53192,12 +53096,64 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Multi Frame"
-msgstr "다중 프레임"
+msgid "Active Tool"
+msgstr "활성 도구"
 
 
-msgid "Stereoscopy"
-msgstr "입체 영상"
+msgid "View Lock"
+msgstr "뷰 잠금"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메쉬 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
+
+
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
+
+
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
 
 
 msgid "Quad View"
@@ -53208,64 +53164,12 @@ msgid "Onion Skin"
 msgstr "어니언 스킨"
 
 
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
+msgid "Stereoscopy"
+msgstr "입체 영상"
 
 
-msgid "Guides"
-msgstr "가이드"
-
-
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
-
-
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메쉬 에디트 모드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Active Tool"
-msgstr "활성 도구"
+msgid "Multi Frame"
+msgstr "다중 프레임"
 
 
 msgid "Bone Constraints"
@@ -63097,8 +63001,24 @@ msgid "Mute expanded settings for the modifier"
 msgstr "모디파이어에 대한 확장된 설정을 음소거"
 
 
-msgid "Tone Map"
-msgstr "톤맵"
+msgctxt "Sequence"
+msgid "Color Balance"
+msgstr "컬러 균형"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "커브"
+
+
+msgctxt "Sequence"
+msgid "Hue Correct"
+msgstr "색조 보정"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "화이트 밸런스"
 
 
 msgid "Bright/contrast modifier data for sequence strip"
@@ -70899,10 +70819,6 @@ msgid "Close"
 msgstr "닫기"
 
 
-msgid "Toggle X-Ray"
-msgstr "X-Ray를 토글"
-
-
 msgid "Specular Lighting"
 msgstr "반사 라이트닝"
 
@@ -76843,28 +76759,8 @@ msgstr "%s: '%s' 불러오기 실패"
 
 
 msgctxt "Sequence"
-msgid "Color Balance"
-msgstr "컬러 균형"
-
-
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "커브"
-
-
-msgctxt "Sequence"
-msgid "Hue Correct"
-msgstr "색조 보정"
-
-
-msgctxt "Sequence"
 msgid "Tonemap"
 msgstr "톤맵"
-
-
-msgctxt "Sequence"
-msgid "White Balance"
-msgstr "화이트 밸런스"
 
 
 msgid "Strips must be the same length"

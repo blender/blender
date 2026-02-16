@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6589,12 +6589,20 @@ msgid "Metaball"
 msgstr "Meta test"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgid "Keying"
@@ -6609,36 +6617,28 @@ msgid "Light"
 msgstr "Fényforrás"
 
 
-msgid "Track"
-msgstr "Nyom"
+msgid "Relations"
+msgstr "Kapcsolatok"
 
 
 msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
-msgid "Relations"
-msgstr "Kapcsolatok"
+msgid "Apply"
+msgstr "Elfogadás"
 
 
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
+msgid "Track"
+msgstr "Nyom"
 
 
 msgid "Import"
 msgstr "Importálás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgid "UV"
@@ -10936,10 +10936,6 @@ msgid "Bind mesh to cage in mesh deform modifier"
 msgstr "Térháló kötése a ketrechez a térháló deformálás módosítóban"
 
 
-msgid "Add an metaball object to the scene"
-msgstr "Meta test hozzáadása a jelenethez"
-
-
 msgctxt "Operator"
 msgid "Apply Modifier"
 msgstr "Módosító elfogadása"
@@ -12129,30 +12125,6 @@ msgid "Mixdown"
 msgstr "Lekeverés"
 
 
-msgid "Construct a Nurbs surface Circle"
-msgstr "Nurbs felület kör létrehozása"
-
-
-msgid "Construct a Nurbs surface Curve"
-msgstr "Nurbs felület görbe létrehozása"
-
-
-msgid "Construct a Nurbs surface Cylinder"
-msgstr "Nurbs henger létrehozása"
-
-
-msgid "Construct a Nurbs surface Sphere"
-msgstr "Nurbs gömb létrehozása"
-
-
-msgid "Construct a Nurbs surface Patch"
-msgstr "Nurbs felület darabka létrehozása"
-
-
-msgid "Construct a Nurbs surface Torus"
-msgstr "Nurbs tórusz létrehozása"
-
-
 msgid "Add a new texture"
 msgstr "Új textúra hozzáadása"
 
@@ -12793,12 +12765,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"
@@ -14441,6 +14413,11 @@ msgstr "Trimmelés kezdete"
 
 msgid "Outline Width"
 msgstr "Körvonal vastagsága"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "Görbék"
 
 
 msgid "Translate X"
@@ -16940,11 +16917,6 @@ msgstr "Nem lehet renderelni, nincs kamera"
 
 msgid "No border area selected"
 msgstr "Nincs téglalap-kijelölés"
-
-
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "Görbék"
 
 
 msgid "Glow"

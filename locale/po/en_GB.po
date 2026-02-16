@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'c1168d06bba2')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'1fa1b22043cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-09 09:47+0000\n"
+"POT-Creation-Date: 2026-02-16 10:28+0000\n"
 "PO-Revision-Date: 2025-12-11 18:12+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34878,224 +34878,84 @@ msgid "Sample"
 msgstr "Sample"
 
 
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
 msgid "Clean Up"
 msgstr "Clean Up"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Show/Hide"
 msgstr "Show/Hide"
 
 
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
-
-
 msgid "Special Characters"
 msgstr "Special Characters"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
+msgid "Metaball"
+msgstr "Metaball"
 
 
-msgid "Merge"
-msgstr "Merge"
+msgid "Names"
+msgstr "Names"
 
 
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
+msgid "Bone Roll"
+msgstr "Bone Roll"
 
 
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
+msgid "Pivot Point"
+msgstr "Pivot Point"
 
 
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
+msgid "Snap"
+msgstr "Snap"
 
 
-msgid "Face Data"
-msgstr "Face Data"
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
 
 
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
+msgid "Mask Edit"
+msgstr "Mask Edit"
 
 
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
+msgid "Automasking"
+msgstr "Automasking"
 
 
-msgid "Apply"
-msgstr "Apply"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Convert"
-msgstr "Convert"
-
-
-msgid "Tracking"
-msgstr "Tracking"
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
 
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
-msgid "Hooks"
-msgstr "Hooks"
+msgid "Layout"
+msgstr "Layout"
 
 
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Mirror"
+msgstr "Mirror"
 
 
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
+msgid "UV Mapping"
+msgstr "UV Mapping"
 
 
-msgid "Math"
-msgstr "Maths"
+msgid "Local View"
+msgstr "Local View"
 
 
-msgid "Creative"
-msgstr "Creative"
-
-
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Add Image"
-msgstr "Add Image"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
 msgid "Viewpoint"
@@ -35106,60 +34966,200 @@ msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "Local View"
-msgstr "Local View"
+msgid "Align View"
+msgstr "Align View"
 
 
-msgid "UV Mapping"
-msgstr "UV Mapping"
+msgid "Align View to Active"
+msgstr "Align View to Active"
 
 
-msgid "Automasking"
-msgstr "Automasking"
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Creative"
+msgstr "Creative"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
 
 
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
-msgid "Snap"
-msgstr "Snap"
-
-
 msgid "Instances"
 msgstr "Instances"
 
 
-msgid "Mirror"
-msgstr "Mirror"
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
 
 
 msgid "Import"
 msgstr "Import"
 
 
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
 
 
 msgid "Deprecated"
 msgstr "Deprecated"
 
 
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
 msgid "List"
 msgstr "List"
+
+
+msgid "Merge"
+msgstr "Merge"
 
 
 msgid "UV"
@@ -56177,10 +56177,6 @@ msgid "Select keyframe points using lasso selection"
 msgstr "Select keyframe points using lasso selection"
 
 
-msgid "Higher values gives a smoother stroke"
-msgstr "Higher values gives a smoother stroke"
-
-
 msgid "Minimum distance from last point before selection continues"
 msgstr "Minimum distance from last point before selection continues"
 
@@ -58316,10 +58312,6 @@ msgid "Move layer in the list, layers further down the list will overwrite data 
 msgstr "Move layer in the list, layers further down the list will overwrite data from the layers higher up"
 
 
-msgid "Direction to move the active vertex group towards"
-msgstr "Direction to move the active vertex group towards"
-
-
 msgid "Remove an override layer from the archive"
 msgstr "Remove an override layer from the archive"
 
@@ -59025,14 +59017,6 @@ msgstr "Set the direction of a scene axis by rotating the camera (or its parent 
 
 msgid "Axis to use to align bundle along"
 msgstr "Axis to use to align bundle along"
-
-
-msgid "Align bundle align X axis"
-msgstr "Align bundle align X axis"
-
-
-msgid "Align bundle align Y axis"
-msgstr "Align bundle align Y axis"
 
 
 msgctxt "Operator"
@@ -59975,10 +59959,6 @@ msgid "Toggle Cyclic"
 msgstr "Toggle Cyclic"
 
 
-msgid "Make active curve closed/opened loop"
-msgstr "Make active curve closed/opened loop"
-
-
 msgid "Remove selected control points or curves"
 msgstr "Remove selected control points or curves"
 
@@ -60202,10 +60182,6 @@ msgid "Select Random"
 msgstr "Select Random"
 
 
-msgid "Randomizes existing selection or create new random selection"
-msgstr "Randomises existing selection or create new random selection"
-
-
 msgid "Probability"
 msgstr "Probability"
 
@@ -60289,10 +60265,6 @@ msgstr "Clear Tilt"
 
 msgid "Clear the tilt of selected control points"
 msgstr "Clear the tilt of selected control points"
-
-
-msgid "Make active spline closed/opened loop"
-msgstr "Make active spline closed/opened loop"
 
 
 msgid "Direction to make surface cyclic in"
@@ -60994,10 +60966,6 @@ msgstr "Undo previous action"
 msgctxt "Operator"
 msgid "Undo History"
 msgstr "Undo History"
-
-
-msgid "Redo specific action in history"
-msgstr "Redo specific action in history"
 
 
 msgid "Item"
@@ -66320,10 +66288,6 @@ msgid "Vertex Paint Set Color"
 msgstr "Vertex Paint Set Colour"
 
 
-msgid "Set active color to all selected vertex"
-msgstr "Set active colour to all selected vertex"
-
-
 msgctxt "Operator"
 msgid "Normalize Vertex Group"
 msgstr "Normalise Vertex Group"
@@ -66820,10 +66784,6 @@ msgid "Match Movie Length"
 msgstr "Match Movie Length"
 
 
-msgid "Set image's user's length to the one of this video"
-msgstr "Set image's user's length to the one of this video"
-
-
 msgctxt "Operator"
 msgid "New Image"
 msgstr "New Image"
@@ -67182,10 +67142,6 @@ msgstr "View the entire image"
 msgctxt "Operator"
 msgid "Cursor To Center View"
 msgstr "Cursor To Centre View"
-
-
-msgid "Set 2D Cursor To Center View location"
-msgstr "Set 2D Cursor To Centre View location"
 
 
 msgctxt "Operator"
@@ -67666,10 +67622,6 @@ msgid "Select mirrored lattice points"
 msgstr "Select mirrored lattice points"
 
 
-msgid "Select vertex directly linked to already selected ones"
-msgstr "Select vertex directly linked to already selected ones"
-
-
 msgid "Randomly select UVW control points"
 msgstr "Randomly select UVW control points"
 
@@ -67969,14 +67921,6 @@ msgstr "Paste splines from the internal clipboard"
 
 msgid "Add new circle-shaped spline"
 msgstr "Add new circle-shaped spline"
-
-
-msgid "Location of new circle"
-msgstr "Location of new circle"
-
-
-msgid "Size of new circle"
-msgstr "Size of new circle"
 
 
 msgctxt "Operator"
@@ -69949,10 +69893,6 @@ msgid "Minor Radius"
 msgstr "Minor Radius"
 
 
-msgid "Radius of the torus' cross section"
-msgstr "Radius of the torus' cross section"
-
-
 msgid "Minor Segments"
 msgstr "Minor Segments"
 
@@ -70048,10 +69988,6 @@ msgstr "Reveal all hidden vertices, edges and faces"
 msgctxt "Operator"
 msgid "Rip"
 msgstr "Rip"
-
-
-msgid "Disconnect vertex or edges from connected geometry"
-msgstr "Disconnect vertex or edges from connected geometry"
 
 
 msgctxt "Mesh"
@@ -70579,10 +70515,6 @@ msgid "Select Shortest Path"
 msgstr "Select Shortest Path"
 
 
-msgid "Selected shortest path between two vertices/edges/faces"
-msgstr "Selected shortest path between two vertices/edges/faces"
-
-
 msgctxt "Operator"
 msgid "Smooth Normals Vectors"
 msgstr "Smooth Normals Vectors"
@@ -70883,10 +70815,6 @@ msgstr "Connect selected vertices of faces, splitting the face"
 msgctxt "Operator"
 msgid "Split Concave Faces"
 msgstr "Split Concave Faces"
-
-
-msgid "Make all faces convex"
-msgstr "Make all faces convex"
 
 
 msgctxt "Operator"
@@ -71283,10 +71211,6 @@ msgstr "Toggle Muting"
 
 msgid "Mute or un-mute selected strips"
 msgstr "Mute or un-mute selected strips"
-
-
-msgid "Set Preview Range based on extends of selected strips"
-msgstr "Set Preview Range based on extends of selected strips"
 
 
 msgid "Select or deselect all NLA-Strips"
@@ -74619,10 +74543,6 @@ msgid "Add Metaball"
 msgstr "Add Metaball"
 
 
-msgid "Add an metaball object to the scene"
-msgstr "Add an metaball object to the scene"
-
-
 msgid "Primitive"
 msgstr "Primitive"
 
@@ -76415,6 +76335,10 @@ msgid "Move the active vertex group up/down in the list"
 msgstr "Move the active vertex group up/down in the list"
 
 
+msgid "Direction to move the active vertex group towards"
+msgstr "Direction to move the active vertex group towards"
+
+
 msgid "Normalize weights of the active vertex group, so that the highest ones are now 1.0"
 msgstr "Normalise weights of the active vertex group, so that the highest ones are now 1.0"
 
@@ -77142,10 +77066,6 @@ msgstr "Drag and drop element to another place"
 msgctxt "Operator"
 msgid "Open/Close"
 msgstr "Open/Close"
-
-
-msgid "Toggle whether item under cursor is enabled or closed"
-msgstr "Toggle whether item under cursor is enabled or closed"
 
 
 msgid "Close or open all items"
@@ -78533,10 +78453,6 @@ msgid "Remove Doubles"
 msgstr "Remove Doubles"
 
 
-msgid "Remove selected particles close enough of others"
-msgstr "Remove selected particles close enough of others"
-
-
 msgid "Threshold distance within which particles are removed"
 msgstr "Threshold distance within which particles are removed"
 
@@ -78668,10 +78584,6 @@ msgstr "Remove selected points"
 
 msgid "Copy selected points"
 msgstr "Copy selected points"
-
-
-msgid "(De)select all point cloud"
-msgstr "(De)select all point cloud"
 
 
 msgid "Chance of every point being included in the selection"
@@ -79834,10 +79746,6 @@ msgstr "Round"
 msgctxt "Operator"
 msgid "Cancel Render View"
 msgstr "Cancel Render View"
-
-
-msgid "Cancel show render view"
-msgstr "Cancel show render view"
 
 
 msgctxt "Operator"
@@ -81030,6 +80938,10 @@ msgid "By how much to grow the selection"
 msgstr "By how much to grow the selection"
 
 
+msgid "Randomizes existing selection or create new random selection"
+msgstr "Randomises existing selection or create new random selection"
+
+
 msgid "Constant per Curve"
 msgstr "Constant per Curve"
 
@@ -81462,16 +81374,8 @@ msgid "Fair Positions"
 msgstr "Fair Positions"
 
 
-msgid "Creates a smooth as possible geometry patch from the face set minimizing changes in vertex positions"
-msgstr "Creates a smooth as possible geometry patch from the face set minimising changes in vertex positions"
-
-
 msgid "Fair Tangency"
 msgstr "Fair Tangency"
-
-
-msgid "Creates a smooth as possible geometry patch from the face set minimizing changes in vertex tangents"
-msgstr "Creates a smooth as possible geometry patch from the face set minimising changes in vertex tangents"
 
 
 msgid "Modify Hidden"
@@ -81566,16 +81470,8 @@ msgid "Face Set Full Mesh"
 msgstr "Face Set Full Mesh"
 
 
-msgid "Create an unique face set with all faces in the sculpt"
-msgstr "Create an unique face set with all faces in the sculpt"
-
-
 msgid "Face Set from Edit Mode Selection"
 msgstr "Face Set from Edit Mode Selection"
-
-
-msgid "Create an face set corresponding to the Edit Mode face selection"
-msgstr "Create an face set corresponding to the Edit Mode face selection"
 
 
 msgctxt "Operator"
@@ -83456,10 +83352,6 @@ msgid "Jump to Strip"
 msgstr "Jump to Strip"
 
 
-msgid "Move frame to previous edit point"
-msgstr "Move frame to previous edit point"
-
-
 msgid "Use Strip Center"
 msgstr "Use Strip Centre"
 
@@ -84035,17 +83927,9 @@ msgid "Add Surface Circle"
 msgstr "Add Surface Circle"
 
 
-msgid "Construct a Nurbs surface Circle"
-msgstr "Construct a Nurbs surface Circle"
-
-
 msgctxt "Operator"
 msgid "Add Surface Curve"
 msgstr "Add Surface Curve"
-
-
-msgid "Construct a Nurbs surface Curve"
-msgstr "Construct a Nurbs surface Curve"
 
 
 msgctxt "Operator"
@@ -84053,17 +83937,9 @@ msgid "Add Surface Cylinder"
 msgstr "Add Surface Cylinder"
 
 
-msgid "Construct a Nurbs surface Cylinder"
-msgstr "Construct a Nurbs surface Cylinder"
-
-
 msgctxt "Operator"
 msgid "Add Surface Sphere"
 msgstr "Add Surface Sphere"
-
-
-msgid "Construct a Nurbs surface Sphere"
-msgstr "Construct a Nurbs surface Sphere"
 
 
 msgctxt "Operator"
@@ -84071,17 +83947,9 @@ msgid "Add Surface Patch"
 msgstr "Add Surface Patch"
 
 
-msgid "Construct a Nurbs surface Patch"
-msgstr "Construct a Nurbs surface Patch"
-
-
 msgctxt "Operator"
 msgid "Add Surface Torus"
 msgstr "Add Surface Torus"
-
-
-msgid "Construct a Nurbs surface Torus"
-msgstr "Construct a Nurbs surface Torus"
 
 
 msgctxt "Operator"
@@ -84114,10 +83982,6 @@ msgstr "Move texture slots up and down"
 msgctxt "Operator"
 msgid "Paste Texture Slot Settings"
 msgstr "Paste Texture Slot Settings"
-
-
-msgid "Copy the texture settings and nodes"
-msgstr "Copy the texture settings and nodes"
 
 
 msgctxt "Operator"
@@ -84960,14 +84824,6 @@ msgid "Amount to warp about the cursor"
 msgstr "Amount to warp about the cursor"
 
 
-msgid "UP"
-msgstr "UP"
-
-
-msgid "DOWN"
-msgstr "DOWN"
-
-
 msgctxt "Operator"
 msgid "Assign Value as Default"
 msgstr "Assign Value as Default"
@@ -85354,6 +85210,14 @@ msgid "Add an entry to the list"
 msgstr "Add an entry to the list"
 
 
+msgid "UP"
+msgstr "UP"
+
+
+msgid "DOWN"
+msgstr "DOWN"
+
+
 msgctxt "Operator"
 msgid "Unset Property"
 msgstr "Unset Property"
@@ -85544,10 +85408,6 @@ msgstr "Location to align islands on"
 
 msgid "Align the islands to the min of the island"
 msgstr "Align the islands to the min of the island"
-
-
-msgid "Align the islands to the left side of the island"
-msgstr "Align the islands to the left side of the island"
 
 
 msgid "Align the islands to the center of the largest island"
@@ -86459,10 +86319,6 @@ msgstr "Object"
 msgctxt "Mesh"
 msgid "Winding"
 msgstr "Winding"
-
-
-msgid "Face direction defined by (clockwise or anti-clockwise winding (facing up or facing down)"
-msgstr "Face direction defined by (clockwise or anti-clockwise winding (facing up or facing down)"
 
 
 msgctxt "Mesh"
@@ -91257,6 +91113,50 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Wireframe Color"
+msgstr "Wireframe Colour"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Overlays"
+
+
+msgid "Guides"
+msgstr "Guides"
+
+
 msgid "glTF Variants"
 msgstr "glTF Variants"
 
@@ -91265,12 +91165,28 @@ msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
 
 
-msgid "VR"
-msgstr "VR"
+msgid "Viewer Node"
+msgstr "Viewer Node"
 
 
-msgid "VR Info"
-msgstr "VR Info"
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
 
 
 msgid "glTF"
@@ -91281,44 +91197,12 @@ msgid "glTF Animations"
 msgstr "glTF Animations"
 
 
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
+msgid "Transform Orientations"
+msgstr "Transform Orientations"
 
 
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameter Falloff"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Curves Grow/Shrink Scaling"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "Multi Frame"
-msgstr "Multi Frame"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopy"
-
-
-msgid "Quad View"
-msgstr "Quad View"
-
-
-msgid "Onion Skin"
-msgstr "Onion Skin"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
+msgid "Stroke Placement"
+msgstr "Stroke Placement"
 
 
 msgid "Drawing Plane"
@@ -91329,76 +91213,48 @@ msgid "Grease Pencil Options"
 msgstr "Grease Pencil Options"
 
 
-msgid "Guides"
-msgstr "Guides"
+msgid "Quad View"
+msgstr "Quad View"
 
 
-msgid "Stroke Placement"
-msgstr "Stroke Placement"
+msgid "Onion Skin"
+msgstr "Onion Skin"
 
 
-msgid "Transform Orientations"
-msgstr "Transform Orientations"
+msgid "Stereoscopy"
+msgstr "Stereoscopy"
 
 
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
+msgid "Multi Frame"
+msgstr "Multi Frame"
 
 
-msgid "Measurement"
-msgstr "Measurement"
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
 
 
-msgid "Viewer Node"
-msgstr "Viewer Node"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameter Falloff"
 
 
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Curves Grow/Shrink Scaling"
 
 
-msgid "Overlays"
-msgstr "Overlays"
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
 
 
-msgid "Compositor"
-msgstr "Compositor"
+msgid "VR"
+msgstr "VR"
 
 
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Wireframe Color"
-msgstr "Wireframe Colour"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Active Tool"
-msgstr "Active Tool"
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "Import Settings"
@@ -96620,10 +96476,6 @@ msgstr "Locale code: da. Translation progress: 3%"
 
 msgid "Dutch - Nederlands"
 msgstr "Dutch - Nederlands"
-
-
-msgid "Locale code: nl_NL. Translation progress: 5%"
-msgstr "Locale code: nl_NL. Translation progress: 5%"
 
 
 msgid "English (UK)"
@@ -108778,14 +108630,42 @@ msgid "Mute expanded settings for the modifier"
 msgstr "Mute expanded settings for the modifier"
 
 
-msgid "Tone Map"
-msgstr "Tone Map"
+msgctxt "Sequence"
+msgid "Brightness/Contrast"
+msgstr "Brightness/Contrast"
 
 
-msgid "Sound Equalizer"
-msgstr "Sound Equaliser"
+msgctxt "Sequence"
+msgid "Color Balance"
+msgstr "Colour Balance"
 
 
+msgctxt "Sequence"
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgctxt "Sequence"
+msgid "Curves"
+msgstr "Curves"
+
+
+msgctxt "Sequence"
+msgid "Hue Correct"
+msgstr "Hue Correct"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "White Balance"
+
+
+msgctxt "Sequence"
+msgid "Pitch"
+msgstr "Pitch"
+
+
+msgctxt "Sequence"
 msgid "Echo"
 msgstr "Echo"
 
@@ -118836,6 +118716,10 @@ msgid "Failed to write .oso file next to external .osl file at {:s}"
 msgstr "Failed to write .oso file next to external .osl file at {:s}"
 
 
+msgid "Classic"
+msgstr "Classic"
+
+
 msgid "Use Intel OpenImageDenoise AI denoiser"
 msgstr "Use Intel OpenImageDenoise AI denoiser"
 
@@ -120914,10 +120798,6 @@ msgstr "Removed {:d} empty and/or fake-user only Actions"
 
 msgid "Removed {:d} of {:d} bone collections"
 msgstr "Removed {:d} of {:d} bone collections"
-
-
-msgid "Modified the animation of  armatures"
-msgstr "Modified the animation of  armatures"
 
 
 msgid "Nothing to bake"
@@ -128968,10 +128848,6 @@ msgstr "Paste by Layer"
 msgctxt "Operator"
 msgid "Close"
 msgstr "Close"
-
-
-msgid "Toggle X-Ray"
-msgstr "Toggle X-Ray"
 
 
 msgid "To 3D Cursor"
@@ -146138,10 +146014,6 @@ msgid "Specifies the smoothness of the keying screen"
 msgstr "Specifies the smoothness of the keying screen"
 
 
-msgid "Classic"
-msgstr "Classic"
-
-
 msgid "Fast but less accurate variation"
 msgstr "Fast but less accurate variation"
 
@@ -151177,38 +151049,8 @@ msgstr "Mask Input"
 
 
 msgctxt "Sequence"
-msgid "Brightness/Contrast"
-msgstr "Brightness/Contrast"
-
-
-msgctxt "Sequence"
-msgid "Color Balance"
-msgstr "Colour Balance"
-
-
-msgctxt "Sequence"
-msgid "Compositor"
-msgstr "Compositor"
-
-
-msgctxt "Sequence"
-msgid "Curves"
-msgstr "Curves"
-
-
-msgctxt "Sequence"
-msgid "Hue Correct"
-msgstr "Hue Correct"
-
-
-msgctxt "Sequence"
 msgid "None"
 msgstr "None"
-
-
-msgctxt "Sequence"
-msgid "Echo"
-msgstr "Echo"
 
 
 msgctxt "Sequence"
@@ -151217,18 +151059,8 @@ msgstr "Equaliser"
 
 
 msgctxt "Sequence"
-msgid "Pitch"
-msgstr "Pitch"
-
-
-msgctxt "Sequence"
 msgid "Tonemap"
 msgstr "Tonemap"
-
-
-msgctxt "Sequence"
-msgid "White Balance"
-msgstr "White Balance"
 
 
 msgid "Strips must be the same length"
@@ -151326,24 +151158,20 @@ msgid "Region could not be drawn!"
 msgstr "Region could not be drawn!"
 
 
-msgid "poll failed"
-msgstr "poll failed"
-
-
-msgid "Input pending "
-msgstr "Input pending "
-
-
 msgid "Blender File View"
 msgstr "Blender File View"
 
 
-msgid "Failed to open file browser!"
-msgstr "Failed to open file browser!"
-
-
 msgid "Invalid context: \"%s\", %s"
 msgstr "Invalid context: \"%s\", %s"
+
+
+msgid "poll failed"
+msgstr "poll failed"
+
+
+msgid "Failed to open file browser!"
+msgstr "Failed to open file browser!"
 
 
 msgid "Missing 'window' in context"
