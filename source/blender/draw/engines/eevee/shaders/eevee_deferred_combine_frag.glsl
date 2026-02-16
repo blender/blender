@@ -137,6 +137,11 @@ void main()
   specular_direct = colorspace_brightness_clamp_max(specular_direct, clamp_direct);
   specular_indirect = colorspace_brightness_clamp_max(specular_indirect, clamp_indirect);
 
+  diffuse_direct *= uniform_buf.clamp.direct_scale;
+  diffuse_indirect *= uniform_buf.clamp.indirect_scale;
+  specular_direct *= uniform_buf.clamp.direct_scale;
+  specular_indirect *= uniform_buf.clamp.indirect_scale;
+
   /* Light passes. */
   if (render_pass_diffuse_light_enabled) {
     float3 diffuse_light = diffuse_direct + diffuse_indirect;
