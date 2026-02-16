@@ -106,6 +106,9 @@ class StringRefBase {
   /**
    * The behavior of those functions matches the standard library implementation of
    * std::string_view.
+   *
+   * \return the offset at which the char/string was found, or StringRefBase::not_found when
+   * nothing was found.
    */
   constexpr int64_t find(char c, int64_t pos = 0) const;
   constexpr int64_t find(StringRef str, int64_t pos = 0) const;
