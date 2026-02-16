@@ -7596,8 +7596,8 @@ NODE_DEFINE(NormalMapNode)
   SOCKET_ENUM(space, "Space", space_enum, NODE_NORMAL_MAP_TANGENT);
 
   static NodeEnum convention_enum;
-  convention_enum.insert("opengl", 0);
-  convention_enum.insert("directx", 1);
+  convention_enum.insert("opengl", NODE_NORMAL_MAP_CONVENTION_OPENGL);
+  convention_enum.insert("directx", NODE_NORMAL_MAP_CONVENTION_DIRECTX);
   SOCKET_ENUM(convention, "Convention", convention_enum, NODE_NORMAL_MAP_CONVENTION_OPENGL);
 
   SOCKET_STRING(attribute, "Attribute", ustring());
@@ -7654,13 +7654,19 @@ void NormalMapNode::compile(SVMCompiler &compiler)
     }
   }
 
+  /* Pack space and convention into byte. */
+  int flags = space;
+  if (convention == NODE_NORMAL_MAP_CONVENTION_DIRECTX) {
+    flags |= NODE_NORMAL_MAP_FLAG_DIRECTX;
+  }
+
   compiler.add_node(NODE_NORMAL_MAP,
                     compiler.encode_uchar4(compiler.stack_assign(color_in),
                                            compiler.stack_assign(strength_in),
                                            compiler.stack_assign(normal_out),
-                                           space),
+                                           flags),
                     attr,
-                    attr_sign | (convention == 1 ? NODE_NORMAL_MAP_CONVENTION_DIRECTX : 0));
+                    attr_sign);
 }
 
 void NormalMapNode::compile(OSLCompiler &compiler)

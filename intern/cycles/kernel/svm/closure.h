@@ -74,7 +74,7 @@ ccl_device
     }
   }
   else IF_KERNEL_NODES_FEATURE(EMISSION) {
-    if (type != CLOSURE_BSDF_PRINCIPLED_ID) {
+    if (mix_weight == 0.0f || type != CLOSURE_BSDF_PRINCIPLED_ID) {
       /* Only principled BSDF can have emission. */
       return svm_node_closure_bsdf_skip(kg, offset, type);
     }
@@ -125,7 +125,6 @@ ccl_device
       uint anisotropic_rotation_offset;
       uint tangent_offset;
       uint thin_film_ior_offset;
-      ClosureType distribution;
 
       const uint4 data_node2 = read_node(kg, &offset);
       const uint4 data_node3 = read_node(kg, &offset);
@@ -179,7 +178,7 @@ ccl_device
       const float3 coat_normal = safe_normalize_fallback(
           stack_load_float3_default(stack, coat_normal_offset, N), sd->N);
 
-      distribution = (ClosureType)distribution_uint;
+      const ClosureType distribution = (ClosureType)distribution_uint;
 
       const float diffuse_roughness = saturatef(
           stack_load_float_default(stack, diffuse_roughness_offset, 0.0f));
@@ -209,10 +208,9 @@ ccl_device
       const float transmission_weight = saturatef(
           stack_load_float_default(stack, transmission_weight_offset, 0.0f));
 
-      float thinfilm_ior = 0.0f;
-      if (thinfilm_thickness > THINFILM_THICKNESS_CUTOFF) {
-        thinfilm_ior = fmaxf(stack_load_float(stack, thin_film_ior_offset), 1e-5f);
-      }
+      const float thinfilm_ior = (thinfilm_thickness > THINFILM_THICKNESS_CUTOFF) ?
+                                     fmaxf(stack_load_float(stack, thin_film_ior_offset), 1e-5f) :
+                                     0.0f;
 
       /* We're ignoring closure_weight here since it's always 1 for the Principled BSDF, so there's
        * no point in setting it. */
@@ -509,6 +507,22 @@ ccl_device
             sd->flag |= bsdf_oren_nayar_setup(sd, bsdf, rgb_to_spectrum(base_color));
           }
         }
+      }
+      else {
+        (void)distribution;
+        (void)clamped_base_color;
+        (void)ior;
+        (void)metallic;
+        (void)valid_reflection_N;
+        (void)diffuse_roughness;
+        (void)specular_ior_level;
+        (void)specular_tint;
+        (void)subsurface_weight;
+        (void)transmission_weight;
+        (void)thinfilm_ior;
+        (void)alpha_x;
+        (void)alpha_y;
+        (void)refractive_caustics;
       }
 
       break;

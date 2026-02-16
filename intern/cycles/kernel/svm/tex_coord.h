@@ -329,13 +329,15 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
   uint color_offset;
   uint strength_offset;
   uint normal_offset;
-  uint space;
-  svm_unpack_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &space);
+  uint flags;
+  svm_unpack_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &flags);
+
+  const uint space = flags & NODE_NORMAL_MAP_FLAG_SPACE_MASK;
+  const bool invert_green = (flags & NODE_NORMAL_MAP_FLAG_DIRECTX) != 0;
 
   float3 color = stack_load_float3(stack, color_offset);
   color = 2.0f * make_float3(color.x - 0.5f, color.y - 0.5f, color.z - 0.5f);
 
-  const bool invert_green = (node.w & NODE_NORMAL_MAP_CONVENTION_DIRECTX) != 0;
   if (invert_green) {
     color.y = -color.y;
   }
@@ -355,8 +357,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
 
     /* first try to get tangent attribute */
     const AttributeDescriptor attr = find_attribute(kg, sd, node.z);
-    const AttributeDescriptor attr_sign = find_attribute(
-        kg, sd, node.w & ~NODE_NORMAL_MAP_CONVENTION_DIRECTX);
+    const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.w);
 
     if (attr.offset == ATTR_STD_NOT_FOUND || attr_sign.offset == ATTR_STD_NOT_FOUND) {
       /* Fall back to unperturbed normal. */
