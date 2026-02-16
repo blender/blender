@@ -66,6 +66,4 @@ void ImageSpaceDrawingMode::draw_viewport() const
   instance_.manager->submit(instance_.state.image_ps, instance_.state.view);
 }
 
-void ImageSpaceDrawingMode::draw_finish() const {}
-
 };  // namespace blender::image_engine

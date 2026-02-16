@@ -38,7 +38,6 @@ class AbstractDrawingMode {
   virtual void begin_sync() const = 0;
   virtual void image_sync(blender::Image *image, blender::ImageUser *iuser) const = 0;
   virtual void draw_viewport() const = 0;
-  virtual void draw_finish() const = 0;
 };
 
 }  // namespace image_engine

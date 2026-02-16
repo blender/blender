@@ -33,7 +33,6 @@ class ImageSpaceDrawingMode : public AbstractDrawingMode {
   ~ImageSpaceDrawingMode() override;
   void begin_sync() const override;
   void image_sync(blender::Image *image, blender::ImageUser *iuser) const override;
-  void draw_finish() const override;
   void draw_viewport() const override;
 };
 };  // namespace blender::image_engine

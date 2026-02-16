@@ -132,6 +132,7 @@ class Instance : public DrawEngine {
 
     this->image_sync();
     drawing_mode_.reset();
+    this->state.float_buffers.reset_usage_flags();
     if (this->state.image) {
       this->drawing_mode_ = this->get_drawing_mode();
       drawing_mode_->begin_sync();
@@ -184,12 +185,12 @@ class Instance : public DrawEngine {
     DRW_submission_start();
     if (drawing_mode_) {
       drawing_mode_->draw_viewport();
-      drawing_mode_->draw_finish();
     }
     else {
       GPU_framebuffer_clear_color_depth(
           DRW_context_get()->viewport_framebuffer_list_get()->default_fb, float4(0.0), 1.0f);
     }
+    this->state.float_buffers.remove_unused_buffers();
     state.image = nullptr;
     drawing_mode_.reset();
     DRW_submission_end();

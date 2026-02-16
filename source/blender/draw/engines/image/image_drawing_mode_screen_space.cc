@@ -354,7 +354,6 @@ void ScreenSpaceDrawingMode::image_sync(blender::Image *image, ImageUser *iuser)
 
   state.partial_update.ensure_image(image);
   state.clear_need_full_update_flag();
-  state.float_buffers.reset_usage_flags();
 
   /* Step: Find out which screen space textures are needed to draw on the screen. Recycle
    * textures that are not on screen anymore. */
@@ -375,11 +374,6 @@ void ScreenSpaceDrawingMode::image_sync(blender::Image *image, ImageUser *iuser)
     add_depth_shgroups(image, iuser);
   }
   add_shgroups();
-}
-
-void ScreenSpaceDrawingMode::draw_finish() const
-{
-  instance_.state.float_buffers.remove_unused_buffers();
 }
 
 void ScreenSpaceDrawingMode::draw_viewport() const

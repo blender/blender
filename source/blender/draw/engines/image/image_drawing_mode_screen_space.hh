@@ -310,7 +310,6 @@ class ScreenSpaceDrawingMode : public AbstractDrawingMode {
  public:
   void begin_sync() const override;
   void image_sync(blender::Image *image, blender::ImageUser *iuser) const override;
-  void draw_finish() const override;
   void draw_viewport() const override;
 };
 
