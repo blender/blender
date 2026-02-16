@@ -247,7 +247,7 @@ static BHead *blo_blendhandle_read_preview_rects(FileData *fd,
       result->rect[preview_index] = nullptr;
       result->w[preview_index] = result->h[preview_index] = 0;
     }
-    BKE_previewimg_finish(result, preview_index);
+    result->flag[preview_index] &= ~PRV_RENDERING;
   }
 
   return bhead;

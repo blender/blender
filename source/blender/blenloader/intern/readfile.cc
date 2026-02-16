@@ -4505,6 +4505,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     /* Make all relative paths, relative to the open blend file. */
     fix_relpaths_library(fd->relabase, bfd->main);
+
+    bfd->main->need_preview_render_restart = fd->need_preview_render_restart;
   }
   else {
     BKE_layer_collection_resync_allow();
@@ -6134,6 +6136,11 @@ Main *BLO_read_lib_get_main(BlendLibReader *reader)
 BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader)
 {
   return reader->fd->reports;
+}
+
+void BLO_read_data_set_need_preview_render_restart(BlendDataReader *reader)
+{
+  reader->fd->need_preview_render_restart = true;
 }
 
 /** \} */

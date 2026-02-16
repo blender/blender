@@ -668,8 +668,6 @@ static void wm_file_read_pre(bool use_data, bool /*use_userdef*/)
   /* Always do this as both startup and preferences may have loaded in many font's
    * at a different zoom level to the file being loaded. */
   ui::view2d_zoom_cache_reset();
-
-  ED_preview_restart_queue_free();
 }
 
 /**

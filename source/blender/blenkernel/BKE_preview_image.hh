@@ -35,7 +35,7 @@ struct PreviewDeferredLoadingData;
 struct PreviewImageRuntime {
   /** Used by previews outside of ID context. */
   int icon_id = 0;
-  int16_t tag = 0;
+  int16_t tag[NUM_ICON_SIZES] = {};
 
   std::array<gpu::Texture *, NUM_ICON_SIZES> gputexture = {};
 
@@ -146,13 +146,26 @@ std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *
  */
 ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, int size);
 
-void BKE_previewimg_finish(PreviewImage *prv, int size);
+/*
+ * Preview rendering.
+ */
+enum PreviewImageRenderEndStatus {
+  PRV_RENDER_STATUS_FINISHED,
+  PRV_RENDER_STATUS_FAILED,
+  PRV_RENDER_STATUS_CANCELLED,
+};
+
+void BKE_previewimg_render_start(PreviewImage *prv, int size, bool using_job);
+void BKE_previewimg_render_end(PreviewImage *prv, int size, PreviewImageRenderEndStatus status);
+bool BKE_previewimg_render_restart(PreviewImage *prv, int size);
+bool BKE_previewimg_is_rendering(const PreviewImage *prv, int size);
 bool BKE_previewimg_is_finished(const PreviewImage *prv, int size);
+
 /**
  * Deferred preview images may fail to load, e.g. because the image couldn't be found on disk.
  * \return true of a deferred preview image could not be loaded.
  */
-bool BKE_previewimg_is_invalid(const PreviewImage *prv);
+bool BKE_previewimg_is_invalid(const PreviewImage *prv, int size);
 
 PreviewImage *BKE_previewimg_cached_get(const char *name);
 
@@ -186,8 +199,6 @@ PreviewImage *BKE_previewimg_online_thumbnail_read(const char *name,
                                                    bool force_update);
 
 void BKE_previewimg_cached_release(const char *name);
-
-void BKE_previewimg_deferred_release(PreviewImage *prv);
 
 void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv);
 void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv);

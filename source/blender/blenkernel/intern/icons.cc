@@ -473,7 +473,7 @@ std::optional<IconBufferRef> BKE_icon_get_buffer(const int icon_id, const eIconS
     }
     case ICON_DATA_PREVIEW: {
       if (const PreviewImage *preview = static_cast<PreviewImage *>(icon->obj)) {
-        if (preview->flag[size] & PRV_RENDERING) {
+        if (!BKE_previewimg_is_finished(preview, size)) {
           return std::nullopt;
         }
         return icon_buffer_from_preview(preview, size);

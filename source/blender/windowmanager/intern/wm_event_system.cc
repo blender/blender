@@ -632,7 +632,7 @@ void wm_event_do_notifiers(bContext *C)
           WM_window_title_refresh(wm, &win);
         }
         else if (note->data == ND_UNDO) {
-          ED_preview_restart_queue_work(C);
+          ED_preview_restart_work(C);
         }
       }
 

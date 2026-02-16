@@ -616,11 +616,13 @@ enum ePreviewImage_Flag {
 /* PreviewImage.tag */
 enum {
   /** Deferred preview is being loaded. */
-  PRV_TAG_DEFFERED_RENDERING = (1 << 1),
+  PRV_TAG_DEFERRED_RENDERING = (1 << 1),
   /** Deferred preview should be deleted asap. */
-  PRV_TAG_DEFFERED_DELETE = (1 << 2),
+  PRV_TAG_DEFERRED_DELETE = (1 << 2),
   /** This deferred preview could not be loaded (e.g. not found on disk). */
-  PRV_TAG_DEFFERED_INVALID = (1 << 3),
+  PRV_TAG_DEFERRED_INVALID = (1 << 3),
+  /* Rendering was interrupted and needs restart. */
+  PRV_TAG_RESTART_RENDERING = (1 << 4),
 };
 
 /**

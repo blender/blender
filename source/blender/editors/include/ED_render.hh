@@ -113,9 +113,15 @@ void ED_preview_icon_render(
 void ED_preview_icon_job(
     const bContext *C, PreviewImage *prv_img, ID *id, enum eIconSizes icon_size, bool delay);
 
-void ED_preview_restart_queue_free();
-void ED_preview_restart_queue_add(ID *id, enum eIconSizes size);
-void ED_preview_restart_queue_work(const bContext *C);
+/**
+ * ID previews may be generated in a parallel job. The operation that generates the preview
+ * likely does an undo push before the preview is actually done and stored in the ID. The
+ * restart system exists to make sure previews remain up to date.
+ *
+ * When undoing back to the moment the preview generation was triggered, this function
+ * schedules the preview for regeneration.
+ */
+void ED_preview_restart_work(const bContext *C);
 
 void ED_preview_kill_jobs(wmWindowManager *wm, Main *bmain);
 void ED_preview_kill_jobs_for_id(wmWindowManager *wm, const ID *id);

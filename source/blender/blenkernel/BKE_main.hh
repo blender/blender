@@ -337,6 +337,11 @@ struct Main : NonCopyable, NonMovable {
   bool is_action_slot_to_id_map_dirty = false;
 
   /**
+   * Set when reading a file from undo with incomplete preview, to trigger restart of preview jobs.
+   */
+  bool need_preview_render_restart = false;
+
+  /**
    * The blend-file thumbnail. If set, it will show as image preview of the blend-file in the
    * system's file-browser.
    */
