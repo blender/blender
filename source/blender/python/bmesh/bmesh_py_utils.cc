@@ -412,7 +412,7 @@ PyDoc_STRVAR(
     "   :type use_exist: bool\n"
     "   :param source: Newly created edge will copy settings from this one.\n"
     "   :type source: :class:`bmesh.types.BMEdge` | None\n"
-    "   :return: The newly created face or None on failure.\n"
+    "   :return: The newly created face and loop.\n"
     "   :rtype: tuple[:class:`bmesh.types.BMFace`, :class:`bmesh.types.BMLoop`]\n");
 static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
@@ -993,7 +993,8 @@ static PyMethodDef BPy_BM_utils_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     BPy_BM_utils_doc,
-    "This module provides access to Blender's bmesh data structures.");
+    "This module provides bmesh utility functions for splitting, joining, "
+    "and modifying mesh elements.");
 static PyModuleDef BPy_BM_utils_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.utils",

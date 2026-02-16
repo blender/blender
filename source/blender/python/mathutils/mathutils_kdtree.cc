@@ -213,8 +213,9 @@ PyDoc_STRVAR(
     "   :param filter: function which takes an index and returns True for indices to "
     "include in the search.\n"
     "   :type filter: Callable[[int], bool] | None\n"
-    "   :return: Returns (position, index, distance).\n"
-    "   :rtype: tuple[:class:`Vector`, int, float]\n");
+    "   :return: Returns (position, index, distance),\n"
+    "      or (None, None, None) when no match is found.\n"
+    "   :rtype: tuple[:class:`Vector`, int, float] | tuple[None, None, None]\n");
 static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
   PyObject *py_co, *py_filter = Py_None;

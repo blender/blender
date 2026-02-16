@@ -652,7 +652,7 @@ PyDoc_STRVAR(
     "   Returns the deform weight matching the key or default\n"
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
-    "   :param key: The key associated with deform weight.\n"
+    "   :param key: The vertex group index.\n"
     "   :type key: int\n"
     "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"

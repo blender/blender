@@ -323,11 +323,11 @@ PyDoc_STRVAR(
     py_bvhtree_ray_cast_doc,
     ".. method:: ray_cast(origin, direction, distance=sys.float_info.max, /)\n"
     "\n"
-    "   Cast a ray onto the mesh.\n"
+    "   Cast a ray onto the geometry.\n"
     "\n"
-    "   :param origin: Start location of the ray in object space.\n"
+    "   :param origin: Start location of the ray.\n"
     "   :type origin: :class:`Vector`\n"
-    "   :param direction: Direction of the ray in object space.\n"
+    "   :param direction: Direction of the ray (normalized internally).\n"
     "   :type direction: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
         PYBVH_FIND_GENERIC_RETURN_DOC);
 static PyObject *py_bvhtree_ray_cast(PyBVHTree *self, PyObject *args)
@@ -1133,7 +1133,7 @@ PyDoc_STRVAR(
     "\n"
     "   BVH tree based on :class:`Object` data.\n"
     "\n"
-    "   :param object: Object data.\n"
+    "   :param object: Mesh object.\n"
     "   :type object: :class:`Object`\n"
     "   :param depsgraph: Depsgraph to use for evaluating the mesh.\n"
     "   :type depsgraph: :class:`Depsgraph`\n"

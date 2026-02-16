@@ -251,7 +251,7 @@ PyDoc_STRVAR(
     py_blf_clipping_doc,
     ".. function:: clipping(fontid, xmin, ymin, xmax, ymax)\n"
     "\n"
-    "   Set the clipping, enable/disable using CLIPPING.\n"
+    "   Set the clipping, enable/disable using :data:`CLIPPING`.\n"
     "\n"
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
@@ -283,7 +283,7 @@ PyDoc_STRVAR(
     py_blf_word_wrap_doc,
     ".. function:: word_wrap(fontid, wrap_width)\n"
     "\n"
-    "   Set the wrap width, enable/disable using WORD_WRAP.\n"
+    "   Set the wrap width, enable/disable using :data:`WORD_WRAP`.\n"
     "\n"
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
@@ -314,7 +314,8 @@ PyDoc_STRVAR(
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :param option: One of ROTATION, CLIPPING, SHADOW, MONOCHROME or WORD_WRAP.\n"
+    "   :param option: One of :data:`ROTATION`, :data:`CLIPPING`, "
+    ":data:`SHADOW`, :data:`MONOCHROME` or :data:`WORD_WRAP`.\n"
     "   :type option: int\n");
 static PyObject *py_blf_disable(PyObject * /*self*/, PyObject *args)
 {
@@ -339,7 +340,8 @@ PyDoc_STRVAR(
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :param option: One of ROTATION, CLIPPING, SHADOW, MONOCHROME or WORD_WRAP.\n"
+    "   :param option: One of :data:`ROTATION`, :data:`CLIPPING`, "
+    ":data:`SHADOW`, :data:`MONOCHROME` or :data:`WORD_WRAP`.\n"
     "   :type option: int\n");
 static PyObject *py_blf_enable(PyObject * /*self*/, PyObject *args)
 {
@@ -359,12 +361,12 @@ PyDoc_STRVAR(
     py_blf_rotation_doc,
     ".. function:: rotation(fontid, angle)\n"
     "\n"
-    "   Set the text rotation angle, enable/disable using ROTATION.\n"
+    "   Set the text rotation angle, enable/disable using :data:`ROTATION`.\n"
     "\n"
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"
     "   :type fontid: int\n"
-    "   :param angle: The angle for text drawing to use.\n"
+    "   :param angle: The angle for text drawing to use (in radians).\n"
     "   :type angle: float\n");
 static PyObject *py_blf_rotation(PyObject * /*self*/, PyObject *args)
 {
@@ -385,7 +387,7 @@ PyDoc_STRVAR(
     py_blf_shadow_doc,
     ".. function:: shadow(fontid, level, r, g, b, a)\n"
     "\n"
-    "   Shadow options, enable/disable using SHADOW.\n"
+    "   Shadow options, enable/disable using :data:`SHADOW`.\n"
     "\n"
     "   :param fontid: The id of the typeface as returned by :func:`blf.load`, for default "
     "font use 0.\n"

@@ -153,7 +153,7 @@ PyDoc_STRVAR(
     bpy_bmlayercollection_active_doc,
     "The active layer of this type (read-only).\n"
     "\n"
-    ":type: :class:`bmesh.types.BMLayerItem`\n");
+    ":type: :class:`bmesh.types.BMLayerItem` | None\n");
 static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void * /*flag*/)
 {
   CustomData *data;
@@ -627,7 +627,7 @@ PyDoc_STRVAR(
     bpy_bmlayercollection_items_doc,
     ".. method:: items()\n"
     "\n"
-    "   Return the identifiers of collection members\n"
+    "   Return the (key, value) pairs of collection members\n"
     "   (matching Python's dict.items() functionality).\n"
     "\n"
     "   :return: (key, value) pairs for each member of this collection.\n"
@@ -1007,7 +1007,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeritem_type_doc,
     "Exposes a single custom data layer, "
-    "their main purpose is for use as item accessors to custom-data when used with "
+    "its main purpose is for use as an item accessor to custom-data when used with "
     "vert/edge/face/loop data.\n");
 
 PyTypeObject BPy_BMLayerAccessVert_Type; /* bm.verts.layers */
