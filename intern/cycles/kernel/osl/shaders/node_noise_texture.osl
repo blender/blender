@@ -98,23 +98,25 @@ float noise_texture(float co,
   }
 
   float value = noise_select(p, detail, roughness, lacunarity, offset, gain, type, use_normalize);
-  Color = color(value,
-                noise_select(p + random_float_offset(1.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize),
-                noise_select(p + random_float_offset(2.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize));
+  if (isconnected(Color) != 0) {
+    Color = color(value,
+                  noise_select(p + random_float_offset(1.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize),
+                  noise_select(p + random_float_offset(2.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize));
+  }
   return value;
 }
 
@@ -136,23 +138,25 @@ float noise_texture(vector2 co,
   }
 
   float value = noise_select(p, detail, roughness, lacunarity, offset, gain, type, use_normalize);
-  Color = color(value,
-                noise_select(p + random_vector2_offset(2.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize),
-                noise_select(p + random_vector2_offset(3.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize));
+  if (isconnected(Color) != 0) {
+    Color = color(value,
+                  noise_select(p + random_vector2_offset(2.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize),
+                  noise_select(p + random_vector2_offset(3.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize));
+  }
   return value;
 }
 
@@ -175,23 +179,25 @@ float noise_texture(vector3 co,
   }
 
   float value = noise_select(p, detail, roughness, lacunarity, offset, gain, type, use_normalize);
-  Color = color(value,
-                noise_select(p + random_vector3_offset(3.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize),
-                noise_select(p + random_vector3_offset(4.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize));
+  if (isconnected(Color) != 0) {
+    Color = color(value,
+                  noise_select(p + random_vector3_offset(3.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize),
+                  noise_select(p + random_vector3_offset(4.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize));
+  }
   return value;
 }
 
@@ -215,23 +221,25 @@ float noise_texture(vector4 co,
   }
 
   float value = noise_select(p, detail, roughness, lacunarity, offset, gain, type, use_normalize);
-  Color = color(value,
-                noise_select(p + random_vector4_offset(4.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize),
-                noise_select(p + random_vector4_offset(5.0),
-                             detail,
-                             roughness,
-                             lacunarity,
-                             offset,
-                             gain,
-                             type,
-                             use_normalize));
+  if (isconnected(Color) != 0) {
+    Color = color(value,
+                  noise_select(p + random_vector4_offset(4.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize),
+                  noise_select(p + random_vector4_offset(5.0),
+                               detail,
+                               roughness,
+                               lacunarity,
+                               offset,
+                               gain,
+                               type,
+                               use_normalize));
+  }
   return value;
 }
 
