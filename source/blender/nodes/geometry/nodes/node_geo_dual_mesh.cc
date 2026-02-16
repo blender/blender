@@ -170,7 +170,7 @@ static void transfer_attributes(
     if (info.type == CommonVArrayInfo::Type::Single) {
       const GPointer value(src.varray.type(), info.data);
       if (dst_attributes.add(id, out_domain, data_type, bke::AttributeInitValue(value))) {
-        return;
+        continue;
       }
     }
 
