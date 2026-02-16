@@ -157,7 +157,7 @@ properties that behave that way are:
 - :class:`bpy.types.Window.screen`
 - :class:`bpy.types.Window.scene`
 - :class:`bpy.types.Area.type`
-- :class:`bpy.types.Area.uitype`
+- :class:`bpy.types.Area.ui_type`
 
 Such changes impact the UI, and with that the context (:class:`bpy.context`) quite drastically. This can break
 Blender's context management. So Blender delays this change until after operators have run and just before the UI is
@@ -167,8 +167,8 @@ If you rely on executing code with an updated context this can be worked around 
 fashion as well. Possible options include:
 
  - :ref:`Modal Operator <modal_operator>`.
- - :class:`bpy.app.handlers`.
- - :class:`bpy.app.timer`.
+ - :mod:`bpy.app.handlers`.
+ - :mod:`bpy.app.timers`.
 
 It's also possible to depend on drawing callbacks although these should generally be avoided as failure to draw a
 hidden panel, region, cursor, etc. could cause your script to be unreliable

@@ -221,7 +221,7 @@ otherwise Blender's internal initialization won't happen properly:
    be fairly cryptic and unhelping. Generally they should be about failure to create a (python)
    object:
 
-      MemoryError: couldn't create bpy_struct object\_
+      MemoryError: couldn't create bpy_struct object
 
    With Operators, it might be something like that:
 

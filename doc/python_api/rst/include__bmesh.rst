@@ -46,8 +46,8 @@ Mesh Access
 -----------
 
 There are two ways to access BMesh data, you can create a new BMesh by converting a mesh from
-:class:`bpy.types.BlendData.meshes` or by accessing the current Edit-Mode mesh.
-See: :class:`bmesh.types.BMesh.from_mesh` and :mod:`bmesh.from_edit_mesh` respectively.
+:attr:`bpy.types.BlendData.meshes` or by accessing the current Edit-Mode mesh.
+See: :meth:`bmesh.types.BMesh.from_mesh` and :func:`bmesh.from_edit_mesh` respectively.
 
 When explicitly converting from mesh data Python **owns** the data, that means that
 the mesh only exists while Python holds a reference to it.
@@ -59,7 +59,7 @@ Unlike Edit-Mode, the BMesh module can use multiple BMesh instances at once.
 
 Take care when dealing with multiple BMesh instances since the mesh data can use a lot of memory.
 While a mesh that the Python script owns will be freed when the script holds no references to it,
-it's good practice to call :class:`bmesh.types.BMesh.free` which will remove all the mesh data immediately
+it's good practice to call :meth:`bmesh.types.BMesh.free` which will remove all the mesh data immediately
 and disable further access.
 
 
@@ -69,7 +69,7 @@ Edit-Mode Tessellation
 When writing scripts that operate on Edit-Mode data you will normally want to re-calculate the tessellation after
 running the script, this needs to be called explicitly.
 The BMesh itself does not store the triangulated faces, instead they are stored in the :class:`bpy.types.Mesh`,
-to refresh tessellation triangles call :class:`bpy.types.Mesh.calc_loop_triangles`.
+to refresh tessellation triangles call :meth:`bpy.types.Mesh.calc_loop_triangles`.
 
 
 CustomData Access
