@@ -507,6 +507,10 @@ PyDoc_STRVAR(
     "\n"
     "   Return a new, normalized vector.\n"
     "\n"
+    "   .. note:: For 4D vectors, only the x, y, z components are normalized;\n"
+    "      the w component is left untouched.\n"
+    "      The resulting 4D vector may not have unit length.\n"
+    "\n"
     "   :return: a normalized copy of the vector\n"
     "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_normalized(VectorObject *self)
@@ -1134,6 +1138,8 @@ PyDoc_STRVAR(
     ".. method:: angle(other, fallback=None, /)\n"
     "\n"
     "   Return the angle between two vectors.\n"
+    "\n"
+    "   .. note:: For 4D vectors, only the x, y, z components are used.\n"
     "\n"
     "   :param other: another vector to compare the angle with\n"
     "   :type other: :class:`Vector`\n"

@@ -285,7 +285,7 @@ static void bm_init_types_bmvertskin()
 
   BPy_BMVertSkin_Type.tp_name = "BMVertSkin";
 
-  BPy_BMVertSkin_Type.tp_doc = nullptr; /* todo */
+  BPy_BMVertSkin_Type.tp_doc = "Skin vertex data for the skin modifier.";
 
   BPy_BMVertSkin_Type.tp_getset = bpy_bmvertskin_getseters;
 

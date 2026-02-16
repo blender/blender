@@ -2555,6 +2555,8 @@ PyDoc_STRVAR(
     bpy_bmedge_calc_length_doc,
     ".. method:: calc_length()\n"
     "\n"
+    "   Return the length of the edge.\n"
+    "\n"
     "   :return: The length between both verts.\n"
     "   :rtype: float\n");
 static PyObject *bpy_bmedge_calc_length(BPy_BMEdge *self)
@@ -2567,6 +2569,8 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmedge_calc_face_angle_doc,
     ".. method:: calc_face_angle(fallback=None)\n"
+    "\n"
+    "   Return the angle between this edge's two connected faces.\n"
     "\n"
     "   :param fallback: return this when the edge doesn't have 2 faces\n"
     "      (instead of raising a :exc:`ValueError`).\n"
@@ -2607,6 +2611,8 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmedge_calc_face_angle_signed_doc,
     ".. method:: calc_face_angle_signed(fallback=None)\n"
+    "\n"
+    "   Return the signed angle between this edge's two connected faces.\n"
     "\n"
     "   :param fallback: return this when the edge doesn't have 2 faces\n"
     "      (instead of raising a :exc:`ValueError`).\n"
