@@ -313,6 +313,9 @@ bool WM_window_pixels_read_sample(bContext *C, wmWindow *win, const int pos[2], 
  * Support for native pixel size
  *
  * \note macOS retina opens window in size X, but it has up to 2 x more pixels.
+ *
+ * \warning This includes CSD (Client-Side Decoration) area such as the title-bar.
+ * Use #WM_window_rect_calc to get the usable content bounds.
  */
 int WM_window_native_pixel_x(const wmWindow *win);
 int WM_window_native_pixel_y(const wmWindow *win);
