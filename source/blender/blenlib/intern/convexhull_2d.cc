@@ -657,6 +657,20 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
   return hiter;
 }
 
+#ifdef USE_ANGLE_ITER_ORDER_ASSERT
+static float convexhull_2d_angle_iter_cross_for_assert(const HullAngleIter &hiter,
+                                                       const AngleCanonical &angle_prev)
+{
+  const int i_a = angle_prev.index;
+  const int i_b = hiter.axis_ordered->angle.index;
+  const float2 dir_a = float2(hiter.points_hull[(i_a + 1) % hiter.points_hull_num]) -
+                       float2(hiter.points_hull[i_a]);
+  const float2 dir_b = float2(hiter.points_hull[(i_b + 1) % hiter.points_hull_num]) -
+                       float2(hiter.points_hull[i_b]);
+  return dir_a[0] * dir_b[1] - dir_a[1] * dir_b[0];
+}
+#endif
+
 static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
 {
   HullAngleStep *hstep = hiter.axis_ordered;
@@ -672,8 +686,18 @@ static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
 #ifdef USE_ANGLE_ITER_ORDER_ASSERT
   if (hiter.axis_ordered) {
     hstep = hiter.axis_ordered;
-    BLI_assert(hull_angle_canonical_cmp(angle_prev, hiter.axis_ordered->angle) > 0);
+    BLI_assert((hull_angle_canonical_cmp(angle_prev, hiter.axis_ordered->angle) > 0) ||
+               /* Skip for near co-linear edges can fail.
+                * The `convexhull_2d.NearCoLinear` test needs this so as not to assert.
+                *
+                * NOTE: An alternative would be to "filter" the hull by walking around the hull,
+                * angle stepping and filtering out points that don't fit consistent turning rule.
+                * This is debatable - with near co-linear edges it's unlikely to make a noticeable
+                * improvement to the result, at the expense of having to calculate unit length
+                * vectors for all edges twice (or store them for reuse). */
+               (std::abs(convexhull_2d_angle_iter_cross_for_assert(hiter, angle_prev)) < 1e-6f));
     UNUSED_VARS_NDEBUG(angle_prev);
+    (void)convexhull_2d_angle_iter_cross_for_assert;
   }
 #endif
 }

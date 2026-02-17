@@ -476,6 +476,24 @@ TEST(convexhull_2d, Complex)
   }
 }
 
+TEST(convexhull_2d, NearCoLinear)
+{
+  /* This test uses a polygon that is very close to having a co-linear edge.
+   * The rotating calipers detect this as walking backwards (i.e. the hull is *not* convex),
+   * however, it being convex or not will give different answers depending on the method used.
+   * Add near co-linear test, extracted from: #152810 which was asserting. */
+  const float2 coords[] = {
+      {+0.117849081754684448, 0.989015936851501464},
+      {-0.035001631826162338, 0.988978028297424316},
+      {-0.046869464218616485, 0.988972485065460205},
+      {-0.048847433179616928, 0.988971292972564697},
+  };
+  EXPECT_NEAR(convexhull_aabb_canonical_angle(
+                  BLI_convexhull_aabb_fit_points_2d(Span<float2>(coords, ARRAY_SIZE(coords)))),
+              float(math::AngleRadian::from_degree(89.984655)),
+              ROTATION_EPS);
+}
+
 /* Keep these as they're handy for generating a lot of random data.
  * To brute force check results are as expected:
  * - Increase #DEFAULT_TEST_ITER to a large number (100k or so).
