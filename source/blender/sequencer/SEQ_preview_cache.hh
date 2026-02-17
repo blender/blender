@@ -22,14 +22,14 @@ class Texture;
 
 namespace seq {
 
-gpu::Texture *preview_cache_get_gpu_texture(Scene *scene, int timeline_frame, int display_channel);
+gpu::Texture *preview_cache_get_gpu_texture(
+    Scene *scene, int timeline_frame, int display_channel, int width, int height);
 void preview_cache_set_gpu_texture(Scene *scene,
                                    int timeline_frame,
                                    int display_channel,
                                    gpu::Texture *texture);
-gpu::Texture *preview_cache_get_gpu_display_texture(Scene *scene,
-                                                    int timeline_frame,
-                                                    int display_channel);
+gpu::Texture *preview_cache_get_gpu_display_texture(
+    Scene *scene, int timeline_frame, int display_channel, int width, int height);
 void preview_cache_set_gpu_display_texture(Scene *scene,
                                            int timeline_frame,
                                            int display_channel,
