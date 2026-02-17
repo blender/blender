@@ -6655,16 +6655,6 @@ void gather_bmesh_normals(const Set<BMVert *, 0> &verts, const MutableSpan<float
 }
 
 template<typename T>
-void gather_data_mesh(const Span<T> src, const Span<int> indices, const MutableSpan<T> dst)
-{
-  BLI_assert(indices.size() == dst.size());
-
-  for (const int i : indices.index_range()) {
-    dst[i] = src[indices[i]];
-  }
-}
-
-template<typename T>
 void gather_data_grids(const SubdivCCG &subdiv_ccg,
                        const Span<T> src,
                        const Span<int> grids,
@@ -6691,16 +6681,6 @@ void gather_data_bmesh(const Span<T> src,
   for (const BMVert *vert : verts) {
     node_data[i] = src[BM_elem_index_get(vert)];
     i++;
-  }
-}
-
-template<typename T>
-void scatter_data_mesh(const Span<T> src, const Span<int> indices, const MutableSpan<T> dst)
-{
-  BLI_assert(indices.size() == src.size());
-
-  for (const int i : indices.index_range()) {
-    dst[indices[i]] = src[i];
   }
 }
 
@@ -6734,11 +6714,6 @@ void scatter_data_bmesh(const Span<T> node_data,
   }
 }
 
-template void gather_data_mesh<bool>(Span<bool>, Span<int>, MutableSpan<bool>);
-template void gather_data_mesh<int>(Span<int>, Span<int>, MutableSpan<int>);
-template void gather_data_mesh<float>(Span<float>, Span<int>, MutableSpan<float>);
-template void gather_data_mesh<float3>(Span<float3>, Span<int>, MutableSpan<float3>);
-template void gather_data_mesh<float4>(Span<float4>, Span<int>, MutableSpan<float4>);
 template void gather_data_grids<int>(const SubdivCCG &, Span<int>, Span<int>, MutableSpan<int>);
 template void gather_data_grids<float>(const SubdivCCG &,
                                        Span<float>,
@@ -6754,11 +6729,6 @@ template void gather_data_bmesh<float3>(Span<float3>,
                                         const Set<BMVert *, 0> &,
                                         MutableSpan<float3>);
 
-template void scatter_data_mesh<bool>(Span<bool>, Span<int>, MutableSpan<bool>);
-template void scatter_data_mesh<int>(Span<int>, Span<int>, MutableSpan<int>);
-template void scatter_data_mesh<float>(Span<float>, Span<int>, MutableSpan<float>);
-template void scatter_data_mesh<float3>(Span<float3>, Span<int>, MutableSpan<float3>);
-template void scatter_data_mesh<float4>(Span<float4>, Span<int>, MutableSpan<float4>);
 template void scatter_data_grids<float>(const SubdivCCG &,
                                         Span<float>,
                                         Span<int>,

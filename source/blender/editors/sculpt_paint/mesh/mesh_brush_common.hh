@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_bit_span.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -83,7 +84,11 @@ void translations_from_new_positions(Span<float3> new_positions,
                                      MutableSpan<float3> translations);
 
 /** Gather data from an array aligned with all geometry vertices. */
-template<typename T> void gather_data_mesh(Span<T> src, Span<int> indices, MutableSpan<T> dst);
+template<typename T> void gather_data_mesh(Span<T> src, Span<int> indices, MutableSpan<T> dst)
+{
+  /* #exec_mode::serial because this is called from tasks with TLS that don't use isolation. */
+  array_utils::gather(src, indices, dst, exec_mode::serial);
+}
 template<typename T>
 MutableSpan<T> gather_data_mesh(const Span<T> src, const Span<int> indices, Vector<T> &dst)
 {
@@ -119,7 +124,11 @@ MutableSpan<T> gather_data_bmesh(const Span<T> src, const Set<BMVert *, 0> &vert
 }
 
 /** Scatter data from an array of the node's data to the referenced geometry vertices. */
-template<typename T> void scatter_data_mesh(Span<T> src, Span<int> indices, MutableSpan<T> dst);
+template<typename T> void scatter_data_mesh(Span<T> src, Span<int> indices, MutableSpan<T> dst)
+{
+  /* #exec_mode::serial because this is called from tasks with TLS that don't use isolation. */
+  array_utils::scatter(src, indices, dst, exec_mode::serial);
+}
 template<typename T>
 void scatter_data_grids(const SubdivCCG &subdiv_ccg,
                         Span<T> node_data,

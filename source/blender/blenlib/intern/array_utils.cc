@@ -15,43 +15,64 @@
 
 namespace blender::array_utils {
 
-void copy(const GVArray &src, GMutableSpan dst, const int64_t grain_size)
+void copy(const GVArray &src, GMutableSpan dst, const exec_mode::Mode mode)
 {
   BLI_assert(src.type() == dst.type());
   BLI_assert(src.size() == dst.size());
-  threading::parallel_for(src.index_range(), grain_size, [&](const IndexRange range) {
-    src.materialize_to_uninitialized(range, dst.data());
-  });
+  if (!mode.is_parallel) {
+    src.materialize_to_uninitialized(src.index_range(), dst.data());
+  }
+  else {
+    const int64_t grain_size = calc_copy_grain_size(mode, src.type().size);
+    threading::parallel_for(src.index_range(), grain_size, [&](const IndexRange range) {
+      src.materialize_to_uninitialized(range, dst.data());
+    });
+  }
 }
 
 void copy(const GVArray &src,
           const IndexMask &selection,
           GMutableSpan dst,
-          const int64_t grain_size)
+          const exec_mode::Mode mode)
 {
   BLI_assert(src.type() == dst.type());
   BLI_assert(src.size() >= selection.min_array_size());
   BLI_assert(dst.size() >= selection.min_array_size());
-  threading::parallel_for(selection.index_range(), grain_size, [&](const IndexRange range) {
-    src.materialize_to_uninitialized(selection.slice(range), dst.data());
-  });
+  if (!mode.is_parallel) {
+    src.materialize_to_uninitialized(selection, dst.data());
+  }
+  else {
+    const int64_t grain_size = calc_copy_grain_size(mode, src.type().size);
+    threading::parallel_for(selection.index_range(), grain_size, [&](const IndexRange range) {
+      src.materialize_to_uninitialized(selection.slice(range), dst.data());
+    });
+  }
 }
 
 void gather(const GVArray &src,
             const IndexMask &indices,
             GMutableSpan dst,
-            const int64_t grain_size)
+            const exec_mode::Mode mode)
 {
   BLI_assert(src.type() == dst.type());
   BLI_assert(indices.size() == dst.size());
-  threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-    src.materialize_compressed_to_uninitialized(indices.slice(range), dst.slice(range).data());
-  });
+  if (!mode.is_parallel) {
+    src.materialize_compressed_to_uninitialized(indices, dst.data());
+  }
+  else {
+    const int64_t grain_size = calc_copy_grain_size(mode, src.type().size);
+    threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
+      src.materialize_compressed_to_uninitialized(indices.slice(range), dst.slice(range).data());
+    });
+  }
 }
 
-void gather(const GSpan src, const IndexMask &indices, GMutableSpan dst, const int64_t grain_size)
+void gather(const GSpan src,
+            const IndexMask &indices,
+            GMutableSpan dst,
+            const exec_mode::Mode mode)
 {
-  gather(GVArray::from_span(src), indices, dst, grain_size);
+  gather(GVArray::from_span(src), indices, dst, mode);
 }
 
 void copy_group_to_group(const OffsetIndices<int> src_offsets,
