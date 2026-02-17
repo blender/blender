@@ -31,11 +31,6 @@ static void free_solid_color(Strip *strip, const bool /*do_id_user*/)
   }
 }
 
-static int num_inputs_color()
-{
-  return 0;
-}
-
 static StripEarlyOut early_out_color(const Strip * /*strip*/, float /*fac*/)
 {
   return StripEarlyOut::NoInput;
@@ -92,7 +87,6 @@ static ImBuf *do_solid_color(const RenderData *context,
 void solid_color_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_solid_color;
-  rval.num_inputs = num_inputs_color;
   rval.free = free_solid_color;
   rval.early_out = early_out_color;
   rval.execute = do_solid_color;

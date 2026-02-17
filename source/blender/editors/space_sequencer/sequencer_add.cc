@@ -1969,14 +1969,16 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   Editing *ed = seq::editing_ensure(scene);
 
   StripType effect_type = StripType(RNA_enum_get(op->ptr, "type"));
-  const int num_inputs = seq::effect_get_num_inputs(effect_type);
+  const int min_inputs = seq::effect_type_get_min_num_inputs(effect_type);
 
-  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, num_inputs);
-  StringRef error_msg = effect_inputs_validate(inputs, num_inputs);
-
-  if (!error_msg.is_empty()) {
-    BKE_report(op->reports, RPT_ERROR, error_msg.data());
-    return OPERATOR_CANCELLED;
+  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(
+      scene, effect_type == STRIP_TYPE_COMPOSITOR ? 2 : min_inputs);
+  if (effect_type != STRIP_TYPE_COMPOSITOR) {
+    const char *error_msg = effect_inputs_validate(inputs.size(), min_inputs);
+    if (error_msg != nullptr) {
+      BKE_report(op->reports, RPT_ERROR, error_msg);
+      return OPERATOR_CANCELLED;
+    }
   }
 
   seq::LoadData load_data;
@@ -2011,12 +2013,9 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   sequencer_select_do_updates(C, scene);
 
-  /* It's reasonable to add effects with inputs directly above the input. */
-  if (ELEM(load_data.effect.type,
-           STRIP_TYPE_COLOR,
-           STRIP_TYPE_TEXT,
-           STRIP_TYPE_ADJUSTMENT,
-           STRIP_TYPE_MULTICAM))
+  /* Place generator effects; others are automatically placed above their inputs. */
+  if (seq::effect_type_get_min_num_inputs(load_data.effect.type) == 0 &&
+      (load_data.effect.type != STRIP_TYPE_COMPOSITOR || input1 == nullptr))
   {
     move_strips(C, op);
   }
@@ -2024,23 +2023,34 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   return OPERATOR_FINISHED;
 }
 
+static bool is_op_for_effect_with_inputs(const Scene *scene, StripType type)
+{
+  if (seq::effect_type_get_min_num_inputs(type) != 0) {
+    return true;
+  }
+  /* Adding compositor effect with any selected strip; assuming it will be for that strip. */
+  if (type == STRIP_TYPE_COMPOSITOR) {
+    if (seq::select_has_any(scene)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static wmOperatorStatus sequencer_add_effect_strip_invoke(bContext *C,
                                                           wmOperator *op,
                                                           const wmEvent *event)
 {
   bool is_type_set = RNA_struct_property_is_set(op->ptr, "type");
-  int type = -1;
-  int prop_flag = SEQPROP_LENGTH;
-
   if (!is_type_set) {
     BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Strip type is not set.");
     return OPERATOR_CANCELLED;
   }
 
-  type = RNA_enum_get(op->ptr, "type");
-
+  int prop_flag = SEQPROP_LENGTH;
   /* When invoking an effect strip which uses inputs, skip guessing of the channel. */
-  if (seq::effect_get_num_inputs(type) != 0) {
+  StripType type = StripType(RNA_enum_get(op->ptr, "type"));
+  if (is_op_for_effect_with_inputs(CTX_data_sequencer_scene(C), type)) {
     prop_flag |= SEQPROP_NOCHAN;
   }
 
@@ -2049,15 +2059,15 @@ static wmOperatorStatus sequencer_add_effect_strip_invoke(bContext *C,
   return sequencer_add_effect_strip_exec(C, op);
 }
 
-static bool sequencer_add_effect_strip_poll_property(const bContext * /*C*/,
+static bool sequencer_add_effect_strip_poll_property(const bContext *C,
                                                      wmOperator *op,
                                                      const PropertyRNA *prop)
 {
   const char *prop_id = RNA_property_identifier(prop);
-  int type = RNA_enum_get(op->ptr, "type");
+  StripType type = StripType(RNA_enum_get(op->ptr, "type"));
 
   /* Hide start frame and length for effect strips that are locked to their parents' location. */
-  if (seq::effect_get_num_inputs(type) != 0) {
+  if (is_op_for_effect_with_inputs(CTX_data_sequencer_scene(C), type)) {
     if (STR_ELEM(prop_id, "frame_start", "length")) {
       return false;
     }
@@ -2114,6 +2124,8 @@ static std::string sequencer_add_effect_strip_get_description(bContext * /*C*/,
       return TIP_("Add a text strip to the sequencer");
     case STRIP_TYPE_COLORMIX:
       return TIP_("Add a color mix effect strip to the sequencer");
+    case STRIP_TYPE_COMPOSITOR:
+      return TIP_("Add a compositor based effect strip for zero, one, or two selected inputs");
     default:
       break;
   }

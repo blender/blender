@@ -344,6 +344,7 @@ static void color3ubv_from_seq(const Scene *curscene,
     case STRIP_TYPE_CROSS:
     case STRIP_TYPE_GAMCROSS:
     case STRIP_TYPE_WIPE:
+    case STRIP_TYPE_COMPOSITOR:
       ui::theme::get_color_3ubv(TH_SEQ_TRANSITION, r_col);
 
       /* Slightly offset hue to distinguish different transition types. */
@@ -352,6 +353,9 @@ static void color3ubv_from_seq(const Scene *curscene,
       }
       else if (strip->type == STRIP_TYPE_WIPE) {
         rgb_byte_set_hue_float_offset(r_col, 0.06);
+      }
+      else if (strip->type == STRIP_TYPE_COMPOSITOR) {
+        rgb_byte_set_hue_float_offset(r_col, -0.03f);
       }
       break;
 
@@ -1323,7 +1327,8 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
 
     /* Transition state. */
     if (show_overlay && strip.can_draw_strip_content &&
-        seq::effect_is_transition(StripType(strip.strip->type)))
+        seq::effect_is_transition(StripType(strip.strip->type)) && strip.strip->input1 &&
+        strip.strip->input2)
     {
       data.flags |= GPU_SEQ_FLAG_TRANSITION;
 

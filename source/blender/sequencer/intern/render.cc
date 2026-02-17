@@ -711,9 +711,8 @@ static ImBuf *seq_render_preprocess_ibuf(const RenderData *context,
   }
 
   /* Proxies and non-generator effect strips are not stored in cache. */
-  const bool is_effect_with_inputs = strip->is_effect() &&
-                                     (effect_get_num_inputs(strip->type) != 0 ||
-                                      (strip->type == STRIP_TYPE_ADJUSTMENT));
+  const bool is_effect_with_inputs = strip->is_effect_with_inputs() ||
+                                     strip->type == STRIP_TYPE_ADJUSTMENT;
   if (!is_proxy_image && !is_effect_with_inputs) {
     Scene *orig_scene = prefetch_get_original_scene(context);
     if (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_RAW) {
@@ -783,7 +782,7 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
         }
       }
 
-      if (ibuf[0] && (ibuf[1] || effect_get_num_inputs(strip->type) == 1)) {
+      if (ibuf[0] && (ibuf[1] || strip->effect_num_inputs_get() == 1)) {
         out = sh.execute(context, state, strip, timeline_frame, fac, ibuf[0], ibuf[1]);
       }
       break;

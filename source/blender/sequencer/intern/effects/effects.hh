@@ -41,9 +41,6 @@ struct EffectHandle {
   /* #init is only called on first creation, or when changing effect type. */
   void (*init)(Strip *strip);
 
-  /* Number of input strips needed for this effect. */
-  int (*num_inputs)();
-
   /* duplicate */
   void (*copy)(Strip *dst, const Strip *src, int flag);
 
@@ -123,6 +120,7 @@ void alpha_over_effect_get_handle(EffectHandle &rval);
 void alpha_under_effect_get_handle(EffectHandle &rval);
 void blend_mode_effect_get_handle(EffectHandle &rval);
 void color_mix_effect_get_handle(EffectHandle &rval);
+void compositor_effect_get_handle(EffectHandle &rval);
 void cross_effect_get_handle(EffectHandle &rval);
 void gamma_cross_effect_get_handle(EffectHandle &rval);
 void gaussian_blur_effect_get_handle(EffectHandle &rval);

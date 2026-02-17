@@ -57,6 +57,15 @@ static void strip_by_scene_lookup_build(Strip *strip, StripLookup *lookup)
 
 static void strip_by_compositor_node_group_lookup_build(Strip *strip, StripLookup *lookup)
 {
+  if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
+    const CompositorEffectVars *comp_data = static_cast<CompositorEffectVars *>(strip->effectdata);
+    if (comp_data->node_group) {
+      VectorSet<Strip *> &strips = lookup->strips_by_compositor_node_group.lookup_or_add_default(
+          comp_data->node_group);
+      strips.add(strip);
+    }
+  }
+
   for (StripModifierData &modifier : strip->modifiers) {
     if (modifier.type != eSeqModifierType_Compositor) {
       continue;

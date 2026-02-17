@@ -158,20 +158,27 @@ class NODE_HT_header(Header):
                 sequencer_scene = context.workspace.sequencer_scene
                 sequencer_editor = sequencer_scene.sequence_editor if sequencer_scene else None
                 active_strip = sequencer_editor.active_strip if sequencer_editor else None
-                active_modifier = active_strip.modifiers.active if active_strip else None
-                is_compositor_modifier_active = active_modifier and active_modifier.type == 'COMPOSITOR'
-                if is_compositor_modifier_active and not snode.pin:
-                    if active_modifier.node_group:
-                        row.template_ID(active_modifier,
-                                        "node_group",
-                                        new="node.duplicate_compositing_modifier_node_group")
-                    else:
-                        row.template_ID(
-                            active_modifier,
+                if active_strip:
+                    active_modifier = active_strip.modifiers.active
+                    is_compositor_modifier_active = active_modifier and active_modifier.type == 'COMPOSITOR'
+                    is_compositor_effect_active = active_strip.type == 'COMPOSITOR'
+                    if is_compositor_effect_active and not snode.pin:
+                        row.template_ID(  # @TODO: duplicate operator
+                            active_strip,
                             "node_group",
                             new="node.new_compositor_sequencer_node_group")
-                elif active_strip and active_strip.type != 'SOUND':
-                    row.template_ID(snode, "node_tree", new="node.new_compositor_sequencer_node_group")
+                    elif is_compositor_modifier_active and not snode.pin:
+                        if active_modifier.node_group:
+                            row.template_ID(active_modifier,
+                                            "node_group",
+                                            new="node.duplicate_compositing_modifier_node_group")
+                        else:
+                            row.template_ID(
+                                active_modifier,
+                                "node_group",
+                                new="node.new_compositor_sequencer_node_group")
+                    elif active_strip.type != 'SOUND':
+                        row.template_ID(snode, "node_tree", new="node.new_compositor_sequencer_node_group")
 
         elif snode.tree_type == 'GeometryNodeTree':
             layout.prop(snode, "node_tree_sub_type", text="")

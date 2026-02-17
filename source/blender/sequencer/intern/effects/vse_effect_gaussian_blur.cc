@@ -36,11 +36,6 @@ static void free_gaussian_blur_effect(Strip *strip, const bool /*do_id_user*/)
   }
 }
 
-static int num_inputs_gaussian_blur()
-{
-  return 1;
-}
-
 static StripEarlyOut early_out_gaussian_blur(const Strip *strip, float /*fac*/)
 {
   GaussianBlurVars *data = static_cast<GaussianBlurVars *>(strip->effectdata);
@@ -221,7 +216,6 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
 void gaussian_blur_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_gaussian_blur_effect;
-  rval.num_inputs = num_inputs_gaussian_blur;
   rval.free = free_gaussian_blur_effect;
   rval.early_out = early_out_gaussian_blur;
   rval.execute = do_gaussian_blur_effect;

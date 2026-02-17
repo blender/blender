@@ -489,13 +489,11 @@ static Strip *rna_Strips_new_effect(ID *id,
                                     Strip *input1,
                                     Strip *input2)
 {
-  Scene *scene = id_cast<Scene *>(id);
-  Strip *strip;
-  const int num_inputs = seq::effect_get_num_inputs(type);
-
-  switch (num_inputs) {
+  const int min_inputs = blender::seq::effect_type_get_min_num_inputs(StripType(type));
+  const bool compositor_with_inputs = type == STRIP_TYPE_COMPOSITOR && input1 != nullptr;
+  switch (min_inputs) {
     case 0:
-      if (length <= 0) {
+      if (length <= 0 && !compositor_with_inputs) {
         BKE_report(reports, RPT_ERROR, "Strips.new_effect: invalid length");
         return nullptr;
       }
@@ -517,17 +515,17 @@ static Strip *rna_Strips_new_effect(ID *id,
           reports,
           RPT_ERROR,
           "Strips.new_effect: effect expects more than 2 inputs (%d, should never happen!)",
-          num_inputs);
+          min_inputs);
       return nullptr;
   }
-
   seq::LoadData load_data;
   seq::add_load_data_init(&load_data, name, nullptr, frame_start, channel);
   load_data.effect.length = length;
   load_data.effect.type = StripType(type);
   load_data.effect.input1 = input1;
   load_data.effect.input2 = input2;
-  strip = seq::add_effect_strip(scene, seqbase, &load_data);
+  Scene *scene = id_cast<Scene *>(id);
+  Strip *strip = seq::add_effect_strip(scene, seqbase, &load_data);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
@@ -842,6 +840,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
        0,
        "Gamma Crossfade",
        "Crossfade with color correction"},
+      {STRIP_TYPE_COMPOSITOR, "COMPOSITOR", 0, "Compositor", "Compositor based effect"},
       {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", "Multiply color channels from two videos"},
       {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", "Sweep a transition line across the frame"},
       {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", "Add blur and brightness to light areas"},

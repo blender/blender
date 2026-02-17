@@ -38,7 +38,6 @@
 
 #include "SEQ_channels.hh"
 #include "SEQ_connect.hh"
-#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
@@ -969,7 +968,7 @@ static float inner_clickable_handle_size_get(const Scene *scene,
 
 bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d)
 {
-  if (seq::effect_get_num_inputs(strip->type) > 0) {
+  if (strip->is_effect_with_inputs()) {
     return false;
   }
 

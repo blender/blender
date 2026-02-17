@@ -168,12 +168,13 @@ Strip *add_effect_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_
   strip->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
   effect_ensure_initialized(strip);
 
-  if (effect_get_num_inputs(strip->type) != 0) {
+  const int min_inputs = effect_type_get_min_num_inputs(load_data->effect.type);
+  if (min_inputs != 0 || load_data->effect.type == STRIP_TYPE_COMPOSITOR) {
     strip->input1 = load_data->effect.input1;
     strip->input2 = load_data->effect.input2;
   }
 
-  if (effect_get_num_inputs(strip->type) == 1) {
+  if (min_inputs == 1) {
     strip->blend_mode = strip->input1->blend_mode;
     strip->blend_opacity = strip->input1->blend_opacity;
   }

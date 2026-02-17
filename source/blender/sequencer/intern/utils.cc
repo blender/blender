@@ -127,6 +127,8 @@ const char *get_default_stripname_by_type(int type)
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Crossfade");
     case STRIP_TYPE_GAMCROSS:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gamma Crossfade");
+    case STRIP_TYPE_COMPOSITOR:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Compositor");
     case STRIP_TYPE_ADD:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Add");
     case STRIP_TYPE_SUB:

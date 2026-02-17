@@ -15,7 +15,6 @@
 #include "BLI_listbase.h"
 
 #include "SEQ_connect.hh"
-#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
@@ -200,7 +199,7 @@ bool must_render_strip(const VectorSet<Strip *> &strip_stack, Strip *target_stri
   }
 
   /* All effects with inputs are rendered assuming they pass the above checks. */
-  if (target_strip->is_effect() && effect_get_num_inputs(target_strip->type) != 0) {
+  if (target_strip->is_effect_with_inputs()) {
     return true;
   }
 

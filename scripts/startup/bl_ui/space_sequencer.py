@@ -628,7 +628,7 @@ class SEQUENCER_MT_change(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
         if strip and strip.type in {
             'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-            'GAMMA_CROSS', 'MULTIPLY', 'WIPE', 'GLOW',
+            'GAMMA_CROSS', 'COMPOSITOR', 'MULTIPLY', 'WIPE', 'GLOW',
             'SPEED', 'MULTICAM', 'ADJUSTMENT', 'GAUSSIAN_BLUR',
         }:
             layout.menu("SEQUENCER_MT_strip_effect_change")
@@ -727,13 +727,15 @@ class SEQUENCER_MT_add(Menu):
         layout.operator("sequencer.effect_strip_add", text="Text", icon='FONT_DATA').type = 'TEXT'
 
         layout.separator()
+        total, nonsound = selected_strips_count(context)
 
         layout.operator("sequencer.effect_strip_add", text="Adjustment Layer", icon='COLOR').type = 'ADJUSTMENT'
+        col = layout.column()
+        col.operator("sequencer.effect_strip_add", text="Compositor", icon='NODE_COMPOSITING').type = 'COMPOSITOR'
+        col.enabled = nonsound < 3
 
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.menu("SEQUENCER_MT_add_effect", icon='SHADERFX')
-
-        total, nonsound = selected_strips_count(context)
 
         col = layout.column()
         col.menu("SEQUENCER_MT_add_transitions", icon='ARROW_LEFTRIGHT')
@@ -1024,6 +1026,10 @@ class SEQUENCER_MT_strip_effect_change(Menu):
         strip = context.active_strip
 
         col = layout.column()
+        col.operator("sequencer.change_effect_type", text="Compositor").type = 'COMPOSITOR'
+        layout.separator()
+
+        col = layout.column()
         col.operator("sequencer.change_effect_type", text="Adjustment Layer").type = 'ADJUSTMENT'
         col.operator("sequencer.change_effect_type", text="Multicam Selector").type = 'MULTICAM'
         col.enabled = strip.input_count == 0
@@ -1163,7 +1169,7 @@ class SEQUENCER_MT_strip(Menu):
 
                 if strip_type in {
                         'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-                        'GAMMA_CROSS', 'MULTIPLY', 'WIPE', 'GLOW',
+                        'GAMMA_CROSS', 'COMPOSITOR', 'MULTIPLY', 'WIPE', 'GLOW',
                         'SPEED', 'MULTICAM', 'ADJUSTMENT', 'GAUSSIAN_BLUR',
                 }:
                     layout.separator()
@@ -1346,7 +1352,7 @@ class SEQUENCER_MT_context_menu(Menu):
 
             if strip_type in {
                     'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-                    'GAMMA_CROSS', 'MULTIPLY', 'WIPE', 'GLOW',
+                    'GAMMA_CROSS', 'COMPOSITOR', 'MULTIPLY', 'WIPE', 'GLOW',
                     'SPEED', 'MULTICAM', 'ADJUSTMENT', 'GAUSSIAN_BLUR',
             }:
                 layout.separator()

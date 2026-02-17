@@ -3447,10 +3447,16 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac,
           ac, &tmp_data, reinterpret_cast<ID *>(sce), ntree, filter_mode);
     }
 
-    /* Strip modifier node trees. */
+    /* VSE strip node trees. */
     if (ed && !(ac->filters.flag & ADS_FILTER_NONTREE)) {
       VectorSet<ID *> node_trees;
       seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+        if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
+          CompositorEffectVars *comp_data = static_cast<CompositorEffectVars *>(strip->effectdata);
+          if (comp_data->node_group) {
+            node_trees.add(reinterpret_cast<ID *>(comp_data->node_group));
+          }
+        }
         seq::foreach_strip_modifier_id(strip, [&](ID *id) {
           if (GS(id->name) == ID_NT) {
             node_trees.add(id);

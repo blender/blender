@@ -2815,6 +2815,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           case STRIP_TYPE_CROSS:
           case STRIP_TYPE_GAMCROSS:
           case STRIP_TYPE_WIPE:
+          case STRIP_TYPE_COMPOSITOR:
             data.icon = ICON_ARROW_LEFTRIGHT;
             break;
           case STRIP_TYPE_META:

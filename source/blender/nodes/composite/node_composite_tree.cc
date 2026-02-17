@@ -44,35 +44,35 @@ static void composite_get_from_context(const bContext *C,
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
   if (snode->node_tree_sub_type == SNODE_COMPOSITOR_SEQUENCER) {
+    *r_ntree = nullptr;
     Scene *sequencer_scene = CTX_data_sequencer_scene(C);
     if (!sequencer_scene) {
-      *r_ntree = nullptr;
-      return;
-    }
-    Editing *ed = seq::editing_get(sequencer_scene);
-    if (!ed) {
-      *r_ntree = nullptr;
       return;
     }
     Strip *strip = seq::select_active_get(sequencer_scene);
     if (!strip) {
-      *r_ntree = nullptr;
       return;
     }
-    StripModifierData *smd = seq::modifier_get_active(strip);
-    if (!smd) {
-      *r_ntree = nullptr;
-      return;
+
+    bNodeTree *node_group = nullptr;
+    if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
+      CompositorEffectVars *comp_data = static_cast<CompositorEffectVars *>(strip->effectdata);
+      node_group = comp_data->node_group;
     }
-    if (smd->type != eSeqModifierType_Compositor) {
-      *r_ntree = nullptr;
-      return;
+    else {
+      StripModifierData *smd = seq::modifier_get_active(strip);
+      if (smd && smd->type == eSeqModifierType_Compositor) {
+        SequencerCompositorModifierData *scmd =
+            reinterpret_cast<SequencerCompositorModifierData *>(smd);
+        node_group = scmd->node_group;
+      }
     }
-    SequencerCompositorModifierData *scmd = reinterpret_cast<SequencerCompositorModifierData *>(
-        smd);
-    *r_from = nullptr;
-    *r_id = &sequencer_scene->id;
-    *r_ntree = scmd->node_group;
+
+    if (node_group) {
+      *r_from = nullptr;
+      *r_id = &sequencer_scene->id;
+      *r_ntree = node_group;
+    }
     return;
   }
 

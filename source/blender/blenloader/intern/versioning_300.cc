@@ -96,7 +96,6 @@
 #include "readfile.hh"
 
 #include "SEQ_channels.hh"
-#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
@@ -1765,9 +1764,7 @@ static bool version_merge_still_offsets(Strip *strip, void * /*user_data*/)
 
 static bool version_set_seq_single_frame_content(Strip *strip, void * /*user_data*/)
 {
-  if ((strip->len == 1) && (strip->type == STRIP_TYPE_IMAGE ||
-                            (strip->is_effect() && seq::effect_get_num_inputs(strip->type) == 0)))
-  {
+  if ((strip->len == 1) && (strip->type == STRIP_TYPE_IMAGE || !strip->is_effect_with_inputs())) {
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
   return true;

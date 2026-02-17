@@ -829,6 +829,10 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   IDP_foreach_property(strip->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
     BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
   });
+  if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
+    CompositorEffectVars *comp_data = static_cast<CompositorEffectVars *>(strip->effectdata);
+    FOREACHID_PROCESS_IDSUPER(data, comp_data->node_group, IDWALK_CB_USER);
+  }
   /* TODO: This could use `seq::foreach_strip_modifier_id`, but because `FOREACHID_PROCESS_IDSUPER`
    * doesn't take IDs but "ID supers", it makes it a bit more cumbersome. */
   for (StripModifierData &smd : strip->modifiers) {

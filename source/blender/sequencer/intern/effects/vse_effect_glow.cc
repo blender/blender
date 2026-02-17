@@ -142,11 +142,6 @@ static void free_glow_effect(Strip *strip, const bool /*do_id_user*/)
   }
 }
 
-static int num_inputs_glow()
-{
-  return 1;
-}
-
 static void do_glow_effect_byte(Strip *strip,
                                 int render_size,
                                 float fac,
@@ -250,7 +245,6 @@ static ImBuf *do_glow_effect(const RenderData *context,
 void glow_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_glow_effect;
-  rval.num_inputs = num_inputs_glow;
   rval.free = free_glow_effect;
   rval.execute = do_glow_effect;
 }

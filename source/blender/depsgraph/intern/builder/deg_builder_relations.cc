@@ -3467,6 +3467,15 @@ static bool strip_build_prop_cb(Strip *strip, void *user_data)
     ViewLayer *sequence_view_layer = BKE_view_layer_default_render(strip->scene);
     cd->builder->build_scene_speakers(strip->scene, sequence_view_layer);
   }
+  if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
+    const CompositorEffectVars *comp_data = static_cast<CompositorEffectVars *>(strip->effectdata);
+    if (comp_data->node_group) {
+      cd->builder->build_nodetree(comp_data->node_group);
+      OperationKey node_tree_key(
+          &comp_data->node_group->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+      cd->builder->add_relation(node_tree_key, cd->sequencer_key, "Effect's Node Group");
+    }
+  }
   for (StripModifierData &modifier : strip->modifiers) {
     if (modifier.type != eSeqModifierType_Compositor) {
       continue;

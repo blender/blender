@@ -23,7 +23,12 @@ namespace seq {
 
 void effect_ensure_initialized(Strip *strip);
 void effect_free(Strip *strip);
-int effect_get_num_inputs(int strip_type);
+
+/* Returns the minimum number of inputs needed by the effect type.
+ * Note: some effects (compositor) will return zero; they can
+ * take variable number of inputs. */
+int effect_type_get_min_num_inputs(StripType type);
+bool strip_type_is_effect(StripType type);
 bool effect_is_transition(StripType type);
 void effect_text_font_set(Strip *strip, VFont *font);
 bool effects_can_render_text(const Strip *strip);

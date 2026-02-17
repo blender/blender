@@ -299,11 +299,6 @@ static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
   dst->effectdata = data;
 }
 
-static int num_inputs_text()
-{
-  return 0;
-}
-
 static StripEarlyOut early_out_text(const Strip *strip, float /*fac*/)
 {
   if (!effects_can_render_text(strip)) {
@@ -1106,7 +1101,6 @@ static ImBuf *do_text_effect(const RenderData *context,
 
 void text_effect_get_handle(EffectHandle &rval)
 {
-  rval.num_inputs = num_inputs_text;
   rval.init = init_text_effect;
   rval.free = free_text_effect;
   rval.copy = copy_text_effect;

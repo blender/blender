@@ -24,7 +24,6 @@
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
 #include "SEQ_edit.hh"
-#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
@@ -480,10 +479,10 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
 
   VectorSet<Strip *> strips = seq::query_selected_strips(seq::active_seqbase_get(ed));
   for (Strip *strip : strips) {
-    if (!strip->is_effect() || seq::effect_get_num_inputs(strip->type) == 0) {
+    if (!strip->is_effect_with_inputs()) {
       continue;
     }
-    /* If there is an effect strip with no inputs selected, prevent any x-direction movement,
+    /* If there is an effect strip without its inputs selected, prevent any x-direction movement,
      * since these strips are tied to their inputs and can only move up and down. */
     if (!(strip->input1->flag & SEQ_SELECT) &&
         (!strip->input2 || !(strip->input2->flag & SEQ_SELECT)))

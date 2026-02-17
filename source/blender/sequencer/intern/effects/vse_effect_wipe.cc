@@ -169,11 +169,6 @@ static void free_wipe_effect(Strip *strip, const bool /*do_id_user*/)
   }
 }
 
-static int num_inputs_wipe()
-{
-  return 2;
-}
-
 template<typename T>
 static void do_wipe_effect(
     const Strip *strip, float fac, int width, int height, const T *rect1, const T *rect2, T *out)
@@ -246,7 +241,6 @@ void wipe_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_wipe_effect;
   rval.free = free_wipe_effect;
-  rval.num_inputs = num_inputs_wipe;
   rval.early_out = early_out_fade;
   rval.execute = do_wipe_effect;
 }

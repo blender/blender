@@ -62,7 +62,7 @@ class STRIP_PT_strip(StripButtonsPanel, Panel):
         }:
             icon_header = 'SHADERFX'
         elif strip_type in {
-                'CROSS', 'GAMMA_CROSS', 'WIPE',
+                'CROSS', 'GAMMA_CROSS', 'WIPE', 'COMPOSITOR',
         }:
             icon_header = 'ARROW_LEFTRIGHT'
         elif strip_type == 'SCENE':
@@ -146,6 +146,7 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
             'ALPHA_UNDER',
             'CROSS',
             'GAMMA_CROSS',
+            'COMPOSITOR',
             'MULTIPLY',
             'WIPE',
             'GLOW',
@@ -165,6 +166,11 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
 
         layout.active = not strip.mute
 
+        strip_type = strip.type
+
+        if strip_type == 'COMPOSITOR':
+            layout.template_ID(strip, "node_group", new="node.new_compositor_sequencer_node_group")
+
         if strip.input_count > 0:
             col = layout.column()
             row = col.row()
@@ -175,8 +181,6 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
                 row = col.row()
                 row.prop(strip, "input_2")
                 row.operator("sequencer.swap_inputs", text="", icon='SORT_DESC')
-
-        strip_type = strip.type
 
         if strip_type == 'COLOR':
             layout.template_color_picker(strip, "color", value_slider=True, cubic=True)
@@ -261,7 +265,7 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
             layout.prop(strip, "wrap_width", text="Wrap Width")
 
         col = layout.column(align=True)
-        if strip_type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER'}:
+        if strip_type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER', 'COMPOSITOR'}:
             col.prop(strip, "use_default_fade", text="Default Fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect Fader")
@@ -965,7 +969,7 @@ class STRIP_PT_adjust_video(StripButtonsPanel, Panel):
         return strip.type in {
             'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
             'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
-            'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
+            'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'COMPOSITOR',
             'WIPE', 'GLOW', 'COLOR', 'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX',
         }
 
@@ -997,7 +1001,7 @@ class STRIP_PT_adjust_color(StripButtonsPanel, Panel):
         return strip.type in {
             'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
             'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
-            'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
+            'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'COMPOSITOR',
             'WIPE', 'GLOW', 'COLOR', 'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX',
         }
 

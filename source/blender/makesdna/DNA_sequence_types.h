@@ -147,6 +147,7 @@ enum StripType {
   STRIP_TYPE_MUL = 14,
   /* Removed (behavior was the same as alpha-over), only used when reading old files. */
   STRIP_TYPE_OVERDROP_REMOVED = 15,
+  STRIP_TYPE_COMPOSITOR = 16,
   /* STRIP_TYPE_PLUGIN = 24, */ /* Removed. */
   STRIP_TYPE_WIPE = 25,
   STRIP_TYPE_GLOW = 26,
@@ -459,6 +460,11 @@ struct Strip {
 
 #ifdef __cplusplus
   bool is_effect() const;
+  int effect_num_inputs_get() const;
+  bool is_effect_with_inputs() const
+  {
+    return this->effect_num_inputs_get() != 0;
+  }
 
   /**
    * Get timeline frame where strip content starts.
@@ -844,6 +850,10 @@ struct ColorMixVars {
   int blend_effect = 0; /* StripBlendMode */
   /** Blend factor [0.0f, 1.0f]. */
   float factor = 0;
+};
+
+struct CompositorEffectVars {
+  struct bNodeTree *node_group = nullptr;
 };
 
 /** \} */

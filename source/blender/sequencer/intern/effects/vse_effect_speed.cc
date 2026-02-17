@@ -45,11 +45,6 @@ static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
   }
 }
 
-static int num_inputs_speed()
-{
-  return 1;
-}
-
 static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
   SpeedControlVars *v = MEM_dupalloc(static_cast<SpeedControlVars *>(src->effectdata));
@@ -202,7 +197,6 @@ static ImBuf *do_speed_effect(const RenderData *context,
 void speed_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_speed_effect;
-  rval.num_inputs = num_inputs_speed;
   rval.free = free_speed_effect;
   rval.copy = copy_speed_effect;
   rval.execute = do_speed_effect;

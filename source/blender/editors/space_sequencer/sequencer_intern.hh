@@ -179,7 +179,7 @@ void slip_modal_keymap(wmKeyConfig *keyconf);
 VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
                                                int num_inputs,
                                                bool ignore_active = false);
-StringRef effect_inputs_validate(const VectorSet<Strip *> &inputs, int num_inputs);
+const char *effect_inputs_validate(int have_inputs, int num_inputs);
 
 /* Operator helpers. */
 bool sequencer_edit_poll(bContext *C);
