@@ -440,6 +440,7 @@ void BPy_BM_init_types_select()
   BPy_BMEditSelSeq_Type.tp_iter = reinterpret_cast<getiterfunc>(bpy_bmeditselseq_iter);
 
   /* Only 1 iterator so far. */
+  BPy_BMEditSelIter_Type.tp_iter = PyObject_SelfIter;
   BPy_BMEditSelIter_Type.tp_iternext = reinterpret_cast<iternextfunc>(bpy_bmeditseliter_next);
 
   BPy_BMEditSelSeq_Type.tp_dealloc = nullptr;   //(destructor)bpy_bmeditselseq_dealloc;
