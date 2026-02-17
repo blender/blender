@@ -7,6 +7,10 @@
 #include "util/defines.h"
 #include "util/transform.h"
 
+#ifndef __KERNEL_GPU__
+#  include <climits>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Color to use when images are not found. */

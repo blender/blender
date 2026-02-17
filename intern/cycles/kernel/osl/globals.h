@@ -37,7 +37,6 @@ struct OSLGlobals {
   OSLGlobals()
   {
     ss = nullptr;
-    ts = nullptr;
     services = nullptr;
     use_shading = false;
     use_camera = false;
@@ -48,7 +47,6 @@ struct OSLGlobals {
 
   /* shading system */
   OSL::ShadingSystem *ss;
-  OSL::TextureSystem *ts;
   OSLRenderServices *services;
 
   /* shader states */
@@ -91,7 +89,6 @@ struct OSLThreadData {
 
   OSL::PerThreadInfo *osl_thread_info = nullptr;
   OSL::ShadingContext *context = nullptr;
-  OIIO::TextureSystem::Perthread *oiio_thread_info = nullptr;
 
   OSLThreadData(OSLGlobals *globals, const int thread_index);
   ~OSLThreadData();

@@ -633,53 +633,6 @@ void ColorSpaceManager::to_scene_linear(ustring colorspace,
 #endif
 }
 
-void ColorSpaceManager::to_scene_linear(ColorSpaceProcessor *processor_,
-                                        float *pixel,
-                                        const int channels)
-{
-#ifdef WITH_OCIO
-  const OCIO::Processor *processor = (const OCIO::Processor *)processor_;
-
-  if (processor) {
-    const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
-    if (channels == 1) {
-      float3 rgb = make_float3(pixel[0], pixel[0], pixel[0]);
-      device_processor->applyRGB(&rgb.x);
-      pixel[0] = average(rgb);
-    }
-    if (channels == 3) {
-      device_processor->applyRGB(pixel);
-    }
-    else if (channels == 4) {
-      if (pixel[3] == 1.0f || pixel[3] == 0.0f) {
-        /* Fast path for RGBA. */
-        device_processor->applyRGB(pixel);
-      }
-      else {
-        /* Un-associate and associate alpha since color management should not
-         * be affected by transparency. */
-        const float alpha = pixel[3];
-        const float inv_alpha = 1.0f / alpha;
-
-        pixel[0] *= inv_alpha;
-        pixel[1] *= inv_alpha;
-        pixel[2] *= inv_alpha;
-
-        device_processor->applyRGB(pixel);
-
-        pixel[0] *= alpha;
-        pixel[1] *= alpha;
-        pixel[2] *= alpha;
-      }
-    }
-  }
-#else
-  (void)processor_;
-  (void)pixel;
-  (void)channels;
-#endif
-}
-
 void ColorSpaceManager::free_memory()
 {
 #ifdef WITH_OCIO

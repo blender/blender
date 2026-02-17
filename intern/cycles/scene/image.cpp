@@ -11,13 +11,12 @@
 #include "scene/stats.h"
 
 #include "util/colorspace.h"
+#include "util/image.h"
+#include "util/image_impl.h"
+#include "util/log.h"
 #include "util/progress.h"
 #include "util/task.h"
 #include "util/types_image.h"
-
-#ifdef WITH_OSL
-#  include <OSL/oslexec.h>
-#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -204,7 +203,6 @@ ImageSingle::~ImageSingle() = default;
 ImageManager::ImageManager(const DeviceInfo & /*info*/)
 {
   need_update_ = true;
-  osl_texture_system = nullptr;
   animation_frame = 0;
 }
 
@@ -214,11 +212,6 @@ ImageManager::~ImageManager()
     assert(!img);
     (void)img;
   }
-}
-
-void ImageManager::set_osl_texture_system(void *texture_system)
-{
-  osl_texture_system = texture_system;
 }
 
 bool ImageManager::set_animation_frame_update(const int frame)
@@ -357,10 +350,9 @@ ImageSingle *ImageManager::add_image_texture(unique_ptr<ImageLoader> &&loader,
   /* Add new image. */
   unique_ptr<ImageSingle> img = make_unique<ImageSingle>();
   img->type = ImageTexture::SINGLE;
+  img->image_texture_id = image_texture_id;
   img->params = params;
   img->loader = std::move(loader);
-  img->need_load = !(osl_texture_system && !img->loader->osl_filepath().empty());
-  img->image_texture_id = (img->need_load) ? image_texture_id : KERNEL_IMAGE_NONE;
   img->builtin = builtin;
 
   images.replace(image_texture_id, std::move(img));
@@ -470,15 +462,6 @@ void ImageManager::device_free_image(Scene *scene, size_t image_texture_id)
   ImageSingle *img = images[image_texture_id];
   if (img == nullptr) {
     return;
-  }
-
-  if (osl_texture_system) {
-#ifdef WITH_OSL
-    const ustring filepath = img->loader->osl_filepath();
-    if (!filepath.empty()) {
-      ((OSL::TextureSystem *)osl_texture_system)->invalidate(filepath);
-    }
-#endif
   }
 
   const KernelImageTexture &tex = scene->dscene.image_textures[image_texture_id];

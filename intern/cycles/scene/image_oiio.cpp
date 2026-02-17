@@ -35,11 +35,6 @@ string OIIOImageLoader::name() const
   return path_filename(filepath.string());
 }
 
-ustring OIIOImageLoader::osl_filepath() const
-{
-  return filepath;
-}
-
 bool OIIOImageLoader::equals(const ImageLoader &other) const
 {
   const OIIOImageLoader &other_loader = (const OIIOImageLoader &)other;

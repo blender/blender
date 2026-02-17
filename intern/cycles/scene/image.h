@@ -94,7 +94,7 @@ class ImageHandle {
   friend class ImageManager;
 };
 
-/* Image Texture
+/* Image Slot
  *
  * Base class for an entry in the image manager, which can either be
  * a single image or a UDIM. */
@@ -167,7 +167,6 @@ class ImageManager {
                           Progress &progress,
                           const set<const ImageSingle *> &images);
 
-  void set_osl_texture_system(void *texture_system);
   bool set_animation_frame_update(const int frame);
 
   void collect_statistics(RenderStats *stats, Scene *scene);
@@ -188,8 +187,6 @@ class ImageManager {
   int num_udim_tiles = 0;
 
   ImageCache image_cache;
-
-  void *osl_texture_system;
 
   ImageSingle *add_image_texture(unique_ptr<ImageLoader> &&loader,
                                  const ImageParams &params,
