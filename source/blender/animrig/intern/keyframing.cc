@@ -208,7 +208,7 @@ std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *an
         prop_rna_path.find("scale") != StringRef::not_found)
     {
       /* NOTE: Keep this label in sync with the "ID" case in
-       * keyingsets_utils.py :: get_transform_generators_base_info()
+       * _keyingsets_utils.py :: get_transform_generators_base_info()
        */
       return "Object Transforms";
     }

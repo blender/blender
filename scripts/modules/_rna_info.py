@@ -782,7 +782,7 @@ def BuildRNAInfo():
             elif rna_type_name in suppress_warning:
                 pass
             else:
-                print("rna_info.BuildRNAInfo(..): ignoring type", repr(rna_type_name))
+                print("_rna_info.BuildRNAInfo(..): ignoring type", repr(rna_type_name))
 
         # Now, there are some sub-classes in add-ons we also want to include.
         # Cycles for example. These are referenced from the Scene, but not part of
