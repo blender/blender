@@ -118,6 +118,9 @@ enum eImBufFlags {
    * The image contains display window information. See ImbBuf.display_size and other members for
    * more information. */
   IB_has_display_window = 1 << 17,
+
+  /** Perform no color space conversions when reading, leave the image in the file colorspace. */
+  IB_no_colorspace_convert = 1 << 18,
 };
 
 /** \} */
