@@ -188,8 +188,14 @@ static void import_uvs(const ufbx_mesh *fmesh,
                        bke::MutableAttributeAccessor &attributes,
                        AttributeOwner attr_owner)
 {
+  bool set_active_uv = true;
   for (const ufbx_uv_set &fuv_set : fmesh->uv_sets) {
     std::string attr_name = BKE_attribute_calc_unique_name(attr_owner, fuv_set.name.data);
+    if (set_active_uv) {
+      mesh->uv_maps_active_set(attr_name);
+      mesh->uv_maps_default_set(attr_name);
+      set_active_uv = false;
+    }
     bke::SpanAttributeWriter<float2> uvs = attributes.lookup_or_add_for_write_only_span<float2>(
         attr_name, bke::AttrDomain::Corner);
     BLI_assert(fuv_set.vertex_uv.indices.count == uvs.span.size());
@@ -199,8 +205,6 @@ static void import_uvs(const ufbx_mesh *fmesh,
       uvs.span[i] = float2(uv.x, uv.y);
     }
     uvs.finish();
-    mesh->uv_maps_active_set(attr_name);
-    mesh->uv_maps_default_set(attr_name);
   }
 }
 
