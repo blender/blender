@@ -16,7 +16,7 @@ class BlenderObjectCulling {
   BlenderObjectCulling(Scene *scene, blender::Scene &b_scene);
 
   void init_object(Scene *scene, blender::Object &b_ob);
-  bool test(Scene *scene, blender::Object &b_ob, Transform &tfm);
+  bool test(Scene *scene, blender::Object &b_ob, const Transform &tfm);
 
  private:
   bool test_camera(Scene *scene, const float3 bb[8]);

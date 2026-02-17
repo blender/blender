@@ -125,7 +125,10 @@ class Object : public Node {
   bool has_shadow_linking() const;
 
   /* Transform of some object types need to be modified to prevent render issues. */
+  void adjust_volume_tfm(Transform &tfm);
   void set_tfm(Transform tfm);
+  bool tfm_equals(Transform tfm);
+  void set_motion_tfm(Transform tfm, const int step_index);
 
  protected:
   /* Reference to the attribute map with object attributes,

@@ -445,7 +445,7 @@ bool Object::has_shadow_linking() const
   return false;
 }
 
-void Object::set_tfm(Transform tfm)
+void Object::adjust_volume_tfm(Transform &tfm)
 {
   if (geometry) {
     if (geometry->is_volume()) {
@@ -458,9 +458,27 @@ void Object::set_tfm(Transform tfm)
       transform_translate(tfm, offset);
     }
   }
+}
 
+void Object::set_tfm(Transform tfm)
+{
+  adjust_volume_tfm(tfm);
   const SocketType *socket = get_tfm_socket();
   set(*socket, tfm);
+}
+
+bool Object::tfm_equals(Transform tfm)
+{
+  adjust_volume_tfm(tfm);
+  return tfm == get_tfm();
+}
+
+void Object::set_motion_tfm(Transform tfm, const int step_index)
+{
+  adjust_volume_tfm(tfm);
+  array<Transform> motion = get_motion();
+  motion[step_index] = tfm;
+  set_motion(motion);
 }
 
 /* Object Manager */
