@@ -42,8 +42,7 @@ constexpr int64_t calc_copy_grain_size(const exec_mode::Mode mode, const int64_t
 }
 
 /**
- * Fill the destination span by copying all values from the `src` array. Threaded based on
- * grain-size.
+ * Fill the destination span by copying all values from the `src` array.
  */
 void copy(const GVArray &src, GMutableSpan dst, exec_mode::Mode mode = exec_mode::parallel);
 template<typename T, exec_mode::Tag Mode = exec_mode::Parallel>
@@ -62,8 +61,7 @@ inline void copy(const VArray<T> &src, MutableSpan<T> dst, const Mode mode = {})
 }
 
 /**
- * Fill the destination span by copying all values from the `src` array. Threaded based on
- * grain-size.
+ * Fill the destination span by copying all values from the `src` array.
  */
 template<typename T, exec_mode::Tag Mode = exec_mode::Parallel>
 inline void copy(const Span<T> src, MutableSpan<T> dst, const Mode mode = {})
@@ -81,8 +79,7 @@ inline void copy(const Span<T> src, MutableSpan<T> dst, const Mode mode = {})
 }
 
 /**
- * Fill the destination span by copying masked values from the `src` array. Threaded based on
- * grain-size.
+ * Fill the destination span by copying masked values from the `src` array.
  */
 void copy(const GVArray &src,
           const IndexMask &selection,
@@ -90,8 +87,7 @@ void copy(const GVArray &src,
           exec_mode::Mode mode = exec_mode::parallel);
 
 /**
- * Fill the destination span by copying values from the `src` array. Threaded based on
- * grain-size.
+ * Fill the destination span by copying values from the `src` array.
  */
 template<typename T, exec_mode::Tag Mode = exec_mode::Parallel>
 inline void copy(const Span<T> src,
