@@ -34,6 +34,7 @@ class Drawing;
 class DrawingReference;
 class TreeNode;
 class Layer;
+class LayerMask;
 class LayerRuntime;
 class LayerGroup;
 class LayerGroupRuntime;
@@ -294,6 +295,10 @@ struct GreasePencilLayerMask {
    */
   uint16_t flag = 0;
   char _pad[6] = {};
+#ifdef __cplusplus
+  bke::greasepencil::LayerMask &wrap();
+  const bke::greasepencil::LayerMask &wrap() const;
+#endif
 };
 
 struct GreasePencilLayerTreeGroup;

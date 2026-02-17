@@ -990,6 +990,7 @@ static void rna_def_grease_pencil_layer_masks(BlenderRNA *brna, PropertyRNA *cpr
                              "rna_grease_pencil_active_mask_index_set",
                              "rna_grease_pencil_active_mask_index_range");
   RNA_def_property_ui_text(prop, "Active Layer Mask Index", "Active index in layer mask array");
+  RNA_api_grease_pencil_layer_masks(srna);
 }
 
 static void rna_def_grease_pencil_tree_node(BlenderRNA *brna)

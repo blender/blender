@@ -1102,6 +1102,15 @@ inline const bke::greasepencil::Layer &GreasePencilLayer::wrap() const
   return *reinterpret_cast<const bke::greasepencil::Layer *>(this);
 }
 
+inline bke::greasepencil::LayerMask &GreasePencilLayerMask::wrap()
+{
+  return *reinterpret_cast<bke::greasepencil::LayerMask *>(this);
+}
+inline const bke::greasepencil::LayerMask &GreasePencilLayerMask::wrap() const
+{
+  return *reinterpret_cast<const bke::greasepencil::LayerMask *>(this);
+}
+
 inline bke::greasepencil::LayerGroup &GreasePencilLayerTreeGroup::wrap()
 {
   return *reinterpret_cast<bke::greasepencil::LayerGroup *>(this);

@@ -83,6 +83,54 @@ class TestGreasePencilLayers(unittest.TestCase):
         self.assertEqual(round(self.gp.layers[1].tint_factor, 1), self.tint_factors[2])
         self.assertEqual(round(self.gp.layers[2].tint_factor, 1), self.tint_factors[0])
 
+    def test_grease_pencil_layer_mask_add(self):
+        while len(self.gp.layers) < 4:
+            self.gp.layers.new(f"Layer_{len(self.gp.layers)}")
+
+        layer = self.gp.layers[0]
+        mask_layer_1 = self.gp.layers[1]
+        mask_layer_2 = self.gp.layers[2]
+        mask_layer_3 = self.gp.layers[3]
+
+        mask1 = layer.mask_layers.add(mask_layer_1)
+        self.assertIsNotNone(mask1)
+        self.assertEqual(len(layer.mask_layers), 1)
+
+        mask2 = layer.mask_layers.add(mask_layer_2)
+        self.assertIsNotNone(mask2)
+        self.assertEqual(len(layer.mask_layers), 2)
+
+        mask3 = layer.mask_layers.add(mask_layer_3)
+        self.assertIsNotNone(mask3)
+        self.assertEqual(len(layer.mask_layers), 3)
+
+        # Test duplicate prevention - adding same layer again
+        mask_dup = layer.mask_layers.add(mask_layer_1)
+        self.assertIsNotNone(mask_dup)
+        self.assertEqual(len(layer.mask_layers), 3)  # Should still be 3, not 4
+
+    def test_grease_pencil_layer_mask_remove(self):
+        while len(self.gp.layers) < 4:
+            self.gp.layers.new(f"Layer_{len(self.gp.layers)}")
+
+        layer = self.gp.layers[0]
+        mask_layer_1 = self.gp.layers[1]
+        mask_layer_2 = self.gp.layers[2]
+        mask_layer_3 = self.gp.layers[3]
+
+        mask1 = layer.mask_layers.add(mask_layer_1)
+        mask2 = layer.mask_layers.add(mask_layer_2)
+        mask3 = layer.mask_layers.add(mask_layer_3)
+
+        self.assertEqual(len(layer.mask_layers), 3)
+
+        layer.mask_layers.remove(mask2)
+        self.assertEqual(len(layer.mask_layers), 2)
+
+        layer.mask_layers.remove(mask1)
+        layer.mask_layers.remove(mask3)
+        self.assertEqual(len(layer.mask_layers), 0)
+
 
 class TestGreasePencilFrame(unittest.TestCase):
     def setUp(self):
