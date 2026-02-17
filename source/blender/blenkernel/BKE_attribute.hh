@@ -827,6 +827,9 @@ class MutableAttributeAccessor : public AttributeAccessor {
     if (this->contains(name)) {
       return false;
     }
+    if (name.is_empty()) {
+      return false;
+    }
     return fn_->add(owner_, name, domain, data_type, initializer);
   }
   template<typename T>

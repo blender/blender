@@ -535,6 +535,9 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
 
 bool MutableAttributeAccessor::rename(const StringRef old_name, const StringRef new_name)
 {
+  if (new_name.is_empty()) {
+    return false;
+  }
   if (old_name == new_name) {
     return true;
   }

@@ -276,6 +276,7 @@ Attribute &AttributeStorage::add(std::string name,
                                  const AttrType data_type,
                                  Attribute::DataVariant data)
 {
+  BLI_assert(!name.empty());
   BLI_assert(!this->lookup(name));
   std::unique_ptr<Attribute> ptr = std::make_unique<Attribute>();
   Attribute &attribute = *ptr;
@@ -300,6 +301,7 @@ std::string AttributeStorage::unique_name_calc(const StringRef name) const
 
 void AttributeStorage::rename(const StringRef old_name, std::string new_name)
 {
+  BLI_assert(!new_name.empty());
   /* The VectorSet must be rebuilt from scratch because the data used to create the hash is
    * changed. */
   const int index = this->runtime->attributes.index_of_try_as(old_name);
