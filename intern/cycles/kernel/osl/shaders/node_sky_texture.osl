@@ -165,7 +165,7 @@ color sky_radiance_nishita(vector dir, float sky_data[11], string filename, stri
   }
   /* Undo the non-linear transformation from the sky LUT */
   float dir_elevation_abs = (dir_elevation < 0.0) ? -dir_elevation : dir_elevation;
-  float y = 1.0 - (sqrt(dir_elevation_abs / M_PI_2) * signx(dir_elevation) * 0.5 + 0.5);
+  float y = sqrt(dir_elevation_abs / M_PI_2) * signx(dir_elevation) * 0.5 + 0.5;
   color xyz = (color)texture(filename, x, y, "wrap", "clamp", "interp", "linear", "alpha", alpha);
   color rgb_sky = xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
 

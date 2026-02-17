@@ -10,11 +10,6 @@ CCL_NAMESPACE_BEGIN
 
 ImageLoader::ImageLoader() = default;
 
-ustring ImageLoader::osl_filepath() const
-{
-  return ustring();
-}
-
 int ImageLoader::get_tile_number() const
 {
   return 0;

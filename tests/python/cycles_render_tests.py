@@ -20,8 +20,6 @@ BLOCKLIST_ALL = [
     "hair_instancer_uv.blend",
     "principled_hair_directcoloring.blend",
     "visibility_particles.blend",
-    # Temporarily blocked for 4.4 lib upgrade, due to PNG alpha minor difference.
-    "image_log_osl.blend",
     # Tests for EEVEE-only setting (duplicates from the Cycles perspective)
     "camera_depth_of_field_jittered.blend",
     "shadow_resolution.blend",
@@ -47,19 +45,6 @@ BLOCKLIST_OSL_ALL = BLOCKLIST_OSL_LIMITED + [
     # AOVs are not supported. See 73266
     'aov_.*.blend',
     'render_passes_aov.*.blend',
-    # Image sampling is different from SVM. There are OSL variants of these tests
-    'image_byte.*.blend',
-    'image_float.*.blend',
-    'image_half.*.blend',
-    'image_mapping_.*_closest.blend',
-    'image_mapping_.*_cubic.blend',
-    'image_mapping_.*_linear.blend',
-    'image_alpha_blend.blend',
-    'image_alpha_channel_packed.blend',
-    'image_alpha_ignore.blend',
-    'image_log.blend',
-    'image_non_color.blend',
-    'image_mapping_udim.blend',
     # Tests that need investigating into why they're failing:
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
@@ -75,7 +60,6 @@ BLOCKLIST_OPTIX = [
 
 # Blocklist for OSL tests that fail with the OptiX OSL backend.
 BLOCKLIST_OPTIX_OSL_LIMITED = [
-    'image_.*_osl.blend',
     # OptiX OSL doesn't support the trace function
     'osl_trace_shader.blend',
     # Noise functions do not return color with OptiX OSL
@@ -95,8 +79,6 @@ BLOCKLIST_OPTIX_OSL_ALL = BLOCKLIST_OPTIX_OSL_LIMITED + [
     'object_dicing.blend',
     'offscreen_dicing.blend',
     'panorama_dicing.blend',
-    # The mapping of the UDIM texture is incorrect. Need to investigate why.
-    'image_mapping_udim_packed.blend',
     # Error during rendering. Need to investigate why.
     'points_volume.blend',
 ]

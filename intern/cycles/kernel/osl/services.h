@@ -18,6 +18,8 @@
 
 #include <OpenImageIO/unordered_map_concurrent.h>
 
+#include "util/concurrent_set.h"
+
 #include "scene/image.h"
 
 #include "kernel/osl/compat.h"
@@ -46,22 +48,17 @@ struct ThreadKernelGlobalsCPU;
  * y:svm_image_texture_ids_a, z:tile_b, w:svm_image_texture_ids_b etc. */
 
 struct OSLTextureHandle {
-  enum Type { OIIO, SVM, IES, BEVEL, AO };
+  OSLTextureHandle(const OSLTextureHandleType type, const int id = -1) : type(type), id(id) {}
 
-  OSLTextureHandle(Type type, const int id = -1) : type(type), id(id) {}
+  OSLTextureHandle(const ImageHandle &handle) : id(handle.kernel_id()), handle(handle) {}
 
-  OSLTextureHandle(const ImageHandle &handle) : type(SVM), id(handle.kernel_id()), handle(handle)
-  {
-  }
-
-  Type type;
+  OSLTextureHandleType type = OSLTextureHandleType::IMAGE;
   int id = -1;
-  OSL::TextureSystem::TextureHandle *oiio_handle = nullptr;
-  ColorSpaceProcessor *processor = nullptr;
   ImageHandle handle;
 };
 
 using OSLTextureHandleMap = OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandle>;
+using OSLTextureFilenameMap = concurrent_set<OSLUStringHash>;
 
 /* OSL Render Services
  *
@@ -69,7 +66,7 @@ using OSLTextureHandleMap = OIIO::unordered_map_concurrent<OSLUStringHash, OSLTe
 
 class OSLRenderServices : public OSL::RendererServices {
  public:
-  OSLRenderServices(OSL::TextureSystem *texture_system, const int device_type);
+  OSLRenderServices(const int device_type);
   ~OSLRenderServices() override;
 
   static void register_closures(OSL::ShadingSystem *ss);
@@ -185,6 +182,7 @@ class OSLRenderServices : public OSL::RendererServices {
                                                         const OSL::TextureOpt *options) override;
 
   bool good(OSL::TextureSystem::TextureHandle *texture_handle) override;
+  bool is_udim(OSL::TextureSystem::TextureHandle *texture_handle) override;
 
   bool texture(OSLUStringHash filename,
                OSL::TextureSystem::TextureHandle *texture_handle,
@@ -243,6 +241,18 @@ class OSLRenderServices : public OSL::RendererServices {
                         void *data,
                         OSLUStringHash *errormessage) override;
 
+  bool get_texture_info(OSLUStringHash filename,
+                        TextureHandle *texture_handle,
+                        float s,
+                        float t,
+                        TexturePerthread *texture_thread_info,
+                        OSL::ShaderGlobals *sg,
+                        const int subimage,
+                        OSLUStringHash dataname,
+                        const TypeDesc datatype,
+                        void *data,
+                        OSLUStringHash *errormessage) override;
+
   static bool get_attribute(ShaderGlobals *globals,
                             ShaderData *sd,
                             bool derivatives,
@@ -276,6 +286,13 @@ class OSLRenderServices : public OSL::RendererServices {
 
  private:
   int device_type_;
+
+  /* We don't support lookup by filename without handle, which is required anyway
+   * for GPU, and simplifies the implementation on CPU. This keeps track of the
+   * ones we have seen to emit a warning only once. */
+  OSLTextureFilenameMap texture_filenames_seen;
+
+  thread_mutex textures_mutex;
 };
 
 CCL_NAMESPACE_END

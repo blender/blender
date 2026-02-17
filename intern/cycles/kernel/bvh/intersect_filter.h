@@ -23,6 +23,7 @@
 #include "kernel/bvh/util.h"
 #include "kernel/globals.h"
 #include "kernel/integrator/state.h"
+#include "kernel/integrator/state_util.h"
 #include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
