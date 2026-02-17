@@ -51,6 +51,11 @@ class MeshBrushTests(unittest.TestCase):
         """
         Compare the prior and post states of a brush stroke
         """
+        if start_over_mesh:
+            start_percent = (0.5, 0.5)
+        else:
+            start_percent = (0.0, 0.0)
+
         initial_data = get_attribute_data(backend, attribute)
 
         context_override = bpy.context.copy()
@@ -59,7 +64,7 @@ class MeshBrushTests(unittest.TestCase):
             bpy.ops.sculpt.brush_stroke(
                 stroke=generate_stroke(
                     context_override,
-                    start_over_mesh),
+                    start_percent=start_percent),
                 override_location=True, **opts)
 
         new_data = get_attribute_data(backend, attribute)

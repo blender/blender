@@ -170,12 +170,11 @@ def generate_monkey(backend):
         bpy.ops.object.subdivision_set(level=2, relative=False, ensure_modifier=True)
 
 
-def generate_stroke(context, start_over_mesh=False):
+def generate_stroke(context, start_percent=(0.0, 0.0), end_percent=(1.0, 1.0)):
     """
     Generate stroke for any of the paint mode operators (e.g. bpy.ops.sculpt.brush_stroke_
 
     The generated stroke coves the full plane diagonal.
-    :param start_over_mesh start the stroke in the center of the screen (over the object)
     """
     import bpy
     from mathutils import Vector
@@ -194,12 +193,9 @@ def generate_stroke(context, start_over_mesh=False):
     }
 
     num_steps = 50
-    if start_over_mesh:
-        start = Vector((context['area'].width // 2, context['area'].height // 2))
-    else:
-        start = Vector((context['area'].width, context['area'].height))
 
-    end = Vector((0, 0))
+    start = Vector((0 * start_percent[0], 0 * start_percent[1]))
+    end = Vector((context['area'].width * end_percent[0], context['area'].height * end_percent[1]))
     delta = (end - start) / (num_steps - 1)
 
     stroke = []
