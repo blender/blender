@@ -6833,6 +6833,7 @@ class VIEW3D_PT_shading_cavity(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Cavity"
     bl_parent_id = "VIEW3D_PT_shading"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -6847,8 +6848,9 @@ class VIEW3D_PT_shading_cavity(Panel):
         row = layout.row()
         row.active = not xray_active
         row.prop(shading, "show_cavity")
-        if shading.show_cavity:
-            row.prop(shading, "cavity_type", text="Type")
+        row = row.row()
+        row.active = shading.show_cavity
+        row.prop(shading, "cavity_type", text="Type")
 
     def draw(self, context):
         layout = self.layout
@@ -6856,27 +6858,26 @@ class VIEW3D_PT_shading_cavity(Panel):
         xray_active = shading.show_xray and shading.xray_alpha != 1
 
         col = layout.column()
-        col.active = not xray_active
+        col.active = not xray_active and shading.show_cavity
 
-        if shading.show_cavity:
-            if shading.cavity_type in {'WORLD', 'BOTH'}:
-                row = col.row()
-                row.label(text="World Space")
-                row.popover(
-                    panel="VIEW3D_PT_shading_options_ssao",
-                    icon='PREFERENCES',
-                    text="",
-                )
+        if shading.cavity_type in {'WORLD', 'BOTH'}:
+            row = col.row()
+            row.label(text="World Space")
+            row.popover(
+                panel="VIEW3D_PT_shading_options_ssao",
+                icon='PREFERENCES',
+                text="",
+            )
 
-                row = col.row()
-                row.prop(shading, "cavity_ridge_factor", text="Ridge")
-                row.prop(shading, "cavity_valley_factor", text="Valley")
+            row = col.row()
+            row.prop(shading, "cavity_ridge_factor", text="Ridge")
+            row.prop(shading, "cavity_valley_factor", text="Valley")
 
-            if shading.cavity_type in {'SCREEN', 'BOTH'}:
-                col.label(text="Screen Space")
-                row = col.row()
-                row.prop(shading, "curvature_ridge_factor", text="Ridge")
-                row.prop(shading, "curvature_valley_factor", text="Valley")
+        if shading.cavity_type in {'SCREEN', 'BOTH'}:
+            col.label(text="Screen Space")
+            row = col.row()
+            row.prop(shading, "curvature_ridge_factor", text="Ridge")
+            row.prop(shading, "curvature_valley_factor", text="Valley")
 
 
 class VIEW3D_PT_shading_render_pass(Panel):
@@ -7192,6 +7193,7 @@ class VIEW3D_PT_overlay_motion_tracking(Panel):
     bl_region_type = 'HEADER'
     bl_parent_id = "VIEW3D_PT_overlay"
     bl_label = "Motion Tracking"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
         layout = self.layout
@@ -7205,27 +7207,23 @@ class VIEW3D_PT_overlay_motion_tracking(Panel):
         layout = self.layout
         view = context.space_data
         overlay = view.overlay
-        display_all = overlay.show_overlays
+        layout.active = overlay.show_overlays and view.show_reconstruction
 
         col = layout.column()
-        col.active = display_all
 
-        if view.show_reconstruction:
-            split = col.split()
+        split = col.split()
 
-            sub = split.column(align=True)
-            sub.active = view.show_reconstruction
-            sub.prop(view, "show_camera_path", text="Camera Path")
+        sub = split.column(align=True)
+        sub.prop(view, "show_camera_path", text="Camera Path")
 
-            sub = split.column()
-            sub.prop(view, "show_bundle_names", text="Marker Names")
+        sub = split.column()
+        sub.prop(view, "show_bundle_names", text="Marker Names")
 
-            col = layout.column()
-            col.active = display_all
-            col.label(text="Tracks")
-            row = col.row(align=True)
-            row.prop(view, "tracks_display_type", text="")
-            row.prop(view, "tracks_display_size", text="Size")
+        col = layout.column()
+        col.label(text="Tracks")
+        row = col.row(align=True)
+        row.prop(view, "tracks_display_type", text="")
+        row.prop(view, "tracks_display_size", text="Size")
 
 
 class VIEW3D_PT_overlay_edit_mesh(Panel):
