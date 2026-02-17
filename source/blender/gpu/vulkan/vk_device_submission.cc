@@ -225,6 +225,8 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
       VkSemaphore signal_semaphores[2] = {device->vk_timeline_semaphore_,
                                           submit_task->signal_semaphore};
       uint64_t signal_semaphore_values[2] = {submit_task->timeline, 0};
+      VkPipelineStageFlags pipeline_stage_flags[2] = {VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                                      submit_task->wait_dst_stage_mask};
 
       VkTimelineSemaphoreSubmitInfo vk_timeline_semaphore_submit_info = {
           VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
@@ -237,7 +239,7 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
                                      &vk_timeline_semaphore_submit_info,
                                      wait_semaphore_len,
                                      wait_semaphores,
-                                     &submit_task->wait_dst_stage_mask,
+                                     pipeline_stage_flags,
                                      1,
                                      &vk_command_buffer,
                                      signal_semaphore_len,
