@@ -2832,7 +2832,7 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.operator("object.shade_smooth")
-        if ob and ob.type == 'MESH':
+        if ob and ob.type in {'MESH', 'CURVE', 'FONT'}:
             layout.operator("object.shade_auto_smooth")
         layout.operator("object.shade_flat")
 
