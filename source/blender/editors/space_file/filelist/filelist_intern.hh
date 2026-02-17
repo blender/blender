@@ -298,6 +298,10 @@ enum class SpecialFileImages {
 
 void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
 
+FileUID filelist_uid_generate(FileList *filelist);
+
+const char *fileentry_uiname(const char *root, FileListInternEntry *entry, char *buff);
+
 bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry);
 
 void prepare_filter_asset_library(const FileList *filelist, FileListFilter *filter);
@@ -313,5 +317,20 @@ bool is_filtered_main_assets(FileListInternEntry *file,
 bool is_filtered_asset_library(FileListInternEntry *file,
                                const char *root,
                                FileListFilter *filter);
+
+bool filelist_checkdir_dir(const FileList * /*filelist*/,
+                           char dirpath[FILE_MAX_LIBEXTRA],
+                           const bool do_change);
+bool filelist_checkdir_lib(const FileList * /*filelist*/,
+                           char dirpath[FILE_MAX_LIBEXTRA],
+                           const bool do_change);
+
+void filelist_set_readjob_main(FileList *filelist);
+void filelist_set_readjob_directories(FileList *filelist);
+void filelist_set_readjob_library(FileList *filelist);
+void filelist_set_readjob_on_disk_asset_library(FileList *filelist);
+void filelist_set_readjob_remote_asset_library(FileList *filelist);
+void filelist_set_readjob_current_file_asset_library(FileList *filelist);
+void filelist_set_readjob_all_asset_library(FileList *filelist);
 
 }  // namespace blender
