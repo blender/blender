@@ -605,6 +605,28 @@ static void node_reroute_init(bNodeTree * /*ntree*/, bNode *node)
   node->storage = data;
 }
 
+static bool node_reroute_poll_instance(const bNode *node,
+                                       const bNodeTree *nodetree,
+                                       const char **r_disabled_hint)
+{
+  const NodeReroute &data = *static_cast<NodeReroute *>(node->storage);
+  bke::bNodeSocketType *socket_type = bke::node_socket_type_find(data.type_idname);
+  if (!socket_type) {
+    if (r_disabled_hint) {
+      *r_disabled_hint = "Socket type not found";
+    }
+    return false;
+  }
+  bke::bNodeTreeType &tree_type = *nodetree->typeinfo;
+  if (tree_type.valid_socket_type && !tree_type.valid_socket_type(&tree_type, socket_type)) {
+    if (r_disabled_hint) {
+      *r_disabled_hint = "Socket type not supported";
+    }
+    return false;
+  }
+  return true;
+}
+
 void register_node_type_reroute()
 {
   /* frame type is used for all tree types, needs dynamic allocation */
@@ -620,6 +642,7 @@ void register_node_type_reroute()
   ntype->declare = node_reroute_declare;
   ntype->initfunc = node_reroute_init;
   node_type_storage(*ntype, "NodeReroute", node_free_standard_storage, node_copy_standard_storage);
+  ntype->poll_instance = node_reroute_poll_instance;
 
   bke::node_register_type(*ntype);
 }
