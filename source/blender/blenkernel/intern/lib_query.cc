@@ -13,7 +13,6 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_function_ref.hh"
-#include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
@@ -360,7 +359,13 @@ static bool library_foreach_ID_link(Main *bmain,
          * Does not hurt to have that double-check here though, as it makes that expectation more
          * obvious. */
         ID *to_id_tmp = to_id_entry->id_pointer.to;
-        BKE_lib_query_foreachid_process(&data, &to_id_tmp, to_id_entry->usage_flag);
+        if (to_id_entry->usage_flag & IDWALK_CB_EMBEDDED) {
+          BLI_assert(to_id_tmp->flag & ID_FLAG_EMBEDDED_DATA);
+          BKE_library_foreach_ID_embedded(&data, &to_id_tmp);
+        }
+        else {
+          BKE_lib_query_foreachid_process(&data, &to_id_tmp, to_id_entry->usage_flag);
+        }
         BLI_assert(to_id_tmp == to_id_entry->id_pointer.to);
 
         if (BKE_lib_query_foreachid_iter_stop(&data)) {
