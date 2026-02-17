@@ -217,6 +217,7 @@ set(SRC
   BLI_disjoint_set.hh
   BLI_dot_export.hh
   BLI_dot_export_attribute_enums.hh
+  BLI_dynamic_stack_buffer.hh
   BLI_dynstr.h
   BLI_easing.h
   BLI_endian_defines.h

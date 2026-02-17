@@ -10,6 +10,8 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "utils.hh"
 
 namespace blender::asset_system::utils {
