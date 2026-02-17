@@ -61,7 +61,7 @@ void BlenderObjectCulling::init_object(Scene *scene, blender::Object &b_ob)
   }
 }
 
-bool BlenderObjectCulling::test(Scene *scene, blender::Object &b_ob, Transform &tfm)
+bool BlenderObjectCulling::test(Scene *scene, blender::Object &b_ob, const Transform &tfm)
 {
   if (!use_camera_cull_ && !use_distance_cull_) {
     return false;

@@ -174,7 +174,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   BObjectInfo b_ob_info{
       &b_ob, b_real_object, object_get_data(b_ob, use_adaptive_subdiv), use_adaptive_subdiv};
   const bool motion = motion_time != 0.0f;
-  /*const*/ Transform tfm = get_transform(b_ob.object_to_world());
+  const Transform tfm = get_transform(b_ob.object_to_world());
   const int *persistent_id = nullptr;
   if (is_instance) {
     persistent_id = b_deg_iter_data.dupli_object_current->persistent_id;
@@ -247,9 +247,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
       /* Set transform at matching motion time step. */
       const int time_index = object->motion_step(motion_time);
       if (time_index >= 0) {
-        array<Transform> motion = object->get_motion();
-        motion[time_index] = tfm;
-        object->set_motion(motion);
+        object->set_motion_tfm(tfm, time_index);
       }
 
       /* mesh deformation */
@@ -264,7 +262,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
 
   /* test if we need to sync */
   bool object_updated = object_map.add_or_update(&object, &b_ob.id, &b_parent->id, key) ||
-                        (tfm != object->get_tfm());
+                        !object->tfm_equals(tfm);
 
   /* mesh sync */
   Geometry *geometry = sync_geometry(
