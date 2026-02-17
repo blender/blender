@@ -57,9 +57,6 @@ class ImageLoader {
   /* Name for logs and stats. */
   virtual string name() const = 0;
 
-  /* Optional for OSL texture cache. */
-  virtual ustring osl_filepath() const;
-
   /* Optional for tiled textures loaded externally. */
   virtual int get_tile_number() const;
 
