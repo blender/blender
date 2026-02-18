@@ -32,7 +32,7 @@ static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
     uv_layers.add_new(name);
   }
 
-  const StringRef active_name = mesh.active_uv_map_name();
+  const StringRef active_name = mesh.active_or_default_uv_map_name();
   const StringRef default_name = mesh.default_uv_map_name();
 
   /* HACK to fix #68857 */

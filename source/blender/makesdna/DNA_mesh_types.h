@@ -402,6 +402,8 @@ struct Mesh {
   StringRefNull active_uv_map_name() const;
   /** The name of the default UV map (e.g. for rendering) attribute, if any. */
   StringRefNull default_uv_map_name() const;
+  /** The active UV map name, falling back to the default if no active map is set. */
+  StringRefNull active_or_default_uv_map_name() const;
 
   void uv_maps_active_set(StringRef name);
   void uv_maps_default_set(StringRef name);
