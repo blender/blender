@@ -846,14 +846,6 @@ void filelist_readjob_directories_and_libraries(const bool do_lib,
   filelist_readjob_recursive_dir_add_items(do_lib, job_params, stop, do_update, progress);
 }
 
-void filelist_readjob_dir(FileListReadJob *job_params,
-                          bool *stop,
-                          bool *do_update,
-                          float *progress)
-{
-  filelist_readjob_directories_and_libraries(false, job_params, stop, do_update, progress);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

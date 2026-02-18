@@ -13,6 +13,15 @@
 
 namespace blender {
 
+void filelist_readjob_dir(FileListReadJob *job_params,
+                          bool *stop,
+                          bool *do_update,
+                          float *progress)
+{
+  filelist_readjob_directories_and_libraries(
+      /*do_lib=*/false, job_params, stop, do_update, progress);
+}
+
 void filelist_set_readjob_directories(FileList *filelist)
 {
   filelist->check_dir_fn = filelist_checkdir_dir;

@@ -32,7 +32,6 @@ set(SRC
   filelist/filelist_readjob_common.cc
   filelist/filelist_readjob_directories.cc
   filelist/filelist_readjob_library.cc
-  filelist/filelist_readjob_main.cc
 
   filelist/filelist_sort.cc
   filesel.cc

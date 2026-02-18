@@ -65,7 +65,7 @@ struct FileListInternEntry {
    * take care of that.
    */
   struct {
-    /** When showing local IDs (FILE_MAIN, FILE_MAIN_ASSET), the ID this file entry represents. */
+    /** When showing local IDs (#FILE_MAIN_ASSET), the ID this file entry represents. */
     ID *id = nullptr;
 
     /* For the few file types that have the preview already in memory. For others, there's delayed
@@ -310,7 +310,6 @@ void prepare_filter_asset_library(const FileList *filelist, FileListFilter *filt
 bool is_filtered_file(FileListInternEntry *file, const char * /*root*/, FileListFilter *filter);
 bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter);
 bool is_filtered_lib(FileListInternEntry *file, const char *root, FileListFilter *filter);
-bool is_filtered_main(FileListInternEntry *file, const char * /*dir*/, FileListFilter *filter);
 bool is_filtered_main_assets(FileListInternEntry *file,
                              const char * /*dir*/,
                              FileListFilter *filter);
@@ -325,7 +324,6 @@ bool filelist_checkdir_lib(const FileList * /*filelist*/,
                            char dirpath[FILE_MAX_LIBEXTRA],
                            const bool do_change);
 
-void filelist_set_readjob_main(FileList *filelist);
 void filelist_set_readjob_directories(FileList *filelist);
 void filelist_set_readjob_library(FileList *filelist);
 void filelist_set_readjob_on_disk_asset_library(FileList *filelist);

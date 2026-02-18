@@ -156,7 +156,7 @@ int filelist_file_find_path(FileList *filelist, const char *filename);
  */
 int filelist_file_find_id(const FileList *filelist, const ID *id);
 /**
- * Get the ID a file represents (if any). For #FILE_MAIN, #FILE_MAIN_ASSET.
+ * Get the ID a file represents (if any). For #FILE_MAIN_ASSET.
  */
 ID *filelist_file_get_id(const FileDirEntry *file);
 /**

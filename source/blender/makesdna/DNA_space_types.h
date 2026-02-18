@@ -578,7 +578,7 @@ struct FileDirEntry {
   /** Optional argument for shortcuts, aliases etc. */
   char *redirection_path = nullptr;
 
-  /** When showing local IDs (FILE_MAIN, FILE_MAIN_ASSET), ID this file represents. Note comment
+  /** When showing local IDs (#FILE_MAIN_ASSET), ID this file represents. Note comment
    * for FileListInternEntry.local_data, the same applies here! */
   ID *id = nullptr;
   /** If this file represents an asset, its asset data is here. Note that we may show assets of

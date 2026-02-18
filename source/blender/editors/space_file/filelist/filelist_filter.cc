@@ -211,11 +211,6 @@ bool is_filtered_lib(FileListInternEntry *file, const char *root, FileListFilter
   return is_filtered_lib_type(file, root, filter) && is_filtered_file_relpath(file, filter);
 }
 
-bool is_filtered_main(FileListInternEntry *file, const char * /*dir*/, FileListFilter *filter)
-{
-  return !is_filtered_hidden(file->relpath, filter, file);
-}
-
 bool is_filtered_main_assets(FileListInternEntry *file,
                              const char * /*dir*/,
                              FileListFilter *filter)

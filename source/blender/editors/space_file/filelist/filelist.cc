@@ -864,9 +864,6 @@ void filelist_settype(FileList *filelist, short type)
   filelist->filter_fn = nullptr;
 
   switch (filelist->type) {
-    case FILE_MAIN:
-      filelist_set_readjob_main(filelist);
-      break;
     case FILE_LOADLIB:
       filelist_set_readjob_library(filelist);
       break;

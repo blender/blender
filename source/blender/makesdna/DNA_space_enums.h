@@ -572,7 +572,6 @@ enum eFileDetails {
 /** File selector types. */
 enum eFileSelectType {
   FILE_LOADLIB = 1,
-  FILE_MAIN = 2,
   /** Load assets from #Main. */
   FILE_MAIN_ASSET = 3,
   /** Load assets of an asset library containing external files. */
