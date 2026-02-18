@@ -481,6 +481,66 @@ static void expose_declaration_item_recursive(NodeSetInterfaceBuilder &builder,
   }
 }
 
+static void make_panel_visible(bNode &node, const nodes::PanelDeclaration &panel_decl)
+{
+  for (bNodePanelState &panel_state : node.panel_states()) {
+    if (panel_state.identifier == panel_decl.identifier) {
+      panel_state.flag &= ~NODE_PANEL_COLLAPSED;
+      return;
+    }
+  }
+  BLI_assert_unreachable();
+}
+
+static bool make_parent_panels_visible_recursive(bNode &node,
+                                                 StringRef socket_identifier,
+                                                 const Span<nodes::ItemDeclaration *> item_decls)
+{
+  for (const nodes::ItemDeclaration *item_decl : item_decls) {
+    if (const auto *socket_decl = dynamic_cast<const nodes::SocketDeclaration *>(item_decl)) {
+      if (socket_identifier == socket_decl->identifier) {
+        return true;
+      }
+    }
+    if (const auto *child_panel_decl = dynamic_cast<const nodes::PanelDeclaration *>(item_decl)) {
+      if (make_parent_panels_visible_recursive(node, socket_identifier, child_panel_decl->items)) {
+        make_panel_visible(node, *child_panel_decl);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+static void make_socket_visible(bNode &node, bNodeSocket &socket)
+{
+  socket.flag &= ~SOCK_HIDDEN;
+  if (const nodes::NodeDeclaration *node_decl = node.declaration()) {
+    make_parent_panels_visible_recursive(node, socket.identifier, node_decl->root_items);
+  }
+}
+
+/* Add a link to a node tree. If one of the sockets is visible the other will be visible too. */
+static bNodeLink &add_link_and_make_visible(bNodeTree &tree,
+                                            bNode &from_node,
+                                            bNodeSocket &from_socket,
+                                            bNode &to_node,
+                                            bNodeSocket &to_socket)
+{
+  BLI_assert(from_socket.is_available());
+  BLI_assert(to_socket.is_available());
+  if (!from_socket.is_user_hidden() || !to_socket.is_user_hidden()) {
+    if (from_socket.is_user_hidden() || from_socket.is_panel_collapsed()) {
+      make_socket_visible(from_node, from_socket);
+    }
+    if (to_socket.is_user_hidden() || to_socket.is_panel_collapsed()) {
+      make_socket_visible(to_node, to_socket);
+    }
+  }
+
+  return bke::node_add_link(tree, from_node, from_socket, to_node, to_socket);
+}
+
 NodeTreeInterfaceMapping build_node_declaration_interface(const NodeSetInterfaceParams &params,
                                                           const bNode &src_node,
                                                           bNodeTree &dst_tree)
@@ -619,11 +679,11 @@ NodeSetCopy NodeSetCopy::from_nodes(Main &bmain,
   /* Recreate internal links. */
   const Vector<const bNodeLink *> internal_links = find_internal_links(src_tree, src_nodes);
   for (const bNodeLink *src_link : internal_links) {
-    bke::node_add_link(dst_tree,
-                       *result.node_map_.lookup(src_link->fromnode),
-                       *socket_map.lookup(src_link->fromsock),
-                       *result.node_map_.lookup(src_link->tonode),
-                       *socket_map.lookup(src_link->tosock));
+    add_link_and_make_visible(dst_tree,
+                              *result.node_map_.lookup(src_link->fromnode),
+                              *socket_map.lookup(src_link->fromsock),
+                              *result.node_map_.lookup(src_link->tonode),
+                              *socket_map.lookup(src_link->tosock));
   }
 
   /* Recreate zone pairing between new nodes. */
@@ -686,13 +746,14 @@ GroupInputOutputNodes connect_copied_nodes_to_interface(const bContext &C,
         bNodeSocket *group_input_socket = node_group_input_find_socket(io_nodes.input_node,
                                                                        item.key->identifier);
         BLI_assert(group_input_socket);
-        bke::node_add_link(tree, *io_nodes.input_node, *group_input_socket, new_node, new_socket);
+        add_link_and_make_visible(
+            tree, *io_nodes.input_node, *group_input_socket, new_node, new_socket);
       }
       else {
         bNodeSocket *group_output_socket = node_group_output_find_socket(io_nodes.output_node,
                                                                          item.key->identifier);
         BLI_assert(group_output_socket);
-        bke::node_add_link(
+        add_link_and_make_visible(
             tree, new_node, new_socket, *io_nodes.output_node, *group_output_socket);
       }
     }
@@ -783,11 +844,11 @@ void connect_copied_nodes_to_external_sockets(const bNodeTree &src_tree,
 
   /* Actually add deduplicated links to the tree. */
   for (const std::pair<MutableNodeAndSocket, MutableNodeAndSocket> &item : unique_links) {
-    bke::node_add_link(dst_tree,
-                       item.first.node,
-                       item.first.find_socket(),
-                       item.second.node,
-                       item.second.find_socket());
+    add_link_and_make_visible(dst_tree,
+                              item.first.node,
+                              item.first.find_socket(),
+                              item.second.node,
+                              item.second.find_socket());
   }
 }
 
@@ -816,7 +877,8 @@ void connect_group_node_to_external_sockets(bNode &group_node,
     }
     for (const MutableNodeAndSocket &link : data->external_sockets) {
       BLI_assert(owner_tree.all_nodes().contains(&link.node));
-      bke::node_add_link(owner_tree, link.node, link.find_socket(), group_node, *group_node_input);
+      add_link_and_make_visible(
+          owner_tree, link.node, link.find_socket(), group_node, *group_node_input);
     }
     /* Keep old socket visibility. */
     SET_FLAG_FROM_TEST(group_node_input->flag, data->hidden, SOCK_HIDDEN);
@@ -834,7 +896,7 @@ void connect_group_node_to_external_sockets(bNode &group_node,
     }
     for (const MutableNodeAndSocket &link : data->external_sockets) {
       BLI_assert(owner_tree.all_nodes().contains(&link.node));
-      bke::node_add_link(
+      add_link_and_make_visible(
           owner_tree, group_node, *group_node_output, link.node, link.find_socket());
     }
     /* Keep old socket visibility. */
