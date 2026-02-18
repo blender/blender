@@ -265,6 +265,12 @@ def main():
     elif test_dir_name.startswith('principled_bsdf'):
         # principled bsdf transmission test
         report.set_fail_threshold(0.02)
+    elif test_dir_name.startswith('texture'):
+        # Line/rasterization difference AMD/Linux
+        report.set_fail_threshold(0.02)
+    elif test_dir_name.startswith('raycast'):
+        # Line/rasterization difference AMD/Linux
+        report.set_fail_threshold(0.02)
 
     # Noise pattern changes depending on platform. Mostly caused by transparency.
     # TODO(fclem): See if we can just increase number of samples per file.
@@ -286,6 +292,9 @@ def main():
     elif test_dir_name.startswith('light'):
         # Noise difference in background
         report.set_fail_threshold(0.03)
+    elif test_dir_name.startswith('camera'):
+        # Noise difference on cube oin AMD/Linux
+        report.set_fail_threshold(0.0375)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
     sys.exit(not ok)
