@@ -208,6 +208,11 @@ source/blender/sequencer/.*                  @eliphaz
 source/blender/editors/space_sequencer/.*    @eliphaz
 
 # --------------------------------------------------
+# Compositor.
+scripts/startup/bl_ui/node_add_menu_compositor.py 	@zazizizou
+
+
+# --------------------------------------------------
 # XR
 source/blender/windowmanager/xr/.*                     @Brainzman
 intern/ghost/intern/GHOST_Xr.*                         @Brainzman
