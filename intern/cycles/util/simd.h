@@ -131,7 +131,7 @@ __forceinline int set_fz(const uint32_t flag)
   uint64_t old_fpcr;
   uint64_t new_fpcr;
   __get_fpcr(old_fpcr);
-  new_fpcr = old_fpcr | (1ULL << flag);
+  new_fpcr = old_fpcr | (uint64_t(1) << flag);
   __set_fpcr(new_fpcr);
   __get_fpcr(old_fpcr);
   return old_fpcr == new_fpcr;
@@ -140,7 +140,7 @@ __forceinline int get_fz(const uint32_t flag)
 {
   uint64_t cur_fpcr;
   __get_fpcr(cur_fpcr);
-  return (cur_fpcr & (1ULL << flag)) > 0 ? 1 : 0;
+  return (cur_fpcr & (uint64_t(1) << flag)) > 0 ? 1 : 0;
 }
 #endif
 
@@ -423,7 +423,7 @@ __forceinline uint32_t __btc(const uint32_t x, const uint32_t bit)
 __forceinline uint32_t __bsf(const uint64_t x)
 {
   for (uint32_t i = 0; i < 64; i++) {
-    if (x & (1UL << i)) {
+    if (x & (uint32_t(1) << i)) {
       return i;
     }
   }
@@ -433,7 +433,7 @@ __forceinline uint32_t __bsf(const uint64_t x)
 __forceinline uint32_t __bsr(const uint64_t x)
 {
   for (uint32_t i = 0; i < 64; i++) {
-    if (x & (1UL << (63 - i))) {
+    if (x & (uint32_t(1) << (63 - i))) {
       return (63 - i);
     }
   }
@@ -442,7 +442,7 @@ __forceinline uint32_t __bsr(const uint64_t x)
 
 __forceinline uint64_t __btc(const uint64_t x, const uint32_t bit)
 {
-  const uint64_t mask = 1UL << bit;
+  const uint64_t mask = uint64_t(1) << bit;
   return x & (~mask);
 }
 
@@ -460,7 +460,7 @@ __forceinline uint64_t bitscan(const uint64_t value)
 {
   assert(value != 0);
   uint64_t bit = 0;
-  while ((value & (1 << bit)) == 0) {
+  while ((value & (uint64_t(1) << bit)) == 0) {
     ++bit;
   }
   return bit;
