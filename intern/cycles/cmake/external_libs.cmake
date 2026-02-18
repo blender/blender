@@ -121,10 +121,48 @@ if(WITH_CYCLES_DEVICE_ONEAPI AND WITH_CYCLES_ONEAPI_BINARIES)
     unset(_sycl_compiler_root)
   endif()
 
+  if(WIN32)
+    set(_ocloc_binary_full_filepath ${OCLOC_INSTALL_DIR}/ocloc.exe)
+  else()
+    set(_ocloc_binary_full_filepath ${OCLOC_INSTALL_DIR}/bin/ocloc)
+  endif()
+
+  set(OCLOC_FOUND ON)
   if(NOT EXISTS ${OCLOC_INSTALL_DIR})
     set(OCLOC_FOUND OFF)
-    message(STATUS "oneAPI ocloc not found in ${OCLOC_INSTALL_DIR}."
-                   " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
-    set_and_warn_library_found("ocloc" OCLOC_FOUND WITH_CYCLES_ONEAPI_BINARIES)
+    set(_ocloc_missing_error_msg "oneAPI ocloc directory not found as ${OCLOC_INSTALL_DIR}.")
+  elseif (NOT EXISTS ${_ocloc_binary_full_filepath})
+    set(OCLOC_FOUND OFF)
+    set(_ocloc_missing_error_msg
+      "oneAPI ocloc directory ${OCLOC_INSTALL_DIR} was found."
+      "However, the ocloc binary ${_ocloc_binary_full_filepath} was not found."
+    )
+  else()
+    # Verify that the binary is functional by testing execution.
+    # The --help flag is a safe way to test if the binary works properly.
+    execute_process(
+      COMMAND ${_ocloc_binary_full_filepath} --help
+      RESULT_VARIABLE _ocloc_retcode
+      OUTPUT_QUIET
+      ERROR_QUIET
+    )
+
+    if(NOT _ocloc_retcode EQUAL 0)
+      set(OCLOC_FOUND OFF)
+      set(_ocloc_missing_error_msg
+        "oneAPI ocloc binary ${_ocloc_binary_full_filepath} was found."
+        "However, it has failed to be executed with ${_ocloc_retcode} return code."
+      )
+    endif()
+    unset(_ocloc_retcode)
   endif()
+
+  if(NOT OCLOC_FOUND)
+    list(JOIN _ocloc_missing_error_msg " " _ocloc_missing_error_msg)
+    message(STATUS "${_ocloc_missing_error_msg} A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
+    set_and_warn_library_found("ocloc" OCLOC_FOUND WITH_CYCLES_ONEAPI_BINARIES)
+    unset(_ocloc_missing_error_msg)
+  endif()
+  unset(_ocloc_binary_full_filepath)
+
 endif()
