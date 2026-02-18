@@ -40,8 +40,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_VELOCITY)
       .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Float>("Z").default_value(0.0f).min(0.0f).structure_type(
-      StructureType::Dynamic);
+  b.add_input<decl::Float>("Depth", "Z")
+      .default_value(0.0f)
+      .min(0.0f)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Int>("Samples").default_value(32).min(1).max(256).description(
       "The number of samples used to approximate the motion blur");
   b.add_input<decl::Float>("Shutter").default_value(0.5f).min(0.0f).description(
