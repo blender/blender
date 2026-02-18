@@ -200,6 +200,14 @@ void VKDevice::init_functions()
     functions.vkTransitionImageLayout = LOAD_FUNCTION(vkTransitionImageLayoutEXT);
   }
 
+  /* VK_KHR_mainentance4 */
+  if (extensions_.maintenance4) {
+    functions.vkGetDeviceImageMemoryRequirements = LOAD_FUNCTION(
+        vkGetDeviceImageMemoryRequirementsKHR);
+    functions.vkGetDeviceBufferMemoryRequirements = LOAD_FUNCTION(
+        vkGetDeviceBufferMemoryRequirementsKHR);
+  }
+
   if (extensions_.external_memory) {
 #ifdef _WIN32
     /* VK_KHR_external_memory_win32 */
