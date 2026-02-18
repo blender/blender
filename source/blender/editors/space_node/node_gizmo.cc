@@ -1097,6 +1097,27 @@ static void gizmo_node_split_prop_matrix_set(const wmGizmo *gz,
   gizmo_node_bbox_update(split_group);
 }
 
+static void gizmo_node_split_foreach_rna_prop(
+    wmGizmoProperty *gz_prop,
+    const FunctionRef<void(PointerRNA &ptr, PropertyRNA *prop, int index)> callback)
+{
+  bNode *node = static_cast<bNode *>(gz_prop->custom_func.user_data);
+
+  bNodeSocket *position_socket = bke::node_find_socket(*node, SOCK_IN, "Position");
+  bNodeTree &node_tree = node->owner_tree();
+  PointerRNA position_ptr = RNA_pointer_create_discrete(
+      &node_tree.id, RNA_NodeSocket, position_socket);
+  PropertyRNA *position_prop = RNA_struct_find_property(&position_ptr, "default_value");
+
+  bNodeSocket *rotation_socket = bke::node_find_socket(*node, SOCK_IN, "Rotation");
+  PointerRNA rotation_ptr = RNA_pointer_create_discrete(
+      &node_tree.id, RNA_NodeSocket, rotation_socket);
+  PropertyRNA *rotation_prop = RNA_struct_find_property(&position_ptr, "default_value");
+
+  callback(position_ptr, position_prop, -1);
+  callback(rotation_ptr, rotation_prop, 0);
+}
+
 static void WIDGETGROUP_node_split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   Main *bmain = CTX_data_main(C);
@@ -1136,6 +1157,7 @@ static void WIDGETGROUP_node_split_refresh(const bContext *C, wmGizmoGroup *gzgr
   params.value_set_fn = gizmo_node_split_prop_matrix_set;
   params.range_get_fn = nullptr;
   params.user_data = node;
+  params.foreach_rna_prop_fn = gizmo_node_split_foreach_rna_prop;
   WM_gizmo_target_property_def_func(gz, "matrix", &params);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
