@@ -115,7 +115,7 @@ class BrushAutomaskTest(unittest.TestCase):
     def test_topology_automasking_ignores_any_non_starting_island(self):
         # This test mesh has 3 island ids, 0 and 1 are used for the eyes, the rest of the monkey's head is 2
         ACTIVE_ISLAND_ID = 2
-        bpy.data.scenes[0].tool_settings.sculpt.use_automasking_face_sets = True
+        bpy.data.scenes[0].tool_settings.sculpt.use_automasking_topology = True
 
         initial_data = get_attribute_data(BackendType.MESH, AttributeType.POSITION)
 
