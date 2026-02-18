@@ -513,7 +513,6 @@ void BKE_previewimg_render_end(PreviewImage *prv,
   }
 
   if (do_delete) {
-    BLI_assert(prv->runtime->deferred_loading_data);
     BKE_previewimg_free(&prv);
   }
 }
