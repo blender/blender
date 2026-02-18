@@ -3117,7 +3117,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     }
     else if (id_type == ID_VF) {
       build_vfont(id_cast<VFont *>(id));
-      ComponentKey vfont_key(id, NodeType::GENERIC_DATABLOCK);
+      ComponentKey vfont_key(id, NodeType::PARAMETERS);
       add_relation(vfont_key, ntree_output_key, "VFont -> Node");
     }
     else if (id_type == ID_GR) {
