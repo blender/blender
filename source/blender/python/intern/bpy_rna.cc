@@ -134,6 +134,35 @@ static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
 
 static StructRNA *srna_from_ptr(PointerRNA *ptr);
 
+/* -------------------------------------------------------------------- */
+/** \name Generic Python Utilities
+ *
+ * Could be moved to the `PyC_*` API, currently they're only needed locally.
+ * \{ */
+
+/**
+ * Wrapper for #PyWeakref_GetRef that reports and clears errors.
+ *
+ * \return The referent (new strong reference) or nullptr if dead.
+ *
+ * \note This should only be used where the chance of an error is very low.
+ * Otherwise it is better to call #PyWeakref_GetRef directly and handle the error
+ * in a less generic way (possibly forwarding it to the caller).
+ */
+static PyObject *pyweakref_get_ref(PyObject *ref)
+{
+  PyObject *result = nullptr;
+  if (UNLIKELY(PyWeakref_GetRef(ref, &result) == -1)) {
+    /* This hints at a bug, it's not expected so being noisy is OK. */
+    CLOG_WARN(BPY_LOG_RNA, "unexpected error accessing weak-reference");
+    /* Prints and clears the error. */
+    PyErr_Print();
+  }
+  return result;
+}
+
+/** \} */
+
 /**
  * The `bpy_types-custom_properties` references is created as part of API doc generation.
  * When expanded line reads: "Limited to: Types with Custom Property Support".
@@ -328,14 +357,13 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 
   while (!BLI_ghashIterator_done(&weakinfo_hash_iter)) {
     PyObject *weakref = (PyObject *)BLI_ghashIterator_getKey(&weakinfo_hash_iter);
-    PyObject *item = PyWeakref_GET_OBJECT(weakref);
-    if (item != Py_None) {
-
+    PyObject *item = pyweakref_get_ref(weakref);
+    if (item) {
 #  ifdef DEBUG_RNA_WEAKREF
       PyC_ObSpit("id_release_weakref item ", item);
 #  endif
-
       pyrna_invalidate((BPy_DummyPointerRNA *)item);
+      Py_DECREF(item);
     }
 
     Py_DECREF(weakref);
@@ -4326,21 +4354,28 @@ static PyObject *pyrna_struct_bl_rna_find_subclass_recursive(PyObject *cls, cons
     PyObject *value = nullptr;
     while (PyDict_Next(subclasses, &pos, &key, &value)) {
       BLI_assert(PyWeakref_CheckRef(value));
-      PyObject *subcls = PyWeakref_GET_OBJECT(value);
-      if (subcls != Py_None) {
-        BPy_StructRNA *py_srna = reinterpret_cast<BPy_StructRNA *>(PyDict_GetItem(
-            (reinterpret_cast<PyTypeObject *>(subcls))->tp_dict, bpy_intern_str_bl_rna));
-        if (py_srna) {
-          StructRNA *srna = static_cast<StructRNA *>(py_srna->ptr->data);
-          if (STREQ(id, RNA_struct_identifier(srna))) {
-            ret_test = subcls;
-            break;
-          }
+      PyObject *value_ref = pyweakref_get_ref(value);
+      if (!value_ref) {
+        continue;
+      }
+
+      BPy_StructRNA *py_srna = reinterpret_cast<BPy_StructRNA *>(PyDict_GetItem(
+          (reinterpret_cast<PyTypeObject *>(value_ref))->tp_dict, bpy_intern_str_bl_rna));
+      if (py_srna) {
+        StructRNA *srna = static_cast<StructRNA *>(py_srna->ptr->data);
+        if (STREQ(id, RNA_struct_identifier(srna))) {
+          ret_test = value_ref;
         }
-        ret_test = pyrna_struct_bl_rna_find_subclass_recursive(subcls, id);
-        if (ret_test) {
-          break;
-        }
+      }
+      if (!ret_test) {
+        ret_test = pyrna_struct_bl_rna_find_subclass_recursive(value_ref, id);
+      }
+      /* NOTE: `ret_test` is now a borrowed reference,
+       * Acceptable since the type is kept alive by its instances and defining module. */
+      Py_DECREF(value_ref);
+
+      if (ret_test) {
+        break;
       }
     }
   }
@@ -10089,6 +10124,7 @@ static PyTypeObject *bpy_class_check_any_bases_registered(PyTypeObject *cls)
  */
 static PyTypeObject *bpy_class_check_any_subclasses_registered(PyTypeObject *cls)
 {
+  PyTypeObject *result = nullptr;
   PyObject *subclasses = static_cast<PyObject *>(cls->tp_subclasses);
   if (subclasses) {
     BLI_assert(PyDict_CheckExact(subclasses));
@@ -10097,8 +10133,8 @@ static PyTypeObject *bpy_class_check_any_subclasses_registered(PyTypeObject *cls
     PyObject *value = nullptr;
     while (PyDict_Next(subclasses, &pos, &key, &value)) {
       BLI_assert(PyWeakref_CheckRef(value));
-      PyObject *value_ref = PyWeakref_GET_OBJECT(value);
-      if (value_ref == Py_None) {
+      PyObject *value_ref = pyweakref_get_ref(value);
+      if (!value_ref) {
         continue;
       }
 
@@ -10109,18 +10145,25 @@ static PyTypeObject *bpy_class_check_any_subclasses_registered(PyTypeObject *cls
         {
           if (const StructRNA *srna = static_cast<const StructRNA *>(py_srna->ptr->data)) {
             if (srna->flag & STRUCT_RUNTIME) {
-              return sub_cls;
+              result = sub_cls;
             }
           }
         }
       }
 
-      if (PyTypeObject *sub_cls_test = bpy_class_check_any_subclasses_registered(sub_cls)) {
-        return sub_cls_test;
+      if (!result) {
+        result = bpy_class_check_any_subclasses_registered(sub_cls);
+      }
+      /* NOTE: `result` is now a borrowed reference,
+       * Acceptable since the type is kept alive by its instances and defining module. */
+      Py_DECREF(value_ref);
+
+      if (result) {
+        break;
       }
     }
   }
-  return nullptr;
+  return result;
 }
 
 void pyrna_alloc_types()
