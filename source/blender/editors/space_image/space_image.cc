@@ -838,6 +838,9 @@ static void image_main_region_listener(const wmRegionListenerParams *params)
       if (ELEM(wmn->data, ND_LAYER)) {
         ED_region_tag_redraw(region);
       }
+      if (wmn->action == NA_EDITED) {
+        ED_region_tag_redraw(region);
+      }
       break;
   }
 }
