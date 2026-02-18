@@ -9,6 +9,8 @@
  * \brief General operations for point clouds.
  */
 
+#include "MEM_guardedalloc.h" /* For `MEM_CXX_CLASS_ALLOC_FUNCS`. */
+
 #include "BLI_bounds_types.hh"
 #include "BLI_kdopbvh.hh"
 #include "BLI_math_vector_types.hh"

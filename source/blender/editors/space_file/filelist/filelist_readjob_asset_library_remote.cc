@@ -6,6 +6,8 @@
  * \ingroup spfile
  */
 
+#include <thread>
+
 #include "AS_asset_library.hh"
 #include "AS_remote_library.hh"
 
