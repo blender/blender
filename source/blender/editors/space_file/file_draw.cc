@@ -656,15 +656,6 @@ static void file_draw_string_multiline(int sx,
   }
 }
 
-void file_calc_previews(const bContext *C, ARegion *region)
-{
-  SpaceFile *sfile = CTX_wm_space_file(C);
-  View2D *v2d = &region->v2d;
-
-  ED_fileselect_init_layout(sfile, region);
-  ui::view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
-}
-
 static std::tuple<int, int, float> preview_image_scaled_dimensions_get(const int image_width,
                                                                        const int image_height,
                                                                        const FileLayout &layout)

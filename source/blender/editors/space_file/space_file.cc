@@ -662,9 +662,10 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
     file_highlight_set(sfile, region, event->xy[0], event->xy[1]);
   }
 
+  ED_fileselect_init_layout(sfile, region);
+
   if (!file_draw_hint_if_invalid(C, sfile, region)) {
-    /* sets tile/border settings in sfile */
-    file_calc_previews(C, region);
+    ui::view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
 
     /* set view */
     ui::view2d_view_ortho(v2d);
