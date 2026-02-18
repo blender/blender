@@ -53,7 +53,6 @@ int /*eContextResult*/ file_context(const bContext *C,
 #define FILE_LAYOUT_HIDE_SIZE(_layout) \
   (_layout->flag & FILE_LAYOUT_VER && (_layout->width / UI_SCALE_FAC) < 350)
 
-void file_calc_previews(const bContext *C, ARegion *region);
 void file_draw_list(const bContext *C, ARegion *region);
 /**
  * Draw a string hint if the file list is invalid.
