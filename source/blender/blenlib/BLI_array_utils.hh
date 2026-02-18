@@ -148,7 +148,7 @@ inline void scatter(const Span<T> src,
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
     threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      scatter(src, indices.slice(range), dst, exec_mode::serial);
+      scatter(src.slice(range), indices.slice(range), dst, exec_mode::serial);
     });
   }
 }
@@ -168,7 +168,7 @@ inline void scatter(const Span<T> src,
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
     threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      scatter(src, indices.slice(range), dst, exec_mode::serial);
+      scatter(src.slice(range), indices.slice(range), dst, exec_mode::serial);
     });
   }
 }
@@ -227,7 +227,7 @@ inline void gather(const Span<T> src,
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
     threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      gather(src, indices.slice(range), dst, exec_mode::serial);
+      gather(src, indices.slice(range), dst.slice(range), exec_mode::serial);
     });
   }
 }
