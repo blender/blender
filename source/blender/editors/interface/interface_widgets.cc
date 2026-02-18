@@ -4396,7 +4396,7 @@ static void widget_menu_pie_itembut(Button *but,
                                     int /*roundboxalign*/,
                                     const float zoom)
 {
-  const float fac = but->block->pie_data.alphafac;
+  const float fac = but->block->pie_data ? but->block->pie_data->alphafac : 1.0f;
 
   WidgetBase wtb;
   widget_init(&wtb);
@@ -5624,10 +5624,10 @@ static void draw_disk_shaded(float start,
 void draw_pie_center(Block *block)
 {
   bTheme *btheme = theme::theme_get();
-  const float cx = block->pie_data.pie_center_spawned[0];
-  const float cy = block->pie_data.pie_center_spawned[1];
+  const float cx = block->pie_data->pie_center_spawned[0];
+  const float cy = block->pie_data->pie_center_spawned[1];
 
-  const float *pie_dir = block->pie_data.pie_dir;
+  const float *pie_dir = block->pie_data->pie_dir;
 
   const float pie_radius_internal = UI_SCALE_FAC * U.pie_menu_threshold;
   const float pie_radius_external = UI_SCALE_FAC * (U.pie_menu_threshold + 7.0f);
@@ -5636,8 +5636,8 @@ void draw_pie_center(Block *block)
 
   const float angle = atan2f(pie_dir[1], pie_dir[0]);
   /* Use a smaller range if there are both axis aligned & diagonal buttons. */
-  const bool has_aligned = (block->pie_data.pie_dir_mask & UI_RADIAL_MASK_ALL_AXIS_ALIGNED) != 0;
-  const bool has_diagonal = (block->pie_data.pie_dir_mask & UI_RADIAL_MASK_ALL_DIAGONAL) != 0;
+  const bool has_aligned = (block->pie_data->pie_dir_mask & UI_RADIAL_MASK_ALL_AXIS_ALIGNED) != 0;
+  const bool has_diagonal = (block->pie_data->pie_dir_mask & UI_RADIAL_MASK_ALL_DIAGONAL) != 0;
   const float range = (has_aligned && has_diagonal) ? M_PI_4 : M_PI_2;
 
   GPU_matrix_push();
@@ -5665,7 +5665,7 @@ void draw_pie_center(Block *block)
                      false);
   }
 
-  if (!(block->pie_data.flags & PIE_INVALID_DIR)) {
+  if (!(block->pie_data->flags & PIE_INVALID_DIR)) {
     if (btheme->tui.wcol_pie_menu.shaded) {
       uchar col1[4], col2[4];
       shadecolors4(btheme->tui.wcol_pie_menu.inner_sel,
@@ -5704,7 +5704,7 @@ void draw_pie_center(Block *block)
 
   immUnbindProgram();
 
-  if (U.pie_menu_confirm > 0 && !(block->pie_data.flags & (PIE_INVALID_DIR | PIE_CLICK_STYLE))) {
+  if (U.pie_menu_confirm > 0 && !(block->pie_data->flags & (PIE_INVALID_DIR | PIE_CLICK_STYLE))) {
     const float pie_confirm_radius = UI_SCALE_FAC * (pie_radius_internal + U.pie_menu_confirm);
     const float pie_confirm_external = UI_SCALE_FAC *
                                        (pie_radius_internal + U.pie_menu_confirm + 7.0f);

@@ -558,8 +558,8 @@ static void block_bounds_calc_post_centered(Block *block)
 static void block_bounds_calc_centered_pie(Block *block)
 {
   const int xy[2] = {
-      int(block->pie_data.pie_center_spawned[0]),
-      int(block->pie_data.pie_center_spawned[1]),
+      int(block->pie_data->pie_center_spawned[0]),
+      int(block->pie_data->pie_center_spawned[1]),
   };
 
   block_translate(block, xy[0], xy[1]);

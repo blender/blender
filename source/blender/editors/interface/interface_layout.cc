@@ -3936,7 +3936,7 @@ void LayoutRadial::resolve_impl()
 
   int minx = x, miny = y, maxx = x, maxy = y;
 
-  this->block()->pie_data.pie_dir_mask = 0;
+  this->block()->pie_data->pie_dir_mask = 0;
 
   for (Item *item : this->items()) {
     /* Not all button types are drawn in a radial menu, do filtering here. */
@@ -3975,7 +3975,7 @@ void LayoutRadial::resolve_impl()
     }
 
     if (use_dir) {
-      this->block()->pie_data.pie_dir_mask |= 1 << int(dir);
+      this->block()->pie_data->pie_dir_mask |= 1 << int(dir);
     }
 
     const int2 size = item->size();
@@ -5463,6 +5463,7 @@ Layout &block_layout(Block *block,
       case LayoutType::VerticalBar:
         return MEM_new<LayoutColumn>(func, root);
       case LayoutType::PieMenu:
+        BLI_assert(block->pie_data);
         return MEM_new<LayoutRootPieMenu>(func, root);
       case LayoutType::Header:
         return MEM_new<LayoutRow>(func, ItemType::LayoutRoot, root);

@@ -200,7 +200,7 @@ void button_pie_dir(RadialDirection dir, float vec[2])
 
 static bool ui_but_isect_pie_seg(const Block *block, const Button *but)
 {
-  if (block->pie_data.flags & PIE_INVALID_DIR) {
+  if (block->pie_data->flags & PIE_INVALID_DIR) {
     return false;
   }
 
@@ -215,7 +215,7 @@ static bool ui_but_isect_pie_seg(const Block *block, const Button *but)
   float but_dir[2];
   button_pie_dir(but->pie_dir, but_dir);
 
-  const float angle_but_cos = dot_v2v2(but_dir, block->pie_data.pie_dir);
+  const float angle_but_cos = dot_v2v2(but_dir, block->pie_data->pie_dir);
   /* Outside range (with bias). */
   if (angle_but_cos < angle_4th_cos - eps_bias) {
     return false;
@@ -227,7 +227,7 @@ static bool ui_but_isect_pie_seg(const Block *block, const Button *but)
 
   /* Check if adjacent direction is closer (with tie breaker). */
   RadialDirection dir_adjacent_8th, dir_adjacent_4th;
-  if (angle_signed_v2v2(but_dir, block->pie_data.pie_dir) < 0.0f) {
+  if (angle_signed_v2v2(but_dir, block->pie_data->pie_dir) < 0.0f) {
     dir_adjacent_8th = UI_RADIAL_DIRECTION_PREV(but->pie_dir);
     dir_adjacent_4th = UI_RADIAL_DIRECTION_PREV(dir_adjacent_8th);
   }
@@ -236,14 +236,14 @@ static bool ui_but_isect_pie_seg(const Block *block, const Button *but)
     dir_adjacent_4th = UI_RADIAL_DIRECTION_NEXT(dir_adjacent_8th);
   }
 
-  const bool has_8th_adjacent = block->pie_data.pie_dir_mask & (1 << int(dir_adjacent_8th));
+  const bool has_8th_adjacent = block->pie_data->pie_dir_mask & (1 << int(dir_adjacent_8th));
 
   /* Compare with the adjacent direction (even if there is no button). */
   const RadialDirection dir_adjacent = has_8th_adjacent ? dir_adjacent_8th : dir_adjacent_4th;
   float but_dir_adjacent[2];
   button_pie_dir(dir_adjacent, but_dir_adjacent);
 
-  const float angle_adjacent_cos = dot_v2v2(but_dir_adjacent, block->pie_data.pie_dir);
+  const float angle_adjacent_cos = dot_v2v2(but_dir_adjacent, block->pie_data->pie_dir);
 
   /* Tie breaker, so one of the buttons is always selected. */
   if (UNLIKELY(angle_but_cos == angle_adjacent_cos)) {

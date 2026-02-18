@@ -76,8 +76,8 @@ static Block *block_func_PIE(bContext * /*C*/, PopupBlockHandle *handle, void *a
   block->bounds_offset[1] = 0;
   block->bounds_type = BLOCK_BOUNDS_PIE_CENTER;
 
-  block->pie_data.pie_center_spawned[0] = pie->mx;
-  block->pie_data.pie_center_spawned[1] = pie->my;
+  block->pie_data->pie_center_spawned[0] = pie->mx;
+  block->pie_data->pie_center_spawned[1] = pie->my;
 
   return pie->pie_block;
 }
@@ -103,12 +103,13 @@ PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent 
   // pie->pie_block->flag |= BLOCK_POPUP_MEMORY;
   pie->pie_block->puphash = ui_popup_menu_hash(title);
   pie->pie_block->flag |= BLOCK_PIE_MENU;
+  pie->pie_block->pie_data = std::make_unique<PieMenuData>();
 
   /* if pie is spawned by a left click, release or click event,
    * it is always assumed to be click style */
   if (event->type == LEFTMOUSE || ELEM(event->val, KM_RELEASE, KM_CLICK)) {
-    pie->pie_block->pie_data.flags |= PIE_CLICK_STYLE;
-    pie->pie_block->pie_data.event_type = EVENT_NONE;
+    pie->pie_block->pie_data->flags |= PIE_CLICK_STYLE;
+    pie->pie_block->pie_data->event_type = EVENT_NONE;
     win->pie_event_type_lock = EVENT_NONE;
   }
   else {
@@ -116,7 +117,7 @@ PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent 
       /* original pie key has been released, so don't propagate the event */
       if (win->pie_event_type_lock == EVENT_NONE) {
         event_type = EVENT_NONE;
-        pie->pie_block->pie_data.flags |= PIE_CLICK_STYLE;
+        pie->pie_block->pie_data->flags |= PIE_CLICK_STYLE;
       }
       else {
         event_type = win->pie_event_type_last;
@@ -126,7 +127,7 @@ PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent 
       event_type = event->type;
     }
 
-    pie->pie_block->pie_data.event_type = event_type;
+    pie->pie_block->pie_data->event_type = event_type;
     win->pie_event_type_lock = event_type;
   }
 
@@ -155,8 +156,8 @@ PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent 
     }
     /* do not align left */
     but->drawflag &= ~BUT_TEXT_LEFT;
-    pie->pie_block->pie_data.title = but->str.c_str();
-    pie->pie_block->pie_data.icon = icon;
+    pie->pie_block->pie_data->title = but->str.c_str();
+    pie->pie_block->pie_data->icon = icon;
   }
 
   return pie;
@@ -287,7 +288,7 @@ void pie_menu_level_create(Block *block,
 
   /* yuk, static... issue is we can't reliably free this without doing dangerous changes */
   static PieMenuLevelData lvl;
-  STRNCPY_UTF8(lvl.title, block->pie_data.title);
+  STRNCPY_UTF8(lvl.title, block->pie_data->title);
   lvl.totitem = totitem_remain;
   lvl.ot = ot;
   lvl.propname = propname;
