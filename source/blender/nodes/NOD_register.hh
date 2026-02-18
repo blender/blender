@@ -10,6 +10,7 @@ void register_nodes();
 
 void register_node_type_frame();
 void register_node_type_reroute();
+void register_node_type_implicit_conversion();
 
 void register_node_type_group_input();
 void register_node_type_group_output();

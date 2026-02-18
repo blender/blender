@@ -23,6 +23,7 @@
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
@@ -32,16 +33,23 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
 
+#include "COM_node_operation.hh"
+#include "COM_result.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "NOD_common.hh"
 #include "NOD_composite.hh"
+#include "NOD_geometry_exec.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_register.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
+
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
 #include "UI_resources.hh"
 
@@ -227,9 +235,10 @@ static std::function<ID *(const bNode &node)> get_default_id_getter(
 }
 
 static std::function<void(bNode &node, bNodeSocket &socket, const char *data_path)>
-get_init_socket_fn(const bNodeTreeInterface &interface, const bNodeTreeInterfaceSocket &io_socket)
+get_init_socket_fn(const bNodeTreeInterface &tree_interface,
+                   const bNodeTreeInterfaceSocket &io_socket)
 {
-  const int item_index = interface.find_item_index(io_socket.item);
+  const int item_index = tree_interface.find_item_index(io_socket.item);
   BLI_assert(item_index >= 0);
 
   /* Avoid capturing pointers that can become dangling. */
@@ -803,6 +812,146 @@ bool bke::node_is_connected_to_output(const bNodeTree &ntree, const bNode &node)
   }
 
   return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Implicit Conversion Node
+ * \{ */
+
+static void node_implicit_conversion_declare(nodes::NodeDeclarationBuilder &b)
+{
+  const bNode *node = b.node_or_null();
+  if (node == nullptr) {
+    return;
+  }
+
+  const StringRefNull socket_idname(
+      static_cast<const NodeImplicitConversion *>(node->storage)->type_idname);
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
+  b.add_input<nodes::decl::Custom>("Value")
+      .idname(socket_idname.c_str())
+      .structure_type(nodes::StructureType::Dynamic)
+      .optional_label();
+  b.add_output<nodes::decl::Custom>("Value")
+      .idname(socket_idname.c_str())
+      .structure_type(nodes::StructureType::Dynamic)
+      .reference_pass_all()
+      .propagate_all()
+      .align_with_previous();
+}
+
+static void node_implicit_conversion_label(const bNodeTree * /*ntree*/,
+                                           const bNode *node,
+                                           char *label,
+                                           int label_maxncpy)
+{
+  const auto &data = *static_cast<NodeImplicitConversion *>(node->storage);
+  const bke::bNodeSocketType *socket_type = bke::node_socket_type_find(data.type_idname);
+  if (!socket_type) {
+    BLI_strncpy(label,
+                CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name.c_str()),
+                label_maxncpy);
+    return;
+  }
+
+  const char *name;
+  bool enum_label = RNA_enum_name(rna_enum_node_socket_data_type_items, socket_type->type, &name);
+  if (!enum_label) {
+    BLI_strncpy(label,
+                CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name.c_str()),
+                label_maxncpy);
+    return;
+  }
+
+  BLI_snprintf_utf8(label, label_maxncpy, "To %s", CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name));
+}
+
+static void node_implicit_conversion_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+}
+
+static void node_implicit_conversion_init(bNodeTree * /*ntree*/, bNode *node)
+{
+  NodeImplicitConversion *data = MEM_new<NodeImplicitConversion>(__func__);
+  STRNCPY(data->type_idname, "NodeSocketColor");
+  node->storage = data;
+}
+
+static bool node_implicit_conversion_poll_instance(const bNode *node,
+                                                   const bNodeTree *nodetree,
+                                                   const char **r_disabled_hint)
+{
+  const auto &data = *static_cast<NodeImplicitConversion *>(node->storage);
+  bke::bNodeSocketType *socket_type = bke::node_socket_type_find(data.type_idname);
+  if (!socket_type) {
+    if (r_disabled_hint) {
+      *r_disabled_hint = "Socket type not found";
+    }
+    return false;
+  }
+  bke::bNodeTreeType &tree_type = *nodetree->typeinfo;
+  if (tree_type.valid_socket_type && !tree_type.valid_socket_type(&tree_type, socket_type)) {
+    if (r_disabled_hint) {
+      *r_disabled_hint = "Socket type not supported";
+    }
+    return false;
+  }
+  return true;
+}
+
+static void node_implicit_conversion_geo_exec(nodes::GeoNodeExecParams params)
+{
+  auto input_value = params.extract_input<bke::SocketValueVariant>("Value");
+  params.set_output("Value", std::move(input_value));
+}
+
+class ImplicitConversionOperation : public compositor::NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    using namespace compositor;
+    const Result &input = this->get_input("Value");
+    Result &output = this->get_result("Value");
+    output.share_data(input);
+  }
+};
+
+static compositor::NodeOperation *node_implicit_conversion_compositor_operation(
+    compositor::Context &context, const bNode &node)
+{
+  return new ImplicitConversionOperation(context, node);
+}
+
+void register_node_type_implicit_conversion()
+{
+  /* Adapt type node is used for all tree types, needs dynamic allocation. */
+  bke::bNodeType *ntype = MEM_new<bke::bNodeType>("Implicit Conversion node type");
+  ntype->free_self = [](bke::bNodeType *type) { MEM_delete(type); };
+
+  bke::node_type_base(*ntype, "NodeImplicitConversion");
+  ntype->ui_name = "Implicit Conversion";
+  ntype->ui_description = "Implicitly convert the input value to a fixed socket type";
+  ntype->nclass = NODE_CLASS_CONVERTER;
+  ntype->declare = node_implicit_conversion_declare;
+  ntype->labelfunc = node_implicit_conversion_label;
+  ntype->draw_buttons = node_implicit_conversion_layout;
+  ntype->initfunc = node_implicit_conversion_init;
+  node_type_storage(
+      *ntype, "NodeImplicitConversion", node_free_standard_storage, node_copy_standard_storage);
+  ntype->poll_instance = node_implicit_conversion_poll_instance;
+  ntype->geometry_node_execute = node_implicit_conversion_geo_exec;
+  ntype->get_compositor_operation = node_implicit_conversion_compositor_operation;
+
+  bke::node_register_type(*ntype);
 }
 
 /** \} */

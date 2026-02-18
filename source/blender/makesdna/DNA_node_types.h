@@ -2137,6 +2137,13 @@ struct NodeReroute {
   char type_idname[64] = "";
 };
 
+struct NodeImplicitConversion {
+  DNA_DEFINE_CXX_METHODS(NodeImplicitConversion)
+
+  /** Name of the socket type (e.g. `NodeSocketFloat`). */
+  char type_idname[64] = "";
+};
+
 /** \note This one has been replaced with #ImageUser, keep it for do_versions(). */
 struct NodeImageAnim {
   DNA_DEFINE_CXX_METHODS(NodeImageAnim)

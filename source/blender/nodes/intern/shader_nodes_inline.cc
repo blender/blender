@@ -568,6 +568,10 @@ class ShaderNodesInliner {
       this->handle_output_socket__join_bundle(socket);
       return;
     }
+    if (node->is_type("NodeImplicitConversion")) {
+      this->handle_output_socket__implicit_conversion(socket);
+      return;
+    }
     this->handle_output_socket__eval(socket);
   }
 
@@ -1079,6 +1083,22 @@ class ShaderNodesInliner {
     /* Set the value of the mask output. */
     const bool is_selected = selected_index == socket->index() - 1;
     this->store_socket_value(socket, {PrimitiveSocketValue{is_selected}});
+  }
+
+  void handle_output_socket__implicit_conversion(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+
+    const SocketInContext input_socket = node.input_socket(0);
+    const SocketValue *socket_value = value_by_socket_.lookup_ptr(input_socket);
+    if (!socket_value) {
+      /* The input bundle is not known yet, so schedule it for now. */
+      this->schedule_socket(input_socket);
+      return;
+    }
+    const SocketValue converted_value = this->handle_implicit_conversion(
+        *socket_value, *socket->typeinfo, *socket->typeinfo);
+    this->store_socket_value(socket, converted_value);
   }
 
   /**

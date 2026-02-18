@@ -198,6 +198,12 @@ void eval_downstream(
         forward_output({context, &node.output_socket(0)});
       }
     }
+    if (node.is_type("NodeImplicitConversion")) {
+      if (propagate_value_fn({context, &node.input_socket(0)}, {context, &node.output_socket(0)}))
+      {
+        forward_output({context, &node.output_socket(0)});
+      }
+    }
     else if (node.is_muted()) {
       for (const bNodeLink &link : node.internal_links()) {
         if (propagate_value_fn({context, link.fromsock}, {context, link.tosock})) {
@@ -377,6 +383,10 @@ UpstreamEvalTargets eval_upstream(
       eval_targets.value_nodes.add(ctx_node);
     }
     else if (node.is_reroute()) {
+      propagate_value_fn({context, &node.output_socket(0)}, {context, &node.input_socket(0)});
+      forward_input({context, &node.input_socket(0)});
+    }
+    else if (node.is_type("NodeImplicitConversion")) {
       propagate_value_fn({context, &node.output_socket(0)}, {context, &node.input_socket(0)});
       forward_input({context, &node.input_socket(0)});
     }
