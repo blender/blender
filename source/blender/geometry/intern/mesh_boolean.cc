@@ -1227,7 +1227,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
 #endif
   switch (solver) {
     case Solver::Float:
-      *r_error = BooleanError::NoError;
+      r_error->type = BooleanErrorType::NoError;
       ans = mesh_boolean_float(meshes,
                                transforms,
                                material_remaps,
@@ -1236,7 +1236,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
       break;
     case Solver::MeshArr:
 #ifdef WITH_GMP
-      *r_error = BooleanError::NoError;
+      r_error->type = BooleanErrorType::NoError;
       ans = mesh_boolean_mesh_arr(meshes,
                                   transforms,
                                   material_remaps,
@@ -1245,7 +1245,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                                   operation_to_mesh_arr_mode(op_params.boolean_mode),
                                   r_intersecting_edges);
 #else
-      *r_error = BooleanError::SolverNotAvailable;
+      r_error->type = BooleanErrorType::SolverNotAvailable;
 #endif
       break;
     case Solver::Manifold:
@@ -1253,7 +1253,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
       ans = mesh_boolean_manifold(
           meshes, transforms, material_remaps, op_params, r_intersecting_edges, r_error);
 #else
-      *r_error = BooleanError::SolverNotAvailable;
+      r_error->type = BooleanErrorType::SolverNotAvailable;
 #endif
       break;
     default:

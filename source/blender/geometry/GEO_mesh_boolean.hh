@@ -34,12 +34,17 @@ enum class Operation {
   Difference = 2,
 };
 
-enum class BooleanError {
+enum class BooleanErrorType {
   NoError = 0,
   NonManifold = 1,
   ResultTooBig = 2,
   SolverNotAvailable = 3,
   UnknownError = 4,
+};
+
+struct BooleanError {
+  BooleanErrorType type = BooleanErrorType::NoError;
+  Vector<int> non_manifold_mesh_indices;
 };
 
 /**
@@ -83,7 +88,7 @@ struct BooleanOpParameters {
  * \param solver: which solver to use
  * \param r_intersecting_edges: Vector to store indices of edges on the resulting mesh in. These
  * 'new' edges are the result of the intersections.
- * \param r_error: Return place for error code to be stored.
+ * \param r_error: Return place for error to be stored.
  */
 Mesh *mesh_boolean(Span<const Mesh *> meshes,
                    Span<float4x4> transforms,
