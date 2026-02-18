@@ -691,7 +691,8 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     }
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-      if (!face_set::vert_has_face_set(
+      if (automasking.settings.initial_face_set != face_set_none_id &&
+          !face_set::vert_has_face_set(
               vert_to_face_map, face_sets, vert, automasking.settings.initial_face_set))
       {
         factors[i] = 0.0f;
@@ -709,8 +710,9 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                    face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
-                        ss.cache->paint_face_set;
+                    (automasking.settings.initial_face_set == face_set_none_id ||
+                     face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
+                         ss.cache->paint_face_set);
 
       if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
         factors[i] = 0.0f;
@@ -800,7 +802,8 @@ void calc_face_factors(const Depsgraph &depsgraph,
       }
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-        if (!face_set::vert_has_face_set(
+        if (automasking.settings.initial_face_set != face_set_none_id &&
+            !face_set::vert_has_face_set(
                 vert_to_face_map, face_sets, vert, automasking.settings.initial_face_set))
         {
           factor = 0.0f;
@@ -818,8 +821,9 @@ void calc_face_factors(const Depsgraph &depsgraph,
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
         bool ignore = ss.cache && ss.cache->brush &&
                       ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                      face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
-                          ss.cache->paint_face_set;
+                      (automasking.settings.initial_face_set == face_set_none_id ||
+                       face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
+                           ss.cache->paint_face_set);
 
         if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
           factor = 0.0f;
@@ -926,7 +930,9 @@ void calc_grids_factors(const Depsgraph &depsgraph,
       }
 
       if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-        if (grid_face_set != automasking.settings.initial_face_set) {
+        if (automasking.settings.initial_face_set != face_set_none_id &&
+            grid_face_set != automasking.settings.initial_face_set)
+        {
           factors[node_vert] = 0.0f;
           continue;
         }
@@ -948,7 +954,8 @@ void calc_grids_factors(const Depsgraph &depsgraph,
       if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
         bool ignore = ss.cache && ss.cache->brush &&
                       ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                      grid_face_set == ss.cache->paint_face_set;
+                      (automasking.settings.initial_face_set == face_set_none_id ||
+                       grid_face_set == ss.cache->paint_face_set);
 
         if (!ignore && !face_set::vert_has_unique_face_set(faces,
                                                            corner_verts,
@@ -1045,7 +1052,8 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     }
 
     if (automasking.settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
-      if (!face_set::vert_has_face_set(
+      if (automasking.settings.initial_face_set != face_set_none_id &&
+          !face_set::vert_has_face_set(
               face_set_offset, *vert, automasking.settings.initial_face_set))
       {
         factors[i] = 0.0f;
@@ -1063,8 +1071,9 @@ void calc_vert_factors(const Depsgraph &depsgraph,
     if (automasking.settings.flags & BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) {
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-                    face_set::vert_face_set_get(face_set_offset, *vert) ==
-                        ss.cache->paint_face_set;
+                    (automasking.settings.initial_face_set == face_set_none_id ||
+                     face_set::vert_face_set_get(face_set_offset, *vert) ==
+                         ss.cache->paint_face_set);
 
       if (!ignore && !face_set::vert_has_unique_face_set(face_set_offset, *vert)) {
         factors[i] = 0.0f;
