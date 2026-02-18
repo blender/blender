@@ -82,7 +82,6 @@ class ShapeKeyDragController : public ui::AbstractViewItemDragController {
                                                                  "Selected Key Blocks");
 
     selected_count = 0;
-
     for (const auto [index, kb] : drag_key_.key->block.enumerate()) {
       if (index == 0) {
         /* Prevent basis shape key from dragging. */
