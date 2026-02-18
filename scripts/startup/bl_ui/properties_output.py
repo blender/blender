@@ -570,10 +570,10 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         row.enabled = False
         row.prop(display_settings, "display_device", text="")
 
-        if ffmpeg.codec == 'DNXHD':
+        if needs_codec and ffmpeg.codec == 'DNXHD':
             layout.prop(ffmpeg, "use_lossless_output")
 
-        if ffmpeg.codec == 'PRORES':
+        if needs_codec and ffmpeg.codec == 'PRORES':
             layout.prop(ffmpeg, "ffmpeg_prores_profile")
 
         # Output quality
