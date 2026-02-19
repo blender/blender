@@ -856,6 +856,13 @@ def __get_blender_actions(obj_uuid: str,
                             id(item.action) for item in bpy.data.scenes[0].gltf_action_filter if item.keep is False]:
                         continue  # We ignore this action
 
+                    # Check that a slot is assigned to the strip
+                    if strip.action_slot is None:
+                        export_settings['log'].warning(
+                            "Strip '{}' on track '{}' has no action slot assigned, and will be ignored.".format(
+                                strip.name, track.name))
+                        continue
+
                     # Store Action info
                     new_action = ActionData(strip.action)
                     new_action.add_slot(strip.action_slot, strip.action_slot.target_id_type, track.name)
