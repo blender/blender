@@ -13,5 +13,16 @@ def export_user_extensions(hook_name, export_settings, *args):
             try:
                 hook(*args, export_settings)
             except Exception as e:
-                export_settings['log'].error("Extension hook " + hook_name + " fails on " + extension.__module__)
-                export_settings['log'].error(str(e))
+                if getattr(extension, 'is_critical', False):
+                    export_settings['log'].error(
+                        "Critical extension hook " +
+                        hook_name +
+                        " fails on " +
+                        extension.__module__ +
+                        ": " +
+                        str(e),
+                        popup=True)
+                    raise RuntimeError("Export aborted due to critical extension failure") from e
+                else:
+                    export_settings['log'].error("Extension hook " + hook_name + " fails on " + extension.__module__)
+                    export_settings['log'].error(str(e))
