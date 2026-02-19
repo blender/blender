@@ -83,6 +83,7 @@ set(SRC_GLSL_COMP
   compositor_morphological_blur.glsl
   compositor_morphological_distance_feather.glsl
   compositor_morphological_distance_threshold.glsl
+  compositor_morphological_distance_threshold_seeds.glsl
   compositor_morphological_distance.glsl
   compositor_morphological_step.glsl
   compositor_motion_blur_max_velocity_dilate.glsl

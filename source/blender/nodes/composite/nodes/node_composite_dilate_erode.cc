@@ -14,9 +14,9 @@
 
 #include "GPU_shader.hh"
 
+#include "COM_algorithm_jump_flooding.hh"
 #include "COM_algorithm_morphological_distance.hh"
 #include "COM_algorithm_morphological_distance_feather.hh"
-#include "COM_algorithm_smaa.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -333,40 +333,108 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute_distance_threshold()
   {
-    Result output_mask = context().create_result(ResultType::Float);
+    Result masked_pixels = this->context().create_result(ResultType::Int2, ResultPrecision::Half);
+    Result unmasked_pixels = this->context().create_result(ResultType::Int2,
+                                                           ResultPrecision::Half);
+    this->compute_distance_threshold_seeds(masked_pixels, unmasked_pixels);
 
-    if (this->context().use_gpu()) {
-      this->execute_distance_threshold_gpu(output_mask);
-    }
-    else {
-      this->execute_distance_threshold_cpu(output_mask);
-    }
+    Result flooded_masked_pixels = this->context().create_result(ResultType::Int2,
+                                                                 ResultPrecision::Half);
+    Result flooded_unmasked_pixels = this->context().create_result(ResultType::Int2,
+                                                                   ResultPrecision::Half);
+    jump_flooding(this->context(), masked_pixels, flooded_masked_pixels);
+    masked_pixels.release();
+    jump_flooding(this->context(), unmasked_pixels, flooded_unmasked_pixels);
+    unmasked_pixels.release();
 
-    /* For configurations where there is little user-specified falloff size, anti-alias the result
-     * for smoother edges. */
-    Result &output = this->get_result("Mask");
-    if (this->get_falloff_size() < 2.0f) {
-      smaa(this->context(), output_mask, output);
-      output_mask.release();
-    }
-    else {
-      output.steal_data(output_mask);
-    }
+    this->compute_distance_threshold(flooded_masked_pixels, flooded_unmasked_pixels);
+    flooded_masked_pixels.release();
+    flooded_unmasked_pixels.release();
   }
 
-  void execute_distance_threshold_gpu(Result &output)
+  /* Compute an image that marks both masked and unmasked pixels as seed pixels for the jump
+   * flooding algorithm. */
+  void compute_distance_threshold_seeds(Result &masked_pixels, Result &unmasked_pixels)
   {
-    gpu::Shader *shader = context().get_shader("compositor_morphological_distance_threshold");
+    if (this->context().use_gpu()) {
+      this->compute_distance_threshold_seeds_gpu(masked_pixels, unmasked_pixels);
+      return;
+    }
+
+    this->compute_distance_threshold_seeds_cpu(masked_pixels, unmasked_pixels);
+  }
+
+  void compute_distance_threshold_seeds_gpu(Result &masked_pixels, Result &unmasked_pixels)
+  {
+    gpu::Shader *shader = this->context().get_shader(
+        "compositor_morphological_distance_threshold_seeds", ResultPrecision::Half);
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "inset", math::max(this->get_falloff_size(), 10e-6f));
-    GPU_shader_uniform_1i(shader, "radius", get_morphological_distance_threshold_radius());
-    GPU_shader_uniform_1i(shader, "distance", this->get_size());
+    const Result &mask = this->get_input("Mask");
+    mask.bind_as_texture(shader, "mask_tx");
 
-    const Result &input_mask = get_input("Mask");
-    input_mask.bind_as_texture(shader, "input_tx");
+    const Domain domain = mask.domain();
+    masked_pixels.allocate_texture(domain);
+    masked_pixels.bind_as_image(shader, "masked_pixels_img");
+    unmasked_pixels.allocate_texture(domain);
+    unmasked_pixels.bind_as_image(shader, "unmasked_pixels_img");
 
-    const Domain domain = compute_domain();
+    compute_dispatch_threads_at_least(shader, domain.data_size);
+
+    mask.unbind_as_texture();
+    masked_pixels.unbind_as_image();
+    unmasked_pixels.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  void compute_distance_threshold_seeds_cpu(Result &masked_pixels, Result &unmasked_pixels)
+  {
+    const Result &mask = this->get_input("Mask");
+
+    const Domain domain = mask.domain();
+    masked_pixels.allocate_texture(domain);
+    unmasked_pixels.allocate_texture(domain);
+
+    parallel_for(domain.data_size, [&](const int2 texel) {
+      const bool is_masked = mask.load_pixel<float>(texel) > 0.5f;
+
+      const int2 masked_jump_flooding_value = initialize_jump_flooding_value(texel, is_masked);
+      masked_pixels.store_pixel(texel, masked_jump_flooding_value);
+
+      const int2 unmasked_jump_flooding_value = initialize_jump_flooding_value(texel, !is_masked);
+      unmasked_pixels.store_pixel(texel, unmasked_jump_flooding_value);
+    });
+  }
+
+  void compute_distance_threshold(const Result &flooded_masked_pixels,
+                                  const Result &flooded_unmasked_pixels)
+  {
+    if (this->context().use_gpu()) {
+      this->compute_distance_threshold_gpu(flooded_masked_pixels, flooded_unmasked_pixels);
+      return;
+    }
+
+    this->compute_distance_threshold_cpu(flooded_masked_pixels, flooded_unmasked_pixels);
+  }
+
+  void compute_distance_threshold_gpu(const Result &flooded_masked_pixels,
+                                      const Result &flooded_unmasked_pixels)
+  {
+    gpu::Shader *shader = this->context().get_shader(
+        "compositor_morphological_distance_threshold");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "distance_offset", this->get_size());
+    GPU_shader_uniform_1f(shader, "falloff_size", this->get_falloff_size());
+
+    const Result &input_mask = this->get_input("Mask");
+    input_mask.bind_as_texture(shader, "mask_tx");
+
+    flooded_masked_pixels.bind_as_texture(shader, "flooded_masked_pixels_tx");
+    flooded_unmasked_pixels.bind_as_texture(shader, "flooded_unmasked_pixels_tx");
+
+    const Domain domain = this->compute_domain();
+    Result &output = this->get_result("Mask");
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
@@ -377,111 +445,32 @@ class DilateErodeOperation : public NodeOperation {
     input_mask.unbind_as_texture();
   }
 
-  void execute_distance_threshold_cpu(Result &output)
+  void compute_distance_threshold_cpu(const Result &flooded_masked_pixels,
+                                      const Result &flooded_unmasked_pixels)
   {
-    const Result &input = get_input("Mask");
+    const Result &mask = this->get_input("Mask");
 
-    const Domain domain = compute_domain();
+    const Domain domain = this->compute_domain();
+    Result &output = this->get_result("Mask");
     output.allocate_texture(domain);
 
-    const int2 image_size = input.domain().data_size;
+    const float falloff_size = this->get_falloff_size();
+    const int distance_offset = this->get_size();
 
-    const float inset = math::max(this->get_falloff_size(), 10e-6f);
-    const int radius = this->get_morphological_distance_threshold_radius();
-    const int distance = this->get_size();
-
-    /* The Morphological Distance Threshold operation is effectively three consecutive operations
-     * implemented as a single operation. The three operations are as follows:
-     *
-     * .-----------.   .--------------.   .----------------.
-     * | Threshold |-->| Dilate/Erode |-->| Distance Inset |
-     * '-----------'   '--------------'   '----------------'
-     *
-     * The threshold operation just converts the input into a binary image, where the pixel is 1 if
-     * it is larger than 0.5 and 0 otherwise. Pixels that are 1 in the output of the threshold
-     * operation are said to be masked. The dilate/erode operation is a dilate or erode
-     * morphological operation with a circular structuring element depending on the sign of the
-     * distance, where it is a dilate operation if the distance is positive and an erode operation
-     * otherwise. This is equivalent to the Morphological Distance operation, see its
-     * implementation for more information. Finally, the distance inset is an operation that
-     * converts the binary image into a narrow band distance field. That is, pixels that are
-     * unmasked will remain 0, while pixels that are masked will start from zero at the boundary of
-     * the masked region and linearly increase until reaching 1 in the span of a number pixels
-     * given by the inset value.
-     *
-     * As a performance optimization, the dilate/erode operation is omitted and its effective
-     * result is achieved by slightly adjusting the distance inset operation. The base distance
-     * inset operation works by computing the signed distance from the current center pixel to the
-     * nearest pixel with a different value. Since our image is a binary image, that means that if
-     * the pixel is masked, we compute the signed distance to the nearest unmasked pixel, and if
-     * the pixel unmasked, we compute the signed distance to the nearest masked pixel. The distance
-     * is positive if the pixel is masked and negative otherwise. The distance is then normalized
-     * by dividing by the given inset value and clamped to the [0, 1] range. Since distances larger
-     * than the inset value are eventually clamped, the distance search window is limited to a
-     * radius equivalent to the inset value.
-     *
-     * To archive the effective result of the omitted dilate/erode operation, we adjust the
-     * distance inset operation as follows. First, we increase the radius of the distance search
-     * window by the radius of the dilate/erode operation. Then we adjust the resulting narrow band
-     * signed distance field as follows.
-     *
-     * For the erode case, we merely subtract the erode distance, which makes the outermost erode
-     * distance number of pixels zero due to clamping, consequently achieving the result of the
-     * erode, while retaining the needed inset because we increased the distance search window by
-     * the same amount we subtracted.
-     *
-     * Similarly, for the dilate case, we add the dilate distance, which makes the dilate distance
-     * number of pixels just outside of the masked region positive and part of the narrow band
-     * distance field, consequently achieving the result of the dilate, while at the same time, the
-     * innermost dilate distance number of pixels become 1 due to clamping, retaining the needed
-     * inset because we increased the distance search window by the same amount we added.
-     *
-     * Since the erode/dilate distance is already signed appropriately as described before, we just
-     * add it in both cases. */
     parallel_for(domain.data_size, [&](const int2 texel) {
-      /* Apply a threshold operation on the center pixel, where the threshold is currently
-       * hard-coded at 0.5. The pixels with values larger than the threshold are said to be
-       * masked. */
-      bool is_center_masked = input.load_pixel<float>(texel) > 0.5f;
-
-      /* Since the distance search window is limited to the given radius, the maximum possible
-       * squared distance to the center is double the squared radius. */
-      int minimum_squared_distance = radius * radius * 2;
-
-      /* Compute the start and end bounds of the window such that no out-of-bounds processing
-       * happen in the loops. */
-      const int2 start = math::max(texel - radius, int2(0)) - texel;
-      const int2 end = math::min(texel + radius + 1, image_size) - texel;
-
-      /* Find the squared distance to the nearest different pixel in the search window of the given
-       * radius. */
-      for (int y = start.y; y < end.y; y++) {
-        const int yy = y * y;
-        for (int x = start.x; x < end.x; x++) {
-          bool is_sample_masked = input.load_pixel<float>(texel + int2(x, y)) > 0.5f;
-          if (is_center_masked != is_sample_masked) {
-            minimum_squared_distance = math::min(minimum_squared_distance, x * x + yy);
-          }
-        }
-      }
-
-      /* Compute the actual distance from the squared distance and assign it an appropriate sign
-       * depending on whether it lies in a masked region or not. */
-      float signed_minimum_distance = math::sqrt(float(minimum_squared_distance)) *
-                                      (is_center_masked ? 1.0f : -1.0f);
-
-      /* Add the erode/dilate distance and divide by the inset amount as described in the
-       * discussion, then clamp to the [0, 1] range. */
-      float value = math::clamp((signed_minimum_distance + distance) / inset, 0.0f, 1.0f);
+      const bool is_masked = mask.load_pixel<float>(texel) > 0.5f;
+      const int2 closest_masked_texel = flooded_masked_pixels.load_pixel<int2>(texel);
+      const int2 closest_unmasked_texel = flooded_unmasked_pixels.load_pixel<int2>(texel);
+      const int2 closest_different_texel = is_masked ? closest_unmasked_texel :
+                                                       closest_masked_texel;
+      const float distance_to_different = math::distance(float2(texel),
+                                                         float2(closest_different_texel));
+      const float signed_distance = is_masked ? distance_to_different : -distance_to_different;
+      const float value = math::clamp(
+          (signed_distance + distance_offset) / falloff_size, 0.0f, 1.0f);
 
       output.store_pixel(texel, value);
     });
-  }
-
-  /* See the discussion in the implementation for more information. */
-  int get_morphological_distance_threshold_radius()
-  {
-    return int(math::ceil(this->get_falloff_size())) + math::abs(this->get_size());
   }
 
   /* ----------------------------------------

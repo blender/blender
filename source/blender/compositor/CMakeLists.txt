@@ -309,6 +309,7 @@ set(GLSL_SRC
   shaders/compositor_morphological_distance.glsl
   shaders/compositor_morphological_distance_feather.glsl
   shaders/compositor_morphological_distance_threshold.glsl
+  shaders/compositor_morphological_distance_threshold_seeds.glsl
   shaders/compositor_morphological_step.glsl
   shaders/compositor_motion_blur.glsl
   shaders/compositor_motion_blur_max_velocity_dilate.glsl
