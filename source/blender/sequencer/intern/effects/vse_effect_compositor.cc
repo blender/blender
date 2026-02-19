@@ -93,6 +93,14 @@ class CompositorEffectContext : public compositor::Context {
     }
 
     result_translation_ = result.domain().transformation.location();
+    const int2 size = result.domain().data_size;
+    if (size != int2(this->output_->x, this->output_->y)) {
+      /* Output size is different, need to allocate appropriately sized buffer. */
+      IMB_free_all_data(this->output_);
+      this->output_->x = size.x;
+      this->output_->y = size.y;
+      IMB_alloc_float_pixels(this->output_, 4, false);
+    }
     std::memcpy(this->output_->float_buffer.data,
                 result.cpu_data().data(),
                 IMB_get_pixel_count(this->output_) * sizeof(float) * 4);
