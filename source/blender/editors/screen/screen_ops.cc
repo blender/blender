@@ -6238,6 +6238,8 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
 #endif
   }
 
+  WM_event_add_notifier(C, NC_SCREEN | ND_ANIMATION_PLAYBACK, screen);
+
   ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
 
   /* Since we follow draw-flags, we can't send notifier but tag regions ourselves. */

@@ -784,6 +784,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_SCREEN:
       switch (wmn->data) {
         case ND_ANIMPLAY:
+        case ND_ANIMATION_PLAYBACK:
           node_area_tag_tree_recalc(snode, area);
           break;
       }

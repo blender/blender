@@ -434,6 +434,8 @@ struct wmNotifier {
 #define ND_SKETCH (7 << 16)
 #define ND_WORKSPACE_SET (8 << 16)
 #define ND_WORKSPACE_DELETE (9 << 16)
+/* Notifies if frames changes as part of animation playback. */
+#define ND_ANIMATION_PLAYBACK (10 << 16)
 
 /* NC_SCENE Scene. */
 #define ND_SCENEBROWSE (1 << 16)
