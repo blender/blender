@@ -135,7 +135,7 @@ static void process_leaf_node(const LeafNodeT &leaf_node,
                               MutableSpan<int> r_coord_z,
                               MutableSpan<typename LeafNodeT::ValueType> r_value)
 {
-  using MaskT = LeafNodeT::NodeMaskType;
+  using MaskT = typename LeafNodeT::NodeMaskType;
 
   r_is_tile.fill(false);
   r_extent.fill(1);
@@ -174,8 +174,8 @@ static void process_internal_node(const InternalNodeT &internal_node,
                                   MutableSpan<int> r_coord_z,
                                   MutableSpan<typename InternalNodeT::ValueType> r_value)
 {
-  using MaskT = InternalNodeT::NodeMaskType;
-  using UnionT = InternalNodeT::UnionType;
+  using MaskT = typename InternalNodeT::NodeMaskType;
+  using UnionT = typename InternalNodeT::UnionType;
 
   r_is_tile.fill(true);
   r_extent.fill(InternalNodeT::ChildNodeType::DIM);
@@ -215,9 +215,9 @@ static void process_tree(const TreeT &tree,
                          std::optional<Array<int>> &r_coord_z,
                          std::optional<GArray<>> &r_value)
 {
-  using ValueT = TreeT::ValueType;
-  using RootNodeT = TreeT::RootNodeType;
-  using LeafNodeT = TreeT::LeafNodeType;
+  using ValueT = typename TreeT::ValueType;
+  using RootNodeT = typename TreeT::RootNodeType;
+  using LeafNodeT = typename TreeT::LeafNodeType;
 
   openvdb::tree::NodeManager<const TreeT> node_manager(tree);
 
@@ -229,7 +229,7 @@ static void process_tree(const TreeT &tree,
   node_manager.foreachTopDown(
       [&]<typename NodeT>(const NodeT &node) {
         if constexpr (!std::is_same_v<NodeT, RootNodeT>) {
-          using MaskT = NodeT::NodeMaskType;
+          using MaskT = typename NodeT::NodeMaskType;
           const MaskT &value_mask = node.getValueMask();
           const int values_num = value_mask.countOn();
           slice_by_node.add_new(&node, IndexRange(current_offset, values_num));
