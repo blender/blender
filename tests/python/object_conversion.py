@@ -11,7 +11,7 @@ import sys
 import inspect
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from modules.mesh_test import SpecMeshTest, OperatorSpecObjectMode, RunTest
+from modules.mesh_test import SpecMeshTest, OperatorSpec, RunTest
 
 
 class ConversionTypeTestHelper:
@@ -102,21 +102,21 @@ class ConversionPair:
 def main():
     tests = [
         SpecMeshTest('Mesh 1', 'Cube', 'Cube_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
         SpecMeshTest('Mesh 2', 'CubeWithEdges', 'CubeWithEdges_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
         SpecMeshTest('Mesh 3', 'Plane', 'Plane_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
         SpecMeshTest('Mesh 4', 'HollowPlane', 'HollowPlane_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
         SpecMeshTest('Mesh 5', 'Suzanne', 'Suzanne_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
         SpecMeshTest('Mesh 6', 'BezierCircle', 'BezierCircle_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
         SpecMeshTest('Mesh 7', 'BezierCurve', 'BezierCurve_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
         SpecMeshTest('Mesh 8', 'Text', 'Text_Mesh',
-                     [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+                     [OperatorSpec('OBJECT', 'object.convert', {'target': 'MESH'})]),
     ]
 
     type_tests = [
