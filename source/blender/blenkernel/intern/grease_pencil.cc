@@ -1161,6 +1161,9 @@ void Drawing::tag_positions_changed(const IndexMask &changed_curves)
       r_triangle_cache = std::move(triangle_cache);
     });
   }
+  else {
+    this->runtime->triangle_cache.tag_dirty();
+  }
 }
 
 void Drawing::tag_topology_changed()
@@ -1226,6 +1229,9 @@ void Drawing::tag_topology_changed(const IndexMask &changed_curves)
                                           triangle_cache.triangle_offsets);
       r_triangle_cache = std::move(triangle_cache);
     });
+  }
+  else {
+    this->runtime->triangle_cache.tag_dirty();
   }
 
   this->tag_texture_matrices_changed();
