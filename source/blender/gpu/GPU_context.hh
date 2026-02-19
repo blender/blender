@@ -129,6 +129,23 @@ GHOST_ISystem *GPU_backend_ghost_system_get();
 
 namespace gpu {
 
+struct GPUSecondaryContextData {
+  GHOST_IContext *ghost_context = nullptr;
+  GPUContext *gpu_context = nullptr;
+};
+
+/** Creates a secondary off-screen GHOST and GPU contexts. Must be called on the main thread. */
+GPUSecondaryContextData GPU_create_secondary_context();
+
+/** Activates the given secondary GPU context. */
+void GPU_activate_secondary_context(GPUSecondaryContextData &data);
+
+/** Deactivates the given secondary GPU context. */
+void GPU_deactivate_secondary_context(GPUSecondaryContextData &data);
+
+/** Destroys the given secondary GPU context. */
+void GPU_destroy_secondary_context(GPUSecondaryContextData &data);
+
 /**
  * Abstracts secondary GHOST and GPU context creation, activation and deletion.
  * Must be created from the main thread and destructed from the thread they where activated in.
@@ -136,8 +153,7 @@ namespace gpu {
  */
 class GPUSecondaryContext {
  private:
-  GHOST_IContext *ghost_context_;
-  GPUContext *gpu_context_;
+  GPUSecondaryContextData data_;
 
  public:
   GPUSecondaryContext();

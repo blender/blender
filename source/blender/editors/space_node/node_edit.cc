@@ -71,6 +71,7 @@
 #include "GPU_capabilities.hh"
 #include "GPU_material.hh"
 
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "NOD_composite.hh"
@@ -134,6 +135,7 @@ static void compositor_job_init(void *compositor_job_data)
   compositor_job->render = RE_NewInteractiveCompositorRender(scene);
   if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
     RE_display_ensure_gpu_context(compositor_job->render);
+    IMB_ensure_gpu_context();
   }
 }
 

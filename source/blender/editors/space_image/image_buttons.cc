@@ -1199,7 +1199,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
 
   /* Acquire image buffer. */
   void *lock;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, iuser, &lock);
 
   ui::Layout &col = layout->column(true);
   col.alignment_set(ui::LayoutAlign::Right);
@@ -1214,7 +1214,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
 
     ofs += BLI_snprintf_utf8_rlen(str + ofs, len - ofs, RPT_("%d \u00D7 %d, "), ibuf->x, ibuf->y);
 
-    if (ibuf->float_buffer.data) {
+    if (ibuf->float_buffer.data || ibuf->gpu.texture) {
       if (ibuf->channels != 4) {
         ofs += BLI_snprintf_utf8_rlen(
             str + ofs, len - ofs, RPT_("%d float channel(s)"), ibuf->channels);

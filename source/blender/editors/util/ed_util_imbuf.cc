@@ -166,7 +166,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
   int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, nullptr);
 
   void *lock;
-  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, tile);
+  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, tile, true);
   ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
   Scene *scene = CTX_data_scene(C);
   CurveMapping *curve_mapping = scene->view_settings.curve_mapping;

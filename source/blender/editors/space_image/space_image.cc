@@ -31,6 +31,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "ED_asset_shelf.hh"
@@ -714,7 +715,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
      * the image is locked when calling #ED_space_image_acquire_buffer. */
     float zoomx, zoomy;
     ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
-    ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+    ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0, false);
     if (ibuf) {
       int x, y;
       rctf frame;
@@ -895,14 +896,14 @@ static void image_buttons_region_draw(const bContext *C, ARegion *region)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
-  void *lock;
-  /* TODO(lukas): Support tiles in scopes? */
-  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
   /* XXX performance regression if name of scopes category changes! */
   PanelCategoryStack *category = ui::panel_category_active_find(region, "Scopes");
 
   /* only update scopes if scope category is active */
   if (category) {
+    /* TODO(lukas): Support tiles in scopes? */
+    void *lock;
+    ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0, true);
     if (ibuf) {
       if (!sima->scopes.ok) {
         BKE_histogram_update_sample_line(
@@ -915,8 +916,8 @@ static void image_buttons_region_draw(const bContext *C, ARegion *region)
         ED_space_image_scopes_update(C, sima, ibuf, false);
       }
     }
+    ED_space_image_release_buffer(sima, ibuf, lock);
   }
-  ED_space_image_release_buffer(sima, ibuf, lock);
 
   /* Layout handles details. */
   ED_region_panels_draw(C, region);

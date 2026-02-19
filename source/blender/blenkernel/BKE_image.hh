@@ -208,6 +208,13 @@ bool BKE_image_has_ibuf(Image *ima, ImageUser *iuser);
 ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock);
 
 /**
+ * Identical to BKE_image_acquire_ibuf but assumes the caller will use the GPU data of the image
+ * buffer if it exists without the need to make it available on the host. This essentially skips
+ * GPU data reading to the host and is thus more performant.
+ */
+ImBuf *BKE_image_acquire_ibuf_gpu(Image *ima, ImageUser *iuser, void **r_lock);
+
+/**
  * Return image buffer for given image, user, pass, and view.
  * Is thread-safe, so another thread can be changing image while this function is executed.
  *

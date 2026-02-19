@@ -32,6 +32,13 @@ void IMB_init();
 void IMB_exit();
 
 /**
+ * Module GPU context management.
+ */
+void IMB_ensure_gpu_context();
+void IMB_activate_gpu_context();
+void IMB_deactivate_gpu_context();
+
+/**
  * Load image.
  */
 ImBuf *IMB_load_image_from_memory(const unsigned char *mem,
@@ -122,11 +129,20 @@ void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, ImBufOwnership ow
 void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
 
 /**
- * Assign the GPU texture of the buffer to the given texture. The current GPU texture is release.
+ * Assign the GPU texture of the buffer to the given texture. The current GPU texture is released.
  *
  * \note Does not modify the topology (width, height, number of channels).
  */
 void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture);
+
+/**
+ * Reads the GPU data texture of the image buffer if it exists and assigns the data to the float
+ * buffer. This is only done if the buffer has the IB_HOST_BUFFER_INVALID flag is set, which is
+ * then reset after the function executes.
+ *
+ * \warning Not thread-safe, so callee should worry about thread locks.
+ */
+void IMB_ensure_host_buffer(ImBuf *ibuf);
 
 /**
  * Assign the content and the color space of the corresponding buffer the data from the given

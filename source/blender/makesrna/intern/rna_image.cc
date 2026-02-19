@@ -71,6 +71,7 @@ static const EnumPropertyItem image_source_items[] = {
 
 #  include "MOV_read.hh"
 
+#  include "ED_image.hh"
 #  include "ED_node.hh"
 
 #  include "DNA_space_types.h"

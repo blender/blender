@@ -33,7 +33,7 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
 
   ImBuf *acquire_image_buffer(blender::Image *image, void **lock) override
   {
-    return BKE_image_acquire_ibuf(image, nullptr, lock);
+    return BKE_image_acquire_ibuf_gpu(image, nullptr, lock);
   }
 
   void release_buffer(blender::Image *image, ImBuf *ibuf, void *lock) override

@@ -59,6 +59,7 @@
 #include "RE_pipeline.h"
 
 #include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "RNA_access.hh"
@@ -1242,6 +1243,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   re = RE_NewSceneRender(scene);
   RE_display_init(re);
   RE_display_ensure_gpu_context(re);
+  IMB_ensure_gpu_context();
   RE_test_break_cb(re, rj, render_breakjob);
   RE_draw_lock_cb(re, rj, render_drawlock);
   RE_display_update_cb(re, rj, image_rect_update);

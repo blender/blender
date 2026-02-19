@@ -225,7 +225,7 @@ class Context : public compositor::Context {
     BLI_thread_lock(LOCK_DRAW_IMAGE);
 
     void *lock;
-    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, &lock);
+    ImBuf *image_buffer = BKE_image_acquire_ibuf_gpu(image, &image_user, &lock);
 
     const int2 size = viewer_result.is_single_value() ? this->get_render_size() :
                                                         viewer_result.domain().data_size;
@@ -240,14 +240,12 @@ class Context : public compositor::Context {
       image_buffer->y = size.y;
     }
 
-    /* Allocate a float buffer if it does not exist. */
-    if (!image_buffer->float_buffer.data) {
-      IMB_alloc_float_pixels(image_buffer, 4, false);
-    }
-
-    /* Allocate a GPU texture if using GPU and no texture exists or one exists but with a different
-     * format. */
     if (this->use_gpu()) {
+      /* If using GPU, free any potential previous CPU data. */
+      IMB_free_float_pixels(image_buffer);
+
+      /* Allocate a GPU texture if using GPU and no texture exists or one exists but with a
+       * different format. */
       if (!image_buffer->gpu.texture ||
           GPU_texture_format(image_buffer->gpu.texture) != viewer_result.get_gpu_texture_format())
       {
@@ -260,6 +258,11 @@ class Context : public compositor::Context {
     else {
       /* If not using GPU, free any potential previous GPU data. */
       IMB_free_gpu_textures(image_buffer);
+
+      /* Allocate float buffer if not using GPU and no float buffer exists. */
+      if (!image_buffer->float_buffer.data) {
+        IMB_alloc_float_pixels(image_buffer, 4, false);
+      }
     }
 
     if (this->use_gpu()) {
@@ -271,11 +274,7 @@ class Context : public compositor::Context {
       else {
         GPU_texture_copy(image_buffer->gpu.texture, viewer_result);
       }
-
-      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-      float *output_buffer = static_cast<float *>(
-          GPU_texture_read(image_buffer->gpu.texture, GPU_DATA_FLOAT, 0));
-      IMB_assign_float_buffer(image_buffer, output_buffer, IB_TAKE_OWNERSHIP);
+      image_buffer->userflags |= IB_HOST_BUFFER_INVALID;
     }
     else {
       if (viewer_result.is_single_value()) {
@@ -286,9 +285,8 @@ class Context : public compositor::Context {
                     viewer_result.cpu_data().data(),
                     size.x * size.y * 4 * sizeof(float));
       }
+      image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
     }
-
-    image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
     if (!viewer_result.is_single_value()) {
       image_buffer->flags |= IB_has_display_window;

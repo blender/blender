@@ -35,7 +35,7 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
 
   ImBuf *acquire_image_buffer(blender::Image * /*image*/, void **lock) override
   {
-    return ED_space_image_acquire_buffer(sima, lock, 0);
+    return ED_space_image_acquire_buffer(sima, lock, 0, false);
   }
 
   void release_buffer(blender::Image * /*image*/, ImBuf *image_buffer, void *lock) override

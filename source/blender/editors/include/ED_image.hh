@@ -66,7 +66,13 @@ bool ED_space_image_get_position(SpaceImage *sima,
  */
 bool ED_space_image_color_sample(
     SpaceImage *sima, ARegion *region, const int mval[2], float r_col[3], bool *r_is_data);
-ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile);
+/* Acquires the image buffer of the given tile of the image in the given space. See the info on the
+ * BKE_image_acquire_ibuf function for information on the lock. Also see the image_acquire_ibuf
+ * function for the ensure_host_buffer argument. */
+ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima,
+                                     void **r_lock,
+                                     int tile,
+                                     const bool ensure_host_buffer);
 /**
  * Get the #SpaceImage flag that is valid for the given ibuf.
  */

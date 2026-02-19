@@ -318,6 +318,9 @@ enum {
   IB_DISPLAY_BUFFER_INVALID = (1 << 4),
   /** image buffer is persistent in the memory and should never be removed from the cache */
   IB_PERSISTENT = (1 << 5),
+  /** The image buffer is backed by a GPU texture storage but the host buffers either do not exist
+   * or are out-dated and needs to read from the GPU texture. */
+  IB_HOST_BUFFER_INVALID = (1 << 6),
 };
 
 /** \} */

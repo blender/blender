@@ -144,7 +144,10 @@ void ED_space_image_set_mask(bContext *C, SpaceImage *sima, Mask *mask)
   }
 }
 
-ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
+ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima,
+                                     void **r_lock,
+                                     int tile,
+                                     const bool ensure_host_buffer)
 {
   ImBuf *ibuf;
 
@@ -159,7 +162,12 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
 #endif
     {
       sima->iuser.tile = tile;
-      ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, r_lock);
+      if (ensure_host_buffer) {
+        ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, r_lock);
+      }
+      else {
+        ibuf = BKE_image_acquire_ibuf_gpu(sima->image, &sima->iuser, r_lock);
+      }
       sima->iuser.tile = 0;
     }
 
@@ -170,7 +178,7 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
         return ibuf;
       }
 
-      if (ibuf->byte_buffer.data || ibuf->float_buffer.data) {
+      if (ibuf->byte_buffer.data || ibuf->float_buffer.data || ibuf->gpu.texture) {
         return ibuf;
       }
       BKE_image_release_ibuf(sima->image, ibuf, *r_lock);
@@ -220,7 +228,7 @@ bool ED_space_image_has_buffer(SpaceImage *sima)
   void *lock;
   bool has_buffer;
 
-  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0, false);
   has_buffer = (ibuf != nullptr);
   ED_space_image_release_buffer(sima, ibuf, lock);
 
@@ -234,7 +242,7 @@ void ED_space_image_get_size(SpaceImage *sima, int *r_width, int *r_height)
   void *lock;
 
   /* TODO(lukas): Support tiled images with different sizes */
-  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+  ibuf = ED_space_image_acquire_buffer(sima, &lock, 0, false);
 
   if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
     *r_width = ibuf->x;
