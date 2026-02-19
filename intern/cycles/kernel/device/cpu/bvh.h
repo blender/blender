@@ -403,7 +403,10 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
     Intersection current_isect;
     kernel_embree_convert_hit(
         kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
-    if (intersection_skip_self(cray->self, current_isect.object, current_isect.prim)) {
+
+    if (bvh_volume_anyhit_triangle_filter<false>(
+            kg, current_isect.object, current_isect.prim, cray->self, 0))
+    {
       *args->valid = 0;
       return;
     }
@@ -411,15 +414,6 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
     Intersection *isect = &ctx->vol_isect[ctx->num_hits];
     ++ctx->num_hits;
     *isect = current_isect;
-    /* Only primitives from volume object. */
-    if ((intersection_get_shader_flags(kg, isect->prim, isect->type) & SD_HAS_VOLUME) == 0) {
-      --ctx->num_hits;
-#ifndef __VOLUME_RECORD_ALL__
-      /* Without __VOLUME_RECORD_ALL__ we need only a first counted hit, so we will
-       * continue tracing only if a current hit is not counted. */
-      *args->valid = 0;
-#endif
-    }
 #ifdef __VOLUME_RECORD_ALL__
     /* This tells Embree to continue tracing. */
     *args->valid = 0;
