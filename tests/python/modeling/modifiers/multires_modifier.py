@@ -17,7 +17,7 @@ blender -b --factory-startup tests/files/modeling/modifiers/multires_modifier --
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "..", ".."))
-from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest, OperatorSpecObjectMode
+from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest, OperatorSpec
 
 
 def main():
@@ -25,20 +25,20 @@ def main():
         SpecMeshTest("CatmullClarkSubdivide", "testCubeMultires", "expectedCubeMultires",
                      [
                          ModifierSpec('multires', 'MULTIRES', {}),
-                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires'}),
-                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                         OperatorSpec('OBJECT', 'object.multires_subdivide', {'modifier': 'multires'}),
+                         OperatorSpec('OBJECT', 'object.modifier_apply', {'modifier': 'multires'})
                      ], apply_modifier=False),
         SpecMeshTest("SimpleSubdivide", "testSuzanneSimple", "expectedSuzanneSimple",
                      [
                          ModifierSpec('multires', 'MULTIRES', {}),
-                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires', 'mode': 'SIMPLE'}),
-                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                         OperatorSpec('OBJECT', 'object.multires_subdivide', {'modifier': 'multires', 'mode': 'SIMPLE'}),
+                         OperatorSpec('OBJECT', 'object.modifier_apply', {'modifier': 'multires'})
                      ], apply_modifier=False),
         SpecMeshTest("LinearSubdivide", "testSuzanneLinear", "expectedSuzanneLinear",
                      [
                          ModifierSpec('multires', 'MULTIRES', {}),
-                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires', 'mode': 'LINEAR'}),
-                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                         OperatorSpec('OBJECT', 'object.multires_subdivide', {'modifier': 'multires', 'mode': 'LINEAR'}),
+                         OperatorSpec('OBJECT', 'object.modifier_apply', {'modifier': 'multires'})
                      ], apply_modifier=False),
     ]
 
