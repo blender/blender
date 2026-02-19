@@ -23,22 +23,14 @@ namespace blender::array_utils {
 
 constexpr int64_t calc_copy_grain_size(const exec_mode::Tag auto mode, const int64_t type_size)
 {
-  static_assert(mode.is_parallel);
-  if constexpr (requires { mode.grain_size; }) {
-    return mode.grain_size;
-  }
   /* The grain size should roughly depend on the work being done per index, which roughly
    * corresponds with the size of the type being copied. */
-  return std::max<int64_t>(1, 32768 / type_size);
+  return mode.grain_size(std::max<int64_t>(1, 32768 / type_size));
 }
 
 constexpr int64_t calc_copy_grain_size(const exec_mode::Mode mode, const int64_t type_size)
 {
-  BLI_assert(mode.is_parallel);
-  if (mode.grain_size_override.has_value()) {
-    return *mode.grain_size_override;
-  }
-  return std::max<int64_t>(1, 32768 / type_size);
+  return mode.grain_size(std::max<int64_t>(1, 32768 / type_size));
 }
 
 /**
@@ -96,15 +88,7 @@ inline void copy(const Span<T> src,
                  const Mode mode = {})
 {
   BLI_assert(src.size() == dst.size());
-  if constexpr (!mode.is_parallel) {
-    selection.foreach_index_optimized<int64_t>([&](const int64_t i) { dst[i] = src[i]; });
-  }
-  else {
-    const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
-    threading::parallel_for(selection.index_range(), grain_size, [&](const IndexRange range) {
-      copy(src, selection.slice(range), dst, exec_mode::serial);
-    });
-  }
+  selection.foreach_index_optimized<int64_t>([&](const int64_t i) { dst[i] = src[i]; }, mode);
 }
 
 template<typename T> T compute_sum(const Span<T> data)
@@ -161,16 +145,8 @@ inline void scatter(const Span<T> src,
 {
   BLI_assert(indices.size() == src.size());
   BLI_assert(indices.min_array_size() <= dst.size());
-  if constexpr (!mode.is_parallel) {
-    indices.foreach_index_optimized<int64_t>(
-        [&](const int64_t index, const int64_t pos) { dst[index] = src[pos]; });
-  }
-  else {
-    const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
-    threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      scatter(src.slice(range), indices.slice(range), dst, exec_mode::serial);
-    });
-  }
+  indices.foreach_index_optimized<int64_t>(
+      [&](const int64_t index, const int64_t pos) { dst[index] = src[pos]; }, mode);
 }
 
 /**
@@ -220,16 +196,8 @@ inline void gather(const Span<T> src,
                    const Mode mode = {})
 {
   BLI_assert(indices.size() == dst.size());
-  if constexpr (!mode.is_parallel) {
-    indices.foreach_index_optimized<int64_t>(
-        [&](const int64_t i, const int64_t pos) { dst[pos] = src[i]; });
-  }
-  else {
-    const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
-    threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      gather(src, indices.slice(range), dst.slice(range), exec_mode::serial);
-    });
-  }
+  indices.foreach_index_optimized<int64_t>(
+      [&](const int64_t i, const int64_t pos) { dst[pos] = src[i]; }, mode);
 }
 
 /**
