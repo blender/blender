@@ -19,8 +19,8 @@ static void flip_corner_data(const OffsetIndices<int> faces,
                              const IndexMask &face_selection,
                              MutableSpan<T> data)
 {
-  face_selection.foreach_index(GrainSize(1024),
-                               [&](const int i) { data.slice(faces[i].drop_front(1)).reverse(); });
+  face_selection.foreach_index([&](const int i) { data.slice(faces[i].drop_front(1)).reverse(); },
+                               exec_mode::grain_size(1024));
 }
 
 template<typename T>
@@ -47,15 +47,17 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
 
-  selection.foreach_index(GrainSize(1024), [&](const int i) {
-    const IndexRange face = faces[i];
-    for (const int j : IndexRange(face.size() / 2)) {
-      const int a = face[j + 1];
-      const int b = face.last(j);
-      std::swap(corner_verts[a], corner_verts[b]);
-      std::swap(corner_edges[a - 1], corner_edges[b]);
-    }
-  });
+  selection.foreach_index(
+      [&](const int i) {
+        const IndexRange face = faces[i];
+        for (const int j : IndexRange(face.size() / 2)) {
+          const int a = face[j + 1];
+          const int b = face.last(j);
+          std::swap(corner_verts[a], corner_verts[b]);
+          std::swap(corner_edges[a - 1], corner_edges[b]);
+        }
+      },
+      exec_mode::grain_size(1024));
 
   flip_custom_data_type<float4>(faces, mesh.corner_data, selection, CD_MLOOPTANGENT);
   flip_custom_data_type<GridPaintMask>(faces, mesh.corner_data, selection, CD_GRID_PAINT_MASK);
@@ -64,11 +66,13 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
   if (MDisps *mdisp = static_cast<MDisps *>(
           CustomData_get_layer_for_write(&mesh.corner_data, CD_MDISPS, mesh.corners_num)))
   {
-    selection.foreach_index(GrainSize(512), [&](const int i) {
-      for (const int corner : faces[i]) {
-        BKE_mesh_mdisp_flip(&mdisp[corner], true);
-      }
-    });
+    selection.foreach_index(
+        [&](const int i) {
+          for (const int corner : faces[i]) {
+            BKE_mesh_mdisp_flip(&mdisp[corner], true);
+          }
+        },
+        exec_mode::grain_size(512));
   }
 
   MutableAttributeAccessor attributes = mesh.attributes_for_write();

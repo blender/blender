@@ -33,19 +33,23 @@ static void remap_verts(const OffsetIndices<int> src_faces,
   threading::parallel_invoke(
       vert_mask.size() > 1024,
       [&]() {
-        face_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-          const IndexRange src_face = src_faces[src_i];
-          const IndexRange dst_face = dst_faces[dst_i];
-          for (const int i : src_face.index_range()) {
-            dst_corner_verts[dst_face[i]] = map[src_corner_verts[src_face[i]]];
-          }
-        });
+        face_mask.foreach_index(
+            [&](const int64_t src_i, const int64_t dst_i) {
+              const IndexRange src_face = src_faces[src_i];
+              const IndexRange dst_face = dst_faces[dst_i];
+              for (const int i : src_face.index_range()) {
+                dst_corner_verts[dst_face[i]] = map[src_corner_verts[src_face[i]]];
+              }
+            },
+            exec_mode::grain_size(512));
       },
       [&]() {
-        edge_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-          dst_edges[dst_i][0] = map[src_edges[src_i][0]];
-          dst_edges[dst_i][1] = map[src_edges[src_i][1]];
-        });
+        edge_mask.foreach_index(
+            [&](const int64_t src_i, const int64_t dst_i) {
+              dst_edges[dst_i][0] = map[src_edges[src_i][0]];
+              dst_edges[dst_i][1] = map[src_edges[src_i][1]];
+            },
+            exec_mode::grain_size(512));
       });
 }
 
@@ -59,13 +63,15 @@ static void remap_edges(const OffsetIndices<int> src_faces,
 {
   Array<int> map(src_edges_num);
   index_mask::build_reverse_map<int>(edge_mask, map);
-  face_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-    const IndexRange src_face = src_faces[src_i];
-    const IndexRange dst_face = dst_faces[dst_i];
-    for (const int i : src_face.index_range()) {
-      dst_corner_edges[dst_face[i]] = map[src_corner_edges[src_face[i]]];
-    }
-  });
+  face_mask.foreach_index(
+      [&](const int64_t src_i, const int64_t dst_i) {
+        const IndexRange src_face = src_faces[src_i];
+        const IndexRange dst_face = dst_faces[dst_i];
+        for (const int i : src_face.index_range()) {
+          dst_corner_edges[dst_face[i]] = map[src_corner_edges[src_face[i]]];
+        }
+      },
+      exec_mode::grain_size(512));
 }
 
 static void copy_loose_vert_hint(const Mesh &src, Mesh &dst)

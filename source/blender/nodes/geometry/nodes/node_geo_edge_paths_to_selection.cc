@@ -25,17 +25,19 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
   Array<bool> vert_selection(src_mesh.verts_num, false);
 
   const IndexRange vert_range(src_mesh.verts_num);
-  start_selection.foreach_index(GrainSize(2048), [&](const int start_vert) {
-    /* If vertex is selected, all next is already selected too. */
-    for (int current_vert = start_vert; !vert_selection[current_vert];
-         current_vert = next_indices[current_vert])
-    {
-      if (UNLIKELY(!vert_range.contains(current_vert))) {
-        break;
-      }
-      vert_selection[current_vert] = true;
-    }
-  });
+  start_selection.foreach_index(
+      [&](const int start_vert) {
+        /* If vertex is selected, all next is already selected too. */
+        for (int current_vert = start_vert; !vert_selection[current_vert];
+             current_vert = next_indices[current_vert])
+        {
+          if (UNLIKELY(!vert_range.contains(current_vert))) {
+            break;
+          }
+          vert_selection[current_vert] = true;
+        }
+      },
+      exec_mode::grain_size(2048));
 
   const Span<int2> edges = src_mesh.edges();
   threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {

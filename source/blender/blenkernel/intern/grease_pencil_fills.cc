@@ -97,9 +97,9 @@ void gather_next_available_fill_ids(const VArray<int> &fill_ids,
                                     MutableSpan<int> r_new_fill_ids)
 {
   const int next_fill_id = get_next_available_fill_id(fill_ids);
-  curve_mask.foreach_index(GrainSize(1024), [&](const int index, const int pos) {
-    r_new_fill_ids[index] = next_fill_id + pos;
-  });
+  curve_mask.foreach_index(
+      [&](const int index, const int pos) { r_new_fill_ids[index] = next_fill_id + pos; },
+      exec_mode::grain_size(1024));
 }
 
 IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
@@ -122,13 +122,16 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
     selected_mask.to_bools(selected_points);
 
     const IndexMask selected_curves = IndexMask::from_predicate(
-        curves.curves_range(), GrainSize(512), memory, [&](const int curve_i) {
+        curves.curves_range(),
+        memory,
+        [&](const int curve_i) {
           const IndexRange points = points_by_curve[curve_i];
           const Span<bool> selected_curve_points = selected_points.as_span().slice(points);
           return std::any_of(selected_curve_points.begin(),
                              selected_curve_points.end(),
                              [](const bool value) { return value; });
-        });
+        },
+        exec_mode::grain_size(512));
 
     return curves::curve_to_point_selection(points_by_curve, selected_curves, memory);
   }
@@ -141,13 +144,16 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
     selected_mask.to_bools(selected_points);
 
     const IndexMask selected_curves = IndexMask::from_predicate(
-        curves.curves_range(), GrainSize(512), memory, [&](const int curve_i) {
+        curves.curves_range(),
+        memory,
+        [&](const int curve_i) {
           const IndexRange points = points_by_curve[curve_i];
           const Span<bool> selected_curve_points = selected_points.as_span().slice(points);
           return std::any_of(selected_curve_points.begin(),
                              selected_curve_points.end(),
                              [](const bool value) { return value; });
-        });
+        },
+        exec_mode::grain_size(512));
 
     selected_curves.foreach_index([&](const int64_t curve_i) {
       const int fill_id = fill_ids[curve_i];
@@ -168,7 +174,7 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
   }
 
   const IndexMask selected_curves = IndexMask::from_predicate(
-      curves.curves_range(), GrainSize(4096), memory, [&](const int64_t curve_i) {
+      curves.curves_range(), memory, [&](const int64_t curve_i) {
         const int fill_id = fill_ids[curve_i];
         if (fill_id == 0) {
           return src_selected_curves[curve_i];
@@ -212,12 +218,14 @@ void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep)
   strokes_to_change.foreach_index(
       [&](const int curve_i) { fill_indexing.add(fill_ids.span[curve_i]); });
 
-  strokes_to_change.foreach_index(GrainSize(1024), [&](const int curve_i) {
-    if (fill_ids.span[curve_i] == 0) {
-      return;
-    }
-    fill_ids.span[curve_i] = fill_indexing.index_of(fill_ids.span[curve_i]) + max_id + 1;
-  });
+  strokes_to_change.foreach_index(
+      [&](const int curve_i) {
+        if (fill_ids.span[curve_i] == 0) {
+          return;
+        }
+        fill_ids.span[curve_i] = fill_indexing.index_of(fill_ids.span[curve_i]) + max_id + 1;
+      },
+      exec_mode::grain_size(1024));
 
   fill_ids.finish();
 }

@@ -152,37 +152,39 @@ static void write_weights_for_drawing(const ModifierData &md,
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = curves.positions();
 
-  strokes.foreach_index(GrainSize(512), [&](const int stroke) {
-    const IndexRange points = points_by_curve[stroke];
-    if (points.size() == 1) {
-      dst_weights.span[points.start()] = 1.0f;
-      return;
-    }
-    for (const int point : points.drop_front(1)) {
-      const float influence_weight = influence_weights[point];
-      if (influence_weight <= 0.0f) {
-        continue;
-      }
+  strokes.foreach_index(
+      [&](const int stroke) {
+        const IndexRange points = points_by_curve[stroke];
+        if (points.size() == 1) {
+          dst_weights.span[points.start()] = 1.0f;
+          return;
+        }
+        for (const int point : points.drop_front(1)) {
+          const float influence_weight = influence_weights[point];
+          if (influence_weight <= 0.0f) {
+            continue;
+          }
 
-      const float3 p1 = math::transform_point(obmat3x3, positions[point]);
-      const float3 p2 = math::transform_point(obmat3x3, positions[point - 1]);
-      const float3 vec = p2 - p1;
-      const float angle = angle_on_axis_v3v3_v3(vec_ref, vec, axis);
-      float weight = 1.0f - math::sin(angle);
+          const float3 p1 = math::transform_point(obmat3x3, positions[point]);
+          const float3 p2 = math::transform_point(obmat3x3, positions[point - 1]);
+          const float3 vec = p2 - p1;
+          const float angle = angle_on_axis_v3v3_v3(vec_ref, vec, axis);
+          float weight = 1.0f - math::sin(angle);
 
-      if (mmd.flag & MOD_GREASE_PENCIL_WEIGHT_ANGLE_INVERT_OUTPUT) {
-        weight = 1.0f - weight;
-      }
+          if (mmd.flag & MOD_GREASE_PENCIL_WEIGHT_ANGLE_INVERT_OUTPUT) {
+            weight = 1.0f - weight;
+          }
 
-      dst_weights.span[point] = (mmd.flag & MOD_GREASE_PENCIL_WEIGHT_ANGLE_MULTIPLY_DATA) ?
-                                    dst_weights.span[point] * weight :
-                                    weight;
-      dst_weights.span[point] *= influence_weight;
-      dst_weights.span[point] = math::clamp(dst_weights.span[point], mmd.min_weight, 1.0f);
-    }
-    /* First point has the same weight as the second one. */
-    dst_weights.span[points[0]] = dst_weights.span[points[1]];
-  });
+          dst_weights.span[point] = (mmd.flag & MOD_GREASE_PENCIL_WEIGHT_ANGLE_MULTIPLY_DATA) ?
+                                        dst_weights.span[point] * weight :
+                                        weight;
+          dst_weights.span[point] *= influence_weight;
+          dst_weights.span[point] = math::clamp(dst_weights.span[point], mmd.min_weight, 1.0f);
+        }
+        /* First point has the same weight as the second one. */
+        dst_weights.span[points[0]] = dst_weights.span[points[1]];
+      },
+      exec_mode::grain_size(512));
 
   dst_weights.finish();
 }

@@ -750,14 +750,20 @@ class FormatStringMultiFunction : public mf::MultiFunction {
       }
     }
     else {
-      mask.foreach_index(GrainSize(256), [&](const int64_t i) {
-        const StringRef format = formats[i];
-        if (!format_strings(
-                format, inputs, input_names_, IndexRange::from_single(i), outputs, error_message))
-        {
-          outputs[i].clear();
-        }
-      });
+      mask.foreach_index(
+          [&](const int64_t i) {
+            const StringRef format = formats[i];
+            if (!format_strings(format,
+                                inputs,
+                                input_names_,
+                                IndexRange::from_single(i),
+                                outputs,
+                                error_message))
+            {
+              outputs[i].clear();
+            }
+          },
+          exec_mode::grain_size(256));
     }
 
     if (error_message.has_value()) {

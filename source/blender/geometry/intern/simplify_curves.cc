@@ -143,16 +143,18 @@ IndexMask simplify_curve_attribute(const Span<float3> positions,
   }
   bke::curves::fill_points(
       points_by_curve, curves_selection, true, points_to_delete.as_mutable_span());
-  curves_selection.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    attribute_data.type().to_static_type<float, float2, float3>([&]<typename T>() {
-      curve_simplify(positions.slice(points),
-                     cyclic[curve_i],
-                     epsilon,
-                     attribute_data.typed<T>().slice(points),
-                     points_to_delete.as_mutable_span().slice(points));
-    });
-  });
+  curves_selection.foreach_index(
+      [&](const int64_t curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        attribute_data.type().to_static_type<float, float2, float3>([&]<typename T>() {
+          curve_simplify(positions.slice(points),
+                         cyclic[curve_i],
+                         epsilon,
+                         attribute_data.typed<T>().slice(points),
+                         points_to_delete.as_mutable_span().slice(points));
+        });
+      },
+      exec_mode::grain_size(512));
   return IndexMask::from_bools(points_to_delete, memory);
 }
 

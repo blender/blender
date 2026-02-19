@@ -513,12 +513,12 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    do_push_undo_tile(*image_data.image, *image_data.image_user, nodes[i]);
-  });
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    do_paint_pixels(depsgraph, ob, sd.paint, *brush, image_data, nodes[i]);
-  });
+  node_mask.foreach_index(
+      [&](const int i) { do_push_undo_tile(*image_data.image, *image_data.image_user, nodes[i]); },
+      exec_mode::grain_size(1));
+  node_mask.foreach_index(
+      [&](const int i) { do_paint_pixels(depsgraph, ob, sd.paint, *brush, image_data, nodes[i]); },
+      exec_mode::grain_size(1));
 
   fix_non_manifold_seam_bleeding(ob, *image_data.image, *image_data.image_user, nodes, node_mask);
 

@@ -40,14 +40,16 @@ static void translate_instances(GeoNodeExecParams &params, bke::Instances &insta
 
   MutableSpan<float4x4> transforms = instances.transforms_for_write();
 
-  selection.foreach_index(GrainSize(1024), [&](const int64_t i) {
-    if (local_spaces[i]) {
-      transforms[i] *= math::from_location<float4x4>(translations[i]);
-    }
-    else {
-      transforms[i].location() += translations[i];
-    }
-  });
+  selection.foreach_index(
+      [&](const int64_t i) {
+        if (local_spaces[i]) {
+          transforms[i] *= math::from_location<float4x4>(translations[i]);
+        }
+        else {
+          transforms[i].location() += translations[i];
+        }
+      },
+      exec_mode::grain_size(1024));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

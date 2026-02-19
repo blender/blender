@@ -25,9 +25,8 @@ static IndexMask calc_vert_visibility_mesh(const MeshRenderData &mr,
   }
   if (mr.orig_index_vert != nullptr) {
     const int *orig_index = mr.orig_index_vert;
-    visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int64_t i) {
-      return orig_index[i] != ORIGINDEX_NONE;
-    });
+    visible = IndexMask::from_predicate(
+        visible, memory, [&](const int64_t i) { return orig_index[i] != ORIGINDEX_NONE; });
   }
   return visible;
 }
@@ -143,7 +142,7 @@ static gpu::IndexBufPtr extract_points_bm(const MeshRenderData &mr)
 
   IndexMaskMemory memory;
   const IndexMask visible_verts = IndexMask::from_predicate(
-      IndexRange(bm.totvert), GrainSize(4096), memory, [&](const int i) {
+      IndexRange(bm.totvert), memory, [&](const int i) {
         return !BM_elem_flag_test_bool(BM_vert_at_index(&const_cast<BMesh &>(bm), i),
                                        BM_ELEM_HIDDEN);
       });
@@ -156,10 +155,12 @@ static gpu::IndexBufPtr extract_points_bm(const MeshRenderData &mr)
   if (mr.loose_verts.is_empty() && mr.loose_edges.is_empty()) {
     /* Make use of BMesh's vertex to loop topology knowledge to iterate over verts instead of
      * iterating over faces and defining points implicitly as done in the #Mesh extraction. */
-    visible_verts.foreach_index(GrainSize(4096), [&](const int i, const int pos) {
-      BMVert &vert = *BM_vert_at_index(&bm, i);
-      data[pos] = BM_elem_index_get(BM_vert_find_first_loop(&vert));
-    });
+    visible_verts.foreach_index(
+        [&](const int i, const int pos) {
+          BMVert &vert = *BM_vert_at_index(&bm, i);
+          data[pos] = BM_elem_index_get(BM_vert_find_first_loop(&vert));
+        },
+        exec_mode::grain_size(4096));
   }
   else if (visible_verts.size() == bm.totvert) {
     Array<bool> used(mr.verts_num, false);
@@ -203,13 +204,12 @@ static IndexMask calc_vert_visibility_mapped_mesh(const MeshRenderData &mr,
   if (!mr.hide_vert.is_empty()) {
     const Span<bool> hide_vert = mr.hide_vert;
     visible = IndexMask::from_predicate(
-        visible, GrainSize(4096), memory, [&](const int i) { return !hide_vert[map[i]]; });
+        visible, memory, [&](const int i) { return !hide_vert[map[i]]; });
   }
   if (mr.orig_index_vert != nullptr) {
     const int *orig_index = mr.orig_index_vert;
-    visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int i) {
-      return orig_index[map[i]] != ORIGINDEX_NONE;
-    });
+    visible = IndexMask::from_predicate(
+        visible, memory, [&](const int i) { return orig_index[map[i]] != ORIGINDEX_NONE; });
   }
   return visible;
 }
@@ -228,7 +228,7 @@ static gpu::IndexBufPtr extract_points_subdiv_mesh(const MeshRenderData &mr,
 
   IndexMaskMemory memory;
   IndexMask visible_corners = IndexMask::from_predicate(
-      corner_orig_verts.index_range(), GrainSize(4096), memory, [&](const int i) {
+      corner_orig_verts.index_range(), memory, [&](const int i) {
         return corner_orig_verts[i] != -1;
       });
   visible_corners = calc_vert_visibility_mapped_mesh(
@@ -292,14 +292,12 @@ static gpu::IndexBufPtr extract_points_subdiv_bm(const MeshRenderData &mr,
 
   IndexMaskMemory memory;
   const IndexMask visible_corners = IndexMask::from_predicate(
-      corner_orig_verts.index_range(), GrainSize(4096), memory, [&](const int i) {
+      corner_orig_verts.index_range(), memory, [&](const int i) {
         return corner_orig_verts[i] != -1 && show_vert_bm(corner_orig_verts[i]);
       });
 
   const IndexMask visible_loose = IndexMask::from_predicate(
-      loose_verts.index_range(), GrainSize(4096), memory, [&](const int vert) {
-        return show_vert_bm(vert);
-      });
+      loose_verts.index_range(), memory, [&](const int vert) { return show_vert_bm(vert); });
 
   const int max_index = subdiv_cache.num_subdiv_loops + loose_edge_verts_num + loose_verts.size();
   GPUIndexBufBuilder builder;

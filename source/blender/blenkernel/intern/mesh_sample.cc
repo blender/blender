@@ -454,7 +454,7 @@ void BaryWeightSampleFn::call(const IndexMask &mask,
   GMutableSpan dst = params.uninitialized_single_output(2, "Value");
   IndexMaskMemory memory;
   const IndexMask valid_mask = IndexMask::from_predicate(
-      mask, GrainSize(8192), memory, [&](const int i) { return triangle_indices[i] != -1; });
+      mask, memory, [&](const int i) { return triangle_indices[i] != -1; });
   attribute_math::to_static_type(dst.type(), [&]<typename T>() {
     sample_corner_attribute<T>(corner_tris_,
                                triangle_indices,

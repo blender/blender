@@ -109,15 +109,17 @@ static void modify_curves(ModifierData *md,
   const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
       curves, lmd->influence);
 
-  curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    for (const int64_t point_i : points) {
-      const float weight = vgroup_weights[point_i];
-      BKE_lattice_deform_data_eval_co(const_cast<LatticeDeformData *>(&cache_data),
-                                      positions[point_i],
-                                      lmd->strength * weight);
-    }
-  });
+  curves_mask.foreach_index(
+      [&](const int64_t curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        for (const int64_t point_i : points) {
+          const float weight = vgroup_weights[point_i];
+          BKE_lattice_deform_data_eval_co(const_cast<LatticeDeformData *>(&cache_data),
+                                          positions[point_i],
+                                          lmd->strength * weight);
+        }
+      },
+      exec_mode::grain_size(512));
 
   drawing.tag_positions_changed();
 }

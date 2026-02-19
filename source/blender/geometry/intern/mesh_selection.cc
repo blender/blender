@@ -14,10 +14,12 @@ IndexMask vert_selection_from_edge(const Span<int2> edges,
                                    IndexMaskMemory &memory)
 {
   Array<bool> array(verts_num, false);
-  edge_mask.foreach_index_optimized<int>(GrainSize(4096), [&](const int i) {
-    array[edges[i][0]] = true;
-    array[edges[i][1]] = true;
-  });
+  edge_mask.foreach_index_optimized<int>(
+      [&](const int i) {
+        array[edges[i][0]] = true;
+        array[edges[i][1]] = true;
+      },
+      exec_mode::grain_size(4096));
   return IndexMask::from_bools(array, memory);
 }
 
@@ -28,9 +30,11 @@ static IndexMask mapped_corner_selection_from_face(const OffsetIndices<int> face
                                                    IndexMaskMemory &memory)
 {
   Array<bool> array(verts_or_edges_num, false);
-  face_mask.foreach_index(GrainSize(512), [&](const int64_t i) {
-    array.as_mutable_span().fill_indices(corner_verts_or_edges.slice(faces[i]), true);
-  });
+  face_mask.foreach_index(
+      [&](const int64_t i) {
+        array.as_mutable_span().fill_indices(corner_verts_or_edges.slice(faces[i]), true);
+      },
+      exec_mode::grain_size(512));
   return IndexMask::from_bools(array, memory);
 }
 
@@ -56,11 +60,10 @@ IndexMask edge_selection_from_vert(const Span<int2> edges,
                                    const Span<bool> vert_selection,
                                    IndexMaskMemory &memory)
 {
-  return IndexMask::from_predicate(
-      edges.index_range(), GrainSize(1024), memory, [&](const int64_t i) {
-        const int2 edge = edges[i];
-        return vert_selection[edge[0]] && vert_selection[edge[1]];
-      });
+  return IndexMask::from_predicate(edges.index_range(), memory, [&](const int64_t i) {
+    const int2 edge = edges[i];
+    return vert_selection[edge[0]] && vert_selection[edge[1]];
+  });
 }
 
 static IndexMask face_selection_from_mapped_corner(const OffsetIndices<int> faces,
@@ -68,13 +71,11 @@ static IndexMask face_selection_from_mapped_corner(const OffsetIndices<int> face
                                                    const Span<bool> vert_or_edge_selection,
                                                    IndexMaskMemory &memory)
 {
-  return IndexMask::from_predicate(
-      faces.index_range(), GrainSize(1024), memory, [&](const int64_t i) {
-        const Span<int> indices = corner_verts_or_edges.slice(faces[i]);
-        return std::all_of(indices.begin(), indices.end(), [&](const int i) {
-          return vert_or_edge_selection[i];
-        });
-      });
+  return IndexMask::from_predicate(faces.index_range(), memory, [&](const int64_t i) {
+    const Span<int> indices = corner_verts_or_edges.slice(faces[i]);
+    return std::all_of(
+        indices.begin(), indices.end(), [&](const int i) { return vert_or_edge_selection[i]; });
+  });
 }
 
 IndexMask face_selection_from_vert(const OffsetIndices<int> faces,

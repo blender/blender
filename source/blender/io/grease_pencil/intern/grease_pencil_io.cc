@@ -149,22 +149,24 @@ std::optional<Bounds<float2>> GreasePencilExporter::compute_screen_space_drawing
   const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
       object, drawing, memory);
 
-  visible_strokes.foreach_index(GrainSize(512), [&](const int curve_i) {
-    const IndexRange points = strokes.points_by_curve()[curve_i];
+  visible_strokes.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange points = strokes.points_by_curve()[curve_i];
 
-    for (const int point_i : points) {
-      const float2 screen_co = this->project_to_screen(layer_to_world, positions[point_i]);
+        for (const int point_i : points) {
+          const float2 screen_co = this->project_to_screen(layer_to_world, positions[point_i]);
 
-      if (screen_co.x != V2D_IS_CLIPPED) {
-        const float3 world_pos = math::transform_point(layer_to_world, positions[point_i]);
-        const float pixels = radii[point_i] / ED_view3d_pixel_size(&rv3d, world_pos);
+          if (screen_co.x != V2D_IS_CLIPPED) {
+            const float3 world_pos = math::transform_point(layer_to_world, positions[point_i]);
+            const float pixels = radii[point_i] / ED_view3d_pixel_size(&rv3d, world_pos);
 
-        std::optional<Bounds<float2>> point_bounds = Bounds<float2>(screen_co);
-        point_bounds->pad(pixels);
-        drawing_bounds = bounds::merge(drawing_bounds, point_bounds);
-      }
-    }
-  });
+            std::optional<Bounds<float2>> point_bounds = Bounds<float2>(screen_co);
+            point_bounds->pad(pixels);
+            drawing_bounds = bounds::merge(drawing_bounds, point_bounds);
+          }
+        }
+      },
+      exec_mode::grain_size(512));
 
   return drawing_bounds;
 }

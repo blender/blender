@@ -137,17 +137,19 @@ static void apply_new_mask_mesh(const Depsgraph &depsgraph,
 
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
-  node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    const Span<int> verts = nodes[i].verts();
-    const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
-    if (array_utils::indexed_data_equal<float>(mask, verts, new_node_mask)) {
-      return;
-    }
-    undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-    scatter_data_mesh(new_node_mask, verts, mask);
-    bke::pbvh::node_update_mask_mesh(mask, nodes[i]);
-    node_changed[i] = true;
-  });
+  node_mask.foreach_index(
+      [&](const int i, const int pos) {
+        const Span<int> verts = nodes[i].verts();
+        const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
+        if (array_utils::indexed_data_equal<float>(mask, verts, new_node_mask)) {
+          return;
+        }
+        undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
+        scatter_data_mesh(new_node_mask, verts, mask);
+        bke::pbvh::node_update_mask_mesh(mask, nodes[i]);
+        node_changed[i] = true;
+      },
+      exec_mode::grain_size(1));
 
   IndexMaskMemory memory;
   pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
@@ -357,17 +359,19 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
 
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
-  node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    const Span<int> grids = nodes[i].grids();
-    const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
-    if (mask_equals_array_grids(masks, key, grids, new_node_mask)) {
-      return;
-    }
-    undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-    scatter_data_grids(subdiv_ccg, new_node_mask, grids, masks);
-    bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-    node_changed[i] = true;
-  });
+  node_mask.foreach_index(
+      [&](const int i, const int pos) {
+        const Span<int> grids = nodes[i].grids();
+        const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
+        if (mask_equals_array_grids(masks, key, grids, new_node_mask)) {
+          return;
+        }
+        undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
+        scatter_data_grids(subdiv_ccg, new_node_mask, grids, masks);
+        bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
+        node_changed[i] = true;
+      },
+      exec_mode::grain_size(1));
 
   IndexMaskMemory memory;
   pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
@@ -575,17 +579,19 @@ static void apply_new_mask_bmesh(const Depsgraph &depsgraph,
 
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
-  node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
-    const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
-    if (mask_equals_array_bmesh(mask_offset, verts, new_node_mask)) {
-      return;
-    }
-    undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-    scatter_mask_bmesh(new_node_mask, bm, verts);
-    bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
-    node_changed[i] = true;
-  });
+  node_mask.foreach_index(
+      [&](const int i, const int pos) {
+        const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
+        const Span<float> new_node_mask = new_mask.slice(node_verts[pos]);
+        if (mask_equals_array_bmesh(mask_offset, verts, new_node_mask)) {
+          return;
+        }
+        undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
+        scatter_mask_bmesh(new_node_mask, bm, verts);
+        bke::pbvh::node_update_mask_bmesh(mask_offset, nodes[i]);
+        node_changed[i] = true;
+      },
+      exec_mode::grain_size(1));
 
   IndexMaskMemory memory;
   pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
@@ -787,87 +793,99 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
       for ([[maybe_unused]] const int iteration : IndexRange(iterations)) {
         switch (filter_type) {
           case FilterType::Smooth: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              smooth_mask_mesh(faces,
-                               corner_verts,
-                               vert_to_face_map,
-                               hide_poly,
-                               hide_vert,
-                               mask.span,
-                               nodes[i],
-                               tls,
-                               new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  smooth_mask_mesh(faces,
+                                   corner_verts,
+                                   vert_to_face_map,
+                                   hide_poly,
+                                   hide_vert,
+                                   mask.span,
+                                   nodes[i],
+                                   tls,
+                                   new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_mesh(*depsgraph, ob, node_mask, node_offsets, new_masks, mask.span);
             break;
           }
           case FilterType::Sharpen: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              sharpen_mask_mesh(faces,
-                                corner_verts,
-                                vert_to_face_map,
-                                hide_poly,
-                                hide_vert,
-                                mask.span,
-                                nodes[i],
-                                tls,
-                                new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  sharpen_mask_mesh(faces,
+                                    corner_verts,
+                                    vert_to_face_map,
+                                    hide_poly,
+                                    hide_vert,
+                                    mask.span,
+                                    nodes[i],
+                                    tls,
+                                    new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_mesh(*depsgraph, ob, node_mask, node_offsets, new_masks, mask.span);
             break;
           }
           case FilterType::Grow: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              grow_mask_mesh(faces,
-                             corner_verts,
-                             vert_to_face_map,
-                             hide_poly,
-                             hide_vert,
-                             mask.span,
-                             nodes[i],
-                             tls,
-                             new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  grow_mask_mesh(faces,
+                                 corner_verts,
+                                 vert_to_face_map,
+                                 hide_poly,
+                                 hide_vert,
+                                 mask.span,
+                                 nodes[i],
+                                 tls,
+                                 new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_mesh(*depsgraph, ob, node_mask, node_offsets, new_masks, mask.span);
             break;
           }
           case FilterType::Shrink: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              shrink_mask_mesh(faces,
-                               corner_verts,
-                               vert_to_face_map,
-                               hide_poly,
-                               hide_vert,
-                               mask.span,
-                               nodes[i],
-                               tls,
-                               new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  shrink_mask_mesh(faces,
+                                   corner_verts,
+                                   vert_to_face_map,
+                                   hide_poly,
+                                   hide_vert,
+                                   mask.span,
+                                   nodes[i],
+                                   tls,
+                                   new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_mesh(*depsgraph, ob, node_mask, node_offsets, new_masks, mask.span);
             break;
           }
           case FilterType::ContrastIncrease: {
             Array<bool> node_changed(node_mask.min_array_size(), false);
-            node_mask.foreach_index(GrainSize(1), [&](const int i) {
-              FilterLocalData &tls = all_tls.local();
-              node_changed[i] = increase_contrast_mask_mesh(
-                  *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
-            });
+            node_mask.foreach_index(
+                [&](const int i) {
+                  FilterLocalData &tls = all_tls.local();
+                  node_changed[i] = increase_contrast_mask_mesh(
+                      *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
+                },
+                exec_mode::grain_size(1));
             IndexMaskMemory memory;
             pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
           case FilterType::ContrastDecrease: {
             Array<bool> node_changed(node_mask.min_array_size(), false);
-            node_mask.foreach_index(GrainSize(1), [&](const int i) {
-              FilterLocalData &tls = all_tls.local();
-              node_changed[i] = decrease_contrast_mask_mesh(
-                  *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
-            });
+            node_mask.foreach_index(
+                [&](const int i) {
+                  FilterLocalData &tls = all_tls.local();
+                  node_changed[i] = decrease_contrast_mask_mesh(
+                      *depsgraph, ob, hide_vert, nodes[i], tls, mask.span);
+                },
+                exec_mode::grain_size(1));
             IndexMaskMemory memory;
             pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
@@ -889,55 +907,71 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
       for ([[maybe_unused]] const int iteration : IndexRange(iterations)) {
         switch (filter_type) {
           case FilterType::Smooth: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              smooth_mask_grids(
-                  subdiv_ccg, nodes[i], tls, new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  smooth_mask_grids(subdiv_ccg,
+                                    nodes[i],
+                                    tls,
+                                    new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_grids(*depsgraph, ob, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::Sharpen: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              sharpen_mask_grids(
-                  subdiv_ccg, nodes[i], tls, new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  sharpen_mask_grids(subdiv_ccg,
+                                     nodes[i],
+                                     tls,
+                                     new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_grids(*depsgraph, ob, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::Grow: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              grow_mask_grids(
-                  subdiv_ccg, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  grow_mask_grids(
+                      subdiv_ccg, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_grids(*depsgraph, ob, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::Shrink: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              shrink_mask_grids(
-                  subdiv_ccg, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  shrink_mask_grids(
+                      subdiv_ccg, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_grids(*depsgraph, ob, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::ContrastIncrease: {
             Array<bool> node_changed(node_mask.min_array_size(), false);
-            node_mask.foreach_index(GrainSize(1), [&](const int i) {
-              FilterLocalData &tls = all_tls.local();
-              node_changed[i] = increase_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
-            });
+            node_mask.foreach_index(
+                [&](const int i) {
+                  FilterLocalData &tls = all_tls.local();
+                  node_changed[i] = increase_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
+                },
+                exec_mode::grain_size(1));
             IndexMaskMemory memory;
             pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
           case FilterType::ContrastDecrease: {
             Array<bool> node_changed(node_mask.min_array_size(), false);
-            node_mask.foreach_index(GrainSize(1), [&](const int i) {
-              FilterLocalData &tls = all_tls.local();
-              node_changed[i] = decrease_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
-            });
+            node_mask.foreach_index(
+                [&](const int i) {
+                  FilterLocalData &tls = all_tls.local();
+                  node_changed[i] = decrease_contrast_mask_grids(*depsgraph, ob, nodes[i], tls);
+                },
+                exec_mode::grain_size(1));
             IndexMaskMemory memory;
             pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
@@ -961,63 +995,75 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
       for ([[maybe_unused]] const int iteration : IndexRange(iterations)) {
         switch (filter_type) {
           case FilterType::Smooth: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              smooth_mask_bmesh(bm,
-                                mask_offset,
-                                nodes[i],
-                                tls,
-                                new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  smooth_mask_bmesh(bm,
+                                    mask_offset,
+                                    nodes[i],
+                                    tls,
+                                    new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_bmesh(*depsgraph, ob, mask_offset, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::Sharpen: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              FilterLocalData &tls = all_tls.local();
-              sharpen_mask_bmesh(bm,
-                                 mask_offset,
-                                 nodes[i],
-                                 tls,
-                                 new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  FilterLocalData &tls = all_tls.local();
+                  sharpen_mask_bmesh(bm,
+                                     mask_offset,
+                                     nodes[i],
+                                     tls,
+                                     new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_bmesh(*depsgraph, ob, mask_offset, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::Grow: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              grow_mask_bmesh(
-                  mask_offset, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  grow_mask_bmesh(
+                      mask_offset, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_bmesh(*depsgraph, ob, mask_offset, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::Shrink: {
-            node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              shrink_mask_bmesh(
-                  mask_offset, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
-            });
+            node_mask.foreach_index(
+                [&](const int i, const int pos) {
+                  shrink_mask_bmesh(
+                      mask_offset, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
+                },
+                exec_mode::grain_size(1));
             apply_new_mask_bmesh(*depsgraph, ob, mask_offset, node_mask, node_offsets, new_masks);
             break;
           }
           case FilterType::ContrastIncrease: {
             Array<bool> node_changed(node_mask.min_array_size(), false);
-            node_mask.foreach_index(GrainSize(1), [&](const int i) {
-              FilterLocalData &tls = all_tls.local();
-              node_changed[i] = increase_contrast_mask_bmesh(
-                  *depsgraph, ob, mask_offset, nodes[i], tls);
-            });
+            node_mask.foreach_index(
+                [&](const int i) {
+                  FilterLocalData &tls = all_tls.local();
+                  node_changed[i] = increase_contrast_mask_bmesh(
+                      *depsgraph, ob, mask_offset, nodes[i], tls);
+                },
+                exec_mode::grain_size(1));
             IndexMaskMemory memory;
             pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;
           }
           case FilterType::ContrastDecrease: {
             Array<bool> node_changed(node_mask.min_array_size(), false);
-            node_mask.foreach_index(GrainSize(1), [&](const int i) {
-              FilterLocalData &tls = all_tls.local();
-              node_changed[i] = decrease_contrast_mask_bmesh(
-                  *depsgraph, ob, mask_offset, nodes[i], tls);
-            });
+            node_mask.foreach_index(
+                [&](const int i) {
+                  FilterLocalData &tls = all_tls.local();
+                  node_changed[i] = decrease_contrast_mask_bmesh(
+                      *depsgraph, ob, mask_offset, nodes[i], tls);
+                },
+                exec_mode::grain_size(1));
             IndexMaskMemory memory;
             pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
             break;

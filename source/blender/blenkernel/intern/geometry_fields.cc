@@ -590,15 +590,17 @@ void copy_with_checked_indices(const VArray<T> &src,
 {
   const IndexRange src_range = src.index_range();
   devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    mask.foreach_index(GrainSize(4096), [&](const int i) {
-      const int index = indices[i];
-      if (src_range.contains(index)) {
-        dst[i] = src[index];
-      }
-      else {
-        dst[i] = {};
-      }
-    });
+    mask.foreach_index(
+        [&](const int i) {
+          const int index = indices[i];
+          if (src_range.contains(index)) {
+            dst[i] = src[index];
+          }
+          else {
+            dst[i] = {};
+          }
+        },
+        exec_mode::grain_size(4096));
   });
 }
 

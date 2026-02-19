@@ -155,77 +155,86 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     const Span<float3> tangents = strokes.evaluated_tangents();
     MutableSpan<float3> positions = strokes.positions_for_write();
 
-    filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
-      const IndexRange points = points_by_curve[stroke_i];
-      const int noise_len = math::ceil(points.size() * noise_scale) + 2;
-      const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + 2 + stroke_i);
-      for (const int i : points.index_range()) {
-        const int point = points[i];
-        float weight = get_weight(points, i);
-        /* Vector orthogonal to normal. */
-        const float3 bi_normal = math::normalize(
-            math::cross(tangents[point], curve_plane_normals[stroke_i]));
-        const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
-        positions[point] += bi_normal * (noise * 2.0f - 1.0f) * weight * mmd.factor * 0.1f;
-      }
-    });
+    filtered_strokes.foreach_index(
+        [&](const int stroke_i) {
+          const IndexRange points = points_by_curve[stroke_i];
+          const int noise_len = math::ceil(points.size() * noise_scale) + 2;
+          const Array<float> table = noise_table(
+              noise_len, int(math::floor(mmd.noise_offset)), seed + 2 + stroke_i);
+          for (const int i : points.index_range()) {
+            const int point = points[i];
+            float weight = get_weight(points, i);
+            /* Vector orthogonal to normal. */
+            const float3 bi_normal = math::normalize(
+                math::cross(tangents[point], curve_plane_normals[stroke_i]));
+            const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
+            positions[point] += bi_normal * (noise * 2.0f - 1.0f) * weight * mmd.factor * 0.1f;
+          }
+        },
+        exec_mode::grain_size(512));
     drawing.tag_positions_changed();
   }
 
   if (mmd.factor_thickness > 0.0f) {
     MutableSpan<float> radii = drawing.radii_for_write();
 
-    filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
-      const IndexRange points = points_by_curve[stroke_i];
-      const int noise_len = math::ceil(points.size() * noise_scale) + 2;
-      const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + stroke_i);
-      for (const int i : points.index_range()) {
-        const int point = points[i];
-        const float weight = get_weight(points, i);
-        const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
-        radii[point] *= math::max(1.0f + (noise * 2.0f - 1.0f) * weight * mmd.factor_thickness,
-                                  0.0f);
-      }
-    });
+    filtered_strokes.foreach_index(
+        [&](const int stroke_i) {
+          const IndexRange points = points_by_curve[stroke_i];
+          const int noise_len = math::ceil(points.size() * noise_scale) + 2;
+          const Array<float> table = noise_table(
+              noise_len, int(math::floor(mmd.noise_offset)), seed + stroke_i);
+          for (const int i : points.index_range()) {
+            const int point = points[i];
+            const float weight = get_weight(points, i);
+            const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
+            radii[point] *= math::max(1.0f + (noise * 2.0f - 1.0f) * weight * mmd.factor_thickness,
+                                      0.0f);
+          }
+        },
+        exec_mode::grain_size(512));
   }
 
   if (mmd.factor_strength > 0.0f) {
     MutableSpan<float> opacities = drawing.opacities_for_write();
 
-    filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
-      const IndexRange points = points_by_curve[stroke_i];
-      const int noise_len = math::ceil(points.size() * noise_scale) + 2;
-      const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + 3 + stroke_i);
-      for (const int i : points.index_range()) {
-        const int point = points[i];
-        const float weight = get_weight(points, i);
-        const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
-        opacities[point] *= math::max(1.0f - noise * weight * mmd.factor_strength, 0.0f);
-      }
-    });
+    filtered_strokes.foreach_index(
+        [&](const int stroke_i) {
+          const IndexRange points = points_by_curve[stroke_i];
+          const int noise_len = math::ceil(points.size() * noise_scale) + 2;
+          const Array<float> table = noise_table(
+              noise_len, int(math::floor(mmd.noise_offset)), seed + 3 + stroke_i);
+          for (const int i : points.index_range()) {
+            const int point = points[i];
+            const float weight = get_weight(points, i);
+            const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
+            opacities[point] *= math::max(1.0f - noise * weight * mmd.factor_strength, 0.0f);
+          }
+        },
+        exec_mode::grain_size(512));
   }
 
   if (mmd.factor_uvs > 0.0f) {
     if (bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
             "rotation", bke::AttrDomain::Point))
     {
-      filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
-        const IndexRange points = points_by_curve[stroke_i];
-        const int noise_len = math::ceil(points.size() * noise_scale) + 2;
-        const Array<float> table = noise_table(
-            noise_len, int(math::floor(mmd.noise_offset)), seed + 4 + stroke_i);
-        for (const int i : points.index_range()) {
-          const int point = points[i];
-          const float weight = get_weight(points, i);
-          const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
-          const float delta_rot = (noise * 2.0f - 1.0f) * weight * mmd.factor_uvs * M_PI_2;
-          rotations.span[point] = math::clamp(
-              rotations.span[point] + delta_rot, float(-M_PI_2), float(M_PI_2));
-        }
-      });
+      filtered_strokes.foreach_index(
+          [&](const int stroke_i) {
+            const IndexRange points = points_by_curve[stroke_i];
+            const int noise_len = math::ceil(points.size() * noise_scale) + 2;
+            const Array<float> table = noise_table(
+                noise_len, int(math::floor(mmd.noise_offset)), seed + 4 + stroke_i);
+            for (const int i : points.index_range()) {
+              const int point = points[i];
+              const float weight = get_weight(points, i);
+              const float noise = get_noise(table,
+                                            i * noise_scale + math::fract(mmd.noise_offset));
+              const float delta_rot = (noise * 2.0f - 1.0f) * weight * mmd.factor_uvs * M_PI_2;
+              rotations.span[point] = math::clamp(
+                  rotations.span[point] + delta_rot, float(-M_PI_2), float(M_PI_2));
+            }
+          },
+          exec_mode::grain_size(512));
       rotations.finish();
     }
   }

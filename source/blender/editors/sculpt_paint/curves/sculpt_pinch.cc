@@ -176,45 +176,52 @@ struct PinchOperationExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
-    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
-      for (const int curve_i : segment) {
-        const IndexRange points = points_by_curve[curve_i];
-        for (const int point_i : points.drop_front(1)) {
-          const float3 old_pos_cu = deformation.positions[point_i];
-          const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv, old_pos_cu);
-          const float2 old_symm_pos_re = ED_view3d_project_float_v2_m4(
-              ctx_.region, old_symm_pos_cu, projection);
+    curve_selection_.foreach_segment(
+        [&](const IndexMaskSegment segment) {
+          for (const int curve_i : segment) {
+            const IndexRange points = points_by_curve[curve_i];
+            for (const int point_i : points.drop_front(1)) {
+              const float3 old_pos_cu = deformation.positions[point_i];
+              const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv,
+                                                                   old_pos_cu);
+              const float2 old_symm_pos_re = ED_view3d_project_float_v2_m4(
+                  ctx_.region, old_symm_pos_cu, projection);
 
-          const float dist_to_brush_sq_re = math::distance_squared(old_symm_pos_re, brush_pos_re_);
-          if (dist_to_brush_sq_re > brush_radius_sq_re) {
-            continue;
+              const float dist_to_brush_sq_re = math::distance_squared(old_symm_pos_re,
+                                                                       brush_pos_re_);
+              if (dist_to_brush_sq_re > brush_radius_sq_re) {
+                continue;
+              }
+
+              const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
+              const float t = math::safe_divide(dist_to_brush_re, brush_radius_base_re_);
+              const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
+              const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
+                                   point_factors_[point_i];
+
+              const float2 new_symm_pos_re = math::interpolate(
+                  old_symm_pos_re, brush_pos_re_, weight);
+
+              float3 new_symm_pos_wo;
+              ED_view3d_win_to_3d(
+                  ctx_.v3d,
+                  ctx_.region,
+                  math::transform_point(transforms_.curves_to_world, old_symm_pos_cu),
+                  new_symm_pos_re,
+                  new_symm_pos_wo);
+
+              float3 new_pos_cu = math::transform_point(transforms_.world_to_curves,
+                                                        new_symm_pos_wo);
+              new_pos_cu = math::transform_point(brush_transform, new_pos_cu);
+              const float3 translation_eval = new_pos_cu - old_pos_cu;
+              const float3 translation_orig = deformation.translation_from_deformed_to_original(
+                  point_i, translation_eval);
+              positions_cu[point_i] += translation_orig;
+              r_changed_curves[curve_i] = true;
+            }
           }
-
-          const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-          const float t = math::safe_divide(dist_to_brush_re, brush_radius_base_re_);
-          const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
-          const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
-                               point_factors_[point_i];
-
-          const float2 new_symm_pos_re = math::interpolate(old_symm_pos_re, brush_pos_re_, weight);
-
-          float3 new_symm_pos_wo;
-          ED_view3d_win_to_3d(ctx_.v3d,
-                              ctx_.region,
-                              math::transform_point(transforms_.curves_to_world, old_symm_pos_cu),
-                              new_symm_pos_re,
-                              new_symm_pos_wo);
-
-          float3 new_pos_cu = math::transform_point(transforms_.world_to_curves, new_symm_pos_wo);
-          new_pos_cu = math::transform_point(brush_transform, new_pos_cu);
-          const float3 translation_eval = new_pos_cu - old_pos_cu;
-          const float3 translation_orig = deformation.translation_from_deformed_to_original(
-              point_i, translation_eval);
-          positions_cu[point_i] += translation_orig;
-          r_changed_curves[curve_i] = true;
-        }
-      }
-    });
+        },
+        exec_mode::grain_size(256));
   }
 
   void pinch_spherical_with_symmetry(MutableSpan<bool> r_changed_curves)
@@ -248,33 +255,35 @@ struct PinchOperationExecutor {
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
-      for (const int curve_i : segment) {
-        const IndexRange points = points_by_curve[curve_i];
-        for (const int point_i : points.drop_front(1)) {
-          const float3 old_pos_cu = deformation.positions[point_i];
+    curve_selection_.foreach_segment(
+        [&](const IndexMaskSegment segment) {
+          for (const int curve_i : segment) {
+            const IndexRange points = points_by_curve[curve_i];
+            for (const int point_i : points.drop_front(1)) {
+              const float3 old_pos_cu = deformation.positions[point_i];
 
-          const float dist_to_brush_sq_cu = math::distance_squared(old_pos_cu, brush_pos_cu);
-          if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
-            continue;
+              const float dist_to_brush_sq_cu = math::distance_squared(old_pos_cu, brush_pos_cu);
+              if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
+                continue;
+              }
+
+              const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
+              const float t = math::safe_divide(dist_to_brush_cu, brush_radius_cu);
+              const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
+              const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
+                                   point_factors_[point_i];
+
+              const float3 new_pos_cu = math::interpolate(old_pos_cu, brush_pos_cu, weight);
+              const float3 translation_eval = new_pos_cu - old_pos_cu;
+              const float3 translation_orig = deformation.translation_from_deformed_to_original(
+                  point_i, translation_eval);
+              positions_cu[point_i] += translation_orig;
+
+              r_changed_curves[curve_i] = true;
+            }
           }
-
-          const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-          const float t = math::safe_divide(dist_to_brush_cu, brush_radius_cu);
-          const float radius_falloff = t * BKE_brush_curve_strength(brush_, t, 1.0f);
-          const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
-                               point_factors_[point_i];
-
-          const float3 new_pos_cu = math::interpolate(old_pos_cu, brush_pos_cu, weight);
-          const float3 translation_eval = new_pos_cu - old_pos_cu;
-          const float3 translation_orig = deformation.translation_from_deformed_to_original(
-              point_i, translation_eval);
-          positions_cu[point_i] += translation_orig;
-
-          r_changed_curves[curve_i] = true;
-        }
-      }
-    });
+        },
+        exec_mode::grain_size(256));
   }
 };
 

@@ -57,10 +57,9 @@ static IndexMask selected_indices_from_vertex_group(Span<MDeformVert> vertex_gro
                                                     const bool invert,
                                                     IndexMaskMemory &memory)
 {
-  return IndexMask::from_predicate(
-      vertex_group.index_range(), GrainSize(512), memory, [&](const int i) {
-        return (BKE_defvert_find_weight(&vertex_group[i], index) > 0.0f) != invert;
-      });
+  return IndexMask::from_predicate(vertex_group.index_range(), memory, [&](const int i) {
+    return (BKE_defvert_find_weight(&vertex_group[i], index) > 0.0f) != invert;
+  });
 }
 
 static Array<bool> selection_array_from_vertex_group(Span<MDeformVert> vertex_group,

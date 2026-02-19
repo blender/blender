@@ -48,14 +48,19 @@ void ThicknessOperation::on_stroke_extended(const bContext &C, const InputSample
         BLI_assert(view_positions.size() == curves.points_num());
         MutableSpan<float> radii = params.drawing.radii_for_write();
 
-        point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-          float &radius = radii[point_i];
-          const float influence = brush_point_influence(
-              paint, brush, view_positions[point_i], extension_sample, params.multi_frame_falloff);
-          /* Factor 1/1000 is used to map arbitrary influence value to a sensible radius. */
-          const float delta_radius = (invert ? -influence : influence) * 0.001f;
-          radius = std::max(radius + delta_radius, 0.0f);
-        });
+        point_mask.foreach_index(
+            [&](const int64_t point_i) {
+              float &radius = radii[point_i];
+              const float influence = brush_point_influence(paint,
+                                                            brush,
+                                                            view_positions[point_i],
+                                                            extension_sample,
+                                                            params.multi_frame_falloff);
+              /* Factor 1/1000 is used to map arbitrary influence value to a sensible radius. */
+              const float delta_radius = (invert ? -influence : influence) * 0.001f;
+              radius = std::max(radius + delta_radius, 0.0f);
+            },
+            exec_mode::grain_size(4096));
 
         curves.tag_radii_changed();
         return true;

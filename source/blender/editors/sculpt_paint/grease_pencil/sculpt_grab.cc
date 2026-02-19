@@ -250,24 +250,30 @@ void GrabOperation::on_stroke_extended(const bContext &C, const InputSample &ext
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
         MutableSpan<float3> positions = curves.positions_for_write();
-        mask.foreach_index(GrainSize(4096), [&](const int point_i, const int index) {
-          /* Translate the point with the influence factor. */
-          positions[point_i] += compute_orig_delta(
-              projection_fn, deformation, point_i, mouse_delta_win * weights[index]);
-        });
+        mask.foreach_index(
+            [&](const int point_i, const int index) {
+              /* Translate the point with the influence factor. */
+              positions[point_i] += compute_orig_delta(
+                  projection_fn, deformation, point_i, mouse_delta_win * weights[index]);
+            },
+            exec_mode::grain_size(4096));
 
         if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
           MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
           MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
 
-          mask_left.foreach_index(GrainSize(4096), [&](const int64_t point_i, const int index) {
-            handle_positions_left[point_i] += compute_orig_delta(
-                projection_fn, deformation, point_i, mouse_delta_win * weights_left[index]);
-          });
-          mask_right.foreach_index(GrainSize(4096), [&](const int64_t point_i, const int index) {
-            handle_positions_right[point_i] += compute_orig_delta(
-                projection_fn, deformation, point_i, mouse_delta_win * weights_right[index]);
-          });
+          mask_left.foreach_index(
+              [&](const int64_t point_i, const int index) {
+                handle_positions_left[point_i] += compute_orig_delta(
+                    projection_fn, deformation, point_i, mouse_delta_win * weights_left[index]);
+              },
+              exec_mode::grain_size(4096));
+          mask_right.foreach_index(
+              [&](const int64_t point_i, const int index) {
+                handle_positions_right[point_i] += compute_orig_delta(
+                    projection_fn, deformation, point_i, mouse_delta_win * weights_right[index]);
+              },
+              exec_mode::grain_size(4096));
 
           curves.calculate_bezier_auto_handles();
           curves.calculate_bezier_aligned_handles();

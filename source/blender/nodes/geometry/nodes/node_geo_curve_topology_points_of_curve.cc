@@ -92,43 +92,45 @@ class PointsOfCurveInput final : public bke::GeometryFieldInput {
     const bool use_sorting = !all_sort_weights.is_single();
 
     Array<int> point_of_curve(mask.min_array_size());
-    mask.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
-      /* Reuse arrays to avoid allocation. */
-      Array<float> sort_weights;
-      Array<int> sort_indices;
+    mask.foreach_segment(
+        [&](const IndexMaskSegment segment) {
+          /* Reuse arrays to avoid allocation. */
+          Array<float> sort_weights;
+          Array<int> sort_indices;
 
-      for (const int selection_i : segment) {
-        const int curve_i = curve_indices[selection_i];
-        const int index_in_sort = indices_in_sort[selection_i];
-        if (!curves.curves_range().contains(curve_i)) {
-          point_of_curve[selection_i] = 0;
-          continue;
-        }
-        const IndexRange points = points_by_curve[curve_i];
+          for (const int selection_i : segment) {
+            const int curve_i = curve_indices[selection_i];
+            const int index_in_sort = indices_in_sort[selection_i];
+            if (!curves.curves_range().contains(curve_i)) {
+              point_of_curve[selection_i] = 0;
+              continue;
+            }
+            const IndexRange points = points_by_curve[curve_i];
 
-        const int index_in_sort_wrapped = mod_i(index_in_sort, points.size());
-        if (use_sorting) {
-          /* Retrieve the weights for each point. */
-          sort_weights.reinitialize(points.size());
-          all_sort_weights.materialize_compressed(IndexMask(points),
-                                                  sort_weights.as_mutable_span());
+            const int index_in_sort_wrapped = mod_i(index_in_sort, points.size());
+            if (use_sorting) {
+              /* Retrieve the weights for each point. */
+              sort_weights.reinitialize(points.size());
+              all_sort_weights.materialize_compressed(IndexMask(points),
+                                                      sort_weights.as_mutable_span());
 
-          /* Sort a separate array of compressed indices corresponding to the compressed weights.
-           * This allows using `materialize_compressed` to avoid virtual function call overhead
-           * when accessing values in the sort weights. However, it means a separate array of
-           * indices within the compressed array is necessary for sorting. */
-          sort_indices.reinitialize(points.size());
-          array_utils::fill_index_range<int>(sort_indices);
-          std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
-            return sort_weights[a] < sort_weights[b];
-          });
-          point_of_curve[selection_i] = points[sort_indices[index_in_sort_wrapped]];
-        }
-        else {
-          point_of_curve[selection_i] = points[index_in_sort_wrapped];
-        }
-      }
-    });
+              /* Sort a separate array of compressed indices corresponding to the compressed
+               * weights. This allows using `materialize_compressed` to avoid virtual function call
+               * overhead when accessing values in the sort weights. However, it means a separate
+               * array of indices within the compressed array is necessary for sorting. */
+              sort_indices.reinitialize(points.size());
+              array_utils::fill_index_range<int>(sort_indices);
+              std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
+                return sort_weights[a] < sort_weights[b];
+              });
+              point_of_curve[selection_i] = points[sort_indices[index_in_sort_wrapped]];
+            }
+            else {
+              point_of_curve[selection_i] = points[index_in_sort_wrapped];
+            }
+          }
+        },
+        exec_mode::grain_size(256));
 
     return VArray<int>::from_container(std::move(point_of_curve));
   }

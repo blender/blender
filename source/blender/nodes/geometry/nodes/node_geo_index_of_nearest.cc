@@ -47,9 +47,11 @@ static void find_neighbors(const KDTree_3d &tree,
                            const IndexMask &mask,
                            MutableSpan<int> r_indices)
 {
-  mask.foreach_index(GrainSize(1024), [&](const int index) {
-    r_indices[index] = find_nearest_non_self(tree, positions[index], index);
-  });
+  mask.foreach_index(
+      [&](const int index) {
+        r_indices[index] = find_nearest_non_self(tree, positions[index], index);
+      },
+      exec_mode::grain_size(1024));
 }
 
 class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {

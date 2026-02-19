@@ -1781,14 +1781,16 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   IndexMaskMemory memory;
   const IndexMask out_of_context_faces = IndexMask::from_bools(dst_face_unaffected, memory);
 
-  out_of_context_faces.foreach_index(GrainSize(1024), [&](const int dst_face_index) {
-    const IndexRange src_face = src_faces[dst_to_src_faces[dst_face_index]];
-    const IndexRange dst_face = dst_faces[dst_face_index];
-    for (const int i : src_face.index_range()) {
-      dst_corner_verts[dst_face[i]] = vert_final_map[src_corner_verts[src_face[i]]];
-      dst_corner_edges[dst_face[i]] = edge_final_map[src_corner_edges[src_face[i]]];
-    }
-  });
+  out_of_context_faces.foreach_index(
+      [&](const int dst_face_index) {
+        const IndexRange src_face = src_faces[dst_to_src_faces[dst_face_index]];
+        const IndexRange dst_face = dst_faces[dst_face_index];
+        for (const int i : src_face.index_range()) {
+          dst_corner_verts[dst_face[i]] = vert_final_map[src_corner_verts[src_face[i]]];
+          dst_corner_edges[dst_face[i]] = edge_final_map[src_corner_edges[src_face[i]]];
+        }
+      },
+      exec_mode::grain_size(1024));
 
   mix_attributes(src_attributes,
                  dst_to_src_corners,

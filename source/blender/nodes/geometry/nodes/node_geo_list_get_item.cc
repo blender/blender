@@ -114,13 +114,11 @@ class SampleIndexFunction : public mf::MultiFunction {
       }
       if (indices.is_span()) {
         const Span<int> indices_span = indices.get_internal_span();
-        return IndexMask::from_predicate(mask, GrainSize(4096), memory, [&](const int i) {
-          return list_range.contains(indices_span[i]);
-        });
+        return IndexMask::from_predicate(
+            mask, memory, [&](const int i) { return list_range.contains(indices_span[i]); });
       }
-      return IndexMask::from_predicate(mask, GrainSize(4096), memory, [&](const int i) {
-        return list_range.contains(indices[i]);
-      });
+      return IndexMask::from_predicate(
+          mask, memory, [&](const int i) { return list_range.contains(indices[i]); });
     }();
 
     if (valid_indices.size() != mask.size()) {

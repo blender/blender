@@ -902,7 +902,6 @@ bool apply_mask_as_selection(bke::CurvesGeometry &curves,
                              const IndexMask &selection,
                              bke::AttrDomain selection_domain,
                              StringRef attribute_name,
-                             GrainSize grain_size,
                              eSelectOp sel_op);
 
 bool apply_mask_as_segment_selection(bke::CurvesGeometry &curves,
@@ -910,7 +909,6 @@ bool apply_mask_as_segment_selection(bke::CurvesGeometry &curves,
                                      StringRef attribute_name,
                                      const Curves2DBVHTree &tree_data,
                                      IndexRange tree_data_range,
-                                     GrainSize grain_size,
                                      eSelectOp sel_op);
 
 namespace trim {

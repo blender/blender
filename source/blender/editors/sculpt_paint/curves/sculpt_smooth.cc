@@ -142,28 +142,30 @@ struct SmoothOperationExecutor {
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    curve_selection_.foreach_index(GrainSize(256), [&](const int curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
-      for (const int point_i : points) {
-        const float3 &pos_cu = math::transform_point(brush_transform_inv,
-                                                     deformation.positions[point_i]);
-        const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
-        const float dist_to_brush_sq_re = math::distance_squared(pos_re, brush_pos_re_);
-        if (dist_to_brush_sq_re > brush_radius_sq_re) {
-          continue;
-        }
+    curve_selection_.foreach_index(
+        [&](const int curve_i) {
+          const IndexRange points = points_by_curve[curve_i];
+          for (const int point_i : points) {
+            const float3 &pos_cu = math::transform_point(brush_transform_inv,
+                                                         deformation.positions[point_i]);
+            const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
+            const float dist_to_brush_sq_re = math::distance_squared(pos_re, brush_pos_re_);
+            if (dist_to_brush_sq_re > brush_radius_sq_re) {
+              continue;
+            }
 
-        const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-        const float radius_falloff = BKE_brush_curve_strength(
-            brush_, dist_to_brush_re, brush_radius_re);
-        /* Used to make the brush easier to use. Otherwise a strength of 1 would be way too
-         * large. */
-        const float weight_factor = 0.1f;
-        const float weight = weight_factor * brush_strength_ * radius_falloff *
-                             point_factors_[point_i];
-        math::max_inplace(r_point_smooth_factors[point_i], weight);
-      }
-    });
+            const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_re, brush_radius_re);
+            /* Used to make the brush easier to use. Otherwise a strength of 1 would be way too
+             * large. */
+            const float weight_factor = 0.1f;
+            const float weight = weight_factor * brush_strength_ * radius_falloff *
+                                 point_factors_[point_i];
+            math::max_inplace(r_point_smooth_factors[point_i], weight);
+          }
+        },
+        exec_mode::grain_size(256));
   }
 
   void find_spherical_smooth_factors_with_symmetry(MutableSpan<float> r_point_smooth_factors)
@@ -196,26 +198,28 @@ struct SmoothOperationExecutor {
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    curve_selection_.foreach_index(GrainSize(256), [&](const int curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
-      for (const int point_i : points) {
-        const float3 &pos_cu = deformation.positions[point_i];
-        const float dist_to_brush_sq_cu = math::distance_squared(pos_cu, brush_pos_cu);
-        if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
-          continue;
-        }
+    curve_selection_.foreach_index(
+        [&](const int curve_i) {
+          const IndexRange points = points_by_curve[curve_i];
+          for (const int point_i : points) {
+            const float3 &pos_cu = deformation.positions[point_i];
+            const float dist_to_brush_sq_cu = math::distance_squared(pos_cu, brush_pos_cu);
+            if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
+              continue;
+            }
 
-        const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-        const float radius_falloff = BKE_brush_curve_strength(
-            brush_, dist_to_brush_cu, brush_radius_cu);
-        /* Used to make the brush easier to use. Otherwise a strength of 1 would be way too
-         * large. */
-        const float weight_factor = 0.1f;
-        const float weight = weight_factor * brush_strength_ * radius_falloff *
-                             point_factors_[point_i];
-        math::max_inplace(r_point_smooth_factors[point_i], weight);
-      }
-    });
+            const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_cu, brush_radius_cu);
+            /* Used to make the brush easier to use. Otherwise a strength of 1 would be way too
+             * large. */
+            const float weight_factor = 0.1f;
+            const float weight = weight_factor * brush_strength_ * radius_falloff *
+                                 point_factors_[point_i];
+            math::max_inplace(r_point_smooth_factors[point_i], weight);
+          }
+        },
+        exec_mode::grain_size(256));
   }
 
   void smooth(const Span<float> point_smooth_factors)
@@ -223,28 +227,30 @@ struct SmoothOperationExecutor {
     const OffsetIndices points_by_curve = curves_->points_by_curve();
     MutableSpan<float3> positions = curves_->positions_for_write();
 
-    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
-      Vector<float3> old_positions;
-      for (const int curve_i : segment) {
-        const IndexRange points = points_by_curve[curve_i];
-        old_positions.clear();
-        old_positions.extend(positions.slice(points));
-        for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {
-          const int point_i = points[i];
-          const float smooth_factor = point_smooth_factors[point_i];
-          if (smooth_factor == 0.0f) {
-            continue;
+    curve_selection_.foreach_segment(
+        [&](const IndexMaskSegment segment) {
+          Vector<float3> old_positions;
+          for (const int curve_i : segment) {
+            const IndexRange points = points_by_curve[curve_i];
+            old_positions.clear();
+            old_positions.extend(positions.slice(points));
+            for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {
+              const int point_i = points[i];
+              const float smooth_factor = point_smooth_factors[point_i];
+              if (smooth_factor == 0.0f) {
+                continue;
+              }
+              /* Move towards the middle of the neighboring points. */
+              const float3 old_pos = old_positions[i];
+              const float3 &prev_pos = old_positions[i - 1];
+              const float3 &next_pos = old_positions[i + 1];
+              const float3 goal_pos = math::midpoint(prev_pos, next_pos);
+              const float3 new_pos = math::interpolate(old_pos, goal_pos, smooth_factor);
+              positions[point_i] = new_pos;
+            }
           }
-          /* Move towards the middle of the neighboring points. */
-          const float3 old_pos = old_positions[i];
-          const float3 &prev_pos = old_positions[i - 1];
-          const float3 &next_pos = old_positions[i + 1];
-          const float3 goal_pos = math::midpoint(prev_pos, next_pos);
-          const float3 new_pos = math::interpolate(old_pos, goal_pos, smooth_factor);
-          positions[point_i] = new_pos;
-        }
-      }
-    });
+        },
+        exec_mode::grain_size(256));
   }
 };
 

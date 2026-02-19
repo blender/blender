@@ -25,7 +25,7 @@ static IndexMask apply_filter_operation(const VArray<T> &data,
                                         IndexMaskMemory &memory)
 {
   return IndexMask::from_predicate(
-      mask, GrainSize(1024), memory, [&](const int64_t i) { return check_fn(data[i]); });
+      mask, memory, [&](const int64_t i) { return check_fn(data[i]); });
 }
 
 static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,

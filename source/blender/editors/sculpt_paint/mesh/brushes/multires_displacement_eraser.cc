@@ -90,11 +90,13 @@ void do_displacement_eraser_brush(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    LocalData &tls = all_tls.local();
-    calc_node(depsgraph, sd, object, brush, strength, nodes[i], tls);
-    bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
-  });
+  node_mask.foreach_index(
+      [&](const int i) {
+        LocalData &tls = all_tls.local();
+        calc_node(depsgraph, sd, object, brush, strength, nodes[i], tls);
+        bke::pbvh::update_node_bounds_grids(subdiv_ccg.grid_area, positions, nodes[i]);
+      },
+      exec_mode::grain_size(1));
   pbvh.tag_positions_changed(node_mask);
   pbvh.flush_bounds_to_parents();
 }

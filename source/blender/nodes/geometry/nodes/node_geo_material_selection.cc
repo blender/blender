@@ -44,10 +44,12 @@ static VArray<bool> select_by_material(const Span<Material *> materials,
 
   const VArraySpan<int> material_indices_span(material_indices);
   Array<bool> domain_selection(domain_mask.min_array_size());
-  domain_mask.foreach_index_optimized<int>(GrainSize(1024), [&](const int domain_index) {
-    const int slot_i = material_indices_span[domain_index];
-    domain_selection[domain_index] = slots.contains(slot_i);
-  });
+  domain_mask.foreach_index_optimized<int>(
+      [&](const int domain_index) {
+        const int slot_i = material_indices_span[domain_index];
+        domain_selection[domain_index] = slots.contains(slot_i);
+      },
+      exec_mode::grain_size(4096));
   return VArray<bool>::from_container(std::move(domain_selection));
 }
 

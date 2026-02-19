@@ -45,43 +45,46 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
 
   MutableSpan<float4x4> transforms = instances.transforms_for_write();
 
-  selection.foreach_index(GrainSize(512), [&](const int64_t i) {
-    const float3 pivot = pivots[i];
-    const math::Quaternion rotation = rotations[i];
-    float4x4 &instance_transform = transforms[i];
+  selection.foreach_index(
+      [&](const int64_t i) {
+        const float3 pivot = pivots[i];
+        const math::Quaternion rotation = rotations[i];
+        float4x4 &instance_transform = transforms[i];
 
-    float4x4 rotation_matrix;
-    float3 used_pivot;
+        float4x4 rotation_matrix;
+        float3 used_pivot;
 
-    if (local_spaces[i]) {
-      /* Find rotation axis from the matrix. This should work even if the instance is skewed. */
-      /* Create rotations around the individual axis. This could be optimized to skip some axis
-       * when the angle is zero. */
-      const EulerXYZ euler = math::to_euler(rotation);
-      const float3x3 rotation_x = from_rotation<float3x3>(
-          AxisAngle(normalize(instance_transform.x_axis()), euler.x()));
-      const float3x3 rotation_y = from_rotation<float3x3>(
-          AxisAngle(normalize(instance_transform.y_axis()), euler.y()));
-      const float3x3 rotation_z = from_rotation<float3x3>(
-          AxisAngle(normalize(instance_transform.z_axis()), euler.z()));
+        if (local_spaces[i]) {
+          /* Find rotation axis from the matrix. This should work even if the instance is skewed.
+           */
+          /* Create rotations around the individual axis. This could be optimized to skip some axis
+           * when the angle is zero. */
+          const EulerXYZ euler = math::to_euler(rotation);
+          const float3x3 rotation_x = from_rotation<float3x3>(
+              AxisAngle(normalize(instance_transform.x_axis()), euler.x()));
+          const float3x3 rotation_y = from_rotation<float3x3>(
+              AxisAngle(normalize(instance_transform.y_axis()), euler.y()));
+          const float3x3 rotation_z = from_rotation<float3x3>(
+              AxisAngle(normalize(instance_transform.z_axis()), euler.z()));
 
-      /* Combine the previously computed rotations into the final rotation matrix. */
-      rotation_matrix = float4x4(rotation_z * rotation_y * rotation_x);
+          /* Combine the previously computed rotations into the final rotation matrix. */
+          rotation_matrix = float4x4(rotation_z * rotation_y * rotation_x);
 
-      /* Transform the passed in pivot into the local space of the instance. */
-      used_pivot = transform_point(instance_transform, pivot);
-    }
-    else {
-      used_pivot = pivot;
-      rotation_matrix = from_rotation<float4x4>(rotation);
-    }
-    /* Move the pivot to the origin so that we can rotate around it. */
-    instance_transform.location() -= used_pivot;
-    /* Perform the actual rotation. */
-    instance_transform = rotation_matrix * instance_transform;
-    /* Undo the pivot shifting done before. */
-    instance_transform.location() += used_pivot;
-  });
+          /* Transform the passed in pivot into the local space of the instance. */
+          used_pivot = transform_point(instance_transform, pivot);
+        }
+        else {
+          used_pivot = pivot;
+          rotation_matrix = from_rotation<float4x4>(rotation);
+        }
+        /* Move the pivot to the origin so that we can rotate around it. */
+        instance_transform.location() -= used_pivot;
+        /* Perform the actual rotation. */
+        instance_transform = rotation_matrix * instance_transform;
+        /* Undo the pivot shifting done before. */
+        instance_transform.location() += used_pivot;
+      },
+      exec_mode::grain_size(512));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

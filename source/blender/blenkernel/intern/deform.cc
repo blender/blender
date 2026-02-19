@@ -1781,11 +1781,13 @@ void gather_deform_verts(const Span<MDeformVert> src,
                          const IndexMask &indices,
                          MutableSpan<MDeformVert> dst)
 {
-  indices.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-    dst[dst_i].dw = MEM_dupalloc(src[src_i].dw);
-    dst[dst_i].totweight = src[src_i].totweight;
-    dst[dst_i].flag = src[src_i].flag;
-  });
+  indices.foreach_index(
+      [&](const int64_t src_i, const int64_t dst_i) {
+        dst[dst_i].dw = MEM_dupalloc(src[src_i].dw);
+        dst[dst_i].totweight = src[src_i].totweight;
+        dst[dst_i].flag = src[src_i].flag;
+      },
+      exec_mode::grain_size(512));
 }
 
 MDeformVert mix_deform_verts(const Span<MDeformVert> src,

@@ -22,7 +22,7 @@ static IndexMask calc_face_visibility_mesh(const MeshRenderData &mr, IndexMaskMe
     const OffsetIndices faces = mr.faces;
     const Span<int> corner_verts = mr.corner_verts;
     const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
-    visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int i) {
+    visible = IndexMask::from_predicate(visible, memory, [&](const int i) {
       const Span<int> face_verts = corner_verts.slice(faces[i]);
       return std::any_of(face_verts.begin(), face_verts.end(), [&](const int vert) {
         return facedot_tags[vert];
@@ -54,7 +54,7 @@ static gpu::IndexBufPtr extract_face_dots_bm(const MeshRenderData &mr)
   BMesh &bm = *mr.bm;
   IndexMaskMemory memory;
   const IndexMask visible_faces = IndexMask::from_predicate(
-      IndexRange(bm.totface), GrainSize(4096), memory, [&](const int i) {
+      IndexRange(bm.totface), memory, [&](const int i) {
         return !BM_elem_flag_test_bool(BM_face_at_index(&bm, i), BM_ELEM_HIDDEN);
       });
   return index_mask_to_ibo(visible_faces);

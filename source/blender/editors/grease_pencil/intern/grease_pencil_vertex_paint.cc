@@ -58,12 +58,14 @@ static bool apply_color_operation_for_mode(const VertexColorMode mode,
                                        object, info.drawing, info.layer_index, memory);
       if (!points.is_empty()) {
         MutableSpan<ColorGeometry4f> vertex_colors = info.drawing.vertex_colors_for_write();
-        points.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-          ColorGeometry4f &color = vertex_colors[point_i];
-          if (color.a > 0.0f) {
-            color = fn(color);
-          }
-        });
+        points.foreach_index(
+            [&](const int64_t point_i) {
+              ColorGeometry4f &color = vertex_colors[point_i];
+              if (color.a > 0.0f) {
+                color = fn(color);
+              }
+            },
+            exec_mode::grain_size(4096));
         changed = true;
       }
     }
@@ -77,12 +79,14 @@ static bool apply_color_operation_for_mode(const VertexColorMode mode,
                                         object, info.drawing, info.layer_index, memory);
       if (!strokes.is_empty()) {
         MutableSpan<ColorGeometry4f> fill_colors = info.drawing.fill_colors_for_write();
-        strokes.foreach_index(GrainSize(1024), [&](const int64_t curve_i) {
-          ColorGeometry4f &color = fill_colors[curve_i];
-          if (color.a > 0.0f) {
-            color = fn(color);
-          }
-        });
+        strokes.foreach_index(
+            [&](const int64_t curve_i) {
+              ColorGeometry4f &color = fill_colors[curve_i];
+              if (color.a > 0.0f) {
+                color = fn(color);
+              }
+            },
+            exec_mode::grain_size(1024));
         changed = true;
       }
     }

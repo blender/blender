@@ -779,18 +779,16 @@ static IndexMask get_visible_boundary_strokes(const Object &object,
     const VArray<bool> fill_guides = *attributes.lookup_or_default<bool>(
         attr_is_fill_guide, bke::AttrDomain::Curve, false);
 
-    return IndexMask::from_predicate(
-        strokes.curves_range(), GrainSize(512), memory, [&](const int curve_i) {
-          if (!is_visible_curve(curve_i)) {
-            return false;
-          }
-          const bool is_boundary_stroke = fill_guides[curve_i];
-          return is_boundary_stroke;
-        });
+    return IndexMask::from_predicate(strokes.curves_range(), memory, [&](const int curve_i) {
+      if (!is_visible_curve(curve_i)) {
+        return false;
+      }
+      const bool is_boundary_stroke = fill_guides[curve_i];
+      return is_boundary_stroke;
+    });
   }
 
-  return IndexMask::from_predicate(
-      strokes.curves_range(), GrainSize(512), memory, is_visible_curve);
+  return IndexMask::from_predicate(strokes.curves_range(), memory, is_visible_curve);
 }
 
 static VArray<ColorGeometry4f> get_stroke_colors(const Object &object,
@@ -867,37 +865,40 @@ static std::optional<Bounds<float2>> get_boundary_bounds(const ARegion &region,
     const IndexMask curve_mask = get_visible_boundary_strokes(
         object, info, only_boundary_strokes, curve_mask_memory);
 
-    curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
-      const IndexRange points = strokes.points_by_curve()[curve_i];
-      /* Check if stroke can be drawn. */
-      if (points.size() < 2) {
-        return;
-      }
-      /* Check if the color is visible. */
-      const int material_index = materials[curve_i];
-      Material *mat = BKE_object_material_get(const_cast<Object *>(&object), material_index + 1);
-      if (mat == nullptr || (mat->gp_style->flag & GP_MATERIAL_HIDE)) {
-        return;
-      }
+    curve_mask.foreach_index(
+        [&](const int curve_i) {
+          const IndexRange points = strokes.points_by_curve()[curve_i];
+          /* Check if stroke can be drawn. */
+          if (points.size() < 2) {
+            return;
+          }
+          /* Check if the color is visible. */
+          const int material_index = materials[curve_i];
+          Material *mat = BKE_object_material_get(const_cast<Object *>(&object),
+                                                  material_index + 1);
+          if (mat == nullptr || (mat->gp_style->flag & GP_MATERIAL_HIDE)) {
+            return;
+          }
 
-      /* In boundary layers only boundary strokes should be rendered. */
-      if (only_boundary_strokes && !is_boundary_stroke[curve_i]) {
-        return;
-      }
+          /* In boundary layers only boundary strokes should be rendered. */
+          if (only_boundary_strokes && !is_boundary_stroke[curve_i]) {
+            return;
+          }
 
-      for (const int point_i : points) {
-        const float3 pos_world = math::transform_point(layer_to_world,
-                                                       deformation.positions[point_i]);
-        float2 pos_view;
-        eV3DProjStatus result = ED_view3d_project_float_global(
-            &region, pos_world, pos_view, V3D_PROJ_TEST_NOP);
-        if (result == V3D_PROJ_RET_OK) {
-          const float pixels = radii[point_i] / ED_view3d_pixel_size(&rv3d, pos_world);
-          Bounds<float2> point_bounds = {pos_view - float2(pixels), pos_view + float2(pixels)};
-          boundary_bounds = bounds::merge(boundary_bounds, {point_bounds});
-        }
-      }
-    });
+          for (const int point_i : points) {
+            const float3 pos_world = math::transform_point(layer_to_world,
+                                                           deformation.positions[point_i]);
+            float2 pos_view;
+            eV3DProjStatus result = ED_view3d_project_float_global(
+                &region, pos_world, pos_view, V3D_PROJ_TEST_NOP);
+            if (result == V3D_PROJ_RET_OK) {
+              const float pixels = radii[point_i] / ED_view3d_pixel_size(&rv3d, pos_world);
+              Bounds<float2> point_bounds = {pos_view - float2(pixels), pos_view + float2(pixels)};
+              boundary_bounds = bounds::merge(boundary_bounds, {point_bounds});
+            }
+          }
+        },
+        exec_mode::grain_size(512));
   }
 
   return boundary_bounds;

@@ -49,36 +49,38 @@ void VertexBlurOperation::on_stroke_extended(const bContext &C,
     const Array<float2> view_positions = view_positions_from_curve_mask(params, stroke_selection);
     const OffsetIndices<int> points_by_curve = params.drawing.strokes().points_by_curve();
     MutableSpan<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors_for_write();
-    stroke_selection.foreach_index(GrainSize(1024), [&](const int64_t curve) {
-      const IndexRange points = points_by_curve[curve];
+    stroke_selection.foreach_index(
+        [&](const int64_t curve) {
+          const IndexRange points = points_by_curve[curve];
 
-      float3 average_color(0.0f);
-      int color_count = 0;
-      for (const int point : points) {
-        const ColorGeometry4f color = vertex_colors[point];
-        const float distance = math::distance_squared(extension_sample.mouse_position,
-                                                      view_positions[point]);
-        if (color.a > 0.0f && distance < radius_squared) {
-          average_color += float3(color.r, color.g, color.b);
-          color_count++;
-        }
-      }
+          float3 average_color(0.0f);
+          int color_count = 0;
+          for (const int point : points) {
+            const ColorGeometry4f color = vertex_colors[point];
+            const float distance = math::distance_squared(extension_sample.mouse_position,
+                                                          view_positions[point]);
+            if (color.a > 0.0f && distance < radius_squared) {
+              average_color += float3(color.r, color.g, color.b);
+              color_count++;
+            }
+          }
 
-      if (color_count == 0) {
-        return;
-      }
-      average_color = average_color / color_count;
-      const ColorGeometry4f mix_color(average_color.x, average_color.y, average_color.z, 1.0f);
+          if (color_count == 0) {
+            return;
+          }
+          average_color = average_color / color_count;
+          const ColorGeometry4f mix_color(average_color.x, average_color.y, average_color.z, 1.0f);
 
-      for (const int point : points) {
-        const float influence = brush_point_influence(
-            paint, brush, view_positions[point], extension_sample, params.multi_frame_falloff);
-        ColorGeometry4f &color = vertex_colors[point];
-        if (color.a > 0.0f && influence > 0.0f) {
-          color = math::interpolate(color, mix_color, influence);
-        }
-      }
-    });
+          for (const int point : points) {
+            const float influence = brush_point_influence(
+                paint, brush, view_positions[point], extension_sample, params.multi_frame_falloff);
+            ColorGeometry4f &color = vertex_colors[point];
+            if (color.a > 0.0f && influence > 0.0f) {
+              color = math::interpolate(color, mix_color, influence);
+            }
+          }
+        },
+        exec_mode::grain_size(1024));
     return true;
   });
 }

@@ -137,26 +137,28 @@ static void modify_curves(ModifierData &md,
     if (dverts.is_empty()) {
       return;
     }
-    curves_mask.foreach_index(GrainSize(128), [&](const int curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
-      std::optional<Span<float3>> old_positions_for_curve;
-      if (old_positions) {
-        old_positions_for_curve = old_positions->slice(points);
-      }
-      std::optional<MutableSpan<float3x3>> deform_mats_for_curve;
-      if (deform_mats) {
-        deform_mats_for_curve = deform_mats->slice(points);
-      }
-      BKE_armature_deform_coords_with_curves(*amd.object,
-                                             *ctx.object,
-                                             &drawing.strokes().vertex_group_names,
-                                             positions.slice(points),
-                                             old_positions_for_curve,
-                                             deform_mats_for_curve,
-                                             dverts.slice(points),
-                                             deformflag,
-                                             amd.influence.vertex_group_name);
-    });
+    curves_mask.foreach_index(
+        [&](const int curve_i) {
+          const IndexRange points = points_by_curve[curve_i];
+          std::optional<Span<float3>> old_positions_for_curve;
+          if (old_positions) {
+            old_positions_for_curve = old_positions->slice(points);
+          }
+          std::optional<MutableSpan<float3x3>> deform_mats_for_curve;
+          if (deform_mats) {
+            deform_mats_for_curve = deform_mats->slice(points);
+          }
+          BKE_armature_deform_coords_with_curves(*amd.object,
+                                                 *ctx.object,
+                                                 &drawing.strokes().vertex_group_names,
+                                                 positions.slice(points),
+                                                 old_positions_for_curve,
+                                                 deform_mats_for_curve,
+                                                 dverts.slice(points),
+                                                 deformflag,
+                                                 amd.influence.vertex_group_name);
+        },
+        exec_mode::grain_size(128));
   };
 
   /* Cached position data for supporting the multi-modifier feature. This data is only valid as

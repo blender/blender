@@ -106,43 +106,45 @@ static void deform_drawing(const ModifierData &md,
                            ((mmd.influence.flag & GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP) !=
                             0);
 
-  strokes.foreach_index(GrainSize(512), [&](const int curve) {
-    const IndexRange points = points_by_curve[curve];
-    for (const int i : points.index_range()) {
-      const int point = points[i];
-      const float weight = vgroup_weights[point];
-      if (weight <= 0.0f) {
-        continue;
-      }
+  strokes.foreach_index(
+      [&](const int curve) {
+        const IndexRange points = points_by_curve[curve];
+        for (const int i : points.index_range()) {
+          const int point = points[i];
+          const float weight = vgroup_weights[point];
+          if (weight <= 0.0f) {
+            continue;
+          }
 
-      if ((!is_normalized) && (mmd.flag & MOD_GREASE_PENCIL_THICK_WEIGHT_FACTOR)) {
-        radii[point] *= (is_inverted ? 1.0f - weight : weight);
-        radii[point] = math::max(radii[point], 0.0f);
-        continue;
-      }
+          if ((!is_normalized) && (mmd.flag & MOD_GREASE_PENCIL_THICK_WEIGHT_FACTOR)) {
+            radii[point] *= (is_inverted ? 1.0f - weight : weight);
+            radii[point] = math::max(radii[point], 0.0f);
+            continue;
+          }
 
-      const float influence = [&]() {
-        if (mmd.influence.flag & GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE &&
-            (mmd.influence.custom_curve))
-        {
-          /* Normalize value to evaluate curve. */
-          const float value = math::safe_divide(float(i), float(points.size() - 1));
-          return BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
+          const float influence = [&]() {
+            if (mmd.influence.flag & GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE &&
+                (mmd.influence.custom_curve))
+            {
+              /* Normalize value to evaluate curve. */
+              const float value = math::safe_divide(float(i), float(points.size() - 1));
+              return BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
+            }
+            return 1.0f;
+          }();
+
+          const float target = [&]() {
+            if (is_normalized) {
+              return mmd.thickness * influence;
+            }
+            return radii[point] * math::interpolate(1.0f, mmd.thickness_fac, influence);
+          }();
+
+          const float radius = math::interpolate(radii[point], target, weight);
+          radii[point] = math::max(radius, 0.0f);
         }
-        return 1.0f;
-      }();
-
-      const float target = [&]() {
-        if (is_normalized) {
-          return mmd.thickness * influence;
-        }
-        return radii[point] * math::interpolate(1.0f, mmd.thickness_fac, influence);
-      }();
-
-      const float radius = math::interpolate(radii[point], target, weight);
-      radii[point] = math::max(radius, 0.0f);
-    }
-  });
+      },
+      exec_mode::grain_size(512));
 }
 
 static void modify_geometry_set(ModifierData *md,

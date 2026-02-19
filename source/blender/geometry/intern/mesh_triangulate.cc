@@ -191,18 +191,20 @@ static void calc_corner_tris(const Span<float3> positions,
   };
   threading::EnumerableThreadSpecific<TLS> tls;
 
-  quads.foreach_segment(GrainSize(1024), [&](const IndexMaskSegment quads, const int64_t pos) {
-    TLS &data = tls.local();
-    data.directions.reinitialize(quads.size());
+  quads.foreach_segment(
+      [&](const IndexMaskSegment quads, const int64_t pos) {
+        TLS &data = tls.local();
+        data.directions.reinitialize(quads.size());
 
-    /* Find the offsets of each face in the local selection. We can gather them together even if
-     * they aren't contiguous because we only need to know the start of each face; the size is
-     * just 4. */
-    const Span<int> offsets = gather_or_reference(src_faces.data(), quads, data.offsets);
-    calc_quad_directions(positions, offsets, src_corner_verts, quad_mode, data.directions);
-    const IndexRange tris_range(pos * 2, offsets.size() * 2);
-    quad::calc_corner_tris(offsets, data.directions, corner_tris.slice(tris_range));
-  });
+        /* Find the offsets of each face in the local selection. We can gather them together even
+         * if they aren't contiguous because we only need to know the start of each face; the size
+         * is just 4. */
+        const Span<int> offsets = gather_or_reference(src_faces.data(), quads, data.offsets);
+        calc_quad_directions(positions, offsets, src_corner_verts, quad_mode, data.directions);
+        const IndexRange tris_range(pos * 2, offsets.size() * 2);
+        quad::calc_corner_tris(offsets, data.directions, corner_tris.slice(tris_range));
+      },
+      exec_mode::grain_size(1024));
 }
 
 }  // namespace quad
@@ -226,9 +228,11 @@ static OffsetIndices<int> calc_tris_by_ngon(const OffsetIndices<int> src_faces,
                                             const IndexMask &ngons,
                                             MutableSpan<int> face_offset_data)
 {
-  ngons.foreach_index(GrainSize(2048), [&](const int face, const int mask) {
-    face_offset_data[mask] = bke::mesh::face_triangles_num(src_faces[face].size());
-  });
+  ngons.foreach_index(
+      [&](const int face, const int mask) {
+        face_offset_data[mask] = bke::mesh::face_triangles_num(src_faces[face].size());
+      },
+      exec_mode::grain_size(2048));
   return offset_indices::accumulate_counts_to_offsets(face_offset_data);
 }
 
@@ -262,85 +266,87 @@ static void calc_corner_tris(const Span<float3> positions,
   };
   threading::EnumerableThreadSpecific<LocalData> tls;
 
-  ngons.foreach_segment(GrainSize(128), [&](const IndexMaskSegment ngons, const int pos) {
-    LocalData &data = tls.local();
+  ngons.foreach_segment(
+      [&](const IndexMaskSegment ngons, const int pos) {
+        LocalData &data = tls.local();
 
-    /* In order to simplify and "parallelize" the next loops, gather offsets used to group an array
-     * large enough for all the local face corners. */
-    data.offset_data.reinitialize(ngons.size() + 1);
-    const OffsetIndices local_corner_offsets = gather_selected_offsets(
-        src_faces, ngons, data.offset_data);
+        /* In order to simplify and "parallelize" the next loops, gather offsets used to group an
+         * array large enough for all the local face corners. */
+        data.offset_data.reinitialize(ngons.size() + 1);
+        const OffsetIndices local_corner_offsets = gather_selected_offsets(
+            src_faces, ngons, data.offset_data);
 
-    /* Use face normals to build projection matrices to make the face positions 2D. */
-    data.projections.reinitialize(ngons.size());
-    MutableSpan<float3x3> projections = data.projections;
-    if (face_normals.is_empty()) {
-      for (const int i : ngons.index_range()) {
-        const IndexRange src_face = src_faces[ngons[i]];
-        const Span<int> face_verts = src_corner_verts.slice(src_face);
-        const float3 normal = bke::mesh::face_normal_calc(positions, face_verts);
-        axis_dominant_v3_to_m3_negate(projections[i].ptr(), normal);
-      }
-    }
-    else {
-      for (const int i : ngons.index_range()) {
-        axis_dominant_v3_to_m3_negate(projections[i].ptr(), face_normals[ngons[i]]);
-      }
-    }
+        /* Use face normals to build projection matrices to make the face positions 2D. */
+        data.projections.reinitialize(ngons.size());
+        MutableSpan<float3x3> projections = data.projections;
+        if (face_normals.is_empty()) {
+          for (const int i : ngons.index_range()) {
+            const IndexRange src_face = src_faces[ngons[i]];
+            const Span<int> face_verts = src_corner_verts.slice(src_face);
+            const float3 normal = bke::mesh::face_normal_calc(positions, face_verts);
+            axis_dominant_v3_to_m3_negate(projections[i].ptr(), normal);
+          }
+        }
+        else {
+          for (const int i : ngons.index_range()) {
+            axis_dominant_v3_to_m3_negate(projections[i].ptr(), face_normals[ngons[i]]);
+          }
+        }
 
-    /* Project the face positions into 2D using the matrices calculated above. */
-    data.projected_positions.reinitialize(local_corner_offsets.total_size());
-    MutableSpan<float2> projected_positions = data.projected_positions;
-    for (const int i : ngons.index_range()) {
-      const IndexRange src_face = src_faces[ngons[i]];
-      const Span<int> face_verts = src_corner_verts.slice(src_face);
-      const float3x3 &matrix = projections[i];
+        /* Project the face positions into 2D using the matrices calculated above. */
+        data.projected_positions.reinitialize(local_corner_offsets.total_size());
+        MutableSpan<float2> projected_positions = data.projected_positions;
+        for (const int i : ngons.index_range()) {
+          const IndexRange src_face = src_faces[ngons[i]];
+          const Span<int> face_verts = src_corner_verts.slice(src_face);
+          const float3x3 &matrix = projections[i];
 
-      MutableSpan<float2> positions_2d = projected_positions.slice(local_corner_offsets[i]);
-      for (const int i : face_verts.index_range()) {
-        mul_v2_m3v3(positions_2d[i], matrix.ptr(), positions[face_verts[i]]);
-      }
-    }
+          MutableSpan<float2> positions_2d = projected_positions.slice(local_corner_offsets[i]);
+          for (const int i : face_verts.index_range()) {
+            mul_v2_m3v3(positions_2d[i], matrix.ptr(), positions[face_verts[i]]);
+          }
+        }
 
-    if (ngon_mode == TriangulateNGonMode::Beauty) {
-      if (!data.arena) {
-        data.arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
-      }
-      if (!data.heap) {
-        data.heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-      }
-    }
+        if (ngon_mode == TriangulateNGonMode::Beauty) {
+          if (!data.arena) {
+            data.arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+          }
+          if (!data.heap) {
+            data.heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
+          }
+        }
 
-    /* Calculate the triangulation of corners indices local to each face. */
-    for (const int i : ngons.index_range()) {
-      const Span<float2> positions_2d = projected_positions.slice(local_corner_offsets[i]);
-      const IndexRange tris_range = tris_by_ngon[pos + i];
-      MutableSpan<int> map = corner_tris.slice(tris_range).cast<int>();
-      BLI_polyfill_calc(reinterpret_cast<const float (*)[2]>(positions_2d.data()),
-                        positions_2d.size(),
-                        1,
-                        reinterpret_cast<uint(*)[3]>(map.data()));
-      if (ngon_mode == TriangulateNGonMode::Beauty) {
-        BLI_polyfill_beautify(reinterpret_cast<const float (*)[2]>(positions_2d.data()),
-                              positions_2d.size(),
-                              reinterpret_cast<uint(*)[3]>(map.data()),
-                              data.arena,
-                              data.heap);
-        BLI_memarena_clear(data.arena);
-      }
-    }
+        /* Calculate the triangulation of corners indices local to each face. */
+        for (const int i : ngons.index_range()) {
+          const Span<float2> positions_2d = projected_positions.slice(local_corner_offsets[i]);
+          const IndexRange tris_range = tris_by_ngon[pos + i];
+          MutableSpan<int> map = corner_tris.slice(tris_range).cast<int>();
+          BLI_polyfill_calc(reinterpret_cast<const float (*)[2]>(positions_2d.data()),
+                            positions_2d.size(),
+                            1,
+                            reinterpret_cast<uint(*)[3]>(map.data()));
+          if (ngon_mode == TriangulateNGonMode::Beauty) {
+            BLI_polyfill_beautify(reinterpret_cast<const float (*)[2]>(positions_2d.data()),
+                                  positions_2d.size(),
+                                  reinterpret_cast<uint(*)[3]>(map.data()),
+                                  data.arena,
+                                  data.heap);
+            BLI_memarena_clear(data.arena);
+          }
+        }
 
-    /* "Globalize" the triangulation created above so the map source indices reference _all_ of the
-     * source vertices, not just within the source face. */
-    for (const int i : ngons.index_range()) {
-      const IndexRange tris_range = tris_by_ngon[pos + i];
-      const int src_face_start = src_faces[ngons[i]].start();
-      MutableSpan<int> map = corner_tris.slice(tris_range).cast<int>();
-      for (int &vert : map) {
-        vert += src_face_start;
-      }
-    }
-  });
+        /* "Globalize" the triangulation created above so the map source indices reference _all_ of
+         * the source vertices, not just within the source face. */
+        for (const int i : ngons.index_range()) {
+          const IndexRange tris_range = tris_by_ngon[pos + i];
+          const int src_face_start = src_faces[ngons[i]].start();
+          MutableSpan<int> map = corner_tris.slice(tris_range).cast<int>();
+          for (int &vert : map) {
+            vert += src_face_start;
+          }
+        }
+      },
+      exec_mode::grain_size(128));
 }
 
 }  // namespace ngon
@@ -411,7 +417,6 @@ static IndexMask face_tris_mask(const OffsetIndices<int> src_faces,
 {
   return IndexMask::from_batch_predicate(
       mask,
-      GrainSize(4096),
       memory,
       [&](const IndexMaskSegment universe_segment, IndexRangesBuilder<int16_t> &builder) {
         if (unique_sorted_indices::non_empty_is_range(universe_segment.base_span())) {
@@ -447,7 +452,7 @@ static IndexMask tris_in_set(const IndexMask &tri_mask,
                                              SimpleVectorSetSlot<TriKey, int>> &unique_tris,
                              IndexMaskMemory &memory)
 {
-  return IndexMask::from_predicate(tri_mask, GrainSize(4096), memory, [&](const int face_i) {
+  return IndexMask::from_predicate(tri_mask, memory, [&](const int face_i) {
     BLI_assert(faces[face_i].size() == 3);
     const int3 corner_tri(&corner_verts[faces[face_i].start()]);
     return unique_tris.contains_as(tri_to_ordered(corner_tri));
@@ -467,10 +472,12 @@ static void face_keys_to_face_indices(const Span<TriKey> faces, MutableSpan<int>
 static void quad_indices_of_tris(const IndexMask &quads, MutableSpan<int> indices)
 {
   BLI_assert(quads.size() * 2 == indices.size());
-  quads.foreach_index_optimized<int>(GrainSize(4096), [&](const int index, const int pos) {
-    indices[2 * pos + 0] = index;
-    indices[2 * pos + 1] = index;
-  });
+  quads.foreach_index_optimized<int>(
+      [&](const int index, const int pos) {
+        indices[2 * pos + 0] = index;
+        indices[2 * pos + 1] = index;
+      },
+      exec_mode::grain_size(4096));
 }
 
 static void ngon_indices_of_tris(const IndexMask &ngons,
@@ -479,9 +486,9 @@ static void ngon_indices_of_tris(const IndexMask &ngons,
 {
   BLI_assert(tris_by_ngon.size() == ngons.size());
   BLI_assert(tris_by_ngon.total_size() == indices.size());
-  ngons.foreach_index_optimized<int>(GrainSize(4096), [&](const int index, const int pos) {
-    indices.slice(tris_by_ngon[pos]).fill(index);
-  });
+  ngons.foreach_index_optimized<int>(
+      [&](const int index, const int pos) { indices.slice(tris_by_ngon[pos]).fill(index); },
+      exec_mode::grain_size(4096));
 }
 
 std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
@@ -505,9 +512,9 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
    * for correctness, but considering groups of each face type separately simplifies optimizing
    * for each type. For example, quad triangulation is much simpler than Ngon triangulation. */
   const IndexMask quads = IndexMask::from_predicate(
-      selection, GrainSize(4096), memory, [&](const int i) { return src_faces[i].size() == 4; });
+      selection, memory, [&](const int i) { return src_faces[i].size() == 4; });
   const IndexMask ngons = IndexMask::from_predicate(
-      selection, GrainSize(4096), memory, [&](const int i) { return src_faces[i].size() > 4; });
+      selection, memory, [&](const int i) { return src_faces[i].size() > 4; });
   if (quads.is_empty() && ngons.is_empty()) {
     /* All selected faces are already triangles. */
     return std::nullopt;

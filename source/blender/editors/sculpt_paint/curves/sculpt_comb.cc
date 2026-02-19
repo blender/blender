@@ -142,13 +142,16 @@ struct CombOperationExecutor {
       self_->curve_lengths_.reinitialize(curves_orig_->curves_num());
       const Span<float> segment_lengths = self_->constraint_solver_.segment_lengths();
       const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
-      curve_selection_.foreach_segment(GrainSize(512), [&](const IndexMaskSegment segment) {
-        for (const int curve_i : segment) {
-          const IndexRange points = points_by_curve[curve_i];
-          const Span<float> lengths = segment_lengths.slice(points.drop_back(1));
-          self_->curve_lengths_[curve_i] = std::accumulate(lengths.begin(), lengths.end(), 0.0f);
-        }
-      });
+      curve_selection_.foreach_segment(
+          [&](const IndexMaskSegment segment) {
+            for (const int curve_i : segment) {
+              const IndexRange points = points_by_curve[curve_i];
+              const Span<float> lengths = segment_lengths.slice(points.drop_back(1));
+              self_->curve_lengths_[curve_i] = std::accumulate(
+                  lengths.begin(), lengths.end(), 0.0f);
+            }
+          },
+          exec_mode::grain_size(512));
       /* Combing does nothing when there is no mouse movement, so return directly. */
       return;
     }
@@ -211,67 +214,71 @@ struct CombOperationExecutor {
 
     const Span<float> segment_lengths = self_->constraint_solver_.segment_lengths();
 
-    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
-      for (const int curve_i : segment) {
-        bool curve_changed = false;
-        const IndexRange points = points_by_curve[curve_i];
+    curve_selection_.foreach_segment(
+        [&](const IndexMaskSegment segment) {
+          for (const int curve_i : segment) {
+            bool curve_changed = false;
+            const IndexRange points = points_by_curve[curve_i];
 
-        const float total_length = self_->curve_lengths_[curve_i];
-        const float total_length_inv = math::safe_rcp(total_length);
-        float current_length = 0.0f;
-        for (const int point_i : points.drop_front(1)) {
-          current_length += segment_lengths[point_i - 1];
+            const float total_length = self_->curve_lengths_[curve_i];
+            const float total_length_inv = math::safe_rcp(total_length);
+            float current_length = 0.0f;
+            for (const int point_i : points.drop_front(1)) {
+              current_length += segment_lengths[point_i - 1];
 
-          const float3 old_pos_cu = deformation.positions[point_i];
-          const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv, old_pos_cu);
+              const float3 old_pos_cu = deformation.positions[point_i];
+              const float3 old_symm_pos_cu = math::transform_point(brush_transform_inv,
+                                                                   old_pos_cu);
 
-          /* Find the position of the point in screen space. */
-          const float2 old_symm_pos_re = ED_view3d_project_float_v2_m4(
-              ctx_.region, old_symm_pos_cu, projection);
+              /* Find the position of the point in screen space. */
+              const float2 old_symm_pos_re = ED_view3d_project_float_v2_m4(
+                  ctx_.region, old_symm_pos_cu, projection);
 
-          const float distance_to_brush_sq_re = dist_squared_to_line_segment_v2(
-              old_symm_pos_re, brush_pos_prev_re_, brush_pos_re_);
-          if (distance_to_brush_sq_re > brush_radius_sq_re) {
-            /* Ignore the point because it's too far away. */
-            continue;
+              const float distance_to_brush_sq_re = dist_squared_to_line_segment_v2(
+                  old_symm_pos_re, brush_pos_prev_re_, brush_pos_re_);
+              if (distance_to_brush_sq_re > brush_radius_sq_re) {
+                /* Ignore the point because it's too far away. */
+                continue;
+              }
+
+              const float distance_to_brush_re = std::sqrt(distance_to_brush_sq_re);
+              /* A falloff that is based on how far away the point is from the stroke. */
+              const float radius_falloff = BKE_brush_curve_strength(
+                  brush_, distance_to_brush_re, brush_radius_re);
+              const float curve_parameter = current_length * total_length_inv;
+              const float curve_falloff = BKE_curvemapping_evaluateF(
+                  &curve_parameter_falloff_mapping, 0, curve_parameter);
+              /* Combine the falloff and brush strength. */
+              const float weight = brush_strength_ * curve_falloff * radius_falloff *
+                                   point_factors_[point_i];
+
+              /* Offset the old point position in screen space and transform it back into 3D space.
+               */
+              const float2 new_symm_pos_re = old_symm_pos_re + brush_pos_diff_re_ * weight;
+              float3 new_symm_pos_wo;
+              ED_view3d_win_to_3d(
+                  ctx_.v3d,
+                  ctx_.region,
+                  math::transform_point(transforms_.curves_to_world, old_symm_pos_cu),
+                  new_symm_pos_re,
+                  new_symm_pos_wo);
+              const float3 new_pos_cu = math::transform_point(
+                  brush_transform,
+                  math::transform_point(transforms_.world_to_curves, new_symm_pos_wo));
+
+              const float3 translation_eval = new_pos_cu - old_pos_cu;
+              const float3 translation_orig = deformation.translation_from_deformed_to_original(
+                  point_i, translation_eval);
+              positions_cu_orig[point_i] += translation_orig;
+
+              curve_changed = true;
+            }
+            if (curve_changed) {
+              r_changed_curves[curve_i] = true;
+            }
           }
-
-          const float distance_to_brush_re = std::sqrt(distance_to_brush_sq_re);
-          /* A falloff that is based on how far away the point is from the stroke. */
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, distance_to_brush_re, brush_radius_re);
-          const float curve_parameter = current_length * total_length_inv;
-          const float curve_falloff = BKE_curvemapping_evaluateF(
-              &curve_parameter_falloff_mapping, 0, curve_parameter);
-          /* Combine the falloff and brush strength. */
-          const float weight = brush_strength_ * curve_falloff * radius_falloff *
-                               point_factors_[point_i];
-
-          /* Offset the old point position in screen space and transform it back into 3D space.
-           */
-          const float2 new_symm_pos_re = old_symm_pos_re + brush_pos_diff_re_ * weight;
-          float3 new_symm_pos_wo;
-          ED_view3d_win_to_3d(ctx_.v3d,
-                              ctx_.region,
-                              math::transform_point(transforms_.curves_to_world, old_symm_pos_cu),
-                              new_symm_pos_re,
-                              new_symm_pos_wo);
-          const float3 new_pos_cu = math::transform_point(
-              brush_transform,
-              math::transform_point(transforms_.world_to_curves, new_symm_pos_wo));
-
-          const float3 translation_eval = new_pos_cu - old_pos_cu;
-          const float3 translation_orig = deformation.translation_from_deformed_to_original(
-              point_i, translation_eval);
-          positions_cu_orig[point_i] += translation_orig;
-
-          curve_changed = true;
-        }
-        if (curve_changed) {
-          r_changed_curves[curve_i] = true;
-        }
-      }
-    });
+        },
+        exec_mode::grain_size(256));
   }
 
   /**
@@ -326,52 +333,54 @@ struct CombOperationExecutor {
     const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
     const Span<float> segment_lengths = self_->constraint_solver_.segment_lengths();
 
-    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
-      for (const int curve_i : segment) {
-        bool curve_changed = false;
-        const IndexRange points = points_by_curve[curve_i];
+    curve_selection_.foreach_segment(
+        [&](const IndexMaskSegment segment) {
+          for (const int curve_i : segment) {
+            bool curve_changed = false;
+            const IndexRange points = points_by_curve[curve_i];
 
-        const float total_length = self_->curve_lengths_[curve_i];
-        const float total_length_inv = math::safe_rcp(total_length);
-        float current_length = 0.0f;
-        for (const int point_i : points.drop_front(1)) {
-          current_length += segment_lengths[point_i - 1];
+            const float total_length = self_->curve_lengths_[curve_i];
+            const float total_length_inv = math::safe_rcp(total_length);
+            float current_length = 0.0f;
+            for (const int point_i : points.drop_front(1)) {
+              current_length += segment_lengths[point_i - 1];
 
-          const float3 pos_old_cu = deformation.positions[point_i];
+              const float3 pos_old_cu = deformation.positions[point_i];
 
-          /* Compute distance to the brush. */
-          const float distance_to_brush_sq_cu = dist_squared_to_line_segment_v3(
-              pos_old_cu, brush_start_cu, brush_end_cu);
-          if (distance_to_brush_sq_cu > brush_radius_sq_cu) {
-            /* Ignore the point because it's too far away. */
-            continue;
+              /* Compute distance to the brush. */
+              const float distance_to_brush_sq_cu = dist_squared_to_line_segment_v3(
+                  pos_old_cu, brush_start_cu, brush_end_cu);
+              if (distance_to_brush_sq_cu > brush_radius_sq_cu) {
+                /* Ignore the point because it's too far away. */
+                continue;
+              }
+
+              const float distance_to_brush_cu = std::sqrt(distance_to_brush_sq_cu);
+
+              /* A falloff that is based on how far away the point is from the stroke. */
+              const float radius_falloff = BKE_brush_curve_strength(
+                  brush_, distance_to_brush_cu, brush_radius_cu);
+              const float curve_parameter = current_length * total_length_inv;
+              const float curve_falloff = BKE_curvemapping_evaluateF(
+                  &curve_parameter_falloff_mapping, 0, curve_parameter);
+              /* Combine the falloff and brush strength. */
+              const float weight = brush_strength_ * curve_falloff * radius_falloff *
+                                   point_factors_[point_i];
+
+              const float3 translation_eval_cu = weight * brush_diff_cu;
+              const float3 translation_orig_cu = deformation.translation_from_deformed_to_original(
+                  point_i, translation_eval_cu);
+
+              /* Update the point position. */
+              positions_cu[point_i] += translation_orig_cu;
+              curve_changed = true;
+            }
+            if (curve_changed) {
+              r_changed_curves[curve_i] = true;
+            }
           }
-
-          const float distance_to_brush_cu = std::sqrt(distance_to_brush_sq_cu);
-
-          /* A falloff that is based on how far away the point is from the stroke. */
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, distance_to_brush_cu, brush_radius_cu);
-          const float curve_parameter = current_length * total_length_inv;
-          const float curve_falloff = BKE_curvemapping_evaluateF(
-              &curve_parameter_falloff_mapping, 0, curve_parameter);
-          /* Combine the falloff and brush strength. */
-          const float weight = brush_strength_ * curve_falloff * radius_falloff *
-                               point_factors_[point_i];
-
-          const float3 translation_eval_cu = weight * brush_diff_cu;
-          const float3 translation_orig_cu = deformation.translation_from_deformed_to_original(
-              point_i, translation_eval_cu);
-
-          /* Update the point position. */
-          positions_cu[point_i] += translation_orig_cu;
-          curve_changed = true;
-        }
-        if (curve_changed) {
-          r_changed_curves[curve_i] = true;
-        }
-      }
-    });
+        },
+        exec_mode::grain_size(256));
   }
 
   /**

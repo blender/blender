@@ -69,9 +69,9 @@ BLI_NOINLINE static void process_leaf_node(const mf::MultiFunction &fn,
   IndexMaskMemory memory;
   const IndexMask index_mask = IndexMask::from_predicate(
       IndexRange(grid::LeafNodeMask::SIZE),
-      GrainSize(grid::LeafNodeMask::SIZE),
       memory,
-      [&](const int64_t i) { return leaf_node_mask.isOn(i); });
+      [&](const int64_t i) { return leaf_node_mask.isOn(i); },
+      exec_mode::serial);
 
   AlignedBuffer<8192, 8> allocation_buffer;
   ResourceScope scope;

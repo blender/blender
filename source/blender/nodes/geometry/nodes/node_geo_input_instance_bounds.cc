@@ -43,48 +43,54 @@ class InstanceBoundsField final : public bke::InstancesFieldInput {
     IndexMask reference_mask(references.size());
     Array<bool> reference_in_mask(references.size(), false);
 
-    mask.foreach_index(GrainSize(2048), [&](const int i) {
-      const int handle = handles[i];
-      if (handle < reference_in_mask.size()) {
-        reference_in_mask[handle] = true;
-      }
-    });
+    mask.foreach_index(
+        [&](const int i) {
+          const int handle = handles[i];
+          if (handle < reference_in_mask.size()) {
+            reference_in_mask[handle] = true;
+          }
+        },
+        exec_mode::grain_size(2048));
 
     reference_mask = IndexMask::from_bools(reference_in_mask.as_span(), memory);
     Array<float3> reference_bounds(references.size());
 
-    reference_mask.foreach_index(GrainSize(128), [&](const int reference_index) {
-      const bke::InstanceReference &reference = references[reference_index];
+    reference_mask.foreach_index(
+        [&](const int reference_index) {
+          const bke::InstanceReference &reference = references[reference_index];
 
-      GeometrySet instance_geometry;
-      switch (reference.type()) {
-        case bke::InstanceReference::Type::GeometrySet:
-          instance_geometry = reference.geometry_set();
-          break;
-        case bke::InstanceReference::Type::Object:
-          instance_geometry = bke::object_get_evaluated_geometry_set(reference.object());
-          break;
-        case bke::InstanceReference::Type::Collection:
-          break;
-        case bke::InstanceReference::Type::None:
-          break;
-      }
+          GeometrySet instance_geometry;
+          switch (reference.type()) {
+            case bke::InstanceReference::Type::GeometrySet:
+              instance_geometry = reference.geometry_set();
+              break;
+            case bke::InstanceReference::Type::Object:
+              instance_geometry = bke::object_get_evaluated_geometry_set(reference.object());
+              break;
+            case bke::InstanceReference::Type::Collection:
+              break;
+            case bke::InstanceReference::Type::None:
+              break;
+          }
 
-      std::optional<Bounds<float3>> sub_bounds =
-          instance_geometry.compute_boundbox_without_instances(use_radius_);
+          std::optional<Bounds<float3>> sub_bounds =
+              instance_geometry.compute_boundbox_without_instances(use_radius_);
 
-      if (sub_bounds) {
-        reference_bounds[reference_index] = return_max_ ? sub_bounds->max : sub_bounds->min;
-      }
-      else {
-        reference_bounds[reference_index] = float3(0.0f);
-      }
-    });
+          if (sub_bounds) {
+            reference_bounds[reference_index] = return_max_ ? sub_bounds->max : sub_bounds->min;
+          }
+          else {
+            reference_bounds[reference_index] = float3(0.0f);
+          }
+        },
+        exec_mode::grain_size(128));
 
     Array<float3> output_bounds(mask.min_array_size());
-    mask.foreach_index(GrainSize(4096), [&](const int instance_index) {
-      output_bounds[instance_index] = reference_bounds[handles[instance_index]];
-    });
+    mask.foreach_index(
+        [&](const int instance_index) {
+          output_bounds[instance_index] = reference_bounds[handles[instance_index]];
+        },
+        exec_mode::grain_size(4096));
 
     return VArray<float3>::from_container(std::move(output_bounds));
   }

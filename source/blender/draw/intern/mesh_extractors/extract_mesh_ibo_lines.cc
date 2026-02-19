@@ -31,9 +31,8 @@ static IndexMask calc_mesh_edge_visibility(const MeshRenderData &mr,
   }
   if (mr.hide_unmapped_edges && mr.orig_index_edge != nullptr) {
     const int *orig_index = mr.orig_index_edge;
-    visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int64_t i) {
-      return orig_index[i] != ORIGINDEX_NONE;
-    });
+    visible = IndexMask::from_predicate(
+        visible, memory, [&](const int64_t i) { return orig_index[i] != ORIGINDEX_NONE; });
   }
   return visible;
 }
@@ -52,9 +51,11 @@ static void fill_loose_lines_ibo(const MeshRenderData &mr,
       array_utils::fill_index_range(data.cast<uint>(), loose_start);
     }
     else {
-      visible.foreach_index_optimized<int>(GrainSize(4096), [&](const int i, const int pos) {
-        data[pos] = loose_start + uint2(i * 2 + 0, i * 2 + 1);
-      });
+      visible.foreach_index_optimized<int>(
+          [&](const int i, const int pos) {
+            data[pos] = loose_start + uint2(i * 2 + 0, i * 2 + 1);
+          },
+          exec_mode::grain_size(4096));
     }
   });
 }
@@ -66,11 +67,11 @@ static IndexMask calc_visible_loose_edge_indices(const MeshRenderData &mr, Index
   if (!mr.hide_edge.is_empty()) {
     const Span<bool> hide_edge = mr.hide_edge;
     visible = IndexMask::from_predicate(
-        visible, GrainSize(4096), memory, [&](const int i) { return !hide_edge[loose_edges[i]]; });
+        visible, memory, [&](const int i) { return !hide_edge[loose_edges[i]]; });
   }
   if (mr.hide_unmapped_edges && mr.orig_index_edge != nullptr) {
     const int *orig_index = mr.orig_index_edge;
-    visible = IndexMask::from_predicate(visible, GrainSize(4096), memory, [&](const int64_t i) {
+    visible = IndexMask::from_predicate(visible, memory, [&](const int64_t i) {
       return orig_index[loose_edges[i]] != ORIGINDEX_NONE;
     });
   }
@@ -178,7 +179,7 @@ static void extract_lines_bm(const MeshRenderData &mr,
 
   IndexMaskMemory memory;
   const IndexMask visible_loose_edges = IndexMask::from_predicate(
-      loose_edges.index_range(), GrainSize(2048), memory, [&](const int i) {
+      loose_edges.index_range(), memory, [&](const int i) {
         const BMEdge &edge = *BM_edge_at_index(&const_cast<BMesh &>(bm), loose_edges[i]);
         return !BM_elem_flag_test_bool(&edge, BM_ELEM_HIDDEN);
       });
@@ -198,7 +199,7 @@ static void extract_lines_bm(const MeshRenderData &mr,
   const IndexMask all_loose_edges = IndexMask::from_indices(mr.loose_edges, memory);
   const IndexMask non_loose_edges = all_loose_edges.complement(IndexRange(bm.totedge), memory);
   const IndexMask visible_non_loose_edges = IndexMask::from_predicate(
-      non_loose_edges, GrainSize(2048), memory, [&](const int i) {
+      non_loose_edges, memory, [&](const int i) {
         const BMEdge &edge = *BM_edge_at_index(&const_cast<BMesh &>(bm), i);
         return !BM_elem_flag_test_bool(&edge, BM_ELEM_HIDDEN);
       });
@@ -212,10 +213,12 @@ static void extract_lines_bm(const MeshRenderData &mr,
 
   /* Make use of BMesh's edge to loop topology knowledge to iterate over edges instead of
    * iterating over faces and defining edges implicitly as done in the #Mesh extraction. */
-  visible_non_loose_edges.foreach_index(GrainSize(4096), [&](const int i, const int pos) {
-    const BMEdge &edge = *BM_edge_at_index(&const_cast<BMesh &>(bm), i);
-    data[pos] = uint2(BM_elem_index_get(edge.l), BM_elem_index_get(edge.l->next));
-  });
+  visible_non_loose_edges.foreach_index(
+      [&](const int i, const int pos) {
+        const BMEdge &edge = *BM_edge_at_index(&const_cast<BMesh &>(bm), i);
+        data[pos] = uint2(BM_elem_index_get(edge.l), BM_elem_index_get(edge.l->next));
+      },
+      exec_mode::grain_size(4096));
 
   fill_loose_lines_ibo(mr, visible_loose_edges, data.take_back(visible_loose_edges.size()));
 

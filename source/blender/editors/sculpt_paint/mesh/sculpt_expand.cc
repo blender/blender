@@ -466,7 +466,7 @@ static IndexMask boundary_from_enabled(Object &object,
       const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
       const bke::AttributeAccessor attributes = mesh.attributes();
       const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-      return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
+      return IndexMask::from_predicate(enabled_mask, memory, [&](const int vert) {
         Vector<int> neighbors;
         for (const int neighbor : vert_neighbors_get_mesh(
                  faces, corner_verts, vert_to_face_map, hide_poly, vert, neighbors))
@@ -493,7 +493,7 @@ static IndexMask boundary_from_enabled(Object &object,
 
       const SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-      return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
+      return IndexMask::from_predicate(enabled_mask, memory, [&](const int vert) {
         const SubdivCCGCoord coord = SubdivCCGCoord::from_index(key, vert);
         SubdivCCGNeighbors neighbors;
         BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
@@ -517,7 +517,7 @@ static IndexMask boundary_from_enabled(Object &object,
       });
     }
     case bke::pbvh::Type::BMesh: {
-      return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
+      return IndexMask::from_predicate(enabled_mask, memory, [&](const int vert) {
         BMVert *bm_vert = BM_vert_at_index(ss.bm, vert);
         BMeshNeighborVerts neighbors;
         for (const BMVert *neighbor : vert_neighbors_get_bmesh(*bm_vert, neighbors)) {
@@ -1958,9 +1958,11 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
           Array<bool> node_changed(node_mask.min_array_size(), false);
 
           MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-          node_mask.foreach_index(GrainSize(1), [&](const int i) {
-            node_changed[i] = update_mask_grids(ss, enabled_verts, nodes[i], *ss.subdiv_ccg);
-          });
+          node_mask.foreach_index(
+              [&](const int i) {
+                node_changed[i] = update_mask_grids(ss, enabled_verts, nodes[i], *ss.subdiv_ccg);
+              },
+              exec_mode::grain_size(1));
 
           IndexMaskMemory memory;
           pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
@@ -1972,9 +1974,11 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
           MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
 
           Array<bool> node_changed(node_mask.min_array_size(), false);
-          node_mask.foreach_index(GrainSize(1), [&](const int i) {
-            node_changed[i] = update_mask_bmesh(ss, enabled_verts, mask_offset, &nodes[i]);
-          });
+          node_mask.foreach_index(
+              [&](const int i) {
+                node_changed[i] = update_mask_bmesh(ss, enabled_verts, mask_offset, &nodes[i]);
+              },
+              exec_mode::grain_size(1));
 
           IndexMaskMemory memory;
           pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
@@ -2002,18 +2006,20 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
       Array<bool> node_changed(node_mask.min_array_size(), false);
 
       MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      node_mask.foreach_index(GrainSize(1), [&](const int i) {
-        node_changed[i] = colors_update_task(depsgraph,
-                                             ob,
-                                             vert_positions,
-                                             faces,
-                                             corner_verts,
-                                             vert_to_face_map,
-                                             hide_vert,
-                                             mask,
-                                             &nodes[i],
-                                             color_attribute);
-      });
+      node_mask.foreach_index(
+          [&](const int i) {
+            node_changed[i] = colors_update_task(depsgraph,
+                                                 ob,
+                                                 vert_positions,
+                                                 faces,
+                                                 corner_verts,
+                                                 vert_to_face_map,
+                                                 hide_vert,
+                                                 mask,
+                                                 &nodes[i],
+                                                 color_attribute);
+          },
+          exec_mode::grain_size(1));
 
       IndexMaskMemory memory;
       pbvh.tag_attribute_changed(IndexMask::from_bools(node_changed, memory),

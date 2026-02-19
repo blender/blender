@@ -51,13 +51,18 @@ void VertexReplaceOperation::on_stroke_extended(const bContext &C,
     if (!point_selection.is_empty() && do_points) {
       const Array<float2> view_positions = view_positions_from_point_mask(params, point_selection);
       MutableSpan<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors_for_write();
-      point_selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-        const float influence = brush_point_influence(
-            paint, brush, view_positions[point_i], extension_sample, params.multi_frame_falloff);
-        if (influence > 0.0f && vertex_colors[point_i].a > 0.0f) {
-          vertex_colors[point_i] = replace_color;
-        }
-      });
+      point_selection.foreach_index(
+          [&](const int64_t point_i) {
+            const float influence = brush_point_influence(paint,
+                                                          brush,
+                                                          view_positions[point_i],
+                                                          extension_sample,
+                                                          params.multi_frame_falloff);
+            if (influence > 0.0f && vertex_colors[point_i].a > 0.0f) {
+              vertex_colors[point_i] = replace_color;
+            }
+          },
+          exec_mode::grain_size(4096));
     }
 
     const IndexMask fill_selection = fill_mask_for_stroke_operation(
@@ -67,15 +72,17 @@ void VertexReplaceOperation::on_stroke_extended(const bContext &C,
       const Array<float2> view_positions = view_positions_from_curve_mask(params, fill_selection);
       MutableSpan<ColorGeometry4f> fill_colors = params.drawing.fill_colors_for_write();
 
-      fill_selection.foreach_index(GrainSize(1024), [&](const int64_t curve_i) {
-        const IndexRange points = points_by_curve[curve_i];
-        const Span<float2> curve_view_positions = view_positions.as_span().slice(points);
-        const float influence = brush_fill_influence(
-            paint, brush, curve_view_positions, extension_sample, params.multi_frame_falloff);
-        if (influence > 0.0f && fill_colors[curve_i].a > 0.0f) {
-          fill_colors[curve_i] = replace_color;
-        }
-      });
+      fill_selection.foreach_index(
+          [&](const int64_t curve_i) {
+            const IndexRange points = points_by_curve[curve_i];
+            const Span<float2> curve_view_positions = view_positions.as_span().slice(points);
+            const float influence = brush_fill_influence(
+                paint, brush, curve_view_positions, extension_sample, params.multi_frame_falloff);
+            if (influence > 0.0f && fill_colors[curve_i].a > 0.0f) {
+              fill_colors[curve_i] = replace_color;
+            }
+          },
+          exec_mode::grain_size(1024));
     }
     return true;
   });

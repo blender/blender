@@ -863,7 +863,7 @@ struct EraseOperationExecutor {
     const VArray<int> &stroke_materials = *src.attributes().lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
     const IndexMask strokes_to_keep = IndexMask::from_predicate(
-        src.curves_range(), GrainSize(256), memory, [&](const int src_curve) {
+        src.curves_range(), memory, [&](const int src_curve) {
           const MaterialGPencilStyle *mat = BKE_gpencil_material_settings(
               &ob, stroke_materials[src_curve] + 1);
           /* Keep strokes with locked material. */
@@ -1122,7 +1122,7 @@ static void remove_points_with_low_opacity(bke::CurvesGeometry &curves,
 {
   IndexMaskMemory memory;
   const IndexMask points_to_remove_and_split = IndexMask::from_predicate(
-      curves.points_range(), GrainSize(4096), memory, [&](const int64_t point) {
+      curves.points_range(), memory, [&](const int64_t point) {
         return opacities[point] < epsilon;
       });
   curves = geometry::remove_points_and_split(curves, points_to_remove_and_split);

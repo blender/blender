@@ -124,18 +124,20 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBaseT<Nurb> 
   MutableSpan<float> tilts = curves.tilt_for_write();
 
   auto create_poly = [&](const IndexMask &selection) {
-    selection.foreach_index(GrainSize(256), [&](const int curve_i) {
-      const Nurb &src_curve = *src_curves[curve_i];
-      const Span<BPoint> src_points(src_curve.bp, src_curve.pntsu);
-      const IndexRange points = points_by_curve[curve_i];
+    selection.foreach_index(
+        [&](const int curve_i) {
+          const Nurb &src_curve = *src_curves[curve_i];
+          const Span<BPoint> src_points(src_curve.bp, src_curve.pntsu);
+          const IndexRange points = points_by_curve[curve_i];
 
-      for (const int i : src_points.index_range()) {
-        const BPoint &bp = src_points[i];
-        positions[points[i]] = bp.vec;
-        radii[points[i]] = bp.radius;
-        tilts[points[i]] = bp.tilt;
-      }
-    });
+          for (const int i : src_points.index_range()) {
+            const BPoint &bp = src_points[i];
+            positions[points[i]] = bp.vec;
+            radii[points[i]] = bp.radius;
+            tilts[points[i]] = bp.tilt;
+          }
+        },
+        exec_mode::grain_size(256));
   };
 
   /* NOTE: For curve handles, legacy curves can end up in invalid situations where the handle
@@ -149,24 +151,26 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBaseT<Nurb> 
     MutableSpan<int8_t> handle_types_l = curves.handle_types_left_for_write();
     MutableSpan<int8_t> handle_types_r = curves.handle_types_right_for_write();
 
-    selection.foreach_index(GrainSize(256), [&](const int curve_i) {
-      const Nurb &src_curve = *src_curves[curve_i];
-      const Span<BezTriple> src_points(src_curve.bezt, src_curve.pntsu);
-      const IndexRange points = points_by_curve[curve_i];
+    selection.foreach_index(
+        [&](const int curve_i) {
+          const Nurb &src_curve = *src_curves[curve_i];
+          const Span<BezTriple> src_points(src_curve.bezt, src_curve.pntsu);
+          const IndexRange points = points_by_curve[curve_i];
 
-      resolutions[curve_i] = src_curve.resolu;
+          resolutions[curve_i] = src_curve.resolu;
 
-      for (const int i : src_points.index_range()) {
-        const BezTriple &point = src_points[i];
-        positions[points[i]] = point.vec[1];
-        handle_positions_l[points[i]] = point.vec[0];
-        handle_types_l[points[i]] = handle_type_from_legacy(point.h1);
-        handle_positions_r[points[i]] = point.vec[2];
-        handle_types_r[points[i]] = handle_type_from_legacy(point.h2);
-        radii[points[i]] = point.radius;
-        tilts[points[i]] = point.tilt;
-      }
-    });
+          for (const int i : src_points.index_range()) {
+            const BezTriple &point = src_points[i];
+            positions[points[i]] = point.vec[1];
+            handle_positions_l[points[i]] = point.vec[0];
+            handle_types_l[points[i]] = handle_type_from_legacy(point.h1);
+            handle_positions_r[points[i]] = point.vec[2];
+            handle_types_r[points[i]] = handle_type_from_legacy(point.h2);
+            radii[points[i]] = point.radius;
+            tilts[points[i]] = point.tilt;
+          }
+        },
+        exec_mode::grain_size(256));
   };
 
   auto create_nurbs = [&](const IndexMask &selection) {
@@ -175,23 +179,25 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBaseT<Nurb> 
     MutableSpan<int8_t> nurbs_orders = curves.nurbs_orders_for_write();
     MutableSpan<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes_for_write();
 
-    selection.foreach_index(GrainSize(256), [&](const int curve_i) {
-      const Nurb &src_curve = *src_curves[curve_i];
-      const Span src_points(src_curve.bp, src_curve.pntsu);
-      const IndexRange points = points_by_curve[curve_i];
+    selection.foreach_index(
+        [&](const int curve_i) {
+          const Nurb &src_curve = *src_curves[curve_i];
+          const Span src_points(src_curve.bp, src_curve.pntsu);
+          const IndexRange points = points_by_curve[curve_i];
 
-      resolutions[curve_i] = src_curve.resolu;
-      nurbs_orders[curve_i] = src_curve.orderu;
-      nurbs_knots_modes[curve_i] = knots_mode_from_legacy(src_curve.flagu);
+          resolutions[curve_i] = src_curve.resolu;
+          nurbs_orders[curve_i] = src_curve.orderu;
+          nurbs_knots_modes[curve_i] = knots_mode_from_legacy(src_curve.flagu);
 
-      for (const int i : src_points.index_range()) {
-        const BPoint &bp = src_points[i];
-        positions[points[i]] = bp.vec;
-        radii[points[i]] = bp.radius;
-        tilts[points[i]] = bp.tilt;
-        nurbs_weights[points[i]] = bp.vec[3];
-      }
-    });
+          for (const int i : src_points.index_range()) {
+            const BPoint &bp = src_points[i];
+            positions[points[i]] = bp.vec;
+            radii[points[i]] = bp.radius;
+            tilts[points[i]] = bp.tilt;
+            nurbs_weights[points[i]] = bp.vec[3];
+          }
+        },
+        exec_mode::grain_size(256));
 
     curves.nurbs_custom_knots_update_size();
     if (!curves.nurbs_has_custom_knots()) {

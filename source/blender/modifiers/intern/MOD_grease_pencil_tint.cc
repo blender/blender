@@ -205,23 +205,27 @@ static void modify_stroke_color(Object &ob,
   const GreasePencilTintModifierMode tint_mode = GreasePencilTintModifierMode(tmd.tint_mode);
   switch (tint_mode) {
     case MOD_GREASE_PENCIL_TINT_UNIFORM: {
-      curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-        const ColorGeometry4f material_color = get_material_color(curve_i);
+      curves_mask.foreach_index(
+          [&](const int64_t curve_i) {
+            const ColorGeometry4f material_color = get_material_color(curve_i);
 
-        const IndexRange points = points_by_curve[curve_i];
-        for (const int64_t i : points.index_range()) {
-          const int64_t point_i = points[i];
-          const float curve_input = points.size() >= 2 ? (float(i) / float(points.size() - 1)) :
-                                                         0.0f;
-          const float curve_factor = use_curve ? BKE_curvemapping_evaluateF(
-                                                     tmd.influence.custom_curve, 0, curve_input) :
-                                                 1.0f;
-          vertex_colors[point_i] = apply_uniform_tint(
-              tmd,
-              get_base_color(vertex_colors[point_i], material_color),
-              get_point_factor(point_i) * curve_factor);
-        }
-      });
+            const IndexRange points = points_by_curve[curve_i];
+            for (const int64_t i : points.index_range()) {
+              const int64_t point_i = points[i];
+              const float curve_input = points.size() >= 2 ?
+                                            (float(i) / float(points.size() - 1)) :
+                                            0.0f;
+              const float curve_factor = use_curve ?
+                                             BKE_curvemapping_evaluateF(
+                                                 tmd.influence.custom_curve, 0, curve_input) :
+                                             1.0f;
+              vertex_colors[point_i] = apply_uniform_tint(
+                  tmd,
+                  get_base_color(vertex_colors[point_i], material_color),
+                  get_point_factor(point_i) * curve_factor);
+            }
+          },
+          exec_mode::grain_size(512));
       break;
     }
     case MOD_GREASE_PENCIL_TINT_GRADIENT: {
@@ -234,19 +238,21 @@ static void modify_stroke_color(Object &ob,
       /* Transforms points to the gradient object space. */
       const float4x4 matrix = tmd.object->world_to_object() * ob.object_to_world();
 
-      curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-        const ColorGeometry4f material_color = get_material_color(curve_i);
+      curves_mask.foreach_index(
+          [&](const int64_t curve_i) {
+            const ColorGeometry4f material_color = get_material_color(curve_i);
 
-        const IndexRange points = points_by_curve[curve_i];
-        for (const int64_t point_i : points) {
-          vertex_colors[point_i] = apply_gradient_tint(
-              tmd,
-              matrix,
-              positions[point_i],
-              get_base_color(vertex_colors[point_i], material_color),
-              get_point_factor(point_i));
-        }
-      });
+            const IndexRange points = points_by_curve[curve_i];
+            for (const int64_t point_i : points) {
+              vertex_colors[point_i] = apply_gradient_tint(
+                  tmd,
+                  matrix,
+                  positions[point_i],
+                  get_base_color(vertex_colors[point_i], material_color),
+                  get_point_factor(point_i));
+            }
+          },
+          exec_mode::grain_size(512));
       break;
     }
   }
@@ -304,11 +310,15 @@ static void modify_fill_color(Object &ob,
 
   switch (tint_mode) {
     case MOD_GREASE_PENCIL_TINT_UNIFORM: {
-      curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
-        const ColorGeometry4f material_color = get_material_color(curve_i);
-        fill_colors[curve_i] = apply_uniform_tint(
-            tmd, get_base_color(fill_colors[curve_i], material_color), get_curve_factor(curve_i));
-      });
+      curves_mask.foreach_index(
+          [&](int64_t curve_i) {
+            const ColorGeometry4f material_color = get_material_color(curve_i);
+            fill_colors[curve_i] = apply_uniform_tint(
+                tmd,
+                get_base_color(fill_colors[curve_i], material_color),
+                get_curve_factor(curve_i));
+          },
+          exec_mode::grain_size(512));
       break;
     }
     case MOD_GREASE_PENCIL_TINT_GRADIENT: {
@@ -317,20 +327,22 @@ static void modify_fill_color(Object &ob,
       /* Transforms points to the gradient object space. */
       const float4x4 matrix = tmd.object->world_to_object() * ob.object_to_world();
 
-      curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
-        const ColorGeometry4f material_color = get_material_color(curve_i);
-        /* Use the first stroke point for gradient position. */
-        const IndexRange points = points_by_curve[curve_i];
-        const float3 pos = points.is_empty() ? float3(0.0f, 0.0f, 0.0f) :
-                                               positions[points.first()];
+      curves_mask.foreach_index(
+          [&](int64_t curve_i) {
+            const ColorGeometry4f material_color = get_material_color(curve_i);
+            /* Use the first stroke point for gradient position. */
+            const IndexRange points = points_by_curve[curve_i];
+            const float3 pos = points.is_empty() ? float3(0.0f, 0.0f, 0.0f) :
+                                                   positions[points.first()];
 
-        fill_colors[curve_i] = apply_gradient_tint(
-            tmd,
-            matrix,
-            pos,
-            get_base_color(fill_colors[curve_i], material_color),
-            get_curve_factor(curve_i));
-      });
+            fill_colors[curve_i] = apply_gradient_tint(
+                tmd,
+                matrix,
+                pos,
+                get_base_color(fill_colors[curve_i], material_color),
+                get_curve_factor(curve_i));
+          },
+          exec_mode::grain_size(512));
       break;
     }
   }
@@ -353,13 +365,15 @@ static void modify_opacity(const GreasePencilTintModifierData &tmd,
     return;
   }
 
-  curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    for (const int64_t point_i : points) {
-      opacities.span[point_i] = std::clamp(
-          opacities.span[point_i] + tmd.factor - 1.0f, 0.0f, 1.0f);
-    }
-  });
+  curves_mask.foreach_index(
+      [&](const int64_t curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        for (const int64_t point_i : points) {
+          opacities.span[point_i] = std::clamp(
+              opacities.span[point_i] + tmd.factor - 1.0f, 0.0f, 1.0f);
+        }
+      },
+      exec_mode::grain_size(512));
 
   opacities.finish();
 }

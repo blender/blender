@@ -52,20 +52,22 @@ void PinchOperation::on_stroke_extended(const bContext &C, const InputSample &ex
 
         const float2 target = extension_sample.mouse_position;
 
-        point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-          const float2 &co = view_positions[point_i];
-          const float influence = brush_point_influence(
-              paint, brush, co, extension_sample, params.multi_frame_falloff);
-          if (influence <= 0.0f) {
-            return;
-          }
+        point_mask.foreach_index(
+            [&](const int64_t point_i) {
+              const float2 &co = view_positions[point_i];
+              const float influence = brush_point_influence(
+                  paint, brush, co, extension_sample, params.multi_frame_falloff);
+              if (influence <= 0.0f) {
+                return;
+              }
 
-          const float influence_squared = influence * influence / 25.0f;
-          const float influence_final = invert ? 1.0 + influence_squared :
-                                                 1.0f - influence_squared;
-          positions[point_i] += compute_orig_delta(
-              projection_fn, deformation, point_i, (target - co) * (1.0f - influence_final));
-        });
+              const float influence_squared = influence * influence / 25.0f;
+              const float influence_final = invert ? 1.0 + influence_squared :
+                                                     1.0f - influence_squared;
+              positions[point_i] += compute_orig_delta(
+                  projection_fn, deformation, point_i, (target - co) * (1.0f - influence_final));
+            },
+            exec_mode::grain_size(4096));
 
         if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
           MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
@@ -76,31 +78,33 @@ void PinchOperation::on_stroke_extended(const bContext &C, const InputSample &ex
           const Array<float2> view_positions_right = view_positions_right_from_point_mask(
               params, point_mask);
 
-          point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-            const float2 co_left = view_positions_left[point_i];
-            const float2 co_right = view_positions_right[point_i];
-            const float influence_left = brush_point_influence(
-                paint, brush, co_left, extension_sample, params.multi_frame_falloff);
-            const float influence_right = brush_point_influence(
-                paint, brush, co_right, extension_sample, params.multi_frame_falloff);
+          point_mask.foreach_index(
+              [&](const int64_t point_i) {
+                const float2 co_left = view_positions_left[point_i];
+                const float2 co_right = view_positions_right[point_i];
+                const float influence_left = brush_point_influence(
+                    paint, brush, co_left, extension_sample, params.multi_frame_falloff);
+                const float influence_right = brush_point_influence(
+                    paint, brush, co_right, extension_sample, params.multi_frame_falloff);
 
-            const float influence_left_squared = influence_left * influence_left / 25.0f;
-            const float influence_left_final = invert ? 1.0f + influence_left_squared :
-                                                        1.0f - influence_left_squared;
-            const float influence_right_squared = influence_right * influence_right / 25.0f;
-            const float influence_right_final = invert ? 1.0f + influence_right_squared :
-                                                         1.0f - influence_right_squared;
-            handle_positions_left[point_i] += compute_orig_delta(
-                projection_fn,
-                deformation,
-                point_i,
-                (target - co_left) * (1.0f - influence_left_final));
-            handle_positions_right[point_i] += compute_orig_delta(
-                projection_fn,
-                deformation,
-                point_i,
-                (target - co_right) * (1.0f - influence_right_final));
-          });
+                const float influence_left_squared = influence_left * influence_left / 25.0f;
+                const float influence_left_final = invert ? 1.0f + influence_left_squared :
+                                                            1.0f - influence_left_squared;
+                const float influence_right_squared = influence_right * influence_right / 25.0f;
+                const float influence_right_final = invert ? 1.0f + influence_right_squared :
+                                                             1.0f - influence_right_squared;
+                handle_positions_left[point_i] += compute_orig_delta(
+                    projection_fn,
+                    deformation,
+                    point_i,
+                    (target - co_left) * (1.0f - influence_left_final));
+                handle_positions_right[point_i] += compute_orig_delta(
+                    projection_fn,
+                    deformation,
+                    point_i,
+                    (target - co_right) * (1.0f - influence_right_final));
+              },
+              exec_mode::grain_size(4096));
 
           curves.calculate_bezier_auto_handles();
           curves.calculate_bezier_aligned_handles();

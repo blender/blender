@@ -25,32 +25,34 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
   /* Fill the array with each curve's point count, then accumulate them to the offsets. */
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_curve_offsets);
-  selection.foreach_index(GrainSize(1024), [&](const int curve_i) {
-    const IndexRange src_points = src_points_by_curve[curve_i];
-    const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
-                                                                               curve_i);
+  selection.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange src_points = src_points_by_curve[curve_i];
+        const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
+                                                                                   curve_i);
 
-    MutableSpan<int> point_offsets = dst_point_offsets.slice(src_segments);
-    MutableSpan<int> point_counts = point_offsets.drop_back(1);
+        MutableSpan<int> point_offsets = dst_point_offsets.slice(src_segments);
+        MutableSpan<int> point_counts = point_offsets.drop_back(1);
 
-    if (src_points.size() == 1) {
-      point_counts.first() = 1;
-    }
-    else {
-      cuts.materialize_compressed(src_points, point_counts);
-      for (int &count : point_counts) {
-        /* Make sure there at least one cut, and add one for the existing point. */
-        count = std::max(count, 0) + 1;
-      }
-      if (!cyclic[curve_i]) {
-        /* The last point only has a segment to be subdivided if the curve isn't cyclic. */
-        point_counts.last() = 1;
-      }
-    }
+        if (src_points.size() == 1) {
+          point_counts.first() = 1;
+        }
+        else {
+          cuts.materialize_compressed(src_points, point_counts);
+          for (int &count : point_counts) {
+            /* Make sure there at least one cut, and add one for the existing point. */
+            count = std::max(count, 0) + 1;
+          }
+          if (!cyclic[curve_i]) {
+            /* The last point only has a segment to be subdivided if the curve isn't cyclic. */
+            point_counts.last() = 1;
+          }
+        }
 
-    offset_indices::accumulate_counts_to_offsets(point_offsets);
-    dst_curve_offsets[curve_i] = point_offsets.last();
-  });
+        offset_indices::accumulate_counts_to_offsets(point_offsets);
+        dst_curve_offsets[curve_i] = point_offsets.last();
+      },
+      exec_mode::grain_size(1024));
   offset_indices::accumulate_counts_to_offsets(dst_curve_offsets);
 }
 
@@ -72,25 +74,27 @@ static void subdivide_attribute_linear(const OffsetIndices<int> src_points_by_cu
                                        const Span<T> src,
                                        MutableSpan<T> dst)
 {
-  selection.foreach_index(GrainSize(512), [&](const int curve_i) {
-    const IndexRange src_points = src_points_by_curve[curve_i];
-    const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
-                                                                               curve_i);
-    const OffsetIndices<int> curve_offsets = all_point_offsets.slice(src_segments);
-    const IndexRange dst_points = dst_points_by_curve[curve_i];
-    const Span<T> curve_src = src.slice(src_points);
-    MutableSpan<T> curve_dst = dst.slice(dst_points);
+  selection.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange src_points = src_points_by_curve[curve_i];
+        const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
+                                                                                   curve_i);
+        const OffsetIndices<int> curve_offsets = all_point_offsets.slice(src_segments);
+        const IndexRange dst_points = dst_points_by_curve[curve_i];
+        const Span<T> curve_src = src.slice(src_points);
+        MutableSpan<T> curve_dst = dst.slice(dst_points);
 
-    threading::parallel_for(curve_src.index_range().drop_back(1), 1024, [&](IndexRange range) {
-      for (const int i : range) {
-        const IndexRange segment_points = curve_offsets[i];
-        linear_interpolation(curve_src[i], curve_src[i + 1], curve_dst.slice(segment_points));
-      }
-    });
+        threading::parallel_for(curve_src.index_range().drop_back(1), 1024, [&](IndexRange range) {
+          for (const int i : range) {
+            const IndexRange segment_points = curve_offsets[i];
+            linear_interpolation(curve_src[i], curve_src[i + 1], curve_dst.slice(segment_points));
+          }
+        });
 
-    const IndexRange dst_last_segment = dst_points.slice(curve_offsets[src_points.size() - 1]);
-    linear_interpolation(curve_src.last(), curve_src.first(), dst.slice(dst_last_segment));
-  });
+        const IndexRange dst_last_segment = dst_points.slice(curve_offsets[src_points.size() - 1]);
+        linear_interpolation(curve_src.last(), curve_src.first(), dst.slice(dst_last_segment));
+      },
+      exec_mode::grain_size(512));
 }
 
 static void subdivide_attribute_linear(const OffsetIndices<int> src_points_by_curve,
@@ -118,16 +122,18 @@ static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_
                                             const GSpan src,
                                             GMutableSpan dst)
 {
-  selection.foreach_index(GrainSize(512), [&](const int curve_i) {
-    const IndexRange src_points = src_points_by_curve[curve_i];
-    const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
-                                                                               curve_i);
-    const IndexRange dst_points = dst_points_by_curve[curve_i];
-    bke::curves::catmull_rom::interpolate_to_evaluated(src.slice(src_points),
-                                                       cyclic[curve_i],
-                                                       all_point_offsets.slice(src_segments),
-                                                       dst.slice(dst_points));
-  });
+  selection.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange src_points = src_points_by_curve[curve_i];
+        const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
+                                                                                   curve_i);
+        const IndexRange dst_points = dst_points_by_curve[curve_i];
+        bke::curves::catmull_rom::interpolate_to_evaluated(src.slice(src_points),
+                                                           cyclic[curve_i],
+                                                           all_point_offsets.slice(src_segments),
+                                                           dst.slice(dst_points));
+      },
+      exec_mode::grain_size(512));
 }
 
 static HandleType aligned_or_free_handle_type(const HandleType type)
@@ -365,24 +371,26 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
     MutableSpan<float3> dst_handles_r = dst_curves.handle_positions_right_for_write();
     const OffsetIndices<int> dst_points_by_curve = dst_curves.points_by_curve();
 
-    selection.foreach_index(GrainSize(512), [&](const int curve_i) {
-      const IndexRange src_points = src_points_by_curve[curve_i];
-      const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
-                                                                                 curve_i);
-      const IndexRange dst_points = dst_points_by_curve[curve_i];
-      subdivide_bezier_positions(src_positions.slice(src_points),
-                                 src_types_l.slice(src_points),
-                                 src_types_r.slice(src_points),
-                                 src_handles_l.slice(src_points),
-                                 src_handles_r.slice(src_points),
-                                 all_point_offsets.slice(src_segments),
-                                 cyclic[curve_i],
-                                 dst_positions.slice(dst_points),
-                                 dst_types_l.slice(dst_points),
-                                 dst_types_r.slice(dst_points),
-                                 dst_handles_l.slice(dst_points),
-                                 dst_handles_r.slice(dst_points));
-    });
+    selection.foreach_index(
+        [&](const int curve_i) {
+          const IndexRange src_points = src_points_by_curve[curve_i];
+          const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
+                                                                                     curve_i);
+          const IndexRange dst_points = dst_points_by_curve[curve_i];
+          subdivide_bezier_positions(src_positions.slice(src_points),
+                                     src_types_l.slice(src_points),
+                                     src_types_r.slice(src_points),
+                                     src_handles_l.slice(src_points),
+                                     src_handles_r.slice(src_points),
+                                     all_point_offsets.slice(src_segments),
+                                     cyclic[curve_i],
+                                     dst_positions.slice(dst_points),
+                                     dst_types_l.slice(dst_points),
+                                     dst_types_r.slice(dst_points),
+                                     dst_handles_l.slice(dst_points),
+                                     dst_handles_r.slice(dst_points));
+        },
+        exec_mode::grain_size(512));
 
     /* Filter out positions and handles that are already interpolated. */
     const Set<StringRef> attributes_to_skip = {

@@ -16,6 +16,11 @@ namespace blender::exec_mode {
 /** Potentially use multiple threads to execute the function. */
 struct Parallel {
   static constexpr bool is_parallel = true;
+
+  int grain_size(const int fallback) const
+  {
+    return fallback;
+  }
 };
 
 /** Execute the function in the current thread. */
@@ -29,7 +34,12 @@ struct Serial {
  */
 struct ParallelGrainSize {
   static constexpr bool is_parallel = true;
-  int grain_size = 1;
+  int grain_size_override = 1;
+
+  int grain_size(const int /*fallback*/) const
+  {
+    return this->grain_size_override;
+  }
 };
 
 /**
@@ -40,6 +50,12 @@ concept Tag = requires {
   {
     T::is_parallel
   } -> std::convertible_to<bool>;
+
+  requires(!T::is_parallel || requires(const T t, int fallback) {
+    {
+      t.grain_size(fallback)
+    } -> std::same_as<int>;
+  });
 };
 
 /**
@@ -47,10 +63,18 @@ concept Tag = requires {
  */
 struct Mode {
   bool is_parallel;
-  std::optional<int> grain_size;
-  constexpr Mode(Parallel /*tag*/) : is_parallel(true), grain_size(std::nullopt) {}
-  constexpr Mode(Serial /*tag*/) : is_parallel(false), grain_size(std::nullopt) {}
-  constexpr Mode(ParallelGrainSize tag) : is_parallel(true), grain_size(tag.grain_size) {}
+  std::optional<int> grain_size_override;
+  constexpr Mode(Parallel /*tag*/) : is_parallel(true), grain_size_override(std::nullopt) {}
+  constexpr Mode(Serial /*tag*/) : is_parallel(false), grain_size_override(std::nullopt) {}
+  constexpr Mode(ParallelGrainSize tag)
+      : is_parallel(true), grain_size_override(tag.grain_size_override)
+  {
+  }
+
+  constexpr int grain_size(const int fallback) const
+  {
+    return this->grain_size_override.value_or(fallback);
+  }
 };
 
 /** Main access points to control execution mode. */

@@ -95,18 +95,20 @@ static void write_stroke_transforms(bke::greasepencil::Drawing &drawing,
 
   curves.ensure_evaluated_lengths();
 
-  curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    const bool is_cyclic = cyclic[curve_i];
-    const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i, is_cyclic);
-    const float norm = normalize_u ? math::safe_rcp(lengths.last()) : 1.0f;
+  curves_mask.foreach_index(
+      [&](int64_t curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        const bool is_cyclic = cyclic[curve_i];
+        const Span<float> lengths = curves.evaluated_lengths_for_curve(curve_i, is_cyclic);
+        const float norm = normalize_u ? math::safe_rcp(lengths.last()) : 1.0f;
 
-    u_translations.span[curve_i] += offset;
-    u_scales.span[curve_i] *= scale * norm;
-    for (const int point_i : points) {
-      rotations.span[point_i] += rotation;
-    }
-  });
+        u_translations.span[curve_i] += offset;
+        u_scales.span[curve_i] *= scale * norm;
+        for (const int point_i : points) {
+          rotations.span[point_i] += rotation;
+        }
+      },
+      exec_mode::grain_size(512));
 
   u_translations.finish();
   u_scales.finish();
@@ -195,49 +197,51 @@ static void write_fill_transforms(bke::greasepencil::Drawing &drawing,
   const Span<float3> positions = curves.positions();
   Array<float4x2> texture_matrices(drawing.texture_matrices());
 
-  curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
-    const IndexRange points = curves.points_by_curve()[curve_i];
-    float4x2 &texture_matrix = texture_matrices[curve_i];
-    /* Factor out the stroke-to-layer transform part used by GPv2.
-     * This may not be the same as the transform used by GPv3 for concave shapes due to a
-     * simplistic normal calculation, but we want to achieve the same effect as GPv2 so have to use
-     * the same matrix. */
-    float3x4 stroke_to_layer;
-    float4x3 layer_to_stroke;
-    get_legacy_stroke_matrix(positions.slice(points), stroke_to_layer, layer_to_stroke);
-    const float3x2 uv_matrix = texture_matrix * stroke_to_layer;
-    const float2 uv_translation = uv_matrix[2];
-    float2 inv_uv_scale;
-    const float2 axis_u = math::normalize_and_get_length(uv_matrix[0], inv_uv_scale[0]);
-    const float2 axis_v = math::normalize_and_get_length(uv_matrix[1], inv_uv_scale[1]);
-    UNUSED_VARS(axis_v); /* `inv_uv_scale[1]` is used. */
-    const float uv_rotation = math::atan2(axis_u[1], axis_u[0]);
-    const float2 uv_scale = math::safe_rcp(inv_uv_scale);
+  curves_mask.foreach_index(
+      [&](int64_t curve_i) {
+        const IndexRange points = curves.points_by_curve()[curve_i];
+        float4x2 &texture_matrix = texture_matrices[curve_i];
+        /* Factor out the stroke-to-layer transform part used by GPv2.
+         * This may not be the same as the transform used by GPv3 for concave shapes due to a
+         * simplistic normal calculation, but we want to achieve the same effect as GPv2 so have to
+         * use the same matrix. */
+        float3x4 stroke_to_layer;
+        float4x3 layer_to_stroke;
+        get_legacy_stroke_matrix(positions.slice(points), stroke_to_layer, layer_to_stroke);
+        const float3x2 uv_matrix = texture_matrix * stroke_to_layer;
+        const float2 uv_translation = uv_matrix[2];
+        float2 inv_uv_scale;
+        const float2 axis_u = math::normalize_and_get_length(uv_matrix[0], inv_uv_scale[0]);
+        const float2 axis_v = math::normalize_and_get_length(uv_matrix[1], inv_uv_scale[1]);
+        UNUSED_VARS(axis_v); /* `inv_uv_scale[1]` is used. */
+        const float uv_rotation = math::atan2(axis_u[1], axis_u[0]);
+        const float2 uv_scale = math::safe_rcp(inv_uv_scale);
 
-    const float2 legacy_uv_translation = rotate_by_angle(0.5f * uv_scale * uv_translation - 0.5f,
-                                                         -uv_rotation);
-    const float legacy_uv_rotation = uv_rotation;
-    const float2 legacy_uv_scale = 0.5f * uv_scale;
+        const float2 legacy_uv_translation = rotate_by_angle(
+            0.5f * uv_scale * uv_translation - 0.5f, -uv_rotation);
+        const float legacy_uv_rotation = uv_rotation;
+        const float2 legacy_uv_scale = 0.5f * uv_scale;
 
-    const float2 legacy_uv_translation_new = legacy_uv_translation + offset;
-    const float legacy_uv_rotation_new = legacy_uv_rotation + rotation;
-    const float2 legacy_uv_scale_new = legacy_uv_scale * scale;
+        const float2 legacy_uv_translation_new = legacy_uv_translation + offset;
+        const float legacy_uv_rotation_new = legacy_uv_rotation + rotation;
+        const float2 legacy_uv_scale_new = legacy_uv_scale * scale;
 
-    const float2 uv_translation_new =
-        (rotate_by_angle(legacy_uv_translation_new, legacy_uv_rotation_new) + 0.5f) *
-        math::safe_rcp(legacy_uv_scale_new);
-    const float uv_rotation_new = legacy_uv_rotation_new;
-    const float2 uv_scale_new = 2.0f * legacy_uv_scale_new;
+        const float2 uv_translation_new =
+            (rotate_by_angle(legacy_uv_translation_new, legacy_uv_rotation_new) + 0.5f) *
+            math::safe_rcp(legacy_uv_scale_new);
+        const float uv_rotation_new = legacy_uv_rotation_new;
+        const float2 uv_scale_new = 2.0f * legacy_uv_scale_new;
 
-    const float cos_uv_rotation_new = math::cos(uv_rotation_new);
-    const float sin_uv_rotation_new = math::sin(uv_rotation_new);
-    const float2 inv_uv_scale_new = math::safe_rcp(uv_scale_new);
-    const float3x2 uv_matrix_new = float3x2(
-        inv_uv_scale_new[0] * float2(cos_uv_rotation_new, sin_uv_rotation_new),
-        inv_uv_scale_new[1] * float2(-sin_uv_rotation_new, cos_uv_rotation_new),
-        uv_translation_new);
-    texture_matrix = uv_matrix_new * layer_to_stroke;
-  });
+        const float cos_uv_rotation_new = math::cos(uv_rotation_new);
+        const float sin_uv_rotation_new = math::sin(uv_rotation_new);
+        const float2 inv_uv_scale_new = math::safe_rcp(uv_scale_new);
+        const float3x2 uv_matrix_new = float3x2(
+            inv_uv_scale_new[0] * float2(cos_uv_rotation_new, sin_uv_rotation_new),
+            inv_uv_scale_new[1] * float2(-sin_uv_rotation_new, cos_uv_rotation_new),
+            uv_translation_new);
+        texture_matrix = uv_matrix_new * layer_to_stroke;
+      },
+      exec_mode::grain_size(512));
 
   drawing.set_texture_matrices(texture_matrices, curves_mask);
 }

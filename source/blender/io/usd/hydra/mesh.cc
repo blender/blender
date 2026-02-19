@@ -259,28 +259,19 @@ void gather_vert_data(const Span<int> verts,
 }
 
 template<typename T>
-void gather_face_data(const Span<int> tri_faces,
-                      const IndexMask &triangles,
-                      const Span<T> src_data,
-                      MutableSpan<T> dst_data)
-{
-  triangles.foreach_index_optimized<int>(GrainSize(1024), [&](const int src, const int dst) {
-    dst_data[dst] = src_data[tri_faces[src]];
-  });
-}
-
-template<typename T>
 void gather_corner_data(const Span<int3> corner_tris,
                         const IndexMask &triangles,
                         const Span<T> src_data,
                         MutableSpan<T> dst_data)
 {
-  triangles.foreach_index_optimized<int>(GrainSize(1024), [&](const int src, const int dst) {
-    const int3 &tri = corner_tris[src];
-    dst_data[dst * 3 + 0] = src_data[tri[0]];
-    dst_data[dst * 3 + 1] = src_data[tri[1]];
-    dst_data[dst * 3 + 2] = src_data[tri[2]];
-  });
+  triangles.foreach_index_optimized<int>(
+      [&](const int src, const int dst) {
+        const int3 &tri = corner_tris[src];
+        dst_data[dst * 3 + 0] = src_data[tri[0]];
+        dst_data[dst * 3 + 1] = src_data[tri[1]];
+        dst_data[dst * 3 + 2] = src_data[tri[2]];
+      },
+      exec_mode::grain_size(4096));
 }
 
 static void copy_submesh(const Mesh &mesh,
@@ -336,17 +327,21 @@ static void copy_submesh(const Mesh &mesh,
   MutableSpan dst_normals = MutableSpan(sm.normals.data(), sm.normals.size()).cast<float3>();
   switch (normals.first) {
     case bke::MeshNormalDomain::Face:
-      triangles.foreach_index(GrainSize(1024), [&](const int src, const int dst) {
-        std::fill_n(&dst_normals[dst * 3], 3, src_normals[tri_faces[src]]);
-      });
+      triangles.foreach_index(
+          [&](const int src, const int dst) {
+            std::fill_n(&dst_normals[dst * 3], 3, src_normals[tri_faces[src]]);
+          },
+          exec_mode::grain_size(1024));
       break;
     case bke::MeshNormalDomain::Point:
-      triangles.foreach_index(GrainSize(1024), [&](const int src, const int dst) {
-        const int3 &tri = corner_tris[src];
-        dst_normals[dst * 3 + 0] = src_normals[corner_verts[tri[0]]];
-        dst_normals[dst * 3 + 1] = src_normals[corner_verts[tri[1]]];
-        dst_normals[dst * 3 + 2] = src_normals[corner_verts[tri[2]]];
-      });
+      triangles.foreach_index(
+          [&](const int src, const int dst) {
+            const int3 &tri = corner_tris[src];
+            dst_normals[dst * 3 + 0] = src_normals[corner_verts[tri[0]]];
+            dst_normals[dst * 3 + 1] = src_normals[corner_verts[tri[1]]];
+            dst_normals[dst * 3 + 2] = src_normals[corner_verts[tri[2]]];
+          },
+          exec_mode::grain_size(1024));
       break;
     case bke::MeshNormalDomain::Corner:
       gather_corner_data(corner_tris, triangles, src_normals, dst_normals);

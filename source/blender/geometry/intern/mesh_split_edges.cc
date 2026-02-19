@@ -201,17 +201,19 @@ BLI_NOINLINE static Array<Vector<CornerGroup>> calc_all_corner_groups(
     const IndexMask &affected_verts)
 {
   Array<Vector<CornerGroup>> corner_groups(affected_verts.size(), NoInitialization());
-  affected_verts.foreach_index(GrainSize(512), [&](const int vert, const int mask) {
-    new (&corner_groups[mask])
-        Vector<CornerGroup>(calc_corner_groups_for_vertex(faces,
-                                                          corner_verts,
-                                                          corner_edges,
-                                                          edge_to_corner_map,
-                                                          corner_to_face_map,
-                                                          split_edges,
-                                                          vert_to_corner_map[vert],
-                                                          vert));
-  });
+  affected_verts.foreach_index(
+      [&](const int vert, const int mask) {
+        new (&corner_groups[mask])
+            Vector<CornerGroup>(calc_corner_groups_for_vertex(faces,
+                                                              corner_verts,
+                                                              corner_edges,
+                                                              edge_to_corner_map,
+                                                              corner_to_face_map,
+                                                              split_edges,
+                                                              vert_to_corner_map[vert],
+                                                              vert));
+      },
+      exec_mode::grain_size(512));
   return corner_groups;
 }
 
@@ -270,15 +272,17 @@ static OffsetIndices<int> calc_vert_ranges_per_old_vert(
     }
   });
   if (!loose_edges.is_empty()) {
-    affected_verts.foreach_index(GrainSize(512), [&](const int vert, const int mask) {
-      const VertLooseEdges info = calc_vert_loose_edges(
-          vert_to_edge_map, loose_edges, split_edges, vert);
-      new_verts_nums[mask] += info.selected.size();
-      if (corner_groups[mask].is_empty()) {
-        /* Loose edges share their vertex with a corner group if possible. */
-        new_verts_nums[mask] += info.unselected.size() > 0;
-      }
-    });
+    affected_verts.foreach_index(
+        [&](const int vert, const int mask) {
+          const VertLooseEdges info = calc_vert_loose_edges(
+              vert_to_edge_map, loose_edges, split_edges, vert);
+          new_verts_nums[mask] += info.selected.size();
+          if (corner_groups[mask].is_empty()) {
+            /* Loose edges share their vertex with a corner group if possible. */
+            new_verts_nums[mask] += info.unselected.size() > 0;
+          }
+        },
+        exec_mode::grain_size(512));
   }
   return offset_indices::accumulate_counts_to_offsets(offset_data);
 }
@@ -333,9 +337,10 @@ static Array<int2> calc_new_edges(const OffsetIndices<int> faces,
 {
   /* Calculate the offset of new edges assuming no new edges are identical and are merged. */
   selected_edges.foreach_index_optimized<int>(
-      GrainSize(4096), [&](const int edge, const int mask) {
+      [&](const int edge, const int mask) {
         r_new_edge_offsets[mask] = std::max<int>(edge_to_corner_map[edge].size() - 1, 0);
-      });
+      },
+      exec_mode::grain_size(4096));
   const OffsetIndices offsets = offset_indices::accumulate_counts_to_offsets(r_new_edge_offsets);
 
   Array<int2> new_edges(offsets.total_size());
@@ -351,42 +356,45 @@ static Array<int2> calc_new_edges(const OffsetIndices<int> faces,
 
   /* Calculate per-original split edge deduplication of new edges, which are stored by the
    * corner vertices of connected faces. Update corner verts to store the updated indices. */
-  selected_edges.foreach_index(GrainSize(1024), [&](const int edge, const int mask) {
-    if (edge_to_corner_map[edge].is_empty()) {
-      /* Handle loose edges. */
-      num_edges_per_edge_merged[mask] = 0;
-      return;
-    }
+  selected_edges.foreach_index(
+      [&](const int edge, const int mask) {
+        if (edge_to_corner_map[edge].is_empty()) {
+          /* Handle loose edges. */
+          num_edges_per_edge_merged[mask] = 0;
+          return;
+        }
 
-    const int new_edges_start = offsets[mask].start();
-    Vector<OrderedEdge> deduplication;
-    for (const int corner : edge_to_corner_map[edge]) {
-      const OrderedEdge edge = edge_from_corner(faces, corner_verts, corner_to_face_map, corner);
-      int index = deduplication.first_index_of_try(edge);
-      if (UNLIKELY(index != -1)) {
-        found_duplicate.store(true, std::memory_order_relaxed);
-      }
-      else {
-        index = deduplication.append_and_get_index(edge);
-      }
+        const int new_edges_start = offsets[mask].start();
+        Vector<OrderedEdge> deduplication;
+        for (const int corner : edge_to_corner_map[edge]) {
+          const OrderedEdge edge = edge_from_corner(
+              faces, corner_verts, corner_to_face_map, corner);
+          int index = deduplication.first_index_of_try(edge);
+          if (UNLIKELY(index != -1)) {
+            found_duplicate.store(true, std::memory_order_relaxed);
+          }
+          else {
+            index = deduplication.append_and_get_index(edge);
+          }
 
-      if (index == 0) {
-        is_reused[corner] = true;
-      }
-      else {
-        corner_edges[corner] = edges.size() + new_edges_start + index - 1;
-      }
-    }
+          if (index == 0) {
+            is_reused[corner] = true;
+          }
+          else {
+            corner_edges[corner] = edges.size() + new_edges_start + index - 1;
+          }
+        }
 
-    const int new_edges_num = deduplication.size() - 1;
+        const int new_edges_num = deduplication.size() - 1;
 
-    edges[edge] = int2(deduplication.first().v_low, deduplication.first().v_high);
-    new_edges.as_mutable_span()
-        .slice(new_edges_start, new_edges_num)
-        .copy_from(deduplication.as_span().drop_front(1).cast<int2>());
+        edges[edge] = int2(deduplication.first().v_low, deduplication.first().v_high);
+        new_edges.as_mutable_span()
+            .slice(new_edges_start, new_edges_num)
+            .copy_from(deduplication.as_span().drop_front(1).cast<int2>());
 
-    num_edges_per_edge_merged[mask] = new_edges_num;
-  });
+        num_edges_per_edge_merged[mask] = new_edges_num;
+      },
+      exec_mode::grain_size(1024));
 
   if (!found_duplicate) {
     /* No edges were merged, we can use the existing output array and offsets. */
@@ -396,14 +404,16 @@ static Array<int2> calc_new_edges(const OffsetIndices<int> faces,
   /* Update corner edges to remove the "holes" left by merged new edges. */
   const OffsetIndices offsets_merged = offset_indices::accumulate_counts_to_offsets(
       num_edges_per_edge_merged);
-  selected_edges.foreach_index(GrainSize(2048), [&](const int edge, const int mask) {
-    const int difference = offsets[mask].start() - offsets_merged[mask].start();
-    for (const int corner : edge_to_corner_map[edge]) {
-      if (!is_reused[corner]) {
-        corner_edges[corner] -= difference;
-      }
-    }
-  });
+  selected_edges.foreach_index(
+      [&](const int edge, const int mask) {
+        const int difference = offsets[mask].start() - offsets_merged[mask].start();
+        for (const int corner : edge_to_corner_map[edge]) {
+          if (!is_reused[corner]) {
+            corner_edges[corner] -= difference;
+          }
+        }
+      },
+      exec_mode::grain_size(2048));
 
   /* Create new edges without the empty slots for the duplicates */
   Array<int2> new_edges_merged(offsets_merged.total_size());
@@ -426,15 +436,18 @@ static void update_unselected_edges(const OffsetIndices<int> faces,
                                     const IndexMask &unselected_edges,
                                     MutableSpan<int2> edges)
 {
-  unselected_edges.foreach_index(GrainSize(1024), [&](const int edge) {
-    const Span<int> edge_corners = edge_to_corner_map[edge];
-    if (edge_corners.is_empty()) {
-      return;
-    }
-    const int corner = edge_corners.first();
-    const OrderedEdge new_edge = edge_from_corner(faces, corner_verts, corner_to_face_map, corner);
-    edges[edge] = int2(new_edge.v_low, new_edge.v_high);
-  });
+  unselected_edges.foreach_index(
+      [&](const int edge) {
+        const Span<int> edge_corners = edge_to_corner_map[edge];
+        if (edge_corners.is_empty()) {
+          return;
+        }
+        const int corner = edge_corners.first();
+        const OrderedEdge new_edge = edge_from_corner(
+            faces, corner_verts, corner_to_face_map, corner);
+        edges[edge] = int2(new_edge.v_low, new_edge.v_high);
+      },
+      exec_mode::grain_size(1024));
 }
 
 static void swap_edge_vert(int2 &edge, const int old_vert, const int new_vert)
@@ -461,31 +474,33 @@ static void reassign_loose_edge_verts(const int orig_verts_num,
                                       const OffsetIndices<int> new_verts_by_affected_vert,
                                       MutableSpan<int2> edges)
 {
-  affected_verts.foreach_index(GrainSize(1024), [&](const int vert, const int mask) {
-    const IndexRange new_verts = new_verts_by_affected_vert[mask];
-    /* Account for the reuse of the original vertex by non-loose corner groups. In practice this
-     * means using the new vertices for each split loose edge until we run out of new vertices.
-     * We then expect the count to match up with the number of new vertices reserved by
-     * #calc_vert_ranges_per_old_vert. */
-    int new_vert_i = std::max<int>(corner_groups[mask].size() - 1, 0);
-    if (new_vert_i == new_verts.size()) {
-      return;
-    }
-    const VertLooseEdges vert_info = calc_vert_loose_edges(
-        vert_to_edge_map, loose_edges, split_edges, vert);
-    for (const int edge : vert_info.selected) {
-      const int new_vert = orig_verts_num + new_verts[new_vert_i];
-      swap_edge_vert(edges[edge], vert, new_vert);
-      new_vert_i++;
-      if (new_vert_i == new_verts.size()) {
-        return;
-      }
-    }
-    const int new_vert = orig_verts_num + new_verts[new_vert_i];
-    for (const int orig_edge : vert_info.unselected) {
-      swap_edge_vert(edges[orig_edge], vert, new_vert);
-    }
-  });
+  affected_verts.foreach_index(
+      [&](const int vert, const int mask) {
+        const IndexRange new_verts = new_verts_by_affected_vert[mask];
+        /* Account for the reuse of the original vertex by non-loose corner groups. In practice
+         * this means using the new vertices for each split loose edge until we run out of new
+         * vertices. We then expect the count to match up with the number of new vertices reserved
+         * by #calc_vert_ranges_per_old_vert. */
+        int new_vert_i = std::max<int>(corner_groups[mask].size() - 1, 0);
+        if (new_vert_i == new_verts.size()) {
+          return;
+        }
+        const VertLooseEdges vert_info = calc_vert_loose_edges(
+            vert_to_edge_map, loose_edges, split_edges, vert);
+        for (const int edge : vert_info.selected) {
+          const int new_vert = orig_verts_num + new_verts[new_vert_i];
+          swap_edge_vert(edges[edge], vert, new_vert);
+          new_vert_i++;
+          if (new_vert_i == new_verts.size()) {
+            return;
+          }
+        }
+        const int new_vert = orig_verts_num + new_verts[new_vert_i];
+        for (const int orig_edge : vert_info.unselected) {
+          swap_edge_vert(edges[orig_edge], vert, new_vert);
+        }
+      },
+      exec_mode::grain_size(1024));
 }
 
 /**
@@ -495,9 +510,9 @@ static void reassign_loose_edge_verts(const int orig_verts_num,
 static Array<int> offsets_to_map(const IndexMask &mask, const OffsetIndices<int> offsets)
 {
   Array<int> map(offsets.total_size());
-  mask.foreach_index(GrainSize(1024), [&](const int i, const int mask) {
-    map.as_mutable_span().slice(offsets[mask]).fill(i);
-  });
+  mask.foreach_index(
+      [&](const int i, const int mask) { map.as_mutable_span().slice(offsets[mask]).fill(i); },
+      exec_mode::grain_size(1024));
   return map;
 }
 

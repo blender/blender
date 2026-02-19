@@ -39,8 +39,8 @@ template<typename T> void build_reverse_map(const IndexMask &mask, MutableSpan<T
   r_map.fill(-1);
 #endif
   BLI_assert(r_map.size() >= mask.min_array_size());
-  mask.foreach_index_optimized<T>(GrainSize(4096),
-                                  [&](const T src, const T dst) { r_map[src] = dst; });
+  mask.foreach_index_optimized<T>([&](const T src, const T dst) { r_map[src] = dst; },
+                                  exec_mode::grain_size(4096));
 }
 
 template void build_reverse_map<int>(const IndexMask &mask, MutableSpan<int> r_map);
@@ -488,13 +488,13 @@ IndexMask IndexMask::from_bits(const IndexMask &universe,
   /* Use #from_batch_predicate because we can process many bits at once. */
   return IndexMask::from_batch_predicate(
       universe,
-      GrainSize(max_segment_size),
       memory,
       [&](const IndexMaskSegment universe_segment, IndexRangesBuilder<int16_t> &builder) {
         const IndexRange slice = IndexRange::from_begin_end_inclusive(universe_segment[0],
                                                                       universe_segment.last());
         return from_bits_batch_predicate(universe_segment, builder, bits.slice(slice));
-      });
+      },
+      exec_mode::grain_size(max_segment_size));
 }
 
 static void segments_from_batch_predicate(
@@ -553,17 +553,21 @@ static void segments_from_batch_predicate(
 
 IndexMask IndexMask::from_batch_predicate(
     const IndexMask &universe,
-    GrainSize grain_size,
     IndexMaskMemory &memory,
     const FunctionRef<int64_t(const IndexMaskSegment &universe_segment,
-                              IndexRangesBuilder<int16_t> &builder)> batch_predicate)
+                              IndexRangesBuilder<int16_t> &builder)> batch_predicate,
+    const exec_mode::Mode mode)
 {
   if (universe.is_empty()) {
     return {};
   }
 
   Vector<IndexMaskSegment, 16> segments;
-  if (universe.size() <= grain_size.value) {
+  constexpr int fallback_grain_size = 4096;
+  /* Avoid ParallelSegmentsCollector overhead when universe is small relative to task size. */
+  if (!mode.is_parallel ||
+      universe.size() <= mode.grain_size_override.value_or(fallback_grain_size))
+  {
     for (const int64_t segment_i : IndexRange(universe.segments_num())) {
       const IndexMaskSegment universe_segment = universe.segment(segment_i);
       segments_from_batch_predicate(universe_segment, memory, batch_predicate, segments);
@@ -571,11 +575,13 @@ IndexMask IndexMask::from_batch_predicate(
   }
   else {
     ParallelSegmentsCollector segments_collector;
-    universe.foreach_segment(grain_size, [&](const IndexMaskSegment universe_segment) {
-      ParallelSegmentsCollector::LocalData &data = segments_collector.data_by_thread.local();
-      segments_from_batch_predicate(
-          universe_segment, data.allocator, batch_predicate, data.segments);
-    });
+    universe.foreach_segment(
+        [&](const IndexMaskSegment universe_segment) {
+          ParallelSegmentsCollector::LocalData &data = segments_collector.data_by_thread.local();
+          segments_from_batch_predicate(
+              universe_segment, data.allocator, batch_predicate, data.segments);
+        },
+        exec_mode::grain_size(mode.grain_size(fallback_grain_size)));
     segments_collector.reduce(memory, segments);
   }
 
@@ -609,7 +615,6 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
   BLI_assert(bools.size() >= universe.min_array_size());
   return IndexMask::from_batch_predicate(
       universe,
-      GrainSize(max_segment_size),
       memory,
       [&](const IndexMaskSegment universe_segment,
           IndexRangesBuilder<int16_t> &builder) -> int64_t {
@@ -626,7 +631,8 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
           return 0;
         }
         return from_bits_batch_predicate(universe_segment, builder, bits);
-      });
+      },
+      exec_mode::grain_size(max_segment_size));
   BitVector bits(bools);
   return IndexMask::from_bits(universe, bits, memory);
 }
@@ -653,7 +659,10 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
     return IndexMask::from_bools(universe, span, memory);
   }
   return IndexMask::from_predicate(
-      universe, GrainSize(512), memory, [&](const int64_t index) { return bools[index]; });
+      universe,
+      memory,
+      [&](const int64_t index) { return bools[index]; },
+      exec_mode::grain_size(4096));
 }
 
 IndexMask IndexMask::from_bools_inverse(const IndexMask &universe,
@@ -669,7 +678,10 @@ IndexMask IndexMask::from_bools_inverse(const IndexMask &universe,
     return IndexMask::from_bools_inverse(universe, span, memory);
   }
   return IndexMask::from_predicate(
-      universe, GrainSize(512), memory, [&](const int64_t index) { return !bools[index]; });
+      universe,
+      memory,
+      [&](const int64_t index) { return !bools[index]; },
+      exec_mode::grain_size(4096));
 }
 
 template<typename T>
@@ -755,9 +767,10 @@ template<typename T> void IndexMask::to_indices(MutableSpan<T> r_indices) const
 {
   BLI_assert(this->size() == r_indices.size());
   this->foreach_index_optimized<int64_t>(
-      GrainSize(1024), [r_indices = r_indices.data()](const int64_t i, const int64_t pos) {
+      [r_indices = r_indices.data()](const int64_t i, const int64_t pos) {
         r_indices[pos] = T(i);
-      });
+      },
+      exec_mode::grain_size(4096));
 }
 
 void IndexMask::set_bits(MutableBitSpan r_bits, const int64_t offset) const
@@ -844,16 +857,20 @@ static void segments_from_predicate_filter(
 
 IndexMask from_predicate_impl(
     const IndexMask &universe,
-    const GrainSize grain_size,
     IndexMaskMemory &memory,
-    const FunctionRef<int64_t(IndexMaskSegment indices, int16_t *r_true_indices)> filter_indices)
+    const FunctionRef<int64_t(IndexMaskSegment indices, int16_t *r_true_indices)> filter_indices,
+    const exec_mode::Mode mode)
 {
   if (universe.is_empty()) {
     return {};
   }
 
   Vector<IndexMaskSegment, 16> segments;
-  if (universe.size() <= grain_size.value) {
+  constexpr int fallback_grain_size = 4096;
+  /* Avoid ParallelSegmentsCollector overhead when universe is small relative to task size. */
+  if (!mode.is_parallel &&
+      universe.size() <= mode.grain_size_override.value_or(fallback_grain_size))
+  {
     for (const int64_t segment_i : IndexRange(universe.segments_num())) {
       const IndexMaskSegment universe_segment = universe.segment(segment_i);
       segments_from_predicate_filter(universe_segment, memory, filter_indices, segments);
@@ -861,11 +878,13 @@ IndexMask from_predicate_impl(
   }
   else {
     ParallelSegmentsCollector segments_collector;
-    universe.foreach_segment(grain_size, [&](const IndexMaskSegment universe_segment) {
-      ParallelSegmentsCollector::LocalData &data = segments_collector.data_by_thread.local();
-      segments_from_predicate_filter(
-          universe_segment, data.allocator, filter_indices, data.segments);
-    });
+    universe.foreach_segment(
+        [&](const IndexMaskSegment universe_segment) {
+          ParallelSegmentsCollector::LocalData &data = segments_collector.data_by_thread.local();
+          segments_from_predicate_filter(
+              universe_segment, data.allocator, filter_indices, data.segments);
+        },
+        exec_mode::grain_size(mode.grain_size(fallback_grain_size)));
     segments_collector.reduce(memory, segments);
   }
 

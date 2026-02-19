@@ -237,32 +237,31 @@ static IndexMask get_filtered_layer_mask(const GreasePencil &grease_pencil,
     }
   }
 
-  IndexMask result = IndexMask::from_predicate(
-      full_mask, GrainSize(4096), memory, [&](const int64_t layer_i) {
-        if (tree_node_name_filter) {
-          const Layer *layer = layers[layer_i];
-          if (filter_layer_group) {
-            const bool match = layer->is_child_of(*filter_layer_group);
-            if (match == layer_filter_invert) {
-              return false;
-            }
-          }
-          else {
-            const bool match = (layer->name() == tree_node_name_filter.value());
-            if (match == layer_filter_invert) {
-              return false;
-            }
-          }
+  IndexMask result = IndexMask::from_predicate(full_mask, memory, [&](const int64_t layer_i) {
+    if (tree_node_name_filter) {
+      const Layer *layer = layers[layer_i];
+      if (filter_layer_group) {
+        const bool match = layer->is_child_of(*filter_layer_group);
+        if (match == layer_filter_invert) {
+          return false;
         }
-        if (layer_pass_filter) {
-          const int layer_pass = layer_passes.get(layer_i);
-          const bool match = (layer_pass == layer_pass_filter.value());
-          if (match == layer_pass_filter_invert) {
-            return false;
-          }
+      }
+      else {
+        const bool match = (layer->name() == tree_node_name_filter.value());
+        if (match == layer_filter_invert) {
+          return false;
         }
-        return true;
-      });
+      }
+    }
+    if (layer_pass_filter) {
+      const int layer_pass = layer_passes.get(layer_i);
+      const bool match = (layer_pass == layer_pass_filter.value());
+      if (match == layer_pass_filter_invert) {
+        return false;
+      }
+    }
+    return true;
+  });
   return result;
 }
 
@@ -304,24 +303,23 @@ static IndexMask get_filtered_stroke_mask(const Object *ob,
   VArray<int> stroke_materials =
       attributes.lookup_or_default<int>("material_index", bke::AttrDomain::Curve, 0).varray;
 
-  IndexMask result = IndexMask::from_predicate(
-      full_mask, GrainSize(4096), memory, [&](const int64_t stroke_i) {
-        const int material_index = stroke_materials.get(stroke_i);
-        if (material_filter != nullptr) {
-          const bool match = (material_index == material_filter_index);
-          if (match == material_filter_invert) {
-            return false;
-          }
-        }
-        if (material_pass_filter) {
-          const int material_pass = material_pass_by_index[material_index];
-          const bool match = (material_pass == material_pass_filter.value());
-          if (match == material_pass_filter_invert) {
-            return false;
-          }
-        }
-        return true;
-      });
+  IndexMask result = IndexMask::from_predicate(full_mask, memory, [&](const int64_t stroke_i) {
+    const int material_index = stroke_materials.get(stroke_i);
+    if (material_filter != nullptr) {
+      const bool match = (material_index == material_filter_index);
+      if (match == material_filter_invert) {
+        return false;
+      }
+    }
+    if (material_pass_filter) {
+      const int material_pass = material_pass_by_index[material_index];
+      const bool match = (material_pass == material_pass_filter.value());
+      if (match == material_pass_filter_invert) {
+        return false;
+      }
+    }
+    return true;
+  });
   return result;
 }
 

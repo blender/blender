@@ -1115,110 +1115,117 @@ static void do_vpaint_brush_blur_loops(const Depsgraph &depsgraph,
     Vector<float> distances;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    LocalData &tls = all_tls.local();
-    const Span<int> verts = nodes[i].verts();
-    tls.factors.resize(verts.size());
-    const MutableSpan<float> factors = tls.factors;
-    fill_factor_from_hide(hide_vert, verts, factors);
-    filter_region_clip_factors(ss, vert_positions, verts, factors);
-    if (!select_vert.is_empty()) {
-      filter_factors_with_selection(select_vert, verts, factors);
-    }
-
-    tls.distances.resize(verts.size());
-    const MutableSpan<float> distances = tls.distances;
-    calc_brush_distances(
-        ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-    filter_distances_with_radius(cache.radius, distances, factors);
-    calc_brush_strength_factors(cache, brush, distances, factors);
-
-    for (const int i : verts.index_range()) {
-      const int vert = verts[i];
-      if (factors[i] == 0.0f) {
-        continue;
-      }
-
-      float brush_strength = cache.bstrength;
-      const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                           1.0f;
-      if (!vwpaint::test_brush_angle_falloff(
-              brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-      {
-        continue;
-      }
-
-      const float brush_fade = factors[i];
-
-      to_static_color_type(vpd.type, [&](auto dummy) {
-        using T = decltype(dummy);
-        using Color =
-            std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-        using Traits = blender::color::Traits<Color>;
-        using Blend = typename Traits::BlendType;
-        MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
-        MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
-        /* Get the average face color */
-        Color color_final(0, 0, 0, 0);
-
-        int total_hit_loops = 0;
-        Blend blend[4] = {0};
-
-        for (const int face : vert_to_face[vert]) {
-          if (!select_poly.is_empty() && !select_poly[face]) {
-            return;
-          }
-          total_hit_loops += faces[face].size();
-          for (const int corner : faces[face]) {
-            const Color &col = colors[corner];
-
-            /* Color is squared to compensate the `sqrt` color encoding. */
-            blend[0] += static_cast<Blend>(col.r) * static_cast<Blend>(col.r);
-            blend[1] += static_cast<Blend>(col.g) * static_cast<Blend>(col.g);
-            blend[2] += static_cast<Blend>(col.b) * static_cast<Blend>(col.b);
-            blend[3] += static_cast<Blend>(col.a) * static_cast<Blend>(col.a);
-          }
+  node_mask.foreach_index(
+      [&](const int i) {
+        LocalData &tls = all_tls.local();
+        const Span<int> verts = nodes[i].verts();
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide(hide_vert, verts, factors);
+        filter_region_clip_factors(ss, vert_positions, verts, factors);
+        if (!select_vert.is_empty()) {
+          filter_factors_with_selection(select_vert, verts, factors);
         }
 
-        if (total_hit_loops == 0) {
-          return;
-        }
+        tls.distances.resize(verts.size());
+        const MutableSpan<float> distances = tls.distances;
+        calc_brush_distances(
+            ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+        filter_distances_with_radius(cache.radius, distances, factors);
+        calc_brush_strength_factors(cache, brush, distances, factors);
 
-        /* Use rgb^2 color averaging. */
-        Color *col = &color_final;
-
-        color_final.r = Traits::round(sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
-        color_final.g = Traits::round(sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
-        color_final.b = Traits::round(sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
-        color_final.a = Traits::round(sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
-
-        /* For each face owning this vert,
-         * paint each loop belonging to this vert. */
-        for (const int face : vert_to_face[vert]) {
-          const int corner = bke::mesh::face_find_corner_from_vert(
-              faces[face], corner_verts, vert);
-          if (!select_poly.is_empty() && !select_poly[face]) {
+        for (const int i : verts.index_range()) {
+          const int vert = verts[i];
+          if (factors[i] == 0.0f) {
             continue;
           }
-          Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
 
-          if (!previous_color.is_empty()) {
-            /* Get the previous loop color */
-            if (isZero(previous_color[corner])) {
-              previous_color[corner] = colors[corner];
-            }
-            color_orig = previous_color[corner];
+          float brush_strength = cache.bstrength;
+          const float angle_cos = use_normal ?
+                                      dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                      1.0f;
+          if (!vwpaint::test_brush_angle_falloff(
+                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
+          {
+            continue;
           }
-          const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                    brush_alpha_pressure;
-          /* Mix the new color with the original
-           * based on the brush strength and the curve. */
-          colors[corner] = vpaint_blend<Color, Traits>(
-              vp, colors[corner], color_orig, *col, final_alpha, Traits::range * brush_strength);
+
+          const float brush_fade = factors[i];
+
+          to_static_color_type(vpd.type, [&](auto dummy) {
+            using T = decltype(dummy);
+            using Color =
+                std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
+            using Traits = blender::color::Traits<Color>;
+            using Blend = typename Traits::BlendType;
+            MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
+            MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
+            /* Get the average face color */
+            Color color_final(0, 0, 0, 0);
+
+            int total_hit_loops = 0;
+            Blend blend[4] = {0};
+
+            for (const int face : vert_to_face[vert]) {
+              if (!select_poly.is_empty() && !select_poly[face]) {
+                return;
+              }
+              total_hit_loops += faces[face].size();
+              for (const int corner : faces[face]) {
+                const Color &col = colors[corner];
+
+                /* Color is squared to compensate the `sqrt` color encoding. */
+                blend[0] += static_cast<Blend>(col.r) * static_cast<Blend>(col.r);
+                blend[1] += static_cast<Blend>(col.g) * static_cast<Blend>(col.g);
+                blend[2] += static_cast<Blend>(col.b) * static_cast<Blend>(col.b);
+                blend[3] += static_cast<Blend>(col.a) * static_cast<Blend>(col.a);
+              }
+            }
+
+            if (total_hit_loops == 0) {
+              return;
+            }
+
+            /* Use rgb^2 color averaging. */
+            Color *col = &color_final;
+
+            color_final.r = Traits::round(sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
+            color_final.g = Traits::round(sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
+            color_final.b = Traits::round(sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
+            color_final.a = Traits::round(sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
+
+            /* For each face owning this vert,
+             * paint each loop belonging to this vert. */
+            for (const int face : vert_to_face[vert]) {
+              const int corner = bke::mesh::face_find_corner_from_vert(
+                  faces[face], corner_verts, vert);
+              if (!select_poly.is_empty() && !select_poly[face]) {
+                continue;
+              }
+              Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
+
+              if (!previous_color.is_empty()) {
+                /* Get the previous loop color */
+                if (isZero(previous_color[corner])) {
+                  previous_color[corner] = colors[corner];
+                }
+                color_orig = previous_color[corner];
+              }
+              const float final_alpha = Traits::range * brush_fade * brush_strength *
+                                        brush_alpha_pressure;
+              /* Mix the new color with the original
+               * based on the brush strength and the curve. */
+              colors[corner] = vpaint_blend<Color, Traits>(vp,
+                                                           colors[corner],
+                                                           color_orig,
+                                                           *col,
+                                                           final_alpha,
+                                                           Traits::range * brush_strength);
+            }
+          });
         }
-      });
-    }
-  });
+      },
+      exec_mode::grain_size(1));
 }
 
 static void do_vpaint_brush_blur_verts(const Depsgraph &depsgraph,
@@ -1269,101 +1276,104 @@ static void do_vpaint_brush_blur_verts(const Depsgraph &depsgraph,
     Vector<float> distances;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    LocalData &tls = all_tls.local();
-    const Span<int> verts = nodes[i].verts();
-    tls.factors.resize(verts.size());
-    const MutableSpan<float> factors = tls.factors;
-    fill_factor_from_hide(hide_vert, verts, factors);
-    filter_region_clip_factors(ss, vert_positions, verts, factors);
-    if (!select_vert.is_empty()) {
-      filter_factors_with_selection(select_vert, verts, factors);
-    }
+  node_mask.foreach_index(
+      [&](const int i) {
+        LocalData &tls = all_tls.local();
+        const Span<int> verts = nodes[i].verts();
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide(hide_vert, verts, factors);
+        filter_region_clip_factors(ss, vert_positions, verts, factors);
+        if (!select_vert.is_empty()) {
+          filter_factors_with_selection(select_vert, verts, factors);
+        }
 
-    tls.distances.resize(verts.size());
-    const MutableSpan<float> distances = tls.distances;
-    calc_brush_distances(
-        ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-    filter_distances_with_radius(cache.radius, distances, factors);
-    calc_brush_strength_factors(cache, brush, distances, factors);
+        tls.distances.resize(verts.size());
+        const MutableSpan<float> distances = tls.distances;
+        calc_brush_distances(
+            ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+        filter_distances_with_radius(cache.radius, distances, factors);
+        calc_brush_strength_factors(cache, brush, distances, factors);
 
-    for (const int i : verts.index_range()) {
-      const int vert = verts[i];
-      if (factors[i] == 0.0f) {
-        continue;
-      }
-
-      float brush_strength = cache.bstrength;
-      const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                           1.0f;
-      if (!vwpaint::test_brush_angle_falloff(
-              brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-      {
-        continue;
-      }
-      const float brush_fade = factors[i];
-
-      /* Get the average face color */
-      to_static_color_type(vpd.type, [&](auto dummy) {
-        using T = decltype(dummy);
-        using Color =
-            std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-        using Traits = blender::color::Traits<Color>;
-        using Blend = typename Traits::BlendType;
-        MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
-        MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
-        Color color_final(0, 0, 0, 0);
-
-        int total_hit_loops = 0;
-        Blend blend[4] = {0};
-
-        for (const int face : vert_to_face[vert]) {
-          if (!select_poly.is_empty() && !select_poly[face]) {
+        for (const int i : verts.index_range()) {
+          const int vert = verts[i];
+          if (factors[i] == 0.0f) {
             continue;
           }
-          total_hit_loops += faces[face].size();
-          for (const int vert : corner_verts.slice(faces[face])) {
-            const Color &col = colors[vert];
 
-            /* Color is squared to compensate the `sqrt` color encoding. */
-            blend[0] += static_cast<Blend>(col.r) * static_cast<Blend>(col.r);
-            blend[1] += static_cast<Blend>(col.g) * static_cast<Blend>(col.g);
-            blend[2] += static_cast<Blend>(col.b) * static_cast<Blend>(col.b);
-            blend[3] += static_cast<Blend>(col.a) * static_cast<Blend>(col.a);
+          float brush_strength = cache.bstrength;
+          const float angle_cos = use_normal ?
+                                      dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                      1.0f;
+          if (!vwpaint::test_brush_angle_falloff(
+                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
+          {
+            continue;
           }
-        }
+          const float brush_fade = factors[i];
 
-        if (total_hit_loops == 0) {
-          return;
-        }
-        /* Use rgb^2 color averaging. */
-        color_final.r = Traits::round(sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
-        color_final.g = Traits::round(sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
-        color_final.b = Traits::round(sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
-        color_final.a = Traits::round(sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
+          /* Get the average face color */
+          to_static_color_type(vpd.type, [&](auto dummy) {
+            using T = decltype(dummy);
+            using Color =
+                std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
+            using Traits = blender::color::Traits<Color>;
+            using Blend = typename Traits::BlendType;
+            MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
+            MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
+            Color color_final(0, 0, 0, 0);
 
-        Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
+            int total_hit_loops = 0;
+            Blend blend[4] = {0};
 
-        if (!previous_color.is_empty()) {
-          /* Get the previous loop color */
-          if (isZero(previous_color[vert])) {
-            previous_color[vert] = colors[vert];
-          }
-          color_orig = previous_color[vert];
+            for (const int face : vert_to_face[vert]) {
+              if (!select_poly.is_empty() && !select_poly[face]) {
+                continue;
+              }
+              total_hit_loops += faces[face].size();
+              for (const int vert : corner_verts.slice(faces[face])) {
+                const Color &col = colors[vert];
+
+                /* Color is squared to compensate the `sqrt` color encoding. */
+                blend[0] += static_cast<Blend>(col.r) * static_cast<Blend>(col.r);
+                blend[1] += static_cast<Blend>(col.g) * static_cast<Blend>(col.g);
+                blend[2] += static_cast<Blend>(col.b) * static_cast<Blend>(col.b);
+                blend[3] += static_cast<Blend>(col.a) * static_cast<Blend>(col.a);
+              }
+            }
+
+            if (total_hit_loops == 0) {
+              return;
+            }
+            /* Use rgb^2 color averaging. */
+            color_final.r = Traits::round(sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
+            color_final.g = Traits::round(sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
+            color_final.b = Traits::round(sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
+            color_final.a = Traits::round(sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
+
+            Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
+
+            if (!previous_color.is_empty()) {
+              /* Get the previous loop color */
+              if (isZero(previous_color[vert])) {
+                previous_color[vert] = colors[vert];
+              }
+              color_orig = previous_color[vert];
+            }
+            const float final_alpha = Traits::range * brush_fade * brush_strength *
+                                      brush_alpha_pressure;
+            /* Mix the new color with the original
+             * based on the brush strength and the curve. */
+            colors[vert] = vpaint_blend<Color, Traits>(vp,
+                                                       colors[vert],
+                                                       color_orig,
+                                                       color_final,
+                                                       final_alpha,
+                                                       Traits::range * brush_strength);
+          });
         }
-        const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                  brush_alpha_pressure;
-        /* Mix the new color with the original
-         * based on the brush strength and the curve. */
-        colors[vert] = vpaint_blend<Color, Traits>(vp,
-                                                   colors[vert],
-                                                   color_orig,
-                                                   color_final,
-                                                   final_alpha,
-                                                   Traits::range * brush_strength);
-      });
-    }
-  });
+      },
+      exec_mode::grain_size(1));
 }
 
 static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
@@ -1426,143 +1436,148 @@ static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
     Vector<float> distances;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    LocalData &tls = all_tls.local();
-    const Span<int> verts = nodes[i].verts();
-    tls.factors.resize(verts.size());
-    const MutableSpan<float> factors = tls.factors;
-    fill_factor_from_hide(hide_vert, verts, factors);
-    filter_region_clip_factors(ss, vert_positions, verts, factors);
-    if (!select_vert.is_empty()) {
-      filter_factors_with_selection(select_vert, verts, factors);
-    }
-
-    tls.distances.resize(verts.size());
-    const MutableSpan<float> distances = tls.distances;
-    calc_brush_distances(
-        ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-    filter_distances_with_radius(cache.radius, distances, factors);
-    calc_brush_strength_factors(cache, brush, distances, factors);
-
-    for (const int i : verts.index_range()) {
-      const int vert = verts[i];
-      if (factors[i] == 0.0f) {
-        continue;
-      }
-
-      /* Calculate the dot prod. between ray norm on surf and current vert
-       * (ie splash prevention factor), and only paint front facing verts. */
-      float brush_strength = cache.bstrength;
-      const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                           1.0f;
-      if (!vwpaint::test_brush_angle_falloff(
-              brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-      {
-        continue;
-      }
-      const float brush_fade = factors[i];
-
-      bool do_color = false;
-      /* Minimum dot product between brush direction and current
-       * to neighbor direction is 0.0, meaning orthogonal. */
-      float stroke_dot_max = 0.0f;
-
-      /* Get the color of the loop in the opposite
-       * direction of the brush movement */
-      to_static_color_type(vpd.type, [&](auto dummy) {
-        using T = decltype(dummy);
-        using Color =
-            std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-        using Traits = blender::color::Traits<Color>;
-        MutableSpan<Color> color_curr = g_color_curr.typed<T>().template cast<Color>();
-        MutableSpan<Color> color_prev_smear = g_color_prev_smear.typed<T>().template cast<Color>();
-        MutableSpan<Color> color_prev = g_color_prev.typed<T>().template cast<Color>();
-        MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
-
-        Color color_final(0, 0, 0, 0);
-
-        for (const int face : vert_to_face[vert]) {
-          if (!select_poly.is_empty() && !select_poly[face]) {
-            continue;
-          }
-          for (const int corner : faces[face]) {
-            const int v_other_index = corner_verts[corner];
-            if (v_other_index == vert) {
-              continue;
-            }
-
-            /* Get the direction from the
-             * selected vert to the neighbor. */
-            float other_dir[3];
-            sub_v3_v3v3(other_dir, vert_positions[vert], vert_positions[v_other_index]);
-            project_plane_v3_v3v3(other_dir, other_dir, cache.view_normal_symm);
-
-            normalize_v3(other_dir);
-
-            const float stroke_dot = dot_v3v3(other_dir, brush_dir);
-            int elem_index;
-
-            if (vpd.domain == AttrDomain::Point) {
-              elem_index = v_other_index;
-            }
-            else {
-              elem_index = corner;
-            }
-
-            if (stroke_dot > stroke_dot_max) {
-              stroke_dot_max = stroke_dot;
-              color_final = color_prev_smear[elem_index];
-              do_color = true;
-            }
-          }
+  node_mask.foreach_index(
+      [&](const int i) {
+        LocalData &tls = all_tls.local();
+        const Span<int> verts = nodes[i].verts();
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide(hide_vert, verts, factors);
+        filter_region_clip_factors(ss, vert_positions, verts, factors);
+        if (!select_vert.is_empty()) {
+          filter_factors_with_selection(select_vert, verts, factors);
         }
 
-        if (!do_color) {
-          return;
-        }
+        tls.distances.resize(verts.size());
+        const MutableSpan<float> distances = tls.distances;
+        calc_brush_distances(
+            ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+        filter_distances_with_radius(cache.radius, distances, factors);
+        calc_brush_strength_factors(cache, brush, distances, factors);
 
-        const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                  brush_alpha_pressure;
-
-        /* For each face owning this vert,
-         * paint each loop belonging to this vert. */
-        for (const int face : vert_to_face[vert]) {
-
-          int elem_index;
-          if (vpd.domain == AttrDomain::Point) {
-            elem_index = vert;
-          }
-          else {
-            elem_index = bke::mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
-          }
-          if (!select_poly.is_empty() && !select_poly[face]) {
+        for (const int i : verts.index_range()) {
+          const int vert = verts[i];
+          if (factors[i] == 0.0f) {
             continue;
           }
 
-          /* Get the previous element color */
-          Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
-
-          if (!color_prev.is_empty()) {
-            /* Get the previous element color */
-            if (isZero(color_prev[elem_index])) {
-              color_prev[elem_index] = colors[elem_index];
-            }
-            color_orig = color_prev[elem_index];
+          /* Calculate the dot prod. between ray norm on surf and current vert
+           * (ie splash prevention factor), and only paint front facing verts. */
+          float brush_strength = cache.bstrength;
+          const float angle_cos = use_normal ?
+                                      dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                      1.0f;
+          if (!vwpaint::test_brush_angle_falloff(
+                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
+          {
+            continue;
           }
-          /* Mix the new color with the original
-           * based on the brush strength and the curve. */
-          colors[elem_index] = vpaint_blend<Color, Traits>(vp,
-                                                           colors[elem_index],
-                                                           color_orig,
-                                                           color_final,
-                                                           final_alpha,
-                                                           Traits::range * brush_strength);
+          const float brush_fade = factors[i];
 
-          color_curr[elem_index] = colors[elem_index];
+          bool do_color = false;
+          /* Minimum dot product between brush direction and current
+           * to neighbor direction is 0.0, meaning orthogonal. */
+          float stroke_dot_max = 0.0f;
+
+          /* Get the color of the loop in the opposite
+           * direction of the brush movement */
+          to_static_color_type(vpd.type, [&](auto dummy) {
+            using T = decltype(dummy);
+            using Color =
+                std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
+            using Traits = blender::color::Traits<Color>;
+            MutableSpan<Color> color_curr = g_color_curr.typed<T>().template cast<Color>();
+            MutableSpan<Color> color_prev_smear =
+                g_color_prev_smear.typed<T>().template cast<Color>();
+            MutableSpan<Color> color_prev = g_color_prev.typed<T>().template cast<Color>();
+            MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
+
+            Color color_final(0, 0, 0, 0);
+
+            for (const int face : vert_to_face[vert]) {
+              if (!select_poly.is_empty() && !select_poly[face]) {
+                continue;
+              }
+              for (const int corner : faces[face]) {
+                const int v_other_index = corner_verts[corner];
+                if (v_other_index == vert) {
+                  continue;
+                }
+
+                /* Get the direction from the
+                 * selected vert to the neighbor. */
+                float other_dir[3];
+                sub_v3_v3v3(other_dir, vert_positions[vert], vert_positions[v_other_index]);
+                project_plane_v3_v3v3(other_dir, other_dir, cache.view_normal_symm);
+
+                normalize_v3(other_dir);
+
+                const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+                int elem_index;
+
+                if (vpd.domain == AttrDomain::Point) {
+                  elem_index = v_other_index;
+                }
+                else {
+                  elem_index = corner;
+                }
+
+                if (stroke_dot > stroke_dot_max) {
+                  stroke_dot_max = stroke_dot;
+                  color_final = color_prev_smear[elem_index];
+                  do_color = true;
+                }
+              }
+            }
+
+            if (!do_color) {
+              return;
+            }
+
+            const float final_alpha = Traits::range * brush_fade * brush_strength *
+                                      brush_alpha_pressure;
+
+            /* For each face owning this vert,
+             * paint each loop belonging to this vert. */
+            for (const int face : vert_to_face[vert]) {
+
+              int elem_index;
+              if (vpd.domain == AttrDomain::Point) {
+                elem_index = vert;
+              }
+              else {
+                elem_index = bke::mesh::face_find_corner_from_vert(
+                    faces[face], corner_verts, vert);
+              }
+              if (!select_poly.is_empty() && !select_poly[face]) {
+                continue;
+              }
+
+              /* Get the previous element color */
+              Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
+
+              if (!color_prev.is_empty()) {
+                /* Get the previous element color */
+                if (isZero(color_prev[elem_index])) {
+                  color_prev[elem_index] = colors[elem_index];
+                }
+                color_orig = color_prev[elem_index];
+              }
+              /* Mix the new color with the original
+               * based on the brush strength and the curve. */
+              colors[elem_index] = vpaint_blend<Color, Traits>(vp,
+                                                               colors[elem_index],
+                                                               color_orig,
+                                                               color_final,
+                                                               final_alpha,
+                                                               Traits::range * brush_strength);
+
+              color_curr[elem_index] = colors[elem_index];
+            }
+          });
         }
-      });
-    }
-  });
+      },
+      exec_mode::grain_size(1));
 }
 
 static void calculate_average_color(VPaintData &vpd,
@@ -1605,51 +1620,54 @@ static void calculate_average_color(VPaintData &vpd,
     const Span<Color> colors = attribute.typed<T>().template cast<Color>();
 
     Array<VPaintAverageAccum<Blend>> accum(nodes.size(), {0, {0, 0, 0}});
-    node_mask.foreach_index(GrainSize(1), [&](const int i) {
-      VPaintAverageAccum<Blend> &accum2 = accum[i];
-      LocalData &tls = all_tls.local();
+    node_mask.foreach_index(
+        [&](const int i) {
+          VPaintAverageAccum<Blend> &accum2 = accum[i];
+          LocalData &tls = all_tls.local();
 
-      const Span<int> verts = nodes[i].verts();
-      tls.factors.resize(verts.size());
-      const MutableSpan<float> factors = tls.factors;
-      fill_factor_from_hide(hide_vert, verts, factors);
-      filter_region_clip_factors(ss, vert_positions, verts, factors);
-      if (!select_vert.is_empty()) {
-        filter_factors_with_selection(select_vert, verts, factors);
-      }
-
-      tls.distances.resize(verts.size());
-      const MutableSpan<float> distances = tls.distances;
-      calc_brush_distances(
-          ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-      filter_distances_with_radius(cache.radius, distances, factors);
-      calc_brush_strength_factors(cache, brush, distances, factors);
-
-      for (const int i : verts.index_range()) {
-        const int vert = verts[i];
-        if (factors[i] == 0.0f) {
-          continue;
-        }
-
-        accum2.len += vert_to_face[vert].size();
-        /* if a vertex is within the brush region, then add its color to the blend. */
-        for (const int face : vert_to_face[vert]) {
-          int elem_index;
-          if (vpd.domain == AttrDomain::Corner) {
-            elem_index = bke::mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
-          }
-          else {
-            elem_index = vert;
+          const Span<int> verts = nodes[i].verts();
+          tls.factors.resize(verts.size());
+          const MutableSpan<float> factors = tls.factors;
+          fill_factor_from_hide(hide_vert, verts, factors);
+          filter_region_clip_factors(ss, vert_positions, verts, factors);
+          if (!select_vert.is_empty()) {
+            filter_factors_with_selection(select_vert, verts, factors);
           }
 
-          /* Color is squared to compensate the `sqrt` color encoding. */
-          const Color &col = colors[elem_index];
-          accum2.value[0] += col.r * col.r;
-          accum2.value[1] += col.g * col.g;
-          accum2.value[2] += col.b * col.b;
-        }
-      }
-    });
+          tls.distances.resize(verts.size());
+          const MutableSpan<float> distances = tls.distances;
+          calc_brush_distances(
+              ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+          filter_distances_with_radius(cache.radius, distances, factors);
+          calc_brush_strength_factors(cache, brush, distances, factors);
+
+          for (const int i : verts.index_range()) {
+            const int vert = verts[i];
+            if (factors[i] == 0.0f) {
+              continue;
+            }
+
+            accum2.len += vert_to_face[vert].size();
+            /* if a vertex is within the brush region, then add its color to the blend. */
+            for (const int face : vert_to_face[vert]) {
+              int elem_index;
+              if (vpd.domain == AttrDomain::Corner) {
+                elem_index = bke::mesh::face_find_corner_from_vert(
+                    faces[face], corner_verts, vert);
+              }
+              else {
+                elem_index = vert;
+              }
+
+              /* Color is squared to compensate the `sqrt` color encoding. */
+              const Color &col = colors[elem_index];
+              accum2.value[0] += col.r * col.r;
+              accum2.value[1] += col.g * col.g;
+              accum2.value[2] += col.b * col.b;
+            }
+          }
+        },
+        exec_mode::grain_size(1));
 
     Blend accum_len = 0;
     Blend accum_value[3] = {0};
@@ -1757,108 +1775,111 @@ static void vpaint_do_draw(const Depsgraph &depsgraph,
     Vector<float> distances;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    LocalData &tls = all_tls.local();
-    const Span<int> verts = nodes[i].verts();
-    tls.factors.resize(verts.size());
-    const MutableSpan<float> factors = tls.factors;
-    fill_factor_from_hide(hide_vert, verts, factors);
-    filter_region_clip_factors(ss, vert_positions, verts, factors);
-    if (!select_vert.is_empty()) {
-      filter_factors_with_selection(select_vert, verts, factors);
-    }
+  node_mask.foreach_index(
+      [&](const int i) {
+        LocalData &tls = all_tls.local();
+        const Span<int> verts = nodes[i].verts();
+        tls.factors.resize(verts.size());
+        const MutableSpan<float> factors = tls.factors;
+        fill_factor_from_hide(hide_vert, verts, factors);
+        filter_region_clip_factors(ss, vert_positions, verts, factors);
+        if (!select_vert.is_empty()) {
+          filter_factors_with_selection(select_vert, verts, factors);
+        }
 
-    tls.distances.resize(verts.size());
-    const MutableSpan<float> distances = tls.distances;
-    calc_brush_distances(
-        ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
-    filter_distances_with_radius(cache.radius, distances, factors);
-    calc_brush_strength_factors(cache, brush, distances, factors);
+        tls.distances.resize(verts.size());
+        const MutableSpan<float> distances = tls.distances;
+        calc_brush_distances(
+            ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+        filter_distances_with_radius(cache.radius, distances, factors);
+        calc_brush_strength_factors(cache, brush, distances, factors);
 
-    for (const int i : verts.index_range()) {
-      const int vert = verts[i];
-      if (factors[i] == 0.0f) {
-        continue;
-      }
-
-      /* Calculate the dot product between ray normal on surface and current vertex
-       * (ie splash prevention factor), and only paint front facing verts. */
-      float brush_strength = cache.bstrength;
-      const float angle_cos = use_normal ? dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
-                                           1.0f;
-      if (!vwpaint::test_brush_angle_falloff(
-              brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
-      {
-        continue;
-      }
-      const float brush_fade = factors[i];
-
-      to_static_color_type(vpd.type, [&](auto dummy) {
-        using T = decltype(dummy);
-        using Color =
-            std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
-        using Traits = blender::color::Traits<Color>;
-        MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
-        MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
-        MutableSpan<Color> stroke_buffer = g_stroke_buffer.typed<T>().template cast<Color>();
-
-        Color color_final = fromFloat<Color>(
-            ColorPaint4f(brush_color[0], brush_color[1], brush_color[2], 1.0));
-
-        /* If we're painting with a texture, sample the texture color and alpha. */
-        float tex_alpha = 1.0;
-        if (vpd.is_texbrush) {
-          /* NOTE: we may want to paint alpha as vertex color alpha. */
-
-          /* If the active area is being applied for symmetry, flip it
-           * across the symmetry axis and rotate it back to the original
-           * position in order to project it. This ensures that the
-           * brush texture will be oriented correctly.
-           * This is the method also used in #sculpt_apply_texture(). */
-          float3 position = vert_positions[vert];
-          if (cache.radial_symmetry_pass) {
-            position = math::transform_point(cache.symm_rot_mat_inv, position);
+        for (const int i : verts.index_range()) {
+          const int vert = verts[i];
+          if (factors[i] == 0.0f) {
+            continue;
           }
-          const float3 symm_point = ed::sculpt_paint::symmetry_flip(position,
-                                                                    cache.mirror_symmetry_pass);
 
-          tex_alpha = paint_and_tex_color_alpha<Color>(vp, vpd, symm_point, &color_final);
-        }
+          /* Calculate the dot product between ray normal on surface and current vertex
+           * (ie splash prevention factor), and only paint front facing verts. */
+          float brush_strength = cache.bstrength;
+          const float angle_cos = use_normal ?
+                                      dot_v3v3(sculpt_normal_frontface, vert_normals[vert]) :
+                                      1.0f;
+          if (!vwpaint::test_brush_angle_falloff(
+                  brush, vpd.normal_angle_precalc, angle_cos, &brush_strength))
+          {
+            continue;
+          }
+          const float brush_fade = factors[i];
 
-        const float final_alpha = Traits::frange * brush_fade * brush_strength * tex_alpha *
-                                  brush_alpha_pressure;
+          to_static_color_type(vpd.type, [&](auto dummy) {
+            using T = decltype(dummy);
+            using Color =
+                std::conditional_t<std::is_same_v<T, ColorGeometry4f>, ColorPaint4f, ColorPaint4b>;
+            using Traits = blender::color::Traits<Color>;
+            MutableSpan<Color> colors = attribute.typed<T>().template cast<Color>();
+            MutableSpan<Color> previous_color = g_previous_color.typed<T>().template cast<Color>();
+            MutableSpan<Color> stroke_buffer = g_stroke_buffer.typed<T>().template cast<Color>();
 
-        if (vpd.domain == AttrDomain::Point) {
-          colors[vert] = vpaint_blend_stroke<Color, Traits>(vp,
-                                                            previous_color,
-                                                            colors,
-                                                            stroke_buffer,
-                                                            color_final,
-                                                            final_alpha,
-                                                            brush_strength,
-                                                            vert);
-        }
-        else {
-          /* For each face owning this vert, paint each loop belonging to this vert. */
-          for (const int face : vert_to_face[vert]) {
-            const int corner = bke::mesh::face_find_corner_from_vert(
-                faces[face], corner_verts, vert);
-            if (!select_poly.is_empty() && !select_poly[face]) {
-              continue;
+            Color color_final = fromFloat<Color>(
+                ColorPaint4f(brush_color[0], brush_color[1], brush_color[2], 1.0));
+
+            /* If we're painting with a texture, sample the texture color and alpha. */
+            float tex_alpha = 1.0;
+            if (vpd.is_texbrush) {
+              /* NOTE: we may want to paint alpha as vertex color alpha. */
+
+              /* If the active area is being applied for symmetry, flip it
+               * across the symmetry axis and rotate it back to the original
+               * position in order to project it. This ensures that the
+               * brush texture will be oriented correctly.
+               * This is the method also used in #sculpt_apply_texture(). */
+              float3 position = vert_positions[vert];
+              if (cache.radial_symmetry_pass) {
+                position = math::transform_point(cache.symm_rot_mat_inv, position);
+              }
+              const float3 symm_point = ed::sculpt_paint::symmetry_flip(
+                  position, cache.mirror_symmetry_pass);
+
+              tex_alpha = paint_and_tex_color_alpha<Color>(vp, vpd, symm_point, &color_final);
             }
-            colors[corner] = vpaint_blend_stroke<Color, Traits>(vp,
+
+            const float final_alpha = Traits::frange * brush_fade * brush_strength * tex_alpha *
+                                      brush_alpha_pressure;
+
+            if (vpd.domain == AttrDomain::Point) {
+              colors[vert] = vpaint_blend_stroke<Color, Traits>(vp,
                                                                 previous_color,
                                                                 colors,
                                                                 stroke_buffer,
                                                                 color_final,
                                                                 final_alpha,
                                                                 brush_strength,
-                                                                corner);
-          }
+                                                                vert);
+            }
+            else {
+              /* For each face owning this vert, paint each loop belonging to this vert. */
+              for (const int face : vert_to_face[vert]) {
+                const int corner = bke::mesh::face_find_corner_from_vert(
+                    faces[face], corner_verts, vert);
+                if (!select_poly.is_empty() && !select_poly[face]) {
+                  continue;
+                }
+                colors[corner] = vpaint_blend_stroke<Color, Traits>(vp,
+                                                                    previous_color,
+                                                                    colors,
+                                                                    stroke_buffer,
+                                                                    color_final,
+                                                                    final_alpha,
+                                                                    brush_strength,
+                                                                    corner);
+              }
+            }
+          });
         }
-      });
-    }
-  });
+      },
+      exec_mode::grain_size(1));
 }
 
 static void vpaint_do_blur(const Depsgraph &depsgraph,

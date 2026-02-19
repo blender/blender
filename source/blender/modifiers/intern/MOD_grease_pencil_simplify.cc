@@ -80,16 +80,15 @@ static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
-  return IndexMask::from_predicate(
-      curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
-        const int curve_i = point_to_curve_map[i];
-        const IndexRange points = points_by_curve[curve_i];
-        if (points.size() <= 2) {
-          return true;
-        }
-        const int local_i = i - points.start();
-        return (local_i % int(math::pow(2.0f, float(step))) == 0) || points.last() == i;
-      });
+  return IndexMask::from_predicate(curves.points_range(), memory, [&](const int64_t i) {
+    const int curve_i = point_to_curve_map[i];
+    const IndexRange points = points_by_curve[curve_i];
+    if (points.size() <= 2) {
+      return true;
+    }
+    const int local_i = i - points.start();
+    return (local_i % int(math::pow(2.0f, float(step))) == 0) || points.last() == i;
+  });
 }
 
 static void simplify_drawing(const GreasePencilSimplifyModifierData &mmd,
@@ -140,7 +139,7 @@ static void simplify_drawing(const GreasePencilSimplifyModifierData &mmd,
       const OffsetIndices points_by_curve = curves.points_by_curve();
       const Array<int> point_to_curve_map = curves.point_to_curve_map();
       const IndexMask points = IndexMask::from_predicate(
-          curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
+          curves.points_range(), memory, [&](const int64_t i) {
             const int curve_i = point_to_curve_map[i];
             const IndexRange points = points_by_curve[curve_i];
             if (points.drop_front(1).drop_back(1).contains(i)) {

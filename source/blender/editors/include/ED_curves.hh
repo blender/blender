@@ -272,7 +272,6 @@ void CURVES_OT_separate(wmOperatorType *ot);
  */
 IndexMask curve_mask_from_points(const bke::CurvesGeometry &curves,
                                  const IndexMask &point_mask,
-                                 const GrainSize grain_size,
                                  IndexMaskMemory &memory);
 
 /**

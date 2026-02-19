@@ -115,30 +115,32 @@ static bke::CurvesGeometry reorder_cyclic_curve_points(const bke::CurvesGeometry
   bke::AttributeAccessor src_attributes = src_curves.attributes();
 
   Array<int> indices(src_curves.points_num());
-  curve_selection.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-    const IndexRange points = src_offsets[curve_i];
-    const int point_num = points.size();
-    const int point_start = points.start();
-    MutableSpan<int> point_indices = indices.as_mutable_span().slice(points);
-    if (points.size() < 2) {
-      array_utils::fill_index_range(point_indices, point_start);
-      return;
-    }
-    /* Offset can be negative or larger than the buffer. Use modulo to get an
-     * equivalent offset within buffer size to simplify copying. */
-    const int offset_raw = curve_offsets[curve_i];
-    const int offset = offset_raw >= 0 ? offset_raw % points.size() :
-                                         points.size() - ((-offset_raw) % points.size());
-    BLI_assert(0 <= offset && offset < points.size());
-    if (offset == 0) {
-      array_utils::fill_index_range(point_indices, point_start);
-      return;
-    }
+  curve_selection.foreach_index(
+      [&](const int64_t curve_i) {
+        const IndexRange points = src_offsets[curve_i];
+        const int point_num = points.size();
+        const int point_start = points.start();
+        MutableSpan<int> point_indices = indices.as_mutable_span().slice(points);
+        if (points.size() < 2) {
+          array_utils::fill_index_range(point_indices, point_start);
+          return;
+        }
+        /* Offset can be negative or larger than the buffer. Use modulo to get an
+         * equivalent offset within buffer size to simplify copying. */
+        const int offset_raw = curve_offsets[curve_i];
+        const int offset = offset_raw >= 0 ? offset_raw % points.size() :
+                                             points.size() - ((-offset_raw) % points.size());
+        BLI_assert(0 <= offset && offset < points.size());
+        if (offset == 0) {
+          array_utils::fill_index_range(point_indices, point_start);
+          return;
+        }
 
-    const int point_middle = point_start + offset;
-    array_utils::fill_index_range(point_indices.take_front(point_num - offset), point_middle);
-    array_utils::fill_index_range(point_indices.take_back(offset), point_start);
-  });
+        const int point_middle = point_start + offset;
+        array_utils::fill_index_range(point_indices.take_front(point_num - offset), point_middle);
+        array_utils::fill_index_range(point_indices.take_back(offset), point_start);
+      },
+      exec_mode::grain_size(512));
 
   /* Have to make a copy of the input geometry, gather_attributes does not work in-place when the
    * source indices are not ordered. */

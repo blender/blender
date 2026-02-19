@@ -169,10 +169,9 @@ ExportStatus SVGExporter::export_scene(Scene &scene, StringRefNull filepath)
           return ExportStatus::InvalidActiveObjectType;
         }
         const GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_eval.data);
-        frames = IndexMask::from_predicate(
-            frames, GrainSize(1024), memory, [&](const int frame_number) {
-              return this->is_selected_frame(grease_pencil, frame_number);
-            });
+        frames = IndexMask::from_predicate(frames, memory, [&](const int frame_number) {
+          return this->is_selected_frame(grease_pencil, frame_number);
+        });
       }
 
       if (frames.is_empty()) {

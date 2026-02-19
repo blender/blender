@@ -63,20 +63,23 @@ class ControlPointNeighborFieldInput final : public bke::GeometryFieldInput {
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
     Array<int> output(mask.min_array_size());
-    mask.foreach_index(GrainSize(512), [&](const int i_selection) {
-      const int point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
-      const int curve = parent_curves[point];
-      const IndexRange curve_points = points_by_curve[curve];
-      const int shifted_point = point + offsets[i_selection];
+    mask.foreach_index(
+        [&](const int i_selection) {
+          const int point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
+          const int curve = parent_curves[point];
+          const IndexRange curve_points = points_by_curve[curve];
+          const int shifted_point = point + offsets[i_selection];
 
-      if (cyclic[curve]) {
-        const int point_index_in_curve = shifted_point - curve_points.start();
-        output[i_selection] = curve_points.start() +
-                              math::mod_periodic<int>(point_index_in_curve, curve_points.size());
-        return;
-      }
-      output[i_selection] = std::clamp(shifted_point, 0, curves.points_num() - 1);
-    });
+          if (cyclic[curve]) {
+            const int point_index_in_curve = shifted_point - curve_points.start();
+            output[i_selection] = curve_points.start() +
+                                  math::mod_periodic<int>(point_index_in_curve,
+                                                          curve_points.size());
+            return;
+          }
+          output[i_selection] = std::clamp(shifted_point, 0, curves.points_num() - 1);
+        },
+        exec_mode::grain_size(512));
 
     return VArray<int>::from_container(std::move(output));
   }
@@ -123,21 +126,23 @@ class OffsetValidFieldInput final : public bke::GeometryFieldInput {
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
     Array<bool> output(mask.min_array_size());
-    mask.foreach_index(GrainSize(512), [&](const int i_selection) {
-      const int i_point = indices[i_selection];
-      if (!curves.points_range().contains(i_point)) {
-        output[i_selection] = false;
-        return;
-      }
+    mask.foreach_index(
+        [&](const int i_selection) {
+          const int i_point = indices[i_selection];
+          if (!curves.points_range().contains(i_point)) {
+            output[i_selection] = false;
+            return;
+          }
 
-      const int i_curve = parent_curves[i_point];
-      const IndexRange curve_points = points_by_curve[i_curve];
-      if (cyclic[i_curve]) {
-        output[i_selection] = true;
-        return;
-      }
-      output[i_selection] = curve_points.contains(i_point + offsets[i_selection]);
-    });
+          const int i_curve = parent_curves[i_point];
+          const IndexRange curve_points = points_by_curve[i_curve];
+          if (cyclic[i_curve]) {
+            output[i_selection] = true;
+            return;
+          }
+          output[i_selection] = curve_points.contains(i_point + offsets[i_selection]);
+        },
+        exec_mode::grain_size(512));
     return VArray<bool>::from_container(std::move(output));
   }
 

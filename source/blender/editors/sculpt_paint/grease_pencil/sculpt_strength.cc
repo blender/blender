@@ -46,14 +46,19 @@ void StrengthOperation::on_stroke_extended(const bContext &C, const InputSample 
         const Array<float2> view_positions = view_positions_from_point_mask(params, point_mask);
         MutableSpan<float> opacities = params.drawing.opacities_for_write();
 
-        point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-          float &opacity = opacities[point_i];
-          const float influence = brush_point_influence(
-              paint, brush, view_positions[point_i], extension_sample, params.multi_frame_falloff);
-          /* Brush influence mapped to opacity by a factor of 0.125. */
-          const float delta_opacity = (invert ? -influence : influence) * 0.125f;
-          opacity = std::clamp(opacity + delta_opacity, 0.0f, 1.0f);
-        });
+        point_mask.foreach_index(
+            [&](const int64_t point_i) {
+              float &opacity = opacities[point_i];
+              const float influence = brush_point_influence(paint,
+                                                            brush,
+                                                            view_positions[point_i],
+                                                            extension_sample,
+                                                            params.multi_frame_falloff);
+              /* Brush influence mapped to opacity by a factor of 0.125. */
+              const float delta_opacity = (invert ? -influence : influence) * 0.125f;
+              opacity = std::clamp(opacity + delta_opacity, 0.0f, 1.0f);
+            },
+            exec_mode::grain_size(4096));
 
         return true;
       });

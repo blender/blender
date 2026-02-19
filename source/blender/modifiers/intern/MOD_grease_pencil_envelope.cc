@@ -306,35 +306,37 @@ static void deform_drawing_as_envelope(const GreasePencilEnvelopeModifierData &e
   /* Cache to avoid affecting neighboring point results when updating positions. */
   const Array<float3> old_positions(positions.as_span());
 
-  curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    const bool cyclic = cyclic_flags[curve_i];
-    const int point_num = points.size();
-    const int spread = cyclic ?
-                           math::abs(((emd.spread + point_num / 2) % point_num) - point_num / 2) :
-                           std::min(emd.spread, point_num - 1);
+  curves_mask.foreach_index(
+      [&](const int64_t curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        const bool cyclic = cyclic_flags[curve_i];
+        const int point_num = points.size();
+        const int spread = cyclic ? math::abs(((emd.spread + point_num / 2) % point_num) -
+                                              point_num / 2) :
+                                    std::min(emd.spread, point_num - 1);
 
-    for (const int64_t i : points.index_range()) {
-      const int64_t point_i = points[i];
-      const float weight = vgroup_weights[point_i];
+        for (const int64_t i : points.index_range()) {
+          const int64_t point_i = points[i];
+          const float weight = vgroup_weights[point_i];
 
-      float3 envelope_center;
-      float envelope_radius;
-      if (!find_envelope(old_positions.as_span().slice(points),
-                         cyclic,
-                         spread,
-                         i,
-                         envelope_center,
-                         envelope_radius))
-      {
-        continue;
-      }
+          float3 envelope_center;
+          float envelope_radius;
+          if (!find_envelope(old_positions.as_span().slice(points),
+                             cyclic,
+                             spread,
+                             i,
+                             envelope_center,
+                             envelope_radius))
+          {
+            continue;
+          }
 
-      const float target_radius = radii[point_i] * emd.thickness + envelope_radius;
-      radii[point_i] = math::interpolate(radii[point_i], target_radius, weight);
-      positions[point_i] = math::interpolate(old_positions[point_i], envelope_center, weight);
-    }
-  });
+          const float target_radius = radii[point_i] * emd.thickness + envelope_radius;
+          radii[point_i] = math::interpolate(radii[point_i], target_radius, weight);
+          positions[point_i] = math::interpolate(old_positions[point_i], envelope_center, weight);
+        }
+      },
+      exec_mode::grain_size(512));
 
   drawing.tag_positions_changed();
   curves.tag_radii_changed();

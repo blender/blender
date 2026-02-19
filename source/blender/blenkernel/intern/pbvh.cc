@@ -1107,9 +1107,11 @@ static void calc_node_face_normals(const Span<float3> positions,
                                    const IndexMask &nodes_to_update,
                                    MutableSpan<float3> face_normals)
 {
-  nodes_to_update.foreach_index(GrainSize(1), [&](const int i) {
-    normals_calc_faces(positions, faces, corner_verts, nodes[i].faces(), face_normals);
-  });
+  nodes_to_update.foreach_index(
+      [&](const int i) {
+        normals_calc_faces(positions, faces, corner_verts, nodes[i].faces(), face_normals);
+      },
+      exec_mode::grain_size(1));
 }
 
 static void normals_calc_verts_simple(const GroupedSpan<int> vert_to_face_map,
@@ -1146,9 +1148,11 @@ static void calc_node_vert_normals(const GroupedSpan<int> vert_to_face_map,
                                    const IndexMask &nodes_to_update,
                                    MutableSpan<float3> vert_normals)
 {
-  nodes_to_update.foreach_index(GrainSize(1), [&](const int i) {
-    normals_calc_verts_simple(vert_to_face_map, face_normals, nodes[i].verts(), vert_normals);
-  });
+  nodes_to_update.foreach_index(
+      [&](const int i) {
+        normals_calc_verts_simple(vert_to_face_map, face_normals, nodes[i].verts(), vert_normals);
+      },
+      exec_mode::grain_size(1));
 }
 
 static void update_normals_mesh(Object &object_orig,
@@ -1354,7 +1358,8 @@ void Tree::update_bounds_mesh(const Span<float3> vert_positions)
   }
   MutableSpan<MeshNode> nodes = this->nodes<MeshNode>();
   nodes_to_update.foreach_index(
-      GrainSize(1), [&](const int i) { update_node_bounds_mesh(vert_positions, nodes[i]); });
+      [&](const int i) { update_node_bounds_mesh(vert_positions, nodes[i]); },
+      exec_mode::grain_size(1));
   this->flush_bounds_to_parents();
 }
 
@@ -1366,9 +1371,9 @@ void Tree::update_bounds_grids(const Span<float3> positions, const int grid_area
     return;
   }
   MutableSpan<GridsNode> nodes = this->nodes<GridsNode>();
-  nodes_to_update.foreach_index(GrainSize(1), [&](const int i) {
-    update_node_bounds_grids(grid_area, positions, nodes[i]);
-  });
+  nodes_to_update.foreach_index(
+      [&](const int i) { update_node_bounds_grids(grid_area, positions, nodes[i]); },
+      exec_mode::grain_size(1));
   this->flush_bounds_to_parents();
 }
 
@@ -1380,8 +1385,8 @@ void Tree::update_bounds_bmesh(const BMesh & /*bm*/)
     return;
   }
   MutableSpan<BMeshNode> nodes = this->nodes<BMeshNode>();
-  nodes_to_update.foreach_index(GrainSize(1),
-                                [&](const int i) { update_node_bounds_bmesh(nodes[i]); });
+  nodes_to_update.foreach_index([&](const int i) { update_node_bounds_bmesh(nodes[i]); },
+                                exec_mode::grain_size(1));
   this->flush_bounds_to_parents();
 }
 
@@ -1444,8 +1449,8 @@ void update_mask_mesh(const Mesh &mesh, const IndexMask &node_mask, Tree &pbvh)
     return;
   }
 
-  node_mask.foreach_index(GrainSize(1),
-                          [&](const int i) { node_update_mask_mesh(mask, nodes[i]); });
+  node_mask.foreach_index([&](const int i) { node_update_mask_mesh(mask, nodes[i]); },
+                          exec_mode::grain_size(1));
 }
 
 void node_update_mask_grids(const CCGKey &key, const Span<float> masks, GridsNode &node)
@@ -1475,7 +1480,8 @@ void update_mask_grids(const SubdivCCG &subdiv_ccg, const IndexMask &node_mask, 
   }
 
   node_mask.foreach_index(
-      GrainSize(1), [&](const int i) { node_update_mask_grids(key, subdiv_ccg.masks, nodes[i]); });
+      [&](const int i) { node_update_mask_grids(key, subdiv_ccg.masks, nodes[i]); },
+      exec_mode::grain_size(1));
 }
 
 void node_update_mask_bmesh(const int mask_offset, BMeshNode &node)
@@ -1507,8 +1513,8 @@ void update_mask_bmesh(const BMesh &bm, const IndexMask &node_mask, Tree &pbvh)
     return;
   }
 
-  node_mask.foreach_index(GrainSize(1),
-                          [&](const int i) { node_update_mask_bmesh(offset, nodes[i]); });
+  node_mask.foreach_index([&](const int i) { node_update_mask_bmesh(offset, nodes[i]); },
+                          exec_mode::grain_size(1));
 }
 
 void node_update_visibility_mesh(const Span<bool> hide_vert, MeshNode &node)
@@ -1531,8 +1537,8 @@ static void update_visibility_faces(const Mesh &mesh,
     return;
   }
 
-  node_mask.foreach_index(GrainSize(1),
-                          [&](const int i) { node_update_visibility_mesh(hide_vert, nodes[i]); });
+  node_mask.foreach_index([&](const int i) { node_update_visibility_mesh(hide_vert, nodes[i]); },
+                          exec_mode::grain_size(1));
 }
 
 void node_update_visibility_grids(const BitGroupVector<> &grid_hidden, GridsNode &node)
@@ -1556,7 +1562,8 @@ static void update_visibility_grids(const SubdivCCG &subdiv_ccg,
   }
 
   node_mask.foreach_index(
-      GrainSize(1), [&](const int i) { node_update_visibility_grids(grid_hidden, nodes[i]); });
+      [&](const int i) { node_update_visibility_grids(grid_hidden, nodes[i]); },
+      exec_mode::grain_size(1));
 }
 
 void node_update_visibility_bmesh(BMeshNode &node)
@@ -1574,8 +1581,8 @@ void node_update_visibility_bmesh(BMeshNode &node)
 
 static void update_visibility_bmesh(const MutableSpan<BMeshNode> nodes, const IndexMask &node_mask)
 {
-  node_mask.foreach_index(GrainSize(1),
-                          [&](const int i) { node_update_visibility_bmesh(nodes[i]); });
+  node_mask.foreach_index([&](const int i) { node_update_visibility_bmesh(nodes[i]); },
+                          exec_mode::grain_size(1));
 }
 
 void Tree::update_visibility(const Object &object)
@@ -1652,11 +1659,13 @@ IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
    * worse with large selections since the loop would be single-threaded. A boolean array has an
    * overhead regardless of selection size, but that is small. */
   Array<bool> faces_to_update(subdiv_ccg.faces.size(), false);
-  nodes_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int grid : nodes[i].grids()) {
-      faces_to_update[grid_to_face_map[grid]] = true;
-    }
-  });
+  nodes_mask.foreach_index(
+      [&](const int i) {
+        for (const int grid : nodes[i].grids()) {
+          faces_to_update[grid_to_face_map[grid]] = true;
+        }
+      },
+      exec_mode::grain_size(1));
   return IndexMask::from_bools(faces_to_update, memory);
 }
 
@@ -2574,16 +2583,16 @@ void BKE_pbvh_sync_visibility_from_verts(Object &object)
       IndexMaskMemory memory;
       const IndexMask hidden_faces =
           !grid_hidden.is_empty() ?
-              IndexMask::from_predicate(faces.index_range(),
-                                        GrainSize(1024),
-                                        memory,
-                                        [&](const int i) {
-                                          const IndexRange face = faces[i];
-                                          return std::any_of(
-                                              face.begin(), face.end(), [&](const int corner) {
-                                                return grid_hidden[corner][key.grid_area - 1];
-                                              });
-                                        }) :
+              IndexMask::from_predicate(
+                  faces.index_range(),
+                  memory,
+                  [&](const int i) {
+                    const IndexRange face = faces[i];
+                    return std::any_of(face.begin(), face.end(), [&](const int corner) {
+                      return grid_hidden[corner][key.grid_area - 1];
+                    });
+                  },
+                  exec_mode::grain_size(1024)) :
               IndexMask();
 
       MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -2610,10 +2619,9 @@ IndexMask all_leaf_nodes(const Tree &pbvh, IndexMaskMemory &memory)
 {
   return std::visit(
       [&](const auto &nodes) {
-        return IndexMask::from_predicate(
-            nodes.index_range(), GrainSize(1024), memory, [&](const int i) {
-              return (nodes[i].flag_ & Node::Leaf) != 0;
-            });
+        return IndexMask::from_predicate(nodes.index_range(), memory, [&](const int i) {
+          return (nodes[i].flag_ & Node::Leaf) != 0;
+        });
       },
       pbvh.nodes_);
 }

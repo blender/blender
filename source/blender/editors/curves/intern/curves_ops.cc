@@ -282,7 +282,7 @@ static void try_convert_single_object(Object &curves_ob,
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   IndexMaskMemory memory;
   const IndexMask multi_point_curves = IndexMask::from_predicate(
-      curves.curves_range(), GrainSize(4096), memory, [&](const int curve_i) {
+      curves.curves_range(), memory, [&](const int curve_i) {
         return points_by_curve[curve_i].size() > 1;
       });
 

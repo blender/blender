@@ -491,9 +491,11 @@ static bool apply_to_curves_point_selection(const int tot,
 
     bke::SpanAttributeWriter<float3> handles =
         curves.attributes_for_write().lookup_for_write_span<float3>(handles_attribute);
-    selection.foreach_index(GrainSize(2048), [&](const int point) {
-      apply_raw_diff_v3(handles.span[point], tot, ve_median.location, median.location);
-    });
+    selection.foreach_index(
+        [&](const int point) {
+          apply_raw_diff_v3(handles.span[point], tot, ve_median.location, median.location);
+        },
+        exec_mode::grain_size(2048));
     handles.finish();
 
     changed = true;
@@ -2334,23 +2336,25 @@ static void update_custom_knots(const OffsetIndices<int> &src_custom_knots_by_cu
     const VArray<bool> cyclic = curves.cyclic();
     MutableSpan<float> custom_knots = curves.nurbs_custom_knots_for_write();
 
-    custom_knot_curves.foreach_index(GrainSize(512), [&](const int curve) {
-      const IndexRange dst_knots = custom_knots_by_curve[curve];
-      const IndexRange src_knots = src_custom_knots_by_curve[curve];
-      if (src_knots.is_empty()) {
-        const int points_num = points_by_curve[curve].size();
-        const int order = orders[curve];
-        const bool is_cyclic = cyclic[curve];
-        Array<float> knots_buffer(bke::curves::nurbs::knots_num(points_num, order, is_cyclic));
-        bke::curves::nurbs::calculate_knots(
-            points_num, KnotsMode(src_knot_modes[curve]), order, is_cyclic, knots_buffer);
-        custom_knots.slice(dst_knots).copy_from(
-            knots_buffer.as_span().take_front(dst_knots.size()));
-      }
-      else {
-        custom_knots.slice(dst_knots).copy_from(src_custom_knots.slice(src_knots));
-      }
-    });
+    custom_knot_curves.foreach_index(
+        [&](const int curve) {
+          const IndexRange dst_knots = custom_knots_by_curve[curve];
+          const IndexRange src_knots = src_custom_knots_by_curve[curve];
+          if (src_knots.is_empty()) {
+            const int points_num = points_by_curve[curve].size();
+            const int order = orders[curve];
+            const bool is_cyclic = cyclic[curve];
+            Array<float> knots_buffer(bke::curves::nurbs::knots_num(points_num, order, is_cyclic));
+            bke::curves::nurbs::calculate_knots(
+                points_num, KnotsMode(src_knot_modes[curve]), order, is_cyclic, knots_buffer);
+            custom_knots.slice(dst_knots).copy_from(
+                knots_buffer.as_span().take_front(dst_knots.size()));
+          }
+          else {
+            custom_knots.slice(dst_knots).copy_from(src_custom_knots.slice(src_knots));
+          }
+        },
+        exec_mode::grain_size(512));
   }
 }
 
@@ -2417,15 +2421,17 @@ static void handle_curves_order(bContext *C, void *, void *)
 
         bool knot_modes_changed = false;
 
-        selection.foreach_index(GrainSize(512), [&](const int curve) {
-          if (orders[curve] != modified_state.order &&
-              nurbs_knot_modes[curve] == NURBS_KNOT_MODE_CUSTOM)
-          {
-            nurbs_knot_modes[curve] = NURBS_KNOT_MODE_NORMAL;
-            knot_modes_changed = true;
-          }
-          orders[curve] = modified_state.order;
-        });
+        selection.foreach_index(
+            [&](const int curve) {
+              if (orders[curve] != modified_state.order &&
+                  nurbs_knot_modes[curve] == NURBS_KNOT_MODE_CUSTOM)
+              {
+                nurbs_knot_modes[curve] = NURBS_KNOT_MODE_NORMAL;
+                knot_modes_changed = true;
+              }
+              orders[curve] = modified_state.order;
+            },
+            exec_mode::grain_size(512));
 
         /**
          * Custom knots need to be recopied, if some curves loose NURBS_KNOT_MODE_CUSTOM.

@@ -91,14 +91,16 @@ class ShrinkCurvesEffect : public CurvesEffect {
                MutableSpan<float3> positions_cu) override
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    curve_mask.foreach_segment(GrainSize(256), [&](IndexMaskSegment segment) {
-      ParameterizationBuffers data;
-      for (const int curve_i : segment) {
-        const float move_distance_cu = move_distances_cu[curve_i];
-        const IndexRange points = points_by_curve[curve_i];
-        this->shrink_curve(positions_cu.slice(points), move_distance_cu, data);
-      }
-    });
+    curve_mask.foreach_segment(
+        [&](IndexMaskSegment segment) {
+          ParameterizationBuffers data;
+          for (const int curve_i : segment) {
+            const float move_distance_cu = move_distances_cu[curve_i];
+            const IndexRange points = points_by_curve[curve_i];
+            this->shrink_curve(positions_cu.slice(points), move_distance_cu, data);
+          }
+        },
+        exec_mode::grain_size(256));
   }
 
  private:
@@ -140,26 +142,29 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
                MutableSpan<float3> positions_cu) override
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    curve_mask.foreach_segment(GrainSize(256), [&](IndexMaskSegment segment) {
-      MoveAndResampleBuffers resample_buffer;
-      for (const int curve_i : segment) {
-        const float move_distance_cu = move_distances_cu[curve_i];
-        const IndexRange points = points_by_curve[curve_i];
-        if (points.size() <= 1) {
-          continue;
-        }
+    curve_mask.foreach_segment(
+        [&](IndexMaskSegment segment) {
+          MoveAndResampleBuffers resample_buffer;
+          for (const int curve_i : segment) {
+            const float move_distance_cu = move_distances_cu[curve_i];
+            const IndexRange points = points_by_curve[curve_i];
+            if (points.size() <= 1) {
+              continue;
+            }
 
-        const float3 old_last_pos_cu = positions_cu[points.last()];
-        /* Use some point within the curve rather than the end point to smooth out some random
-         * variation. */
-        const float3 direction_reference_point =
-            positions_cu[points.size() > 2 ? points[points.size() / 2] : points.first()];
-        const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
+            const float3 old_last_pos_cu = positions_cu[points.last()];
+            /* Use some point within the curve rather than the end point to smooth out some random
+             * variation. */
+            const float3 direction_reference_point =
+                positions_cu[points.size() > 2 ? points[points.size() / 2] : points.first()];
+            const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
-        const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        move_last_point_and_resample(resample_buffer, positions_cu.slice(points), new_last_pos_cu);
-      }
-    });
+            const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
+            move_last_point_and_resample(
+                resample_buffer, positions_cu.slice(points), new_last_pos_cu);
+          }
+        },
+        exec_mode::grain_size(256));
   }
 };
 
@@ -180,21 +185,23 @@ class ScaleCurvesEffect : public CurvesEffect {
                MutableSpan<float3> positions_cu) override
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    curve_mask.foreach_index(GrainSize(256), [&](const int64_t curve_i) {
-      const float move_distance_cu = move_distances_cu[curve_i];
-      const IndexRange points = points_by_curve[curve_i];
+    curve_mask.foreach_index(
+        [&](const int64_t curve_i) {
+          const float move_distance_cu = move_distances_cu[curve_i];
+          const IndexRange points = points_by_curve[curve_i];
 
-      const float old_length = this->compute_poly_curve_length(positions_cu.slice(points));
-      const float length_diff = scale_up_ ? move_distance_cu : -move_distance_cu;
-      const float min_length = brush_.curves_sculpt_settings->minimum_length;
-      const float new_length = std::max(min_length, old_length + length_diff);
-      const float scale_factor = math::safe_divide(new_length, old_length);
+          const float old_length = this->compute_poly_curve_length(positions_cu.slice(points));
+          const float length_diff = scale_up_ ? move_distance_cu : -move_distance_cu;
+          const float min_length = brush_.curves_sculpt_settings->minimum_length;
+          const float new_length = std::max(min_length, old_length + length_diff);
+          const float scale_factor = math::safe_divide(new_length, old_length);
 
-      const float3 &root_pos_cu = positions_cu[points[0]];
-      for (float3 &pos_cu : positions_cu.slice(points.drop_front(1))) {
-        pos_cu = (pos_cu - root_pos_cu) * scale_factor + root_pos_cu;
-      }
-    });
+          const float3 &root_pos_cu = positions_cu[points[0]];
+          for (float3 &pos_cu : positions_cu.slice(points.drop_front(1))) {
+            pos_cu = (pos_cu - root_pos_cu) * scale_factor + root_pos_cu;
+          }
+        },
+        exec_mode::grain_size(256));
   }
 
   float compute_poly_curve_length(const Span<float3> positions)
@@ -319,7 +326,7 @@ struct CurvesEffectOperationExecutor {
 
     IndexMaskMemory memory;
     const IndexMask curves_mask = IndexMask::from_predicate(
-        curve_selection_, GrainSize(4096), memory, [&](const int64_t curve_i) {
+        curve_selection_, memory, [&](const int64_t curve_i) {
           return move_distances_cu[curve_i] > 0.0f;
         });
 
@@ -352,71 +359,74 @@ struct CurvesEffectOperationExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
-    curve_selection_.foreach_index(GrainSize(256), [&](int64_t curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
+    curve_selection_.foreach_index(
+        [&](int64_t curve_i) {
+          const IndexRange points = points_by_curve[curve_i];
 
-      const float curve_selection_factor = curve_selection_factors_[curve_i];
+          const float curve_selection_factor = curve_selection_factors_[curve_i];
 
-      float max_move_distance_cu = 0.0f;
-      for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
-        for (const int segment_i : points.drop_back(1)) {
-          const float3 p1_cu = math::transform_point(brush_transform_inv,
-                                                     deformation.positions[segment_i]);
-          const float3 p2_cu = math::transform_point(brush_transform_inv,
-                                                     deformation.positions[segment_i + 1]);
+          float max_move_distance_cu = 0.0f;
+          for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
+            for (const int segment_i : points.drop_back(1)) {
+              const float3 p1_cu = math::transform_point(brush_transform_inv,
+                                                         deformation.positions[segment_i]);
+              const float3 p2_cu = math::transform_point(brush_transform_inv,
+                                                         deformation.positions[segment_i + 1]);
 
-          const float2 p1_re = ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, projection);
-          const float2 p2_re = ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, projection);
+              const float2 p1_re = ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, projection);
+              const float2 p2_re = ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, projection);
 
-          float2 closest_on_brush_re;
-          float2 closest_on_segment_re;
-          float lambda_on_brush;
-          float lambda_on_segment;
-          const float dist_to_brush_sq_re = closest_seg_seg_v2(closest_on_brush_re,
-                                                               closest_on_segment_re,
-                                                               &lambda_on_brush,
-                                                               &lambda_on_segment,
-                                                               brush_pos_start_re_,
-                                                               brush_pos_end_re_,
-                                                               p1_re,
-                                                               p2_re);
+              float2 closest_on_brush_re;
+              float2 closest_on_segment_re;
+              float lambda_on_brush;
+              float lambda_on_segment;
+              const float dist_to_brush_sq_re = closest_seg_seg_v2(closest_on_brush_re,
+                                                                   closest_on_segment_re,
+                                                                   &lambda_on_brush,
+                                                                   &lambda_on_segment,
+                                                                   brush_pos_start_re_,
+                                                                   brush_pos_end_re_,
+                                                                   p1_re,
+                                                                   p2_re);
 
-          if (dist_to_brush_sq_re > brush_radius_sq_re) {
-            continue;
+              if (dist_to_brush_sq_re > brush_radius_sq_re) {
+                continue;
+              }
+
+              const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
+              const float radius_falloff = BKE_brush_curve_strength(
+                  brush_, dist_to_brush_re, brush_radius_re);
+              const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
+
+              const float3 closest_on_segment_cu = math::interpolate(
+                  p1_cu, p2_cu, lambda_on_segment);
+
+              float3 brush_start_pos_wo, brush_end_pos_wo;
+              ED_view3d_win_to_3d(
+                  ctx_.v3d,
+                  ctx_.region,
+                  math::transform_point(transforms_.curves_to_world, closest_on_segment_cu),
+                  brush_pos_start_re_,
+                  brush_start_pos_wo);
+              ED_view3d_win_to_3d(
+                  ctx_.v3d,
+                  ctx_.region,
+                  math::transform_point(transforms_.curves_to_world, closest_on_segment_cu),
+                  brush_pos_end_re_,
+                  brush_end_pos_wo);
+              const float3 brush_start_pos_cu = math::transform_point(transforms_.world_to_curves,
+                                                                      brush_start_pos_wo);
+              const float3 brush_end_pos_cu = math::transform_point(transforms_.world_to_curves,
+                                                                    brush_end_pos_wo);
+
+              const float move_distance_cu = weight *
+                                             math::distance(brush_start_pos_cu, brush_end_pos_cu);
+              max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
+            }
           }
-
-          const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, dist_to_brush_re, brush_radius_re);
-          const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
-
-          const float3 closest_on_segment_cu = math::interpolate(p1_cu, p2_cu, lambda_on_segment);
-
-          float3 brush_start_pos_wo, brush_end_pos_wo;
-          ED_view3d_win_to_3d(
-              ctx_.v3d,
-              ctx_.region,
-              math::transform_point(transforms_.curves_to_world, closest_on_segment_cu),
-              brush_pos_start_re_,
-              brush_start_pos_wo);
-          ED_view3d_win_to_3d(
-              ctx_.v3d,
-              ctx_.region,
-              math::transform_point(transforms_.curves_to_world, closest_on_segment_cu),
-              brush_pos_end_re_,
-              brush_end_pos_wo);
-          const float3 brush_start_pos_cu = math::transform_point(transforms_.world_to_curves,
-                                                                  brush_start_pos_wo);
-          const float3 brush_end_pos_cu = math::transform_point(transforms_.world_to_curves,
-                                                                brush_end_pos_wo);
-
-          const float move_distance_cu = weight *
-                                         math::distance(brush_start_pos_cu, brush_end_pos_cu);
-          max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
-        }
-      }
-      move_distances_cu[curve_i] = max_move_distance_cu;
-    });
+          move_distances_cu[curve_i] = max_move_distance_cu;
+        },
+        exec_mode::grain_size(256));
   }
 
   void gather_influences_spherical(MutableSpan<float> move_distances_cu)
@@ -444,48 +454,50 @@ struct CurvesEffectOperationExecutor {
         eCurvesSymmetryType(curves_id_->symmetry));
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    curve_selection_.foreach_index(GrainSize(256), [&](int64_t curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
+    curve_selection_.foreach_index(
+        [&](int64_t curve_i) {
+          const IndexRange points = points_by_curve[curve_i];
 
-      const float curve_selection_factor = curve_selection_factors_[curve_i];
+          const float curve_selection_factor = curve_selection_factors_[curve_i];
 
-      float max_move_distance_cu = 0.0f;
-      for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-        const float3 brush_pos_start_transformed_cu = math::transform_point(brush_transform,
-                                                                            brush_pos_start_cu);
-        const float3 brush_pos_end_transformed_cu = math::transform_point(brush_transform,
-                                                                          brush_pos_end_cu);
+          float max_move_distance_cu = 0.0f;
+          for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+            const float3 brush_pos_start_transformed_cu = math::transform_point(
+                brush_transform, brush_pos_start_cu);
+            const float3 brush_pos_end_transformed_cu = math::transform_point(brush_transform,
+                                                                              brush_pos_end_cu);
 
-        for (const int segment_i : points.drop_back(1)) {
-          const float3 &p1_cu = deformation.positions[segment_i];
-          const float3 &p2_cu = deformation.positions[segment_i + 1];
+            for (const int segment_i : points.drop_back(1)) {
+              const float3 &p1_cu = deformation.positions[segment_i];
+              const float3 &p2_cu = deformation.positions[segment_i + 1];
 
-          float3 closest_on_segment_cu;
-          float3 closest_on_brush_cu;
-          isect_seg_seg_v3(p1_cu,
-                           p2_cu,
-                           brush_pos_start_transformed_cu,
-                           brush_pos_end_transformed_cu,
-                           closest_on_segment_cu,
-                           closest_on_brush_cu);
+              float3 closest_on_segment_cu;
+              float3 closest_on_brush_cu;
+              isect_seg_seg_v3(p1_cu,
+                               p2_cu,
+                               brush_pos_start_transformed_cu,
+                               brush_pos_end_transformed_cu,
+                               closest_on_segment_cu,
+                               closest_on_brush_cu);
 
-          const float dist_to_brush_sq_cu = math::distance_squared(closest_on_segment_cu,
-                                                                   closest_on_brush_cu);
-          if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
-            continue;
+              const float dist_to_brush_sq_cu = math::distance_squared(closest_on_segment_cu,
+                                                                       closest_on_brush_cu);
+              if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
+                continue;
+              }
+
+              const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
+              const float radius_falloff = BKE_brush_curve_strength(
+                  brush_, dist_to_brush_cu, brush_radius_cu);
+              const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
+
+              const float move_distance_cu = weight * brush_pos_diff_length_cu;
+              max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
+            }
           }
-
-          const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, dist_to_brush_cu, brush_radius_cu);
-          const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
-
-          const float move_distance_cu = weight * brush_pos_diff_length_cu;
-          max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
-        }
-      }
-      move_distances_cu[curve_i] = max_move_distance_cu;
-    });
+          move_distances_cu[curve_i] = max_move_distance_cu;
+        },
+        exec_mode::grain_size(256));
   }
 };
 

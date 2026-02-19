@@ -201,13 +201,12 @@ static IndexMask mask_first_distinct_edges(const Span<int2> edges,
   /* Note: #map_edge_to_first_original might still contains #no_original_edge if edges was both non
    * distinct and not full set. */
 
-  return IndexMask::from_predicate(
-      edges_to_check, GrainSize(2048), memory, [&](const int srd_edge_i) {
-        const OrderedEdge edge = edges[srd_edge_i];
-        const int map_i = calc_edges::edge_to_hash_map_i(edge, parallel_mask);
-        const int edge_index = edge_maps[map_i].index_of(edge);
-        return map_edge_to_first_original[edge_offsets[map_i][edge_index]] == srd_edge_i;
-      });
+  return IndexMask::from_predicate(edges_to_check, memory, [&](const int srd_edge_i) {
+    const OrderedEdge edge = edges[srd_edge_i];
+    const int map_i = calc_edges::edge_to_hash_map_i(edge, parallel_mask);
+    const int edge_index = edge_maps[map_i].index_of(edge);
+    return map_edge_to_first_original[edge_offsets[map_i][edge_index]] == srd_edge_i;
+  });
 }
 
 static void map_edge_to_span_index(const Span<int2> edges,
@@ -359,12 +358,13 @@ void mesh_calc_edges(Mesh &mesh,
     }
     else {
       src_to_dst_mask.foreach_index(
-          GrainSize(1024), [&](const int src_index, const int dst_index) {
+          [&](const int src_index, const int dst_index) {
             const OrderedEdge edge = original_edges[src_index];
             const int map_i = calc_edges::edge_to_hash_map_i(edge, parallel_mask);
             const int edge_index = edge_maps[map_i].index_of(edge);
             edge_map_to_result_index[edge_offsets[map_i][edge_index]] = dst_index;
-          });
+          },
+          exec_mode::grain_size(1024));
     }
 
     if (!no_new_edges) {
@@ -399,7 +399,7 @@ void mesh_calc_edges(Mesh &mesh,
   else {
     if (mesh.edges_num != 0) {
       const IndexMask original_corner_edges = IndexMask::from_predicate(
-          IndexRange(mesh.edges_num), GrainSize(2048), memory, [&](const int edge_i) {
+          IndexRange(mesh.edges_num), memory, [&](const int edge_i) {
             const OrderedEdge edge = original_edges[edge_i];
             const int map_i = calc_edges::edge_to_hash_map_i(edge, parallel_mask);
             return edge_maps[map_i].contains(edge);

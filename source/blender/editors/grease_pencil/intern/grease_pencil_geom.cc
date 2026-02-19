@@ -400,53 +400,56 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
 
   Array<int> connect_to_curve(src_curves.curves_num(), -1);
   Array<bool> flip_direction(src_curves.curves_num(), false);
-  selection.foreach_index(GrainSize(512), [&](const int src_i) {
-    const float2 &start_co = screen_start_points[src_i];
-    const float2 &end_co = screen_end_points[src_i];
-    /* Index of KDTree points so they can be ignored. */
-    const int start_index = src_i * 2;
-    const int end_index = src_i * 2 + 1;
+  selection.foreach_index(
+      [&](const int src_i) {
+        const float2 &start_co = screen_start_points[src_i];
+        const float2 &end_co = screen_end_points[src_i];
+        /* Index of KDTree points so they can be ignored. */
+        const int start_index = src_i * 2;
+        const int end_index = src_i * 2 + 1;
 
-    KDTreeNearest_2d nearest_start, nearest_end;
-    const bool is_start_ok =
-        (kdtree_find_nearest_cb_cpp<float2>(
-             tree,
-             start_co,
-             &nearest_start,
-             [&](const int other, const float2 & /*co*/, const float dist_sq) {
-               if (start_index == other || dist_sq > merge_distance_squared) {
-                 return 0;
-               }
-               return 1;
-             }) != -1);
-    const bool is_end_ok = (kdtree_find_nearest_cb_cpp<float2>(
-                                tree,
-                                end_co,
-                                &nearest_end,
-                                [&](const int other, const float2 & /*co*/, const float dist_sq) {
-                                  if (end_index == other || dist_sq > merge_distance_squared) {
-                                    return 0;
-                                  }
-                                  return 1;
-                                }) != -1);
+        KDTreeNearest_2d nearest_start, nearest_end;
+        const bool is_start_ok =
+            (kdtree_find_nearest_cb_cpp<float2>(
+                 tree,
+                 start_co,
+                 &nearest_start,
+                 [&](const int other, const float2 & /*co*/, const float dist_sq) {
+                   if (start_index == other || dist_sq > merge_distance_squared) {
+                     return 0;
+                   }
+                   return 1;
+                 }) != -1);
+        const bool is_end_ok =
+            (kdtree_find_nearest_cb_cpp<float2>(
+                 tree,
+                 end_co,
+                 &nearest_end,
+                 [&](const int other, const float2 & /*co*/, const float dist_sq) {
+                   if (end_index == other || dist_sq > merge_distance_squared) {
+                     return 0;
+                   }
+                   return 1;
+                 }) != -1);
 
-    if (is_start_ok) {
-      const int curve_index = nearest_start.index / 2;
-      const bool is_end_point = bool(nearest_start.index % 2);
-      if (connect_to_curve[curve_index] < 0) {
-        connect_to_curve[curve_index] = src_i;
-        flip_direction[curve_index] = !is_end_point;
-      }
-    }
-    if (is_end_ok) {
-      const int curve_index = nearest_end.index / 2;
-      const bool is_end_point = bool(nearest_end.index % 2);
-      if (connect_to_curve[src_i] < 0) {
-        connect_to_curve[src_i] = curve_index;
-        flip_direction[curve_index] = is_end_point;
-      }
-    }
-  });
+        if (is_start_ok) {
+          const int curve_index = nearest_start.index / 2;
+          const bool is_end_point = bool(nearest_start.index % 2);
+          if (connect_to_curve[curve_index] < 0) {
+            connect_to_curve[curve_index] = src_i;
+            flip_direction[curve_index] = !is_end_point;
+          }
+        }
+        if (is_end_ok) {
+          const int curve_index = nearest_end.index / 2;
+          const bool is_end_point = bool(nearest_end.index % 2);
+          if (connect_to_curve[src_i] < 0) {
+            connect_to_curve[src_i] = curve_index;
+            flip_direction[curve_index] = is_end_point;
+          }
+        }
+      },
+      exec_mode::grain_size(512));
   kdtree_2d_free(tree);
 
   return geometry::curves_merge_endpoints(
@@ -801,39 +804,41 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
 
   const float4x4 transform_inv = math::invert(transform);
   threading::EnumerableThreadSpecific<PerimeterData> thread_data;
-  strokes.foreach_index(GrainSize(256), [&](const int64_t curve_i) {
-    PerimeterData &data = thread_data.local();
+  strokes.foreach_index(
+      [&](const int64_t curve_i) {
+        PerimeterData &data = thread_data.local();
 
-    const bool is_cyclic_curve = src_cyclic[curve_i];
-    /* NOTE: Cyclic curves would better be represented by a cyclic perimeter without end caps, but
-     * we always generate caps for compatibility with GPv2. Fill materials cannot create holes, so
-     * a cyclic outline does not work well. */
-    const bool use_caps = true /*!is_cyclic_curve*/;
+        const bool is_cyclic_curve = src_cyclic[curve_i];
+        /* NOTE: Cyclic curves would better be represented by a cyclic perimeter without end caps,
+         * but we always generate caps for compatibility with GPv2. Fill materials cannot create
+         * holes, so a cyclic outline does not work well. */
+        const bool use_caps = true /*!is_cyclic_curve*/;
 
-    const int prev_point_num = data.positions.size();
-    const int prev_curve_num = data.point_counts.size();
-    const IndexRange points = src_curves.points_by_curve()[curve_i];
+        const int prev_point_num = data.positions.size();
+        const int prev_curve_num = data.point_counts.size();
+        const IndexRange points = src_curves.points_by_curve()[curve_i];
 
-    generate_stroke_perimeter(transformed_positions,
-                              transformed_radii,
-                              points,
-                              corner_subdivisions,
-                              is_cyclic_curve,
-                              use_caps,
-                              eGPDstroke_Caps(src_start_caps[curve_i]),
-                              eGPDstroke_Caps(src_end_caps[curve_i]),
-                              miter_angles,
-                              outline_offset,
-                              data.positions,
-                              data.point_counts,
-                              data.point_indices);
+        generate_stroke_perimeter(transformed_positions,
+                                  transformed_radii,
+                                  points,
+                                  corner_subdivisions,
+                                  is_cyclic_curve,
+                                  use_caps,
+                                  eGPDstroke_Caps(src_start_caps[curve_i]),
+                                  eGPDstroke_Caps(src_end_caps[curve_i]),
+                                  miter_angles,
+                                  outline_offset,
+                                  data.positions,
+                                  data.point_counts,
+                                  data.point_indices);
 
-    /* Transform perimeter positions back into object space. */
-    math::transform_points(transform_inv,
-                           data.positions.as_mutable_span().drop_front(prev_point_num));
+        /* Transform perimeter positions back into object space. */
+        math::transform_points(transform_inv,
+                               data.positions.as_mutable_span().drop_front(prev_point_num));
 
-    data.curve_indices.append_n_times(curve_i, data.point_counts.size() - prev_curve_num);
-  });
+        data.curve_indices.append_n_times(curve_i, data.point_counts.size() - prev_curve_num);
+      },
+      exec_mode::grain_size(256));
 
   int dst_curve_num = 0;
   int dst_point_num = 0;
@@ -1101,32 +1106,34 @@ void find_curve_intersections(const bke::CurvesGeometry &curves,
     r_last_intersect_factors->fill(-1.0f);
   }
 
-  curve_mask.foreach_index(GrainSize(1024), [&](const int i_curve) {
-    const bool is_cyclic = cyclic[i_curve];
-    const IndexRange points = points_by_curve[i_curve];
+  curve_mask.foreach_index(
+      [&](const int i_curve) {
+        const bool is_cyclic = cyclic[i_curve];
+        const IndexRange points = points_by_curve[i_curve];
 
-    for (const int i_point : points) {
-      const int i_prev_point = (i_point == points.first() ? (is_cyclic ? points.last() : -1) :
-                                                            i_point - 1);
-      const int i_next_point = (i_point == points.last() ? (is_cyclic ? points.first() : -1) :
-                                                           i_point + 1);
-      float lambda;
-      /* Find first intersections by raycast from each point to the next. */
-      if (do_raycast(i_prev_point, i_point, i_next_point, lambda)) {
-        r_hits[i_point] = true;
-        if (r_first_intersect_factors) {
-          (*r_first_intersect_factors)[i_point] = lambda;
+        for (const int i_point : points) {
+          const int i_prev_point = (i_point == points.first() ? (is_cyclic ? points.last() : -1) :
+                                                                i_point - 1);
+          const int i_next_point = (i_point == points.last() ? (is_cyclic ? points.first() : -1) :
+                                                               i_point + 1);
+          float lambda;
+          /* Find first intersections by raycast from each point to the next. */
+          if (do_raycast(i_prev_point, i_point, i_next_point, lambda)) {
+            r_hits[i_point] = true;
+            if (r_first_intersect_factors) {
+              (*r_first_intersect_factors)[i_point] = lambda;
+            }
+          }
+          /* Find last intersections by raycast from each point to the previous. */
+          if (do_raycast(i_next_point, i_point, i_prev_point, lambda)) {
+            /* Note: factor = (1 - lambda) because of reverse raycast. */
+            if (r_last_intersect_factors) {
+              (*r_last_intersect_factors)[i_point] = 1.0f - lambda;
+            }
+          }
         }
-      }
-      /* Find last intersections by raycast from each point to the previous. */
-      if (do_raycast(i_next_point, i_point, i_prev_point, lambda)) {
-        /* Note: factor = (1 - lambda) because of reverse raycast. */
-        if (r_last_intersect_factors) {
-          (*r_last_intersect_factors)[i_point] = 1.0f - lambda;
-        }
-      }
-    }
-  });
+      },
+      exec_mode::grain_size(1024));
 }
 
 CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
@@ -1159,15 +1166,17 @@ CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
   result.segment_offsets.reinitialize(curves.curves_num() + 1);
   /* Only segments with hits are written to, initialize all to zero. */
   result.segment_offsets.fill(0);
-  curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    const IndexMask curve_hit_mask = hit_mask.slice_content(points);
-    const bool is_cyclic = cyclic[curve_i];
+  curve_mask.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        const IndexMask curve_hit_mask = hit_mask.slice_content(points);
+        const bool is_cyclic = cyclic[curve_i];
 
-    /* Each hit splits a segment in two. Non-cyclic curves add the curve start point as a segment
-     * start point. */
-    result.segment_offsets[curve_i] = (is_cyclic ? 0 : 1) + curve_hit_mask.size();
-  });
+        /* Each hit splits a segment in two. Non-cyclic curves add the curve start point as a
+         * segment start point. */
+        result.segment_offsets[curve_i] = (is_cyclic ? 0 : 1) + curve_hit_mask.size();
+      },
+      exec_mode::grain_size(512));
   const OffsetIndices segments_by_curve = offset_indices::accumulate_counts_to_offsets(
       result.segment_offsets);
 
@@ -1175,29 +1184,31 @@ CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
   result.segment_start_points.reinitialize(num_segments);
   result.segment_start_fractions.reinitialize(num_segments);
 
-  curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    const IndexMask curve_hit_mask = hit_mask.slice_content(points);
-    const bool is_cyclic = cyclic[curve_i];
-    const IndexRange segments = segments_by_curve[curve_i];
-    const int hit_segments_start = (is_cyclic ? 0 : 1);
+  curve_mask.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        const IndexMask curve_hit_mask = hit_mask.slice_content(points);
+        const bool is_cyclic = cyclic[curve_i];
+        const IndexRange segments = segments_by_curve[curve_i];
+        const int hit_segments_start = (is_cyclic ? 0 : 1);
 
-    if (segments.is_empty()) {
-      return;
-    }
+        if (segments.is_empty()) {
+          return;
+        }
 
-    /* Add curve start a segment. */
-    if (!is_cyclic) {
-      result.segment_start_points[segments[0]] = points.first();
-      result.segment_start_fractions[segments[0]] = 0.0f;
-    }
+        /* Add curve start a segment. */
+        if (!is_cyclic) {
+          result.segment_start_points[segments[0]] = points.first();
+          result.segment_start_fractions[segments[0]] = 0.0f;
+        }
 
-    curve_hit_mask.foreach_index([&](const int point_i, const int hit_i) {
-      result.segment_start_points[segments[hit_segments_start + hit_i]] = point_i;
-      result.segment_start_fractions[segments[hit_segments_start + hit_i]] =
-          first_hit_factors[point_i];
-    });
-  });
+        curve_hit_mask.foreach_index([&](const int point_i, const int hit_i) {
+          result.segment_start_points[segments[hit_segments_start + hit_i]] = point_i;
+          result.segment_start_fractions[segments[hit_segments_start + hit_i]] =
+              first_hit_factors[point_i];
+        });
+      },
+      exec_mode::grain_size(512));
 
   return result;
 }

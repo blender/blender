@@ -350,7 +350,6 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
     case InterpolateLayerMode::All:
       data->layer_mask = IndexMask::from_predicate(
           grease_pencil.layers().index_range(),
-          GrainSize(1024),
           data->layer_mask_memory,
           [&](const int layer_index) { return grease_pencil.layer(layer_index).is_editable(); });
       break;

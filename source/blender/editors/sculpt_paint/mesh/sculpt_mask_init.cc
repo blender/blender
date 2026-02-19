@@ -65,11 +65,13 @@ void write_mask_mesh(const Depsgraph &depsgraph,
   threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    Vector<int> &index_data = all_index_data.local();
-    write_fn(mask.span, hide::node_visible_verts(nodes[i], hide_vert, index_data));
-    bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
-  });
+  node_mask.foreach_index(
+      [&](const int i) {
+        Vector<int> &index_data = all_index_data.local();
+        write_fn(mask.span, hide::node_visible_verts(nodes[i], hide_vert, index_data));
+        bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
+      },
+      exec_mode::grain_size(1));
   pbvh.tag_masks_changed(node_mask);
   mask.finish();
 }
@@ -95,12 +97,14 @@ static void init_mask_grids(
 
   undo::push_nodes(depsgraph, object, node_mask, undo::Type::Mask);
 
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int grid : nodes[i].grids()) {
-      write_fn(grid_hidden, grid, masks.slice(bke::ccg::grid_range(key, grid)));
-    }
-    bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
-  });
+  node_mask.foreach_index(
+      [&](const int i) {
+        for (const int grid : nodes[i].grids()) {
+          write_fn(grid_hidden, grid, masks.slice(bke::ccg::grid_range(key, grid)));
+        }
+        bke::pbvh::node_update_mask_grids(key, masks, nodes[i]);
+      },
+      exec_mode::grain_size(1));
   pbvh.tag_masks_changed(node_mask);
   BKE_subdiv_ccg_average_grids(subdiv_ccg);
 }
@@ -242,29 +246,32 @@ static wmOperatorStatus sculpt_mask_init_exec(bContext *C, wmOperator *op)
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       const int offset = CustomData_get_offset_named(&ss.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       undo::push_nodes(depsgraph, ob, node_mask, undo::Type::Mask);
-      node_mask.foreach_index(GrainSize(1), [&](const int i) {
-        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&nodes[i])) {
-          if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
-            continue;
-          }
-          switch (mode) {
-            case InitMode::Random:
-              BM_ELEM_CD_SET_FLOAT(vert, offset, BLI_hash_int_01(BM_elem_index_get(vert) + seed));
-              break;
-            case InitMode::FaceSet: {
-              BM_ELEM_CD_SET_FLOAT(vert, offset, 0.0f);
-              break;
+      node_mask.foreach_index(
+          [&](const int i) {
+            for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(&nodes[i])) {
+              if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+                continue;
+              }
+              switch (mode) {
+                case InitMode::Random:
+                  BM_ELEM_CD_SET_FLOAT(
+                      vert, offset, BLI_hash_int_01(BM_elem_index_get(vert) + seed));
+                  break;
+                case InitMode::FaceSet: {
+                  BM_ELEM_CD_SET_FLOAT(vert, offset, 0.0f);
+                  break;
+                }
+                case InitMode::Island:
+                  BM_ELEM_CD_SET_FLOAT(
+                      vert,
+                      offset,
+                      BLI_hash_int_01(islands::vert_id_get(ss, BM_elem_index_get(vert)) + seed));
+                  break;
+              }
             }
-            case InitMode::Island:
-              BM_ELEM_CD_SET_FLOAT(
-                  vert,
-                  offset,
-                  BLI_hash_int_01(islands::vert_id_get(ss, BM_elem_index_get(vert)) + seed));
-              break;
-          }
-        }
-        bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
-      });
+            bke::pbvh::node_update_mask_bmesh(offset, nodes[i]);
+          },
+          exec_mode::grain_size(1));
       pbvh.tag_masks_changed(node_mask);
       break;
     }

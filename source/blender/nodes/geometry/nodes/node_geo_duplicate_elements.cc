@@ -198,12 +198,13 @@ static void copy_curve_attributes_without_id(const bke::CurvesGeometry &src_curv
           const Span<T> src = attribute.src.typed<T>();
           MutableSpan<T> dst = attribute.dst.span.typed<T>();
           selection.foreach_index(
-              GrainSize(512), [&](const int64_t index, const int64_t i_selection) {
+              [&](const int64_t index, const int64_t i_selection) {
                 const Span<T> curve_src = src.slice(src_points_by_curve[index]);
                 for (const int dst_curve_index : curve_offsets[i_selection]) {
                   dst.slice(dst_points_by_curve[dst_curve_index]).copy_from(curve_src);
                 }
-              });
+              },
+              exec_mode::grain_size(512));
         });
         break;
       default:
@@ -250,7 +251,7 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
 
   selection.foreach_index(
-      GrainSize(512), [&](const int64_t i_src_curve, const int64_t i_selection) {
+      [&](const int64_t i_src_curve, const int64_t i_selection) {
         const Span<int> curve_src = src.slice(src_points_by_curve[i_src_curve]);
         const IndexRange duplicates_range = offsets[i_selection];
         dst.slice(dst_points_by_curve[duplicates_range.first()]).copy_from(curve_src);
@@ -258,7 +259,8 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
           const int i_dst_curve = duplicates_range[i_duplicate];
           copy_hashed_ids(curve_src, i_duplicate, dst.slice(dst_points_by_curve[i_dst_curve]));
         }
-      });
+      },
+      exec_mode::grain_size(512));
 
   dst_attribute.finish();
 }
@@ -306,16 +308,17 @@ static bke::CurvesGeometry duplicate_curves_CurveGeometry(const bke::CurvesGeome
 
   bke::CurvesGeometry new_curves{dst_points_num, dst_curves_num};
   MutableSpan<int> all_dst_offsets = new_curves.offsets_for_write();
-  selection.foreach_index(GrainSize(512),
-                          [&](const int64_t i_src_curve, const int64_t i_selection) {
-                            const IndexRange src_curve_range = points_by_curve[i_src_curve];
-                            const IndexRange dst_curves_range = curve_offsets[i_selection];
-                            MutableSpan<int> dst_offsets = all_dst_offsets.slice(dst_curves_range);
-                            for (const int i_duplicate : IndexRange(dst_curves_range.size())) {
-                              dst_offsets[i_duplicate] = point_offsets[i_selection].start() +
-                                                         src_curve_range.size() * i_duplicate;
-                            }
-                          });
+  selection.foreach_index(
+      [&](const int64_t i_src_curve, const int64_t i_selection) {
+        const IndexRange src_curve_range = points_by_curve[i_src_curve];
+        const IndexRange dst_curves_range = curve_offsets[i_selection];
+        MutableSpan<int> dst_offsets = all_dst_offsets.slice(dst_curves_range);
+        for (const int i_duplicate : IndexRange(dst_curves_range.size())) {
+          dst_offsets[i_duplicate] = point_offsets[i_selection].start() +
+                                     src_curve_range.size() * i_duplicate;
+        }
+      },
+      exec_mode::grain_size(512));
   all_dst_offsets.last() = dst_points_num;
 
   copy_curve_attributes_without_id(curves, selection, curve_offsets, attribute_filter, new_curves);
@@ -662,21 +665,23 @@ static void copy_stable_id_edges(const Mesh &mesh,
 
   VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.span;
-  selection.foreach_index(GrainSize(1024), [&](const int64_t index, const int64_t i_selection) {
-    const IndexRange edge_range = offsets[i_selection];
-    if (edge_range.is_empty()) {
-      return;
-    }
-    const int2 &edge = edges[index];
-    const IndexRange vert_range = {edge_range.start() * 2, edge_range.size() * 2};
+  selection.foreach_index(
+      [&](const int64_t index, const int64_t i_selection) {
+        const IndexRange edge_range = offsets[i_selection];
+        if (edge_range.is_empty()) {
+          return;
+        }
+        const int2 &edge = edges[index];
+        const IndexRange vert_range = {edge_range.start() * 2, edge_range.size() * 2};
 
-    dst[vert_range[0]] = src[edge[0]];
-    dst[vert_range[1]] = src[edge[1]];
-    for (const int i_duplicate : IndexRange(1, edge_range.size() - 1)) {
-      dst[vert_range[i_duplicate * 2]] = noise::hash(src[edge[0]], i_duplicate);
-      dst[vert_range[i_duplicate * 2 + 1]] = noise::hash(src[edge[1]], i_duplicate);
-    }
-  });
+        dst[vert_range[0]] = src[edge[0]];
+        dst[vert_range[1]] = src[edge[1]];
+        for (const int i_duplicate : IndexRange(1, edge_range.size() - 1)) {
+          dst[vert_range[i_duplicate * 2]] = noise::hash(src[edge[0]], i_duplicate);
+          dst[vert_range[i_duplicate * 2 + 1]] = noise::hash(src[edge[1]], i_duplicate);
+        }
+      },
+      exec_mode::grain_size(1024));
   dst_attribute.finish();
 }
 
@@ -710,16 +715,18 @@ static void duplicate_edges(GeometrySet &geometry_set,
   MutableSpan<int2> new_edges = new_mesh->edges_for_write();
 
   Array<int> vert_orig_indices(output_edges_num * 2);
-  selection.foreach_index(GrainSize(1024), [&](const int64_t index, const int64_t i_selection) {
-    const int2 &edge = edges[index];
-    const IndexRange edge_range = duplicates[i_selection];
-    const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
+  selection.foreach_index(
+      [&](const int64_t index, const int64_t i_selection) {
+        const int2 &edge = edges[index];
+        const IndexRange edge_range = duplicates[i_selection];
+        const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
 
-    for (const int i_duplicate : IndexRange(edge_range.size())) {
-      vert_orig_indices[vert_range[i_duplicate * 2]] = edge[0];
-      vert_orig_indices[vert_range[i_duplicate * 2 + 1]] = edge[1];
-    }
-  });
+        for (const int i_duplicate : IndexRange(edge_range.size())) {
+          vert_orig_indices[vert_range[i_duplicate * 2]] = edge[0];
+          vert_orig_indices[vert_range[i_duplicate * 2 + 1]] = edge[1];
+        }
+      },
+      exec_mode::grain_size(1024));
 
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int i_selection : range) {
@@ -808,10 +815,12 @@ static bke::CurvesGeometry duplicate_points_CurvesGeometry(
     bke::attribute_math::to_static_type(attribute.src.type(), [&]<typename T>() {
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();
-      selection.foreach_index(GrainSize(512), [&](const int64_t index, const int64_t i_selection) {
-        const T &src_value = src[point_to_curve_map[index]];
-        dst.slice(duplicates[i_selection]).fill(src_value);
-      });
+      selection.foreach_index(
+          [&](const int64_t index, const int64_t i_selection) {
+            const T &src_value = src[point_to_curve_map[index]];
+            dst.slice(duplicates[i_selection]).fill(src_value);
+          },
+          exec_mode::grain_size(512));
     });
     attribute.dst.finish();
   }

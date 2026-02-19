@@ -178,7 +178,7 @@ static void faces_check_flip(Mesh &mesh, MutableSpan<float3> nos, const Span<flo
   const OffsetIndices faces = mesh.faces();
   IndexMaskMemory memory;
   const IndexMask faces_to_flip = IndexMask::from_predicate(
-      faces.index_range(), GrainSize(1024), memory, [&](const int i) {
+      faces.index_range(), memory, [&](const int i) {
         const IndexRange face = faces[i];
         float norsum[3] = {0.0f};
 

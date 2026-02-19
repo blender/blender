@@ -54,95 +54,98 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
   Array<MutableSpan<int>> original_indices_per_curve(curve_selection.size());
 
   std::atomic<bool> success = false;
-  curve_selection.foreach_index(GrainSize(32), [&](const int64_t curve_i, const int64_t pos) {
-    const IndexRange points = src_points_by_curve[curve_i];
-    const Span<float3> curve_positions = src_positions.slice(points);
-    const bool is_cyclic = src_cyclic[curve_i];
-    const float epsilon = thresholds[curve_i];
+  curve_selection.foreach_index(
+      [&](const int64_t curve_i, const int64_t pos) {
+        const IndexRange points = src_points_by_curve[curve_i];
+        const Span<float3> curve_positions = src_positions.slice(points);
+        const bool is_cyclic = src_cyclic[curve_i];
+        const float epsilon = thresholds[curve_i];
 
-    /* Both curve fitting algorithms expect the first and last points for non-cyclic curves to be
-     * treated as if they were corners. */
-    const bool use_first_as_corner = !is_cyclic && !corners[points.first()];
-    const bool use_last_as_corner = !is_cyclic && !corners[points.last()];
-    Vector<int, 32> src_corners;
-    if (use_first_as_corner) {
-      src_corners.append(0);
-    }
-    if (points.size() > 2) {
-      for (const int i : IndexRange::from_begin_end(1, points.size() - 1)) {
-        if (corners[points[i]]) {
-          src_corners.append(i);
+        /* Both curve fitting algorithms expect the first and last points for non-cyclic curves to
+         * be treated as if they were corners. */
+        const bool use_first_as_corner = !is_cyclic && !corners[points.first()];
+        const bool use_last_as_corner = !is_cyclic && !corners[points.last()];
+        Vector<int, 32> src_corners;
+        if (use_first_as_corner) {
+          src_corners.append(0);
         }
-      }
-    }
-    if (use_last_as_corner) {
-      src_corners.append(points.last());
-    }
-    const uint *src_corners_ptr = src_corners.is_empty() ?
-                                      nullptr :
-                                      reinterpret_cast<uint *>(src_corners.data());
+        if (points.size() > 2) {
+          for (const int i : IndexRange::from_begin_end(1, points.size() - 1)) {
+            if (corners[points[i]]) {
+              src_corners.append(i);
+            }
+          }
+        }
+        if (use_last_as_corner) {
+          src_corners.append(points.last());
+        }
+        const uint *src_corners_ptr = src_corners.is_empty() ?
+                                          nullptr :
+                                          reinterpret_cast<uint *>(src_corners.data());
 
-    const uint8_t flag = CURVE_FIT_CALC_HIGH_QUALITY | ((is_cyclic) ? CURVE_FIT_CALC_CYCLIC : 0);
+        const uint8_t flag = CURVE_FIT_CALC_HIGH_QUALITY |
+                             ((is_cyclic) ? CURVE_FIT_CALC_CYCLIC : 0);
 
-    float *cubic_array = nullptr;
-    uint32_t *orig_index_map = nullptr;
-    uint32_t cubic_array_size = 0;
-    uint32_t *corner_index_array = nullptr;
-    uint32_t corner_index_array_size = 0;
-    int error = 1;
-    if (method == FitMethod::Split) {
-      error = curve_fit_cubic_to_points_fl(curve_positions.cast<float>().data(),
-                                           curve_positions.size(),
-                                           3,
-                                           epsilon,
-                                           flag,
-                                           src_corners_ptr,
-                                           src_corners.size(),
-                                           &cubic_array,
-                                           &cubic_array_size,
-                                           &orig_index_map,
-                                           &corner_index_array,
-                                           &corner_index_array_size);
-    }
-    else if (method == FitMethod::Refit) {
-      error = curve_fit_cubic_to_points_refit_fl(curve_positions.cast<float>().data(),
-                                                 curve_positions.size(),
-                                                 3,
-                                                 epsilon,
-                                                 flag,
-                                                 src_corners_ptr,
-                                                 src_corners.size(),
-                                                 /* Don't use automatic corner detection. */
-                                                 FLT_MAX,
-                                                 &cubic_array,
-                                                 &cubic_array_size,
-                                                 &orig_index_map,
-                                                 &corner_index_array,
-                                                 &corner_index_array_size);
-    }
+        float *cubic_array = nullptr;
+        uint32_t *orig_index_map = nullptr;
+        uint32_t cubic_array_size = 0;
+        uint32_t *corner_index_array = nullptr;
+        uint32_t corner_index_array_size = 0;
+        int error = 1;
+        if (method == FitMethod::Split) {
+          error = curve_fit_cubic_to_points_fl(curve_positions.cast<float>().data(),
+                                               curve_positions.size(),
+                                               3,
+                                               epsilon,
+                                               flag,
+                                               src_corners_ptr,
+                                               src_corners.size(),
+                                               &cubic_array,
+                                               &cubic_array_size,
+                                               &orig_index_map,
+                                               &corner_index_array,
+                                               &corner_index_array_size);
+        }
+        else if (method == FitMethod::Refit) {
+          error = curve_fit_cubic_to_points_refit_fl(curve_positions.cast<float>().data(),
+                                                     curve_positions.size(),
+                                                     3,
+                                                     epsilon,
+                                                     flag,
+                                                     src_corners_ptr,
+                                                     src_corners.size(),
+                                                     /* Don't use automatic corner detection. */
+                                                     FLT_MAX,
+                                                     &cubic_array,
+                                                     &cubic_array_size,
+                                                     &orig_index_map,
+                                                     &corner_index_array,
+                                                     &corner_index_array_size);
+        }
 
-    if (error) {
-      /* Some error occurred. Fall back to using the input positions as the (poly) curve. */
-      dst_curve_sizes[curve_i] = points.size();
-      dst_curve_types[curve_i] = CURVE_TYPE_POLY;
-      return;
-    }
+        if (error) {
+          /* Some error occurred. Fall back to using the input positions as the (poly) curve. */
+          dst_curve_sizes[curve_i] = points.size();
+          dst_curve_types[curve_i] = CURVE_TYPE_POLY;
+          return;
+        }
 
-    success.store(true, std::memory_order_relaxed);
+        success.store(true, std::memory_order_relaxed);
 
-    const int dst_points_num = cubic_array_size;
-    BLI_assert(dst_points_num > 0);
+        const int dst_points_num = cubic_array_size;
+        BLI_assert(dst_points_num > 0);
 
-    dst_curve_sizes[curve_i] = dst_points_num;
-    dst_curve_types[curve_i] = CURVE_TYPE_BEZIER;
+        dst_curve_sizes[curve_i] = dst_points_num;
+        dst_curve_types[curve_i] = CURVE_TYPE_BEZIER;
 
-    cubic_array_per_curve[pos] = MutableSpan<float3>(reinterpret_cast<float3 *>(cubic_array),
-                                                     dst_points_num * 3);
-    corner_indices_per_curve[pos] = MutableSpan<int>(reinterpret_cast<int *>(corner_index_array),
-                                                     corner_index_array_size);
-    original_indices_per_curve[pos] = MutableSpan<int>(reinterpret_cast<int *>(orig_index_map),
-                                                       dst_points_num);
-  });
+        cubic_array_per_curve[pos] = MutableSpan<float3>(reinterpret_cast<float3 *>(cubic_array),
+                                                         dst_points_num * 3);
+        corner_indices_per_curve[pos] = MutableSpan<int>(
+            reinterpret_cast<int *>(corner_index_array), corner_index_array_size);
+        original_indices_per_curve[pos] = MutableSpan<int>(reinterpret_cast<int *>(orig_index_map),
+                                                           dst_points_num);
+      },
+      exec_mode::grain_size(32));
 
   if (!success) {
     /* None of the curve fittings succeeded. */
@@ -197,58 +200,62 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
   }
 
   Array<int> old_by_new_map(dst_curves.points_num());
-  unselected_curves.foreach_index(GrainSize(1024), [&](const int64_t curve_i) {
-    const IndexRange src_points = src_points_by_curve[curve_i];
-    const IndexRange dst_points = dst_points_by_curve[curve_i];
-    array_utils::fill_index_range<int>(old_by_new_map.as_mutable_span().slice(dst_points),
-                                       src_points.start());
-  });
+  unselected_curves.foreach_index(
+      [&](const int64_t curve_i) {
+        const IndexRange src_points = src_points_by_curve[curve_i];
+        const IndexRange dst_points = dst_points_by_curve[curve_i];
+        array_utils::fill_index_range<int>(old_by_new_map.as_mutable_span().slice(dst_points),
+                                           src_points.start());
+      },
+      exec_mode::grain_size(1024));
 
   /* Now copy the data of the newly fitted curves. */
-  curve_selection.foreach_index(GrainSize(1024), [&](const int64_t curve_i, const int64_t pos) {
-    const IndexRange src_points = src_points_by_curve[curve_i];
-    const IndexRange dst_points = dst_points_by_curve[curve_i];
-    MutableSpan<float3> positions = dst_positions.slice(dst_points);
-    MutableSpan<int> old_by_new = old_by_new_map.as_mutable_span().slice(dst_points);
+  curve_selection.foreach_index(
+      [&](const int64_t curve_i, const int64_t pos) {
+        const IndexRange src_points = src_points_by_curve[curve_i];
+        const IndexRange dst_points = dst_points_by_curve[curve_i];
+        MutableSpan<float3> positions = dst_positions.slice(dst_points);
+        MutableSpan<int> old_by_new = old_by_new_map.as_mutable_span().slice(dst_points);
 
-    if (dst_curve_types[curve_i] == CURVE_TYPE_POLY) {
-      /* Handle the curves for which the curve fitting has failed. */
-      BLI_assert(src_points.size() == dst_points.size());
-      positions.copy_from(src_positions.slice(src_points));
-      dst_handles_left.slice(dst_points).copy_from(src_positions.slice(src_points));
-      dst_handles_right.slice(dst_points).copy_from(src_positions.slice(src_points));
-      dst_handle_types_left.slice(dst_points).fill(BEZIER_HANDLE_FREE);
-      dst_handle_types_right.slice(dst_points).fill(BEZIER_HANDLE_FREE);
-      array_utils::fill_index_range<int>(old_by_new, src_points.start());
-      return;
-    }
+        if (dst_curve_types[curve_i] == CURVE_TYPE_POLY) {
+          /* Handle the curves for which the curve fitting has failed. */
+          BLI_assert(src_points.size() == dst_points.size());
+          positions.copy_from(src_positions.slice(src_points));
+          dst_handles_left.slice(dst_points).copy_from(src_positions.slice(src_points));
+          dst_handles_right.slice(dst_points).copy_from(src_positions.slice(src_points));
+          dst_handle_types_left.slice(dst_points).fill(BEZIER_HANDLE_FREE);
+          dst_handle_types_right.slice(dst_points).fill(BEZIER_HANDLE_FREE);
+          array_utils::fill_index_range<int>(old_by_new, src_points.start());
+          return;
+        }
 
-    const Span<float3> cubic_array = cubic_array_per_curve[pos];
-    BLI_assert(dst_points.size() * 3 == cubic_array.size());
-    MutableSpan<float3> left_handles = dst_handles_left.slice(dst_points);
-    MutableSpan<float3> right_handles = dst_handles_right.slice(dst_points);
-    threading::parallel_for(dst_points.index_range(), 8192, [&](const IndexRange range) {
-      for (const int i : range) {
-        const int index = i * 3;
-        positions[i] = cubic_array[index + 1];
-        left_handles[i] = cubic_array[index];
-        right_handles[i] = cubic_array[index + 2];
-      }
-    });
+        const Span<float3> cubic_array = cubic_array_per_curve[pos];
+        BLI_assert(dst_points.size() * 3 == cubic_array.size());
+        MutableSpan<float3> left_handles = dst_handles_left.slice(dst_points);
+        MutableSpan<float3> right_handles = dst_handles_right.slice(dst_points);
+        threading::parallel_for(dst_points.index_range(), 8192, [&](const IndexRange range) {
+          for (const int i : range) {
+            const int index = i * 3;
+            positions[i] = cubic_array[index + 1];
+            left_handles[i] = cubic_array[index];
+            right_handles[i] = cubic_array[index + 2];
+          }
+        });
 
-    const Span<int> corner_indices = corner_indices_per_curve[pos];
-    dst_handle_types_left.slice(dst_points).fill(BEZIER_HANDLE_ALIGN);
-    dst_handle_types_right.slice(dst_points).fill(BEZIER_HANDLE_ALIGN);
-    dst_handle_types_left.slice(dst_points).fill_indices(corner_indices, BEZIER_HANDLE_FREE);
-    dst_handle_types_right.slice(dst_points).fill_indices(corner_indices, BEZIER_HANDLE_FREE);
+        const Span<int> corner_indices = corner_indices_per_curve[pos];
+        dst_handle_types_left.slice(dst_points).fill(BEZIER_HANDLE_ALIGN);
+        dst_handle_types_right.slice(dst_points).fill(BEZIER_HANDLE_ALIGN);
+        dst_handle_types_left.slice(dst_points).fill_indices(corner_indices, BEZIER_HANDLE_FREE);
+        dst_handle_types_right.slice(dst_points).fill_indices(corner_indices, BEZIER_HANDLE_FREE);
 
-    const Span<int> original_indices = original_indices_per_curve[pos];
-    threading::parallel_for(dst_points.index_range(), 8192, [&](const IndexRange range) {
-      for (const int i : range) {
-        old_by_new[i] = src_points[original_indices[i]];
-      }
-    });
-  });
+        const Span<int> original_indices = original_indices_per_curve[pos];
+        threading::parallel_for(dst_points.index_range(), 8192, [&](const IndexRange range) {
+          for (const int i : range) {
+            old_by_new[i] = src_points[original_indices[i]];
+          }
+        });
+      },
+      exec_mode::grain_size(1024));
 
   dst_curves.update_curve_types();
 

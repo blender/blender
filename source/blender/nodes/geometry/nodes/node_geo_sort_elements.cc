@@ -184,8 +184,8 @@ static std::optional<Array<int>> sorted_indices(const fn::FieldContext &field_co
   Array<int> indices(domain_size);
 
   array_utils::scatter<int>(gathered_indices, mask, indices);
-  unselected.foreach_index_optimized<int>(GrainSize(2048),
-                                          [&](const int index) { indices[index] = index; });
+  unselected.foreach_index_optimized<int>([&](const int index) { indices[index] = index; },
+                                          exec_mode::grain_size(4096));
 
   if (array_utils::indices_are_range(indices, indices.index_range())) {
     return std::nullopt;

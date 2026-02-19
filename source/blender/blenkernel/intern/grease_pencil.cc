@@ -493,7 +493,7 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
 
   threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
   fill_mask.foreach_segment(
-      GrainSize(32), [&](const IndexMaskSegment mask_segment, const int segment_pos) {
+      [&](const IndexMaskSegment mask_segment, const int segment_pos) {
         MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
         for (const int index : mask_segment.index_range()) {
           const int fill_index = mask_segment[index];
@@ -504,7 +504,7 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
 
           /* Only get curves that are in the fill and valid. */
           const IndexMask fill = IndexMask::from_predicate(
-              base_fill, GrainSize(4096), memory, [&](const int64_t curve_i) {
+              base_fill, memory, [&](const int64_t curve_i) {
                 const IndexRange points = points_by_curve[curve_i];
                 return points.size() >= 3;
               });
@@ -525,22 +525,26 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
           const MutableSpan<int> fill_points_by_curve_data_span = MutableSpan(
               fill_points_by_curve_data, fill.size() + 1);
 
-          fill.foreach_index(GrainSize(256), [&](const int64_t curve_i, const int64_t pos) {
-            fill_points_by_curve_data[pos] = points_by_curve[curve_i].size();
-          });
+          fill.foreach_index(
+              [&](const int64_t curve_i, const int64_t pos) {
+                fill_points_by_curve_data[pos] = points_by_curve[curve_i].size();
+              },
+              exec_mode::grain_size(256));
 
           OffsetIndices<int> fill_points_by_curve = offset_indices::accumulate_counts_to_offsets(
               fill_points_by_curve_data_span);
 
-          fill.foreach_index(GrainSize(256), [&](const int64_t curve_i, const int64_t pos) {
-            const IndexRange fill_points = fill_points_by_curve[pos];
-            const IndexRange points = points_by_curve[curve_i];
-            for (const int i : points.index_range()) {
-              const int curve_p = points[i];
-              const int fill_p = fill_points[i];
-              mul_v2_m3v3(projverts[fill_p], axis_mat.ptr(), positions[curve_p]);
-            }
-          });
+          fill.foreach_index(
+              [&](const int64_t curve_i, const int64_t pos) {
+                const IndexRange fill_points = fill_points_by_curve[pos];
+                const IndexRange points = points_by_curve[curve_i];
+                for (const int i : points.index_range()) {
+                  const int curve_p = points[i];
+                  const int fill_p = fill_points[i];
+                  mul_v2_m3v3(projverts[fill_p], axis_mat.ptr(), positions[curve_p]);
+                }
+              },
+              exec_mode::grain_size(256));
 
           /* If there is only one stroke then simple poly fill will be used. */
           if (fill.size() == 1) {
@@ -571,22 +575,24 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
           const Span<float2> projverts_span = Span(reinterpret_cast<float2 *>(projverts),
                                                    num_points);
 
-          fill.foreach_index(GrainSize(256), [&](const int64_t curve_i, const int64_t pos) {
-            const IndexRange fill_points = fill_points_by_curve[pos];
-            const IndexRange points = points_by_curve[curve_i];
-            input.face[pos].resize(points.size());
-            MutableSpan<int> face = input.face[pos].as_mutable_span();
+          fill.foreach_index(
+              [&](const int64_t curve_i, const int64_t pos) {
+                const IndexRange fill_points = fill_points_by_curve[pos];
+                const IndexRange points = points_by_curve[curve_i];
+                input.face[pos].resize(points.size());
+                MutableSpan<int> face = input.face[pos].as_mutable_span();
 
-            array_utils::fill_index_range<int>(face, fill_points.first());
-            const Span<float2> projpoints = projverts_span.slice(fill_points);
+                array_utils::fill_index_range<int>(face, fill_points.first());
+                const Span<float2> projpoints = projverts_span.slice(fill_points);
 
-            /* Curve have to be in a counterclockwise order, so check if a flip is need.*/
-            if (cross_poly_v2(reinterpret_cast<const float (*)[2]>(projpoints.data()),
-                              projpoints.size()) < 0.0)
-            {
-              face.reverse();
-            }
-          });
+                /* Curve have to be in a counterclockwise order, so check if a flip is need.*/
+                if (cross_poly_v2(reinterpret_cast<const float (*)[2]>(projpoints.data()),
+                                  projpoints.size()) < 0.0)
+                {
+                  face.reverse();
+                }
+              },
+              exec_mode::grain_size(256));
 
           meshintersect::CDT_result<double> result = delaunay_2d_calc(input,
                                                                       CDT_INSIDE_WITH_HOLES);
@@ -613,7 +619,8 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
 
           BLI_memarena_clear(pf_arena);
         }
-      });
+      },
+      exec_mode::grain_size(32));
 
   threading::parallel_for(triangle_results.index_range(), 512, [&](const IndexRange range) {
     for (const int i : range) {
@@ -675,37 +682,39 @@ static void update_curve_plane_normal_cache(const Span<float3> positions,
                                             const IndexMask &curve_mask,
                                             MutableSpan<float3> normals)
 {
-  curve_mask.foreach_index(GrainSize(512), [&](const int curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-    if (points.size() < 2) {
-      normals[curve_i] = float3(1.0f, 0.0f, 0.0f);
-      return;
-    }
-
-    /* Calculate normal using Newell's method. */
-    float3 normal(0.0f);
-    float3 prev_point = positions[points.last()];
-    for (const int point_i : points) {
-      const float3 curr_point = positions[point_i];
-      add_newell_cross_v3_v3v3(normal, prev_point, curr_point);
-      prev_point = curr_point;
-    }
-
-    float length;
-    normal = math::normalize_and_get_length(normal, length);
-    /* Check for degenerate case where the points are on a line. */
-    if (math::is_zero(length)) {
-      for (const int point_i : points.drop_back(1)) {
-        float3 segment_vec = positions[point_i] - positions[point_i + 1];
-        if (math::length_squared(segment_vec) != 0.0f) {
-          normal = math::normalize(float3(segment_vec.y, -segment_vec.x, 0.0f));
-          break;
+  curve_mask.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange points = points_by_curve[curve_i];
+        if (points.size() < 2) {
+          normals[curve_i] = float3(1.0f, 0.0f, 0.0f);
+          return;
         }
-      }
-    }
 
-    normals[curve_i] = normal;
-  });
+        /* Calculate normal using Newell's method. */
+        float3 normal(0.0f);
+        float3 prev_point = positions[points.last()];
+        for (const int point_i : points) {
+          const float3 curr_point = positions[point_i];
+          add_newell_cross_v3_v3v3(normal, prev_point, curr_point);
+          prev_point = curr_point;
+        }
+
+        float length;
+        normal = math::normalize_and_get_length(normal, length);
+        /* Check for degenerate case where the points are on a line. */
+        if (math::is_zero(length)) {
+          for (const int point_i : points.drop_back(1)) {
+            float3 segment_vec = positions[point_i] - positions[point_i + 1];
+            if (math::length_squared(segment_vec) != 0.0f) {
+              normal = math::normalize(float3(segment_vec.y, -segment_vec.x, 0.0f));
+              break;
+            }
+          }
+        }
+
+        normals[curve_i] = normal;
+      },
+      exec_mode::grain_size(512));
 }
 
 Span<float3> Drawing::curve_plane_normals() const
@@ -867,57 +876,59 @@ void Drawing::set_texture_matrices(Span<float4x2> matrices, const IndexMask &sel
   const Span<float3> positions = curves.positions();
   const Span<float3> normals = this->curve_plane_normals();
 
-  selection.foreach_index(GrainSize(256), [&](const int64_t curve_i, const int64_t pos) {
-    const IndexRange points = points_by_curve[curve_i];
-    const float3 normal = normals[curve_i];
-    const float4x2 strokemat = get_local_to_stroke_matrix(positions.slice(points), normal);
-    const float4x2 texspace = matrices[pos];
+  selection.foreach_index(
+      [&](const int64_t curve_i, const int64_t pos) {
+        const IndexRange points = points_by_curve[curve_i];
+        const float3 normal = normals[curve_i];
+        const float4x2 strokemat = get_local_to_stroke_matrix(positions.slice(points), normal);
+        const float4x2 texspace = matrices[pos];
 
-    /* We do the computation using doubles to avoid numerical precision errors. */
-    const double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
+        /* We do the computation using doubles to avoid numerical precision errors. */
+        const double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
 
-    /*
-     * We want to solve for `texture_matrix` in the equation:
-     * `texspace = texture_matrix * strokemat4x3`
-     * Because these matrices are not square we can not use a standard inverse.
-     *
-     * Our problem has the form of: `X = A * Y`
-     * We can solve for `A` using: `A = X * B`
-     *
-     * Where `B` is the Right-sided inverse or Moore-Penrose pseudo inverse.
-     * Calculated as:
-     *
-     *  |--------------------------|
-     *  | B = T(Y) * (Y * T(Y))^-1 |
-     *  |--------------------------|
-     *
-     * And `T()` is transpose and `()^-1` is the inverse.
-     */
+        /*
+         * We want to solve for `texture_matrix` in the equation:
+         * `texspace = texture_matrix * strokemat4x3`
+         * Because these matrices are not square we can not use a standard inverse.
+         *
+         * Our problem has the form of: `X = A * Y`
+         * We can solve for `A` using: `A = X * B`
+         *
+         * Where `B` is the Right-sided inverse or Moore-Penrose pseudo inverse.
+         * Calculated as:
+         *
+         *  |--------------------------|
+         *  | B = T(Y) * (Y * T(Y))^-1 |
+         *  |--------------------------|
+         *
+         * And `T()` is transpose and `()^-1` is the inverse.
+         */
 
-    const double3x4 transpose_strokemat = math::transpose(strokemat4x3);
-    const double3x4 right_inverse = transpose_strokemat *
-                                    math::invert(strokemat4x3 * transpose_strokemat);
+        const double3x4 transpose_strokemat = math::transpose(strokemat4x3);
+        const double3x4 right_inverse = transpose_strokemat *
+                                        math::invert(strokemat4x3 * transpose_strokemat);
 
-    const float3x2 texture_matrix = float3x2(double4x2(texspace) * right_inverse);
+        const float3x2 texture_matrix = float3x2(double4x2(texspace) * right_inverse);
 
-    /* Solve for translation, the translation is simply the origin. */
-    const float2 uv_translation = texture_matrix[2];
+        /* Solve for translation, the translation is simply the origin. */
+        const float2 uv_translation = texture_matrix[2];
 
-    /* Solve rotation, the angle of the `u` basis is the rotation. */
-    const float uv_rotation = math::atan2(texture_matrix[0][1], texture_matrix[0][0]);
+        /* Solve rotation, the angle of the `u` basis is the rotation. */
+        const float uv_rotation = math::atan2(texture_matrix[0][1], texture_matrix[0][0]);
 
-    /* Calculate the determinant to check if the `v` scale is negative. */
-    const float det = math::determinant(float2x2(texture_matrix));
+        /* Calculate the determinant to check if the `v` scale is negative. */
+        const float det = math::determinant(float2x2(texture_matrix));
 
-    /* Solve scale, scaling is the only transformation that changes the length, so scale factor
-     * is simply the length. And flip the sign of `v` if the determinant is negative. */
-    const float2 uv_scale = math::safe_rcp(float2(
-        math::length(texture_matrix[0]), math::sign(det) * math::length(texture_matrix[1])));
+        /* Solve scale, scaling is the only transformation that changes the length, so scale factor
+         * is simply the length. And flip the sign of `v` if the determinant is negative. */
+        const float2 uv_scale = math::safe_rcp(float2(
+            math::length(texture_matrix[0]), math::sign(det) * math::length(texture_matrix[1])));
 
-    uv_rotations.span[curve_i] = uv_rotation;
-    uv_translations.span[curve_i] = uv_translation;
-    uv_scales.span[curve_i] = uv_scale;
-  });
+        uv_rotations.span[curve_i] = uv_rotation;
+        uv_translations.span[curve_i] = uv_translation;
+        uv_scales.span[curve_i] = uv_scale;
+      },
+      exec_mode::grain_size(256));
   uv_rotations.finish();
   uv_translations.finish();
   uv_scales.finish();
@@ -1033,12 +1044,11 @@ static IndexMask curves_to_fills_mask(const IndexMask &curve_mask,
   Array<bool> selected_curves(num_curves);
   curve_mask.to_bools(selected_curves);
 
-  return IndexMask::from_predicate(
-      fills->index_range(), GrainSize(4096), memory, [&](const int64_t fill_index) {
-        const Span<int> fill = (*fills)[fill_index];
-        return std::any_of(
-            fill.begin(), fill.end(), [&](const int curve_i) { return selected_curves[curve_i]; });
-      });
+  return IndexMask::from_predicate(fills->index_range(), memory, [&](const int64_t fill_index) {
+    const Span<int> fill = (*fills)[fill_index];
+    return std::any_of(
+        fill.begin(), fill.end(), [&](const int curve_i) { return selected_curves[curve_i]; });
+  });
 }
 
 static void update_triangle_and_offsets_changed(const Span<float3> positions,
@@ -1095,11 +1105,13 @@ static void update_triangle_and_offsets_changed(const Span<float3> positions,
                                    src_triangles.data,
                                    r_triangles.as_mutable_span());
 
-  changed_fills.foreach_index(GrainSize(512), [&](const int i, const int pos) {
-    r_triangles.as_mutable_span()
-        .slice(triangle_offsets[i])
-        .copy_from(changed_triangles.as_span().slice(changed_triangle_offsets[pos]));
-  });
+  changed_fills.foreach_index(
+      [&](const int i, const int pos) {
+        r_triangles.as_mutable_span()
+            .slice(triangle_offsets[i])
+            .copy_from(changed_triangles.as_span().slice(changed_triangle_offsets[pos]));
+      },
+      exec_mode::grain_size(512));
 }
 
 void Drawing::tag_positions_changed(const IndexMask &changed_curves)

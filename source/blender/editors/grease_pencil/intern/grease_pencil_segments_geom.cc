@@ -1036,88 +1036,92 @@ static void check_segments_in_lasso(const Span<float2> screen_space_positions,
   const Bounds<int2> bbox_lasso_int = *bounds::min_max(mcoords);
   const Bounds<float2> bbox_lasso{float2(bbox_lasso_int.min), float2(bbox_lasso_int.max)};
 
-  editable_curves.foreach_index(GrainSize(128), [&](const int curve_i) {
-    /* To speed things up: Do a bounding box check on the curve and the lasso area. */
-    if (!bounds::intersect(bbox_lasso, screen_space_bbox[curve_i]).has_value()) {
-      return;
-    }
-
-    const IndexRange &segment_range = segments_by_curve[curve_i];
-    for (const int segment_i : segment_range) {
-      const Segment &segment = all_segments[segment_i];
-
-      const IndexRange point_range = segment.point_range();
-
-      if (point_range.is_empty()) {
-        const float start_factor = segment.intersection_factor[Side::Start];
-        const int2 start_edge = segment.edge(Side::Start);
-        const float end_factor = segment.intersection_factor[Side::End];
-        const int2 end_edge = segment.edge(Side::End);
-        const float2 pos_1 = math::interpolate(screen_space_positions[start_edge.x],
-                                               screen_space_positions[start_edge.y],
-                                               start_factor);
-        const float2 pos_2 = math::interpolate(
-            screen_space_positions[end_edge.x], screen_space_positions[end_edge.y], end_factor);
-
-        if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
-          segments_to_keep[segment_i] = false;
+  editable_curves.foreach_index(
+      [&](const int curve_i) {
+        /* To speed things up: Do a bounding box check on the curve and the lasso area. */
+        if (!bounds::intersect(bbox_lasso, screen_space_bbox[curve_i]).has_value()) {
+          return;
         }
 
-        continue;
-      }
+        const IndexRange &segment_range = segments_by_curve[curve_i];
+        for (const int segment_i : segment_range) {
+          const Segment &segment = all_segments[segment_i];
 
-      for (const int64_t i : point_range.drop_back(1)) {
-        const int point_i1 = segment.wrap_index(i);
-        const int point_i2 = segment.wrap_index(i + 1);
+          const IndexRange point_range = segment.point_range();
 
-        const float2 pos_1 = screen_space_positions[point_i1];
-        const float2 pos_2 = screen_space_positions[point_i2];
+          if (point_range.is_empty()) {
+            const float start_factor = segment.intersection_factor[Side::Start];
+            const int2 start_edge = segment.edge(Side::Start);
+            const float end_factor = segment.intersection_factor[Side::End];
+            const int2 end_edge = segment.edge(Side::End);
+            const float2 pos_1 = math::interpolate(screen_space_positions[start_edge.x],
+                                                   screen_space_positions[start_edge.y],
+                                                   start_factor);
+            const float2 pos_2 = math::interpolate(screen_space_positions[end_edge.x],
+                                                   screen_space_positions[end_edge.y],
+                                                   end_factor);
 
-        if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
-          segments_to_keep[segment_i] = false;
-          continue;
-        }
-      }
+            if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
+              segments_to_keep[segment_i] = false;
+            }
 
-      if (segment_range.size() == 1 && segment.is_loop()) {
-        const float2 pos_1 = screen_space_positions[segment.wrap_index(point_range.first())];
-        const float2 pos_2 = screen_space_positions[segment.wrap_index(point_range.last())];
-
-        if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
-          segments_to_keep[segment_i] = false;
-          continue;
-        }
-      }
-      else {
-        if (segment.has_intersection(Side::Start)) {
-          const float start_factor = segment.intersection_factor[Side::Start];
-          const int2 start_edge = segment.edge(Side::Start);
-          const float2 pos_1 = math::interpolate(screen_space_positions[start_edge.x],
-                                                 screen_space_positions[start_edge.y],
-                                                 start_factor);
-          const float2 pos_2 = screen_space_positions[segment.wrap_index(point_range.first())];
-
-          if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
-            segments_to_keep[segment_i] = false;
             continue;
           }
-        }
 
-        if (segment.has_intersection(Side::End)) {
-          const float end_factor = segment.intersection_factor[Side::End];
-          const int2 end_edge = segment.edge(Side::End);
-          const float2 pos_1 = screen_space_positions[segment.wrap_index(point_range.last())];
-          const float2 pos_2 = math::interpolate(
-              screen_space_positions[end_edge.x], screen_space_positions[end_edge.y], end_factor);
+          for (const int64_t i : point_range.drop_back(1)) {
+            const int point_i1 = segment.wrap_index(i);
+            const int point_i2 = segment.wrap_index(i + 1);
 
-          if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
-            segments_to_keep[segment_i] = false;
-            continue;
+            const float2 pos_1 = screen_space_positions[point_i1];
+            const float2 pos_2 = screen_space_positions[point_i2];
+
+            if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
+              segments_to_keep[segment_i] = false;
+              continue;
+            }
+          }
+
+          if (segment_range.size() == 1 && segment.is_loop()) {
+            const float2 pos_1 = screen_space_positions[segment.wrap_index(point_range.first())];
+            const float2 pos_2 = screen_space_positions[segment.wrap_index(point_range.last())];
+
+            if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
+              segments_to_keep[segment_i] = false;
+              continue;
+            }
+          }
+          else {
+            if (segment.has_intersection(Side::Start)) {
+              const float start_factor = segment.intersection_factor[Side::Start];
+              const int2 start_edge = segment.edge(Side::Start);
+              const float2 pos_1 = math::interpolate(screen_space_positions[start_edge.x],
+                                                     screen_space_positions[start_edge.y],
+                                                     start_factor);
+              const float2 pos_2 = screen_space_positions[segment.wrap_index(point_range.first())];
+
+              if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
+                segments_to_keep[segment_i] = false;
+                continue;
+              }
+            }
+
+            if (segment.has_intersection(Side::End)) {
+              const float end_factor = segment.intersection_factor[Side::End];
+              const int2 end_edge = segment.edge(Side::End);
+              const float2 pos_1 = screen_space_positions[segment.wrap_index(point_range.last())];
+              const float2 pos_2 = math::interpolate(screen_space_positions[end_edge.x],
+                                                     screen_space_positions[end_edge.y],
+                                                     end_factor);
+
+              if (check_line_segment_lasso_intersection(int2(pos_1), int2(pos_2), mcoords)) {
+                segments_to_keep[segment_i] = false;
+                continue;
+              }
+            }
           }
         }
-      }
-    }
-  });
+      },
+      exec_mode::grain_size(128));
 }
 
 /* Compute bounding boxes of curves in screen space. The bounding boxes are used to speed
@@ -1256,14 +1260,16 @@ bke::CurvesGeometry trim_curve_segment_ends(const bke::CurvesGeometry &src,
 
   Array<bool> segments_to_keep(all_segments.size(), true);
   /* Remove the end segments unless that would delete the whole curve. */
-  editable_curves.foreach_index(GrainSize(128), [&](const int curve_i) {
-    const IndexRange segment_range = segments_by_curve[curve_i];
+  editable_curves.foreach_index(
+      [&](const int curve_i) {
+        const IndexRange segment_range = segments_by_curve[curve_i];
 
-    if (segment_range.size() > 2) {
-      segments_to_keep[segment_range.first()] = false;
-      segments_to_keep[segment_range.last()] = false;
-    }
-  });
+        if (segment_range.size() > 2) {
+          segments_to_keep[segment_range.first()] = false;
+          segments_to_keep[segment_range.last()] = false;
+        }
+      },
+      exec_mode::grain_size(128));
 
   Array<SegmentConnections> segment_connections(all_segments.size(),
                                                 SegmentConnections(SEGMENT_CONNECTION_NULL));

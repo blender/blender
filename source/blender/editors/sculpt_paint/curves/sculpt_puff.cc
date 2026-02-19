@@ -153,7 +153,7 @@ struct PuffOperationExecutor {
 
     IndexMaskMemory memory;
     const IndexMask curves_mask = IndexMask::from_predicate(
-        curve_selection_, GrainSize(4096), memory, [&](const int64_t curve_i) {
+        curve_selection_, memory, [&](const int64_t curve_i) {
           return curve_weights[curve_i] > 0.0f;
         });
 
@@ -190,31 +190,34 @@ struct PuffOperationExecutor {
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    curve_selection_.foreach_index(GrainSize(256), [&](const int64_t curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
-      const float3 first_pos_cu = math::transform_point(brush_transform_inv,
-                                                        deformation.positions[points[0]]);
-      float2 prev_pos_re = ED_view3d_project_float_v2_m4(ctx_.region, first_pos_cu, projection);
-      float max_weight = 0.0f;
-      for (const int point_i : points.drop_front(1)) {
-        const float3 pos_cu = math::transform_point(brush_transform_inv,
-                                                    deformation.positions[point_i]);
-        const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
-        BLI_SCOPED_DEFER([&]() { prev_pos_re = pos_re; });
+    curve_selection_.foreach_index(
+        [&](const int64_t curve_i) {
+          const IndexRange points = points_by_curve[curve_i];
+          const float3 first_pos_cu = math::transform_point(brush_transform_inv,
+                                                            deformation.positions[points[0]]);
+          float2 prev_pos_re = ED_view3d_project_float_v2_m4(
+              ctx_.region, first_pos_cu, projection);
+          float max_weight = 0.0f;
+          for (const int point_i : points.drop_front(1)) {
+            const float3 pos_cu = math::transform_point(brush_transform_inv,
+                                                        deformation.positions[point_i]);
+            const float2 pos_re = ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, projection);
+            BLI_SCOPED_DEFER([&]() { prev_pos_re = pos_re; });
 
-        const float dist_to_brush_sq_re = dist_squared_to_line_segment_v2(
-            brush_pos_re_, prev_pos_re, pos_re);
-        if (dist_to_brush_sq_re > brush_radius_sq_re) {
-          continue;
-        }
+            const float dist_to_brush_sq_re = dist_squared_to_line_segment_v2(
+                brush_pos_re_, prev_pos_re, pos_re);
+            if (dist_to_brush_sq_re > brush_radius_sq_re) {
+              continue;
+            }
 
-        const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-        const float radius_falloff = BKE_brush_curve_strength(
-            brush_, dist_to_brush_re, brush_radius_re);
-        math::max_inplace(max_weight, radius_falloff);
-      }
-      math::max_inplace(r_curve_weights[curve_i], max_weight);
-    });
+            const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_re, brush_radius_re);
+            math::max_inplace(max_weight, radius_falloff);
+          }
+          math::max_inplace(r_curve_weights[curve_i], max_weight);
+        },
+        exec_mode::grain_size(256));
   }
 
   void find_curves_weights_spherical_with_symmetry(MutableSpan<float> r_curve_weights)
@@ -247,25 +250,27 @@ struct PuffOperationExecutor {
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    curve_selection_.foreach_index(GrainSize(256), [&](const int64_t curve_i) {
-      const IndexRange points = points_by_curve[curve_i];
-      float max_weight = 0.0f;
-      for (const int point_i : points.drop_front(1)) {
-        const float3 &prev_pos_cu = deformation.positions[point_i - 1];
-        const float3 &pos_cu = deformation.positions[point_i];
-        const float dist_to_brush_sq_cu = dist_squared_to_line_segment_v3(
-            brush_pos_cu, prev_pos_cu, pos_cu);
-        if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
-          continue;
-        }
+    curve_selection_.foreach_index(
+        [&](const int64_t curve_i) {
+          const IndexRange points = points_by_curve[curve_i];
+          float max_weight = 0.0f;
+          for (const int point_i : points.drop_front(1)) {
+            const float3 &prev_pos_cu = deformation.positions[point_i - 1];
+            const float3 &pos_cu = deformation.positions[point_i];
+            const float dist_to_brush_sq_cu = dist_squared_to_line_segment_v3(
+                brush_pos_cu, prev_pos_cu, pos_cu);
+            if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
+              continue;
+            }
 
-        const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-        const float radius_falloff = BKE_brush_curve_strength(
-            brush_, dist_to_brush_cu, brush_radius_cu);
-        math::max_inplace(max_weight, radius_falloff);
-      }
-      math::max_inplace(r_curve_weights[curve_i], max_weight);
-    });
+            const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_cu, brush_radius_cu);
+            math::max_inplace(max_weight, radius_falloff);
+          }
+          math::max_inplace(r_curve_weights[curve_i], max_weight);
+        },
+        exec_mode::grain_size(256));
   }
 
   void puff(const IndexMask &selection, const Span<float> curve_weights)
@@ -273,68 +278,71 @@ struct PuffOperationExecutor {
     const OffsetIndices points_by_curve = curves_->points_by_curve();
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
-    selection.foreach_segment(GrainSize(256), [&](IndexMaskSegment segment) {
-      Vector<float> accumulated_lengths_cu;
-      for (const int curve_i : segment) {
-        const IndexRange points = points_by_curve[curve_i];
-        const int first_point_i = points[0];
-        const float3 first_pos_cu = positions_cu[first_point_i];
-        const float3 first_pos_su = math::transform_point(transforms_.curves_to_surface,
-                                                          first_pos_cu);
+    selection.foreach_segment(
+        [&](IndexMaskSegment segment) {
+          Vector<float> accumulated_lengths_cu;
+          for (const int curve_i : segment) {
+            const IndexRange points = points_by_curve[curve_i];
+            const int first_point_i = points[0];
+            const float3 first_pos_cu = positions_cu[first_point_i];
+            const float3 first_pos_su = math::transform_point(transforms_.curves_to_surface,
+                                                              first_pos_cu);
 
-        /* Find the nearest position on the surface. The curve will be aligned to the normal of
-         * that point. */
-        BVHTreeNearest nearest;
-        nearest.dist_sq = FLT_MAX;
-        BLI_bvhtree_find_nearest(surface_bvh_.tree,
-                                 first_pos_su,
-                                 &nearest,
-                                 surface_bvh_.nearest_callback,
-                                 &surface_bvh_);
+            /* Find the nearest position on the surface. The curve will be aligned to the normal of
+             * that point. */
+            BVHTreeNearest nearest;
+            nearest.dist_sq = FLT_MAX;
+            BLI_bvhtree_find_nearest(surface_bvh_.tree,
+                                     first_pos_su,
+                                     &nearest,
+                                     surface_bvh_.nearest_callback,
+                                     &surface_bvh_);
 
-        const int3 &tri = surface_corner_tris_[nearest.index];
-        const float3 closest_pos_su = nearest.co;
-        const float3 &v0_su = surface_positions_[surface_corner_verts_[tri[0]]];
-        const float3 &v1_su = surface_positions_[surface_corner_verts_[tri[1]]];
-        const float3 &v2_su = surface_positions_[surface_corner_verts_[tri[2]]];
-        float3 bary_coords;
-        interp_weights_tri_v3(bary_coords, v0_su, v1_su, v2_su, closest_pos_su);
-        const float3 normal_su = geometry::compute_surface_point_normal(
-            tri, bary_coords, corner_normals_su_);
-        const float3 normal_cu = math::normalize(
-            math::transform_direction(transforms_.surface_to_curves_normal, normal_su));
+            const int3 &tri = surface_corner_tris_[nearest.index];
+            const float3 closest_pos_su = nearest.co;
+            const float3 &v0_su = surface_positions_[surface_corner_verts_[tri[0]]];
+            const float3 &v1_su = surface_positions_[surface_corner_verts_[tri[1]]];
+            const float3 &v2_su = surface_positions_[surface_corner_verts_[tri[2]]];
+            float3 bary_coords;
+            interp_weights_tri_v3(bary_coords, v0_su, v1_su, v2_su, closest_pos_su);
+            const float3 normal_su = geometry::compute_surface_point_normal(
+                tri, bary_coords, corner_normals_su_);
+            const float3 normal_cu = math::normalize(
+                math::transform_direction(transforms_.surface_to_curves_normal, normal_su));
 
-        accumulated_lengths_cu.resize(points.size() - 1);
-        length_parameterize::accumulate_lengths<float3>(
-            positions_cu.slice(points), false, accumulated_lengths_cu);
+            accumulated_lengths_cu.resize(points.size() - 1);
+            length_parameterize::accumulate_lengths<float3>(
+                positions_cu.slice(points), false, accumulated_lengths_cu);
 
-        /* Align curve to the surface normal while making sure that the curve does not fold up much
-         * in the process (e.g. when the curve was pointing in the opposite direction before). */
-        for (const int i : IndexRange(points.size()).drop_front(1)) {
-          const int point_i = points[i];
-          const float3 old_pos_cu = positions_cu[point_i];
+            /* Align curve to the surface normal while making sure that the curve does not fold up
+             * much in the process (e.g. when the curve was pointing in the opposite direction
+             * before). */
+            for (const int i : IndexRange(points.size()).drop_front(1)) {
+              const int point_i = points[i];
+              const float3 old_pos_cu = positions_cu[point_i];
 
-          /* Compute final position of the point. */
-          const float length_param_cu = accumulated_lengths_cu[i - 1];
-          const float3 goal_pos_cu = first_pos_cu + length_param_cu * normal_cu;
+              /* Compute final position of the point. */
+              const float length_param_cu = accumulated_lengths_cu[i - 1];
+              const float3 goal_pos_cu = first_pos_cu + length_param_cu * normal_cu;
 
-          const float weight = 0.01f * brush_strength_ * point_factors_[point_i] *
-                               curve_weights[curve_i];
-          float3 new_pos_cu = math::interpolate(old_pos_cu, goal_pos_cu, weight);
+              const float weight = 0.01f * brush_strength_ * point_factors_[point_i] *
+                                   curve_weights[curve_i];
+              float3 new_pos_cu = math::interpolate(old_pos_cu, goal_pos_cu, weight);
 
-          /* Make sure the point does not move closer to the root point than it was initially. This
-           * makes the curve kind of "rotate up". */
-          const float old_dist_to_root_cu = math::distance(old_pos_cu, first_pos_cu);
-          const float new_dist_to_root_cu = math::distance(new_pos_cu, first_pos_cu);
-          if (new_dist_to_root_cu < old_dist_to_root_cu) {
-            const float3 offset = math::normalize(new_pos_cu - first_pos_cu);
-            new_pos_cu += (old_dist_to_root_cu - new_dist_to_root_cu) * offset;
+              /* Make sure the point does not move closer to the root point than it was initially.
+               * This makes the curve kind of "rotate up". */
+              const float old_dist_to_root_cu = math::distance(old_pos_cu, first_pos_cu);
+              const float new_dist_to_root_cu = math::distance(new_pos_cu, first_pos_cu);
+              if (new_dist_to_root_cu < old_dist_to_root_cu) {
+                const float3 offset = math::normalize(new_pos_cu - first_pos_cu);
+                new_pos_cu += (old_dist_to_root_cu - new_dist_to_root_cu) * offset;
+              }
+
+              positions_cu[point_i] = new_pos_cu;
+            }
           }
-
-          positions_cu[point_i] = new_pos_cu;
-        }
-      }
-    });
+        },
+        exec_mode::grain_size(256));
   }
 };
 

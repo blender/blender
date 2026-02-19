@@ -110,50 +110,54 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
    * are updated in parallel. Without this there would be non-threadsafe access to changing
    * positions in other bke::pbvh::Tree nodes. */
   for (const float strength : iteration_strengths(brush_strength)) {
-    node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-      LocalData &tls = all_tls.local();
-      const Span<int> verts = nodes[i].verts();
-      const MutableSpan<float> node_factors = all_factors.as_mutable_span().slice(
-          node_vert_offsets[pos]);
-      calc_factors_common_mesh_indexed(
-          depsgraph,
-          brush,
-          object,
-          attribute_data,
-          position_data.eval,
-          vert_normals,
-          nodes[i],
-          node_factors,
-          all_distances.as_mutable_span().slice(node_vert_offsets[pos]));
-      scale_factors(node_factors, strength);
-      const GroupedSpan<int> neighbors = calc_vert_neighbors_interior(
-          faces,
-          corner_verts,
-          vert_to_face_map,
-          ss.boundary_info_cache->verts,
-          ss.boundary_info_cache->edges,
-          attribute_data.hide_poly,
-          verts,
-          node_factors,
-          tls.neighbor_offsets,
-          tls.neighbor_data);
-      smooth::neighbor_data_average_mesh_check_loose(
-          position_data.eval,
-          verts,
-          neighbors,
-          new_positions.as_mutable_span().slice(node_vert_offsets[pos]));
-    });
+    node_mask.foreach_index(
+        [&](const int i, const int pos) {
+          LocalData &tls = all_tls.local();
+          const Span<int> verts = nodes[i].verts();
+          const MutableSpan<float> node_factors = all_factors.as_mutable_span().slice(
+              node_vert_offsets[pos]);
+          calc_factors_common_mesh_indexed(
+              depsgraph,
+              brush,
+              object,
+              attribute_data,
+              position_data.eval,
+              vert_normals,
+              nodes[i],
+              node_factors,
+              all_distances.as_mutable_span().slice(node_vert_offsets[pos]));
+          scale_factors(node_factors, strength);
+          const GroupedSpan<int> neighbors = calc_vert_neighbors_interior(
+              faces,
+              corner_verts,
+              vert_to_face_map,
+              ss.boundary_info_cache->verts,
+              ss.boundary_info_cache->edges,
+              attribute_data.hide_poly,
+              verts,
+              node_factors,
+              tls.neighbor_offsets,
+              tls.neighbor_data);
+          smooth::neighbor_data_average_mesh_check_loose(
+              position_data.eval,
+              verts,
+              neighbors,
+              new_positions.as_mutable_span().slice(node_vert_offsets[pos]));
+        },
+        exec_mode::grain_size(1));
 
-    node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-      LocalData &tls = all_tls.local();
-      apply_positions_faces(sd,
-                            nodes[i],
-                            object,
-                            tls,
-                            all_factors.as_mutable_span().slice(node_vert_offsets[pos]),
-                            new_positions.as_span().slice(node_vert_offsets[pos]),
-                            position_data);
-    });
+    node_mask.foreach_index(
+        [&](const int i, const int pos) {
+          LocalData &tls = all_tls.local();
+          apply_positions_faces(sd,
+                                nodes[i],
+                                object,
+                                tls,
+                                all_factors.as_mutable_span().slice(node_vert_offsets[pos]),
+                                new_positions.as_span().slice(node_vert_offsets[pos]),
+                                position_data);
+        },
+        exec_mode::grain_size(1));
   }
 }
 
@@ -255,20 +259,22 @@ void do_smooth_brush(const Depsgraph &depsgraph,
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       for (const float strength : iteration_strengths(brush_strength)) {
         MutableSpan<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-        node_mask.foreach_index(GrainSize(1), [&](const int i) {
-          LocalData &tls = all_tls.local();
-          calc_grids(depsgraph,
-                     sd,
-                     faces,
-                     corner_verts,
-                     ss.boundary_info_cache->verts,
-                     ss.boundary_info_cache->edges,
-                     object,
-                     brush,
-                     strength,
-                     nodes[i],
-                     tls);
-        });
+        node_mask.foreach_index(
+            [&](const int i) {
+              LocalData &tls = all_tls.local();
+              calc_grids(depsgraph,
+                         sd,
+                         faces,
+                         corner_verts,
+                         ss.boundary_info_cache->verts,
+                         ss.boundary_info_cache->edges,
+                         object,
+                         brush,
+                         strength,
+                         nodes[i],
+                         tls);
+            },
+            exec_mode::grain_size(1));
       }
       break;
     }
@@ -277,10 +283,12 @@ void do_smooth_brush(const Depsgraph &depsgraph,
       threading::EnumerableThreadSpecific<LocalData> all_tls;
       for (const float strength : iteration_strengths(brush_strength)) {
         MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-        node_mask.foreach_index(GrainSize(1), [&](const int i) {
-          LocalData &tls = all_tls.local();
-          calc_bmesh(depsgraph, sd, object, brush, strength, nodes[i], tls);
-        });
+        node_mask.foreach_index(
+            [&](const int i) {
+              LocalData &tls = all_tls.local();
+              calc_bmesh(depsgraph, sd, object, brush, strength, nodes[i], tls);
+            },
+            exec_mode::grain_size(1));
       }
       break;
     }

@@ -1366,7 +1366,7 @@ static bke::CurvesGeometry simplify_fixed(bke::CurvesGeometry &curves, const int
 
   IndexMaskMemory memory;
   IndexMask points_to_keep = IndexMask::from_predicate(
-      curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
+      curves.points_range(), memory, [&](const int64_t i) {
         const int curve_i = point_to_curve_map[i];
         const IndexRange points = points_by_curve[curve_i];
         if (points.size() <= 2) {
@@ -1956,7 +1956,7 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
 
       IndexMaskMemory &memory = memories[drawing_i];
       const IndexMask curve_selection = IndexMask::from_predicate(
-          curves.curves_range(), GrainSize(512), memory, [&](const int64_t index) {
+          curves.curves_range(), memory, [&](const int64_t index) {
             /* For a single point curve, its screen_space_curve_bounds Bounds will be empty (by
              * definition), so intersecting will fail. Check if the single point is in the bounds
              * instead. */
@@ -1974,12 +1974,14 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
       }
 
       Array<bool> points_to_remove(curves.points_num(), false);
-      curve_selection.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
-        for (const int point : points_by_curve[curve_i]) {
-          points_to_remove[point] = is_point_inside_lasso(lasso,
-                                                          int2(screen_space_positions[point]));
-        }
-      });
+      curve_selection.foreach_index(
+          [&](const int64_t curve_i) {
+            for (const int point : points_by_curve[curve_i]) {
+              points_to_remove[point] = is_point_inside_lasso(lasso,
+                                                              int2(screen_space_positions[point]));
+            }
+          },
+          exec_mode::grain_size(512));
       points_to_remove_per_drawing[drawing_i] = IndexMask::from_bools(points_to_remove, memory);
     }
   });
@@ -2055,7 +2057,7 @@ static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op
 
       IndexMaskMemory &memory = memories[drawing_i];
       points_to_remove_per_drawing[drawing_i] = IndexMask::from_predicate(
-          curves.points_range(), GrainSize(4096), memory, [&](const int64_t index) {
+          curves.points_range(), memory, [&](const int64_t index) {
             return is_point_inside_bounds(box_bounds, int2(screen_space_positions[index]));
           });
     }

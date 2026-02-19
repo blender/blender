@@ -71,17 +71,17 @@ void copy_group_sizes(const OffsetIndices<int> offsets,
                       const IndexMask &mask,
                       MutableSpan<int> sizes)
 {
-  mask.foreach_index_optimized<int64_t>(GrainSize(4096),
-                                        [&](const int64_t i) { sizes[i] = offsets[i].size(); });
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) { sizes[i] = offsets[i].size(); },
+                                        exec_mode::grain_size(4096));
 }
 
 void gather_group_sizes(const OffsetIndices<int> offsets,
                         const IndexMask &mask,
                         MutableSpan<int> sizes)
 {
-  mask.foreach_index_optimized<int64_t>(GrainSize(4096), [&](const int64_t i, const int64_t pos) {
-    sizes[pos] = offsets[i].size();
-  });
+  mask.foreach_index_optimized<int64_t>(
+      [&](const int64_t i, const int64_t pos) { sizes[pos] = offsets[i].size(); },
+      exec_mode::grain_size(4096));
 }
 
 void gather_group_sizes(const OffsetIndices<int> offsets,

@@ -762,24 +762,27 @@ void blur_geometry_data_array(const Object &object,
       const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly",
                                                                   bke::AttrDomain::Face);
       for ([[maybe_unused]] const int _ : IndexRange(iterations)) {
-        node_mask.foreach_index(GrainSize(1), [&](const int i) {
-          LocalData &tls = all_tls.local();
-          const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, tls.vert_indices);
+        node_mask.foreach_index(
+            [&](const int i) {
+              LocalData &tls = all_tls.local();
+              const Span<int> verts = hide::node_visible_verts(
+                  nodes[i], hide_vert, tls.vert_indices);
 
-          const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
-                                                                 corner_verts,
-                                                                 vert_to_face_map,
-                                                                 hide_poly,
-                                                                 verts,
-                                                                 tls.neighbor_offsets,
-                                                                 tls.neighbor_data);
+              const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                                     corner_verts,
+                                                                     vert_to_face_map,
+                                                                     hide_poly,
+                                                                     verts,
+                                                                     tls.neighbor_offsets,
+                                                                     tls.neighbor_data);
 
-          tls.new_factors.resize(verts.size());
-          const MutableSpan<float> new_factors = tls.new_factors;
-          smooth::neighbor_data_average_mesh(data.as_span(), neighbors, new_factors);
+              tls.new_factors.resize(verts.size());
+              const MutableSpan<float> new_factors = tls.new_factors;
+              smooth::neighbor_data_average_mesh(data.as_span(), neighbors, new_factors);
 
-          scatter_data_mesh(new_factors.as_span(), verts, data);
-        });
+              scatter_data_mesh(new_factors.as_span(), verts, data);
+            },
+            exec_mode::grain_size(1));
       }
       break;
     }
@@ -789,53 +792,57 @@ void blur_geometry_data_array(const Object &object,
       const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
       const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
       for ([[maybe_unused]] const int _ : IndexRange(iterations)) {
-        node_mask.foreach_index(GrainSize(1), [&](const int node_index) {
-          LocalData &tls = all_tls.local();
-          const Span<int> grids = nodes[node_index].grids();
-          const int grid_verts_num = key.grid_area * grids.size();
+        node_mask.foreach_index(
+            [&](const int node_index) {
+              LocalData &tls = all_tls.local();
+              const Span<int> grids = nodes[node_index].grids();
+              const int grid_verts_num = key.grid_area * grids.size();
 
-          tls.new_factors.resize(grid_verts_num);
-          const MutableSpan<float> new_factors = tls.new_factors;
-          smooth::average_data_grids(subdiv_ccg, data.as_span(), grids, new_factors);
+              tls.new_factors.resize(grid_verts_num);
+              const MutableSpan<float> new_factors = tls.new_factors;
+              smooth::average_data_grids(subdiv_ccg, data.as_span(), grids, new_factors);
 
-          if (grid_hidden.is_empty()) {
-            scatter_data_grids(subdiv_ccg, new_factors.as_span(), grids, data);
-          }
-          else {
-            for (const int i : grids.index_range()) {
-              const int node_start = i * key.grid_area;
-              BKE_subdiv_ccg_foreach_visible_grid_vert(
-                  key, grid_hidden, grids[i], [&](const int offset) {
-                    data[i] = new_factors[node_start + offset];
-                  });
-            }
-          }
-        });
+              if (grid_hidden.is_empty()) {
+                scatter_data_grids(subdiv_ccg, new_factors.as_span(), grids, data);
+              }
+              else {
+                for (const int i : grids.index_range()) {
+                  const int node_start = i * key.grid_area;
+                  BKE_subdiv_ccg_foreach_visible_grid_vert(
+                      key, grid_hidden, grids[i], [&](const int offset) {
+                        data[i] = new_factors[node_start + offset];
+                      });
+                }
+              }
+            },
+            exec_mode::grain_size(1));
       }
       break;
     }
     case bke::pbvh::Type::BMesh: {
       const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       for ([[maybe_unused]] const int _ : IndexRange(iterations)) {
-        node_mask.foreach_index(GrainSize(1), [&](const int node_index) {
-          LocalData &tls = all_tls.local();
-          const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
-              const_cast<bke::pbvh::BMeshNode *>(&nodes[node_index]));
+        node_mask.foreach_index(
+            [&](const int node_index) {
+              LocalData &tls = all_tls.local();
+              const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(
+                  const_cast<bke::pbvh::BMeshNode *>(&nodes[node_index]));
 
-          tls.new_factors.resize(verts.size());
-          const MutableSpan<float> new_factors = tls.new_factors;
-          smooth::average_data_bmesh(data.as_span(), verts, new_factors);
+              tls.new_factors.resize(verts.size());
+              const MutableSpan<float> new_factors = tls.new_factors;
+              smooth::average_data_bmesh(data.as_span(), verts, new_factors);
 
-          int i = 0;
-          for (const BMVert *vert : verts) {
-            if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
-              i++;
-              continue;
-            }
-            data[BM_elem_index_get(vert)] = new_factors[i];
-            i++;
-          }
-        });
+              int i = 0;
+              for (const BMVert *vert : verts) {
+                if (BM_elem_flag_test(vert, BM_ELEM_HIDDEN)) {
+                  i++;
+                  continue;
+                }
+                data[BM_elem_index_get(vert)] = new_factors[i];
+                i++;
+              }
+            },
+            exec_mode::grain_size(1));
       }
       break;
     }

@@ -543,17 +543,13 @@ TEST(index_mask, FromPredicate)
   {
     const IndexRange range{20'000, 50'000};
     const IndexMask mask = IndexMask::from_predicate(
-        IndexRange(100'000), GrainSize(1024), memory, [&](const int64_t i) {
-          return range.contains(i);
-        });
+        IndexRange(100'000), memory, [&](const int64_t i) { return range.contains(i); });
     EXPECT_EQ(mask.to_range(), range);
   }
   {
     const Vector<int64_t> indices = {0, 500, 20'000, 50'000};
     const IndexMask mask = IndexMask::from_predicate(
-        IndexRange(100'000), GrainSize(1024), memory, [&](const int64_t i) {
-          return indices.contains(i);
-        });
+        IndexRange(100'000), memory, [&](const int64_t i) { return indices.contains(i); });
     EXPECT_EQ(mask.size(), indices.size());
     Vector<int64_t> new_indices(mask.size());
     mask.to_indices<int64_t>(new_indices);
@@ -634,9 +630,7 @@ TEST(index_mask, FromPredicateFuzzy)
 
   IndexMaskMemory memory;
   const IndexMask mask = IndexMask::from_predicate(
-      IndexRange(110'000), GrainSize(1024), memory, [&](const int64_t i) {
-        return values.contains(int(i));
-      });
+      IndexRange(110'000), memory, [&](const int64_t i) { return values.contains(int(i)); });
   EXPECT_EQ(mask.size(), values.size());
   for (const int index : values) {
     EXPECT_TRUE(mask.contains(index));
@@ -695,9 +689,7 @@ TEST(index_mask, ComplementFuzzy)
     }
     IndexMaskMemory memory;
     const IndexMask mask = IndexMask::from_predicate(
-        IndexRange(mask_size), GrainSize(1024), memory, [&](const int64_t i) {
-          return values.contains(int(i));
-        });
+        IndexRange(mask_size), memory, [&](const int64_t i) { return values.contains(int(i)); });
 
     const IndexMask complement = mask.complement(IndexRange(universe_size), memory);
     EXPECT_EQ(universe_size - mask.size(), complement.size());

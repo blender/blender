@@ -80,12 +80,14 @@ void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
   int offset = 0;
   const Vector<MutableSpan<float3>> positions = ed::curves::get_curves_positions_for_write(curves);
   for (const int attribute_i : positions.index_range()) {
-    selection[attribute_i].foreach_index(GrainSize(1024), [&](const int64_t i, const int64_t pos) {
-      TransVert &tv = tvs->transverts[pos + offset];
-      tv.loc = positions[attribute_i][i];
-      tv.flag = SELECT;
-      copy_v3_v3(tv.oldloc, tv.loc);
-    });
+    selection[attribute_i].foreach_index(
+        [&](const int64_t i, const int64_t pos) {
+          TransVert &tv = tvs->transverts[pos + offset];
+          tv.loc = positions[attribute_i][i];
+          tv.flag = SELECT;
+          copy_v3_v3(tv.oldloc, tv.loc);
+        },
+        exec_mode::grain_size(1024));
 
     offset += selection[attribute_i].size();
   }
@@ -108,10 +110,12 @@ void transverts_update_curves(bke::CurvesGeometry &curves,
   for (const int attribute_i : positions.index_range()) {
     const Span<TransVert> transverts = all_transverts.slice_safe(offset,
                                                                  selection[attribute_i].size());
-    selection[attribute_i].foreach_index(GrainSize(1024), [&](const int64_t i, const int64_t pos) {
-      const TransVert &tv = transverts[pos];
-      positions[attribute_i][i] += float3(tv.loc) - float3(tv.oldloc);
-    });
+    selection[attribute_i].foreach_index(
+        [&](const int64_t i, const int64_t pos) {
+          const TransVert &tv = transverts[pos];
+          positions[attribute_i][i] += float3(tv.loc) - float3(tv.oldloc);
+        },
+        exec_mode::grain_size(1024));
 
     offset += selection[attribute_i].size();
   }

@@ -165,30 +165,33 @@ void VertexSmearOperation::on_stroke_extended(const bContext &C,
     }
     const Array<float2> view_positions = view_positions_from_point_mask(params, point_selection);
     MutableSpan<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors_for_write();
-    point_selection.foreach_index(GrainSize(1024), [&](const int64_t point_i) {
-      const float2 view_pos = view_positions[point_i];
-      const int2 grid_pos = color_grid_.coords_to_pos(view_pos, extension_sample.mouse_position);
-      const int cell_i = color_grid_.pos_to_index(grid_pos);
-      if (cell_i == -1 || color_grid_.colors[cell_i][3] == 0.0f) {
-        return;
-      }
-      const ColorGeometry4f mix_color = ColorGeometry4f(color_grid_.colors[cell_i]);
+    point_selection.foreach_index(
+        [&](const int64_t point_i) {
+          const float2 view_pos = view_positions[point_i];
+          const int2 grid_pos = color_grid_.coords_to_pos(view_pos,
+                                                          extension_sample.mouse_position);
+          const int cell_i = color_grid_.pos_to_index(grid_pos);
+          if (cell_i == -1 || color_grid_.colors[cell_i][3] == 0.0f) {
+            return;
+          }
+          const ColorGeometry4f mix_color = ColorGeometry4f(color_grid_.colors[cell_i]);
 
-      const float distance_falloff = math::clamp(
-          1.0f - (math::distance(color_grid_.center, view_pos) / radius * 2), 0.0f, 1.0f);
-      const float influence = brush_point_influence(paint,
-                                                    brush,
-                                                    view_pos,
-                                                    extension_sample,
-                                                    params.multi_frame_falloff) *
-                              distance_falloff;
-      if (influence > 0.0f) {
-        ColorGeometry4f &color = vertex_colors[point_i];
-        const float alpha = color.a;
-        color = math::interpolate(color, mix_color, influence);
-        color.a = alpha;
-      }
-    });
+          const float distance_falloff = math::clamp(
+              1.0f - (math::distance(color_grid_.center, view_pos) / radius * 2), 0.0f, 1.0f);
+          const float influence = brush_point_influence(paint,
+                                                        brush,
+                                                        view_pos,
+                                                        extension_sample,
+                                                        params.multi_frame_falloff) *
+                                  distance_falloff;
+          if (influence > 0.0f) {
+            ColorGeometry4f &color = vertex_colors[point_i];
+            const float alpha = color.a;
+            color = math::interpolate(color, mix_color, influence);
+            color.a = alpha;
+          }
+        },
+        exec_mode::grain_size(1024));
     return true;
   });
 }

@@ -330,12 +330,14 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
   }
   const MutableSpan<float4> pre_smoothed_color = ss.filter_cache->pre_smoothed_color;
 
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    for (const int vert : nodes[i].verts()) {
-      pre_smoothed_color[vert] = color_vert_get(
-          faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, vert);
-    }
-  });
+  node_mask.foreach_index(
+      [&](const int i) {
+        for (const int vert : nodes[i].verts()) {
+          pre_smoothed_color[vert] = color_vert_get(
+              faces, corner_verts, vert_to_face_map, colors, color_attribute.domain, vert);
+        }
+      },
+      exec_mode::grain_size(1));
 
   struct LocalData {
     Vector<int> neighbor_offsets;
@@ -344,27 +346,30 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   for ([[maybe_unused]] const int iteration : IndexRange(2)) {
-    node_mask.foreach_index(GrainSize(1), [&](const int i) {
-      LocalData &tls = all_tls.local();
-      const Span<int> verts = nodes[i].verts();
+    node_mask.foreach_index(
+        [&](const int i) {
+          LocalData &tls = all_tls.local();
+          const Span<int> verts = nodes[i].verts();
 
-      const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
-                                                             corner_verts,
-                                                             vert_to_face_map,
-                                                             {},
-                                                             verts,
-                                                             tls.neighbor_offsets,
-                                                             tls.neighbor_data);
+          const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                                 corner_verts,
+                                                                 vert_to_face_map,
+                                                                 {},
+                                                                 verts,
+                                                                 tls.neighbor_offsets,
+                                                                 tls.neighbor_data);
 
-      tls.averaged_colors.resize(verts.size());
-      const MutableSpan<float4> averaged_colors = tls.averaged_colors;
-      smooth::neighbor_data_average_mesh(pre_smoothed_color.as_span(), neighbors, averaged_colors);
+          tls.averaged_colors.resize(verts.size());
+          const MutableSpan<float4> averaged_colors = tls.averaged_colors;
+          smooth::neighbor_data_average_mesh(
+              pre_smoothed_color.as_span(), neighbors, averaged_colors);
 
-      for (const int i : verts.index_range()) {
-        pre_smoothed_color[verts[i]] = math::interpolate(
-            pre_smoothed_color[verts[i]], averaged_colors[i], 0.5f);
-      }
-    });
+          for (const int i : verts.index_range()) {
+            pre_smoothed_color[verts[i]] = math::interpolate(
+                pre_smoothed_color[verts[i]], averaged_colors[i], 0.5f);
+          }
+        },
+        exec_mode::grain_size(1));
   }
 }
 
@@ -401,21 +406,23 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   const MeshAttributeData attribute_data(mesh);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
-  node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    LocalData &tls = all_tls.local();
-    color_filter_task(depsgraph,
-                      ob,
-                      faces,
-                      corner_verts,
-                      vert_to_face_map,
-                      attribute_data,
-                      mode,
-                      filter_strength,
-                      fill_color,
-                      nodes[i],
-                      tls,
-                      color_attribute);
-  });
+  node_mask.foreach_index(
+      [&](const int i) {
+        LocalData &tls = all_tls.local();
+        color_filter_task(depsgraph,
+                          ob,
+                          faces,
+                          corner_verts,
+                          vert_to_face_map,
+                          attribute_data,
+                          mode,
+                          filter_strength,
+                          fill_color,
+                          nodes[i],
+                          tls,
+                          color_attribute);
+      },
+      exec_mode::grain_size(1));
   pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
   color_attribute.finish();
   flush_update_step(C, UpdateType::Color);
