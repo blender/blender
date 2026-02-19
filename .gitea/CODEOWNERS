@@ -64,14 +64,16 @@ source/blender/editors/include/ED_undo.*               @mont29
 source/blender/editors/undo.*                          @mont29
 
 ## Misc core utils & components.
-source/blender/blenkernel/BKE_blender.*     @mont29
-source/blender/blenkernel/intern/blender.*  @mont29
-source/blender/blenkernel/BKE_bpath.*       @mont29
-source/blender/blenkernel/intern/bpath.*    @mont29
-source/blender/blenkernel/BKE_idprop.*      @mont29
-source/blender/blenkernel/intern/idprop.*   @mont29
-source/blender/blenkernel/BKE_report.*      @mont29
-source/blender/blenkernel/intern/report.*   @mont29
+# NOTE: Cannot exclude `BKE_blender_version.hh` only here, hence the weird regexes.
+source/blender/blenkernel/BKE_blender[^_].*      @mont29
+source/blender/blenkernel/BKE_blender_[^v].*     @mont29
+source/blender/blenkernel/intern/blender.*       @mont29
+source/blender/blenkernel/BKE_bpath.*            @mont29
+source/blender/blenkernel/intern/bpath.*         @mont29
+source/blender/blenkernel/BKE_idprop.*           @mont29
+source/blender/blenkernel/intern/idprop.*        @mont29
+source/blender/blenkernel/BKE_report.*           @mont29
+source/blender/blenkernel/intern/report.*        @mont29
 
 ## DNA.
 source/blender/makesdna/intern.*    @mont29
