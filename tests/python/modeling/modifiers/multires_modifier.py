@@ -31,14 +31,14 @@ def main():
         SpecMeshTest("SimpleSubdivideCube", "testCubeMultiresSimple", "expectedCubeMultiresSimple",
                      [
                          ModifierSpec('multires', 'MULTIRES', {}),
-                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires', 'mode': 'SIMPLE'}),
-                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                         OperatorSpec('OBJECT', 'object.multires_subdivide', {'modifier': 'multires', 'mode': 'SIMPLE'}),
+                         OperatorSpec('OBJECT', 'object.modifier_apply', {'modifier': 'multires'})
                      ], apply_modifier=False),
         SpecMeshTest("LinearSubdivideCube", "testCubeMultiresLinear", "expectedCubeMultiresLinear",
                      [
                          ModifierSpec('multires', 'MULTIRES', {}),
-                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires', 'mode': 'LINEAR'}),
-                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                         OperatorSpec('OBJECT', 'object.multires_subdivide', {'modifier': 'multires', 'mode': 'LINEAR'}),
+                         OperatorSpec('OBJECT', 'object.modifier_apply', {'modifier': 'multires'})
                      ], apply_modifier=False),
         SpecMeshTest("SimpleSubdivide", "testSuzanneSimple", "expectedSuzanneSimple",
                      [
