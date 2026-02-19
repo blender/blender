@@ -83,7 +83,7 @@ LANGUAGES = (
     (49, "Tamil - தமிழ்", "ta"),
     # 50 is free, used to be "Khmer - ខ្មែរ" ("km").
     (51, "Swahili - Kiswahili", "sw"),
-    (52, "Belarusian - беларуску", "be"),
+    (52, "Belarusian - Беларуская", "be"),
     (53, "Danish - Dansk", "da"),
     (54, "Slovenian - Slovenščina", "sl"),
     # Using the utf8 flipped form of Urdu (اُردُو).
