@@ -1388,7 +1388,7 @@ static void TRANSFORM_OT_seq_slide(wmOperatorType *ot)
 
   prop = RNA_def_float_vector(
       ot->srna, "value", 2, nullptr, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
-  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 0);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, 0);
 
   prop = RNA_def_boolean(ot->srna,
                          "use_restore_handle_selection",
