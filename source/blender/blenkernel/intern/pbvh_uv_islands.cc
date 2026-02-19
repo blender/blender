@@ -1249,7 +1249,7 @@ float2 UVBorderCorner::uv(float factor, float min_uv_distance)
 
 bool UVBorderCorner::connected_in_mesh() const
 {
-  return first->get_uv_vertex(1) == second->get_uv_vertex(0);
+  return first->get_uv_vertex(1)->vertex == second->get_uv_vertex(0)->vertex;
 }
 
 void UVBorderCorner::print_debug() const
@@ -1498,7 +1498,7 @@ UVIslandsMask::Tile::Tile(float2 udim_offset, ushort2 tile_resolution)
 bool UVIslandsMask::Tile::contains(const float2 uv) const
 {
   const float2 tile_uv = uv - udim_offset;
-  return IN_RANGE(tile_uv.x, 0.0, 1.0f) && IN_RANGE(tile_uv.y, 0.0f, 1.0f);
+  return IN_RANGE_INCL(tile_uv.x, 0.0f, 1.0f) && IN_RANGE_INCL(tile_uv.y, 0.0f, 1.0f);
 }
 
 float UVIslandsMask::Tile::get_pixel_size_in_uv_space() const
@@ -1632,11 +1632,12 @@ void UVIslandsMask::dilate(int max_iterations)
 bool UVIslandsMask::Tile::is_masked(const uint16_t island_index, const float2 uv) const
 {
   float2 local_uv = uv - udim_offset;
-  if (local_uv.x < 0.0f || local_uv.y < 0.0f || local_uv.x >= 1.0f || local_uv.y >= 1.0f) {
+  if (local_uv.x < 0.0f || local_uv.y < 0.0f || local_uv.x > 1.0f || local_uv.y > 1.0f) {
     return false;
   }
   float2 pixel_pos_f = local_uv * float2(mask_resolution.x, mask_resolution.y);
-  ushort2 pixel_pos = ushort2(pixel_pos_f.x, pixel_pos_f.y);
+  ushort2 pixel_pos = ushort2(clamp_i(pixel_pos_f.x, 0, mask_resolution.x - 1),
+                              clamp_i(pixel_pos_f.y, 0, mask_resolution.y - 1));
   uint64_t offset = pixel_pos.y * mask_resolution.x + pixel_pos.x;
   return mask[offset] == island_index;
 }
