@@ -485,9 +485,7 @@ struct PaintOperationExecutor {
     if (use_fill && (start_opacity < 1.0f || attributes.contains("fill_opacity"))) {
       if (bke::SpanAttributeWriter<float> fill_opacities =
               attributes.lookup_or_add_for_write_span<float>(
-                  "fill_opacity",
-                  bke::AttrDomain::Curve,
-                  bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num()))))
+                  "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f)))
       {
         fill_opacities.span[active_curve] = start_opacity;
         curve_attributes_to_skip.add("fill_opacity");
