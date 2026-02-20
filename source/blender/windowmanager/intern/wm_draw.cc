@@ -886,17 +886,24 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   float alpha_easing = 1.0f - alpha;
   alpha_easing = 1.0f - alpha_easing * alpha_easing;
 
-  /* Slide vertical panels. */
+  /* Slide panels. */
   float ofs_x = BLI_rcti_size_x(&region->winrct) * (1.0f - alpha_easing);
+  float ofs_y = BLI_rcti_size_y(&region->winrct) * (1.0f - alpha_easing);
   if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT) {
     rect_geo.xmin += ofs_x;
     rect_tex.xmax *= alpha_easing;
-    alpha = 1.0f;
   }
   else if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_LEFT) {
     rect_geo.xmax -= ofs_x;
     rect_tex.xmin += 1.0f - alpha_easing;
-    alpha = 1.0f;
+  }
+  else if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) {
+    rect_geo.ymin += ofs_y;
+    rect_tex.ymax *= alpha_easing;
+  }
+  else if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_BOTTOM) {
+    rect_geo.ymax -= ofs_y;
+    rect_tex.ymin += 1.0f - alpha_easing;
   }
 
   /* Not the same layout as #rctf/#rcti. */
@@ -905,8 +912,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
       float(rect_geo.xmin), float(rect_geo.ymin), float(rect_geo.xmax), float(rect_geo.ymax)};
 
   if (blend) {
-    /* Regions drawn off-screen have pre-multiplied alpha. */
-    GPU_blend(GPU_BLEND_ALPHA_PREMULT);
+    GPU_blend(GPU_BLEND_ALPHA);
   }
 
   /* Setup actual texture. */
@@ -924,7 +930,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
 
   GPU_shader_uniform_float_ex(shader, rect_tex_loc, 4, 1, rectt);
   GPU_shader_uniform_float_ex(shader, rect_geo_loc, 4, 1, rectg);
-  GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, float4{1, 1, 1, 1});
+  GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, float4{1, 1, 1, alpha});
 
   gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);

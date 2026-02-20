@@ -2431,7 +2431,9 @@ void region_toggle_hidden(bContext *C, ARegion *region, const bool do_fade)
 
   region->flag ^= RGN_FLAG_HIDDEN;
 
-  if (do_fade && region->overlap && !(U.uiflag & USER_REDUCE_MOTION)) {
+  if (do_fade && region->overlap && !(U.uiflag & USER_REDUCE_MOTION) &&
+      !region->runtime->regiontimer)
+  {
     /* starts a timer, and in end calls the stuff below itself (region_sblend_invoke()) */
     ED_region_visibility_change_update_animated(C, area, region);
   }
