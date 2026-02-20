@@ -487,12 +487,12 @@ void OneapiDevice::mem_move_to_host(device_memory &mem)
 }
 
 void OneapiDevice::mem_copy_from(
-    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem, void *host_pointer)
 {
   if (mem.type == MEM_IMAGE_TEXTURE) {
     assert(!"mem_copy_from not supported for images.");
   }
-  else if (mem.host_pointer) {
+  else if (host_pointer) {
     const size_t size = (w > 0 || h > 0 || elem > 0) ? (elem * w * h) : mem.memory_size();
     const size_t offset = elem * y * w;
 
@@ -511,7 +511,7 @@ void OneapiDevice::mem_copy_from(
 
     assert(size != 0);
     if (mem.device_pointer) {
-      char *shifted_host = reinterpret_cast<char *>(mem.host_pointer) + offset;
+      char *shifted_host = reinterpret_cast<char *>(host_pointer) + offset;
       char *shifted_device = reinterpret_cast<char *>(mem.device_pointer) + offset;
       bool is_finished_ok = usm_memcpy(device_queue_, shifted_host, shifted_device, size);
       if (is_finished_ok == false) {
@@ -520,6 +520,17 @@ void OneapiDevice::mem_copy_from(
       }
     }
   }
+}
+
+void OneapiDevice::mem_copy_from(
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
+{
+  mem_copy_from(mem, y, w, h, elem, mem.host_pointer);
+}
+
+void OneapiDevice::mem_copy_from(device_memory &mem)
+{
+  mem_copy_from(mem, 0, 0, 0, 0);
 }
 
 void OneapiDevice::mem_zero(device_memory &mem)
@@ -843,8 +854,9 @@ void OneapiDevice::image_alloc(device_image &mem)
       thread_scoped_lock lock(image_info_mutex);
       const uint image_info_id = mem.image_info_id;
       if (image_info_id >= image_info.size()) {
-        /* Allocate some image_info_ids in advance, to reduce amount of re-allocations. */
-        image_info.resize(image_info_id + 128);
+        /* Geometric growth to amortize reallocation cost. */
+        const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
+        image_info.host_only_resize(new_size);
       }
       image_info[image_info_id] = tex_info;
       need_image_info = true;

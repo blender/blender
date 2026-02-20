@@ -34,6 +34,7 @@ class MetalDeviceQueue : public DeviceQueue {
   bool supports_local_atomic_sort() const override;
 
   void init_execution() override;
+  void load_image_info() override;
 
   bool enqueue(DeviceKernel kernel,
                const int work_size,
@@ -44,6 +45,7 @@ class MetalDeviceQueue : public DeviceQueue {
   void zero_to_device(device_memory &mem) override;
   void copy_to_device(device_memory &mem) override;
   void copy_from_device(device_memory &mem) override;
+  void *copy_from_device_synchronized(device_memory &mem, vector<uint8_t> &storage) override;
 
   void *native_queue() override;
 

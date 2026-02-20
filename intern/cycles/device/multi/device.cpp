@@ -296,6 +296,24 @@ class MultiDevice : public Device {
     return devices.back().device->get_cpu_osl_memory();
   }
 
+  device_ptr mem_device_ptr(const device_memory &mem, Device *sub_device) override
+  {
+    if (mem.device == sub_device) {
+      return mem.device_pointer;
+    }
+
+    device_ptr key = mem.device_pointer;
+    for (SubDevice &sub : devices) {
+      if (sub.device.get() == sub_device) {
+        auto it = sub.ptr_map.find(key);
+        return (it != sub.ptr_map.end()) ? it->second : device_ptr(0);
+      }
+    }
+
+    assert(!"MultiDevice::mem_device_ptr could not find sub_device");
+    return device_ptr(0);
+  }
+
   bool is_resident(device_ptr key, Device *sub_device) override
   {
     for (SubDevice &sub : devices) {

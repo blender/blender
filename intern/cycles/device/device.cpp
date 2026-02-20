@@ -551,14 +551,30 @@ void Device::host_free(const MemoryType /*type*/, void *host_pointer, const size
   util_aligned_free(host_pointer, size);
 }
 
+device_ptr Device::mem_device_ptr(const device_memory &mem, Device *sub_device)
+{
+  assert(sub_device == this);
+  return mem.device_pointer;
+}
+
 GPUDevice::~GPUDevice() noexcept(false) = default;
 
-bool GPUDevice::load_image_info()
+bool GPUDevice::load_image_info(DeviceQueue *queue)
 {
   /* Note image_info is never host mapped, and load_image_info() should only
    * be called right before kernel enqueue when all memory operations have completed. */
   if (need_image_info) {
-    image_info.copy_to_device();
+    /* If the host buffer was grown with host_only_resize() while a kernel was reading the old
+     * device buffer, we now free and reallocate it. */
+    if (image_info.device_size < image_info.memory_size()) {
+      generic_free(image_info);
+    }
+    if (queue) {
+      queue->copy_to_device(image_info);
+    }
+    else {
+      image_info.copy_to_device();
+    }
     need_image_info = false;
     return true;
   }
@@ -799,7 +815,7 @@ void GPUDevice::generic_free(device_memory &mem)
 
   /* Host pointer should already have been freed at this point. If not we might
    * end up freeing shared memory and can't recover original host memory. */
-  assert(mem.host_pointer == nullptr || mem.move_to_host);
+  assert(mem.host_pointer == nullptr || mem.move_to_host && !mem.is_shared(this));
 
   const thread_scoped_lock lock(device_mem_map_mutex);
   DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
