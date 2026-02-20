@@ -232,6 +232,10 @@ class Device {
      * is valid or not (since it may not have been allocated yet). */
     return sub_device == this;
   }
+
+  /* Return the real device pointer for mem on the given sub_device. */
+  virtual device_ptr mem_device_ptr(const device_memory &mem, Device *sub_device);
+
   virtual bool check_peer_access(Device * /*peer_device*/)
   {
     return false;
@@ -348,7 +352,7 @@ class GPUDevice : public Device {
   bool need_image_info = false;
   /* Returns true if the image info was copied to the device (meaning, some more
    * re-initialization might be needed). */
-  virtual bool load_image_info();
+  virtual bool load_image_info(DeviceQueue *queue);
 
  protected:
   /* Memory allocation, only accessed through device_memory. */

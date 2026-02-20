@@ -976,13 +976,15 @@ void MetalDevice::image_alloc_as_buffer(device_image &mem)
   MetalDevice::MetalMem *mmem = generic_alloc(mem);
   generic_copy_to(mem);
 
+  std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
+
   /* Resize once */
   const uint image_info_id = mem.image_info_id;
   if (image_info_id >= image_info.size()) {
-    /* Allocate some image_info_ids in advance, to reduce amount
-     * of re-allocations. */
-    image_info.resize(round_up(image_info_id + 1, 128));
-    image_info_id_map.resize(round_up(image_info_id + 1, 128));
+    /* Geometric growth to amortize reallocation cost. */
+    const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
+    image_info.resize(new_size);
+    image_info_id_map.resize(new_size);
   }
 
   image_info[image_info_id] = mem.info;
@@ -1124,10 +1126,10 @@ void MetalDevice::image_alloc(device_image &mem)
     /* Resize once */
     const uint image_info_id = mem.image_info_id;
     if (image_info_id >= image_info.size()) {
-      /* Allocate some image_info_ids in advance, to reduce amount
-       * of re-allocations. */
-      image_info.resize(image_info_id + 128);
-      image_info_id_map.resize(image_info_id + 128);
+      /* Geometric growth to amortize reallocation cost. */
+      const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
+      image_info.resize(new_size);
+      image_info_id_map.resize(new_size);
 
       ssize_t min_buffer_length = sizeof(void *) * image_info.size();
       if (!image_bindings || (image_bindings.length < min_buffer_length)) {
