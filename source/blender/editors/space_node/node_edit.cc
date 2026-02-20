@@ -98,6 +98,7 @@ struct CompositorJob {
   Render *render;
   compositor::Profiler profiler;
   compositor::NodeGroupOutputTypes needed_outputs;
+  bool is_animation_playing;
 };
 
 static void compositor_job_init(void *compositor_job_data)
@@ -143,9 +144,20 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
 {
   CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
 
-  RE_test_break_cb(compositor_job->render, &worker_status->stop, [](void *should_stop) -> bool {
-    return *static_cast<bool *>(should_stop) || G.is_break;
-  });
+  /* If animation is playing, do not respect the job worker stop status, because if the job for the
+   * current frame did not finish before the next frame's job is scheduled, it will be stopped in
+   * favor of the new frame, and this will likely happen for all future frame jobs so we will be
+   * essentially doing nothing. So we just prefer to finish the job at hand and ignore the future
+   * jobs. This will appear to be frame-dropping for the user. */
+  if (compositor_job->is_animation_playing) {
+    RE_test_break_cb(
+        compositor_job->render, nullptr, [](void * /*handle*/) -> bool { return G.is_break; });
+  }
+  else {
+    RE_test_break_cb(compositor_job->render, &worker_status->stop, [](void *should_stop) -> bool {
+      return *static_cast<bool *>(should_stop) || G.is_break;
+    });
+  }
 
   BKE_callback_exec_id(
       compositor_job->bmain, &compositor_job->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
@@ -179,14 +191,6 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
   }
 }
 
-static void compositor_job_cancel(void *compositor_job_data)
-{
-  CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
-
-  Scene *scene = compositor_job->scene;
-  BKE_callback_exec_id(compositor_job->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
-}
-
 static void compositor_job_complete(void *compositor_job_data)
 {
   CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
@@ -199,6 +203,22 @@ static void compositor_job_complete(void *compositor_job_data)
   scene->runtime->compositor.per_node_execution_time =
       compositor_job->profiler.get_nodes_evaluation_times();
   WM_main_add_notifier(NC_SCENE | ND_COMPO_RESULT, nullptr);
+}
+
+static void compositor_job_cancel(void *compositor_job_data)
+{
+  CompositorJob *compositor_job = static_cast<CompositorJob *>(compositor_job_data);
+
+  /* If animation is playing, jobs can only be canceled by the user, that is, through G.is_break,
+   * so if we are not breaked, consider the job to be complete. See comment in compositor_job_start
+   * breaking callbacks. */
+  if (compositor_job->is_animation_playing && !G.is_break) {
+    compositor_job_complete(compositor_job);
+    return;
+  }
+
+  Scene *scene = compositor_job->scene;
+  BKE_callback_exec_id(compositor_job->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
 }
 
 static void compositor_job_free(void *compositor_job_data)
@@ -328,6 +348,7 @@ void ED_node_compositor_job(const bContext *C)
   compositor_job->scene = scene;
   compositor_job->view_layer = CTX_data_view_layer(C);
   compositor_job->needed_outputs = needed_outputs;
+  compositor_job->is_animation_playing = ED_window_animation_playing_no_scrub(CTX_wm_manager(C));
 
   WM_jobs_customdata_set(job, compositor_job, compositor_job_free);
   WM_jobs_timer(job, 0.1, 0, 0);
