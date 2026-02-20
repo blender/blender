@@ -658,8 +658,8 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
 }
 
 #ifdef USE_ANGLE_ITER_ORDER_ASSERT
-static float convexhull_2d_angle_iter_cross_for_assert(const HullAngleIter &hiter,
-                                                       const AngleCanonical &angle_prev)
+[[maybe_unused]] static float convexhull_2d_angle_iter_cross_for_assert(
+    const HullAngleIter &hiter, const AngleCanonical &angle_prev)
 {
   const int i_a = angle_prev.index;
   const int i_b = hiter.axis_ordered->angle.index;
@@ -697,7 +697,6 @@ static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
                 * vectors for all edges twice (or store them for reuse). */
                (std::abs(convexhull_2d_angle_iter_cross_for_assert(hiter, angle_prev)) < 1e-6f));
     UNUSED_VARS_NDEBUG(angle_prev);
-    (void)convexhull_2d_angle_iter_cross_for_assert;
   }
 #endif
 }
