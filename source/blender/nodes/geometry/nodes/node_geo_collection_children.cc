@@ -81,9 +81,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Set<const Object *> obj_visited;
   for (Collection *col : obj_collections) {
     for (CollectionObject &cob : col->gobject) {
-      Object *obj_original = DEG_get_original(cob.ob);
-      if (obj_visited.add(obj_original)) {
-        child_objects.append(obj_original);
+      if (obj_visited.add(cob.ob)) {
+        child_objects.append(cob.ob);
       }
     }
   }
