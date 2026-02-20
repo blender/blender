@@ -32,6 +32,13 @@ static void node_declare(NodeDeclarationBuilder &b)
     const NodeStoreBundleItem &storage = node_storage(*node);
     const eNodeSocketDatatype socket_type = eNodeSocketDatatype(storage.socket_type);
     auto &decl = b.add_input(socket_type, "Item");
+    if (ELEM(storage.structure_type,
+             NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC,
+             NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD,
+             NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO))
+    {
+      decl.supports_field();
+    }
     if (storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
       decl.structure_type(StructureType::Dynamic);
     }
