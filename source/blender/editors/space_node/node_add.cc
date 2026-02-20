@@ -1923,6 +1923,9 @@ static wmOperatorStatus new_compositor_sequencer_node_group_exec(bContext *C, wm
       SequencerCompositorModifierData *modifier_data =
           reinterpret_cast<SequencerCompositorModifierData *>(smd);
       modifier_data->node_group = ntree;
+
+      /* Which strips are used by which node trees has changed. */
+      seq::strip_lookup_invalidate(scene->ed);
       seq::relations_invalidate_cache(scene, strip);
 
       /* Tag depsgraph relations for an update since the modifier should now be referencing a
