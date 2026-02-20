@@ -510,6 +510,9 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     const StencilTable *table = StencilTableFactory::AppendLocalPointStencilTable(
         *refiner, vertex_stencils, local_point_stencil_table);
     delete_stencil_table(vertex_stencils);
+    if (table == nullptr) {
+      return nullptr;
+    }
     vertex_stencils = table;
   }
   // Varying stencils.
