@@ -5162,6 +5162,7 @@ static void GREASE_PENCIL_OT_set_stroke_type(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(
       ot->srna, "type", prop_stroke_type_types, int(StrokeType::Stroke), "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_GPENCIL);
 }
 
 /** \} */

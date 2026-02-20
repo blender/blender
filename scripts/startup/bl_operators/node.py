@@ -720,7 +720,7 @@ class ZoneOperator:
         if input_node_type is None:
             input_node_type = cls.input_node_type
 
-        return cls._zone_tooltips.get(input_node_type, None)
+        return tip_(cls._zone_tooltips.get(input_node_type, None))
 
 
 class NodeAddZoneOperator(ZoneOperator, NodeAddOperator):

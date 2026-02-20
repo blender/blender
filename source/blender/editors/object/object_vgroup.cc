@@ -734,18 +734,18 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
  * \{ */
 
 static const EnumPropertyItem WT_vertex_group_select_item[] = {
-    {WT_VGROUP_ACTIVE, "ACTIVE", 0, "Active Group", "The active Vertex Group"},
+    {WT_VGROUP_ACTIVE, "ACTIVE", 0, N_("Active Group"), N_("The active Vertex Group")},
     {WT_VGROUP_BONE_SELECT,
      "BONE_SELECT",
      0,
-     "Selected Pose Bones",
-     "All Vertex Groups assigned to Selection"},
+     N_("Selected Pose Bones"),
+     N_("All Vertex Groups assigned to Selection")},
     {WT_VGROUP_BONE_DEFORM,
      "BONE_DEFORM",
      0,
-     "Deform Pose Bones",
-     "All Vertex Groups assigned to Deform Bones"},
-    {WT_VGROUP_ALL, "ALL", 0, "All Groups", "All Vertex Groups"},
+     N_("Deform Pose Bones"),
+     N_("All Vertex Groups assigned to Deform Bones")},
+    {WT_VGROUP_ALL, "ALL", 0, N_("All Groups"), N_("All Vertex Groups")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

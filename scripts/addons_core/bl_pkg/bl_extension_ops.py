@@ -33,6 +33,7 @@ from bpy.props import (
     IntProperty,
 )
 from bpy.app.translations import (
+    pgettext_n as n_,
     pgettext_iface as iface_,
     pgettext_tip as tip_,
     pgettext_rpt as rpt_,
@@ -60,8 +61,8 @@ rna_prop_enable_on_install = BoolProperty(
     options={'SKIP_SAVE'}
 )
 rna_prop_enable_on_install_type_map = {
-    "add-on": "Enable Add-on",
-    "theme": "Set Current Theme",
+    "add-on": n_("Enable Add-on"),
+    "theme": n_("Set Current Theme"),
 }
 
 _ext_base_pkg_idname = "bl_ext"
