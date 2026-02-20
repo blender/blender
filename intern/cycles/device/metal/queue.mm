@@ -359,6 +359,17 @@ void MetalDeviceQueue::init_execution()
     write_resource(blas_array, metal_device_->blas_array[slot], slot);
   }
 
+  /* Populate image bindings. */
+  load_image_info();
+
+  /* Synchronize memory copies. */
+  synchronize();
+}
+
+void MetalDeviceQueue::load_image_info()
+{
+  /* TODO: Can this be optimized to only update info ids that changed? Why is this done delayed
+   * instead of immediately when allocating the image? */
   device_vector<KernelImageInfo> &image_info = metal_device_->image_info;
   id<MTLBuffer> &image_bindings = metal_device_->image_bindings;
   std::vector<id<MTLResource>> &image_info_id_map = metal_device_->image_info_id_map;
@@ -381,9 +392,6 @@ void MetalDeviceQueue::init_execution()
       }
     }
   }
-
-  /* Synchronize memory copies. */
-  synchronize();
 }
 
 bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
@@ -674,7 +682,7 @@ void MetalDeviceQueue::zero_to_device(device_memory &mem)
       return;
     }
 
-    assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
+    assert(mem.type != MEM_IMAGE_TEXTURE);
 
     if (mem.memory_size() == 0) {
       return;
@@ -716,7 +724,7 @@ void MetalDeviceQueue::copy_to_device(device_memory &mem)
       metal_device_->mem_alloc(mem);
     }
 
-    assert(mem.device_pointer != 0);
+    assert(mem.device->mem_device_ptr(mem, metal_device_) != 0);
     assert(mem.host_pointer != nullptr);
     /* No need to copy - Apple Silicon has Unified Memory Architecture. */
   }
@@ -725,6 +733,20 @@ void MetalDeviceQueue::copy_to_device(device_memory &mem)
 void MetalDeviceQueue::copy_from_device(device_memory & /*mem*/)
 {
   /* No need to copy - Apple Silicon has Unified Memory Architecture. */
+}
+
+void *MetalDeviceQueue::copy_from_device_synchronized(device_memory &mem,
+                                                      vector<uint8_t> & /*storage*/)
+{
+  if (mem.memory_size() == 0) {
+    return nullptr;
+  }
+
+  /* Wait until kernels have finished before returning from unified memory. */
+  synchronize();
+
+  device_ptr d_ptr = mem.device->mem_device_ptr(mem, metal_device_);
+  return (d_ptr) ? reinterpret_cast<MetalDevice::MetalMem *>(d_ptr)->hostPtr : nullptr;
 }
 
 void MetalDeviceQueue::prepare_resources(DeviceKernel /*kernel*/)

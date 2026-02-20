@@ -893,8 +893,9 @@ void CUDADevice::image_alloc(device_image &mem)
     thread_scoped_lock lock(image_info_mutex);
     const uint image_info_id = mem.image_info_id;
     if (image_info_id >= image_info.size()) {
-      /* Allocate some image_info_ids in advance, to reduce amount of re-allocations. */
-      image_info.resize(image_info_id + 128);
+      /* Geometric growth to amortize reallocation cost. */
+      const size_t new_size = max(size_t(image_info_id) + 128, image_info.size() * 2);
+      image_info.host_only_resize(new_size);
     }
     image_info[image_info_id] = tex_info;
     need_image_info = true;

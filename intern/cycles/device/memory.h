@@ -295,6 +295,8 @@ class device_memory {
 
   /* Memory can only be freed on host and device together. */
   void host_and_device_free();
+  /* Free only the host buffer, leaving any device allocation intact. */
+  void host_only_free();
 
   bool device_is_cpu();
 
@@ -435,6 +437,37 @@ template<typename T> class device_vector : public device_memory {
     data_size = new_size;
     data_width = width;
     data_height = height;
+
+    return data();
+  }
+
+  /* Host-only resize: grows the host buffer while leaving any existing device allocation
+   * untouched. Use this when a kernel may be reading from device_pointer and freeing it
+   * would be unsafe. The device buffer will be reallocated on the next copy_to_device()
+   * call once the device is idle. Only valid when not shrinking. */
+  T *host_only_resize(const size_t new_count)
+  {
+    assert(new_count >= data_size);
+
+    if (new_count != data_size) {
+      void *new_ptr = host_alloc(sizeof(T) * new_count);
+
+      if (new_ptr) {
+        for (size_t i = 0; i < data_size; i++) {
+          ((T *)new_ptr)[i] = ((T *)host_pointer)[i];
+        }
+        for (size_t i = data_size; i < new_count; i++) {
+          ((T *)new_ptr)[i] = T();
+        }
+      }
+
+      host_only_free();
+      host_pointer = new_ptr;
+      modified = true;
+    }
+
+    data_size = new_count;
+    data_width = new_count;
 
     return data();
   }

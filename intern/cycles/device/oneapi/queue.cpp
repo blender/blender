@@ -55,7 +55,7 @@ int OneapiDeviceQueue::num_sort_partitions(int max_num_paths, uint /*max_scene_s
 
 void OneapiDeviceQueue::init_execution()
 {
-  oneapi_device_->load_image_info();
+  oneapi_device_->load_image_info(nullptr);
 
   SyclQueue *device_queue = oneapi_device_->sycl_queue();
   void *kg_dptr = oneapi_device_->kernel_globals_device_pointer();
@@ -68,6 +68,11 @@ void OneapiDeviceQueue::init_execution()
   debug_init_execution();
 }
 
+void OneapiDeviceQueue::load_image_info()
+{
+  oneapi_device_->load_image_info(this);
+}
+
 bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
                                 const int signed_kernel_work_size,
                                 const DeviceKernelArguments &_args)
@@ -77,7 +82,7 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
   }
 
   /* Update image info in case memory moved to host. */
-  if (oneapi_device_->load_image_info()) {
+  if (oneapi_device_->load_image_info(nullptr)) {
     if (!synchronize()) {
       return false;
     }
@@ -141,6 +146,19 @@ void OneapiDeviceQueue::copy_to_device(device_memory &mem)
 void OneapiDeviceQueue::copy_from_device(device_memory &mem)
 {
   oneapi_device_->mem_copy_from(mem);
+}
+
+void *OneapiDeviceQueue::copy_from_device_synchronized(device_memory &mem,
+                                                       vector<uint8_t> &storage)
+{
+  if (mem.memory_size() == 0) {
+    return nullptr;
+  }
+
+  storage.resize(mem.memory_size());
+  oneapi_device_->mem_copy_from(mem, 0, 0, 0, 0, storage.data());
+  synchronize();
+  return storage.data();
 }
 
 #  ifdef SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE
