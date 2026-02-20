@@ -1192,7 +1192,9 @@ static void std_node_socket_draw(
           ui::Layout *column = &layout->column(false);
           {
             ui::Layout *row = &column->row(true);
-            draw_node_socket_name_editable(row, sock, label_or_empty);
+            if (!optional_label) {
+              draw_node_socket_name_editable(row, sock, label_or_empty);
+            }
             if (has_gizmo) {
               draw_gizmo_pin_icon(row, ptr);
               gizmo_handled = true;
@@ -1206,7 +1208,9 @@ static void std_node_socket_draw(
       ui::Layout *column = &layout->column(false);
       {
         ui::Layout *row = &column->row(true);
-        draw_node_socket_name_editable(row, sock, label_or_empty);
+        if (!optional_label) {
+          draw_node_socket_name_editable(row, sock, label_or_empty);
+        }
         if (has_gizmo) {
           draw_gizmo_pin_icon(row, ptr);
           gizmo_handled = true;
