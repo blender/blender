@@ -867,6 +867,10 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         params = st.params
         asset = context.asset
 
+        if asset and asset.is_online:
+            layout.operator("asset.assets_download")
+            layout.separator()
+
         layout.operator("asset.library_refresh", icon='FILE_REFRESH')
 
         layout.separator()
@@ -875,11 +879,6 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         sub.operator_context = 'EXEC_DEFAULT'
         sub.operator("asset.clear", text="Clear Asset").set_fake_user = False
         sub.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
-
-        if asset and asset.is_online:
-            layout.separator()
-
-            layout.operator("asset.assets_download")
 
         layout.separator()
 
