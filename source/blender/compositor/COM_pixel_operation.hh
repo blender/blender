@@ -107,11 +107,6 @@ class PixelOperation : public Operation {
                  PixelCompileUnit &compile_unit,
                  const VectorSet<const bNode *> &schedule);
 
-  /* Returns the maximum number of outputs that the PixelOperation can have. Pixel compile units
-   * need to be split into smaller units if the numbers of outputs they have is more than the
-   * number returned by this method. */
-  static int maximum_number_of_outputs(Context &context);
-
   /* Compute a node preview for all nodes in the pixel operations if the node requires a preview.
    *
    * Previews are computed from results that are populated for outputs that are used to compute

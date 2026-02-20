@@ -30,17 +30,6 @@ PixelOperation::PixelOperation(Context &context,
 {
 }
 
-int PixelOperation::maximum_number_of_outputs(Context &context)
-{
-  if (context.use_gpu()) {
-    /* The GPU module currently only supports up to 8 output images in shaders, but once this
-     * limitation is lifted, we can replace that with GPU_max_images(). */
-    return 8;
-  }
-
-  return std::numeric_limits<int>::max();
-}
-
 void PixelOperation::compute_preview()
 {
   for (const bNodeSocket *output : preview_outputs_) {

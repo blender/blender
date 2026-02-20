@@ -65,6 +65,11 @@ class ShaderOperation : public PixelOperation {
   Map<ImplicitInput, GPUNodeLink *> implicit_input_to_material_attribute_map_;
 
  public:
+  /* Shaders operations have a limit on how many outputs and inputs they can support. Inputs use
+   * attributes which can't be more than 15 and outputs use images which can't be more than 8. */
+  static const int maximum_inputs_count = 15;
+  static const int maximum_outputs_count = 8;
+
   /* Construct and compile a GPU material from the given shader compile unit and execution schedule
    * by calling GPU_material_from_callbacks with the appropriate callbacks. */
   ShaderOperation(Context &context,

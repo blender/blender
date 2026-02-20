@@ -20,6 +20,7 @@
 #include "COM_node_operation.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_result.hh"
+#include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
 
 namespace blender::compositor {
@@ -125,36 +126,6 @@ bool CompileState::should_compile_pixel_compile_unit(const bNode &node)
   /* Otherwise, the node is compatible and can be added to the compile unit and it shouldn't be
    * compiled just yet. */
   return false;
-}
-
-int CompileState::compute_pixel_node_operation_outputs_count(const bNode &node,
-                                                             const bool is_node_preview_needed)
-{
-  const bNodeSocket *preview_output = is_node_preview_needed ? find_preview_output_socket(node) :
-                                                               nullptr;
-
-  int outputs_count = 0;
-  for (const bNodeSocket *output : node.output_sockets()) {
-    if (!is_socket_available(output)) {
-      continue;
-    }
-
-    /* If the output is used as the node preview, then an operation output will exist for it. */
-    const bool is_preview_output = output == preview_output;
-
-    /* If any of the nodes linked to the output are not part of the pixel compile unit but are
-     * part of the execution schedule, then an operation output will exist for it. */
-    const bool is_operation_output = is_output_linked_to_node_conditioned(
-        *output, [&](const bNode &node) {
-          return schedule_.contains(&node) && !pixel_compile_unit_.contains(&node);
-        });
-
-    if (is_operation_output || is_preview_output) {
-      outputs_count += 1;
-    }
-  }
-
-  return outputs_count;
 }
 
 bool CompileState::is_pixel_node_single_value(const bNode &node)
@@ -284,6 +255,108 @@ Domain CompileState::compute_pixel_node_domain(const bNode &node)
   }
 
   return node_domain;
+}
+
+bool CompileState::pixel_compile_unit_has_too_many_outputs(const bool are_node_previews_needed)
+{
+  /* Only GPU and non-single units have output count limitations. */
+  if (!context_.use_gpu() || is_pixel_compile_unit_single_value_) {
+    return false;
+  }
+
+  int outputs_count = 0;
+  for (const bNode *node : pixel_compile_unit_) {
+    const bNodeSocket *preview_output = are_node_previews_needed ?
+                                            find_preview_output_socket(*node) :
+                                            nullptr;
+
+    for (const bNodeSocket *output : node->output_sockets()) {
+      if (!is_socket_available(output)) {
+        continue;
+      }
+
+      /* If the output is used as the node preview, then an operation output will exist for it. */
+      const bool is_preview_output = output == preview_output;
+
+      /* If any of the nodes linked to the output are not part of the pixel compile unit but are
+       * part of the execution schedule, then an operation output will exist for it. */
+      const bool is_operation_output = is_output_linked_to_node_conditioned(
+          *output, [&](const bNode &node) {
+            return schedule_.contains(&node) && !pixel_compile_unit_.contains(&node);
+          });
+
+      if (is_operation_output || is_preview_output) {
+        outputs_count += 1;
+      }
+
+      if (outputs_count > ShaderOperation::maximum_outputs_count) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool CompileState::pixel_compile_unit_has_too_many_inputs()
+{
+  /* Only GPU and non-single units have input count limitations. */
+  if (!context_.use_gpu() || is_pixel_compile_unit_single_value_) {
+    return false;
+  }
+
+  Set<ImplicitInput> referenced_implicit_inputs;
+  Set<const bNodeSocket *> referenced_output_sockets;
+  int inputs_count = 0;
+  for (const bNode *node : pixel_compile_unit_) {
+    for (const bNodeSocket *input : node->input_sockets()) {
+      if (!is_socket_available(input)) {
+        continue;
+      }
+
+      const bNodeSocket *output = get_output_linked_to_input(*input);
+      if (!output) {
+        const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
+        if (input_descriptor.implicit_input == ImplicitInput::None) {
+          continue;
+        }
+
+        /* All implicit inputs of the same type share the same input, and this one was counted
+         * before, so no need to count it again. */
+        if (referenced_implicit_inputs.contains(input_descriptor.implicit_input)) {
+          continue;
+        }
+
+        inputs_count++;
+        if (inputs_count > ShaderOperation::maximum_inputs_count) {
+          return true;
+        }
+
+        referenced_implicit_inputs.add_new(input_descriptor.implicit_input);
+        continue;
+      }
+
+      /* This output is part of the pixel compile unit, so no input is declared for it. */
+      if (pixel_compile_unit_.contains(&output->owner_node())) {
+        continue;
+      }
+
+      /* All inputs linked to the same output share the same input, and this one was counted
+       * before, so no need to count it again. */
+      if (referenced_output_sockets.contains(output)) {
+        continue;
+      }
+
+      inputs_count++;
+      if (inputs_count > ShaderOperation::maximum_inputs_count) {
+        return true;
+      }
+
+      referenced_output_sockets.add_new(output);
+    }
+  }
+
+  return false;
 }
 
 }  // namespace blender::compositor
