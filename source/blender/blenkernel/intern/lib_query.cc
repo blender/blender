@@ -950,6 +950,7 @@ static void lib_query_unused_ids_recursive_tag(UnusedIDsData &data)
   ID *id;
   FOREACH_MAIN_ID_BEGIN (data.bmain, id) {
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    UNUSED_VARS_NDEBUG(id_type);
     if (id_is_enforced_used(*id, data)) {
       data.set_id_status(*id, UnusedIDsData::Status::Used);
     }
@@ -993,6 +994,7 @@ static void lib_query_unused_ids_direct_tag(UnusedIDsData &data)
   ID *id;
   FOREACH_MAIN_ID_BEGIN (data.bmain, id) {
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    UNUSED_VARS_NDEBUG(id_type);
     if (id_is_enforced_used(*id, data)) {
       data.set_id_status(*id, UnusedIDsData::Status::Used);
     }
