@@ -10170,7 +10170,7 @@ static int ui_handle_list_event(bContext *C,
 
         Button *but = button_first(listbox->block);
         if (but && but->type == ButtonType::ListRow) {
-          ui_apply_but_undo(but);
+          ED_undo_grouped_push(C, but->tip.data());
         }
 
         ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
