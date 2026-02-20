@@ -121,7 +121,7 @@ void Bundle::add_path_override(const StringRef path, const BundleItemValue &valu
     BundleItemValue &item = current->items_.lookup_or_add_cb_as(
         path_elem, [&]() { return create_nested_bundle_item(); });
     BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
-    if (!child_bundle_ptr) {
+    if (!child_bundle_ptr || !*child_bundle_ptr) {
       /* Override the items content with a new bundle. */
       item = create_nested_bundle_item();
       child_bundle_ptr = item.as_pointer<BundlePtr>();
