@@ -537,21 +537,27 @@ static bool action_copy_fcurves_by_basepath(const animrig::Action &src_action,
                                             const StringRef dst_basepath)
 {
   bool result = false;
+  /* Store list of all F-Curves to copy so we don't copy the curves while iterating over them. The
+   * fcurve array of slot grows with each copy, invalidating the iterator. */
+  Vector<const FCurve *> fcurves_to_copy;
   /* const_cast the src_action here because there is only a non-const fcurve iterator method.
    * We only use the fcurve as a const ref, there's no risk of modifying the data. */
   animrig::foreach_fcurve_in_action_slot(
       const_cast<animrig::Action &>(src_action), src_slot_handle, [&](const FCurve &fcurve) {
         if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
-          std::optional<StringRefNull> group_name;
-          if (fcurve.grp) {
-            group_name = fcurve.grp->name;
-          }
-          FCurve *new_fcurve = BKE_fcurve_copy(&fcurve);
-          animpath_update_basepath(new_fcurve, src_basepath, dst_basepath);
-          action_fcurve_attach(dst_action, dst_slot_handle, *new_fcurve, group_name);
+          fcurves_to_copy.append(&fcurve);
           result = true;
         }
       });
+  for (const FCurve *fcurve : fcurves_to_copy) {
+    std::optional<StringRefNull> group_name;
+    if (fcurve->grp) {
+      group_name = fcurve->grp->name;
+    }
+    FCurve *new_fcurve = BKE_fcurve_copy(fcurve);
+    animpath_update_basepath(new_fcurve, src_basepath, dst_basepath);
+    action_fcurve_attach(dst_action, dst_slot_handle, *new_fcurve, group_name);
+  }
   return result;
 }
 
