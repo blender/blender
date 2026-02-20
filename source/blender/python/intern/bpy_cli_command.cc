@@ -205,7 +205,8 @@ PyDoc_STRVAR(
     "\n"
     "      This uses Python's capsule type "
     "however the result should be considered an opaque handle only used for unregistering.\n"
-    "   :rtype: capsule\n");
+    /* No exposed type for "Capsule", use "Any". */
+    "   :rtype: Any\n");
 static PyObject *bpy_cli_command_register(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   PyObject *py_id;
@@ -255,7 +256,8 @@ PyDoc_STRVAR(
     "   Unregister a CLI command.\n"
     "\n"
     "   :param handle: The return value of :func:`register_cli_command`.\n"
-    "   :type handle: capsule\n");
+    /* No exposed type for "Capsule", use "Any". */
+    "   :type handle: Any\n");
 static PyObject *bpy_cli_command_unregister(PyObject * /*self*/, PyObject *value)
 {
   if (!PyCapsule_CheckExact(value)) {

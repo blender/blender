@@ -4389,6 +4389,8 @@ PyDoc_STRVAR(
     "\n"
     "   :param id: The RNA type identifier.\n"
     "   :type id: str\n"
+    "   :param default: The value to return when not found.\n"
+    "   :type default: type | None\n"
     "   :return: The class or default when not found.\n"
     "   :rtype: type\n");
 static PyObject *pyrna_struct_bl_rna_get_subclass_py(PyObject *cls, PyObject *args)
@@ -4413,6 +4415,8 @@ PyDoc_STRVAR(
     "\n"
     "   :param id: The RNA type identifier.\n"
     "   :type id: str\n"
+    "   :param default: The value to return when not found.\n"
+    "   :type default: :class:`bpy.types.Struct` | None\n"
     "   :return: The RNA type or default when not found.\n"
     "   :rtype: :class:`bpy.types.Struct`\n");
 static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)

@@ -677,7 +677,7 @@ static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
 PyDoc_STRVAR(
     /* Wrap. */
     M_imbuf_write_doc,
-    ".. function:: write(image, *, filepath=image.filepath)\n"
+    ".. function:: write(image, *, filepath=None)\n"
     "\n"
     "   Write an image.\n"
     "\n"
