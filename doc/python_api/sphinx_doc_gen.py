@@ -1831,7 +1831,7 @@ def pyrna2sphinx(basepath):
                         fw(pyrna_deprecated_directive("      ", deprecated))
                         fw("\n")
 
-                fw("      :rtype: ({:s})\n".format(", ".join(type_descrs)))
+                fw("      :rtype: tuple[{:s}]\n".format(", ".join(type_descrs)))
 
             write_example_ref("      ", fw, struct_module_name + "." + struct_id + "." + func.identifier)
 

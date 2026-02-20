@@ -84,6 +84,12 @@ def float_as_string(f):
     return val_str
 
 
+def seq_as_tuple_str(seq):
+    """Format a sequence of strings as a Python tuple literal."""
+    seq = tuple(seq)
+    return ("({:s},)" if len(seq) == 1 else "({:s})").format(", ".join(seq))
+
+
 def get_py_class_from_rna(rna_type):
     """ Gets the Python type for a class which isn't necessarily added to ``bpy.types``.
     """
@@ -375,18 +381,23 @@ class InfoPropertyRNA:
             self.default = None
             self.default_str = "None"
         elif self.type == "string":
-            self.default_str = "\"{:s}\"".format(self.default)
+            if self.subtype == "BYTE_STRING":
+                self.default_str = "b\"{:s}\"".format(self.default)
+            else:
+                self.default_str = "\"{:s}\"".format(self.default)
         elif self.type == "enum":
             if self.is_enum_flag:
-                # self.default_str = repr(self.default)  # repr or set()
-                self.default_str = "{{{:s}}}".format(repr(list(sorted(self.default)))[1:-1])
+                if self.default:
+                    self.default_str = "{{{:s}}}".format(repr(list(sorted(self.default)))[1:-1])
+                else:
+                    self.default_str = "set()"
             else:
                 self.default_str = repr(self.default)
         elif self.array_length:
             if self.array_dimensions[1] == 0:  # single dimension array, we already took care of multi-dimensions ones.
-                # special case for floats
+                # Special case for floats.
                 if self.type == "float" and len(self.default) > 0:
-                    self.default_str = "({:s})".format(", ".join(float_as_string(f) for f in self.default))
+                    self.default_str = seq_as_tuple_str(float_as_string(f) for f in self.default)
                 else:
                     self.default_str = str(self.default)
         else:

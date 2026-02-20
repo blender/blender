@@ -40,7 +40,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_lib_write_doc,
     ".. method:: write(filepath, datablocks, *, "
-    "path_remap=False, fake_user=False, compress=False)\n"
+    "path_remap='NONE', fake_user=False, compress=False)\n"
     "\n"
     "   Write data-blocks into a blend file.\n"
     "\n"

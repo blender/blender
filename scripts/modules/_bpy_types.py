@@ -946,10 +946,10 @@ class Gizmo(_StructRNA):
         :param shape: The cached shape to draw.
         :type shape: Any
         :param matrix: 4x4 matrix, when not given :class:`Gizmo.matrix_world` is used.
-        :type matrix: :class:`mathutils.Matrix`
+        :type matrix: :class:`mathutils.Matrix` | None
         :param select_id: The selection id.
            Only use when drawing within :class:`Gizmo.draw_select`.
-        :type select_id: int
+        :type select_id: int | None
         """
         import gpu
 
@@ -1224,14 +1224,14 @@ class Menu(_StructRNA, _GenericUI, metaclass=_RNAMeta):
         :param prop_filepath: Optional operator filepath property (defaults to "filepath").
         :type prop_filepath: str
         :param props_default: Properties to assign to each operator.
-        :type props_default: dict[str, Any]
+        :type props_default: dict[str, Any] | None
         :param filter_ext: Optional callback that takes the file extensions.
 
            Returning false excludes the file from the list.
 
         :type filter_ext: Callable[[str], bool] | None
         :param display_name: Optional callback that takes the full path, returns the name to display.
-        :type display_name: Callable[[str], str]
+        :type display_name: Callable[[str], str] | None
         """
 
         layout = self.layout

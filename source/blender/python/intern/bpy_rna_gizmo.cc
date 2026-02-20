@@ -330,7 +330,7 @@ PyDoc_STRVAR(
     "   :type set: Callable[[tuple[float, ...]], Any]\n"
     "   :param range: Function that returns a (min, max) tuple for gizmos that use a range. "
     "The returned value is not used.\n"
-    "   :type range: callable | None\n");
+    "   :type range: Callable[[], tuple[float, float]] | None\n");
 static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
