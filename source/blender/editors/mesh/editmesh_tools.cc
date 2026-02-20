@@ -1350,7 +1350,10 @@ static bool bm_vert_is_select_history_open(BMesh *bm)
   return false;
 }
 
-static bool bm_vert_connect_pair(BMesh *bm, BMVert *v_a, BMVert *v_b)
+static bool bm_vert_connect_pair(BMesh *bm,
+                                 BMVert *v_a,
+                                 BMVert *v_b,
+                                 const bool skip_normals = false)
 {
   BMOperator bmop;
   BMVert **verts;
@@ -1362,8 +1365,11 @@ static bool bm_vert_connect_pair(BMesh *bm, BMVert *v_a, BMVert *v_b)
   verts[0] = v_a;
   verts[1] = v_b;
 
-  BM_vert_normal_update(verts[0]);
-  BM_vert_normal_update(verts[1]);
+  /* Note that normals may be overridden when connecting more than 2 vertices. */
+  if (!skip_normals) {
+    BM_vert_normal_update(verts[0]);
+    BM_vert_normal_update(verts[1]);
+  }
 
   BMO_op_exec(bm, &bmop);
   BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
@@ -1403,6 +1409,21 @@ static bool bm_vert_connect_select_history(BMesh *bm)
       /* all verts have faces , connect verts via faces! */
       if (tot == bm->totvertsel) {
         BMEditSelection *ese_last;
+        Map<BMVert *, float3> orig_normals;
+
+        /* Connecting more than 2 vertices can change the mesh normal state, which can break
+         * symmetry in cases where it is expected so we store the original normals to restore
+         * later before connecting. See #154197 */
+        const bool is_multi_cut = (bm->totvertsel > 2);
+        if (is_multi_cut) {
+          for (ese_last = static_cast<BMEditSelection *>(bm->selected.first); ese_last;
+               ese_last = ese_last->next)
+          {
+            BMVert *v = reinterpret_cast<BMVert *>(ese_last->ele);
+            BM_vert_normal_update(v);
+            orig_normals.add(v, v->no);
+          }
+        }
         ese_last = static_cast<BMEditSelection *>(bm->selected.first);
         ese = ese_last->next;
 
@@ -1414,9 +1435,16 @@ static bool bm_vert_connect_select_history(BMesh *bm)
             /* pass, edge exists (and will be selected) */
           }
           else {
-            changed |= bm_vert_connect_pair(bm,
-                                            reinterpret_cast<BMVert *>(ese_last->ele),
-                                            reinterpret_cast<BMVert *>(ese->ele));
+            BMVert *v_last = reinterpret_cast<BMVert *>(ese_last->ele);
+            BMVert *v_curr = reinterpret_cast<BMVert *>(ese->ele);
+
+            if (is_multi_cut) {
+              BLI_assert(orig_normals.contains(v_last));
+              BLI_assert(orig_normals.contains(v_curr));
+              copy_v3_v3(v_last->no, orig_normals.lookup(v_last));
+              copy_v3_v3(v_curr->no, orig_normals.lookup(v_curr));
+            }
+            changed |= bm_vert_connect_pair(bm, v_last, v_curr, is_multi_cut);
           }
         } while ((void)(ese_last = ese), (ese = ese->next));
 
