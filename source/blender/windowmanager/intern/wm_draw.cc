@@ -912,7 +912,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
       float(rect_geo.xmin), float(rect_geo.ymin), float(rect_geo.xmax), float(rect_geo.ymax)};
 
   if (blend) {
-    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend((alpha < 1.0f) ? GPU_BLEND_ALPHA : GPU_BLEND_ALPHA_PREMULT);
   }
 
   /* Setup actual texture. */
