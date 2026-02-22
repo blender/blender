@@ -139,6 +139,7 @@ class Session {
   void reset(const SessionParams &session_params, const BufferParams &buffer_params);
 
   void set_pause(bool pause);
+  void set_navigating(bool navigating);
 
   void set_samples(const int samples);
   void set_time_limit(const double time_limit);
@@ -230,6 +231,7 @@ class Session {
   } session_thread_state_ = SESSION_THREAD_WAIT;
 
   bool pause_ = false;
+  bool navigating_ = false;
   bool new_work_added_ = false;
 
   thread_condition_variable pause_cond_;

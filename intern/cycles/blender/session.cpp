@@ -904,6 +904,11 @@ void BlenderSession::view_draw(const int w, const int h)
   /* pause in redraw in case update is not being called due to final render */
   session->set_pause(BlenderSync::get_session_pause(*b_scene, background));
 
+  /* Report navigation state for viewport texture cache eviction. */
+  const bool is_navigating = region_view3d_navigating_or_transforming(b_rv3d) ||
+                             (width != w || height != h || pixelsize != blender::U.pixelsize);
+  session->set_navigating(is_navigating);
+
   /* before drawing, we verify camera and viewport size changes, because
    * we do not get update callbacks for those, we must detect them here */
   if (session->ready_to_reset()) {

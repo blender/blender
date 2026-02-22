@@ -367,8 +367,17 @@ RenderWork Session::run_update_for_next_iteration()
   if (render_work) {
     const scoped_timer update_timer;
 
+    /* Pass navigation state to image manager for viewport eviction. */
+    if (!params.background) {
+      scene->image_manager->set_navigating(navigating_);
+      scene->image_manager->evict_unused_tiles(device.get(), scene.get(), false);
+    }
+
     if (switched_to_new_tile) {
-      scene->image_manager->evict_unused_tiles(device.get(), scene.get());
+      /* Final render: evict at tile boundaries. */
+      if (params.background) {
+        scene->image_manager->evict_unused_tiles(device.get(), scene.get(), true);
+      }
 
       BufferParams tile_params = buffer_params_;
 
@@ -628,6 +637,11 @@ void Session::set_pause(bool pause)
   else if (pause_) {
     update_status_time(pause_);
   }
+}
+
+void Session::set_navigating(bool navigating)
+{
+  navigating_ = navigating;
 }
 
 void Session::set_output_driver(unique_ptr<OutputDriver> driver)

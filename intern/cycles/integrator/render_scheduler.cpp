@@ -250,6 +250,7 @@ void RenderScheduler::render_work_reschedule_on_cancel(RenderWork &render_work)
   const bool full_write = render_work.full.write;
 
   render_work = RenderWork();
+  render_work.resolution_divider = pixel_size_;
 
   render_work.tile.write = tile_write;
   render_work.full.write = full_write;

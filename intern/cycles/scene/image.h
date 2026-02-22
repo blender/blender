@@ -170,7 +170,8 @@ class ImageManager {
 
   bool set_animation_frame_update(const int frame);
 
-  void evict_unused_tiles(Device *device, Scene *scene);
+  void set_navigating(bool navigating);
+  void evict_unused_tiles(Device *device, Scene *scene, bool background);
 
   void collect_statistics(RenderStats *stats, Scene *scene);
 
@@ -184,6 +185,8 @@ class ImageManager {
  private:
   bool need_update_ = true;
   int eviction_boundary_count_ = 0;
+  bool was_navigating_ = false;
+  double eviction_navigation_end_time_ = 0.0;
 
   thread_mutex device_mutex;
   thread_mutex images_mutex;

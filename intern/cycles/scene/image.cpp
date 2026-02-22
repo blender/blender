@@ -18,6 +18,7 @@
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/task.h"
+#include "util/time.h"
 #include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
@@ -714,6 +715,8 @@ void ImageManager::device_free_builtin(Scene *scene)
 void ImageManager::device_free(Scene *scene)
 {
   eviction_boundary_count_ = 0;
+  was_navigating_ = false;
+  eviction_navigation_end_time_ = 0.0;
   image_udims.clear();
   for (auto [image_texture_id, img] : images.enumerate()) {
     device_free_image(scene, image_texture_id);
@@ -724,7 +727,16 @@ void ImageManager::device_free(Scene *scene)
   scene->dscene.image_texture_udims.free();
 }
 
-void ImageManager::evict_unused_tiles(Device *device, Scene *scene)
+void ImageManager::set_navigating(bool navigating)
+{
+  if (was_navigating_ && !navigating) {
+    /* Navigation just stopped, record time for eviction delay. */
+    eviction_navigation_end_time_ = time_dt();
+  }
+  was_navigating_ = navigating;
+}
+
+void ImageManager::evict_unused_tiles(Device *device, Scene *scene, bool background)
 {
   if (!DebugFlags().texture_cache.eviction) {
     return;
@@ -737,9 +749,24 @@ void ImageManager::evict_unused_tiles(Device *device, Scene *scene)
     return;
   }
 
-  eviction_boundary_count_++;
-  if (eviction_boundary_count_ < 2) {
-    return;
+  if (background) {
+    /* Final render: evict at tile boundaries, skip the first. */
+    eviction_boundary_count_++;
+    if (eviction_boundary_count_ < 2) {
+      return;
+    }
+  }
+  else {
+    /* Viewport: evict after navigation/resize stopped. */
+    const double eviction_delay = 2.0;
+    if (eviction_navigation_end_time_ == 0.0) {
+      return;
+    }
+    if (time_dt() - eviction_navigation_end_time_ < eviction_delay) {
+      return;
+    }
+    /* Only evict once per navigation stop. */
+    eviction_navigation_end_time_ = 0.0;
   }
 
   /* Read back used bits from all devices and OR together. */
