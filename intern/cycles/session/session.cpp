@@ -9,6 +9,7 @@
 #include "integrator/path_trace.h"
 #include "scene/background.h"
 #include "scene/camera.h"
+#include "scene/image.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
 #include "scene/mesh.h"
@@ -367,6 +368,8 @@ RenderWork Session::run_update_for_next_iteration()
     const scoped_timer update_timer;
 
     if (switched_to_new_tile) {
+      scene->image_manager->evict_unused_tiles(device.get(), scene.get());
+
       BufferParams tile_params = buffer_params_;
 
       const Tile &tile = tile_manager_.get_current_tile();

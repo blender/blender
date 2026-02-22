@@ -902,6 +902,16 @@ class CYCLES_RENDER_PT_performance_texture_cache(CyclesButtonsPanel, Panel):
         row.label()
         row.operator("render.generate_texture_cache", text="Generate All")
 
+        prefs = context.preferences
+        if prefs.experimental.use_cycles_debug and prefs.view.show_developer_ui:
+            cscene = context.scene.cycles
+            col = layout.column(heading="Debug")
+            col.active = rd.use_texture_cache
+            col.prop(cscene, "debug_texture_cache_eviction")
+            sub = col.column()
+            sub.active = cscene.debug_texture_cache_eviction
+            sub.prop(cscene, "debug_texture_cache_preserve_unused")
+
 
 class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Panel):
     bl_label = "Acceleration Structure"

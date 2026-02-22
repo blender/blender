@@ -293,6 +293,10 @@ class Device {
   /* Returns path guiding device handle. */
   virtual void *get_guiding_device() const;
 
+  /* Read back a device_memory bitmap from device and OR uint values into a combined buffer.
+   * Used for multi-device readback of used_bits bitmaps. */
+  virtual void mem_or_from_device(device_memory &mem, vector<uint> &combined);
+
   /* Sub-devices */
 
   /* Run given callback for every individual device which will be handling rendering.

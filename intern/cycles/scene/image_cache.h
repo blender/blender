@@ -107,6 +107,10 @@ class ImageCache {
                           const KernelImageTexture &tex,
                           const ImageMetaData &metadata,
                           ImageTileStats &tile_stats);
+  void evict_unused_tiles(DeviceScene &dscene,
+                          const KernelImageTexture *image_textures,
+                          const size_t num_images,
+                          const uint *used_bits);
   size_t memory_size(DeviceScene &dscene) const;
 
   /* Free image cache device data. */

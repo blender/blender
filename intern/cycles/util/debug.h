@@ -106,6 +106,20 @@ class DebugFlags {
     bool use_metalrt_pcmi = true;
   };
 
+  /* Descriptor of Texture Cache feature-set to be used. */
+  struct TextureCache {
+    TextureCache();
+
+    /* Reset flags to their defaults. */
+    void reset();
+
+    /* Enable texture cache eviction. */
+    bool eviction = true;
+
+    /* Preserve unused image cache tile memory in megabytes. */
+    int preserve_unused = 1024;
+  };
+
   /* Get instance of debug flags registry. */
   static DebugFlags &get()
   {
@@ -130,6 +144,9 @@ class DebugFlags {
 
   /* Requested Metal flags. */
   Metal metal;
+
+  /* Requested Texture Cache flags. */
+  TextureCache texture_cache;
 
  private:
   DebugFlags() = default;

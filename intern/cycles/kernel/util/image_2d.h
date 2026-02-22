@@ -174,6 +174,13 @@ kernel_image_tile_map(KernelGlobals kg,
 #endif
   }
 
+  if (kernel_tile_descriptor_loaded(tile_descriptor)) {
+    /* Mark tile as used for cache eviction tracking. */
+    const uint bit_index = tex.tile_descriptor_offset + tile_offset;
+    atomic_fetch_and_or_uint32(&kernel_data_array(image_texture_tile_used_bits)[bit_index >> 5],
+                               1u << (bit_index & 31));
+  }
+
   /* Remap coordinates into tiled image space. */
   const int offset = kernel_tile_descriptor_offset(tile_descriptor);
   xy += make_float2(KERNEL_IMAGE_TEX_PADDING - (tile_x << tile_size_shift) +

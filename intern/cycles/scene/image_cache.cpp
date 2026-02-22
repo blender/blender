@@ -12,6 +12,7 @@
 #include "scene/stats.h"
 
 #include "util/atomic.h"
+#include "util/debug.h"
 #include "util/image.h"
 #include "util/image_impl.h"
 #include "util/image_metadata.h"
@@ -48,6 +49,7 @@ void ImageCache::device_free(DeviceScene &dscene)
   images_first_free.clear();
   dscene.image_texture_tile_descriptors.free();
   dscene.image_texture_tile_request_bits.free();
+  dscene.image_texture_tile_used_bits.free();
 }
 
 /* Full image management. */
@@ -452,6 +454,13 @@ void ImageCache::load_image_tiled(DeviceScene &dscene,
       std::fill_n(tile_request_bits.data() + old_num_words, num_words - old_num_words, 0u);
     }
 
+    device_vector<uint> &tile_used_bits = dscene.image_texture_tile_used_bits;
+    const size_t old_used_words = tile_used_bits.size();
+    if (num_words > old_used_words) {
+      tile_used_bits.resize(num_words);
+      std::fill_n(tile_used_bits.data() + old_used_words, num_words - old_used_words, 0u);
+    }
+
     KernelTileDescriptor *descr_data = tile_descriptors.data() + tile_descriptor_offset;
 
     for (int i = 0; i < levels.size(); i++) {
@@ -601,8 +610,9 @@ void ImageCache::load_requested_tiles(Device &device,
       const size_t x = tile_x * tile_size;
       const size_t y = tile_y * tile_size;
 
-      descriptors[tile_idx] = load_tile(
+      KernelTileDescriptor result = load_tile(
           device, dscene, loader, metadata, interpolation, extension, miplevel, x, y, false);
+      descriptors[tile_idx] = result;
     }
   }
 }
@@ -689,9 +699,131 @@ void ImageCache::collect_statistics(DeviceScene &dscene,
   }
 }
 
+void ImageCache::evict_unused_tiles(DeviceScene &dscene,
+                                    const KernelImageTexture *image_textures,
+                                    const size_t num_images,
+                                    const uint *used_bits)
+{
+  device_vector<KernelTileDescriptor> &tile_descriptors = dscene.image_texture_tile_descriptors;
+
+  int num_evicted = 0;
+
+  const size_t preserve_budget = size_t(DebugFlags().texture_cache.preserve_unused) * 1024 * 1024;
+
+  /* Collect all unused tiles. */
+  struct UnusedTile {
+    size_t global_idx;
+    uint tile_descriptor_offset;
+    size_t tile_bytes;
+    bool is_host_mapped;
+  };
+  vector<UnusedTile> unused_tiles;
+
+  int num_remaining = 0;
+
+  for (size_t img_idx = 0; img_idx < num_images; img_idx++) {
+    const KernelImageTexture &tex = image_textures[img_idx];
+    if (tex.tile_descriptor_offset == KERNEL_TILE_LOAD_NONE) {
+      continue;
+    }
+
+    const size_t base_offset = tex.tile_descriptor_offset + tex.tile_levels;
+    for (int i = 0; i < tex.tile_num; i++) {
+      const size_t global_idx = base_offset + i;
+      KernelTileDescriptor &descriptor = tile_descriptors[global_idx];
+
+      if (!kernel_tile_descriptor_loaded(descriptor)) {
+        continue;
+      }
+
+      const uint word = global_idx >> 5;
+      const uint bit = 1u << (global_idx & 31);
+      if (!(used_bits[word] & bit)) {
+        /* Look up the DeviceImage to determine host-mapped status and tile size. */
+        const uint image_info_id = kernel_tile_descriptor_image_info_id(descriptor);
+        DeviceImage *img = images[image_info_id];
+
+        bool is_host_mapped = false;
+        size_t tile_bytes = 0;
+        if (img) {
+          /* TODO: does this work for CPU only case? */
+          is_host_mapped = (img->shared_pointer != nullptr);
+          const size_t pixel_bytes = img->data_elements * datatype_size(img->data_type);
+          tile_bytes = img->data_height * img->data_height * pixel_bytes;
+        }
+
+        unused_tiles.push_back(
+            {global_idx, tex.tile_descriptor_offset, tile_bytes, is_host_mapped});
+      }
+      else {
+        num_remaining++;
+      }
+    }
+  }
+
+  if (unused_tiles.empty()) {
+    return;
+  }
+
+  /* Sort: host-mapped tiles first (always evict these), then device-resident. */
+  std::sort(
+      unused_tiles.begin(), unused_tiles.end(), [](const UnusedTile &a, const UnusedTile &b) {
+        return a.is_host_mapped > b.is_host_mapped;
+      });
+
+  /* Compute total bytes of unused device-resident tiles. */
+  size_t preserved_bytes = 0;
+  for (const UnusedTile &tile : unused_tiles) {
+    if (!tile.is_host_mapped) {
+      preserved_bytes += tile.tile_bytes;
+    }
+  }
+
+  /* Evict tiles: host-mapped unconditionally, device-resident until within budget. */
+  int num_preserved = 0;
+
+  for (const UnusedTile &tile : unused_tiles) {
+    bool should_evict;
+    if (tile.is_host_mapped) {
+      /* Host-mapped tiles are slower, always evict. */
+      should_evict = true;
+    }
+    else if (preserved_bytes <= preserve_budget) {
+      /* Within budget, preserve remaining device-resident tiles. */
+      should_evict = false;
+    }
+    else {
+      /* Over budget, evict to bring preserved bytes down. */
+      should_evict = true;
+    }
+
+    if (should_evict) {
+      KernelTileDescriptor &descriptor = tile_descriptors[tile.global_idx];
+      free_tile(descriptor);
+      descriptor = KERNEL_TILE_LOAD_NONE;
+      num_evicted++;
+
+      if (!tile.is_host_mapped) {
+        preserved_bytes -= tile.tile_bytes;
+      }
+    }
+    else {
+      num_preserved++;
+    }
+  }
+
+  if (num_evicted > 0) {
+    dscene.image_texture_tile_descriptors.tag_modified();
+    LOG_DEBUG << "Texture cache tile eviction: " << num_evicted << " evicted, " << num_remaining
+              << " used, " << num_preserved << " preserved (" << preserved_bytes / (1024 * 1024)
+              << " MB).";
+  }
+}
+
 size_t ImageCache::memory_size(DeviceScene &dscene) const
 {
   return dscene.image_texture_tile_request_bits.memory_size() +
+         dscene.image_texture_tile_used_bits.memory_size() +
          dscene.image_texture_tile_descriptors.memory_size();
 }
 
@@ -706,9 +838,11 @@ void ImageCache::copy_to_device(DeviceScene &dscene)
   thread_scoped_lock device_lock(device_mutex);
   dscene.image_texture_tile_descriptors.copy_to_device_if_modified();
   dscene.image_texture_tile_request_bits.copy_to_device_if_modified();
+  dscene.image_texture_tile_used_bits.copy_to_device_if_modified();
 
   dscene.image_texture_tile_descriptors.clear_modified();
   dscene.image_texture_tile_request_bits.clear_modified();
+  dscene.image_texture_tile_used_bits.clear_modified();
 }
 
 void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)

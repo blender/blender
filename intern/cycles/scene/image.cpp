@@ -14,6 +14,7 @@
 #include "scene/stats.h"
 
 #include "util/colorspace.h"
+#include "util/debug.h"
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/task.h"
@@ -712,6 +713,7 @@ void ImageManager::device_free_builtin(Scene *scene)
 
 void ImageManager::device_free(Scene *scene)
 {
+  eviction_boundary_count_ = 0;
   image_udims.clear();
   for (auto [image_texture_id, img] : images.enumerate()) {
     device_free_image(scene, image_texture_id);
@@ -720,6 +722,36 @@ void ImageManager::device_free(Scene *scene)
   image_cache.device_free(scene->dscene);
   scene->dscene.image_textures.free();
   scene->dscene.image_texture_udims.free();
+}
+
+void ImageManager::evict_unused_tiles(Device *device, Scene *scene)
+{
+  if (!DebugFlags().texture_cache.eviction) {
+    return;
+  }
+
+  DeviceScene &dscene = scene->dscene;
+  device_vector<uint> &tile_used_bits = dscene.image_texture_tile_used_bits;
+
+  if (tile_used_bits.size() == 0) {
+    return;
+  }
+
+  eviction_boundary_count_++;
+  if (eviction_boundary_count_ < 2) {
+    return;
+  }
+
+  /* Read back used bits from all devices and OR together. */
+  vector<uint> combined(tile_used_bits.size(), 0);
+  device->mem_or_from_device(tile_used_bits, combined);
+
+  image_cache.evict_unused_tiles(
+      dscene, dscene.image_textures.data(), dscene.image_textures.size(), combined.data());
+
+  /* Zero used bits and copy updated state to device. */
+  tile_used_bits.zero_to_device();
+  device_copy_image_textures(device, scene);
 }
 
 void ImageManager::collect_statistics(RenderStats *stats, Scene *scene)

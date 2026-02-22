@@ -551,6 +551,16 @@ void Device::host_free(const MemoryType /*type*/, void *host_pointer, const size
   util_aligned_free(host_pointer, size);
 }
 
+void Device::mem_or_from_device(device_memory &mem, vector<uint> &combined)
+{
+  mem_copy_from(
+      mem, 0, mem.data_width, (mem.data_height == 0) ? 1 : mem.data_height, sizeof(uint));
+  const uint *src = (const uint *)mem.host_pointer;
+  for (size_t i = 0; i < combined.size(); i++) {
+    combined[i] |= src[i];
+  }
+}
+
 device_ptr Device::mem_device_ptr(const device_memory &mem, Device *sub_device)
 {
   assert(sub_device == this);

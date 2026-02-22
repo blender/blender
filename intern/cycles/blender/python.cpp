@@ -75,6 +75,9 @@ void debug_flags_sync_from_scene(blender::Scene &b_scene)
   flags.metal.adaptive_compile = get_boolean(cscene, "debug_use_metal_adaptive_compile");
   /* Synchronize OptiX flags. */
   flags.optix.use_debug = get_boolean(cscene, "debug_use_optix_debug");
+  /* Synchronize Texture Cache flags. */
+  flags.texture_cache.eviction = get_boolean(cscene, "debug_texture_cache_eviction");
+  flags.texture_cache.preserve_unused = get_int(cscene, "debug_texture_cache_preserve_unused");
 }
 
 /* Reset debug flags to default values.
