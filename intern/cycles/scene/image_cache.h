@@ -11,6 +11,8 @@
 #include "util/set.h"
 #include "util/unique_ptr_vector.h"
 
+#include <span>
+
 CCL_NAMESPACE_BEGIN
 
 class DeviceQueue;
@@ -108,9 +110,10 @@ class ImageCache {
                           const ImageMetaData &metadata,
                           ImageTileStats &tile_stats);
   void evict_unused_tiles(DeviceScene &dscene,
-                          const KernelImageTexture *image_textures,
-                          const size_t num_images,
+                          std::span<KernelImageTexture> image_textures,
                           const uint *used_bits);
+
+  void compact(DeviceScene &dscene, std::span<KernelImageTexture> image_textures);
   size_t memory_size(DeviceScene &dscene) const;
 
   /* Free image cache device data. */
@@ -138,6 +141,10 @@ class ImageCache {
 
   /* Tile descriptor management. */
   void free_tiled_image(DeviceScene &dscene, const KernelImageTexture &tex);
+
+  /* Compaction helpers. */
+  void compact_image_tiles(DeviceScene &dscene, std::span<KernelImageTexture> image_textures);
+  void compact_tile_descriptors(DeviceScene &dscene, std::span<KernelImageTexture> image_textures);
 
   /* Tiled image */
   device_image &alloc_tile(Device &device,

@@ -774,7 +774,7 @@ void ImageManager::evict_unused_tiles(Device *device, Scene *scene, bool backgro
   device->mem_or_from_device(tile_used_bits, combined);
 
   image_cache.evict_unused_tiles(
-      dscene, dscene.image_textures.data(), dscene.image_textures.size(), combined.data());
+      dscene, {dscene.image_textures.data(), dscene.image_textures.size()}, combined.data());
 
   /* Zero used bits and copy updated state to device. */
   tile_used_bits.zero_to_device();

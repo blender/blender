@@ -22,6 +22,7 @@
 #include <OpenImageIO/thread.h>
 
 #include <algorithm>
+#include <span>
 
 CCL_NAMESPACE_BEGIN
 
@@ -100,7 +101,6 @@ void ImageCache::free_image(DeviceScene &dscene, const KernelImageTexture &tex)
 
 void ImageCache::free_tiled_image(DeviceScene &dscene, const KernelImageTexture &tex)
 {
-  /* TODO: Shrink tile_descriptors by compacting. */
   KernelTileDescriptor *descriptors = dscene.image_texture_tile_descriptors.data() +
                                       tex.tile_descriptor_offset + tex.tile_levels;
 
@@ -700,8 +700,7 @@ void ImageCache::collect_statistics(DeviceScene &dscene,
 }
 
 void ImageCache::evict_unused_tiles(DeviceScene &dscene,
-                                    const KernelImageTexture *image_textures,
-                                    const size_t num_images,
+                                    std::span<KernelImageTexture> image_textures,
                                     const uint *used_bits)
 {
   device_vector<KernelTileDescriptor> &tile_descriptors = dscene.image_texture_tile_descriptors;
@@ -721,7 +720,7 @@ void ImageCache::evict_unused_tiles(DeviceScene &dscene,
 
   int num_remaining = 0;
 
-  for (size_t img_idx = 0; img_idx < num_images; img_idx++) {
+  for (size_t img_idx = 0; img_idx < image_textures.size(); img_idx++) {
     const KernelImageTexture &tex = image_textures[img_idx];
     if (tex.tile_descriptor_offset == KERNEL_TILE_LOAD_NONE) {
       continue;
@@ -814,9 +813,219 @@ void ImageCache::evict_unused_tiles(DeviceScene &dscene,
 
   if (num_evicted > 0) {
     dscene.image_texture_tile_descriptors.tag_modified();
+
+    /* TODO: This is broken for GPU rendering. Also unclear how useful it is
+     * versus the cost, maybe only at the end of rendering and not for every tile? */
+#if 0
+    compact(dscene, image_textures);
+#endif
+
     LOG_DEBUG << "Texture cache tile eviction: " << num_evicted << " evicted, " << num_remaining
               << " used, " << num_preserved << " preserved (" << preserved_bytes / (1024 * 1024)
               << " MB).";
+  }
+}
+
+/* Compaction. */
+
+void ImageCache::compact(DeviceScene &dscene, std::span<KernelImageTexture> image_textures)
+{
+  thread_scoped_lock device_lock(device_mutex);
+
+  /* Phase A: Consolidate partially-occupied device images with matching keys. */
+  compact_image_tiles(dscene, image_textures);
+
+  /* Phase B: Compact tile descriptor array. */
+  compact_tile_descriptors(dscene, image_textures);
+}
+
+void ImageCache::compact_image_tiles(DeviceScene &dscene,
+                                     std::span<KernelImageTexture> image_textures)
+{
+  /* Group partially-occupied images by key. */
+  unordered_map<DeviceImageKey, vector<size_t>, DeviceImageKey::Hash> groups;
+  for (size_t i = 0; i < images.size(); i++) {
+    DeviceImage *img = images[i];
+    if (img && img->occupancy != 0 && img->occupancy != ~uint64_t(0)) {
+      groups[img->key()].push_back(i);
+    }
+  }
+
+  /* For each group with 2+ images, consolidate. */
+  unordered_map<KernelTileDescriptor, KernelTileDescriptor> remap;
+
+  for (auto &[key, indices] : groups) {
+    if (indices.size() < 2) {
+      continue;
+    }
+
+    /* Use two-pointer approach: dst fills gaps, src donates tiles. */
+    size_t dst_idx = 0;
+    size_t src_idx = indices.size() - 1;
+
+    while (dst_idx < src_idx) {
+      DeviceImage *dst = images[indices[dst_idx]];
+      DeviceImage *src = images[indices[src_idx]];
+
+      if (dst->occupancy == ~uint64_t(0)) {
+        dst_idx++;
+        continue;
+      }
+      if (src->occupancy == 0) {
+        src_idx--;
+        continue;
+      }
+
+      /* Move one tile from src to dst. */
+      int src_slot = bitscan(src->occupancy);  /* first occupied in src */
+      int dst_slot = bitscan(~dst->occupancy); /* first free in dst */
+
+      /* Copy pixel data. */
+      const size_t tile_size_padded = dst->data_height; /* height = tile_size_padded */
+      const size_t pixel_bytes = dst->data_elements * datatype_size(dst->data_type);
+      const size_t col_bytes = tile_size_padded * pixel_bytes;
+      const size_t row_bytes = dst->data_width * pixel_bytes;
+
+      uint8_t *dst_data = dst->data<uint8_t>();
+      uint8_t *src_data = src->data<uint8_t>();
+
+      for (size_t row = 0; row < tile_size_padded; row++) {
+        memcpy(dst_data + row * row_bytes + dst_slot * col_bytes,
+               src_data + row * row_bytes + src_slot * col_bytes,
+               col_bytes);
+      }
+
+      /* Record remap. */
+      KernelTileDescriptor old_desc = kernel_tile_descriptor_encode(src->image_info_id, src_slot);
+      KernelTileDescriptor new_desc = kernel_tile_descriptor_encode(dst->image_info_id, dst_slot);
+      remap[old_desc] = new_desc;
+
+      /* Update occupancy. */
+      src->occupancy &= ~(uint64_t(1) << src_slot);
+      dst->occupancy |= (uint64_t(1) << dst_slot);
+
+      /* Mark for device update. */
+      deferred_updates.insert(dst);
+      deferred_updates.insert(src);
+
+      /* If src is now empty, free it. */
+      if (src->occupancy == 0) {
+        deferred_updates.erase(src);
+        deferred_gpu_updates.erase(src);
+        images.replace(indices[src_idx], nullptr);
+        src_idx--;
+      }
+    }
+  }
+
+  if (remap.empty()) {
+    return;
+  }
+
+  /* Apply remap to all tile descriptors. We must only remap actual tile
+   * descriptors, not the mip level offsets (headers) at the start of each
+   * texture's descriptor range. */
+  device_vector<KernelTileDescriptor> &tile_descriptors = dscene.image_texture_tile_descriptors;
+  for (const KernelImageTexture &tex : image_textures) {
+    if (tex.tile_descriptor_offset == KERNEL_TILE_LOAD_NONE) {
+      continue;
+    }
+
+    /* Skip headers (offsets to levels), only remap tiles. */
+    const size_t start = tex.tile_descriptor_offset + tex.tile_levels;
+    const size_t end = start + tex.tile_num;
+
+    for (size_t i = start; i < end; i++) {
+      auto it = remap.find(tile_descriptors[i]);
+      if (it != remap.end()) {
+        tile_descriptors[i] = it->second;
+      }
+    }
+  }
+  tile_descriptors.tag_modified();
+
+  /* Rebuild images_first_free after occupancy changes.
+   * Note: we do NOT move or reindex entries in the images array. DeviceImages
+   * stay at their original image_info_id slots. Empty images become null but
+   * their slots remain. This avoids having to update image_info_id in tile
+   * descriptors or KernelImageTexture entries for full images. */
+  images_first_free.clear();
+  for (size_t i = 0; i < images.size(); i++) {
+    DeviceImage *img = images[i];
+    if (img && img->occupancy != ~uint64_t(0)) {
+      DeviceImageKey k = img->key();
+      if (images_first_free.find(k) == images_first_free.end()) {
+        images_first_free[k] = i;
+      }
+    }
+  }
+}
+
+void ImageCache::compact_tile_descriptors(DeviceScene &dscene,
+                                          std::span<KernelImageTexture> image_textures)
+{
+  device_vector<KernelTileDescriptor> &tile_descriptors = dscene.image_texture_tile_descriptors;
+
+  if (tile_descriptors.size() == 0) {
+    return;
+  }
+
+  /* Build sorted list of live descriptor ranges. */
+  struct LiveRange {
+    size_t old_offset;
+    size_t length;
+    size_t image_idx;
+  };
+  vector<LiveRange> live_ranges;
+
+  for (size_t i = 0; i < image_textures.size(); i++) {
+    KernelImageTexture &tex = image_textures[i];
+    if (tex.tile_descriptor_offset == KERNEL_TILE_LOAD_NONE) {
+      continue;
+    }
+    live_ranges.push_back(
+        {size_t(tex.tile_descriptor_offset), size_t(tex.tile_levels + tex.tile_num), i});
+  }
+
+  std::sort(live_ranges.begin(), live_ranges.end(), [](const LiveRange &a, const LiveRange &b) {
+    return a.old_offset < b.old_offset;
+  });
+
+  /* Compact: shift ranges down using std::copy. */
+  size_t write_pos = 0;
+  bool compacted = false;
+  KernelTileDescriptor *data = tile_descriptors.data();
+
+  for (LiveRange &range : live_ranges) {
+    if (range.old_offset != write_pos) {
+      std::copy(data + range.old_offset, data + range.old_offset + range.length, data + write_pos);
+      image_textures[range.image_idx].tile_descriptor_offset = write_pos;
+      compacted = true;
+    }
+    write_pos += range.length;
+  }
+
+  if (!compacted) {
+    return;
+  }
+
+  tile_descriptors.resize(write_pos);
+  tile_descriptors.tag_modified();
+
+  /* Tag image textures as modified since tile_descriptor_offset changed. */
+  dscene.image_textures.tag_modified();
+
+  /* Shrink bit arrays. */
+  const size_t num_words = divide_up(write_pos, size_t(32));
+
+  device_vector<uint> &request_bits = dscene.image_texture_tile_request_bits;
+  if (request_bits.size() > num_words) {
+    request_bits.resize(num_words);
+  }
+
+  device_vector<uint> &used_bits = dscene.image_texture_tile_used_bits;
+  if (used_bits.size() > num_words) {
+    used_bits.resize(num_words);
   }
 }
 
