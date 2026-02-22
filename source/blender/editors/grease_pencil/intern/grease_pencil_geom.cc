@@ -789,6 +789,8 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
       "material_index", bke::AttrDomain::Curve, 0);
   const VArray<float> miter_angles = *src_attributes.lookup_or_default<float>(
       "miter_angle", bke::AttrDomain::Point, GP_STROKE_MITER_ANGLE_ROUND);
+  const VArray<int> src_fill_ids = *src_attributes.lookup_or_default(
+      "fill_id", bke::AttrDomain::Curve, 0);
 
   /* Transform positions and radii. */
   Array<float3> transformed_positions(src_positions.size());
@@ -809,10 +811,7 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
         PerimeterData &data = thread_data.local();
 
         const bool is_cyclic_curve = src_cyclic[curve_i];
-        /* NOTE: Cyclic curves would better be represented by a cyclic perimeter without end caps,
-         * but we always generate caps for compatibility with GPv2. Fill materials cannot create
-         * holes, so a cyclic outline does not work well. */
-        const bool use_caps = true /*!is_cyclic_curve*/;
+        const bool use_caps = !is_cyclic_curve;
 
         const int prev_point_num = data.positions.size();
         const int prev_curve_num = data.point_counts.size();
@@ -861,11 +860,17 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
       "material_index", bke::AttrDomain::Curve);
   bke::SpanAttributeWriter<float> dst_radius = dst_attributes.lookup_or_add_for_write_span<float>(
       "radius", bke::AttrDomain::Point);
+  bke::SpanAttributeWriter<int> dst_fill_ids = dst_attributes.lookup_or_add_for_write_span<int>(
+      "fill_id", bke::AttrDomain::Curve);
   const MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
   const MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   /* Source indices for attribute mapping. */
   Array<int> dst_curve_map(dst_curve_num);
   Array<int> dst_point_map(dst_point_num);
+
+  /* Start at `1` for the new geometry. */
+  int fill_id_to_set = 1;
+  Map<int, int> fill_src_id_to_dst_id;
 
   IndexRange curves;
   IndexRange points;
@@ -887,6 +892,27 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
       }
     }
 
+    for (const int i : curves.index_range()) {
+      const int dst_curve_i = curves[i];
+      const int src_curve_i = data.curve_indices[i];
+      const int src_fill_id = src_fill_ids[src_curve_i];
+
+      if (src_fill_id == 0) {
+        dst_fill_ids.span[dst_curve_i] = fill_id_to_set;
+        fill_id_to_set++;
+      }
+      else {
+        if (const std::optional<int> dst_fill_id = fill_src_id_to_dst_id.lookup_try(src_fill_id)) {
+          dst_fill_ids.span[dst_curve_i] = *dst_fill_id;
+        }
+        else {
+          dst_fill_ids.span[dst_curve_i] = fill_id_to_set;
+          fill_src_id_to_dst_id.add(src_fill_id, fill_id_to_set);
+          fill_id_to_set++;
+        }
+      }
+    }
+
     /* Append point data. */
     dst_positions.slice(points).copy_from(data.positions);
     dst_point_map.as_mutable_span().slice(points).copy_from(data.point_indices);
@@ -900,16 +926,18 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
                          bke::attribute_filter_from_skip_ref({"position", "radius"}),
                          dst_point_map,
                          dst_attributes);
-  bke::gather_attributes(src_attributes,
-                         bke::AttrDomain::Curve,
-                         bke::AttrDomain::Curve,
-                         bke::attribute_filter_from_skip_ref({"cyclic", "material_index"}),
-                         dst_curve_map,
-                         dst_attributes);
+  bke::gather_attributes(
+      src_attributes,
+      bke::AttrDomain::Curve,
+      bke::AttrDomain::Curve,
+      bke::attribute_filter_from_skip_ref({"cyclic", "material_index", "fill_id"}),
+      dst_curve_map,
+      dst_attributes);
 
   dst_cyclic.finish();
   dst_material.finish();
   dst_radius.finish();
+  dst_fill_ids.finish();
   dst_curves.update_curve_types();
 
   return dst_curves;

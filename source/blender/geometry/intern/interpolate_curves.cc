@@ -660,8 +660,8 @@ static void sample_bezier_curve_positions_handles(const bool cyclic,
                                                   const Span<float3> src_pos,
                                                   const Span<float3> src_handle_left,
                                                   const Span<float3> src_handle_right,
-                                                  const VArray<int8_t> src_types_left,
-                                                  const VArray<int8_t> src_types_right,
+                                                  const Span<int8_t> src_types_left,
+                                                  const Span<int8_t> src_types_right,
                                                   const Span<int> dst_indices,
                                                   const Span<float> dst_factors,
                                                   const IndexRange dst_points,
@@ -760,8 +760,8 @@ static void sample_curve_positions_and_handles(const bke::CurvesGeometry &src_cu
   const VArray<bool> src_cyclic = src_curves.cyclic();
   const std::optional<Span<float3>> src_handle_left = src_curves.handle_positions_left();
   const std::optional<Span<float3>> src_handle_right = src_curves.handle_positions_right();
-  const VArray<int8_t> src_types_left = src_curves.handle_types_left();
-  const VArray<int8_t> src_types_right = src_curves.handle_types_right();
+  const VArraySpan<int8_t> src_handle_types_left = src_curves.handle_types_left();
+  const VArraySpan<int8_t> src_handle_types_right = src_curves.handle_types_right();
 
 #ifndef NDEBUG
   const int dst_points_num = dst_positions.size();
@@ -783,6 +783,8 @@ static void sample_curve_positions_and_handles(const bke::CurvesGeometry &src_cu
     const IndexRange dst_points = dst_points_by_curve[i_dst_curve];
 
     const Span<float3> src_pos = src_positions.slice(src_points);
+    const Span<int8_t> src_types_left = src_handle_types_left.slice(src_points);
+    const Span<int8_t> src_types_right = src_handle_types_right.slice(src_points);
     const Span<int> dst_indices = dst_sample_indices.slice(dst_points);
     const Span<float> dst_factors = dst_sample_factors.slice(dst_points);
 

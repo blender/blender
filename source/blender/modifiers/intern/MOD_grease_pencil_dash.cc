@@ -212,6 +212,8 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
       "radius", bke::AttrDomain::Point, 0.01f);
   const VArray<float> src_opacity = *src_attributes.lookup_or_default<float>(
       "opacity", bke::AttrDomain::Point, 1.0f);
+  const VArray<int> src_fill_ids = *src_attributes.lookup_or_default<int>(
+      "fill_id", bke::AttrDomain::Curve, 0);
 
   /* Count new curves and points. */
   int dst_point_num = 0;
@@ -236,6 +238,8 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   bke::SpanAttributeWriter<bool> dst_cyclic = dst_attributes.lookup_or_add_for_write_span<bool>(
       "cyclic", bke::AttrDomain::Curve);
+  bke::SpanAttributeWriter<int> dst_fill_ids = dst_attributes.lookup_or_add_for_write_span<int>(
+      "fill_id", bke::AttrDomain::Curve);
   bke::SpanAttributeWriter<int> dst_material = dst_attributes.lookup_or_add_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
   bke::SpanAttributeWriter<float> dst_radius = dst_attributes.lookup_or_add_for_write_span<float>(
@@ -245,6 +249,9 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
   /* Map each destination point and curve to its source. */
   Array<int> src_point_indices(dst_point_num);
   Array<int> src_curve_indices(dst_curve_num);
+
+  /* Start at `1` for the new geometry. */
+  int fill_id_to_set = 1;
 
   {
     /* Start at curve offset and add points for each dash. */
@@ -282,6 +289,13 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
           dst_opacity.span[i] = src_opacity[src_point_indices[i]] * opacity;
         }
       }
+      if (src_fill_ids[src_curve] == 0) {
+        dst_fill_ids.span[dst_curve_i] = 0;
+      }
+      else {
+        dst_fill_ids.span[dst_curve_i] = fill_id_to_set;
+        fill_id_to_set++;
+      }
 
       ++dst_curve_i;
     };
@@ -312,17 +326,19 @@ static bke::CurvesGeometry create_dashes(const PatternInfo &pattern_info,
                          bke::attribute_filter_from_skip_ref({"radius", "opacity"}),
                          src_point_indices,
                          dst_attributes);
-  bke::gather_attributes(src_attributes,
-                         bke::AttrDomain::Curve,
-                         bke::AttrDomain::Curve,
-                         bke::attribute_filter_from_skip_ref({"cyclic", "material_index"}),
-                         src_curve_indices,
-                         dst_attributes);
+  bke::gather_attributes(
+      src_attributes,
+      bke::AttrDomain::Curve,
+      bke::AttrDomain::Curve,
+      bke::attribute_filter_from_skip_ref({"cyclic", "material_index", "fill_id"}),
+      src_curve_indices,
+      dst_attributes);
 
   dst_cyclic.finish();
   dst_material.finish();
   dst_radius.finish();
   dst_opacity.finish();
+  dst_fill_ids.finish();
   dst_curves.update_curve_types();
 
   return dst_curves;
