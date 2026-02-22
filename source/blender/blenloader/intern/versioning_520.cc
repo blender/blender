@@ -9,6 +9,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_ID.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_listbase_iterator.hh"
 #include "BLI_sys_types.h"
@@ -72,6 +73,14 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 1)) {
     for (Scene &scene : bmain->scenes) {
       scene.r.mode |= R_SAVE_OUTPUT;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 4)) {
+    for (Brush &brush : bmain->brushes) {
+      if (brush.gpencil_settings != nullptr) {
+        brush.blend = 0;
+      }
     }
   }
   /**
