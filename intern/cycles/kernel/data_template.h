@@ -238,9 +238,9 @@ KERNEL_STRUCT_END(KernelIntegrator)
 
 KERNEL_STRUCT_BEGIN(KernelImage, image)
 KERNEL_STRUCT_MEMBER(image, float, mip_bias)
+KERNEL_STRUCT_MEMBER(image, int, skip_tile_loading)
 
 /* Padding. */
-KERNEL_STRUCT_MEMBER(image, int, pad1)
 KERNEL_STRUCT_MEMBER(image, int, pad2)
 KERNEL_STRUCT_MEMBER(image, int, pad3)
 KERNEL_STRUCT_END(KernelImage)

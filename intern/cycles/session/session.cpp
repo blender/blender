@@ -410,6 +410,9 @@ RenderWork Session::run_update_for_next_iteration()
 
     scene->update_camera_resolution(progress, width, height, params.pixel_size);
 
+    scene->image_manager->set_skip_tile_loading(
+        device.get(), scene.get(), render_work.resolution_divider > params.pixel_size);
+
     /* Unlock scene mutex before loading denoiser kernels, since that may attempt to activate
      * graphics interop, which can deadlock when the scene mutex is still being held. */
     scene_lock.unlock();

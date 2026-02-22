@@ -132,6 +132,11 @@ kernel_image_tile_map(KernelGlobals kg,
       image_texture_tile_descriptors, tex.tile_descriptor_offset + tile_offset);
 
   if (!kernel_tile_descriptor_loaded(tile_descriptor)) {
+    if (kernel_data.image.skip_tile_loading) {
+      /* During navigation or progressive low-res render, don't load new tiles.
+       * The caller will use average_color as fallback. */
+      return tile_descriptor;
+    }
 #ifdef __KERNEL_GPU__
     /* For GPU, mark load requested and cancel shader execution. */
     if (tile_descriptor == KERNEL_TILE_LOAD_NONE) {

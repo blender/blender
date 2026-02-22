@@ -616,6 +616,7 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
   kimage->mip_bias = (scene->params.texture_resolution < 1.0f) ?
                          -log2f(scene->params.texture_resolution) :
                          0.0f;
+  kimage->skip_tile_loading = false;
 
   /* Update UDIM ids. */
   device_update_udims(device, scene);
@@ -654,6 +655,7 @@ void ImageManager::device_load_images(Device *device,
   kimage->mip_bias = (scene->params.texture_resolution < 1.0f) ?
                          -log2f(scene->params.texture_resolution) :
                          0.0f;
+  kimage->skip_tile_loading = false;
 
   /* Update UDIM ids. */
   device_update_udims(device, scene);
@@ -734,6 +736,18 @@ void ImageManager::set_navigating(bool navigating)
     eviction_navigation_end_time_ = time_dt();
   }
   was_navigating_ = navigating;
+}
+
+void ImageManager::set_skip_tile_loading(Device *device, Scene *scene, bool low_resolution)
+{
+  /* Skip loading new texture cache tiles during navigation or progressive
+   * low-resolution renders, to keep the viewport responsive. Already-loaded
+   * tiles continue to be used. */
+  const bool skip = use_texture_cache && (was_navigating_ || low_resolution);
+  if (scene->dscene.data.image.skip_tile_loading != skip) {
+    scene->dscene.data.image.skip_tile_loading = skip;
+    device->const_copy_to("data", &scene->dscene.data, sizeof(scene->dscene.data));
+  }
 }
 
 void ImageManager::evict_unused_tiles(Device *device, Scene *scene, bool background)

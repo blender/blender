@@ -316,19 +316,6 @@ static void foreach_sliced_buffer_params(const vector<unique_ptr<PathTraceWork>>
   }
 }
 
-void PathTrace::update_allocated_work_buffer_params()
-{
-  const int overscan = tile_manager_.get_tile_overscan();
-  foreach_sliced_buffer_params(path_trace_works_,
-                               work_balance_infos_,
-                               big_tile_params_,
-                               overscan,
-                               [](PathTraceWork *path_trace_work, const BufferParams &params) {
-                                 RenderBuffers *buffers = path_trace_work->get_render_buffers();
-                                 buffers->reset(params);
-                               });
-}
-
 static BufferParams scale_buffer_params(const BufferParams &params, const int resolution_divider)
 {
   BufferParams scaled_params = params;
@@ -349,6 +336,22 @@ static BufferParams scale_buffer_params(const BufferParams &params, const int re
   scaled_params.update_offset_stride();
 
   return scaled_params;
+}
+
+void PathTrace::update_allocated_work_buffer_params()
+{
+  const int pixel_size = render_scheduler_.get_pixel_size();
+  const BufferParams allocated_params = scale_buffer_params(big_tile_params_, pixel_size);
+
+  const int overscan = tile_manager_.get_tile_overscan();
+  foreach_sliced_buffer_params(path_trace_works_,
+                               work_balance_infos_,
+                               allocated_params,
+                               overscan,
+                               [](PathTraceWork *path_trace_work, const BufferParams &params) {
+                                 RenderBuffers *buffers = path_trace_work->get_render_buffers();
+                                 buffers->reset(params);
+                               });
 }
 
 void PathTrace::update_effective_work_buffer_params(const RenderWork &render_work)

@@ -218,6 +218,11 @@ class RenderScheduler {
 
   void set_limit_samples_per_update(const int limit_samples);
 
+  int get_pixel_size() const
+  {
+    return pixel_size_;
+  }
+
  protected:
   /* Check whether all work has been scheduled and time limit was not exceeded.
    *

@@ -171,6 +171,7 @@ class ImageManager {
   bool set_animation_frame_update(const int frame);
 
   void set_navigating(bool navigating);
+  void set_skip_tile_loading(Device *device, Scene *scene, bool low_resolution);
   void evict_unused_tiles(Device *device, Scene *scene, bool background);
 
   void collect_statistics(RenderStats *stats, Scene *scene);
