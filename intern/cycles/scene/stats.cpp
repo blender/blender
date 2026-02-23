@@ -287,6 +287,27 @@ string ImageStats::full_report(const int indent_level)
                           string_human_readable_size(total_memory).c_str(),
                           string_human_readable_number(total_memory).c_str());
 
+  if (eviction.tiles_loaded > 0) {
+    result += string_printf(
+        "%sTiles:\n"
+        "%sLoaded: %d\n"
+        "%sPeak: %d (%.1f%%)\n"
+        "%sEvicted: %d (%.1f%%)\n"
+        "%sReloaded: %d (%.1f%%)\n",
+        indent.c_str(),
+        double_indent.c_str(),
+        eviction.tiles_loaded,
+        double_indent.c_str(),
+        eviction.peak_loaded,
+        100.0 * eviction.peak_loaded / eviction.tiles_loaded,
+        double_indent.c_str(),
+        eviction.tiles_evicted,
+        100.0 * eviction.tiles_evicted / eviction.tiles_loaded,
+        double_indent.c_str(),
+        eviction.tiles_reloaded,
+        100.0 * eviction.tiles_reloaded / eviction.tiles_loaded);
+  }
+
   return result;
 }
 

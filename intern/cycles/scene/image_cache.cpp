@@ -51,6 +51,14 @@ void ImageCache::device_free(DeviceScene &dscene)
   dscene.image_texture_tile_descriptors.free();
   dscene.image_texture_tile_request_bits.free();
   dscene.image_texture_tile_used_bits.free();
+
+  /* Reset eviction statistics. */
+  stats_evicted_bits_.clear();
+  current_tiles_loaded_ = 0;
+  total_tiles_loaded_ = 0;
+  total_tiles_evicted_ = 0;
+  total_tiles_reloaded_ = 0;
+  peak_tiles_loaded_ = 0;
 }
 
 /* Full image management. */
@@ -461,6 +469,10 @@ void ImageCache::load_image_tiled(DeviceScene &dscene,
       std::fill_n(tile_used_bits.data() + old_used_words, num_words - old_used_words, 0u);
     }
 
+    if (num_words > stats_evicted_bits_.size()) {
+      stats_evicted_bits_.resize(num_words, 0u);
+    }
+
     KernelTileDescriptor *descr_data = tile_descriptors.data() + tile_descriptor_offset;
 
     for (int i = 0; i < levels.size(); i++) {
@@ -471,6 +483,16 @@ void ImageCache::load_image_tiled(DeviceScene &dscene,
     tex.tile_descriptor_offset = tile_descriptor_offset;
     tex.tile_levels = levels.size();
     tex.tile_num = num_tiles;
+  }
+}
+
+/* Eviction statistics. */
+
+void ImageCache::ensure_evicted_bits_size(size_t bit_index)
+{
+  const size_t word = bit_index >> 5;
+  if (word >= stats_evicted_bits_.size()) {
+    stats_evicted_bits_.resize(word + 1, 0u);
   }
 }
 
@@ -485,7 +507,8 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
                                            const int miplevel,
                                            const int x,
                                            const int y,
-                                           const bool for_cpu_cache_miss)
+                                           const bool for_cpu_cache_miss,
+                                           const int bit_index)
 {
   const int width = metadata.width >> miplevel;
   const int height = metadata.height >> miplevel;
@@ -528,6 +551,29 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
   else {
     LOG_WARNING << "Failed to load image tile: " << loader.name() << ", mip level " << miplevel
                 << " (" << x << " " << y << ")";
+  }
+
+  if (ok) {
+    /* Track eviction statistics. The stats_evicted_bits_ vector is pre-sized
+     * in load_image_tiled, so no resize is needed here. */
+    const uint evict_word = bit_index >> 5;
+    const uint evict_bit = 1u << (bit_index & 31);
+
+    total_tiles_loaded_++;
+    const int current = ++current_tiles_loaded_;
+    int peak = peak_tiles_loaded_.load(std::memory_order_relaxed);
+    while (current > peak &&
+           !peak_tiles_loaded_.compare_exchange_weak(peak, current, std::memory_order_relaxed))
+    {
+      /* Retry until peak is at least current. */
+    }
+
+    if (evict_word < stats_evicted_bits_.size()) {
+      std::atomic_ref<uint> evict_word_ref(stats_evicted_bits_[evict_word]);
+      if (evict_word_ref.fetch_and(~evict_bit, std::memory_order_relaxed) & evict_bit) {
+        total_tiles_reloaded_++;
+      }
+    }
   }
 
   return (ok) ? tile_descriptor : KERNEL_TILE_LOAD_FAILED;
@@ -610,9 +656,17 @@ void ImageCache::load_requested_tiles(Device &device,
       const size_t x = tile_x * tile_size;
       const size_t y = tile_y * tile_size;
 
-      KernelTileDescriptor result = load_tile(
-          device, dscene, loader, metadata, interpolation, extension, miplevel, x, y, false);
-      descriptors[tile_idx] = result;
+      descriptors[tile_idx] = load_tile(device,
+                                        dscene,
+                                        loader,
+                                        metadata,
+                                        interpolation,
+                                        extension,
+                                        miplevel,
+                                        x,
+                                        y,
+                                        false,
+                                        base_offset + tile_idx);
     }
   }
 }
@@ -638,8 +692,19 @@ void ImageCache::load_requested_tile(Device &device,
   {
     const InterpolationType interpolation = InterpolationType(tex.interpolation);
     const ExtensionType extension = ExtensionType(tex.extension);
-    KernelTileDescriptor tile_descriptor_new = load_tile(
-        device, dscene, loader, metadata, interpolation, extension, miplevel, x, y, true);
+    const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
+
+    KernelTileDescriptor tile_descriptor_new = load_tile(device,
+                                                         dscene,
+                                                         loader,
+                                                         metadata,
+                                                         interpolation,
+                                                         extension,
+                                                         miplevel,
+                                                         x,
+                                                         y,
+                                                         true,
+                                                         bit_index);
     r_tile_descriptor = tile_descriptor_new;
     return;
   }
@@ -697,6 +762,14 @@ void ImageCache::collect_statistics(DeviceScene &dscene,
 
     tile_stats.size += tiles_loaded * tile_bytes;
   }
+}
+
+void ImageCache::collect_eviction_statistics(ImageEvictionStats &eviction) const
+{
+  eviction.tiles_loaded = total_tiles_loaded_;
+  eviction.tiles_evicted = total_tiles_evicted_;
+  eviction.tiles_reloaded = total_tiles_reloaded_;
+  eviction.peak_loaded = peak_tiles_loaded_;
 }
 
 void ImageCache::evict_unused_tiles(DeviceScene &dscene,
@@ -805,6 +878,16 @@ void ImageCache::evict_unused_tiles(DeviceScene &dscene,
       if (!tile.is_host_mapped) {
         preserved_bytes -= tile.tile_bytes;
       }
+
+      /* Track eviction in bitmap and counters. */
+      ensure_evicted_bits_size(tile.global_idx);
+      const uint word = tile.global_idx >> 5;
+      const uint bit_mask = 1u << (tile.global_idx & 31);
+      std::atomic_ref<uint>(stats_evicted_bits_[word])
+          .fetch_or(bit_mask, std::memory_order_relaxed);
+
+      total_tiles_evicted_++;
+      current_tiles_loaded_--;
     }
     else {
       num_preserved++;
@@ -1027,6 +1110,11 @@ void ImageCache::compact_tile_descriptors(DeviceScene &dscene,
   if (used_bits.size() > num_words) {
     used_bits.resize(num_words);
   }
+
+  /* Clear evicted bits since compaction invalidates bit positions.
+   * TODO: This may cause one reload to not be counted, is that ok? */
+  stats_evicted_bits_.clear();
+  stats_evicted_bits_.resize(num_words, 0u);
 }
 
 size_t ImageCache::memory_size(DeviceScene &dscene) const

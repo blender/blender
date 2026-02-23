@@ -828,6 +828,9 @@ void ImageManager::collect_statistics(RenderStats *stats, Scene *scene)
   stats->image.overhead_size = dscene.image_textures.memory_size() +
                                dscene.image_texture_udims.memory_size() +
                                image_cache.memory_size(dscene);
+
+  /* Collect eviction statistics. */
+  image_cache.collect_eviction_statistics(stats->image.eviction);
 }
 
 void ImageManager::tag_update()

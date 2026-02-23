@@ -11,6 +11,7 @@
 #include "util/set.h"
 #include "util/unique_ptr_vector.h"
 
+#include <atomic>
 #include <span>
 
 CCL_NAMESPACE_BEGIN
@@ -19,6 +20,7 @@ class DeviceQueue;
 class DeviceScene;
 class ImageLoader;
 class ImageMetaData;
+struct ImageEvictionStats;
 struct ImageTileStats;
 
 class ImageCache {
@@ -109,6 +111,7 @@ class ImageCache {
                           const KernelImageTexture &tex,
                           const ImageMetaData &metadata,
                           ImageTileStats &tile_stats);
+  void collect_eviction_statistics(ImageEvictionStats &eviction) const;
   void evict_unused_tiles(DeviceScene &dscene,
                           std::span<KernelImageTexture> image_textures,
                           const uint *used_bits);
@@ -164,7 +167,20 @@ class ImageCache {
                                  int miplevel,
                                  int x,
                                  int y,
-                                 const bool for_cpu_cache_miss);
+                                 const bool for_cpu_cache_miss,
+                                 const int bit_index);
+
+  /* Eviction statistics tracking. */
+  void ensure_evicted_bits_size(size_t bit_index);
+
+  vector<uint> stats_evicted_bits_;
+  std::atomic<int> current_tiles_loaded_{0};
+
+  /* Global eviction counters. */
+  std::atomic<int> total_tiles_loaded_{0};
+  std::atomic<int> total_tiles_evicted_{0};
+  std::atomic<int> total_tiles_reloaded_{0};
+  std::atomic<int> peak_tiles_loaded_{0};
 };
 
 CCL_NAMESPACE_END
