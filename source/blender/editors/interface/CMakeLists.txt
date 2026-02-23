@@ -6,6 +6,7 @@ set(INC
   .
   ../asset
   ../include
+  ../../animrig
   ../../makesrna
   ../../python
   ../../../../intern/ghost
