@@ -222,6 +222,14 @@ static void joined_armature_fix_links(
   Object *ob;
   bPose *pose;
 
+  /* Important: Ensure that no hierarchy cycles are created with this operation. See #154651. */
+  blender::Set<Object *> skip_reparenting;
+  Object *ob_iter = tarArm;
+  while (ob_iter) {
+    skip_reparenting.add(ob_iter);
+    ob_iter = ob_iter->parent;
+  }
+
   /* let's go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
        ob = static_cast<Object *>(ob->id.next))
@@ -252,7 +260,9 @@ static void joined_armature_fix_links(
       }
 
       /* make tar armature be new parent */
-      ob->parent = tarArm;
+      if (!skip_reparenting.contains(ob)) {
+        ob->parent = tarArm;
+      }
 
       DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
     }
