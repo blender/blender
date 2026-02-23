@@ -1201,7 +1201,7 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
       ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, short(value));
 
   /* finally, set the new rotation type */
-  ob->rotmode = value;
+  ob->rotmode = clamp_i(value, ROT_MODE_MIN, ROT_MODE_MAX);
 }
 
 static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)

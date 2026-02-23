@@ -233,7 +233,7 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
       pchan->quat, pchan->eul, pchan->rotAxis, &pchan->rotAngle, pchan->rotmode, short(value));
 
   /* finally, set the new rotation type */
-  pchan->rotmode = value;
+  pchan->rotmode = clamp_i(value, ROT_MODE_MIN, ROT_MODE_MAX);
 }
 
 static float rna_PoseChannel_length_get(PointerRNA *ptr)
