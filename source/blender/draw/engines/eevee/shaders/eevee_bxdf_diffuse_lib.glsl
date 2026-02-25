@@ -148,7 +148,7 @@ ClosureLight bxdf_translucent_light(ClosureUndetermined cl, float3 V, float thic
   light.ltc_mat = float4(
       1.0f, 0.0f, 0.0f, 1.0f); /* No transform, just plain cosine distribution. */
   light.N = -cl.N;
-  light.type = (thickness > 0.0f) ? LIGHT_TRANSLUCENT_WITH_THICKNESS : LIGHT_DIFFUSE;
+  light.type = (thickness != 0.0f) ? LIGHT_TRANSLUCENT_WITH_THICKNESS : LIGHT_DIFFUSE;
   return light;
 }
 
