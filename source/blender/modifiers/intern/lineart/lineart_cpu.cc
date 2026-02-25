@@ -2734,7 +2734,7 @@ bool lineart_edge_from_triangle(const LineartTriangle *tri,
                                 bool allow_overlapping_edges)
 {
   const LineartEdge *use_e = e;
-  if (e->flags & MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR) {
+  if (e->flags & (MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR | MOD_LINEART_EDGE_FLAG_PROJECTED_SHADOW)) {
     if (((e->target_reference & LRT_LIGHT_CONTOUR_TARGET) == tri->target_reference) ||
         (((e->target_reference >> 32) & LRT_LIGHT_CONTOUR_TARGET) == tri->target_reference))
     {
