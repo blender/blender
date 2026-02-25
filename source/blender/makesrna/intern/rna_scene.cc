@@ -7707,7 +7707,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       prop,
       "Texture Cache",
       "Load texture tiles at appropriate resolution on demand to reduce memory usage. This avoids "
-      "loading all textures into memory, at the cost of extra disk space and some perforamnce");
+      "loading all textures into memory, at the cost of extra disk space and some performance");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "use_auto_generate_texture_cache", PROP_BOOLEAN, PROP_NONE);

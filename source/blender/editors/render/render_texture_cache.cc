@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2025 Blender Authors
+/* SPDX-FileCopyrightText: 2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -122,7 +122,8 @@ static void generate_texture_cache(Main *bmain,
     }
 
     if (image->source == IMA_SRC_SEQUENCE) {
-      /* TODO: Handle image sequence. */
+      /* TODO: Handle image sequence, for now skip entirely. */
+      continue;
     }
 
     /* Handle regular image. */
@@ -135,8 +136,8 @@ static void generate_texture_cache(Main *bmain,
   }
 
   /* Generate texture cache. */
-  std::atomic<int> completed = 0;
-  std::atomic<int> failed = 0;
+  std::atomic<int> completed_num = 0;
+  std::atomic<int> failed_num = 0;
   std::mutex reports_mutex;
 
   blender::threading::parallel_for_each(filepaths, [&](const auto &item) {
@@ -144,18 +145,18 @@ static void generate_texture_cache(Main *bmain,
       if (G.is_break || worker_status->stop) {
         return;
       }
-      worker_status->progress = (completed + failed) / float(filepaths.size());
+      worker_status->progress = (completed_num + failed_num) / float(filepaths.size());
       worker_status->do_update = true;
     }
 
     if (CCL_generate_texture_cache(item.first, item.second.c_str(), U.texture_cachedir)) {
-      completed++;
+      completed_num++;
     }
     else {
       std::scoped_lock lock(reports_mutex);
       BKE_reportf(
           reports, RPT_ERROR, "Failed to generate texture cache for: %s", item.second.c_str());
-      failed++;
+      failed_num++;
     }
   });
 
@@ -165,10 +166,10 @@ static void generate_texture_cache(Main *bmain,
   }
   else {
     BKE_reportf(reports,
-                (failed) ? RPT_WARNING : RPT_INFO,
+                (failed_num) ? RPT_WARNING : RPT_INFO,
                 "Generated %d tx files, %d failed, %d up to date",
-                completed.load(),
-                failed.load(),
+                completed_num.load(),
+                failed_num.load(),
                 total - int(filepaths.size()));
   }
 }
