@@ -16,6 +16,8 @@ import shutil
 import subprocess
 import time
 import multiprocessing
+import traceback
+import re
 
 from pathlib import Path
 
@@ -113,6 +115,7 @@ class TestResult:
         self.filepath = filepath
         self.name = name
         self.error = None
+        self.stats = None
         self.tmp_out_img_base = os.path.join(report.output_dir, "tmp_" + name)
         self.tmp_out_img = self.tmp_out_img_base + '0001.png'
         self.old_img, self.ref_img, self.new_img, self.diff_color_img, self.diff_alpha_img = test_get_images(
@@ -141,12 +144,30 @@ def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
             "--diff",
         )
         try:
-            subprocess.check_output(command)
+            output = subprocess.check_output(command)
             failed = False
         except subprocess.CalledProcessError as e:
+            output = e.output
             if verbose:
-                print_message(e.output.decode("utf-8", 'ignore'))
+                print_message(output.decode("utf-8", 'ignore'))
             failed = e.returncode != 0
+
+        try:
+            output = output.decode("utf-8", 'ignore')
+            # Only print max error and number of pixels over threshold.
+            # Max error is not present if the images are a perfect match.
+            max_error = re.search(r"Max error *= *(\S+)", output)
+            over_threshold = re.findall(r"\S+ pixels .* over \S+", output)
+            if max_error or over_threshold:
+                test.stats = ""
+                if max_error:
+                    test.stats += "Max error = {:.3f}\n".format(float(max_error.group(1)))
+                if over_threshold:
+                    test.stats += over_threshold[-1]
+        except Exception as e:
+            print("Error parsing oiiotool output: \n", output, "\n", traceback.format_exc())
+            test.error = "STATS ERROR"
+            return test
     else:
         if not update:
             test.error = "VERIFY"
@@ -488,7 +509,9 @@ class Report:
     def _write_test_html(self, test_category, test_result):
         name = test_result.name.replace('_', ' ')
 
-        status = test_result.error if test_result.error else ""
+        status = "<strong>" + test_result.error + "</strong><br>" if test_result.error else ""
+        if test_result.stats:
+            status += "<i>" + "<br>".join(test_result.stats.splitlines()) + "</i>"
         tr_style = """ class="table-danger" """ if test_result.error else ""
 
         new_url = self._relative_url(test_result.new_img)
