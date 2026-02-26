@@ -24,4 +24,20 @@ TEST(offset_indices, SumSizes)
   EXPECT_EQ(sum_group_sizes(offsets, IndexMask(1)), 3);
 }
 
+TEST(offset_indices, build_groups_from_indices)
+{
+  Vector<int> data = {3, 2, 1, 3, 4, 1, 1, 6, 8, 1, 8, 0};
+  const int groups_num = 10;
+
+  Array<int> offset_data;
+  Array<int> index_data;
+  const GroupedSpan<int> groups = build_groups_from_indices(
+      data, groups_num, offset_data, index_data);
+
+  EXPECT_EQ(groups.size(), groups_num);
+  EXPECT_EQ(groups.offsets.total_size(), data.size());
+  EXPECT_EQ_SPAN(groups[1], {2, 5, 6, 9});
+  EXPECT_TRUE(groups[5].is_empty());
+}
+
 }  // namespace blender::offset_indices::tests

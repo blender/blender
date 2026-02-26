@@ -60,41 +60,25 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
   layout.prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static Vector<Vector<int>> get_layers_map_by_name(const GreasePencil &src_grease_pencil,
-                                                  const GeoNodeExecParams &params)
+static GreasePencil *merge_by_name(const GreasePencil &src_grease_pencil,
+                                   const GeoNodeExecParams &params,
+                                   const AttributeFilter &attribute_filter)
 {
   using namespace bke::greasepencil;
-
-  const int old_layers_num = src_grease_pencil.layers().size();
-
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
 
   bke::GreasePencilFieldContext field_context{src_grease_pencil};
-  FieldEvaluator field_evaluator{field_context, old_layers_num};
+  FieldEvaluator field_evaluator{field_context, src_grease_pencil.layers().size()};
   field_evaluator.add(selection_field);
   field_evaluator.evaluate();
-  const VArray<bool> selection = field_evaluator.get_evaluated<bool>(0);
-
-  Vector<Vector<int>> layers_map;
-  Map<StringRef, int> new_layer_index_by_name;
-
-  for (const int layer_i : IndexRange(old_layers_num)) {
-    const bool is_selected = selection[layer_i];
-    if (!is_selected) {
-      layers_map.append({layer_i});
-      continue;
-    }
-
-    const Layer &layer = src_grease_pencil.layer(layer_i);
-    const int new_layer_index = new_layer_index_by_name.lookup_or_add_cb(
-        layer.name(), [&]() { return layers_map.append_and_get_index_as(); });
-    layers_map[new_layer_index].append(layer_i);
-  }
-  return layers_map;
+  return geometry::merge_layers_by_name(
+      src_grease_pencil, field_evaluator.get_evaluated<bool>(0), attribute_filter);
 }
 
-static Vector<Vector<int>> get_layers_map_by_id(const GreasePencil &src_grease_pencil,
-                                                const GeoNodeExecParams &params)
+static GroupedSpan<int> get_layers_map_by_id(const GreasePencil &src_grease_pencil,
+                                             const GeoNodeExecParams &params,
+                                             Array<int> &r_offsets,
+                                             Array<int> &r_indices)
 {
   using namespace bke::greasepencil;
 
@@ -111,21 +95,20 @@ static Vector<Vector<int>> get_layers_map_by_id(const GreasePencil &src_grease_p
   const VArray<bool> selection = field_evaluator.get_evaluated<bool>(0);
   const VArray<int> group_ids = field_evaluator.get_evaluated<int>(1);
 
-  Vector<Vector<int>> layers_map;
-  Map<int, int> new_layer_index_by_id;
-
-  for (const int layer_i : IndexRange(old_layers_num)) {
-    const bool is_selected = selection[layer_i];
-    if (!is_selected) {
-      layers_map.append({layer_i});
-      continue;
+  Array<int> layer_to_group(old_layers_num);
+  Map<int, int> id_to_group_index;
+  int groups_num = 0;
+  for (const int i : IndexRange(old_layers_num)) {
+    if (selection[i]) {
+      layer_to_group[i] = id_to_group_index.lookup_or_add_cb(group_ids[i],
+                                                             [&]() { return groups_num++; });
     }
-    const int group_id = group_ids[layer_i];
-    const int new_layer_index = new_layer_index_by_id.lookup_or_add_cb(
-        group_id, [&]() { return layers_map.append_and_get_index_as(); });
-    layers_map[new_layer_index].append(layer_i);
+    else {
+      layer_to_group[i] = groups_num++;
+    }
   }
-  return layers_map;
+  return offset_indices::build_groups_from_indices(
+      layer_to_group, groups_num, r_offsets, r_indices);
 }
 
 static void merge_layers(GeometrySet &geometry,
@@ -141,25 +124,26 @@ static void merge_layers(GeometrySet &geometry,
   }
   const int old_layers_num = src_grease_pencil->layers().size();
 
-  Vector<Vector<int>> layers_map;
+  GreasePencil *new_grease_pencil;
   switch (MergeLayerMode(storage.mode)) {
     case MergeLayerMode::ByName: {
-      layers_map = get_layers_map_by_name(*src_grease_pencil, params);
+      new_grease_pencil = merge_by_name(*src_grease_pencil, params, attribute_filter);
       break;
     }
     case MergeLayerMode::ByID: {
-      layers_map = get_layers_map_by_id(*src_grease_pencil, params);
+      Array<int> offsets;
+      Array<int> all_indices;
+      const GroupedSpan<int> layers_map = get_layers_map_by_id(
+          *src_grease_pencil, params, offsets, all_indices);
+      const int new_layers_num = layers_map.size();
+      if (old_layers_num == new_layers_num) {
+        return;
+      }
+      new_grease_pencil = geometry::merge_layers(*src_grease_pencil, layers_map, attribute_filter);
       break;
     }
   }
 
-  const int new_layers_num = layers_map.size();
-  if (old_layers_num == new_layers_num) {
-    return;
-  }
-
-  GreasePencil *new_grease_pencil = geometry::merge_layers(
-      *src_grease_pencil, layers_map, attribute_filter);
   geometry.replace_grease_pencil(new_grease_pencil);
 }
 

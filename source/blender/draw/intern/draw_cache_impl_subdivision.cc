@@ -721,33 +721,20 @@ static gpu::VertBuf *gpu_vertbuf_create_from_format(const GPUVertFormat &format,
  * be used for computing normals if limit surfaces are unavailable. */
 static void build_vert_face_adjacency_maps(DRWSubdivCache &cache)
 {
-  /* +1 so that we do not require a special case for the last vertex, this extra offset will
-   * contain the total number of adjacent faces. */
+  const Span<int> loop_to_vert(cache.subdiv_loop_subdiv_vert_index, cache.num_subdiv_loops);
+
   cache.subdiv_vert_face_adjacency_offsets = gpu_vertbuf_create_from_format(
       get_origindex_format(), cache.num_subdiv_verts + 1);
-
   MutableSpan<int> vert_offsets = cache.subdiv_vert_face_adjacency_offsets->data<int>();
-  vert_offsets.fill(0);
 
-  offset_indices::build_reverse_offsets(
-      {cache.subdiv_loop_subdiv_vert_index, cache.num_subdiv_loops}, vert_offsets);
+  vert_offsets.fill(0);
+  const OffsetIndices offsets = offset_indices::build_reverse_offsets(loop_to_vert, vert_offsets);
 
   cache.subdiv_vert_face_adjacency = gpu_vertbuf_create_from_format(get_origindex_format(),
                                                                     cache.num_subdiv_loops);
   MutableSpan<int> adjacent_faces = cache.subdiv_vert_face_adjacency->data<int>();
-  int *tmp_set_faces = MEM_new_array_zeroed<int>(cache.num_subdiv_verts,
-                                                 "tmp subdiv vertex offset");
 
-  for (int i = 0; i < cache.num_subdiv_loops / 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      const int subdiv_vert = cache.subdiv_loop_subdiv_vert_index[i * 4 + j];
-      int first_face_offset = vert_offsets[subdiv_vert] + tmp_set_faces[subdiv_vert];
-      adjacent_faces[first_face_offset] = i;
-      tmp_set_faces[subdiv_vert] += 1;
-    }
-  }
-
-  MEM_delete(tmp_set_faces);
+  offset_indices::reverse_indices_in_groups(loop_to_vert, offsets, adjacent_faces);
 }
 
 static bool draw_subdiv_build_cache(DRWSubdivCache &cache,

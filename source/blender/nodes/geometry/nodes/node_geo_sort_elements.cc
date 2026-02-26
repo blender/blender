@@ -74,14 +74,9 @@ static void find_points_by_group_index(const Span<int> indices,
                                        MutableSpan<int> r_offsets,
                                        MutableSpan<int> r_indices)
 {
-  offset_indices::build_reverse_offsets(indices, r_offsets);
-  Array<int> counts(r_offsets.size(), 0);
-
-  for (const int64_t index : indices.index_range()) {
-    const int curve_index = indices[index];
-    r_indices[r_offsets[curve_index] + counts[curve_index]] = int(index);
-    counts[curve_index]++;
-  }
+  const OffsetIndices offsets = offset_indices::build_reverse_offsets(indices, r_offsets);
+  /* Sorting is implemented by the caller. */
+  offset_indices::reverse_indices_in_groups(indices, offsets, r_indices, false);
 }
 
 template<typename T, typename Func>

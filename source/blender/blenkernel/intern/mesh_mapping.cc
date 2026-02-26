@@ -270,45 +270,6 @@ static Array<int> create_reverse_offsets(const Span<int> indices, const int item
   return offsets;
 }
 
-static void sort_small_groups(const OffsetIndices<int> groups,
-                              const int grain_size,
-                              MutableSpan<int> indices)
-{
-  threading::parallel_for(groups.index_range(), grain_size, [&](const IndexRange range) {
-    for (const int64_t index : range) {
-      MutableSpan<int> group = indices.slice(groups[index]);
-      std::ranges::sort(group);
-    }
-  });
-}
-
-static Array<int> reverse_indices_in_groups(const Span<int> group_indices,
-                                            const OffsetIndices<int> offsets)
-{
-  if (group_indices.is_empty()) {
-    return {};
-  }
-  BLI_assert(*std::max_element(group_indices.begin(), group_indices.end()) < offsets.size());
-  BLI_assert(*std::min_element(group_indices.begin(), group_indices.end()) >= 0);
-
-  /* `counts` keeps track of how many elements have been added to each group, and is incremented
-   * atomically by many threads in parallel. `calloc` can be measurably faster than a parallel fill
-   * of zero. Alternatively the offsets could be copied and incremented directly, but the cost of
-   * the copy is slightly higher than the cost of `calloc`. */
-  int *counts = MEM_new_array_zeroed<int>(size_t(offsets.size()), __func__);
-  BLI_SCOPED_DEFER([&]() { MEM_delete(counts); })
-  Array<int> results(group_indices.size());
-  threading::parallel_for(group_indices.index_range(), 1024, [&](const IndexRange range) {
-    for (const int64_t i : range) {
-      const int group_index = group_indices[i];
-      const int index_in_group = atomic_fetch_and_add_int32(&counts[group_index], 1);
-      results[offsets[group_index][index_in_group]] = int(i);
-    }
-  });
-  sort_small_groups(offsets, 1024, results);
-  return results;
-}
-
 /* A version of #reverse_indices_in_groups that stores face indices instead of corner indices. */
 static void reverse_group_indices_in_groups(const OffsetIndices<int> groups,
                                             const Span<int> group_to_elem,
@@ -325,17 +286,7 @@ static void reverse_group_indices_in_groups(const OffsetIndices<int> groups,
       }
     }
   });
-  sort_small_groups(offsets, 1024, results);
-}
-
-static GroupedSpan<int> gather_groups(const Span<int> group_indices,
-                                      const int groups_num,
-                                      Array<int> &r_offsets,
-                                      Array<int> &r_indices)
-{
-  r_offsets = create_reverse_offsets(group_indices, groups_num);
-  r_indices = reverse_indices_in_groups(group_indices, r_offsets.as_span());
-  return {OffsetIndices<int>(r_offsets), r_indices};
+  offset_indices::sort_small_groups(offsets, results);
 }
 
 Array<int> build_corner_to_face_map(const OffsetIndices<int> faces)
@@ -365,7 +316,7 @@ GroupedSpan<int> build_vert_to_edge_map(const Span<int2> edges,
       }
     }
   });
-  sort_small_groups(offsets, 1024, r_indices);
+  offset_indices::sort_small_groups(offsets, r_indices);
   return {offsets, r_indices};
 }
 
@@ -392,7 +343,9 @@ GroupedSpan<int> build_vert_to_face_map(const OffsetIndices<int> faces,
 Array<int> build_vert_to_corner_indices(const Span<int> corner_verts,
                                         const OffsetIndices<int> offsets)
 {
-  return reverse_indices_in_groups(corner_verts, offsets);
+  Array<int> results(offsets.total_size());
+  offset_indices::reverse_indices_in_groups(corner_verts, offsets, results);
+  return results;
 }
 
 GroupedSpan<int> build_vert_to_corner_map(const Span<int> corner_verts,
@@ -400,7 +353,7 @@ GroupedSpan<int> build_vert_to_corner_map(const Span<int> corner_verts,
                                           Array<int> &r_offsets,
                                           Array<int> &r_indices)
 {
-  return gather_groups(corner_verts, verts_num, r_offsets, r_indices);
+  return offset_indices::build_groups_from_indices(corner_verts, verts_num, r_offsets, r_indices);
 }
 
 GroupedSpan<int> build_edge_to_corner_map(const Span<int> corner_edges,
@@ -408,7 +361,7 @@ GroupedSpan<int> build_edge_to_corner_map(const Span<int> corner_edges,
                                           Array<int> &r_offsets,
                                           Array<int> &r_indices)
 {
-  return gather_groups(corner_edges, edges_num, r_offsets, r_indices);
+  return offset_indices::build_groups_from_indices(corner_edges, edges_num, r_offsets, r_indices);
 }
 
 GroupedSpan<int> build_edge_to_face_map(const OffsetIndices<int> faces,

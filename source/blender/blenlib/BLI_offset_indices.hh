@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <optional>
 
+#include "BLI_array.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
@@ -194,7 +195,34 @@ void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 /**
  * Build offsets to group the elements of \a indices pointing to the same index.
  */
-void build_reverse_offsets(Span<int> indices, MutableSpan<int> offsets);
+OffsetIndices<int> build_reverse_offsets(Span<int> indices, MutableSpan<int> offsets);
+
+/**
+ * Used as a final step for parallel creation of grouped indices, to make results deterministic as
+ * each group's indices are potentially filled from multiple threads.
+ */
+void sort_small_groups(OffsetIndices<int> groups, MutableSpan<int> indices);
+
+/**
+ * Where the `group_indices` argument maps elements into buckets, and the `offsets` argument
+ * describes the size of each bucket, this function fills `results` with the indices in each bucket
+ * grouped by `offsets`. The `sort` argument makes the results deterministic (i.e. the indices in
+ * each bucket are sorted), otherwise internal parallelism makes this non-deterministic.
+ */
+void reverse_indices_in_groups(Span<int> group_indices,
+                               OffsetIndices<int> offsets,
+                               MutableSpan<int> results,
+                               bool sort = true);
+
+/**
+ * With `indices` divided in a certain number of unique groups, reverse the index mapping so that
+ * the indices in each group can be index by the group index. Similar to
+ * #reverse_indices_in_groups, but also creates the offsets.
+ */
+GroupedSpan<int> build_groups_from_indices(const Span<int> indices,
+                                           const int groups_num,
+                                           Array<int> &offset_data,
+                                           Array<int> &index_data);
 
 }  // namespace offset_indices
 

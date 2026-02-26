@@ -1978,16 +1978,8 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Ensure that the layer names are unique by merging layers with the same name. */
   const int old_layers_num = eval_grease_pencil.layers().size();
-  Vector<Vector<int>> layers_map;
-  Map<StringRef, int> new_layer_index_by_name;
-  for (const int layer_i : IndexRange(old_layers_num)) {
-    const Layer &layer = eval_grease_pencil.layer(layer_i);
-    const int new_layer_index = new_layer_index_by_name.lookup_or_add_cb(
-        layer.name(), [&]() { return layers_map.append_and_get_index_as(); });
-    layers_map[new_layer_index].append(layer_i);
-  }
-  GreasePencil &merged_layers_grease_pencil = *geometry::merge_layers(
-      eval_grease_pencil, layers_map, {});
+  GreasePencil &merged_layers_grease_pencil = *geometry::merge_layers_by_name(
+      eval_grease_pencil, VArray<bool>::from_single(true, old_layers_num), {});
 
   Map<const Layer *, const Layer *> eval_to_orig_layer_map;
   {

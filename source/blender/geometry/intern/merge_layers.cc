@@ -41,7 +41,7 @@ static bke::CurvesGeometry join_curves(const GreasePencil &src_grease_pencil,
 }
 
 GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
-                           const Span<Vector<int>> layers_to_merge,
+                           const GroupedSpan<int> layers_to_merge,
                            const bke::AttributeFilter &attribute_filter)
 {
   using namespace bke::greasepencil;
@@ -109,17 +109,6 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
     }
   });
 
-  /* TODO: Use GroupedSpan for the function argument instead of Span<Vector>. */
-  Vector<int> offsets;
-  Vector<int> all_indices;
-  offsets.reserve(layers_to_merge.size());
-  offsets.append(0);
-  for (const Span<int> indices : layers_to_merge) {
-    all_indices.extend(indices);
-    offsets.append(indices.size());
-  }
-  const GroupedSpan<int> src_layers_by_dst(OffsetIndices<int>(offsets), all_indices);
-
   const bke::AttributeAccessor src_attributes = src_grease_pencil.attributes();
   bke::MutableAttributeAccessor new_attributes = new_grease_pencil->attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
@@ -130,11 +119,39 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
     bke::GSpanAttributeWriter new_attribute = new_attributes.lookup_or_add_for_write_only_span(
         iter.name, bke::AttrDomain::Layer, iter.data_type);
     bke::attribute_math::mix_groups(
-        GVArraySpan(src_attribute.varray), src_layers_by_dst, new_attribute.span);
+        GVArraySpan(src_attribute.varray), layers_to_merge, new_attribute.span);
     new_attribute.finish();
   });
 
   return new_grease_pencil;
+}
+
+GreasePencil *merge_layers_by_name(const GreasePencil &src_grease_pencil,
+                                   const VArray<bool> &selection,
+                                   const bke::AttributeFilter &attribute_filter)
+{
+  using namespace bke::greasepencil;
+  const int old_layers_num = src_grease_pencil.layers().size();
+
+  Array<int> layer_to_group(old_layers_num);
+  Map<StringRef, int> name_to_group_index;
+  int groups_num = 0;
+  for (const int i : IndexRange(old_layers_num)) {
+    if (selection[i]) {
+      const Layer &layer = src_grease_pencil.layer(i);
+      layer_to_group[i] = name_to_group_index.lookup_or_add_cb(layer.name(),
+                                                               [&]() { return groups_num++; });
+    }
+    else {
+      layer_to_group[i] = groups_num++;
+    }
+  }
+  Array<int> offset_data;
+  Array<int> index_data;
+  const GroupedSpan<int> src_groups = offset_indices::build_groups_from_indices(
+      layer_to_group, groups_num, offset_data, index_data);
+
+  return merge_layers(src_grease_pencil, src_groups, attribute_filter);
 }
 
 }  // namespace blender::geometry

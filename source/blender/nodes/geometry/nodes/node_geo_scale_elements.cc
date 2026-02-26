@@ -79,13 +79,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom1 = int16_t(AttrDomain::Face);
 }
 
-static Array<int> create_reverse_offsets(const Span<int> indices, const int items_num)
-{
-  Array<int> offsets(items_num + 1, 0);
-  offset_indices::build_reverse_offsets(indices, offsets);
-  return offsets;
-}
-
 static Span<int> front_indices_to_same_value(const Span<int> indices, const Span<int> values)
 {
   const int value = values[indices.first()];
@@ -139,32 +132,6 @@ static void from_indices_large_groups(const Span<int> group_indices,
   });
 }
 
-static Array<int> reverse_indices_in_groups(const Span<int> group_indices,
-                                            const OffsetIndices<int> offsets)
-{
-  if (group_indices.is_empty()) {
-    return {};
-  }
-  BLI_assert(*std::max_element(group_indices.begin(), group_indices.end()) < offsets.size());
-  BLI_assert(*std::min_element(group_indices.begin(), group_indices.end()) >= 0);
-
-  /* `counts` keeps track of how many elements have been added to each group, and is incremented
-   * atomically by many threads in parallel. `calloc` can be measurably faster than a parallel fill
-   * of zero. Alternatively the offsets could be copied and incremented directly, but the cost of
-   * the copy is slightly higher than the cost of `calloc`. */
-  int *counts = MEM_new_array_zeroed<int>(offsets.size(), __func__);
-  BLI_SCOPED_DEFER([&]() { MEM_delete(counts); })
-  Array<int> results(group_indices.size());
-  threading::parallel_for(group_indices.index_range(), 1024, [&](const IndexRange range) {
-    for (const int64_t i : range) {
-      const int group_index = group_indices[i];
-      const int index_in_group = atomic_fetch_and_add_int32(&counts[group_index], 1);
-      results[offsets[group_index][index_in_group]] = int(i);
-    }
-  });
-  return results;
-}
-
 static GroupedSpan<int> gather_groups(const Span<int> group_indices,
                                       const int groups_num,
                                       Array<int> &r_offsets,
@@ -177,8 +144,7 @@ static GroupedSpan<int> gather_groups(const Span<int> group_indices,
     from_indices_large_groups(group_indices, r_offsets, r_indices);
   }
   else {
-    r_offsets = create_reverse_offsets(group_indices, groups_num);
-    r_indices = reverse_indices_in_groups(group_indices, r_offsets.as_span());
+    offset_indices::build_groups_from_indices(group_indices, groups_num, r_offsets, r_indices);
   }
   return {OffsetIndices<int>(r_offsets), r_indices};
 }
