@@ -511,7 +511,7 @@ class Context : public compositor::Context {
   {
     switch (input_data_.scene->r.compositor_precision) {
       case SCE_COMPOSITOR_PRECISION_AUTO:
-        /* Auto uses full precision for final renders and half procession otherwise. */
+        /* Auto uses full precision for final renders and half precision otherwise. */
         if (this->render_context()) {
           return compositor::ResultPrecision::Full;
         }

@@ -131,6 +131,20 @@ class CompositorEffectContext : public compositor::Context {
     return this->render_data_.scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
+  compositor::ResultPrecision get_precision() const override
+  {
+    switch (this->render_data_.scene->r.compositor_precision) {
+      case SCE_COMPOSITOR_PRECISION_AUTO:
+        /* Auto uses full precision for final renders and half precision otherwise. */
+        return this->render_data_.render ? compositor::ResultPrecision::Full :
+                                           compositor::ResultPrecision::Half;
+      case SCE_COMPOSITOR_PRECISION_FULL:
+        return compositor::ResultPrecision::Full;
+    }
+    BLI_assert_unreachable();
+    return compositor::ResultPrecision::Half;
+  }
+
   compositor::NodeGroupOutputTypes needed_outputs() const
   {
     compositor::NodeGroupOutputTypes needed_outputs =
