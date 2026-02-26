@@ -108,7 +108,7 @@ static void make_prim_finish_sculpt_cancelled(BMesh *bm)
   BM_mesh_free(bm);
 }
 
-static void init_facesets(Mesh *object_mesh, Mesh *primitive_mesh)
+static void init_facesets(const Mesh *object_mesh, Mesh *primitive_mesh)
 {
   bke::AttributeAccessor object_attributes = object_mesh->attributes();
   bke::AttributeReader<int> object_face_sets = object_attributes.lookup<int>(".sculpt_face_set");
