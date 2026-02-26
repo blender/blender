@@ -227,7 +227,10 @@ class SocketTooltipBuilder {
       return;
     }
     const nodes::SocketDeclaration *socket_decl = socket_.runtime->declaration;
-    if (socket_decl && socket_decl->input_field_type == nodes::InputSocketFieldType::Implicit) {
+    if (socket_decl &&
+        socket_decl->default_input_type != NodeDefaultInputType::NODE_DEFAULT_INPUT_VALUE)
+    {
+      BLI_assert(socket_decl->input_field_type == nodes::InputSocketFieldType::Implicit);
       this->start_block(TooltipBlockType::Value);
       build_tooltip_value_implicit_default(socket_decl->default_input_type);
       return;

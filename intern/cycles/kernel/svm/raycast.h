@@ -14,6 +14,8 @@
 
 #include "kernel/svm/util.h"
 
+#include "kernel/geom/shader_data.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __SHADER_RAYTRACE__
@@ -81,43 +83,12 @@ ccl_device RaycastResult svm_raycast(KernelGlobals kg,
   }
 
   result.distance = isect.t;
+  result.self_hit = isect.object == sd->object;
 
-  /* Get geometric normal. */
-  const int object = isect.object;
-  const uint object_flag = kernel_data_fetch(object_flag, object);
-  const int prim = isect.prim;
-  const float u = isect.u;
-  const float v = isect.v;
-
-  result.self_hit = object == sd->object;
-
-  float3 P;
-  float3 Ng;
-  int shader;
-
-  triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
-
-  /* Compute smooth normal. */
-  if (shader & SHADER_SMOOTH_NORMAL) {
-    if (isect.type == PRIMITIVE_TRIANGLE) {
-      result.normal = triangle_smooth_normal(kg, Ng, object, object_flag, prim, u, v);
-    }
-#  ifdef __OBJECT_MOTION__
-    else if (isect.type == PRIMITIVE_MOTION_TRIANGLE) {
-      result.normal = motion_triangle_smooth_normal(kg, Ng, object, prim, u, v, sd->time);
-    }
-#  endif /* __OBJECT_MOTION__ */
-  }
-  else {
-    result.normal = Ng;
-  }
-
-  /* Transform normals to world space. */
-  if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    Transform itfm;
-    object_fetch_transform_motion_test(kg, object, sd->time, &itfm);
-    result.normal = normalize(transform_direction_transposed(&itfm, result.normal));
-  }
+  ShaderDataTinyStorage hit_sd_storage;
+  ccl_private ShaderData *hit_sd = AS_SHADER_DATA(&hit_sd_storage);
+  shader_setup_from_ray(kg, hit_sd, &ray, &isect);
+  result.normal = hit_sd->N;
 
   return result;
 }
