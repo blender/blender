@@ -1065,7 +1065,7 @@ bool paint_supports_smooth_stroke(const Brush &brush,
     return true;
   }
   if (!(brush.flag & BRUSH_SMOOTH_STROKE) ||
-      ELEM(brush.stroke_method, BRUSH_STROKE_ANCHORED | BRUSH_STROKE_DRAG_DOT | BRUSH_STROKE_LINE))
+      ELEM(brush.stroke_method, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT, BRUSH_STROKE_LINE))
   {
     return false;
   }
