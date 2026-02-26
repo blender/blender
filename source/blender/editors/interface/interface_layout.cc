@@ -181,6 +181,7 @@ struct LayoutInternal {
   static void layout_offset_size_set(Layout *layout, int x, int y, int w, int h);
   static void layout_move(Layout *layout, int delta_xmin, int delta_xmax);
   static void layout_space_set(Layout *layout, int space);
+  static int layout_space_get(Layout *layout);
 };
 
 Item::Item(ItemType type) : type_{type} {}
@@ -545,6 +546,11 @@ void LayoutInternal::layout_move(Layout *layout, int delta_xmin, int delta_xmax)
 void LayoutInternal::layout_space_set(Layout *layout, int space)
 {
   layout->space_ = space;
+}
+
+int LayoutInternal::layout_space_get(Layout *layout)
+{
+  return layout->space_;
 }
 
 /** \} */
@@ -3801,7 +3807,7 @@ static int spaces_after_column_item(const Layout *litem,
                                     const bool is_box)
 {
   if (next_item == nullptr) {
-    return 0;
+    return item->type() == ItemType::LayoutPanelHeader ? 1 : 0;
   }
   if (item->type() == ItemType::LayoutPanelHeader &&
       next_item->type() == ItemType::LayoutPanelHeader)
@@ -3809,10 +3815,16 @@ static int spaces_after_column_item(const Layout *litem,
     /* No extra space between layout panel headers. */
     return 0;
   }
-  if (item->type() == ItemType::LayoutPanelBody &&
-      !ELEM(next_item->type(), ItemType::LayoutPanelHeader, ItemType::LayoutPanelBody))
+  if (item->type() == ItemType::LayoutPanelHeader &&
+      next_item->type() == ItemType::LayoutPanelBody)
   {
-    /* One for the end of the panel and one at the start of the parent panel. */
+    /* One for the end of the panel header and one for the start of panel body. */
+    return 2;
+  }
+  if (item->type() == ItemType::LayoutPanelBody &&
+      next_item->type() == ItemType::LayoutPanelHeader)
+  {
+    /* One for the end of the panel body and one for the start of panel header. */
     return 2;
   }
   if (!is_box) {
@@ -4057,9 +4069,10 @@ void LayoutItemPanelBody::resolve_impl()
   Panel *panel = this->root_panel();
   LayoutColumn::resolve_impl();
   const float offset = style_get_dpi()->panelspace;
+  const int space = LayoutInternal::layout_space_get(this->parent_);
   panel->runtime->layout_panels.bodies.append({
-      float(y_ - space_) - offset,
-      float(y_ + h_ + space_) - offset,
+      float(y_ - space) - offset,
+      float(y_ + h_ + space) - offset,
   });
 }
 
@@ -4811,7 +4824,6 @@ PanelLayout Layout::panel_prop(const bContext *C,
     header_litem->open_prop_name = open_prop_name;
 
     Layout *row = &header_litem->row(true);
-    row->ui_units_y_set(1.2f);
 
     Block *block = row->block();
     const int icon = is_open ? ICON_DOWNARROW_HLT : ICON_RIGHTARROW;
