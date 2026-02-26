@@ -15,10 +15,10 @@
 
 #include "BKE_attribute.hh"
 
-#include "bmesh.hh"
-
 namespace blender {
 
+struct BMesh;
+struct BMFace;
 struct BMVert;
 struct Mesh;
 struct Object;
@@ -26,8 +26,6 @@ struct SubdivCCG;
 struct SubdivCCGCoord;
 
 namespace ed::sculpt_paint::face_set {
-
-constexpr float FACE_SET_MIN_FADE = 0.05f;
 
 int active_face_set_get(const Object &object);
 int vert_face_set_get(GroupedSpan<int> vert_to_face_map, Span<int> face_sets, int vert);
@@ -49,10 +47,11 @@ bool vert_has_unique_face_set(OffsetIndices<int> faces,
                               SubdivCCGCoord coord);
 bool vert_has_unique_face_set(int face_set_offset, const BMVert &vert);
 
+constexpr float FACE_SET_MIN_FADE = 0.05f;
+
 void fill_factor_from_hide_and_mask(const BMesh &bm,
                                     const Set<BMFace *, 0L> &faces,
                                     const MutableSpan<float> r_factors);
-
 void fill_factor_from_hide_and_mask(const Mesh &mesh,
                                     const Span<int> face_indices,
                                     const MutableSpan<float> r_factors);
