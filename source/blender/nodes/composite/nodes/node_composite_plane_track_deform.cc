@@ -289,13 +289,16 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
         /* The derivatives of the projected coordinates with respect to x and y are the first and
          * second columns respectively, divided by the z projection factor as can be shown by
-         * differentiating the above matrix multiplication with respect to x and y. Divide by the
-         * output size since sample_ewa assumes derivatives with respect to texel coordinates. */
-        float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
-        float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
+         * differentiating the above matrix multiplication with respect to x and y. */
+        float2 x_gradient = homography_matrix[0].xy() / transformed_coordinates.z;
+        float2 y_gradient = homography_matrix[1].xy() / transformed_coordinates.z;
 
-        float4 sampled_color = float4(input.sample_ewa(
-            projected_coordinates, x_gradient, y_gradient, Extension::Extend, Extension::Extend));
+        const float2x2 jacobian = float2x2(x_gradient, y_gradient);
+        float4 sampled_color = float4(input.sample<Color>(projected_coordinates,
+                                                          Interpolation::Anisotropic,
+                                                          Extension::Extend,
+                                                          Extension::Extend,
+                                                          jacobian));
         accumulated_color += sampled_color;
       }
 

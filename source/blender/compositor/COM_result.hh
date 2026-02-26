@@ -431,14 +431,17 @@ class Result {
 
   /* Samples the result at the given normalized coordinates with the given interpolation and
    * boundary extension. The interpolation is ignored for non float types that do not support
-   * interpolation. Assumes the result stores a value of the given template type. If the
-   * CouldBeSingleValue template argument is true and the result is a single value result, then
-   * that single value is returned for all coordinates. */
+   * interpolation. The jacobian represents the change of the given coordinates across space, if
+   * provided, the function will do area sampling for the area spanned by the jacobian, but if not
+   * provided, standard point sampling will be done. Assumes the result stores a value of the given
+   * template type. If the CouldBeSingleValue template argument is true and the result is a single
+   * value result, then that single value is returned for all coordinates. */
   template<typename T, bool CouldBeSingleValue = false>
   T sample(const float2 &coordinates,
            const Interpolation &interpolation,
            const Extension &extension_mode_x,
-           const Extension &extension_mode_y) const;
+           const Extension &extension_mode_y,
+           std::optional<float2x2> jacobian = std::nullopt) const;
 
   /* Shorthand for sample() with bilinear interpolation and zero boundary extension. */
   template<typename T, bool CouldBeSingleValue = false>
@@ -447,18 +450,6 @@ class Result {
   /* Shorthand for sample() with bilinear interpolation and extended boundary extension. */
   template<typename T, bool CouldBeSingleValue = false>
   T sample_bilinear_extended(const float2 &coordinates) const;
-
-  /* Samples the result at the given normalized coordinates using EWA filtering of the given
-   * texel-space gradients using the given boundary extension. Note that boundary extension only
-   * cover areas touched by the ellipses whose center is inside the image, other areas will be
-   * zero. The coordinates are thus expected to have half-pixels offsets. Only supports
-   * ResultType::Color. */
-  template<bool CouldBeSingleValue = false>
-  Color sample_ewa(const float2 &coordinates,
-                   const float2 &x_gradient,
-                   const float2 &y_gradient,
-                   const Extension extension_mode_x,
-                   const Extension extension_mode_y) const;
 
  private:
   /* Allocates the image data for the given size.
@@ -666,11 +657,29 @@ BLI_INLINE_METHOD void Result::store_pixel(const int2 &texel, const T &pixel_val
   this->cpu_data().typed<T>()[this->get_pixel_index(texel)] = pixel_value;
 }
 
+struct EWASamplingData {
+  const Result &result;
+  const Extension extension_mode_x;
+  const Extension extension_mode_y;
+};
+
+/* Given a result and its extension modes as the userdata argument with the type EWASamplingData,
+ * load the pixel at the given texel coordinates with the given extension modes and write the pixel
+ * to the result argument. */
+static inline void sample_ewa_read_callback(void *userdata, int x, int y, float result[4])
+{
+  const EWASamplingData *sampling_data = static_cast<const EWASamplingData *>(userdata);
+  const Color sampled_result = sampling_data->result.load_pixel<Color>(
+      int2(x, y), sampling_data->extension_mode_x, sampling_data->extension_mode_y);
+  copy_v4_v4(result, sampled_result);
+}
+
 template<typename T, bool CouldBeSingleValue>
 BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
                                    const Interpolation &interpolation,
                                    const Extension &extension_mode_x,
-                                   const Extension &extension_mode_y) const
+                                   const Extension &extension_mode_y,
+                                   std::optional<float2x2> jacobian) const
 {
   if constexpr (CouldBeSingleValue) {
     if (is_single_value_) {
@@ -718,7 +727,6 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
                                                wrap_mode_y);
         break;
       case Interpolation::Bicubic:
-      case Interpolation::Anisotropic:
         math::interpolate_cubic_bspline_wrapmode_fl(buffer,
                                                     output,
                                                     size.x,
@@ -728,6 +736,24 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
                                                     texel_coordinates.y - 0.5f,
                                                     wrap_mode_x,
                                                     wrap_mode_y);
+        break;
+      case Interpolation::Anisotropic:
+        BLI_assert(type_ == ResultType::Color);
+        const float2 x_gradient = jacobian.has_value() ? jacobian.value()[0] / float(size.x) :
+                                                         float2(1.0f / math::square(size.x));
+        const float2 y_gradient = jacobian.has_value() ? jacobian.value()[1] / float(size.y) :
+                                                         float2(1.0f / math::square(size.y));
+        EWASamplingData sampling_data = EWASamplingData{*this, extension_mode_x, extension_mode_y};
+        BLI_ewa_filter(size.x,
+                       size.y,
+                       false,
+                       true,
+                       coordinates,
+                       x_gradient,
+                       y_gradient,
+                       sample_ewa_read_callback,
+                       &sampling_data,
+                       output);
         break;
     }
 
@@ -750,53 +776,6 @@ BLI_INLINE_METHOD T Result::sample_bilinear_extended(const float2 &coordinates) 
 {
   return this->sample<T, CouldBeSingleValue>(
       coordinates, Interpolation::Bilinear, Extension::Extend, Extension::Extend);
-}
-
-struct EWASamplingData {
-  const Result &result;
-  const Extension extension_mode_x;
-  const Extension extension_mode_y;
-};
-
-/* Given a result and its extension modes as the userdata argument with the type EWASamplingData,
- * load the pixel at the given texel coordinates with the given extension modes and write the pixel
- * to the result argument. */
-static inline void sample_ewa_read_callback(void *userdata, int x, int y, float result[4])
-{
-  const EWASamplingData *sampling_data = static_cast<const EWASamplingData *>(userdata);
-  const Color sampled_result = sampling_data->result.load_pixel<Color>(
-      int2(x, y), sampling_data->extension_mode_x, sampling_data->extension_mode_y);
-  copy_v4_v4(result, sampled_result);
-}
-
-template<bool CouldBeSingleValue>
-BLI_INLINE_METHOD Color Result::sample_ewa(const float2 &coordinates,
-                                           const float2 &x_gradient,
-                                           const float2 &y_gradient,
-                                           const Extension extension_mode_x,
-                                           const Extension extension_mode_y) const
-{
-  BLI_assert(type_ == ResultType::Color);
-
-  if constexpr (CouldBeSingleValue) {
-    if (is_single_value_) {
-      return this->get_single_value<Color>();
-    }
-  }
-
-  Color pixel_value = Color(0.0f);
-  EWASamplingData sampling_data = EWASamplingData{*this, extension_mode_x, extension_mode_y};
-  BLI_ewa_filter(domain_.data_size.x,
-                 domain_.data_size.y,
-                 false,
-                 true,
-                 coordinates,
-                 x_gradient,
-                 y_gradient,
-                 sample_ewa_read_callback,
-                 &sampling_data,
-                 pixel_value);
-  return pixel_value;
 }
 
 BLI_INLINE_METHOD int64_t Result::get_pixel_index(const int2 &texel) const
