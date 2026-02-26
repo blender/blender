@@ -500,6 +500,51 @@ static BMOpDefine bmo_remove_doubles_def = {
 };
 
 /*
+ * Circularize.
+ *
+ * Shape selected geometry into a circle.
+ */
+static BMOpDefine bmo_circularize_def = {
+    /*opname*/ "circularize",
+    /*slot_types_in*/
+    {
+        /* Input geometry. */
+        {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
+        /* Influence factor: spans from 0.0 to 1.0. */
+        {"factor", BMO_OP_SLOT_FLT},
+        /* Custom radius. */
+        {"custom_radius", BMO_OP_SLOT_FLT},
+        /* Rotation angle. */
+        {"angle", BMO_OP_SLOT_FLT},
+        /* Method to fit the circle. */
+        {"fit_method", BMO_OP_SLOT_INT},
+        /* Flatten factor: 0.0 projects onto the mesh, 1.0 flattens on the optimal plane. */
+        {"flatten", BMO_OP_SLOT_FLT},
+        /* Distributes vertices at constant distances, otherwise preserves original spacing. */
+        {"regular", BMO_OP_SLOT_BOOL},
+        /* Lock X-axis editing. */
+        {"lock_x", BMO_OP_SLOT_BOOL},
+        /* Lock Y-axis editing. */
+        {"lock_y", BMO_OP_SLOT_BOOL},
+        /* Lock Z-axis editing. */
+        {"lock_z", BMO_OP_SLOT_BOOL},
+        /* Use X axis of the mirror modifier. */
+        {"mirror_x", BMO_OP_SLOT_BOOL},
+        /* Use Y axis of the mirror modifier. */
+        {"mirror_y", BMO_OP_SLOT_BOOL},
+        /* Use Z axis of the mirror modifier. */
+        {"mirror_z", BMO_OP_SLOT_BOOL},
+        {{'\0'}},
+    },
+    /*slot_types_out*/
+    {{{'\0'}}},
+    /*init*/ nullptr,
+    /*exec*/ bmo_circularize_exec,
+    /*type_flag*/
+    (BMO_OPTYPE_FLAG_NORMALS_CALC),
+};
+
+/*
  * Collapse Connected.
  *
  * Collapses connected vertices
@@ -2790,6 +2835,7 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_bisect_edges_def,
     &bmo_bmesh_to_mesh_def,
     &bmo_bridge_loops_def,
+    &bmo_circularize_def,
     &bmo_collapse_def,
     &bmo_collapse_uvs_def,
     &bmo_connect_verts_def,

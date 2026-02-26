@@ -690,6 +690,19 @@ bool isect_line_segment_tri_v3(const float p1[3],
                                float *r_lambda,
                                float r_uv[2]);
 /**
+ * Test if the line defined by p1 and p2 intersects the triangle v0..v2
+ * return non zero if it does.
+ * Like #isect_line_segment_tri_v3, but without clipping.
+ */
+bool isect_line_tri_v3(const float p1[3],
+                       const float p2[3],
+                       const float v0[3],
+                       const float v1[3],
+                       const float v2[3],
+                       float *r_lambda,
+                       float r_uv[2]);
+
+/**
  * Like #isect_line_segment_tri_v3, but allows epsilon tolerance around triangle.
  */
 bool isect_line_segment_tri_epsilon_v3(const float p1[3],

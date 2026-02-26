@@ -563,7 +563,11 @@ int BKE_object_is_modified(Scene *scene, Object *ob);
  * and we can still if there was actual deformation afterwards.
  */
 int BKE_object_is_deform_modified(Scene *scene, Object *ob);
-
+/**
+ * Populates r_axis with the mirror axes that are currently active
+ * and have merging enabled on an object.
+ */
+void BKE_object_get_mirror_axes(const Object *ob, bool r_axis[3]);
 /**
  * Check of objects moves in time.
  *
