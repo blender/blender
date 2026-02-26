@@ -172,7 +172,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
       CTX_wm_area_set(C, area);
       CTX_wm_region_set(C, nullptr);
 
-      ED_area_newspace(C, area, area->butspacetype, true);
+      ED_area_newspace(C, area, area->butspacetype, false);
       ED_area_tag_redraw(area);
 
       /* Unset so that rna_Area_type_get uses spacetype instead. */
