@@ -221,7 +221,14 @@ source/blender/editors/space_sequencer/.*    @eliphaz
 
 # --------------------------------------------------
 # Compositor.
-scripts/startup/bl_ui/node_add_menu_compositor.py 	@zazizizou
+scripts/startup/bl_ui/node_add_menu_compositor.py                @zazizizou @OmarEmaraDev
+source/blender/compositor/.*                                     @OmarEmaraDev
+source/blender/nodes/composite/.*                                @OmarEmaraDev
+source/blender/draw/engines/compositor/.*                        @OmarEmaraDev
+source/blender/render/RE_compositor.hh                           @OmarEmaraDev
+source/blender/render/intern/compositor.cc                       @OmarEmaraDev
+source/blender/sequencer/intern/modifiers/MOD_compositor.cc      @OmarEmaraDev
+source/blender/sequencer/intern/effects/vse_effect_compositor.cc @OmarEmaraDev
 
 # --------------------------------------------------
 # Animation Player.
