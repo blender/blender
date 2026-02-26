@@ -704,19 +704,29 @@ inline Span<const bNodeTreeInterfaceItem *> bNodeTree::interface_items() const
 inline int bNodeTree::interface_input_index(const bNodeTreeInterfaceSocket &io_socket) const
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
-  return this->tree_interface.runtime->inputs_.index_of_as(&io_socket);
+  return this->tree_interface.runtime->inputs_.index_of_as(io_socket.identifier);
 }
 
 inline int bNodeTree::interface_output_index(const bNodeTreeInterfaceSocket &io_socket) const
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
-  return this->tree_interface.runtime->outputs_.index_of_as(&io_socket);
+  return this->tree_interface.runtime->outputs_.index_of_as(io_socket.identifier);
 }
 
 inline int bNodeTree::interface_item_index(const bNodeTreeInterfaceItem &io_item) const
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
   return this->tree_interface.runtime->items_.index_of_as(&io_item);
+}
+
+inline int bNodeTree::interface_input_index_by_identifier(const StringRef identifier) const
+{
+  return this->tree_interface.input_index_by_identifier(identifier);
+}
+
+inline int bNodeTree::interface_output_index_by_identifier(const StringRef identifier) const
+{
+  return this->tree_interface.output_index_by_identifier(identifier);
 }
 
 /** \} */

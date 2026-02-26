@@ -480,6 +480,11 @@ struct bNodeTreeInterface {
   /** Ensure the items cache can be accessed. */
   void ensure_items_cache() const;
 
+  /** Find the index of an input socket by its string identifier. */
+  int input_index_by_identifier(StringRef identifier) const;
+  /** Find the index of an output socket by its string identifier. */
+  int output_index_by_identifier(StringRef identifier) const;
+
   /** True if any trees and nodes depending on the interface require updates. */
   bool requires_dependent_tree_updates() const;
 

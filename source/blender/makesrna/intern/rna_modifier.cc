@@ -2014,10 +2014,9 @@ static bool rna_NodesModifier_is_input_visible(NodesModifierData *nmd,
   nmd->runtime->usage_cache.ensure(*nmd);
   const auto &input_usages = nmd->runtime->usage_cache.inputs;
 
-  for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
-    if (STREQ(socket->identifier, identifier)) {
-      return input_usages[ntree->interface_input_index(*socket)].is_visible;
-    }
+  const int index = ntree->interface_input_index_by_identifier(identifier);
+  if (index != -1) {
+    return input_usages[index].is_visible;
   }
 
   BKE_reportf(reports, RPT_ERROR, "Input '%s' not found", identifier);
@@ -2037,10 +2036,9 @@ static bool rna_NodesModifier_is_input_used(NodesModifierData *nmd,
   nmd->runtime->usage_cache.ensure(*nmd);
   const auto &input_usages = nmd->runtime->usage_cache.inputs;
 
-  for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
-    if (STREQ(socket->identifier, identifier)) {
-      return input_usages[ntree->interface_input_index(*socket)].is_used;
-    }
+  const int index = ntree->interface_input_index_by_identifier(identifier);
+  if (index != -1) {
+    return input_usages[index].is_used;
   }
 
   BKE_reportf(reports, RPT_ERROR, "Input '%s' not found", identifier);

@@ -41,9 +41,17 @@ class bNodeTreeInterfaceRuntime {
 
   /* Runtime topology cache for linear access to items. */
   VectorSet<bNodeTreeInterfaceItem *> items_;
+
+  struct SocketIdentifierGetter {
+    StringRef operator()(const bNodeTreeInterfaceSocket *socket) const
+    {
+      return socket->identifier;
+    }
+  };
+
   /* Socket-only lists for input/output access by index. */
-  VectorSet<bNodeTreeInterfaceSocket *> inputs_;
-  VectorSet<bNodeTreeInterfaceSocket *> outputs_;
+  CustomIDVectorSet<bNodeTreeInterfaceSocket *, SocketIdentifierGetter> inputs_;
+  CustomIDVectorSet<bNodeTreeInterfaceSocket *, SocketIdentifierGetter> outputs_;
 };
 
 namespace node_interface {

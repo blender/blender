@@ -1774,6 +1774,18 @@ void bNodeTreeInterface::ensure_items_cache() const
   });
 }
 
+int bNodeTreeInterface::input_index_by_identifier(const StringRef identifier) const
+{
+  BLI_assert(this->items_cache_is_available());
+  return this->runtime->inputs_.index_of_try_as(identifier);
+}
+
+int bNodeTreeInterface::output_index_by_identifier(const StringRef identifier) const
+{
+  BLI_assert(this->items_cache_is_available());
+  return this->runtime->outputs_.index_of_try_as(identifier);
+}
+
 void bNodeTreeInterface::tag_interface_changed()
 {
   this->runtime->interface_changed_.store(true);
