@@ -10,8 +10,24 @@
 #include "BKE_customdata.hh"
 
 #include "BLI_array_utils.hh"
+#include "BLI_bit_span_ops.hh"
+#include "BLI_bit_vector.hh"
 
 namespace blender::bke::curves {
+
+IndexMask point_to_curve_selection(OffsetIndices<int> points_by_curve,
+                                   const IndexMask &point_mask,
+                                   LinearAllocator<> &memory)
+{
+  BitVector<1024> selected(points_by_curve.total_size());
+  point_mask.to_bits(selected);
+
+  return IndexMask::from_predicate(points_by_curve.index_range(), memory, [&](const int curve_i) {
+    const IndexRange points = points_by_curve[curve_i];
+    const BitSpan curve_bits = bits::to_best_bit_span(selected).slice(points);
+    return bits::any_bit_set(curve_bits);
+  });
+}
 
 IndexMask curve_to_point_selection(OffsetIndices<int> points_by_curve,
                                    const IndexMask &curve_selection,

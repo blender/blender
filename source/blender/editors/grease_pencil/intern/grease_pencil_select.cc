@@ -9,6 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_fills.hh"
 #include "BKE_object.hh"
@@ -153,10 +154,10 @@ bool apply_mask_as_segment_selection(bke::CurvesGeometry &curves,
   }
   IndexMaskMemory memory;
 
-  const IndexMask changed_curve_mask = ed::curves::curve_mask_from_points(
-      curves, point_selection_mask, memory);
-
   const OffsetIndices points_by_curve = curves.points_by_curve();
+  const IndexMask changed_curve_mask = bke::curves::point_to_curve_selection(
+      points_by_curve, point_selection_mask, memory);
+
   const Span<float2> screen_space_positions = tree_data.start_positions.as_span().slice(
       tree_data_range);
 
