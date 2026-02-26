@@ -21,7 +21,9 @@
 #include "IMB_imbuf.hh"
 
 #include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 
+#include "cache/compositor_cache.hh"
 #include "effects.hh"
 #include "render.hh"
 
@@ -92,7 +94,9 @@ class CompositorEffectContext : public compositor::Context {
       return;
     }
 
-    result_translation_ = result.domain().transformation.location();
+    compositor::Result result_cpu = this->use_gpu() ? result.download_to_cpu() : result;
+
+    result_translation_ = result_cpu.domain().transformation.location();
     const int output_size_x = result.domain().data_size.x;
     const int output_size_y = result.domain().data_size.y;
     if (output_size_x != this->output_->x || output_size_y != this->output_->y) {
@@ -103,8 +107,11 @@ class CompositorEffectContext : public compositor::Context {
       IMB_alloc_float_pixels(this->output_, 4, false);
     }
     std::memcpy(this->output_->float_buffer.data,
-                result.cpu_data().data(),
+                result_cpu.cpu_data().data(),
                 IMB_get_pixel_count(this->output_) * sizeof(float) * 4);
+    if (this->use_gpu()) {
+      result_cpu.release();
+    }
   }
 
   void write_viewer(compositor::Result &result) override
@@ -121,7 +128,7 @@ class CompositorEffectContext : public compositor::Context {
 
   bool use_gpu() const override
   {
-    return false;
+    return this->render_data_.scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
   compositor::NodeGroupOutputTypes needed_outputs() const
@@ -132,6 +139,20 @@ class CompositorEffectContext : public compositor::Context {
       needed_outputs |= compositor::NodeGroupOutputTypes::ViewerNode;
     }
     return needed_outputs;
+  }
+
+  void create_result_from_input(compositor::Result &result, const ImBuf &input) const
+  {
+    BLI_assert(input.float_buffer.data);
+    const bool gpu = this->use_gpu();
+    const int2 size = int2(input.x, input.y);
+    if (!gpu) {
+      result.wrap_external(input.float_buffer.data, size);
+    }
+    else {
+      result.allocate_texture(size);
+      GPU_texture_update(result, GPU_DATA_FLOAT, input.float_buffer.data);
+    }
   }
 
   void evaluate()
@@ -173,15 +194,13 @@ class CompositorEffectContext : public compositor::Context {
       else if (color_counter == 0 && this->input_1_) {
         /* First input image. */
         input_result = new Result(this->create_result(ResultType::Color, ResultPrecision::Full));
-        input_result->wrap_external(this->input_1_->float_buffer.data,
-                                    int2(this->input_1_->x, this->input_1_->y));
+        create_result_from_input(*input_result, *this->input_1_);
         color_counter++;
       }
       else if (color_counter == 1 && this->input_2_) {
         /* Second input image. */
         input_result = new Result(this->create_result(ResultType::Color, ResultPrecision::Full));
-        input_result->wrap_external(this->input_2_->float_buffer.data,
-                                    int2(this->input_2_->x, this->input_2_->y));
+        create_result_from_input(*input_result, *this->input_2_);
         color_counter++;
       }
       else {
@@ -295,13 +314,27 @@ static ImBuf *do_compositor_effect(const RenderData *context,
     ImBuf *linear_src1 = make_linear_float_buffer(src1);
     ImBuf *linear_src2 = make_linear_float_buffer(src2);
 
-    /* TODO: Should be persistent across evaluations. */
-    compositor::StaticCacheManager cache_manager;
-    CompositorEffectContext com_context(
-        cache_manager, *context, data->node_group, linear_src1, linear_src2, out, fac, *strip);
+    CompositorCache &com_cache = context->scene->ed->runtime->ensure_compositor_cache();
+    CompositorEffectContext com_context(com_cache.get_cache_manager(),
+                                        *context,
+                                        data->node_group,
+                                        linear_src1,
+                                        linear_src2,
+                                        out,
+                                        fac,
+                                        *strip);
+
+    const bool use_gpu = com_context.use_gpu();
+    if (use_gpu) {
+      render_begin_gpu(*context);
+    }
+    com_cache.recreate_if_needed(
+        com_context.use_gpu(), com_context.get_precision(), context->gpu_context);
     com_context.evaluate();
     com_context.cache_manager().reset();
-    // context.result_translation += com_context.get_result_translation(); //@TODO?
+    if (use_gpu) {
+      render_end_gpu(*context);
+    }
 
     if (linear_src1 != src1) {
       IMB_freeImBuf(linear_src1);

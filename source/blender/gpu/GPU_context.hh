@@ -138,10 +138,10 @@ struct GPUSecondaryContextData {
 GPUSecondaryContextData GPU_create_secondary_context();
 
 /** Activates the given secondary GPU context. */
-void GPU_activate_secondary_context(GPUSecondaryContextData &data);
+void GPU_activate_secondary_context(const GPUSecondaryContextData &data);
 
 /** Deactivates the given secondary GPU context. */
-void GPU_deactivate_secondary_context(GPUSecondaryContextData &data);
+void GPU_deactivate_secondary_context(const GPUSecondaryContextData &data);
 
 /** Destroys the given secondary GPU context. */
 void GPU_destroy_secondary_context(GPUSecondaryContextData &data);

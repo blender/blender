@@ -33,6 +33,16 @@ struct SequencerToolSettings;
 
 namespace seq {
 
+class CompositorCache;
+struct FinalImageCache;
+struct IntraFrameCache;
+struct MediaPresence;
+struct PrefetchJob;
+struct PreviewCache;
+struct SourceImageCache;
+struct StripLookup;
+struct ThumbnailCache;
+
 constexpr int MAX_CHANNELS = 128;
 
 /* RNA enums, just to be more readable */
@@ -92,6 +102,27 @@ struct StripRuntime {
 
   void clear_sound_time_stretch();
   void remove_scene_sound(Scene *scene);
+};
+
+struct EditingRuntime {
+  ~EditingRuntime();
+
+  StripLookup *strip_lookup = nullptr;
+  MediaPresence *media_presence = nullptr;
+  ThumbnailCache *thumbnail_cache = nullptr;
+  IntraFrameCache *intra_frame_cache = nullptr;
+  SourceImageCache *source_image_cache = nullptr;
+  FinalImageCache *final_image_cache = nullptr;
+  PreviewCache *preview_cache = nullptr;
+  PrefetchJob *prefetch_job = nullptr;
+  CompositorCache *compositor_cache = nullptr;
+
+  /** Used for rendering a different frame using sequencer_draw_get_transform_preview from the box
+   * blade tool. */
+  int transform_preview_frame = 0;
+  bool show_transform_preview = false;
+
+  CompositorCache &ensure_compositor_cache();
 };
 
 SequencerToolSettings *tool_settings_init();

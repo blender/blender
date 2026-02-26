@@ -18,7 +18,6 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_vector_set.hh"
 
@@ -36,14 +35,16 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "GPU_context.hh"
+
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
-
 #include "SEQ_time.hh"
+
 #include "prefetch.hh"
 #include "render.hh"
 
@@ -89,12 +90,19 @@ struct PrefetchJob {
   bool stop = false;
   /* Set from outside. */
   bool is_scrubbing = false;
+
+ public:
+  void init_depsgraph();
+  void free_depsgraph();
+
+  void init_gpu();
+  void free_gpu();
 };
 
 static PrefetchJob *seq_prefetch_job_get(Scene *scene)
 {
   if (scene && scene->ed) {
-    return scene->ed->prefetch_job;
+    return scene->ed->runtime->prefetch_job;
   }
   return nullptr;
 }
@@ -228,13 +236,13 @@ void seq_prefetch_get_time_range(Scene *scene, int *r_start, int *r_end)
   *r_end = seq_prefetch_cfra(pfjob);
 }
 
-static void seq_prefetch_free_depsgraph(PrefetchJob *pfjob)
+void PrefetchJob::free_depsgraph()
 {
-  if (pfjob->depsgraph != nullptr) {
-    DEG_graph_free(pfjob->depsgraph);
+  if (this->depsgraph != nullptr) {
+    DEG_graph_free(this->depsgraph);
   }
-  pfjob->depsgraph = nullptr;
-  pfjob->scene_eval = nullptr;
+  this->depsgraph = nullptr;
+  this->scene_eval = nullptr;
 }
 
 static void seq_prefetch_update_depsgraph(PrefetchJob *pfjob)
@@ -244,23 +252,34 @@ static void seq_prefetch_update_depsgraph(PrefetchJob *pfjob)
   DEG_ids_clear_recalc(pfjob->depsgraph, false);
 }
 
-static void seq_prefetch_init_depsgraph(PrefetchJob *pfjob)
+void PrefetchJob::init_depsgraph()
 {
-  Main *bmain = pfjob->bmain_eval;
-  Scene *scene = pfjob->scene;
-  ViewLayer *view_layer = BKE_view_layer_default_render(scene);
+  ViewLayer *view_layer = BKE_view_layer_default_render(this->scene);
 
-  pfjob->depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
-  DEG_debug_name_set(pfjob->depsgraph, "SEQUENCER PREFETCH");
+  this->depsgraph = DEG_graph_new(this->bmain_eval, this->scene, view_layer, DAG_EVAL_RENDER);
+  DEG_debug_name_set(this->depsgraph, "SEQUENCER PREFETCH");
 
   /* Make sure there is a correct evaluated scene pointer. */
-  DEG_graph_build_for_render_pipeline(pfjob->depsgraph);
+  DEG_graph_build_for_render_pipeline(this->depsgraph);
 
   /* Update immediately so we have proper evaluated scene. */
-  seq_prefetch_update_depsgraph(pfjob);
+  seq_prefetch_update_depsgraph(this);
 
-  pfjob->scene_eval = DEG_get_evaluated_scene(pfjob->depsgraph);
-  pfjob->scene_eval->ed->cache_flag = 0;
+  this->scene_eval = DEG_get_evaluated_scene(this->depsgraph);
+  this->scene_eval->ed->cache_flag = 0;
+}
+
+void PrefetchJob::init_gpu()
+{
+  this->context_cpy.gpu_context = gpu::GPU_create_secondary_context();
+}
+
+void PrefetchJob::free_gpu()
+{
+  if (this->context_cpy.gpu_context.ghost_context != nullptr) {
+    gpu::GPU_destroy_secondary_context(this->context_cpy.gpu_context);
+    this->context_cpy.gpu_context = {};
+  }
 }
 
 static void seq_prefetch_update_area(PrefetchJob *pfjob)
@@ -360,8 +379,8 @@ static void seq_prefetch_update_scene(Scene *scene)
   }
 
   pfjob->scene = scene;
-  seq_prefetch_free_depsgraph(pfjob);
-  seq_prefetch_init_depsgraph(pfjob);
+  pfjob->free_depsgraph();
+  pfjob->init_depsgraph();
 }
 
 static void seq_prefetch_update_active_seqbase(PrefetchJob *pfjob)
@@ -400,9 +419,10 @@ void seq_prefetch_free(Scene *scene)
   BLI_threadpool_end(&pfjob->threads);
   BLI_mutex_end(&pfjob->prefetch_suspend_mutex);
   BLI_condition_end(&pfjob->prefetch_suspend_cond);
-  seq_prefetch_free_depsgraph(pfjob);
+  pfjob->free_depsgraph();
+  pfjob->free_gpu();
   BKE_main_free(pfjob->bmain_eval);
-  scene->ed->prefetch_job = nullptr;
+  scene->ed->runtime->prefetch_job = nullptr;
   MEM_delete(pfjob);
 }
 
@@ -527,7 +547,7 @@ static void *seq_prefetch_frames(void *job)
       /* Don't try to prefetch anything when we are outside of the timeline range. */
       break;
     }
-    pfjob->scene_eval->ed->prefetch_job = nullptr;
+    pfjob->scene_eval->ed->runtime->prefetch_job = nullptr;
 
     seq_prefetch_update_depsgraph(pfjob);
     AnimData *adt = BKE_animdata_from_id(&pfjob->context_cpy.scene->id);
@@ -541,7 +561,7 @@ static void *seq_prefetch_frames(void *job)
      * Scene copy don't reference original scene. Perhaps, this could be done by depsgraph.
      * Set to nullptr before return!
      */
-    pfjob->scene_eval->ed->prefetch_job = pfjob;
+    pfjob->scene_eval->ed->runtime->prefetch_job = pfjob;
 
     ListBaseT<Strip> *seqbase = active_seqbase_get(editing_get(pfjob->scene_eval));
     ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(
@@ -574,7 +594,7 @@ static void *seq_prefetch_frames(void *job)
   }
 
   pfjob->running = false;
-  pfjob->scene_eval->ed->prefetch_job = nullptr;
+  pfjob->scene_eval->ed->runtime->prefetch_job = nullptr;
 
   return nullptr;
 }
@@ -588,7 +608,7 @@ static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
       return nullptr;
     }
     pfjob = MEM_new<PrefetchJob>("PrefetchJob");
-    context->scene->ed->prefetch_job = pfjob;
+    context->scene->ed->runtime->prefetch_job = pfjob;
 
     BLI_threadpool_init(&pfjob->threads, seq_prefetch_frames, 1);
     BLI_mutex_init(&pfjob->prefetch_suspend_mutex);
@@ -596,7 +616,8 @@ static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
 
     pfjob->bmain_eval = BKE_main_new();
     pfjob->scene = context->scene;
-    seq_prefetch_init_depsgraph(pfjob);
+    pfjob->init_depsgraph();
+    pfjob->init_gpu();
   }
   pfjob->bmain = context->bmain;
 

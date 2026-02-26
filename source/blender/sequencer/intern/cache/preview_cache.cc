@@ -12,6 +12,7 @@
 #include "GPU_texture.hh"
 
 #include "SEQ_preview_cache.hh"
+#include "SEQ_sequencer.hh"
 
 namespace blender::seq {
 
@@ -59,7 +60,7 @@ static PreviewCache *query_preview_cache(Scene *scene)
   if (scene == nullptr || scene->ed == nullptr) {
     return nullptr;
   }
-  return scene->ed->runtime.preview_cache;
+  return scene->ed->runtime->preview_cache;
 }
 
 static PreviewCache *ensure_preview_cache(Scene *scene)
@@ -67,7 +68,7 @@ static PreviewCache *ensure_preview_cache(Scene *scene)
   if (scene == nullptr || scene->ed == nullptr) {
     return nullptr;
   }
-  PreviewCache *&cache = scene->ed->runtime.preview_cache;
+  PreviewCache *&cache = scene->ed->runtime->preview_cache;
   if (cache == nullptr) {
     cache = MEM_new<PreviewCache>(__func__);
   }
@@ -207,7 +208,7 @@ void preview_cache_destroy(Scene *scene)
 {
   PreviewCache *cache = query_preview_cache(scene);
   if (cache != nullptr) {
-    MEM_SAFE_DELETE(scene->ed->runtime.preview_cache);
+    MEM_SAFE_DELETE(scene->ed->runtime->preview_cache);
   }
 }
 

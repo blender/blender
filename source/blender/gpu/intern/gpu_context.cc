@@ -644,13 +644,13 @@ GPUSecondaryContextData GPU_create_secondary_context()
   return GPUSecondaryContextData{.ghost_context = ghost_context, .gpu_context = gpu_context};
 }
 
-void GPU_activate_secondary_context(GPUSecondaryContextData &data)
+void GPU_activate_secondary_context(const GPUSecondaryContextData &data)
 {
   data.ghost_context->activateDrawingContext();
   GPU_context_active_set(data.gpu_context);
 }
 
-void GPU_deactivate_secondary_context(GPUSecondaryContextData &data)
+void GPU_deactivate_secondary_context(const GPUSecondaryContextData &data)
 {
   GPU_context_active_set(nullptr);
   data.ghost_context->releaseDrawingContext();

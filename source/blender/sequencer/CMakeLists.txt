@@ -45,6 +45,8 @@ set(SRC
   SEQ_utils.hh
 
   intern/animation.cc
+  intern/cache/compositor_cache.cc
+  intern/cache/compositor_cache.hh
   intern/cache/final_image_cache.cc
   intern/cache/final_image_cache.hh
   intern/cache/intra_frame_cache.cc
@@ -118,6 +120,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   PRIVATE bf::extern::xxhash
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

@@ -15,7 +15,6 @@
 #include "BLI_vector.hh"
 
 #include "BKE_context.hh"
-#include "BKE_library.hh"
 #include "BKE_main.hh"
 
 #include "DNA_scene_types.h"
@@ -26,6 +25,7 @@
 #include "MOV_read.hh"
 
 #include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 #include "SEQ_thumbnail_cache.hh"
 #include "SEQ_time.hh"
 
@@ -144,7 +144,7 @@ struct ThumbnailCache {
 
 static ThumbnailCache *ensure_thumbnail_cache(Scene *scene)
 {
-  ThumbnailCache **cache = &scene->ed->runtime.thumbnail_cache;
+  ThumbnailCache **cache = &scene->ed->runtime->thumbnail_cache;
   if (*cache == nullptr) {
     *cache = MEM_new<ThumbnailCache>(__func__);
   }
@@ -156,7 +156,7 @@ static ThumbnailCache *query_thumbnail_cache(Scene *scene)
   if (scene == nullptr || scene->ed == nullptr) {
     return nullptr;
   }
-  return scene->ed->runtime.thumbnail_cache;
+  return scene->ed->runtime->thumbnail_cache;
 }
 
 bool strip_can_have_thumbnail(const Scene *scene, const Strip *strip)
@@ -617,7 +617,7 @@ void thumbnail_cache_clear(Scene *scene)
   std::scoped_lock lock(thumb_cache_mutex);
   ThumbnailCache *cache = query_thumbnail_cache(scene);
   if (cache != nullptr) {
-    scene->ed->runtime.thumbnail_cache->clear();
+    scene->ed->runtime->thumbnail_cache->clear();
   }
 }
 
@@ -626,9 +626,9 @@ void thumbnail_cache_destroy(Scene *scene)
   std::scoped_lock lock(thumb_cache_mutex);
   ThumbnailCache *cache = query_thumbnail_cache(scene);
   if (cache != nullptr) {
-    BLI_assert(cache == scene->ed->runtime.thumbnail_cache);
-    MEM_delete(scene->ed->runtime.thumbnail_cache);
-    scene->ed->runtime.thumbnail_cache = nullptr;
+    BLI_assert(cache == scene->ed->runtime->thumbnail_cache);
+    MEM_delete(scene->ed->runtime->thumbnail_cache);
+    scene->ed->runtime->thumbnail_cache = nullptr;
   }
 }
 

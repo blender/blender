@@ -16,6 +16,7 @@
 #include "IMB_imbuf.hh"
 
 #include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 #include "final_image_cache.hh"
 #include "prefetch.hh"
@@ -60,7 +61,7 @@ struct FinalImageCache {
 
 static FinalImageCache *ensure_final_image_cache(Scene *scene)
 {
-  FinalImageCache **cache = &scene->ed->runtime.final_image_cache;
+  FinalImageCache **cache = &scene->ed->runtime->final_image_cache;
   if (*cache == nullptr) {
     *cache = MEM_new<FinalImageCache>(__func__);
   }
@@ -72,7 +73,7 @@ static FinalImageCache *query_final_image_cache(const Scene *scene)
   if (scene == nullptr || scene->ed == nullptr) {
     return nullptr;
   }
-  return scene->ed->runtime.final_image_cache;
+  return scene->ed->runtime->final_image_cache;
 }
 
 ImBuf *final_image_cache_get(
@@ -150,7 +151,7 @@ void final_image_cache_clear(Scene *scene)
   std::lock_guard lock(final_image_cache_mutex);
   FinalImageCache *cache = query_final_image_cache(scene);
   if (cache != nullptr) {
-    scene->ed->runtime.final_image_cache->clear();
+    scene->ed->runtime->final_image_cache->clear();
   }
 }
 
@@ -159,9 +160,9 @@ void final_image_cache_destroy(Scene *scene)
   std::lock_guard lock(final_image_cache_mutex);
   FinalImageCache *cache = query_final_image_cache(scene);
   if (cache != nullptr) {
-    BLI_assert(cache == scene->ed->runtime.final_image_cache);
-    MEM_delete(scene->ed->runtime.final_image_cache);
-    scene->ed->runtime.final_image_cache = nullptr;
+    BLI_assert(cache == scene->ed->runtime->final_image_cache);
+    MEM_delete(scene->ed->runtime->final_image_cache);
+    scene->ed->runtime->final_image_cache = nullptr;
   }
 }
 

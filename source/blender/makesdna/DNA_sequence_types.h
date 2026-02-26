@@ -27,15 +27,8 @@ struct VFont;
 struct bSound;
 
 namespace seq {
-struct FinalImageCache;
-struct IntraFrameCache;
-struct MediaPresence;
-struct PreviewCache;
-struct ThumbnailCache;
+struct EditingRuntime;
 struct TextVarsRuntime;
-struct PrefetchJob;
-struct SourceImageCache;
-struct StripLookup;
 struct StripRuntime;
 struct StripModifierDataRuntime;
 }  // namespace seq
@@ -600,25 +593,6 @@ enum eEditingCacheFlag {
   SEQ_CACHE_UNUSED_11 = (1 << 11), /* Was SEQ_CACHE_DISK_CACHE_ENABLE */
 };
 
-enum eEditingRuntimeFlag {
-  SEQ_SHOW_TRANSFORM_PREVIEW = (1 << 0),
-};
-
-struct EditingRuntime {
-  seq::StripLookup *strip_lookup = nullptr;
-  seq::MediaPresence *media_presence = nullptr;
-  seq::ThumbnailCache *thumbnail_cache = nullptr;
-  seq::IntraFrameCache *intra_frame_cache = nullptr;
-  seq::SourceImageCache *source_image_cache = nullptr;
-  seq::FinalImageCache *final_image_cache = nullptr;
-  seq::PreviewCache *preview_cache = nullptr;
-  /** Used for rendering a different frame using sequencer_draw_get_transform_preview from the box
-   * blade tool. */
-  int transform_preview_frame = 0;
-  /** Determines if transform_preview_frame should be used for transform preview. */
-  uint32_t flag = 0; /* eEditingRuntimeFlag */
-};
-
 struct Editing {
   /**
    * The current meta-strip being edited and/or viewed, may be null, in which case the top-most
@@ -643,10 +617,12 @@ struct Editing {
   int show_missing_media_flag = 0; /* eEditingShowMissingMediaFlag */
   int cache_flag = 0;              /* eEditingCacheFlag */
 
-  seq::PrefetchJob *prefetch_job = nullptr;
+  seq::EditingRuntime *runtime = nullptr;
 
-  EditingRuntime runtime;
-
+#if defined(__cplusplus) && !defined(DNA_NO_EXTERNAL_CONSTRUCTORS)
+  Editing();
+  ~Editing();
+#endif
 #ifdef __cplusplus
   /** Access currently displayed strips, from root sequence or a meta-strip. */
   ListBaseT<Strip> *current_strips();

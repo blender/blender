@@ -10,6 +10,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_space_enums.h"
+#include "GPU_context.hh"
 
 namespace blender {
 
@@ -51,6 +52,11 @@ struct RenderData {
   GPUViewport *gpu_viewport = nullptr;
   // int gpu_samples;
   // bool gpu_full_samples;
+
+  /* If GPU access is needed and this is set, use it
+   * instead of regular GPU context. Primary case: prefetch job;
+   * it is on another thread and can't use regular GPU context. */
+  gpu::GPUSecondaryContextData gpu_context;
 };
 
 /**
@@ -84,6 +90,9 @@ bool render_is_muted(const ListBaseT<SeqTimelineChannel> *channels, const Strip 
  */
 float get_render_scale_factor(eSpaceSeq_Proxy_RenderSize render_size, short scene_render_scale);
 float get_render_scale_factor(const RenderData &context);
+
+void render_begin_gpu(const RenderData &rd);
+void render_end_gpu(const RenderData &rd);
 
 }  // namespace seq
 }  // namespace blender

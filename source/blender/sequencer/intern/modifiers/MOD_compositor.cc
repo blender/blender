@@ -29,6 +29,7 @@
 #include "SEQ_modifiertypes.hh"
 #include "SEQ_render.hh"
 #include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
 #include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
@@ -36,12 +37,13 @@
 
 #include "RNA_access.hh"
 
+#include "cache/compositor_cache.hh"
 #include "modifier.hh"
 #include "render.hh"
 
 namespace blender::seq {
 
-class CompositorContext : public compositor::Context {
+class CompositorModifierContext : public compositor::Context {
  private:
   const RenderData &render_data_;
   const SequencerCompositorModifierData *modifier_data_;
@@ -56,12 +58,12 @@ class CompositorContext : public compositor::Context {
   bool viewer_was_written_ = false;
 
  public:
-  CompositorContext(compositor::StaticCacheManager &cache_manager,
-                    const RenderData &render_data,
-                    const SequencerCompositorModifierData *modifier_data,
-                    ImBuf *image_buffer,
-                    ImBuf *mask_buffer,
-                    const Strip &strip)
+  CompositorModifierContext(compositor::StaticCacheManager &cache_manager,
+                            const RenderData &render_data,
+                            const SequencerCompositorModifierData *modifier_data,
+                            ImBuf *image_buffer,
+                            ImBuf *mask_buffer,
+                            const Strip &strip)
       : compositor::Context(cache_manager),
         render_data_(render_data),
         modifier_data_(modifier_data),
@@ -109,7 +111,9 @@ class CompositorContext : public compositor::Context {
       return;
     }
 
-    result_translation_ = result.domain().transformation.location();
+    compositor::Result result_cpu = this->use_gpu() ? result.download_to_cpu() : result;
+
+    result_translation_ = result_cpu.domain().transformation.location();
     const int output_size_x = result.domain().data_size.x;
     const int output_size_y = result.domain().data_size.y;
     if (output_size_x != image_buffer_->x || output_size_y != image_buffer_->y) {
@@ -121,8 +125,12 @@ class CompositorContext : public compositor::Context {
       IMB_alloc_float_pixels(image_buffer_, 4, false);
     }
     std::memcpy(image_buffer_->float_buffer.data,
-                result.cpu_data().data(),
+                result_cpu.cpu_data().data(),
                 IMB_get_pixel_count(image_buffer_) * sizeof(float) * 4);
+
+    if (this->use_gpu()) {
+      result_cpu.release();
+    }
   }
 
   void write_viewer(compositor::Result &viewer_result) override
@@ -160,7 +168,7 @@ class CompositorContext : public compositor::Context {
 
   bool use_gpu() const override
   {
-    return false;
+    return this->render_data_.scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
   compositor::NodeGroupOutputTypes needed_outputs() const
@@ -171,6 +179,20 @@ class CompositorContext : public compositor::Context {
       needed_outputs |= compositor::NodeGroupOutputTypes::ViewerNode;
     }
     return needed_outputs;
+  }
+
+  void create_result_from_input(compositor::Result &result, const ImBuf &input) const
+  {
+    BLI_assert(input.float_buffer.data);
+    const bool gpu = this->use_gpu();
+    const int2 size = int2(input.x, input.y);
+    if (!gpu) {
+      result.wrap_external(input.float_buffer.data, size);
+    }
+    else {
+      result.allocate_texture(size);
+      GPU_texture_update(result, GPU_DATA_FLOAT, input.float_buffer.data);
+    }
   }
 
   void evaluate()
@@ -202,13 +224,11 @@ class CompositorContext : public compositor::Context {
           this->create_result(ResultType::Color, ResultPrecision::Full));
       if (input_socket == node_group.interface_inputs()[0]) {
         /* First socket is the image input. */
-        input_result->wrap_external(image_buffer_->float_buffer.data,
-                                    int2(image_buffer_->x, image_buffer_->y));
+        create_result_from_input(*input_result, *image_buffer_);
       }
       else if (mask_buffer_ && input_socket == node_group.interface_inputs()[1]) {
         /* Second socket is the mask input. */
-        input_result->wrap_external(mask_buffer_->float_buffer.data,
-                                    int2(mask_buffer_->x, mask_buffer_->y));
+        create_result_from_input(*input_result, *mask_buffer_);
         input_result->set_transformation(xform_);
       }
       else {
@@ -312,19 +332,30 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
   const bool was_float_linear = ensure_linear_float_buffer(context.image);
   const bool was_byte = context.image->float_buffer.data == nullptr;
 
-  /* TODO: Should be persistent across evaluations. */
-  compositor::StaticCacheManager cache_manager;
+  CompositorCache &com_cache = context.render_data.scene->ed->runtime->ensure_compositor_cache();
+  CompositorModifierContext com_mod_context(com_cache.get_cache_manager(),
+                                            context.render_data,
+                                            modifier_data,
+                                            context.image,
+                                            linear_mask,
+                                            context.strip);
 
-  CompositorContext com_context(cache_manager,
-                                context.render_data,
-                                modifier_data,
-                                context.image,
-                                linear_mask,
-                                context.strip);
-  com_context.evaluate();
-  com_context.cache_manager().reset();
+  //@TODO: check what is needed to get half-precision working on GPU.
 
-  context.result_translation += com_context.get_result_translation();
+  const bool use_gpu = com_mod_context.use_gpu();
+  if (use_gpu) {
+    render_begin_gpu(context.render_data);
+  }
+
+  com_cache.recreate_if_needed(
+      com_mod_context.use_gpu(), com_mod_context.get_precision(), context.render_data.gpu_context);
+  com_mod_context.evaluate();
+  com_mod_context.cache_manager().reset();
+  if (use_gpu) {
+    render_end_gpu(context.render_data);
+  }
+
+  context.result_translation += com_mod_context.get_result_translation();
 
   if (mask != linear_mask) {
     IMB_freeImBuf(linear_mask);
