@@ -256,6 +256,50 @@ void float4x4Mixer::finalize(const IndexMask &mask)
   });
 }
 
+template<typename T>
+void mix_groups(const Span<T> src,
+                const OffsetIndices<int> groups,
+                const Span<int> all_indices,
+                const std::optional<Span<float>> all_weights,
+                MutableSpan<T> dst)
+{
+  DefaultPropagationMixer<T> mixer(dst);
+  if (all_weights) {
+    for (const int dst_i : groups.index_range()) {
+      const Span<int> indices = all_indices.slice(groups[dst_i]);
+      for (const int i : indices.index_range()) {
+        const int src_i = indices[i];
+        mixer.mix_in(dst_i, src[src_i], (*all_weights)[i]);
+      }
+    }
+  }
+  else {
+    for (const int dst_i : groups.index_range()) {
+      for (const int src_i : all_indices.slice(groups[dst_i])) {
+        mixer.mix_in(dst_i, src[src_i]);
+      }
+    }
+  }
+  mixer.finalize();
+}
+
+void mix_groups(const GSpan src,
+                const OffsetIndices<int> groups,
+                const Span<int> all_indices,
+                const std::optional<Span<float>> all_weights,
+                GMutableSpan dst)
+{
+  BLI_assert(groups.size() == dst.size());
+  BLI_assert(groups.total_size() == all_indices.size());
+  BLI_assert(!all_weights || groups.total_size() == all_weights->size());
+
+  to_static_type(src.type(), [&]<typename T>() {
+    if constexpr (!std::is_void_v<DefaultMixer<T>>) {
+      mix_groups(src.typed<T>(), groups, all_indices, all_weights, dst.typed<T>());
+    }
+  });
+}
+
 void gather(const GSpan src, const Span<int> map, GMutableSpan dst)
 {
   gather(GVArray::from_span(src), map, IndexRange(dst.size()), dst);

@@ -348,6 +348,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
       return;
     }
 
+    /* Note: Doesn't use #bke::attribute_math::mix_groups because of `old_to_new_index_map`. */
     const CPPType &type = dst_attribute.span.type();
     bke::attribute_math::to_static_type(type, [&]<typename T>() {
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {

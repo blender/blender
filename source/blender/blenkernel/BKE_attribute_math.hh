@@ -697,6 +697,23 @@ using DefaultPropagationMixer = typename DefaultPropagationMixerStruct<T>::type;
  * mixer for the given type. */
 template<typename T> using DefaultMixer = typename DefaultMixerStruct<T>::type;
 
+void mix_groups(GSpan src,
+                OffsetIndices<int> groups,
+                Span<int> all_indices,
+                std::optional<Span<float>> all_weights,
+                GMutableSpan dst);
+inline void mix_groups(GSpan src,
+                       OffsetIndices<int> groups,
+                       Span<int> all_indices,
+                       GMutableSpan dst)
+{
+  mix_groups(src, groups, all_indices, std::nullopt, dst);
+}
+inline void mix_groups(GSpan src, GroupedSpan<int> indices, GMutableSpan dst)
+{
+  mix_groups(src, indices.offsets, indices.data, dst);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

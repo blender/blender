@@ -141,30 +141,11 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
       }
     }
 
-    bke::attribute_math::to_static_type(type, [&]<typename T>() {
-      if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-        bke::SpanAttributeWriter<T> dst_attribute =
-            dst_attributes.lookup_or_add_for_write_only_span<T>(id, bke::AttrDomain::Point);
-        VArraySpan<T> src = src_attribute.varray.typed<T>();
-
-        threading::parallel_for(IndexRange(dst_size), 1024, [&](IndexRange range) {
-          for (const int i_dst : range) {
-            /* Create a separate mixer for every point to avoid allocating temporary buffers
-             * in the mixer the size of the result point cloud and to improve memory locality. */
-            bke::attribute_math::DefaultMixer<T> mixer{dst_attribute.span.slice(i_dst, 1)};
-
-            Span<int> src_merge_indices = merge_map_indices.as_span().slice(map_offsets[i_dst]);
-            for (const int i_src : src_merge_indices) {
-              mixer.mix_in(0, src[i_src]);
-            }
-
-            mixer.finalize();
-          }
-        });
-
-        dst_attribute.finish();
-      }
-    });
+    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        id, bke::AttrDomain::Point, type);
+    bke::attribute_math::mix_groups(
+        GVArraySpan(src_attribute.varray), map_offsets, merge_map_indices, dst_attribute.span);
+    dst_attribute.finish();
   }
 
   debug_randomize_point_order(dst_pointcloud);

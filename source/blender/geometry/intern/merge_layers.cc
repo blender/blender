@@ -109,39 +109,28 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
     }
   });
 
+  /* TODO: Use GroupedSpan for the function argument instead of Span<Vector>. */
+  Vector<int> offsets;
+  Vector<int> all_indices;
+  offsets.reserve(layers_to_merge.size());
+  offsets.append(0);
+  for (const Span<int> indices : layers_to_merge) {
+    all_indices.extend(indices);
+    offsets.append(indices.size());
+  }
+  const GroupedSpan<int> src_layers_by_dst(OffsetIndices<int>(offsets), all_indices);
+
   const bke::AttributeAccessor src_attributes = src_grease_pencil.attributes();
   bke::MutableAttributeAccessor new_attributes = new_grease_pencil->attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == bke::AttrType::String) {
-      return;
-    }
     if (attribute_filter.allow_skip(iter.name)) {
       return;
     }
     bke::GAttributeReader src_attribute = iter.get();
     bke::GSpanAttributeWriter new_attribute = new_attributes.lookup_or_add_for_write_only_span(
         iter.name, bke::AttrDomain::Layer, iter.data_type);
-
-    const CPPType &type = new_attribute.span.type();
-
-    bke::attribute_math::to_static_type(type, [&]<typename T>() {
-      if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-        const VArraySpan<T> src_span = src_attribute.varray.typed<T>();
-        MutableSpan<T> new_span = new_attribute.span.typed<T>();
-
-        bke::attribute_math::DefaultMixer<T> mixer(new_span);
-        for (const int new_layer_i : IndexRange(new_layers_num)) {
-          const Span<int> src_layer_indices = layers_to_merge[new_layer_i];
-          for (const int src_layer_i : src_layer_indices) {
-            const T &src_value = src_span[src_layer_i];
-            mixer.mix_in(new_layer_i, src_value);
-          }
-        }
-
-        mixer.finalize();
-      }
-    });
-
+    bke::attribute_math::mix_groups(
+        GVArraySpan(src_attribute.varray), src_layers_by_dst, new_attribute.span);
     new_attribute.finish();
   });
 

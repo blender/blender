@@ -320,32 +320,16 @@ bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry &src_curv
       }
     }
 
-    bke::attribute_math::to_static_type(src_attribute.varray.type(), [&]<typename T>() {
-      if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-        bke::SpanAttributeWriter<T> dst_attribute =
-            dst_attributes.lookup_or_add_for_write_only_span<T>(iter.name, bke::AttrDomain::Point);
-        BLI_assert(dst_attribute);
-        VArraySpan<T> src = src_attribute.varray.typed<T>();
-
-        threading::parallel_for(dst_curves.points_range(), 1024, [&](IndexRange range) {
-          for (const int dst_point_i : range) {
-            /* Create a separate mixer for every point to avoid allocating temporary buffers
-             * in the mixer the size of the result curves and to improve memory locality. */
-            bke::attribute_math::DefaultMixer<T> mixer{dst_attribute.span.slice(dst_point_i, 1)};
-
-            Span<int> src_merge_indices = merge_map_indices.as_span().slice(
-                map_offsets[dst_point_i]);
-            for (const int src_point_i : src_merge_indices) {
-              mixer.mix_in(0, src[src_point_i]);
-            }
-
-            mixer.finalize();
-          }
-        });
-
-        dst_attribute.finish();
-      }
+    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        iter.name, bke::AttrDomain::Point, iter.data_type);
+    threading::parallel_for(dst_curves.points_range(), 1024, [&](IndexRange range) {
+      bke::attribute_math::mix_groups(GVArraySpan(src_attribute.varray),
+                                      map_offsets.slice(range),
+                                      merge_map_indices,
+                                      std::nullopt,
+                                      dst_attribute.span.slice(range));
     });
+    dst_attribute.finish();
   });
 
   if (dst_curves.nurbs_has_custom_knots()) {
