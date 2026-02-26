@@ -214,6 +214,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   color_blend_f3_f3(alert_color, main_color, 0.3f);
 
   /* Draw text. */
+  BLF_size(data->fstyle.uifont_id, data->fstyle.points * UI_SCALE_FAC);
 
   /* Wrap most text typographically with hard width limit. */
   BLF_wordwrap(data->fstyle.uifont_id,
