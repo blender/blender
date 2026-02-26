@@ -86,7 +86,7 @@ void USDXformReader::read_matrix(float4x4 &r_mat /* local matrix */,
    * will propagate it. */
   if (is_root_xform_) {
     if (scale != 1.0f) {
-      r_mat = math::scale(r_mat, float3(scale));
+      r_mat = math::scale(r_mat, float4(scale));
     }
 
     if (settings_->do_convert_mat) {
