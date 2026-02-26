@@ -1658,12 +1658,15 @@ class USDExportTest(AbstractUSDTest):
 
         # Check one final unit conversion using no /root xform at all (it's a different code path)
         bpy.ops.mesh.primitive_cube_add()
+        ob = bpy.data.objects[0]
+        ob.location = (.1, .2, .3)
 
         export_path = self.tempdir / f"usd_export_units_test_non_root.usda"
         self.export_and_validate(filepath=str(export_path), convert_scene_units="CENTIMETERS", root_prim_path="")
         stage = Usd.Stage.Open(str(export_path))
         xf = UsdGeom.Xformable(stage.GetPrimAtPath("/Cube"))
         self.assertEqual(self.round_vector(xf.GetScaleOp().Get()), [100, 100, 100])
+        self.assertEqual(self.round_vector(xf.GetTranslateOp().Get()), [10, 20, 30])
 
     def test_export_native_instancing_true(self):
         """Test exporting instanced objects to native (scne graph) instances."""
