@@ -265,30 +265,58 @@ MetalDeviceQueue::~MetalDeviceQueue()
 
 int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
 {
-  static int result = 0;
-  if (result) {
-    return result;
-  }
-
-  result = 4194304;
+  int state_count = 4194304;
 
   /* Increasing the state count doesn't notably benefit M1-family systems. */
   if (MetalInfo::get_apple_gpu_architecture(metal_device_->mtlDevice) != APPLE_M1) {
-    size_t system_ram = system_physical_ram();
-    size_t allocated_so_far = [metal_device_->mtlDevice currentAllocatedSize];
-    size_t max_recommended_working_set = [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
+    const size_t max_recommended_working_set =
+        [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
 
-    /* Determine whether we can double the state count, and leave enough GPU-available memory
-     * (1/8 the system RAM or 1GB - whichever is largest). Enlarging the state size allows us to
-     * keep dispatch sizes high and minimize work submission overheads. */
-    size_t min_headroom = std::max(system_ram / 8, size_t(1024 * 1024 * 1024));
-    size_t total_state_size = result * state_size;
-    if (max_recommended_working_set - allocated_so_far - total_state_size * 2 >= min_headroom) {
-      result *= 2;
-      metal_printf("Doubling state count to exploit available RAM (new size = %d)", result);
+    /* Only use 90% of available working set for safety. */
+    int percent = 90;
+    if (auto str = getenv("WORKING_SET_PERCENT_OVERRIDE")) {
+      percent = atoi(str);
+    }
+
+    const size_t max_working_set = (max_recommended_working_set * percent) / 100;
+    int max_safe_state_count = 0;
+
+    if (stats_.mem_used < max_working_set) {
+      const size_t headroom = max_working_set - stats_.mem_used;
+      max_safe_state_count = headroom / state_size;
+    }
+
+    /* Require a bare minimum of states to avoid pathological performance. */
+    if (max_safe_state_count >= 65536) {
+      /* If RAM is limited, we can still render with reduced state count. */
+      if (max_safe_state_count < state_count) {
+        metal_printf(
+            "Reducing state count to fit within available RAM. %d -> %d (%.1f%% of original size)",
+            state_count,
+            max_safe_state_count,
+            double(max_safe_state_count) / double(state_count) * 100.0);
+        state_count = max_safe_state_count;
+      }
+      else {
+        /* Limit to two "doublings" - we see diminishing returns after that. */
+        for (int i = 0; i < 2; i++) {
+          /* Determine whether we can double the state count, and leave enough GPU-available
+           * memory. Enlarging the state size allows us to keep dispatch sizes high and minimize
+           * work submission overheads. */
+          if (max_safe_state_count > state_count * 2) {
+            state_count *= 2;
+            metal_printf("Doubling state count to exploit available RAM (new size = %d)",
+                         state_count);
+          }
+        }
+      }
+    }
+    else {
+      metal_device_->set_error("Out of memory - couldn't allocate integrator state");
+      state_count = 0;
     }
   }
-  return result;
+  return state_count;
 }
 
 int MetalDeviceQueue::num_concurrent_busy_states(const size_t state_size) const
