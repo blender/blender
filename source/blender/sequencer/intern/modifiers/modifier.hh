@@ -14,6 +14,8 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
+#include "DNA_sequence_types.h"
+
 #include "IMB_imbuf.hh"
 
 namespace blender {

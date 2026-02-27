@@ -8,13 +8,13 @@
 
 #pragma once
 
-namespace blender {
-
-struct Mesh;
-
 #include "BLI_virtual_array_fwd.hh"
 
 #include "BKE_attribute_filter.hh"
+
+namespace blender {
+
+struct Mesh;
 
 namespace bke {
 

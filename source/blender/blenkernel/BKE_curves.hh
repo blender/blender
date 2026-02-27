@@ -893,7 +893,7 @@ int knots_num(int points_num, int8_t order, bool cyclic);
  * Calculate the total number of control points for a NURBS curve including virtual/repeated points
  * for a cyclic/closed curve.
  */
-int control_points_num(int num_control_points, int8_t order, bool cyclic);
+int control_points_num(int points_num, int8_t order, bool cyclic);
 
 /**
  * Depending on KnotsMode calculates knots or copies custom knots into given `MutableSpan`.

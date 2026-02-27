@@ -17,6 +17,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
+#include "DNA_windowmanager_enums.h"
 
 #include "RNA_access.hh"
 
@@ -30,22 +31,24 @@ namespace blender {
 
 struct ARegion;
 struct ARegionType;
-struct ColorManagedViewSettings;
+struct bContext;
 struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
+struct Editing;
+struct MenuType;
+struct rctf;
 struct Scene;
+struct ScrArea;
 struct SeqRetimingKey;
 struct SeqTimelineChannel;
-struct Strip;
 struct SpaceSeq;
+struct Strip;
 struct StripElem;
 struct View2D;
-struct bContext;
-struct rctf;
+struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
-struct ScrArea;
-struct Editing;
 
 namespace ed::asset {
 struct AssetItemTree;
