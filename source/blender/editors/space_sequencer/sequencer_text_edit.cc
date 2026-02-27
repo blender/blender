@@ -35,6 +35,10 @@
 
 namespace blender::ed::vse {
 
+/* -------------------------------------------------------------------- */
+/** \name Text Edit Polls
+ * \{ */
+
 static bool sequencer_text_editing_poll(bContext *C)
 {
   if (!sequencer_editing_initialized_and_active(C)) {
@@ -79,6 +83,12 @@ bool sequencer_text_editing_active_poll(bContext *C)
 
   return (strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) != 0;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Text Edit Utilities
+ * \{ */
 
 int2 strip_text_cursor_offset_to_position(const seq::TextVarsRuntime *text, int cursor_offset)
 {
@@ -175,6 +185,224 @@ static void text_editing_update(const bContext *C)
   seq::relations_invalidate_cache_raw(CTX_data_sequencer_scene(C), strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, CTX_data_sequencer_scene(C));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select/Deselect All Text
+ * \{ */
+
+static wmOperatorStatus sequencer_text_select_all_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  data->selection_start_offset = 0;
+  data->selection_end_offset = data->runtime->character_count;
+  text_editing_update(C);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_text_select_all(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select All";
+  ot->description = "Select all characters";
+  ot->idname = "SEQUENCER_OT_text_select_all";
+
+  /* API callbacks. */
+  ot->exec = sequencer_text_select_all_exec;
+  ot->poll = sequencer_text_editing_active_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+static wmOperatorStatus sequencer_text_deselect_all_exec(bContext *C, wmOperator * /*op*/)
+{
+  Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
+
+  if (!text_has_selection(data)) {
+    /* Exit edit mode, so text can be translated by mouse. */
+    strip->flag &= ~SEQ_FLAG_TEXT_EDITING_ACTIVE;
+  }
+  else {
+    text_selection_cancel(data);
+  }
+
+  text_editing_update(C);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_text_deselect_all(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Deselect All";
+  ot->description = "Deselect all characters";
+  ot->idname = "SEQUENCER_OT_text_deselect_all";
+
+  /* API callbacks. */
+  ot->exec = sequencer_text_deselect_all_exec;
+  ot->poll = sequencer_text_editing_active_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy Text
+ * \{ */
+
+static void text_edit_copy(const TextVars *data)
+{
+  const seq::TextVarsRuntime *text = data->runtime;
+  const IndexRange selection_range = strip_text_selection_range_get(data);
+  const seq::CharInfo start = character_at_cursor_offset_get(text, selection_range.first());
+  const seq::CharInfo end = character_at_cursor_offset_get(text, selection_range.last());
+
+  const int offset_start = start.offset;
+  const int offset_end = end.offset + end.byte_length;
+  BLI_assert(offset_start >= 0 && offset_start <= data->text_len_bytes);
+  BLI_assert(offset_end >= 0 && offset_end <= data->text_len_bytes);
+  BLI_assert(offset_start <= offset_end);
+
+  const size_t len = offset_end - offset_start;
+  char *buf = MEM_new_array_uninitialized<char>(len + 1, "text clipboard");
+  memcpy(buf, data->text_ptr + offset_start, len);
+  buf[len] = 0;
+  WM_clipboard_text_set(buf, false);
+  MEM_delete(buf);
+}
+
+static wmOperatorStatus sequencer_text_edit_copy_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  const TextVars *data = static_cast<TextVars *>(strip->effectdata);
+
+  if (!text_has_selection(data)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  text_edit_copy(data);
+
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Copy Text";
+  ot->description = "Copy text to clipboard";
+  ot->idname = "SEQUENCER_OT_text_edit_copy";
+
+  /* API callbacks. */
+  ot->exec = sequencer_text_edit_copy_exec;
+  ot->poll = sequencer_text_editing_active_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cut Text
+ * \{ */
+
+static wmOperatorStatus sequencer_text_edit_cut_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
+
+  if (!text_has_selection(data)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  text_edit_copy(data);
+  delete_selected_text(data);
+
+  text_editing_update(C);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Cut Text";
+  ot->description = "Cut text to clipboard";
+  ot->idname = "SEQUENCER_OT_text_edit_cut";
+
+  /* API callbacks. */
+  ot->exec = sequencer_text_edit_cut_exec;
+  ot->poll = sequencer_text_editing_active_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Paste Text
+ * \{ */
+
+static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  const seq::TextVarsRuntime *text = data->runtime;
+
+  int buf_len;
+  char *buf = WM_clipboard_text_get(false, true, &buf_len);
+
+  if (buf_len == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  delete_selected_text(data);
+  size_t needed_size = data->text_len_bytes + buf_len + 1;
+  char *new_text = MEM_new_array_uninitialized<char>(needed_size, "text");
+
+  const seq::CharInfo cur_char = character_at_cursor_offset_get(text, data->cursor_offset);
+  BLI_assert(cur_char.offset >= 0 && cur_char.offset <= data->text_len_bytes);
+  std::memcpy(new_text, data->text_ptr, cur_char.offset);
+  std::memcpy(new_text + cur_char.offset, buf, buf_len);
+  std::memcpy(new_text + cur_char.offset + buf_len,
+              data->text_ptr + cur_char.offset,
+              data->text_len_bytes - cur_char.offset + 1);
+  data->text_len_bytes += buf_len;
+  MEM_delete(data->text_ptr);
+  data->text_ptr = new_text;
+
+  data->cursor_offset += BLI_strlen_utf8(buf);
+
+  MEM_delete(buf);
+  text_editing_update(C);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Paste Text";
+  ot->description = "Paste text from clipboard";
+  ot->idname = "SEQUENCER_OT_text_edit_paste";
+
+  /* API callbacks. */
+  ot->exec = sequencer_text_edit_paste_exec;
+  ot->poll = sequencer_text_editing_active_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Text Cursor
+ * \{ */
 
 enum {
   LINE_BEGIN,
@@ -397,6 +625,93 @@ void SEQUENCER_OT_text_cursor_move(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Text
+ * \{ */
+
+enum { DEL_NEXT_SEL, DEL_PREV_SEL };
+static const EnumPropertyItem delete_type_items[] = {
+    {DEL_NEXT_SEL, "NEXT_OR_SELECTION", 0, "Next or Selection", ""},
+    {DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", 0, "Previous or Selection", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static void delete_character(const seq::CharInfo character, TextVars *data)
+{
+  const int offset_start = character.offset;
+  const int offset_end = character.offset + character.byte_length;
+  BLI_assert(offset_start >= 0 && offset_start <= data->text_len_bytes);
+  BLI_assert(offset_end >= 0 && offset_end <= data->text_len_bytes);
+  const int remaining = data->text_len_bytes - offset_end + 1;
+  std::memmove(data->text_ptr + offset_start, data->text_ptr + offset_end, remaining);
+  data->text_len_bytes -= character.byte_length;
+  BLI_assert(data->text_len_bytes >= 0);
+}
+
+static wmOperatorStatus sequencer_text_delete_exec(bContext *C, wmOperator *op)
+{
+  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  const seq::TextVarsRuntime *text = data->runtime;
+  const int type = RNA_enum_get(op->ptr, "type");
+
+  if (text_has_selection(data)) {
+    delete_selected_text(data);
+    text_editing_update(C);
+    return OPERATOR_FINISHED;
+  }
+
+  if (type == DEL_NEXT_SEL) {
+    if (data->cursor_offset >= text->character_count) {
+      return OPERATOR_CANCELLED;
+    }
+
+    delete_character(character_at_cursor_offset_get(text, data->cursor_offset), data);
+  }
+  if (type == DEL_PREV_SEL) {
+    if (data->cursor_offset == 0) {
+      return OPERATOR_CANCELLED;
+    }
+
+    delete_character(character_at_cursor_offset_get(text, data->cursor_offset - 1), data);
+    data->cursor_offset -= 1;
+  }
+
+  text_editing_update(C);
+  return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_text_delete(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Delete Text";
+  ot->description = "Delete text at cursor position";
+  ot->idname = "SEQUENCER_OT_text_delete";
+
+  /* API callbacks. */
+  ot->exec = sequencer_text_delete_exec;
+  ot->poll = sequencer_text_editing_active_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_enum(ot->srna,
+               "type",
+               delete_type_items,
+               DEL_NEXT_SEL,
+               "Type",
+               "Which part of the text to delete");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Insert Text
+ * \{ */
+
 static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
 {
   BLI_assert(strlen(buf) == buf_len);
@@ -456,7 +771,7 @@ static wmOperatorStatus sequencer_text_insert_invoke(bContext *C,
 void SEQUENCER_OT_text_insert(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Insert Character";
+  ot->name = "Insert Text";
   ot->description = "Insert text at cursor position";
   ot->idname = "SEQUENCER_OT_text_insert";
 
@@ -473,80 +788,11 @@ void SEQUENCER_OT_text_insert(wmOperatorType *ot)
       ot->srna, "string", nullptr, 512, "String", "String to be inserted at cursor position");
 }
 
-enum { DEL_NEXT_SEL, DEL_PREV_SEL };
-static const EnumPropertyItem delete_type_items[] = {
-    {DEL_NEXT_SEL, "NEXT_OR_SELECTION", 0, "Next or Selection", ""},
-    {DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", 0, "Previous or Selection", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
+/** \} */
 
-static void delete_character(const seq::CharInfo character, TextVars *data)
-{
-  const int offset_start = character.offset;
-  const int offset_end = character.offset + character.byte_length;
-  BLI_assert(offset_start >= 0 && offset_start <= data->text_len_bytes);
-  BLI_assert(offset_end >= 0 && offset_end <= data->text_len_bytes);
-  const int remaining = data->text_len_bytes - offset_end + 1;
-  std::memmove(data->text_ptr + offset_start, data->text_ptr + offset_end, remaining);
-  data->text_len_bytes -= character.byte_length;
-  BLI_assert(data->text_len_bytes >= 0);
-}
-
-static wmOperatorStatus sequencer_text_delete_exec(bContext *C, wmOperator *op)
-{
-  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  const seq::TextVarsRuntime *text = data->runtime;
-  const int type = RNA_enum_get(op->ptr, "type");
-
-  if (text_has_selection(data)) {
-    delete_selected_text(data);
-    text_editing_update(C);
-    return OPERATOR_FINISHED;
-  }
-
-  if (type == DEL_NEXT_SEL) {
-    if (data->cursor_offset >= text->character_count) {
-      return OPERATOR_CANCELLED;
-    }
-
-    delete_character(character_at_cursor_offset_get(text, data->cursor_offset), data);
-  }
-  if (type == DEL_PREV_SEL) {
-    if (data->cursor_offset == 0) {
-      return OPERATOR_CANCELLED;
-    }
-
-    delete_character(character_at_cursor_offset_get(text, data->cursor_offset - 1), data);
-    data->cursor_offset -= 1;
-  }
-
-  text_editing_update(C);
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_text_delete(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Delete Character";
-  ot->description = "Delete text at cursor position";
-  ot->idname = "SEQUENCER_OT_text_delete";
-
-  /* API callbacks. */
-  ot->exec = sequencer_text_delete_exec;
-  ot->poll = sequencer_text_editing_active_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
-
-  /* properties */
-  RNA_def_enum(ot->srna,
-               "type",
-               delete_type_items,
-               DEL_NEXT_SEL,
-               "Type",
-               "Which part of the text to delete");
-}
+/* -------------------------------------------------------------------- */
+/** \name Insert Line Break
+ * \{ */
 
 static wmOperatorStatus sequencer_text_line_break_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -576,91 +822,11 @@ void SEQUENCER_OT_text_line_break(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 }
 
-static wmOperatorStatus sequencer_text_select_all_exec(bContext *C, wmOperator * /*op*/)
-{
-  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  data->selection_start_offset = 0;
-  data->selection_end_offset = data->runtime->character_count;
-  text_editing_update(C);
-  return OPERATOR_FINISHED;
-}
+/** \} */
 
-void SEQUENCER_OT_text_select_all(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Select All";
-  ot->description = "Select all characters";
-  ot->idname = "SEQUENCER_OT_text_select_all";
-
-  /* API callbacks. */
-  ot->exec = sequencer_text_select_all_exec;
-  ot->poll = sequencer_text_editing_active_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
-}
-
-static wmOperatorStatus sequencer_text_deselect_all_exec(bContext *C, wmOperator * /*op*/)
-{
-  Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-
-  if (!text_has_selection(data)) {
-    /* Exit edit mode, so text can be translated by mouse. */
-    strip->flag &= ~SEQ_FLAG_TEXT_EDITING_ACTIVE;
-  }
-  else {
-    text_selection_cancel(data);
-  }
-
-  text_editing_update(C);
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_text_deselect_all(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Deselect All";
-  ot->description = "Deselect all characters";
-  ot->idname = "SEQUENCER_OT_text_deselect_all";
-
-  /* API callbacks. */
-  ot->exec = sequencer_text_deselect_all_exec;
-  ot->poll = sequencer_text_editing_active_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
-}
-
-static wmOperatorStatus sequencer_text_edit_mode_toggle_exec(bContext *C, wmOperator * /*op*/)
-{
-  Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  if (sequencer_text_editing_active_poll(C)) {
-    strip->flag &= ~SEQ_FLAG_TEXT_EDITING_ACTIVE;
-  }
-  else {
-    strip->flag |= SEQ_FLAG_TEXT_EDITING_ACTIVE;
-  }
-
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, CTX_data_sequencer_scene(C));
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_text_edit_mode_toggle(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Edit Text";
-  ot->description = "Toggle text editing";
-  ot->idname = "SEQUENCER_OT_text_edit_mode_toggle";
-
-  /* API callbacks. */
-  ot->exec = sequencer_text_edit_mode_toggle_exec;
-  ot->poll = sequencer_text_editing_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
-}
+/* -------------------------------------------------------------------- */
+/** \name Set Text Cursor
+ * \{ */
 
 static int find_closest_cursor_offset(const TextVars *data, float2 mouse_loc)
 {
@@ -794,135 +960,41 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static void text_edit_copy(const TextVars *data)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Text Edit Mode Toggle
+ * \{ */
+
+static wmOperatorStatus sequencer_text_edit_mode_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
-  const seq::TextVarsRuntime *text = data->runtime;
-  const IndexRange selection_range = strip_text_selection_range_get(data);
-  const seq::CharInfo start = character_at_cursor_offset_get(text, selection_range.first());
-  const seq::CharInfo end = character_at_cursor_offset_get(text, selection_range.last());
-
-  const int offset_start = start.offset;
-  const int offset_end = end.offset + end.byte_length;
-  BLI_assert(offset_start >= 0 && offset_start <= data->text_len_bytes);
-  BLI_assert(offset_end >= 0 && offset_end <= data->text_len_bytes);
-  BLI_assert(offset_start <= offset_end);
-
-  const size_t len = offset_end - offset_start;
-  char *buf = MEM_new_array_uninitialized<char>(len + 1, "text clipboard");
-  memcpy(buf, data->text_ptr + offset_start, len);
-  buf[len] = 0;
-  WM_clipboard_text_set(buf, false);
-  MEM_delete(buf);
-}
-
-static wmOperatorStatus sequencer_text_edit_copy_exec(bContext *C, wmOperator * /*op*/)
-{
-  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  const TextVars *data = static_cast<TextVars *>(strip->effectdata);
-
-  if (!text_has_selection(data)) {
-    return OPERATOR_CANCELLED;
+  Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
+  if (sequencer_text_editing_active_poll(C)) {
+    strip->flag &= ~SEQ_FLAG_TEXT_EDITING_ACTIVE;
+  }
+  else {
+    strip->flag |= SEQ_FLAG_TEXT_EDITING_ACTIVE;
   }
 
-  text_edit_copy(data);
-
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, CTX_data_sequencer_scene(C));
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot)
+void SEQUENCER_OT_text_edit_mode_toggle(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Copy Text";
-  ot->description = "Copy text to clipboard";
-  ot->idname = "SEQUENCER_OT_text_edit_copy";
+  ot->name = "Edit Text";
+  ot->description = "Toggle text editing";
+  ot->idname = "SEQUENCER_OT_text_edit_mode_toggle";
 
   /* API callbacks. */
-  ot->exec = sequencer_text_edit_copy_exec;
-  ot->poll = sequencer_text_editing_active_poll;
+  ot->exec = sequencer_text_edit_mode_toggle_exec;
+  ot->poll = sequencer_text_editing_poll;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
 }
 
-static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator * /*op*/)
-{
-  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  const seq::TextVarsRuntime *text = data->runtime;
-
-  int buf_len;
-  char *buf = WM_clipboard_text_get(false, true, &buf_len);
-
-  if (buf_len == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  delete_selected_text(data);
-  size_t needed_size = data->text_len_bytes + buf_len + 1;
-  char *new_text = MEM_new_array_uninitialized<char>(needed_size, "text");
-
-  const seq::CharInfo cur_char = character_at_cursor_offset_get(text, data->cursor_offset);
-  BLI_assert(cur_char.offset >= 0 && cur_char.offset <= data->text_len_bytes);
-  std::memcpy(new_text, data->text_ptr, cur_char.offset);
-  std::memcpy(new_text + cur_char.offset, buf, buf_len);
-  std::memcpy(new_text + cur_char.offset + buf_len,
-              data->text_ptr + cur_char.offset,
-              data->text_len_bytes - cur_char.offset + 1);
-  data->text_len_bytes += buf_len;
-  MEM_delete(data->text_ptr);
-  data->text_ptr = new_text;
-
-  data->cursor_offset += BLI_strlen_utf8(buf);
-
-  MEM_delete(buf);
-  text_editing_update(C);
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Paste Text";
-  ot->description = "Paste text from clipboard";
-  ot->idname = "SEQUENCER_OT_text_edit_paste";
-
-  /* API callbacks. */
-  ot->exec = sequencer_text_edit_paste_exec;
-  ot->poll = sequencer_text_editing_active_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
-}
-
-static wmOperatorStatus sequencer_text_edit_cut_exec(bContext *C, wmOperator * /*op*/)
-{
-  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-
-  if (!text_has_selection(data)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  text_edit_copy(data);
-  delete_selected_text(data);
-
-  text_editing_update(C);
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Cut Text";
-  ot->description = "Cut text to clipboard";
-  ot->idname = "SEQUENCER_OT_text_edit_cut";
-
-  /* API callbacks. */
-  ot->exec = sequencer_text_edit_cut_exec;
-  ot->poll = sequencer_text_editing_active_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_UNDO;
-}
+/** \} */
 
 }  // namespace blender::ed::vse
