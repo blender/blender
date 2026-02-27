@@ -1314,6 +1314,7 @@ static void layerAdd_propfloat4(void *data1, const void *data2)
   vec1->x += vec2->x;
   vec1->y += vec2->y;
   vec1->z += vec2->z;
+  vec1->w += vec2->w;
 }
 
 /* -------------------------------------------------------------------- */
