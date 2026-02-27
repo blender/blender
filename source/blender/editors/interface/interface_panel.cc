@@ -868,11 +868,20 @@ static void ui_offset_panel_block(Block *block)
   /* Compute bounds and offset. */
   block_bounds_calc(block);
 
-  const int ofsy = block->panel->sizey - style->panelspace;
+  const int panels_space = style->panelspace;
+  const int ofsy = block->panel->sizey - panels_space;
 
   for (Button &but : block->buttons()) {
     but.rect.ymin += ofsy;
     but.rect.ymax += ofsy;
+  }
+  for (LayoutPanelBody &body : block->panel->runtime->layout_panels.bodies) {
+    body.start_y -= panels_space;
+    body.end_y -= panels_space;
+  }
+  for (LayoutPanelHeader &headcer : block->panel->runtime->layout_panels.headers) {
+    headcer.start_y -= panels_space;
+    headcer.end_y -= panels_space;
   }
 
   block->rect.xmax = block->panel->sizex;
@@ -1203,6 +1212,11 @@ void draw_layout_panels_backdrop(const ARegion *region,
   /* Draw backdrops for layout panels. */
   const float aspect = block_is_popup_any(panel->runtime->block) ? panel->runtime->block->aspect :
                                                                    1.0f;
+  float scroll_pad = 0.0f;
+  if (block_is_popup_any(panel->runtime->block)) {
+    scroll_pad = (block_is_menu(panel->runtime->block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f) /
+                 aspect;
+  }
 
   for (const LayoutPanelBody &body : panel->runtime->layout_panels.bodies) {
 
@@ -1219,8 +1233,9 @@ void draw_layout_panels_backdrop(const ARegion *region,
       continue;
     }
     /* If the layout panel is at the end of the root panel, it's bottom corners are rounded. */
-    const bool is_main_panel_end = panel_blockspace.ymin - panel->runtime->block->rect.ymin <
-                                   (10.0f / aspect);
+    const bool is_main_panel_end = panel_blockspace.ymin -
+                                       (panel->runtime->block->rect.ymin + scroll_pad) <
+                                   (10.0f * UI_SCALE_FAC / aspect);
     if (is_main_panel_end) {
       panel_blockspace.ymin = panel->runtime->block->rect.ymin;
       draw_roundbox_corner_set(CNR_BOTTOM_RIGHT | CNR_BOTTOM_LEFT);
