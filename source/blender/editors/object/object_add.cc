@@ -4010,8 +4010,7 @@ static void create_grease_pencil_fills(bke::greasepencil::Drawing &drawing)
   bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_only_span<int>(
       "fill_id", bke::AttrDomain::Curve);
   /* Hide all the strokes, only show fills. */
-  bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
-      "hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
+  attributes.add<bool>("hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
 
   /* Mark all the strokes in the same material as the same fill. */
   for (const int curve_i : curves.curves_range()) {
@@ -4019,7 +4018,6 @@ static void create_grease_pencil_fills(bke::greasepencil::Drawing &drawing)
   }
 
   fill_ids.finish();
-  hide_stroke.finish();
 }
 
 static Object *convert_font_to_grease_pencil(Base &base,
