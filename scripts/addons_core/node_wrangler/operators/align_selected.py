@@ -32,6 +32,10 @@ class NODE_OT_align_selected(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
+        if len(context.selected_nodes) <= 0:
+            cls.poll_message_set("No nodes selected.")
+            return False
+
         return nw_check(cls, context) and nw_check_not_empty(cls, context)
 
     def execute(self, context):
@@ -43,12 +47,13 @@ class NODE_OT_align_selected(Operator, NWBase):
             if node.select and node.type != 'FRAME':
                 selection.append(node)
 
-        # If no nodes are selected, align all nodes
-        active_loc = None
         if not selection:
-            selection = nodes
-        elif nodes.active in selection:
-            active_loc = copy(nodes.active.location)  # make a copy, not a reference
+            self.report({'WARNING'}, "No nodes to arrange in selection.")
+            return {'CANCELLED'}
+
+        active_loc = None
+        if nodes.active in selection:
+            active_loc = copy(nodes.active.location_absolute)  # make a copy, not a reference
 
         # Check if nodes should be laid out horizontally or vertically
         # use dimension to get center of node, not corner
