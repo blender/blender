@@ -16,7 +16,6 @@
 #include <type_traits>
 
 #include "BLI_cache_mutex.hh"
-#include "BLI_parameter_pack_utils.hh"
 #include "BLI_vector_set.hh"
 
 namespace blender::bke {

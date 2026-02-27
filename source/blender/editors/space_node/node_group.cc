@@ -252,8 +252,9 @@ void NODE_OT_group_enter_exit(wmOperatorType *ot)
 /**
  * \return True if successful.
  */
-static void node_group_ungroup(Main &bmain, bNodeTree &ntree, bNode &group_node)
+static void node_group_ungroup(bContext &C, bNodeTree &ntree, bNode &group_node)
 {
+  Main &bmain = *CTX_data_main(&C);
   NodeSetInterfaceParams params;
   params.skip_hidden = false;
 
@@ -270,12 +271,17 @@ static void node_group_ungroup(Main &bmain, bNodeTree &ntree, bNode &group_node)
         return true;
       },
       ntree);
-  connect_copied_nodes_to_external_sockets(ngroup, copied_nodes, io_mapping);
+  const InterfaceProxyNodes proxy_nodes = connect_copied_nodes_to_external_sockets(
+      C, ngroup, copied_nodes, io_mapping, &group_node);
 
   /* Center nodes on the bounds of the original group node. */
   if (const std::optional<Bounds<float2>> bounds = node_location_bounds(Span{&group_node})) {
     const float2 center = bounds->center();
     for (bNode *node : copied_nodes.node_map().values()) {
+      node->location[0] += center[0];
+      node->location[1] += center[1];
+    }
+    for (bNode *node : proxy_nodes.values()) {
       node->location[0] += center[0];
       node->location[1] += center[1];
     }
@@ -288,6 +294,9 @@ static void node_group_ungroup(Main &bmain, bNodeTree &ntree, bNode &group_node)
 
   /* Select ungrouped nodes*/
   for (bNode *node : copied_nodes.node_map().values()) {
+    bke::node_set_selected(*node, true);
+  }
+  for (bNode *node : proxy_nodes.values()) {
     bke::node_set_selected(*node, true);
   }
 }
@@ -316,7 +325,7 @@ static wmOperatorStatus node_group_ungroup_exec(bContext *C, wmOperator * /*op*/
 
   node_deselect_all(*snode->edittree);
   for (bNode *node : nodes_to_ungroup) {
-    node_group_ungroup(*bmain, *snode->edittree, *node);
+    node_group_ungroup(*C, *snode->edittree, *node);
   }
   BKE_main_ensure_invariants(*CTX_data_main(C));
   return OPERATOR_FINISHED;
