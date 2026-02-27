@@ -549,7 +549,8 @@ void ForwardPipeline::render(View &view,
                              Framebuffer &combined_fb,
                              int2 extent)
 {
-  if (!has_transparent_ && !has_opaque_) {
+  /* We need to ensure the pipeline runs if outputing the transparent render-pass (see #154895). */
+  if (!has_transparent_ && !has_opaque_ && inst_.render_buffers.data.transparent_id == -1) {
     return;
   }
 
