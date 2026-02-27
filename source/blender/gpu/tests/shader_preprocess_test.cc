@@ -1650,6 +1650,24 @@ NS_S _other_method(_ref(NS_S ,this_), int s);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    /* Template specialization inside namespace. */
+    string input = R"(
+namespace NS {
+template<> Type a<Type>() {}
+}
+)";
+
+    string expect = R"(
+
+           Type NS_aTType() {}
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_namespace);
 

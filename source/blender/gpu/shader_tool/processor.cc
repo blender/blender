@@ -104,13 +104,13 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
       /* Lint and remove C++ accessor templates before lowering template. */
       lower_srt_accessor_templates(parser);
       lower_union_accessor_templates(parser);
-      /* Lower templates. */
-      lower_template_dependent_names(parser);
-      lower_templates(parser);
       /* Lower namespaces. */
       lower_using(parser);
       lower_namespaces(parser);
       lower_scope_resolution_operators(parser);
+      /* Lower templates. */
+      lower_template_dependent_names(parser);
+      lower_templates(parser);
       /* Lower unions and then lint shared structures. */
       lower_unions(parser);
       lower_host_shared_structures(parser);
