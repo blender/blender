@@ -560,7 +560,7 @@ void GPU_texture_clear(gpu::Texture *tex, eGPUDataFormat data_format, const void
   BLI_assert(validate_data_format(tex->format_get(), data_format));
 
   /* TODO(fclem): Ideally modify the GPU_texture_clear API. */
-  double4 clear_data;
+  double4 clear_data(0xFFFFFFFFu);
   int comp_len = to_component_len(tex->format_get());
   switch (data_format) {
     case GPU_DATA_FLOAT:
