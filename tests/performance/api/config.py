@@ -249,11 +249,13 @@ class TestConfig:
 
             # Filter devices that are supported by this test. Add a default CPU when
             # no devices are supported for backwards compatibility
-            devices = self.devices
+            supported_device_types = ['CPU']
             if test.use_device():
-                devices = filter(lambda device: device.type in test.supported_device_types(), devices)
+                supported_device_types = test.supported_device_types()
+
+            devices = filter(lambda device: device.type in test.supported_device_types(), self.devices)
             if not devices:
-                devices = ['CPU']
+                devices = filter(lambda device: device.type == 'CPU', self.devices)
 
             for device in devices:
                 entry = self.queue.find(revision_name, test_name, test_category, device.id)
