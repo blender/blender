@@ -95,7 +95,6 @@ struct TraceJob {
   /* Frame number where the output frame is generated. */
   int frame_target;
   float threshold;
-  float radius;
   TurnPolicy turnpolicy;
   TraceMode mode;
   /* Custom source frame, allows overriding the default scene frame. */
@@ -198,15 +197,11 @@ static bke::CurvesGeometry grease_pencil_trace_image(TraceJob &trace_job, const 
   material_indices.finish();
 
   /* Combine strokes into a single fill with the same fill ID. */
-  bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_span<int>(
-      "fill_id", bke::AttrDomain::Curve, bke::AttributeInitValue(1));
-  fill_ids.finish();
+  attributes.add<int>("fill_id", bke::AttrDomain::Curve, bke::AttributeInitValue(1));
 
-  /* Uniform radius for all trace curves. */
-  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-      "radius", bke::AttrDomain::Point);
-  radii.span.fill(trace_job.radius);
-  radii.finish();
+  /* Only create fills since that is what the trace algorithm is also doing. Users can change the
+   * appearance however they please afterwards. */
+  attributes.add<bool>("hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
 
   return trace_curves;
 }
@@ -392,7 +387,6 @@ static wmOperatorStatus grease_pencil_trace_image_exec(bContext *C, wmOperator *
   job->was_ob_created = false;
 
   job->threshold = RNA_float_get(op->ptr, "threshold");
-  job->radius = RNA_float_get(op->ptr, "radius");
   job->turnpolicy = TurnPolicy(RNA_enum_get(op->ptr, "turnpolicy"));
   job->mode = TraceMode(RNA_enum_get(op->ptr, "mode"));
   job->frame_number = RNA_int_get(op->ptr, "frame_number");
@@ -504,8 +498,6 @@ static void GREASE_PENCIL_OT_trace_image(wmOperatorType *ot)
                           "Target Object",
                           "Target Grease Pencil");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
-
-  RNA_def_float(ot->srna, "radius", 0.01f, 0.001f, 1.0f, "Radius", "", 0.001, 1.0f);
 
   RNA_def_float_factor(ot->srna,
                        "threshold",
