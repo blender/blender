@@ -387,6 +387,7 @@ RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_operator_tool_properties,
                               WM_GIZMO_OPERATOR_TOOL_INIT);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_event_handle_all, flag, WM_GIZMO_EVENT_HANDLE_ALL);
 RNA_GIZMO_GENERIC_FLAG_NEG_RW_DEF(flag_use_tooltip, flag, WM_GIZMO_NO_TOOLTIP);
+RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_undo, flag, WM_GIZMO_NEEDS_UNDO);
 
 /* wmGizmo.state */
 RNA_GIZMO_FLAG_RO_DEF(state_is_highlight, state, WM_GIZMO_STATE_HIGHLIGHT);
@@ -1311,6 +1312,14 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
       prop, "rna_Gizmo_flag_use_tooltip_get", "rna_Gizmo_flag_use_tooltip_set");
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Use Tooltip", "Use tooltips when hovering over this gizmo");
+  /* No update needed. */
+
+  /* WM_GIZMO_NEEDS_UNDO */
+  prop = RNA_def_property(srna, "use_undo", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_Gizmo_flag_use_undo_get", "rna_Gizmo_flag_use_undo_set");
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_ui_text(prop, "Use Undo", "Push an undo step after each use of the gizmo");
   /* No update needed. */
 
   /* wmGizmo.state (readonly) */
