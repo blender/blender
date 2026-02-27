@@ -279,32 +279,30 @@ static Brush *image_paint_brush(bContext *C)
 
 static bool image_paint_poll_ex(bContext *C, bool check_tool)
 {
-  Object *obact;
-
   if (!image_paint_brush(C)) {
     return false;
   }
 
-  obact = CTX_data_active_object(C);
-  if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
-    if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
-      return true;
+  if (SpaceImage *sima = CTX_wm_space_image(C)) {
+    if (sima->image != nullptr &&
+        (!ID_IS_EDITABLE(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image)))
+    {
+      return false;
+    }
+    if (sima->mode == SI_MODE_PAINT) {
+      const ARegion *region = CTX_wm_region(C);
+      if (region->regiontype == RGN_TYPE_WINDOW) {
+        if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
+          return true;
+        }
+      }
     }
   }
   else {
-    SpaceImage *sima = CTX_wm_space_image(C);
-
-    if (sima) {
-      if (sima->image != nullptr &&
-          (!ID_IS_EDITABLE(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image)))
-      {
-        return false;
-      }
-      if (sima->mode == SI_MODE_PAINT) {
-        const ARegion *region = CTX_wm_region(C);
-        if (region->regiontype == RGN_TYPE_WINDOW) {
-          return true;
-        }
+    Object *obact = CTX_data_active_object(C);
+    if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
+      if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
+        return true;
       }
     }
   }
@@ -794,7 +792,7 @@ void ED_object_texture_paint_mode_exit(bContext *C)
   ED_object_texture_paint_mode_exit_ex(bmain, scene, ob);
 }
 
-static bool texture_paint_toggle_poll(bContext *C)
+static bool texture_paint_object_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == nullptr || ob->type != OB_MESH) {
@@ -847,7 +845,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = texture_paint_toggle_exec;
-  ot->poll = texture_paint_toggle_poll;
+  ot->poll = texture_paint_object_toggle_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -946,9 +944,9 @@ void ED_imapaint_bucket_fill(bContext *C, float const color[3], wmOperator *op, 
   }
 }
 
-static bool texture_paint_poll(bContext *C)
+static bool texture_paint_object_poll(bContext *C)
 {
-  if (texture_paint_toggle_poll(C)) {
+  if (texture_paint_object_toggle_poll(C)) {
     if (CTX_data_active_object(C)->mode & OB_MODE_TEXTURE_PAINT) {
       return true;
     }
@@ -965,7 +963,11 @@ float3 seed_hsv_jitter()
 
 bool image_texture_paint_poll(bContext *C)
 {
-  return (texture_paint_poll(C) || ED_image_tools_paint_poll(C));
+  if (CTX_wm_space_image(C)) {
+    return ED_image_tools_paint_poll(C);
+  }
+
+  return (texture_paint_object_poll(C) || ED_image_tools_paint_poll(C));
 }
 
 bool facemask_paint_poll(bContext *C)
