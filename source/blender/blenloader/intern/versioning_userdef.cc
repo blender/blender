@@ -427,6 +427,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_view3d.grid_major);
   }
 
+  if (!USER_VERSION_ATLEAST(501, 28)) {
+    FROM_DEFAULT_V4_UCHAR(space_view3d.gp_wire_edit);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
