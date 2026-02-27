@@ -7600,6 +7600,11 @@ NODE_DEFINE(NormalMapNode)
   convention_enum.insert("directx", NODE_NORMAL_MAP_CONVENTION_DIRECTX);
   SOCKET_ENUM(convention, "Convention", convention_enum, NODE_NORMAL_MAP_CONVENTION_OPENGL);
 
+  static NodeEnum base_enum;
+  base_enum.insert("original", NODE_NORMAL_MAP_BASE_ORIGINAL);
+  base_enum.insert("displaced", NODE_NORMAL_MAP_BASE_DISPLACED);
+  SOCKET_ENUM(base, "Base", base_enum, NODE_NORMAL_MAP_BASE_ORIGINAL);
+
   SOCKET_STRING(attribute, "Attribute", ustring());
 
   SOCKET_IN_FLOAT(strength, "Strength", 1.0f);
@@ -7618,16 +7623,29 @@ void NormalMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
     if (attribute.empty()) {
       /* We don't need the UV ourselves, but we need to compute the tangent from it. */
       attributes->add(ATTR_STD_UV);
-      attributes->add(ATTR_STD_UV_TANGENT_UNDISPLACED);
-      attributes->add(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attributes->add(ATTR_STD_UV_TANGENT);
+        attributes->add(ATTR_STD_UV_TANGENT_SIGN);
+      }
+      else {
+        attributes->add(ATTR_STD_UV_TANGENT_UNDISPLACED);
+        attributes->add(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+        attributes->add(ATTR_STD_NORMAL_UNDISPLACED);
+      }
     }
     else {
       attributes->add(attribute);
-      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
-      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+        attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      }
+      else {
+        attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+        attributes->add(
+            ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+        attributes->add(ATTR_STD_NORMAL_UNDISPLACED);
+      }
     }
-
-    attributes->add(ATTR_STD_NORMAL_UNDISPLACED);
   }
 
   ShaderNode::attributes(shader, attributes);
@@ -7643,21 +7661,37 @@ void NormalMapNode::compile(SVMCompiler &compiler)
 
   if (space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      attr = compiler.attribute(ATTR_STD_UV_TANGENT_UNDISPLACED);
-      attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr = compiler.attribute(ATTR_STD_UV_TANGENT);
+        attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN);
+      }
+      else {
+        attr = compiler.attribute(ATTR_STD_UV_TANGENT_UNDISPLACED);
+        attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+      }
     }
     else {
-      attr = compiler.attribute(
-          ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
-      attr_sign = compiler.attribute(
-          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr = compiler.attribute(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+        attr_sign = compiler.attribute(
+            ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      }
+      else {
+        attr = compiler.attribute(
+            ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+        attr_sign = compiler.attribute(
+            ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      }
     }
   }
 
-  /* Pack space and convention into byte. */
+  /* Pack space, convention and base flags into byte 3 of node.y. */
   int flags = space;
   if (convention == NODE_NORMAL_MAP_CONVENTION_DIRECTX) {
     flags |= NODE_NORMAL_MAP_FLAG_DIRECTX;
+  }
+  if (base == NODE_NORMAL_MAP_BASE_ORIGINAL) {
+    flags |= NODE_NORMAL_MAP_FLAG_ORIGINAL;
   }
 
   compiler.add_node(NODE_NORMAL_MAP,
@@ -7672,21 +7706,36 @@ void NormalMapNode::compile(SVMCompiler &compiler)
 void NormalMapNode::compile(OSLCompiler &compiler)
 {
   if (space == NODE_NORMAL_MAP_TANGENT) {
+    std::string attr_name, attr_sign_name;
+
     if (attribute.empty()) {
-      compiler.parameter("attr_name", ustring("geom:undisplaced_tangent"));
-      compiler.parameter("attr_sign_name", ustring("geom:undisplaced_tangent_sign"));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr_name = "geom:tangent";
+        attr_sign_name = "geom:tangent_sign";
+      }
+      else {
+        attr_name = "geom:undisplaced_tangent";
+        attr_sign_name = "geom:undisplaced_tangent_sign";
+      }
     }
     else {
-      compiler.parameter("attr_name",
-                         ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
-      compiler.parameter(
-          "attr_sign_name",
-          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr_name = string(attribute.c_str()) + ".tangent";
+        attr_sign_name = string(attribute.c_str()) + ".tangent_sign";
+      }
+      else {
+        attr_name = string(attribute.c_str()) + ".undisplaced_tangent";
+        attr_sign_name = string(attribute.c_str()) + ".undisplaced_tangent_sign";
+      }
     }
+
+    compiler.parameter("attr_name", attr_name.c_str());
+    compiler.parameter("attr_sign_name", attr_sign_name.c_str());
   }
 
   compiler.parameter(this, "space");
   compiler.parameter(this, "convention");
+  compiler.parameter(this, "base");
   compiler.add(this, "node_normal_map");
 }
 

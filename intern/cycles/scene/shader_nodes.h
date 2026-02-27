@@ -1679,6 +1679,7 @@ class NormalMapNode : public ShaderNode {
   NODE_SOCKET_API(float, strength)
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(int, convention)
+  NODE_SOCKET_API(int, base)
 };
 
 class RadialTilingNode : public ShaderNode {
