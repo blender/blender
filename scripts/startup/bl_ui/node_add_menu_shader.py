@@ -199,10 +199,7 @@ class NODE_MT_shader_node_shader_base(node_add_menu.NodeMenu):
 
     @classmethod
     def poll(cls, context):
-        return (
-            super().poll(context) and
-            (object_material_shader_nodes_poll(context) or world_shader_nodes_poll(context))
-        )
+        return super().poll(context) and not line_style_shader_nodes_poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -226,7 +223,7 @@ class NODE_MT_shader_node_shader_base(node_add_menu.NodeMenu):
         self.node_operator(
             layout,
             "ShaderNodeBsdfDiffuse",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
@@ -235,52 +232,52 @@ class NODE_MT_shader_node_shader_base(node_add_menu.NodeMenu):
         self.node_operator(
             layout,
             "ShaderNodeBsdfGlass",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfGlossy",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfHair",
-            poll=object_not_eevee_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context) and not eevee_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeHoldout",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfMetallic",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfPrincipled",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfHairPrincipled",
-            poll=object_not_eevee_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context) and not eevee_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfRayPortal",
-            poll=object_not_eevee_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context) and not eevee_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfRefraction",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfSheen",
-            poll=object_not_eevee_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context) and not eevee_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
@@ -290,41 +287,45 @@ class NODE_MT_shader_node_shader_base(node_add_menu.NodeMenu):
         self.node_operator(
             layout,
             "ShaderNodeSubsurfaceScattering",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfToon",
-            poll=object_not_eevee_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context) and not eevee_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfTranslucent",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeBsdfTransparent",
-            poll=object_shader_nodes_poll(context),
+            poll=object_material_shader_nodes_poll(context),
         )
 
         layout.separator()
 
         self.node_operator(
             layout,
-            "ShaderNodeVolumePrincipled"
+            "ShaderNodeVolumePrincipled",
+            poll=not object_light_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeVolumeAbsorption",
+            poll=not object_light_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeVolumeScatter",
+            poll=not object_light_shader_nodes_poll(context),
         )
         self.node_operator(
             layout,
             "ShaderNodeVolumeCoefficients",
+            poll=not object_light_shader_nodes_poll(context),
         )
 
         self.draw_assets_for_catalog(layout, self.bl_label)
@@ -430,7 +431,7 @@ class NODE_MT_shader_node_displacement_base(node_add_menu.NodeMenu):
 
     @classmethod
     def poll(cls, context):
-        return super().poll(context) and object_material_shader_nodes_poll(context)
+        return super().poll(context) and not line_style_shader_nodes_poll(context)
 
     def draw(self, _context):
         layout = self.layout
