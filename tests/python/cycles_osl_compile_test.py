@@ -24,8 +24,9 @@ class AbstractOSLCompileTest(unittest.TestCase):
     def setUp(self):
         self.assertTrue(self.testdir.exists(), "Test dir {0} should exist".format(self.testdir))
 
-    def tearDown(self):
-        self._tempdir.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        cls._tempdir.cleanup()
 
 
 class OSLCompileTest(AbstractOSLCompileTest):
