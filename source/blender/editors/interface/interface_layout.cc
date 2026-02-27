@@ -5916,7 +5916,6 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
   if (show_header) {
     Layout *header = nullptr;
     if (support_layout_panel && !(pt->flag & PANEL_TYPE_NO_HEADER)) {
-      layout->separator(0.1f);
       PanelLayout panel_layout = layout->panel(
           C, panel->type->idname, panel->type->flag & PANEL_TYPE_DEFAULT_CLOSED);
       header = panel_layout.header;
@@ -5955,25 +5954,10 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
     return;
   }
   /* Draw child panels. */
-  Layout *prev_sub_col = nullptr;
   for (LinkData &link : pt->children) {
     PanelType *child_pt = static_cast<PanelType *>(link.data);
     if (child_pt->poll == nullptr || child_pt->poll(C, child_pt)) {
-      /* Add space if something was added to the layout. */
-      if (prev_sub_col && prev_sub_col->items().size() > 0) {
-        Item *last_sub_child = prev_sub_col->items().last();
-        Layout *last_sub_layout = ELEM(last_sub_child->type(),
-                                       ItemType::LayoutPanelBody,
-                                       ItemType::LayoutColumn) ?
-                                      static_cast<Layout *>(last_sub_child) :
-                                      nullptr;
-        if (last_sub_layout && !last_sub_layout->items().is_empty()) {
-          last_sub_layout->separator(0.2f);
-        }
-      }
-      Layout *sub_col = &body->column(false);
-      ui_paneltype_draw_impl(C, child_pt, sub_col, true);
-      prev_sub_col = sub_col;
+      ui_paneltype_draw_impl(C, child_pt, body, true);
     }
   }
 }
