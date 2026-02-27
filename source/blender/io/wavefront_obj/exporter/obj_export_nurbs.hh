@@ -8,13 +8,17 @@
 
 #pragma once
 
-#include "BLI_math_vector_types.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_span.hh"
+#include "BLI_vector.hh"
 
 namespace blender {
 
 struct Curve;
 struct Nurb;
 struct OBJExportParams;
+struct Object;
+struct Depsgraph;
 
 namespace bke {
 class CurvesGeometry;
@@ -96,7 +100,7 @@ class OBJCurves : public IOBJCurve, NonCopyable {
 
  public:
   OBJCurves(const bke::CurvesGeometry &curve, const float4x4 &transform, const std::string &name);
-  virtual ~OBJCurves() override = default;
+  ~OBJCurves() override = default;
 
   const float4x4 &object_transform() const override;
 
@@ -123,7 +127,7 @@ class OBJLegacyCurve : public IOBJCurve, NonCopyable {
 
  public:
   OBJLegacyCurve(const Depsgraph *depsgraph, Object *curve_object);
-  virtual ~OBJLegacyCurve() override = default;
+  ~OBJLegacyCurve() override = default;
 
   const float4x4 &object_transform() const override;
 

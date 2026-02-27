@@ -19,6 +19,9 @@
 namespace blender {
 
 struct OBJImportParams;
+namespace bke {
+struct CurvesGeometry;
+};
 
 namespace io::obj {
 
