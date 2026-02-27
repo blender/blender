@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include <stdio.h>  // printf
+#include <cstdio>  // IWYU pragma: export printf
 
 #include "gpu_shader_cxx_builtin.hh"  // IWYU pragma: export
 #include "gpu_shader_cxx_global.hh"   // IWYU pragma: export

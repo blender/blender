@@ -10,13 +10,54 @@
 
 #pragma once
 
-#include <type_traits>
+/* Implement type_trait manually to avoid dragging compile time down. */
+namespace cxx {
+
+template<typename T, typename U> struct is_same {
+  static constexpr bool value = false;
+};
+template<typename T> struct is_same<T, T> {
+  static constexpr bool value = true;
+};
+template<typename T, typename U> inline constexpr bool is_same_v = is_same<T, U>::value;
+template<typename T> struct is_integral_base {
+  static constexpr bool value = false;
+};
+
+// Helper macro to stamp out the true cases quickly
+#define REGISTER_INTEGRAL(TYPE) \
+  template<> struct is_integral_base<TYPE> { \
+    static constexpr bool value = true; \
+  };
+
+REGISTER_INTEGRAL(char)
+REGISTER_INTEGRAL(signed char)
+REGISTER_INTEGRAL(unsigned char)
+REGISTER_INTEGRAL(short)
+REGISTER_INTEGRAL(unsigned short)
+REGISTER_INTEGRAL(int)
+REGISTER_INTEGRAL(unsigned int)
+REGISTER_INTEGRAL(long)
+REGISTER_INTEGRAL(unsigned long)
+REGISTER_INTEGRAL(long long)
+REGISTER_INTEGRAL(unsigned long long)
+
+template<typename T> inline constexpr bool is_integral_v = is_integral_base<T>::value;
+}  // namespace cxx
+
+#undef REGISTER_INTEGRAL
 
 /* Some compilers complain about lack of return values. Keep it short. */
 #define RET \
   { \
     return {}; \
   }
+
+template<typename T>
+concept NotBool = !cxx::is_same_v<T, bool>;
+
+template<typename T>
+concept IsIntegral = cxx::is_integral_v<T> && !cxx::is_same_v<T, bool>;
 
 /* -------------------------------------------------------------------- */
 /** \name Vector Types
@@ -44,83 +85,81 @@ template<typename T, int Sz> struct VecOp {
     return *reinterpret_cast<T *>(this);
   }
 
-#define STD_OP \
-  template<typename U = T, typename std::enable_if_t<!std::is_same_v<bool, U>> * = nullptr>
+#define STD_OP requires NotBool<T>
 
-  STD_OP VecT operator+() const RET;
-  STD_OP VecT operator-() const RET;
+  VecT operator+() const STD_OP RET;
+  VecT operator-() const STD_OP RET;
 
-  STD_OP friend VecT operator+(VecT, VecT) RET;
-  STD_OP friend VecT operator-(VecT, VecT) RET;
-  STD_OP friend VecT operator/(VecT, VecT) RET;
-  STD_OP friend VecT operator*(VecT, VecT) RET;
+  friend VecT operator+(VecT, VecT) STD_OP RET;
+  friend VecT operator-(VecT, VecT) STD_OP RET;
+  friend VecT operator/(VecT, VecT) STD_OP RET;
+  friend VecT operator*(VecT, VecT) STD_OP RET;
 
-  STD_OP friend VecT operator+(VecT, T) RET;
-  STD_OP friend VecT operator-(VecT, T) RET;
-  STD_OP friend VecT operator/(VecT, T) RET;
-  STD_OP friend VecT operator*(VecT, T) RET;
+  friend VecT operator+(VecT, T) STD_OP RET;
+  friend VecT operator-(VecT, T) STD_OP RET;
+  friend VecT operator/(VecT, T) STD_OP RET;
+  friend VecT operator*(VecT, T) STD_OP RET;
 
-  STD_OP friend VecT operator+(T, VecT) RET;
-  STD_OP friend VecT operator-(T, VecT) RET;
-  STD_OP friend VecT operator/(T, VecT) RET;
-  STD_OP friend VecT operator*(T, VecT) RET;
+  friend VecT operator+(T, VecT) STD_OP RET;
+  friend VecT operator-(T, VecT) STD_OP RET;
+  friend VecT operator/(T, VecT) STD_OP RET;
+  friend VecT operator*(T, VecT) STD_OP RET;
 
-  STD_OP friend VecT operator+=(VecT, VecT) RET;
-  STD_OP friend VecT operator-=(VecT, VecT) RET;
-  STD_OP friend VecT operator/=(VecT, VecT) RET;
-  STD_OP friend VecT operator*=(VecT, VecT) RET;
+  friend VecT operator+=(VecT, VecT) STD_OP RET;
+  friend VecT operator-=(VecT, VecT) STD_OP RET;
+  friend VecT operator/=(VecT, VecT) STD_OP RET;
+  friend VecT operator*=(VecT, VecT) STD_OP RET;
 
-  STD_OP friend VecT operator+=(VecT, T) RET;
-  STD_OP friend VecT operator-=(VecT, T) RET;
-  STD_OP friend VecT operator/=(VecT, T) RET;
-  STD_OP friend VecT operator*=(VecT, T) RET;
+  friend VecT operator+=(VecT, T) STD_OP RET;
+  friend VecT operator-=(VecT, T) STD_OP RET;
+  friend VecT operator/=(VecT, T) STD_OP RET;
+  friend VecT operator*=(VecT, T) STD_OP RET;
 
-#define INT_OP \
-  template<typename U = T, \
-           typename std::enable_if_t<std::is_integral_v<U>> * = nullptr, \
-           typename std::enable_if_t<!std::is_same_v<bool, U>> * = nullptr>
+#undef STD_OP
 
-  INT_OP friend VecT operator~(VecT) RET;
+#define INT_OP requires IsIntegral<T>
 
-  INT_OP friend VecT operator%(VecT, VecT) RET;
-  INT_OP friend VecT operator&(VecT, VecT) RET;
-  INT_OP friend VecT operator|(VecT, VecT) RET;
-  INT_OP friend VecT operator^(VecT, VecT) RET;
+  friend VecT operator~(VecT) INT_OP RET;
 
-  INT_OP friend VecT operator%(VecT, T) RET;
-  INT_OP friend VecT operator&(VecT, T) RET;
-  INT_OP friend VecT operator|(VecT, T) RET;
-  INT_OP friend VecT operator^(VecT, T) RET;
+  friend VecT operator%(VecT, VecT) INT_OP RET;
+  friend VecT operator&(VecT, VecT) INT_OP RET;
+  friend VecT operator|(VecT, VecT) INT_OP RET;
+  friend VecT operator^(VecT, VecT) INT_OP RET;
 
-  INT_OP friend VecT operator%(T, VecT) RET;
-  INT_OP friend VecT operator&(T, VecT) RET;
-  INT_OP friend VecT operator|(T, VecT) RET;
-  INT_OP friend VecT operator^(T, VecT) RET;
+  friend VecT operator%(VecT, T) INT_OP RET;
+  friend VecT operator&(VecT, T) INT_OP RET;
+  friend VecT operator|(VecT, T) INT_OP RET;
+  friend VecT operator^(VecT, T) INT_OP RET;
 
-  INT_OP friend VecT operator%=(VecT, VecT) RET;
-  INT_OP friend VecT operator&=(VecT, VecT) RET;
-  INT_OP friend VecT operator|=(VecT, VecT) RET;
-  INT_OP friend VecT operator^=(VecT, VecT) RET;
+  friend VecT operator%(T, VecT) INT_OP RET;
+  friend VecT operator&(T, VecT) INT_OP RET;
+  friend VecT operator|(T, VecT) INT_OP RET;
+  friend VecT operator^(T, VecT) INT_OP RET;
 
-  INT_OP friend VecT operator%=(VecT, T) RET;
-  INT_OP friend VecT operator&=(VecT, T) RET;
-  INT_OP friend VecT operator|=(VecT, T) RET;
-  INT_OP friend VecT operator^=(VecT, T) RET;
+  friend VecT operator%=(VecT, VecT) INT_OP RET;
+  friend VecT operator&=(VecT, VecT) INT_OP RET;
+  friend VecT operator|=(VecT, VecT) INT_OP RET;
+  friend VecT operator^=(VecT, VecT) INT_OP RET;
 
-  INT_OP friend VecT operator<<(VecT, VecT) RET;
-  INT_OP friend VecT operator>>(VecT, VecT) RET;
-  INT_OP friend VecT operator<<=(VecT, VecT) RET;
-  INT_OP friend VecT operator>>=(VecT, VecT) RET;
+  friend VecT operator%=(VecT, T) INT_OP RET;
+  friend VecT operator&=(VecT, T) INT_OP RET;
+  friend VecT operator|=(VecT, T) INT_OP RET;
+  friend VecT operator^=(VecT, T) INT_OP RET;
 
-  INT_OP friend VecT operator<<(T, VecT) RET;
-  INT_OP friend VecT operator>>(T, VecT) RET;
-  INT_OP friend VecT operator<<=(T, VecT) RET;
-  INT_OP friend VecT operator>>=(T, VecT) RET;
+  friend VecT operator<<(VecT, VecT) INT_OP RET;
+  friend VecT operator>>(VecT, VecT) INT_OP RET;
+  friend VecT operator<<=(VecT, VecT) INT_OP RET;
+  friend VecT operator>>=(VecT, VecT) INT_OP RET;
 
-  INT_OP friend VecT operator<<(VecT, T) RET;
-  INT_OP friend VecT operator>>(VecT, T) RET;
-  INT_OP friend VecT operator<<=(VecT, T) RET;
-  INT_OP friend VecT operator>>=(VecT, T) RET;
+  friend VecT operator<<(T, VecT) INT_OP RET;
+  friend VecT operator>>(T, VecT) INT_OP RET;
+  friend VecT operator<<=(T, VecT) INT_OP RET;
+  friend VecT operator>>=(T, VecT) INT_OP RET;
+
+  friend VecT operator<<(VecT, T) INT_OP RET;
+  friend VecT operator>>(VecT, T) INT_OP RET;
+  friend VecT operator<<=(VecT, T) INT_OP RET;
+  friend VecT operator>>=(VecT, T) INT_OP RET;
 
 #undef INT_OP
 };
