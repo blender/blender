@@ -8765,10 +8765,19 @@ class VIEW3D_PT_paint_vertex_context_menu(Panel):
 
 
 class VIEW3D_PT_paint_texture_context_menu(Panel):
+    # Used in both the 3DView as well as the Image Editor
     # Only for popover, these are dummy values.
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_label = "Texture Paint"
+
+    @classmethod
+    def poll(cls, context):
+        # Since bl_space_type is ignored for popovers, we need to check if the Image Editor is in the right mode
+        space = context.space_data
+        if space is not None and space.type == 'IMAGE_EDITOR' and space.mode != 'PAINT':
+            return False
+        return True
 
     def draw(self, context):
         layout = self.layout
