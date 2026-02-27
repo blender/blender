@@ -4058,9 +4058,8 @@ void LayoutItemPanelHeader::resolve_impl()
   const int2 size = item->size();
   y_ -= size.y;
   ui_item_position(item, x_, y_, w_, size.y);
-  const float offset = style_get_dpi()->panelspace;
   panel->runtime->layout_panels.headers.append(
-      {float(y_) - offset, float(y_ + h_) - offset, open_prop_owner, open_prop_name});
+      {float(y_), float(y_ + h_), open_prop_owner, open_prop_name});
 }
 
 /* panel body layout */
@@ -4068,11 +4067,10 @@ void LayoutItemPanelBody::resolve_impl()
 {
   Panel *panel = this->root_panel();
   LayoutColumn::resolve_impl();
-  const float offset = style_get_dpi()->panelspace;
   const int space = LayoutInternal::layout_space_get(this->parent_);
   panel->runtime->layout_panels.bodies.append({
-      float(y_ - space) - offset,
-      float(y_ + h_ + space) - offset,
+      float(y_ - space),
+      float(y_ + h_ + space),
   });
 }
 

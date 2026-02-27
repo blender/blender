@@ -10553,7 +10553,8 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, Block *block, float d
 {
   BLI_assert(dy != 0.0f);
 
-  const int scroll_pad = block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f;
+  const float scroll_pad = (block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f) /
+                           block->aspect;
 
   if (dy < 0.0f) {
     /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
@@ -10561,7 +10562,7 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, Block *block, float d
     for (const std::unique_ptr<Button> &bt : block->buttons) {
       ymax = max_ff(ymax, bt->rect.ymax);
     }
-    if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - scroll_pad) {
+    if (ymax + dy - (UI_UNIT_Y * 0.5f) / block->aspect < block->rect.ymax - scroll_pad) {
       dy = block->rect.ymax - ymax - scroll_pad;
     }
   }
@@ -10571,7 +10572,7 @@ static void ui_menu_scroll_apply_offset_y(ARegion *region, Block *block, float d
     for (const std::unique_ptr<Button> &bt : block->buttons) {
       ymin = min_ff(ymin, bt->rect.ymin);
     }
-    if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + scroll_pad) {
+    if (ymin + dy + (UI_UNIT_Y * 0.5f) / block->aspect > block->rect.ymin + scroll_pad) {
       dy = block->rect.ymin - ymin + scroll_pad;
     }
   }
