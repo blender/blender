@@ -1064,9 +1064,10 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_type("ShaderNodeNormalMap")) {
     const auto &storage = *static_cast<blender::NodeShaderNormalMap *>(b_node.storage);
     NormalMapNode *nmap = graph->create_node<NormalMapNode>();
-    nmap->set_space((NodeNormalMapSpace)storage.space);
+    nmap->set_space(NodeNormalMapSpace(storage.space));
     nmap->set_attribute(ustring(storage.uv_map));
-    nmap->set_convention((NodeNormalMapConvention)storage.convention);
+    nmap->set_convention(NodeNormalMapConvention(storage.convention));
+    nmap->set_base(NodeNormalMapBase(storage.base));
     node = nmap;
   }
   else if (b_node.is_type("ShaderNodeRadialTiling")) {

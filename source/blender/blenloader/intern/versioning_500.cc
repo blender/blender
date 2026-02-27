@@ -3818,6 +3818,22 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 56)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type != NTREE_SHADER) {
+        continue;
+      }
+
+      for (bNode &node : node_tree->nodes) {
+        if (node.type_legacy == SH_NODE_NORMAL_MAP) {
+          NodeShaderNormalMap *normal_map = static_cast<NodeShaderNormalMap *>(node.storage);
+          normal_map->base = SHD_NORMAL_MAP_BASE_DISPLACED;
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 58)) {
     for (Object &object : bmain->objects) {
       for (ModifierData &modifier : object.modifiers) {

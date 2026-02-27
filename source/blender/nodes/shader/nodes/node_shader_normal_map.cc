@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -40,6 +41,10 @@ static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, Pointer
   layout.prop(ptr, "convention", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
+    if (BKE_scene_uses_cycles(CTX_data_scene(C))) {
+      layout.prop(ptr, "base", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    }
+
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
     Object *object = static_cast<Object *>(obptr.data);
 
