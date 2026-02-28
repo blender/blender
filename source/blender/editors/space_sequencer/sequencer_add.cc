@@ -2009,6 +2009,11 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
     SolidColorVars *colvars = static_cast<SolidColorVars *>(strip->effectdata);
     RNA_float_get_array(op->ptr, "color", colvars->col);
   }
+  else if (strip->type == STRIP_TYPE_TEXT) {
+    TextVars *textvars = static_cast<TextVars *>(strip->effectdata);
+    textvars->runtime = seq::text_effect_calc_runtime(
+        strip, textvars->text_blf_id, int2(scene->r.xsch, scene->r.ysch));
+  }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   sequencer_select_do_updates(C, scene);
