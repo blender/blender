@@ -45,6 +45,7 @@ struct CharInfo {
 
 struct LineInfo {
   Vector<CharInfo> characters;
+  /** Pixel width. */
   int width;
 };
 
