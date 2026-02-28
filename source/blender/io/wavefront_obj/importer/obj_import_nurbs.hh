@@ -20,7 +20,7 @@ namespace blender {
 
 struct OBJImportParams;
 namespace bke {
-struct CurvesGeometry;
+class CurvesGeometry;
 };
 
 namespace io::obj {
