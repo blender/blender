@@ -29,11 +29,17 @@ void effect_text_font_set(Strip *strip, VFont *font);
 bool effects_can_render_text(const Strip *strip);
 
 struct CharInfo {
+  /** Character offset within text buffer. */
   int index = 0;
-  int offset = 0; /* Offset in bytes within text buffer. */
+  /** Byte offset within text buffer. */
+  int offset = 0;
+  /** Size of the character in bytes. */
   int byte_length = 0;
+  /** Pixel offset of character origin. */
   float2 position{0.0f, 0.0f};
+  /** FreeType pixel offset for drawing next character after this one. */
   int advance_x = 0;
+  /** Indicate that the next character after this one should be on a new line. */
   bool do_wrap = false;
 };
 

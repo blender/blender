@@ -875,57 +875,64 @@ static void apply_word_wrapping(const TextVars *data,
 {
   const int wrap_width = wrap_width_get(data, image_size);
 
-  float2 char_position{0.0f, 0.0f};
+  float2 cur_pixel_pos{0.0f, 0.0f};
   CharInfo *last_space = nullptr;
 
-  /* First pass: Find characters where line has to be broken. */
+  /* First pass: Find characters where line has to be broken. Temporarily set `CharInfo.position`
+   * only for space characters for now so that we can jump back if we find a breaking space. */
   for (CharInfo &character : characters) {
-    char ch = data->text_ptr[character.offset];
-    if (ch == ' ') {
-      character.position = char_position;
+    char char_ptr = data->text_ptr[character.offset];
+    if (char_ptr == ' ') {
+      character.position = cur_pixel_pos;
       last_space = &character;
     }
-    if (ch == '\n') {
-      char_position.x = 0;
+    if (char_ptr == '\n') {
+      character.do_wrap = true;
+      cur_pixel_pos.x = 0;
       last_space = nullptr;
     }
-    if (ch != '\0' && char_position.x > wrap_width && last_space != nullptr) {
+    if (char_ptr != '\0' && (cur_pixel_pos.x + character.advance_x) > wrap_width &&
+        last_space != nullptr)
+    {
       last_space->do_wrap = true;
-      char_position -= last_space->position + last_space->advance_x;
+      cur_pixel_pos.x -= last_space->position.x + last_space->advance_x;
+      last_space = nullptr;
     }
-    char_position.x += character.advance_x;
+    cur_pixel_pos.x += character.advance_x;
   }
 
   /* Second pass: Fill lines with characters. */
-  char_position = {0.0f, 0.0f};
+  cur_pixel_pos = {0.0f, 0.0f};
   runtime->lines.append(LineInfo());
   for (CharInfo &character : characters) {
-    character.position = char_position;
+    character.position = cur_pixel_pos;
     runtime->lines.last().characters.append(character);
-    runtime->lines.last().width = char_position.x;
+    runtime->lines.last().width = cur_pixel_pos.x;
 
-    char_position.x += character.advance_x;
+    cur_pixel_pos.x += character.advance_x;
 
-    if (character.do_wrap || data->text_ptr[character.offset] == '\n') {
+    if (character.do_wrap) {
       runtime->lines.append(LineInfo());
-      char_position.x = 0;
-      char_position.y -= runtime->line_height;
+      cur_pixel_pos.x = 0;
+      cur_pixel_pos.y -= runtime->line_height;
     }
   }
 
-  /* Third pass: Ensure, that lines have correct width.
-   * Note, that with italic fonts it is not possible to rely on `advance_x` value only. The actual
+  /* Third pass: Ensure that lines have correct width.
+   * Note that with italic fonts it is not possible to rely on `advance_x` value only. The actual
    * last character position (\0 or \n) is not changed, because cursor would be drawn at slightly
    * incorrect position. */
   for (LineInfo &line : runtime->lines) {
-    if (line.characters.size() <= 1) {
+    /* Subtract one to ignore \0 character. */
+    const int num_visible_chars = line.characters.size() - 1;
+    if (num_visible_chars == 0) {
       continue;
     }
 
-    CharInfo last_visible_char = line.characters[line.characters.size() - 2];
-    const char *buf = &data->text_ptr[last_visible_char.offset];
-    int glyph_width = math::ceil(BLF_width(runtime->font, buf, last_visible_char.byte_length));
-    line.width = last_visible_char.position.x + glyph_width;
+    CharInfo last_char = line.characters[num_visible_chars - 1];
+    const char *char_ptr = &data->text_ptr[last_char.offset];
+    int glyph_width = math::ceil(BLF_width(runtime->font, char_ptr, last_char.byte_length));
+    line.width = last_char.position.x + glyph_width;
   }
 }
 
