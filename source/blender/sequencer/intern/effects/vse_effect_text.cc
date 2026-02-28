@@ -200,6 +200,7 @@ static void init_text_effect(Strip *strip)
 
   data->text_ptr = BLI_strdup("Text");
   data->text_len_bytes = strlen(data->text_ptr);
+  data->cursor_offset = data->text_len_bytes;
 
   data->loc[0] = 0.5f;
   data->loc[1] = 0.5f;

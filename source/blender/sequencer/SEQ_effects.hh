@@ -25,8 +25,10 @@ void effect_ensure_initialized(Strip *strip);
 void effect_free(Strip *strip);
 int effect_get_num_inputs(int strip_type);
 bool effect_is_transition(StripType type);
+
 void effect_text_font_set(Strip *strip, VFont *font);
 bool effects_can_render_text(const Strip *strip);
+TextVarsRuntime *text_effect_calc_runtime(const Strip *strip, int font, const int2 image_size);
 
 struct CharInfo {
   /** Character offset within text buffer. */

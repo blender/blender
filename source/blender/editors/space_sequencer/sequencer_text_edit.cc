@@ -44,18 +44,21 @@ static bool sequencer_text_editing_poll(bContext *C)
   if (!sequencer_editing_initialized_and_active(C)) {
     return false;
   }
-  const Scene *scene = CTX_data_sequencer_scene(C);
-  if (!scene) {
+
+  if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {
     return false;
   }
 
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const Strip *strip = seq::select_active_get(scene);
-  if (strip == nullptr || strip->type != STRIP_TYPE_TEXT || !seq::effects_can_render_text(strip)) {
+  if (strip == nullptr || strip->type != STRIP_TYPE_TEXT ||
+      !strip->intersects_frame(scene, BKE_scene_frame_get(scene)))
+  {
     return false;
   }
 
   const TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  if (data == nullptr || data->runtime == nullptr) {
+  if (data == nullptr || data->runtime == nullptr || !seq::effects_can_render_text(strip)) {
     return false;
   }
 
@@ -64,22 +67,12 @@ static bool sequencer_text_editing_poll(bContext *C)
 
 bool sequencer_text_editing_active_poll(bContext *C)
 {
+  if (!sequencer_text_editing_poll(C)) {
+    return false;
+  }
+
   const Scene *scene = CTX_data_sequencer_scene(C);
-  if (!scene) {
-    return false;
-  }
   const Strip *strip = seq::select_active_get(scene);
-  if (strip == nullptr || !sequencer_text_editing_poll(C)) {
-    return false;
-  }
-
-  if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {
-    return false;
-  }
-
-  if (!strip->intersects_frame(scene, BKE_scene_frame_get(scene))) {
-    return false;
-  }
 
   return (strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) != 0;
 }
@@ -971,7 +964,7 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot)
 static wmOperatorStatus sequencer_text_edit_mode_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  if (sequencer_text_editing_active_poll(C)) {
+  if ((strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) != 0) {
     strip->flag &= ~SEQ_FLAG_TEXT_EDITING_ACTIVE;
   }
   else {
