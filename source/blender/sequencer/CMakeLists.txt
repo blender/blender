@@ -110,6 +110,8 @@ set(SRC
   intern/strip_transform.cc
   intern/utils.cc
   intern/utils.hh
+  intern/vse_compositor.cc
+  intern/vse_compositor.hh
 )
 
 set(LIB
