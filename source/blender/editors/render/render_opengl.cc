@@ -986,9 +986,14 @@ static bool screen_opengl_render_anim_init(wmOperator *op)
         &scene->r, &image_format, oglrender->sizex, oglrender->sizey, &width, &height);
     oglrender->movie_writers.reserve(oglrender->totvideos);
 
+    const bool is_multiview_name = ((scene->r.scemode & R_MULTIVIEW) != 0 &&
+                                    (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL));
+
     for (i = 0; i < oglrender->totvideos; i++) {
       Scene *scene_eval = DEG_get_evaluated_scene(oglrender->depsgraph);
-      const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
+      const char *suffix = is_multiview_name ?
+                               BKE_scene_multiview_view_id_suffix_get(&scene->r, i) :
+                               "";
       MovieWriter *writer = MOV_write_begin(scene_eval,
                                             &scene->r,
                                             &image_format,

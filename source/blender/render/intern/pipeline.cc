@@ -2367,7 +2367,8 @@ void RE_RenderAnim(Render *re,
     bool is_error = false;
     re->movie_writers.reserve(totvideos);
     for (int i = 0; i < totvideos; i++) {
-      const char *suffix = BKE_scene_multiview_view_id_suffix_get(&re->r, i);
+      const char *suffix = is_multiview_name ? BKE_scene_multiview_view_id_suffix_get(&re->r, i) :
+                                               "";
       MovieWriter *writer = MOV_write_begin(re->pipeline_scene_eval,
                                             &re->r,
                                             &image_format,
