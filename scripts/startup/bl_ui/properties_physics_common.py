@@ -220,7 +220,7 @@ def point_cache_ui(self, cache, enabled, cachetype):
         sub.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
 
         col = flow.column()
-        col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
+        col.operator("ptcache.bake_all", text="Bake All Physics").bake = True
         col.operator("ptcache.free_bake_all", text="Delete All Bakes")
         col.operator("ptcache.bake_all", text="Update All to Frame").bake = False
 
