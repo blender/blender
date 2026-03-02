@@ -1658,7 +1658,7 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
     return false;
   }
   const NodesModifierData &nmd = reinterpret_cast<const NodesModifierData &>(md);
-  if (!nmd.node_group) {
+  if (!nmd.node_group || ID_MISSING(nmd.node_group)) {
     return false;
   }
   if (const LibraryWeakReference *library_ref = nmd.node_group->id.library_weak_reference) {

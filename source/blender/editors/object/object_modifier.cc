@@ -3542,7 +3542,7 @@ static wmOperatorStatus geometry_node_tree_copy_assign_exec(bContext *C, wmOpera
 
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   bNodeTree *tree = nmd->node_group;
-  if (tree == nullptr) {
+  if (tree == nullptr || ID_MISSING(tree)) {
     return OPERATOR_CANCELLED;
   }
 

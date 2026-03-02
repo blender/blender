@@ -51,7 +51,7 @@ static bool has_surface_deformation_node(const Object &curves_ob)
       continue;
     }
     const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
-    if (nmd->node_group == nullptr) {
+    if (nmd->node_group == nullptr || ID_MISSING(nmd->node_group)) {
       continue;
     }
     if (has_surface_deformation_node(*nmd->node_group)) {
