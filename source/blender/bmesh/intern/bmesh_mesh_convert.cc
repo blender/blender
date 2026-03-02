@@ -1037,7 +1037,7 @@ static void bm_to_mesh_shape(BMesh *bm,
       if (currkey.data && (cd_shape_keyindex_offset != -1)) {
         CLOG_WARN(&LOG,
                   "Found shape-key but no CD_SHAPEKEY layers to read from, "
-                  "using existing shake-key data where possible");
+                  "using existing shape-key data where possible");
       }
       else {
         CLOG_WARN(&LOG,
