@@ -12,8 +12,6 @@
 #include "enums.hh"
 #include "utils.hh"
 
-#include <array>
-
 namespace blender::gpu::shader::parser {
 
 struct Token;
@@ -21,10 +19,7 @@ struct Token;
 /**
  * Turns string into token.
  */
-struct LexerBase : lexit::TokenBuffer {
-  static const std::array<CharClass, 128> bsl_char_class_table;
-  static const std::array<CharClass, 128> default_char_class_table;
-
+struct LexerBase {
   /** The lexer's input string. */
   std::string_view str;
 
@@ -35,10 +30,21 @@ struct LexerBase : lexit::TokenBuffer {
 
   /** Token type per token. */
   MutableSpan<TokenType> token_types;
+  /** End of the raw token before white-space removing. */
+  MutableSpan<uint32_t> token_ends;
   /** Ranges of characters per token. */
   OffsetIndices token_offsets;
 
+  /** Token Data. Backing memory for the spans. */
+  size_t alloc_size = 0;
+  char *memory = nullptr;
+
+  ~LexerBase();
+
  protected:
+  void ensure_memory();
+  /* Create tokens based on character stream. */
+  void tokenize(bool use_default_table = false);
   /* Change words into keyword (ex: `if`, `struct`, `template`). Must run before merge tokens. */
   void identify_keywords();
   /* Merge tokens (ex: '2','.','e','-','3` into '2.e-3`). */
@@ -55,10 +61,8 @@ struct SimpleLexer : LexerBase {
   void lexical_analysis(std::string_view input)
   {
     str = input;
-    process(input, bsl_char_class_table.data());
-    token_types_str = std::string_view((const char *)types_.get(), size_);
-    token_types = {types_.get(), size_};
-    token_offsets = {offsets_.get(), size_ + 1};
+    ensure_memory();
+    tokenize(true);
   }
 };
 
@@ -69,12 +73,10 @@ struct ExpressionLexer : LexerBase {
   void lexical_analysis(std::string_view input)
   {
     str = input;
-    process(input, default_char_class_table.data());
+    ensure_memory();
+    tokenize(true);
     identify_keywords();
     merge_tokens();
-    token_types_str = std::string_view((const char *)types_.get(), size_);
-    token_types = {types_.get(), size_};
-    token_offsets = {offsets_.get(), size_ + 1};
   }
 };
 
@@ -87,12 +89,10 @@ struct FullLexer : LexerBase {
   void lexical_analysis(std::string_view input)
   {
     str = input;
-    process(input, bsl_char_class_table.data());
+    ensure_memory();
+    tokenize();
     identify_keywords();
     merge_tokens();
-    token_types_str = std::string_view((const char *)types_.get(), size_);
-    token_types = {types_.get(), size_};
-    token_offsets = {offsets_.get(), size_ + 1};
   }
 };
 

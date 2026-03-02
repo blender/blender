@@ -606,52 +606,6 @@ static void test_shader_preprocessor()
 {
   {
     std::string input = R"(
-#  define MACRO() A
-MACRO()
-)";
-    std::string expect = R"(
-
-A
-)";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
-    EXPECT_EQ(expect, result);
-  }
-  {
-    std::string input = R"(
-#  define MACRO(A, B)
-MACRO(a, 1)
-)";
-    std::string expect = R"(
-
-
-)";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
-    EXPECT_EQ(expect, result);
-  }
-  {
-    std::string input = R"(
-#define MACRO(A, B, ...) \
-  A to_##A(B m) \
-  { \
-    return A(__VA_ARGS__); \
-  }
-
-MACRO(a, b, 1, 2)
-)";
-    std::string expect = R"(
-
-
-
-
-
-
-a to_a(b m) { return a(1, 2); }
-)";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
-    EXPECT_EQ(expect, result);
-  }
-  {
-    std::string input = R"(
 # if 1
 #  define drw_view_id 0
 # else
@@ -665,7 +619,7 @@ uint drw_view_id = 0;
 
 
     )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -679,7 +633,7 @@ mad(-(255.0f / 127.0f), SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.0f),
 
 (-(255.0f / 127.0f) * SMAASearchLength(searchTex, e, 0.0f) + 3.25f);
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -689,7 +643,7 @@ A)";
     std::string expect = R"(
 
 A)";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -703,7 +657,7 @@ B(foo, bar);
 
 (C(foo[bar])[(bar)] != 0u);
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -728,46 +682,16 @@ D(C,2)
 
 
 
-
+  
 2
-1
+1 
 12
 5
 5
 C2
 32
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
-    EXPECT_EQ(expect, result);
-  }
-  {
-    std::string input = R"(
-#define ATOMIC_OP_EX(A, B, C) \
-  template<typename T> T atomic##B(A T &mem, T data) \
-  { \
-    return atomic_##C##_explicit((A _atomic<T> *)&mem, data, memory_order_relaxed); \
-  }
-
-#define ATOMIC_OP(B, C) \
-  ATOMIC_OP_EX(threadgroup, B, C) \
-  ATOMIC_OP_EX(device, B, C)
-
-ATOMIC_OP(Max, fetch_max)
-)";
-    std::string expect = R"(
-
-
-
-
-
-
-
-
-
-
-template<typename T> T atomicMax(threadgroup T &mem, T data) { return atomic_fetch_max_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed); } template<typename T> T atomicMax(device T &mem, T data) { return atomic_fetch_max_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed); }
-)";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -783,7 +707,7 @@ High there!
 High there!
 
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -798,7 +722,7 @@ A
 A
 
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -811,7 +735,7 @@ X
 
 (X + 1)
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -829,7 +753,7 @@ STR(ESCAPE(NAME))
 
 shader_func
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -842,7 +766,7 @@ GLSL_FUNC(vec3(0.0, 1.0, 0.0), color)
 
 vec3(0.0, 1.0, 0.0) = color;
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -854,10 +778,10 @@ CONCAT(, _suffix)
 )";
     std::string expect = R"(
 
-prefix_
+prefix_ 
 _suffix
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -877,16 +801,16 @@ Success
     std::string expect = R"(
 
 
-  
 
-  
+
+
     Success
-  
+
 
 
 
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -898,7 +822,7 @@ float s = saturate(pow5f(1.0f - saturate(HV)));
 
 float s = clamp(pow5f(1.0f - clamp(HV, 0.0f, 1.0f)), 0.0f, 1.0f);
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
   {
@@ -930,7 +854,7 @@ I
 
 Q
 )";
-    std::string result = blender::gpu::Shader::run_preprocessor(input, true);
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
     EXPECT_EQ(expect, result);
   }
 }

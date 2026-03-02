@@ -293,6 +293,24 @@ void SourceProcessor::lower_using(Parser &parser)
   });
 }
 
+void SourceProcessor::lower_scope_resolution_operators(Parser &parser)
+{
+  parser().foreach_match("::", [&](const vector<Token> &tokens) {
+    if (tokens[0].scope().type() == ScopeType::Attribute) {
+      return;
+    }
+    if (tokens[0].prev() != Word) {
+      /* Global namespace reference. */
+      parser.erase(tokens.front(), tokens.back());
+    }
+    else {
+      /* Specific namespace reference. */
+      parser.replace(tokens.front(), tokens.back(), namespace_separator);
+    }
+  });
+  parser.apply_mutations();
+}
+
 /* Parse SRT and interfaces, remove their attributes and create init function for SRT structs. */
 void SourceProcessor::lower_resource_table(Parser &parser)
 {

@@ -7,206 +7,226 @@
  */
 
 #include "BKE_global.hh"
-#include "BLI_bit_vector.hh"
 
 #include "shader_tool/expression.hh"
+#include "shader_tool/intermediate.hh"
 
 #include "gpu_shader_dead_code_elimination.hh"
 #include "gpu_shader_private.hh"
 
-#include "shader_tool/lexit/identifier.hh"
 #include "shader_tool/lexit/lexit.hh"
 #include "shader_tool/lexit/tables.hh"
 
 namespace blender::gpu {
 
-using LexerBase = shader::parser::LexerBase;
-using NullParser = shader::parser::NullParser;
-using namespace lexit;
+/* -------------------------------------------------------------------- */
+/** \name Utilities.
+ * \{ */
 
-template<typename IToken> struct TokenRange {
-  IToken begin, end;
+namespace shader::parser {
+
+struct TokenRange {
+  Token start, end;
 };
+
+static StringRef str(const Token t)
+{
+  /* Note: Whitespaces where not merged (because of TokenizePreprocessor), so using
+   * str_view_with_whitespace will be faster.  */
+  return t.str_view_with_whitespace();
+}
+
+static StringRef str(const TokenRange &range)
+{
+  int start = range.start.str_index_start();
+  int end = range.end.str_index_last();
+  return StringRef(range.start.data->lex.str.data() + start, end - start + 1);
+}
+
+static Token skip_space(Token tok)
+{
+  while (tok == Space) {
+    tok = tok.next();
+  }
+  return tok;
+}
+
+static Token skip_space_backward(Token tok)
+{
+  while (tok == Space) {
+    tok = tok.prev();
+  }
+  return tok;
+}
+
+}  // namespace shader::parser
+
+/** \} */
+
+using namespace shader::parser;
 
 /* -------------------------------------------------------------------- */
 /** \name Parser / Lexer classes.
  * \{ */
 
-class Line;
-class Directive;
-
-struct TokenPastingBuffer : lexit::TokenBuffer {
- private:
-  /** WORKAROUND: We need the string to be immutable since the atomization_map_ contains StringRef.
-   * But we also need the pasted token to be in a continuous string buffer for the TokenBuffer.
-   * So we keep the old string around when we need to grow the buffer. */
-  Vector<std::unique_ptr<std::string>> pasted_tokens_str;
-
- public:
-  TokenPastingBuffer()
-  {
-    pasted_tokens_str.append(std::make_unique<std::string>());
-    pasted_tokens_str.last()->resize(1024 * 2);
-    this->reserve(512);
-    this->offsets_[0] = 0;
-    this->offsets_end_[0] = 0;
-  }
-
-  /**
-   * tok_str is the final token string with the optional added space at the end.
-   */
-  BLI_INLINE_METHOD TokenMut paste_token(const std::string &tok_str,
-                                         const TokenType type,
-                                         const bool followed_by_space)
-  {
-    std::string *str_ptr = pasted_tokens_str.last().get();
-    int occupied = str_.length();
-
-    int token_size = tok_str.size();
-
-    while (occupied + token_size > str_ptr->size()) {
-      /* Create new larger buffer and copy current content.
-       * Do not free old string to not invalidate the StringRefs inside the atomization map.
-       * Cost is relatively small. */
-      pasted_tokens_str.append(std::make_unique<std::string>());
-      std::string *new_str_ptr = pasted_tokens_str.last().get();
-      new_str_ptr->resize(str_ptr->size() * 2);
-      std::memcpy(new_str_ptr->data(), str_ptr->data(), str_ptr->size());
-      /* Continue logic with new string buffer. */
-      str_ptr = new_str_ptr;
-    }
-
-    /* Copy token string. */
-    std::memcpy(str_ptr->data() + occupied, tok_str.data(), token_size);
-    /* Update buffer string_ref. */
-    str_ = {str_ptr->data(), size_t(occupied + token_size)};
-    /* Add token to buffer. */
-    append(type, 0, token_size - followed_by_space, token_size);
-
-    return TokenMut(this, size_ - 1);
-  }
-};
-
 /**
  * Lexer variant for very fast tokenization for the preprocessor.
+ * Consider numbers as words (to avoid splitting and then merging later on).
  * Does not merge newlines and spaces together.
- * Convert all identifier strings (words) into unique identifiers (TokenAtom) for fast comparison.
+ * Convert all identifier strings (words) into unique identifiers (Atom) for fast comparison.
  */
-struct AtomicLexer : lexit::TokenBuffer {
+struct AtomicLexer : LexerBase {
+  /* Unique identifier to a word token. */
+  using Atom = uint16_t;
+  /* String hash used to lookup atoms. uint64_t is slower. */
+  using Hash = uint32_t;
+
+#ifndef NDEBUG
+  /** We do not support hash collision yet (for speed). */
+  Map<StringRef, Hash> check_map;
+#endif
+  /** Atom per token. NOTE: Values are undefined for non word token. */
+  Vector<Atom> token_atoms;
+
   /* Line index to token range. */
   blender::OffsetIndices<int> line_offsets;
-
   /* Preprocessor directive to line index. */
   Vector<int> directive_lines;
 
- public:
-  AtomicLexer(StringRef str)
+  BLI_NOINLINE void tokenize()
   {
-    lexical_analysis(str);
+    lexit::TokenBuffer tok_buf(str.data(), str.size(), token_types.data(), token_offsets.data());
+    tok_buf.tokenize(lexit::char_class_table);
+
+    /* Resize to the actual usage. */
+    token_types.shrink(tok_buf.size());
+    token_ends.shrink(tok_buf.size());
+    token_offsets.offsets.shrink(tok_buf.size() + 1);
+
+    update_string_view();
   }
 
-  Line line(int index) const;
-  Directive directive(int index) const;
-
-  BLI_INLINE_METHOD TokenAtom hash(StringRef tok_str)
+  BLI_NOINLINE void merge_tokens()
   {
-    return identifier_map.lookup_or_add(tok_str);
+    lexit::TokenBuffer tok_buf(
+        str.data(), str.size(), token_types.data(), token_offsets.data(), token_types.size());
+
+    tok_buf.merge_complex_literals();
+
+    /* Resize to the actual usage. */
+    token_types.shrink(tok_buf.size());
+    token_ends.shrink(tok_buf.size());
+    token_offsets.offsets.shrink(tok_buf.size() + 1);
+
+    update_string_view();
   }
 
-  TokenPastingBuffer pasting_buf;
-
-  BLI_INLINE_METHOD Token paste_token(const std::string &tok_str,
-                                      const TokenType type,
-                                      const bool followed_by_space)
+  void lexical_analysis(std::string_view input)
   {
-    TokenMut tok = pasting_buf.paste_token(tok_str, type, followed_by_space);
-    /** IMPORTANT: The hash function need to store a StringRef of the string. We have to make sure
-     * to feed it the final stored string to avoid referencing freed memory. */
-    tok.atom() = hash(tok.str());
-    return tok;
+    str = input;
+    ensure_memory();
+
+    tokenize();
+    atomize_words();
+    build_line_structure();
   }
 
-  TokenAtom max_atom_value() const
+  BLI_INLINE_METHOD Atom hash(StringRef tok_str)
   {
-    return identifier_map.max_atom_value();
+    union {
+      uint64_t u64;
+      uint32_t u32[2];
+    };
+    u64 = 0;
+
+    switch (tok_str.size()) {
+      case 1:
+        /* Reserve [0-127] range for single char token. */
+        return tok_str[0];
+      case 2:
+        /* Reserve [128-16511] range for double char token. tok_str[1] cannot be 0. */
+        return tok_str[0] + tok_str[1] * uint16_t(128);
+      case 3:
+      case 4:
+        std::memcpy(&u64, tok_str.data(), tok_str.size());
+        return atom_u32_map_.lookup_or_add_cb(u32[0], [this]() { return this->next_hash(); });
+      case 5:
+      case 6:
+      case 7:
+      case 8:
+        std::memcpy(&u64, tok_str.data(), tok_str.size());
+        return atom_u64_map_.lookup_or_add_cb(u64, [this]() { return this->next_hash(); });
+      default:
+        /* Long identifier slow path. Do full hash */
+        return atomization_map_.lookup_or_add_cb(tok_str, [this]() { return this->next_hash(); });
+    }
   }
 
  protected:
-  void lexical_analysis(std::string_view input)
+  /** Map string hashes to atom value. */
+  Map<StringRef, Atom> atomization_map_;
+  Map<uint64_t, Atom> atom_u64_map_;
+  Map<uint32_t, Atom> atom_u32_map_;
+  /* Reserve [16512-65536] range for longer token. */
+  uint16_t atom_hash_counter_ = 16512;
+
+  uint16_t next_hash()
   {
-    process(input, lexit::char_class_table);
-    lex_pass();
+    /* Check for overflow. */
+    BLI_assert(atom_hash_counter_ >= 16512);
+    return atom_hash_counter_++;
+  }
+
+  BLI_NOINLINE void atomize_words()
+  {
+    const int tok_count = token_types.size();
+
+    token_atoms.resize(tok_count);
+    /* From checking our statistics. This heuristic should be enough for 99% of our cases. */
+    atom_u32_map_.reserve(tok_count / 170);
+    atom_u64_map_.reserve(tok_count / 80);
+    atomization_map_.reserve(tok_count / 25);
+
+    for (int tok_id = 0; tok_id < tok_count; tok_id++) {
+      if (token_types[tok_id] != Word) {
+        continue;
+      }
+      IndexRange range = token_offsets[tok_id];
+      token_atoms[tok_id] = hash(StringRef(str.data() + range.start, range.size));
+    }
   }
 
   /* Backing buffer for line_offsets. */
   Vector<int> line_offsets_buf_;
 
-  lexit::IdentifierMap identifier_map;
-
-  /**
-   * All-in-one lexing pass.
-   * - Keywords identification.
-   * - Identifiers atomization.
-   * - Line structure building.
-   */
-  BLI_NOINLINE void lex_pass()
+  BLI_NOINLINE void build_line_structure()
   {
-    identifier_map.reserve(size());
+    /* From checking our statistics. This heuristic should be enough for 100% of our cases. */
+    line_offsets_buf_.reserve(token_types.size() / 7);
+    directive_lines.reserve(line_offsets_buf_.size() / 2);
 
-    std::memset(atoms_.get(), 0, size() * sizeof(TokenAtom));
-
-    /* Reserved 0 atom (invalid). */
-    hash(" ");
-
-    KeywordTable keywords({
-        identifier_map.make_keyword("line", TokenType::Line),
-        identifier_map.make_keyword("define", Define),
-        identifier_map.make_keyword("if", If),
-        identifier_map.make_keyword("ifdef", Ifdef),
-        identifier_map.make_keyword("ifndef", Ifndef),
-        identifier_map.make_keyword("else", Else),
-        identifier_map.make_keyword("elif", Elif),
-        identifier_map.make_keyword("endif", Endif),
-        identifier_map.make_keyword("pragma", Pragma),
-        identifier_map.make_keyword("undef", Undef),
-    });
-
-    /* Not keywords, but warm the identifier map with common identifiers. */
-    identifier_map.lookup_or_add("r");
-    identifier_map.lookup_or_add("a");
-    identifier_map.lookup_or_add("void");
-    identifier_map.lookup_or_add("return");
-    identifier_map.lookup_or_add("x");
-    identifier_map.lookup_or_add("y");
-    identifier_map.lookup_or_add("texture");
-    identifier_map.lookup_or_add("coord");
-    identifier_map.lookup_or_add("struct");
-    identifier_map.lookup_or_add("int");
-    identifier_map.lookup_or_add("uint");
-    identifier_map.lookup_or_add("float");
-
-    atomize_words(identifier_map, keywords);
-
-    /* Create line structure. */
-    line_offsets_buf_.resize(size_);
-    line_offsets_buf_[0] = 0;
-    int line_id = 1;
-    for (int i = 0; i < size_; ++i) {
-      line_offsets_buf_[line_id] = i + 1;
-      line_id += types_[i] == NewLine;
-    }
-    line_offsets_buf_.resize(line_id);
-    /* Finish last line. But only do so if it contains at least one character. */
-    if (line_offsets_buf_.last() != size_) {
-      line_offsets_buf_.append(size_);
-    }
-
-    /* Create directive structure. */
-    directive_lines.reserve(line_offsets_buf_.size());
-    for (int i = 0; i < line_offsets_buf_.size(); ++i) {
-      if (types_[line_offsets_buf_[i]] == '#') {
-        directive_lines.append(i);
+    line_offsets_buf_.append(0);
+    int tok_id = 0;
+    for (TokenType type : blender::Span<TokenType>(token_types.data(), token_types.size())) {
+      if (type == NewLine) {
+        line_offsets_buf_.append(tok_id + 1);
       }
+      else if (type == '#') {
+        int line_start = line_offsets_buf_.last();
+        /* Directive can only start with a hash token (+ optional space).
+         * If there is more token before the hash token it cannot be a preprocessor directive. */
+        if (tok_id - line_start <= 1) {
+          int line_index = line_offsets_buf_.size() - 1;
+          if (directive_lines.is_empty() || directive_lines.last() != line_index) {
+            directive_lines.append(line_index);
+          }
+        }
+      }
+      tok_id++;
+    }
+    /* Finish last line. But only do so if it contains at least one character. */
+    if (line_offsets_buf_.last() != tok_id) {
+      line_offsets_buf_.append(tok_id);
     }
 
     line_offsets = line_offsets_buf_.as_span();
@@ -219,522 +239,372 @@ struct AtomicLexer : lexit::TokenBuffer {
 /** \name Type-safe identifier management.
  * \{ */
 
-/* Has quite a performance hit in debug. Enable if needed. */
-// #define DEBUG_ID_STRING
-
-class Line {
-  friend Directive;
-  friend AtomicLexer;
-
+/* Simple integer identifier with a debug string view.
+ * Allow type safety and function overload. */
+template<typename Trait, typename T = int> class ID {
+#ifndef NDEBUG
+ public:
+  std::string_view str;
+#endif
  private:
-#ifdef DEBUG_ID_STRING
-  std::string_view debug_str_;
-#endif
-  const AtomicLexer *lex_;
-  int index_;
-
-  Line() : lex_(nullptr), index_(-1) {};
-
-  Line(const AtomicLexer *lex, int index) : lex_(lex), index_(index)
-  {
-    BLI_assert(is_valid());
-#ifdef DEBUG_ID_STRING
-    debug_str_ = str();
-#endif
-  };
+  T id_;
 
  public:
-  static Line invalid()
+  ID() = delete;
+
+  explicit ID(T i) : id_(i) {}
+
+  static ID invalid()
   {
-    return Line();
+    return ID(-1);
   }
 
-  explicit operator int() const
+  explicit operator T() const
   {
-    return index_;
+    return id_;
   }
 
-  Token first() const
+  friend bool operator==(const ID &a, const ID &b)
   {
-    return (*lex_)[lex_->line_offsets[index_].first()];
-  }
-  /* Return the end element. Return the token before \n or \n if line is empty. */
-  Token last() const
-  {
-    blender::IndexRange range = lex_->line_offsets[index_];
-    return (*lex_)[range.size() > 1 ? range.last(1) : range.last()];
-  }
-  /* NOTE: Return the end of line character '\n'. */
-  Token end() const
-  {
-    return (*lex_)[lex_->line_offsets[index_].last()];
-  }
-
-  StringRef str() const
-  {
-    IndexRange range = lex_->line_offsets[index_];
-    return lex_->substr((*lex_)[range.first()], (*lex_)[range.last()]);
-  }
-
-  bool is_last() const
-  {
-    return (lex_->line_offsets.size() - 1) == index_;
-  }
-
-  bool is_valid() const
-  {
-    return index_ >= 0 && index_ < lex_->line_offsets.size();
-  }
-
-  /* Return next token. Result in undefined behavior if id is last. */
-  Line next() const
-  {
-    return Line(lex_, index_ + 1);
-  }
-  /* Return previous token. Result in undefined behavior if id is first. */
-  Line prev() const
-  {
-    return Line(lex_, index_ - 1);
-  }
-
-  friend bool operator==(const Line &a, const Line &b)
-  {
-    return a.index_ == b.index_;
+    return a.id_ == b.id_;
   }
 
   uint64_t hash() const
   {
-    return index_;
+    return id_;
   }
 };
 
-enum class DirectiveType : char {
-  Define = TokenType::Define,
-  Undef = TokenType::Undef,
-  Line = TokenType::Line,
-  If = TokenType::If,
-  Ifdef = TokenType::Ifdef,
-  Ifndef = TokenType::Ifndef,
-  Elif = TokenType::Elif,
-  Else = TokenType::Else,
-  Endif = TokenType::Endif,
-  Pragma = TokenType::Pragma,
-  /* Any other unhandled directives (warnings / errors / pragma etc...). */
-  Other = TokenType::Word,
-};
+/* TODO(fclem): Meh find a better way. Exceptions? */
+static void report_fn(int /*error_line*/,
+                      int /*error_char*/,
+                      std::string /*error_line_string*/,
+                      const char * /*error_str*/)
+{
+  BLI_assert_unreachable();
+}
 
-/* Simple integer identifier with a debug string view.
- * Allow type safety and function overload. */
-class Directive {
-  friend AtomicLexer;
+report_callback report_fn_ptr = report_fn;
 
- private:
-#ifdef DEBUG_ID_STRING
-  std::string_view debug_str_;
-#endif
-  const AtomicLexer *lex_;
-  int index_;
+/**
+ * Boiler plate class exposing lexer structure using typed IDs.
+ */
+struct IntermediateFormWithIDs : IntermediateForm<AtomicLexer, NullParser> {
 
-  Directive() : lex_(nullptr), index_(-1) {};
-  Directive(const AtomicLexer *lex, int index) : lex_(lex), index_(index)
+  IntermediateFormWithIDs(StringRef str)
+      : IntermediateForm<AtomicLexer, NullParser>(str, report_fn_ptr)
   {
-    BLI_assert(is_valid());
-#ifdef DEBUG_ID_STRING
-    debug_str_ = str();
-#endif
+  }
+
+  struct TokenTrait {};
+  struct LineTrait {};
+  struct DirectiveTrait {};
+  struct AtomTrait {};
+
+  using TokenID = ID<TokenTrait>;
+  using LineID = ID<LineTrait>;
+  using DirectiveID = ID<DirectiveTrait>;
+  /* Type-safe Atom. */
+  using AtomID = ID<AtomTrait, AtomicLexer::Atom>;
+
+  enum DirectiveType : char {
+    Define = 0,
+    Undef,
+    Line,
+    If,
+    Ifdef,
+    Ifndef,
+    Elif,
+    Else,
+    Endif,
+    /* Any other unhandled directives (warnings / errors / pragma etc...). */
+    Other,
   };
 
- public:
-  static Directive invalid()
+  /* This relies on lexical_analysis being called inside the constructor. */
+  std::array<AtomID, Other> directive_type_table = {
+      /* Not using array designators since its not standard C++ :sad:. */
+      /*[Define] = */ get_atom("define"),
+      /*[Undef] = */ get_atom("undef"),
+      /*[Line] = */ get_atom("line"),
+      /*[If] = */ get_atom("if"),
+      /*[Ifdef] = */ get_atom("ifdef"),
+      /*[Ifndef] = */ get_atom("ifndef"),
+      /*[Elif] = */ get_atom("elif"),
+      /*[Else] = */ get_atom("else"),
+      /*[Endif] = */ get_atom("endif"),
+  };
+
+  /* Cached 'defined' keyword identifier. */
+  AtomID defined_atom = get_atom("defined");
+
+  /**
+   * Validity check.
+   */
+  bool is_valid(TokenID tok)
   {
-    return Directive();
+    return int(tok) >= 0 && int(tok) < lex_.token_types.size();
+  }
+  bool is_valid(LineID line)
+  {
+    return int(line) >= 0 && int(line) < lex_.line_offsets.size();
+  }
+  bool is_valid(DirectiveID dir)
+  {
+    return int(dir) >= 0 && int(dir) < lex_.directive_lines.size();
   }
 
-  explicit operator int() const
+  /**
+   * Check if item is the last of its kind.
+   */
+  bool is_last(DirectiveID dir)
   {
-    return index_;
+    return (lex_.directive_lines.size() - 1) == int(dir);
+  }
+  bool is_last(LineID line)
+  {
+    return (lex_.line_offsets.size() - 1) == int(line);
+  }
+  bool is_last(TokenID tok)
+  {
+    return (lex_.token_types.size() - 1) == int(tok);
   }
 
-  Line first() const
+  /**
+   * Creation. Creating an invalid token is undefined behavior.
+   */
+  TokenID make_token(int index)
   {
-    return lex_->line(lex_->directive_lines[index_]);
+    TokenID tok(index);
+#ifndef NDEBUG
+    tok.str = str(tok);
+#endif
+    BLI_assert(is_valid(tok));
+    return tok;
+  }
+  LineID make_line(int index)
+  {
+    LineID line(index);
+#ifndef NDEBUG
+    line.str = str(line);
+#endif
+    BLI_assert(is_valid(line));
+    return line;
+  }
+  DirectiveID make_directive(int index)
+  {
+    DirectiveID dir(index);
+#ifndef NDEBUG
+    dir.str = str(dir);
+#endif
+    BLI_assert(is_valid(dir));
+    return dir;
   }
 
-  Line last() const
+  /**
+   * Convert ID to string.
+   */
+  StringRef str(DirectiveID dir)
+  {
+    LineID start = get_start(dir);
+    LineID end = get_end(dir);
+    Token tok_start = parser_[int(get_start(start))];
+    Token tok_end = parser_[int(get_end(end))];
+    return substr_range_inclusive_view(tok_start, tok_end);
+  }
+  StringRef str(LineID line)
+  {
+    TokenID start = get_start(line);
+    TokenID end = get_end(line);
+    Token tok_start = parser_[int(start)];
+    Token tok_end = parser_[int(end)];
+    return substr_range_inclusive_view(tok_start, tok_end);
+  }
+  StringRef str(TokenID tok)
+  {
+    return parser_[int(tok)].str_view_with_whitespace();
+  }
+  StringRef str(TokenID start, TokenID end_inclusive)
+  {
+    return substr_range_inclusive_view(parser_[int(start)], parser_[int(end_inclusive)]);
+  }
+
+  /* Return valid value if tok is valid and a word token. */
+  AtomID get_atom(TokenID tok)
+  {
+    BLI_assert(get_type(tok) == Word);
+    return AtomID(lex_.token_atoms[int(tok)]);
+  }
+  /* Return valid value if dir is valid. */
+  AtomID get_atom(DirectiveID dir)
+  {
+    return AtomID(lex_.token_atoms[int(get_identifier(dir))]);
+  }
+  /* Return valid value if hash is a known string. Is full hash lookup + hashing. */
+  AtomID get_atom(StringRef str)
+  {
+    return AtomID(lex_.hash(str));
+  }
+
+  /**
+   * Return next token. Result in undefined behavior if id is last.
+   */
+  LineID next(LineID line)
+  {
+    return make_line(int(line) + 1);
+  }
+  TokenID next(TokenID token)
+  {
+    return make_token(int(token) + 1);
+  }
+  DirectiveID next(DirectiveID directive)
+  {
+    return make_directive(int(directive) + 1);
+  }
+
+  /**
+   * Return previous token. Result in undefined behavior if id is first.
+   */
+  LineID prev(LineID line)
+  {
+    return make_line(int(line) - 1);
+  }
+  TokenID prev(TokenID token)
+  {
+    return make_token(int(token) - 1);
+  }
+  DirectiveID prev(DirectiveID directive)
+  {
+    return make_directive(int(directive) - 1);
+  }
+
+  /**
+   * Jump to next token. Undefined behavior if tok is the last token.
+   */
+  TokenID skip_space(TokenID tok)
+  {
+    return (get_type(tok) == Space) ? next(tok) : tok;
+  }
+
+  /**
+   * Return the start element.
+   */
+  TokenID get_start(LineID line)
+  {
+    return make_token(lex_.line_offsets[int(line)].start());
+  }
+  LineID get_start(DirectiveID dir)
+  {
+    return make_line(lex_.directive_lines[int(dir)]);
+  }
+
+  /**
+   * Return the end element.
+   * NOTE: Return the token before \n or \n if line is empty.
+   */
+  TokenID get_end(LineID line)
+  {
+    blender::IndexRange range = lex_.line_offsets[int(line)];
+    return make_token(range.size() > 1 ? range.last(1) : range.last());
+  }
+  LineID get_end(DirectiveID dir)
   {
     /* Could be precomputed if becoming a bottleneck. */
-    Line line = first();
-    while (line.last() == Backslash) {
-      line = line.next();
+    LineID line = get_start(dir);
+    while (get_type(get_end(line)) == Backslash) {
+      line = next(line);
     }
     return line;
   }
 
-  DirectiveType type() const
+  /* NOTE: Return the end of line character '\n'. */
+  TokenID get_true_end(LineID line)
   {
-    return DirectiveType(identifier().type());
+    return make_token(lex_.line_offsets[int(line)].last());
+  }
+
+  /* Return the type of the next token or Invalid if this is the last token. */
+  TokenType look_ahead(TokenID tok)
+  {
+    return is_last(tok) ? Invalid : get_type(next(tok));
+  }
+  /* Return the type of the previous token or Invalid if this is the first token. */
+  TokenType look_behind(TokenID tok)
+  {
+    return int(tok) == 0 ? Invalid : get_type(prev(tok));
+  }
+
+  /**
+   * Get the corresponding type enum.
+   */
+  TokenType get_type(TokenID tok)
+  {
+    return lex_.token_types[int(tok)];
+  }
+  DirectiveType get_type(DirectiveID dir)
+  {
+    AtomID id_hash = get_atom(dir);
+    /* Linear search in small array. */
+    for (int i : blender::IndexRange(directive_type_table.size())) {
+      if (directive_type_table[i] == id_hash) {
+        return DirectiveType(i);
+      }
+    }
+    return Other;
   }
 
   /* Return token defining the directive type (e.g. define, undef, if ...). */
-  Token identifier() const
+  TokenID get_identifier(DirectiveID dir)
   {
-    Line line = first();
-    Token hash_tok = line.first();
-    BLI_assert(hash_tok == Hash);
-    Token dir_tok = hash_tok.next();
+    LineID line = get_start(dir);
+    TokenID hash_tok = skip_space(get_start(line));
+    BLI_assert(get_type(hash_tok) == Hash);
+    TokenID dir_tok = skip_space(next(hash_tok));
+    BLI_assert(get_type(dir_tok) == Word);
     return dir_tok;
   }
 
-  bool is_valid() const
+  /* Returns the type of conditional. */
+  DirectiveType increment_to_next_conditional(DirectiveID &dir)
   {
-    return index_ >= 0 && index_ < lex_->directive_lines.size();
+    dir = next(dir);
+    while (is_valid(dir)) {
+      DirectiveType type = get_type(dir);
+      if (ELEM(type, If, Ifdef, Ifndef, Else, Elif, Endif)) {
+        return type;
+      }
+      dir = next(dir);
+    }
+    /* Missing matching #endif. */
+    // TODO exception?
+    BLI_assert_unreachable();
+    return Other;
   }
 
-  bool is_last() const
+  /* Returns the hash token. */
+  DirectiveID find_next_matching_conditional(DirectiveID dir)
   {
-    return (lex_->directive_lines.size() - 1) == index_;
-  }
+    int stack = 1;
+    while (is_valid(dir)) {
+      DirectiveType type = increment_to_next_conditional(dir);
+      if (ELEM(type, If, Ifdef, Ifndef)) {
+        stack++;
+      }
+      else if (ELEM(type, Endif)) {
+        stack--;
+      }
 
-  Directive next() const
-  {
-    return Directive(lex_, index_ + 1);
-  }
-  Directive prev() const
-  {
-    return Directive(lex_, index_ - 1);
-  }
-
-  StringRef str() const
-  {
-    Line start = first();
-    Line end = last();
-    Token tok_start = start.first();
-    Token tok_end = end.last();
-    return lex_->substr(tok_start, tok_end);
-  }
-
-  StringRef str_with_whitespace() const
-  {
-    Line start = first();
-    Line end = last();
-    Token tok_start = start.first();
-    Token tok_end = end.end();
-    return lex_->substr(tok_start, tok_end);
-  }
-
-  friend bool operator==(const Directive &a, const Directive &b)
-  {
-    return a.index_ == b.index_;
-  }
-
-  uint64_t hash() const
-  {
-    return index_;
+      if (stack == 0) {
+        return dir; /* Endif. */
+      }
+      if (stack == 1 && ELEM(type, Else, Elif)) {
+        return dir;
+      }
+    }
+    BLI_assert_unreachable();
+    return DirectiveID::invalid();
   }
 };
-
-/* Returns the type of conditional. */
-static DirectiveType increment_to_next_conditional(Directive &dir)
-{
-  dir = dir.next();
-  while (dir.is_valid()) {
-    DirectiveType type = dir.type();
-    if (ELEM(type,
-             DirectiveType::If,
-             DirectiveType::Ifdef,
-             DirectiveType::Ifndef,
-             DirectiveType::Else,
-             DirectiveType::Elif,
-             DirectiveType::Endif))
-    {
-      return type;
-    }
-    dir = dir.next();
-  }
-  /* Missing matching #endif. */
-  // TODO exception?
-  BLI_assert_unreachable();
-  return DirectiveType::Other;
-}
-
-static Directive find_next_matching_conditional(Directive dir)
-{
-  int stack = 1;
-  while (dir.is_valid()) {
-    DirectiveType type = increment_to_next_conditional(dir);
-    if (ELEM(type, DirectiveType::If, DirectiveType::Ifdef, DirectiveType::Ifndef)) {
-      stack++;
-    }
-    else if (ELEM(type, DirectiveType::Endif)) {
-      stack--;
-    }
-
-    if (stack == 0) {
-      return dir; /* Endif. */
-    }
-    if (stack == 1 && ELEM(type, DirectiveType::Else, DirectiveType::Elif)) {
-      return dir;
-    }
-  }
-  BLI_assert_unreachable();
-  return Directive::invalid();
-}
-
-Line AtomicLexer::line(int index) const
-{
-  return Line(this, index);
-}
-
-Directive AtomicLexer::directive(int index) const
-{
-  return Directive(this, index);
-}
-
-struct TokenStream {
-  /* Ensure to add a Space after the previous token. */
-  struct Space {};
-  /* Will paste a "1" token in the stream. */
-  struct True {};
-  /* Will paste a "0" token in the stream. */
-  struct False {};
-  /* Concatenate the previous token with the next one. */
-  struct Concatenate {};
-
-  /* Data container. The tokens can be from different lexers.
-   * We can't iterate using tok.next(). */
-  Vector<Token> tokens;
-
- private:
-  /* Needed for token pasting. */
-  AtomicLexer &lex_;
-  /* State tracking. */
-  bool concat_next_ = false;
-  /* Cached output buffer to avoid reallocations. */
-  std::string result_buf_;
-
- public:
-  explicit TokenStream(AtomicLexer &lex) : lex_(lex) {};
-
-  /* Set size to 0. Doesn't reallocate. */
-  void clear()
-  {
-    tokens.clear();
-  }
-
-  TokenStream &operator<<(const TokenStream &stream)
-  {
-    tokens.extend(stream.tokens);
-    return *this;
-  }
-
-  TokenStream &operator<<(Token tok)
-  {
-    bool followed_by_space = tok.followed_by_whitespace();
-    if (UNLIKELY(concat_next_)) {
-      tok = paste_token(tokens.last().str(), tok.str(), followed_by_space);
-      tok.flag = followed_by_space;
-      tokens.last() = tok;
-      concat_next_ = false;
-    }
-    else {
-      tok.flag = followed_by_space;
-      tokens.append(tok);
-    }
-    return *this;
-  }
-  /* NOTE: Not compatible with concatenation. */
-  TokenStream &operator<<(True /*tok*/)
-  {
-    tokens.append(paste_token("1", "", false));
-    return *this;
-  }
-  /* NOTE: Not compatible with concatenation. */
-  TokenStream &operator<<(False /*tok*/)
-  {
-    tokens.append(paste_token("0", "", false));
-    return *this;
-  }
-
-  template<typename IToken> TokenStream &operator<<(const TokenRange<IToken> &stream)
-  {
-    for (IToken tok = stream.begin; tok != stream.end; tok = tok.next()) {
-      *this << tok;
-    }
-    /* "Cancel" concatenation in case range is empty. */
-    concat_next_ = false;
-    return *this;
-  }
-
-  TokenStream &operator<<(const Concatenate /*concat*/)
-  {
-    /* Don't concat if there is nothing to concatenate. */
-    concat_next_ = !tokens.is_empty();
-    return *this;
-  }
-
-  TokenStream &operator<<(Space /*space*/)
-  {
-    if (!tokens.is_empty()) {
-      tokens.last().flag = true;
-    }
-    return *this;
-  }
-
-  /* TODO(fclem): Remove this. Only there for expansion parser. */
-  std::string str()
-  {
-    result_buf_.clear();
-    result_buf_.reserve(tokens.size() * 7);
-    for (const auto stream_tok : tokens) {
-      result_buf_ += stream_tok.str();
-      if (stream_tok.flag) {
-        result_buf_ += ' ';
-      }
-    }
-    return result_buf_;
-  }
-
-  /* Wrapper to allow the same interface as a Token on a Token pointer. */
-  struct Iterator {
-    const TokenStream *stream;
-    const Token *tok;
-
-    Iterator(const TokenStream &stream, const Token *tok) : stream(&stream), tok(tok) {}
-    Iterator(const Iterator &other) = default;
-
-    bool is_valid() const
-    {
-      return tok != nullptr;
-    }
-
-    TokenType type() const
-    {
-      return tok ? tok->type() : Invalid;
-    }
-    TokenAtom atom() const
-    {
-      return tok ? tok->atom() : 0;
-    }
-
-    std::string_view str() const
-    {
-      return tok ? tok->str() : "";
-    }
-
-    bool followed_by_whitespace() const
-    {
-      return tok ? tok->flag : false;
-    }
-
-    Iterator next() const
-    {
-      if (tok == nullptr || tok + 1 >= stream->tokens.end()) {
-        return Iterator(*stream, nullptr);
-      }
-      return Iterator(*stream, tok + 1);
-    }
-    Iterator prev() const
-    {
-      if (tok == nullptr || tok - 1 < stream->tokens.begin()) {
-        return Iterator(*stream, nullptr);
-      }
-      return Iterator(*stream, tok - 1);
-    }
-
-    friend bool operator==(const Iterator &a, const Iterator &b)
-    {
-      return a.tok == b.tok;
-    }
-    friend bool operator!=(const Iterator &a, const Iterator &b)
-    {
-      return a.tok != b.tok;
-    }
-
-    friend bool operator==(const Iterator &a, TokenType b)
-    {
-      return a.type() == b;
-    }
-    friend bool operator!=(const Iterator &a, TokenType b)
-    {
-      return a.type() != b;
-    }
-
-    /* For iterator compatibility. */
-    Iterator &operator++()
-    {
-      if (tok == nullptr || tok + 1 >= stream->tokens.end()) {
-        tok = nullptr;
-      }
-      else {
-        ++tok;
-      }
-      return *this;
-    }
-    const Iterator &operator*()
-    {
-      return *this;
-    }
-  };
-
-  TokenStream &operator<<(const Iterator &it)
-  {
-    *this << *it.tok;
-    tokens.last().flag = it.followed_by_whitespace();
-    return *this;
-  }
-
-  Iterator begin() const
-  {
-    if (tokens.is_empty()) {
-      return end();
-    }
-    return Iterator(*this, tokens.begin());
-  }
-
-  Iterator end() const
-  {
-    return Iterator(*this, nullptr);
-  }
-
- private:
-  Token paste_token(const StringRef &a, const StringRef &b, bool followed_by_space)
-  {
-    std::string pasted;
-    pasted.reserve(a.size() + b.size() + followed_by_space);
-    pasted.append(a);
-    pasted.append(b);
-    if (followed_by_space) {
-      pasted += ' ';
-    }
-    return lex_.paste_token(pasted, Word, followed_by_space);
-  }
-};
-
-inline PruningStream &operator<<(PruningStream &dst, const TokenStream &src)
-{
-  for (const auto tok : src.tokens) {
-    dst.parse_token(tok);
-    dst << tok.str();
-    if (tok.flag) {
-      dst << " ";
-    }
-  }
-  return dst;
-}
-
-inline PruningStream &operator<<(PruningStream &dst, const TokenRange<Token> &range)
-{
-  dst.parse_token_range(range.begin, range.end);
-  dst << range.begin.buf_->substr(range.begin, range.end, true);
-  return dst;
-}
-
-inline PruningStream &operator<<(PruningStream &dst, const Token &tok)
-{
-  dst.parse_token(tok);
-  dst << tok.str_with_whitespace();
-  return dst;
-}
 
 /** \} */
 
@@ -742,321 +612,130 @@ inline PruningStream &operator<<(PruningStream &dst, const Token &tok)
 /** \name Preprocessor.
  * \{ */
 
-/**
- * Fast C preprocessor implementation.
- *
- * This is not a compliant implementation, but it supports most common features.
- *
- * What is not supported:
- * - Trigraphs.
- * - Backslash at end of a line does not continue a token.
- * - Error checking is incomplete.
- *
- * Unsupported preprocessor directive (like #warning and #error) are left untouched.
- */
-struct Preprocessor {
+/* Fast C (incomplete) preprocessor implementation.  */
+struct Preprocessor : IntermediateFormWithIDs {
  private:
-  using ExpressionLexer = shader::parser::ExpressionLexer;
-  using ExpressionParser = shader::parser::ExpressionParser;
-
-  AtomicLexer lex_;
-
-  PruningStream out_stream_;
+  using ExpansionParser = IntermediateForm<SimpleLexer, DummyParser>;
+  using TokenRange = shader::parser::TokenRange;
 
   /* Cache the expression lexer to avoid memory allocations. */
   ExpressionLexer expression_lexer;
   ExpressionParser expression_parser = ExpressionParser(expression_lexer);
 
-  struct TokenStreamPool {
-    /* Reference to lexer only for atom value lookups. */
-    AtomicLexer &lex_;
+  struct ParserStack {
     int allocated = 0;
     int used = 0;
-    std::deque<TokenStream> pool;
-    std::vector<int> free_indices;
+    std::deque<ExpansionParser> parser_pool;
 
-    struct Deleter {
-      TokenStreamPool *stack;
-      int index;
-
-      void operator()(TokenStream * /*stream*/)
-      {
-        stack->free_indices.push_back(index);
-      }
-    };
-
-    using Ptr = std::unique_ptr<TokenStream, Deleter>;
-
-    Ptr alloc()
+    ExpansionParser &alloc()
     {
-      int target_idx;
-      if (free_indices.empty()) {
-        target_idx = pool.size();
-        pool.emplace_back(lex_);
+      if (used == allocated) {
+        parser_pool.emplace_back("", report_fn_ptr);
+        allocated++;
+        used++;
+        return parser_pool.back();
       }
-      else {
-        target_idx = free_indices.back();
-        free_indices.pop_back();
-      }
-
-      TokenStream &s = pool[target_idx];
-      s.clear();
-      return Ptr(&s, Deleter{this, target_idx});
+      return parser_pool[used++];
     }
-  };
 
-  using TokenStreamPtr = TokenStreamPool::Ptr;
-
-  struct Macro {
-    Directive id;
-    TokenStreamPtr definition;
-    Vector<TokenAtom> params;
-    bool is_function = false;
-    bool contains_concat = false;
-
-    Macro(Directive id) : id(id) {}
-
-    bool is_empty() const
+    void release(ExpansionParser & /*parser*/)
     {
-      return definition->tokens.is_empty();
+      used--;
     }
   };
 
   /* When evaluating a condition directive inside this stack, disregard the directive and jump to
    * the matching #endif. */
-  Vector<Directive, 8> jump_stack;
+  Vector<DirectiveID, 8> jump_stack;
   /* Own stack to avoid memory allocation during recursive expansion parsing. */
-  TokenStreamPool stream_pool = {lex_};
+  ParserStack recursive_parser_stack;
   /* Set of visited macros during recursion (blue painting stack). Using a vector for speed. */
-  Vector<Directive> visited_macros;
-
+  Vector<DirectiveID> visited_macros;
   /* Maps containing currently active macros. Map their keyword to their definition. */
-  Map<TokenAtom, Directive> defines;
-  /* Cached parsed data for each Macro. Allow lazy parsing. Indexed by Directive. */
-  Vector<std::unique_ptr<Macro>> parsed_macro;
-  /* Allows fast checking of tokens not matching any declared macro. One bit per TokenAtom. */
-  bits::BitVector<> enabled_macros;
+  Map<AtomID, DirectiveID> defines;
 
   /**
    * State Tracking.
    */
 
   /* Next preprocessor directive to evaluate. Might be overwritten by conditional evaluation. */
-  Directive next_directive = Directive::invalid();
+  DirectiveID next_directive = DirectiveID::invalid();
   /* End of the last evaluated directive. Might be overwritten by conditional evaluation.
    * Used to resume token expansion after this line. */
-  Line last_directive_end = Line::invalid();
-
-  /* Cached keyword identifier. */
-  TokenAtom defined_atom;
-  TokenAtom va_args_atom;
+  LineID last_directive_end = LineID::invalid();
 
  public:
-  Preprocessor(const std::string_view str)
-      : lex_(str),
-        out_stream_(Token::invalid(&lex_),
-                    lex_.hash("return"),
-                    lex_.hash("thread"),
-                    lex_.hash("device"),
-                    /* In order to avoid too many false positive edges in the DCE graph, pass a
-                     * list of common symbols that are builtin and shouldn't be considered as a
-                     * function. */
-                    Vector<TokenAtom>{
-                        lex_.hash("layout"),
-                        lex_.hash("float"),
-                        lex_.hash("float2"),
-                        lex_.hash("float3"),
-                        lex_.hash("float4"),
-                        lex_.hash("float2x2"),
-                        lex_.hash("float3x2"),
-                        lex_.hash("float4x2"),
-                        lex_.hash("float2x3"),
-                        lex_.hash("float3x3"),
-                        lex_.hash("float4x3"),
-                        lex_.hash("float2x4"),
-                        lex_.hash("float3x4"),
-                        lex_.hash("float4x4"),
-                        lex_.hash("packed_float3"),
-                        lex_.hash("packed_int3"),
-                        lex_.hash("int"),
-                        lex_.hash("int2"),
-                        lex_.hash("int3"),
-                        lex_.hash("int4"),
-                        lex_.hash("uint"),
-                        lex_.hash("uint2"),
-                        lex_.hash("uint3"),
-                        lex_.hash("uint4"),
-                        lex_.hash("bool"),
-                        lex_.hash("bool2"),
-                        lex_.hash("bool3"),
-                        lex_.hash("bool4"),
-                        lex_.hash("int32_t"),
-                        lex_.hash("uint32_t"),
-                        lex_.hash("bool32_t"),
-                        /* Builtin functions. */
-                        lex_.hash("any"),
-                        lex_.hash("all"),
-                        lex_.hash("texelFetch"),
-                        lex_.hash("texture"),
-                        lex_.hash("textureLod"),
-                        lex_.hash("textureSize"),
-                        lex_.hash("imageLoad"),
-                        lex_.hash("imageStore"),
-                        lex_.hash("imageSize"),
-                        lex_.hash("clamp"),
-                        lex_.hash("mix"),
-                        lex_.hash("dot"),
-                        lex_.hash("abs"),
-                        lex_.hash("min"),
-                        lex_.hash("max"),
-                        lex_.hash("for"),
-                        lex_.hash("if"),
-                        lex_.hash("while"),
-                        lex_.hash("cos"),
-                        lex_.hash("sin"),
-                        lex_.hash("tan"),
-                        lex_.hash("atan"),
-                        lex_.hash("acos"),
-                        lex_.hash("asin"),
-                        lex_.hash("exp"),
-                        lex_.hash("exp2"),
-                        lex_.hash("log"),
-                        lex_.hash("pow"),
-                        lex_.hash("length"),
-                        lex_.hash("floor"),
-                        lex_.hash("ceil"),
-                        lex_.hash("fract"),
-                        lex_.hash("sqrt"),
-                        lex_.hash("sign"),
-                        lex_.hash("return"),
-                        lex_.hash("intBitsToFloat"),
-                        lex_.hash("floatBitsToInt"),
-                        lex_.hash("uintBitsToFloat"),
-                        lex_.hash("floatBitsToUint"),
-                    }),
-        enabled_macros(lex_.max_atom_value()),
-        defined_atom(lex_.hash("defined")),
-        va_args_atom(lex_.hash("__VA_ARGS__"))
+  Preprocessor(const std::string_view str) : IntermediateFormWithIDs(str)
   {
     /* From our stats. Should be enough for 100% of our cases. */
     defines.reserve(1000);
-    /* Ensure one slot for each directive. */
-    parsed_macro.resize(lex_.directive_lines.size());
   }
 
   void preprocess()
   {
     if (lex_.directive_lines.is_empty()) {
-      out_stream_ << TokenRange<Token>{.begin = lex_.front(), .end = lex_.back()};
       return;
     }
 
-    last_directive_end = lex_.line(0);
-    next_directive = lex_.directive(0);
+    last_directive_end = make_line(0);
+    next_directive = make_directive(0);
     /* Expand until the first directive. */
-    if (lex_.line(0) != next_directive.first()) {
-      expand_macros_in_range(lex_.line(0), next_directive.first().prev());
+    if (make_line(0) != get_start(next_directive)) {
+      expand_macros_in_range(make_line(0), prev(get_start(next_directive)));
     }
 
-    while (!next_directive.is_last()) {
-      Directive id = next_directive;
+    while (!is_last(next_directive)) {
+      DirectiveID id = next_directive;
       /* The next directive might be overwritten by evaluate_directive. Increment before call. */
-      next_directive = id.next();
+      next_directive = next(id);
       evaluate_directive(id);
 
-      expand_macros_in_range(last_directive_end.next(), next_directive.first().prev());
+      expand_macros_in_range(next(last_directive_end), prev(get_start(next_directive)));
     }
     /* Evaluate last directive without calling next and creating an invalid ID. */
     evaluate_directive(next_directive);
 
-    if (!last_directive_end.is_last()) {
-      Line last_line = lex_.line(lex_.line_offsets.size() - 1);
-      expand_macros_in_range(last_directive_end.next(), last_line);
+    if (!is_last(last_directive_end)) {
+      LineID last_line = make_line(lex_.line_offsets.size() - 1);
+      expand_macros_in_range(next(last_directive_end), last_line);
     }
-  }
-
-  void optimize()
-  {
-    Vector<TokenAtom> entry_points;
-    entry_points.append(lex_.hash("main"));
-
-    out_stream_.optimize(entry_points.as_span());
-  }
-
-  std::string result_get()
-  {
-    return out_stream_.str();
   }
 
  private:
-  /* Return valid value if hash is a known string. Is full hash lookup + hashing. */
-  TokenAtom get_atom(StringRef str)
+  void evaluate_directive(DirectiveID dir)
   {
-    return lex_.hash(str);
-  }
-
-  void evaluate_directive(Directive dir)
-  {
-    DirectiveType dir_type = dir.type();
+    DirectiveType dir_type = get_type(dir);
 
     /* Note: gets overwritten by conditional processing. */
-    last_directive_end = dir.last();
+    last_directive_end = get_end(dir);
 
+    bool erase_directive = true;
     switch (dir_type) {
-      case DirectiveType::Define:
+      case Define:
         define_macro(dir);
         break;
-      case DirectiveType::Undef:
+      case Undef:
         undefine_macro(dir);
         break;
-      case DirectiveType::If:
-      case DirectiveType::Ifdef:
-      case DirectiveType::Ifndef:
-      case DirectiveType::Elif:
-      case DirectiveType::Else:
+      case If:
+      case Ifdef:
+      case Ifndef:
+      case Elif:
+      case Else:
         process_conditional(dir, dir_type);
+        erase_directive = false; /* Erases itself. */
         break;
-      case DirectiveType::Line:
-        erase_lines(dir.first(), dir.last());
+      case Line:
         break;
-      case DirectiveType::Endif:
-        erase_lines(dir.first(), dir.last());
+      case Endif:
         break;
-      case DirectiveType::Pragma:
-        process_pragma(dir);
-        ATTR_FALLTHROUGH;
-      case DirectiveType::Other:
-        out_stream_ << dir.str_with_whitespace();
+      case Other:
+        erase_directive = false;
         break;
     }
-  }
 
-  /**
-   * Pragmas.
-   */
-
-  TokenAtom blender_atom = lex_.hash("blender");
-  TokenAtom dce_atom = lex_.hash("dead_code_elimination");
-  TokenAtom off_atom = lex_.hash("off");
-  TokenAtom on_atom = lex_.hash("on");
-
-  BLI_NOINLINE void process_pragma(Directive dir)
-  {
-    Token tok = dir.identifier().next();
-    if (tok.atom() == blender_atom) {
-      tok = tok.next();
-      if (tok.atom() == dce_atom) {
-        tok = tok.next();
-        if (tok.atom() == off_atom) {
-          out_stream_.set_enabled_parsing(false);
-        }
-        else if (tok.atom() == on_atom) {
-          out_stream_.set_enabled_parsing(true);
-        }
-        else {
-          BLI_assert_msg(false, "Invalid dead_code_elimination pragma. Expecting on or off.");
-        }
-      }
+    if (erase_directive == true) {
+      erase_lines(get_start(dir), get_end(dir));
     }
   }
 
@@ -1064,159 +743,71 @@ struct Preprocessor {
    * Macro Management.
    */
 
-  /**
-   * Parse macro parameters and advance the token cursor.
-   */
-  BLI_NOINLINE Vector<TokenAtom> parse_macro_params(Token &tok)
+  void define_macro(DirectiveID dir)
   {
-    Vector<TokenAtom> macro_parameters;
-    while (true) {
-      /* Continue to the next name. */
-      tok = tok.next();
-      if (tok == Backslash && tok.next() == NewLine) {
-        /* Preprocessor new line. Skip and continue. */
-        tok = tok.next(2);
-        continue;
-      }
-      if (tok == ParClose) {
-        break;
-      }
-      macro_parameters.append(tok.str() == "..." ? va_args_atom : tok.atom());
-      /* Continue to the next separator. */
-      tok = tok.next();
-      if (tok == Backslash && tok.next() == NewLine) {
-        /* Preprocessor new line. Skip and continue. */
-        tok = tok.next(2);
-        continue;
-      }
-      if (tok == ParClose) {
-        break;
-      }
-    }
-    /* Skip closing parenthesis. */
-    tok = tok.next();
-
-    return macro_parameters;
+    TokenID macro_name = skip_space(next(get_identifier(dir)));
+    BLI_assert(get_type(macro_name) == Word);
+    /* Store the name token of the declaration.
+     * The actual parsing of the definition happens during expansion. */
+    defines.add_overwrite(get_atom(macro_name), dir);
   }
 
-  BLI_NOINLINE TokenStreamPtr parse_macro_definition(Token definition_start_tok,
-                                                     bool &contains_concat)
+  void undefine_macro(DirectiveID dir)
   {
-    TokenStreamPtr definition = stream_pool.alloc();
-
-    Token tok = definition_start_tok;
-    while (true) {
-      Token tok_next = tok.next();
-      if (ELEM(tok, NewLine, lexit::EndOfFile)) {
-        break;
-      }
-      if (tok == Backslash && tok_next == NewLine) {
-        /* Preprocessor new line. Skip and continue. */
-        tok = tok.next(2);
-        /* Still insert a space to avoid merging tokens. */
-        *definition << TokenStream::Space{};
-        continue;
-      }
-      if (tok == Hash && tok_next == Hash) {
-        /* Token Pasting operator. Emit a single Hash token. */
-        *definition << tok;
-        contains_concat = true;
-        tok = tok.next(2);
-        continue;
-      }
-      BLI_assert_msg(tok != Hash, "Stringify operator is not supported");
-      *definition << tok;
-      tok = tok_next;
-    }
-    return definition;
-  }
-
-  BLI_NOINLINE void define_macro(Directive dir)
-  {
-    const Token name = dir.identifier().next();
-    BLI_assert(name == Word);
-    defines.add_overwrite(name.atom(), dir);
-    enabled_macros[name.atom()].set(true);
-    erase_lines(dir.first(), dir.last());
-  }
-
-  BLI_NOINLINE Macro &get_macro(Directive dir)
-  {
-    if (parsed_macro[int(dir)] == nullptr) {
-      const Token name = dir.identifier().next();
-      const Token after_name = name.next();
-      Token cursor = after_name;
-
-      auto macro = std::make_unique<Macro>(dir);
-      macro->is_function = (after_name == ParOpen) && !name.followed_by_whitespace();
-      if (macro->is_function) {
-        macro->params = parse_macro_params(cursor);
-      }
-      macro->definition = parse_macro_definition(cursor, macro->contains_concat);
-
-      parsed_macro[int(dir)] = std::move(macro);
-    }
-    return *parsed_macro[int(dir)];
-  }
-
-  void undefine_macro(Directive dir)
-  {
-    const Token name = dir.identifier().next();
-    BLI_assert(name == Word);
-    enabled_macros[name.atom()].set(false);
-    defines.remove(name.atom());
-    erase_lines(dir.first(), dir.last());
+    TokenID macro_name = skip_space(next(get_identifier(dir)));
+    BLI_assert(get_type(macro_name) == Word);
+    defines.remove(get_atom(macro_name));
   }
 
   /**
    * Condition directives.
    */
 
-  BLI_NOINLINE void process_conditional(const Directive dir, const DirectiveType dir_type)
+  void process_conditional(const DirectiveID dir, const DirectiveType dir_type)
   {
     /* If this is part of an already evaluated statement. */
     if (!jump_stack.is_empty() && jump_stack.last() == dir) {
       jump_stack.pop_last();
       /* Find matching endif. */
-      Directive endif = find_next_matching_conditional(dir);
-      while (endif.type() != DirectiveType::Endif) {
+      DirectiveID endif = find_next_matching_conditional(dir);
+      while (get_type(endif) != Endif) {
         endif = find_next_matching_conditional(endif);
       }
-      if (endif.is_last()) {
+      if (is_last(endif)) {
         /* Erase everything this and the last directive. */
-        Line last_before_endif = endif.first().prev();
-        erase_lines(dir.first(), last_before_endif);
+        LineID last_before_endif = prev(get_start(endif));
+        erase_lines(get_start(dir), last_before_endif);
         next_directive = endif;
         /* Don't expand inside this section. */
         last_directive_end = last_before_endif;
       }
       else {
         /* Erase everything between this directive and the #endif (inclusive). */
-        Line endif_end = endif.last();
-        erase_lines(dir.first(), endif_end);
+        LineID endif_end = get_end(endif);
+        erase_lines(get_start(dir), endif_end);
         /* Evaluate after the endif. */
-        next_directive = endif.next();
+        next_directive = next(endif);
         /* Don't expand inside this section. */
         last_directive_end = endif_end;
       }
       return;
     }
 
-    const Line dir_line_start = dir.first();
-    const Line dir_line_end = dir.last();
-    const Token dir_tok = dir.identifier();
+    const LineID dir_line_start = get_start(dir);
+    const LineID dir_line_end = get_end(dir);
+    const TokenID dir_tok = get_identifier(dir);
     /* Evaluate condition. */
-    const Token cond_start = dir_tok.next();
-    const Token cond_end = dir_line_end.last();
+    const TokenID cond_start = skip_space(next(dir_tok));
+    const TokenID cond_end = get_end(dir_line_end);
     const bool condition_result = evaluate_condition(dir_type, cond_start, cond_end);
 
     /* Find matching endif or else. */
-    const Directive next_condition = find_next_matching_conditional(dir);
+    const DirectiveID next_condition = find_next_matching_conditional(dir);
 
     if (condition_result) {
       /* If is followed by else statement. */
-      DirectiveType next_dir_type = next_condition.type();
-      if (ELEM(next_dir_type, DirectiveType::Elif, DirectiveType::Else)) {
+      DirectiveType next_dir_type = get_type(next_condition);
+      if (ELEM(next_dir_type, Elif, Else)) {
         /* Record a jump statement at the next #else statement to jump & erase to the #endif. */
         jump_stack.append(next_condition);
       }
@@ -1225,7 +816,7 @@ struct Preprocessor {
       erase_lines(dir_line_start, dir_line_end);
     }
     else {
-      Line last_before_next_cond = next_condition.first().prev();
+      LineID last_before_next_cond = prev(get_start(next_condition));
       /* Erase everything until next condition (this directive included). */
       erase_lines(dir_line_start, last_before_next_cond);
       /* Jump to next condition. */
@@ -1235,17 +826,17 @@ struct Preprocessor {
     }
   }
 
-  bool evaluate_condition(const DirectiveType dir_type, Token start, Token end)
+  bool evaluate_condition(const DirectiveType dir_type, TokenID start, TokenID end)
   {
     switch (dir_type) {
-      case DirectiveType::Else:
+      case Else:
         return true;
-      case DirectiveType::Ifdef:
-        return defines.contains(start.atom());
-      case DirectiveType::Ifndef:
-        return !defines.contains(start.atom());
-      case DirectiveType::If:
-      case DirectiveType::Elif:
+      case Ifdef:
+        return defines.contains(get_atom(start));
+      case Ifndef:
+        return !defines.contains(get_atom(start));
+      case If:
+      case Elif:
         return evaluate_expression(start, end);
       default:
         BLI_assert_unreachable();
@@ -1253,33 +844,34 @@ struct Preprocessor {
     }
   }
 
-  bool evaluate_expression(const Token start, const Token end)
+  bool evaluate_expression(const TokenID start, const TokenID end)
   {
+#ifndef NDEBUG
+    /* For debugging. */
+    std::string_view original_expr = substr_range_inclusive_view(parser_[int(start)],
+                                                                 parser_[int(end)]);
+    UNUSED_VARS(original_expr);
+#endif
+
     /* Expand expression into integer ops string. */
-    TokenStreamPtr expand = expand_expression(start, end);
+    std::string expand = expand_expression(start, end);
 
     /* Early out simple cases. */
-    if (expand->tokens.size() == 1) {
-      const auto &token = expand->tokens.first();
-      StringRef str = token.str();
-      if (str == "0") {
-        return false;
-      }
-      if (str == "1") {
-        return true;
-      }
+    if (expand == "0") {
+      return false;
+    }
+    if (expand == "1") {
+      return true;
     }
 
     try {
-      /* TODO(fclem): Do not parse again. Simply use the token stream. */
-      std::string str = expand->str();
-      expression_lexer.lexical_analysis(str);
+      expression_lexer.lexical_analysis(expand);
       return expression_parser.eval() != 0;
     }
     catch (const std::exception &e) {
-      std::cout << "\"" << lex_.substr(start, end) << "\" > \"" << expand->str() << "\" ";
+      std::cout << "\"" << str(start, end) << "\" > \"" << expand << "\" ";
       std::cerr << "Error: " << e.what() << "\n";
-      return false;
+      return 0;
     }
   }
 
@@ -1287,333 +879,340 @@ struct Preprocessor {
    * Macro Expansion.
    */
 
-  BLI_NOINLINE void expand_macros_in_range(const Line start_line, const Line end_line)
+  void expand_macros_in_range(const LineID start_line, const LineID end_line)
   {
-    int start = int(start_line.first());
-    int end = int(end_line.end());
+    int start = int(get_start(start_line));
+    int end = int(get_true_end(end_line));
     if (start > end) {
       return;
     }
-    if (start == end) {
-      out_stream_ << lex_[start];
+
+    TokenID end_tok = make_token(end);
+    for (TokenID tok = make_token(start); tok != end_tok; tok = next(tok)) {
+      if (get_type(tok) == Word) {
+        DirectiveID macro_id = defines.lookup_default(get_atom(tok), DirectiveID::invalid());
+        if (is_valid(macro_id)) {
+          Token token = parser_[int(tok)];
+          auto [replacement, end] = expand_macro(token, macro_id);
+          replace(token, end, replacement);
+          tok = make_token(end.index);
+          if (tok == end_tok) {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  /* Try to match the token pointed at by cursor with a defined macro.
+   * If that happen advance the cursor to the end of the macro (in case of functional macro). */
+  void try_expand(MutableString &mut_str, const ParserBase &data, int &cursor)
+  {
+    Token tok = Token::from_position(&data, cursor);
+    StringRef tok_str = shader::parser::str(tok);
+    /* Early out number literals.
+     * Anything below '0' is not an alphabetical character and thus cannot start a word.
+     * Saves one comparison. */
+    if (tok_str[0] <= '9') {
       return;
     }
 
-    const Vector<int> &candidates = gather_candidate_in_range(start, end);
-
-    Token after_last_emitted = lex_[start];
-
-    for (const auto *it = candidates.begin(); it != candidates.end();) {
-      const Token tok = lex_[*it];
-      const Directive macro_id = defines.lookup(tok.atom());
-      /* Emit tokens between the last emitted token and this one. */
-      if (int(after_last_emitted) < *it) {
-        out_stream_ << TokenRange<Token>{after_last_emitted, tok.prev()};
-      }
-
-      if (macro_id == Directive::invalid()) {
-        out_stream_ << tok;
-        after_last_emitted = tok.next();
-        ++it;
-        continue;
-      }
-
-      const Token end_tok = expand_and_replace(tok, macro_id);
-      after_last_emitted = end_tok.next();
-      /* Skip candidates already expanded. */
-      while (it != candidates.end() && *it <= int(end_tok)) {
-        ++it;
-      }
+    DirectiveID macro_id = defines.lookup_default(get_atom(tok_str), DirectiveID::invalid());
+    if (is_valid(macro_id)) {
+      auto [replacement, end] = expand_macro(tok, macro_id);
+      mut_str.replace(tok, end, replacement);
+      cursor = end.index;
     }
-
-    const Token last_tok = lex_[end];
-    out_stream_ << TokenRange<Token>{after_last_emitted, last_tok};
-  }
-
-  /* Cached vector to avoid reallocation. */
-  Vector<int> expand_candidates_;
-
-  /* Perform coarse check using small cache table of defined macros.
-   * Returns a vector of token index that can potentially expand.
-   * This avoid costly hash table lookups for every token. */
-  BLI_NOINLINE const Vector<int> &gather_candidate_in_range(int start, int end)
-  {
-    expand_candidates_.clear();
-    expand_candidates_.resize(end - start + 1);
-    int candidates_count = 0;
-    /* TODO(fclem): This is the major bottleneck after the actual expansion.
-     * Can be sped up using SIMD. */
-    for (int i : blender::IndexRange::from_begin_end(start, end)) {
-      /* Branchless insertion. Faster than. */
-      expand_candidates_[candidates_count] = i;
-      candidates_count += enabled_macros[lex_.atoms_[i]];
-    }
-    expand_candidates_.resize(candidates_count);
-    return expand_candidates_;
-  }
-
-  BLI_NOINLINE Token expand_and_replace(const Token tok, const Directive macro_id)
-  {
-    auto [replacement, end] = expand_macro(tok, get_macro(macro_id));
-    out_stream_ << *replacement;
-    return end;
   }
 
   /* Parse and expand with the current set of macro identifier. */
-  BLI_NOINLINE TokenStreamPtr parse_and_expand(const TokenStream &tok_stream)
+  std::string parse_and_expand(StringRef input)
   {
-    auto result = stream_pool.alloc();
-
-    for (auto tok = tok_stream.begin(), end = tok_stream.end(); tok != end; ++tok) {
-      if (tok == Word) {
-        /* Try to match the token pointed at by cursor with a defined macro. If that happen advance
-         * the cursor to the end of the macro (in case of functional macro). */
-        Directive macro_id = defines.lookup_default(tok.atom(), Directive::invalid());
-        if (macro_id != Directive::invalid()) {
-          auto [replacement, end] = expand_macro(tok, get_macro(macro_id));
-          *result << *replacement;
-          tok = end;
-          continue;
-        }
-      }
-      *result << tok;
+    if (input.is_empty()) {
+      return "";
     }
+
+    ExpansionParser &recursive_parser = recursive_parser_stack.alloc();
+
+    recursive_parser.str_ = input;
+    recursive_parser.parse(report_fn_ptr);
+
+    const ParserBase &data = recursive_parser.data_get();
+
+    for (int cursor = 0; cursor < data.lex.token_types.size(); cursor++) {
+      TokenType tok_type = TokenType(data.lex.token_types[cursor]);
+      if (tok_type == Word) {
+        try_expand(recursive_parser, data, cursor);
+      }
+    }
+
+    std::string result = recursive_parser.result_get(true);
+
+    recursive_parser_stack.release(recursive_parser);
+
     return result;
   }
 
-  template<typename IToken> struct ExpandedResult {
+  struct ExpandedResult {
     /* Replacement content. */
-    TokenStreamPtr output;
+    std::string str;
     /* End of range to replace. */
-    IToken end_of_expansion;
+    Token end_of_expansion;
   };
 
   /**
-   * \arg tok : Opening parenthesis token of the argument list.
+   * IMPORTANT: Because of recursion, expanded_tok can be from another parser.
+   * The macro directive however, will always be from the main parser.
    */
-  template<typename IToken>
-  BLI_NOINLINE Vector<TokenRange<IToken>> parse_macro_args(const Vector<TokenAtom> &params,
-                                                           IToken &tok)
+  ExpandedResult expand_macro(const Token expanded_tok, const DirectiveID macro)
   {
-    Vector<TokenRange<IToken>> args;
-    for (const TokenAtom param_atom : params) {
-      IToken param_start = tok;
-      IToken param_end = get_end_of_parameter(param_start);
+    const TokenID define_tok = get_identifier(macro);
+    BLI_assert(str(define_tok) == "define");
+    const TokenID macro_name = skip_space(next(define_tok));
+    BLI_assert(get_type(macro_name) == Word);
+    const TokenID macro_parenthesis = next(macro_name);
 
-      if (param_atom == va_args_atom) {
-        /* Seek end of argument list for variadic arguments. */
-        param_end = get_end_of_parameter(param_start, true);
+    const bool is_function = (get_type(macro_parenthesis) == '(');
+
+    Token end_of_expansion = expanded_tok;
+
+    TokenID tok = skip_space(macro_parenthesis);
+
+    /* Empty definition. */
+    if (get_type(tok) == '\n') {
+      return {"", end_of_expansion};
+    }
+
+    if (visited_macros.contains(macro)) {
+      /* Recursion. Do not expand. Still replace by the original token. */
+      return {str(macro_name), end_of_expansion};
+    }
+
+    /* TODO: Avoid StringRef in map. */
+    Map<StringRef, TokenRange> macro_parameters;
+    if (is_function) {
+      /* This is a functional macro. */
+
+      Token param = shader::parser::skip_space(expanded_tok.next());
+      if (param != '(') {
+        /* Macro doesn't have parameters. It should not expand. */
+        return {str(macro_name), end_of_expansion};
       }
 
-      args.append({param_start.next(), param_end});
-      /* Continue to the next separator. */
-      tok = param_end;
-      if (tok == Invalid) {
-        break;
-      }
-    }
-    /* No parameter case. */
-    if (params.is_empty()) {
-      /* Continue to end parenthesis. */
-      tok = tok.next();
-    }
-    if (tok == Invalid) {
-      /* Error: missing closing parenthesis. */
-      /* Cancel expansion. */
-      return {};
-    }
-    if (tok != ParClose) {
-      /* Error: too many arguments provided to function-like macro invocation. */
-      /* Cancel expansion. */
-      return {};
-    }
-    return args;
-  }
-
-  template<typename IToken>
-  BLI_NOINLINE TokenStreamPtr expand_macro_args(const Macro &macro,
-                                                const Vector<TokenRange<IToken>> &macro_args)
-  {
-    TokenStreamPtr ts = stream_pool.alloc();
-    for (const auto &def_tok : *macro.definition) {
-      if (def_tok.type() == Hash) {
-        *ts << TokenStream::Concatenate{};
-        continue;
-      }
-      if (def_tok.type() == Word && !macro_args.is_empty()) {
-        /* Lookup macro arguments. */
-        int arg_id = macro.params.first_index_of_try(def_tok.atom());
-        if (arg_id != -1) {
-          const TokenRange<IToken> &macro_value = macro_args[arg_id];
-
-          if (def_tok.prev() == Hash || def_tok.next() == Hash) {
-            /* Token pasting. Do not expand now. */
-            *ts << macro_value;
+      /* Parse parameters & arguments. */
+      macro_parameters.clear_and_keep_capacity();
+      while (get_type(tok) != ')') {
+        /* Continue to the next name. */
+        tok = skip_space(next(tok));
+        if (get_type(tok) == ')') {
+          /* Function with no arguments. */
+          param = get_end_of_parameter(param);
+          if (param == Invalid) {
+            /* Error: missing closing parenthesis. */
+            /* Cancel expansion. */
+            return {str(macro_name), expanded_tok};
           }
-          else {
-            /* Expand argument. Can expand to the same macro (finite recursion). */
-            TokenStreamPtr stream = stream_pool.alloc();
-            *stream << macro_value;
-            *ts << *parse_and_expand(*stream);
+          if (param != ')') {
+            /* Error: too many arguments provided to function-like macro invocation. */
+            /* Cancel expansion. */
+            return {str(macro_name), expanded_tok};
           }
+          break;
+        }
 
-          if (def_tok.followed_by_whitespace()) {
-            /* Don't lose whitespace after macro token. */
-            *ts << TokenStream::Space{};
-          }
-          continue;
+        Token param_start = param;
+        Token param_end = get_end_of_parameter(param_start);
+
+        StringRef argument_name = str(tok);
+        if (argument_name == "...") {
+          param_end = get_end_of_parameter(param_start, true);
+          argument_name = "__VA_ARGS__";
+        }
+
+        /* If there is only token for parameters (it could be empty string). */
+        if (param_start.next() == param_end.prev()) {
+          macro_parameters.add(argument_name, {param_start.next(), param_start.next()});
+        }
+        else {
+          macro_parameters.add(argument_name,
+                               {shader::parser::skip_space(param_start.next()),
+                                shader::parser::skip_space_backward(param_end.prev())});
+        }
+
+        /* Continue to the next separator. */
+        tok = skip_space(next(tok));
+        param = param_end;
+
+        if (get_type(tok) == Invalid) {
+          break;
         }
       }
-      *ts << def_tok;
-    }
-    return ts;
-  }
-
-  template<typename IToken>
-  BLI_NOINLINE ExpandedResult<IToken> expand_macro(const IToken expanded_tok, const Macro &macro)
-  {
-    if (visited_macros.contains(macro.id)) {
-      /* Recursion. Do not expand. */
-      /* Currently still replace by the original token (noop).
-       * Would be better to not bypass replacement alltogether. */
-      TokenStreamPtr expanded = stream_pool.alloc();
-      *expanded << expanded_tok;
-      return {std::move(expanded), expanded_tok};
+      /* Skip closing parenthesis. */
+      tok = skip_space(next(tok));
+      /* Make sure to replace the whole call. */
+      end_of_expansion = param;
     }
 
-    IToken end_of_expansion = expanded_tok;
+    std::string expanded;
+    expanded.reserve(256);
 
-    Vector<TokenRange<IToken>> fn_arguments;
-    if (macro.is_function) {
-      IToken tok = expanded_tok;
-      tok = tok.next();
-      if (tok != ParOpen) {
-        /* Macro doesn't have parameters. It should not expand. */
-        /* Currently still replace by the original token (noop).
-         * Would be better to bypass replacement alltogether. */
-        TokenStreamPtr expanded = stream_pool.alloc();
-        *expanded << expanded_tok;
-        return {std::move(expanded), expanded_tok};
+    while (get_type(tok) != NewLine) {
+      TokenType curr_type = get_type(tok);
+      TokenType next_type = look_ahead(tok);
+      /* Skip the token pasting operator. */
+      if (curr_type == '#' && next_type == '#') {
+        /* Token concatenate. */
+        tok = next(next(tok));
+        continue;
+      }
+      if (curr_type == '\\' && next_type == '\n') {
+        /* Preprocessor new line. Skip and continue. */
+        tok = next(next(tok));
+        /* Still insert a space to avoid merging tokens. */
+        expanded += ' ';
+        continue;
       }
 
-      fn_arguments = parse_macro_args(macro.params, tok);
-      /* Make sure to replace the whole call. */
-      end_of_expansion = tok;
+      /* Can't theoretically happen.
+       * That would mean a macro is defined and expanded on the last line. */
+      BLI_assert(curr_type != Invalid);
+      BLI_assert_msg(curr_type != '#', "Stringify operator '#' is not supported");
+
+      TokenType next_type2 = (next_type != Invalid) ? look_ahead(next(tok)) : Invalid;
+      TokenType next_type3 = (next_type2 != Invalid) ? look_ahead(next(next(tok))) : Invalid;
+      TokenType prev_type = look_behind(tok);
+      TokenType prev_type2 = (prev_type != Invalid) ? look_behind(prev(tok)) : Invalid;
+      TokenType prev_type3 = (prev_type2 != Invalid) ? look_behind(prev(prev(tok))) : Invalid;
+
+      /* Support spaces around token pasting operator */
+      bool next_is_token_pasting = (next_type == ' ') ? (next_type2 == '#' && next_type3 == '#') :
+                                                        (next_type == '#' && next_type2 == '#');
+      bool prev_is_token_pasting = (prev_type == ' ') ? (prev_type2 == '#' && prev_type3 == '#') :
+                                                        (prev_type == '#' && prev_type2 == '#');
+
+      if (curr_type == ' ' && (next_is_token_pasting || prev_is_token_pasting)) {
+        /* Do not paste spaces around token pasting operator. */
+      }
+      else if (curr_type == ' ') {
+        /* Replace multiple spaces by only one. Shrinks final codebase. */
+        expanded += ' ';
+      }
+      else if (curr_type == Word) {
+        bool replaced = false;
+
+        if (is_function) {
+          /* Lookup macro arguments. */
+          TokenRange *macro_value_ptr = macro_parameters.lookup_ptr(str(tok));
+          if (macro_value_ptr) {
+            TokenRange &macro_value = *macro_value_ptr;
+
+            if (!next_is_token_pasting && !prev_is_token_pasting) {
+              /* Expand argument. Can expand to the same macro (finite recursion). */
+              expanded += parse_and_expand(shader::parser::str(macro_value));
+            }
+            else {
+              expanded += shader::parser::str(macro_value);
+            }
+            replaced = true;
+          }
+        }
+
+        if (!replaced) {
+          /* Fallback to no expansion. */
+          expanded += str(tok);
+        }
+      }
+      else {
+        expanded += str(tok);
+      }
+
+      tok = next(tok);
     }
 
-    if (macro.is_empty()) {
-      /* Empty definition. */
-      TokenStreamPtr expanded = stream_pool.alloc();
-      return {std::move(expanded), end_of_expansion};
-    }
+    /* Add to the set to avoid infinite recursion. */
+    visited_macros.append(macro);
 
-    TokenStreamPtr result;
+    expanded = parse_and_expand(expanded);
 
-    if (!macro.is_function && !macro.contains_concat) {
-      /* Fast Path. */
-      visited_macros.append(macro.id);
-      result = parse_and_expand(*macro.definition);
-      visited_macros.pop_last();
-    }
-    else {
-      TokenStreamPtr expanded = expand_macro_args(macro, fn_arguments);
-      /* Add to the set to avoid infinite recursion. */
-      visited_macros.append(macro.id);
-      result = parse_and_expand(*expanded);
-      visited_macros.pop_last();
-    }
+    visited_macros.pop_last();
 
-    if (end_of_expansion.followed_by_whitespace()) {
-      *result << TokenStream::Space{};
-    }
-
-    return {std::move(result), end_of_expansion};
+    return {expanded, end_of_expansion};
   }
 
   /* Expand token range for condition evaluation (e.g. '#if'). */
-  TokenStreamPtr expand_expression(const Token start, const Token end)
+  std::string expand_expression(const TokenID start, const TokenID end)
   {
-    TokenStreamPtr result = stream_pool.alloc();
+    std::string expand;
+    expand.reserve(128);
 
-    Token tok = start;
+    TokenID tok = start;
     while (true) {
-      BLI_assert(tok.is_valid());
-      TokenAtom tok_atom = tok == Word ? tok.atom() : TokenAtom(0);
+      BLI_assert(is_valid(tok));
+      AtomID tok_atom = get_type(tok) == Word ? get_atom(tok) : AtomID::invalid();
 
-      Directive macro_id = defines.lookup_default(tok.atom(), Directive::invalid());
+      DirectiveID macro = defines.lookup_default(tok_atom, DirectiveID::invalid());
 
-      if (tok_atom == TokenAtom(0)) {
+      if (tok_atom == AtomID::invalid()) {
         /* Non word. */
-        *result << lex_[int(tok)];
+        expand += str(tok);
       }
-      else if (macro_id != Directive::invalid()) {
-        Macro &macro = get_macro(macro_id);
-        auto [replacement, macro_end] = expand_macro(Token(lex_[int(tok)]), macro);
-        *result << *replacement;
-        tok = lex_[int(macro_end)];
+      else if (is_valid(macro)) {
+        auto [replacement, macro_end] = expand_macro(parser_[int(tok)], macro);
+        expand += replacement;
+        tok = make_token(macro_end.index);
       }
       else if (tok_atom == defined_atom) {
         /* Parenthesis or space */
-        tok = tok.next();
-        const bool is_function = (tok == ParOpen);
+        tok = skip_space(next(tok));
+        const bool is_function = (get_type(tok) == '(');
         /* Token to search. */
         if (is_function) {
-          tok = tok.next();
+          tok = skip_space(next(tok));
         }
         else {
-          BLI_assert(tok == Word);
+          BLI_assert(get_type(tok) == Word);
         }
-        if (defines.contains(tok.atom())) {
-          *result << TokenStream::True{};
-        }
-        else {
-          *result << TokenStream::False{};
-        }
+        expand += (defines.contains(get_atom(tok)) ? "1" : "0");
         if (is_function) {
           /* End parenthesis. */
-          tok = tok.next();
+          tok = skip_space(next(tok));
         }
       }
       else {
         /* Substitution failure. */
-        *result << lex_[int(tok)];
+        expand += str(tok);
       }
       if (tok == end) {
         break;
       }
-      tok = skip_directive_newlines(tok.next());
+      tok = skip_directive_newlines(next(tok));
     }
 
-    return result;
+    return expand;
   }
 
   /**
    * Utilities.
    */
 
-  void erase_lines(Line start, Line end)
+  void erase_lines(LineID start, LineID end)
   {
-    if (int(end) > int(start)) {
-      out_stream_ << new_lines(start, end);
-    }
-    out_stream_ << end.end().str_with_whitespace();
+    Token tok_end = parser_[int(get_end(end))];
+    Token tok_start = parser_[int(get_start(start))];
+    replace(tok_start, tok_end, new_lines(start, end));
   }
-
-  /* Buffer of newlines since the StringRef must stay valid until result string is built.
-   * Since this is only to replace content, we cannot have more lines than there is.
-   * Avoid reallocation and persistent storage logic for a few KB of memory. */
-  std::string new_lines_buf = std::string(lex_.line_offsets.size(), '\n');
 
   /* Return a string with the amount of newline character between line_start and line_end. */
-  StringRef new_lines(Line line_start, Line line_end)
+  std::string new_lines(LineID line_start, LineID line_end)
   {
-    return StringRef(new_lines_buf).substr(0, int(line_end) - int(line_start));
+    return std::string(int(line_end) - int(line_start), '\n');
   }
 
-  Token skip_directive_newlines(Token tok)
+  TokenID skip_directive_newlines(TokenID tok)
   {
-    while (tok == Backslash && tok.next() == NewLine) {
-      tok = tok.next().next();
+    /* TODO make it safe */
+    while (get_type(tok) == '\\' && get_type(next(tok)) == '\n') {
+      tok = next(next(tok));
     }
     return tok;
   }
@@ -1622,23 +1221,22 @@ struct Preprocessor {
    * Return next `,` or `)` skipping occurrences contained in parenthesis.
    * Return invalid token on failure.
    */
-  template<typename IToken>
-  static IToken get_end_of_parameter(IToken tok, bool skip_to_end = false)
+  static Token get_end_of_parameter(Token tok, bool skip_to_end = false)
   {
     /* Avoid matching comma inside parameter function calls. */
     int stack = 1;
     tok = tok.next();
     while (tok.is_valid()) {
-      if (tok == ParOpen) {
+      if (tok == '(') {
         stack++;
       }
-      else if (tok == ParClose) {
+      else if (tok == ')') {
         stack--;
       }
       if (stack == 0) {
         return tok;
       }
-      if (stack == 1 && tok == Comma && !skip_to_end) {
+      if (stack == 1 && tok == ',' && !skip_to_end) {
         return tok;
       }
       tok = tok.next();
@@ -1653,7 +1251,7 @@ struct Preprocessor {
 /** \name Interface.
  * \{ */
 
-std::string Shader::run_preprocessor(StringRef source, bool no_dead_code_elimination)
+std::string Shader::run_preprocessor(StringRef source)
 {
   BLI_assert_msg(source.find("//") == std::string::npos && source.find("/*") == std::string::npos,
                  "Input source to the preprocessor should have no comments.");
@@ -1664,10 +1262,14 @@ std::string Shader::run_preprocessor(StringRef source, bool no_dead_code_elimina
 
   Preprocessor processor(source);
   processor.preprocess();
-  if (!no_dead_code_elimination) {
-    processor.optimize();
+
+  if (G.debug & G_DEBUG_GPU_SHADER_NO_DCE) {
+    return processor.result_get(true);
   }
-  return processor.result_get();
+
+  DeadCodeEliminator dce(processor.result_get(true));
+  dce.optimize();
+  return dce.result_get(true);
 }
 
 /** \} */

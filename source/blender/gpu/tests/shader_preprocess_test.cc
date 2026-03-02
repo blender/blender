@@ -2750,11 +2750,12 @@ B
 )";
     IntermediateForm parser(input, no_err_report);
     string expect = R"(
-A#A1A)";
+A#A1
+A)";
     EXPECT_EQ(parser.data_get().lex.token_types_str, expect);
 
     Token A = Token::from_position(&parser.data_get(), 1);
-    Token B = Token::from_position(&parser.data_get(), 5);
+    Token B = Token::from_position(&parser.data_get(), 6);
 
     EXPECT_EQ(A.str(), "A");
     EXPECT_EQ(B.str(), "B");

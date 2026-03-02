@@ -148,7 +148,6 @@ struct MutableString {
       replace(from.str_index_start(), to.str_index_last(), replacement);
     }
   }
-
   /* Replace token by string. */
   void replace(Token tok, const std::string &replacement, bool keep_trailing_whitespaces = false)
   {
@@ -255,7 +254,9 @@ struct MutableString {
   void insert_directive(Token at, const std::string directive)
   {
     insert_after(at, "\n" + directive + "\n");
-    insert_line_number(at, at.line_number(true));
+    std::string_view content = at.str_view_with_whitespace();
+    size_t lines = std::count(content.begin(), content.end(), '\n');
+    insert_line_number(at, at.line_number() + lines);
     size_t line_break = str_.find_last_of("\n", at.str_index_last() + 1);
     size_t spaces = at.str_index_last() - line_break;
     insert_after(at, std::string(spaces, ' '));
@@ -289,18 +290,6 @@ struct MutableString {
     return out;
   }
 };
-
-inline std::ostream &operator<<(std::ostream &out, const std::vector<int> &v)
-{
-  if (!v.empty()) {
-    out << '[';
-    for (auto val : v) {
-      out << val << ',';
-    }
-    out << "\b]";
-  }
-  return out;
-}
 
 /* Structure holding an intermediate form of the source code.
  * It is made for fast traversal and mutation of source code. */
@@ -367,20 +356,7 @@ template<typename LexerClass, typename ParserClass> struct IntermediateForm : Mu
   {
     std::cout << "Input: \n" << str_ << " \nEnd of Input\n" << std::endl;
     std::cout << "Token Types: \"" << lex_.token_types_str << "\"" << std::endl;
-    std::cout << "Token scopes: \"" << parser_.token_scope << "\"" << std::endl;
     std::cout << "Scope Types: \"" << parser_.scope_types_str << "\"" << std::endl;
-  }
-
-  void debug_print_tokens()
-  {
-    for (auto tok : lex_) {
-      std::cout << "id:" << int(tok) << " start:" << lex_.offsets_[int(tok)]
-                << " end:" << lex_.offsets_end_[int(tok)] << " type:" << tok.type()
-                << " scope:" << parser_.token_scope[int(tok)] << "("
-                << parser_.scope_types_str[parser_.token_scope[int(tok)]] << ")"
-                << " atom:" << tok.atom() << " str:\"" << tok.str() << "\""
-                << " followed_by_whitespace:" << tok.followed_by_whitespace() << "\n";
-    }
   }
 };
 

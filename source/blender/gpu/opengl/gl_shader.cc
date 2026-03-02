@@ -1276,7 +1276,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
 
   dump_source_to_disk(this->name_get(), full_name, ".glsl", concat_source);
   if (!this->skip_preprocessor) {
-    concat_source = run_preprocessor(concat_source, G.debug & G_DEBUG_GPU_SHADER_NO_DCE);
+    concat_source = run_preprocessor(concat_source);
     dump_source_to_disk(this->name_get(), full_name + ".expanded", ".glsl", concat_source);
   }
 

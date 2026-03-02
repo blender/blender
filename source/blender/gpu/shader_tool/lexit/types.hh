@@ -79,7 +79,7 @@ enum TokenType : uint8_t {
   /* --- Keywords --- */
 
   LogicalAnd = 'a',
-  // Word = 'A',
+  DoubleHash = 'A',
   Break = 'b',
   // Unused = 'B',
   Const = 'c',
@@ -96,22 +96,22 @@ enum TokenType : uint8_t {
   Case = 'H',
   If = 'i',
   Else = 'I',
-  Elif = 'j',
-  Endif = 'J',
-  Ifdef = 'k',
-  Ifndef = 'K',
+  // Unused = 'j',
+  // Unused = 'J',
+  // Unused = 'k',
+  // Unused = 'K',
   Inline = 'l',
   LEqual = 'L',
   Static = 'm',
   Enum = 'M',
   Namespace = 'n',
-  Define = 'N',
+  PreprocessorNewline = 'N', /* TODO(fclem): Remove. */
   Union = 'o',
   Continue = 'O',
-  Line = 'p',
+  // Unused = 'p',
   Increment = 'P',
-  Pragma = 'q',
-  DoubleHash = 'Q',
+  // Unused = 'q',
+  // Unused = 'Q',
   Return = 'r',
   // Unused = 'R',
   Struct = 's',
@@ -119,10 +119,10 @@ enum TokenType : uint8_t {
   Template = 't',
   This = 'T',
   Using = 'u',
-  Undef = 'U',
+  // Unused = 'U',
   Private = 'v',
   Public = 'V',
-  // Unused = 'w',
+  // Word = 'w',
   // Unused = 'W',
   // Unused = 'x',
   // Unused = 'X',
@@ -153,8 +153,5 @@ enum TokenType : uint8_t {
 
   String = DoubleQuote,
 };
-
-/* Unique identifier to a word token. */
-using TokenAtom = uint16_t;
 
 }  // namespace lexit
