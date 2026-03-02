@@ -153,6 +153,9 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
 
   bke::subdiv::Subdiv *subdiv = bke::subdiv::new_from_mesh(&subdiv_settings, mesh);
   if (!subdiv) {
+    if (mesh_copy) {
+      BKE_id_free(nullptr, mesh_copy);
+    }
     return nullptr;
   }
 
