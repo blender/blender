@@ -5099,6 +5099,30 @@ static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperat
     hide_stroke.finish();
     fill_ids.finish();
 
+    if (type == StrokeType::Stroke) {
+      if (std::all_of(fill_ids.span.begin(), fill_ids.span.end(), [&](const int64_t i) {
+            return fill_ids.span[i] == 0;
+          }))
+      {
+        /* Remove #fill_id attribute if there are no fills left. */
+        attributes.remove("fill_id");
+      }
+    }
+
+    if (ELEM(type, StrokeType::Stroke, StrokeType::Both)) {
+      const array_utils::BooleanMix hide_strokes_mix = array_utils::booleans_mix_calc(
+          hide_stroke.span.varray());
+      if (hide_strokes_mix == array_utils::BooleanMix::AllFalse) {
+        /* Remove #hide_stroke attribute if all strokes are visible. */
+        attributes.remove("hide_stroke");
+      }
+      else {
+        /* If some strokes got unhidden, make sure that we create the radius attribute if it
+         * doesn't exist already. */
+        attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.005f));
+      }
+    }
+
     info.drawing.tag_topology_changed();
     changed.store(true, std::memory_order_relaxed);
   });
