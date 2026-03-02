@@ -868,7 +868,9 @@ TEST_F(ActionLayersTest, assign_action_ensure_slot_for_keying)
 {
   { /* Slotless Action, should create a typed slot. */
     Action &action = action_add(*this->bmain, "ACEmpty");
+    EXPECT_EQ(action.id.us, 0);
     Slot *chosen_slot = assign_action_ensure_slot_for_keying(action, cube->id);
+    EXPECT_EQ(action.id.us, 1);
     ASSERT_NE(nullptr, chosen_slot);
     EXPECT_EQ(ID_OB, chosen_slot->idtype);
     EXPECT_STREQ("OBKüüübus", chosen_slot->identifier);
