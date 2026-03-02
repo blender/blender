@@ -72,6 +72,10 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 {
   auto *mmd = reinterpret_cast<GreasePencilHookModifierData *>(md);
   if (mmd->object != nullptr) {
+    if (mmd->subtarget[0]) {
+      DEG_add_bone_relation(
+          ctx->node, mmd->object, mmd->subtarget, DEG_OB_COMP_BONE, "Hook Modifier");
+    }
     DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_TRANSFORM, "Hook Modifier");
   }
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Hook Modifier");

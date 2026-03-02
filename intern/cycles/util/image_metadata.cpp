@@ -144,12 +144,19 @@ void ImageMetaData::finalize(const ImageAlphaType alpha_type)
   ignore_alpha = alpha_type == IMAGE_ALPHA_IGNORE;
   is_channel_packed = alpha_type == IMAGE_ALPHA_CHANNEL_PACKED;
 
-  /* For typical RGBA images we let OIIO convert to associated alpha,
-   * but some types we want to leave the RGB channels untouched. */
-  is_unassociated_alpha = is_unassociated_alpha &&
-                          !(ColorSpaceManager::colorspace_is_data(colorspace) ||
-                            alpha_type == IMAGE_ALPHA_IGNORE ||
-                            alpha_type == IMAGE_ALPHA_CHANNEL_PACKED);
+  /* No alpha conversion needed for data, associated, no alpha or channel packed. */
+  if (ColorSpaceManager::colorspace_is_data(colorspace) || alpha_type == IMAGE_ALPHA_ASSOCIATED ||
+      alpha_type == IMAGE_ALPHA_IGNORE || alpha_type == IMAGE_ALPHA_CHANNEL_PACKED)
+  {
+    is_unassociated_alpha = false;
+  }
+  /* Allways convert if explicitly specified as unassociated. */
+  else if (alpha_type == IMAGE_ALPHA_UNASSOCIATED) {
+    is_unassociated_alpha = true;
+  }
+  else {
+    /* Leave automatically detected is_unassociated_alpha unchanged. */
+  }
 }
 
 void ImageMetaData::make_float()
