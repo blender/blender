@@ -51,6 +51,7 @@ set(SRC
   grease_pencil/interpolate.cc
   grease_pencil/paint.cc
   grease_pencil/paint_common.cc
+  grease_pencil/paint_cursor.cc
   grease_pencil/sculpt_clone.cc
   grease_pencil/sculpt_grab.cc
   grease_pencil/sculpt_pinch.cc
@@ -74,6 +75,7 @@ set(SRC
   grease_pencil/weight_smear.cc
 
   mesh/paint_canvas.cc
+  mesh/paint_cursor.cc
   mesh/paint_hide.cc
   mesh/paint_image.cc
   mesh/paint_image_2d.cc
@@ -114,6 +116,7 @@ set(SRC
   mesh/sculpt_undo.cc
 
   paint_intern.hh
+  paint_cursor.hh
 
   curves/sculpt_intern.hh
 
