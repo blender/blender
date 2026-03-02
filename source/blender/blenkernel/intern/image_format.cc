@@ -23,6 +23,8 @@
 #include "BKE_image_format.hh"
 #include "BKE_path_templates.hh"
 
+#include "BLT_translation.hh"
+
 namespace blender {
 
 namespace path_templates = bke::path_templates;
@@ -683,6 +685,13 @@ static Vector<path_templates::Error> do_makepicstring(
 
   if (use_frames) {
     BLI_path_frame(filepath, FILE_MAX, frame, 4);
+  }
+  else {
+    /* Avoid empty filename if there is no frame and only a directory was specified. */
+    const size_t len = strlen(filepath);
+    if (len && BLI_path_slash_is_native_compat(filepath[len - 1])) {
+      BLI_path_suffix(filepath, FILE_MAX, DATA_("Untitled"), "");
+    }
   }
 
   if (suffix) {
