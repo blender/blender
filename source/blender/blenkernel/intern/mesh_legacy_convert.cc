@@ -2344,7 +2344,9 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
       }
       if (md.type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
-        if (nmd->node_group && is_auto_smooth_node_tree(*nmd->node_group)) {
+        if (nmd->node_group && !ID_MISSING(nmd->node_group) &&
+            is_auto_smooth_node_tree(*nmd->node_group))
+        {
           /* This object has already been processed by versioning. If the mesh is linked from
            * another file its auto-smooth flag may not be cleared, so this check is necessary to
            * avoid adding a duplicate modifier. */

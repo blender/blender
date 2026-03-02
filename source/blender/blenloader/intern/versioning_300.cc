@@ -1222,7 +1222,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
           continue;
         }
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
-        if (nmd->node_group == nullptr) {
+        if (nmd->node_group == nullptr || ID_MISSING(nmd->node_group)) {
           continue;
         }
 

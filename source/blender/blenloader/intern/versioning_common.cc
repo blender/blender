@@ -11,6 +11,7 @@
 #include <cstring>
 
 #include "DNA_layer_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -840,6 +841,25 @@ void do_versions_after_setup(Main *new_bmain,
 
       /* NOTE: The user count remains zero at this point. It will get automatically updated after
        * blend file reading is done. */
+    }
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 501, 29)) {
+    /* Clear modifier node trees if the tree type is undefined.
+     * This can happen to generated auto-smooth node groups for unknown reasons (#152810). */
+    for (Object &object : new_bmain->objects) {
+      for (ModifierData &md : object.modifiers) {
+        if (md.type != eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(&md);
+        if (nmd.node_group && !ID_MISSING(nmd.node_group) &&
+            !STREQ(nmd.node_group->idname, "GeometryNodeTree"))
+        {
+          id_us_min(&nmd.node_group->id);
+          nmd.node_group = nullptr;
+        }
+      }
     }
   }
 }

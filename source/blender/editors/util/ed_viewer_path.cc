@@ -290,7 +290,7 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
   if (modifier == nullptr) {
     return false;
   }
-  if (modifier->node_group == nullptr) {
+  if (modifier->node_group == nullptr || ID_MISSING(modifier->node_group)) {
     return false;
   }
   const bNodeTree *ngroup = modifier->node_group;

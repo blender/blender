@@ -311,7 +311,7 @@ static bool logging_enabled(const ModifierEvalContext *ctx)
 
 static void update_id_properties_from_node_group(NodesModifierData *nmd)
 {
-  if (nmd->node_group == nullptr) {
+  if (nmd->node_group == nullptr || ID_MISSING(nmd->node_group)) {
     if (nmd->settings.properties) {
       IDP_FreeProperty(nmd->settings.properties);
       nmd->settings.properties = nullptr;
@@ -362,7 +362,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   }
 
   Vector<int> new_bake_ids;
-  if (nmd.node_group) {
+  if (nmd.node_group && !ID_MISSING(nmd.node_group)) {
     for (const bNestedNodeRef &ref : nmd.node_group->nested_node_refs_span()) {
       const bNode *node = nmd.node_group->find_nested_node(ref.id);
       if (node) {
@@ -419,7 +419,7 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
   }
 
   Vector<const bNodeTreeInterfacePanel *> interface_panels;
-  if (nmd.node_group) {
+  if (nmd.node_group && !ID_MISSING(nmd.node_group)) {
     nmd.node_group->ensure_interface_cache();
     nmd.node_group->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
       if (item.item_type != NODE_INTERFACE_PANEL) {
@@ -490,7 +490,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
                                      const NodesModifierData &nmd,
                                      nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
 {
-  if (nmd.node_group == nullptr) {
+  if (nmd.node_group == nullptr || ID_MISSING(nmd.node_group)) {
     return;
   }
 
@@ -1969,11 +1969,7 @@ static void modify_geometry_set(ModifierData *md,
 
 void NodesModifierUsageInferenceCache::ensure(const NodesModifierData &nmd)
 {
-  if (!nmd.node_group) {
-    this->reset();
-    return;
-  }
-  if (ID_MISSING(&nmd.node_group->id)) {
+  if (!nmd.node_group || ID_MISSING(nmd.node_group)) {
     this->reset();
     return;
   }

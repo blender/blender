@@ -149,7 +149,7 @@ SearchInfo SocketSearchData::info(const bContext &C) const
       return {};
     }
     const NodesModifierData *nmd = object_and_modifier->nmd;
-    if (nmd->node_group == nullptr) {
+    if (nmd->node_group != nullptr || ID_MISSING(nmd->node_group)) {
       return {};
     }
     geo_log::GeoTreeLog *tree_log = get_root_tree_log(*object_and_modifier->object, *nmd);
@@ -871,7 +871,7 @@ static void draw_warnings(const bContext *C,
 
 static bool has_output_attribute(const bNodeTree *tree)
 {
-  if (!tree) {
+  if (!tree || ID_MISSING(tree)) {
     return false;
   }
   for (const bNodeTreeInterfaceSocket *interface_socket : tree->interface_outputs()) {
@@ -1066,7 +1066,9 @@ void draw_geometry_nodes_modifier_ui(const bContext &C,
     template_id(&layout, &C, modifier_ptr, "node_group", newop, nullptr, nullptr);
   }
 
-  if (nmd.node_group != nullptr && nmd.settings.properties != nullptr) {
+  if (nmd.node_group != nullptr && !ID_MISSING(nmd.node_group) &&
+      nmd.settings.properties != nullptr)
+  {
     nmd.runtime->usage_cache.ensure(nmd);
     ctx.input_usages = nmd.runtime->usage_cache.inputs;
     ctx.output_usages = nmd.runtime->usage_cache.outputs;
