@@ -2389,8 +2389,10 @@ static wmOperatorStatus object_transform_axis_target_modal(bContext *C,
 void OBJECT_OT_transform_axis_target(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Track to Cursor";
-  ot->description = "Interactively point cameras and lights to a location (Ctrl translates)";
+  ot->name = "Look at Surface";
+  ot->description =
+      "Interactively point cameras and lights to the surface under the pointer (Ctrl to "
+      "translate)";
   ot->idname = "OBJECT_OT_transform_axis_target";
 
   /* API callbacks. */
