@@ -2624,7 +2624,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     BKE_sculptsession_free_deformMats(&ss);
   }
 
-  if (ss.shapekey_active != nullptr && ss.deform_cos.is_empty()) {
+  if (ss.bm == nullptr && ss.shapekey_active != nullptr && ss.deform_cos.is_empty()) {
     ss.deform_cos = Span(static_cast<const float3 *>(ss.shapekey_active->data),
                          mesh_orig->verts_num);
     if (!ss.deform_cos.is_empty()) {
