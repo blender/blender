@@ -253,7 +253,7 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
   dump_source_to_disk(this->name_get(), this->entry_point_name_get(stage), ".msl", concat_source);
 
   if (!this->skip_preprocessor) {
-    concat_source = run_preprocessor(concat_source);
+    concat_source = run_preprocessor(concat_source, G.debug & G_DEBUG_GPU_SHADER_NO_DCE);
 
     dump_source_to_disk(
         this->name_get(), this->entry_point_name_get(stage) + ".expanded", ".msl", concat_source);

@@ -271,7 +271,7 @@ template<typename ParserT> void SourceProcessor::cleanup_whitespace(ParserT &par
  * This allow the create infos to use shared defines values. */
 void SourceProcessor::parse_defines(Parser &parser)
 {
-  parser().foreach_match("#A", [&](const vector<Token> &tokens) {
+  parser().foreach_match<true>("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "define") {
       metadata_.create_infos_defines.emplace_back(tokens[1].next().scope().str_with_whitespace());
     }
@@ -391,7 +391,7 @@ void SourceProcessor::parse_legacy_create_info(Parser &parser)
 
 void SourceProcessor::parse_includes(Parser &parser)
 {
-  parser().foreach_match("#A\"", [&](const vector<Token> &tokens) {
+  parser().foreach_match<true>("#A\"", [&](const vector<Token> &tokens) {
     if (tokens[1].str() != "include") {
       return;
     }
@@ -469,18 +469,18 @@ string SourceProcessor::disabled_code_mutation(const string &str)
     }
   };
 
-  parser().foreach_match("#AA", [&](const vector<Token> &tokens) {
+  parser().foreach_match<true>("#AA", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "ifndef" && tokens[2].str() == "GPU_SHADER") {
       process_disabled_scope(tokens[0]);
     }
   });
-  parser().foreach_match("#i!A(A)", [&](const vector<Token> &tokens) {
+  parser().foreach_match<true>("#i!A(A)", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "if" && tokens[3].str() == "defined" && tokens[5].str() == "GPU_SHADER")
     {
       process_disabled_scope(tokens[0]);
     }
   });
-  parser().foreach_match("#i1", [&](const vector<Token> &tokens) {
+  parser().foreach_match<true>("#i1", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "if" && tokens[2].str() == "0") {
       process_disabled_scope(tokens[0]);
     }
@@ -492,7 +492,7 @@ void SourceProcessor::lower_preprocessor(Parser &parser)
 {
   /* Remove unsupported directives. */
 
-  parser().foreach_match("#A", [&](const vector<Token> &tokens) {
+  parser().foreach_match<true>("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "pragma") {
       Token next = tokens[1].next();
       if (next.str() == "once") {
@@ -984,7 +984,7 @@ void SourceProcessor::lint_unbraced_statements(Parser &parser)
 {
   auto check_statement = [&](const Tokens &toks) {
     Token end_tok = toks.back();
-    if (end_tok.next() == If || end_tok.prev() == '#') {
+    if (end_tok.next() == If || end_tok.scope().type() == ScopeType::Preprocessor) {
       return;
     }
     if (end_tok.next() == '[' && end_tok.next().next() == '[') {
@@ -1321,35 +1321,33 @@ void SourceProcessor::lower_function_default_arguments(Parser &parser)
 /* Successive mutations can introduce a lot of unneeded line directives. */
 void SourceProcessor::cleanup_line_directives(Parser &parser)
 {
-  parser().foreach_match("#A1\n", [&](vector<Token> toks) {
+  parser().foreach_match<true>("#A1", [&](vector<Token> toks) {
     if (toks[1].str() != "line") {
       return;
     }
     /* Workaround the foreach_match not matching overlapping patterns. */
     if (toks.back().next() == '#' && toks.back().next().next() == Word &&
-        toks.back().next().next().next() == Number &&
-        toks.back().next().next().next().next() == '\n')
+        toks.back().next().next().next() == Number)
     {
       parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
     }
   });
   parser.apply_mutations();
 
-  parser().foreach_match("#A1\n#A\n", [&](vector<Token> toks) {
+  parser().foreach_match<true>("#A1#A", [&](vector<Token> toks) {
     if (toks[1].str() != "line") {
       return;
     }
     /* Workaround the foreach_match not matching overlapping patterns. */
     if (toks.back().next() == '#' && toks.back().next().next() == Word &&
-        toks.back().next().next().next() == Number &&
-        toks.back().next().next().next().next() == '\n')
+        toks.back().next().next().next() == Number)
     {
       parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
     }
   });
   parser.apply_mutations();
 
-  parser().foreach_match("#A1\n", [&](vector<Token> toks) {
+  parser().foreach_match<true>("#A1", [&](vector<Token> toks) {
     if (toks[1].str() != "line") {
       return;
     }
