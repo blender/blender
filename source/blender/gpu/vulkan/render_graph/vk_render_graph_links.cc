@@ -16,8 +16,7 @@ namespace blender::gpu::render_graph {
 void VKRenderGraphLink::debug_print(std::ostream &ss,
                                     const VKResourceStateTracker &resources) const
 {
-  const VKResourceStateTracker::Resource &tracked_resource = resources.resources_.lookup(
-      resource.handle);
+  const VKResourceStateTracker::Resource &tracked_resource = resources.resources_[resource.handle];
   ss << "handle=" << resource.handle;
   ss << ", type=";
 

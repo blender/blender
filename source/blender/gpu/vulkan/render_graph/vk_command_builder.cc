@@ -498,7 +498,7 @@ void VKCommandBuilder::add_buffer_read_barriers(VKRenderGraph &render_graph,
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
-    VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
+    VKResourceStateTracker::Resource &resource = render_graph.resources_.get_buffer_resource(
         versioned_resource.handle);
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const bool is_first_read = resource_state.is_new_stamp();
@@ -540,7 +540,7 @@ void VKCommandBuilder::add_buffer_write_barriers(VKRenderGraph &render_graph,
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
-    VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
+    VKResourceStateTracker::Resource &resource = render_graph.resources_.get_buffer_resource(
         versioned_resource.handle);
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const VkAccessFlags wait_access = resource_state.vk_access;
@@ -622,7 +622,7 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
-    VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
+    VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
         versioned_resource.handle);
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const bool is_first_read = resource_state.is_new_stamp();
@@ -692,7 +692,7 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
-    VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
+    VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
         versioned_resource.handle);
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const VkAccessFlags wait_access = resource_state.vk_access;
@@ -798,7 +798,7 @@ void VKCommandBuilder::ImageTracker::begin(const VKRenderGraph &render_graph,
 
   const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
   for (const VKRenderGraphLink &link : links.outputs) {
-    VKResourceStateTracker::Resource &resource = render_graph.resources_.resources_.lookup(
+    VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
         link.resource.handle);
     if (resource.use_subresource_tracking()) {
       tracked_attachments.add(resource.image.vk_image);
