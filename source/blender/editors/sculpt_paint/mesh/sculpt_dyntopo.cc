@@ -65,6 +65,7 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
   BKE_sculptsession_free_pbvh(ob);
+  BKE_sculptsession_free_deformMats(&ss);
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(mesh);
