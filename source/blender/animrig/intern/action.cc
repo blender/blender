@@ -1158,7 +1158,8 @@ void Slot::identifier_ensure_prefix()
 Action &action_add(Main &bmain, const StringRefNull name)
 {
   bAction *dna_action = BKE_action_add(&bmain, name.c_str());
-  id_us_clear_real(&dna_action->id);
+  BLI_assert(dna_action->id.us == 1);
+  id_us_min(&dna_action->id);
   return dna_action->wrap();
 }
 
