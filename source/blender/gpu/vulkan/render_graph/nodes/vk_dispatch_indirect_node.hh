@@ -53,16 +53,6 @@ class VKDispatchIndirectNode
   static void set_node_data(Node &node, Storage & /* storage */, const CreateInfo &create_info)
   {
     node.dispatch_indirect = create_info.dispatch_indirect_node;
-    vk_pipeline_data_copy(node.dispatch_indirect.pipeline_data,
-                          create_info.dispatch_indirect_node.pipeline_data);
-  }
-
-  /**
-   * Free the pipeline data stored in the render graph node data.
-   */
-  void free_data(VKDispatchIndirectData &data)
-  {
-    vk_pipeline_data_free(data.pipeline_data);
   }
 
   /**
@@ -83,10 +73,12 @@ class VKDispatchIndirectNode
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> storage_push_constants,
                       VKBoundPipelines &r_bound_pipelines) override
   {
     vk_pipeline_data_build_commands(command_buffer,
                                     data.pipeline_data,
+                                    storage_push_constants,
                                     r_bound_pipelines.compute,
                                     VK_PIPELINE_BIND_POINT_COMPUTE,
                                     VK_SHADER_STAGE_COMPUTE_BIT);

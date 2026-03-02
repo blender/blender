@@ -371,13 +371,13 @@ void VKContext::update_pipeline_data(VKShader &vk_shader,
   r_pipeline_data.vk_pipeline = vk_pipeline;
 
   /* Update push constants. */
-  r_pipeline_data.push_constants_data = nullptr;
-  r_pipeline_data.push_constants_size = 0;
+  r_pipeline_data.push_constants_range = IndexRange::from_begin_size(0, 0);
   const VKPushConstants::Layout &push_constants_layout =
       vk_shader.interface_get().push_constants_layout_get();
   if (push_constants_layout.storage_type_get() == VKPushConstants::StorageType::PUSH_CONSTANTS) {
-    r_pipeline_data.push_constants_size = push_constants_layout.size_in_bytes();
-    r_pipeline_data.push_constants_data = vk_shader.push_constants.data();
+    r_pipeline_data.push_constants_range = render_graph().copy_push_constants(
+        Span<uint8_t>(static_cast<const uint8_t *>(vk_shader.push_constants.data()),
+                      push_constants_layout.size_in_bytes()));
   }
 
   /* Update descriptor set. */

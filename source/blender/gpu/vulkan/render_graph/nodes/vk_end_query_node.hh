@@ -60,6 +60,7 @@ class VKEndQueryNode : public VKNodeInfo<VKNodeType::END_QUERY,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.end_query(data.vk_query_pool, data.query_index);

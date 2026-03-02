@@ -218,6 +218,18 @@ class VKRenderGraph : public NonCopyable {
   }
 
   /**
+   * To reduce small allocations the caller can copy push constants inside the render graph.
+   * The returned index range can than be used by the command builder to retrieve the push
+   * constants.
+   */
+  IndexRange copy_push_constants(Span<uint8_t> push_constants)
+  {
+    int64_t start = storage_.push_constants.size();
+    storage_.push_constants.extend(push_constants);
+    return IndexRange::from_begin_size(start, push_constants.size());
+  }
+
+  /**
    * Push a new debugging group to the stack with the given name.
    *
    * New nodes added to the render graph will be associated with this debug group.

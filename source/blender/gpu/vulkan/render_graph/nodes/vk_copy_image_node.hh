@@ -73,6 +73,7 @@ class VKCopyImageNode : public VKNodeInfo<VKNodeType::COPY_IMAGE,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.copy_image(data.src_image,

@@ -23,7 +23,7 @@ void VKRenderGraph::reset()
 
   links_.clear_and_shrink();
   for (VKRenderGraphNode &node : nodes_) {
-    node.free_data(storage_);
+    node.free_data();
   }
   nodes_.clear_and_shrink();
   storage_.reset();

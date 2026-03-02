@@ -209,6 +209,7 @@ class VKNodeInfo : public NonCopyable {
    */
   virtual void build_commands(VKCommandBufferInterface &command_buffer,
                               Data &data,
+                              Span<uint8_t> storage_push_constants,
                               VKBoundPipelines &r_bound_pipelines) = 0;
 };
 }  // namespace blender::gpu::render_graph

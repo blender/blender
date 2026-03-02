@@ -55,6 +55,7 @@ class VKFillBufferNode : public VKNodeInfo<VKNodeType::FILL_BUFFER,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.fill_buffer(data.vk_buffer, 0, data.size, data.data);

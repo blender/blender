@@ -48,8 +48,6 @@ class VKDrawIndirectNode : public VKNodeInfo<VKNodeType::DRAW_INDIRECT,
   static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
   {
     node.storage_index = storage.draw_indirect.append_and_get_index(create_info.node_data);
-    vk_pipeline_data_copy(storage.draw_indirect[node.storage_index].graphics,
-                          create_info.node_data.graphics);
   }
 
   /**
@@ -72,11 +70,13 @@ class VKDrawIndirectNode : public VKNodeInfo<VKNodeType::DRAW_INDIRECT,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> storage_push_constants,
                       VKBoundPipelines &r_bound_pipelines) override
   {
     vk_pipeline_dynamic_graphics_build_commands(command_buffer, data.graphics, r_bound_pipelines);
     vk_pipeline_data_build_commands(command_buffer,
                                     data.graphics.pipeline_data,
+                                    storage_push_constants,
                                     r_bound_pipelines.graphics.pipeline,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     VK_SHADER_STAGE_ALL_GRAPHICS);
@@ -84,11 +84,6 @@ class VKDrawIndirectNode : public VKNodeInfo<VKNodeType::DRAW_INDIRECT,
         command_buffer, data.vertex_buffers, r_bound_pipelines.graphics.vertex_buffers);
 
     command_buffer.draw_indirect(data.indirect_buffer, data.offset, data.draw_count, data.stride);
-  }
-
-  void free_data(Data &data)
-  {
-    vk_pipeline_data_free(data.graphics);
   }
 };
 }  // namespace blender::gpu::render_graph

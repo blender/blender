@@ -61,6 +61,7 @@ class VKResetQueryPoolNode : public VKNodeInfo<VKNodeType::RESET_QUERY_POOL,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.reset_query_pool(data.vk_query_pool, data.first_query, data.query_count);

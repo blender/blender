@@ -45,8 +45,8 @@ struct VKPipelineData {
   VkPipelineLayout vk_pipeline_layout;
   VkDescriptorSet vk_descriptor_set;
 
-  uint32_t push_constants_size;
-  const void *push_constants_data;
+  /** Range where the push constants are stored in the render graph storage */
+  IndexRange push_constants_range;
 };
 
 /**
@@ -151,20 +151,6 @@ struct VKBoundPipelines {
 };
 
 /**
- * Copy src pipeline data into dst. The push_constant_data will be duplicated and needs to be freed
- * using `vk_pipeline_data_free`.
- *
- * Memory duplication isn't used as push_constant_data in the src doesn't need to be allocated via
- * guardedalloc.
- */
-void vk_pipeline_data_copy(VKPipelineData &dst, const VKPipelineData &src);
-static inline void vk_pipeline_data_copy(VKPipelineDataGraphics &dst,
-                                         const VKPipelineDataGraphics &src)
-{
-  vk_pipeline_data_copy(dst.pipeline_data, src.pipeline_data);
-}
-
-/**
  * Record commands that update the dynamic state.
  *
  * - viewports
@@ -186,23 +172,17 @@ void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &comma
  * r_bound_pipelines are checked to identify if they are the last bound. Descriptor set and
  * pipeline are bound at the given pipeline bind point.
  *
- * Any available push constants in the pipeline data always update the shader stages provided by
+ * storage_push_constants contains all the push constants of the render graph. The
+ * pipeline_data.push_constants_range contains the valid range that needs to be bound. Any
+ * available push constants in the pipeline data always update the shader stages provided by
  * `vk_shader_stage_flags`.
  */
 void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
                                      const VKPipelineData &pipeline_data,
+                                     Span<uint8_t> storage_push_constants,
                                      VKBoundPipeline &r_bound_pipeline,
                                      VkPipelineBindPoint vk_pipeline_bind_point,
                                      VkShaderStageFlags vk_shader_stage_flags);
-
-/**
- * Free localized data created by `vk_pipeline_data_copy`.
- */
-void vk_pipeline_data_free(VKPipelineData &data);
-static inline void vk_pipeline_data_free(VKPipelineDataGraphics &data)
-{
-  vk_pipeline_data_free(data.pipeline_data);
-}
 
 void vk_index_buffer_binding_build_links(VKResourceStateTracker &resources,
                                          VKRenderGraphNodeLinks &node_links,

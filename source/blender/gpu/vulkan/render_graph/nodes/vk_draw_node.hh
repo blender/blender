@@ -49,8 +49,6 @@ class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
   static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
   {
     node.storage_index = storage.draw.append_and_get_index(create_info.node_data);
-    vk_pipeline_data_copy(storage.draw[node.storage_index].graphics,
-                          create_info.node_data.graphics);
   }
 
   /**
@@ -70,11 +68,13 @@ class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> storage_push_constants,
                       VKBoundPipelines &r_bound_pipelines) override
   {
     vk_pipeline_dynamic_graphics_build_commands(command_buffer, data.graphics, r_bound_pipelines);
     vk_pipeline_data_build_commands(command_buffer,
                                     data.graphics.pipeline_data,
+                                    storage_push_constants,
                                     r_bound_pipelines.graphics.pipeline,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     VK_SHADER_STAGE_ALL_GRAPHICS);
@@ -83,11 +83,6 @@ class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
 
     command_buffer.draw(
         data.vertex_count, data.instance_count, data.first_vertex, data.first_instance);
-  }
-
-  void free_data(Data &data)
-  {
-    vk_pipeline_data_free(data.graphics);
   }
 };
 }  // namespace blender::gpu::render_graph
