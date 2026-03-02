@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'57dd016d99c8')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-23 10:33+0000\n"
+"POT-Creation-Date: 2026-03-02 13:27+0000\n"
 "PO-Revision-Date: 2026-02-19 06:12+0000\n"
 "Last-Translator: Yegoun Lee <yegoeun.lee@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -34903,12 +34903,16 @@ msgid "UV"
 msgstr "UV"
 
 
+msgid "Metaball"
+msgstr "메타볼"
+
+
 msgid "Read"
 msgstr "읽기"
 
 
-msgid "Rigid Body"
-msgstr "리지드 바디"
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
 msgid "Write"
@@ -34923,164 +34927,16 @@ msgid "Primitives"
 msgstr "프리미티브"
 
 
-msgid "Apply"
-msgstr "적용"
-
-
-msgid "Track"
-msgstr "트랙"
-
-
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Convert"
-msgstr "변환"
-
-
-msgid "Link/Transfer Data"
-msgstr "데이터 연결/전송"
-
-
-msgid "Hooks"
-msgstr "후크"
-
-
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
-
-
-msgid "Trim/Add"
-msgstr "트림/추가"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
-msgid "Face Sets Init"
-msgstr "페이스 세트 초기화"
-
-
-msgid "Random Mask"
-msgstr "랜덤 마스크"
-
-
-msgid "Clear Transform"
-msgstr "변환을 지우기"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "Bone Collections"
-msgstr "뼈대 컬렉션"
-
-
 msgid "Names"
 msgstr "이름"
-
-
-msgid "Toggle Bone Options"
-msgstr "뼈대 옵션을 토글"
-
-
-msgid "Enable Bone Options"
-msgstr "뼈대 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메시 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Adjust"
-msgstr "조정"
-
-
-msgid "Keying"
-msgstr "키잉"
 
 
 msgid "Bone Roll"
 msgstr "뼈대 롤"
 
 
-msgid "Tracking"
-msgstr "트래킹"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Creative"
-msgstr "크리에이티브"
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Pivot Point"
@@ -35105,6 +34961,10 @@ msgstr "오토마스킹"
 
 msgid "Face Sets Edit"
 msgstr "페이스 세트 편집"
+
+
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
 
 
 msgid "Mirror"
@@ -35143,6 +35003,10 @@ msgid "Select More/Less"
 msgstr "선택 증가/감소"
 
 
+msgid "Layout"
+msgstr "레이아웃"
+
+
 msgid "Select Similar"
 msgstr "유사한 선택"
 
@@ -35155,24 +35019,40 @@ msgid "Select Linked"
 msgstr "연결된 선택"
 
 
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
 msgid "Select Loops"
 msgstr "루프를 선택"
+
+
+msgid "Adjust"
+msgstr "조정"
 
 
 msgid "Assign Material"
 msgstr "머티리얼을 할당"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
+msgid "Keying"
+msgstr "키잉"
 
 
-msgid "Instances"
-msgstr "인스턴스"
+msgid "Tracking"
+msgstr "트래킹"
 
 
-msgid "Import"
-msgstr "가져오기"
+msgid "Utilities"
+msgstr "유틸리티"
+
+
+msgid "Math"
+msgstr "수학"
+
+
+msgid "Creative"
+msgstr "크리에이티브"
 
 
 msgid "Light"
@@ -35183,20 +35063,140 @@ msgid "Light Probe"
 msgstr "라이트 프로브"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
-msgid "List"
-msgstr "목록"
-
-
 msgid "Add Image"
 msgstr "이미지를 추가"
 
 
 msgid "Relations"
 msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Convert"
+msgstr "변환"
+
+
+msgid "Link/Transfer Data"
+msgstr "데이터 연결/전송"
+
+
+msgid "Hooks"
+msgstr "후크"
+
+
+msgid "Trim/Add"
+msgstr "트림/추가"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
+
+
+msgid "Face Sets Init"
+msgstr "페이스 세트 초기화"
+
+
+msgid "Random Mask"
+msgstr "랜덤 마스크"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Bone Collections"
+msgstr "뼈대 컬렉션"
+
+
+msgid "Toggle Bone Options"
+msgstr "뼈대 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "뼈대 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "뼈대 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메시 선택 모드"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "List"
+msgstr "목록"
+
+
+msgid "Kerning"
+msgstr "자간"
 
 
 msgid "Keyframe Insert Pie"
@@ -50265,6 +50265,10 @@ msgstr "정규 벡터와 도트 곱 생성하기"
 
 msgid "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
 msgstr "RGB 노멀 맵 이미지에서 섭동 노멀을 생성합니다. 일반적으로 매우 디테일한 표면을 페이크하는 데 사용함"
+
+
+msgid "Base"
+msgstr "베이스"
 
 
 msgid "OpenGL"
@@ -83251,11 +83255,6 @@ msgid "Set cursor position in text"
 msgstr "텍스트 내 커서 위치 설정"
 
 
-msgctxt "Operator"
-msgid "Delete Character"
-msgstr "문자 삭제"
-
-
 msgid "Delete text at cursor position"
 msgstr "커서 위치에서 텍스트 삭제"
 
@@ -83284,11 +83283,6 @@ msgstr "텍스트 편집"
 
 msgid "Toggle text editing"
 msgstr "텍스트 편집 토글"
-
-
-msgctxt "Operator"
-msgid "Insert Character"
-msgstr "인서트 문자"
 
 
 msgid "String to be inserted at cursor position"
@@ -90800,30 +90794,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
-
-
-msgid "glTF Variants"
-msgstr "glTF 변형"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 머티리얼 배리언트"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 애니메이션"
-
-
 msgid "Active Tool"
 msgstr "활성 도구"
 
@@ -90892,6 +90862,14 @@ msgid "Curves Edit Mode"
 msgstr "커브 편집 모드"
 
 
+msgid "glTF Variants"
+msgstr "glTF 변형"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 머티리얼 배리언트"
+
+
 msgid "Transform Orientations"
 msgstr "변환 오리엔테이션"
 
@@ -90920,6 +90898,14 @@ msgid "Stereoscopy"
 msgstr "입체 영상"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 애니메이션"
+
+
 msgid "Multi Frame"
 msgstr "다중 프레임"
 
@@ -90942,6 +90928,14 @@ msgstr "커브 성장/축소 스케일링"
 
 msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
 
 
 msgid "Import Settings"
@@ -96085,10 +96079,6 @@ msgid "Locale code: eu_EU. Translation progress: 1%"
 msgstr "로캘 코드: eu_EU. 번역 진행률: 1%"
 
 
-msgid "Belarusian - беларуску"
-msgstr "벨라루스어 - беларуску"
-
-
 msgid "Locale code: be. Translation progress: 0%"
 msgstr "로캘 코드: be. 번역 진행률: 0%"
 
@@ -97103,10 +97093,6 @@ msgstr "저장 건너뛰기"
 
 msgid "True when the property uses ghost values"
 msgstr "프로퍼티가 고스트 값을 사용하는 경우 참임"
-
-
-msgid "Base"
-msgstr "베이스"
 
 
 msgid "Struct definition used for properties assigned to this item"
