@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'57dd016d99c8')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-23 10:33+0000\n"
+"POT-Creation-Date: 2026-03-02 13:27+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28373,8 +28373,16 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
 msgid "Read"
 msgstr "Soma"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
 
 
 msgid "Write"
@@ -28389,36 +28397,32 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
 msgid "Clean Up"
 msgstr "Safisha"
 
 
-msgid "Asset"
-msgstr "Mali"
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
+msgid "Snap"
+msgstr "Picha"
 
 
-msgid "Merge"
-msgstr "Unganisha"
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
 msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Adjust"
@@ -28441,24 +28445,24 @@ msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Light"
+msgstr "Mwanga"
 
 
-msgid "Snap"
-msgstr "Picha"
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Apply"
+msgstr "Tumia"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Asset"
+msgstr "Mali"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Instances"
@@ -28469,12 +28473,8 @@ msgid "Import"
 msgstr "Ingiza"
 
 
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Deprecated"
@@ -40357,6 +40357,10 @@ msgstr "Tengeneza vekta ya kawaida na bidhaa ya nukta"
 
 msgid "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
 msgstr "Tengeneza hali ya kutatanisha kutoka kwa picha ya kawaida ya ramani ya RGB."
+
+
+msgid "Base"
+msgstr "Msingi"
 
 
 msgid "Space of the input normal"
@@ -76824,10 +76828,6 @@ msgstr "Ruka Hifadhi"
 
 msgid "True when the property uses ghost values"
 msgstr "Ni kweli mali inapotumia maadili ya roho"
-
-
-msgid "Base"
-msgstr "Msingi"
 
 
 msgid "Struct definition used for properties assigned to this item"

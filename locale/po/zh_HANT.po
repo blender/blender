@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'57dd016d99c8')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-23 10:33+0000\n"
+"POT-Creation-Date: 2026-03-02 13:27+0000\n"
 "PO-Revision-Date: 2026-02-15 20:12+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26520,12 +26520,16 @@ msgid "UV"
 msgstr "UV"
 
 
+msgid "Metaball"
+msgstr "變幻球"
+
+
 msgid "Read"
 msgstr "讀取"
 
 
-msgid "Rigid Body"
-msgstr "剛體"
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
 
 
 msgid "Write"
@@ -26540,160 +26544,16 @@ msgid "Primitives"
 msgstr "原形"
 
 
-msgid "Apply"
-msgstr "套用"
-
-
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Make Single User"
-msgstr "製作單一使用者"
-
-
-msgid "Convert"
-msgstr "轉換"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Hooks"
-msgstr "鉤"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
-
-
-msgid "Trim/Add"
-msgstr "修剪/增加"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "雕刻設定樞紐"
-
-
-msgid "Face Sets Init"
-msgstr "面集初始化"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
 msgid "Names"
 msgstr "名稱"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "鍵處理"
 
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Creative"
-msgstr "創意"
+msgid "Clean Up"
+msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -26718,6 +26578,10 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
 
 
 msgid "Mirror"
@@ -26756,6 +26620,10 @@ msgid "Select More/Less"
 msgstr "選取更多/更少"
 
 
+msgid "Layout"
+msgstr "配置"
+
+
 msgid "Select Similar"
 msgstr "選取相似者"
 
@@ -26768,24 +26636,40 @@ msgid "Select Linked"
 msgstr "選取連結項"
 
 
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
 msgid "Select Loops"
 msgstr "選取迴圈"
+
+
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Assign Material"
 msgstr "指派材質"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
+msgid "Keying"
+msgstr "鍵處理"
 
 
-msgid "Instances"
-msgstr "實例化"
+msgid "Tracking"
+msgstr "跟蹤"
 
 
-msgid "Import"
-msgstr "匯入"
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Creative"
+msgstr "創意"
 
 
 msgid "Light"
@@ -26796,20 +26680,136 @@ msgid "Light Probe"
 msgstr "燈光採樣器"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
-
-
-msgid "List"
-msgstr "列表"
-
-
 msgid "Add Image"
 msgstr "新增影像"
 
 
 msgid "Relations"
 msgstr "關係"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Convert"
+msgstr "轉換"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Trim/Add"
+msgstr "修剪/增加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻設定樞紐"
+
+
+msgid "Face Sets Init"
+msgstr "面集初始化"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "List"
+msgstr "列表"
+
+
+msgid "Kerning"
+msgstr "字間微調"
 
 
 msgid "Keyframe Insert Pie"
@@ -35620,6 +35620,10 @@ msgstr "混合著色器"
 
 msgid "Generate a normal vector and a dot product"
 msgstr "生成一個法線向量和內積"
+
+
+msgid "Base"
+msgstr "基礎"
 
 
 msgid "OpenGL"
@@ -56789,11 +56793,6 @@ msgstr "選取文字"
 
 
 msgctxt "Operator"
-msgid "Delete Character"
-msgstr "刪除字元"
-
-
-msgctxt "Operator"
 msgid "Deselect All"
 msgstr "取消全選"
 
@@ -56805,11 +56804,6 @@ msgstr "編輯文字"
 
 msgid "Toggle text editing"
 msgstr "切換文字編輯"
-
-
-msgctxt "Operator"
-msgid "Insert Character"
-msgstr "插入字元"
 
 
 msgctxt "Operator"
@@ -61562,30 +61556,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 動畫"
-
-
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -61650,6 +61620,14 @@ msgid "Curves Edit Mode"
 msgstr "曲線編輯模式"
 
 
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
 msgid "Transform Orientations"
 msgstr "變換方向"
 
@@ -61678,6 +61656,14 @@ msgid "Stereoscopy"
 msgstr "立體視覺"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
+
+
 msgid "Multi Frame"
 msgstr "多重畫框"
 
@@ -61688,6 +61674,14 @@ msgstr "自動遮罩"
 
 msgid "Viewport Debug"
 msgstr "視圖除錯"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
 
 
 msgid "Import Settings"
@@ -66369,10 +66363,6 @@ msgstr "略過預設集"
 
 msgid "Skip Save"
 msgstr "略過儲存"
-
-
-msgid "Base"
-msgstr "基礎"
 
 
 msgctxt "Unit"

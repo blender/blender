@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'57dd016d99c8')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-23 10:33+0000\n"
+"POT-Creation-Date: 2026-03-02 13:27+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13822,92 +13822,24 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
+msgid "Metaball"
+msgstr "Meta objekt"
 
 
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
 msgid "Names"
 msgstr "Názvy"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Merge"
-msgstr "Sloučit"
-
-
-msgid "Layout"
-msgstr "Rozložení"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Keying"
-msgstr "Klíčovací sestava"
 
 
 msgid "Bone Roll"
 msgstr "Kost"
 
 
-msgid "Tracking"
-msgstr "Sledování"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
-
-
-msgid "Math"
-msgstr "Matematika"
+msgid "Clean Up"
+msgstr "Vyčistit"
 
 
 msgid "Pivot Point"
@@ -13942,12 +13874,80 @@ msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
+msgid "Layout"
+msgstr "Rozložení"
+
+
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
 
 msgid "Assign Material"
 msgstr "Přiřadit Materiál"
+
+
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Tracking"
+msgstr "Sledování"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
 
 
 msgid "Instances"
@@ -13958,12 +13958,12 @@ msgid "Import"
 msgstr "Importovat"
 
 
-msgid "Light"
-msgstr "Světlo"
+msgid "Merge"
+msgstr "Sloučit"
 
 
-msgid "Relations"
-msgstr "Vztahy"
+msgid "Special Characters"
+msgstr "Speciální Znaky"
 
 
 msgid "Basic"
@@ -17338,6 +17338,10 @@ msgstr "Konvertovat radiány na stupně"
 
 msgid "Mix Shader"
 msgstr "Mix Shader"
+
+
+msgid "Base"
+msgstr "Zákaldna"
 
 
 msgid "Space of the input normal"
@@ -32775,10 +32779,6 @@ msgstr "Se"
 
 msgid "Weight Color Range"
 msgstr "Použít světlo pro plošky"
-
-
-msgid "Base"
-msgstr "Zákaldna"
 
 
 msgid "ID Property Group"

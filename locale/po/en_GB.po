@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'57dd016d99c8')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-23 10:33+0000\n"
+"POT-Creation-Date: 2026-03-02 13:27+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -35060,12 +35060,16 @@ msgid "UV"
 msgstr "UV"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Read"
 msgstr "Read"
 
 
-msgid "Rigid Body"
-msgstr "Rigid Body"
+msgid "Show/Hide"
+msgstr "Show/Hide"
 
 
 msgid "Write"
@@ -35080,164 +35084,16 @@ msgid "Primitives"
 msgstr "Primitives"
 
 
-msgid "Apply"
-msgstr "Apply"
-
-
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Convert"
-msgstr "Convert"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
 msgid "Names"
 msgstr "Names"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Keying"
-msgstr "Keying"
 
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
-msgid "Tracking"
-msgstr "Tracking"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Creative"
-msgstr "Creative"
+msgid "Clean Up"
+msgstr "Clean Up"
 
 
 msgid "Pivot Point"
@@ -35262,6 +35118,10 @@ msgstr "Automasking"
 
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
 
 
 msgid "Mirror"
@@ -35300,6 +35160,10 @@ msgid "Select More/Less"
 msgstr "Select More/Less"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Select Similar"
 msgstr "Select Similar"
 
@@ -35312,24 +35176,40 @@ msgid "Select Linked"
 msgstr "Select Linked"
 
 
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
 msgid "Select Loops"
 msgstr "Select Loops"
+
+
+msgid "Adjust"
+msgstr "Adjust"
 
 
 msgid "Assign Material"
 msgstr "Assign Material"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
+msgid "Keying"
+msgstr "Keying"
 
 
-msgid "Instances"
-msgstr "Instances"
+msgid "Tracking"
+msgstr "Tracking"
 
 
-msgid "Import"
-msgstr "Import"
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Creative"
+msgstr "Creative"
 
 
 msgid "Light"
@@ -35340,20 +35220,140 @@ msgid "Light Probe"
 msgstr "Light Probe"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "List"
-msgstr "List"
-
-
 msgid "Add Image"
 msgstr "Add Image"
 
 
 msgid "Relations"
 msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
+
+
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "List"
+msgstr "List"
+
+
+msgid "Kerning"
+msgstr "Kerning"
 
 
 msgid "Keyframe Insert Pie"
@@ -50570,6 +50570,10 @@ msgstr "Generate a normal vector and a dot product"
 
 msgid "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
 msgstr "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly detailed surfaces"
+
+
+msgid "Base"
+msgstr "Base"
 
 
 msgid "OpenGL or DirectX"
@@ -84130,11 +84134,6 @@ msgid "Set cursor position in text"
 msgstr "Set cursor position in text"
 
 
-msgctxt "Operator"
-msgid "Delete Character"
-msgstr "Delete Character"
-
-
 msgid "Delete text at cursor position"
 msgstr "Delete text at cursor position"
 
@@ -84163,11 +84162,6 @@ msgstr "Edit Text"
 
 msgid "Toggle text editing"
 msgstr "Toggle text editing"
-
-
-msgctxt "Operator"
-msgid "Insert Character"
-msgstr "Insert Character"
 
 
 msgid "String to be inserted at cursor position"
@@ -91739,30 +91733,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
-
-
 msgid "Active Tool"
 msgstr "Active Tool"
 
@@ -91831,6 +91801,14 @@ msgid "Curves Edit Mode"
 msgstr "Curves Edit Mode"
 
 
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
 msgid "Transform Orientations"
 msgstr "Transform Orientations"
 
@@ -91859,6 +91837,14 @@ msgid "Stereoscopy"
 msgstr "Stereoscopy"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
+
+
 msgid "Multi Frame"
 msgstr "Multi Frame"
 
@@ -91881,6 +91867,14 @@ msgstr "Curves Grow/Shrink Scaling"
 
 msgid "Viewport Debug"
 msgstr "Viewport Debug"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "Import Settings"
@@ -97072,10 +97066,6 @@ msgid "Locale code: eu_EU. Translation progress: 1%"
 msgstr "Locale code: eu_EU. Translation progress: 1%"
 
 
-msgid "Belarusian - беларуску"
-msgstr "Belarusian - беларуску"
-
-
 msgid "Locale code: be. Translation progress: 0%"
 msgstr "Locale code: be. Translation progress: 0%"
 
@@ -98102,10 +98092,6 @@ msgstr "Skip Save"
 
 msgid "True when the property uses ghost values"
 msgstr "True when the property uses ghost values"
-
-
-msgid "Base"
-msgstr "Base"
 
 
 msgid "Struct definition used for properties assigned to this item"

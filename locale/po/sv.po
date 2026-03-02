@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'57dd016d99c8')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-23 10:33+0000\n"
+"POT-Creation-Date: 2026-03-02 13:27+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9336,12 +9336,16 @@ msgid "UV"
 msgstr "UV"
 
 
+msgid "Metaball"
+msgstr "Metaboll"
+
+
 msgid "Read"
 msgstr "Läs"
 
 
-msgid "Rigid Body"
-msgstr "Rigid kropp"
+msgid "Show/Hide"
+msgstr "Visa/dölj"
 
 
 msgid "Write"
@@ -9352,72 +9356,12 @@ msgid "Primitives"
 msgstr "Primitiver"
 
 
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
-msgid "Propagate"
-msgstr "Propagera"
-
-
 msgid "Names"
 msgstr "Namn"
 
 
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Math"
-msgstr "Matematik"
+msgid "Clean Up"
+msgstr "Städa upp"
 
 
 msgid "Pivot Point"
@@ -9456,16 +9400,24 @@ msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
 msgid "Assign Material"
 msgstr "Tilldela material"
 
 
-msgid "Instances"
-msgstr "Instanser"
+msgid "Utilities"
+msgstr "Verktyg"
 
 
-msgid "Import"
-msgstr "Importera"
+msgid "Math"
+msgstr "Matematik"
 
 
 msgid "Light"
@@ -9476,16 +9428,64 @@ msgid "Light Probe"
 msgstr "Ljussond"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
 msgid "Add Image"
 msgstr "Lägg till bild"
 
 
 msgid "Relations"
 msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
+
+
+msgid "Propagate"
+msgstr "Propagera"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
 msgid "Animals"
@@ -11826,6 +11826,10 @@ msgstr "Till radianer"
 
 msgid "Mix two input colors"
 msgstr "Blanda två inputfärger"
+
+
+msgid "Base"
+msgstr "Bas"
 
 
 msgid "OpenGL"
@@ -19688,11 +19692,6 @@ msgid "Move cursor in text"
 msgstr "Flytta markören i texten"
 
 
-msgctxt "Operator"
-msgid "Delete Character"
-msgstr "Ta bort tecken"
-
-
 msgid "Delete text at cursor position"
 msgstr "Ta bort text vid markörens position"
 
@@ -21254,10 +21253,6 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -21284,6 +21279,10 @@ msgstr "Mätning"
 
 msgid "Stroke Placement"
 msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Import Settings"
@@ -22864,10 +22863,6 @@ msgid "Basque - Euskara"
 msgstr "Baskiska - Euskara"
 
 
-msgid "Belarusian - беларуску"
-msgstr "Vitryska - беларуску"
-
-
 msgid "Bulgarian - Български"
 msgstr "Bulgariska - Български"
 
@@ -23250,10 +23245,6 @@ msgstr "Nödvändig"
 
 msgid "Runtime"
 msgstr "Körtid"
-
-
-msgid "Base"
-msgstr "Bas"
 
 
 msgctxt "Unit"

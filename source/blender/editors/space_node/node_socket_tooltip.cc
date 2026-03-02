@@ -602,7 +602,7 @@ class SocketTooltipBuilder {
 
     for (const std::string &input_tooltip : input_tooltips) {
       this->add_space();
-      this->add_text_field_mono(fmt::format(" \u2022 {}", input_tooltip));
+      this->add_text_field_mono(fmt::format(" \u2022 {}", TIP_(input_tooltip)));
     }
 
     this->add_space();
