@@ -49,14 +49,8 @@ VkImageLayout VKImageAccess::to_vk_image_layout(bool supports_local_read) const
   return VK_IMAGE_LAYOUT_UNDEFINED;
 }
 
-/** Which access flags are considered for write access. */
-static constexpr VkAccessFlags VK_ACCESS_WRITE_MASK =
-    VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
-    VK_ACCESS_HOST_WRITE_BIT;
-
 void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
-                                       VKRenderGraphNodeLinks &node_links) const
+                                       VKRenderGraphLinks &links) const
 {
   for (const VKBufferAccess &buffer_access : buffers) {
     const bool writes_to_resource = bool(buffer_access.vk_access_flags & VK_ACCESS_WRITE_MASK);
@@ -64,14 +58,7 @@ void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
                                                resources.get_buffer_and_increase_stamp(
                                                    buffer_access.vk_buffer) :
                                                resources.get_buffer(buffer_access.vk_buffer);
-    if (writes_to_resource) {
-      node_links.outputs.append(
-          {versioned_resource, buffer_access.vk_access_flags, VK_IMAGE_LAYOUT_UNDEFINED});
-    }
-    else {
-      node_links.inputs.append(
-          {versioned_resource, buffer_access.vk_access_flags, VK_IMAGE_LAYOUT_UNDEFINED});
-    }
+    links.buffers.append({versioned_resource, buffer_access.vk_access_flags});
   }
 
   const bool supports_local_read = resources.use_dynamic_rendering_local_read;
@@ -83,20 +70,11 @@ void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
                                                resources.get_image_and_increase_stamp(
                                                    image_access.vk_image) :
                                                resources.get_image(image_access.vk_image);
-    if (writes_to_resource) {
-      node_links.outputs.append({versioned_resource,
-                                 image_access.vk_access_flags,
-                                 image_layout,
-                                 image_access.vk_image_aspect,
-                                 image_access.subimage});
-    }
-    else {
-      node_links.inputs.append({versioned_resource,
-                                image_access.vk_access_flags,
-                                image_layout,
-                                image_access.vk_image_aspect,
-                                image_access.subimage});
-    }
+    links.images.append({versioned_resource,
+                         image_access.vk_access_flags,
+                         image_layout,
+                         image_access.vk_image_aspect,
+                         image_access.subimage});
   }
 }
 

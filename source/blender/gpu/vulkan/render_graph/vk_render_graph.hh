@@ -67,10 +67,12 @@ class VKRenderGraph : public NonCopyable {
   using DebugGroupNameID = int64_t;
   using DebugGroupID = int64_t;
 
-  /** All links inside the graph indexable via NodeHandle. */
-  Vector<VKRenderGraphNodeLinks, 1024> links_;
   /** All nodes inside the graph indexable via NodeHandle. */
   Vector<VKRenderGraphNode, 1024> nodes_;
+  /**
+   * Node read/write links to buffer and image resources.
+   */
+  VKRenderGraphLinks links_;
   /** Storage for large node datas to improve CPU cache pre-loading. */
   VKRenderGraphStorage storage_;
 
@@ -149,16 +151,9 @@ class VKRenderGraph : public NonCopyable {
       std::cout << "break\n";
     }
 #endif
-    if (nodes_.size() > links_.size()) {
-      links_.resize(nodes_.size());
-    }
     VKRenderGraphNode &node = nodes_[node_handle];
     node.set_node_data<NodeInfo>(storage_, create_info);
-
-    VKRenderGraphNodeLinks &node_links = links_[node_handle];
-    BLI_assert(node_links.inputs.is_empty());
-    BLI_assert(node_links.outputs.is_empty());
-    node.build_links<NodeInfo>(resources_, node_links, create_info);
+    node.build_links<NodeInfo>(resources_, links_, create_info);
 
     if (G.debug & G_DEBUG_GPU) {
       if (!debug_.group_used) {
@@ -275,6 +270,27 @@ class VKRenderGraph : public NonCopyable {
   void reset();
 
   void memstats() const;
+
+  /** Get the images that are linked by the given node. */
+  inline Span<VKRenderGraphImage> linked_images(const VKRenderGraphNode &node) const
+  {
+    return links_.images.as_span().slice(node.links.images);
+  }
+  /** Get the images that are linked by the given node_handle. */
+  inline Span<VKRenderGraphImage> linked_images(const NodeHandle node_handle) const
+  {
+    return linked_images(nodes_[node_handle]);
+  }
+  /** Get the buffers that are linked by the given node. */
+  inline Span<VKRenderGraphBuffer> linked_buffers(const VKRenderGraphNode &node) const
+  {
+    return links_.buffers.as_span().slice(node.links.buffers);
+  }
+  /** Get the buffers that are linked by the given node_handle. */
+  inline Span<VKRenderGraphBuffer> linked_buffers(const NodeHandle node_handle) const
+  {
+    return linked_buffers(nodes_[node_handle]);
+  }
 
  private:
 };

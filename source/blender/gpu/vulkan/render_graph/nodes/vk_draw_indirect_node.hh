@@ -54,15 +54,14 @@ class VKDrawIndirectNode : public VKNodeInfo<VKNodeType::DRAW_INDIRECT,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
-    create_info.resources.build_links(resources, node_links);
-    vk_vertex_buffer_bindings_build_links(
-        resources, node_links, create_info.node_data.vertex_buffers);
+    create_info.resources.build_links(resources, links);
+    vk_vertex_buffer_bindings_build_links(resources, links, create_info.node_data.vertex_buffers);
     ResourceWithStamp buffer_resource = resources.get_buffer(
         create_info.node_data.indirect_buffer);
-    node_links.inputs.append({buffer_resource, VK_ACCESS_INDIRECT_COMMAND_READ_BIT});
+    links.buffers.append({buffer_resource, VK_ACCESS_INDIRECT_COMMAND_READ_BIT});
   }
 
   /**

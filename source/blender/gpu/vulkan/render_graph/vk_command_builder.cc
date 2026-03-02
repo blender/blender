@@ -327,11 +327,10 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
 }
 
 bool VKCommandBuilder::node_has_input_attachments(const VKRenderGraph &render_graph,
-                                                  NodeHandle node)
+                                                  NodeHandle node_handle)
 {
-  const VKRenderGraphNodeLinks &links = render_graph.links_[node];
-  const Vector<VKRenderGraphLink> &inputs = links.inputs;
-  return std::any_of(inputs.begin(), inputs.end(), [](const VKRenderGraphLink &input) {
+  const Span<VKRenderGraphImage> images = render_graph.linked_images(node_handle);
+  return std::any_of(images.begin(), images.end(), [](const VKRenderGraphImage &input) {
     return input.vk_access_flags & VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
   });
 }
@@ -493,8 +492,8 @@ void VKCommandBuilder::add_buffer_read_barriers(VKRenderGraph &render_graph,
                                                 VkPipelineStageFlags node_stages,
                                                 Barrier &r_barrier)
 {
-  for (const VKRenderGraphLink &link : render_graph.links_[node_handle].inputs) {
-    if (!link.is_link_to_buffer()) {
+  for (const VKRenderGraphBuffer &link : render_graph.linked_buffers(node_handle)) {
+    if (link.has_write_access()) {
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
@@ -535,8 +534,8 @@ void VKCommandBuilder::add_buffer_write_barriers(VKRenderGraph &render_graph,
                                                  VkPipelineStageFlags node_stages,
                                                  Barrier &r_barrier)
 {
-  for (const VKRenderGraphLink link : render_graph.links_[node_handle].outputs) {
-    if (!link.is_link_to_buffer()) {
+  for (const VKRenderGraphBuffer &link : render_graph.linked_buffers(node_handle)) {
+    if (!link.has_write_access()) {
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
@@ -617,8 +616,8 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                                                Barrier &r_barrier,
                                                bool within_rendering)
 {
-  for (const VKRenderGraphLink &link : render_graph.links_[node_handle].inputs) {
-    if (link.is_link_to_buffer()) {
+  for (const VKRenderGraphImage &link : render_graph.linked_images(node_handle)) {
+    if (link.has_write_access()) {
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
@@ -687,8 +686,8 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                                                 Barrier &r_barrier,
                                                 bool within_rendering)
 {
-  for (const VKRenderGraphLink link : render_graph.links_[node_handle].outputs) {
-    if (link.is_link_to_buffer()) {
+  for (const VKRenderGraphImage &link : render_graph.linked_images(node_handle)) {
+    if (!link.has_write_access()) {
       continue;
     }
     const ResourceWithStamp &versioned_resource = link.resource;
@@ -796,8 +795,7 @@ void VKCommandBuilder::ImageTracker::begin(const VKRenderGraph &render_graph,
   tracked_attachments.clear();
   changes.clear();
 
-  const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
-  for (const VKRenderGraphLink &link : links.outputs) {
+  for (const VKRenderGraphImage &link : render_graph.linked_images(node_handle)) {
     VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
         link.resource.handle);
     if (resource.use_subresource_tracking()) {

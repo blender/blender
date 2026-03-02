@@ -52,18 +52,17 @@ class VKCopyImageToBufferNode : public VKNodeInfo<VKNodeType::COPY_IMAGE_TO_BUFF
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp src_resource = resources.get_image(create_info.node_data.src_image);
     ResourceWithStamp dst_resource = resources.get_buffer_and_increase_stamp(
         create_info.node_data.dst_buffer);
-    node_links.inputs.append({src_resource,
-                              VK_ACCESS_TRANSFER_READ_BIT,
-                              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                              create_info.vk_image_aspects});
-    node_links.outputs.append(
-        {dst_resource, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED});
+    links.images.append({src_resource,
+                         VK_ACCESS_TRANSFER_READ_BIT,
+                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                         create_info.vk_image_aspects});
+    links.buffers.append({dst_resource, VK_ACCESS_TRANSFER_WRITE_BIT});
   }
 
   /**

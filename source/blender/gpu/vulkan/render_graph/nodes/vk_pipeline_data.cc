@@ -86,11 +86,11 @@ void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
 }
 
 void vk_index_buffer_binding_build_links(VKResourceStateTracker &resources,
-                                         VKRenderGraphNodeLinks &node_links,
+                                         VKRenderGraphLinks &links,
                                          const VKIndexBufferBinding &index_buffer_binding)
 {
   ResourceWithStamp resource = resources.get_buffer(index_buffer_binding.buffer);
-  node_links.inputs.append({resource, VK_ACCESS_INDEX_READ_BIT});
+  links.buffers.append({resource, VK_ACCESS_INDEX_READ_BIT});
 }
 
 void vk_index_buffer_binding_build_commands(VKCommandBufferInterface &command_buffer,
@@ -104,15 +104,14 @@ void vk_index_buffer_binding_build_commands(VKCommandBufferInterface &command_bu
 }
 
 void vk_vertex_buffer_bindings_build_links(VKResourceStateTracker &resources,
-                                           VKRenderGraphNodeLinks &node_links,
+                                           VKRenderGraphLinks &links,
                                            const VKVertexBufferBindings &vertex_buffers)
 {
-  node_links.inputs.reserve(node_links.inputs.size() + vertex_buffers.buffer_count);
   for (const VkBuffer vk_buffer :
        Span<VkBuffer>(vertex_buffers.buffer, vertex_buffers.buffer_count))
   {
     ResourceWithStamp resource = resources.get_buffer(vk_buffer);
-    node_links.inputs.append({resource, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT});
+    links.buffers.append({resource, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT});
   }
 }
 

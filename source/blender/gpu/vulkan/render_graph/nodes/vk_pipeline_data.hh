@@ -12,7 +12,7 @@
 
 namespace blender::gpu::render_graph {
 class VKCommandBufferInterface;
-struct VKRenderGraphNodeLinks;
+struct VKRenderGraphLinks;
 class VKResourceStateTracker;
 
 /**
@@ -185,13 +185,13 @@ void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
                                      VkShaderStageFlags vk_shader_stage_flags);
 
 void vk_index_buffer_binding_build_links(VKResourceStateTracker &resources,
-                                         VKRenderGraphNodeLinks &node_links,
+                                         VKRenderGraphLinks &links,
                                          const VKIndexBufferBinding &index_buffer_binding);
 void vk_index_buffer_binding_build_commands(VKCommandBufferInterface &command_buffer,
                                             const VKIndexBufferBinding &index_buffer_binding,
                                             VKIndexBufferBinding &r_bound_index_buffer);
 void vk_vertex_buffer_bindings_build_links(VKResourceStateTracker &resources,
-                                           VKRenderGraphNodeLinks &node_links,
+                                           VKRenderGraphLinks &links,
                                            const VKVertexBufferBindings &vertex_buffer_bindings);
 void vk_vertex_buffer_bindings_build_commands(VKCommandBufferInterface &command_buffer,
                                               const VKVertexBufferBindings &vertex_buffer_bindings,

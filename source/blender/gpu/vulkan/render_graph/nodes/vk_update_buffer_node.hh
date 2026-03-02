@@ -44,12 +44,12 @@ class VKUpdateBufferNode : public VKNodeInfo<VKNodeType::UPDATE_BUFFER,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp dst_resource = resources.get_buffer_and_increase_stamp(
         create_info.dst_buffer);
-    node_links.outputs.append({dst_resource, VK_ACCESS_TRANSFER_WRITE_BIT});
+    links.buffers.append({dst_resource, VK_ACCESS_TRANSFER_WRITE_BIT});
   }
 
   /**

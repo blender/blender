@@ -59,13 +59,13 @@ class VKDispatchIndirectNode
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
-    create_info.resources.build_links(resources, node_links);
+    create_info.resources.build_links(resources, links);
     ResourceWithStamp buffer_resource = resources.get_buffer(
         create_info.dispatch_indirect_node.buffer);
-    node_links.inputs.append({buffer_resource, VK_ACCESS_INDIRECT_COMMAND_READ_BIT});
+    links.buffers.append({buffer_resource, VK_ACCESS_INDIRECT_COMMAND_READ_BIT});
   }
 
   /**

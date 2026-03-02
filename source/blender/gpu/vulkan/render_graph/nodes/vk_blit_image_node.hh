@@ -52,19 +52,19 @@ class VKBlitImageNode : public VKNodeInfo<VKNodeType::BLIT_IMAGE,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp src_resource = resources.get_image(create_info.src_image);
     ResourceWithStamp dst_resource = resources.get_image_and_increase_stamp(create_info.dst_image);
-    node_links.inputs.append({src_resource,
-                              VK_ACCESS_TRANSFER_READ_BIT,
-                              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                              VK_IMAGE_ASPECT_COLOR_BIT});
-    node_links.outputs.append({dst_resource,
-                               VK_ACCESS_TRANSFER_WRITE_BIT,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               VK_IMAGE_ASPECT_COLOR_BIT});
+    links.images.append({src_resource,
+                         VK_ACCESS_TRANSFER_READ_BIT,
+                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                         VK_IMAGE_ASPECT_COLOR_BIT});
+    links.images.append({dst_resource,
+                         VK_ACCESS_TRANSFER_WRITE_BIT,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VK_IMAGE_ASPECT_COLOR_BIT});
   }
 
   /**

@@ -21,11 +21,11 @@ void VKRenderGraph::reset()
   memstats();
 #endif
 
-  links_.clear_and_shrink();
+  links_.clear();
   for (VKRenderGraphNode &node : nodes_) {
     node.free_data();
   }
-  nodes_.clear_and_shrink();
+  nodes_.clear();
   storage_.reset();
 
   debug_.node_group_map.clear();
@@ -37,7 +37,10 @@ void VKRenderGraph::reset()
 void VKRenderGraph::memstats() const
 {
   std::cout << __func__ << " nodes: (" << nodes_.size() << "/" << nodes_.capacity() << "), "
-            << "links: (" << links_.size() << "/" << links_.capacity() << ")\n";
+            << "links(buffer): (" << links_.buffers.size() << "/" << links_.buffers.capacity()
+            << "), "
+            << "links(images): (" << links_.images.size() << "/" << links_.images.capacity()
+            << ")\n";
 #define PRINT_STORAGE(name) \
   std::cout << " " #name " : (" << storage_.name.size() << " / " << storage_.name.capacity() \
             << ")\n "
@@ -84,20 +87,6 @@ void VKRenderGraph::debug_print(NodeHandle node_handle) const
   os << "NODE:\n";
   const VKRenderGraphNode &node = nodes_[node_handle];
   os << "  type:" << node.type << "\n";
-
-  const VKRenderGraphNodeLinks &links = links_[node_handle];
-  os << " inputs:\n";
-  for (const VKRenderGraphLink &link : links.inputs) {
-    os << "  ";
-    link.debug_print(os, resources_);
-    os << "\n";
-  }
-  os << " outputs:\n";
-  for (const VKRenderGraphLink &link : links.outputs) {
-    os << "  ";
-    link.debug_print(os, resources_);
-    os << "\n";
-  }
 }
 
 std::string VKRenderGraph::full_debug_group(NodeHandle node_handle) const

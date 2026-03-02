@@ -102,6 +102,13 @@ struct VKRenderGraphNode {
     int64_t storage_index = -1;
   };
 
+  struct {
+    /* Range where the input/output buffers are stored inside #VKRenderGraph.buffer_links_.*/
+    IndexRange buffers;
+    /* Range where the input/output images are stored inside #VKRenderGraph.image_links_.*/
+    IndexRange images;
+  } links;
+
   /**
    * Set the data of the node.
    *
@@ -125,17 +132,21 @@ struct VKRenderGraphNode {
   /**
    * Build the input/output links for this.
    *
-   * Newly created links are added to the `node_links` parameter.
+   * Newly created links are added to the `links` parameter.
    */
   template<typename NodeInfo>
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const typename NodeInfo::CreateInfo &create_info)
   {
     /* Instance of NodeInfo is needed to call virtual methods. CPP doesn't support overloading of
      * static methods. */
     NodeInfo node_info;
-    node_info.build_links(resources, node_links, create_info);
+    int64_t buffer_index_start = links.buffers.size();
+    int64_t image_index_start = links.images.size();
+    node_info.build_links(resources, links, create_info);
+    this->links.buffers = IndexRange::from_begin_end(buffer_index_start, links.buffers.size());
+    this->links.images = IndexRange::from_begin_end(image_index_start, links.images.size());
   }
 
   /**

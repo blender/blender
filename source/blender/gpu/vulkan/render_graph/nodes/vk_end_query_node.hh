@@ -50,7 +50,7 @@ class VKEndQueryNode : public VKNodeInfo<VKNodeType::END_QUERY,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker & /*resources*/,
-                   VKRenderGraphNodeLinks & /*node_links*/,
+                   VKRenderGraphLinks & /*links*/,
                    const CreateInfo & /*create_info*/) override
   {
   }

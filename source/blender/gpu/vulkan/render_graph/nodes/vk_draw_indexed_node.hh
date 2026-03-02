@@ -56,13 +56,14 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
-    create_info.resources.build_links(resources, node_links);
-    vk_index_buffer_binding_build_links(resources, node_links, create_info.node_data.index_buffer);
-    vk_vertex_buffer_bindings_build_links(
-        resources, node_links, create_info.node_data.vertex_buffers);
+    create_info.resources.build_links(resources, links);
+    if (create_info.node_data.index_buffer.buffer != VK_NULL_HANDLE) {
+      vk_index_buffer_binding_build_links(resources, links, create_info.node_data.index_buffer);
+    }
+    vk_vertex_buffer_bindings_build_links(resources, links, create_info.node_data.vertex_buffers);
   }
 
   /**
