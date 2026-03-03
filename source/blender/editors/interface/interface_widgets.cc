@@ -555,11 +555,11 @@ static void draw_anti_tria(
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void draw_icon_tri(float x, float y, char dir, const float color[4])
+void draw_icon_tri(float x, float y, char dir, const float color[4], float aspect)
 {
-  const float f3 = 0.05 * U.widget_unit;
-  const float f5 = 0.15 * U.widget_unit;
-  const float f7 = 0.25 * U.widget_unit;
+  const float f3 = 0.05 * U.widget_unit / aspect;
+  const float f5 = 0.15 * U.widget_unit / aspect;
+  const float f7 = 0.25 * U.widget_unit / aspect;
 
   if (dir == 'h') {
     draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
@@ -5411,12 +5411,18 @@ static void ui_draw_clip_tri(Block *block, const rcti *rect, WidgetType *wt)
     draw_color[3] = 1.0f;
 
     if (block->flag & BLOCK_CLIPTOP) {
-      /* XXX no scaling for UI here yet */
-      draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 6 * UI_SCALE_FAC, 't', draw_color);
+      draw_icon_tri(BLI_rcti_cent_x(rect),
+                    rect->ymax - (6 * UI_SCALE_FAC) / block->aspect,
+                    't',
+                    draw_color,
+                    block->aspect);
     }
     if (block->flag & BLOCK_CLIPBOTTOM) {
-      /* XXX no scaling for UI here yet */
-      draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10 * UI_SCALE_FAC, 'v', draw_color);
+      draw_icon_tri(BLI_rcti_cent_x(rect),
+                    rect->ymin + (10 * UI_SCALE_FAC) / block->aspect,
+                    'v',
+                    draw_color,
+                    block->aspect);
     }
   }
 }

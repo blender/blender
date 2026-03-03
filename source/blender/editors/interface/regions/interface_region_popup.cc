@@ -544,12 +544,12 @@ void popup_block_scrolltest(Block *block)
   /* mark buttons overlapping arrows, if we have them */
   for (Button &bt : block->buttons()) {
     if (block->flag & BLOCK_CLIPBOTTOM) {
-      if (bt.rect.ymax < block->rect.ymin + UI_MENU_SCROLL_MOUSE) {
+      if (bt.rect.ymax < block->rect.ymin + UI_MENU_SCROLL_MOUSE / block->aspect) {
         bt.flag |= UI_SCROLLED;
       }
     }
     if (block->flag & BLOCK_CLIPTOP) {
-      if (bt.rect.ymin > block->rect.ymax - UI_MENU_SCROLL_MOUSE) {
+      if (bt.rect.ymin > block->rect.ymax - UI_MENU_SCROLL_MOUSE / block->aspect) {
         bt.flag |= UI_SCROLLED;
       }
     }
