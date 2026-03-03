@@ -195,14 +195,14 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   const float2 rand = make_float2(rand_light);
 
   int prim;
-  int shader_flag;
+  int visibility_flag;
   int object_id;
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     const ccl_global KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                            ls->emitter_id);
     prim = kemitter->light.id;
-    shader_flag = kemitter->shader_flag;
+    visibility_flag = kemitter->visibility_flag;
     object_id = (prim >= 0) ? ls->object : kemitter->object_id;
   }
   else
@@ -212,7 +212,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
         light_distribution, ls->emitter_id);
     prim = kdistribution->prim;
     object_id = kdistribution->object_id;
-    shader_flag = kdistribution->shader_flag;
+    visibility_flag = kdistribution->visibility_flag;
   }
 
   if (!light_link_object_match(kg, object_receiver, object_id)) {
@@ -232,7 +232,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
     if (!triangle_light_sample<in_volume_segment>(kg, prim, object_id, rand, time, ls, P)) {
       return false;
     }
-    ls->shader |= shader_flag;
+    ls->shader |= visibility_flag;
   }
   else {
     const int light = ~prim;
