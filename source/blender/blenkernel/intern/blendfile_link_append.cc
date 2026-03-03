@@ -31,6 +31,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
+#include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
@@ -714,16 +715,32 @@ static void loose_data_gather_instanciated_objects_for_viewlayer(
 {
   BKE_view_layer_synced_ensure(&scene, &view_layer);
 
+  Stack<Collection *> instance_collections;
+
   FOREACH_OBJECT_BEGIN (&scene, &view_layer, ob_iter) {
     r_instanciated_objects.add(ob_iter);
     if (ob_iter->instance_collection) {
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (ob_iter->instance_collection, ob_coll_iter) {
-        r_instanciated_objects.add(ob_coll_iter);
-      }
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+      instance_collections.push_as(ob_iter->instance_collection);
     }
   }
   FOREACH_OBJECT_END;
+
+  /* Instanced collections may instance other collections. So we need to accumulate and process all
+   * these instanced collections recursively. */
+  Set<Collection *> processed_instance_collections;
+  while (!instance_collections.is_empty()) {
+    Collection *instance_collection = instance_collections.pop();
+    processed_instance_collections.add_as(instance_collection);
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (instance_collection, ob_coll_iter) {
+      r_instanciated_objects.add(ob_coll_iter);
+      if (ob_coll_iter->instance_collection &&
+          !processed_instance_collections.contains(ob_coll_iter->instance_collection))
+      {
+        instance_collections.push_as(ob_coll_iter->instance_collection);
+      }
+    }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+  }
 }
 
 static void loose_data_gather_instanciated_objects(
