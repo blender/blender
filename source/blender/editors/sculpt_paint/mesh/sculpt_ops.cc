@@ -432,7 +432,9 @@ void object_sculpt_mode_enter(Main &bmain,
         /* pass */
       }
       else if (flag & dyntopo::ATTRIBUTES) {
-        message_unsupported = RPT_("attributes");
+        BKE_report(reports,
+                   RPT_WARNING,
+                   "Dyntopo will not preserve face sets, colors, UVs, or other attributes");
       }
       else if (flag & dyntopo::MODIFIER) {
         message_unsupported = RPT_("constructive modifier");
