@@ -248,14 +248,13 @@ void mesh_cursor_active_draw(PaintCursorContext &pcontext)
   SculptSession &ss = *pcontext.ss;
   Brush &brush = *pcontext.brush;
 
-  /* The cursor can be updated as active before creating the StrokeCache, so this needs to be
-   * checked. */
+  /* The cursor can be marked as active before creating the StrokeCache. */
   if (!ss.cache) {
     return;
   }
 
   /* Most of the brushes initialize the necessary data for the custom cursor drawing after the
-   * first brush step, so make sure that it is not drawn before being initialized. */
+   * first brush step. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     return;
   }
@@ -275,42 +274,42 @@ void mesh_cursor_active_draw(PaintCursorContext &pcontext)
   GPU_matrix_push();
   GPU_matrix_mul(pcontext.vc.obact->object_to_world().ptr());
 
-  /* Draw the special active cursors different brush types may have. */
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB) {
-    geometry_preview_lines_draw(*pcontext.depsgraph, pcontext.pos, brush, *pcontext.vc.obact);
-  }
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE) {
-    brushes::multiplane_scrape_preview_draw(
-        pcontext.pos, brush, ss, pcontext.outline_col, pcontext.outline_alpha);
-  }
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
-    if (brush.cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE) {
-      cloth::plane_falloff_preview_draw(
-          pcontext.pos, ss, pcontext.outline_col, pcontext.outline_alpha);
-    }
-    else if (brush.cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_RADIAL &&
-             brush.cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL)
-    {
-      /* Display the simulation limits if sculpting outside them. */
-      /* This does not makes much sense of plane falloff as the falloff is infinite or global. */
-
-      if (math::distance(ss.cache->location, ss.cache->initial_location) >
-          ss.cache->radius * (1.0f + brush.cloth_sim_limit))
-      {
-        const float3 red = {1.0f, 0.2f, 0.2f};
-        cloth::simulation_limits_draw(pcontext.pos,
-                                      brush,
-                                      ss.cache->initial_location,
-                                      ss.cache->initial_normal,
-                                      ss.cache->radius,
-                                      2.0f,
-                                      red,
-                                      0.8f);
+  switch (brush.sculpt_brush_type) {
+    case SCULPT_BRUSH_TYPE_GRAB:
+      geometry_preview_lines_draw(*pcontext.depsgraph, pcontext.pos, brush, *pcontext.vc.obact);
+      break;
+    case SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE:
+      brushes::multiplane_scrape_preview_draw(
+          pcontext.pos, brush, ss, pcontext.outline_col, pcontext.outline_alpha);
+      break;
+    case SCULPT_BRUSH_TYPE_CLOTH: {
+      if (brush.cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE) {
+        /* By definition, the 'Plane Falloff' mode does not have drawable limits.*/
+        cloth::plane_falloff_preview_draw(
+            pcontext.pos, ss, pcontext.outline_col, pcontext.outline_alpha);
       }
+      else if (brush.cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_RADIAL &&
+               brush.cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL)
+      {
+        /* Display the simulation limits if sculpting outside them. */
+        if (math::distance(ss.cache->location, ss.cache->initial_location) >
+            ss.cache->radius * (1.0f + brush.cloth_sim_limit))
+        {
+          const float3 red = {1.0f, 0.2f, 0.2f};
+          cloth::simulation_limits_draw(pcontext.pos,
+                                        brush,
+                                        ss.cache->initial_location,
+                                        ss.cache->initial_normal,
+                                        ss.cache->radius,
+                                        2.0f,
+                                        red,
+                                        0.8f);
+        }
+      }
+      break;
     }
+    default:
+      break;
   }
 
   GPU_matrix_pop();
