@@ -278,6 +278,22 @@ TEST(set, Remove)
   EXPECT_EQ(set.size(), 4);
 }
 
+TEST(set, AddRemoveSameHash)
+{
+  Set<int> set;
+  set.add(0);
+  set.add(1 << 16);
+  EXPECT_TRUE(set.contains(0));
+  EXPECT_TRUE(set.contains(1 << 16));
+  set.remove(0);
+  EXPECT_FALSE(set.contains(0));
+  EXPECT_TRUE(set.contains(1 << 16));
+  set.add(1 << 16);
+  EXPECT_TRUE(set.contains(1 << 16));
+  set.remove(1 << 16);
+  EXPECT_FALSE(set.contains(1 << 16));
+}
+
 struct Type1 {
   uint32_t value;
 };
