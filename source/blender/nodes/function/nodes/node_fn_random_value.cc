@@ -171,7 +171,15 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
               std::swap(min_value, max_value);
             }
             const uint32_t hash = noise::hash(id, seed);
-            return min_value + hash % (max_value - min_value + 1);
+
+            /* Calculate range using unsigned types to fit the entire 32-bit space. */
+            const uint32_t range = uint32_t(max_value) - uint32_t(min_value) + 1;
+
+            /* Range wraps around to 0 when min_value is INT_MIN and max_value is INT_MAX.
+             * so the modulo is unnecessary and would cause a division by zero. */
+            const uint32_t modulo_result = (range == 0) ? hash : (hash % range);
+
+            return int(uint32_t(min_value) + modulo_result);
           },
           mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
