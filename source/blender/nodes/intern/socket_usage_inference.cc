@@ -279,6 +279,10 @@ class SocketUsageInferencerImpl {
         this->usage_task__input__capture_attribute_node(socket);
         break;
       }
+      case GEO_NODE_WARNING: {
+        this->usage_task__input__warning_node(socket);
+        break;
+      }
       case SH_NODE_OUTPUT_AOV:
       case SH_NODE_OUTPUT_LIGHT:
       case SH_NODE_OUTPUT_WORLD:
@@ -460,6 +464,48 @@ class SocketUsageInferencerImpl {
         socket, {&node->output_socket(socket->index())}, {}, socket.context);
   }
 
+  void usage_task__input__warning_node(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const SocketInContext show_input_socket = node.input_socket(0);
+    const SocketInContext message_input_socket = node.input_socket(1);
+    const SocketInContext show_output_socket = node.output_socket(0);
+    if (show_output_socket->is_directly_linked()) {
+      if (socket == show_input_socket) {
+        this->usage_task__with_dependent_sockets(
+            show_input_socket, {&*show_output_socket}, {}, socket.context);
+      }
+      if (socket == message_input_socket) {
+        this->usage_task__with_dependent_sockets(
+            message_input_socket, {&*show_output_socket}, {&*show_input_socket}, socket.context);
+      }
+      return;
+    }
+    const ComputeContext *context = node.context;
+    const bool is_in_zone = !dynamic_cast<const bke::GroupNodeComputeContext *>(context);
+    if (is_in_zone) {
+      /* Warning nodes where the output is not linked must not be in a zone. */
+      all_socket_usages_.add_new(socket, false);
+      return;
+    }
+    const bNode *output_node = node->owner_tree().group_output_node();
+    if (!output_node) {
+      all_socket_usages_.add_new(socket, false);
+      return;
+    }
+    const Span<const bNodeSocket *> group_output_sockets = output_node->input_sockets().drop_back(
+        1);
+    /* The warning is used if any of the group outputs is used. */
+    if (socket == show_input_socket) {
+      this->usage_task__with_dependent_sockets(
+          show_input_socket, group_output_sockets, {}, context);
+    }
+    if (socket == message_input_socket) {
+      this->usage_task__with_dependent_sockets(
+          message_input_socket, group_output_sockets, {&*show_input_socket}, context);
+    }
+  }
+
   void usage_task__input__enable_output(const SocketInContext &socket)
   {
     const NodeInContext node = socket.owner_node();
@@ -569,7 +615,7 @@ class SocketUsageInferencerImpl {
       this->push_usage_task(next_unknown_socket);
       return;
     }
-    if (!any_output_used) {
+    if (!any_output_used && !dependent_outputs.is_empty()) {
       all_socket_usages_.add_new(socket, false);
       return;
     }
