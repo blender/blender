@@ -399,7 +399,9 @@ void USDCurvesWriter::set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
   pxr::UsdAttribute attr_widths = usd_curves.CreateWidthsAttr(pxr::VtValue(), true);
   set_attribute(attr_widths, widths, time, usd_value_writer_);
 
-  usd_curves.SetWidthsInterpolation(interpolation);
+  if (!interpolation.IsEmpty()) {
+    usd_curves.SetWidthsInterpolation(interpolation);
+  }
 }
 
 static std::optional<pxr::TfToken> convert_blender_domain_to_usd(
