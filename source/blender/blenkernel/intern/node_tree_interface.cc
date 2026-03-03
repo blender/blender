@@ -1367,18 +1367,22 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(
   const bool is_input = in_out ? bool(*in_out & SOCK_IN) : from_sock.is_input();
 
   bNodeTreeInterfaceSocket *iosock = nullptr;
-  if (from_node.is_group()) {
+
+  /* Try to find an existing node group interface item for the template socket and copy it.
+   * Note: This does not work if the template socket has a different input/output type than the
+   * generated socket. */
+  if (from_node.is_group() && from_sock.is_input() == is_input) {
     if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(from_node.id)) {
-      /* Copy interface socket directly from source group to avoid loosing data in the process.
-       */
+      /* Copy interface socket directly from source group to avoid loosing data. */
       group->ensure_interface_cache();
       const bNodeTreeInterfaceSocket &src_io_socket =
-          is_input ? *group->interface_inputs()[from_sock.index()] :
-                     *group->interface_outputs()[from_sock.index()];
+          from_sock.is_input() ? *group->interface_inputs()[from_sock.index()] :
+                                 *group->interface_outputs()[from_sock.index()];
       iosock = reinterpret_cast<bNodeTreeInterfaceSocket *>(
           ntree.tree_interface.add_item_copy(src_io_socket.item, nullptr));
     }
   }
+
   if (!iosock) {
     NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(0);
     SET_FLAG_FROM_TEST(flag, is_input, NODE_INTERFACE_SOCKET_INPUT);
