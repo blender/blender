@@ -2839,7 +2839,7 @@ int fontstyle_height_max(const uiFontStyle *fs);
 /**
  * Triangle 'icon' for panel header and other cases.
  */
-void draw_icon_tri(float x, float y, char dir, const float[4]);
+void draw_icon_tri(float x, float y, char dir, const float[4], float aspect = 1.0f);
 
 /**
  * Read a style (without any scaling applied).

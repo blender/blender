@@ -10536,12 +10536,12 @@ static char ui_menu_scroll_test(Block *block, int my)
 {
   if (block->flag & (BLOCK_CLIPTOP | BLOCK_CLIPBOTTOM)) {
     if (block->flag & BLOCK_CLIPTOP) {
-      if (my > block->rect.ymax - UI_MENU_SCROLL_MOUSE) {
+      if (my > block->rect.ymax - UI_MENU_SCROLL_MOUSE / block->aspect) {
         return 't';
       }
     }
     if (block->flag & BLOCK_CLIPBOTTOM) {
-      if (my < block->rect.ymin + UI_MENU_SCROLL_MOUSE) {
+      if (my < block->rect.ymin + UI_MENU_SCROLL_MOUSE / block->aspect) {
         return 'b';
       }
     }
@@ -10599,13 +10599,13 @@ static bool ui_menu_scroll_to_but(ARegion *region, Block *block, Button *but_tar
 {
   float dy = 0.0;
   if (block->flag & BLOCK_CLIPTOP) {
-    if (but_target->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_MOUSE) {
-      dy = block->rect.ymax - but_target->rect.ymax - UI_MENU_SCROLL_MOUSE;
+    if (but_target->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_MOUSE / block->aspect) {
+      dy = block->rect.ymax - but_target->rect.ymax - UI_MENU_SCROLL_MOUSE / block->aspect;
     }
   }
   if (block->flag & BLOCK_CLIPBOTTOM) {
-    if (but_target->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_MOUSE) {
-      dy = block->rect.ymin - but_target->rect.ymin + UI_MENU_SCROLL_MOUSE;
+    if (but_target->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_MOUSE / block->aspect) {
+      dy = block->rect.ymin - but_target->rect.ymin + UI_MENU_SCROLL_MOUSE / block->aspect;
     }
   }
   if (dy != 0.0f) {
@@ -10621,10 +10621,10 @@ static bool ui_menu_scroll_to_y(ARegion *region, Block *block, int y)
   const char test = ui_menu_scroll_test(block, y);
   float dy = 0.0f;
   if (test == 't') {
-    dy = -UI_UNIT_Y; /* scroll to the top */
+    dy = -UI_UNIT_Y / block->aspect; /* scroll to the top */
   }
   else if (test == 'b') {
-    dy = UI_UNIT_Y; /* scroll to the bottom */
+    dy = UI_UNIT_Y / block->aspect; /* scroll to the bottom */
   }
   if (dy != 0.0f) {
     ui_menu_scroll_apply_offset_y(region, block, dy);
@@ -10640,13 +10640,13 @@ static bool ui_menu_scroll_step(ARegion *region, Block *block, const int scroll_
     if ((block->flag & BLOCK_CLIPTOP) == 0) {
       return false;
     }
-    my = block->rect.ymax + UI_UNIT_Y;
+    my = block->rect.ymax + UI_UNIT_Y / block->aspect;
   }
   else if (scroll_dir == -1) {
     if ((block->flag & BLOCK_CLIPBOTTOM) == 0) {
       return false;
     }
-    my = block->rect.ymin - UI_UNIT_Y;
+    my = block->rect.ymin - UI_UNIT_Y / block->aspect;
   }
   else {
     BLI_assert(0);
