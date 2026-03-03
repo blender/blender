@@ -724,8 +724,7 @@ class SocketTooltipBuilder {
         {
           type_name = *internal_type_name;
         }
-        this->add_text_field_mono(
-            fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
+        this->add_text_field_mono(fmt::format("\u2022 \"{}\" ({})\n", item.key, type_name));
       }
     }
     this->add_space();
@@ -743,8 +742,7 @@ class SocketTooltipBuilder {
         for (const geo_log::ClosureValueLog::Item &item : closure_log.inputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
-          this->add_text_field_mono(
-              fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
+          this->add_text_field_mono(fmt::format("\u2022 \"{}\" ({})\n", item.key, type_name));
         }
       }
       if (!closure_log.outputs.is_empty()) {
@@ -753,8 +751,7 @@ class SocketTooltipBuilder {
         for (const geo_log::ClosureValueLog::Item &item : closure_log.outputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
-          this->add_text_field_mono(
-              fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
+          this->add_text_field_mono(fmt::format("\u2022 \"{}\" ({})\n", item.key, type_name));
         }
       }
     }
