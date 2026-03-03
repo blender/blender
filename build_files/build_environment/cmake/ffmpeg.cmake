@@ -253,7 +253,7 @@ if(WIN32)
   if(BLENDER_PLATFORM_ARM)
     add_dependencies(
       external_ffmpeg
-      ll
+      external_llvm
     )
   endif()
 endif()

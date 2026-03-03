@@ -82,7 +82,7 @@ ExternalProject_Add(external_ispc
 
 add_dependencies(
   external_ispc
-  ll
+  external_llvm
   external_python
 )
 

@@ -66,7 +66,7 @@ ExternalProject_Add(external_mesa
 
 add_dependencies(
   external_mesa
-  ll
+  external_llvm
   external_zlib
   external_zstd
   # Run-time dependency.

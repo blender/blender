@@ -47,11 +47,11 @@ set(OPENVDB_EXTRA_ARGS
 
 set(OPENVDB_PATCH
   ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/openvdb/src/openvdb <
+    ${BUILD_DIR}/openvdb/src/external_openvdb <
     ${PATCH_DIR}/openvdb.diff
 )
 
-ExternalProject_Add(openvdb
+ExternalProject_Add(external_openvdb
   URL file://${PACKAGE_DIR}/${OPENVDB_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${OPENVDB_HASH_TYPE}=${OPENVDB_HASH}
@@ -68,7 +68,7 @@ ExternalProject_Add(openvdb
 )
 
 add_dependencies(
-  openvdb
+  external_openvdb
   external_tbb
   external_zlib
   external_blosc
@@ -84,7 +84,7 @@ if(WIN32)
     set(OPENVDB_ARCH amd64)
   endif()
   if(BUILD_MODE STREQUAL Release)
-    ExternalProject_Add_Step(openvdb after_install
+    ExternalProject_Add_Step(external_openvdb after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/openvdb/include
         ${HARVEST_TARGET}/openvdb/include
@@ -101,7 +101,7 @@ if(WIN32)
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
-    ExternalProject_Add_Step(openvdb after_install
+    ExternalProject_Add_Step(external_openvdb after_install
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/openvdb/lib/openvdb_d.lib
         ${HARVEST_TARGET}/openvdb/lib/openvdb_d.lib
@@ -116,11 +116,11 @@ if(WIN32)
     )
   endif()
 else()
-  harvest(openvdb openvdb/include/openvdb openvdb/include/openvdb "*.h")
-  harvest(openvdb openvdb/include/nanovdb openvdb/include/nanovdb "*.h")
-  harvest_rpath_lib(openvdb openvdb/lib openvdb/lib "lib*${SHAREDLIBEXT}*")
+  harvest(external_openvdb openvdb/include/openvdb openvdb/include/openvdb "*.h")
+  harvest(external_openvdb openvdb/include/nanovdb openvdb/include/nanovdb "*.h")
+  harvest_rpath_lib(external_openvdb openvdb/lib openvdb/lib "lib*${SHAREDLIBEXT}*")
   harvest_rpath_python(
-    openvdb
+    external_openvdb
     openvdb/lib/python${PYTHON_SHORT_VERSION}
     python/lib/python${PYTHON_SHORT_VERSION}
     "openvdb*"

@@ -112,7 +112,7 @@ ExternalProject_Add(external_embree
 add_dependencies(
   external_embree
   external_tbb
-  ll
+  external_llvm
 )
 
 if(BUILD_MODE STREQUAL Release)

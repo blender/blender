@@ -56,7 +56,7 @@ if(WIN32)
   if(BLENDER_PLATFORM_ARM)
     add_dependencies(
       external_x264
-      ll
+      external_llvm
     )
   endif()
 else()
