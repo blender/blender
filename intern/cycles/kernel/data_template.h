@@ -38,8 +38,6 @@ KERNEL_STRUCT_MEMBER(background, int, map_res_y)
 KERNEL_STRUCT_MEMBER(background, int, use_mis)
 /* Light-group. */
 KERNEL_STRUCT_MEMBER(background, int, lightgroup)
-/* Light Index. */
-KERNEL_STRUCT_MEMBER(background, int, light_index)
 /* Object Index. */
 KERNEL_STRUCT_MEMBER(background, int, object_index)
 /* Padding. */

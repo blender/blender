@@ -185,11 +185,9 @@ struct LightTreeEmitter {
   /* If the emitter is a mesh, point to the root node of its subtree. */
   unique_ptr<LightTreeNode> root;
 
-  union {
-    int light_id; /* Index into device lights array. */
-    int prim_id;  /* Index into an object's local triangle index. */
-  };
-
+  /* Primitive index. */
+  int prim_id;
+  /* Object index. */
   int object_id;
   float3 centroid;
   uint64_t light_set_membership;
@@ -214,7 +212,7 @@ struct LightTreeEmitter {
 
   __forceinline bool is_light() const
   {
-    return !is_mesh() && light_id < 0;
+    return !is_mesh() && prim_id < 0;
   };
 };
 

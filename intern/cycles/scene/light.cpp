@@ -523,7 +523,6 @@ struct LightTreeFlatten {
   const LightTreeEmitter *emitters;
   const uint *object_lookup_offset;
   uint *light_array;
-  uint *mesh_array;
   uint *triangle_array;
 
   /* Map from instance node to its node index. */
@@ -598,10 +597,10 @@ static void light_tree_leaf_emitters_copy_and_flatten(LightTreeFlatten &flatten,
     }
     else if (emitter.is_light()) {
       /* Light object. */
-      kemitter.light.id = emitter.light_id;
+      kemitter.light.id = emitter.prim_id;
       kemitter.visibility_flag = 0;
       kemitter.object_id = emitter.object_id;
-      flatten.light_array[~emitter.light_id] = emitter_index;
+      flatten.light_array[emitter.object_id] = emitter_index;
     }
     else {
       /* Mesh instance. */
@@ -609,7 +608,7 @@ static void light_tree_leaf_emitters_copy_and_flatten(LightTreeFlatten &flatten,
       kemitter.mesh.object_id = emitter.object_id;
       kemitter.visibility_flag = 0;
       kemitter.object_id = OBJECT_NONE;
-      flatten.mesh_array[emitter.object_id] = emitter_index;
+      flatten.light_array[emitter.object_id] = emitter_index;
 
       /* Create instance node. One instance node will be the same as the
        * reference node, and for that it will recursively build the subtree. */
@@ -849,8 +848,7 @@ void LightManager::device_update_tree(Device * /*unused*/,
   flatten.object_lookup_offset = dscene->object_lookup_offset.data();
   /* We want to create separate arrays corresponding to triangles and lights,
    * which will be used to index back into the light tree for PDF calculations. */
-  flatten.light_array = dscene->light_to_tree.alloc(kintegrator->num_lights);
-  flatten.mesh_array = dscene->object_to_tree.alloc(scene->objects.size());
+  flatten.light_array = dscene->light_to_tree.alloc(scene->objects.size());
   flatten.triangle_array = dscene->triangle_to_tree.alloc(light_tree.num_triangles);
 
   /* Allocate emitters */
@@ -919,7 +917,6 @@ void LightManager::device_update_tree(Device * /*unused*/,
   dscene->light_tree_nodes.copy_to_device();
   dscene->light_tree_emitters.copy_to_device();
   dscene->light_to_tree.copy_to_device();
-  dscene->object_to_tree.copy_to_device();
   dscene->object_lookup_offset.copy_to_device();
   dscene->triangle_to_tree.copy_to_device();
 }
@@ -1304,8 +1301,6 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     else if (light->light_type == LIGHT_BACKGROUND) {
       const uint visibility = scene->background->get_visibility();
 
-      dscene->data.background.light_index = light_index;
-
       shader_id |= SHADER_USE_MIS;
 
       if (!(visibility & PATH_RAY_DIFFUSE)) {
@@ -1457,7 +1452,6 @@ void LightManager::device_free(Device * /*unused*/,
   dscene->light_tree_nodes.free();
   dscene->light_tree_emitters.free();
   dscene->light_to_tree.free();
-  dscene->object_to_tree.free();
   dscene->object_lookup_offset.free();
   dscene->triangle_to_tree.free();
 
