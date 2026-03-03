@@ -482,6 +482,17 @@ class SocketUsageInferencerImpl {
       return;
     }
     const ComputeContext *context = node.context;
+    const bool is_top_level = context == nullptr;
+    if (is_top_level) {
+      if (socket == show_input_socket) {
+        this->usage_task__with_dependent_sockets(show_input_socket, {}, {}, context);
+      }
+      if (socket == message_input_socket) {
+        this->usage_task__with_dependent_sockets(
+            message_input_socket, {}, {&*show_input_socket}, context);
+      }
+      return;
+    }
     const bool is_in_zone = !dynamic_cast<const bke::GroupNodeComputeContext *>(context);
     if (is_in_zone) {
       /* Warning nodes where the output is not linked must not be in a zone. */
