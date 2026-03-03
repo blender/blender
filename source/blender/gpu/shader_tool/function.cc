@@ -35,7 +35,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
     bool use_early_frag_test = false;
     string local_size;
 
-    if (type.prev() == ']') {
+    if (type.prev() == ']' && type.prev().scope().type() == ScopeType::Subscript) {
       Scope attributes = type.prev().prev().scope();
       attributes.foreach_attribute([&](Token attr, Scope attr_scope) {
         const string attr_str = attr.str();
@@ -435,7 +435,7 @@ void SourceProcessor::lower_entry_points_signature(Parser &parser)
   parser().foreach_function([&](bool, Token type, Token name, Scope args, bool, Scope fn_body) {
     bool is_entry_point = false;
 
-    if (type.prev() == ']') {
+    if (type.prev() == ']' && type.prev().scope().type() == ScopeType::Subscript) {
       Scope attributes = type.prev().prev().scope();
       attributes.foreach_attribute([&](Token attr, Scope) {
         const string attr_str = attr.str();

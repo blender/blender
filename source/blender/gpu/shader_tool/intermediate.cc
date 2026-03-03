@@ -97,68 +97,18 @@ Scope Token::attribute_after() const
   return Scope::invalid();
 }
 
-struct TokenData {
-  std::vector<TokenType> types;
-  OffsetIndices offsets;
-  /* Word size without white-spaces. */
-  std::vector<uint32_t> sizes;
-};
-
-void LexerBase::ensure_memory()
-{
-  size_t input_size = str.size();
-  if (str.empty()) {
-    /* Avoid no allocation. */
-    input_size = 1;
-  }
-  /* Add one for offsets and end token. */
-  input_size += 1;
-  /* Round to 128 for easy alignment of types and allocations. */
-  input_size = (input_size + 127) & ~127;
-
-  size_t needed_size = 0;
-  needed_size += sizeof(*token_types.data_) * input_size;
-  needed_size += sizeof(*token_ends.data_) * input_size;
-  needed_size += sizeof(*token_offsets.data()) * input_size;
-
-  /* Make sure there is enough reserved space inside the data structures.
-   * We need at least as many token as there is character.
-   * Note: Never shrinks. */
-  if (alloc_size < needed_size) {
-#ifdef _WIN32
-    _aligned_free(memory);
-    memory = static_cast<char *>(_aligned_malloc(needed_size, 128));
-#else
-    std::free(memory);
-    memory = static_cast<char *>(std::aligned_alloc(128, needed_size));
-#endif
-    alloc_size = needed_size;
-  }
-
-  char *ptr = memory;
-  token_types = {reinterpret_cast<TokenType *>(ptr), input_size};
-  ptr += sizeof(*token_types.data_) * input_size;
-  token_ends = {reinterpret_cast<uint32_t *>(ptr), input_size};
-  ptr += sizeof(*token_ends.data_) * input_size;
-  token_offsets = {reinterpret_cast<uint32_t *>(ptr), input_size};
-
-  update_string_view();
-}
-
-LexerBase::~LexerBase()
-{
-#ifdef _WIN32
-  _aligned_free(memory);
-#else
-  std::free(memory);
-#endif
-}
+alignas(128) const std::array<CharClass, 128> LexerBase::default_char_class_table = [] {
+  std::array<CharClass, 128> table;
+  memcpy(table.data(), lexit::char_class_table, sizeof(lexit::char_class_table));
+  return table;
+}();
 
 /* Same thing as default table but consider numbers as words to avoid second merging pass. */
-static const std::array<CharClass, 128> char_class_table = [] {
+alignas(128) const std::array<CharClass, 128> LexerBase::bsl_char_class_table = [] {
   std::array<CharClass, 128> table;
   memcpy(table.data(), lexit::char_class_table, sizeof(lexit::char_class_table));
 
+  table['\n'] = CharClass::WhiteSpace;
   /* Make < and > separators in order to support template.
    * That means >= and <= need to be manually handled. */
   table['<'] = CharClass::Separator;
@@ -166,320 +116,117 @@ static const std::array<CharClass, 128> char_class_table = [] {
   return table;
 }();
 
-void LexerBase::tokenize(bool use_default_table)
-{
-  lexit::TokenBuffer tok_buf(str.data(), str.size(), token_types.data(), token_offsets.data());
-  tok_buf.tokenize(use_default_table ? lexit::char_class_table : char_class_table.data());
-
-  /* Resize to the actual usage. */
-  token_types.shrink(tok_buf.size());
-  token_ends.shrink(tok_buf.size());
-  token_offsets.offsets.shrink(tok_buf.size() + 1);
-
-  update_string_view();
-}
-
 static always_inline TokenType multi_tok_lookup(TokenType input, std::string_view s)
 {
   switch (s.size()) {
     case 2:
       switch (s[0]) {
         case '=':
-          if (s == "==") {
-            return Equal;
-          }
-          break;
+          return (s[1] == '=') ? Equal : input;
         case '!':
-          if (s == "!=") {
-            return NotEqual;
-          }
-          break;
-        // case '*':
-        //   if (s == "*=") {
-        //     return MulEqual;
-        //   }
-        //   break;
-        // case '%':
-        //   if (s == "%=") {
-        //     return ModEqual;
-        //   }
-        //   break;
+          return (s[1] == '=') ? NotEqual : input;
         case '|':
-          if (s == "||") {
-            return LogicalOr;
-          }
-          // if (s == "|=") {
-          //   return OrEqual;
-          // }
-          break;
+          return (s[1] == '|') ? LogicalOr : input;
         case '&':
-          if (s == "&&") {
-            return LogicalAnd;
-          }
-          // if (s == "&=") {
-          //   return AndEqual;
-          // }
-          break;
+          return (s[1] == '&') ? LogicalAnd : input;
         case '<':
-          if (s == "<=") {
-            return LEqual;
-          }
-          // if (s == "<<") {
-          //   return LShit;
-          // }
-          break;
+          return (s[1] == '=') ? LEqual : input;
         case '>':
-          if (s == ">=") {
-            return GEqual;
-          }
-          // if (s == ">>") {
-          //   return RShit;
-          // }
-          break;
+          return (s[1] == '=') ? GEqual : input;
         case '+':
-          if (s == "++") {
-            return Increment;
-          }
-          // if (s == "+=") {
-          //   return AddEqual;
-          // }
-          break;
+          return (s[1] == '+') ? Increment : input;
         case '-':
-          if (s == "--") {
-            return Decrement;
-          }
-          // if (s == "-=") {
-          //   return SubEqual;
-          // }
-          break;
+          return (s[1] == '-') ? Decrement : input;
         case '#':
-          if (s == "##") {
-            return DoubleHash;
-          }
-          break;
+          return (s[1] == '#') ? DoubleHash : input;
+        default:
+          return input;
       }
-      break;
+    default:
+      return input;
   }
-  return input;
 }
 
 void LexerBase::merge_tokens()
 {
-  {
-    lexit::TokenBuffer tok_buf(
-        str.data(), str.size(), token_types.data(), token_offsets.data(), token_types.size());
-
-    for (auto it = tok_buf.begin(); it < tok_buf.end(); ++it) {
-      TokenBuffer::Token tok = *it;
-      if (tok.type == '#') {
-        /* Seek until the end of the directive and mark it as PreprocessorNewLine
-         * to avoid loosing it during merge_whitespaces. This is necessary for parsing preprocessor
-         * directive scopes. */
-        while ((*it).type != EndOfFile) {
-          TokenBuffer::Token tok = *it;
-          if (tok.type == NewLine) {
-            tok.type = PreprocessorNewline;
-            break;
-          }
-          if (tok.type == '\\') {
-            ++it; /* Escape newline. */
-          }
-          ++it;
-        }
-      }
-    }
-  }
-
-  lexit::TokenBuffer tok_buf(str.data(),
-                             str.size(),
-                             token_types.data(),
-                             token_offsets.data(),
-                             token_ends.data(),
-                             token_types.size());
-
-  tok_buf.merge_complex_literals();
-  tok_buf.merge_whitespaces();
-
-  /* Change back tor regular newline. */
-  for (auto tok : tok_buf) {
-    if (tok.type == PreprocessorNewline) {
-      tok.type = NewLine;
-    }
-  }
-
-  /* Resize to the actual usage. */
-  token_types.shrink(tok_buf.size());
-  token_ends.shrink(tok_buf.size());
-  token_offsets.offsets.shrink(tok_buf.size() + 1);
+  merge_complex_literals();
+  // merge_whitespaces();
 
   update_string_view();
 }
 
+constexpr always_inline uint8_t perfect_hash(std::string_view s)
+{
+  return s.size() * (s[0] - s.back() * 2);
+}
+
 static always_inline TokenType type_lookup(std::string_view s)
 {
-  switch (s.size()) {
-    case 2:
-      switch (s[0]) {
-        case 'd':
-          if (s == "do") {
-            return Do;
-          }
-          break;
-        case 'i':
-          if (s == "if") {
-            return If;
-          }
-          break;
-      }
-      break;
-    case 3:
-      switch (s[0]) {
-        case 'f':
-          if (s == "for") {
-            return For;
-          }
-          break;
-      }
-      break;
-    case 4:
-      switch (s[0]) {
-        case 'c':
-          if (s == "case") {
-            return Case;
-          }
-          break;
-        case 'e':
-          if (s == "else") {
-            return Else;
-          }
-          if (s == "enum") {
-            return Enum;
-          }
-          break;
-        case 't':
-          if (s == "this") {
-            return This;
-          }
-          break;
-      }
-      break;
-    case 5:
-      switch (s[0]) {
-        case 'b':
-          if (s == "break") {
-            return Break;
-          }
-          break;
-        case 'c':
-          if (s == "class") {
-            return Class;
-          }
-          if (s == "const") {
-            return Const;
-          }
-          break;
-        case 'u':
-          if (s == "union") {
-            return Union;
-          }
-          if (s == "using") {
-            return Using;
-          }
-          break;
-        case 'w':
-          if (s == "while") {
-            return While;
-          }
-          break;
-      }
-      break;
-    case 6:
-      switch (s[0]) {
-        case 'i':
-          if (s == "inline") {
-            return Inline;
-          }
-          break;
-        case 'p':
-          if (s == "public") {
-            return Public;
-          }
-          break;
-        case 'r':
-          if (s == "return") {
-            return Return;
-          }
-          break;
-        case 's':
-          if (s == "static") {
-            return Static;
-          }
-          if (s == "struct") {
-            return Struct;
-          }
-          if (s == "switch") {
-            return Switch;
-          }
-          break;
-      }
-      break;
-    case 7:
-      switch (s[0]) {
-        case 'p':
-          if (s == "private") {
-            return Private;
-          }
-          break;
-      }
-      break;
-
-    case 8:
-      switch (s[0]) {
-        case 'c':
-          if (s == "continue") {
-            return Continue;
-          }
-          break;
-        case 't':
-          if (s == "template") {
-            return Template;
-          }
-          break;
-      }
-      break;
-
-    case 9:
-      switch (s[0]) {
-        case 'c':
-          if (s == "constexpr") {
-            return Constexpr;
-          }
-          break;
-        case 'n':
-          if (s == "namespace") {
-            return Namespace;
-          }
-          break;
-      }
-      break;
+  switch (perfect_hash(s)) {
+    case perfect_hash("do"):
+      return (s == "do") ? Do : Word;
+    case perfect_hash("if"):
+      return (s == "if") ? If : Word;
+    case perfect_hash("for"):
+      return (s == "for") ? For : Word;
+    case perfect_hash("case"):
+      return (s == "case") ? Case : Word;
+    case perfect_hash("else"):
+      return (s == "else") ? Else : Word;
+    case perfect_hash("enum"):
+      return (s == "enum") ? Enum : Word;
+    case perfect_hash("this"):
+      return (s == "this") ? This : Word;
+    case perfect_hash("break"):
+      return (s == "break") ? Break : Word;
+    case perfect_hash("class"):
+      return (s == "class") ? Class : Word;
+    case perfect_hash("const"):
+      return (s == "const") ? Const : Word;
+    case perfect_hash("union"):
+      return (s == "union") ? Union : Word;
+    case perfect_hash("using"):
+      return (s == "using") ? Using : Word;
+    case perfect_hash("while"):
+      return (s == "while") ? While : Word;
+    case perfect_hash("inline"):
+      return (s == "inline") ? Inline : Word;
+    case perfect_hash("public"):
+      return (s == "public") ? Public : Word;
+    case perfect_hash("return"):
+      return (s == "return") ? Return : Word;
+    case perfect_hash("static"):
+      return (s == "static") ? Static : Word;
+    case perfect_hash("struct"):
+      return (s == "struct") ? Struct : Word;
+    case perfect_hash("switch"):
+      return (s == "switch") ? Switch : Word;
+    case perfect_hash("private"):
+      return (s == "private") ? Private : Word;
+    case perfect_hash("continue"):
+      return (s == "continue") ? Continue : Word;
+    case perfect_hash("template"):
+      return (s == "template") ? Template : Word;
+    case perfect_hash("constexpr"):
+      return (s == "constexpr") ? Constexpr : Word;
+    case perfect_hash("namespace"):
+      return (s == "namespace") ? Namespace : Word;
+    default:
+      return Word;
   }
-  return Word;
 }
 
 void LexerBase::identify_keywords()
 {
-  lexit::TokenBuffer tok_buf(
-      str.data(), str.size(), token_types.data(), token_offsets.data(), token_types.size());
-
-  for (auto tok : tok_buf) {
-    switch (tok.type) {
+  for (auto tok : *this) {
+    switch (tok.type()) {
       case Word:
-        tok.type = type_lookup(tok.str);
+        tok.type() = type_lookup(tok.str());
         break;
       case Number:
         break;
       default:
-        tok.type = multi_tok_lookup(tok.type, tok.str);
+        tok.type() = multi_tok_lookup(tok.type(), tok.str());
         break;
     }
   }
@@ -548,25 +295,39 @@ void ParserBase::build_scope_tree(report_callback &report_error)
 
   int in_template = 0;
 
-  int tok_id = -1;
-  for (const TokenType &type : lex.token_types) {
-    tok_id++;
+  int tok_id = 0;
+
+  for (; tok_id < lex.token_types.size(); tok_id++) {
+    const TokenType type = lex.token_types[tok_id];
 
     const ScopeType current_scope = stack.back().type;
-
-    if (stack.back().type == ScopeType::Preprocessor) {
-      if (type == NewLine) {
-        stack.exit_scope(tok_id);
-      }
-      else {
-        /* Do nothing. Enclose all preprocessor lines together. */
-        continue;
-      }
-    }
 
     switch (type) {
       case Hash:
         stack.enter_scope(ScopeType::Preprocessor, tok_id);
+        /* Seek until the end of the directive. */
+        while (true) {
+          const TokenType type = lex.token_types[tok_id];
+          if (type == EndOfFile) {
+            tok_id--;
+            break;
+          }
+
+          IndexRange range = lex.token_offsets[tok_id];
+          std::string_view tok_str = {lex.str.substr(range.start, range.size)};
+          size_t new_line_offset = -1;
+          while ((new_line_offset = tok_str.find("\n", new_line_offset + 1)) != std::string::npos)
+          {
+            if (new_line_offset == 0 || tok_str[new_line_offset - 1] != '\\') {
+              break;
+            }
+          }
+          if (new_line_offset != std::string::npos) {
+            break;
+          }
+          tok_id++;
+        }
+        stack.exit_scope(tok_id);
         break;
       case Assign:
         if (current_scope == ScopeType::Assignment) {
@@ -781,6 +542,8 @@ void ParserBase::build_scope_tree(report_callback &report_error)
         break;
     }
   }
+
+  tok_id = lex.token_types.size() - 1;
 
   if (stack.empty()) {
     error_token = (*this)[tok_id];

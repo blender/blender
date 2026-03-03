@@ -218,7 +218,11 @@ struct Scope {
    *   vector.
    * IMPORTANT: 2 matches cannot overlap. The pattern matching algorithm skips the whole match
    *            after a match there is no readback. This could eventually be fixed.
+   *
+   * If `include_preprocessor` is true, try to match any token. Otherwise ignore tokens in
+   * preprocessor scopes.
    */
+  template<bool include_preprocessor = false>
   void foreach_match(const std::string &pattern,
                      std::function<void(const std::vector<Token>)> callback) const
   {
@@ -283,6 +287,13 @@ struct Scope {
         else {
           /* Token mismatch. Test next position. */
           break;
+        }
+
+        if constexpr (!include_preprocessor) {
+          if (match[i].scope().type() == ScopeType::Preprocessor) {
+            /* Scope mismatch. Test next position. */
+            break;
+          }
         }
 
         if (is_last_token) {

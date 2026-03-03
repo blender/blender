@@ -149,7 +149,7 @@ class Shader {
                                   StringRef extension,
                                   StringRef source);
 
-  static std::string run_preprocessor(StringRef source);
+  static std::string run_preprocessor(StringRef source, bool no_dead_code_elimination);
 
  protected:
   void print_log(Span<StringRefNull> sources,

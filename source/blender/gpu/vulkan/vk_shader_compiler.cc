@@ -196,7 +196,8 @@ static bool compile_ex(shaderc::Compiler &compiler,
       shader.name_get(), full_name, ".glsl", shader_module.combined_sources);
 
   if (!shader.skip_preprocessor) {
-    shader_module.combined_sources = Shader::run_preprocessor(shader_module.combined_sources);
+    shader_module.combined_sources = Shader::run_preprocessor(shader_module.combined_sources,
+                                                              G.debug & G_DEBUG_GPU_SHADER_NO_DCE);
 
     Shader::dump_source_to_disk(
         shader.name_get(), full_name + ".expanded", ".glsl", shader_module.combined_sources);
