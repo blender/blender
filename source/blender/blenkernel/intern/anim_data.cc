@@ -144,7 +144,12 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
     return false;
   }
 
-  return animrig::assign_action(act, {*id, *adt});
+  const bool success = animrig::assign_action(act, {*id, *adt});
+  if (success) {
+    DEG_id_tag_update(id, ID_RECALC_ANIMATION);
+  }
+
+  return success;
 }
 
 bool BKE_animdata_action_editable(const AnimData *adt)
