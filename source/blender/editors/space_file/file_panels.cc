@@ -181,18 +181,17 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   BLI_assert(!but_is_utf8(but));
 
   button_func_complete_set(but, autocomplete_file, nullptr);
+  /* silly workaround calling NFunc to ensure this does not get called
+   * immediate ui_apply_but_func but only after button deactivates */
+  button_funcN_set(but, file_filename_enter_handle, nullptr, but);
 
   if (params->flag & FILE_CHECK_EXISTING) {
-    button_flag_enable(but, blender::ui::BUT_TEXTEDIT_UPDATE);
     but_extra_rna_ptr = button_extra_operator_icon_add(
         but, "FILE_OT_filenum", wm::OpCallContext::ExecRegionWin, ICON_REMOVE);
     RNA_int_set(but_extra_rna_ptr, "increment", -1);
     but_extra_rna_ptr = button_extra_operator_icon_add(
         but, "FILE_OT_filenum", wm::OpCallContext::ExecRegionWin, ICON_ADD);
     RNA_int_set(but_extra_rna_ptr, "increment", 1);
-  }
-  else {
-    button_funcN_set(but, file_filename_enter_handle, nullptr, but);
   }
 
   /* check if this overrides a file and if the operator option is used */
