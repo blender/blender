@@ -35,9 +35,9 @@
 #include "RNA_access.hh"
 
 #include "cache/compositor_cache.hh"
+#include "compositor.hh"
 #include "modifier.hh"
 #include "render.hh"
-#include "vse_compositor.hh"
 
 namespace blender::seq {
 

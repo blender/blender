@@ -11,7 +11,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
-#include "vse_compositor.hh"
+#include "compositor.hh"
 
 namespace blender::seq {
 

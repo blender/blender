@@ -56,20 +56,22 @@ set(SRC
   intern/cache/source_image_cache.hh
   intern/cache/thumbnail_cache.cc
   intern/channels.cc
+  intern/compositor.cc
+  intern/compositor.hh
+  intern/effects/effect_add_sub_mul.cc
+  intern/effects/effect_adjustment.cc
+  intern/effects/effect_blend.cc
+  intern/effects/effect_compositor.cc
+  intern/effects/effect_cross.cc
+  intern/effects/effect_gaussian_blur.cc
+  intern/effects/effect_glow.cc
+  intern/effects/effect_multi_camera.cc
+  intern/effects/effect_solid_color.cc
+  intern/effects/effect_speed.cc
+  intern/effects/effect_text.cc
+  intern/effects/effect_wipe.cc
   intern/effects/effects.cc
   intern/effects/effects.hh
-  intern/effects/vse_effect_add_sub_mul.cc
-  intern/effects/vse_effect_adjustment.cc
-  intern/effects/vse_effect_blend.cc
-  intern/effects/vse_effect_compositor.cc
-  intern/effects/vse_effect_cross.cc
-  intern/effects/vse_effect_gaussian_blur.cc
-  intern/effects/vse_effect_glow.cc
-  intern/effects/vse_effect_multi_camera.cc
-  intern/effects/vse_effect_solid_color.cc
-  intern/effects/vse_effect_speed.cc
-  intern/effects/vse_effect_text.cc
-  intern/effects/vse_effect_wipe.cc
   intern/modifiers/MOD_brightness_contrast.cc
   intern/modifiers/MOD_color_balance.cc
   intern/modifiers/MOD_compositor.cc
@@ -110,8 +112,6 @@ set(SRC
   intern/strip_transform.cc
   intern/utils.cc
   intern/utils.hh
-  intern/vse_compositor.cc
-  intern/vse_compositor.hh
 )
 
 set(LIB

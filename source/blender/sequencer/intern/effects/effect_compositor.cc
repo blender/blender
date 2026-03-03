@@ -20,9 +20,9 @@
 #include "SEQ_sequencer.hh"
 
 #include "cache/compositor_cache.hh"
+#include "compositor.hh"
 #include "effects.hh"
 #include "render.hh"
-#include "vse_compositor.hh"
 
 namespace blender::seq {
 
