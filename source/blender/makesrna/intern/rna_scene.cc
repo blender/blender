@@ -8722,6 +8722,31 @@ void RNA_def_scene(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem playback_loop_mode_items[] = {
+      {SCE_LOOP_MODE_INFINITE,
+       "INFINITE",
+       0,
+       "Infinite",
+       "After the last frame, jump back to the first and keep playing, inifinitely"},
+      {SCE_LOOP_MODE_STOP_END_FRAME,
+       "STOP_END_FRAME",
+       0,
+       "Stop at End Frame",
+       "Stop playback at the last frame, without looping"},
+      {SCE_LOOP_MODE_STOP_START_FRAME,
+       "STOP_START_FRAME",
+       0,
+       "Stop at Start Frame",
+       "After the last frame, jump back to the first and stop playback"},
+      {SCE_LOOP_MODE_RESTORE,
+       "RESTORE",
+       0,
+       "Restore Frame",
+       "After the last frame, stop at the frame the playback started from"},
+      {SCE_LOOP_MODE_BOUNCE, "BOUNCE", 0, "Bounce", "At the last frame, reverse playback"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem time_jump_unit_items[] = {
       {SCE_TIME_JUMP_FRAME, "FRAME", 0, "Frame", "Jump by frames"},
       {SCE_TIME_JUMP_SECOND, "SECOND", 0, "Second", "Jump by seconds"},
@@ -8962,6 +8987,12 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, sync_mode_items);
   RNA_def_property_enum_default(prop, AUDIO_SYNC);
   RNA_def_property_ui_text(prop, "Sync Mode", "How to sync playback");
+  RNA_def_property_update(prop, NC_SCENE, nullptr);
+
+  prop = RNA_def_property(srna, "playback_loop_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, playback_loop_mode_items);
+  RNA_def_property_enum_default(prop, SCE_LOOP_MODE_INFINITE);
+  RNA_def_property_ui_text(prop, "Loop Mode", "What to do when playback reaches the last frame");
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
   /* Nodes (Compositing) */
