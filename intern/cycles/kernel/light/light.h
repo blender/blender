@@ -57,45 +57,20 @@ ccl_device_inline int light_link_receiver_forward(KernelGlobals kg, IntegratorSt
 #endif
 }
 
-ccl_device_inline bool light_link_light_match(KernelGlobals kg,
-                                              const int object_receiver,
-                                              const int object_emitter)
-{
-#ifdef __LIGHT_LINKING__
-  if (!(kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING)) {
-    return true;
-  }
-
-  const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
-  const uint receiver_set = (object_receiver != OBJECT_NONE) ?
-                                kernel_data_fetch(objects, object_receiver).receiver_light_set :
-                                0;
-  return ((uint64_t(1) << uint64_t(receiver_set)) & set_membership) != 0;
-#else
-  return true;
-#endif
-}
-
 ccl_device_inline bool light_link_object_match(KernelGlobals kg,
-                                               const int object_receiver,
-                                               const int object_emitter)
+                                               const int receiver,
+                                               const int emitter)
 {
 #ifdef __LIGHT_LINKING__
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING)) {
     return true;
   }
 
-  /* Emitter is OBJECT_NONE when the emitter is a world volume.
-   * It is not explicitly linkable to any object, so assume it is coming from the default light
-   * set which affects all objects in the scene. */
-  if (object_emitter == OBJECT_NONE) {
-    return true;
-  }
+  kernel_assert(emitter != OBJECT_NONE);
+  kernel_assert(receiver != OBJECT_NONE);
 
-  const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
-  const uint receiver_set = (object_receiver != OBJECT_NONE) ?
-                                kernel_data_fetch(objects, object_receiver).receiver_light_set :
-                                0;
+  const uint64_t set_membership = kernel_data_fetch(objects, emitter).light_set_membership;
+  const uint receiver_set = kernel_data_fetch(objects, receiver).receiver_light_set;
   return ((uint64_t(1) << uint64_t(receiver_set)) & set_membership) != 0;
 #else
   return true;
@@ -321,7 +296,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
 
 #ifdef __LIGHT_LINKING__
     /* Light linking. */
-    if (!light_link_light_match(kg, receiver_forward, object) && !(path_flag & PATH_RAY_CAMERA)) {
+    if (!(path_flag & PATH_RAY_CAMERA) && !light_link_object_match(kg, receiver_forward, object)) {
       continue;
     }
 #endif
