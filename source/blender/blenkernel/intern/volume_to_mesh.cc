@@ -53,10 +53,12 @@ struct VolumeToMeshOp {
       return;
     }
 
-    const float resolution_factor = this->compute_resolution_factor(base_grid);
-    typename GridType::Ptr temp_grid = this->create_grid_with_changed_resolution(
-        grid, resolution_factor);
-    this->grid_to_mesh(*temp_grid);
+    const std::optional<float> resolution_factor = this->compute_resolution_factor(base_grid);
+    if (resolution_factor.has_value()) {
+      typename GridType::Ptr temp_grid = this->create_grid_with_changed_resolution(
+          grid, resolution_factor.value());
+      this->grid_to_mesh(*temp_grid);
+    }
   }
 
   template<typename GridType>
@@ -76,15 +78,18 @@ struct VolumeToMeshOp {
     return new_grid;
   }
 
-  float compute_resolution_factor(const openvdb::GridBase &grid) const
+  std::optional<float> compute_resolution_factor(const openvdb::GridBase &grid) const
   {
     const openvdb::Vec3s voxel_size{grid.voxelSize()};
     const float current_voxel_size = std::max({voxel_size[0], voxel_size[1], voxel_size[2]});
-    const float desired_voxel_size = this->compute_desired_voxel_size(grid);
-    return current_voxel_size / desired_voxel_size;
+    const std::optional<float> desired_voxel_size = this->compute_desired_voxel_size(grid);
+    if (!desired_voxel_size.has_value()) {
+      return std::nullopt;
+    }
+    return current_voxel_size / desired_voxel_size.value();
   }
 
-  float compute_desired_voxel_size(const openvdb::GridBase &grid) const
+  std::optional<float> compute_desired_voxel_size(const openvdb::GridBase &grid) const
   {
     if (this->resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE) {
       return this->resolution.settings.voxel_size;
@@ -92,6 +97,9 @@ struct VolumeToMeshOp {
     const openvdb::CoordBBox coord_bbox = base_grid.evalActiveVoxelBoundingBox();
     const openvdb::BBoxd bbox = grid.transform().indexToWorld(coord_bbox);
     const float max_extent = bbox.extents()[bbox.maxExtent()];
+    if (max_extent == 0.0f) {
+      return std::nullopt;
+    }
     const float voxel_size = max_extent / this->resolution.settings.voxel_amount;
     return voxel_size;
   }
