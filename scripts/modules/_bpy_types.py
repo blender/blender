@@ -1234,10 +1234,9 @@ class Menu(_StructRNA, _GenericUI, metaclass=_RNAMeta):
         :type display_name: Callable[[str], str] | None
         """
 
-        layout = self.layout
-
         import os
         import re
+        import bpy
         import bpy.utils
         from bpy.app.translations import pgettext_iface as iface_
 
@@ -1246,24 +1245,40 @@ class Menu(_StructRNA, _GenericUI, metaclass=_RNAMeta):
         if not searchpaths:
             layout.label(text="* Missing Paths *")
 
+        # When invoked as a submenu, use the directory from context.
+        subdir = getattr(bpy.context, "path_menu_directory", None)
+        if subdir:
+            searchpaths = [subdir]
+
         # collect paths
         files = []
+        subdirs = []
         for directory in searchpaths:
-            files.extend([
-                (f, os.path.join(directory, f))
-                for f in os.listdir(directory)
-                if (not f.startswith("."))
-                if ((filter_ext is None) or
-                    (filter_ext(os.path.splitext(f)[1])))
-                if ((filter_path is None) or
-                    (filter_path(f)))
-            ])
+            for entry in os.scandir(directory):
+                if entry.name.startswith("."):
+                    continue
+                if entry.is_dir():
+                    subdirs.append((entry.name, entry.path))
+                    continue
+                if (filter_ext is not None) and (not filter_ext(os.path.splitext(entry.name)[1])):
+                    continue
+                if (filter_path is not None) and (not filter_path(entry.name)):
+                    continue
+                files.append((entry.name, entry.path))
+
+        def natural_sort_key(item):
+            return tuple(int(t) if t.isdigit() else t for t in re.split(r"(\d+)", item[0].lower()))
 
         # Perform a "natural sort", so 20 comes after 3 (for example).
-        files.sort(
-            key=lambda file_path:
-            tuple(int(t) if t.isdigit() else t for t in re.split(r"(\d+)", file_path[0].lower())),
-        )
+        files.sort(key=natural_sort_key)
+
+        if subdirs:
+            subdirs.sort(key=natural_sort_key)
+            for subdir_name, subdir_fullpath in subdirs:
+                layout.context_string_set("path_menu_directory", subdir_fullpath)
+                layout.menu(self.bl_idname, text=bpy.path.display_name(subdir_name))
+            if files:
+                layout.separator()
 
         col = layout.column(align=True)
 
@@ -1271,7 +1286,10 @@ class Menu(_StructRNA, _GenericUI, metaclass=_RNAMeta):
             # Intentionally pass the full path to 'display_name' callback,
             # since the callback may want to use part a directory in the name.
             row = col.row(align=True)
-            name = display_name(filepath) if display_name else bpy.path.display_name(f)
+            name = (
+                bpy.path.display_name(f) if display_name is None else
+                display_name(filepath)
+            )
             props = row.operator(
                 operator,
                 text=(iface_(name) if translate else name),
