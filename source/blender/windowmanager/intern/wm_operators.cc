@@ -1425,7 +1425,9 @@ static ui::Block *wm_block_create_redo(bContext *C, ARegion *region, void *arg_o
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_REGULAR);
 
   /* #BLOCK_NUMSELECT for layer buttons. */
-  block_flag_enable(block, ui::BLOCK_NUMSELECT | ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT);
+  block_flag_enable(block,
+                    ui::BLOCK_NUMSELECT | ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT |
+                        ui::BLOCK_POPUP);
 
   /* If register is not enabled, the operator gets freed on #OPERATOR_FINISHED
    * ui_apply_but_funcs_after calls #ED_undo_operator_repeate_cb and crashes. */
@@ -1537,7 +1539,7 @@ static ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *use
     data->icon = ui::AlertIcon::Question;
   }
 
-  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_NUMSELECT);
+  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_NUMSELECT | ui::BLOCK_POPUP);
 
   ui::fontstyle_set(&style->widget);
   /* Width based on the text lengths. */
@@ -1689,7 +1691,7 @@ static ui::Block *wm_operator_ui_create(bContext *C, ARegion *region, void *user
 
   ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   block_flag_disable(block, ui::BLOCK_LOOP);
-  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT);
+  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_POPUP);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_REGULAR);
 
   popup_dummy_panel_set(region, block, op->idname);
