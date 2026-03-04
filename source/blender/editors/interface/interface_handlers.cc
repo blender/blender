@@ -3757,8 +3757,10 @@ static void ui_textedit_end(bContext *C, Button *but, HandleButtonData *data)
           /* ensure menu (popup) too is closed! */
           data->escapecancel = true;
 
-          WM_global_reportf(RPT_ERROR, "Failed to find '%s'", but->editstr);
-          WM_report_banner_show(CTX_wm_manager(C), win);
+          if (but->editstr[0]) {
+            WM_global_reportf(RPT_ERROR, "Failed to find '%s'", but->editstr);
+            WM_report_banner_show(CTX_wm_manager(C), win);
+          }
         }
       }
 
