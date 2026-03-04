@@ -7755,6 +7755,15 @@ void PositionDeformData::deform(MutableSpan<float3> translations, const Span<int
   }
 }
 
+void filter_translations(const MutableSpan<float3> translations, const Span<float> factors)
+{
+  for (const int i : translations.index_range()) {
+    if (factors[i] == 0.0f) {
+      translations[i] = float3(0.0f);
+    }
+  }
+}
+
 void scale_translations(const MutableSpan<float3> translations, const Span<float> factors)
 {
   for (const int i : translations.index_range()) {

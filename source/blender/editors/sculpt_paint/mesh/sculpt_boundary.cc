@@ -1153,6 +1153,7 @@ static void calc_bend_mesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      filter_translations(translations, factors);
       clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
       position_data.deform(translations, verts);
       break;
@@ -1216,6 +1217,7 @@ static void calc_bend_grids(const Depsgraph &depsgraph,
       const MutableSpan<float3> translations = tls.translations;
       const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_data.positions, translations);
       apply_translations(translations, grids, subdiv_ccg);
@@ -1280,6 +1282,7 @@ static void calc_bend_bmesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_positions, translations);
       apply_translations(translations, verts);
@@ -1442,6 +1445,7 @@ static void calc_slide_mesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      filter_translations(translations, factors);
       clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
       position_data.deform(translations, verts);
       break;
@@ -1503,6 +1507,7 @@ static void calc_slide_grids(const Depsgraph &depsgraph,
       const MutableSpan<float3> translations = tls.translations;
       const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_data.positions, translations);
       apply_translations(translations, grids, subdiv_ccg);
@@ -1565,6 +1570,7 @@ static void calc_slide_bmesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_positions, translations);
       apply_translations(translations, verts);
@@ -1719,6 +1725,7 @@ static void calc_inflate_mesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      filter_translations(translations, factors);
       clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
       position_data.deform(translations, verts);
       break;
@@ -1775,6 +1782,7 @@ static void calc_inflate_grids(const Depsgraph &depsgraph,
       const MutableSpan<float3> translations = tls.translations;
       const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_data.positions, translations);
       apply_translations(translations, grids, subdiv_ccg);
@@ -1833,6 +1841,7 @@ static void calc_inflate_bmesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_positions, translations);
       apply_translations(translations, verts);
@@ -1984,6 +1993,7 @@ static void calc_grab_mesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      filter_translations(translations, factors);
       clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
       position_data.deform(translations, verts);
       break;
@@ -2041,6 +2051,7 @@ static void calc_grab_grids(const Depsgraph &depsgraph,
       const MutableSpan<float3> translations = tls.translations;
       const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_data.positions, translations);
       apply_translations(translations, grids, subdiv_ccg);
@@ -2100,6 +2111,7 @@ static void calc_grab_bmesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_positions, translations);
       apply_translations(translations, verts);
@@ -2258,6 +2270,7 @@ static void calc_twist_mesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, verts, position_data.eval, translations);
+      filter_translations(translations, factors);
       clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
       position_data.deform(translations, verts);
       break;
@@ -2317,6 +2330,7 @@ static void calc_twist_grids(const Depsgraph &depsgraph,
       const MutableSpan<float3> translations = tls.translations;
       const Span<float3> positions = gather_grids_positions(subdiv_ccg, grids, tls.positions);
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_data.positions, translations);
       apply_translations(translations, grids, subdiv_ccg);
@@ -2377,6 +2391,7 @@ static void calc_twist_bmesh(const Depsgraph &depsgraph,
       tls.translations.resize(verts.size());
       const MutableSpan<float3> translations = tls.translations;
       translations_from_new_positions(new_positions, positions, translations);
+      filter_translations(translations, factors);
 
       clip_and_lock_translations(sd, ss, orig_positions, translations);
       apply_translations(translations, verts);
