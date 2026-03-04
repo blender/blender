@@ -13,6 +13,8 @@
 #include "BLI_string_utils.hh"
 #include "BLI_vector_set.hh"
 
+#include "BLT_translation.hh"
+
 #include "BLO_read_write.hh"
 
 #include "DNA_attribute_types.h"
@@ -304,8 +306,11 @@ bool AttributeStorage::remove(const StringRef name)
 
 std::string AttributeStorage::unique_name_calc(const StringRef name) const
 {
+  const StringRef name_final = name.is_empty() ? DATA_("Attribute") : name;
   return BLI_uniquename_cb(
-      [&](const StringRef check_name) { return this->lookup(check_name) != nullptr; }, '.', name);
+      [&](const StringRef check_name) { return this->lookup(check_name) != nullptr; },
+      '.',
+      name_final);
 }
 
 void AttributeStorage::rename(const StringRef old_name, std::string new_name)
