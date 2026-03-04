@@ -303,11 +303,6 @@ class NODE_OT_merge_selected(Operator, NWBase):
                     if mode != 'MIX':
                         add.inputs[0].default_value = 1.0
                     add.show_preview = False
-                    add.hide = do_hide
-                    if do_hide:
-                        loc_y = loc_y - 50
-                    first = 6
-                    second = 7
                 elif nodes_list == selected_math:
                     add_type = 'ShaderNodeMath'
                     nodes_are_int = all(nodes[item[0]].outputs[0].type == 'INT' for item in selected_math)
@@ -317,26 +312,11 @@ class NODE_OT_merge_selected(Operator, NWBase):
                         add_type = 'FunctionNodeIntegerMath'
                     add = nodes.new(add_type)
                     add.operation = mode
-                    add.hide = do_hide
-                    if do_hide:
-                        loc_y = loc_y - 50
-                    first = 0
-                    second = 1
                 elif nodes_list == selected_shader:
                     if mode == 'MIX':
                         add = nodes.new('ShaderNodeMixShader')
-                        add.hide = do_hide_shader
-                        if do_hide_shader:
-                            loc_y = loc_y - 50
-                        first = 1
-                        second = 2
                     elif mode == 'ADD':
                         add = nodes.new('ShaderNodeAddShader')
-                        add.hide = do_hide_shader
-                        if do_hide_shader:
-                            loc_y = loc_y - 50
-                        first = 0
-                        second = 1
                 elif nodes_list == selected_geometry:
                     if mode in ('JOIN', 'MIX'):
                         add_type = 'GeometryNodeJoinGeometry'
@@ -353,35 +333,15 @@ class NODE_OT_merge_selected(Operator, NWBase):
                 elif nodes_list == selected_vector:
                     add = nodes.new('ShaderNodeVectorMath')
                     add.operation = mode
-                    add.hide = do_hide
-                    if do_hide:
-                        loc_y = loc_y - 50
-                    first = 0
-                    second = 1
                 elif nodes_list == selected_z:
                     add = nodes.new('CompositorNodeZcombine')
                     add.show_preview = False
-                    add.hide = do_hide
-                    if do_hide:
-                        loc_y = loc_y - 50
-                    first = 0
-                    second = 2
                 elif nodes_list == selected_alphaover:
                     add = nodes.new('CompositorNodeAlphaOver')
                     add.show_preview = False
-                    add.hide = do_hide
-                    if do_hide:
-                        loc_y = loc_y - 50
-                    first = 0
-                    second = 1
                 elif nodes_list == selected_boolean:
                     add = nodes.new('FunctionNodeBooleanMath')
                     add.show_preview = False
-                    add.hide = do_hide
-                    if do_hide:
-                        loc_y = loc_y - 50
-                    first = 0
-                    second = 1
                 elif nodes_list == selected_string:
                     add_type = node_type + 'StringJoin'
                     add = self.merge_with_multi_input(
@@ -395,6 +355,27 @@ class NODE_OT_merge_selected(Operator, NWBase):
             # This has already been handled separately
             if was_multi:
                 continue
+
+            # Multi-input nodes don't need socket numbers and the do_hide check.
+
+            socket_dict = {
+                'ShaderNodeMix': [6, 7],
+                'ShaderNodeMath': [0, 1],
+                'ShaderNodeMixShader': [1, 2],
+                'ShaderNodeAddShader': [0, 1],
+                'ShaderNodeVectorMath': [0, 1],
+                'CompositorNodeZcombine': [0, 2],
+                'CompositorNodeAlphaOver': [1, 2],
+                'FunctionNodeBooleanMath': [0, 1],
+            }
+
+            first, second = socket_dict[add.bl_idname]
+
+            if do_hide or do_hide_shader:
+                loc_y = loc_y - 50
+
+            add.hide = do_hide or do_hide_shader
+
             count_adds = i + 1
             count_after = len(nodes)
             index = count_after - 1
