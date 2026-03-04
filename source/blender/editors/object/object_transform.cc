@@ -1950,6 +1950,13 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
  */
 #define USE_FAKE_DEPTH_INIT
 
+enum {
+  AXIS_TARGET_MODAL_CONFIRM = 1,
+  AXIS_TARGET_MODAL_CANCEL = 2,
+  AXIS_TARGET_MODAL_TRANSLATE_ENABLE = 3,
+  AXIS_TARGET_MODAL_TRANSLATE_DISABLE = 4,
+};
+
 struct XFormAxisItem {
   Object *ob;
   float rot_mat[3][3];
@@ -2096,6 +2103,32 @@ static bool object_orient_to_location(Object *ob,
   return false;
 }
 
+static void object_transform_axis_target_update_status(bContext *C,
+                                                       wmOperator *op,
+                                                       const XFormAxisData *xfd)
+{
+  WorkspaceStatus status(C);
+  status.opmodal(IFACE_("Confirm"), op->type, AXIS_TARGET_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, AXIS_TARGET_MODAL_CANCEL);
+  status.opmodal(
+      IFACE_("Translate"), op->type, AXIS_TARGET_MODAL_TRANSLATE_ENABLE, xfd->is_translate);
+}
+
+void object_transform_axis_target_modal_keymap(wmKeyConfig *keyconf)
+{
+  static const EnumPropertyItem modal_items[] = {
+      {AXIS_TARGET_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+      {AXIS_TARGET_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+      {AXIS_TARGET_MODAL_TRANSLATE_ENABLE, "TRANSLATE_ENABLE", 0, "Translate On", ""},
+      {AXIS_TARGET_MODAL_TRANSLATE_DISABLE, "TRANSLATE_DISABLE", 0, "Translate Off", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  wmKeyMap *keymap = WM_modalkeymap_ensure(
+      keyconf, "Transform Axis Target Modal Map", modal_items);
+  WM_modalkeymap_assign(keymap, "OBJECT_OT_transform_axis_target");
+}
+
 static void object_transform_axis_target_cancel(bContext *C, wmOperator *op)
 {
   XFormAxisData *xfd = static_cast<XFormAxisData *>(op->customdata);
@@ -2105,6 +2138,7 @@ static void object_transform_axis_target_cancel(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item.ob);
   }
 
+  ED_workspace_status_text(C, nullptr);
   object_transform_axis_target_free_data(op);
 }
 
@@ -2191,10 +2225,52 @@ static wmOperatorStatus object_transform_axis_target_modal(bContext *C,
 
   view3d_operator_needs_gpu(C);
 
-  const bool is_translate = event->modifier & KM_CTRL;
-  const bool is_translate_init = is_translate && (xfd->is_translate != is_translate);
+  bool is_translate = xfd->is_translate;
+  bool is_translate_init = false;
 
-  if (event->type == MOUSEMOVE || is_translate_init) {
+  wmOperatorStatus status = OPERATOR_RUNNING_MODAL;
+  bool update = false;
+
+  /* Handle modal keymap events. */
+  if (event->type == EVT_MODAL_MAP) {
+    switch (event->val) {
+      case AXIS_TARGET_MODAL_CONFIRM: {
+        status = OPERATOR_FINISHED;
+        break;
+      }
+      case AXIS_TARGET_MODAL_CANCEL: {
+        status = OPERATOR_CANCELLED;
+        break;
+      }
+      case AXIS_TARGET_MODAL_TRANSLATE_ENABLE: {
+        if (!is_translate) {
+          is_translate = true;
+          is_translate_init = true;
+          update = true;
+        }
+        break;
+      }
+      case AXIS_TARGET_MODAL_TRANSLATE_DISABLE: {
+        if (is_translate) {
+          is_translate = false;
+          update = true;
+        }
+        break;
+      }
+    }
+  }
+  else if (event->type == MOUSEMOVE) {
+    update = true;
+  }
+  else {
+    if (ISMOUSE_BUTTON(xfd->init_event)) {
+      if ((event->type == xfd->init_event) && (event->val == KM_RELEASE)) {
+        status = OPERATOR_FINISHED;
+      }
+    }
+  }
+
+  if (update) {
     const ViewDepths *depths = xfd->depths;
     if (depths && (uint(event->mval[0]) < depths->w) && (uint(event->mval[1]) < depths->h)) {
       float depth_fl = 1.0f;
@@ -2342,20 +2418,10 @@ static wmOperatorStatus object_transform_axis_target_modal(bContext *C,
     ED_region_tag_redraw(xfd->vc.region);
   }
 
-  bool is_finished = false;
-
-  if (ISMOUSE_BUTTON(xfd->init_event)) {
-    if ((event->type == xfd->init_event) && (event->val == KM_RELEASE)) {
-      is_finished = true;
-    }
+  if (status & OPERATOR_RUNNING_MODAL) {
+    object_transform_axis_target_update_status(C, op, xfd);
   }
-  else {
-    if (ELEM(event->type, LEFTMOUSE, EVT_RETKEY, EVT_PADENTER)) {
-      is_finished = true;
-    }
-  }
-
-  if (is_finished) {
+  else if (status & OPERATOR_FINISHED) {
     Scene *scene = CTX_data_scene(C);
     /* Perform auto-keying for rotational changes for all objects. */
     for (XFormAxisItem &item : xfd->object_data) {
@@ -2374,16 +2440,14 @@ static wmOperatorStatus object_transform_axis_target_modal(bContext *C,
       PropertyRNA *prop = RNA_struct_find_property(&ptr, rotation_property);
       animrig::autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, true);
     }
-
+    ED_workspace_status_text(C, nullptr);
     object_transform_axis_target_free_data(op);
-    return OPERATOR_FINISHED;
   }
-  if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+  else if (status & OPERATOR_CANCELLED) {
     object_transform_axis_target_cancel(C, op);
-    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  return status;
 }
 
 void OBJECT_OT_transform_axis_target(wmOperatorType *ot)

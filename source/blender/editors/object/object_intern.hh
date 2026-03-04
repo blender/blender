@@ -18,6 +18,7 @@ struct bContext;
 struct ModifierData;
 struct Object;
 struct StructRNA;
+struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 
@@ -42,6 +43,7 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot);
 void OBJECT_OT_transform_apply(wmOperatorType *ot);
 void OBJECT_OT_parent_inverse_apply(wmOperatorType *ot);
 void OBJECT_OT_transform_axis_target(wmOperatorType *ot);
+void object_transform_axis_target_modal_keymap(wmKeyConfig *keyconf);
 void OBJECT_OT_origin_set(wmOperatorType *ot);
 
 /* `object_relations.cc` */
