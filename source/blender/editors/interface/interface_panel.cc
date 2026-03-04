@@ -879,9 +879,9 @@ static void ui_offset_panel_block(Block *block)
     body.start_y -= panels_space;
     body.end_y -= panels_space;
   }
-  for (LayoutPanelHeader &headcer : block->panel->runtime->layout_panels.headers) {
-    headcer.start_y -= panels_space;
-    headcer.end_y -= panels_space;
+  for (LayoutPanelHeader &header : block->panel->runtime->layout_panels.headers) {
+    header.start_y -= panels_space;
+    header.end_y -= panels_space;
   }
 
   block->rect.xmax = block->panel->sizex;
