@@ -152,6 +152,13 @@ ${LIBDIR}/ssl/lib64/pkgconfig:${LIBDIR}/lzma/lib/pkgconfig:${LIBDIR}/zlib/share/
     # Use flags documented by ./configure for other libs.
     export BZIP2_CFLAGS=-I${LIBDIR}/bzip2/include
     export BZIP2_LIBS=${LIBDIR}/bzip2/lib/${LIBPREFIX}bz2${LIBEXT}
+
+    # Prevent Python configuration script from enabling modules that might be enabled due to the
+    # presence of system-wide libraries.
+    # There is no official way of explicitly disabling modules via command line arguments to the
+    # configuration script, so instead use CFLAGS that are passed to the try-compile utilities that
+    # probe libraries to ensure the test program does not compile.
+    export TCLTK_CFLAGS="--non-existing-flag"
   )
 
   if(APPLE)
