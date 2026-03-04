@@ -1380,14 +1380,14 @@ class AttrSingleValueChecker {
       attrs_.append(&attr);
     }
     spans_.reinitialize(attrs_.size());
+    can_be_single_.reinitialize(attrs_.size());
     for (const int attr_i : attrs_.index_range()) {
       BLI_assert(attrs_[attr_i]->storage_type() == bke::AttrStorageType::Array);
       const auto &data = std::get<bke::Attribute::ArrayData>(attrs_[attr_i]->data());
       const CPPType &type = bke::attribute_type_to_cpp_type(attrs_[attr_i]->data_type());
       spans_[attr_i] = GSpan(type, data.data, data.size);
+      can_be_single_[attr_i] = attrs_[attr_i]->data_type() != bke::AttrType::String;
     }
-    can_be_single_.reinitialize(attrs_.size());
-    std::ranges::fill(can_be_single_, true);
   }
 
   /**
