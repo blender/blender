@@ -295,7 +295,13 @@ void mix_groups(const GSpan src,
 
   to_static_type(src.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<DefaultMixer<T>>) {
-      mix_groups(src.typed<T>(), groups, all_indices, all_weights, dst.typed<T>());
+      threading::parallel_for(groups.index_range(), 2048, [&](const IndexRange range) {
+        mix_groups(src.typed<T>(),
+                   groups.slice(range),
+                   all_indices,
+                   all_weights,
+                   dst.typed<T>().slice(range));
+      });
     }
   });
 }
