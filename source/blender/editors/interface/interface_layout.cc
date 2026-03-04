@@ -4824,9 +4824,36 @@ PanelLayout Layout::panel_prop(const bContext *C,
     Layout *row = &header_litem->row(true);
 
     Block *block = row->block();
+
+    const bool is_popup = block_is_popup_any(block);
+    bool inside_layout_panel = false;
+
+    if (is_popup) {
+      Layout *parent = this;
+      while (parent) {
+        inside_layout_panel = parent->type_ == ItemType::LayoutPanelBody;
+        parent = parent->parent_;
+        if (inside_layout_panel) {
+          break;
+        }
+      }
+    }
+    if (!is_popup || inside_layout_panel) {
+      uiDefBut(this->block(),
+               ButtonType::Sepr,
+               "",
+               0,
+               0,
+               std::round(0.85 * UI_UNIT_X - float(root_->style->panelspace)),
+               0,
+               nullptr,
+               0.0,
+               0.0,
+               "");
+    }
     const int icon = is_open ? ICON_DOWNARROW_HLT : ICON_RIGHTARROW;
-    const int width = ui_text_icon_width(this, "", icon, false);
-    uiDefIconTextBut(block, ButtonType::Label, icon, "", 0, 0, width, UI_UNIT_Y, nullptr, "");
+    const int icon_width = (UI_UNIT_X * 0.9) + 1.1f * UI_SCALE_FAC;
+    uiDefIconTextBut(block, ButtonType::Label, icon, "", 0, 0, icon_width, UI_UNIT_Y, nullptr, "");
 
     panel_layout.header = row;
   }
