@@ -656,7 +656,7 @@ static int expandrow2(
     if (!(count = (pixel & 0x7f))) {
       return false;
     }
-    const float *optr_next = optr + count;
+    const float *optr_next = optr + (int(count) * 4);
     EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next);
     if (pixel & 0x80) {
       iptr_next = iptr + (count * 2);
