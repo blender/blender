@@ -607,9 +607,9 @@ void layout_panel_popup_scroll_apply(Panel *panel, const float dy)
     body.start_y += dy;
     body.end_y += dy;
   }
-  for (LayoutPanelHeader &headcer : panel->runtime->layout_panels.headers) {
-    headcer.start_y += dy;
-    headcer.end_y += dy;
+  for (LayoutPanelHeader &header : panel->runtime->layout_panels.headers) {
+    header.start_y += dy;
+    header.end_y += dy;
   }
 }
 
