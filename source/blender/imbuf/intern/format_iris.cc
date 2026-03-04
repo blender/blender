@@ -28,7 +28,7 @@
 
 namespace blender {
 
-static CLG_LogRef LOG = {"image.jpeg"};
+static CLG_LogRef LOG = {"image.iris"};
 
 /**
  * The SGI IRIS magic number.
@@ -433,9 +433,9 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
       }
       else {
         fptr = fbase;
-        float *fptr_next = fptr + (xsize * 4);
 
         for (size_t y = 0; y < ysize; y++) {
+          float *fptr_next = fptr + (xsize * 4);
 
           for (size_t z = 0; z < zsize_read; z++) {
             MFILE_SEEK(inf, starttab[y + z * ysize]);
