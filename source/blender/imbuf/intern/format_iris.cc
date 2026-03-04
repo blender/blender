@@ -914,7 +914,7 @@ static void lumrow(const uchar *rgbptr, uchar *lumptr, int n)
 {
   lumptr += CHANOFFSET(0);
   while (n--) {
-    *lumptr = ILUM(rgbptr[OFFSET_R], rgbptr[OFFSET_G], rgbptr[OFFSET_B]);
+    *lumptr = ILUM(rgbptr[CHANOFFSET(0)], rgbptr[CHANOFFSET(1)], rgbptr[CHANOFFSET(2)]);
     lumptr += 4;
     rgbptr += 4;
   }
