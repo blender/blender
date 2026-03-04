@@ -574,12 +574,15 @@ class Context : public compositor::Context {
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */
+    const bool is_group_output_needed = flag_is_set(needed_outputs,
+                                                    NodeGroupOutputTypes::GroupOutputNode);
     node_group.ensure_interface_cache();
     for (const bNodeTreeInterfaceSocket *output_socket : node_group.interface_outputs()) {
       const bool is_fisrt_output = output_socket == node_group.interface_outputs().first();
       Result &output_result = node_group_operation.get_result(output_socket->identifier);
       const bool is_color = output_result.type() == ResultType::Color;
-      output_result.set_reference_count(is_fisrt_output && is_color ? 1 : 0);
+      const bool is_needed = is_group_output_needed && is_fisrt_output && is_color;
+      output_result.set_reference_count(is_needed ? 1 : 0);
     }
 
     /* Map the inputs to the operation. */
