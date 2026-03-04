@@ -318,11 +318,12 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   }
 
   if (rle) {
-    size_t tablen = size_t(ysize) * size_t(zsize_file) * sizeof(int);
+    const size_t tablen_num = size_t(ysize) * size_t(zsize_file);
+    const size_t tablen = sizeof(uint) * tablen_num;
     MFILE_SEEK(inf, HEADER_SIZE);
 
-    uint *starttab = MEM_new_array_uninitialized<uint>(tablen, "iris starttab");
-    uint *lengthtab = MEM_new_array_uninitialized<uint>(tablen, "iris endtab");
+    uint *starttab = MEM_new_array_uninitialized<uint>(tablen_num, "iris starttab");
+    uint *lengthtab = MEM_new_array_uninitialized<uint>(tablen_num, "iris endtab");
 
 #define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
   if (UNLIKELY((p) > mem_end)) { \
@@ -822,7 +823,7 @@ static bool output_iris(const char *filepath,
 {
   FILE *outf;
   IRIS_Header *image;
-  int tablen, y, z, pos, len = 0;
+  int y, z, pos, len = 0;
   uint *starttab, *lengthtab;
   uchar *rlebuf;
   uint *lumbuf;
@@ -834,11 +835,12 @@ static bool output_iris(const char *filepath,
     return false;
   }
 
-  tablen = ysize * zsize * sizeof(int);
+  const int tablen_num = ysize * zsize;
+  const int tablen = sizeof(uint) * tablen_num;
 
   image = MEM_new_uninitialized<IRIS_Header>("iris image");
-  starttab = MEM_new_array_uninitialized<uint>(size_t(tablen), "iris starttab");
-  lengthtab = MEM_new_array_uninitialized<uint>(size_t(tablen), "iris lengthtab");
+  starttab = MEM_new_array_uninitialized<uint>(size_t(tablen_num), "iris starttab");
+  lengthtab = MEM_new_array_uninitialized<uint>(size_t(tablen_num), "iris lengthtab");
   rlebuflen = 1.05 * xsize + 10;
   rlebuf = MEM_new_array_uninitialized<uchar>(size_t(rlebuflen), "iris rlebuf");
   lumbuf = MEM_new_array_uninitialized<uint>(size_t(xsize), "iris lumbuf");
