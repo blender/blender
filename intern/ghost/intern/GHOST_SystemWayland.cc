@@ -3892,6 +3892,11 @@ static void data_device_handle_enter(void *data,
 
   for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order); i++) {
     const char *type = ghost_wl_mime_preference_order[i];
+    if (!data_offer->types.contains(type)) {
+      /* Not required by the spec but SMITHAY based compositors fail to drop without this.
+       * See bug 1953, reported upstream. */
+      continue;
+    }
     wl_data_offer_accept(id, serial, type);
   }
 
