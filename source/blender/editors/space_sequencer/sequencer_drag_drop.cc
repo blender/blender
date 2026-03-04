@@ -66,7 +66,7 @@ struct SeqDropCoords {
   bool has_read_mouse_pos = false;
   bool is_intersecting;
   bool use_snapping;
-  float snap_point_x;
+  float2 snap_point;
   uint8_t type;
 };
 
@@ -189,6 +189,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
     coords->channel = 1;
   }
 
+  float channel = coords->channel;
   float start_frame = coords->start_frame;
   float end_frame;
   float strip_len;
@@ -210,18 +211,17 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   if (coords->use_snapping) {
     /* Do snapping via the existing transform code. */
     int snap_delta;
-    float snap_frame;
-    bool valid_snap;
+    float2 snap_point;
 
-    valid_snap = transform::snap_sequencer_calc_drag_drop(
-        scene, region, start_frame, end_frame, &snap_delta, &snap_frame);
+    const bool valid_snap = transform::snap_sequencer_calc_drag_drop(
+        scene, region, start_frame, end_frame, channel, &snap_delta, &snap_point);
 
     if (valid_snap) {
       /* We snapped onto something! */
       start_frame += snap_delta;
       coords->start_frame = start_frame;
       end_frame = start_frame + strip_len;
-      coords->snap_point_x = snap_frame;
+      coords->snap_point = snap_point;
     }
     else {
       /* Nothing was snapped to, disable snap drawing. */
@@ -377,6 +377,9 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
     return;
   }
 
+  /* Needed to get user's snap settings later on when calculating drag and drop snaps. */
+  Scene *scene = CTX_data_sequencer_scene(C);
+
   ARegion *region = CTX_wm_region(C);
   int mval[2];
   /* Convert mouse coordinates to region local coordinates. */
@@ -396,7 +399,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
 
   if (coords->use_snapping) {
     ui::view2d_view_ortho(&region->v2d);
-    transform::snap_sequencer_draw_drag_drop(region, coords->snap_point_x);
+    transform::snap_sequencer_draw_drag_drop(scene, region, coords->snap_point);
     ui::view2d_view_restore(C);
   }
 
