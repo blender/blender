@@ -66,13 +66,6 @@ BLI_STATIC_ASSERT(sizeof(IRIS_Header) == HEADER_SIZE, "Invalid header size");
 
 #define ILUM(r, g, b) (int(RINTLUM * (r) + GINTLUM * (g) + BINTLUM * (b)) >> 8)
 
-#define OFFSET_R 0 /* this is byte order dependent */
-#define OFFSET_G 1
-#define OFFSET_B 2
-// #define OFFSET_A    3
-
-#define CHANOFFSET(z) (3 - (z)) /* this is byte order dependent */
-
 // #define TYPEMASK        0xff00
 #define BPPMASK 0x00ff
 // #define ITYPE_VERBATIM      0x0000 /* UNUSED */
@@ -126,38 +119,6 @@ static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
 static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
 static int compressrow(const uchar *lbuf, uchar *rlebuf, int z, int row_len);
 static void lumrow(const uchar *rgbptr, uchar *lumptr, int n);
-
-/* -------------------------------------------------------------------- */
-/** \name Internal Image API
- * \{ */
-
-/**
- * Change the ordering of the color bytes pointed to by rect from
- * RGBA to ABGR. size * 4 color bytes are reordered.
- *
- * Only this one is used liberally here, and in imbuf.
- */
-static void imbuf_rgba_to_abgr(ImBuf *ibuf)
-{
-  size_t size;
-  uchar rt, *cp = ibuf->byte_buffer.data;
-
-  if (ibuf->byte_buffer.data) {
-    size = IMB_get_pixel_count(ibuf);
-
-    while (size-- > 0) {
-      rt = cp[0];
-      cp[0] = cp[3];
-      cp[3] = rt;
-      rt = cp[1];
-      cp[1] = cp[2];
-      cp[2] = rt;
-      cp += 4;
-    }
-  }
-}
-
-/** \} */
 
 /*
  * byte order independent read/write of shorts and ints.
@@ -376,7 +337,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
                                     reinterpret_cast<uchar *>(lptr_next),
                                     rledat,
                                     rledat_next,
-                                    3 - z);
+                                    z);
             lptr = lptr_next;
           }
         }
@@ -398,7 +359,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
                                       reinterpret_cast<uchar *>(lptr_next),
                                       rledat,
                                       rledat_next,
-                                      3 - z);
+                                      z);
             }
             else {
               break;
@@ -427,7 +388,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
             const uchar *rledat_next = MFILE_DATA(inf);
             MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
             float *fptr_next = fptr + (xsize * 4);
-            dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, 3 - z);
+            dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, z);
             fptr = fptr_next;
           }
         }
@@ -444,7 +405,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
             MFILE_STEP(inf, lengthtab[y + z * ysize]);
             const uchar *rledat_next = MFILE_DATA(inf);
             MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
-            dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, 3 - z);
+            dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, z);
           }
           fptr = fptr_next;
         }
@@ -492,9 +453,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
         for (size_t y = 0; y < ysize; y++) {
           const uchar *rledat_next = rledat + xsize;
-          const int z_ofs = 3 - z;
-          MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
-          interleaverow(reinterpret_cast<uchar *>(lptr), rledat, z_ofs, xsize);
+          MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z);
+          interleaverow(reinterpret_cast<uchar *>(lptr), rledat, z, xsize);
           rledat = rledat_next;
           lptr += xsize;
         }
@@ -518,9 +478,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
         for (size_t y = 0; y < ysize; y++) {
           const uchar *rledat_next = rledat + xsize * 2;
-          const int z_ofs = 3 - z;
-          MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
-          interleaverow2(fptr, rledat, z_ofs, xsize);
+          MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z);
+          interleaverow2(fptr, rledat, z, xsize);
           rledat = rledat_next;
           fptr += xsize * 4;
         }
@@ -539,8 +498,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     if (image.zsize == 1) {
       rect = ibuf->byte_buffer.data;
       for (size_t x = size_t(ibuf->x) * size_t(ibuf->y); x > 0; x--) {
-        rect[0] = 255;
-        rect[1] = rect[2] = rect[3];
+        rect[1] = rect[2] = rect[0];
+        rect[3] = 255;
         rect += 4;
       }
     }
@@ -548,8 +507,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
       /* Gray-scale with alpha. */
       rect = ibuf->byte_buffer.data;
       for (size_t x = size_t(ibuf->x) * size_t(ibuf->y); x > 0; x--) {
-        rect[0] = rect[2];
-        rect[1] = rect[2] = rect[3];
+        rect[3] = rect[1];
+        rect[1] = rect[2] = rect[0];
         rect += 4;
       }
     }
@@ -557,7 +516,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
       /* add alpha */
       rect = ibuf->byte_buffer.data;
       for (size_t x = size_t(ibuf->x) * size_t(ibuf->y); x > 0; x--) {
-        rect[0] = 255;
+        rect[3] = 255;
         rect += 4;
       }
     }
@@ -567,8 +526,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     if (image.zsize == 1) {
       fbase = ibuf->float_buffer.data;
       for (size_t x = size_t(ibuf->x) * size_t(ibuf->y); x > 0; x--) {
-        fbase[0] = 1;
-        fbase[1] = fbase[2] = fbase[3];
+        fbase[1] = fbase[2] = fbase[0];
+        fbase[3] = 1;
         fbase += 4;
       }
     }
@@ -576,8 +535,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
       /* Gray-scale with alpha. */
       fbase = ibuf->float_buffer.data;
       for (size_t x = size_t(ibuf->x) * size_t(ibuf->y); x > 0; x--) {
-        fbase[0] = fbase[2];
-        fbase[1] = fbase[2] = fbase[3];
+        fbase[3] = fbase[1];
+        fbase[1] = fbase[2] = fbase[0];
         fbase += 4;
       }
     }
@@ -585,7 +544,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
       /* add alpha */
       fbase = ibuf->float_buffer.data;
       for (size_t x = size_t(ibuf->x) * size_t(ibuf->y); x > 0; x--) {
-        fbase[0] = 1;
+        fbase[3] = 1;
         fbase += 4;
       }
     }
@@ -599,10 +558,6 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     CLOG_ERROR(&LOG, "Corrupt file content (%d)", dirty_flag);
   }
   ibuf->ftype = IMB_FTYPE_IRIS;
-
-  if (ibuf->byte_buffer.data) {
-    imbuf_rgba_to_abgr(ibuf);
-  }
 
   return ibuf;
 }
@@ -868,15 +823,14 @@ static bool output_iris(const char *filepath,
 
       if (zsize == 1) {
         lumrow(reinterpret_cast<const uchar *>(lptr), reinterpret_cast<uchar *>(lumbuf), xsize);
-        len = compressrow(reinterpret_cast<const uchar *>(lumbuf), rlebuf, CHANOFFSET(z), xsize);
+        len = compressrow(reinterpret_cast<const uchar *>(lumbuf), rlebuf, z, xsize);
       }
       else {
         if (z < 4) {
-          len = compressrow(reinterpret_cast<const uchar *>(lptr), rlebuf, CHANOFFSET(z), xsize);
+          len = compressrow(reinterpret_cast<const uchar *>(lptr), rlebuf, z, xsize);
         }
         else if (z < 8 && zptr) {
-          len = compressrow(
-              reinterpret_cast<const uchar *>(zptr), rlebuf, CHANOFFSET(z - 4), xsize);
+          len = compressrow(reinterpret_cast<const uchar *>(zptr), rlebuf, z - 4, xsize);
         }
       }
 
@@ -914,9 +868,8 @@ static bool output_iris(const char *filepath,
 
 static void lumrow(const uchar *rgbptr, uchar *lumptr, int n)
 {
-  lumptr += CHANOFFSET(0);
   while (n--) {
-    *lumptr = ILUM(rgbptr[CHANOFFSET(0)], rgbptr[CHANOFFSET(1)], rgbptr[CHANOFFSET(2)]);
+    *lumptr = ILUM(rgbptr[0], rgbptr[1], rgbptr[2]);
     lumptr += 4;
     rgbptr += 4;
   }
@@ -993,17 +946,12 @@ bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 
   const short zsize = (ibuf->planes + 7) >> 3;
 
-  imbuf_rgba_to_abgr(ibuf);
-
   const bool ok = output_iris(filepath,
-                              reinterpret_cast<uint *>(ibuf->byte_buffer.data),
+                              reinterpret_cast<const uint *>(ibuf->byte_buffer.data),
                               nullptr,
                               ibuf->x,
                               ibuf->y,
                               zsize);
-
-  /* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
-  imbuf_rgba_to_abgr(ibuf);
 
   return ok;
 }
