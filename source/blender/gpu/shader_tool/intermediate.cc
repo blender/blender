@@ -602,12 +602,17 @@ Token ParserBase::operator[](int i) const
 
 void LexerBase::update_string_view()
 {
-  this->token_types_str = std::string_view(reinterpret_cast<char *>(this->token_types.data()),
-                                           this->token_types.size());
+  assert(this->types_.get() != nullptr);
+  assert(this->size_ > 0);
+  this->token_types_str = std::string_view((const char *)types_.get(), size_);
+  this->token_types = {types_.get(), size_};
+  this->token_offsets = {offsets_.get(), size_ + 1};
 }
 
 void ParserBase::update_string_view()
 {
+  assert(this->scope_types.data() != nullptr);
+  assert(this->scope_types.size() > 0);
   this->scope_types_str = std::string_view(reinterpret_cast<char *>(this->scope_types.data()),
                                            this->scope_types.size());
 }

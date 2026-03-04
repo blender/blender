@@ -72,9 +72,6 @@ struct ExpressionLexer : LexerBase {
     process(input, default_char_class_table.data());
     identify_keywords();
     merge_tokens();
-    token_types_str = std::string_view((const char *)types_.get(), size_);
-    token_types = {types_.get(), size_};
-    token_offsets = {offsets_.get(), size_ + 1};
   }
 };
 
@@ -90,9 +87,6 @@ struct FullLexer : LexerBase {
     process(input, bsl_char_class_table.data());
     identify_keywords();
     merge_tokens();
-    token_types_str = std::string_view((const char *)types_.get(), size_);
-    token_types = {types_.get(), size_};
-    token_offsets = {offsets_.get(), size_ + 1};
   }
 };
 
