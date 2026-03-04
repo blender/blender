@@ -1671,8 +1671,20 @@ void wm_draw_update(bContext *C)
 
   CTX_wm_window_set(C, nullptr);
 
-  /* Draw non-windows (surfaces). */
+  /* Draw surfaces (non-windows, currently only used for XR). */
   wm_surfaces_iter(C, wm_draw_surface);
+
+  /* Restore GPU context to the last valid window if surface drawing cleared it, also restore DPI.
+   * This is required for GPU rendering code called before the next window redraw. Such as by
+   * events, handlers and notifiers (see #WM_main). */
+  if (wm->runtime->windrawable == nullptr && GPU_context_active_get() == nullptr) {
+    for (wmWindow &win : wm->windows.items_reversed()) {
+      if (win.runtime->ghostwin) {
+        wm_window_make_drawable(wm, &win);
+        break;
+      }
+    }
+  }
 
   GPU_render_end();
   GPU_context_main_unlock();
