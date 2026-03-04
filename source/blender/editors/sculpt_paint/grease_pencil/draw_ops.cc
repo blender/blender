@@ -1684,12 +1684,12 @@ static wmOperatorStatus grease_pencil_fill_event_modal_map(bContext *C,
       break;
 
     case int(FillToolModalKey::ExtensionLengthen):
-      op_data.extension_length = std::max(op_data.extension_length - extension_delta, 0.0f);
+      op_data.extension_length = std::min(op_data.extension_length + extension_delta, 10.0f);
       grease_pencil_update_extend(*C, op_data);
       break;
 
     case int(FillToolModalKey::ExtensionShorten):
-      op_data.extension_length = std::min(op_data.extension_length + extension_delta, 10.0f);
+      op_data.extension_length = std::max(op_data.extension_length - extension_delta, 0.0f);
       grease_pencil_update_extend(*C, op_data);
       break;
 
