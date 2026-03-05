@@ -1298,6 +1298,18 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
   BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, params.shape_info.tmpkey);
 
+  /* Vertex creases should not be interpolated when subdividing edges.
+   * See: #154814. */
+  const int cd_vert_crease_offset = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, "crease_vert");
+  if (cd_vert_crease_offset != -1) {
+    BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+      if (BMO_vert_flag_test(bm, v, ELE_INNER)) {
+        BM_ELEM_CD_SET_FLOAT(v, cd_vert_crease_offset, 0.0f);
+      }
+    }
+  }
+
   BLI_stack_free(facedata);
 
   BMO_slot_buffer_from_enabled_flag(
