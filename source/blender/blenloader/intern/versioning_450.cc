@@ -3794,6 +3794,9 @@ static void do_version_vector_sockets_dimensions(bNodeTree *node_tree)
     bNodeTreeInterfaceSocket &interface_socket =
         bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
     bke::bNodeSocketType *base_typeinfo = bke::node_socket_type_find(interface_socket.socket_type);
+    if (!base_typeinfo) {
+      return true;
+    }
 
     if (base_typeinfo->type == SOCK_VECTOR) {
       bke::node_interface::get_socket_data_as<bNodeSocketValueVector>(interface_socket)

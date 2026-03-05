@@ -327,6 +327,7 @@ bNodeSocket &version_node_add_socket(bNodeTree &ntree,
                                      const char *identifier)
 {
   bke::bNodeSocketType *stype = bke::node_socket_type_find(idname);
+  BLI_assert(stype != nullptr);
 
   bNodeSocket *socket = MEM_new<bNodeSocket>(__func__);
   socket->runtime = MEM_new<bke::bNodeSocketRuntime>(__func__);
