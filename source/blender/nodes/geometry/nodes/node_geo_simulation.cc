@@ -639,10 +639,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     Vector<SocketValueVariant> next_values = copy_simulation_state_to_values(
         simulation_items_, next_state, self_object, compute_context, node_, data_block_map);
     for (const int i : simulation_items_.index_range()) {
-      mix_baked_data_item(eNodeSocketDatatype(simulation_items_[i].socket_type),
-                          output_values[i],
-                          next_values[i],
-                          mix_factor);
+      geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
     }
     for (const int i : simulation_items_.index_range()) {
       params.set_output(i, std::move(output_values[i]));
@@ -921,52 +918,6 @@ std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
   return std::make_unique<
       node_geo_simulation_cc::sim_output_node::LazyFunctionForSimulationOutputNode>(
       node, own_lf_graph_info);
-}
-
-void mix_baked_data_item(const eNodeSocketDatatype socket_type,
-                         SocketValueVariant &prev,
-                         const SocketValueVariant &next,
-                         const float factor)
-{
-  switch (socket_type) {
-    case SOCK_GEOMETRY: {
-      GeometrySet &prev_geo = *prev.get_single_ptr().get<GeometrySet>();
-      const GeometrySet &next_geo = *next.get_single_ptr().get<GeometrySet>();
-      prev_geo = geometry::mix_geometries(std::move(prev_geo), next_geo, factor);
-      break;
-    }
-    case SOCK_FLOAT:
-    case SOCK_VECTOR:
-    case SOCK_INT:
-    case SOCK_BOOLEAN:
-    case SOCK_ROTATION:
-    case SOCK_RGBA:
-    case SOCK_MATRIX: {
-      const CPPType &type = *bke::socket_type_to_geo_nodes_base_cpp_type(socket_type);
-      if (!prev.is_single() || !next.is_single()) {
-        /* Fields are evaluated on geometries and are mixed there. */
-        break;
-      }
-
-      prev.convert_to_single();
-
-      SocketValueVariant next_copy = next;
-      next_copy.convert_to_single();
-
-      void *prev_value = prev.get_single_ptr().get();
-      const void *next_value = next_copy.get_single_ptr().get();
-
-      bke::attribute_math::to_static_type(type, [&]<typename T>() {
-        if constexpr (!std::is_same_v<T, std::string>) {
-          *static_cast<T *>(prev_value) = bke::attribute_math::mix2(
-              factor, *static_cast<T *>(prev_value), *static_cast<const T *>(next_value));
-        }
-      });
-      break;
-    }
-    default:
-      break;
-  }
 }
 
 StructRNA **SimulationItemsAccessor::item_srna = &RNA_SimulationStateItem;

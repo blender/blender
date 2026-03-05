@@ -41,6 +41,8 @@ struct BundleItemValue {
   /**
    * Attempts to cast the stored value to the given type. This may do implicit conversions.
    */
+  std::optional<bke::SocketValueVariant> as_socket_value(
+      const bke::bNodeSocketType &dst_socket_type) const;
   template<typename T>
   std::optional<T> as_socket_value(const bke::bNodeSocketType &socket_type) const;
   template<typename T> std::optional<T> as() const;
@@ -141,17 +143,9 @@ template<typename T>
 inline std::optional<T> BundleItemValue::as_socket_value(
     const bke::bNodeSocketType &dst_socket_type) const
 {
-  const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(&this->value);
-  if (!socket_value) {
-    return std::nullopt;
-  }
-  if (socket_value->type->type == dst_socket_type.type) {
-    return socket_value->value.get<T>();
-  }
-  if (std::optional<bke::SocketValueVariant> converted_value = implicitly_convert_socket_value(
-          *socket_value->type, socket_value->value, dst_socket_type))
+  if (const std::optional<bke::SocketValueVariant> value = this->as_socket_value(dst_socket_type))
   {
-    return converted_value->get<T>();
+    return value->get<T>();
   }
   return std::nullopt;
 }
