@@ -1344,6 +1344,7 @@ if(TEST_SRC_DIR_EXISTS)
     transform
     blend_modes_byte
     blend_modes_float
+    colorspace
   )
   set(video_output_tests "")
 
