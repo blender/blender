@@ -36,9 +36,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_prototypes.hh"
+
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_anim_visualization.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
@@ -2863,10 +2866,13 @@ void BKE_pchan_rebuild_bbone_handles(bPose *pose, bPoseChannel *pchan)
   pchan->bbone_next = pose_channel_find_bone(pose, pchan->bone->bbone_next);
 }
 
-void BKE_pose_channels_clear_with_null_bone(bPose *pose, const bool do_id_user)
+void BKE_pose_channels_clear_with_null_bone(Object *armature_ob, const bool do_id_user)
 {
+  BLI_assert(armature_ob->pose);
+  bPose *pose = armature_ob->pose;
   for (bPoseChannel &pchan : pose->chanbase.items_mutable()) {
     if (pchan.bone == nullptr) {
+      BKE_animdata_drivers_remove_for_rna_struct(armature_ob->id, *RNA_PoseBone, &pchan);
       BKE_pose_channel_free_ex(&pchan, do_id_user);
       BKE_pose_channels_hash_free(pose);
       BLI_freelinkN(&pose->chanbase, &pchan);
@@ -2899,7 +2905,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   }
 
   /* and a check for garbage */
-  BKE_pose_channels_clear_with_null_bone(pose, do_id_user);
+  BKE_pose_channels_clear_with_null_bone(ob, do_id_user);
 
   BKE_pose_channels_hash_ensure(pose);
 

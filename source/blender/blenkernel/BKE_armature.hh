@@ -251,7 +251,7 @@ void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose);
  * Update the links for the B-Bone handles from Bone data.
  */
 void BKE_pchan_rebuild_bbone_handles(bPose *pose, bPoseChannel *pchan);
-void BKE_pose_channels_clear_with_null_bone(bPose *pose, bool do_id_user);
+void BKE_pose_channels_clear_with_null_bone(Object *armature_ob, bool do_id_user);
 /**
  * Only after leave edit-mode, duplicating, validating older files, library syncing.
  *

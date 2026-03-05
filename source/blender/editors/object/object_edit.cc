@@ -681,7 +681,7 @@ static bool editmode_load_free_ex(Main *bmain,
         /* Don't keep unused pose channels created by duplicating bones
          * which may have been deleted/undone, see: #87631. */
         if (obedit->pose != nullptr) {
-          BKE_pose_channels_clear_with_null_bone(obedit->pose, true);
+          BKE_pose_channels_clear_with_null_bone(obedit, true);
         }
       }
     }
