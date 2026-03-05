@@ -246,6 +246,11 @@ enum eBrushPlaneInversionMode {
   BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH = 1,
 };
 
+enum eBrushProjectRayDirection {
+  BRUSH_PROJECT_RAY_DIRECTION_VIEW_NORMAL = 0,
+  BRUSH_PROJECT_RAY_DIRECTION_PLANE_NORMAL = 1,
+};
+
 /** #Gpencilsettings.Vertex_mode */
 enum eGp_Vertex_Mode {
   /* Affect to Stroke only. */
@@ -386,6 +391,7 @@ enum eBrushFlags2 {
   BRUSH_GRAB_SILHOUETTE = (1 << 8),
   BRUSH_USE_COLOR_AS_DISPLACEMENT = (1 << 9),
   BRUSH_JITTER_COLOR = (1 << 10),
+  BRUSH_PROJECT_USE_BIDIRECTIONAL = (1 << 11),
 };
 
 enum BrushMaskPressureFlags {
@@ -447,6 +453,7 @@ enum eBrushSculptType {
   SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR = 32,
   SCULPT_BRUSH_TYPE_PLANE = 33,
   SCULPT_BRUSH_TYPE_BLUR = 34,
+  SCULPT_BRUSH_TYPE_SCENE_PROJECT = 35,
 };
 
 /* Brush.curves_sculpt_brush_type. */

@@ -167,6 +167,7 @@ set(SRC
   mesh/brushes/plane.cc
   mesh/brushes/relax.cc
   mesh/brushes/rotate.cc
+  mesh/brushes/scene_project.cc
   mesh/brushes/smooth.cc
   mesh/brushes/smooth_mask.cc
   mesh/brushes/snake_hook.cc

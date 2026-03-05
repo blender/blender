@@ -42,6 +42,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
+#include "BKE_bvhutils.hh"
 #include "BKE_ccg.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
@@ -70,6 +71,7 @@
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 #include "WM_toolsystem.hh"
@@ -848,6 +850,8 @@ static int sculpt_brush_needs_normal(const SculptSession &ss, const Brush &brush
                SCULPT_BRUSH_TYPE_ROTATE,
                SCULPT_BRUSH_TYPE_ELASTIC_DEFORM,
                SCULPT_BRUSH_TYPE_THUMB) ||
+          (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SCENE_PROJECT &&
+           brush.project_ray_direction_type == BRUSH_PROJECT_RAY_DIRECTION_PLANE_NORMAL) ||
           (mask_tex->tex && mask_tex->brush_map_mode == MTEX_MAP_MODE_AREA)) ||
          brush_uses_topology_rake(ss, brush) || BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt);
 }
@@ -2367,6 +2371,8 @@ static float brush_strength(const Sculpt &sd,
       /* The Dyntopo Density brush does not use a normal brush workflow to calculate the effect,
        * and this strength value is unused. */
       return 0.0f;
+    case SCULPT_BRUSH_TYPE_SCENE_PROJECT:
+      return flip * alpha * pressure * overlap * feather;
   }
   BLI_assert_unreachable();
   return 0.0f;
@@ -3470,6 +3476,9 @@ static void do_brush_action(const Depsgraph &depsgraph,
     case SCULPT_BRUSH_TYPE_BLUR:
       color::do_blur_brush(depsgraph, sd, ob, node_mask);
       break;
+    case SCULPT_BRUSH_TYPE_SCENE_PROJECT:
+      brushes::do_scene_project_brush(depsgraph, sd, ob, node_mask);
+      break;
   }
 
   if (!ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_SMOOTH, SCULPT_BRUSH_TYPE_MASK) &&
@@ -3524,6 +3533,7 @@ void SCULPT_cache_calc_brushdata_symm(ed::sculpt_paint::StrokeCache &cache,
   cache.last_location_symm = ed::sculpt_paint::symmetry_flip(cache.last_location, symm);
   cache.grab_delta_symm = ed::sculpt_paint::symmetry_flip(cache.grab_delta, symm);
   cache.view_normal_symm = ed::sculpt_paint::symmetry_flip(cache.view_normal, symm);
+  cache.view_origin_symm = ed::sculpt_paint::symmetry_flip(cache.view_origin, symm);
 
   cache.initial_location_symm = ed::sculpt_paint::symmetry_flip(cache.initial_location, symm);
   cache.initial_normal_symm = ed::sculpt_paint::symmetry_flip(cache.initial_normal, symm);
@@ -3854,6 +3864,8 @@ static const char *sculpt_brush_type_name(const Brush &brush)
       return "Plane Brush";
     case SCULPT_BRUSH_TYPE_BLUR:
       return "Blur Brush";
+    case SCULPT_BRUSH_TYPE_SCENE_PROJECT:
+      return "Scene Project Brush";
   }
 
   return "Sculpting";
@@ -4035,6 +4047,38 @@ static void mask_brush_toggle_off(Paint *paint, StrokeCache *cache)
   BKE_brush_size_set(paint, &brush, cache->saved_smooth_size);
   BKE_paint_brush_set(paint, cache->saved_active_brush);
   cache->saved_active_brush = nullptr;
+}
+
+static void init_scene_project_brush_targets(const Depsgraph &depsgraph,
+                                             ViewLayer &view_layer,
+                                             const View3D &v3d,
+                                             const Object &active_object,
+                                             StrokeCache &cache)
+{
+  cache.project_targets.clear();
+
+  for (Base &base : *BKE_view_layer_object_bases_get(&view_layer)) {
+    const bool is_active_object = base.object == &active_object;
+    const bool is_hidden = !BKE_base_is_visible(&v3d, &base);
+    Object *object = DEG_get_evaluated(&depsgraph, base.object);
+
+    if (is_active_object || object->type != OB_MESH || is_hidden) {
+      continue;
+    }
+
+    const Mesh &mesh = *id_cast<const Mesh *>(object->data);
+    bke::BVHTreeFromMesh tree_data = mesh.bvh_corner_tris();
+
+    if (tree_data.tree == nullptr) {
+      continue;
+    }
+
+    const float4x4 active_to_target_matrix = object->world_to_object() *
+                                             active_object.object_to_world();
+
+    ProjectBrushTarget project_target{std::move(tree_data), active_to_target_matrix};
+    cache.project_targets.append(std::move(project_target));
+  }
 }
 
 /* Initialize the stroke cache invariants from operator properties. */
@@ -5630,6 +5674,8 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   ob.runtime->world_to_object = math::invert(ob.object_to_world());
   cache->view_normal = math::normalize(math::transform_direction(
       ob.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
+  cache->view_origin = math::transform_point(ob.world_to_object(),
+                                             float3(cache->vc->rv3d->viewinv[3]));
 
   cache->supports_gravity = bke::brush::supports_gravity(*brush) && sculpt_->gravity_factor > 0.0f;
   /* Get gravity vector in world space. */
@@ -5750,6 +5796,11 @@ void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
 
   RNA_float_get_array(ptr, "mouse", cache.mouse);
   RNA_float_get_array(ptr, "mouse_event", cache.mouse_event);
+
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SCENE_PROJECT) {
+    init_scene_project_brush_targets(
+        *this->depsgraph, *this->vc.view_layer, *this->vc.v3d, *this->object, cache);
+  }
 
   /* XXX: Use pressure value from first brush step for brushes which don't support strokes (grab,
    * thumb). They depends on initial state and brush coord/pressure/etc.

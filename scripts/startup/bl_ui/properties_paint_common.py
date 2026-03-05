@@ -957,6 +957,12 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "use_grab_active_vertex")
             layout.prop(brush, "use_grab_silhouette")
 
+        elif sculpt_brush_type == 'SCENE_PROJECT':
+            layout.separator()
+            layout.prop(brush, "project_ray_direction_type")
+            layout.prop(brush, "minimum_distance")
+            layout.prop(brush, "use_bidirectional")
+
         elif sculpt_brush_type == 'PAINT':
             row = layout.row(align=True)
             row.prop(brush, "flow")

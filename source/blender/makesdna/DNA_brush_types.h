@@ -313,7 +313,8 @@ struct Brush {
   char gpencil_weight_brush_type = 0;
   /** Active curves sculpt brush type (#eBrushCurvesSculptType). */
   char curves_sculpt_brush_type = 0;
-  char _pad1[10] = {};
+
+  char _pad1[2] = {};
 
   float autosmooth_factor = 0.0f;
 
@@ -406,6 +407,11 @@ struct Brush {
 
   /* slide/relax */
   int slide_deform_type = 0;
+
+  /* Scene Project brush */
+  int8_t project_ray_direction_type = BRUSH_PROJECT_RAY_DIRECTION_VIEW_NORMAL;
+  char _pad2[3] = {};
+  float minimum_distance = 0.0f;
 
   /* overlay */
   int texture_overlay_alpha = 33;

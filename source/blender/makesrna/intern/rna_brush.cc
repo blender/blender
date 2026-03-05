@@ -155,6 +155,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_brush_type_items[] = {
     {SCULPT_BRUSH_TYPE_ROTATE, "ROTATE", 0, "Rotate", ""},
     {SCULPT_BRUSH_TYPE_SLIDE_RELAX, "TOPOLOGY", 0, "Slide Relax", ""},
     {SCULPT_BRUSH_TYPE_BOUNDARY, "BOUNDARY", 0, "Boundary", ""},
+    {SCULPT_BRUSH_TYPE_SCENE_PROJECT, "SCENE_PROJECT", 0, "Scene Project", ""},
     RNA_ENUM_ITEM_SEPR,
     {SCULPT_BRUSH_TYPE_CLOTH, "CLOTH", 0, "Cloth", ""},
     {SCULPT_BRUSH_TYPE_SIMPLIFY, "SIMPLIFY", 0, "Simplify", ""},
@@ -886,6 +887,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case SCULPT_BRUSH_TYPE_CLAY:
         case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
         case SCULPT_BRUSH_TYPE_PLANE:
+        case SCULPT_BRUSH_TYPE_SCENE_PROJECT:
           return prop_direction_items;
         case SCULPT_BRUSH_TYPE_SMOOTH:
           return prop_smooth_direction_items;
@@ -2432,6 +2434,20 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem brush_project_ray_direction_type_items[] = {
+      {BRUSH_PROJECT_RAY_DIRECTION_VIEW_NORMAL,
+       "VIEW_NORMAL",
+       0,
+       "View Normal",
+       "Project the vertices along the view normal."},
+      {BRUSH_PROJECT_RAY_DIRECTION_PLANE_NORMAL,
+       "PLANE_NORMAL",
+       0,
+       "Plane Normal",
+       "Project the vertices along the plane normal."},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem brush_cloth_deform_type_items[] = {
       {BRUSH_CLOTH_DEFORM_DRAG, "DRAG", 0, "Drag", ""},
       {BRUSH_CLOTH_DEFORM_PUSH, "PUSH", 0, "Push", ""},
@@ -2702,6 +2718,21 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "plane_inversion_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_plane_inversion_mode_items);
   RNA_def_property_ui_text(prop, "Inversion Mode", "Inversion Mode");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "project_ray_direction_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_project_ray_direction_type_items);
+  RNA_def_property_ui_text(prop, "Ray Direction", "Ray Direction");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "minimum_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "minimum_distance");
+  RNA_def_property_float_default(prop, 0);
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Minimum Distance",
+                           "Minimum distance to other scene objects after projecting onto them");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "cloth_deform_type", PROP_ENUM, PROP_NONE);
@@ -3783,6 +3814,14 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_persistent", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_PERSISTENT);
   RNA_def_property_ui_text(prop, "Persistent", "Sculpt on a persistent layer of the mesh");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_bidirectional", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag2", BRUSH_PROJECT_USE_BIDIRECTIONAL);
+  RNA_def_property_ui_text(prop,
+                           "Bidirectional",
+                           "Project vertices both along along the projection direction and its "
+                           "inverse, choosing the closest intersection.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_accumulate", PROP_BOOLEAN, PROP_NONE);
