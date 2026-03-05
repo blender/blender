@@ -185,8 +185,7 @@ void reverse_indices_in_groups(const Span<int> group_indices,
    * atomically by many threads in parallel. `calloc` can be measurably faster than a parallel fill
    * of zero. Alternatively the offsets could be copied and incremented directly, but the cost of
    * the copy is slightly higher than the cost of `calloc`. */
-  int *counts = MEM_new_array_zeroed<int>(size_t(offsets.size()), __func__);
-  BLI_SCOPED_DEFER([&]() { MEM_delete(counts); })
+  Array<int> counts(offsets.size(), 0);
   threading::parallel_for(group_indices.index_range(), 1024, [&](const IndexRange range) {
     for (const int64_t i : range) {
       const int group_index = group_indices[i];

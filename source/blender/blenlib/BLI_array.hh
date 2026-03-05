@@ -135,15 +135,20 @@ class Array {
       : Array(NoExceptConstructor(), allocator)
   {
     BLI_assert(size >= 0);
-    data_ = this->get_buffer_for_size(size);
+    if (std::is_trivially_copyable_v<T> && BLI_memory_is_zero(&value, sizeof(T))) {
+      data_ = this->get_buffer_for_size(size, true);
+    }
+    else {
+      data_ = this->get_buffer_for_size(size);
 #if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Warray-bounds"
 #endif
-    uninitialized_fill_n(data_, size, value);
+      uninitialized_fill_n(data_, size, value);
 #if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic pop
 #endif
+    }
     size_ = size;
   }
 
@@ -433,7 +438,7 @@ class Array {
       default_construct_n(data_, new_size);
     }
     else {
-      T *new_data = this->get_buffer_for_size(new_size);
+      T *new_data = this->get_buffer_for_size(new_size, false);
       try {
         default_construct_n(new_data, new_size);
       }
@@ -449,16 +454,24 @@ class Array {
   }
 
  private:
-  T *get_buffer_for_size(int64_t size)
+  T *get_buffer_for_size(int64_t size, const bool zero = false)
   {
     if (size <= InlineBufferCapacity) {
+      if (zero) {
+        if constexpr (InlineBufferCapacity > 0) {
+          memset(inline_buffer_, 0, size * sizeof(T));
+        }
+      }
       return inline_buffer_;
     }
-    return this->allocate(size);
+    return this->allocate(size, zero);
   }
 
-  T *allocate(int64_t size)
+  T *allocate(int64_t size, const bool zero)
   {
+    if (zero) {
+      return static_cast<T *>(allocator_.allocate_zero(size_t(size) * sizeof(T), alignof(T), AT));
+    }
     return static_cast<T *>(allocator_.allocate(size_t(size) * sizeof(T), alignof(T), AT));
   }
 
