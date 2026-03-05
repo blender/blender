@@ -126,10 +126,7 @@ NODE_DEFINE(Light)
   return type;
 }
 
-Light::Light() : Geometry(get_node_type(), Geometry::LIGHT)
-{
-  dereference_all_used_nodes();
-}
+Light::Light() : Geometry(get_node_type(), Geometry::LIGHT) {}
 
 void Light::tag_update(Scene *scene)
 {
