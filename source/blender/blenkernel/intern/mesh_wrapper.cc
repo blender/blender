@@ -22,7 +22,6 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
@@ -361,8 +360,6 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
   }
 
   if (subdiv_mesh != mesh) {
-    STRNCPY(subdiv_mesh->id.name, mesh->id.name);
-
     /* Make sure that drivers can target shapekey properties. See #mesh_build_data for details. */
     subdiv_mesh->key = mesh->key;
 
