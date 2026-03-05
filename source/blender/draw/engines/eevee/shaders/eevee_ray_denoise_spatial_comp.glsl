@@ -28,7 +28,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, float thickness)
+void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, Thickness thickness)
 {
   switch (cl.type) {
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
@@ -107,8 +107,8 @@ void main()
   float3 P = drw_point_screen_to_world(float3(uv, 0.5f));
   float3 V = drw_world_incident_vector(P);
 
-  float thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
-  if (thickness != 0.0f) {
+  Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+  if (thickness.value() != 0.0f) {
     transmission_thickness_amend_closure(closure, V, thickness);
   }
 

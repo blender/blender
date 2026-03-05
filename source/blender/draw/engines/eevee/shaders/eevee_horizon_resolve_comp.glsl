@@ -135,7 +135,7 @@ void main()
 
   const uchar closure_count = gbuf.header.closure_len();
   const uint3 bin_indices = gbuf.header.bin_index_per_layer();
-  const float thickness = gbuffer::read_thickness(gbuf.header, texel_fullres);
+  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel_fullres);
 
   for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < closure_count; i++) {
     ClosureUndetermined cl = gbuf.layer_get(i);

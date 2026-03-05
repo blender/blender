@@ -428,7 +428,7 @@ float shadow_eval(LightData light,
                   const bool is_directional,
                   const bool is_transmission,
                   bool is_translucent_with_thickness,
-                  float thickness, /* Only used if is_transmission is true. */
+                  Thickness thickness, /* Only used if is_transmission is true. */
                   float3 P,
                   float3 Ng,
                   float3 N,
@@ -472,7 +472,9 @@ float shadow_eval(LightData light,
     /* Ideally, we should bias using the chosen ray direction. In practice, this conflict with our
      * shadow tile usage tagging system as the sampling position becomes heavily shifted from the
      * tagging position. This is the same thing happening with missing tiles with large radii. */
-    P += abs(is_directional ? thickness : min(thickness, distance_to_shadow - 0.01f)) * L;
+    P += abs(is_directional ? thickness.value() :
+                              min(thickness.value(), distance_to_shadow - 0.01f)) *
+         L;
   }
   /* Avoid self intersection with respect to numerical precision. */
   P = offset_ray(P, N_bias);

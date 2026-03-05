@@ -27,7 +27,7 @@
 #  error Closure data count and eval count must match
 #endif
 
-void forward_lighting_eval(float thickness, float3 &radiance, float3 &transmittance)
+void forward_lighting_eval(Thickness thickness, float3 &radiance, float3 &transmittance)
 {
   float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
   float3 V = drw_world_incident_vector(g_data.P);
@@ -62,7 +62,7 @@ void forward_lighting_eval(float thickness, float3 &radiance, float3 &transmitta
     if ((cl_transmit.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
          cl_transmit.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
          cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) &&
-        (thickness != 0.0f))
+        (thickness.value() != 0.0f))
     {
       stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 
@@ -82,7 +82,7 @@ void forward_lighting_eval(float thickness, float3 &radiance, float3 &transmitta
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       /* Apply transmission profile onto transmitted light and sum with reflected light. */
       float3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
-                                                   thickness);
+                                                   thickness.value());
       stack.cl[0].light_shadowed *= sss_profile;
       stack.cl[0].light_unshadowed *= sss_profile;
       stack.cl[0].light_shadowed += sss_reflect_shadowed;
@@ -108,7 +108,7 @@ void forward_lighting_eval(float thickness, float3 &radiance, float3 &transmitta
 
       if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
            cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
-          (thickness != 0.0f))
+          (thickness.value() != 0.0f))
       {
         /* We model two transmission event, so the surface color need to be applied twice. */
         cl.color *= cl.color;

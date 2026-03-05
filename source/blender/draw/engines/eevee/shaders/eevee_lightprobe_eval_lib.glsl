@@ -93,16 +93,16 @@ float3 lightprobe_eval_direction(LightProbeSample samp, float3 P, float3 L, floa
 
 /* TODO: Port that inside a BSSDF file. */
 float3 lightprobe_eval(
-    LightProbeSample samp, ClosureSubsurface cl, float3 P, float3 V, float thickness)
+    LightProbeSample samp, ClosureSubsurface cl, float3 P, float3 V, Thickness thickness)
 {
-  float3 sss_profile = subsurface_transmission(cl.sss_radius, abs(thickness));
+  float3 sss_profile = subsurface_transmission(cl.sss_radius, thickness.value());
   float3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
   radiance_sh += spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance) * sss_profile;
   return radiance_sh;
 }
 
 float3 lightprobe_eval(
-    LightProbeSample samp, ClosureUndetermined cl, float3 P, float3 V, float thickness)
+    LightProbeSample samp, ClosureUndetermined cl, float3 P, float3 V, Thickness thickness)
 {
   LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, thickness);
 

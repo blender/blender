@@ -28,7 +28,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 #include "eevee_surf_lib.glsl"
 
 /* Global thickness because it is needed for closure_to_rgba. */
-float g_thickness;
+Thickness g_thickness;
 
 float4 closure_to_rgba(Closure cl_unused)
 {
@@ -88,7 +88,7 @@ void main()
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
 
-  g_thickness = nodetree_thickness() * thickness_mode;
+  g_thickness = Thickness::from(nodetree_thickness(), thickness_mode);
 
   fragment_displacement();
 

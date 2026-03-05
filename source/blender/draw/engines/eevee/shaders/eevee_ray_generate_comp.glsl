@@ -39,7 +39,7 @@ void main()
   float2 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER).rg;
   noise = fract(noise + sampling_rng_2D_get(SAMPLING_RAYTRACE_U));
 
-  float thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+  Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
 
   BsdfSample samp = ray_generate_direction(noise.xy, closure, V, thickness);
 

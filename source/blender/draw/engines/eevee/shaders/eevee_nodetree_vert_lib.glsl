@@ -40,4 +40,4 @@ float nodetree_thickness()
 
 /* Replaced by define at runtime. */
 /* TODO(fclem): Find a way to pass material parameters inside the material UBO. */
-float thickness_mode = 1.0f;
+ThicknessMode thickness_mode = THICKNESS_MODE_SLAB;

@@ -30,7 +30,7 @@ void main()
   }
 
   const uchar closure_count = gbuf.header.closure_len();
-  const float thickness = gbuffer::read_thickness(gbuf.header, texel);
+  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel);
 
   float3 albedo_front = float3(0.0f);
   float3 albedo_back = float3(0.0f);
@@ -45,7 +45,7 @@ void main()
         break;
       case CLOSURE_BSDF_TRANSLUCENT_ID:
       case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-        albedo_back += (thickness != 0.0f) ? square(cl.color) : cl.color;
+        albedo_back += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
         break;
       case CLOSURE_NONE_ID:
         /* TODO(fclem): Assert. */

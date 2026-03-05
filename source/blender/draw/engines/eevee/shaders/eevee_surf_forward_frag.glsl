@@ -26,7 +26,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_forward)
 #include "eevee_volume_lib.glsl"
 
 /* Global thickness because it is needed for closure_to_rgba. */
-float g_thickness;
+Thickness g_thickness;
 
 float4 closure_to_rgba(Closure cl_unused)
 {
@@ -66,7 +66,7 @@ void main()
 
   fragment_displacement();
 
-  g_thickness = nodetree_thickness() * thickness_mode;
+  g_thickness = Thickness::from(nodetree_thickness(), thickness_mode);
 
   nodetree_surface(closure_rand);
 

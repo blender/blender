@@ -17,14 +17,17 @@
 #include "gpu_shader_math_matrix_construct_lib.glsl"
 
 /* Returns view-space ray. */
-BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V, float thickness)
+BsdfSample ray_generate_direction(float2 noise,
+                                  ClosureUndetermined cl,
+                                  float3 V,
+                                  Thickness thickness)
 {
   float3 random_point_on_cylinder = sample_cylinder(noise);
   /* Bias the rays so we never get really high energy rays almost parallel to the surface. */
   constexpr float rng_bias = 0.08f;
   /* When modeling object thickness as a sphere, the outgoing rays are distributed uniformly
    * over the sphere. We don't want the RAY_BIAS in this case. */
-  if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID || thickness <= 0.0f) {
+  if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID || (thickness.mode() == THICKNESS_MODE_SPHERE)) {
     random_point_on_cylinder.x = 1.0f - random_point_on_cylinder.x * (1.0f - rng_bias);
   }
 
