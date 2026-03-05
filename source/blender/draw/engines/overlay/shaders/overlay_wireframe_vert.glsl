@@ -95,9 +95,14 @@ void main()
    * while keeping object coloring mode working (see #134011). */
   float no_nor_facing = (color_type == V3D_SHADING_SINGLE_COLOR) ? 0.0f : 0.5f;
 
+#ifdef POINTS
+  float3 pos = pos_rad.xyz;
+#endif
+
   float3 wpos = drw_point_object_to_world(pos);
 #if defined(POINTS)
   gl_PointSize = theme.sizes.vert * 2.0f;
+  wpos += drw_world_incident_vector(wpos) * pos_rad.w;
 #elif defined(CURVES)
   float facing = no_nor_facing;
 #else
