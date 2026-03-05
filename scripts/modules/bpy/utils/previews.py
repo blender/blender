@@ -14,7 +14,7 @@ This allows scripts to generate their own previews, and use them as icons in UI 
 Custom Icon Example
 -------------------
 
-.. literalinclude:: __/__/__/scripts/templates_py/ui_previews_custom_icon.py
+.. literalinclude:: __/__/__/scripts/templates_py/UI/previews_custom_icon.py
 """
 
 __all__ = (
