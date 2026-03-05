@@ -2448,7 +2448,7 @@ static wmOperatorStatus sculpt_cloth_filter_invoke(bContext *C,
   /* Needs mask data to be available as it is used when solving the constraints. */
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  if (report_if_shape_key_is_locked(ob, op->reports)) {
+  if (!shape_key_check(ob, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 

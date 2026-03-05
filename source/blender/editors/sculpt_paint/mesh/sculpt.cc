@@ -122,7 +122,7 @@ float object_space_radius_get(const ViewContext &vc,
   return BKE_brush_unprojected_radius_get(&paint, &brush) * scale_factor;
 }
 
-bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
+bool shape_key_check(const Object &ob, ReportList *reports)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
 
@@ -130,10 +130,16 @@ bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
     if (reports) {
       BKE_reportf(reports, RPT_ERROR, "The active shape key of %s is locked", ob.id.name + 2);
     }
-    return true;
+    return false;
+  }
+  if (ss.shapekey_active && (ss.shapekey_active->flag & KEYBLOCK_MUTE) != 0) {
+    if (reports) {
+      BKE_reportf(reports, RPT_ERROR, "The active shape key of %s is muted", ob.id.name + 2);
+    }
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 void vert_random_access_ensure(Object &object)
@@ -5985,8 +5991,7 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
     ed::sculpt_paint::face_set_overlay_check(*C, *op);
   }
-  if (!brush_type_is_attribute_only(brush.sculpt_brush_type) &&
-      report_if_shape_key_is_locked(ob, op->reports))
+  if (!brush_type_is_attribute_only(brush.sculpt_brush_type) && !shape_key_check(ob, op->reports))
   {
     return OPERATOR_CANCELLED;
   }

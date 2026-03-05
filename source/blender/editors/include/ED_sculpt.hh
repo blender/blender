@@ -40,11 +40,14 @@ void object_sculpt_mode_exit(bContext *C, Depsgraph &depsgraph);
 /* `sculpt.cc` */
 
 /**
- * Checks if the currently active Sculpt Mode on the object is targeting a locked shape key,
- * and produces an error message if so (unless \a reports is null).
- * \return true if the shape key was locked.
+ * Checks if the currently active shape key is able to be sculpted on.
+ *
+ * If the active shape key is either muted or locked, an error message will be reported, unless
+ * \a reports is null.
+ *
+ * \return false if the shape key cannot be modified.
  */
-bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports);
+bool shape_key_check(const Object &ob, ReportList *reports);
 
 void operatortypes_sculpt();
 
