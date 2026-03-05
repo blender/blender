@@ -578,10 +578,10 @@ class Context : public compositor::Context {
                                                     NodeGroupOutputTypes::GroupOutputNode);
     node_group.ensure_interface_cache();
     for (const bNodeTreeInterfaceSocket *output_socket : node_group.interface_outputs()) {
-      const bool is_fisrt_output = output_socket == node_group.interface_outputs().first();
+      const bool is_first_output = output_socket == node_group.interface_outputs().first();
       Result &output_result = node_group_operation.get_result(output_socket->identifier);
       const bool is_color = output_result.type() == ResultType::Color;
-      const bool is_needed = is_group_output_needed && is_fisrt_output && is_color;
+      const bool is_needed = is_group_output_needed && is_first_output && is_color;
       output_result.set_reference_count(is_needed ? 1 : 0);
     }
 
