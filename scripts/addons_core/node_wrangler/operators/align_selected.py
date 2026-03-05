@@ -57,8 +57,8 @@ class NODE_OT_align_selected(Operator, NWBase):
 
         # Check if nodes should be laid out horizontally or vertically
         # use dimension to get center of node, not corner
-        x_locs = [n.location.x + (n.dimensions.x / 2) for n in selection]
-        y_locs = [n.location.y - (n.dimensions.y / 2) for n in selection]
+        x_locs = [n.location_absolute.x + (n.dimensions.x / 2) for n in selection]
+        y_locs = [n.location_absolute.y - (n.dimensions.y / 2) for n in selection]
         x_range = max(x_locs) - min(x_locs)
         y_range = max(y_locs) - min(y_locs)
         mid_x = (max(x_locs) + min(x_locs)) / 2
@@ -67,9 +67,9 @@ class NODE_OT_align_selected(Operator, NWBase):
 
         # Sort selection by location of node mid-point
         if horizontal:
-            selection = sorted(selection, key=lambda n: n.location.x + (n.dimensions.x / 2))
+            selection = sorted(selection, key=lambda n: n.location_absolute.x + (n.dimensions.x / 2))
         else:
-            selection = sorted(selection, key=lambda n: n.location.y - (n.dimensions.y / 2), reverse=True)
+            selection = sorted(selection, key=lambda n: n.location_absolute.y - (n.dimensions.y / 2), reverse=True)
 
         # Alignment
         current_pos = 0
@@ -80,34 +80,34 @@ class NODE_OT_align_selected(Operator, NWBase):
             current_margin = current_margin * 0.5 if node.hide else current_margin
 
             if horizontal:
-                node.location.x = current_pos
+                node.location_absolute.x = current_pos
                 current_pos += current_margin + node.dimensions.x
-                node.location.y = mid_y + (node.dimensions.y / 2)
+                node.location_absolute.y = mid_y + (node.dimensions.y / 2)
             else:
                 # `node.bl_height_min` is the min size of a collapsed node, +6 for the outlines and margins.
                 hide_offset = (node.dimensions.y - (node.bl_height_min + 6)) / 2 if node.hide else 0
 
                 # Hidden nodes center their sockets around the label instead of below.
-                node.location.y = current_pos - hide_offset
+                node.location_absolute.y = current_pos - hide_offset
 
                 # Use half-margin for vertical alignment.
                 current_pos -= (current_margin * 0.3) + node.dimensions.y
 
-                node.location.x = mid_x - (node.dimensions.x / 2)
+                node.location_absolute.x = mid_x - (node.dimensions.x / 2)
 
         # If active node is selected, center nodes around it
         if active_loc is not None:
-            active_loc_diff = active_loc - nodes.active.location
+            active_loc_diff = active_loc - nodes.active.location_absolute
             for node in selection:
-                node.location += active_loc_diff
+                node.location_absolute += active_loc_diff
         else:  # Position nodes centered around where they used to be
-            locs = ([n.location.x + (n.dimensions.x / 2) for n in selection]
-                    ) if horizontal else ([n.location.y - (n.dimensions.y / 2) for n in selection])
+            locs = ([n.location_absolute.x + (n.dimensions.x / 2) for n in selection]
+                    ) if horizontal else ([n.location_absolute.y - (n.dimensions.y / 2) for n in selection])
             new_mid = (max(locs) + min(locs)) / 2
             for node in selection:
                 if horizontal:
-                    node.location.x += (mid_x - new_mid)
+                    node.location_absolute.x += (mid_x - new_mid)
                 else:
-                    node.location.y += (mid_y - new_mid)
+                    node.location_absolute.y += (mid_y - new_mid)
 
         return {'FINISHED'}
