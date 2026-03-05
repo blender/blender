@@ -1477,10 +1477,11 @@ enum {
   MAKE_LINKS_GROUP = 4,
   MAKE_LINKS_DUPLICOLLECTION = 5,
   MAKE_LINKS_MODIFIERS = 6,
-  MAKE_LINKS_FONTS = 7,
-  MAKE_LINKS_SHADERFX = 8,
-  MAKE_LINKS_LIGHT_LINKING = 9,
-  MAKE_LINKS_SHADOW_LINKING = 10,
+  MAKE_LINKS_CONSTRAINTS = 7,
+  MAKE_LINKS_FONTS = 8,
+  MAKE_LINKS_SHADERFX = 9,
+  MAKE_LINKS_LIGHT_LINKING = 10,
+  MAKE_LINKS_SHADOW_LINKING = 11,
 };
 
 /* Matches has_geometry_visibility() from Python.
@@ -1540,6 +1541,8 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
         return true;
       }
       break;
+    case MAKE_LINKS_CONSTRAINTS:
+      return true;
     case MAKE_LINKS_FONTS:
       if ((ob_src->data != ob_dst->data) && (ob_src->type == OB_FONT) && (ob_dst->type == OB_FONT))
       {
@@ -1657,6 +1660,12 @@ static wmOperatorStatus make_links_data_exec(bContext *C, wmOperator *op)
             DEG_id_tag_update(&ob_dst->id,
                               ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
             break;
+          case MAKE_LINKS_CONSTRAINTS:
+            BKE_constraints_free(&ob_dst->constraints);
+            BKE_constraints_copy(&ob_dst->constraints, &ob_src->constraints, true);
+            DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
+            WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, nullptr);
+            break;
           case MAKE_LINKS_FONTS: {
             Curve *cu_src = id_cast<Curve *>(ob_src->data);
             Curve *cu_dst = id_cast<Curve *>(ob_dst->data);
@@ -1769,6 +1778,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
       {MAKE_LINKS_FONTS, "FONTS", 0, "Link Fonts to Text", "Replace Text object Fonts"},
       RNA_ENUM_ITEM_SEPR,
       {MAKE_LINKS_MODIFIERS, "MODIFIERS", 0, "Copy Modifiers", "Replace Modifiers"},
+      {MAKE_LINKS_CONSTRAINTS, "CONSTRAINTS", 0, "Copy Constraints", "Replace Constraints"},
       {MAKE_LINKS_SHADERFX,
        "EFFECTS",
        0,
