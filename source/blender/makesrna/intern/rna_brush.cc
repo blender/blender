@@ -1391,9 +1391,9 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem rna_enum_gpencil_brush_stroke_type_items[] = {
-      {GP_BRUSH_USE_STROKE, "STROKE", ICON_NONE, "Stroke", ""},
-      {GP_BRUSH_USE_FILL, "FILL", ICON_NONE, "Fill", ""},
-      {GP_BRUSH_USE_FILL | GP_BRUSH_USE_STROKE, "BOTH", ICON_NONE, "Both", ""},
+      {GP_BRUSH_USE_STROKE, "STROKE", ICON_GP_DRAW_STROKE, "Stroke", ""},
+      {GP_BRUSH_USE_FILL, "FILL", ICON_GP_DRAW_FILL, "Fill", ""},
+      {GP_BRUSH_USE_FILL | GP_BRUSH_USE_STROKE, "BOTH", ICON_GP_DRAW_BOTH, "Both", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
