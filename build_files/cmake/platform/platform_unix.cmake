@@ -1015,6 +1015,14 @@ set(PLATFORM_LINKFLAGS
   "${PLATFORM_LINKFLAGS} -Wl,--version-script='${PLATFORM_SYMBOLS_MAP}'"
 )
 
+# We do not ensure transitive dependencies of dynamic libraries are available at
+# link time. This allows that for classic ld, which is more strict than gold, lld
+# or mold. The ideal solution would be to switch all dependencies to CMake configs
+# that fully specify transitive dependencies.
+set(PLATFORM_LINKFLAGS
+  "${PLATFORM_LINKFLAGS} -Wl,--allow-shlib-undefined -Wl,--unresolved-symbols=ignore-in-shared-libs"
+)
+
 # Don't use position independent executable for portable install since file
 # browsers can't properly detect blender as an executable then. Still enabled
 # for non-portable installs as typically used by Linux distributions.
