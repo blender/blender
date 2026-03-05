@@ -69,6 +69,7 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
@@ -975,6 +976,32 @@ void tooltip_uibut_python_add(TooltipData &data,
   }
 }
 
+static const char *icon_id_to_name(BIFIconID icon_value)
+{
+  const char *identifier = nullptr;
+  RNA_enum_identifier(rna_enum_icon_items, icon_value, &identifier);
+  return identifier;
+}
+
+static void tooltip_uibut_icon_add(TooltipData &data, Button &but)
+{
+  if (ELEM(but.icon, ICON_NONE, ICON_BLANK1)) {
+    return;
+  }
+
+  if ((but.flag & BUT_ICON_PREVIEW) != 0) {
+    return;
+  }
+
+  const char *icon_name = icon_id_to_name(but.icon);
+  if (!icon_name) {
+    return;
+  }
+
+  tooltip_text_field_add(
+      data, fmt::format("Icon: {}", icon_name), {}, TIP_STYLE_MONO, TIP_LC_PYTHON);
+}
+
 static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
     bContext *C, Button *but, ButtonExtraOpIcon *extra_icon, const bool is_quick_tip)
 {
@@ -1261,6 +1288,10 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
 
   if (U.flag & USER_TOOLTIPS_PYTHON) {
     tooltip_uibut_python_add(*data, *C, *but, extra_icon);
+  }
+
+  if (U.flag & USER_DEVELOPER_UI) {
+    tooltip_uibut_icon_add(*data, *but);
   }
 
   if (but->type == ButtonType::Color) {
