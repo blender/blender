@@ -55,7 +55,7 @@ class VKSynchronizationNode : public VKNodeInfo<VKNodeType::SYNCHRONIZATION,
   {
     ResourceWithStamp resource = resources.get_image_and_increase_stamp(create_info.vk_image);
     links.images.append(
-        {resource, VK_ACCESS_NONE, create_info.vk_image_layout, create_info.vk_image_aspect});
+        {{resource, VK_ACCESS_NONE}, create_info.vk_image_layout, create_info.vk_image_aspect});
   }
 
   /**

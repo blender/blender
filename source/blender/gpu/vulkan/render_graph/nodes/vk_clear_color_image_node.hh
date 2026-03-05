@@ -48,8 +48,7 @@ class VKClearColorImageNode : public VKNodeInfo<VKNodeType::CLEAR_COLOR_IMAGE,
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp resource = resources.get_image_and_increase_stamp(create_info.vk_image);
-    links.images.append({resource,
-                         VK_ACCESS_TRANSFER_WRITE_BIT,
+    links.images.append({{resource, VK_ACCESS_TRANSFER_WRITE_BIT},
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          VK_IMAGE_ASPECT_COLOR_BIT});
   }

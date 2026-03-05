@@ -55,8 +55,7 @@ class VKUpdateMipmapsNode : public VKNodeInfo<VKNodeType::UPDATE_MIPMAPS,
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp resource = resources.get_image_and_increase_stamp(create_info.vk_image);
-    links.images.append({resource,
-                         VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+    links.images.append({{resource, VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT},
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          create_info.vk_image_aspect});
   }

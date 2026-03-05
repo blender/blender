@@ -58,8 +58,7 @@ class VKCopyImageToBufferNode : public VKNodeInfo<VKNodeType::COPY_IMAGE_TO_BUFF
     ResourceWithStamp src_resource = resources.get_image(create_info.node_data.src_image);
     ResourceWithStamp dst_resource = resources.get_buffer_and_increase_stamp(
         create_info.node_data.dst_buffer);
-    links.images.append({src_resource,
-                         VK_ACCESS_TRANSFER_READ_BIT,
+    links.images.append({{src_resource, VK_ACCESS_TRANSFER_READ_BIT},
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                          create_info.vk_image_aspects});
     links.buffers.append({dst_resource, VK_ACCESS_TRANSFER_WRITE_BIT});

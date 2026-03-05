@@ -70,8 +70,7 @@ void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
                                                resources.get_image_and_increase_stamp(
                                                    image_access.vk_image) :
                                                resources.get_image(image_access.vk_image);
-    links.images.append({versioned_resource,
-                         image_access.vk_access_flags,
+    links.images.append({{versioned_resource, image_access.vk_access_flags},
                          image_layout,
                          image_access.vk_image_aspect,
                          image_access.subimage});

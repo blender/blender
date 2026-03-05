@@ -58,12 +58,10 @@ class VKCopyImageNode : public VKNodeInfo<VKNodeType::COPY_IMAGE,
     ResourceWithStamp src_resource = resources.get_image(create_info.node_data.src_image);
     ResourceWithStamp dst_resource = resources.get_image_and_increase_stamp(
         create_info.node_data.dst_image);
-    links.images.append({src_resource,
-                         VK_ACCESS_TRANSFER_READ_BIT,
+    links.images.append({{src_resource, VK_ACCESS_TRANSFER_READ_BIT},
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                          create_info.vk_image_aspect});
-    links.images.append({dst_resource,
-                         VK_ACCESS_TRANSFER_WRITE_BIT,
+    links.images.append({{dst_resource, VK_ACCESS_TRANSFER_WRITE_BIT},
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          create_info.vk_image_aspect});
   }
