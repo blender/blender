@@ -26,9 +26,9 @@ struct LightProbeSample {
  * Return cached light-probe data at P.
  * Ng and V are use for biases.
  */
-LightProbeSample lightprobe_load(float3 P, float3 Ng, float3 V)
+LightProbeSample lightprobe_load(float2 texel, float3 P, float3 Ng, float3 V)
 {
-  float noise = interleaved_gradient_noise(UTIL_TEXEL, 0.0f, 0.0f);
+  float noise = interleaved_gradient_noise(texel, 0.0f, 0.0f);
   noise = fract(noise + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
 
   LightProbeSample result;

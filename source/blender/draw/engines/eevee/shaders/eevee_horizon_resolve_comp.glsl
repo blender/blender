@@ -128,7 +128,7 @@ void main()
   float3 Ng = center_N;
   float3 V = drw_world_incident_vector(P);
 
-  LightProbeSample samp = lightprobe_load(P, Ng, V);
+  LightProbeSample samp = lightprobe_load(float2(texel), P, Ng, V);
 
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);

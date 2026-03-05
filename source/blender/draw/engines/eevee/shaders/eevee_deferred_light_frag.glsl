@@ -132,7 +132,7 @@ void main()
   }
 
   if (use_lightprobe_eval) {
-    LightProbeSample samp = lightprobe_load(P, Ng, V);
+    LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, P, Ng, V);
 
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);

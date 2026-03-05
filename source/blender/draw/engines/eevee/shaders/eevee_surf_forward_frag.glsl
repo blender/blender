@@ -40,7 +40,7 @@ float4 closure_to_rgba(Closure cl_unused)
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
   float3 V = -drw_world_incident_vector(g_data.P);
-  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
+  LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, g_data.P, g_data.Ng, V);
   float3 radiance_behind = lightprobe_spherical_sample_normalized_with_parallax(
       samp, g_data.P, V, 0.0);
 

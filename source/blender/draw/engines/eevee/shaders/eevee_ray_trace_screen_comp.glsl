@@ -139,7 +139,7 @@ void main()
      * direction over many rays. */
     float3 Ng = ray.direction;
     /* Fall back to nearest light-probe. */
-    LightProbeSample samp = lightprobe_load(ray.origin, Ng, V);
+    LightProbeSample samp = lightprobe_load(float2(texel), ray.origin, Ng, V);
     /* Clamp SH to have parity with forward evaluation. */
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);

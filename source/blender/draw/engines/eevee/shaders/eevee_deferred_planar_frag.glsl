@@ -132,7 +132,7 @@ void main()
 
   /* Indirect light. */
   SphericalHarmonicL1 sh = lightprobe_volume_sample(P, V, Ng);
-  LightProbeSample samp = lightprobe_load(P, Ng, V);
+  LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, P, Ng, V);
 
   radiance_front += spherical_harmonics_evaluate_lambert(Ng, sh);
   radiance_back += spherical_harmonics_evaluate_lambert(-Ng, sh);
