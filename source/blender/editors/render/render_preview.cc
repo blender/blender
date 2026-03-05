@@ -2246,6 +2246,11 @@ void ED_preview_icon_job(
     return;
   }
 
+  /* Check if the ID supports the auto-generated previews at all. */
+  if (!ED_preview_id_is_supported(id)) {
+    return;
+  }
+
   IconPreview *ip, *old_ip;
 
   ED_preview_ensure_dbase(true);

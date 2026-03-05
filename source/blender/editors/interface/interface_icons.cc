@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include "DNA_ID_enums.h"
 #include "MEM_guardedalloc.h"
 
 #include "GPU_immediate.hh"
@@ -1312,6 +1313,11 @@ static void icon_set_image(const bContext *C,
     return;
   }
 
+  /* Check if the ID supports preview loading or rendering. */
+  if (!prv_img->runtime->deferred_loading_data && !ED_preview_id_is_supported(id)) {
+    return;
+  }
+
   const bool delay = prv_img->rect[size] != nullptr;
   icon_create_rect(prv_img, size);
 
@@ -1812,6 +1818,19 @@ static void icon_draw_size(float x,
                            static_cast<PreviewImage *>(icon->obj);
 
     if (pi) {
+      /* If a preview icon isn't available but a bigger version of it is, use that and let drawing
+       * downscale it on the GPU (with mipmaps and filtering, for decent results). Useful for
+       * data-block previews where the big preview was rendered/loaded before, but we attempt to
+       * display the small icon version of it. */
+      if (!pi->rect[size]) {
+        for (int bigger_size = size + 1; bigger_size < NUM_ICON_SIZES; bigger_size++) {
+          if (pi->rect[bigger_size] && !BKE_previewimg_is_rendering(pi, bigger_size)) {
+            size = eIconSizes(bigger_size);
+            break;
+          }
+        }
+      }
+
       /* no create icon on this level in code */
       if (!pi->rect[size]) {
         /* Something has gone wrong! */
