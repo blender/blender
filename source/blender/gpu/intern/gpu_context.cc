@@ -658,6 +658,9 @@ void GPU_deactivate_secondary_context(const GPUSecondaryContextData &data)
 
 void GPU_destroy_secondary_context(GPUSecondaryContextData &data)
 {
+  GHOST_IContext *cur_ghost_context = GHOST_IContext::getActiveDrawingContext();
+  GPUContext *cur_gpu_context = GPU_context_active_get();
+
   GPU_activate_secondary_context(data);
 
   GPU_context_discard(data.gpu_context);
@@ -666,6 +669,15 @@ void GPU_destroy_secondary_context(GPUSecondaryContextData &data)
 
   GHOST_ISystem *ghost_system = GPU_backend_ghost_system_get();
   ghost_system->disposeContext(data.ghost_context);
+
+  /* Restore previous GHOST/GPU contexts, unless they are the same
+   * as what is being destroyed. */
+  if (cur_ghost_context && cur_ghost_context != data.ghost_context) {
+    cur_ghost_context->activateDrawingContext();
+  }
+  if (cur_gpu_context != data.gpu_context) {
+    GPU_context_active_set(cur_gpu_context);
+  }
 
   data.ghost_context = nullptr;
   data.gpu_context = nullptr;
