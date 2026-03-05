@@ -120,10 +120,6 @@ void main()
 
   const float3 Ng = gbuffer::normal_unpack(imageLoad(gbuf_normal_img, int3(texel, 0)).rg);
 
-  /* Use manual fetch because gbuffer::read_thickness expect a read only texture input. */
-  gbuffer::Header header = gbuffer::Header::from_data(
-      texelFetch(gbuf_header_tx, int3(texel, 0), 0).r);
-
   uchar data_layer = uniform_buf.pipeline.gbuffer_additional_data_layer_id;
   float2 data_packed = imageLoad(gbuf_normal_img, int3(texel, int(data_layer))).rg;
   Thickness gbuffer_thickness = gbuffer::thickness_unpack(data_packed.x);
