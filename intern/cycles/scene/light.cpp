@@ -88,7 +88,7 @@ NODE_ABSTRACT_DEFINE(Light)
 
   static NodeEnum type_enum;
   type_enum.insert("point", LIGHT_POINT);
-  type_enum.insert("distant", LIGHT_DISTANT);
+  type_enum.insert("sun", LIGHT_SUN);
   type_enum.insert("background", LIGHT_BACKGROUND);
   type_enum.insert("area", LIGHT_AREA);
   type_enum.insert("spot", LIGHT_SPOT);
@@ -288,7 +288,7 @@ NODE_DEFINE(SunLight)
 
 SunLight::SunLight() : Light(get_node_type(), Geometry::SUN_LIGHT)
 {
-  light_type = LIGHT_DISTANT;
+  light_type = LIGHT_SUN;
 }
 
 float SunLight::area(const Transform & /*tfm*/) const
@@ -309,12 +309,12 @@ void SunLight::copy_to_kernel(KernelLight *klight, const Scene *scene, const Obj
   const float pdf = (half_angle > 0.0f) ? (M_1_2PI_F / one_minus_cosangle) : 1.0f;
 
   klight->co = safe_normalize(-transform_get_column(&object->get_tfm(), 2));
-  klight->distant.angle = half_angle;
-  klight->distant.one_minus_cosangle = one_minus_cosangle;
-  klight->distant.pdf = pdf;
-  klight->distant.eval_fac = normalize ? 1.0f / area(object->get_tfm()) : 1.0f;
-  klight->distant.half_inv_sin_half_angle = (half_angle == 0.0f) ? 0.0f :
-                                                                   0.5f / sinf(0.5f * half_angle);
+  klight->sun.angle = half_angle;
+  klight->sun.one_minus_cosangle = one_minus_cosangle;
+  klight->sun.pdf = pdf;
+  klight->sun.eval_fac = normalize ? 1.0f / area(object->get_tfm()) : 1.0f;
+  klight->sun.half_inv_sin_half_angle = (half_angle == 0.0f) ? 0.0f :
+                                                               0.5f / sinf(0.5f * half_angle);
 
   Light::copy_to_kernel(klight, scene, object, shader_flags);
 }
@@ -1653,7 +1653,7 @@ bool Light::is_area_light() const
 
 bool Light::is_sun_light() const
 {
-  return light_type == LIGHT_DISTANT;
+  return light_type == LIGHT_SUN;
 }
 
 bool Light::is_background_light() const
@@ -1663,7 +1663,7 @@ bool Light::is_background_light() const
 
 bool Light::is_distant_light() const
 {
-  return light_type == LIGHT_BACKGROUND || light_type == LIGHT_DISTANT;
+  return light_type == LIGHT_BACKGROUND || light_type == LIGHT_SUN;
 }
 
 CCL_NAMESPACE_END

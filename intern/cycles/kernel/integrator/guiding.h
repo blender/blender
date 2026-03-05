@@ -421,7 +421,7 @@ ccl_device_forceinline void guiding_record_light_surface_segment(
 
 /* Records/Adds a final path segment when the path leaves the scene and
  * intersects with a background light (e.g., background color,
- * distant light, or env map). The vertex for this segment is placed along
+ * sun light, or env map). The vertex for this segment is placed along
  * the current ray far out the scene. */
 ccl_device_forceinline void guiding_record_background(ccl_attr_maybe_unused KernelGlobals kg,
                                                       ccl_attr_maybe_unused IntegratorState state,

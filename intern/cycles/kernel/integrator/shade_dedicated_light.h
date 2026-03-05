@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "kernel/light/distant.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
+#include "kernel/light/sun.h"
 
 #include "kernel/integrator/shade_surface.h"
 
@@ -24,8 +24,8 @@ shadow_linking_light_eval_from_intersection(KernelGlobals kg,
   const ccl_global KernelLight *klight = &kernel_data_fetch(lights, isect.prim);
   const LightType type = LightType(klight->type);
 
-  return (type == LIGHT_DISTANT) ?
-             distant_light_eval_from_intersection(klight, ray.D) :
+  return (type == LIGHT_SUN) ?
+             sun_light_eval_from_intersection(klight, ray.D) :
              light_eval_from_intersection(kg, &isect, ray.P, ray.D, N, path_flag);
 }
 
@@ -37,7 +37,7 @@ ccl_device_inline float shadow_linking_light_sample_mis_weight(KernelGlobals kg,
                                                                const float light_sample_pdf,
                                                                const float3 P)
 {
-  if (kernel_data_fetch(lights, light_id).type == LIGHT_DISTANT) {
+  if (kernel_data_fetch(lights, light_id).type == LIGHT_SUN) {
     return light_sample_mis_weight_forward_distant(
         kg, state, path_flag, object_id, light_sample_pdf);
   }

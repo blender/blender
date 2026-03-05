@@ -616,7 +616,7 @@ static void xml_read_light(XMLReadState &state, const xml_node node)
   if (light_type == "point") {
     light = scene->create_node<PointLight>();
   }
-  else if (light_type == "distant") {
+  else if (light_type == "sun") {
     light = scene->create_node<SunLight>();
   }
   else if (light_type == "background") {

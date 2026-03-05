@@ -11,9 +11,9 @@
 
 #include "kernel/light/area.h"
 #include "kernel/light/background.h"
-#include "kernel/light/distant.h"
 #include "kernel/light/point.h"
 #include "kernel/light/spot.h"
+#include "kernel/light/sun.h"
 #include "kernel/light/triangle.h"
 #include "kernel/sample/lcg.h"
 #include "kernel/types.h"
@@ -103,7 +103,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   ls->prim = lamp;
   ls->group = object_lightgroup(kg, ls->object);
 
-  if (in_volume_segment && (type == LIGHT_DISTANT || type == LIGHT_BACKGROUND)) {
+  if (in_volume_segment && (type == LIGHT_SUN || type == LIGHT_BACKGROUND)) {
     /* Distant lights in a volume get a dummy sample, position will not actually
      * be used in that case. Only when sampling from a specific scatter position
      * do we actually need to evaluate these. */
@@ -116,8 +116,8 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     return true;
   }
 
-  if (type == LIGHT_DISTANT) {
-    if (!distant_light_sample(klight, rand, ls)) {
+  if (type == LIGHT_SUN) {
+    if (!sun_light_sample(klight, rand, ls)) {
       return false;
     }
   }
@@ -319,11 +319,11 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
         continue;
       }
     }
-    else if (type == LIGHT_DISTANT) {
+    else if (type == LIGHT_SUN) {
       if (is_main_path || ray->tmax != FLT_MAX) {
         continue;
       }
-      if (!distant_light_intersect(klight, ray, &t)) {
+      if (!sun_light_intersect(klight, ray, &t)) {
         continue;
       }
     }
@@ -396,7 +396,7 @@ ccl_device bool lights_intersect(KernelGlobals kg,
 }
 
 /* Lights intersection for the shadow linking.
- * Intersects spot, point, area, and distant lights.
+ * Intersects spot, point, area, and sun lights.
  *
  * Returns the total number of hits (the input num_hits plus the number of the new intersections).
  */
@@ -474,9 +474,9 @@ ccl_device void light_normal_uv_from_position(KernelGlobals kg,
     Ng = klight->area.dir;
     uv = area_light_uv(klight, P);
   }
-  else if (type == LIGHT_DISTANT) {
+  else if (type == LIGHT_SUN) {
     Ng = -D;
-    uv = distant_light_uv(kg, klight, D);
+    uv = sun_light_uv(kg, klight, D);
   }
   else {
     kernel_assert(0);
