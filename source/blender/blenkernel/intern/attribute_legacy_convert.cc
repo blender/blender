@@ -350,9 +350,9 @@ void LegacyMeshInterpolator::copy(const int src_index, const int dst_index, cons
   }
   CustomData_copy_data(&cd_src_, &cd_dst_, src_index, dst_index, count);
   for (const int i : attrs_src_.index_range()) {
-    const GVArray &src = attrs_src_[i];
+    const GVArraySpan &src = attrs_src_[i];
     GMutableSpan dst = attrs_dst_[i];
-    src.materialize_compressed(IndexRange(src_index, count), dst[dst_index]);
+    src.type().copy_construct_compressed(src.data(), dst[dst_index], IndexRange(src_index, count));
   }
 }
 
@@ -369,13 +369,14 @@ void LegacyMeshInterpolator::mix(Span<int> src_indices,
   for (const int attr_index : attrs_src_.index_range()) {
     attribute_math::to_static_type(attrs_src_[attr_index].type(), [&]<typename T>() {
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-        const VArray src = attrs_src_[attr_index].typed<T>();
+        const Span src = attrs_src_[attr_index].typed<T>();
         MutableSpan dst = attrs_dst_[attr_index].typed<T>();
-        attribute_math::DefaultMixer<T> mixer(dst.slice(dst_index, 1));
-        for (const int i : src_indices.index_range()) {
-          mixer.mix_in(0, src[src_indices[i]], weights ? (*weights)[i] : 1.0f);
+        if (weights) {
+          dst[dst_index] = attribute_math::mix_indices(src, src_indices, *weights);
         }
-        mixer.finalize();
+        else {
+          dst[dst_index] = attribute_math::mix_indices(src, src_indices);
+        }
       }
     });
   }
