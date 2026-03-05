@@ -99,4 +99,60 @@ TEST(LinearAllocator_ChunkedList, Move)
   }
 }
 
+TEST(LinearAllocator_ChunkedList, ReversedIteration)
+{
+  LinearAllocator<> allocator;
+  ChunkedList<int, 4> list;
+  for (const int64_t i : IndexRange(10)) {
+    list.append(allocator, int(i));
+  }
+  Vector<int> values;
+  for (const int value : list) {
+    values.append(value);
+  }
+  EXPECT_EQ(values[0], 9);
+  EXPECT_EQ(values[1], 8);
+  EXPECT_EQ(values[2], 7);
+  EXPECT_EQ(values[3], 6);
+  EXPECT_EQ(values[4], 5);
+  EXPECT_EQ(values[5], 4);
+  EXPECT_EQ(values[6], 3);
+  EXPECT_EQ(values[7], 2);
+  EXPECT_EQ(values[8], 1);
+  EXPECT_EQ(values[9], 0);
+}
+
+TEST(LinearAllocator_ChunkedList, IterationVariousSizes)
+{
+  LinearAllocator<> allocator;
+  for (const int64_t iterations : IndexRange(100)) {
+    ChunkedList<int> list;
+    for (const int64_t i : IndexRange(iterations)) {
+      list.append(allocator, int(i));
+    }
+    /* Test mutable iterator. */
+    {
+      Vector<int> values;
+      for (const int value : list) {
+        values.append(value);
+      }
+      EXPECT_EQ(values.size(), iterations);
+      for (const int64_t i : IndexRange(iterations)) {
+        EXPECT_EQ(values[i], iterations - i - 1);
+      }
+    }
+    /* Test const iterator. */
+    {
+      Vector<int> values;
+      for (const int value : const_cast<const ChunkedList<int> &>(list)) {
+        values.append(value);
+      }
+      EXPECT_EQ(values.size(), iterations);
+      for (const int64_t i : IndexRange(iterations)) {
+        EXPECT_EQ(values[i], iterations - i - 1);
+      }
+    }
+  }
+}
+
 }  // namespace blender::linear_allocator::tests
