@@ -700,7 +700,8 @@ static void create_mesh(Scene *scene,
       std::fill(shader, shader + numtris, 0);
     }
 
-    if (!sharp_faces.is_empty()) {
+    /* Use sharp face flags, unless overriden by custom normals. */
+    if (!sharp_faces.is_empty() && !use_corner_normals) {
       for (const int face : faces.index_range()) {
         const bool face_smooth = !sharp_faces[face];
         const blender::IndexRange face_tris = blender::bke::mesh::face_triangles_range(faces,
@@ -709,8 +710,10 @@ static void create_mesh(Scene *scene,
       }
     }
     else {
-      /* If only face normals are needed, all faces are sharp. */
-      std::fill(smooth, smooth + numtris, normals_domain != blender::bke::MeshNormalDomain::Face);
+      /* All faces are sharp or smooth. */
+      std::fill(smooth,
+                smooth + numtris,
+                use_corner_normals || normals_domain != blender::bke::MeshNormalDomain::Face);
     }
 
     if (use_corner_normals) {
