@@ -459,7 +459,7 @@ class Array {
     if (size <= InlineBufferCapacity) {
       if (zero) {
         if constexpr (InlineBufferCapacity > 0) {
-          memset(inline_buffer_, 0, size * sizeof(T));
+          memset(static_cast<void *>(inline_buffer_), 0, size * sizeof(T));
         }
       }
       return inline_buffer_;
