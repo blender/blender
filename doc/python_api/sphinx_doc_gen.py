@@ -379,7 +379,7 @@ except ImportError:
 # to avoid having to match Blender's source tree.
 EXTRA_SOURCE_FILES = (
     "../../../scripts/templates_py/bmesh_simple.py",
-    "../../../scripts/templates_py/Gizmo/Operator.py",
+    "../../../scripts/templates_py/Gizmo/operator.py",
     "../../../scripts/templates_py/Gizmo/operator_target.py",
     "../../../scripts/templates_py/Gizmo/simple_3d.py",
     "../../../scripts/templates_py/Operator/simple.py",
