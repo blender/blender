@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
@@ -73,16 +75,6 @@ static VertexType get_vertex_type_with_added_neighbor(VertexType old_type)
   return VertexType::Loose;
 }
 
-template<typename T>
-static void copy_data_based_on_pairs(Span<T> data,
-                                     MutableSpan<T> r_data,
-                                     const Span<std::pair<int, int>> new_to_old_map)
-{
-  for (const std::pair<int, int> &pair : new_to_old_map) {
-    r_data[pair.first] = data[pair.second];
-  }
-}
-
 /**
  * Transfers the attributes from the original mesh to the new mesh using the following logic:
  * - If the attribute was on the face domain it is now on the point domain, and this is true
@@ -150,6 +142,23 @@ static void transfer_attributes(
     }
   };
 
+  IndexMaskMemory memory;
+  IndexMask boundary_vert_mask;
+  Array<int> boundary_vert_src_face;
+  const auto ensure_face_map = [&]() {
+    Array<int> boundary_verts(boundary_vertex_to_relevant_face_map.size());
+    for (const int i : boundary_vertex_to_relevant_face_map.index_range()) {
+      boundary_verts[i] = boundary_vertex_to_relevant_face_map[i].first;
+    }
+    boundary_vert_mask = IndexMask::from_indices(boundary_verts.as_span(), memory);
+    boundary_vert_src_face.reinitialize(boundary_vert_mask.min_array_size());
+    boundary_vert_mask.foreach_index(
+        [&](const int i, const int pos) {
+          boundary_vert_src_face[i] = boundary_vertex_to_relevant_face_map[pos].second;
+        },
+        exec_mode::grain_size(8196));
+  };
+
   for (const StringRef name : names) {
     GAttributeReader src = src_attributes.lookup(name);
 
@@ -191,12 +200,11 @@ static void transfer_attributes(
       case AttrDomain::Face: {
         const GVArraySpan src_span(*src);
         dst.span.take_front(src_span.size()).copy_from(src_span);
-        bke::attribute_math::to_static_type(data_type, [&]<typename T>() {
-          if (keep_boundaries) {
-            copy_data_based_on_pairs(
-                src_span.typed<T>(), dst.span.typed<T>(), boundary_vertex_to_relevant_face_map);
-          }
-        });
+        if (keep_boundaries) {
+          ensure_face_map();
+          bke::attribute_math::gather(
+              src.varray, boundary_vert_src_face, boundary_vert_mask, dst.span);
+        }
         break;
       }
       case AttrDomain::Corner:
@@ -894,6 +902,9 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   Mesh *mesh_out = BKE_mesh_new_nomain(
       vert_positions.size(), new_edges.size(), face_sizes.size(), corner_verts.size());
   bke::mesh_smooth_set(*mesh_out, false);
+
+  std::ranges::sort(boundary_vertex_to_relevant_face_map,
+                    [](const auto &a, const auto &b) { return a.first < b.first; });
 
   transfer_attributes(vertex_types,
                       keep_boundaries,
