@@ -909,6 +909,18 @@ inline void mix_groups(GSpan src, GroupedSpan<int> indices, GMutableSpan dst)
  * used to avoid templating the same logic for each type in many places.
  * \{ */
 
+/**
+ * Move elements from [src_begin, src_end) to dest_begin.
+ * dest_begin must be <= src_begin.
+ */
+void shift_left(GMutableSpan data, int src_begin, int src_end, int dst_begin);
+
+/**
+ * Move elements from [src_begin, src_end) to a range ending at dst_end.
+ * dst_end must be >= src_end.
+ */
+void shift_right(GMutableSpan data, int src_begin, int src_end, int dst_begin);
+
 void gather(GSpan src, Span<int> map, GMutableSpan dst);
 void gather(const GVArray &src, Span<int> map, GMutableSpan dst);
 void gather(GSpan src, Span<int> map, const IndexMask &dst_mask, GMutableSpan dst);
