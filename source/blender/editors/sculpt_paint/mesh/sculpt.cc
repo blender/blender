@@ -4381,6 +4381,7 @@ void SCULPT_stroke_modifiers_check(
   if (ss.shapekey_active || ss.deform_modifiers_active ||
       (!BKE_sculptsession_use_pbvh_draw(&ob, rv3d) && need_pmap))
   {
+    BLI_assert(ss.pbvh->type() == bke::pbvh::Type::Mesh);
     BKE_sculpt_update_object_for_edit(
         &depsgraph, &ob, brush_type_is_paint(brush->sculpt_brush_type));
   }
