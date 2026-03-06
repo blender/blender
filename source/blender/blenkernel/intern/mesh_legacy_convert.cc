@@ -1713,19 +1713,24 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 
     CustomData_free_layer_named(&mesh->corner_data, uv_names[i]);
 
-    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-    const std::string new_name = BKE_attribute_calc_unique_name(owner, uv_names[i].c_str());
-    uv_names[i] = new_name;
-
+    /* #CustomData_add_layer_named_with_data will make the name unique, and then we
+     * find the last added UV layer to get that name. Can't use the newer API like
+     * #BKE_attribute_calc_unique_name because it uses new attribute storage. */
     CustomData_add_layer_named_with_data(
-        &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name, nullptr);
+        &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, uv_names[i], nullptr);
+    const int new_layer_i = CustomData_get_layer_index_n(
+        &mesh->corner_data,
+        CD_PROP_FLOAT2,
+        CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2) - 1);
+    uv_names[i] = mesh->corner_data.layers[new_layer_i].name;
+
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
     if (pin) {
       CustomData_add_layer_named_with_data(&mesh->corner_data,
                                            CD_PROP_BOOL,
                                            pin,
                                            mesh->corners_num,
-                                           BKE_uv_map_pin_name_get(new_name, buffer),
+                                           BKE_uv_map_pin_name_get(uv_names[i], buffer),
                                            nullptr);
     }
   }
