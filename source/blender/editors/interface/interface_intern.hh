@@ -204,7 +204,7 @@ struct Button {
   uchar menu_key = 0;
 
   short retval = 0, strwidth = 0, alignnr = 0;
-  short ofs = 0, pos = 0, selsta = 0, selend = 0;
+  int ofs = 0, pos = 0, selsta = 0, selend = 0;
 
   /**
    * Optional color for monochrome icon. Also used as text
