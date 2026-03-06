@@ -4,7 +4,6 @@
 
 import bpy
 from ..com.material_helpers import get_gltf_node_name, create_settings_group
-from .gltf2_blender_utils import find_unused_name
 
 ################ glTF Material Output node ###########################################
 
@@ -54,6 +53,8 @@ def add_gltf_settings_to_menu(self, context):
 
 
 def on_variant_name_update(self, context):
+    # Lazy import to avoid unnecessary NUMPY import on startup.
+    from .gltf2_blender_utils import find_unused_name
     already_used_names = [v.name for v in bpy.data.scenes[0].gltf2_KHR_materials_variants_variants]
     already_used_names = [n for idx, n in enumerate(already_used_names) if idx != self.variant_idx]
     proposed_name = find_unused_name(already_used_names, self.name)
