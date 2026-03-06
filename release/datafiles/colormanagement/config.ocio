@@ -119,7 +119,7 @@ display_colorspaces:
   - !<ColorSpace>
     name: Linear CIE-XYZ D65
     aliases: [lin_ciexyzd65_scene, cie_xyz_d65, CIE-XYZ-D65, XYZ, Linear CIE-XYZ I-D65]
-    family: Chromaticity
+    family: Linear
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -226,7 +226,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Filmic sRGB
-    family: Legacy
+    family: Utilities
     description: |
       sRGB display space with Filmic view transform
     interop_id: srgb_rec709_display
@@ -237,7 +237,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: AgX Base sRGB
-    family: Legacy
+    family: Utilities
     description: |
       AgX Base Image Encoding for sRGB Display
     interop_id: srgb_rec709_display
@@ -250,7 +250,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: ACES 1.3 sRGB
-    family: Legacy
+    family: Utilities
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -266,7 +266,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: ACES 2.0 sRGB
-    family: Legacy
+    family: Utilities
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -282,7 +282,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Khronos PBR Neutral sRGB
-    family: Legacy
+    family: Utilities
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -507,7 +507,7 @@ colorspaces:
   - !<ColorSpace>
     name: Linear CIE-XYZ E
     aliases: ["FilmLight: Linear - XYZ", Linear CIE-XYZ I-E]
-    family: Chromaticity
+    family: Linear
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -606,7 +606,6 @@ colorspaces:
   - !<ColorSpace>
     name: Non-Color
     aliases: [Generic Data, Non-Colour Data, Raw, Utility - Raw]
-    family: Data
     description: |
         Generic data that is not color, will not apply any color transform (e.g. normal maps)
     equalitygroup:
@@ -616,7 +615,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Filmic Log
-    family: Log Encodings
+    family: Log
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -652,7 +651,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: AgX Log
-    family: Log Encodings
+    family: Log
     equalitygroup:
     bitdepth: 32f
     description: |

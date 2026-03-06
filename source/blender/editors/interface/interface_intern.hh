@@ -1651,6 +1651,10 @@ void UI_OT_eyedropper_driver(wmOperatorType *ot);
 
 void UI_OT_eyedropper_grease_pencil_color(wmOperatorType *ot);
 
+/* interface_ops_color.cc */
+
+MenuType *UI_MT_color_space_select();
+
 /* `templates/interface_template_asset_shelf_popover.cc` */
 std::optional<StringRefNull> asset_shelf_idname_from_button_context(const Button *but);
 

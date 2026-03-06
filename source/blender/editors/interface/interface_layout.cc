@@ -18,6 +18,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_dynstr.h"
 #include "BLI_enum_flags.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"

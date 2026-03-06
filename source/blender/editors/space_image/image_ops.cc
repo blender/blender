@@ -2113,7 +2113,12 @@ static void image_save_as_draw(bContext *C, wmOperator *op)
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
     ui::Layout &col = layout.column(true);
     col.separator();
-    col.prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+    col.prop_with_menu(&linear_settings_ptr,
+                       "name",
+                       UI_ITEM_NONE,
+                       IFACE_("Color Space"),
+                       ICON_NONE,
+                       "UI_MT_color_space_select");
   }
 
   /* Multiview settings. */
