@@ -1260,7 +1260,7 @@ IndexMask retrieve_visible_bezier_handle_points(Object &object,
   if (handle_display == CURVE_HANDLE_NONE) {
     return IndexMask(0);
   }
-  else if (handle_display == CURVE_HANDLE_ALL) {
+  if (handle_display == CURVE_HANDLE_ALL) {
     return retrieve_visible_bezier_points(object, drawing, memory);
   }
   /* else handle_display == CURVE_HANDLE_SELECTED */
