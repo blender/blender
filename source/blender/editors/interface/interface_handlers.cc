@@ -4015,9 +4015,9 @@ static int ui_do_but_textedit(
           int selsta, selend;
           BLI_str_cursor_step_bounds_utf8(
               text_edit.edit_string, str_len, but->pos, &selsta, &selend);
-          but->pos = short(selend);
-          but->selsta = short(selsta);
-          but->selend = short(selend);
+          but->pos = selend;
+          but->selsta = selsta;
+          but->selend = selend;
           /* Anchor selection to the left side unless the last word. */
           text_edit.sel_pos_init = ((selend == str_len) && (selsta != 0)) ? selend : selsta;
           retval = WM_UI_HANDLER_BREAK;
