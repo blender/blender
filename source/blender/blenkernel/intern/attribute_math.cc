@@ -420,7 +420,7 @@ void gather_group_to_group(const OffsetIndices<int> src_offsets,
                            const GSpan src,
                            GMutableSpan dst)
 {
-  attribute_math::to_static_type(src.type(), [&]<typename T>() {
+  to_static_type(src.type(), [&]<typename T>() {
     array_utils::gather_group_to_group(
         src_offsets, dst_offsets, selection, src.typed<T>(), dst.typed<T>());
   });
@@ -431,7 +431,7 @@ void gather_ranges_to_groups(const Span<IndexRange> src_ranges,
                              const GSpan src,
                              GMutableSpan dst)
 {
-  attribute_math::to_static_type(src.type(), [&]<typename T>() {
+  to_static_type(src.type(), [&]<typename T>() {
     Span<T> src_span = src.typed<T>();
     MutableSpan<T> dst_span = dst.typed<T>();
 
@@ -448,7 +448,7 @@ void gather_to_groups(const OffsetIndices<int> dst_offsets,
                       const GSpan src,
                       GMutableSpan dst)
 {
-  attribute_math::to_static_type(src.type(), [&]<typename T>() {
+  to_static_type(src.type(), [&]<typename T>() {
     array_utils::gather_to_groups(dst_offsets, src_selection, src.typed<T>(), dst.typed<T>());
   });
 }
