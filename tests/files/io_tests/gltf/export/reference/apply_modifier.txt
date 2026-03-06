@@ -53,7 +53,7 @@ None
   ],
   "meshes": [
     {
-      "name": "Mesh",
+      "name": "Cube",
       "primitives": [
         {
           "attributes": {
@@ -79,7 +79,7 @@ None
       ]
     },
     {
-      "name": "Mesh",
+      "name": "Cube.002",
       "primitives": [
         {
           "attributes": {
