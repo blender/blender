@@ -4737,6 +4737,13 @@ void button_rna_menu_convert_to_panel_type(Button *but, const char *panel_type)
   BLI_assert(ELEM(but->type, ButtonType::Menu, ButtonType::Color));
   //  BLI_assert(but->menu_create_func == ui_def_but_rna__menu);
   //  BLI_assert((void *)but->poin == but);
+
+  /* Any existing function argument and callback using it gets overwritten. */
+  if (but->func_argN && but->func_argN_free_fn) {
+    but->func_argN_free_fn(but->func_argN);
+  }
+  but->funcN = nullptr;
+
   but->menu_create_func = def_but_rna__panel_type;
   but->func_argN = BLI_strdup(panel_type);
   but->func_argN_free_fn = MEM_delete_void;
@@ -4768,11 +4775,14 @@ void button_rna_menu_convert_to_menu_type(Button *but, const char *menu_type)
   BLI_assert(but->type == ButtonType::Menu);
   BLI_assert(but->menu_create_func == def_but_rna__menu);
   BLI_assert((void *)but->poin == but);
-  but->menu_create_func = def_but_rna__menu_type;
 
+  /* Any existing function argument and callback using it gets overwritten. */
   if (but->func_argN && but->func_argN_free_fn) {
     but->func_argN_free_fn(but->func_argN);
   }
+  but->funcN = nullptr;
+
+  but->menu_create_func = def_but_rna__menu_type;
   but->func_argN_free_fn = MEM_delete_void;
   but->func_argN_copy_fn = MEM_dupalloc_void;
   but->func_argN = BLI_strdup(menu_type);
