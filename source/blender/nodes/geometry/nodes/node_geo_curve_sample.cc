@@ -310,9 +310,8 @@ class SampleCurveFunction : public mf::MultiFunction {
         index_mask::masked_fill(sampled_normals, float3(0), mask);
       }
       if (!sampled_values.is_empty()) {
-        bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
-          index_mask::masked_fill<T>(sampled_values.typed<T>(), {}, mask);
-        });
+        sampled_values.type().fill_construct_indices(
+            sampled_values.type().default_value(), sampled_values.data(), mask);
       }
     };
 
@@ -332,10 +331,9 @@ class SampleCurveFunction : public mf::MultiFunction {
               sampled_normals, evaluated_normals[evaluated_points.first()], mask);
         }
         if (!sampled_values.is_empty()) {
-          bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
-            const T &value = source_data_->typed<T>()[points_by_curve[curve_i].first()];
-            index_mask::masked_fill<T>(sampled_values.typed<T>(), value, mask);
-          });
+          BUFFER_FOR_CPP_TYPE_VALUE(source_data_->type(), value);
+          source_data_->get(points_by_curve[curve_i].first(), value);
+          source_data_->type().fill_construct_indices(value, sampled_values.data(), mask);
         }
         return;
       }
