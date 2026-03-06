@@ -325,19 +325,6 @@ static float3 mix_normals(const Span<float3> src,
   return math::normalize(math::interpolate(src[src_indices[0]], src[src_indices[1]], factor));
 }
 
-static bool mix_bools(const Span<bool> src, const Span<int> indices, const Span<float> weights)
-{
-  for (const int i : indices.index_range()) {
-    if (weights[i] == 0.0f) {
-      continue;
-    }
-    if (src[indices[i]]) {
-      return true;
-    }
-  }
-  return false;
-}
-
 static void mix_attrs(const Span<GSpan> src,
                       const std::array<int, 2> &src_indices,
                       const float factor,
@@ -350,7 +337,8 @@ static void mix_attrs(const Span<GSpan> src,
         const Span<T> src_attr = src[attr].typed<T>();
         MutableSpan<T> dst_attr = dst[attr].typed<T>();
         if constexpr (std::is_same_v<T, bool>) {
-          dst_attr[dst_index] = mix_bools(src_attr, src_indices, {1.0f - factor, factor});
+          dst_attr[dst_index] = bke::attribute_math::mix_indices(
+              src_attr, src_indices, {1.0f - factor, factor});
         }
         else {
           dst_attr[dst_index] = attribute_math::mix2(
@@ -373,7 +361,8 @@ static void mix_attrs(const Span<GSpan> src,
         const Span<T> src_attr = src[attr].typed<T>();
         MutableSpan<T> dst_attr = dst[attr].typed<T>();
         if constexpr (std::is_same_v<T, bool>) {
-          dst_attr[dst_index] = mix_bools(src_attr, src_indices, {&weights.x, 4});
+          dst_attr[dst_index] = bke::attribute_math::mix_indices(
+              src_attr, src_indices, Span(&weights.x, 4));
         }
         else {
           dst_attr[dst_index] = attribute_math::mix4(weights,
@@ -387,18 +376,6 @@ static void mix_attrs(const Span<GSpan> src,
   }
 }
 
-template<typename T>
-static T mix_attr(const Span<T> src, const Span<int> src_indices, const Span<float> weights)
-{
-  T dst;
-  attribute_math::DefaultPropagationMixer<T> mixer({&dst, 1});
-  for (const int i : src_indices.index_range()) {
-    mixer.mix_in(0, src[src_indices[i]], weights[i]);
-  }
-  mixer.finalize();
-  return dst;
-}
-
 static void mix_attrs(const Span<GSpan> src,
                       const Span<int> src_indices,
                       const Span<float> weights,
@@ -410,7 +387,7 @@ static void mix_attrs(const Span<GSpan> src,
       if constexpr (!std::is_same_v<T, std::string>) {
         const Span<T> src_attr = src[attr].typed<T>();
         MutableSpan<T> dst_attr = dst[attr].typed<T>();
-        dst_attr[dst_index] = mix_attr(src_attr, src_indices, weights);
+        dst_attr[dst_index] = bke::attribute_math::mix_indices(src_attr, src_indices, weights);
       }
     });
   }
@@ -671,7 +648,7 @@ static void loop_interpolation_from_face(const SubdivMeshContext *ctx,
           ctx->coarse_CD_NORMAL, indices, weights.as_span());
     }
     if (!ctx->coarse_CD_ORIGSPACE_MLOOP.is_empty()) {
-      loop_interpolation->CD_ORIGSPACE_MLOOP_storage[2] = mix_attr(
+      loop_interpolation->CD_ORIGSPACE_MLOOP_storage[2] = bke::attribute_math::mix_indices(
           ctx->coarse_CD_ORIGSPACE_MLOOP, indices, weights.as_span());
     }
   }
