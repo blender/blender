@@ -40,46 +40,28 @@ const char *MTLLogParser::parse_line(const char *source_combined,
     log_item.cursor.file_name_and_error_line = StringRef(name_start, error_line_number_end);
 
     StringRef source_name(name_start, name_end);
-
-    if (source_name == "msl_wrapper_code") {
-      /* In this case the issue is in the wrapper. We cannot access it.
-       * So we still display the internal error lines for some more information. */
-      log_item.cursor.row = -1;
-      wrapper_error_ = true;
-    }
-    else if (!source_name.is_empty()) {
-      std::string needle = std::string("#line 1 \"") + source_name + "\"";
-
-      StringRefNull src(source_combined);
-      int64_t file_start = src.find(needle);
-      if (file_start == -1) {
-        /* Can be generated code or wrapper code outside of the main sources.
-         * But should be already caught by the above case. */
-        log_item.cursor.row = -1;
-        wrapper_error_ = true;
+    if (log_item.cursor.row != -1) {
+      /* Get to the wanted line. */
+      size_t line_start_character = line_start_get(source_combined, log_item.cursor.row);
+      StringRef filename = filename_get(source_combined, line_start_character);
+      size_t line_number = source_line_get(source_combined, line_start_character);
+      log_item.cursor.file_name_and_error_line = std::string(filename) + ':' +
+                                                 std::to_string(line_number);
+      if (log_item.cursor.column != -1) {
+        log_item.cursor.file_name_and_error_line += ':' + std::to_string(log_item.cursor.column);
+        log_item.cursor.column -= 1; /* Caret printing expect 0 based index. */
       }
-      else {
-        StringRef previous_sources(source_combined, file_start);
-        for (const char c : previous_sources) {
-          if (c == '\n') {
-            log_item.cursor.row++;
-          }
-        }
-        /* The method above does not work with injected #line directives.
-         * Just output the raw error and forget about the formatting for now. */
-        log_item.cursor.row = -1;
-        log_item.cursor.file_name_and_error_line = "";
-        parsed_error_ = false;
-        wrapper_error_ = true;
-        return name_start;
-      }
+      parsed_error_ = true;
     }
+    return log_line;
   }
-  else if (parsed_error_) {
+
+  if (parsed_error_) {
     /* Skip the redundant lines that we be outputted above the error. */
     return skip_line(log_line);
   }
-  else if (wrapper_error_) {
+
+  if (wrapper_error_) {
     /* Display full lines of error in case of wrapper (non parsed) errors.
      * Avoids weirdly aligned '^' and underlined suggestions. */
     return name_start;

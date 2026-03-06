@@ -248,15 +248,22 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
 
   sources[SOURCES_INDEX_VERSION] = shader_compat;
 
-  std::string concat_source = fmt::to_string(fmt::join(sources, "")) + wrapper.second;
+  const std::string original_source = fmt::to_string(fmt::join(sources, "")) + wrapper.second;
 
-  dump_source_to_disk(this->name_get(), this->entry_point_name_get(stage), ".msl", concat_source);
+  dump_source_to_disk(
+      this->name_get(), this->entry_point_name_get(stage), ".msl", original_source);
 
+  std::string processed_source;
   if (!this->skip_preprocessor) {
-    concat_source = run_preprocessor(concat_source, G.debug & G_DEBUG_GPU_SHADER_NO_DCE);
+    processed_source = run_preprocessor(original_source, G.debug & G_DEBUG_GPU_SHADER_NO_DCE);
 
-    dump_source_to_disk(
-        this->name_get(), this->entry_point_name_get(stage) + ".expanded", ".msl", concat_source);
+    dump_source_to_disk(this->name_get(),
+                        this->entry_point_name_get(stage) + ".expanded",
+                        ".msl",
+                        processed_source);
+  }
+  else {
+    processed_source = original_source;
   }
 
   {
@@ -265,7 +272,7 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
 
     NSError *error = nullptr;
     id<MTLLibrary> library = [context_->device
-        newLibraryWithSource:[NSString stringWithUTF8String:concat_source.c_str()]
+        newLibraryWithSource:[NSString stringWithUTF8String:processed_source.c_str()]
                      options:options
                        error:&error];
     library.label = [NSString stringWithUTF8String:this->name];
@@ -287,7 +294,7 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
     [library release];
 
     MTLLogParser parser;
-    print_log({concat_source}, [error_localized UTF8String], to_string(stage), true, &parser);
+    print_log({original_source}, [error_localized UTF8String], to_string(stage), true, &parser);
   }
   return nil;
 }
