@@ -33,6 +33,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
     bool is_vertex_func = false;
     bool is_fragment_func = false;
     bool use_early_frag_test = false;
+    string metal_max_total_threads_per_threadgroup;
     string local_size;
 
     if (type.prev() == ']' && type.prev().scope().type() == ScopeType::Subscript) {
@@ -56,6 +57,9 @@ void SourceProcessor::lower_entry_points(Parser &parser)
         }
         else if (attr_str == "local_size") {
           local_size = attr_scope.str();
+        }
+        else if (attr_str == "metal_max_total_threads_per_threadgroup") {
+          metal_max_total_threads_per_threadgroup = attr_scope.str();
         }
       });
     }
@@ -102,6 +106,18 @@ void SourceProcessor::lower_entry_points(Parser &parser)
       }
       else {
         create_info_decl += "EARLY_FRAGMENT_TEST(true)\n";
+      }
+    }
+
+    if (!metal_max_total_threads_per_threadgroup.empty()) {
+      if (!is_compute_func) {
+        report_error_(ERROR_TOK(type),
+                      "Only compute entry point function can use "
+                      "[[metal_max_total_threads_per_threadgroup(x)]].");
+      }
+      else {
+        create_info_decl += "MTL_MAX_TOTAL_THREADS_PER_THREADGROUP" +
+                            metal_max_total_threads_per_threadgroup + "\n";
       }
     }
 

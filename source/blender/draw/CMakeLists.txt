@@ -321,7 +321,6 @@ set(GLSL_SRC
   intern/shaders/subdiv_infos.hh
   intern/shaders/subdiv_patch_eval_infos.hh
 
-  engines/eevee/shaders/infos/eevee_ambient_occlusion_infos.hh
   engines/eevee/shaders/infos/eevee_common_infos.hh
   engines/eevee/shaders/infos/eevee_deferred_infos.hh
   engines/eevee/shaders/infos/eevee_depth_of_field_infos.hh
@@ -393,7 +392,6 @@ set(GLSL_SRC
   engines/workbench/shaders/infos/workbench_transparent_resolve_infos.hh
 
   engines/eevee/shaders/eevee_ambient_occlusion_lib.glsl
-  engines/eevee/shaders/eevee_ambient_occlusion_pass_comp.glsl
   engines/eevee/shaders/eevee_attributes_curves_lib.glsl
   engines/eevee/shaders/eevee_attributes_mesh_lib.glsl
   engines/eevee/shaders/eevee_attributes_pointcloud_lib.glsl
@@ -460,12 +458,8 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_geom_world_vert.glsl
   engines/eevee/shaders/eevee_hiz_debug_frag.glsl
   engines/eevee/shaders/eevee_hiz_update_comp.glsl
-  engines/eevee/shaders/eevee_horizon_denoise_comp.glsl
-  engines/eevee/shaders/eevee_horizon_resolve_comp.glsl
-  engines/eevee/shaders/eevee_horizon_scan_eval_lib.glsl
-  engines/eevee/shaders/eevee_horizon_scan_comp.glsl
-  engines/eevee/shaders/eevee_horizon_scan_lib.glsl
-  engines/eevee/shaders/eevee_horizon_setup_comp.glsl
+  engines/eevee/shaders/eevee_horizon_scan.bsl.hh
+  engines/eevee/shaders/eevee_horizon_scan_lib.bsl.hh
   engines/eevee/shaders/eevee_light_culling_debug_frag.glsl
   engines/eevee/shaders/eevee_light_culling_select_comp.glsl
   engines/eevee/shaders/eevee_light_culling_sort_comp.glsl

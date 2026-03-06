@@ -38,6 +38,7 @@ class AmbientOcclusion {
 
   AOData &data_;
   PassSimple render_pass_ps_ = {"AO Render Pass"};
+  Texture dummy_tx_ = {"dummy_tx"};
 
  public:
   AmbientOcclusion(Instance &inst, AOData &data) : inst_(inst), data_(data) {};

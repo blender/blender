@@ -28,6 +28,8 @@
 #  define local_size(...) maybe_unused
 /* Request performing fragment tests before the fragment function executes. */
 #  define early_fragment_tests maybe_unused
+/* Metal specific hints. To be used on entry point functions. */
+#  define metal_max_total_threads_per_threadgroup(count) maybe_unused
 
 /* In a compute function, specify an input variable containing the 3-dimensional index of the local
  * work invocation within the work group that the current shader is executing in. */
@@ -99,7 +101,7 @@
 /* Declare a storage buffer at the given slot. */
 #  define image(slot, qualifiers, format) maybe_unused
 #  define compilation_constant maybe_unused
-#  define specialization_constant maybe_unused
+#  define specialization_constant(default_value) maybe_unused
 #  define push_constant maybe_unused
 /* Declare a nested resource table member. */
 #  define resource_table maybe_unused

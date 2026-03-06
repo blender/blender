@@ -443,7 +443,8 @@ void SourceProcessor::lower_resource_table(Parser &parser)
     string type = attr.str();
     return (type == "sampler" || type == "image" || type == "uniform" || type == "storage" ||
             type == "push_constant" || type == "compilation_constant" ||
-            type == "compilation_constant" || type == "legacy_info" || type == "resource_table");
+            type == "specialization_constant" || type == "legacy_info" ||
+            type == "resource_table");
   };
   auto is_vertex_input_attribute = [](Token attr) {
     string type = attr.str();
