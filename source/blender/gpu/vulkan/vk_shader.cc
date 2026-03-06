@@ -653,7 +653,7 @@ bool VKShader::finalize_shader_module(VKShaderModule &shader_module, const char 
   if (bool(shader_module.compilation_result.GetNumWarnings() +
            shader_module.compilation_result.GetNumErrors()))
   {
-    print_log({shader_module.combined_sources},
+    print_log({shader_module.original_sources},
               shader_module.compilation_result.GetErrorMessage().c_str(),
               stage_name,
               bool(shader_module.compilation_result.GetNumErrors()),
@@ -662,6 +662,7 @@ bool VKShader::finalize_shader_module(VKShaderModule &shader_module, const char 
 
   std::string full_name = std::string(name) + "_" + stage_name;
   shader_module.finalize(full_name.c_str());
+  shader_module.original_sources.clear();
   shader_module.combined_sources.clear();
   shader_module.sources_hash.clear();
   shader_module.compilation_result = {};

@@ -34,7 +34,14 @@ class VKShader;
 class VKShaderModule {
  public:
   /**
-   * Single string containing GLSL source code.
+   * Single string containing GLSL source code before preprocessing.
+   *
+   * Is cleared after compilation phase has completed. (VKShader::finalize_post).
+   */
+  std::string original_sources;
+
+  /**
+   * Single string containing GLSL source code after preprocessing.
    *
    * Is cleared after compilation phase has completed. (VKShader::finalize_post).
    */
