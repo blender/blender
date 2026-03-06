@@ -903,7 +903,7 @@ bool BLI_listbase_validate(ListBase *lb)
     return false;
   }
 
-  /* Walk the list in bot directions to ensure all next & prev pointers are valid and consistent.
+  /* Walk the list in both directions to ensure all next & prev pointers are valid and consistent.
    */
   LISTBASE_FOREACH (Link *, lb_link, lb) {
     if (lb_link == lb->first) {
