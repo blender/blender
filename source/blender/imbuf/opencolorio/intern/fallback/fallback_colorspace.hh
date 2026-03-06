@@ -36,6 +36,11 @@ class FallbackColorSpace : public ColorSpace {
   {
     return "";
   }
+  StringRefNull family() const override
+  {
+    return "";
+  }
+
   StringRefNull interop_id() const override
   {
     switch (type_) {
@@ -58,11 +63,6 @@ class FallbackColorSpace : public ColorSpace {
   std::string icc_profile_path() const override
   {
     return "";
-  }
-
-  bool is_invertible() const override
-  {
-    return true;
   }
 
   bool is_scene_linear() const override

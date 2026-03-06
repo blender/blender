@@ -22,18 +22,15 @@ class ColorSpace {
   int index = -1;
 
   /**
-   * Name and description of this space.
+   * Name, description, and family of this space.
    *
    * The name is used to address to this color space from various places of the configuration.
    * The description is used for UI to give better clue what the space is to artists.
+   * The family is used for organizational purposes in menus.
    */
   virtual StringRefNull name() const = 0;
   virtual StringRefNull description() const = 0;
-
-  /**
-   * Returns true if there is a conversion from this color space to the scene linear.
-   */
-  virtual bool is_invertible() const = 0;
+  virtual StringRefNull family() const = 0;
 
   /**
    * Check whether this color space matches one of the built-in spaces like scene linear or sRGB
