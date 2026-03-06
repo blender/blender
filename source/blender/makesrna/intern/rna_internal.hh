@@ -237,6 +237,7 @@ void rna_def_attributes_common(StructRNA *srna, AttributeOwnerType type);
 
 void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
 int rna_Attribute_data_length(PointerRNA *ptr);
+bool rna_Attribute_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr);
 
 StringRefNull rna_Attribute_name_get(const PointerRNA &ptr);
 void rna_Attribute_name_get(PointerRNA *ptr, char *value);
