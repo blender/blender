@@ -842,19 +842,19 @@ void draw_data_blocks(const bContext *C, ui::Layout &layout, PointerRNA &bake_rn
   if (ui::Layout *panel = layout.panel(
           C, "data_block_references", true, IFACE_("Data-Block References")))
   {
-    ui::template_list(panel,
-                      C,
-                      data_block_list->idname,
-                      "",
-                      &bake_rna,
-                      "data_blocks",
-                      &data_blocks_ptr,
-                      "active_index",
-                      nullptr,
-                      3,
-                      5,
-                      UILST_LAYOUT_DEFAULT,
-                      ui::TEMPLATE_LIST_FLAG_NONE);
+    ui::template_uilist(panel,
+                        C,
+                        data_block_list->idname,
+                        "",
+                        &bake_rna,
+                        "data_blocks",
+                        &data_blocks_ptr,
+                        "active_index",
+                        nullptr,
+                        3,
+                        5,
+                        UILST_LAYOUT_DEFAULT,
+                        ui::TEMPLATE_LIST_FLAG_NONE);
   }
 }
 

@@ -441,7 +441,7 @@ Button *listbox_find_mouse_over(const ARegion *region, const wmEvent *event)
   return listbox_find_mouse_over_ex(region, event->xy);
 }
 
-uiList *ui_list_find_mouse_over(const ARegion *region, const wmEvent *event)
+uiList *uilist_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
   Button *list_but = listbox_find_mouse_over(region, event);
   if (!list_but) {

@@ -40,8 +40,8 @@
 namespace blender::ui {
 
 /**
- * The validated data that was passed to #template_list (typically through Python).
- * Populated through #template_list_data_retrieve().
+ * The validated data that was passed to #template_uilist (typically through Python).
+ * Populated through #template_uilist_data_retrieve().
  */
 struct TemplateListInputData {
   PointerRNA dataptr;
@@ -201,12 +201,12 @@ static int cmpstringp(const void *p1, const void *p2)
                         static_cast<const StringCmp *>(p2)->name);
 }
 
-void list_filter_and_sort_items(uiList *ui_list,
-                                const bContext * /*C*/,
-                                uiListItemFilterFn item_filter_fn,
-                                PointerRNA *dataptr,
-                                const char *propname,
-                                uiListItemGetNameFn get_name_fn)
+void uilist_filter_and_sort_items(uiList *ui_list,
+                                  const bContext * /*C*/,
+                                  uiListItemFilterFn item_filter_fn,
+                                  PointerRNA *dataptr,
+                                  const char *propname,
+                                  uiListItemGetNameFn get_name_fn)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
   PropertyRNA *prop = RNA_struct_find_property(dataptr, propname);
@@ -303,7 +303,7 @@ void list_filter_and_sort_items(uiList *ui_list,
   }
 }
 
-bool list_item_index_is_filtered_visible(const uiList *ui_list, const int item_idx)
+bool uilist_item_index_is_filtered_visible(const uiList *ui_list, const int item_idx)
 {
   const uiListDyn *dyn_data = ui_list->dyn_data;
 
@@ -329,11 +329,11 @@ static void uilist_filter_items_default(uiList *ui_list,
 {
   if (ui_list->filter_byname[0]) {
     uiListNameFilter name_filter(*ui_list);
-    list_filter_and_sort_items(ui_list, C, name_filter, dataptr, propname);
+    uilist_filter_and_sort_items(ui_list, C, name_filter, dataptr, propname);
   }
   /* Optimization: Skip filtering entirely when there is no filter string set. */
   else {
-    list_filter_and_sort_items(ui_list, C, nullptr, dataptr, propname);
+    uilist_filter_and_sort_items(ui_list, C, nullptr, dataptr, propname);
   }
 }
 
@@ -354,15 +354,15 @@ static void uilist_free_dyn_data(uiList *ui_list)
  *
  * \return false if the input data isn't valid. Will also raise an RNA warning in that case.
  */
-static bool template_list_data_retrieve(const StringRef listtype_name,
-                                        const char *list_id,
-                                        PointerRNA *dataptr,
-                                        const StringRefNull propname,
-                                        PointerRNA *active_dataptr,
-                                        const StringRefNull active_propname,
-                                        const char *item_dyntip_propname,
-                                        TemplateListInputData *r_input_data,
-                                        uiListType **r_list_type)
+static bool template_uilist_data_retrieve(const StringRef listtype_name,
+                                          const char *list_id,
+                                          PointerRNA *dataptr,
+                                          const StringRefNull propname,
+                                          PointerRNA *active_dataptr,
+                                          const StringRefNull active_propname,
+                                          const char *item_dyntip_propname,
+                                          TemplateListInputData *r_input_data,
+                                          uiListType **r_list_type)
 {
   *r_input_data = {};
 
@@ -424,11 +424,11 @@ static bool template_list_data_retrieve(const StringRef listtype_name,
   return true;
 }
 
-static void template_list_collect_items(PointerRNA *list_ptr,
-                                        PropertyRNA *list_prop,
-                                        const uiList *ui_list,
-                                        int activei,
-                                        TemplateListItems *r_items)
+static void template_uilist_collect_items(PointerRNA *list_ptr,
+                                          PropertyRNA *list_prop,
+                                          const uiList *ui_list,
+                                          int activei,
+                                          TemplateListItems *r_items)
 {
   const uiListDyn *dyn_data = ui_list->dyn_data;
   const bool order_reverse = (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0;
@@ -437,7 +437,7 @@ static void template_list_collect_items(PointerRNA *list_ptr,
   bool activei_mapping_pending = true;
 
   RNA_PROP_BEGIN (list_ptr, itemptr, list_prop) {
-    if (list_item_index_is_filtered_visible(ui_list, i)) {
+    if (uilist_item_index_is_filtered_visible(ui_list, i)) {
       int new_order_idx;
       if (dyn_data->items_filter_neworder) {
         new_order_idx = dyn_data->items_filter_neworder[reorder_i++];
@@ -487,11 +487,11 @@ static void template_list_collect_items(PointerRNA *list_ptr,
 /**
  * Create the UI-list representation of the list items, sorted and filtered if needed.
  */
-static void template_list_collect_display_items(const bContext *C,
-                                                uiList *ui_list,
-                                                TemplateListInputData *input_data,
-                                                const uiListFilterItemsFunc filter_items_fn,
-                                                TemplateListItems *r_items)
+static void template_uilist_collect_display_items(const bContext *C,
+                                                  uiList *ui_list,
+                                                  TemplateListInputData *input_data,
+                                                  const uiListFilterItemsFunc filter_items_fn,
+                                                  TemplateListItems *r_items)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
 
@@ -517,7 +517,7 @@ static void template_list_collect_display_items(const bContext *C,
       r_items->item_vec.resize(items_shown);
       // printf("%s: items shown: %d.\n", __func__, items_shown);
 
-      template_list_collect_items(
+      template_uilist_collect_items(
           &input_data->dataptr, input_data->prop, ui_list, input_data->active_item_idx, r_items);
     }
   }
@@ -624,12 +624,12 @@ static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const 
 /**
  * \note that \a layout_type may be null.
  */
-static uiList *list_ensure(const bContext *C,
-                           uiListType *ui_list_type,
-                           const char *list_id,
-                           int layout_type,
-                           bool sort_reverse,
-                           bool sort_lock)
+static uiList *uilist_ensure(const bContext *C,
+                             uiListType *ui_list_type,
+                             const char *list_id,
+                             int layout_type,
+                             bool sort_reverse,
+                             bool sort_lock)
 {
   /* Allows to work in popups. */
   ARegion *region = CTX_wm_region_popup(C);
@@ -678,13 +678,13 @@ static uiList *list_ensure(const bContext *C,
   return ui_list;
 }
 
-static void template_list_layout_draw(const bContext *C,
-                                      uiList *ui_list,
-                                      Layout &layout,
-                                      TemplateListInputData *input_data,
-                                      TemplateListItems *items,
-                                      const TemplateListLayoutDrawData *layout_data,
-                                      const TemplateListFlags flags)
+static void template_uilist_layout_draw(const bContext *C,
+                                        uiList *ui_list,
+                                        Layout &layout,
+                                        TemplateListInputData *input_data,
+                                        TemplateListItems *items,
+                                        const TemplateListLayoutDrawData *layout_data,
+                                        const TemplateListFlags flags)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
   const char *active_propname = RNA_property_identifier(input_data->activeprop);
@@ -972,31 +972,31 @@ static void template_list_layout_draw(const bContext *C,
   }
 }
 
-void template_list(Layout *layout,
-                   const bContext *C,
-                   const char *listtype_name,
-                   const char *list_id,
-                   PointerRNA *dataptr,
-                   const StringRefNull propname,
-                   PointerRNA *active_dataptr,
-                   const StringRefNull active_propname,
-                   const char *item_dyntip_propname,
-                   int rows,
-                   int maxrows,
-                   int layout_type,
-                   enum TemplateListFlags flags)
+void template_uilist(Layout *layout,
+                     const bContext *C,
+                     const char *listtype_name,
+                     const char *list_id,
+                     PointerRNA *dataptr,
+                     const StringRefNull propname,
+                     PointerRNA *active_dataptr,
+                     const StringRefNull active_propname,
+                     const char *item_dyntip_propname,
+                     int rows,
+                     int maxrows,
+                     int layout_type,
+                     enum TemplateListFlags flags)
 {
   TemplateListInputData input_data = {};
   uiListType *ui_list_type;
-  if (!template_list_data_retrieve(listtype_name,
-                                   list_id,
-                                   dataptr,
-                                   propname,
-                                   active_dataptr,
-                                   active_propname,
-                                   item_dyntip_propname,
-                                   &input_data,
-                                   &ui_list_type))
+  if (!template_uilist_data_retrieve(listtype_name,
+                                     list_id,
+                                     dataptr,
+                                     propname,
+                                     active_dataptr,
+                                     active_propname,
+                                     item_dyntip_propname,
+                                     &input_data,
+                                     &ui_list_type))
   {
     return;
   }
@@ -1008,12 +1008,12 @@ void template_list(Layout *layout,
   uiListFilterItemsFunc filter_items = ui_list_type->filter_items ? ui_list_type->filter_items :
                                                                     uilist_filter_items_default;
 
-  uiList *ui_list = list_ensure(C,
-                                ui_list_type,
-                                list_id,
-                                layout_type,
-                                flags & TEMPLATE_LIST_SORT_REVERSE,
-                                flags & TEMPLATE_LIST_SORT_LOCK);
+  uiList *ui_list = uilist_ensure(C,
+                                  ui_list_type,
+                                  list_id,
+                                  layout_type,
+                                  flags & TEMPLATE_LIST_SORT_REVERSE,
+                                  flags & TEMPLATE_LIST_SORT_LOCK);
 
   /* When active item changed since last draw, scroll to it. */
   if (input_data.active_item_idx != ui_list->list_last_activei) {
@@ -1022,7 +1022,7 @@ void template_list(Layout *layout,
   }
 
   TemplateListItems items;
-  template_list_collect_display_items(C, ui_list, &input_data, filter_items, &items);
+  template_uilist_collect_display_items(C, ui_list, &input_data, filter_items, &items);
 
   TemplateListLayoutDrawData layout_data;
   layout_data.draw_item = draw_item;
@@ -1030,7 +1030,7 @@ void template_list(Layout *layout,
   layout_data.rows = rows;
   layout_data.maxrows = maxrows;
 
-  template_list_layout_draw(C, ui_list, *layout, &input_data, &items, &layout_data, flags);
+  template_uilist_layout_draw(C, ui_list, *layout, &input_data, &items, &layout_data, flags);
 }
 
 /* -------------------------------------------------------------------- */

@@ -10115,7 +10115,7 @@ static int handle_button_event(bContext *C, const wmEvent *event, Button *but)
   return retval;
 }
 
-static int list_get_increment(const uiList *list, const int type)
+static int uilist_get_increment(const uiList *list, const int type)
 {
   /* Left or right in grid layouts or any direction in single column layouts increments by 1. */
   int increment = ELEM(type, EVT_UPARROWKEY, EVT_LEFTARROWKEY, WHEELUPMOUSE) ? -1 : 1;
@@ -10127,7 +10127,7 @@ static int list_get_increment(const uiList *list, const int type)
   return increment;
 }
 
-static int handle_list_event(bContext *C, const wmEvent *event, ARegion *region, Button *listbox)
+static int handle_uilist_event(bContext *C, const wmEvent *event, ARegion *region, Button *listbox)
 {
   int retval = WM_UI_HANDLER_CONTINUE;
   int type = event->type, val = event->val;
@@ -10169,7 +10169,7 @@ static int handle_list_event(bContext *C, const wmEvent *event, ARegion *region,
       int value, min, max;
 
       value = value_orig;
-      const int inc = list_get_increment(ui_list, type);
+      const int inc = uilist_get_increment(ui_list, type);
 
       if (dyn_data->items_filter_neworder || dyn_data->items_filter_flags) {
         /* If we have a display order different from
@@ -10180,7 +10180,7 @@ static int handle_list_event(bContext *C, const wmEvent *event, ARegion *region,
         int current_idx = -1;
 
         for (int i = 0; i < len; i++) {
-          if (list_item_index_is_filtered_visible(ui_list, i)) {
+          if (uilist_item_index_is_filtered_visible(ui_list, i)) {
             org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
             if (i == value) {
               current_idx = new_order ? new_order[org_idx] : org_idx;
@@ -12037,7 +12037,7 @@ static int handle_menus_recursive(bContext *C,
         bool handled = false;
 
         if (Button *listbox = listbox_find_mouse_over(menu->region, event)) {
-          const int retval_test = handle_list_event(C, event, menu->region, listbox);
+          const int retval_test = handle_uilist_event(C, event, menu->region, listbox);
           if (retval_test != WM_UI_HANDLER_CONTINUE) {
             retval = retval_test;
             handled = true;
@@ -12096,7 +12096,7 @@ static int region_handler(bContext *C, const wmEvent *event, void * /*userdata*/
   retval = handler_panel_region(C, event, region, listbox ? listbox : but);
 
   if (retval == WM_UI_HANDLER_CONTINUE && listbox) {
-    retval = handle_list_event(C, event, region, listbox);
+    retval = handle_uilist_event(C, event, region, listbox);
 
     /* interactions with the listbox should disable tips */
     if (retval == WM_UI_HANDLER_BREAK) {

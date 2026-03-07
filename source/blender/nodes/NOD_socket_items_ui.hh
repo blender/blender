@@ -68,19 +68,19 @@ static void draw_items_list_with_operators(const bContext *C,
   }();
 
   blender::ui::Layout *row = &layout->row(false);
-  template_list(row,
-                C,
-                items_list->idname,
-                "",
-                &node_ptr,
-                Accessor::rna_names::items,
-                &node_ptr,
-                Accessor::rna_names::active_index.c_str(),
-                nullptr,
-                3,
-                5,
-                UILST_LAYOUT_DEFAULT,
-                blender::ui::TEMPLATE_LIST_FLAG_NONE);
+  template_uilist(row,
+                  C,
+                  items_list->idname,
+                  "",
+                  &node_ptr,
+                  Accessor::rna_names::items,
+                  &node_ptr,
+                  Accessor::rna_names::active_index.c_str(),
+                  nullptr,
+                  3,
+                  5,
+                  UILST_LAYOUT_DEFAULT,
+                  blender::ui::TEMPLATE_LIST_FLAG_NONE);
 
   blender::ui::Layout *ops_col = &row->column(false);
   {

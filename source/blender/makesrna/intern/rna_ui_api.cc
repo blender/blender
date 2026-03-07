@@ -782,19 +782,19 @@ void rna_template_list(Layout *layout,
     flags |= ui::TEMPLATE_LIST_SORT_LOCK;
   }
 
-  ui::template_list(layout,
-                    C,
-                    listtype_name,
-                    list_id,
-                    dataptr,
-                    propname,
-                    active_dataptr,
-                    active_propname,
-                    item_dyntip_propname,
-                    rows,
-                    maxrows,
-                    layout_type,
-                    flags);
+  ui::template_uilist(layout,
+                      C,
+                      listtype_name,
+                      list_id,
+                      dataptr,
+                      propname,
+                      active_dataptr,
+                      active_propname,
+                      item_dyntip_propname,
+                      rows,
+                      maxrows,
+                      layout_type,
+                      flags);
 }
 
 static void rna_template_cache_file(Layout *layout,
@@ -836,17 +836,17 @@ static void rna_template_cache_file_time_settings(Layout *layout,
   ui::template_cache_file_time_settings(layout, &fileptr);
 }
 
-static void rna_template_list_flags(Layout *layout,
-                                    bContext *C,
-                                    PointerRNA *ptr,
-                                    const char *propname)
+static void rna_template_uilist_flags(Layout *layout,
+                                      bContext *C,
+                                      PointerRNA *ptr,
+                                      const char *propname)
 {
   PointerRNA fileptr;
   if (!ui::template_cache_file_pointer(ptr, propname, &fileptr)) {
     return;
   }
 
-  ui::template_list_flags(layout, C, &fileptr);
+  ui::template_uilist_flags(layout, C, &fileptr);
 }
 
 static void rna_uiTemplatePathBuilder(Layout *layout,
@@ -2367,7 +2367,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_ui_description(func, "Show cache files time settings");
   api_ui_item_rna_common(func);
 
-  func = RNA_def_function(srna, "template_cache_file_layers", "rna_template_list_flags");
+  func = RNA_def_function(srna, "template_cache_file_layers", "rna_template_uilist_flags");
   RNA_def_function_ui_description(func, "Show cache files override layers properties");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   api_ui_item_rna_common(func);
