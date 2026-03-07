@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 1, 16),
+    "version": (5, 1, 17),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -130,9 +130,10 @@ def on_export_action_filter_changed(self, context):
                 item.action = action
 
     else:
-        bpy.data.scenes[0].gltf_action_filter.clear()
-        del bpy.types.Scene.gltf_action_filter
-        del bpy.types.Scene.gltf_action_filter_active
+        if hasattr(bpy.data.scenes[0], 'gltf_action_filter'):
+            bpy.data.scenes[0].gltf_action_filter.clear()
+            del bpy.types.Scene.gltf_action_filter
+            del bpy.types.Scene.gltf_action_filter_active
 
 
 def get_format_items(scene, context):
