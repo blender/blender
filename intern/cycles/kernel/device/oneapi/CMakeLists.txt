@@ -94,29 +94,12 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     # Add the list of Intel devices to build binaries for.
     foreach(device ${CYCLES_ONEAPI_INTEL_BINARIES_ARCH})
       # Run `ocloc` ids to test if the device is supported.
-      if(WIN32)
-        execute_process(
-          COMMAND ${OCLOC_INSTALL_DIR}/ocloc.exe ids ${device}
-          RESULT_VARIABLE oclocids_ret
-          OUTPUT_QUIET
-          ERROR_QUIET
-        )
-      else()
-        set(_ocloc_ld_library_path "${OCLOC_INSTALL_DIR}/lib")
-        if(DEFINED IGC_INSTALL_DIR)
-          string(APPEND _ocloc_ld_library_path ":${IGC_INSTALL_DIR}/lib")
-        endif()
-        execute_process(
-          COMMAND ${CMAKE_COMMAND}
-          -E env "LD_LIBRARY_PATH=${_ocloc_ld_library_path}"
-          ${OCLOC_INSTALL_DIR}/bin/ocloc ids ${device}
-
-          RESULT_VARIABLE oclocids_ret
-          OUTPUT_QUIET
-          ERROR_QUIET
-        )
-        unset(_ocloc_ld_library_path)
-      endif()
+      execute_process(
+        COMMAND ${OCLOC_ENV_COMMAND} ${OCLOC_BINARY_FULL_FILEPATH} ids ${device}
+        RESULT_VARIABLE oclocids_ret
+        OUTPUT_QUIET
+        ERROR_QUIET
+      )
       if(NOT oclocids_ret EQUAL 0)
         list(REMOVE_ITEM CYCLES_ONEAPI_INTEL_BINARIES_ARCH ${device})
         message(STATUS
@@ -273,9 +256,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       COMMAND_EXPAND_LISTS
       DEPENDS ${cycles_oneapi_kernel_sources} ${SYCL_COMPILER})
   else()
-    if(NOT IGC_INSTALL_DIR)
-      get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
-    endif()
     # The following join/replace operations are to prevent cmake from
     # escaping space chars with backslashes in add_custom_command.
     list(JOIN sycl_compiler_flags_Release " " sycl_compiler_flags_Release_str)
@@ -288,7 +268,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       OUTPUT ${cycles_kernel_oneapi_lib}
       COMMAND
         ${CMAKE_COMMAND} -E env
-        "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
+        "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_LD_LIBRARY_PATH}"
         # `$ENV{PATH}` is for compiler to find `ld`.
         "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}"
         ${SYCL_COMPILER}
