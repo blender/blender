@@ -647,14 +647,14 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
    * is also deleted with the context active. */
   if (gpu_is_init) {
     DRW_gpu_context_enable_ex(false);
-    ui::ui_exit();
+    ui::exit();
     GPU_shader_cache_dir_clear_old();
     GPU_exit();
     DRW_gpu_context_disable_ex(false);
     DRW_gpu_context_destroy();
   }
   else {
-    ui::ui_exit();
+    ui::exit();
   }
 
   BKE_blender_userdef_data_free(&U, false);

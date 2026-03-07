@@ -731,7 +731,7 @@ bool block_has_active_default_button(const Block *block);
  */
 Button *but_find_mouse_over(const ARegion *region, const wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 
-uiList *list_find_mouse_over(const ARegion *region, const wmEvent *event);
+uiList *ui_list_find_mouse_over(const ARegion *region, const wmEvent *event);
 
 /* `interface_region_menu_popup.cc` */
 
@@ -2215,7 +2215,7 @@ void init();
 /* after reading userdef file */
 void init_userdef();
 void reinit_font();
-void ui_exit();
+void exit();
 
 /* When changing UI font, update text style weights with default font weight
  * if non-variable. Therefore fixed weight bold font will look bold. */

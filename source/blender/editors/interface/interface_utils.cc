@@ -778,7 +778,7 @@ std::optional<std::string> button_online_manual_id_from_active(const bContext *C
 
 /* -------------------------------------------------------------------- */
 
-static rctf ui_but_rect_to_view(const Button *but, const ARegion *region, const View2D *v2d)
+static rctf but_rect_to_view(const Button *but, const ARegion *region, const View2D *v2d)
 {
   rctf region_rect;
   block_to_region_rctf(region, but->block, &region_rect, &but->rect);
@@ -796,7 +796,7 @@ static rctf ui_but_rect_to_view(const Button *but, const ARegion *region, const 
  *
  * \return true if anything changed.
  */
-static bool ui_view2d_cur_ensure_rect_in_view(View2D *v2d, const rctf *rect)
+static bool view2d_cur_ensure_rect_in_view(View2D *v2d, const rctf *rect)
 {
   const float rect_width = BLI_rctf_size_x(rect);
   const float rect_height = BLI_rctf_size_y(rect);
@@ -846,12 +846,12 @@ void but_ensure_in_view(const bContext *C, ARegion *region, const Button *but)
     return;
   }
 
-  rctf rect = ui_but_rect_to_view(but, region, v2d);
+  rctf rect = but_rect_to_view(but, region, v2d);
 
   const int margin = UI_UNIT_X * 0.5f;
   BLI_rctf_pad(&rect, margin, margin);
 
-  const bool changed = ui_view2d_cur_ensure_rect_in_view(v2d, &rect);
+  const bool changed = view2d_cur_ensure_rect_in_view(v2d, &rect);
   if (changed) {
     view2d_curRect_changed(C, v2d);
     ED_region_tag_redraw_no_rebuild(region);
@@ -897,7 +897,7 @@ void butstore_free(Block *block, ButStore *bs_handle)
 {
   /* NOTE(@ideasman42): Workaround for button store being moved into new block,
    * which then can't use the previous buttons state
-   * (#ui_but_update_from_old_block fails to find a match),
+   * (#but_update_from_old_block fails to find a match),
    * keeping the active button in the old block holding a reference
    * to the button-state in the new block: see #49034.
    *

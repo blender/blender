@@ -1230,7 +1230,7 @@ void draw_but_VECTORSCOPE(ARegion *region,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void ui_draw_colorband_handle_tri(uint pos, float x1, float y1, float halfwidth)
+static void draw_colorband_handle_tri(uint pos, float x1, float y1, float halfwidth)
 {
   /* Half-width equals height for better AA with 45 degree slope. */
   immBegin(GPU_PRIM_TRIS, 3);
@@ -1240,7 +1240,7 @@ static void ui_draw_colorband_handle_tri(uint pos, float x1, float y1, float hal
   immEnd();
 }
 
-static void ui_draw_colorband_handle_box(uint pos, float x1, float y1, float x2, float y2)
+static void draw_colorband_handle_box(uint pos, float x1, float y1, float x2, float y2)
 {
   immBegin(GPU_PRIM_TRI_STRIP, 4);
   immVertex2f(pos, x2, y1);
@@ -1250,12 +1250,12 @@ static void ui_draw_colorband_handle_box(uint pos, float x1, float y1, float x2,
   immEnd();
 }
 
-static void ui_draw_colorband_handle(uint shdr_pos,
-                                     const rcti *rect,
-                                     float x,
-                                     const float rgb[3],
-                                     const ColorManagedDisplay *display,
-                                     bool active)
+static void draw_colorband_handle(uint shdr_pos,
+                                  const rcti *rect,
+                                  float x,
+                                  const float rgb[3],
+                                  const ColorManagedDisplay *display,
+                                  bool active)
 {
   const float sizey = BLI_rcti_size_y(rect);
   float colf[3] = {UNPACK3(rgb)};
@@ -1310,15 +1310,15 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   /* Black outline around the lower box. */
   immUniformColor4ub(0, 0, 0, alpha);
 
-  ui_draw_colorband_handle_box(shdr_pos,
-                               x - half_width - line_width,
-                               y1 - line_width,
-                               x + half_width + line_width,
-                               y1 + height);
+  draw_colorband_handle_box(shdr_pos,
+                            x - half_width - line_width,
+                            y1 - line_width,
+                            x + half_width + line_width,
+                            y1 + height);
 
   /* Grey box, inset by line width. */
   immUniformColor4ub(128, 128, 128, alpha);
-  ui_draw_colorband_handle_box(shdr_pos, x - half_width, y1, x + half_width, y1 + height);
+  draw_colorband_handle_box(shdr_pos, x - half_width, y1, x + half_width, y1 + height);
 
   if (display) {
     IMB_colormanagement_scene_linear_to_display_v3(colf, display);
@@ -1326,15 +1326,15 @@ static void ui_draw_colorband_handle(uint shdr_pos,
 
   /* Color value, inset by another line width. */
   immUniformColor3fvAlpha(colf, alpha);
-  ui_draw_colorband_handle_box(shdr_pos,
-                               x - (half_width - line_width),
-                               y1 + line_width,
-                               x + (half_width - line_width),
-                               y1 + height - line_width);
+  draw_colorband_handle_box(shdr_pos,
+                            x - (half_width - line_width),
+                            y1 + line_width,
+                            x + (half_width - line_width),
+                            y1 + height - line_width);
 
   /* Black outline around the top triangle. */
   immUniformColor4ub(0, 0, 0, alpha);
-  ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width + line_width);
+  draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width + line_width);
 
   GPU_polygon_smooth(true);
 
@@ -1345,7 +1345,7 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   else {
     immUniformColor4ub(96, 96, 96, alpha);
   }
-  ui_draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width - (0.5f * line_width));
+  draw_colorband_handle_tri(shdr_pos, x, y1 + height, half_width - (0.5f * line_width));
 
   immUnbindProgram();
 
@@ -1462,7 +1462,7 @@ void draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rec
   for (int a = 0; a < coba->tot; a++, cbd++) {
     if (a != coba->cur) {
       const float pos = x1 + cbd->pos * (sizex - 1) + 1;
-      ui_draw_colorband_handle(pos_id, rect, pos, &cbd->r, display, false);
+      draw_colorband_handle(pos_id, rect, pos, &cbd->r, display, false);
     }
   }
 
@@ -1470,7 +1470,7 @@ void draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rec
   if (coba->tot != 0) {
     cbd = &coba->data[coba->cur];
     const float pos = x1 + cbd->pos * (sizex - 1) + 1;
-    ui_draw_colorband_handle(pos_id, rect, pos, &cbd->r, display, true);
+    draw_colorband_handle(pos_id, rect, pos, &cbd->r, display, true);
   }
 }
 
@@ -1548,13 +1548,13 @@ void draw_but_UNITVEC(Button *but,
   immUnbindProgram();
 }
 
-static void ui_draw_but_curve_grid(const uint pos,
-                                   const rcti *rect,
-                                   const float zoom_x,
-                                   const float zoom_y,
-                                   const float offset_x,
-                                   const float offset_y,
-                                   const float step)
+static void draw_but_curve_grid(const uint pos,
+                                const rcti *rect,
+                                const float zoom_x,
+                                const float zoom_y,
+                                const float offset_x,
+                                const float offset_y,
+                                const float step)
 {
   const float start_x = (ceilf(offset_x / step) * step - offset_x) * zoom_x + rect->xmin;
   const float start_y = (ceilf(offset_y / step) * step - offset_y) * zoom_y + rect->ymin;
@@ -1656,7 +1656,7 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
     /* grid, hsv uses different grid */
     ARRAY_SET_ITEMS(color_backdrop, 0, 0, 0, 48.0 / 255.0);
     immUniformColor4fv(color_backdrop);
-    ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
+    draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
   }
   else {
     /* Draw backdrop. */
@@ -1680,10 +1680,10 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
 
     /* grid, every 0.25 step */
     immUniformColor3ubvAlpha(wcol->outline_sel, 64 / fade_factor_uchar);
-    ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
+    draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
     /* grid, every 1.0 step */
     immUniformColor3ubvAlpha(wcol->outline_sel, 92 / fade_factor_uchar);
-    ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
+    draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
     /* axes */
     uchar col_axis_x[3], col_axis_y[3];
     theme::get_color_3ubv(TH_AXIS_X, col_axis_x);
@@ -1927,7 +1927,7 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
 }
 
 /**
- * Helper for #ui_draw_but_CURVEPROFILE. Used to tell whether to draw a control point's handles.
+ * Helper for #draw_but_CURVEPROFILE. Used to tell whether to draw a control point's handles.
  */
 static bool point_draw_handles(CurveProfilePoint *point)
 {
@@ -1998,10 +1998,10 @@ void draw_but_CURVEPROFILE(ARegion *region,
 
   /* 0.25 step grid. */
   immUniformColor3ubvAlpha(wcol->outline_sel, 64);
-  ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
+  draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
   /* 1.0 step grid. */
   immUniformColor3ubvAlpha(wcol->outline_sel, 92);
-  ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
+  draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
   GPU_blend(GPU_BLEND_NONE);
 
   /* Draw the path's fill. */

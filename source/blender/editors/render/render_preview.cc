@@ -146,7 +146,7 @@ struct IconPreview {
   Depsgraph *depsgraph; /* May be nullptr (see #WM_OT_previews_ensure). */
   Scene *scene;
   void *owner;
-  /** May be nullptr! (see #ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()). */
+  /** May be nullptr! (see #ICON_TYPE_PREVIEW case in #icon_ensure_deferred()). */
   ID *id;
   ID *id_copy;
   /* Which icon sizes to render. */

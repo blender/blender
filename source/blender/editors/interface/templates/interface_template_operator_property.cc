@@ -40,15 +40,15 @@ struct uiTemplateOperatorPropertyPollParam {
 };
 
 #ifdef USE_OP_RESET_BUT
-static void ui_layout_operator_buts__reset_cb(bContext * /*C*/, void *op_pt, void * /*arg_dummy2*/)
+static void layout_operator_buts__reset_cb(bContext * /*C*/, void *op_pt, void * /*arg_dummy2*/)
 {
   WM_operator_properties_reset((wmOperator *)op_pt);
 }
 #endif
 
-static bool ui_layout_operator_buts_poll_property(PointerRNA * /*ptr*/,
-                                                  PropertyRNA *prop,
-                                                  void *user_data)
+static bool layout_operator_buts_poll_property(PointerRNA * /*ptr*/,
+                                               PropertyRNA *prop,
+                                               void *user_data)
 {
   uiTemplateOperatorPropertyPollParam *params = static_cast<uiTemplateOperatorPropertyPollParam *>(
       user_data);
@@ -131,14 +131,14 @@ static AutoPropButsReturn template_operator_property_buts_draw_single(
     layout.use_property_decorate_set(false);
 
     /* main draw call */
-    return_info = uiDefAutoButsRNA(
-        &layout,
-        &ptr,
-        op->type->poll_property ? ui_layout_operator_buts_poll_property : nullptr,
-        op->type->poll_property ? &user_data : nullptr,
-        op->type->prop,
-        label_align,
-        (layout_flags & TEMPLATE_OP_PROPS_COMPACT));
+    return_info = uiDefAutoButsRNA(&layout,
+                                   &ptr,
+                                   op->type->poll_property ? layout_operator_buts_poll_property :
+                                                             nullptr,
+                                   op->type->poll_property ? &user_data : nullptr,
+                                   op->type->prop,
+                                   label_align,
+                                   (layout_flags & TEMPLATE_OP_PROPS_COMPACT));
 
     if ((return_info & PROP_BUTS_NONE_ADDED) && (layout_flags & TEMPLATE_OP_PROPS_SHOW_EMPTY)) {
       layout.label(IFACE_("No Properties"), ICON_NONE);
@@ -167,7 +167,7 @@ static AutoPropButsReturn template_operator_property_buts_draw_single(
                            0.0,
                            0.0,
                            TIP_("Reset operator defaults"));
-    button_func_set(but, ui_layout_operator_buts__reset_cb, op, nullptr);
+    button_func_set(but, layout_operator_buts__reset_cb, op, nullptr);
   }
 #endif
 
@@ -224,14 +224,14 @@ static void template_operator_property_buts_draw_recursive(const bContext *C,
   }
 }
 
-static bool ui_layout_operator_properties_only_booleans(const bContext *C,
-                                                        wmWindowManager *wm,
-                                                        wmOperator *op,
-                                                        int layout_flags)
+static bool layout_operator_properties_only_booleans(const bContext *C,
+                                                     wmWindowManager *wm,
+                                                     wmOperator *op,
+                                                     int layout_flags)
 {
   if (op->type->flag & OPTYPE_MACRO) {
     for (wmOperator &macro_op : op->macro) {
-      if (!ui_layout_operator_properties_only_booleans(C, wm, &macro_op, layout_flags)) {
+      if (!layout_operator_properties_only_booleans(C, wm, &macro_op, layout_flags)) {
         return false;
       }
     }
@@ -249,9 +249,7 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
       if (RNA_property_flag(prop) & PROP_HIDDEN) {
         continue;
       }
-      if (op->type->poll_property &&
-          !ui_layout_operator_buts_poll_property(&ptr, prop, &user_data))
-      {
+      if (op->type->poll_property && !layout_operator_buts_poll_property(&ptr, prop, &user_data)) {
         continue;
       }
       if (RNA_property_type(prop) != PROP_BOOLEAN) {
@@ -275,7 +273,7 @@ void uiTemplateOperatorPropertyButs(
 
   /* If there are only checkbox items, don't use split layout by default. It looks weird if the
    * check-boxes only use half the width. */
-  if (ui_layout_operator_properties_only_booleans(C, wm, op, flag)) {
+  if (layout_operator_properties_only_booleans(C, wm, op, flag)) {
     flag |= TEMPLATE_OP_PROPS_NO_SPLIT_LAYOUT;
   }
 

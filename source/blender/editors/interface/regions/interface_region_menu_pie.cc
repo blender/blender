@@ -82,7 +82,7 @@ static Block *block_func_PIE(bContext * /*C*/, PopupBlockHandle *handle, void *a
   return pie->pie_block;
 }
 
-static float ui_pie_menu_title_width(const char *name, int icon)
+static float pie_menu_title_width(const char *name, int icon)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   return (fontstyle_string_width(fstyle, name) + (UI_UNIT_X * (1.50f + (icon ? 0.25f : 0.0f))));
@@ -101,7 +101,7 @@ PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent 
   /* may be useful later to allow spawning pies
    * from old positions */
   // pie->pie_block->flag |= BLOCK_POPUP_MEMORY;
-  pie->pie_block->puphash = ui_popup_menu_hash(title);
+  pie->pie_block->puphash = popup_menu_hash(title);
   pie->pie_block->flag |= BLOCK_PIE_MENU;
   pie->pie_block->pie_data = std::make_unique<PieMenuData>();
 
@@ -145,12 +145,12 @@ PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent 
     int w;
     if (icon) {
       SNPRINTF_UTF8(titlestr, " %s", title);
-      w = ui_pie_menu_title_width(titlestr, icon);
+      w = pie_menu_title_width(titlestr, icon);
       but = uiDefIconTextBut(
           pie->pie_block, ButtonType::Label, icon, titlestr, 0, 0, w, UI_UNIT_Y, nullptr, "");
     }
     else {
-      w = ui_pie_menu_title_width(title, 0);
+      w = pie_menu_title_width(title, 0);
       but = uiDefBut(
           pie->pie_block, ButtonType::Label, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     }
@@ -241,7 +241,7 @@ struct PieMenuLevelData {
 /**
  * Invokes a new pie menu for a new level.
  */
-static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
+static void pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
 {
   EnumPropertyItem *item_array = static_cast<EnumPropertyItem *>(argN);
   PieMenuLevelData *lvl = static_cast<PieMenuLevelData *>(arg2);
@@ -307,7 +307,7 @@ void pie_menu_level_create(Block *block,
                                  UI_UNIT_Y,
                                  nullptr,
                                  "Show more items of this menu");
-  button_funcN_set(but, ui_pie_menu_level_invoke, remaining, &lvl);
+  button_funcN_set(but, pie_menu_level_invoke, remaining, &lvl);
 }
 
 /** \} */ /* Pie Menu Levels */

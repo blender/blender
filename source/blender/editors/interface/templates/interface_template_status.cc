@@ -374,9 +374,7 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
   }
 }
 
-static std::string ui_template_status_tooltip(bContext *C,
-                                              void * /*argN*/,
-                                              const StringRef /*tip*/)
+static std::string template_status_tooltip(bContext *C, void * /*argN*/, const StringRef /*tip*/)
 {
   Main *bmain = CTX_data_main(C);
   std::string tooltip_message;
@@ -600,7 +598,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
                      0.0f,
                      0.0f,
                      std::nullopt);
-  button_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
+  button_func_tooltip_set(but, template_status_tooltip, nullptr, nullptr);
   theme::get_color_type_4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
 
@@ -617,7 +615,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
                    0.0f,
                    0.0f,
                    std::nullopt);
-    button_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
+    button_func_tooltip_set(but, template_status_tooltip, nullptr, nullptr);
   }
 
   block_emboss_set(block, previous_emboss);

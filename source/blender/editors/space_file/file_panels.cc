@@ -182,7 +182,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 
   button_func_complete_set(but, autocomplete_file, nullptr);
   /* silly workaround calling NFunc to ensure this does not get called
-   * immediate ui_apply_but_func but only after button deactivates */
+   * immediate apply_but_func but only after button deactivates */
   button_funcN_set(but, file_filename_enter_handle, nullptr, but);
 
   if (params->flag & FILE_CHECK_EXISTING) {

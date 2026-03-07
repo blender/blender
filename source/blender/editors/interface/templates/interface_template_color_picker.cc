@@ -208,7 +208,7 @@ void template_color_picker(Layout *layout,
   }
 }
 
-static void ui_template_palette_menu(bContext * /*C*/, Layout *layout, void * /*but_p*/)
+static void template_palette_menu(bContext * /*C*/, Layout *layout, void * /*but_p*/)
 {
 
   layout->label(IFACE_("Sort By:"), ICON_NONE);
@@ -301,7 +301,7 @@ void template_palette(Layout *layout,
 
     /* Menu. */
     uiDefIconMenuBut(
-        block, ui_template_palette_menu, nullptr, ICON_SORTSIZE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "");
+        block, template_palette_menu, nullptr, ICON_SORTSIZE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "");
   }
 
   col = &layout->column(true);

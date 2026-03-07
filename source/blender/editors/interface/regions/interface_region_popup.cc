@@ -64,10 +64,7 @@ void popup_translate(ARegion *region, const int mdiff[2])
 }
 
 /* position block relative to but, result is in window space */
-static void ui_popup_block_position(wmWindow *window,
-                                    ARegion *butregion,
-                                    Button *but,
-                                    Block *block)
+static void popup_block_position(wmWindow *window, ARegion *butregion, Button *but, Block *block)
 {
   PopupBlockHandle *handle = block->handle;
 
@@ -478,7 +475,7 @@ static void block_region_popup_window_listener(const wmRegionListenerParams *par
   }
 }
 
-static void ui_popup_block_clip(wmWindow *window, Block *block)
+static void popup_block_clip(wmWindow *window, Block *block)
 {
   const float xmin_orig = block->rect.xmin;
   const int margin = UI_SCREEN_MARGIN;
@@ -556,7 +553,7 @@ void popup_block_scrolltest(Block *block)
   }
 }
 
-static void ui_popup_block_remove(bContext *C, PopupBlockHandle *handle)
+static void popup_block_remove(bContext *C, PopupBlockHandle *handle)
 {
   wmWindow *ctx_win = CTX_wm_window(C);
   ScrArea *ctx_area = CTX_wm_area(C);
@@ -765,7 +762,7 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
   /* if this is being created from a button */
   if (but) {
     block->aspect = but->block->aspect;
-    ui_popup_block_position(window, butregion, but, block);
+    popup_block_position(window, butregion, but, block);
     handle->direction = block->direction;
   }
   else {
@@ -842,7 +839,7 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
     }
 
     /* clip block with window boundary */
-    ui_popup_block_clip(window, block);
+    popup_block_clip(window, block);
 
     /* Avoid menu moving down and losing cursor focus by keeping it at the same height when the
      * popup is displaced down by at least one window unit. */
@@ -1044,7 +1041,7 @@ void popup_block_free(bContext *C, PopupBlockHandle *handle)
     BKE_panel_free(handle->region->runtime->popup_block_panel);
   }
 
-  ui_popup_block_remove(C, handle);
+  popup_block_remove(C, handle);
 
   MEM_delete(handle);
 }
@@ -1058,7 +1055,7 @@ struct AlertData {
   bool mouse_move_quit;
 };
 
-static void ui_alert_ok_cb(bContext *C, void *arg1, void *arg2)
+static void alert_ok_cb(bContext *C, void *arg1, void *arg2)
 {
   AlertData *data = static_cast<AlertData *>(arg1);
   MEM_delete(data);
@@ -1068,19 +1065,19 @@ static void ui_alert_ok_cb(bContext *C, void *arg1, void *arg2)
   popup_block_close(C, win, block);
 }
 
-static void ui_alert_ok(bContext * /*C*/, void *arg, int /*retval*/)
+static void alert_ok(bContext * /*C*/, void *arg, int /*retval*/)
 {
   AlertData *data = static_cast<AlertData *>(arg);
   MEM_delete(data);
 }
 
-static void ui_alert_cancel(bContext * /*C*/, void *user_data)
+static void alert_cancel(bContext * /*C*/, void *user_data)
 {
   AlertData *data = static_cast<AlertData *>(user_data);
   MEM_delete(data);
 }
 
-static Block *ui_alert_create(bContext *C, ARegion *region, void *user_data)
+static Block *alert_create(bContext *C, ARegion *region, void *user_data)
 {
   AlertData *data = static_cast<AlertData *>(user_data);
 
@@ -1149,7 +1146,7 @@ static Block *ui_alert_create(bContext *C, ARegion *region, void *user_data)
     Block *buttons_block = layout.block();
     Button *okay_but = uiDefBut(
         buttons_block, ButtonType::But, "OK", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
-    button_func_set(okay_but, ui_alert_ok_cb, user_data, block);
+    button_func_set(okay_but, alert_ok_cb, user_data, block);
     button_flag_enable(okay_but, BUT_ACTIVE_DEFAULT);
   }
 
@@ -1183,7 +1180,7 @@ void alert(bContext *C,
   data->okay_button = true;
   data->mouse_move_quit = compact;
 
-  popup_block_ex(C, ui_alert_create, ui_alert_ok, ui_alert_cancel, data, nullptr);
+  popup_block_ex(C, alert_create, alert_ok, alert_cancel, data, nullptr);
 }
 
 /** \} */

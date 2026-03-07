@@ -89,7 +89,7 @@ int button_menu_step(Button *but, int direction)
  * \note This is stored for each unique menu title.
  * \{ */
 
-static uint ui_popup_string_hash(const StringRef str, const bool use_sep)
+static uint popup_string_hash(const StringRef str, const bool use_sep)
 {
   /* sometimes button contains hotkey, sometimes not, strip for proper compare */
   const size_t sep_index = use_sep ? str.find_first_of(UI_SEP_CHAR) : StringRef::not_found;
@@ -99,13 +99,13 @@ static uint ui_popup_string_hash(const StringRef str, const bool use_sep)
   return get_default_hash(before_hotkey);
 }
 
-uint ui_popup_menu_hash(const StringRef str)
+uint popup_menu_hash(const StringRef str)
 {
   return get_default_hash(str);
 }
 
 /* but == nullptr read, otherwise set */
-static Button *ui_popup_menu_memory__internal(Block *block, Button *but)
+static Button *popup_menu_memory__internal(Block *block, Button *but)
 {
   static uint mem[256];
   static bool first = true;
@@ -121,7 +121,7 @@ static Button *ui_popup_menu_memory__internal(Block *block, Button *but)
 
   if (but) {
     /* set */
-    mem[hash_mod] = ui_popup_string_hash(but->str, but->flag & BUT_HAS_SEP_CHAR);
+    mem[hash_mod] = popup_string_hash(but->str, but->flag & BUT_HAS_SEP_CHAR);
     return nullptr;
   }
 
@@ -133,7 +133,7 @@ static Button *ui_popup_menu_memory__internal(Block *block, Button *but)
     if (ELEM(but_iter.type, ButtonType::Label, ButtonType::Sepr, ButtonType::SeprLine)) {
       continue;
     }
-    if (mem[hash_mod] == ui_popup_string_hash(but_iter.str, but_iter.flag & BUT_HAS_SEP_CHAR)) {
+    if (mem[hash_mod] == popup_string_hash(but_iter.str, but_iter.flag & BUT_HAS_SEP_CHAR)) {
       return &but_iter;
     }
   }
@@ -143,12 +143,12 @@ static Button *ui_popup_menu_memory__internal(Block *block, Button *but)
 
 Button *popup_menu_memory_get(Block *block)
 {
-  return ui_popup_menu_memory__internal(block, nullptr);
+  return popup_menu_memory__internal(block, nullptr);
 }
 
 void popup_menu_memory_set(Block *block, Button *but)
 {
-  ui_popup_menu_memory__internal(block, but);
+  popup_menu_memory__internal(block, but);
 }
 
 /** \} */
@@ -176,10 +176,10 @@ struct PopupMenu {
  * \param title: Optional. If set, it will be used to store recently opened menus so they can be
  *               opened with the mouse over the last chosen entry again.
  */
-static void ui_popup_menu_create_block(bContext *C,
-                                       PopupMenu *pup,
-                                       const StringRef title,
-                                       const StringRef block_name)
+static void popup_menu_create_block(bContext *C,
+                                    PopupMenu *pup,
+                                    const StringRef title,
+                                    const StringRef block_name)
 {
   const uiStyle *style = style_get_dpi();
 
@@ -194,7 +194,7 @@ static void ui_popup_menu_create_block(bContext *C,
    * label) for the hash could be investigated to solve this. */
   pup->block->flag |= BLOCK_POPUP_MEMORY;
   if (!title.is_empty()) {
-    pup->block->puphash = ui_popup_menu_hash(title);
+    pup->block->puphash = popup_menu_hash(title);
   }
   pup->layout = &block_layout(pup->block,
                               LayoutDirection::Vertical,
@@ -230,7 +230,7 @@ static Block *block_func_POPUP(bContext *C, PopupBlockHandle *handle, void *arg_
   int minwidth = 0;
 
   if (!pup->layout) {
-    ui_popup_menu_create_block(C, pup, pup->title, __func__);
+    popup_menu_create_block(C, pup, pup->title, __func__);
 
     if (pup->menu_func) {
       pup->block->handle = handle;
@@ -390,7 +390,7 @@ static void block_free_func_POPUP(void *arg_pup)
   MEM_delete(pup);
 }
 
-static PopupBlockHandle *ui_popup_menu_create_impl(
+static PopupBlockHandle *popup_menu_create_impl(
     bContext *C,
     ARegion *butregion,
     Button *but,
@@ -436,7 +436,7 @@ static PopupBlockHandle *ui_popup_menu_create_impl(
 PopupBlockHandle *popup_menu_create(
     bContext *C, ARegion *butregion, Button *but, MenuCreateFunc menu_func, void *arg)
 {
-  return ui_popup_menu_create_impl(
+  return popup_menu_create_impl(
       C,
       butregion,
       but,
@@ -475,7 +475,7 @@ PopupMenu *popup_menu_begin_ex(bContext *C, const char *title, const char *block
 
   pup->title = title;
 
-  ui_popup_menu_create_block(C, pup, title, block_name);
+  popup_menu_create_block(C, pup, title, block_name);
 
   /* create in advance so we can let buttons point to retval already */
   pup->block->handle = MEM_new<PopupBlockHandle>(__func__);
@@ -600,12 +600,12 @@ void popup_menu_reports(bContext *C, ReportList *reports)
   }
 }
 
-static void ui_popup_menu_create_from_menutype(bContext *C,
-                                               MenuType *mt,
-                                               const char *title,
-                                               const int icon)
+static void popup_menu_create_from_menutype(bContext *C,
+                                            MenuType *mt,
+                                            const char *title,
+                                            const int icon)
 {
-  PopupBlockHandle *handle = ui_popup_menu_create_impl(
+  PopupBlockHandle *handle = popup_menu_create_impl(
       C,
       nullptr,
       nullptr,
@@ -648,7 +648,7 @@ wmOperatorStatus popup_menu_invoke(bContext *C, const char *idname, ReportList *
 
   const char *title = CTX_IFACE_(mt->translation_context, mt->label);
   if (allow_refresh) {
-    ui_popup_menu_create_from_menutype(C, mt, title, ICON_NONE);
+    popup_menu_create_from_menutype(C, mt, title, ICON_NONE);
   }
   else {
     /* If no refresh is needed, create the block directly. */
@@ -852,7 +852,7 @@ void uiPupBlockOperator(bContext *C,
 {
   wmWindow *window = CTX_wm_window(C);
 
-  PopupBlockHandle *handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr, true);
+  PopupBlockHandle *handle = popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr, true);
   handle->popup = 1;
   handle->retvalue = 1;
 

@@ -196,7 +196,7 @@ void block_views_draw_overlays(const ARegion *region, const Block *block)
 
 AbstractView *region_view_find_at(const ARegion *region, const int xy[2], const int pad)
 {
-  /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
+  /* NOTE: Similar to #but_find_mouse_over_ex(). */
 
   if (!region_contains_point_px(region, xy)) {
     return nullptr;

@@ -121,11 +121,11 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
   return section_bounds;
 }
 
-static void ui_draw_button_sections_background(const ARegion *region,
-                                               const Span<rcti> section_bounds,
-                                               const ThemeColorID colorid,
-                                               const ButtonSectionsAlign align,
-                                               const float corner_radius)
+static void draw_button_sections_background(const ARegion *region,
+                                            const Span<rcti> section_bounds,
+                                            const ThemeColorID colorid,
+                                            const ButtonSectionsAlign align,
+                                            const float corner_radius)
 {
   float bg_color[4];
   theme::get_color_4fv(colorid, bg_color);
@@ -166,11 +166,11 @@ static void ui_draw_button_sections_background(const ARegion *region,
   }
 }
 
-static void ui_draw_button_sections_alignment_separator(const ARegion *region,
-                                                        const Span<rcti> section_bounds,
-                                                        const ThemeColorID colorid,
-                                                        const ButtonSectionsAlign align,
-                                                        const float corner_radius)
+static void draw_button_sections_alignment_separator(const ARegion *region,
+                                                     const Span<rcti> section_bounds,
+                                                     const ThemeColorID colorid,
+                                                     const ButtonSectionsAlign align,
+                                                     const float corner_radius)
 {
   const int separator_line_width = UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
 
@@ -226,15 +226,15 @@ void region_button_sections_draw(const ARegion *region,
 
   const Vector<rcti> section_bounds = button_section_bounds_calc(region, true);
 
-  ui_draw_button_sections_background(
+  draw_button_sections_background(
       region, section_bounds, ThemeColorID(colorid), align, corner_radius);
   if (align != ButtonSectionsAlign::None) {
-    ui_draw_button_sections_alignment_separator(region,
-                                                section_bounds,
-                                                ThemeColorID(colorid),
-                                                align,
-                                                /* Slightly bigger corner radius, looks better. */
-                                                corner_radius + 1);
+    draw_button_sections_alignment_separator(region,
+                                             section_bounds,
+                                             ThemeColorID(colorid),
+                                             align,
+                                             /* Slightly bigger corner radius, looks better. */
+                                             corner_radius + 1);
   }
 }
 

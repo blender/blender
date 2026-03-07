@@ -989,7 +989,7 @@ static PointerRNA rnapointer_pchan_to_bone(const PointerRNA &pchan_ptr)
   return RNA_pointer_create_discrete(&armature->id, RNA_Bone, pchan->bone);
 }
 
-static void ui_context_selected_bones_via_pose(bContext *C, Vector<PointerRNA> *r_lb)
+static void context_selected_bones_via_pose(bContext *C, Vector<PointerRNA> *r_lb)
 {
   Vector<PointerRNA> lb = CTX_data_collection_get(C, "selected_pose_bones");
 
@@ -1000,9 +1000,9 @@ static void ui_context_selected_bones_via_pose(bContext *C, Vector<PointerRNA> *
   *r_lb = std::move(lb);
 }
 
-static void ui_context_fcurve_modifiers_via_fcurve(bContext *C,
-                                                   Vector<PointerRNA> *r_lb,
-                                                   FModifier *source)
+static void context_fcurve_modifiers_via_fcurve(bContext *C,
+                                                Vector<PointerRNA> *r_lb,
+                                                FModifier *source)
 {
   Vector<PointerRNA> fcurve_links;
   fcurve_links = CTX_data_collection_get(C, "selected_editable_fcurves");
@@ -1022,7 +1022,7 @@ static void ui_context_fcurve_modifiers_via_fcurve(bContext *C,
   }
 }
 
-static void ui_context_selected_key_blocks(ID *owner_id_key, Vector<PointerRNA> *r_lb)
+static void context_selected_key_blocks(ID *owner_id_key, Vector<PointerRNA> *r_lb)
 {
   /* This function chooses to return the selected keyblocks of the owning Key ID.
    * The other option would be to return identically named keyblocks from selected objects. I
@@ -1076,7 +1076,7 @@ bool context_copy_to_selected_list(bContext *C,
         idpath = RNA_path_from_struct_to_idproperty(&bone_ptr,
                                                     static_cast<const IDProperty *>(ptr->data));
         if (idpath) {
-          ui_context_selected_bones_via_pose(C, r_lb);
+          context_selected_bones_via_pose(C, r_lb);
         }
       }
     }
@@ -1120,7 +1120,7 @@ bool context_copy_to_selected_list(bContext *C,
     /* "selected_bones" or "selected_editable_bones" will only yield anything in Armature Edit
      * mode. In other modes, it'll be empty, and the only way to get the selected bones is via
      * "selected_pose_bones". */
-    ui_context_selected_bones_via_pose(C, r_lb);
+    context_selected_bones_via_pose(C, r_lb);
   }
   else if (RNA_struct_is_a(ptr->type, RNA_BoneColor)) {
     /* Get the things that own the bone color (bones, pose bones, or edit bones). */
@@ -1184,7 +1184,7 @@ bool context_copy_to_selected_list(bContext *C,
   }
   else if (RNA_struct_is_a(ptr->type, RNA_FModifier)) {
     FModifier *mod = static_cast<FModifier *>(ptr->data);
-    ui_context_fcurve_modifiers_via_fcurve(C, r_lb, mod);
+    context_fcurve_modifiers_via_fcurve(C, r_lb, mod);
   }
   else if (RNA_struct_is_a(ptr->type, RNA_Keyframe)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_keyframes");
@@ -1199,7 +1199,7 @@ bool context_copy_to_selected_list(bContext *C,
     *r_lb = CTX_data_collection_get(C, "selected_movieclip_tracks");
   }
   else if (RNA_struct_is_a(ptr->type, RNA_ShapeKey)) {
-    ui_context_selected_key_blocks(ptr->owner_id, r_lb);
+    context_selected_key_blocks(ptr->owner_id, r_lb);
   }
   else if (const std::optional<std::string> path_from_bone =
                RNA_path_resolve_from_type_to_property(ptr, prop, RNA_PoseBone);
@@ -2030,27 +2030,27 @@ struct EditSourceStore {
 };
 
 /* should only ever be set while the edit source operator is running */
-static EditSourceStore *ui_editsource_info = nullptr;
+static EditSourceStore *editsource_info = nullptr;
 
 bool editsource_enable_check()
 {
-  return (ui_editsource_info != nullptr);
+  return (editsource_info != nullptr);
 }
 
-static void ui_editsource_active_but_set(Button *but)
+static void editsource_active_but_set(Button *but)
 {
-  BLI_assert(ui_editsource_info == nullptr);
+  BLI_assert(editsource_info == nullptr);
 
-  ui_editsource_info = MEM_new<EditSourceStore>(__func__, *but);
+  editsource_info = MEM_new<EditSourceStore>(__func__, *but);
 }
 
-static void ui_editsource_active_but_clear()
+static void editsource_active_but_clear()
 {
-  MEM_delete(ui_editsource_info);
-  ui_editsource_info = nullptr;
+  MEM_delete(editsource_info);
+  editsource_info = nullptr;
 }
 
-static bool ui_editsource_uibut_match(const Button *but_a, const Button *but_b)
+static bool editsource_uibut_match(const Button *but_a, const Button *but_b)
 {
 #  if 0
   printf("matching buttons: '%s' == '%s'\n", but_a->drawstr, but_b->drawstr);
@@ -2076,7 +2076,7 @@ void editsource_active_but_test(Button *but)
   int line_number = -1;
 
 #  if 0
-  printf("comparing buttons: '%s' == '%s'\n", but->drawstr, ui_editsource_info->but_orig.drawstr);
+  printf("comparing buttons: '%s' == '%s'\n", but->drawstr, editsource_info->but_orig.drawstr);
 #  endif
 
   PyC_FileAndNum_Safe(&fn, &line_number);
@@ -2090,7 +2090,7 @@ void editsource_active_but_test(Button *but)
     but_store->py_dbg_line_number = -1;
   }
 
-  ui_editsource_info->hash.add(but, std::move(but_store));
+  editsource_info->hash.add(but, std::move(but_store));
 }
 
 static wmOperatorStatus editsource_text_edit(bContext *C,
@@ -2124,13 +2124,13 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
 
     // printf("%s: begin\n", __func__);
 
-    /* take care not to return before calling ui_editsource_active_but_clear */
-    ui_editsource_active_but_set(but);
+    /* take care not to return before calling editsource_active_but_clear */
+    editsource_active_but_set(but);
 
     /* redraw and get active button python info */
     region_redraw_immediately(C, region);
 
-    /* It's possible the key button referenced in `ui_editsource_info` has been freed.
+    /* It's possible the key button referenced in `editsource_info` has been freed.
      * This typically happens with popovers but could happen in other situations, see: #140439. */
     Set<const Button *> valid_buttons_in_region;
     for (Block &block_base : region->runtime->uiblocks) {
@@ -2143,7 +2143,7 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
     }
 
     EditSourceButStore *but_store = nullptr;
-    for (const auto &item : ui_editsource_info->hash.items()) {
+    for (const auto &item : editsource_info->hash.items()) {
       const Button *but_key = item.key;
       if (but_key == nullptr) {
         continue;
@@ -2153,7 +2153,7 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      if (ui_editsource_uibut_match(&ui_editsource_info->but_orig, but_key)) {
+      if (editsource_uibut_match(&editsource_info->but_orig, but_key)) {
         but_store = item.value.get();
         break;
       }
@@ -2174,7 +2174,7 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
       ret = OPERATOR_CANCELLED;
     }
 
-    ui_editsource_active_but_clear();
+    editsource_active_but_clear();
 
     // printf("%s: end\n", __func__);
 
@@ -2230,7 +2230,7 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 /** \name Press Button Operator
  * \{ */
 
-static wmOperatorStatus ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus button_press_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
   const bool skip_depressed = RNA_boolean_get(op->ptr, "skip_depressed");
@@ -2275,7 +2275,7 @@ static void UI_OT_button_execute(wmOperatorType *ot)
   ot->idname = "UI_OT_button_execute";
   ot->description = "Presses active button";
 
-  ot->invoke = ui_button_press_invoke;
+  ot->invoke = button_press_invoke;
   ot->flag = OPTYPE_INTERNAL;
 
   RNA_def_boolean(ot->srna, "skip_depressed", false, "Skip Depressed", "");
@@ -2478,7 +2478,7 @@ static bool ui_list_focused_poll(bContext *C)
     return false;
   }
   const wmWindow *win = CTX_wm_window(C);
-  const uiList *list = list_find_mouse_over(region, win->runtime->eventstate);
+  const uiList *list = ui_list_find_mouse_over(region, win->runtime->eventstate);
 
   return list != nullptr;
 }
@@ -2503,7 +2503,7 @@ static wmOperatorStatus ui_list_start_filter_invoke(bContext *C,
                                                     const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  uiList *list = list_find_mouse_over(region, event);
+  uiList *list = ui_list_find_mouse_over(region, event);
   /* Poll should check. */
   BLI_assert(list != nullptr);
 
@@ -2548,15 +2548,15 @@ static AbstractView *get_view_focused(bContext *C)
   return region_view_find_at(region, win->runtime->eventstate->xy, 0);
 }
 
-static bool ui_view_focused_poll(bContext *C)
+static bool view_focused_poll(bContext *C)
 {
   const AbstractView *view = get_view_focused(C);
   return view != nullptr;
 }
 
-static wmOperatorStatus ui_view_start_filter_invoke(bContext *C,
-                                                    wmOperator * /*op*/,
-                                                    const wmEvent *event)
+static wmOperatorStatus view_start_filter_invoke(bContext *C,
+                                                 wmOperator * /*op*/,
+                                                 const wmEvent *event)
 {
   const ARegion *region = CTX_wm_region(C);
   const AbstractView *hovered_view = region_view_find_at(region, event->xy, 0);
@@ -2574,8 +2574,8 @@ static void UI_OT_view_start_filter(wmOperatorType *ot)
   ot->idname = "UI_OT_view_start_filter";
   ot->description = "Start entering filter text for the data-set in focus";
 
-  ot->invoke = ui_view_start_filter_invoke;
-  ot->poll = ui_view_focused_poll;
+  ot->invoke = view_start_filter_invoke;
+  ot->poll = view_focused_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -2586,7 +2586,7 @@ static void UI_OT_view_start_filter(wmOperatorType *ot)
 /** \name UI View Drop Operator
  * \{ */
 
-static bool ui_view_drop_poll(bContext *C)
+static bool view_drop_poll(bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
   if (!(win && win->runtime->eventstate)) {
@@ -2599,7 +2599,7 @@ static bool ui_view_drop_poll(bContext *C)
   return region_views_find_drop_target_at(region, win->runtime->eventstate->xy) != nullptr;
 }
 
-static wmOperatorStatus ui_view_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+static wmOperatorStatus view_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   if (event->custom != EVT_DATA_DRAGDROP) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -2628,8 +2628,8 @@ static void UI_OT_view_drop(wmOperatorType *ot)
   ot->idname = "UI_OT_view_drop";
   ot->description = "Drag and drop onto a data-set or item within the data-set";
 
-  ot->invoke = ui_view_drop_invoke;
-  ot->poll = ui_view_drop_poll;
+  ot->invoke = view_drop_invoke;
+  ot->poll = view_drop_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -2640,7 +2640,7 @@ static void UI_OT_view_drop(wmOperatorType *ot)
 /** \name UI View Scroll Operator
  * \{ */
 
-static bool ui_view_scroll_poll(bContext *C)
+static bool view_scroll_poll(bContext *C)
 {
   const AbstractView *view = get_view_focused(C);
   if (!view) {
@@ -2650,9 +2650,7 @@ static bool ui_view_scroll_poll(bContext *C)
   return view->supports_scrolling();
 }
 
-static wmOperatorStatus ui_view_scroll_invoke(bContext *C,
-                                              wmOperator * /*op*/,
-                                              const wmEvent *event)
+static wmOperatorStatus view_scroll_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   int type = event->type;
@@ -2662,7 +2660,7 @@ static wmOperatorStatus ui_view_scroll_invoke(bContext *C,
     int dummy_val;
     pan_to_scroll(event, &type, &dummy_val);
 
-    /* 'ui_pan_to_scroll' gives the absolute direction. */
+    /* 'pan_to_scroll' gives the absolute direction. */
     if (event->flag & WM_EVENT_SCROLL_INVERT) {
       invert_direction = true;
     }
@@ -2701,8 +2699,8 @@ static void UI_OT_view_scroll(wmOperatorType *ot)
   ot->name = "View Scroll";
   ot->idname = "UI_OT_view_scroll";
 
-  ot->invoke = ui_view_scroll_invoke;
-  ot->poll = ui_view_scroll_poll;
+  ot->invoke = view_scroll_invoke;
+  ot->poll = view_scroll_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -2718,7 +2716,7 @@ static void UI_OT_view_scroll(wmOperatorType *ot)
  *
  * \{ */
 
-static bool ui_view_item_rename_poll(bContext *C)
+static bool view_item_rename_poll(bContext *C)
 {
   if (get_view_focused(C) == nullptr) {
     return false;
@@ -2729,7 +2727,7 @@ static bool ui_view_item_rename_poll(bContext *C)
   return active_item != nullptr && view_item_can_rename(*active_item);
 }
 
-static wmOperatorStatus ui_view_item_rename_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus view_item_rename_exec(bContext *C, wmOperator * /*op*/)
 {
   ARegion *region = CTX_wm_region(C);
   AbstractViewItem *active_item = region_views_find_active_item(region);
@@ -2746,8 +2744,8 @@ static void UI_OT_view_item_rename(wmOperatorType *ot)
   ot->idname = "UI_OT_view_item_rename";
   ot->description = "Rename the active item in the data-set view";
 
-  ot->exec = ui_view_item_rename_exec;
-  ot->poll = ui_view_item_rename_poll;
+  ot->exec = view_item_rename_exec;
+  ot->poll = view_item_rename_poll;
   /* Could get a custom tooltip via the `get_description()` callback and another overridable
    * function of the view. */
 
@@ -2835,7 +2833,7 @@ static std::pair<AbstractView *, AbstractViewItem *> select_operator_view_and_it
   return std::make_pair(view, item);
 }
 
-static wmOperatorStatus ui_view_item_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view_item_select_exec(bContext *C, wmOperator *op)
 {
   ARegion &region = *CTX_wm_region(C);
   auto [view, clicked_item] = select_operator_view_and_item_find_xy(region, *op);
@@ -2857,9 +2855,7 @@ static wmOperatorStatus ui_view_item_select_exec(bContext *C, wmOperator *op)
   return status;
 }
 
-static wmOperatorStatus ui_view_item_select_invoke(bContext *C,
-                                                   wmOperator *op,
-                                                   const wmEvent *event)
+static wmOperatorStatus view_item_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const ARegion &region = *CTX_wm_region(C);
   const AbstractViewItem *clicked_item = region_views_find_item_at(region, event->xy);
@@ -2878,10 +2874,10 @@ static void UI_OT_view_item_select(wmOperatorType *ot)
   ot->idname = "UI_OT_view_item_select";
   ot->description = "Activate selected view item";
 
-  ot->exec = ui_view_item_select_exec;
-  ot->invoke = ui_view_item_select_invoke;
+  ot->exec = view_item_select_exec;
+  ot->invoke = view_item_select_invoke;
   ot->modal = WM_generic_select_modal;
-  ot->poll = ui_view_focused_poll;
+  ot->poll = view_focused_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 
@@ -2904,9 +2900,9 @@ static void UI_OT_view_item_select(wmOperatorType *ot)
  *
  * \{ */
 
-static wmOperatorStatus ui_view_item_delete_invoke(bContext *C,
-                                                   wmOperator * /*op*/,
-                                                   const wmEvent * /*event*/)
+static wmOperatorStatus view_item_delete_invoke(bContext *C,
+                                                wmOperator * /*op*/,
+                                                const wmEvent * /*event*/)
 {
   AbstractView *view = get_view_focused(C);
 
@@ -2925,8 +2921,8 @@ static void UI_OT_view_item_delete(wmOperatorType *ot)
   ot->idname = "UI_OT_view_item_delete";
   ot->description = "Delete selected list item";
 
-  ot->invoke = ui_view_item_delete_invoke;
-  ot->poll = ui_view_focused_poll;
+  ot->invoke = view_item_delete_invoke;
+  ot->poll = view_focused_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -2937,7 +2933,7 @@ static void UI_OT_view_item_delete(wmOperatorType *ot)
  *
  * \{ */
 
-static bool ui_drop_material_poll(bContext *C)
+static bool drop_material_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "object", RNA_Object);
   const Object *ob = static_cast<const Object *>(ptr.data);
@@ -2953,7 +2949,7 @@ static bool ui_drop_material_poll(bContext *C)
   return true;
 }
 
-static wmOperatorStatus ui_drop_material_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus drop_material_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 
@@ -2992,8 +2988,8 @@ static void UI_OT_drop_material(wmOperatorType *ot)
   ot->description = "Drag material to Material slots in Properties";
   ot->idname = "UI_OT_drop_material";
 
-  ot->poll = ui_drop_material_poll;
-  ot->exec = ui_drop_material_exec;
+  ot->poll = drop_material_poll;
+  ot->exec = drop_material_exec;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   WM_operator_properties_id_lookup(ot, false);

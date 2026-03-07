@@ -22,7 +22,7 @@ namespace ui {
 
 /* interface_region_menu_popup.cc */
 
-uint ui_popup_menu_hash(StringRef str);
+uint popup_menu_hash(StringRef str);
 
 /* interface_regions.cc */
 

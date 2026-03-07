@@ -1309,7 +1309,7 @@ static void std_node_socket_draw(
           if (optional_label) {
             if (expanded) {
               /* Use a single space for the name to work around a bug. Also see
-               * #ui_item_enum_expand_exec. */
+               * #item_enum_expand_exec. */
               layout->prop(ptr, "default_value", ui::ITEM_R_EXPAND, " ", ICON_NONE);
             }
             else {
@@ -1321,7 +1321,7 @@ static void std_node_socket_draw(
             row.label(label, ICON_NONE);
             if (expanded) {
               /* Use a single space for the name to work around a bug. Also see
-               * #ui_item_enum_expand_exec. */
+               * #item_enum_expand_exec. */
               row.row(true).prop(ptr, "default_value", ui::ITEM_R_EXPAND, " ", ICON_NONE);
             }
             else {

@@ -861,7 +861,7 @@ void panel_drawname_set(Panel *panel, StringRef name)
   panel->drawname = BLI_strdupn(name.data(), name.size());
 }
 
-static void ui_offset_panel_block(Block *block)
+static void offset_panel_block(Block *block)
 {
   const uiStyle *style = style_get_dpi();
 
@@ -1245,7 +1245,7 @@ void draw_layout_panels_backdrop(const ARegion *region,
     }
     panel_blockspace.ymax = std::min(panel_blockspace.ymax, panel->runtime->block->rect.ymax);
 
-    rcti panel_pixelspace = ui_to_pixelrect(region, panel->runtime->block, &panel_blockspace);
+    rcti panel_pixelspace = rect_to_pixelrect(region, panel->runtime->block, &panel_blockspace);
     rctf panel_pixelspacef;
     BLI_rctf_rcti_copy(&panel_pixelspacef, &panel_pixelspace);
     draw_roundbox_4fv(&panel_pixelspacef, true, radius, subpanel_backcolor);
@@ -1672,7 +1672,7 @@ void panel_category_tabs_draw_all(ARegion *region, const char *category_id_activ
 
 /** \} */
 
-static int ui_panel_category_show_active_tab(ARegion *region, const int mval[2])
+static int panel_category_show_active_tab(ARegion *region, const int mval[2])
 {
   if (!ED_region_panel_category_gutter_isect_xy(region, mval)) {
     return WM_UI_HANDLER_CONTINUE;
@@ -1893,7 +1893,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   return changed;
 }
 
-static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
+static void panels_size(ARegion *region, int *r_x, int *r_y)
 {
   int sizex = 0;
   int sizey = 0;
@@ -1929,7 +1929,7 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
   *r_y = sizey;
 }
 
-static void ui_do_animate(bContext *C, Panel *panel)
+static void do_animate(bContext *C, Panel *panel)
 {
   HandlePanelData *data = static_cast<HandlePanelData *>(panel->activedata);
   ARegion *region = CTX_wm_region(C);
@@ -2007,7 +2007,7 @@ void panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   /* Offset contents. */
   for (Block &block : region->runtime->uiblocks) {
     if (block.active && block.panel) {
-      ui_offset_panel_block(&block);
+      offset_panel_block(&block);
 
       /* Update bounds for all "views" in this block. Usually this is done in #block_end(), but
        * that wouldn't work because of the offset applied above. */
@@ -2027,7 +2027,7 @@ void panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   }
 
   /* Compute size taken up by panels. */
-  ui_panels_size(region, r_x, r_y);
+  panels_size(region, r_x, r_y);
 }
 
 /** \} */
@@ -2037,7 +2037,7 @@ void panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
  * \{ */
 
 #define DRAG_REGION_PAD (PNL_HEADER * 0.5)
-static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
+static void do_drag(const bContext *C, const wmEvent *event, Panel *panel)
 {
   HandlePanelData *data = static_cast<HandlePanelData *>(panel->activedata);
   ARegion *region = CTX_wm_region(C);
@@ -2077,10 +2077,10 @@ LayoutPanelHeader *layout_panel_header_under_mouse(const Panel &panel, const int
   return nullptr;
 }
 
-static PanelMouseState ui_panel_mouse_state_get(const Block *block,
-                                                const Panel *panel,
-                                                const int mx,
-                                                const int my)
+static PanelMouseState panel_mouse_state_get(const Block *block,
+                                             const Panel *panel,
+                                             const int mx,
+                                             const int my)
 {
   if (!IN_RANGE(float(mx), block->rect.xmin, block->rect.xmax)) {
     return PANEL_MOUSE_OUTSIDE;
@@ -2107,15 +2107,15 @@ struct PanelDragCollapseHandle {
   int xy_init[2];
 };
 
-static void ui_panel_drag_collapse_handler_remove(bContext * /*C*/, void *userdata)
+static void panel_drag_collapse_handler_remove(bContext * /*C*/, void *userdata)
 {
   PanelDragCollapseHandle *dragcol_data = static_cast<PanelDragCollapseHandle *>(userdata);
   MEM_delete(dragcol_data);
 }
 
-static void ui_panel_drag_collapse(const bContext *C,
-                                   const PanelDragCollapseHandle *dragcol_data,
-                                   const int xy_dst[2])
+static void panel_drag_collapse(const bContext *C,
+                                const PanelDragCollapseHandle *dragcol_data,
+                                const int xy_dst[2])
 {
   ARegion *region = CTX_wm_region_popup(C);
   if (!region) {
@@ -2186,7 +2186,7 @@ static void ui_panel_drag_collapse(const bContext *C,
  * that was first dragged over. If it was open all affected panels including the initial
  * one are closed and vice versa.
  */
-static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, void *userdata)
+static int panel_drag_collapse_handler(bContext *C, const wmEvent *event, void *userdata)
 {
   wmWindow *win = CTX_wm_window(C);
   PanelDragCollapseHandle *dragcol_data = static_cast<PanelDragCollapseHandle *>(userdata);
@@ -2194,7 +2194,7 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
 
   switch (event->type) {
     case MOUSEMOVE:
-      ui_panel_drag_collapse(C, dragcol_data, event->xy);
+      panel_drag_collapse(C, dragcol_data, event->xy);
 
       retval = WM_UI_HANDLER_BREAK;
       break;
@@ -2202,11 +2202,11 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
       if (event->val == KM_RELEASE) {
         /* Done! */
         WM_event_remove_ui_handler(&win->runtime->modalhandlers,
-                                   ui_panel_drag_collapse_handler,
-                                   ui_panel_drag_collapse_handler_remove,
+                                   panel_drag_collapse_handler,
+                                   panel_drag_collapse_handler_remove,
                                    dragcol_data,
                                    true);
-        ui_panel_drag_collapse_handler_remove(C, dragcol_data);
+        panel_drag_collapse_handler_remove(C, dragcol_data);
       }
       /* Don't let any left-mouse event fall through! */
       retval = WM_UI_HANDLER_BREAK;
@@ -2230,13 +2230,13 @@ void panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
 
   WM_event_add_ui_handler(C,
                           &win->runtime->modalhandlers,
-                          ui_panel_drag_collapse_handler,
-                          ui_panel_drag_collapse_handler_remove,
+                          panel_drag_collapse_handler,
+                          panel_drag_collapse_handler_remove,
                           dragcol_data,
                           eWM_EventHandlerFlag(0));
 }
 
-bool ui_layout_panel_toggle_open(const bContext *C, LayoutPanelHeader *header)
+bool layout_panel_toggle_open(const bContext *C, LayoutPanelHeader *header)
 {
   const bool is_open = RNA_boolean_get(&header->open_owner_ptr, header->open_prop_name.c_str());
   RNA_boolean_set(&header->open_owner_ptr, header->open_prop_name.c_str(), !is_open);
@@ -2247,7 +2247,7 @@ bool ui_layout_panel_toggle_open(const bContext *C, LayoutPanelHeader *header)
   return !is_open;
 }
 
-static void ui_handle_layout_panel_header(
+static void handle_layout_panel_header(
     bContext *C, const Block *block, const int /*mx*/, const int my, const int event_type)
 {
   Panel *panel = block->panel;
@@ -2257,7 +2257,7 @@ static void ui_handle_layout_panel_header(
   if (header == nullptr) {
     return;
   }
-  const bool new_state = ui_layout_panel_toggle_open(C, header);
+  const bool new_state = layout_panel_toggle_open(C, header);
   ED_region_tag_redraw(CTX_wm_region(C));
   WM_tooltip_clear(C, CTX_wm_window(C));
 
@@ -2272,12 +2272,12 @@ static void ui_handle_layout_panel_header(
  *
  * \param mx: The mouse x coordinate, in panel space.
  */
-static void ui_handle_panel_header(const bContext *C,
-                                   const Block *block,
-                                   const int mx,
-                                   const int event_type,
-                                   const bool ctrl,
-                                   const bool shift)
+static void handle_panel_header(const bContext *C,
+                                const Block *block,
+                                const int mx,
+                                const int event_type,
+                                const bool ctrl,
+                                const bool shift)
 {
   Panel *panel = block->panel;
   ARegion *region = CTX_wm_region(C);
@@ -2399,7 +2399,7 @@ PanelCategoryStack *panel_category_active_find(ARegion *region, const char *idna
       &region->panels_category_active, idname, offsetof(PanelCategoryStack, idname)));
 }
 
-static void ui_panel_category_active_set(ARegion *region, const char *idname, bool fallback)
+static void panel_category_active_set(ARegion *region, const char *idname, bool fallback)
 {
   ListBaseT<PanelCategoryStack> *lb = &region->panels_category_active;
   PanelCategoryStack *pc_act = panel_category_active_find(region, idname);
@@ -2442,7 +2442,7 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
 
 void panel_category_active_set(ARegion *region, const char *idname)
 {
-  ui_panel_category_active_set(region, idname, false);
+  panel_category_active_set(region, idname, false);
 }
 
 void panel_category_index_active_set(ARegion *region, const int index)
@@ -2453,13 +2453,13 @@ void panel_category_index_active_set(ARegion *region, const int index)
     return;
   }
 
-  ui_panel_category_active_set(region, pc_dyn->idname, false);
+  panel_category_active_set(region, pc_dyn->idname, false);
 }
 
 void panel_category_active_set_default(ARegion *region, const char *idname)
 {
   if (!panel_category_active_find(region, idname)) {
-    ui_panel_category_active_set(region, idname, true);
+    panel_category_active_set(region, idname, true);
   }
 }
 
@@ -2475,7 +2475,7 @@ const char *panel_category_active_get(ARegion *region, bool set_fallback)
     PanelCategoryDyn *pc_dyn = static_cast<PanelCategoryDyn *>(
         region->runtime->panels_category.first);
     if (pc_dyn) {
-      ui_panel_category_active_set(region, pc_dyn->idname, true);
+      panel_category_active_set(region, pc_dyn->idname, true);
       return pc_dyn->idname;
     }
   }
@@ -2511,9 +2511,9 @@ void panel_category_clear_all(ARegion *region)
   BLI_freelistN(&region->runtime->panels_category);
 }
 
-static int ui_handle_panel_category_cycling(const wmEvent *event,
-                                            ARegion *region,
-                                            const Button *active_but)
+static int handle_panel_category_cycling(const wmEvent *event,
+                                         ARegion *region,
+                                         const Button *active_but)
 {
   BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
 
@@ -2568,7 +2568,7 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
   return WM_UI_HANDLER_CONTINUE;
 }
 
-static void ui_panel_region_width_set(ARegion *region, const float aspect, int unscaled_size)
+static void panel_region_width_set(ARegion *region, const float aspect, int unscaled_size)
 {
   const float size_new = unscaled_size / aspect;
   if (region->alignment & RGN_ALIGN_RIGHT) {
@@ -2628,14 +2628,14 @@ int handler_panel_region(bContext *C,
           const int new_width = region->runtime->type->prefsizex ?
                                     region->runtime->type->prefsizex :
                                     250;
-          ui_panel_region_width_set(region, aspect, new_width);
+          panel_region_width_set(region, aspect, new_width);
           WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
         }
         else if (already_active) {
           /* Minimize region. */
           region->runtime->type->prefsizex = int(float(BLI_rcti_size_x(&region->winrct) + 1) /
                                                  UI_SCALE_FAC * aspect);
-          ui_panel_region_width_set(region, aspect, UI_PANEL_CATEGORY_MIN_WIDTH);
+          panel_region_width_set(region, aspect, UI_PANEL_CATEGORY_MIN_WIDTH);
           WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
         }
 
@@ -2651,10 +2651,10 @@ int handler_panel_region(bContext *C,
              ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE))
     {
       /* Cycle tabs. */
-      retval = ui_handle_panel_category_cycling(event, region, active_but);
+      retval = handle_panel_category_cycling(event, region, active_but);
     }
     if (event->type == EVT_PADPERIOD) {
-      retval = ui_panel_category_show_active_tab(region, event->xy);
+      retval = panel_category_show_active_tab(region, event->xy);
     }
   }
 
@@ -2679,7 +2679,7 @@ int handler_panel_region(bContext *C,
     int my = event->xy[1];
     window_to_block(region, &block, &mx, &my);
 
-    const PanelMouseState mouse_state = ui_panel_mouse_state_get(&block, panel, mx, my);
+    const PanelMouseState mouse_state = panel_mouse_state_get(&block, panel, mx, my);
 
     if (has_panel_header && mouse_state != PANEL_MOUSE_OUTSIDE) {
       /* Mark panels that have been interacted with so their expansion
@@ -2691,7 +2691,7 @@ int handler_panel_region(bContext *C,
        * active button handling. */
       if ((event->type == EVT_AKEY) && (event->modifier == 0)) {
         retval = WM_UI_HANDLER_BREAK;
-        ui_handle_panel_header(
+        handle_panel_header(
             C, &block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);
         break;
       }
@@ -2706,7 +2706,7 @@ int handler_panel_region(bContext *C,
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
         retval = WM_UI_HANDLER_BREAK;
-        ui_handle_panel_header(
+        handle_panel_header(
             C, &block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);
       }
       else if (event->type == RIGHTMOUSE) {
@@ -2718,7 +2718,7 @@ int handler_panel_region(bContext *C,
     if (mouse_state == PANEL_MOUSE_INSIDE_LAYOUT_PANEL_HEADER) {
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
         retval = WM_UI_HANDLER_BREAK;
-        ui_handle_layout_panel_header(C, &block, mx, my, event->type);
+        handle_layout_panel_header(C, &block, mx, my, event->type);
       }
     }
   }
@@ -2726,12 +2726,12 @@ int handler_panel_region(bContext *C,
   return retval;
 }
 
-static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_data)
+static void panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_data)
 {
   panel->runtime->custom_data_ptr = custom_data;
 
   for (Panel &child_panel : panel->children) {
-    ui_panel_custom_data_set_recursive(&child_panel, custom_data);
+    panel_custom_data_set_recursive(&child_panel, custom_data);
   }
 }
 
@@ -2750,7 +2750,7 @@ void panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
     MEM_delete(panel->runtime->custom_data_ptr);
   }
 
-  ui_panel_custom_data_set_recursive(panel, custom_data);
+  panel_custom_data_set_recursive(panel, custom_data);
 }
 
 PointerRNA *panel_custom_data_get(const Panel *panel)
@@ -2771,7 +2771,7 @@ PointerRNA *region_panel_custom_data_under_cursor(const bContext *C, const wmEve
       int mx = event->xy[0];
       int my = event->xy[1];
       window_to_block(region, &block, &mx, &my);
-      const int mouse_state = ui_panel_mouse_state_get(&block, panel, mx, my);
+      const int mouse_state = panel_mouse_state_get(&block, panel, mx, my);
       if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
         return panel_custom_data_get(panel);
       }
@@ -2793,7 +2793,7 @@ bool panel_can_be_pinned(const Panel *panel)
  * \{ */
 
 /* NOTE: this is modal handler and should not swallow events for animation. */
-static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
+static int handler_panel(bContext *C, const wmEvent *event, void *userdata)
 {
   Panel *panel = static_cast<Panel *>(userdata);
   HandlePanelData *data = static_cast<HandlePanelData *>(panel->activedata);
@@ -2804,15 +2804,15 @@ static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
   }
   else if (event->type == MOUSEMOVE) {
     if (data->state == PANEL_STATE_DRAG) {
-      ui_do_drag(C, event, panel);
+      do_drag(C, event, panel);
     }
   }
   else if (event->type == TIMER && event->customdata == data->animtimer) {
     if (data->state == PANEL_STATE_ANIMATION) {
-      ui_do_animate(C, panel);
+      do_animate(C, panel);
     }
     else if (data->state == PANEL_STATE_DRAG) {
-      ui_do_drag(C, event, panel);
+      do_drag(C, event, panel);
     }
   }
 
@@ -2824,7 +2824,7 @@ static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
   return WM_UI_HANDLER_BREAK;
 }
 
-static void ui_handler_remove_panel(bContext *C, void *userdata)
+static void handler_remove_panel(bContext *C, void *userdata)
 {
   Panel *panel = static_cast<Panel *>(userdata);
 
@@ -2843,8 +2843,8 @@ static void panel_handle_data_ensure(const bContext *C,
     panel->activedata = MEM_new_zeroed<HandlePanelData>(__func__);
     WM_event_add_ui_handler(C,
                             &win->runtime->modalhandlers,
-                            ui_handler_panel,
-                            ui_handler_remove_panel,
+                            handler_panel,
+                            handler_remove_panel,
                             panel,
                             eWM_EventHandlerFlag(0));
   }
@@ -2913,7 +2913,7 @@ static void panel_activate_state(const bContext *C, Panel *panel, const HandlePa
     panel->activedata = nullptr;
 
     WM_event_remove_ui_handler(
-        &win->runtime->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, false);
+        &win->runtime->modalhandlers, handler_panel, handler_remove_panel, panel, false);
   }
 
   ED_region_tag_redraw(region);
