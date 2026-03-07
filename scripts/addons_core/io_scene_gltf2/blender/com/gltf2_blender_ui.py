@@ -678,8 +678,7 @@ def export_panel_animation_action_filter(layout, operator):
 def register():
     bpy.utils.register_class(NODE_OT_GLTF_SETTINGS)
     bpy.types.NODE_MT_category_shader_output.append(add_gltf_settings_to_menu)
-    bpy.utils.register_class(SCENE_OT_gltf2_action_filter_refresh)
-    bpy.utils.register_class(SCENE_UL_gltf2_filter_action)
+    action_filter_register()
 
 
 def variant_register():
@@ -711,6 +710,17 @@ def variant_register():
 
 def unregister():
     bpy.utils.unregister_class(NODE_OT_GLTF_SETTINGS)
+    action_filter_unregister()
+
+
+def action_filter_register():
+    bpy.utils.register_class(SCENE_OT_gltf2_action_filter_refresh)
+    bpy.utils.register_class(SCENE_UL_gltf2_filter_action)
+
+
+def action_filter_unregister():
+    del bpy.types.Scene.gltf_action_filter
+    del bpy.types.Scene.gltf_action_filter_active
     bpy.utils.unregister_class(SCENE_UL_gltf2_filter_action)
     bpy.utils.unregister_class(SCENE_OT_gltf2_action_filter_refresh)
 
