@@ -718,8 +718,9 @@ def action_filter_register():
 
 
 def action_filter_unregister():
-    del bpy.types.Scene.gltf_action_filter
-    del bpy.types.Scene.gltf_action_filter_active
+    if hasattr(bpy.data.scenes[0], "gltf_action_filter"):
+        del bpy.types.Scene.gltf_action_filter
+        del bpy.types.Scene.gltf_action_filter_active
     bpy.utils.unregister_class(SCENE_UL_gltf2_filter_action)
     bpy.utils.unregister_class(SCENE_OT_gltf2_action_filter_refresh)
 
