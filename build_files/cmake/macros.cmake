@@ -547,6 +547,20 @@ function(setup_platform_linker_flags
   endif()
 endfunction()
 
+# Hide internal symbols for targets that might otherwise conflict with plugins.
+function(setup_platform_linker_symbol_hiding target)
+  if(DEFINED PLATFORM_LINKFLAGS_SYMBOL_HIDING)
+    set_property(
+      TARGET ${target} APPEND_STRING PROPERTY
+      LINK_FLAGS " ${PLATFORM_LINKFLAGS_SYMBOL_HIDING}"
+    )
+  endif()
+
+  if(DEFINED PLATFORM_SYMBOLS_MAP)
+    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${PLATFORM_SYMBOLS_MAP})
+  endif()
+endfunction()
+
 # Platform specific libraries for targets.
 function(setup_platform_linker_libs
   target
