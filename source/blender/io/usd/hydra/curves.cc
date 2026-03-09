@@ -95,12 +95,9 @@ pxr::VtValue CurvesData::get_data(pxr::TfToken const &key) const
   return pxr::VtValue();
 }
 
-pxr::SdfPath CurvesData::material_id() const
+MaterialData *CurvesData::get_material_data(pxr::SdfPath const & /*id*/) const
 {
-  if (!mat_data_) {
-    return pxr::SdfPath();
-  }
-  return mat_data_->prim_id;
+  return mat_data_;
 }
 
 void CurvesData::available_materials(Set<pxr::SdfPath> &paths) const

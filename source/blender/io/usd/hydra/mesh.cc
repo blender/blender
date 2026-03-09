@@ -107,15 +107,6 @@ pxr::VtValue MeshData::get_data(pxr::SdfPath const &id, pxr::TfToken const &key)
   return get_data(key);
 }
 
-pxr::SdfPath MeshData::material_id(pxr::SdfPath const &id) const
-{
-  const SubMesh &sm = submesh(id);
-  if (!sm.mat_data) {
-    return pxr::SdfPath();
-  }
-  return sm.mat_data->prim_id;
-}
-
 void MeshData::available_materials(Set<pxr::SdfPath> &paths) const
 {
   for (const auto &sm : submeshes_) {
@@ -154,22 +145,9 @@ pxr::HdPrimvarDescriptorVector MeshData::primvar_descriptors(
   return primvars;
 }
 
-pxr::HdCullStyle MeshData::cull_style(pxr::SdfPath const &id) const
+MaterialData *MeshData::get_material_data(pxr::SdfPath const &id) const
 {
-  const SubMesh &sm = submesh(id);
-  if (sm.mat_data) {
-    return sm.mat_data->cull_style();
-  }
-  return pxr::HdCullStyle::HdCullStyleNothing;
-}
-
-bool MeshData::double_sided(pxr::SdfPath const &id) const
-{
-  const SubMesh &sm = submesh(id);
-  if (sm.mat_data) {
-    return sm.mat_data->double_sided;
-  }
-  return true;
+  return submesh(id).mat_data;
 }
 
 void MeshData::update_double_sided(MaterialData *mat_data)

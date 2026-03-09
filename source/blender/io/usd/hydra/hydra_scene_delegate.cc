@@ -153,25 +153,28 @@ bool HydraSceneDelegate::GetVisible(pxr::SdfPath const &id)
   if (i_data) {
     return true;
   }
-  return object_data(id)->visible;
+  const ObjectData *o_data = object_data(id);
+  return o_data ? o_data->visible : false;
 }
 
 bool HydraSceneDelegate::GetDoubleSided(pxr::SdfPath const &id)
 {
   CLOG_DEBUG(LOG_HYDRA_SCENE, "%s", id.GetText());
-  return mesh_data(id)->double_sided(id);
+  const ObjectData *o_data = object_data(id);
+  return o_data ? o_data->double_sided(id) : true;
 }
 
 pxr::HdCullStyle HydraSceneDelegate::GetCullStyle(pxr::SdfPath const &id)
 {
   CLOG_DEBUG(LOG_HYDRA_SCENE, "%s", id.GetText());
-  return mesh_data(id)->cull_style(id);
+  const ObjectData *o_data = object_data(id);
+  return o_data ? o_data->cull_style(id) : pxr::HdCullStyle::HdCullStyleNothing;
 }
 
 pxr::SdfPath HydraSceneDelegate::GetInstancerId(pxr::SdfPath const &prim_id)
 {
   CLOG_DEBUG(LOG_HYDRA_SCENE, "%s", prim_id.GetText());
-  InstancerData *i_data = instancer_data(prim_id, true);
+  const InstancerData *i_data = instancer_data(prim_id, true);
   if (i_data && mesh_data(prim_id)) {
     return i_data->prim_id;
   }
@@ -181,31 +184,31 @@ pxr::SdfPath HydraSceneDelegate::GetInstancerId(pxr::SdfPath const &prim_id)
 pxr::SdfPathVector HydraSceneDelegate::GetInstancerPrototypes(pxr::SdfPath const &instancer_id)
 {
   CLOG_DEBUG(LOG_HYDRA_SCENE, "%s", instancer_id.GetText());
-  InstancerData *i_data = instancer_data(instancer_id);
-  return i_data->prototypes();
+  const InstancerData *i_data = instancer_data(instancer_id);
+  return i_data ? i_data->prototypes() : pxr::SdfPathVector();
 }
 
 pxr::VtIntArray HydraSceneDelegate::GetInstanceIndices(pxr::SdfPath const &instancer_id,
                                                        pxr::SdfPath const &prototype_id)
 {
   CLOG_DEBUG(LOG_HYDRA_SCENE, "%s, %s", instancer_id.GetText(), prototype_id.GetText());
-  InstancerData *i_data = instancer_data(instancer_id);
-  return i_data->indices(prototype_id);
+  const InstancerData *i_data = instancer_data(instancer_id);
+  return i_data ? i_data->indices(prototype_id) : pxr::VtIntArray();
 }
 
 pxr::GfMatrix4d HydraSceneDelegate::GetInstancerTransform(pxr::SdfPath const &instancer_id)
 {
   CLOG_DEBUG(LOG_HYDRA_SCENE, "%s", instancer_id.GetText());
-  InstancerData *i_data = instancer_data(instancer_id);
-  return i_data->transform(instancer_id);
+  const InstancerData *i_data = instancer_data(instancer_id);
+  return i_data ? i_data->transform(instancer_id) : pxr::GfMatrix4d(1.0);
 }
 
 pxr::HdVolumeFieldDescriptorVector HydraSceneDelegate::GetVolumeFieldDescriptors(
     pxr::SdfPath const &volume_id)
 {
   CLOG_DEBUG(LOG_HYDRA_SCENE, "%s", volume_id.GetText());
-  VolumeData *v_data = volume_data(volume_id);
-  return v_data->field_descriptors();
+  const VolumeData *v_data = volume_data(volume_id);
+  return v_data ? v_data->field_descriptors() : pxr::HdVolumeFieldDescriptorVector();
 }
 
 void HydraSceneDelegate::populate(Depsgraph *deps, View3D *v3d)
