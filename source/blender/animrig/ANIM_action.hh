@@ -1569,6 +1569,13 @@ const animrig::Channelbag *channelbag_for_action_slot(const Action &action,
 animrig::Channelbag *channelbag_for_action_slot(Action &action, slot_handle_t slot_handle);
 
 /**
+ * Returns the channelbag of the active layer for the given action and slot.
+ *
+ * \note This function is only valid until support for multiple strips per layer are added.
+ */
+Channelbag *channelbag_of_active_layer(Action &action, slot_handle_t slot_handle);
+
+/**
  * Return the F-Curves for this specific slot handle.
  *
  * This is just a utility function, that's intended to become obsolete when multi-layer Actions
@@ -1866,6 +1873,27 @@ void assert_baklava_phase_1_invariants(const Action &action);
 void assert_baklava_phase_1_invariants(const Layer &layer);
 /** \copydoc assert_baklava_phase_1_invariants(const Action &) */
 void assert_baklava_phase_1_invariants(const Strip &strip);
+
+/**
+ * Assert the invariants of Project Baklava (layered actions) phase 2.
+ *
+ * An action can have 0-n layers.
+ *
+ * For a layer the invariants are that it:
+ * - Has zero strips.
+ * - OR has a single strip that adheres to the phase 1 invariants for strips.
+ *
+ * For a strip the invariants are that it:
+ * - Is a keyframe strip.
+ * - AND is infinite.
+ * - AND has no time offset (i.e. aligns with scene time).
+ *
+ * This simultaneously serves as a todo marker for later phases of Project
+ * Baklava and ensures that the phase-2 invariants hold at runtime.
+ */
+void assert_baklava_phase_2_invariants(const Action &action);
+void assert_baklava_phase_2_invariants(const Layer &layer);
+void assert_baklava_phase_2_invariants(const Strip &strip);
 
 /**
  * Move the given slot from `from_action` to `to_action`.

@@ -2488,6 +2488,31 @@ animrig::Channelbag *channelbag_for_action_slot(Action &action, const slot_handl
   return const_cast<animrig::Channelbag *>(const_bag);
 }
 
+Channelbag *channelbag_of_active_layer(Action &action, slot_handle_t slot_handle)
+{
+  assert_baklava_phase_2_invariants(action);
+
+  if (slot_handle == Slot::unassigned) {
+    return nullptr;
+  }
+  Layer *layer = action.layer(action.layer_active_index);
+  if (!layer) {
+    return nullptr;
+  }
+  for (Strip *strip : layer->strips()) {
+    switch (strip->type()) {
+      case Strip::Type::Keyframe: {
+        StripKeyframeData &strip_data = strip->data<StripKeyframeData>(action);
+        Channelbag *bag = strip_data.channelbag_for_slot(slot_handle);
+        if (bag) {
+          return bag;
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
 Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_handle)
 {
   assert_baklava_phase_1_invariants(action);
@@ -2551,7 +2576,7 @@ FCurve *fcurve_find_in_action_slot(bAction *act,
   }
 
   Action &action = act->wrap();
-  Channelbag *cbag = channelbag_for_action_slot(action, slot_handle);
+  Channelbag *cbag = channelbag_of_active_layer(action, slot_handle);
   if (!cbag) {
     return nullptr;
   }
@@ -2925,6 +2950,31 @@ void assert_baklava_phase_1_invariants(const Layer &layer)
 }
 
 void assert_baklava_phase_1_invariants(const Strip &strip)
+{
+  UNUSED_VARS_NDEBUG(strip);
+  BLI_assert(strip.type() == Strip::Type::Keyframe);
+  BLI_assert(strip.is_infinite());
+  BLI_assert(strip.frame_offset == 0.0);
+}
+
+void assert_baklava_phase_2_invariants(const Action &action)
+{
+  for (const Layer *layer : action.layers()) {
+    assert_baklava_phase_2_invariants(*layer);
+  }
+}
+
+void assert_baklava_phase_2_invariants(const Layer &layer)
+{
+  if (layer.strips().is_empty()) {
+    return;
+  }
+  BLI_assert(layer.strips().size() == 1);
+
+  assert_baklava_phase_2_invariants(*layer.strip(0));
+}
+
+void assert_baklava_phase_2_invariants(const Strip &strip)
 {
   UNUSED_VARS_NDEBUG(strip);
   BLI_assert(strip.type() == Strip::Type::Keyframe);
