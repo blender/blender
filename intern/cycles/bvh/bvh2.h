@@ -89,7 +89,6 @@ class BVH2 : public BVH {
 
   /* triangles and strands */
   void pack_primitives();
-  void pack_triangle(const int idx, const float4 storage[3]);
 
   /* merge instance BVH's */
   void pack_instances(const size_t nodes_size, const size_t leaf_nodes_size);

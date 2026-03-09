@@ -2801,6 +2801,7 @@ static int get_main_socket_priority(const bNodeSocket *socket)
       return 5;
     case SOCK_RGBA:
       return 6;
+    case SOCK_INT_VECTOR:
     case SOCK_STRING:
     case SOCK_SHADER:
     case SOCK_OBJECT:

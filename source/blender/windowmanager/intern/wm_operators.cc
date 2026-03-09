@@ -9,6 +9,7 @@
  * as well as some generic operators and shared operator properties.
  */
 
+#include "UI_interface_c.hh"
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
@@ -1425,7 +1426,9 @@ static ui::Block *wm_block_create_redo(bContext *C, ARegion *region, void *arg_o
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_REGULAR);
 
   /* #BLOCK_NUMSELECT for layer buttons. */
-  block_flag_enable(block, ui::BLOCK_NUMSELECT | ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT);
+  block_flag_enable(block,
+                    ui::BLOCK_NUMSELECT | ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT |
+                        ui::BLOCK_POPUP);
 
   /* If register is not enabled, the operator gets freed on #OPERATOR_FINISHED
    * ui_apply_but_funcs_after calls #ED_undo_operator_repeate_cb and crashes. */
@@ -1537,7 +1540,7 @@ static ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *use
     data->icon = ui::AlertIcon::Question;
   }
 
-  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_NUMSELECT);
+  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_NUMSELECT | ui::BLOCK_POPUP);
 
   ui::fontstyle_set(&style->widget);
   /* Width based on the text lengths. */
@@ -1689,7 +1692,7 @@ static ui::Block *wm_operator_ui_create(bContext *C, ARegion *region, void *user
 
   ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   block_flag_disable(block, ui::BLOCK_LOOP);
-  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT);
+  block_flag_enable(block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_POPUP);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_REGULAR);
 
   popup_dummy_panel_set(region, block, op->idname);
@@ -4555,8 +4558,14 @@ static const EnumPropertyItem *rna_id_itemf(bool *r_free,
         item_tmp.identifier = item_tmp.name = id->name + 2;
         item_tmp.value = i++;
 
+        const BIFIconID lib_state_icon = ui::icon_from_library(id);
+        /* Indicate library linking, override or asset state in icon. In enum menus that's the only
+         * way to tell apart linked IDs from their overridden versions. */
+        if (lib_state_icon != ICON_NONE) {
+          item_tmp.icon = lib_state_icon;
+        }
         /* Show collection color tag icons in menus. */
-        if (id_type == ID_GR) {
+        else if (id_type == ID_GR) {
           item_tmp.icon = ui::icon_color_from_collection(reinterpret_cast<Collection *>(id));
         }
 

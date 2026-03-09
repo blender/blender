@@ -173,7 +173,7 @@ static void calc_position_with_interpolation(CurvesGeometry &curves,
 
       for (const int neighbor_i : neighbors) {
         const int neighbor_curve_i = neighbor_indices[neighbor_i];
-        const int neighbor_weight = neighbor_weights[neighbor_i];
+        const float neighbor_weight = neighbor_weights[neighbor_i];
         const float2 neighbor_uv = uv_coords[neighbor_curve_i];
         const ReverseUVSampler::Result result = reverse_uv_sampler.sample(neighbor_uv);
         if (result.type != ReverseUVSampler::ResultType::Ok) {
@@ -278,7 +278,7 @@ static void calc_radius_with_interpolation(CurvesGeometry &curves,
 
       for (const int neighbor_i : neighbors) {
         const int neighbor_curve_i = neighbor_indices[neighbor_i];
-        const int neighbor_weight = neighbor_weights[neighbor_i];
+        const float neighbor_weight = neighbor_weights[neighbor_i];
         const IndexRange neighbor_points = points_by_curve[neighbor_curve_i];
         const Span<float3> neighbor_positions_cu = positions_cu.slice(neighbor_points);
         const Span<float> neighbor_radii_cu = radius_attr.span.slice(neighbor_points);

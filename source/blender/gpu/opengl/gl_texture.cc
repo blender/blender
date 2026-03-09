@@ -569,6 +569,11 @@ void GLTexture::samplers_init()
 {
   glGenSamplers(samplers_state_cache_count_, &samplers_state_cache_[0][0][0]);
 
+  float max_anisotropy = 1.0f;
+  if (GLContext::texture_filter_anisotropic_support) {
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+  }
+
   for (int extend_yz_i = 0; extend_yz_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_yz_i++) {
     const GPUSamplerExtendMode extend_yz = static_cast<GPUSamplerExtendMode>(extend_yz_i);
     const GLenum extend_t = to_gl(extend_yz);
@@ -598,6 +603,16 @@ void GLTexture::samplers_init()
         glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, min_filter);
         glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, mag_filter);
 
+        if (GLContext::texture_filter_anisotropic_support &&
+            (filtering & GPU_SAMPLER_FILTERING_MIPMAP) &&
+            (filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC_MASK))
+        {
+          glSamplerParameterf(
+              sampler,
+              GL_TEXTURE_MAX_ANISOTROPY_EXT,
+              min_ff(float(GPU_anisotropic_samples_get(filtering)), max_anisotropy));
+        }
+
         /* Other states are left to default:
          * - GL_TEXTURE_BORDER_COLOR is {0, 0, 0, 0}.
          * - GL_TEXTURE_MIN_LOD is -1000.
@@ -611,7 +626,6 @@ void GLTexture::samplers_init()
       }
     }
   }
-  samplers_update();
 
   glGenSamplers(GPU_SAMPLER_CUSTOM_TYPES_COUNT, custom_samplers_state_cache_);
 
@@ -634,34 +648,6 @@ void GLTexture::samplers_init()
   glSamplerParameteri(icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   debug::object_label(GL_SAMPLER, icon_sampler, "icons");
-}
-
-void GLTexture::samplers_update()
-{
-  if (!GLContext::texture_filter_anisotropic_support) {
-    return;
-  }
-
-  float max_anisotropy = 1.0f;
-  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
-
-  const float anisotropic_filter = min_ff(max_anisotropy, U.anisotropic_filter);
-
-  for (int extend_yz_i = 0; extend_yz_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_yz_i++) {
-    for (int extend_x_i = 0; extend_x_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_x_i++) {
-      for (int filtering_i = 0; filtering_i < GPU_SAMPLER_FILTERING_TYPES_COUNT; filtering_i++) {
-        const GPUSamplerFiltering filtering = GPUSamplerFiltering(filtering_i);
-
-        if ((filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC) &&
-            (filtering & GPU_SAMPLER_FILTERING_MIPMAP))
-        {
-          glSamplerParameterf(samplers_state_cache_[extend_yz_i][extend_x_i][filtering_i],
-                              GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                              anisotropic_filter);
-        }
-      }
-    }
-  }
 }
 
 void GLTexture::samplers_free()

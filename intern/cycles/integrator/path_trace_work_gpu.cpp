@@ -110,10 +110,12 @@ void PathTraceWorkGPU::alloc_integrator_soa()
 {
   /* IntegrateState allocated as structure of arrays. */
 
-  /* Check if we already allocated memory for the required features. */
+  /* Check if we already allocated memory for the required features.
+   * Note that both disabling and enabling features may require memory
+   * allocations, so we check for equality. */
   const int requested_volume_stack_size = device_scene_->data.volume_stack_size;
   const uint kernel_features = device_scene_->data.kernel_features;
-  if ((integrator_state_soa_kernel_features_ & kernel_features) == kernel_features &&
+  if (integrator_state_soa_kernel_features_ == kernel_features &&
       integrator_state_soa_volume_stack_size_ >= requested_volume_stack_size)
   {
     return;

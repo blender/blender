@@ -65,6 +65,7 @@ void enable_ex(Main &bmain, Depsgraph &depsgraph, Object &ob)
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
   BKE_sculptsession_free_pbvh(ob);
+  BKE_sculptsession_free_deformMats(&ss);
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(mesh);
@@ -171,7 +172,7 @@ void disable_with_undo(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &
     }
     disable(bmain, depsgraph, scene, ob, nullptr);
     if (use_undo) {
-      undo::push_end(ob);
+      undo::push_end_ex(ob, true);
     }
   }
 }
@@ -188,7 +189,7 @@ static void enable_with_undo(Main &bmain, Depsgraph &depsgraph, const Scene &sce
     enable_ex(bmain, depsgraph, ob);
     if (use_undo) {
       undo::push_node(depsgraph, ob, nullptr, undo::Type::DyntopoBegin);
-      undo::push_end(ob);
+      undo::push_end_ex(ob, true);
     }
   }
 }
@@ -274,14 +275,9 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_invoke(bContext *C,
     const WarnFlag flag = check_attribute_warning(scene, ob);
 
     if (flag & ATTRIBUTES) {
-      return WM_operator_confirm_ex(
-          C,
-          op,
-          RPT_("Attribute Data Detected"),
-          RPT_("Dyntopo will not preserve colors, UVs, or other attributes"),
-          IFACE_("Enable"),
-          ui::AlertIcon::Warning,
-          false);
+      BKE_report(op->reports,
+                 RPT_WARNING,
+                 "Dyntopo will not preserve face sets, colors, UVs, or other attributes");
     }
 
     if (flag & MODIFIER) {
@@ -311,7 +307,7 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot)
   ot->exec = sculpt_dynamic_topology_toggle_exec;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 }
 
 }  // namespace blender::ed::sculpt_paint::dyntopo

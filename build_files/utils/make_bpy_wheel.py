@@ -47,6 +47,7 @@ from typing import (
     Sequence,
 )
 
+
 # ------------------------------------------------------------------------------
 # Long Description
 
@@ -169,6 +170,15 @@ def argparse_create() -> argparse.ArgumentParser:
 
 def main() -> None:
 
+    # NOTE: Import inline because the built-bot runs this with Python 3.6
+    # which fails to import `wheel`, the actual script should run with a newer Python.
+
+    # `wheel.bdist_wheel` is deprecated, `setuptools >= 70.1` includes it.
+    if tuple(int(x) for x in setuptools.__version__.split(".")[:2]) >= (70, 1):
+        from setuptools.command.bdist_wheel import bdist_wheel
+    else:
+        from wheel.bdist_wheel import bdist_wheel
+
     # Parse arguments.
     args = argparse_create().parse_args()
 
@@ -234,6 +244,7 @@ def main() -> None:
     # Manually specify, otherwise it uses the version of the executable used to run
     # this script which may not match the Blender python version.
     python_tag = "py%d%d" % (python_version_number[0], python_version_number[1])
+    cpython_tag = "cp%d%d" % (python_version_number[0], python_version_number[1])
 
     os.chdir(install_dir)
 
@@ -248,6 +259,16 @@ def main() -> None:
     class BinaryDistribution(setuptools.dist.Distribution):
         def has_ext_modules(self) -> bool:
             return True
+
+    # NOTE: this class is needed because:
+    # - The Python used to build the wheel is the systems Python,
+    #   so we can't rely on its "tag" matching Blender's.
+    # - There is no way to override the "tag" using options.
+    #   If this is supported at some point, this class can be removed.
+    class TargetPythonBdistWheel(bdist_wheel):
+        def get_tag(self) -> Tuple[str, str, str]:
+            _python, _abi, plat = super().get_tag()
+            return cpython_tag, cpython_tag, plat
 
     # Build wheel.
     sys.argv = [sys.argv[0], "bdist_wheel"]
@@ -265,6 +286,7 @@ def main() -> None:
         packages=["bpy"],
         package_data={"": package_files("bpy")},
         distclass=BinaryDistribution,
+        cmdclass={"bdist_wheel": TargetPythonBdistWheel},
         options={"bdist_wheel": {"plat_name": platform_tag, "python_tag": python_tag}},
 
         description="Blender as a Python module",
@@ -282,17 +304,9 @@ def main() -> None:
     dist_dir = os.path.join(install_dir, "dist")
     for f in os.listdir(dist_dir):
         if f.endswith(".whl"):
-            blender_py = "cp%d%d" % (python_version_number[0], python_version_number[1])
-
-            # No apparent way to override this ABI version with setuptools, so rename.
-            sys_py = "cp%d%d" % (sys.version_info.major, sys.version_info.minor)
-            if hasattr(sys, "abiflags"):
-                sys_py_abi = sys_py + sys.abiflags
-                renamed_f = f.replace(sys_py_abi, blender_py).replace(sys_py, blender_py)
-            else:
-                renamed_f = f.replace(sys_py, blender_py)
-
-            os.rename(os.path.join(dist_dir, f), os.path.join(output_dir, renamed_f))
+            # The wheel is already tagged correctly (cpXY-cpXY-plat) by TargetPythonBdistWheel,
+            # so only move it to the output directory.
+            os.rename(os.path.join(dist_dir, f), os.path.join(output_dir, f))
 
 
 if __name__ == "__main__":

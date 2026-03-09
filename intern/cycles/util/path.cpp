@@ -717,7 +717,7 @@ bool path_write_binary(const string &path, const vector<uint8_t> &binary)
   return true;
 }
 
-bool path_write_text(const string &path, string &text)
+bool path_write_text(const string &path, const string &text)
 {
   vector<uint8_t> binary(text.length(), 0);
   std::copy(text.begin(), text.end(), binary.begin());

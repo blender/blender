@@ -26,7 +26,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_forward)
 #include "eevee_volume_lib.glsl"
 
 /* Global thickness because it is needed for closure_to_rgba. */
-float g_thickness;
+Thickness g_thickness;
 
 float4 closure_to_rgba(Closure cl_unused)
 {
@@ -40,7 +40,7 @@ float4 closure_to_rgba(Closure cl_unused)
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
   float3 V = -drw_world_incident_vector(g_data.P);
-  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
+  LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, g_data.P, g_data.Ng, V);
   float3 radiance_behind = lightprobe_spherical_sample_normalized_with_parallax(
       samp, g_data.P, V, 0.0);
 
@@ -66,7 +66,7 @@ void main()
 
   fragment_displacement();
 
-  g_thickness = nodetree_thickness() * thickness_mode;
+  g_thickness = Thickness::from(nodetree_thickness(), thickness_mode);
 
   nodetree_surface(closure_rand);
 

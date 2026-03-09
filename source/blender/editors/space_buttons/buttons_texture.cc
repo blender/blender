@@ -229,7 +229,7 @@ static void buttons_texture_modifier_foreach(void *user_data,
 
   if (md->type == eModifierType_Nodes) {
     NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-    if (nmd->node_group != nullptr) {
+    if (nmd->node_group != nullptr && !ID_MISSING(nmd->node_group)) {
       Set<const bNodeTree *> handled_groups;
       buttons_texture_modifier_geonodes_users_add(ob, nmd, nmd->node_group, users, handled_groups);
     }

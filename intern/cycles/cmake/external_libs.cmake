@@ -115,16 +115,115 @@ if(WITH_CYCLES_DEVICE_ONEAPI OR EMBREE_SYCL_SUPPORT)
 endif()
 
 if(WITH_CYCLES_DEVICE_ONEAPI AND WITH_CYCLES_ONEAPI_BINARIES)
+  # Centralized place for ocloc usage initialization
+  #
+  # All ocloc-related setup is done here, in one place, so that every
+  # subsequent use of ocloc (validation below, device support queries
+  # in oneAPI CMakeLists.txt, and the final AoT compilation command) shares
+  # consistent paths and an environment to properly use ocloc.
+  #
+  # Six variables are established here, for later use:
+  #   OCLOC_INSTALL_DIR          - Root directory of the ocloc installation.
+  #   IGC_INSTALL_DIR            - Root directory of the Intel Graphics
+  #                                Compiler (IGC) installation.
+  #   OCLOC_LD_LIBRARY_PATH      - All library paths required to run
+  #                                the ocloc binary (can be empty if
+  #                                no library paths are needed).
+  #   OCLOC_ENV_COMMAND          - The full command to set up library paths
+  #                                with cmake -E env command
+  #                                (can be empty if no library paths are
+  #                                needed).
+  #   OCLOC_BINARY_FULL_FILEPATH - Full path to the ocloc binary.
+  #   OCLOC_FOUND                - Indicates whether a fully working ocloc binary
+  #                                was found.
+
+  # Resolve OCLOC_INSTALL_DIR if not set by user.
+  # Without user-specified directory, we are expected to use precompiled
+  # (Linux) / bundled (Windows) version from Blender's dependencies at
+  # the path:
+  # <DPCPP_ROOT_DIRECTORY>/lib/ocloc/
   if(NOT OCLOC_INSTALL_DIR)
     get_filename_component(_sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
     get_filename_component(OCLOC_INSTALL_DIR "${_sycl_compiler_root}/../lib/ocloc" ABSOLUTE)
     unset(_sycl_compiler_root)
   endif()
 
+  # Resolve IGC_INSTALL_DIR if not set by user.
+  #
+  # Ocloc at runtime searches for and loads IGC
+  # (Intel Graphics Compiler) libraries (libigc.so, etc.).
+  #
+  # On Windows, IGC_INSTALL_DIR is identical to OCLOC_INSTALL_DIR,
+  # since all shared libraries of ocloc are bundled together.
+  # On Linux, we are expected to use a precompiled version from Blender's
+  # dependencies at the path:
+  # <DPCPP_ROOT_DIRECTORY>/lib/igc/
+  if(NOT IGC_INSTALL_DIR)
+    if (WIN32)
+      set(IGC_INSTALL_DIR "${OCLOC_INSTALL_DIR}")
+    else()
+      get_filename_component(_sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
+      get_filename_component(IGC_INSTALL_DIR "${_sycl_compiler_root}/../lib/igc" ABSOLUTE)
+      unset(_sycl_compiler_root)
+    endif()
+  endif()
+
+  if(WIN32)
+    set(OCLOC_BINARY_FULL_FILEPATH ${OCLOC_INSTALL_DIR}/ocloc.exe)
+  else()
+    set(OCLOC_BINARY_FULL_FILEPATH ${OCLOC_INSTALL_DIR}/bin/ocloc)
+  endif()
+
+  # Build the reusable ocloc environment command prefix
+  if(WIN32)
+    # On Windows, it is expected to be empty, as all shared
+    # libraries are expected to be located in the same directory
+    # where ocloc binary is located.
+    set(OCLOC_LD_LIBRARY_PATH "")
+    set(OCLOC_ENV_COMMAND "")
+  else()
+    set(OCLOC_LD_LIBRARY_PATH "${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib")
+    set(OCLOC_ENV_COMMAND
+      ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${OCLOC_LD_LIBRARY_PATH}"
+    )
+  endif()
+
+  set(OCLOC_FOUND ON)
+  # Three-stage validation: directory -> binary -> execution
   if(NOT EXISTS ${OCLOC_INSTALL_DIR})
     set(OCLOC_FOUND OFF)
-    message(STATUS "oneAPI ocloc not found in ${OCLOC_INSTALL_DIR}."
-                   " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
-    set_and_warn_library_found("ocloc" OCLOC_FOUND WITH_CYCLES_ONEAPI_BINARIES)
+    set(_ocloc_missing_error_msg "oneAPI ocloc directory not found as ${OCLOC_INSTALL_DIR}.")
+  elseif (NOT EXISTS ${OCLOC_BINARY_FULL_FILEPATH})
+    set(OCLOC_FOUND OFF)
+    set(_ocloc_missing_error_msg
+      "oneAPI ocloc directory ${OCLOC_INSTALL_DIR} was found."
+      "However, the ocloc binary ${OCLOC_BINARY_FULL_FILEPATH} was not found."
+    )
+  else()
+    # Verify that the binary is functional by testing execution.
+    # The --help flag is a safe way to test if the binary works properly.
+    execute_process(
+      COMMAND ${OCLOC_ENV_COMMAND} ${OCLOC_BINARY_FULL_FILEPATH} --help
+      RESULT_VARIABLE _ocloc_retcode
+      OUTPUT_QUIET
+      ERROR_QUIET
+    )
+
+    if(NOT _ocloc_retcode EQUAL 0)
+      set(OCLOC_FOUND OFF)
+      set(_ocloc_missing_error_msg
+        "oneAPI ocloc binary ${OCLOC_BINARY_FULL_FILEPATH} was found."
+        "However, it has failed to be executed with ${_ocloc_retcode} return code."
+      )
+    endif()
+    unset(_ocloc_retcode)
   endif()
+
+  if(NOT OCLOC_FOUND)
+    list(JOIN _ocloc_missing_error_msg " " _ocloc_missing_error_msg)
+    message(STATUS "${_ocloc_missing_error_msg} A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
+    set_and_warn_library_found("ocloc" OCLOC_FOUND WITH_CYCLES_ONEAPI_BINARIES)
+    unset(_ocloc_missing_error_msg)
+  endif()
+
 endif()

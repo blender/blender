@@ -58,8 +58,8 @@ void main()
   /* Only closure 0 can be a transmission closure. */
   if (closure_index == 0) {
     const gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
-    float thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
-    if (thickness != 0.0f) {
+    const Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+    if (thickness.value() != 0.0f) {
       ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, closure_index);
       ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
     }
@@ -69,7 +69,7 @@ void main()
    * This is faster than loading the gbuffer again and averages between reflected and normal
    * direction over many rays. */
   float3 Ng = ray.direction;
-  LightProbeSample samp = lightprobe_load(ray.origin, Ng, V);
+  LightProbeSample samp = lightprobe_load(float2(texel), ray.origin, Ng, V);
   /* Clamp SH to have parity with forward evaluation. */
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);

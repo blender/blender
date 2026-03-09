@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+#include "DNA_windowmanager_enums.h"
+
 namespace blender {
 
 struct bContext;

@@ -25,7 +25,7 @@ void thickness_from_shadow_single(uint l_idx,
                                   const bool is_directional,
                                   float3 P,
                                   float3 Ng,
-                                  float gbuffer_thickness,
+                                  Thickness gbuffer_thickness,
                                   float &thickness_accum,
                                   float &weight_accum)
 {
@@ -63,8 +63,8 @@ void thickness_from_shadow_single(uint l_idx,
      * This avoids self shadowing issue. */
     hit_distance += (normal_offset + 1.0f) * texel_radius;
 
-    if ((hit_distance > abs(gbuffer_thickness) * 0.001f) &&
-        (hit_distance < abs(gbuffer_thickness) * 1.0f))
+    if ((hit_distance > gbuffer_thickness.value() * 0.001f) &&
+        (hit_distance < gbuffer_thickness.value() * 1.0f))
     {
       float weight = 1.0f;
       saturate(dot(lv.L, -Ng));
@@ -79,7 +79,7 @@ void thickness_from_shadow_single(uint l_idx,
  * available. If no shadow-map has a record of the other side of the surface, this function
  * returns -1.
  */
-float thickness_from_shadow(float3 P, float3 Ng, float vPz, float gbuffer_thickness)
+float thickness_from_shadow(float3 P, float3 Ng, float vPz, Thickness gbuffer_thickness)
 {
   float thickness_accum = 0.0f;
   float weight_accum = 0.0f;
@@ -120,14 +120,10 @@ void main()
 
   const float3 Ng = gbuffer::normal_unpack(imageLoad(gbuf_normal_img, int3(texel, 0)).rg);
 
-  /* Use manual fetch because gbuffer::read_thickness expect a read only texture input. */
-  gbuffer::Header header = gbuffer::Header::from_data(
-      texelFetch(gbuf_header_tx, int3(texel, 0), 0).r);
-
   uchar data_layer = uniform_buf.pipeline.gbuffer_additional_data_layer_id;
   float2 data_packed = imageLoad(gbuf_normal_img, int3(texel, int(data_layer))).rg;
-  float gbuffer_thickness = gbuffer::thickness_unpack(data_packed.x);
-  if (gbuffer_thickness == 0.0f) {
+  Thickness gbuffer_thickness = gbuffer::thickness_unpack(data_packed.x);
+  if (gbuffer_thickness.value() == 0.0f) {
     return;
   }
 
@@ -136,8 +132,9 @@ void main()
     return;
   }
 
-  if ((shadow_thickness < abs(gbuffer_thickness))) {
-    data_packed.x = gbuffer::thickness_pack(sign(gbuffer_thickness) * shadow_thickness);
+  if ((shadow_thickness < gbuffer_thickness.value())) {
+    data_packed.x = gbuffer::thickness_pack(
+        Thickness::from(shadow_thickness, gbuffer_thickness.mode()));
     imageStore(gbuf_normal_img, int3(texel, int(data_layer)), float4(data_packed, 0.0f, 0.0f));
   }
 }

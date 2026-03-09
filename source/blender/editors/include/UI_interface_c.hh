@@ -731,7 +731,7 @@ bool block_has_active_default_button(const Block *block);
  */
 Button *but_find_mouse_over(const ARegion *region, const wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 
-uiList *list_find_mouse_over(const ARegion *region, const wmEvent *event);
+uiList *uilist_find_mouse_over(const ARegion *region, const wmEvent *event);
 
 /* `interface_region_menu_popup.cc` */
 
@@ -2215,7 +2215,7 @@ void init();
 /* after reading userdef file */
 void init_userdef();
 void reinit_font();
-void ui_exit();
+void exit();
 
 /* When changing UI font, update text style weights with default font weight
  * if non-variable. Therefore fixed weight bold font will look bold. */
@@ -2576,7 +2576,7 @@ void template_cache_file_time_settings(Layout *layout, PointerRNA *fileptr);
 /**
  * Draw the override layers related properties of the CacheFile.
  */
-void template_list_flags(Layout *layout, const bContext *C, PointerRNA *fileptr);
+void template_uilist_flags(Layout *layout, const bContext *C, PointerRNA *fileptr);
 
 /** Default UIList class name, keep in sync with its declaration in `bl_ui/__init__.py`. */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"
@@ -2589,19 +2589,19 @@ enum TemplateListFlags {
 };
 ENUM_OPERATORS(TemplateListFlags);
 
-void template_list(Layout *layout,
-                   const bContext *C,
-                   const char *listtype_name,
-                   const char *list_id,
-                   PointerRNA *dataptr,
-                   StringRefNull propname,
-                   PointerRNA *active_dataptr,
-                   StringRefNull active_propname,
-                   const char *item_dyntip_propname,
-                   int rows,
-                   int maxrows,
-                   int layout_type,
-                   enum TemplateListFlags flags);
+void template_uilist(Layout *layout,
+                     const bContext *C,
+                     const char *listtype_name,
+                     const char *list_id,
+                     PointerRNA *dataptr,
+                     StringRefNull propname,
+                     PointerRNA *active_dataptr,
+                     StringRefNull active_propname,
+                     const char *item_dyntip_propname,
+                     int rows,
+                     int maxrows,
+                     int layout_type,
+                     enum TemplateListFlags flags);
 }  // namespace ui
 
 void uiTemplateNodeLink(
@@ -2671,7 +2671,7 @@ namespace ui {
  * \return: True if the list item with unfiltered, unordered index \a item_idx is visible given the
  *          current filter settings.
  */
-bool list_item_index_is_filtered_visible(const struct uiList *ui_list, int item_idx);
+bool uilist_item_index_is_filtered_visible(const struct uiList *ui_list, int item_idx);
 
 /* UI Operators */
 struct DragColorHandle {
@@ -2857,7 +2857,7 @@ int fontstyle_height_max(const uiFontStyle *fs);
 /**
  * Triangle 'icon' for panel header and other cases.
  */
-void draw_icon_tri(float x, float y, char dir, const float[4]);
+void draw_icon_tri(float x, float y, char dir, const float[4], float aspect = 1.0f);
 
 /**
  * Read a style (without any scaling applied).

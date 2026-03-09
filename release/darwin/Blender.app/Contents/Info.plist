@@ -35,8 +35,12 @@
 	<string>Blender</string>
 	<key>CFBundleGetInfoString</key>
 	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
+	<!-- Legacy, non-Liquid Glass icon, used on pre-Tahoe / 26 macOS versions. -->
 	<key>CFBundleIconFile</key>
-	<string>blender_icon.icns</string>
+	<string>blender_icon_legacy.icns</string>
+	<!-- Modern Liquid Glass icon, the app bundle Asset.car file needs to be regenerated in Xcode on modification -->
+	<key>CFBundleIconName</key>
+	<string>blender_liquid_glass</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.blenderfoundation.blender</string>
 	<key>CFBundleInfoDictionaryVersion</key>

@@ -65,12 +65,17 @@ void VKVertexAttributeObject::bind(
     }
     visited_bindings[attribute.binding].set(true);
 
-    VkBuffer buffer = dummy.vk_handle();
+    VkBuffer buffer = VK_NULL_HANDLE;
     VkDeviceSize offset = 0;
 
     if (attribute.binding < buffers.size()) {
       buffer = buffers[attribute.binding].buffer;
       offset = buffers[attribute.binding].offset;
+    }
+
+    if (buffer == VK_NULL_HANDLE) {
+      buffer = dummy.vk_handle();
+      offset = 0;
     }
 
     r_vertex_buffer_bindings.buffer[attribute.binding] = buffer;

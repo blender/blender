@@ -1370,7 +1370,11 @@ void gpu::MTLTexture::clear(const double4 data)
     /* Assume data is INT32 or UINT32. */
     uint4 u32 = uint4(data);
     /* Rotate the vector and the bytes to check equality with neighbor. */
-    bool fast_buf_clear = (u32.xyzw() == u32.wxyz()) && (u32 == ((u32 << 8) | (u32 >> 24)));
+    bool fast_buf_clear = (u32 == ((u32 << 8) | (u32 >> 24)));
+    for (int i = to_component_len(format_get()) - 1; i > 0; --i) {
+      fast_buf_clear &= u32[i] == u32[0];
+    }
+
     if (fast_buf_clear) {
       /* Fetch active context. */
       MTLContext *ctx = MTLContext::get();

@@ -23,7 +23,7 @@ struct IconViewMenuArgs {
 };
 
 /* ID Search browse menu, open */
-static Block *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem)
+static Block *icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem)
 {
   static IconViewMenuArgs args;
 
@@ -144,7 +144,7 @@ void template_icon_view(Layout *layout,
     cb_args->icon_scale = icon_scale_popup;
 
     but = uiDefBlockButN(block,
-                         ui_icon_view_menu_cb,
+                         icon_view_menu_cb,
                          cb_args,
                          "",
                          0,

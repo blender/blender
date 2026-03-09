@@ -46,11 +46,10 @@ class VKClearAttachmentsNode : public VKNodeInfo<VKNodeType::CLEAR_ATTACHMENTS,
   /**
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
-  void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
-                   const CreateInfo &create_info) override
+  void build_links(VKResourceStateTracker & /*resources*/,
+                   VKRenderGraphLinks & /*links*/,
+                   const CreateInfo & /*create_info*/) override
   {
-    UNUSED_VARS(resources, node_links, create_info);
   }
 
   /**
@@ -58,6 +57,7 @@ class VKClearAttachmentsNode : public VKNodeInfo<VKNodeType::CLEAR_ATTACHMENTS,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.clear_attachments(

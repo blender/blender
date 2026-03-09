@@ -44,7 +44,7 @@
 
 namespace blender::ui {
 
-static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize);
+static void view2d_curRect_validate_resize(View2D *v2d, bool resize);
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -377,7 +377,7 @@ void view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
     view2d_totRect_set_resize(v2d, winx, winy, !do_init);
   }
   else {
-    ui_view2d_curRect_validate_resize(v2d, !do_init);
+    view2d_curRect_validate_resize(v2d, !do_init);
   }
 }
 
@@ -385,7 +385,7 @@ void view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
  * Ensure View2D rects remain in a viable configuration
  * 'cur' is not allowed to be: larger than max, smaller than min, or outside of 'tot'
  */
-static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
+static void view2d_curRect_validate_resize(View2D *v2d, bool resize)
 {
   /* NOTE: #calculateZfac uses this logic, keep in sync. */
   float curwidth, curheight, width, height;
@@ -829,7 +829,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
 
 void view2d_curRect_validate(View2D *v2d)
 {
-  ui_view2d_curRect_validate_resize(v2d, false);
+  view2d_curRect_validate_resize(v2d, false);
 }
 
 void view2d_curRect_changed(const bContext *C, View2D *v2d)
@@ -1032,7 +1032,7 @@ void view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
   }
 
   /* make sure that 'cur' rect is in a valid state as a result of these changes */
-  ui_view2d_curRect_validate_resize(v2d, resize);
+  view2d_curRect_validate_resize(v2d, resize);
 }
 
 void view2d_totRect_set(View2D *v2d, int width, int height)

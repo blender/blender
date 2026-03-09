@@ -203,7 +203,7 @@ void main()
     /* To minimize z-fighting, the grid is drawn N times with progressive z-bias, making it fade
      * through geometry. The slight negative z-offset makes the grid "ghost" over geometry on the
      * same plane, while the offset range determines how much fade-in there is. */
-    constexpr float z_min_offset = -0.00015f;
+    constexpr float z_min_offset = -0.00020f;
     constexpr float z_max_offset = 0.00025f;
     float z_factor = float(grid_iter * OVERLAY_GRID_STEPS_DRAW + line.level) /
                      float(OVERLAY_GRID_ITER_LEN * OVERLAY_GRID_STEPS_DRAW);

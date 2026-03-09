@@ -823,6 +823,7 @@ class NODE_PT_active_node_generic(Panel):
             text="",
         )
 
+        col = layout.column()
         col.prop(node, "show_options")
         col.prop(node, "mute")
 

@@ -105,7 +105,7 @@ void main()
      * direction over many rays. */
     float3 Ng = ray.direction;
     /* Fall back to nearest light-probe. */
-    LightProbeSample samp = lightprobe_load(P, Ng, V);
+    LightProbeSample samp = lightprobe_load(float2(texel), P, Ng, V);
     radiance = lightprobe_eval_direction(samp, P, ray.direction, ray_pdf_inv);
     /* Set point really far for correct reprojection of background. */
     hit.time = 10000.0f;

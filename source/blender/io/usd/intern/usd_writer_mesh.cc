@@ -325,7 +325,12 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
   pxr::UsdGeomPrimvar pv_uv = pv_api.CreatePrimvar(
       pv_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
   set_attribute(pv_uv, unique_uvs, time, usd_value_writer_);
-  pv_uv.SetIndices(indices, time);
+
+  pxr::UsdAttribute attr_indices = pv_uv.CreateIndicesAttr();
+  if (!attr_indices.HasValue()) {
+    attr_indices.Set(indices, time);
+  }
+  usd_value_writer_.SetAttribute(attr_indices, pxr::VtValue(indices), time);
 }
 
 void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)

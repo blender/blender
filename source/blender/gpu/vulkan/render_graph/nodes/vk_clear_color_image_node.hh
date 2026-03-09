@@ -44,14 +44,13 @@ class VKClearColorImageNode : public VKNodeInfo<VKNodeType::CLEAR_COLOR_IMAGE,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp resource = resources.get_image_and_increase_stamp(create_info.vk_image);
-    node_links.outputs.append({resource,
-                               VK_ACCESS_TRANSFER_WRITE_BIT,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               VK_IMAGE_ASPECT_COLOR_BIT});
+    links.images.append({{resource, VK_ACCESS_TRANSFER_WRITE_BIT},
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VK_IMAGE_ASPECT_COLOR_BIT});
   }
 
   /**
@@ -59,6 +58,7 @@ class VKClearColorImageNode : public VKNodeInfo<VKNodeType::CLEAR_COLOR_IMAGE,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.clear_color_image(data.vk_image,

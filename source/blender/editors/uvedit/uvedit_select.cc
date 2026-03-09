@@ -17,12 +17,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_hash.h"
 #include "BLI_heap.h"
 #include "BLI_kdopbvh.hh"
 #include "BLI_kdtree.hh"
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -6194,9 +6196,10 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
 
 static float get_uv_face_needle(const eUVSelectSimilar type,
                                 BMFace *face,
-                                int ob_index,
+                                const int ob_index,
                                 const float ob_m3[3][3],
-                                const BMUVOffsets &offsets)
+                                const BMUVOffsets &offsets,
+                                const Span<int> material_remap)
 {
   BLI_assert(offsets.pin >= 0);
   BLI_assert(offsets.uv >= 0);
@@ -6220,8 +6223,10 @@ static float get_uv_face_needle(const eUVSelectSimilar type,
       }
       break;
     }
-    case UV_SSIM_MATERIAL:
-      return face->mat_nr;
+    case UV_SSIM_MATERIAL: {
+      const int mat_nr = (uint(face->mat_nr) < material_remap.size()) ? face->mat_nr : 0;
+      return material_remap[mat_nr];
+    }
     case UV_SSIM_WINDING:
       return signum_i(BM_face_calc_area_uv_signed(face, offsets.uv));
     default:
@@ -6524,6 +6529,23 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
 
+  /* Build a global material-to-index map so material indices are shared across all objects. */
+  std::optional<Vector<Array<int>>> material_remaps_data;
+  if (type == UV_SSIM_MATERIAL) {
+    material_remaps_data.emplace(objects.size());
+    Vector<Array<int>> &material_remaps = *material_remaps_data;
+    Map<const Material *, int> material_map;
+    for (const int ob_index : objects.index_range()) {
+      Object *ob = objects[ob_index];
+      const int totcol = std::max<int>(ob->totcol, 1);
+      material_remaps[ob_index].reinitialize(totcol);
+      for (int i = 0; i < totcol; i++) {
+        const Material *ma = BKE_object_material_get(ob, i + 1);
+        material_remaps[ob_index][i] = material_map.lookup_or_add(ma, material_map.size());
+      }
+    }
+  }
+
   int max_faces_selected_all = 0;
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6545,6 +6567,9 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
+    const Span<int> material_remap = material_remaps_data ?
+                                         Span<int>((*material_remaps_data)[ob_index]) :
+                                         Span<int>();
 
     BMFace *face;
     BMIter iter;
@@ -6556,7 +6581,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets);
+      float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets, material_remap);
       if (tree_1d) {
         kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
@@ -6583,10 +6608,14 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
     }
 
     bool changed = false;
-    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
+
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
+    const Span<int> material_remap = material_remaps_data ?
+                                         Span<int>((*material_remaps_data)[ob_index]) :
+                                         Span<int>();
 
     BMFace *face;
     BMIter iter;
@@ -6598,7 +6627,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets);
+      float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets, material_remap);
 
       bool select = ED_select_similar_compare_float_tree(tree_1d, needle, threshold, compare);
       if (select) {

@@ -272,13 +272,8 @@ static void envelope_bone_weighting(Object *ob,
   }
 }
 
-static void add_verts_to_dgroups(ReportList *reports,
-                                 Depsgraph *depsgraph,
-                                 Scene * /*scene*/,
-                                 Object *ob,
-                                 Object *par,
-                                 int heat,
-                                 const bool mirror)
+static void add_verts_to_dgroups(
+    ReportList *reports, Scene * /*scene*/, Object *ob, Object *par, int heat, const bool mirror)
 {
   /* This functions implements the automatic computation of vertex group
    * weights, either through envelopes or using a heat equilibrium.
@@ -418,17 +413,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   mesh = id_cast<Mesh *>(ob->data);
   verts.reinitialize(mesh->verts_num);
 
-  if (wpmode) {
-    /* if in weight paint mode, use final verts from evaluated mesh */
-    const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
-    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-    if (mesh_eval) {
-      BKE_mesh_foreach_mapped_vert_coords_get(
-          mesh_eval, reinterpret_cast<float (*)[3]>(verts.data()), mesh->verts_num);
-      vertsfilled = 1;
-    }
-  }
-  else if (BKE_modifiers_findby_type(ob, eModifierType_Subsurf)) {
+  if (BKE_modifiers_findby_type(ob, eModifierType_Subsurf)) {
     /* Is subdivision-surface on? Lets use the verts on the limit surface then.
      * = same amount of vertices as mesh, but vertices moved to the
      * subdivision-surfaced position, like for 'optimal'. */
@@ -490,7 +475,7 @@ static void add_verts_to_dgroups(ReportList *reports,
 }
 
 void ED_object_vgroup_calc_from_armature(ReportList *reports,
-                                         Depsgraph *depsgraph,
+                                         Depsgraph * /* depsgraph */,
                                          Scene *scene,
                                          Object *ob,
                                          Object *par,
@@ -522,7 +507,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
      * that are populated with the vertices for which the
      * bone is closest.
      */
-    add_verts_to_dgroups(reports, depsgraph, scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
+    add_verts_to_dgroups(reports, scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
   }
 }
 

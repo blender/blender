@@ -998,9 +998,10 @@ unique_ptr<BVHNode> BVHBuild::create_leaf_node(const BVHRange &range,
   vector<BVHReference, LeafReferenceStackAllocator> object_references;
 
   uint visibility[PRIMITIVE_NUM] = {0};
-  /* NOTE: Keep initialization in sync with actual number of primitives. */
-  BoundBox bounds[PRIMITIVE_NUM] = {
-      BoundBox::empty, BoundBox::empty, BoundBox::empty, BoundBox::empty};
+  BoundBox bounds[PRIMITIVE_NUM] = {};
+  for (int i = 0; i < PRIMITIVE_NUM; i++) {
+    bounds[i] = BoundBox::empty;
+  }
   int ob_num = 0;
   int num_new_prims = 0;
   /* Fill in per-type type/index array. */

@@ -1025,19 +1025,13 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr,
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   Mesh *mesh;
-  CustomDataLayer *layer;
-  int a;
 
   if (ob->type == OB_MESH && ob->data) {
     mesh = id_cast<Mesh *>(ob->data);
 
-    for (a = 0; a < mesh->corner_data.totlayer; a++) {
-      layer = &mesh->corner_data.layers[a];
-
-      if (layer->type == CD_PROP_FLOAT2 && STREQ(layer->name, value)) {
-        BLI_strncpy(result, value, result_maxncpy);
-        return;
-      }
+    if (mesh->uv_map_names().contains(value)) {
+      BLI_strncpy(result, value, result_maxncpy);
+      return;
     }
   }
 

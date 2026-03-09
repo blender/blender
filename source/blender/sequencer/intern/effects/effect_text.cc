@@ -200,6 +200,7 @@ static void init_text_effect(Strip *strip)
 
   data->text_ptr = BLI_strdup("Text");
   data->text_len_bytes = strlen(data->text_ptr);
+  data->cursor_offset = data->text_len_bytes;
 
   data->loc[0] = 0.5f;
   data->loc[1] = 0.5f;
@@ -870,57 +871,67 @@ static void apply_word_wrapping(const TextVars *data,
 {
   const int wrap_width = wrap_width_get(data, image_size);
 
-  float2 char_position{0.0f, 0.0f};
+  float cur_pixel_x = 0.0f;
   CharInfo *last_space = nullptr;
 
-  /* First pass: Find characters where line has to be broken. */
+  /* First pass: Find characters where line has to be broken. Temporarily set `CharInfo.position`
+   * only for space characters for now so that we can jump back if we find a breaking space. */
   for (CharInfo &character : characters) {
-    char ch = data->text_ptr[character.offset];
-    if (ch == ' ') {
-      character.position = char_position;
+    char chr = data->text_ptr[character.offset];
+    if (chr == '\0') {
+      break;
+    }
+
+    if (chr == ' ') {
+      character.position.x = cur_pixel_x;
       last_space = &character;
     }
-    if (ch == '\n') {
-      char_position.x = 0;
+    else if (chr == '\n') {
+      character.do_wrap = true;
+      cur_pixel_x = 0;
       last_space = nullptr;
     }
-    if (ch != '\0' && char_position.x > wrap_width && last_space != nullptr) {
+    else if ((cur_pixel_x + character.advance_x) > wrap_width && last_space != nullptr) {
       last_space->do_wrap = true;
-      char_position -= last_space->position + last_space->advance_x;
+      cur_pixel_x -= last_space->position.x + last_space->advance_x;
+      last_space = nullptr;
     }
-    char_position.x += character.advance_x;
+    cur_pixel_x += character.advance_x;
   }
 
   /* Second pass: Fill lines with characters. */
-  char_position = {0.0f, 0.0f};
+  float2 cur_pixel_pos = {0.0f, 0.0f};
   runtime->lines.append(LineInfo());
   for (CharInfo &character : characters) {
-    character.position = char_position;
-    runtime->lines.last().characters.append(character);
-    runtime->lines.last().width = char_position.x;
+    LineInfo &line = runtime->lines.last();
+    character.position = cur_pixel_pos;
+    line.characters.append(character);
 
-    char_position.x += character.advance_x;
+    cur_pixel_pos.x += character.advance_x;
 
-    if (character.do_wrap || data->text_ptr[character.offset] == '\n') {
+    /* If line is ending, calculate final line width. */
+    const bool line_end = data->text_ptr[character.offset] == '\0' || character.do_wrap;
+    if (line_end) {
+      /* Subtract one to ignore \0 or \n character. */
+      const int num_visible_chars = line.characters.size() - 1;
+      if (num_visible_chars <= 0) {
+        line.width = 0;
+      }
+      else {
+        const CharInfo last_char = line.characters[num_visible_chars - 1];
+        /* Note that we cannot only rely on `advance_x`, since e.g. italic fonts can extend further
+         * than this, so calculate the last glyph width to get a correct result. See !145692. */
+        const int glyph_width = math::ceil(
+            BLF_width(runtime->font, &data->text_ptr[last_char.offset], last_char.byte_length));
+        line.width = last_char.position.x + glyph_width;
+      }
+    }
+
+    if (character.do_wrap) {
       runtime->lines.append(LineInfo());
-      char_position.x = 0;
-      char_position.y -= runtime->line_height;
+      cur_pixel_pos.x = 0;
+      cur_pixel_pos.y -= runtime->line_height;
     }
-  }
-
-  /* Third pass: Ensure, that lines have correct width.
-   * Note, that with italic fonts it is not possible to rely on `advance_x` value only. The actual
-   * last character position (\0 or \n) is not changed, because cursor would be drawn at slightly
-   * incorrect position. */
-  for (LineInfo &line : runtime->lines) {
-    if (line.characters.size() <= 1) {
-      continue;
-    }
-
-    CharInfo last_visible_char = line.characters[line.characters.size() - 2];
-    const char *buf = &data->text_ptr[last_visible_char.offset];
-    int glyph_width = math::ceil(BLF_width(runtime->font, buf, last_visible_char.byte_length));
-    line.width = last_visible_char.position.x + glyph_width;
   }
 }
 
@@ -936,9 +947,9 @@ static int text_box_width_get(const Vector<LineInfo> &lines)
 
 static float2 horizontal_alignment_offset_get(const TextVars *data,
                                               float line_width,
-                                              int width_max)
+                                              int max_width)
 {
-  const float line_offset = (width_max - line_width);
+  const float line_offset = (max_width - line_width);
 
   if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
     return {line_offset, 0.0f};
@@ -1008,20 +1019,21 @@ static void apply_text_alignment(const TextVars *data,
                                  TextVarsRuntime *runtime,
                                  const int2 image_size)
 {
-  const int width_max = text_box_width_get(runtime->lines);
-  const int text_height = runtime->lines.size() * runtime->line_height;
+  const int box_width = text_box_width_get(runtime->lines);
+  const int box_height = runtime->lines.size() * runtime->line_height;
 
   const float2 image_center{data->loc[0] * image_size.x, data->loc[1] * image_size.y};
   const float2 line_height_offset{0.0f,
                                   float(-runtime->line_height - BLF_descender(runtime->font))};
-  const float2 anchor = anchor_offset_get(data, width_max, text_height);
+  const float2 anchor_offset = anchor_offset_get(data, box_width, box_height);
 
   for (LineInfo &line : runtime->lines) {
-    const float2 alignment_x = horizontal_alignment_offset_get(data, line.width, width_max);
-    const float2 alignment = math::round(image_center + line_height_offset + alignment_x + anchor);
+    const float2 align_offset = horizontal_alignment_offset_get(data, line.width, box_width);
+    const float2 offset = math::round(image_center + line_height_offset + align_offset +
+                                      anchor_offset);
 
     for (CharInfo &character : line.characters) {
-      character.position += alignment;
+      character.position += offset;
     }
   }
 }

@@ -99,14 +99,6 @@ class GLTexture : public Texture {
   static void samplers_free();
 
   /**
-   * Updates the anisotropic filter parameters of samplers that enables anisotropic filtering. This
-   * is not done as a one time initialization in samplers_init() method because the user might
-   * change the anisotropic filtering samples in the user preferences. So it is called in
-   * samplers_init() method as well as every time the user preferences change.
-   */
-  static void samplers_update();
-
-  /**
    * Get the handle of the OpenGL sampler that corresponds to the given sampler state.
    * The sampler is retrieved from the cached samplers computed in the samplers_init() method.
    */

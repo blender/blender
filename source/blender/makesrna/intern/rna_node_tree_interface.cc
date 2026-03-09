@@ -928,6 +928,13 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocketVector_subtype_itemf(
                                   r_free);
 }
 
+static const EnumPropertyItem *rna_NodeTreeInterfaceSocketIntVector_subtype_itemf(
+    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
+{
+  return rna_subtype_filter_itemf({PROP_UNSIGNED, PROP_FACTOR, PROP_PERCENTAGE, PROP_NONE},
+                                  r_free);
+}
+
 void rna_NodeTreeInterfaceSocketVector_default_value_range(
     PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
@@ -940,6 +947,24 @@ void rna_NodeTreeInterfaceSocketVector_default_value_range(
 
   *min = -FLT_MAX;
   *max = FLT_MAX;
+  *softmin = dval->min;
+  *softmax = dval->max;
+}
+
+void rna_NodeTreeInterfaceSocketIntVector_default_value_range(
+    PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
+{
+  bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+  bNodeSocketValueIntVector *dval = static_cast<bNodeSocketValueIntVector *>(socket->socket_data);
+  bke::bNodeSocketType *socket_typeinfo = bke::node_socket_type_find(socket->socket_type);
+  int subtype = socket_typeinfo ? socket_typeinfo->subtype : PROP_NONE;
+
+  if (dval->max < dval->min) {
+    dval->max = dval->min;
+  }
+
+  *min = (subtype == PROP_UNSIGNED ? 0 : INT_MIN);
+  *max = INT_MAX;
   *softmin = dval->min;
   *softmax = dval->max;
 }

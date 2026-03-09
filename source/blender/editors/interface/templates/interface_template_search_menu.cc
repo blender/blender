@@ -1031,10 +1031,10 @@ static void menu_search_update_fn(const bContext * /*C*/,
  * a separate context menu just for the search, however this is fairly involved.
  * \{ */
 
-static bool ui_search_menu_create_context_menu(bContext *C,
-                                               void *arg,
-                                               void *active,
-                                               const wmEvent *event)
+static bool search_menu_create_context_menu(bContext *C,
+                                            void *arg,
+                                            void *active,
+                                            const wmEvent *event)
 {
   MenuSearch_Data *data = static_cast<MenuSearch_Data *>(arg);
   MenuSearch_Item *item = static_cast<MenuSearch_Item *>(active);
@@ -1075,7 +1075,7 @@ static bool ui_search_menu_create_context_menu(bContext *C,
 /** \name Tooltip
  * \{ */
 
-static ARegion *ui_search_menu_create_tooltip(
+static ARegion *search_menu_create_tooltip(
     bContext *C, ARegion *region, const rcti * /*item_rect*/, void *arg, void *active)
 {
   MenuSearch_Data *data = static_cast<MenuSearch_Data *>(arg);
@@ -1150,8 +1150,8 @@ void button_func_menu_search(Button *but, const char *single_menu_idname)
                          menu_search_exec_fn,
                          nullptr);
 
-  button_func_search_set_context_menu(but, ui_search_menu_create_context_menu);
-  button_func_search_set_tooltip(but, ui_search_menu_create_tooltip);
+  button_func_search_set_context_menu(but, search_menu_create_context_menu);
+  button_func_search_set_tooltip(but, search_menu_create_tooltip);
   button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
 }
 

@@ -1844,7 +1844,7 @@ void MTLContext::sampler_state_cache_init()
                                    MTLSamplerMipFilterNotMipmapped;
         descriptor.lodMinClamp = -1000;
         descriptor.lodMaxClamp = 1000;
-        float aniso_filter = max_ff(16, U.anisotropic_filter);
+        float aniso_filter = min_ff(float(GPU_anisotropic_samples_get(filtering)), 16.0f);
         descriptor.maxAnisotropy = (filtering & GPU_SAMPLER_FILTERING_MIPMAP) ? aniso_filter : 1;
         descriptor.compareFunction = MTLCompareFunctionAlways;
         descriptor.supportArgumentBuffers = true;

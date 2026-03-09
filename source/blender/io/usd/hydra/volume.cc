@@ -128,19 +128,16 @@ pxr::VtValue VolumeData::get_data(pxr::SdfPath const &id, pxr::TfToken const &ke
   return get_data(key);
 }
 
-pxr::SdfPath VolumeData::material_id() const
-{
-  if (!mat_data_) {
-    return pxr::SdfPath();
-  }
-  return mat_data_->prim_id;
-}
-
 void VolumeData::available_materials(Set<pxr::SdfPath> &paths) const
 {
   if (mat_data_ && !mat_data_->prim_id.IsEmpty()) {
     paths.add(mat_data_->prim_id);
   }
+}
+
+MaterialData *VolumeData::get_material_data(pxr::SdfPath const & /*id*/) const
+{
+  return mat_data_;
 }
 
 pxr::HdVolumeFieldDescriptorVector VolumeData::field_descriptors() const

@@ -40,9 +40,6 @@ from bl_ui.space_userpref import (
 USE_SHOW_ADDON_TYPE_AS_TEXT = True
 USE_SHOW_ADDON_TYPE_AS_ICON = True
 
-# Hide these add-ons when enabled (unless running with extensions debugging enabled).
-SECRET_ADDONS = {__package__}
-
 # For official extensions, it's policy that the website in the JSON listing overrides the developers own website.
 # This incurs an awkward lookup although it's not likely to cause a noticeable slowdown.
 # This choice moves away from the `blender_manifest.toml` being the source of truth for an extensions meta-data
@@ -517,7 +514,7 @@ def addons_panel_draw_items(
             del item_local
         else:
             # Weak but allow some add-ons to be hidden, as they're for internal use.
-            if (module_name in SECRET_ADDONS) and is_enabled and (show_development is False):
+            if (module_name in addon_utils._addons_hidden_core) and is_enabled and (show_development is False):
                 continue
 
             item_warnings = []

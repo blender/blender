@@ -75,14 +75,24 @@ class Grid : Overlay {
     {
       const uint axis_vertex_count = 6;
       const uint grid_vertex_count = 4 * OVERLAY_GRID_STEPS_DRAW * grid_ubo_.num_lines;
+      const auto grid_draw_state = ps_draw_state | DRW_STATE_DEPTH_LESS_EQUAL |
+                                   DRW_STATE_BLEND_ADD;
 
       auto &sub = grid_ps_.sub("grid");
       sub.shader_set(res.shaders->grid.get());
-      sub.state_set(ps_draw_state | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH |
-                    DRW_STATE_BLEND_ADD);
+      sub.state_set(grid_draw_state);
       sub.bind_ubo("grid_buf", &grid_ubo_);
 
       for (int grid_iter = 0; grid_iter < num_iters_; grid_iter++) {
+        /* NOTE(not_mark): Only the first iteration draws to depth as a workaround for
+         * clipping with the mesh edit overlay while it's drawn after (See #154540). */
+        if (grid_iter == 0) {
+          sub.state_set(grid_draw_state | DRW_STATE_WRITE_DEPTH);
+        }
+        else {
+          sub.state_set(grid_draw_state);
+        }
+
         sub.push_constant("grid_iter", grid_iter);
         if (axis_flag_) {
           sub.push_constant("grid_flag", &axis_flag_);

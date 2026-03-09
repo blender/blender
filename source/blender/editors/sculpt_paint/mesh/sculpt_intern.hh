@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "BKE_brush.hh"
+#include "BKE_bvhutils.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -154,6 +155,11 @@ namespace ed::sculpt_paint {
 
 static constexpr int plane_brush_max_rolling_average_num = 20;
 
+struct ProjectBrushTarget {
+  bke::BVHTreeFromMesh tree_data;
+  float4x4 active_to_target_matrix;
+};
+
 /**
  * This structure contains all the temporary data
  * needed for individual brush strokes.
@@ -273,6 +279,8 @@ struct StrokeCache {
   ePaintSymmetryFlags mirror_symmetry_pass = ePaintSymmetryFlags(0);
   float3 view_normal = float3(0);
   float3 view_normal_symm = float3(0);
+  float3 view_origin = float3(0);
+  float3 view_origin_symm = float3(0);
 
   /**
    * The primary direction of influence for a brush stroke.
@@ -366,6 +374,9 @@ struct StrokeCache {
      */
     bool first_time = false;
   } plane_brush;
+
+  /* Scene Project brush */
+  Vector<ProjectBrushTarget> project_targets;
 
   /* Cloth brush */
   std::unique_ptr<cloth::SimulationData> cloth_sim;

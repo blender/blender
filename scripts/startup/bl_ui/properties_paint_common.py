@@ -957,6 +957,12 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "use_grab_active_vertex")
             layout.prop(brush, "use_grab_silhouette")
 
+        elif sculpt_brush_type == 'SCENE_PROJECT':
+            layout.separator()
+            layout.prop(brush, "project_ray_direction_type")
+            layout.prop(brush, "minimum_distance")
+            layout.prop(brush, "use_bidirectional")
+
         elif sculpt_brush_type == 'PAINT':
             row = layout.row(align=True)
             row.prop(brush, "flow")
@@ -1760,7 +1766,9 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
     if is_primitive_tool:
         row = layout.row(align=True)
         if context.region.type == 'TOOL_HEADER':
-            row.prop(brush.gpencil_settings, "stroke_type", expand=True)
+            row.prop_enum(brush.gpencil_settings, "stroke_type", 'STROKE', text="", icon='GP_DRAW_STROKE')
+            row.prop_enum(brush.gpencil_settings, "stroke_type", 'FILL', text="", icon='GP_DRAW_FILL')
+            row.prop_enum(brush.gpencil_settings, "stroke_type", 'BOTH', text="", icon='GP_DRAW_BOTH')
         else:
             row.prop(brush.gpencil_settings, "stroke_type")
 
@@ -1789,7 +1797,9 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
     elif grease_pencil_brush_type == 'DRAW':
         row = layout.row(align=True)
         if compact:
-            row.prop(brush.gpencil_settings, "stroke_type", expand=True)
+            row.prop_enum(brush.gpencil_settings, "stroke_type", 'STROKE', text="", icon='GP_DRAW_STROKE')
+            row.prop_enum(brush.gpencil_settings, "stroke_type", 'FILL', text="", icon='GP_DRAW_FILL')
+            row.prop_enum(brush.gpencil_settings, "stroke_type", 'BOTH', text="", icon='GP_DRAW_BOTH')
         else:
             row.prop(brush.gpencil_settings, "stroke_type")
 

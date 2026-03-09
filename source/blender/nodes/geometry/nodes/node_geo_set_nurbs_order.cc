@@ -12,7 +12,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_set_curve_order_cc {
+namespace blender::nodes::node_geo_set_nurbs_order_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -95,10 +95,10 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeSetCurveOrder");
-  ntype.ui_name = "Set Curve Order";
+  geo_node_type_base(&ntype, "GeometryNodeSetNURBSOrder");
+  ntype.ui_name = "Set NURBS Order";
   ntype.ui_description =
-      "Control how many control points influence each evaluated point by changing the "
+      "Control how many curve control points influence each evaluated point by changing the "
       "\"nurbs_order\" attribute";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
@@ -107,4 +107,4 @@ static void node_register()
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_geo_set_curve_order_cc
+}  // namespace blender::nodes::node_geo_set_nurbs_order_cc

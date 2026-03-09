@@ -235,6 +235,9 @@ static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*
     float align_axis[3];
     copy_v3_v3(align_axis, parent_mat[2]);
     newbone->roll = ED_armature_ebone_roll_to_vector(newbone, align_axis, false);
+
+    /* Copy bone collection membership. */
+    BLI_duplicatelist(&newbone->bone_collections, &ebone->bone_collections);
   }
 
   ED_armature_edit_sync_selection(arm->edbo);

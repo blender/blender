@@ -98,7 +98,7 @@ ExternalProject_Add(external_osl
 
 add_dependencies(
   external_osl
-  ll
+  external_llvm
   external_openexr
   external_zlib
   external_openimageio

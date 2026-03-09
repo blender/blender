@@ -13,6 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
@@ -33,16 +34,6 @@
 
 namespace blender::ed::sculpt_paint::smooth {
 
-template<typename T> T calc_average(const Span<T> values, const Span<int> indices)
-{
-  const float factor = math::safe_rcp(float(indices.size()));
-  T result{};
-  for (const int i : indices) {
-    result += values[i] * factor;
-  }
-  return result;
-}
-
 template<typename T>
 void neighbor_data_average_mesh_check_loose(const Span<T> src,
                                             const Span<int> verts,
@@ -58,7 +49,7 @@ void neighbor_data_average_mesh_check_loose(const Span<T> src,
       dst[i] = src[verts[i]];
     }
     else {
-      dst[i] = calc_average(src, neighbors);
+      dst[i] = bke::attribute_math::mix_indices(src, neighbors);
     }
   }
 }
@@ -77,10 +68,11 @@ void neighbor_data_average_mesh(const Span<T> src,
                                 const GroupedSpan<int> vert_neighbors,
                                 const MutableSpan<T> dst)
 {
+  /* TODO: Use #bke::attribute_math::mix_groups when we can control the internal threading. */
   BLI_assert(vert_neighbors.size() == dst.size());
 
   for (const int i : vert_neighbors.index_range()) {
-    dst[i] = calc_average(src, vert_neighbors[i]);
+    dst[i] = bke::attribute_math::mix_indices(src, vert_neighbors[i]);
   }
 }
 
@@ -551,7 +543,7 @@ void calc_relaxed_translations_faces(const Span<float3> vert_positions,
       continue;
     }
 
-    const float3 smoothed_position = calc_average(vert_positions, neighbors);
+    const float3 smoothed_position = bke::attribute_math::mix_indices(vert_positions, neighbors);
 
     /* Normal Calculation */
     float3 normal;

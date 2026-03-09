@@ -681,7 +681,7 @@ static bool editmode_load_free_ex(Main *bmain,
         /* Don't keep unused pose channels created by duplicating bones
          * which may have been deleted/undone, see: #87631. */
         if (obedit->pose != nullptr) {
-          BKE_pose_channels_clear_with_null_bone(obedit->pose, true);
+          BKE_pose_channels_clear_with_null_bone(obedit, true);
         }
       }
     }
@@ -1658,7 +1658,7 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
     return false;
   }
   const NodesModifierData &nmd = reinterpret_cast<const NodesModifierData &>(md);
-  if (!nmd.node_group) {
+  if (!nmd.node_group || ID_MISSING(nmd.node_group)) {
     return false;
   }
   if (const LibraryWeakReference *library_ref = nmd.node_group->id.library_weak_reference) {

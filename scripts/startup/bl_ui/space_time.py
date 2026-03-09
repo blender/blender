@@ -239,6 +239,7 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         col = layout.column(heading="Playback")
         col.prop(scene, "lock_frame_selection_to_range", text="Limit to Frame Range")
         col.prop(screen, "use_follow", text="Follow Current Frame")
+        col.prop(scene, "playback_loop_mode", text="Loop")
 
         col = layout.column(heading="Play In")
         col.prop(screen, "use_play_top_left_3d_editor", text="Active Editor")

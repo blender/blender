@@ -24,7 +24,13 @@
 
 namespace blender::gpu::render_graph {
 
-struct VKRenderGraphLink {
+/** Which access flags are considered for write access. */
+static constexpr VkAccessFlags VK_ACCESS_WRITE_MASK =
+    VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
+    VK_ACCESS_HOST_WRITE_BIT;
+
+struct VKRenderGraphResource {
   /**
    * Which resource is being accessed.
    */
@@ -38,6 +44,15 @@ struct VKRenderGraphLink {
    */
   VkAccessFlags vk_access_flags;
 
+  bool has_write_access() const
+  {
+    return vk_access_flags & VK_ACCESS_WRITE_MASK;
+  }
+};
+
+struct VKRenderGraphBuffer : public VKRenderGraphResource {};
+
+struct VKRenderGraphImage : public VKRenderGraphResource {
   /**
    * When resource is an image, which layout should the image be using.
    *
@@ -57,31 +72,28 @@ struct VKRenderGraphLink {
    * Used when layer_tracking will be enabled to transit the layout of these layers only.
    */
   VKSubImageRange subimage;
-
-  void debug_print(std::ostream &ss, const VKResourceStateTracker &resources) const;
-
-  /**
-   * Check if this link points to a buffer resource. Implementation checks vk_image_aspect field as
-   * that must be set to NONE for buffers.
-   *
-   * Saved additional lookups when reordering nodes.
-   */
-  bool is_link_to_buffer() const
-  {
-    return vk_image_aspect == VK_IMAGE_ASPECT_NONE;
-  }
 };
 
-/**
- * All input and output links of a node in the render graph.
- */
-struct VKRenderGraphNodeLinks {
-  /** All links to resources that a node reads from. */
-  Vector<VKRenderGraphLink> inputs;
-  /** All links to resources that a node writes to. */
-  Vector<VKRenderGraphLink> outputs;
+struct VKRenderGraphLinks {
+  /**
+   * VKRenderGraphNode.links.buffers contains indices to #VKRenderGraphLinks.buffers.
+   *
+   * This reduces reallocations as otherwise complex data types are needed.
+   */
+  Vector<VKRenderGraphBuffer> buffers;
 
-  void debug_print(const VKResourceStateTracker &resources) const;
+  /**
+   * VKRenderGraphNode.links.images only contains indices to the #VKRenderGraphLinks.images.
+   *
+   * This reduces reallocations as otherwise complex data types are needed.
+   */
+  Vector<VKRenderGraphImage> images;
+
+  void clear()
+  {
+    buffers.clear();
+    images.clear();
+  }
 };
 
 }  // namespace blender::gpu::render_graph

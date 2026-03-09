@@ -315,7 +315,7 @@ static void remove_shortcut_func(bContext *C, Button *but)
   but_shortcut_name_func(C, but, 0);
 }
 
-static bool ui_but_is_user_menu_compatible(bContext *C, Button *but)
+static bool but_is_user_menu_compatible(bContext *C, Button *but)
 {
   bool result = false;
   if (but->optype) {
@@ -339,7 +339,7 @@ static bool ui_but_is_user_menu_compatible(bContext *C, Button *but)
   return result;
 }
 
-static bUserMenuItem *ui_but_user_menu_find(bContext *C, Button *but, bUserMenu *um)
+static bUserMenuItem *but_user_menu_find(bContext *C, Button *but, bUserMenu *um)
 {
   if (but->optype) {
     IDProperty *prop = (but->opptr) ? static_cast<IDProperty *>(but->opptr->data) : nullptr;
@@ -380,9 +380,9 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, Button *but, bUserMenu 
   return nullptr;
 }
 
-static void ui_but_user_menu_add(bContext *C, Button *but, bUserMenu *um)
+static void but_user_menu_add(bContext *C, Button *but, bUserMenu *um)
 {
-  BLI_assert(ui_but_is_user_menu_compatible(C, but));
+  BLI_assert(but_is_user_menu_compatible(C, but));
 
   std::string drawstr = button_drawstr_without_sep_char(but);
 
@@ -439,7 +439,7 @@ static void ui_but_user_menu_add(bContext *C, Button *but, bUserMenu *um)
     std::optional<std::string> member_id_data_path = WM_context_path_resolve_full(C,
                                                                                   &but->rnapoin);
     if (!member_id_data_path.has_value()) {
-      /* See #ui_but_user_menu_find code-comment. */
+      /* See #but_user_menu_find code-comment. */
       BLI_assert_unreachable();
     }
     else {
@@ -465,7 +465,7 @@ static void ui_but_user_menu_add(bContext *C, Button *but, bUserMenu *um)
   }
 }
 
-static bool ui_but_menu_add_path_operators(Layout &layout, PointerRNA *ptr, PropertyRNA *prop)
+static bool but_menu_add_path_operators(Layout &layout, PointerRNA *ptr, PropertyRNA *prop)
 {
   const PropertySubType subtype = RNA_property_subtype(prop);
   wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
@@ -520,7 +520,7 @@ static void set_layout_context_from_button(bContext *C, Layout &layout, Button *
 
 bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *event)
 {
-  /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
+  /* but_is_interactive() may let some buttons through that should not get a context menu - it
    * doesn't make sense for them. */
   if (ELEM(but->type, ButtonType::Label, ButtonType::Image)) {
     return false;
@@ -945,7 +945,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     layout.separator();
 
     if (type == PROP_STRING && ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
-      if (ui_but_menu_add_path_operators(layout, ptr, prop)) {
+      if (but_menu_add_path_operators(layout, ptr, prop)) {
         layout.separator();
       }
     }
@@ -1049,7 +1049,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
   }
 
   /* Favorites Menu */
-  if (ui_but_is_user_menu_compatible(C, but)) {
+  if (but_is_user_menu_compatible(C, but)) {
     Block *block = layout.block();
     const int w = layout.width();
     bool item_found = false;
@@ -1061,7 +1061,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
       if (um == nullptr) {
         continue;
       }
-      bUserMenuItem *umi = ui_but_user_menu_find(C, but, um);
+      bUserMenuItem *umi = but_user_menu_find(C, but, um);
       if (umi != nullptr) {
         Button *but2 = uiDefIconTextBut(
             block,
@@ -1100,7 +1100,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
       button_func_set(but2, [but](bContext &C) {
         bUserMenu *um = ED_screen_user_menu_ensure(&C);
         U.runtime.is_dirty = true;
-        ui_but_user_menu_add(&C, but, um);
+        but_user_menu_add(&C, but, um);
       });
     }
 
@@ -1261,9 +1261,9 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
 
   /* UI List item context menu. Scripts can add items to it, by default there's nothing shown. */
   const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-  const bool is_inside_listbox = ui_list_find_mouse_over(region, event) != nullptr;
+  const bool is_inside_listbox = listbox_find_mouse_over(region, event) != nullptr;
   const bool is_inside_listrow = is_inside_listbox ?
-                                     list_row_find_mouse_over(region, event->xy) != nullptr :
+                                     listrow_find_mouse_over(region, event->xy) != nullptr :
                                      false;
   if (is_inside_listrow) {
     MenuType *mt = WM_menutype_find("UI_MT_list_item_context_menu", true);

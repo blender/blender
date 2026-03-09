@@ -434,7 +434,7 @@ void GeoTreeLog::ensure_node_warnings(const NodesModifierData &nmd)
   if (reduced_node_warnings_) {
     return;
   }
-  if (!nmd.node_group) {
+  if (!nmd.node_group || ID_MISSING(nmd.node_group)) {
     reduced_node_warnings_ = true;
     return;
   }

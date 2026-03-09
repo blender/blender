@@ -39,6 +39,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "GEO_mix_geometries.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender {
@@ -354,10 +356,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
     Vector<SocketValueVariant> next_values = this->copy_bake_state_to_values(
         next_state, data_block_map, self_object, compute_context);
     for (const int i : bake_items_.index_range()) {
-      mix_baked_data_item(eNodeSocketDatatype(bake_items_[i].socket_type),
-                          output_values[i],
-                          next_values[i],
-                          mix_factor);
+      geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
     }
     for (const int i : bake_items_.index_range()) {
       params.set_output(i, std::move(output_values[i]));
@@ -843,19 +842,19 @@ void draw_data_blocks(const bContext *C, ui::Layout &layout, PointerRNA &bake_rn
   if (ui::Layout *panel = layout.panel(
           C, "data_block_references", true, IFACE_("Data-Block References")))
   {
-    ui::template_list(panel,
-                      C,
-                      data_block_list->idname,
-                      "",
-                      &bake_rna,
-                      "data_blocks",
-                      &data_blocks_ptr,
-                      "active_index",
-                      nullptr,
-                      3,
-                      5,
-                      UILST_LAYOUT_DEFAULT,
-                      ui::TEMPLATE_LIST_FLAG_NONE);
+    ui::template_uilist(panel,
+                        C,
+                        data_block_list->idname,
+                        "",
+                        &bake_rna,
+                        "data_blocks",
+                        &data_blocks_ptr,
+                        "active_index",
+                        nullptr,
+                        3,
+                        5,
+                        UILST_LAYOUT_DEFAULT,
+                        ui::TEMPLATE_LIST_FLAG_NONE);
   }
 }
 

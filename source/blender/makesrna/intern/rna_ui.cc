@@ -643,7 +643,7 @@ static void uilist_filter_items(uiList *ui_list,
         int t_idx, t_ni, prev_ni;
         flt_data->items_shown = 0;
         for (i = 0, shown_idx = 0; i < len; i++) {
-          if (ui::list_item_index_is_filtered_visible(ui_list, i)) {
+          if (ui::uilist_item_index_is_filtered_visible(ui_list, i)) {
             filter_neworder[shown_idx++] = filter_neworder[i];
           }
         }
@@ -671,7 +671,7 @@ static void uilist_filter_items(uiList *ui_list,
         /* we still have to set flt_data->items_shown... */
         flt_data->items_shown = 0;
         for (i = 0; i < len; i++) {
-          if (ui::list_item_index_is_filtered_visible(ui_list, i)) {
+          if (ui::uilist_item_index_is_filtered_visible(ui_list, i)) {
             flt_data->items_shown++;
           }
         }

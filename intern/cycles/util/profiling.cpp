@@ -133,12 +133,22 @@ void Profiler::remove_state(ProfilingState *state)
 uint64_t Profiler::get_event(ProfilingEvent event)
 {
   assert(worker == nullptr);
+  if (event_samples.empty()) {
+    return 0;
+  }
+  assert(event_samples.size() > event);
   return event_samples[event];
 }
 
 bool Profiler::get_shader(const int shader, uint64_t &samples, uint64_t &hits)
 {
   assert(worker == nullptr);
+  if (shader_samples.empty()) {
+    samples = 0;
+    hits = 0;
+    return false;
+  }
+  assert(shader_samples.size() > shader);
   if (shader_samples[shader] == 0) {
     return false;
   }
@@ -150,6 +160,12 @@ bool Profiler::get_shader(const int shader, uint64_t &samples, uint64_t &hits)
 bool Profiler::get_object(const int object, uint64_t &samples, uint64_t &hits)
 {
   assert(worker == nullptr);
+  if (object_samples.empty()) {
+    samples = 0;
+    hits = 0;
+    return false;
+  }
+  assert(object_samples.size() > object);
   if (object_samples[object] == 0) {
     return false;
   }

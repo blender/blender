@@ -13,18 +13,6 @@
 #include "vk_backend.hh"
 
 namespace blender::gpu::render_graph {
-void vk_pipeline_data_copy(VKPipelineData &dst, const VKPipelineData &src)
-{
-  dst.push_constants_data = nullptr;
-  dst.push_constants_size = src.push_constants_size;
-  if (src.push_constants_size) {
-    BLI_assert(src.push_constants_data);
-    void *data = MEM_new_uninitialized(src.push_constants_size, __func__);
-    memcpy(data, src.push_constants_data, src.push_constants_size);
-    dst.push_constants_data = data;
-  }
-}
-
 void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &command_buffer,
                                                  const VKPipelineDataGraphics &graphics,
                                                  VKBoundPipelines &r_bound_pipelines)
@@ -65,6 +53,7 @@ void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &comma
 
 void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
                                      const VKPipelineData &pipeline_data,
+                                     Span<uint8_t> storage_push_constants,
                                      VKBoundPipeline &r_bound_pipeline,
                                      VkPipelineBindPoint vk_pipeline_bind_point,
                                      VkShaderStageFlags vk_shader_stage_flags)
@@ -85,29 +74,23 @@ void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
                                         nullptr);
   }
 
-  if (pipeline_data.push_constants_size) {
+  if (!pipeline_data.push_constants_range.is_empty()) {
+    Span<uint8_t> pipeline_push_constants = storage_push_constants.slice(
+        pipeline_data.push_constants_range);
     command_buffer.push_constants(pipeline_data.vk_pipeline_layout,
                                   vk_shader_stage_flags,
                                   0,
-                                  pipeline_data.push_constants_size,
-                                  pipeline_data.push_constants_data);
-  }
-}
-
-void vk_pipeline_data_free(VKPipelineData &data)
-{
-  if (data.push_constants_data) {
-    MEM_delete_void(const_cast<void *>(data.push_constants_data));
-    data.push_constants_data = nullptr;
+                                  pipeline_push_constants.size(),
+                                  pipeline_push_constants.data());
   }
 }
 
 void vk_index_buffer_binding_build_links(VKResourceStateTracker &resources,
-                                         VKRenderGraphNodeLinks &node_links,
+                                         VKRenderGraphLinks &links,
                                          const VKIndexBufferBinding &index_buffer_binding)
 {
   ResourceWithStamp resource = resources.get_buffer(index_buffer_binding.buffer);
-  node_links.inputs.append({resource, VK_ACCESS_INDEX_READ_BIT});
+  links.buffers.append({resource, VK_ACCESS_INDEX_READ_BIT});
 }
 
 void vk_index_buffer_binding_build_commands(VKCommandBufferInterface &command_buffer,
@@ -121,15 +104,14 @@ void vk_index_buffer_binding_build_commands(VKCommandBufferInterface &command_bu
 }
 
 void vk_vertex_buffer_bindings_build_links(VKResourceStateTracker &resources,
-                                           VKRenderGraphNodeLinks &node_links,
+                                           VKRenderGraphLinks &links,
                                            const VKVertexBufferBindings &vertex_buffers)
 {
-  node_links.inputs.reserve(node_links.inputs.size() + vertex_buffers.buffer_count);
   for (const VkBuffer vk_buffer :
        Span<VkBuffer>(vertex_buffers.buffer, vertex_buffers.buffer_count))
   {
     ResourceWithStamp resource = resources.get_buffer(vk_buffer);
-    node_links.inputs.append({resource, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT});
+    links.buffers.append({resource, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT});
   }
 }
 

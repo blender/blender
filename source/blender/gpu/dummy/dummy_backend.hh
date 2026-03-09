@@ -34,7 +34,6 @@ class DummyBackend : public GPUBackend {
   }
   void init_resources() override {}
   void delete_resources() override {}
-  void samplers_update() override {}
   void compute_dispatch(int /*groups_x_len*/, int /*groups_y_len*/, int /*groups_z_len*/) override
   {
   }

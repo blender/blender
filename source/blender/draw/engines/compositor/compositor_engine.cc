@@ -276,16 +276,18 @@ class Context : public compositor::Context {
       return this->get_invalid_pass();
     }
 
-    const compositor::Result pass = this->get_pass_result(pass_name);
+    compositor::Result pass = this->get_pass_result(pass_name);
     if (!pass.is_allocated()) {
       return this->get_invalid_pass();
     }
 
-    /* The pass matches the compositing domain, return it as is. */
+    /* The pass data window matches the compositing domain data window, so update its display
+     * window and return it as is. */
     const compositor::Domain compositing_domain = this->get_compositing_domain();
     if (this->get_camera_region().min == int2(0) &&
         compositing_domain.data_size == pass.domain().data_size)
     {
+      pass.domain() = compositing_domain;
       return pass;
     }
 
@@ -338,10 +340,10 @@ class Context : public compositor::Context {
      * while the rest are ignored. */
     node_group.ensure_interface_cache();
     for (const bNodeTreeInterfaceSocket *output_socket : node_group.interface_outputs()) {
-      const bool is_fisrt_output = output_socket == node_group.interface_outputs().first();
+      const bool is_first_output = output_socket == node_group.interface_outputs().first();
       Result &output_result = node_group_operation.get_result(output_socket->identifier);
       const bool is_color = output_result.type() == ResultType::Color;
-      output_result.set_reference_count(is_fisrt_output && is_color ? 1 : 0);
+      output_result.set_reference_count(is_first_output && is_color ? 1 : 0);
     }
 
     /* Map the inputs to the operation. */

@@ -193,12 +193,12 @@ void button_pie_dir(RadialDirection dir, float vec[2])
 
   BLI_assert(dir != UI_RADIAL_NONE);
 
-  angle = DEG2RADF(float(ui_radial_dir_to_angle[dir]));
+  angle = DEG2RADF(float(radial_dir_to_angle[dir]));
   vec[0] = cosf(angle);
   vec[1] = sinf(angle);
 }
 
-static bool ui_but_isect_pie_seg(const Block *block, const Button *but)
+static bool but_isect_pie_seg(const Block *block, const Button *but)
 {
   if (block->pie_data->flags & PIE_INVALID_DIR) {
     return false;
@@ -273,7 +273,7 @@ bool button_contains_point_px(const Button *but, const ARegion *region, const in
   window_to_block_fl(region, block, &mx, &my);
 
   if (but->pie_dir != UI_RADIAL_NONE) {
-    if (!ui_but_isect_pie_seg(block, but)) {
+    if (!but_isect_pie_seg(block, but)) {
       return false;
     }
   }
@@ -284,7 +284,7 @@ bool button_contains_point_px(const Button *but, const ARegion *region, const in
   return true;
 }
 
-bool ui_but_contains_point_px_icon(const Button *but, ARegion *region, const wmEvent *event)
+bool but_contains_point_px_icon(const Button *but, ARegion *region, const wmEvent *event)
 {
   rcti rect;
   int x = event->xy[0], y = event->xy[1];
@@ -308,9 +308,9 @@ bool ui_but_contains_point_px_icon(const Button *but, ARegion *region, const wmE
   return BLI_rcti_isect_pt(&rect, x, y);
 }
 
-static Button *ui_but_find(const ARegion *region,
-                           const ButtonFindPollFn find_poll,
-                           const void *find_custom_data)
+static Button *but_find(const ARegion *region,
+                        const ButtonFindPollFn find_poll,
+                        const void *find_custom_data)
 {
   for (Block &block : region->runtime->uiblocks) {
     for (Button &but : block.buttons() | std::views::reverse) {
@@ -346,7 +346,7 @@ Button *button_find_mouse_over_ex(const ARegion *region,
       }
       if (button_is_interactive_ex(&but, labeledit, for_tooltip)) {
         if (but.pie_dir != UI_RADIAL_NONE) {
-          if (ui_but_isect_pie_seg(&block, &but)) {
+          if (but_isect_pie_seg(&block, &but)) {
             butover = &but;
             break;
           }
@@ -414,7 +414,7 @@ Button *button_find_rect_over(const ARegion *region, const rcti *rect_px)
   return butover;
 }
 
-Button *list_find_mouse_over_ex(const ARegion *region, const int xy[2])
+Button *listbox_find_mouse_over_ex(const ARegion *region, const int xy[2])
 {
   if (!region_contains_point_px(region, xy)) {
     return nullptr;
@@ -432,18 +432,18 @@ Button *list_find_mouse_over_ex(const ARegion *region, const int xy[2])
   return nullptr;
 }
 
-Button *ui_list_find_mouse_over(const ARegion *region, const wmEvent *event)
+Button *listbox_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
   if (event == nullptr) {
     /* If there is no info about the mouse, just act as if there is nothing underneath it. */
     return nullptr;
   }
-  return list_find_mouse_over_ex(region, event->xy);
+  return listbox_find_mouse_over_ex(region, event->xy);
 }
 
-uiList *list_find_mouse_over(const ARegion *region, const wmEvent *event)
+uiList *uilist_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
-  Button *list_but = ui_list_find_mouse_over(region, event);
+  Button *list_but = listbox_find_mouse_over(region, event);
   if (!list_but) {
     return nullptr;
   }
@@ -451,7 +451,7 @@ uiList *list_find_mouse_over(const ARegion *region, const wmEvent *event)
   return static_cast<uiList *>(list_but->custom_data);
 }
 
-static bool ui_list_contains_row(const Button *listbox_but, const Button *listrow_but)
+static bool listbox_contains_listrow(const Button *listbox_but, const Button *listrow_but)
 {
   BLI_assert(listbox_but->type == ButtonType::ListBox);
   BLI_assert(listrow_but->type == ButtonType::ListRow);
@@ -459,14 +459,14 @@ static bool ui_list_contains_row(const Button *listbox_but, const Button *listro
   return button_rna_equals(listbox_but, listrow_but);
 }
 
-static bool ui_but_is_listrow(const Button *but, const void * /*customdata*/)
+static bool but_is_listrow(const Button *but, const void * /*customdata*/)
 {
   return but->type == ButtonType::ListRow;
 }
 
-Button *list_row_find_mouse_over(const ARegion *region, const int xy[2])
+Button *listrow_find_mouse_over(const ARegion *region, const int xy[2])
 {
-  return button_find_mouse_over_ex(region, xy, false, false, ui_but_is_listrow, nullptr);
+  return button_find_mouse_over_ex(region, xy, false, false, but_is_listrow, nullptr);
 }
 
 struct ListRowFindIndexData {
@@ -474,34 +474,34 @@ struct ListRowFindIndexData {
   Button *listbox;
 };
 
-static bool ui_but_is_listrow_at_index(const Button *but, const void *customdata)
+static bool but_is_listrow_at_index(const Button *but, const void *customdata)
 {
   const ListRowFindIndexData *find_data = static_cast<const ListRowFindIndexData *>(customdata);
 
-  return ui_but_is_listrow(but, nullptr) && ui_list_contains_row(find_data->listbox, but) &&
+  return but_is_listrow(but, nullptr) && listbox_contains_listrow(find_data->listbox, but) &&
          (but->hardmax == find_data->index);
 }
 
-Button *list_row_find_index(const ARegion *region, const int index, Button *listbox)
+Button *listrow_find_index(const ARegion *region, const int index, Button *listbox)
 {
   BLI_assert(listbox->type == ButtonType::ListBox);
   ListRowFindIndexData data = {};
   data.index = index;
   data.listbox = listbox;
-  return ui_but_find(region, ui_but_is_listrow_at_index, &data);
+  return but_find(region, but_is_listrow_at_index, &data);
 }
 
-static bool ui_but_is_view_item_fn(const Button *but, const void * /*customdata*/)
+static bool but_is_view_item_fn(const Button *but, const void * /*customdata*/)
 {
   return but->type == ButtonType::ViewItem;
 }
 
 Button *view_item_find_mouse_over(const ARegion *region, const int xy[2])
 {
-  return button_find_mouse_over_ex(region, xy, false, false, ui_but_is_view_item_fn, nullptr);
+  return button_find_mouse_over_ex(region, xy, false, false, but_is_view_item_fn, nullptr);
 }
 
-static bool ui_but_is_active_view_item(const Button *but, const void * /*customdata*/)
+static bool but_is_active_view_item(const Button *but, const void * /*customdata*/)
 {
   if (but->type != ButtonType::ViewItem) {
     return false;
@@ -513,12 +513,12 @@ static bool ui_but_is_active_view_item(const Button *but, const void * /*customd
 
 Button *view_item_find_active(const ARegion *region)
 {
-  return ui_but_find(region, ui_but_is_active_view_item, nullptr);
+  return but_find(region, but_is_active_view_item, nullptr);
 }
 
 Button *view_item_find_search_highlight(const ARegion *region)
 {
-  return ui_but_find(
+  return but_find(
       region,
       [](const Button *but, const void * /*find_custom_data*/) {
         if (but->type != ButtonType::ViewItem) {
@@ -674,10 +674,11 @@ bool block_is_pie_menu(const Block *block)
 
 bool block_is_popup_any(const Block *block)
 {
-  return (block_is_menu(block) || block_is_popover(block) || block_is_pie_menu(block));
+  return (block_is_menu(block) || block_is_popover(block) || block_is_pie_menu(block) ||
+          (block->flag & BLOCK_POPUP));
 }
 
-static const Button *ui_but_next_non_separator(const Button *but)
+static const Button *but_next_non_separator(const Button *but)
 {
   if (!but) {
     return nullptr;
@@ -696,12 +697,12 @@ bool block_is_empty_ex(const Block *block, const bool skip_title)
   if (skip_title) {
     /* Skip the first label, since popups often have a title,
      * we may want to consider the block empty in this case. */
-    but = ui_but_next_non_separator(but);
+    but = but_next_non_separator(but);
     if (but && but->type == ButtonType::Label) {
       but = block->next_but(but);
     }
   }
-  return (ui_but_next_non_separator(but) == nullptr);
+  return (but_next_non_separator(but) == nullptr);
 }
 
 bool block_is_empty(const Block *block)

@@ -51,7 +51,7 @@ class VKResetQueryPoolNode : public VKNodeInfo<VKNodeType::RESET_QUERY_POOL,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker & /*resources*/,
-                   VKRenderGraphNodeLinks & /*node_links*/,
+                   VKRenderGraphLinks & /*links*/,
                    const CreateInfo & /*create_info*/) override
   {
   }
@@ -61,6 +61,7 @@ class VKResetQueryPoolNode : public VKNodeInfo<VKNodeType::RESET_QUERY_POOL,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     command_buffer.reset_query_pool(data.vk_query_pool, data.first_query, data.query_count);

@@ -324,31 +324,41 @@ void drawSnapping(TransInfo *t)
     GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor4ubv(col);
     float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
+
+    const float target_x = t->tsnap.snap_target[0];
+    const float target_y = t->tsnap.snap_target[1];
+
+    auto draw_vline = [&](float ymin, float ymax, uchar alpha) {
+      immUniformColor4ub(col[0], col[1], col[2], alpha);
+      immRectf(pos, target_x - pixelx, ymin, target_x + pixelx, ymax);
+    };
+
+    auto draw_hline = [&](float xmin, float xmax, uchar alpha) {
+      immUniformColor4ub(col[0], col[1], col[2], alpha);
+      immRectf(pos, xmin, target_y - pixelx, xmax, target_y + pixelx);
+    };
 
     if (region->regiontype == RGN_TYPE_PREVIEW) {
       if (t->tsnap.direction & DIR_GLOBAL_X) {
-        immRectf(pos,
-                 t->tsnap.snap_target[0] - pixelx,
-                 region->v2d.cur.ymax,
-                 t->tsnap.snap_target[0] + pixelx,
-                 region->v2d.cur.ymin);
+        draw_vline(region->v2d.cur.ymin, region->v2d.cur.ymax, col[3]);
       }
       if (t->tsnap.direction & DIR_GLOBAL_Y) {
-        immRectf(pos,
-                 region->v2d.cur.xmin,
-                 t->tsnap.snap_target[1] - pixelx,
-                 region->v2d.cur.xmax,
-                 t->tsnap.snap_target[1] + pixelx);
+        draw_hline(region->v2d.cur.xmin, region->v2d.cur.xmax, col[3]);
       }
     }
     else {
-      immRectf(pos,
-               t->tsnap.snap_target[0] - pixelx,
-               region->v2d.cur.ymax,
-               t->tsnap.snap_target[0] + pixelx,
-               region->v2d.cur.ymin);
+      const short snap_flag = seq::tool_settings_snap_flag_get(t->scene);
+      if ((snap_flag & SEQ_SNAP_TO_ALL_CHANNEL_STRIPS) || target_y == 0) {
+        draw_vline(region->v2d.cur.ymin, region->v2d.cur.ymax, col[3]);
+      }
+      else {
+        /* Extend fully opaque line a half-channel below,
+         * through current channel, and a half-channel above. */
+        draw_vline(target_y - 0.5, target_y + 1.5, col[3]);
+        /* Draw more transparent line from top to bottom. */
+        draw_vline(region->v2d.cur.ymin, region->v2d.cur.ymax, col[3] / 8);
+      }
     }
 
     immUnbindProgram();

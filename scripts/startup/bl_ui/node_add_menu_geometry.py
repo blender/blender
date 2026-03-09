@@ -97,11 +97,11 @@ class NODE_MT_gn_curve_write_base(node_add_menu.NodeMenu):
     def draw(self, _context):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeSetCurveNormal")
-        self.node_operator(layout, "GeometryNodeSetCurveOrder")
         self.node_operator(layout, "GeometryNodeSetCurveRadius")
         self.node_operator(layout, "GeometryNodeSetCurveTilt")
         self.node_operator(layout, "GeometryNodeSetCurveHandlePositions")
         self.node_operator(layout, "GeometryNodeCurveSetHandles")
+        self.node_operator(layout, "GeometryNodeSetNURBSOrder")
         self.node_operator(layout, "GeometryNodeSetSplineCyclic")
         self.node_operator(layout, "GeometryNodeSetSplineResolution")
         self.node_operator(layout, "GeometryNodeCurveSplineType")

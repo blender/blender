@@ -237,7 +237,7 @@ inline void gather(const VArray<T> &src,
                    MutableSpan<T> dst,
                    const Mode mode = {})
 {
-  BLI_assert(indices.size() == dst.size());
+  BLI_assert(indices.size() >= dst_mask.min_array_size());
   const CommonVArrayInfo info = src.common_info();
   switch (info.type) {
     case CommonVArrayInfo::Type::Any: {
@@ -251,7 +251,7 @@ inline void gather(const VArray<T> &src,
       break;
     }
     case CommonVArrayInfo::Type::Single: {
-      std::fill_n(dst.data(), dst.size(), *static_cast<const T *>(info.data));
+      index_mask::masked_fill(dst, *static_cast<const T *>(info.data), dst_mask);
       break;
     }
   }

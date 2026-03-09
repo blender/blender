@@ -158,7 +158,7 @@ class VKResourceStateTracker {
     }
   };
 
-  Map<ResourceHandle, Resource> resources_;
+  Vector<Resource> resources_;
   Vector<ResourceHandle> unused_handles_;
   Map<VkImage, ResourceHandle> image_resources_;
   Map<VkBuffer, ResourceHandle> buffer_resources_;
@@ -273,12 +273,6 @@ class VKResourceStateTracker {
    */
   ResourceWithStamp get_image(VkImage vk_image) const;
 
-  /** Get the resource type for the given handle. */
-  VKResourceType resource_type_get(ResourceHandle resource_handle) const
-  {
-    return resources_.lookup(resource_handle).type;
-  }
-
   bool use_dynamic_rendering_local_read = true;
 
   void debug_print() const;
@@ -300,6 +294,37 @@ class VKResourceStateTracker {
   static ResourceWithStamp get_and_increase_stamp(ResourceHandle handle, Resource &resource);
 
   ResourceHandle create_resource_slot();
+
+  /**
+   * Get the ref to an image resource state.
+   *
+   * NOTE: Can only be called when the mutex has been locked in the same thread.
+   */
+  inline Resource &get_image_resource(ResourceHandle resource_handle)
+  {
+    BLI_assert(resources_[resource_handle].type == VKResourceType::IMAGE);
+    return resources_[resource_handle];
+  }
+  inline const Resource &get_image_resource(ResourceHandle resource_handle) const
+  {
+    BLI_assert(resources_[resource_handle].type == VKResourceType::IMAGE);
+    return resources_[resource_handle];
+  }
+  /**
+   * Get the ref to an image resource state.
+   *
+   * NOTE: Can only be called when the mutex has been locked in the same thread.
+   */
+  inline Resource &get_buffer_resource(ResourceHandle resource_handle)
+  {
+    BLI_assert(resources_[resource_handle].type == VKResourceType::BUFFER);
+    return resources_[resource_handle];
+  }
+  inline const Resource &get_buffer_resource(ResourceHandle resource_handle) const
+  {
+    BLI_assert(resources_[resource_handle].type == VKResourceType::BUFFER);
+    return resources_[resource_handle];
+  }
 
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
   void validate() const;

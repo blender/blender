@@ -58,6 +58,7 @@ struct VKRenderGraphStorage {
   Vector<VKDrawIndexedNode::Data, 1024> draw_indexed;
   Vector<VKDrawIndexedIndirectNode::Data, 1024> draw_indexed_indirect;
   Vector<VKDrawIndirectNode::Data, 1024> draw_indirect;
+  Vector<uint8_t> push_constants;
 
   void reset()
   {
@@ -71,6 +72,7 @@ struct VKRenderGraphStorage {
     draw_indexed.clear_and_shrink();
     draw_indexed_indirect.clear_and_shrink();
     draw_indirect.clear_and_shrink();
+    push_constants.clear();
   }
 };
 
@@ -100,6 +102,13 @@ struct VKRenderGraphNode {
     int64_t storage_index = -1;
   };
 
+  struct {
+    /* Range where the input/output buffers are stored inside #VKRenderGraph.buffer_links_.*/
+    IndexRange buffers;
+    /* Range where the input/output images are stored inside #VKRenderGraph.image_links_.*/
+    IndexRange images;
+  } links;
+
   /**
    * Set the data of the node.
    *
@@ -123,17 +132,21 @@ struct VKRenderGraphNode {
   /**
    * Build the input/output links for this.
    *
-   * Newly created links are added to the `node_links` parameter.
+   * Newly created links are added to the `links` parameter.
    */
   template<typename NodeInfo>
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const typename NodeInfo::CreateInfo &create_info)
   {
     /* Instance of NodeInfo is needed to call virtual methods. CPP doesn't support overloading of
      * static methods. */
     NodeInfo node_info;
-    node_info.build_links(resources, node_links, create_info);
+    int64_t buffer_index_start = links.buffers.size();
+    int64_t image_index_start = links.images.size();
+    node_info.build_links(resources, links, create_info);
+    this->links.buffers = IndexRange::from_begin_end(buffer_index_start, links.buffers.size());
+    this->links.images = IndexRange::from_begin_end(image_index_start, links.images.size());
   }
 
   /**
@@ -214,15 +227,18 @@ struct VKRenderGraphNode {
 #define BUILD_COMMANDS_STORAGE(NODE_TYPE, NODE_CLASS, ATTRIBUTE_NAME) \
   case NODE_TYPE: { \
     NODE_CLASS node_info; \
-    node_info.build_commands( \
-        command_buffer, storage.ATTRIBUTE_NAME[storage_index], r_bound_pipelines); \
+    node_info.build_commands(command_buffer, \
+                             storage.ATTRIBUTE_NAME[storage_index], \
+                             storage.push_constants, \
+                             r_bound_pipelines); \
     break; \
   }
 
 #define BUILD_COMMANDS(NODE_TYPE, NODE_CLASS, ATTRIBUTE_NAME) \
   case NODE_TYPE: { \
     NODE_CLASS node_info; \
-    node_info.build_commands(command_buffer, ATTRIBUTE_NAME, r_bound_pipelines); \
+    node_info.build_commands( \
+        command_buffer, ATTRIBUTE_NAME, storage.push_constants, r_bound_pipelines); \
     break; \
   }
 
@@ -263,16 +279,9 @@ struct VKRenderGraphNode {
   /**
    * Free data kept by the node
    */
-  void free_data(VKRenderGraphStorage &storage)
+  void free_data()
   {
     switch (type) {
-
-#define FREE_DATA_STORAGE(NODE_TYPE, NODE_CLASS, ATTRIBUTE_NAME) \
-  case NODE_TYPE: { \
-    NODE_CLASS node_info; \
-    node_info.free_data(storage.ATTRIBUTE_NAME[storage_index]); \
-    break; \
-  }
 
 #define FREE_DATA(NODE_TYPE, NODE_CLASS, ATTRIBUTE_NAME) \
   case NODE_TYPE: { \
@@ -281,16 +290,8 @@ struct VKRenderGraphNode {
     break; \
   }
 
-      FREE_DATA(VKNodeType::DISPATCH, VKDispatchNode, dispatch)
-      FREE_DATA(VKNodeType::DISPATCH_INDIRECT, VKDispatchIndirectNode, dispatch_indirect)
-      FREE_DATA_STORAGE(VKNodeType::DRAW, VKDrawNode, draw)
-      FREE_DATA_STORAGE(VKNodeType::DRAW_INDEXED, VKDrawIndexedNode, draw_indexed)
-      FREE_DATA_STORAGE(
-          VKNodeType::DRAW_INDEXED_INDIRECT, VKDrawIndexedIndirectNode, draw_indexed_indirect)
-      FREE_DATA_STORAGE(VKNodeType::DRAW_INDIRECT, VKDrawIndirectNode, draw_indirect)
       FREE_DATA(VKNodeType::UPDATE_BUFFER, VKUpdateBufferNode, update_buffer)
 #undef FREE_DATA
-#undef FREE_DATA_STORAGE
 
       case VKNodeType::UNUSED:
       case VKNodeType::BEGIN_QUERY:
@@ -309,6 +310,12 @@ struct VKRenderGraphNode {
       case VKNodeType::RESET_QUERY_POOL:
       case VKNodeType::SYNCHRONIZATION:
       case VKNodeType::UPDATE_MIPMAPS:
+      case VKNodeType::DISPATCH:
+      case VKNodeType::DISPATCH_INDIRECT:
+      case VKNodeType::DRAW:
+      case VKNodeType::DRAW_INDEXED:
+      case VKNodeType::DRAW_INDEXED_INDIRECT:
+      case VKNodeType::DRAW_INDIRECT:
         break;
     }
   }
@@ -319,9 +326,9 @@ struct VKRenderGraphNode {
    * Nodes are reset so they can be reused in consecutive calls. Data allocated by the node are
    * freed. This function dispatches the free_data to the actual node implementation.
    */
-  void reset(VKRenderGraphStorage &storage)
+  void reset()
   {
-    free_data(storage);
+    free_data();
     type = VKNodeType::UNUSED;
     storage_index = -1;
   }

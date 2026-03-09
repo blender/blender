@@ -183,7 +183,7 @@ add_dependencies(
   external_vulkan_utility_libraries
   external_shaderc
   external_spirv_reflect
-  openvdb
+  external_openvdb
 )
 
 # Since USD 21.11 the libraries are prefixed with "usd_",

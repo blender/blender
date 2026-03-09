@@ -30,8 +30,8 @@ ccl_device_inline void gpu_parallel_sort_bucket_pass(const uint num_states,
                                                      const uint grid_id)
 {
   /* Zero the bucket sizes. */
-  if (local_id < max_shaders) {
-    atomic_store_local(&buckets[local_id], 0);
+  for (uint i = local_id; i < max_shaders; i += local_size) {
+    atomic_store_local(&buckets[i], 0);
   }
 
 #  ifdef __KERNEL_ONEAPI__
@@ -96,15 +96,14 @@ ccl_device_inline void gpu_parallel_sort_write_pass(const uint num_states,
   /* Calculate each partition's global offset from the prefix sum of the active state counts per
    * partition. */
 
-  if (local_id < max_shaders) {
-    int partition_offset = 0;
-    for (int i = 0; i < uint(grid_id); i++) {
-      int partition_key_count = partition_key_offsets[max_shaders + uint(i) * (max_shaders + 1)];
-      partition_offset += partition_key_count;
-    }
+  int partition_offset = 0;
+  for (uint i = 0; i < grid_id; i++) {
+    partition_offset += partition_key_offsets[max_shaders + i * (max_shaders + 1)];
+  }
 
-    ccl_global int *key_offsets = partition_key_offsets + (uint(grid_id) * (max_shaders + 1));
-    atomic_store_local(&local_offset[local_id], key_offsets[local_id] + partition_offset);
+  ccl_global int *key_offsets = partition_key_offsets + grid_id * (max_shaders + 1);
+  for (uint i = local_id; i < max_shaders; i += local_size) {
+    atomic_store_local(&local_offset[i], key_offsets[i] + partition_offset);
   }
 
 #  ifdef __KERNEL_ONEAPI__
@@ -119,8 +118,6 @@ ccl_device_inline void gpu_parallel_sort_write_pass(const uint num_states,
 
   const uint partition_start = partition_size * uint(grid_id);
   const uint partition_end = min(num_states, partition_start + partition_size);
-
-  ccl_global int *key_offsets = partition_key_offsets + (uint(grid_id) * max_shaders);
 
   for (int state_index = partition_start + uint(local_id); state_index < partition_end;
        state_index += uint(local_size))

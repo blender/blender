@@ -58,7 +58,7 @@ void main()
 
   const float depth = texelFetch(hiz_tx, texel, 0).r - bias;
   const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
-  const float thickness = gbuffer::read_thickness(gbuf.header, texel);
+  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel);
   const uchar closure_count = gbuf.header.closure_len();
 
   const float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
@@ -111,7 +111,7 @@ void main()
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       /* Apply transmission profile onto transmitted light and sum with reflected light. */
       float3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
-                                                   abs(thickness));
+                                                   thickness.value());
       stack.cl[0].light_shadowed *= sss_profile;
       stack.cl[0].light_unshadowed *= sss_profile;
       stack.cl[0].light_shadowed += sss_reflect_shadowed;
@@ -132,7 +132,7 @@ void main()
   }
 
   if (use_lightprobe_eval) {
-    LightProbeSample samp = lightprobe_load(P, Ng, V);
+    LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, P, Ng, V);
 
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect);

@@ -16,11 +16,13 @@
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
+namespace eevee::horizon {
+
 /**
  * Returns the bitmask for a given ordered pair of angle in [-pi/2..pi/2] range.
  * Clamps the inputs to the valid range.
  */
-uint horizon_scan_angles_to_bitmask(float2 theta)
+uint angles_to_bitmask(float2 theta)
 {
   constexpr int bitmask_len = 32;
   /* Algorithm 1, line 18. Re-ordered to make sure to clamp to the hemisphere range. */
@@ -32,7 +34,7 @@ uint horizon_scan_angles_to_bitmask(float2 theta)
   return (((b < 32u) ? 1u << b : 0u) - 1u) << a;
 }
 
-float horizon_scan_bitmask_to_visibility_uniform(uint bitmask)
+float bitmask_to_visibility_uniform(uint bitmask)
 {
   constexpr int bitmask_len = 32;
   /* Algorithm 1, line 26. */
@@ -43,20 +45,20 @@ float horizon_scan_bitmask_to_visibility_uniform(uint bitmask)
  * For a given visibility bitmask storing locally occluded sectors,
  * returns the uniform (non-cosine weighted) occlusion (visibility).
  */
-float horizon_scan_bitmask_to_occlusion_uniform(uint bitmask)
+float bitmask_to_occlusion_uniform(uint bitmask)
 {
   /* Occlusion is the opposite of visibility. */
-  return 1.0f - horizon_scan_bitmask_to_visibility_uniform(bitmask);
+  return 1.0f - bitmask_to_visibility_uniform(bitmask);
 }
 
 /**
  * For a given visibility bitmask storing locally occluded sectors,
  * returns the cosine weighted occlusion (visibility).
  */
-float horizon_scan_bitmask_to_occlusion_cosine(uint bitmask)
+float bitmask_to_occlusion_cosine(uint bitmask)
 {
   /* This is not described in the paper. Another solution would be to change the sector
-   * distribution in `horizon_scan_angles_to_bitmask()` but that requires more computation per
+   * distribution in `angles_to_bitmask()` but that requires more computation per
    * samples. The quality difference does not justify it currently. */
 #if 0 /* Reference. */
   constexpr int bitmask_len = 32;
@@ -89,7 +91,7 @@ float bsdf_eval(float3 N, float3 L, float3 V)
  * V, T, B forms an orthonormal basis around V.
  * Returns the angle of the normal projected normal with `V` and its length.
  */
-void horizon_scan_projected_normal_to_plane_angle_and_length(
+void projected_normal_to_plane_angle_and_length(
     float3 N, float3 V, float3 T, float3 B, float &N_proj_len, float &N_angle)
 {
   /* Projected view normal onto the integration plane. */
@@ -100,3 +102,5 @@ void horizon_scan_projected_normal_to_plane_angle_and_length(
   /* Angle between normalized projected normal and view vector. */
   N_angle = sign(N_sin) * acos_fast(N_cos);
 }
+
+}  // namespace eevee::horizon

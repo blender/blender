@@ -1650,6 +1650,24 @@ NS_S _other_method(_ref(NS_S ,this_), int s);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    /* Template specialization inside namespace. */
+    string input = R"(
+namespace NS {
+template<> Type a<Type>() {}
+}
+)";
+
+    string expect = R"(
+
+           Type NS_aTType() {}
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_namespace);
 
@@ -2732,12 +2750,11 @@ B
 )";
     IntermediateForm parser(input, no_err_report);
     string expect = R"(
-A#A1
-A)";
+A#A1A)";
     EXPECT_EQ(parser.data_get().lex.token_types_str, expect);
 
     Token A = Token::from_position(&parser.data_get(), 1);
-    Token B = Token::from_position(&parser.data_get(), 6);
+    Token B = Token::from_position(&parser.data_get(), 5);
 
     EXPECT_EQ(A.str(), "A");
     EXPECT_EQ(B.str(), "B");

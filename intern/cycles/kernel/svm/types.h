@@ -362,10 +362,16 @@ enum NodeNormalMapConvention {
   NODE_NORMAL_MAP_CONVENTION_DIRECTX = 1,
 };
 
-/* Flags for SVM node encoding, packing space and convention into one byte. */
+enum NodeNormalMapBase {
+  NODE_NORMAL_MAP_BASE_ORIGINAL = 0,
+  NODE_NORMAL_MAP_BASE_DISPLACED = 1,
+};
+
+/* Flags for SVM node encoding, packing space/convention/base into one byte. */
 enum NodeNormalMapFlags {
   NODE_NORMAL_MAP_FLAG_SPACE_MASK = 0x7,
   NODE_NORMAL_MAP_FLAG_DIRECTX = (1 << 3),
+  NODE_NORMAL_MAP_FLAG_ORIGINAL = (1 << 4),
 };
 
 enum NodeImageProjection {

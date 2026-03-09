@@ -56,11 +56,6 @@ void get_closest_in_bvhtree(bke::BVHTreeFromMesh &tree_data,
                             MutableSpan<float> r_distances_sq,
                             MutableSpan<float3> r_positions);
 
-void mix_baked_data_item(eNodeSocketDatatype socket_type,
-                         SocketValueVariant &prev,
-                         const SocketValueVariant &next,
-                         const float factor);
-
 namespace enums {
 
 const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,

@@ -57,45 +57,20 @@ ccl_device_inline int light_link_receiver_forward(KernelGlobals kg, IntegratorSt
 #endif
 }
 
-ccl_device_inline bool light_link_light_match(KernelGlobals kg,
-                                              const int object_receiver,
-                                              const int object_emitter)
-{
-#ifdef __LIGHT_LINKING__
-  if (!(kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING)) {
-    return true;
-  }
-
-  const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
-  const uint receiver_set = (object_receiver != OBJECT_NONE) ?
-                                kernel_data_fetch(objects, object_receiver).receiver_light_set :
-                                0;
-  return ((uint64_t(1) << uint64_t(receiver_set)) & set_membership) != 0;
-#else
-  return true;
-#endif
-}
-
 ccl_device_inline bool light_link_object_match(KernelGlobals kg,
-                                               const int object_receiver,
-                                               const int object_emitter)
+                                               const int receiver,
+                                               const int emitter)
 {
 #ifdef __LIGHT_LINKING__
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING)) {
     return true;
   }
 
-  /* Emitter is OBJECT_NONE when the emitter is a world volume.
-   * It is not explicitly linkable to any object, so assume it is coming from the default light
-   * set which affects all objects in the scene. */
-  if (object_emitter == OBJECT_NONE) {
-    return true;
-  }
+  kernel_assert(emitter != OBJECT_NONE);
+  kernel_assert(receiver != OBJECT_NONE);
 
-  const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
-  const uint receiver_set = (object_receiver != OBJECT_NONE) ?
-                                kernel_data_fetch(objects, object_receiver).receiver_light_set :
-                                0;
+  const uint64_t set_membership = kernel_data_fetch(objects, emitter).light_set_membership;
+  const uint receiver_set = kernel_data_fetch(objects, receiver).receiver_light_set;
   return ((uint64_t(1) << uint64_t(receiver_set)) & set_membership) != 0;
 #else
   return true;
@@ -195,14 +170,14 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   const float2 rand = make_float2(rand_light);
 
   int prim;
-  int shader_flag;
+  int visibility_flag;
   int object_id;
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     const ccl_global KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                            ls->emitter_id);
     prim = kemitter->light.id;
-    shader_flag = kemitter->shader_flag;
+    visibility_flag = kemitter->visibility_flag;
     object_id = (prim >= 0) ? ls->object : kemitter->object_id;
   }
   else
@@ -212,7 +187,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
         light_distribution, ls->emitter_id);
     prim = kdistribution->prim;
     object_id = kdistribution->object_id;
-    shader_flag = kdistribution->shader_flag;
+    visibility_flag = kdistribution->visibility_flag;
   }
 
   if (!light_link_object_match(kg, object_receiver, object_id)) {
@@ -232,7 +207,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
     if (!triangle_light_sample<in_volume_segment>(kg, prim, object_id, rand, time, ls, P)) {
       return false;
     }
-    ls->shader |= shader_flag;
+    ls->shader |= visibility_flag;
   }
   else {
     const int light = ~prim;
@@ -321,7 +296,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
 
 #ifdef __LIGHT_LINKING__
     /* Light linking. */
-    if (!light_link_light_match(kg, receiver_forward, object) && !(path_flag & PATH_RAY_CAMERA)) {
+    if (!(path_flag & PATH_RAY_CAMERA) && !light_link_object_match(kg, receiver_forward, object)) {
       continue;
     }
 #endif

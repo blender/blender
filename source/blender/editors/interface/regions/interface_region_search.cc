@@ -584,6 +584,27 @@ void searchbox_update(bContext *C, ARegion *region, Button *but, const bool rese
     }
   }
 
+  /* Nothing active, check at mouse location. */
+  if (data->active == -1) {
+    wmWindow *win = CTX_wm_window(C);
+    if (win && win->runtime && win->runtime->eventstate) {
+      const int cursor_x = win->runtime->eventstate->xy[0];
+      const int cursor_y = win->runtime->eventstate->xy[1];
+      if (BLI_rcti_isect_pt(&region->winrct, cursor_x, cursor_y)) {
+        rcti rect;
+        for (int a = 0; a < data->items.totitem; a++) {
+          searchbox_butrect(&rect, data, a);
+          if (BLI_rcti_isect_pt(
+                  &rect, cursor_x - region->winrct.xmin, cursor_y - region->winrct.ymin))
+          {
+            data->active = a;
+            break;
+          }
+        }
+      }
+    }
+  }
+
   /* validate selected item */
   searchbox_select(C, region, but, 0);
 

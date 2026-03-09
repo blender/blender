@@ -25,7 +25,7 @@ void main()
 
   const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
   const uchar closure_count = gbuf.header.closure_len();
-  const float thickness = gbuffer::read_thickness(gbuf.header, texel);
+  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel);
 
   float3 albedo_front = float3(0.0f);
   float3 albedo_back = float3(0.0f);
@@ -61,10 +61,10 @@ void main()
         albedo_front += cl.color;
         break;
       case CLOSURE_BSDF_TRANSLUCENT_ID:
-        albedo_back += (thickness != 0.0f) ? square(cl.color) : cl.color;
+        albedo_back += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
         break;
       case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
-        cl_refract.color += (thickness != 0.0f) ? square(cl.color) : cl.color;
+        cl_refract.color += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
         /* Average roughness and normals. */
         float weight = reduce_add(cl.color);
         cl_refract.N += cl.N * weight;
@@ -132,7 +132,7 @@ void main()
 
   /* Indirect light. */
   SphericalHarmonicL1 sh = lightprobe_volume_sample(P, V, Ng);
-  LightProbeSample samp = lightprobe_load(P, Ng, V);
+  LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, P, Ng, V);
 
   radiance_front += spherical_harmonics_evaluate_lambert(Ng, sh);
   radiance_back += spherical_harmonics_evaluate_lambert(-Ng, sh);

@@ -273,11 +273,22 @@ void merge_layers(const GreasePencil &src_grease_pencil,
 
   /* The destination layers don't map to the order of elements in #src_layer_indices_by_dst_layer.
    * This map maps between the old order and the final order in the destination Grease Pencil. */
-  Array<int> old_to_new_index_map(num_dst_layers);
+  Array<Vector<int>> src_layers_by_dst_reordered(num_dst_layers);
   for (const int layer_i : dst_grease_pencil.layers().index_range()) {
-    const Layer *layer = &dst_grease_pencil.layer(layer_i);
-    old_to_new_index_map[dst_layer_to_old_index_map.lookup(layer)] = layer_i;
+    const int old_index = dst_layer_to_old_index_map.lookup(&dst_grease_pencil.layer(layer_i));
+    src_layers_by_dst_reordered[layer_i] = src_layer_indices_by_dst_layer[old_index];
   }
+
+  /* TODO: Use GroupedSpan for the function argument instead of Span<Vector>. */
+  Vector<int> offsets;
+  Vector<int> all_indices;
+  offsets.reserve(src_layers_by_dst_reordered.size());
+  offsets.append(0);
+  for (const Span<int> indices : src_layers_by_dst_reordered) {
+    all_indices.extend(indices);
+    offsets.append(all_indices.size());
+  }
+  const GroupedSpan<int> src_layers_by_dst(OffsetIndices<int>(offsets), all_indices);
 
   /* Add all the drawings. */
   if (num_dst_drawings > 0) {
@@ -330,9 +341,6 @@ void merge_layers(const GreasePencil &src_grease_pencil,
   const bke::AttributeAccessor src_attributes = src_grease_pencil.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_grease_pencil.attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == bke::AttrType::String) {
-      return;
-    }
     bke::GAttributeReader src_attribute = iter.get();
     const CommonVArrayInfo info = src_attribute.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
@@ -348,25 +356,8 @@ void merge_layers(const GreasePencil &src_grease_pencil,
       return;
     }
 
-    /* Note: Doesn't use #bke::attribute_math::mix_groups because of `old_to_new_index_map`. */
-    const CPPType &type = dst_attribute.span.type();
-    bke::attribute_math::to_static_type(type, [&]<typename T>() {
-      if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
-        const VArraySpan<T> src_span = src_attribute.varray.typed<T>();
-        MutableSpan<T> new_span = dst_attribute.span.typed<T>();
-
-        bke::attribute_math::DefaultMixer<T> mixer(new_span);
-        for (const int dst_layer_i : IndexRange(num_dst_layers)) {
-          const Span<int> src_layer_indices = src_layer_indices_by_dst_layer[dst_layer_i];
-          const int new_index = old_to_new_index_map[dst_layer_i];
-          for (const int src_layer_i : src_layer_indices) {
-            const T &src_value = src_span[src_layer_i];
-            mixer.mix_in(new_index, src_value);
-          }
-        }
-        mixer.finalize();
-      }
-    });
+    const GVArraySpan src_span(src_attribute.varray);
+    bke::attribute_math::mix_groups(src_span, src_layers_by_dst, dst_attribute.span);
 
     dst_attribute.finish();
   });

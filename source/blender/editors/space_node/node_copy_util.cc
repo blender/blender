@@ -10,11 +10,13 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_anim_data.hh"
 #include "BLI_listbase.h"
 #include "BLI_listbase_iterator.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
+#include "BLI_string.h"
 #include "BLI_vector.hh"
 
 #include "BKE_action.hh"
@@ -26,6 +28,7 @@
 #include "BKE_main.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_interface_convert.hh"
 #include "BKE_node_tree_update.hh"
 
 #include "ANIM_action.hh"
@@ -797,65 +800,314 @@ GroupInputOutputNodes connect_copied_nodes_to_interface(const bContext &C,
   return io_nodes;
 }
 
-void connect_copied_nodes_to_external_sockets(const bNodeTree &src_tree,
-                                              const NodeSetCopy &copied_nodes,
-                                              const NodeTreeInterfaceMapping &io_mapping)
+static bool socket_types_need_conversion(const StringRef from_type, const StringRef to_type)
 {
-  using InterfaceSocketData = NodeTreeInterfaceMapping::InterfaceSocketData;
+  const bke::bNodeSocketType *from_typeinfo = bke::node_socket_type_find(from_type);
+  const bke::bNodeSocketType *to_typeinfo = bke::node_socket_type_find(to_type);
+  const bool from_static = node_is_static_socket_type(*from_typeinfo);
+  const bool to_static = node_is_static_socket_type(*to_typeinfo);
+  if (from_typeinfo == nullptr || to_typeinfo == nullptr) {
+    return true;
+  }
+  if (from_static != to_static) {
+    return true;
+  }
+  /* Dynamic socket types need conversion if type idnames are different. */
+  if (!from_static && !to_static) {
+    return from_type != to_type;
+  }
+  /* Static socket types need conversion only if the base types are different. */
+  return from_typeinfo->type != to_typeinfo->type;
+}
 
+static bool any_link_need_conversion(const Span<MutableNodeAndSocket> links,
+                                     const bNodeTreeInterfaceSocket &io_socket)
+{
+  /* A proxy is needed if any internal or external connection has a different type and therefore
+   * cannot directly be connected without loss of conversion. */
+  for (const MutableNodeAndSocket &in_link : links) {
+    const bNodeSocket &in_socket = in_link.find_socket();
+    if (socket_types_need_conversion(in_socket.idname, io_socket.socket_type)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static std::pair<std::optional<MutableNodeAndSocket>, std::optional<MutableNodeAndSocket>>
+find_proxy_node_sockets(bNode &proxy_node)
+{
+  std::optional<MutableNodeAndSocket> in, out;
+  for (bNodeSocket &socket : proxy_node.inputs) {
+    if (socket.is_available() && !socket.is_user_hidden()) {
+      in.emplace(MutableNodeAndSocket{proxy_node, socket});
+      break;
+    }
+  }
+  for (bNodeSocket &socket : proxy_node.outputs) {
+    if (socket.is_available() && !socket.is_user_hidden()) {
+      out.emplace(MutableNodeAndSocket{proxy_node, socket});
+      break;
+    }
+  }
+  return {in, out};
+}
+
+using UniqueLinkSet = Set<std::pair<MutableNodeAndSocket, MutableNodeAndSocket>>;
+
+/* Create a constant value or field input proxy node, using the source socket value. */
+static bNode *create_proxy_input_node(const bNodeTreeInterfaceSocket &io_socket,
+                                      const bNodeTree &src_tree,
+                                      const bNodeSocket &src_socket,
+                                      bContext &C,
+                                      bNodeTree &dst_tree,
+                                      Vector<AnimationBasePathChange> &anim_basepaths)
+{
+  const eNodeSocketDatatype socket_type = bke::node_socket_type_find(io_socket.socket_type)->type;
+  const NodeDefaultInputType default_input_type = NodeDefaultInputType(io_socket.default_input);
+  /* TODO Inferred structure type isn't fully working yet, use declared structure type for now. */
+  // const nodes::StructureType structure_type = nodes::StructureType(
+  //     src_socket.runtime->inferred_structure_type);
+  const nodes::StructureType structure_type = io_socket.structure_type ==
+                                                      NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO ?
+                                                  nodes::StructureType::Dynamic :
+                                                  nodes::StructureType(io_socket.structure_type);
+
+  if (ELEM(structure_type, nodes::StructureType::Grid, nodes::StructureType::List)) {
+    /* Grids and Lists don't have input value nodes or implicit field inputs. */
+    return nullptr;
+  }
+
+  if (bNode *proxy_node = bke::node_interface::create_proxy_implicit_input_node(
+          socket_type, default_input_type, C, dst_tree))
+  {
+    return proxy_node;
+  }
+
+  if (!src_socket.default_value) {
+    /* No proxy needed if the socket type does not have input values. */
+    return nullptr;
+  }
+  if (bNode *proxy_node = bke::node_interface::create_proxy_const_input_node(
+          socket_type, src_tree, src_socket, C, dst_tree, anim_basepaths))
+  {
+    return proxy_node;
+  }
+
+  /* Fall back to reroute node. */
+  return bke::node_add_static_node(&C, dst_tree, NODE_REROUTE);
+}
+
+/* Create a converter proxy node for the interface socket. */
+static bNode *create_proxy_converter_node(const bNodeTreeInterfaceSocket &io_socket,
+                                          const bNodeTree &src_tree,
+                                          const bNodeSocket *src_socket,
+                                          bContext &C,
+                                          bNodeTree &dst_tree,
+                                          Vector<AnimationBasePathChange> &anim_basepaths)
+{
+  const eNodeSocketDatatype socket_type = bke::node_socket_type_find(io_socket.socket_type)->type;
+
+  if (bNode *proxy_node = bke::node_interface::create_proxy_converter_node(
+          socket_type, src_tree, src_socket, C, dst_tree, anim_basepaths))
+  {
+    return proxy_node;
+  }
+
+  /* Fall back to reroute node. */
+  return bke::node_add_static_node(&C, dst_tree, NODE_REROUTE);
+}
+
+/* Replace an interface socket by adding proxy nodes. */
+static void replace_interface_socket(
+    bContext &C,
+    bNodeTree &dst_tree,
+    const bNodeTreeInterfaceSocket &io_socket,
+    const Span<MutableNodeAndSocket> incoming_links,
+    const Span<MutableNodeAndSocket> outgoing_links,
+    const bNode *group_node,
+    InterfaceProxyNodes &interface_proxies,
+    float2 &input_location,
+    float2 &output_location,
+    UniqueLinkSet &unique_links,
+    Vector<AnimationBasePathChange> &anim_basepaths_for_dst_tree,
+    Vector<AnimationBasePathChange> &anim_basepaths_for_group_tree)
+{
+  /* If there are no output connections the socket is unused and can be discarded. */
+  if (outgoing_links.is_empty()) {
+    return;
+  }
+
+  /* Find the socket input value to use, if available. */
+  const bNodeTree &group_tree = *id_cast<bNodeTree *>(group_node->id);
+  const bNode *group_output_node = group_tree.group_output_node();
+  /* The source for inputs is the group node, for constant outputs is the group output node. */
+  const bool is_input = io_socket.flag & NODE_INTERFACE_SOCKET_INPUT;
+  Vector<AnimationBasePathChange> &anim_basepaths = is_input ? anim_basepaths_for_dst_tree :
+                                                               anim_basepaths_for_group_tree;
+  const bNodeTree &src_tree = is_input ? dst_tree : group_tree;
+  const bNode *src_node = is_input ? group_node : group_output_node;
+  const bNodeSocket *src_socket = src_node ? bke::node_find_socket(
+                                                 *src_node, SOCK_IN, io_socket.identifier) :
+                                             nullptr;
+
+  /* Create a proxy node if necessary. */
+  bNode *proxy_node = nullptr;
+  if (incoming_links.is_empty()) {
+    /* The socket has no incoming links. A proxy is needed if the socket value needs to be stored
+     * or if the socket uses a default input field. */
+    if (src_socket) {
+      proxy_node = create_proxy_input_node(
+          io_socket, src_tree, *src_socket, C, dst_tree, anim_basepaths);
+    }
+  }
+  else {
+    /* A proxy is needed if any internal internal or external connection has a different type
+     * and therefore cannot directly be connected without loss of conversion. */
+    if (any_link_need_conversion(incoming_links, io_socket) &&
+        any_link_need_conversion(outgoing_links, io_socket))
+    {
+      proxy_node = create_proxy_converter_node(
+          io_socket, src_tree, src_socket, C, dst_tree, anim_basepaths);
+    }
+  }
+
+  if (proxy_node) {
+    BLI_assert(proxy_node);
+    BLI_strncpy(proxy_node->label, io_socket.name, sizeof(proxy_node->label));
+
+    const float width = (proxy_node->is_reroute() ? 0.0f : proxy_node->width);
+    const float height = (proxy_node->is_reroute() ? 0.0f : proxy_node->height);
+    if (is_input) {
+      proxy_node->location[0] = input_location.x - width;
+      proxy_node->location[1] = input_location.y;
+      input_location.y -= height + 20.0f;
+    }
+    else {
+      proxy_node->location[0] = output_location.x;
+      proxy_node->location[1] = output_location.y;
+      output_location.y -= height + 20.0f;
+    }
+
+    interface_proxies.add_new(io_socket.identifier, proxy_node);
+
+    /* Connect incoming to outgoing sockets via the proxy node. */
+    const auto [proxy_input, proxy_output] = find_proxy_node_sockets(*proxy_node);
+    BLI_assert(proxy_input || incoming_links.is_empty());
+    BLI_assert(proxy_output || outgoing_links.is_empty());
+    for (const MutableNodeAndSocket &from_socket : incoming_links) {
+      unique_links.add({from_socket, *proxy_input});
+    }
+    for (const MutableNodeAndSocket &to_socket : outgoing_links) {
+      unique_links.add({*proxy_output, to_socket});
+    }
+  }
+  else {
+    /* Connect incoming to outgoing sockets directly.
+     * Creates N * M links, in practice N is usually 1. */
+    for (const MutableNodeAndSocket &from_socket : incoming_links) {
+      for (const MutableNodeAndSocket &to_socket : outgoing_links) {
+        unique_links.add({from_socket, to_socket});
+      }
+    }
+  }
+}
+
+InterfaceProxyNodes connect_copied_nodes_to_external_sockets(
+    bContext &C,
+    const bNodeTree &src_tree,
+    const NodeSetCopy &copied_nodes,
+    const NodeTreeInterfaceMapping &io_mapping,
+    const bNode *group_node)
+{
   bNodeTree &dst_tree = copied_nodes.dst_tree();
 
-  /* Deduplicate links in case multiple connects get merged. This can happen because input and
-   * output sockets are connected, potentially adding redundant links. */
-  Set<std::pair<MutableNodeAndSocket, MutableNodeAndSocket>> unique_links;
-  /* Connect one set of sockets to all sockets in the other set.
-   * One set must contain inputs and the other outputs, it doesn't matter which is which.
-   * In principle can add N * M links.
-   * In practice the "from_sockets" list is generally limited to a single socket. */
-  auto connect_socket_lists = [&](const Span<MutableNodeAndSocket> sockets1,
-                                  const Span<MutableNodeAndSocket> sockets2) {
-    for (const MutableNodeAndSocket &socket1 : sockets1) {
-      for (const MutableNodeAndSocket &socket2 : sockets2) {
-        if (socket1.is_input()) {
-          BLI_assert(socket2.is_output());
-          unique_links.add({socket2, socket1});
-        }
-        else {
-          BLI_assert(socket2.is_input());
-          unique_links.add({socket1, socket2});
-        }
-      }
-    }
-  };
+  /* Set location for proxy nodes, based on drawing order of interface items. */
+  float2 input_location = {-50, 0}, output_location = {50, 0};
+  Vector<const bNode *> nodes_vec;
+  for (const bNode *node : copied_nodes.node_map().values()) {
+    nodes_vec.append(node);
+  }
+  if (const std::optional<Bounds<float2>> bounds = node_bounds(nodes_vec)) {
+    const Bounds<float2> loc_bounds = *node_location_bounds(nodes_vec);
+    /* Move outputs to the edge of copied nodes, which are centered at zero. */
+    input_location.x += -loc_bounds.size().x * 0.5f;
+    output_location.x += -loc_bounds.size().x * 0.5f + bounds->size().x;
+  }
 
-  for (const auto &item : io_mapping.socket_data.items()) {
-    for (const NodeAndSocket &origin : item.value.internal_sockets) {
-      if (origin.node.is_group_input()) {
-        /* Directly connect external inputs to external outputs. */
-        const bNodeTreeInterfaceSocket *io_socket = bke::node_find_interface_input_by_identifier(
-            src_tree, origin.socket_identifier);
-        BLI_assert(io_socket);
-        if (const InterfaceSocketData *data = io_mapping.socket_data.lookup_ptr(io_socket)) {
-          connect_socket_lists(data->external_sockets, item.value.external_sockets);
-        }
-        continue;
-      }
+  /* Deduplicate links in case multiple connections get merged. This can happen because both
+   * input and output sockets are connected, potentially adding redundant links. This can
+   * theoretically create N * M links but in practice either N or M is usually 1. */
+  UniqueLinkSet unique_links;
+  /* Animdata paths for group sockets for copying animdata to proxy nodes. */
+  Vector<AnimationBasePathChange> anim_basepaths_for_dst_tree;
+  Vector<AnimationBasePathChange> anim_basepaths_for_group_tree;
+
+  InterfaceProxyNodes interface_proxies;
+  /* Loop over mapped items based on the interface socket order. */
+  for (const bNodeTreeInterfaceItem *io_item : src_tree.interface_items()) {
+    if (io_item->item_type != NODE_INTERFACE_SOCKET) {
+      continue;
+    }
+    const auto &io_socket = bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(*io_item);
+    const std::optional<NodeTreeInterfaceMapping::InterfaceSocketData> socket_data =
+        io_mapping.socket_data.lookup_try(&io_socket);
+    if (!socket_data) {
+      continue;
+    }
+    const bool is_input = io_socket.flag & NODE_INTERFACE_SOCKET_INPUT;
+
+    /* Gather all new links to and from the interface socket that must be added. */
+    Vector<MutableNodeAndSocket> incoming_links, outgoing_links;
+    if (is_input) {
+      incoming_links.extend(socket_data->external_sockets);
+    }
+    else {
+      outgoing_links.extend(socket_data->external_sockets);
+    }
+    for (const NodeAndSocket &origin : socket_data->internal_sockets) {
       if (origin.node.is_group_output()) {
-        /* Directly connect external inputs to external outputs. */
+        /* Directly connect to external output links. */
+        BLI_assert(is_input);
         const bNodeTreeInterfaceSocket *io_socket = bke::node_find_interface_output_by_identifier(
             src_tree, origin.socket_identifier);
-        BLI_assert(io_socket);
-        if (const InterfaceSocketData *data = io_mapping.socket_data.lookup_ptr(io_socket)) {
-          connect_socket_lists(data->external_sockets, item.value.external_sockets);
-        }
+        outgoing_links.extend(
+            io_mapping.socket_data.lookup_default(io_socket, {}).external_sockets);
+        continue;
+      }
+      if (origin.node.is_group_input()) {
+        /* Directly connect to external input links. */
+        BLI_assert(!is_input);
+        const bNodeTreeInterfaceSocket *io_socket = bke::node_find_interface_input_by_identifier(
+            src_tree, origin.socket_identifier);
+        incoming_links.extend(
+            io_mapping.socket_data.lookup_default(io_socket, {}).external_sockets);
         continue;
       }
 
-      bNode &new_node = *copied_nodes.node_map().lookup(&origin.node);
+      /* Map the old internal to the new socket in the target tree. */
+      bNode &new_node = *copied_nodes.node_map().lookup_default(&origin.node, nullptr);
       bNodeSocket &new_socket = origin.find_socket_in_node(new_node);
-      MutableNodeAndSocket new_target = {new_node, new_socket};
-      connect_socket_lists({new_target}, item.value.external_sockets);
+      if (is_input) {
+        outgoing_links.append({new_node, new_socket});
+      }
+      else {
+        incoming_links.append({new_node, new_socket});
+      }
     }
+
+    replace_interface_socket(C,
+                             dst_tree,
+                             io_socket,
+                             incoming_links,
+                             outgoing_links,
+                             group_node,
+                             interface_proxies,
+                             input_location,
+                             output_location,
+                             unique_links,
+                             anim_basepaths_for_dst_tree,
+                             anim_basepaths_for_group_tree);
   }
 
   /* Actually add deduplicated links to the tree. */
@@ -866,6 +1118,13 @@ void connect_copied_nodes_to_external_sockets(const bNodeTree &src_tree,
                               item.second.node,
                               item.second.find_socket());
   }
+
+  BKE_animdata_copy_by_basepath(
+      *CTX_data_main(&C), dst_tree.id, dst_tree.id, anim_basepaths_for_dst_tree);
+  BKE_animdata_copy_by_basepath(
+      *CTX_data_main(&C), *group_node->id, dst_tree.id, anim_basepaths_for_group_tree);
+
+  return interface_proxies;
 }
 
 void connect_group_node_to_external_sockets(bNode &group_node,

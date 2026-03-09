@@ -592,7 +592,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
     if (do_dupli) {
       /* For duplicate mode, duplicate from original geometry
        * and rotate by total angle for this step. */
-      BMO_op_initf(bm, &dupop, op->flag, "duplicate geom=%S", op, "geom");
+      BMO_op_initf(bm, &dupop, op->flag, "duplicate geom=%s", op, "geom");
       BMO_op_exec(bm, &dupop);
       BMO_op_callf(bm,
                    op->flag,

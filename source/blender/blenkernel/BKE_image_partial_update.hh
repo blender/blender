@@ -21,11 +21,10 @@
 #include "BKE_image_wrappers.hh"
 
 #include "DNA_image_types.h"
-struct PartialUpdateUser;
+
 namespace blender {
 
-extern "C" {
-}
+struct PartialUpdateUser;
 
 namespace bke::image::partial_update {
 

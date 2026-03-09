@@ -78,18 +78,6 @@ void wm_surface_clear_drawable()
     }
 
     g_drawable = nullptr;
-
-    /* Workaround: For surface drawing, the #UserDef runtime DPI/pixel-size values are set to
-     * base constants in #wm_surface_constant_dpi_set_userpref called in #wm_surface_make_drawable.
-     * This does not affect window rendering as #WM_window_dpi_set_userdef is called in
-     * #wm_window_make_drawable. However, some handlers called before window re-draw (such as
-     * window popups) call drawing code and thus rely on correct system DPI runtime values.
-     *
-     * Workaround this issue by restoring the DPI runtime value on surface drawable clear.
-     * To match the previous value, the last window is used (as windows are iterated and set in
-     * order in #wm_draw_update before drawing surfaces). */
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-    WM_window_dpi_set_userdef(static_cast<wmWindow *>(wm->windows.last));
   }
 }
 

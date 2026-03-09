@@ -33,15 +33,17 @@ ccl_device_inline float shadow_linking_light_sample_mis_weight(KernelGlobals kg,
                                                                IntegratorState state,
                                                                const uint32_t path_flag,
                                                                const int light_id,
+                                                               const int object_id,
                                                                const float light_sample_pdf,
                                                                const float3 P)
 {
   if (kernel_data_fetch(lights, light_id).type == LIGHT_DISTANT) {
     return light_sample_mis_weight_forward_distant(
-        kg, state, path_flag, light_id, light_sample_pdf);
+        kg, state, path_flag, object_id, light_sample_pdf);
   }
 
-  return light_sample_mis_weight_forward_lamp(kg, state, path_flag, light_id, light_sample_pdf, P);
+  return light_sample_mis_weight_forward_lamp(
+      kg, state, path_flag, object_id, light_sample_pdf, P);
 }
 
 /* Setup ray for the shadow path.
@@ -94,7 +96,7 @@ ccl_device bool shadow_linking_shade_light(KernelGlobals kg,
 
   /* MIS weighting. */
   mis_weight = shadow_linking_light_sample_mis_weight(
-      kg, state, path_flag, isect.prim, light_eval.pdf, ray.P);
+      kg, state, path_flag, isect.prim, isect.object, light_eval.pdf, ray.P);
 
   light_weight = light_eval.eval_fac * mis_weight *
                  INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);

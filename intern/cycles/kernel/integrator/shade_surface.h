@@ -126,8 +126,8 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
 #ifdef __LIGHT_LINKING__
-  if (!light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object) &&
-      !(path_flag & PATH_RAY_CAMERA))
+  if (!(path_flag & PATH_RAY_CAMERA) &&
+      !light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object))
   {
     return;
   }

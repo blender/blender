@@ -299,6 +299,17 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
                     .max(value.max);
         break;
       }
+      case SOCK_INT_VECTOR: {
+        const auto &value = node_interface::get_socket_data_as<bNodeSocketValueIntVector>(
+            io_socket);
+        decl = &b.add_socket<decl::IntVector>(name, identifier, in_out)
+                    .subtype(PropertySubType(value.subtype))
+                    .default_value(int3(value.value))
+                    .dimensions(value.dimensions)
+                    .min(value.min)
+                    .max(value.max);
+        break;
+      }
       case SOCK_RGBA: {
         const auto &value = node_interface::get_socket_data_as<bNodeSocketValueRGBA>(io_socket);
         decl = &b.add_socket<decl::Color>(name, identifier, in_out).default_value(value.value);

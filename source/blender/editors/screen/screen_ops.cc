@@ -72,6 +72,7 @@
 #include "ED_screen_types.hh"
 #include "ED_sequencer.hh"
 #include "ED_space_graph.hh"
+#include "ED_undo.hh"
 #include "ED_view3d.hh"
 
 #include "RNA_access.hh"
@@ -96,6 +97,9 @@ namespace blender {
 #define KM_MODAL_APPLY 2
 #define KM_MODAL_SNAP_ON 3
 #define KM_MODAL_SNAP_OFF 4
+
+static wmOperatorStatus start_playback(bContext *C, int sync, int mode);
+static void stop_playback(bContext *C);
 
 /* -------------------------------------------------------------------- */
 /** \name Public Poll API
@@ -6190,38 +6194,51 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
     }
   }
 
-  /* reset 'jumped' flag before checking if we need to jump... */
-  sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
+  /* Handle reaching the extreme frames. */
+  const int start_frame = PSFRA;
+  const int end_frame = PEFRA;
+  const bool is_playing_forward = (sad->flag & ANIMPLAY_FLAG_REVERSE) == 0;
+  const bool is_extreme_frame = is_playing_forward ? scene->r.cfra > end_frame :
+                                                     scene->r.cfra < start_frame;
+  if (is_extreme_frame) {
+    sad->flag |= ANIMPLAY_FLAG_JUMPED;
 
-  if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
-    /* jump back to end? */
-    if (PRVRANGEON) {
-      if (scene->r.cfra < scene->r.psfra) {
-        scene->r.cfra = scene->r.pefra;
-        sad->flag |= ANIMPLAY_FLAG_JUMPED;
-      }
-    }
-    else {
-      if (scene->r.cfra < scene->r.sfra) {
-        scene->r.cfra = scene->r.efra;
-        sad->flag |= ANIMPLAY_FLAG_JUMPED;
-      }
+    switch (scene->playback_loop_mode) {
+      case SCE_LOOP_MODE_STOP_START_FRAME:
+        stop_playback(C);
+        ATTR_FALLTHROUGH;
+      case SCE_LOOP_MODE_INFINITE:
+        scene->r.cfra = is_playing_forward ? start_frame : end_frame;
+        break;
+      case SCE_LOOP_MODE_STOP_END_FRAME:
+        /* Looping happens when playback overshoots the start/end frame. This means that this
+         * mode will visit the last frame twice (once during playback, and once after overshoot +
+         * clamping). If this turns out to be undesired, the `is_extreme_frame` computation will
+         * have to take the loop mode into account. */
+        CLAMP(scene->r.cfra, start_frame, end_frame);
+        stop_playback(C);
+        break;
+      case SCE_LOOP_MODE_RESTORE:
+        scene->r.cfra = sad->sfra;
+        stop_playback(C);
+        break;
+      case SCE_LOOP_MODE_BOUNCE:
+        if (is_playing_forward) {
+          BKE_sound_stop_scene(scene_eval);
+          sad->flag |= ANIMPLAY_FLAG_REVERSE;
+          scene->r.cfra = end_frame - 1;
+        }
+        else {
+          sad->flag &= ~ANIMPLAY_FLAG_REVERSE;
+          BKE_sound_play_scene(scene_eval);
+          scene->r.cfra = start_frame + 1;
+        }
+        CLAMP(scene->r.cfra, start_frame, end_frame);
+        break;
     }
   }
   else {
-    /* jump back to start? */
-    if (PRVRANGEON) {
-      if (scene->r.cfra > scene->r.pefra) {
-        scene->r.cfra = scene->r.psfra;
-        sad->flag |= ANIMPLAY_FLAG_JUMPED;
-      }
-    }
-    else {
-      if (scene->r.cfra > scene->r.efra) {
-        scene->r.cfra = scene->r.sfra;
-        sad->flag |= ANIMPLAY_FLAG_JUMPED;
-      }
-    }
+    sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
   }
 
   /* next frame overridden by user action (pressed jump to first/last frame) */
@@ -6498,7 +6515,15 @@ static wmOperatorStatus screen_animation_play_exec(bContext *C, wmOperator *op)
     sync = RNA_boolean_get(op->ptr, "sync");
   }
 
-  return ED_screen_animation_play(C, sync, mode);
+  const wmOperatorStatus status = ED_screen_animation_play(C, sync, mode);
+
+  if (!ED_screen_animation_playing(CTX_wm_manager(C))) {
+    /* Only pushing undo step when stopping playback so that there are no undo steps that seemingly
+     * do nothing. Creating an undo step is important though so that when undoing an action right
+     * after playback stop doesn't also change the current frame. See #144058. */
+    ED_undo_grouped_push_op(C, op);
+  }
+  return status;
 }
 
 static void SCREEN_OT_animation_play(wmOperatorType *ot)
@@ -6514,6 +6539,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
   ot->exec = screen_animation_play_exec;
 
   ot->poll = operator_screenactive_norender;
+  ot->undo_group = "Frame Change";
 
   prop = RNA_def_boolean(
       ot->srna, "reverse", false, "Play in Reverse", "Animation is played backwards");

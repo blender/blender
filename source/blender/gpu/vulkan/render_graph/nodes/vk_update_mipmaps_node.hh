@@ -51,14 +51,13 @@ class VKUpdateMipmapsNode : public VKNodeInfo<VKNodeType::UPDATE_MIPMAPS,
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
     ResourceWithStamp resource = resources.get_image_and_increase_stamp(create_info.vk_image);
-    node_links.outputs.append({resource,
-                               VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               create_info.vk_image_aspect});
+    links.images.append({{resource, VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT},
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         create_info.vk_image_aspect});
   }
 
   /**
@@ -66,6 +65,7 @@ class VKUpdateMipmapsNode : public VKNodeInfo<VKNodeType::UPDATE_MIPMAPS,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
     VkImageMemoryBarrier image_memory_barrier = {};

@@ -1401,7 +1401,6 @@ class SEQUENCER_MT_context_menu(Menu):
     def draw(self, context):
         ed = context.sequencer_scene.sequence_editor
         if ed.selected_retiming_keys:
-
             self.draw_retime(context)
         else:
             self.draw_generic(context)
@@ -2045,6 +2044,7 @@ class SEQUENCER_PT_sequencer_snapping(Panel):
         col.prop(sequencer_tool_settings, "snap_to_hold_offset")
         col.prop(sequencer_tool_settings, "snap_to_markers")
         col.prop(sequencer_tool_settings, "snap_to_retiming_keys")
+        col.prop(sequencer_tool_settings, "snap_to_all_channels")
 
         col = layout.column(heading="Ignore", align=True)
         col.prop(sequencer_tool_settings, "snap_ignore_muted", text="Muted Strips")

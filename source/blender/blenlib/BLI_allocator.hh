@@ -46,6 +46,16 @@ class GuardedAllocator {
      * alignment be? */
     return MEM_new_uninitialized_aligned(size, alignment, name);
   }
+  void *allocate_zero(size_t size, size_t alignment, const char *name)
+  {
+    if (alignment > MEM_MIN_CPP_ALIGNMENT) {
+      /* There is no version of calloc with a specific alignment argument. */
+      void *ptr = this->allocate(size, alignment, name);
+      memset(ptr, 0, size);
+      return ptr;
+    }
+    return MEM_new_zeroed(size, name);
+  }
 
   void deallocate(void *ptr)
   {
@@ -65,6 +75,16 @@ template<size_t Alignment = 64ul> class GuardedAlignedAllocator {
   void *allocate(size_t size, size_t alignment, const char *name)
   {
     return MEM_new_uninitialized_aligned(size, std::max(alignment, min_alignment), name);
+  }
+  void *allocate_zero(size_t size, size_t alignment, const char *name)
+  {
+    if (std::max(alignment, Alignment) > MEM_MIN_CPP_ALIGNMENT) {
+      /* There is no version of calloc with a specific alignment argument. */
+      void *ptr = this->allocate(size, alignment, name);
+      memset(ptr, 0, size);
+      return ptr;
+    }
+    return MEM_new_zeroed(size, name);
   }
 
   void deallocate(void *ptr)
@@ -95,6 +115,12 @@ class RawAllocator {
     BLI_assert(offset >= int(sizeof(MemHead)));
     (static_cast<MemHead *>(used_ptr) - 1)->offset = offset;
     return used_ptr;
+  }
+  void *allocate_zero(size_t size, size_t alignment, const char *name)
+  {
+    void *ptr = this->allocate(size, alignment, name);
+    memset(ptr, 0, size);
+    return ptr;
   }
 
   void deallocate(void *ptr)

@@ -574,7 +574,7 @@ def generic_arg_no_prefs(subparse: argparse.ArgumentParser) -> None:
         help=(
             "Treat the user-preferences as read-only,\n"
             "preventing updates for operations that would otherwise modify them.\n"
-            "This means removing extensions or repositories for example, wont update the user-preferences."
+            "This means removing extensions or repositories for example, won't update the user-preferences."
         ),
     )
 
@@ -799,7 +799,7 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
         default="",
         help=(
             "The directory where the repository stores local files (optional).\n"
-            "When omitted a directory in the users directory is automatically selected."
+            "When omitted a directory in the user's directory is automatically selected."
         ),
     )
     subparse.add_argument(

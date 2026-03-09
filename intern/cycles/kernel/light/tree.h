@@ -831,7 +831,7 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
   if (is_triangle(kemitter)) {
     /* If the target is an emissive triangle, first traverse the top level tree to find the mesh
      * light emitter, then traverse the subtree. */
-    target_emitter = kernel_data_fetch(object_to_tree, object_emitter);
+    target_emitter = kernel_data_fetch(light_to_tree, object_emitter);
     const ccl_global KernelLightTreeEmitter *kmesh = &kernel_data_fetch(light_tree_emitters,
                                                                         target_emitter);
     subtree_root_index = kmesh->mesh.node_id;

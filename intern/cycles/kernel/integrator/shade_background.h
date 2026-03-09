@@ -151,8 +151,8 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 #endif
 
 #ifdef __LIGHT_LINKING__
-    if (!light_link_light_match(kg, light_link_receiver_forward(kg, state), klight->object_id) &&
-        !(path_flag & PATH_RAY_CAMERA))
+    if (!(path_flag & PATH_RAY_CAMERA) &&
+        !light_link_object_match(kg, light_link_receiver_forward(kg, state), klight->object_id))
     {
       continue;
     }
@@ -184,7 +184,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 
     /* MIS weighting. */
     const float mis_weight = light_sample_mis_weight_forward_distant(
-        kg, state, path_flag, lamp, light_eval.pdf);
+        kg, state, path_flag, klight->object_id, light_eval.pdf);
 
     /* Write to render buffer. */
     guiding_record_background(kg, state, eval, mis_weight);

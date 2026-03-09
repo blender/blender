@@ -35,17 +35,10 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
 
   ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
 
-  if (kernel_data.film.pass_denoising_depth != PASS_UNUSED) {
-    const Spectrum denoising_feature_throughput = INTEGRATOR_STATE(
-        state, path, denoising_feature_throughput);
-    const float depth = sd->ray_length - INTEGRATOR_STATE(state, ray, tmin);
-    const float denoising_depth = ensure_finite(average(denoising_feature_throughput) * depth);
-    film_write_pass_float(buffer + kernel_data.film.pass_denoising_depth, denoising_depth);
-  }
-
   float3 normal = zero_float3();
   Spectrum diffuse_albedo = zero_spectrum();
   Spectrum specular_albedo = zero_spectrum();
+  Spectrum transparent_albedo = zero_spectrum();
   float sum_weight = 0.0f;
   float sum_nonspecular_weight = 0.0f;
 
@@ -56,52 +49,84 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
       continue;
     }
 
+    /* Transparency always passes through. */
+    if (CLOSURE_IS_BSDF_TRANSPARENT(sc->type)) {
+      transparent_albedo += sc->weight;
+      continue;
+    }
+
+    const Spectrum closure_albedo = bsdf_albedo(kg, sd, sc, true, true);
+    const float closure_weight = average(closure_albedo);
+
     /* All closures contribute to the normal feature, but only diffuse-like ones to the albedo. */
     /* If far-field hair, use fiber tangent as feature instead of normal. */
     normal += (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID ? safe_normalize(sd->dPdu) : sc->N) *
-              sc->sample_weight;
-    sum_weight += sc->sample_weight;
+              closure_weight;
+    sum_weight += closure_weight;
 
-    const Spectrum closure_albedo = bsdf_albedo(kg, sd, sc, true, true);
-    if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f) ||
-        sc->type == CLOSURE_BSDF_HAIR_HUANG_ID)
-    {
-      /* Far-field hair models "count" as diffuse. */
-      diffuse_albedo += closure_albedo;
-      sum_nonspecular_weight += sc->sample_weight;
-    }
-    else {
-      specular_albedo += closure_albedo;
-    }
+    const float roughness = sqrtf(bsdf_get_specular_roughness_squared(sc));
+    /* Transition smoothly from specular to diffuse between 0.0 and 0.15 roughness. */
+    const float diffuse_weight = (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID) ?
+                                     1.0f :
+                                     smoothstep(0.0f, 0.15f, roughness);
+
+    diffuse_albedo += closure_albedo * diffuse_weight;
+    specular_albedo += closure_albedo * (1.0f - diffuse_weight);
+    sum_nonspecular_weight += closure_weight * diffuse_weight;
   }
 
-  /* Wait for next bounce if 75% or more sample weight belongs to specular-like closures. */
-  if ((sum_weight == 0.0f) || (sum_nonspecular_weight * 4.0f > sum_weight)) {
-    if (sum_weight != 0.0f) {
-      normal /= sum_weight;
-    }
+  if (kernel_data.film.pass_denoising_depth != PASS_UNUSED) {
+    const Spectrum denoising_feature_throughput = INTEGRATOR_STATE(
+        state, path, denoising_feature_throughput);
+    const float depth = sd->ray_length - INTEGRATOR_STATE(state, ray, tmin);
+    const float denoising_depth = ensure_finite(average(denoising_feature_throughput) * depth);
+    film_write_pass_float(buffer + kernel_data.film.pass_denoising_depth, denoising_depth);
+  }
+
+  /* Fraction of non-transparent closures, for smooth blending at transparent surfaces. */
+  const float transparent_weight = average(transparent_albedo);
+  const float total_weight = sum_weight + transparent_weight;
+
+  /* Blend between writing features at this bounce vs. deferring to the next bounce based
+   * on the proportion of diffuse closures. Smoothly transition between 0.0 and 0.5 diffuse
+   * fraction. */
+  float feature_weight = 0.0f;
+  if (sum_weight > 0.0f) {
+    normal /= sum_weight;
+    feature_weight = smoothstep(0.0f, 0.5f, sum_nonspecular_weight / sum_weight);
+  }
+
+  if (feature_weight > 0.0f) {
+    const Spectrum denoising_feature_throughput = INTEGRATOR_STATE(
+        state, path, denoising_feature_throughput);
 
     if (kernel_data.film.pass_denoising_normal != PASS_UNUSED) {
       /* Transform normal into camera space. */
       const Transform worldtocamera = kernel_data.cam.worldtocamera;
-      normal = transform_direction(&worldtocamera, normal);
+      float3 denoising_normal = transform_direction(&worldtocamera, normal);
+      const float opaque_fraction = (total_weight > 0.0f) ? (sum_weight / total_weight) : 1.0f;
 
-      const float3 denoising_normal = ensure_finite(normal);
+      denoising_normal = ensure_finite(denoising_normal * average(denoising_feature_throughput) *
+                                       opaque_fraction * feature_weight);
       film_write_pass_float3(buffer + kernel_data.film.pass_denoising_normal, denoising_normal);
     }
 
     if (kernel_data.film.pass_denoising_albedo != PASS_UNUSED) {
-      const Spectrum denoising_feature_throughput = INTEGRATOR_STATE(
-          state, path, denoising_feature_throughput);
       const Spectrum denoising_albedo = ensure_finite(denoising_feature_throughput *
-                                                      diffuse_albedo);
+                                                      diffuse_albedo * feature_weight);
       film_write_pass_spectrum(buffer + kernel_data.film.pass_denoising_albedo, denoising_albedo);
     }
+  }
 
-    INTEGRATOR_STATE_WRITE(state, path, flag) &= ~PATH_RAY_DENOISING_FEATURES;
+  /* Portion deferred to the next bounce. Specularity uses the feature weight, transparent
+   * always passes through. */
+  const Spectrum deferred_albedo = specular_albedo * (1.0f - feature_weight) + transparent_albedo;
+
+  if (reduce_max(fabs(deferred_albedo)) > 1e-4f) {
+    INTEGRATOR_STATE_WRITE(state, path, denoising_feature_throughput) *= deferred_albedo;
   }
   else {
-    INTEGRATOR_STATE_WRITE(state, path, denoising_feature_throughput) *= specular_albedo;
+    INTEGRATOR_STATE_WRITE(state, path, flag) &= ~PATH_RAY_DENOISING_FEATURES;
   }
 }
 

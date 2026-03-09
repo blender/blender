@@ -1021,6 +1021,8 @@ BLI_INLINE Color BLI_mix_colors(const IMB_BlendMode tool,
       return mix_colordodge<Color, Traits>(a, b, alpha);
     case IMB_BLEND_COLORBURN:
       return mix_colorburn<Color, Traits>(a, b, alpha);
+    case IMB_BLEND_LINEARBURN:
+      return mix_linearburn<Color, Traits>(a, b, alpha);
     case IMB_BLEND_DIFFERENCE:
       return mix_difference<Color, Traits>(a, b, alpha);
     case IMB_BLEND_SCREEN:

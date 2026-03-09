@@ -32,7 +32,6 @@ namespace io::hydra {
 
 extern CLG_LogRef *LOG_HYDRA_SCENE;
 
-class Engine;
 class CameraDelegate;
 
 class HydraSceneDelegate : public pxr::HdSceneDelegate {

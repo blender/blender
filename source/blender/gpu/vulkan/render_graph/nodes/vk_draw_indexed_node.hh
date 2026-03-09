@@ -50,21 +50,20 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
   static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
   {
     node.storage_index = storage.draw_indexed.append_and_get_index(create_info.node_data);
-    vk_pipeline_data_copy(storage.draw_indexed[node.storage_index].graphics,
-                          create_info.node_data.graphics);
   }
 
   /**
    * Extract read/write resource dependencies from `create_info` and add them to `node_links`.
    */
   void build_links(VKResourceStateTracker &resources,
-                   VKRenderGraphNodeLinks &node_links,
+                   VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
-    create_info.resources.build_links(resources, node_links);
-    vk_index_buffer_binding_build_links(resources, node_links, create_info.node_data.index_buffer);
-    vk_vertex_buffer_bindings_build_links(
-        resources, node_links, create_info.node_data.vertex_buffers);
+    create_info.resources.build_links(resources, links);
+    if (create_info.node_data.index_buffer.buffer != VK_NULL_HANDLE) {
+      vk_index_buffer_binding_build_links(resources, links, create_info.node_data.index_buffer);
+    }
+    vk_vertex_buffer_bindings_build_links(resources, links, create_info.node_data.vertex_buffers);
   }
 
   /**
@@ -72,11 +71,13 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       Data &data,
+                      Span<uint8_t> storage_push_constants,
                       VKBoundPipelines &r_bound_pipelines) override
   {
     vk_pipeline_dynamic_graphics_build_commands(command_buffer, data.graphics, r_bound_pipelines);
     vk_pipeline_data_build_commands(command_buffer,
                                     data.graphics.pipeline_data,
+                                    storage_push_constants,
                                     r_bound_pipelines.graphics.pipeline,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     VK_SHADER_STAGE_ALL_GRAPHICS);
@@ -89,11 +90,6 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
                                 data.first_index,
                                 data.vertex_offset,
                                 data.first_instance);
-  }
-
-  void free_data(Data &data)
-  {
-    vk_pipeline_data_free(data.graphics);
   }
 };
 }  // namespace blender::gpu::render_graph

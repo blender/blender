@@ -392,6 +392,7 @@ static void nla_region_listener(const wmRegionListenerParams *params)
         case ND_MARKERS:
         case ND_LAYER_CONTENT:
         case ND_OB_SELECT:
+        case ND_WORLD:
           ED_region_tag_redraw(region);
           break;
       }
@@ -433,6 +434,7 @@ static void nla_main_region_listener(const wmRegionListenerParams *params)
         case ND_MARKERS:
         case ND_LAYER_CONTENT:
         case ND_OB_SELECT:
+        case ND_WORLD:
           ED_region_tag_redraw(region);
           break;
       }
@@ -517,6 +519,7 @@ static void nla_track_region_listener(const wmRegionListenerParams *params)
         case ND_LAYER_CONTENT:
         case ND_FRAME:
         case ND_OB_SELECT:
+        case ND_WORLD:
           ED_region_tag_redraw(region);
           break;
       }

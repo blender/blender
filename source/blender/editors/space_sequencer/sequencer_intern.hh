@@ -17,6 +17,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
+#include "DNA_windowmanager_enums.h"
 
 #include "RNA_access.hh"
 
@@ -30,22 +31,24 @@ namespace blender {
 
 struct ARegion;
 struct ARegionType;
-struct ColorManagedViewSettings;
+struct bContext;
 struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
+struct Editing;
+struct MenuType;
+struct rctf;
 struct Scene;
+struct ScrArea;
 struct SeqRetimingKey;
 struct SeqTimelineChannel;
-struct Strip;
 struct SpaceSeq;
+struct Strip;
 struct StripElem;
 struct View2D;
-struct bContext;
-struct rctf;
+struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
-struct ScrArea;
-struct Editing;
 
 namespace ed::asset {
 struct AssetItemTree;
@@ -417,7 +420,7 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot);
-int2 strip_text_cursor_offset_to_position(const seq::TextVarsRuntime *text, int cursor_offset);
+int2 strip_text_cursor_offset_to_position(const seq::TextVarsRuntime *runtime, int cursor_offset);
 IndexRange strip_text_selection_range_get(const TextVars *data);
 
 /* `sequencer_timeline_draw.cc` */

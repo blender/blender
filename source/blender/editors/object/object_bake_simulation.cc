@@ -631,7 +631,7 @@ static Vector<NodeBakeRequest> collect_simulations_to_bake(Main &bmain,
         continue;
       }
       NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(&md);
-      if (!nmd->node_group) {
+      if (!nmd->node_group || ID_MISSING(nmd->node_group)) {
         continue;
       }
       if (!nmd->runtime->cache) {
@@ -949,7 +949,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
     return {};
   }
   NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
-  if (nmd.node_group == nullptr) {
+  if (!nmd.node_group || ID_MISSING(nmd.node_group)) {
     return {};
   }
   if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {

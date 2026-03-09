@@ -4,7 +4,6 @@
 
 import bpy
 from ..com.material_helpers import get_gltf_node_name, create_settings_group
-from .gltf2_blender_utils import find_unused_name
 
 ################ glTF Material Output node ###########################################
 
@@ -54,6 +53,8 @@ def add_gltf_settings_to_menu(self, context):
 
 
 def on_variant_name_update(self, context):
+    # Lazy import to avoid unnecessary NUMPY import on startup.
+    from .gltf2_blender_utils import find_unused_name
     already_used_names = [v.name for v in bpy.data.scenes[0].gltf2_KHR_materials_variants_variants]
     already_used_names = [n for idx, n in enumerate(already_used_names) if idx != self.variant_idx]
     proposed_name = find_unused_name(already_used_names, self.name)
@@ -677,8 +678,7 @@ def export_panel_animation_action_filter(layout, operator):
 def register():
     bpy.utils.register_class(NODE_OT_GLTF_SETTINGS)
     bpy.types.NODE_MT_category_shader_output.append(add_gltf_settings_to_menu)
-    bpy.utils.register_class(SCENE_OT_gltf2_action_filter_refresh)
-    bpy.utils.register_class(SCENE_UL_gltf2_filter_action)
+    action_filter_register()
 
 
 def variant_register():
@@ -710,6 +710,18 @@ def variant_register():
 
 def unregister():
     bpy.utils.unregister_class(NODE_OT_GLTF_SETTINGS)
+    action_filter_unregister()
+
+
+def action_filter_register():
+    bpy.utils.register_class(SCENE_OT_gltf2_action_filter_refresh)
+    bpy.utils.register_class(SCENE_UL_gltf2_filter_action)
+
+
+def action_filter_unregister():
+    if hasattr(bpy.data.scenes[0], "gltf_action_filter"):
+        del bpy.types.Scene.gltf_action_filter
+        del bpy.types.Scene.gltf_action_filter_active
     bpy.utils.unregister_class(SCENE_UL_gltf2_filter_action)
     bpy.utils.unregister_class(SCENE_OT_gltf2_action_filter_refresh)
 

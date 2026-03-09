@@ -36,7 +36,23 @@ _extensions_warnings = {}
 _stale_filename = ".~stale~"
 
 
-# called only once at startup, avoids calling 'reset_all', correct but slower.
+# Don't display these in the UI, unless extension development is enabled.
+#
+# NOTE: these add-ons will *not* be included in `bpy.context.preferences.addons`,
+# therefore they cannot have saved preferences. Ideally this would be supported,
+# which could be part of an improvement to store preferences for disabled add-ons.
+# This is the reason we can't include "cycles".
+# See #71486 and follow up discussion on #151863.
+_addons_hidden_core = {
+    "bl_pkg",
+    "io_anim_bvh",
+    "io_curve_svg",
+    "io_mesh_uv_layout",
+    "io_scene_fbx",
+}
+
+
+# Called only once at startup, avoids calling 'reset_all', correct but slower.
 def _initialize_once():
     for path in paths():
         _bpy.utils._sys_path_ensure_append(path)
@@ -46,13 +62,22 @@ def _initialize_once():
     _initialize_extensions_repos_once()
 
     for addon in _preferences.addons:
+        if (module_name := addon.module) in _addons_hidden_core:
+            continue
         enable(
-            addon.module,
+            module_name,
             # Ensured by `_initialize_extensions_repos_once`.
             refresh_handled=True,
         )
 
-    _initialize_ensure_extensions_addon()
+    for module_name in _addons_hidden_core:
+        enable(
+            module_name,
+            # Ensured by `_initialize_extensions_repos_once`.
+            refresh_handled=True,
+            default_set=False,
+            persistent=True,
+        )
 
 
 def paths():
@@ -506,9 +531,12 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
         # 2) Try register collected modules.
         # Removed register_module, addons need to handle their own registration now.
 
+        # Core add-ons are unconditionally enabled and don't support being filtered out.
+        use_owner = is_extension or (module_name not in _addons_hidden_core)
+
         from _bpy import _bl_owner_id_get, _bl_owner_id_set
         owner_id_prev = _bl_owner_id_get()
-        _bl_owner_id_set(module_name)
+        _bl_owner_id_set(module_name if use_owner else "")
 
         # 3) Try run the modules register function.
         try:
@@ -1395,12 +1423,6 @@ def _extension_sync_wheels(
 # -----------------------------------------------------------------------------
 # Extensions
 
-def _initialize_ensure_extensions_addon():
-    module_name = "bl_pkg"
-    if module_name not in _preferences.addons:
-        enable(module_name, default_set=True, persistent=True)
-
-
 # Module-like class, store singletons.
 class _ext_global:
     __slots__ = ()
@@ -1636,9 +1658,6 @@ def _initialize_extension_repos_pre(*_):
 
 @_bpy.app.handlers.persistent
 def _initialize_extension_repos_post(*_, is_first=False):
-
-    # When enabling extensions for the first time, ensure the add-on is enabled.
-    _initialize_ensure_extensions_addon()
 
     do_addons = not is_first
 

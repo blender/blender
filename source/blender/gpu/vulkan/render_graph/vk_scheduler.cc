@@ -73,20 +73,22 @@ void VKScheduler::move_initial_transfer_to_start(const VKRenderGraph &render_gra
   for (const int64_t index : result_.index_range()) {
     NodeHandle node_handle = result_[index];
     const VKRenderGraphNode &node = render_graph.nodes_[node_handle];
-    if (ELEM(node.type,
-             VKNodeType::COPY_BUFFER,
-             VKNodeType::COPY_BUFFER_TO_IMAGE,
-             VKNodeType::COPY_IMAGE_TO_BUFFER))
-    {
-      const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
-      if (links.inputs[0].resource.stamp == 0 && links.outputs[0].resource.stamp == 0) {
+    Span<VKRenderGraphBuffer> node_buffers = render_graph.linked_buffers(node);
+    Span<VKRenderGraphImage> node_images = render_graph.linked_images(node);
+    if (ELEM(node.type, VKNodeType::COPY_BUFFER)) {
+      if (node_buffers[0].resource.stamp == 0 && node_buffers[1].resource.stamp == 0) {
         data_transfers.append(index);
         continue;
       }
     }
-    if (ELEM(node.type, VKNodeType::FILL_BUFFER, VKNodeType::UPDATE_BUFFER)) {
-      const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
-      if (links.outputs[0].resource.stamp == 0) {
+    else if (ELEM(node.type, VKNodeType::COPY_BUFFER_TO_IMAGE, VKNodeType::COPY_IMAGE_TO_BUFFER)) {
+      if (node_buffers[0].resource.stamp == 0 && node_images[0].resource.stamp == 0) {
+        data_transfers.append(index);
+        continue;
+      }
+    }
+    else if (ELEM(node.type, VKNodeType::FILL_BUFFER, VKNodeType::UPDATE_BUFFER)) {
+      if (node_buffers[0].resource.stamp == 0) {
         data_transfers.append(index);
         continue;
       }
@@ -157,7 +159,9 @@ void VKScheduler::move_transfer_and_dispatch_outside_rendering_scope(
       bool add_to_rendering_scope = !rendering_scope.is_empty();
       if (node.type == VKNodeType::UPDATE_BUFFER) {
         /* Checking the node links to reduce potential locking the resource mutex. */
-        if (!used_buffers.contains(render_graph.links_[node_handle].outputs[0].resource.handle)) {
+        if (!used_buffers.contains(
+                render_graph.links_.buffers[node.links.buffers.start()].resource.handle))
+        {
           /* Buffer isn't used by this rendering scope so we can safely move it before the
            * rendering scope begins. */
           pre_rendering_scope.append(node_handle);
@@ -178,16 +182,8 @@ void VKScheduler::move_transfer_and_dispatch_outside_rendering_scope(
 
       /* Any read/write to buffer resources should be added to used_buffers in order to detect if
        * it is safe to move a node before the rendering scope. */
-      const VKRenderGraphNodeLinks &links = render_graph.links_[node_handle];
-      for (const VKRenderGraphLink &input : links.inputs) {
-        if (input.is_link_to_buffer()) {
-          used_buffers.add(input.resource.handle);
-        }
-      }
-      for (const VKRenderGraphLink &output : links.outputs) {
-        if (output.is_link_to_buffer()) {
-          used_buffers.add(output.resource.handle);
-        }
+      for (const VKRenderGraphBuffer &link : render_graph.linked_buffers(node)) {
+        used_buffers.add(link.resource.handle);
       }
     }
 

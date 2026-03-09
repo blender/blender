@@ -206,7 +206,7 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
 
 /* Modify the ray origin before tracing it. We must do this because ray origin is implicitly
  * reconstructed from gbuffer depth which we cannot modify. */
-Ray raytrace_thickness_ray_amend(Ray ray, ClosureUndetermined cl, float3 V, float thickness)
+Ray raytrace_thickness_ray_amend(Ray ray, ClosureUndetermined cl, float3 V, Thickness thickness)
 {
   switch (cl.type) {
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:

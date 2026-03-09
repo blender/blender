@@ -582,7 +582,7 @@ static void IMAGE_GGT_compositor_glare(wmGizmoGroupType *gzgt)
 
 static void IMAGE_GGT_compositor_corner_pin(wmGizmoGroupType *gzgt)
 {
-  gzgt->name = "Glare Node Widget";
+  gzgt->name = "Corner Pin Node Widget";
   gzgt->idname = "IMAGE_GGT_compositor_corner_pin";
 
   gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT | WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL;
@@ -610,7 +610,7 @@ static void IMAGE_GGT_compositor_ellipse_mask(wmGizmoGroupType *gzgt)
 
 static void IMAGE_GGT_compositor_split(wmGizmoGroupType *gzgt)
 {
-  gzgt->name = "Ellipse Mask Node Widget";
+  gzgt->name = "Split Node Widget";
   gzgt->idname = "IMAGE_GGT_compositor_split";
 
   gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT | WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL;

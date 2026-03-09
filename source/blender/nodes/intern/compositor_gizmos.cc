@@ -366,7 +366,7 @@ static void gizmo_node_box_mask_foreach_rna_prop(
   bNodeSocket *rotation_socket = bke::node_find_socket(*node, SOCK_IN, "Rotation");
   PointerRNA rotation_ptr = RNA_pointer_create_discrete(
       &node_tree.id, RNA_NodeSocket, rotation_socket);
-  PropertyRNA *rotation_prop = RNA_struct_find_property(&position_ptr, "default_value");
+  PropertyRNA *rotation_prop = RNA_struct_find_property(&rotation_ptr, "default_value");
 
   callback(position_ptr, position_prop, -1);
   callback(size_ptr, size_prop, -1);
@@ -1097,7 +1097,7 @@ static void gizmo_node_split_foreach_rna_prop(
   bNodeSocket *rotation_socket = bke::node_find_socket(*node, SOCK_IN, "Rotation");
   PointerRNA rotation_ptr = RNA_pointer_create_discrete(
       &node_tree.id, RNA_NodeSocket, rotation_socket);
-  PropertyRNA *rotation_prop = RNA_struct_find_property(&position_ptr, "default_value");
+  PropertyRNA *rotation_prop = RNA_struct_find_property(&rotation_ptr, "default_value");
 
   callback(position_ptr, position_prop, -1);
   callback(rotation_ptr, rotation_prop, 0);

@@ -36,7 +36,8 @@ template<typename T, int64_t Capacity> struct ChunkedListSegment {
 
 /**
  * This is a special purpose container data structure that can be used to efficiently gather many
- * elements into many (small) lists for later retrieval. Insertion order is *not* maintained.
+ * elements into many (small) lists for later retrieval. The values are iterated in inverse order
+ * of insertion.
  *
  * To use this data structure, one has to have a separate #LinearAllocator which is passed to the
  * `append` function. This allows the same allocator to be used by many lists. Passing it into the
@@ -91,8 +92,8 @@ template<typename T, int64_t SegmentCapacity = 4> class ChunkedList : NonCopyabl
   }
 
   /**
-   * Add an element to the list. The insertion order is not maintained. The given allocator is used
-   * to allocate any extra memory that may be needed.
+   * Add an element to the list. The given allocator is used to allocate any extra memory that may
+   * be needed.
    */
   void append(LinearAllocator<> &allocator, const T &value)
   {
@@ -119,18 +120,19 @@ template<typename T, int64_t SegmentCapacity = 4> class ChunkedList : NonCopyabl
 
   class ConstIterator {
    private:
-    const Segment *segment_ = nullptr;
-    int64_t index_ = 0;
+    const Segment *segment_;
+    int64_t index_;
 
    public:
-    ConstIterator(const Segment *segment, int64_t index = 0) : segment_(segment), index_(index) {}
+    ConstIterator() = delete;
+    ConstIterator(const Segment *segment, int64_t index) : segment_(segment), index_(index) {}
 
     ConstIterator &operator++()
     {
-      index_++;
-      if (index_ == segment_->size) {
+      index_--;
+      if (index_ == -1) {
         segment_ = segment_->next;
-        index_ = 0;
+        index_ = segment_ ? segment_->size - 1 : -1;
       }
       return *this;
     }
@@ -145,18 +147,19 @@ template<typename T, int64_t SegmentCapacity = 4> class ChunkedList : NonCopyabl
 
   class MutableIterator {
    private:
-    Segment *segment_ = nullptr;
-    int64_t index_ = 0;
+    Segment *segment_;
+    int64_t index_;
 
    public:
-    MutableIterator(Segment *segment, int64_t index = 0) : segment_(segment), index_(index) {}
+    MutableIterator() = delete;
+    MutableIterator(Segment *segment, int64_t index) : segment_(segment), index_(index) {}
 
     MutableIterator &operator++()
     {
-      index_++;
-      if (index_ == segment_->size) {
+      index_--;
+      if (index_ == -1) {
         segment_ = segment_->next;
-        index_ = 0;
+        index_ = segment_ ? segment_->size - 1 : -1;
       }
       return *this;
     }
@@ -169,24 +172,29 @@ template<typename T, int64_t SegmentCapacity = 4> class ChunkedList : NonCopyabl
     friend bool operator==(const MutableIterator &a, const MutableIterator &b) = default;
   };
 
+  /**
+   * Iterators over the elements in the list.
+   *
+   * Note: The values are always iterated over in the inverse order of insertion!
+   */
   ConstIterator begin() const
   {
-    return ConstIterator(current_segment_, 0);
+    return ConstIterator(current_segment_, current_segment_ ? current_segment_->size - 1 : -1);
   }
 
   ConstIterator end() const
   {
-    return ConstIterator(nullptr, 0);
+    return ConstIterator(nullptr, -1);
   }
 
   MutableIterator begin()
   {
-    return MutableIterator(current_segment_, 0);
+    return MutableIterator(current_segment_, current_segment_ ? current_segment_->size - 1 : -1);
   }
 
   MutableIterator end()
   {
-    return MutableIterator(nullptr, 0);
+    return MutableIterator(nullptr, -1);
   }
 };
 

@@ -92,7 +92,7 @@ void main()
   /* Grid iteration additive alpha in perspective view; lower iterations
    * are given stronger alpha to minimize pop-in of upper iterations. */
   if (drw_view_is_perspective()) {
-    constexpr float additive_alpha[4] = {0.4f, 0.3f, 0.2f, 0.1f};
+    constexpr float additive_alpha[OVERLAY_GRID_ITER_LEN] = {1.0f, 0.50f, 0.25f, 0.125f};
     out_color.a *= additive_alpha[grid_iter];
   }
 }

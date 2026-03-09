@@ -11,6 +11,7 @@
 #include "GHOST_Types.hh"
 
 class GHOST_XrSession;
+struct GHOST_XrSessionBeginInfo;
 
 class GHOST_IXrContext {
  public:

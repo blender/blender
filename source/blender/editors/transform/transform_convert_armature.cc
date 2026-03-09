@@ -1164,6 +1164,14 @@ static void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, O
   for (int i = tc->data_len; i--; td++) {
     bPoseChannel *pchan_orig = static_cast<bPoseChannel *>(td->extra);
     BLI_assert(pchan_orig->runtime.flag & POSE_RUNTIME_TRANSFORM);
+    if (pchan_orig->bone->flag & BONE_TRANSFORM_MIRROR) {
+      /* If the bone already has the flag set it was already visited by its mirror bone which may
+       * also be selected. To avoid double transformations, ignore in this case. See #95396.  */
+      if (pid) {
+        pid++;
+      }
+      continue;
+    }
     /* No layer check, correct mirror is more important. */
     bPoseChannel *pchan = BKE_pose_channel_get_mirrored(pose, pchan_orig->name);
     if (pchan == nullptr) {

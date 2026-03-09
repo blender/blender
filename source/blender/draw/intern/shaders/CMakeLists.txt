@@ -44,8 +44,8 @@ set(SRC_GLSL_COMP
   subdiv_vbo_edge_fac_comp.glsl
   subdiv_custom_data_interp_comp.glsl
   subdiv_vbo_sculpt_data_comp.glsl
-  subdiv_vbo_edituv_strech_angle_comp.glsl
-  subdiv_vbo_edituv_strech_area_comp.glsl
+  subdiv_vbo_edituv_stretch_angle_comp.glsl
+  subdiv_vbo_edituv_stretch_area_comp.glsl
   subdiv_vbo_lnor_comp.glsl
   subdiv_vbo_paint_overlay_flag_comp.glsl
   subdiv_normals_accumulate_comp.glsl
@@ -53,7 +53,6 @@ set(SRC_GLSL_COMP
 
 # Compile shaders with shader code.
 if(WITH_GPU_SHADER_CPP_COMPILATION)
-  with_shader_cpp_compilation_config()
   # TODO Remove
   add_definitions(-DUSE_GPU_SHADER_CREATE_INFO)
 

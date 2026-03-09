@@ -56,7 +56,7 @@ void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil);
 
 /** Abstraction for copying #CustomData layers and #AttributeStorage attributes. */
 class LegacyMeshInterpolator {
-  Vector<GVArray> attrs_src_;
+  Vector<GVArraySpan> attrs_src_;
   Vector<GMutableSpan> attrs_dst_;
 
   const CustomData &cd_src_;

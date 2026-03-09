@@ -341,12 +341,29 @@ OCIO_NAMESPACE::TransformRcPtr create_ocio_display_transform(
     if (look_output != nullptr && look_output[0] != 0) {
       OCIO_NAMESPACE::LookTransformRcPtr lt = OCIO_NAMESPACE::LookTransform::Create();
       lt->setSrc(from_colorspace.c_str());
-      lt->setDst(look_output);
+
+      /* For raw view transform, transform to look colorspace is a no-op since it's data.
+       * But OpenColorIO only takes that into account in one direction, and still applies
+       * a conversion in the other direction. Work around that by ensuring it is skipped
+       * entirely. */
+      const char *view_colorspace_name = ocio_config->getDisplayViewColorSpaceName(display.c_str(),
+                                                                                   view.c_str());
+      OCIO_NAMESPACE::ConstColorSpaceRcPtr view_colorspace = (view_colorspace_name) ?
+                                                                 ocio_config->getColorSpace(
+                                                                     view_colorspace_name) :
+                                                                 nullptr;
+
+      if (view_colorspace && view_colorspace->isData()) {
+        lt->setDst(from_colorspace.c_str());
+      }
+      else {
+        lt->setDst(look_output);
+        /* Make further transforms aware of the color space change. */
+        from_colorspace = look_output;
+      }
+
       lt->setLooks(look.c_str());
       group->appendTransform(lt);
-
-      /* Make further transforms aware of the color space change. */
-      from_colorspace = look_output;
     }
     else {
       /* For empty looks, no output color space is returned. */
