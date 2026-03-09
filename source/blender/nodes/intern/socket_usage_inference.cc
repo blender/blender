@@ -1008,8 +1008,7 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
   BLI_assert(group.interface_inputs().size() == input_sockets.size());
 
   AlignedBuffer<1024, 8> allocator_buffer;
-  ResourceScope scope;
-  scope.allocator().provide_buffer(allocator_buffer);
+  ResourceScope scope(allocator_buffer);
 
   Array<InferenceValue> input_values(input_sockets.size(), InferenceValue::Unknown());
   for (const int i : input_sockets.index_range()) {
