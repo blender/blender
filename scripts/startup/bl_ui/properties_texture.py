@@ -924,18 +924,21 @@ class TEXTURE_PT_animation(TextureButtonsPanel, PropertiesAnimationMixin, Proper
 
         texture = context.texture
 
-        # Assumption: the texture user is a particle system texture slot,
-        # something like `bpy.data.particles["ParticleSettings"].texture_slots[0]`.
-        # Since at the top of the properties panel the user is shown first, and
-        # underneath that the texture itself, this panel uses the same order.
+        # Texture users can be particle system texture slots (something like
+        # `bpy.data.particles["ParticleSettings"].texture_slots[0]`). Since at the top of the properties panel the user
+        # is shown first, and underneath that the texture itself, this panel uses the same order.
+        #
+        # However, not all users of textures are animatable (brushes for sculpting aren't). So that needs to be checked
+        # for as well.
         if texture_user := context.texture_user:
             texture_user_id = texture_user.id_data
-            col = layout.column(align=True)
-            # NOTE(@sybren): I tested with particle settings, and then this just shows
-            # "Particle Settings". If there are other users of Texture data-blocks
-            # still around, and this produces unwanted results, let's adjust.
-            col.label(text=texture_user_id.bl_rna.name)
-            self.draw_action_and_slot_selector(context, col, texture_user_id)
+            if hasattr(texture_user_id, 'animation_data'):
+                col = layout.column(align=True)
+                # NOTE(@sybren): I tested with particle settings, and then this just shows
+                # "Particle Settings". If there are other users of Texture data-blocks
+                # still around, and this produces unwanted results, let's adjust.
+                col.label(text=texture_user_id.bl_rna.name)
+                self.draw_action_and_slot_selector(context, col, texture_user_id)
 
         col = layout.column(align=True)
         col.label(text="Texture")
