@@ -473,7 +473,7 @@ void USDCurvesWriter::write_generic_data(const bke::CurvesGeometry &curves,
 
   const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::TfToken pv_name(
-      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
+      make_safe_primvar_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_curves);
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type, *pv_interp);
@@ -491,7 +491,7 @@ void USDCurvesWriter::write_uv_data(const bke::AttributeIter &attr,
 
   const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::TfToken pv_name(
-      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
+      make_safe_primvar_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_curves);
 
   pxr::UsdGeomPrimvar pv_uv = pv_api.CreatePrimvar(

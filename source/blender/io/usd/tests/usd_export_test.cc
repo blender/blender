@@ -318,13 +318,16 @@ TEST(utilities, make_safe_name)
   ASSERT_EQ(make_safe_name("1", false), std::string("_1"));
   ASSERT_EQ(make_safe_name("1Test", false), std::string("_1Test"));
 
+  ASSERT_EQ(make_safe_name(":", false), std::string("_"));
+  ASSERT_EQ(make_safe_name("test:", false), std::string("test_"));
+  ASSERT_EQ(make_safe_name(":test", false), std::string("_test"));
+  ASSERT_EQ(make_safe_name("test:test", false), std::string("test_test"));
+
   ASSERT_EQ(make_safe_name("Test", false), std::string("Test"));
-  ASSERT_EQ(make_safe_name("Test|$bézier @ world", false), std::string("Test__b__zier___world"));
-  ASSERT_EQ(make_safe_name("Test|ハローワールド", false),
-            std::string("Test______________________"));
-  ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", false),
-            std::string("Test___________________________"));
-  ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", false), std::string("Test____hello_____w__rld"));
+  ASSERT_EQ(make_safe_name("Test|$bézier @ world", false), std::string("Test__b_zier___world"));
+  ASSERT_EQ(make_safe_name("Test|ハローワールド", false), std::string("Test________"));
+  ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", false), std::string("Test_______________"));
+  ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", false), std::string("Test__hello___w_rld"));
 
   /* Unicode variations. */
   ASSERT_EQ(make_safe_name("", true), std::string("_"));
@@ -332,11 +335,51 @@ TEST(utilities, make_safe_name)
   ASSERT_EQ(make_safe_name("1", true), std::string("_1"));
   ASSERT_EQ(make_safe_name("1Test", true), std::string("_1Test"));
 
+  ASSERT_EQ(make_safe_name(":", true), std::string("_"));
+  ASSERT_EQ(make_safe_name("test:", true), std::string("test_"));
+  ASSERT_EQ(make_safe_name(":test", true), std::string("_test"));
+  ASSERT_EQ(make_safe_name("test:test", true), std::string("test_test"));
+
   ASSERT_EQ(make_safe_name("Test", true), std::string("Test"));
   ASSERT_EQ(make_safe_name("Test|$bézier @ world", true), std::string("Test__bézier___world"));
   ASSERT_EQ(make_safe_name("Test|ハローワールド", true), std::string("Test_ハローワールド"));
   ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", true), std::string("Test_Γεια_σου_κόσμε"));
   ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", true), std::string("Test__hello___wórld"));
+}
+
+TEST(utilities, make_safe_primvar_name)
+{
+  /* ASCII variations. */
+  ASSERT_EQ(make_safe_primvar_name("", false), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("|", false), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("1", false), std::string("_1"));
+  ASSERT_EQ(make_safe_primvar_name("1Test", false), std::string("_1Test"));
+
+  ASSERT_EQ(make_safe_primvar_name(":", false), std::string("_:_"));
+  ASSERT_EQ(make_safe_primvar_name("test:", false), std::string("test:_"));
+  ASSERT_EQ(make_safe_primvar_name(":test", false), std::string("_:test"));
+  ASSERT_EQ(make_safe_primvar_name("test:test", false), std::string("test:test"));
+  ASSERT_EQ(make_safe_primvar_name("1test:2test", false), std::string("_1test:_2test"));
+
+  ASSERT_EQ(make_safe_primvar_name("tést", false), std::string("t_st"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést", false), std::string("t_st:t_st"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést:tést", false), std::string("t_st:t_st:t_st"));
+
+  /* Unicode variations. */
+  ASSERT_EQ(make_safe_primvar_name("", true), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("|", true), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("1", true), std::string("_1"));
+  ASSERT_EQ(make_safe_primvar_name("1Test", true), std::string("_1Test"));
+
+  ASSERT_EQ(make_safe_primvar_name(":", true), std::string("_:_"));
+  ASSERT_EQ(make_safe_primvar_name("test:", true), std::string("test:_"));
+  ASSERT_EQ(make_safe_primvar_name(":test", true), std::string("_:test"));
+  ASSERT_EQ(make_safe_primvar_name("test:test", true), std::string("test:test"));
+  ASSERT_EQ(make_safe_primvar_name("1test:2test", true), std::string("_1test:_2test"));
+
+  ASSERT_EQ(make_safe_primvar_name("tést", true), std::string("tést"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést", true), std::string("tést:tést"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést:tést", true), std::string("tést:tést:tést"));
 }
 
 }  // namespace blender::io::usd
