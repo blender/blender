@@ -111,7 +111,7 @@ static void draw_node_inputs_recursive(bContext *C,
   const char *panel_translation_context = (panel_decl.translation_context.has_value() ?
                                                panel_decl.translation_context->c_str() :
                                                nullptr);
-  panel.header->label(CTX_IFACE_(panel_translation_context, panel_decl.name), ICON_NONE);
+  panel.header->label(CTX_IFACE_(panel_translation_context, panel_decl.name.ref()), ICON_NONE);
   if (!panel.body) {
     return;
   }

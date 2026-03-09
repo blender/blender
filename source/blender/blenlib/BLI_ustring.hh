@@ -32,14 +32,12 @@ class UString {
   UString() = default;
   explicit UString(const StringRef str) : ustr_(std::string_view(str)) {}
 
-  /** Implicit conversion to StringRef. */
-  operator StringRef() const
-  {
-    return StringRef(ustr_.c_str(), ustr_.length());
-  }
-
-  /** Implicit conversion to StringRefNull. */
-  operator StringRefNull() const
+  /**
+   * Access the underlying string as a #StringRefNull.
+   *
+   * Note: This is not an implicit conversion to work around ambiguous function calls.
+   */
+  StringRefNull ref() const
   {
     return StringRefNull(ustr_.c_str(), ustr_.length());
   }
@@ -57,6 +55,11 @@ class UString {
   friend bool operator==(const UString &a, const UString &b)
   {
     return a.ustr_ == b.ustr_;
+  }
+
+  friend bool operator==(const UString &a, const StringRef b)
+  {
+    return a.ref() == b;
   }
 
   uint64_t hash() const

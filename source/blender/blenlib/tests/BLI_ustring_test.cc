@@ -25,12 +25,12 @@ TEST(ustring, MapStringRef)
 {
   Map<StringRef, int> map;
   map.add("hello", 1);
-  map.add("world"_ustr, 2);
-  map.add_as("world"_ustr, 3);
+  map.add("world"_ustr.ref(), 2);
+  map.add_as("world"_ustr.ref(), 3);
   EXPECT_EQ(map.lookup("hello"), 1);
-  EXPECT_EQ(map.lookup("hello"_ustr), 1);
+  EXPECT_EQ(map.lookup("hello"_ustr.ref()), 1);
   EXPECT_EQ(map.lookup("world"), 2);
-  EXPECT_EQ(map.lookup("world"_ustr), 2);
+  EXPECT_EQ(map.lookup("world"_ustr.ref()), 2);
 }
 
 TEST(ustring, MapStdString)
@@ -39,9 +39,9 @@ TEST(ustring, MapStdString)
   map.add("hello", 1);
   map.add_as("world"_ustr.string(), 2);
   EXPECT_EQ(map.lookup("hello"), 1);
-  EXPECT_EQ(map.lookup_as("hello"_ustr), 1);
+  EXPECT_EQ(map.lookup_as("hello"_ustr.ref()), 1);
   EXPECT_EQ(map.lookup("world"), 2);
-  EXPECT_EQ(map.lookup_as("world"_ustr), 2);
+  EXPECT_EQ(map.lookup_as("world"_ustr.ref()), 2);
 }
 
 TEST(ustring, Equality)
