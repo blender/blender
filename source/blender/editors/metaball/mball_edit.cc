@@ -789,7 +789,8 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
                            &buffer,
                            &rect,
                            use_cycle ? VIEW3D_SELECT_PICK_ALL : VIEW3D_SELECT_PICK_NEAREST,
-                           VIEW3D_SELECT_FILTER_NOP);
+                           VIEW3D_SELECT_FILTER_NOP,
+                           eV3DSelectShape::BOX);
 
   if (hits == 0) {
     return false;
