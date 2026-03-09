@@ -44,6 +44,7 @@ enum class ResultType : uint8_t {
   Color,
   Int,
   Int2,
+  Int3,
   Bool,
   Menu,
 
@@ -146,6 +147,7 @@ class Result {
                Color,
                int32_t,
                int2,
+               int3,
                bool,
                nodes::MenuValue,
                std::string>
@@ -185,8 +187,8 @@ class Result {
   static bool is_single_value_only_type(ResultType type);
 
   /* Returns the appropriate GPU texture format based on the given result type and precision. A
-   * special case is given to ResultType::Float3, because 3-component textures can't be used as
-   * write targets in shaders, so we need to allocate 4-component textures for them, and ignore the
+   * special case is given to Float3 and Int3, because 3-component textures can't be used as write
+   * targets in shaders, so we need to allocate 4-component textures for them, and ignore the
    * fourth channel during processing. */
   static gpu::TextureFormat gpu_texture_format(ResultType type, ResultPrecision precision);
 
@@ -218,9 +220,9 @@ class Result {
 
   /* Returns the appropriate texture format based on the result's type and precision. This is
    * identical to the gpu_texture_format static method. This will match the format of the allocated
-   * texture, with one exception. Results of type ResultType::Float3 that wrap external textures
-   * might hold a 3-component texture as opposed to a 4-component one, which would have been
-   * created by uploading data from CPU. */
+   * texture, with one exception. Results of type Float3 or Int3 that wrap external textures might
+   * hold a 3-component texture as opposed to a 4-component one, which would have been created by
+   * uploading data from CPU. */
   gpu::TextureFormat get_gpu_texture_format() const;
 
   /* Identical to gpu_data_format but assumes the result's type. */
@@ -498,6 +500,7 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
     case ResultType::Int2:
       return 2;
     case ResultType::Float3:
+    case ResultType::Int3:
       return 3;
     case ResultType::Color:
     case ResultType::Float4:

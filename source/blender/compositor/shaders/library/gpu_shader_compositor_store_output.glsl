@@ -64,6 +64,14 @@ void node_compositor_store_output_int2(const float id, float2 value, float2 &out
   out_value = value;
 }
 
+/* GPUMaterial doesn't support int3, so it is passed as a float3. */
+[[node]]
+void node_compositor_store_output_int3(const float id, float3 value, float3 &out_value)
+{
+  store_int3(floatBitsToUint(id), value);
+  out_value = value;
+}
+
 /* GPUMaterial doesn't support bool, so it is passed as a float. */
 [[node]]
 void node_compositor_store_output_bool(const float id, float value, float &out_value)

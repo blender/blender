@@ -149,7 +149,7 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Float2:
         return "compositor_realize_on_domain_bicubic_float2";
       case ResultType::Float3:
-        /* Float3 is internally stored in a float4 texture. */
+        /* Float3 is internally stored in a float4 texture due to GPU module limitations. */
         return "compositor_realize_on_domain_bicubic_float4";
       case ResultType::Float4:
         return "compositor_realize_on_domain_bicubic_float4";
@@ -159,6 +159,9 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
         return "compositor_realize_on_domain_int";
       case ResultType::Int2:
         return "compositor_realize_on_domain_int2";
+      case ResultType::Int3:
+        /* Int3 is internally stored in a int4 texture due to GPU module limitations. */
+        return "compositor_realize_on_domain_int4";
       case ResultType::Bool:
         return "compositor_realize_on_domain_bool";
       case ResultType::Menu:
@@ -177,7 +180,7 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Float2:
         return "compositor_realize_on_domain_float2";
       case ResultType::Float3:
-        /* Float3 is internally stored in a float4 texture. */
+        /* Float3 is internally stored in a float4 texture due to GPU module limitations. */
         return "compositor_realize_on_domain_float4";
       case ResultType::Float4:
         return "compositor_realize_on_domain_float4";
@@ -187,6 +190,9 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
         return "compositor_realize_on_domain_int";
       case ResultType::Int2:
         return "compositor_realize_on_domain_int2";
+      case ResultType::Int3:
+        /* Int3 is internally stored in a int4 texture due to GPU module limitations. */
+        return "compositor_realize_on_domain_int4";
       case ResultType::Bool:
         return "compositor_realize_on_domain_bool";
       case ResultType::Menu:
@@ -226,7 +232,16 @@ void RealizeOnDomainOperation::realize_on_domain_cpu(const float3x3 &transformat
   output.allocate_texture(domain);
 
   input.get_cpp_type()
-      .to_static_type<float, float2, float3, float4, Color, int32_t, int2, bool, nodes::MenuValue>(
+      .to_static_type<float,
+                      float2,
+                      float3,
+                      float4,
+                      Color,
+                      int32_t,
+                      int2,
+                      int3,
+                      bool,
+                      nodes::MenuValue>(
           [&]<typename T>() { realize_on_domain<T>(input, output, transformation); });
 }
 

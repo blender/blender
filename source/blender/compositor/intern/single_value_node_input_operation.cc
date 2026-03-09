@@ -73,6 +73,24 @@ void SingleValueNodeInputOperation::execute()
       }
       break;
     }
+    case SOCK_INT_VECTOR: {
+      switch (input_socket_.default_value_typed<bNodeSocketValueIntVector>()->dimensions) {
+        case 2: {
+          const int2 value = input_socket_.default_value_typed<bNodeSocketValueIntVector>()->value;
+          result.set_single_value(value);
+          break;
+        }
+        case 3: {
+          const int3 value = input_socket_.default_value_typed<bNodeSocketValueIntVector>()->value;
+          result.set_single_value(value);
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+      break;
+    }
     case SOCK_RGBA: {
       const Color value = input_socket_.default_value_typed<bNodeSocketValueRGBA>()->value;
       result.set_single_value(value);

@@ -41,6 +41,7 @@ class NODE_MT_compositor_node_input_constant_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeInputBool")
         self.node_operator(layout, "CompositorNodeRGB")
         self.node_operator(layout, "FunctionNodeInputInt")
+        self.node_operator(layout, "FunctionNodeInputIntVector")
         self.node_operator(layout, "FunctionNodeInputMenu")
         self.node_operator(layout, "CompositorNodeNormal")
         self.node_operator(layout, "ShaderNodeValue")

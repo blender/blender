@@ -636,6 +636,7 @@ class FileOutputOperation : public NodeOperation {
         file_output.add_pass(pass_name, view_name, "XY", buffer);
         break;
       case ResultType::Int2:
+      case ResultType::Int3:
       case ResultType::Int:
       case ResultType::Bool:
       case ResultType::Menu:
@@ -669,6 +670,7 @@ class FileOutputOperation : public NodeOperation {
       }
       case ResultType::Int:
       case ResultType::Int2:
+      case ResultType::Int3:
       case ResultType::Bool:
       case ResultType::Menu:
       case ResultType::String:
@@ -722,6 +724,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Float2:
       case ResultType::Int2:
       case ResultType::Int:
+      case ResultType::Int3:
       case ResultType::Bool:
       case ResultType::Menu:
       case ResultType::String:

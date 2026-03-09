@@ -16,6 +16,11 @@ int2 float_to_int2(float value)
   return int2(float_to_int(value));
 }
 
+int3 float_to_int3(float value)
+{
+  return int3(float_to_int(value));
+}
+
 float2 float_to_float2(float value)
 {
   return float2(value);
@@ -53,6 +58,11 @@ float int_to_float(int value)
 int2 int_to_int2(int value)
 {
   return int2(value);
+}
+
+int3 int_to_int3(int value)
+{
+  return int3(value);
 }
 
 float2 int_to_float2(int value)
@@ -99,6 +109,11 @@ int2 float2_to_int2(float2 value)
   return int2(value);
 }
 
+int3 float2_to_int3(float2 value)
+{
+  return int3(int2(value), 0);
+}
+
 float3 float2_to_float3(float2 value)
 {
   return float3(value, 0.0f);
@@ -136,6 +151,11 @@ int float3_to_int(float3 value)
 int2 float3_to_int2(float3 value)
 {
   return float_to_int2(float3_to_float(value));
+}
+
+int3 float3_to_int3(float3 value)
+{
+  return int3(value);
 }
 
 float2 float3_to_float2(float3 value)
@@ -177,6 +197,11 @@ int2 color_to_int2(float4 value)
   return int2(value.rg);
 }
 
+int3 color_to_int3(float4 value)
+{
+  return int3(value.rgb);
+}
+
 float2 color_to_float2(float4 value)
 {
   return value.rg;
@@ -216,6 +241,11 @@ int2 float4_to_int2(float4 value)
   return int2(value.xy);
 }
 
+int3 float4_to_int3(float4 value)
+{
+  return int3(value.xyz);
+}
+
 float2 float4_to_float2(float4 value)
 {
   return value.xy;
@@ -250,6 +280,11 @@ int int2_to_int(int2 value)
   return int(int2_to_float(value));
 }
 
+int3 int2_to_int3(int2 value)
+{
+  return int3(value, 0);
+}
+
 float2 int2_to_float2(int2 value)
 {
   return float2(value);
@@ -273,6 +308,50 @@ float4 int2_to_float4(int2 value)
 bool int2_to_bool(int2 value)
 {
   return !all(equal(value, int2(0)));
+}
+
+/* --------------------------------------------------------------------
+ * Int3 to other.
+ */
+
+float int3_to_float(int3 value)
+{
+  return float3_to_float(float3(value));
+}
+
+int int3_to_int(int3 value)
+{
+  return int(int3_to_float(value));
+}
+
+int2 int3_to_int2(int3 value)
+{
+  return value.xy;
+}
+
+float2 int3_to_float2(int3 value)
+{
+  return float2(value.xy);
+}
+
+float3 int3_to_float3(int3 value)
+{
+  return float3(value);
+}
+
+float4 int3_to_color(int3 value)
+{
+  return float4(float3(value), 1.0f);
+}
+
+float4 int3_to_float4(int3 value)
+{
+  return float4(float3(value), 0.0f);
+}
+
+bool int3_to_bool(int3 value)
+{
+  return !all(equal(value, int3(0)));
 }
 
 /* --------------------------------------------------------------------
@@ -312,4 +391,9 @@ float4 bool_to_float4(bool value)
 int2 bool_to_int2(bool value)
 {
   return int2(value);
+}
+
+int3 bool_to_int3(bool value)
+{
+  return int3(value);
 }

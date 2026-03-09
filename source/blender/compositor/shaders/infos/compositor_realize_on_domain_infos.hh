@@ -101,6 +101,12 @@ IMAGE(0, SINT_16_16, write, iimage2D, domain_img)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
+GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_int4)
+ADDITIONAL_INFO(compositor_realize_on_domain_int_shared)
+IMAGE(0, SINT_16_16_16_16, write, iimage2D, domain_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_bool)
 ADDITIONAL_INFO(compositor_realize_on_domain_int_shared)
 IMAGE(0, SINT_8, write, iimage2D, domain_img)
