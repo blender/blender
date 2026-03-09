@@ -582,7 +582,13 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
 
 void DRW_smoke_begin_sync(DRWData *drw_data)
 {
-  BLI_listbase_clear(&drw_data->smoke_textures);
+  if (BLI_listbase_is_empty(&drw_data->smoke_textures)) {
+    return;
+  }
+  /* See workaround at blender::eevee::Instance::render_sample
+   * Calling exit here as sync can happen multiple times when shaders are still being compiled
+   * during image rendering. */
+  DRW_smoke_exit(drw_data);
 }
 
 void DRW_smoke_exit(DRWData *drw_data)
