@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
-"PO-Revision-Date: 2026-03-02 12:07+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"PO-Revision-Date: 2026-03-09 06:12+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -17686,6 +17686,14 @@ msgid "Use tooltips when hovering over this gizmo"
 msgstr "Mostrar dicas quando pairar sobre o gizmo"
 
 
+msgid "Use Undo"
+msgstr "Usar Desfazer"
+
+
+msgid "Push an undo step after each use of the gizmo"
+msgstr "Registar um passo de desfazer a cada utilização do manipulador"
+
+
 msgctxt "Operator"
 msgid "GizmoGroup"
 msgstr "GrupoGizmo"
@@ -35197,12 +35205,12 @@ msgid "Metaball"
 msgstr "Esfera-meta"
 
 
-msgid "Read"
-msgstr "Ler"
-
-
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
+
+
+msgid "Read"
+msgstr "Ler"
 
 
 msgid "Write"
@@ -35213,12 +35221,12 @@ msgid "Sample"
 msgstr "Amostrar"
 
 
-msgid "Primitives"
-msgstr "Primitivas"
-
-
 msgid "Names"
 msgstr "Nomes"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Bone Roll"
@@ -35309,12 +35317,12 @@ msgid "Select Linked"
 msgstr "Seleccionar vinculados(as)"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
 msgid "Select Loops"
 msgstr "Seleccionar Circuitos"
+
+
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
 
 
 msgid "Adjust"
@@ -35445,12 +35453,12 @@ msgid "Mesh Select Mode"
 msgstr "Modo de selecção de malhas"
 
 
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
 msgid "Face Data"
 msgstr "Dados das faces"
+
+
+msgid "Gizmo"
+msgstr "Manipulador"
 
 
 msgid "Instances"
@@ -35481,12 +35489,12 @@ msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "List"
-msgstr "Lista"
-
-
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "List"
+msgstr "Lista"
 
 
 msgid "Keyframe Insert Pie"
@@ -50805,6 +50813,26 @@ msgstr "Gerar normais com perturbações a partir de uma imagem com mapa de norm
 
 msgid "Base"
 msgstr "Base"
+
+
+msgid "Base surface that the normal map is applied relative to, when displacement is used"
+msgstr "Superfície base relativa à qual o mapa de normais é aplicado, quando se usa deslocamento"
+
+
+msgid "Original Base"
+msgstr "Base Original"
+
+
+msgid "Apply normal map relative to the smooth undisplaced surface, for normal maps that match the displacement map"
+msgstr "Aplicar mapa de normais relativo à superfície suavizada não deslocada, para mapas de normais que correspondam ao mapa de deslocamento"
+
+
+msgid "Displaced Base"
+msgstr "Base Deslocada"
+
+
+msgid "Apply normal map relative to the displaced surface, for normal maps that are to be applied in addition to the displacement map"
+msgstr "Aplicar mapa de normais relativo à superfície deslocada, para mapas a aplicar em adição ao mapa de deslocamento"
 
 
 msgid "OpenGL or DirectX"
@@ -84819,6 +84847,11 @@ msgid "Set cursor position in text"
 msgstr "Definir posição do cursor no texto"
 
 
+msgctxt "Operator"
+msgid "Delete Text"
+msgstr "Apagar Texto"
+
+
 msgid "Delete text at cursor position"
 msgstr "Apagar texto na posição do cursor"
 
@@ -97833,6 +97866,10 @@ msgid "Locale code: eu_EU. Translation progress: 1%"
 msgstr "Código de língua: eu_EU. Progresso de tradução: 1%"
 
 
+msgid "Belarusian - Беларуская"
+msgstr "Bielorrusso - Беларуская"
+
+
 msgid "Locale code: be. Translation progress: 0%"
 msgstr "Código de língua: be. Progresso de tradução: 0%"
 
@@ -97895,6 +97932,10 @@ msgstr "Código de língua: nl_NL. Progresso de tradução: 8%"
 
 msgid "English (UK)"
 msgstr "Inglês (UK)"
+
+
+msgid "Locale code: en_GB. Translation progress: 99%"
+msgstr "Código de língua: en_GB. Progresso de tradução: 99%"
 
 
 msgid "English (US)"
@@ -98003,6 +98044,10 @@ msgstr "Código de língua: ja_JP. Progresso de tradução: 99%"
 
 msgid "Korean - 한국어"
 msgstr "Coreano - 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 98%"
+msgstr "Código de língua: ko_KR. Progresso de tradução: 98%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98139,10 +98184,6 @@ msgstr "Código de língua: sv_SE. Progresso de tradução: 21%"
 
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Código de língua: ta. Progresso de tradução: 93%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -112401,8 +112442,40 @@ msgid "Sub-Panel Background"
 msgstr "Abas - Plano de fundo"
 
 
+msgid "Panel Text"
+msgstr "Texto do Painel"
+
+
+msgid "Panel Title"
+msgstr "Título do Painel"
+
+
+msgid "Primary Color"
+msgstr "Cor Primária"
+
+
+msgid "Primary color of checkerboard pattern indicating transparent areas"
+msgstr "Cor primária do padrão xadrez que indica áreas transparentes"
+
+
+msgid "Secondary color of checkerboard pattern indicating transparent areas"
+msgstr "Cor secundário do padrão xadrez que indica áreas transparentes"
+
+
+msgid "Checkerboard Size"
+msgstr "Tamanho do Xadrez"
+
+
+msgid "Size of checkerboard pattern indicating transparent areas"
+msgstr "Tamanho do padrão xadrez que indica áreas transparentes"
+
+
 msgid "Box Backdrop Colors"
 msgstr "Cores das caixas de pano de fundo"
+
+
+msgid "Curve Widget Colors"
+msgstr "Cores do Apetrecho de Curvas"
 
 
 msgid "List Item Colors"
@@ -112461,6 +112534,10 @@ msgid "State Colors"
 msgstr "Cores de estado"
 
 
+msgid "Tab Colors"
+msgstr "Cores de Separadores"
+
+
 msgid "Text Widget Colors"
 msgstr "Cores dos assistentes de texto"
 
@@ -112471,6 +112548,10 @@ msgstr "Cores de alternância dos assistentes"
 
 msgid "Tool Widget Colors"
 msgstr "Cores dos assistentes de ferramenta"
+
+
+msgid "Toolbar Item Widget Colors"
+msgstr "Cores de Apetrechos de Itens da Barra de Ferramentas"
 
 
 msgid "Tooltip Colors"
@@ -112485,16 +112566,68 @@ msgid "Color of the 1px shadow line underlying widgets"
 msgstr "A cor da linha de sublinhamento que sombreia a base dos assistentes, com tamanho de um pixel."
 
 
+msgid "Text Cursor"
+msgstr "Cursor de Texto"
+
+
+msgid "Color of the text insertion cursor (caret)"
+msgstr "Cor do cursor de inserção de texto (barra vertical)"
+
+
+msgid "Theme 3D Viewport"
+msgstr "Tema Janela de Visualização 3D"
+
+
+msgid "Theme settings for the 3D viewport"
+msgstr "Definições de tema para a janela de visualização 3D"
+
+
+msgid "The color for things after the current frame (for onion skinning, motion paths, etc.)"
+msgstr "Cor para elementos após o fotograma actual (para"
+
+
+msgid "The color for things before the current frame (for onion skinning, motion paths, etc.)"
+msgstr "Cor para elementos após o fotograma actual (para criação de fantasmas, caminhos de movimento, etc.)"
+
+
+msgid "Bone Locked Weight"
+msgstr "Osso com Peso Trancado"
+
+
+msgid "Shade for bones corresponding to a locked weight group during painting"
+msgstr "Tom para ossos correspondendo a grupo de pesos trancado durante pintura"
+
+
+msgid "Bone Pose Selected"
+msgstr "Ossos Seleccionados em Pose"
+
+
+msgid "Outline color of selected pose bones"
+msgstr "Cor de contorno de ossos em pose seleccionados"
+
+
 msgid "Bone Pose Active"
 msgstr "Ossos activos em modo de pose"
+
+
+msgid "Outline color of active pose bones"
+msgstr "Cor de contorno de ossos em pose activos"
 
 
 msgid "Bone Solid"
 msgstr "Ossos em modo sólido"
 
 
+msgid "Default color of the solid shapes of bones"
+msgstr "Cor padrão da forma sólida de ossos"
+
+
 msgid "Bundle Solid"
 msgstr "Agrupamento de sólidos"
+
+
+msgid "Camera Passepartout"
+msgstr "Passepartout da câmara"
 
 
 msgid "Camera Path"
@@ -112503,6 +112636,19 @@ msgstr "Caminho de câmara"
 
 msgid "Clipping Border"
 msgstr "Margens de corte"
+
+
+msgctxt "WindowManager"
+msgid "Crease"
+msgstr "Vinco"
+
+
+msgid "Edge Mode Selection"
+msgstr "Selecção de Modo de Arestas"
+
+
+msgid "Edge Selection"
+msgstr "Selecção de Arestas"
 
 
 msgid "Edge Angle Text"
@@ -112521,6 +112667,18 @@ msgid "Face Area Text"
 msgstr "Texto das áreas das faces"
 
 
+msgid "Face Orientation Back"
+msgstr "Reverso de Orientações de Faces"
+
+
+msgid "Face Orientation Front"
+msgstr "Orientações de Faces Frente"
+
+
+msgid "Face Retopology"
+msgstr "Retopologia de Face"
+
+
 msgid "Grease Pencil Vertex"
 msgstr "Vértice de Grease Pencil"
 
@@ -112533,12 +112691,44 @@ msgid "Grease Pencil Vertex Size"
 msgstr "Tamanho dos vértices de Grease Pencil"
 
 
+msgid "Grease Pencil Wire Edit"
+msgstr "Edição de Arame Grease Pencil"
+
+
+msgid "Grease Pencil wireframe color when in edit mode"
+msgstr "Core de vista em arame Grease Pencil quando em Modo de Edição"
+
+
+msgid "Major Grid Lines"
+msgstr "Linhas Principais de Grelha"
+
+
 msgid "Face Normal"
 msgstr "Normais das faces"
 
 
+msgid "NURBS Active U Lines"
+msgstr "Linhas U NURBS activas"
+
+
+msgid "NURBS Active V Lines"
+msgstr "Linhas V NURBS activas"
+
+
+msgid "NURBS U Lines"
+msgstr "Linhas U NURBS"
+
+
+msgid "NURBS V Lines"
+msgstr "Linhas V NURBS"
+
+
 msgid "Object Origin Size"
 msgstr "Tamanho das origens dos objectos"
+
+
+msgid "Diameter in pixels for object/light origin display"
+msgstr "Diâmetro em pixeis para mostrar origem de objectos ou lâmpadas"
 
 
 msgid "Object Selected"
@@ -112565,6 +112755,10 @@ msgid "View Overlay"
 msgstr "Sobreposição de visualização"
 
 
+msgid "Color for wireframe when in edit mode, but edge selection is active"
+msgstr "Cor da vista em arame quando em modo de edição, mas selecção de arestas está activa"
+
+
 msgid "Theme Widget Color Set"
 msgstr "Tema de conjunto de cores do assistente"
 
@@ -112589,6 +112783,10 @@ msgid "Roundness"
 msgstr "Circularidade"
 
 
+msgid "Amount of edge rounding"
+msgstr "Quantidade de arredondamento das arestas"
+
+
 msgid "Shade Down"
 msgstr "Sombrear a base"
 
@@ -112605,6 +112803,14 @@ msgid "Theme settings for widget state colors"
 msgstr "Definições de tema para o estado de cor dos assistentes."
 
 
+msgid "Color for error items"
+msgstr "Cor para itens de erro"
+
+
+msgid "Color for informational items"
+msgstr "Cor para itens informacionais"
+
+
 msgid "Animated"
 msgstr "Animados"
 
@@ -112617,6 +112823,10 @@ msgid "Changed"
 msgstr "Alterado"
 
 
+msgid "Changed Selected"
+msgstr "Alterados Seleccionados"
+
+
 msgid "Driven"
 msgstr "Controlados"
 
@@ -112625,8 +112835,28 @@ msgid "Driven Selected"
 msgstr "Controlados seleccionados"
 
 
+msgid "Overridden"
+msgstr "Revogados"
+
+
+msgid "Overridden Selected"
+msgstr "Revogados Seleccionados"
+
+
+msgid "Color for successful items"
+msgstr "Cor para itens com sucesso"
+
+
+msgid "Color for warning items"
+msgstr "Cor para itens de aviso"
+
+
 msgid "Marker for noting points in the timeline"
 msgstr "Marcador para pontos de observação dentro da linha do tempo."
+
+
+msgid "Camera that becomes active on this frame"
+msgstr "Câmara que se torna activa neste fotograma"
 
 
 msgid "The frame on which the timeline marker appears"
@@ -112645,8 +112875,36 @@ msgid "Time since last step in seconds"
 msgstr "Tempo desde o último passo em segundos."
 
 
+msgid "Time since the timer started seconds"
+msgstr "Tempo desde que o temporizador se iniciou em segunbdos"
+
+
 msgid "Time Step"
 msgstr "Passo de tempo"
+
+
+msgid "Use Location for Camera Fix"
+msgstr "Usar Posição para Fixação de Câmara"
+
+
+msgid "Create location keys when fixing to the scene camera"
+msgstr "Criar chaves de posição ao fixar câmara à cena"
+
+
+msgid "Use Rotation for Camera Fix"
+msgstr "Usar rotação para Fixação de Câmara"
+
+
+msgid "Create rotation keys when fixing to the scene camera"
+msgstr "Criar chaves de rotação ao fixar à câmara da cena"
+
+
+msgid "Use Scale for Camera Fix"
+msgstr "Usar escala para fixação de câmara"
+
+
+msgid "Create scale keys when fixing to the scene camera"
+msgstr "Criar chaves de escala ao fixar à câmara da cena"
 
 
 msgid "Mirror Bone"
@@ -112673,8 +112931,32 @@ msgid "Stroke Placement (2D View)"
 msgstr "Posicionamento dos traços (Visão 2D)"
 
 
+msgid "Stick stroke to the image"
+msgstr "Fixar traço à imagem"
+
+
+msgid "Stick stroke to the view"
+msgstr "Fixar traço à vista"
+
+
+msgid "Annotation Stroke Placement (3D View)"
+msgstr "Posicionamento de Traços de Anotação (Vista 3D)"
+
+
+msgid "How annotation strokes are orientated in 3D space"
+msgstr "Como são orientados os traços de anotação no espaço 3D"
+
+
+msgid "Draw stroke at 3D cursor location"
+msgstr "Desenhar traços na posição do cursor 3D"
+
+
 msgid "Stick stroke to surfaces"
 msgstr "Mantém os traços atrelados às posições das superfícies."
+
+
+msgid "Annotation Stroke Thickness"
+msgstr "Espessura do Traço de Anotação"
 
 
 msgid "Auto-Keying Mode"
@@ -112683,6 +112965,22 @@ msgstr "Modo de auto inserção de chaves"
 
 msgid "Add & Replace"
 msgstr "Adicionar e substituir"
+
+
+msgid "Curves Sculpt"
+msgstr "Escultura de Curvas"
+
+
+msgid "Curve Profile Widget"
+msgstr "Apetrecho de Perfil de Curva"
+
+
+msgid "Used for defining a profile's path"
+msgstr "Usar para definir um perfil de curva"
+
+
+msgid "Threshold distance for Auto Merge"
+msgstr "Distância limite para Fusão Automática"
 
 
 msgid "Grease Pencil Interpolate"
@@ -112697,8 +112995,16 @@ msgid "Settings for stroke sculpting tools and brushes"
 msgstr "Definições para as ferramentas de escultura de traços e pincéis."
 
 
+msgid "Select Mode"
+msgstr "Modo de Selecção"
+
+
 msgid "Stroke Placement (3D View)"
 msgstr "Posicionamento dos traços (Visão 3D)"
+
+
+msgid "Draw stroke at Object origin"
+msgstr "Desenhar traço na origem do objecto"
 
 
 msgid "Stick stroke to other strokes"
@@ -112709,6 +113015,10 @@ msgid "Stroke Snap"
 msgstr "Atracção ao Traço"
 
 
+msgid "All Points"
+msgstr "Todos os Pontos"
+
+
 msgid "Snap to all points"
 msgstr "Atrair a todos os pontos"
 
@@ -112717,8 +113027,21 @@ msgid "Snap to first and last points and interpolate"
 msgstr "Atrair ao primeiro e últimos pontos e interpolar"
 
 
+msgid "First Point"
+msgstr "Primeiro Ponto"
+
+
 msgid "Snap to first point"
 msgstr "Atrair ao prieiro ponto"
+
+
+msgid "Offset along the normal when drawing on surfaces"
+msgstr "Deslocar na direcção da normal ao desenhar sobre superfícies"
+
+
+msgctxt "Action"
+msgid "New Keyframe Type"
+msgstr "Tipo de Novo Fotogramas Chave"
 
 
 msgid "Type of keyframes to create when inserting keyframes"
@@ -112733,6 +113056,14 @@ msgid "Prevent marker editing"
 msgstr "Impede as edições dos marcadores."
 
 
+msgid "Lock Object Modes"
+msgstr "Trancar Modos de Objecto"
+
+
+msgid "Restrict selection to objects using the same mode as the active object, to prevent accidental mode switch when selecting"
+msgstr "Restringir selecção a objectos que usem o mesmo modo que o activo, para prevenir troca de modo acidental ao seleccionar"
+
+
 msgid "Mesh Selection Mode"
 msgstr "Modo de selecção de malha"
 
@@ -112741,12 +113072,110 @@ msgid "Which mesh elements selection works on"
 msgstr "Em quais elementos da malha a selecção irá funcionar."
 
 
+msgid "Normal Vector"
+msgstr "Vector Normal"
+
+
+msgid "Normal vector used to copy, add or multiply"
+msgstr "Vector de normal usado para copiar, adicionar ou multiplicar"
+
+
+msgid "Plane Axis"
+msgstr "Eixos de Plano"
+
+
+msgid "The axis used for placing the base region"
+msgstr "O eixo usado para posicionar a região base"
+
+
+msgid "Auto Axis"
+msgstr "Auto Eixo"
+
+
+msgid "Select the closest axis when placing objects (surface overrides)"
+msgstr "Seleccionar op eixo mais próximo ao posicionar objectos (superfície revoga)"
+
+
+msgid "The initial depth used when placing the cursor"
+msgstr "A profundidade inicial ao posicionar o cursor"
+
+
+msgid "Start placing on the surface, using the 3D cursor position as a fallback"
+msgstr "Começar a posicionar na superfície, usando o cursor como reserva"
+
+
+msgid "Cursor Plane"
+msgstr "Plano do Cursor"
+
+
+msgid "Start placement using a point projected onto the orientation axis at the 3D cursor position"
+msgstr "Começar a posicionamento usando um ponto projectado no eixo de orientação na posição do cursor"
+
+
+msgid "Cursor View"
+msgstr "Cursor Vista"
+
+
+msgid "Start placement using a point projected onto the view plane at the 3D cursor position"
+msgstr "Começar a posicionamento usando um ponto projectado no plano da vista na posição do cursor"
+
+
+msgid "Use the surface normal (using the transform orientation as a fallback)"
+msgstr "Usar a normal da superfície (usando a orientação de transformação como reserva)"
+
+
+msgid "Use the current transform orientation"
+msgstr "Nome orientação de transformação actual"
+
+
+msgid "Snap Distance"
+msgstr "Distância de Atracção"
+
+
 msgid "Display size for proportional editing circle"
 msgstr "Tamanho de amostragem para o círculo de edição proporcional."
 
 
+msgctxt "Curve"
+msgid "Proportional Editing Falloff"
+msgstr "Decaimento para Edição Proporcional"
+
+
 msgid "UV Local View"
 msgstr "Visualização local de UV"
+
+
+msgid "Display only faces with the currently displayed image assigned"
+msgstr "Mostrar apenas faces com a imagem actualmente mostrada atribuída"
+
+
+msgid "Rotation Increment"
+msgstr "Incremento de Rotação"
+
+
+msgid "Angle used for rotation increments in 2D editors"
+msgstr "Ângulo usado para incrementos de rotação em editores 2D"
+
+
+msgid "Rotation Precision Increment"
+msgstr "Incremento de Precisão de Rotação"
+
+
+msgid "Precision angle used for rotation increments in 2D editors"
+msgstr "Ângulo de precisão usado para incrementos de rotação em editores 2D"
+
+
+msgid "Angle used for rotation increments in 3D editors"
+msgstr "Ângulo usado para incrementos de rotação em editores 3D"
+
+
+msgid "Precision angle used for rotation increments in 3D editors"
+msgstr "Ângulo de precisão usado para incrementos de rotação em editores 3D"
+
+
+msgctxt "Unit"
+msgid "Snap Animation Element"
+msgstr "Atrair Elemento de Animação"
 
 
 msgid "Type of element to snap to"
@@ -112761,12 +113190,25 @@ msgid "Snap to seconds"
 msgstr "Atrai a segundos"
 
 
+msgctxt "Unit"
+msgid "Nearest Marker"
+msgstr "Marcador Mais Próximo"
+
+
 msgid "Snap to nearest marker"
 msgstr "Atrai ao marcador mais próximo"
 
 
 msgid "Snap Element"
 msgstr "Atrair a Elemento"
+
+
+msgid "Type of element for the \"Snap Base\" to snap to"
+msgstr "Tipo de elemento a atrair para o 'Base de Atracção'"
+
+
+msgid "Project Mode"
+msgstr "Modo de Projecção"
 
 
 msgid "Type of element for individual transformed elements to snap to"
@@ -112789,8 +113231,70 @@ msgid "Use the current snap settings"
 msgstr "Usar actuas definições de atracção"
 
 
+msgid "Face Nearest Steps"
+msgstr "Passos de Face Mais Próxima"
+
+
 msgid "Number of steps to break transformation into for face nearest snapping"
 msgstr "Número de passos nos quais repartir transformação para atracção à face mais próxima"
+
+
+msgctxt "Unit"
+msgid "Snap Playhead Element"
+msgstr "Atrair Cursor de Reprodução a Elementos"
+
+
+msgctxt "Unit"
+msgid "Frames"
+msgstr "Fotogramas"
+
+
+msgid "Snap to frame increments"
+msgstr "Atrair a incrementos de fotogramas"
+
+
+msgctxt "Unit"
+msgid "Seconds"
+msgstr "Segundos"
+
+
+msgid "Snap to second increments"
+msgstr "Atrair a incrementos de segundos"
+
+
+msgctxt "Unit"
+msgid "Markers"
+msgstr "Marcadores"
+
+
+msgctxt "Unit"
+msgid "Keyframes"
+msgstr "Fotogramas Chave"
+
+
+msgid "Snap to keyframes"
+msgstr "Atrair a Fotogramas"
+
+
+msgctxt "Unit"
+msgid "Strips"
+msgstr "Faixas"
+
+
+msgid "Snap to Strips"
+msgstr "Atrair a Faixas"
+
+
+msgid "At which interval to snap to frames"
+msgstr "A que intervalo atrair a fotogramas"
+
+
+msgid "Second Step"
+msgstr "Atracção a Segundos"
+
+
+msgid "At which interval to snap to seconds"
+msgstr "A que intervalo atrair a segundos"
 
 
 msgid "Snap Target"
@@ -112813,12 +113317,36 @@ msgid "Mesh Statistics Visualization"
 msgstr "Visualização de estatísticas de malha"
 
 
+msgid "Transform Pivot Point"
+msgstr "Ponto Pivot de Transformação"
+
+
 msgid "Only Endpoints"
 msgstr "Apenas as terminações"
 
 
 msgid "Only use the first and last parts of the stroke for snapping"
 msgstr "Usar apenas a primeira e última partes do traço para atracção"
+
+
+msgid "Weight Paint Auto-Normalize"
+msgstr "Auto Normalização de Pintura de Pesos"
+
+
+msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting or assigning to vertices"
+msgstr "Assegurar que todos os grupos de vértices de deformação por ossos perfazem 1.0 durante a pintura de pesos ou atribuição de vértices"
+
+
+msgid "Changing edge seams recalculates UV unwrap"
+msgstr "Alterar costuras de arestas recalcula o desdobramento UV"
+
+
+msgid "Automerge"
+msgstr "Auto-Fundir"
+
+
+msgid "Join the last drawn stroke with previous strokes in the active layer by distance"
+msgstr "Juntar por distância o último segmento desenhado com os traços anteriores na camada activa"
 
 
 msgid "Use Additive Drawing"
@@ -112833,12 +113361,68 @@ msgid "Draw Strokes on Back"
 msgstr "Desenhar traços logo atrás"
 
 
+msgid "New strokes are drawn below of all strokes in the layer"
+msgstr "Novos traços são desenhados por baixo de todos os traços na camada"
+
+
 msgid "Selection Mask"
 msgstr "Máscara de selecção"
 
 
 msgid "Only sculpt selected stroke points"
 msgstr "Esculpe apenas os pontos dos traços seleccionados."
+
+
+msgid "Only sculpt selected stroke points between other strokes"
+msgstr "Esculpir apenas os pontos dos traços seleccionados entre outros traços"
+
+
+msgid "Only sculpt selected strokes"
+msgstr "Esculpir apenas traços seleccionados"
+
+
+msgid "Compact List"
+msgstr "Lista Compacta"
+
+
+msgid "Show compact list of colors instead of thumbnails"
+msgstr "Mostrar lista compacta de cores em vez de miniaturas"
+
+
+msgid "Only paint selected stroke points"
+msgstr "Pintar apenas pontos de traços seleccionados"
+
+
+msgid "Only paint selected stroke points between other strokes"
+msgstr "Pintar apenas pontos de traços seleccionados entre outros traços"
+
+
+msgid "Only paint selected strokes"
+msgstr "Pintar apenas traços seleccionados"
+
+
+msgid "Add weight data for new strokes"
+msgstr "Adicionar dados de peso para novos traços"
+
+
+msgid "Weight data for new strokes is added according to the current vertex group and weight. If no vertex group selected, weight is not added."
+msgstr "Dados de peso para novos traços são adicionados ao actual grupo de vértices. Não será adicionado peso se não houver um grupo seleccionado."
+
+
+msgid "Multi-frame Editing"
+msgstr "Edição Multi-Fotograma"
+
+
+msgid "Enable multi-frame editing"
+msgstr "Activar edição multi-fotograma"
+
+
+msgid "Cycle-Aware Keying"
+msgstr "Inserção de Chaves consciente de ciclos"
+
+
+msgid "For channels with cyclic extrapolation, keyframe insertion is automatically remapped inside the cycle time range, and keeps ends in sync. Curves newly added to actions with a Manual Frame Range and Cyclic Animation are automatically made cyclic."
+msgstr "Para canais com extrapolação cíclica a inserção de fotogramas chave é automaticamente remapeada dentro do intervalo de tempo, e mantém pontas em sincronia. Novas curvas adicionadas a acções com Intervalo de Fotogramas Manual e Animação Cíclica são automaticamente tornados cíclicos."
 
 
 msgid "Auto Keying"
@@ -112853,8 +113437,32 @@ msgid "Automatic keyframe insertion using active Keying Set only"
 msgstr "Inserção automática de fotograma chave usando apenas o conjunto de inserção de chaves activo."
 
 
+msgid "Weight Paint Lock-Relative"
+msgstr "Pintura de Pesos Trancar Relativo"
+
+
+msgid "Display bone-deforming groups as if all locked deform groups were deleted, and the remaining ones were re-normalized"
+msgstr "Mostrar grupos de deformação de ossos como se todos os grupos de deformação trancados tivessem sido apagados, e os restantes re-normalizados"
+
+
+msgid "Auto Merge Vertices"
+msgstr "Fundir Vertices Automaticamente"
+
+
 msgid "Automatically merge vertices moved to the same location"
 msgstr "Funde automaticamente os vértices movidos para a mesma localização ou sobrepostos."
+
+
+msgid "Split Edges & Faces"
+msgstr "Separar Arestas e Faces"
+
+
+msgid "Automatically split edges and faces"
+msgstr "Separar automaticamente arestas e faces"
+
+
+msgid "Weight Paint Multi-Paint"
+msgstr "Pintura Múltipla de Pintura De Pesos"
 
 
 msgid "Paint across the weights of all selected bones, maintaining their relative influence"
@@ -112873,6 +113481,10 @@ msgid "Proportional Editing using connected geometry only"
 msgstr "Edição proporcional usando apenas a geometria conectada."
 
 
+msgid "Proportional edit mode"
+msgstr "Edição proporcional em modo de edição"
+
+
 msgid "Proportional Editing Objects"
 msgstr "Edição proporcional de objectos"
 
@@ -112883,6 +113495,18 @@ msgstr "Edição proporcional no modo de máscara."
 
 msgid "Proportional editing object mode"
 msgstr "Edição proporcional no modo de objectos."
+
+
+msgid "Proportional Editing F-Curves"
+msgstr "Edição Proporcional de Curvas-F"
+
+
+msgid "Proportional editing in F-Curve editor"
+msgstr "Edição proporcional no editor de curvas-f"
+
+
+msgid "Projected from View"
+msgstr "Projectado a partir da vista"
 
 
 msgid "Proportional Editing using screen space locations"
@@ -112901,6 +113525,10 @@ msgid "Snap during transform"
 msgstr "Atrair durante transformação"
 
 
+msgid "Align Rotation to Target"
+msgstr "Alinhar Rotação Com Alvo"
+
+
 msgid "Align rotation with the snapping target"
 msgstr "Alinhar rotação com o alvo de atracção"
 
@@ -112913,8 +113541,32 @@ msgid "Exclude back facing geometry from snapping"
 msgstr "Excluir faces reversas de atracção"
 
 
+msgid "Enable snapping when transforming keys in the Driver Editor"
+msgstr "Activar atracção durante transformação de chaves no Editor de Controladores"
+
+
+msgid "Absolute Snap"
+msgstr "Atracção Absoluta"
+
+
+msgid "Snap to full values"
+msgstr "Atrair a valores totais"
+
+
 msgid "Snap onto Edited"
 msgstr "Atrair para Editado"
+
+
+msgid "Snap onto non-active objects in edit mode (edit mode only)"
+msgstr "Atrair a objectos não activos em Modo de Edição (apenas Modo de Edição)"
+
+
+msgid "Absolute Increment Snap"
+msgstr "Atracção a Incremento Absoluto"
+
+
+msgid "Absolute grid alignment while translating (based on the pivot center)"
+msgstr "Alinhamento de grelha absoluto ao mover (com base no centro do pivot)"
 
 
 msgid "Snap Node during transform"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
-"PO-Revision-Date: 2026-02-27 11:12+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"PO-Revision-Date: 2026-03-03 01:12+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -17683,6 +17683,14 @@ msgid "Use tooltips when hovering over this gizmo"
 msgstr "Usar descripciones de herramientas al posar el puntero sobre este manipulador"
 
 
+msgid "Use Undo"
+msgstr "Usar Deshacer"
+
+
+msgid "Push an undo step after each use of the gizmo"
+msgstr "Generar un paso de deshacer con cada uso del manipulador"
+
+
 msgctxt "Operator"
 msgid "GizmoGroup"
 msgstr "Grupo de manipuladores"
@@ -35194,12 +35202,12 @@ msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Read"
-msgstr "Lectura"
-
-
 msgid "Show/Hide"
 msgstr "Mostrar / Ocultar"
+
+
+msgid "Read"
+msgstr "Lectura"
 
 
 msgid "Write"
@@ -35210,12 +35218,12 @@ msgid "Sample"
 msgstr "Muestreo"
 
 
-msgid "Primitives"
-msgstr "Primitivas"
-
-
 msgid "Names"
 msgstr "Nombres"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Bone Roll"
@@ -35306,12 +35314,12 @@ msgid "Select Linked"
 msgstr "Seleccionar vinculado"
 
 
-msgid "Render Preview"
-msgstr "Procesar previsualización"
-
-
 msgid "Select Loops"
 msgstr "Seleccionar bucles"
+
+
+msgid "Render Preview"
+msgstr "Procesar previsualización"
 
 
 msgid "Adjust"
@@ -35442,12 +35450,12 @@ msgid "Mesh Select Mode"
 msgstr "Modo de selección de mallas"
 
 
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
 msgid "Face Data"
 msgstr "Datos de caras"
+
+
+msgid "Gizmo"
+msgstr "Manipulador"
 
 
 msgid "Instances"
@@ -35478,12 +35486,12 @@ msgid "Special Characters"
 msgstr "Caracteres especiales"
 
 
-msgid "List"
-msgstr "Lista"
-
-
 msgid "Kerning"
 msgstr "Espaciado"
+
+
+msgid "List"
+msgstr "Lista"
 
 
 msgid "Keyframe Insert Pie"
@@ -50798,6 +50806,26 @@ msgstr "Genera normales perturbadas a partir de una imagen de mapeo normal RVA. 
 
 msgid "Base"
 msgstr "Base"
+
+
+msgid "Base surface that the normal map is applied relative to, when displacement is used"
+msgstr "Superficie con respecto a la cual se aplicará el mapa de normales, cuando se utilice desplazamiento"
+
+
+msgid "Original Base"
+msgstr "Base original"
+
+
+msgid "Apply normal map relative to the smooth undisplaced surface, for normal maps that match the displacement map"
+msgstr "Aplica el mapa de normales relativo a la superficie suavizada no desplazada, para mapas de normales que coincidan con el mapa de desplazamiento"
+
+
+msgid "Displaced Base"
+msgstr "Base desplazada"
+
+
+msgid "Apply normal map relative to the displaced surface, for normal maps that are to be applied in addition to the displacement map"
+msgstr "Aplica el mapa de normales relativo a la superficie desplazada, para mapas de normales que se apliquen por sobre el mapa de desplazamiento"
 
 
 msgid "OpenGL or DirectX"
@@ -84812,6 +84840,11 @@ msgid "Set cursor position in text"
 msgstr "Define la posición del cursor en el texto"
 
 
+msgctxt "Operator"
+msgid "Delete Text"
+msgstr "Borrar texto"
+
+
 msgid "Delete text at cursor position"
 msgstr "Borra el texto en la posición del cursor"
 
@@ -97894,6 +97927,10 @@ msgid "English (UK)"
 msgstr "Inglés (Reino Unido) - English (UK)"
 
 
+msgid "Locale code: en_GB. Translation progress: 99%"
+msgstr "Código de localización: en_GB. Progreso de la traducción: 100%"
+
+
 msgid "English (US)"
 msgstr "Inglés (EE.UU.) - English (US)"
 
@@ -98000,6 +98037,10 @@ msgstr "Código de localización: ja_JP. Progreso de la traducción: 99%"
 
 msgid "Korean - 한국어"
 msgstr "Coreano - 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 98%"
+msgstr "Código de localización: ko_KR. Progreso de la traducción: 98%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98136,10 +98177,6 @@ msgstr "Código de localización: sv_SE. Progreso de la traducción: 21%"
 
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Código de localización: ta. Progreso de la traducción: 94%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -112921,10 +112958,6 @@ msgid "Auto-Keying Mode"
 msgstr "Modo claves automáticos"
 
 
-msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "Modo de inserción automática de claves para objetos, huesos y máscaras"
-
-
 msgid "Add & Replace"
 msgstr "Agregar/Reemplazar"
 
@@ -113389,10 +113422,6 @@ msgstr "En canales con extrapolación cíclica, la inserción de claves será re
 
 msgid "Auto Keying"
 msgstr "Claves automáticos"
-
-
-msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "Inserción automática de fotogramas clave para objetos, huesos y máscaras"
 
 
 msgid "Auto Keyframe Insert Keying Set"

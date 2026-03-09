@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
 "PO-Revision-Date: 2026-02-06 22:29+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34343,12 +34343,12 @@ msgid "Metaball"
 msgstr "Siêu Cầu"
 
 
-msgid "Read"
-msgstr "Đọc"
-
-
 msgid "Show/Hide"
 msgstr "Hiện/Ẩn Giấu"
+
+
+msgid "Read"
+msgstr "Đọc"
 
 
 msgid "Write"
@@ -34359,12 +34359,12 @@ msgid "Sample"
 msgstr "Lấy Mẫu Vật"
 
 
-msgid "Primitives"
-msgstr "Hình Cơ Bản"
-
-
 msgid "Names"
 msgstr "Tên"
+
+
+msgid "Primitives"
+msgstr "Hình Cơ Bản"
 
 
 msgid "Bone Roll"
@@ -34455,12 +34455,12 @@ msgid "Select Linked"
 msgstr "Chọn cái Kết Nối"
 
 
-msgid "Render Preview"
-msgstr "Góc Nhìn Kết Xuất"
-
-
 msgid "Select Loops"
 msgstr "Chọn Vòng Mạch"
+
+
+msgid "Render Preview"
+msgstr "Góc Nhìn Kết Xuất"
 
 
 msgid "Adjust"
@@ -34591,12 +34591,12 @@ msgid "Mesh Select Mode"
 msgstr "Chế Độ Chọn Khung Lưới"
 
 
-msgid "Gizmo"
-msgstr "Dụng Cụ"
-
-
 msgid "Face Data"
 msgstr "Dữ Liệu Mặt"
+
+
+msgid "Gizmo"
+msgstr "Dụng Cụ"
 
 
 msgid "Instances"
@@ -34627,12 +34627,12 @@ msgid "Special Characters"
 msgstr "Các Ký Tự Đặc Biệt"
 
 
-msgid "List"
-msgstr "Nâng"
-
-
 msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "List"
+msgstr "Nâng"
 
 
 msgid "Keyframe Insert Pie"
@@ -107986,10 +107986,6 @@ msgid "Auto-Keying Mode"
 msgstr "Chế Độ Tạo Khung Khóa Tự Động"
 
 
-msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "Chế độ tự động chèn thêm khung khóa cho các đối tượng, xương, và các màn chắn lọc"
-
-
 msgid "Add & Replace"
 msgstr "Thêm & Thay Thế"
 
@@ -108449,10 +108445,6 @@ msgstr "Đối với các kênh có ngoại suy tuần hoàn, việc chèn khung
 
 msgid "Auto Keying"
 msgstr "Tự Động Tạo Khung Khóa"
-
-
-msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "Tự động chèn thêm khung khóa cho các đối tượng, xương, và các màn chắn lọc"
 
 
 msgid "Auto Keyframe Insert Keying Set"

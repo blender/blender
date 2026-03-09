@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
-"PO-Revision-Date: 2026-03-01 13:56+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"PO-Revision-Date: 2026-03-08 05:12+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -1625,7 +1625,7 @@ msgstr "Editor no lineal per organitzar i barrejar escenes, vídeo, àudio i efe
 
 
 msgid "Movie Clip Editor"
-msgstr "Editor de videoclips"
+msgstr "Editor de vídeo"
 
 
 msgid "Motion tracking tools"
@@ -2230,7 +2230,7 @@ msgstr "Mostrar blocs de dades de metaboles"
 
 
 msgid "Movie Clips"
-msgstr "Videoclips"
+msgstr "Clips de vídeo"
 
 
 msgid "Show Movie Clip data-blocks"
@@ -3685,7 +3685,7 @@ msgstr "[Main Metaballs]: Col·lecció de metaboles"
 
 
 msgid "Main Movie Clips"
-msgstr "Videoclips principals"
+msgstr "Clips de vídeo principals"
 
 
 msgid "Collection of movie clips"
@@ -11561,11 +11561,11 @@ msgstr "[Display Modifier Data]: Inclou la visualització de dades d'animació l
 
 
 msgid "Display Movie Clips"
-msgstr "Mostrar videoclips"
+msgstr "Mostrar clips de vídeo"
 
 
 msgid "Include visualization of movie clip related animation data"
-msgstr "[Display Movie Clips]: Inclou la visualització de dades d'animació lligades als videoclips"
+msgstr "[Display Movie Clips]: Inclou la visualització de dades d'animació lligades als clips de vídeo"
 
 
 msgid "Display Node"
@@ -17681,6 +17681,14 @@ msgstr "Usar pistes"
 
 msgid "Use tooltips when hovering over this gizmo"
 msgstr "[Use Tooltip]: Usa les pistes de funcionament en rondar per sobre d'aquest flòstic"
+
+
+msgid "Use Undo"
+msgstr "Usar desfer"
+
+
+msgid "Push an undo step after each use of the gizmo"
+msgstr "[Use Undo]: Efectua un pas de desfer després de cada ús del flòstic"
 
 
 msgctxt "Operator"
@@ -35194,12 +35202,12 @@ msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Read"
-msgstr "Lectura"
-
-
 msgid "Show/Hide"
 msgstr "Mostrar/amagar"
+
+
+msgid "Read"
+msgstr "Lectura"
 
 
 msgid "Write"
@@ -35210,12 +35218,12 @@ msgid "Sample"
 msgstr "Mostreig"
 
 
-msgid "Primitives"
-msgstr "Primitius"
-
-
 msgid "Names"
 msgstr "Noms"
+
+
+msgid "Primitives"
+msgstr "Primitius"
 
 
 msgid "Bone Roll"
@@ -35306,12 +35314,12 @@ msgid "Select Linked"
 msgstr "Seleccionar connectats"
 
 
-msgid "Render Preview"
-msgstr "Previsionat de revelat"
-
-
 msgid "Select Loops"
 msgstr "Seleccionar bucles"
+
+
+msgid "Render Preview"
+msgstr "Previsionat de revelat"
 
 
 msgid "Adjust"
@@ -35442,12 +35450,12 @@ msgid "Mesh Select Mode"
 msgstr "Mode selecció de malla"
 
 
-msgid "Gizmo"
-msgstr "Flòstic"
-
-
 msgid "Face Data"
 msgstr "Dades de cares"
+
+
+msgid "Gizmo"
+msgstr "Flòstic"
 
 
 msgid "Instances"
@@ -35478,12 +35486,12 @@ msgid "Special Characters"
 msgstr "Caràcters especials"
 
 
-msgid "List"
-msgstr "Llistar"
-
-
 msgid "Kerning"
 msgstr "Interlletratge"
+
+
+msgid "List"
+msgstr "Llistar"
 
 
 msgid "Keyframe Insert Pie"
@@ -43552,7 +43560,7 @@ msgstr "Punt de trajectòria seleccionat per a l'edició"
 
 
 msgid "Movie Clip Proxy"
-msgstr "Vídeo supletori"
+msgstr "Clip de vídeo supletori"
 
 
 msgid "Proxy parameters for a movie clip"
@@ -44691,7 +44699,7 @@ msgstr "[Bundle]: Posició de l'agregat reconstruït a partir d'aquest rastre"
 
 
 msgid "Color of the track in the Movie Clip Editor and the 3D viewport after a solve"
-msgstr "Color del rastre a l'editor de clips de vídeo i al mirador després d'una resolutiva"
+msgstr "Color del rastre a l'Editor de vídeo i al Mirador 3D després d'una resolutiva"
 
 
 msgid "Minimal value of correlation between matched pattern and reference that is still treated as successful tracking"
@@ -50798,6 +50806,26 @@ msgstr "Genera una normal pertorbada a partir d'una imatge mapa de normals RGB. 
 
 msgid "Base"
 msgstr "Base"
+
+
+msgid "Base surface that the normal map is applied relative to, when displacement is used"
+msgstr "Superfície base en relació a la qual s'aplica el mapa de normals quan es fa servir el desplaçament"
+
+
+msgid "Original Base"
+msgstr "Base original"
+
+
+msgid "Apply normal map relative to the smooth undisplaced surface, for normal maps that match the displacement map"
+msgstr "[Original Base]: Aplica un mapa de normals relatiu a la superfície suavitzada no desplaçada en el cas de les normals que conlliguen amb el mapa de desplaçament"
+
+
+msgid "Displaced Base"
+msgstr "Base desplaçada"
+
+
+msgid "Apply normal map relative to the displaced surface, for normal maps that are to be applied in addition to the displacement map"
+msgstr "[Displaced Base]: Aplica un mapa de normals relatiu a la superfície desplaçada amb els mapes de normals que s'han d'aplicar addicionalment al mapa de desplaçament"
 
 
 msgid "OpenGL or DirectX"
@@ -84812,6 +84840,11 @@ msgid "Set cursor position in text"
 msgstr "Situar posició del cursor en el text"
 
 
+msgctxt "Operator"
+msgid "Delete Text"
+msgstr "Eliminar text"
+
+
 msgid "Delete text at cursor position"
 msgstr "[Delete Character]: Elimina text per la posició del cursor"
 
@@ -97271,7 +97304,7 @@ msgstr "Fixa la freqüència de mostreig de l'àudio a 192000 mostres per segon"
 
 
 msgid "Clip Alpha"
-msgstr "Absolutitzar alfa"
+msgstr "Segar alfa"
 
 
 msgid "Clip alpha below this threshold in the 3D textured view"
@@ -97894,6 +97927,10 @@ msgid "English (UK)"
 msgstr "Anglès (RU)"
 
 
+msgid "Locale code: en_GB. Translation progress: 99%"
+msgstr "Codi de localització: en_GB. Progrés de la traducció: 99%"
+
+
 msgid "English (US)"
 msgstr "Anglès (EUA)"
 
@@ -98000,6 +98037,10 @@ msgstr "Codi de localització: ja_JP. Progrés de la traducció: 99%"
 
 msgid "Korean - 한국어"
 msgstr "Coreà - 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 98%"
+msgstr "Codi de localització: ko_KR. Progrés de la traducció: 98%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98136,10 +98177,6 @@ msgstr "Codi de localització: sv_SE. Progrés de la traducció: 21%"
 
 msgid "Tamil - தமிழ்"
 msgstr "Tàmil - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Codi de localització: ta. Progrés de la traducció: 93%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -104087,7 +104124,7 @@ msgstr "[Shadow Focus]: Duresa del factor ombra"
 
 
 msgid "Shadow Shift"
-msgstr "Lliscament d'ombra"
+msgstr "Terminació d'ombra"
 
 
 msgid "Shadow termination angle"
@@ -106020,7 +106057,7 @@ msgstr "Configuració de sobreimpressions"
 
 
 msgid "Settings for display of overlays in the Movie Clip editor"
-msgstr "Configuració per mostrar les sobreimpressions a l'Editor de clips de vídeo"
+msgstr "Paràmetres per la visualització de les sobreimpressions a l'Editor de vídeo"
 
 
 msgid "Path Length"
@@ -111109,7 +111146,7 @@ msgstr "Editor de clips de tema"
 
 
 msgid "Theme settings for the Movie Clip Editor"
-msgstr "Configuració de tema per a l'Editor de videoclips"
+msgstr "Configuració de tema per de l'Editor de vídeo"
 
 
 msgid "Active Marker"
@@ -112921,10 +112958,6 @@ msgid "Auto-Keying Mode"
 msgstr "Mode autofita"
 
 
-msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "[Auto-Keying Mode]: Mode d'inserció automàtica de fotofites per a objectes, ossos i màscares"
-
-
 msgid "Add & Replace"
 msgstr "Afegir i reemplaçar"
 
@@ -113389,10 +113422,6 @@ msgstr "Per a canals amb extrapolació cíclica, la inserció de fotofites es re
 
 msgid "Auto Keying"
 msgstr "Autofitar"
-
-
-msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "Inserció automàtica de fotofites per a objectes, ossos i màscares"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -135725,7 +135754,7 @@ msgstr "Explorar les dades de Llapis de greix per vincular"
 
 
 msgid "Browse Movie Clip to be linked"
-msgstr "Explorar el clip de filmació per vincular"
+msgstr "Explorar el clip de vídeo per vincular"
 
 
 msgid "Browse Mask to be linked"
