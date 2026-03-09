@@ -24,6 +24,10 @@
 #include "gpu_py_state.hh"
 #include "gpu_py_types.hh"
 
+#include "BKE_global.hh"
+#include "GPU_context.hh"
+#include "GPU_init_exit.hh"
+#include "WM_api.hh"
 #include "gpu_py_api.hh" /* Own include. */
 
 namespace blender {
@@ -31,6 +35,43 @@ namespace blender {
 /* -------------------------------------------------------------------- */
 /** \name GPU Module
  * \{ */
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_init_doc,
+    ".. function:: init()\n"
+    "\n"
+    "   Initializes the GPU module for background use.\n"
+    "   If the initialization fails, a SystemError will be raised.\n");
+
+static PyObject *pygpu_init(PyObject * /*self*/)
+{
+  if (!G.background || GPU_is_init()) {
+    /* GPU is already initialized.*/
+    Py_RETURN_NONE;
+  }
+
+  if (!GPU_backend_supported()) {
+    PyErr_SetString(PyExc_SystemError, "Failed to initialize GPU. GPU backend not supported");
+    return nullptr;
+  }
+
+  /* Cannot use GPU_init() as it requires a GPU context to have been created.
+   * See WM_init_gpu implementation. */
+  WM_init_gpu();
+
+  if (!GPU_is_init()) {
+    PyErr_SetString(PyExc_SystemError, "Failed to initialize GPU. Unexpected Error");
+    return nullptr;
+  }
+
+  Py_RETURN_NONE;
+}
+
+static PyMethodDef pygpu_tp_methods[] = {
+    {"init", reinterpret_cast<PyCFunction>(pygpu_init), METH_NOARGS, pygpu_init_doc},
+    {nullptr, nullptr, 0, nullptr},
+};
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -42,7 +83,7 @@ static PyModuleDef pygpu_module_def = {
     /*m_name*/ "gpu",
     /*m_doc*/ pygpu_doc,
     /*m_size*/ 0,
-    /*m_methods*/ nullptr,
+    /*m_methods*/ pygpu_tp_methods,
     /*m_slots*/ nullptr,
     /*m_traverse*/ nullptr,
     /*m_clear*/ nullptr,
