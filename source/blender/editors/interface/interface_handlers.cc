@@ -358,6 +358,9 @@ struct HandleButtonMulti {
    * here so we can tell if this is a vertical motion or not. */
   float drag_dir[2] = {0.0f, 0.0f};
 
+  /* Previous mouse position for accumulating drag_dir. */
+  int drag_dir_prev[2] = {0, 0};
+
   /* values copied direct from event->xy
    * used to detect buttons between the current and initial mouse position */
   int drag_start[2] = {0, 0};
@@ -5787,6 +5790,8 @@ static int ui_do_but_NUM(
 
 #ifdef USE_DRAG_MULTINUM
       copy_v2_v2_int(data->multi_data.drag_start, event->xy);
+      data->multi_data.drag_dir_prev[0] = mx;
+      data->multi_data.drag_dir_prev[1] = my;
 #endif
     }
   }
@@ -5821,8 +5826,10 @@ static int ui_do_but_NUM(
       float fac;
 
 #ifdef USE_DRAG_MULTINUM
-      data->multi_data.drag_dir[0] += abs(data->draglastx - mx);
-      data->multi_data.drag_dir[1] += abs(data->draglasty - my);
+      data->multi_data.drag_dir[0] += abs(data->multi_data.drag_dir_prev[0] - mx);
+      data->multi_data.drag_dir[1] += abs(data->multi_data.drag_dir_prev[1] - my);
+      data->multi_data.drag_dir_prev[0] = mx;
+      data->multi_data.drag_dir_prev[1] = my;
 #endif
 
       fac = 1.0f;
@@ -6153,6 +6160,8 @@ static int ui_do_but_SLI(
     }
 #ifdef USE_DRAG_MULTINUM
     copy_v2_v2_int(data->multi_data.drag_start, event->xy);
+    data->multi_data.drag_dir_prev[0] = mx;
+    data->multi_data.drag_dir_prev[1] = my;
 #endif
   }
   else if (data->state == BUTTON_STATE_NUM_EDITING) {
@@ -6187,8 +6196,10 @@ static int ui_do_but_SLI(
     else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
       const bool is_motion = (event->type == MOUSEMOVE);
 #ifdef USE_DRAG_MULTINUM
-      data->multi_data.drag_dir[0] += abs(data->draglastx - mx);
-      data->multi_data.drag_dir[1] += abs(data->draglasty - my);
+      data->multi_data.drag_dir[0] += abs(data->multi_data.drag_dir_prev[0] - mx);
+      data->multi_data.drag_dir[1] += abs(data->multi_data.drag_dir_prev[1] - my);
+      data->multi_data.drag_dir_prev[0] = mx;
+      data->multi_data.drag_dir_prev[1] = my;
 #endif
       if (ui_numedit_but_SLI(but,
                              data,
