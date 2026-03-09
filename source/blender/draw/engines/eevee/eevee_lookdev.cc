@@ -463,7 +463,7 @@ void LookdevModule::draw(View &view)
 
 void LookdevModule::rotate_world()
 {
-  if (!inst_.is_viewport()) {
+  if (!inst_.is_viewport() || !inst_.use_studio_light()) {
     return;
   }
 
