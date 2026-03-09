@@ -9,6 +9,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_grid_next)
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
+#include "overlay_grid_common_lib.glsl"
 
 struct LineData {
   float2 P;
@@ -63,19 +64,13 @@ LineData decode_axis_data(uint vertex_id)
   return line;
 }
 
-/* Returns true if components of `v` fall within `epsilon` of 0. */
-bool2 is_zero(float2 v, float epsilon)
-{
-  return lessThanEqual(abs(v), float2(epsilon));
-}
-
 /* Test if the current line falls under an active axis line which occludes it. */
 bool is_occluded_by_axis(float3 vertex_pos_global)
 {
   if (flag_test(grid_flag, SHOW_GRID)) {
-    return (flag_test(grid_flag, AXIS_X) && all(is_zero(vertex_pos_global.yz, 1e-4f))) ||
-           (flag_test(grid_flag, AXIS_Y) && all(is_zero(vertex_pos_global.xz, 1e-4f))) ||
-           (flag_test(grid_flag, AXIS_Z) && all(is_zero(vertex_pos_global.xy, 1e-4f)));
+    return (flag_test(grid_flag, AXIS_X) && grid::is_zero(vertex_pos_global.yz, 1e-4f)) ||
+           (flag_test(grid_flag, AXIS_Y) && grid::is_zero(vertex_pos_global.xz, 1e-4f)) ||
+           (flag_test(grid_flag, AXIS_Z) && grid::is_zero(vertex_pos_global.xy, 1e-4f));
   }
   return false;
 }
@@ -137,23 +132,25 @@ void main()
   /* Compute clipping rectangle. */
   float2 clip_min, clip_max;
   if (flag_test(grid_flag, GRID_SIMA)) {
+    /* Clipping rectangle is [-1, 1]. */
     clip_min = float2(-1.0f);
     clip_max = grid_buf.clip_rect * 2.0f - 1.0f;
   }
   else if (flag_test(grid_flag, SHOW_GRID)) {
+    /* Clipping rectangle is simply forwarded. */
     clip_min = grid_buf.offset - grid_buf.clip_rect;
     clip_max = grid_buf.offset + grid_buf.clip_rect;
   }
   else { /* SHOW_AXES */
-    /* Apply clipping on X-axis; this value is moved to the correct axis below. */
-    uint offset_idx = drw_view_is_perspective() ? line.axis : 0;
-    clip_min = float2(grid_buf.offset[offset_idx] - grid_buf.clip_rect[line.axis], 0.0f);
-    clip_max = float2(grid_buf.offset[offset_idx] + grid_buf.clip_rect[line.axis], 0.0f);
+    /* Clipping is applied to X-axis; line is moved to the correct axis below. */
+    float offset = grid::unpack_xy_to_axis(grid_buf.offset, grid_flag, line.axis);
+    float clip_rect = grid::unpack_xy_to_axis(grid_buf.clip_rect, grid_flag, line.axis);
+    clip_min = float2(offset - clip_rect, 0.0f);
+    clip_max = float2(offset + clip_rect, 0.0f);
   }
 
   /* Clip/clamp; lines entirely outside the rectangle get discarded; others get brought
-   * inside the rectangle to avoid precision problems with large lines. Z-axis ignores this step.
-   */
+   * inside the rectangle to avoid precision problems with large lines. Z-axis ignores this. */
   if (line.axis != 2) {
     bool line_outside_rect = all(lessThan(line.P, clip_min)) || all(greaterThan(line.P, clip_max));
     if (line_outside_rect) {
