@@ -46,7 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       "A point for each active voxel or tile in the grid");
   b.add_output(data_type, "Value").field_on_all().description("The grid's value at each voxel");
 
-  auto &panel = b.add_panel("Voxel Index").default_closed(true);
+  auto &panel = b.add_panel("Voxel Index"_ustr).default_closed(true);
   panel.add_output<decl::Int>("X").field_on_all().description(
       "X coordinate of the voxel in index space, or the minimum X coordinate of a tile");
   panel.add_output<decl::Int>("Y").field_on_all().description(

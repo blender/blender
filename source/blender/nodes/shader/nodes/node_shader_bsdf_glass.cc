@@ -29,7 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Normal").hide_value();
   b.add_input<decl::Float>("Weight").available(false);
 
-  PanelDeclarationBuilder &film = b.add_panel("Thin Film").default_closed(true);
+  PanelDeclarationBuilder &film = b.add_panel("Thin Film"_ustr).default_closed(true);
   film.add_input<decl::Float>("Thin Film Thickness")
       .default_value(0.0)
       .min(0.0f)

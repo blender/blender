@@ -146,7 +146,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           [](const bNode & /*node*/) { return id_cast<ID *>(BKE_vfont_builtin_ensure()); })
       .optional_label();
   {
-    auto &p = b.add_panel("Alignment").default_closed(true);
+    auto &p = b.add_panel("Alignment"_ustr).default_closed(true);
     p.add_input<decl::Menu>("Align X")
         .static_items(rna_node_geometry_string_to_curves_align_x_items)
         .optional_label();
@@ -157,13 +157,13 @@ static void node_declare(NodeDeclarationBuilder &b)
         .static_items(rna_node_geometry_string_to_curves_pivot_mode);
   }
   {
-    auto &p = b.add_panel("Spacing").default_closed(true);
+    auto &p = b.add_panel("Spacing"_ustr).default_closed(true);
     p.add_input<decl::Float>("Character Spacing").default_value(1.0f).min(0.0f);
     p.add_input<decl::Float>("Word Spacing").default_value(1.0f).min(0.0f);
     p.add_input<decl::Float>("Line Spacing").default_value(1.0f).min(0.0f);
   }
   {
-    auto &p = b.add_panel("Text Box").default_closed(true);
+    auto &p = b.add_panel("Text Box"_ustr).default_closed(true);
     p.add_input<decl::Menu>("Overflow")
         .static_items(rna_node_geometry_string_to_curves_overflow_items)
         .optional_label();

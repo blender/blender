@@ -58,7 +58,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Feather").default_value(true).description(
       "Use feather information from the mask");
 
-  PanelDeclarationBuilder &motion_blur_panel = b.add_panel("Motion Blur").default_closed(true);
+  PanelDeclarationBuilder &motion_blur_panel =
+      b.add_panel("Motion Blur"_ustr).default_closed(true);
   motion_blur_panel.add_input<decl::Bool>("Motion Blur")
       .default_value(false)
       .panel_toggle()

@@ -469,7 +469,7 @@ void DeclarationListBuilder::add_layout(
   this->items.append(&decl);
 }
 
-PanelDeclarationBuilder &DeclarationListBuilder::add_panel(const StringRef name, int identifier)
+PanelDeclarationBuilder &DeclarationListBuilder::add_panel(const UString name, int identifier)
 {
   auto panel_decl_ptr = std::make_unique<PanelDeclaration>();
   PanelDeclaration &panel_decl = *panel_decl_ptr;

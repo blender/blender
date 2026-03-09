@@ -114,7 +114,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .static_items(quality_items)
       .optional_label();
 
-  PanelDeclarationBuilder &highlights_panel = b.add_panel("Highlights").default_closed(true);
+  PanelDeclarationBuilder &highlights_panel = b.add_panel("Highlights"_ustr).default_closed(true);
   highlights_panel.add_input<decl::Float>("Threshold", "Highlights Threshold")
       .default_value(1.0f)
       .min(0.0f)
@@ -129,7 +129,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The smoothness of the extracted highlights");
 
   PanelDeclarationBuilder &supress_highlights_panel =
-      highlights_panel.add_panel("Clamp").default_closed(true);
+      highlights_panel.add_panel("Clamp"_ustr).default_closed(true);
   supress_highlights_panel.add_input<decl::Bool>("Clamp", "Clamp Highlights")
       .default_value(false)
       .panel_toggle()
@@ -140,7 +140,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Clamp bright highlights such that their brightness are not larger than this value");
 
-  PanelDeclarationBuilder &mix_panel = b.add_panel("Adjust");
+  PanelDeclarationBuilder &mix_panel = b.add_panel("Adjust"_ustr);
   mix_panel.add_input<decl::Float>("Strength")
       .default_value(1.0f)
       .min(0.0f)
@@ -157,7 +157,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .description("Tints the glare. Consider desaturating the glare to more accurate tinting");
 
-  PanelDeclarationBuilder &glare_panel = b.add_panel("Glare");
+  PanelDeclarationBuilder &glare_panel = b.add_panel("Glare"_ustr);
   glare_panel.add_input<decl::Float>("Size")
       .default_value(0.5f)
       .min(0.0f)

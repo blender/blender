@@ -216,6 +216,7 @@ _str_base = (
             ".(?!(?P={_}2))"
         ")*.)"  # Don't forget the last char!
     "(?P={_}2)"  # And closing quote.
+    "(?:_ustr)?" # Optional trailing _ustr.
 )
 str_clean_re = _str_base.format(_="g", capt="P<clean>")
 _inbetween_str_re = (

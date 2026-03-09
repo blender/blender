@@ -42,7 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1)
       .description("Number of voxels in the Z axis");
 
-  PanelDeclarationBuilder &min_panel = b.add_panel("Min").default_closed(true);
+  PanelDeclarationBuilder &min_panel = b.add_panel("Min"_ustr).default_closed(true);
   min_panel.add_input<decl::Int>("Min X").default_value(0).description(
       "Minimum coordinate in X axis (grid index space)");
   min_panel.add_input<decl::Int>("Min Y").default_value(0).description(
