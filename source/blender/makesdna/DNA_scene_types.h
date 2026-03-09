@@ -998,10 +998,10 @@ struct RenderData {
 
   /** Render engine. */
   char engine[32] = "";
-  char _pad2[2] = {};
 
   /** Performance Options. */
   short perf_flag = 0;
+  short anisotropic_filter = 2;
 
   /** Baking. */
   struct BakeData bake;

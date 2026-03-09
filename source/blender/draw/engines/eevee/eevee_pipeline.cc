@@ -53,7 +53,7 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat,
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
                       DRW_STATE_DEPTH_EQUAL);
-  world_ps_.material_set(manager, gpumat);
+  world_ps_.material_set(manager, gpumat, false, inst_.anisotropic_filtering);
   world_ps_.push_constant("world_opacity_fade", background_opacity);
   world_ps_.push_constant("world_background_blur", square_f(background_blur));
   SphereProbeData &world_data = *static_cast<SphereProbeData *>(&inst_.light_probes.world_sphere_);
@@ -106,7 +106,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS);
 
   Manager &manager = *inst_.manager;
-  pass.material_set(manager, gpumat);
+  pass.material_set(manager, gpumat, false, inst_.anisotropic_filtering);
   pass.push_constant("world_opacity_fade", 1.0f);
   pass.push_constant("world_background_blur", 0.0f);
   pass.push_constant("world_coord_packed", int4(0.0f));
@@ -162,7 +162,7 @@ void WorldVolumePipeline::sync(GPUMaterial *gpumat)
   world_ps_.bind_resources(inst_.volume.properties);
   world_ps_.bind_resources(inst_.sampling);
 
-  world_ps_.material_set(*inst_.manager, gpumat);
+  world_ps_.material_set(*inst_.manager, gpumat, false, inst_.anisotropic_filtering);
   /* Bind correct dummy texture for attributes defaults. */
   PassSimple::Sub *sub = volume_sub_pass(world_ps_, nullptr, nullptr, gpumat);
 
@@ -467,7 +467,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
-  pass->material_set(*inst_.manager, gpumat, true);
+  pass->material_set(*inst_.manager, gpumat, true, inst_.anisotropic_filtering);
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) &&
       GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT))
@@ -498,7 +498,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
-  pass->material_set(*inst_.manager, gpumat, true);
+  pass->material_set(*inst_.manager, gpumat, true, inst_.anisotropic_filtering);
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) &&
       GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT))
@@ -1253,7 +1253,7 @@ PassMain::Sub *VolumeLayer::occupancy_add(const Object *ob,
   is_empty = false;
 
   PassMain::Sub *pass = &occupancy_ps_->sub(GPU_material_get_name(gpumat));
-  pass->material_set(*inst_.manager, gpumat, true);
+  pass->material_set(*inst_.manager, gpumat, true, inst_.anisotropic_filtering);
   pass->push_constant("use_fast_method", use_fast_occupancy);
   return pass;
 }
@@ -1267,7 +1267,7 @@ PassMain::Sub *VolumeLayer::material_add(const Object *ob,
   UNUSED_VARS_NDEBUG(ob);
 
   PassMain::Sub *pass = &material_ps_->sub(GPU_material_get_name(gpumat));
-  pass->material_set(*inst_.manager, gpumat, true);
+  pass->material_set(*inst_.manager, gpumat, true, inst_.anisotropic_filtering);
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER)) {
     has_scatter = true;
   }

@@ -8,6 +8,8 @@
 
 #include "BLI_string.h"
 
+#include "DNA_userdef_types.h"
+
 #include "GPU_framebuffer.hh"
 #include "GPU_texture.hh"
 
@@ -488,7 +490,8 @@ gpu::Texture *GPU_texture_create_view(const char *name,
   if (GPU_texture_has_integer_format(view)) {
     view->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, false);
     view->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_MIPMAP, false);
-    view->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_ANISOTROPIC, false);
+    view->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_ANISOTROPIC_MASK,
+                                                     false);
   }
 
   return view;
@@ -681,10 +684,13 @@ void GPU_texture_mipmap_mode(gpu::Texture *texture, bool use_mipmap, bool use_fi
 void GPU_texture_anisotropic_filter(gpu::Texture *texture, bool use_aniso)
 {
   Texture *tex = texture;
+  int samples = use_aniso ? U.anisotropic_filter : 1;
   /* Stencil and integer format does not support filtering. */
-  BLI_assert(!(use_aniso) ||
+  BLI_assert(!(samples > 1) ||
              !(tex->format_flag_get() & (GPU_FORMAT_STENCIL | GPU_FORMAT_INTEGER)));
-  tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_ANISOTROPIC, use_aniso);
+  GPUSamplerFiltering filtering = GPU_anisotropic_filtering_flags(samples);
+  tex->sampler_state.disable_filtering_flag(GPU_SAMPLER_FILTERING_ANISOTROPIC_MASK);
+  tex->sampler_state.enable_filtering_flag(filtering);
 }
 
 void GPU_texture_extend_mode_x(gpu::Texture *texture, GPUSamplerExtendMode extend_mode)
@@ -1038,24 +1044,6 @@ size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf)
 GPUPixelBufferNativeHandle GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pixel_buf)
 {
   return unwrap(pixel_buf)->get_native_handle();
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name GPU Sampler Objects
- *
- * Simple wrapper around opengl sampler objects.
- * Override texture sampler state for one sampler unit only.
- * \{ */
-
-void GPU_samplers_update()
-{
-  /* Backend may not exist when we are updating preferences from background mode. */
-  GPUBackend *backend = GPUBackend::get();
-  if (backend) {
-    backend->samplers_update();
-  }
 }
 
 /** \} */

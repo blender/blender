@@ -282,7 +282,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
     if (shader_sub != nullptr) {
       /* Create a sub for this material as `shader_sub` is for sharing shader between materials. */
       matpass.sub_pass = &shader_sub->sub(GPU_material_get_name(matpass.gpumat));
-      matpass.sub_pass->material_set(*inst_.manager, matpass.gpumat, true);
+      matpass.sub_pass->material_set(
+          *inst_.manager, matpass.gpumat, true, inst_.anisotropic_filtering);
     }
     else {
       matpass.sub_pass = nullptr;

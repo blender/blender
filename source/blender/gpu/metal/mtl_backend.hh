@@ -51,7 +51,6 @@ class MTLBackend : public GPUBackend {
     return static_cast<MTLBackend *>(GPUBackend::get());
   }
 
-  void samplers_update() override;
   void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override;
   void compute_dispatch_indirect(StorageBuf *indirect_buf) override;
 

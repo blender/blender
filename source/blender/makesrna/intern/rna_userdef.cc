@@ -750,12 +750,6 @@ static void rna_userdef_window_csd_params_update(Main *bmain, Scene *scene, Poin
   rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-  GPU_samplers_update();
-  rna_userdef_update(bmain, scene, ptr);
-}
-
 static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   BKE_image_free_all_gputextures(bmain);
@@ -6178,7 +6172,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "anisotropic_filter");
   RNA_def_property_enum_items(prop, anisotropic_items);
   RNA_def_property_ui_text(prop, "Anisotropic Filtering", "Quality of anisotropic filtering");
-  RNA_def_property_update(prop, 0, "rna_userdef_anisotropic_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "gl_texture_limit", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "glreslimit");

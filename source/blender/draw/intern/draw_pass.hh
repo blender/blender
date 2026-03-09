@@ -248,7 +248,8 @@ class PassBase {
    */
   void material_set(Manager &manager,
                     GPUMaterial *material,
-                    bool deferred_texture_loading = false);
+                    bool deferred_texture_loading = false,
+                    GPUSamplerFiltering anisotropic_filtering = GPU_SAMPLER_FILTERING_DEFAULT);
 
   /**
    * Record a draw call.
@@ -1136,7 +1137,8 @@ inline void PassBase<T>::subpass_transition(GPUAttachmentState depth_attachment,
 template<class T>
 inline void PassBase<T>::material_set(Manager &manager,
                                       GPUMaterial *material,
-                                      bool deferred_texture_loading)
+                                      bool deferred_texture_loading,
+                                      GPUSamplerFiltering anisotropic_filtering)
 {
   GPUPass *gpupass = GPU_material_get_pass(material);
   shader_set(GPU_pass_shader_get(gpupass));
@@ -1157,21 +1159,28 @@ inline void PassBase<T>::material_set(Manager &manager,
         gputex = BKE_image_get_gpu_material_texture(tex->ima, iuser, use_tile_mapping);
       }
 
+      GPUSamplerState sampler_state = tex->sampler_state;
+      /* If any anisotropic filtering is requested, reset it to the scene setting. */
+      if (sampler_state.filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC_ENABLE) {
+        sampler_state.disable_filtering_flag(GPU_SAMPLER_FILTERING_ANISOTROPIC_MASK);
+        sampler_state.enable_filtering_flag(anisotropic_filtering);
+      }
+
       if (*gputex.texture == nullptr) {
         /* Texture not yet loaded. Register a reference inside the draw pass.
          * The texture will be acquired once it is created. */
-        bind_texture(tex->sampler_name, gputex.texture, tex->sampler_state);
+        bind_texture(tex->sampler_name, gputex.texture, sampler_state);
         if (gputex.tile_mapping) {
-          bind_texture(tex->tiled_mapping_name, gputex.tile_mapping, tex->sampler_state);
+          bind_texture(tex->tiled_mapping_name, gputex.tile_mapping, sampler_state);
         }
       }
       else {
         /* Texture is loaded. Acquire. */
         manager.acquire_texture(*gputex.texture);
-        bind_texture(tex->sampler_name, *gputex.texture, tex->sampler_state);
+        bind_texture(tex->sampler_name, *gputex.texture, sampler_state);
         if (gputex.tile_mapping) {
           manager.acquire_texture(*gputex.tile_mapping);
-          bind_texture(tex->tiled_mapping_name, *gputex.tile_mapping, tex->sampler_state);
+          bind_texture(tex->tiled_mapping_name, *gputex.tile_mapping, sampler_state);
         }
       }
     }
