@@ -120,7 +120,7 @@ static void transfer_attributes(
   names.remove(".corner_vert");
   names.remove(".corner_edge");
   names.remove("sharp_face");
-  names.remove_if([&](const StringRef id) { return attribute_filter.allow_skip(id); });
+  names.remove_if([&](const StringRef name) { return attribute_filter.allow_skip(name); });
 
   Array<int> new_face_to_old_vert;
   const auto ensure_vert_map = [&]() {
@@ -150,8 +150,8 @@ static void transfer_attributes(
     }
   };
 
-  for (const StringRef id : names) {
-    GAttributeReader src = src_attributes.lookup(id);
+  for (const StringRef name : names) {
+    GAttributeReader src = src_attributes.lookup(name);
 
     AttrDomain out_domain;
     if (src.domain == AttrDomain::Face) {
@@ -169,13 +169,13 @@ static void transfer_attributes(
     const CommonVArrayInfo info = src.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
       const GPointer value(src.varray.type(), info.data);
-      if (dst_attributes.add(id, out_domain, data_type, bke::AttributeInitValue(value))) {
+      if (dst_attributes.add(name, out_domain, data_type, bke::AttributeInitValue(value))) {
         continue;
       }
     }
 
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        id, out_domain, data_type);
+        name, out_domain, data_type);
     if (!dst) {
       continue;
     }
