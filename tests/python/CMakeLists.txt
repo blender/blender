@@ -122,6 +122,8 @@ if(WITH_UI_TESTS)
       # while this could be investigated, use windowed mode instead.
       # Use a window size that balances software GPU rendering with enough room to use the UI.
       --factory-startup
+      # Workaround for https://projects.blender.org/blender/blender/issues/154770.
+      --no-native-pixels
       # No need for window frame with tests.
       --no-window-frame
       -p 0 0 800 600
