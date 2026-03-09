@@ -177,6 +177,8 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
                                                     const float2 &brush_pos_re,
                                                     const float brush_radius_re)
 {
+  const eEvaluationMode deg_eval_mode = DEG_get_mode(&depsgraph);
+  const bool xray_enabled = XRAY_ENABLED(&v3d);
   const Curves &curves_id = *id_cast<Curves *>(curves_object.data);
   const CurvesGeometry &curves = curves_id.geometry.wrap();
   Object *surface_object = curves_id.surface;
@@ -187,7 +189,10 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
       &depsgraph, &region, &v3d, brush_pos_re, center_ray_start_wo, center_ray_end_wo, true);
 
   /* Shorten ray when the surface object is hit. */
-  if (surface_object_eval != nullptr) {
+  const bool use_surface_object_clip = surface_object_eval &&
+                                       (BKE_object_visibility(surface_object_eval, deg_eval_mode) &
+                                        OB_VISIBLE_SELF);
+  if (use_surface_object_clip && !xray_enabled) {
     const float4x4 surface_to_world_mat(surface_object->object_to_world().ptr());
     const float4x4 world_to_surface_mat = math::invert(surface_to_world_mat);
 
