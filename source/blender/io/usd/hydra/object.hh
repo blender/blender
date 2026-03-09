@@ -48,6 +48,9 @@ class ObjectData : public IdData {
   virtual pxr::SdfPath material_id() const;
   virtual pxr::SdfPath material_id(pxr::SdfPath const &id) const;
   virtual void available_materials(Set<pxr::SdfPath> &paths) const;
+  virtual bool double_sided(pxr::SdfPath const &id) const;
+  virtual pxr::HdCullStyle cull_style(pxr::SdfPath const &id) const;
+  virtual MaterialData *get_material_data(pxr::SdfPath const &id) const;
 
  protected:
   virtual void write_transform();

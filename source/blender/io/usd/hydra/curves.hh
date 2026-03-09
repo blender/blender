@@ -40,11 +40,12 @@ class CurvesData : public ObjectData {
   void update() override;
 
   pxr::VtValue get_data(pxr::TfToken const &key) const override;
-  pxr::SdfPath material_id() const override;
   void available_materials(Set<pxr::SdfPath> &paths) const override;
 
   pxr::HdBasisCurvesTopology topology() const;
   pxr::HdPrimvarDescriptorVector primvar_descriptors(pxr::HdInterpolation interpolation) const;
+
+  MaterialData *get_material_data(pxr::SdfPath const &id) const override;
 
  protected:
   void write_materials() override;
