@@ -1684,7 +1684,7 @@ static wmOperatorStatus grease_pencil_fill_event_modal_map(bContext *C,
       break;
 
     case int(FillToolModalKey::ExtensionLengthen):
-      op_data.extension_length = std::min(op_data.extension_length + extension_delta, 10.0f);
+      op_data.extension_length = op_data.extension_length + extension_delta;
       grease_pencil_update_extend(*C, op_data);
       break;
 
@@ -1769,7 +1769,7 @@ static wmOperatorStatus grease_pencil_fill_modal(bContext *C, wmOperator *op, co
         const float current_dist = math::distance(mouse_pos, op_data.fill_mouse_pos);
 
         float delta = (current_dist - initial_dist) * pixel_size * 0.5f;
-        op_data.extension_length = std::clamp(op_data.extension_length + delta, 0.0f, 10.0f);
+        op_data.extension_length = std::max(op_data.extension_length + delta, 0.0f);
 
         /* Update cursor line and extend lines. */
         WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
