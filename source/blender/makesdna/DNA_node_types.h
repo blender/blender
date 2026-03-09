@@ -107,6 +107,7 @@ enum eNodeSocketDatatype {
   SOCK_TEXT_ID = 21,
   SOCK_MASK = 22,
   SOCK_SOUND = 23,
+  SOCK_INT_VECTOR = 24,
 };
 
 /** Socket shape. */
@@ -2059,6 +2060,16 @@ struct bNodeSocketValueVector {
   int dimensions = 0;
 };
 
+struct bNodeSocketValueIntVector {
+  /** RNA subtype. */
+  int subtype = 0;
+  /* Only some of the values might be used depending on the dimensions. */
+  int value[3] = {};
+  int min = 0, max = 0;
+  /* The number of dimensions of the vector. Can be 2 or 3. */
+  int dimensions = 0;
+};
+
 struct bNodeSocketValueRotation {
   float value_euler[3] = {};
 };
@@ -3005,6 +3016,13 @@ struct NodeInputVector {
   DNA_DEFINE_CXX_METHODS(NodeInputVector)
 
   float vector[4] = {};
+  int dimensions = 3;
+};
+
+struct NodeInputIntVector {
+  DNA_DEFINE_CXX_METHODS(NodeInputIntVector)
+
+  int vector[3] = {};
   int dimensions = 3;
 };
 

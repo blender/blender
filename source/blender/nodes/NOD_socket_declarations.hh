@@ -112,6 +112,39 @@ class VectorBuilder : public SocketDeclarationBuilder<Vector> {
   VectorBuilder &compact();
 };
 
+class IntVectorBuilder;
+
+class IntVector : public SocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_INT_VECTOR;
+
+  int3 default_value = {0, 0, 0};
+  int soft_min_value = INT_MIN;
+  int soft_max_value = INT_MAX;
+  int dimensions = 3;
+  PropertySubType subtype = PROP_NONE;
+
+  friend IntVectorBuilder;
+
+  using Builder = IntVectorBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class IntVectorBuilder : public SocketDeclarationBuilder<IntVector> {
+ public:
+  IntVectorBuilder &default_value(const int2 value);
+  IntVectorBuilder &default_value(const int3 value);
+  IntVectorBuilder &subtype(PropertySubType subtype);
+  IntVectorBuilder &dimensions(int dimensions);
+  IntVectorBuilder &min(int min);
+  IntVectorBuilder &max(int max);
+  IntVectorBuilder &compact();
+};
+
 class BoolBuilder;
 
 class Bool : public SocketDeclaration {
@@ -593,6 +626,55 @@ inline VectorBuilder &VectorBuilder::max(const float max)
 }
 
 inline VectorBuilder &VectorBuilder::compact()
+{
+  decl_->compact = true;
+  return *this;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #IntVectorBuilder Inline Methods
+ * \{ */
+
+inline IntVectorBuilder &IntVectorBuilder::default_value(const int2 value)
+{
+  decl_->default_value = int3(value, 0);
+  return *this;
+}
+
+inline IntVectorBuilder &IntVectorBuilder::default_value(const int3 value)
+{
+  decl_->default_value = value;
+  return *this;
+}
+
+inline IntVectorBuilder &IntVectorBuilder::subtype(PropertySubType subtype)
+{
+  decl_->subtype = subtype;
+  return *this;
+}
+
+inline IntVectorBuilder &IntVectorBuilder::dimensions(int dimensions)
+{
+  BLI_assert(dimensions >= 2 && dimensions <= 3);
+  decl_->dimensions = dimensions;
+  return *this;
+}
+
+inline IntVectorBuilder &IntVectorBuilder::min(const int min)
+{
+  decl_->soft_min_value = min;
+  return *this;
+}
+
+inline IntVectorBuilder &IntVectorBuilder::max(const int max)
+{
+  decl_->soft_max_value = max;
+  return *this;
+}
+
+inline IntVectorBuilder &IntVectorBuilder::compact()
 {
   decl_->compact = true;
   return *this;

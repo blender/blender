@@ -618,6 +618,7 @@ DEF_ICON_NODE_SOCKET_DRAW(menu, eNodeSocketDatatype::SOCK_MENU)
 DEF_ICON_NODE_SOCKET_DRAW(matrix, eNodeSocketDatatype::SOCK_MATRIX)
 DEF_ICON_NODE_SOCKET_DRAW(bundle, eNodeSocketDatatype::SOCK_BUNDLE)
 DEF_ICON_NODE_SOCKET_DRAW(closure, eNodeSocketDatatype::SOCK_CLOSURE)
+DEF_ICON_NODE_SOCKET_DRAW(int_vector, eNodeSocketDatatype::SOCK_INT_VECTOR)
 
 /* Dynamically render icon instead of rendering a plain color to a texture/buffer
  * This is not strictly a "vicon", as it needs access to icon->obj to get the color info,
@@ -1011,6 +1012,7 @@ static void init_internal_icons()
   def_internal_vicon(ICON_NODE_SOCKET_TEXT, icon_node_socket_draw_text);
   def_internal_vicon(ICON_NODE_SOCKET_MASK, icon_node_socket_draw_mask);
   def_internal_vicon(ICON_NODE_SOCKET_SOUND, icon_node_socket_draw_sound);
+  def_internal_vicon(ICON_NODE_SOCKET_INT_VECTOR, icon_node_socket_draw_int_vector);
 }
 
 #else

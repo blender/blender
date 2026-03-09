@@ -57,7 +57,13 @@ static bool sockets_can_connect(const SocketDeclaration &socket_decl,
 static bool basic_types_can_connect(const SocketDeclaration & /*socket_decl*/,
                                     const bNodeSocket &other_socket)
 {
-  return ELEM(other_socket.type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA);
+  return ELEM(other_socket.type,
+              SOCK_FLOAT,
+              SOCK_INT,
+              SOCK_BOOLEAN,
+              SOCK_VECTOR,
+              SOCK_RGBA,
+              SOCK_INT_VECTOR);
 }
 
 static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subtype)
@@ -283,6 +289,83 @@ bNodeSocket &Vector::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
   }
   this->set_common_flags(socket);
   bNodeSocketValueVector &value = *static_cast<bNodeSocketValueVector *>(socket.default_value);
+  if (value.dimensions != this->dimensions) {
+    modify_subtype_except_for_storage(socket, this->subtype, this->dimensions);
+  }
+  value.subtype = this->subtype;
+  value.dimensions = this->dimensions;
+  value.min = this->soft_min_value;
+  value.max = this->soft_max_value;
+  return socket;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #IntVector
+ * \{ */
+
+bNodeSocket &IntVector::build(bNodeTree &ntree, bNode &node) const
+{
+  const StringRefNull idname = *bke::node_static_socket_type(
+      SOCK_INT_VECTOR, this->subtype, this->dimensions);
+  bNodeSocket &socket = *bke::node_add_socket(
+      ntree, node, this->in_out, idname, this->identifier.c_str(), this->name.c_str());
+  this->set_common_flags(socket);
+  bNodeSocketValueIntVector &value = *static_cast<bNodeSocketValueIntVector *>(
+      socket.default_value);
+  std::copy_n(&this->default_value[0], this->dimensions, value.value);
+  value.dimensions = this->dimensions;
+  value.min = this->soft_min_value;
+  value.max = this->soft_max_value;
+  return socket;
+}
+
+bool IntVector::matches(const bNodeSocket &socket) const
+{
+  if (!this->matches_common_data(socket)) {
+    return false;
+  }
+  if (socket.type != SOCK_INT_VECTOR) {
+    return false;
+  }
+  if (socket.typeinfo->subtype != this->subtype) {
+    return false;
+  }
+  const bNodeSocketValueIntVector &value = *static_cast<const bNodeSocketValueIntVector *>(
+      socket.default_value);
+  if (value.dimensions != this->dimensions) {
+    return false;
+  }
+  if (value.min != this->soft_min_value) {
+    return false;
+  }
+  if (value.max != this->soft_max_value) {
+    return false;
+  }
+  return true;
+}
+
+bool IntVector::can_connect(const bNodeSocket &socket) const
+{
+  if (!sockets_can_connect(*this, socket)) {
+    return false;
+  }
+  return basic_types_can_connect(*this, socket);
+}
+
+bNodeSocket &IntVector::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
+{
+  if (socket.type != SOCK_INT_VECTOR) {
+    BLI_assert(socket.in_out == this->in_out);
+    return this->build(ntree, node);
+  }
+  if (socket.typeinfo->subtype != this->subtype) {
+    modify_subtype_except_for_storage(socket, this->subtype, this->dimensions);
+  }
+  this->set_common_flags(socket);
+  bNodeSocketValueIntVector &value = *static_cast<bNodeSocketValueIntVector *>(
+      socket.default_value);
   if (value.dimensions != this->dimensions) {
     modify_subtype_except_for_storage(socket, this->subtype, this->dimensions);
   }

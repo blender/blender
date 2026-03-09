@@ -193,6 +193,14 @@ template<> void socket_data_init_impl(bNodeSocketValueVector &data)
   data.min = -FLT_MAX;
   data.max = FLT_MAX;
 }
+template<> void socket_data_init_impl(bNodeSocketValueIntVector &data)
+{
+  data.subtype = PROP_NONE;
+  data.dimensions = 3;
+  zero_v3_int(data.value);
+  data.min = INT_MIN;
+  data.max = INT_MAX;
+}
 template<> void socket_data_init_impl(bNodeSocketValueRGBA &data)
 {
   static float default_value[] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -425,6 +433,10 @@ inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueMenu &da
 {
   writer->write_struct(&data);
 }
+inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueIntVector &data)
+{
+  writer->write_struct(&data);
+}
 
 static void socket_data_write(BlendWriter *writer, bNodeTreeInterfaceSocket &socket)
 {
@@ -546,6 +558,10 @@ template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueSound 
 template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueMenu & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_MENU, PROP_NONE);
+}
+template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueIntVector &data)
+{
+  return *bke::node_static_socket_type(SOCK_INT_VECTOR, data.subtype, data.dimensions);
 }
 
 static StringRefNull socket_type_from_data(const bNodeTreeInterfaceSocket &socket)
@@ -1486,6 +1502,16 @@ bNode *create_proxy_const_input_node(const eNodeSocketDatatype socket_type,
           {src_property_path, get_node_property_path(dst_tree, *node, "vector")});
       return node;
     }
+    case SOCK_INT_VECTOR: {
+      bNode *node = bke::node_add_node(&C, dst_tree, "FunctionNodeInputIntVector");
+      auto &node_storage = *static_cast<NodeInputIntVector *>(node->storage);
+      const auto &socket_value = *static_cast<const bNodeSocketValueIntVector *>(value);
+      node_storage.dimensions = socket_value.dimensions;
+      copy_v3_v3_int(node_storage.vector, socket_value.value);
+      anim_basepaths.append(
+          {src_property_path, get_node_property_path(dst_tree, *node, "vector")});
+      return node;
+    }
     case SOCK_RGBA: {
       switch (dst_tree.type) {
         case NTREE_COMPOSIT: {
@@ -1615,6 +1641,7 @@ bNode *create_proxy_implicit_input_node(const eNodeSocketDatatype socket_type,
     case SOCK_CUSTOM:
     case SOCK_FLOAT:
     case SOCK_RGBA:
+    case SOCK_INT_VECTOR:
     case SOCK_BOOLEAN:
     case SOCK_STRING:
     case SOCK_SHADER:

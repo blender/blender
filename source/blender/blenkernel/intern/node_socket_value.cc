@@ -164,6 +164,7 @@ static bool static_type_is_base_socket_type(const eNodeSocketDatatype socket_typ
       return std::is_same_v<T, bke::GeometrySet>;
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_INT_VECTOR:
       return false;
   }
   BLI_assert_unreachable();
@@ -555,6 +556,7 @@ void SocketValueVariant::ensure_owns_direct_data()
     case SOCK_FLOAT:
     case SOCK_INT:
     case SOCK_VECTOR:
+    case SOCK_INT_VECTOR:
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_MATRIX:
@@ -612,6 +614,7 @@ bool SocketValueVariant::owns_direct_data() const
     case SOCK_FLOAT:
     case SOCK_INT:
     case SOCK_VECTOR:
+    case SOCK_INT_VECTOR:
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
     case SOCK_MATRIX:
