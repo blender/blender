@@ -566,7 +566,7 @@ class USDImportTest(AbstractUSDTest):
 
         assert_attribute(mat, "displayColor", "Color", "Base Color")
         assert_attribute(mat, "f_vec", "Vector", "Normal")
-        assert_attribute(mat, "f_float", "Fac", "Roughness")
+        assert_attribute(mat, "ns:f_float", "Fac", "Roughness")
 
     def test_import_material_node_graph(self):
         """Verify we can follow connections through NodeGraph defs."""
