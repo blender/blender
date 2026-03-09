@@ -2151,8 +2151,13 @@ static int mixed_bones_object_selectbuffer(const ViewContext *vc,
 
   GPUSelectStorage &storage = buffer->storage;
   BLI_rcti_init_pt_radius(&rect, mval, 14);
-  hits15 = view3d_gpu_select_ex(
-      vc, buffer, &rect, select_mode, select_filter, do_material_slot_selection);
+  hits15 = view3d_gpu_select_ex(vc,
+                                buffer,
+                                &rect,
+                                select_mode,
+                                select_filter,
+                                eV3DSelectShape::BOX,
+                                do_material_slot_selection);
   if (hits15 == 1) {
     hits = selectbuffer_ret_hits_15(storage.as_mutable_span(), hits15);
     goto finally;
@@ -2163,7 +2168,7 @@ static int mixed_bones_object_selectbuffer(const ViewContext *vc,
 
     ofs = hits15;
     BLI_rcti_init_pt_radius(&rect, mval, 9);
-    hits9 = view3d_gpu_select(vc, buffer, &rect, select_mode, select_filter);
+    hits9 = view3d_gpu_select(vc, buffer, &rect, select_mode, select_filter, eV3DSelectShape::BOX);
     if (hits9 == 1) {
       hits = selectbuffer_ret_hits_9(storage.as_mutable_span(), hits15, hits9);
       goto finally;
@@ -2173,7 +2178,8 @@ static int mixed_bones_object_selectbuffer(const ViewContext *vc,
 
       ofs += hits9;
       BLI_rcti_init_pt_radius(&rect, mval, 5);
-      hits5 = view3d_gpu_select(vc, buffer, &rect, select_mode, select_filter);
+      hits5 = view3d_gpu_select(
+          vc, buffer, &rect, select_mode, select_filter, eV3DSelectShape::BOX);
       if (hits5 == 1) {
         hits = selectbuffer_ret_hits_5(storage.as_mutable_span(), hits15, hits9, hits5);
         goto finally;
@@ -4181,7 +4187,8 @@ static bool do_meta_box_select(const ViewContext *vc, const rcti *rect, const eS
   GPUSelectBuffer buffer;
   int hits;
 
-  hits = view3d_gpu_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, VIEW3D_SELECT_FILTER_NOP);
+  hits = view3d_gpu_select(
+      vc, &buffer, rect, VIEW3D_SELECT_ALL, VIEW3D_SELECT_FILTER_NOP, eV3DSelectShape::BOX);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     changed |= BKE_mball_deselect_all(mb);
@@ -4249,7 +4256,8 @@ static bool do_armature_box_select(const ViewContext *vc, const rcti *rect, cons
   GPUSelectBuffer buffer;
   int hits;
 
-  hits = view3d_gpu_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, VIEW3D_SELECT_FILTER_NOP);
+  hits = view3d_gpu_select(
+      vc, &buffer, rect, VIEW3D_SELECT_ALL, VIEW3D_SELECT_FILTER_NOP, eV3DSelectShape::BOX);
 
   Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
       vc->scene, vc->view_layer, vc->v3d);
@@ -4329,7 +4337,8 @@ static bool do_object_box_select(bContext *C,
   GPUSelectBuffer buffer;
   const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
                                                                                  vc->obact);
-  const int hits = view3d_gpu_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter);
+  const int hits = view3d_gpu_select(
+      vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter, eV3DSelectShape::BOX);
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
   for (Base &base : *BKE_view_layer_object_bases_get(vc->view_layer)) {
     base.object->id.tag &= ~ID_TAG_DOIT;
@@ -4393,6 +4402,64 @@ static bool do_object_box_select(bContext *C,
   return changed;
 }
 
+/*
+ * NOTE(@theeth): Regarding the logic use here.
+ * The buffer and #ListBaseT have the same relative order, which makes the selection
+ * very simple. Loop through both data sets at the same time, if the color
+ * is the same as the object, we have a hit and can move to the next color
+ * and object pair, if not, just move to the next object,
+ * keeping the same color until we have a hit. */
+static void process_pose_bone_hits(GPUSelectBuffer &buffer,
+                                   const int hits,
+                                   const Span<Base *> bases)
+{
+  if (hits <= 0) {
+    /* No need to loop if there's no hit. */
+    return;
+  }
+
+  /* The draw order doesn't always match the order we populate the engine, see: #51695. */
+  qsort(buffer.storage.data(), hits, sizeof(GPUSelectResult), gpu_bone_select_buffer_cmp);
+
+  for (const GPUSelectResult *buf_iter = buffer.storage.data(), *buf_end = buf_iter + hits;
+       buf_iter < buf_end;
+       buf_iter++)
+  {
+    bPoseChannel *pose_bone;
+    Base *base = ED_armature_base_and_pchan_from_select_buffer(bases, buf_iter->id, &pose_bone);
+
+    if (base == nullptr) {
+      continue;
+    }
+
+    /* Loop over contiguous bone hits for 'base'. */
+    for (; buf_iter != buf_end; buf_iter++) {
+      /* should never fail */
+      if (pose_bone != nullptr) {
+        base->object->id.tag |= ID_TAG_DOIT;
+        pose_bone->runtime.flag |= POSE_RUNTIME_IN_SELECTION_AREA;
+      }
+
+      /* Select the next bone if we're not switching bases. */
+      if (buf_iter + 1 != buf_end) {
+        const GPUSelectResult *col_next = buf_iter + 1;
+        if ((base->object->runtime->select_id & 0x0000FFFF) != (col_next->id & 0x0000FFFF)) {
+          break;
+        }
+        if (base->object->pose != nullptr) {
+          const uint hit_bone = (col_next->id & ~BONESEL_ANY) >> 16;
+          bPoseChannel *next = static_cast<bPoseChannel *>(
+              BLI_findlink(&base->object->pose->chanbase, hit_bone));
+          pose_bone = next;
+        }
+        else {
+          pose_bone = nullptr;
+        }
+      }
+    }
+  }
+}
+
 static bool do_pose_box_select(bContext *C,
                                const ViewContext *vc,
                                const rcti *rect,
@@ -4404,59 +4471,9 @@ static bool do_pose_box_select(bContext *C,
   GPUSelectBuffer buffer;
   const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
                                                                                  vc->obact);
-  const int hits = view3d_gpu_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter);
-  /*
-   * NOTE(@theeth): Regarding the logic use here.
-   * The buffer and #ListBaseT have the same relative order, which makes the selection
-   * very simple. Loop through both data sets at the same time, if the color
-   * is the same as the object, we have a hit and can move to the next color
-   * and object pair, if not, just move to the next object,
-   * keeping the same color until we have a hit. */
-
-  if (hits > 0) {
-    /* no need to loop if there's no hit */
-
-    /* The draw order doesn't always match the order we populate the engine, see: #51695. */
-    qsort(buffer.storage.data(), hits, sizeof(GPUSelectResult), gpu_bone_select_buffer_cmp);
-
-    for (const GPUSelectResult *buf_iter = buffer.storage.data(), *buf_end = buf_iter + hits;
-         buf_iter < buf_end;
-         buf_iter++)
-    {
-      bPoseChannel *pose_bone;
-      Base *base = ED_armature_base_and_pchan_from_select_buffer(bases, buf_iter->id, &pose_bone);
-
-      if (base == nullptr) {
-        continue;
-      }
-
-      /* Loop over contiguous bone hits for 'base'. */
-      for (; buf_iter != buf_end; buf_iter++) {
-        /* should never fail */
-        if (pose_bone != nullptr) {
-          base->object->id.tag |= ID_TAG_DOIT;
-          pose_bone->runtime.flag |= POSE_RUNTIME_IN_SELECTION_AREA;
-        }
-
-        /* Select the next bone if we're not switching bases. */
-        if (buf_iter + 1 != buf_end) {
-          const GPUSelectResult *col_next = buf_iter + 1;
-          if ((base->object->runtime->select_id & 0x0000FFFF) != (col_next->id & 0x0000FFFF)) {
-            break;
-          }
-          if (base->object->pose != nullptr) {
-            const uint hit_bone = (col_next->id & ~BONESEL_ANY) >> 16;
-            bPoseChannel *next = static_cast<bPoseChannel *>(
-                BLI_findlink(&base->object->pose->chanbase, hit_bone));
-            pose_bone = next;
-          }
-          else {
-            pose_bone = nullptr;
-          }
-        }
-      }
-    }
-  }
+  const int hits = view3d_gpu_select(
+      vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter, eV3DSelectShape::BOX);
+  process_pose_bone_hits(buffer, hits, bases);
 
   const bool changed_multi = do_pose_tag_select_op_exec(bases, sel_op);
   if (changed_multi) {
@@ -5116,104 +5133,31 @@ static bool lattice_circle_select(const ViewContext *vc,
   return data.is_changed;
 }
 
-/**
- * \note logic is shared with the edit-bone case, see #armature_circle_doSelectJoint.
- */
-static bool pchan_circle_doSelectJoint(void *user_data,
-                                       bPoseChannel *pchan,
-                                       const float screen_co[2])
-{
-  CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
-
-  if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
-    if (data->select) {
-      animrig::bone_select(pchan);
-    }
-    else {
-      animrig::bone_deselect(pchan);
-    }
-    return true;
-  }
-  return false;
-}
-static void do_circle_select_pose__doSelectBone(void *user_data,
-                                                bPoseChannel *pchan,
-                                                const float screen_co_a[2],
-                                                const float screen_co_b[2])
-{
-  CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
-  bArmature *arm = id_cast<bArmature *>(data->vc->obact->data);
-  if (!animrig::bone_is_selectable(arm, pchan)) {
-    return;
-  }
-
-  bool is_point_done = false;
-  int points_proj_tot = 0;
-
-  /* Project head location to screen-space. */
-  if (screen_co_a[0] != IS_CLIPPED) {
-    points_proj_tot++;
-    if (pchan_circle_doSelectJoint(data, pchan, screen_co_a)) {
-      is_point_done = true;
-    }
-  }
-
-  /* Project tail location to screen-space. */
-  if (screen_co_b[0] != IS_CLIPPED) {
-    points_proj_tot++;
-    if (pchan_circle_doSelectJoint(data, pchan, screen_co_b)) {
-      is_point_done = true;
-    }
-  }
-
-  /* check if the head and/or tail is in the circle
-   * - the call to check also does the selection already
-   */
-
-  /* only if the endpoints didn't get selected, deal with the middle of the bone too
-   * It works nicer to only do this if the head or tail are not in the circle,
-   * otherwise there is no way to circle select joints alone */
-  if ((is_point_done == false) && (points_proj_tot == 2) &&
-      edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
-  {
-    if (data->select) {
-      animrig::bone_select(pchan);
-    }
-    else {
-      animrig::bone_deselect(pchan);
-    }
-    data->is_changed = true;
-  }
-
-  data->is_changed |= is_point_done;
-}
-static bool pose_circle_select(const ViewContext *vc,
+static bool pose_circle_select(bContext *C,
+                               const ViewContext *vc,
                                const eSelectOp sel_op,
-                               const int mval[2],
-                               float rad)
+                               const int2 mval,
+                               const float radius)
 {
-  BLI_assert(ELEM(sel_op, SEL_OP_SET, SEL_OP_ADD, SEL_OP_SUB));
-  CircleSelectUserData data;
-  const bool select = (sel_op != SEL_OP_SUB);
+  Vector<Base *> bases = do_pose_tag_select_op_prepare(vc);
 
-  view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
+  /* Selection buffer has bones potentially too. */
+  GPUSelectBuffer buffer;
+  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
+                                                                                 vc->obact);
+  rcti rect;
+  BLI_rcti_init_pt_radius(&rect, mval, radius);
+  const int hits = view3d_gpu_select(
+      vc, &buffer, &rect, VIEW3D_SELECT_ALL, select_filter, eV3DSelectShape::CIRCLE);
+  process_pose_bone_hits(buffer, hits, bases);
 
-  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    data.is_changed |= ED_pose_deselect_all(vc->obact, SEL_DESELECT, false);
+  const bool changed_multi = do_pose_tag_select_op_exec(bases, sel_op);
+  if (changed_multi) {
+    DEG_id_tag_update(&vc->scene->id, ID_RECALC_SELECT);
+    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
   }
 
-  ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
-
-  /* Treat bones as clipped segments (no joints). */
-  pose_foreachScreenBone(vc,
-                         do_circle_select_pose__doSelectBone,
-                         &data,
-                         V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT);
-
-  if (data.is_changed) {
-    ED_pose_bone_select_tag_update(vc->obact);
-  }
-  return data.is_changed;
+  return changed_multi;
 }
 
 /**
@@ -5697,7 +5641,7 @@ static wmOperatorStatus view3d_circle_select_exec(bContext *C, wmOperator *op)
         }
       }
       else if (obact->mode & OB_MODE_POSE) {
-        pose_circle_select(&vc, sel_op, mval, float(radius));
+        pose_circle_select(C, &vc, sel_op, mval, float(radius));
         ED_outliner_select_sync_from_pose_bone_tag(C);
       }
       else {
@@ -5720,7 +5664,7 @@ static wmOperatorStatus view3d_circle_select_exec(bContext *C, wmOperator *op)
                                     nullptr)
   {
     ED_view3d_viewcontext_init_object(&vc, obact_pose);
-    pose_circle_select(&vc, sel_op, mval, float(radius));
+    pose_circle_select(C, &vc, sel_op, mval, float(radius));
     ED_outliner_select_sync_from_pose_bone_tag(C);
   }
   else {

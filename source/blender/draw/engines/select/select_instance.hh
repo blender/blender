@@ -225,6 +225,7 @@ struct SelectMap {
       return;
     }
 
+    info_buf.radius = gpu_select_next_get_radius();
     switch (gpu_select_next_get_mode()) {
       /* Should not be used anymore for viewport selection. */
       case GPU_SELECT_NEAREST_FIRST_PASS:
@@ -234,23 +235,24 @@ struct SelectMap {
         break;
       case GPU_SELECT_ALL:
         info_buf.mode = SelectType::SELECT_ALL;
-        info_buf.cursor = int2(0);
+        info_buf.cursor = gpu_select_next_get_pick_area_center();
         /* This mode uses atomicOr and store result as a bitmap. Clear to 0 (no selection). */
         GPU_storagebuf_clear(select_output_buf, 0);
         break;
       case GPU_SELECT_PICK_ALL:
         info_buf.mode = SelectType::SELECT_PICK_ALL;
-        info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
+        info_buf.cursor = gpu_select_next_get_pick_area_center();
         /* Mode uses atomicMin. Clear to UINT_MAX. */
         GPU_storagebuf_clear(select_output_buf, 0xFFFFFFFFu);
         break;
       case GPU_SELECT_PICK_NEAREST:
         info_buf.mode = SelectType::SELECT_PICK_NEAREST;
-        info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
+        info_buf.cursor = gpu_select_next_get_pick_area_center();
         /* Mode uses atomicMin. Clear to UINT_MAX. */
         GPU_storagebuf_clear(select_output_buf, 0xFFFFFFFFu);
         break;
     }
+
     info_buf.push_update();
   }
 
