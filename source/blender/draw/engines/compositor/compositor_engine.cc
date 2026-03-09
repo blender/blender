@@ -276,16 +276,18 @@ class Context : public compositor::Context {
       return this->get_invalid_pass();
     }
 
-    const compositor::Result pass = this->get_pass_result(pass_name);
+    compositor::Result pass = this->get_pass_result(pass_name);
     if (!pass.is_allocated()) {
       return this->get_invalid_pass();
     }
 
-    /* The pass matches the compositing domain, return it as is. */
+    /* The pass data window matches the compositing domain data window, so update its display
+     * window and return it as is. */
     const compositor::Domain compositing_domain = this->get_compositing_domain();
     if (this->get_camera_region().min == int2(0) &&
         compositing_domain.data_size == pass.domain().data_size)
     {
+      pass.domain() = compositing_domain;
       return pass;
     }
 
