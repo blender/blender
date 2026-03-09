@@ -632,7 +632,7 @@ struct bAnimVizSettings {
 
   /** Start and end frames of path-calculation range. Both are inclusive. */
   int path_sf = 0, path_ef = 0;
-  /** Number of frames before/after current frame to show. */
+  /** Number of frames before/after current frame to show. Both are inclusive. */
   int path_bc = 0, path_ac = 0;
 };
 
