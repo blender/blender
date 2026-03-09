@@ -4678,18 +4678,19 @@ bool cursor_geometry_info_update(bContext *C,
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   const Base *base = CTX_data_active_base(C);
 
-  return cursor_geometry_info_update(*depsgraph, sd, vc, base, out, mval, use_sampled_normal);
+  return cursor_geometry_info_update(
+      *depsgraph, sd.paint, &sd, vc, base, out, mval, use_sampled_normal);
 }
 
 bool cursor_geometry_info_update(Depsgraph &depsgraph,
-                                 const Sculpt &sd,
+                                 const Paint &paint,
+                                 const Sculpt *sd,
                                  ViewContext &vc,
                                  const Base *base,
                                  CursorGeometryInfo *out,
                                  const float2 &mval,
                                  const bool use_sampled_normal)
 {
-  const Paint &paint = sd.paint;
   const Brush &brush = *BKE_paint_brush_for_read(&paint);
   bool original = false;
 
@@ -4710,7 +4711,9 @@ bool cursor_geometry_info_update(Depsgraph &depsgraph,
   float3 ray_end;
   float3 ray_normal;
   float depth = raycast_init(&vc, mval, ray_start, ray_end, ray_normal, original);
-  SCULPT_stroke_modifiers_check(depsgraph, vc.rv3d, sd, ob, &brush);
+  if (sd) {
+    SCULPT_stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, &brush);
+  }
 
   RaycastData srd{};
   srd.use_original = original;
@@ -5767,7 +5770,8 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float mval[2])
     }
 
     CursorGeometryInfo cgi;
-    cursor_geometry_info_update(*this->depsgraph, *sculpt_, this->vc, base_, &cgi, mval, false);
+    cursor_geometry_info_update(
+        *this->depsgraph, *paint, sculpt_, this->vc, base_, &cgi, mval, false);
 
     stroke_undo_begin(*this->scene, this->brush, *this->paint_mode_settings_, *this->object, op);
 

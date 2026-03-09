@@ -149,7 +149,6 @@ static void brush_unprojected_size_update(Paint &paint,
 void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
 {
   BLI_assert(pcontext.ss != nullptr);
-  BLI_assert(pcontext.mode == PaintMode::Sculpt);
 
   SculptSession &ss = *pcontext.ss;
   Brush &brush = *pcontext.brush;
@@ -173,7 +172,8 @@ void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
   if (!paint_runtime.stroke_active) {
     pcontext.is_cursor_over_mesh = cursor_geometry_info_update(
         *pcontext.depsgraph,
-        *pcontext.sd,
+        *pcontext.paint,
+        pcontext.sd,
         pcontext.vc,
         pcontext.base,
         &gi,
@@ -187,14 +187,16 @@ void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
     pcontext.location = paint_runtime.last_location;
   }
 
-  pixel_radius_update(pcontext);
+  if (bke::paint::supports_scene_size(pcontext.mode)) {
+    pixel_radius_update(pcontext);
 
-  if (BKE_brush_use_locked_size(pcontext.paint, &brush)) {
-    BKE_brush_size_set(pcontext.paint, &brush, pcontext.pixel_radius * 2.0f);
-  }
+    if (BKE_brush_use_locked_size(pcontext.paint, &brush)) {
+      BKE_brush_size_set(pcontext.paint, &brush, pcontext.pixel_radius * 2.0f);
+    }
 
-  if (pcontext.is_cursor_over_mesh) {
-    brush_unprojected_size_update(*pcontext.paint, brush, vc, pcontext.scene_space_location);
+    if (pcontext.is_cursor_over_mesh) {
+      brush_unprojected_size_update(*pcontext.paint, brush, vc, pcontext.scene_space_location);
+    }
   }
 }
 
@@ -243,10 +245,14 @@ static void geometry_preview_lines_draw(const Depsgraph &depsgraph,
 void mesh_cursor_active_draw(PaintCursorContext &pcontext)
 {
   BLI_assert(pcontext.ss != nullptr);
-  BLI_assert(pcontext.mode == PaintMode::Sculpt);
 
   SculptSession &ss = *pcontext.ss;
   Brush &brush = *pcontext.brush;
+
+  /* Only Sculpt Mode currently has active brush overlays. */
+  if (pcontext.mode != PaintMode::Sculpt) {
+    return;
+  }
 
   /* The cursor can be marked as active before creating the StrokeCache. */
   if (!ss.cache) {
@@ -384,10 +390,11 @@ static void tiling_preview_draw(const uint gpuattr,
   (void)tile_pass; /* Quiet set-but-unused warning (may be removed). */
 }
 
-static void point_with_symmetry_draw(const uint gpuattr,
+static void point_with_symmetry_draw(const PaintMode paint_mode,
+                                     const uint gpuattr,
                                      const ARegion *region,
                                      const float true_location[3],
-                                     const Sculpt &sd,
+                                     const Sculpt *sd,
                                      const Object &ob,
                                      const float radius)
 {
@@ -404,7 +411,10 @@ static void point_with_symmetry_draw(const uint gpuattr,
       screen_space_point_draw(gpuattr, region, location, ob.object_to_world().ptr(), 3);
 
       /* Tiling. */
-      tiling_preview_draw(gpuattr, region, location, sd, ob, radius);
+      if (bke::paint::supports_symmetry_tiling(paint_mode)) {
+        BLI_assert(sd && paint_mode == PaintMode::Sculpt);
+        tiling_preview_draw(gpuattr, region, location, *sd, ob, radius);
+      }
 
       /* Radial Symmetry. */
       for (char raxis = 0; raxis < 3; raxis++) {
@@ -415,7 +425,10 @@ static void point_with_symmetry_draw(const uint gpuattr,
           rotate_m4(symm_rot_mat, raxis + 'X', angle);
           mul_m4_v3(symm_rot_mat, location);
 
-          tiling_preview_draw(gpuattr, region, location, sd, ob, radius);
+          if (bke::paint::supports_symmetry_tiling(paint_mode)) {
+            BLI_assert(sd && paint_mode == PaintMode::Sculpt);
+            tiling_preview_draw(gpuattr, region, location, *sd, ob, radius);
+          }
           screen_space_point_draw(gpuattr, region, location, ob.object_to_world().ptr(), 3);
         }
       }
@@ -504,36 +517,49 @@ static void boundary_preview_update(const PaintCursorContext &pcontext)
       *pcontext.depsgraph, *pcontext.vc.obact, pcontext.brush, pcontext.radius);
 }
 
+static float3 get_active_vertex_position(const PaintCursorContext &pcontext)
+{
+  Object &active_object = *pcontext.vc.obact;
+
+  if (pcontext.mode != PaintMode::Sculpt) {
+    return pcontext.ss->active_vert_position(*pcontext.depsgraph, active_object);
+  }
+
+  const Brush &brush = *pcontext.brush;
+  const SculptSession &ss = *pcontext.ss;
+
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX &&
+      bke::object::pbvh_get(active_object)->type() == bke::pbvh::Type::Mesh)
+  {
+    const Span<float3> positions = vert_positions_for_grab_active_get(*pcontext.depsgraph,
+                                                                      active_object);
+    return positions[std::get<int>(ss.active_vert())];
+  }
+
+  return pcontext.ss->active_vert_position(*pcontext.depsgraph, active_object);
+}
+
 static void screen_space_overlays_draw(const PaintCursorContext &pcontext)
 {
   const Brush &brush = *pcontext.brush;
   Object &active_object = *pcontext.vc.obact;
 
-  float3 active_vertex_co;
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX) {
-    SculptSession &ss = *pcontext.ss;
-    if (bke::object::pbvh_get(active_object)->type() == bke::pbvh::Type::Mesh) {
-      const Span<float3> positions = vert_positions_for_grab_active_get(*pcontext.depsgraph,
-                                                                        active_object);
-      active_vertex_co = positions[std::get<int>(ss.active_vert())];
-    }
-    else {
-      active_vertex_co = pcontext.ss->active_vert_position(*pcontext.depsgraph, active_object);
-    }
-  }
-  else {
-    active_vertex_co = pcontext.ss->active_vert_position(*pcontext.depsgraph, active_object);
-  }
+  const float3 active_vertex_co = get_active_vertex_position(pcontext);
 
   /* Cursor location symmetry points. */
   if (math::distance(active_vertex_co, pcontext.location) < pcontext.radius) {
     immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha);
-    point_with_symmetry_draw(pcontext.pos,
+    point_with_symmetry_draw(pcontext.mode,
+                             pcontext.pos,
                              pcontext.region,
                              active_vertex_co,
-                             *pcontext.sd,
+                             pcontext.sd,
                              active_object,
                              pcontext.radius);
+  }
+
+  if (pcontext.mode != PaintMode::Sculpt) {
+    return;
   }
 
   /* Expand operation origin. */
@@ -604,6 +630,10 @@ static void screen_space_overlays_draw(const PaintCursorContext &pcontext)
 
 static void object_space_overlays_draw(const PaintCursorContext &pcontext)
 {
+  if (pcontext.mode != PaintMode::Sculpt) {
+    return;
+  }
+
   if (!pcontext.is_brush_active) {
     return;
   }
@@ -694,6 +724,10 @@ static void cursor_space_overlays_draw(const PaintCursorContext &pcontext)
   const Brush &brush = *pcontext.brush;
   /* Main inactive cursor. */
   main_inactive_cursor_draw(pcontext);
+
+  if (pcontext.mode != PaintMode::Sculpt) {
+    return;
+  }
 
   if (!pcontext.is_brush_active) {
     return;
