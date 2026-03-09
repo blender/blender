@@ -710,7 +710,6 @@ static SingleKeyingResult insert_key_layer(Main *bmain,
                                            const eInsertKeyFlags insert_key_flags)
 {
   assert_baklava_phase_1_invariants(layer);
-  BLI_assert(layer.strips().size() == 1);
 
   const bool do_cyclic = (insert_key_flags & INSERTKEY_CYCLE_AWARE) && action.is_cyclic();
 

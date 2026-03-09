@@ -13,6 +13,16 @@ blender -b --factory-startup --python tests/python/bl_animation_action.py -- --t
 """
 
 
+def enable_experimental_action_layers():
+    bpy.context.preferences.view.show_developer_ui = True
+    bpy.context.preferences.experimental.use_action_layers = True
+
+
+def disable_experimental_action_layers():
+    bpy.context.preferences.view.show_developer_ui = False
+    bpy.context.preferences.experimental.use_action_layers = False
+
+
 class ActionSlotCreationTest(unittest.TestCase):
     """Test creating action slots & their resulting identifiers and id roots."""
 
@@ -375,6 +385,29 @@ class LimitationsTest(unittest.TestCase):
         self.assertFalse(hasattr(strip, 'frame_start'))
         self.assertFalse(hasattr(strip, 'frame_end'))
         self.assertFalse(hasattr(strip, 'frame_offset'))
+
+
+class ActionLayersTest(unittest.TestCase):
+    """Test the functionality of action layers."""
+
+    def setUp(self) -> None:
+        # Without enabling the experimental feature an error will be thrown.
+        enable_experimental_action_layers()
+
+    def tearDown(self) -> None:
+        disable_experimental_action_layers()
+
+    def test_create_remove_layers(self):
+        action = bpy.data.actions.new('TestAction')
+        layer1 = action.layers.new(name="Layer1")
+        layer2 = action.layers.new(name="Layer2")
+
+        self.assertEqual([layer1, layer2], action.layers[:])
+
+        action.layers.remove(layer1)
+        self.assertEqual([layer2], action.layers[:])
+        action.layers.remove(layer2)
+        self.assertEqual([], action.layers[:])
 
 
 class ChannelbagsTest(unittest.TestCase):

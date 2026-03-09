@@ -808,6 +808,7 @@ struct UserDef_Experimental {
   char write_legacy_blend_file_format = 0;
   char no_data_block_packing = 0;
   char use_paint_debug = 0;
+  char use_action_layers = 0;
   char SANITIZE_AFTER_HERE = {};
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
@@ -818,7 +819,7 @@ struct UserDef_Experimental {
   char use_geometry_nodes_lists = 0;
   char use_geometry_bundle = 0;
   char use_remote_asset_libraries = 0;
-  char _pad[3] = {};
+  char _pad[2] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)

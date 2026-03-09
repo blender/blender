@@ -247,10 +247,12 @@ static ActionLayer *rna_Action_layers_new(bAction *dna_action,
 {
   animrig::Action &action = dna_action->wrap();
 
-  if (action.layers().size() >= 1) {
-    /* Not allowed to have more than one layer, for now. This limitation is in
-     * place until working with multiple animated IDs is fleshed out better. */
-    BKE_report(reports, RPT_ERROR, "An Action may not have more than one layer");
+  if (action.layers().size() >= 1 && !U.experimental.use_action_layers) {
+    /* Not allowed to have more than one layer, without going experimental */
+    BKE_report(reports,
+               RPT_ERROR,
+               "An Action can only have more than one layer by using the experimental option "
+               "\"Action Layers\"");
     return nullptr;
   }
 
