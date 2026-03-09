@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28922,12 +28922,12 @@ msgid "Metaball"
 msgstr "Metabol"
 
 
-msgid "Read"
-msgstr "Okumak"
-
-
 msgid "Show/Hide"
 msgstr "Göster/Gizle"
+
+
+msgid "Read"
+msgstr "Okumak"
 
 
 msgid "Write"
@@ -28938,12 +28938,12 @@ msgid "Sample"
 msgstr "Örnek"
 
 
-msgid "Primitives"
-msgstr "İlkel"
-
-
 msgid "Names"
 msgstr "Adlar"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Bone Roll"
@@ -92217,10 +92217,6 @@ msgid "Auto-Keying Mode"
 msgstr "Otomatik Anahtarlama Modu"
 
 
-msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "Nesneler, kemikler ve maskeler için otomatik anahtar kare ekleme modu"
-
-
 msgid "Add & Replace"
 msgstr "Ekle ve Değiştir"
 
@@ -92578,10 +92574,6 @@ msgstr "Çevrime Duyarlı Anahtarlama"
 
 msgid "Auto Keying"
 msgstr "Otomatik Anahtarlama"
-
-
-msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "Nesneler, kemikler ve maskeler için otomatik anahtar kare ekleme"
 
 
 msgid "Auto Keyframe Insert Keying Set"

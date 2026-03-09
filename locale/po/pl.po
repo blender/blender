@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
-"PO-Revision-Date: 2026-02-28 17:12+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"PO-Revision-Date: 2026-03-08 19:12+0000\n"
 "Last-Translator: Paweł Mazur <pawelmazur.zam@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
@@ -3049,7 +3049,7 @@ msgstr "Przesunięcie wypiekania"
 
 
 msgid "Vector Displacement"
-msgstr "Przesunięcie wektorowe"
+msgstr "Wektor przemieszczenia"
 
 
 msgid "Bake vector displacement"
@@ -4194,7 +4194,7 @@ msgstr "Jaka składowa z prędkości pozostaje stała"
 
 
 msgid "Speed"
-msgstr "Pędkość"
+msgstr "Prędkość"
 
 
 msgid "Percentage of maximum speed"
@@ -15896,7 +15896,7 @@ msgstr "Pokaż linie siatki"
 
 
 msgid "Vector Display"
-msgstr "Wyświetlacz wektorowy"
+msgstr "Wektor wyświetlacza"
 
 
 msgid "Visualize vector fields"
@@ -17681,6 +17681,14 @@ msgstr "Użyj podpowiedzi"
 
 msgid "Use tooltips when hovering over this gizmo"
 msgstr "Użyj podpowiedzi po najechaniu kursorem na ten gizmo"
+
+
+msgid "Use Undo"
+msgstr "Użyj cofnij"
+
+
+msgid "Push an undo step after each use of the gizmo"
+msgstr "Naciśnij przycisk Cofnij po każdym użyciu gizmo"
 
 
 msgctxt "Operator"
@@ -22073,7 +22081,7 @@ msgstr "Określ sposób tworzenia geometrii fazowania krzywej"
 
 
 msgid "Round"
-msgstr "Okrągły"
+msgstr "Okrągłe"
 
 
 msgid "Use circle for the section of the curve's bevel geometry"
@@ -22349,7 +22357,7 @@ msgstr "Wypełnij nasadki"
 
 
 msgid "Fill caps for beveled curves"
-msgstr "Wypełnij nasadki do krzywych skosu"
+msgstr "Wypełnij nasadki do krzywych fazowanych"
 
 
 msgid "Map Taper"
@@ -22437,7 +22445,7 @@ msgstr "Wyrównaj do lewej i prawej"
 
 
 msgid "Flush"
-msgstr "Opróżnij"
+msgstr "Oblej"
 
 
 msgid "Align to the left and the right, with equal character spacing"
@@ -22521,7 +22529,7 @@ msgstr "Tekst na krzywej"
 
 
 msgid "Curve deforming text object"
-msgstr "Obiekt tekstowy deformujący krzywą"
+msgstr "Krzywa deformująca obiekt tekstowy"
 
 
 msgid "Font Bold"
@@ -22601,7 +22609,7 @@ msgstr "Obsługuj zachowanie tekstu, gdy nie mieści się on w polach tekstowych
 
 
 msgid "Overflow"
-msgstr "Przelewowy"
+msgstr "Przepełnienie"
 
 
 msgid "Let the text overflow outside the text boxes"
@@ -22641,7 +22649,7 @@ msgstr "Małe litery"
 
 
 msgid "Scale of small capitals"
-msgstr "Skala małych kapitałów"
+msgstr "Skala małych liter"
 
 
 msgid "Global spacing between characters"
@@ -22669,7 +22677,7 @@ msgstr "Podkreśl pozycję"
 
 
 msgid "Vertical position of underline"
-msgstr "Pozycja pionowa podkreślenia"
+msgstr "Pionowa pozycja podkreślenia"
 
 
 msgid "Fast Editing"
@@ -22949,7 +22957,7 @@ msgstr "Wartość obliczona dla łańcucha jest najmniejszą z wartości uzyskan
 
 
 msgid "Max"
-msgstr "Maksymalna"
+msgstr "Maks"
 
 
 msgid "The value computed for the chain is the maximum of the values obtained for chain vertices"
@@ -24960,7 +24968,7 @@ msgstr "Wskaźnik aktywnej tekstury farby"
 
 
 msgid "Index of active texture paint slot"
-msgstr "Indeks aktywnego gniazda farby tekstury"
+msgstr "Indeks aktywnego gniazda malowania tekstury"
 
 
 msgid "Clone Paint Texture Index"
@@ -26436,7 +26444,7 @@ msgstr "Farba wagi"
 
 
 msgid "Texture Paint"
-msgstr "Farba tekstury"
+msgstr "Malowanie tekstury"
 
 
 msgid "Particle Edit"
@@ -26652,7 +26660,7 @@ msgstr "Przesunięcie geometrii terminatora cienia"
 
 
 msgid "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affects triangles at grazing angles to light"
-msgstr "Przesunięcie promieni od powierzchni w celu zmniejszenia artefaktu zakończenia cienia w geometrii niskiego wielokąta. Dotyczy tylko trójkątów pod kątem do światła"
+msgstr "Przesunięcie promieni od powierzchni w celu zmniejszenia artefaktu zakończenia cienia w geometrii uproszczonego wielokąta. Dotyczy tylko trójkątów pod kątem do światła"
 
 
 msgid "Shadow Terminator Normal Offset"
@@ -26660,7 +26668,7 @@ msgstr "Normalne przesunięcie terminatora cienia"
 
 
 msgid "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affect triangles that are affected by the geometry offset"
-msgstr "Przesunięcie promieni od powierzchni w celu zmniejszenia artefaktu zakończenia cienia w geometrii niskiego wielokąta. Dotyczy tylko trójkątów objętych przesunięciem geometrii"
+msgstr "Przesunięcie promieni od powierzchni w celu zmniejszenia artefaktu zakończenia cienia w geometrii uproszczonego wielokąta. Dotyczy tylko trójkątów objętych przesunięciem geometrii"
 
 
 msgid "Shadow Terminator Shading Offset"
@@ -26668,7 +26676,7 @@ msgstr "Przesunięcie cieniowania terminatora cienia"
 
 
 msgid "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
-msgstr "Wepchnij terminator cienia w stronę światła, aby ukryć artefakty na geometrii niskiego wielokąta"
+msgstr "Wepchnij terminator cienia w stronę światła, aby ukryć artefakty na geometrii uproszczonego wielokąta"
 
 
 msgid "Display All Edges"
@@ -35194,12 +35202,12 @@ msgid "Metaball"
 msgstr "Metakula"
 
 
-msgid "Read"
-msgstr "Odczyt"
-
-
 msgid "Show/Hide"
 msgstr "Pokaż / ukryj"
+
+
+msgid "Read"
+msgstr "Odczyt"
 
 
 msgid "Write"
@@ -35210,12 +35218,12 @@ msgid "Sample"
 msgstr "Próbka"
 
 
-msgid "Primitives"
-msgstr "Prymitywy"
-
-
 msgid "Names"
 msgstr "Nazwy"
+
+
+msgid "Primitives"
+msgstr "Prymitywy"
 
 
 msgid "Bone Roll"
@@ -35306,12 +35314,12 @@ msgid "Select Linked"
 msgstr "Wybierz połączone"
 
 
-msgid "Render Preview"
-msgstr "Podgląd renderowania"
-
-
 msgid "Select Loops"
 msgstr "Wybierz pętle"
+
+
+msgid "Render Preview"
+msgstr "Podgląd renderowania"
 
 
 msgid "Adjust"
@@ -35442,12 +35450,12 @@ msgid "Mesh Select Mode"
 msgstr "Tryb wybierz siatkę"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
 msgid "Face Data"
 msgstr "Dane lica"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Instances"
@@ -35478,12 +35486,12 @@ msgid "Special Characters"
 msgstr "Znaki specjalne"
 
 
-msgid "List"
-msgstr "Lista"
-
-
 msgid "Kerning"
 msgstr "Odstęp między literami"
+
+
+msgid "List"
+msgstr "Lista"
 
 
 msgid "Keyframe Insert Pie"
@@ -46180,7 +46188,7 @@ msgstr "Przesunięcie obrazu"
 
 
 msgid "Vector Blur"
-msgstr "Rozmycie wektorowe"
+msgstr "Wektor rozmycia"
 
 
 msgid "Uses the vector speed render pass to blur the image pixels in 2D"
@@ -46558,7 +46566,7 @@ msgstr "Metoda używana do konwersji liczby zmiennoprzecinkowej na liczbę całk
 
 msgctxt "NodeTree"
 msgid "Round"
-msgstr "Okrągły"
+msgstr "Zaokrąglij"
 
 
 msgid "Round the float up or down to the nearest integer"
@@ -46567,7 +46575,7 @@ msgstr "Zaokrąglij liczbę zmiennoprzecinkową w górę lub w dół do najbliż
 
 msgctxt "NodeTree"
 msgid "Floor"
-msgstr "Zaokrąglenie w dół"
+msgstr "Zaokrąglij w dół"
 
 
 msgid "Round the float down to the next smallest integer"
@@ -46576,7 +46584,7 @@ msgstr "Zaokrąglij liczbę zmiennoprzecinkową w dół do najbliższej najmniej
 
 msgctxt "NodeTree"
 msgid "Ceiling"
-msgstr "Zaokrąglanie w górę"
+msgstr "Zaokrąglenie w górę"
 
 
 msgid "Round the float up to the next largest integer"
@@ -46736,7 +46744,7 @@ msgstr "Wartość minimalna z A i B, min(A,B)"
 
 msgctxt "NodeTree"
 msgid "Maximum"
-msgstr "Maksymalnie"
+msgstr "Maksymalne"
 
 
 msgid "The maximum value from A and B, max(A,B)"
@@ -50102,7 +50110,7 @@ msgstr "Przybliżenie do rozpraszania objętości opartego na fizyce"
 
 
 msgid "Random Walk"
-msgstr "Losowy chód"
+msgstr "Losowe kroczenie"
 
 
 msgid "Volumetric approximation to physically based volume scattering, using the scattering radius as specified"
@@ -50110,7 +50118,7 @@ msgstr "Przybliżenie objętościowe rozpraszania objętościowego na podstawie 
 
 
 msgid "Random Walk (Skin)"
-msgstr "Losowy chód (skóra)"
+msgstr "Losowe kroczenie (skóra)"
 
 
 msgid "Volumetric approximation to physically based volume scattering, with scattering radius automatically adjusted to match color textures. Designed for skin shading."
@@ -50798,6 +50806,26 @@ msgstr "Wygeneruj zaburzoną normalną z obrazu mapy normalnych RGB. Zazwyczaj u
 
 msgid "Base"
 msgstr "Podstawa"
+
+
+msgid "Base surface that the normal map is applied relative to, when displacement is used"
+msgstr "Powierzchnia bazowa, do której stosuje się mapę normalną, gdy używane jest przesunięcie"
+
+
+msgid "Original Base"
+msgstr "Oryginalna baza"
+
+
+msgid "Apply normal map relative to the smooth undisplaced surface, for normal maps that match the displacement map"
+msgstr "Zastosuj mapę normalną względem gładkiej, nieprzemieszczonej powierzchni, w przypadku map normalnych, które odpowiadają mapie przemieszczenia"
+
+
+msgid "Displaced Base"
+msgstr "Przesunięta baza"
+
+
+msgid "Apply normal map relative to the displaced surface, for normal maps that are to be applied in addition to the displacement map"
+msgstr "Zastosuj mapę normalną względem przesuniętej powierzchni w przypadku map normalnych, które mają być stosowane oprócz mapy przesunięcia"
 
 
 msgid "OpenGL or DirectX"
@@ -51751,7 +51779,7 @@ msgstr "Wprowadź wartości liczbowe do innych węzłów w drzewie"
 
 
 msgid "Vector Curves"
-msgstr "Krzywe wektorowe"
+msgstr "Wektor krzywych"
 
 
 msgid "Map input vector components with curves"
@@ -51775,7 +51803,7 @@ msgstr "Mapowanie przemieszczenia wektorów przestrzeni świata"
 
 
 msgid "Vector Math"
-msgstr "Matematyka wektorowa"
+msgstr "Wektor matematyczny"
 
 
 msgid "Perform vector math operation"
@@ -51941,7 +51969,7 @@ msgstr "Tan(A) względem wejścia"
 
 
 msgid "Vector Rotate"
-msgstr "Obrót wektora"
+msgstr "Wektor obrotu"
 
 
 msgid "Rotate a vector around a pivot point (center)"
@@ -51989,7 +52017,7 @@ msgstr "Obróć punkt, używając kolejności XYZ"
 
 
 msgid "Vector Transform"
-msgstr "Transformacja wektorowa"
+msgstr "Wektor transformacji"
 
 
 msgid "Convert a vector, point, or normal between world, camera, and object coordinate space"
@@ -52774,7 +52802,7 @@ msgstr "Tekstura gniazda węzła"
 
 
 msgid "Vector Node Socket"
-msgstr "Gniazdo węzła wektorowego"
+msgstr "Gniazdo wektora węzła"
 
 
 msgid "3D vector socket of a node"
@@ -53152,7 +53180,7 @@ msgstr "Interfejs gniazda węzła tekstury"
 
 
 msgid "Vector Node Socket Interface"
-msgstr "Interfejs gniazda węzła wektora"
+msgstr "Interfejs gniazda wektora węzła"
 
 
 msgid "Node Tree Path"
@@ -63815,7 +63843,7 @@ msgstr "Aktywuj / wybierz plik(i) zawarte w obramowaniu"
 
 msgctxt "Operator"
 msgid "Walk Select/Deselect File"
-msgstr "Wybierz chodzenie / odznacz plik"
+msgstr "Wybierz kroczenie / odznacz plik"
 
 
 msgid "Select/Deselect files by walking through them"
@@ -63823,7 +63851,7 @@ msgstr "Wybierz / odznacz pliki, przechodząc przez nie"
 
 
 msgid "Walk Direction"
-msgstr "Kierunek chodzenia"
+msgstr "Kierunek kroczenia"
 
 
 msgid "Select/Deselect element in this direction"
@@ -65565,7 +65593,7 @@ msgstr "Ustaw nakładki krzywych"
 
 
 msgid "Change curve caps mode (rounded or flat)"
-msgstr "Zmień tryb zaokrąglania krzywych (zaokrąglone lub płaskie)"
+msgstr "Zmień tryb nasadek krzywych (zaokrąglone lub płaskie)"
 
 
 msgid "Rounded"
@@ -78563,15 +78591,15 @@ msgstr "Zmiana gestu z pustego miejsca na wybór polem"
 
 msgctxt "Operator"
 msgid "Walk Select"
-msgstr "Wybierz chodzenie"
+msgstr "Wybierz kroczenie"
 
 
 msgid "Use walk navigation to select tree elements"
-msgstr "Użyj nawigacji pieszej, aby wybrać elementy drzewa"
+msgstr "Użyj nawigacji kroczenia, aby wybrać elementy drzewa"
 
 
 msgid "Extend selection on walk"
-msgstr "Rozszerz wybór podczas chodzenia"
+msgstr "Rozszerz wybór podczas kroczenia"
 
 
 msgid "Toggle All"
@@ -79049,7 +79077,7 @@ msgstr "Dodaj do palety"
 
 msgctxt "Operator"
 msgid "Texture Paint Mode"
-msgstr "Tryb malowania tekstur"
+msgstr "Tryb malowania tekstury"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -80925,7 +80953,7 @@ msgstr "Tryb"
 
 msgctxt "Curve"
 msgid "Max"
-msgstr "Maksymalna"
+msgstr "Maks"
 
 
 msgctxt "Curve"
@@ -84812,6 +84840,11 @@ msgid "Set cursor position in text"
 msgstr "Ustaw pozycję kursora w tekście"
 
 
+msgctxt "Operator"
+msgid "Delete Text"
+msgstr "Usuń tekst"
+
+
 msgid "Delete text at cursor position"
 msgstr "Usuń tekst w pozycji kursora"
 
@@ -88211,11 +88244,11 @@ msgstr "Przenieś widok"
 
 msgctxt "Operator"
 msgid "View Navigation (Walk/Fly)"
-msgstr "Widok nawigacji (chodź / lataj)"
+msgstr "Widok nawigacji (krocz / lataj)"
 
 
 msgid "Interactively navigate around the scene (uses the mode (walk/fly) preference)"
-msgstr "Interaktywne poruszanie się po scenie (wykorzystuje preferencje trybu (chodzenie / latanie))"
+msgstr "Interaktywne poruszanie się po scenie (wykorzystuje preferencje trybu (kroczenie / latanie))"
 
 
 msgctxt "Operator"
@@ -88810,11 +88843,11 @@ msgstr "Usuń wybrany punkt orientacyjny VR z listy"
 
 msgctxt "Operator"
 msgid "Walk Navigation"
-msgstr "Nawigacja chodzenia"
+msgstr "Nawigacja kroczenia"
 
 
 msgid "Interactively walk around the scene"
-msgstr "Interaktywnie spaceruj po scenie"
+msgstr "Interaktywnie kroczenie po scenie"
 
 
 msgid "Zoom in/out in the view"
@@ -93731,11 +93764,11 @@ msgstr "Nawigacja preferencji"
 
 
 msgid "Fly & Walk"
-msgstr "Lataj i chodź"
+msgstr "Lataj i krocz"
 
 
 msgid "Walk"
-msgstr "Chodź"
+msgstr "Krocz"
 
 
 msgid "Orbit & Pan"
@@ -96241,7 +96274,7 @@ msgstr "Przelicz wszystkie ID użytkowników przed zapisaniem ich w pliku blend.
 
 
 msgid "Sculpt Texture Paint"
-msgstr "Farba tekstury rzeźbienia"
+msgstr "Malowanie tekstury rzeźby"
 
 
 msgid "Use texture painting in Sculpt Mode"
@@ -96651,7 +96684,7 @@ msgstr "Której metody użyć do nawigacji w rzutni"
 
 
 msgid "Interactively walk or free navigate around the scene"
-msgstr "Interaktywnie spaceruj lub swobodnie poruszaj się po scenie"
+msgstr "Interaktywnie krocz lub swobodnie poruszaj się po scenie"
 
 
 msgid "Fly"
@@ -97043,11 +97076,11 @@ msgstr "Powiększ i pomniejsz, tak jakbyś skalował widok, ruchy myszy względe
 
 
 msgid "Walk Navigation"
-msgstr "Nawigacja chodzenia"
+msgstr "Nawigacja kroczenia"
 
 
 msgid "Settings for walk navigation mode"
-msgstr "Ustawienia trybu nawigacji pieszej"
+msgstr "Ustawienia trybu nawigacji kroczenia"
 
 
 msgid "XR Navigation"
@@ -97894,6 +97927,10 @@ msgid "English (UK)"
 msgstr "Angielski (Wielka Brytania)"
 
 
+msgid "Locale code: en_GB. Translation progress: 99%"
+msgstr "Kod regionalny: en_GB. Postęp tłumaczenia: 99%"
+
+
 msgid "English (US)"
 msgstr "Angielski (USA)"
 
@@ -98000,6 +98037,10 @@ msgstr "Kod regionalny: ja_JP. Postęp tłumaczenia: 99%"
 
 msgid "Korean - 한국어"
 msgstr "Koreański - 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 98%"
+msgstr "Kod regionalny: ko_KR. Postęp tłumaczenia: 98%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98136,10 +98177,6 @@ msgstr "Kod regionalny: sv_SE. Postęp tłumaczenia: 21%"
 
 msgid "Tamil - தமிழ்"
 msgstr "Tamilski - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Kod regionalny: ta. Postęp tłumaczenia: 93%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -109577,7 +109614,7 @@ msgstr "Kotwica Y"
 
 
 msgid "Vertical position of the text box relative to Location"
-msgstr "Pozycja pionowa pola tekstowego względem lokalizacji"
+msgstr "Pionowa pozycja pola tekstowego względem lokalizacji"
 
 
 msgid "Box Color"
@@ -110615,7 +110652,7 @@ msgstr "Czy użyć minimalnej wartości przycinania"
 
 
 msgid "Texture Paint Slot"
-msgstr "Gniazdo farby teksturowej"
+msgstr "Gniazdo malowania tekstury"
 
 
 msgid "Slot that contains information about texture painting"
@@ -111689,7 +111726,7 @@ msgstr "Tło regionu zakresu"
 
 
 msgid "Texture Paint/Modifier UVs"
-msgstr "Farby tekstury / modyfikatory UV"
+msgstr "Malowanie tekstury / modyfikatory UV"
 
 
 msgid "Wire Edit"
@@ -111989,7 +112026,7 @@ msgstr "Strefa symulacji"
 
 
 msgid "Vector Node"
-msgstr "Węzeł wektorowy"
+msgstr "Wektor węzła"
 
 
 msgid "Wires"
@@ -112921,10 +112958,6 @@ msgid "Auto-Keying Mode"
 msgstr "Tryb automatycznego kluczowania"
 
 
-msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "Tryb automatycznego wstawiania klatek kluczowych dla obiektów, kości i masek"
-
-
 msgid "Add & Replace"
 msgstr "Dodaj i zamień"
 
@@ -113389,10 +113422,6 @@ msgstr "W przypadku kanałów z ekstrapolacją cykliczną, wstawianie klatek klu
 
 msgid "Auto Keying"
 msgstr "Automatyczne kluczowanie"
-
-
-msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "Automatyczne wstawianie klatek kluczowych dla obiektów, kości i masek"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -114744,7 +114773,7 @@ msgstr "Pokaż zestawy lica rzeźby"
 
 
 msgid "Sculpt Show Mask"
-msgstr "Pokaż maski rzeźby"
+msgstr "Pokaż maskę rzeźby"
 
 
 msgid "Display Custom Normals"
@@ -114824,7 +114853,7 @@ msgstr "Krycie maski szablonu"
 
 
 msgid "Opacity of the texture paint mode stencil mask overlay"
-msgstr "Krycie nakładki maski szablonu w trybie malowania tekstur"
+msgstr "Krycie nakładki maski szablonu w trybie malowania tekstury"
 
 
 msgid "Freeze Culling"
@@ -115882,7 +115911,7 @@ msgstr "Odległość między próbkami objętości. Niższe wartości zapewniaj�
 
 
 msgid "Walk navigation settings"
-msgstr "Ustawienia nawigacji chodzenia"
+msgstr "Ustawienia nawigacji kroczenia"
 
 
 msgid "Jump Height"
@@ -115910,7 +115939,7 @@ msgstr "Interwał czasowy odkształcenia podczas teleportacji w trybie nawigacji
 
 
 msgid "Walk with gravity, or free navigate"
-msgstr "Chodź z grawitacją lub poruszaj się swobodnie"
+msgstr "Krocz z grawitacją lub poruszaj się swobodnie"
 
 
 msgid "Reverse Mouse"
@@ -115930,7 +115959,7 @@ msgstr "Odległość widzenia od podłogi podczas chodzenia"
 
 
 msgid "Walk Speed"
-msgstr "Prędkość chodzenia"
+msgstr "Prędkość kroczenia"
 
 
 msgid "Base speed for walking and flying"
@@ -118572,7 +118601,7 @@ msgstr "Wyłącz centralny punkt obrotu"
 
 msgctxt "WindowManager"
 msgid "View3D Walk Modal"
-msgstr "Modalne chodzenie widoku 3D"
+msgstr "Modalne kroczenie widoku 3D"
 
 
 msgctxt "WindowManager"
@@ -118680,7 +118709,7 @@ msgstr "Szybko"
 
 
 msgid "Move faster (walk or fly)"
-msgstr "Poruszaj się szybciej (chodź lub lataj)"
+msgstr "Poruszaj się szybciej (krocz lub lataj)"
 
 
 msgctxt "WindowManager"
@@ -118698,7 +118727,7 @@ msgstr "Wolno"
 
 
 msgid "Move slower (walk or fly)"
-msgstr "Poruszaj się wolniej (chodź lub lataj)"
+msgstr "Poruszaj się wolniej (krocz lub lataj)"
 
 
 msgctxt "WindowManager"
@@ -118712,7 +118741,7 @@ msgstr "Przeskocz"
 
 
 msgid "Jump when in walk mode"
-msgstr "Skacz w trybie chodzenia"
+msgstr "Skacz w trybie kroczenia"
 
 
 msgctxt "WindowManager"
@@ -125151,7 +125180,7 @@ msgstr "Pole siłowe"
 
 
 msgid "Simulation Start"
-msgstr "Rozpoczęcie symulacji"
+msgstr "Początek symulacji"
 
 
 msgid "Use Library Path"
@@ -126013,7 +126042,7 @@ msgstr "Proporcje obrazu"
 
 msgctxt "Operator"
 msgid "Floor"
-msgstr "Zaokrąglenie w dół"
+msgstr "Zaokrąglij w dół"
 
 
 msgctxt "Operator"
@@ -130055,7 +130084,7 @@ msgstr "Nakładki armatury"
 
 
 msgid "Texture Paint Overlays"
-msgstr "Nakładki farby teksturowej"
+msgstr "Nakładki malowania tekstury"
 
 
 msgid "Vertex Paint Overlays"
@@ -132218,7 +132247,7 @@ msgstr "%i klatek na dysku"
 
 
 msgid "%s frames in memory (%s)"
-msgstr "%s klatki w pamięci (%s)"
+msgstr "%s klatek w pamięci (%s)"
 
 
 msgid "%s, cache is outdated!"
@@ -147581,7 +147610,7 @@ msgstr "Użyj wytrzymałości rozlania"
 
 msgctxt "Color"
 msgid "Spill Channel"
-msgstr "Kanał przelewowy"
+msgstr "Kanał rozlania"
 
 
 msgctxt "Color"
@@ -154758,7 +154787,7 @@ msgstr "Scenorysowanie"
 
 msgctxt "WorkSpace"
 msgid "Texture Paint"
-msgstr "Farba tekstury"
+msgstr "Malowanie tekstury"
 
 
 msgctxt "WorkSpace"
@@ -155275,7 +155304,7 @@ msgstr "Rzeźba siatki"
 
 
 msgid "Mesh Texture Paint"
-msgstr "Farba tekstury siatki"
+msgstr "Malowanie tekstury siatki"
 
 
 msgid "Mesh Vertex Paint"
@@ -155859,7 +155888,7 @@ msgstr "Rozdzielczość nasadek"
 
 
 msgid "Amount of edge loops the round caps are generated with"
-msgstr "Ilość pętli krawędziowych, z których powstają okrągłe nasadki"
+msgstr "Ilość pętli krawędzi, z których powstają okrągłe nasadki"
 
 
 msgid "Caps Smooth"

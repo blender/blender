@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
-"PO-Revision-Date: 2026-02-25 06:32+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"PO-Revision-Date: 2026-03-03 13:12+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -17683,6 +17683,14 @@ msgid "Use tooltips when hovering over this gizmo"
 msgstr "Pri vznášaní kurzora nad týmto manipulátorom polohy použije tipy nástrojov"
 
 
+msgid "Use Undo"
+msgstr "Použiť Späť"
+
+
+msgid "Push an undo step after each use of the gizmo"
+msgstr "Po každom použití manipulačného prvku stlačte Späť"
+
+
 msgctxt "Operator"
 msgid "GizmoGroup"
 msgstr "Skupina manipulačných prvkov"
@@ -35194,12 +35202,12 @@ msgid "Metaball"
 msgstr "Meta guľa"
 
 
-msgid "Read"
-msgstr "Čítanie"
-
-
 msgid "Show/Hide"
 msgstr "Ukázať/skryť"
+
+
+msgid "Read"
+msgstr "Čítanie"
 
 
 msgid "Write"
@@ -35210,12 +35218,12 @@ msgid "Sample"
 msgstr "Snímka"
 
 
-msgid "Primitives"
-msgstr "Prvotné tvary"
-
-
 msgid "Names"
 msgstr "Názvy"
+
+
+msgid "Primitives"
+msgstr "Prvotné tvary"
 
 
 msgid "Bone Roll"
@@ -35306,12 +35314,12 @@ msgid "Select Linked"
 msgstr "Vybrať prepojené"
 
 
-msgid "Render Preview"
-msgstr "Náhľad prekreslenia"
-
-
 msgid "Select Loops"
 msgstr "Vybrať slučky"
+
+
+msgid "Render Preview"
+msgstr "Náhľad prekreslenia"
 
 
 msgid "Adjust"
@@ -35442,12 +35450,12 @@ msgid "Mesh Select Mode"
 msgstr "Režim výberu povrchovej siete"
 
 
-msgid "Gizmo"
-msgstr "Manipulačný prvok"
-
-
 msgid "Face Data"
 msgstr "Údaje plôšky"
+
+
+msgid "Gizmo"
+msgstr "Manipulačný prvok"
 
 
 msgid "Instances"
@@ -35478,12 +35486,12 @@ msgid "Special Characters"
 msgstr "Špeciálne znaky"
 
 
-msgid "List"
-msgstr "Zoznam"
-
-
 msgid "Kerning"
 msgstr "Zhustenie znakov"
+
+
+msgid "List"
+msgstr "Zoznam"
 
 
 msgid "Keyframe Insert Pie"
@@ -50798,6 +50806,26 @@ msgstr "Vygeneruje narušenú normálu z obrazu normálovej mapy RGB. Zvyčajne 
 
 msgid "Base"
 msgstr "Základné"
+
+
+msgid "Base surface that the normal map is applied relative to, when displacement is used"
+msgstr "Základný povrch, na ktorý sa vzťahuje normálová mapa, keď sa používa posun"
+
+
+msgid "Original Base"
+msgstr "Pôvodná základňa"
+
+
+msgid "Apply normal map relative to the smooth undisplaced surface, for normal maps that match the displacement map"
+msgstr "Použite normálovú mapu vzhľadom na hladký neposunutý povrch pre normálové mapy, ktoré zodpovedajú mape posunu"
+
+
+msgid "Displaced Base"
+msgstr "Posunutá základňa"
+
+
+msgid "Apply normal map relative to the displaced surface, for normal maps that are to be applied in addition to the displacement map"
+msgstr "Použije normálovú mapu vzhľadom na posunutý povrch pre normálové mapy, ktoré sa majú použiť okrem mapy posunutia"
 
 
 msgid "OpenGL or DirectX"
@@ -84812,6 +84840,11 @@ msgid "Set cursor position in text"
 msgstr "Nastaví polohu kurzora v texte"
 
 
+msgctxt "Operator"
+msgid "Delete Text"
+msgstr "Odstrániť text"
+
+
 msgid "Delete text at cursor position"
 msgstr "Odstráni text na pozícii kurzora"
 
@@ -97894,6 +97927,10 @@ msgid "English (UK)"
 msgstr "Anglicky (UK)"
 
 
+msgid "Locale code: en_GB. Translation progress: 99%"
+msgstr "Kód lokalizácie: en_GB. Pokrok prekladu: 99%"
+
+
 msgid "English (US)"
 msgstr "Anglicky (US)"
 
@@ -98000,6 +98037,10 @@ msgstr "Kód lokalizácie: ja_JP. Pokrok prekladu: 99 %"
 
 msgid "Korean - 한국어"
 msgstr "Kórejský - 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 98%"
+msgstr "Kód lokalizácie: ko_KR. Pokrok prekladu: 98%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98136,10 +98177,6 @@ msgstr "Kód lokalizácie: sv_SE. Pokrok prekladu: 21 %"
 
 msgid "Tamil - தமிழ்"
 msgstr "Tamilsky - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 93%"
-msgstr "Kód lokalizácie: ta. Pokrok prekladu: 93%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -112921,10 +112958,6 @@ msgid "Auto-Keying Mode"
 msgstr "Režim automatického kľúčovania"
 
 
-msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "Režim automatického vkladania kľúčových snímok pre objekty, kosti a masky"
-
-
 msgid "Add & Replace"
 msgstr "Pridať a nahradiť"
 
@@ -113389,10 +113422,6 @@ msgstr "V prípade kanálov s cyklickou extrapoláciou sa vloženie kľúčovej 
 
 msgid "Auto Keying"
 msgstr "Automatické kľúčovanie"
-
-
-msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "Automatické vkladanie kľúčových snímok pre objekty, kosti a masky"
 
 
 msgid "Auto Keyframe Insert Keying Set"

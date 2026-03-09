@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
 "PO-Revision-Date: 2026-02-14 12:47+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -25884,12 +25884,12 @@ msgid "Metaball"
 msgstr "Metažoga"
 
 
-msgid "Read"
-msgstr "Branje"
-
-
 msgid "Show/Hide"
 msgstr "Pokaži / skrij"
+
+
+msgid "Read"
+msgstr "Branje"
 
 
 msgid "Write"
@@ -25900,12 +25900,12 @@ msgid "Sample"
 msgstr "Vzorčenje"
 
 
-msgid "Primitives"
-msgstr "Primitivi"
-
-
 msgid "Names"
 msgstr "Imena"
+
+
+msgid "Primitives"
+msgstr "Primitivi"
 
 
 msgid "Bone Roll"
@@ -25988,12 +25988,12 @@ msgid "Select Linked"
 msgstr "Izberi povezano"
 
 
-msgid "Render Preview"
-msgstr "Predogled upodobitve"
-
-
 msgid "Select Loops"
 msgstr "Izberi zanke"
+
+
+msgid "Render Preview"
+msgstr "Predogled upodobitve"
 
 
 msgid "Adjust"
@@ -26100,12 +26100,12 @@ msgid "Bone Collections"
 msgstr "Zbirke kosti"
 
 
-msgid "Gizmo"
-msgstr "Manipulator"
-
-
 msgid "Face Data"
 msgstr "Podatki lic"
+
+
+msgid "Gizmo"
+msgstr "Manipulator"
 
 
 msgid "Instances"
@@ -26136,12 +26136,12 @@ msgid "Special Characters"
 msgstr "Posebni znaki"
 
 
-msgid "List"
-msgstr "Seznam"
-
-
 msgid "Kerning"
 msgstr "Spodsekavanje"
+
+
+msgid "List"
+msgstr "Seznam"
 
 
 msgid "Animals"

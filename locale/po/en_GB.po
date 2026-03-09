@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -35064,12 +35064,12 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Read"
-msgstr "Read"
-
-
 msgid "Show/Hide"
 msgstr "Show/Hide"
+
+
+msgid "Read"
+msgstr "Read"
 
 
 msgid "Write"
@@ -35080,12 +35080,12 @@ msgid "Sample"
 msgstr "Sample"
 
 
-msgid "Primitives"
-msgstr "Primitives"
-
-
 msgid "Names"
 msgstr "Names"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Bone Roll"
@@ -35176,12 +35176,12 @@ msgid "Select Linked"
 msgstr "Select Linked"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
 msgid "Select Loops"
 msgstr "Select Loops"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
 msgid "Adjust"
@@ -35312,12 +35312,12 @@ msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
 msgid "Face Data"
 msgstr "Face Data"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Instances"
@@ -35348,12 +35348,12 @@ msgid "Special Characters"
 msgstr "Special Characters"
 
 
-msgid "List"
-msgstr "List"
-
-
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "List"
+msgstr "List"
 
 
 msgid "Keyframe Insert Pie"
@@ -112007,10 +112007,6 @@ msgid "Auto-Keying Mode"
 msgstr "Auto-Keying Mode"
 
 
-msgid "Mode of automatic keyframe insertion for objects, bones and masks"
-msgstr "Mode of automatic keyframe insertion for objects, bones and masks"
-
-
 msgid "Add & Replace"
 msgstr "Add & Replace"
 
@@ -112475,10 +112471,6 @@ msgstr "For channels with cyclic extrapolation, keyframe insertion is automatica
 
 msgid "Auto Keying"
 msgstr "Auto Keying"
-
-
-msgid "Automatic keyframe insertion for objects, bones and masks"
-msgstr "Automatic keyframe insertion for objects, bones and masks"
 
 
 msgid "Auto Keyframe Insert Keying Set"

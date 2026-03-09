@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'fd269015ba63')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 13:27+0000\n"
+"POT-Creation-Date: 2026-03-09 08:57+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18698,12 +18698,12 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Read"
-msgstr "Lesen"
-
-
 msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
+
+
+msgid "Read"
+msgstr "Lesen"
 
 
 msgid "Write"
@@ -18714,12 +18714,12 @@ msgid "Sample"
 msgstr "Beispiel"
 
 
-msgid "Primitives"
-msgstr "Grundkörper"
-
-
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
 
 
 msgid "Clean Up"
