@@ -1822,7 +1822,7 @@ static void WM_OT_xr_navigation_reset(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name XR Navigation Swap Hands
  *
- * Resets XR navigation deltas relative to session base pose.
+ * Swaps XR navigation controls between left and right controllers.
  * \{ */
 
 static wmOperatorStatus wm_xr_navigation_swap_hands_invoke(bContext *C,
