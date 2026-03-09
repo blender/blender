@@ -39,7 +39,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
     if (type.prev() == ']' && type.prev().scope().type() == ScopeType::Subscript) {
       Scope attributes = type.prev().prev().scope();
       attributes.foreach_attribute([&](Token attr, Scope attr_scope) {
-        const string attr_str = attr.str();
+        const string attr_str(attr.str());
         if (attr_str == "vertex") {
           is_vertex_func = true;
           is_entry_point = true;
@@ -87,7 +87,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
 
     /* For now, just emit good old create info macros. */
     string create_info_decl;
-    create_info_decl += "GPU_SHADER_CREATE_INFO(" + fn_name.str() + "_infos_)\n";
+    create_info_decl += "GPU_SHADER_CREATE_INFO(" + string(fn_name.str()) + "_infos_)\n";
 
     if (!local_size.empty()) {
       if (!is_compute_func) {
@@ -123,9 +123,9 @@ void SourceProcessor::lower_entry_points(Parser &parser)
 
     auto process_argument = [&](Token type, Token var, Scope attributes) {
       const bool is_const = type.prev() == Const;
-      string srt_type = type.str();
-      string srt_var = var.str();
-      string srt_attr = attributes[1].str();
+      string srt_type(type.str());
+      string srt_var(var.str());
+      string srt_attr(attributes[1].str());
 
       if (srt_attr == "vertex_id" && is_entry_point) {
         if (!is_vertex_func) {
@@ -396,7 +396,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
         if (srt_type != "float") {
           report_error_(ERROR_TOK(type), "[[frag_depth]] needs to be declared as float");
         }
-        const string mode = attributes[3].str();
+        const string mode(attributes[3].str());
 
         if (mode != "any" && mode != "greater" && mode != "less") {
           report_error_(ERROR_TOK(attributes[3]),
@@ -454,7 +454,7 @@ void SourceProcessor::lower_entry_points_signature(Parser &parser)
     if (type.prev() == ']' && type.prev().scope().type() == ScopeType::Subscript) {
       Scope attributes = type.prev().prev().scope();
       attributes.foreach_attribute([&](Token attr, Scope) {
-        const string attr_str = attr.str();
+        const string attr_str(attr.str());
         if (attr_str == "vertex" || attr_str == "fragment" || attr_str == "compute") {
           is_entry_point = true;
         }
@@ -470,7 +470,7 @@ void SourceProcessor::lower_entry_points_signature(Parser &parser)
     if (is_entry_point) {
       /* Take attributes into account. */
       parser.insert_directive(type.prev().scope().front().prev(),
-                              "#if defined(ENTRY_POINT_" + name.str() + ")");
+                              "#if defined(ENTRY_POINT_" + string(name.str()) + ")");
       parser.insert_directive(fn_body.back(), "#endif");
     }
   });

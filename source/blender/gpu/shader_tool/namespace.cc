@@ -24,7 +24,7 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
                    [&](const Scope &ns) { parse_namespace_symbols(ns, metadata); });
 
   auto process_symbol =
-      [&](Scope ns_scope, Token name, string identifier, size_t line, bool is_method) {
+      [&](Scope ns_scope, Token name, string_view identifier, size_t line, bool is_method) {
         if (name.scope() != ns_scope) {
           return;
         }
@@ -55,7 +55,7 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
       /* Struct. */
       Token name = t.next().next();
       Scope template_args = name.next().scope();
-      string resolved_name = name.str() +
+      string resolved_name = string(name.str()) +
                              SourceProcessor::template_arguments_mangle(template_args);
       process_symbol(ns_scope, name, resolved_name, line, false);
     }
@@ -64,7 +64,7 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
       Token end = t.find_next(SemiColon);
       Scope template_args = end.prev().scope().front().prev().scope();
       Token name = template_args.front().prev();
-      string resolved_name = name.str() +
+      string resolved_name = string(name.str()) +
                              SourceProcessor::template_arguments_mangle(template_args);
       process_symbol(ns_scope, name, resolved_name, line, is_method);
     }
@@ -100,7 +100,7 @@ static void lower_namespace(string ns_prefix,
                             SourceProcessor::report_callback report_error,
                             const set<Symbol> &symbols_set)
 {
-  string ns_name = scope.front().prev().str();
+  string ns_name(scope.front().prev().str());
   ns_prefix += ns_name + "::";
 
   bool has_nested_scope = false;
@@ -175,7 +175,7 @@ static void lower_namespace(string ns_prefix,
   /* Pipeline declarations.
    * Manually handle them. They are the only use-case of variable defined in global scope. */
   scope.foreach_match("AA(A", [&](vector<Token> toks) {
-    if (toks[0].scope().type() != ScopeType::Namespace || toks[0].str().find("Pipeline") != 0) {
+    if (toks[0].scope().type() != ScopeType::Namespace || !toks[0].str().starts_with("Pipeline")) {
       return;
     }
     parser.insert_before(toks[1], ns_name + SourceProcessor::namespace_separator);

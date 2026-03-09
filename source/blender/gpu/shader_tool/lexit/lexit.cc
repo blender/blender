@@ -33,7 +33,7 @@ static int builtin_ctzll(uint64_t a)
 #else
   return __builtin_ctzll(a);
 #endif
-}
+}  // namespace lexit
 
 static uint32_t divide_ceil(uint32_t a, uint32_t b)
 {
@@ -838,11 +838,11 @@ static void lex_string(const TokenType *types, uint32_t &cursor)
   }
 }
 
-static void lex_number(const std::string_view str,
-                       const TokenType *types,
-                       const uint32_t *offsets,
-                       const uint32_t *offsets_end_,
-                       uint32_t &cursor)
+static void lex_float(const std::string_view str,
+                      const TokenType *types,
+                      const uint32_t *offsets,
+                      const uint32_t *offsets_end_,
+                      uint32_t &cursor)
 {
   const TokenType *type = types + cursor;
   const uint32_t *offset = offsets + cursor;
@@ -878,6 +878,49 @@ static void lex_number(const std::string_view str,
   cursor--;
 }
 
+static void lex_comment(const std::string_view str,
+                        const TokenType *types,
+                        const uint32_t *offsets,
+                        uint32_t &cursor,
+                        TokenType &out_type)
+{
+  const uint32_t start = offsets[cursor];
+  const TokenType *type = types + cursor;
+  const char c = str[start + 1];
+
+  size_t end_pos;
+  if (c == '/') {
+    /* Single-line comment. Search for end of line. */
+    end_pos = str.find('\n', start + 2);
+  }
+  else if (c == '*') {
+    /* Multi-line comment. Search for termination. */
+    end_pos = str.find("*/", start + 2);
+    /* Search for the closing slash. */
+    end_pos += (end_pos != std::string::npos) ? 1 : 0;
+  }
+  else {
+    /* Not a comment. */
+    return;
+  }
+
+  out_type = Comment;
+
+  while (*type != EndOfFile) {
+    const uint32_t tok_start = offsets[cursor];
+    /* Skip tokens until we find the one that starts after the end of the comment. */
+    if (tok_start > end_pos) {
+      break;
+    }
+    cursor++;
+    type++;
+  }
+  /* We need to evaluate the token we broke on. */
+  cursor--;
+}
+
+/* Ideally this should not be needed and the `tokenize` step should just parse them correctly.
+ * But this would much harder to implement. */
 void TokenBuffer::merge_complex_literals()
 {
   const TokenType *in_types = types_.get();
@@ -900,11 +943,16 @@ void TokenBuffer::merge_complex_literals()
         lex_string(in_types, i);
         break;
       case Number:
-        lex_number(str_, in_types, in_offsets, in_offset_end, i);
+        lex_float(str_, in_types, in_offsets, in_offset_end, i);
+        break;
+      case Slash:
+        lex_comment(str_, in_types, in_offsets, i, *out_type);
         break;
       default:
-        break;
+        continue;
     }
+    /* Set the correct end for the complex token that have just been lexed. */
+    *out_offset_end = in_offset_end[i];
   }
 
   assert(in_types < out_type);

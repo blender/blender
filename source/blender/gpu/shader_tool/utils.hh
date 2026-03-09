@@ -37,7 +37,7 @@ struct IndexRange {
            ((other.start < start) && (start < (other.start + other.size)));
   }
 
-  int64_t last()
+  int64_t last() const
   {
     return start + size - 1;
   }
@@ -97,26 +97,6 @@ template<typename T> struct MutableSpan {
   void shrink(int64_t new_size)
   {
     size_ = new_size;
-  }
-};
-
-/** Poor man's OffsetIndices. */
-struct OffsetIndices {
-  MutableSpan<uint32_t> offsets;
-
-  IndexRange operator[](const int64_t index) const
-  {
-    return {int64_t(offsets[index]), int64_t(offsets[index + 1] - offsets[index])};
-  }
-
-  uint32_t *data()
-  {
-    return offsets.data();
-  }
-
-  uint32_t size() const
-  {
-    return offsets.size() - 1;
   }
 };
 

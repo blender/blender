@@ -18,8 +18,9 @@ using namespace metadata;
 string SourceProcessor::template_arguments_mangle(const Scope template_args)
 {
   string args_concat;
-  template_args.foreach_scope(ScopeType::TemplateArg,
-                              [&](const Scope &scope) { args_concat += 'T' + scope.str(); });
+  template_args.foreach_scope(ScopeType::TemplateArg, [&](const Scope &scope) {
+    args_concat += 'T' + string(scope.str());
+  });
   return args_concat;
 }
 
@@ -31,8 +32,8 @@ static void parse_template_definition(const Scope arg,
 {
   const Token type = arg.front();
   const Token name = type.str() == "enum" ? type.next().next() : type.next();
-  const string name_str = name.str();
-  const string type_str = type.str();
+  const string_view name_str = name.str();
+  const string_view type_str = type.str();
 
   arg_list.emplace_back(name_str);
 
@@ -103,7 +104,7 @@ static void lower_template_instantiation(SourceProcessor::Parser &parser,
   /* Specialize template content. */
   SourceProcessor::Parser instance_parser(fn_decl, report_error);
   instance_parser().foreach_token(Word, [&](const Token &word) {
-    string token_str = word.str();
+    string_view token_str = word.str();
     for (const auto &arg_name_value : arg_name_value_pairs) {
       if (token_str == arg_name_value.first) {
         instance_parser.replace(word, arg_name_value.second, true);
@@ -114,7 +115,7 @@ static void lower_template_instantiation(SourceProcessor::Parser &parser,
   if (!all_template_args_in_function_signature) {
     /* Append template args after function name.
      * `void func() {}` > `void func<a, 1>() {}`. */
-    size_t pos = fn_decl.find(" " + fn_name.str());
+    size_t pos = fn_decl.find(" " + string(fn_name.str()));
     instance_parser.insert_after(pos + fn_name.str().size(),
                                  SourceProcessor::template_arguments_mangle(inst_args));
   }
@@ -181,7 +182,7 @@ void SourceProcessor::lower_templates(Parser &parser)
     bool all_template_args_in_function_signature = false;
     template_scope.foreach_scope(ScopeType::TemplateArg, [&](Scope arg) {
       parse_template_definition(
-          arg, arg_list, Scope::invalid(), all_template_args_in_function_signature, report_error_);
+          arg, arg_list, Scope(parser), all_template_args_in_function_signature, report_error_);
     });
 
     /* Remove declaration. */

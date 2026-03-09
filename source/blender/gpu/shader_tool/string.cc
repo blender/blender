@@ -19,8 +19,8 @@ void SourceProcessor::lower_strings_sequences(Parser &parser)
 {
   do {
     parser().foreach_match("\"\"", [&](const vector<Token> &tokens) {
-      string first = tokens[0].str();
-      string second = tokens[1].str();
+      string first(tokens[0].str());
+      string second(tokens[1].str());
       string between = parser.substr_range_inclusive(tokens[0].str_index_last_no_whitespace() + 1,
                                                      tokens[1].str_index_start() - 1);
       string trailing = parser.substr_range_inclusive(tokens[1].str_index_last_no_whitespace() + 1,
@@ -66,8 +66,8 @@ void SourceProcessor::lower_assert(Parser &parser, const string &filename)
 void SourceProcessor::lower_strings(Parser &parser)
 {
   parser().foreach_token(String, [&](const Token &token) {
-    uint32_t hash = hash_string(token.str());
-    metadata::PrintfFormat format = {hash, token.str()};
+    uint32_t hash = hash_string(string(token.str()));
+    metadata::PrintfFormat format = {hash, string(token.str())};
     metadata_.printf_formats.emplace_back(format);
     parser.replace(token, "string_t(" + to_string(hash) + "u)", true);
   });
@@ -88,7 +88,7 @@ void SourceProcessor::lower_printf(Parser &parser)
 
     string unrolled = "print_start(" + to_string(arg_count) + "u)";
     tokens[1].scope().foreach_scope(ScopeType::FunctionParam, [&](const Scope &attribute) {
-      unrolled = "print_data(" + unrolled + ", " + attribute.str() + ")";
+      unrolled = "print_data(" + unrolled + ", " + string(attribute.str()) + ")";
     });
 
     parser.replace(tokens.front(), tokens.back(), unrolled);
