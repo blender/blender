@@ -116,7 +116,7 @@ void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &inverse_tra
   output.allocate_texture(domain);
   output.bind_as_image(shader, "domain_img");
 
-  compute_dispatch_threads_at_least(shader, domain.data_size);
+  compute_dispatch_threads_at_least(shader, output.domain().data_size);
 
   input.unbind_as_texture();
   output.unbind_as_image();
