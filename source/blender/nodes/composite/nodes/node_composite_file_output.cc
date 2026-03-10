@@ -654,7 +654,7 @@ class FileOutputOperation : public NodeOperation {
     BLI_assert(result.is_single_value());
 
     const int64_t length = int64_t(size.x) * size.y;
-    const int64_t buffer_size = length * result.channels_count();
+    const int64_t buffer_size = length * (result.get_cpp_type().size / sizeof(float));
     float *buffer = MEM_new_array_uninitialized<float>(buffer_size,
                                                        "File Output Inflated Buffer.");
 

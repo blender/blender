@@ -806,6 +806,38 @@ int Result::reference_count() const
   return reference_count_;
 }
 
+int64_t Result::channels_count() const
+{
+  if (storage_type_ == ResultStorageType::GPU) {
+    return GPU_texture_component_len(GPU_texture_format(this->gpu_texture()));
+  }
+
+  switch (type_) {
+    case ResultType::Float:
+    case ResultType::Int:
+    case ResultType::Bool:
+    case ResultType::Menu:
+      return 1;
+    case ResultType::Float2:
+    case ResultType::Int2:
+      return 2;
+    case ResultType::Float3:
+    case ResultType::Int3:
+      return 3;
+    case ResultType::Color:
+    case ResultType::Float4:
+      return 4;
+    case ResultType::String:
+      /* Single only types do not have channels. */
+      BLI_assert(Result::is_single_value_only_type(type_));
+      BLI_assert_unreachable();
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return 4;
+}
+
 int64_t Result::size_in_bytes() const
 {
   const int64_t pixel_size = this->get_cpp_type().size;
