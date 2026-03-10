@@ -288,6 +288,24 @@ bool Action::layer_remove(Layer &layer_to_remove)
   return true;
 }
 
+void Action::layer_active_set(Layer &layer)
+{
+  const int64_t layer_index = this->find_layer_index(layer);
+  if (layer_index < 0) {
+    BLI_assert_unreachable();
+    return;
+  }
+  this->layer_active_index = layer_index;
+}
+
+Layer *Action::layer_active_get()
+{
+  if (this->layer_active_index < 0 || this->layer_active_index >= this->layer_array_num) {
+    return nullptr;
+  }
+  return this->layer(this->layer_active_index);
+}
+
 void Action::layer_keystrip_ensure()
 {
   /* Ensure a layer. */

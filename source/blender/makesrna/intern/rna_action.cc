@@ -240,6 +240,31 @@ static int rna_iterator_action_layers_length(PointerRNA *ptr)
   return action.layers().size();
 }
 
+static PointerRNA rna_ActionLayers_active_get(PointerRNA *ptr)
+{
+  animrig::Action &action = rna_action(ptr);
+  animrig::Layer *active_layer = action.layer_active_get();
+
+  if (!active_layer) {
+    return PointerRNA_NULL;
+  }
+  return RNA_pointer_create_discrete(&action.id, RNA_ActionLayer, active_layer);
+}
+
+static void rna_ActionLayers_active_set(PointerRNA *ptr,
+                                        PointerRNA value,
+                                        struct ReportList * /*reports*/)
+{
+  animrig::Action &action = rna_action(ptr);
+
+  if (!value.data) {
+    /* The active layer cannot be unset. Some layer is always active. */
+    return;
+  }
+  animrig::Layer &layer = rna_data_layer(&value);
+  action.layer_active_set(layer);
+}
+
 static ActionLayer *rna_Action_layers_new(bAction *dna_action,
                                           bContext *C,
                                           ReportList *reports,
@@ -1689,6 +1714,15 @@ static void rna_def_action_layers(BlenderRNA *brna, PropertyRNA *cprop)
   srna = RNA_def_struct(brna, "ActionLayers", nullptr);
   RNA_def_struct_sdna(srna, "bAction");
   RNA_def_struct_ui_text(srna, "Action Layers", "Collection of animation layers");
+
+  PropertyRNA *prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ActionLayer");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_pointer_funcs(
+      prop, "rna_ActionLayers_active_get", "rna_ActionLayers_active_set", nullptr, nullptr);
+  RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN);
+  RNA_def_property_ui_text(prop, "Active Layer", "Active layer for this action");
 
   /* Animation.layers.new(...) */
   func = RNA_def_function(srna, "new", "rna_Action_layers_new");

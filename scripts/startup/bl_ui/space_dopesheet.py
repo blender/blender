@@ -710,7 +710,7 @@ class DopesheetActionPanelBase:
     bl_label = "Action"
 
     @classmethod
-    def draw_generic_panel(cls, _context, layout, action):
+    def draw_generic_panel(cls, context, layout, action):
         layout.label(text=action.name, icon='ACTION', translate=False)
 
         layout.prop(action, "use_frame_range")
@@ -723,6 +723,9 @@ class DopesheetActionPanelBase:
         row.prop(action, "frame_end", text="End")
 
         col.prop(action, "use_cyclic")
+
+        if context.preferences.experimental.use_action_layers:
+            layout.prop_search(action.layers, "active", action, "layers")
 
 
 class DOPESHEET_PT_custom_props_action(PropertyPanel, Panel):
