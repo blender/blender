@@ -2463,7 +2463,8 @@ static Base *mouse_select_object_center(const ViewContext *vc, Base *startbase, 
 
 static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
                                                  const int mval[2],
-                                                 int *r_material_slot)
+                                                 int *r_material_slot,
+                                                 bool skip_editmode)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Base *basact = nullptr;
@@ -2475,7 +2476,9 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
   /* Signal for #view3d_gpu_select to skip edit-mode objects. */
-  vc.obedit = nullptr;
+  if (skip_editmode) {
+    vc.obedit = nullptr;
+  }
 
   const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
   const bool do_material_slot_selection = r_material_slot != nullptr;
@@ -2494,7 +2497,12 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
 
 Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 {
-  return ed_view3d_give_base_under_cursor_ex(C, mval, nullptr);
+  return ed_view3d_give_base_under_cursor_ex(C, mval, nullptr, false);
+}
+
+Base *ED_view3d_give_base_under_cursor_skip_editmode(bContext *C, const int mval[2])
+{
+  return ed_view3d_give_base_under_cursor_ex(C, mval, nullptr, true);
 }
 
 Object *ED_view3d_give_object_under_cursor(bContext *C, const int mval[2])
@@ -2510,7 +2518,7 @@ Object *ED_view3d_give_material_slot_under_cursor(bContext *C,
                                                   const int mval[2],
                                                   int *r_material_slot)
 {
-  Base *base = ed_view3d_give_base_under_cursor_ex(C, mval, r_material_slot);
+  Base *base = ed_view3d_give_base_under_cursor_ex(C, mval, r_material_slot, false);
   if (base) {
     return base->object;
   }

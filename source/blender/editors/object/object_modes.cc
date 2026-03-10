@@ -542,7 +542,7 @@ static wmOperatorStatus object_transfer_mode_invoke(bContext *C,
   Object *ob_src = CTX_data_active_object(C);
   const eObjectMode mode_src = eObjectMode(ob_src->mode);
 
-  Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
+  Base *base_dst = ED_view3d_give_base_under_cursor_skip_editmode(C, event->mval);
   if (!base_dst) {
     BKE_reportf(op->reports, RPT_ERROR, "No target object to transfer the mode to");
     return OPERATOR_CANCELLED;
