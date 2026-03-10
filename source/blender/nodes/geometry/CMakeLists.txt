@@ -249,6 +249,7 @@ set(SRC
   nodes/node_geo_set_material_index.cc
   nodes/node_geo_set_mesh_normal.cc
   nodes/node_geo_set_nurbs_order.cc
+  nodes/node_geo_set_nurbs_weight.cc
   nodes/node_geo_set_point_radius.cc
   nodes/node_geo_set_position.cc
   nodes/node_geo_set_shade_smooth.cc
