@@ -66,6 +66,7 @@
 #include "BLO_read_write.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
 #include "ANIM_action_legacy.hh"
 #include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
@@ -493,7 +494,6 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
    * bottom layer, first Keyframe strip. */
   const bool do_write_forward_compat = !BLO_write_is_undo(writer) && action.slot_array_num > 0;
   if (do_write_forward_compat) {
-    animrig::assert_baklava_phase_1_invariants(action);
     BLI_assert_msg(BLI_listbase_is_empty(&action.curves),
                    "Layered Action should not have legacy data");
     BLI_assert_msg(BLI_listbase_is_empty(&action.groups),
@@ -519,7 +519,15 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
      * forward-compat legacy data is also written, and vice-versa. Both have
      * pointers to each other that won't resolve properly when loaded in older
      * Blender versions if only one is written. */
-    animrig::Channelbag *bag = channelbag_for_action_slot(action, first_slot.handle);
+    animrig::Channelbag *bag;
+    animrig::foreach_keyframe_strip_in_action_slot(action,
+                                                   first_slot.handle,
+                                                   [&](animrig::Layer & /* layer */,
+                                                       animrig::Strip & /* strip */,
+                                                       animrig::Channelbag &channelbag) {
+                                                     bag = &channelbag;
+                                                     return false;
+                                                   });
     if (bag) {
       action_blend_write_make_legacy_fcurves_listbase(action.curves, bag->fcurves());
       action_blend_write_make_legacy_channel_groups_listbase(action.groups, bag->channel_groups());
