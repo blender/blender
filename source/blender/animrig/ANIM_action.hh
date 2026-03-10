@@ -640,6 +640,8 @@ class Layer : public ActionLayer {
   enum class Flags : uint8_t {
     /* Set by default, cleared to mute. */
     Enabled = (1 << 0),
+    /* If set, the layer cannot be modified by the user. */
+    Locked = (1 << 1),
   };
 
   Flags flags() const
@@ -650,6 +652,11 @@ class Layer : public ActionLayer {
   bool is_enabled() const
   {
     return this->layer_flags & int(Flags::Enabled);
+  }
+
+  bool is_locked() const
+  {
+    return this->layer_flags & int(Flags::Locked);
   }
 
   enum class MixMode : int8_t {

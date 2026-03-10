@@ -1899,6 +1899,15 @@ static void rna_def_action_layer(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_Action_tag_animupdate");
 #  endif
 
+  prop = RNA_def_property(srna, "is_locked", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Locked", "If locked, the layer and its contents cannot be modified");
+  RNA_def_property_boolean_sdna(prop, nullptr, "layer_flags", int(animrig::Layer::Flags::Locked));
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN);
+
   /* Collection properties. */
   prop = RNA_def_property(srna, "strips", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionStrip");
