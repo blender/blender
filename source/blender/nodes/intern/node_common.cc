@@ -1049,13 +1049,20 @@ static bool group_input_insert_link(bke::NodeInsertLinkParams &params)
     /* Don't connect to other "extend" sockets. */
     return false;
   }
-  const bNodeTreeInterfaceSocket *io_socket = node_interface::add_interface_socket_from_node(
+  bNodeTreeInterfaceSocket *io_socket = node_interface::add_interface_socket_from_node(
       params.ntree, *params.link.tonode, *params.link.tosock);
   if (!io_socket) {
     return false;
   }
   update_node_declaration_and_sockets(params.ntree, params.node);
   params.link.fromsock = node_group_input_find_socket(&params.node, io_socket->identifier);
+
+  params.ntree.tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+    item.set_selected(false);
+    return true;
+  });
+  params.ntree.tree_interface.active_item_set(&io_socket->item);
+
   return true;
 }
 
@@ -1070,13 +1077,20 @@ static bool group_output_insert_link(bke::NodeInsertLinkParams &params)
     /* Don't connect to other "extend" sockets. */
     return false;
   }
-  const bNodeTreeInterfaceSocket *io_socket = node_interface::add_interface_socket_from_node(
+  bNodeTreeInterfaceSocket *io_socket = node_interface::add_interface_socket_from_node(
       params.ntree, *params.link.fromnode, *params.link.fromsock);
   if (!io_socket) {
     return false;
   }
   update_node_declaration_and_sockets(params.ntree, params.node);
   params.link.tosock = node_group_output_find_socket(&params.node, io_socket->identifier);
+
+  params.ntree.tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+    item.set_selected(false);
+    return true;
+  });
+  params.ntree.tree_interface.active_item_set(&io_socket->item);
+
   return true;
 }
 
