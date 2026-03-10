@@ -1093,6 +1093,19 @@ const EnumPropertyItem *RNA_node_tree_interface_socket_menu_itemf(bContext * /*C
   return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
 }
 
+int RNA_node_tree_interface_socket_menu_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  const bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+  if (!socket) {
+    return 0;
+  }
+  const bNodeSocketValueMenu *data = static_cast<bNodeSocketValueMenu *>(socket->socket_data);
+  if (!data->enum_items || data->enum_items->items.is_empty()) {
+    return 0;
+  }
+  return data->enum_items->items.first().identifier;
+}
+
 }  // namespace blender
 
 #else

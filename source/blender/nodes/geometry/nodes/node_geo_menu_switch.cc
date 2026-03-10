@@ -87,6 +87,9 @@ static void node_declare(nodes::NodeDeclarationBuilder &b)
   if (supports_fields) {
     menu.supports_field();
   }
+  menu.default_value(MenuValue(storage.enum_definition.items().is_empty() ?
+                                   0 :
+                                   storage.enum_definition.items().first().identifier));
   menu.structure_type(menu_structure_type);
   menu.optional_label();
 
