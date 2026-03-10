@@ -851,7 +851,7 @@ static wmOperatorStatus wm_xr_navigation_fly_modal(bContext *C,
     }
     else {
       speed_max = U.xr_navigation.turn_speed;
-      speed = speed_max * RNA_boolean_get(op->ptr, "turn_speed_factor");
+      speed = speed_max * RNA_float_get(op->ptr, "turn_speed_factor");
     }
   }
   else {
