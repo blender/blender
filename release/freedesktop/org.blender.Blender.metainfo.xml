@@ -52,9 +52,9 @@
             <description>
                 <p>New features:</p>
                 <ul>
-                    <li>Rendering: New Shader Raycast Node, imrpvoed Cycles rendering performance</li>
-                    <li>Geometry Nodes: New nodes for Volume Grids, String handling and a Bone Info node</li>
-                    <li>Virtual Reality: Arc teleportation ray drawing and functionalities overhaul</li>
+                    <li>Rendering: New Shader Raycast Node, improved Cycles rendering performance</li>
+                    <li>Geometry Nodes: New nodes for Volume Grids, string handling and a Bone Info node</li>
+                    <li>Virtual Reality: Arc teleportation ray drawing and functionality overhaul</li>
                 </ul>
                 <p>Enhancements:</p>
                 <ul>
