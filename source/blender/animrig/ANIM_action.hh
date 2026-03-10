@@ -1569,11 +1569,11 @@ const animrig::Channelbag *channelbag_for_action_slot(const Action &action,
 animrig::Channelbag *channelbag_for_action_slot(Action &action, slot_handle_t slot_handle);
 
 /**
- * Returns the channelbag of the active layer for the given action and slot.
- *
- * \note This function is only valid until support for multiple strips per layer are added.
+ * Returns the channelbags of the active layer for the given action and slot.
+ * The returned Vector can be empty if none of the strips on the active layer have a channelbag for
+ * the given slot.
  */
-Channelbag *channelbag_of_active_layer(Action &action, slot_handle_t slot_handle);
+Vector<Channelbag *> channelbags_of_active_layer(Action &action, slot_handle_t slot_handle);
 
 /**
  * Return the F-Curves for this specific slot handle.

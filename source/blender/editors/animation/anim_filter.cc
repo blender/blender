@@ -1645,8 +1645,9 @@ size_t ANIM_animfilter_action_slot(bAnimContext *ac,
   const bool visible_only = (filter_mode & ANIMFILTER_LIST_VISIBLE);
   const bool expansion_is_ok = !visible_only || !show_slot_channel || slot.is_expanded();
 
-  animrig::Channelbag *channelbag = animrig::channelbag_of_active_layer(action, slot.handle);
-  if (channelbag == nullptr) {
+  Vector<animrig::Channelbag *> channelbags = animrig::channelbags_of_active_layer(action,
+                                                                                   slot.handle);
+  if (channelbags.is_empty()) {
     return items;
   }
 
@@ -1654,6 +1655,8 @@ size_t ANIM_animfilter_action_slot(bAnimContext *ac,
     return items;
   }
 
+  animrig::assert_baklava_phase_2_invariants(action);
+  animrig::Channelbag *channelbag = channelbags[0];
   /* Add channel groups and their member channels. */
   for (bActionGroup *group : channelbag->channel_groups()) {
     items += animfilter_act_group(

@@ -2488,29 +2488,28 @@ animrig::Channelbag *channelbag_for_action_slot(Action &action, const slot_handl
   return const_cast<animrig::Channelbag *>(const_bag);
 }
 
-Channelbag *channelbag_of_active_layer(Action &action, slot_handle_t slot_handle)
+Vector<Channelbag *> channelbags_of_active_layer(Action &action, slot_handle_t slot_handle)
 {
-  assert_baklava_phase_2_invariants(action);
-
   if (slot_handle == Slot::unassigned) {
-    return nullptr;
+    return {};
   }
   Layer *layer = action.layer(action.layer_active_index);
   if (!layer) {
-    return nullptr;
+    return {};
   }
+  Vector<Channelbag *> channelbags;
   for (Strip *strip : layer->strips()) {
     switch (strip->type()) {
       case Strip::Type::Keyframe: {
         StripKeyframeData &strip_data = strip->data<StripKeyframeData>(action);
         Channelbag *bag = strip_data.channelbag_for_slot(slot_handle);
         if (bag) {
-          return bag;
+          channelbags.append(bag);
         }
       }
     }
   }
-  return nullptr;
+  return channelbags;
 }
 
 Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_handle)
@@ -2576,11 +2575,13 @@ FCurve *fcurve_find_in_action_slot(bAction *act,
   }
 
   Action &action = act->wrap();
-  Channelbag *cbag = channelbag_of_active_layer(action, slot_handle);
-  if (!cbag) {
+  Vector<Channelbag *> channelbags = channelbags_of_active_layer(action, slot_handle);
+  if (channelbags.is_empty()) {
     return nullptr;
   }
-  return cbag->fcurve_find(fcurve_descriptor);
+
+  assert_baklava_phase_2_invariants(action);
+  return channelbags[0]->fcurve_find(fcurve_descriptor);
 }
 
 bool fcurve_matches_collection_path(const FCurve &fcurve,
