@@ -378,7 +378,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
   }
 
   AnimKeylist *keylist = ED_keylist_create();
-  for (FCurve *fcu : animrig::fcurves_for_assigned_action(ob->adt)) {
+  for (FCurve *fcu : animrig::legacy::fcurves_for_assigned_action(ob->adt)) {
     fcurve_to_keylist(ob->adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, true);
   }
 
