@@ -1,0 +1,36 @@
+diff -Naur rubberband-4.0.0/rubberband/RubberBandLiveShifter.h external_rubberband/rubberband/RubberBandLiveShifter.h
+--- rubberband-4.0.0/rubberband/RubberBandLiveShifter.h	2024-10-25 09:26:08.000000000 -0700
++++ external_rubberband/rubberband/RubberBandLiveShifter.h	2026-03-10 08:06:31.677491500 -0700
+@@ -30,7 +30,7 @@
+ 
+ #undef RUBBERBAND_LIVE_DLLEXPORT
+ #ifdef _MSC_VER
+-#define RUBBERBAND_LIVE_DLLEXPORT __declspec(dllexport)
++#define RUBBERBAND_LIVE_DLLEXPORT 
+ #else
+ #define RUBBERBAND_LIVE_DLLEXPORT
+ #endif
+diff -Naur rubberband-4.0.0/rubberband/RubberBandStretcher.h external_rubberband/rubberband/RubberBandStretcher.h
+--- rubberband-4.0.0/rubberband/RubberBandStretcher.h	2024-10-25 09:26:08.000000000 -0700
++++ external_rubberband/rubberband/RubberBandStretcher.h	2026-03-10 08:08:49.779572600 -0700
+@@ -31,7 +31,7 @@
+ #undef RUBBERBAND_DLLEXPORT
+ #ifdef _MSC_VER
+ #ifndef RUBBERBAND_STATIC
+-#define RUBBERBAND_DLLEXPORT __declspec(dllexport)
++#define RUBBERBAND_DLLEXPORT
+ #else
+ #define RUBBERBAND_DLLEXPORT
+ #endif
+diff -Naur rubberband-4.0.0/rubberband/rubberband-c.h external_rubberband/rubberband/rubberband-c.h
+--- rubberband-4.0.0/rubberband/rubberband-c.h	2024-10-25 09:26:08.000000000 -0700
++++ external_rubberband/rubberband/rubberband-c.h	2026-03-10 08:06:31.693140200 -0700
+@@ -36,7 +36,7 @@
+ #undef RB_EXTERN
+ #ifdef _MSC_VER
+ #ifndef RUBBERBAND_STATIC
+-#define RB_EXTERN extern __declspec(dllexport)
++#define RB_EXTERN extern
+ #else
+ #define RB_EXTERN extern
+ #endif
