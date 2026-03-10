@@ -1003,6 +1003,13 @@ static void id_local_fn(bContext *C,
     Main *bmain = CTX_data_main(C);
     if (BKE_lib_id_make_local(bmain, tselem->id, LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR)) {
       BKE_id_newptr_and_tag_clear(tselem->id);
+
+      /* Fix an edge case where a data pointer can be invalid during drawing after a grease
+       * pencil data block is made local. See
+       * https://projects.blender.org/blender/blender/pulls/153750. */
+      if (GS(tselem->id->name) == ID_GP) {
+        DEG_id_tag_update(tselem->id, ID_RECALC_GEOMETRY);
+      }
     }
   }
   else if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id)) {
