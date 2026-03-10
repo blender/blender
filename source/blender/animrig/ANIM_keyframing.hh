@@ -195,9 +195,10 @@ bool insert_keyframe_direct(ReportList *reports,
 int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna_path, float cfra);
 
 /**
- * Main Keyframing API call:
- * Use this when validation of necessary animation data isn't necessary as it
- * already exists. It will clear the current buttons fcurve(s).
+ * \brief Main Keyframing API call.
+ *
+ * This will remove all fcurves matching the given `rna_path` in the action and slot of the IDs
+ * `bAnimData`. Locked data is not modified.
  *
  * \return The number of f-curves removed.
  */
