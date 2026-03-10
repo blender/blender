@@ -990,6 +990,7 @@ static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
       case FILE_ASSET_IMPORT_APPEND:
       case FILE_ASSET_IMPORT_APPEND_REUSE:
       case FILE_ASSET_IMPORT_FOLLOW_PREFS:
+      case FILE_ASSET_IMPORT_PACK:
         break;
       default:
         sfile->asset_params->import_method = FILE_ASSET_IMPORT_FOLLOW_PREFS;
