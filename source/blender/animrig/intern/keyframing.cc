@@ -255,12 +255,32 @@ eInsertKeyFlags get_keyframing_flags(Scene *scene)
   return flag;
 }
 
+static bool channelbag_has_key_at(animrig::Channelbag &channelbag, const float frame)
+{
+  const Span<const FCurve *> fcurves = channelbag.fcurves();
+  /* 1024 is a common value for memory bandwidth limited tasks. The number isn't critical:
+   * 512 works fine here, but 128 and 4096 seem to work equally well in testing. */
+  return threading::parallel_reduce<bool>(
+      fcurves.index_range(),
+      512,
+      false,
+      [&](const IndexRange range, const bool is_found) {
+        if (is_found) {
+          return true;
+        }
+        for (const FCurve *fcu : fcurves.slice(range)) {
+          if (fcurve_frame_has_keyframe(fcu, frame)) {
+            return true;
+          }
+        }
+        return false;
+      },
+      std::logical_or<bool>());
+}
+
 /**
  * Checks whether the Action assigned to `adt` (if any) has any keyframes at the
- * given frame. Since we're only concerned whether a keyframe exists, we can
- * simply loop until a match is found.
- *
- * For layered actions, this only checks for keyframes in the assigned slot.
+ * given frame. This looks on all layers and strips.
  */
 static bool assigned_action_has_keyframe_at(AnimData &adt, const float frame)
 {
@@ -272,25 +292,20 @@ static bool assigned_action_has_keyframe_at(AnimData &adt, const float frame)
     return false;
   }
 
-  const Span<FCurve *> fcurves = animrig::legacy::fcurves_for_assigned_action(&adt);
-  /* 1024 is a common value for memory bandwidth limited tasks. The number isn't critical: 512
-   * works fine here, but 128 and 4096 seem to work equally well in testing. */
-  return threading::parallel_reduce<bool>(
-      fcurves.index_range(),
-      512,
-      false,
-      [&](const IndexRange range, const bool is_found) {
-        if (is_found) {
+  return !animrig::foreach_keyframe_strip_in_action_slot(
+      adt.action->wrap(),
+      adt.slot_handle,
+      [&](animrig::Layer &layer, animrig::Strip &strip, animrig::Channelbag &channelbag) {
+        if (!layer.is_enabled()) {
           return true;
         }
-        for (FCurve *fcu : fcurves.slice(range)) {
-          if (fcurve_frame_has_keyframe(fcu, frame)) {
-            return true;
-          }
+        if (!strip.contains_frame(frame)) {
+          return true;
         }
-        return false;
-      },
-      std::logical_or<bool>());
+        const bool has_key = channelbag_has_key_at(channelbag, frame);
+        /* If there is a key we can stop iterating. */
+        return !has_key;
+      });
 }
 
 /* Checks whether an Object has a keyframe for a given frame. */

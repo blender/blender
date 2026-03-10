@@ -55,6 +55,17 @@ void foreach_fcurve_in_action_slot(Action &action,
 void foreach_fcurve_in_action_slot_editable(Action &action,
                                             slot_handle_t handle,
                                             FunctionRef<void(FCurve &fcurve)> callback);
+/**
+ * Iterates over all keyframe strips for the given action slot combination and executes the
+ * callback on it. The iteration is stopped if the callback returns false.
+ *
+ * \returns true if the iteration ran until the end. False if it was stopped by a callback
+ * returning false.
+ */
+bool foreach_keyframe_strip_in_action_slot(
+    Action &action,
+    slot_handle_t handle,
+    FunctionRef<bool(Layer &layer, Strip &strip, Channelbag &channelbag)> callback);
 
 /**
  * Call the given callback for each Action + Slot that this ID uses.

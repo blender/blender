@@ -647,6 +647,11 @@ class Layer : public ActionLayer {
     return static_cast<Flags>(this->layer_flags);
   }
 
+  bool is_enabled() const
+  {
+    return this->layer_flags & int(Flags::Enabled);
+  }
+
   enum class MixMode : int8_t {
     /** Channels in this layer override the same channels from underlying layers. */
     Replace = 0,
