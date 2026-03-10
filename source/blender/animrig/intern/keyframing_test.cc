@@ -989,4 +989,159 @@ TEST_F(KeyframingTest, insert_keyframes__nla_time_remapping)
   BKE_nla_tweakmode_exit({object_with_nla->id, *object_with_nla->adt});
 }
 
+class KeyframeDeleteTest : public testing::Test {
+ public:
+  Main *bmain;
+
+  /* The RNA path into which the SetUp inserts keyframes to delete. */
+  const char *TEST_RNA_PATH = "rotation_euler";
+  Object *object;
+  PointerRNA object_rna_pointer;
+  Action *test_action;
+  ReportList reports;
+
+  static void SetUpTestSuite()
+  {
+    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
+    CLG_init();
+    RNA_init();
+
+    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
+    BKE_idtype_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    RNA_exit();
+    CLG_exit();
+  }
+
+  void SetUp() override
+  {
+    bmain = BKE_main_new();
+    BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
+
+    object = BKE_object_add_only_object(bmain, OB_EMPTY, "Empty");
+    object_rna_pointer = RNA_id_pointer_create(&object->id);
+
+    AnimationEvalContext anim_eval_context = {nullptr, 1.0};
+
+    const CombinedKeyingResult result = insert_keyframes(bmain,
+                                                         &object_rna_pointer,
+                                                         std::nullopt,
+                                                         {{TEST_RNA_PATH}},
+                                                         1.0,
+                                                         anim_eval_context,
+                                                         BEZT_KEYTYPE_KEYFRAME,
+                                                         INSERTKEY_NOFLAGS);
+
+    ASSERT_EQ(3, result.get_count(SingleKeyingResult::SUCCESS));
+    ASSERT_NE(object->adt->action, nullptr);
+
+    test_action = &object->adt->action->wrap();
+    ASSERT_EQ(test_action->layers().size(), 1);
+    ASSERT_EQ(test_action->layer(0)->strips().size(), 1);
+    StripKeyframeData &strip_data = test_action->layer(0)->strip(0)->data<StripKeyframeData>(
+        *test_action);
+    Channelbag *channelbag = strip_data.channelbag_for_slot(object->adt->slot_handle);
+    ASSERT_NE(channelbag, nullptr);
+
+    ASSERT_EQ(channelbag->fcurves().size(), 3);
+  }
+
+  void TearDown() override
+  {
+    BKE_reports_free(&reports);
+    BKE_main_free(bmain);
+  }
+};
+
+TEST_F(KeyframeDeleteTest, delete_keyframe_single_layer)
+{
+  StripKeyframeData &strip_data = test_action->layer(0)->strip(0)->data<StripKeyframeData>(
+      *test_action);
+  Channelbag *channelbag = strip_data.channelbag_for_slot(object->adt->slot_handle);
+
+  EXPECT_EQ(channelbag->fcurves().size(), 3);
+
+  delete_keyframe(bmain, &reports, &object->id, {TEST_RNA_PATH}, 1.0);
+
+  EXPECT_EQ(channelbag->fcurves().size(), 0)
+      << "Deleting the last keyframe should delete the FCurve";
+}
+
+TEST_F(KeyframeDeleteTest, delete_keyframe_single_layer_locked_fcurves)
+{
+  StripKeyframeData &strip_data = test_action->layer(0)->strip(0)->data<StripKeyframeData>(
+      *test_action);
+  Channelbag *channelbag = strip_data.channelbag_for_slot(object->adt->slot_handle);
+
+  EXPECT_EQ(channelbag->fcurves().size(), 3);
+
+  for (FCurve *fcurve : channelbag->fcurves()) {
+    fcurve->flag |= FCURVE_PROTECTED;
+  }
+
+  delete_keyframe(bmain, &reports, &object->id, {TEST_RNA_PATH}, 1.0);
+
+  EXPECT_EQ(channelbag->fcurves().size(), 3) << "Protected FCurves should not be modified.";
+}
+
+TEST_F(KeyframeDeleteTest, delete_keyframe_locked_layer)
+{
+  StripKeyframeData &strip_data = test_action->layer(0)->strip(0)->data<StripKeyframeData>(
+      *test_action);
+  Channelbag *channelbag = strip_data.channelbag_for_slot(object->adt->slot_handle);
+
+  EXPECT_EQ(channelbag->fcurves().size(), 3);
+
+  test_action->layer(0)->layer_flags |= int(Layer::Flags::Locked);
+  delete_keyframe(bmain, &reports, &object->id, {TEST_RNA_PATH}, 1.0);
+
+  EXPECT_EQ(channelbag->fcurves().size(), 3)
+      << "Keyframes should not be deleted from a locked layer.";
+}
+
+TEST_F(KeyframeDeleteTest, delete_keyframe_multi_layer)
+{
+  Layer &first_layer = *test_action->layer(0);
+  Layer &second_layer = test_action->layer_add("second");
+  Strip &second_strip = second_layer.strip_add(*test_action, Strip::Type::Keyframe);
+  StripKeyframeData &second_layer_keydata = second_strip.data<StripKeyframeData>(*test_action);
+  Channelbag &second_layer_channelbag = second_layer_keydata.channelbag_for_slot_add(
+      object->adt->slot_handle);
+
+  Slot *slot = test_action->slot_for_handle(object->adt->slot_handle);
+  ASSERT_NE(slot, nullptr);
+  second_layer_keydata.keyframe_insert(bmain,
+                                       *slot,
+                                       {TEST_RNA_PATH, 0},
+                                       {2.0, 0.0},
+                                       {BEZT_KEYTYPE_KEYFRAME, HD_FREE, BEZT_IPO_LIN});
+  EXPECT_EQ(second_layer_channelbag.fcurves().size(), 1);
+
+  StripKeyframeData &first_layer_keydata =
+      test_action->layer(0)->strip(0)->data<StripKeyframeData>(*test_action);
+  Channelbag *first_layer_channelbag = first_layer_keydata.channelbag_for_slot(
+      object->adt->slot_handle);
+  EXPECT_EQ(first_layer_channelbag->fcurves().size(), 3);
+
+  test_action->layer_active_set(second_layer);
+  delete_keyframe(bmain, &reports, &object->id, {TEST_RNA_PATH}, 1.0);
+
+  /* Should only remove from active layer, which is the second layer and that has no keyframes on
+   * frame 1. */
+  EXPECT_EQ(first_layer_channelbag->fcurves().size(), 3);
+  EXPECT_EQ(second_layer_channelbag.fcurves().size(), 1);
+
+  delete_keyframe(bmain, &reports, &object->id, {TEST_RNA_PATH}, 2.0);
+  EXPECT_EQ(first_layer_channelbag->fcurves().size(), 3);
+  EXPECT_EQ(second_layer_channelbag.fcurves().size(), 0);
+
+  test_action->layer_active_set(first_layer);
+  delete_keyframe(bmain, &reports, &object->id, {TEST_RNA_PATH}, 1.0);
+  EXPECT_EQ(first_layer_channelbag->fcurves().size(), 0);
+  EXPECT_EQ(second_layer_channelbag.fcurves().size(), 0);
+}
+
 }  // namespace blender::animrig::tests

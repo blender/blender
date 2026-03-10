@@ -612,21 +612,11 @@ int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna
     BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s", id->name);
     return 0;
   }
+
   bAction *act = adt->action;
   cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
-  int array_index = rna_path.index.value_or(0);
-  int array_index_max = array_index + 1;
-
-  if (!rna_path.index.has_value()) {
-    array_index_max = RNA_property_array_length(&ptr, prop);
-    /* For single properties, increase max_index so that the property itself gets included,
-     * but don't do this for standard arrays since that can cause corruption issues
-     * (extra unused curves).
-     */
-    if (array_index_max == array_index) {
-      array_index_max++;
-    }
-  }
+  int array_index = rna_path.index.value_or(-1);
+  const bool modify_all_indices = array_index == -1;
 
   Action &action = act->wrap();
   Vector<FCurve *> modified_fcurves;
@@ -634,20 +624,47 @@ int delete_keyframe(Main *bmain, ReportList *reports, ID *id, const RNAPath &rna
    * probably isn't necessary, but it doesn't hurt. */
   BLI_assert(adt->action == act && action.slot_for_handle(adt->slot_handle) != nullptr);
 
-  Span<FCurve *> fcurves = fcurves_for_action_slot(action, adt->slot_handle);
-  /* This loop's clause is copied from the pre-existing code for legacy
-   * actions below, to ensure behavioral consistency between the two code
-   * paths. In the future when legacy actions are removed, we can restructure
-   * it to be clearer. */
-  for (; array_index < array_index_max; array_index++) {
-    FCurve *fcurve = fcurve_find(fcurves, {rna_path.path, array_index});
-    if (fcurve == nullptr) {
-      continue;
-    }
-    if (fcurve_delete_keyframe_at_time(fcurve, cfra)) {
-      modified_fcurves.append(fcurve);
-    }
+  Layer *active_layer = action.layer_active_get();
+  if (!active_layer) {
+    BKE_reportf(
+        reports, RPT_ERROR, "No active layer to delete keyframes from for ID = %s", id->name);
+    return 0;
   }
+  if (active_layer->is_locked()) {
+    BKE_reportf(
+        reports, RPT_ERROR, "Cannot delete keyframes from locked layer for ID = %s", id->name);
+    return 0;
+  }
+
+  foreach_keyframe_strip_in_action_slot(
+      action, adt->slot_handle, [&](Layer &layer, Strip &strip, Channelbag &channelbag) {
+        if (&layer != active_layer) {
+          /* It would be nicer to have an iterator for a layer, however this is so fast it likely
+           * won't matter in practice. */
+          return true;
+        }
+        /* Checked before. */
+        BLI_assert(!layer.is_locked());
+        if (!strip.contains_frame(cfra)) {
+          return true;
+        }
+
+        for (FCurve *fcurve : channelbag.fcurves()) {
+          if (fcurve == nullptr) {
+            continue;
+          }
+          if (!modify_all_indices && array_index != fcurve->array_index) {
+            continue;
+          }
+          if (StringRefNull(fcurve->rna_path) != rna_path.path) {
+            continue;
+          }
+          if (fcurve_delete_keyframe_at_time(fcurve, cfra)) {
+            modified_fcurves.append(fcurve);
+          }
+        }
+        return true;
+      });
 
   if (!modified_fcurves.is_empty()) {
     for (FCurve *fcurve : modified_fcurves) {
