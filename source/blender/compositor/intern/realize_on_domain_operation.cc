@@ -9,7 +9,6 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
-#include "GPU_capabilities.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
@@ -289,15 +288,7 @@ SimpleOperation *RealizeOnDomainOperation::construct_if_needed(
     return nullptr;
   }
 
-  if (!context.use_gpu()) {
-    return new RealizeOnDomainOperation(context, realized_target_domain, input_descriptor.type);
-  }
-
-  /* Make sure the data size of the domain does not surpass what is possible on GPU. */
-  Domain safe_realized_target_domain = realized_target_domain;
-  safe_realized_target_domain.data_size = math::min(realized_target_domain.data_size,
-                                                    int2(GPU_max_texture_size()));
-  return new RealizeOnDomainOperation(context, safe_realized_target_domain, input_descriptor.type);
+  return new RealizeOnDomainOperation(context, realized_target_domain, input_descriptor.type);
 }
 
 }  // namespace blender::compositor

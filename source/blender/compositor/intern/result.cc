@@ -392,9 +392,9 @@ eGPUDataFormat Result::get_gpu_data_format() const
   return Result::gpu_data_format(type_);
 }
 
-static Domain sanitize_domain_size(const Domain domain,
-                                   const Context &context,
-                                   const std::optional<ResultStorageType> storage_type)
+static Domain sanitize_domain_data_size(const Domain domain,
+                                        const Context &context,
+                                        const std::optional<ResultStorageType> storage_type)
 {
   Domain sanitized_domain = domain;
   const bool use_gpu = storage_type.has_value() ? storage_type.value() == ResultStorageType::GPU :
@@ -413,7 +413,7 @@ void Result::allocate_texture(const Domain domain,
   BLI_assert(!Result::is_single_value_only_type(this->type()));
 
   is_single_value_ = false;
-  domain_ = sanitize_domain_size(domain, *context_, storage_type);
+  domain_ = sanitize_domain_data_size(domain, *context_, storage_type);
   this->allocate_data(domain_.data_size, from_pool, storage_type);
 }
 
