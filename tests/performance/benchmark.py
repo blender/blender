@@ -13,6 +13,7 @@ import api
 import argparse
 import fnmatch
 import glob
+import logging
 import pathlib
 import shutil
 import sys
@@ -359,6 +360,7 @@ def cmd_graph(argv: list):
 
 
 def main():
+    logging.basicConfig()
     usage = ('benchmark <command> [<args>]\n'
              '\n'
              'Commands:\n'

@@ -30,6 +30,7 @@ class TestEntry:
     device_type: str = 'CPU'
     device_id: str = 'CPU'
     device_name: str = 'Unknown CPU'
+    device_cpu: str = ''
     status: str = 'queued'
     # Short, single-line error.
     error_msg: str = ''
@@ -272,6 +273,9 @@ class TestConfig:
                         entry.executable = executable
                         entry.benchmark_type = self.benchmark_type
                         entry.date = date
+                        entry.device_name = device.name
+                        if device.cpu:
+                            entry.device_cpu = device.cpu
                         if entry.status in {'done', 'failed'}:
                             entry.status = 'outdated'
                 else:
@@ -287,6 +291,7 @@ class TestConfig:
                         device_type=device.type,
                         device_id=device.id,
                         device_name=device.name,
+                        device_cpu=device.cpu,
                         benchmark_type=self.benchmark_type)
                 entries.append(entry)
 

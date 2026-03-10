@@ -36,12 +36,16 @@ class TestGraph:
 
             # Gather used categories.
             categories = {}
+            device_cpu = ''
             for entry in device_entries:
                 category = entry.category
                 if category in categories.keys():
                     categories[category].append(entry)
                 else:
                     categories[category] = [entry]
+
+                if device_cpu == '':
+                    device_cpu = entry.device_cpu
 
             # Sort categories alphabetically.
             sorted_categories = sorted(categories.items(), key=lambda item: item[0])
@@ -60,11 +64,11 @@ class TestGraph:
 
                 for output in sorted(outputs, reverse=True):
                     chart_name = f"{category} ({output})"
-                    data.append(self.chart(device_name, chart_name, entries, chart_type, output))
+                    data.append(self.chart(device_name, device_cpu, chart_name, entries, chart_type, output))
 
         self.json = json.dumps(data, indent=2)
 
-    def chart(self, device_name: str, chart_name: str, entries: list, chart_type: str, output: str) -> dict:
+    def chart(self, device_name: str, device_cpu, chart_name: str, entries: list, chart_type: str, output: str) -> dict:
         # Gather used tests.
         tests = {}
         for entry in entries:
@@ -128,7 +132,12 @@ class TestGraph:
                 datasets[test_index]['data'][revision_index] = output_value
 
         data = {'labels': labels, 'datasets': datasets}
-        return {'device': device_name, 'name': chart_name, 'data': data, 'chart_type': chart_type}
+        return {
+            'device': device_name,
+            'device_cpu': device_cpu,
+            'name': chart_name,
+            'data': data,
+            'chart_type': chart_type}
 
     def write(self, filepath: pathlib.Path) -> None:
         # Write HTML page with JSON graph data embedded.
