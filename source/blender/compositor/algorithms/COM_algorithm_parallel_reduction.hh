@@ -41,6 +41,7 @@ float4 sum_squared_difference_color(Context &context,
 
 /* Computes the minimum value of all pixels in the given input. */
 float minimum_float(Context &context, const Result &input);
+Color minimum_color(Context &context, const Result &input);
 
 /* Computes the minimum luminance of all pixels in the given input, using the given luminance
  * coefficients to compute the luminance. */
@@ -66,6 +67,7 @@ float minimum_float_in_range(Context &context,
 /* Computes the maximum value of all pixels in the given input. */
 float maximum_float(Context &context, const Result &input);
 float2 maximum_float2(Context &context, const Result &input);
+Color maximum_color(Context &context, const Result &input);
 
 /* Computes the maximum luminance of all pixels in the given input, using the given luminance
  * coefficients to compute the luminance. */
