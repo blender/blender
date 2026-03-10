@@ -121,6 +121,7 @@ add_definitions(
   -D_CONSOLE
   -D_LIB
   -D_USE_MATH_DEFINES
+  -DWIN32_LEAN_AND_MEAN
   -DNOMINMAX
 )
 

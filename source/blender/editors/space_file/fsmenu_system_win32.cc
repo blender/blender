@@ -8,6 +8,9 @@
  */
 
 /* Need to include windows.h so _WIN32_IE is defined. */
+#ifdef WIN32_LEAN_AND_MEAN
+#  undef WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
  * because 'near' is disabled through BLI_windstuff. */

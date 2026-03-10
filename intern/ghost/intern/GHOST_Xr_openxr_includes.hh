@@ -14,7 +14,6 @@
 
 /* Platform headers */
 #ifdef XR_USE_PLATFORM_WIN32
-#  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #endif
 

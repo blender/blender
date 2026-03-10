@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef _WIN32
+#  ifdef WIN32_LEAN_AND_MEAN
+#    undef WIN32_LEAN_AND_MEAN
+#  endif
 #  include <windows.h>
 #endif
 
