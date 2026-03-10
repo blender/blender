@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "The distance in pixel to the nearest pixel at the boundary of the mask. The distance "
           "is negative inside the mask");
-  b.add_output<decl::Vector>("Nearest Pixel")
+  b.add_output<decl::IntVector>("Nearest Pixel")
       .dimensions(2)
       .structure_type(StructureType::Dynamic)
       .description("The integer coordinates of the nearest pixel at the boundary of the mask");
@@ -40,7 +40,6 @@ class MaskToSDFOperation : public NodeOperation {
     Result &distance_output = this->get_result("SDF");
 
     Result &nearest_pixel_output = this->get_result("Nearest Pixel");
-    nearest_pixel_output.set_type(ResultType::Int2);
     nearest_pixel_output.set_precision(ResultPrecision::Half);
 
     if (input_mask.is_single_value()) {
@@ -67,8 +66,6 @@ class MaskToSDFOperation : public NodeOperation {
     }
 
     if (nearest_pixel_output.should_compute()) {
-      nearest_pixel_output.set_type(ResultType::Int2);
-      nearest_pixel_output.set_precision(ResultPrecision::Half);
       nearest_pixel_output.steal_data(flooded_boundary);
     }
     else {

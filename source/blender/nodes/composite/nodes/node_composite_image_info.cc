@@ -20,10 +20,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .compositor_realization_mode(CompositorInputRealizationMode::None)
       .structure_type(StructureType::Dynamic);
 
-  b.add_output<decl::Vector>("Dimensions")
+  b.add_output<decl::IntVector>("Dimensions")
       .dimensions(2)
       .description("The dimensions of the image in pixels with transformations applied");
-  b.add_output<decl::Vector>("Resolution")
+  b.add_output<decl::IntVector>("Resolution")
       .dimensions(2)
       .description("The original resolution of the image in pixels before any transformations");
   b.add_output<decl::Vector>("Location").dimensions(2);
@@ -55,13 +55,13 @@ class ImageInfoOperation : public NodeOperation {
     if (dimensions_result.should_compute()) {
       dimensions_result.allocate_single_value();
       const Domain realized_domain = domain.realize_transformation();
-      dimensions_result.set_single_value(float2(realized_domain.data_size));
+      dimensions_result.set_single_value(realized_domain.data_size);
     }
 
     Result &resolution_result = this->get_result("Resolution");
     if (resolution_result.should_compute()) {
       resolution_result.allocate_single_value();
-      resolution_result.set_single_value(float2(domain.data_size));
+      resolution_result.set_single_value(domain.data_size);
     }
 
     math::AngleRadian rotation;

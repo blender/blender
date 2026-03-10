@@ -42,7 +42,8 @@ bool operator==(const ImageCoordinatesKey &a, const ImageCoordinatesKey &b)
  */
 
 ImageCoordinates::ImageCoordinates(Context &context, const int2 &size, const CoordinatesType type)
-    : result(context.create_result(ResultType::Float2))
+    : result(context.create_result(type == CoordinatesType::Pixel ? ResultType::Int2 :
+                                                                    ResultType::Float2))
 {
   this->result.allocate_texture(Domain(size), false);
 
@@ -110,7 +111,7 @@ void ImageCoordinates::compute_cpu(const CoordinatesType type)
     }
     case CoordinatesType::Pixel: {
       parallel_for(this->result.domain().data_size,
-                   [&](const int2 texel) { this->result.store_pixel(texel, float2(texel)); });
+                   [&](const int2 texel) { this->result.store_pixel(texel, texel); });
       break;
     }
   }

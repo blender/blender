@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .dimensions(2)
       .structure_type(StructureType::Dynamic)
       .description("Normalized coordinates with half pixel offsets");
-  b.add_output<decl::Vector>("Pixel")
+  b.add_output<decl::IntVector>("Pixel")
       .dimensions(2)
       .structure_type(StructureType::Dynamic)
       .description("Integer pixel coordinates");
