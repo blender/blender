@@ -15,6 +15,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -294,6 +295,22 @@ static void memfile_undosys_step_decode(
         Scene *scene = id_cast<Scene *>(id);
         if (scene->master_collection != nullptr) {
           scene->master_collection->id.recalc_after_undo_push = 0;
+        }
+      }
+      else if (GS(id->name) == ID_OB) {
+        /* In some cases when using memfile undo in sculpt mode, the object but not the
+         * corresponding mesh will be tagged for an update, leading to invalid data and crashes.
+         *
+         * This is a band-aid mitigation for the 5.1 release, not a proper fix of the underlying
+         * problem.
+         *
+         * See #152087 for more details. */
+        Object *object = reinterpret_cast<Object *>(id);
+        if (object->type == OB_MESH) {
+          Mesh *mesh = id_cast<Mesh *>(object->data);
+          if (object->mode == OB_MODE_SCULPT && mesh) {
+            DEG_id_tag_update_ex(bmain, &mesh->id, ID_RECALC_GEOMETRY);
+          }
         }
       }
     }
