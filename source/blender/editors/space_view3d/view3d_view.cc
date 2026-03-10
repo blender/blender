@@ -542,6 +542,13 @@ static bool drw_select_filter_object_mode_lock(Object *ob, void *user_data)
   return BKE_object_is_mode_compat(ob, eObjectMode(obact->mode));
 }
 
+/** Implement #VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK_SAME_TYPE. */
+static bool drw_select_filter_object_mode_lock_same_type(Object *ob, void *user_data)
+{
+  const Object *obact = static_cast<const Object *>(user_data);
+  return (obact->type == ob->type) && BKE_object_is_mode_compat(ob, eObjectMode(obact->mode));
+}
+
 /**
  * Implement #VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK for special case when
  * we want to select pose bones (this doesn't switch modes).
@@ -619,6 +626,14 @@ int view3d_gpu_select_ex(const ViewContext *vc,
       Object *obact = vc->obact;
       if (obact && obact->mode != OB_MODE_OBJECT) {
         object_filter.fn = drw_select_filter_object_mode_lock;
+        object_filter.user_data = obact;
+      }
+      break;
+    }
+    case VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK_SAME_TYPE: {
+      Object *obact = vc->obact;
+      if (obact && obact->mode != OB_MODE_OBJECT) {
+        object_filter.fn = drw_select_filter_object_mode_lock_same_type;
         object_filter.user_data = obact;
       }
       break;
