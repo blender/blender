@@ -1229,17 +1229,31 @@ static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallba
    * As such, legacy Actions should always be expected here. */
 
   if (adt->action) {
-    if (!fcurves_apply_cb(
-            id, animrig::fcurves_for_action_slot(adt->action->wrap(), adt->slot_handle), func))
-    {
+    animrig::Action &action = adt->action->wrap();
+    const bool result = animrig::foreach_keyframe_strip_in_action_slot(
+        action,
+        adt->slot_handle,
+        [&](animrig::Layer & /* layer */,
+            animrig::Strip & /* strip */,
+            animrig::Channelbag &channelbag) {
+          return fcurves_apply_cb(id, channelbag.fcurves(), func);
+        });
+    if (!result) {
       return false;
     }
   }
 
   if (adt->tmpact) {
-    if (!fcurves_apply_cb(
-            id, animrig::fcurves_for_action_slot(adt->tmpact->wrap(), adt->tmp_slot_handle), func))
-    {
+    animrig::Action &action = adt->tmpact->wrap();
+    const bool result = animrig::foreach_keyframe_strip_in_action_slot(
+        action,
+        adt->tmp_slot_handle,
+        [&](animrig::Layer & /* layer */,
+            animrig::Strip & /* strip */,
+            animrig::Channelbag &channelbag) {
+          return fcurves_apply_cb(id, channelbag.fcurves(), func);
+        });
+    if (!result) {
       return false;
     }
   }
