@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
 "PO-Revision-Date: 2026-02-06 22:29+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -117948,6 +117948,10 @@ msgid "Calculation Range"
 msgstr "Phạm Vi Tính Toán"
 
 
+msgid "Frame Range Start"
+msgstr "Phạm Vi Khung Hình Bắt Đầu"
+
+
 msgid "Bake to Active Camera"
 msgstr "Nướng vào Máy Quay Phim Đang Hoạt Động"
 
@@ -117997,10 +118001,6 @@ msgstr "+ Khung Khóa Ngoại Nhóm"
 
 msgid "Before"
 msgstr "Trước"
-
-
-msgid "Frame Range Start"
-msgstr "Phạm Vi Khung Hình Bắt Đầu"
 
 
 msgid "Collection Mask"

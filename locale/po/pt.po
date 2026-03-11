@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
-"PO-Revision-Date: 2026-03-09 06:12+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"PO-Revision-Date: 2026-03-11 00:12+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -9549,7 +9549,7 @@ msgstr "O objecto é restrito na superfície de uma esfera virtual em torno do o
 
 
 msgid "Lock X Pos"
-msgstr "Travar posicionamento em X"
+msgstr "Trancar posicionamento em X"
 
 
 msgid "Constraint position along X axis"
@@ -9557,7 +9557,7 @@ msgstr "Posição de restrição ao longo do eixo X."
 
 
 msgid "Lock Y Pos"
-msgstr "Travar posicionamento em Y"
+msgstr "Trancar posicionamento em Y"
 
 
 msgid "Constraint position along Y axis"
@@ -9565,7 +9565,7 @@ msgstr "Posição de restrição ao longo do eixo Y."
 
 
 msgid "Lock Z Pos"
-msgstr "Travar posicionamento em Z"
+msgstr "Trancar posicionamento em Z"
 
 
 msgid "Constraint position along Z axis"
@@ -9573,7 +9573,7 @@ msgstr "Posição de restrição ao longo do eixo Z."
 
 
 msgid "Lock X Rotation"
-msgstr "Travar rotação em X"
+msgstr "Trancar rotação em X"
 
 
 msgid "Constraint rotation along X axis"
@@ -9581,7 +9581,7 @@ msgstr "Restrição de rotação ao longo do eixo X."
 
 
 msgid "Lock Y Rotation"
-msgstr "Travar rotação em Y"
+msgstr "Trancar rotação em Y"
 
 
 msgid "Constraint rotation along Y axis"
@@ -9589,7 +9589,7 @@ msgstr "Restrição de rotação ao longo do eixo Y."
 
 
 msgid "Lock Z Rotation"
-msgstr "Travar rotação em Z"
+msgstr "Trancar rotação em Z"
 
 
 msgid "Constraint rotation along Z axis"
@@ -9629,7 +9629,7 @@ msgstr "Eixo de referência"
 
 
 msgid "Constraint axis Lock options relative to Bone or Target reference"
-msgstr "Opções de restrição para travar eixos relativas ao osso ou referência alvo."
+msgstr "Opções de restrição para trancar eixos relativas ao osso ou referência alvo."
 
 
 msgid "Bone"
@@ -12405,7 +12405,7 @@ msgstr "Caminho de saída"
 
 
 msgid "Directory to save the textures"
-msgstr "Diretório para guardar as texturas."
+msgstr "Directório para guardar as texturas."
 
 
 msgid "Resolution"
@@ -14674,7 +14674,7 @@ msgstr "Um número inteiro único identificando a pré visualização deste fich
 
 
 msgid "Relative Path"
-msgstr "Diretórios relativos"
+msgstr "Directórios relativos"
 
 
 msgid "Path relative to the directory currently displayed in the File Browser (includes the file name)"
@@ -14742,11 +14742,11 @@ msgstr "Mostrar materiais, árvores de nós, texturas e estilos de linha Freesty
 
 
 msgid "Directory"
-msgstr "Diretório"
+msgstr "Directório"
 
 
 msgid "Directory displayed in the file browser"
-msgstr "Diretório exibido no navegador de ficheiros."
+msgstr "Directório exibido no navegador de ficheiros."
 
 
 msgid "Display Size"
@@ -14858,11 +14858,11 @@ msgstr "Recursão"
 
 
 msgid "Numbers of dirtree levels to show simultaneously"
-msgstr "Número dos níveis da árvore de diretórios a ser mostrados simultaneamente."
+msgstr "Número dos níveis da árvore de directórios a ser mostrados simultaneamente."
 
 
 msgid "Only list current directory's content, with no recursion"
-msgstr "Lista apenas o conteúdo do diretório actual, sem recursões."
+msgstr "Lista apenas o conteúdo do directório actual, sem recursões."
 
 
 msgid "Blend File"
@@ -14878,7 +14878,7 @@ msgstr "Um nível"
 
 
 msgid "List all sub-directories' content, one level of recursion"
-msgstr "Lista o conteúdo de todos os sub-diretórios, com um nível de recursão."
+msgstr "Lista o conteúdo de todos os sub-directórios, com um nível de recursão."
 
 
 msgid "Two Levels"
@@ -14886,7 +14886,7 @@ msgstr "Dois níveis"
 
 
 msgid "List all sub-directories' content, two levels of recursion"
-msgstr "Lista o conteúdo de todos os sub-diretórios, com dois níveis de recursão."
+msgstr "Lista o conteúdo de todos os sub-directórios, com dois níveis de recursão."
 
 
 msgid "Three Levels"
@@ -14894,7 +14894,7 @@ msgstr "Três níveis"
 
 
 msgid "List all sub-directories' content, three levels of recursion"
-msgstr "Lista o conteúdo de todos os sub-diretórios, com três níveis de recursão."
+msgstr "Lista o conteúdo de todos os sub-directórios, com três níveis de recursão."
 
 
 msgid "File Modification Date"
@@ -25659,11 +25659,11 @@ msgstr "Usa uma aproximação para pré visualização e/ou índice de códigos 
 
 
 msgid "Proxy Custom Directory"
-msgstr "Diretório personalizado para aproximações"
+msgstr "Directório personalizado para aproximações"
 
 
 msgid "Create proxy images in a custom directory (default is movie location)"
-msgstr "Cria imagens de aproximação em um diretório personalizado (o padrão é a localização do filme)."
+msgstr "Cria imagens de aproximação em um directório personalizado (o padrão é a localização do filme)."
 
 
 msgid "Node tree consisting of linked nodes used for shading, textures and compositing"
@@ -26339,7 +26339,7 @@ msgstr "A localização do objecto activo."
 
 
 msgid "Lock Location"
-msgstr "Travar as localizações"
+msgstr "Trancar as localizações"
 
 
 msgid "Lock editing of location when transforming"
@@ -26347,7 +26347,7 @@ msgstr "Bloquear edição de posição durante transformação"
 
 
 msgid "Lock Rotation"
-msgstr "Travar as rotações"
+msgstr "Trancar as rotações"
 
 
 msgid "Lock editing of rotation when transforming"
@@ -26355,7 +26355,7 @@ msgstr "Bloquear edição de rotação durante transformação"
 
 
 msgid "Lock Rotation (4D Angle)"
-msgstr "Travar as rotações (ângulos 4D)"
+msgstr "Trancar as rotações (ângulos 4D)"
 
 
 msgid "Lock editing of 'angle' component of four-component rotations when transforming"
@@ -26363,7 +26363,7 @@ msgstr "Bloquear edição do componente 'ângulo' de rotações de quatro compon
 
 
 msgid "Lock Rotations (4D)"
-msgstr "Travar as rotações (4D)"
+msgstr "Trancar as rotações (4D)"
 
 
 msgid "Lock editing of four component rotations by components (instead of as Eulers)"
@@ -26371,7 +26371,7 @@ msgstr "Permite o travamento da edição dos quatro componentes das rotações i
 
 
 msgid "Lock Scale"
-msgstr "Travar os escalonamentos"
+msgstr "Trancar os escalonamentos"
 
 
 msgid "Lock editing of scale when transforming"
@@ -26818,7 +26818,7 @@ msgstr "Eixo que aponta na direcção para cima (aplica-se à Instanciação por
 
 
 msgid "Camera Parent Lock"
-msgstr "Travar câmara ao parente"
+msgstr "Trancar câmara ao parente"
 
 
 msgid "View Lock 3D viewport camera transformation affects the object's parent instead"
@@ -28395,7 +28395,7 @@ msgstr "Todos os conjuntos de chaves de interpolação estão disponíveis para 
 
 
 msgid "Lock Frame Selection"
-msgstr "Travar a selecção de fotogramas"
+msgstr "Trancar a selecção de fotogramas"
 
 
 msgid "Don't allow frame to be selected with mouse outside of frame range"
@@ -31094,7 +31094,7 @@ msgstr "Guardar canais luminância-chrominância-chrominância em vez de cores R
 
 
 msgid "When rendering animations, save JPG preview images in same directory"
-msgstr "Durante a renderização das animações, guarda imagens de pré-visualização em formato JPG no mesmo diretório."
+msgstr "Durante a renderização das animações, guarda imagens de pré-visualização em formato JPG no mesmo directório."
 
 
 msgid "Format of multiview media"
@@ -59057,7 +59057,7 @@ msgstr "Abrir um navegador de directórios, mantenha a tecla Shift pressionada p
 
 
 msgid "Directory of the file"
-msgstr "Diretório do ficheiro"
+msgstr "Directório do ficheiro"
 
 
 msgid "Select the file relative to the blend file"
@@ -59608,7 +59608,7 @@ msgstr "Trancar rastreadores seleccionados"
 
 
 msgid "Unlock"
-msgstr "Destravar"
+msgstr "Destrancar"
 
 
 msgid "Unlock selected tracks"
@@ -62298,7 +62298,7 @@ msgstr "Copiar"
 
 
 msgid "Copy the file to the destination path (or subdirectory)"
-msgstr "Copia o ficheiro para o caminho de destinação (ou subdiretório)."
+msgstr "Copia o ficheiro para o caminho de destinação (ou subdirectório)."
 
 
 msgid "Primary Bone Axis"
@@ -62342,11 +62342,11 @@ msgstr "Apenas escrever os ossos que deformam (e aqueles que não deformam quand
 
 
 msgid "Batch Own Dir"
-msgstr "Lotes em diretórios próprios"
+msgstr "Lotes em directórios próprios"
 
 
 msgid "Create a dir for each exported file"
-msgstr "Cria um diretório para cada ficheiro exportado, executando as tarefas em lote."
+msgstr "Cria um directório para cada ficheiro exportado, executando as tarefas em lote."
 
 
 msgid "Custom Properties"
@@ -63420,7 +63420,7 @@ msgstr "Adicionar favorito"
 
 
 msgid "Add a bookmark for the selected/active directory"
-msgstr "Adiciona o diretório seleccionado ou activo como favorito."
+msgstr "Adiciona o directório seleccionado ou activo como favorito."
 
 
 msgctxt "Operator"
@@ -63482,15 +63482,15 @@ msgstr "Mover ficheiros seleccionadas para o lixo ou reciclagem"
 
 msgctxt "Operator"
 msgid "Create New Directory"
-msgstr "Criar novo diretório"
+msgstr "Criar novo directório"
 
 
 msgid "Create a new directory"
-msgstr "Cria um novo diretório."
+msgstr "Cria um novo directório."
 
 
 msgid "Name of new directory"
-msgstr "Nome do novo diretório"
+msgstr "Nome do novo directório"
 
 
 msgid "Open"
@@ -63498,7 +63498,7 @@ msgstr "Abrir"
 
 
 msgid "Open new directory"
-msgstr "Abre um novo diretório"
+msgstr "Abre um novo directório"
 
 
 msgctxt "Operator"
@@ -63718,7 +63718,7 @@ msgstr "Próxima pasta"
 
 
 msgid "Move to next folder"
-msgstr "Navegação no próximo diretório (referenciado pela navegação prévia)."
+msgstr "Navegação no próximo directório (referenciado pela navegação prévia)."
 
 
 msgctxt "Operator"
@@ -63745,7 +63745,7 @@ msgstr "Directório Ascendente"
 
 
 msgid "Move to parent directory"
-msgstr "Navegação no diretório parente (um nível acima na árvore)."
+msgstr "Navegação no directório parente (um nível acima na árvore)."
 
 
 msgctxt "Operator"
@@ -63754,7 +63754,7 @@ msgstr "Pasta anterior"
 
 
 msgid "Move to previous folder"
-msgstr "Navegação no diretório anterior."
+msgstr "Navegação no directório anterior."
 
 
 msgctxt "Operator"
@@ -63768,11 +63768,11 @@ msgstr "Actualiza a lista de ficheiros."
 
 msgctxt "Operator"
 msgid "Rename File or Directory"
-msgstr "Renomear ficheiro ou diretório"
+msgstr "Renomear ficheiro ou directório"
 
 
 msgid "Rename file or file directory"
-msgstr "Permite renomear um ficheiro ou diretório de ficheiros."
+msgstr "Permite renomear um ficheiro ou directório de ficheiros."
 
 
 msgctxt "Operator"
@@ -63815,7 +63815,7 @@ msgstr "Não alterar selecção se o item sob o cursor já estiver seleccionado,
 
 
 msgid "Open a directory when selecting it"
-msgstr "Abre um diretório durante sua selecção."
+msgstr "Abre um directório durante sua selecção."
 
 
 msgid "Pass Through"
@@ -63837,11 +63837,11 @@ msgstr "Selecciona ou desseleciona todos os ficheiros."
 
 msgctxt "Operator"
 msgid "Select Directory"
-msgstr "Seleccionar diretório"
+msgstr "Seleccionar directório"
 
 
 msgid "Select a bookmarked directory"
-msgstr "Selecciona um diretório marcado como preferencial."
+msgstr "Selecciona um directório marcado como preferencial."
 
 
 msgid "Activate/select the file(s) contained in the border"
@@ -63905,11 +63905,11 @@ msgstr "Como extrair"
 
 
 msgid "Use files in current directory (create when necessary)"
-msgstr "Usa os ficheiros no diretório actual (cria ficheiros quando necessário)."
+msgstr "Usa os ficheiros no directório actual (cria ficheiros quando necessário)."
 
 
 msgid "Write files to current directory (overwrite existing files)"
-msgstr "Escreve os ficheiros no diretório actual (sobrescreve os ficheiros existentes)."
+msgstr "Escreve os ficheiros no directório actual (sobrescreve os ficheiros existentes)."
 
 
 msgid "Use files in original location (create when necessary)"
@@ -63946,11 +63946,11 @@ msgstr "Tipo de identificador para o identificador de bloco."
 
 
 msgid "Use file from current directory (create when necessary)"
-msgstr "Usa ficheiros do diretório actual (criar quando necessário)."
+msgstr "Usa ficheiros do directório actual (criar quando necessário)."
 
 
 msgid "Write file to current directory (overwrite existing file)"
-msgstr "Escreve o ficheiro no diretório actual (sobrescrevendo os ficheiros existentes)."
+msgstr "Escreve o ficheiro no directório actual (sobrescrevendo os ficheiros existentes)."
 
 
 msgid "Use file in original location (create when necessary)"
@@ -66229,7 +66229,7 @@ msgstr "Afectar também a visibilidade"
 
 msgctxt "Operator"
 msgid "Lock All Layers"
-msgstr "Travar todas as camadas"
+msgstr "Trancar todas as camadas"
 
 
 msgid "Lock all Grease Pencil layers to prevent them from being accidentally modified"
@@ -67257,7 +67257,7 @@ msgstr "Normalizar os pesos de todos os grupos de vértices, de modo que, para c
 
 
 msgid "Lock Active"
-msgstr "Travar o activo"
+msgstr "Trancar o activo"
 
 
 msgid "Keep the values of the active group while normalizing others"
@@ -67504,7 +67504,7 @@ msgstr "Procurar Imagem"
 
 
 msgid "Open an image file browser, hold Shift to open the file, Alt to browse containing directory"
-msgstr "Abrir um navegador de ficheiros de imagem, mantenha a tecla Shift pressionada para abrir o ficheiro, e a tecla Alt para navegar no diretório recipiente."
+msgstr "Abrir um navegador de ficheiros de imagem, mantenha a tecla Shift pressionada para abrir o ficheiro, e a tecla Alt para navegar no directório recipiente."
 
 
 msgctxt "Operator"
@@ -68318,7 +68318,7 @@ msgstr "Pesquisa de imagem"
 
 
 msgid "Search subdirs for any associated images (WARNING: may be slow)"
-msgstr "Pesquisa os sub-diretórios por quaisquer imagens associadas (ATENÇÃO: pode ser lento)."
+msgstr "Pesquisa os sub-directórios por quaisquer imagens associadas (ATENÇÃO: pode ser lento)."
 
 
 msgid "Manual Orientation"
@@ -83985,7 +83985,7 @@ msgstr "A duração de cada fotograma."
 
 msgctxt "Operator"
 msgid "Lock Strips"
-msgstr "Travar faixas"
+msgstr "Trancar faixas"
 
 
 msgid "Lock strips so they cannot be transformed"
@@ -85420,7 +85420,7 @@ msgstr "Coluna para a qual saltar"
 
 
 msgid "Filepath"
-msgstr "Diretórios"
+msgstr "Directórios"
 
 
 msgid "Line to jump to"
@@ -88638,7 +88638,7 @@ msgstr "Centrar a vista de câmara, redimensionando a vista para caber nos limit
 
 msgctxt "Operator"
 msgid "View Lock Center"
-msgstr "Travar a visualização no centro"
+msgstr "Trancar a visualização no centro"
 
 
 msgid "Center the view lock offset"
@@ -88665,7 +88665,7 @@ msgstr "Limpa todas as travas de visualização."
 
 msgctxt "Operator"
 msgid "View Lock to Active"
-msgstr "Travar visualização no activo"
+msgstr "Trancar visualização no activo"
 
 
 msgid "Lock the view to the active object/bone"
@@ -91293,7 +91293,7 @@ msgstr "Criar modificadores de subdivisão de superfície com base no atributo U
 
 
 msgid "Textures Directory"
-msgstr "Diretório de texturas"
+msgstr "Directório de texturas"
 
 
 msgid "Path to the directory where imported textures will be copied"
@@ -92426,7 +92426,7 @@ msgstr "Objecto cujo eixo Z define a orientação da gravidade."
 
 
 msgid "Lock X"
-msgstr "Travar o eixo X"
+msgstr "Trancar o eixo X"
 
 
 msgid "Disallow changes to the X axis of vertices"
@@ -92434,7 +92434,7 @@ msgstr "Desativa as alterações para o eixo X dos vértices."
 
 
 msgid "Lock Y"
-msgstr "Travar o eixo Y"
+msgstr "Trancar o eixo Y"
 
 
 msgid "Disallow changes to the Y axis of vertices"
@@ -92442,7 +92442,7 @@ msgstr "Desativa as alterações para o eixo Y dos vértices."
 
 
 msgid "Lock Z"
-msgstr "Travar o eixo Z"
+msgstr "Trancar o eixo Z"
 
 
 msgid "Disallow changes to the Z axis of vertices"
@@ -95164,7 +95164,7 @@ msgstr "Armazenamento de pontos activo para simulações físicas"
 
 
 msgid "Cache file path"
-msgstr "Diretório de ficheiros de cache."
+msgstr "Directório de ficheiros de cache."
 
 
 msgid "Frame on which the simulation stops"
@@ -96437,19 +96437,19 @@ msgstr "Renderização Workbench da cena"
 
 
 msgid "Fonts Directory"
-msgstr "Diretório de fontes"
+msgstr "Directório de fontes"
 
 
 msgid "The default directory to search for loading fonts"
-msgstr "O diretório padrão para pesquisar por fontes de carregamento."
+msgstr "O directório padrão para pesquisar por fontes de carregamento."
 
 
 msgid "Translation Branches Directory"
-msgstr "Diretório de ramos de tradução"
+msgstr "Directório de ramos de tradução"
 
 
 msgid "The path to the '/branches' directory of your local svn-translation copy, to allow translating from the UI"
-msgstr "O caminho para o diretório de \"/branches\" de sua cópia local de tradução-svn, para permitir que sejam feitas traduções a partir da interface de utilizador (atenção: traduções de utilizador locais e não oficiais)."
+msgstr "O caminho para o directório de \"/branches\" de sua cópia local de tradução-svn, para permitir que sejam feitas traduções a partir da interface de utilizador (atenção: traduções de utilizador locais e não oficiais)."
 
 
 msgid "Image Editor"
@@ -96477,11 +96477,11 @@ msgstr "Local onde criar os resultados brutos de cache de renderização."
 
 
 msgid "Render Output Directory"
-msgstr "Diretório de saída de renderização"
+msgstr "Directório de saída de renderização"
 
 
 msgid "The default directory for rendering output, for new scenes"
-msgstr "O diretório padrão para a saída de renderização, para novas cenas."
+msgstr "O directório padrão para a saída de renderização, para novas cenas."
 
 
 msgid "Save Versions"
@@ -96489,11 +96489,11 @@ msgstr "Versões guardadas"
 
 
 msgid "The number of old versions to maintain in the current directory, when manually saving"
-msgstr "O número de versões antigas a ser mantidas dentro do diretório actual, quando os ficheiros são guardados manualmente."
+msgstr "O número de versões antigas a ser mantidas dentro do directório actual, quando os ficheiros são guardados manualmente."
 
 
 msgid "Python Scripts Directory"
-msgstr "Diretório de scripts Python"
+msgstr "Directório de scripts Python"
 
 
 msgid "Show Hidden Files/Data-Blocks"
@@ -96521,15 +96521,15 @@ msgstr "Mostra locais de sistema no navegador de ficheiros"
 
 
 msgid "Sounds Directory"
-msgstr "Diretório de sons"
+msgstr "Directório de sons"
 
 
 msgid "The default directory to search for sounds"
-msgstr "O diretório padrão para pesquisar por sons."
+msgstr "O directório padrão para pesquisar por sons."
 
 
 msgid "Temporary Directory"
-msgstr "Diretório temporário"
+msgstr "Directório temporário"
 
 
 msgid "The directory for storing temporary save files. The path must reference an existing directory or it will be ignored"
@@ -96567,7 +96567,7 @@ msgstr ""
 
 
 msgid "The default directory to search for textures"
-msgstr "O diretório padrão para pesquisar por texturas."
+msgstr "O directório padrão para pesquisar por texturas."
 
 
 msgid "Auto Save Temporary Files"
@@ -97966,10 +97966,6 @@ msgid "French - Français"
 msgstr "Francês - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Código de língua: fr_FR. Progresso de tradução: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
 
@@ -98036,10 +98032,6 @@ msgstr "Código de língua: it_IT. Progresso de tradução: 44%"
 
 msgid "Japanese - 日本語"
 msgstr "Japonês - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Código de língua: ja_JP. Progresso de tradução: 99%"
 
 
 msgid "Korean - 한국어"
@@ -98110,6 +98102,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Português (Portugal) - Português Europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 78%"
+msgstr "Código de língua: pt_PT. Progresso de tradução: 78%"
+
+
 msgid "Romanian - Român"
 msgstr "Romeno - Român"
 
@@ -98178,12 +98174,12 @@ msgid "Swedish - Svenska"
 msgstr "Sueco - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 21%"
-msgstr "Código de língua: sv_SE. Progresso de tradução: 21%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 100%"
+msgstr "Código de língua: ta. Progresso de tradução: 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -101064,7 +101060,7 @@ msgstr "Elemento de lista de ficheiros de operador"
 
 
 msgid "Name of a file or directory within a file list"
-msgstr "Nome de um ficheiro ou diretório constando numa lista de ficheiros."
+msgstr "Nome de um ficheiro ou directório constando numa lista de ficheiros."
 
 
 msgid "Operator Mouse Path"
@@ -104765,7 +104761,7 @@ msgstr "YCbCr (JPEG)"
 
 
 msgid "Alternate script path, matching the default layout with sub-directories: startup, add-ons, modules, and presets (requires restart)"
-msgstr "Caminho alternativo de scripts, respeitando o esquema organizacional padrão com os subdiretórios: startup, add-ons, modules, e presets (requer reinicialização)"
+msgstr "Caminho alternativo de scripts, respeitando o esquema organizacional padrão com os subdirectórios: startup, add-ons, modules, e presets (requer reinicialização)"
 
 
 msgid "Identifier for the Python scripts directory"
@@ -104821,7 +104817,7 @@ msgstr "Número de fotogramas a deslocar"
 
 
 msgid "Proxy Directory"
-msgstr "Diretório das aproximações"
+msgstr "Directório das aproximações"
 
 
 msgctxt "Sequence"
@@ -104848,7 +104844,7 @@ msgstr "Projetar"
 
 
 msgid "Store proxies using project directory"
-msgstr "Armazena as aproximações usando o diretório do projeto."
+msgstr "Armazena as aproximações usando o directório do projeto."
 
 
 msgid "Retiming Key Selection Status"
@@ -105994,7 +105990,7 @@ msgstr "A localização do cursor 2D para esta visualização."
 
 
 msgid "Lock to Selection"
-msgstr "Travar na selecção"
+msgstr "Trancar na selecção"
 
 
 msgid "Lock viewport to selected markers during playback"
@@ -106002,7 +105998,7 @@ msgstr "Trava a janela de visualização para os marcadores seleccionados durant
 
 
 msgid "Lock to Time Cursor"
-msgstr "Travar no cursor de tempo"
+msgstr "Trancar no cursor de tempo"
 
 
 msgid "Lock curves view to time cursor during playback and tracking"
@@ -108030,7 +108026,7 @@ msgstr "Mostrar um sub-conjunto de objectos isolados, separados da visibilidade 
 
 
 msgid "Lock to Bone"
-msgstr "Travar no osso"
+msgstr "Trancar no osso"
 
 
 msgid "3D View center is locked to this bone's position"
@@ -108038,7 +108034,7 @@ msgstr "O centro da janela de visualização 3D é travado para a posição dest
 
 
 msgid "Lock Camera to View"
-msgstr "Travar a câmara para a visualização"
+msgstr "Trancar a câmara para a visualização"
 
 
 msgid "Enable view navigation within the camera view"
@@ -108046,7 +108042,7 @@ msgstr "Ativa a navegação da janela de visualização dentro da visão da câm
 
 
 msgid "Lock to Cursor"
-msgstr "Travar no cursor"
+msgstr "Trancar no cursor"
 
 
 msgid "3D View center is locked to the cursor's position"
@@ -108054,7 +108050,7 @@ msgstr "O centro da janela de visualização 3D é travado para a localização 
 
 
 msgid "Lock to Object"
-msgstr "Travar no objecto"
+msgstr "Trancar no objecto"
 
 
 msgid "3D View center is locked to this object's position"
@@ -110468,7 +110464,7 @@ msgstr "Sobrescreve os ficheiros existentes das aproximações durante as constr
 
 
 msgid "Use a custom directory to store data"
-msgstr "Usa um diretório personalizado para guardar os dados."
+msgstr "Usa um directório personalizado para guardar os dados."
 
 
 msgid "Proxy Custom File"
@@ -112963,6 +112959,10 @@ msgid "Auto-Keying Mode"
 msgstr "Modo de auto inserção de chaves"
 
 
+msgid "Can add additional constraints on when auto keying can insert keyframes"
+msgstr "Pode adicionar restrições adicionais quando auto inserção de chaves pode inserir fotogramas chave"
+
+
 msgid "Add & Replace"
 msgstr "Adicionar e substituir"
 
@@ -113049,7 +113049,7 @@ msgstr "Permite definir o tipo de fotogramas chave que serão criados durante as
 
 
 msgid "Lock Markers"
-msgstr "Travar marcadores"
+msgstr "Trancar marcadores"
 
 
 msgid "Prevent marker editing"
@@ -113429,6 +113429,10 @@ msgid "Auto Keying"
 msgstr "Inserção de chaves automática"
 
 
+msgid "Automatically insert keyframes on modified properties"
+msgstr "Inserir automaticamente fotogramas chave nas propriedades modificadas"
+
+
 msgid "Auto Keyframe Insert Keying Set"
 msgstr "Inserção automática de fotograma chave para o conjunto de inserção de chaves"
 
@@ -113577,12 +113581,20 @@ msgid "Snap onto Non-edited"
 msgstr "Atrair a não editados"
 
 
+msgid "Snap onto objects not in edit mode (edit mode only)"
+msgstr "Atrair a objectos que não estão em Modo de Edição (Apenas em Modo de Edição)"
+
+
 msgid "Snap Peel Object"
 msgstr "Atrair a Objecto Casca"
 
 
 msgid "Consider objects as whole when finding volume center"
 msgstr "Considera os objectos como um todo durante a localização do centro do volume."
+
+
+msgid "Snap playhead when scrubbing"
+msgstr "Atrair Cursor de reprodução ao varrer"
 
 
 msgid "Use Snap for Rotation"
@@ -113613,12 +113625,28 @@ msgid "Snap onto Active"
 msgstr "Atrair para Activo"
 
 
+msgid "Snap onto itself only if enabled (edit mode only)"
+msgstr "Atrai para si mesmo apenas se activo (apenas Modo de Edição)"
+
+
+msgid "Snap strips during transform"
+msgstr "Atrair durante transformação"
+
+
 msgid "Absolute Time Snap"
 msgstr "Atracção ao Tempo Absoluto"
 
 
+msgid "Absolute time alignment when transforming keyframes"
+msgstr "Alinhamento de tempo absoluto ao transformar fotogramas chave"
+
+
 msgid "Snap to Same Target"
 msgstr "Atrair ao Mesmo Alvo"
+
+
+msgid "Snap only to target that source was initially near (\"Face Nearest\" only)"
+msgstr "Atrair apenas ao alvo perto do qual a origem estava inicialmente (Apenas \"Face mais Próxima\")"
 
 
 msgid "Use Snap for Translation"
@@ -113631,6 +113659,62 @@ msgstr "Movimentação é afectada por definições de atracção"
 
 msgid "Snap UV during transform"
 msgstr "Atrair UV durante transformação"
+
+
+msgid "Correct Face Attributes"
+msgstr "Corrigir Atributos de Face"
+
+
+msgid "Correct data such as UVs and color attributes when transforming"
+msgstr "Corrigir dados como UVs e atributos de cor ao transformar"
+
+
+msgid "Keep Connected"
+msgstr "Manter Conectados"
+
+
+msgid "During the Face Attributes correction, merge attributes connected to the same vertex"
+msgstr "Durante correcção de atributos, fundir atributos conectados ao mesmo vértice"
+
+
+msgid "Transform Origins"
+msgstr "Transformar Origens"
+
+
+msgid "Transform object origins, while leaving the shape in place"
+msgstr "Transformar origens de objectos, deixando a forma no mesmo sítio"
+
+
+msgid "Only Locations"
+msgstr "Apenas Posições"
+
+
+msgid "Only transform object locations, without affecting rotation or scaling"
+msgstr "Transformar apenas posições de objects, sem afectar rotação ou escala"
+
+
+msgid "Transform Parents"
+msgstr "Transformar Ascendentes"
+
+
+msgid "Transform the parents, leaving the children in place"
+msgstr "Transformar ascendentes, deixando descendentes no mesmo sítio"
+
+
+msgid "UV Custom Region"
+msgstr "Região Personalizada UV"
+
+
+msgid "Custom defined region"
+msgstr "Região definida personalizada"
+
+
+msgid "UV Island Selection"
+msgstr "Selecção de Ilhas UV"
+
+
+msgid "Island selection"
+msgstr "Selecção de ilhas"
 
 
 msgid "UV Sync Selection"
@@ -113654,7 +113738,7 @@ msgstr "Pincel opera em todas as ilhas"
 
 
 msgid "Lock Borders"
-msgstr "Travar as margens"
+msgstr "Trancar as margens"
 
 
 msgid "Disable editing of boundary edges"
@@ -113673,6 +113757,10 @@ msgid "Sticky Selection Mode"
 msgstr "Modo de selecção adesivo"
 
 
+msgid "Method for extending UV vertex selection"
+msgstr "Método para expandir selecção de vértices UV"
+
+
 msgid "Sticky vertex selection disabled"
 msgstr "Modo adesivo de selecção de vértices desactivado."
 
@@ -113683,6 +113771,10 @@ msgstr "Localização compartilhada"
 
 msgid "Select UVs that are at the same location and share a mesh vertex"
 msgstr "Selecciona as UVs que estão na mesma localização e compartilham um vértice de malha."
+
+
+msgid "Select UVs that share a mesh vertex, whether or not they are at the same location"
+msgstr "Seleccionar UVs que partilham um vértice de malha, quer estejam na mesma posição ou não."
 
 
 msgid "Filter Vertex groups for Display"
@@ -113725,16 +113817,87 @@ msgid "Weight to assign in vertex groups"
 msgstr "Peso para atribuir nos grupos de vértices."
 
 
+msgctxt "View3D"
+msgid "Drag"
+msgstr "Arrastar"
+
+
+msgid "Action when dragging in the viewport"
+msgstr "Acção ao arrastar na janela de visualização"
+
+
+msgctxt "View3D"
+msgid "Active Tool"
+msgstr "Ferramenta Activa"
+
+
+msgctxt "View3D"
+msgid "Select"
+msgstr "Seleccionar"
+
+
 msgid "Name of the custom transform orientation"
 msgstr "Nome da orientação de transformação personalizada."
+
+
+msgid "Orientation Slot"
+msgstr "Compartimento de Orientação"
 
 
 msgid "Current Transform Orientation"
 msgstr "Orientação de transformação actual"
 
 
+msgid "Use scene orientation instead of a custom setting"
+msgstr "Usar orientação da cena em vez de uma definição personalizada"
+
+
+msgid "UDIM Tile"
+msgstr "Quadrícula UDIM"
+
+
+msgid "Properties of the UDIM tile"
+msgstr "Propriedades da quadrícula UDIM"
+
+
+msgid "Number of channels in the tile pixels buffer"
+msgstr "Número de canais na memória temporária de pixeis da quadrícula"
+
+
+msgid "Is Generated Tile"
+msgstr "É Quadrícula Gerada"
+
+
+msgid "Is this image tile generated"
+msgstr "A quadrícula desta imagem é gerada"
+
+
 msgid "Tile label"
 msgstr "Legenda da Quadricula"
+
+
+msgid "Number of the position that this tile covers"
+msgstr "Número da posição que esta quadrícula cobre"
+
+
+msgid "Width and height of the tile buffer in pixels, zero when image data cannot be loaded"
+msgstr "Altura e largura da memória temporária em pixeis, zero quando a imagem não podem ser carregada"
+
+
+msgid "Collection of UDIM tiles"
+msgstr "Colecção de Quadrículas UDIM"
+
+
+msgid "Active Image Tile"
+msgstr "Quadrícula da Imagem Activa"
+
+
+msgid "Active Tile Index"
+msgstr "Índice da Quadrícula Activa"
+
+
+msgid "Active index in tiles array"
+msgstr "Índice activo na matriz de quadrículas"
 
 
 msgid "UI list containing the elements of a collection"
@@ -113747,6 +113910,14 @@ msgstr "Item de filtro"
 
 msgid "The value of the reserved bitflag 'FILTER_ITEM' (in filter_flags values)"
 msgstr "O valor para o \"Item de Filtro\" do tipo reservado de bitflag (em valores de bandeira de filtro ou filter_flag)."
+
+
+msgid "ITEM_NEVER_SHOW"
+msgstr "ITEM_NEVER_SHOW"
+
+
+msgid "Skip the item from displaying in the list"
+msgstr "Impedir item de aparecer na lista"
 
 
 msgid "If this is set, the uilist gets a custom ID, otherwise it takes the name of the class used to define the uilist (for example, if the class name is \"OBJECT_UL_vgroups\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_UL_vgroups\")"
@@ -113777,6 +113948,18 @@ msgid "Use the compact, single-row layout"
 msgstr "Usa o esquema compacto, de única linha."
 
 
+msgid "List Name"
+msgstr "Nome da Lista"
+
+
+msgid "Identifier of the list, if any was passed to the \"list_id\" parameter of \"template_list()\""
+msgstr "Identificador da da lista, se for passado algum ao parâmetro \"list_id\" de \"template_list()\""
+
+
+msgid "Invert filtering (show hidden items, and vice versa)"
+msgstr "Inverter filtragem (mostrar itens ocultos, e vice-versa)"
+
+
 msgid "Show Filter"
 msgstr "Mostrar filtros"
 
@@ -113793,6 +113976,54 @@ msgid "Sort items by their name"
 msgstr "Ordena os itens pelos seus nomes."
 
 
+msgid "Lock Order"
+msgstr "Trancar Ordem"
+
+
+msgid "Lock the order of shown items (user cannot change it)"
+msgstr "Trancar ordem de itens mostrados (utilizador não pode altera-la)"
+
+
+msgid "Reverse the order of shown items"
+msgstr "Inverter ordem dos itens mostrados"
+
+
+msgid "USD Hook"
+msgstr "Gancho USD"
+
+
+msgid "Defines callback functions to extend USD IO"
+msgstr "Função callback para expandir entrada/saída USD"
+
+
+msgid "A short description of the USD hook"
+msgstr "Breve descrição do gancho USD"
+
+
+msgid "UV Map Layers"
+msgstr "Camadas de Mapa UV"
+
+
+msgid "Collection of UV map layers"
+msgstr "Colecção de camadas mapa UV"
+
+
+msgid "Active UV Map Layer"
+msgstr "Camada de Mapa UV activa"
+
+
+msgid "Active UV Map layer"
+msgstr "Camada de mapa UV activa"
+
+
+msgid "Active UV Map Index"
+msgstr "Índice de Mapa UV Activo"
+
+
+msgid "Active UV map index"
+msgstr "Índice de mapa UV activo"
+
+
 msgid "UV projector used by the UV project modifier"
 msgstr "Projetor UV usado pelo modificador de projeção UV."
 
@@ -113805,12 +114036,32 @@ msgid "Overrides for some of the active brush's settings"
 msgstr "Sobrepõe algumas definições de pincel activas."
 
 
+msgid "Diameter of the brush"
+msgstr "Diâmetro do pincel"
+
+
 msgid "Use Unified Color"
 msgstr "Utilizar uma cor unificada"
 
 
 msgid "Instead of per-brush color, the color is shared across brushes"
 msgstr "Ao invés de usar cores por pincel, a cor é compartilhada entre todos os pincéis."
+
+
+msgid "Use Unified Input Samples"
+msgstr "Usar Amostras de Entrada Unificadas"
+
+
+msgid "Instead of per-brush input samples, the value is shared across brushes"
+msgstr "Em vez de amostras por pincel, o valor é partilhado entre todos os pincéis"
+
+
+msgid "Use Unified Size"
+msgstr "Usar Tamanho Unificado"
+
+
+msgid "Instead of per-brush size, the size is shared across brushes"
+msgstr "Em vez de tamanho por pincel, o tamanho é partilhado entre todos os pincéis"
 
 
 msgid "Use Unified Strength"
@@ -113829,12 +114080,36 @@ msgid "Instead of per-brush weight, the weight is shared across brushes"
 msgstr "Ao invés de peso por pincel, o peso é compartilhado entre todos os pincéis."
 
 
+msgid "Length Unit"
+msgstr "Unidade de Comprimento"
+
+
+msgid "Unit that will be used to display length values"
+msgstr "Unidade que será usada para mostrar valores de comprimento"
+
+
+msgid "Mass Unit"
+msgstr "Unidade de Massa"
+
+
+msgid "Unit that will be used to display mass values"
+msgstr "Unidade que será usada para mostrar valores de massa"
+
+
 msgid "Unit Scale"
 msgstr "Escala das unidades"
 
 
+msgid "Scale to use when converting between Blender units and dimensions. When working at microscopic or astronomical scale, a small or large unit scale respectively can be used to avoid numerical precision problems"
+msgstr "Escala a usar ao converter entre unidades Blender e dimensões. Quando trabalhando com escala microscópica ou astronómica, uma escala de unidades pequena ou grande respectivamente, pode ser usada para evitar problemas de precisão numérica"
+
+
 msgid "Unit System"
 msgstr "Sistema de unidades"
+
+
+msgid "The unit system to use for user interface controls"
+msgstr "O sistema de unidades usado para os controlos do interface do utilizador"
 
 
 msgid "Metric"
@@ -113861,6 +114136,22 @@ msgid "Radians"
 msgstr "Radianos"
 
 
+msgid "Temperature Unit"
+msgstr "Unidade de Temperatura"
+
+
+msgid "Unit that will be used to display temperature values"
+msgstr "Unidade que será usada para mostrar valores de temperatura"
+
+
+msgid "Time Unit"
+msgstr "Unidade de Tempo"
+
+
+msgid "Unit that will be used to display time values"
+msgstr "Unidade que será usada para mostrar valores de tempo"
+
+
 msgid "Separate Units"
 msgstr "Separação em unidades"
 
@@ -113869,8 +114160,75 @@ msgid "Display units in pairs (e.g. 1m 0cm)"
 msgstr "Mostra as unidades em pares (ex: 1m 0cm)."
 
 
+msgid "Settings to define a reusable library for Asset Browsers to use"
+msgstr "Definições para definir uma biblioteca navegadores de Recursos usarem"
+
+
+msgid "Enable the asset library"
+msgstr "Activar a biblioteca de recursos"
+
+
+msgid "Default Import Method"
+msgstr "Método de Importação Pré-Definido"
+
+
+msgid "Determine how the asset will be imported, unless overridden by the Asset Browser"
+msgstr "Determinar como será importado o recurso, excepto se revogado pelo Navegador de Recursos"
+
+
 msgid "Import the assets as copied data-block, with no link to the original asset data-block"
 msgstr "Importar os recursos como data-blocs copiados, sem ligação ao data-block original do recurso"
+
+
+msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
+msgstr "Importar os recursos como data-blocks copiados, evitando cópias múltiplas de informação integrada tipicamente pesada. Por exemplo as texturas de recurso de material, ou malhas de um recurso de objecto, não têm de ser copiadas cada vez que o recurso é importado. As instâncias deste recurso partilham a informação."
+
+
+msgid "Identifier (not necessarily unique) for the asset library"
+msgstr "Identificador (não necessariamente único) para a biblioteca de recursos"
+
+
+msgid "Path to a directory with .blend files to use as an asset library"
+msgstr "Caminho para a pasta com ficheiros .blend a usar como biblioteca de recursos"
+
+
+msgid "Use relative path when linking assets from this asset library"
+msgstr "Usar um caminho relativo ao vincular recursos desta biblioteca de recursos"
+
+
+msgid "Extension Repository"
+msgstr "Repositório de Extensões"
+
+
+msgid "Settings to define an extension repository"
+msgstr "Definições para definir um repositório de extensões"
+
+
+msgctxt "File browser"
+msgid "Custom Directory"
+msgstr "Directório Personalizado"
+
+
+msgctxt "File browser"
+msgid "Directory"
+msgstr "Directório"
+
+
+msgid "Enable the repository"
+msgstr "Activar o repositório"
+
+
+msgid "Unique module identifier"
+msgstr "Identificador único de módulo"
+
+
+msgctxt "File browser"
+msgid "URL"
+msgstr "URL"
+
+
+msgid "Select if the repository is in a user managed or system provided directory"
+msgstr "Seleccionar se o repositório está num directório gerido pelo utilizador, ou fornecido pelo sistema"
 
 
 msgid "Solid Light"
@@ -115303,7 +115661,7 @@ msgstr "Ocultar outros(as)"
 
 msgctxt "Operator"
 msgid "Lock All"
-msgstr "Travar todos"
+msgstr "Trancar todos"
 
 
 msgctxt "Operator"
@@ -116514,7 +116872,7 @@ msgstr "Inverter a Direcção de Ampliação da Roda do Rato"
 
 
 msgid "Lock Horizon"
-msgstr "Travar no horizonte"
+msgstr "Trancar no horizonte"
 
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
@@ -119993,7 +120351,7 @@ msgstr "O ficheiro não existe"
 
 
 msgid "No parent directory given"
-msgstr "Diretório parente não fornecido"
+msgstr "Directório parente não fornecido"
 
 
 msgid "Could not create new folder name"
