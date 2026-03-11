@@ -28,7 +28,7 @@
 #include <functional>
 #include <optional>
 
-#include "BLI_any.hh"
+#include "BLI_any_derived.hh"
 #include "BLI_array.hh"
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_index_mask.hh"
@@ -505,47 +505,6 @@ template<typename StructT,
 inline constexpr bool
     is_trivial_extended_v<VArrayImpl_For_DerivedSpan<StructT, ElemT, GetFunc, SetFunc>> = true;
 
-namespace detail {
-
-/**
- * Struct that can be passed as `ExtraInfo` into an #Any.
- * This struct is only intended to be used by #VArrayCommon.
- */
-template<typename T> struct VArrayAnyExtraInfo {
-  /**
-   * Gets the virtual array that is stored at the given pointer.
-   */
-  const VArrayImpl<T> *(*get_varray)(const void *buffer);
-
-  template<typename StorageT> static constexpr VArrayAnyExtraInfo get()
-  {
-    /* These are the only allowed types in the #Any. */
-    static_assert(
-        std::is_base_of_v<VArrayImpl<T>, StorageT> ||
-        is_same_any_v<StorageT, const VArrayImpl<T> *, std::shared_ptr<const VArrayImpl<T>>>);
-
-    /* Depending on how the virtual array implementation is stored in the #Any, a different
-     * #get_varray function is required. */
-    if constexpr (std::is_base_of_v<VArrayImpl<T>, StorageT>) {
-      return {[](const void *buffer) {
-        return static_cast<const VArrayImpl<T> *>(static_cast<const StorageT *>(buffer));
-      }};
-    }
-    else if constexpr (std::is_same_v<StorageT, const VArrayImpl<T> *>) {
-      return {[](const void *buffer) { return *static_cast<const StorageT *>(buffer); }};
-    }
-    else if constexpr (std::is_same_v<StorageT, std::shared_ptr<const VArrayImpl<T>>>) {
-      return {[](const void *buffer) { return (static_cast<const StorageT *>(buffer))->get(); }};
-    }
-    else {
-      BLI_assert_unreachable();
-      return {};
-    }
-  }
-};
-
-}  // namespace detail
-
 /**
  * Utility class to reduce code duplication for methods available on #VArray and #VMutableArray.
  * Deriving #VMutableArray from #VArray would have some issues:
@@ -555,122 +514,34 @@ template<typename T> struct VArrayAnyExtraInfo {
  */
 template<typename T> class VArrayCommon {
  protected:
-  /**
-   * Store the virtual array implementation in an #Any. This makes it easy to avoid a memory
-   * allocation if the implementation is small enough and is copyable. This is the case for the
-   * most common virtual arrays.
-   * Other virtual array implementations are typically stored as #std::shared_ptr. That works even
-   * when the implementation itself is not copyable and makes copying #VArrayCommon cheaper.
-   */
-  using Storage = Any<detail::VArrayAnyExtraInfo<T>, 24, 8>;
-
-  /**
-   * Pointer to the currently contained virtual array implementation. This is allowed to be null.
-   */
-  const VArrayImpl<T> *impl_ = nullptr;
-  /**
-   * Does the memory management for the virtual array implementation. It contains one of the
-   * following:
-   * - Inlined subclass of #VArrayImpl.
-   * - Non-owning pointer to a #VArrayImpl.
-   * - Shared pointer to a #VArrayImpl.
-   */
-  Storage storage_;
+  AnyDerived<const VArrayImpl<T>> impl_;
 
   VArrayCommon() = default;
-
-  /** Copy constructor. */
-  VArrayCommon(const VArrayCommon &other) : storage_(other.storage_)
-  {
-    impl_ = this->impl_from_storage();
-  }
-
-  /** Move constructor. */
-  VArrayCommon(VArrayCommon &&other) noexcept : storage_(std::move(other.storage_))
-  {
-    impl_ = this->impl_from_storage();
-    other.storage_.reset();
-    other.impl_ = nullptr;
-  }
 
   /**
    * Wrap an existing #VArrayImpl and don't take ownership of it. This should rarely be used in
    * practice.
    */
-  VArrayCommon(const VArrayImpl<T> *impl) : impl_(impl)
-  {
-    storage_ = impl_;
-  }
+  VArrayCommon(const VArrayImpl<T> *impl) : impl_(impl) {}
 
   /**
    * Wrap an existing #VArrayImpl that is contained in a #std::shared_ptr. This takes ownership.
    */
-  VArrayCommon(std::shared_ptr<const VArrayImpl<T>> impl) : impl_(impl.get())
-  {
-    if (impl) {
-      storage_ = std::move(impl);
-    }
-  }
+  VArrayCommon(std::shared_ptr<const VArrayImpl<T>> impl) : impl_(std::move(impl)) {}
 
   /**
    * Replace the contained #VArrayImpl.
    */
   template<typename ImplT, typename... Args> void emplace(Args &&...args)
   {
-    /* Make sure we are actually constructing a #VArrayImpl. */
-    static_assert(std::is_base_of_v<VArrayImpl<T>, ImplT>);
-    if constexpr (std::is_copy_constructible_v<ImplT> && Storage::template is_inline_v<ImplT>) {
-      /* Only inline the implementation when it is copyable and when it fits into the inline
-       * buffer of the storage. */
-      impl_ = &storage_.template emplace<ImplT>(std::forward<Args>(args)...);
-    }
-    else {
-      /* If it can't be inlined, create a new #std::shared_ptr instead and store that in the
-       * storage. */
-      std::shared_ptr<const VArrayImpl<T>> ptr = std::make_shared<ImplT>(
-          std::forward<Args>(args)...);
-      impl_ = &*ptr;
-      storage_ = std::move(ptr);
-    }
-  }
-
-  /** Utility to implement a copy assignment operator in a subclass. */
-  void copy_from(const VArrayCommon &other)
-  {
-    if (this == &other) {
-      return;
-    }
-    storage_ = other.storage_;
-    impl_ = this->impl_from_storage();
-  }
-
-  /** Utility to implement a move assignment operator in a subclass. */
-  void move_from(VArrayCommon &&other) noexcept
-  {
-    if (this == &other) {
-      return;
-    }
-    storage_ = std::move(other.storage_);
-    impl_ = this->impl_from_storage();
-    other.storage_.reset();
-    other.impl_ = nullptr;
-  }
-
-  /** Get a pointer to the virtual array implementation that is currently stored in #storage_, or
-   * null. */
-  const VArrayImpl<T> *impl_from_storage() const
-  {
-    if (!storage_.has_value()) {
-      return nullptr;
-    }
-    return storage_.extra_info().get_varray(storage_.get());
+    impl_.template emplace<ImplT>(std::forward<Args>(args)...);
   }
 
  public:
   /** Return false when there is no virtual array implementation currently. */
   operator bool() const
   {
-    return impl_ != nullptr;
+    return impl_;
   }
 
   /**
@@ -701,7 +572,7 @@ template<typename T> class VArrayCommon {
    */
   int64_t size() const
   {
-    if (impl_ == nullptr) {
+    if (!impl_) {
       return 0;
     }
     return impl_->size();
@@ -831,7 +702,7 @@ template<typename T> class VArrayCommon {
 
   const VArrayImpl<T> *get_implementation() const
   {
-    return impl_;
+    return impl_.get();
   }
 };
 
@@ -860,8 +731,6 @@ template<typename T> class VArray : public VArrayCommon<T> {
 
  public:
   VArray() = default;
-  VArray(const VArray &other) = default;
-  VArray(VArray &&other) noexcept = default;
 
   VArray(const VArrayImpl<T> *impl) : VArrayCommon<T>(impl) {}
 
@@ -945,18 +814,6 @@ template<typename T> class VArray : public VArrayCommon<T> {
   {
     return VArray::from<VArrayImpl_For_ArrayContainer<ContainerT>>(std::move(container));
   }
-
-  VArray &operator=(const VArray &other)
-  {
-    this->copy_from(other);
-    return *this;
-  }
-
-  VArray &operator=(VArray &&other) noexcept
-  {
-    this->move_from(std::move(other));
-    return *this;
-  }
 };
 
 /**
@@ -965,8 +822,6 @@ template<typename T> class VArray : public VArrayCommon<T> {
 template<typename T> class VMutableArray : public VArrayCommon<T> {
  public:
   VMutableArray() = default;
-  VMutableArray(const VMutableArray &other) = default;
-  VMutableArray(VMutableArray &&other) noexcept = default;
 
   VMutableArray(const VMutableArrayImpl<T> *impl) : VArrayCommon<T>(impl) {}
 
@@ -1018,7 +873,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   operator VArray<T>() const &
   {
     VArray<T> varray;
-    varray.copy_from(*this);
+    *static_cast<VArrayCommon<T> *>(&varray) = *this;
     return varray;
   }
 
@@ -1026,20 +881,8 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   operator VArray<T>() && noexcept
   {
     VArray<T> varray;
-    varray.move_from(std::move(*this));
+    *static_cast<VArrayCommon<T> *>(&varray) = std::move(*this);
     return varray;
-  }
-
-  VMutableArray &operator=(const VMutableArray &other)
-  {
-    this->copy_from(other);
-    return *this;
-  }
-
-  VMutableArray &operator=(VMutableArray &&other) noexcept
-  {
-    this->move_from(std::move(other));
-    return *this;
   }
 
   /**
@@ -1084,7 +927,8 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   {
     /* This cast is valid by the invariant that a #VMutableArray->impl_ is always a
      * #VMutableArrayImpl. */
-    return reinterpret_cast<VMutableArrayImpl<T> *>(const_cast<VArrayImpl<T> *>((this->impl_)));
+    return reinterpret_cast<VMutableArrayImpl<T> *>(
+        const_cast<VArrayImpl<T> *>((this->impl_.get())));
   }
 };
 
