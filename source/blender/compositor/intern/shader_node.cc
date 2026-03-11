@@ -76,6 +76,8 @@ static GPUType gpu_type_from_socket(const bNodeSocket &socket)
       }
     case SOCK_RGBA:
       return GPU_VEC4;
+    case SOCK_MATRIX:
+      return GPU_MAT4;
     case SOCK_MENU:
       /* GPUMaterial doesn't support int, so it is passed as a float. */
       return GPU_FLOAT;

@@ -220,6 +220,10 @@ static void initialize_input_stack_value(const bNodeSocket &input, GPUNodeStack 
       stack.vec[0] = int(value);
       break;
     }
+    case SOCK_MATRIX:
+      /* Matrix sockets do not have default values. */
+      BLI_assert_unreachable();
+      break;
     case SOCK_STRING:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(get_node_socket_result_type(&input)));
@@ -256,6 +260,8 @@ static const char *get_set_function_name(const ResultType type)
     case ResultType::Bool:
       /* GPUMaterial doesn't support bool, so it is passed as a float. */
       return "set_float";
+    case ResultType::Float4x4:
+      return "set_float4x4";
     case ResultType::Menu:
       /* GPUMaterial doesn't support int, so it is passed as a float. */
       return "set_float";
@@ -274,6 +280,12 @@ void ShaderOperation::link_node_input_constant(const bNodeSocket &input)
 {
   ShaderNode &node = *shader_nodes_.lookup(&input.owner_node());
   GPUNodeStack &stack = node.get_input(input.identifier);
+
+  /* Matrix sockets have no socket default values, so we default initialize them. */
+  if (input.type == SOCK_MATRIX) {
+    GPU_link(material_, "set_float4x4_default", &stack.link);
+    return;
+  }
 
   /* Create a constant or a uniform link that carry the value of the input. Use a constant for
    * socket types that rarely change like booleans and menus, while use a uniform for socket type
@@ -476,6 +488,8 @@ static const char *get_store_function_name(ResultType type)
       return "node_compositor_store_output_int3";
     case ResultType::Bool:
       return "node_compositor_store_output_bool";
+    case ResultType::Float4x4:
+      return "node_compositor_store_output_float4x4";
     case ResultType::Menu:
       return "node_compositor_store_output_menu";
     case ResultType::String:
@@ -622,6 +636,8 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
       /* GPUMaterial doesn't support bool, so it is passed as a float and stored as an int, and we
        * need to convert it back to bool and then to an int before writing it. */
       return "ivec4(bool(value))";
+    case ResultType::Float4x4:
+      return "value";
     case ResultType::Menu:
       /* GPUMaterial doesn't support int, so it is passed as a float, and we need to convert it
        * back to int before writing it. */
@@ -652,6 +668,8 @@ static ImageType gpu_image_type_from_result_type(const ResultType type)
     case ResultType::Bool:
     case ResultType::Menu:
       return ImageType::Int2D;
+    case ResultType::Float4x4:
+      return ImageType::Float2DArray;
     case ResultType::String:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
@@ -678,6 +696,8 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   const std::string store_int3_function_header = "void store_int3(const uint id, vec3 value)";
   /* GPUMaterial doesn't support bool, so it is passed as a float. */
   const std::string store_bool_function_header = "void store_bool(const uint id, float value)";
+  const std::string store_float4x4_function_header =
+      "void store_float4x4(const uint id, float4x4 value)";
   /* GPUMaterial doesn't support int, so it is passed as a float. */
   const std::string store_menu_function_header = "void store_menu(const uint id, float value)";
 
@@ -693,6 +713,7 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   std::stringstream store_int2_function;
   std::stringstream store_int3_function;
   std::stringstream store_bool_function;
+  std::stringstream store_float4x4_function;
   std::stringstream store_menu_function;
   const std::string store_function_start = "\n{\n  switch (id) {\n";
   store_float_function << store_float_function_header << store_function_start;
@@ -704,6 +725,7 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   store_int2_function << store_int2_function_header << store_function_start;
   store_int3_function << store_int3_function_header << store_function_start;
   store_bool_function << store_bool_function_header << store_function_start;
+  store_float4x4_function << store_float4x4_function_header << store_function_start;
   store_menu_function << store_menu_function_header << store_function_start;
 
   shader_create_info.builtins(BuiltinBits::GLOBAL_INVOCATION_ID);
@@ -721,45 +743,59 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
                              Frequency::PASS);
     output_index++;
 
-    /* Add a case for the index of this output followed by a break statement. */
-    std::stringstream case_code;
+    const std::string case_identifier = StringRef(output_identifier).drop_known_prefix("output");
+    const std::string case_line = "    case " + case_identifier + ":\n";
+    const std::string break_line = "      break;\n";
+
     const std::string store_expression = glsl_store_expression_from_result_type(result.type());
-    const std::string texel = ", ivec2(gl_GlobalInvocationID.xy), ";
-    case_code << "    case " << StringRef(output_identifier).drop_known_prefix("output") << ":\n"
-              << "      imageStore(" << output_identifier << texel << store_expression << ");\n"
-              << "      break;\n";
+
+    /* Add a case for the index of this output followed by a break statement. */
+    std::stringstream common_case_code;
+    common_case_code << case_line;
+    common_case_code << "      imageStore(" << output_identifier
+                     << ", ivec2(gl_GlobalInvocationID.xy), " << store_expression << ");\n";
+    common_case_code << break_line;
 
     /* Only add the case to the function with the matching type. */
     switch (result.type()) {
       case ResultType::Float:
-        store_float_function << case_code.str();
+        store_float_function << common_case_code.str();
         break;
       case ResultType::Float2:
-        store_float2_function << case_code.str();
+        store_float2_function << common_case_code.str();
         break;
       case ResultType::Float3:
-        store_float3_function << case_code.str();
+        store_float3_function << common_case_code.str();
         break;
       case ResultType::Float4:
-        store_float4_function << case_code.str();
+        store_float4_function << common_case_code.str();
         break;
       case ResultType::Color:
-        store_color_function << case_code.str();
+        store_color_function << common_case_code.str();
         break;
       case ResultType::Int:
-        store_int_function << case_code.str();
+        store_int_function << common_case_code.str();
         break;
       case ResultType::Int2:
-        store_int2_function << case_code.str();
+        store_int2_function << common_case_code.str();
         break;
       case ResultType::Int3:
-        store_int3_function << case_code.str();
+        store_int3_function << common_case_code.str();
         break;
       case ResultType::Bool:
-        store_bool_function << case_code.str();
+        store_bool_function << common_case_code.str();
+        break;
+      case ResultType::Float4x4:
+        /* Each column of the matrix is stored in one layer of the texture. */
+        store_float4x4_function << case_line;
+        store_float4x4_function << "      for (int i = 0; i < 4; i++) {\n";
+        store_float4x4_function << "        imageStore(" << output_identifier
+                                << ", ivec3(gl_GlobalInvocationID.xy, i), value[i]);\n";
+        store_float4x4_function << "      }\n";
+        store_float4x4_function << break_line;
         break;
       case ResultType::Menu:
-        store_menu_function << case_code.str();
+        store_menu_function << common_case_code.str();
         break;
       case ResultType::String:
         /* Single only types do not support GPU code path. */
@@ -780,12 +816,13 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   store_int2_function << store_function_end;
   store_int3_function << store_function_end;
   store_bool_function << store_function_end;
+  store_float4x4_function << store_function_end;
   store_menu_function << store_function_end;
 
   return store_float_function.str() + store_float2_function.str() + store_float3_function.str() +
          store_float4_function.str() + store_color_function.str() + store_int_function.str() +
          store_int2_function.str() + store_int3_function.str() + store_bool_function.str() +
-         store_menu_function.str();
+         store_float4x4_function.str() + store_menu_function.str();
 }
 
 static const char *glsl_type_from_result_type(ResultType type)
@@ -813,6 +850,8 @@ static const char *glsl_type_from_result_type(ResultType type)
     case ResultType::Bool:
       /* GPUMaterial doesn't support bool, so it is passed as a float. */
       return "float";
+    case ResultType::Float4x4:
+      return "float4x4";
     case ResultType::Menu:
       /* GPUMaterial doesn't support int, so it is passed as a float. */
       return "float";
@@ -850,6 +889,8 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
       return "xyz";
     case ResultType::Bool:
       return "x";
+    case ResultType::Float4x4:
+      return "xyzw";
     case ResultType::Menu:
       return "x";
     case ResultType::String:
@@ -912,12 +953,17 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   std::stringstream initialize_attributes;
   for (GPUMaterialAttribute &attribute : attributes) {
     const InputDescriptor &input_descriptor = get_input_descriptor(attribute.name);
-    const std::string swizzle = glsl_swizzle_from_result_type(input_descriptor.type);
-    const std::string type = glsl_type_from_result_type(input_descriptor.type);
-    initialize_attributes << "var_attrs.v" << attribute.id << " = " << type << "("
-                          << "texture_load(" << attribute.name
-                          << ", ivec2(gl_GlobalInvocationID.xy))." << swizzle << ")"
-                          << ";\n";
+    initialize_attributes << "var_attrs.v" << attribute.id << " = ";
+    if (input_descriptor.type == ResultType::Float4x4) {
+      initialize_attributes << "texture_load_float4x4(" << attribute.name
+                            << ", ivec2(gl_GlobalInvocationID.xy));\n";
+    }
+    else {
+      const std::string swizzle = glsl_swizzle_from_result_type(input_descriptor.type);
+      const std::string type = glsl_type_from_result_type(input_descriptor.type);
+      initialize_attributes << type << "(texture_load(" << attribute.name;
+      initialize_attributes << ", ivec2(gl_GlobalInvocationID.xy))." << swizzle << ");\n";
+    }
   }
   initialize_attributes << "\n";
 

@@ -53,6 +53,7 @@ bool Result::is_single_value_only_type(ResultType type)
     case ResultType::Int2:
     case ResultType::Int3:
     case ResultType::Bool:
+    case ResultType::Float4x4:
     case ResultType::Menu:
       return false;
     case ResultType::String:
@@ -90,6 +91,9 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
         case ResultType::Bool:
           /* No bool texture formats, so we store in an 8-bit integer. Precision doesn't matter. */
           return gpu::TextureFormat::SINT_8;
+        case ResultType::Float4x4:
+          /* Stored as an array of 4 RGBA texture. */
+          return gpu::TextureFormat::SFLOAT_16_16_16_16;
         case ResultType::Menu:
           /* Menu values are technically stored in 32-bit integers, but 8 is sufficient in
            * practice. */
@@ -125,6 +129,9 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
         case ResultType::Bool:
           /* No bool texture formats, so we store in an 8-bit integer. Precision doesn't matter. */
           return gpu::TextureFormat::SINT_8;
+        case ResultType::Float4x4:
+          /* Stored as an array of 4 RGBA texture. */
+          return gpu::TextureFormat::SFLOAT_32_32_32_32;
         case ResultType::Menu:
           /* Menu values are technically stored in 32-bit integers, but 8 is sufficient in
            * practice. */
@@ -150,6 +157,7 @@ eGPUDataFormat Result::gpu_data_format(ResultType type)
     case ResultType::Float4:
     case ResultType::Float3:
     case ResultType::Float2:
+    case ResultType::Float4x4:
       return GPU_DATA_FLOAT;
     case ResultType::Int:
     case ResultType::Int2:
@@ -331,6 +339,8 @@ const CPPType &Result::cpp_type(const ResultType type)
       return CPPType::get<int3>();
     case ResultType::Bool:
       return CPPType::get<bool>();
+    case ResultType::Float4x4:
+      return CPPType::get<float4x4>();
     case ResultType::Menu:
       return CPPType::get<nodes::MenuValue>();
     case ResultType::String:
@@ -362,6 +372,8 @@ const char *Result::type_name(const ResultType type)
       return "int3";
     case ResultType::Bool:
       return "bool";
+    case ResultType::Float4x4:
+      return "float4x4";
     case ResultType::Menu:
       return "menu";
     case ResultType::String:
@@ -465,6 +477,9 @@ void Result::allocate_single_value()
       break;
     case ResultType::Bool:
       this->set_single_value(false);
+      break;
+    case ResultType::Float4x4:
+      this->set_single_value(float4x4::zero());
       break;
     case ResultType::Menu:
       this->set_single_value(nodes::MenuValue(0));
@@ -827,6 +842,8 @@ int64_t Result::channels_count() const
     case ResultType::Color:
     case ResultType::Float4:
       return 4;
+    case ResultType::Float4x4:
+      return 16;
     case ResultType::String:
       /* Single only types do not have channels. */
       BLI_assert(Result::is_single_value_only_type(type_));
@@ -891,6 +908,12 @@ void Result::update_single_value_data()
           GPU_texture_update(this->gpu_texture(), GPU_DATA_INT, vector_value);
           break;
         }
+        case ResultType::Float4x4: {
+          /* Float4x4 stores each column in one texture layer in a 4-layer texture. */
+          GPU_texture_update_sub(
+              this->gpu_texture(), GPU_DATA_FLOAT, this->single_value().get(), 0, 0, 0, 1, 1, 4);
+          break;
+        }
         case ResultType::String:
           /* Single only types do not support GPU storage. */
           BLI_assert(Result::is_single_value_only_type(this->type()));
@@ -914,14 +937,20 @@ void Result::allocate_data(const int2 size,
                                                   context_->use_gpu();
   if (use_gpu) {
     storage_type_ = ResultStorageType::GPU;
-    is_from_pool_ = from_pool;
 
     const gpu::TextureFormat format = this->get_gpu_texture_format();
     const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
-    if (from_pool) {
+    if (this->type() == ResultType::Float4x4) {
+      is_from_pool_ = false;
+      gpu_texture_ = GPU_texture_create_2d_array(
+          __func__, size.x, size.y, 4, 1, format, usage, nullptr);
+    }
+    else if (from_pool) {
+      is_from_pool_ = true;
       gpu_texture_ = gpu::TexturePool::get().acquire_texture(size, format, usage);
     }
     else {
+      is_from_pool_ = false;
       gpu_texture_ = GPU_texture_create_2d(__func__, size.x, size.y, 1, format, usage, nullptr);
     }
   }

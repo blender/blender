@@ -639,6 +639,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Int3:
       case ResultType::Int:
       case ResultType::Bool:
+      case ResultType::Float4x4:
       case ResultType::Menu:
       case ResultType::String:
         /* Not supported. */
@@ -672,6 +673,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Int2:
       case ResultType::Int3:
       case ResultType::Bool:
+      case ResultType::Float4x4:
       case ResultType::Menu:
       case ResultType::String:
         /* Not supported. */
@@ -726,6 +728,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Int:
       case ResultType::Int3:
       case ResultType::Bool:
+      case ResultType::Float4x4:
       case ResultType::Menu:
       case ResultType::String:
         /* Not supported. */
