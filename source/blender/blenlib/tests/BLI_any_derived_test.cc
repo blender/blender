@@ -13,6 +13,7 @@ class AnyVirtualTestBase {
   int value = 0;
 
   AnyVirtualTestBase() = default;
+  virtual ~AnyVirtualTestBase() = default;
 
   AnyVirtualTestBase(const int v) : value(v) {}
 
