@@ -137,29 +137,33 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
     return;
   }
 
-  if (params.in_out() == SOCK_IN) {
-    if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
-                                                   data_type.value()))
-    {
-      params.add_item(IFACE_("Grid"), [](LinkSearchOpParams &params) {
+  if (params.in_out() == SOCK_IN &&
+      ELEM(structure_type, StructureType::Dynamic, StructureType::Single) &&
+      params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
+                                                 SOCK_INT))
+  {
+    params.add_item(IFACE_("Steps"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeGridDilateAndErode");
+      params.update_and_connect_available_socket(node, "Steps");
+    });
+  }
+  if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
+                                                 data_type.value()))
+  {
+    if (params.in_out() == SOCK_IN && supports_grid) {
+      params.add_item(IFACE_("Grid"), [data_type](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeGridDilateAndErode");
-        params.update_and_connect_available_socket(node, "Steps");
+        node.custom1 = *data_type;
+        params.update_and_connect_available_socket(node, "Grid");
       });
     }
-  }
-  else if (params.in_out() == SOCK_IN && supports_grid) {
-    params.add_item(IFACE_("Grid"), [data_type](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeGridDilateAndErode");
-      node.custom1 = *data_type;
-      params.update_and_connect_available_socket(node, "Grid");
-    });
-  }
-  else if (params.in_out() == SOCK_OUT) {
-    params.add_item(IFACE_("Grid"), [data_type](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeGridDilateAndErode");
-      node.custom1 = *data_type;
-      params.update_and_connect_available_socket(node, "Grid");
-    });
+    else if (params.in_out() == SOCK_OUT) {
+      params.add_item(IFACE_("Grid"), [data_type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("GeometryNodeGridDilateAndErode");
+        node.custom1 = *data_type;
+        params.update_and_connect_available_socket(node, "Grid");
+      });
+    }
   }
 }
 
