@@ -1843,8 +1843,18 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".zip")) {
     return FILE_TYPE_ARCHIVE;
   }
-  if (BLI_path_extension_check_n(
-          path, ".obj", ".mtl", ".3ds", ".fbx", ".glb", ".gltf", ".svg", ".ply", ".stl", nullptr))
+  if (BLI_path_extension_check_n(path,
+                                 ".obj",
+                                 ".mtl",
+                                 ".3ds",
+                                 ".fbx",
+                                 ".glb",
+                                 ".gltf",
+                                 ".svg",
+                                 ".pdf",
+                                 ".ply",
+                                 ".stl",
+                                 nullptr))
   {
     return FILE_TYPE_OBJECT_IO;
   }
