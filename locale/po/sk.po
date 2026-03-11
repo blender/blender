@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
-"PO-Revision-Date: 2026-03-03 13:12+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"PO-Revision-Date: 2026-03-10 07:12+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -97959,10 +97959,6 @@ msgid "French - Français"
 msgstr "Francúzky - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Kód lokalizácie: fr_FR. Pokrok prekladu: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Gruzínsky - ქართული"
 
@@ -98029,10 +98025,6 @@ msgstr "Kód lokalizácie: it_IT. Pokrok prekladu: 44 %"
 
 msgid "Japanese - 日本語"
 msgstr "Japonsky - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Kód lokalizácie: ja_JP. Pokrok prekladu: 99 %"
 
 
 msgid "Korean - 한국어"
@@ -98103,6 +98095,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugalsky (Portugal) - Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 78%"
+msgstr "Kód lokalizácie: pt_PT. Pokrok prekladu: 78%"
+
+
 msgid "Romanian - Român"
 msgstr "Rumunsky - Român"
 
@@ -98171,12 +98167,12 @@ msgid "Swedish - Svenska"
 msgstr "Švédsky - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 21%"
-msgstr "Kód lokalizácie: sv_SE. Pokrok prekladu: 21 %"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamilsky - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 100%"
+msgstr "Kód lokalizácie: ta. Pokrok prekladu: 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -112958,6 +112954,10 @@ msgid "Auto-Keying Mode"
 msgstr "Režim automatického kľúčovania"
 
 
+msgid "Can add additional constraints on when auto keying can insert keyframes"
+msgstr "Môže pridať ďalšie vynútenie týkajúce sa toho, kedy môže automatické kľúčovanie vkladať kľúčové snímky"
+
+
 msgid "Add & Replace"
 msgstr "Pridať a nahradiť"
 
@@ -113422,6 +113422,10 @@ msgstr "V prípade kanálov s cyklickou extrapoláciou sa vloženie kľúčovej 
 
 msgid "Auto Keying"
 msgstr "Automatické kľúčovanie"
+
+
+msgid "Automatically insert keyframes on modified properties"
+msgstr "Automaticky vkladať kľúčové snímky do upravených vlastností"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -123696,6 +123700,10 @@ msgid "Calculation Range"
 msgstr "Rozsah výpočtu"
 
 
+msgid "Frame Range Start"
+msgstr "Rozsah snímok Začiatok"
+
+
 msgid "Bake to Active Camera"
 msgstr "Zapiecť do aktívnej kamery"
 
@@ -123745,10 +123753,6 @@ msgstr "+ nezoskupené kľúčové snímky"
 
 msgid "Before"
 msgstr "Pred"
-
-
-msgid "Frame Range Start"
-msgstr "Rozsah snímok Začiatok"
 
 
 msgid "Collection Mask"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
-"PO-Revision-Date: 2026-03-07 21:12+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"PO-Revision-Date: 2026-03-11 11:01+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -97962,10 +97962,6 @@ msgid "French - Français"
 msgstr "Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Identificateur de culture : fr_FR. Progrès de la traduction : 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Géorgien - ქართული"
 
@@ -98032,10 +98028,6 @@ msgstr "Identificateur de culture : it_IT. Progrès de la traduction : 44%"
 
 msgid "Japanese - 日本語"
 msgstr "Japonais - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Identificateur de culture : ja_JP. Progrès de la traduction : 99%"
 
 
 msgid "Korean - 한국어"
@@ -98106,6 +98098,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugais (Portugal) - Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 78%"
+msgstr "Identificateur de culture : pt_PT. Progrès de la traduction : 78%"
+
+
 msgid "Romanian - Român"
 msgstr "Roumain - Român"
 
@@ -98174,12 +98170,12 @@ msgid "Swedish - Svenska"
 msgstr "Suédois - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 21%"
-msgstr "Identificateur de culture : sv_SE. Progrès de la traduction : 21%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamoul - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 100%"
+msgstr "Identificateur de culture : ta. Progrès de la traduction : 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -112961,6 +112957,10 @@ msgid "Auto-Keying Mode"
 msgstr "Mode d’insertion auto"
 
 
+msgid "Can add additional constraints on when auto keying can insert keyframes"
+msgstr "Des contraintes supplémentaires peuvent être ajoutées quand l’insertion auto peut insérer des clés"
+
+
 msgid "Add & Replace"
 msgstr "Ajouter et remplacer"
 
@@ -113425,6 +113425,10 @@ msgstr "Pour les canaux ayant une extrapolation cyclique, l’insertion de clés
 
 msgid "Auto Keying"
 msgstr "Insertion auto"
+
+
+msgid "Automatically insert keyframes on modified properties"
+msgstr "Insérer automatiquement des images clés sur les propriétés modifiées"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -123699,6 +123703,10 @@ msgid "Calculation Range"
 msgstr "Intervalle de calcul"
 
 
+msgid "Frame Range Start"
+msgstr "Intervalle de frames, début"
+
+
 msgid "Bake to Active Camera"
 msgstr "Précalculer dans la caméra active"
 
@@ -123748,10 +123756,6 @@ msgstr "+ Images clés non groupées"
 
 msgid "Before"
 msgstr "Avant"
-
-
-msgid "Frame Range Start"
-msgstr "Intervalle de frames, début"
 
 
 msgid "Collection Mask"

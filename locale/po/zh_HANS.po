@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
-"PO-Revision-Date: 2026-03-04 17:12+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"PO-Revision-Date: 2026-03-10 07:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -22175,7 +22175,7 @@ msgstr "填充规则"
 
 
 msgid "Fill rule for Delaunay fill solver"
-msgstr "Delaunay 解算器的填充规则"
+msgstr "德洛内解算器的填充规则"
 
 
 msgid "Even-Odd"
@@ -26192,7 +26192,7 @@ msgstr "显示前/后侧"
 
 msgctxt "Image"
 msgid "Both"
-msgstr "两者"
+msgstr "双面"
 
 
 msgctxt "Image"
@@ -97961,10 +97961,6 @@ msgid "French - Français"
 msgstr "法语 - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "区域代码: fr_FR. 翻译进度: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "格鲁吉亚语 - ქართული"
 
@@ -98031,10 +98027,6 @@ msgstr "区域代码: it_IT. 翻译进度: 44%"
 
 msgid "Japanese - 日本語"
 msgstr "日语 - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "区域代码: ja_JP. 翻译进度: 99%"
 
 
 msgid "Korean - 한국어"
@@ -98105,6 +98097,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "葡萄牙语 (葡萄牙) - Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 78%"
+msgstr "区域代码: pt_PT. 翻译进度: 78%"
+
+
 msgid "Romanian - Român"
 msgstr "罗马尼亚语 - Român"
 
@@ -98173,12 +98169,12 @@ msgid "Swedish - Svenska"
 msgstr "瑞典语 - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 21%"
-msgstr "区域代码: sv_SE. 翻译进度: 21%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "泰米尔语 - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 100%"
+msgstr "区域代码: ta. 翻译进度: 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -113426,6 +113422,10 @@ msgid "Auto Keying"
 msgstr "自动插帧"
 
 
+msgid "Automatically insert keyframes on modified properties"
+msgstr "对修改过的属性自动插入关键帧"
+
+
 msgid "Auto Keyframe Insert Keying Set"
 msgstr "自动插帧集"
 
@@ -123698,6 +123698,10 @@ msgid "Calculation Range"
 msgstr "解算范围"
 
 
+msgid "Frame Range Start"
+msgstr "帧范围 起始"
+
+
 msgid "Bake to Active Camera"
 msgstr "烘焙到活动摄像机"
 
@@ -123747,10 +123751,6 @@ msgstr "扩展至非群组关键帧"
 
 msgid "Before"
 msgstr "之前"
-
-
-msgid "Frame Range Start"
-msgstr "帧范围 起始"
 
 
 msgid "Collection Mask"

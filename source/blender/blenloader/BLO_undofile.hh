@@ -55,12 +55,6 @@ struct MemFile {
    * without making a copy. This is faster and requires less memory.
    */
   MemFileSharedStorage *shared_storage;
-
-  /**
-   * Partial storage of the WriteData's generated stable pointers data, to be re-used when writing
-   * the next undo step.
-   */
-  WriteDataStableAddressIDs *stable_address_ids;
 };
 
 struct MemFileWriteData {

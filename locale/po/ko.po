@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
 "PO-Revision-Date: 2026-02-19 06:12+0000\n"
 "Last-Translator: Yegoun Lee <yegoeun.lee@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -121131,6 +121131,10 @@ msgid "Calculation Range"
 msgstr "계산 범위"
 
 
+msgid "Frame Range Start"
+msgstr "프레임 범위 시작"
+
+
 msgid "Bake to Active Camera"
 msgstr "베이킹에서 카메라 활성화로"
 
@@ -121180,10 +121184,6 @@ msgstr "+ 그룹 되지 않은 키 프레임"
 
 msgid "Before"
 msgstr "이전"
-
-
-msgid "Frame Range Start"
-msgstr "프레임 범위 시작"
 
 
 msgid "Collection Mask"
