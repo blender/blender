@@ -640,7 +640,7 @@ bool Action::is_slot_animated(const slot_handle_t slot_handle) const
       *this,
       slot_handle,
       [&](const Layer & /* layer */, const Strip & /* strip */, const Channelbag &channelbag) {
-        return !channelbag.fcurves().is_empty();
+        return channelbag.fcurves().is_empty();
       });
   return !all_channelbags_empty;
 }
