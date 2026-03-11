@@ -158,6 +158,49 @@ class KeyframingTest : public testing::Test {
  * Tests for `insert_keyframes()` with layered actions.
  */
 
+TEST_F(KeyframingTest, insert_keyframes_active_layer)
+{
+  /* Verifying that keyframes are inserted into the active layer. */
+  AnimationEvalContext anim_eval_context = {nullptr, 1.0};
+  object->empty_drawsize = 42.0;
+  const CombinedKeyingResult result_1 = insert_keyframes(bmain,
+                                                         &object_rna_pointer,
+                                                         std::nullopt,
+                                                         {{"empty_display_size"}},
+                                                         1.0,
+                                                         anim_eval_context,
+                                                         BEZT_KEYTYPE_KEYFRAME,
+                                                         INSERTKEY_NOFLAGS);
+  EXPECT_EQ(1, result_1.get_count(SingleKeyingResult::SUCCESS));
+  ASSERT_NE(nullptr, object->adt);
+  ASSERT_NE(nullptr, object->adt->action);
+  Action &action = object->adt->action->wrap();
+
+  ASSERT_EQ(1, action.layers().size());
+  Layer &second_layer = action.layer_add("second layer");
+  EXPECT_EQ(&second_layer, action.layer_active_get());
+  object->empty_drawsize = 64.0;
+  const CombinedKeyingResult result_2 = insert_keyframes(bmain,
+                                                         &object_rna_pointer,
+                                                         std::nullopt,
+                                                         {{"empty_display_size"}},
+                                                         1.0,
+                                                         anim_eval_context,
+                                                         BEZT_KEYTYPE_KEYFRAME,
+                                                         INSERTKEY_NOFLAGS);
+  EXPECT_EQ(1, result_2.get_count(SingleKeyingResult::SUCCESS));
+  EXPECT_EQ(second_layer.strips().size(), 1)
+      << "Inserting keyframes should create the strip on the layer";
+  StripKeyframeData *strip_data = &second_layer.strip(0)->data<StripKeyframeData>(action);
+  Channelbag *channelbag = strip_data->channelbag_for_slot(object->adt->slot_handle);
+  ASSERT_NE(nullptr, channelbag);
+  ASSERT_EQ(channelbag->fcurves().size(), 1);
+  FCurve *fcu = channelbag->fcurve(0);
+  EXPECT_STREQ(fcu->rna_path, "empty_display_size");
+  EXPECT_EQ(fcu->totvert, 1);
+  EXPECT_FLOAT_EQ(fcu->bezt[0].vec[1][1], 64);
+}
+
 /* Keying a non-array property. */
 TEST_F(KeyframingTest, insert_keyframes__non_array_property)
 {

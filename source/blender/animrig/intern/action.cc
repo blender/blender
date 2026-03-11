@@ -314,7 +314,7 @@ void Action::layer_keystrip_ensure()
     layer = &this->layer_add(DATA_(layer_default_name));
   }
   else {
-    layer = this->layer(0);
+    layer = this->layer_active_get();
   }
 
   /* Ensure a keyframe Strip. */
@@ -322,10 +322,9 @@ void Action::layer_keystrip_ensure()
     layer->strip_add(*this, Strip::Type::Keyframe);
   }
 
-  /* Within the limits of Baklava Phase 1, the above code should not have
-   * created more than one layer, or more than one strip on the layer. And if a
-   * layer + strip already existed, that must have been a keyframe strip. */
-  assert_baklava_phase_1_invariants(*this);
+  /* Within the limits of Baklava Phase 2, the above code should have used the active layer or
+   * created a layer with an infinite keyframe strip. */
+  assert_baklava_phase_2_invariants(*this);
 }
 
 int64_t Action::find_layer_index(const Layer &layer) const
