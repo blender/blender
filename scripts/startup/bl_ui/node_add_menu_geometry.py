@@ -660,6 +660,7 @@ class NODE_MT_gn_utilities_text_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeSliceString")
         if context.preferences.experimental.use_geometry_nodes_lists:
             self.node_operator(layout, "FunctionNodeSplitString")
+        self.node_operator(layout, "FunctionNodeTrimString")
         layout.separator()
         self.node_operator(layout, "FunctionNodeFindInString")
         self.node_operator(layout, "FunctionNodeStringLength")

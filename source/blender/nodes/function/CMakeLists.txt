@@ -69,6 +69,7 @@ set(SRC
   nodes/node_fn_transform_direction.cc
   nodes/node_fn_transform_point.cc
   nodes/node_fn_transpose_matrix.cc
+  nodes/node_fn_trim_string.cc
   nodes/node_fn_value_to_string.cc
 
   node_function_util.cc
