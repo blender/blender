@@ -42,10 +42,11 @@ enum [[host_shared]] OVERLAY_GridBits : uint32_t {
   PLANE_XZ = (1u << 6u),
   PLANE_YZ = (1u << 7u),
 
-  GRID_SIMA = (1u << 8u),            /* Grid is in SpaceImage view. */
-  GRID_CAMERA = (1u << 9u),          /* Grid is shown in selected camera. */
-  GRID_OVER_IMAGE = (1u << 10u),     /* Grid is shown in front of SpaceImage, not behind. */
-  GRID_BEHIND_GEOMETRY = (1u << 11u) /* Grid is shown behind geometry, on the far plane. */
+  GRID_ALIGNED = (1u << 8u),         /* Grid is in an axis-aligned view (PLANE_XY, ...). */
+  GRID_SIMA = (1u << 9u),            /* Grid is in SpaceImage view. */
+  GRID_CAMERA = (1u << 10u),         /* Grid is shown in selected camera. */
+  GRID_OVER_IMAGE = (1u << 11u),     /* Grid is shown in front of SpaceImage, not behind. */
+  GRID_BEHIND_GEOMETRY = (1u << 12u) /* Grid is shown behind geometry, on the far plane. */
 };
 #ifndef GPU_SHADER
 ENUM_OPERATORS(OVERLAY_GridBits)

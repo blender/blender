@@ -255,19 +255,19 @@ class Grid : Overlay {
       /* Fixed plane orthographic: set axis/plane bits dependent on the view
        * (top, right, left, etc.) that is selected. */
       if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
-        axis_flag_ = (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0)) |
-                     (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
-        grid_flag_ = (show_ortho ? PLANE_YZ : OVERLAY_GridBits(0));
+        axis_flag_ = (show_axis_y ? (AXIS_Y | GRID_ALIGNED) : OVERLAY_GridBits(0)) |
+                     (show_axis_z ? (AXIS_Z | GRID_ALIGNED) : OVERLAY_GridBits(0));
+        grid_flag_ = (show_ortho ? (PLANE_YZ | GRID_ALIGNED) : OVERLAY_GridBits(0));
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
-        axis_flag_ = (show_axis_x ? AXIS_X : OVERLAY_GridBits(0)) |
-                     (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
-        grid_flag_ = (show_ortho ? PLANE_XY : OVERLAY_GridBits(0));
+        axis_flag_ = (show_axis_x ? (AXIS_X | GRID_ALIGNED) : OVERLAY_GridBits(0)) |
+                     (show_axis_y ? (AXIS_Y | GRID_ALIGNED) : OVERLAY_GridBits(0));
+        grid_flag_ = (show_ortho ? (PLANE_XY | GRID_ALIGNED) : OVERLAY_GridBits(0));
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
-        axis_flag_ = (show_axis_x ? AXIS_X : OVERLAY_GridBits(0)) |
-                     (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
-        grid_flag_ = (show_ortho ? PLANE_XZ : OVERLAY_GridBits(0));
+        axis_flag_ = (show_axis_x ? (AXIS_X | GRID_ALIGNED) : OVERLAY_GridBits(0)) |
+                     (show_axis_z ? (AXIS_Z | GRID_ALIGNED) : OVERLAY_GridBits(0));
+        grid_flag_ = (show_ortho ? (PLANE_XZ | GRID_ALIGNED) : OVERLAY_GridBits(0));
       }
 
       /* If any axes are set, set SHOW_AXES. If `grid` is toggled, set SHOW_GRID.
@@ -316,6 +316,10 @@ class Grid : Overlay {
                          abs(drw_view_position.z),
                          1.0f - abs(drw_view_forward.z));
     }
+    else if (bool(grid_flag_ & GRID_ALIGNED) || bool(axis_flag_ & GRID_ALIGNED)) {
+      /* #155497: mirror `ED_view3d_grid_view_scale` for axis-aligned orthographic views. */
+      dist = 10.0f * 12.0f / (state.region->sizex * rv3d->winmat[0][0]);
+    }
     else {
       /* Scale is simply specified by orthographic view. */
       dist = rv3d->dist;
@@ -341,7 +345,7 @@ class Grid : Overlay {
       grid_ubo_.offset = camera_offs.xy();
     }
 
-    /* Find the lowest relevant grid level + fractional. */
+    /* Find the lowest relevant grid level for the above distance. */
     for (int i : IndexRange(SI_GRID_STEPS_LEN)) {
       float curr = std::min(grid_ubo_.steps[i].x, grid_ubo_.steps[i].y);
       float next = (i < SI_GRID_STEPS_LEN - 1) ?
