@@ -756,6 +756,14 @@ static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
 
     /* Create a bone */
     newbone = add_points_bone(obedit, ebp->vec, curs);
+
+    /* Copy bone collection membership. */
+    if (ebp->head_owner) {
+      ANIM_armature_bonecoll_assign_from_other_editbone(newbone, ebp->head_owner);
+    }
+    else {
+      ANIM_armature_bonecoll_assign_from_other_editbone(newbone, ebp->tail_owner);
+    }
   }
   else if (count == 2) {
     EditBonePoint *ebp_a, *ebp_b;
@@ -844,6 +852,20 @@ static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
       /* don't set for bone connecting two head points of bones */
       if (ebp_a->tail_owner || ebp_b->tail_owner) {
         newbone->flag |= BONE_CONNECTED;
+      }
+
+      /* Copy bone collection membership. */
+      if (ebp_a->head_owner) {
+        ANIM_armature_bonecoll_assign_from_other_editbone(newbone, ebp_a->head_owner);
+      }
+      else {
+        ANIM_armature_bonecoll_assign_from_other_editbone(newbone, ebp_a->tail_owner);
+      }
+      if (ebp_b->head_owner) {
+        ANIM_armature_bonecoll_assign_from_other_editbone(newbone, ebp_b->head_owner);
+      }
+      else {
+        ANIM_armature_bonecoll_assign_from_other_editbone(newbone, ebp_b->tail_owner);
       }
     }
   }

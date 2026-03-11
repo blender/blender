@@ -270,6 +270,10 @@ void ANIM_armature_bonecoll_is_expanded_set(BoneCollection *bcoll, bool is_expan
  */
 bool ANIM_armature_bonecoll_assign(BoneCollection *bcoll, Bone *bone);
 bool ANIM_armature_bonecoll_assign_editbone(BoneCollection *bcoll, EditBone *ebone);
+/**
+ *  Keep existing membership on the destination but assign additional ones from source.
+ */
+void ANIM_armature_bonecoll_assign_from_other_editbone(EditBone *dst, EditBone *src);
 bool ANIM_armature_bonecoll_assign_and_move(BoneCollection *bcoll, Bone *bone);
 bool ANIM_armature_bonecoll_assign_and_move_editbone(BoneCollection *bcoll, EditBone *ebone);
 bool ANIM_armature_bonecoll_unassign(BoneCollection *bcoll, Bone *bone);
