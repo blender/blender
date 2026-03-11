@@ -913,6 +913,13 @@ bool ANIM_armature_bonecoll_assign_editbone(BoneCollection *bcoll, EditBone *ebo
   return true;
 }
 
+void ANIM_armature_bonecoll_assign_from_other_editbone(EditBone *dst, EditBone *src)
+{
+  for (BoneCollectionReference &ref : src->bone_collections) {
+    ANIM_armature_bonecoll_assign_editbone(ref.bcoll, dst);
+  }
+}
+
 bool ANIM_armature_bonecoll_assign_and_move(BoneCollection *bcoll, Bone *bone)
 {
   ANIM_armature_bonecoll_unassign_all(bone);
