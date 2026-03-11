@@ -312,13 +312,13 @@ static void write_channelbag(BlendWriter *writer, animrig::Channelbag &channelba
   writer->write_struct_cast<ActionChannelbag>(&channelbag);
 
   Span<bActionGroup *> groups = channelbag.channel_groups();
-  BLO_write_pointer_array(writer, groups.size(), groups.data());
+  writer->write_pointer_array(groups.size(), groups.data());
   for (const bActionGroup *group : groups) {
     writer->write_struct(group);
   }
 
   Span<FCurve *> fcurves = channelbag.fcurves();
-  BLO_write_pointer_array(writer, fcurves.size(), fcurves.data());
+  writer->write_pointer_array(fcurves.size(), fcurves.data());
   for (FCurve *fcurve : fcurves) {
     writer->write_struct(fcurve);
     BKE_fcurve_blend_write_data(writer, fcurve);
@@ -331,7 +331,7 @@ static void write_strip_keyframe_data(BlendWriter *writer,
   writer->write_struct_cast<ActionStripKeyframeData>(&strip_keyframe_data);
 
   auto channelbags = strip_keyframe_data.channelbags();
-  BLO_write_pointer_array(writer, channelbags.size(), channelbags.data());
+  writer->write_pointer_array(channelbags.size(), channelbags.data());
 
   for (animrig::Channelbag *channelbag : channelbags) {
     write_channelbag(writer, *channelbag);
@@ -341,8 +341,7 @@ static void write_strip_keyframe_data(BlendWriter *writer,
 static void write_strip_keyframe_data_array(
     BlendWriter *writer, Span<animrig::StripKeyframeData *> strip_keyframe_data_array)
 {
-  BLO_write_pointer_array(
-      writer, strip_keyframe_data_array.size(), strip_keyframe_data_array.data());
+  writer->write_pointer_array(strip_keyframe_data_array.size(), strip_keyframe_data_array.data());
 
   for (animrig::StripKeyframeData *keyframe_data : strip_keyframe_data_array) {
     write_strip_keyframe_data(writer, *keyframe_data);
@@ -351,7 +350,7 @@ static void write_strip_keyframe_data_array(
 
 static void write_strips(BlendWriter *writer, Span<animrig::Strip *> strips)
 {
-  BLO_write_pointer_array(writer, strips.size(), strips.data());
+  writer->write_pointer_array(strips.size(), strips.data());
 
   for (animrig::Strip *strip : strips) {
     writer->write_struct_cast<ActionStrip>(strip);
@@ -360,7 +359,7 @@ static void write_strips(BlendWriter *writer, Span<animrig::Strip *> strips)
 
 static void write_layers(BlendWriter *writer, Span<animrig::Layer *> layers)
 {
-  BLO_write_pointer_array(writer, layers.size(), layers.data());
+  writer->write_pointer_array(layers.size(), layers.data());
 
   for (animrig::Layer *layer : layers) {
     writer->write_struct_cast<ActionLayer>(layer);
@@ -370,7 +369,7 @@ static void write_layers(BlendWriter *writer, Span<animrig::Layer *> layers)
 
 static void write_slots(BlendWriter *writer, Span<animrig::Slot *> slots)
 {
-  BLO_write_pointer_array(writer, slots.size(), slots.data());
+  writer->write_pointer_array(slots.size(), slots.data());
   for (animrig::Slot *slot : slots) {
     /* Make a shallow copy using the C type, so that no new runtime struct is
      * allocated for the copy. */

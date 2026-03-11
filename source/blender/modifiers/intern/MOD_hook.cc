@@ -519,7 +519,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
     BKE_curvemapping_blend_write(writer, hmd->curfalloff);
   }
 
-  BLO_write_int32_array(writer, hmd->indexar_num, hmd->indexar);
+  writer->write_int32_array(hmd->indexar_num, hmd->indexar);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

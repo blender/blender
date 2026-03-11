@@ -4812,14 +4812,13 @@ static void write_mdisps(BlendWriter *writer,
       const MDisps *md = &mdlist[i];
       if (md->disps) {
         if (!external) {
-          BLO_write_float3_array(writer, md->totdisp, &md->disps[0][0]);
+          writer->write_float3_array(md->totdisp, &md->disps[0][0]);
         }
       }
 
       if (md->hidden) {
-        BLO_write_int8_array(writer,
-                             BLI_BITMAP_SIZE(md->totdisp) * sizeof(BLI_bitmap),
-                             reinterpret_cast<const int8_t *>(md->hidden));
+        writer->write_int8_array(BLI_BITMAP_SIZE(md->totdisp) * sizeof(BLI_bitmap),
+                                 reinterpret_cast<const int8_t *>(md->hidden));
       }
     }
   }
@@ -4835,7 +4834,7 @@ static void write_grid_paint_mask(BlendWriter *writer,
       const GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
         const uint32_t gridsize = uint32_t(CCG_grid_size(gpm->level));
-        BLO_write_float_array(writer, gridsize * gridsize, gpm->data);
+        writer->write_float_array(gridsize * gridsize, gpm->data);
       }
     }
   }
@@ -4854,7 +4853,7 @@ static void blend_write_layer_data(BlendWriter *writer,
           writer, count, static_cast<const MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
       break;
     case CD_PAINT_MASK:
-      BLO_write_float_array(writer, count, static_cast<const float *>(layer.data));
+      writer->write_float_array(count, static_cast<const float *>(layer.data));
       break;
     case CD_GRID_PAINT_MASK:
       write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer.data));
@@ -4862,7 +4861,7 @@ static void blend_write_layer_data(BlendWriter *writer,
     case CD_PROP_BOOL:
       BLI_STATIC_ASSERT(sizeof(bool) == sizeof(uint8_t),
                         "bool type is expected to have the same size as uint8_t")
-      BLO_write_uint8_array(writer, count, static_cast<const uint8_t *>(layer.data));
+      writer->write_uint8_array(count, static_cast<const uint8_t *>(layer.data));
       break;
     default: {
       const char *structname;

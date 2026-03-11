@@ -186,7 +186,7 @@ static void write_moviePlaneTracks(BlendWriter *writer,
   for (MovieTrackingPlaneTrack &plane_track : *plane_tracks_base) {
     writer->write_struct(&plane_track);
 
-    BLO_write_pointer_array(writer, plane_track.point_tracksnr, plane_track.point_tracks);
+    writer->write_pointer_array(plane_track.point_tracksnr, plane_track.point_tracks);
     writer->write_struct_array(plane_track.markersnr, plane_track.markers);
   }
 }

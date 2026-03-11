@@ -129,9 +129,9 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
     for (MaskLayerShape &masklay_shape : masklay.splines_shapes) {
       writer->write_struct(&masklay_shape);
-      BLO_write_float_array(writer,
-                            masklay_shape.tot_vert * (sizeof(MaskLayerShapeElem) / sizeof(float)),
-                            masklay_shape.data);
+      writer->write_float_array(masklay_shape.tot_vert *
+                                    (sizeof(MaskLayerShapeElem) / sizeof(float)),
+                                masklay_shape.data);
     }
   }
 }

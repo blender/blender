@@ -76,7 +76,7 @@ static void node_storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const
 static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
 {
   const NodeInputString *storage = static_cast<const NodeInputString *>(node.storage);
-  BLO_write_string(&writer, storage->string);
+  writer.write_string(storage->string);
 }
 
 static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)

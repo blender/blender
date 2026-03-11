@@ -618,8 +618,8 @@ StructRNA **MenuSwitchItemsAccessor::item_srna = &RNA_NodeEnumItem;
 
 void MenuSwitchItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
-  BLO_write_string(writer, item.description);
+  writer->write_string(item.name);
+  writer->write_string(item.description);
 }
 
 void MenuSwitchItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)

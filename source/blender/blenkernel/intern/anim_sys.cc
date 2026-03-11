@@ -314,7 +314,7 @@ void BKE_keyingsets_blend_write(BlendWriter *writer, ListBaseT<KeyingSet> *list)
       writer->write_struct(&ksp);
 
       if (ksp.rna_path) {
-        BLO_write_string(writer, ksp.rna_path);
+        writer->write_string(ksp.rna_path);
       }
     }
   }

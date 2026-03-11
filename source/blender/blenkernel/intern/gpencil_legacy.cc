@@ -155,7 +155,7 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
 
   BKE_defbase_blend_write(writer, &gpd->vertex_group_names);
 
-  BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
+  writer->write_pointer_array(gpd->totcol, gpd->mat);
 
   /* write grease-pencil layers to file */
   writer->write_struct_list(&gpd->layers);

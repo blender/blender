@@ -1297,7 +1297,7 @@ static void write_panel_list(BlendWriter *writer, ListBaseT<Panel> *lb)
     writer->write_struct_at_address(&panel, &panel_copy);
     writer->write_struct_list(&panel.layout_panel_states);
     for (LayoutPanelState &state : panel.layout_panel_states) {
-      BLO_write_string(writer, state.idname);
+      writer->write_string(state.idname);
     }
     write_panel_list(writer, &panel.children);
   }

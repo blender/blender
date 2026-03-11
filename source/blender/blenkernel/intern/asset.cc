@@ -201,10 +201,10 @@ void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data)
     IDP_BlendWrite(writer, asset_data->properties);
   }
 
-  BLO_write_string(writer, asset_data->author);
-  BLO_write_string(writer, asset_data->description);
-  BLO_write_string(writer, asset_data->copyright);
-  BLO_write_string(writer, asset_data->license);
+  writer->write_string(asset_data->author);
+  writer->write_string(asset_data->description);
+  writer->write_string(asset_data->copyright);
+  writer->write_string(asset_data->license);
 
   for (AssetTag &tag : asset_data->tags) {
     writer->write_struct(&tag);

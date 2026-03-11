@@ -924,7 +924,7 @@ StructRNA **SimulationItemsAccessor::item_srna = &RNA_SimulationStateItem;
 
 void SimulationItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void SimulationItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)

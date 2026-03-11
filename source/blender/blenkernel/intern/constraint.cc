@@ -6842,14 +6842,14 @@ void BKE_constraint_blend_write(BlendWriter *writer, ListBaseT<bConstraint> *con
           bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con.data);
 
           /* write points array */
-          BLO_write_float_array(writer, data->numpoints, data->points);
+          writer->write_float_array(data->numpoints, data->points);
 
           break;
         }
         case CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE: {
           bGeometryAttributeConstraint *data = static_cast<bGeometryAttributeConstraint *>(
               con.data);
-          BLO_write_string(writer, data->attribute_name);
+          writer->write_string(data->attribute_name);
           break;
         }
       }

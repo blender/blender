@@ -484,7 +484,7 @@ StructRNA **ForeachGeometryElementInputItemsAccessor::item_srna =
 void ForeachGeometryElementInputItemsAccessor::blend_write_item(BlendWriter *writer,
                                                                 const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void ForeachGeometryElementInputItemsAccessor::blend_read_data_item(BlendDataReader *reader,
@@ -499,7 +499,7 @@ StructRNA **ForeachGeometryElementMainItemsAccessor::item_srna =
 void ForeachGeometryElementMainItemsAccessor::blend_write_item(BlendWriter *writer,
                                                                const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void ForeachGeometryElementMainItemsAccessor::blend_read_data_item(BlendDataReader *reader,
@@ -514,7 +514,7 @@ StructRNA **ForeachGeometryElementGenerationItemsAccessor::item_srna =
 void ForeachGeometryElementGenerationItemsAccessor::blend_write_item(BlendWriter *writer,
                                                                      const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void ForeachGeometryElementGenerationItemsAccessor::blend_read_data_item(BlendDataReader *reader,

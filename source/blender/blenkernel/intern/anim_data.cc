@@ -1307,7 +1307,7 @@ void BKE_animdata_blend_write(BlendWriter *writer, ID *id)
   for (AnimOverride &aor : adt->overrides) {
     /* overrides consist of base data + rna_path */
     writer->write_struct(&aor);
-    BLO_write_string(writer, aor.rna_path);
+    writer->write_string(aor.rna_path);
   }
 
   /* TODO: write the remaps (if they are needed). */

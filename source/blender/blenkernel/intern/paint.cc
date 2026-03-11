@@ -2032,7 +2032,7 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *paint)
     }
     writer->write_struct_list(&tool_brush_bindings.active_brush_per_brush_type);
     for (NamedBrushAssetReference &brush_ref : tool_brush_bindings.active_brush_per_brush_type) {
-      BLO_write_string(writer, brush_ref.name);
+      writer->write_string(brush_ref.name);
       if (brush_ref.brush_asset_reference) {
         BKE_asset_weak_reference_write(writer, brush_ref.brush_asset_reference);
       }

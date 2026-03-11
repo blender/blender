@@ -797,9 +797,9 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
                      sizeof(float[3]) * csmd.bind_coords_num,
                      csmd.bind_coords_sharing_info,
                      [&]() {
-                       BLO_write_float3_array(writer,
-                                              csmd.bind_coords_num,
-                                              reinterpret_cast<const float *>(csmd.bind_coords));
+                       writer->write_float3_array(
+                           csmd.bind_coords_num,
+                           reinterpret_cast<const float *>(csmd.bind_coords));
                      });
   }
 

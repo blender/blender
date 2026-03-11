@@ -834,7 +834,7 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
   if (lmd.vertexco != nullptr) {
     BLO_write_shared(
         writer, lmd.vertexco, sizeof(float[3]) * lmd.verts_num, lmd.vertexco_sharing_info, [&]() {
-          BLO_write_float3_array(writer, lmd.verts_num, lmd.vertexco);
+          writer->write_float3_array(lmd.verts_num, lmd.vertexco);
         });
   }
 

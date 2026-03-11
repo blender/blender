@@ -2001,7 +2001,7 @@ void CurvesGeometry::blend_write(BlendWriter &writer,
         this->curve_offsets,
         sizeof(int) * (this->curve_num + 1),
         this->runtime->curve_offsets_sharing_info,
-        [&]() { BLO_write_int32_array(&writer, this->curve_num + 1, this->curve_offsets); });
+        [&]() { writer.write_int32_array(this->curve_num + 1, this->curve_offsets); });
   }
 
   BKE_defbase_blend_write(&writer, &this->vertex_group_names);
@@ -2012,7 +2012,7 @@ void CurvesGeometry::blend_write(BlendWriter &writer,
         this->custom_knots,
         sizeof(float) * this->custom_knot_num,
         this->runtime->custom_knots_sharing_info,
-        [&]() { BLO_write_float_array(&writer, this->custom_knot_num, this->custom_knots); });
+        [&]() { writer.write_float_array(this->custom_knot_num, this->custom_knots); });
   }
 }
 

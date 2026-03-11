@@ -1216,12 +1216,12 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
   else if (node->type_legacy == SH_NODE_SCRIPT) {
     NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
     if (nss->bytecode) {
-      BLO_write_string(writer, nss->bytecode);
+      writer->write_string(nss->bytecode);
     }
   }
   else if (ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY)) {
     NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
-    BLO_write_string(writer, nc->matte_id);
+    writer->write_string(nc->matte_id);
     for (CryptomatteEntry &entry : nc->entries) {
       writer->write_struct(&entry);
     }
@@ -1231,7 +1231,7 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
 void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 {
   BKE_id_blend_write(writer, &ntree->id);
-  BLO_write_string(writer, ntree->description);
+  writer->write_string(ntree->description);
 
   /* Restore IDs overridden for forward compatibility. Otherwise their user count becomes wrong. */
   Map<ID **, ID *> ids_to_restore;
@@ -1290,7 +1290,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
   writer->write_struct(ntree->geometry_node_asset_traits);
   if (ntree->geometry_node_asset_traits) {
-    BLO_write_string(writer, ntree->geometry_node_asset_traits->node_tool_idname);
+    writer->write_string(ntree->geometry_node_asset_traits->node_tool_idname);
   }
 
   writer->write_struct_array(ntree->nested_node_refs_num, ntree->nested_node_refs);

@@ -344,7 +344,7 @@ static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   for (ConsoleLine &cl : con->history) {
     /* 'len_alloc' is invalid on write, set from 'len' on read */
     writer->write_struct(&cl);
-    BLO_write_char_array(writer, size_t(cl.len) + 1, cl.line);
+    writer->write_char_array(size_t(cl.len) + 1, cl.line);
   }
   writer->write_struct_cast<SpaceConsole>(sl);
 }

@@ -970,7 +970,7 @@ void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf)
     return;
   }
   BLO_write_shared(writer, pf->data, pf->size, pf->sharing_info, [&]() {
-    BLO_write_raw(writer, pf->size, pf->data);
+    writer->write_raw(pf->size, pf->data);
   });
   writer->write_struct(pf);
 }

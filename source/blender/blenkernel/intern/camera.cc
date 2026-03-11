@@ -227,7 +227,7 @@ static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   }
 
   if (cam->custom_bytecode) {
-    BLO_write_string(writer, cam->custom_bytecode);
+    writer->write_string(cam->custom_bytecode);
   }
 }
 

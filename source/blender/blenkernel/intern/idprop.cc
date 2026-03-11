@@ -1325,12 +1325,12 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
 {
   IDPropertyUIData *ui_data = prop->ui_data;
 
-  BLO_write_string(writer, ui_data->description);
+  writer->write_string(ui_data->description);
 
   switch (IDP_ui_data_type(prop)) {
     case IDP_UI_DATA_TYPE_STRING: {
       IDPropertyUIDataString *ui_data_string = reinterpret_cast<IDPropertyUIDataString *>(ui_data);
-      BLO_write_string(writer, ui_data_string->default_value);
+      writer->write_string(ui_data_string->default_value);
       writer->write_struct_cast<IDPropertyUIDataString>(ui_data);
       break;
     }
@@ -1341,16 +1341,15 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
     case IDP_UI_DATA_TYPE_INT: {
       IDPropertyUIDataInt *ui_data_int = reinterpret_cast<IDPropertyUIDataInt *>(ui_data);
       if (prop->type == IDP_ARRAY) {
-        BLO_write_int32_array(writer,
-                              uint(ui_data_int->default_array_len),
-                              static_cast<int32_t *>(ui_data_int->default_array));
+        writer->write_int32_array(uint(ui_data_int->default_array_len),
+                                  static_cast<int32_t *>(ui_data_int->default_array));
       }
       writer->write_struct_array(ui_data_int->enum_items_num, ui_data_int->enum_items);
       for (const int64_t i : IndexRange(ui_data_int->enum_items_num)) {
         IDPropertyUIDataEnumItem &item = ui_data_int->enum_items[i];
-        BLO_write_string(writer, item.identifier);
-        BLO_write_string(writer, item.name);
-        BLO_write_string(writer, item.description);
+        writer->write_string(item.identifier);
+        writer->write_string(item.name);
+        writer->write_string(item.description);
       }
       writer->write_struct_cast<IDPropertyUIDataInt>(ui_data);
       break;
@@ -1358,9 +1357,8 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
     case IDP_UI_DATA_TYPE_BOOLEAN: {
       IDPropertyUIDataBool *ui_data_bool = reinterpret_cast<IDPropertyUIDataBool *>(ui_data);
       if (prop->type == IDP_ARRAY) {
-        BLO_write_int8_array(writer,
-                             uint(ui_data_bool->default_array_len),
-                             const_cast<const int8_t *>(ui_data_bool->default_array));
+        writer->write_int8_array(uint(ui_data_bool->default_array_len),
+                                 const_cast<const int8_t *>(ui_data_bool->default_array));
       }
       writer->write_struct_cast<IDPropertyUIDataBool>(ui_data);
       break;
@@ -1368,8 +1366,8 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
     case IDP_UI_DATA_TYPE_FLOAT: {
       IDPropertyUIDataFloat *ui_data_float = reinterpret_cast<IDPropertyUIDataFloat *>(ui_data);
       if (prop->type == IDP_ARRAY) {
-        BLO_write_double_array(
-            writer, uint(ui_data_float->default_array_len), ui_data_float->default_array);
+        writer->write_double_array(uint(ui_data_float->default_array_len),
+                                   ui_data_float->default_array);
       }
       writer->write_struct_cast<IDPropertyUIDataFloat>(ui_data);
       break;
@@ -1389,7 +1387,7 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
      */
     switch (eIDPropertyType(prop->subtype)) {
       case IDP_GROUP: {
-        BLO_write_pointer_array(writer, uint32_t(prop->len), prop->data.pointer);
+        writer->write_pointer_array(uint32_t(prop->len), prop->data.pointer);
 
         IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
         for (int i = 0; i < prop->len; i++) {
@@ -1398,19 +1396,16 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
         break;
       }
       case IDP_DOUBLE:
-        BLO_write_double_array(
-            writer, uint32_t(prop->len), static_cast<double *>(prop->data.pointer));
+        writer->write_double_array(uint32_t(prop->len), static_cast<double *>(prop->data.pointer));
         break;
       case IDP_INT:
-        BLO_write_int32_array(writer, uint32_t(prop->len), static_cast<int *>(prop->data.pointer));
+        writer->write_int32_array(uint32_t(prop->len), static_cast<int *>(prop->data.pointer));
         break;
       case IDP_FLOAT:
-        BLO_write_float_array(
-            writer, uint32_t(prop->len), static_cast<float *>(prop->data.pointer));
+        writer->write_float_array(uint32_t(prop->len), static_cast<float *>(prop->data.pointer));
         break;
       case IDP_BOOLEAN:
-        BLO_write_int8_array(
-            writer, uint32_t(prop->len), static_cast<int8_t *>(prop->data.pointer));
+        writer->write_int8_array(uint32_t(prop->len), static_cast<int8_t *>(prop->data.pointer));
         break;
       case IDP_STRING:
       case IDP_ARRAY:
@@ -1439,9 +1434,9 @@ static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
 static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
 {
   /* Remember to set #IDProperty.totallen to len in the linking code! */
-  /* Do not use #BLO_write_string here, since 'bytes' sub-type of IDProperties may not be
+  /* Do not use #BlendWriter::write_string here, since 'bytes' sub-type of IDProperties may not be
    * null-terminated. */
-  BLO_write_char_array(writer, uint(prop->len), static_cast<char *>(prop->data.pointer));
+  writer->write_char_array(uint(prop->len), static_cast<char *>(prop->data.pointer));
 }
 
 static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)
