@@ -305,10 +305,19 @@ void SourceProcessor::lower_resource_table(Parser &parser)
   };
 
   auto parse_resource = [&](Scope attributes, Token type, Token name, Scope array) {
-    metadata::ParsedResource resource{type.line_number(),
-                                      string(type.str()),
-                                      string(name.str()),
-                                      string(array.str_with_whitespace())};
+    /* FIXME(fclem): This is a hotfix to support multi dimensional array.
+     * Ideally, array should already contain all dimensions */
+    Scope array_end = array;
+    while (array_end.next().type() == ScopeType::Subscript) {
+      array_end = array_end.next();
+    }
+    string_view array_str;
+    if (array.is_valid()) {
+      array_str = parser.substr(array.front(), array_end.back(), true);
+    }
+
+    metadata::ParsedResource resource{
+        type.line_number(), string(type.str()), string(name.str()), string(array_str)};
     attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
       string_view type = attribute[0].str();
       if (type == "sampler") {
@@ -329,6 +338,9 @@ void SourceProcessor::lower_resource_table(Parser &parser)
         resource.res_type = type;
         resource.res_slot = attribute[2].str();
         resource.res_qualifier = attribute[4].str();
+      }
+      else if (type == "shared") {
+        resource.res_type = type;
       }
       else if (type == "push_constant") {
         resource.res_type = type;
@@ -444,7 +456,7 @@ void SourceProcessor::lower_resource_table(Parser &parser)
   auto is_resource_table_attribute = [](Token attr) {
     string_view type = attr.str();
     return (type == "sampler" || type == "image" || type == "uniform" || type == "storage" ||
-            type == "push_constant" || type == "compilation_constant" ||
+            type == "shared" || type == "push_constant" || type == "compilation_constant" ||
             type == "specialization_constant" || type == "legacy_info" ||
             type == "resource_table");
   };
