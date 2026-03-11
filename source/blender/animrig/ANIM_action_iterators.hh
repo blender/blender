@@ -66,6 +66,11 @@ bool foreach_keyframe_strip_in_action_slot(
     Action &action,
     slot_handle_t handle,
     FunctionRef<bool(Layer &layer, Strip &strip, Channelbag &channelbag)> callback);
+bool foreach_keyframe_strip_in_action_slot(
+    const Action &action,
+    const slot_handle_t handle,
+    FunctionRef<bool(const Layer &layer, const Strip &strip, const Channelbag &channelbag)>
+        callback);
 
 /**
  * Call the given callback for each Action + Slot that this ID uses.

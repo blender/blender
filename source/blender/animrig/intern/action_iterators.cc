@@ -91,7 +91,7 @@ void foreach_fcurve_in_action_slot(Action &action,
 
 bool foreach_keyframe_strip_in_action_slot(
     Action &action,
-    slot_handle_t handle,
+    const slot_handle_t handle,
     FunctionRef<bool(Layer &layer, Strip &strip, Channelbag &channelbag)> callback)
 {
   for (Layer *layer : action.layers()) {
@@ -100,6 +100,30 @@ bool foreach_keyframe_strip_in_action_slot(
         continue;
       }
       for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
+        if (bag->slot_handle != handle) {
+          continue;
+        }
+        if (!callback(*layer, *strip, *bag)) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+bool foreach_keyframe_strip_in_action_slot(
+    const Action &action,
+    const slot_handle_t handle,
+    FunctionRef<bool(const Layer &layer, const Strip &strip, const Channelbag &channelbag)>
+        callback)
+{
+  for (const Layer *layer : action.layers()) {
+    for (const Strip *strip : layer->strips()) {
+      if (strip->type() != Strip::Type::Keyframe) {
+        continue;
+      }
+      for (const Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
         if (bag->slot_handle != handle) {
           continue;
         }

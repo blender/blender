@@ -634,9 +634,16 @@ bool Action::is_slot_animated(const slot_handle_t slot_handle) const
   if (slot_handle == Slot::unassigned) {
     return false;
   }
-
-  Span<const FCurve *> fcurves = fcurves_for_action_slot(*this, slot_handle);
-  return !fcurves.is_empty();
+  /* It's likely this will just work once we add strips and we can upgrade to phase3 invariants. It
+   * will definitely need updating once we add different strip types. */
+  assert_baklava_phase_2_invariants(*this);
+  const bool all_channelbags_empty = foreach_keyframe_strip_in_action_slot(
+      *this,
+      slot_handle,
+      [&](const Layer & /* layer */, const Strip & /* strip */, const Channelbag &channelbag) {
+        return !channelbag.fcurves().is_empty();
+      });
+  return !all_channelbags_empty;
 }
 
 int Action::strip_keyframe_data_append(StripKeyframeData *strip_data)
