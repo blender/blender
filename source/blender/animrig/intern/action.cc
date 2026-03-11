@@ -816,9 +816,20 @@ float2 Action::get_frame_range_of_slot(const slot_handle_t slot_handle) const
   if (this->flag & ACT_FRAME_RANGE) {
     return {this->frame_start, this->frame_end};
   }
-
-  Span<const FCurve *> fcurves_to_consider = fcurves_for_action_slot(*this, slot_handle);
-  return get_frame_range_of_fcurves(fcurves_to_consider, false);
+  float2 frame_range = {FLT_MAX, -FLT_MAX};
+  /* Once we add strips, they will need to be considered when determining the frame range. */
+  assert_baklava_phase_2_invariants(*this);
+  foreach_keyframe_strip_in_action_slot(
+      *this,
+      slot_handle,
+      [&](const Layer & /* layer */, const Strip & /* strip */, const Channelbag &channelbag) {
+        Span<const FCurve *> fcurves_to_consider = channelbag.fcurves();
+        const float2 channelbag_range = get_frame_range_of_fcurves(fcurves_to_consider, false);
+        frame_range[0] = min_ff(frame_range[0], channelbag_range[0]);
+        frame_range[1] = max_ff(frame_range[1], channelbag_range[1]);
+        return true;
+      });
+  return frame_range;
 }
 
 float2 Action::get_frame_range_of_keys(const bool include_modifiers) const

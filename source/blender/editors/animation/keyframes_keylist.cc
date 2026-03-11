@@ -40,6 +40,7 @@
 #include "SEQ_retiming.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
 
 namespace blender {
 
@@ -1378,9 +1379,19 @@ void action_to_keylist(
    * have things like reference strips, where the strip can reference another slot handle.
    */
   BLI_assert(adt);
-  for (FCurve *fcurve : fcurves_for_action_slot(action, adt->slot_handle)) {
-    fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range, true);
-  }
+  /* This adds the FCurves of all Layers into the keylist. This may not be performant enough and
+   * may also not be useful. */
+  animrig::foreach_keyframe_strip_in_action_slot(
+      action,
+      adt->slot_handle,
+      [&](animrig::Layer & /* layer */,
+          animrig::Strip & /* strip */,
+          animrig::Channelbag &channelbag) {
+        for (FCurve *fcurve : channelbag.fcurves()) {
+          fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range, true);
+        }
+        return true;
+      });
 }
 
 void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, const bool active)
