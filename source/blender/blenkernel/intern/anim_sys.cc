@@ -3046,7 +3046,9 @@ static void nla_eval_domain_action(PointerRNA *ptr,
   animrig::foreach_keyframe_strip_in_action_slot(
       act->wrap(),
       slot_handle,
-      [&](animrig::Layer &layer, animrig::Strip &strip, animrig::Channelbag &channelbag) {
+      [&](animrig::Layer & /* layer */,
+          animrig::Strip & /* strip */,
+          animrig::Channelbag &channelbag) {
         for (const FCurve *fcu : channelbag.fcurves()) {
           /* check if this curve should be skipped */
           if (!is_fcurve_evaluatable(fcu)) {

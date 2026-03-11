@@ -31,24 +31,27 @@
 
 namespace blender {
 
-/* Disabled for now, see comment in `rna_def_action_layer()` for more info. */
-#if 0
 const EnumPropertyItem rna_enum_layer_mix_mode_items[] = {
     {int(animrig::Layer::MixMode::Replace),
      "REPLACE",
      0,
      "Replace",
      "Channels in this layer override the same channels from underlying layers"},
+/* Not all blend modes are enabled for now as decided in the Layered Animation
+ * workshop from 2024.  */
+#if 0
     {int(animrig::Layer::MixMode::Offset),
      "OFFSET",
      0,
      "Offset",
      "Channels in this layer are added to underlying layers as sequential operations"},
-    {int(animrig::Layer::MixMode::Add),
-     "ADD",
+#endif
+    {int(animrig::Layer::MixMode::Combine),
+     "COMBINE",
      0,
-     "Add",
-     "Channels in this layer are added to underlying layers on a per-channel basis"},
+     "Combine",
+     "Channels in this layer are added to underlying layers"},
+#if 0
     {int(animrig::Layer::MixMode::Subtract),
      "SUBTRACT",
      0,
@@ -60,8 +63,8 @@ const EnumPropertyItem rna_enum_layer_mix_mode_items[] = {
      "Multiply",
      "Channels in this layer are multiplied with underlying layers on a per-channel basis"},
     {0, nullptr, 0, nullptr, nullptr},
-};
 #endif
+};
 
 const EnumPropertyItem rna_enum_strip_type_items[] = {
     {int(animrig::Strip::Type::Keyframe),
@@ -138,14 +141,11 @@ static animrig::Strip &rna_data_strip(const PointerRNA *ptr)
   return reinterpret_cast<ActionStrip *>(ptr->data)->wrap();
 }
 
-/* Disabled for now, see comment in `rna_def_action_layer()` for more info. */
-#  if 0
 static void rna_Action_tag_animupdate(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   animrig::Action &action = rna_action(ptr);
   DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION);
 }
-#  endif
 
 static animrig::Channelbag &rna_data_channelbag(const PointerRNA *ptr)
 {
@@ -1923,6 +1923,7 @@ static void rna_def_action_layer(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0, 1.0, 3, 2);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_Action_tag_animupdate");
+#  endif
 
   prop = RNA_def_property(srna, "mix_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "layer_mix_mode");
@@ -1931,7 +1932,6 @@ static void rna_def_action_layer(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_enum_items(prop, rna_enum_layer_mix_mode_items);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_Action_tag_animupdate");
-#  endif
 
   prop = RNA_def_property(srna, "is_locked", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

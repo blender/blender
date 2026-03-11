@@ -728,6 +728,7 @@ class DopesheetActionPanelBase:
             layout.prop_search(action.layers, "active", action, "layers")
             if action.layers.active:
                 layout.prop(action.layers.active, "is_locked")
+                layout.prop(action.layers.active, "mix_mode")
 
 
 class DOPESHEET_PT_custom_props_action(PropertyPanel, Panel):

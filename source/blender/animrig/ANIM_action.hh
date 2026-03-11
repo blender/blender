@@ -674,7 +674,7 @@ class Layer : public ActionLayer {
     /** Channels in this layer are added to underlying layers as sequential operations. */
     Offset = 1,
     /** Channels in this layer are added to underlying layers on a per-channel basis. */
-    Add = 2,
+    Combine = 2,
     /** Channels in this layer are subtracted to underlying layers on a per-channel basis. */
     Subtract = 3,
     /** Channels in this layer are multiplied with underlying layers on a per-channel basis. */

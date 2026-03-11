@@ -270,7 +270,7 @@ void blend_layer_results(EvaluationResult &final_result,
         last_prop->value = math::interpolate(
             current_layer.influence, last_prop->value, anim_prop.value);
         break;
-      case Layer::MixMode::Add:
+      case Layer::MixMode::Combine:
         last_prop->value += anim_prop.value * current_layer.influence;
         break;
       case Layer::MixMode::Subtract:
