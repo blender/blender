@@ -53,6 +53,7 @@
 #include "BKE_texture.h"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
 #include "ANIM_action_legacy.hh"
 #include "ANIM_evaluation.hh"
 
@@ -2553,36 +2554,31 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
   storage.size_per_modifier = evaluate_fmodifiers_storage_size_per_modifier(modifiers);
   storage.buffer = alloca(storage.modifier_count * storage.size_per_modifier);
 
-  const float modified_evaltime = evaluate_time_fmodifiers(
-      &storage, modifiers, nullptr, 0.0f, evaltime);
-
-  for (const FCurve *fcu : animrig::fcurves_for_action_slot(action->wrap(), slot_handle)) {
-    if (!is_fcurve_evaluatable(fcu)) {
-      continue;
-    }
-
-    NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
+  animrig::EvaluationResult action_eval_result = animrig::evaluate_action(
+      *ptr, action->wrap(), slot_handle, {nullptr, evaltime});
+  for (const auto &channel_result : action_eval_result.items()) {
+    const animrig::PropIdentifier &prop_ident = channel_result.key;
+    const animrig::AnimatedProperty &anim_prop = channel_result.value;
+    NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, prop_ident.rna_path.c_str());
 
     /* Invalid path or property cannot be animated. */
     if (nec == nullptr) {
       continue;
     }
 
-    if (!nlaevalchan_validate_index_ex(nec, fcu->array_index)) {
+    if (!nlaevalchan_validate_index_ex(nec, prop_ident.array_index)) {
       continue;
     }
 
     NlaEvalChannelSnapshot *necs = nlaeval_snapshot_ensure_channel(r_snapshot, nec);
 
-    float value = evaluate_fcurve(fcu, modified_evaltime);
-    evaluate_value_fmodifiers(&storage, modifiers, fcu, &value, evaltime);
-    necs->values[fcu->array_index] = value;
+    necs->values[prop_ident.array_index] = anim_prop.value;
 
     if (nec->mix_mode == NEC_MIX_QUATERNION) {
       BLI_bitmap_set_all(necs->blend_domain.ptr, true, 4);
     }
     else {
-      BLI_BITMAP_ENABLE(necs->blend_domain.ptr, fcu->array_index);
+      BLI_BITMAP_ENABLE(necs->blend_domain.ptr, prop_ident.array_index);
     }
   }
 }
@@ -3047,29 +3043,35 @@ static void nla_eval_domain_action(PointerRNA *ptr,
   if (!touched_actions.add(action_and_slot)) {
     return;
   }
+  animrig::foreach_keyframe_strip_in_action_slot(
+      act->wrap(),
+      slot_handle,
+      [&](animrig::Layer &layer, animrig::Strip &strip, animrig::Channelbag &channelbag) {
+        for (const FCurve *fcu : channelbag.fcurves()) {
+          /* check if this curve should be skipped */
+          if (!is_fcurve_evaluatable(fcu)) {
+            continue;
+          }
 
-  for (const FCurve *fcu : animrig::fcurves_for_action_slot(act->wrap(), slot_handle)) {
-    /* check if this curve should be skipped */
-    if (!is_fcurve_evaluatable(fcu)) {
-      continue;
-    }
+          NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
 
-    NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
+          if (!nec) {
+            continue;
+          }
+          /* For quaternion properties, enable all sub-channels. */
+          if (nec->mix_mode == NEC_MIX_QUATERNION) {
+            BLI_bitmap_set_all(nec->domain.ptr, true, 4);
+            continue;
+          }
 
-    if (nec != nullptr) {
-      /* For quaternion properties, enable all sub-channels. */
-      if (nec->mix_mode == NEC_MIX_QUATERNION) {
-        BLI_bitmap_set_all(nec->domain.ptr, true, 4);
-        continue;
-      }
+          int idx = nlaevalchan_validate_index(nec, fcu->array_index);
 
-      int idx = nlaevalchan_validate_index(nec, fcu->array_index);
-
-      if (idx >= 0) {
-        BLI_BITMAP_ENABLE(nec->domain.ptr, idx);
-      }
-    }
-  }
+          if (idx >= 0) {
+            BLI_BITMAP_ENABLE(nec->domain.ptr, idx);
+          }
+        }
+        return true;
+      });
 }
 
 static void nla_eval_domain_strips(PointerRNA *ptr,
