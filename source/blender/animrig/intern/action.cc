@@ -706,13 +706,13 @@ Span<StripKeyframeData *> Action::strip_keyframe_data()
 
 Layer *Action::get_layer_for_keyframing()
 {
-  assert_baklava_phase_1_invariants(*this);
+  assert_baklava_phase_2_invariants(*this);
 
   if (this->layers().is_empty()) {
     return nullptr;
   }
 
-  return this->layer(0);
+  return this->layer_active_get();
 }
 
 void Action::slot_identifier_ensure_prefix(Slot &slot)
