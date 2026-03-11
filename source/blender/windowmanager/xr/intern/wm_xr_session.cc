@@ -341,38 +341,56 @@ void wm_xr_session_draw_data_update(wmXrSessionState *state,
   }
 }
 
-static void wm_xr_session_state_update_navigation_scale(wmXrSessionState *state,
-                                                        const wmXrDrawData *draw_data,
-                                                        const XrSessionSettings *settings)
+static void wm_xr_session_scale_maintain_viewer_pos(wmXrSessionState *state,
+                                                    const float new_scale,
+                                                    const float prev_scale)
 {
-  /* Set the navigation scale from the scene unit scale and VR view scale. */
-  const float scene_scale = draw_data->scene->unit.scale_length;
-  const float new_nav_scale = scene_scale * settings->view_scale;
-
-  BLI_assert(state->nav_scale != 0 && new_nav_scale != 0);
-
-  if (state->nav_scale == new_nav_scale) {
-    return;
-  }
-
-  /* Adjust nav position to keep the viewer at the same relative location after scale change. */
   /* Calculate view offset from the current navigation origin. */
   const float3 viewer_location = float3(state->viewer_pose.position);
   const float3 nav_location = float3(state->nav_pose.position);
-  const float3 viewer_base_offset = (viewer_location - nav_location) / state->nav_scale;
+  const float3 viewer_base_offset = (viewer_location - nav_location) / prev_scale;
 
-  const float offset_val = state->nav_scale - new_nav_scale;
+  const float offset_val = prev_scale - new_scale;
   const float3 view_scaling_offset = viewer_base_offset * offset_val;
 
   /* On X/Y axes: Add the scaling offset to maintain relative horizontal world position. */
   state->nav_pose.position[0] += view_scaling_offset.x;
   state->nav_pose.position[1] += view_scaling_offset.y;
   /* On Z axis: Scale proportionally for the scaling change to be visible. */
-  state->nav_pose.position[2] *= new_nav_scale / state->nav_scale;
+  state->nav_pose.position[2] *= new_scale / prev_scale;
+}
 
-  /* Set nav scale and tag navigation to be recalculated. */
-  state->nav_scale = new_nav_scale;
-  state->is_navigation_dirty = true;
+static void wm_xr_session_state_viewer_scale_update(wmXrSessionState *state,
+                                                    const XrSessionSettings *settings,
+                                                    const Scene *scene)
+{
+  /* Compute the main XR scale, the product of:
+   * - The XR session navigation scale
+   * - The XR settings view scale
+   * - The context scene unit scale
+   */
+
+  if (state->prev_view_scale_setting == 0.0f) {
+    /* First initialization. */
+    state->prev_view_scale_setting = settings->view_scale;
+  }
+
+  /* Unlike Scene and Navigation Scale changes, View Scale setting changes result in viewer
+   * location adjustements to keep the viewer at the same relative world position after scaling. */
+  if (settings->view_scale != state->prev_view_scale_setting) {
+    wm_xr_session_scale_maintain_viewer_pos(
+        state, settings->view_scale, state->prev_view_scale_setting);
+    state->prev_view_scale_setting = settings->view_scale;
+  }
+
+  /* Compute XR viewer scale. */
+  const float scene_scale = scene->unit.scale_length;
+  const float new_viewer_scale = state->nav_scale * settings->view_scale * scene_scale;
+
+  /* Set viewer scale and tag XR navigation to be recalculated. */
+  if (assign_if_different(state->viewer_scale, new_viewer_scale)) {
+    state->is_navigation_dirty = true;
+  }
 }
 
 void wm_xr_session_state_update(const XrSessionSettings *settings,
@@ -398,14 +416,15 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
 
   /* Apply base pose and navigation. */
   wm_xr_pose_scale_to_mat(&draw_data->base_pose, draw_data->base_scale, base_mat);
-  wm_xr_pose_scale_to_mat(&state->nav_pose_prev, state->nav_scale_prev, nav_mat);
+  wm_xr_pose_scale_to_mat(&state->nav_pose_last_actions_sync, state->viewer_scale, nav_mat);
   mul_m4_m4m4(state->viewer_mat_base, base_mat, viewer_mat);
   mul_m4_m4m4(viewer_mat, nav_mat, state->viewer_mat_base);
 
   /* Save final viewer pose and viewmat. */
   mat4_to_loc_quat(state->viewer_pose.position, state->viewer_pose.orientation_quat, viewer_mat);
-  wm_xr_pose_scale_to_imat(
-      &state->viewer_pose, draw_data->base_scale * state->nav_scale_prev, state->viewer_viewmat);
+  wm_xr_pose_scale_to_imat(&state->viewer_pose,
+                           draw_data->base_scale * state->viewer_scale_last_actions_sync,
+                           state->viewer_viewmat);
 
   /* No idea why, but multiplying by two seems to make it match the VR view more. */
   state->focal_len = 2.0f *
@@ -426,7 +445,7 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   state->force_reset_to_base_pose = false;
 
   WM_xr_session_state_vignette_update(state);
-  wm_xr_session_state_update_navigation_scale(state, draw_data, settings);
+  wm_xr_session_state_viewer_scale_update(state, settings, draw_data->scene);
 }
 
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr)
@@ -609,11 +628,23 @@ void WM_xr_session_state_nav_scale_set(wmXrData *xr, float scale)
   }
 }
 
+bool WM_xr_session_state_viewer_scale_get(const wmXrData *xr, float *r_scale)
+{
+  if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set) {
+    *r_scale = 1.0f;
+    return false;
+  }
+
+  *r_scale = xr->runtime->session_state.viewer_scale;
+  return true;
+}
+
 void WM_xr_session_state_navigation_reset(wmXrSessionState *state)
 {
   zero_v3(state->nav_pose.position);
   unit_qt(state->nav_pose.orientation_quat);
   state->nav_scale = 1.0f;
+  state->viewer_scale = 1.0f;
   state->is_navigation_dirty = true;
   state->swap_hands = false;
 }
@@ -706,7 +737,7 @@ static void wm_xr_session_controller_data_update(const XrSessionSettings *settin
   }
 
   wm_xr_pose_scale_to_mat(&state->prev_base_pose, state->prev_base_scale, base_mat);
-  wm_xr_pose_scale_to_mat(&state->nav_pose, state->nav_scale, nav_mat);
+  wm_xr_pose_scale_to_mat(&state->nav_pose, state->viewer_scale, nav_mat);
 
   for (auto [subaction_idx, controller] : state->controllers.enumerate()) {
     controller.grip_active = ((GHOST_XrPose *)grip_action->states)[subaction_idx].is_active;
@@ -1273,18 +1304,18 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
   wmXrSessionState *state = &xr->runtime->session_state;
 
   if (state->is_navigation_dirty) {
-    memcpy(&state->nav_pose_prev, &state->nav_pose, sizeof(state->nav_pose_prev));
-    state->nav_scale_prev = state->nav_scale;
+    memcpy(&state->nav_pose_last_actions_sync, &state->nav_pose, sizeof(state->nav_pose));
+    state->viewer_scale_last_actions_sync = state->viewer_scale;
     state->is_navigation_dirty = false;
 
     /* Update viewer pose with any navigation changes since the last actions sync so that data
      * is correct for queries. */
     float m[4][4], viewer_mat[4][4];
-    wm_xr_pose_scale_to_mat(&state->nav_pose, state->nav_scale, m);
+    wm_xr_pose_scale_to_mat(&state->nav_pose, state->viewer_scale, m);
     mul_m4_m4m4(viewer_mat, m, state->viewer_mat_base);
     mat4_to_loc_quat(state->viewer_pose.position, state->viewer_pose.orientation_quat, viewer_mat);
     wm_xr_pose_scale_to_imat(
-        &state->viewer_pose, settings->base_scale * state->nav_scale, state->viewer_viewmat);
+        &state->viewer_pose, settings->base_scale * state->viewer_scale, state->viewer_viewmat);
   }
 
   /* Set active action set if requested previously. */
