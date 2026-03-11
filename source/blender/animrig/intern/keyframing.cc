@@ -754,7 +754,7 @@ static SingleKeyingResult insert_key_layer(Main *bmain,
                                            const KeyframeSettings &key_settings,
                                            const eInsertKeyFlags insert_key_flags)
 {
-  assert_baklava_phase_1_invariants(layer);
+  assert_baklava_phase_2_invariants(layer);
 
   const bool do_cyclic = (insert_key_flags & INSERTKEY_CYCLE_AWARE) && action.is_cyclic();
 
