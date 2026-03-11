@@ -897,7 +897,7 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
             STRNCPY_UTF8(text->text_legacy, text->text_ptr);
           }
           writer->write_struct(text);
-          BLO_write_string(writer, text->text_ptr);
+          writer->write_string(text->text_ptr);
         } break;
         case STRIP_TYPE_COLORMIX:
           writer->write_struct_cast<ColorMixVars>(strip->effectdata);

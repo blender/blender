@@ -30,7 +30,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_nearest_bilinear_float_shared)
 ADDITIONAL_INFO(compositor_realize_on_domain_shared)
 SAMPLER(0, sampler2D, input_tx)
-DEFINE_VALUE("SAMPLER_FUNCTION", "texture")
+COMPUTE_FUNCTION("realize_on_domain")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_float)
@@ -51,6 +51,18 @@ IMAGE(0, SFLOAT_16_16_16_16, write, image2D, domain_img)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
+/* --------
+ * Float4x4
+ * -------- */
+
+GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_float4x4)
+ADDITIONAL_INFO(compositor_realize_on_domain_shared)
+SAMPLER(0, sampler2DArray, input_tx)
+COMPUTE_FUNCTION("realize_on_domain_float4x4")
+IMAGE(0, SFLOAT_16_16_16_16, write, image2DArray, domain_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
 /* --------------
  * Float Bicubic.
  * -------------- */
@@ -58,7 +70,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_bicubic_float_shared)
 ADDITIONAL_INFO(compositor_realize_on_domain_shared)
 SAMPLER(0, sampler2D, input_tx)
-DEFINE_VALUE("SAMPLER_FUNCTION", "texture_bicubic")
+COMPUTE_FUNCTION("realize_on_domain_bicubic")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_bicubic_float)
@@ -86,7 +98,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_int_shared)
 ADDITIONAL_INFO(compositor_realize_on_domain_shared)
 SAMPLER(0, isampler2D, input_tx)
-DEFINE_VALUE("SAMPLER_FUNCTION", "texture")
+COMPUTE_FUNCTION("realize_on_domain")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_int)

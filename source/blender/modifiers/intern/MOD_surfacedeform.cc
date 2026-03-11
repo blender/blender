@@ -1669,19 +1669,18 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
             if (bind_verts[i].binds) {
               for (int j = 0; j < bind_verts[i].binds_num; j++) {
-                BLO_write_uint32_array(
-                    writer, bind_verts[i].binds[j].verts_num, bind_verts[i].binds[j].vert_inds);
+                writer->write_uint32_array(bind_verts[i].binds[j].verts_num,
+                                           bind_verts[i].binds[j].vert_inds);
 
                 if (ELEM(bind_verts[i].binds[j].mode,
                          MOD_SDEF_MODE_CENTROID,
                          MOD_SDEF_MODE_CORNER_TRIS))
                 {
-                  BLO_write_float3_array(writer, 1, bind_verts[i].binds[j].vert_weights);
+                  writer->write_float3_array(1, bind_verts[i].binds[j].vert_weights);
                 }
                 else {
-                  BLO_write_float_array(writer,
-                                        bind_verts[i].binds[j].verts_num,
-                                        bind_verts[i].binds[j].vert_weights);
+                  writer->write_float_array(bind_verts[i].binds[j].verts_num,
+                                            bind_verts[i].binds[j].vert_weights);
                 }
               }
             }

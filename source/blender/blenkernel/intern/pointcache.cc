@@ -3739,13 +3739,12 @@ void BKE_ptcache_blend_write(BlendWriter *writer, ListBaseT<PointCache> *ptcache
               writer->write_struct_array_cast<BoidData>(pm.totpoint, pm.data[i]);
             }
             else if (i == BPHYS_DATA_INDEX) { /* Only 'cache type' to use uint values. */
-              BLO_write_uint32_array(
-                  writer, pm.totpoint, reinterpret_cast<uint32_t *>(pm.data[i]));
+              writer->write_uint32_array(pm.totpoint, reinterpret_cast<uint32_t *>(pm.data[i]));
             }
             else { /* All other types of caches use (vectors of) floats. */
               /* data_size returns bytes. */
               const uint32_t items_num = pm.totpoint * (BKE_ptcache_data_size(i) / sizeof(float));
-              BLO_write_float_array(writer, items_num, reinterpret_cast<float *>(pm.data[i]));
+              writer->write_float_array(items_num, reinterpret_cast<float *>(pm.data[i]));
             }
           }
         }

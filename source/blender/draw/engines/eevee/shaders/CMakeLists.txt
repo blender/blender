@@ -140,8 +140,7 @@ set(SRC_GLSL_COMP
   eevee_shadow_tilemap_init_comp.glsl
   eevee_shadow_tilemap_rendermap_comp.glsl
   eevee_shadow_visibility_comp.glsl
-  eevee_subsurface_convolve_comp.glsl
-  eevee_subsurface_setup_comp.glsl
+  eevee_subsurface.bsl.hh
   eevee_surfel_cluster_build_comp.glsl
   eevee_surfel_light_comp.glsl
   eevee_surfel_list_build_comp.glsl

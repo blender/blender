@@ -24,11 +24,29 @@ int2 texture_size(sampler2D sampler_2d)
   return textureSize(sampler_2d, 0);
 }
 
+/* A shorthand for 2D Array textureSize with a zero LOD. */
+int2 texture_size(sampler2DArray sampler_2d_array)
+{
+  return textureSize(sampler_2d_array, 0).xy;
+}
+
 /* A shorthand for 2D texelFetch with zero LOD and bounded access clamped to border. */
 float4 texture_load(sampler2D sampler_2d, int2 texel)
 {
   const int2 texture_bounds = texture_size(sampler_2d) - int2(1);
   return texelFetch(sampler_2d, clamp(texel, int2(0), texture_bounds), 0);
+}
+
+/* Loads a float4x4 from a 2D array texture of 4 layers, each layer stores a column of the matrix.
+ * The pixel is loaded with bounded access clamped to border. */
+float4x4 texture_load_float4x4(sampler2DArray sampler_2d_array, int2 texel)
+{
+  const int2 texture_bounds = texture_size(sampler_2d_array) - int2(1);
+  const int2 clamped_texel = clamp(texel, int2(0), texture_bounds);
+  return float4x4(texelFetch(sampler_2d_array, int3(clamped_texel, 0), 0),
+                  texelFetch(sampler_2d_array, int3(clamped_texel, 1), 0),
+                  texelFetch(sampler_2d_array, int3(clamped_texel, 2), 0),
+                  texelFetch(sampler_2d_array, int3(clamped_texel, 3), 0));
 }
 
 /* A shorthand for 2D texelFetch with zero LOD. */

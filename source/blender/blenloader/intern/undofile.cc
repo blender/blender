@@ -49,7 +49,6 @@ void BLO_memfile_free(MemFile *memfile)
     MEM_delete(chunk);
   }
   MEM_SAFE_DELETE(memfile->shared_storage);
-  MEM_SAFE_DELETE(memfile->stable_address_ids);
   memfile->size = 0;
 }
 
@@ -105,11 +104,6 @@ void BLO_memfile_write_init(WriteData *wd,
                             MemFile *reference_memfile)
 {
   wd->use_memfile = true;
-  /* Re-use mapping data between real memory addresses and fake, stable generated values from the
-   * previous undo step. */
-  if (reference_memfile && reference_memfile->stable_address_ids) {
-    wd->stable_address_ids = *reference_memfile->stable_address_ids;
-  }
 
   mem_data->written_memfile = written_memfile;
   mem_data->reference_memfile = reference_memfile;
@@ -133,12 +127,9 @@ void BLO_memfile_write_init(WriteData *wd,
   }
 }
 
-void BLO_memfile_write_finalize(WriteData *wd, MemFileWriteData *mem_data)
+void BLO_memfile_write_finalize(WriteData * /*wd*/, MemFileWriteData *mem_data)
 {
   mem_data->id_session_uid_mapping.clear();
-  /* Move current stable pointers data from the WriteData to the written MemFile. */
-  mem_data->written_memfile->stable_address_ids = MEM_new<WriteDataStableAddressIDs>(
-      __func__, std::move(wd->stable_address_ids));
 }
 
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size)

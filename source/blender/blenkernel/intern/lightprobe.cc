@@ -119,18 +119,17 @@ static void lightprobe_grid_cache_frame_blend_write(BlendWriter *writer,
 
   int64_t sample_count = BKE_lightprobe_grid_cache_frame_sample_count(cache);
 
-  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L0));
-  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_a));
-  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_b));
-  BLO_write_float3_array(writer, sample_count, reinterpret_cast<float *>(cache->irradiance.L1_c));
+  writer->write_float3_array(sample_count, reinterpret_cast<float *>(cache->irradiance.L0));
+  writer->write_float3_array(sample_count, reinterpret_cast<float *>(cache->irradiance.L1_a));
+  writer->write_float3_array(sample_count, reinterpret_cast<float *>(cache->irradiance.L1_b));
+  writer->write_float3_array(sample_count, reinterpret_cast<float *>(cache->irradiance.L1_c));
 
-  BLO_write_float_array(writer, sample_count, cache->visibility.L0);
-  BLO_write_float_array(writer, sample_count, cache->visibility.L1_a);
-  BLO_write_float_array(writer, sample_count, cache->visibility.L1_b);
-  BLO_write_float_array(writer, sample_count, cache->visibility.L1_c);
+  writer->write_float_array(sample_count, cache->visibility.L0);
+  writer->write_float_array(sample_count, cache->visibility.L1_a);
+  writer->write_float_array(sample_count, cache->visibility.L1_b);
+  writer->write_float_array(sample_count, cache->visibility.L1_c);
 
-  BLO_write_int8_array(
-      writer, sample_count, reinterpret_cast<int8_t *>(cache->connectivity.validity));
+  writer->write_int8_array(sample_count, reinterpret_cast<int8_t *>(cache->connectivity.validity));
 }
 
 static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,

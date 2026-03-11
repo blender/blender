@@ -2841,6 +2841,19 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
     }
   }
 
+  /* Menus were converted into inputs, so the input indices were changed, see the same subversion
+   * in blo_do_versions_500. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 66)) {
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_GLARE, 1, 2, 22);
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_MASK, 0, 1, 7);
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_SCALE, 1, 1, 8);
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_KEYING, 13, 1, 16);
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_KUWAHARA, 2, 1, 7);
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_LENSDIST, 1, 1, 6);
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_BLUR, 2, 1, 5);
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_TONEMAP, 1, 1, 9);
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 97)) {
     for (Scene &scene : bmain->scenes) {
       if (scene.ed != nullptr) {

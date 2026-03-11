@@ -115,7 +115,7 @@ void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_p
         break;
       }
     }
-    BLO_write_string(writer, elem.ui_name);
+    writer->write_string(elem.ui_name);
   }
 }
 

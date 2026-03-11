@@ -238,7 +238,7 @@ StructRNA **FieldToListItemsAccessor::item_srna = &RNA_GeometryNodeFieldToListIt
 
 void FieldToListItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void FieldToListItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)

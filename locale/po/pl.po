@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
-"PO-Revision-Date: 2026-03-08 19:12+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"PO-Revision-Date: 2026-03-09 17:12+0000\n"
 "Last-Translator: Paweł Mazur <pawelmazur.zam@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
@@ -817,7 +817,7 @@ msgstr "Podczas łączenia węzłów za pomocą skrótu Ctrl+Numpad0 (i podobnyc
 
 
 msgid "Center"
-msgstr "Centrum"
+msgstr "Środek"
 
 
 msgid "Place the Mix node between the two nodes"
@@ -25784,7 +25784,7 @@ msgstr "Węzły geometryczne"
 
 
 msgid "View Center"
-msgstr "Centrum widoku"
+msgstr "Środek widoku"
 
 
 msgid "The current location (offset) of the view for this Node Tree"
@@ -39391,7 +39391,7 @@ msgstr "Modyfikator haka do zmiany położenia punktów obrysu"
 
 
 msgid "Hook Center"
-msgstr "Centrum haka"
+msgstr "Środek haka"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -42719,7 +42719,7 @@ msgstr "Kość do"
 
 
 msgid "UV Center"
-msgstr "Centrum UV"
+msgstr "Środek UV"
 
 
 msgid "Center point for rotate/scale"
@@ -43448,7 +43448,7 @@ msgstr "Przesunięcie względne"
 
 
 msgid "Crease hub edges for improved subdivision surface"
-msgstr "Zagnij krawędzie centrum, aby poprawić powierzchnię podziału"
+msgstr "Zagnij krawędzie centrum, aby poprawić powierzchnię podpodziału"
 
 
 msgid "Offset Even"
@@ -62419,11 +62419,11 @@ msgstr "Eksportuj tylko widoczne obiekty"
 
 
 msgid "Export at Collection Center"
-msgstr "Eksport do centrum kolekcji"
+msgstr "Eksport do środka kolekcji"
 
 
 msgid "Export at Collection center of mass of root objects of the collection"
-msgstr "Eksport do centrum kolekcji masy obiektów głównych kolekcji"
+msgstr "Eksport do środka kolekcji masy obiektów głównych kolekcji"
 
 
 msgid "Filter Actions"
@@ -68097,7 +68097,7 @@ msgstr "Ustaw kursor 2D w centralnym położeniu widoku"
 
 msgctxt "Operator"
 msgid "View Center"
-msgstr "Centrum widoku"
+msgstr "Środek widoku"
 
 
 msgid "View all selected UVs"
@@ -70444,7 +70444,7 @@ msgstr "Metoda scalania do użycia"
 
 
 msgid "At Center"
-msgstr "W centrum"
+msgstr "W środku"
 
 
 msgid "At Cursor"
@@ -72016,7 +72016,7 @@ msgstr "Grubość zagięcia"
 
 
 msgid "Crease hub edges for an improved subdivision surface"
-msgstr "Zagnij krawędzie centrum, aby poprawić powierzchnię podziału"
+msgstr "Zagnij krawędzie centrum, aby poprawić powierzchnię podpodziału"
 
 
 msgid "Remove original faces"
@@ -84637,7 +84637,7 @@ msgstr "Przenieś klatkę do następnego lub poprzedniego punktu edycji"
 
 
 msgid "Use Strip Center"
-msgstr "Użyj centrum paska"
+msgstr "Użyj środka paska"
 
 
 msgid "Next Strip"
@@ -96812,7 +96812,7 @@ msgstr "Wyświetl środek i osi podczas obrotu"
 
 
 msgid "Show Orbit Center Guide"
-msgstr "Pokaż przewodnik centrum orbity"
+msgstr "Pokaż przewodnik środka orbity"
 
 
 msgid "Display the orbit center during rotation"
@@ -97959,10 +97959,6 @@ msgid "French - Français"
 msgstr "Francuski - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Kod regionalny: fr_FR. Postęp tłumaczenia: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Gruziński - ქართული"
 
@@ -98029,10 +98025,6 @@ msgstr "Kod regionalny: it_IT. Postęp tłumaczenia: 44%"
 
 msgid "Japanese - 日本語"
 msgstr "Japoński - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Kod regionalny: ja_JP. Postęp tłumaczenia: 99%"
 
 
 msgid "Korean - 한국어"
@@ -98103,6 +98095,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugalski (Portugalia) - Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 78%"
+msgstr "Kod regionalny: pt_PT. Postęp tłumaczenia: 78%"
+
+
 msgid "Romanian - Român"
 msgstr "Rumuński - Român"
 
@@ -98171,12 +98167,12 @@ msgid "Swedish - Svenska"
 msgstr "Szwedzki - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 21%"
-msgstr "Kod regionalny: sv_SE. Postęp tłumaczenia: 21%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamilski - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 100%"
+msgstr "Kod regionalny: ka. Postęp tłumaczenia: 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -112958,6 +112954,10 @@ msgid "Auto-Keying Mode"
 msgstr "Tryb automatycznego kluczowania"
 
 
+msgid "Can add additional constraints on when auto keying can insert keyframes"
+msgstr "Można dodać dodatkowe ograniczenia dotyczące tego, kiedy automatyczne kluczowanie może wstawiać klatki kluczowe"
+
+
 msgid "Add & Replace"
 msgstr "Dodaj i zamień"
 
@@ -113422,6 +113422,10 @@ msgstr "W przypadku kanałów z ekstrapolacją cykliczną, wstawianie klatek klu
 
 msgid "Auto Keying"
 msgstr "Automatyczne kluczowanie"
+
+
+msgid "Automatically insert keyframes on modified properties"
+msgstr "Automatyczne wstawianie klatek kluczowych w zmodyfikowanych właściwościach"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -123696,6 +123700,10 @@ msgid "Calculation Range"
 msgstr "Zakres obliczeniowy"
 
 
+msgid "Frame Range Start"
+msgstr "Początek zakresu klatek"
+
+
 msgid "Bake to Active Camera"
 msgstr "Wypiecz do aktywnej kamery"
 
@@ -123745,10 +123753,6 @@ msgstr "+ Niezgrupowane klatki kluczowe"
 
 msgid "Before"
 msgstr "Przed"
-
-
-msgid "Frame Range Start"
-msgstr "Początek zakresu klatek"
 
 
 msgid "Collection Mask"
@@ -126712,7 +126716,7 @@ msgstr "Odwróć kolory obrazu"
 
 msgctxt "Operator"
 msgid "At Center"
-msgstr "W centrum"
+msgstr "W środku"
 
 
 msgctxt "Operator"
@@ -149300,7 +149304,7 @@ msgstr "Przeciągnij kąt"
 
 
 msgid "Connect Center"
-msgstr "Centrum podłączeń"
+msgstr "Środek podłączeń"
 
 
 msgid "Invert Arc"

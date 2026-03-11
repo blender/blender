@@ -755,11 +755,11 @@ static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
   switch (eNodeTreeInterfaceItemType(item.item_type)) {
     case NODE_INTERFACE_SOCKET: {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
-      BLO_write_string(writer, socket.name);
-      BLO_write_string(writer, socket.identifier);
-      BLO_write_string(writer, socket.description);
-      BLO_write_string(writer, socket.socket_type);
-      BLO_write_string(writer, socket.default_attribute_name);
+      writer->write_string(socket.name);
+      writer->write_string(socket.identifier);
+      writer->write_string(socket.description);
+      writer->write_string(socket.socket_type);
+      writer->write_string(socket.default_attribute_name);
       if (socket.properties) {
         IDP_BlendWrite(writer, socket.properties);
       }
@@ -769,9 +769,9 @@ static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
     }
     case NODE_INTERFACE_PANEL: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
-      BLO_write_string(writer, panel.name);
-      BLO_write_string(writer, panel.description);
-      BLO_write_pointer_array(writer, panel.items_num, panel.items_array);
+      writer->write_string(panel.name);
+      writer->write_string(panel.description);
+      writer->write_pointer_array(panel.items_num, panel.items_array);
       for (bNodeTreeInterfaceItem *child_item : panel.items()) {
         item_write_struct(writer, *child_item);
       }

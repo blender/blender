@@ -70,6 +70,8 @@ ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
       }
     case SOCK_RGBA:
       return ResultType::Color;
+    case SOCK_MATRIX:
+      return ResultType::Float4x4;
     case SOCK_MENU:
       return ResultType::Menu;
     case SOCK_STRING:

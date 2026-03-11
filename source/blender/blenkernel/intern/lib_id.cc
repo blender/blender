@@ -2660,15 +2660,15 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
 
     writer->write_struct_list(&id->override_library->properties);
     for (IDOverrideLibraryProperty &op : id->override_library->properties) {
-      BLO_write_string(writer, op.rna_path);
+      writer->write_string(op.rna_path);
 
       writer->write_struct_list(&op.operations);
       for (IDOverrideLibraryPropertyOperation &opop : op.operations) {
         if (opop.subitem_reference_name) {
-          BLO_write_string(writer, opop.subitem_reference_name);
+          writer->write_string(opop.subitem_reference_name);
         }
         if (opop.subitem_local_name) {
-          BLO_write_string(writer, opop.subitem_local_name);
+          writer->write_string(opop.subitem_local_name);
         }
       }
     }

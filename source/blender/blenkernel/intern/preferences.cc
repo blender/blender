@@ -543,7 +543,7 @@ void BKE_preferences_extension_repo_read_data(BlendDataReader *reader, bUserExte
 void BKE_preferences_extension_repo_write_data(BlendWriter *writer, const bUserExtensionRepo *repo)
 {
   if (repo->access_token) {
-    BLO_write_string(writer, repo->access_token);
+    writer->write_string(repo->access_token);
   }
 }
 

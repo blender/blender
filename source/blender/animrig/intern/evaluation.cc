@@ -201,7 +201,7 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
                              PointerRNA &animated_id_ptr,
                              const bool flush_to_original)
 {
-  for (auto channel_result : evaluation_result.items()) {
+  for (const auto &channel_result : evaluation_result.items()) {
     const PropIdentifier &prop_ident = channel_result.key;
     const AnimatedProperty &anim_prop = channel_result.value;
     const float animated_value = anim_prop.value;
@@ -247,7 +247,7 @@ void blend_layer_results(EvaluationResult &final_result,
    * them in parallel, instead of iterating over one and doing map lookups on
    * the other. */
 
-  for (auto channel_result : intermediate_result.items()) {
+  for (const auto &channel_result : intermediate_result.items()) {
     const PropIdentifier &prop_ident = channel_result.key;
     AnimatedProperty *last_prop = final_result.lookup_ptr(prop_ident);
     const AnimatedProperty &anim_prop = channel_result.value;

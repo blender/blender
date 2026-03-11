@@ -314,8 +314,7 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
   write_layer_tree(*grease_pencil, writer);
 
   /* Write materials. */
-  BLO_write_pointer_array(
-      writer, grease_pencil->material_array_num, grease_pencil->material_array);
+  writer->write_pointer_array(grease_pencil->material_array_num, grease_pencil->material_array);
   /* Write vertex group names. */
   BKE_defbase_blend_write(writer, &grease_pencil->vertex_group_names);
 }
@@ -4602,7 +4601,7 @@ static void write_drawing_array(GreasePencil &grease_pencil,
                                 ResourceScope &scope,
                                 BlendWriter *writer)
 {
-  BLO_write_pointer_array(writer, grease_pencil.drawing_array_num, grease_pencil.drawing_array);
+  writer->write_pointer_array(grease_pencil.drawing_array_num, grease_pencil.drawing_array);
   for (int i = 0; i < grease_pencil.drawing_array_num; i++) {
     GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
     switch (GreasePencilDrawingType(drawing_base->type)) {
@@ -4718,23 +4717,23 @@ static void read_layer_tree(GreasePencil &grease_pencil, BlendDataReader *reader
 static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
 {
   writer->write_struct(node);
-  BLO_write_string(writer, node->base.name);
-  BLO_write_string(writer, node->parsubstr);
-  BLO_write_string(writer, node->viewlayername);
+  writer->write_string(node->base.name);
+  writer->write_string(node->parsubstr);
+  writer->write_string(node->viewlayername);
 
-  BLO_write_int32_array(writer, node->frames_storage.num, node->frames_storage.keys);
+  writer->write_int32_array(node->frames_storage.num, node->frames_storage.keys);
   writer->write_struct_array(node->frames_storage.num, node->frames_storage.values);
 
   writer->write_struct_list(&node->masks);
   for (GreasePencilLayerMask &mask : node->masks) {
-    BLO_write_string(writer, mask.layer_name);
+    writer->write_string(mask.layer_name);
   }
 }
 
 static void write_layer_tree_group(BlendWriter *writer, GreasePencilLayerTreeGroup *node)
 {
   writer->write_struct(node);
-  BLO_write_string(writer, node->base.name);
+  writer->write_string(node->base.name);
   for (GreasePencilLayerTreeNode &child : node->children) {
     switch (child.type) {
       case GP_LAYER_TREE_LEAF: {

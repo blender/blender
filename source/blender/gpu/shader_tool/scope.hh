@@ -425,16 +425,23 @@ struct Scope {
 
     Scope invalid(*parser_);
 
+    /* TODO(fclem): This is getting out of hand... */
     foreach_match("c?AA;", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], invalid, toks[3], invalid, toks.back());
     });
     foreach_match("c?AA[..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], invalid, toks[3], toks[4].scope(), toks.back());
     });
+    foreach_match("c?AA[..][..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[0], toks[2], invalid, toks[3], toks[4].scope(), toks.back());
+    });
     foreach_match("c?A<..>A;", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], invalid, toks.back());
     });
     foreach_match("c?A<..>A[..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], toks[8].scope(), toks.back());
+    });
+    foreach_match("c?A<..>A[..][..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[7], toks[8].scope(), toks.back());
     });
 
@@ -444,10 +451,16 @@ struct Scope {
     foreach_match("c?A(&A)[..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], invalid, toks[5], toks[7].scope(), toks.back());
     });
+    foreach_match("c?A(&A)[..][..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[0], toks[2], invalid, toks[5], toks[7].scope(), toks.back());
+    });
     foreach_match("c?A<..>&A;", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[8], invalid, toks.back());
     });
     foreach_match("c?A<..>(&A)[..];", [&](const std::vector<Token> toks) {
+      cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[9], toks[11].scope(), toks.back());
+    });
+    foreach_match("c?A<..>(&A)[..][..];", [&](const std::vector<Token> toks) {
       cb(attrs(toks), toks[0], toks[2], toks[3].scope(), toks[9], toks[11].scope(), toks.back());
     });
   }

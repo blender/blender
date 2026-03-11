@@ -348,7 +348,7 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
 
 namespace legacy {
 
-Vector<FCurve *> fcurves_for_assigned_action(AnimData *adt)
+Span<FCurve *> fcurves_for_assigned_action(AnimData *adt)
 {
   if (!adt || !adt->action) {
     return {};
@@ -356,7 +356,7 @@ Vector<FCurve *> fcurves_for_assigned_action(AnimData *adt)
   return fcurves_for_action_slot(adt->action->wrap(), adt->slot_handle);
 }
 
-Vector<const FCurve *> fcurves_for_assigned_action(const AnimData *adt)
+Span<const FCurve *> fcurves_for_assigned_action(const AnimData *adt)
 {
   if (!adt || !adt->action) {
     return {};

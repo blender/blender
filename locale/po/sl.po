@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
 "PO-Revision-Date: 2026-02-14 12:47+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -63159,6 +63159,10 @@ msgid "Calculation Range"
 msgstr "Interval računanja"
 
 
+msgid "Frame Range Start"
+msgstr "Začetek intervala okvirjev"
+
+
 msgid "Bake to Active Camera"
 msgstr "Poračunaj za aktivno kamero"
 
@@ -63204,10 +63208,6 @@ msgstr "Poračunaj ..."
 
 msgid "Before"
 msgstr "Prej"
-
-
-msgid "Frame Range Start"
-msgstr "Začetek intervala okvirjev"
 
 
 msgid "Collection Mask"

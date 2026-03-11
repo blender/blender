@@ -295,7 +295,7 @@ StructRNA **ClosureInputItemsAccessor::item_srna = &RNA_NodeClosureInputItem;
 
 void ClosureInputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void ClosureInputItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
@@ -307,7 +307,7 @@ StructRNA **ClosureOutputItemsAccessor::item_srna = &RNA_NodeClosureOutputItem;
 
 void ClosureOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void ClosureOutputItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)

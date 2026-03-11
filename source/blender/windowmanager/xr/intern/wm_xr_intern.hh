@@ -47,6 +47,8 @@ struct wmXrSessionState {
   Object *prev_base_pose_object;
   /** Copy of XrSessionSettings.flag created on the last draw call, stored to detect changes. */
   int prev_settings_flag;
+  /** Copy of XrSessionSettings.view_scale, stored to detect changes. */
+  float prev_view_scale_setting;
   /** Copy of wmXrDrawData.base_pose. */
   GHOST_XrPose prev_base_pose;
   /** Copy of wmXrDrawData.base_scale. */
@@ -63,10 +65,12 @@ struct wmXrSessionState {
   /** Current navigation transforms. */
   GHOST_XrPose nav_pose;
   float nav_scale;
-  /** Navigation transforms from the last actions sync, used to calculate the viewer/controller
-   * poses. */
-  GHOST_XrPose nav_pose_prev;
-  float nav_scale_prev;
+  float viewer_scale;
+
+  /** Navigation transforms and viewer scale from the last action sync, used to calculate the
+   * viewer/controller poses. */
+  GHOST_XrPose nav_pose_last_actions_sync;
+  float viewer_scale_last_actions_sync;
   bool is_navigation_dirty;
 
   /** Last known controller data. */

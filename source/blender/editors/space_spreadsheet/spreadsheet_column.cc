@@ -107,7 +107,7 @@ void spreadsheet_column_id_free(SpreadsheetColumnID *column_id)
 void spreadsheet_column_id_blend_write(BlendWriter *writer, const SpreadsheetColumnID *column_id)
 {
   writer->write_struct(column_id);
-  BLO_write_string(writer, column_id->name);
+  writer->write_string(column_id->name);
 }
 
 void spreadsheet_column_id_blend_read(BlendDataReader *reader, SpreadsheetColumnID *column_id)
@@ -155,7 +155,7 @@ void spreadsheet_column_blend_write(BlendWriter *writer, const SpreadsheetColumn
 {
   writer->write_struct(column);
   spreadsheet_column_id_blend_write(writer, column->id);
-  BLO_write_string(writer, column->display_name);
+  writer->write_string(column->display_name);
 }
 
 void spreadsheet_column_blend_read(BlendDataReader *reader, SpreadsheetColumn *column)

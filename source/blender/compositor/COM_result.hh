@@ -46,6 +46,7 @@ enum class ResultType : uint8_t {
   Int2,
   Int3,
   Bool,
+  Float4x4,
   Menu,
 
   /* Single value only types. See Result::is_single_value_only_type. */
@@ -121,6 +122,8 @@ class Result {
    * value of which will be identical to that of the value member. See class description for more
    * information. */
   union {
+    /* This will be a 2D texture for most types, but can be a 2D texture array for large types like
+     * float4x4 where each column will be stored in a layer. */
     gpu::Texture *gpu_texture_ = nullptr;
     GMutableSpan cpu_data_;
   };
@@ -149,6 +152,7 @@ class Result {
                int2,
                int3,
                bool,
+               float4x4,
                nodes::MenuValue,
                std::string>
       single_value_ = 0.0f;
@@ -464,7 +468,8 @@ class Result {
    * otherwise, a new texture will be allocated. Pooling should not be used for persistent results
    * that might span more than one evaluation, like cached resources. While pooling should be used
    * for most other cases where the result will be allocated then later released in the same
-   * evaluation. */
+   * evaluation. Some types do not support pooling, since they require array textures which are not
+   * supported by the texture pool. */
   void allocate_data(const int2 size,
                      const bool from_pool = true,
                      const std::optional<ResultStorageType> storage_type = std::nullopt);
@@ -578,7 +583,7 @@ BLI_INLINE_METHOD T Result::load_pixel(const int2 &texel,
   const int x = wrap_coord(texel.x, domain_.data_size.x, wrap_mode_x);
   const int y = wrap_coord(texel.y, domain_.data_size.y, wrap_mode_y);
   if (x < 0 || y < 0) {
-    return T(0);
+    return T{};
   }
   return this->load_pixel<T>(int2(x, y));
 }

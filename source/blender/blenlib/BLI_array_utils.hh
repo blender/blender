@@ -188,7 +188,7 @@ inline void gather(const VArray<T> &src,
                    MutableSpan<T> dst,
                    const Mode mode = {})
 {
-  BLI_assert(indices.size() == dst.size());
+  BLI_assert(indices.size() >= dst.size());
   if constexpr (!mode.is_parallel) {
     src.materialize_compressed_to_uninitialized(indices, dst);
   }
@@ -210,7 +210,7 @@ inline void gather(const Span<T> src,
                    MutableSpan<T> dst,
                    const Mode mode = {})
 {
-  BLI_assert(indices.size() == dst.size());
+  BLI_assert(indices.size() >= dst.size());
   dst_mask.foreach_index_optimized<int64_t>([&](const int64_t i) { dst[i] = src[indices[i]]; },
                                             exec_mode_tag_for_copy(mode, sizeof(T)));
 }

@@ -89,8 +89,8 @@ namespace legacy {
  * If `adt` is `nullptr` or there is no Action assigned (i.e. `adt->action == nullptr`), an empty
  * Vector is returned.
  */
-Vector<FCurve *> fcurves_for_assigned_action(AnimData *adt);
-Vector<const FCurve *> fcurves_for_assigned_action(const AnimData *adt);
+Span<FCurve *> fcurves_for_assigned_action(AnimData *adt);
+Span<const FCurve *> fcurves_for_assigned_action(const AnimData *adt);
 }  // namespace legacy
 
 }  // namespace animrig

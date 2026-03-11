@@ -113,7 +113,7 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
   BKE_id_blend_write(writer, &mb->id);
 
   /* direct data */
-  BLO_write_pointer_array(writer, mb->totcol, mb->mat);
+  writer->write_pointer_array(mb->totcol, mb->mat);
 
   for (MetaElem &ml : mb->elems) {
     writer->write_struct(&ml);

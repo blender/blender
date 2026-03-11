@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'21cc928ee21e')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 08:57+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
 "PO-Revision-Date: 2026-03-07 21:15+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -97577,10 +97577,6 @@ msgid "French - Français"
 msgstr "Franska - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Lokalkod: fr_FR. Översättningsgrad: 99 %"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiska - ქართული"
 
@@ -97647,10 +97643,6 @@ msgstr "Lokalkod: it_IT. Översättningsförlopp: 44 %"
 
 msgid "Japanese - 日本語"
 msgstr "Japanska - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Lokalkod: ja_JP. Översättningsgrad: 99 %"
 
 
 msgid "Korean - 한국어"
@@ -97787,10 +97779,6 @@ msgstr "Lokalkod: sw. Översättningsförlopp: 72 %"
 
 msgid "Swedish - Svenska"
 msgstr "Svenska"
-
-
-msgid "Locale code: sv_SE. Translation progress: 21%"
-msgstr "Lokalkod: sv_SE. Översättningsförlopp: 21 %"
 
 
 msgid "Tamil - தமிழ்"
@@ -123248,6 +123236,10 @@ msgid "Calculation Range"
 msgstr "Beräkningsintervall"
 
 
+msgid "Frame Range Start"
+msgstr "Bildruteintervall Start"
+
+
 msgid "Bake to Active Camera"
 msgstr "Baka till aktiv kamera"
 
@@ -123297,10 +123289,6 @@ msgstr "+ Icke-grupperade nyckelrutor"
 
 msgid "Before"
 msgstr "Före"
-
-
-msgid "Frame Range Start"
-msgstr "Bildruteintervall Start"
 
 
 msgid "Collection Mask"

@@ -101,7 +101,9 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
 
   /* Apply base pose and navigation. */
   wm_xr_pose_scale_to_imat(&draw_data->base_pose, draw_data->base_scale, base_inv);
-  wm_xr_pose_scale_to_imat(&session_state->nav_pose_prev, session_state->nav_scale_prev, nav_inv);
+  wm_xr_pose_scale_to_imat(&session_state->nav_pose_last_actions_sync,
+                           session_state->viewer_scale_last_actions_sync,
+                           nav_inv);
   mul_m4_m4m4(m, eye_inv, base_inv);
   mul_m4_m4m4(r_viewmat, m, nav_inv);
 

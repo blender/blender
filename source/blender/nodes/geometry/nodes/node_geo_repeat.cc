@@ -337,7 +337,7 @@ StructRNA **RepeatItemsAccessor::item_srna = &RNA_RepeatItem;
 
 void RepeatItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
-  BLO_write_string(writer, item.name);
+  writer->write_string(item.name);
 }
 
 void RepeatItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)

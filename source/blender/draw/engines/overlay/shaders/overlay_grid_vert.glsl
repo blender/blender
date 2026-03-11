@@ -97,6 +97,11 @@ float2 screen_position(float4 p)
   return ((p.xy / p.w) * 0.5f + 0.5f) * uniform_buf.size_viewport;
 }
 
+bool use_level_offset(uint grid_flag)
+{
+  return !flag_test(grid_flag, GRID_SIMA | GRID_ALIGNED);
+}
+
 void main()
 {
   gl_Position = float4(NAN_FLT); /* Discard by default. */
@@ -104,7 +109,7 @@ void main()
                                                     decode_axis_data(gl_VertexID);
 
   /* Compute the actual level of a line, offset by -1 to force a sub-level in the 3D viewport. */
-  int level = int(grid_buf.level) + int(line.level) - (flag_test(grid_flag, GRID_SIMA) ? 0 : 1);
+  int level = int(grid_buf.level) + int(line.level) - (use_level_offset(grid_flag) ? 1 : 0);
   level = clamp(level, 0, OVERLAY_GRID_STEPS_LEN - 1);
 
   /* Compute per-level size, camera offset for lines. Offset is rounded to the nearest

@@ -68,10 +68,28 @@ static PyObject *pygpu_init(PyObject * /*self*/)
   Py_RETURN_NONE;
 }
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef pygpu_tp_methods[] = {
     {"init", reinterpret_cast<PyCFunction>(pygpu_init), METH_NOARGS, pygpu_init_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 PyDoc_STRVAR(
     /* Wrap. */

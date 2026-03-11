@@ -564,10 +564,10 @@ void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
   prv_copy.runtime = nullptr;
   writer->write_struct_at_address(prv, &prv_copy);
   if (prv_copy.rect[0]) {
-    BLO_write_uint32_array(writer, prv_copy.w[0] * prv_copy.h[0], prv_copy.rect[0]);
+    writer->write_uint32_array(prv_copy.w[0] * prv_copy.h[0], prv_copy.rect[0]);
   }
   if (prv_copy.rect[1]) {
-    BLO_write_uint32_array(writer, prv_copy.w[1] * prv_copy.h[1], prv_copy.rect[1]);
+    writer->write_uint32_array(prv_copy.w[1] * prv_copy.h[1], prv_copy.rect[1]);
   }
 }
 

@@ -632,8 +632,8 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_id_blend_write(writer, &ob->id);
 
   /* direct data */
-  BLO_write_pointer_array(writer, ob->totcol, ob->mat);
-  BLO_write_char_array(writer, ob->totcol, ob->matbits);
+  writer->write_pointer_array(ob->totcol, ob->mat);
+  writer->write_char_array(ob->totcol, ob->matbits);
 
   if (ob->pose) {
     BLI_assert(ob->type == OB_ARMATURE);

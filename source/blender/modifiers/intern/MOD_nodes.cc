@@ -2038,7 +2038,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
   writer->write_struct(nmd);
 
-  BLO_write_string(writer, nmd->bake_directory);
+  writer->write_string(nmd->bake_directory);
 
   Map<IDProperty *, IDPropertyUIDataBool *> boolean_props;
   if (nmd->settings.properties != nullptr) {
@@ -2063,19 +2063,19 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
   writer->write_struct_array(nmd->bakes_num, nmd->bakes);
   for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
-    BLO_write_string(writer, bake.directory);
+    writer->write_string(bake.directory);
 
     writer->write_struct_array(bake.data_blocks_num, bake.data_blocks);
     for (const NodesModifierDataBlock &item : Span(bake.data_blocks, bake.data_blocks_num)) {
-      BLO_write_string(writer, item.id_name);
-      BLO_write_string(writer, item.lib_name);
+      writer->write_string(item.id_name);
+      writer->write_string(item.lib_name);
     }
     if (bake.packed) {
       writer->write_struct(bake.packed);
       writer->write_struct_array(bake.packed->meta_files_num, bake.packed->meta_files);
       writer->write_struct_array(bake.packed->blob_files_num, bake.packed->blob_files);
       const auto write_bake_file = [&](const NodesModifierBakeFile &bake_file) {
-        BLO_write_string(writer, bake_file.name);
+        writer->write_string(bake_file.name);
         if (bake_file.packed_file) {
           BKE_packedfile_blend_write(writer, bake_file.packed_file);
         }

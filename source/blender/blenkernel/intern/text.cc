@@ -179,7 +179,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BKE_id_blend_write(writer, &text->id);
 
   if (text->filepath) {
-    BLO_write_string(writer, text->filepath);
+    writer->write_string(text->filepath);
   }
 
   if (!(text->flags & TXT_ISEXT)) {
@@ -189,7 +189,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
     }
 
     for (TextLine &tmp : text->lines) {
-      BLO_write_string(writer, tmp.line);
+      writer->write_string(tmp.line);
     }
   }
 }
