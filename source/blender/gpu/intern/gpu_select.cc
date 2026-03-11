@@ -71,6 +71,7 @@ static GPUSelectState g_select_state = {false};
 
 static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
                                 const rcti *input,
+                                const int radius,
                                 GPUSelectMode mode,
                                 int oldhits,
                                 bool use_select_next)
@@ -116,7 +117,7 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
 
   switch (g_select_state.algorithm) {
     case ALGO_SELECT_NEXT: {
-      gpu_select_next_begin(buffer, input, mode);
+      gpu_select_next_begin(buffer, input, radius, mode);
       break;
     }
     case ALGO_SAMPLE_QUERY: {
@@ -131,17 +132,15 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
   }
 }
 
-void GPU_select_begin_next(GPUSelectBuffer *buffer,
-                           const rcti *input,
-                           GPUSelectMode mode,
-                           int oldhits)
+void GPU_select_begin_next(
+    GPUSelectBuffer *buffer, const rcti *input, const int radius, GPUSelectMode mode, int oldhits)
 {
-  gpu_select_begin_ex(buffer, input, mode, oldhits, true);
+  gpu_select_begin_ex(buffer, input, radius, mode, oldhits, true);
 }
 
 void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode, int oldhits)
 {
-  gpu_select_begin_ex(buffer, input, mode, oldhits, false);
+  gpu_select_begin_ex(buffer, input, 0, mode, oldhits, false);
 }
 
 bool GPU_select_load_id(uint id)

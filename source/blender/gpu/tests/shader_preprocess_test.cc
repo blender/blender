@@ -2684,7 +2684,7 @@ static void test_preprocess_parser()
 )";
     string expect = R"(
 1;1;1;1;1;1;1;1;1;1;1+1;)";
-    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -2693,8 +2693,8 @@ static void test_preprocess_parser()
     string expect = R"(
 [[A(1,1,A),A,A(A)]])";
     string scopes = R"(GABbcmmmbbcm)";
-    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
-    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().scope_types_str, scopes);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).token_types_str(), expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).scope_types_str, scopes);
   }
   {
     string input = R"(
@@ -2707,7 +2707,22 @@ class B {
 )";
     string expect = R"(
 sA{AA=1;};SA{AA;};)";
-    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).token_types_str(), expect);
+  }
+  {
+    string input = R"(
+a /* Comment */
+//
+a
+/* //
+*/
+a
+// a
+a
+)";
+    string expect = R"(
+AZZAZAZA)";
+    EXPECT_EQ(IntermediateForm(input, no_err_report).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -2717,8 +2732,8 @@ namespace T::U::V {}
     string expect = R"(
 nA{}nA::A::A{})";
     string expect_scopes = R"(GNN)";
-    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
-    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().scope_types_str, expect_scopes);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).token_types_str(), expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).scope_types_str, expect_scopes);
   }
   {
     string input = R"(
@@ -2734,12 +2749,12 @@ void f(int t = 0) {
 )";
     string expect = R"(
 AA(AA=1){AA=1,A=1,A={1};{A=A=A,AP;i(AEA){r;}}})";
-    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().lex.token_types_str, expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).token_types_str(), expect);
   }
   {
     IntermediateForm parser("float i;", no_err_report);
-    parser.insert_after(Token::from_position(&parser.data_get(), 0), "A ");
-    parser.insert_after(Token::from_position(&parser.data_get(), 0), "B  ");
+    parser.insert_after(Token(parser, 0), "A ");
+    parser.insert_after(Token(parser, 0), "B  ");
     EXPECT_EQ(parser.result_get(), "float A B  i;");
   }
   {
@@ -2751,10 +2766,10 @@ B
     IntermediateForm parser(input, no_err_report);
     string expect = R"(
 A#A1A)";
-    EXPECT_EQ(parser.data_get().lex.token_types_str, expect);
+    EXPECT_EQ(parser.token_types_str(), expect);
 
-    Token A = Token::from_position(&parser.data_get(), 1);
-    Token B = Token::from_position(&parser.data_get(), 5);
+    Token A = Token(parser, 1);
+    Token B = Token(parser, 5);
 
     EXPECT_EQ(A.str(), "A");
     EXPECT_EQ(B.str(), "B");
@@ -2783,13 +2798,13 @@ match([a], , int, , bar, [0], ;)
                                      Scope array,
                                      Token decl_end) {
       result += "match(";
-      result += attributes.str() + ", ";
-      result += const_tok.str() + ", ";
-      result += type.str() + ", ";
-      result += template_scope.str() + ", ";
-      result += name.str() + ", ";
-      result += array.str() + ", ";
-      result += decl_end.str() + ")\n";
+      result += string(attributes.str()) + ", ";
+      result += string(const_tok.str()) + ", ";
+      result += string(type.str()) + ", ";
+      result += string(template_scope.str()) + ", ";
+      result += string(name.str()) + ", ";
+      result += string(array.str()) + ", ";
+      result += string(decl_end.str()) + ")\n";
     });
 
     EXPECT_EQ(expect, result);
@@ -2801,10 +2816,10 @@ static int test_expression(std::string str)
 {
   using namespace shader::parser;
   report_callback no_err_report = [](int, int, std::string, const char *) {};
-  ExpressionLexer lexer;
-  lexer.lexical_analysis(str);
+  ExpressionParser parser;
+  parser.lexical_analysis(str);
   try {
-    return ExpressionParser(lexer).eval();
+    return parser.eval();
   }
   catch (const std::exception &e) {
     std::cerr << "Error: " << e.what() << "\n";

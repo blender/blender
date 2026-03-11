@@ -46,7 +46,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Scale").default_value(1.0f).min(0.0f).description(
       "The amount of scaling that the blur spans");
 
-  PanelDeclarationBuilder &translation_panel = b.add_panel("Translation").default_closed(false);
+  PanelDeclarationBuilder &translation_panel =
+      b.add_panel("Translation"_ustr).default_closed(false);
   translation_panel.add_input<decl::Float>("Amount", "Translation Amount")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)

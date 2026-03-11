@@ -670,6 +670,15 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * Adds a RNA property item, and sets a custom menu to expose its value.
    */
   void prop_with_menu(PointerRNA *ptr,
+                      blender::StringRefNull propname,
+                      eUI_Item_Flag flag,
+                      std::optional<blender::StringRefNull> name,
+                      int icon,
+                      const char *menu_type);
+  /**
+   * Adds a RNA property item, and sets a custom menu to expose its value.
+   */
+  void prop_with_menu(PointerRNA *ptr,
                       PropertyRNA *prop,
                       int index,
                       int value,

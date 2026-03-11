@@ -24,7 +24,7 @@ void SourceProcessor::lint_attributes(Parser &parser)
     Scope attributes = par_open.next().scope();
     bool invalid = false;
     attributes.foreach_attribute([&](Token attr, Scope attr_scope) {
-      string attr_str = attr.str();
+      string attr_str = string(attr.str());
       if (attr_str == "base_instance" || attr_str == "clip_distance" ||
           attr_str == "compilation_constant" || attr_str == "compute" ||
           attr_str == "early_fragment_tests" || attr_str == "flat" || attr_str == "frag_coord" ||

@@ -96,7 +96,7 @@ void USDPointsWriter::write_generic_data(const bke::AttributeIter &attr,
   }
 
   const pxr::TfToken pv_name(
-      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
+      make_safe_primvar_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_points);
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type, *pv_interp);

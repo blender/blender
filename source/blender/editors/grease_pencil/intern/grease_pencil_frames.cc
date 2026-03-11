@@ -476,9 +476,9 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
     return false;
   }
 
-  for (const StringRef id : names_a) {
-    GAttributeReader attrs_a = attributes_a.lookup(id);
-    GAttributeReader attrs_b = attributes_b.lookup(id);
+  for (const StringRef name : names_a) {
+    GAttributeReader attrs_a = attributes_a.lookup(name);
+    GAttributeReader attrs_b = attributes_b.lookup(name);
 
     if (attributes_varrays_not_equal(attrs_a, attrs_b)) {
       return false;

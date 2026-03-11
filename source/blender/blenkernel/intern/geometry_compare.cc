@@ -537,10 +537,10 @@ static bool sort_faces_based_on_corners(const IndexMapping &corners,
  * test files to compare these layers. For now it has been decided to
  * skip them.
  */
-static bool ignored_attribute(const StringRef id)
+static bool ignored_attribute(const StringRef name)
 {
-  return attribute_name_is_anonymous(id) || id.startswith(".pn.") ||
-         ELEM(id, ".uv_select_vert", ".uv_select_edge", ".uv_select_face");
+  return attribute_name_is_anonymous(name) || name.startswith(".pn.") ||
+         ELEM(name, ".uv_select_vert", ".uv_select_edge", ".uv_select_face");
 }
 
 /**
@@ -561,9 +561,9 @@ static std::optional<GeoMismatch> verify_attributes_compatible(
     /* Disabled for now due to tests not being up to date. */
     // return GeoMismatch::Attributes;
   }
-  for (const StringRef id : names_1) {
-    GAttributeReader reader1 = attributes1.lookup(id);
-    GAttributeReader reader2 = attributes2.lookup(id);
+  for (const StringRef name : names_1) {
+    GAttributeReader reader1 = attributes1.lookup(name);
+    GAttributeReader reader2 = attributes2.lookup(name);
     if (!reader1 || !reader2) {
       /* Necessary because of previous disabled return. */
       continue;
@@ -596,13 +596,13 @@ static std::optional<GeoMismatch> sort_domain_using_attributes(
   }
   names.remove_if(ignored_attribute);
 
-  for (const StringRef id : names) {
-    if (!attributes2.contains(id)) {
+  for (const StringRef name : names) {
+    if (!attributes2.contains(name)) {
       /* Only needed right now since some test meshes don't have the same attributes. */
       return GeoMismatch::Attributes;
     }
-    GAttributeReader reader1 = attributes1.lookup(id);
-    GAttributeReader reader2 = attributes2.lookup(id);
+    GAttributeReader reader1 = attributes1.lookup(name);
+    GAttributeReader reader2 = attributes2.lookup(name);
 
     if (reader1.domain != domain) {
       /* We only look at attributes of the given domain. */

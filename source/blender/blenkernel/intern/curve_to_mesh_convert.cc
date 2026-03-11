@@ -372,25 +372,25 @@ static AttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_at
 
 static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attributes,
                                          const AttributeAccessor &mesh_attributes,
-                                         const StringRef id,
+                                         const StringRef name,
                                          const AttributeMetaData &meta_data,
                                          const AttributeFilter &attribute_filter)
 {
 
-  if (id == "position") {
+  if (name == "position") {
     /* The position attribute has special non-generic evaluation. */
     return false;
   }
-  if (id == "custom_normal") {
+  if (name == "custom_normal") {
     /* The custom normal attribute is builtin on both meshes and curves, but has a different
      * meaning and shouldn't be directly propagated. */
     return false;
   }
   /* Don't propagate built-in curves attributes that are not built-in on meshes. */
-  if (curve_attributes.is_builtin(id) && !mesh_attributes.is_builtin(id)) {
+  if (curve_attributes.is_builtin(name) && !mesh_attributes.is_builtin(name)) {
     return false;
   }
-  if (attribute_filter.allow_skip(id)) {
+  if (attribute_filter.allow_skip(name)) {
     return false;
   }
   if (meta_data.data_type == AttrType::String) {
@@ -577,7 +577,7 @@ static void copy_main_point_data_to_mesh_faces(const Span<T> src,
 }
 
 static bool try_sharing_point_data(const CurvesGeometry &main,
-                                   const StringRef id,
+                                   const StringRef name,
                                    const GAttributeReader &src,
                                    MutableAttributeAccessor mesh_attributes)
 {
@@ -588,7 +588,7 @@ static bool try_sharing_point_data(const CurvesGeometry &main,
     return false;
   }
   return mesh_attributes.add(
-      id,
+      name,
       AttrDomain::Point,
       bke::cpp_type_to_attribute_type(src.varray.type()),
       AttributeInitShared(src.varray.get_internal_span().data(), *src.sharing_info));
@@ -609,7 +609,7 @@ static bool try_direct_evaluate_point_data(const CurvesGeometry &main,
 }
 
 static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
-                                                     const StringRef id,
+                                                     const StringRef name,
                                                      const ResultOffsets &offsets,
                                                      const AttrDomain dst_domain,
                                                      const GAttributeReader &src_attribute,
@@ -617,12 +617,12 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
                                                      MutableAttributeAccessor mesh_attributes)
 {
   if (dst_domain == AttrDomain::Point) {
-    if (try_sharing_point_data(curves_info.main, id, src_attribute, mesh_attributes)) {
+    if (try_sharing_point_data(curves_info.main, name, src_attribute, mesh_attributes)) {
       return;
     }
   }
   GSpanAttributeWriter dst_attribute = mesh_attributes.lookup_or_add_for_write_only_span(
-      id, dst_domain, bke::cpp_type_to_attribute_type(src_attribute.varray.type()));
+      name, dst_domain, bke::cpp_type_to_attribute_type(src_attribute.varray.type()));
   if (!dst_attribute) {
     return;
   }

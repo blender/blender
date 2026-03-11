@@ -42,30 +42,6 @@ static bool compare_floats(float a, float b, float abs_diff, int ulp_diff)
   return (abs((*(int *)&a) - (*(int *)&b)) < ulp_diff);
 }
 
-static bool color_space_is_invertible(const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space)
-{
-  const StringRefNull family = ocio_color_space->getFamily();
-
-  if (ELEM(family, "rrt", "display")) {
-    /* assume display and rrt transformations are not invertible in fact some of them could be,
-     * but it doesn't make much sense to allow use them as invertible. */
-    return false;
-  }
-
-  if (ocio_color_space->isData()) {
-    /* Data color spaces don't have transformation at all. */
-    return true;
-  }
-
-  if (ocio_color_space->getTransform(OCIO_NAMESPACE::COLORSPACE_DIR_TO_REFERENCE)) {
-    /* if there's defined transform to reference space, color space could be converted to scene
-     * linear. */
-    return true;
-  }
-
-  return true;
-}
-
 static void color_space_is_builtin(const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config,
                                    const OCIO_NAMESPACE::ConstColorSpaceRcPtr &ocio_color_space,
                                    bool &is_scene_linear,
@@ -136,9 +112,9 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
       ocio_color_space_(ocio_color_space),
       clean_description_(cleanup_description(ocio_color_space->getDescription()))
 {
+  const char *family = ocio_color_space->getFamily();
+  this->family_ = (family) ? family : "";
   this->index = index;
-
-  is_invertible_ = color_space_is_invertible(ocio_color_space);
 
 #  if OCIO_VERSION_HEX >= 0x02050000
   interop_id_ = ocio_color_space->getInteropID();

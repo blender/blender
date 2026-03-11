@@ -21,6 +21,8 @@ struct GPUSelectNextState {
   GPUSelectBuffer *buffer = nullptr;
   /** Area of the viewport to render / select from. */
   rcti rect = {0, 0, 0, 0};
+  /** The radius relative to the center of `rect` in which to select. Ignored if 0. */
+  int radius = 0;
   /** Number of hits. Set to -1 if it overflows buffer_len. */
   uint hits = -1;
   /** Mode of operation. */
@@ -29,23 +31,31 @@ struct GPUSelectNextState {
 
 static GPUSelectNextState g_state = {};
 
-void gpu_select_next_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode)
+void gpu_select_next_begin(GPUSelectBuffer *buffer,
+                           const rcti *input,
+                           const int radius,
+                           GPUSelectMode mode)
 
 {
   g_state.buffer = buffer;
   g_state.rect = *input;
   g_state.mode = mode;
+  g_state.radius = radius;
 }
 
-int gpu_select_next_get_pick_area_center()
+int2 gpu_select_next_get_pick_area_center()
 {
-  BLI_assert(BLI_rcti_size_x(&g_state.rect) == BLI_rcti_size_y(&g_state.rect));
-  return BLI_rcti_size_x(&g_state.rect) / 2;
+  return int2(BLI_rcti_size_x(&g_state.rect) / 2, BLI_rcti_size_y(&g_state.rect) / 2);
 }
 
 GPUSelectMode gpu_select_next_get_mode()
 {
   return g_state.mode;
+}
+
+int gpu_select_next_get_radius()
+{
+  return g_state.radius;
 }
 
 void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len)

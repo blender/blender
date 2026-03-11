@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .structure_type(StructureType::Dynamic);
 
-  PanelDeclarationBuilder &preprocess_panel = b.add_panel("Preprocess").default_closed(true);
+  PanelDeclarationBuilder &preprocess_panel = b.add_panel("Preprocess"_ustr).default_closed(true);
   preprocess_panel.add_input<decl::Int>("Blur Size", "Preprocess Blur Size")
       .default_value(0)
       .min(0)
@@ -49,8 +49,9 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Blur the color of the input image in YCC color space before keying while leaving the "
           "luminance intact using a Gaussian blur of the given size");
 
-  PanelDeclarationBuilder &key_panel = b.add_panel("Key").default_closed(true).translation_context(
-      BLT_I18NCONTEXT_ID_NODETREE);
+  PanelDeclarationBuilder &key_panel = b.add_panel("Key"_ustr)
+                                           .default_closed(true)
+                                           .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
   key_panel.add_input<decl::Float>("Balance", "Key Balance")
       .default_value(0.5f)
       .subtype(PROP_FACTOR)
@@ -61,7 +62,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           "against. 0 means the latter channel of the two is used, while 1 means the former of "
           "the two is used");
 
-  PanelDeclarationBuilder &tweak_panel = b.add_panel("Tweak").default_closed(true);
+  PanelDeclarationBuilder &tweak_panel = b.add_panel("Tweak"_ustr).default_closed(true);
   tweak_panel.add_input<decl::Float>("Black Level")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -79,9 +80,9 @@ static void node_declare(NodeDeclarationBuilder &b)
           "The matte gets remapped such matte values higher than the white level become white. "
           "Pixels at the identified edges are excluded from the remapping to preserve details");
 
-  PanelDeclarationBuilder &edges_panel =
-      tweak_panel.add_panel("Edges").default_closed(true).translation_context(
-          BLT_I18NCONTEXT_ID_IMAGE);
+  PanelDeclarationBuilder &edges_panel = tweak_panel.add_panel("Edges"_ustr)
+                                             .default_closed(true)
+                                             .translation_context(BLT_I18NCONTEXT_ID_IMAGE);
   edges_panel.add_input<decl::Int>("Size", "Edge Search Size")
       .default_value(3)
       .min(0)
@@ -98,7 +99,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Pixels are considered part of the edges if more than 10% of the neighbouring pixels "
           "have matte values that differ from the pixel's matte value by this tolerance");
 
-  PanelDeclarationBuilder &mask_panel = b.add_panel("Mask").default_closed(true);
+  PanelDeclarationBuilder &mask_panel = b.add_panel("Mask"_ustr).default_closed(true);
   mask_panel.add_input<decl::Float>("Garbage Matte")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -114,7 +115,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic)
       .description("Areas in the core matte mask are included in the matte");
 
-  PanelDeclarationBuilder &postprocess_panel = b.add_panel("Postprocess").default_closed(true);
+  PanelDeclarationBuilder &postprocess_panel =
+      b.add_panel("Postprocess"_ustr).default_closed(true);
   postprocess_panel.add_input<decl::Int>("Blur Size", "Postprocess Blur Size")
       .default_value(0)
       .min(0)
@@ -136,7 +138,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .optional_label()
       .translation_context(BLT_I18NCONTEXT_ID_CURVE_LEGACY);
 
-  PanelDeclarationBuilder &despill_panel = b.add_panel("Despill").default_closed(true);
+  PanelDeclarationBuilder &despill_panel = b.add_panel("Despill"_ustr).default_closed(true);
   despill_panel.add_input<decl::Float>("Strength", "Despill Strength")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)

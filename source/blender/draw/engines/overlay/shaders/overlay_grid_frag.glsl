@@ -10,12 +10,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 #include "overlay_common_lib.glsl"
-
-/* Returns true if both components of `v` fall within `epsilon` of 0. */
-bool is_zero(float2 v, float epsilon)
-{
-  return all(lessThanEqual(abs(v), float2(epsilon)));
-}
+#include "overlay_grid_common_lib.glsl"
 
 void main()
 {
@@ -26,13 +21,13 @@ void main()
   }
   else if (flag_test(grid_flag, SHOW_AXES)) {
     /* Color is fixed by theme. */
-    if (flag_test(grid_flag, AXIS_X) && is_zero(vertex_out.pos.yz, 1e-4f)) {
+    if (flag_test(grid_flag, AXIS_X) && grid::is_zero(vertex_out.pos.yz, 2e-6f)) {
       out_color = theme.colors.grid_axis_x;
     }
-    else if (flag_test(grid_flag, AXIS_Y) && is_zero(vertex_out.pos.xz, 1e-4f)) {
+    else if (flag_test(grid_flag, AXIS_Y) && grid::is_zero(vertex_out.pos.xz, 2e-6f)) {
       out_color = theme.colors.grid_axis_y;
     }
-    else if (flag_test(grid_flag, AXIS_Z) && is_zero(vertex_out.pos.xy, 1e-4f)) {
+    else if (flag_test(grid_flag, AXIS_Z) && grid::is_zero(vertex_out.pos.xy, 2e-6f)) {
       out_color = theme.colors.grid_axis_z;
     }
   }

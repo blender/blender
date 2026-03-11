@@ -129,7 +129,7 @@ enum TokenType : uint8_t {
   // Unused = 'y',
   // Unused = 'Y',
   // Unused = 'z',
-  // Unused = 'Z',
+  Comment = 'Z',
   // Number = '0',
   // Unused = '1',
   // Unused = '2',
@@ -152,6 +152,7 @@ enum TokenType : uint8_t {
   Modulo = Percent,
 
   String = DoubleQuote,
+  Slash = Divide,
 };
 
 /* Unique identifier to a word token. */

@@ -82,7 +82,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Specifies the limiting strength of the limit channel");
 
   PanelDeclarationBuilder &use_spill_strength_panel =
-      b.add_panel("Spill Strength").default_closed(true);
+      b.add_panel("Spill Strength"_ustr).default_closed(true);
   use_spill_strength_panel.add_input<decl::Bool>("Use Spill Strength")
       .default_value(false)
       .panel_toggle()

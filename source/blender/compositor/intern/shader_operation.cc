@@ -202,6 +202,13 @@ static void initialize_input_stack_value(const bNodeSocket &input, GPUNodeStack 
       copy_v4_v4(stack.vec, value);
       break;
     }
+    case SOCK_INT_VECTOR: {
+      /* GPUMaterial doesn't support int[23], so it is stored as a float[23]. */
+      const int3 value = int3(input.default_value_typed<bNodeSocketValueIntVector>()->value);
+      const float3 float_value = float3(value);
+      copy_v3_v3(stack.vec, float_value);
+      break;
+    }
     case SOCK_RGBA: {
       const Color value = Color(input.default_value_typed<bNodeSocketValueRGBA>()->value);
       copy_v4_v4(stack.vec, value);
@@ -243,6 +250,9 @@ static const char *get_set_function_name(const ResultType type)
     case ResultType::Int2:
       /* GPUMaterial doesn't support int2, so it is passed as a float2. */
       return "set_float2";
+    case ResultType::Int3:
+      /* GPUMaterial doesn't support int3, so it is passed as a float3. */
+      return "set_float3";
     case ResultType::Bool:
       /* GPUMaterial doesn't support bool, so it is passed as a float. */
       return "set_float";
@@ -462,6 +472,8 @@ static const char *get_store_function_name(ResultType type)
       return "node_compositor_store_output_int";
     case ResultType::Int2:
       return "node_compositor_store_output_int2";
+    case ResultType::Int3:
+      return "node_compositor_store_output_int3";
     case ResultType::Bool:
       return "node_compositor_store_output_bool";
     case ResultType::Menu:
@@ -602,6 +614,10 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
       /* GPUMaterial doesn't support int2, so it is passed as a float2, and we need to convert it
        * back to int2 before writing it. */
       return "ivec4(ivec2(value), 0, 0)";
+    case ResultType::Int3:
+      /* GPUMaterial doesn't support int3, so it is passed as a float3, and we need to convert it
+       * back to int3 before writing it. */
+      return "ivec4(ivec3(value), 0)";
     case ResultType::Bool:
       /* GPUMaterial doesn't support bool, so it is passed as a float and stored as an int, and we
        * need to convert it back to bool and then to an int before writing it. */
@@ -632,6 +648,7 @@ static ImageType gpu_image_type_from_result_type(const ResultType type)
       return ImageType::Float2D;
     case ResultType::Int:
     case ResultType::Int2:
+    case ResultType::Int3:
     case ResultType::Bool:
     case ResultType::Menu:
       return ImageType::Int2D;
@@ -657,6 +674,8 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   const std::string store_int_function_header = "void store_int(const uint id, float value)";
   /* GPUMaterial doesn't support int2, so it is passed as a float2. */
   const std::string store_int2_function_header = "void store_int2(const uint id, vec2 value)";
+  /* GPUMaterial doesn't support int3, so it is passed as a float3. */
+  const std::string store_int3_function_header = "void store_int3(const uint id, vec3 value)";
   /* GPUMaterial doesn't support bool, so it is passed as a float. */
   const std::string store_bool_function_header = "void store_bool(const uint id, float value)";
   /* GPUMaterial doesn't support int, so it is passed as a float. */
@@ -672,6 +691,7 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   std::stringstream store_color_function;
   std::stringstream store_int_function;
   std::stringstream store_int2_function;
+  std::stringstream store_int3_function;
   std::stringstream store_bool_function;
   std::stringstream store_menu_function;
   const std::string store_function_start = "\n{\n  switch (id) {\n";
@@ -682,6 +702,7 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   store_color_function << store_color_function_header << store_function_start;
   store_int_function << store_int_function_header << store_function_start;
   store_int2_function << store_int2_function_header << store_function_start;
+  store_int3_function << store_int3_function_header << store_function_start;
   store_bool_function << store_bool_function_header << store_function_start;
   store_menu_function << store_menu_function_header << store_function_start;
 
@@ -731,6 +752,9 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
       case ResultType::Int2:
         store_int2_function << case_code.str();
         break;
+      case ResultType::Int3:
+        store_int3_function << case_code.str();
+        break;
       case ResultType::Bool:
         store_bool_function << case_code.str();
         break;
@@ -754,12 +778,14 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   store_color_function << store_function_end;
   store_int_function << store_function_end;
   store_int2_function << store_function_end;
+  store_int3_function << store_function_end;
   store_bool_function << store_function_end;
   store_menu_function << store_function_end;
 
   return store_float_function.str() + store_float2_function.str() + store_float3_function.str() +
          store_float4_function.str() + store_color_function.str() + store_int_function.str() +
-         store_int2_function.str() + store_bool_function.str() + store_menu_function.str();
+         store_int2_function.str() + store_int3_function.str() + store_bool_function.str() +
+         store_menu_function.str();
 }
 
 static const char *glsl_type_from_result_type(ResultType type)
@@ -781,6 +807,9 @@ static const char *glsl_type_from_result_type(ResultType type)
     case ResultType::Int2:
       /* GPUMaterial doesn't support int2, so it is passed as a float2. */
       return "vec2";
+    case ResultType::Int3:
+      /* GPUMaterial doesn't support int3, so it is passed as a float3. */
+      return "vec3";
     case ResultType::Bool:
       /* GPUMaterial doesn't support bool, so it is passed as a float. */
       return "float";
@@ -816,8 +845,9 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
     case ResultType::Int:
       return "x";
     case ResultType::Int2:
-      /* GPUMaterial doesn't support float2, so it is passed as a float2. */
       return "xy";
+    case ResultType::Int3:
+      return "xyz";
     case ResultType::Bool:
       return "x";
     case ResultType::Menu:

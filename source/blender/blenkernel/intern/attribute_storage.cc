@@ -73,7 +73,7 @@ Attribute::ArrayData Attribute::ArrayData::from_value(const GPointer &value,
   const void *value_ptr = value.get();
 
   /* Prefer `calloc` to zeroing after allocation since it is faster. */
-  if (BLI_memory_is_zero(value_ptr, type.size)) {
+  if (memory_is_zero(value_ptr, type.size)) {
     data.data = MEM_new_array_zeroed_aligned(domain_size, type.size, type.alignment, __func__);
   }
   else {

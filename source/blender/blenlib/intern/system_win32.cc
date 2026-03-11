@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include <dbghelp.h>
+#include <shellapi.h>
 #include <shlwapi.h>
 #include <tlhelp32.h>
 

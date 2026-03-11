@@ -37,6 +37,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_output<decl::Float>("Mean");
   b.add_output<decl::Float>("Standard Deviation");
+  b.add_output<decl::Float>("Minimum");
+  b.add_output<decl::Float>("Maximum");
 }
 
 using namespace blender::compositor;
@@ -69,10 +71,36 @@ class LevelsOperation : public NodeOperation {
       standard_deviation_result.allocate_single_value();
       this->set_output(standard_deviation, standard_deviation_result);
     }
+
+    const Color minimum = minimum_color(this->context(), this->get_input("Image"));
+    Result &minimum_result = this->get_result("Minimum");
+    if (minimum_result.should_compute()) {
+      minimum_result.allocate_single_value();
+      this->set_output(float4(minimum), minimum_result);
+    }
+
+    const Color maximum = maximum_color(this->context(), this->get_input("Image"));
+    Result &maximum_result = this->get_result("Maximum");
+    if (maximum_result.should_compute()) {
+      maximum_result.allocate_single_value();
+      this->set_output(float4(maximum), maximum_result);
+    }
   }
 
   void execute_single_value()
   {
+    Result &minimum_result = this->get_result("Minimum");
+    if (minimum_result.should_compute()) {
+      minimum_result.allocate_single_value();
+      this->set_output(float4(this->get_input("Image").get_single_value<Color>()), minimum_result);
+    }
+
+    Result &maximum_result = this->get_result("Maximum");
+    if (maximum_result.should_compute()) {
+      maximum_result.allocate_single_value();
+      this->set_output(float4(this->get_input("Image").get_single_value<Color>()), maximum_result);
+    }
+
     Result &standard_deviation_result = this->get_result("Standard Deviation");
     if (standard_deviation_result.should_compute()) {
       standard_deviation_result.allocate_single_value();

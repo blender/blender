@@ -413,6 +413,8 @@ const char *IMB_colormanagement_look_validate_for_view(const char *view_name,
 int IMB_colormanagement_colorspace_get_named_index(const char *name);
 const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
 const char *IMB_colormanagement_colorspace_get_name(const ColorSpace *colorspace);
+const char *IMB_colormanagement_colorspace_get_family(const ColorSpace *colorspace);
+const char *IMB_colormanagement_colorspace_get_description(const ColorSpace *colorspace);
 const char *IMB_colormanagement_view_get_default_name(const char *display_name);
 const char *IMB_colormanagement_view_get_raw_or_default_name(const char *display_name);
 

@@ -1165,9 +1165,9 @@ static void execute_instances_tasks(
   }
 
   for (const int attribute_index : all_instances_attributes.index_range()) {
-    const StringRef id = all_instances_attributes.names[attribute_index];
+    const StringRef name = all_instances_attributes.names[attribute_index];
     const bke::AttrType type = all_instances_attributes.kinds[attribute_index].data_type;
-    if (ELEM(id, "instance_transform", ".reference_index")) {
+    if (ELEM(name, "instance_transform", ".reference_index")) {
       continue;
     }
 
@@ -1185,7 +1185,7 @@ static void execute_instances_tasks(
     }
 
     bke::GSpanAttributeWriter write_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        id, bke::AttrDomain::Instance, type);
+        name, bke::AttrDomain::Instance, type);
     GMutableSpan dst_span = write_attribute.span;
     const CPPType &cpp_type = dst_span.type();
     for (const int component_index : src_components.index_range()) {

@@ -17,24 +17,27 @@ using namespace metadata;
 
 void SourceProcessor::lower_loop_unroll(Parser &parser)
 {
-  auto parse_for_args =
-      [&](const Scope loop_args, Scope &r_init, Scope &r_condition, Scope &r_iter) {
-        r_init = r_condition = r_iter = Scope::invalid();
-        loop_args.foreach_scope(ScopeType::LoopArg, [&](const Scope arg) {
-          if (arg.front().prev() == '(' && arg.back().next() == ';') {
-            r_init = arg;
-          }
-          else if (arg.front().prev() == ';' && arg.back().next() == ';') {
-            r_condition = arg;
-          }
-          else if (arg.front().prev() == ';' && arg.back().next() == ')') {
-            r_iter = arg;
-          }
-          else {
-            report_error_(ERROR_TOK(arg.front()), "Invalid loop declaration.");
-          }
-        });
-      };
+  struct ArgParseResult {
+    Scope init, condition, iter;
+  };
+  auto parse_for_args = [&](const Scope loop_args) -> ArgParseResult {
+    ArgParseResult result{Scope(parser), Scope(parser), Scope(parser)};
+    loop_args.foreach_scope(ScopeType::LoopArg, [&](const Scope arg) {
+      if (arg.front().prev() == '(' && arg.back().next() == ';') {
+        result.init = arg;
+      }
+      else if (arg.front().prev() == ';' && arg.back().next() == ';') {
+        result.condition = arg;
+      }
+      else if (arg.front().prev() == ';' && arg.back().next() == ')') {
+        result.iter = arg;
+      }
+      else {
+        report_error_(ERROR_TOK(arg.front()), "Invalid loop declaration.");
+      }
+    });
+    return result;
+  };
 
   auto process_loop = [&](const Token loop_start,
                           const int iter_count,
@@ -106,7 +109,8 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
     parser.insert_after(body.back(), "\n");
     if (init.is_valid() && !iteration_is_trivial) {
       parser.insert_line_number(body.back(), init.front().line_number());
-      parser.insert_after(body.back(), indent_init + "{" + init.str_with_whitespace() + ";\n");
+      parser.insert_after(body.back(),
+                          indent_init + "{" + string(init.str_with_whitespace()) + ";\n");
     }
     else {
       parser.insert_after(body.back(), "{\n");
@@ -114,20 +118,22 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
     for (int64_t i = 0, value = iter_init; i < iter_count; i++, value += iter_incr) {
       if (cond.is_valid() && !condition_is_trivial) {
         parser.insert_line_number(body.back(), cond.front().line_number());
-        parser.insert_after(body.back(), indent_cond + "if(" + cond.str_with_whitespace() + ")\n");
+        parser.insert_after(body.back(),
+                            indent_cond + "if(" + string(cond.str_with_whitespace()) + ")\n");
       }
       parser.insert_after(body.back(), replace_index(body_prefix, value));
       parser.insert_line_number(body.back(), body.front().line_number());
       parser.insert_after(body.back(),
-                          indent_body + replace_index(body.str_with_whitespace(), value) + "\n");
+                          indent_body + replace_index(string(body.str_with_whitespace()), value) +
+                              "\n");
       parser.insert_after(body.back(), body_suffix);
       if (iter.is_valid() && !iteration_is_trivial) {
         parser.insert_line_number(body.back(), iter.front().line_number());
-        parser.insert_after(body.back(), indent_iter + iter.str_with_whitespace() + ";\n");
+        parser.insert_after(body.back(), indent_iter + string(iter.str_with_whitespace()) + ";\n");
       }
     }
     parser.insert_line_number(body.back(), body.back().line_number());
-    parser.insert_after(body.back(), indent_end + body.back().str_with_whitespace());
+    parser.insert_after(body.back(), indent_end + string(body.back().str_with_whitespace()));
   };
 
   do {
@@ -153,8 +159,7 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
       const Scope loop_args = tokens[1].scope();
       const Scope loop_body = tokens[10].scope();
 
-      Scope init, cond, iter;
-      parse_for_args(loop_args, init, cond, iter);
+      auto [init, cond, iter] = parse_for_args(loop_args);
 
       /* Init statement. */
       const Token var_type = init[0];
@@ -180,7 +185,7 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
       if (cond_type.next() == '=') {
         t++; /* Skip equal sign. */
       }
-      const Token cond_sign = (cond[t] == '+' || cond[t] == '-') ? cond[t++] : Token::invalid();
+      const Token cond_sign = (cond[t] == '+' || cond[t] == '-') ? cond[t++] : Token(parser);
       const Token cond_end = cond[t];
       if (cond_var.str() != var_name.str()) {
         report_error_(ERROR_TOK(cond_var), "Non matching loop counter variable.");
@@ -252,10 +257,9 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
       const Scope loop_args = tokens[1].scope();
       const Scope loop_body = tokens[13].scope();
 
-      Scope init, cond, iter;
-      parse_for_args(loop_args, init, cond, iter);
+      auto [init, cond, iter] = parse_for_args(loop_args);
 
-      int iter_count = stol(tokens[9].str());
+      int iter_count = stol(string(tokens[9].str()));
 
       process_loop(tokens[0], iter_count, 0, 0, false, false, init, cond, iter, loop_body);
     });
@@ -293,7 +297,7 @@ void SourceProcessor::lower_static_branch(Parser &parser)
 
     Token before_body = body.front().prev();
 
-    string test = "SRT_CONSTANT_" + condition[5].str() + " ";
+    string test = "SRT_CONSTANT_" + string(condition[5].str()) + " ";
     if (condition[7] != condition.back().prev()) {
       test += parser.substr_range_inclusive(condition[7], condition.back().prev());
     }

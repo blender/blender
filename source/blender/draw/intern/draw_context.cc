@@ -1897,11 +1897,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   if (obedit != nullptr) {
     object_type = obedit->type;
     object_mode = eObjectMode(obedit->mode);
-    if (obedit->type == OB_MBALL) {
-      use_obedit = true;
-      // obedit_ctx_mode = CTX_MODE_EDIT_METABALL;
-    }
-    else if (obedit->type == OB_ARMATURE) {
+    if (obedit->type == OB_ARMATURE) {
       use_obedit = true;
       // obedit_ctx_mode = CTX_MODE_EDIT_ARMATURE;
     }

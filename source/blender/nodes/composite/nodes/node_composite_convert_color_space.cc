@@ -44,8 +44,18 @@ static void node_draw_buttons(ui::Layout &layout, bContext * /*C*/, PointerRNA *
   layout.label(RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
 #endif
 
-  layout.prop(ptr, "from_color_space", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "to_color_space", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop_with_menu(ptr,
+                        "from_color_space",
+                        ui::ITEM_R_SPLIT_EMPTY_NAME,
+                        std::nullopt,
+                        ICON_NONE,
+                        "UI_MT_color_space_select");
+  layout.prop_with_menu(ptr,
+                        "to_color_space",
+                        ui::ITEM_R_SPLIT_EMPTY_NAME,
+                        std::nullopt,
+                        ICON_NONE,
+                        "UI_MT_color_space_select");
 }
 
 using namespace blender::compositor;

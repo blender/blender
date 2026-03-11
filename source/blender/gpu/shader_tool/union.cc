@@ -55,7 +55,7 @@ void SourceProcessor::lower_unions(Parser &parser)
       Scope union_body = t[1].scope();
 
       string union_name = "union" + to_string(union_index);
-      string union_type = struct_name.str() + "_" + union_name;
+      string union_type = string(struct_name.str()) + "_" + union_name;
 
       /* Parse members of the union for later use. */
       vector<Member> members;
@@ -64,7 +64,8 @@ void SourceProcessor::lower_unions(Parser &parser)
             if (array.is_valid()) {
               report_error_(ERROR_TOK(name), "Arrays are not supported inside unions.");
             }
-            members.emplace_back(Member{type.str(), name.str(), 0, 0, type.prev() == Enum});
+            members.emplace_back(
+                Member{string(type.str()), string(name.str()), 0, 0, type.prev() == Enum});
           });
 
       if (members.empty()) {
@@ -123,7 +124,7 @@ void SourceProcessor::lower_unions(Parser &parser)
   };
 
   auto type_size_get = [&](Token type) -> size_t {
-    auto value = struct_members.find(type.str());
+    auto value = struct_members.find(string(type.str()));
     if (value == struct_members.end()) {
       return 0;
     }
@@ -155,18 +156,18 @@ void SourceProcessor::lower_unions(Parser &parser)
       }
 
       for (int i = 0; i < array_size; i++) {
-        string name_str = name.str();
+        string name_str(name.str());
         if (array.is_valid()) {
           name_str += "[" + to_string(i) + "]";
         }
         if (type.prev() != Enum) {
           size = type_size_get(type);
           if (size != 0) {
-            members.emplace_back(Member{type.str(), "." + name_str, offset, size});
+            members.emplace_back(Member{string(type.str()), "." + name_str, offset, size});
           }
         }
         else {
-          members.emplace_back(Member{type.str(), "." + name_str, offset, size, true});
+          members.emplace_back(Member{string(type.str()), "." + name_str, offset, size, true});
         }
         offset += size;
       }
@@ -303,7 +304,7 @@ void SourceProcessor::lower_unions(Parser &parser)
     fn_body += "  " + union_member.type + " val;\n";
     for (const auto &member : struct_members) {
       string to_var = "val" + member_data_access(member);
-      string access = union_var_tok.str() + union_data_access(member, union_size);
+      string access = string(union_var_tok.str()) + union_data_access(member, union_size);
       fn_body += "  " + to_var + " = " + member_from_float(union_member, member, access) + ";\n";
     }
     fn_body += "  return val;\n";
@@ -334,7 +335,8 @@ void SourceProcessor::lower_unions(Parser &parser)
 
     string fn_body = "{\n";
     for (const auto &member : struct_members) {
-      string to_var = "this->" + union_var_tok.str() + union_data_access(member, union_size);
+      string to_var = "this->" + string(union_var_tok.str()) +
+                      union_data_access(member, union_size);
       string access = "value" + member_data_access(member);
       fn_body += "  " + to_var + " = " + member_to_float(union_member, member, access) + ";\n";
     }
@@ -378,17 +380,17 @@ void SourceProcessor::lower_unions(Parser &parser)
   };
 
   parser().foreach_struct([&](Token, Scope, Token struct_name, Scope body) {
-    if (union_members.find(struct_name.str()) != union_members.end()) {
+    if (union_members.find(string(struct_name.str())) != union_members.end()) {
       replace_placeholder_member(body);
       return;
     }
 
     body.foreach_declaration([&](Scope, Token, Token type, Scope, Token name, Scope, Token) {
-      if (union_members.find(type.str()) == union_members.end()) {
+      if (union_members.find(string(type.str())) == union_members.end()) {
         return;
       }
 
-      const vector<Member> &members = union_members.find(type.str())->second;
+      const vector<Member> &members = union_members.find(string(type.str()))->second;
       for (const auto &member : members) {
         if (struct_members.find(member.type) == struct_members.end()) {
           report_error_(

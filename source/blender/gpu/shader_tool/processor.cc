@@ -311,13 +311,13 @@ void SourceProcessor::parse_legacy_create_info(Parser &parser)
     if (type != Word || struct_keyword != Struct) {
       return;
     }
-    parser.insert_before(struct_keyword, get_create_info_placeholder(type.str()));
+    parser.insert_before(struct_keyword, get_create_info_placeholder(string(type.str())));
     parser.insert_line_number(struct_keyword.str_index_start() - 1, struct_keyword.line_number());
   });
 
   parser().foreach_match("A(..)", [&](const vector<Token> &tokens) {
     if (tokens[0].str() == "CREATE_INFO_VARIANT") {
-      const string variant_name = tokens[1].scope().front().next().str();
+      const string variant_name(tokens[1].scope().front().next().str());
       metadata_.create_infos.emplace_back(variant_name);
 
       const string variant_decl = parser.substr_range_inclusive(tokens.front(), tokens.back());
@@ -327,7 +327,7 @@ void SourceProcessor::parse_legacy_create_info(Parser &parser)
       return;
     }
     if (tokens[0].str() == "GPU_SHADER_CREATE_INFO") {
-      const string variant_name = tokens[1].scope().front().next().str();
+      const string variant_name(tokens[1].scope().front().next().str());
       metadata_.create_infos.emplace_back(variant_name);
 
       const size_t start_end = tokens.back().str_index_last();
@@ -389,13 +389,23 @@ void SourceProcessor::parse_legacy_create_info(Parser &parser)
   parser.apply_mutations();
 }
 
+/* Return the content without the first and last characters. */
+static std::string_view str_view_exclusive(Token tok)
+{
+  std::string_view str = tok.str();
+  if (str.length() < 2) {
+    return "";
+  }
+  return str.substr(1, str.length() - 2);
+}
+
 void SourceProcessor::parse_includes(Parser &parser)
 {
   parser().foreach_match<true>("#A\"", [&](const vector<Token> &tokens) {
     if (tokens[1].str() != "include") {
       return;
     }
-    string dependency_name = tokens[2].str_exclusive();
+    string_view dependency_name = str_view_exclusive(tokens[2]);
 
     if (dependency_name.find("defines.hh") != string::npos) {
       /* Dependencies between create infos are not needed for reflections.
@@ -450,14 +460,14 @@ string SourceProcessor::disabled_code_mutation(const string &str)
 
   auto process_disabled_scope = [&](Token start_tok) {
     /* Search for endif with the same indentation. Assume formatted input. */
-    string end_str = start_tok.str_with_whitespace() + "endif";
+    string end_str = string(start_tok.str_with_whitespace()) + "endif";
     size_t scope_end = parser.str().find(end_str, start_tok.str_index_start());
     if (scope_end == string::npos) {
       report_error_(ERROR_TOK(start_tok), "Couldn't find end of disabled scope.");
       return;
     }
     /* Search for else/elif with the same indentation. Assume formatted input. */
-    string else_str = start_tok.str_with_whitespace() + "el";
+    string else_str = string(start_tok.str_with_whitespace()) + "el";
     size_t scope_else = parser.str().find(else_str, start_tok.str_index_start());
     if (scope_else != string::npos && scope_else < scope_end) {
       /* Only erase the content and keep the preprocessor directives. */
@@ -514,7 +524,7 @@ void SourceProcessor::lower_swizzle_methods(Parser &parser)
   /* Change C++ swizzle functions into plain swizzle. */
   /** IMPORTANT: This prevent the usage of any method with a swizzle name. */
   parser().foreach_match(".A()", [&](const vector<Token> &tokens) {
-    string method_name = tokens[1].str();
+    string_view method_name(tokens[1].str());
     if (method_name.length() > 1 && method_name.length() <= 4 &&
         (method_name.find_first_not_of("xyzw") == string::npos ||
          method_name.find_first_not_of("rgba") == string::npos))
@@ -533,7 +543,7 @@ string SourceProcessor::threadgroup_variables_parse_and_remove(const string &str
   auto process_shared_var = [&](Token shared_tok, Token type, Token name, Token decl_end) {
     if (shared_tok.str() == "shared") {
       metadata_.shared_variables.push_back(
-          {type.str(), parser.substr_range_inclusive(name, decl_end.prev())});
+          {string(type.str()), parser.substr_range_inclusive(name, decl_end.prev())});
 
       parser.erase(shared_tok, decl_end);
     }
@@ -581,7 +591,7 @@ void SourceProcessor::parse_library_functions(Parser &parser)
           /* Note: There is no array support. */
           const Token name = arg.back();
           const Token type = name.prev() == '&' ? name.prev().prev() : name.prev();
-          string qualifier = type.prev().str();
+          string qualifier(type.prev().str());
           if (qualifier != "out" && qualifier != "inout" && qualifier != "in") {
             if (name.prev() == '&') {
               qualifier = "out";
@@ -596,7 +606,7 @@ void SourceProcessor::parse_library_functions(Parser &parser)
             }
           }
           fn.arguments.emplace_back(ArgumentFormat{metadata::Qualifier(hash(qualifier)),
-                                                   metadata::Type(hash(type.str()))});
+                                                   metadata::Type(hash(string(type.str())))});
         });
 
         metadata_.functions.emplace_back(fn);
@@ -677,8 +687,8 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
         create_info_decl += (toks[3] == Number) ?
                                 ((toks[3].str().back() == 'u') ? "uint" : "int") :
                                 "bool";
-        create_info_decl += ", " + toks[1].str();
-        create_info_decl += ", " + toks[3].str();
+        create_info_decl += ", " + string(toks[1].str());
+        create_info_decl += ", " + string(toks[3].str());
         create_info_decl += ")\n";
       };
       scope.foreach_match(".A=A", process_constant);
@@ -694,12 +704,12 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
     Token fragment_fn = params[3];
     /* For now, just emit good old create info macros. */
     string create_info_decl;
-    create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
+    create_info_decl += "GPU_SHADER_CREATE_INFO(" + string(pipeline_name.str()) + ")\n";
     create_info_decl += "GRAPHIC_SOURCE(\"" + filename + "\")\n";
-    create_info_decl += "VERTEX_FUNCTION(\"" + vertex_fn.str() + "\")\n";
-    create_info_decl += "FRAGMENT_FUNCTION(\"" + fragment_fn.str() + "\")\n";
-    create_info_decl += "ADDITIONAL_INFO(" + vertex_fn.str() + "_infos_)\n";
-    create_info_decl += "ADDITIONAL_INFO(" + fragment_fn.str() + "_infos_)\n";
+    create_info_decl += "VERTEX_FUNCTION(\"" + string(vertex_fn.str()) + "\")\n";
+    create_info_decl += "FRAGMENT_FUNCTION(\"" + string(fragment_fn.str()) + "\")\n";
+    create_info_decl += "ADDITIONAL_INFO(" + string(vertex_fn.str()) + "_infos_)\n";
+    create_info_decl += "ADDITIONAL_INFO(" + string(fragment_fn.str()) + "_infos_)\n";
     create_info_decl += process_compilation_constants(params[4]);
     create_info_decl += "DO_STATIC_COMPILATION()\n";
     create_info_decl += "GPU_SHADER_CREATE_END()\n";
@@ -711,10 +721,10 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
     Token compute_fn = params[1];
     /* For now, just emit good old create info macros. */
     string create_info_decl;
-    create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
+    create_info_decl += "GPU_SHADER_CREATE_INFO(" + string(pipeline_name.str()) + ")\n";
     create_info_decl += "COMPUTE_SOURCE(\"" + filename + "\")\n";
-    create_info_decl += "COMPUTE_FUNCTION(\"" + compute_fn.str() + "\")\n";
-    create_info_decl += "ADDITIONAL_INFO(" + compute_fn.str() + "_infos_)\n";
+    create_info_decl += "COMPUTE_FUNCTION(\"" + string(compute_fn.str()) + "\")\n";
+    create_info_decl += "ADDITIONAL_INFO(" + string(compute_fn.str()) + "_infos_)\n";
     create_info_decl += process_compilation_constants(params[2]);
     create_info_decl += "DO_STATIC_COMPILATION()\n";
     create_info_decl += "GPU_SHADER_CREATE_END()\n";
@@ -751,7 +761,7 @@ void SourceProcessor::lower_stage_function(Parser &parser)
 
     string condition;
     attributes.foreach_attribute([&](Token attr_tok, Scope) {
-      const string attr = attr_tok.str();
+      const string_view attr = attr_tok.str();
       if (attr == "vertex") {
         condition += "GPU_VERTEX_SHADER";
       }
@@ -767,7 +777,7 @@ void SourceProcessor::lower_stage_function(Parser &parser)
     }
     condition = "defined(" + condition + ")";
 
-    guarded_scope_mutation(parser, fn_body, condition);
+    guarded_scope_mutation(parser, fn_body, condition, Token(parser));
   });
   parser.apply_mutations();
 }
@@ -782,7 +792,7 @@ void SourceProcessor::guarded_scope_mutation(Parser &parser,
   string guard_start = "#if " + condition;
   string guard_else;
   if (fn_type.is_valid() && fn_type.str() != "void") {
-    string type = fn_type.str();
+    string type(fn_type.str());
     bool is_trivial = false;
     if (type == "float" || type == "float2" || type == "float3" || type == "float4" ||
         /**/
@@ -867,7 +877,7 @@ void SourceProcessor::lower_host_shared_structures(Parser &parser)
 
     size_t offset = 0;
     body.foreach_declaration([&](Scope, Token, Token type, Scope, Token, Scope array, Token) {
-      string type_str = type.str();
+      string_view type_str(type.str());
 
       if (type_str.find("char") != string::npos || type_str.find("short") != string::npos ||
           type_str.find("half") != string::npos)
@@ -905,7 +915,7 @@ void SourceProcessor::lower_host_shared_structures(Parser &parser)
         report_error_(ERROR_TOK(type), "float2x2 is not allowed in shared structure");
       }
 
-      auto sz = sizeof_types.find(type_str);
+      auto sz = sizeof_types.find(string(type_str));
 
       Type type_info{16, 16};
       if (sz != sizeof_types.end()) {
@@ -969,11 +979,11 @@ void SourceProcessor::lower_host_shared_structures(Parser &parser)
     }
     /* Insert an alias to the type that will get referenced for shaders that enforce usage of
      * linted types. */
-    string directive = "#define " + struct_name.str() + linted_struct_suffix + " " +
-                       struct_name.str() + "\n";
+    string directive = "#define " + string(struct_name.str()) + linted_struct_suffix + " " +
+                       string(struct_name.str()) + "\n";
     if (is_std140_compatible) {
-      directive += "#define " + struct_name.str() + linted_struct_suffix + uniform_struct_suffix +
-                   " " + struct_name.str() + "\n";
+      directive += "#define " + string(struct_name.str()) + linted_struct_suffix +
+                   uniform_struct_suffix + " " + string(struct_name.str()) + "\n";
     }
     parser.insert_directive(struct_keyword.prev(), directive);
   });
@@ -1010,7 +1020,7 @@ void SourceProcessor::lint_reserved_tokens(Parser &parser)
   };
 
   parser().foreach_token(Word, [&](Token tok) {
-    if (reserved_symbols.find(tok.str()) != reserved_symbols.end()) {
+    if (reserved_symbols.find(string(tok.str())) != reserved_symbols.end()) {
       report_error_(ERROR_TOK(tok), "Reserved GLSL token");
     }
   });
@@ -1055,7 +1065,7 @@ void SourceProcessor::lower_comma_separated_declarations(Parser &parser)
     if (t[0].scope().type() != ScopeType::Struct) {
       return;
     }
-    string type = t[0].str();
+    string type(t[0].str());
     Token comma = t[2];
     while (comma == ',' || comma == '[') {
       if (comma == '[') {
@@ -1080,12 +1090,13 @@ void SourceProcessor::lower_implicit_return_types(Parser &parser)
         /* `return {1, 2};` > `T tmp = T{1, 2}; return tmp;`
          * This syntax allow to support designated initializer. */
         parser.insert_before(toks[0],
-                             "{" + type.str() + " _tmp = " + type.str() + list.str() + "; ");
+                             "{" + string(type.str()) + " _tmp = " + string(type.str()) +
+                                 string(list.str()) + "; ");
         parser.replace(list, "_tmp;}");
       }
       else if (toks[1].is_invalid()) {
         /* Regular initializer list. Keep it simple. */
-        parser.insert_after(toks[0], type.str());
+        parser.insert_after(toks[0], string(type.str()));
       }
     });
   });
@@ -1095,9 +1106,10 @@ void SourceProcessor::lower_initializer_implicit_types(Parser &parser)
 {
   auto process_scope = [&](Scope s) {
     /* Auto insert equal. */
-    s.foreach_match("AA{..}", [&](Tokens t) { parser.insert_before(t[2], " = " + t[0].str()); });
+    s.foreach_match("AA{..}",
+                    [&](Tokens t) { parser.insert_before(t[2], " = " + string(t[0].str())); });
     /* Auto insert type. */
-    s.foreach_match("AA={..}", [&](Tokens t) { parser.insert_before(t[3], t[0].str()); });
+    s.foreach_match("AA={..}", [&](Tokens t) { parser.insert_before(t[3], string(t[0].str())); });
   };
 
   parser().foreach_scope(ScopeType::FunctionArg, process_scope);
@@ -1134,7 +1146,7 @@ void SourceProcessor::lower_designated_initializers(Parser &parser)
         report_error_(ERROR_TOK(t[0]), "Nested initializer lists are not supported");
         return;
       }
-      parser.insert_before(t[0], var.str());
+      parser.insert_before(t[0], string(var.str()));
       Token value_end = t[2].scope().back();
       parser.insert_after(value_end, ";");
       if (value_end.next() == ',') {
@@ -1166,7 +1178,7 @@ void SourceProcessor::lower_aggregate_initializers(Parser &parser)
       if (t[0].prev() == Struct) {
         return;
       }
-      if (builtin_types.find(t[0].str()) != builtin_types.end()) {
+      if (builtin_types.find(string(t[0].str())) != builtin_types.end()) {
         report_error_(ERROR_TOK(t[0]),
                       "Aggregate is error prone for built-in vector and matrix types, use "
                       "constructors instead");
@@ -1227,7 +1239,7 @@ void SourceProcessor::lower_array_initializations(Parser &parser)
       parser.insert_after(array_scope[0], to_string(list_len));
     }
     else if (array_scope_tok_len == 3 && array_scope[1] == Number) {
-      if (stol(array_scope[1].str()) == 0) {
+      if (stol(string(array_scope[1].str())) == 0) {
         report_error_(ERROR_TOK(name_tok), "Array size must be greater than zero.");
       }
     }
@@ -1240,7 +1252,7 @@ void SourceProcessor::lower_array_initializations(Parser &parser)
     });
 
     /* Mutation to compatible syntax. */
-    parser.insert_before(list_scope.front(), "ARRAY_T(" + type_tok.str() + ") ARRAY_V(");
+    parser.insert_before(list_scope.front(), "ARRAY_T(" + string(type_tok.str()) + ") ARRAY_V(");
     parser.insert_after(list_scope.back(), ")");
     parser.erase(list_scope.front());
     parser.erase(list_scope.back());
@@ -1279,22 +1291,22 @@ void SourceProcessor::lower_function_default_arguments(Parser &parser)
           Token equal = arg.find_token('=');
           const char *comma = (args_decl.empty() ? "" : ", ");
           if (equal.is_invalid()) {
-            args_decl += comma + arg.str_with_whitespace();
-            args_names += comma + arg.back().str();
+            args_decl += comma + string(arg.str_with_whitespace());
+            args_names += comma + string(arg.back().str());
           }
           else {
-            string arg_name = equal.prev().str();
+            string arg_name(equal.prev().str());
             string value = parser.substr_range_inclusive(equal.next(), arg.back());
             string decl = parser.substr_range_inclusive(arg.front(), equal.prev());
 
-            string fn_call = fn_name.str() + '(' + args_names + comma + value + ");";
+            string fn_call = string(fn_name.str()) + '(' + args_names + comma + value + ");";
             if (has_non_void_return_type) {
               fn_call = "return " + fn_call;
             }
             string overload;
-            overload += fn_type.str() + " ";
-            overload += fn_name.str() + '(' + args_decl + ")" + string(fn_const ? " const" : "") +
-                        "\n";
+            overload += string(fn_type.str()) + " ";
+            overload += string(fn_name.str()) + '(' + args_decl + ")" +
+                        string(fn_const ? " const" : "") + "\n";
             overload += "{\n";
             overload += "#line " + to_string(fn_type.line_number()) + "\n";
             overload += "  " + fn_call + "\n}\n";
@@ -1352,7 +1364,7 @@ void SourceProcessor::cleanup_line_directives(Parser &parser)
       return;
     }
     /* True if directive is noop. */
-    if (toks[0].line_number() == stol(toks[2].str())) {
+    if (toks[0].line_number() == stol(string(toks[2].str()))) {
       parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
     }
   });
@@ -1399,11 +1411,11 @@ string SourceProcessor::matrix_constructor_mutation(const string &str)
     return str;
   }
 
-  IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
+  IntermediateForm<FullLexer, DummyParser> parser(str, report_error_);
   parser().foreach_token(ParOpen, [&](const Token t) {
     if (t.prev() == Word) {
       Token fn_name = t.prev();
-      string_view fn_name_str = fn_name.str_view();
+      string_view fn_name_str = fn_name.str();
       if (fn_name_str.size() == 4) {
         /* Example: `mat2(x)` > `__mat2x2(x)` */
         if (fn_name_str == "mat2") {
@@ -1434,10 +1446,10 @@ void SourceProcessor::lower_reference_arguments(Parser &parser)
 {
   auto add_mutation = [&](Token type, Token arg_name, Token last_tok) {
     if (type.prev() == Const) {
-      parser.replace(type.prev(), last_tok, type.str() + " " + arg_name.str());
+      parser.replace(type.prev(), last_tok, string(type.str()) + " " + string(arg_name.str()));
     }
     else {
-      parser.replace(type, last_tok, "inout " + type.str() + " " + arg_name.str());
+      parser.replace(type, last_tok, "inout " + string(type.str()) + " " + string(arg_name.str()));
     }
   };
 
@@ -1474,7 +1486,7 @@ void SourceProcessor::lower_reference_variables(Parser &parser)
         report_error_(ERROR_TOK(token), "Reference definitions cannot have side effects.");
       });
       assignment.foreach_token(ParOpen, [&](const Token token) {
-        string fn_name = token.prev().str();
+        string_view fn_name = token.prev().str();
         if ((fn_name != "specialization_constant_get") && (fn_name != "push_constant_get") &&
             (fn_name != "interface_get") && (fn_name != "attribute_get") &&
             (fn_name != "buffer_get") && (fn_name != "srt_access") && (fn_name != "sampler_get") &&
@@ -1577,10 +1589,10 @@ void SourceProcessor::lower_argument_qualifiers(Parser &parser)
 
 string SourceProcessor::argument_decorator_macro_injection(const string &str)
 {
-  IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
+  IntermediateForm<FullLexer, DummyParser> parser(str, report_error_);
   /* Example: `out float foo` > `out float _out_sta foo _out_end` */
   parser().foreach_match("AAA", [&](const Tokens &t) {
-    string_view qualifier = t[0].str_view();
+    string_view qualifier = t[0].str();
     if (qualifier == "out" || qualifier == "inout" || qualifier == "in" || qualifier == "shared") {
       parser.insert_after(t[1], " _" + string(qualifier) + "_sta ");
       parser.insert_after(t[2], " _" + string(qualifier) + "_end ");
@@ -1591,7 +1603,7 @@ string SourceProcessor::argument_decorator_macro_injection(const string &str)
 
 string SourceProcessor::array_constructor_macro_injection(const string &str)
 {
-  IntermediateForm<ExpressionLexer, DummyParser> parser(str, report_error_);
+  IntermediateForm<FullLexer, DummyParser> parser(str, report_error_);
   parser().foreach_match("=A[", [&](const Tokens toks) {
     Token array_len_start = toks.back();
     Token array_len_end = array_len_start.find_next(SquareClose);
@@ -1626,7 +1638,7 @@ int SourceProcessor::static_array_size(const Scope &array, int fallback_value)
 {
   if (array.token_count() == 3 && array[1] == Number) {
     try {
-      return stol(array[1].str());
+      return stol(string(array[1].str()));
     }
     catch (invalid_argument const & /*ex*/) {
       report_error_(ERROR_TOK(array.front()), "Invalid array size, expecting integer literal");

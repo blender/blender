@@ -47,6 +47,7 @@ endif()
 if(WIN32)
   add_definitions(-D_USE_MATH_DEFINES)
   remove_definitions(-DNOMINMAX)
+  remove_definitions(-DWIN32_LEAN_AND_MEAN)
 endif()
 
 if(WITH_MANTA_NUMPY AND WITH_PYTHON_NUMPY)

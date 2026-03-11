@@ -521,7 +521,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(shader_attr2.GetIdAttr().Get(), "UsdPrimvarReader_vector")
 
         self.assertEqual(shader_attr.GetInput("varname").Get(), "displayColor")
-        self.assertEqual(shader_attr1.GetInput("varname").Get(), "f_float")
+        self.assertEqual(shader_attr1.GetInput("varname").Get(), "ns:f_float")
         self.assertEqual(shader_attr2.GetInput("varname").Get(), "f_vec")
 
         self.assertEqual(shader_attr.GetOutput("result").GetTypeName().type.typeName, "GfVec3f")

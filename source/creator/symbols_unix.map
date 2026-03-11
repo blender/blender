@@ -17,25 +17,26 @@ global:
   __tsan*;
   __ubsan*;
   __sanitizer*;
+  /* Memory allocation (new, delete, malloc). */
   __Znw*;
   __Zna*;
   __Zdl*;
   __Zda*;
-  aligned_alloc;
+  aligned_alloc*;
   calloc*;
-  free;
-  mallinfo;
+  free*;
+  mallinfo*;
   malloc*;
-  mallopt;
-  memalign;
-  memcpy;
-  posix_memalign;
+  mallopt*;
+  memalign*;
+  memcpy*;
+  posix_memalign*;
   pthread_*;
-  pvalloc;
+  pvalloc*;
   realloc*;
-  realpath;
+  realpath*;
   sched_*;
-  valloc;
+  valloc*;
   /* Needed on FreeBSD. Uses wildcard to avoid linker error when symbols are not found. */
   __progname*;
   environ*;

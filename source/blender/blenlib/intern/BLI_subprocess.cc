@@ -36,7 +36,6 @@ static bool check_arguments_are_valid(Span<StringRefNull> args)
 
 #  ifdef _WIN32
 
-#    define WIN32_LEAN_AND_MEAN
 #    include <comdef.h>
 #    include <windows.h>
 

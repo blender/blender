@@ -21,6 +21,16 @@ namespace blender::io::usd {
  */
 std::string make_safe_name(StringRef name, bool allow_unicode);
 
+/**
+ * Return a valid USD primvar name based on the passed in string. The name is permitted to contain
+ * namespaces separated by colons. E.g. "ns1:ns2:primvar_name".
+ *
+ * \param name: Incoming name to sanitize
+ * \param allow_unicode: Whether to allow unicode encoded characters in the USD primvar name
+ * \return A valid USD primvar name
+ */
+std::string make_safe_primvar_name(StringRef name, bool allow_unicode);
+
 /* Return a unique USD `SdfPath`. If the given path already exists on the given stage, return
  * the path with a numerical suffix appended to the name that ensures the path is unique.
  * If the path does not exist on the stage, it will be returned unchanged.

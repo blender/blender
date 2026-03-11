@@ -43,6 +43,7 @@ static bool is_conversion_supported(const ResultType from_type, const ResultType
     case ResultType::Color:
     case ResultType::Int:
     case ResultType::Int2:
+    case ResultType::Int3:
     case ResultType::Bool:
       switch (to_type) {
         case ResultType::Float:
@@ -52,6 +53,7 @@ static bool is_conversion_supported(const ResultType from_type, const ResultType
         case ResultType::Color:
         case ResultType::Int:
         case ResultType::Int2:
+        case ResultType::Int3:
         case ResultType::Bool:
           return true;
         case ResultType::Menu:

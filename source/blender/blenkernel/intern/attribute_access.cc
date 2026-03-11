@@ -424,17 +424,17 @@ GAttributeReader AttributeAccessor::lookup_or_default(const StringRef name,
 
 Set<StringRefNull> AttributeAccessor::all_names() const
 {
-  Set<StringRefNull> ids;
-  this->foreach_attribute([&](const AttributeIter &iter) { ids.add(iter.name); });
-  return ids;
+  Set<StringRefNull> names;
+  this->foreach_attribute([&](const AttributeIter &iter) { names.add(iter.name); });
+  return names;
 }
 
 void MutableAttributeAccessor::remove_anonymous()
 {
   Vector<std::string> anonymous_ids;
-  for (const StringRef id : this->all_names()) {
-    if (attribute_name_is_anonymous(id)) {
-      anonymous_ids.append(id);
+  for (const StringRef name : this->all_names()) {
+    if (attribute_name_is_anonymous(name)) {
+      anonymous_ids.append(name);
     }
   }
 

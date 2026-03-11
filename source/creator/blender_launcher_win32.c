@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef WIN32_LEAN_AND_MEAN
+#  undef WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 #include <strsafe.h>
 

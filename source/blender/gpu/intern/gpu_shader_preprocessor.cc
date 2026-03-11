@@ -756,16 +756,12 @@ inline PruningStream &operator<<(PruningStream &dst, const Token &tok)
  */
 struct Preprocessor {
  private:
-  using ExpressionLexer = shader::parser::ExpressionLexer;
-  using ExpressionParser = shader::parser::ExpressionParser;
-
   AtomicLexer lex_;
 
   PruningStream out_stream_;
 
   /* Cache the expression lexer to avoid memory allocations. */
-  ExpressionLexer expression_lexer;
-  ExpressionParser expression_parser = ExpressionParser(expression_lexer);
+  shader::parser::ExpressionParser expression_parser;
 
   struct TokenStreamPool {
     /* Reference to lexer only for atom value lookups. */
@@ -1273,7 +1269,7 @@ struct Preprocessor {
     try {
       /* TODO(fclem): Do not parse again. Simply use the token stream. */
       std::string str = expand->str();
-      expression_lexer.lexical_analysis(str);
+      expression_parser.lexical_analysis(str);
       return expression_parser.eval() != 0;
     }
     catch (const std::exception &e) {

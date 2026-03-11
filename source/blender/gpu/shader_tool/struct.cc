@@ -73,7 +73,7 @@ void SourceProcessor::lower_default_constructors(Parser &parser)
     int decl_count = 0;
     string decl;
     body.foreach_declaration([&](Scope, Token, Token type, Scope, Token name, Scope array, Token) {
-      auto default_value = [&](const string &type) -> string {
+      auto default_value = [&](const string_view type) -> string {
         if (type == "float") {
           return "0.0f";
         }
@@ -86,29 +86,29 @@ void SourceProcessor::lower_default_constructors(Parser &parser)
         if (type == "bool") {
           return "false";
         }
-        if (builtin_types.find(type) != builtin_types.end()) {
-          return type + "(0)";
+        if (builtin_types.find(string(type)) != builtin_types.end()) {
+          return string(type) + "(0)";
         }
-        return type + "{}";
+        return string(type) + "{}";
       };
 
       if (array.is_valid()) {
         int array_len = static_array_size(array, 0);
         if (array_len == 0) {
-          decl += "for(int i=0;i < " + array.str_exclusive() + ";i++){";
-          decl += "r." + name.str() + "[i]=" + default_value(type.str()) + ";";
+          decl += "for(int i=0;i < " + string(array.str_exclusive()) + ";i++){";
+          decl += "r." + string(name.str()) + "[i]=" + default_value(type.str()) + ";";
           decl += "}";
         }
         else {
           for (int i = 0; i < array_len; i++) {
-            decl += "r." + name.str() + "[" + to_string(i) + "]";
+            decl += "r." + string(name.str()) + "[" + to_string(i) + "]";
             decl += "=" + default_value(type.str()) + ";";
           }
         }
       }
       else {
         /* Assigning members one by one as the foreach decl iterator can be out of order. */
-        decl += "r." + name.str() + "=" + default_value(type.str()) + ";";
+        decl += "r." + string(name.str()) + "=" + default_value(type.str()) + ";";
       }
       decl_count++;
     });
@@ -118,7 +118,8 @@ void SourceProcessor::lower_default_constructors(Parser &parser)
       decl += "r._pad=0;";
     }
 
-    decl = "static " + name.str() + " ctor_() {" + name.str() + " r;" + decl + "return r;}";
+    decl = "static " + string(name.str()) + " ctor_() {" + string(name.str()) + " r;" + decl +
+           "return r;}";
 
     parser.insert_after(body.front().str_index_last_no_whitespace(), decl);
   });
@@ -131,7 +132,7 @@ void SourceProcessor::lower_implicit_member(Parser &parser)
     vector<Token> members_tokens;
     vector<Token> methods_tokens;
 
-    auto is_class_token = [&](const vector<Token> &members, const string &token) {
+    auto is_class_token = [&](const vector<Token> &members, const string_view token) {
       for (const Token &member : members) {
         if (token == member.str()) {
           return true;
@@ -237,8 +238,8 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
 
     struct_scope.foreach_function(
         [&](bool is_static, Token fn_type, Token fn_name, Scope fn_args, bool is_const, Scope) {
-          const Token static_tok = is_static ? fn_type.prev() : Token::invalid();
-          const Token const_tok = is_const ? fn_args.back().next() : Token::invalid();
+          const Token static_tok = is_static ? fn_type.prev() : Token(parser);
+          const Token const_tok = is_const ? fn_args.back().next() : Token(parser);
 
           if (fn_name.str()[0] == '_') {
             report_error_(ERROR_TOK(fn_name),
@@ -246,7 +247,8 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
           }
 
           if (is_static) {
-            parser.replace(fn_name, struct_name.str() + namespace_separator + fn_name.str());
+            parser.replace(
+                fn_name, string(struct_name.str()) + namespace_separator + string(fn_name.str()));
             /* WORKAROUND: Erase the static keyword as it conflicts with the wrapper class
              * member accesses MSL. */
             parser.erase(static_tok);
@@ -262,11 +264,12 @@ void SourceProcessor::lower_method_definitions(Parser &parser)
             parser.erase(const_tok);
             if (is_const && !is_resource_table) {
               parser.insert_after(fn_args.front(),
-                                  prefix + "const " + struct_name.str() + " this_" + suffix);
+                                  prefix + "const " + string(struct_name.str()) + " this_" +
+                                      suffix);
             }
             else {
               parser.insert_after(fn_args.front(),
-                                  prefix + struct_name.str() + " &this_" + suffix);
+                                  prefix + string(struct_name.str()) + " &this_" + suffix);
             }
 
             if (fn_name.str().length() > 1 &&
@@ -368,7 +371,7 @@ void SourceProcessor::lower_method_calls(Parser &parser)
           break;
         }
         string this_str = parser.substr_range_inclusive(start_of_this, end_of_this);
-        string func_str = method_call_prefix + func.str();
+        string func_str = method_call_prefix + string(func.str());
         const bool has_no_arg = par_open.next() == ')';
         /* `a.fn(b)` -> `_fn(a, b)` */
         parser.replace_try(

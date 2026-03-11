@@ -48,6 +48,24 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="5.1" date="2026-03-17">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Rendering: New Shader Raycast Node, improved Cycles rendering performance</li>
+                    <li>Geometry Nodes: New nodes for Volume Grids, string handling and a Bone Info node</li>
+                    <li>Virtual Reality: Arc teleportation ray drawing and functionality overhaul</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Grease Pencil: New Fill Workflow</li>
+                    <li>Compositor: New Mask To SDF node, various improvements to existing nodes</li>
+                    <li>VSE: Blade tool now has a box gesture that allows for quick cuts</li>
+                    <li>UI: Searching within Preferences, Quad View improvements</li>
+                    <li>I/O: Support  for the AVIF image format, USD, FBX and glTF improvements</li>
+                </ul>
+            </description>
+        </release>
         <release version="5.0" date="2025-11-18">
             <description>
                 <p>New features:</p>

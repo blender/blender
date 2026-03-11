@@ -47,7 +47,7 @@ List::ArrayData List::ArrayData::ForValue(const GPointer &value, const int64_t s
 
   void *new_data;
   /* Prefer `calloc` to zeroing after allocation since it is faster. */
-  if (BLI_memory_is_zero(value_ptr, type.size)) {
+  if (memory_is_zero(value_ptr, type.size)) {
     new_data = MEM_new_array_zeroed_aligned(size, type.size, type.alignment, __func__);
   }
   else {

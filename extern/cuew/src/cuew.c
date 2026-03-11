@@ -30,7 +30,9 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
-#  define WIN32_LEAN_AND_MEAN
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  define VC_EXTRALEAN
 #  include <windows.h>
 

@@ -18,6 +18,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_dynstr.h"
 #include "BLI_enum_flags.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
@@ -2438,6 +2439,23 @@ void Layout::prop_with_popover(PointerRNA *ptr,
                      propname.c_str(),
                      panel_type);
   }
+}
+
+void Layout::prop_with_menu(PointerRNA *ptr,
+                            const StringRefNull propname,
+                            const eUI_Item_Flag flag,
+                            const std::optional<StringRefNull> name,
+                            int icon,
+                            const char *menu_type)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
+  if (!prop) {
+    item_disabled(this, propname.c_str());
+    RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
+    return;
+  }
+
+  this->prop_with_menu(ptr, prop, RNA_NO_INDEX, 0, flag, name, icon, menu_type);
 }
 
 void Layout::prop_with_menu(PointerRNA *ptr,

@@ -238,6 +238,8 @@ void GLTexture::update_sub(int mip,
     data = unpack_buffer.get();
   }
 
+  GLenum gl_type = to_gl(type);
+
   /* If `data` is float and target storage is half, convert to half */
   std::unique_ptr<uint16_t, MEM_smart_ptr_deleter<uint16_t>> clamped_half_buffer = nullptr;
   if (type == GPU_DATA_FLOAT && is_half_float(format_)) {
@@ -264,7 +266,38 @@ void GLTexture::update_sub(int mip,
     /* Replace the 'data' ptr with `clamped_half_buffer`,
      * which has lifetime in the function scope. */
     data = clamped_half_buffer.get();
-    type = GPU_DATA_HALF_FLOAT;
+    gl_type = to_gl(GPU_DATA_HALF_FLOAT);
+
+    /* If the `data` ptr was previously replaced by `unpack_buffer`,
+     * clear `unpack_buffer` as it is no longer necessary. */
+    if (do_texture_unpack) {
+      unpack_buffer.reset(nullptr);
+    }
+  }
+
+  /* TextureFormat::SINT_16_16 formats with integer data does not seem to work correctly in all GPU
+   * drivers, so convert to short and use GL_SHORT. */
+  std::unique_ptr<int16_t, MEM_smart_ptr_deleter<int16_t>> short_buffer = nullptr;
+  if (type == GPU_DATA_INT && format_ == TextureFormat::SINT_16_16) {
+    size_t dst_pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
+    size_t dst_total_count = to_component_len(format_) * dst_pixel_count;
+
+    short_buffer.reset(static_cast<int16_t *>(
+        MEM_new_uninitialized_aligned(sizeof(int16_t) * dst_total_count, 128, __func__)));
+
+    Span<int32_t> src(static_cast<const int32_t *>(data), dst_total_count);
+    MutableSpan<int16_t> dst(static_cast<int16_t *>(short_buffer.get()), dst_total_count);
+
+    constexpr int64_t chunk_size = 4 * 1024 * 1024;
+    threading::parallel_for(IndexRange(dst_total_count), chunk_size, [&](const IndexRange range) {
+      for (const int64_t i : range) {
+        dst[i] = int16_t(src[i]);
+      }
+    });
+
+    /* Replace the 'data' ptr with `short_buffer`, which has lifetime in the function scope. */
+    data = short_buffer.get();
+    gl_type = GL_SHORT;
 
     /* If the `data` ptr was previously replaced by `unpack_buffer`,
      * clear `unpack_buffer` as it is no longer necessary. */
@@ -275,7 +308,6 @@ void GLTexture::update_sub(int mip,
 
   const int dimensions = this->dimensions_count();
   GLenum gl_format = to_gl_data_format(format_);
-  GLenum gl_type = to_gl(type);
 
   /* Some drivers have issues with cubemap & glTextureSubImage3D even if it is correct. */
   if (GLContext::direct_state_access_support && (type_ != GPU_TEXTURE_CUBE)) {

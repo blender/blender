@@ -31,7 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Float>("Mask").default_value(1.0f).min(0.0f).max(1.0f);
 
-  PanelDeclarationBuilder &master_panel = b.add_panel("Master").default_closed(true);
+  PanelDeclarationBuilder &master_panel = b.add_panel("Master"_ustr).default_closed(true);
   master_panel.add_input<decl::Float>("Saturation", "Master Saturation")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -63,7 +63,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Controls the offset of the entire image");
 
-  PanelDeclarationBuilder &highlights_panel = b.add_panel("Highlights").default_closed(true);
+  PanelDeclarationBuilder &highlights_panel = b.add_panel("Highlights"_ustr).default_closed(true);
   highlights_panel.add_input<decl::Float>("Saturation", "Highlights Saturation")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -95,7 +95,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Controls the offset of the highlights");
 
-  PanelDeclarationBuilder &midtones_panel = b.add_panel("Midtones").default_closed(true);
+  PanelDeclarationBuilder &midtones_panel = b.add_panel("Midtones"_ustr).default_closed(true);
   midtones_panel.add_input<decl::Float>("Saturation", "Midtones Saturation")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -127,7 +127,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Controls the offset of the midtones");
 
-  PanelDeclarationBuilder &shadows_panel = b.add_panel("Shadows").default_closed(true);
+  PanelDeclarationBuilder &shadows_panel = b.add_panel("Shadows"_ustr).default_closed(true);
   shadows_panel.add_input<decl::Float>("Saturation", "Shadows Saturation")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -159,7 +159,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Controls the offset of the shadows");
 
-  PanelDeclarationBuilder &tonal_range_panel = b.add_panel("Tonal Range").default_closed(true);
+  PanelDeclarationBuilder &tonal_range_panel =
+      b.add_panel("Tonal Range"_ustr).default_closed(true);
   tonal_range_panel.add_input<decl::Float>("Midtones Start")
       .default_value(0.2f)
       .subtype(PROP_FACTOR)
@@ -176,7 +177,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Specifies the luminance at which the midtones of the image end and the highlights "
           "start");
 
-  PanelDeclarationBuilder &tone_range_panel = b.add_panel("Channels").default_closed(true);
+  PanelDeclarationBuilder &tone_range_panel = b.add_panel("Channels"_ustr).default_closed(true);
   tone_range_panel.add_input<decl::Bool>("Red", "Apply On Red")
       .default_value(true)
       .description("If true, the correction will be applied on the red channel");

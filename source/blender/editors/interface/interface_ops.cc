@@ -3047,6 +3047,7 @@ void operatortypes_ui()
   WM_operatortype_append(UI_OT_eyedropper_driver);
   WM_operatortype_append(UI_OT_eyedropper_bone);
   WM_operatortype_append(UI_OT_eyedropper_grease_pencil_color);
+  WM_menutype_add(UI_MT_color_space_select());
 }
 
 void keymap_ui(wmKeyConfig *keyconf)

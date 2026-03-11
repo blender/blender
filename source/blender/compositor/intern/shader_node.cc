@@ -63,6 +63,17 @@ static GPUType gpu_type_from_socket(const bNodeSocket &socket)
           BLI_assert_unreachable();
           return GPU_NONE;
       }
+    case SOCK_INT_VECTOR:
+      /* GPUMaterial doesn't support int[23], so it is passed as a float[23]. */
+      switch (socket.default_value_typed<bNodeSocketValueIntVector>()->dimensions) {
+        case 2:
+          return GPU_VEC2;
+        case 3:
+          return GPU_VEC3;
+        default:
+          BLI_assert_unreachable();
+          return GPU_NONE;
+      }
     case SOCK_RGBA:
       return GPU_VEC4;
     case SOCK_MENU:

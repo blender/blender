@@ -998,6 +998,14 @@ static bool paint_cursor_context_init(bContext *C,
   pcontext.mode = BKE_paintmode_get_active_from_context(C);
   if (pcontext.mode == PaintMode::Sculpt) {
     pcontext.sd = CTX_data_tool_settings(C)->sculpt;
+  }
+
+  if (ELEM(pcontext.mode,
+           PaintMode::Sculpt,
+           PaintMode::Vertex,
+           PaintMode::Weight,
+           PaintMode::Texture3D))
+  {
     pcontext.base = CTX_data_active_base(C);
   }
 
@@ -1127,13 +1135,19 @@ static void paint_draw_legacy_3D_view_brush_cursor(PaintCursorContext &pcontext)
 
 static void paint_cursor_draw_3D_view_brush_cursor(PaintCursorContext &pcontext)
 {
-
+  BLI_assert(ELEM(pcontext.mode,
+                  PaintMode::Sculpt,
+                  PaintMode::Vertex,
+                  PaintMode::Weight,
+                  PaintMode::Texture3D));
   /* These paint tools are not using the SculptSession, so they need to use the default 2D brush
    * cursor in the 3D view. */
-  if (pcontext.mode != PaintMode::Sculpt || !pcontext.ss) {
+  if (pcontext.mode == PaintMode::Texture3D) {
     paint_draw_legacy_3D_view_brush_cursor(pcontext);
     return;
   }
+
+  BLI_assert(pcontext.ss);
 
   mesh_cursor_update_and_init(pcontext);
 

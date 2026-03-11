@@ -99,7 +99,7 @@ static bool interpolate_attribute_to_poly_curve(const StringRef name)
 /**
  * Retrieve spans from source and result attributes.
  */
-static void retrieve_attribute_spans(const Span<StringRef> ids,
+static void retrieve_attribute_spans(const Span<StringRef> names,
                                      const CurvesGeometry &src_curves,
                                      CurvesGeometry &dst_curves,
                                      Vector<GVArraySpan> &src_arrays,
@@ -108,21 +108,21 @@ static void retrieve_attribute_spans(const Span<StringRef> ids,
 {
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  for (const int i : ids.index_range()) {
-    GVArray src_attribute = *src_attributes.lookup(ids[i], bke::AttrDomain::Point);
+  for (const int i : names.index_range()) {
+    GVArray src_attribute = *src_attributes.lookup(names[i], bke::AttrDomain::Point);
     const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src_attribute.type());
 
     const CommonVArrayInfo info = src_attribute.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
       const bke::AttributeInitValue init(GPointer(src_attribute.type(), info.data));
-      dst_attributes.add(ids[i], bke::AttrDomain::Point, data_type, init);
+      dst_attributes.add(names[i], bke::AttrDomain::Point, data_type, init);
       continue;
     }
 
     src_arrays.append(std::move(src_attribute));
 
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        ids[i], bke::AttrDomain::Point, data_type);
+        names[i], bke::AttrDomain::Point, data_type);
     dst_arrays.append(dst_attribute.span);
     dst_writers.append(std::move(dst_attribute));
   }
@@ -152,8 +152,8 @@ static void gather_point_attributes_to_interpolate(
     AttributesForResample &result,
     const ResampleCurvesOutputAttributeIDs &output_ids)
 {
-  VectorSet<StringRef> ids;
-  VectorSet<StringRef> ids_no_interpolation;
+  VectorSet<StringRef> names;
+  VectorSet<StringRef> names_no_interpolation;
   src_curves.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain != bke::AttrDomain::Point) {
       return;
@@ -165,23 +165,23 @@ static void gather_point_attributes_to_interpolate(
       return;
     }
     if (interpolate_attribute_to_poly_curve(iter.name)) {
-      ids.add_new(iter.name);
+      names.add_new(iter.name);
     }
     else {
-      ids_no_interpolation.add_new(iter.name);
+      names_no_interpolation.add_new(iter.name);
     }
   });
 
   /* Position is handled differently since it has non-generic interpolation for Bezier
    * curves and because the evaluated positions are cached for each evaluated point. */
-  ids.remove_contained("position");
+  names.remove_contained("position");
 
   retrieve_attribute_spans(
-      ids, src_curves, dst_curves, result.src, result.dst, result.dst_attributes);
+      names, src_curves, dst_curves, result.src, result.dst, result.dst_attributes);
 
   /* Attributes that aren't interpolated like Bezier handles still have to be copied
    * to the result when there are any unselected curves of the corresponding type. */
-  retrieve_attribute_spans(ids_no_interpolation,
+  retrieve_attribute_spans(names_no_interpolation,
                            src_curves,
                            dst_curves,
                            result.src_no_interpolation,

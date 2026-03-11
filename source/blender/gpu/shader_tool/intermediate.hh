@@ -195,7 +195,7 @@ struct MutableString {
     if (from.is_invalid() && to.is_invalid()) {
       return;
     }
-    assert(from.index <= to.index);
+    assert(from.index_ <= to.index_);
     erase(from.str_index_start(), to.str_index_last());
   }
   /* Replace the content from `from` to `to` (inclusive) by whitespaces without changing
@@ -304,16 +304,14 @@ inline std::ostream &operator<<(std::ostream &out, const std::vector<int> &v)
 
 /* Structure holding an intermediate form of the source code.
  * It is made for fast traversal and mutation of source code. */
-template<typename LexerClass, typename ParserClass> struct IntermediateForm : MutableString {
+template<typename LexerFn, typename ParserFn>
+struct IntermediateForm : MutableString, Parser<LexerFn, ParserFn> {
  protected:
-  LexerClass lex_;
-  ParserClass parser_;
-
   report_callback &report_error;
 
  public:
   IntermediateForm(const std::string_view input, report_callback &report_error)
-      : MutableString(input), parser_(lex_), report_error(report_error)
+      : MutableString(input), report_error(report_error)
   {
     parse(report_error);
   }
@@ -321,16 +319,16 @@ template<typename LexerClass, typename ParserClass> struct IntermediateForm : Mu
   /* Main access operator. Returns the root scope (aka global scope). */
   Scope operator()() const
   {
-    if (parser_.scope_types.empty()) {
-      return Scope::invalid();
+    if (this->scope_types.empty()) {
+      return Scope(*this);
     }
-    return Scope::from_position(parser_, 0);
+    return Scope(*this, 0);
   }
 
   /* Return true if any mutation was applied. */
   bool only_apply_mutations(const bool all_mutation_ordered = false)
   {
-    return static_cast<MutableString *>(this)->apply_mutations(lex_, all_mutation_ordered);
+    return static_cast<MutableString *>(this)->apply_mutations(*this, all_mutation_ordered);
   }
 
   /* Apply pending mutation and parse the resulting string.
@@ -351,33 +349,27 @@ template<typename LexerClass, typename ParserClass> struct IntermediateForm : Mu
     return str_;
   }
 
-  /* For testing. */
-  const ParserBase &data_get()
-  {
-    return parser_;
-  }
-
   void parse(report_callback &report_error)
   {
-    lex_.lexical_analysis(str_);
-    parser_.semantic_analysis(report_error);
+    this->lexical_analysis(str_);
+    this->semantic_analysis(report_error);
   }
 
   void debug_print()
   {
     std::cout << "Input: \n" << str_ << " \nEnd of Input\n" << std::endl;
-    std::cout << "Token Types: \"" << lex_.token_types_str << "\"" << std::endl;
-    std::cout << "Token scopes: \"" << parser_.token_scope << "\"" << std::endl;
-    std::cout << "Scope Types: \"" << parser_.scope_types_str << "\"" << std::endl;
+    std::cout << "Token Types: \"" << this->token_types_str << "\"" << std::endl;
+    std::cout << "Token scopes: \"" << this->token_scope << "\"" << std::endl;
+    std::cout << "Scope Types: \"" << this->scope_types_str << "\"" << std::endl;
   }
 
   void debug_print_tokens()
   {
-    for (auto tok : lex_) {
-      std::cout << "id:" << int(tok) << " start:" << lex_.offsets_[int(tok)]
-                << " end:" << lex_.offsets_end_[int(tok)] << " type:" << tok.type()
-                << " scope:" << parser_.token_scope[int(tok)] << "("
-                << parser_.scope_types_str[parser_.token_scope[int(tok)]] << ")"
+    for (auto tok : *this) {
+      std::cout << "id:" << int(tok) << " start:" << this->offsets_[int(tok)]
+                << " end:" << this->offsets_end_[int(tok)] << " type:" << tok.type()
+                << " scope:" << this->token_scope[int(tok)] << "("
+                << this->scope_types_str[this->token_scope[int(tok)]] << ")"
                 << " atom:" << tok.atom() << " str:\"" << tok.str() << "\""
                 << " followed_by_whitespace:" << tok.followed_by_whitespace() << "\n";
     }

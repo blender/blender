@@ -300,6 +300,11 @@ void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[
 
 /* Stroke related. */
 
+namespace bke::paint {
+bool supports_scene_size(PaintMode paint_mode);
+bool supports_symmetry_tiling(PaintMode paint_mode);
+}  // namespace bke::paint
+
 /* Random values are generated on each new stroke so each stroke
  * gets a different starting point in the perlin noise. */
 float3 seed_hsv_jitter();

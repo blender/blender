@@ -12,7 +12,6 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.hh"
-#include "BLI_memory_utils.h"
 #include "BLI_rect.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"

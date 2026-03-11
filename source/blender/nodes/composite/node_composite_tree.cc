@@ -113,6 +113,7 @@ static bool composite_node_tree_socket_type_valid(bke::bNodeTreeType * /*ntreety
                                                                SOCK_INT,
                                                                SOCK_BOOLEAN,
                                                                SOCK_VECTOR,
+                                                               SOCK_INT_VECTOR,
                                                                SOCK_RGBA,
                                                                SOCK_MENU,
                                                                SOCK_STRING);
@@ -125,8 +126,14 @@ static bool composite_node_tree_socket_type_valid(bke::bNodeTreeType * /*ntreety
 static bool composite_validate_link(eNodeSocketDatatype from_type, eNodeSocketDatatype to_type)
 {
   /* Basic math types can be implicitly converted to each other. */
-  if (ELEM(from_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT) &&
-      ELEM(to_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT))
+  if (ELEM(from_type,
+           SOCK_FLOAT,
+           SOCK_VECTOR,
+           SOCK_INT_VECTOR,
+           SOCK_RGBA,
+           SOCK_BOOLEAN,
+           SOCK_INT) &&
+      ELEM(to_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_INT_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT))
   {
     return true;
   }

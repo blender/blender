@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Weight").available(false);
 #define SOCK_WEIGHT_ID 0
 
-  PanelDeclarationBuilder &abs = b.add_panel("Absorption").default_closed(false);
+  PanelDeclarationBuilder &abs = b.add_panel("Absorption"_ustr).default_closed(false);
   abs.add_input<decl::Vector>("Absorption Coefficients")
       .default_value({1.0f, 1.0f, 1.0f})
       .min(0.0f)
@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Probability density per color channel that light is absorbed per unit distance "
           "traveled in the medium");
 #define SOCK_ABSORPTION_COEFFICIENTS_ID 1
-  PanelDeclarationBuilder &sca = b.add_panel("Scatter").default_closed(false);
+  PanelDeclarationBuilder &sca = b.add_panel("Scatter"_ustr).default_closed(false);
   sca.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
     layout.prop(ptr, "phase", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
@@ -81,7 +81,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Diameter of the water droplets, in micrometers")
       .make_available([](bNode &node) { node.custom1 = SHD_PHASE_MIE; });
 #define SOCK_SCATTER_DIAMETER_ID 7
-  PanelDeclarationBuilder &emi = b.add_panel("Emission").default_closed(false);
+  PanelDeclarationBuilder &emi = b.add_panel("Emission"_ustr).default_closed(false);
   emi.add_input<decl::Vector>("Emission Coefficients")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(0.0f)

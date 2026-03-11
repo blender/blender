@@ -132,7 +132,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .usage_by_menu("Type", CMP_NODE_COLOR_BALANCE_ASC_CDL)
       .description("Correction for highlights");
 
-  PanelDeclarationBuilder &input_panel = b.add_panel("Input");
+  PanelDeclarationBuilder &input_panel = b.add_panel("Input"_ustr);
   input_panel.add_input<decl::Float>("Temperature", "Input Temperature")
       .default_value(6500.0f)
       .subtype(PROP_COLOR_TEMPERATURE)
@@ -152,7 +152,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     template_crypto_picker(&split, ptr, "input_whitepoint", ICON_EYEDROPPER);
   });
 
-  PanelDeclarationBuilder &output_panel = b.add_panel("Output");
+  PanelDeclarationBuilder &output_panel = b.add_panel("Output"_ustr);
   output_panel.add_input<decl::Float>("Temperature", "Output Temperature")
       .default_value(6500.0f)
       .subtype(PROP_COLOR_TEMPERATURE)

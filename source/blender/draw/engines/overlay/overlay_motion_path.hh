@@ -123,16 +123,17 @@ class MotionPath : Overlay {
     int stride = max_ii(avs.path_step, 1);
     int current_frame = state.cfra;
 
+    /* Range of frames to draw the motion path on. Exclusive at the end. */
     IndexRange frame_range;
     {
       int start, end;
       if (avs.path_type == MOTIONPATH_TYPE_ACFRA) {
         start = current_frame - avs.path_bc;
-        end = current_frame + avs.path_ac;
+        end = current_frame + avs.path_ac + 1;
       }
       else {
         start = avs.path_sf;
-        end = avs.path_ef;
+        end = avs.path_ef + 1;
       }
 
       if (start > end) {
@@ -141,7 +142,7 @@ class MotionPath : Overlay {
       start = math::clamp(start, mpath->start_frame, mpath->end_frame);
       end = math::clamp(end, mpath->start_frame, mpath->end_frame);
 
-      frame_range = IndexRange::from_begin_end_inclusive(start, end);
+      frame_range = IndexRange::from_begin_end(start, end);
     }
 
     if (frame_range.is_empty()) {

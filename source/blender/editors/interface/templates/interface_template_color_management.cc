@@ -33,7 +33,12 @@ void template_colorspace_settings(Layout *layout, PointerRNA *ptr, const StringR
 
   PointerRNA colorspace_settings_ptr = RNA_property_pointer_get(ptr, prop);
 
-  layout->prop(&colorspace_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+  layout->prop_with_menu(&colorspace_settings_ptr,
+                         "name",
+                         UI_ITEM_NONE,
+                         IFACE_("Color Space"),
+                         ICON_NONE,
+                         "UI_MT_color_space_select");
 }
 
 void template_colormanaged_view_settings(Layout *layout,

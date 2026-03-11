@@ -125,24 +125,24 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
   }
 
   /* Transfer all other attributes. */
-  for (const StringRef id : attribute_names) {
-    if (attribute_filter.allow_skip(id)) {
+  for (const StringRef name : attribute_names) {
+    if (attribute_filter.allow_skip(name)) {
       continue;
     }
 
-    bke::GAttributeReader src_attribute = src_attributes.lookup(id);
+    bke::GAttributeReader src_attribute = src_attributes.lookup(name);
     const bke::AttrType type = bke::cpp_type_to_attribute_type(src_attribute.varray.type());
 
     const CommonVArrayInfo info = src_attribute.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
       const bke::AttributeInitValue init(GPointer(src_attribute.varray.type(), info.data));
-      if (dst_attributes.add(id, bke::AttrDomain::Point, type, init)) {
+      if (dst_attributes.add(name, bke::AttrDomain::Point, type, init)) {
         continue;
       }
     }
 
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        id, bke::AttrDomain::Point, type);
+        name, bke::AttrDomain::Point, type);
     bke::attribute_math::mix_groups(
         GVArraySpan(src_attribute.varray), map_offsets, merge_map_indices, dst_attribute.span);
     dst_attribute.finish();

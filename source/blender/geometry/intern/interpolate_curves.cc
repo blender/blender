@@ -272,7 +272,7 @@ struct AttributesForInterpolation {
 /**
  * Retrieve spans from source and result attributes.
  */
-static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef> ids,
+static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef> names,
                                                            const CurvesGeometry &src_from_curves,
                                                            const CurvesGeometry &src_to_curves,
                                                            const bke::AttrDomain domain,
@@ -283,20 +283,20 @@ static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef>
   const bke::AttributeAccessor src_from_attributes = src_from_curves.attributes();
   const bke::AttributeAccessor src_to_attributes = src_to_curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  for (const int i : ids.index_range()) {
+  for (const int i : names.index_range()) {
     bke::AttrType data_type;
 
-    const GVArray src_from_attribute = *src_from_attributes.lookup(ids[i], domain);
+    const GVArray src_from_attribute = *src_from_attributes.lookup(names[i], domain);
     if (src_from_attribute) {
       data_type = bke::cpp_type_to_attribute_type(src_from_attribute.type());
 
-      const GVArray src_to_attribute = *src_to_attributes.lookup(ids[i], domain, data_type);
+      const GVArray src_to_attribute = *src_to_attributes.lookup(names[i], domain, data_type);
 
       result.src_from.append(src_from_attribute);
       result.src_to.append(src_to_attribute ? src_to_attribute : GVArraySpan{});
     }
     else {
-      const GVArray src_to_attribute = *src_to_attributes.lookup(ids[i], domain);
+      const GVArray src_to_attribute = *src_to_attributes.lookup(names[i], domain);
       /* Attribute should exist on at least one of the geometries. */
       BLI_assert(src_to_attribute);
 
@@ -307,7 +307,7 @@ static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef>
     }
 
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_span(
-        ids[i], domain, data_type);
+        names[i], domain, data_type);
     result.dst.append(std::move(dst_attribute));
   }
 
@@ -320,7 +320,7 @@ static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef>
 static AttributesForInterpolation gather_point_attributes_to_interpolate(
     const CurvesGeometry &from_curves, const CurvesGeometry &to_curves, CurvesGeometry &dst_curves)
 {
-  VectorSet<StringRef> ids;
+  VectorSet<StringRef> names;
   auto add_attribute = [&](const bke::AttributeIter &iter) {
     if (iter.domain != bke::AttrDomain::Point) {
       return;
@@ -340,13 +340,14 @@ static AttributesForInterpolation gather_point_attributes_to_interpolate(
       return;
     }
 
-    ids.add(iter.name);
+    names.add(iter.name);
   };
 
   from_curves.attributes().foreach_attribute(add_attribute);
   to_curves.attributes().foreach_attribute(add_attribute);
 
-  return retrieve_attribute_spans(ids, from_curves, to_curves, bke::AttrDomain::Point, dst_curves);
+  return retrieve_attribute_spans(
+      names, from_curves, to_curves, bke::AttrDomain::Point, dst_curves);
 }
 
 /**
@@ -355,7 +356,7 @@ static AttributesForInterpolation gather_point_attributes_to_interpolate(
 static AttributesForInterpolation gather_curve_attributes_to_interpolate(
     const CurvesGeometry &from_curves, const CurvesGeometry &to_curves, CurvesGeometry &dst_curves)
 {
-  VectorSet<StringRef> ids;
+  VectorSet<StringRef> names;
   auto add_attribute = [&](const bke::AttributeIter &iter) {
     if (iter.domain != bke::AttrDomain::Curve) {
       return;
@@ -371,13 +372,14 @@ static AttributesForInterpolation gather_curve_attributes_to_interpolate(
       return;
     }
 
-    ids.add(iter.name);
+    names.add(iter.name);
   };
 
   from_curves.attributes().foreach_attribute(add_attribute);
   to_curves.attributes().foreach_attribute(add_attribute);
 
-  return retrieve_attribute_spans(ids, from_curves, to_curves, bke::AttrDomain::Curve, dst_curves);
+  return retrieve_attribute_spans(
+      names, from_curves, to_curves, bke::AttrDomain::Curve, dst_curves);
 }
 
 /* Resample a span of attribute values from source curves to a destination buffer. */

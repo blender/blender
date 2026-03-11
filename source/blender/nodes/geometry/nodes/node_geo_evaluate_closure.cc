@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Closure>("Closure");
 
   const bNode *node = b.node_or_null();
-  auto &panel = b.add_panel("Interface");
+  auto &panel = b.add_panel("Interface"_ustr);
   if (node) {
     const auto &storage = node_storage(*node);
     for (const int i : IndexRange(storage.output_items.items_num)) {

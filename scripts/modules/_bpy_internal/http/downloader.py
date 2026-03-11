@@ -16,6 +16,7 @@ __all__ = (
     "RequestDescription",
     "HTTPRequestDownloadError",
     "ContentLengthUnknownError",
+    "ContentLengthTooBigError",
     "ContentLengthError",
     "HTTPRequestUnknownContentEncoding",
     "DownloadCancelled",
@@ -77,6 +78,9 @@ class ConditionalDownloader:
 
     http_session: requests.Session
     """Requests session, for control over retry behavior, TCP connection pooling, etc."""
+
+    max_size_bytes: int = 0
+    """Maximum allowed size of the download in bytes. 0 means no limit."""
 
     chunk_size: int = 8192
     """Download this many bytes before saving to disk and reporting progress."""
@@ -248,6 +252,12 @@ class ConditionalDownloader:
             # TODO: add support for this case.
             raise ContentLengthUnknownError(http_req_descr) from None
 
+        # Before actually downloading, check that the size is below the limit.
+        # During downloading, it's checked that the number of streamed bytes
+        # doesn't get larger than the declared content length.
+        if self.max_size_bytes > 0 and content_length > self.max_size_bytes:
+            raise ContentLengthTooBigError(http_req_descr, self.max_size_bytes, content_length)
+
         # The Content-Length header, obtained above, indicates the number of
         # bytes that we will be downloading. The Requests library automatically
         # decompresses this, and so if the normal (not `stream.raw`) streaming
@@ -389,6 +399,8 @@ class DownloaderOptions:
     When only one number is given, it is used for both timeouts.
     """
     http_headers: dict[str, str] = dataclasses.field(default_factory=dict)
+    max_size_bytes: int = 0
+    """Maximum download size, in bytes."""
 
     def __post_init__(self) -> None:
         self._ensure_user_agent()
@@ -888,6 +900,7 @@ def _download_queued_items(
     downloader.add_reporter(reporter)
     downloader.periodic_check = periodic_check
     downloader.timeout = options.timeout
+    downloader.max_size_bytes = options.max_size_bytes
 
     try:
         while periodic_check():
@@ -1367,6 +1380,20 @@ class ContentLengthError(HTTPRequestDownloadError):
     def __repr__(self) -> str:
         return "{!s}(expected_size={:d}, actual_size={:d}, {!s})".format(
             self.__class__.__name__, self.expected_size, self.actual_size, self.http_req_desc)
+
+
+class ContentLengthTooBigError(HTTPRequestDownloadError):
+    """Raised when a HTTP response body is larger than the allowed size."""
+
+    def __init__(self, http_req_desc: RequestDescription, max_size: int, actual_size: int) -> None:
+        # This __init__ method is necessary to be able to (un)pickle instances.
+        super().__init__(http_req_desc, max_size, actual_size)
+        self.max_size = max_size
+        self.actual_size = actual_size
+
+    def __repr__(self) -> str:
+        return "{!s}(max_size={:d}, actual_size={:d}, {!s})".format(
+            self.__class__.__name__, self.max_size, self.actual_size, self.http_req_desc)
 
 
 class HTTPRequestUnknownContentEncoding(HTTPRequestDownloadError):

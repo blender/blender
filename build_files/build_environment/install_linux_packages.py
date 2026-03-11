@@ -1704,8 +1704,9 @@ def argparse_create():
         "--all",
         dest="all",
         action='store_true',
+        deprecated=True,
         help="Install all dependencies from the distribution packages, including these also provided as "
-             "precompiled libraries.",
+             "precompiled libraries. Deprecated, will be removed in a future Blender version.",
     )
     parser.add_argument(
         "--distro-id",

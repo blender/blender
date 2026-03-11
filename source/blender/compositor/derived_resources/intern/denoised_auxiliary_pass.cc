@@ -90,11 +90,7 @@ DenoisedAuxiliaryPass::DenoisedAuxiliaryPass(Context &context,
   const int width = pass.domain().data_size.x;
   const int height = pass.domain().data_size.y;
 
-  /* Float3 results might be stored in 4-component textures due to hardware limitations, so we
-   * need to use the pixel stride of the texture. */
-  const int channels_count = context.use_gpu() ?
-                                 GPU_texture_component_len(GPU_texture_format(pass)) :
-                                 pass.channels_count();
+  const int channels_count = pass.channels_count();
   const int pixel_stride = sizeof(float) * channels_count;
 
   oidn::DeviceRef device = create_oidn_device(context);

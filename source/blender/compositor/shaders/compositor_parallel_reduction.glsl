@@ -131,9 +131,19 @@ template<> float2 identity<float2, IdentityMinimumFloat>()
   return float2(-FLT_MAX);
 }
 
+template<> float4 identity<float4, IdentityMinimumFloat>()
+{
+  return float4(-FLT_MAX);
+}
+
 template<> float identity<float, IdentityMaximumFloat>()
 {
   return FLT_MAX;
+}
+
+template<> float4 identity<float4, IdentityMaximumFloat>()
+{
+  return float4(FLT_MAX);
 }
 
 template<> float identity<float, IdentityLowerBound>()
@@ -242,12 +252,22 @@ template<> float reduce<float, ReduceMinimum>(float lhs, float rhs)
   return min(lhs, rhs);
 }
 
+template<> float4 reduce<float4, ReduceMinimum>(float4 lhs, float4 rhs)
+{
+  return min(lhs, rhs);
+}
+
 template<> float reduce<float, ReduceMaximum>(float lhs, float rhs)
 {
   return max(lhs, rhs);
 }
 
 template<> float2 reduce<float2, ReduceMaximum>(float2 lhs, float2 rhs)
+{
+  return max(lhs, rhs);
+}
+
+template<> float4 reduce<float4, ReduceMaximum>(float4 lhs, float4 rhs)
 {
   return max(lhs, rhs);
 }
@@ -389,6 +409,12 @@ void reduce_minimum_float()
   reduction<float, IdentityMaximumFloat, InitializeDefault, ReduceMinimum>();
 }
 
+template void reduction<float4, IdentityMaximumFloat, InitializeDefault, ReduceMinimum>();
+void reduce_minimum_float4()
+{
+  reduction<float4, IdentityMaximumFloat, InitializeDefault, ReduceMinimum>();
+}
+
 template void reduction<float, IdentityMaximumFloat, InitializeLuminance, ReduceMinimum>();
 void reduce_minimum_luminance()
 {
@@ -414,6 +440,12 @@ template void reduction<float2, IdentityMinimumFloat, InitializeDefault, ReduceM
 void reduce_maximum_float2()
 {
   reduction<float2, IdentityMinimumFloat, InitializeDefault, ReduceMaximum>();
+}
+
+template void reduction<float4, IdentityMinimumFloat, InitializeDefault, ReduceMaximum>();
+void reduce_maximum_float4()
+{
+  reduction<float4, IdentityMinimumFloat, InitializeDefault, ReduceMaximum>();
 }
 
 template void reduction<float, IdentityMinimumFloat, InitializeLuminance, ReduceMaximum>();

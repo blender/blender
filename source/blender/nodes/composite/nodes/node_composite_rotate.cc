@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Angle").default_value(0.0f).min(-10000.0f).max(10000.0f).subtype(
       PROP_ANGLE);
 
-  PanelDeclarationBuilder &sampling_panel = b.add_panel("Sampling").default_closed(true);
+  PanelDeclarationBuilder &sampling_panel = b.add_panel("Sampling"_ustr).default_closed(true);
   sampling_panel.add_input<decl::Menu>("Interpolation")
       .default_value(CMP_NODE_INTERPOLATION_BILINEAR)
       .static_items(rna_enum_node_compositor_interpolation_items)

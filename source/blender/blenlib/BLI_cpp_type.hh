@@ -407,6 +407,18 @@ class CPPType : NonCopyable, NonMovable {
 
   /** Same as #to_static_type_try, but asserts if the type is valid. */
   template<typename... Types, typename Fn> void to_static_type(Fn &&fn) const;
+
+ private:
+  /**
+   * Helper used in #to_static_type_try as a typed function pointer for each type in the list.
+   * A named static function is used instead of a lambda to avoid a known MSVC bug where a
+   * non-capturing lambda inside a comma fold expression that references the pack parameter
+   * causes MSVC to generate zero iterations, leaving the map empty.
+   */
+  template<typename T, typename Fn> static void call_with_type_impl_(const Fn &fn)
+  {
+    fn.template operator()<T>();
+  }
 };
 
 /**
@@ -719,19 +731,27 @@ template<typename... Types, typename Fn> inline void CPPType::to_static_type(Fn 
 
 template<typename... Types, typename Fn> inline bool CPPType::to_static_type_try(Fn &&fn) const
 {
-  using Callback = void (*)(const Fn &fn);
+  /* Strip any reference from Fn to normalize the type used for the static map, ensuring the
+   * same static is used regardless of whether fn is an lvalue or rvalue. */
+  using Fn_ = std::remove_reference_t<Fn>;
+  using Callback = void (*)(const Fn_ &);
 
   /* Build a lookup table to avoid having to compare the current #CPPType with every type in
    * #Types one after another. */
   static const Map<const CPPType *, Callback> callback_map = []() {
     Map<const CPPType *, Callback> callback_map;
-    /* This adds an entry in the map for every type in #Types. */
-    (callback_map.add_new(&CPPType::get<Types>(),
-                          [](const Fn &fn) {
-                            /* Call the templated `operator()` of the given function object. */
-                            fn.template operator()<Types>();
-                          }),
-     ...);
+    /* This adds an entry in the map for every type in #Types.
+     * NOTE: Two separate braced array pack expansions are used instead of a comma fold
+     * expression to work around a known MSVC bug where a non-capturing lambda inside a comma
+     * fold expression that references the pack parameter causes MSVC to generate zero
+     * iterations, leaving the map empty and making all type lookups fail. */
+    if constexpr (sizeof...(Types) > 0) {
+      const CPPType *keys[] = {&CPPType::get<Types>()...};
+      const Callback vals[] = {&CPPType::call_with_type_impl_<Types, Fn_>...};
+      for (int64_t i = 0; i < int64_t(sizeof...(Types)); i++) {
+        callback_map.add_new(keys[i], vals[i]);
+      }
+    }
     return callback_map;
   }();
 

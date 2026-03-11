@@ -57,10 +57,8 @@ void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode 
  * Initialize and provide buffer for results.
  * Uses the new Select-Next engine if enabled.
  */
-void GPU_select_begin_next(GPUSelectBuffer *buffer,
-                           const rcti *input,
-                           GPUSelectMode mode,
-                           int oldhits);
+void GPU_select_begin_next(
+    GPUSelectBuffer *buffer, const rcti *input, int radius, GPUSelectMode mode, int oldhits);
 /**
  * Loads a new selection id and ends previous query, if any.
  * In second pass of selection it also returns

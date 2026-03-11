@@ -271,7 +271,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     b.add_input<decl::Extend>("", "__extend__main");
     b.add_output<decl::Extend>("", "__extend__main").align_with_previous();
 
-    auto &panel = b.add_panel("Generated");
+    auto &panel = b.add_panel("Generated"_ustr);
 
     int previous_output_geometry_index = -1;
     int previous_input_geometry_index = -1;

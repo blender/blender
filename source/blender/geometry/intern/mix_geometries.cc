@@ -87,8 +87,8 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
     names.remove_as(name);
   }
 
-  for (const StringRef id : names) {
-    const bke::GAttributeReader attribute_a = attributes_a.lookup(id);
+  for (const StringRef name : names) {
+    const bke::GAttributeReader attribute_a = attributes_a.lookup(name);
     const bke::AttrDomain domain = attribute_a.domain;
     if (domain != mix_domain) {
       continue;
@@ -98,18 +98,18 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
       /* String attributes can't be mixed, and there's no point in mixing boolean attributes. */
       continue;
     }
-    const bke::GAttributeReader attribute_b = b_attributes.lookup(id, attribute_a.domain, type);
+    const bke::GAttributeReader attribute_b = b_attributes.lookup(name, attribute_a.domain, type);
     if (sharing_info_equal(attribute_a.sharing_info, attribute_b.sharing_info)) {
       continue;
     }
     if (!index_map.is_empty()) {
-      bke::GSpanAttributeWriter dst = attributes_a.lookup_for_write_span(id);
+      bke::GSpanAttributeWriter dst = attributes_a.lookup_for_write_span(name);
       /* If there's an ID attribute, use its values to mix with potentially changed indices. */
       mix_with_indices(dst.span, *attribute_b, index_map, factor);
       dst.finish();
     }
     else if (attributes_a.domain_size(domain) == b_attributes.domain_size(domain)) {
-      bke::GSpanAttributeWriter dst = attributes_a.lookup_for_write_span(id);
+      bke::GSpanAttributeWriter dst = attributes_a.lookup_for_write_span(name);
       /* With no ID attribute to find matching elements, we can only support mixing when the domain
        * size (topology) is the same. Other options like mixing just the start of arrays might work
        * too, but give bad results too. */

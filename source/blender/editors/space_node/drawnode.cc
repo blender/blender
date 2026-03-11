@@ -331,7 +331,12 @@ static void node_buts_image_user(ui::Layout &layout,
     ui::Layout &split = layout.split(0.33f, true);
     PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
     split.label(IFACE_("Color Space"), ICON_NONE);
-    split.prop(&colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
+    split.prop_with_menu(&colorspace_settings_ptr,
+                         "name",
+                         DEFAULT_FLAGS,
+                         "",
+                         ICON_NONE,
+                         "UI_MT_color_space_select");
 
     if (image->source != IMA_SRC_GENERATED) {
       ui::Layout &split_2 = layout.split(0.33f, true);

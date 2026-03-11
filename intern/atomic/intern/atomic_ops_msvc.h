@@ -36,7 +36,9 @@
 #include "atomic_ops_utils.h"
 
 #define NOGDI
-#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN
+#endif
 
 #include <intrin.h>
 #include <windows.h>

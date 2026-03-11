@@ -1720,7 +1720,8 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   /* Factor to extend stroke extremes in Fill brush. */
   prop = RNA_def_property(srna, "extend_stroke_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "fill_extend_fac");
-  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 10.0f, 0.1, 2);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_ui_text(
       prop, "Closure Size", "Strokes end extension for closing gaps, use zero to disable");

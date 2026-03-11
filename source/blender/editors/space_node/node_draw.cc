@@ -2088,7 +2088,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, ui::Block &blo
     ui::Button *label_but = uiDefBut(
         &block,
         ui::ButtonType::Label,
-        CTX_IFACE_(panel_translation_context, panel_decl.name),
+        CTX_IFACE_(panel_translation_context, panel_decl.name.ref()),
         offsetx,
         int(*panel_runtime.header_center_y - NODE_DYS),
         short(draw_bounds.xmax - draw_bounds.xmin - (left_padding * UI_SCALE_FAC)),

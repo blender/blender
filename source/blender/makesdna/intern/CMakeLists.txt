@@ -17,6 +17,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::dependencies::optional::tbb
+  PUBLIC bf::dependencies::openimageio
   bf::dependencies::fmt
 )
 

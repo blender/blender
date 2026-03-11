@@ -407,9 +407,7 @@ string(APPEND CMAKE_CXX_FLAGS " -ftemplate-depth=1024")
 # Avoid conflicts with Luxrender, and other plug-ins that may use the same
 # libraries as Blender with a different version or build options.
 set(PLATFORM_SYMBOLS_MAP ${CMAKE_SOURCE_DIR}/source/creator/symbols_apple.map)
-string(APPEND PLATFORM_LINKFLAGS
-  " -Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'"
-)
+set(PLATFORM_LINKFLAGS_SYMBOL_HIDING "-Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'")
 
 if(${XCODE_VERSION} VERSION_EQUAL 15.0)
   # V4.5 specific workaround: Enforce the legacy Xcode linker to avoid incorrect

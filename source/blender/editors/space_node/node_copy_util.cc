@@ -417,7 +417,7 @@ bNodeTreeInterfacePanel *NodeSetInterfaceBuilder::expose_panel(
     flag |= NODE_INTERFACE_PANEL_DEFAULT_CLOSED;
   }
   bNodeTreeInterfacePanel *io_panel = dst_tree_.tree_interface.add_panel(
-      panel_decl.name, panel_decl.description, flag, parent);
+      panel_decl.name.ref(), panel_decl.description, flag, parent);
   InterfacePanelData &data = io_mapping_.panel_data.lookup_or_add(io_panel, {});
 
   const Span<bNodePanelState> panel_states = src_node.panel_states();

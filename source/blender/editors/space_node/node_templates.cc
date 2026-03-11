@@ -754,11 +754,12 @@ static void ui_node_draw_recursive(ui::Layout &layout,
     panel_layout.header->prop(&toggle_ptr,
                               "default_value",
                               UI_ITEM_NONE,
-                              CTX_IFACE_(panel_translation_context, panel_decl.name),
+                              CTX_IFACE_(panel_translation_context, panel_decl.name.ref()),
                               ICON_NONE);
   }
   else {
-    panel_layout.header->label(CTX_IFACE_(panel_translation_context, panel_decl.name), ICON_NONE);
+    panel_layout.header->label(CTX_IFACE_(panel_translation_context, panel_decl.name.ref()),
+                               ICON_NONE);
   }
 
   if (!panel_layout.body) {

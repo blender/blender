@@ -22,7 +22,7 @@ luma: [0.2126, 0.7152, 0.0722]
 description: RRT version ut33
 
 roles:
-  reference: Linear CIE-XYZ E
+  reference: ACES2065-1
 
   # Internal scene linear space
   scene_linear: Linear Rec.709
@@ -119,7 +119,7 @@ display_colorspaces:
   - !<ColorSpace>
     name: Linear CIE-XYZ D65
     aliases: [lin_ciexyzd65_scene, cie_xyz_d65, CIE-XYZ-D65, XYZ, Linear CIE-XYZ I-D65]
-    family: Chromaticity
+    family: Linear
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -226,7 +226,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Filmic sRGB
-    family: Legacy
+    family: Utilities
     description: |
       sRGB display space with Filmic view transform
     interop_id: srgb_rec709_display
@@ -237,7 +237,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: AgX Base sRGB
-    family: Legacy
+    family: Utilities
     description: |
       AgX Base Image Encoding for sRGB Display
     interop_id: srgb_rec709_display
@@ -250,7 +250,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: ACES 1.3 sRGB
-    family: Legacy
+    family: Utilities
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -266,7 +266,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: ACES 2.0 sRGB
-    family: Legacy
+    family: Utilities
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -282,7 +282,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Khronos PBR Neutral sRGB
-    family: Legacy
+    family: Utilities
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -303,7 +303,7 @@ view_transforms:
   - !<ViewTransform>
     name: Standard
     description: Apply only the display's standard transform without additional mappings
-    from_scene_reference: !<FileTransform> {src: xyz_E_to_D65.spimtx, interpolation: linear}
+    from_scene_reference: !<BuiltinTransform> {style: UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD}
 
   - !<ViewTransform>
     name: Filmic sRGB
@@ -312,7 +312,7 @@ view_transforms:
       sRGB display space with Filmic view transform
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Filmic Log}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Filmic Log}
         - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear}
         - !<ColorSpaceTransform> {src: sRGB, dst: cie_xyz_d65_interchange}
 
@@ -323,7 +323,7 @@ view_transforms:
       AgX Base Image Encoding for BT.2020 Display
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
         - !<FileTransform> {src: AgX_Base_Rec2020.cube, interpolation: tetrahedral}
         - !<ColorSpaceTransform> {src: Rec.2020, dst: cie_xyz_d65_interchange}
@@ -335,7 +335,7 @@ view_transforms:
       AgX Base Image Encoding for sRGB and Rec.1886 Display
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
         - !<FileTransform> {src: AgX_Base_sRGB.cube, interpolation: tetrahedral}
         - !<ColorSpaceTransform> {src: Rec.1886, dst: cie_xyz_d65_interchange}
@@ -347,7 +347,7 @@ view_transforms:
       AgX Base Image Encoding for Display P3 Display
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
         - !<FileTransform> {src: AgX_Base_P3.cube, interpolation: tetrahedral}
         - !<ExponentTransform> {value: 2.4}
@@ -360,7 +360,7 @@ view_transforms:
       AgX 1000 nits peak Image Encoding for BT.2100-HLG P3 limited Display. Reference white is 100nits
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
         - !<FileTransform> {src: AgX_Rec2100-HLG_p3_lim.cube, interpolation: tetrahedral}
         - !<ColorSpaceTransform> {src: Rec.2100-HLG, dst: cie_xyz_d65_interchange}
@@ -372,7 +372,7 @@ view_transforms:
       A heat-map-like image formed from AgX Base for sRGB and Rec.1886 displays
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
         - !<FileTransform> {src: AgX_Base_Rec2020.cube, interpolation: tetrahedral}
         - !<ColorSpaceTransform> {src: Rec.2020, dst: Linear Rec.2020}
@@ -388,7 +388,7 @@ view_transforms:
       Khronos PBR Neutral Image Encoding for sRGB Display
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.709}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear Rec.709}
         - !<AllocationTransform> {allocation: lg2, vars: [-9, 10]}
         - !<FileTransform> {src: pbrNeutral.cube, interpolation: tetrahedral}
         - !<ColorSpaceTransform> {src: Linear Rec.709, dst: cie_xyz_d65_interchange}
@@ -400,7 +400,6 @@ view_transforms:
        ACES 1.1 Output Transform for SDR D65 video, limited to P3 gamut
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-VIDEO-P3lim_1.1}
 
   - !<ViewTransform>
@@ -410,7 +409,6 @@ view_transforms:
        ACES 1.0 Output Transform for SDR D65 video, limited to Rec.709 gamut
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-VIDEO_1.0}
 
   - !<ViewTransform>
@@ -420,7 +418,6 @@ view_transforms:
       ACES 1.1 Output Transform for 1000 nit HDR D65 video, limited to Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-VIDEO-1000nit-15nit-REC2020lim_1.1}
 
   - !<ViewTransform>
@@ -430,7 +427,6 @@ view_transforms:
       ACES 1.1 Output Transform for 2000 nit HDR D65 video, limited to Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-VIDEO-2000nit-15nit-REC2020lim_1.1}
 
   - !<ViewTransform>
@@ -440,7 +436,6 @@ view_transforms:
       ACES 1.1 Output Transform for 4000 nit HDR D65 video, limited to Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-VIDEO-4000nit-15nit-REC2020lim_1.1}
 
   - !<ViewTransform>
@@ -450,7 +445,6 @@ view_transforms:
        ACES 2 Output Transform for Apple Display P3
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-P3-D65_2.0}
 
   - !<ViewTransform>
@@ -460,7 +454,6 @@ view_transforms:
        ACES 2 Output Transform for 100 nit SDR Rec709
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-REC709_2.0}
 
   - !<ViewTransform>
@@ -470,7 +463,6 @@ view_transforms:
        ACES 2 Output Transform for 500 nit HDR Rec2020
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-500nit-REC2020_2.0}
 
   - !<ViewTransform>
@@ -480,7 +472,6 @@ view_transforms:
        ACES 2 Output Transform for 1000 nit HDR Rec2020
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-1000nit-REC2020_2.0}
 
   - !<ViewTransform>
@@ -490,7 +481,6 @@ view_transforms:
        ACES 2 Output Transform for 2000 nit HDR Rec2020
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-2000nit-REC2020_2.0}
 
   - !<ViewTransform>
@@ -500,19 +490,22 @@ view_transforms:
        ACES 2 Output Transform for 4000 nit HDR Rec2020
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-4000nit-REC2020_2.0}
 
 colorspaces:
   - !<ColorSpace>
     name: Linear CIE-XYZ E
     aliases: ["FilmLight: Linear - XYZ", Linear CIE-XYZ I-E]
-    family: Chromaticity
+    family: Linear
     equalitygroup:
     bitdepth: 32f
     description: |
       1931 CIE XYZ standard with assumed illuminant E white point
     isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<BuiltinTransform> {style: UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD}
+        - !<FileTransform> {src: xyz_E_to_D65.spimtx, interpolation: linear, direction: inverse}
 
   - !<ColorSpace>
     name: Linear Rec.709
@@ -526,7 +519,7 @@ colorspaces:
     interop_id: lin_rec709_scene
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ D65}
         - !<MatrixTransform> {matrix: [3.2409699, -1.5373832, -0.4986108, 0, -0.9692436, 1.8759675, 0.0415551, 0, 0.0556301, -0.2039770, 1.0569715, 0, 0, 0, 0, 1]}
 
   - !<ColorSpace>
@@ -541,7 +534,7 @@ colorspaces:
     interop_id: lin_p3d65_scene
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ D65}
         - !<MatrixTransform> {matrix: [2.4934969, -0.9313836, -0.4027108, 0, -0.8294890, 1.7626641, 0.0236247, 0, 0.0358458, -0.0761724, 0.9568845, 0, 0, 0, 0, 1]}
 
   - !<ColorSpace>
@@ -556,7 +549,7 @@ colorspaces:
     interop_id: lin_rec2020_scene
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ D65}
         - !<MatrixTransform> {matrix: [1.7166512, -0.3556708, -0.2533663, 0, -0.6666844, 1.6164812, 0.0157685, 0, 0.0176399, -0.0427706, 0.9421031, 0, 0, 0, 0, 1]}
 
   - !<ColorSpace>
@@ -569,10 +562,6 @@ colorspaces:
       Linear AP0 with ACES white point
     isdata: false
     interop_id: lin_ap0_scene
-    from_scene_reference: !<GroupTransform>
-      children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
-        - !<BuiltinTransform> {style: "UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD", direction: inverse}
 
   - !<ColorSpace>
     name: ACEScg
@@ -584,10 +573,7 @@ colorspaces:
       Linear AP1 with ACES white point
     isdata: false
     interop_id: lin_ap1_scene
-    from_scene_reference: !<GroupTransform>
-      children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
-        - !<BuiltinTransform> {style: "UTILITY - ACES-AP1_to_CIE-XYZ-D65_BFD", direction: inverse}
+    to_scene_reference: !<BuiltinTransform> {style: ACEScg_to_ACES2065-1}
 
   - !<ColorSpace>
     name: Linear FilmLight E-Gamut
@@ -600,13 +586,12 @@ colorspaces:
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ I-E, dst: Linear CIE-XYZ I-D65}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ I-D65}
         - !<MatrixTransform> {matrix: [1.5250528, -0.3159135, -0.1226583, 0, -0.5091526, 1.3333274, 0.1382844, 0, 0.0957153, 0.0508974, 0.7879558, 0, 0, 0, 0, 1]}
 
   - !<ColorSpace>
     name: Non-Color
     aliases: [Generic Data, Non-Colour Data, Raw, Utility - Raw]
-    family: Data
     description: |
         Generic data that is not color, will not apply any color transform (e.g. normal maps)
     equalitygroup:
@@ -616,7 +601,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Filmic Log
-    family: Log Encodings
+    family: Log
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -624,14 +609,14 @@ colorspaces:
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.709}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear Rec.709}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
         - !<FileTransform> {src: filmic_desat_33.cube, interpolation: tetrahedral}
         - !<AllocationTransform> {allocation: uniform, vars: [0, 0.66]}
     to_scene_reference: !<GroupTransform>
       children:
         - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 4.026068812], direction: inverse}
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.709, direction: inverse}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear Rec.709, direction: inverse}
 
   - !<ColorSpace>
     name: Luminance Compensation Rec.2020
@@ -644,7 +629,7 @@ colorspaces:
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
         - !<FileTransform> {src: luminance_compensation_bt2020.cube, interpolation: tetrahedral}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117], direction: inverse}
@@ -652,7 +637,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: AgX Log
-    family: Log Encodings
+    family: Log
     equalitygroup:
     bitdepth: 32f
     description: |
@@ -660,7 +645,7 @@ colorspaces:
     isdata: false
     from_scene_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Luminance Compensation Rec.2020}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Luminance Compensation Rec.2020}
         # Rec.2020 generated parameters rotate = [2.13976149, -1.22827335, -3.05174246], inset = [0.32965205, 0.28051336, 0.12475368]
         - !<MatrixTransform> {matrix: [0.856627153315983, 0.0951212405381588, 0.0482516061458583, 0, 0.137318972929847, 0.761241990602591, 0.101439036467562, 0, 0.11189821299995, 0.0767994186031903, 0.811302368396859, 0, 0, 0, 0, 1]}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
@@ -668,7 +653,7 @@ colorspaces:
       children:
         - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117], direction: inverse}
         - !<MatrixTransform> {matrix: [0.856627153315983, 0.0951212405381588, 0.0482516061458583, 0, 0.137318972929847, 0.761241990602591, 0.101439036467562, 0, 0.11189821299995, 0.0767994186031903, 0.811302368396859, 0, 0, 0, 0, 1], direction: inverse}
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.2020, direction: inverse}
+        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear Rec.2020, direction: inverse}
 
   - !<ColorSpace>
     name: ACEScc
@@ -681,10 +666,7 @@ colorspaces:
     isdata: false
     encoding: log
     interop_id: ocio:acescc_ap1_scene
-    to_scene_reference: !<GroupTransform>
-      children:
-        - !<BuiltinTransform> {style: ACEScc_to_ACES2065-1}
-        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ E}
+    to_scene_reference: !<BuiltinTransform> {style: ACEScc_to_ACES2065-1}
 
   - !<ColorSpace>
     name: ACEScct
@@ -697,10 +679,7 @@ colorspaces:
     isdata: false
     encoding: log
     interop_id: ocio:acescct_ap1_scene
-    to_scene_reference: !<GroupTransform>
-      children:
-        - !<BuiltinTransform> {style: ACEScct_to_ACES2065-1}
-        - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ E}
+    to_scene_reference: !<BuiltinTransform> {style: ACEScct_to_ACES2065-1}
 
 looks:
   - !<Look>

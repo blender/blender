@@ -79,14 +79,14 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     if (ELEM(attributes_to_propagate.names[i], "position", "radius")) {
       continue;
     }
-    const StringRef id = attributes_to_propagate.names[i];
+    const StringRef name = attributes_to_propagate.names[i];
     const bke::AttrType type = attributes_to_propagate.kinds[i].data_type;
 
-    const GAttributeReader src = src_attributes.lookup(id);
+    const GAttributeReader src = src_attributes.lookup(name);
     const CommonVArrayInfo info = src.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
       const bke::AttributeInitValue init(GPointer(src.varray.type(), info.data));
-      dst_attributes.add(id, AttrDomain::Point, type, init);
+      dst_attributes.add(name, AttrDomain::Point, type, init);
       continue;
     }
 
@@ -94,11 +94,11 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
         info.type == CommonVArrayInfo::Type::Span)
     {
       const bke::AttributeInitShared init(info.data, *src.sharing_info);
-      dst_attributes.add(id, AttrDomain::Point, type, init);
+      dst_attributes.add(name, AttrDomain::Point, type, init);
     }
     else {
       GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-          id, AttrDomain::Point, type);
+          name, AttrDomain::Point, type);
       array_utils::gather(src.varray, selection, dst.span);
       dst.finish();
     }

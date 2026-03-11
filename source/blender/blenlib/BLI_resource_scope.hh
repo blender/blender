@@ -9,8 +9,8 @@
  */
 
 #include "BLI_linear_allocator.hh"
+#include "BLI_linear_allocator_chunked_list.hh"
 #include "BLI_utility_mixins.hh"
-#include "BLI_vector.hh"
 
 namespace blender {
 
@@ -34,18 +34,47 @@ namespace blender {
  * That can happen when the function returns a reference to statically allocated data or
  * dynamically allocated data depending on some condition.
  */
-class ResourceScope : NonCopyable, NonMovable {
+class ResourceScope : NonMovable {
  private:
   struct ResourceData {
     void *data;
     void (*free)(void *data);
   };
+  using ResourceDataList = linear_allocator::ChunkedList<ResourceData, 4>;
 
-  LinearAllocator<> allocator_;
-  Vector<ResourceData> resources_;
+  /** This stores all resources. They are later freed in the reverse order of construction. */
+  ResourceDataList resources_;
+  /**
+   * Used allocator. This is either provided by the caller when creating the #ResourceScope, or is
+   * owned by the scope itself In the latter case, the ownership of the allocator is also tracked
+   * by #resources_ above.
+   */
+  LinearAllocator<> &allocator_;
 
  public:
-  ResourceScope();
+  /**
+   * Construct a #ResourceScope with an initial buffer of the given size.
+   */
+  explicit ResourceScope(int64_t initial_size = 32);
+
+  /**
+   * Construct a #ResourceScope in the provided buffer. It may allocate additional memory as
+   * necessary though.
+   */
+  template<size_t Size, size_t Alignment>
+  explicit ResourceScope(AlignedBuffer<Size, Alignment> &buffer);
+
+  /**
+   * Construct a #ResourceScope in the provided buffer. It may allocate additional memory as
+   * necessary though.
+   */
+  ResourceScope(void *buffer, int64_t size);
+
+  /**
+   * Construct a #ResourceScope that uses the given allocator instead of creating a new one.
+   */
+  explicit ResourceScope(LinearAllocator<> &allocator);
+
   ~ResourceScope();
 
   /**
@@ -95,15 +124,36 @@ class ResourceScope : NonCopyable, NonMovable {
   void *allocate_owned(const CPPType &type);
 
   /**
-   * Returns a reference to a linear allocator that is owned by the #ResourceScope. Memory
-   * allocated through this allocator will be freed when the collector is destructed.
+   * Returns a reference to a linear allocator that is used by the #ResourceScope.
    */
   LinearAllocator<> &allocator();
+
+ private:
+  static LinearAllocator<> &create_own_allocator(ResourceDataList &r_resources,
+                                                 int64_t initial_size);
+  static LinearAllocator<> &create_own_allocator_in_buffer(ResourceDataList &r_resources,
+                                                           void *data,
+                                                           int64_t size,
+                                                           bool free_on_destruct);
 };
+
+/* This tests the expected size of #ResourceScope. It's currently easy to break by e.g. inheriting
+ * from #NonCopyable. That happens because then there would be two #NonCopyable types at the same
+ * address which is not allowed. The proper solution is probably to change how NonCopyable and
+ * NonMovable are used overall. */
+static_assert(sizeof(ResourceScope) == 16);
 
 /* -------------------------------------------------------------------- */
 /** \name #ResourceScope Inline Methods
  * \{ */
+
+inline ResourceScope::ResourceScope(LinearAllocator<> &allocator) : allocator_(allocator) {}
+
+template<size_t Size, size_t Alignment>
+inline ResourceScope::ResourceScope(AlignedBuffer<Size, Alignment> &buffer)
+    : ResourceScope(buffer.ptr(), Size)
+{
+}
 
 template<typename T> inline T *ResourceScope::add(std::unique_ptr<T> resource)
 {
@@ -151,7 +201,7 @@ inline void ResourceScope::add(void *userdata, void (*free)(void *))
   ResourceData data;
   data.data = userdata;
   data.free = free;
-  resources_.append(data);
+  resources_.append(allocator_, data);
 }
 
 template<typename T> inline T &ResourceScope::add_value(T &&value)

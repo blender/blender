@@ -441,11 +441,11 @@ void mesh_select_face_flush(Mesh &mesh);
 
 /** Set the default name when adding a color attribute if there is no default yet. */
 void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
-                                                StringRef id,
+                                                StringRef name,
                                                 AttrDomain domain,
                                                 bke::AttrType data_type);
 void mesh_ensure_default_uv_attribute_on_add(Mesh &mesh,
-                                             StringRef id,
+                                             StringRef name,
                                              AttrDomain domain,
                                              bke::AttrType data_type);
 

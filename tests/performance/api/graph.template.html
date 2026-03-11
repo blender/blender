@@ -409,6 +409,12 @@
         subtitle_h4.textContent = benchmark['device'];
         section.appendChild(subtitle_h4);
 
+        if (benchmark['device_cpu'] && benchmark['device_cpu'] != benchmark['device']) {
+          const subtitle_h4 = document.createElement('h4');
+          subtitle_h4.textContent = benchmark['device_cpu'];
+          section.appendChild(subtitle_h4);
+        }
+
         /* Create chart container. */
         const chart_container = document.createElement('div');
         chart_container.style.position = 'relative';
