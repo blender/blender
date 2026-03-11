@@ -761,6 +761,12 @@ static void sequencer_footer_region_listener(const wmRegionListenerParams *param
   }
 }
 
+static bool sequencer_footer_region_poll(const RegionPollParams *params)
+{
+  const Scene *scene = CTX_data_sequencer_scene(params->context);
+  return scene != nullptr;
+}
+
 /* *********************** toolbar region ************************ */
 /* Add handlers, stuff you only do once or on area/region changes. */
 static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *region)
@@ -1232,6 +1238,7 @@ void ED_spacetype_sequencer()
   art->init = sequencer_header_region_init;
   art->draw = sequencer_header_region_draw;
   art->listener = sequencer_footer_region_listener;
+  art->poll = sequencer_footer_region_poll;
   BLI_addhead(&st->regiontypes, art);
 
   /* HUD. */
