@@ -495,15 +495,15 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     }
   }
 
-  if (update_flags & (MESH_ADDED | MESH_REMOVED)) {
+  if (update_flags & (MESH_ADDED | MESH_REMOVED | MOTION_PASS_NEEDED)) {
     device_update_flags |= DEVICE_MESH_DATA_NEEDS_REALLOC;
   }
 
-  if (update_flags & (HAIR_ADDED | HAIR_REMOVED)) {
+  if (update_flags & (HAIR_ADDED | HAIR_REMOVED | MOTION_PASS_NEEDED)) {
     device_update_flags |= DEVICE_CURVE_DATA_NEEDS_REALLOC;
   }
 
-  if (update_flags & (POINT_ADDED | POINT_REMOVED)) {
+  if (update_flags & (POINT_ADDED | POINT_REMOVED | MOTION_PASS_NEEDED)) {
     device_update_flags |= DEVICE_POINT_DATA_NEEDS_REALLOC;
   }
 
