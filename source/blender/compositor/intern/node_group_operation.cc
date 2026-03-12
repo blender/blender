@@ -92,15 +92,10 @@ void NodeGroupOperation::execute()
     }
   }
 
-  /* Allocate outputs as invalid if they are not allocated already and are needed. This could
-   * happen for instance when no Group Output node exist or when the evaluation gets canceled
-   * before the output is written. */
-  for (const bNodeTreeInterfaceSocket *output : node_group_.interface_outputs()) {
-    Result &result = this->get_result(output->identifier);
-    if (!result.is_allocated() && result.should_compute()) {
-      result.allocate_invalid();
-    }
-  }
+  /* Some of the needed outputs might not be allocated even after execution. This could happen for
+   * instance when no Group Output node exist or when the evaluation gets canceled before the
+   * output is written. */
+  this->allocate_default_remaining_outputs();
 }
 
 void NodeGroupOperation::evaluate_node(const bNode &node, CompileState &compile_state)

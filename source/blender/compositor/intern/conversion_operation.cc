@@ -90,7 +90,7 @@ void ConversionOperation::execute()
   const Result &input = this->get_input();
 
   if (!is_conversion_supported(input.type(), result.type())) {
-    result.allocate_invalid();
+    this->allocate_default_remaining_outputs();
     return;
   }
 

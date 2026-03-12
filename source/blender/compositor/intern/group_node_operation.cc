@@ -58,7 +58,7 @@ class GroupNodeOperation : public NodeOperation {
   {
     const bNodeTree *node_group = this->get_node_group();
     if (!node_group) {
-      this->execute_invalid();
+      this->allocate_default_remaining_outputs();
       return;
     }
 
@@ -118,18 +118,6 @@ class GroupNodeOperation : public NodeOperation {
       if (group_node_result.should_compute()) {
         group_node_result.share_data(node_group_result);
         node_group_result.release();
-      }
-    }
-  }
-
-  void execute_invalid()
-  {
-    const bNodeTree *node_group = this->get_node_group();
-    node_group->ensure_interface_cache();
-    for (const bNodeTreeInterfaceSocket *output : node_group->interface_outputs()) {
-      Result &group_node_result = this->get_result(output->identifier);
-      if (group_node_result.should_compute()) {
-        group_node_result.allocate_invalid();
       }
     }
   }

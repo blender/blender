@@ -173,18 +173,11 @@ class KeyingOperation : public NodeOperation {
   {
     const Result &input_image = get_input("Image");
     Result &output_image = get_result("Image");
-    Result &output_matte = get_result("Matte");
-    Result &output_edges = get_result("Edges");
     if (input_image.is_single_value()) {
       if (output_image.should_compute()) {
         output_image.share_data(input_image);
       }
-      if (output_matte.should_compute()) {
-        output_matte.allocate_invalid();
-      }
-      if (output_edges.should_compute()) {
-        output_edges.allocate_invalid();
-      }
+      this->allocate_default_remaining_outputs();
       return;
     }
 
@@ -197,6 +190,7 @@ class KeyingOperation : public NodeOperation {
     Result tweaked_matte = compute_tweaked_matte(matte);
     matte.release();
 
+    Result &output_matte = this->get_result("Matte");
     if (output_image.should_compute() || output_matte.should_compute()) {
       Result blurred_matte = compute_blurred_matte(tweaked_matte);
       tweaked_matte.release();

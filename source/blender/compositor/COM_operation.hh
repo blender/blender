@@ -131,6 +131,9 @@ class Operation {
   /* Get a reference to the descriptor of the input identified by the given identified. */
   InputDescriptor &get_input_descriptor(StringRef identifier);
 
+  /* Allocates all needed outputs that are not yet allocated and default initialize them. */
+  void allocate_default_remaining_outputs();
+
   /* Returns a reference to the compositor context. */
   Context &context() const;
 

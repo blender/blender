@@ -129,6 +129,15 @@ InputDescriptor &Operation::get_input_descriptor(StringRef identifier)
   return input_descriptors_.lookup(identifier);
 }
 
+void Operation::allocate_default_remaining_outputs()
+{
+  for (Result &result : results_.values()) {
+    if (result.should_compute() && !result.is_allocated()) {
+      result.allocate_invalid();
+    }
+  }
+}
+
 Context &Operation::context() const
 {
   return context_;

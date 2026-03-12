@@ -46,9 +46,8 @@ class DoubleEdgeMaskOperation : public NodeOperation {
   {
     Result &inner_mask = get_input("Inner Mask");
     Result &outer_mask = get_input("Outer Mask");
-    Result &output = get_result("Mask");
     if (inner_mask.is_single_value() || outer_mask.is_single_value()) {
-      output.allocate_invalid();
+      this->allocate_default_remaining_outputs();
       return;
     }
 

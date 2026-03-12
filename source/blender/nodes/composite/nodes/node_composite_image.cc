@@ -236,6 +236,11 @@ class ImageOperation : public NodeOperation {
 
   void execute() override
   {
+    if (!this->get_image() || !this->get_image_user()) {
+      this->allocate_default_remaining_outputs();
+      return;
+    }
+
     for (const bNodeSocket *output : this->node().output_sockets()) {
       if (!is_socket_available(output)) {
         continue;
@@ -249,11 +254,6 @@ class ImageOperation : public NodeOperation {
   {
     Result &result = this->get_result(identifier);
     if (!result.should_compute()) {
-      return;
-    }
-
-    if (!this->get_image() || !this->get_image_user()) {
-      result.allocate_invalid();
       return;
     }
 
