@@ -48,6 +48,17 @@ void PyC_StackSpit();
  */
 [[nodiscard]] PyObject *PyC_ExceptionBuffer_Simple() ATTR_RETURNS_NONNULL;
 
+/**
+ * Get exit code `sys.exit(..)` was called with.
+ */
+[[nodiscard]] std::optional<int> PyC_ExceptionSystemExitCode();
+
+/**
+ * If the current exception is `SystemExit`, capture the exit code and return true.
+ * Otherwise return false;
+ */
+bool PyC_Err_CaptureSystemExitCode();
+
 [[nodiscard]] PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 [[nodiscard]] PyObject *PyC_FrozenSetFromStrings(const char **strings);
 
