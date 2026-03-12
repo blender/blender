@@ -9,6 +9,9 @@
  * in the versioning_xxx.cc files, but some is broken out and placed here.
  */
 
+#include "BLI_function_ref.hh"
+#include "BLI_vector.hh"
+
 namespace blender {
 
 struct bAction;
@@ -16,6 +19,7 @@ struct BlendFileReadReport;
 struct ID;
 struct Main;
 struct ReportList;
+struct FCurve;
 
 namespace animrig {
 class Action;
@@ -82,6 +86,23 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports);
  * no longer exist in new files.
  */
 void action_groups_reconstruct(bAction *act);
+
+/**
+ * This should only be used on legacy actions (i.e. not layered) in versioning code from
+ * before 4.4.0. Anything after that should use `BKE_fcurves_id_cb`.
+ */
+void fcurves_id_cb(ID *id, const FunctionRef<void(ID *, FCurve *)> func);
+/**
+ * This should only be used on legacy actions (i.e. not layered) in versioning code from
+ * before 4.4.0. Anything after that should use `BKE_fcurves_main_cb`.
+ */
+void fcurves_main_cb(Main *bmain, const FunctionRef<void(ID *, FCurve *)> func);
+
+/**
+ * Return all FCurves of the given legacy action. This will return an empty Vector for layered
+ * actions.
+ */
+Vector<FCurve *> fcurves_for_legacy_action(bAction *action);
 
 }  // namespace animrig::versioning
 }  // namespace blender
