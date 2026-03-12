@@ -304,6 +304,16 @@ static void panel_delete(ARegion *region, ListBase *panels, Panel *panel)
   BKE_panel_free(panel);
 }
 
+static void ui_panel_exit_state_recursive(const bContext *C, Panel *panel)
+{
+  if (panel->activedata != nullptr) {
+    panel_activate_state(C, panel, PANEL_STATE_EXIT);
+  }
+  LISTBASE_FOREACH (Panel *, child, &panel->children) {
+    ui_panel_exit_state_recursive(C, child);
+  }
+}
+
 void UI_panels_free_instanced(const bContext *C, ARegion *region)
 {
   /* Delete panels with the instanced flag. */
@@ -314,9 +324,10 @@ void UI_panels_free_instanced(const bContext *C, ARegion *region)
     if ((panel->type->flag & PANEL_TYPE_INSTANCED) == 0) {
       continue;
     }
-    /* Make sure the panel's handler is removed before deleting it. */
-    if (C != nullptr && panel->activedata != nullptr) {
-      panel_activate_state(C, panel, PANEL_STATE_EXIT);
+    /* Make sure any active handler is removed from this this panel or its children before deleting
+     * them. */
+    if (C != nullptr) {
+      ui_panel_exit_state_recursive(C, panel);
     }
 
     /* Free panel's custom data. */
