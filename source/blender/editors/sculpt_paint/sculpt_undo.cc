@@ -375,7 +375,7 @@ static void restore_position_mesh(Object &object,
       Node &unode = *unodes[node_i];
       const Span<int> verts = unode.vert_indices.as_span().take_front(unode.unique_verts_num);
 
-      if (unode.orig_position.is_empty()) {
+      if (unode.orig_position.is_empty() && !shape_key_data) {
         /* When original positions aren't written separately in the undo step, there are no
          * deform modifiers. Therefore the original and evaluated deform positions will be the
          * same, and modifying the positions from the original mesh is enough. */
@@ -386,7 +386,8 @@ static void restore_position_mesh(Object &object,
         /* When original positions are stored in the undo step, undo/redo will cause a reevaluation
          * of the object. The evaluation will recompute the evaluated positions, so dealing with
          * them here is unnecessary. */
-        MutableSpan<float3> undo_positions = unode.orig_position;
+        MutableSpan<float3> undo_positions = unode.orig_position.is_empty() ? unode.position :
+                                                                              unode.orig_position;
 
         if (shape_key_data) {
           MutableSpan<float3> active_data = shape_key_data->active_key_data;
