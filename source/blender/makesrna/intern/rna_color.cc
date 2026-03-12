@@ -453,7 +453,7 @@ static const ColorManagedDisplaySettings *rna_display_settings_from_view_setting
     }
   }
 
-  if (ptr->owner_id && GS(ptr->owner_id) == ID_SCE) {
+  if (ptr->owner_id && GS(ptr->owner_id->name) == ID_SCE) {
     return &reinterpret_cast<const Scene *>(ptr->owner_id)->display_settings;
   }
 
