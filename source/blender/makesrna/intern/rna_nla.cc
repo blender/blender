@@ -691,6 +691,20 @@ static void rna_NlaStrip_remove(
   DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_SYNC_TO_EVAL);
 }
 
+static std::optional<std::string> rna_NlaTrack_path(const PointerRNA *ptr)
+{
+  const NlaTrack *nlt = static_cast<const NlaTrack *>(ptr->data);
+  const AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
+
+  if (!adt) {
+    return "";
+  }
+
+  char name_esc[sizeof(nlt->name) * 2];
+  BLI_str_escape(name_esc, nlt->name, sizeof(name_esc));
+  return fmt::format("animation_data.nla_tracks[\"{}\"]", name_esc);
+}
+
 /* Set the 'solo' setting for the given NLA-track, making sure that it is the only one
  * that has this status in its AnimData block.
  */
@@ -1184,6 +1198,7 @@ static void rna_def_nlatrack(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "NlaTrack", nullptr);
   RNA_def_struct_ui_text(
       srna, "NLA Track", "An animation layer containing Actions referenced as NLA strips");
+  RNA_def_struct_path_func(srna, "rna_NlaTrack_path");
   RNA_def_struct_ui_icon(srna, ICON_NLA);
 
   /* strips collection */
