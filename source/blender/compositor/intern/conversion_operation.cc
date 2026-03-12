@@ -59,12 +59,24 @@ static bool is_conversion_supported(const ResultType from_type, const ResultType
         case ResultType::Float4x4:
         case ResultType::Menu:
         case ResultType::String:
+        case ResultType::Object:
+        case ResultType::Image:
+        case ResultType::Font:
+        case ResultType::Scene:
+        case ResultType::Text:
+        case ResultType::Mask:
           return false;
       }
       break;
     case ResultType::Float4x4:
     case ResultType::Menu:
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       return to_type == from_type;
   }
 

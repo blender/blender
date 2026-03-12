@@ -284,6 +284,36 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(
           value);
       break;
     }
+    case SOCK_OBJECT: {
+      Object *value = input.default_value_typed<bNodeSocketValueObject>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<Object *>>(value);
+      break;
+    }
+    case SOCK_IMAGE: {
+      Image *value = input.default_value_typed<bNodeSocketValueImage>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<Image *>>(value);
+      break;
+    }
+    case SOCK_FONT: {
+      VFont *value = input.default_value_typed<bNodeSocketValueFont>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<VFont *>>(value);
+      break;
+    }
+    case SOCK_SCENE: {
+      Scene *value = input.default_value_typed<bNodeSocketValueScene>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<Scene *>>(value);
+      break;
+    }
+    case SOCK_TEXT_ID: {
+      Text *value = input.default_value_typed<bNodeSocketValueText>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<Text *>>(value);
+      break;
+    }
+    case SOCK_MASK: {
+      Mask *value = input.default_value_typed<bNodeSocketValueMask>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<Mask *>>(value);
+      break;
+    }
     default:
       BLI_assert_unreachable();
       break;
