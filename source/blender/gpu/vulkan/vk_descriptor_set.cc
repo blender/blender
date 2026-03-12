@@ -188,7 +188,7 @@ void VKDescriptorSetTracker::update_resource_access_info_binding_input_attachmen
   const VKDevice &device = VKBackend::get().device;
   VKTexture *texture = nullptr;
   if (device.extensions_get().dynamic_rendering_local_read) {
-    texture = static_cast<VKTexture *>(state_manager.images_.get(resource_binding.binding));
+    texture = state_manager.images_.get(resource_binding.binding);
   }
   else {
     texture = static_cast<VKTexture *>(
@@ -270,7 +270,7 @@ void VKDescriptorSetTracker::update_resource_access_info(
       VKPushConstants::StorageType::UNIFORM_BUFFER)
   {
     shader.push_constants.update_uniform_buffer();
-    const VKUniformBuffer &uniform_buffer = *shader.push_constants.uniform_buffer_get().get();
+    const VKUniformBuffer &uniform_buffer = *shader.push_constants.uniform_buffer_get();
     access_info.buffers.append({uniform_buffer.vk_handle(), VK_ACCESS_UNIFORM_READ_BIT});
   }
 }
@@ -348,8 +348,7 @@ void VKDescriptorSetUpdator::bind_input_attachment_resource(
 {
   const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
   if (supports_local_read) {
-    VKTexture *texture = static_cast<VKTexture *>(
-        state_manager.images_.get(resource_binding.binding));
+    VKTexture *texture = state_manager.images_.get(resource_binding.binding);
     BLI_assert(texture);
     bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
                VK_NULL_HANDLE,
@@ -450,7 +449,7 @@ void VKDescriptorSetUpdator::bind_push_constants(VKPushConstants &push_constants
   {
     return;
   }
-  const VKUniformBuffer &uniform_buffer = *push_constants.uniform_buffer_get().get();
+  const VKUniformBuffer &uniform_buffer = *push_constants.uniform_buffer_get();
   bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
               uniform_buffer.vk_handle(),
               0,

@@ -620,7 +620,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
   return finalize_post(info->pipelines_.as_span());
 }
 
-bool VKShader::finalize_post(Span<PipelineState> pipelines)
+bool VKShader::finalize_post(Span<PipelineState> pipeline_states)
 {
   bool result = finalize_shader_module(vertex_module, "vertex") &&
                 finalize_shader_module(geometry_module, "geometry") &&
@@ -638,7 +638,7 @@ bool VKShader::finalize_post(Span<PipelineState> pipelines)
     ensure_and_get_compute_pipeline(*constants);
   }
   else {
-    result &= ensure_graphics_pipelines(pipelines);
+    result &= ensure_graphics_pipelines(pipeline_states);
   }
 
   return result;
@@ -724,9 +724,9 @@ bool VKShader::finalize_descriptor_set_layouts(VKDevice &vk_device,
 
 void VKShader::bind(const shader::SpecializationConstants *constants_state)
 {
-  VKContext *ctx = VKContext::get();
+  VKContext *context = VKContext::get();
   /* Copy constants state. */
-  ctx->specialization_constants_set(constants_state);
+  context->specialization_constants_set(constants_state);
 
   /* Intentionally empty. Binding of the pipeline are done just before drawing/dispatching.
    * See #VKPipeline.update_and_bind */

@@ -57,6 +57,12 @@ bool Result::is_single_value_only_type(ResultType type)
     case ResultType::Menu:
       return false;
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       return true;
   }
 
@@ -99,6 +105,12 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
            * practice. */
           return gpu::TextureFormat::SINT_8;
         case ResultType::String:
+        case ResultType::Object:
+        case ResultType::Image:
+        case ResultType::Font:
+        case ResultType::Scene:
+        case ResultType::Text:
+        case ResultType::Mask:
           /* Single only types do not support GPU code path. */
           BLI_assert(Result::is_single_value_only_type(type));
           BLI_assert_unreachable();
@@ -137,6 +149,12 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
            * practice. */
           return gpu::TextureFormat::SINT_8;
         case ResultType::String:
+        case ResultType::Object:
+        case ResultType::Image:
+        case ResultType::Font:
+        case ResultType::Scene:
+        case ResultType::Text:
+        case ResultType::Mask:
           /* Single only types do not support GPU storage. */
           BLI_assert(Result::is_single_value_only_type(type));
           BLI_assert_unreachable();
@@ -166,6 +184,12 @@ eGPUDataFormat Result::gpu_data_format(ResultType type)
     case ResultType::Menu:
       return GPU_DATA_INT;
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not support GPU storage. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -345,6 +369,18 @@ const CPPType &Result::cpp_type(const ResultType type)
       return CPPType::get<nodes::MenuValue>();
     case ResultType::String:
       return CPPType::get<std::string>();
+    case ResultType::Object:
+      return CPPType::get<Object *>();
+    case ResultType::Image:
+      return CPPType::get<Image *>();
+    case ResultType::Font:
+      return CPPType::get<VFont *>();
+    case ResultType::Scene:
+      return CPPType::get<Scene *>();
+    case ResultType::Text:
+      return CPPType::get<Text *>();
+    case ResultType::Mask:
+      return CPPType::get<Mask *>();
   }
 
   BLI_assert_unreachable();
@@ -378,6 +414,18 @@ const char *Result::type_name(const ResultType type)
       return "menu";
     case ResultType::String:
       return "string";
+    case ResultType::Object:
+      return "object";
+    case ResultType::Image:
+      return "image";
+    case ResultType::Font:
+      return "font";
+    case ResultType::Scene:
+      return "scene";
+    case ResultType::Text:
+      return "text";
+    case ResultType::Mask:
+      return "mask";
   }
 
   BLI_assert_unreachable();
@@ -486,6 +534,24 @@ void Result::allocate_single_value()
       break;
     case ResultType::String:
       this->set_single_value(std::string(""));
+      break;
+    case ResultType::Object:
+      this->set_single_value(static_cast<Object *>(nullptr));
+      break;
+    case ResultType::Image:
+      this->set_single_value(static_cast<Image *>(nullptr));
+      break;
+    case ResultType::Font:
+      this->set_single_value(static_cast<VFont *>(nullptr));
+      break;
+    case ResultType::Scene:
+      this->set_single_value(static_cast<Scene *>(nullptr));
+      break;
+    case ResultType::Text:
+      this->set_single_value(static_cast<Text *>(nullptr));
+      break;
+    case ResultType::Mask:
+      this->set_single_value(static_cast<Mask *>(nullptr));
       break;
   }
 }
@@ -845,6 +911,12 @@ int64_t Result::channels_count() const
     case ResultType::Float4x4:
       return 16;
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not have channels. */
       BLI_assert(Result::is_single_value_only_type(type_));
       BLI_assert_unreachable();
@@ -915,6 +987,12 @@ void Result::update_single_value_data()
           break;
         }
         case ResultType::String:
+        case ResultType::Object:
+        case ResultType::Image:
+        case ResultType::Font:
+        case ResultType::Scene:
+        case ResultType::Text:
+        case ResultType::Mask:
           /* Single only types do not support GPU storage. */
           BLI_assert(Result::is_single_value_only_type(this->type()));
           BLI_assert_unreachable();

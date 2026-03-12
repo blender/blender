@@ -45,7 +45,7 @@ class ImageInfoOperation : public NodeOperation {
   {
     const Result &input = this->get_input("Image");
     if (input.is_single_value()) {
-      this->execute_invalid();
+      this->allocate_default_remaining_outputs();
       return;
     }
 
@@ -84,34 +84,6 @@ class ImageInfoOperation : public NodeOperation {
     if (scale_result.should_compute()) {
       scale_result.allocate_single_value();
       scale_result.set_single_value(scale);
-    }
-  }
-
-  void execute_invalid()
-  {
-    Result &dimensions_result = this->get_result("Dimensions");
-    if (dimensions_result.should_compute()) {
-      dimensions_result.allocate_invalid();
-    }
-
-    Result &resolution_result = this->get_result("Resolution");
-    if (resolution_result.should_compute()) {
-      resolution_result.allocate_invalid();
-    }
-
-    Result &location_result = this->get_result("Location");
-    if (location_result.should_compute()) {
-      location_result.allocate_invalid();
-    }
-
-    Result &rotation_result = this->get_result("Rotation");
-    if (rotation_result.should_compute()) {
-      rotation_result.allocate_invalid();
-    }
-
-    Result &scale_result = this->get_result("Scale");
-    if (scale_result.should_compute()) {
-      scale_result.allocate_invalid();
     }
   }
 };

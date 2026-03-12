@@ -412,12 +412,12 @@ Texture *VKTexturePool::acquire_texture(int2 extent,
   return wrap(texture);
 }
 
-void VKTexturePool::release_texture(Texture *tex)
+void VKTexturePool::release_texture(Texture *texture)
 {
-  BLI_assert_msg(acquired_.contains({unwrap(tex)}),
+  BLI_assert_msg(acquired_.contains({unwrap(texture)}),
                  "Unacquired texture passed to VKTexturePool::offset_users_count()");
 
-  TextureHandle texture_handle = acquired_.lookup_key({unwrap(tex)});
+  TextureHandle texture_handle = acquired_.lookup_key({unwrap(texture)});
   VKImageInfo image_info = texture_handle.image_info;
   AllocationHandle allocation_handle = allocations_.lookup_key({image_info.allocation});
 
@@ -435,11 +435,11 @@ void VKTexturePool::release_texture(Texture *tex)
   delete texture_handle.texture;
 }
 
-void VKTexturePool::offset_users_count(Texture *tex, int offset)
+void VKTexturePool::offset_users_count(Texture *texture, int offset)
 {
-  BLI_assert_msg(acquired_.contains({unwrap(tex)}),
+  BLI_assert_msg(acquired_.contains({unwrap(texture)}),
                  "Unacquired texture passed to VKTexturePool::offset_users_count()");
-  TextureHandle texture_handle = acquired_.lookup_key({unwrap(tex)});
+  TextureHandle texture_handle = acquired_.lookup_key({unwrap(texture)});
   texture_handle.users_count += offset;
   acquired_.add_overwrite(texture_handle);
 }

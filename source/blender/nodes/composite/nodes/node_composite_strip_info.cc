@@ -38,7 +38,7 @@ class StripInfoOperation : public NodeOperation {
   {
     const Strip *strip = this->context().get_strip();
     if (strip == nullptr) {
-      this->execute_invalid();
+      this->allocate_default_remaining_outputs();
       return;
     }
 
@@ -72,34 +72,6 @@ class StripInfoOperation : public NodeOperation {
       scale_result.allocate_single_value();
       scale_result.set_single_value(
           float2(strip->data->transform->scale_x, strip->data->transform->scale_y));
-    }
-  }
-
-  void execute_invalid()
-  {
-    Result &start_frame_result = this->get_result("Start Frame");
-    if (start_frame_result.should_compute()) {
-      start_frame_result.allocate_invalid();
-    }
-
-    Result &end_frame_result = this->get_result("End Frame");
-    if (end_frame_result.should_compute()) {
-      end_frame_result.allocate_invalid();
-    }
-
-    Result &location_result = this->get_result("Location");
-    if (location_result.should_compute()) {
-      location_result.allocate_invalid();
-    }
-
-    Result &rotation_result = this->get_result("Rotation");
-    if (rotation_result.should_compute()) {
-      rotation_result.allocate_invalid();
-    }
-
-    Result &scale_result = this->get_result("Scale");
-    if (scale_result.should_compute()) {
-      scale_result.allocate_invalid();
     }
   }
 };

@@ -32,6 +32,7 @@ class BlenderImageLoader : public ImageLoader {
   blender::Image *b_image;
   blender::ImageUser b_iuser;
   bool free_cache;
+  int cached_update_count;
 };
 
 CCL_NAMESPACE_END

@@ -30,6 +30,15 @@
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
 
+namespace blender {
+struct Object;
+struct Image;
+struct VFont;
+struct Scene;
+struct Text;
+struct Mask;
+}  // namespace blender
+
 namespace blender::compositor {
 
 class Context;
@@ -51,6 +60,12 @@ enum class ResultType : uint8_t {
 
   /* Single value only types. See Result::is_single_value_only_type. */
   String,
+  Object,
+  Image,
+  Font,
+  Scene,
+  Text,
+  Mask,
 };
 
 /* The precision of the data. CPU data is always stored using full precision at the moment. */
@@ -154,7 +169,13 @@ class Result {
                bool,
                float4x4,
                nodes::MenuValue,
-               std::string>
+               std::string,
+               Object *,
+               Image *,
+               VFont *,
+               Scene *,
+               Text *,
+               Mask *>
       single_value_ = 0.0f;
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */

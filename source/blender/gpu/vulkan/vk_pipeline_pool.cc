@@ -237,10 +237,8 @@ VkPipeline VKPipelineMap<VKGraphicsInfo>::create(const VKGraphicsInfo &graphics_
   if (extensions.graphics_pipeline_library) {
     return create_graphics_pipeline_libs(graphics_info, vk_pipeline_cache, vk_pipeline_base, name);
   }
-  else {
-    return create_graphics_pipeline_no_libs(
-        graphics_info, vk_pipeline_cache, vk_pipeline_base, name);
-  }
+  return create_graphics_pipeline_no_libs(
+      graphics_info, vk_pipeline_cache, vk_pipeline_base, name);
 }
 
 std::string VKGraphicsInfo::pipeline_info_source() const

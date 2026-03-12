@@ -12,7 +12,6 @@
 
 #include "vk_buffer.hh"
 #include "vk_common.hh"
-#include "vk_data_conversion.hh"
 
 namespace blender::gpu {
 
@@ -30,7 +29,7 @@ class VKVertexBuffer : public VertBuf {
   void bind_as_texture(uint binding) override;
   void wrap_handle(uint64_t handle) override;
 
-  void update_sub(uint start, uint len, const void *data) override;
+  void update_sub(uint start_offset, uint data_size_in_bytes, const void *data) override;
   void read(void *data) const override;
 
   VkBuffer vk_handle() const
@@ -38,7 +37,7 @@ class VKVertexBuffer : public VertBuf {
     return buffer_.vk_handle();
   }
 
-  inline VkDeviceAddress device_address_get() const
+  VkDeviceAddress device_address_get() const
   {
     return buffer_.device_address_get();
   }
@@ -52,7 +51,7 @@ class VKVertexBuffer : public VertBuf {
   void ensure_updated();
   void ensure_buffer_view();
 
-  inline VkFormat to_vk_format()
+  VkFormat to_vk_format()
   {
     return gpu::to_vk_format(to_texture_format(&format));
   }

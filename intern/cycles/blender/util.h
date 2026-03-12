@@ -336,7 +336,7 @@ static inline bool image_is_builtin(blender::Image &ima, blender::RenderEngine &
   }
 
   return BKE_image_has_packedfile(&ima) || image_source == blender::IMA_SRC_GENERATED ||
-         image_source == blender::IMA_SRC_MOVIE ||
+         image_source == blender::IMA_SRC_MOVIE || BKE_image_is_dirty(&ima) ||
          ((engine.flag & blender::RE_ENGINE_PREVIEW) != 0 &&
           image_source != blender::IMA_SRC_SEQUENCE);
 }

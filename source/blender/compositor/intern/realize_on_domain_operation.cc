@@ -168,6 +168,12 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Menu:
         return "compositor_realize_on_domain_menu";
       case ResultType::String:
+      case ResultType::Object:
+      case ResultType::Image:
+      case ResultType::Font:
+      case ResultType::Scene:
+      case ResultType::Text:
+      case ResultType::Mask:
         /* Single only types do not support GPU code path. */
         BLI_assert(Result::is_single_value_only_type(this->get_input().type()));
         BLI_assert_unreachable();
@@ -201,6 +207,12 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Menu:
         return "compositor_realize_on_domain_menu";
       case ResultType::String:
+      case ResultType::Object:
+      case ResultType::Image:
+      case ResultType::Font:
+      case ResultType::Scene:
+      case ResultType::Text:
+      case ResultType::Mask:
         /* Single only types do not support GPU code path. */
         BLI_assert(Result::is_single_value_only_type(this->get_input().type()));
         BLI_assert_unreachable();

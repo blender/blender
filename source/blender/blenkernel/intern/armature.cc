@@ -2389,6 +2389,37 @@ void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float r_mat[3][3])
   }
 }
 
+float4 BKE_pchan_rot_to_quat(const bPoseChannel &pchan)
+{
+  float4 quat;
+  if (pchan.rotmode > 0) {
+    eulO_to_quat(quat, pchan.eul, pchan.rotmode);
+  }
+  else if (pchan.rotmode == ROT_MODE_AXISANGLE) {
+    axis_angle_to_quat(quat, pchan.rotAxis, pchan.rotAngle);
+  }
+  else {
+    /* Normalized quaternion to stay consistent with `BKE_pchan_rot_to_mat3`.  */
+    normalize_qt_qt(quat, pchan.quat);
+  }
+  return quat;
+}
+
+void BKE_pchan_quat_to_rot(bPoseChannel &pchan, const float4 &quat)
+{
+  switch (pchan.rotmode) {
+    case ROT_MODE_QUAT:
+      normalize_qt_qt(pchan.quat, quat);
+      break;
+    case ROT_MODE_AXISANGLE:
+      quat_to_axis_angle(pchan.rotAxis, &pchan.rotAngle, quat);
+      break;
+    default: /* euler */
+      quat_to_eulO(pchan.eul, pchan.rotmode, quat);
+      break;
+  }
+}
+
 void BKE_pchan_apply_mat4(bPoseChannel *pchan, const float mat[4][4], bool use_compat)
 {
   float rot[3][3];

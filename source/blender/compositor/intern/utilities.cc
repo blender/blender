@@ -76,6 +76,18 @@ ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
       return ResultType::Menu;
     case SOCK_STRING:
       return ResultType::String;
+    case SOCK_OBJECT:
+      return ResultType::Object;
+    case SOCK_IMAGE:
+      return ResultType::Image;
+    case SOCK_FONT:
+      return ResultType::Font;
+    case SOCK_SCENE:
+      return ResultType::Scene;
+    case SOCK_TEXT_ID:
+      return ResultType::Text;
+    case SOCK_MASK:
+      return ResultType::Mask;
     default:
       BLI_assert_unreachable();
       return ResultType::Float;

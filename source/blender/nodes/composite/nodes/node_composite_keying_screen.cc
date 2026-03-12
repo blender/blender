@@ -88,10 +88,9 @@ class KeyingScreenOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &keying_screen = get_result("Screen");
     MovieTrackingObject *movie_tracking_object = get_movie_tracking_object();
     if (!movie_tracking_object) {
-      keying_screen.allocate_invalid();
+      this->allocate_default_remaining_outputs();
       return;
     }
 
@@ -99,10 +98,11 @@ class KeyingScreenOperation : public NodeOperation {
         context(), get_movie_clip(), movie_tracking_object, get_smoothness());
 
     if (!cached_keying_screen.is_allocated()) {
-      keying_screen.allocate_invalid();
+      this->allocate_default_remaining_outputs();
       return;
     }
 
+    Result &keying_screen = get_result("Screen");
     keying_screen.wrap_external(cached_keying_screen);
   }
 

@@ -225,6 +225,12 @@ static void initialize_input_stack_value(const bNodeSocket &input, GPUNodeStack 
       BLI_assert_unreachable();
       break;
     case SOCK_STRING:
+    case SOCK_OBJECT:
+    case SOCK_IMAGE:
+    case SOCK_FONT:
+    case SOCK_SCENE:
+    case SOCK_TEXT_ID:
+    case SOCK_MASK:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(get_node_socket_result_type(&input)));
       BLI_assert_unreachable();
@@ -266,6 +272,12 @@ static const char *get_set_function_name(const ResultType type)
       /* GPUMaterial doesn't support int, so it is passed as a float. */
       return "set_float";
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -493,6 +505,12 @@ static const char *get_store_function_name(ResultType type)
     case ResultType::Menu:
       return "node_compositor_store_output_menu";
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -643,6 +661,12 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
        * back to int before writing it. */
       return "ivec4(int(value))";
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -671,6 +695,12 @@ static ImageType gpu_image_type_from_result_type(const ResultType type)
     case ResultType::Float4x4:
       return ImageType::Float2DArray;
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -798,6 +828,12 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
         store_menu_function << common_case_code.str();
         break;
       case ResultType::String:
+      case ResultType::Object:
+      case ResultType::Image:
+      case ResultType::Font:
+      case ResultType::Scene:
+      case ResultType::Text:
+      case ResultType::Mask:
         /* Single only types do not support GPU code path. */
         BLI_assert(Result::is_single_value_only_type(result.type()));
         BLI_assert_unreachable();
@@ -856,6 +892,12 @@ static const char *glsl_type_from_result_type(ResultType type)
       /* GPUMaterial doesn't support int, so it is passed as a float. */
       return "float";
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();
@@ -894,6 +936,12 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
     case ResultType::Menu:
       return "x";
     case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
       /* Single only types do not support GPU code path. */
       BLI_assert(Result::is_single_value_only_type(type));
       BLI_assert_unreachable();

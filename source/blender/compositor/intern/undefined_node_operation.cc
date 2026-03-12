@@ -11,7 +11,6 @@
 #include "COM_node_operation.hh"
 #include "COM_result.hh"
 #include "COM_undefined_node_operation.hh"
-#include "COM_utilities.hh"
 
 namespace blender::compositor {
 
@@ -22,16 +21,7 @@ class UndefinedNodeOperation : public NodeOperation {
 
   void execute() override
   {
-    for (const bNodeSocket *output : this->node().output_sockets()) {
-      if (!is_socket_available(output)) {
-        continue;
-      }
-
-      Result &result = this->get_result(output->identifier);
-      if (result.should_compute()) {
-        result.allocate_invalid();
-      }
-    }
+    this->allocate_default_remaining_outputs();
   }
 };
 

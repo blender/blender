@@ -42,7 +42,7 @@ class VKStreamingBuffer {
   render_graph::NodeHandle copy_buffer_handle_ = 0;
 
  public:
-  VKStreamingBuffer(VKBuffer &buffer, VkDeviceSize min_offset_alligment);
+  VKStreamingBuffer(VKBuffer &buffer, VkDeviceSize min_offset_alignment);
   ~VKStreamingBuffer();
 
   /**

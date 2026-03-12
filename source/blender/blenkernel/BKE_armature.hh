@@ -356,12 +356,28 @@ void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
 
 /**
  * Same as #BKE_object_mat3_to_rot().
+ *
+ * \param use_compat only applies when the `pchan` is in euler rotation mode. It then picks the
+ * closest euler values relative to what the `pchan` already has.
  */
 void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, const float mat[3][3], bool use_compat);
 /**
  * Same as #BKE_object_rot_to_mat3().
  */
 void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float r_mat[3][3]);
+
+/**
+ * Returns a quaternion representation of the current rotation of the bone.
+ * Euler and Axis Angle will be converted to Quaternion and then returned.
+ */
+float4 BKE_pchan_rot_to_quat(const bPoseChannel &pchan);
+
+/**
+ * Applies the quaternion rotation to the current rotation of the bone.
+ * Depending on the `pchan.rotmode` this modifies either Euler, Axis Angle or Quaternion values.
+ */
+void BKE_pchan_quat_to_rot(bPoseChannel &pchan, const float4 &quat);
+
 /**
  * Apply a 4x4 matrix to the pose bone,
  * similar to #BKE_object_apply_mat4().

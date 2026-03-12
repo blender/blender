@@ -241,7 +241,6 @@ static wmOperatorStatus insert_key_with_keyingset(bContext *C, wmOperator *op, K
 
 static Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
 {
-  eRotationModes rotation_mode;
   Vector<RNAPath> paths;
 
   if (ptr->type == RNA_Strip || RNA_struct_is_a(ptr->type, RNA_Strip)) {
@@ -263,15 +262,8 @@ static Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
     return paths;
   }
 
-  if (ptr->type == RNA_PoseBone) {
-    bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
-    rotation_mode = eRotationModes(pchan->rotmode);
-  }
-  else if (ptr->type == RNA_Object) {
-    Object *ob = static_cast<Object *>(ptr->data);
-    rotation_mode = eRotationModes(ob->rotmode);
-  }
-  else {
+  std::optional<eRotationModes> rotation_mode = animrig::get_rotation_mode_from_rna_pointer(*ptr);
+  if (!rotation_mode.has_value()) {
     /* Pointer type not supported. */
     return paths;
   }
@@ -281,7 +273,7 @@ static Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
     paths.append({"location"});
   }
   if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_ROTATION) {
-    switch (rotation_mode) {
+    switch (rotation_mode.value()) {
       case ROT_MODE_QUAT:
         paths.append({"rotation_quaternion"});
         break;
