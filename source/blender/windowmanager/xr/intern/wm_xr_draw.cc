@@ -20,6 +20,9 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_context.hh"
+#include "BKE_scene.hh"
+
 #include "ED_view3d_offscreen.hh"
 
 #include "GHOST_Xr-api.hh"
@@ -172,10 +175,19 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   /* Some systems have drawing glitches without this. */
   GPU_clear_depth(1.0f);
 
+  /* XR context is ensured before each draw in #wm_xr_session_surface_draw. */
+  bContext *xr_context = WM_xr_session_context_get(xr_data);
+  Scene *scene = CTX_data_scene(xr_context);
+
+  /* The XR context depgraph is separately evaluted outside of drawing within the XR surface
+   * #do_depsgraph callback. Thus, obtain the depsgraph directly without evaluating it. */
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(xr_context);
+
   /* Draws the view into the surface_data->viewport's frame-buffers. */
-  ED_view3d_draw_offscreen_simple(draw_data->depsgraph,
-                                  draw_data->scene,
+  ED_view3d_draw_offscreen_simple(depsgraph,
+                                  scene,
                                   &settings->shading,
+                                  xr_context,
                                   eDrawType(settings->shading.type),
                                   settings->object_type_exclude_viewport,
                                   settings->object_type_exclude_select,

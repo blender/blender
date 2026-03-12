@@ -65,12 +65,14 @@ void DRW_draw_view(const bContext *C);
 void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height);
 
 /**
- * \param viewport: can be NULL, in this case we create one.
+ * \param context: can be nullptr, optionally passed to the DRWContext for draw handlers/callbacks.
+ * \param viewport: can be nullptr, in this case we create one.
  */
 void DRW_draw_render_loop_offscreen(Depsgraph *depsgraph,
                                     RenderEngineType *engine_type,
                                     ARegion *region,
                                     View3D *v3d,
+                                    bContext *context,
                                     bool is_image_render,
                                     bool draw_background,
                                     bool do_color_management,

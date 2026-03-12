@@ -90,14 +90,14 @@ struct wmXrSessionState {
 };
 
 struct wmXrRuntimeData {
+  /* GHOST XR context. */
   GHOST_IXrContext *ghost_context;
 
-  /** The window the session was started in. Stored to be able to follow its view-layer. This may
-   * be an invalid reference, i.e. the window may have been closed. */
-  wmWindow *session_root_win;
+  /* XR-specific Blender context. */
+  bContext *b_context;
 
-  /** Off-screen area used for XR events. */
-  struct ScrArea *area;
+  /* Owning pointer to the XR offscreen area. Must be freed on XR session exit. */
+  ScrArea *offscreen_area;
 
   /** Although this struct is internal, RNA gets a handle to this for state information queries. */
   wmXrSessionState session_state;
@@ -125,9 +125,6 @@ struct wmXrSurfaceData {
 };
 
 struct wmXrDrawData {
-  struct Scene *scene;
-  struct Depsgraph *depsgraph;
-
   wmXrData *xr_data;
   wmXrSurfaceData *surface_data;
 

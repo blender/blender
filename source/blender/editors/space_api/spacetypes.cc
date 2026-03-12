@@ -274,9 +274,9 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
   ed_region_draw_cb_draw(C, region, region->runtime->type, type);
 }
 
-void ED_region_surface_draw_cb_draw(ARegionType *art, int type)
+void ED_region_surface_draw_cb_draw(const bContext *C, ARegionType *art, int type)
 {
-  ed_region_draw_cb_draw(nullptr, nullptr, art, type);
+  ed_region_draw_cb_draw(C, nullptr, art, type);
 }
 
 void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*free)(void *))

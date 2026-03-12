@@ -40,6 +40,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
+#include "BKE_id_hash.hh"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_remap.hh"
@@ -2230,6 +2231,17 @@ static void wm_handler_op_context_get_if_valid(bContext *C,
       }
     }
 
+#ifdef WITH_XR_OPENXR
+    /* Special case for XR operators, which are executed in an XR-specific offscreen area. */
+    bContext *xr_context = WM_xr_session_context_get(&CTX_wm_manager(C)->xr);
+    if (xr_context != nullptr) {
+      ScrArea *xr_offscreen_area = CTX_wm_area(xr_context);
+      if (handler->context.area == xr_offscreen_area) {
+        area = xr_offscreen_area;
+      }
+    }
+#endif
+
     if (area == nullptr) {
       /* When changing screen layouts with running modal handlers (like render display), this
        * is not an error to print. */
@@ -4032,26 +4044,20 @@ static bool wm_event_xr_handler_matches_actiondata(const wmEventHandler_Op *op_h
   return (handler_op_type_match && handler_op_properties_match);
 }
 
-static void wm_event_handle_xrevent(bContext *C,
-                                    wmWindowManager *wm,
+static void wm_event_handle_xrevent(wmWindowManager *wm,
                                     wmWindow *win,
-                                    wmEvent *event)
+                                    wmEvent *event,
+                                    bContext *main_context)
 {
-  ScrArea *area = WM_xr_session_area_get(&wm->xr);
-  if (!area) {
-    return;
-  }
-  BLI_assert(area->spacetype == SPACE_VIEW3D && area->spacedata.first);
+  bContext *xr_context = WM_xr_session_context_ensure(&wm->xr, wm);
 
-  /* Find a valid region for XR operator execution and modal handling. */
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-  if (!region) {
-    return;
-  }
-  BLI_assert(WM_region_use_viewport(area, region)); /* For operators using GPU-based selection. */
+  ScrArea *xr_area = CTX_wm_area(xr_context);
+  ARegion *xr_region = CTX_wm_region(xr_context);
 
-  CTX_wm_area_set(C, area);
-  CTX_wm_region_set(C, region);
+  BLI_assert(xr_area && xr_area->spacetype == SPACE_VIEW3D && xr_area->spacedata.first);
+
+  /* For operators using GPU-based selection. */
+  BLI_assert(WM_region_use_viewport(xr_area, xr_region));
 
   ListBaseT<wmEventHandler> *modalhandlers = &win->runtime->modalhandlers;
 
@@ -4059,15 +4065,21 @@ static void wm_event_handle_xrevent(bContext *C,
   BLI_assert(event->customdata);
   wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
 
+  /* Check if the XR context scene matches the main Blender context scene to counter-act possible
+   * re-allocation on undo operator execution. */
+  const unsigned int xr_ctx_scene_uid = CTX_data_scene(xr_context)->id.session_uid;
+  const unsigned int main_ctx_scene_uid = CTX_data_scene(main_context)->id.session_uid;
+  const bool ctx_xr_main_scene_match = (xr_ctx_scene_uid == main_ctx_scene_uid);
+
   /* Only process XR operator handlers to prevent interferences with main window handlers.
-   * NOTE: This is a stripped-down XR specific version of #wm_handlers_do_intern. Changes made
+   * NOTE: This is a stripped-down XR-specific version of #wm_handlers_do_intern. Changes made
    *       in that function might also need to be reproduced here. */
   eHandlerActionFlag action = WM_HANDLER_CONTINUE;
   for (wmEventHandler &handler_base : *modalhandlers) {
     if (handler_base.type == WM_HANDLER_TYPE_OP) {
       BLI_assert((handler_base.flag & WM_HANDLER_DO_FREE) == 0);
 
-      if (handler_base.poll != nullptr && !handler_base.poll(win, area, region, event)) {
+      if (handler_base.poll != nullptr && !handler_base.poll(win, xr_area, xr_region, event)) {
         continue;
       }
 
@@ -4075,7 +4087,7 @@ static void wm_event_handle_xrevent(bContext *C,
       /* Only execute operator handler matching the XR action data carried by the event. */
       if (wm_event_xr_handler_matches_actiondata(op_handler, actiondata)) {
         action = wm_handler_operator_call(
-            C, modalhandlers, &handler_base, event, nullptr, nullptr);
+            xr_context, modalhandlers, &handler_base, event, nullptr, nullptr);
       }
 
       if (action & WM_HANDLER_BREAK) {
@@ -4084,7 +4096,7 @@ static void wm_event_handle_xrevent(bContext *C,
     }
   }
 
-  wm_event_handler_return_value_check(C, event, action);
+  wm_event_handler_return_value_check(xr_context, event, action);
 
   if ((action & WM_HANDLER_BREAK) == 0) {
     if (actiondata->ot->modal && event->val == KM_RELEASE) {
@@ -4097,7 +4109,7 @@ static void wm_event_handle_xrevent(bContext *C,
       if (actiondata->ot->invoke) {
         /* Invoke operator, either executing operator or transferring responsibility to window
          * modal handlers. */
-        wm_operator_invoke(C,
+        wm_operator_invoke(xr_context,
                            actiondata->ot,
                            event,
                            actiondata->op_properties ? &properties : nullptr,
@@ -4109,15 +4121,19 @@ static void wm_event_handle_xrevent(bContext *C,
         /* Execute operator. */
         wmOperator *op = wm_operator_create(
             wm, actiondata->ot, actiondata->op_properties ? &properties : nullptr, nullptr);
-        if ((WM_operator_call(C, op) & OPERATOR_HANDLED) == 0) {
+        if ((WM_operator_call(xr_context, op) & OPERATOR_HANDLED) == 0) {
           WM_operator_free(op);
         }
       }
     }
   }
 
-  CTX_wm_region_set(C, nullptr);
-  CTX_wm_area_set(C, nullptr);
+  /* The undo operator may have re-allocated the XR context Scene and Main data pointers.
+   * Prevent dangling pointers in the main Blender context by re-assigning them as needed. */
+  CTX_data_main_set(main_context, CTX_data_main(xr_context));
+  if (ctx_xr_main_scene_match) {
+    CTX_data_scene_set(main_context, CTX_data_scene(xr_context));
+  }
 }
 #endif /* WITH_XR_OPENXR */
 
@@ -4269,7 +4285,7 @@ void wm_event_do_handlers(bContext *C)
 
 #ifdef WITH_XR_OPENXR
       if (event->type == EVT_XR_ACTION) {
-        wm_event_handle_xrevent(C, wm, &win, event);
+        wm_event_handle_xrevent(wm, &win, event, C);
         BLI_remlink(&win.runtime->event_queue, event);
         wm_event_free_last_handled(&win, event);
         /* Skip mouse event handling below, which is unnecessary for XR events. */
