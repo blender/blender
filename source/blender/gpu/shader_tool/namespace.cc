@@ -66,6 +66,7 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
       Token name = template_args.front().prev();
       string resolved_name = string(name.str()) +
                              SourceProcessor::template_arguments_mangle(template_args);
+      /* TODO(fclem): Filter static function only. */
       process_symbol(ns_scope, name, resolved_name, line, is_method);
     }
   };
@@ -73,12 +74,14 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
   ns.foreach_struct([&](Token, Scope, Token struct_name, Scope body) {
     process_symbol(ns, struct_name, struct_name.str(), struct_name.line_number(), false);
     /* Methods. */
-    body.foreach_function([&](bool, Token, Token name, Scope, bool, Scope) {
-      /* For methods, the declaration line is the top of the struct. */
-      process_symbol(body, name, name.str(), struct_name.line_number(), true);
+    body.foreach_function([&](bool is_static, Token, Token name, Scope, bool, Scope) {
+      if (is_static) {
+        /* For methods, the declaration line is the top of the struct. */
+        process_symbol(body, name, name.str(), struct_name.line_number(), true);
+      }
     });
     /* Parse template instantiations. */
-    ns.foreach_token(Template, [&](Token t) { process_templates(body, t, true); });
+    body.foreach_token(Template, [&](Token t) { process_templates(body, t, true); });
   });
 
   ns.foreach_function([&](bool, Token, Token name, Scope, bool, Scope) {
@@ -119,6 +122,10 @@ static void lower_namespace(string ns_prefix,
     if (token.prev() == '.') {
       return;
     }
+    /* Only process the end token of a namespace qualified identifier. */
+    if (token.next() == ':') {
+      return;
+    }
 
     const bool is_fn = (token.next() == '(');
     /* Reject method definition. */
@@ -132,7 +139,7 @@ static void lower_namespace(string ns_prefix,
        * In this case we need to add the struct name during the fully qualified name lookup. */
       const Scope struct_scope = token.scope().first_scope_of_type(ScopeType::Struct);
       if (struct_scope.is_valid()) {
-        struct_name = struct_scope.str();
+        struct_name = struct_scope.front().prev().full_symbol_name();
       }
     }
 
@@ -144,29 +151,44 @@ static void lower_namespace(string ns_prefix,
       if (symbol.name_space.substr(0, ns_prefix.size()) != ns_prefix) {
         continue;
       }
-      /* Reject symbols declared after the identifier. */
+      /* Reject symbols declared after the identifier.
+       * Note that static method have their definition line at the top of the struct. */
       if (token.line_number() < symbol.definition_line) {
         continue;
       }
       /* Symbol as it could be specified from this namespace. */
       string symbol_visible = symbol.name_space.substr(ns_prefix.size()) + symbol.identifier;
 
+      bool append_struct_ns = false;
       /* First try to match methods. */
       if (symbol.is_method && !struct_name.empty()) {
-        if (struct_name + token.full_symbol_name() == symbol_visible) {
+        string specified_symbol = token.full_symbol_name();
+
+        if (token.prev() != ':') {
+          /* For unspecified symbol, we append the struct namespace to try to match the method
+           * visible symbol. */
+          specified_symbol = struct_name + "::" + specified_symbol;
+          append_struct_ns = true;
+        }
+
+        if (specified_symbol != symbol_visible) {
           continue;
         }
-        /* Do not append namespace for method call matches. */
-        break;
+        /* Matched a static method. */
       }
-
-      /* Other symbols. */
-      if (token.full_symbol_name() != symbol_visible) {
-        continue;
+      else {
+        /* Other symbols. */
+        if (token.full_symbol_name() != symbol_visible) {
+          continue;
+        }
       }
 
       /* Append current namespace. */
       parser.insert_before(token.namespace_start(), ns_name + "::");
+      if (append_struct_ns) {
+        /* Append struct namespace for static methods. */
+        parser.insert_before(token.namespace_start(), struct_name + "::");
+      }
       /* Only match a symbol once. */
       break;
     }
