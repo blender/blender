@@ -244,6 +244,24 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(
       }
       break;
     }
+    case SOCK_INT_VECTOR: {
+      switch (input.default_value_typed<bNodeSocketValueIntVector>()->dimensions) {
+        case 2: {
+          const int2 value = int2(input.default_value_typed<bNodeSocketValueIntVector>()->value);
+          constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int2>>(value);
+          break;
+        }
+        case 3: {
+          const int3 value = int3(input.default_value_typed<bNodeSocketValueIntVector>()->value);
+          constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int3>>(value);
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+      break;
+    }
     case SOCK_RGBA: {
       const Color value = Color(input.default_value_typed<bNodeSocketValueRGBA>()->value);
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<float4>>(value);

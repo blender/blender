@@ -19,6 +19,7 @@
 
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_nla.hh"
 #include "BKE_node.hh"
 #include "BKE_report.hh"
 
@@ -298,6 +299,109 @@ void action_groups_reconstruct(bAction *act)
     BLI_movelisttolist(&act->curves, &tmp);
   }
   BLI_movelisttolist(&act->curves, &ungrouped);
+}
+
+using IDFCurveCallback = FunctionRef<bool(ID *, FCurve *)>;
+
+/**
+ * Iterates over FCurves until the callback returns false or all FCurves were visited.
+ *
+ * \returns true if all FCurves were visited.
+ */
+static bool fcurves_listbase_apply_cb(ID *id,
+                                      ListBaseT<FCurve> *fcurves,
+                                      const IDFCurveCallback func)
+{
+  for (FCurve &fcu : *fcurves) {
+    if (!func(id, &fcu)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/* Helper for adt_apply_all_fcurves_cb() - Recursively go through each NLA strip */
+static bool nlastrips_apply_all_curves_cb(ID *id,
+                                          ListBaseT<NlaStrip> *strips,
+                                          const IDFCurveCallback func)
+{
+  for (NlaStrip &strip : *strips) {
+    if (strip.act) {
+      if (!fcurves_listbase_apply_cb(id, &strip.act->curves, func)) {
+        return false;
+      }
+    }
+    if (!nlastrips_apply_all_curves_cb(id, &strip.strips, func)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallback func)
+{
+  if (adt->action) {
+    if (!fcurves_listbase_apply_cb(id, &adt->action->curves, func)) {
+      return false;
+    }
+  }
+
+  if (adt->tmpact) {
+    if (!fcurves_listbase_apply_cb(id, &adt->tmpact->curves, func)) {
+      return false;
+    }
+  }
+
+  /* Drivers, stored as a list of F-Curves. */
+  if (!fcurves_listbase_apply_cb(id, &adt->drivers, func)) {
+    return false;
+  }
+
+  /* NLA Data - Animation Data for Strips */
+  for (NlaTrack &nlt : adt->nla_tracks) {
+    if (!nlastrips_apply_all_curves_cb(id, &nlt.strips, func)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void fcurves_id_cb(ID *id, const FunctionRef<void(ID *, FCurve *)> func)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (adt != nullptr) {
+    /* Use a little wrapper function to always return 'true' and thus keep the loop looping. */
+    const auto wrapper = [&func](ID *id, FCurve *fcurve) {
+      func(id, fcurve);
+      return true;
+    };
+    adt_apply_all_fcurves_cb(id, adt, wrapper);
+  }
+}
+
+void fcurves_main_cb(Main *bmain, const FunctionRef<void(ID *, FCurve *)> func)
+{
+  /* Use a little wrapper function to always return 'true' and thus keep the loop looping. */
+  const auto wrapper = [&func](ID *id, FCurve *fcurve) {
+    func(id, fcurve);
+    return true;
+  };
+
+  /* Use the AnimData-based function so that we don't have to reimplement all that stuff */
+  BKE_animdata_main_cb(bmain,
+                       [&](ID *id, AnimData *adt) { adt_apply_all_fcurves_cb(id, adt, wrapper); });
+}
+
+Vector<FCurve *> fcurves_for_legacy_action(bAction *action)
+{
+  if (!action) {
+    return {};
+  }
+  Vector<FCurve *> fcurves;
+  for (FCurve &fcu : action->curves) {
+    fcurves.append(&fcu);
+  }
+  return fcurves;
 }
 
 }  // namespace blender::animrig::versioning

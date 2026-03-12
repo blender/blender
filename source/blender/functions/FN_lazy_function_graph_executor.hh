@@ -15,6 +15,7 @@
 #include "BLI_vector.hh"
 
 #include "FN_lazy_function_graph.hh"
+#include "FN_lazy_function_graph_executor_generic.hh"
 
 namespace blender::fn::lazy_function {
 
@@ -79,6 +80,7 @@ class GraphExecutor : public LazyFunction {
   using Logger = GraphExecutorLogger;
   using SideEffectProvider = GraphExecutorSideEffectProvider;
   using NodeExecuteWrapper = GraphExecutorNodeExecuteWrapper;
+  using GenericExecutor = generic_graph_executor::GenericGraphExecutor;
 
  private:
   /**
@@ -107,18 +109,12 @@ class GraphExecutor : public LazyFunction {
   const NodeExecuteWrapper *node_execute_wrapper_;
 
   /**
-   * When a graph is executed, various things have to be allocated (e.g. the state of all nodes).
-   * Instead of doing many small allocations, a single bigger allocation is done. This struct
-   * contains the preprocessed offsets into that bigger buffer.
+   * The graph executor implementation does some preprocessing for the graph. This only has to be
+   * done once even if the graph is executed multiple times.
    */
-  struct {
-    int node_states_array_offset;
-    int loaded_inputs_array_offset;
-    Array<int> node_states_offsets;
-    int total_size;
-  } init_buffer_info_;
+  generic_graph_executor::PreprocessData preprocess_data_;
 
-  friend class Executor;
+  friend GenericExecutor;
 
  public:
   GraphExecutor(const Graph &graph,

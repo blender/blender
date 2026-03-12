@@ -929,11 +929,16 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
 
   const size_t triangles_size = num_triangles();
   const int *shader_ptr = shader.data();
-  const bool *smooth_ptr = smooth.data();
+
+  /* Corner normals override the smooth flag, as the flatness is already
+   * encoded in the corner normals and we always interpolate them. */
+  const bool use_corner_normals = attributes.find(ATTR_STD_CORNER_NORMAL) != nullptr;
+  const bool *smooth_ptr = (use_corner_normals) ? nullptr : smooth.data();
+  const bool smooth_constant = (use_corner_normals) ? true : false;
 
   for (size_t i = 0; i < triangles_size; i++) {
     const int new_shader = shader_ptr ? shader_ptr[i] : INT_MAX;
-    const bool new_smooth = smooth_ptr ? smooth_ptr[i] : false;
+    const bool new_smooth = smooth_ptr ? smooth_ptr[i] : smooth_constant;
 
     if (new_shader != last_shader || last_smooth != new_smooth) {
       last_shader = new_shader;
