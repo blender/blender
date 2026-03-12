@@ -701,6 +701,20 @@ void funcTfloatT1(float a) {
   }
   {
     string input = R"(
+template<int i, uint j, int k> E func() { return E(i + j + k); }
+template E func<0x1, 2, -1>();
+)";
+    string expect = R"(
+E funcT0x1T2T_1() { return E(0x1 + 2 + -1); }
+#line 4
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
 template<enum E e, char i> E func() { return E(e + i); }
 template E func<v, 2>();
 )";
