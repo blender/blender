@@ -174,11 +174,11 @@ class VKTexturePool : public TexturePool {
                            eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                            const char *name = nullptr) override;
 
-  void release_texture(Texture *tex) override;
+  void release_texture(Texture *texture) override;
 
   void reset(bool force_free = false) override;
 
-  void offset_users_count(Texture *tex, int offset) override;
+  void offset_users_count(Texture *texture, int offset) override;
 };
 
 }  // namespace blender::gpu

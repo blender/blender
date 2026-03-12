@@ -353,7 +353,7 @@ const VKResourceBinding &VKShaderInterface::resource_binding_info(
   return resource_bindings_[index];
 }
 
-const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
+VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
     const shader::ShaderCreateInfo::Resource &resource) const
 {
   const ShaderInput *shader_input = shader_input_get(resource);
@@ -361,7 +361,7 @@ const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
   return resource_binding_info(shader_input).location;
 }
 
-const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set_location(
+std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set_location(
     const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
 {
   const ShaderInput *shader_input = shader_input_get(bind_type, binding);

@@ -9,9 +9,7 @@
 #include "BKE_appdir.hh"
 
 #include "BLI_fileops.hh"
-#include "BLI_hash.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_time.h"
 #ifdef _WIN32
 #  include "BLI_winstuff.h"
 #endif
@@ -19,8 +17,6 @@
 #include "vk_shader.hh"
 #include "vk_shader_compiler.hh"
 
-#include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <string>
 

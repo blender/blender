@@ -145,9 +145,7 @@ VKDiscardPool &VKDiscardPool::discard_pool_get()
   if (G.is_rendering) {
     return device.orphaned_data_render;
   }
-  else {
-    return device.orphaned_data;
-  }
+  return device.orphaned_data;
 }
 
 std::ostream &operator<<(std::ostream &os, const VKDiscardPool &discard_pool)

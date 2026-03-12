@@ -231,19 +231,19 @@ class VKStateManager : public StateManager {
 
   void issue_barrier(GPUBarrier barrier_bits) override;
 
-  void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;
-  void texture_unbind(Texture *tex) override;
+  void texture_bind(Texture *texture, GPUSamplerState sampler, int binding) override;
+  void texture_unbind(Texture *texture) override;
   void texture_unbind_all() override;
 
-  void image_bind(Texture *tex, int unit) override;
-  void image_unbind(Texture *tex) override;
+  void image_bind(Texture *texture, int binding) override;
+  void image_unbind(Texture *texture) override;
   void image_unbind_all() override;
 
-  void uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int slot);
+  void uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int binding);
   void uniform_buffer_unbind(VKUniformBuffer *uniform_buffer);
   void uniform_buffer_unbind_all();
 
-  void texel_buffer_bind(VKVertexBuffer &vertex_buffer, int slot);
+  void texel_buffer_bind(VKVertexBuffer &vertex_buffer, int binding);
   void texel_buffer_unbind(VKVertexBuffer &vertex_buffer);
 
   void storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,

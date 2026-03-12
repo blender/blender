@@ -27,11 +27,10 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
 {
   render_graph::VKRenderGraph &render_graph = context.render_graph();
   const bool allocate_new_buffer = !(host_buffer_.has_value() &&
-                                     data_size <
-                                         host_buffer_.value().get()->size_in_bytes() - offset_);
+                                     data_size < host_buffer_.value()->size_in_bytes() - offset_);
   if (allocate_new_buffer) {
     host_buffer_.emplace(std::make_unique<VKBuffer>());
-    VKBuffer &host_buffer = *host_buffer_.value().get();
+    VKBuffer &host_buffer = *host_buffer_.value();
     host_buffer.create(vk_buffer_size_,
                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                        VMA_MEMORY_USAGE_AUTO,
@@ -44,7 +43,7 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
         host_buffer.vk_handle(), vk_buffer_dst(), {0, 0, 0}};
     copy_buffer_handle_ = render_graph.add_node(copy_buffer);
   }
-  VKBuffer &host_buffer = *host_buffer_.value().get();
+  VKBuffer &host_buffer = *host_buffer_.value();
 
   VkDeviceSize start_offset = offset_;
   /* Advance the offset to the next possible offset considering the minimum allowed offset

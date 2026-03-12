@@ -192,7 +192,7 @@ void vk_index_buffer_binding_build_commands(VKCommandBufferInterface &command_bu
                                             VKIndexBufferBinding &r_bound_index_buffer);
 void vk_vertex_buffer_bindings_build_links(VKResourceStateTracker &resources,
                                            VKRenderGraphLinks &links,
-                                           const VKVertexBufferBindings &vertex_buffer_bindings);
+                                           const VKVertexBufferBindings &vertex_buffers);
 void vk_vertex_buffer_bindings_build_commands(VKCommandBufferInterface &command_buffer,
                                               const VKVertexBufferBindings &vertex_buffer_bindings,
                                               VKVertexBufferBindings &r_bound_vertex_buffers);

@@ -71,16 +71,16 @@ void VKStateManager::texture_unbind_all()
   is_dirty = true;
 }
 
-void VKStateManager::image_bind(Texture *tex, int binding)
+void VKStateManager::image_bind(Texture *texture_, int binding)
 {
-  VKTexture *texture = unwrap(tex);
-  images_.bind(texture, binding, TextureWriteFormat(tex->format_get()), this);
+  VKTexture *texture = unwrap(texture_);
+  images_.bind(texture, binding, TextureWriteFormat(texture->format_get()), this);
   is_dirty = true;
 }
 
-void VKStateManager::image_unbind(Texture *tex)
+void VKStateManager::image_unbind(Texture *texture_)
 {
-  VKTexture *texture = unwrap(tex);
+  VKTexture *texture = unwrap(texture_);
   images_.unbind(texture, this);
   is_dirty = true;
 }

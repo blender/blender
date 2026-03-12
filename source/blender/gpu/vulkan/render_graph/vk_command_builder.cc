@@ -7,6 +7,7 @@
  */
 
 #include "vk_command_builder.hh"
+#include "BLI_index_range.hh"
 #include "vk_backend.hh"
 #include "vk_render_graph.hh"
 #include "vk_to_string.hh"
@@ -203,16 +204,18 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
     int64_t barrier_list_size = barrier_list_.size();
     group_pre_barriers_.append(group_pre_barriers.with_new_end(barrier_list_size));
     barrier_list_.extend(std::move(post_barriers));
+    post_barriers = {};
     group_post_barriers_.append(
         IndexRange::from_begin_end(barrier_list_size, barrier_list_.size()));
     if (!node_pre_barriers.is_empty()) {
       barrier_list_size = barrier_list_.size();
       barrier_list_.extend(std::move(node_pre_barriers));
+      node_pre_barriers = {};
       /* Shift all node pre barrier references to the new location in the barrier_list_. */
       for (const int64_t group_node_index : node_group) {
         NodeHandle node_handle = node_handles[group_node_index];
         if (!node_pre_barriers_[node_handle].is_empty()) {
-          node_pre_barriers_[node_handle].from_begin_size(
+          node_pre_barriers_[node_handle] = IndexRange::from_begin_size(
               node_pre_barriers_[node_handle].start() + barrier_list_size, 1);
         }
       }
@@ -330,7 +333,7 @@ bool VKCommandBuilder::node_has_input_attachments(const VKRenderGraph &render_gr
                                                   NodeHandle node_handle)
 {
   const Span<VKRenderGraphImage> images = render_graph.linked_images(node_handle);
-  return std::any_of(images.begin(), images.end(), [](const VKRenderGraphImage &input) {
+  return std::ranges::any_of(images.begin(), images.end(), [](const VKRenderGraphImage &input) {
     return input.vk_access_flags & VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
   });
 }
@@ -737,8 +740,8 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
                                          Barrier &r_barrier,
                                          VkAccessFlags src_access_mask,
                                          VkAccessFlags dst_access_mask,
-                                         VkImageLayout old_layout,
-                                         VkImageLayout new_layout,
+                                         VkImageLayout old_image_layout,
+                                         VkImageLayout new_image_layout,
                                          VkImageAspectFlags aspect_mask,
                                          const VKSubImageRange &subimage)
 {
@@ -759,7 +762,7 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
        */
       if ((vk_image_memory_barrier.dstAccessMask & dst_access_mask) == dst_access_mask &&
           (vk_image_memory_barrier.srcAccessMask & src_access_mask) == src_access_mask &&
-          old_layout == new_layout)
+          old_image_layout == new_image_layout)
       {
         return;
       }
@@ -770,8 +773,8 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
                                     nullptr,
                                     src_access_mask,
                                     dst_access_mask,
-                                    old_layout,
-                                    new_layout,
+                                    old_image_layout,
+                                    new_image_layout,
                                     VK_QUEUE_FAMILY_IGNORED,
                                     VK_QUEUE_FAMILY_IGNORED,
                                     vk_image,
