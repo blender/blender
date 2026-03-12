@@ -98,6 +98,8 @@
 
 #include "NOD_shader.h"
 
+#include "ANIM_versioning.hh"
+
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
@@ -1829,7 +1831,7 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       BLI_str_escape(node_name_esc, node.name, sizeof(node_name_esc));
 
       char *nodePath = BLI_sprintfN("nodes[\"%s\"]", node_name_esc);
-      BKE_fcurves_id_cb(&ntree->id, [&](ID * /*id*/, FCurve *fcu) {
+      animrig::versioning::fcurves_id_cb(&ntree->id, [&](ID * /*id*/, FCurve *fcu) {
         update_mapping_node_fcurve_rna_path_callback(fcu, nodePath, minimumNode, maximumNode);
       });
       MEM_delete(nodePath);
@@ -2907,7 +2909,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     /* During development of Blender 2.80 the "Object.hide" property was
      * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
     for (Object &ob : bmain->objects) {
-      BKE_fcurves_id_cb(&ob.id, [&](ID * /*id*/, FCurve *fcu) {
+      animrig::versioning::fcurves_id_cb(&ob.id, [&](ID * /*id*/, FCurve *fcu) {
         if (fcu->rna_path == nullptr || !STREQ(fcu->rna_path, "hide")) {
           return;
         }

@@ -174,7 +174,12 @@ void BKE_animdata_main_cb(struct Main *bmain, FunctionRef<void(ID *, AnimData *)
 /** Apply the given callback function on all F-Curves attached to data in `main` database. */
 void BKE_fcurves_main_cb(struct Main *bmain, FunctionRef<void(ID *, FCurve *)> func);
 
-/* Look over all f-curves of a given ID. */
+/**
+ * Loop over all f-curves of a given ID.
+ *
+ * \note Only use this function in versioning code after the conversion to layered
+ * actions happened which is at the start of `do_versions_after_linking_440`.
+ */
 void BKE_fcurves_id_cb(struct ID *id, FunctionRef<void(ID *, FCurve *)> func);
 
 /* ************************************* */

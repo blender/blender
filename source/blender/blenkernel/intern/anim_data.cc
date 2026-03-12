@@ -50,6 +50,7 @@
 
 #include "ANIM_action_iterators.hh"
 #include "ANIM_action_legacy.hh"
+#include "ANIM_versioning.hh"
 
 #include "CLG_log.h"
 
@@ -946,6 +947,36 @@ static bool drivers_path_rename_fix(ID *owner_id,
   return is_changed;
 }
 
+static bool rename_paths_action(bAction *dna_action,
+                                const animrig::slot_handle_t slot_handle,
+                                ID *owner_id,
+                                const char *prefix,
+                                const char *oldName,
+                                const char *newName,
+                                const char *oldKey,
+                                const char *newKey,
+                                const bool verify_paths)
+{
+  animrig::Action &action = dna_action->wrap();
+  bool is_changed_action;
+  /* Since this code path is used for versioning of actions before they are converted to layered,
+   * we have to keep support for legacy actions here. */
+  if (animrig::versioning::action_is_layered(action)) {
+    const Span<FCurve *> fcurves = animrig::fcurves_for_action_slot(action, slot_handle);
+    is_changed_action = fcurves_path_rename_fix(
+        owner_id, prefix, oldName, newName, oldKey, newKey, fcurves, verify_paths);
+  }
+  else {
+    const Vector<FCurve *> fcurves = animrig::versioning::fcurves_for_legacy_action(dna_action);
+    is_changed_action = fcurves_path_rename_fix(
+        owner_id, prefix, oldName, newName, oldKey, newKey, fcurves, verify_paths);
+  }
+  if (is_changed_action) {
+    DEG_id_tag_update(&dna_action->id, ID_RECALC_ANIMATION);
+  }
+  return is_changed_action;
+}
+
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
 static bool nlastrips_path_rename_fix(ID *owner_id,
                                       const char *prefix,
@@ -961,13 +992,15 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
   for (NlaStrip &strip : *strips) {
     /* fix strip's action */
     if (strip.act != nullptr) {
-      const Vector<FCurve *> fcurves = animrig::fcurves_for_action_slot(strip.act->wrap(),
-                                                                        strip.action_slot_handle);
-      const bool is_changed_action = fcurves_path_rename_fix(
-          owner_id, prefix, oldName, newName, oldKey, newKey, fcurves, verify_paths);
-      if (is_changed_action) {
-        DEG_id_tag_update(&strip.act->id, ID_RECALC_ANIMATION);
-      }
+      const bool is_changed_action = rename_paths_action(strip.act,
+                                                         strip.action_slot_handle,
+                                                         owner_id,
+                                                         prefix,
+                                                         oldName,
+                                                         newName,
+                                                         oldKey,
+                                                         newKey,
+                                                         verify_paths);
       is_changed |= is_changed_action;
     }
     /* Ignore own F-Curves, since those are local. */
@@ -1128,22 +1161,26 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
   }
   /* Active action and temp action. */
   if (adt->action != nullptr && adt->slot_handle != animrig::Slot::unassigned) {
-    const Vector<FCurve *> fcurves = animrig::fcurves_for_action_slot(adt->action->wrap(),
-                                                                      adt->slot_handle);
-    if (fcurves_path_rename_fix(
-            owner_id, prefix, oldName, newName, oldN, newN, fcurves, verify_paths))
-    {
-      DEG_id_tag_update(&adt->action->id, ID_RECALC_SYNC_TO_EVAL);
-    }
+    rename_paths_action(adt->action,
+                        adt->slot_handle,
+                        owner_id,
+                        prefix,
+                        oldName,
+                        newName,
+                        oldN,
+                        newN,
+                        verify_paths);
   }
   if (adt->tmpact) {
-    const Vector<FCurve *> fcurves = animrig::fcurves_for_action_slot(adt->tmpact->wrap(),
-                                                                      adt->tmp_slot_handle);
-    if (fcurves_path_rename_fix(
-            owner_id, prefix, oldName, newName, oldN, newN, fcurves, verify_paths))
-    {
-      DEG_id_tag_update(&adt->tmpact->id, ID_RECALC_SYNC_TO_EVAL);
-    }
+    rename_paths_action(adt->tmpact,
+                        adt->tmp_slot_handle,
+                        owner_id,
+                        prefix,
+                        oldName,
+                        newName,
+                        oldN,
+                        newN,
+                        verify_paths);
   }
   /* Drivers - Drivers are really F-Curves */
   is_self_changed |= drivers_path_rename_fix(
@@ -1296,11 +1333,10 @@ static bool nlastrips_apply_all_curves_cb(ID *id,
                                           ListBaseT<NlaStrip> *strips,
                                           const IDFCurveCallback func)
 {
-  /* This function is used (via `BKE_fcurves_id_cb()`) by the versioning system.
-   * As such, legacy Actions should always be expected here. */
-
   for (NlaStrip &strip : *strips) {
     if (strip.act) {
+      BLI_assert_msg(BLI_listbase_is_empty(&strip.act->curves),
+                     "Legacy Actions are not supported here");
       const Vector<FCurve *> fcurves = animrig::fcurves_for_action_slot(strip.act->wrap(),
                                                                         strip.action_slot_handle);
       if (!fcurves_apply_cb(id, fcurves, func)) {
@@ -1325,10 +1361,9 @@ static bool nlastrips_apply_all_curves_cb(ID *id,
  */
 static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallback func)
 {
-  /* This function is used (via `BKE_fcurves_id_cb()`) by the versioning system.
-   * As such, legacy Actions should always be expected here. */
-
   if (adt->action) {
+    BLI_assert_msg(BLI_listbase_is_empty(&adt->action->curves),
+                   "Legacy Actions are not supported here");
     if (!fcurves_apply_cb(
             id, animrig::fcurves_for_action_slot(adt->action->wrap(), adt->slot_handle), func))
     {
@@ -1337,6 +1372,8 @@ static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallba
   }
 
   if (adt->tmpact) {
+    BLI_assert_msg(BLI_listbase_is_empty(&adt->tmpact->curves),
+                   "Legacy Actions are not supported here");
     if (!fcurves_apply_cb(
             id, animrig::fcurves_for_action_slot(adt->tmpact->wrap(), adt->tmp_slot_handle), func))
     {
