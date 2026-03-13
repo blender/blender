@@ -199,12 +199,15 @@ void MotionBlurModule::render(View &view, gpu::Texture **input_tx, gpu::Texture 
   int2 tiles_extent = math::divide_ceil(extent, int2(MOTION_BLUR_TILE_SIZE));
 
   if (inst_.is_viewport()) {
-    float frame_delta = fabsf(inst_.velocity.step_time_delta_get(STEP_PREVIOUS, STEP_CURRENT));
+    float frame_delta_between_steps = fabsf(
+        inst_.velocity.step_time_delta_get(STEP_PREVIOUS, STEP_CURRENT));
     /* Avoid highly disturbing blurs, during navigation with high shutter time. */
-    if (frame_delta > 0.0f && !inst_.is_navigating) {
+    if (frame_delta_between_steps > 0.0f && !inst_.is_navigating) {
       /* Rescale motion blur intensity to be shutter time relative and avoid long streak when we
-       * have frame skipping. Always try to stick to what the render frame would look like. */
-      data_.motion_scale = float2(shutter_time_ / frame_delta);
+       * have frame skipping. Always try to stick to what the render frame would look like.
+       * For viewport, only previous motion is supported and always uses "Center on Frame" shutter
+       * position. */
+      data_.motion_scale = float2(0.5f, 0.5f) * float2(shutter_time_ / frame_delta_between_steps);
     }
     else {
       /* There is no time change. Motion only comes from viewport navigation and object transform.
