@@ -860,7 +860,7 @@ static const auto &builtin_attributes()
         mf::build::exec_presets::AllSpanOrSingle());
     AttrBuiltinInfo edge_verts(AttrDomain::Edge, AttrType::Int32_2D);
     edge_verts.validator = AttributeValidator{&int2_index_clamp};
-    map.add_new("edge_verts", std::move(edge_verts));
+    map.add_new(".edge_verts", std::move(edge_verts));
 
     /* NOTE: This clamping is more of a last resort, since it's quite easy to make an
      * invalid mesh that will crash Blender by arbitrarily editing this attribute. */
@@ -870,11 +870,11 @@ static const auto &builtin_attributes()
         mf::build::exec_presets::AllSpanOrSingle());
     AttrBuiltinInfo corner_vert(AttrDomain::Corner, AttrType::Int32);
     corner_vert.validator = AttributeValidator{&int_index_clamp};
-    map.add_new("corner_vert", std::move(corner_vert));
+    map.add_new(".corner_vert", std::move(corner_vert));
 
     AttrBuiltinInfo corner_edge(AttrDomain::Corner, AttrType::Int32);
     corner_edge.validator = AttributeValidator{&int_index_clamp};
-    map.add_new("corner_edge", std::move(corner_edge));
+    map.add_new(".corner_edge", std::move(corner_edge));
 
     AttrBuiltinInfo sharp_face(AttrDomain::Face, AttrType::Bool);
     map.add_new("sharp_face", std::move(sharp_face));

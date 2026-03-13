@@ -228,9 +228,6 @@ void GeometryDataSource::foreach_default_column_ids(
   if (!attributes.has_value()) {
     return;
   }
-  if (attributes->domain_size(domain_) == 0) {
-    return;
-  }
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
     fn({const_cast<char *>("Name")}, false);
@@ -274,9 +271,6 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     return {};
   }
   const int domain_num = attributes->domain_size(domain_);
-  if (domain_num == 0) {
-    return {};
-  }
   if (!display_attribute(column_id.name, domain_)) {
     return {};
   }
