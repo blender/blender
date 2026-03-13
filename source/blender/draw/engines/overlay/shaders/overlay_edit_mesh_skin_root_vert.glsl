@@ -20,14 +20,16 @@ void main()
   float3 right = normalize(imat * drw_view().viewinv[0].xyz);
   float3 up = normalize(imat * drw_view().viewinv[1].xyz);
 #ifdef VERTEX_PULL
-  int instance_id = gl_VertexID / 64;
-  int vert_id = gl_VertexID % 64;
+  /* Increment count. */
+  const int circle_vert_count = 30;
+  int instance_id = gl_VertexID / circle_vert_count;
+  int vert_id = gl_VertexID % circle_vert_count;
   /* TODO(fclem): Use correct vertex format. For now we read the format manually. */
   float circle_size = size[instance_id * 4];
   float3 lP = float3(
       size[instance_id * 4 + 1], size[instance_id * 4 + 2], size[instance_id * 4 + 3]);
 
-  float theta = M_TAU * (float(vert_id) / 63.0f);
+  float theta = M_TAU * (float(vert_id) / float(circle_vert_count));
   float3 circle_P = float3(cos(theta), 0.0f, sin(theta));
   final_color = theme.colors.skinroot;
 #else
