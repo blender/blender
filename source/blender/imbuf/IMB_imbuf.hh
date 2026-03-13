@@ -239,6 +239,10 @@ void IMB_blend_color_float(float dst[4],
                            const float src1[4],
                            const float src2[4],
                            IMB_BlendMode mode);
+void IMB_blend_color_float(MutableSpan<float4> dst,
+                           Span<float4> src1,
+                           Span<float4> src2,
+                           IMB_BlendMode mode);
 
 /**
  * In-place image crop.
