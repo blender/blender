@@ -92,7 +92,14 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
  * \brief Return the #BMEditMesh for a given object
  *
  * \note this function assumes this is a mesh object,
- * don't add NULL data check here. caller must do that
+ * don't add NULL data check here. caller must do that.
+ *
+ * \note Even in edit-mode, evaluated objects may return null since the
+ * evaluated mesh may have had its edit-mesh cleared.
+ *
+ * In this case the caller must either:
+ * - Use the original mesh to guarantee #BMEditMesh is returned.
+ * - Null check the result if we want to respect the evaluated result, see: #154739.
  */
 BMEditMesh *BKE_editmesh_from_object(Object *ob);
 

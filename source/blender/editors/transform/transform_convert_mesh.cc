@@ -1335,11 +1335,12 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
       /* Use evaluated state because we need b-bone cache. */
       Scene *scene_eval = DEG_get_evaluated(t->depsgraph, t->scene);
       Object *obedit_eval = DEG_get_evaluated(t->depsgraph, tc->obedit);
-      BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
+      /* We always want the edit-mesh (evaluation may clear it). */
+      BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
       /* Check if we can use deform matrices for modifier from the
        * start up to stack, they are more accurate than quats. */
       totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
-          t->depsgraph, scene_eval, obedit_eval, em_eval, r_crazyspace_data->defmats, defcos);
+          t->depsgraph, scene_eval, obedit_eval, em, r_crazyspace_data->defmats, defcos);
     }
 
     /* If we still have more modifiers, also do crazy-space

@@ -14,6 +14,8 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "ED_transform_snap_object_context.hh"
 
 #include "transform_snap_object.hh"
@@ -96,7 +98,7 @@ static Mesh *create_mesh(SnapObjectContext *sctx,
                          eSnapEditType /*edit_mode_type*/)
 {
   Mesh *mesh = BKE_id_new_nomain<Mesh>(nullptr);
-  const BMEditMesh *em = BKE_editmesh_from_object(const_cast<Object *>(ob_eval));
+  const BMEditMesh *em = BKE_editmesh_from_object(const_cast<Object *>(DEG_get_original(ob_eval)));
   BMesh *bm = em->bm;
   BM_mesh_bm_to_me_compact(*bm, *mesh, nullptr, false);
 
@@ -239,7 +241,7 @@ static SnapCache_EditMesh *editmesh_snapdata_init(SnapObjectContext *sctx,
     }
   }
 
-  const BMEditMesh *em = BKE_editmesh_from_object(const_cast<Object *>(ob_eval));
+  const BMEditMesh *em = BKE_editmesh_from_object(const_cast<Object *>(DEG_get_original(ob_eval)));
   if (em == nullptr) {
     return nullptr;
   }

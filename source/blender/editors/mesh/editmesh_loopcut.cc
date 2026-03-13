@@ -141,9 +141,9 @@ static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
     if (gcache->is_init == false) {
       Scene *scene_eval = DEG_get_evaluated(lcd->vc.depsgraph, lcd->vc.scene);
       Object *ob_eval = DEG_get_evaluated(lcd->vc.depsgraph, lcd->ob);
-      BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
+      BMEditMesh *em = BKE_editmesh_from_object(lcd->ob);
       gcache->vert_positions = BKE_editmesh_vert_coords_when_deformed(
-          lcd->vc.depsgraph, em_eval, scene_eval, ob_eval, gcache->allocated_vert_positions);
+          lcd->vc.depsgraph, em, scene_eval, ob_eval, gcache->allocated_vert_positions);
       gcache->is_init = true;
     }
 
