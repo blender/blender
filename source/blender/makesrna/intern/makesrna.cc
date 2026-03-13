@@ -1601,10 +1601,6 @@ static char *rna_def_property_lookup_int_func(FILE *f,
   }
 
   if (!manualfunc) {
-    if (!dp->dnastructname || !dp->dnaname) {
-      return nullptr;
-    }
-
     /* only supported in case of standard next functions */
     if (STREQ(nextfunc, "rna_iterator_array_next")) {
     }
@@ -1679,46 +1675,6 @@ static char *rna_def_property_lookup_int_func(FILE *f,
   fprintf(f, "    %s_%s_end(&iter);\n\n", srna->identifier, rna_safe_id(prop->identifier));
 
   fprintf(f, "    return found;\n");
-
-#if 0
-  rna_print_data_get(f, dp);
-  item_type = (cprop->item_type) ? (const char *)cprop->item_type : "UnknownType";
-
-  if (dp->dnalengthname || dp->dnalengthfixed) {
-    if (dp->dnalengthname) {
-      fprintf(f,
-              "\n    rna_array_lookup_int(ptr, RNA_%s, data->%s, sizeof(data->%s[0]), data->%s, "
-              "index);\n",
-              item_type,
-              dp->dnaname,
-              dp->dnaname,
-              dp->dnalengthname);
-    }
-    else {
-      fprintf(
-          f,
-          "\n    rna_array_lookup_int(ptr, RNA_%s, data->%s, sizeof(data->%s[0]), %d, index);\n",
-          item_type,
-          dp->dnaname,
-          dp->dnaname,
-          dp->dnalengthfixed);
-    }
-  }
-  else {
-    if (dp->dnapointerlevel == 0) {
-      fprintf(f,
-              "\n    return rna_listbase_lookup_int(ptr, RNA_%s, &data->%s, index);\n",
-              item_type,
-              dp->dnaname);
-    }
-    else {
-      fprintf(f,
-              "\n    return rna_listbase_lookup_int(ptr, RNA_%s, data->%s, index);\n",
-              item_type,
-              dp->dnaname);
-    }
-  }
-#endif
 
   fprintf(f, "}\n\n");
 
