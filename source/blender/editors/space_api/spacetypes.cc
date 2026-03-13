@@ -214,11 +214,6 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
     if (type->keymap) {
       type->keymap(keyconf);
     }
-    for (ARegionType &region_type : type->regiontypes) {
-      if (region_type.keymap) {
-        region_type.keymap(keyconf);
-      }
-    }
   }
 }
 
