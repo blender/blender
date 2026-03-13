@@ -43,5 +43,8 @@ void main()
   float4 pos_4d = drw_modelmat() * float4(lP + screen_pos, 1.0f);
   gl_Position = drw_view().winmat * (drw_view().viewmat * pos_4d);
 
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
+                          uniform_buf.size_viewport;
+
   view_clipping_distances(pos_4d.xyz);
 }

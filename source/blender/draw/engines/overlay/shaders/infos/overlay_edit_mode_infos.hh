@@ -300,8 +300,9 @@ CREATE_INFO_VARIANT(overlay_edit_mesh_analysis_clipped, overlay_edit_mesh_analys
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root)
 DO_STATIC_COMPILATION()
-VERTEX_OUT(overlay_edit_flat_color_iface)
+VERTEX_OUT(overlay_edit_flat_wire_iface)
 FRAGMENT_OUT(0, float4, frag_color)
+FRAGMENT_OUT(1, float4, line_output)
 VERTEX_SOURCE("overlay_edit_mesh_skin_root_vert.glsl")
 FRAGMENT_SOURCE("overlay_varying_color.glsl")
 ADDITIONAL_INFO(draw_view)
@@ -310,6 +311,7 @@ ADDITIONAL_INFO(draw_globals)
 /* TODO(fclem): Use correct vertex format. For now we read the format manually. */
 STORAGE_BUF_FREQ(0, read, float, size[], GEOMETRY)
 DEFINE("VERTEX_PULL")
+DEFINE("LINE_OUTPUT_NO_DUMMY")
 GPU_SHADER_CREATE_END()
 
 CREATE_INFO_VARIANT(overlay_edit_mesh_skin_root_clipped, overlay_edit_mesh_skin_root, drw_clipped)
