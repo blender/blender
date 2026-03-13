@@ -6694,6 +6694,7 @@ static Material *get_or_create_current_material(bContext *C, Object *ob)
     Main *bmain = CTX_data_main(C);
     ma = BKE_material_add(bmain, "Material");
     BKE_object_material_assign(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
+    nodes::node_tree_shader_default(C, bmain, &ma->id);
   }
   return ma;
 }
