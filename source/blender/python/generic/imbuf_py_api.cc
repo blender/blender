@@ -314,7 +314,7 @@ PyDoc_STRVAR(
     py_imbuf_filepath_doc,
     "Filepath associated with this image.\n"
     "\n"
-    ":type: str\n");
+    ":type: str | bytes\n");
 static PyObject *py_imbuf_filepath_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -326,16 +326,14 @@ static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void * /*closu
 {
   PY_IMBUF_CHECK_INT(self);
 
-  if (!PyUnicode_Check(value)) {
-    PyErr_SetString(PyExc_TypeError, "expected a string!");
-    return -1;
-  }
-
   ImBuf *ibuf = self->ibuf;
   const Py_ssize_t value_str_len_max = sizeof(ibuf->filepath);
   PyObject *value_coerce = nullptr;
   Py_ssize_t value_str_len;
   const char *value_str = PyC_UnicodeAsBytesAndSize(value, &value_str_len, &value_coerce);
+  if (UNLIKELY(value_str == nullptr)) {
+    return -1;
+  }
   if (value_str_len >= value_str_len_max) {
     PyErr_Format(PyExc_TypeError, "filepath length over %zd", value_str_len_max - 1);
     Py_XDECREF(value_coerce);
