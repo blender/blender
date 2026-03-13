@@ -1585,12 +1585,8 @@ static char *rna_def_property_begin_func(
   return func;
 }
 
-static char *rna_def_property_lookup_int_func(FILE *f,
-                                              StructRNA *srna,
-                                              PropertyRNA *prop,
-                                              PropertyDefRNA *dp,
-                                              const char *manualfunc,
-                                              const char *nextfunc)
+static char *rna_def_property_lookup_int_func(
+    FILE *f, StructRNA *srna, PropertyRNA *prop, const char *manualfunc, const char *nextfunc)
 {
   /* note on indices, this is for external functions and ignores skipped values.
    * so the index can only be checked against the length when there is no 'skip' function. */
@@ -2161,7 +2157,7 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
           f, srna, prop, dp, reinterpret_cast<const char *>(cprop->end)));
       cprop->lookupint = reinterpret_cast<PropCollectionLookupIntFunc>(
           rna_def_property_lookup_int_func(
-              f, srna, prop, dp, reinterpret_cast<const char *>(cprop->lookupint), nextfunc));
+              f, srna, prop, reinterpret_cast<const char *>(cprop->lookupint), nextfunc));
       cprop->lookupstring = reinterpret_cast<PropCollectionLookupStringFunc>(
           rna_def_property_lookup_string_func(
               f, srna, prop, dp, reinterpret_cast<const char *>(cprop->lookupstring), item_type));
