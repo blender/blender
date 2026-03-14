@@ -35,7 +35,7 @@ struct wmXrSessionState {
 
   /** Last known viewer pose (centroid of eyes, in world space) stored for queries. */
   GHOST_XrPose viewer_pose;
-  /** The last known view matrix, calculated from above's viewer pose. */
+  /** The last known view matrix, calculated from the above viewer pose. */
   float viewer_viewmat[4][4];
   /** The last known viewer matrix, without navigation applied. */
   float viewer_mat_base[4][4];

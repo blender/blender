@@ -268,7 +268,7 @@ bool clip_ray(float3 &start,
 }
 
 /*
- * Similar to raytrace_screen, but modified to fit the needs of the Raycast node:
+ * Similar to `raytrace_screen`, but modified to fit the needs of the Ray-cast node:
  * - Improves the support for rays parallel or nearly parallel to the incoming direction.
  * - Supports discarding hits against other objects.
  * - Traverses every single pixel between start and end, unless the number of steps required is

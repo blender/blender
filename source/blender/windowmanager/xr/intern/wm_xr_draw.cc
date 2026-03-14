@@ -179,7 +179,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   bContext *xr_context = WM_xr_session_context_get(xr_data);
   Scene *scene = CTX_data_scene(xr_context);
 
-  /* The XR context depgraph is separately evaluted outside of drawing within the XR surface
+  /* The XR context depsgraph is separately evaluated outside of drawing within the XR surface
    * #do_depsgraph callback. Thus, obtain the depsgraph directly without evaluating it. */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(xr_context);
 

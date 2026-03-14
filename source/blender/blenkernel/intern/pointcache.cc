@@ -1738,9 +1738,7 @@ int BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm, void *cur[BPH
   if (index < 0) {
     /* Can't give proper location without reallocation, so don't give any location.
      * Some points will be cached improperly, but this only happens with simulation
-     * steps bigger than cache->step, so the cache has to be recalculated anyways
-     * at some point.
-     */
+     * steps bigger than cache->step, so the cache has to be recalculated anyway at some point. */
     return 0;
   }
 

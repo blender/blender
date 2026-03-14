@@ -841,8 +841,8 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
                                                      lapp_context->params->flag,
                                                      object_set_active);
 
-    /* Instancing an object may also instance implicitely others, so we need to update the set
-     * everytime. */
+    /* Instancing an object may also instance implicitly others, so we need to update the set
+     * every time. */
     loose_data_gather_instanciated_objects(*instantiate_context, instanciated_objects);
   }
 }

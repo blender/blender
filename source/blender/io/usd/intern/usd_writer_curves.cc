@@ -684,7 +684,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 
   this->assign_materials(context, *usd_curves);
 
-  /* TODO: We cannot write custom privars for cyclic NURBS curves at the moment. */
+  /* TODO: We cannot write custom primvars for cyclic NURBS curves at the moment. */
   if (!is_cyclic || (is_cyclic && curve_type != CURVE_TYPE_NURBS)) {
     this->write_velocities(curves, *usd_curves);
     this->write_custom_data(curves, *usd_curves);

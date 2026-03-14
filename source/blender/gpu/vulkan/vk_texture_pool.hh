@@ -97,7 +97,7 @@ class VKTexturePool : public TexturePool {
     /* Return a segment to the allocation for reuse. */
     void release(VKMemorySegment segment);
 
-    /* Check if no part of the allocation is acuired. */
+    /* Check if no part of the allocation is acquired. */
     bool is_unused() const
     {
       return !segments.empty() && segments.front().size == allocation_info.size;

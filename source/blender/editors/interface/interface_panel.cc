@@ -327,7 +327,7 @@ void panels_free_instanced(const bContext *C, ARegion *region)
     if ((panel.type->flag & PANEL_TYPE_INSTANCED) == 0) {
       continue;
     }
-    /* Make sure any active handler is removed from this this panel or its children before deleting
+    /* Make sure any active handler is removed from this panel or its children before deleting
      * them. */
     if (C != nullptr) {
       panel_exit_state_recursive(C, panel);

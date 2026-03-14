@@ -543,7 +543,7 @@ void add_generic_get_opts(bContext *C,
 
     if (RNA_struct_property_is_set(op->ptr, "rotation")) {
       /* If rotation is set, always use it. Alignment (and corresponding user preference)
-       * can be ignored since this is in world space anyways.
+       * can be ignored since this is in world space anyway.
        * To not confuse (e.g. on redo), don't set it to #ALIGN_WORLD in the op UI though. */
       *r_is_view_aligned = false;
       RNA_float_get_array(op->ptr, "rotation", r_rot);

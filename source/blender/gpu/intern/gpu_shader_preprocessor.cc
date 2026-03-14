@@ -1471,7 +1471,7 @@ struct Preprocessor {
     if (visited_macros.contains(macro.id)) {
       /* Recursion. Do not expand. */
       /* Currently still replace by the original token (noop).
-       * Would be better to not bypass replacement alltogether. */
+       * Would be better to not bypass replacement altogether. */
       TokenStreamPtr expanded = stream_pool.alloc();
       *expanded << expanded_tok;
       return {std::move(expanded), expanded_tok};

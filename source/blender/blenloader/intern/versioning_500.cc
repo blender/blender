@@ -2961,7 +2961,7 @@ static void remove_in_and_out_node_panel_recursive(bNodeTreeInterfacePanel &pane
 }
 
 /**
- * Fix node interface sockest that could become both inputs and outputs before the current design
+ * Fix node interface sockets that could become both inputs and outputs before the current design
  * was settled on.
  */
 static void remove_in_and_out_node_interface(bNodeTree &node_tree)

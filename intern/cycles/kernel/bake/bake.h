@@ -180,7 +180,7 @@ ccl_device void kernel_volume_density_evaluate(KernelGlobals kg,
         index.x, PRNG_BAKE_VOLUME_DENSITY_EVAL, index.y, index.z);
     sd.P = ray.P + rand_p * voxel_size;
     if (need_transformation) {
-      /* Convert to world spcace. */
+      /* Convert to world space. */
       sd.P = transform_point(&tfm, sd.P);
     }
     sd.closure_transparent_extinction = zero_float3();

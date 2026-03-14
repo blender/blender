@@ -631,7 +631,7 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter);
 PointerRNA rna_array_lookup_int(
     PointerRNA *ptr, StructRNA *type, void *data, size_t itemsize, int64_t length, int64_t index);
 
-/* Duplicated code since we can't link in blenlib */
+/* Duplicated code since we can't link in `blenlib`. */
 
 #ifndef RNA_RUNTIME
 void *rna_alloc_from_buffer(const char *buffer, int buffer_size);

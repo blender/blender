@@ -1014,7 +1014,7 @@ static void mesh_tessface_calc(Mesh &mesh)
   const VArray sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", bke::AttrDomain::Face, false);
 
-  /* Allocate the length of `totfaces`, avoid many small reallocation's,
+  /* Allocate the length of `totfaces`, avoid many small reallocations,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
   /* Take care since memory is _not_ zeroed so be sure to initialize each field. */
   mface_to_poly_map = MEM_new_array_uninitialized<int>(size_t(corner_tris_num), __func__);

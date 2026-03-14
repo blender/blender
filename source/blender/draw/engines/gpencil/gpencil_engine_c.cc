@@ -800,7 +800,7 @@ void Instance::draw_mask(View &view, tObject *ob, tLayer *layer)
   }
 
   if (!inverted) {
-    /* Blend shader expect an opacity mask not a reavealage buffer. */
+    /* Blend shader expect an opacity mask not a revealage buffer. */
     manager->submit(this->mask_invert_ps);
   }
 

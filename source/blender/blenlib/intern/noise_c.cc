@@ -858,7 +858,7 @@ float BLI_noise_hnoisep(float noisesize, float x, float y, float z)
  * \{ */
 
 /* distance metrics for voronoi, e parameter only used in Minkowski */
-/* Camberra omitted, didn't seem useful */
+/* Canberra omitted, didn't seem useful. */
 
 /* distance squared */
 static float dist_Squared(float x, float y, float z, float e)

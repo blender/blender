@@ -962,7 +962,7 @@ static void replace_interface_socket(
     }
   }
   else {
-    /* A proxy is needed if any internal internal or external connection has a different type
+    /* A proxy is needed if any internal or external connection has a different type
      * and therefore cannot directly be connected without loss of conversion. */
     if (any_link_need_conversion(incoming_links, io_socket) &&
         any_link_need_conversion(outgoing_links, io_socket))

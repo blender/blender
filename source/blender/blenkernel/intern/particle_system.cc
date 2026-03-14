@@ -3091,14 +3091,15 @@ static void collision_fail(ParticleData *pa, ParticleCollision *col)
   // printf("max iterations\n");
 }
 
-/* Particle - Mesh collision detection and response
+/**
+ * Particle - Mesh collision detection and response.
  * Features:
- * -friction and damping
- * -angular momentum <-> linear momentum
- * -high accuracy by re-applying particle acceleration after collision
- * -handles moving, rotating and deforming meshes
- * -uses Newton-Rhapson iteration to find the collisions
- * -handles spherical particles and (nearly) point like particles
+ * - Friction and damping.
+ * - Angular momentum <-> linear momentum.
+ * - High accuracy by re-applying particle acceleration after collision.
+ * - Handles moving, rotating and deforming meshes.
+ * - Uses Newton-Raphson iteration to find the collisions.
+ * - Handles spherical particles and (nearly) point like particles.
  */
 static void collision_check(ParticleSimulationData *sim, int p, float dfra, float cfra)
 {

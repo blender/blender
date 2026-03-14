@@ -30,7 +30,7 @@ void Profiler::run()
       const int32_t cur_object = state->object;
 
       /* The state reads/writes should be atomic, but just to be sure
-       * check the values for validity anyways. */
+       * check the values for validity anyway. */
       if (cur_event < PROFILING_NUM_EVENTS) {
         event_samples[cur_event]++;
       }

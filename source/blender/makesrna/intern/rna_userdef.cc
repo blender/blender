@@ -1607,7 +1607,7 @@ namespace blender {
 
 #  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE RNA_define_fallback_property_update(0, nullptr)
 
-/* TODO(sergey): This technically belongs to blenlib, but we don't link
+/* TODO(@sergey): This technically belongs to `blenlib`, but we don't link
  * makesrna against it.
  */
 

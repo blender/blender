@@ -384,7 +384,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
 
   /**
    * Add a new split sub-layout, items placed in this sub-layout are added horizontally next to
-   * each other in row, but width is splitted between the first item and remaining items.
+   * each other in row, but width is split between the first item and remaining items.
    * \param percentage: Width percent to split.
    */
   Layout &split(float percentage, bool align);

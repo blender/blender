@@ -528,7 +528,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
     LOG_DEBUG << "  ConstantColor: " << colstr;
   }
 
-  /* Add average color attribtue. */
+  /* Add average color attribute. */
   std::string avgstr = OIIO::Strutil::join(pixel_stats.avg, ",", buf.spec().nchannels);
   if (use_openexr) {
     buf.specmod().attribute("oiio:AverageColor", avgstr);
@@ -670,7 +670,7 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
     ImageSpec small_spec = large_buf.spec();
     small_spec.extra_attribs.free();
 
-    /* Halve resolution and realliocate small buffer */
+    /* Halve resolution and reallocate small buffer */
     if (small_spec.width > 1) {
       small_spec.width /= 2;
     }

@@ -30,7 +30,7 @@ namespace blender {
 
 // static CLG_LogRef LOG = {"blend.doversion"};
 
-/* Saving file extension is now a property of the the File Output node. So inherit this
+/* Saving file extension is now a property of the File Output node. So inherit this
  * setting from the active scene to restore the old behavior.
  * Note: One limitation is that node groups containing file outputs that are not part of any
  * scene are not affected by versioning. */

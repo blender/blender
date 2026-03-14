@@ -345,7 +345,7 @@ static void wm_xr_session_state_viewer_scale_update(wmXrSessionState *state,
   }
 
   /* Unlike Scene and Navigation Scale changes, View Scale setting changes result in viewer
-   * location adjustements to keep the viewer at the same relative world position after scaling. */
+   * location adjustments to keep the viewer at the same relative world position after scaling. */
   if (settings->view_scale != state->prev_view_scale_setting) {
     wm_xr_session_scale_maintain_viewer_pos(
         state, settings->view_scale, state->prev_view_scale_setting);

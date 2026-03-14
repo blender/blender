@@ -87,7 +87,7 @@ Indirection indirection_get(Segment segment)
   }
   else if (indirection_value <= -cyclic_endpoint_pivot) {
     /* This is the last segment of a cyclic curve. The indirection value is the offset to the start
-     * of the curve offsetted by cyclic_endpoint_pivot. */
+     * of the curve offset by cyclic_endpoint_pivot. */
     ind.curve_segment = -indirection_value - cyclic_endpoint_pivot;
     ind.is_cyclic_point = true;
   }

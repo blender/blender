@@ -4986,7 +4986,7 @@ LinkNode *BKE_object_relational_superset(const Scene *scene,
   /* iterate over all selected and visible objects */
   for (Base &base : *BKE_view_layer_object_bases_get(view_layer)) {
     if (objectSet == OB_SET_ALL) {
-      /* as we get all anyways just add it */
+      /* As we get all anyway, just add it. */
       Object *ob = base.object;
       obrel_list_add(&links, ob);
     }

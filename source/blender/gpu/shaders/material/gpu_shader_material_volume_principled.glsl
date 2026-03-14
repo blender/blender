@@ -61,7 +61,7 @@ void node_volume_principled(float4 color,
     /* Add temperature from attribute. */
     float T = max(temperature * max(temperature_attribute.x, 0.0f), 0.0f);
 
-    /* Stefan-Boltzman law. */
+    /* Stefan-Boltzmann law. */
     float T2 = T * T;
     float T4 = T2 * T2;
     float sigma = 5.670373e-8f * 1e-6f / M_PI;
