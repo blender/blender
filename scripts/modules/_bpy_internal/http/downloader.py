@@ -1505,7 +1505,6 @@ def _create_temp_file(dirpath: Path, prefix: str, suffix: str) -> Path:
 
     The caller is responsible for deleting the file after use.
     """
-    import os
     import tempfile
 
     fd, path_as_str = tempfile.mkstemp(prefix=prefix, suffix=suffix, dir=dirpath)
