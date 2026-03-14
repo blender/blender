@@ -13,6 +13,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_span.hh"
 
 #include "IMB_imbuf_types.hh"
 
