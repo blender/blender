@@ -145,7 +145,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                              ImageUser &image_user,
                              MeshNode &node)
 {
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
+  NodeData *node_data = node.pixels_;
 
   for (ImageTile &tile : image.tiles) {
     image::ImageTileWrapper image_tile(&tile);
@@ -222,7 +222,7 @@ static bool should_pixels_be_updated(const Node &node)
   if ((node.flag_ & Node::RebuildPixels) != 0) {
     return true;
   }
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
+  NodeData *node_data = node.pixels_;
   if (node_data != nullptr) {
     return false;
   }
@@ -262,7 +262,7 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<MeshNode *> &r_nodes_to_upda
     pbvh.pixels_ = pbvh_data;
   }
   else {
-    PBVHData *pbvh_data = static_cast<PBVHData *>(pbvh.pixels_);
+    PBVHData *pbvh_data = pbvh.pixels_;
     pbvh_data->clear_data();
   }
 
@@ -280,7 +280,7 @@ static bool find_nodes_to_update(Tree &pbvh, Vector<MeshNode *> &r_nodes_to_upda
       node.pixels_ = node_data;
     }
     else {
-      NodeData *node_data = static_cast<NodeData *>(node.pixels_);
+      NodeData *node_data = node.pixels_;
       node_data->clear_data();
     }
   }
@@ -302,7 +302,7 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
       if ((node.flag_ & Node::Leaf) == 0) {
         continue;
       }
-      NodeData *node_data = static_cast<NodeData *>(node.pixels_);
+      NodeData *node_data = node.pixels_;
       UDIMTilePixels *tile_node_data = node_data->find_tile_data(image_tile);
       if (tile_node_data == nullptr) {
         continue;
@@ -392,7 +392,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
 
   /* Rebuild the undo regions. */
   for (Node *node : nodes_to_update) {
-    NodeData *node_data = static_cast<NodeData *>(node->pixels_);
+    NodeData *node_data = node->pixels_;
     node_data->rebuild_undo_regions();
   }
 
@@ -440,21 +440,21 @@ static bool update_pixels(const Depsgraph &depsgraph,
 NodeData &node_data_get(Node &node)
 {
   BLI_assert(node.pixels_ != nullptr);
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
+  NodeData *node_data = node.pixels_;
   return *node_data;
 }
 
 PBVHData &data_get(Tree &pbvh)
 {
   BLI_assert(pbvh.pixels_ != nullptr);
-  PBVHData *data = static_cast<PBVHData *>(pbvh.pixels_);
+  PBVHData *data = pbvh.pixels_;
   return *data;
 }
 
 void mark_image_dirty(Node &node, Image &image, ImageUser &image_user)
 {
   BLI_assert(node.pixels_ != nullptr);
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
+  NodeData *node_data = node.pixels_;
   if (node_data->flags.dirty) {
     ImageUser local_image_user = image_user;
     for (ImageTile &tile : image.tiles) {
@@ -474,7 +474,7 @@ void mark_image_dirty(Node &node, Image &image, ImageUser &image_user)
 
 void collect_dirty_tiles(Node &node, Vector<image::TileNumber> &r_dirty_tiles)
 {
-  NodeData *node_data = static_cast<NodeData *>(node.pixels_);
+  NodeData *node_data = node.pixels_;
   node_data->collect_dirty_tiles(r_dirty_tiles);
 }
 
@@ -490,7 +490,7 @@ void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, Imag
 
 void node_pixels_free(Node *node)
 {
-  pixels::NodeData *node_data = static_cast<pixels::NodeData *>(node->pixels_);
+  pixels::NodeData *node_data = node->pixels_;
 
   if (!node_data) {
     return;
@@ -502,7 +502,7 @@ void node_pixels_free(Node *node)
 
 void pixels_free(Tree *pbvh)
 {
-  pixels::PBVHData *pbvh_data = static_cast<pixels::PBVHData *>(pbvh->pixels_);
+  pixels::PBVHData *pbvh_data = pbvh->pixels_;
   MEM_delete(pbvh_data);
   pbvh->pixels_ = nullptr;
 }
