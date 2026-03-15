@@ -2056,7 +2056,7 @@ static int area_snap_calc_location(sAreaMoveData *md, const int delta)
 
         /* Maximal snaps for editors above the cursor with time scrub areas. */
         snap_pos = md->origval + md->bigger;
-        if (area_has_playback_snap(md->area2)) {
+        if (area_has_playback_snap(md->area1)) {
           snap_pos -= ED_area_footersize();
           snaps.append(snap_pos);
         }
