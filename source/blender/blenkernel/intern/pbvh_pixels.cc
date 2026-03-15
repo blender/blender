@@ -147,6 +147,10 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 {
   NodeData *node_data = node.pixels_;
 
+  /* Assuming a quad mesh, we'll have at least 2 * faces entries */
+  node_data->uv_primitives.tri_indices.reserve(node.faces().size() * 2);
+  node_data->uv_primitives.delta_barycentric_coords.reserve(node.faces().size() * 2);
+
   for (ImageTile &tile : image.tiles) {
     image::ImageTileWrapper image_tile(&tile);
     image_user.tile = image_tile.get_tile_number();
@@ -177,14 +181,10 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
           const float maxu = clamp_f(max_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
           const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
 
-          /* TODO: Perform bounds check */
-          int uv_prim_index = node_data->uv_primitives.size();
-          node_data->uv_primitives.append(tri);
-          UVPrimitivePaintInput &paint_input = node_data->uv_primitives.last();
-
-          /* Calculate barycentric delta */
-          paint_input.delta_barycentric_coord_u = calc_barycentric_delta_x(
-              image_buffer, uvs, minx, miny);
+          const int uv_prim_index = node_data->uv_primitives.tri_indices.size();
+          node_data->uv_primitives.tri_indices.append(tri);
+          node_data->uv_primitives.delta_barycentric_coords.append(
+              calc_barycentric_delta_x(image_buffer, uvs, minx, miny));
 
           /* Extract the pixels. */
           extract_barycentric_pixels(tile_data,
@@ -206,6 +206,9 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     if (tile_data.pixel_rows.is_empty()) {
       continue;
     }
+
+    BLI_assert(node_data->uv_primitives.delta_barycentric_coords.size() ==
+               node_data->uv_primitives.tri_indices.size());
 
     node_data->tiles.append(tile_data);
   }

@@ -145,20 +145,20 @@ static float3 calc_pixel_position(const Span<float3> vert_positions,
 
 static void calc_pixel_row_positions(const Span<float3> vert_positions,
                                      const Span<int3> vert_tris,
-                                     const Span<UVPrimitivePaintInput> uv_primitives,
+                                     const Span<int> tri_indices,
+                                     const Span<float2> delta_barycentric_coords,
                                      const PackedPixelRow &pixel_row,
                                      const MutableSpan<float3> positions)
 {
   const float3 start = calc_pixel_position(vert_positions,
                                            vert_tris,
-                                           uv_primitives[pixel_row.uv_primitive_index].tri_index,
+                                           tri_indices[pixel_row.uv_primitive_index],
                                            pixel_row.start_barycentric_coord);
   const float3 next = calc_pixel_position(
       vert_positions,
       vert_tris,
-      uv_primitives[pixel_row.uv_primitive_index].tri_index,
-      pixel_row.start_barycentric_coord +
-          uv_primitives[pixel_row.uv_primitive_index].delta_barycentric_coord_u);
+      tri_indices[pixel_row.uv_primitive_index],
+      pixel_row.start_barycentric_coord + delta_barycentric_coords[pixel_row.uv_primitive_index]);
   const float3 delta = next - start;
   for (const int i : IndexRange(pixel_row.num_pixels)) {
     positions[i] = start + delta * i;
@@ -228,17 +228,16 @@ template<typename ImageBuffer> class PaintingKernel {
 
 static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
                                                  const Span<int3> vert_tris,
-                                                 const Span<UVPrimitivePaintInput> uv_primitives,
+                                                 const Span<int> tri_indices,
                                                  const Span<float3> positions)
 {
   const float3 location = ss.cache ? ss.cache->location_symm : ss.cursor_location;
   const float radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
   const Bounds<float3> brush_bounds(location - radius, location + radius);
 
-  BitVector<> brush_test(uv_primitives.size());
-  for (const int i : uv_primitives.index_range()) {
-    const UVPrimitivePaintInput &paint_input = uv_primitives[i];
-    const int3 verts = vert_tris[paint_input.tri_index];
+  BitVector<> brush_test(tri_indices.size());
+  for (const int i : tri_indices.index_range()) {
+    const int3 verts = vert_tris[tri_indices[i]];
 
     Bounds<float3> tri_bounds(positions[verts[0]]);
     math::min_max(positions[verts[1]], tri_bounds.min, tri_bounds.max);
@@ -265,7 +264,7 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
 
   BitVector<> brush_test = init_uv_primitives_brush_test(
-      ss, pbvh_data.vert_tris, node_data.uv_primitives, positions);
+      ss, pbvh_data.vert_tris, node_data.uv_primitives.tri_indices, positions);
 
   PaintingKernel<ImageBufferFloat4> kernel_float4;
   PaintingKernel<ImageBufferByte4> kernel_byte4;
@@ -316,8 +315,12 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
           }
 
           pixel_positions.resize(pixel_row.num_pixels);
-          calc_pixel_row_positions(
-              positions, pbvh_data.vert_tris, node_data.uv_primitives, pixel_row, pixel_positions);
+          calc_pixel_row_positions(positions,
+                                   pbvh_data.vert_tris,
+                                   node_data.uv_primitives.tri_indices,
+                                   node_data.uv_primitives.delta_barycentric_coords,
+                                   pixel_row,
+                                   pixel_positions);
 
           factors.resize(pixel_positions.size());
           factors.fill(1.0f);
