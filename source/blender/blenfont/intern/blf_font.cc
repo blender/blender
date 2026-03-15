@@ -532,8 +532,6 @@ int blf_font_draw_mono(
 #ifndef WITH_HEADLESS
 void blf_draw_svg_icon(FontBLF *font,
                        const uint icon_id,
-                       const float x,
-                       const float y,
                        const float size,
                        const float color[4],
                        const float outline_alpha,
@@ -542,9 +540,6 @@ void blf_draw_svg_icon(FontBLF *font,
 {
   BLI_assert(outline_alpha <= 1.0f); /* Higher values overflow, caller must ensure. */
   blf_font_size(font, size);
-  font->pos[0] = int(x);
-  font->pos[1] = int(y);
-  font->pos[2] = 0;
 
   if (color != nullptr) {
     rgba_float_to_uchar(font->color, color);
