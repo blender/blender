@@ -825,6 +825,11 @@ static bool output_iris(const char *filepath,
         lumrow(reinterpret_cast<const uchar *>(lptr), reinterpret_cast<uchar *>(lumbuf), xsize);
         len = compressrow(reinterpret_cast<const uchar *>(lumbuf), rlebuf, z, xsize);
       }
+      else if (zsize == 2) {
+        /* Map: gray=0, alpha=3 (alpha is #ImBuf byte offset 3, not 1). */
+        const int z_ofs[] = {0, 3};
+        len = compressrow(reinterpret_cast<const uchar *>(lptr), rlebuf, z_ofs[z], xsize);
+      }
       else {
         if (z < 4) {
           len = compressrow(reinterpret_cast<const uchar *>(lptr), rlebuf, z, xsize);
