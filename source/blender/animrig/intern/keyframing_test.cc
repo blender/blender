@@ -119,7 +119,7 @@ class KeyframingTest : public testing::Test {
     NlaTrack *track = BKE_nlatrack_new_head(&adt->nla_tracks, false);
     ASSERT_NE(track, nullptr);
     NlaStrip *strip = BKE_nlastrip_new(nla_action, object_with_nla->id);
-    BKE_nlatrack_add_strip(track, strip, false);
+    ASSERT_TRUE(BKE_nlatrack_add_strip(track, strip, false));
     ASSERT_NE(strip, nullptr);
     ASSERT_TRUE(animrig::nla::assign_action(*strip, nla_action->wrap(), object_with_nla->id));
     track->flag |= NLATRACK_ACTIVE;
@@ -1004,7 +1004,9 @@ TEST_F(KeyframingTest, insert_keyframes__optional_channel_group)
  * key's time to the local time of the strip. */
 TEST_F(KeyframingTest, insert_keyframes__nla_time_remapping)
 {
-  BKE_nla_tweakmode_enter({object_with_nla->id, *object_with_nla->adt});
+  const bool entered_successfully = BKE_nla_tweakmode_enter(
+      {object_with_nla->id, *object_with_nla->adt});
+  ASSERT_TRUE(entered_successfully);
   AnimationEvalContext anim_eval_context = {nullptr, 1.0};
 
   const CombinedKeyingResult result = insert_keyframes(bmain,
@@ -1016,8 +1018,9 @@ TEST_F(KeyframingTest, insert_keyframes__nla_time_remapping)
                                                        BEZT_KEYTYPE_KEYFRAME,
                                                        INSERTKEY_NOFLAGS);
 
-  EXPECT_EQ(1, result.get_count(SingleKeyingResult::SUCCESS));
+  ASSERT_EQ(1, result.get_count(SingleKeyingResult::SUCCESS));
   Action &act = nla_action->wrap();
+  ASSERT_EQ(act.layer_array_num, 1);
   Layer *layer = act.layer(0);
   Strip *strip = layer->strip(0);
   BLI_assert(strip->type() == Strip::Type::Keyframe);

@@ -819,6 +819,8 @@ float2 Action::get_frame_range_of_slot(const slot_handle_t slot_handle) const
   float2 frame_range = {FLT_MAX, -FLT_MAX};
   /* Once we add strips, they will need to be considered when determining the frame range. */
   assert_baklava_phase_2_invariants(*this);
+
+  bool found_keys = false;
   foreach_keyframe_strip_in_action_slot(
       *this,
       slot_handle,
@@ -827,8 +829,13 @@ float2 Action::get_frame_range_of_slot(const slot_handle_t slot_handle) const
         const float2 channelbag_range = get_frame_range_of_fcurves(fcurves_to_consider, false);
         frame_range[0] = min_ff(frame_range[0], channelbag_range[0]);
         frame_range[1] = max_ff(frame_range[1], channelbag_range[1]);
+        found_keys = true;
         return true;
       });
+
+  if (!found_keys) {
+    return {0.0f, 0.0f};
+  }
   return frame_range;
 }
 
