@@ -59,17 +59,12 @@ class SequencerCrossfadeSounds(Operator):
         if strip1.frame_final_start > strip2.frame_final_start:
             strip1, strip2 = strip2, strip1
         if strip1.frame_final_end > strip2.frame_final_start:
-            tempcfra = scene.frame_current
-            scene.frame_current = strip2.frame_final_start
-            strip1.keyframe_insert("volume")
-            scene.frame_current = strip1.frame_final_end
+            strip1.keyframe_insert("volume", frame=strip2.frame_final_start)
             strip1.volume = 0
-            strip1.keyframe_insert("volume")
-            strip2.keyframe_insert("volume")
-            scene.frame_current = strip2.frame_final_start
+            strip1.keyframe_insert("volume", frame=strip1.frame_final_end)
+            strip2.keyframe_insert("volume", frame=strip1.frame_final_end)
             strip2.volume = 0
-            strip2.keyframe_insert("volume")
-            scene.frame_current = tempcfra
+            strip2.keyframe_insert("volume", frame=strip2.frame_final_start)
             return {'FINISHED'}
 
         self.report({'ERROR'}, "The selected strips don't overlap")
