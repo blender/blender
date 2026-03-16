@@ -18,6 +18,8 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
+#include "DNA_vec_types.h"
+
 namespace blender {
 
 /** Useful to print Python objects while debugging. */
@@ -354,6 +356,18 @@ struct PyC_TypeOrNone {
  * (leaving the `std::optional<bool>` empty).
  */
 [[nodiscard]] int PyC_ParseOptionalBool(PyObject *o, void *p);
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * Parse `((x1, y1), (x2, y2))` into an `rcti`.
+ */
+[[nodiscard]] int PyC_ParseRectI(PyObject *o, void *p);
+/**
+ * A version of #PyC_ParseRectI that accepts None
+ * (leaving the `std::optional<rcti>` empty).
+ */
+[[nodiscard]] int PyC_ParseOptionalRectI(PyObject *o, void *p);
 
 /**
  * Cast a pointer of a PyObject-derived type to `PyObject *`.
