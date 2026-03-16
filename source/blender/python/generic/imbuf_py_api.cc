@@ -347,7 +347,18 @@ static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void * /*closu
 PyDoc_STRVAR(
     /* Wrap. */
     py_imbuf_planes_doc,
-    "Number of bits per pixel.\n"
+    "Number of bits per pixel for the byte buffer.\n"
+    "Used when reading and writing image files.\n"
+    "\n"
+    "- 8: Greyscale.\n"
+    "- 16: Greyscale with alpha.\n"
+    "- 24: RGB.\n"
+    "- 32: RGBA.\n"
+    "\n"
+    ".. note::\n"
+    "\n"
+    "   This value may be set by the file format on load,\n"
+    "   and determines how many channels are written on save.\n"
     "\n"
     ":type: int\n");
 static PyObject *py_imbuf_planes_get(Py_ImBuf *self, void * /*closure*/)
@@ -556,37 +567,48 @@ static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf)
 PyDoc_STRVAR(
     /* Wrap. */
     M_imbuf_new_doc,
-    ".. function:: new(size)\n"
+    ".. function:: new(size, *, planes=32)\n"
     "\n"
     "   Create a new image.\n"
     "\n"
     "   :param size: The size of the image in pixels.\n"
     "   :type size: tuple[int, int]\n"
+    "   :param planes: Number of bits per pixel.\n"
+    "   :type planes: Literal[8, 16, 24, 32]\n"
     "   :return: The newly created image.\n"
     "   :rtype: :class:`ImBuf`\n");
 static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   int size[2];
-  static const char *_keywords[] = {"size", nullptr};
+  int planes = 32;
+  static const char *_keywords[] = {
+      "size",
+      "planes",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "(ii)" /* `size` */
+      "|$"   /* Optional keyword only arguments. */
+      "i"    /* `planes` */
       ":new",
       _keywords,
       nullptr,
   };
-  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &size[0], &size[1])) {
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &size[0], &size[1], &planes)) {
     return nullptr;
   }
   if (size[0] <= 0 || size[1] <= 0) {
     PyErr_Format(PyExc_ValueError, "new: Image size cannot be below 1 (%d, %d)", UNPACK2(size));
     return nullptr;
   }
+  if (!ELEM(planes, 8, 16, 24, 32)) {
+    PyErr_Format(PyExc_ValueError, "new: planes must be 8, 16, 24 or 32, got %d", planes);
+    return nullptr;
+  }
 
-  /* TODO: make options. */
-  const uchar planes = 32;
   const uint flags = IB_byte_data;
 
-  ImBuf *ibuf = IMB_allocImBuf(UNPACK2(size), planes, flags);
+  ImBuf *ibuf = IMB_allocImBuf(UNPACK2(size), uchar(planes), flags);
   if (ibuf == nullptr) {
     PyErr_Format(PyExc_ValueError, "new: Unable to create image (%d, %d)", UNPACK2(size));
     return nullptr;

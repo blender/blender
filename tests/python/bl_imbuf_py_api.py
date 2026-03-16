@@ -393,6 +393,20 @@ class TestImBufIO(unittest.TestCase):
             ibuf_loaded.free()
 
 
+class TestImBufPlanes(unittest.TestCase):
+
+    def test_new_planes_values(self):
+        for p in (8, 16, 24, 32):
+            ibuf = imbuf.new((2, 2), planes=p)
+            self.assertEqual(ibuf.planes, p)
+            ibuf.free()
+
+    def test_new_planes_invalid(self):
+        for p in (0, 4, 12, 64):
+            with self.assertRaises(ValueError):
+                imbuf.new((2, 2), planes=p)
+
+
 def main():
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
