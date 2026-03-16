@@ -151,9 +151,9 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
   const float left_handle = scene_strip->left_handle();
   const float right_handle = scene_strip->right_handle(sequencer_scene);
   float start_frame = seq::give_frame_index(sequencer_scene, scene_strip, left_handle) +
-                      scene_strip->scene->r.sfra;
+                      scene_strip->scene->r.sfra + scene_strip->anim_startofs;
   float end_frame = seq::give_frame_index(sequencer_scene, scene_strip, right_handle - 1) +
-                    scene_strip->scene->r.sfra;
+                    scene_strip->scene->r.sfra + scene_strip->anim_startofs;
 
   /* This can happen when the strip time is reversed. */
   if (start_frame > end_frame) {
