@@ -54,6 +54,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
@@ -522,6 +523,62 @@ static void object_foreach_path_pointcache(ListBaseT<PointCache> *ptcache_list,
   }
 }
 
+static void object_foreach_path_particles(Object *ob, BPathForeachPathData *bpath_data)
+{
+  /* Particle systems are stored on disk in a different way than the generic pointcache files.
+   * Or at least not in the path stored in cache->path. So that's why there's no call to
+   * object_foreach_path_pointcache() here. */
+
+  const Library *lib = ob->id.lib;
+  const char *blendfile_path = lib ? BKE_main_blendfile_path_from_library(*lib) :
+                                     BKE_main_blendfile_path(bpath_data->bmain);
+
+  for (ParticleSystem &psys : ob->particlesystem) {
+    bool all_caches_external = true;
+
+    if (psys.part->type == PART_HAIR && (psys.part->flag & PSYS_HAIR_DYNAMICS) == 0) {
+      /* Hair system without dynamics, this means it doesn't use its particle cache.
+       * NOTE: the PSYS_HAIR_DYNAMICS flag can be animated, so technically this is only correct for
+       * the current frame. */
+      continue;
+    }
+
+    for (PointCache &cache : psys.ptcaches) {
+      /* When the 'External' checkbox is checked, the regular pointcache path is used. */
+      if (cache.flag & PTCACHE_EXTERNAL) {
+        BKE_bpath_foreach_path_fixed_process(bpath_data, cache.path, sizeof(cache.path));
+      }
+      else {
+        all_caches_external = false;
+      }
+    }
+
+    if (all_caches_external) {
+      /* If all caches use the 'External' flag, the calls above have covered this particle system,
+       * and the code below can be skipped. */
+      continue;
+    }
+
+    PTCacheID pid;
+    BKE_ptcache_id_from_particles(&pid, ob, &psys);
+
+    /* Just report the directory that contains the pointcache files. */
+    char ptcache_path[FILE_MAX];
+    const int ptcache_path_len = BKE_ptcache_path(&pid, ptcache_path);
+
+    /* The path can be modified by BKE_bpath_foreach_path_fixed_process(), for example when using
+     * "Save As..." to write the blend file to another directory. In that case blendfile-relative
+     * paths are updated, so that they still point to the same physical location on disk. This
+     * rewriting is not supported here, as the particle system cache is always in the same
+     * directory as the blend file itself.
+     *
+     * And because it's always in the same directory, it makes sense to convert the path to a
+     * blendfile-relative path. */
+    BLI_path_rel(ptcache_path, blendfile_path);
+    BKE_bpath_foreach_path_fixed_process(bpath_data, ptcache_path, ptcache_path_len);
+  }
+}
+
 static void object_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Object *ob = reinterpret_cast<Object *>(id);
@@ -569,9 +626,7 @@ static void object_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     object_foreach_path_pointcache(&ob->soft->shared->ptcaches, bpath_data);
   }
 
-  for (ParticleSystem &psys : ob->particlesystem) {
-    object_foreach_path_pointcache(&psys.ptcaches, bpath_data);
-  }
+  object_foreach_path_particles(ob, bpath_data);
 }
 
 static void object_foreach_cache(ID *id,
