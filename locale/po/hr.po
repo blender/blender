@@ -1,0 +1,1780 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"PO-Revision-Date: 2026-03-11 21:12+0000\n"
+"Last-Translator: Karlo Pavicic <soulcreature@hotmail.com>\n"
+"Language-Team: Croatian <https://translate.blender.org/projects/blender-ui/ui/hr/>\n"
+"Language: hr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.15.2"
+
+
+msgid "Name"
+msgstr "Ime"
+
+
+msgid "Color"
+msgstr "Boja"
+
+
+msgid "Value"
+msgstr "Vrijednost"
+
+
+msgid "F-Curves"
+msgstr "F-Krivulja"
+
+
+msgid "Channels"
+msgstr "Kanali"
+
+
+msgid "Default Colors"
+msgstr "Zadane boje"
+
+
+msgid "Colors"
+msgstr "Boje"
+
+
+msgid "Lock"
+msgstr "Zaključati"
+
+
+msgid "Mute"
+msgstr "Isključi zvuk"
+
+
+msgid "Select"
+msgstr "Odabir"
+
+
+msgid "Expanded"
+msgstr "Prošireno"
+
+
+msgid "Strips"
+msgstr "Trake"
+
+
+msgid "Active"
+msgstr "Uključeno"
+
+
+msgid "Show Expanded"
+msgstr "Prikaži prošireno"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armatura"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Kist"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Kolekcija"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Krivulja"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Krivulje"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Font"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Slika"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Zbirka"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Svjetlo"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Svjetlosna sonda"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Tip linije"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maska"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Materjal"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paleta"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scena"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Zaslon"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Zvuk"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Zvučnik"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Tekst"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Tekstura"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volumen"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Upravitelj prozora"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Svijet"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Nije određeno"
+
+
+msgid "Keyframe"
+msgstr "Ključna transofrmacija"
+
+
+msgid "Off"
+msgstr "Isključeno"
+
+
+msgid "On"
+msgstr "Uključeno"
+
+
+msgid "Auto"
+msgstr "Automatski"
+
+
+msgid "Always"
+msgstr "Uvijek"
+
+
+msgid "Never"
+msgstr "Nikada"
+
+
+msgid "Center"
+msgstr "Centar"
+
+
+msgid "User Add-ons"
+msgstr "Korisnički dodatci"
+
+
+msgid "Collection of add-ons"
+msgstr "Kolekcija dodataka"
+
+
+msgid "Animation Data"
+msgstr "Animacijski podaci"
+
+
+msgid "Action"
+msgstr "Akcija"
+
+
+msgid "Replace"
+msgstr "Zamjena"
+
+
+msgid "Add"
+msgstr "Stvaranje"
+
+
+msgid "Subtract"
+msgstr "Oduzimanje"
+
+
+msgid "Multiply"
+msgstr "Množenje"
+
+
+msgid "Animation Visualization"
+msgstr "Vizualizacija animacije"
+
+
+msgid "Asset Library"
+msgstr "Zbirka asseta"
+
+
+msgid "All Libraries"
+msgstr "Sve zbirke"
+
+
+msgid "Current File"
+msgstr "Trenutna datoteka"
+
+
+msgid "Activate Operator"
+msgstr "Aktiviraj operator"
+
+
+msgid "Space Type"
+msgstr "Vrsta prostora"
+
+
+msgid "Annotations"
+msgstr "Oznake"
+
+
+msgid "Armatures"
+msgstr "Armature"
+
+
+msgid "Brushes"
+msgstr "Kistovi"
+
+
+msgid "Cameras"
+msgstr "Kamere"
+
+
+msgid "Hair Curves"
+msgstr "Krivulje kose"
+
+
+msgid "Fonts"
+msgstr "Fontovi"
+
+
+msgid "Collections"
+msgstr "Kolekcije"
+
+
+msgid "Images"
+msgstr "Slike"
+
+
+msgid "Lights"
+msgstr "Svjetla"
+
+
+msgid "Masks"
+msgstr "Maske"
+
+
+msgid "Materials"
+msgstr "Materjali"
+
+
+msgid "Scenes"
+msgstr "Scene"
+
+
+msgid "Sounds"
+msgstr "Zvukovi"
+
+
+msgid "Speakers"
+msgstr "Zvučnici"
+
+
+msgid "Texts"
+msgstr "Tekstovi"
+
+
+msgid "Textures"
+msgstr "Teksture"
+
+
+msgid "Volumes"
+msgstr "Volumeni"
+
+
+msgid "Worlds"
+msgstr "Svijetovi"
+
+
+msgid "Show Names"
+msgstr "Prikaži imena"
+
+
+msgid "Vector"
+msgstr "Vektor"
+
+
+msgid "4x4 Matrix"
+msgstr "4x4 matrica"
+
+
+msgid "Edge"
+msgstr "Brid"
+
+
+msgid "Face"
+msgstr "Lice"
+
+
+msgid "Face Corner"
+msgstr "Kut lica"
+
+
+msgctxt "Operator"
+msgid "Add"
+msgstr "Dodaj"
+
+
+msgid "Vertex Color"
+msgstr "Boja vrha"
+
+
+msgid "Vertex Mass"
+msgstr "Masa vrha"
+
+
+msgid "Curve"
+msgstr "Krivulja"
+
+
+msgid "View"
+msgstr "Pregled"
+
+
+msgid "Cursor"
+msgstr "Kursor"
+
+
+msgid "Plane"
+msgstr "Ploha"
+
+
+msgid "Render"
+msgstr "Renderiranje"
+
+
+msgid "Scene"
+msgstr "Scena"
+
+
+msgid "Shading"
+msgstr "Sjenčanje"
+
+
+msgid "Vertex"
+msgstr "Vrh"
+
+
+msgid "Cone"
+msgstr "Stožac"
+
+
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgid "Save"
+msgstr "Spremi"
+
+
+msgid "Animations"
+msgstr "Animacije"
+
+
+msgid "Collection"
+msgstr "Kolekcija"
+
+
+msgid "Line Width"
+msgstr "Debljina linije"
+
+
+msgid "Window"
+msgstr "Prozor"
+
+
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgid "Face Sets"
+msgstr "Skupovi lica"
+
+
+msgid "Face Sets FK"
+msgstr "Skupovi lica DK"
+
+
+msgctxt "GPencil"
+msgid "Curve"
+msgstr "Krivulja"
+
+
+msgctxt "Light"
+msgid "Type"
+msgstr "Tip"
+
+
+msgid "Type of light"
+msgstr "Tip svjetla"
+
+
+msgctxt "Light"
+msgid "Sun"
+msgstr "Sunce"
+
+
+msgctxt "Light"
+msgid "Spot"
+msgstr "Reflektor"
+
+
+msgctxt "Light"
+msgid "Area"
+msgstr "Difuzni reflektor"
+
+
+msgctxt "Light"
+msgid "Use Temperature"
+msgstr "Koristi temperaturu"
+
+
+msgctxt "Light"
+msgid "Power"
+msgstr "Snaga"
+
+
+msgctxt "Light"
+msgid "Strength"
+msgstr "Jačina"
+
+
+msgctxt "Material"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgctxt "Material"
+msgid "Cube"
+msgstr "Kocka"
+
+
+msgid "Cube"
+msgstr "Kocka"
+
+
+msgid "Vertex Colors"
+msgstr "Boje vrhova"
+
+
+msgid "Vertex Normals"
+msgstr "Normale vrhova"
+
+
+msgid "Vertices"
+msgstr "Vrhovi"
+
+
+msgid "Cylinder"
+msgstr "Valjak"
+
+
+msgid "Circle"
+msgstr "Kružnica"
+
+
+msgid "Vertex Paint"
+msgstr "Bojanje vrhova"
+
+
+msgid "Texture Paint"
+msgstr "Teksturiranje"
+
+
+msgid "Normal Map"
+msgstr "Mapa normala"
+
+
+msgid "Windows"
+msgstr "Prozori"
+
+
+msgid "Animation"
+msgstr "Animacija"
+
+
+msgid "Light"
+msgstr "Svjetlo"
+
+
+msgid "Console"
+msgstr "Konzola"
+
+
+msgid "Templates"
+msgstr "Predlošci"
+
+
+msgid "File"
+msgstr "Datoteka"
+
+
+msgid "Help"
+msgstr "Pomoć"
+
+
+msgid "Vertex Normal"
+msgstr "Normala vrha"
+
+
+msgid "Vertex Mapping"
+msgstr "Mapiranje vrhova"
+
+
+msgid "Copy from closest vertex"
+msgstr "Kopiraj s najbližeg vrha"
+
+
+msgid "Nearest Edge Vertex"
+msgstr "Najbliži vrh brida"
+
+
+msgid "Origin"
+msgstr "Ishodište"
+
+
+msgid "UV Sphere"
+msgstr "UV sfera"
+
+
+msgid "OpenGL"
+msgstr "OpenGL"
+
+
+msgid "Normal map uses OpenGL convention, with Y axis in the green channel pointing up"
+msgstr "Mapa normala koristi OpenGL standard gdje je Y os u zelenom kanalu usmjerena prema gore"
+
+
+msgid "DirectX"
+msgstr "DirectX"
+
+
+msgid "Normal map uses DirectX convention, with Y axis in the green channel pointing down"
+msgstr "Mapa normala koristi DirectX standard gdje je Y os u zelenom kanalu usmjerena prema gore"
+
+
+msgctxt "Image"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgctxt "Operator"
+msgid "Add Torus"
+msgstr "Kreiraj torus"
+
+
+msgctxt "Operator"
+msgid "Save System Info..."
+msgstr "Spremi informacije o sistemu"
+
+
+msgctxt "Operator"
+msgid "Select"
+msgstr "Selekcija"
+
+
+msgctxt "Python console"
+msgid "Language"
+msgstr "Jezik"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Kreiraj kružnicu"
+
+
+msgctxt "Operator"
+msgid "Redo"
+msgstr "Korak unaprijed"
+
+
+msgctxt "Operator"
+msgid "Undo"
+msgstr "Korak unazad"
+
+
+msgid "Save PNGs as PNGs, JPEGs as JPEGs, WebPs as WebPs. For other formats, use PNG"
+msgstr "Spremi PNG kao PNG, JPEG kao JPEG, WEBP kao WEBP. Za ostale formate koristi PNG"
+
+
+msgid "JPEG Format (.jpg)"
+msgstr "JPEG format"
+
+
+msgid "Open"
+msgstr "Otvori"
+
+
+msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Vrsta selekcije"
+
+
+msgctxt "Operator"
+msgid "Save Image"
+msgstr "Spremi sliku"
+
+
+msgctxt "Operator"
+msgid "Save As Image"
+msgstr "Spremi ako sliku"
+
+
+msgid "Save As Render"
+msgstr "Spremi kao render"
+
+
+msgctxt "Operator"
+msgid "Save Sequence"
+msgstr "Spremi sekvencu"
+
+
+msgid "Save a sequence of images"
+msgstr "Spremi sekvencu slika"
+
+
+msgid "Save an image packed in the .blend file to disk"
+msgstr "Spremi sliku upakiranu u .blend datoteci na disk"
+
+
+msgid "Extrude Region"
+msgstr "Izvlačenje selekcije"
+
+
+msgctxt "Operator"
+msgid "Extrude Region"
+msgstr "Izvlačenje selekcije"
+
+
+msgctxt "Operator"
+msgid "Add Cone"
+msgstr "Kreiraj stožac"
+
+
+msgctxt "Operator"
+msgid "Add Cube"
+msgstr "Kreiraj kocku"
+
+
+msgctxt "Operator"
+msgid "Add Cylinder"
+msgstr "Kreiraj valjak"
+
+
+msgctxt "Operator"
+msgid "Add Grid"
+msgstr "Kreiraj plohu s mrežom"
+
+
+msgid "Construct a subdivided plane mesh"
+msgstr "Kreiraj podjeljenju plohu"
+
+
+msgid "X Subdivisions"
+msgstr "Podjele po x osi"
+
+
+msgid "Y Subdivisions"
+msgstr "Podjele po y osi"
+
+
+msgctxt "Operator"
+msgid "Add Monkey"
+msgstr "Dodaj majmuna"
+
+
+msgctxt "Operator"
+msgid "Add Plane"
+msgstr "Kreiraj plohu"
+
+
+msgid "Exterior Radius"
+msgstr "Vanjski radius"
+
+
+msgid "Interior Radius"
+msgstr "Unutarnji radius"
+
+
+msgctxt "Operator"
+msgid "Add UV Sphere"
+msgstr "Kreiraj UV sferu"
+
+
+msgctxt "Operator"
+msgid "Monkey"
+msgstr "Majmun"
+
+
+msgid "Origin to Center of Mass (Surface)"
+msgstr "Premještanje ishodišta na težište objekta (Ploha)"
+
+
+msgid "Origin to Center of Mass (Volume)"
+msgstr "Premještanje ishodišta na težište objekta (Volumen)"
+
+
+msgctxt "Operator"
+msgid "Render"
+msgstr "Renderiranje"
+
+
+msgctxt "Operator"
+msgid "New Scene"
+msgstr "Nova Scena"
+
+
+msgctxt "Operator"
+msgid "Repeat Last"
+msgstr "Ponovi zadnje"
+
+
+msgctxt "Operator"
+msgid "Save Screenshot"
+msgstr "Spremi snimku zaslona"
+
+
+msgctxt "Operator"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgctxt "Operator"
+msgid "Open Text"
+msgstr "Otvori tekst"
+
+
+msgctxt "Operator"
+msgid "Save"
+msgstr "Spremi"
+
+
+msgctxt "Operator"
+msgid "Save As"
+msgstr "Spremi kao"
+
+
+msgctxt "Operator"
+msgid "Open"
+msgstr "Otvori"
+
+
+msgid "Save the current file in the desired location"
+msgstr "Spremi trenutnu datoteku na željeno mjesto"
+
+
+msgid "Save Copy"
+msgstr "Spremi kopiju"
+
+
+msgctxt "Operator"
+msgid "Save Blender File"
+msgstr "Spremi Blender datoteku"
+
+
+msgid "Save the current Blender file"
+msgstr "Spremi otvorenu datoteku"
+
+
+msgid "Meters"
+msgstr "Metri"
+
+
+msgctxt "Operator"
+msgid "New Window"
+msgstr "Novi prozor"
+
+
+msgid "Create a new window"
+msgstr "Kreiraj novi prozor"
+
+
+msgctxt "Operator"
+msgid "New Main Window"
+msgstr "Kreiraj kopiju glavnog prozora"
+
+
+msgctxt "Operator"
+msgid "Annotate"
+msgstr "Označavanje"
+
+
+msgctxt "Operator"
+msgid "Annotate Line"
+msgstr "Označavanje pomoću linije"
+
+
+msgctxt "Operator"
+msgid "Annotate Polygon"
+msgstr "Označavanje pomoću poligona"
+
+
+msgctxt "Operator"
+msgid "Annotate Eraser"
+msgstr "Brisanje oznaka"
+
+
+msgctxt "Operator"
+msgid "Cursor"
+msgstr "Kursor"
+
+
+msgctxt "WindowManager"
+msgid "Language"
+msgstr "Jezik"
+
+
+msgctxt "Operator"
+msgid "Measure"
+msgstr "Mjerenje"
+
+
+msgctxt "Operator"
+msgid "Circle"
+msgstr "Kružnica"
+
+
+msgctxt "Operator"
+msgid "Curve"
+msgstr "Krivulja"
+
+
+msgctxt "Render Layer"
+msgid "Light"
+msgstr "Svjetlo"
+
+
+msgid "Edge Type"
+msgstr "Vrsta brida"
+
+
+msgid "Edge Resize"
+msgstr "Podešivanje veličine brida"
+
+
+msgid "Allow Online Access"
+msgstr "Dozvoli pristup internetu"
+
+
+msgid "Language"
+msgstr "Jezik"
+
+
+msgid "Only Seconds"
+msgstr "Samo sekunde"
+
+
+msgid "Thin"
+msgstr "Tanka"
+
+
+msgid "Thick"
+msgstr "Debela"
+
+
+msgid "Ask for confirmation when quitting with unsaved changes"
+msgstr "Traži potvrdu prije zatvaranja datoteke koja nije spremljena"
+
+
+msgctxt "Unit"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Resolution Scale"
+msgstr "Faktor uvećanja rezolucije"
+
+
+msgid "Lock Interface"
+msgstr "Zaključaj sučelje"
+
+
+msgid "Shading Settings"
+msgstr "Postavke sjenčanja"
+
+
+msgid "Shading settings for OpenGL render engine"
+msgstr "Postavke sjenčanja za OpenGL render engine"
+
+
+msgctxt "ID"
+msgid "Render"
+msgstr "Renderiranje"
+
+
+msgid "Render Properties"
+msgstr "Postavke renderiranja"
+
+
+msgid "Speaker"
+msgstr "Zvučnik"
+
+
+msgctxt "Sequence"
+msgid "Scene"
+msgstr "Scena"
+
+
+msgctxt "Image"
+msgid "Cube"
+msgstr "Kocka"
+
+
+msgid "Window Background"
+msgstr "Pozadina prozora"
+
+
+msgctxt "View3D"
+msgid "Select"
+msgstr "Selektiraj"
+
+
+msgid "Window height"
+msgstr "Visina prozora"
+
+
+msgid "Window width"
+msgstr "Širina prozora"
+
+
+msgctxt "WindowManager"
+msgid "Window"
+msgstr "Prozor"
+
+
+msgctxt "WindowManager"
+msgid "Curve"
+msgstr "Krivulja"
+
+
+msgctxt "WindowManager"
+msgid "Undo"
+msgstr "Korak unazad"
+
+
+msgctxt "WindowManager"
+msgid "Console"
+msgstr "Konzola"
+
+
+msgctxt "Operator"
+msgid "Allow Online Access"
+msgstr "Dozvoli pristup internetu"
+
+
+msgctxt "Operator"
+msgid "Report a Bug"
+msgstr "Prijavi grešku u programu"
+
+
+msgid "Torus"
+msgstr "Torus"
+
+
+msgctxt "Operator"
+msgid "Open..."
+msgstr "Otvori"
+
+
+msgid "Blender is free software"
+msgstr "Blender softver je besplatan"
+
+
+msgid "Licensed under the GNU General Public License"
+msgstr "Licencirano pod GNU općom javnom licencom"
+
+
+msgctxt "Operator"
+msgid "Save New Preferences"
+msgstr "Spremi nove postavke"
+
+
+msgctxt "Operator"
+msgid "Continue"
+msgstr "Nastavi"
+
+
+msgctxt "Operator"
+msgid "More..."
+msgstr "Više..."
+
+
+msgctxt "Operator"
+msgid "Donate to Blender"
+msgstr "Doniraj Blenderu"
+
+
+msgid "Running in Offline Mode"
+msgstr "Offline način rada aktivan"
+
+
+msgctxt "Operator"
+msgid "Donate"
+msgstr "Doniraj"
+
+
+msgctxt "Operator"
+msgid "License"
+msgstr "Licenca"
+
+
+msgctxt "Operator"
+msgid "Blender Website"
+msgstr "Blender web stranica"
+
+
+msgid "Assign"
+msgstr "Pridijeli"
+
+
+msgid "Bug"
+msgstr "Greška"
+
+
+msgid "Read about what's new in this version of Blender"
+msgstr "Pročitaj što je sve novo u ovoj verziji Blendera"
+
+
+msgid "User Manual"
+msgstr "Korisnički priručnik"
+
+
+msgid "The reference manual for this version of Blender"
+msgstr "Korisnički priručnik za ovu verziju Blendera"
+
+
+msgctxt "Operator"
+msgid "Manual"
+msgstr "Priručnik"
+
+
+msgctxt "Operator"
+msgid "Support"
+msgstr "Podrška"
+
+
+msgctxt "Operator"
+msgid "Search..."
+msgstr "Pretraživanje..."
+
+
+msgctxt "Operator"
+msgid "Save As..."
+msgstr "Spremi kao..."
+
+
+msgctxt "Operator"
+msgid "Vertex"
+msgstr "Vrh"
+
+
+msgctxt "Operator"
+msgid "Edge"
+msgstr "Brid"
+
+
+msgctxt "Operator"
+msgid "Face"
+msgstr "Lice"
+
+
+msgctxt "Collection"
+msgid "New"
+msgstr "Nova"
+
+
+msgctxt "Operator"
+msgid "Quit"
+msgstr "Zatvori program"
+
+
+msgctxt "Operator"
+msgid "Render Animation"
+msgstr "Renderiranje animacije"
+
+
+msgctxt "Operator"
+msgid "Render Audio..."
+msgstr "Renderiranje zvuka..."
+
+
+msgctxt "Operator"
+msgid "View Render"
+msgstr "Prikaži render"
+
+
+msgctxt "Operator"
+msgid "View Animation"
+msgstr "Prikaži animaciju"
+
+
+msgctxt "Operator"
+msgid "Adjust Last Operation..."
+msgstr "Prilagodi prethodno korišten operator..."
+
+
+msgctxt "Operator"
+msgid "Repeat History..."
+msgstr "Povijest ponavljanja"
+
+
+msgctxt "Operator"
+msgid "Preferences..."
+msgstr "Postavke..."
+
+
+msgctxt "Operator"
+msgid "Save Screenshot..."
+msgstr "Spremi snimku zaslona..."
+
+
+msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Spremi kopiju..."
+
+
+msgid "More..."
+msgstr "Više..."
+
+
+msgctxt "Operator"
+msgid "Load Factory Blender Settings"
+msgstr "Vrati Blender na tvorničke postavke"
+
+
+msgctxt "Operator"
+msgid "Render Image"
+msgstr "Renderiranje slike"
+
+
+msgctxt "Operator"
+msgid "Operator Search..."
+msgstr "Pretraživanje operatora..."
+
+
+msgctxt "Operator"
+msgid "Save Screenshot (Editor)..."
+msgstr "Spremi snimku zaslona (Editor)"
+
+
+msgctxt "Preferences"
+msgid "Translate"
+msgstr "Prevedi"
+
+
+msgctxt "View3D"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "Plane"
+msgstr "Ploha"
+
+
+msgctxt "Operator"
+msgid "Cube"
+msgstr "Kocka"
+
+
+msgctxt "Operator"
+msgid "UV Sphere"
+msgstr "UV sfera"
+
+
+msgctxt "Operator"
+msgid "Cylinder"
+msgstr "Valjak"
+
+
+msgctxt "Operator"
+msgid "Cone"
+msgstr "Stožac"
+
+
+msgctxt "Operator"
+msgid "Torus"
+msgstr "Torus"
+
+
+msgctxt "Operator"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "Operator"
+msgid "Speaker"
+msgstr "Zvučnik"
+
+
+msgctxt "Operator"
+msgid "Origin"
+msgstr "Ishodište"
+
+
+msgid "Origins"
+msgstr "Ishodišta"
+
+
+msgid "Origins (All)"
+msgstr "Ishodišta (sva)"
+
+
+msgid "Scene Collection"
+msgstr "Kolekcije scene"
+
+
+msgid "Collection %d"
+msgstr "Kolekcija %d"
+
+
+msgid "collections"
+msgstr "kolekcije"
+
+
+msgid "UVMap"
+msgstr "UV mapa"
+
+
+msgid "Not enough free memory"
+msgstr "Nedovoljno slobodne memorije"
+
+
+msgid "Invalid resolution"
+msgstr "Nevažeća rezolucija"
+
+
+msgid "Image save failed: invalid surface"
+msgstr "Spremanje slike neuspješno: nevažeća podloga"
+
+
+msgid "Image save failed: not enough free memory"
+msgstr "Spremanje slike neuspješno: nedovoljno slobodne memorije"
+
+
+msgid "Untitled"
+msgstr "Neimenovano"
+
+
+msgid "annotations"
+msgstr "oznake"
+
+
+msgid "libraries"
+msgstr "zbirke"
+
+
+msgid "lights"
+msgstr "svjetla"
+
+
+msgid "masks"
+msgstr "maske"
+
+
+msgid "materials"
+msgstr "materjali"
+
+
+msgid "Conversion is not supported"
+msgstr "Konverzija nije podržana"
+
+
+msgid "No new files have been packed"
+msgstr "Nije bilo novih datoteka za upakirati"
+
+
+msgid "Saved packed file to: %s"
+msgstr "Upakiranja datoteka spremljena u: %s"
+
+
+msgid "palettes"
+msgstr "palete"
+
+
+msgid "No valid data to read!"
+msgstr "Nema valjanih podataka za čitati!"
+
+
+msgid "sounds"
+msgstr "zvukovi"
+
+
+msgid "speakers"
+msgstr "zvučnici"
+
+
+msgid "texts"
+msgstr "tekstovi"
+
+
+msgid "textures"
+msgstr "teksture"
+
+
+msgid "100 Meters"
+msgstr "100 Metara"
+
+
+msgid "10 Meters"
+msgstr "10 metara"
+
+
+msgid "10 Centimeters"
+msgstr "10 centimetara"
+
+
+msgid "Micrometers"
+msgstr "Mikrometri"
+
+
+msgid "Nanometers"
+msgstr "Nanometri"
+
+
+msgid "Picometers"
+msgstr "Pikometri"
+
+
+msgid "Square Kilometers"
+msgstr "Kvadratni kilometri"
+
+
+msgid "Square Hectometers"
+msgstr "Kvadratni hektometri"
+
+
+msgid "Square Dekameters"
+msgstr "Kvadratni dekametri"
+
+
+msgid "Square Meters"
+msgstr "Kvadratni metri"
+
+
+msgid "Square Decimeters"
+msgstr "Kvadratni decimetri"
+
+
+msgid "Square Centimeters"
+msgstr "Kvadratni centimetri"
+
+
+msgid "Square Millimeters"
+msgstr "Kvadratni milimetri"
+
+
+msgid "Square Micrometers"
+msgstr "Kvadratni mikrometri"
+
+
+msgid "Cubic Kilometers"
+msgstr "Kubični kilometri"
+
+
+msgid "Cubic Hectometers"
+msgstr "Kubični hektometri"
+
+
+msgid "Cubic Dekameters"
+msgstr "Kubični dekametri"
+
+
+msgid "Cubic Meters"
+msgstr "Kubični metri"
+
+
+msgid "Cubic Decimeters"
+msgstr "Kubični decimetri"
+
+
+msgid "Cubic Centimeters"
+msgstr "Kubični centimetri"
+
+
+msgid "Cubic Millimeters"
+msgstr "Kubični milimetri"
+
+
+msgid "Cubic Micrometers"
+msgstr "Kubični mikrometri"
+
+
+msgid "100 Kilograms"
+msgstr "100 kilograma"
+
+
+msgid "10 Grams"
+msgstr "10 grama"
+
+
+msgid "Grams"
+msgstr "Grama"
+
+
+msgid "Milligrams"
+msgstr "Miligrama"
+
+
+msgid "Tons"
+msgstr "Tona"
+
+
+msgid "Days"
+msgstr "Dana"
+
+
+msgid "Hours"
+msgstr "Sati"
+
+
+msgid "Minutes"
+msgstr "Minuta"
+
+
+msgid "Milliseconds"
+msgstr "Milisekundi"
+
+
+msgid "Microseconds"
+msgstr "Mikrosekundi"
+
+
+msgid "Kelvin"
+msgstr "Kelvin"
+
+
+msgid "Celsius"
+msgstr "Celzijus"
+
+
+msgid "Fahrenheit"
+msgstr "Fahrenheit"
+
+
+msgid "fonts"
+msgstr "fontovi"
+
+
+msgid "volumes"
+msgstr "volumeni"
+
+
+msgid "Could not load volume for writing"
+msgstr "Volumen se nije mogao učitati za zapisivanje"
+
+
+msgid "worlds"
+msgstr "svijetovi"
+
+
+msgid "Unable to read"
+msgstr "Nije moguće pročitati"
+
+
+msgid "Unable to open"
+msgstr "Nije moguće otvoriti"
+
+
+msgid "Cannot change old file (file saved with @)"
+msgstr "Nije moguće modificirati staru datoteku (datoteka spremljena s @)"
+
+
+msgid "Cannot open file %s for writing: %s"
+msgstr "Nije moguće otvoriti datoteku %s za zapisivanje: %s"
+
+
+msgid "Could not connect vertices"
+msgstr "Nije moguće spojiti vrhove"
+
+
+msgid "Create"
+msgstr "Kreiraj"
+
+
+msgid "<invalid>"
+msgstr "<nije valjano>"
+
+
+msgid "Redo"
+msgstr "Korak unaprijed"
+
+
+msgctxt "Speaker"
+msgid "New"
+msgstr "Novi"
+
+
+msgctxt "Mesh"
+msgid "Plane"
+msgstr "Ploha"
+
+
+msgctxt "Mesh"
+msgid "Cube"
+msgstr "Kocka"
+
+
+msgctxt "Mesh"
+msgid "Circle"
+msgstr "Kružnica"
+
+
+msgctxt "Mesh"
+msgid "Cylinder"
+msgstr "Valjak"
+
+
+msgctxt "Mesh"
+msgid "Cone"
+msgstr "Stožac"
+
+
+msgctxt "Mesh"
+msgid "Grid"
+msgstr "Ploha s mrežom"
+
+
+msgctxt "Mesh"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgid "Undo"
+msgstr "Korak unazad"
+
+
+msgid "Measure"
+msgstr "Mjerenje"
+
+
+msgctxt "Light"
+msgid "Sphere"
+msgstr "Sfera"
+
+
+msgid "Undo History"
+msgstr "Povijest koraka"
+
+
+msgid "Front Orthographic"
+msgstr "Ortografski nacrt"
+
+
+msgid "Front Perspective"
+msgstr "nacrt u perspektivi"
+
+
+msgid "Top Orthographic"
+msgstr "Ortografski Tlocrt"
+
+
+msgid "Top Perspective"
+msgstr "Tlocrt u perspektivi"
+
+
+msgid "Right Orthographic"
+msgstr "Ortografski desni bokocrt"
+
+
+msgid "Right Perspective"
+msgstr "Desni bokocrt u perspektivi"
+
+
+msgid "Left Orthographic"
+msgstr "Ortografski lijevi bokocrt"
+
+
+msgid "Left Perspective"
+msgstr "Lijevi bokocrt u perspektivi"
+
+
+msgid "Camera Perspective"
+msgstr "Perspektiva kamere"
+
+
+msgid "User Orthographic"
+msgstr "Ortografski pogled"
+
+
+msgid "User Perspective"
+msgstr "Perspektivni pogled"
+
+
+msgid "cursor"
+msgstr "kursor"
+
+
+msgid "Vertices X"
+msgstr "Vrhovi X"
+
+
+msgid "Vertices Y"
+msgstr "Vrhovi Y"
+
+
+msgid "Vertices Z"
+msgstr "Vrhovi Z"
+
+
+msgid "Save As..."
+msgstr "Spremi kao..."
+
+
+msgid "Don't Save"
+msgstr "Nemoj Spremiti"
+
+
+msgid "unable to open the file"
+msgstr "problem sa otvaranjem datoteke"
+
+
+msgid "saved as a new, regular file."
+msgstr "Spremljeno kao nova standardna datoteka."
+
+
+msgid "Save changes before closing?"
+msgstr "Spremi promijene prije zatvaranja?"
+
+
+msgctxt "WorkSpace"
+msgid "2D Animation"
+msgstr "2D animacija"
+
+
+msgctxt "WorkSpace"
+msgid "Animation"
+msgstr "Animiranje"
+
+
+msgctxt "WorkSpace"
+msgid "Modeling"
+msgstr "Modeliranje"
+
+
+msgctxt "WorkSpace"
+msgid "Rendering"
+msgstr "Renderiranje"
+
+
+msgctxt "WorkSpace"
+msgid "Shading"
+msgstr "Sjenčanje"
+
+
+msgctxt "WorkSpace"
+msgid "Texture Paint"
+msgstr "Teksturiranje"
+
+
+msgctxt "WorkSpace"
+msgid "UV Editing"
+msgstr "UV Editor"
+
+
+msgctxt "Preferences"
+msgid "Animation"
+msgstr "Animacija"
+
+
+msgctxt "Preferences"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "Preferences"
+msgid "Modeling"
+msgstr "Modeliranje"
+
+
+msgctxt "Preferences"
+msgid "Scene"
+msgstr "Scena"
+
+
+msgid "camera"
+msgstr "kamera"
+
+
+msgid "Reads information about each curve"
+msgstr "Čita informacije o svakoj krivulji"
+
+
+msgid "Curve ID"
+msgstr "ID krivulje"
+
+
+msgid "ID of each curve"
+msgstr "ID svake kriulje"
+
+
+msgid "Index of each Curve"
+msgstr "Indeks svake krivulje"
+
