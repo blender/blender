@@ -95,12 +95,15 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
             with concurrent.futures.ProcessPoolExecutor() as exctr:
                 pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
                 for progress, _ in enumerate(
-                        exctr.map(utils_i18n.I18nMessages.update_from_pot_callback,
-                        (pot,) * num_langs,
-                        [dict(lng.items()) for lng in i18n_sett.langs],
-                        (self.settings,) * num_langs,
-                        chunksize=4,
-                        timeout=120)):
+                        exctr.map(
+                            utils_i18n.I18nMessages.update_from_pot_callback,
+                            (pot,) * num_langs,
+                            [dict(lng.items()) for lng in i18n_sett.langs],
+                            (self.settings,) * num_langs,
+                            chunksize=4,
+                            timeout=120,
+                        )
+                ):
                     context.window_manager.progress_update(progress + 2)
         else:
             for progress, lng in enumerate(i18n_sett.langs):
@@ -136,11 +139,14 @@ class UI_OT_i18n_cleanuptranslation_work_repo(Operator):
             #       of the `ProcessPoolExecutor`.
             with concurrent.futures.ProcessPoolExecutor() as exctr:
                 for progress, _ in enumerate(
-                        exctr.map(utils_i18n.I18nMessages.cleanup_callback,
-                        [dict(lng.items()) for lng in i18n_sett.langs],
-                        (self.settings,) * num_langs,
-                        chunksize=4,
-                        timeout=120)):
+                        exctr.map(
+                            utils_i18n.I18nMessages.cleanup_callback,
+                            [dict(lng.items()) for lng in i18n_sett.langs],
+                            (self.settings,) * num_langs,
+                            chunksize=4,
+                            timeout=120,
+                        )
+                ):
                     context.window_manager.progress_update(progress + 1)
         else:
             for progress, lng in enumerate(i18n_sett.langs):
@@ -172,11 +178,14 @@ class UI_OT_i18n_updatetranslation_blender_repo(Operator):
             #       of the `ProcessPoolExecutor`.
             with concurrent.futures.ProcessPoolExecutor() as exctr:
                 for progress, (lng_uid, stats_val, reports) in enumerate(
-                        exctr.map(utils_i18n.I18nMessages.update_to_blender_repo_callback,
-                        [dict(lng.items()) for lng in i18n_sett.langs],
-                        (self.settings,) * num_langs,
-                        chunksize=4,
-                        timeout=120)):
+                        exctr.map(
+                            utils_i18n.I18nMessages.update_to_blender_repo_callback,
+                            [dict(lng.items()) for lng in i18n_sett.langs],
+                            (self.settings,) * num_langs,
+                            chunksize=4,
+                            timeout=120,
+                        )
+                ):
                     context.window_manager.progress_update(progress + 1)
                     stats[lng_uid] = stats_val
                     print("".join(reports) + "\n")
