@@ -457,63 +457,43 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
 
     /* Requires BKE_curveprofile_translate_selection to handle the handle manipulation, no
      * simplified logic. */
-    bt = uiDefButF(block,
-                   ButtonType::Num,
-                   "X:",
-                   0,
-                   2 * UI_UNIT_Y,
-                   UI_UNIT_X * 10,
-                   UI_UNIT_Y,
-                   last_x_ptr,
-                   slider_bounds.xmin,
-                   slider_bounds.xmax,
-                   "");
-    button_number_step_size_set(bt, 1);
-    button_number_precision_set(bt, 5);
-    button_func_set(bt, [profile, cb, curve_runtime](bContext &C) {
-      float *last_x_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt);
-      const float dx = *last_x_ptr - curve_runtime->last_pos.x;
-      *last_x_ptr -= dx;
-      BKE_curveprofile_translate_selection(profile, {dx, 0.0f});
-      BKE_curveprofile_update(profile, PROF_UPDATE_REMOVE_DOUBLES | PROF_UPDATE_CLIP);
-      rna_update_cb(C, cb);
+    const char *const axis_labels[2] = {"X:", "Y:"};
+    float *const axis_ptrs[2] = {last_x_ptr, last_y_ptr};
+    const float axis_min[2] = {slider_bounds.xmin, slider_bounds.ymin};
+    const float axis_max[2] = {slider_bounds.xmax, slider_bounds.ymax};
+    for (int axis = 0; axis < 2; axis++) {
+      bt = uiDefButF(block,
+                     ButtonType::Num,
+                     axis_labels[axis],
+                     0,
+                     (2 - axis) * UI_UNIT_Y,
+                     UI_UNIT_X * 10,
+                     UI_UNIT_Y,
+                     axis_ptrs[axis],
+                     axis_min[axis],
+                     axis_max[axis],
+                     "");
+      button_number_step_size_set(bt, 1);
+      button_number_precision_set(bt, 5);
+      button_func_set(bt, [profile, cb, curve_runtime, axis](bContext &C) {
+        float *last_pt_co = BKE_curveprofile_active_location_get(curve_runtime->last_pt);
+        const float delta = last_pt_co[axis] - curve_runtime->last_pos[axis];
+        /* Logically `-= delta`, better restore the original value. */
+        last_pt_co[axis] = curve_runtime->last_pos[axis];
+        float2 offset(0.0f);
+        offset[axis] = delta;
+        BKE_curveprofile_translate_selection(profile, offset);
+        BKE_curveprofile_update(profile, PROF_UPDATE_REMOVE_DOUBLES | PROF_UPDATE_CLIP);
+        rna_update_cb(C, cb);
 
-      /* Update the active point if the pointer changed. */
-      curve_runtime->last_pt = BKE_curveprofile_active_get(profile);
-      last_x_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt);
-      curve_runtime->last_pos.x = *last_x_ptr;
-    });
-    if (point_last_or_first) {
-      button_flag_enable(bt, BUT_DISABLED);
-    }
-    bt = uiDefButF(block,
-                   ButtonType::Num,
-                   "Y:",
-                   0,
-                   1 * UI_UNIT_Y,
-                   UI_UNIT_X * 10,
-                   UI_UNIT_Y,
-                   last_y_ptr,
-                   slider_bounds.ymin,
-                   slider_bounds.ymax,
-                   "");
-    button_number_step_size_set(bt, 1);
-    button_number_precision_set(bt, 5);
-    button_func_set(bt, [profile, cb, curve_runtime](bContext &C) {
-      float *last_y_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt) + 1;
-      const float dy = *last_y_ptr - curve_runtime->last_pos.y;
-      *last_y_ptr -= dy;
-      BKE_curveprofile_translate_selection(profile, {0.0f, dy});
-      BKE_curveprofile_update(profile, PROF_UPDATE_REMOVE_DOUBLES | PROF_UPDATE_CLIP);
-      rna_update_cb(C, cb);
-
-      /* Update the active point if the pointer changed. */
-      curve_runtime->last_pt = BKE_curveprofile_active_get(profile);
-      last_y_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt) + 1;
-      curve_runtime->last_pos.y = *last_y_ptr;
-    });
-    if (point_last_or_first) {
-      button_flag_enable(bt, BUT_DISABLED);
+        /* Update the active point if the pointer changed. */
+        curve_runtime->last_pt = BKE_curveprofile_active_get(profile);
+        last_pt_co = BKE_curveprofile_active_location_get(curve_runtime->last_pt);
+        curve_runtime->last_pos[axis] = last_pt_co[axis];
+      });
+      if (point_last_or_first) {
+        button_flag_enable(bt, BUT_DISABLED);
+      }
     }
 
     /* Delete points */
