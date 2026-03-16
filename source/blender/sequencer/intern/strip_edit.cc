@@ -248,7 +248,7 @@ bool edit_move_strip_to_meta(Scene *scene,
 
   VectorSet<Strip *> strips;
   strips.add(src_strip);
-  iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
+  iterator_set_expand(seqbase, strips, query_strip_effect_chain);
 
   for (Strip *strip : strips) {
     /* Move to meta. */
@@ -422,8 +422,7 @@ Strip *edit_strip_split(Main *bmain,
   /* Whole strip effect chain must be duplicated in order to preserve relationships. */
   VectorSet<Strip *> strips;
   strips.add(strip);
-  iterator_set_expand(scene,
-                      seqbase,
+  iterator_set_expand(seqbase,
                       strips,
                       ignore_connections ? query_strip_effect_chain :
                                            query_strip_connected_and_effect_chain);

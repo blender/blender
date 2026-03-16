@@ -307,8 +307,7 @@ wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
 
   VectorSet<Strip *> effect_chain;
   effect_chain.add_multiple(selected);
-  seq::iterator_set_expand(
-      scene, ed->current_strips(), effect_chain, seq::query_strip_effect_chain);
+  seq::iterator_set_expand(ed->current_strips(), effect_chain, seq::query_strip_effect_chain);
 
   VectorSet<Strip *> expanded;
   for (Strip *strip : effect_chain) {
