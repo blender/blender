@@ -551,6 +551,8 @@ class ShaderModule {
   StaticShader wireframe_mesh = shader_selectable("overlay_wireframe");
   /* Draw objects without edges for the wireframe overlay. */
   StaticShader wireframe_points = shader_selectable("overlay_wireframe_points");
+  StaticShader wireframe_points_with_radius = shader_selectable(
+      "overlay_wireframe_points_with_radius");
   StaticShader wireframe_curve = shader_selectable("overlay_wireframe_curve");
 
   StaticShader fluid_grid_lines_flags = shader_selectable_no_clip(

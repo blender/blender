@@ -1258,8 +1258,8 @@ Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
   BLI_assert((obedit->id.tag & ID_TAG_COPIED_ON_EVAL) == 0);
   const Scene *scene_eval = DEG_get_evaluated(depsgraph, scene);
   Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
-  BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
-  return editbmesh_get_eval_cage(depsgraph, scene_eval, obedit_eval, em_eval, dataMask);
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  return editbmesh_get_eval_cage(depsgraph, scene_eval, obedit_eval, em, dataMask);
 }
 
 struct MappedUserData {

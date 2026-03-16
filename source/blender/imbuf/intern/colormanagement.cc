@@ -649,7 +649,7 @@ void colormanagement_init()
       /* OpenColorIO has issues with "$" in paths, as it uses that for variable expansion
        * and there appears to be no way to escape the symbol.
        *
-       * Work aroud it by setting the environment variable, which may also be useful for
+       * Work around it by setting the environment variable, which may also be useful for
        * plug-ins to inherit the Blender OCIO config. */
       std::optional<std::string> old_ocio_env;
       if (ocio_env) {

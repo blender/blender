@@ -19,6 +19,7 @@
 #  include <vulkan/vulkan_win32.h>
 #endif
 
+#define VMA_VULKAN_VERSION 1002000  // Vulkan 1.2
 #if !defined(_WIN32) or defined(_M_ARM64)
 /* Silence compilation warning on non-windows x64 systems. */
 #  define VMA_EXTERNAL_MEMORY_WIN32 0

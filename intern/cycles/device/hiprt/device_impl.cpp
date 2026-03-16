@@ -821,7 +821,11 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
       break;
     }
 
-    case Geometry::LIGHT:
+    case Geometry::AREA_LIGHT:
+    case Geometry::BACKGROUND_LIGHT:
+    case Geometry::POINT_LIGHT:
+    case Geometry::SPOT_LIGHT:
+    case Geometry::SUN_LIGHT:
       return;
 
     default:

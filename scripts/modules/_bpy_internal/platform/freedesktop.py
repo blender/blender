@@ -126,7 +126,7 @@ def handle_bin(do_register: bool, all_users: bool) -> str | None:
         if not all_users:
             if not system_path_contains(dirpath_dst):
                 sys.stdout.write(
-                    "The PATH environment variable doesn't contain \"{:s}\", not creating symlinks\n".format(
+                    "The PATH environment variable doesn't contain \"{:s}\", not creating symbolic-links\n".format(
                         dirpath_dst,
                     ))
                 # NOTE: this is not an error, don't consider it a failure.

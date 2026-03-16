@@ -2547,8 +2547,16 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
       lineart_matrix_perspective_44d(proj, fov, asp, cam->clip_start, cam->clip_end);
     }
     else if (cam->type == CAM_ORTHO) {
-      const double w = cam->ortho_scale / 2;
-      lineart_matrix_ortho_44d(proj, -w, w, -w / asp, w / asp, cam->clip_start, cam->clip_end);
+      double horizontal = cam->ortho_scale / 2;
+      double vertical = horizontal;
+      if (fit == CAMERA_SENSOR_FIT_VERT) {
+        horizontal *= asp;
+      }
+      else {
+        vertical /= asp;
+      }
+      lineart_matrix_ortho_44d(
+          proj, -horizontal, horizontal, -vertical, vertical, cam->clip_start, cam->clip_end);
     }
     else {
       BLI_assert(!"Unsupported camera type in lineart_main_load_geometries");

@@ -8100,11 +8100,13 @@ void RaycastNode::compile(SVMCompiler &compiler)
                                            compiler.stack_assign(hit_position_out),
                                            compiler.stack_assign(hit_normal_out)),
                     only_local);
+  compiler.add_node(__float_as_uint((bump == SHADER_BUMP_CENTER) ? 0.0f : bump_filter_width));
 }
 
 void RaycastNode::compile(OSLCompiler &compiler)
 {
   compiler.parameter(this, "only_local");
+  compiler.parameter("bump_filter_width", (bump == SHADER_BUMP_CENTER) ? 0.0f : bump_filter_width);
   compiler.add(this, "node_raycast");
 }
 

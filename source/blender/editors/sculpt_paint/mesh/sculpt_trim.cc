@@ -720,7 +720,7 @@ static void report_invalid_mode(const bke::pbvh::Type pbvh_type, ReportList &rep
     BKE_report(&reports, RPT_ERROR, "Not supported in dynamic topology mode");
   }
   else if (pbvh_type == bke::pbvh::Type::Grids) {
-    BKE_report(&reports, RPT_ERROR, "Not supported in multiresolution mode");
+    BKE_report(&reports, RPT_ERROR, "Not supported in multi-resolution mode");
   }
   else {
     BLI_assert_unreachable();

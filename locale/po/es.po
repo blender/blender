@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
-"PO-Revision-Date: 2026-03-10 07:12+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"PO-Revision-Date: 2026-03-11 21:12+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -1514,6 +1514,10 @@ msgstr "Trazo de la anotación"
 
 msgid "Freehand curve defining part of a sketch"
 msgstr "Curva a mano alzada que define parte de un dibujo"
+
+
+msgid "Display Mode"
+msgstr "Modo de visualización"
 
 
 msgid "Stroke Points"
@@ -14778,10 +14782,6 @@ msgid "Large"
 msgstr "Muy grande"
 
 
-msgid "Display Mode"
-msgstr "Modo de visualización"
-
-
 msgid "Display mode for the file list"
 msgstr "Modo de visualización de la lista"
 
@@ -16840,6 +16840,10 @@ msgstr "Máscara"
 
 msgid "Sound"
 msgstr "Sonido"
+
+
+msgid "Integer Vector"
+msgstr "Vector entero"
 
 
 msgid "Freestyle Line Set"
@@ -20285,6 +20289,14 @@ msgid "Smooth iterations applied after calculating the pose factor of each verte
 msgstr "Iteraciones de suavizado aplicadas luego de calcular el factor de la pose en cada vértice"
 
 
+msgid "View Normal"
+msgstr "Normal de la vista"
+
+
+msgid "Plane Normal"
+msgstr "Normal del plano"
+
+
 msgid "Rake"
 msgstr "Arrastre"
 
@@ -20783,10 +20795,6 @@ msgstr "Afectar sólo a los vértices con una normal similar a la existente dond
 
 msgid "Affect only vertices connected to the active vertex under the brush"
 msgstr "Afectar sólo a los vértices conectados al vértice activo bajo el pincel"
-
-
-msgid "View Normal"
-msgstr "Normal de la vista"
 
 
 msgid "Affect only vertices with a normal that faces the viewer"
@@ -28399,6 +28407,10 @@ msgid "Don't allow frame to be selected with mouse outside of frame range"
 msgstr "No permite que un fotograma sea seleccionado con el ratón si está fuera del rango de fotogramas"
 
 
+msgid "Restore Frame"
+msgstr "Restablecer fotograma"
+
+
 msgid "Render Data"
 msgstr "Datos de procesamiento"
 
@@ -35194,16 +35206,44 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metabola"
+msgid "Quick Effects"
+msgstr "Efectos rápidos"
 
 
 msgid "Show/Hide"
 msgstr "Mostrar / Ocultar"
+
+
+msgid "List"
+msgstr "Lista"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
+
+
+msgid "Math"
+msgstr "Operar"
+
+
+msgid "Asset"
+msgstr "Recurso"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Make Single User"
+msgstr "Hacer de único usuario"
+
+
+msgid "Convert"
+msgstr "Convertir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Vincular / Transferir datos"
 
 
 msgid "Read"
@@ -35214,28 +35254,140 @@ msgid "Write"
 msgstr "Escritura"
 
 
+msgid "Hooks"
+msgstr "Asignar gancho"
+
+
 msgid "Sample"
 msgstr "Muestreo"
-
-
-msgid "Names"
-msgstr "Nombres"
 
 
 msgid "Primitives"
 msgstr "Primitivas"
 
 
+msgid "Vertex Group Locks"
+msgstr "Bloqueos de grupo de vértices"
+
+
+msgid "Trim/Add"
+msgstr "Recortar / Agregar"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Esculpido definir pivote"
+
+
+msgid "Face Sets Init"
+msgstr "Inicialización de conjuntos de caras"
+
+
+msgid "Random Mask"
+msgstr "Máscara aleatoria"
+
+
+msgid "Clear Transform"
+msgstr "Restablecer transformación"
+
+
+msgid "In-Betweens"
+msgstr "Intermedios"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Bone Collections"
+msgstr "Colecciones de huesos"
+
+
+msgid "Names"
+msgstr "Nombres"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opciones de huesos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opciones huesos"
+
+
+msgid "Disable Bone Options"
+msgstr "Deshabilitar opciones huesos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de selección de mallas"
+
+
+msgid "Face Data"
+msgstr "Datos de caras"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleccionar por intensidad de caras"
+
+
+msgid "Set Face Strength"
+msgstr "Definir intensidad de caras"
+
+
+msgid "Merge"
+msgstr "Fusionar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Bone Roll"
 msgstr "Giro de huesos"
 
 
-msgid "Clean Up"
-msgstr "Limpiar"
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Keying"
+msgstr "Recortar"
+
+
+msgid "Tracking"
+msgstr "Rastreo"
+
+
+msgid "Render Preview"
+msgstr "Procesar previsualización"
+
+
+msgid "Utilities"
+msgstr "Utilitarios"
 
 
 msgid "Pivot Point"
 msgstr "Punto de pivote"
+
+
+msgid "Creative"
+msgstr "Creatividad"
 
 
 msgid "Snap"
@@ -35256,10 +35408,6 @@ msgstr "Autoenmascarar"
 
 msgid "Face Sets Edit"
 msgstr "Edición de conjuntos de caras"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueos de grupo de vértices"
 
 
 msgid "Mirror"
@@ -35298,10 +35446,6 @@ msgid "Select More/Less"
 msgstr "Seleccionar más / menos"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Select Similar"
 msgstr "Seleccionar similar"
 
@@ -35318,36 +35462,8 @@ msgid "Select Loops"
 msgstr "Seleccionar bucles"
 
 
-msgid "Render Preview"
-msgstr "Procesar previsualización"
-
-
-msgid "Adjust"
-msgstr "Ajustar"
-
-
 msgid "Assign Material"
 msgstr "Asignar material"
-
-
-msgid "Keying"
-msgstr "Recortar"
-
-
-msgid "Tracking"
-msgstr "Rastreo"
-
-
-msgid "Utilities"
-msgstr "Utilitarios"
-
-
-msgid "Math"
-msgstr "Operar"
-
-
-msgid "Creative"
-msgstr "Creatividad"
 
 
 msgid "Light"
@@ -35358,102 +35474,6 @@ msgid "Light Probe"
 msgstr "Sonda de luz"
 
 
-msgid "Add Image"
-msgstr "Agregar imagen"
-
-
-msgid "Relations"
-msgstr "Relaciones"
-
-
-msgid "Rigid Body"
-msgstr "Cuerpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efectos rápidos"
-
-
-msgid "Asset"
-msgstr "Recurso"
-
-
-msgid "Make Single User"
-msgstr "Hacer de único usuario"
-
-
-msgid "Convert"
-msgstr "Convertir"
-
-
-msgid "Link/Transfer Data"
-msgstr "Vincular / Transferir datos"
-
-
-msgid "Hooks"
-msgstr "Asignar gancho"
-
-
-msgid "Trim/Add"
-msgstr "Recortar / Agregar"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Esculpido definir pivote"
-
-
-msgid "Face Sets Init"
-msgstr "Inicialización de conjuntos de caras"
-
-
-msgid "Random Mask"
-msgstr "Máscara aleatoria"
-
-
-msgid "Clear Transform"
-msgstr "Restablecer transformación"
-
-
-msgid "In-Betweens"
-msgstr "Intermedios"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Bone Collections"
-msgstr "Colecciones de huesos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opciones de huesos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opciones huesos"
-
-
-msgid "Disable Bone Options"
-msgstr "Deshabilitar opciones huesos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de selección de mallas"
-
-
-msgid "Face Data"
-msgstr "Datos de caras"
-
-
 msgid "Gizmo"
 msgstr "Manipulador"
 
@@ -35462,36 +35482,28 @@ msgid "Instances"
 msgstr "Instancias"
 
 
-msgid "Select by Face Strength"
-msgstr "Seleccionar por intensidad de caras"
+msgid "Add Image"
+msgstr "Agregar imagen"
 
 
-msgid "Set Face Strength"
-msgstr "Definir intensidad de caras"
+msgid "Relations"
+msgstr "Relaciones"
 
 
 msgid "Import"
 msgstr "Importar"
 
 
-msgid "Merge"
-msgstr "Fusionar"
+msgid "Rigid Body"
+msgstr "Cuerpo rígido"
 
 
 msgid "Deprecated"
 msgstr "Obsoleto"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "List"
-msgstr "Lista"
+msgid "Track"
+msgstr "Rastrear"
 
 
 msgid "Keyframe Insert Pie"
@@ -45143,14 +45155,6 @@ msgid "Node header color tag"
 msgstr "Etiqueta de color del encabezado del nodo"
 
 
-msgid "Absolute bounding box dimensions of the node"
-msgstr "Dimensiones absolutas del volumen delimitador del nodo"
-
-
-msgid "Height of the node"
-msgstr "Altura del nodo"
-
-
 msgid "Collapse"
 msgstr "Colapsar"
 
@@ -45185,10 +45189,6 @@ msgstr "Identificador único del nodo"
 
 msgid "Outputs"
 msgstr "Salidas"
-
-
-msgid "Parent this node is attached to"
-msgstr "Superior al que está vinculado este nodo"
 
 
 msgid "Node selection state"
@@ -46630,6 +46630,10 @@ msgstr "Producirá un valor de color, escogido mediante el selector de color"
 
 msgid "Provide an integer value that can be connected to other nodes in the tree"
 msgstr "Producirá un valor entero que podrá ser conectado a otros nodos del árbol"
+
+
+msgid "Dimensions of the vector socket"
+msgstr "Dimensiones del conector vectorial"
 
 
 msgid "Provide a rotation value that can be connected to other nodes in the tree"
@@ -49424,10 +49428,6 @@ msgid "3D double vector"
 msgstr "Vector 3D doble"
 
 
-msgid "Integer Vector"
-msgstr "Vector entero"
-
-
 msgid "3D integer vector"
 msgstr "Vector 3D entero"
 
@@ -49773,6 +49773,10 @@ msgid "True if this node is used as the active group output"
 msgstr "Verdadero si este nodo es usado como la salida del grupo activo"
 
 
+msgid "Type of socket"
+msgstr "Tipo de conector"
+
+
 msgid "Join Bundle"
 msgstr "Unir paquetes"
 
@@ -49787,10 +49791,6 @@ msgstr "Redirigir"
 
 msgid "A single-socket organization tool that supports one input and multiple outputs"
 msgstr "Una herramienta de organización, con un único conector, que soporta una entrada y múltiples salidas"
-
-
-msgid "Type of socket"
-msgstr "Tipo de conector"
 
 
 msgid "Separate Bundle"
@@ -52235,10 +52235,6 @@ msgstr "Redefinir formato general"
 
 msgid "Use a different format instead of the node format for this file"
 msgstr "Usar para este archivo un formato distinto al general del nodo"
-
-
-msgid "Dimensions of the vector socket"
-msgstr "Dimensiones del conector vectorial"
 
 
 msgid "Collection of file output items"
@@ -69209,10 +69205,6 @@ msgid "A point on the plane"
 msgstr "Un punto del plano"
 
 
-msgid "Plane Normal"
-msgstr "Normal del plano"
-
-
 msgid "The direction the plane points"
 msgstr "La dirección a la que apunta el plano"
 
@@ -77227,15 +77219,6 @@ msgstr "Modifica propiedades como el radio de los vértices de curvas, tamaño d
 
 
 msgctxt "Operator"
-msgid "Interactive Light Track to Cursor"
-msgstr "Rastrear luz a cursor interactivamente"
-
-
-msgid "Interactively point cameras and lights to a location (Ctrl translates)"
-msgstr "Apunta de forma interactiva luces y cámaras a una ubicación (Ctrl para trasladar)"
-
-
-msgctxt "Operator"
 msgid "Place Object Under Mouse"
 msgstr "Ubicar objeto bajo el puntero"
 
@@ -80575,6 +80558,10 @@ msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Agrega una carpeta a ser usada por el Explorador de recursos como una fuente de recursos"
 
 
+msgid "Identifier (not necessarily unique) for the asset library"
+msgstr "Identificador (no necesariamente único) para la biblioteca de recursos"
+
+
 msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "Eliminar biblioteca de recursos"
@@ -80813,10 +80800,6 @@ msgstr "Captura las dinámicas"
 msgctxt "Operator"
 msgid "Bake All Physics"
 msgstr "Capturar todas las dinámicas"
-
-
-msgid "Bake all physics"
-msgstr "Captura todas las dinámicas"
 
 
 msgctxt "Operator"
@@ -81654,10 +81637,6 @@ msgid "Cancel animation, returning to the original frame"
 msgstr "Cancelar animación, regresando al fotograma original"
 
 
-msgid "Restore Frame"
-msgstr "Restablecer fotograma"
-
-
 msgid "Restore the frame when animation was initialized"
 msgstr "Restablecer al fotograma cuando se inicializó la animación"
 
@@ -82081,6 +82060,10 @@ msgstr "Permite administrar los complementos ya instalados"
 
 msgid "Edit and save themes installed via Extensions"
 msgstr "Permite editar y guardar los temas ya instalados"
+
+
+msgid "Asset Libraries"
+msgstr "Bibliotecas de recursos"
 
 
 msgid "Keymap"
@@ -83666,6 +83649,11 @@ msgstr "Mezclar colores"
 
 msgid "Combine two strips using blend modes"
 msgstr "Combina dos clips usando modos de fundido"
+
+
+msgctxt "Sequence"
+msgid "Compositor"
+msgstr "Nodos de composición"
 
 
 msgctxt "Operator"
@@ -92514,6 +92502,14 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Info de RV"
+
+
 msgid "Active Tool"
 msgstr "Herramienta activa"
 
@@ -92526,8 +92522,12 @@ msgid "Selectability & Visibility"
 msgstr "Seleccionabilidad y visibilidad"
 
 
-msgid "Wireframe Color"
-msgstr "Color de estructuras"
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
 
 
 msgid "Shadow Settings"
@@ -92570,6 +92570,14 @@ msgid "Mesh Edit Mode"
 msgstr "Modo edición de mallas"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
+
+
 msgid "Measurement"
 msgstr "Medición"
 
@@ -92580,14 +92588,6 @@ msgstr "Modo edición de curvas"
 
 msgid "Curves Edit Mode"
 msgstr "Modo edición de curvas"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
 
 
 msgid "Transform Orientations"
@@ -92618,14 +92618,6 @@ msgid "Stereoscopy"
 msgstr "Estereoscopía"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
-
-
 msgid "Multi Frame"
 msgstr "Multifotograma"
 
@@ -92648,14 +92640,6 @@ msgstr "Escala expandir/contraer curvas"
 
 msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
-
-
-msgid "VR"
-msgstr "RV"
-
-
-msgid "VR Info"
-msgstr "Info de RV"
 
 
 msgid "Import Settings"
@@ -93704,10 +93688,6 @@ msgstr "Repositorios"
 
 msgid "Applications"
 msgstr "Aplicaciones"
-
-
-msgid "Asset Libraries"
-msgstr "Bibliotecas de recursos"
 
 
 msgid "Development"
@@ -97959,6 +97939,10 @@ msgid "French - Français"
 msgstr "Francés - Français"
 
 
+msgid "Locale code: fr_FR. Translation progress: 100%"
+msgstr "Código de localización: fr_FR. Progreso de la traducción: 100%"
+
+
 msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
 
@@ -98025,6 +98009,10 @@ msgstr "Código de localización: it_IT. Progreso de la traducción: 44%"
 
 msgid "Japanese - 日本語"
 msgstr "Japonés - 日本語"
+
+
+msgid "Locale code: ja_JP. Translation progress: 100%"
+msgstr "Código de localización: ja_JP. Progreso de la traducción: 100%"
 
 
 msgid "Korean - 한국어"
@@ -98165,6 +98153,10 @@ msgstr "Código de localización: sw. Progreso de la traducción: 73%"
 
 msgid "Swedish - Svenska"
 msgstr "Sueco - Svenska"
+
+
+msgid "Locale code: sv_SE. Translation progress: 100%"
+msgstr "Código de localización: sv_SE. Progreso de la traducción: 100%"
 
 
 msgid "Tamil - தமிழ்"
@@ -105026,14 +105018,6 @@ msgid "Display the strip color tags in the sequencer"
 msgstr "Muestra las etiquetas de color de los clips en la línea de tiempo"
 
 
-msgid "Show Thumbnails"
-msgstr "Mostrar miniaturas"
-
-
-msgid "Show strip thumbnails"
-msgstr "Muestra miniaturas en los clips"
-
-
 msgid "Waveform Style"
 msgstr "Estilo de forma de onda"
 
@@ -106771,6 +106755,10 @@ msgid "Scopes to visualize image statistics"
 msgstr "Instrumentos para visualizar estadísticas de imagen"
 
 
+msgid "Context sensitive gizmo for the active node"
+msgstr "Manipulador sensible al contexto para el nodo activo"
+
+
 msgid "Show Mask Editor"
 msgstr "Mostrar editor de máscaras"
 
@@ -107042,10 +107030,6 @@ msgstr "Editar nodos de sombreado de estilo de línea"
 
 msgid "Use active Viewer Node output as backdrop for compositing nodes"
 msgstr "Usar la salida del nodo Visor activo como fondo para los nodos de composición"
-
-
-msgid "Context sensitive gizmo for the active node"
-msgstr "Manipulador sensible al contexto para el nodo activo"
 
 
 msgid "Supports Previews"
@@ -110184,11 +110168,6 @@ msgstr "Brillo / Contraste"
 msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Balance de color"
-
-
-msgctxt "Sequence"
-msgid "Compositor"
-msgstr "Nodos de composición"
 
 
 msgctxt "Sequence"
@@ -114179,16 +114158,16 @@ msgid "Import the assets as copied data-block while avoiding multiple copies of 
 msgstr "Importar recursos como bloques de datos copiados, evitando múltiples copias anidadas de datos, normalmente pesados. Por ejemplo, las texturas de un recurso de material o la malla de un recurso de objeto, no deberán ser copiados cada vez que este recurso sea importado. En vez de eso, las instancias del recurso compartirán los mismos datos."
 
 
-msgid "Identifier (not necessarily unique) for the asset library"
-msgstr "Identificador (no necesariamente único) para la biblioteca de recursos"
-
-
 msgid "Path to a directory with .blend files to use as an asset library"
 msgstr "Ruta hasta una carpeta que contenga archivos .blend para ser usados como bibliotecas de recursos"
 
 
 msgid "Use relative path when linking assets from this asset library"
 msgstr "Usar una ruta relativa al vincular recursos desde esta biblioteca de recursos"
+
+
+msgid "Use Remote"
+msgstr "Usar remota"
 
 
 msgid "Extension Repository"
@@ -114240,10 +114219,6 @@ msgstr "Borrar paquetes ya instalados"
 
 msgid "Downloaded package files are deleted after installation"
 msgstr "Los archivos de paquetes serán borrados luego de la instalación"
-
-
-msgid "Use Remote"
-msgstr "Usar remota"
 
 
 msgid "Synchronize the repository with a remote URL"
@@ -116615,10 +116590,6 @@ msgid "Follow a custom transformation to define the VR view's base pose"
 msgstr "Seguir una transformación personalizada para definir la pose inicial del visor de RV"
 
 
-msgid "Uniform scale to apply to VR view"
-msgstr "Escala uniforme a ser aplicada a la vista de RV"
-
-
 msgid "VR viewport far clipping distance"
 msgstr "Distancia máxima de recorte del visor de RV"
 
@@ -116740,10 +116711,6 @@ msgid "View Scale"
 msgstr "Escala de la vista"
 
 
-msgid "Scaling factor applied on top of scene scale for adjustments to the VR view. When possible, prefer modifying the scene scale instead"
-msgstr "Factor de escala aplicado adicionalmente a la escala de la escena, para ajustar la vista de RV. Cuando fuera posible, modificar la escala de la escena en vez de esto"
-
-
 msgid "Session State"
 msgstr "Estado de la sesión"
 
@@ -116770,10 +116737,6 @@ msgstr "Desplazamiento de rotación a ser aplicado a la pose base para determina
 
 msgid "Navigation Scale"
 msgstr "Escala de navegación"
-
-
-msgid "Additional scale multiplier to apply to base scale when determining viewer scale"
-msgstr "Multiplicador adicional de escala a ser aplicado a la escala base para determinar la escala del visor"
 
 
 msgid "Selected Action Map"
@@ -119157,16 +119120,6 @@ msgstr "Línea de tiempo - Herramienta: Seleccionar (Marco) (alternativa)"
 
 
 msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Lasso"
-msgstr "Línea de tiempo - Herramienta: Seleccionar (Lazo)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Select Lasso (fallback)"
-msgstr "Línea de tiempo - Herramienta: Seleccionar (Lazo) (alternativa)"
-
-
-msgctxt "WindowManager"
 msgid "Sequencer Tool: Select Circle"
 msgstr "Línea de tiempo - Herramienta: Seleccionar (Círculo)"
 
@@ -119174,6 +119127,16 @@ msgstr "Línea de tiempo - Herramienta: Seleccionar (Círculo)"
 msgctxt "WindowManager"
 msgid "Sequencer Tool: Select Circle (fallback)"
 msgstr "Línea de tiempo - Herramienta: Seleccionar (Círculo) (alternativa)"
+
+
+msgctxt "WindowManager"
+msgid "Sequencer Tool: Select Lasso"
+msgstr "Línea de tiempo - Herramienta: Seleccionar (Lazo)"
+
+
+msgctxt "WindowManager"
+msgid "Sequencer Tool: Select Lasso (fallback)"
+msgstr "Línea de tiempo - Herramienta: Seleccionar (Lazo) (alternativa)"
 
 
 msgctxt "WindowManager"
@@ -119222,16 +119185,6 @@ msgstr "Previsualización - Herramienta: Seleccionar (Marco) (alternativa)"
 
 
 msgctxt "WindowManager"
-msgid "Preview Tool: Select Lasso"
-msgstr "Previsualización - Herramienta: Seleccionar (Lazo)"
-
-
-msgctxt "WindowManager"
-msgid "Preview Tool: Select Lasso (fallback)"
-msgstr "Previsualización - Herramienta: Seleccionar (Lazo) (alternativa)"
-
-
-msgctxt "WindowManager"
 msgid "Preview Tool: Select Circle"
 msgstr "Previsualización - Herramienta: Seleccionar (Círculo)"
 
@@ -119239,6 +119192,16 @@ msgstr "Previsualización - Herramienta: Seleccionar (Círculo)"
 msgctxt "WindowManager"
 msgid "Preview Tool: Select Circle (fallback)"
 msgstr "Previsualización - Herramienta: Seleccionar (Círculo) (alternativa)"
+
+
+msgctxt "WindowManager"
+msgid "Preview Tool: Select Lasso"
+msgstr "Previsualización - Herramienta: Seleccionar (Lazo)"
+
+
+msgctxt "WindowManager"
+msgid "Preview Tool: Select Lasso (fallback)"
+msgstr "Previsualización - Herramienta: Seleccionar (Lazo) (alternativa)"
 
 
 msgctxt "WindowManager"
@@ -123664,6 +123627,10 @@ msgid "Mix Vector"
 msgstr "Mezclar (vector)"
 
 
+msgid "Determinant"
+msgstr "Determinante"
+
+
 msgid "CSV (.csv)"
 msgstr "CSV (.csv)"
 
@@ -123690,10 +123657,6 @@ msgstr "OpenVDB (.vdb)"
 
 msgid "For Each Element"
 msgstr "Para cada elemento"
-
-
-msgid "Determinant"
-msgstr "Determinante"
 
 
 msgid "Calculation Range"
@@ -124763,16 +124726,16 @@ msgid "Pixels/{:s}"
 msgstr "Píxeles/{:s}"
 
 
+msgid "By Active Tool"
+msgstr "Por herramienta activa"
+
+
 msgid "Mask Mapping"
 msgstr "Mapeo de máscara"
 
 
 msgid "Pressure Masking"
 msgstr "Máscara de presión"
-
-
-msgid "By Active Tool"
-msgstr "Por herramienta activa"
 
 
 msgid "Falloff Opacity"
@@ -125199,11 +125162,6 @@ msgstr "Capturar (obligatorio caché en disco)"
 msgctxt "Operator"
 msgid "Calculate to Frame"
 msgstr "Calcular hasta fotograma"
-
-
-msgctxt "Operator"
-msgid "Bake All Dynamics"
-msgstr "Capturar todas las dinámicas"
 
 
 msgctxt "Operator"
@@ -128166,6 +128124,16 @@ msgstr "Nuevo"
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Guardar copia..."
+
+
+msgctxt "Operator"
+msgid "Save Incremental"
+msgstr "Guardar (incremental)"
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Salir"
 
@@ -128282,16 +128250,6 @@ msgstr "Nombre de marcador"
 msgctxt "Operator"
 msgid "Back to Previous"
 msgstr "Regresar"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Guardar copia..."
-
-
-msgctxt "Operator"
-msgid "Save Incremental"
-msgstr "Guardar (incremental)"
 
 
 msgctxt "Operator"
@@ -130038,6 +129996,10 @@ msgid "Attribute Text"
 msgstr "Atributos como texto"
 
 
+msgid "Marker Names"
+msgstr "Nombres de marcadores"
+
+
 msgid "Mesh Edit Mode Overlays"
 msgstr "Sobreimpresos modo Edición (mallas)"
 
@@ -130684,16 +130646,24 @@ msgid "Specular Lighting"
 msgstr "Iluminación especular"
 
 
+msgid "Ridge"
+msgstr "Picos"
+
+
+msgid "Valley"
+msgstr "Valles"
+
+
+msgid "Screen Space"
+msgstr "Espacio de pantalla"
+
+
 msgid "Camera Guides"
 msgstr "Guías de cámara"
 
 
 msgid "Fade Inactive Geometry"
 msgstr "Desvanecer geometría inactiva"
-
-
-msgid "Marker Names"
-msgstr "Nombres de marcadores"
 
 
 msgid "Fade Geometry"
@@ -130873,18 +130843,6 @@ msgstr "Desmarcar como borde de Freestyle"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Desmarcar como cara de Freestyle"
-
-
-msgid "Ridge"
-msgstr "Picos"
-
-
-msgid "Valley"
-msgstr "Valles"
-
-
-msgid "Screen Space"
-msgstr "Espacio de pantalla"
 
 
 msgid "Include Active"
@@ -131697,10 +131655,6 @@ msgstr "Matriz decimal de 4 por 4"
 
 msgid "2D 16-Bit Integer"
 msgstr "Entero 2D de 16 bits"
-
-
-msgid "Recast"
-msgstr "Reproyectar"
 
 
 msgid "NGon Face"
@@ -139362,14 +139316,6 @@ msgid "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/
 msgstr "Mover el ratón para cambiar el tamaño del detalle de la topología dinámica. clic Izq: confirmar tamaño, Esc/clic Der: cancelar, Mayúsculas: modo de precisión, CTRL: tomar muestra del tamaño de detalle"
 
 
-msgid "Attribute Data Detected"
-msgstr "Datos de atributos detectados"
-
-
-msgid "Dyntopo will not preserve colors, UVs, or other attributes"
-msgstr "La topología dinámica no preservará los colores, los UV u otros atributos"
-
-
 msgid "Generative Modifiers Detected!"
 msgstr "Se detectaron modificadores generadores!"
 
@@ -139424,10 +139370,6 @@ msgstr "cara no triangular"
 
 msgid "multi-res modifier"
 msgstr "modificador multi-resolución"
-
-
-msgid "attributes"
-msgstr "atributos"
 
 
 msgid "constructive modifier"
@@ -139961,14 +139903,6 @@ msgstr "Tamaño: {} ({} bytes)"
 
 msgid "Path to asset library does not exist:"
 msgstr "La ruta a la biblioteca de recursos no existe:"
-
-
-msgid ""
-"Asset Libraries are local directories that can contain .blend files with assets inside.\n"
-"Manage Asset Libraries from the File Paths section in Preferences"
-msgstr ""
-"Las bibliotecas de recursos son carpetas locales que contienen archivos .blend con recursos dentro.\n"
-"Administrar las bibliotecas de recursos desde la sección Rutas de archivo en las Preferencias"
 
 
 msgid "Unreadable Blender library file:"
@@ -152112,14 +152046,6 @@ msgid "Inspection index is out of range"
 msgstr "El índice de inspección está fuera de rango"
 
 
-msgid "Wrong Image Input Type"
-msgstr "Tipo de imagen de entrada erróneo"
-
-
-msgid "Wrong Mask Input Type"
-msgstr "Tipo de máscara de entrada erróneo"
-
-
 msgid "Unsupported Inputs"
 msgstr "Entradas no soportadas"
 
@@ -152138,18 +152064,6 @@ msgstr "Salidas ignoradas"
 
 msgid "Unused Output"
 msgstr "Salida no usada"
-
-
-msgid "Node group's main Image input should be of type Color"
-msgstr "El tipo de imagen de entrada principal del grupo de nodos debería ser de tipo Color"
-
-
-msgid "Node group's Mask input should be of type Color"
-msgstr "El tipo de máscara de entrada del grupo de nodos debería ser de tipo Color"
-
-
-msgid "Only a main Image and Mask inputs are supported, the rest are unsupported and will return zero"
-msgstr "Sólo se soportan entradas de imagen principal y de máscara, el resto no se soportan y producirán un valor de cero"
 
 
 msgid "Node group must have a Color output socket"
@@ -153767,6 +153681,10 @@ msgid "unable to open the file"
 msgstr "no fue posible abrir el archivo"
 
 
+msgid "Save %u modified image(s)"
+msgstr "Guardar %u imágenes modificadas"
+
+
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "Por razones de seguridad, la ejecución automática de scripts Python en este archivo ha sido deshabilitada:"
 
@@ -153833,10 +153751,6 @@ msgstr "¿Sobrescribir el archivo usando la configuración actual de OpenColorIO
 
 msgid "Save changes before closing?"
 msgstr "¿Guardar cambios antes de cerrar?"
-
-
-msgid "Save %u modified image(s)"
-msgstr "Guardar %u imágenes modificadas"
 
 
 msgid "Loaded a pre-2.50 blend file, animation data has not been loaded. Open & save the file with Blender v4.5 to convert animation data."

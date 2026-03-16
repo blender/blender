@@ -4,6 +4,8 @@
 
 #include "BLI_math_matrix.hh"
 
+#include "GPU_material.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_transpose_matrix_cc {
@@ -24,10 +26,19 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
+{
+  return GPU_stack_link(material, node, "node_function_transpose_matrix", inputs, outputs);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeTransposeMatrix", FN_NODE_TRANSPOSE_MATRIX);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeTransposeMatrix", FN_NODE_TRANSPOSE_MATRIX);
   ntype.ui_name = "Transpose Matrix";
   ntype.ui_description =
       "Flip a matrix over its diagonal, turning columns into rows and vice-versa";
@@ -35,6 +46,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

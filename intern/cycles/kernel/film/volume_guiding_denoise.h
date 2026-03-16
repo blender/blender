@@ -97,7 +97,7 @@ ccl_device void volume_guiding_filter_y(KernelGlobals kg,
   /* Store neighboring values to avoid overwriting. */
   float3 scatter_neighbors[filter_width], transmit_neighbors[filter_width];
 
-  /* Initialze neighbors. */
+  /* Initialize neighbors. */
   for (int i = 0; i < filter_width; i++) {
     const int y = min_y + i;
     if (i >= radius || y < min_y || y >= max_y) {

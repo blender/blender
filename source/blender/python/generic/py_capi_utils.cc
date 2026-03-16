@@ -17,6 +17,8 @@
 
 #include "BLI_utildefines.h" /* for bool */
 
+#include "DNA_vec_types.h" /* for rcti */
+
 #include "py_capi_utils.hh"
 
 #include "python_utildefines.hh"
@@ -606,6 +608,30 @@ int PyC_ParseOptionalBool(PyObject *o, void *p)
   return 1;
 }
 
+int PyC_ParseRectI(PyObject *o, void *p)
+{
+  rcti *rect = static_cast<rcti *>(p);
+  if (!PyArg_ParseTuple(o, "(ii)(ii)", &rect->xmin, &rect->ymin, &rect->xmax, &rect->ymax)) {
+    return 0;
+  }
+  return 1;
+}
+
+int PyC_ParseOptionalRectI(PyObject *o, void *p)
+{
+  std::optional<rcti> *value_p = static_cast<std::optional<rcti> *>(p);
+  if (o == Py_None) {
+    value_p->reset();
+    return 1;
+  }
+  rcti rect;
+  if (!PyC_ParseRectI(o, &rect)) {
+    return 0;
+  }
+  *value_p = rect;
+  return 1;
+}
+
 int PyC_ParseStringEnum(PyObject *o, void *p)
 {
   PyC_StringEnum *e = static_cast<PyC_StringEnum *>(p);
@@ -944,6 +970,35 @@ void PyC_Err_PrintWithFunc(PyObject *py_func)
  * \{ */
 
 /**
+ * Get exit code `sys.exit(..)` was called with, see #pyc_exception_buffer_handle_system_exit.
+ */
+static std::optional<int> g_system_exit_code;
+std::optional<int> PyC_ExceptionSystemExitCode()
+{
+  return g_system_exit_code;
+}
+
+/**
+ * Capture exit code from current python exception.
+ */
+bool PyC_Err_CaptureSystemExitCode()
+{
+  if (!PyErr_ExceptionMatches(PyExc_SystemExit)) {
+    return false;
+  }
+
+  /* Get exit code and put back exception. */
+  PyObject *exc_obj = PyErr_GetRaisedException();
+  PyObject *code_obj = ((PySystemExitObject *)exc_obj)->code;
+  g_system_exit_code = 0;
+  if (code_obj && code_obj != Py_None) {
+    g_system_exit_code = PyLong_Check(code_obj) ? int(PyLong_AsLong(code_obj)) : 1;
+  }
+  PyErr_SetRaisedException(exc_obj);
+  return true;
+}
+
+/**
  * When a script calls `sys.exit(..)` it is expected that Blender quits,
  * internally this raises as `SystemExit` exception which this function detects.
  *
@@ -961,10 +1016,10 @@ void PyC_Err_PrintWithFunc(PyObject *py_func)
  */
 static void pyc_exception_buffer_handle_system_exit()
 {
-  if (!PyErr_ExceptionMatches(PyExc_SystemExit)) {
+  if (!PyC_Err_CaptureSystemExitCode()) {
     return;
   }
-/* Inspecting, follow Python's logic in #_Py_HandleSystemExit & treat as a regular exception. */
+  /* Inspecting, follow Python's logic in #_Py_HandleSystemExit & treat as a regular exception. */
 #  if 0 /* FIXME: */
   if (_Py_GetConfig()->inspect) {
     return;

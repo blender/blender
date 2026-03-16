@@ -1354,7 +1354,7 @@ void GHOST_WindowWin32::updateHDRInfo()
 
       if (::DisplayConfigGetDeviceInfo(&white_level.header) == ERROR_SUCCESS) {
         if (white_level.SDRWhiteLevel > 0) {
-          /* Windows assumes 1.0 = 80 nits, so multipley by that to get the absolute
+          /* Windows assumes 1.0 = 80 nits, so multiply by that to get the absolute
            * value in nits if we need it in the future. */
           info.sdr_white_level = static_cast<float>(white_level.SDRWhiteLevel) / 1000.0f;
         }

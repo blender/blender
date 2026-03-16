@@ -951,7 +951,7 @@ ccl_device_inline int kernel_path_mnee_sample(KernelGlobals kg,
   probe_ray.P = sd->P;
   probe_ray.tmin = 0.0f;
   if (ls->t == FLT_MAX) {
-    /* Distant / env light. */
+    /* Distant light. */
     probe_ray.D = ls->D;
     probe_ray.tmax = ls->t;
   }
@@ -1076,7 +1076,7 @@ ccl_device_inline int kernel_path_mnee_sample(KernelGlobals kg,
    * discontinuity is visible between direct and indirect contributions */
   INTEGRATOR_STATE_WRITE(state, path, mnee) |= PATH_MNEE_VALID;
 
-  /* Distant or environment light. */
+  /* Distant light. */
   bool light_fixed_direction = (ls->t == FLT_MAX);
   if (ls->type == LIGHT_AREA) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ls->prim);

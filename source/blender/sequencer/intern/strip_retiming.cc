@@ -27,6 +27,7 @@
 #include "BKE_sound.hh"
 
 #include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
@@ -423,6 +424,7 @@ void retiming_reset(Scene *scene, Strip *strip)
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 
   retiming_key_overlap(scene, strip);
+  seq::relations_invalidate_cache(scene, strip);
 }
 
 static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)

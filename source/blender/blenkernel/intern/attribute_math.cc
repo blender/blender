@@ -361,6 +361,37 @@ void mix_groups(const GSpan src,
   });
 }
 
+template<typename T>
+void shift_left(MutableSpan<T> data, int src_begin, int src_end, int dst_begin)
+{
+  if (src_begin == dst_begin || src_begin == src_end) {
+    return;
+  }
+  std::move(data.data() + src_begin, data.data() + src_end, data.data() + dst_begin);
+}
+
+void shift_left(GMutableSpan data, int src_begin, int src_end, int dst_begin)
+{
+  to_static_type(data.type(), [&]<typename T>() {
+    shift_left(data.typed<T>(), src_begin, src_end, dst_begin);
+  });
+}
+
+template<typename T> void shift_right(MutableSpan<T> data, int src_begin, int src_end, int dst_end)
+{
+  if (src_end == dst_end || src_begin == src_end) {
+    return;
+  }
+  std::move_backward(data.data() + src_begin, data.data() + src_end, data.data() + dst_end);
+}
+
+void shift_right(GMutableSpan data, int src_begin, int src_end, int dst_begin)
+{
+  to_static_type(data.type(), [&]<typename T>() {
+    shift_right(data.typed<T>(), src_begin, src_end, dst_begin);
+  });
+}
+
 void gather(const GSpan src, const Span<int> map, GMutableSpan dst)
 {
   gather(GVArray::from_span(src), map, IndexRange(dst.size()), dst);
@@ -389,7 +420,7 @@ void gather_group_to_group(const OffsetIndices<int> src_offsets,
                            const GSpan src,
                            GMutableSpan dst)
 {
-  attribute_math::to_static_type(src.type(), [&]<typename T>() {
+  to_static_type(src.type(), [&]<typename T>() {
     array_utils::gather_group_to_group(
         src_offsets, dst_offsets, selection, src.typed<T>(), dst.typed<T>());
   });
@@ -400,7 +431,7 @@ void gather_ranges_to_groups(const Span<IndexRange> src_ranges,
                              const GSpan src,
                              GMutableSpan dst)
 {
-  attribute_math::to_static_type(src.type(), [&]<typename T>() {
+  to_static_type(src.type(), [&]<typename T>() {
     Span<T> src_span = src.typed<T>();
     MutableSpan<T> dst_span = dst.typed<T>();
 
@@ -417,7 +448,7 @@ void gather_to_groups(const OffsetIndices<int> dst_offsets,
                       const GSpan src,
                       GMutableSpan dst)
 {
-  attribute_math::to_static_type(src.type(), [&]<typename T>() {
+  to_static_type(src.type(), [&]<typename T>() {
     array_utils::gather_to_groups(dst_offsets, src_selection, src.typed<T>(), dst.typed<T>());
   });
 }

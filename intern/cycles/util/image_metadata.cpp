@@ -150,7 +150,7 @@ void ImageMetaData::finalize(const ImageAlphaType alpha_type)
   {
     is_unassociated_alpha = false;
   }
-  /* Allways convert if explicitly specified as unassociated. */
+  /* Always convert if explicitly specified as unassociated. */
   else if (alpha_type == IMAGE_ALPHA_UNASSOCIATED) {
     is_unassociated_alpha = true;
   }

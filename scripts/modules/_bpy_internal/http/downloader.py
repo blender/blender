@@ -409,12 +409,12 @@ class DownloaderOptions:
         """Make sure a custom User-Agent HTTP header is set.
 
         This is done here, instead of globally in the `requests` module, because
-        `requests` will be used in a Python subprocess, which doesn't run inside
+        `requests` will be used in a Python sub-process, which doesn't run inside
         of Blender. So in order to include the Blender version, the header has
         to be defined in the main process.
 
         Note that this information is NOT passed in the query string for GET
-        requests. This is to help HTTP caching infrastructure (like Cloudflare)
+        requests. This is to help HTTP caching infrastructure (like CloudFlare)
         to cache HTTP responses as much as possible.
         """
         if any(header.lower() == 'user-agent' for header in self.http_headers):
@@ -824,7 +824,7 @@ def _download_queued_items(
                     # practice I (Sybren) have also seen a ConnectionResetError
                     # being raised when Blender shuts down uncleanly. The
                     # implementation of .send() shows that it can also raise an
-                    # OSError, which is the superclass of ConnectionResetError
+                    # OSError, which is the super-class of ConnectionResetError
                     # as well, so that's why that's caught here.
                     log.warning("Blender is no longer running, shutting down the downloader process")
                     do_shutdown.set()
@@ -1505,7 +1505,6 @@ def _create_temp_file(dirpath: Path, prefix: str, suffix: str) -> Path:
 
     The caller is responsible for deleting the file after use.
     """
-    import os
     import tempfile
 
     fd, path_as_str = tempfile.mkstemp(prefix=prefix, suffix=suffix, dir=dirpath)

@@ -701,6 +701,20 @@ void funcTfloatT1(float a) {
   }
   {
     string input = R"(
+template<int i, uint j, int k> E func() { return E(i + j + k); }
+template E func<0x1, 2, -1>();
+)";
+    string expect = R"(
+E funcT0x1T2T_1() { return E(0x1 + 2 + -1); }
+#line 4
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
 template<enum E e, char i> E func() { return E(e + i); }
 template E func<v, 2>();
 )";
@@ -1661,6 +1675,51 @@ template<> Type a<Type>() {}
     string expect = R"(
 
            Type NS_aTType() {}
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    /* Half namespace specified identifiers and methods. */
+    string input = R"(
+namespace NS {
+struct B {
+  int i;
+  static int D() { return B::C().R(); }
+  static int E() { return C().R(); }
+  static B C() { return B(0); }
+  int R() { return R(); }
+};
+B fn() { return B::C(); }
+}
+)";
+
+    string expect = R"(
+
+struct NS_B {
+  int i;
+#line 9
+};
+
+#ifndef GPU_METAL
+NS_B NS_B_ctor_();
+int NS_B_D();
+int NS_B_E();
+NS_B NS_B_C();
+int _R(_ref(NS_B ,this_));
+#endif
+#line 3
+                    NS_B NS_B_ctor_() {NS_B r;r.i=0;return r;}
+#line 5
+         int NS_B_D() { return _R(NS_B_C()); }
+         int NS_B_E() { return _R(NS_B_C()); }
+         NS_B NS_B_C() { return NS_B(0); }
+  int _R(_ref(NS_B ,this_)) { return _R(this_); }
+#line 10
+NS_B NS_fn() { return NS_B_C(); }
 
 )";
     string error;

@@ -1465,18 +1465,7 @@ static int trim_end_points(bke::greasepencil::Drawing &drawing,
     }
 
     bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-    GMutableSpan attribute_data = dst.span;
-
-    bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
-      MutableSpan<T> span_data = attribute_data.typed<T>();
-
-      for (int i = last_active_point - num_points_to_remove + 1;
-           i < curves.points_num() - num_points_to_remove;
-           i++)
-      {
-        span_data[i] = span_data[i + num_points_to_remove];
-      }
-    });
+    bke::attribute_math::shift_left(dst.span, last_active_point, curves.points_num(), 0);
     dst.finish();
   });
 

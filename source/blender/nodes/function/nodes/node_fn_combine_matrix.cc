@@ -5,6 +5,8 @@
 #include "NOD_inverse_eval_params.hh"
 #include "NOD_value_elem_eval.hh"
 
+#include "GPU_material.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_combine_matrix_cc {
@@ -231,10 +233,19 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
   }
 }
 
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
+{
+  return GPU_stack_link(material, node, "node_function_combine_matrix", inputs, outputs);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeCombineMatrix", FN_NODE_COMBINE_MATRIX);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeCombineMatrix", FN_NODE_COMBINE_MATRIX);
   ntype.ui_name = "Combine Matrix";
   ntype.ui_description = "Construct a 4x4 matrix from its individual values";
   ntype.enum_name_legacy = "COMBINE_MATRIX";
@@ -244,6 +255,7 @@ static void node_register()
   ntype.eval_elem = node_eval_elem;
   ntype.eval_inverse_elem = node_eval_inverse_elem;
   ntype.eval_inverse = node_eval_inverse;
+  ntype.gpu_fn = node_gpu_material;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

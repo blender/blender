@@ -23,28 +23,6 @@
 
 namespace blender::bke::pbvh::pixels {
 
-struct UVPrimitivePaintInput {
-  /** Corresponding index into triangles */
-  int tri_index;
-  /**
-   * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
-   *
-   * Only the first two coordinates are stored. The third should be recalculated
-   */
-  float2 delta_barycentric_coord_u;
-
-  /**
-   * Initially only the vert indices are known.
-   *
-   * delta_barycentric_coord_u is initialized in a later stage as it requires image tile
-   * dimensions.
-   */
-  UVPrimitivePaintInput(int tri_index)
-      : tri_index(tri_index), delta_barycentric_coord_u(0.0f, 0.0f)
-  {
-  }
-};
-
 /**
  * Encode sequential pixels to reduce memory footprint.
  */
@@ -113,7 +91,18 @@ struct NodeData {
 
   Vector<UDIMTilePixels> tiles;
   Vector<UDIMTileUndo> undo_regions;
-  Vector<UVPrimitivePaintInput> uv_primitives;
+
+  struct {
+    /** Corresponding index into triangles */
+    Vector<int> tri_indices;
+
+    /**
+     * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
+     *
+     * Only the first two coordinates are stored. The third should be recalculated
+     */
+    Vector<float2> delta_barycentric_coords;
+  } uv_primitives;
 
   NodeData()
   {
@@ -179,7 +168,8 @@ struct NodeData {
   void clear_data()
   {
     tiles.clear();
-    uv_primitives.clear();
+    uv_primitives.tri_indices.clear();
+    uv_primitives.delta_barycentric_coords.clear();
   }
 
   static void free_func(void *instance)

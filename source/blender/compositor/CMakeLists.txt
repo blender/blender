@@ -391,6 +391,16 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_summed_area_table_lib.glsl
   shaders/library/gpu_shader_compositor_texture_utilities.glsl
   shaders/library/gpu_shader_compositor_type_conversion.glsl
+
+  shaders/library/gpu_shader_function_combine_matrix.glsl
+  shaders/library/gpu_shader_function_invert_matrix.glsl
+  shaders/library/gpu_shader_function_matrix_determinant.glsl
+  shaders/library/gpu_shader_function_matrix_multiply.glsl
+  shaders/library/gpu_shader_function_project_point.glsl
+  shaders/library/gpu_shader_function_separate_matrix.glsl
+  shaders/library/gpu_shader_function_transform_direction.glsl
+  shaders/library/gpu_shader_function_transform_point.glsl
+  shaders/library/gpu_shader_function_transpose_matrix.glsl
 )
 
 set(GLSL_INC

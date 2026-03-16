@@ -204,7 +204,7 @@ class ShaderManager {
   virtual uint64_t get_attribute_id(AttributeStandard std);
 
   /* get shader id for mesh faces */
-  int get_shader_id(Shader *shader, bool smooth = false);
+  int get_shader_id(const Shader *shader, bool smooth = false);
 
   /* add default shaders to scene, to use as default for things that don't
    * have any shader assigned explicitly */

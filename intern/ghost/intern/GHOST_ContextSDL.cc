@@ -132,7 +132,7 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
     }
     s_sharedCount++;
 
-    success = (SDL_GL_MakeCurrent(window_, context_) < 0) ? GHOST_kFailure : GHOST_kSuccess;
+    success = (SDL_GL_MakeCurrent(window_, context_) != 0) ? GHOST_kFailure : GHOST_kSuccess;
 
     {
       const GHOST_TVSyncModes vsync = getVSync();

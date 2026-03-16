@@ -17,6 +17,7 @@ namespace blender {
 
 /* ********* exports for space_view3d/ module for offscreen rendering ********** */
 struct ARegion;
+struct bContext;
 struct Depsgraph;
 struct GPUOffScreen;
 struct GPUViewport;
@@ -29,6 +30,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               eDrawType drawtype,
                               View3D *v3d,
                               ARegion *region,
+                              bContext *context,
                               int winx,
                               int winy,
                               const float viewmat[4][4],
@@ -47,6 +49,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      Scene *scene,
                                      View3DShading *shading_override,
+                                     bContext *context,
                                      eDrawType drawtype,
                                      int object_type_exclude_viewport_override,
                                      int object_type_exclude_select_override,

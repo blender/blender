@@ -457,7 +457,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       svm_node_ao<node_feature_mask>(kg, state, sd, stack, node);
       break;
       SVM_CASE(NODE_RAYCAST)
-      svm_node_raycast<node_feature_mask>(kg, state, sd, stack, node);
+      offset = svm_node_raycast<node_feature_mask>(kg, state, sd, stack, node, offset);
       break;
 #endif
       SVM_CASE(NODE_AOV_START)

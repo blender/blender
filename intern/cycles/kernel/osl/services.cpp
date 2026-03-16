@@ -759,24 +759,20 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   ray.P = make_float3(P.x, P.y, P.z);
   ray.D = make_float3(R.x, R.y, R.z);
-  ray.tmin = 0.0f;
-  ray.tmax = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
+  ray.tmin = options.mindist;
+  ray.tmax = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist;
   ray.time = sd->time;
   ray.self.object = OBJECT_NONE;
   ray.self.prim = PRIM_NONE;
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
 
-  if (options.mindist == 0.0f) {
+  if (ray.tmin == 0.0f) {
     /* avoid self-intersections */
     if (ray.P == sd->P) {
       ray.self.object = sd->object;
       ray.self.prim = sd->prim;
     }
-  }
-  else {
-    /* offset for minimum distance */
-    ray.P += options.mindist * ray.D;
   }
 
   /* ray differentials */

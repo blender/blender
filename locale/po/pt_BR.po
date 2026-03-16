@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -1259,6 +1259,10 @@ msgstr "Padrão"
 
 msgid "Freehand curve defining part of a sketch"
 msgstr "Curvas a mão livre definindo partes dos rascunhos."
+
+
+msgid "Display Mode"
+msgstr "Modo de visualização"
 
 
 msgid "Stroke Points"
@@ -10005,10 +10009,6 @@ msgid "Medium"
 msgstr "Médio(a)"
 
 
-msgid "Display Mode"
-msgstr "Modo de visualização"
-
-
 msgid "Display mode for the file list"
 msgstr "Modo de visualização para a lista de arquivos."
 
@@ -11908,6 +11908,10 @@ msgstr "Topologia"
 
 msgid "Face Sets"
 msgstr "Conjuntos de faces"
+
+
+msgid "Plane Normal"
+msgstr "Normais do plano"
 
 
 msgid "Rake"
@@ -16358,6 +16362,10 @@ msgstr "Travar a seleção de quadros"
 
 msgid "Don't allow frame to be selected with mouse outside of frame range"
 msgstr "Não permite que o quadro seja selecionado com o mouse fora do intervalo de quadros."
+
+
+msgid "Restore Frame"
+msgstr "Restaurar quadro"
 
 
 msgid "Render Data"
@@ -21195,28 +21203,108 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
 
 
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
 msgid "Names"
 msgstr "Nomes"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Pivot Point"
@@ -21267,10 +21355,6 @@ msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
@@ -21287,24 +21371,16 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Light"
 msgstr "Luz"
 
 
 msgid "Light Probe"
 msgstr "Sonda de Luz"
+
+
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Add Image"
@@ -21315,84 +21391,16 @@ msgid "Relations"
 msgstr "Relações"
 
 
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Import"
 msgstr "Importar"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Rigid Body"
+msgstr "Corpo rígido"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
+msgid "Track"
+msgstr "Rastrear"
 
 
 msgid "Basic"
@@ -26721,14 +26729,6 @@ msgid "Custom color of the node body"
 msgstr "Cor personalizada do corpo do nó."
 
 
-msgid "Absolute bounding box dimensions of the node"
-msgstr "Dimensões absolutas da caixa circundante do nó."
-
-
-msgid "Height of the node"
-msgstr "Altura do nó."
-
-
 msgid "Collapse"
 msgstr "Recolher"
 
@@ -26751,10 +26751,6 @@ msgstr "Identificador do nó (nome único)."
 
 msgid "Outputs"
 msgstr "Saídas"
-
-
-msgid "Parent this node is attached to"
-msgstr "Parente ao qual este nó está conectado."
 
 
 msgid "Node selection state"
@@ -36264,10 +36260,6 @@ msgid "A point on the plane"
 msgstr "Um ponto no plano"
 
 
-msgid "Plane Normal"
-msgstr "Normais do plano"
-
-
 msgid "The direction the plane points"
 msgstr "A direção dos pontos do plano."
 
@@ -40553,11 +40545,6 @@ msgstr "Modifica as propriedades como o raio dos vértices da curva, o tamanho d
 
 
 msgctxt "Operator"
-msgid "Interactive Light Track to Cursor"
-msgstr "Trilha de luz interativa para cursor"
-
-
-msgctxt "Operator"
 msgid "Place Object Under Mouse"
 msgstr "Colocar Objeto Sob o Mouse"
 
@@ -42753,10 +42740,6 @@ msgid "Bake All Physics"
 msgstr "Gerar e gravar todas as físicas"
 
 
-msgid "Bake all physics"
-msgstr "Gera e grava todas as físicas."
-
-
 msgid "Bake from cache"
 msgstr "Gera e grava a partir do cache."
 
@@ -43342,10 +43325,6 @@ msgstr "Cancelar animação"
 
 msgid "Cancel animation, returning to the original frame"
 msgstr "Cancela a animação, retornando para o quadro original."
-
-
-msgid "Restore Frame"
-msgstr "Restaurar quadro"
 
 
 msgid "Restore the frame when animation was initialized"
@@ -59853,11 +59832,6 @@ msgid "Bake (Disk Cache mandatory)"
 msgstr "Capturar (Cachê de Disco obrigatório)"
 
 
-msgctxt "Operator"
-msgid "Bake All Dynamics"
-msgstr "Gerar e gravar todas as dinâmicas"
-
-
 msgid "Cache is disabled until the file is saved"
 msgstr "O cache está desabilitado até que o arquivo Blender seja salvo."
 
@@ -61064,6 +61038,11 @@ msgstr "Instalar um Modelo de Aplicação..."
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Salvar cópia..."
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Sair"
 
@@ -61151,11 +61130,6 @@ msgstr "Próximo Espaço de Trabalho"
 msgctxt "Operator"
 msgid "Back to Previous"
 msgstr "Retornar ao anterior"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Salvar cópia..."
 
 
 msgctxt "Operator"
@@ -62464,10 +62438,6 @@ msgstr "Cor"
 
 msgid "Int"
 msgstr "Inteiro"
-
-
-msgid "Recast"
-msgstr "Projetar novamente"
 
 
 msgid "NGon Face"
@@ -65001,10 +64971,6 @@ msgstr "O grupo de espelhamento está bloqueado, abortando."
 
 msgid "Multipaint group is locked, aborting"
 msgstr "O grupo de múltipla pintura está bloqueado, abortando."
-
-
-msgid "Attribute Data Detected"
-msgstr "Dados de atributo detectados"
 
 
 msgid "Generative Modifiers Detected!"

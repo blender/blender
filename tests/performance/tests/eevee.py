@@ -143,7 +143,7 @@ else:
 
         def run(self, env, device_id, gpu_backend):
             args = {}
-            _, log = env.run_in_blender(_run, args, [self.filepath], foreground=True, gpu_backend=gpu_backend)
+            _, log = env.run_in_blender(_run, args, ['--gpu-backend', gpu_backend, self.filepath], foreground=True)
             for line in log:
                 if line.startswith(LOG_KEY):
                     result_str = line[len(LOG_KEY):]

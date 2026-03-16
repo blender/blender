@@ -422,7 +422,10 @@ static void rna_NodeSocket_label_get(PointerRNA *ptr, char *value)
 
 static int rna_NodeSocket_label_length(PointerRNA *ptr)
 {
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  /* Socket label may require the owner_node pointer. */
+  ntree->ensure_topology_cache();
   return bke::node_socket_label(*sock).size();
 }
 

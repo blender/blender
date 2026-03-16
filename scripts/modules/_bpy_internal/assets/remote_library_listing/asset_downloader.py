@@ -170,7 +170,7 @@ def _preview_download_done(
                        http_req_descr.url, content_type)
         # TODO: mark as 'failed' so that this file isn't repeatedly
         # downloaded and rejected. For now I'll just keep the file
-        # around, so that at least the timestamping works to prevent
+        # around, so that at least the time-stamping works to prevent
         # hammering the server.
 
     # Indicate to a future run that we just confirmed this file is still fresh.
@@ -206,7 +206,7 @@ class DownloadStatus(enum.Enum):
 class AssetDownloader:
     _locator: RemoteAssetListingLocator
 
-    # Called for download progres
+    # Called for download progress
     type OnUpdateCallback = Callable[['AssetDownloader'], None]
     _on_update_callback: OnUpdateCallback
 

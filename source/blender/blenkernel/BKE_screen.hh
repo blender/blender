@@ -281,10 +281,6 @@ struct ARegionType {
   /** Split region, copy data optionally. */
   void *(*duplicate)(void *poin);
 
-  /** Register operator types on startup. */
-  void (*operatortypes)();
-  /** Add items to keymap. */
-  void (*keymap)(wmKeyConfig *keyconf);
   /** Allows default cursor per region. */
   void (*cursor)(wmWindow *win, ScrArea *area, ARegion *region);
 

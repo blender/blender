@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2026-02-01 08:12+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4730,6 +4730,10 @@ msgid "Final frame of the playback/rendering range"
 msgstr "เฟรมสุดท้ายของความยาวการเล่น/เรนเดอร์"
 
 
+msgid "Restore Frame"
+msgstr "คืนค่าเฟรม"
+
+
 msgid "Render Data"
 msgstr "เรนเดอร์ข้อมูล"
 
@@ -4949,16 +4953,44 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Layout"
+msgstr "เค้าโครง"
 
 
 msgid "Metaball"
 msgstr "เมตาบอล"
 
 
-msgid "Names"
-msgstr "ชื่อ"
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Pivot Point"
@@ -5005,18 +5037,6 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
 msgid "Light"
 msgstr "แสง"
 
@@ -5025,28 +5045,12 @@ msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
 msgid "Import"
 msgstr "นำเข้า"
 
 
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Track"
+msgstr "แทร็ค"
 
 
 msgid "Zoom"
@@ -6068,10 +6072,6 @@ msgstr "มน"
 msgctxt "Scene"
 msgid "New"
 msgstr "ใหม่"
-
-
-msgid "Restore Frame"
-msgstr "คืนค่าเฟรม"
 
 
 msgctxt "Operator"
@@ -7344,6 +7344,11 @@ msgstr "ติดตั้งแม่แบบแอปพลิเคชั่
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "บันทึกเป็น..."
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "ออก"
 
@@ -7411,11 +7416,6 @@ msgstr "พื้นที่ใช้งานถัดไป"
 msgctxt "Operator"
 msgid "Back to Previous"
 msgstr "กลับไปยังก่อนหน้านี้"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "บันทึกเป็น..."
 
 
 msgctxt "Operator"

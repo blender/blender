@@ -214,12 +214,12 @@ set(SRC_KERNEL_LIGHT_HEADERS
   light/area.h
   light/background.h
   light/common.h
-  light/distant.h
   light/distribution.h
   light/light.h
   light/point.h
   light/sample.h
   light/spot.h
+  light/sun.h
   light/tree.h
   light/triangle.h
 )

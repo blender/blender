@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 /* On CPU this is ustring (interned string pointer) and on GPU this is the hash.
  *
  * We don't use OSL headers for GPU, so can't rely on the constexpr to compute the hash
- * and need to hardcode it. The static assert checks it's correct and also shows the
+ * and need to hard-code it. The static assert checks it's correct and also shows the
  * value in the error message for adding new entries. */
 #ifdef __KERNEL_GPU__
 #  define OSL_DEVICE_STRING(name, str, hash) ccl_device_constant DeviceString name = hash;

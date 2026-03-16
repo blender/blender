@@ -1025,7 +1025,7 @@ static float fcm_smooth_frame(const FCurve *fcu,
   float total_weighted_value = 0.0f;
   float total_weight = 0.0f;
 
-  /* Define sampling window around the frame using the filder width. */
+  /* Define sampling window around the frame using the filter width. */
   const int start_frame = floorf(evaltime - filter_width);
   const int end_frame = ceilf(evaltime + filter_width);
 

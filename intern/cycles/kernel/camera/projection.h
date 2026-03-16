@@ -196,7 +196,7 @@ ccl_device float2 direction_to_fisheye_lens_polynomial(
   return make_float2(0.5f - uv.x / width, uv.y / height + 0.5f);
 }
 
-/* Mirror Ball <-> Cartesion direction */
+/* Mirror Ball <-> Cartesian direction. */
 
 ccl_device float3 mirrorball_to_direction(const float u, const float v)
 {

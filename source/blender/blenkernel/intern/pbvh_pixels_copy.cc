@@ -170,7 +170,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
         [&](auto &nodes) {
           for (bke::pbvh::Node &node : nodes) {
             if (should_add_node(node, image_tile)) {
-              NodeData &node_data = *static_cast<NodeData *>(node.pixels_);
+              NodeData &node_data = *node.pixels_;
               UDIMTilePixels &tile_pixels = *node_data.find_tile_data(image_tile);
               append(tile_pixels);
             }
@@ -188,7 +188,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
     if (node.pixels_ == nullptr) {
       return false;
     }
-    NodeData &node_data = *static_cast<NodeData *>(node.pixels_);
+    NodeData &node_data = *node.pixels_;
     if (node_data.find_tile_data(image_tile) == nullptr) {
       return false;
     }

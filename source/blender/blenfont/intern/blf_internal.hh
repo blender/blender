@@ -110,8 +110,6 @@ void blf_font_draw__wrap(FontBLF *font, const char *str, size_t str_len, ResultB
  */
 void blf_draw_svg_icon(FontBLF *font,
                        uint icon_id,
-                       float x,
-                       float y,
                        float size,
                        const float color[4] = nullptr,
                        float outline_alpha = 1.0f,

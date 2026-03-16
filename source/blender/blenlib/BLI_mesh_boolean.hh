@@ -8,7 +8,7 @@
  * \ingroup bli
  */
 
-/* The boolean functions in Blenlib use exact arithmetic, so require GMP. */
+/* The boolean functions in `blenlib` use exact arithmetic, so require GMP. */
 #ifdef WITH_GMP
 
 #  include "BLI_function_ref.hh"

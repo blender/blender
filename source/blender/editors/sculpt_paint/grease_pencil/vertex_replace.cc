@@ -71,24 +71,43 @@ void VertexReplaceOperation::on_stroke_extended(const bContext &C,
         const IndexMask fill_selection = fill_mask_for_stroke_operation(
             params, use_selection_masking, memory);
         if (!fill_selection.is_empty() && do_fill) {
-          const OffsetIndices<int> points_by_curve = params.drawing.strokes().points_by_curve();
-          const Array<float2> view_positions = view_positions_from_curve_mask(params,
-                                                                              fill_selection);
+          BLI_assert(params.drawing.fills().has_value());
+          const GroupedSpan<int> fills = *params.drawing.fills();
+          const bke::CurvesGeometry &curves = params.drawing.strokes();
+          const OffsetIndices<int> points_by_curve = curves.points_by_curve();
           MutableSpan<ColorGeometry4f> fill_colors = params.drawing.fill_colors_for_write();
+          /* TODO. Only calculate needed positions. */
+          const Array<float2> view_positions = view_positions_from_curve_mask(
+              params, curves.curves_range());
 
           fill_selection.foreach_index(
-              [&](const int64_t curve_i) {
-                const IndexRange points = points_by_curve[curve_i];
-                const Span<float2> curve_view_positions = view_positions.as_span().slice(points);
-                const float influence = brush_fill_influence(paint,
+              [&](const int64_t fill_i) {
+                const Span<int> fill_curves = fills[fill_i];
+                const IndexMask fill_curve_mask = IndexMask::from_indices(fill_curves, memory);
+
+                float influence = 0.0f;
+                fill_curve_mask.foreach_index([&](const int64_t curve) {
+                  const IndexRange points = points_by_curve[curve];
+                  const Span<float2> curve_view_positions = view_positions.as_span().slice(points);
+                  influence = math::max(influence,
+                                        brush_fill_influence(paint,
                                                              brush,
                                                              curve_view_positions,
                                                              extension_sample,
-                                                             params.multi_frame_falloff);
-                if (influence > 0.0f && fill_colors[curve_i].a > 0.0f) {
-                  fill_colors[curve_i] = replace_color;
+                                                             params.multi_frame_falloff));
+                });
+
+                ColorGeometry4f color = fill_colors[fill_curves.first()];
+                color.a -= influence;
+                color.a = math::max(color.a, 0.0f);
+
+                if (influence > 0.0f && color.a > 0.0f) {
+                  color = replace_color;
                 }
+
+                index_mask::masked_fill(fill_colors, color, fill_curve_mask);
               },
+
               exec_mode::grain_size(1024));
         }
         return true;

@@ -365,9 +365,9 @@ struct SpecializeConstant {
 
 struct Draw {
   gpu::Batch *batch;
-  uint16_t instance_len;
-  uint8_t expand_prim_type; /* #GPUPrimType */
-  uint8_t expand_prim_len;
+  uint32_t instance_len : 24;
+  uint32_t expand_prim_type : 4; /* #GPUPrimType */
+  uint32_t expand_prim_len : 4;
   uint32_t vertex_first;
   uint32_t vertex_len;
   ResourceIndex res_index;
@@ -383,9 +383,11 @@ struct Draw {
        ResourceIndex res_index)
   {
     BLI_assert(batch != nullptr);
+    BLI_assert(expanded_prim_type <= 15);
+    BLI_assert(expanded_prim_len <= 15);
     this->batch = batch;
     this->res_index = res_index;
-    this->instance_len = uint16_t(min_uu(instance_len, USHRT_MAX));
+    this->instance_len = min_uu(instance_len, (1 << 24) - 1);
     this->vertex_len = vertex_len;
     this->vertex_first = vertex_first;
     this->expand_prim_type = expanded_prim_type;

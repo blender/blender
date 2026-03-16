@@ -21,7 +21,7 @@ def paginate_asset_list(
 
     The files listed in each page are determined by the assets on that page.
     This means that it's possible for multiple pages to list the same file; this
-    occurs when that file contains muliple assets, spread across multiple pages.
+    occurs when that file contains multiple assets, spread across multiple pages.
     """
 
     if not num_assets_per_page:

@@ -868,7 +868,7 @@ struct MDefBoundIsect {
   int face_index;
   /* distance from 'co' to the ray-cast start (clamped to avoid zero division) */
   float len;
-  /* weights aligned with the polygons's loop indices */
+  /* weights aligned with the polygon's loop indices */
   float poly_weights[0];
 };
 

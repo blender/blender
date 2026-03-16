@@ -150,8 +150,6 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
   else {
     assert(is_light());
     Light *lamp = static_cast<Light *>(object->get_geometry());
-    const LightType type = lamp->get_light_type();
-    const float size = lamp->get_size();
     float3 strength = lamp->get_strength();
 
     if (!lamp->get_normalize()) {
@@ -161,17 +159,18 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     centroid = transform_get_column(&object->get_tfm(), 3);
     measure.bcone.axis = -safe_normalize(transform_get_column(&object->get_tfm(), 2));
 
-    if (type == LIGHT_AREA) {
+    if (lamp->is_area_light()) {
+      const AreaLight *light = static_cast<const AreaLight *>(lamp);
       measure.bcone.theta_o = 0;
-      measure.bcone.theta_e = lamp->get_spread() * 0.5f;
+      measure.bcone.theta_e = light->get_spread() * 0.5f;
 
       /* For an area light, sizeu and sizev determine the 2 dimensions of the area light,
        * while axisu and axisv determine the orientation of the 2 dimensions.
        * We want to add all 4 corners to our bounding box. */
       const float3 axisu = transform_get_column(&object->get_tfm(), 0);
       const float3 axisv = transform_get_column(&object->get_tfm(), 1);
-      const float3 half_extentu = 0.5f * lamp->get_sizeu() * axisu * size;
-      const float3 half_extentv = 0.5f * lamp->get_sizev() * axisv * size;
+      const float3 half_extentu = 0.5f * light->get_sizeu() * axisu;
+      const float3 half_extentv = 0.5f * light->get_sizev() * axisv;
       measure.bbox.grow(centroid + half_extentu + half_extentv);
       measure.bbox.grow(centroid + half_extentu - half_extentv);
       measure.bbox.grow(centroid - half_extentu + half_extentv);
@@ -180,21 +179,14 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
       /* Convert irradiance to radiance. */
       strength *= M_1_PI_F;
     }
-    else if (type == LIGHT_POINT) {
+    else if (lamp->is_point_light()) {
       measure.bcone.theta_o = M_PI_F;
       measure.bcone.theta_e = M_PI_2_F;
-
-      /* Point and spot lights can emit light from any point within its radius. */
-      const float3 radius = make_float3(size);
-      measure.bbox.grow(centroid - radius);
-      measure.bbox.grow(centroid + radius);
-
-      strength *= 0.25f * M_1_PI_F; /* eval_fac scaling in `spot.h` and `point.h` */
     }
-    else if (type == LIGHT_SPOT) {
+    else if (lamp->is_spot_light()) {
       measure.bcone.theta_o = 0;
 
-      float theta_e = min(lamp->get_spot_angle() * 0.5f, M_PI_2_F);
+      float theta_e = min(static_cast<const SpotLight *>(lamp)->get_angle() * 0.5f, M_PI_2_F);
       const float len_u = len(transform_get_column(&object->get_tfm(), 0));
       const float len_v = len(transform_get_column(&object->get_tfm(), 1));
       const float len_w = len(transform_get_column(&object->get_tfm(), 2));
@@ -212,15 +204,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
         theta_e = fast_atanf(fast_tanf(theta_e) * fmaxf(len_u, len_v) / len_w);
       }
       measure.bcone.theta_e = theta_e;
-
-      /* Point and spot lights can emit light from any point within its radius. */
-      const float3 radius = make_float3(size);
-      measure.bbox.grow(centroid - radius);
-      measure.bbox.grow(centroid + radius);
-
-      strength *= 0.25f * M_1_PI_F; /* eval_fac scaling in `spot.h` and `point.h` */
     }
-    else if (type == LIGHT_BACKGROUND) {
+    else if (lamp->is_background_light()) {
       /* Set an arbitrary direction for the background light. */
       measure.bcone.axis = make_float3(0.0f, 0.0f, 1.0f);
       /* TODO: this may depend on portal lights as well. */
@@ -228,11 +213,20 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
       measure.bcone.theta_e = 0;
 
       /* integrate over cosine-weighted hemisphere */
-      strength *= lamp->get_average_radiance() * M_PI_F;
+      strength *= static_cast<const BackgroundLight *>(lamp)->get_average_radiance() * M_PI_F;
     }
-    else if (type == LIGHT_DISTANT) {
+    else if (lamp->is_sun_light()) {
       measure.bcone.theta_o = 0;
-      measure.bcone.theta_e = 0.5f * lamp->get_angle();
+      measure.bcone.theta_e = 0.5f * static_cast<const SunLight *>(lamp)->get_angle();
+    }
+
+    if (const PointLight *point_light = dynamic_cast<PointLight *>(lamp)) {
+      /* Point and spot lights can emit light from any point within its radius. */
+      const float3 radius = make_float3(point_light->get_radius());
+      measure.bbox.grow(centroid - radius);
+      measure.bbox.grow(centroid + radius);
+
+      strength *= 0.25f * M_1_PI_F; /* eval_fac scaling in `spot.h` and `point.h` */
     }
 
     if (lamp->get_shader()) {
@@ -305,7 +299,7 @@ LightTree::LightTree(Scene *scene,
       /* Regular lights. */
       Light *light = static_cast<Light *>(object->get_geometry());
       if (light->is_enabled) {
-        if (light->light_type == LIGHT_BACKGROUND || light->light_type == LIGHT_DISTANT) {
+        if (light->is_distant_light()) {
           distant_lights_.emplace_back(scene, ~device_light_index, object->index);
         }
         else {

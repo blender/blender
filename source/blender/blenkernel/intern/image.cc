@@ -1375,7 +1375,6 @@ static bool image_memorypack_imbuf(
 
   if (ibuf->encoded_buffer.data == nullptr) {
     CLOG_STR_ERROR(&LOG, "memory save for pack error");
-    IMB_freeImBuf(ibuf);
     image_free_packedfiles(ima);
     return false;
   }

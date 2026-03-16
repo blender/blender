@@ -349,6 +349,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  imbuf_py_api
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_py_api.py
+)
+
+add_blender_test(
   script_pyapi_grease_pencil
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_grease_pencil.py
 )
@@ -1263,7 +1268,7 @@ if(TEST_SRC_DIR_EXISTS)
     --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_import_test.py
     --
     --testdir "${TEST_SRC_DIR}/io_tests/gltf/import"
-    --outdir "${TEST_OUT_DIR}/io_gltf"
+    --outdir "${TEST_OUT_DIR}/io_gltf_import"
   )
 endif()
 
@@ -1273,7 +1278,7 @@ if(TEST_SRC_DIR_EXISTS)
     --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_roundtrip_test.py
     --
     --testdir "${TEST_SRC_DIR}/io_tests/gltf/roundtrip"
-    --outdir "${TEST_OUT_DIR}/io_gltf"
+    --outdir "${TEST_OUT_DIR}/io_gltf_roundtrip"
   )
 endif()
 
@@ -1283,7 +1288,7 @@ if(TEST_SRC_DIR_EXISTS)
     --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_export_test.py
     --
     --testdir "${TEST_SRC_DIR}/io_tests/gltf/export"
-    --outdir "${TEST_OUT_DIR}/io_gltf"
+    --outdir "${TEST_OUT_DIR}/io_gltf_export"
   )
 endif()
 

@@ -10,6 +10,7 @@
  * representation of the OpenXR runtime connection within the application.
  */
 
+#include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_main.hh"
@@ -44,12 +45,12 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
 {
   wmXrErrorHandlerData *handler_data = static_cast<wmXrErrorHandlerData *>(error->customdata);
   wmWindowManager *wm = handler_data->wm;
-  wmWindow *root_win = wm->xr.runtime ? wm->xr.runtime->session_root_win : nullptr;
+  wmWindow *xr_root_win = CTX_wm_window(wm->xr.runtime->b_context);
 
   BKE_reports_clear(&wm->runtime->reports);
   WM_global_report(RPT_ERROR, error->user_message);
-  /* Rely on the fallback when `root_win` is nullptr. */
-  WM_report_banner_show(wm, root_win);
+  /* Internally rely on the first WM window as a fallback when `xr_root_win` is nullptr. */
+  WM_report_banner_show(wm, xr_root_win);
 
   if (wm->xr.runtime) {
     /* Just play safe and destroy the entire runtime data, including context. */
@@ -57,8 +58,9 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
   }
 }
 
-bool wm_xr_init(wmWindowManager *wm)
+bool wm_xr_init(bContext *C)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   if (wm->xr.runtime && wm->xr.runtime->ghost_context) {
     return true;
   }
@@ -131,9 +133,20 @@ bool wm_xr_init(wmWindowManager *wm)
     if (!wm->xr.runtime) {
       wm->xr.runtime = wm_xr_runtime_data_create();
       wm->xr.runtime->ghost_context = ghost_context;
+
+      /* Create a minimal XR-specific context. */
+      wm->xr.runtime->b_context = CTX_create();
+
+      /* Base Main and WM pointers. */
+      CTX_wm_manager_set(wm->xr.runtime->b_context, CTX_wm_manager(C));
+      CTX_data_main_set(wm->xr.runtime->b_context, CTX_data_main(C));
+
+      /* Create the XR offscreen area (independent of any bScreen). */
+      wm->xr.runtime->offscreen_area = ED_area_offscreen_create(CTX_wm_window(C), SPACE_VIEW3D);
+      WM_xr_session_context_ensure(&wm->xr, wm);
     }
   }
-  BLI_assert(wm->xr.runtime && wm->xr.runtime->ghost_context);
+  BLI_assert(wm->xr.runtime && wm->xr.runtime->ghost_context && wm->xr.runtime->b_context);
 
   return true;
 }
@@ -178,32 +191,36 @@ wmXrRuntimeData *wm_xr_runtime_data_create()
 
 void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
 {
-  /* Note that this function may be called twice, because of an indirect recursion: If a session is
-   * running while WM-XR calls this function, calling GHOST_XrContextDestroy() will call this
-   * again, because it's also set as the session exit callback. So nullptr-check and nullptr
-   * everything that is freed here. */
+  /* This function may be called recursively via the #GHOST_XrContextDestroy session exit callback.
+   * Guard against double-free by nulling pointers after freeing. */
 
-  /* We free all runtime XR data here, so if the context is still alive, destroy it. */
+  /* Destroy context if still alive. */
   if ((*runtime)->ghost_context != nullptr) {
     GHOST_IXrContext *ghost_context = (*runtime)->ghost_context;
-    /* Prevent recursive #GHOST_XrContextDestroy() call by nulling the context pointer before
-     * the first call, see comment above. */
+    /* Set to nullptr before calling XrContextDestroy to prevent recursive calls. */
     (*runtime)->ghost_context = nullptr;
-
-    if ((*runtime)->area) {
-      wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-      wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, (*runtime));
-
-      WM_event_remove_handlers_by_area(&win->runtime->handlers, (*runtime)->area);
-      ED_area_offscreen_free(wm, win, (*runtime)->area);
-      (*runtime)->area = nullptr;
-    }
-    wm_xr_session_data_free(&(*runtime)->session_state);
-    WM_xr_actionmaps_clear(*runtime);
 
     GHOST_XrContextDestroy(ghost_context);
   }
-  MEM_SAFE_DELETE(*runtime);
+
+  /* Free remaining runtime data. */
+  if (*runtime != nullptr) {
+    ScrArea *xr_offscreen_area = (*runtime)->offscreen_area;
+    BLI_assert(xr_offscreen_area);
+
+    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    wmWindow *xr_win = wm_xr_session_root_window_or_fallback_get(wm, (*runtime));
+    WM_event_remove_handlers_by_area(&xr_win->runtime->handlers, xr_offscreen_area);
+    ED_area_offscreen_free(wm, xr_win, xr_offscreen_area);
+
+    CTX_free((*runtime)->b_context);
+
+    wm_xr_session_data_free(&(*runtime)->session_state);
+    WM_xr_actionmaps_clear(*runtime);
+
+    MEM_SAFE_DELETE(*runtime);
+    *runtime = nullptr;
+  }
 }
 
 /** \} */ /* XR Runtime Data. */

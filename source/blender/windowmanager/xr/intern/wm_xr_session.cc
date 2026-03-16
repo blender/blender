@@ -125,9 +125,7 @@ static void wm_xr_session_begin_info_create(wmXrData *xr_data,
   r_begin_info->exit_customdata = xr_data;
 }
 
-void wm_xr_session_toggle(wmWindowManager *wm,
-                          wmWindow *session_root_win,
-                          wmXrSessionExitFn session_exit_fn)
+void wm_xr_session_toggle(wmWindowManager *wm, wmXrSessionExitFn session_exit_fn)
 {
   wmXrData *xr_data = &wm->xr;
 
@@ -140,7 +138,6 @@ void wm_xr_session_toggle(wmWindowManager *wm,
   else {
     GHOST_XrSessionBeginInfo begin_info;
 
-    xr_data->runtime->session_root_win = session_root_win;
     xr_data->runtime->session_state.is_started = true;
     xr_data->runtime->exit_fn = session_exit_fn;
 
@@ -202,57 +199,29 @@ static void wm_xr_session_base_pose_calc(const Scene *scene,
   *r_base_scale = settings->base_scale;
 }
 
-static void wm_xr_session_draw_data_populate(wmXrData *xr_data,
-                                             Scene *scene,
-                                             Depsgraph *depsgraph,
-                                             wmXrDrawData *r_draw_data)
+static void wm_xr_session_draw_data_populate(wmXrData *xr_data, wmXrDrawData *r_draw_data)
 {
   const XrSessionSettings *settings = &xr_data->session_settings;
 
   memset(r_draw_data, 0, sizeof(*r_draw_data));
-  r_draw_data->scene = scene;
-  r_draw_data->depsgraph = depsgraph;
   r_draw_data->xr_data = xr_data;
   r_draw_data->surface_data = static_cast<wmXrSurfaceData *>(g_xr_surface->customdata);
 
-  wm_xr_session_base_pose_calc(
-      r_draw_data->scene, settings, &r_draw_data->base_pose, &r_draw_data->base_scale);
+  Scene *scene = CTX_data_scene(WM_xr_session_context_get(xr_data));
+  wm_xr_session_base_pose_calc(scene, settings, &r_draw_data->base_pose, &r_draw_data->base_scale);
 }
 
 wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
                                                     const wmXrRuntimeData *runtime_data)
 {
-  if (runtime_data->session_root_win &&
-      BLI_findindex(&wm->windows, runtime_data->session_root_win) != -1)
-  {
-    /* Root window is still valid, use it. */
-    return runtime_data->session_root_win;
+  /* Try to obtain the XR root window (the window the XR session was started in). */
+  wmWindow *xr_win = CTX_wm_window(runtime_data->b_context);
+  if (xr_win && BLI_findindex(&wm->windows, xr_win) != -1) {
+    /* Root XR window is still valid, use it. */
+    return xr_win;
   }
   /* Otherwise, fall back. */
   return static_cast<wmWindow *>(wm->windows.first);
-}
-
-/**
- * Get the scene and depsgraph shown in the VR session's root window (the window the session was
- * started from) if still available. If it's not available, use some fallback window.
- *
- * It's important that the VR session follows some existing window, otherwise it would need to have
- * its own depsgraph, which is an expense we should avoid.
- */
-static void wm_xr_session_scene_and_depsgraph_get(const wmWindowManager *wm,
-                                                  Scene **r_scene,
-                                                  Depsgraph **r_depsgraph)
-{
-  const wmWindow *root_win = wm_xr_session_root_window_or_fallback_get(wm, wm->xr.runtime);
-
-  /* Follow the scene & view layer shown in the root 3D View. */
-  Scene *scene = WM_window_get_active_scene(root_win);
-  ViewLayer *view_layer = WM_window_get_active_view_layer(root_win);
-
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
-  BLI_assert(scene && view_layer && depsgraph);
-  *r_scene = scene;
-  *r_depsgraph = depsgraph;
 }
 
 enum wmXrSessionStateEvent {
@@ -376,7 +345,7 @@ static void wm_xr_session_state_viewer_scale_update(wmXrSessionState *state,
   }
 
   /* Unlike Scene and Navigation Scale changes, View Scale setting changes result in viewer
-   * location adjustements to keep the viewer at the same relative world position after scaling. */
+   * location adjustments to keep the viewer at the same relative world position after scaling. */
   if (settings->view_scale != state->prev_view_scale_setting) {
     wm_xr_session_scale_maintain_viewer_pos(
         state, settings->view_scale, state->prev_view_scale_setting);
@@ -444,8 +413,10 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   /* Assume this was already done through wm_xr_session_draw_data_update(). */
   state->force_reset_to_base_pose = false;
 
+  const bContext *xr_context = WM_xr_session_context_get(draw_data->xr_data);
+
   WM_xr_session_state_vignette_update(state);
-  wm_xr_session_state_viewer_scale_update(state, settings, draw_data->scene);
+  wm_xr_session_state_viewer_scale_update(state, settings, CTX_data_scene(xr_context));
 }
 
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr)
@@ -453,9 +424,30 @@ wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr)
   return xr->runtime ? &xr->runtime->session_state : nullptr;
 }
 
-ScrArea *WM_xr_session_area_get(const wmXrData *xr)
+bContext *WM_xr_session_context_ensure(wmXrData *xr, const wmWindowManager *wm)
 {
-  return xr->runtime ? xr->runtime->area : nullptr;
+  if (xr->runtime == nullptr) {
+    return nullptr;
+  }
+
+  /* XR session root window. Also sets the context scene. */
+  wmWindow *xr_win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
+  CTX_wm_window_set(xr->runtime->b_context, xr_win);
+
+  /* Unique offscreen XR area. */
+  CTX_wm_area_set(xr->runtime->b_context, xr->runtime->offscreen_area);
+
+  /* Region for XR operator execution and modal handling. */
+  ARegion *xr_region = BKE_area_find_region_type(xr->runtime->offscreen_area, RGN_TYPE_WINDOW);
+  CTX_wm_region_set(xr->runtime->b_context, xr_region);
+
+  /* Return for convenience. */
+  return xr->runtime->b_context;
+}
+
+bContext *WM_xr_session_context_get(const wmXrData *xr)
+{
+  return xr->runtime ? xr->runtime->b_context : nullptr;
 }
 
 bool WM_xr_session_state_viewer_pose_location_get(const wmXrData *xr, float r_location[3])
@@ -1300,7 +1292,7 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
   }
 
   XrSessionSettings *settings = &xr->session_settings;
-  GHOST_IXrContext *xr_context = xr->runtime->ghost_context;
+  GHOST_IXrContext *ghost_xr_context = xr->runtime->ghost_context;
   wmXrSessionState *state = &xr->runtime->session_state;
 
   if (state->is_navigation_dirty) {
@@ -1325,7 +1317,7 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
   }
   wmXrActionSet *active_action_set = state->active_action_set;
 
-  const bool synced = GHOST_XrSyncActions(xr_context,
+  const bool synced = GHOST_XrSyncActions(ghost_xr_context,
                                           active_action_set ? active_action_set->name : nullptr);
   if (!synced) {
     return;
@@ -1333,29 +1325,24 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
 
   /* Only update controller data and dispatch events for active action set. */
   if (active_action_set) {
-    wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
-
     if (active_action_set->controller_grip_action && active_action_set->controller_aim_action) {
       wm_xr_session_controller_data_update(settings,
                                            active_action_set->controller_grip_action,
                                            active_action_set->controller_aim_action,
-                                           xr_context,
+                                           ghost_xr_context,
                                            state);
     }
 
-    if (win) {
-      /* Ensure an XR area exists for events. */
-      if (!xr->runtime->area) {
-        xr->runtime->area = ED_area_offscreen_create(win, SPACE_VIEW3D);
-      }
+    /* Set XR offscreen area View3D object type flags for operators. */
+    bContext *xr_context = WM_xr_session_context_ensure(xr, wm);
+    ScrArea *xr_offscreen_area = CTX_wm_area(xr_context);
 
-      /* Set XR area object type flags for operators. */
-      View3D *v3d = static_cast<View3D *>(xr->runtime->area->spacedata.first);
-      v3d->object_type_exclude_viewport = settings->object_type_exclude_viewport;
-      v3d->object_type_exclude_select = settings->object_type_exclude_select;
+    View3D *v3d = static_cast<View3D *>(xr_offscreen_area->spacedata.first);
+    v3d->object_type_exclude_viewport = settings->object_type_exclude_viewport;
+    v3d->object_type_exclude_select = settings->object_type_exclude_select;
 
-      wm_xr_session_events_dispatch(xr, xr_context, active_action_set, state, win);
-    }
+    wmWindow *xr_win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
+    wm_xr_session_events_dispatch(xr, ghost_xr_context, active_action_set, state, xr_win);
   }
 }
 
@@ -1436,13 +1423,8 @@ static void wm_xr_session_surface_draw(bContext *C)
     return;
   }
 
-  Scene *scene;
-  Depsgraph *depsgraph;
-  wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
-  /* Might fail when force-redrawing windows with #WM_redraw_windows(), which is done on file
-   * writing for example. */
-  // BLI_assert(DEG_is_fully_evaluated(depsgraph));
-  wm_xr_session_draw_data_populate(&wm->xr, scene, depsgraph, &draw_data);
+  WM_xr_session_context_ensure(&wm->xr, wm);
+  wm_xr_session_draw_data_populate(&wm->xr, &draw_data);
 
   GHOST_XrSessionDrawViews(wm->xr.runtime->ghost_context, &draw_data);
 
@@ -1460,10 +1442,8 @@ static void wm_xr_session_do_depsgraph(bContext *C)
     return;
   }
 
-  Scene *scene;
-  Depsgraph *depsgraph;
-  wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
-  BKE_scene_graph_evaluated_ensure(depsgraph, CTX_data_main(C));
+  bContext *xr_context = WM_xr_session_context_ensure(&wm->xr, wm);
+  CTX_data_ensure_evaluated_depsgraph(xr_context);
 }
 
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,

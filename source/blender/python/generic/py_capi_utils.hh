@@ -18,6 +18,8 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
+#include "DNA_vec_types.h"
+
 namespace blender {
 
 /** Useful to print Python objects while debugging. */
@@ -47,6 +49,17 @@ void PyC_StackSpit();
  * where a full multi-line stack-trace isn't needed and doesn't format well in the status-bar.
  */
 [[nodiscard]] PyObject *PyC_ExceptionBuffer_Simple() ATTR_RETURNS_NONNULL;
+
+/**
+ * Get exit code `sys.exit(..)` was called with.
+ */
+[[nodiscard]] std::optional<int> PyC_ExceptionSystemExitCode();
+
+/**
+ * If the current exception is `SystemExit`, capture the exit code and return true.
+ * Otherwise return false;
+ */
+bool PyC_Err_CaptureSystemExitCode();
 
 [[nodiscard]] PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 [[nodiscard]] PyObject *PyC_FrozenSetFromStrings(const char **strings);
@@ -343,6 +356,18 @@ struct PyC_TypeOrNone {
  * (leaving the `std::optional<bool>` empty).
  */
 [[nodiscard]] int PyC_ParseOptionalBool(PyObject *o, void *p);
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * Parse `((x1, y1), (x2, y2))` into an `rcti`.
+ */
+[[nodiscard]] int PyC_ParseRectI(PyObject *o, void *p);
+/**
+ * A version of #PyC_ParseRectI that accepts None
+ * (leaving the `std::optional<rcti>` empty).
+ */
+[[nodiscard]] int PyC_ParseOptionalRectI(PyObject *o, void *p);
 
 /**
  * Cast a pointer of a PyObject-derived type to `PyObject *`.

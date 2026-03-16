@@ -1902,7 +1902,7 @@ volume_direct_sample_method(KernelGlobals kg,
     return VOLUME_SAMPLE_NONE;
   }
 
-  /* Sample the scatter position with distance sampling for distant/background light. */
+  /* Sample the scatter position with distance sampling for distant light. */
   const bool has_equiangular_sample = (ls->t != FLT_MAX);
   return has_equiangular_sample ? volume_stack_sample_method(kg, state) : VOLUME_SAMPLE_DISTANCE;
 }

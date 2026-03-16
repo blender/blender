@@ -486,7 +486,8 @@ def remote_asset_library_sync(
 
 
 def _remote_asset_library_sync_done(downloader: _RemoteAssetListingDownloader) -> None:
-    """Called when the downloading of hte remote asset listing is done.
+    """
+    Called when the downloading of the remote asset listing is done.
 
     Here "done" does not imply "successful", as cancellations, network errors,
     or other issues can cause things to abort. In that case, this function is

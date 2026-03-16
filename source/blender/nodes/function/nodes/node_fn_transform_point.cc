@@ -4,6 +4,8 @@
 
 #include "BLI_math_matrix.hh"
 
+#include "GPU_material.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_transform_point_cc {
@@ -26,16 +28,26 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
+{
+  return GPU_stack_link(material, node, "node_function_transform_point", inputs, outputs);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeTransformPoint", FN_NODE_TRANSFORM_POINT);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeTransformPoint", FN_NODE_TRANSFORM_POINT);
   ntype.ui_name = "Transform Point";
   ntype.ui_description = "Apply a transformation matrix to the given vector";
   ntype.enum_name_legacy = "TRANSFORM_POINT";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

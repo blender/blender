@@ -119,37 +119,40 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
     if (_lightType == HdPrimTypeTokens->distantLight) {
       value = sceneDelegate->GetLightParamValue(id, HdLightTokens->angle);
       if (!value.IsEmpty()) {
-        _light->set_angle(GfDegreesToRadians(value.Get<float>()));
+        static_cast<SunLight *>(_light)->set_angle(GfDegreesToRadians(value.Get<float>()));
       }
     }
     else if (_lightType == HdPrimTypeTokens->diskLight) {
       value = sceneDelegate->GetLightParamValue(id, HdLightTokens->radius);
       if (!value.IsEmpty()) {
+        AreaLight *area_light = static_cast<AreaLight *>(_light);
         const float size = value.Get<float>() * 2.0f;
-        _light->set_sizeu(size);
-        _light->set_sizev(size);
+        area_light->set_sizeu(size);
+        area_light->set_sizev(size);
       }
     }
     else if (_lightType == HdPrimTypeTokens->rectLight) {
+      AreaLight *area_light = static_cast<AreaLight *>(_light);
       value = sceneDelegate->GetLightParamValue(id, HdLightTokens->width);
       if (!value.IsEmpty()) {
-        _light->set_sizeu(value.Get<float>());
+        area_light->set_sizeu(value.Get<float>());
       }
 
       value = sceneDelegate->GetLightParamValue(id, HdLightTokens->height);
       if (!value.IsEmpty()) {
-        _light->set_sizev(value.Get<float>());
+        area_light->set_sizev(value.Get<float>());
       }
     }
     else if (_lightType == HdPrimTypeTokens->sphereLight) {
       value = sceneDelegate->GetLightParamValue(id, TfToken("treatAsPoint"));
+      SpotLight *spot_light = static_cast<SpotLight *>(_light);
       if (!value.IsEmpty() && value.Get<bool>()) {
-        _light->set_size(0.0f);
+        spot_light->set_radius(0.0f);
       }
       else {
         value = sceneDelegate->GetLightParamValue(id, HdLightTokens->radius);
         if (!value.IsEmpty()) {
-          _light->set_size(value.Get<float>());
+          spot_light->set_radius(value.Get<float>());
         }
       }
 
@@ -157,13 +160,13 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
 
       value = sceneDelegate->GetLightParamValue(id, HdLightTokens->shapingConeAngle);
       if (!value.IsEmpty()) {
-        _light->set_spot_angle(GfDegreesToRadians(value.Get<float>()) * 2.0f);
+        spot_light->set_angle(GfDegreesToRadians(value.Get<float>()) * 2.0f);
         shaping = true;
       }
 
       value = sceneDelegate->GetLightParamValue(id, HdLightTokens->shapingConeSoftness);
       if (!value.IsEmpty()) {
-        _light->set_spot_smooth(value.Get<float>());
+        spot_light->set_smooth(value.Get<float>());
         shaping = true;
       }
 
@@ -378,34 +381,31 @@ void HdCyclesLight::Initialize(HdRenderParam *renderParam)
   _object = lock.scene->create_node<Object>();
   _object->name = GetId().GetString();
 
-  _light = lock.scene->create_node<Light>();
-  _light->name = GetId().GetString();
-  _object->set_geometry(_light);
-
-  _object->set_random_id(hash_uint2(hash_string(_light->name.c_str()), 0));
-
   if (_lightType == HdPrimTypeTokens->domeLight) {
-    _light->set_light_type(LIGHT_BACKGROUND);
+    _light = lock.scene->create_node<BackgroundLight>();
   }
   else if (_lightType == HdPrimTypeTokens->distantLight) {
-    _light->set_light_type(LIGHT_DISTANT);
+    _light = lock.scene->create_node<SunLight>();
   }
   else if (_lightType == HdPrimTypeTokens->diskLight) {
-    _light->set_light_type(LIGHT_AREA);
-    _light->set_ellipse(true);
-    _light->set_size(1.0f);
+    _light = lock.scene->create_node<AreaLight>();
+    static_cast<AreaLight *>(_light)->set_ellipse(true);
   }
   else if (_lightType == HdPrimTypeTokens->rectLight) {
-    _light->set_light_type(LIGHT_AREA);
-    _light->set_ellipse(false);
-    _light->set_size(1.0f);
+    _light = lock.scene->create_node<AreaLight>();
+    static_cast<AreaLight *>(_light)->set_ellipse(false);
   }
   else if (_lightType == HdPrimTypeTokens->sphereLight) {
-    _light->set_light_type(LIGHT_POINT);
-    _light->set_size(1.0f);
+    /* We can't know in advance if this is spot light or point light, so we set to derived class
+     * SpotLight and change the type later. */
+    _light = lock.scene->create_node<SpotLight>();
   }
 
   _light->set_use_mis(true);
+  _light->name = GetId().GetString();
+
+  _object->set_geometry(_light);
+  _object->set_random_id(hash_uint2(hash_string(_light->name.c_str()), 0));
   _object->set_visibility(PATH_RAY_ALL_VISIBILITY & ~PATH_RAY_CAMERA);
 
   Shader *const shader = lock.scene->create_node<Shader>();

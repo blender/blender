@@ -18,10 +18,14 @@
 
 #include "BKE_geometry_compare.hh"
 
+#include "CLG_log.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 
 namespace blender::bke::compare_geometry {
+
+static CLG_LogRef LOG = {"geometry.compare"};
 
 enum class GeoMismatch : int8_t {
   NumPoints,        /* The number of points is different. */
@@ -558,8 +562,25 @@ static std::optional<GeoMismatch> verify_attributes_compatible(
   names_2.remove_if(ignored_attribute);
 
   if (names_1 != names_2) {
-    /* Disabled for now due to tests not being up to date. */
-    // return GeoMismatch::Attributes;
+    std::string mismatched_names;
+    for (const StringRefNull name : names_1) {
+      if (!names_2.contains(name)) {
+        if (!mismatched_names.empty()) {
+          mismatched_names.append(", ");
+        }
+        mismatched_names.append(name);
+      }
+    }
+    for (const StringRefNull name : names_2) {
+      if (!names_1.contains(name)) {
+        if (!mismatched_names.empty()) {
+          mismatched_names.append(", ");
+        }
+        mismatched_names.append(name);
+      }
+    }
+    CLOG_WARN(&LOG, "Attribute names not the same: %s", mismatched_names.c_str());
+    return GeoMismatch::Attributes;
   }
   for (const StringRef name : names_1) {
     GAttributeReader reader1 = attributes1.lookup(name);
@@ -597,10 +618,6 @@ static std::optional<GeoMismatch> sort_domain_using_attributes(
   names.remove_if(ignored_attribute);
 
   for (const StringRef name : names) {
-    if (!attributes2.contains(name)) {
-      /* Only needed right now since some test meshes don't have the same attributes. */
-      return GeoMismatch::Attributes;
-    }
     GAttributeReader reader1 = attributes1.lookup(name);
     GAttributeReader reader2 = attributes2.lookup(name);
 

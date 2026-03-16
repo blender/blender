@@ -990,6 +990,12 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
     const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
         ".selection");
 
+    /* Skip curve when the selection domain already matches, or when there is no selection
+     * attribute (all/none selected). */
+    if ((!meta_data) || (meta_data->domain == domain)) {
+      continue;
+    }
+
     /* When the selection domain is 'curve', ensure all *fills* with a point selection
      * are selected. */
     if (domain == bke::AttrDomain::Curve) {
@@ -1028,12 +1034,6 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object)
       }
 
       changed |= true;
-    }
-
-    /* Skip curve when the selection domain already matches, or when there is no selection
-     * at all. */
-    if ((!meta_data) || (meta_data->domain == domain)) {
-      continue;
     }
 
     /* Convert selection domain. */

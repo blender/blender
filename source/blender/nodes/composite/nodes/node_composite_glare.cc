@@ -2679,7 +2679,7 @@ class GlareOperation : public NodeOperation {
   /* The computed glare might need to be normalized to be energy conserving or be in a reasonable
    * range, instead of doing that in a separate step as part of the glare computation, we delay the
    * normalization until the mixing step as an optimization, since we multiply by the tint and
-   * strength anyways. */
+   * strength anyway. */
   float get_normalization_scale()
   {
     switch (this->get_type()) {

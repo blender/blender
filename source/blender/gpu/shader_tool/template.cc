@@ -6,6 +6,8 @@
  * \ingroup shader_tool
  */
 
+#include <algorithm>
+
 #include "intermediate.hh"
 #include "metadata.hh"
 #include "processor.hh"
@@ -19,7 +21,10 @@ string SourceProcessor::template_arguments_mangle(const Scope template_args)
 {
   string args_concat;
   template_args.foreach_scope(ScopeType::TemplateArg, [&](const Scope &scope) {
-    args_concat += 'T' + string(scope.str());
+    string str(scope.str());
+    /* In order to support negative integer literals. Replace minus sign by underscore. */
+    replace(str.begin(), str.end(), '-', '_');
+    args_concat += 'T' + str;
   });
   return args_concat;
 }

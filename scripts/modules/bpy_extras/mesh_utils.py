@@ -267,7 +267,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
         return []
 
     def mlen(co):
-        # Manhatten length of a vector, faster then length.
+        # Manhattan length of a vector, faster then length.
         return abs(co[0]) + abs(co[1]) + abs(co[2])
 
     def vert_from_vector_with_extra_data(v, i):

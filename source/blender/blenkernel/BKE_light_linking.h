@@ -44,7 +44,7 @@ void BKE_light_linking_copy(struct Object *object_dst,
 
 /**
  * Copy receiver or blocker collection from the source to the destination object.
- * Performa user counter, and dependency graph relations tagging.
+ * Perform user counter, and dependency graph relations tagging.
  */
 void BKE_light_linking_copy_collection(Main *bmain,
                                        Object &object_dst,

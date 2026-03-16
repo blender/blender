@@ -63,7 +63,7 @@ shader node_principled_volume(color Color = color(0.5, 0.5, 0.5),
 
     T = max(T, 0.0);
 
-    /* Stefan-Boltzman law. */
+    /* Stefan-Boltzmann law. */
     float T4 = (T * T) * (T * T);
     float sigma = 5.670373e-8 * 1e-6 / M_PI;
     float intensity = sigma * mix(1.0, T4, blackbody_intensity);

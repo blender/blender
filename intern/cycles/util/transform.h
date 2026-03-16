@@ -79,7 +79,7 @@ ccl_device_inline float3 transform_point(const ccl_private Transform *t, const f
 ccl_device_inline dual3 transform_point(const ccl_private Transform *t, const dual3 a)
 {
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
-  /* NOTE: `dot()` has large lantency on Intel platforms, the following method of transpose + madd
+  /* NOTE: `dot()` has large latency on Intel platforms, the following method of transpose + madd
    * is faster. However, we did not measure on Neon platforms, it might be that `dot()` is fine
    * there, and we can use the simpler implementation at the end of the function. */
   float4 x = t->x;
@@ -368,6 +368,11 @@ ccl_device_inline void transform_set_column(Transform *t, const int column, cons
   t->x[column] = value.x;
   t->y[column] = value.y;
   t->z[column] = value.z;
+}
+
+ccl_device_inline float3 transform_get_translation(const Transform *t)
+{
+  return transform_get_column(t, 3);
 }
 
 Transform transform_transposed_inverse(const Transform &tfm);

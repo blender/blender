@@ -585,7 +585,7 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
     }
 
     /* PRV_RENDERING is a runtime only flag currently, but for undo indicates that we need
-     * to restart prevew renders. See ED_preview_restart_work. */
+     * to restart preview renders. See ED_preview_restart_work. */
     if (BLO_read_data_is_undo(reader)) {
       if ((prv->flag[i] & PRV_RENDERING) && !(prv->flag[i] & PRV_USER_EDITED)) {
         prv->runtime->tag[i] |= PRV_TAG_RESTART_RENDERING;

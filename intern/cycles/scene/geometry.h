@@ -77,7 +77,11 @@ class Geometry : public Node {
     HAIR,
     VOLUME,
     POINTCLOUD,
-    LIGHT,
+    AREA_LIGHT,
+    BACKGROUND_LIGHT,
+    POINT_LIGHT,
+    SPOT_LIGHT,
+    SUN_LIGHT,
   };
 
   Type geometry_type;
@@ -190,7 +194,9 @@ class Geometry : public Node {
 
   bool is_light() const
   {
-    return geometry_type == LIGHT;
+    return geometry_type == AREA_LIGHT || geometry_type == POINT_LIGHT ||
+           geometry_type == SPOT_LIGHT || geometry_type == SUN_LIGHT ||
+           geometry_type == BACKGROUND_LIGHT;
   }
 
   /* Updates */

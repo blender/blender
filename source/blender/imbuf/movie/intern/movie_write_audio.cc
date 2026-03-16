@@ -402,7 +402,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
   if (c->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE) {
     /* If the audio format has a variable frame size, default to 1024.
      * This is because we won't try to encode any variable frame size.
-     * 1024 seems to be a good compromize between size and speed.
+     * 1024 seems to be a good compromise between size and speed.
      */
     context->audio_input_samples = 1024;
   }

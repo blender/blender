@@ -504,7 +504,7 @@ void TokenBuffer::tokenize(const CharClass char_class_table[128])
    * preceding character if the classes are compatible (see `CharClass::CanMerge`).
    *
    * The offsets define the boundaries of the tokens.
-   * If whitespaces are treated as tokens, one offset is emitted for the begining of each token.
+   * If whitespaces are treated as tokens, one offset is emitted for the beginning of each token.
    *
    * str:      i n t   a = 0 ;   EndOfFile
    * emit:     1 0 0 0 1 1 1 1 1 1

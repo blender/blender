@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -1017,6 +1017,10 @@ msgstr "Стандарт"
 
 msgid "Freehand curve defining part of a sketch"
 msgstr "Рисована крива, що визначає частину нарису"
+
+
+msgid "Display Mode"
+msgstr "Режим Показу"
 
 
 msgid "Stroke Points"
@@ -11310,10 +11314,6 @@ msgid "Medium"
 msgstr "Середньо"
 
 
-msgid "Display Mode"
-msgstr "Режим Показу"
-
-
 msgid "Display mode for the file list"
 msgstr "Режим показу для списку файлів"
 
@@ -15190,6 +15190,10 @@ msgstr "Повтори Згладження"
 
 msgid "Smooth iterations applied after calculating the pose factor of each vertex"
 msgstr "Повтори згладження, застосовувані після розрахунку фактора пози кожної вершини"
+
+
+msgid "Plane Normal"
+msgstr "Нормаль площини"
 
 
 msgid "Rake"
@@ -21056,6 +21060,10 @@ msgid "Don't allow frame to be selected with mouse outside of frame range"
 msgstr "Не дозволяти вибір кадру мишею за межами діапазону кадрів"
 
 
+msgid "Restore Frame"
+msgstr "Відновити кадр"
+
+
 msgid "Render Data"
 msgstr "Дані Рендера"
 
@@ -26314,36 +26322,148 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
 
 
 msgid "Show/Hide"
 msgstr "Показати/приховати"
 
 
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Asset"
+msgstr "Актив"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
+
+
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
 msgid "Sample"
 msgstr "Вибірка"
-
-
-msgid "Names"
-msgstr "Назви"
 
 
 msgid "Primitives"
 msgstr "Примітиви"
 
 
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
+
+
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
+
+
+msgid "In-Betweens"
+msgstr "У проміжках"
+
+
+msgid "Propagate"
+msgstr "Поширити"
+
+
+msgid "Names"
+msgstr "Назви"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Clean Up"
-msgstr "Вичищення"
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
 
 
 msgid "Pivot Point"
@@ -26368,10 +26488,6 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
 
 
 msgid "Mirror"
@@ -26410,10 +26526,6 @@ msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
 
 
-msgid "Layout"
-msgstr "Розстановка"
-
-
 msgid "Select Similar"
 msgstr "Вибрати подібні"
 
@@ -26434,22 +26546,6 @@ msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Light"
 msgstr "Слабко"
 
@@ -26466,104 +26562,16 @@ msgid "Relations"
 msgstr "Зв'язки"
 
 
-msgid "Rigid Body"
-msgstr "Тверде тіло"
-
-
-msgid "Apply"
-msgstr "Застосувати"
-
-
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
-
-
-msgid "Asset"
-msgstr "Актив"
-
-
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
-
-
-msgid "Convert"
-msgstr "Конвертування"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
 msgid "Import"
 msgstr "Імпортувати"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
+msgid "Rigid Body"
+msgstr "Тверде тіло"
 
 
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
+msgid "Track"
+msgstr "Стеження"
 
 
 msgid "Basic"
@@ -33740,14 +33748,6 @@ msgid "Custom color of the node body"
 msgstr "Власний колір тіла вузла"
 
 
-msgid "Absolute bounding box dimensions of the node"
-msgstr "Абсолютні розміри габаритної коробки вузла"
-
-
-msgid "Height of the node"
-msgstr "Висота вузла"
-
-
 msgid "Collapse"
 msgstr "Колапс"
 
@@ -33770,10 +33770,6 @@ msgstr "Унікальний ідентифікатор вузла"
 
 msgid "Outputs"
 msgstr "Виводи"
-
-
-msgid "Parent this node is attached to"
-msgstr "Предок, до якого підключено цей вузол"
 
 
 msgid "Node selection state"
@@ -45685,10 +45681,6 @@ msgid "A point on the plane"
 msgstr "Точка на площині"
 
 
-msgid "Plane Normal"
-msgstr "Нормаль площини"
-
-
 msgid "The direction the plane points"
 msgstr "Напрям точок площини"
 
@@ -50939,15 +50931,6 @@ msgid "Modify properties such as curve vertex radius, font size and bone envelop
 msgstr "Модифікувати властивості, такі як радіус вершини кривої, розмір шрифту та оболонка кістки"
 
 
-msgctxt "Operator"
-msgid "Interactive Light Track to Cursor"
-msgstr "Інтерактивне Стеження Освітлювача за Курсором"
-
-
-msgid "Interactively point cameras and lights to a location (Ctrl translates)"
-msgstr "Інтерактивно направляти камери та освітлювачі на локацію (з Ctrl пересуває)"
-
-
 msgid "Which transforms to transfer"
 msgstr "Які трансформації перенести"
 
@@ -53483,6 +53466,10 @@ msgid "Add Asset Library"
 msgstr "Додати Бібліотеку Активів"
 
 
+msgid "Identifier (not necessarily unique) for the asset library"
+msgstr "Ідентифікатор (не обов'язково унікальний) для бібліотеки активів"
+
+
 msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "Вилучити Бібліотеку Активів"
@@ -53595,10 +53582,6 @@ msgstr "Запекти фізику"
 
 msgctxt "Operator"
 msgid "Bake All Physics"
-msgstr "Запекти всю фізику"
-
-
-msgid "Bake all physics"
 msgstr "Запекти всю фізику"
 
 
@@ -54283,10 +54266,6 @@ msgid "Cancel animation, returning to the original frame"
 msgstr "Скасування анімації, повернення до вихідного кадру"
 
 
-msgid "Restore Frame"
-msgstr "Відновити кадр"
-
-
 msgid "Restore the frame when animation was initialized"
 msgstr "Відновити кадр при ініціалізації анімації"
 
@@ -54616,6 +54595,10 @@ msgstr "Правити уподобання користувача та уста
 
 msgid "Editing"
 msgstr "Редагування"
+
+
+msgid "Asset Libraries"
+msgstr "Бібліотеки Активів"
 
 
 msgid "Keymap"
@@ -60735,6 +60718,10 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "VR"
+msgstr "ВР"
+
+
 msgid "Active Tool"
 msgstr "Активний Засіб"
 
@@ -60813,10 +60800,6 @@ msgstr "Багато Кадр"
 
 msgid "Auto-Masking"
 msgstr "Авто-Маскування"
-
-
-msgid "VR"
-msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -61571,10 +61554,6 @@ msgstr "Розширення"
 
 msgid "Applications"
 msgstr "Застосунки"
-
-
-msgid "Asset Libraries"
-msgstr "Бібліотеки Активів"
 
 
 msgid "Development"
@@ -74412,10 +74391,6 @@ msgid "Settings to define a reusable library for Asset Browsers to use"
 msgstr "Устави для визначення бібліотеки багаторазового використання для використання Браузерами Активів"
 
 
-msgid "Identifier (not necessarily unique) for the asset library"
-msgstr "Ідентифікатор (не обов'язково унікальний) для бібліотеки активів"
-
-
 msgid "Path to a directory with .blend files to use as an asset library"
 msgstr "Шлях до каталогу з файлами .blend для використання як бібліотеки активів"
 
@@ -77831,11 +77806,6 @@ msgstr "Розрахувати до Кадру"
 
 
 msgctxt "Operator"
-msgid "Bake All Dynamics"
-msgstr "Запекти Всю Динаміку"
-
-
-msgctxt "Operator"
 msgid "Update All to Frame"
 msgstr "Оновити Все до Кадру"
 
@@ -79868,6 +79838,11 @@ msgstr "Інсталювати Шаблон Застосунку..."
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Зберегти Копію..."
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Вихід"
 
@@ -79955,11 +79930,6 @@ msgstr "Наступний Робпростір"
 msgctxt "Operator"
 msgid "Back to Previous"
 msgstr "Назад на Попереднє"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Зберегти Копію..."
 
 
 msgctxt "Operator"
@@ -81047,6 +81017,10 @@ msgid "Origins (All)"
 msgstr "Початки (Усе)"
 
 
+msgid "Marker Names"
+msgstr "Імена Маркерів"
+
+
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "Гостро"
@@ -81433,12 +81407,20 @@ msgid "Specular Lighting"
 msgstr "Блікове Освітлювання"
 
 
+msgid "Ridge"
+msgstr "Виступ"
+
+
+msgid "Valley"
+msgstr "Западина"
+
+
+msgid "Screen Space"
+msgstr "Простір екрана"
+
+
 msgid "Fade Inactive Geometry"
 msgstr "Зникання Неактивних Об'єктів"
-
-
-msgid "Marker Names"
-msgstr "Імена Маркерів"
 
 
 msgid "Fade Geometry"
@@ -81564,18 +81546,6 @@ msgstr "Зчистити Ребро Freestyle"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Зчистити Грань Freestyle"
-
-
-msgid "Ridge"
-msgstr "Виступ"
-
-
-msgid "Valley"
-msgstr "Западина"
-
-
-msgid "Screen Space"
-msgstr "Простір екрана"
 
 
 msgid "Custom Location"
@@ -81911,10 +81881,6 @@ msgstr "Колір"
 
 msgid "Int"
 msgstr "Ціле"
-
-
-msgid "Recast"
-msgstr "Перебудувати"
 
 
 msgid "NGon Face"

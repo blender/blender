@@ -440,7 +440,7 @@ enum EmissionSampling {
 
 enum LightType {
   LIGHT_POINT,
-  LIGHT_DISTANT,
+  LIGHT_SUN,
   LIGHT_BACKGROUND,
   LIGHT_AREA,
   LIGHT_SPOT,
@@ -1430,7 +1430,7 @@ struct KernelAreaLight {
   float pad[2];
 };
 
-struct KernelDistantLight {
+struct KernelSunLight {
   float angle;
   float one_minus_cosangle;
   float half_inv_sin_half_angle;
@@ -1451,7 +1451,7 @@ struct KernelLight {
   union {
     KernelSpotLight spot;
     KernelAreaLight area;
-    KernelDistantLight distant;
+    KernelSunLight sun;
   };
 };
 static_assert_align(KernelLight, 16);

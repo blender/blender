@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2026-02-14 01:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -5455,6 +5455,10 @@ msgid "Current Frame"
 msgstr "Huidige Frame"
 
 
+msgid "Restore Frame"
+msgstr "Herstel Frame"
+
+
 msgid "Rigid Body World"
 msgstr "Star Lichaam Wereld"
 
@@ -5771,12 +5775,32 @@ msgid "Dots"
 msgstr "Stippen"
 
 
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgid "Mirror"
@@ -5789,10 +5813,6 @@ msgstr "Lokale Scherm"
 
 msgid "Navigation"
 msgstr "Navigatie"
-
-
-msgid "Layout"
-msgstr "Indeling"
 
 
 msgid "Select Similar"
@@ -5815,28 +5835,12 @@ msgid "Relations"
 msgstr "Relaties"
 
 
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
 msgid "Import"
 msgstr "Importeren"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
 
 
 msgctxt "MovieClip"
@@ -8651,10 +8655,6 @@ msgid "Remove Render View"
 msgstr "Verwijder Render Beeld"
 
 
-msgid "Restore Frame"
-msgstr "Herstel Frame"
-
-
 msgctxt "Operator"
 msgid "Play Animation"
 msgstr "Speel Animatie"
@@ -11231,6 +11231,16 @@ msgstr "Annotatie:"
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Sla Kopie Op..."
+
+
+msgctxt "Operator"
+msgid "Save Incremental"
+msgstr "Incrementeel Opslaan"
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Sluit af"
 
@@ -11288,16 +11298,6 @@ msgstr "Vorige Werkplaats"
 msgctxt "Operator"
 msgid "Next Workspace"
 msgstr "Volgende Werkplaats"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Sla Kopie Op..."
-
-
-msgctxt "Operator"
-msgid "Save Incremental"
-msgstr "Incrementeel Opslaan"
 
 
 msgctxt "Operator"

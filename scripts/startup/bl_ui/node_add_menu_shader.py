@@ -161,6 +161,7 @@ class NODE_MT_shader_node_input_constant_base(node_add_menu.NodeMenu):
     menu_path = "Input/Constant"
 
     def draw(self, context):
+        del context
         layout = self.layout
 
         self.node_operator(layout, "FunctionNodeInputBool")

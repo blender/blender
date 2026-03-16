@@ -124,20 +124,20 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
   film_write_data_passes_background(kg, state, render_buffer);
 }
 
-ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
-                                                IntegratorState state,
-                                                ccl_global float *ccl_restrict render_buffer)
+ccl_device_inline void integrate_sun_lights(KernelGlobals kg,
+                                            IntegratorState state,
+                                            ccl_global float *ccl_restrict render_buffer)
 {
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float ray_time = INTEGRATOR_STATE(state, ray, time);
   for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
 
-    if (klight->type != LIGHT_DISTANT || !(klight->shader_id & SHADER_USE_MIS)) {
+    if (klight->type != LIGHT_SUN || !(klight->shader_id & SHADER_USE_MIS)) {
       continue;
     }
 
-    LightEval light_eval = distant_light_eval_from_intersection(klight, ray_D);
+    LightEval light_eval = sun_light_eval_from_intersection(klight, ray_D);
     if (light_eval.eval_fac == 0.0f) {
       continue;
     }
@@ -200,7 +200,7 @@ ccl_device void integrator_shade_background(KernelGlobals kg,
   PROFILING_INIT(kg, PROFILING_SHADE_LIGHT_SETUP);
 
   /* TODO: unify these in a single loop to only have a single shader evaluation call. */
-  integrate_distant_lights(kg, state, render_buffer);
+  integrate_sun_lights(kg, state, render_buffer);
   integrate_background(kg, state, render_buffer);
 
 #ifdef __SHADOW_CATCHER__

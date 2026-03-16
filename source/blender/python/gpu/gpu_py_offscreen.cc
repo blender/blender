@@ -487,6 +487,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
                            eDrawType(v3d->shading.type),
                            v3d,
                            region,
+                           nullptr,
                            GPU_offscreen_width(self->ofs),
                            GPU_offscreen_height(self->ofs),
                            reinterpret_cast<const float (*)[4]>(py_mat_view->matrix),

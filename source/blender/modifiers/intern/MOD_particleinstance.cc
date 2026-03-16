@@ -350,11 +350,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
 
     /* set vertices coordinates */
+
+    vert_interp.copy(0, p_skip * totvert, totvert);
+
     for (k = 0; k < totvert; k++) {
       ParticleKey state;
       int vindex = p_skip * totvert + k;
-
-      vert_interp.copy(k, vindex, 1);
 
       if (vert_part_index != nullptr) {
         vert_part_index[vindex] = p;
@@ -480,11 +481,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       (*edge)[1] += p_skip * totvert;
     }
 
+    face_interp.copy(0, p_skip * faces_num, faces_num);
+    corner_interp.copy(0, p_skip * totloop, totloop);
+
     /* create faces and loops */
     for (k = 0; k < faces_num; k++) {
       const IndexRange in_face = orig_faces[k];
 
-      face_interp.copy(k, p_skip * faces_num + k, 1);
       const int dst_face_start = in_face.start() + p_skip * totloop;
       face_offsets[p_skip * faces_num + k] = dst_face_start;
 
@@ -493,7 +496,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
         int dst_corner_i = dst_face_start;
         int j = in_face.size();
 
-        corner_interp.copy(in_face.start(), dst_face_start, j);
         for (; j; j--, orig_corner_i++, dst_corner_i++) {
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);

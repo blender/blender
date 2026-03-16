@@ -1242,7 +1242,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
   for (bNode *node : ntree->all_nodes()) {
     if (ntree->type == NTREE_SHADER && node->type_legacy == SH_NODE_BSDF_HAIR_PRINCIPLED) {
-      /* For Principeld Hair BSDF, also write to `node->custom1` for forward compatibility, because
+      /* For Principled Hair BSDF, also write to `node->custom1` for forward compatibility, because
        * prior to 4.0 `node->custom1` was used for color parametrization instead of
        * `node->storage->parametrization`. */
       NodeShaderHairPrincipled *data = static_cast<NodeShaderHairPrincipled *>(node->storage);

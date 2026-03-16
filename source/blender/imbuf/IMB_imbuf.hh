@@ -13,6 +13,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_span.hh"
 
 #include "IMB_imbuf_types.hh"
 
@@ -238,6 +239,10 @@ void IMB_blend_color_byte(unsigned char dst[4],
 void IMB_blend_color_float(float dst[4],
                            const float src1[4],
                            const float src2[4],
+                           IMB_BlendMode mode);
+void IMB_blend_color_float(MutableSpan<float4> dst,
+                           Span<float4> src1,
+                           Span<float4> src2,
                            IMB_BlendMode mode);
 
 /**

@@ -104,11 +104,11 @@ Array<float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *depsgraph, Object *
   }
 
   /* Now get the cage. */
-  BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
   Mesh *mesh_eval_cage = bke::editbmesh_get_eval_cage(
-      depsgraph, scene_eval, obedit_eval, em_eval, &CD_MASK_BAREMESH);
+      depsgraph, scene_eval, obedit_eval, em, &CD_MASK_BAREMESH);
 
-  const int nverts = em_eval->bm->totvert;
+  const int nverts = em->bm->totvert;
   Array<float3> vertexcos(nverts);
   bke::mesh_get_mapped_verts_coords(mesh_eval_cage, vertexcos);
 

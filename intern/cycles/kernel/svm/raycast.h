@@ -32,7 +32,8 @@ ccl_device RaycastResult svm_raycast(KernelGlobals kg,
                                      float3 position,
                                      float3 direction,
                                      float distance,
-                                     bool only_local)
+                                     bool only_local,
+                                     float bump_filter_width)
 {
   RaycastResult result;
   result.distance = -1.0f;
@@ -49,13 +50,23 @@ ccl_device RaycastResult svm_raycast(KernelGlobals kg,
     return result;
   }
 
-  const bool avoid_self_intersection = isequal(position, sd->P);
+  float tmin = 0.0f;
+  bool avoid_self_intersection = false;
+  if (bump_filter_width > 0.0f) {
+    /* If evaluating for bump mapping at a shifted position, increase min
+     * distance by slightly more than the shift distance to avoid self
+     * intersections. */
+    tmin = bump_filter_width * sd->dP * 1.1f;
+  }
+  else {
+    avoid_self_intersection = isequal(position, sd->P);
+  }
 
   /* Create ray. */
   Ray ray;
   ray.P = position;
   ray.D = direction;
-  ray.tmin = 0.0f;
+  ray.tmin = tmin;
   ray.tmax = distance;
   ray.time = sd->time;
   ray.self.object = avoid_self_intersection ? sd->object : OBJECT_NONE;
@@ -99,12 +110,13 @@ ccl_device_inline
 #  else
 ccl_device_noinline
 #  endif
-    void
+    int
     svm_node_raycast(KernelGlobals kg,
                      ConstIntegratorGenericState state,
                      ccl_private ShaderData *sd,
                      ccl_private float *stack,
-                     const uint4 node)
+                     const uint4 node,
+                     int offset)
 {
   uint position_offset;
   uint direction_offset;
@@ -128,13 +140,17 @@ ccl_device_noinline
   float3 hit_position = make_float3(0.0f);
   float3 hit_normal = make_float3(0.0f);
 
+  uint4 data_node = read_node(kg, &offset);
+
   IF_KERNEL_NODES_FEATURE(RAYTRACE)
   {
-    uint only_local = node.w;
+    const uint only_local = node.w;
+    const float bump_filter_width = __uint_as_float(data_node.x);
 
     float3 position = stack_load_float3(stack, position_offset);
     float3 direction = stack_load_float3(stack, direction_offset);
-    RaycastResult result = svm_raycast(kg, state, sd, position, direction, distance, only_local);
+    RaycastResult result = svm_raycast(
+        kg, state, sd, position, direction, distance, only_local, bump_filter_width);
 
     if (result.distance >= 0.0f) {
       is_hit = 1.0f;
@@ -160,6 +176,8 @@ ccl_device_noinline
   if (stack_valid(hit_normal_offset)) {
     stack_store_float3(stack, hit_normal_offset, hit_normal);
   }
+
+  return offset;
 }
 
 #endif /* __SHADER_RAYTRACE__ */

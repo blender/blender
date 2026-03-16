@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -5026,6 +5026,10 @@ msgid "Deformation"
 msgstr "Деформација"
 
 
+msgid "Plane Normal"
+msgstr "Нормала плоче"
+
+
 msgid "Rake"
 msgstr "Грабуље"
 
@@ -7046,6 +7050,10 @@ msgid "All Keying Sets"
 msgstr "Све збирке кључева"
 
 
+msgid "Restore Frame"
+msgstr "Поврати кадар"
+
+
 msgid "Render Data"
 msgstr "Демон рендеринга"
 
@@ -8477,24 +8485,84 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
 
 
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Hooks"
+msgstr "Удице"
+
+
+msgid "Clear Transform"
+msgstr "Очисти трансформације"
+
+
+msgid "In-Betweens"
+msgstr "У међувремену"
+
+
+msgid "Propagate"
+msgstr "Пренеси"
+
+
 msgid "Names"
 msgstr "Имена"
 
 
+msgid "Apply"
+msgstr "Примени"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
 msgid "Bone Roll"
 msgstr "Ролна костију"
+
+
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
+msgid "Tracking"
+msgstr "Праћење"
 
 
 msgid "Snap"
@@ -8525,18 +8593,6 @@ msgid "Select Linked"
 msgstr "Изабери повезано"
 
 
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Light"
 msgstr "Светлост"
 
@@ -8545,64 +8601,16 @@ msgid "Relations"
 msgstr "Односи"
 
 
-msgid "Rigid Body"
-msgstr "Круто тело"
-
-
-msgid "Apply"
-msgstr "Примени"
-
-
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
-
-
-msgid "Hooks"
-msgstr "Удице"
-
-
-msgid "Clear Transform"
-msgstr "Очисти трансформације"
-
-
-msgid "In-Betweens"
-msgstr "У међувремену"
-
-
-msgid "Propagate"
-msgstr "Пренеси"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
 msgid "Import"
 msgstr "Увоз"
 
 
-msgid "Merge"
-msgstr "Сједини"
+msgid "Rigid Body"
+msgstr "Круто тело"
 
 
-msgid "Special Characters"
-msgstr "Специјални знаци"
+msgid "Track"
+msgstr "Стаза"
 
 
 msgid "Basic"
@@ -14431,10 +14439,6 @@ msgid "Clear Outer"
 msgstr "Очисти спољашње"
 
 
-msgid "Plane Normal"
-msgstr "Нормала плоче"
-
-
 msgid "Axis Threshold"
 msgstr "Праг оса"
 
@@ -17147,10 +17151,6 @@ msgstr "Прекини анимацију"
 
 msgid "Cancel animation, returning to the original frame"
 msgstr "Прекида анимацију и враћа се на почетни кадар"
-
-
-msgid "Restore Frame"
-msgstr "Поврати кадар"
 
 
 msgctxt "Operator"
@@ -22866,11 +22866,6 @@ msgid "Force Field"
 msgstr "Поље утицаја"
 
 
-msgctxt "Operator"
-msgid "Bake All Dynamics"
-msgstr "Испеци сву физику"
-
-
 msgid "Cache is disabled until the file is saved"
 msgstr "Остава је онемогућена док не сачувате датотеку"
 
@@ -23298,6 +23293,11 @@ msgstr "Дуплирај маркер на сцену..."
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Сачувај умножак..."
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Излаз"
 
@@ -23310,11 +23310,6 @@ msgstr "Рендеруј анимацију"
 msgctxt "Operator"
 msgid "Back to Previous"
 msgstr "Назад на претходно"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Сачувај умножак..."
 
 
 msgctxt "Operator"

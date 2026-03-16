@@ -94,7 +94,7 @@ class Matrix3 : public Eigen::Matrix3f {
 using lVector = Eigen::VectorXf;
 
 /* Extension of dense Eigen vectors,
- * providing 3-float block access for blenlib math functions
+ * providing 3-float block access for `blenlib` math functions
  */
 class lVector3f : public Eigen::VectorXf {
  public:

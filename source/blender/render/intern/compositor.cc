@@ -461,7 +461,7 @@ class Context : public compositor::Context {
     }
 
     /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
-     * Cryptomatte pass, the checks below will fail anyways. */
+     * Cryptomatte pass, the checks below will fail anyway. */
     const std::string combined_pass_name = std::string(view_layer->name) + "." + pass_name;
     StringRef cryptomatte_layer_name = bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
         combined_pass_name);

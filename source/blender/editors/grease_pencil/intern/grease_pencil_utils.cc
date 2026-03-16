@@ -6,7 +6,6 @@
  * \ingroup edgreasepencil
  */
 
-#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -1261,7 +1260,7 @@ IndexMask retrieve_visible_bezier_handle_points(Object &object,
   if (handle_display == CURVE_HANDLE_NONE) {
     return IndexMask(0);
   }
-  else if (handle_display == CURVE_HANDLE_ALL) {
+  if (handle_display == CURVE_HANDLE_ALL) {
     return retrieve_visible_bezier_points(object, drawing, memory);
   }
   /* else handle_display == CURVE_HANDLE_SELECTED */
@@ -1860,16 +1859,7 @@ void add_single_curve(bke::greasepencil::Drawing &drawing, const bool at_end)
       return;
     }
     bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-    GMutableSpan attribute_data = dst.span;
-
-    bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
-      MutableSpan<T> span_data = attribute_data.typed<T>();
-
-      /* Loop through backwards to not overwrite the data. */
-      for (int i = span_data.size() - 2; i >= 0; i--) {
-        span_data[i + 1] = span_data[i];
-      }
-    });
+    bke::attribute_math::shift_right(dst.span, 0, dst.span.size() - 1, dst.span.size());
     dst.finish();
   });
 }
@@ -1913,16 +1903,8 @@ void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const i
       }
 
       bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-      GMutableSpan attribute_data = dst.span;
-
-      bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
-        MutableSpan<T> span_data = attribute_data.typed<T>();
-
-        /* Loop through backwards to not overwrite the data. */
-        for (int i = span_data.size() - 1 - added_points_num; i >= last_active_point; i--) {
-          span_data[i + added_points_num] = span_data[i];
-        }
-      });
+      bke::attribute_math::shift_right(
+          dst.span, last_active_point, dst.span.size() - added_points_num, dst.span.size());
       dst.finish();
     });
   }
@@ -1939,17 +1921,8 @@ void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const i
       }
 
       bke::GSpanAttributeWriter dst = attributes.lookup_for_write_span(iter.name);
-      GMutableSpan attribute_data = dst.span;
-
-      bke::attribute_math::to_static_type(attribute_data.type(), [&]<typename T>() {
-        MutableSpan<T> span_data = attribute_data.typed<T>();
-
-        for (const int i :
-             span_data.index_range().drop_front(new_points_num).drop_back(removed_points_num))
-        {
-          span_data[i] = span_data[i + removed_points_num];
-        }
-      });
+      bke::attribute_math::shift_left(
+          dst.span, new_points_num + removed_points_num, dst.span.size(), new_points_num);
       dst.finish();
     });
 
@@ -2136,46 +2109,25 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
   }
 
   /* Convert the layer map into an index mapping. */
-  Map<int, int> eval_to_orig_layer_indices_map;
+  Array<int> eval_to_orig_layer_indices_map(orig_grease_pencil.layers().size(), -1);
   for (const int layer_eval_i : merged_layers_grease_pencil.layers().index_range()) {
     const Layer *layer_eval = &merged_layers_grease_pencil.layer(layer_eval_i);
     if (eval_to_orig_layer_map.contains(layer_eval)) {
       const Layer *layer_orig = eval_to_orig_layer_map.lookup(layer_eval);
       const int layer_orig_index = *orig_grease_pencil.get_layer_index(*layer_orig);
-      eval_to_orig_layer_indices_map.add(layer_eval_i, layer_orig_index);
+      if (eval_to_orig_layer_indices_map[layer_orig_index] == -1) {
+        /* Multiple evaluated layers can map to the same original layer. */
+        eval_to_orig_layer_indices_map[layer_orig_index] = layer_eval_i;
+      }
     }
   }
 
-  /* Propagate layer attributes. */
-  AttributeAccessor src_attributes = merged_layers_grease_pencil.attributes();
-  MutableAttributeAccessor dst_attributes = orig_grease_pencil.attributes_for_write();
-  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == bke::AttrType::String) {
-      return;
-    }
-    const GVArray src_attr = *iter.get(AttrDomain::Layer);
-    const CommonVArrayInfo info = src_attr.common_info();
-    if (info.type == CommonVArrayInfo::Type::Single) {
-      const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
-      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
-        return;
-      }
-    }
-    const GVArraySpan src = src_attr;
-    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, AttrDomain::Layer, iter.data_type);
-    if (!dst) {
-      return;
-    }
-    attribute_math::to_static_type(src.type(), [&]<typename T>() {
-      Span<T> src_span = src.typed<T>();
-      MutableSpan<T> dst_span = dst.span.typed<T>();
-      for (const auto [src_i, dst_i] : eval_to_orig_layer_indices_map.items()) {
-        dst_span[dst_i] = src_span[src_i];
-      }
-    });
-    dst.finish();
-  });
+  bke::gather_attributes(merged_layers_grease_pencil.attributes(),
+                         AttrDomain::Layer,
+                         AttrDomain::Layer,
+                         {},
+                         eval_to_orig_layer_indices_map,
+                         orig_grease_pencil.attributes_for_write());
 
   /* Free temporary grease pencil struct. */
   BKE_id_free(nullptr, &merged_layers_grease_pencil);

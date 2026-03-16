@@ -218,7 +218,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         )
         }
 
-        # More builtin classes we don't need to parse.
+        # More built-in classes we don't need to parse.
         blacklist_rna_class |= {cls for cls in bpy.types.Property.__subclasses__()}
 
         return blacklist_rna_class
