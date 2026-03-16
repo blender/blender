@@ -1462,6 +1462,9 @@ static void mix_attributes(const bke::AttributeAccessor src_attributes,
     if (skip_names.contains(iter.name)) {
       return;
     }
+    if (iter.data_type == bke::AttrType::String) {
+      return;
+    }
     const GVArray src_attr = *iter.get();
     const CommonVArrayInfo info = src_attr.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
