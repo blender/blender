@@ -662,7 +662,7 @@ GHOST_TSuccess GHOST_SystemSDL::getCursorPosition(int32_t &x, int32_t &y) const
   int xi, yi;
   SDL_GetMouseState(&xi, &yi);
   x = xi + x_win;
-  y = yi + x_win;
+  y = yi + y_win;
 
   return GHOST_kSuccess;
 }
