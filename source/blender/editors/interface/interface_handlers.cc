@@ -412,6 +412,7 @@ struct HandleButtonData {
   /* Button is being applied through an extra icon. */
   bool apply_through_extra_icon = false;
   bool changed_cursor = false;
+  bool changed_wokspace_status = false;
   wmTimer *flashtimer = nullptr;
 
   TextEdit text_edit;
@@ -4820,7 +4821,15 @@ static int do_but_BUT(bContext *C, Button *but, HandleButtonData *data, const wm
     }
   }
 #endif
-
+  if (button_draw_as_link(but) && !data->changed_cursor) {
+    WM_cursor_set(data->window, WM_CURSOR_HAND_POINT);
+    data->changed_cursor = true;
+  }
+  if (button_opens_link(but) && !data->changed_wokspace_status) {
+    WorkspaceStatus status(C);
+    status.item(button_get_link(but, C), ICON_NONE);
+    data->changed_wokspace_status = true;
+  }
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
@@ -9252,6 +9261,9 @@ static void button_activate_exit(
 
   if (data->changed_cursor) {
     WM_cursor_set(win, WM_CURSOR_DEFAULT);
+  }
+  if (data->changed_wokspace_status) {
+    ED_workspace_status_text(C, nullptr);
   }
 
   /* redraw and refresh (for popups) */

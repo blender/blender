@@ -129,6 +129,9 @@ struct WidgetStateInfo {
   /** Copy of #Button.emboss. */
   EmbossType emboss;
 
+  /** Copy of #ButtonPush::draw_as_link. */
+  bool draw_as_link : 1;
+
   /** Show that holding the button opens a menu. */
   bool has_hold_action : 1;
   /** The button is in text input mode. */
@@ -1657,13 +1660,19 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
   return strwidth;
 }
 
+bool button_draw_as_link(const Button *button)
+{
+  return button->type == ButtonType::But && static_cast<const ButtonPush *>(button)->draw_as_link;
+}
+
 /**
  * Wrapper around text_clip_middle_ex.
  */
 static void text_clip_middle(const uiFontStyle *fstyle, Button *but, const rcti *rect)
 {
   /* No margin for labels! */
-  const int border = ELEM(but->type, ButtonType::Label, ButtonType::Menu, ButtonType::Popover) ?
+  const int border = (ELEM(but->type, ButtonType::Label, ButtonType::Menu, ButtonType::Popover) ||
+                      (button_draw_as_link(but) && !(but->flag & UI_HAS_ICON))) ?
                          0 :
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
@@ -1689,7 +1698,8 @@ static void text_clip_middle_protect_right(const uiFontStyle *fstyle,
                                            const char rsep)
 {
   /* No margin for labels! */
-  const int border = ELEM(but->type, ButtonType::Label, ButtonType::Menu, ButtonType::Popover) ?
+  const int border = (ELEM(but->type, ButtonType::Label, ButtonType::Menu, ButtonType::Popover) ||
+                      (button_draw_as_link(but) && !(but->flag & UI_HAS_ICON))) ?
                          0 :
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
@@ -2232,7 +2242,21 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
   }
 #endif
-
+  /* Draw text underline when the link button is active. */
+  if (button_draw_as_link(but) && but->active) {
+    float4 color;
+    rgba_uchar_to_float(color, wcol->text);
+    int width = BLF_width(fstyle->uifont_id, drawstr, drawstr_left_len);
+    int xmin = rect->xmin;
+    if (align == UI_STYLE_TEXT_RIGHT) {
+      xmin = rect->xmax - width;
+    }
+    else if (align == UI_STYLE_TEXT_CENTER) {
+      const int rect_width = BLI_rcti_size_x(rect);
+      xmin = rect->xmin + std::round(float(rect_width - width + 1) / 2.0f);
+    }
+    draw_text_underline(xmin, rect->ymin + 6 * U.pixelsize, width, 1, color);
+  }
   if (!use_right_only) {
     /* for underline drawing */
     int font_xofs, font_yofs;
@@ -2659,7 +2683,10 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
   }
 
   wt->wcol = *(wt->wcol_theme);
-
+  if (state->draw_as_link) {
+    theme::get_color_4ubv(TH_LINK, wt->wcol.text);
+    theme::get_color_4ubv(TH_LINK, wt->wcol.text_sel);
+  }
   const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, emboss);
 
   if (state->but_flag & UI_SELECT) {
@@ -5141,6 +5168,13 @@ void draw_button(const bContext *C, ARegion *region, uiStyle *style, Button *but
 #else
         wt = widget_type(UI_WTYPE_EXEC);
 #endif
+        if (button_draw_as_link(but)) {
+          wt->draw = nullptr;
+          wt->custom = nullptr;
+          if (!(but->flag & UI_HAS_ICON)) {
+            but->drawflag |= BUT_NO_TEXT_PADDING;
+          }
+        }
         break;
 
       case ButtonType::Num:
@@ -5334,6 +5368,7 @@ void draw_button(const bContext *C, ARegion *region, uiStyle *style, Button *but
   state.but_flag = but->flag;
   state.but_drawflag = but->drawflag;
   state.emboss = but->emboss;
+  state.draw_as_link = button_draw_as_link(but);
 
   /* Override selected flag for drawing. */
   if (but->flag & UI_SELECT_DRAW) {

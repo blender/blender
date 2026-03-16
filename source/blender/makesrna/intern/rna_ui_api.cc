@@ -536,6 +536,25 @@ static void rna_uiItemL(Layout *layout,
   layout->label(text.value_or(""), icon);
 }
 
+static void rna_layout_link(Layout *layout,
+                            const char *url,
+                            const char *name,
+                            const char *text_ctxt,
+                            bool translate,
+                            int icon,
+                            int icon_value)
+{
+  /* Get translated name (label). */
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
+
+  if (icon_value && !icon) {
+    icon = icon_value;
+  }
+
+  layout->link(url, text.value_or(""), icon);
+}
+
 static void rna_uiItemM(Layout *layout,
                         const char *menuname,
                         const char *name,
@@ -1661,6 +1680,19 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "label", "rna_uiItemL");
   RNA_def_function_ui_description(func, "Item. Displays text and/or icon in the layout.");
   api_ui_item_common(func);
+  parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
+
+  func = RNA_def_function(srna, "link", "rna_layout_link");
+  RNA_def_function_ui_description(func, "Item. Displays a url that can be clicked in the layout.");
+  prop = RNA_def_string(func, "url", nullptr, 0, "", "");
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  prop = RNA_def_string(func, "text", nullptr, 0, "", "Override automatic text of the item");
+  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+  api_ui_item_common_translation(func);
+  prop = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_icon_items);
+  RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item");
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
 

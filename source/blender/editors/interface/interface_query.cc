@@ -886,4 +886,10 @@ void interface_tag_script_reload_queries()
 
 /** \} */
 
+bool button_opens_link(const Button *button)
+{
+  return button->optype && button->opptr &&
+         STR_ELEM(button->optype->idname, "WM_OT_url_open", "WM_OT_url_open_preset");
+}
+
 }  // namespace blender::ui

@@ -950,6 +950,14 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
       }
     }
   }
+  else if (button_opens_link(but)) {
+    std::string link = button_get_link(but, C);
+    layout.button(
+        IFACE_("Copy Link"), ICON_COPYDOWN, [link = std::move(link)](blender::bContext & /*C*/) {
+          WM_clipboard_text_set(link.c_str(), false);
+        });
+    layout.separator();
+  }
   else if (but->optype && but->opptr && RNA_struct_property_is_set(but->opptr, "filepath")) {
     /* Operator with "filepath" string property of PROP_FILEPATH subtype. */
     PropertyRNA *prop = RNA_struct_find_property(but->opptr, "filepath");

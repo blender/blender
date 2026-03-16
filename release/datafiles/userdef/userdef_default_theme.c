@@ -229,6 +229,7 @@ const bTheme U_theme_default = {
       .text_sel = RGBA(0xffffffff),
       .roundness = 0.2f,
     },
+    .link = RGBA(0x6FA9E6ff),
     .wcol_state = {
       .error = RGBA(0x771111ff),
       .warning = RGBA(0xac8737ff),

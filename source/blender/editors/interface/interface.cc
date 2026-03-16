@@ -4288,6 +4288,9 @@ static std::unique_ptr<Button> but_new(const ButtonType type)
     case ButtonType::Scroll:
       but = std::make_unique<ButtonScrollBar>();
       break;
+    case ButtonType::But:
+      but = std::make_unique<ButtonPush>();
+      break;
     default:
       but = std::make_unique<Button>();
       break;
@@ -7034,6 +7037,37 @@ void exit()
 void interface_tag_script_reload()
 {
   interface_tag_script_reload_queries();
+}
+
+std::string button_get_link(const Button *button, bContext *C)
+{
+  BLI_assert(button_opens_link(button));
+  if (STREQ(button->optype->idname, "WM_OT_url_open")) {
+    return RNA_string_get(button->opptr, "url");
+  }
+#ifdef WITH_PYTHON
+  const char *expr_imports[] = {"bpy", nullptr};
+  char expr[256];
+
+  PropertyRNA *prop = RNA_struct_find_property(button->opptr, "type");
+
+  const int active_item = RNA_property_enum_get(button->opptr, prop);
+  EnumPropertyItem item;
+  const bool found = RNA_property_enum_item_from_value(C, button->opptr, prop, active_item, &item);
+  if (!found) {
+    return "";
+  }
+  SNPRINTF_UTF8(expr,
+                "bpy.types.WM_OT_url_open_preset.lookup_url_from_type(bpy.context,'%s')",
+                item.identifier);
+  char *expr_result = nullptr;
+  std::string link;
+  if (BPY_run_string_as_string(C, expr_imports, expr, nullptr, &expr_result)) {
+    link = expr_result;
+    MEM_delete(expr_result);
+  }
+  return link;
+#endif
 }
 
 }  // namespace ui
