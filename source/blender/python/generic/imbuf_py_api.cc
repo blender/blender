@@ -10,6 +10,7 @@
 
 #include <Python.h>
 
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -33,6 +34,33 @@ static PyObject *BPyInit_imbuf_types();
 
 static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf);
 
+struct Py_ImBuf;
+
+#define PY_IMBUF_BUFFER_TYPE_DOC \
+  "   :param type: The buffer type.\n" \
+  "   :type type: Literal['BYTE', 'FLOAT']\n"
+
+static const PyC_StringEnumItems py_imbuf_buffer_mode_items[] = {
+    {IB_byte_data, "BYTE"},
+    {IB_float_data, "FLOAT"},
+    {0, nullptr},
+};
+
+struct Py_ImBufBuffer {
+  PyObject_HEAD
+  /** Reference to the #ImBuf this came from (prevents freeing while in use). */
+  Py_ImBuf *py_ibuf;
+  /** Whether this wraps byte/float pixel data (#IB_byte_data, #IB_float_data). */
+  int mode;
+  /** Set by `__enter__`, cleared by `__exit__` (managed #Py_ImBuf.buffer_users). */
+  bool is_entered;
+  /** When false the `memoryview` is read-only. */
+  bool writable;
+  /** Sub-region bounds (min inclusive, max exclusive). */
+  std::optional<rcti> region;
+};
+extern PyTypeObject Py_ImBufBuffer_Type;
+
 /* -------------------------------------------------------------------- */
 /** \name Type & Utilities
  * \{ */
@@ -41,6 +69,8 @@ struct Py_ImBuf {
   PyObject_VAR_HEAD
   /* can be nullptr */
   ImBuf *ibuf;
+  /** Number of active buffer protocol exports (via #Py_ImBufBuffer). */
+  int buffer_users;
 };
 
 static int py_imbuf_valid_check(Py_ImBuf *self)
@@ -65,6 +95,34 @@ static int py_imbuf_valid_check(Py_ImBuf *self)
   } \
   ((void)0)
 
+#define PY_IMBUF_CHECK_BUFFER_USERS(obj) \
+  if (UNLIKELY((obj)->buffer_users > 0)) { \
+    PyErr_SetString(PyExc_BufferError, \
+                    "ImBuf cannot be modified while pixel buffers are exported"); \
+    return nullptr; \
+  } \
+  ((void)0)
+
+/**
+ * Clamp a region to image bounds.
+ *
+ * \param ibuf: The image buffer (used for clamping).
+ * \param region: Region to clamp in-place (inverted ranges are clamped to zero area).
+ * \param r_use_region: Set to false when the region covers the entire image.
+ */
+static bool py_imbuf_region_sanitize(const ImBuf *ibuf, rcti *region)
+{
+  BLI_rcti_sanitize(region);
+
+  CLAMP(region->xmin, 0, ibuf->x);
+  CLAMP(region->xmax, 0, ibuf->x);
+  CLAMP(region->ymin, 0, ibuf->y);
+  CLAMP(region->ymax, 0, ibuf->y);
+
+  return !((region->xmin == 0 && region->ymin == 0) &&
+           (region->xmax == ibuf->x && region->ymax == ibuf->y));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -85,6 +143,7 @@ PyDoc_STRVAR(
 static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
   PY_IMBUF_CHECK_OBJ(self);
+  PY_IMBUF_CHECK_BUFFER_USERS(self);
 
   int size[2];
 
@@ -141,6 +200,7 @@ PyDoc_STRVAR(
 static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
   PY_IMBUF_CHECK_OBJ(self);
+  PY_IMBUF_CHECK_BUFFER_USERS(self);
 
   rcti crop;
 
@@ -207,12 +267,240 @@ static PyObject *py_imbuf_deepcopy(Py_ImBuf *self, PyObject *args)
 
 PyDoc_STRVAR(
     /* Wrap. */
+    py_imbuf_with_buffer_doc,
+    ".. method:: with_buffer(type, *, write=False, region=None)\n"
+    "\n"
+    "   Return a context manager that yields a :class:`memoryview` "
+    "of the image's pixel data.\n"
+    "\n"
+    "   Usage::\n"
+    "\n"
+    "      with image.with_buffer('BYTE', write=True) as buf:\n"
+    "          buf[0] = 255  # set red channel of first pixel\n"
+    "\n" PY_IMBUF_BUFFER_TYPE_DOC
+    "   :param write: When true the buffer is writable.\n"
+    "   :type write: bool\n"
+    "   :param region: Optional sub-region ``((x_min, y_min), (x_max, y_max))``.\n"
+    "      When set the memoryview is 2D (rows x columns), "
+    "clamped to image bounds.\n"
+    "   :type region: tuple[tuple[int, int], tuple[int, int]] | None\n"
+    "   :return: A context manager yielding a :class:`memoryview` of pixel data.\n"
+    "   :rtype: :class:`ImBufBuffer`\n");
+static PyObject *py_imbuf_with_buffer(Py_ImBuf *self, PyObject *args, PyObject *kw)
+{
+  PY_IMBUF_CHECK_OBJ(self);
+
+  PyC_StringEnum type = {py_imbuf_buffer_mode_items, -1};
+  bool write = false;
+  std::optional<rcti> region;
+
+  static const char *_keywords[] = {
+      "type",
+      "write",
+      "region",
+      nullptr,
+  };
+  static _PyArg_Parser _parser = {
+      "O&" /* `type` (required) */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `write` */
+      "O&" /* `region` */
+      ":with_buffer",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kw,
+                                        &_parser,
+                                        PyC_ParseStringEnum,
+                                        &type,
+                                        PyC_ParseBool,
+                                        &write,
+                                        PyC_ParseOptionalRectI,
+                                        &region))
+  {
+    return nullptr;
+  }
+
+  ImBuf *ibuf = self->ibuf;
+  const int mode = type.value_found;
+
+  if (mode == IB_byte_data) {
+    if (ibuf->byte_buffer.data == nullptr) {
+      PyErr_SetString(PyExc_RuntimeError, "ImBuf has no byte pixel data");
+      return nullptr;
+    }
+  }
+  else {
+    if (ibuf->float_buffer.data == nullptr) {
+      PyErr_SetString(PyExc_RuntimeError, "ImBuf has no float pixel data");
+      return nullptr;
+    }
+  }
+
+  bool use_region = false;
+  if (region.has_value()) {
+    use_region = py_imbuf_region_sanitize(ibuf, &region.value());
+  }
+
+  Py_ImBufBuffer *ctx = PyObject_GC_New(Py_ImBufBuffer, &Py_ImBufBuffer_Type);
+  if (UNLIKELY(ctx == nullptr)) {
+    return nullptr;
+  }
+  Py_INCREF(self);
+  ctx->py_ibuf = self;
+  ctx->is_entered = false;
+  ctx->mode = mode;
+  ctx->writable = write;
+  ctx->region = use_region ? region : std::nullopt;
+  return reinterpret_cast<PyObject *>(ctx);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_ensure_buffer_doc,
+    ".. method:: ensure_buffer(type)\n"
+    "\n"
+    "   Ensure the image has pixel data of the given type.\n"
+    "   If absent, it is allocated and converted from the other buffer when available.\n"
+    "\n" PY_IMBUF_BUFFER_TYPE_DOC);
+static PyObject *py_imbuf_ensure_buffer(Py_ImBuf *self, PyObject *args, PyObject *kw)
+{
+  PY_IMBUF_CHECK_OBJ(self);
+  PY_IMBUF_CHECK_BUFFER_USERS(self);
+
+  PyC_StringEnum type = {py_imbuf_buffer_mode_items, -1};
+
+  static const char *_keywords[] = {
+      "type",
+      nullptr,
+  };
+  static _PyArg_Parser _parser = {
+      "O&" /* `type` (required) */
+      ":ensure_buffer",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type)) {
+    return nullptr;
+  }
+
+  ImBuf *ibuf = self->ibuf;
+
+  if (type.value_found == IB_byte_data) {
+    if (ibuf->byte_buffer.data == nullptr) {
+      if (ibuf->float_buffer.data != nullptr) {
+        IMB_byte_from_float(ibuf);
+      }
+      else {
+        IMB_alloc_byte_pixels(ibuf);
+      }
+      if (UNLIKELY(ibuf->byte_buffer.data == nullptr)) {
+        PyErr_SetString(PyExc_MemoryError, "failed to allocate byte buffer");
+        return nullptr;
+      }
+    }
+  }
+  else {
+    if (ibuf->float_buffer.data == nullptr) {
+      if (ibuf->byte_buffer.data != nullptr) {
+        IMB_float_from_byte(ibuf);
+      }
+      else {
+        IMB_alloc_float_pixels(ibuf, 4);
+      }
+      if (UNLIKELY(ibuf->float_buffer.data == nullptr)) {
+        PyErr_SetString(PyExc_MemoryError, "failed to allocate float buffer");
+        return nullptr;
+      }
+    }
+  }
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_has_buffer_doc,
+    ".. method:: has_buffer(type)\n"
+    "\n"
+    "   Return whether the image has pixel data of the given type.\n"
+    "\n" PY_IMBUF_BUFFER_TYPE_DOC
+    "   :return: True if the buffer exists.\n"
+    "   :rtype: bool\n");
+static PyObject *py_imbuf_has_buffer(Py_ImBuf *self, PyObject *args, PyObject *kw)
+{
+  PY_IMBUF_CHECK_OBJ(self);
+
+  PyC_StringEnum type = {py_imbuf_buffer_mode_items, -1};
+
+  static const char *_keywords[] = {
+      "type",
+      nullptr,
+  };
+  static _PyArg_Parser _parser = {
+      "O&" /* `type` (required) */
+      ":has_buffer",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type)) {
+    return nullptr;
+  }
+
+  ImBuf *ibuf = self->ibuf;
+  if (type.value_found == IB_byte_data) {
+    return PyBool_FromLong(ibuf->byte_buffer.data != nullptr);
+  }
+  return PyBool_FromLong(ibuf->float_buffer.data != nullptr);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_clear_buffer_doc,
+    ".. method:: clear_buffer(type)\n"
+    "\n"
+    "   Free pixel data of the given type.\n"
+    "\n" PY_IMBUF_BUFFER_TYPE_DOC);
+static PyObject *py_imbuf_clear_buffer(Py_ImBuf *self, PyObject *args, PyObject *kw)
+{
+  PY_IMBUF_CHECK_OBJ(self);
+  PY_IMBUF_CHECK_BUFFER_USERS(self);
+
+  PyC_StringEnum type = {py_imbuf_buffer_mode_items, -1};
+
+  static const char *_keywords[] = {
+      "type",
+      nullptr,
+  };
+  static _PyArg_Parser _parser = {
+      "O&" /* `type` (required) */
+      ":clear_buffer",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type)) {
+    return nullptr;
+  }
+
+  ImBuf *ibuf = self->ibuf;
+  if (type.value_found == IB_byte_data) {
+    IMB_free_byte_pixels(ibuf);
+  }
+  else {
+    IMB_free_float_pixels(ibuf);
+  }
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     py_imbuf_free_doc,
     ".. method:: free()\n"
     "\n"
     "   Clear image data immediately (causing an error on re-use).\n");
 static PyObject *py_imbuf_free(Py_ImBuf *self)
 {
+  PY_IMBUF_CHECK_BUFFER_USERS(self);
   if (self->ibuf) {
     IMB_freeImBuf(self->ibuf);
     self->ibuf = nullptr;
@@ -239,6 +527,22 @@ static PyMethodDef Py_ImBuf_methods[] = {
      reinterpret_cast<PyCFunction>(py_imbuf_crop),
      METH_VARARGS | METH_KEYWORDS,
      const_cast<char *>(py_imbuf_crop_doc)},
+    {"with_buffer",
+     reinterpret_cast<PyCFunction>(py_imbuf_with_buffer),
+     METH_VARARGS | METH_KEYWORDS,
+     py_imbuf_with_buffer_doc},
+    {"ensure_buffer",
+     reinterpret_cast<PyCFunction>(py_imbuf_ensure_buffer),
+     METH_VARARGS | METH_KEYWORDS,
+     py_imbuf_ensure_buffer_doc},
+    {"has_buffer",
+     reinterpret_cast<PyCFunction>(py_imbuf_has_buffer),
+     METH_VARARGS | METH_KEYWORDS,
+     py_imbuf_has_buffer_doc},
+    {"clear_buffer",
+     reinterpret_cast<PyCFunction>(py_imbuf_clear_buffer),
+     METH_VARARGS | METH_KEYWORDS,
+     py_imbuf_clear_buffer_doc},
     {"free", reinterpret_cast<PyCFunction>(py_imbuf_free), METH_NOARGS, py_imbuf_free_doc},
     {"copy", reinterpret_cast<PyCFunction>(py_imbuf_copy), METH_NOARGS, py_imbuf_copy_doc},
     {"__copy__", reinterpret_cast<PyCFunction>(py_imbuf_copy), METH_NOARGS, py_imbuf_copy_doc},
@@ -555,8 +859,236 @@ static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf)
 {
   Py_ImBuf *self = PyObject_New(Py_ImBuf, &Py_ImBuf_Type);
   self->ibuf = ibuf;
+  self->buffer_users = 0;
   return reinterpret_cast<PyObject *>(self);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Buffer, Type & Implementation
+ * \{ */
+
+static void py_imbuf_buffer_dealloc(Py_ImBufBuffer *self)
+{
+  if (self->is_entered && self->py_ibuf) {
+    self->py_ibuf->buffer_users--;
+    BLI_assert(self->py_ibuf->buffer_users >= 0);
+  }
+  PyObject_GC_UnTrack(self);
+  Py_CLEAR(self->py_ibuf);
+  PyObject_GC_Del(self);
+}
+
+static int py_imbuf_buffer_traverse(Py_ImBufBuffer *self, visitproc visit, void *arg)
+{
+  Py_VISIT(self->py_ibuf);
+  return 0;
+}
+
+static int py_imbuf_buffer_clear(Py_ImBufBuffer *self)
+{
+  Py_CLEAR(self->py_ibuf);
+  return 0;
+}
+
+static PyObject *py_imbuf_buffer_repr(Py_ImBufBuffer *self)
+{
+  const ImBuf *ibuf = self->py_ibuf ? self->py_ibuf->ibuf : nullptr;
+  if (ibuf != nullptr) {
+    return PyUnicode_FromFormat(
+        "<ImBufBuffer: size=(%d, %d), entered=%d>", ibuf->x, ibuf->y, int(self->is_entered));
+  }
+  return PyUnicode_FromString("<ImBufBuffer: invalid>");
+}
+
+static PyObject *py_imbuf_buffer_enter(Py_ImBufBuffer *self)
+{
+  if (UNLIKELY(self->is_entered)) {
+    PyErr_SetString(PyExc_RuntimeError, "ImBufBuffer context is already entered");
+    return nullptr;
+  }
+  ImBuf *ibuf = self->py_ibuf->ibuf;
+  if (UNLIKELY(ibuf == nullptr)) {
+    PyErr_SetString(PyExc_ReferenceError, "ImBuf data has been freed");
+    return nullptr;
+  }
+
+  const bool is_byte = (self->mode == IB_byte_data);
+
+  if (is_byte) {
+    if (UNLIKELY(ibuf->byte_buffer.data == nullptr)) {
+      PyErr_SetString(PyExc_RuntimeError, "ImBuf has no byte pixel data");
+      return nullptr;
+    }
+  }
+  else {
+    if (UNLIKELY(ibuf->float_buffer.data == nullptr)) {
+      PyErr_SetString(PyExc_RuntimeError, "ImBuf has no float pixel data");
+      return nullptr;
+    }
+  }
+
+  const int channels = is_byte ? 4 : (ibuf->channels ? ibuf->channels : 4);
+  const Py_ssize_t itemsize = is_byte ? 1 : Py_ssize_t(sizeof(float));
+  const char *format = is_byte ? "B" : "f";
+
+  PyObject *memview;
+
+  if (self->region == std::nullopt) {
+    Py_ssize_t num_items = Py_ssize_t(ibuf->x) * ibuf->y * channels;
+
+    Py_buffer pybuf;
+    memset(&pybuf, 0, sizeof(pybuf));
+    pybuf.buf = is_byte ? static_cast<void *>(ibuf->byte_buffer.data) :
+                          static_cast<void *>(ibuf->float_buffer.data);
+    pybuf.len = num_items * itemsize;
+    pybuf.itemsize = itemsize;
+    pybuf.readonly = !self->writable;
+    pybuf.format = const_cast<char *>(format);
+    pybuf.ndim = 1;
+    pybuf.shape = &num_items;
+    pybuf.strides = &pybuf.itemsize;
+    memview = PyMemoryView_FromBuffer(&pybuf);
+  }
+  else {
+    const rcti &region = *self->region;
+    const int xmin = region.xmin;
+    const int ymin = region.ymin;
+    const int xmax = region.xmax;
+    const int ymax = region.ymax;
+
+    const Py_ssize_t row_stride = Py_ssize_t(ibuf->x) * channels * itemsize;
+    const Py_ssize_t offset = (Py_ssize_t(ymin) * ibuf->x + xmin) * channels * itemsize;
+
+    Py_ssize_t shape[2] = {ymax - ymin, (xmax - xmin) * channels};
+    Py_ssize_t strides[2] = {row_stride, itemsize};
+
+    Py_buffer pybuf;
+    memset(&pybuf, 0, sizeof(pybuf));
+    pybuf.buf = is_byte ? static_cast<void *>(ibuf->byte_buffer.data + offset) :
+                          static_cast<void *>(reinterpret_cast<char *>(ibuf->float_buffer.data) +
+                                              offset);
+    pybuf.len = shape[0] * shape[1] * itemsize;
+    pybuf.itemsize = itemsize;
+    pybuf.readonly = !self->writable;
+    pybuf.format = const_cast<char *>(format);
+    pybuf.ndim = 2;
+    pybuf.shape = shape;
+    pybuf.strides = strides;
+    memview = PyMemoryView_FromBuffer(&pybuf);
+  }
+
+  if (UNLIKELY(memview == nullptr)) {
+    return nullptr;
+  }
+
+  self->is_entered = true;
+  self->py_ibuf->buffer_users++;
+  return memview;
+}
+
+static PyObject *py_imbuf_buffer_exit(Py_ImBufBuffer *self, PyObject * /*args*/)
+{
+  if (self->is_entered && self->py_ibuf) {
+    self->is_entered = false;
+    self->py_ibuf->buffer_users--;
+    BLI_assert(self->py_ibuf->buffer_users >= 0);
+
+    if (self->writable) {
+      ImBuf *ibuf = self->py_ibuf->ibuf;
+      if (ibuf != nullptr) {
+        if (self->mode == IB_byte_data) {
+          if (ibuf->float_buffer.data != nullptr) {
+            IMB_float_from_byte(ibuf);
+          }
+        }
+        else {
+          if (ibuf->byte_buffer.data != nullptr) {
+            IMB_byte_from_float(ibuf);
+          }
+        }
+      }
+    }
+  }
+  Py_RETURN_NONE;
+}
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
+static PyMethodDef Py_ImBufBuffer_methods[] = {
+    {"__enter__", reinterpret_cast<PyCFunction>(py_imbuf_buffer_enter), METH_NOARGS, nullptr},
+    {"__exit__", reinterpret_cast<PyCFunction>(py_imbuf_buffer_exit), METH_VARARGS, nullptr},
+    {nullptr, nullptr, 0, nullptr},
+};
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
+
+PyTypeObject Py_ImBufBuffer_Type = {
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "ImBufBuffer",
+    /*tp_basicsize*/ sizeof(Py_ImBufBuffer),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(py_imbuf_buffer_dealloc),
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(py_imbuf_buffer_repr),
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ PyObject_HashNotImplemented,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ nullptr,
+    /*tp_traverse*/ reinterpret_cast<traverseproc>(py_imbuf_buffer_traverse),
+    /*tp_clear*/ reinterpret_cast<inquiry>(py_imbuf_buffer_clear),
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ Py_ImBufBuffer_methods,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ nullptr,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ nullptr,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ nullptr,
+    /*tp_free*/ nullptr,
+    /*tp_is_gc*/ nullptr,
+    /*tp_bases*/ nullptr,
+    /*tp_mro*/ nullptr,
+    /*tp_cache*/ nullptr,
+    /*tp_subclasses*/ nullptr,
+    /*tp_weaklist*/ nullptr,
+    /*tp_del*/ nullptr,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ nullptr,
+    /*tp_vectorcall*/ nullptr,
+};
 
 /** \} */
 
@@ -984,6 +1516,7 @@ PyObject *BPyInit_imbuf_types()
   }
 
   PyModule_AddType(submodule, &Py_ImBuf_Type);
+  PyModule_AddType(submodule, &Py_ImBufBuffer_Type);
 
   return submodule;
 }
