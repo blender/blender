@@ -7943,11 +7943,10 @@ static wmOperatorStatus mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
 {
   const float eps = 0.00001f;
   const float eps_sq = eps * eps;
-  const bool use_topology = false;
-
   const float thresh = RNA_float_get(op->ptr, "threshold");
   const float fac = RNA_float_get(op->ptr, "factor");
   const bool use_center = RNA_boolean_get(op->ptr, "use_center");
+  const bool use_topology = RNA_boolean_get(op->ptr, "use_topology");
   const int axis_dir = RNA_enum_get(op->ptr, "direction");
 
   /* Vertices stats (total over all selected objects). */
@@ -8111,6 +8110,11 @@ void MESH_OT_symmetry_snap(wmOperatorType *ot)
                 1.0f);
   RNA_def_boolean(
       ot->srna, "use_center", true, "Center", "Snap middle vertices to the axis center");
+  RNA_def_boolean(ot->srna,
+                  "use_topology",
+                  false,
+                  "Topology Mirror",
+                  "Use topology to find mirrored vertices instead of spatial proximity");
 }
 
 /** \} */
