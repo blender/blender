@@ -718,6 +718,75 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
   return result;
 }
 
+/**
+ * Encode `ibuf` to memory and write the result to `file`.
+ */
+static PyObject *imbuf_write_to_buffer_impl(ImBuf *ibuf, PyObject *file)
+{
+  const bool is_float = ibuf->float_buffer.data != nullptr;
+  if (ibuf->ftype == IMB_FTYPE_NONE) {
+    ibuf->ftype = IMB_FTYPE_PNG;
+  }
+
+  const bool ok = IMB_save_image(
+      ibuf, "<memory>", eImBufFlags(IB_mem | (is_float ? IB_float_data : IB_byte_data)));
+  if (!ok) {
+    PyErr_SetString(PyExc_RuntimeError, "write_to_buffer: failed to write image to memory");
+    return nullptr;
+  }
+
+  PyObject *memview = PyMemoryView_FromMemory(reinterpret_cast<char *>(ibuf->encoded_buffer.data),
+                                              Py_ssize_t(ibuf->encoded_size),
+                                              PyBUF_READ);
+  if (!memview) {
+    return nullptr;
+  }
+
+  /* Handles missing attribute, non-callable attribute, and write errors. */
+  PyObject *result = PyObject_CallMethod(file, "write", "O", memview);
+  Py_DECREF(memview);
+
+  if (!result) {
+    return nullptr;
+  }
+  Py_DECREF(result);
+
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_imbuf_write_to_buffer_doc,
+    ".. function:: write_to_buffer(image, file)\n"
+    "\n"
+    "   Write an image to a file-like object.\n"
+    "\n"
+    "   :param image: The image to write.\n"
+    "   :type image: :class:`ImBuf`\n"
+    "   :param file: A writable file-like object (e.g. :class:`io.BytesIO`).\n"
+    "   :type file: :class:`BinaryIO`\n");
+static PyObject *M_imbuf_write_to_buffer(PyObject * /*self*/, PyObject *args)
+{
+  Py_ImBuf *py_imb;
+  PyObject *file;
+
+  if (!PyArg_ParseTuple(args, "O!O:write_to_buffer", &Py_ImBuf_Type, &py_imb, &file)) {
+    return nullptr;
+  }
+  PY_IMBUF_CHECK_OBJ(py_imb);
+
+  /* Work on a copy to avoid mutating the original (encoded_buffer, ftype).
+   * This could be avoided by making the encoded buffer free function public. */
+  ImBuf *ibuf = IMB_dupImBuf(py_imb->ibuf);
+  if (!ibuf) {
+    PyErr_SetString(PyExc_MemoryError, "write_to_buffer: failed to duplicate image buffer");
+    return nullptr;
+  }
+  PyObject *result = imbuf_write_to_buffer_impl(ibuf, file);
+  IMB_freeImBuf(ibuf);
+  return result;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -751,6 +820,10 @@ static PyMethodDef IMB_methods[] = {
      reinterpret_cast<PyCFunction>(M_imbuf_write),
      METH_VARARGS | METH_KEYWORDS,
      M_imbuf_write_doc},
+    {"write_to_buffer",
+     reinterpret_cast<PyCFunction>(M_imbuf_write_to_buffer),
+     METH_VARARGS,
+     M_imbuf_write_to_buffer_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
