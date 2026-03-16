@@ -17,8 +17,6 @@
 
 #include "BLI_utildefines.h" /* for bool */
 
-#include "DNA_vec_types.h" /* for rcti */
-
 #include "py_capi_utils.hh"
 
 #include "python_utildefines.hh"
@@ -605,30 +603,6 @@ int PyC_ParseOptionalBool(PyObject *o, void *p)
     return 0;
   }
   *value_p = value ? true : false;
-  return 1;
-}
-
-int PyC_ParseRectI(PyObject *o, void *p)
-{
-  rcti *rect = static_cast<rcti *>(p);
-  if (!PyArg_ParseTuple(o, "(ii)(ii)", &rect->xmin, &rect->ymin, &rect->xmax, &rect->ymax)) {
-    return 0;
-  }
-  return 1;
-}
-
-int PyC_ParseOptionalRectI(PyObject *o, void *p)
-{
-  std::optional<rcti> *value_p = static_cast<std::optional<rcti> *>(p);
-  if (o == Py_None) {
-    value_p->reset();
-    return 1;
-  }
-  rcti rect;
-  if (!PyC_ParseRectI(o, &rect)) {
-    return 0;
-  }
-  *value_p = rect;
   return 1;
 }
 
