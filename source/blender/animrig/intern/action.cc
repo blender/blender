@@ -2525,7 +2525,7 @@ animrig::Channelbag *channelbag_for_action_slot(Action &action, const slot_handl
 
 Vector<Channelbag *> channelbags_of_active_layer(Action &action, slot_handle_t slot_handle)
 {
-  if (slot_handle == Slot::unassigned) {
+  if (slot_handle == Slot::unassigned || action.layer_array_num == 0) {
     return {};
   }
   Layer *layer = action.layer(action.layer_active_index);
