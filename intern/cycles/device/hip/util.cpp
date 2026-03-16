@@ -44,6 +44,33 @@ int hipewCompilerVersion()
 }
 #  endif
 
+bool hipSupportsDriver()
+{
+#  ifdef _WIN32
+  /* This check is only necessary if we're using HIP SDK 6 or newer. */
+  int hip_driver_version = 0;
+  hipError_t result = hipDriverGetVersion(&hip_driver_version);
+  if (result != hipSuccess) {
+    VLOG_WARNING << "Error getting driver version: " << hipewErrorString(result);
+    return false;
+  }
+
+#    ifdef WITH_HIP_SDK_5
+  if (hip_driver_version >= 60551382) {
+    int major = hip_driver_version / 10000000;
+    int minor = (hip_driver_version / 100000) % 100;
+    int patch = (hip_driver_version / 1000) % 100;
+    VLOG_WARNING << "HIP runtime version " << major << "." << minor << "." << patch
+                 << " is not compatible with HIP SDK 5.7";
+    return false;
+  }
+#    endif
+
+#  endif
+
+  return true;
+}
+
 CCL_NAMESPACE_END
 
 #endif /* WITH_HIP */

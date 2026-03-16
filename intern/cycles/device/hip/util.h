@@ -49,6 +49,8 @@ const char *hipewCompilerPath();
 int hipewCompilerVersion();
 #  endif /* WITH_HIP_DYNLOAD */
 
+bool hipSupportsDriver();
+
 static std::string hipDeviceArch(const int hipDevId)
 {
   hipDeviceProp_t props;

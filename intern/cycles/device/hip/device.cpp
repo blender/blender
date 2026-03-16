@@ -37,7 +37,10 @@ bool device_hip_init()
   int hipew_result = hipewInit(HIPEW_INIT_HIP);
   if (hipew_result == HIPEW_SUCCESS) {
     VLOG_INFO << "HIPEW initialization succeeded";
-    if (HIPDevice::have_precompiled_kernels()) {
+    if (!hipSupportsDriver()) {
+      VLOG_INFO << "Driver incompatible";
+    }
+    else if (HIPDevice::have_precompiled_kernels()) {
       VLOG_INFO << "Found precompiled kernels";
       result = true;
     }
