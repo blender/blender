@@ -107,6 +107,24 @@ class TestImBufProperties(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ibuf.ppm = (-1.0, 100.0)
 
+    def test_quality(self):
+        self.assertEqual(self.ibuf.quality, 90)
+        self.ibuf.quality = 50
+        self.assertEqual(self.ibuf.quality, 50)
+        self.ibuf.quality = -1
+        self.assertEqual(self.ibuf.quality, 0)
+        self.ibuf.quality = 101
+        self.assertEqual(self.ibuf.quality, 100)
+
+    def test_compress(self):
+        self.assertEqual(self.ibuf.compress, 15)
+        self.ibuf.compress = 50
+        self.assertEqual(self.ibuf.compress, 50)
+        self.ibuf.compress = -1
+        self.assertEqual(self.ibuf.compress, 0)
+        self.ibuf.compress = 101
+        self.assertEqual(self.ibuf.compress, 100)
+
 
 class TestImBufResize(unittest.TestCase):
 

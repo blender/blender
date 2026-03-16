@@ -370,6 +370,50 @@ static PyObject *py_imbuf_channels_get(Py_ImBuf *self, void * /*closure*/)
   return PyLong_FromLong(imbuf->channels);
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_quality_doc,
+    "Quality for formats that support lossy compression (0 - 100, clamped).\n"
+    "\n"
+    ":type: int\n");
+static PyObject *py_imbuf_quality_get(Py_ImBuf *self, void * /*closure*/)
+{
+  PY_IMBUF_CHECK_OBJ(self);
+  return PyLong_FromLong(self->ibuf->foptions.quality);
+}
+static int py_imbuf_quality_set(Py_ImBuf *self, PyObject *value, void * /*closure*/)
+{
+  PY_IMBUF_CHECK_INT(self);
+  const int quality = PyC_Long_AsI32(value);
+  if (quality == -1 && PyErr_Occurred()) {
+    return -1;
+  }
+  self->ibuf->foptions.quality = char(std::clamp(quality, 0, 100));
+  return 0;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_compress_doc,
+    "Compression level for formats that support lossless compression levels (0 - 100, clamped).\n"
+    "\n"
+    ":type: int\n");
+static PyObject *py_imbuf_compress_get(Py_ImBuf *self, void * /*closure*/)
+{
+  PY_IMBUF_CHECK_OBJ(self);
+  return PyLong_FromLong(self->ibuf->foptions.compress);
+}
+static int py_imbuf_compress_set(Py_ImBuf *self, PyObject *value, void * /*closure*/)
+{
+  PY_IMBUF_CHECK_INT(self);
+  const int compress = PyC_Long_AsI32(value);
+  if (compress == -1 && PyErr_Occurred()) {
+    return -1;
+  }
+  self->ibuf->foptions.compress = char(std::clamp(compress, 0, 100));
+  return 0;
+}
+
 static PyGetSetDef Py_ImBuf_getseters[] = {
     {"size",
      reinterpret_cast<getter>(py_imbuf_size_get),
@@ -395,6 +439,16 @@ static PyGetSetDef Py_ImBuf_getseters[] = {
      reinterpret_cast<getter>(py_imbuf_channels_get),
      nullptr,
      py_imbuf_channels_doc,
+     nullptr},
+    {"quality",
+     reinterpret_cast<getter>(py_imbuf_quality_get),
+     reinterpret_cast<setter>(py_imbuf_quality_set),
+     py_imbuf_quality_doc,
+     nullptr},
+    {"compress",
+     reinterpret_cast<getter>(py_imbuf_compress_get),
+     reinterpret_cast<setter>(py_imbuf_compress_set),
+     py_imbuf_compress_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
