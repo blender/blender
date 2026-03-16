@@ -545,9 +545,10 @@ void copy_update(bke::pbvh::Tree &pbvh,
   }
 }
 
+/* TODO: Allow passing `ImageData` here, but this requires pulling this entire class out of the
+ * bke namespace. */
 void copy_pixels(bke::pbvh::Tree &pbvh,
-                 Image &image,
-                 ImageUser &image_user,
+                 Map<image::TileNumber, ImBuf *> &buffers,
                  image::TileNumber tile_number)
 {
   PBVHData &pbvh_data = data_get(pbvh);
@@ -558,9 +559,7 @@ void copy_pixels(bke::pbvh::Tree &pbvh,
     return;
   }
 
-  ImageUser tile_user = image_user;
-  tile_user.tile = tile_number;
-  ImBuf *tile_buffer = BKE_image_acquire_ibuf(&image, &tile_user, nullptr);
+  ImBuf *tile_buffer = buffers.lookup_default(tile_number, nullptr);
   if (tile_buffer == nullptr) {
     /* No tile buffer found to copy. */
     return;
@@ -570,8 +569,6 @@ void copy_pixels(bke::pbvh::Tree &pbvh,
   threading::parallel_for(tile.groups.index_range(), THREADING_GRAIN_SIZE, [&](IndexRange range) {
     tile.copy_pixels(*tile_buffer, range);
   });
-
-  BKE_image_release_ibuf(&image, tile_buffer, nullptr);
 }
 
 }  // namespace blender::bke::pbvh::pixels

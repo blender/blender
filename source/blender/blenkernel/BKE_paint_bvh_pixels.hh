@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_map.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
@@ -42,7 +43,7 @@ struct PackedPixelRow {
  */
 struct UDIMTilePixels {
   /** UDIM Tile number. */
-  short tile_number;
+  image::TileNumber tile_number;
 
   struct {
     bool dirty : 1;
@@ -140,19 +141,21 @@ struct NodeData {
     }
   }
 
-  void mark_region(Image &image, const image::ImageTileWrapper &image_tile, ImBuf &image_buffer)
+  void mark_region(UDIMTilePixels &tile,
+                   Image &image,
+                   const image::ImageTileWrapper &image_tile,
+                   ImBuf &image_buffer)
   {
-    UDIMTilePixels *tile = find_tile_data(image_tile);
-    if (tile && tile->flags.dirty) {
+    if (tile.flags.dirty) {
       if (image_buffer.planes == 8) {
         image_buffer.planes = 32;
         BKE_image_partial_update_mark_full_update(&image);
       }
       else {
         BKE_image_partial_update_mark_region(
-            &image, image_tile.image_tile, &image_buffer, &tile->dirty_region);
+            &image, image_tile.image_tile, &image_buffer, &tile.dirty_region);
       }
-      tile->clear_dirty();
+      tile.clear_dirty();
     }
   }
 
@@ -347,13 +350,14 @@ struct PBVHData {
 };
 
 NodeData &node_data_get(bke::pbvh::Node &node);
-void mark_image_dirty(bke::pbvh::Node &node, Image &image, ImageUser &image_user);
+void mark_image_dirty(bke::pbvh::Node &node,
+                      Image &image,
+                      Map<image::TileNumber, ImBuf *> &buffers);
 PBVHData &data_get(bke::pbvh::Tree &pbvh);
 void collect_dirty_tiles(bke::pbvh::Node &node, Vector<image::TileNumber> &r_dirty_tiles);
 
 void copy_pixels(bke::pbvh::Tree &pbvh,
-                 Image &image,
-                 ImageUser &image_user,
+                 Map<image::TileNumber, ImBuf *> &buffers,
                  image::TileNumber tile_number);
 
 }  // namespace blender::bke::pbvh::pixels

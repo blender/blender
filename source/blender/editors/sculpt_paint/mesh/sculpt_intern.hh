@@ -12,6 +12,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
+#include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -159,6 +160,21 @@ struct ProjectBrushTarget {
   bke::BVHTreeFromMesh tree_data;
   float4x4 active_to_target_matrix;
 };
+
+namespace paint::image {
+struct ImageData : NonCopyable {
+  Image *image = nullptr;
+  ImageUser *image_user = nullptr;
+
+  Map<bke::image::TileNumber, ImBuf *> buffers = {};
+
+  ~ImageData();
+
+  static std::unique_ptr<ImageData> init_active_image(Object &ob,
+                                                      PaintModeSettings &paint_mode_settings);
+};
+
+}  // namespace paint::image
 
 /**
  * This structure contains all the temporary data
@@ -430,6 +446,8 @@ struct StrokeCache {
 
   float4x4 stroke_local_mat = float4x4::identity();
   float multiplane_scrape_angle = 0.0f;
+
+  std::unique_ptr<paint::image::ImageData> image_data;
 
   StrokeCache();
   ~StrokeCache();
@@ -931,19 +949,7 @@ float object_space_radius_get(const ViewContext &vc,
 /** \name 3D Texture Paint (Experimental)
  * \{ */
 
-/**
- * \brief Get the image canvas for painting on the given object.
- *
- * \return #true if an image is found. The #r_image and #r_image_user fields are filled with
- * the image and image user. Returns false when the image isn't found. In the later case the
- * r_image and r_image_user are set to NULL.
- */
-bool SCULPT_paint_image_canvas_get(PaintModeSettings &paint_mode_settings,
-                                   Object &ob,
-                                   Image **r_image,
-                                   ImageUser **r_image_user) ATTR_NONNULL();
 void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
-                                 PaintModeSettings &paint_mode_settings,
                                  const Sculpt &sd,
                                  Object &ob,
                                  const IndexMask &node_mask);

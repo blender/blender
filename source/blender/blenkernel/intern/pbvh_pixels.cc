@@ -454,22 +454,39 @@ PBVHData &data_get(Tree &pbvh)
   return *data;
 }
 
-void mark_image_dirty(Node &node, Image &image, ImageUser &image_user)
+/* TODO: This is a awkward to have to re-iterate over the image tiles to find the matching tile.
+ * Investigate storing the pointer on the `UDIMTilePixels` struct instead, or storing this as a
+ * second map in `ImageData` */
+static std::optional<image::ImageTileWrapper> find_image_tile(Image &image,
+                                                              const image::TileNumber tile_number)
+{
+  for (ImageTile &image_tile : image.tiles) {
+    image::ImageTileWrapper wrapper = image::ImageTileWrapper(&image_tile);
+    if (wrapper.get_tile_number() == tile_number) {
+      return std::make_optional(wrapper);
+    }
+  }
+  /* Logically, we should be unable to reference a image_tile here without having first gotten it
+   * from the image tile itself. */
+  BLI_assert(0);
+  return std::nullopt;
+}
+
+void mark_image_dirty(bke::pbvh::Node &node,
+                      Image &image,
+                      Map<image::TileNumber, ImBuf *> &buffers)
 {
   BLI_assert(node.pixels_ != nullptr);
   NodeData *node_data = node.pixels_;
   if (node_data->flags.dirty) {
-    ImageUser local_image_user = image_user;
-    for (ImageTile &tile : image.tiles) {
-      image::ImageTileWrapper image_tile(&tile);
-      local_image_user.tile = image_tile.get_tile_number();
-      ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &local_image_user, nullptr);
-      if (image_buffer == nullptr) {
+    for (UDIMTilePixels &tile : node_data->tiles) {
+      std::optional<image::ImageTileWrapper> image_tile = find_image_tile(image, tile.tile_number);
+      ImBuf *image_buffer = buffers.lookup_default(tile.tile_number, nullptr);
+      if (image_buffer == nullptr || !image_tile) {
         continue;
       }
 
-      node_data->mark_region(image, image_tile, *image_buffer);
-      BKE_image_release_ibuf(&image, image_buffer, nullptr);
+      node_data->mark_region(tile, image, *image_tile, *image_buffer);
     }
     node_data->flags.dirty = false;
   }
