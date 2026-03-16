@@ -11,6 +11,7 @@
 #include "BKE_library.hh"
 
 #include "BLI_math_base.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 
@@ -27,6 +28,13 @@
 #include "interface_templates_intern.hh"
 
 namespace blender::ui {
+
+using blender::Vector;
+
+struct CurveRuntimeProperties {
+  CurveProfilePoint *last_pt = nullptr;
+  float2 last_pos;
+};
 
 static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
 {
@@ -374,35 +382,20 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
            "");
 
   /* Position sliders for (first) selected point */
-  int i;
-  float *selection_x, *selection_y;
+  Vector<CurveProfilePoint *> selected_points;
   bool point_last_or_first = false;
-  CurveProfilePoint *point = nullptr;
-  for (i = 0; i < profile->path_len; i++) {
-    if (profile->path[i].flag & PROF_SELECT) {
-      point = &profile->path[i];
-      selection_x = &point->x;
-      selection_y = &point->y;
-      break;
+  for (int i = 0; i < profile->path_len; i++) {
+    if (profile->path[i].flag & (PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT)) {
+      selected_points.append(&profile->path[i]);
+      if (ELEM(i, 0, profile->path_len - 1) && profile->path[i].flag & PROF_SELECT) {
+        point_last_or_first = true;
+      }
     }
-    if (profile->path[i].flag & PROF_H1_SELECT) {
-      point = &profile->path[i];
-      selection_x = &point->h1_loc[0];
-      selection_y = &point->h1_loc[1];
-    }
-    else if (profile->path[i].flag & PROF_H2_SELECT) {
-      point = &profile->path[i];
-      selection_x = &point->h2_loc[0];
-      selection_y = &point->h2_loc[1];
-    }
-  }
-  if (ELEM(i, 0, profile->path_len - 1)) {
-    point_last_or_first = true;
   }
 
   /* Selected point data */
-  rctf bounds;
-  if (point) {
+  if (!selected_points.is_empty()) {
+    rctf bounds;
     if (profile->flag & PROF_USE_CLIP) {
       bounds = profile->clip_rect;
     }
@@ -413,8 +406,11 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
 
     row = &layout.row(true);
 
+    auto curve_runtime = std::make_shared<CurveRuntimeProperties>();
+    curve_runtime->last_pt = BKE_curveprofile_active_get(profile);
+
     PointerRNA point_ptr = RNA_pointer_create_discrete(
-        ptr->owner_id, RNA_CurveProfilePoint, point);
+        ptr->owner_id, RNA_CurveProfilePoint, curve_runtime->last_pt);
     PropertyRNA *prop_handle_type = RNA_struct_find_property(&point_ptr, "handle_type_1");
     row->prop(&point_ptr,
               prop_handle_type,
@@ -425,6 +421,42 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
               ICON_NONE);
 
     /* Position */
+    float *last_x_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt);
+    float *last_y_ptr = last_x_ptr + 1;
+    curve_runtime->last_pos.x = *last_x_ptr;
+    curve_runtime->last_pos.y = *last_y_ptr;
+
+    /* While the slider controls the active element, all selected points move together.
+     * Contract the slider range so the outermost selected points stay within the clip region. */
+    rctf slider_bounds = bounds;
+    if (selected_points.size() > 1) {
+      rctf selection_bounds;
+      BLI_rctf_init_minmax(&selection_bounds);
+
+      /* The slider only shows the active point's position, but moves all selected points by the
+       * same delta. Clamp the range so points at the edges of the selection can't be moved outside
+       * the clip region. */
+      for (const CurveProfilePoint *pt : selected_points) {
+        if (pt->flag & PROF_SELECT) {
+          const float loc[2] = {pt->x, pt->y};
+          BLI_rctf_do_minmax_v(&selection_bounds, loc);
+        }
+        if (pt->flag & PROF_H1_SELECT) {
+          BLI_rctf_do_minmax_v(&selection_bounds, pt->h1_loc);
+        }
+        if (pt->flag & PROF_H2_SELECT) {
+          BLI_rctf_do_minmax_v(&selection_bounds, pt->h2_loc);
+        }
+      }
+
+      slider_bounds.xmin += curve_runtime->last_pos.x - selection_bounds.xmin;
+      slider_bounds.xmax += curve_runtime->last_pos.x - selection_bounds.xmax;
+      slider_bounds.ymin += curve_runtime->last_pos.y - selection_bounds.ymin;
+      slider_bounds.ymax += curve_runtime->last_pos.y - selection_bounds.ymax;
+    }
+
+    /* Requires BKE_curveprofile_translate_selection to handle the handle manipulation, no
+     * simplified logic. */
     bt = uiDefButF(block,
                    ButtonType::Num,
                    "X:",
@@ -432,15 +464,24 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
                    2 * UI_UNIT_Y,
                    UI_UNIT_X * 10,
                    UI_UNIT_Y,
-                   selection_x,
-                   bounds.xmin,
-                   bounds.xmax,
+                   last_x_ptr,
+                   slider_bounds.xmin,
+                   slider_bounds.xmax,
                    "");
     button_number_step_size_set(bt, 1);
     button_number_precision_set(bt, 5);
-    button_func_set(bt, [profile, cb](bContext &C) {
+    button_func_set(bt, [profile, cb, curve_runtime](bContext &C) {
+      float *last_x_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt);
+      const float dx = *last_x_ptr - curve_runtime->last_pos.x;
+      *last_x_ptr -= dx;
+      BKE_curveprofile_translate_selection(profile, {dx, 0.0f});
       BKE_curveprofile_update(profile, PROF_UPDATE_REMOVE_DOUBLES | PROF_UPDATE_CLIP);
       rna_update_cb(C, cb);
+
+      /* Update the active point if the pointer changed. */
+      curve_runtime->last_pt = BKE_curveprofile_active_get(profile);
+      last_x_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt);
+      curve_runtime->last_pos.x = *last_x_ptr;
     });
     if (point_last_or_first) {
       button_flag_enable(bt, BUT_DISABLED);
@@ -452,15 +493,24 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
                    1 * UI_UNIT_Y,
                    UI_UNIT_X * 10,
                    UI_UNIT_Y,
-                   selection_y,
-                   bounds.ymin,
-                   bounds.ymax,
+                   last_y_ptr,
+                   slider_bounds.ymin,
+                   slider_bounds.ymax,
                    "");
     button_number_step_size_set(bt, 1);
     button_number_precision_set(bt, 5);
-    button_func_set(bt, [profile, cb](bContext &C) {
+    button_func_set(bt, [profile, cb, curve_runtime](bContext &C) {
+      float *last_y_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt) + 1;
+      const float dy = *last_y_ptr - curve_runtime->last_pos.y;
+      *last_y_ptr -= dy;
+      BKE_curveprofile_translate_selection(profile, {0.0f, dy});
       BKE_curveprofile_update(profile, PROF_UPDATE_REMOVE_DOUBLES | PROF_UPDATE_CLIP);
       rna_update_cb(C, cb);
+
+      /* Update the active point if the pointer changed. */
+      curve_runtime->last_pt = BKE_curveprofile_active_get(profile);
+      last_y_ptr = BKE_curveprofile_active_location_get(curve_runtime->last_pt) + 1;
+      curve_runtime->last_pos.y = *last_y_ptr;
     });
     if (point_last_or_first) {
       button_flag_enable(bt, BUT_DISABLED);

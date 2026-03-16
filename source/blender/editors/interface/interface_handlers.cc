@@ -7832,7 +7832,8 @@ static int do_but_CURVE(
           if (dist_squared_to_line_segment_v2(m_xy, f_xy_prev, f_xy) < dist_min_sq) {
             BLI_rctf_transform_pt_v(&cumap->curr, &but->rect, f_xy, m_xy);
 
-            BKE_curvemap_insert(cuma, f_xy[0], f_xy[1]);
+            CurveMapPoint *new_pt = BKE_curvemap_insert(cuma, f_xy[0], f_xy[1]);
+            new_pt->flag &= ~CUMA_SELECT; /* deselect new point for now */
             BKE_curvemapping_changed(cumap, false);
 
             changed = true;
@@ -7852,17 +7853,29 @@ static int do_but_CURVE(
         }
       }
 
+      cmp = cuma->curve;
       if (sel != -1) {
         /* ok, we move a point */
         /* deselect all if this one is deselect. except if we hold shift */
-        if ((event->modifier & KM_SHIFT) == 0) {
-          for (int a = 0; a < cuma->totpoint; a++) {
-            cmp[a].flag &= ~CUMA_SELECT;
+        if (event->modifier & KM_SHIFT) {    /* If holding shift. */
+          if (cmp[sel].flag & CUMA_SELECT) { /* if the current point is selected. */
+            if (cmp[sel].flag & CUMA_ACTIVE) {
+              BKE_curvemap_activate_nearest_point(cuma, sel);
+            }
+            cmp[sel].flag &= ~(CUMA_SELECT | CUMA_ACTIVE);
           }
-          cmp[sel].flag |= CUMA_SELECT;
+          else {
+            for (int a = 0; a < cuma->totpoint; a++) {
+              cmp[a].flag &= ~CUMA_ACTIVE;
+            }
+            cmp[sel].flag |= (CUMA_SELECT | CUMA_ACTIVE);
+          }
         }
-        else {
-          cmp[sel].flag ^= CUMA_SELECT;
+        else { /* If not holding shift. */
+          for (int a = 0; a < cuma->totpoint; a++) {
+            cmp[a].flag &= ~(CUMA_SELECT | CUMA_ACTIVE);
+          }
+          cmp[sel].flag |= (CUMA_SELECT | CUMA_ACTIVE);
         }
       }
       else {
@@ -7907,9 +7920,9 @@ static int do_but_CURVE(
           /* deselect all, select one */
           if ((event->modifier & KM_SHIFT) == 0) {
             for (int a = 0; a < cuma->totpoint; a++) {
-              cmp[a].flag &= ~CUMA_SELECT;
+              cmp[a].flag &= ~(CUMA_SELECT | CUMA_ACTIVE);
             }
-            cmp[data->dragsel].flag |= CUMA_SELECT;
+            cmp[data->dragsel].flag |= (CUMA_SELECT | CUMA_ACTIVE);
           }
         }
         else {
@@ -7984,12 +7997,12 @@ static bool numedit_but_CURVEPROFILE(Block *block,
       }
       else {
         /* Move handles when they're selected but the control point isn't. */
-        if (ELEM(pts[a].h2, HD_FREE, HD_ALIGN) && pts[a].flag == PROF_H1_SELECT) {
+        if (ELEM(pts[a].h2, HD_FREE, HD_ALIGN) && (pts[a].flag & PROF_H1_SELECT)) {
           moved_point |= BKE_curveprofile_move_handle(&pts[a], true, snap, delta);
           last_x = pts[a].h1_loc[0];
           last_y = pts[a].h1_loc[1];
         }
-        if (ELEM(pts[a].h2, HD_FREE, HD_ALIGN) && pts[a].flag == PROF_H2_SELECT) {
+        if (ELEM(pts[a].h2, HD_FREE, HD_ALIGN) && (pts[a].flag & PROF_H2_SELECT)) {
           moved_point |= BKE_curveprofile_move_handle(&pts[a], false, snap, delta);
           last_x = pts[a].h2_loc[0];
           last_y = pts[a].h2_loc[1];
@@ -8054,7 +8067,17 @@ static bool point_draw_handles(CurveProfilePoint *point)
 {
   return (point->flag & PROF_SELECT &&
           (ELEM(point->h1, HD_FREE, HD_ALIGN) || ELEM(point->h2, HD_FREE, HD_ALIGN))) ||
-         ELEM(point->flag, PROF_H1_SELECT, PROF_H2_SELECT);
+         point->flag & PROF_H1_SELECT || point->flag & PROF_H2_SELECT;
+}
+
+static short profile_select_to_active(short selection_type)
+{
+  /* Active flags are the select flags multiplied by #PROF_ACTIVE.
+   * Static asserts ensure this relationship holds if flag values change. */
+  static_assert(PROF_ACTIVE == PROF_SELECT * 8);
+  static_assert(PROF_H1_ACTIVE == PROF_H1_SELECT * 8);
+  static_assert(PROF_H2_ACTIVE == PROF_H2_SELECT * 8);
+  return selection_type * PROF_ACTIVE;
 }
 
 /**
@@ -8157,6 +8180,7 @@ static int do_but_CURVEPROFILE(
             BLI_rctf_transform_pt_v(&profile->view_rect, &but->rect, f_xy, m_xy);
 
             CurveProfilePoint *new_pt = BKE_curveprofile_insert(profile, f_xy[0], f_xy[1]);
+            new_pt->flag &= ~PROF_SELECT; /* Deselect new point for now. */
             BKE_curveprofile_update(profile, PROF_UPDATE_CLIP);
 
             /* Get the index of the newly added point. */
@@ -8169,17 +8193,49 @@ static int do_but_CURVEPROFILE(
       }
 
       /* Change the flag for the point(s) if one was selected or added. */
+      /* Offset the selection type to get the active type. */
+      const short active_type = profile_select_to_active(selection_type);
+      pts = profile->path;
       if (i_selected != -1) {
         /* Deselect all if this one is deselected, except if we hold shift. */
         if (event->modifier & KM_SHIFT) {
-          pts[i_selected].flag ^= selection_type;
+          if (pts[i_selected].flag & selection_type) {
+            /* If the current point or handle is selected. */
+            pts[i_selected].flag ^= selection_type;
+
+            if (pts[i_selected].flag & active_type) {
+              /* If the current point or handle is active. */
+              pts[i_selected].flag &= ~(PROF_ACTIVE | PROF_H1_ACTIVE | PROF_H2_ACTIVE);
+              if (pts[i_selected].flag & PROF_SELECT) {
+                pts[i_selected].flag |= PROF_ACTIVE;
+              }
+              else if (pts[i_selected].flag & PROF_H1_SELECT) {
+                pts[i_selected].flag |= PROF_H1_ACTIVE;
+              }
+              else if (pts[i_selected].flag & PROF_H2_SELECT) {
+                pts[i_selected].flag |= PROF_H2_ACTIVE;
+              }
+              else {
+                /* If the current point including its handles are d, activate the nearest
+                 * point. */
+                BKE_curveprofile_activate_nearest_point(profile, i_selected);
+              }
+            }
+          }
+          else {
+            for (int a = 0; a < profile->path_len; a++) {
+              pts[a].flag &= ~(PROF_ACTIVE | PROF_H1_ACTIVE | PROF_H2_ACTIVE);
+            }
+            pts[i_selected].flag |= (selection_type | active_type);
+          }
         }
         else {
           for (int i = 0; i < profile->path_len; i++) {
             // pts[i].flag &= ~(PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT);
-            profile->path[i].flag &= ~(PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT);
+            profile->path[i].flag &= ~(PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT |
+                                       PROF_ACTIVE | PROF_H1_ACTIVE | PROF_H2_ACTIVE);
           }
-          profile->path[i_selected].flag |= selection_type;
+          profile->path[i_selected].flag |= (selection_type | active_type);
         }
       }
       else {

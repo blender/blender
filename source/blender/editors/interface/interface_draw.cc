@@ -1823,12 +1823,14 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
 
   GPU_program_point_size(true);
 
-  float color_point[4], color_point_select[4], color_point_outline[4];
+  float color_point[4], color_point_select[4], color_point_active[4], color_point_outline[4];
   rgba_uchar_to_float(color_point, wcol->text);
   rgba_uchar_to_float(color_point_select, wcol->text_sel);
+  rgba_uchar_to_float(color_point_active, wcol->text_sel);
   rgba_uchar_to_float(color_point_outline, wcol->inner_sel);
   color_point[3] = fade_factor_float;
   color_point_select[3] = fade_factor_float;
+  color_point_active[3] = fade_factor_float;
   color_point_outline[3] *= fade_factor_float;
 
   cmp = cuma->curve;
@@ -1836,10 +1838,14 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
                                   min_ff(UI_SCALE_FAC / but->block->aspect * 6.0f, 20.0f));
 
   int selected = 0;
+  int active = -1;
   /* Find the total number of selected points. */
   for (int i = 0; i < cuma->totpoint; i++) {
     if (cmp[i].flag & CUMA_SELECT) {
       selected++;
+    }
+    if (cmp[i].flag & CUMA_ACTIVE) {
+      active = i;
     }
   }
 
@@ -1909,6 +1915,17 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
     immEnd();
   }
 
+  if (active != -1) {
+    /* Active point. */
+    immUniform1f("size", point_size * 1.4f);
+    immUniform4fv("color", color_point_active);
+    immBegin(GPU_PRIM_POINTS, 1);
+    const float fx = rect->xmin + zoomx * (cmp[active].x - offsx);
+    const float fy = rect->ymin + zoomy * (cmp[active].y - offsy);
+    immVertex2f(pos, fx, fy);
+    immEnd();
+  }
+
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
 
@@ -1933,7 +1950,7 @@ static bool point_draw_handles(CurveProfilePoint *point)
 {
   return (point->flag & PROF_SELECT &&
           (ELEM(point->h1, HD_FREE, HD_ALIGN) || ELEM(point->h2, HD_FREE, HD_ALIGN))) ||
-         ELEM(point->flag, PROF_H1_SELECT, PROF_H2_SELECT);
+         point->flag & PROF_H1_SELECT || point->flag & PROF_H2_SELECT;
 }
 
 void draw_but_CURVEPROFILE(ARegion *region,
@@ -2137,20 +2154,26 @@ void draw_but_CURVEPROFILE(ARegion *region,
 
   GPU_program_point_size(true);
 
-  float color_point[4], color_point_select[4], color_sample[4];
+  float color_point[4], color_point_select[4], color_point_active[4], color_sample[4];
   rgba_uchar_to_float(color_point, wcol->text);
-  color_point[3] = 1.0f;
   rgba_uchar_to_float(color_point_select, wcol->text_sel);
+  rgba_uchar_to_float(color_point_active, wcol->text_sel);
+  color_point[3] = 1.0f;
   color_point_select[3] = 1.0f;
+  color_point_active[3] = 1.0f;
   color_sample[0] = float(wcol->item[0]) / 255.0f;
   color_sample[1] = float(wcol->item[1]) / 255.0f;
   color_sample[2] = float(wcol->item[2]) / 255.0f;
   color_sample[3] = float(wcol->item[3]) / 255.0f;
 
   int selected = 0;
+  int active = -1;
   for (int i = 0; i < path_len; i++) {
     if (pts[i].flag & PROF_SELECT) {
       selected++;
+    }
+    if (pts[i].flag & (PROF_ACTIVE | PROF_H1_ACTIVE | PROF_H2_ACTIVE)) {
+      active = i;
     }
   }
 
@@ -2245,6 +2268,28 @@ void draw_but_CURVEPROFILE(ARegion *region,
         }
       }
     }
+    immEnd();
+  }
+
+  if (active != -1) {
+    /* Active control point or handle. */
+    immUniform4fv("color", color_point_active);
+    immUniform1f("size", point_size * 1.4f);
+    immBegin(GPU_PRIM_POINTS, 1);
+    const short active_type = pts[active].flag & (PROF_ACTIVE | PROF_H1_ACTIVE | PROF_H2_ACTIVE);
+    if (active_type & PROF_H1_ACTIVE) {
+      fx = rect->xmin + zoomx * (pts[active].h1_loc[0] - offsx);
+      fy = rect->ymin + zoomy * (pts[active].h1_loc[1] - offsy);
+    }
+    else if (active_type & PROF_H2_ACTIVE) {
+      fx = rect->xmin + zoomx * (pts[active].h2_loc[0] - offsx);
+      fy = rect->ymin + zoomy * (pts[active].h2_loc[1] - offsy);
+    }
+    else {
+      fx = rect->xmin + zoomx * (pts[active].x - offsx);
+      fy = rect->ymin + zoomy * (pts[active].y - offsy);
+    }
+    immVertex2f(pos, fx, fy);
     immEnd();
   }
 

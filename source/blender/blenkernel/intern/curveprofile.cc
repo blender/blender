@@ -196,6 +196,30 @@ bool BKE_curveprofile_move_point(CurveProfile *profile,
   return false;
 }
 
+void BKE_curveprofile_translate_selection(CurveProfile *profile, const blender::float2 &offset)
+{
+  for (int i = 0; i < profile->path_len; i++) {
+    CurveProfilePoint *pt = &profile->path[i];
+    float delta[2] = {offset.x, offset.y};
+
+    /* The main point is selected or all handles are aligned and selected. */
+    if ((pt->flag & PROF_SELECT) || ((pt->flag & PROF_H1_SELECT && pt->h1 & HD_ALIGN) &&
+                                     (pt->flag & PROF_H2_SELECT && pt->h2 & HD_ALIGN)))
+    {
+      BKE_curveprofile_move_point(profile, pt, false, delta);
+    }
+    else {
+      /* Otherwise, move only handles that are selected. */
+      if (pt->flag & PROF_H1_SELECT) {
+        BKE_curveprofile_move_handle(pt, true, false, delta);
+      }
+      if (pt->flag & PROF_H2_SELECT) {
+        BKE_curveprofile_move_handle(pt, false, false, delta);
+      }
+    }
+  }
+}
+
 bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *point)
 {
   /* Must have 2 points minimum. */
@@ -297,16 +321,17 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
     if (i_new != i_insert) {
       /* Insert old points. */
       new_path[i_new] = profile->path[i_old];
-      new_path[i_new].flag &= ~PROF_SELECT; /* Deselect old points. */
+      new_path[i_new].flag &= ~(PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT | PROF_ACTIVE |
+                                PROF_H1_ACTIVE | PROF_H2_ACTIVE); /* Deselect old points. */
       i_old++;
     }
     else {
       /* Insert new point. */
       /* Set handles of new point based on its neighbors. */
-      char new_handle_type = (new_path[i_new - 1].h2 == HD_VECT &&
-                              profile->path[i_insert].h1 == HD_VECT) ?
-                                 HD_VECT :
-                                 HD_AUTO;
+      const char new_handle_type = (new_path[i_new - 1].h2 == HD_VECT &&
+                                    profile->path[i_insert].h1 == HD_VECT) ?
+                                       HD_VECT :
+                                       HD_AUTO;
       point_init(&new_path[i_new], x, y, PROF_SELECT, new_handle_type, new_handle_type);
       new_pt = &new_path[i_new];
       /* Give new point a reference to the profile. */
@@ -323,7 +348,7 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
 void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int type_2)
 {
   for (int i = 0; i < profile->path_len; i++) {
-    if (ELEM(profile->path[i].flag, PROF_SELECT, PROF_H1_SELECT, PROF_H2_SELECT)) {
+    if (profile->path[i].flag & (PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT)) {
       profile->path[i].h1 = type_1;
       profile->path[i].h2 = type_2;
 
@@ -512,6 +537,35 @@ void BKE_curveprofile_reset(CurveProfile *profile)
 
   MEM_SAFE_DELETE(profile->table);
   profile->table = nullptr;
+}
+
+void BKE_curveprofile_activate_nearest_point(CurveProfile *profile, const int i_last)
+{
+  CurveProfilePoint *pts = profile->path;
+  for (int i = 1;; i++) {
+    int k = (i + 1) / 2;
+    int idx = (i & 1) ? (i_last - k) : (i_last + k);
+
+    if (idx < 0 || idx >= profile->path_len) {
+      if (i_last - k < 0 && i_last + k >= profile->path_len) {
+        return;
+      }
+      continue;
+    }
+
+    if (pts[idx].flag & PROF_SELECT) {
+      pts[idx].flag |= PROF_ACTIVE;
+      return;
+    }
+    else if (pts[idx].flag & PROF_H1_SELECT) {
+      pts[idx].flag |= PROF_H1_ACTIVE;
+      return;
+    }
+    else if (pts[idx].flag & PROF_H2_SELECT) {
+      pts[idx].flag |= PROF_H2_ACTIVE;
+      return;
+    }
+  }
 }
 
 /** \} */
@@ -1016,6 +1070,48 @@ void BKE_curveprofile_update(CurveProfile *profile, const int update_flags)
   if (profile->segments_len > 0) {
     curveprofile_make_segments_table(profile);
   }
+}
+
+CurveProfilePoint *BKE_curveprofile_active_get(CurveProfile *profile)
+{
+  CurveProfilePoint *active_pt = nullptr;
+  for (int i = 0; i < profile->path_len; i++) {
+    CurveProfilePoint *pt = &profile->path[i];
+    if (pt->flag & (PROF_SELECT | PROF_H1_SELECT | PROF_H2_SELECT)) {
+      active_pt = pt;
+      if (pt->flag & (PROF_ACTIVE | PROF_H1_ACTIVE | PROF_H2_ACTIVE)) {
+        break;
+      }
+    }
+  }
+  return active_pt;
+}
+
+float *BKE_curveprofile_active_location_get(CurveProfilePoint *pt)
+{
+  if (pt->flag & PROF_ACTIVE) {
+    return &pt->x;
+  }
+  else if (pt->flag & PROF_H1_ACTIVE) {
+    return &pt->h1_loc[0];
+  }
+  else if (pt->flag & PROF_H2_ACTIVE) {
+    return &pt->h2_loc[0];
+  }
+  /* If no active point or handles, return the selected location. */
+  else if (pt->flag & PROF_SELECT) {
+    return &pt->x;
+  }
+  else if (pt->flag & PROF_H1_SELECT) {
+    return &pt->h1_loc[0];
+  }
+  else if (pt->flag & PROF_H2_SELECT) {
+    return &pt->h2_loc[0];
+  }
+
+  /* Either the input point itself or its handle should be labeled as active. */
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
 void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,

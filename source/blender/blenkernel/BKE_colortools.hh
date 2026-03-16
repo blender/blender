@@ -6,6 +6,7 @@
 /** \file
  * \ingroup bke
  */
+#include "BLI_math_vector_types.hh"
 #include <cstdint>
 
 namespace blender {
@@ -57,6 +58,12 @@ enum class CurveMapSlopeType : int8_t {
 void BKE_curvemapping_reset_view(CurveMapping *cumap);
 void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapSlopeType slope);
 /**
+ * When the current point is deselected, activate the closest remaining point
+ * by index. The function searches for the nearest valid index relative to the previously
+ * active index, not the nearest point by distance.
+ */
+void BKE_curvemap_activate_nearest_point(struct CurveMap *cuma, const int i_last);
+/**
  * Removes with flag set.
  */
 void BKE_curvemap_remove(CurveMap *cuma, short flag);
@@ -66,9 +73,15 @@ void BKE_curvemap_remove(CurveMap *cuma, short flag);
 bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point);
 CurveMapPoint *BKE_curvemap_insert(CurveMap *cuma, float x, float y);
 /**
+ * Shift all selected points.
+ */
+void BKE_curvemap_translate_selection(CurveMap *cuma, const blender::float2 &offset);
+/**
  * \param type: #eBezTriple_Handle
  */
 void BKE_curvemap_handle_set(CurveMap *cuma, int type);
+
+CurveMapPoint *BKE_curvemap_active_get(CurveMap *cuma);
 
 /**
  * \note only does current curvemap!.
