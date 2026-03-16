@@ -495,7 +495,7 @@ class CompositorNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroup
         self.do_test_socket_type("NodeSocketInt")
         self.do_test_socket_type("NodeSocketInt", subtype='PERCENTAGE')
         self.do_test_invalid_socket_type("NodeSocketMaterial")
-        self.do_test_invalid_socket_type("NodeSocketObject")
+        self.do_test_socket_type("NodeSocketObject")
         self.do_test_invalid_socket_type("NodeSocketRotation")
         self.do_test_invalid_socket_type("NodeSocketShader")
         self.do_test_socket_type("NodeSocketString")

@@ -117,7 +117,8 @@ static bool composite_node_tree_socket_type_valid(bke::bNodeTreeType * /*ntreety
                                                                SOCK_RGBA,
                                                                SOCK_MATRIX,
                                                                SOCK_MENU,
-                                                               SOCK_STRING);
+                                                               SOCK_STRING,
+                                                               SOCK_OBJECT);
 }
 
 /**
