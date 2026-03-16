@@ -95,7 +95,7 @@ static Array<float> noise_table(int len, int offset, int seed)
 
 static float table_sample(MutableSpan<float> table, float x)
 {
-  return math::interpolate(table[int(math::ceil(x))], table[int(math::floor(x))], math::fract(x));
+  return math::interpolate(table[int(math::floor(x))], table[int(math::ceil(x))], math::fract(x));
 }
 
 static void deform_drawing(const ModifierData &md,
