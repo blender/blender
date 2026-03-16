@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -16521,6 +16521,14 @@ msgid "Smooth iterations applied after calculating the pose factor of each verte
 msgstr "Marudio laini yanatumika baada ya kukokotoa kipengele cha mkao cha kila kipeo"
 
 
+msgid "View Normal"
+msgstr "Tazama Kawaida"
+
+
+msgid "Plane Normal"
+msgstr "Ndege ya Kawaida"
+
+
 msgid "Rake"
 msgstr "Cheka"
 
@@ -16891,10 +16899,6 @@ msgstr "Huathiri tu wima zilizo na kawaida sawa na mahali kiharusi kinapoanzia"
 
 msgid "Affect only vertices connected to the active vertex under the brush"
 msgstr "Huathiri tu vipeo vilivyounganishwa kwenye kipeo amilifu chini ya brashi"
-
-
-msgid "View Normal"
-msgstr "Tazama Kawaida"
 
 
 msgid "Affect only vertices with a normal that faces the viewer"
@@ -23328,6 +23332,10 @@ msgid "Don't allow frame to be selected with mouse outside of frame range"
 msgstr "Usiruhusu fremu kuchaguliwa kwa kipanya nje ya masafa ya fremu"
 
 
+msgid "Restore Frame"
+msgstr "Rejesha Fremu"
+
+
 msgid "Render Data"
 msgstr "Data ya Toa"
 
@@ -28373,12 +28381,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Math"
+msgstr "Hisabati"
+
+
+msgid "Asset"
+msgstr "Mali"
 
 
 msgid "Read"
@@ -28397,32 +28413,24 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Apply"
+msgstr "Tumia"
 
 
-msgid "Snap"
-msgstr "Picha"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Adjust"
@@ -28441,8 +28449,24 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Math"
-msgstr "Hisabati"
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Light"
@@ -28453,28 +28477,12 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Asset"
-msgstr "Mali"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
 msgid "Instances"
 msgstr "Matukio"
 
 
 msgid "Import"
 msgstr "Ingiza"
-
-
-msgid "Merge"
-msgstr "Unganisha"
 
 
 msgid "Deprecated"
@@ -36941,14 +36949,6 @@ msgid "Custom color of the node body"
 msgstr "Rangi maalum ya mwili wa nodi"
 
 
-msgid "Absolute bounding box dimensions of the node"
-msgstr "Vipimo vya kisanduku kinachofunga kabisa cha nodi"
-
-
-msgid "Height of the node"
-msgstr "Urefu wa nodi"
-
-
 msgid "Collapse"
 msgstr "Kuanguka"
 
@@ -36971,10 +36971,6 @@ msgstr "Kitambulisho cha nodi za kipekee"
 
 msgid "Outputs"
 msgstr "Matokeo"
-
-
-msgid "Parent this node is attached to"
-msgstr "Mzazi nodi hii imeambatishwa"
 
 
 msgid "Node selection state"
@@ -54786,10 +54782,6 @@ msgid "A point on the plane"
 msgstr "Sehemu kwenye ndege"
 
 
-msgid "Plane Normal"
-msgstr "Ndege ya Kawaida"
-
-
 msgid "The direction the plane points"
 msgstr "Mwelekeo wa ndege"
 
@@ -60900,15 +60892,6 @@ msgstr "Rekebisha sifa kama vile radius ya kipeo cha curve, saizi ya fonti na ba
 
 
 msgctxt "Operator"
-msgid "Interactive Light Track to Cursor"
-msgstr "Wimbo wa Mwanga unaoingiliana hadi Mshale"
-
-
-msgid "Interactively point cameras and lights to a location (Ctrl translates)"
-msgstr "Elekeza kamera na taa kwa mwingiliano kwenye eneo (Ctrl hutafsiri)"
-
-
-msgctxt "Operator"
 msgid "Place Object Under Mouse"
 msgstr "Weka Kitu Chini ya Panya"
 
@@ -63733,6 +63716,10 @@ msgid "Add a directory to be used by the Asset Browser as source of assets"
 msgstr "Ongeza saraka itakayotumiwa na Kivinjari cha Mali kama chanzo cha mali"
 
 
+msgid "Identifier (not necessarily unique) for the asset library"
+msgstr "Kitambulisho (si lazima kiwe cha kipekee) cha maktaba ya mali"
+
+
 msgctxt "Operator"
 msgid "Remove Asset Library"
 msgstr "Ondoa Maktaba ya Mali"
@@ -63894,10 +63881,6 @@ msgstr "Fizikia ya kuoka"
 msgctxt "Operator"
 msgid "Bake All Physics"
 msgstr "Oka Fizikia Yote"
-
-
-msgid "Bake all physics"
-msgstr "Oka fizikia yote"
 
 
 msgctxt "Operator"
@@ -64650,10 +64633,6 @@ msgstr "Ghairi Uhuishaji"
 
 msgid "Cancel animation, returning to the original frame"
 msgstr "Ghairi uhuishaji, kurudi kwenye fremu asili"
-
-
-msgid "Restore Frame"
-msgstr "Rejesha Fremu"
 
 
 msgid "Restore the frame when animation was initialized"
@@ -80791,14 +80770,6 @@ msgid "Display the strip color tags in the sequencer"
 msgstr "Onyesha vitambulisho vya rangi ya mikanda kwenye mpangilio"
 
 
-msgid "Show Thumbnails"
-msgstr "Onyesha Vijipicha"
-
-
-msgid "Show strip thumbnails"
-msgstr "Onyesha vijipicha vya vipande"
-
-
 msgid "Waveform Style"
 msgstr "Mtindo wa Mawimbi"
 
@@ -87871,16 +87842,16 @@ msgid "Import the assets as copied data-block, with no link to the original asse
 msgstr "Ingiza mali kama kizuizi cha data kilichonakiliwa, bila kiunga cha kizuizi cha data cha mali asili."
 
 
-msgid "Identifier (not necessarily unique) for the asset library"
-msgstr "Kitambulisho (si lazima kiwe cha kipekee) cha maktaba ya mali"
-
-
 msgid "Path to a directory with .blend files to use as an asset library"
 msgstr "Njia ya saraka iliyo na .changanya faili za kutumia kama maktaba ya kipengee"
 
 
 msgid "Use relative path when linking assets from this asset library"
 msgstr "Tumia njia linganishi unapounganisha mali kutoka kwa maktaba hii ya mali"
+
+
+msgid "Use Remote"
+msgstr "Tumia Kidhibiti cha Mbali"
 
 
 msgid "Extension Repository"
@@ -87902,10 +87873,6 @@ msgstr "Wezesha hifadhi"
 
 msgid "Unique module identifier"
 msgstr "Kitambulishi cha moduli ya kipekee"
-
-
-msgid "Use Remote"
-msgstr "Tumia Kidhibiti cha Mbali"
 
 
 msgid "User Extension Repositories"
@@ -89868,10 +89835,6 @@ msgid "Follow a custom transformation to define the VR view's base pose"
 msgstr "Fuata mabadiliko maalum ili kufafanua mkao msingi wa mwonekano wa Uhalisia Pepe"
 
 
-msgid "Uniform scale to apply to VR view"
-msgstr "Kipimo sawa cha kutumika kwa mwonekano wa Uhalisia Pepe"
-
-
 msgid "VR viewport far clipping distance"
 msgstr "Umbali wa kutazama uhalisia pepe wa mbali"
 
@@ -89999,10 +89962,6 @@ msgstr "Mzunguko wa kurekebisha ili kutumika kwenye mkao wa msingi wakati wa kub
 
 msgid "Navigation Scale"
 msgstr "Kiwango cha Urambazaji"
-
-
-msgid "Additional scale multiplier to apply to base scale when determining viewer scale"
-msgstr "Kizidishi cha mizani ya ziada ili kutumika kwa mizani ya msingi wakati wa kubainisha kiwango cha mtazamaji"
 
 
 msgid "Selected Action Map"
@@ -94710,11 +94669,6 @@ msgstr "Hesabu kwa Fremu"
 
 
 msgctxt "Operator"
-msgid "Bake All Dynamics"
-msgstr "Oka Mienendo Yote"
-
-
-msgctxt "Operator"
 msgid "Update All to Frame"
 msgstr "Sasisha Zote kwa Fremu"
 
@@ -96879,6 +96833,16 @@ msgstr "Mpya"
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Hifadhi Nakala..."
+
+
+msgctxt "Operator"
+msgid "Save Incremental"
+msgstr "Hifadhi ya Kuongezeka"
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Acha"
 
@@ -96970,16 +96934,6 @@ msgstr "Jina la Alama"
 msgctxt "Operator"
 msgid "Back to Previous"
 msgstr "Rudi kwa Iliyotangulia"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Hifadhi Nakala..."
-
-
-msgctxt "Operator"
-msgid "Save Incremental"
-msgstr "Hifadhi ya Kuongezeka"
 
 
 msgctxt "Operator"
@@ -98151,6 +98105,10 @@ msgid "Attribute Text"
 msgstr "Maandishi ya Sifa"
 
 
+msgid "Marker Names"
+msgstr "Alama Majina"
+
+
 msgid "Mesh Edit Mode Overlays"
 msgstr "Miwekeleo ya Modi ya Kuhariri Mesh"
 
@@ -98680,12 +98638,16 @@ msgid "Specular Lighting"
 msgstr "Taa Maalum"
 
 
+msgid "Valley"
+msgstr "Bonde"
+
+
+msgid "Screen Space"
+msgstr "Nafasi ya Skrini"
+
+
 msgid "Fade Inactive Geometry"
 msgstr "Fifisha Jiometri Isiyotumika"
-
-
-msgid "Marker Names"
-msgstr "Alama Majina"
 
 
 msgid "Fade Geometry"
@@ -98846,14 +98808,6 @@ msgstr "Futa Ukingo wa Freestyle"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Uso Wazi wa Mtindo Huru"
-
-
-msgid "Valley"
-msgstr "Bonde"
-
-
-msgid "Screen Space"
-msgstr "Nafasi ya Skrini"
 
 
 msgid "Include Active"
@@ -99420,10 +99374,6 @@ msgstr "Ramani ya UV"
 
 msgid "Col"
 msgstr "Kol"
-
-
-msgid "Recast"
-msgstr "Rudia"
 
 
 msgid "NGon Face"
@@ -104172,14 +104122,6 @@ msgid "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/
 msgstr "Sogeza kipanya ili kubadilisha ukubwa wa maelezo ya dyntopo."
 
 
-msgid "Attribute Data Detected"
-msgstr "Data ya Sifa Imegunduliwa"
-
-
-msgid "Dyntopo will not preserve colors, UVs, or other attributes"
-msgstr "Dyntopo haitahifadhi rangi, UV, au sifa zingine"
-
-
 msgid "Generative Modifiers Detected!"
 msgstr "Virekebishaji Vizalishaji vimegunduliwa!"
 
@@ -104586,14 +104528,6 @@ msgstr "Hii ni faili ya mfumo iliyozuiliwa"
 
 msgid "Path to asset library does not exist:"
 msgstr "Njia ya maktaba ya mali haipo:"
-
-
-msgid ""
-"Asset Libraries are local directories that can contain .blend files with assets inside.\n"
-"Manage Asset Libraries from the File Paths section in Preferences"
-msgstr ""
-"Maktaba ya Vipengee ni saraka za ndani ambazo zinaweza kuwa na .kuchanganya faili zilizo na vipengee ndani.\n"
-"Dhibiti Maktaba za Vipengee kutoka sehemu ya Njia za Faili katika Mapendeleo."
 
 
 msgid "Unreadable Blender library file:"

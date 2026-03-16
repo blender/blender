@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6565,20 +6565,36 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
 msgid "Clean Up"
 msgstr "Tisztítás"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
+msgid "Tracking"
+msgstr "Követés"
 
 
 msgid "Mirror"
@@ -6597,14 +6613,6 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Keying"
-msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
-
-
 msgid "Light"
 msgstr "Fényforrás"
 
@@ -6613,24 +6621,16 @@ msgid "Relations"
 msgstr "Kapcsolatok"
 
 
-msgid "Rigid Body"
-msgstr "Szilárd test"
-
-
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Track"
-msgstr "Nyom"
-
-
 msgid "Import"
 msgstr "Importálás"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Track"
+msgstr "Nyom"
 
 
 msgctxt "MovieClip"
@@ -9163,10 +9163,6 @@ msgid "Blending"
 msgstr "Keverés"
 
 
-msgid "Height of the node"
-msgstr "Csomópont/node magassága"
-
-
 msgid "Collapse"
 msgstr "Összeomlás"
 
@@ -11432,10 +11428,6 @@ msgstr "Fizikai szimuláció kisütése"
 
 msgctxt "Operator"
 msgid "Bake All Physics"
-msgstr "Minden fizikai szimuláció kisütése"
-
-
-msgid "Bake all physics"
 msgstr "Minden fizikai szimuláció kisütése"
 
 
@@ -15374,11 +15366,6 @@ msgstr "Erőtér"
 
 
 msgctxt "Operator"
-msgid "Bake All Dynamics"
-msgstr "Minden dinamikus kisütése"
-
-
-msgctxt "Operator"
 msgid "Add Brush"
 msgstr "Ecset hozzáadás"
 
@@ -15683,6 +15670,11 @@ msgstr "Jelző másolása a jelenetbe"
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Másolat mentése..."
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Kilépés"
 
@@ -15700,11 +15692,6 @@ msgstr "Render - Animáció"
 msgctxt "Operator"
 msgid "Repeat History..."
 msgstr "Ismétlési előzmények..."
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Másolat mentése..."
 
 
 msgctxt "Operator"

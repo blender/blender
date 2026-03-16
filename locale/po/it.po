@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -1370,6 +1370,10 @@ msgstr "Predefinito"
 
 msgid "Freehand curve defining part of a sketch"
 msgstr "Curva a mano libera che definisce parte di uno schizzo"
+
+
+msgid "Display Mode"
+msgstr "Modalità Visualizzazione"
 
 
 msgid "Stroke Points"
@@ -12085,10 +12089,6 @@ msgid "Medium"
 msgstr "Medio"
 
 
-msgid "Display Mode"
-msgstr "Modalità Visualizzazione"
-
-
 msgid "Display mode for the file list"
 msgstr "Modalità di visualizzazione della lista dei file"
 
@@ -14875,6 +14875,14 @@ msgid "Smooth Iterations"
 msgstr "Iterazioni Levigatura"
 
 
+msgid "View Normal"
+msgstr "Normale Vista"
+
+
+msgid "Plane Normal"
+msgstr "Normale Piano"
+
+
 msgid "Rake"
 msgstr "Graffia"
 
@@ -15164,10 +15172,6 @@ msgstr "Curva della Cavità Personalizzata"
 
 msgid "Area Normal"
 msgstr "Normale Area"
-
-
-msgid "View Normal"
-msgstr "Normale Vista"
 
 
 msgid "Occlusion"
@@ -19837,6 +19841,10 @@ msgstr "Blocca Selezione Fotogramma"
 
 msgid "Don't allow frame to be selected with mouse outside of frame range"
 msgstr "Non consentire la selezione dei fotogrammi con il mouse al di fuori dell'intervallo di fotogrammi"
+
+
+msgid "Restore Frame"
+msgstr "Ripristina Fotogramma"
 
 
 msgid "Render Data"
@@ -24568,16 +24576,40 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
 
 
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "Asset"
+msgstr "Risorsa"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Convert"
+msgstr "Converti"
+
+
+msgid "Link/Transfer Data"
+msgstr "Collega/Trasferisci Dati"
 
 
 msgid "Read"
@@ -24588,24 +24620,120 @@ msgid "Write"
 msgstr "Scrittura"
 
 
+msgid "Hooks"
+msgstr "Ganci"
+
+
 msgid "Sample"
 msgstr "Campione"
-
-
-msgid "Names"
-msgstr "Nomi"
 
 
 msgid "Primitives"
 msgstr "Primitive"
 
 
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Face Sets Init"
+msgstr "Init Sets di Facce"
+
+
+msgid "Random Mask"
+msgstr "Maschera Casuale"
+
+
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
+
+
+msgid "In-Betweens"
+msgstr "Intermedio"
+
+
+msgid "Propagate"
+msgstr "Propaga"
+
+
+msgid "Bone Collections"
+msgstr "Raccolte di Ossa"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleziona per Intensità delle Facce"
+
+
+msgid "Set Face Strength"
+msgstr "Imposta Intensità Faccia"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
-msgid "Clean Up"
-msgstr "Ripulisci"
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Pivot Point"
@@ -24630,10 +24758,6 @@ msgstr "Automascheramento"
 
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
 
 
 msgid "Mirror"
@@ -24672,10 +24796,6 @@ msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Select Similar"
 msgstr "Seleziona Simili"
 
@@ -24692,28 +24812,8 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Assign Material"
 msgstr "Assegna Materiale"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Math"
-msgstr "Matematica"
 
 
 msgid "Light"
@@ -24724,6 +24824,10 @@ msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
+msgid "Instances"
+msgstr "Istanze"
+
+
 msgid "Add Image"
 msgstr "Aggiungi Immagine"
 
@@ -24732,112 +24836,16 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
-
-
-msgid "Asset"
-msgstr "Risorsa"
-
-
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Convert"
-msgstr "Converti"
-
-
-msgid "Link/Transfer Data"
-msgstr "Collega/Trasferisci Dati"
-
-
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Face Sets Init"
-msgstr "Init Sets di Facce"
-
-
-msgid "Random Mask"
-msgstr "Maschera Casuale"
-
-
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
-
-
-msgid "In-Betweens"
-msgstr "Intermedio"
-
-
-msgid "Propagate"
-msgstr "Propaga"
-
-
-msgid "Bone Collections"
-msgstr "Raccolte di Ossa"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Face Data"
-msgstr "Dati Faccia"
-
-
-msgid "Instances"
-msgstr "Istanze"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleziona per Intensità delle Facce"
-
-
-msgid "Set Face Strength"
-msgstr "Imposta Intensità Faccia"
-
-
 msgid "Import"
 msgstr "Importa"
 
 
-msgid "Merge"
-msgstr "Unisci"
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
 
 
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
+msgid "Track"
+msgstr "Traccia"
 
 
 msgid "Keyframe Insert Pie"
@@ -30738,10 +30746,6 @@ msgid "Custom color of the node body"
 msgstr "Colore personalizzato per il corpo del nodo"
 
 
-msgid "Height of the node"
-msgstr "Altezza del nodo"
-
-
 msgid "Collapse"
 msgstr "Collassa"
 
@@ -30756,10 +30760,6 @@ msgstr "Identificatore unico del nodo"
 
 msgid "Outputs"
 msgstr "Uscite"
-
-
-msgid "Parent this node is attached to"
-msgstr "Genitore al quale è attaccato questo nodo"
 
 
 msgid "Node selection state"
@@ -39624,10 +39624,6 @@ msgid "A point on the plane"
 msgstr "Un punto sul piano"
 
 
-msgid "Plane Normal"
-msgstr "Normale Piano"
-
-
 msgid "The direction the plane points"
 msgstr "La direzione in cui punta il piano"
 
@@ -45444,10 +45440,6 @@ msgid "Bake All Physics"
 msgstr "Precalcola Tutta la Fisica"
 
 
-msgid "Bake all physics"
-msgstr "Precalcolo di tutta la fisica"
-
-
 msgid "Bake from cache"
 msgstr "Precalcolo dalla cache"
 
@@ -45892,10 +45884,6 @@ msgstr "Cancella Animazione"
 
 msgid "Cancel animation, returning to the original frame"
 msgstr "Annulla l'animazione, ritornando al fotogramma originale"
-
-
-msgid "Restore Frame"
-msgstr "Ripristina Fotogramma"
 
 
 msgid "Restore the frame when animation was initialized"
@@ -61389,11 +61377,6 @@ msgid "Use Library Path"
 msgstr "Utilizza Percorso Libreria"
 
 
-msgctxt "Operator"
-msgid "Bake All Dynamics"
-msgstr "Precalcola Tutte le Dinamiche"
-
-
 msgid "Cache is disabled until the file is saved"
 msgstr "Cache disattivata finché il file non viene salvato"
 
@@ -62734,6 +62717,11 @@ msgstr "Nuovo"
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Salva una Copia..."
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Esci"
 
@@ -62836,11 +62824,6 @@ msgstr "Spazio di Lavoro Successivo"
 msgctxt "Operator"
 msgid "Back to Previous"
 msgstr "Torna al Precedente"
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Salva una Copia..."
 
 
 msgctxt "Operator"
@@ -63668,6 +63651,10 @@ msgid "Attribute Text"
 msgstr "Testo Attributo"
 
 
+msgid "Marker Names"
+msgstr "Nomi Marcatori"
+
+
 msgid "Mesh Edit Mode Overlays"
 msgstr "Sovrapposizioni in Modalità Modifica Mesh"
 
@@ -64092,16 +64079,16 @@ msgid "Specular Lighting"
 msgstr "Illuminazione Speculare"
 
 
+msgid "Screen Space"
+msgstr "Spazio Schermo"
+
+
 msgid "Camera Guides"
 msgstr "Guide Camera"
 
 
 msgid "Fade Inactive Geometry"
 msgstr "Sbiadire la Geometria Inattiva"
-
-
-msgid "Marker Names"
-msgstr "Nomi Marcatori"
 
 
 msgid "Fade Geometry"
@@ -64208,10 +64195,6 @@ msgstr "Smarca Spigolo come Freestyle"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Smarca Faccia come Freestyle"
-
-
-msgid "Screen Space"
-msgstr "Spazio Schermo"
 
 
 msgid "Custom Location"
@@ -64398,10 +64381,6 @@ msgstr "Int"
 
 msgid "4 by 4 Float Matrix"
 msgstr "Matrice Float 4 per 4"
-
-
-msgid "Recast"
-msgstr "Riproietta"
 
 
 msgid "NGon Face"
@@ -66592,10 +66571,6 @@ msgstr "Il gruppo specchio è bloccato, comando annullato"
 
 msgid "Multipaint group is locked, aborting"
 msgstr "Il gruppo multipittura è bloccato, comando annullato"
-
-
-msgid "Attribute Data Detected"
-msgstr "Dati Attributo Rilevati"
 
 
 msgid "Generative Modifiers Detected!"

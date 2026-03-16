@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3093,20 +3093,20 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
-msgid "Layout"
-msgstr "Išdėstymas/Maketas"
-
-
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
-msgid "Track"
-msgstr "Sekti"
+msgid "Layout"
+msgstr "Išdėstymas/Maketas"
 
 
 msgid "Import"
 msgstr "Importuoti"
+
+
+msgid "Track"
+msgstr "Sekti"
 
 
 msgid "Animals"
@@ -3813,10 +3813,6 @@ msgid "Show Color Tags"
 msgstr "Rodyti spalvos žymes"
 
 
-msgid "Show Thumbnails"
-msgstr "Rodyti miniatiūras"
-
-
 msgid "Toolbar"
 msgstr "Įrankių juosta"
 
@@ -4422,6 +4418,11 @@ msgstr "Nauja/-s/-i"
 
 
 msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Išsaugoti kopiją..."
+
+
+msgctxt "Operator"
 msgid "Quit"
 msgstr "Išeiti"
 
@@ -4434,11 +4435,6 @@ msgstr "Automatiškai išsaugoti..."
 msgctxt "Operator"
 msgid "Preferences..."
 msgstr "Nuostatos..."
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Išsaugoti kopiją..."
 
 
 msgid "Auto-Save Preferences"

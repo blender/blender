@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"POT-Creation-Date: 2026-03-16 11:01+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -298,6 +298,10 @@ msgstr "सूचना"
 
 msgid "Default"
 msgstr "मूलभूत"
+
+
+msgid "Display Mode"
+msgstr "प्रदर्शित रूप"
 
 
 msgid "Coordinates"
@@ -1410,10 +1414,6 @@ msgstr "निर्देशिका"
 
 msgid "Directory displayed in the file browser"
 msgstr "निर्देशिका संचिका विचरक में प्रदर्शित"
-
-
-msgid "Display Mode"
-msgstr "प्रदर्शित रूप"
 
 
 msgid "File Name"
@@ -2573,56 +2573,20 @@ msgid "Dots"
 msgstr "बिन्दु्"
 
 
-msgid "UV"
-msgstr "यूवी"
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
 
 
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
 msgid "Math"
 msgstr "गणित"
 
 
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Make Single User"
@@ -2633,6 +2597,14 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
@@ -2641,12 +2613,40 @@ msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
 
 
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
 msgid "Import"
 msgstr "आयात करें"
 
 
-msgid "Merge"
-msgstr "विलय करें"
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Track"
+msgstr "ट्रैक"
 
 
 msgid "Basic"
@@ -3020,10 +3020,6 @@ msgstr "प्रारम्भ"
 
 msgid "NLA Track is locked"
 msgstr "अरैखिक अनुप्राणन ट्रैक अवरोधित है"
-
-
-msgid "Height of the node"
-msgstr "ग्रन्थि की ऊंचाई"
 
 
 msgid "To"
@@ -3938,10 +3934,6 @@ msgstr "कारण"
 
 msgctxt "Operator"
 msgid "Bake All Physics"
-msgstr "सभी भौतिकी भर्जन"
-
-
-msgid "Bake all physics"
 msgstr "सभी भौतिकी भर्जन"
 
 
