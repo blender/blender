@@ -5,6 +5,8 @@
 #include "NOD_inverse_eval_params.hh"
 #include "NOD_value_elem_eval.hh"
 
+#include "GPU_material.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_separate_matrix_cc {
@@ -270,10 +272,19 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
   params.set_input("Matrix", matrix);
 }
 
+static int node_gpu_material(GPUMaterial *material,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *inputs,
+                             GPUNodeStack *outputs)
+{
+  return GPU_stack_link(material, node, "node_function_separate_matrix", inputs, outputs);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeSeparateMatrix", FN_NODE_SEPARATE_MATRIX);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeSeparateMatrix", FN_NODE_SEPARATE_MATRIX);
   ntype.ui_name = "Separate Matrix";
   ntype.ui_description = "Split a 4x4 matrix into its individual values";
   ntype.enum_name_legacy = "SEPARATE_MATRIX";
@@ -283,6 +294,7 @@ static void node_register()
   ntype.eval_elem = node_eval_elem;
   ntype.eval_inverse_elem = node_eval_inverse_elem;
   ntype.eval_inverse = node_eval_inverse;
+  ntype.gpu_fn = node_gpu_material;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

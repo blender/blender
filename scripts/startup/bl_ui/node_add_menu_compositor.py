@@ -283,6 +283,7 @@ class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.draw_menu(layout, path="Utilities/Math")
         self.draw_menu(layout, path="Utilities/Vector")
+        self.draw_menu(layout, path="Utilities/Matrix")
         layout.separator()
         self.node_operator(layout, "CompositorNodeLevels")
         self.node_operator(layout, "CompositorNodeNormalize")
@@ -338,6 +339,25 @@ class NODE_MT_compositor_node_math_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "ShaderNodeMapRange")
         self.node_operator_with_searchable_enum(context, layout, "ShaderNodeMath", "operation")
         self.node_operator(layout, "ShaderNodeMix")
+
+        self.draw_assets_for_catalog(layout, self.menu_path)
+
+
+class NODE_MT_compositor_utilities_matrix_base(node_add_menu.NodeMenu):
+    bl_label = "Matrix"
+    menu_path = "Utilities/Matrix"
+
+    def draw(self, _context):
+        layout = self.layout
+        self.node_operator(layout, "FunctionNodeCombineMatrix")
+        self.node_operator(layout, "FunctionNodeMatrixDeterminant", label="Determinant")
+        self.node_operator(layout, "FunctionNodeInvertMatrix")
+        self.node_operator(layout, "FunctionNodeMatrixMultiply")
+        self.node_operator(layout, "FunctionNodeProjectPoint")
+        self.node_operator(layout, "FunctionNodeSeparateMatrix")
+        self.node_operator(layout, "FunctionNodeTransformDirection")
+        self.node_operator(layout, "FunctionNodeTransformPoint")
+        self.node_operator(layout, "FunctionNodeTransposeMatrix")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
@@ -406,6 +426,7 @@ add_menus = {
     "NODE_MT_category_compositor_utilities": NODE_MT_compositor_node_utilities_base,
     "NODE_MT_category_compositor_vector": NODE_MT_compositor_node_vector_base,
     "NODE_MT_category_compositor_math": NODE_MT_compositor_node_math_base,
+    "NODE_MT_category_compositor_matrix": NODE_MT_compositor_utilities_matrix_base,
     "NODE_MT_compositor_node_add_all": NODE_MT_compositor_node_all_base,
 }
 add_menus = node_add_menu.generate_menus(
@@ -434,6 +455,7 @@ swap_menus = {
     "NODE_MT_compositor_node_utilities_swap": NODE_MT_compositor_node_utilities_base,
     "NODE_MT_compositor_node_vector_swap": NODE_MT_compositor_node_vector_base,
     "NODE_MT_compositor_node_math_swap": NODE_MT_compositor_node_math_base,
+    "NODE_MT_compositor_node_matrix_swap": NODE_MT_compositor_utilities_matrix_base,
     "NODE_MT_compositor_node_swap_all": NODE_MT_compositor_node_all_base,
 }
 swap_menus = node_add_menu.generate_menus(
