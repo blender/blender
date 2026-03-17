@@ -996,9 +996,9 @@ static Array<float> spherical_falloff_create(const Depsgraph &depsgraph,
  */
 static Array<float> boundary_topology_falloff_create(const Depsgraph &depsgraph,
                                                      Object &ob,
-                                                     const int inititial_vert)
+                                                     const int initial_vert)
 {
-  const Vector<int> symm_verts = find_symm_verts(depsgraph, ob, inititial_vert);
+  const Vector<int> symm_verts = find_symm_verts(depsgraph, ob, initial_vert);
 
   BitVector<> boundary_verts(SCULPT_vertex_count_get(ob));
   for (const int vert : symm_verts) {
