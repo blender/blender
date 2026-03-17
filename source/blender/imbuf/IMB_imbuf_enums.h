@@ -40,6 +40,7 @@ enum eImbFileType {
 #endif
   IMB_FTYPE_AVIF = 15,
 };
+#define IMB_FTYPE_LAST IMB_FTYPE_AVIF
 
 /** NOTE: Keep in sync with #MovieClipProxy.build_size_flag */
 enum IMB_Proxy_Size {

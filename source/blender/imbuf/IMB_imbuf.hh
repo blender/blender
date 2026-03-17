@@ -72,6 +72,11 @@ int IMB_test_image_type_from_memory(const unsigned char *buf, size_t buf_size);
 int IMB_test_image_type(const char *filepath);
 
 /**
+ * Return true if the file type is supported (compiled in).
+ */
+bool IMB_ftype_is_supported(int ftype);
+
+/**
  * Load thumbnail image.
  */
 enum class IMBThumbLoadFlags {
