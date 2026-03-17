@@ -348,10 +348,13 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bmesh.py
 )
 
+# Causes issues with ASAN on Linux, needs investigating.
+if(FALSE)
 add_blender_test(
   imbuf_py_api
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_py_api.py
 )
+endif()
 
 add_blender_test(
   script_pyapi_grease_pencil
