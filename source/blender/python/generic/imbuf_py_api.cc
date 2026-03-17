@@ -123,7 +123,7 @@ static std::optional<int> py_imbuf_ftype_from_string(const char *str)
  * \{ */
 
 struct Py_ImBuf {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   /* can be nullptr */
   ImBuf *ibuf;
   /** Number of active buffer protocol exports (via #Py_ImBufBuffer). */

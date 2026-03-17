@@ -25,7 +25,7 @@ extern PyTypeObject BPyGPUBatch_Type;
 #define BPyGPUBatch_Check(v) (Py_TYPE(v) == &BPyGPUBatch_Type)
 
 struct BPyGPUBatch {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   /* The batch is owned, we may support thin wrapped batches later. */
   gpu::Batch *batch;
 #ifdef USE_GPU_PY_REFERENCES
