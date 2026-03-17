@@ -91,11 +91,11 @@ Vector<char> IMB_colormanagement_space_to_icc_profile(const ColorSpace *colorspa
  * For describing the color-space of videos and high dynamic range image files.
  */
 bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
-                                       const ColorManagedFileOutput output,
-                                       const bool rgb_matrix,
+                                       ColorManagedFileOutput output,
+                                       bool rgb_matrix,
                                        int cicp[4]);
 const ColorSpace *IMB_colormanagement_space_from_cicp(const int cicp[4],
-                                                      const ColorManagedFileOutput output);
+                                                      ColorManagedFileOutput output);
 
 /**
  * Get identifier for color-spaces that works with multiple OpenColorIO configurations,
@@ -150,9 +150,7 @@ float3x3 IMB_colormanagement_get_scene_linear_to_xyz();
 /**
  * Functions for converting between color temperature/tint and RGB white points.
  */
-void IMB_colormanagement_get_whitepoint(const float temperature,
-                                        const float tint,
-                                        float whitepoint[3]);
+void IMB_colormanagement_get_whitepoint(float temperature, float tint, float whitepoint[3]);
 bool IMB_colormanagement_set_whitepoint(const float whitepoint[3],
                                         float &temperature,
                                         float &tint);
@@ -282,7 +280,7 @@ BLI_INLINE void IMB_colormanagement_srgb_to_scene_linear_v3(float scene_linear[3
 void IMB_colormanagement_scene_linear_to_display_v3(
     float pixel[3],
     const ColorManagedDisplay *display,
-    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
+    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 /**
  * Same as #IMB_colormanagement_scene_linear_to_display_v3,
  * but converts color in opposite direction.
@@ -290,20 +288,20 @@ void IMB_colormanagement_scene_linear_to_display_v3(
 void IMB_colormanagement_display_to_scene_linear_v3(
     float pixel[3],
     const ColorManagedDisplay *display,
-    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
+    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
 void IMB_colormanagement_pixel_to_display_space_v4(
     float result[4],
     const float pixel[4],
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
-    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
+    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
 void IMB_colormanagement_imbuf_make_display_space(
     ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
-    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
+    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
 /**
  * Prepare image buffer to be saved on disk, applying color management if needed
@@ -432,17 +430,17 @@ const char *IMB_colormanagement_working_space_get();
 
 bool IMB_colormanagement_working_space_set_from_name(const char *name);
 void IMB_colormanagement_working_space_check(Main *bmain,
-                                             const bool for_undo,
-                                             const bool have_editable_assets);
+                                             bool for_undo,
+                                             bool have_editable_assets);
 
 void IMB_colormanagement_working_space_init_default(Main *bmain);
 void IMB_colormanagement_working_space_init_startup(Main *bmain);
 void IMB_colormanagement_working_space_convert(Main *bmain,
                                                const float3x3 &current_scene_linear_to_xyz,
                                                const float3x3 &new_xyz_to_scene_linear,
-                                               const bool depsgraph_tag = false,
-                                               const bool linked_only = false,
-                                               const bool editable_assets_only = false);
+                                               bool depsgraph_tag = false,
+                                               bool linked_only = false,
+                                               bool editable_assets_only = false);
 void IMB_colormanagement_working_space_convert(Main *bmain, const Main *reference_bmain);
 
 int IMB_colormanagement_working_space_get_named_index(const char *name);
@@ -509,14 +507,14 @@ void IMB_partial_display_buffer_update_delayed(
 ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
-    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW,
-    const bool inverse = false);
+    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW,
+    bool inverse = false);
 
 ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
     const ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
-    const ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
+    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
 bool IMB_colormanagement_display_processor_needed(
     const ImBuf *ibuf,

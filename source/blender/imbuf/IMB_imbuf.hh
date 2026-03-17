@@ -43,25 +43,25 @@ void IMB_deactivate_gpu_context();
  * Load image.
  */
 ImBuf *IMB_load_image_from_memory(const unsigned char *mem,
-                                  const size_t size,
-                                  const int flags,
+                                  size_t size,
+                                  int flags,
                                   const char *descr,
                                   const char *filepath = nullptr,
                                   char r_colorspace[IM_MAX_SPACE] = nullptr);
 
-ImBuf *IMB_load_image_from_file_descriptor(const int file,
-                                           const int flags,
+ImBuf *IMB_load_image_from_file_descriptor(int file,
+                                           int flags,
                                            const char *filepath = nullptr,
                                            char r_colorspace[IM_MAX_SPACE] = nullptr);
 
 ImBuf *IMB_load_image_from_filepath(const char *filepath,
-                                    const int flags,
+                                    int flags,
                                     char r_colorspace[IM_MAX_SPACE] = nullptr);
 
 /**
  * Save image.
  */
-bool IMB_save_image(ImBuf *ibuf, const char *filepath, const int flags);
+bool IMB_save_image(ImBuf *ibuf, const char *filepath, int flags);
 
 /**
  * Test image file.
@@ -83,9 +83,9 @@ enum class IMBThumbLoadFlags {
 ENUM_OPERATORS(IMBThumbLoadFlags);
 
 ImBuf *IMB_thumb_load_image(const char *filepath,
-                            const size_t max_thumb_size,
+                            size_t max_thumb_size,
                             char colorspace[IM_MAX_SPACE],
-                            const IMBThumbLoadFlags load_flags = IMBThumbLoadFlags::Zero);
+                            IMBThumbLoadFlags load_flags = IMBThumbLoadFlags::Zero);
 
 /**
  * Allocate and free image buffer.
@@ -532,9 +532,7 @@ void IMB_free_byte_pixels(ImBuf *ibuf);
  * Allocate storage for float type pixels.
  * If the image already contains float data storage, it is freed first.
  */
-bool IMB_alloc_float_pixels(ImBuf *ibuf,
-                            const unsigned int channels,
-                            bool initialize_pixels = true);
+bool IMB_alloc_float_pixels(ImBuf *ibuf, unsigned int channels, bool initialize_pixels = true);
 /**
  * Deallocate image float storage.
  */
