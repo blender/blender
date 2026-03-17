@@ -467,7 +467,7 @@ inline T mix_indices(const Span<T> src,
   AccumT accum(0);
   float weight_accum = 0.0f;
   for (const int i : indices.index_range()) {
-    accum += to_accum_fn(src[i]) * weights[i];
+    accum += to_accum_fn(src[indices[i]]) * weights[i];
     weight_accum += weights[i];
   }
   return to_final_fn(accum * math::safe_rcp(weight_accum));
