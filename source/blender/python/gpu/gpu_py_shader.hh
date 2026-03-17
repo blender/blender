@@ -32,7 +32,7 @@ extern PyTypeObject BPyGPUShader_Type;
 #define BPyGPUShader_Check(v) (Py_TYPE(v) == &BPyGPUShader_Type)
 
 struct BPyGPUShader {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   gpu::Shader *shader;
   bool is_builtin;
 };
@@ -50,7 +50,7 @@ extern PyTypeObject BPyGPUStageInterfaceInfo_Type;
 #define BPyGPUStageInterfaceInfo_Check(v) (Py_TYPE(v) == &BPyGPUStageInterfaceInfo_Type)
 
 struct BPyGPUStageInterfaceInfo {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   GPUStageInterfaceInfo *interface;
 #ifdef USE_GPU_PY_REFERENCES
   /* Just to keep a user to prevent freeing buffers we're using. */
@@ -59,7 +59,7 @@ struct BPyGPUStageInterfaceInfo {
 };
 
 struct BPyGPUShaderCreateInfo {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   GPUShaderCreateInfo *info;
 #ifdef USE_GPU_PY_REFERENCES
   /* Just to keep a user to prevent freeing buffers we're using. */

@@ -176,6 +176,8 @@ class ImageManager {
 
   bool need_update() const;
 
+  bool get_use_texture_cache() const;
+
  private:
   bool need_update_;
 

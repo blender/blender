@@ -307,7 +307,7 @@ ccl_device_extern bool rs_texture(ccl_private ShaderGlobals *sg,
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
       ccl_private ShaderData *sd = sg->sd;
       const float4 rgba = kernel_image_interp_with_udim(
-          nullptr, sd, image_texture_id, make_float2(s, 1.0f - t));
+          nullptr, sd, image_texture_id, dual2(make_float2(s, 1.0f - t)));
       if (nchannels > 0) {
         result[0] = rgba.x;
       }

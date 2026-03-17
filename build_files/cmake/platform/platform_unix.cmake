@@ -1018,9 +1018,11 @@ set(PLATFORM_LINKFLAGS_SYMBOL_HIDING "-Wl,--version-script='${PLATFORM_SYMBOLS_M
 # link time. This allows that for classic ld, which is more strict than gold, lld
 # or mold. The ideal solution would be to switch all dependencies to CMake configs
 # that fully specify transitive dependencies.
-set(PLATFORM_LINKFLAGS
-  "${PLATFORM_LINKFLAGS} -Wl,--allow-shlib-undefined -Wl,--unresolved-symbols=ignore-in-shared-libs"
-)
+if(NOT WITH_PYTHON_MODULE)
+  set(PLATFORM_LINKFLAGS
+    "${PLATFORM_LINKFLAGS} -Wl,--allow-shlib-undefined -Wl,--unresolved-symbols=ignore-in-shared-libs"
+  )
+endif()
 
 # Don't use position independent executable for portable install since file
 # browsers can't properly detect blender as an executable then. Still enabled

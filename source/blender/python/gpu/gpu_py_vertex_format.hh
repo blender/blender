@@ -19,7 +19,7 @@ extern PyTypeObject BPyGPUVertFormat_Type;
 #define BPyGPUVertFormat_Check(v) (Py_TYPE(v) == &BPyGPUVertFormat_Type)
 
 struct BPyGPUVertFormat {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   GPUVertFormat fmt;
 };
 

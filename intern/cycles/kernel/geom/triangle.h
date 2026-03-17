@@ -279,16 +279,15 @@ ccl_device_inline T triangle_attribute_dfdy(const ccl_private differential &du,
   return du.dy * f1 + dv.dy * f2 - (du.dy + dv.dy) * f0;
 }
 
-/* Read attributes on various triangle elements, and compute the partial derivatives if requested.
- */
+/* Read attributes on various triangle elements. T is the return type, which can be a plain type
+ * (float, float3, etc.) or a dual type (dual1, dual3, etc.) to include derivatives. */
 template<typename T>
-ccl_device dual<T> triangle_attribute(KernelGlobals kg,
-                                      const ccl_private ShaderData *sd,
-                                      const AttributeDescriptor desc,
-                                      const bool dx = false,
-                                      const bool dy = false)
+ccl_device T triangle_attribute(KernelGlobals kg,
+                                const ccl_private ShaderData *sd,
+                                const AttributeDescriptor desc)
 {
-  dual<T> result;
+  using BaseT = dual_base_t<T>;
+
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_CORNER)) {
     int i0, i1, i2;
 
@@ -306,26 +305,27 @@ ccl_device dual<T> triangle_attribute(KernelGlobals kg,
       i2 = tri + 2;
     }
 
-    T f[3];
-    attribute_data_fetch_3<T>(kg, desc.element, desc.offset, i0, i1, i2, f);
+    BaseT f[3];
+    attribute_data_fetch_3<BaseT>(kg, desc.element, desc.offset, i0, i1, i2, f);
 
+    if constexpr (is_dual_v<T>) {
+      T result;
+      result.val = triangle_interpolate(sd->u, sd->v, f[0], f[1], f[2]);
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx) {
       result.dx = triangle_attribute_dfdx(sd->du, sd->dv, f[0], f[1], f[2]);
-    }
-    if (dy) {
       result.dy = triangle_attribute_dfdy(sd->du, sd->dv, f[0], f[1], f[2]);
-    }
 #endif
-
-    result.val = triangle_interpolate(sd->u, sd->v, f[0], f[1], f[2]);
-    return result;
+      return result;
+    }
+    else {
+      return triangle_interpolate(sd->u, sd->v, f[0], f[1], f[2]);
+    }
   }
 
   if (desc.element & ATTR_ELEMENT_FACE) {
-    return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
+    return T(attribute_data_fetch<BaseT>(kg, desc.element, desc.offset + sd->prim));
   }
-  return make_zero<dual<T>>();
+  return make_zero<T>();
 }
 
 CCL_NAMESPACE_END

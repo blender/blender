@@ -26,12 +26,12 @@ extern PyTypeObject BPy_BMEditSelIter_Type;
 #define BPy_BMSelectHistoryIter_Check(v) (Py_TYPE(v) == &BPy_BMEditSelIter_Type)
 
 struct BPy_BMEditSelSeq {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   BMesh *bm; /* keep first */
 };
 
 struct BPy_BMEditSelIter {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   BMesh *bm; /* keep first */
   BMEditSelection *ese;
 };

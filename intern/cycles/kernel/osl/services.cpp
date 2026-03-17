@@ -16,6 +16,7 @@
 #include "util/colorspace.h"
 #include "util/log.h"
 #include "util/string.h"
+#include "util/types_image.h"
 
 #include "kernel/device/cpu/image.h"
 
@@ -426,7 +427,7 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
     }
     case OSLTextureHandle::SVM: {
       const float4 rgba = kernel_image_interp_with_udim(
-          kernel_globals, sd, handle->id, make_float2(s, 1.0f - t));
+          kernel_globals, sd, handle->id, dual2(make_float2(s, 1.0f - t)));
 
       result[0] = rgba[0];
       if (nchannels > 1) {

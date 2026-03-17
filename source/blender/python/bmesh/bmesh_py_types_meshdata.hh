@@ -20,7 +20,7 @@ extern PyTypeObject BPy_BMDeformVert_Type;
 #define BPy_BMLoopUV_Check(v) (Py_TYPE(v) == &BPy_BMLoopUV_Type)
 
 struct BPy_BMGenericMeshData {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   void *data;
 };
 

@@ -1141,16 +1141,16 @@ class WM_OT_url_open_preset(Operator):
          "https://extensions.blender.org/"),
     ]
 
-    def execute(self, context):
-        url = None
-        type = self.type
-        for (item_id, _, _), url in self.preset_items:
+    @staticmethod
+    def lookup_url_from_type(context, type):
+        for (item_id, _, _), url in WM_OT_url_open_preset.preset_items:
             if item_id == type:
                 if callable(url):
-                    url = url(self, context)
-                break
+                    return url(None, context)
+                return url
 
-        return bpy.ops.wm.url_open(url=url)
+    def execute(self, context):
+        return bpy.ops.wm.url_open(url=WM_OT_url_open_preset.lookup_url_from_type(context, self.type))
 
 
 class WM_OT_path_open(Operator):

@@ -46,7 +46,7 @@ namespace blender {
 #define BPy_BMLoopUV_Check(v) (Py_TYPE(v) == &BPy_BMLoopUV_Type)
 
 struct BPy_BMLoopUV {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   float *uv;
   /**
    * Pin may be null, signifying the layer doesn't exist.
@@ -194,7 +194,7 @@ PyObject *BPy_BMLoopUV_CreatePyObject(BMesh *bm, BMLoop *loop, int layer)
 #define BPy_BMVertSkin_Check(v) (Py_TYPE(v) == &BPy_BMVertSkin_Type)
 
 struct BPy_BMVertSkin {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   MVertSkin *data;
 };
 
@@ -444,7 +444,7 @@ PyObject *BPy_BMLoopColor_CreatePyObject(MLoopCol *mloopcol)
 #define BPy_BMDeformVert_Check(v) (Py_TYPE(v) == &BPy_BMDeformVert_Type)
 
 struct BPy_BMDeformVert {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   MDeformVert *data;
 };
 

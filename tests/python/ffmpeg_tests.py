@@ -27,7 +27,7 @@ class AbstractFFmpegSequencerTest(AbstractFFmpegTest):
             "strip = bpy.context.scene.sequence_editor.strips.new_movie(" \
             "'test_movie', %r, channel=1, frame_start=1); " \
             "print(f'fps:{strip.fps}'); " \
-            "print(f'duration:{strip.frame_final_duration}'); " % movie.as_posix()
+            "print(f'duration:{strip.duration}'); " % movie.as_posix()
 
     def get_movie_file_field(self, filename: pathlib.Path, field: str) -> str:
         script = self.get_script_for_file(filename)

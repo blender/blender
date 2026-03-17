@@ -26,15 +26,14 @@ CCL_NAMESPACE_BEGIN
 
 /* Return position normalized to 0..1 in mesh bounds */
 
-ccl_device_inline float3 volume_normalized_position(KernelGlobals kg,
-                                                    const ccl_private ShaderData *sd,
-                                                    float3 P)
+template<typename Float3Type>
+ccl_device_inline Float3Type volume_normalized_position(KernelGlobals kg,
+                                                        const ccl_private ShaderData *sd,
+                                                        Float3Type P)
 {
-  /* todo: optimize this so it's just a single matrix multiplication when
-   * possible (not motion blur), or perhaps even just translation + scale */
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_GENERATED_TRANSFORM);
 
-  object_inverse_position_transform(kg, sd, &P);
+  object_inverse_position_transform_if_object(kg, sd, &P);
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     const Transform tfm = primitive_attribute_matrix(kg, desc);

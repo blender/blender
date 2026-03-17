@@ -21,7 +21,7 @@ extern PyTypeObject BPyGPUIndexBuf_Type;
 #define BPyGPUIndexBuf_Check(v) (Py_TYPE(v) == &BPyGPUIndexBuf_Type)
 
 struct BPyGPUIndexBuf {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   gpu::IndexBuf *elem;
 };
 

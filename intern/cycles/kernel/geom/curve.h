@@ -44,35 +44,36 @@ ccl_device_inline T curve_attribute_dfdy(const ccl_private differential &du,
   return du.dy * (f1 - f0);
 }
 
-/* Read attributes on various curve elements, and compute the partial derivatives if requested. */
+/* Read attributes on various curve elements. T is the return type, which can be a plain type
+ * or a dual type to include derivatives. */
 
 template<typename T>
-ccl_device dual<T> curve_attribute(KernelGlobals kg,
-                                   const ccl_private ShaderData *sd,
-                                   const AttributeDescriptor desc,
-                                   const bool dx = false,
-                                   const bool dy = false)
+ccl_device T curve_attribute(KernelGlobals kg,
+                             const ccl_private ShaderData *sd,
+                             const AttributeDescriptor desc)
 {
-  dual<T> result;
+  using BaseT = dual_base_t<T>;
+
   if (desc.element & ATTR_ELEMENT_CURVE_KEY) {
     const KernelCurve curve = kernel_data_fetch(curves, sd->prim);
     const int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     const int k1 = k0 + 1;
 
-    const T f0 = attribute_data_fetch<T>(kg, desc.element, desc.offset + k0);
-    const T f1 = attribute_data_fetch<T>(kg, desc.element, desc.offset + k1);
+    const BaseT f0 = attribute_data_fetch<BaseT>(kg, desc.element, desc.offset + k0);
+    const BaseT f1 = attribute_data_fetch<BaseT>(kg, desc.element, desc.offset + k1);
 
+    if constexpr (is_dual_v<T>) {
+      T result;
+      result.val = mix(f0, f1, sd->u);
 #  ifdef __RAY_DIFFERENTIALS__
-    if (dx) {
       result.dx = curve_attribute_dfdx(sd->du, f0, f1);
-    }
-    if (dy) {
       result.dy = curve_attribute_dfdy(sd->du, f0, f1);
-    }
 #  endif
-
-    result.val = mix(f0, f1, sd->u);
-    return result;
+      return result;
+    }
+    else {
+      return mix(f0, f1, sd->u);
+    }
   }
 
   /* idea: we can't derive any useful differentials here, but for tiled
@@ -81,9 +82,9 @@ ccl_device dual<T> curve_attribute(KernelGlobals kg,
    * could be computed somehow? */
 
   if (desc.element & ATTR_ELEMENT_CURVE) {
-    return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
+    return T(attribute_data_fetch<BaseT>(kg, desc.element, desc.offset + sd->prim));
   }
-  return make_zero<dual<T>>();
+  return make_zero<T>();
 }
 
 /* Curve thickness */
@@ -129,7 +130,7 @@ ccl_device float curve_random(KernelGlobals kg, const ccl_private ShaderData *sd
 {
   if (sd->type & PRIMITIVE_CURVE) {
     const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_CURVE_RANDOM);
-    return (desc.offset != ATTR_STD_NOT_FOUND) ? curve_attribute<float>(kg, sd, desc).val : 0.0f;
+    return (desc.offset != ATTR_STD_NOT_FOUND) ? curve_attribute<float>(kg, sd, desc) : 0.0f;
   }
   return 0.0f;
 }

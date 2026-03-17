@@ -24,7 +24,7 @@ extern PyTypeObject BPyGPU_BufferType;
  * For Python access to GPU functions requiring a pointer.
  */
 struct BPyGPUBuffer {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   PyObject *parent;
 
   int format;

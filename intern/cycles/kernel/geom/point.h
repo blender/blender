@@ -22,16 +22,14 @@ CCL_NAMESPACE_BEGIN
 /* Reading attributes on various point elements */
 
 template<typename T>
-ccl_device dual<T> point_attribute(KernelGlobals kg,
-                                   const ccl_private ShaderData *sd,
-                                   const AttributeDescriptor desc,
-                                   const bool /* dx */ = false,
-                                   const bool /* dy */ = false)
+ccl_device T point_attribute(KernelGlobals kg,
+                             const ccl_private ShaderData *sd,
+                             const AttributeDescriptor desc)
 {
   if (desc.element & ATTR_ELEMENT_VERTEX) {
-    return dual<T>(attribute_data_fetch<T>(kg, desc.element, desc.offset + sd->prim));
+    return T(attribute_data_fetch<dual_base_t<T>>(kg, desc.element, desc.offset + sd->prim));
   }
-  return make_zero<dual<T>>();
+  return make_zero<T>();
 }
 
 /* Point position */
@@ -81,7 +79,7 @@ ccl_device float point_random(KernelGlobals kg, const ccl_private ShaderData *sd
 {
   if (sd->type & PRIMITIVE_POINT) {
     const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POINT_RANDOM);
-    return (desc.offset != ATTR_STD_NOT_FOUND) ? point_attribute<float>(kg, sd, desc).val : 0.0f;
+    return (desc.offset != ATTR_STD_NOT_FOUND) ? point_attribute<float>(kg, sd, desc) : 0.0f;
   }
   return 0.0f;
 }

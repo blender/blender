@@ -23,7 +23,7 @@ extern PyTypeObject BPyGPUVertBuf_Type;
 #define BPyGPUVertBuf_Check(v) (Py_TYPE(v) == &BPyGPUVertBuf_Type)
 
 struct BPyGPUVertBuf {
-  PyObject_VAR_HEAD
+  PyObject_HEAD
   /* The buf is owned, we may support thin wrapped batches later. */
   gpu::VertBuf *buf;
 };

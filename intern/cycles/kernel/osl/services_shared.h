@@ -592,7 +592,12 @@ ccl_device_inline bool osl_shared_get_object_attribute_impl(KernelGlobals kg,
   else
 #endif
   {
-    data = primitive_surface_attribute<T>(kg, sd, desc, derivatives, derivatives);
+    if (derivatives) {
+      data = primitive_surface_attribute<dual<T>>(kg, sd, desc);
+    }
+    else {
+      data = dual<T>(primitive_surface_attribute<T>(kg, sd, desc));
+    }
   }
   return set_attribute(data, type, derivatives, val);
 }
@@ -702,10 +707,10 @@ ccl_device_inline bool osl_shared_get_background_attribute(KernelGlobals kg,
     if ((sg->raytype & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
         kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
     {
-      ndc.val = camera_world_to_ndc(kg, sd, sd->ray_P);
+      ndc = dual3(camera_world_to_ndc(kg, sd, sd->ray_P));
     }
     else {
-      ndc.val = camera_world_to_ndc(kg, sd, sd->P);
+      ndc = dual3(camera_world_to_ndc(kg, sd, sd->P));
 
       if (derivatives) {
         const differential3 dP = differential_from_compact(sd->Ng, sd->dP);

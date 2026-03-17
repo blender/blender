@@ -12,6 +12,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_math_base.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 
@@ -28,6 +29,13 @@
 #include "interface_templates_intern.hh"
 
 namespace blender::ui {
+
+using blender::Vector;
+
+struct CurveRuntimeProperties {
+  CurveMapPoint *last_pt = nullptr;
+  float2 last_pos;
+};
 
 static bool curvemap_can_zoom_out(CurveMapping *cumap)
 {
@@ -587,20 +595,21 @@ static void curvemap_buttons_layout(Layout *layout,
   }
 
   /* Sliders for selected curve point. */
-  int i;
-  CurveMapPoint *cmp = nullptr;
+  Vector<CurveMapPoint *> selected_points;
   bool point_last_or_first = false;
-  for (i = 0; i < cm->totpoint; i++) {
-    if (cm->curve[i].flag & CUMA_SELECT) {
-      cmp = &cm->curve[i];
-      break;
+  for (int i = 0; i < cm->totpoint; i++) {
+    const bool selected = cm->curve[i].flag & CUMA_SELECT;
+    if (selected) {
+      selected_points.append(&cm->curve[i]);
+    }
+    if (ELEM(i, 0, cm->totpoint - 1) && selected) {
+      point_last_or_first = true;
     }
   }
-  if (ELEM(i, 0, cm->totpoint - 1)) {
-    point_last_or_first = true;
-  }
 
-  if (cmp) {
+  if (!selected_points.is_empty()) {
+    CurveMap *active_cm = cumap->cm + cumap->cur;
+
     rctf bounds;
     if (cumap->flag & CUMA_DO_CLIP) {
       bounds = cumap->clipr;
@@ -632,10 +641,13 @@ static void curvemap_buttons_layout(Layout *layout,
       BKE_curvemapping_changed(cumap, false);
       rna_update_cb(C, cb);
     });
-    if (((cmp->flag & CUMA_HANDLE_AUTO_ANIM) == false) &&
-        ((cmp->flag & CUMA_HANDLE_VECTOR) == false))
-    {
-      bt->flag |= UI_SELECT_DRAW;
+
+    for (const CurveMapPoint *cmp : selected_points) {
+      const bool auto_anim_vec = ((cmp->flag & CUMA_HANDLE_AUTO_ANIM) == false) &&
+                                 ((cmp->flag & CUMA_HANDLE_VECTOR) == false);
+      if (auto_anim_vec) {
+        bt->flag |= UI_SELECT_DRAW;
+      }
     }
 
     bt = uiDefIconBut(block,
@@ -655,8 +667,12 @@ static void curvemap_buttons_layout(Layout *layout,
       BKE_curvemapping_changed(cumap, false);
       rna_update_cb(C, cb);
     });
-    if (cmp->flag & CUMA_HANDLE_VECTOR) {
-      bt->flag |= UI_SELECT_DRAW;
+
+    for (const CurveMapPoint *cmp : selected_points) {
+      const bool vec = (cmp->flag & CUMA_HANDLE_VECTOR);
+      if (vec) {
+        bt->flag |= UI_SELECT_DRAW;
+      }
     }
 
     bt = uiDefIconBut(block,
@@ -676,46 +692,86 @@ static void curvemap_buttons_layout(Layout *layout,
       BKE_curvemapping_changed(cumap, false);
       rna_update_cb(C, cb);
     });
-    if (cmp->flag & CUMA_HANDLE_AUTO_ANIM) {
-      bt->flag |= UI_SELECT_DRAW;
+
+    for (const CurveMapPoint *cmp : selected_points) {
+      const bool auto_anim = (cmp->flag & CUMA_HANDLE_AUTO_ANIM);
+      if (auto_anim) {
+        bt->flag |= UI_SELECT_DRAW;
+      }
     }
 
     /* Curve handle position */
-    bt = uiDefButF(block,
-                   ButtonType::Num,
-                   "X:",
-                   0,
-                   2 * UI_UNIT_Y,
-                   UI_UNIT_X * 10,
-                   UI_UNIT_Y,
-                   &cmp->x,
-                   bounds.xmin,
-                   bounds.xmax,
-                   "");
-    button_number_step_size_set(bt, 1);
-    button_number_precision_set(bt, 5);
-    button_func_set(bt, [cumap, cb](bContext &C) {
-      BKE_curvemapping_changed(cumap, true);
-      rna_update_cb(C, cb);
-    });
+    auto curve_runtime = std::make_shared<CurveRuntimeProperties>();
+    curve_runtime->last_pt = BKE_curvemap_active_get(active_cm);
+    curve_runtime->last_pos.x = curve_runtime->last_pt->x;
+    curve_runtime->last_pos.y = curve_runtime->last_pt->y;
 
-    bt = uiDefButF(block,
-                   ButtonType::Num,
-                   "Y:",
-                   0,
-                   1 * UI_UNIT_Y,
-                   UI_UNIT_X * 10,
-                   UI_UNIT_Y,
-                   &cmp->y,
-                   bounds.ymin,
-                   bounds.ymax,
-                   "");
-    button_number_step_size_set(bt, 1);
-    button_number_precision_set(bt, 5);
-    button_func_set(bt, [cumap, cb](bContext &C) {
-      BKE_curvemapping_changed(cumap, true);
-      rna_update_cb(C, cb);
-    });
+    /* While the slider controls the active element, all selected points move together.
+     * Contract the slider range so the outermost selected points stay within the clip region. */
+    rctf slider_bounds = bounds;
+    if (selected_points.size() > 1) {
+      rctf selection_bounds;
+      BLI_rctf_init_minmax(&selection_bounds);
+
+      /* The slider only shows the active point's position, but moves all selected points by the
+       * same delta. Clamp the range so points at the edges of the selection can't be moved outside
+       * the clip region. */
+      for (const CurveMapPoint *cmp : selected_points) {
+        const float loc[2] = {cmp->x, cmp->y};
+        BLI_rctf_do_minmax_v(&selection_bounds, loc);
+      }
+
+      slider_bounds.xmin += curve_runtime->last_pt->x - selection_bounds.xmin;
+      slider_bounds.xmax += curve_runtime->last_pt->x - selection_bounds.xmax;
+      slider_bounds.ymin += curve_runtime->last_pt->y - selection_bounds.ymin;
+      slider_bounds.ymax += curve_runtime->last_pt->y - selection_bounds.ymax;
+    }
+
+    const char *const axis_labels[2] = {"X:", "Y:"};
+    float *const axis_ptrs[2] = {&curve_runtime->last_pt->x, &curve_runtime->last_pt->y};
+    const float axis_min[2] = {slider_bounds.xmin, slider_bounds.ymin};
+    const float axis_max[2] = {slider_bounds.xmax, slider_bounds.ymax};
+    for (int axis = 0; axis < 2; axis++) {
+      bt = uiDefButF(block,
+                     ButtonType::Num,
+                     axis_labels[axis],
+                     0,
+                     (2 - axis) * UI_UNIT_Y,
+                     UI_UNIT_X * 10,
+                     UI_UNIT_Y,
+                     axis_ptrs[axis],
+                     axis_min[axis],
+                     axis_max[axis],
+                     "");
+      button_number_step_size_set(bt, 1);
+      button_number_precision_set(bt, 5);
+      if (selected_points.size() == 1) {
+        /* Simplified logic */
+        button_func_set(bt, [cumap, cb](bContext &C) {
+          BKE_curvemapping_changed(cumap, true);
+          rna_update_cb(C, cb);
+        });
+      }
+      else {
+        button_func_set(bt, [cumap, cb, curve_runtime, axis](bContext &C) {
+          CurveMap *cuma = cumap->cm + cumap->cur;
+          float *last_pt_co = &curve_runtime->last_pt->x;
+          const float delta = last_pt_co[axis] - curve_runtime->last_pos[axis];
+          /* Logically `-= delta`, better restore the original value. */
+          last_pt_co[axis] = curve_runtime->last_pos[axis];
+          float2 offset(0.0f);
+          offset[axis] = delta;
+          BKE_curvemap_translate_selection(cuma, offset);
+          BKE_curvemapping_changed(cumap, true);
+          rna_update_cb(C, cb);
+
+          /* Update the active point if the pointer changed. */
+          curve_runtime->last_pt = BKE_curvemap_active_get(cuma);
+          last_pt_co = &curve_runtime->last_pt->x;
+          curve_runtime->last_pos[axis] = last_pt_co[axis];
+        });
+      }
+    }
 
     /* Curve handle delete point */
     bt = uiDefIconBut(

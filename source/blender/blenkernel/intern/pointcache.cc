@@ -1305,7 +1305,7 @@ static int ptcache_frame_from_filename(const char *filename, const char *ext)
 #define MAX_PTCACHE_PATH FILE_MAX
 #define MAX_PTCACHE_FILE (FILE_MAX * 2)
 
-static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
+int BKE_ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   Library *lib = (pid->owner_id) ? pid->owner_id->lib : nullptr;
@@ -1417,7 +1417,7 @@ static int ptcache_filepath(PTCacheID *pid,
 
   /* start with temp dir */
   if (do_path) {
-    len = ptcache_path(pid, filepath);
+    len = BKE_ptcache_path(pid, filepath);
     newname += len;
   }
   if (pid->cache->name[0] == '\0' && (pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
@@ -2547,7 +2547,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
     case PTCACHE_CLEAR_BEFORE:
     case PTCACHE_CLEAR_AFTER:
       if (pid->cache->flag & PTCACHE_DISK_CACHE) {
-        ptcache_path(pid, path);
+        BKE_ptcache_path(pid, path);
 
         dir = opendir(path);
         if (dir == nullptr) {
@@ -2753,7 +2753,7 @@ void BKE_ptcache_id_time(
       char ext[MAX_PTCACHE_FILE];
       uint len; /* store the length of the string */
 
-      ptcache_path(pid, path);
+      BKE_ptcache_path(pid, path);
 
       len = ptcache_filepath(pid, filepath, int(cfra), false, false); /* no path */
 
@@ -3470,7 +3470,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
 
   len = ptcache_filepath(pid, old_filepath, 0, false, false); /* no path */
 
-  ptcache_path(pid, path);
+  BKE_ptcache_path(pid, path);
   dir = opendir(path);
   if (dir == nullptr) {
     STRNCPY(pid->cache->name, old_name);
@@ -3521,7 +3521,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
     return;
   }
 
-  ptcache_path(pid, path);
+  BKE_ptcache_path(pid, path);
 
   len = ptcache_filepath(pid, filepath, 1, false, false); /* no path */
 

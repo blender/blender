@@ -248,6 +248,11 @@ const ImFileType *IMB_file_type_from_ibuf(const ImBuf *ibuf)
   return IMB_file_type_from_ftype(ibuf->ftype);
 }
 
+bool IMB_ftype_is_supported(int ftype)
+{
+  return IMB_file_type_from_ftype(ftype) != nullptr;
+}
+
 void imb_filetypes_init()
 {
   const ImFileType *type;

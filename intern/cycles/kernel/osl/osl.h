@@ -220,7 +220,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
         const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
         kernel_assert(desc.offset != ATTR_STD_NOT_FOUND);
 
-        dual3 P = primitive_surface_attribute<float3>(kg, sd, desc, true, true);
+        dual3 P = primitive_surface_attribute<dual3>(kg, sd, desc);
 
         object_position_transform(kg, sd, &P);
 
