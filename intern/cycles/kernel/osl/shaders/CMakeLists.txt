@@ -108,21 +108,33 @@ set(SRC_OSL
 )
 
 get_filename_component(OSL_SHADER_HINT ${OSL_COMPILER} DIRECTORY)
+
+set(_osl_SEARCH_DIRS
+  ${OSL_SHADER_HINT}
+  ${OSL_SHADER_HINT}/../
+  /usr/share/OSL/
+  /usr/include/OSL/
+)
+
+if(DEFINED OSL_ROOT_DIR)
+  list(APPEND _osl_SEARCH_DIRS ${OSL_ROOT_DIR})
+endif()
+
+if(DEFINED OSL_HOME_DIR)
+  list(APPEND _osl_SEARCH_DIRS ${OSL_HOME_DIR})
+endif()
+
 find_path(OSL_SHADER_DIR
   NAMES
     stdosl.h
   HINTS
-    ${OSL_SHADER_HINT}
-    ${OSL_SHADER_HINT}/../
-    ${OSL_ROOT_DIR}
-    ${OSL_HOME_DIR}
-    /usr/share/OSL/
-    /usr/include/OSL/
+    ${_osl_SEARCH_DIRS}
   PATH_SUFFIXES
     share/OSL/shaders
     shaders
 )
 mark_as_advanced(OSL_SHADER_DIR)
+unset(_osl_SEARCH_DIRS)
 
 if(NOT EXISTS "${OSL_SHADER_DIR}")
   if(WITH_STRICT_BUILD_OPTIONS)

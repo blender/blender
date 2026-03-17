@@ -8,6 +8,9 @@ set(INC
   ../../mikktspace
 )
 
+set(INC_SYS
+)
+
 set(SRC
   attribute.cpp
   background.cpp
