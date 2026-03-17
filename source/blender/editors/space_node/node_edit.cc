@@ -123,8 +123,7 @@ static void compositor_job_init(void *compositor_job_data)
     DEG_graph_tag_relations_update(compositor_runtime.preview_depsgraph);
   }
 
-  DEG_graph_build_for_compositor_preview(compositor_runtime.preview_depsgraph,
-                                         scene->compositing_node_group);
+  DEG_graph_build_for_compositor_preview(compositor_runtime.preview_depsgraph);
 
   /* NOTE: Don't update animation to preserve unkeyed changes, this means can not use
    * evaluate_on_framechange. */

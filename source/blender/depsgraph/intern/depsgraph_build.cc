@@ -289,9 +289,9 @@ void DEG_graph_build_for_render_pipeline(Depsgraph *graph)
   builder.build();
 }
 
-void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetree)
+void DEG_graph_build_for_compositor_preview(Depsgraph *graph)
 {
-  deg::CompositorBuilderPipeline builder(graph, nodetree);
+  deg::CompositorBuilderPipeline builder(graph);
   builder.build();
 }
 

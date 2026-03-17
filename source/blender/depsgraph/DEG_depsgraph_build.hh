@@ -50,11 +50,8 @@ void DEG_graph_build_for_render_pipeline(Depsgraph *graph);
 
 /**
  * Builds minimal dependency graph for compositor preview.
- *
- * Note that compositor editor might have pinned node tree, which is different from scene's node
- * tree.
  */
-void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetree);
+void DEG_graph_build_for_compositor_preview(Depsgraph *graph);
 
 /**
  * Builds the minimal dependency graph needed for evaluation of all IDs within the Collection.
