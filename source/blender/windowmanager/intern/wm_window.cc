@@ -95,6 +95,10 @@
 
 #include "UI_resources.hh"
 
+#ifdef WITH_GHOST_WAYLAND
+#  include "wm_window_icon.hh"
+#endif
+
 /* For assert. */
 #ifndef NDEBUG
 #  include "BLI_threads.h"
@@ -2303,6 +2307,10 @@ void wm_ghost_init(bContext *C)
   }
 
   g_system->useWindowFocus(wm_init_state.window_focus);
+
+#ifdef WITH_GHOST_WAYLAND
+  g_system->setIconGenerator(&wm_ghost_icon_generator);
+#endif
 
 #ifdef WITH_GHOST_CSD
   if (wm_init_state.window_frame &&

@@ -392,6 +392,10 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/staging/cursor-shape/cursor-shape-v1.xml"
     )
+    # Support setting the window icon directly (replace legacy `.desktop` files).
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/staging/xdg-toplevel-icon/xdg-toplevel-icon-v1.xml"
+    )
 
     unset(INC_DST)
 

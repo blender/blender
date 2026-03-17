@@ -43,8 +43,9 @@
 #include <atomic>
 #include <optional>
 
-#include <cstring>  /* For `memcpy`. */
-#include <malloc.h> /* For `malloc_usable_size`. */
+#include <cstring>    /* For `memcpy`. */
+#include <malloc.h>   /* For `malloc_usable_size`. */
+#include <sys/mman.h> /* For `munmap`. */
 
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
@@ -350,6 +351,7 @@ struct GWL_Window {
   std::vector<GWL_Output *> outputs;
 
   GWL_XDG_Decor_Window *xdg_decor = nullptr;
+  GWL_XDG_WindowIcon xdg_icon;
 
 #ifdef WITH_GHOST_CSD
   /** Our own CSD (optionally use). */
@@ -1564,6 +1566,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor, mode);
     }
 
+    /* Set the toplevel icon. */
+    system_->xdg_toplevel_icon_update(this, decor.toplevel);
+
     if (!configure_deferred) {
       wl_surface_commit(window_->wl.surface);
 
@@ -1752,6 +1757,8 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
     delete window_->backend.vulkan_window_info;
   }
 #endif
+
+  gwl_xdg_window_icon_free(window_->xdg_icon);
 
   if (window_->xdg.activation_token) {
     xdg_activation_token_v1_destroy(window_->xdg.activation_token);
@@ -2177,6 +2184,20 @@ void GHOST_WindowWayland::endIME()
 int GHOST_WindowWayland::scale_get() const
 {
   return window_->frame.buffer_scale;
+}
+
+void gwl_xdg_window_icon_free(GWL_XDG_WindowIcon &icon)
+{
+  if (icon.buffer) {
+    wl_buffer_destroy(icon.buffer);
+    munmap(icon.buffer_data, icon.buffer_size);
+    icon = {};
+  }
+}
+
+GWL_XDG_WindowIcon &GHOST_WindowWayland::gwl_xdg_icon_get()
+{
+  return window_->xdg_icon;
 }
 
 const GWL_WindowScaleParams &GHOST_WindowWayland::scale_params_get() const
