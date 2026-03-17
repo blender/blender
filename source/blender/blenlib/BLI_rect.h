@@ -144,6 +144,8 @@ bool BLI_rcti_inside_rcti(const rcti *rct_a, const rcti *rct_b);
 bool BLI_rctf_inside_rctf(const rctf *rct_a, const rctf *rct_b);
 void BLI_rcti_union(struct rcti *rct_a, const struct rcti *rct_b);
 void BLI_rctf_union(struct rctf *rct_a, const struct rctf *rct_b);
+void BLI_rctf_union_x(struct rctf *rct, float x);
+void BLI_rctf_union_y(struct rctf *rct, float y);
 void BLI_rcti_rctf_copy(struct rcti *dst, const struct rctf *src);
 void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 void BLI_rcti_rctf_copy_floor(struct rcti *dst, const struct rctf *src);
