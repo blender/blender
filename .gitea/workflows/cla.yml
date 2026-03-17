@@ -1,0 +1,20 @@
+on:
+  pull_request_target:
+    branches:
+      - main
+      - blender-v*-release
+    types: [opened, ready_for_review, reopened, review_requested, synchronize]
+
+env:
+  COMMENTS_API_TOKEN: "${{ secrets.COMMENTS_API_TOKEN }}"
+  COMMENTS_URL: "${{ gitea.event.pull_request.base.repo.url}}/issues/${{ gitea.event.pull_request.number }}/comments"
+  CONTRIBUTOR_AGREEMENT: "${{ vars.CLA_SLUG }}"
+  CORPORATE_AGREEMENT_URL: "${{ vars.CORPORATE_AGREEMENT_URL }}"
+  USER_LOGIN: "${{ gitea.event.pull_request.user.login }}"
+
+jobs:
+  clacheck:
+    runs-on: clacheck_runner
+    steps:
+      - shell: /clacheck
+        run: check
