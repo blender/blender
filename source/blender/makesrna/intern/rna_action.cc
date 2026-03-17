@@ -62,8 +62,8 @@ const EnumPropertyItem rna_enum_layer_mix_mode_items[] = {
      0,
      "Multiply",
      "Channels in this layer are multiplied with underlying layers on a per-channel basis"},
-    {0, nullptr, 0, nullptr, nullptr},
 #endif
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_strip_type_items[] = {
