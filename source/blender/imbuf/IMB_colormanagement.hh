@@ -70,7 +70,7 @@ void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name);
 void IMB_colormanagement_assign_byte_colorspace(ImBuf *ibuf, const char *name);
 
 const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf);
-const char *IMB_colormanagement_get_rect_colorspace(const ImBuf *ibuf);
+const char *IMB_colormanagement_get_byte_colorspace(const ImBuf *ibuf);
 const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath);
 
 const ColorSpace *IMB_colormanagement_space_get_named(const char *name);

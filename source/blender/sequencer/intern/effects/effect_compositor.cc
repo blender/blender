@@ -134,7 +134,7 @@ static ImBuf *make_linear_float_buffer(ImBuf *src)
   const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
       COLOR_ROLE_SCENE_LINEAR);
   if (src->float_buffer.data == nullptr) {
-    const char *from_colorspace = IMB_colormanagement_get_rect_colorspace(src);
+    const char *from_colorspace = IMB_colormanagement_get_byte_colorspace(src);
     IMB_colormanagement_transform_byte_to_float(dst->float_buffer.data,
                                                 src->byte_buffer.data,
                                                 src->x,

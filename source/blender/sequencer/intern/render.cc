@@ -126,7 +126,7 @@ void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_flo
     /* We are not requested to give float buffer and byte buffer is already
      * in thee required colorspace. Can skip doing anything here.
      */
-    const char *from_colorspace = IMB_colormanagement_get_rect_colorspace(ibuf);
+    const char *from_colorspace = IMB_colormanagement_get_byte_colorspace(ibuf);
     if (!make_float && STREQ(from_colorspace, to_colorspace)) {
       return;
     }
