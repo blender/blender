@@ -2832,38 +2832,34 @@ static bool select_grouped_time_overlap(const Scene *scene,
   return changed;
 }
 
-/* Select all strips overlapping in time and occupying a channel below the given `strips`. Then
+/* Select all strips overlapping in time and occupying a channel below the `act_strip`. Then
  * additionally select the entire effect chain of the result. */
 static bool select_grouped_effect_link(const Scene *scene,
                                        VectorSet<Strip *> strips,
                                        ListBaseT<Strip> *seqbase,
-                                       Strip * /*act_strip*/,
+                                       Strip *act_strip,
                                        const int /*channel*/)
 {
-  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
-  const int selected_strip_count = strips.size();
+  VectorSet<Strip *> strips_to_select;
 
-  const VectorSet<Strip *> all_strips = seq::query_all_strips(seqbase);
   /* Get all strips intersecting in time below the given channel. */
-  for (Strip *strip_src : strips) {
-    for (Strip *strip_test : all_strips) {
-      if (strip_test->channel > strip_src->channel) {
-        continue; /* Not lower channel. */
-      }
-      if (strip_test->right_handle(scene) <= strip_src->left_handle() ||
-          strip_test->left_handle() >= strip_src->right_handle(scene))
-      {
-        continue; /* Not intersecting in time. */
-      }
-      strips.add(strip_test);
+  for (Strip *strip : strips) {
+    if (strip->channel > act_strip->channel) {
+      continue; /* Not lower channel. */
     }
+    if (act_strip->right_handle(scene) <= strip->left_handle() ||
+        act_strip->left_handle() >= strip->right_handle(scene))
+    {
+      continue; /* Not intersecting in time. */
+    }
+    strips_to_select.add(strip);
   }
 
-  seq::iterator_set_expand(seqbase, strips, seq::query_strip_effect_chain);
+  seq::iterator_set_expand(seqbase, strips_to_select, seq::query_strip_effect_chain);
 
-  const bool changed = strips.size() > selected_strip_count;
+  const bool changed = !strips_to_select.is_empty();
   if (changed) {
-    for (Strip *strip : strips) {
+    for (Strip *strip : strips_to_select) {
       strip->flag |= SEQ_SELECT;
     }
   }
