@@ -75,7 +75,7 @@ class GHOST_XrGraphicsBindingOpenGLD3D : public GHOST_XrGraphicsBindingD3D {
 
  private:
   /** Primary OpenGL context for Blender to use for drawing. */
-  GHOST_ContextWGL &ghost_wgl_ctx_;
+  [[maybe_unused]] GHOST_ContextWGL &ghost_wgl_ctx_;
   /** Handle to shared resource object. */
   GHOST_SharedOpenGLResource *shared_resource_ = nullptr;
 };

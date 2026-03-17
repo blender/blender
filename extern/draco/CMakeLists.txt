@@ -39,3 +39,8 @@ if (APPLE)
     XCODE_ATTRIBUTE_INSTALL_PATH ""
   )
 endif()
+
+if(MSVC_CLANG)
+  # clang-cl emits these, upstream hasn't fixed this so just suppress these for now. 
+  target_compile_options(draco PRIVATE -Wno-missing-braces)
+endif()

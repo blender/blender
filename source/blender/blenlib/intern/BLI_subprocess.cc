@@ -70,7 +70,8 @@ class ProcessGroup {
   {
     handle_ = CreateJobObject(nullptr, nullptr);
     CHECK(handle_);
-    JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = {0};
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
+    memset(&info, 0, sizeof(info));
     info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
     CHECK(
         SetInformationJobObject(handle_, JobObjectExtendedLimitInformation, &info, sizeof(info)));

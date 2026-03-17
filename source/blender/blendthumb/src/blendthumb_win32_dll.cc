@@ -62,7 +62,7 @@ void DllRelease()
   InterlockedDecrement(&g_cRefModule);
 }
 
-class CClassFactory : public IClassFactory {
+class CClassFactory final : public IClassFactory {
  public:
   static HRESULT CreateInstance(REFCLSID clsid,
                                 const CLASS_OBJECT_INIT *pClassObjectInits,

@@ -956,7 +956,7 @@ void GHOST_WindowWin32::loadWintab(bool enable)
 {
   if (!wintab_) {
     WINTAB_PRINTF("Loading Wintab for window %p\n", h_wnd_);
-    if (wintab_ = GHOST_Wintab::loadWintab(h_wnd_)) {
+    if ((wintab_ = GHOST_Wintab::loadWintab(h_wnd_))) {
       if (enable) {
         wintab_->enable();
 

@@ -99,7 +99,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Returns indication as to whether the window is valid.
    * \return The validity of the window.
    */
-  bool getValid() const;
+  bool getValid() const override;
 
   /**
    * Access to the handle of the window.
@@ -111,19 +111,19 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Returns the handle of the window.
    * \return The handle of the window.
    */
-  void *getOSWindow() const;
+  void *getOSWindow() const override;
 
   /**
    * Sets the title displayed in the title bar.
    * \param title: The title to display in the title bar.
    */
-  void setTitle(const char *title);
+  void setTitle(const char *title) override;
 
   /**
    * Returns the title displayed in the title bar.
    * \return The title displayed in the title bar.
    */
-  std::string getTitle() const;
+  std::string getTitle() const override;
 
   /**
    * Apply the window decoration style using the current flags and settings.
@@ -136,39 +136,39 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * relative to the upper-left corner of the screen.
    * \param bounds: The bounding rectangle of the window.
    */
-  void getWindowBounds(GHOST_Rect &bounds) const;
+  void getWindowBounds(GHOST_Rect &bounds) const override;
 
   /**
    * Returns the client rectangle dimensions.
    * The left and top members of the rectangle are always zero.
    * \param bounds: The bounding rectangle of the client area of the window.
    */
-  void getClientBounds(GHOST_Rect &bounds) const;
+  void getClientBounds(GHOST_Rect &bounds) const override;
 
   /**
    * Resizes client rectangle width.
    * \param width: The new width of the client area of the window.
    */
-  GHOST_TSuccess setClientWidth(uint32_t width);
+  GHOST_TSuccess setClientWidth(uint32_t width) override;
 
   /**
    * Resizes client rectangle height.
    * \param height: The new height of the client area of the window.
    */
-  GHOST_TSuccess setClientHeight(uint32_t height);
+  GHOST_TSuccess setClientHeight(uint32_t height) override;
 
   /**
    * Resizes client rectangle.
    * \param width: The new width of the client area of the window.
    * \param height: The new height of the client area of the window.
    */
-  GHOST_TSuccess setClientSize(uint32_t width, uint32_t height);
+  GHOST_TSuccess setClientSize(uint32_t width, uint32_t height) override;
 
   /**
    * Returns the state of the window (normal, minimized, maximized).
    * \return The state of the window.
    */
-  GHOST_TWindowState getState() const;
+  GHOST_TWindowState getState() const override;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
@@ -177,7 +177,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param outX: The x-coordinate in the client rectangle.
    * \param outY: The y-coordinate in the client rectangle.
    */
-  void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
+  void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const override;
 
   /**
    * Converts a point in client rectangle coordinates to screen coordinates.
@@ -186,37 +186,37 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param outX: The x-coordinate on the screen.
    * \param outY: The y-coordinate on the screen.
    */
-  void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
+  void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const override;
 
   /**
    * Sets the state of the window (normal, minimized, maximized).
    * \param state: The state of the window.
    * \return Indication of success.
    */
-  GHOST_TSuccess setState(GHOST_TWindowState state);
+  GHOST_TSuccess setState(GHOST_TWindowState state) override;
 
   /**
    * Sets the order of the window (bottom, top).
    * \param order: The order of the window.
    * \return Indication of success.
    */
-  GHOST_TSuccess setOrder(GHOST_TWindowOrder order);
+  GHOST_TSuccess setOrder(GHOST_TWindowOrder order) override;
 
   /**
    * Invalidates the contents of this window.
    */
-  GHOST_TSuccess invalidate();
+  GHOST_TSuccess invalidate() override;
 
   /**
    * Sets the progress bar value displayed in the window/application icon
    * \param progress: The progress percentage (0.0 to 1.0).
    */
-  GHOST_TSuccess setProgressBar(float progress);
+  GHOST_TSuccess setProgressBar(float progress) override;
 
   /**
    * Hides the progress bar in the icon
    */
-  GHOST_TSuccess endProgressBar();
+  GHOST_TSuccess endProgressBar() override;
 
   /**
    * Set or Release mouse capture (should be called for any real button press).
@@ -233,7 +233,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
    */
   void lostMouseCapture();
 
-  bool isDialog() const;
+  bool isDialog() const override;
 
   /**
    * Loads the windows equivalent of a standard GHOST cursor.
@@ -308,9 +308,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
     return &ime_input_;
   }
 
-  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
+  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override;
 
-  void endIME();
+  void endIME() override;
 #endif /* WITH_INPUT_IME */
 
   /*
@@ -334,27 +334,27 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param type: The type of rendering context create.
    * \return Indication of success.
    */
-  GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
+  GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) override;
 
   /**
    * Sets the cursor visibility on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorVisibility(bool visible);
+  GHOST_TSuccess setWindowCursorVisibility(bool visible) override;
 
   /**
    * Sets the cursor grab on the window using native window system calls.
    * Using registerMouseClickEvent.
    * \param mode: GHOST_TGrabCursorMode.
    */
-  GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
+  GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;
 
   /**
    * Sets the cursor shape on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape);
-  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape);
+  GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) override;
+  GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape) override;
 
   /**
    * Sets the cursor shape on the window using
@@ -364,7 +364,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                             const uint8_t *mask,
                                             const int size[2],
                                             const int hot_spot[2],
-                                            bool can_invert_color);
+                                            bool can_invert_color) override;
 
   /* Registration of the AppModel Properties that govern the taskbar button and jump lists. */
   void registerWindowAppUserModelProperties();

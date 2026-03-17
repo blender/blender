@@ -97,3 +97,8 @@ add_definitions(${GFLAGS_DEFINES})
 add_definitions(${GLOG_DEFINES})
 
 blender_add_lib(extern_glog "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(MSVC_CLANG)
+  # clang-cl emits these and given upstream is EOL just suppress them
+  target_compile_options(extern_glog PRIVATE -Wno-microsoft-cast -Wno-invalid-noreturn)
+endif()
