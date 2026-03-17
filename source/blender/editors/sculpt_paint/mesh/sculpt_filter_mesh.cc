@@ -141,6 +141,7 @@ void cache_init(bContext *C,
 
   ss.filter_cache = MEM_new<filter::Cache>(__func__);
   ss.filter_cache->start_filter_strength = start_strength;
+  ss.filter_cache->has_dragged = false;
   ss.filter_cache->random_seed = rand();
 
   ss.filter_cache->node_mask = bke::pbvh::search_nodes(

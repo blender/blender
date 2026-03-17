@@ -106,6 +106,7 @@ struct Cache {
 
   ViewContext vc;
   float start_filter_strength;
+  bool has_dragged;
 
   ~Cache();
 };
