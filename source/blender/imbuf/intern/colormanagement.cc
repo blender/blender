@@ -1264,7 +1264,7 @@ void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
   }
 }
 
-void IMB_colormanagegent_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst)
+void IMB_colormanagement_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst)
 {
   IMB_colormanagement_assign_byte_colorspace(ibuf_dst,
                                              IMB_colormanagement_get_byte_colorspace(ibuf_src));
