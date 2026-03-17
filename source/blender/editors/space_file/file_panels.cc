@@ -83,7 +83,7 @@ static void file_panel_operator(const bContext *C, Panel *panel)
   }
   /* Operator file selector window is a kind of popup, use persistent layout panel states for the
    * active operator. */
-  panel->runtime->popup_layout_panel_states = &ui::popup_persistent_layout_panel_states(
+  panel->runtime->layout_panel_states_storage = &ui::popup_persistent_layout_panel_states(
       op->type->idname);
   uiTemplateOperatorPropertyButs(
       C, panel->layout, op, ui::BUT_LABEL_ALIGN_NONE, ui::TEMPLATE_OP_PROPS_SHOW_EMPTY);

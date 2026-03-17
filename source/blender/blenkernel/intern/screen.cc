@@ -613,8 +613,8 @@ LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
                                                       const bool default_closed)
 {
   ListBaseT<LayoutPanelState> &layout_panel_states =
-      panel->runtime->popup_layout_panel_states ? *panel->runtime->popup_layout_panel_states :
-                                                  panel->layout_panel_states;
+      panel->runtime->layout_panel_states_storage ? *panel->runtime->layout_panel_states_storage :
+                                                    panel->layout_panel_states;
   const uint32_t logical_time = ++panel->layout_panel_states_clock;
   /* Overflow happened, reset all last used times. Not sure if this will ever happen in practice,
    * but better handle the overflow explicitly. */

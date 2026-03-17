@@ -23,6 +23,7 @@ struct CollectionRuntime;
 struct Collection;
 struct Object;
 struct GHash;
+struct LayoutPanelState;
 
 enum IOHandlerPanelFlag {
   IO_HANDLER_PANEL_OPEN = 1 << 0,
@@ -140,6 +141,8 @@ struct CollectionExport {
   uint32_t flag = 0;
 
   uint32_t _pad0 = {};
+
+  ListBaseT<LayoutPanelState> layout_panel_states = {nullptr, nullptr};
 };
 
 struct Collection {
