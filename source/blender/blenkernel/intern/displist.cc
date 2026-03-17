@@ -492,9 +492,19 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
   for (const int64_t p : group.poly_ranges.index_range()) {
     const PolyRange &poly = group.poly_ranges[p];
 
-    /* Build face indices: sequential vertex indices for this polygon. */
+    /* Build face indices: sequential vertex indices for this polygon. Hole contours have
+     * reversed winding (done during bevel list generation for correct surface normals).
+     *
+     * Fill indices in reverse order to restore consistent winding
+     * so the CDT winding number calculation produces correct results.
+     * Needed for correct non-zero filling but harmless for odd/even, see: #155733. */
     faces[p].resize(poly.count);
-    std::iota(faces[p].begin(), faces[p].end(), poly.start);
+    if (poly.dl->flag & DL_HOLE) {
+      std::iota(faces[p].rbegin(), faces[p].rend(), poly.start);
+    }
+    else {
+      std::iota(faces[p].begin(), faces[p].end(), poly.start);
+    }
 
     /* Build vertex data. */
     for (int i = 0; i < poly.count; i++) {
@@ -696,7 +706,7 @@ static void bevels_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
           dlnew->nr = dl.parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
-          dlnew->flag = DL_BACK_CURVE;
+          dlnew->flag = DL_BACK_CURVE | (dl.flag & DL_HOLE);
           dlnew->col = dl.col;
           dlnew->charidx = dl.charidx;
 
@@ -715,7 +725,7 @@ static void bevels_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
           dlnew->nr = dl.parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
-          dlnew->flag = DL_FRONT_CURVE;
+          dlnew->flag = DL_FRONT_CURVE | (dl.flag & DL_HOLE);
           dlnew->col = dl.col;
           dlnew->charidx = dl.charidx;
 
@@ -1489,6 +1499,9 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
           dl->type = DL_SEGM;
           dl->flag = (DL_FRONT_CURVE | DL_BACK_CURVE);
         }
+        if (bl->hole) {
+          dl->flag |= DL_HOLE;
+        }
 
         dl->parts = 1;
         dl->nr = bl->nr;
@@ -1541,6 +1554,9 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
           }
           if ((bl->poly >= 0) && (steps > 2)) {
             dl->flag |= DL_CYCL_V;
+          }
+          if (bl->hole) {
+            dl->flag |= DL_HOLE;
           }
 
           dl->parts = steps;
