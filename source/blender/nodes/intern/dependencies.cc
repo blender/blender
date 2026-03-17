@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "NOD_geometry_nodes_dependencies.hh"
+#include "NOD_dependencies.hh"
 
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
@@ -12,7 +12,7 @@
 
 namespace blender::nodes {
 
-void GeometryNodesEvalDependencies::add_generic_id(ID *id)
+void EvalDependencies::add_generic_id(ID *id)
 {
   if (!id) {
     return;
@@ -20,7 +20,7 @@ void GeometryNodesEvalDependencies::add_generic_id(ID *id)
   this->ids.add(id->session_uid, id);
 }
 
-void GeometryNodesEvalDependencies::add_generic_id_full(ID *id)
+void EvalDependencies::add_generic_id_full(ID *id)
 {
   if (!id) {
     return;
@@ -33,8 +33,7 @@ void GeometryNodesEvalDependencies::add_generic_id_full(ID *id)
   }
 }
 
-void GeometryNodesEvalDependencies::add_object(Object *object,
-                                               const ObjectDependencyInfo &object_deps)
+void EvalDependencies::add_object(Object *object, const ObjectDependencyInfo &object_deps)
 {
   if (!object) {
     return;
@@ -48,7 +47,7 @@ void GeometryNodesEvalDependencies::add_object(Object *object,
   deps.pose |= object_deps.pose;
 }
 
-void GeometryNodesEvalDependencies::merge(const GeometryNodesEvalDependencies &other)
+void EvalDependencies::merge(const EvalDependencies &other)
 {
   for (ID *id : other.ids.values()) {
     this->add_generic_id(id);
@@ -64,8 +63,7 @@ void GeometryNodesEvalDependencies::merge(const GeometryNodesEvalDependencies &o
   this->time_dependent |= other.time_dependent;
 }
 
-static void add_eval_dependencies_from_socket(const bNodeSocket &socket,
-                                              GeometryNodesEvalDependencies &deps)
+static void add_eval_dependencies_from_socket(const bNodeSocket &socket, EvalDependencies &deps)
 {
   if (socket.is_input()) {
     if (socket.is_logically_linked()) {
@@ -141,8 +139,7 @@ static void add_eval_dependencies_from_socket(const bNodeSocket &socket,
   }
 }
 
-static void add_eval_dependencies_from_node_data(const bNodeTree &tree,
-                                                 GeometryNodesEvalDependencies &deps)
+static void add_eval_dependencies_from_node_data(const bNodeTree &tree, EvalDependencies &deps)
 {
   for (const bNode *node : tree.nodes_by_type("GeometryNodeInputObject")) {
     if (node->is_muted()) {
@@ -168,8 +165,7 @@ static bool has_enabled_nodes_of_type(const bNodeTree &tree, const StringRefNull
   return false;
 }
 
-static void add_own_transform_dependencies(const bNodeTree &tree,
-                                           GeometryNodesEvalDependencies &deps)
+static void add_own_transform_dependencies(const bNodeTree &tree, EvalDependencies &deps)
 {
   bool needs_own_transform = false;
 
@@ -213,8 +209,8 @@ static bool needs_scene_render_params(const bNodeTree &ntree)
 
 static void gather_geometry_nodes_eval_dependencies(
     const bNodeTree &ntree,
-    GeometryNodesEvalDependencies &deps,
-    FunctionRef<const GeometryNodesEvalDependencies *(const bNodeTree &group)> get_group_deps)
+    EvalDependencies &deps,
+    FunctionRef<const EvalDependencies *(const bNodeTree &group)> get_group_deps)
 {
   ntree.ensure_topology_cache();
   for (const bNodeSocket *socket : ntree.all_sockets()) {
@@ -233,29 +229,27 @@ static void gather_geometry_nodes_eval_dependencies(
       continue;
     }
     const bNodeTree &group = *reinterpret_cast<const bNodeTree *>(node->id);
-    if (const GeometryNodesEvalDependencies *group_deps = get_group_deps(group)) {
+    if (const EvalDependencies *group_deps = get_group_deps(group)) {
       deps.merge(*group_deps);
     }
   }
 }
 
-GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_with_cache(
-    const bNodeTree &ntree)
+EvalDependencies gather_eval_dependencies_with_cache(const bNodeTree &ntree)
 {
-  GeometryNodesEvalDependencies deps;
-  gather_geometry_nodes_eval_dependencies(ntree, deps, [](const bNodeTree &group) {
-    return group.runtime->geometry_nodes_eval_dependencies.get();
-  });
+  EvalDependencies deps;
+  gather_geometry_nodes_eval_dependencies(
+      ntree, deps, [](const bNodeTree &group) { return group.runtime->eval_dependencies.get(); });
   return deps;
 }
 
 static void gather_geometry_nodes_eval_dependencies_recursive_impl(
-    const bNodeTree &ntree, Map<const bNodeTree *, GeometryNodesEvalDependencies> &deps_by_tree)
+    const bNodeTree &ntree, Map<const bNodeTree *, EvalDependencies> &deps_by_tree)
 {
   if (deps_by_tree.contains(&ntree)) {
     return;
   }
-  GeometryNodesEvalDependencies new_deps;
+  EvalDependencies new_deps;
   gather_geometry_nodes_eval_dependencies(ntree, new_deps, [&](const bNodeTree &group) {
     gather_geometry_nodes_eval_dependencies_recursive_impl(group, deps_by_tree);
     return &deps_by_tree.lookup(&group);
@@ -263,10 +257,9 @@ static void gather_geometry_nodes_eval_dependencies_recursive_impl(
   deps_by_tree.add(&ntree, std::move(new_deps));
 }
 
-GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_recursive(
-    const bNodeTree &ntree)
+EvalDependencies gather_eval_dependencies_recursive(const bNodeTree &ntree)
 {
-  Map<const bNodeTree *, GeometryNodesEvalDependencies> deps_by_tree;
+  Map<const bNodeTree *, EvalDependencies> deps_by_tree;
   gather_geometry_nodes_eval_dependencies_recursive_impl(ntree, deps_by_tree);
   return deps_by_tree.lookup(&ntree);
 }

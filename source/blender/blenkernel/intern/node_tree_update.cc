@@ -33,8 +33,8 @@
 
 #include "MOD_nodes.hh"
 
+#include "NOD_dependencies.hh"
 #include "NOD_geo_viewer.hh"
-#include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
@@ -559,7 +559,7 @@ class NodeTreeMainUpdater {
       this->update_socket_shapes(ntree);
     }
 
-    if (ntree.type == NTREE_GEOMETRY) {
+    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
       this->update_eval_dependencies(ntree);
     }
 
@@ -1081,16 +1081,13 @@ class NodeTreeMainUpdater {
   void update_eval_dependencies(bNodeTree &ntree)
   {
     ntree.ensure_topology_cache();
-    nodes::GeometryNodesEvalDependencies new_deps =
-        nodes::gather_geometry_nodes_eval_dependencies_with_cache(ntree);
+    nodes::EvalDependencies new_deps = nodes::gather_eval_dependencies_with_cache(ntree);
 
     /* Check if the dependencies have changed. */
-    if (!ntree.runtime->geometry_nodes_eval_dependencies ||
-        new_deps != *ntree.runtime->geometry_nodes_eval_dependencies)
-    {
+    if (!ntree.runtime->eval_dependencies || new_deps != *ntree.runtime->eval_dependencies) {
       needs_relations_update_ = true;
-      ntree.runtime->geometry_nodes_eval_dependencies =
-          std::make_unique<nodes::GeometryNodesEvalDependencies>(std::move(new_deps));
+      ntree.runtime->eval_dependencies = std::make_unique<nodes::EvalDependencies>(
+          std::move(new_deps));
     }
   }
 

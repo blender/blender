@@ -85,7 +85,7 @@
 #include "ED_undo.hh"
 #include "ED_viewer_path.hh"
 
-#include "NOD_geometry_nodes_dependencies.hh"
+#include "NOD_dependencies.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
@@ -109,7 +109,7 @@ static void init_data(ModifierData *md)
 }
 
 static void find_dependencies_from_settings(const NodesModifierSettings &settings,
-                                            nodes::GeometryNodesEvalDependencies &deps)
+                                            nodes::EvalDependencies &deps)
 {
   IDP_foreach_property(settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
     if (ID *id = IDP_ID_get(property)) {
@@ -132,10 +132,9 @@ static void add_collection_relation(const ModifierUpdateDepsgraphContext *ctx,
   DEG_add_collection_geometry_customdata_mask(ctx->node, &collection, &dependency_data_mask);
 }
 
-static void add_object_relation(
-    const ModifierUpdateDepsgraphContext *ctx,
-    Object &object,
-    const nodes::GeometryNodesEvalDependencies::ObjectDependencyInfo &info)
+static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx,
+                                Object &object,
+                                const nodes::EvalDependencies::ObjectDependencyInfo &info)
 {
   if (info.transform) {
     DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
@@ -176,8 +175,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
   DEG_add_node_tree_output_relation(ctx->node, nmd->node_group, "Nodes Modifier");
 
-  nodes::GeometryNodesEvalDependencies eval_deps =
-      nodes::gather_geometry_nodes_eval_dependencies_recursive(*nmd->node_group);
+  nodes::EvalDependencies eval_deps = nodes::gather_eval_dependencies_recursive(*nmd->node_group);
 
   /* Create dependencies to data-blocks referenced by the settings in the modifier. */
   find_dependencies_from_settings(nmd->settings, eval_deps);
@@ -258,8 +256,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
       return true;
     }
   }
-  nodes::GeometryNodesEvalDependencies eval_deps =
-      nodes::gather_geometry_nodes_eval_dependencies_recursive(*nmd->node_group);
+  nodes::EvalDependencies eval_deps = nodes::gather_eval_dependencies_recursive(*nmd->node_group);
   return eval_deps.time_dependent;
 }
 

@@ -34,7 +34,7 @@ struct bNodeTree;
 
 namespace nodes {
 struct FieldInferencingInterface;
-struct GeometryNodesEvalDependencies;
+struct EvalDependencies;
 class NodeDeclaration;
 struct GeometryNodesLazyFunctionGraphInfo;
 struct StructureTypeInterface;
@@ -235,9 +235,9 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * Cache of dependencies used by the node tree itself. Does not account for data that's passed
    * into the node tree from the outside.
    * NOTE: The node tree may reference additional data-blocks besides the ones included here. But
-   * those are not used when the node tree is evaluated by Geometry Nodes.
+   * those are not used when the node tree is evaluated.
    */
-  std::unique_ptr<nodes::GeometryNodesEvalDependencies> geometry_nodes_eval_dependencies;
+  std::unique_ptr<nodes::EvalDependencies> eval_dependencies;
 
   /**
    * Node previews for the compositor.
