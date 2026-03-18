@@ -14,7 +14,7 @@ def _run_heavy_geometry(dummy_):
     import time
 
     ob = bpy.data.objects["Cube"]
-    assert(bpy.context.object == ob)
+    assert (bpy.context.object == ob)
     ob.modifiers.new(name="Subsurf", type='SUBSURF').levels = 9
     bpy.ops.object.modifier_apply(modifier="Subsurf")
 
@@ -22,7 +22,7 @@ def _run_heavy_geometry(dummy_):
     # NOTE: The first undo push is necessary to be able to undo, since it creates the
     # initial state for memfile undo (it is not initialized by default in background mode).
     bpy.ops.ed.undo_push()
-    
+
     # Empty undo step.
     bpy.ops.ed.undo_push()
     bpy.ops.ed.undo()
@@ -30,7 +30,7 @@ def _run_heavy_geometry(dummy_):
 
     # Object-modified undo step.
     ob = bpy.data.objects["Cube"]
-    assert(bpy.context.object == ob)
+    assert (bpy.context.object == ob)
     ob.location.x += 1.0
     bpy.ops.ed.undo_push()
     bpy.ops.ed.undo()
@@ -40,7 +40,7 @@ def _run_heavy_geometry(dummy_):
 
     # Mesh-modified undo step.
     ob = bpy.data.objects["Cube"]
-    assert(bpy.context.object == ob)
+    assert (bpy.context.object == ob)
     ob.data.transform(mathutils.Matrix.Translation((1, 0, 0)))
     bpy.ops.ed.undo_push()
     bpy.ops.ed.undo()
@@ -51,7 +51,7 @@ def _run_heavy_geometry(dummy_):
     bpy.ops.ed.redo()
     elapsed_time = time.time() - start_time
 
-    result = {'time': elapsed_time, 'undo_stack_memory': getattr(bpy.app, "memory_usage_undo", lambda : 0)()}
+    result = {'time': elapsed_time, 'undo_stack_memory': getattr(bpy.app, "memory_usage_undo", lambda: 0)()}
     return result
 
 
@@ -113,7 +113,7 @@ def _run_many_bheads_and_pointers(args):
     bpy.ops.ed.redo()
     elapsed_time = time.time() - start_time
 
-    result = {'time': elapsed_time, 'undo_stack_memory': getattr(bpy.app, "memory_usage_undo", lambda : 0)()}
+    result = {'time': elapsed_time, 'undo_stack_memory': getattr(bpy.app, "memory_usage_undo", lambda: 0)()}
     return result
 
 
