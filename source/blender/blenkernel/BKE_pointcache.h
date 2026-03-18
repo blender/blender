@@ -324,7 +324,7 @@ void BKE_ptcache_update_info(PTCacheID *pid);
  *
  * \param dirname: pointer to write the cache path to, should be at least MAX_PTCACHE_PATH bytes
  * (see pointcache.cc, at the moment of writing this is equal to FILE_MAX).
- * \returns: strlen(dirname).
+ * \returns: `strlen(dirname)`.
  */
 int BKE_ptcache_path(PTCacheID *pid, char *dirname);
 

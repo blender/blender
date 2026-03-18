@@ -81,7 +81,7 @@ class GHOST_IWindow;
 
 struct GHOST_IconGenerator {
   /**
-   * Generate a toplevel window icon.
+   * Generate a top-level window icon.
    *
    * The callback writes RGBA pixels into a pre-allocated buffer.
    * The color is "straight" (alpha is not pre-multiplied).

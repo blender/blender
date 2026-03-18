@@ -376,7 +376,7 @@ static float get_miter_limit_angle(const VArray<float> miter_angles,
       continue;
     }
 
-    /* This point's limit should replace the the round type. */
+    /* This point's limit should replace the round type. */
     if (miter_limit_angle <= GP_STROKE_MITER_ANGLE_ROUND) {
       miter_limit_angle = point_miter_angle;
     }

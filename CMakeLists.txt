@@ -2116,15 +2116,15 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     # but order matters here, the C/CXX warn flags come before the standard
     # W3 flag, which will reset all flags to their default state.
     remove_cc_flag("/W3")
-    # From the clang-cl docs 
-    # /W0                     Disable all warnings
-    # /W1                     Enable -Wall
-    # /W2                     Enable -Wall
-    # /W3                     Enable -Wall
-    # /W4                     Enable -Wall and -Wextra
-    # /Wall                   Enable -Weverything
+    # From the clang-cl docs
+    # `/W0                     Disable all warnings`
+    # `/W1                     Enable -Wall`
+    # `/W2                     Enable -Wall`
+    # `/W3                     Enable -Wall`
+    # `/W4                     Enable -Wall and -Wextra`
+    # `/Wall                   Enable -Weverything`
     #
-    # -Wall will turn into /Wall for clang-cl which in turn will enable -Weverything
+    # `-Wall` will turn into /Wall for clang-cl which in turn will enable `-Weverything`
     # which is just too much, pass /W3 so we end up on the same flag configuration
     # as the other platforms.
     set(_Wall_flag /W3)

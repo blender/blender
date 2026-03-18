@@ -616,7 +616,7 @@ static wmOperatorStatus sculpt_color_filter_invoke(bContext *C,
 
   RNA_int_set_array(op->ptr, "start_mouse", event->mval);
 
-  /* Immediate execution path (used by keybinds like Ctrl+X). */
+  /* Immediate execution path (used by key-bindings like `Ctrl+X`). */
   if (RNA_boolean_get(op->ptr, "use_immediate")) {
     RNA_float_set(op->ptr, "strength", 1.0f);
   }
