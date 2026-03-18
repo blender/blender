@@ -475,7 +475,7 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
     Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
     if (attr_mcN && attr_cN) {
       const size_t numcorners = triangles.size();
-      packed_normal *N = attr_cN->data_normal();
+      const packed_normal *N = attr_cN->data_normal();
       std::copy_n(N, numcorners, attr_mcN->data_normal() + motion_step * numcorners);
     }
   }
@@ -516,7 +516,7 @@ void Mesh::compute_bounds()
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
       const size_t steps_size = verts.size() * (motion_steps - 1);
-      float3 *vert_steps = attr->data_float3();
+      const float3 *vert_steps = attr->data_float3();
 
       for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(vert_steps[i]);
@@ -533,7 +533,7 @@ void Mesh::compute_bounds()
 
       if (use_motion_blur && attr) {
         const size_t steps_size = verts.size() * (motion_steps - 1);
-        float3 *vert_steps = attr->data_float3();
+        const float3 *vert_steps = attr->data_float3();
 
         for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(vert_steps[i]);

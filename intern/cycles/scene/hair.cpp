@@ -386,7 +386,7 @@ void Hair::compute_bounds()
       const size_t steps_size = curve_keys.size() * (motion_steps - 1);
       // Attribute data is stored as a float4 and is not
       // interchangeable with float3
-      float4 *key_steps = curve_attr->data_float4();
+      const float4 *key_steps = curve_attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(make_float3(key_steps[i]));
@@ -405,7 +405,7 @@ void Hair::compute_bounds()
         const size_t steps_size = curve_keys.size() * (motion_steps - 1);
         // Attribute data is stored as a float4 which is not
         // interchangeable with float4
-        float4 *key_steps = curve_attr->data_float4();
+        const float4 *key_steps = curve_attr->data_float4();
 
         for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(make_float3(key_steps[i]));

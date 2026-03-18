@@ -381,7 +381,7 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
           if (attr) {
             const size_t hair_size = hair->get_curve_keys().size();
             const size_t steps = hair->get_motion_steps() - 1;
-            float3 *key_steps = attr->data_float3();
+            const float3 *key_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
               curve.bounds_grow(
@@ -407,7 +407,7 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
           if (attr) {
             const size_t pointcloud_size = pointcloud->points.size();
             const size_t steps = pointcloud->get_motion_steps() - 1;
-            float3 *point_steps = attr->data_float3();
+            const float3 *point_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
               point.bounds_grow(point_steps + i * pointcloud_size, radius, bbox);
@@ -431,7 +431,7 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
           if (attr) {
             const size_t mesh_size = mesh->verts.size();
             const size_t steps = mesh->motion_steps - 1;
-            float3 *vert_steps = attr->data_float3();
+            const float3 *vert_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
               triangle.bounds_grow(vert_steps + i * mesh_size, bbox);
