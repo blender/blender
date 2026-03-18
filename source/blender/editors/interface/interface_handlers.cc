@@ -2685,8 +2685,18 @@ static void but_copy_color(Button *but, char *output, int output_maxncpy)
 
 static void but_paste_color(bContext *C, Button *but, char *buf_paste)
 {
-  float rgba[4];
+  float rgba[4] = {0.0, 0.0, 0.0, 1.0};
+  bool is_parsed = false;
+
   if (parse_float_array(buf_paste, rgba, 4)) {
+    is_parsed = true;
+  }
+  else if (hex_to_rgba(buf_paste, &rgba[0], &rgba[1], &rgba[2], &rgba[3])) {
+    IMB_colormanagement_srgb_to_scene_linear_v3(rgba, rgba);
+    is_parsed = true;
+  }
+
+  if (is_parsed) {
     if (but->rnaprop) {
       /* Assume linear colors in buffer. */
       if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
@@ -2699,7 +2709,7 @@ static void but_paste_color(bContext *C, Button *but, char *buf_paste)
     }
   }
   else {
-    WM_global_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
+    WM_global_report(RPT_ERROR, "Paste expected hex code or 4 numbers, formatted: '[n, n, n, n]'");
   }
 }
 
