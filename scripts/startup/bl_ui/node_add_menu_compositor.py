@@ -44,6 +44,7 @@ class NODE_MT_compositor_node_input_constant_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeInputIntVector")
         self.node_operator(layout, "FunctionNodeInputMenu")
         self.node_operator(layout, "CompositorNodeNormal")
+        self.node_operator(layout, "GeometryNodeInputObject")
         self.node_operator(layout, "ShaderNodeValue")
         self.node_operator(layout, "FunctionNodeInputVector")
 
