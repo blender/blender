@@ -4498,12 +4498,6 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
 
-  /* Keep this versioning always enabled at the bottom of the function; it can only be moved
-   * behind a subversion bump when the file format is changed. */
-  for (Mesh &mesh : bmain->meshes) {
-    bke::mesh_freestyle_marks_to_generic(mesh);
-  }
-
   /* TODO: Can be moved to subversion bump. */
   AS_asset_library_import_method_ensure_valid(*bmain);
 }
