@@ -1303,18 +1303,8 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
                           const int faces_num,
                           const int corners_num)
 {
-  Mesh *mesh = static_cast<Mesh *>(BKE_libblock_alloc(
-      nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE));
-  BKE_libblock_init_empty(&mesh->id);
-
-  mesh->verts_num = verts_num;
-  mesh->edges_num = edges_num;
-  mesh->faces_num = faces_num;
-  mesh->corners_num = corners_num;
-
+  Mesh *mesh = bke::mesh_new_no_attributes(verts_num, edges_num, faces_num, corners_num);
   bke::mesh_ensure_required_data_layers(*mesh);
-  BKE_mesh_face_offsets_ensure_alloc(mesh);
-
   return mesh;
 }
 
@@ -1350,14 +1340,17 @@ Mesh *mesh_new_no_attributes(const int verts_num,
                              const int faces_num,
                              const int corners_num)
 {
-  Mesh *mesh = BKE_mesh_new_nomain(0, 0, faces_num, 0);
+  Mesh *mesh = static_cast<Mesh *>(BKE_libblock_alloc(
+      nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE));
+  BKE_libblock_init_empty(&mesh->id);
+
   mesh->verts_num = verts_num;
   mesh->edges_num = edges_num;
+  mesh->faces_num = faces_num;
   mesh->corners_num = corners_num;
-  mesh->attribute_storage.wrap().remove("position");
-  mesh->attribute_storage.wrap().remove(".edge_verts");
-  mesh->attribute_storage.wrap().remove(".corner_vert");
-  mesh->attribute_storage.wrap().remove(".corner_edge");
+
+  BKE_mesh_face_offsets_ensure_alloc(mesh);
+
   return mesh;
 }
 
