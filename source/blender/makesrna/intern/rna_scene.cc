@@ -8966,6 +8966,13 @@ void RNA_def_scene(BlenderRNA *brna)
                            "Don't allow frame to be selected with mouse outside of frame range");
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, nullptr);
 
+  prop = RNA_def_property(srna, "allow_preroll", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "r.flag", SCER_ALLOW_PREROLL);
+  RNA_def_property_ui_text(
+      prop, "Allow Preroll", "Allows playing back frames before the playback start frame");
+  RNA_def_property_update(prop, NC_SCENE | ND_FRAME, nullptr);
+
   /* Preview Range (frame-range for UI playback) */
   prop = RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
