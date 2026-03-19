@@ -38,6 +38,8 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
+#include "ED_screen.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -329,6 +331,14 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
     PopupBlockHandle *handle = popover_panel_create(C, nullptr, nullptr, item_paneltype_func, pt);
     Popover *pup = static_cast<Popover *>(handle->popup_create_vars.arg);
     block = pup->block;
+
+    /* Refresh so the block is recreated with the region visible.
+     *
+     * Without this, `block_begin` sets #BLOCK_LOOP before the region is shown,
+     * causing `template_popup_confirm` to skip attaching its close callback
+     * (since it assumes #BLOCK_LOOP menus close via `menuretval`).
+     * With #BLOCK_KEEP_OPEN set this doesn't happen, see #151778. */
+    ED_region_tag_refresh_ui(handle->region);
   }
   else {
     Popover *pup = popover_begin(C, U.widget_unit * pt->ui_units_x, false);
