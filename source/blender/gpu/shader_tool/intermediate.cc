@@ -9,7 +9,6 @@
 
 #include "intermediate.hh"
 #include "scope.hh"
-#include "time_it.hh"
 #include "token.hh"
 #include "token_stream.hh"
 
@@ -226,6 +225,46 @@ void LexerBase::identify_keywords()
   }
 }
 
+void LexerBase::identify_template_tokens()
+{
+  for (int i = 1; i < size(); ++i) {
+    TokenMut tok = (*this)[i];
+    TokenType type = tok.type();
+    if (type == '<' || type == '>') {
+      Token prev = (*this)[i - 1];
+      const bool preceded_by_space = prev.followed_by_whitespace();
+      /* Rely on the fact that template are formatted without spaces but comparison isn't. */
+      if (type == '<') {
+        if ((!preceded_by_space && prev != AngleOpen) || prev == Template) {
+          tok.type() = TemplateOpen;
+        }
+      }
+      else {
+        if (!preceded_by_space && (prev != AngleClose) && (prev != Minus)) {
+          tok.type() = TemplateClose;
+        }
+      }
+    }
+  }
+}
+
+void LexerBase::reset_template_tokens()
+{
+  for (int i = 1; i < size(); ++i) {
+    TokenMut tok = (*this)[i];
+    switch (tok.type()) {
+      case TemplateOpen:
+        tok.type() = lexit::AngleOpen;
+        break;
+      case TemplateClose:
+        tok.type() = lexit::AngleClose;
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 struct ScopeStack {
   struct Item {
     ScopeType type;
@@ -275,299 +314,6 @@ struct ScopeStack {
     return scopes.empty();
   }
 };
-
-void ParserBase::build_scope_tree(report_callback &report_error)
-{
-  const LexerBase &lex = *this;
-
-  Token error_token(*this);
-  const char *error_msg = nullptr;
-
-  size_t predicted_scope_count = lex.size() / 2;
-
-  ScopeStack stack(predicted_scope_count);
-
-  stack.enter_scope(ScopeType::Global, 0);
-
-  int in_template = 0;
-
-  int tok_id = 0;
-
-  for (; tok_id < lex.size(); tok_id++) {
-    const TokenType type = lex.types_[tok_id];
-
-    const ScopeType current_scope = stack.back().type;
-
-    switch (type) {
-      case Hash:
-        stack.enter_scope(ScopeType::Preprocessor, tok_id);
-        /* Seek until the end of the directive. */
-        while (true) {
-          const TokenType type = lex.types_[tok_id];
-          if (type == EndOfFile) {
-            tok_id--;
-            break;
-          }
-
-          std::string_view tok_str = lex[tok_id].str_with_whitespace();
-          size_t new_line_offset = -1;
-          while ((new_line_offset = tok_str.find("\n", new_line_offset + 1)) != std::string::npos)
-          {
-            if (new_line_offset == 0 || tok_str[new_line_offset - 1] != '\\') {
-              break;
-            }
-          }
-          if (new_line_offset != std::string::npos) {
-            break;
-          }
-          tok_id++;
-        }
-        stack.exit_scope(tok_id);
-        break;
-      case Assign:
-        if (current_scope == ScopeType::Assignment) {
-          /* Chained assignments. */
-          stack.exit_scope(tok_id - 1);
-        }
-        stack.enter_scope(ScopeType::Assignment, tok_id);
-        break;
-      case BracketOpen: {
-        /* Scan back identifier that could contain namespaces. */
-        TokenType keyword;
-        int pos = 2;
-        do {
-          keyword = (tok_id >= pos) ? TokenType(lex.types_[tok_id - pos]) : TokenType::Invalid;
-          pos += 3;
-        } while (keyword != Invalid && keyword == Colon);
-
-        /* Skip host_shared attribute for structures if any. */
-        if (keyword == ']') {
-          keyword = (tok_id >= pos) ? TokenType(lex.types_[tok_id - pos]) : TokenType::Invalid;
-          if (keyword == '[') {
-            pos += 2;
-            keyword = (tok_id >= pos) ? TokenType(lex.types_[tok_id - pos]) : TokenType::Invalid;
-          }
-        }
-
-        if (keyword == Struct || keyword == Class) {
-          stack.enter_scope(ScopeType::Struct, tok_id);
-        }
-        else if (keyword == Enum) {
-          stack.enter_scope(ScopeType::Local, tok_id);
-        }
-        else if (keyword == Namespace) {
-          stack.enter_scope(ScopeType::Namespace, tok_id);
-        }
-        else if (current_scope == ScopeType::Global) {
-          stack.enter_scope(ScopeType::Function, tok_id);
-        }
-        else if (current_scope == ScopeType::Struct) {
-          stack.enter_scope(ScopeType::Function, tok_id);
-        }
-        else if (current_scope == ScopeType::Namespace) {
-          stack.enter_scope(ScopeType::Function, tok_id);
-        }
-        else {
-          stack.enter_scope(ScopeType::Local, tok_id);
-        }
-        break;
-      }
-      case ParOpen:
-        if ((tok_id >= 1 && lex.types_[tok_id - 1] == For) ||
-            (tok_id >= 1 && lex.types_[tok_id - 1] == While))
-        {
-          stack.enter_scope(ScopeType::LoopArgs, tok_id);
-        }
-        else if (tok_id >= 1 && lex.types_[tok_id - 1] == Switch) {
-          stack.enter_scope(ScopeType::SwitchArg, tok_id);
-        }
-        else if (current_scope == ScopeType::Global) {
-          stack.enter_scope(ScopeType::FunctionArgs, tok_id);
-        }
-        else if (current_scope == ScopeType::Struct) {
-          stack.enter_scope(ScopeType::FunctionArgs, tok_id);
-        }
-        else if ((current_scope == ScopeType::Function || current_scope == ScopeType::Local ||
-                  current_scope == ScopeType::Assignment ||
-                  current_scope == ScopeType::FunctionParam ||
-                  current_scope == ScopeType::Subscript ||
-                  current_scope == ScopeType::Attribute) &&
-                 (tok_id >= 1 && lex.types_[tok_id - 1] == Word))
-        {
-          stack.enter_scope(ScopeType::FunctionCall, tok_id);
-        }
-        else {
-          stack.enter_scope(ScopeType::Local, tok_id);
-        }
-        break;
-      case SquareOpen:
-        if (tok_id >= 1 && lex.types_[tok_id - 1] == SquareOpen) {
-          stack.enter_scope(ScopeType::Attributes, tok_id);
-        }
-        else {
-          stack.enter_scope(ScopeType::Subscript, tok_id);
-        }
-        break;
-      case AngleOpen:
-        if (tok_id >= 1) {
-          char prev_char = lex[tok_id - 1].str_with_whitespace().back();
-          /* Rely on the fact that template are formatted without spaces but comparison isn't. */
-          if ((prev_char != ' ' && prev_char != '\n' && prev_char != '<') ||
-              lex.types_[tok_id - 1] == Template)
-          {
-            stack.enter_scope(ScopeType::Template, tok_id);
-            in_template++;
-          }
-        }
-        break;
-      case AngleClose:
-        if (stack.back().type == ScopeType::Assignment && in_template > 0) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::TemplateArg) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::Template) {
-          stack.exit_scope(tok_id);
-          in_template--;
-        }
-        break;
-      case BracketClose:
-        if (stack.back().type == ScopeType::Assignment) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::Struct || stack.back().type == ScopeType::Local ||
-            stack.back().type == ScopeType::Namespace ||
-            stack.back().type == ScopeType::LoopBody ||
-            stack.back().type == ScopeType::SwitchBody ||
-            stack.back().type == ScopeType::Function || stack.back().type == ScopeType::Function)
-        {
-          stack.exit_scope(tok_id);
-        }
-        else {
-          error_token = (*this)[tok_id];
-          error_msg = "Unexpected '}' token";
-          goto error;
-        }
-        break;
-      case ParClose:
-        if (stack.back().type == ScopeType::Assignment) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::FunctionArg) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::FunctionParam) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::LoopArg) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::LoopArgs ||
-            stack.back().type == ScopeType::SwitchArg ||
-            stack.back().type == ScopeType::FunctionArgs ||
-            stack.back().type == ScopeType::FunctionCall || stack.back().type == ScopeType::Local)
-        {
-          stack.exit_scope(tok_id);
-        }
-        else {
-          error_token = (*this)[tok_id];
-          error_msg = "Unexpected ')' token";
-          goto error;
-        }
-        break;
-      case SquareClose:
-        if (stack.back().type == ScopeType::Attribute) {
-          stack.exit_scope(tok_id - 1);
-        }
-        stack.exit_scope(tok_id);
-        break;
-      case SemiColon:
-        if (stack.back().type == ScopeType::Assignment) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::FunctionArg) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::TemplateArg) {
-          stack.exit_scope(tok_id - 1);
-        }
-        if (stack.back().type == ScopeType::LoopArg) {
-          stack.exit_scope(tok_id - 1);
-        }
-        break;
-      case Comma:
-        if (stack.back().type == ScopeType::Assignment) {
-          stack.exit_scope(tok_id - 1);
-        }
-        switch (stack.back().type) {
-          case ScopeType::FunctionArg:
-          case ScopeType::FunctionParam:
-          case ScopeType::TemplateArg:
-          case ScopeType::Attribute:
-            stack.exit_scope(tok_id - 1);
-            break;
-          default:
-            break;
-        }
-        break;
-      default:
-        switch (current_scope) {
-          case ScopeType::Attributes:
-            stack.enter_scope(ScopeType::Attribute, tok_id);
-            break;
-          case ScopeType::FunctionArgs:
-            stack.enter_scope(ScopeType::FunctionArg, tok_id);
-            break;
-          case ScopeType::FunctionCall:
-            stack.enter_scope(ScopeType::FunctionParam, tok_id);
-            break;
-          case ScopeType::LoopArgs:
-            stack.enter_scope(ScopeType::LoopArg, tok_id);
-            break;
-          case ScopeType::Template:
-            stack.enter_scope(ScopeType::TemplateArg, tok_id);
-            break;
-          default:
-            break;
-        }
-        break;
-    }
-  }
-
-  tok_id = lex.size() - 1;
-
-  if (stack.empty()) {
-    error_token = (*this)[tok_id];
-    error_msg = "Extraneous end of scope somewhere in that file";
-    goto error;
-  }
-
-  if (stack.back().type == ScopeType::Preprocessor) {
-    stack.exit_scope(tok_id - 1);
-  }
-
-  if (stack.back().type != ScopeType::Global) {
-    ScopeStack::Item scope_item = stack.back();
-    error_token = (*this)[stack.ranges[scope_item.index].start];
-    error_msg = "Unterminated scope";
-    goto error;
-  }
-
-  stack.exit_scope(tok_id);
-
-  scope_types = std::move(stack.types);
-  scope_ranges = std::move(stack.ranges);
-  update_string_view();
-  return;
-
-error:
-  report_error(
-      error_token.line_number(), error_token.char_number(), error_token.line_str(), error_msg);
-  /* Avoid out of bound access for the rest of the processing. Empty everything. */
-  scope_types = {ScopeType::Global};
-  scope_ranges = {IndexRange(0, 0)};
-}
 
 void ParserBase::build_token_to_scope_map()
 {

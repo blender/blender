@@ -10,6 +10,7 @@ set(SRC
   enum.cc
   flow_control.cc
   function.cc
+  grammar.cc
   intermediate.cc
   metadata.cc
   namespace.cc

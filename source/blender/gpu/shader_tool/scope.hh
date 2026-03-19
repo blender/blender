@@ -16,7 +16,11 @@
 
 namespace blender::gpu::shader::parser {
 
+struct ScopeParser;
+
 struct Scope {
+  friend ScopeParser;
+
  private:
 #ifndef NDEBUG
   /* String view for nicer debugging experience. Isn't actually used. */
@@ -114,6 +118,40 @@ struct Scope {
       }
     }
     return scope;
+  }
+
+  /* Returns the parent node.
+   * Equivalent to scope(). Should ultimately replace it. */
+  Scope parent() const
+  {
+    if (is_invalid()) {
+      return Scope(*parser_);
+    }
+    return Scope(*parser_, parser_->scope_links[index_].parent_);
+  }
+
+  Scope prev_neighbor() const
+  {
+    if (is_invalid()) {
+      return Scope(*parser_);
+    }
+    return Scope(*parser_, parser_->scope_links[index_].prev_);
+  }
+
+  Scope next_neighbor() const
+  {
+    if (is_invalid()) {
+      return Scope(*parser_);
+    }
+    return Scope(*parser_, parser_->scope_links[index_].next_);
+  }
+
+  Scope child_first() const
+  {
+    if (is_invalid()) {
+      return Scope(*parser_);
+    }
+    return Scope(*parser_, parser_->scope_links[index_].child_first_);
   }
 
   /* Returns the previous scope before this scope. Can be either the container scope or the

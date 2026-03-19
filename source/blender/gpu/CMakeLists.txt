@@ -111,6 +111,7 @@ set(SRC
   shader_tool/enum.cc
   shader_tool/flow_control.cc
   shader_tool/function.cc
+  shader_tool/grammar.cc
   shader_tool/intermediate.cc
   shader_tool/metadata.cc
   shader_tool/namespace.cc
