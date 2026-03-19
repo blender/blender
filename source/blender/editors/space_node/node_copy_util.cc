@@ -528,10 +528,12 @@ static void make_socket_visible(bNode &node, bNodeSocket &socket)
 
 using SocketLinkMap = MultiValueMap<const bNodeSocket *, bNodeLink *>;
 
-/* Create a map of existing links by their target "to" socket.
- * This is to avoid O(N^2) looping over links later on for updating multi-input sort ids.
- * Make sure links are not removed while in use! */
-SocketLinkMap get_links_by_to_socket(bNodeTree &tree)
+/**
+ * Create a map of existing links by their target "to" socket.
+ * This is to avoid `O(N^2)` looping over links later on for updating multi-input sort ids.
+ * Make sure links are not removed while in use!
+ */
+static SocketLinkMap get_links_by_to_socket(bNodeTree &tree)
 {
   SocketLinkMap result;
   for (bNodeLink &link : tree.links) {
