@@ -4,14 +4,18 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_listbase_iterator.hh"
 #include "BLI_ordered_edge.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
+
+#include "DNA_object_types.h"
 
 #include "GEO_mesh_selection.hh"
 #include "GEO_mesh_split_edges.hh"
@@ -30,6 +34,16 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
   mesh.verts_num += new_to_old_verts_map.size();
   mesh.attribute_storage.wrap().resize(bke::AttrDomain::Point, mesh.verts_num);
 
+  Set<StringRef> vertex_group_names;
+  for (bDeformGroup &group : mesh.vertex_group_names) {
+    vertex_group_names.add(group.name);
+  }
+  if (!vertex_group_names.is_empty() && !mesh.deform_verts().is_empty()) {
+    MutableSpan<MDeformVert> dverts = mesh.deform_verts_for_write();
+    bke::gather_deform_verts(
+        dverts, new_to_old_verts_map, dverts.take_back(new_to_old_verts_map.size()));
+  }
+
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.storage_type == bke::AttrStorageType::Single) {
@@ -39,6 +53,9 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
       return;
     }
     if (iter.data_type == bke::AttrType::String) {
+      return;
+    }
+    if (vertex_group_names.contains(iter.name)) {
       return;
     }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
