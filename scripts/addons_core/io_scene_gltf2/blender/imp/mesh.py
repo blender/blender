@@ -105,7 +105,7 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
             i += 1
         num_cols = max(i, num_cols)
 
-        custom_attrs = [k for k in prim.attributes if k.startswith('_')]
+        custom_attrs = [k for k in prim.attributes if k.startswith('_') or k.startswith('KHR_')]
         for attr in custom_attrs:
             if attr not in attributes:
                 attribute_type[attr] = gltf.data.accessors[prim.attributes[attr]].type

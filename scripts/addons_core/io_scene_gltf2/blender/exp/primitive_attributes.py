@@ -178,7 +178,7 @@ def __gather_attribute(blender_primitive, attribute, export_settings):
         "POSITION": True
     }
 
-    if (attribute.startswith("_") or attribute.startswith("COLOR_")
+    if (attribute.startswith("_") or attribute.startswith("COLOR_") or attribute.startswith("KHR_")
         ) and blender_primitive["attributes"][attribute]['component_type'] == gltf2_io_constants.ComponentType.UnsignedShort:
         # Byte Color vertex color, need to normalize
 

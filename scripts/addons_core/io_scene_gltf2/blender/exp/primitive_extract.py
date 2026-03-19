@@ -177,7 +177,8 @@ class PrimitiveCreator:
         class KeepAttribute:
             def __init__(self, attr_name):
                 self.attr_name = attr_name
-                self.keep = attr_name.startswith("_")
+                # By default, keep only custom attributes (starting with _ or KHR_)
+                self.keep = attr_name.startswith("_") or attr_name.startswith("KHR_")
 
         # Manage attributes
         for blender_attribute_index, blender_attribute in enumerate(self.blender_mesh.attributes):
@@ -1138,7 +1139,7 @@ class PrimitiveCreator:
     def get_function(self):
 
         def getting_function(attr):
-            if attr['gltf_attribute_name'].startswith("_"):
+            if attr['gltf_attribute_name'].startswith("_") or attr['gltf_attribute_name'].startswith("KHR_"):
                 self.__get_layer_attribute(attr)
             elif attr['gltf_attribute_name'].startswith("TEXCOORD_"):
                 self.__get_uvs_attribute(int(attr['gltf_attribute_name'].split("_")[-1]), attr)
