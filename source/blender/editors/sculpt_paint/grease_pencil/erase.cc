@@ -46,7 +46,7 @@ class EraseOperation : public GreasePencilStrokeOperation {
   bool temp_eraser_ = false;
 
   bool keep_caps_ = false;
-  float radius_ = 50.0f;
+  float radius_ = 0.0f;
   float strength_ = 0.1f;
   eGP_BrushEraserMode eraser_mode_ = GP_BRUSH_ERASER_HARD;
   bool active_layer_only_ = false;
@@ -1040,20 +1040,18 @@ void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*st
   Paint *paint = BKE_paint_get_active_from_context(&C);
   Brush *brush = BKE_paint_brush(paint);
 
+  radius_ = BKE_brush_radius_get(paint, brush);
+
   /* If we're using the draw tool to erase (e.g. while holding ctrl), then we should use the
    * eraser brush instead. */
   if (temp_eraser_) {
     Object *object = CTX_data_active_object(&C);
     GreasePencil *grease_pencil = id_cast<GreasePencil *>(object->data);
 
-    radius_ = paint->eraser_brush->size / 2.0f;
-    grease_pencil->runtime->temp_eraser_size = radius_;
+    grease_pencil->runtime->temp_eraser_radius = radius_;
     grease_pencil->runtime->temp_use_eraser = true;
 
     brush = BKE_paint_eraser_brush(paint);
-  }
-  else {
-    radius_ = brush->size / 2.0f;
   }
 
   if (brush->gpencil_settings == nullptr) {
@@ -1136,7 +1134,7 @@ void EraseOperation::on_stroke_done(const bContext &C)
     /* If we're using the draw tool to temporarily erase, then we need to reset the
      * `temp_use_eraser` flag here. */
     grease_pencil.runtime->temp_use_eraser = false;
-    grease_pencil.runtime->temp_eraser_size = 0.0f;
+    grease_pencil.runtime->temp_eraser_radius = 0.0f;
   }
 
   for (GreasePencilDrawing *drawing_ : affected_drawings_) {

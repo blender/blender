@@ -109,11 +109,11 @@ void grease_pencil_cursor_draw(PaintCursorContext &pcontext)
     {
       /* If we use the eraser from the draw tool with a "scene" radius unit, we need to draw the
        * cursor with the appropriate size. */
-      if (grease_pencil->runtime->temp_use_eraser && (brush->flag & BRUSH_LOCK_SIZE) != 0) {
-        pcontext.pixel_radius = std::max(int(grease_pencil->runtime->temp_eraser_size / 2.0f), 1);
+      if (grease_pencil->runtime->temp_use_eraser) {
+        pcontext.pixel_radius = std::max(int(grease_pencil->runtime->temp_eraser_radius), 1);
       }
       else {
-        pcontext.pixel_radius = std::max(1, int(brush->size / 2.0f));
+        pcontext.pixel_radius = std::max(int(BKE_brush_radius_get(paint, brush)), 1);
       }
       grease_pencil_eraser_draw(pcontext);
       return;
@@ -127,7 +127,7 @@ void grease_pencil_cursor_draw(PaintCursorContext &pcontext)
     }
 
     if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_TINT) {
-      pcontext.pixel_radius = std::max(int(brush->size / 2.0f), 1);
+      pcontext.pixel_radius = std::max(int(BKE_brush_radius_get(paint, brush)), 1);
     }
 
     if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW) {
