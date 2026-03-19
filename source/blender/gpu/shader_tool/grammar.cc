@@ -16,7 +16,7 @@
 
 namespace blender::gpu::shader::parser {
 
-std::string to_string(TokenType type)
+static std::string to_string(TokenType type)
 {
   switch (type) {
     case Word:
