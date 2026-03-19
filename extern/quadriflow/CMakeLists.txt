@@ -4,10 +4,10 @@
 
 # avoid noisy warnings
 if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
-  add_c_flag(
+  add_cxx_flag(
     "-Wno-unused-result"
   )
-  remove_cc_flag(
+  remove_cxx_flag(
     "-Wmissing-declarations"
   )
 endif()

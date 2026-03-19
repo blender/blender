@@ -671,13 +671,19 @@ macro(add_c_flag
   flag)
 
   string(APPEND CMAKE_C_FLAGS " ${flag}")
-  string(APPEND CMAKE_CXX_FLAGS " ${flag}")
 endmacro()
 
 macro(add_cxx_flag
   flag)
 
   string(APPEND CMAKE_CXX_FLAGS " ${flag}")
+endmacro()
+
+macro(add_cc_flag
+  flag)
+
+  add_c_flag("${flag}")
+  add_cxx_flag("${flag}")
 endmacro()
 
 # Needed to "negate" options: `-Wno-example`
