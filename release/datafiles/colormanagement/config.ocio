@@ -1,6 +1,7 @@
 # OpenColorIO configuration file for Blender
 #
 # ACEScg and ACES2065-1 spaces using OpenColorIO's BuiltinTransform
+# Camera input color space adapted from OpenColorIO-Config-ACES configs.
 #
 # Filmic Dynamic Range LUT configuration crafted by Troy James Sobotka with
 # special thanks and feedback from Guillermo, Claudio Rocha, Bassam Kurdali,
@@ -588,6 +589,439 @@ colorspaces:
       children:
         - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear CIE-XYZ I-D65}
         - !<MatrixTransform> {matrix: [1.5250528, -0.3159135, -0.1226583, 0, -0.5091526, 1.3333274, 0.1382844, 0, 0.0957153, 0.0508974, 0.7879558, 0, 0, 0, 0, 1]}
+  
+  - !<ColorSpace>
+    name: Apple Log
+    aliases: [apple_log, ocio:applelog_rec2020_scene]
+    interop_id: ocio:applelog_rec2020_scene
+    family: Input/Apple
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Apple camera input space using Apple Log transfer function and Rec.2020 primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<BuiltinTransform> {style: APPLE_LOG_to_ACES2065-1}
+
+  - !<ColorSpace>
+    name: ARRI LogC3 (EI800)
+    aliases: [arri_logc3_ei800, logc3ei800_alexawide, ocio:arrilogc3_awg3_scene]
+    interop_id: ocio:arrilogc3_awg3_scene
+    family: Input/ARRI
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      ARRI camera input space using LogC3 (EI800) transfer function and ARRI Wide Gamut primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.247189638318671, log_side_offset: 0.385536998692443, lin_side_slope: 5.55555555555556, lin_side_offset: 0.0522722750251688, lin_side_break: 0.0105909904954696, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.680205505106279, 0.236136601606481, 0.0836578932872398, 0, 0.0854149797421404, 1.01747087860704, -0.102885858349182, 0, 0.00205652166929683, -0.0625625003847921, 1.06050597871549, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear ARRI Wide Gamut 3
+    aliases: [lin_arri_wide_gamut_3, lin_alexawide, ocio:lin_awg3_scene]
+    interop_id: ocio:lin_awg3_scene
+    family: Input/ARRI
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      ARRI camera input space using linear ARRI Wide Gamut primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.680205505106279, 0.236136601606481, 0.0836578932872398, 0, 0.0854149797421404, 1.01747087860704, -0.102885858349182, 0, 0.00205652166929683, -0.0625625003847921, 1.06050597871549, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: ARRI LogC4
+    aliases: [arri_logc4, ocio:arrilogc4_awg4_scene]
+    interop_id: ocio:arrilogc4_awg4_scene
+    family: Input/ARRI
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      ARRI camera input space using LogC4 transfer function and ARRI Wide Gamut 4 primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {log_side_slope: 0.0647954196341293, log_side_offset: -0.295908392682586, lin_side_slope: 2231.82630906769, lin_side_offset: 64, lin_side_break: -0.0180569961199113, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.750957362824734, 0.144422786709757, 0.104619850465509, 0, 0.000821837079380207, 1.007397584885, -0.00821942196438358, 0, -0.000499952143533471, -0.000854177231436971, 1.00135412937497, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear ARRI Wide Gamut 4
+    aliases: [lin_arri_wide_gamut_4, lin_awg4, ocio:lin_awg4_scene]
+    interop_id: ocio:lin_awg4_scene
+    family: Input/ARRI
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      ARRI camera input space using linear ARRI Wide Gamut 4 primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [0.750957362824734, 0.144422786709757, 0.104619850465509, 0, 0.000821837079380207, 1.007397584885, -0.00821942196438358, 0, -0.000499952143533471, -0.000854177231436971, 1.00135412937497, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: BMDFilm WideGamut Gen5
+    aliases: [bmdfilm_widegamut_gen5, ocio:bmdfilm5_wg5_scene]
+    interop_id: ocio:bmdfilm5_wg5_scene
+    family: Input/BlackmagicDesign
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Blackmagic camera input space using BMDFilm Gen5 transfer function and Blackmagic Wide Gamut Gen5 primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 2.71828182845905, log_side_slope: 0.0869287606549122, log_side_offset: 0.530013339229194, lin_side_offset: 0.00549407243225781, lin_side_break: 0.005, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.647091325580708, 0.242595385134207, 0.110313289285085, 0, 0.0651915997328519, 1.02504756760476, -0.0902391673376125, 0, -0.0275570729194699, -0.0805887097177784, 1.10814578263725, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear BMD WideGamut Gen5
+    aliases: [lin_bmd_widegamut_gen5, ocio:lin_bmdwg5_scene]
+    interop_id: ocio:lin_bmdwg5_scene
+    family: Input/BlackmagicDesign
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Blackmagic camera input space using linear Blackmagic Wide Gamut Gen5 primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [0.647091325580708, 0.242595385134207, 0.110313289285085, 0, 0.0651915997328519, 1.02504756760476, -0.0902391673376125, 0, -0.0275570729194699, -0.0805887097177784, 1.10814578263725, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: DaVinci Intermediate WideGamut
+    aliases: [davinci_intermediate_widegamut, ocio:davinci_dwg_scene]
+    interop_id: ocio:davinci_dwg_scene
+    family: Input/BlackmagicDesign
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Blackmagic camera input space using DaVinci Intermediate transfer function and DaVinci Wide Gamut primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {log_side_slope: 0.07329248, log_side_offset: 0.51304736, lin_side_offset: 0.0075, lin_side_break: 0.00262409, linear_slope: 10.44426855, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.748270290272981, 0.167694659554328, 0.0840350501726906, 0, 0.0208421234689102, 1.11190474268894, -0.132746866157851, 0, -0.0915122574225729, -0.127746712807307, 1.21925897022988, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear DaVinci WideGamut
+    aliases: [lin_davinci_widegamut, ocio:lin_dwg_scene]
+    interop_id: ocio:lin_dwg_scene
+    family: Input/BlackmagicDesign
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Blackmagic camera input space using linear DaVinci Wide Gamut primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [0.748270290272981, 0.167694659554328, 0.0840350501726906, 0, 0.0208421234689102, 1.11190474268894, -0.132746866157851, 0, -0.0915122574225729, -0.127746712807307, 1.21925897022988, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: CanonLog2 CinemaGamut D55
+    aliases: [canonlog2_cinemagamut_d55, canonlog2_cgamutday, ocio:canonlog2_cgamutd55_scene]
+    interop_id: ocio:canonlog2_cgamutd55_scene
+    family: Input/Canon
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Canon camera input space using Canon-Log2 transfer function and Cinema Gamut primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<BuiltinTransform> {style: CANON_CLOG2-CGAMUT_to_ACES2065-1}
+
+  - !<ColorSpace>
+    name: CanonLog3 CinemaGamut D55
+    aliases: [canonlog3_cinemagamut_d55, canonlog3_cgamutday, ocio:canonlog3_cgamutd55_scene]
+    interop_id: ocio:canonlog3_cgamutd55_scene
+    family: Input/Canon
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Canon camera input space using Canon-Log3 transfer function and Cinema Gamut primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<BuiltinTransform> {style: CANON_CLOG3-CGAMUT_to_ACES2065-1}
+
+  - !<ColorSpace>
+    name: Linear CinemaGamut D55
+    aliases: [lin_cinemagamut_d55, lin_canoncgamutday, ocio:lin_cgamutd55_scene]
+    interop_id: ocio:lin_cgamutd55_scene
+    family: Input/Canon
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Canon camera input space using linear Cinema Gamut primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.763064454775734, 0.14902116113706, 0.0879143840872056, 0, 0.00365745670512393, 1.10696038037622, -0.110617837081339, 0, -0.0094077940457189, -0.218383304989987, 1.22779109903571, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: D-Log D-Gamut
+    aliases: [dlog_dgamut, ocio:djilog_dgamut_scene]
+    interop_id: ocio:djilog_dgamut_scene
+    family: Input/DJI
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      DJI camera input space using D-Log transfer function and D-Gamut primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.256662970719888, log_side_offset: 0.58455504907396, lin_side_slope: 0.9892, lin_side_offset: 0.0108, lin_side_break: 0.00758078675, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.691279245585754, 0.214382527745956, 0.0943382266682902, 0, 0.0662224037667752, 1.0116160801876, -0.0778384839543733, 0, -0.0172985410341745, -0.0773788501012682, 1.09467739113544, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear D-Gamut
+    aliases: [lin_dgamut, ocio:lin_dgamut_scene]
+    interop_id: ocio:lin_dgamut_scene
+    family: Input/DJI
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      DJI camera input space using linear D-Gamut primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [0.691279245585754, 0.214382527745956, 0.0943382266682902, 0, 0.0662224037667752, 1.0116160801876, -0.0778384839543733, 0, -0.0172985410341745, -0.0773788501012682, 1.09467739113544, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: V-Log V-Gamut
+    aliases: [vlog_vgamut, ocio:vlog_vgamut_scene]
+    interop_id: ocio:vlog_vgamut_scene
+    family: Input/Panasonic
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Panasonic camera input space using V-Log transfer function and V-Gamut primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.241514, log_side_offset: 0.598206, lin_side_offset: 0.00873, lin_side_break: 0.01, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.72461670413153, 0.166915288193706, 0.108468007674764, 0, 0.021390245413146, 0.984908155703054, -0.00629840111620089, 0, -0.00923556287076561, -0.00105690563900513, 1.01029246850977, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear V-Gamut
+    aliases: [lin_vgamut, ocio:lin_vgamut_scene]
+    interop_id: ocio:lin_vgamut_scene
+    family: Input/Panasonic
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Panasonic camera input space using linear V-Gamut primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.72461670413153, 0.166915288193706, 0.108468007674764, 0, 0.021390245413146, 0.984908155703054, -0.00629840111620089, 0, -0.00923556287076561, -0.00105690563900513, 1.01029246850977, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Log3G10 REDWideGamutRGB
+    aliases: [log3g10_redwidegamutrgb, rl3g10_rwg, ocio:redlog3g10_rwg_scene]
+    interop_id: ocio:redlog3g10_rwg_scene
+    family: Input/RED
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      RED camera input space using REDLog3G10 transfer function and REDWideGamutRGB primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.224282, lin_side_slope: 155.975327, lin_side_offset: 2.55975327, lin_side_break: -0.01, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.785058804068092, 0.0838587565440846, 0.131082439387823, 0, 0.0231738348454756, 1.08789754919233, -0.111071384037806, 0, -0.0737604353682082, -0.314590072290208, 1.38835050765842, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear REDWideGamutRGB
+    aliases: [lin_redwidegamutrgb, lin_rwg, ocio:lin_rwg_scene]
+    interop_id: ocio:lin_rwg_scene
+    family: Input/RED
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      RED camera input space using linear REDWideGamutRGB primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.785058804068092, 0.0838587565440846, 0.131082439387823, 0, 0.0231738348454756, 1.08789754919233, -0.111071384037806, 0, -0.0737604353682082, -0.314590072290208, 1.38835050765842, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: S-Log3 S-Gamut3
+    aliases: [slog3_sgamut3, ocio:slog3_sgamut3_scene]
+    interop_id: ocio:slog3_sgamut3_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using S-Log3 transfer function and S-Gamut3 primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.255620723362659, log_side_offset: 0.410557184750733, lin_side_slope: 5.26315789473684, lin_side_offset: 0.0526315789473684, lin_side_break: 0.01125, linear_slope: 6.62194371177582, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.75298259539984, 0.143370216235557, 0.103647188364603, 0, 0.0217076974414429, 1.01531883550528, -0.0370265329467195, 0, -0.00941605274963355, 0.00337041785882367, 1.00604563489081, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: S-Log3 S-Gamut3.Cine
+    aliases: [slog3_sgamut3cine, slog3_sgamutcine, ocio:slog3_sgamut3cine_scene]
+    interop_id: ocio:slog3_sgamut3cine_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using S-Log3 transfer function and S-Gamut3.Cine primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.255620723362659, log_side_offset: 0.410557184750733, lin_side_slope: 5.26315789473684, lin_side_offset: 0.0526315789473684, lin_side_break: 0.01125, linear_slope: 6.62194371177582, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.638788667185978, 0.272351433711262, 0.0888598991027595, 0, -0.00391590602528224, 1.0880732308974, -0.0841573248721177, 0, -0.0299072021239151, -0.0264325799101947, 1.05633978203411, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: S-Log3 Venice S-Gamut3
+    aliases: [slog3_venice_sgamut3, ocio:slog3_sgamut3venice_scene]
+    interop_id: ocio:slog3_sgamut3venice_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using S-Log3 transfer function and Venice S-Gamut3 primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.255620723362659, log_side_offset: 0.410557184750733, lin_side_slope: 5.26315789473684, lin_side_offset: 0.0526315789473684, lin_side_break: 0.01125, linear_slope: 6.62194371177582, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.793329741146434, 0.089078625620677, 0.117591633232888, 0, 0.0155810585252582, 1.03271230692988, -0.0482933654551394, 0, -0.0188647477991488, 0.0127694120973433, 1.00609533570181, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: S-Log3 Venice S-Gamut3.Cine
+    aliases: [slog3_venice_sgamut3cine, slog3_venice_sgamutcine, ocio:slog3_sgamut3cinevenice_scene]
+    interop_id: ocio:slog3_sgamut3cinevenice_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using S-Log3 transfer function and Venice S-Gamut3.Cine primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<LogCameraTransform> {base: 10, log_side_slope: 0.255620723362659, log_side_offset: 0.410557184750733, lin_side_slope: 5.26315789473684, lin_side_offset: 0.0526315789473684, lin_side_break: 0.01125, linear_slope: 6.62194371177582, direction: inverse}
+        - !<MatrixTransform> {matrix: [0.674257092126512, 0.220571735923397, 0.10517117195009, 0, -0.00931360607857167, 1.10595886142466, -0.0966452553460855, 0, -0.0382090673002312, -0.017938376600236, 1.05614744390047, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear S-Gamut3
+    aliases: [lin_sgamut3, ocio:lin_sgamut3_scene]
+    interop_id: ocio:lin_sgamut3_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using linear S-Gamut3 primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.75298259539984, 0.143370216235557, 0.103647188364603, 0, 0.0217076974414429, 1.01531883550528, -0.0370265329467195, 0, -0.00941605274963355, 0.00337041785882367, 1.00604563489081, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear S-Gamut3.Cine
+    aliases: [lin_sgamut3cine, ocio:lin_sgamut3cine_scene]
+    interop_id: ocio:lin_sgamut3cine_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using linear S-Gamut3.Cine primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.638788667185978, 0.272351433711262, 0.0888598991027595, 0, -0.00391590602528224, 1.0880732308974, -0.0841573248721177, 0, -0.0299072021239151, -0.0264325799101947, 1.05633978203411, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear Venice S-Gamut3
+    aliases: [lin_venice_sgamut3, ocio:lin_sgamut3venice_scene]
+    interop_id: ocio:lin_sgamut3venice_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using linear Venice S-Gamut3 primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.793329741146434, 0.089078625620677, 0.117591633232888, 0, 0.0155810585252582, 1.03271230692988, -0.0482933654551394, 0, -0.0188647477991488, 0.0127694120973433, 1.00609533570181, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear Venice S-Gamut3.Cine
+    aliases: [lin_venice_sgamut3cine, ocio:lin_sgamut3cinevenice_scene]
+    interop_id: ocio:lin_sgamut3cinevenice_scene
+    family: Input/Sony
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Sony camera input space using linear Venice S-Gamut3.Cine primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.674257092126512, 0.220571735923397, 0.10517117195009, 0, -0.00931360607857167, 1.10595886142466, -0.0966452553460855, 0, -0.0382090673002312, -0.017938376600236, 1.05614744390047, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: ADX10
+    aliases: [ocio:adx10_apd_scene]
+    interop_id: ocio:adx10_apd_scene
+    family: Input/Film
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Film scan input space using ADX10 encoding.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<BuiltinTransform> {style: ADX10_to_ACES2065-1}
+
+  - !<ColorSpace>
+    name: ADX16
+    aliases: [ocio:adx16_apd_scene]
+    interop_id: ocio:adx16_apd_scene
+    family: Input/Film
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Film scan input space using ADX16 encoding.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<BuiltinTransform> {style: ADX16_to_ACES2065-1}
 
   - !<ColorSpace>
     name: Non-Color
