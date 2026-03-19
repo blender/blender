@@ -334,7 +334,7 @@ struct ScopeParser {
         case Colon:
         case Ampersand: /* For references. */
         case Inline:    /* For MSL / C++. */
-        case Number:    /* For C++ bitflags. */
+        case Number:    /* For C++ bit-flags. */
         case Star:      /* For C++ pointers. */
         case Comma:     /* For C++ constructor. */
         case Equal:     /* For C++ operator. */
