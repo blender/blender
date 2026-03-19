@@ -15,6 +15,7 @@
 #include "BLI_sys_types.h"
 
 #include "BKE_main.hh"
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 
@@ -108,6 +109,32 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 7)) {
     for (Scene &scene : bmain->scenes) {
       scene.r.anisotropic_filter = 2;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 9)) {
+    for (Mesh &mesh : bmain->meshes) {
+      bke::mesh_freestyle_marks_to_generic(mesh);
+    }
+  }
+
+  /* Convert H.264 codec value for older files (2.79), see #155775. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 10)) {
+    for (Scene &scene : bmain->scenes) {
+      if (scene.r.ffcodecdata.codec == 28) {
+        scene.r.ffcodecdata.codec = 27;
+      }
+    }
+  }
+
+  /* Disable "unified" flags for Grease Pencil Draw mode. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 11)) {
+    for (Scene &scene : bmain->scenes) {
+      if (scene.toolsettings->gp_paint) {
+        UnifiedPaintSettings &settings =
+            scene.toolsettings->gp_paint->paint.unified_paint_settings;
+        settings.flag &= ~(UNIFIED_PAINT_SIZE | UNIFIED_PAINT_ALPHA | UNIFIED_PAINT_COLOR);
+      }
     }
   }
 

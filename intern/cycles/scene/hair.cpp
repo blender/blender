@@ -308,16 +308,6 @@ void Hair::resize_curves(const int numcurves, const int numkeys)
   attributes.resize();
 }
 
-void Hair::reserve_curves(const int numcurves, const int numkeys)
-{
-  curve_keys.reserve(numkeys);
-  curve_radius.reserve(numkeys);
-  curve_first_key.reserve(numcurves);
-  curve_shader.reserve(numcurves);
-
-  attributes.resize(true);
-}
-
 void Hair::clear(bool preserve_shaders)
 {
   Geometry::clear(preserve_shaders);
@@ -328,24 +318,6 @@ void Hair::clear(bool preserve_shaders)
   curve_shader.clear();
 
   attributes.clear();
-}
-
-void Hair::add_curve_key(const float3 co, const float radius)
-{
-  curve_keys.push_back_reserved(co);
-  curve_radius.push_back_reserved(radius);
-
-  tag_curve_keys_modified();
-  tag_curve_radius_modified();
-}
-
-void Hair::add_curve(const int first_key, const int shader)
-{
-  curve_first_key.push_back_reserved(first_key);
-  curve_shader.push_back_reserved(shader);
-
-  tag_curve_first_key_modified();
-  tag_curve_shader_modified();
 }
 
 void Hair::copy_center_to_motion_step(const int motion_step)
@@ -414,7 +386,7 @@ void Hair::compute_bounds()
       const size_t steps_size = curve_keys.size() * (motion_steps - 1);
       // Attribute data is stored as a float4 and is not
       // interchangeable with float3
-      float4 *key_steps = curve_attr->data_float4();
+      const float4 *key_steps = curve_attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(make_float3(key_steps[i]));
@@ -433,7 +405,7 @@ void Hair::compute_bounds()
         const size_t steps_size = curve_keys.size() * (motion_steps - 1);
         // Attribute data is stored as a float4 which is not
         // interchangeable with float4
-        float4 *key_steps = curve_attr->data_float4();
+        const float4 *key_steps = curve_attr->data_float4();
 
         for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(make_float3(key_steps[i]));

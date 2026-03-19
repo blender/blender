@@ -358,7 +358,7 @@ struct IntermediateForm : MutableString, Parser<LexerFn, ParserFn> {
   void debug_print()
   {
     std::cout << "Input: \n" << str_ << " \nEnd of Input\n" << std::endl;
-    std::cout << "Token Types: \"" << this->token_types_str << "\"" << std::endl;
+    std::cout << "Token Types: \"" << this->token_types_str() << "\"" << std::endl;
     std::cout << "Token scopes: \"" << this->token_scope << "\"" << std::endl;
     std::cout << "Scope Types: \"" << this->scope_types_str << "\"" << std::endl;
   }

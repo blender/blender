@@ -147,7 +147,7 @@ class ImageBufferByte4 {
 
   const char *get_colorspace_name(ImBuf *image_buffer)
   {
-    return IMB_colormanagement_get_rect_colorspace(image_buffer);
+    return IMB_colormanagement_get_byte_colorspace(image_buffer);
   }
 };
 

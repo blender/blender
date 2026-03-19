@@ -22,7 +22,7 @@
 #include "types.hh"
 #include "vector.hh"
 
-// #define LEXIT_DEBUG
+#define LEXIT_DEBUG
 
 #ifdef LEXIT_DEBUG
 #  include <vector>

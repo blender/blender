@@ -105,7 +105,7 @@ set(SRC_GLSL_VERT
 )
 
 set(SRC_GLSL_FRAG
-  overlay_antialiasing_frag.glsl
+  overlay_antialiasing.bsl.hh
   overlay_armature_dof_solid_frag.glsl
   overlay_armature_envelope_solid_frag.glsl
   overlay_armature_shape_solid_frag.glsl
@@ -144,7 +144,7 @@ set(SRC_GLSL_FRAG
   overlay_varying_color.glsl
   overlay_viewer_attribute_frag.glsl
   overlay_wireframe_frag.glsl
-  overlay_xray_fade_frag.glsl
+  overlay_xray_fade.bsl.hh
 )
 
 

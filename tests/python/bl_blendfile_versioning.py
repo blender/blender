@@ -99,6 +99,26 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
         # Directories to exclude relative to `./tests/files/`.
         self.excluded_save_reload_dirs = ()
 
+        # Some files are known broken currently for opening or linking.
+        # They cannot be opened, or will generate some error (e.g. memleaks).
+        # Each file in this list should either be the source of a bug report,
+        # or removed from tests repo.
+        self.excluded_global_undo_paths = {
+            # depsgraph/deg_anim_camera_dof_driving_material.blend
+            # ERROR (bke.fcurve):
+            # source/blender/blenkernel/intern/fcurve_driver.cc:188 dtar_get_prop_val:
+            # Driver Evaluation Error: cannot resolve target for OBCamera ->
+            # data.dof_distance
+            "deg_anim_camera_dof_driving_material.blend",
+
+            # physics/fluidsim.blend
+            # Error: Not freed memory blocks: 3, total unfreed memory 0.003548 MB
+            "fluidsim.blend",
+        }
+
+        # Directories to exclude relative to `./tests/files/`.
+        self.excluded_global_undo_dirs = ()
+
         # Some files are expected to be invalid.
         # This mapping stores filenames as keys, and expected error message as value.
         self.invalid_paths = {
@@ -332,6 +352,9 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
     def skip_save_reload_path_check(self, bfp):
         return self.skip_path_check(bfp, self.excluded_save_reload_paths, self.excluded_save_reload_dirs)
 
+    def skip_global_undo_path_check(self, bfp):
+        return self.skip_path_check(bfp, self.excluded_global_undo_paths, self.excluded_global_undo_dirs)
+
     def invalid_path_exception_process(self, bfp, exception):
         expected_failure = self.invalid_paths.get(os.path.basename(bfp), None)
         if not expected_failure:
@@ -399,6 +422,29 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
 
     def test_append(self):
         self.link_append(do_link=False)
+
+    def test_global_undo(self):
+        for bfp in self.blendfile_paths:
+            if self.skip_global_undo_path_check(bfp):
+                continue
+            if not self.args.is_quiet:
+                print(f"Trying to perform basic global undo in {bfp}", flush=True)
+            bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+            try:
+                bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
+                # NOTE: The two undo pushes are necessary to be able to undo, since the first undo push creates the
+                # initial state for memfile undo (it is not initialized by default in background mode).
+                bpy.ops.ed.undo_push()
+                bpy.ops.ed.undo_push()
+                bpy.ops.ed.undo()
+                bpy.ops.ed.redo()
+                if bpy.context.object:
+                    bpy.context.object.location.x += 1.0
+                    bpy.ops.ed.undo_push()
+                    bpy.ops.ed.undo()
+                    bpy.ops.ed.redo()
+            except BaseException as e:
+                self.invalid_path_exception_process(bfp, e)
 
 
 TESTS = (

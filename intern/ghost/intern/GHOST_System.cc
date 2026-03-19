@@ -76,6 +76,11 @@ void GHOST_System::setWindowCSD_Layout(const GHOST_CSD_Layout &layout)
   window_csd_layout_ = layout;
 }
 
+void GHOST_System::setIconGenerator(const GHOST_IconGenerator *icon_generator)
+{
+  icon_generator_ = icon_generator;
+}
+
 GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,
                                              uint64_t interval,
                                              GHOST_TimerProcPtr timer_proc,

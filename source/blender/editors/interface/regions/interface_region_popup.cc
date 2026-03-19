@@ -665,7 +665,7 @@ void popup_dummy_panel_set(ARegion *region, Block *block, StringRef idname)
     panel = BKE_panel_new(&panel_type);
   }
   panel->runtime->layout_panels.clear();
-  panel->runtime->popup_layout_panel_states = &popup_persistent_layout_panel_states(idname);
+  panel->runtime->layout_panel_states_storage = &popup_persistent_layout_panel_states(idname);
   block->panel = panel;
   panel->runtime->block = block;
 }

@@ -151,8 +151,9 @@ void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
       }
 
       if (can_have_geometry || is_light) {
-        const bool updated_geometry = (b_id->recalc & (blender::ID_RECALC_GEOMETRY |
-                                                       blender::ID_RECALC_ALL)) != 0;
+        const bool updated_geometry = (b_id->recalc & blender::ID_RECALC_GEOMETRY) != 0 ||
+                                      (b_ob->data &&
+                                       (b_ob->data->recalc & blender::ID_RECALC_ALL) != 0);
         const bool updated_transform = (b_id->recalc & blender::ID_RECALC_TRANSFORM) != 0;
 
         /* Geometry (mesh, hair, volume). */
@@ -236,6 +237,7 @@ void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
       }
     }
   }
+  ITER_END;
 
   if (use_adaptive_subdivision) {
     /* Mark all meshes as needing to be exported again if dicing changed. */
@@ -274,7 +276,6 @@ void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
       }
     }
   }
-  ITER_END;
 
   if (b_v3d) {
     const BlenderViewportParameters new_viewport_parameters(b_screen, b_v3d, use_developer_ui);

@@ -986,9 +986,18 @@ class WM_OT_context_modal_mouse(Operator):
     def modal(self, context, event):
         event_type = event.type
 
+        # Factor for precision tweaking (match GIZMO_PRECISION_FAC in `gizmo_library_utils.cc`).
+        context_modal_mouse_precision_fac = 0.05
+
         if event_type == 'MOUSEMOVE':
-            delta = event.mouse_x - self.initial_x
-            self._values_delta(delta)
+            total_offset = event.mouse_x - self.initial_x
+            step_delta = event.mouse_x - self._prev_x
+            if event.shift:
+                self._precision_offset += step_delta
+            effective_offset = total_offset - self._precision_offset * (1.0 - context_modal_mouse_precision_fac)
+            self._prev_x = event.mouse_x
+            self._values_delta(effective_offset)
+            delta = effective_offset
             header_text = self.header_text
             if header_text:
                 if len(self._values) == 1:
@@ -1024,6 +1033,8 @@ class WM_OT_context_modal_mouse(Operator):
             return {'CANCELLED'}
         else:
             self.initial_x = event.mouse_x
+            self._prev_x = event.mouse_x
+            self._precision_offset = 0.0
 
             context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
@@ -1094,19 +1105,23 @@ class WM_OT_url_open_preset(Operator):
         items=WM_OT_url_open_preset._wm_url_open_preset_type_items,
     )
 
-    def _url_from_bug(self, _context):
+    @staticmethod
+    def _url_from_bug():
         from _bpy_internal.system_info.url_prefill_runtime import url_from_blender
         return url_from_blender()
 
-    def _url_from_release_notes(self, _context):
+    @staticmethod
+    def _url_from_release_notes():
         return "https://www.blender.org/download/releases/{:d}-{:d}/".format(*bpy.app.version[:2])
 
-    def _url_from_manual(self, _context):
+    @staticmethod
+    def _url_from_manual():
         return "https://docs.blender.org/manual/{:s}/{:d}.{:d}/".format(
             bpy.utils.manual_language_code(), *bpy.app.version[:2],
         )
 
-    def _url_from_api(self, _context):
+    @staticmethod
+    def _url_from_api():
         return "https://docs.blender.org/api/{:d}.{:d}/".format(*bpy.app.version[:2])
 
     # This list is: (enum_item, url) pairs.
@@ -1142,15 +1157,15 @@ class WM_OT_url_open_preset(Operator):
     ]
 
     @staticmethod
-    def lookup_url_from_type(context, type):
+    def lookup_url_from_type(type):
         for (item_id, _, _), url in WM_OT_url_open_preset.preset_items:
             if item_id == type:
                 if callable(url):
-                    return url(None, context)
+                    return url()
                 return url
 
-    def execute(self, context):
-        return bpy.ops.wm.url_open(url=WM_OT_url_open_preset.lookup_url_from_type(context, self.type))
+    def execute(self, _context):
+        return bpy.ops.wm.url_open(url=WM_OT_url_open_preset.lookup_url_from_type(self.type))
 
 
 class WM_OT_path_open(Operator):

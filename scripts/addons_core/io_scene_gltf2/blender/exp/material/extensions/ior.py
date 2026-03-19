@@ -7,8 +7,8 @@ from .....io.com.constants import GLTF_IOR
 from ..search_node_tree import get_socket
 
 
-def export_ior(blender_material, extensions, export_settings):
-    ior_socket = get_socket(blender_material.node_tree, 'IOR')
+def export_ior(bmat, extensions, export_settings):
+    ior_socket = get_socket(bmat.get_used_material().node_tree, 'IOR')
 
     if not ior_socket.socket:
         return None

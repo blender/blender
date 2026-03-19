@@ -68,7 +68,7 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
       bidirectional_point_iterator;
 #  endif
 #endif
-  friend class Curve;
+  friend class Freestyle::Curve;
 #if 0
   friend class Curve::vertex_iterator;
   friend class __point_iterator<CurvePoint_nonconst_traits>;

@@ -1,0 +1,46 @@
+From fa8438ae6b70c57010177de47a9f13d7041a6328 Mon Sep 17 00:00:00 2001
+From: Abseil Team <absl-team@google.com>
+Date: Mon, 19 May 2025 09:01:54 -0700
+Subject: [PATCH] Use static_cast instead of ImplicitCast_ for character
+ conversions
+
+Clang has recently added "warnings when mixing different charN_t types" [1].
+The rationale is that "charN_t represent code units of different UTF encodings.
+Therefore the values of 2 different charN_t objects do not represent the same
+characters."
+
+Note that the warning here may be legitimate - from https://github.com/google/googletest/issues/4762:
+"[...] This is incorrect for values that do not represent valid codepoints."
+
+For the time being, silence the warning by being more explicit about the
+conversion being intentional by using static_cast.
+
+Link: https://github.com/llvm/llvm-project/pull/138708 [1]
+PiperOrigin-RevId: 760644157
+Change-Id: I2e6cc1871975455cecac8731b2f93fd5beeaf0e1
+---
+ googletest/include/gtest/gtest-printers.h | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/googletest/include/gtest/gtest-printers.h b/googletest/include/gtest/gtest-printers.h
+index 198a769349..bbb0fa7e74 100644
+--- a/googletest/include/gtest/gtest-printers.h
++++ b/googletest/include/gtest/gtest-printers.h
+@@ -521,11 +521,15 @@ GTEST_API_ void PrintTo(wchar_t wc, ::std::ostream* os);
+ 
+ GTEST_API_ void PrintTo(char32_t c, ::std::ostream* os);
+ inline void PrintTo(char16_t c, ::std::ostream* os) {
+-  PrintTo(ImplicitCast_<char32_t>(c), os);
++  // TODO(b/418738869): Incorrect for values not representing valid codepoints.
++  // Also see https://github.com/google/googletest/issues/4762.
++  PrintTo(static_cast<char32_t>(c), os);
+ }
+ #ifdef __cpp_lib_char8_t
+ inline void PrintTo(char8_t c, ::std::ostream* os) {
+-  PrintTo(ImplicitCast_<char32_t>(c), os);
++  // TODO(b/418738869): Incorrect for values not representing valid codepoints.
++  // Also see https://github.com/google/googletest/issues/4762.
++  PrintTo(static_cast<char32_t>(c), os);
+ }
+ #endif
+ 

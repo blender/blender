@@ -423,11 +423,11 @@ static void strip_transform_handle_overwrite_trim(Scene *scene,
                                                   Strip *target,
                                                   const eOvelapDescrition overlap)
 {
-  VectorSet targets = query_by_reference(target, scene, seqbasep, query_strip_effect_chain);
+  VectorSet targets = query_by_reference(target, seqbasep, query_strip_effect_chain);
 
   /* Expand collection by adding all target's children, effects and their children. */
   if (target->is_effect()) {
-    iterator_set_expand(scene, seqbasep, targets, query_strip_effect_chain);
+    iterator_set_expand(seqbasep, targets, query_strip_effect_chain);
   }
 
   /* Trim all non effects, that have influence on effect length which is overlapping. */

@@ -32,7 +32,7 @@ Attribute::Attribute(ustring name,
     new (buffer.data()) ImageHandle();
   }
   else {
-    resize(geom, prim, false);
+    resize(geom, prim);
   }
 }
 
@@ -45,15 +45,10 @@ Attribute::~Attribute()
   }
 }
 
-void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_only)
+void Attribute::resize(Geometry *geom, AttributePrimitive prim)
 {
   if (!(element & ATTR_ELEMENT_VOXEL)) {
-    if (reserve_only) {
-      buffer.reserve(buffer_size(geom, prim));
-    }
-    else {
-      buffer.resize(buffer_size(geom, prim), 0);
-    }
+    buffer.resize(buffer_size(geom, prim), 0);
   }
 }
 
@@ -62,101 +57,6 @@ void Attribute::resize(const size_t num_elements)
   if (!(element & ATTR_ELEMENT_VOXEL)) {
     buffer.resize(num_elements * data_sizeof(), 0);
   }
-}
-
-void Attribute::add(const float &f)
-{
-  assert(data_sizeof() == sizeof(float));
-
-  char *data = (char *)&f;
-  const size_t size = sizeof(f);
-
-  for (size_t i = 0; i < size; i++) {
-    buffer.push_back(data[i]);
-  }
-
-  modified = true;
-}
-
-void Attribute::add(const uchar4 &f)
-{
-  assert(data_sizeof() == sizeof(uchar4));
-
-  char *data = (char *)&f;
-  const size_t size = sizeof(f);
-
-  for (size_t i = 0; i < size; i++) {
-    buffer.push_back(data[i]);
-  }
-
-  modified = true;
-}
-
-void Attribute::add(const float2 &f)
-{
-  assert(data_sizeof() == sizeof(float2));
-
-  char *data = (char *)&f;
-  const size_t size = sizeof(f);
-
-  for (size_t i = 0; i < size; i++) {
-    buffer.push_back(data[i]);
-  }
-
-  modified = true;
-}
-
-void Attribute::add(const float3 &f)
-{
-  assert(data_sizeof() == sizeof(float3));
-
-  char *data = (char *)&f;
-  const size_t size = sizeof(f);
-
-  for (size_t i = 0; i < size; i++) {
-    buffer.push_back(data[i]);
-  }
-
-  modified = true;
-}
-
-void Attribute::add(const packed_normal &f)
-{
-  assert(data_sizeof() == sizeof(packed_normal));
-
-  char *data = (char *)&f;
-  const size_t size = sizeof(f);
-
-  for (size_t i = 0; i < size; i++) {
-    buffer.push_back(data[i]);
-  }
-
-  modified = true;
-}
-
-void Attribute::add(const Transform &f)
-{
-  assert(data_sizeof() == sizeof(Transform));
-
-  char *data = (char *)&f;
-  const size_t size = sizeof(f);
-
-  for (size_t i = 0; i < size; i++) {
-    buffer.push_back(data[i]);
-  }
-
-  modified = true;
-}
-
-void Attribute::add(const char *data)
-{
-  const size_t size = data_sizeof();
-
-  for (size_t i = 0; i < size; i++) {
-    buffer.push_back(data[i]);
-  }
-
-  modified = true;
 }
 
 void Attribute::set_data_from(Attribute &&other)
@@ -782,10 +682,10 @@ void AttributeSet::remove(list<Attribute>::iterator it)
   attributes.erase(it);
 }
 
-void AttributeSet::resize(bool reserve_only)
+void AttributeSet::resize()
 {
   for (Attribute &attr : attributes) {
-    attr.resize(geometry, prim, reserve_only);
+    attr.resize(geometry, prim);
   }
 }
 

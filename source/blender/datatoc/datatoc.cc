@@ -40,8 +40,8 @@ int main(int argc, char **argv)
   int i;
   int argv_len;
 
-  if (argc != 3) {
-    printf("Usage: datatoc <data_file_from> <data_file_to>\n");
+  if (argc < 3 || argc > 4) {
+    printf("Usage: datatoc <data_file_from> <data_file_to> [<symbol_name_override>]\n");
     exit(1);
   }
 
@@ -51,7 +51,8 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  argv[1] = arg_basename(argv[1]);
+  /* Use the optional symbol name override, otherwise derive from the input filename. */
+  argv[1] = (argc >= 4) ? argv[3] : arg_basename(argv[1]);
 
   fseek(fpin, 0L, SEEK_END);
   size = ftell(fpin);

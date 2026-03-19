@@ -64,28 +64,6 @@ RemoteListingAssetEntry::~RemoteListingAssetEntry()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #RemoteListingFileEntry type
- * \{ */
-
-RemoteListingFileEntry::RemoteListingFileEntry(RemoteListingFileEntry &&other)
-{
-  this->local_path = std::move(other.local_path);
-  this->download_url = std::move(other.download_url);
-}
-
-RemoteListingFileEntry &RemoteListingFileEntry::operator=(RemoteListingFileEntry &&other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  std::destroy_at(this);
-  new (this) RemoteListingFileEntry(std::move(other));
-  return *this;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name General functions for reading.
  * \{ */
 

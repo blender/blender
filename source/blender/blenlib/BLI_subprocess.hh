@@ -85,7 +85,7 @@ class SharedMemory : NonCopyable {
 #  endif
   void *data_;
   size_t data_size_;
-  bool is_owner_;
+  [[maybe_unused]] bool is_owner_;
 
  public:
   /**
@@ -126,7 +126,7 @@ class SharedSemaphore : NonCopyable {
 #  else
   sem_t *handle_;
 #  endif
-  bool is_owner_;
+  [[maybe_unused]] bool is_owner_;
 
  public:
   /**

@@ -9,6 +9,7 @@ import modules.ui_test_utils as ui
 
 
 def sculpt_mode_toolbar():
+    import sys
     e, t, window = ui.test_window()
 
     # In the default properties area, set it to the tool tab to force access of all
@@ -87,7 +88,12 @@ def sculpt_mode_toolbar():
     t.assertEqual(window.workspace.tools.from_space_view3d_mode('SCULPT').idname, "builtin.cloth_filter")
 
     yield e.shift.space()
-    yield e.ctrl.eight()
+    if sys.platform == "darwin":
+        # Assigning a keymap entry to Ctrl on MacOS also assigns it to Command. In most cases, either
+        # keybind is accepted. However, the toolbar specifically responds to Command, not Ctrl
+        yield e.oskey.x()
+    else:
+        yield e.ctrl.x()
     t.assertEqual(window.workspace.tools.from_space_view3d_mode('SCULPT').idname, "builtin.color_filter")
 
     yield e.shift.space()
@@ -95,19 +101,19 @@ def sculpt_mode_toolbar():
     t.assertEqual(window.workspace.tools.from_space_view3d_mode('SCULPT').idname, "builtin.face_set_edit")
 
     yield e.shift.space()
-    yield e.ctrl.nine()
+    yield e.ctrl.eight()
     t.assertEqual(window.workspace.tools.from_space_view3d_mode('SCULPT').idname, "builtin.mask_by_color")
 
     yield e.shift.space()
-    yield e.ctrl.zero()
+    yield e.ctrl.nine()
     t.assertEqual(window.workspace.tools.from_space_view3d_mode('SCULPT').idname, "builtin.move")
 
     yield e.shift.space()
-    yield e.alt.one()
+    yield e.ctrl.zero()
     t.assertEqual(window.workspace.tools.from_space_view3d_mode('SCULPT').idname, "builtin.rotate")
 
     yield e.shift.space()
-    yield e.alt.two()
+    yield e.alt.one()
     t.assertEqual(window.workspace.tools.from_space_view3d_mode('SCULPT').idname, "builtin.scale")
 
     yield e.shift.space()

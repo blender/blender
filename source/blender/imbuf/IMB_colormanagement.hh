@@ -30,8 +30,11 @@ struct bContext;
 
 namespace ocio {
 class ColorSpace;
+class Config;
 class Display;
 }  // namespace ocio
+
+using ColorManagedConfig = ocio::Config;
 using ColorSpace = ocio::ColorSpace;
 using ColorManagedDisplay = ocio::Display;
 
@@ -57,6 +60,8 @@ enum class ColorManagedFileOutput { Image, Video };
 /** \name Generic Functions
  * \{ */
 
+ColorManagedConfig &IMB_colormanagement_get_config();
+
 void IMB_colormanagement_check_file_config(Main *bmain);
 
 void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *display_settings,
@@ -65,12 +70,12 @@ void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *di
 const char *IMB_colormanagement_role_colorspace_name_get(int role);
 const char *IMB_colormanagement_srgb_colorspace_name_get();
 void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name);
-void IMB_colormanagegent_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst);
+void IMB_colormanagement_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst);
 void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name);
 void IMB_colormanagement_assign_byte_colorspace(ImBuf *ibuf, const char *name);
 
 const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf);
-const char *IMB_colormanagement_get_rect_colorspace(const ImBuf *ibuf);
+const char *IMB_colormanagement_get_byte_colorspace(const ImBuf *ibuf);
 const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath);
 
 const ColorSpace *IMB_colormanagement_space_get_named(const char *name);

@@ -389,7 +389,7 @@ ccl_device_inline dual<T> safe_pow(const ccl_private dual<T> &u, const ccl_priva
   /* u^(v-1). */
   const T u_v_minus_1 = safe_pow(u.val, v.val - 1.0f);
   /* u^v = u * u^(v-1). */
-  /* NOTE: numerically `u^v != u*u^(v-1)`, but the current behaviour matches OSL. */
+  /* NOTE: numerically `u^v != u*u^(v-1)`, but the current behavior matches OSL. */
   const T f = u.val * u_v_minus_1;
   return chain_rule(u, v, f, v.val * u_v_minus_1, f * safe_log(u.val));
 }

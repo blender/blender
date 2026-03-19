@@ -482,6 +482,17 @@ class GHOST_ISystem {
   virtual const GHOST_CSD_Layout &getWindowCSD_Layout() const = 0;
 
   /***************************************************************************************
+   * Window Icon Generator.
+   ***************************************************************************************/
+
+  /**
+   * Set a callback used to generate window icons.
+   *
+   * Back-ends that support window icons will call this to fill pixel data.
+   */
+  virtual void setIconGenerator(const GHOST_IconGenerator *icon_generator) = 0;
+
+  /***************************************************************************************
    * System Message Box.
    ***************************************************************************************/
 

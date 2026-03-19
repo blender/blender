@@ -1946,7 +1946,9 @@ static void rna_Object_vgroup_remove(Object *ob,
   BKE_object_defgroup_remove(ob, defgroup);
   defgroup_ptr->invalidate();
 
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_GEOM | ND_VERTEX_GROUP, ob->data);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 

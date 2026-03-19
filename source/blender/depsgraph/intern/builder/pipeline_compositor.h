@@ -18,7 +18,7 @@ namespace deg {
 
 class CompositorBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  CompositorBuilderPipeline(blender::Depsgraph *graph, bNodeTree *nodetree);
+  CompositorBuilderPipeline(blender::Depsgraph *graph);
 
  protected:
   std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;
@@ -26,9 +26,6 @@ class CompositorBuilderPipeline : public AbstractBuilderPipeline {
 
   void build_nodes(DepsgraphNodeBuilder &node_builder) override;
   void build_relations(DepsgraphRelationBuilder &relation_builder) override;
-
- private:
-  bNodeTree *nodetree_;
 };
 
 }  // namespace deg

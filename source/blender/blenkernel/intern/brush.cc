@@ -1238,7 +1238,7 @@ void BKE_brush_size_set(Paint *paint, Brush *brush, int size)
   /* make sure range is sane */
   CLAMP(size, 1, MAX_BRUSH_PIXEL_DIAMETER);
 
-  if (ups->flag & UNIFIED_PAINT_SIZE) {
+  if (BKE_paint_use_unified_size(paint)) {
     ups->size = size;
   }
   else {
@@ -1250,9 +1250,11 @@ void BKE_brush_size_set(Paint *paint, Brush *brush, int size)
 int BKE_brush_size_get(const Paint *paint, const Brush *brush)
 {
   const UnifiedPaintSettings *ups = &paint->unified_paint_settings;
-  int size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
 
-  return size;
+  if (BKE_paint_use_unified_size(paint)) {
+    return ups->size;
+  }
+  return brush->size;
 }
 
 float BKE_brush_radius_get(const Paint *paint, const Brush *brush)
@@ -1282,7 +1284,7 @@ void BKE_brush_unprojected_size_set(Paint *paint, Brush *brush, float unprojecte
 {
   UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
-  if (ups->flag & UNIFIED_PAINT_SIZE) {
+  if (BKE_paint_use_unified_size(paint)) {
     ups->unprojected_size = unprojected_size;
   }
   else {
@@ -1294,8 +1296,10 @@ void BKE_brush_unprojected_size_set(Paint *paint, Brush *brush, float unprojecte
 float BKE_brush_unprojected_size_get(const Paint *paint, const Brush *brush)
 {
   const UnifiedPaintSettings *ups = &paint->unified_paint_settings;
-
-  return (ups->flag & UNIFIED_PAINT_SIZE) ? ups->unprojected_size : brush->unprojected_size;
+  if (BKE_paint_use_unified_size(paint)) {
+    return ups->unprojected_size;
+  }
+  return brush->unprojected_size;
 }
 
 float BKE_brush_unprojected_radius_get(const Paint *paint, const Brush *brush)
@@ -1331,7 +1335,7 @@ void BKE_brush_alpha_set(Paint *paint, Brush *brush, float alpha)
 {
   UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
-  if (ups->flag & UNIFIED_PAINT_ALPHA) {
+  if (BKE_paint_use_unified_strength(paint)) {
     ups->alpha = alpha;
   }
   else {
@@ -1344,7 +1348,10 @@ float BKE_brush_alpha_get(const Paint *paint, const Brush *brush)
 {
   const UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
-  return (ups->flag & UNIFIED_PAINT_ALPHA) ? ups->alpha : brush->alpha;
+  if (BKE_paint_use_unified_strength(paint)) {
+    return ups->alpha;
+  }
+  return brush->alpha;
 }
 
 float BKE_brush_weight_get(const Paint *paint, const Brush *brush)

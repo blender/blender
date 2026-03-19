@@ -10,16 +10,16 @@ from ...material import texture_info as gltf2_blender_gather_texture_info
 from ..search_node_tree import has_image_node_from_socket, get_socket, get_factor_from_socket
 
 
-def export_clearcoat(blender_material, export_settings):
+def export_clearcoat(bmat, export_settings):
     has_clearcoat_texture = False
     has_clearcoat_roughness_texture = False
 
     clearcoat_extension = {}
     clearcoat_roughness_slots = ()
 
-    clearcoat_socket = get_socket(blender_material.node_tree, 'Coat Weight')
-    clearcoat_roughness_socket = get_socket(blender_material.node_tree, 'Coat Roughness')
-    clearcoat_normal_socket = get_socket(blender_material.node_tree, 'Coat Normal')
+    clearcoat_socket = get_socket(bmat.get_used_material().node_tree, 'Coat Weight')
+    clearcoat_roughness_socket = get_socket(bmat.get_used_material().node_tree, 'Coat Roughness')
+    clearcoat_normal_socket = get_socket(bmat.get_used_material().node_tree, 'Coat Normal')
 
     if clearcoat_socket.socket is not None and isinstance(
             clearcoat_socket.socket,

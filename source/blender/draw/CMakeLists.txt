@@ -363,7 +363,6 @@ set(GLSL_SRC
   engines/gpencil/shaders/infos/gpencil_infos.hh
   engines/gpencil/shaders/infos/gpencil_vfx_infos.hh
 
-  engines/overlay/shaders/infos/overlay_antialiasing_infos.hh
   engines/overlay/shaders/infos/overlay_armature_infos.hh
   engines/overlay/shaders/infos/overlay_background_infos.hh
   engines/overlay/shaders/infos/overlay_common_infos.hh
@@ -525,7 +524,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_shadow_page_clear_comp.glsl
   engines/eevee/shaders/eevee_shadow_page_defrag.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_free.bsl.hh
-  engines/eevee/shaders/eevee_shadow_page_mask_comp.glsl
+  engines/eevee/shaders/eevee_shadow_page_mask.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_ops.bsl.hh
   engines/eevee/shaders/eevee_shadow_tag_update_comp.glsl
   engines/eevee/shaders/eevee_shadow_tag_usage_comp.glsl
@@ -708,7 +707,7 @@ set(GLSL_SRC
   engines/select/select_defines.hh
   engines/select/select_shader_shared.hh
 
-  engines/overlay/shaders/overlay_antialiasing_frag.glsl
+  engines/overlay/shaders/overlay_antialiasing.bsl.hh
   engines/overlay/shaders/overlay_armature_dof_solid_frag.glsl
   engines/overlay/shaders/overlay_armature_dof_vert.glsl
   engines/overlay/shaders/overlay_armature_envelope_outline_vert.glsl
@@ -826,7 +825,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_volume_velocity_vert.glsl
   engines/overlay/shaders/overlay_wireframe_frag.glsl
   engines/overlay/shaders/overlay_wireframe_vert.glsl
-  engines/overlay/shaders/overlay_xray_fade_frag.glsl
+  engines/overlay/shaders/overlay_xray_fade.bsl.hh
 
   engines/overlay/overlay_shader_shared.hh
 

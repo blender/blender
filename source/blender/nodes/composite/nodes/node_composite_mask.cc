@@ -35,7 +35,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);
 
   b.add_layout([](ui::Layout &layout, bContext *C, PointerRNA *ptr) {
-    template_id(&layout, C, ptr, "mask", nullptr, nullptr, nullptr);
+    template_id(&layout, C, ptr, "mask", "mask.new", nullptr, nullptr);
   });
 
   b.add_input<decl::Menu>("Size Source")

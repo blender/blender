@@ -373,7 +373,7 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 		specs.channels = CHANNELS_STEREO;
 	if(specs.format == FORMAT_INVALID)
 		specs.format = FORMAT_FLOAT32;
-	if(specs.rate == RATE_INVALID)
+	if(int(specs.rate) == RATE_INVALID)
 		specs.rate = RATE_48000;
 
 	if(FAILED(CoCreateInstance(CLSID_MMDeviceEnumerator, nullptr, CLSCTX_ALL, IID_IMMDeviceEnumerator, reinterpret_cast<void**>(m_imm_device_enumerator.GetAddressOf()))))

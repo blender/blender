@@ -11,7 +11,7 @@
 #include <PathCch.h>
 #include <tlhelp32.h>
 
-BOOL LaunchedFromSteam()
+static BOOL LaunchedFromSteam(void)
 {
   HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
   BOOL isSteam = FALSE;

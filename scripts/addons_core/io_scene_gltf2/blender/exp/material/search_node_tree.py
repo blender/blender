@@ -75,6 +75,13 @@ def from_socket(start_socket: NodeTreeSearchResult,
                              shader_node_filter: typing.Union[Filter, typing.Callable],
                              search_path: typing.List[bpy.types.NodeLink],
                              group_path: typing.List[bpy.types.Node]) -> typing.List[NodeTreeSearchResult]:
+
+        def __get_socket_index(sockets, socket):
+            for i, soc in enumerate(sockets):
+                if soc == socket:
+                    return i
+            assert False
+
         results = []
         for link in start_socket.links:
             # follow the link to a shader node
@@ -82,7 +89,8 @@ def from_socket(start_socket: NodeTreeSearchResult,
 
             if linked_node.type == "GROUP":
                 group_output_node = [node for node in linked_node.node_tree.nodes if node.type == "GROUP_OUTPUT"][0]
-                socket = [sock for sock in group_output_node.inputs if sock.name == link.from_socket.name][0]
+                i = __get_socket_index(linked_node.outputs, link.from_socket)
+                socket = group_output_node.inputs[i]
                 group_path.append(linked_node)
                 linked_results = __search_from_socket(
                     socket, shader_node_filter, search_path + [link], group_path.copy())
@@ -93,7 +101,8 @@ def from_socket(start_socket: NodeTreeSearchResult,
                 continue
 
             if linked_node.type == "GROUP_INPUT":
-                socket = [sock for sock in group_path[-1].inputs if sock.name == link.from_socket.name][0]
+                i = __get_socket_index(linked_node.outputs, link.from_socket)
+                socket = group_path[-1].inputs[i]
                 linked_results = __search_from_socket(socket, shader_node_filter,
                                                       search_path + [link], group_path[:-1].copy())
                 if linked_results:
@@ -924,22 +933,22 @@ def get_texture_transform_from_mapping_node(mapping_node, export_settings):
         path_['length'] = 2
         path_['path'] = "/materials/XXX/YYY/KHR_texture_transform/offset"
         path_['vector_type'] = mapping_node.node.vector_type
-        export_settings['current_texture_transform']["node_tree." +
-                                                     mapping_node.node.inputs['Location'].path_from_id() + ".default_value"] = path_
+        export_settings['current_texture_transform']["node_tree." + \
+            mapping_node.node.inputs['Location'].path_from_id() + ".default_value"] = path_
 
     path_ = {}
     path_['length'] = 2
     path_['path'] = "/materials/XXX/YYY/KHR_texture_transform/scale"
     path_['vector_type'] = mapping_node.node.vector_type
-    export_settings['current_texture_transform']["node_tree." +
-                                                 mapping_node.node.inputs['Scale'].path_from_id() + ".default_value"] = path_
+    export_settings['current_texture_transform']["node_tree." + \
+        mapping_node.node.inputs['Scale'].path_from_id() + ".default_value"] = path_
 
     path_ = {}
     path_['length'] = 1
     path_['path'] = "/materials/XXX/YYY/KHR_texture_transform/rotation"
     path_['vector_type'] = mapping_node.node.vector_type
-    export_settings['current_texture_transform']["node_tree." +
-                                                 mapping_node.node.inputs['Rotation'].path_from_id() + ".default_value[2]"] = path_
+    export_settings['current_texture_transform']["node_tree." + \
+        mapping_node.node.inputs['Rotation'].path_from_id() + ".default_value[2]"] = path_
 
     return texture_transform
 

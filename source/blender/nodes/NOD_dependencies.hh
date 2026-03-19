@@ -17,7 +17,7 @@ namespace nodes {
 /**
  * Gathers dependencies that the node tree requires before it can be evaluated.
  */
-struct GeometryNodesEvalDependencies {
+struct EvalDependencies {
   /**
    * Stores additional dependency information for objects. It can be more efficient to only depend
    * on an object partially.
@@ -69,10 +69,9 @@ struct GeometryNodesEvalDependencies {
   /**
    * Add all the given dependencies to this one.
    */
-  void merge(const GeometryNodesEvalDependencies &other);
+  void merge(const EvalDependencies &other);
 
-  friend bool operator==(const GeometryNodesEvalDependencies &a,
-                         const GeometryNodesEvalDependencies &b) = default;
+  friend bool operator==(const EvalDependencies &a, const EvalDependencies &b) = default;
 };
 
 /**
@@ -80,13 +79,11 @@ struct GeometryNodesEvalDependencies {
  * are passed into the node group. It also may not contain all data-blocks referenced by the node
  * tree if some of them can statically be detected to not be used by the evaluation.
  */
-GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_recursive(
-    const bNodeTree &ntree);
+EvalDependencies gather_eval_dependencies_recursive(const bNodeTree &ntree);
 /**
  * Same as above, but assumes that dependencies are already cached on the referenced node groups.
  */
-GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_with_cache(
-    const bNodeTree &ntree);
+EvalDependencies gather_eval_dependencies_with_cache(const bNodeTree &ntree);
 
 }  // namespace nodes
 }  // namespace blender

@@ -189,11 +189,12 @@ class ThicknessModifierMixIn:
         fe = sv.fedge
         nature = fe.nature
         if (nature & Nature.BORDER):
+            normal = fe.normal if fe.is_smooth else fe.normal_left
             if self.persp_camera:
                 point = -sv.point_3d.normalized()
-                dir = point.dot(fe.normal_left)
+                dir = point.dot(normal)
             else:
-                dir = fe.normal_left.z
+                dir = normal.z
             if dir < 0.0:  # the back side is visible
                 outer, inner = inner, outer
         elif (nature & Nature.SILHOUETTE):

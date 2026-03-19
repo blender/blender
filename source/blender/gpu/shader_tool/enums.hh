@@ -43,6 +43,14 @@ enum class ScopeType : char {
   FunctionParam = 'm',
   /* Added scope inside LoopArgs. */
   LoopArg = 'r',
+
+  Statement = 's',
+  Separator = 'o',
+  /* Undetermined. */
+  Angle = Template,
+  Bracket = Local,
+  Parenthesis = FunctionArgs,
+  Square = Subscript,
 };
 
 }  // namespace blender::gpu::shader::parser

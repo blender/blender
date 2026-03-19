@@ -242,6 +242,8 @@ class GHOST_SystemWayland : public GHOST_System {
    */
   GHOST_TimerManager *key_repeat_timer_manager();
 
+  void xdg_toplevel_icon_update(GHOST_WindowWayland *window, struct xdg_toplevel *toplevel);
+
   /* WAYLAND direct-data access. */
 
   struct wl_display *wl_display_get();

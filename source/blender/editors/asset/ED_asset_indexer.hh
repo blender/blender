@@ -64,11 +64,6 @@ struct RemoteListingAssetEntry : NonCopyable {
 struct RemoteListingFileEntry : NonCopyable {
   std::string local_path;
   asset_system::URLWithHash download_url;
-
-  RemoteListingFileEntry() = default;
-  RemoteListingFileEntry(RemoteListingFileEntry &&);
-  RemoteListingFileEntry &operator=(RemoteListingFileEntry &&);
-  ~RemoteListingFileEntry() = default;
 };
 
 using RemoteListingEntryProcessFn = FunctionRef<bool(RemoteListingAssetEntry &)>;

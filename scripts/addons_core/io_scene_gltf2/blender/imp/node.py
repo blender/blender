@@ -283,6 +283,14 @@ class BlenderNode():
             return bpy.data.objects.new(vnode.name or "Invalid Mesh Index", None)
         pymesh = gltf.data.meshes[pynode.mesh]
 
+        # Detect if the mesh will be a Point Cloud or not
+        is_point_cloud = False
+        if gltf.import_settings.get('import_point_as_pointcloud', False):
+            if all([prim.mode == 0 for prim in pymesh.primitives]):  # All POINTS
+                is_point_cloud = True
+        else:
+            is_point_cloud = False
+
         # Key to cache the Blender mesh by.
         # Same cache key = instances of the same Blender mesh.
         cache_key = None
@@ -298,10 +306,16 @@ class BlenderNode():
                 cache_key = None  # don't use the cache at all
 
         if cache_key is not None and cache_key in pymesh.blender_name:
-            mesh = bpy.data.meshes[pymesh.blender_name[cache_key]]
+            mesh = bpy.data.meshes[pymesh.blender_name[cache_key]
+                                   ] if is_point_cloud is False else bpy.data.pointclouds[pymesh.blender_name[cache_key]]
         else:
-            gltf.log.info("Blender create Mesh node {}".format(pymesh.name or pynode.mesh))
-            mesh = BlenderMesh.create(gltf, pynode.mesh, pynode.skin)
+            if not is_point_cloud:
+                gltf.log.info("Blender create Mesh node {}".format(pymesh.name or pynode.mesh))
+                mesh = BlenderMesh.create(gltf, pynode.mesh, pynode.skin)
+            else:
+                gltf.log.info("Blender create Point Cloud node {}".format(pymesh.name or pynode.mesh))
+                mesh = BlenderMesh.create_pointcloud(gltf, pynode.mesh)
+
             if cache_key is not None:
                 pymesh.blender_name[cache_key] = mesh.name
 

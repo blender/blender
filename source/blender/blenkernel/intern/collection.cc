@@ -296,6 +296,10 @@ void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collectio
     if (data.export_properties) {
       IDP_BlendWrite(writer, data.export_properties);
     }
+    writer->write_struct_list(&data.layout_panel_states);
+    for (const LayoutPanelState &state : data.layout_panel_states) {
+      writer->write_string(state.idname);
+    }
   }
 }
 
@@ -351,6 +355,10 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
   for (CollectionExport &data : collection->exporters) {
     BLO_read_struct(reader, IDProperty, &data.export_properties);
     IDP_BlendDataRead(reader, &data.export_properties);
+    BLO_read_struct_list(reader, LayoutPanelState, &data.layout_panel_states);
+    for (LayoutPanelState &state : data.layout_panel_states) {
+      BLO_read_string(reader, &state.idname);
+    }
   }
 
   BLO_read_struct(reader, PreviewImage, &collection->preview);
@@ -539,6 +547,10 @@ void BKE_collection_exporter_free_data(CollectionExport *data)
 {
   if (data->export_properties) {
     IDP_FreeProperty(data->export_properties);
+  }
+  for (const LayoutPanelState &state : data->layout_panel_states.items_mutable()) {
+    MEM_delete(state.idname);
+    MEM_delete(&state);
   }
 }
 
@@ -1531,7 +1543,11 @@ static void collection_exporter_copy(Collection *collection, CollectionExport *d
   if (filepath) {
     IDP_AssignString(filepath, "");
   }
-
+  for (LayoutPanelState &state : data->layout_panel_states) {
+    LayoutPanelState *new_state = MEM_new<LayoutPanelState>(__func__, state);
+    new_state->idname = BLI_strdup(state.idname);
+    BLI_addtail(&new_data->layout_panel_states, new_state);
+  }
   BLI_addtail(&collection->exporters, new_data);
 }
 

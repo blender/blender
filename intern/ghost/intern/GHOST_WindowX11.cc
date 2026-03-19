@@ -261,6 +261,13 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
   /* XClassHint, title */
   {
     XClassHint *xclasshint = XAllocClassHint();
+/* See `GHOST_X11_RES_NAME` definition in GHOST_SystemX11.hh */
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+    /* Safe as these are logically `const` (the values aren't manipulated). */
+    xclasshint->res_name = const_cast<char *>(GHOST_X11_RES_NAME);
+    xclasshint->res_class = const_cast<char *>(GHOST_X11_RES_CLASS);
+    XSetClassHint(display_, window_, xclasshint);
+#else
     const int len = strlen(title) + 1;
     char *wmclass = (char *)malloc(sizeof(char) * len);
     memcpy(wmclass, title, len * sizeof(char));
@@ -268,6 +275,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     xclasshint->res_class = wmclass;
     XSetClassHint(display_, window_, xclasshint);
     free(wmclass);
+#endif
     XFree(xclasshint);
   }
 

@@ -53,8 +53,8 @@ struct Token : lexit::Token {
     /* Scan back identifier that could contain namespaces. */
     Token tok = *this;
     while (tok.is_valid()) {
-      if (tok.prev() == ':') {
-        tok = tok.prev().prev().prev();
+      if (tok.prev() == ':' && tok.prev(2) == ':') {
+        tok = tok.prev(3);
       }
       else {
         return tok;

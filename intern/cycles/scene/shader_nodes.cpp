@@ -4251,7 +4251,7 @@ void TextureCoordinateNode::compile(SVMCompiler &compiler)
   out = output("UV");
   if (!out->links.empty()) {
     if (from_dupli) {
-      /* Dupli UV coordinates arent constant, no bump offset. */
+      /* Dupli UV coordinates aren't constant, no bump offset. */
       compiler.add_node_derivative(
           NODE_TEX_COORD,
           use_derivative,

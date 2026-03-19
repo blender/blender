@@ -71,11 +71,11 @@ set(INC_SYS
 
 set(SRC
   intern/compositor_gizmos.cc
+  intern/dependencies.cc
   intern/geometry_nodes_bundle.cc
   intern/geometry_nodes_caller_ui.cc
   intern/geometry_nodes_closure.cc
   intern/geometry_nodes_closure_zone.cc
-  intern/geometry_nodes_dependencies.cc
   intern/geometry_nodes_execute.cc
   intern/geometry_nodes_foreach_geometry_element_zone.cc
   intern/geometry_nodes_gizmos.cc
@@ -112,6 +112,7 @@ set(SRC
   NOD_composite.hh
   NOD_compositor_gizmos.hh
   NOD_defaults.hh
+  NOD_dependencies.hh
   NOD_geometry.hh
   NOD_geometry_exec.hh
   NOD_geometry_nodes_bundle.hh
@@ -123,7 +124,6 @@ set(SRC
   NOD_geometry_nodes_closure_fwd.hh
   NOD_geometry_nodes_closure_location.hh
   NOD_geometry_nodes_closure_signature.hh
-  NOD_geometry_nodes_dependencies.hh
   NOD_geometry_nodes_execute.hh
   NOD_geometry_nodes_gizmos.hh
   NOD_geometry_nodes_lazy_function.hh

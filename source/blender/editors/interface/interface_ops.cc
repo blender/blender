@@ -2906,6 +2906,9 @@ static wmOperatorStatus view_item_delete_invoke(bContext *C,
   AbstractView *view = get_view_focused(C);
 
   view->foreach_view_item([&](AbstractViewItem &item) {
+    if (!item.is_filtered_visible()) {
+      return;
+    }
     if (item.is_active() || item.is_selected()) {
       item.delete_item(C);
     }

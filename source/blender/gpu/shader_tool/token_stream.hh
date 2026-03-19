@@ -34,6 +34,10 @@ struct LexerBase : lexit::TokenBuffer {
 
   /* Change words into keyword (ex: `if`, `struct`, `template`). */
   void identify_keywords();
+  /* Change angle bracket tokens into template tokens if they match template condition. */
+  void identify_template_tokens();
+  /* Undo the changes from identify_template_tokens. */
+  void reset_template_tokens();
 };
 
 /**
@@ -58,11 +62,23 @@ struct FullLexer {
   }
 };
 
+struct ParserBase;
+
+struct ScopeLinks {
+  /* All in scope indices. */
+  int parent_ = -1;
+  int prev_ = -1;
+  int next_ = -1;
+  int child_first_ = -1;
+  int child_last_ = -1;
+};
+
 /**
  * Create semantic scopes from token stream.
  * Also creates mapping table from token to scope to have bi-directional mapping.
  */
 struct ParserBase : LexerBase {
+
   /** Compact visualization of scope_types.  */
   std::string_view scope_types_str;
 
@@ -72,6 +88,8 @@ struct ParserBase : LexerBase {
   std::vector<ScopeType> scope_types;
   /** Range of token per scope. */
   std::vector<IndexRange> scope_ranges;
+  /** Index of adjacent scopes. */
+  std::vector<ScopeLinks> scope_links;
   /** Index of bottom most scope per token. */
   std::vector<int> token_scope;
 

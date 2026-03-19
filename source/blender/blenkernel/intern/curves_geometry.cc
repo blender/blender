@@ -1972,11 +1972,7 @@ void CurvesGeometry::blend_write_prepare(CurvesGeometry::BlendWriteData &write_d
       use_5_0_compatibility,
       [&](const AttrDomain domain) { return this->attributes().domain_size(domain); },
       write_data.attribute_data);
-  CustomData_blend_write_prepare(this->point_data,
-                                 AttrDomain::Point,
-                                 this->points_num(),
-                                 write_data.point_layers,
-                                 write_data.attribute_data);
+  CustomData_blend_write_prepare(this->point_data, write_data.point_layers);
   if (write_data.attribute_data.attributes.is_empty()) {
     this->attribute_storage.dna_attributes = nullptr;
     this->attribute_storage.dna_attributes_num = 0;

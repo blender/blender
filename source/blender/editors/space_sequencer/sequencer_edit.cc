@@ -2181,10 +2181,10 @@ static wmOperatorStatus sequencer_box_blade_exec(bContext *C, wmOperator *op)
           (strip->left_handle() > rect_frames[0]))
       {
         if (ignore_connections) {
-          seq::query_strip_effect_chain(scene, strip, &ed->seqbase, to_offset);
+          seq::query_strip_effect_chain(strip, &ed->seqbase, to_offset);
         }
         else {
-          seq::query_strip_connected_and_effect_chain(scene, strip, &ed->seqbase, to_offset);
+          seq::query_strip_connected_and_effect_chain(strip, &ed->seqbase, to_offset);
         }
       }
     }
@@ -2839,7 +2839,7 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
   VectorSet<Strip *> strips_to_move;
   strips_to_move.add_multiple(selected);
   seq::iterator_set_expand(
-      scene, active_seqbase, strips_to_move, seq::query_strip_connected_and_effect_chain);
+      active_seqbase, strips_to_move, seq::query_strip_connected_and_effect_chain);
 
   for (Strip *strip : strips_to_move) {
     seq::relations_invalidate_cache(scene, strip);

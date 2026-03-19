@@ -52,8 +52,6 @@ class PointCloud : public Geometry {
   void clear(const bool preserve_shaders = false) override;
 
   void resize(const int numpoints);
-  void reserve(const int numpoints);
-  void add_point(const float3 co, const float radius, const int shader = 0);
 
   void copy_center_to_motion_step(const int motion_step);
 

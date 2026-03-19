@@ -7057,9 +7057,8 @@ std::string button_get_link(const Button *button, bContext *C)
   if (!found) {
     return "";
   }
-  SNPRINTF_UTF8(expr,
-                "bpy.types.WM_OT_url_open_preset.lookup_url_from_type(bpy.context,'%s')",
-                item.identifier);
+  SNPRINTF_UTF8(
+      expr, "bpy.types.WM_OT_url_open_preset.lookup_url_from_type('%s')", item.identifier);
   char *expr_result = nullptr;
   std::string link;
   if (BPY_run_string_as_string(C, expr_imports, expr, nullptr, &expr_result)) {

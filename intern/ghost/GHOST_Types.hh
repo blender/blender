@@ -77,6 +77,28 @@ struct GHOST_CursorGenerator {
   GHOST_TUserDataPtr user_data;
 };
 
+class GHOST_IWindow;
+
+struct GHOST_IconGenerator {
+  /**
+   * Generate a top-level window icon.
+   *
+   * The callback writes RGBA pixels into a pre-allocated buffer.
+   * The color is "straight" (alpha is not pre-multiplied).
+   *
+   * \param icon_generator: Pass in to allow accessing the user_data argument.
+   * \param window: The window requesting an icon.
+   * \param pixels: Pre-allocated RGBA buffer (`icon_size * icon_size * 4` bytes).
+   * \param icon_size: The width and height of the square icon in pixels.
+   */
+  void (*generate_fn)(const struct GHOST_IconGenerator *icon_generator,
+                      GHOST_IWindow *window,
+                      uint8_t *pixels,
+                      int icon_size);
+  /** Implementation specific data. */
+  GHOST_TUserDataPtr user_data;
+};
+
 enum GHOST_GPUFlags {
   GHOST_gpuStereoVisual = (1 << 0),
   GHOST_gpuDebugContext = (1 << 1),

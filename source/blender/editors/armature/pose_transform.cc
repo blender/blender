@@ -878,13 +878,22 @@ static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   /* Make sure data from this file is usable for pose paste. */
-  if (!BLI_listbase_is_single(&temp_bmain->objects)) {
-    BKE_report(op->reports, RPT_ERROR, "Internal clipboard is not from pose mode");
-    BKE_main_free(temp_bmain);
-    return OPERATOR_CANCELLED;
+  Object *object_from = nullptr;
+  for (Object &obj : temp_bmain->objects) {
+    if (!(obj.id.flag & ID_FLAG_CLIPBOARD_MARK)) {
+      continue;
+    }
+    if (object_from != nullptr) {
+      /* There can only be one object in the clipboard to read the pose from. However there may be
+       * more than 1 object in total when dealing with packed assets and library overrides.
+       * See #155723. */
+      BKE_report(op->reports, RPT_ERROR, "Internal clipboard is not from pose mode");
+      BKE_main_free(temp_bmain);
+      return OPERATOR_CANCELLED;
+    }
+    object_from = &obj;
   }
 
-  Object *object_from = static_cast<Object *>(temp_bmain->objects.first);
   bPose *pose_from = object_from->pose;
   if (pose_from == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard has no pose");

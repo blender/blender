@@ -13,7 +13,7 @@
 #include "GHOST_WindowWin32.hh"
 #include <string.h>
 
-class GHOST_DropTargetWin32 : public IDropTarget {
+class GHOST_DropTargetWin32 final : public IDropTarget {
  public:
   /* IUnknownd implementation.
    * Enables clients to get pointers to other interfaces on a given object

@@ -1934,11 +1934,25 @@ class _defs_sculpt:
 
     @ToolDef.from_fn
     def color_filter():
-        def draw_settings(_context, layout, tool):
+        def draw_settings(context, layout, tool):
             props = tool.operator_properties("sculpt.color_filter")
+            settings = context.tool_settings.sculpt
+            ups = settings.unified_paint_settings if settings else None
+            region_is_header = context.region.type == 'TOOL_HEADER'
+
             layout.prop(props, "type", expand=False)
-            if props.type == 'FILL':
-                layout.prop(props, "fill_color", expand=False)
+
+            if props.type == 'FILL' and ups:
+                row = layout.row(align=True)
+                if region_is_header:
+                    row.ui_units_x = 4
+                    row.prop(ups, "color", text="")
+                    row.prop(ups, "secondary_color", text="")
+                else:
+                    row.prop(ups, "color", text="")
+                    row.prop(ups, "secondary_color", text="")
+                    row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
+
             layout.prop(props, "strength")
 
         return dict(

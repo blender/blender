@@ -291,7 +291,7 @@ void MeanAndVarianceAlongRows(const Mat& A,
                               Vec* mean_pointer,
                               Vec* variance_pointer);
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__clang__)
 // TODO(bomboze): un-#if this for both platforms once tested under Windows
 /* This solution was extensively discussed here
    http://forum.kde.org/viewtopic.php?f=74&t=61940 */

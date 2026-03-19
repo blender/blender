@@ -28,9 +28,8 @@ class CompositorDepsgraphRelationBuilder : public DepsgraphRelationBuilder {
 
 }  // namespace
 
-CompositorBuilderPipeline::CompositorBuilderPipeline(blender::Depsgraph *graph,
-                                                     bNodeTree *nodetree)
-    : AbstractBuilderPipeline(graph), nodetree_(nodetree)
+CompositorBuilderPipeline::CompositorBuilderPipeline(blender::Depsgraph *graph)
+    : AbstractBuilderPipeline(graph)
 {
   deg_graph_->is_render_pipeline_depsgraph = true;
 }
@@ -48,13 +47,13 @@ std::unique_ptr<DepsgraphRelationBuilder> CompositorBuilderPipeline::construct_r
 void CompositorBuilderPipeline::build_nodes(DepsgraphNodeBuilder &node_builder)
 {
   node_builder.build_scene_render(scene_, view_layer_);
-  node_builder.build_nodetree(nodetree_);
+  node_builder.build_scene_compositor(scene_);
 }
 
 void CompositorBuilderPipeline::build_relations(DepsgraphRelationBuilder &relation_builder)
 {
   relation_builder.build_scene_render(scene_, view_layer_);
-  relation_builder.build_nodetree(nodetree_);
+  relation_builder.build_scene_compositor(scene_);
 }
 
 }  // namespace blender::deg

@@ -98,9 +98,6 @@ class Hair : public Geometry {
   void clear(bool preserve_shaders = false) override;
 
   void resize_curves(const int numcurves, const int numkeys);
-  void reserve_curves(const int numcurves, const int numkeys);
-  void add_curve_key(const float3 co, const float radius);
-  void add_curve(const int first_key, const int shader);
 
   void copy_center_to_motion_step(const int motion_step);
 

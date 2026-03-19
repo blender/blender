@@ -2,9 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <cstdio>
-
 #include <algorithm>
+#include <cstdio>
 
 #include "graph/node_xml.h"
 
@@ -436,9 +435,12 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     for (size_t i = 0; i < nverts.size(); i++) {
       num_triangles += nverts[i] - 2;
     }
-    mesh->reserve_mesh(mesh->get_verts().size(), num_triangles);
+    mesh->resize_mesh(mesh->get_verts().size(), num_triangles);
+
+    int *triangles = mesh->get_triangles().data();
 
     /* create triangles */
+    int tri_index = 0;
     int index_offset = 0;
 
     for (size_t i = 0; i < nverts.size(); i++) {
@@ -451,11 +453,20 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
         assert(v1 < (int)P.size());
         assert(v2 < (int)P.size());
 
-        mesh->add_triangle(v0, v1, v2, shader, smooth);
+        triangles[tri_index * 3 + 0] = v0;
+        triangles[tri_index * 3 + 1] = v1;
+        triangles[tri_index * 3 + 2] = v2;
+        tri_index++;
       }
 
       index_offset += nverts[i];
     }
+    std::ranges::fill(mesh->get_smooth(), smooth);
+    std::ranges::fill(mesh->get_shader(), shader);
+
+    mesh->tag_triangles_modified();
+    mesh->tag_shader_modified();
+    mesh->tag_smooth_modified();
 
     /* Vertex normals */
     if (xml_read_float3_array(VN, node, Attribute::standard_name(ATTR_STD_VERTEX_NORMAL))) {
@@ -558,15 +569,38 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     for (size_t i = 0; i < nverts.size(); i++) {
       num_corners += nverts[i];
     }
-    mesh->reserve_subd_faces(nverts.size(), num_corners);
+    mesh->resize_subd_faces(nverts.size(), num_corners);
+
+    int *subd_start_corner = mesh->get_subd_start_corner().data();
+    int *subd_num_corners = mesh->get_subd_num_corners().data();
+    int *subd_ptex_offset = mesh->get_subd_ptex_offset().data();
+    int *subd_face_corners = mesh->get_subd_face_corners().data();
+
+    std::ranges::fill(mesh->get_subd_shader(), shader);
+    std::ranges::fill(mesh->get_subd_smooth(), smooth);
+
+    std::ranges::copy(verts, subd_face_corners);
 
     /* create subd_faces */
-    int index_offset = 0;
+    int corner_index = 0;
+    int ptex_offset = 0;
 
     for (size_t i = 0; i < nverts.size(); i++) {
-      mesh->add_subd_face(&verts[index_offset], nverts[i], shader, smooth);
-      index_offset += nverts[i];
+      subd_start_corner[i] = corner_index;
+      subd_num_corners[i] = nverts[i];
+      corner_index += nverts[i];
+
+      subd_ptex_offset[i] = ptex_offset;
+      const int num_ptex = (nverts[i] == 4) ? 1 : nverts[i];
+      ptex_offset += num_ptex;
     }
+
+    mesh->tag_subd_face_corners_modified();
+    mesh->tag_subd_start_corner_modified();
+    mesh->tag_subd_num_corners_modified();
+    mesh->tag_subd_shader_modified();
+    mesh->tag_subd_smooth_modified();
+    mesh->tag_subd_ptex_offset_modified();
 
     /* UV map */
     if (xml_read_float_array(UV, node, "UV") ||
@@ -575,7 +609,7 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
       Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV);
       float3 *fdata = attr->data_float3();
 
-      index_offset = 0;
+      int index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i]; j++) {
           *(fdata++) = make_float3(UV[index_offset++]);

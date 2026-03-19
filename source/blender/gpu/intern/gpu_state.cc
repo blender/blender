@@ -280,12 +280,6 @@ bool GPU_depth_mask_get()
   return (state.write_mask & GPU_WRITE_DEPTH) != 0;
 }
 
-bool GPU_mipmap_enabled()
-{
-  /* TODO(fclem): this used to be a userdef option. */
-  return true;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

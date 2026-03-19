@@ -3238,7 +3238,7 @@ static void rna_def_brush(BlenderRNA *brna)
                            "and a value of 1 corresponds to using the initial center.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "texture_sample_bias", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "texture_sample_bias", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "texture_sample_bias");
   RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, -1, 1);

@@ -409,11 +409,33 @@ static bool object_in_any_scene(Main *bmain, Object *ob)
   return false;
 }
 
-static bool collection_instantiated_by_any_object(Main *bmain, Collection *collection)
+/**
+ * Check if the given collection is instantiated by any other object or collection from the same
+ * batch of linked/appended data.
+ *
+ * This allows to re-instantiate data that was already linked previously, while avoiding to create
+ * instances for data that would already be instantiated through another mean.
+ */
+static bool is_collection_instantiated_by_other_link_append_data(
+    LooseDataInstantiateContext *instantiate_context, Collection *collection)
 {
-  for (Object &ob : bmain->objects) {
-    if (ob.type == OB_EMPTY && ob.instance_collection == collection) {
-      return true;
+  BlendfileLinkAppendContext *lapp_context = instantiate_context->lapp_context;
+  for (BlendfileLinkAppendContextItem &item : lapp_context->items) {
+    ID *item_id = item.new_id;
+    if (!item_id) {
+      continue;
+    }
+    if (GS(item_id->name) == ID_OB) {
+      Object *item_ob = id_cast<Object *>(item_id);
+      if (item_ob->type == OB_EMPTY && item_ob->instance_collection == collection) {
+        return true;
+      }
+    }
+    else if (GS(item_id->name) == ID_GR) {
+      Collection *item_col = id_cast<Collection *>(item_id);
+      if (BKE_collection_has_collection(item_col, collection)) {
+        return true;
+      }
     }
   }
   return false;
@@ -612,8 +634,8 @@ static void loose_data_instantiate_collection_process(
      * better not instantiate the collection in the view-layer in that case.
      *
      * Can easily happen when copy/pasting such instantiating empty, see #93839. */
-    const bool collection_is_instantiated = collection_instantiated_by_any_object(bmain,
-                                                                                  collection);
+    const bool collection_is_instantiated = is_collection_instantiated_by_other_link_append_data(
+        instantiate_context, collection);
     /* Always consider adding collections directly selected by the user. */
     bool do_add_collection = (item.tag & LINK_APPEND_TAG_INDIRECT) == 0 &&
                              !collection_is_instantiated;
@@ -938,6 +960,8 @@ static void loose_data_instantiate(LooseDataInstantiateContext *instantiate_cont
   }
 
   loose_data_instantiate_object_rigidbody_postprocess(instantiate_context);
+
+  BKE_main_id_tag_all(lapp_context->params->bmain, ID_TAG_DOIT, false);
 }
 
 static void new_id_to_item_mapping_add(BlendfileLinkAppendContext &lapp_context,

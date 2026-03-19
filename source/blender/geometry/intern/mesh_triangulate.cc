@@ -18,6 +18,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
+#include "BKE_attribute_storage.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 

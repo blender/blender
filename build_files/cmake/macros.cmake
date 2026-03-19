@@ -1036,6 +1036,10 @@ endfunction()
 function(data_to_c
   file_from file_to
   list_to_add
+  # Optional 4th argument: override the symbol name used in the generated C file,
+  # useful when different files share the same basename and would produce conflicting symbols.
+  # When omitted the symbol name is derived from the filename.
+  symbol_name_override
   )
 
   list(APPEND ${list_to_add} ${file_to})
@@ -1045,7 +1049,7 @@ function(data_to_c
 
   add_custom_command(
     OUTPUT ${file_to}
-    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to}
+    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to} ${symbol_name_override}
     DEPENDS ${file_from} datatoc)
 
   set_source_files_properties(${file_to} PROPERTIES GENERATED TRUE)

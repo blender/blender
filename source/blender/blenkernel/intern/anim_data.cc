@@ -44,6 +44,7 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "BLO_read_write.hh"
+#include "BLO_readfile.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -76,6 +77,11 @@ bool id_can_have_animdata(const ID *id)
 {
   /* sanity check */
   if (id == nullptr) {
+    return false;
+  }
+  /* Placeholders IDs used during readfile process are just an ID struct, so they never have
+   * animdata either. */
+  if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
     return false;
   }
 

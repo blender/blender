@@ -192,7 +192,6 @@ void GPU_color_mask(bool r, bool g, bool b, bool a);
 void GPU_depth_mask(bool depth);
 bool GPU_depth_mask_get();
 void GPU_clip_distances(int distances_enabled);
-bool GPU_mipmap_enabled();
 void GPU_state_set(GPUWriteMask write_mask,
                    GPUBlend blend,
                    GPUFaceCullTest culling_test,

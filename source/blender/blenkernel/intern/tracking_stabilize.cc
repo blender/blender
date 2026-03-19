@@ -1412,7 +1412,7 @@ ImBuf *BKE_tracking_stabilize_frame(
   }
 
   tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ibuf_flags);
-  IMB_colormanagegent_copy_settings(ibuf, tmpibuf);
+  IMB_colormanagement_copy_settings(ibuf, tmpibuf);
 
   /* Calculate stabilization matrix. */
   BKE_tracking_stabilization_data_get(clip, framenr, width, height, tloc, &tscale, &tangle);

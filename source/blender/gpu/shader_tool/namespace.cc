@@ -164,7 +164,8 @@ static void lower_namespace(string ns_prefix,
       if (symbol.is_method && !struct_name.empty()) {
         string specified_symbol = token.full_symbol_name();
 
-        if (token.prev() != ':') {
+        bool is_prev_ns_specifier = token.prev() == ':' && token.prev(2) == ':';
+        if (!is_prev_ns_specifier) {
           /* For unspecified symbol, we append the struct namespace to try to match the method
            * visible symbol. */
           specified_symbol = struct_name + "::" + specified_symbol;

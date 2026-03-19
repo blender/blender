@@ -364,17 +364,6 @@ void Mesh::resize_mesh(const int numverts, const int numtris)
   attributes.resize();
 }
 
-void Mesh::reserve_mesh(const int numverts, const int numtris)
-{
-  /* reserve space to add verts and triangles later */
-  verts.reserve(numverts);
-  triangles.reserve(numtris * 3);
-  shader.reserve(numtris);
-  smooth.reserve(numtris);
-
-  attributes.resize(true);
-}
-
 void Mesh::resize_subd_faces(const int numfaces, const int numcorners)
 {
   subd_start_corner.resize(numfaces);
@@ -386,19 +375,6 @@ void Mesh::resize_subd_faces(const int numfaces, const int numcorners)
   num_subd_faces = numfaces;
 
   subd_attributes.resize();
-}
-
-void Mesh::reserve_subd_faces(const int numfaces, const int numcorners)
-{
-  subd_start_corner.reserve(numfaces);
-  subd_num_corners.reserve(numfaces);
-  subd_shader.reserve(numfaces);
-  subd_smooth.reserve(numfaces);
-  subd_ptex_offset.reserve(numfaces);
-  subd_face_corners.reserve(numcorners);
-  num_subd_faces = numfaces;
-
-  subd_attributes.resize(true);
 }
 
 void Mesh::reserve_subd_creases(const size_t num_creases)
@@ -446,64 +422,6 @@ void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
 void Mesh::clear(bool preserve_shaders)
 {
   clear(preserve_shaders, false);
-}
-
-void Mesh::add_vertex(const float3 P)
-{
-  verts.push_back_reserved(P);
-  tag_verts_modified();
-}
-
-void Mesh::add_vertex_slow(const float3 P)
-{
-  verts.push_back_slow(P);
-  tag_verts_modified();
-}
-
-void Mesh::add_triangle(const int v0, const int v1, const int v2, const int shader_, bool smooth_)
-{
-  triangles.push_back_reserved(v0);
-  triangles.push_back_reserved(v1);
-  triangles.push_back_reserved(v2);
-  shader.push_back_reserved(shader_);
-  smooth.push_back_reserved(smooth_);
-
-  tag_triangles_modified();
-  tag_shader_modified();
-  tag_smooth_modified();
-}
-
-void Mesh::add_subd_face(const int *corners,
-                         const int num_corners,
-                         const int shader_,
-                         bool smooth_)
-{
-  const int start_corner = subd_face_corners.size();
-
-  for (int i = 0; i < num_corners; i++) {
-    subd_face_corners.push_back_reserved(corners[i]);
-  }
-
-  int ptex_offset = 0;
-  // cannot use get_num_subd_faces here as it holds the total number of subd_faces, but we do not
-  // have the total amount of data yet
-  if (subd_shader.size()) {
-    const SubdFace s = get_subd_face(subd_shader.size() - 1);
-    ptex_offset = s.ptex_offset + s.num_ptex_faces();
-  }
-
-  subd_start_corner.push_back_reserved(start_corner);
-  subd_num_corners.push_back_reserved(num_corners);
-  subd_shader.push_back_reserved(shader_);
-  subd_smooth.push_back_reserved(smooth_);
-  subd_ptex_offset.push_back_reserved(ptex_offset);
-
-  tag_subd_face_corners_modified();
-  tag_subd_start_corner_modified();
-  tag_subd_num_corners_modified();
-  tag_subd_shader_modified();
-  tag_subd_smooth_modified();
-  tag_subd_ptex_offset_modified();
 }
 
 Mesh::SubdFace Mesh::get_subd_face(const size_t index) const
@@ -557,7 +475,7 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
     Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
     if (attr_mcN && attr_cN) {
       const size_t numcorners = triangles.size();
-      packed_normal *N = attr_cN->data_normal();
+      const packed_normal *N = attr_cN->data_normal();
       std::copy_n(N, numcorners, attr_mcN->data_normal() + motion_step * numcorners);
     }
   }
@@ -598,7 +516,7 @@ void Mesh::compute_bounds()
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
       const size_t steps_size = verts.size() * (motion_steps - 1);
-      float3 *vert_steps = attr->data_float3();
+      const float3 *vert_steps = attr->data_float3();
 
       for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(vert_steps[i]);
@@ -615,7 +533,7 @@ void Mesh::compute_bounds()
 
       if (use_motion_blur && attr) {
         const size_t steps_size = verts.size() * (motion_steps - 1);
-        float3 *vert_steps = attr->data_float3();
+        const float3 *vert_steps = attr->data_float3();
 
         for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(vert_steps[i]);
