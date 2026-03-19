@@ -251,15 +251,10 @@ static gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
 
-  if (GPU_mipmap_enabled()) {
-    GPU_texture_update_mipmap_chain(tex);
-    GPU_texture_mipmap_mode(tex, true, true);
-    if (ima) {
-      ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
-    }
-  }
-  else {
-    GPU_texture_mipmap_mode(tex, false, true);
+  GPU_texture_update_mipmap_chain(tex);
+  GPU_texture_mipmap_mode(tex, true, true);
+  if (ima) {
+    ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
   }
 
   return tex;
@@ -497,14 +492,9 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
     if (*result.texture) {
       GPU_texture_extend_mode(*result.texture, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
-      if (GPU_mipmap_enabled()) {
-        GPU_texture_update_mipmap_chain(*result.texture);
-        ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
-        GPU_texture_mipmap_mode(*result.texture, true, true);
-      }
-      else {
-        GPU_texture_mipmap_mode(*result.texture, false, true);
-      }
+      GPU_texture_update_mipmap_chain(*result.texture);
+      ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+      GPU_texture_mipmap_mode(*result.texture, true, true);
     }
   }
 
@@ -901,12 +891,8 @@ static void gpu_texture_update_from_ibuf(
     MEM_delete(rect_float);
   }
 
-  if (GPU_mipmap_enabled()) {
-    GPU_texture_update_mipmap_chain(tex);
-  }
-  else {
-    ima->runtime->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
-  }
+  GPU_texture_update_mipmap_chain(tex);
+  ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
 
   GPU_texture_unbind(tex);
 }
