@@ -30,7 +30,7 @@ struct Resources {
   [[sampler(2)]] const sampler2DDepth xray_depth_tx;
   [[sampler(3)]] const sampler2DDepth xray_depth_in_front_tx;
 
-  [[push_constant]] float opacity;
+  [[push_constant]] const float opacity;
 
   TexelData sample_texel(float2 uv)
   {
@@ -96,6 +96,6 @@ struct FragOut {
   gpu_discard_fragment();
 }
 
-PipelineGraphic pipeline(vert_main, frag_main, Resources{});
+PipelineGraphic pipeline(vert_main, frag_main);
 
 }  // namespace overlay::xray_fade
