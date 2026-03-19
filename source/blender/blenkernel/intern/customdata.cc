@@ -4741,46 +4741,16 @@ static void get_type_file_write_info(const eCustomDataType type,
   *r_struct_num = typeInfo->structnum;
 }
 
-void CustomData_blend_write_prepare(CustomData &data,
-                                    const bke::AttrDomain domain,
-                                    const int domain_size,
-                                    Vector<CustomDataLayer, 16> &layers_to_write,
-                                    bke::AttributeStorage::BlendWriteData &write_data)
+void CustomData_blend_write_prepare(CustomData &data, Vector<CustomDataLayer, 16> &layers_to_write)
 {
   using namespace blender::bke;
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
     if (layer.flag & CD_FLAG_NOCOPY) {
       continue;
     }
-    const StringRef name = layer.name;
-    if (attribute_name_is_anonymous(name)) {
-      continue;
-    }
-
-    /* We always write the data in the new #AttributeStorage format, even though it's not yet used
-     * at runtime. This block should be removed when the new format is used at runtime. */
-    const eCustomDataType data_type = eCustomDataType(layer.type);
-    if (const std::optional<AttrType> type = custom_data_type_to_attr_type(data_type)) {
-      blender::Attribute attribute_dna{};
-      attribute_dna.name = layer.name;
-      attribute_dna.data_type = int16_t(*type);
-      attribute_dna.domain = int8_t(domain);
-      attribute_dna.storage_type = int8_t(AttrStorageType::Array);
-
-      /* Do not increase the user count; #::AttributeArray does not act as an owner of the
-       * attribute data, since it's only used temporarily for writing files. Changing the user
-       * count would be okay too, but it's unnecessary because none of this data should be
-       * modified while it's being written anyway. */
-      auto &array_dna = write_data.scope.construct<blender::AttributeArray>();
-      array_dna.data = layer.data;
-      array_dna.sharing_info = layer.sharing_info;
-      array_dna.size = domain_size;
-      attribute_dna.data = &array_dna;
-
-      write_data.attributes.append(attribute_dna);
-      continue;
-    }
-
+    /* Generic attribute types are stored in #AttributeStorage (except for BMesh but that is
+     * runtime only). */
+    BLI_assert((CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & CD_MASK_PROP_ALL) == 0);
     layers_to_write.append(layer);
   }
   data.totlayer = layers_to_write.size();

@@ -365,14 +365,10 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
         false,
         [&](const AttrDomain domain) { return mesh->attributes().domain_size(domain); },
         attribute_data);
-    CustomData_blend_write_prepare(
-        mesh->vert_data, AttrDomain::Point, mesh->verts_num, vert_layers, attribute_data);
-    CustomData_blend_write_prepare(
-        mesh->edge_data, AttrDomain::Edge, mesh->edges_num, edge_layers, attribute_data);
-    CustomData_blend_write_prepare(
-        mesh->face_data, AttrDomain::Face, mesh->faces_num, face_layers, attribute_data);
-    CustomData_blend_write_prepare(
-        mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
+    CustomData_blend_write_prepare(mesh->vert_data, vert_layers);
+    CustomData_blend_write_prepare(mesh->edge_data, edge_layers);
+    CustomData_blend_write_prepare(mesh->face_data, face_layers);
+    CustomData_blend_write_prepare(mesh->corner_data, loop_layers);
     if (!is_undo) {
       mesh_freestyle_marks_to_legacy(
           attribute_data, mesh->edge_data, mesh->face_data, edge_layers, face_layers);
