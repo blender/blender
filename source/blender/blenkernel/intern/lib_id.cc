@@ -1078,8 +1078,12 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
       newid = BKE_id_copy_ex(bmain, id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
       if (newid != nullptr) {
         /* us is 1 by convention with new IDs, but RNA_property_pointer_set
-         * will also increment it, decrement it here. */
+         * will also increment it if it's a user-refcounting usage, decrement it here. */
         id_us_min(newid);
+        /* 'Never unused' IDs types should always have an extra 'virtual' user ensured. */
+        if (BKE_idtype_get_info_from_id(newid)->flags & IDTYPE_FLAGS_NEVER_UNUSED) {
+          id_us_ensure_real(newid);
+        }
 
         /* assign copy */
         PointerRNA idptr = RNA_id_pointer_create(newid);

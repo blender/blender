@@ -57,7 +57,7 @@ enum {
    */
   IDTYPE_FLAGS_NO_MEMFILE_UNDO = 1 << 5,
   /**
-   * Indicates that the given IDType is considered as unused.
+   * Indicates that the given IDType is never considered as unused, even when having zero users.
    *
    * This is used for some 'root' ID types which typically do not have any actual user (WM.
    * Scene...). It prevents e.g. their deletion through the 'Purge' operation.
