@@ -25,6 +25,11 @@ class BlenderMesh():
         """Mesh creation."""
         return create_mesh(gltf, mesh_idx, skin_idx)
 
+    @staticmethod
+    def create_pointcloud(gltf, mesh_idx):
+        """Point Cloud creation."""
+        return create_pointcloud(gltf, mesh_idx)
+
 
 # Maximum number of TEXCOORD_n/COLOR_n sets to import
 UV_MAX = 8
@@ -54,6 +59,110 @@ def create_mesh(gltf, mesh_idx, skin_idx):
     import_user_extensions('gather_import_mesh_after_hook', gltf, pymesh, mesh)
 
     return mesh
+
+
+def create_pointcloud(gltf, mesh_idx):
+    pypc = gltf.data.meshes[mesh_idx]
+    import_user_extensions('gather_import_pointcloud_before_hook', gltf, pypc)
+
+    name = pypc.name or 'PointCloud_%d' % mesh_idx
+    pointcloud = bpy.data.pointclouds.new(name)
+
+    # no need to parent the pointcloud to an object, as there is no skinning or shapekeys for point clouds
+    do_primitives_pointcloud(gltf, mesh_idx, pointcloud)
+    set_extras(pointcloud, gltf.data.meshes[mesh_idx].extras)
+
+    import_user_extensions('gather_import_pointcloud_after_hook', gltf, pypc, pointcloud)
+    return pointcloud
+
+
+def do_primitives_pointcloud(gltf, mesh_idx, pointcloud):
+    pypc = gltf.data.meshes[mesh_idx]
+
+    point_locs = np.empty(dtype=np.float32, shape=(0, 3))  # coordinate for each point
+    attributes = {}
+    attribute_type = {}
+    attribute_component_type = {}
+    attribute_data_type = {}
+
+    for prim in pypc.primitives:
+        if 'POSITION' not in prim.attributes:
+            continue
+
+        if prim.extensions is not None and 'KHR_draco_mesh_compression' in prim.extensions:
+            gltf.log.info('Draco Decoder: Decode primitive {}'.format(pypc.name or '[unnamed]'))
+            decode_primitive(gltf, prim)
+
+        if prim.mode != 0:
+            gltf.log.warning(
+                'Point Cloud import: Primitive mode is not POINTS, skipping primitive in mesh {}'.format(
+                    pypc.name or '[unnamed]'))
+            continue
+
+        if prim.indices is not None:
+            indices = BinaryData.decode_accessor(gltf, prim.indices)
+            indices = indices.reshape(len(indices))
+        else:
+            num_points = gltf.data.accessors[prim.attributes['POSITION']].count
+            indices = np.arange(0, num_points, dtype=np.uint32)
+
+        # We'll add one vert to the arrays for each index used in indices
+        unique_indices, inv_indices = np.unique(indices, return_inverse=True)
+
+        vs = BinaryData.decode_accessor(gltf, prim.attributes['POSITION'], cache=True)
+        point_locs = np.concatenate((point_locs, vs[unique_indices]))
+
+        # Custom Attributes for this primitive
+        custom_attrs = [k for k in prim.attributes if k.startswith('_') or k.startswith('KHR_')]
+        for attr in custom_attrs:
+            if attr not in attributes:  # This attribute is not yet known
+                # So set it up
+                attribute_type[attr] = gltf.data.accessors[prim.attributes[attr]].type
+                attribute_component_type[attr] = gltf.data.accessors[prim.attributes[attr]].component_type
+                # Initialize with empty data for all previous primitives
+                attributes[attr] = np.zeros(
+                    dtype=ComponentType.to_numpy_dtype(attribute_component_type[attr]),
+                    shape=(len(point_locs) - len(vs[unique_indices]), DataType.num_elements(attribute_type[attr]))
+                )
+                attribute_data_type[attr] = get_attribute_type(
+                    gltf.data.accessors[prim.attributes[attr]].component_type,
+                    gltf.data.accessors[prim.attributes[attr]].type
+                )
+        for idx, attr in enumerate(attributes.keys()):
+            if attr in prim.attributes:
+                attr_data = BinaryData.decode_accessor(gltf, prim.attributes[attr], cache=True)
+                attributes[attr] = np.concatenate((attributes[attr], attr_data[unique_indices]))
+            else:
+                # Setup default data for attribute not defined in this primitive
+                attr_data = np.zeros(
+                    (len(unique_indices), DataType.num_elements(attribute_type[attr])),
+                    dtype=ComponentType.to_numpy_dtype(attribute_component_type[attr])
+                )
+                attributes[attr] = np.concatenate((attributes[attr], attr_data))
+
+    pointcloud.resize(point_locs.shape[0])  # Add points to the point cloud
+
+    # Setup positions
+    gltf.locs_batch_gltf_to_blender(point_locs)
+    position_attribute = attribute_ensure(pointcloud.attributes, 'position', 'FLOAT_VECTOR', 'POINT')
+    position_attribute.data.foreach_set('vector', squish(point_locs, np.float32))
+
+    # Custom Attributes
+
+    for attr in attributes:
+        blender_attribute_data_type = attribute_data_type[attr]
+
+        if blender_attribute_data_type is None:
+            continue
+
+        blender_attribute = pointcloud.attributes.new(attr, blender_attribute_data_type, 'POINT')
+        if DataType.num_elements(attribute_type[attr]) == 1:
+            blender_attribute.data.foreach_set('value', attributes[attr].flatten())
+        elif DataType.num_elements(gltf.data.accessors[prim.attributes[attr]].type) > 1:
+            if blender_attribute_data_type in ["BYTE_COLOR", "FLOAT_COLOR"]:
+                blender_attribute.data.foreach_set('color', attributes[attr].flatten())
+            else:
+                blender_attribute.data.foreach_set('vector', attributes[attr].flatten())
 
 
 def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
