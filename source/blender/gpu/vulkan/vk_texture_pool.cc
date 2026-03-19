@@ -554,7 +554,7 @@ void VKTexturePool::log_usage_data()
     log_message += std::format(" ({} cached VkImages)", current_usage_data_.image_cache_size);
   }
 
-  CLOG_TRACE(&LOG, log_message.c_str());
+  CLOG_TRACE(&LOG, "%s", log_message.c_str());
 }
 
 }  // namespace gpu
