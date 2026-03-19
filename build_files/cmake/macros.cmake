@@ -313,18 +313,23 @@ endfunction()
 # 'name' should always match the target name,
 # use this macro before add_library or add_executable.
 #
-# Optionally takes an arg passed to set(), eg PARENT_SCOPE.
+# Optionally takes an ARGV1 passed to set(), eg `PARENT_SCOPE`.
 macro(add_cc_flags_custom_test
   name
   )
 
+  # NOTE: When ARGV1 is PARENT_SCOPE, propagate to the caller's parent scope.
+  # `string(APPEND)` alone only modifies the local scope, and `set()` is
+  # needed because `string(APPEND)` does not support PARENT_SCOPE.
   string(TOUPPER ${name} _name_upper)
   if(DEFINED CMAKE_C_FLAGS_${_name_upper})
     message(
       STATUS
       "Using custom CFLAGS: "
       "CMAKE_C_FLAGS_${_name_upper} in \"${CMAKE_CURRENT_SOURCE_DIR}\"")
-    string(APPEND CMAKE_C_FLAGS " ${CMAKE_C_FLAGS_${_name_upper}}" ${ARGV1})
+    string(APPEND CMAKE_C_FLAGS " ${CMAKE_C_FLAGS_${_name_upper}}")
+    # Harmless if ARGV1 isn't set.
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" ${ARGV1})
   endif()
   if(DEFINED CMAKE_CXX_FLAGS_${_name_upper})
     message(
@@ -332,7 +337,9 @@ macro(add_cc_flags_custom_test
       "Using custom CXXFLAGS: "
       "CMAKE_CXX_FLAGS_${_name_upper} in \"${CMAKE_CURRENT_SOURCE_DIR}\""
     )
-    string(APPEND CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS_${_name_upper}}" ${ARGV1})
+    string(APPEND CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS_${_name_upper}}")
+    # Harmless if ARGV1 isn't set.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" ${ARGV1})
   endif()
   unset(_name_upper)
 
