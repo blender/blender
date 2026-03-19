@@ -283,10 +283,11 @@ struct OpaqueOut {
 
 [[fragment]] void frag_opaque([[resource_table]] Resources &srt,
                               [[in]] const VertOut &v_out,
+                              [[front_facing]] const bool facing,
                               [[out]] OpaqueOut &frag_out)
 {
   frag_out.object_id = uint(v_out.object_id);
-  frag_out.normal = normal_encode(gl_FrontFacing, v_out.normal);
+  frag_out.normal = normal_encode(facing, v_out.normal);
 
   frag_out.material = float4(v_out.color, float_pair_encode(v_out.roughness, v_out.metallic));
 
@@ -296,7 +297,7 @@ struct OpaqueOut {
 
   if (srt.lighting_mode == WORKBENCH_LIGHTING_MATCAP) [[static_branch]] {
     /* For matcaps, save front facing in alpha channel. */
-    frag_out.material.a = float(gl_FrontFacing);
+    frag_out.material.a = float(facing);
   }
 }
 

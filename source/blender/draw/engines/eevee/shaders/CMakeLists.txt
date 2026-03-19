@@ -94,7 +94,6 @@ set(SRC_GLSL_COMP
   eevee_film_cryptomatte_post_comp.glsl
   eevee_film_pass_convert_comp.glsl
   eevee_hiz_update_comp.glsl
-  eevee_horizon_scan.bsl.hh
   eevee_light_culling_select_comp.glsl
   eevee_light_culling_sort_comp.glsl
   eevee_light_culling_tile_comp.glsl
@@ -125,11 +124,7 @@ set(SRC_GLSL_COMP
   eevee_ray_trace_planar_comp.glsl
   eevee_ray_trace_screen_comp.glsl
   eevee_shadow_clipmap_clear_comp.glsl
-  eevee_shadow_page_allocate.bsl.hh
   eevee_shadow_page_clear_comp.glsl
-  eevee_shadow_page_defrag.bsl.hh
-  eevee_shadow_page_free.bsl.hh
-  eevee_shadow_page_mask.bsl.hh
   eevee_shadow_tag_update_comp.glsl
   eevee_shadow_tag_usage_comp.glsl
   eevee_shadow_tag_usage_surfels_comp.glsl
@@ -140,7 +135,6 @@ set(SRC_GLSL_COMP
   eevee_shadow_tilemap_init_comp.glsl
   eevee_shadow_tilemap_rendermap_comp.glsl
   eevee_shadow_visibility_comp.glsl
-  eevee_subsurface.bsl.hh
   eevee_surfel_cluster_build_comp.glsl
   eevee_surfel_light_comp.glsl
   eevee_surfel_list_build_comp.glsl
@@ -174,7 +168,6 @@ set(SRC_GLSL_LIB
   eevee_filter_lib.glsl
   # eevee_forward_lib.glsl
   eevee_gbuffer_lib.glsl
-  eevee_horizon_scan_lib.bsl.hh
   eevee_light_eval_lib.glsl
   eevee_light_iter_lib.glsl
   eevee_light_lib.glsl
@@ -196,7 +189,6 @@ set(SRC_GLSL_LIB
   eevee_reverse_z_lib.glsl
   eevee_sampling_lib.glsl
   eevee_shadow_lib.glsl
-  eevee_shadow_page_ops.bsl.hh
   eevee_shadow_tag_usage_lib.glsl
   eevee_shadow_tilemap_lib.glsl
   eevee_shadow_tracing_lib.glsl
@@ -210,6 +202,10 @@ set(SRC_GLSL_LIB
   eevee_volume_lib.glsl
 )
 
+set(SRC_BSL
+  bsl_shader_linting.cc
+)
+
 # Compile shaders with shader code.
 if(WITH_GPU_SHADER_CPP_COMPILATION)
   # TODO Remove
@@ -218,6 +214,7 @@ if(WITH_GPU_SHADER_CPP_COMPILATION)
   compile_sources_as_cpp(eevee_cpp_shaders_vert "${SRC_GLSL_VERT}" "GPU_VERTEX_SHADER")
   compile_sources_as_cpp(eevee_cpp_shaders_frag "${SRC_GLSL_FRAG}" "GPU_FRAGMENT_SHADER")
   compile_sources_as_cpp(eevee_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
+  compile_sources_as_cpp(eevee_cpp_shaders_bsl  "${SRC_BSL}" "")
   # Only enable to make sure they compile on their own.
   # Otherwise it creates a warning about `pragma once`.
   # compile_sources_as_cpp(eevee_cpp_shaders_lib "${SRC_GLSL_LIB}" "GPU_LIBRARY_SHADER")
