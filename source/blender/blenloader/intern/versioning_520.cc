@@ -127,6 +127,17 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  /* Disable "unified" flags for Grease Pencil Draw mode. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 11)) {
+    for (Scene &scene : bmain->scenes) {
+      if (scene.toolsettings->gp_paint) {
+        UnifiedPaintSettings &settings =
+            scene.toolsettings->gp_paint->paint.unified_paint_settings;
+        settings.flag &= ~(UNIFIED_PAINT_SIZE | UNIFIED_PAINT_ALPHA | UNIFIED_PAINT_COLOR);
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
