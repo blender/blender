@@ -149,7 +149,7 @@ SearchInfo SocketSearchData::info(const bContext &C) const
       return {};
     }
     const NodesModifierData *nmd = object_and_modifier->nmd;
-    if (nmd->node_group != nullptr || ID_MISSING(nmd->node_group)) {
+    if (nmd->node_group == nullptr || ID_MISSING(nmd->node_group)) {
       return {};
     }
     geo_log::GeoTreeLog *tree_log = get_root_tree_log(*object_and_modifier->object, *nmd);
