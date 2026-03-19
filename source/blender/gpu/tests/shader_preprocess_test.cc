@@ -1237,6 +1237,16 @@ static void test_preprocess_static_branch()
 
   {
     string input = R"(
+struct Resources {
+  [[compilation_constant]] const int use_color_band;
+
+  void fn() {
+    if (use_color_band) [[static_branch]] {
+      test;
+    }
+  }
+};
+
 void func([[resource_table]] Resources &srt)
 {
   if (srt.use_color_band) [[static_branch]] {
@@ -1265,65 +1275,114 @@ void func([[resource_table]] Resources &srt)
 }
 )";
     string expect = R"(
+#define access_Resources_use_color_band() use_color_band
+#ifdef CREATE_INFO_RES_PASS_Resources
+CREATE_INFO_RES_PASS_Resources
+#endif
+#ifdef CREATE_INFO_RES_BATCH_Resources
+CREATE_INFO_RES_BATCH_Resources
+#endif
+#ifdef CREATE_INFO_RES_GEOMETRY_Resources
+CREATE_INFO_RES_GEOMETRY_Resources
+#endif
+#ifdef CREATE_INFO_RES_SHARED_VARS_Resources
+CREATE_INFO_RES_SHARED_VARS_Resources
+#endif
+#line 2
+struct Resources {
+#line 18
+int _pad;};
+#line 21
+#ifndef GPU_METAL
+Resources Resources_ctor_();
+void _fn(Resources  this_);
+Resources Resources_new_();
+#endif
+#line 2
+                         Resources Resources_ctor_() {Resources r;r._pad=0;return r;}
+#line 5
 
 #if defined(CREATE_INFO_Resources)
-#line 2
-void func(Resources  srt)
-{
+#line 5
+  void _fn(Resources  this_) {
 
 #if SRT_CONSTANT_use_color_band
-#line 4
-                                                               {
-    test;
-  }
-#endif
+#line 6
+                                                                 {
+      test;
+    }
 
-#if SRT_CONSTANT_use_color_band == 1
-#line 8
-                                                                    {
-    test;
-  }
-#else
-#line 10
-         {
-    test;
+#endif
+#line 9
   }
 #endif
+       Resources Resources_new_()
+{
+  Resources result;
+  result._pad = 0;
+  return result;
+#line 9
+}
+#line 12
+
+#if defined(CREATE_INFO_Resources)
+#line 12
+void func(Resources  srt)
+{
 
 #if SRT_CONSTANT_use_color_band
 #line 14
                                                                {
     test;
   }
+#endif
+
+#if SRT_CONSTANT_use_color_band == 1
+#line 18
+                                                                    {
+    test;
+  }
+#else
+#line 20
+         {
+    test;
+  }
+#endif
+
+#if SRT_CONSTANT_use_color_band
+#line 24
+                                                               {
+    test;
+  }
 #elif SRT_CONSTANT_use_color_band
-#line 16
+#line 26
                                                                       {
     test;
   }
 #endif
 
 #if SRT_CONSTANT_use_color_band
-#line 20
+#line 30
                                                                {
     test;
   }
 #elif SRT_CONSTANT_use_color_band
-#line 22
+#line 32
                                                                       {
     test;
   }
 #else
-#line 24
+#line 34
          {
     test;
   }
 
 #endif
-#line 27
+#line 37
 }
 
 #endif
-#line 28
+#line 38
 )";
     string error;
     string output = process_test_string(input, error);
