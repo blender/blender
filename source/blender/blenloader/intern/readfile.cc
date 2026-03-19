@@ -2133,9 +2133,11 @@ static void readfile_id_runtime_data_ensure(ID &id)
   id.runtime->readfile_data = MEM_new_zeroed<ID_Readfile_Data>(__func__);
 }
 
-ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id)
+ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(const ID &id)
 {
-  if (!id.runtime->readfile_data) {
+  /* NOTE: While usually not expected, there are some valid cases where ID::runtime will be nullptr
+   * (e.g. for temporary buffers used as 'proxies' of actual IDs in writefile process). */
+  if (!id.runtime || !id.runtime->readfile_data) {
     return ID_Readfile_Data::Tags{};
   }
   return id.runtime->readfile_data->tags;
@@ -5622,6 +5624,9 @@ static void read_library_clear_weak_links(FileData *basefd, Main *mainvar)
       {
         CLOG_DEBUG(&LOG, "Dropping weak link to '%s'", id->name);
         change_link_placeholder_to_real_ID_pointer(basefd, id, nullptr);
+        /* Some ID-specific data may already have been allocated (e.g. the ID::runtime), so some
+         * low-level proper ID 'deletion' is needed here. */
+        BKE_libblock_free_data(id, false);
         BLI_freelinkN(lbarray[a], id);
       }
       id = id_next;
