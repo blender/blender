@@ -73,6 +73,14 @@ wl_fixed_t gwl_window_scale_wl_fixed_from(const GWL_WindowScaleParams &scale_par
 int gwl_window_scale_int_to(const GWL_WindowScaleParams &scale_params, int value);
 int gwl_window_scale_int_from(const GWL_WindowScaleParams &scale_params, int value);
 
+/**
+ * Scale a logical buffer size to physical pixels, returning an integer buffer scale.
+ * The buffer scale is rounded up so `result / *r_buffer_scale == logical_size`.
+ */
+int gwl_window_scale_buffer_size_to(const GWL_WindowScaleParams &scale_params,
+                                    int logical_size,
+                                    int *r_buffer_scale);
+
 #define FRACTIONAL_DENOMINATOR 120
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD

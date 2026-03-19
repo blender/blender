@@ -187,6 +187,24 @@ int gwl_window_scale_int_from(const GWL_WindowScaleParams &scale_params, const i
   return wl_fixed_to_int(gwl_window_scale_wl_fixed_from(scale_params, wl_fixed_from_int(value)));
 }
 
+static uint divide_ceil_uint(const uint x, const uint d)
+{
+  return ((x + d) - 1) / d;
+}
+
+int gwl_window_scale_buffer_size_to(const GWL_WindowScaleParams &scale_params,
+                                    const int logical_size,
+                                    int *r_buffer_scale)
+{
+  /* The buffer scale must be an integer, so use ceiling-division to round up.
+   * This is a no-op for integer scales but ensures fractional scales
+   * (e.g. 1.5x) produce a buffer whose logical size matches what the compositor requested. */
+  const int buffer_scale = divide_ceil_uint(gwl_window_scale_int_to(scale_params, logical_size),
+                                            logical_size);
+  *r_buffer_scale = buffer_scale;
+  return logical_size * buffer_scale;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -823,6 +841,8 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
 #endif
 
   const bool dpi_changed = win->frame_pending.fractional_scale != win->frame.fractional_scale;
+  const bool scale_changed = dpi_changed ||
+                             (win->frame_pending.buffer_scale != win->frame.buffer_scale);
   bool surface_needs_commit = false;
   bool surface_needs_resize_for_backend = false;
   bool surface_needs_buffer_scale = false;
@@ -907,6 +927,11 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
   win->frame_pending.size[1] = win->frame.size[1];
 
   win->frame = win->frame_pending;
+
+  /* Update the toplevel icon at the new scale (after the frame is fully synced). */
+  if (scale_changed && win->xdg_decor) {
+    win->ghost_system->xdg_toplevel_icon_update(win->ghost_window, win->xdg_decor->toplevel);
+  }
 
   /* Signal not to apply the scale unless it's configured. */
   win->frame_pending.size[0] = 0;
@@ -1566,9 +1591,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       zxdg_toplevel_decoration_v1_set_mode(decor.toplevel_decor, mode);
     }
 
-    /* Set the toplevel icon. */
-    system_->xdg_toplevel_icon_update(this, decor.toplevel);
-
     if (!configure_deferred) {
       wl_surface_commit(window_->wl.surface);
 
@@ -1653,6 +1675,11 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 
   wl_surface_set_buffer_scale(window_->wl.surface, window_->frame.buffer_scale);
+
+  /* Set the toplevel icon (after the scale is initialized). */
+  if (window_->xdg_decor) {
+    system_->xdg_toplevel_icon_update(this, window_->xdg_decor->toplevel);
+  }
 
   /* Apply Bounds.
    * Important to run after the buffer scale is known & before the buffer is created. */

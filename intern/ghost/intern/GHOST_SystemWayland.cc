@@ -1493,8 +1493,8 @@ struct GWL_Display {
     zxdg_output_manager_v1 *output_manager = nullptr;
     xdg_activation_v1 *activation_manager = nullptr;
     xdg_toplevel_icon_manager_v1 *toplevel_icon_manager = nullptr;
-    /** Preferred icon size from the compositor (0 = no preference, use a default). */
-    int toplevel_icon_size = 0;
+    /** Maximum preferred icon size from the compositor (0 = no preference, use a default). */
+    int toplevel_icon_logical_size_max = 0;
   } xdg;
 
   GWL_DisplayTimeStamp input_timestamp;
@@ -7610,8 +7610,8 @@ static void xdg_toplevel_icon_manager_handle_icon_size(void *data,
 {
   GWL_Display *display = static_cast<GWL_Display *>(data);
   /* Use the largest size the compositor requests. */
-  if (size > display->xdg.toplevel_icon_size) {
-    display->xdg.toplevel_icon_size = size;
+  if (size > display->xdg.toplevel_icon_logical_size_max) {
+    display->xdg.toplevel_icon_logical_size_max = size;
   }
 }
 
@@ -9809,8 +9809,7 @@ GHOST_TimerManager *GHOST_SystemWayland::key_repeat_timer_manager()
 void GHOST_SystemWayland::xdg_toplevel_icon_update(GHOST_WindowWayland *window,
                                                    xdg_toplevel *toplevel)
 {
-  /* NOTE: currently only called during window creation,
-   * but could be called again to update icons at runtime. */
+  /* Called during window creation and when the window scale changes. */
   xdg_toplevel_icon_manager_v1 *icon_manager = display_->xdg.toplevel_icon_manager;
   if (icon_manager == nullptr) {
     return;
@@ -9820,16 +9819,24 @@ void GHOST_SystemWayland::xdg_toplevel_icon_update(GHOST_WindowWayland *window,
     return;
   }
 
-  const int icon_size = display_->xdg.toplevel_icon_size > 0 ? display_->xdg.toplevel_icon_size :
-                                                               32;
+  const int icon_logical_size = display_->xdg.toplevel_icon_logical_size_max > 0 ?
+                                    display_->xdg.toplevel_icon_logical_size_max :
+                                    32;
+
+  /* The icon size from the compositor is in logical coordinates,
+   * scale to physical pixels using the window's scale. */
+  int buffer_scale;
+  const int icon_pixel_size = gwl_window_scale_buffer_size_to(
+      window->scale_params_get(), icon_logical_size, &buffer_scale);
+  GHOST_ASSERT(icon_pixel_size > 0, "Scale must be initialized before setting the icon!");
 
   GWL_XDG_WindowIcon &icon = window->gwl_xdg_icon_get();
 
   /* Re-generate the buffer if the size has changed or this is the first call. */
-  if (icon.icon_size != icon_size) {
+  if (icon.icon_pixel_size != icon_pixel_size) {
     gwl_xdg_window_icon_free(icon);
 
-    const int32_t size_xy[2] = {icon_size, icon_size};
+    const int32_t size_xy[2] = {icon_pixel_size, icon_pixel_size};
     void *buffer_data = nullptr;
     size_t buffer_data_size = 0;
     wl_buffer *buffer = ghost_wl_buffer_create_for_image(
@@ -9842,9 +9849,9 @@ void GHOST_SystemWayland::xdg_toplevel_icon_update(GHOST_WindowWayland *window,
     /* The callback fills an RGBA (straight alpha) buffer.
      * Convert to pre-multiplied ARGB for the Wayland SHM format,
      * swapping R and B since ARGB8888 stores B,G,R,A bytes on little-endian. */
-    const int pixel_count = icon_size * icon_size;
+    const int pixel_count = icon_pixel_size * icon_pixel_size;
     icon_generator_->generate_fn(
-        icon_generator_, window, static_cast<uint8_t *>(buffer_data), icon_size);
+        icon_generator_, window, static_cast<uint8_t *>(buffer_data), icon_pixel_size);
     uint32_t *pixels = static_cast<uint32_t *>(buffer_data);
     for (int i = 0; i < pixel_count; i++) {
       uint8_t *bytes = reinterpret_cast<uint8_t *>(&pixels[i]);
@@ -9856,11 +9863,11 @@ void GHOST_SystemWayland::xdg_toplevel_icon_update(GHOST_WindowWayland *window,
     icon.buffer = buffer;
     icon.buffer_data = buffer_data;
     icon.buffer_size = buffer_data_size;
-    icon.icon_size = icon_size;
+    icon.icon_pixel_size = icon_pixel_size;
   }
 
   xdg_toplevel_icon_v1 *toplevel_icon = xdg_toplevel_icon_manager_v1_create_icon(icon_manager);
-  xdg_toplevel_icon_v1_add_buffer(toplevel_icon, icon.buffer, 1);
+  xdg_toplevel_icon_v1_add_buffer(toplevel_icon, icon.buffer, buffer_scale);
   xdg_toplevel_icon_manager_v1_set_icon(icon_manager, toplevel, toplevel_icon);
   xdg_toplevel_icon_v1_destroy(toplevel_icon);
 }

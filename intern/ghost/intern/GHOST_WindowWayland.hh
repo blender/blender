@@ -96,8 +96,8 @@ struct GWL_XDG_WindowIcon {
   struct wl_buffer *buffer = nullptr;
   void *buffer_data = nullptr;
   size_t buffer_size = 0;
-  /** The icon dimensions (width == height, always square). */
-  int icon_size = 0;
+  /** The icon dimensions in physical pixels (width == height, always square). */
+  int icon_pixel_size = 0;
 };
 
 void gwl_xdg_window_icon_free(GWL_XDG_WindowIcon &icon);
