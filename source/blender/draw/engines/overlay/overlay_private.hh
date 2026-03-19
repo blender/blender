@@ -449,7 +449,7 @@ class ShaderModule {
 
  public:
   /** Shaders */
-  StaticShader anti_aliasing = {"overlay_antialiasing"};
+  StaticShader anti_aliasing = {"overlay_antialiasing_pipeline"};
   StaticShader armature_degrees_of_freedom = shader_clippable("overlay_armature_dof");
   StaticShader attribute_viewer_mesh = shader_clippable("overlay_viewer_attribute_mesh");
   StaticShader attribute_viewer_pointcloud = shader_clippable(
@@ -518,7 +518,7 @@ class ShaderModule {
   StaticShader uv_image_borders = {"overlay_edit_uv_tiled_image_borders"};
   StaticShader uv_paint_mask = {"overlay_edit_uv_mask_image"};
   StaticShader uv_wireframe = {"overlay_wireframe_uv"};
-  StaticShader xray_fade = {"overlay_xray_fade"};
+  StaticShader xray_fade = {"overlay_xray_fade_pipeline"};
 
   /** Selectable Shaders */
   StaticShader armature_envelope_fill = shader_selectable("overlay_armature_envelope_solid");
