@@ -1313,6 +1313,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
           convert_float_color_to_byte_color(&color, 1, is_noncolor, &colors[i]);
         }
       }
+      attr.finish();
     }
   }
 
