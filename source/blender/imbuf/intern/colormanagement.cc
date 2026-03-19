@@ -1113,6 +1113,11 @@ static bool colormanage_check_colorspace_settings(ColorManagedColorspaceSettings
   return colormanage_check_colorspace_name(settings->name, what);
 }
 
+ColorManagedConfig &IMB_colormanagement_get_config()
+{
+  return *g_config();
+}
+
 void IMB_colormanagement_check_file_config(Main *bmain)
 {
   const ocio::Display *default_display = g_config()->get_default_display();

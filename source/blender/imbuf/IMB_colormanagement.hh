@@ -30,8 +30,11 @@ struct bContext;
 
 namespace ocio {
 class ColorSpace;
+class Config;
 class Display;
 }  // namespace ocio
+
+using ColorManagedConfig = ocio::Config;
 using ColorSpace = ocio::ColorSpace;
 using ColorManagedDisplay = ocio::Display;
 
@@ -56,6 +59,8 @@ enum class ColorManagedFileOutput { Image, Video };
 /* -------------------------------------------------------------------- */
 /** \name Generic Functions
  * \{ */
+
+ColorManagedConfig &IMB_colormanagement_get_config();
 
 void IMB_colormanagement_check_file_config(Main *bmain);
 

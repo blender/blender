@@ -27,6 +27,9 @@
 
 #include "BLT_translation.hh"
 
+#include "OCIO_colorspace.hh"
+#include "OCIO_config.hh"
+
 namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
@@ -102,21 +105,17 @@ static void colorspaces_menu_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  /* Loop through items in enum */
-  const EnumPropertyItem *item_array = nullptr;
-  int item_len = 0;
-  bool free_items = false;
-  RNA_property_enum_items(nullptr, &ptr, prop, &item_array, &item_len, &free_items);
-
   Set<StringRef> subdirs_set;
   Vector<const ColorSpace *> colorspaces_at_this_level;
 
-  for (int i = 0; i < item_len; ++i) {
-    const ColorSpace *cs = IMB_colormanagement_space_get_named(item_array[i].identifier);
-    if (!cs) {
+  /* Loop through color spaces in the config. */
+  ColorManagedConfig &config = IMB_colormanagement_get_config();
+  for (const int colorspace_index : IndexRange(config.get_num_color_spaces())) {
+    const ColorSpace *colorspace = config.get_sorted_color_space_by_index(colorspace_index);
+    if (!colorspace) {
       continue;
     }
-    const char *family_cstr = IMB_colormanagement_colorspace_get_family(cs);
+    const char *family_cstr = colorspace->family().c_str();
     StringRef remaining(family_cstr ? family_cstr : "");
 
     if (parent_path) {
@@ -128,7 +127,7 @@ static void colorspaces_menu_draw(const bContext *C, Menu *menu)
     }
 
     if (remaining.is_empty()) {
-      colorspaces_at_this_level.append(cs);
+      colorspaces_at_this_level.append(colorspace);
       continue;
     }
 
@@ -196,10 +195,6 @@ static void colorspaces_menu_draw(const bContext *C, Menu *menu)
                                 "scene_linear",
                                 IFACE_("Working Space"),
                                 TIP_("Working color space of the current file"));
-  }
-
-  if (free_items) {
-    MEM_delete(const_cast<EnumPropertyItem *>(item_array));
   }
 }
 
