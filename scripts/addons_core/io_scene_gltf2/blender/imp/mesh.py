@@ -184,7 +184,7 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
     num_uvs = 0
     num_cols = 0
     num_joint_sets = 0
-    attributes = set({})
+    attributes = {}
     attribute_data = []
     attribute_type = {}
     attribute_component_type = {}
@@ -224,7 +224,9 @@ def do_primitives(gltf, mesh_idx, skin_idx, mesh, ob):
                         dtype=ComponentType.to_numpy_dtype(attribute_component_type[attr]),
                         shape=(0, DataType.num_elements(attribute_type[attr])))
                 )
-        attributes.update(set(custom_attrs))
+        # Make sure all attributes are in the dict, even those not in the first primitive(s)
+        # And make sure the order of attributes is the same for all primitives
+        attributes.update(dict.fromkeys(custom_attrs))
 
     num_shapekeys = sum(sk_name is not None for sk_name in pymesh.shapekey_names)
 
