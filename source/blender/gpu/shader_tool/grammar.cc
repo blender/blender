@@ -276,6 +276,9 @@ struct ScopeParser {
     member_declaration();
     close_scope(curr, ScopeType::Struct);
     match('}');
+    /* Support C-style anonymous struct for C compatibility. */
+    match_if(Word);
+    match(';');
   }
 
   void member_declaration()
