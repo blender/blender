@@ -767,9 +767,6 @@ class TestImBufFileTypes(unittest.TestCase):
         size = (32, 32)
         with tempfile.TemporaryDirectory() as tempdir:
             for type_id, file_type in imbuf.file_types.items():
-                # Skip until #155822 is fixed.
-                if type_id == 'AVIF':
-                    continue
                 if type_id in read_only_types:
                     continue
                 ext = file_type.file_extensions[0]
