@@ -703,7 +703,7 @@ static void bb_allocateData(FluidObjectBB *bb, bool use_velocity, bool use_influ
 
   bb->distances = MEM_new_array_uninitialized<float>(size_t(bb->total_cells),
                                                      "fluid_bb_distances");
-  copy_vn_fl(bb->distances, bb->total_cells, FLT_MAX);
+  std::fill_n(bb->distances, bb->total_cells, FLT_MAX);
 
   bb->valid = true;
 }

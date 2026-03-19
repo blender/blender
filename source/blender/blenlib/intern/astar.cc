@@ -24,6 +24,8 @@
  * It will be cleared much more often than graph's one.
  */
 
+#include <algorithm>
+
 #include "BLI_sys_types.h"
 
 #include "BLI_heap_simple.h"
@@ -157,7 +159,7 @@ bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
   r_solution->steps = 0;
   prev_nodes[node_index_src] = -1;
   BLI_bitmap_set_all(done_nodes, false, as_graph->node_num);
-  copy_vn_fl(g_costs, as_graph->node_num, FLT_MAX);
+  std::fill_n(g_costs, as_graph->node_num, FLT_MAX);
   g_costs[node_index_src] = 0.0f;
   g_steps[node_index_src] = 0;
 

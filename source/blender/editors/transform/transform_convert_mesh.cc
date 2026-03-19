@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
+
 #include "DNA_mesh_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -759,7 +761,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
   /* We shouldn't need this, but with incorrect selection flushing
    * its possible we have a selected vertex that's not in a face,
    * for now best not crash in that case. */
-  copy_vn_i(data.island_vert_map, bm->totvert, -1);
+  std::fill_n(data.island_vert_map, bm->totvert, -1);
 
   if (!has_only_single_islands) {
     if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {

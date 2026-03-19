@@ -10,6 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <algorithm>
+
 #include "BLI_heap.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
@@ -387,7 +389,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     /* prepare for cleanup */
     BM_mesh_elem_index_ensure(bm, BM_VERT);
     vert_reverse_lookup = MEM_new_array_uninitialized<int>(bm->totvert, __func__);
-    copy_vn_i(vert_reverse_lookup, bm->totvert, -1);
+    std::fill_n(vert_reverse_lookup, bm->totvert, -1);
     for (i = 0; i < vinput_len; i++) {
       BMVert *v = vinput_arr[i];
       vert_reverse_lookup[BM_elem_index_get(v)] = i;

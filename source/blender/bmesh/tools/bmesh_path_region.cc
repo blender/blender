@@ -11,6 +11,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <algorithm>
+
 #include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_vector.h"
@@ -182,7 +184,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 
     /* initialize depths to -1 (un-touched), fill in with the depth as we walk over the edges. */
     depths[side] = MEM_new_array_uninitialized<int>(bm->totvert, __func__);
-    copy_vn_i(depths[side], bm->totvert, -1);
+    std::fill_n(depths[side], bm->totvert, -1);
 
     /* needed for second side */
     STACK_CLEAR(stack);

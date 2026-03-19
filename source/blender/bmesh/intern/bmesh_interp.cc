@@ -8,6 +8,8 @@
  * Functions for interpolating data across the surface of a mesh.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
@@ -1229,7 +1231,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
         mul_vn_fl(lf->data_weights, lf->data_len, 1.0f / lwc.weight_accum);
       }
       else {
-        copy_vn_fl(lf->data_weights, lf->data_len, 1.0f / float(lf->data_len));
+        std::fill_n(lf->data_weights, lf->data_len, 1.0f / float(lf->data_len));
       }
 
       BLI_linklist_prepend_arena(&groups, lf, lwc.arena);

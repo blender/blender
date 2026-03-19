@@ -38,6 +38,8 @@
  *   cases.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.hh"
@@ -1943,7 +1945,7 @@ static void skin_set_orig_indices(Mesh *mesh)
 {
   int *orig = static_cast<int *>(
       CustomData_add_layer(&mesh->face_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->faces_num));
-  copy_vn_i(orig, mesh->faces_num, ORIGINDEX_NONE);
+  std::fill_n(orig, mesh->faces_num, ORIGINDEX_NONE);
 }
 
 /*

@@ -1075,7 +1075,7 @@ static void layerDefault_mcol(void *data, const int count)
 
 static void layerDefault_origindex(void *data, const int count)
 {
-  copy_vn_i(static_cast<int *>(data), count, ORIGINDEX_NONE);
+  std::fill_n(static_cast<int *>(data), count, ORIGINDEX_NONE);
 }
 
 static void layerInterp_shapekey(const void **sources, const float *weights, int count, void *dest)
@@ -2537,7 +2537,7 @@ static void CustomData_external_free(CustomData *data)
 void CustomData_reset(CustomData *data)
 {
   *data = CustomData{};
-  copy_vn_i(data->typemap, CD_NUMTYPES, -1);
+  std::fill_n(data->typemap, CD_NUMTYPES, -1);
 }
 
 void CustomData_free(CustomData *data)
@@ -3253,7 +3253,7 @@ void CustomData_interp(const CustomData *source,
     default_weights = (count > SOURCE_BUF_SIZE) ?
                           MEM_new_array_uninitialized<float>(size_t(count), __func__) :
                           default_weights_buf;
-    copy_vn_fl(default_weights, count, 1.0f / count);
+    std::fill_n(default_weights, count, 1.0f / count);
     weights = default_weights;
   }
 
@@ -4013,7 +4013,7 @@ void CustomData_bmesh_interp(
     default_weights = (count > SOURCE_BUF_SIZE) ?
                           MEM_new_array_uninitialized<float>(size_t(count), __func__) :
                           default_weights_buf;
-    copy_vn_fl(default_weights, count, 1.0f / count);
+    std::fill_n(default_weights, count, 1.0f / count);
     weights = default_weights;
   }
 

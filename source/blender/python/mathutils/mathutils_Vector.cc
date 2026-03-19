@@ -167,7 +167,7 @@ static PyObject *Vector_vectorcall(PyObject *type,
         return nullptr;
       }
 
-      copy_vn_fl(vec, vec_num, 0.0f);
+      std::fill_n(vec, vec_num, 0.0f);
       break;
     }
     case 1: {
@@ -244,7 +244,7 @@ static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
     return nullptr;
   }
 
-  copy_vn_fl(vec, vec_num, fill);
+  std::fill_n(vec, vec_num, fill);
 
   return Vector_CreatePyObject_alloc(vec, vec_num, reinterpret_cast<PyTypeObject *>(cls));
 }
@@ -462,7 +462,7 @@ static PyObject *Vector_zero(VectorObject *self)
     return nullptr;
   }
 
-  copy_vn_fl(self->vec, self->vec_num, 0.0f);
+  std::fill_n(self->vec, self->vec_num, 0.0f);
 
   if (BaseMath_WriteCallback(self) == -1) {
     return nullptr;
@@ -566,7 +566,7 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 
   /* If the vector has increased in length, set all new elements to 0.0f */
   if (vec_num > self->vec_num) {
-    copy_vn_fl(self->vec + self->vec_num, vec_num - self->vec_num, 0.0f);
+    std::fill_n(self->vec + self->vec_num, vec_num - self->vec_num, 0.0f);
   }
 
   self->vec_num = vec_num;
@@ -607,7 +607,7 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
     return nullptr;
   }
 
-  copy_vn_fl(vec, vec_num, 0.0f);
+  std::fill_n(vec, vec_num, 0.0f);
   memcpy(vec, self->vec, self->vec_num * sizeof(float));
 
   return Vector_CreatePyObject_alloc(vec, vec_num, nullptr);
@@ -2679,7 +2679,7 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
     return -1;
   }
   if (param == 0.0) {
-    copy_vn_fl(self->vec, self->vec_num, 0.0f);
+    std::fill_n(self->vec, self->vec_num, 0.0f);
     return 0;
   }
 
@@ -3663,7 +3663,7 @@ PyObject *Vector_CreatePyObject(const float *vec, const int vec_num, PyTypeObjec
       memcpy(self->vec, vec, vec_num * sizeof(float));
     }
     else { /* new empty */
-      copy_vn_fl(self->vec, vec_num, 0.0f);
+      std::fill_n(self->vec, vec_num, 0.0f);
       if (vec_num == 4) { /* do the homogeneous thing */
         self->vec[3] = 1.0f;
       }

@@ -1496,7 +1496,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
   else if (bmain->versionfile == 260 && bmain->subversionfile == 6) {
     for (Object &ob : bmain->objects) {
       if (is_zero_v3(ob.dscale)) {
-        copy_vn_fl(ob.dscale, 3, 1.0f);
+        std::fill_n(ob.dscale, 3, 1.0f);
       }
     }
   }

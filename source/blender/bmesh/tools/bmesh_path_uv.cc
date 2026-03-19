@@ -10,6 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <algorithm>
+
 #include "BLI_heap_simple.h"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
@@ -145,7 +147,7 @@ LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
   loops_prev = MEM_new_array_zeroed<BMLoop *>(totloop, __func__);
   cost = MEM_new_array_uninitialized<float>(totloop, __func__);
 
-  copy_vn_fl(cost, totloop, COST_INIT_MAX);
+  std::fill_n(cost, totloop, COST_INIT_MAX);
 
   /* Regular dijkstra shortest path, but over UV loops instead of vertices. */
   heap = BLI_heapsimple_new();
@@ -349,7 +351,7 @@ LinkNode *BM_mesh_calc_path_uv_edge(BMesh *bm,
   loops_prev = MEM_new_array_zeroed<BMLoop *>(totloop, __func__);
   cost = MEM_new_array_uninitialized<float>(totloop, __func__);
 
-  copy_vn_fl(cost, totloop, COST_INIT_MAX);
+  std::fill_n(cost, totloop, COST_INIT_MAX);
 
   /* Regular dijkstra shortest path, but over UV loops/edges instead of vertices. */
   heap = BLI_heapsimple_new();
@@ -577,7 +579,7 @@ LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
   faces_prev = MEM_new_array_zeroed<BMFace *>(totface, __func__);
   cost = MEM_new_array_uninitialized<float>(totface, __func__);
 
-  copy_vn_fl(cost, totface, COST_INIT_MAX);
+  std::fill_n(cost, totface, COST_INIT_MAX);
 
   /* Regular dijkstra shortest path, but over UV faces instead of vertices. */
   heap = BLI_heapsimple_new();

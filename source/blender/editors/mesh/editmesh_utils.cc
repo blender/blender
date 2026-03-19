@@ -6,6 +6,8 @@
  * \ingroup edmesh
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_key_types.h"
@@ -781,7 +783,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   UvElement *islandbuf = MEM_new_array_zeroed<UvElement>(totuv, __func__);
   /* Island number for BMFaces. */
   int *island_number = MEM_new_array_zeroed<int>(bm->totface, __func__);
-  copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
+  std::fill_n(island_number, bm->totface, INVALID_ISLAND);
 
   const BMUVOffsets uv_offsets = BM_uv_map_offsets_get(bm);
 

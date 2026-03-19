@@ -12,6 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <algorithm>
+
 #include "BLI_heap_simple.h"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
@@ -147,7 +149,7 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
   verts_prev = MEM_new_array_zeroed<BMVert *>(totvert, __func__);
   cost = MEM_new_array_uninitialized<float>(totvert, __func__);
 
-  copy_vn_fl(cost, totvert, COST_INIT_MAX);
+  std::fill_n(cost, totvert, COST_INIT_MAX);
 
   /*
    * Arrays are now filled as follows:
@@ -338,7 +340,7 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
   edges_prev = MEM_new_array_zeroed<BMEdge *>(totedge, __func__);
   cost = MEM_new_array_uninitialized<float>(totedge, __func__);
 
-  copy_vn_fl(cost, totedge, COST_INIT_MAX);
+  std::fill_n(cost, totedge, COST_INIT_MAX);
 
   /*
    * Arrays are now filled as follows:
@@ -545,7 +547,7 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
   faces_prev = MEM_new_array_zeroed<BMFace *>(totface, __func__);
   cost = MEM_new_array_uninitialized<float>(totface, __func__);
 
-  copy_vn_fl(cost, totface, COST_INIT_MAX);
+  std::fill_n(cost, totface, COST_INIT_MAX);
 
   /*
    * Arrays are now filled as follows:

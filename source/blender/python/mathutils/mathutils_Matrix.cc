@@ -2222,7 +2222,7 @@ static PyObject *Matrix_zero(MatrixObject *self)
     return nullptr;
   }
 
-  copy_vn_fl(self->matrix, self->col_num * self->row_num, 0.0f);
+  std::fill_n(self->matrix, self->col_num * self->row_num, 0.0f);
 
   if (BaseMath_WriteCallback(self) == -1) {
     return nullptr;

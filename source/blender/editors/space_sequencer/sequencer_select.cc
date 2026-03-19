@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -2001,7 +2002,7 @@ static wmOperatorStatus sequencer_select_side_exec(bContext *C, wmOperator *op)
   int frame_ranges[seq::MAX_CHANNELS];
   bool selected = false;
 
-  copy_vn_i(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
+  std::fill_n(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
 
   for (Strip &strip : *ed->current_strips()) {
     if (UNLIKELY(strip.channel >= seq::MAX_CHANNELS)) {

@@ -8,6 +8,8 @@
  * Method of smoothing deformation, also known as 'delta-mush'.
  */
 
+#include <algorithm>
+
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -359,7 +361,7 @@ static void smooth_verts(CorrectiveSmoothModifierData *csmd,
                        smooth_weights);
     }
     else {
-      copy_vn_fl(smooth_weights, int(vertexCos.size()), 1.0f);
+      std::fill_n(smooth_weights, int(vertexCos.size()), 1.0f);
     }
 
     if (csmd->flag & MOD_CORRECTIVESMOOTH_PIN_BOUNDARY) {
@@ -425,7 +427,7 @@ static void calc_tangent_spaces(const Mesh *mesh,
   Span<int> corner_verts = mesh->corner_verts();
 
   if (r_tangent_weights_per_vertex != nullptr) {
-    copy_vn_fl(r_tangent_weights_per_vertex, int(mvert_num), 0.0f);
+    std::fill_n(r_tangent_weights_per_vertex, int(mvert_num), 0.0f);
   }
 
   for (const int64_t i : faces.index_range()) {
@@ -527,7 +529,7 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
 
   calc_tangent_spaces(mesh, smooth_vertex_coords, tangent_spaces, nullptr, nullptr);
 
-  copy_vn_fl(&csmd->delta_cache.deltas[0][0], int(corner_verts.size()) * 3, 0.0f);
+  std::fill_n(&csmd->delta_cache.deltas[0][0], int(corner_verts.size()) * 3, 0.0f);
 
   for (l_index = 0; l_index < corner_verts.size(); l_index++) {
     const int v_index = corner_verts[l_index];

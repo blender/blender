@@ -8,6 +8,8 @@
  * Functions for mapping data between meshes.
  */
 
+#include <algorithm>
+
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -929,7 +931,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
           BLI_space_transform_apply_normal(space_transform, v2_no);
         }
 
-        copy_vn_fl(weights, int(numedges_src), 0.0f);
+        std::fill_n(weights, int(numedges_src), 0.0f);
 
         /* We adjust our ray-casting grid to ray_radius (the smaller, the more rays are cast),
          * with lower/upper bounds. */
@@ -2118,7 +2120,7 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
           BLI_space_transform_apply_normal(space_transform, tmp_no);
         }
 
-        copy_vn_fl(weights, int(numfaces_src), 0.0f);
+        std::fill_n(weights, int(numfaces_src), 0.0f);
 
         if (UNLIKELY(size_t(face.size()) > tmp_face_size)) {
           tmp_face_size = size_t(face.size());

@@ -10,6 +10,8 @@
  */
 // #define DEBUG_PRINT
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_kdopbvh.hh"
@@ -1551,7 +1553,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
     /* needs to be done once the vertex indices have been written into */
     temp_vert_pairs.remap = static_cast<int *>(
         BLI_memarena_alloc(mem_arena, sizeof(*temp_vert_pairs.remap) * vert_arr_len));
-    copy_vn_i(temp_vert_pairs.remap, vert_arr_len, -1);
+    std::fill_n(temp_vert_pairs.remap, vert_arr_len, -1);
 
     TempVertPair *tvp = temp_vert_pairs.list;
     do {

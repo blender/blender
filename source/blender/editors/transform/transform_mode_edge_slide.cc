@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
+
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -279,7 +281,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
   if (use_calc_direction) {
     loop_dir = MEM_new_array_zeroed<float2>(loop_nr, "sv loop_dir");
     loop_maxdist = MEM_new_array_uninitialized<float>(loop_nr, "sv loop_maxdist");
-    copy_vn_fl(loop_maxdist, loop_nr, FLT_MAX);
+    std::fill_n(loop_maxdist, loop_nr, FLT_MAX);
   }
 
   for (int i : sld->sv.index_range()) {
