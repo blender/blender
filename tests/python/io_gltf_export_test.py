@@ -67,7 +67,7 @@ class GLTFExportTest(unittest.TestCase):
                     if not ok:
                         self.fail(f"{input_file.stem} import result does not match expectations")
 
-        report.finish("io_gltf_roundtrip")
+        report.finish("io_gltf_export")
 
 
 def main():
