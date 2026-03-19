@@ -139,7 +139,7 @@ class VKTexturePool : public TexturePool {
   };
 
   /* Cache of VkImage handles to avoid repeated memory binding. */
-  VKImageCache image_cache_;
+  std::optional<VKImageCache> image_cache_;
   /* Allocated memory on which images are bound. */
   Set<AllocationHandle> allocations_;
   /* Texture handles currently in use. */
@@ -167,6 +167,7 @@ class VKTexturePool : public TexturePool {
   void log_usage_data();
 
  public:
+  VKTexturePool();
   ~VKTexturePool();
 
   Texture *acquire_texture(int2 extent,

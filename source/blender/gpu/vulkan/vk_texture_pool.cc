@@ -6,10 +6,10 @@
  * \ingroup gpu
  */
 
-#include "vk_texture_pool.hh"
-#include "vk_backend.hh"
+#include <format>
 
-#include "fmt/format.h"
+#include "vk_backend.hh"
+#include "vk_texture_pool.hh"
 
 #include "BKE_global.hh"
 
@@ -56,6 +56,28 @@ bool VKImageInfo::operator==(const VKImageInfo &o) const
          std::tuple_cat(detail::tie(o.create_info), std::tie(o.allocation, o.segment));
 }
 
+static VkImage create_and_bind_vk_image(const VKImageInfo &info, const std::string &name_str)
+{
+  VKDevice &device = VKBackend::get().device;
+
+  /* Create VkImage handle from provided VkImageCreateInfo */
+  VkImage image;
+  VkResult create_result = vkCreateImage(device.vk_handle(), &info.create_info, nullptr, &image);
+  UNUSED_VARS_NDEBUG(create_result);
+  BLI_assert(create_result == VK_SUCCESS);
+
+  /* Bind VkImage handle to provived VmaAllocation. */
+  VkResult bind_result = vmaBindImageMemory2(
+      device.mem_allocator_get(), info.allocation, info.segment.offset, image, nullptr);
+  UNUSED_VARS_NDEBUG(bind_result);
+  BLI_assert(bind_result == VK_SUCCESS);
+
+  /* Register VkImage handle as resource for synchronization. */
+  device.resources.add_aliased_image(image, false, name_str.c_str());
+
+  return image;
+}
+
 /* Query memory requirements from VkImageCreateInfo. If VK_KHR_MAINTENANCE4 is supported,
  * we avoid instantiating a VkImage handle. Otherwise, the image handle is destroyed as a
  * matching handle is provided by VKImageCache. */
@@ -100,31 +122,15 @@ VkImage VKImageCache::get_or_create(const VKImageInfo &info)
     return image_handle->image;
   }
 
-  VKDevice &device = VKBackend::get().device;
-
-  /* Otherwise, assemble VkImageCreateInfo and create a new image. */
-  VkImage image;
-  VkResult create_result = vkCreateImage(device.vk_handle(), &info.create_info, nullptr, &image);
-  UNUSED_VARS_NDEBUG(create_result);
-  BLI_assert(create_result == VK_SUCCESS);
-
-  /* Then, bind to the provided allocation */
-  VkResult bind_result = vmaBindImageMemory2(
-      device.mem_allocator_get(), info.allocation, info.segment.offset, image, nullptr);
-  UNUSED_VARS_NDEBUG(bind_result);
-  BLI_assert(bind_result == VK_SUCCESS);
-
-  /* Insert handle into cache. */
-  cache_.add_new(info, {.image = image});
-
   /* Generate debug label name, if one is needed in the rendergraph. */
   std::string name_str;
   if (G.debug & G_DEBUG_GPU) {
-    name_str = fmt::format("VkImageFromPool_{}", cache_.size());
+    name_str = std::format("VkImageFromPool_{}", cache_.size());
   }
 
-  /* Register VkImage as resource for synchronization. */
-  device.resources.add_aliased_image(image, false, name_str.c_str());
+  /* Otherwise, create VkImage handle and insert into cache. */
+  VkImage image = create_and_bind_vk_image(info, name_str);
+  cache_.add_new(info, {.image = image});
 
   return image;
 }
@@ -282,8 +288,6 @@ void VKTexturePool::AllocationHandle::alloc(VkMemoryRequirements requirements)
 
   VkResult result = vmaAllocateMemory(
       device.mem_allocator_get(), &requirements, &create_info, &allocation, &allocation_info);
-
-  /* WATCH(not_mark): will remove asserts when pool is a bit more mature. */
   UNUSED_VARS_NDEBUG(result);
   BLI_assert(result == VK_SUCCESS);
 
@@ -300,9 +304,22 @@ void VKTexturePool::AllocationHandle::free()
   segments = {};
 }
 
+VKTexturePool::VKTexturePool()
+{
+  /* For unknown reasons, VKImageCache causes sporadic crashes on some AMD cards on Mesa,
+   * which is not always reproducible (#154768, #155202). As Mesa has fast VkImage handle
+   * creation, it is simply not instantiated there. */
+  if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
+    image_cache_ = VKImageCache();
+  }
+}
+
 VKTexturePool::~VKTexturePool()
 {
-  image_cache_.reset(true);
+  if (image_cache_) {
+    image_cache_->reset(true);
+    image_cache_ = {};
+  }
   for (TextureHandle handle : acquired_) {
     delete handle.texture;
   }
@@ -316,12 +333,6 @@ Texture *VKTexturePool::acquire_texture(int2 extent,
                                         eGPUTextureUsage usage,
                                         const char *name)
 {
-  /* Generate debug label name, if one isn't passed in `name`. */
-  std::string name_str;
-  if (G.debug & G_DEBUG_GPU) {
-    name_str = name ? name : fmt::format("TexFromPool_{}", acquired_.size());
-  }
-
   /* Initialize VKTexture return object. */
   VKTexture *texture = new VKTexture(name);
   texture->w_ = extent.x;
@@ -397,9 +408,20 @@ Texture *VKTexturePool::acquire_texture(int2 extent,
     }
   }
 
-  /* Get or create a VkImage handle through VKImageCache and assign it to the texture. */
-  texture->vk_image_ = image_cache_.get_or_create(image_info);
-  debug::object_label(texture->vk_image_, texture->name_);
+  /* Generate debug label name, attempt to associate it with texture object. */
+  std::string name_str;
+  if (G.debug & G_DEBUG_GPU) {
+    name_str = name ? name : std::format("TexFromPool_{}", acquired_.size());
+  }
+
+  /* Get or create a VkImage handle and assign it to the texture. */
+  if (image_cache_) {
+    texture->vk_image_ = image_cache_->get_or_create(image_info);
+  }
+  else {
+    texture->vk_image_ = create_and_bind_vk_image(image_info, name_str);
+  }
+  debug::object_label(texture->vk_image_, name_str);
 
   if (G.debug & G_DEBUG_GPU) {
     /* Accumulate usage data for debug log. */
@@ -431,6 +453,13 @@ void VKTexturePool::release_texture(Texture *texture)
   allocation_handle.release(image_info.segment);
   allocations_.add_overwrite(allocation_handle);
 
+  /* Forward VkImage to discard pool; if VKImageCache is used, this is
+   * handled by the cache over time. */
+  if (!image_cache_) {
+    VKDiscardPool &discard_pool = VKDiscardPool::discard_pool_get();
+    discard_pool.discard_image(texture_handle.texture->vk_image_handle(), VK_NULL_HANDLE);
+  }
+
   /* Delete texture and remove it from the acquired set.
    * VKTexture destructor is skipped as VKTexture::allocation_ is VK_NULL_HANDLE. */
   acquired_.remove(texture_handle);
@@ -450,8 +479,10 @@ void VKTexturePool::reset(bool force_free)
 {
   /* Iterate acquired textures. */
   for (const TextureHandle &tex : acquired_) {
-    /* Reset the texture's backing image's unused cycles counter in the VKImageCache.  */
-    image_cache_.reset_unused_cycles_count(tex.image_info);
+    /* Reset the texture's backing image's unused cycles counter in VKImageCache. */
+    if (image_cache_) {
+      image_cache_->reset_unused_cycles_count(tex.image_info);
+    }
 
     /* Ensure the internal user counter equals 0; otherwise this indicates
      * a missing `::retain()` or `::release()`. */
@@ -474,19 +505,23 @@ void VKTexturePool::reset(bool force_free)
 
   /* Remove unused allocations. */
   for (AllocationHandle handle : unused_allocations) {
-    image_cache_.discard_all_of(handle.allocation);
+    if (image_cache_) {
+      image_cache_->discard_all_of(handle.allocation);
+    }
     handle.free();
     allocations_.remove(handle);
   }
 
   /* Remove unused images from cache. */
-  image_cache_.reset();
+  if (image_cache_) {
+    image_cache_->reset();
+  }
 
   /* Log debug usage data if it differs from the last `::reset()`. */
   if (G.debug & G_DEBUG_GPU) {
     /* Log debug usage data if it differs from the last `::reset()`. */
     current_usage_data_.allocation_count = allocations_.size();
-    current_usage_data_.image_cache_size = image_cache_.size();
+    current_usage_data_.image_cache_size = image_cache_ ? image_cache_->size() : 0;
 
     if (!(previous_usage_data_ == current_usage_data_)) {
       log_usage_data();
@@ -510,13 +545,16 @@ void VKTexturePool::log_usage_data()
   float ratio = static_cast<float>(current_usage_data_.acquired_segment_size_max) /
                 static_cast<float>(total_allocation_size);
 
-  CLOG_TRACE(&LOG,
-             "VKTexturePool uses %lu/%lu mb (%.1f%% of %lu allocations) (%lu VkImages)",
-             static_cast<unsigned long>(current_usage_data_.acquired_segment_size_max >> 20),
-             static_cast<unsigned long>(total_allocation_size >> 20),
-             ratio * 100.0f,
-             static_cast<unsigned long>(current_usage_data_.allocation_count),
-             static_cast<unsigned long>(current_usage_data_.image_cache_size));
+  std::string log_message = std::format("VKTexturePool uses {}/{} mb ({:.1f}%% of {} allocations)",
+                                        current_usage_data_.acquired_segment_size_max >> 20,
+                                        total_allocation_size >> 20,
+                                        ratio * 100.0f,
+                                        current_usage_data_.allocation_count);
+  if (image_cache_) {
+    log_message += std::format(" ({} cached VkImages)", current_usage_data_.image_cache_size);
+  }
+
+  CLOG_TRACE(&LOG, log_message.c_str());
 }
 
 }  // namespace gpu
