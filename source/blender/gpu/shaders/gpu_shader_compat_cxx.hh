@@ -60,6 +60,25 @@
 /** \name Compatibility
  * \{ */
 
+/**
+ * Member hiding type.
+ * Wrapper type for members of unions in host shared structure.
+ * This is needed to force the accessor syntax in the shader code.
+ */
+template<typename T> struct union_t {
+  char bytes[sizeof(T)];
+
+  const T &operator()() const
+  {
+    return *reinterpret_cast<const T *>(&bytes);
+  }
+
+  T &operator()()
+  {
+    return *reinterpret_cast<T *>(&bytes);
+  }
+};
+
 /* Array syntax compatibility. */
 /* clang-format off */
 #define float_array(...) { __VA_ARGS__ }
@@ -187,23 +206,6 @@ template<typename T> struct srt_t {
   }
 
   operator T &()
-  {
-    return *reinterpret_cast<T *>(this);
-  }
-};
-
-/**
- * Member hiding type.
- * Wrapper type for members of unions in host shared structure.
- * This is needed to force the accessor syntax in the shader code.
- */
-template<typename T> struct union_t {
-  const T &operator()() const
-  {
-    return *reinterpret_cast<const T *>(this);
-  }
-
-  T &operator()()
   {
     return *reinterpret_cast<T *>(this);
   }
