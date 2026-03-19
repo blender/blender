@@ -11,12 +11,12 @@ from ..search_node_tree import \
     get_factor_from_socket
 
 
-def export_sheen(blender_material, export_settings):
+def export_sheen(bmat, export_settings):
     sheen_extension = {}
 
-    sheenTint_socket = get_socket(blender_material.node_tree, "Sheen Tint")
-    sheenRoughness_socket = get_socket(blender_material.node_tree, "Sheen Roughness")
-    sheen_socket = get_socket(blender_material.node_tree, "Sheen Weight")
+    sheenTint_socket = get_socket(bmat.get_used_material().node_tree, "Sheen Tint")
+    sheenRoughness_socket = get_socket(bmat.get_used_material().node_tree, "Sheen Roughness")
+    sheen_socket = get_socket(bmat.get_used_material().node_tree, "Sheen Weight")
 
     if sheenTint_socket.socket is None or sheenRoughness_socket.socket is None or sheen_socket.socket is None:
         return None, {}, {}

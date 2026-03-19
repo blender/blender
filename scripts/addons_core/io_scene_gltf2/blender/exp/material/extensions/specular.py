@@ -11,11 +11,11 @@ from ..search_node_tree import \
     get_factor_from_socket
 
 
-def export_specular(blender_material, export_settings):
+def export_specular(bmat, export_settings):
     specular_extension = {}
 
-    specular_socket = get_socket(blender_material.node_tree, 'Specular IOR Level')
-    speculartint_socket = get_socket(blender_material.node_tree, 'Specular Tint')
+    specular_socket = get_socket(bmat.get_used_material().node_tree, 'Specular IOR Level')
+    speculartint_socket = get_socket(bmat.get_used_material().node_tree, 'Specular Tint')
 
     if specular_socket.socket is None or speculartint_socket.socket is None:
         return None, {}, {}

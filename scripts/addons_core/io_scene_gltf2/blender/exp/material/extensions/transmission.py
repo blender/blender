@@ -11,13 +11,13 @@ from ..search_node_tree import \
     get_factor_from_socket
 
 
-def export_transmission(blender_material, export_settings):
+def export_transmission(bmat, export_settings):
     has_transmission_texture = False
 
     transmission_extension = {}
     transmission_slots = ()
 
-    transmission_socket = get_socket(blender_material.node_tree, 'Transmission Weight')
+    transmission_socket = get_socket(bmat.get_used_material().node_tree, 'Transmission Weight')
 
     if transmission_socket.socket is not None and isinstance(
             transmission_socket.socket,

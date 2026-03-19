@@ -13,7 +13,7 @@ from ..search_node_tree import \
     get_factor_from_socket
 
 
-def export_volume(blender_material, export_settings):
+def export_volume(bmat, export_settings):
     # Implementation based on https://github.com/KhronosGroup/glTF-Blender-IO/issues/1454#issuecomment-928319444
 
     # If no transmission --> No volume
@@ -25,13 +25,13 @@ def export_volume(blender_material, export_settings):
     uvmap_info = {}
 
     thickness_socket = get_socket_from_gltf_material_node(
-        blender_material.node_tree, 'Thickness')
+        bmat.get_used_material().node_tree, 'Thickness')
     if thickness_socket.socket is None:
         # If no thickness (here because there is no glTF Material Output node), no volume extension export
         return None, {}, {}
 
-    density_socket = get_socket(blender_material.node_tree, 'Density', volume=True)
-    attenuation_color_socket = get_socket(blender_material.node_tree, 'Color', volume=True)
+    density_socket = get_socket(bmat.get_used_material().node_tree, 'Density', volume=True)
+    attenuation_color_socket = get_socket(bmat.get_used_material().node_tree, 'Color', volume=True)
     # Even if density or attenuation are not set, we export volume extension
 
     if attenuation_color_socket.socket is not None and isinstance(
