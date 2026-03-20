@@ -852,6 +852,77 @@ void func(ATfloat a) {}
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    /* Struct templated methods. */
+    string input = R"(
+namespace N {
+
+struct A {
+  int i;
+  template<typename T> static void fn1(T a) {}
+  template<typename T> static T fn2() { return T(0); }
+  template<typename T> void fn3(T a) { i += int(fn4<T>()); }
+  template<typename T> T fn4() { fn3(0); return T(0); }
+};
+
+template void A::fn1<int>(int);
+template int A::fn2<int>();
+template void A::fn3<int>(int);
+template int A::fn4<int>();
+
+void fn(A a)
+{
+  A::fn1(0);
+  A::fn2<int>();
+  a.fn3(0);
+  a.fn4<int>();
+}
+
+}
+)";
+    string expect = R"(
+#line 4
+struct N_A {
+  int i;
+
+
+
+
+
+
+#line 17
+};
+#line 25
+#ifndef GPU_METAL
+N_A N_A_ctor_();
+void N_A_fn1(int a);
+int N_A_fn2Tint();
+void _fn3(_ref(N_A ,this_), int a);
+int _fn4Tint(_ref(N_A ,this_));
+#endif
+#line 4
+                   N_A N_A_ctor_() {N_A r;r.i=0;return r;}
+#line 6
+       void N_A_fn1(int a) {}
+       int N_A_fn2Tint() { return int(0); }
+void _fn3(_ref(N_A ,this_), int a) { this_.i += int(_fn4Tint(this_)); }
+int _fn4Tint(_ref(N_A ,this_)) { _fn3(this_, 0); return int(0); }
+#line 24
+void N_fn(N_A a)
+{
+  N_A_fn1(0);
+  N_A_fn2Tint();
+  _fn3(a, 0);
+  _fn4Tint(a);
+}
+
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_template_struct);
 

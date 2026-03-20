@@ -23,23 +23,28 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
   ns.foreach_scope(ScopeType::Namespace,
                    [&](const Scope &ns) { parse_namespace_symbols(ns, metadata); });
 
-  auto process_symbol =
-      [&](Scope ns_scope, Token name, string_view identifier, size_t line, bool is_method) {
-        if (name.scope() != ns_scope) {
-          return;
-        }
-        string prefix;
-        while (ns_scope.type() == ScopeType::Namespace || ns_scope.type() == ScopeType::Struct) {
-          prefix = ns_scope.front().prev().full_symbol_name() + "::" + prefix;
-          ns_scope = ns_scope.scope();
-        }
-        Symbol symbol;
-        symbol.name_space = prefix;
-        symbol.identifier = identifier;
-        symbol.definition_line = line;
-        symbol.is_method = is_method;
-        metadata.symbol_table.emplace_back(symbol);
-      };
+  auto process_symbol = [&](Scope ns_scope,
+                            Token name,
+                            string_view identifier,
+                            size_t line,
+                            bool is_method,
+                            bool is_static) {
+    if (name.scope() != ns_scope) {
+      return;
+    }
+    string prefix;
+    while (ns_scope.type() == ScopeType::Namespace || ns_scope.type() == ScopeType::Struct) {
+      prefix = ns_scope.front().prev().full_symbol_name() + "::" + prefix;
+      ns_scope = ns_scope.scope();
+    }
+    Symbol symbol;
+    symbol.name_space = prefix;
+    symbol.identifier = identifier;
+    symbol.definition_line = line;
+    symbol.is_method = is_method;
+    symbol.is_static = is_static;
+    metadata.symbol_table.emplace_back(symbol);
+  };
 
   auto process_templates = [&](Scope ns_scope, Token t, bool is_method) {
     if (t.next() == '<') {
@@ -57,7 +62,7 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
       Scope template_args = name.next().scope();
       string resolved_name = string(name.str()) +
                              SourceProcessor::template_arguments_mangle(template_args);
-      process_symbol(ns_scope, name, resolved_name, line, false);
+      process_symbol(ns_scope, name, resolved_name, line, false, false);
     }
     else {
       /* Function. */
@@ -66,26 +71,23 @@ static void parse_namespace_symbols(Scope ns, metadata::Source &metadata)
       Token name = template_args.front().prev();
       string resolved_name = string(name.str()) +
                              SourceProcessor::template_arguments_mangle(template_args);
-      /* TODO(fclem): Filter static function only. */
-      process_symbol(ns_scope, name, resolved_name, line, is_method);
+      process_symbol(ns_scope, name, resolved_name, line, is_method, false);
     }
   };
 
   ns.foreach_struct([&](Token, Scope, Token struct_name, Scope body) {
-    process_symbol(ns, struct_name, struct_name.str(), struct_name.line_number(), false);
+    process_symbol(ns, struct_name, struct_name.str(), struct_name.line_number(), false, false);
     /* Methods. */
     body.foreach_function([&](bool is_static, Token, Token name, Scope, bool, Scope) {
-      if (is_static) {
-        /* For methods, the declaration line is the top of the struct. */
-        process_symbol(body, name, name.str(), struct_name.line_number(), true);
-      }
+      /* For methods, the declaration line is the top of the struct. */
+      process_symbol(body, name, name.str(), struct_name.line_number(), true, is_static);
     });
     /* Parse template instantiations. */
     body.foreach_token(Template, [&](Token t) { process_templates(body, t, true); });
   });
 
   ns.foreach_function([&](bool, Token, Token name, Scope, bool, Scope) {
-    process_symbol(ns, name, name.str(), name.line_number(), false);
+    process_symbol(ns, name, name.str(), name.line_number(), false, false);
   });
   /* Parse template instantiations. */
   ns.foreach_token(Template, [&](Token t) { process_templates(ns, t, false); });
@@ -162,6 +164,10 @@ static void lower_namespace(string ns_prefix,
       bool append_struct_ns = false;
       /* First try to match methods. */
       if (symbol.is_method && !struct_name.empty()) {
+        if (!symbol.is_static) {
+          continue;
+        }
+
         string specified_symbol = token.full_symbol_name();
 
         bool is_prev_ns_specifier = token.prev() == ':' && token.prev(2) == ':';

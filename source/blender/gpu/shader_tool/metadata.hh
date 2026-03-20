@@ -191,9 +191,13 @@ struct Symbol {
   std::string name_space;
   size_t definition_line;
   bool is_method;
+  bool is_static;
 
   bool operator<(const Symbol &other) const
   {
+    if (is_static != other.is_static) {
+      return is_static > other.is_static;
+    }
     if (is_method != other.is_method) {
       /* Methods are supposed to have more precedence.
        * So make them smaller than anything else. */
