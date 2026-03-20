@@ -5194,7 +5194,7 @@ void ANIM_channel_draw(
 
   /* calculate appropriate y-coordinates for icon buttons */
   y = (ymaxc - yminc) / 2 + yminc;
-  ymid = yminc - 1;
+  ymid = y - (0.5f * ICON_WIDTH);
 
   /* y-coordinates for text is only 4 down from middle */
   ytext = y - 0.2f * U.widget_unit;
@@ -6098,7 +6098,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
   }
 
   /* calculate appropriate y-coordinates for icon buttons */
-  ymid = rect->ymin - 1;
+  ymid = BLI_rctf_cent_y(rect) - (0.5f * ICON_WIDTH) - 1;
 
   /* no button backdrop behind icons */
   block_emboss_set(block, ui::EmbossType::None);
