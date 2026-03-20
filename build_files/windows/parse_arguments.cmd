@@ -22,9 +22,9 @@ if NOT "%1" == "" (
 		)
 		shift /1
 	) else if "%1" == "with_tests" (
-		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GTESTS=On
+		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GTESTS=ON
 	) else if "%1" == "with_gpu_tests" (
-		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GPU_BACKEND_TESTS=On -DWITH_GPU_DRAW_TESTS=On -DWITH_GPU_RENDER_TESTS=On
+		set TESTS_CMAKE_ARGS=%TESTS_CMAKE_ARGS% -DWITH_GPU_BACKEND_TESTS=ON -DWITH_GPU_DRAW_TESTS=ON -DWITH_GPU_RENDER_TESTS=ON
 	) else if "%1" == "full" (
 		set TARGET=Full
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
@@ -85,7 +85,7 @@ if NOT "%1" == "" (
 	) else if "%1" == "nobuild" (
 		set NOBUILD=1
 	) else if "%1" == "nobuildinfo" (
-		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_BUILDINFO=Off
+		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_BUILDINFO=OFF
 	) else if "%1" == "pydebug" (
 		set WITH_PYDEBUG=1
 	) else if "%1" == "showhash" (
