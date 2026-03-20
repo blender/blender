@@ -157,38 +157,167 @@ enum {
 
 /** #Block.flag (controls) */
 enum {
+  /**
+   * Run this block as a modal popup with its own event loop.
+   * Only for popups/menus.
+   * - When enabled: handles keyboard navigation, click-outside dismissal,
+   *   arrow-key sub-menu traversal, and shortcut display.
+   * - When disabled: non-modal. Some popups (e.g. redo panels, alert dialogs)
+   *   explicitly clear this flag.
+   */
   BLOCK_LOOP = 1 << 0,
+  /**
+   * Allow selecting menu items by pressing number/letter keys.
+   *
+   * Also triggers automatic accelerator key assignment
+   * when combined with #BLOCK_LOOP.
+   */
   BLOCK_NUMSELECT = 1 << 1,
-  /** Don't apply window clipping. */
+  /**
+   * Don't apply window clipping.
+   *
+   * Skips the logic that shifts popups to stay within window edges.
+   */
   BLOCK_NO_WIN_CLIP = 1 << 2,
+  /**
+   * Popup content extends below the visible area, enable downward scrolling.
+   *
+   * Set dynamically, shows an "arrow" hint, scroll down with cursor-motion/arrow keys.
+   */
   BLOCK_CLIPBOTTOM = 1 << 3,
+  /**
+   * Popup content extends above the visible area, enable upward scrolling.
+   *
+   * Set dynamically, shows an "arrow" hint, scroll up with cursor-motion/arrow keys.
+   */
   BLOCK_CLIPTOP = 1 << 4,
+  /**
+   * Close the popup when the mouse moves away from the block.
+   *
+   * Uses a "towards" mechanism with a grace period so the user can move
+   * toward sub-menus without accidentally closing the popup.
+   * Set by default for regular menus and most popups.
+   *
+   * \note This is not used for menus by default, see: #USER_MENU_CLOSE_LEAVE.
+   */
   BLOCK_MOVEMOUSE_QUIT = 1 << 5,
+  /**
+   * Prevent the popup from closing when a button is activated or a sub-menu returns.
+   * Used by popovers, dialogs, redo panels, and other popups where the user
+   * interacts with multiple controls before explicitly dismissing.
+   *
+   * - Without this flag: activating a button or returning from a sub-menu sets the
+   *   menu return value, causing the popup handler to close and free the popup.
+   * - With this flag: the popup stays open, dismissal is left to other flags
+   *   (e.g. #BLOCK_LOOP for escape/click-outside, #BLOCK_MOVEMOUSE_QUIT for mouse-leave).
+   *
+   * Also used by #block_is_menu to distinguish menus from other popups.
+   */
   BLOCK_KEEP_OPEN = 1 << 6,
+  /**
+   * Identifies a generic popup (not a menu, popover, or pie).
+   *
+   * Used by redo panels, alert dialogs, and other non-categorized popups.
+   * Also set automatically for popups not spawned from a button.
+   */
   BLOCK_POPUP = 1 << 7,
+  /**
+   * Treat clicking outside as confirmation rather than cancellation.
+   *
+   * For popups like the color picker where leaving implies acceptance.
+   */
   BLOCK_OUT_1 = 1 << 8,
+  /**
+   * Block is a search menu with live filtering.
+   *
+   * When embedded inside another menu, reuses the parent region's size
+   * for positioning and skips drawing its own backdrop (the parent provides one).
+   */
   BLOCK_SEARCH_MENU = 1 << 9,
+  /**
+   * Remember the last selected item and offset the menu so it appears under
+   * the mouse cursor when reopened.
+   *
+   * So users can quickly repeat a previous selection.
+   * Set for regular menus, not pie menus or other popups (popovers etc).
+   */
   BLOCK_POPUP_MEMORY = 1 << 10,
-  /** Stop handling mouse events. */
+  /**
+   * Prevent mouse events from passing through to blocks behind this one.
+   *
+   * For overlapping UI where click-through is undesirable, such as nodes in the
+   * node editor and the animation timeline search drawn on top of channels.
+   */
   BLOCK_CLIP_EVENTS = 1 << 11,
 
   /* #Block::flags bits 14-17 are identical to #Button::drawflag bits. */
 
+  /**
+   * Cancel the popup when the mouse button is released outside the block.
+   *
+   * For menus opened by holding the mouse button down (e.g. toolbar hold-menus):
+   * the user holds to browse, releases on an item to select, or releases outside
+   * to cancel.
+   */
   BLOCK_POPUP_HOLD = 1 << 18,
+  /**
+   * Buttons in this block are list items, applying list-item theme colors.
+   *
+   * Used by tree views and template lists.
+   */
   BLOCK_LIST_ITEM = 1 << 19,
+  /**
+   * Block is a pie menu, enabling radial layout and directional navigation.
+   *
+   * Pie menus have fundamentally different interaction from regular menus:
+   * radial positioning, directional key activation, and a dedicated event handler.
+   */
   BLOCK_PIE_MENU = 1 << 20,
+  /**
+   * Block is a popover, enabling popover-specific backdrop drawing
+   * and the mouse-towards-submenu behavior (shared with #BLOCK_MOVEMOUSE_QUIT).
+   *
+   * Positioning is offset so the triangular arrow, visually connecting the popover
+   * to its anchor button has room to draw.
+   */
   BLOCK_POPOVER = 1 << 21,
+  /**
+   * Single-click popover: clicking a compatible button immediately closes the popover.
+   *
+   * Activated when the popover was opened via a left-click press, cleared after
+   * the first click so the popover reverts to normal stay-open behavior.
+   */
   BLOCK_POPOVER_ONCE = 1 << 22,
-  /** Always show key-maps, even for non-menus. */
+  /**
+   * Always show key-maps, even for non-menus.
+   *
+   * Used by popovers that have key-maps and the menu search template.
+   * When set, shortcuts are shown directly in the block and suppressed from tool-tips.
+   */
   BLOCK_SHOW_SHORTCUT_ALWAYS = 1 << 23,
-  /** Don't show library override state for buttons in this block. */
+  /**
+   * Don't show library override state for buttons in this block.
+   */
   BLOCK_NO_DRAW_OVERRIDDEN_STATE = 1 << 24,
-  /** The block is only used during the search process and will not be drawn.
-   * Currently just for the case of a closed panel's sub-panel (and its sub-panels). */
+  /**
+   * The block is only used during the search process and will not be drawn.
+   *
+   * Set on closed panel's sub-panels so their content is searchable but not visible,
+   * and also used when building blocks for panel search filtering.
+   */
   BLOCK_SEARCH_ONLY = 1 << 25,
-  /** Hack for quick setup (splash screen) to draw text centered. */
+  /**
+   * Hack for quick setup (splash screen) to draw text centered.
+   *
+   * Prevents #BLOCK_LOOP from forcing left-aligned button text.
+   */
   BLOCK_QUICK_SETUP = 1 << 26,
-  /** Don't accelerator keys for the items in the block. */
+  /**
+   * Don't assign accelerator keys for items in this block.
+   *
+   * Set when search-on-key-press is active (to avoid conflicting with search input)
+   * and inherited by sub-menus from their parent.
+   */
   BLOCK_NO_ACCELERATOR_KEYS = 1 << 27,
 };
 
