@@ -328,6 +328,9 @@ class SourceProcessor {
   int static_array_size(const Scope &array, int fallback_value);
 
  public:
+  /* Check for existence of preprocessor pragma in file. */
+  static bool has_pragma(Parser &parser, std::string_view pragma_str);
+
   /** Remove trailing white-spaces. */
   static std::string strip_whitespace(const std::string &str);
 
