@@ -1329,6 +1329,11 @@ void SourceProcessor::lower_function_default_arguments(Parser &parser)
       });
 
   parser.apply_mutations();
+
+  /* The above code can produce call to methods without `this->` prefix.
+   * Since lower_implicit_member was already called, we call it again to process these few
+   * occurrences. */
+  lower_implicit_member(parser);
 }
 
 /* Successive mutations can introduce a lot of unneeded line directives. */
