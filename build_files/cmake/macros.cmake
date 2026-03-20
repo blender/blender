@@ -1337,7 +1337,7 @@ macro(find_python_module_file
     )
     if(${out_var_abs})
       # Internal because this is only to track changes (users never need to manipulate it).
-      set(_${out_var_abs}_DEPS "${_python_mod_file_deps_test}" CACHE INTERNAL STRING "")
+      set(_${out_var_abs}_DEPS "${_python_mod_file_deps_test}" CACHE INTERNAL "")
     endif()
   endif()
 
