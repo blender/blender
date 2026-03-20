@@ -44,7 +44,7 @@ static uint32_t divide_ceil(uint32_t a, uint32_t b)
 template<typename T>
 void realloc_aligned_array(AlignedArrayPtr<T> &ptr, size_t elem_count, size_t new_size)
 {
-  assert(new_size > elem_count);
+  assert(new_size >= elem_count);
   AlignedArrayPtr<T> new_ptr(new_size);
   if (ptr.get()) {
     std::memcpy(new_ptr.get(), ptr.get(), elem_count * sizeof(T));
@@ -955,7 +955,7 @@ void TokenBuffer::merge_complex_literals()
     *out_offset_end = in_offset_end[i];
   }
 
-  assert(in_types < out_type);
+  assert(in_types <= out_type);
   assert(out_type - in_types < 0xFFFFFFFFu);
   size_ = out_type - in_types;
   types_[size_] = EndOfFile;
