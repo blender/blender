@@ -1112,7 +1112,7 @@ if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang")
     elseif(APPLE)
       # AppleClang doesn't support all sanitizers, but leak gives error.
       # Build type is not known for multi-config generator, so don't add object-size sanitizer.
-      if(CMAKE_BUILD_TYPE MATCHES "Debug" OR GENERATOR_IS_MULTI_CONFIG)
+      if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR GENERATOR_IS_MULTI_CONFIG)
         # Silence the warning that object-size is not effective in -O0.
         set(_asan_defaults "${_asan_defaults}")
       else()
@@ -1515,7 +1515,7 @@ if(WITH_COMPILER_CODE_COVERAGE)
   endif()
 endif()
 
-if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
   if(WITH_COMPILER_ASAN)
     if(NOT APPLE)
       # Avoid passing address sanitizer compiler flags to `try_compile`.
@@ -1778,7 +1778,7 @@ Keep at '0' to automatically compute optimal values for each build."
     set(_link_mem 10000)
     if(WITH_COMPILER_ASAN)
       set(_link_mem 30000)
-    elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
       set(_link_mem 20000)
     endif()
 
@@ -1831,7 +1831,7 @@ Keep at '0' to automatically compute optimal values for each build."
       else()
         set(_compile_heavy_mem 15000)
       endif()
-    elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
       set(_compile_heavy_mem 2000)
     endif()
 
@@ -1897,7 +1897,7 @@ Keep at '0' to automatically compute optimal values for each build."
       else()
         set(_compile_mem 4000)
       endif()
-    elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
       set(_compile_mem 500)
     endif()
 

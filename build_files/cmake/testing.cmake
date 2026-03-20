@@ -24,7 +24,7 @@ function(blender_test_set_envvars testname envvar_list)
     list(APPEND envvar_list "${PLATFORM_ENV_INSTALL}")
   endif()
 
-  if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
+  if(NOT CMAKE_BUILD_TYPE STREQUAL "Release")
     if(WITH_COMPILER_ASAN)
       set(_lsan_options "LSAN_OPTIONS=print_suppressions=false:suppressions=${CMAKE_SOURCE_DIR}/tools/config/analysis/lsan.supp")
       # FIXME: That `allocator_may_return_null=true` ASAN option is only needed for the

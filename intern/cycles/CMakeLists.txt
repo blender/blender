@@ -294,7 +294,7 @@ if(WITH_CYCLES_EMBREE)
       add_compile_definitions("$<$<CONFIG:Release>:WITH_EMBREE_GPU>")
       add_compile_definitions("$<$<CONFIG:RelWithDebInfo>:WITH_EMBREE_GPU>")
       add_compile_definitions("$<$<CONFIG:MinSizeRel>:WITH_EMBREE_GPU>")
-      if(CMAKE_BUILD_TYPE MATCHES "Debug" OR GENERATOR_IS_MULTI_CONFIG)
+      if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR GENERATOR_IS_MULTI_CONFIG)
         message(STATUS
           "The use of Embree GPU is disabled for the Debug configuration "
           "as embree${EMBREE_MAJOR_VERSION}_sycl_d.lib is not found."

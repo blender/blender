@@ -7,7 +7,7 @@ macro(list_insert_after
   )
   set(_index "")
   list(FIND "${list_id}" "${item_check}" _index)
-  if("${_index}" MATCHES "-1")
+  if(${_index} EQUAL -1)
     message(FATAL_ERROR "'${list_id}' doesn't contain '${item_check}'")
   endif()
   math(EXPR _index "${_index} + 1")
@@ -20,7 +20,7 @@ macro(list_insert_before
   )
   set(_index "")
   list(FIND "${list_id}" "${item_check}" _index)
-  if("${_index}" MATCHES "-1")
+  if(${_index} EQUAL -1)
     message(FATAL_ERROR "'${list_id}' doesn't contain '${item_check}'")
   endif()
   list(INSERT ${list_id} "${_index}" ${item_add})
@@ -301,12 +301,12 @@ function(blender_source_group
     source_group("Source Files" FILES CMakeLists.txt)
     foreach(_SRC ${sources})
       get_filename_component(_SRC_EXT ${_SRC} EXT)
-      if((${_SRC_EXT} MATCHES ".h") OR
-         (${_SRC_EXT} MATCHES ".hpp") OR
-         (${_SRC_EXT} MATCHES ".hh"))
+      if(("${_SRC_EXT}" STREQUAL ".h") OR
+         ("${_SRC_EXT}" STREQUAL ".hpp") OR
+         ("${_SRC_EXT}" STREQUAL ".hh"))
 
         set(GROUP_ID "Header Files")
-      elseif(${_SRC_EXT} MATCHES ".glsl$")
+      elseif("${_SRC_EXT}" STREQUAL ".glsl")
         set(GROUP_ID "Shaders")
       else()
         set(GROUP_ID "Source Files")
