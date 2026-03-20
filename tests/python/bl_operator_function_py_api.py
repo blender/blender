@@ -37,11 +37,55 @@ class TestOperatorCallPositionalArgs(unittest.TestCase):
     def test_invoke_default(self):
         self.assertEqual(bpy.ops.wm.clear_recent_files('INVOKE_DEFAULT'), {'FINISHED'})
 
+    def test_undo_flag(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files(True), {'FINISHED'})
+
+    def test_undo_flag_false(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files(False), {'FINISHED'})
+
+    def test_undo_flag_int(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files(1), {'FINISHED'})
+
+    def test_undo_flag_int_zero(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files(0), {'FINISHED'})
+
     def test_context_and_undo(self):
         self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT', True), {'FINISHED'})
 
     def test_context_and_undo_int(self):
         self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT', 1), {'FINISHED'})
+
+    def test_negative_int(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files(-1), {'FINISHED'})
+
+
+class TestOperatorCallPositionalArgsInvalid(unittest.TestCase):
+
+    def test_args_invalid_type(self):
+        for arg in (1.0, None, [], {}, (), set(), b'EXEC_DEFAULT'):
+            with self.assertRaises(ValueError):
+                bpy.ops.wm.clear_recent_files(arg)
+
+    def test_args_invalid_order(self):
+        for args in (
+                (True, 'EXEC_DEFAULT'),
+                (1, 'EXEC_DEFAULT'),
+        ):
+            with self.assertRaises(ValueError):
+                bpy.ops.wm.clear_recent_files(*args)
+
+    def test_args_invalid_duplicates(self):
+        for args in (
+                (True, True),
+                (False, False),
+                (1, 1),
+                (1, True),
+                ('EXEC_DEFAULT', 'EXEC_DEFAULT'),
+                ('EXEC_DEFAULT', True, 'extra'),
+                (True, True, 'EXEC_DEFAULT', 'EXEC_DEFAULT'),
+        ):
+            with self.assertRaises(ValueError):
+                bpy.ops.wm.clear_recent_files(*args)
 
 
 class TestOperatorCallKeywordArgs(unittest.TestCase):

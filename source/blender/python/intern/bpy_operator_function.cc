@@ -19,6 +19,7 @@
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
+#include "../generic/python_utildefines.hh"
 
 #include "bpy_capi_utils.hh"
 #include "bpy_operator_function.hh"
@@ -139,35 +140,30 @@ static PyObject *bpy_op_fn_call(BPyOpFunction *self, PyObject *args, PyObject *k
   char idname_py[OP_MAX_TYPENAME];
   WM_operator_py_idname(idname_py, self->idname);
 
-  PyObject *opname = PyUnicode_FromString(idname_py);
-  if (!opname) {
+  /* Parse the user's positional args (context string, undo boolean)
+   * before forwarding to `pyop_call` which expects strict types. */
+  const char *context_str;
+  bool is_undo;
+  if (!bpy_op_fn_parse_args(args, &context_str, &is_undo)) {
     return nullptr;
   }
 
-  PyObject *kwobj = kwargs ? Py_NewRef(kwargs) : PyDict_New();
-  if (!kwobj) {
-    Py_DECREF(opname);
-    return nullptr;
-  }
-
-  /* Build args tuple for `pyop_call: (opname, kw, ...extra args...)`.
-   * Create the child objects first so we can handle allocation failures cleanly. */
-  Py_ssize_t args_len = PyTuple_GET_SIZE(args);
-  PyObject *new_args = PyTuple_New(2 + args_len);
+  /* Build args tuple for `pyop_call`: (opname, kw, context_str, is_undo).
+   * Items are set immediately so `Py_DECREF(new_args)` handles cleanup on error. */
+  PyObject *new_args = PyTuple_New(4);
   if (!new_args) {
-    Py_DECREF(opname);
-    Py_DECREF(kwobj);
     return nullptr;
   }
 
-  /* Steal references into the tuple. */
-  PyTuple_SET_ITEM(new_args, 0, opname);
-  PyTuple_SET_ITEM(new_args, 1, kwobj);
+  PyTuple_SET_ITEMS(new_args,
+                    PyUnicode_FromString(idname_py),
+                    kwargs ? Py_NewRef(kwargs) : PyDict_New(),
+                    PyUnicode_FromString(context_str),
+                    PyLong_FromLong(is_undo));
 
-  for (Py_ssize_t i = 0; i < args_len; i++) {
-    PyObject *item = Py_NewRef(PyTuple_GET_ITEM(args, i));
-    BLI_assert(item);
-    PyTuple_SET_ITEM(new_args, i + 2, item);
+  if (PyErr_Occurred()) {
+    Py_DECREF(new_args);
+    return nullptr;
   }
 
   /* Pre-call view-layer update.
