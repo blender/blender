@@ -290,11 +290,13 @@ static void draw_keylist_block_standard(const DrawKeylistUIData *ctx,
                                         const ActKeyColumn *ab,
                                         float ypos)
 {
+  /* The bar needs to be an odd number of pixels high for proper alignment. */
+  const int height = int(0.45f * (ctx->icon_size)) * 2 - 1;
   rctf box;
   box.xmin = ab->cfra;
   box.xmax = ab->next->cfra;
-  box.ymin = ypos - ctx->half_icon_size;
-  box.ymax = ypos + ctx->half_icon_size;
+  box.ymin = round(ypos - (float(height) * 0.5f));
+  box.ymax = box.ymin + height;
 
   ui::draw_roundbox_4fv(&box, true, 3.0f, (ab->block.sel) ? ctx->sel_color : ctx->unsel_color);
 }
