@@ -5142,6 +5142,11 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
 
   bke::BVHTreeFromMesh tree_data = depth_mesh->bvh_corner_tris();
 
+  /* Can happen when the mesh has no faces. */
+  if (tree_data.tree == nullptr) {
+    return;
+  }
+
   BVHTreeRayHit hit;
   hit.dist = BVH_RAYCAST_DIST_MAX;
   hit.index = -1;
