@@ -5,6 +5,7 @@
 #include "GEO_join_geometries.hh"
 #include "GEO_realize_instances.hh"
 
+#include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
 
@@ -235,6 +236,12 @@ struct AllMeshesInfo {
   VectorSet<Material *> materials;
   bool create_id_attribute = false;
   bool create_material_index_attribute = false;
+
+  /** Propagate original indices (CD_ORIGINDEX) for modifier stack mapping. */
+  bool create_origindex_vert_attribute = false;
+  bool create_origindex_edge_attribute = false;
+  bool create_origindex_face_attribute = false;
+
   bke::mesh::NormalJoinInfo custom_normal_info;
 
   /** True if we know that there are no loose edges in any of the input meshes. */
@@ -1597,6 +1604,16 @@ static AllMeshesInfo preprocess_meshes(const bke::GeometrySet &geometry_set,
     mesh_info.material_indices = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Face, 0);
 
+    if (CustomData_has_layer(&mesh->vert_data, CD_ORIGINDEX)) {
+      info.create_origindex_vert_attribute = true;
+    }
+    if (CustomData_has_layer(&mesh->edge_data, CD_ORIGINDEX)) {
+      info.create_origindex_edge_attribute = true;
+    }
+    if (CustomData_has_layer(&mesh->face_data, CD_ORIGINDEX)) {
+      info.create_origindex_face_attribute = true;
+    }
+
     switch (info.custom_normal_info.result_type) {
       case bke::mesh::NormalJoinInfo::Output::None: {
         break;
@@ -1657,7 +1674,10 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       MutableSpan<int> all_dst_corner_edges,
                                       MutableSpan<int> all_dst_vert_ids,
                                       MutableSpan<int> all_dst_material_indices,
-                                      GSpanAttributeWriter &all_dst_custom_normals)
+                                      GSpanAttributeWriter &all_dst_custom_normals,
+                                      MutableSpan<int> all_dst_origindex_vert,
+                                      MutableSpan<int> all_dst_origindex_edge,
+                                      MutableSpan<int> all_dst_origindex_face)
 {
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
   const Mesh &mesh = *mesh_info.mesh;
@@ -1776,7 +1796,45 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                     ordered_attributes,
                                     domain_to_range,
                                     dst_attribute_writers);
+
+  /* Copy original index data per instance. */
+  if (!all_dst_origindex_vert.is_empty()) {
+    const IndexRange dst_range(task.start_indices.vert, mesh.verts_num);
+    if (const int *src_data = static_cast<const int *>(
+            CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)))
+    {
+      all_dst_origindex_vert.slice(dst_range).copy_from(Span<int>(src_data, mesh.verts_num));
+    }
+    else {
+      all_dst_origindex_vert.slice(dst_range).fill(ORIGINDEX_NONE);
+    }
+  }
+
+  if (!all_dst_origindex_edge.is_empty()) {
+    const IndexRange dst_range(task.start_indices.edge, mesh.edges_num);
+    if (const int *src_data = static_cast<const int *>(
+            CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)))
+    {
+      all_dst_origindex_edge.slice(dst_range).copy_from(Span<int>(src_data, mesh.edges_num));
+    }
+    else {
+      all_dst_origindex_edge.slice(dst_range).fill(ORIGINDEX_NONE);
+    }
+  }
+
+  if (!all_dst_origindex_face.is_empty()) {
+    const IndexRange dst_range(task.start_indices.face, mesh.faces_num);
+    if (const int *src_data = static_cast<const int *>(
+            CustomData_get_layer(&mesh.face_data, CD_ORIGINDEX)))
+    {
+      all_dst_origindex_face.slice(dst_range).copy_from(Span<int>(src_data, mesh.faces_num));
+    }
+    else {
+      all_dst_origindex_face.slice(dst_range).fill(ORIGINDEX_NONE);
+    }
+  }
 }
+
 static void copy_vertex_group_name(ListBaseT<bDeformGroup> *dst_deform_group,
                                    const OrderedAttributes &ordered_attributes,
                                    const bDeformGroup &src_deform_group)
@@ -1855,6 +1913,27 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   Mesh *dst_mesh = BKE_mesh_new_nomain(verts_num, edges_num, faces_num, corners_num);
   r_result.geometry.replace_mesh(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
+
+  /** Prepare original index layers for Edit Mode / CrazySpace mapping. */
+  MutableSpan<int> dst_origindex_vert;
+  if (all_meshes_info.create_origindex_vert_attribute) {
+    int *data = static_cast<int *>(
+        CustomData_add_layer(&dst_mesh->vert_data, CD_ORIGINDEX, CD_SET_DEFAULT, verts_num));
+    dst_origindex_vert = MutableSpan<int>(data, verts_num);
+  }
+  MutableSpan<int> dst_origindex_edge;
+  if (all_meshes_info.create_origindex_edge_attribute) {
+    int *data = static_cast<int *>(
+        CustomData_add_layer(&dst_mesh->edge_data, CD_ORIGINDEX, CD_SET_DEFAULT, edges_num));
+    dst_origindex_edge = MutableSpan<int>(data, edges_num);
+  }
+  MutableSpan<int> dst_origindex_face;
+  if (all_meshes_info.create_origindex_face_attribute) {
+    int *data = static_cast<int *>(
+        CustomData_add_layer(&dst_mesh->face_data, CD_ORIGINDEX, CD_SET_DEFAULT, faces_num));
+    dst_origindex_face = MutableSpan<int>(data, faces_num);
+  }
+
   MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
   MutableSpan<int> dst_face_offsets = dst_mesh->face_offsets_for_write();
@@ -1946,7 +2025,10 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                 dst_corner_edges,
                                 vert_ids.span,
                                 material_indices.span,
-                                custom_normals);
+                                custom_normals,
+                                dst_origindex_vert,
+                                dst_origindex_edge,
+                                dst_origindex_face);
     }
   });
 
