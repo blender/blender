@@ -151,6 +151,16 @@ template<> struct AttributeConverter<math::Quaternion> {
     return float4(value.w, value.x, value.y, value.z);
   }
 };
+template<> struct AttributeConverter<float4> {
+  using VBOType = float4;
+  static constexpr GPUVertCompType gpu_component_type = GPU_COMP_F32;
+  static constexpr int gpu_component_len = 4;
+  static constexpr GPUVertFetchMode gpu_fetch_mode = GPU_FETCH_FLOAT;
+  static VBOType convert(const float4 &value)
+  {
+    return value;
+  }
+};
 
 GPUVertFormat init_format_for_attribute(bke::AttrType data_type, StringRef vbo_name);
 
