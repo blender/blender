@@ -287,6 +287,7 @@ static bNodeSocket *ntree_shader_node_output_get(bNode *node, int n)
   return reinterpret_cast<bNodeSocket *>(BLI_findlink(&node->outputs, n));
 }
 
+/* TODO: should be migrated to shader_nodes_inline.c See !153704. */
 static void ntree_shader_unlink_script_nodes(bNodeTree *ntree)
 {
   /* To avoid more trouble in the node tree processing (especially inside
@@ -706,7 +707,6 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
           /* Manually add the link to the socket to avoid calling:
            * `BKE_ntree_update(G.main, oop)`. */
           fromsock->link = &bke::node_add_link(*ntree, *fromnode, *fromsock, *tonode, *tosock);
-          BLI_assert(fromsock->link);
         }
       }
     }

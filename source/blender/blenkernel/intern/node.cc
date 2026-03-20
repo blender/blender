@@ -4280,8 +4280,9 @@ bNodeLink &node_add_link(
   }
 
   BKE_ntree_update_tag_link_added(&ntree, link);
+  BLI_assert(link);
 
-  if (link != nullptr && link->tosock->is_multi_input()) {
+  if (link->tosock->is_multi_input()) {
     link->multi_input_sort_id = node_count_links(&ntree, link->tosock) - 1;
   }
 
