@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Tests for `source/blender/python/intern/bpy_operator_function.cc`
+# Python calling into the operator system (using a callable function like type).
+#
+# ./blender.bin --background --python tests/python/bl_operator_function_py_api.py -- --verbose
+
+__all__ = (
+    "main",
+)
+
+import unittest
+
+import bpy
+
+
+class TestOperatorFunctionAccess(unittest.TestCase):
+
+    def test_access_operator(self):
+        op = bpy.ops.object.select_all
+        self.assertTrue(callable(op))
+
+
+class TestOperatorCall(unittest.TestCase):
+
+    def test_call_clear_recent_files(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files(), {'FINISHED'})
+
+
+class TestOperatorCallPositionalArgs(unittest.TestCase):
+
+    def test_exec_default(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT'), {'FINISHED'})
+
+    def test_invoke_default(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files('INVOKE_DEFAULT'), {'FINISHED'})
+
+    def test_context_and_undo(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT', True), {'FINISHED'})
+
+    def test_context_and_undo_int(self):
+        self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT', 1), {'FINISHED'})
+
+
+class TestOperatorCallKeywordArgs(unittest.TestCase):
+
+    def test_enum_keyword(self):
+        self.assertEqual(bpy.ops.object.select_all(action='TOGGLE'), {'FINISHED'})
+
+    def test_keyword_with_context(self):
+        self.assertEqual(
+            bpy.ops.object.select_all('EXEC_DEFAULT', action='TOGGLE'), {'FINISHED'})
+
+    def test_keyword_with_context_and_undo(self):
+        self.assertEqual(
+            bpy.ops.object.select_all('EXEC_DEFAULT', True, action='TOGGLE'), {'FINISHED'})
+
+    def test_multiple_keywords(self):
+        self.assertEqual(
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0)), {'FINISHED'})
+
+
+class TestOperatorCallKeywordArgsInvalid(unittest.TestCase):
+
+    def test_invalid_enum_value(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.object.select_all(action='INVALID')
+
+    def test_wrong_type_for_enum(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.object.select_all(action=123)
+
+    def test_wrong_type_for_float(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.mesh.primitive_cube_add(size='big')
+
+    def test_wrong_type_for_bool(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.mesh.primitive_cube_add(align='WORLD', calc_uvs='yes')
+
+    def test_none_for_enum(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.object.select_all(action=None)
+
+    def test_none_for_float(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.mesh.primitive_cube_add(size=None)
+
+    def test_list_for_float(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.mesh.primitive_cube_add(size=[1.0])
+
+    def test_unknown_keyword(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.object.select_all(nonexistent=True)
+
+    def test_multiple_unknown_keywords(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.object.select_all(foo=1, bar=2)
+
+    def test_valid_and_unknown_keyword(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.object.select_all(action='TOGGLE', nonexistent=True)
+
+    def test_empty_string_for_enum(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.object.select_all(action='')
+
+
+class TestOperatorCallInvalid(unittest.TestCase):
+
+    def test_invalid_context_string(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.wm.clear_recent_files('INVALID_CONTEXT')
+
+    def test_invalid_keyword_argument(self):
+        with self.assertRaises(TypeError):
+            bpy.ops.wm.clear_recent_files(nonexistent_prop=True)
+
+    def test_poll_failure(self):
+        # Edit-mode operator cannot run without an active mesh in edit-mode.
+        with self.assertRaises(RuntimeError):
+            bpy.ops.mesh.subdivide()
+
+
+def main():
+    import sys
+    sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    unittest.main()
+
+
+if __name__ == "__main__":
+    main()
