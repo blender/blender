@@ -60,7 +60,7 @@ set(MSYS2_BASE_URL https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20221
 set(MSYS2_BASE_HASH 545cc6a4c36bb98058f2b2945c5d06de523516db)
 
 set(MSYS2_NASM_URL https://www.nasm.us/pub/nasm/releasebuilds/3.01/win64/nasm-3.01-win64.zip)
-set(MSYS2_NASM_HASH 6ae5eaffde68aa7450fadd7f45ba5c6df3dce558)
+set(MSYS2_NASM_HASH f11c96089462db07cb42de03ebb11dcb101b5154)
 
 set(MSYS2_PERL_URL https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip)
 set(MSYS2_PERL_HASH 987c870cc2401e481e3ddbdd1462d2a52da34187)
