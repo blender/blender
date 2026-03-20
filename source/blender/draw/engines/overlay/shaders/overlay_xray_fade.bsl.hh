@@ -11,7 +11,6 @@
  */
 
 #pragma once
-#pragma create_info
 
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_fullscreen_lib.glsl"

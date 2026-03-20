@@ -14,7 +14,6 @@
  */
 
 #pragma once
-#pragma create_info
 
 #include "infos/eevee_lightprobe_infos.hh"
 #include "infos/eevee_tracing_infos.hh"

@@ -7,7 +7,6 @@
  */
 
 #pragma once
-#pragma create_info
 
 #include "draw_view_lib.glsl"
 #include "gpu_shader_fullscreen_lib.glsl"

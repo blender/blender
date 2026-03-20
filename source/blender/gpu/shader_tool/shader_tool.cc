@@ -177,8 +177,7 @@ int main(int argc, char **argv)
       };
 
   std::string filename(output_file_name);
-  const bool is_info = filename.find("infos.hh") != std::string::npos ||
-                       buffer.str().find("#pragma create_info") != std::string::npos;
+  const bool is_info = filename.ends_with("infos.hh") || filename.ends_with(".bsl.hh");
 
   using namespace gpu::shader;
 

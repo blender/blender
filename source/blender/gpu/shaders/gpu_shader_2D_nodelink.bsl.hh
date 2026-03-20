@@ -13,7 +13,6 @@
  */
 
 #pragma once
-#pragma create_info
 
 #include "gpu_shader_compat.hh"
 

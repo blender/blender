@@ -10,7 +10,6 @@
  */
 
 #pragma once
-#pragma create_info
 
 #include "eevee_shadow_page_ops.bsl.hh"
 

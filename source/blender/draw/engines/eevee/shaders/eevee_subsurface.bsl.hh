@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
-#pragma create_info
 
 #include "infos/eevee_common_infos.hh"
 
