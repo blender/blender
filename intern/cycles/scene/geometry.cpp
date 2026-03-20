@@ -758,8 +758,8 @@ void GeometryManager::device_update(Device *device,
     for (Geometry *geom : scene->geometry) {
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
-        if ((geom->is_modified() && hair->need_shadow_transparency()) ||
-            hair->need_update_shadow_transparency())
+        if (hair->need_shadow_transparency() &&
+            (geom->is_modified() || hair->need_update_shadow_transparency()))
         {
           curve_need_update_shadow_transparency = true;
           break;

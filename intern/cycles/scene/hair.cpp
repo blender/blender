@@ -580,6 +580,10 @@ bool Hair::need_shadow_transparency() const
 
 bool Hair::need_update_shadow_transparency() const
 {
+  if (attributes.find(ATTR_STD_SHADOW_TRANSPARENCY) == nullptr) {
+    return true;
+  }
+
   for (const Node *node : used_shaders) {
     const Shader *shader = static_cast<const Shader *>(node);
     if (shader->need_update_shadow_transparency) {
