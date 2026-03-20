@@ -179,7 +179,7 @@ static void tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   float *value_color = tip_colors[TIP_LC_VALUE];
   float *active_color = tip_colors[TIP_LC_ACTIVE];
   float *normal_color = tip_colors[TIP_LC_NORMAL];
-  float *python_color = tip_colors[TIP_LC_PYTHON];
+  float *dimmed_color = tip_colors[TIP_LC_DIMMED];
   float *alert_color = tip_colors[TIP_LC_ALERT];
 
   float background_color[3];
@@ -201,8 +201,8 @@ static void tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   color_blend_f3_f3(value_color, background_color, 0.2f);
 
   /* `python_color` mixes with more background to be even dimmer. */
-  copy_v3_v3(python_color, main_color);
-  color_blend_f3_f3(python_color, background_color, 0.5f);
+  copy_v3_v3(dimmed_color, main_color);
+  color_blend_f3_f3(dimmed_color, background_color, 0.5f);
 
   /* `active_color` is a light blue, push a bit toward text color. */
   active_color[0] = 0.4f;
@@ -433,7 +433,7 @@ static bool tooltip_data_append_from_keymap(bContext *C, TooltipData &data, wmKe
                              fmt::format(fmt::runtime(TIP_("Python: {}")), str),
                              {},
                              TIP_STYLE_MONO,
-                             TIP_LC_PYTHON);
+                             TIP_LC_DIMMED);
     }
   }
 
@@ -758,7 +758,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_tool(bContext *C,
                            fmt::format(fmt::runtime(TIP_("Python: {}")), str),
                            {},
                            TIP_STYLE_MONO,
-                           TIP_LC_PYTHON,
+                           TIP_LC_DIMMED,
                            true);
   }
 
@@ -947,7 +947,7 @@ void tooltip_uibut_python_add(TooltipData &data,
                            fmt::format(fmt::runtime(TIP_("Python: {}")), str),
                            {},
                            TIP_STYLE_MONO,
-                           TIP_LC_PYTHON,
+                           TIP_LC_DIMMED,
                            true);
   }
 
@@ -960,7 +960,7 @@ void tooltip_uibut_python_add(TooltipData &data,
               fmt::format(fmt::runtime(TIP_("Python: {}.{}")), rna_struct, rna_prop),
           {},
           TIP_STYLE_MONO,
-          TIP_LC_PYTHON,
+          TIP_LC_DIMMED,
           (data.fields.size() > 0));
     }
 
@@ -968,7 +968,7 @@ void tooltip_uibut_python_add(TooltipData &data,
       std::optional<std::string> str = rnaprop ? RNA_path_full_property_py_ex(
                                                      &but.rnapoin, rnaprop, but.rnaindex, true) :
                                                  RNA_path_full_struct_py(&but.rnapoin);
-      tooltip_text_field_add(data, str.value_or(""), {}, TIP_STYLE_MONO, TIP_LC_PYTHON);
+      tooltip_text_field_add(data, str.value_or(""), {}, TIP_STYLE_MONO, TIP_LC_DIMMED);
     }
   }
 }
@@ -996,7 +996,7 @@ static void tooltip_uibut_icon_add(TooltipData &data, Button &but)
   }
 
   tooltip_text_field_add(
-      data, fmt::format("Icon: {}", icon_name), {}, TIP_STYLE_MONO, TIP_LC_PYTHON);
+      data, fmt::format("Icon: {}", icon_name), {}, TIP_STYLE_MONO, TIP_LC_DIMMED);
 }
 
 static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(

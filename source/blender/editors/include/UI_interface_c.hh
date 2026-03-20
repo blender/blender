@@ -1896,7 +1896,7 @@ enum TooltipColorID {
   TIP_LC_VALUE,    /* Color for the value of buttons (also shortcuts). */
   TIP_LC_ACTIVE,   /* Color of titles of active enum values. */
   TIP_LC_NORMAL,   /* Color of regular text. */
-  TIP_LC_PYTHON,   /* Color of python snippets. */
+  TIP_LC_DIMMED,   /* Color for dimmed text. Use for Python snippets and other details. */
   TIP_LC_ALERT,    /* Warning text color, eg: why operator can't run. */
   TIP_LC_MAX
 };
