@@ -83,7 +83,7 @@ extern PyTypeObject Py_ImBufFileType_Type;
 static std::optional<int> py_imbuf_ftype_from_string(const char *str)
 {
   const int ftype = IMB_ftype_from_id(str);
-  if (ftype == IMB_FTYPE_NONE) {
+  if (ftype == IMB_FTYPE_NONE && !STREQ(str, py_imbuf_type_none)) {
     return std::nullopt;
   }
   return ftype;
@@ -133,10 +133,26 @@ static int py_imbuf_valid_check(Py_ImBuf *self)
   } \
   ((void)0)
 
-static const char *py_imbuf_ftype_to_id_or_none(const int ftype)
+static void py_imbuf_warn_corrupt_ftype(const int ftype)
 {
+  /* Should not be possible, but avoid crashing on corrupt data. */
+  BLI_assert_unreachable();
+  PyErr_WarnFormat(PyExc_RuntimeWarning, 1, "unknown file type enum: %d", ftype);
+}
+
+/**
+ * Return the file type ID string, falling back to "NONE" so
+ * the caller doesn't have to deal with the very unlikely case
+ * of an unknown/corrupt `ftype`.
+ */
+static const char *py_imbuf_ftype_to_id_with_fallback(const int ftype)
+{
+  if (ftype == IMB_FTYPE_NONE) {
+    return py_imbuf_type_none;
+  }
   const char *id = IMB_ftype_to_id(ftype);
-  if (id == nullptr) {
+  if (UNLIKELY(id == nullptr)) {
+    py_imbuf_warn_corrupt_ftype(ftype);
     return py_imbuf_type_none;
   }
   return id;
@@ -768,7 +784,7 @@ PyDoc_STRVAR(
 static PyObject *py_imbuf_file_type_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
-  const char *id = py_imbuf_ftype_to_id_or_none(self->ibuf->ftype);
+  const char *id = py_imbuf_ftype_to_id_with_fallback(self->ibuf->ftype);
   return PyUnicode_FromString(id);
 }
 
@@ -1160,7 +1176,7 @@ PyTypeObject Py_ImBufBuffer_Type = {
 
 static PyObject *py_imbuf_file_type_id_get(Py_ImBufFileType *self, void * /*closure*/)
 {
-  const char *id = py_imbuf_ftype_to_id_or_none(self->ftype);
+  const char *id = py_imbuf_ftype_to_id_with_fallback(self->ftype);
   return PyUnicode_FromString(id);
 }
 
@@ -1227,7 +1243,7 @@ static PyGetSetDef Py_ImBufFileType_getseters[] = {
 
 static PyObject *py_imbuf_file_type_repr(Py_ImBufFileType *self)
 {
-  const char *id = py_imbuf_ftype_to_id_or_none(self->ftype);
+  const char *id = py_imbuf_ftype_to_id_with_fallback(self->ftype);
   return PyUnicode_FromFormat("<ImBufFileType: id='%s'>", id);
 }
 
@@ -1519,7 +1535,7 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
   if ((IMB_ftype_capability_write(py_imb->ibuf->ftype) & eImFileTypeCapability::File) ==
       eImFileTypeCapability::Zero)
   {
-    const char *id = py_imbuf_ftype_to_id_or_none(py_imb->ibuf->ftype);
+    const char *id = py_imbuf_ftype_to_id_with_fallback(py_imb->ibuf->ftype);
     PyErr_Format(
         PyExc_ValueError, "write: file type '%.200s' does not support writing to a file", id);
     return nullptr;
@@ -1595,7 +1611,7 @@ static PyObject *M_imbuf_write_to_buffer(PyObject * /*self*/, PyObject *args)
   if ((IMB_ftype_capability_write(py_imb->ibuf->ftype) & eImFileTypeCapability::Memory) ==
       eImFileTypeCapability::Zero)
   {
-    const char *id = py_imbuf_ftype_to_id_or_none(py_imb->ibuf->ftype);
+    const char *id = py_imbuf_ftype_to_id_with_fallback(py_imb->ibuf->ftype);
     PyErr_Format(PyExc_ValueError,
                  "write_to_buffer: file type '%.200s' does not support writing to memory",
                  id);
@@ -1752,9 +1768,9 @@ PyObject *BPyInit_imbuf()
     if (PyType_Ready(&Py_ImBufFileType_Type) < 0) {
       return nullptr;
     }
-    PyObject *dict = _PyDict_NewPresized(IMB_FTYPE_LAST);
-    for (int ftype = 1; ftype <= IMB_FTYPE_LAST; ftype++) {
-      const char *id = IMB_ftype_to_id(ftype);
+    PyObject *dict = _PyDict_NewPresized(IMB_FTYPE_LAST + 1);
+    for (int ftype = 0; ftype <= IMB_FTYPE_LAST; ftype++) {
+      const char *id = (ftype != IMB_FTYPE_NONE) ? IMB_ftype_to_id(ftype) : py_imbuf_type_none;
       if (id) {
         Py_ImBufFileType *val = PyObject_New(Py_ImBufFileType, &Py_ImBufFileType_Type);
         val->ftype = ftype;

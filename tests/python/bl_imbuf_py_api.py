@@ -759,7 +759,32 @@ class TestImBufFileTypes(unittest.TestCase):
             with self.subTest(type_id=type_id):
                 self.assertEqual(file_type.id, type_id)
                 self.assertIsInstance(file_type.file_extensions, tuple)
-                self.assertGreater(len(file_type.file_extensions), 0)
+                if type_id != 'NONE':
+                    self.assertGreater(len(file_type.file_extensions), 0)
+
+    def test_none_file_type(self):
+        # NONE is accessible in the file_types dict.
+        self.assertIn('NONE', imbuf.file_types)
+        none_type = imbuf.file_types['NONE']
+        self.assertEqual(none_type.id, 'NONE')
+        self.assertEqual(none_type.file_extensions, ())
+        self.assertFalse(none_type.has_write_file)
+        self.assertFalse(none_type.has_write_memory)
+
+        # Can set file_type to NONE and read it back.
+        ibuf = imbuf.new(DEFAULT_SIZE)
+        ibuf.file_type = 'NONE'
+        self.assertEqual(ibuf.file_type, 'NONE')
+
+        # Writing as NONE fails for both file and memory.
+        with tempfile.TemporaryDirectory() as tempdir:
+            filepath = os.path.join(tempdir, 'test.bin')
+            with self.assertRaises(ValueError):
+                imbuf.write(ibuf, filepath=filepath)
+        with self.assertRaises(ValueError):
+            imbuf.write_to_buffer(ibuf, io.BytesIO())
+
+        ibuf.free()
 
     def test_write_and_detect_all_types(self):
         size = (32, 32)
