@@ -4073,8 +4073,6 @@ static void init_scene_project_brush_targets(const Depsgraph &depsgraph,
   }
 }
 
-/* Initialize the stroke cache invariants from operator properties. */
-
 static float brush_dynamic_size_get(const Brush &brush,
                                     const StrokeCache &cache,
                                     float initial_size)
