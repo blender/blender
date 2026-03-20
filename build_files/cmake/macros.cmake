@@ -954,15 +954,15 @@ function(get_blender_version)
     _out_version_cycle "${_contents}"
   )
 
-  if(NOT ${_out_version} MATCHES "[0-9]+")
+  if(NOT ${_out_version} MATCHES "^[0-9]+$")
     message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION")
   endif()
 
-  if(NOT ${_out_version_patch} MATCHES "[0-9]+")
+  if(NOT ${_out_version_patch} MATCHES "^[0-9]+$")
     message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_PATCH")
   endif()
 
-  if(NOT ${_out_version_cycle} MATCHES "[a-z]+")
+  if(NOT ${_out_version_cycle} MATCHES "^[a-z]+$")
     message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CYCLE")
   endif()
 
