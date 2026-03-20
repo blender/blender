@@ -107,10 +107,8 @@ void SourceProcessor::lower_enums(Parser &parser)
                             "#define " + enum_name_str + " " + string(enum_type.str()) + "\n");
     if (is_host_shared) {
       if (type_str != "uint32_t" && type_str != "int32_t") {
-        report_error_(
-            ERROR_TOK(enum_type),
-            "enum declaration must use uint32_t or int32_t underlying type for interface "
-            "compatibility");
+        report_error_(ERROR_TOK(enum_type),
+                      "Host shared enum declaration must use uint32_t or int32_t underlying type");
         return;
       }
 
@@ -139,8 +137,9 @@ void SourceProcessor::lower_enums(Parser &parser)
 
   parser.apply_mutations();
 
-  parser().foreach_token(
-      Enum, [&](Token tok) { report_error_(ERROR_TOK(tok), "invalid enum declaration"); });
+  parser().foreach_token(Enum, [&](Token tok) {
+    report_error_(ERROR_TOK(tok), "invalid enum declaration, likely missing underlying type");
+  });
 }
 
 }  // namespace blender::gpu::shader
