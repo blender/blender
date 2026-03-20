@@ -857,23 +857,25 @@ void func(ATfloat a) {}
     string input = R"(
 namespace N {
 
-struct A {
-  int i;
+template<typename B> struct A {
+  B i;
   template<typename T> static void fn1(T a) {}
   template<typename T> static T fn2() { return T(0); }
   template<typename T> void fn3(T a) { i += int(fn4<T>()); }
   template<typename T> T fn4() { fn3(0); return T(0); }
 };
 
-template void A::fn1<int>(int);
-template int A::fn2<int>();
-template void A::fn3<int>(int);
-template int A::fn4<int>();
+template struct A<int>;
 
-void fn(A a)
+template void A<int>::fn1<int>(int);
+template int A<int>::fn2<int>();
+template void A<int>::fn3<int>(int);
+template int A<int>::fn4<int>();
+
+void fn(A<int> a)
 {
-  A::fn1(0);
-  A::fn2<int>();
+  A<int>::fn1(0);
+  A<int>::fn2<int>();
   a.fn3(0);
   a.fn4<int>();
 }
@@ -882,7 +884,7 @@ void fn(A a)
 )";
     string expect = R"(
 #line 4
-struct N_A {
+struct N_ATint {
   int i;
 
 
@@ -890,28 +892,28 @@ struct N_A {
 
 
 
-#line 17
+#line 19
 };
-#line 25
+#line 22
 #ifndef GPU_METAL
-N_A N_A_ctor_();
-void N_A_fn1(int a);
-int N_A_fn2Tint();
-void _fn3(_ref(N_A ,this_), int a);
-int _fn4Tint(_ref(N_A ,this_));
+N_ATint N_ATint_ctor_();
+void N_ATint_fn1(int a);
+int N_ATint_fn2Tint();
+void _fn3(_ref(N_ATint ,this_), int a);
+int _fn4Tint(_ref(N_ATint ,this_));
 #endif
 #line 4
-                   N_A N_A_ctor_() {N_A r;r.i=0;return r;}
+                       N_ATint N_ATint_ctor_() {N_ATint r;r.i=0;return r;}
 #line 6
-       void N_A_fn1(int a) {}
-       int N_A_fn2Tint() { return int(0); }
-void _fn3(_ref(N_A ,this_), int a) { this_.i += int(_fn4Tint(this_)); }
-int _fn4Tint(_ref(N_A ,this_)) { _fn3(this_, 0); return int(0); }
-#line 24
-void N_fn(N_A a)
+       void N_ATint_fn1(int a) {}
+       int N_ATint_fn2Tint() { return int(0); }
+void _fn3(_ref(N_ATint ,this_), int a) { this_.i += int(_fn4Tint(this_)); }
+int _fn4Tint(_ref(N_ATint ,this_)) { _fn3(this_, 0); return int(0); }
+#line 19
+void N_fn(N_ATint a)
 {
-  N_A_fn1(0);
-  N_A_fn2Tint();
+  N_ATint_fn1(0);
+  N_ATint_fn2Tint();
   _fn3(a, 0);
   _fn4Tint(a);
 }
