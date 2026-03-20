@@ -6,6 +6,8 @@
 
 #include "draw_object_infos_infos.hh"
 
+SHADER_LIBRARY_CREATE_INFO(draw_object_infos)
+
 #include "draw_defines.hh"
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -108,6 +110,10 @@ ShapePoint shape_point_get(const Point pt, const float3 V, const float3 up_axis)
 {
   ShapePoint shape;
   shape.N = facing_matrix(V, up_axis) * pt.shape_pos;
+  eObjectInfoFlag ob_flag = buffer_get(draw_object_infos, drw_infos)[drw_resource_id()].flag;
+  if (flag_test(ob_flag, OBJECT_NEGATIVE_SCALE)) {
+    shape.N = -shape.N;
+  }
   shape.P = pt.P + shape.N * pt.radius;
   return shape;
 }
