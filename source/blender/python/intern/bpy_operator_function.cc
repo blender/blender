@@ -125,6 +125,13 @@ static PyObject *bpy_op_fn_call(BPyOpFunction *self, PyObject *args, PyObject *k
     return nullptr;
   }
 
+  /* Validate keyword argument keys are strings, since Python's `tp_call`
+   * does not enforce this (unlike regular Python function calls). */
+  if (kwargs && !PyC_Dict_CheckKeysAreStrings(kwargs)) {
+    PyErr_SetString(PyExc_TypeError, "keywords must be strings");
+    return nullptr;
+  }
+
   /* Store the window manager before operator execution to check if it changes. */
   wmWindowManager *wm = CTX_wm_manager(C);
 

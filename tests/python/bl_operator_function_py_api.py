@@ -108,6 +108,11 @@ class TestOperatorCallKeywordArgsInvalid(unittest.TestCase):
         with self.assertRaises(TypeError):
             bpy.ops.object.select_all(action='')
 
+    def test_non_string_keywords(self):
+        for key in (1, None, (1, 2)):
+            with self.assertRaises(TypeError):
+                bpy.ops.object.select_all(**{key: 'TOGGLE'})
+
 
 class TestOperatorCallInvalid(unittest.TestCase):
 

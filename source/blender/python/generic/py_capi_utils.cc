@@ -2112,4 +2112,22 @@ bool PyC_StructFmt_type_is_bool(char format)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Dict Utilities
+ * \{ */
+
+bool PyC_Dict_CheckKeysAreStrings(PyObject *dict)
+{
+  PyObject *key;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(dict, &pos, &key, nullptr)) {
+    if (!PyUnicode_Check(key)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** \} */
+
 }  // namespace blender

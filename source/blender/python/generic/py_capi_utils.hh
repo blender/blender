@@ -512,4 +512,12 @@ struct PyC_StringEnum {
   return PyC_Tuple_PackArray_Bool(values.data(), values.size());
 }
 
+/**
+ * Check that all keys in `dict` are Python strings.
+ *
+ * Use this to validate keyword arguments from `tp_call` which,
+ * unlike regular Python function calls, does not enforce string keys.
+ */
+[[nodiscard]] bool PyC_Dict_CheckKeysAreStrings(PyObject *dict);
+
 }  // namespace blender
