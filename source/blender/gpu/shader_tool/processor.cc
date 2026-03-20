@@ -696,7 +696,13 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
     string create_info_decl;
 
     while (tok == ',') {
-      Scope scope = tok.next().next().scope();
+      Token struct_name = tok.next();
+      Scope scope = struct_name.next().scope();
+      if (scope.token_count() == 2) {
+        report_error_(ERROR_TOK(struct_name),
+                      "Empty brace constructor is an error in Pipeline declaration. "
+                      "Either remove it or add compilation constant values to it.");
+      }
       auto process_constant = [&](const vector<Token> &toks) {
         create_info_decl += "COMPILATION_CONSTANT(";
         create_info_decl += (toks[3] == Number) ?
@@ -714,9 +720,19 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
     return create_info_decl;
   };
 
+  auto validate_fn_name = [&](Token fn_name) {
+    if (fn_name == '&') {
+      report_error_(ERROR_TOK(fn_name), "Double function reference, remove '&'");
+    }
+    else if (fn_name != Word) {
+      report_error_(ERROR_TOK(fn_name), "Expected function name");
+    }
+    return fn_name;
+  };
+
   auto process_graphic_pipeline = [&](Token pipeline_name, Scope params) {
-    Token vertex_fn = params[1];
-    Token fragment_fn = params[3];
+    Token vertex_fn = validate_fn_name(params[1]);
+    Token fragment_fn = validate_fn_name(params[3]);
     /* For now, just emit good old create info macros. */
     string create_info_decl;
     create_info_decl += "GPU_SHADER_CREATE_INFO(" + string(pipeline_name.str()) + ")\n";
@@ -733,7 +749,7 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
   };
 
   auto process_compute_pipeline = [&](Token pipeline_name, Scope params) {
-    Token compute_fn = params[1];
+    Token compute_fn = validate_fn_name(params[1]);
     /* For now, just emit good old create info macros. */
     string create_info_decl;
     create_info_decl += "GPU_SHADER_CREATE_INFO(" + string(pipeline_name.str()) + ")\n";
@@ -747,7 +763,7 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
     metadata_.create_infos_declarations.emplace_back(create_info_decl);
   };
 
-  parser().foreach_match("AA(A", [&](const vector<Token> &tokens) {
+  parser().foreach_match("AA(", [&](const vector<Token> &tokens) {
     Scope parameters = tokens[2].scope();
     if (tokens[0].str() == "PipelineGraphic") {
       process_graphic_pipeline(tokens[1], parameters);
