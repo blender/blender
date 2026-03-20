@@ -54,16 +54,22 @@ macro(path_ensure_trailing_slash
   path_new path_input
   )
   file(TO_NATIVE_PATH "/" _path_sep)
-  string(REGEX REPLACE "[${_path_sep}]+$" "" ${path_new} ${path_input})
+  # Escape for use in regex (`string(REGEX QUOTE ...)` is only available in CMake 4.2+).
+  string(REPLACE "\\" "\\\\" _path_sep_escaped "${_path_sep}")
+  string(REGEX REPLACE "[${_path_sep_escaped}]+$" "" ${path_new} ${path_input})
   set(${path_new} "${${path_new}}${_path_sep}")
   unset(_path_sep)
+  unset(_path_sep_escaped)
 endmacro()
 
 macro(path_strip_trailing_slash
   path_new path_input
   )
   file(TO_NATIVE_PATH "/" _path_sep)
-  string(REGEX REPLACE "[${_path_sep}]+$" "" ${path_new} ${path_input})
+  # Escape for use in regex (`string(REGEX QUOTE ...)` is only available in CMake 4.2+).
+  string(REPLACE "\\" "\\\\" _path_sep_escaped "${_path_sep}")
+  string(REGEX REPLACE "[${_path_sep_escaped}]+$" "" ${path_new} ${path_input})
+  unset(_path_sep_escaped)
 endmacro()
 
 # Our own version of `cmake_path(IS_PREFIX ..)`.
