@@ -564,7 +564,7 @@ static void object_foreach_path_particles(Object *ob, BPathForeachPathData *bpat
 
     /* Just report the directory that contains the pointcache files. */
     char ptcache_path[FILE_MAX];
-    const int ptcache_path_len = BKE_ptcache_path(&pid, ptcache_path);
+    BKE_ptcache_path(&pid, ptcache_path);
 
     /* The path can be modified by BKE_bpath_foreach_path_fixed_process(), for example when using
      * "Save As..." to write the blend file to another directory. In that case blendfile-relative
@@ -575,7 +575,7 @@ static void object_foreach_path_particles(Object *ob, BPathForeachPathData *bpat
      * And because it's always in the same directory, it makes sense to convert the path to a
      * blendfile-relative path. */
     BLI_path_rel(ptcache_path, blendfile_path);
-    BKE_bpath_foreach_path_fixed_process(bpath_data, ptcache_path, ptcache_path_len);
+    BKE_bpath_foreach_path_fixed_process(bpath_data, ptcache_path, sizeof(ptcache_path));
   }
 }
 
