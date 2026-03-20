@@ -291,12 +291,16 @@ source/blender/asset_system/.* @JulianEisel
 
 # --------------------------------------------------
 # Sculpt, Paint, Texture
-source/blender/blenkernel/BKE_paint.*           @Sean-Kim
-source/blender/blenkernel/intern/brush.*        @Sean-Kim
-source/blender/blenkernel/paint.*               @Sean-Kim
-source/blender/blenkernel/pbvh.*                @Sean-Kim
-source/blender/editors/sculpt_paint/paint_.*    @Sean-Kim
-source/blender/editors/sculpt_paint/mesh/.*     @Sean-Kim
+source/blender/makesdna/DNA_brush_types.h           @Sean-Kim
+source/blender/makesdna/DNA_brush_enums.h           @Sean-Kim
+source/blender/makesrna/intern/rna_brush.cc         @Sean-Kim
+source/blender/makesrna/intern/rna_sculpt_paint.cc  @Sean-Kim
+source/blender/blenkernel/BKE_paint.*               @Sean-Kim
+source/blender/blenkernel/intern/brush.*            @Sean-Kim
+source/blender/blenkernel/paint.*                   @Sean-Kim
+source/blender/blenkernel/pbvh.*                    @Sean-Kim
+source/blender/editors/sculpt_paint/paint_.*        @Sean-Kim
+source/blender/editors/sculpt_paint/mesh/.*         @Sean-Kim
 
 # --------------------------------------------------
 # Modeling.
