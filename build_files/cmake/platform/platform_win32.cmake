@@ -160,7 +160,7 @@ if(WITH_WINDOWS_BUNDLE_CRT)
   # ucrtbase(d).dll cannot be in the manifest, due to the way windows 10 handles
   # redirects for this dll, for details see #88813.
   foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
-    string(FIND ${lib} "ucrtbase" pos)
+    string(FIND "${lib}" "ucrtbase" pos)
     if(NOT pos EQUAL -1)
       list(REMOVE_ITEM CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${lib})
       install(FILES ${lib} DESTINATION . COMPONENT Libraries)

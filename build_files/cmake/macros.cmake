@@ -288,7 +288,7 @@ function(blender_source_group
       # remove ../'s
       get_filename_component(_SRC_DIR ${_SRC} REALPATH)
       get_filename_component(_SRC_DIR ${_SRC_DIR} DIRECTORY)
-      string(FIND ${_SRC_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/" _pos)
+      string(FIND "${_SRC_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/" _pos)
       if(NOT _pos EQUAL -1)
         string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" GROUP_ID ${_SRC_DIR})
         string(REPLACE "/" "\\" GROUP_ID ${GROUP_ID})

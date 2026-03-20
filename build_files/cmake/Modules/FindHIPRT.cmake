@@ -56,7 +56,7 @@ endif()
 # The code checks that the API of the cached variable is what it is expected to be based on the
 # headers. If the API mismatches and the library exists skip the logic, assuming developers
 # requested such configuration explicitly.
-if(HIPRT_LIBRARY AND NOT EXISTS ${HIPRT_LIBRARY})
+if(HIPRT_LIBRARY AND NOT EXISTS "${HIPRT_LIBRARY}")
   get_filename_component(hiprt_library_name_we "${HIPRT_LIBRARY}" NAME_WE)
   # The file name is not guaranteed to have API in it. Check for it to explicitly set the API to an
   # empty string. Conditional group in the regex could help, but it is not trivial to address it in

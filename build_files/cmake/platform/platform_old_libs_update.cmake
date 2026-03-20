@@ -39,7 +39,7 @@ function(unset_cached_variables_containing contents msg)
     endif()
   endforeach()
   if(_print_msg)
-    message(STATUS ${msg})
+    message(STATUS "${msg}")
   endif()
 endfunction()
 
