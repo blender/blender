@@ -285,12 +285,6 @@ struct StrokeCache {
   /* The face set being painted. */
   int paint_face_set = face_set_none_id;
 
-  /**
-   * Symmetry index between 0 and 7 bit combo.
-   *
-   * 0 is Brush only; 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ.
-   */
-  int symmetry = 0;
   /* The symmetry pass we are currently on between 0 and 7. */
   ePaintSymmetryFlags mirror_symmetry_pass = ePaintSymmetryFlags(0);
   float3 view_normal = float3(0);

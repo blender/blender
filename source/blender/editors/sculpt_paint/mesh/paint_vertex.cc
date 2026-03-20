@@ -1999,8 +1999,6 @@ static void vpaint_do_symmetrical_brush_actions(const Depsgraph &depsgraph,
   vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, initial_symm, 'Y');
   vpaint_do_radial_symmetry(depsgraph, vp, vpd, ob, mesh, brush, initial_symm, 'Z');
 
-  cache.symmetry = symm;
-
   for (i = 1; i <= symm; i++) {
     if (is_symmetry_iteration_valid(i, symm)) {
       const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);

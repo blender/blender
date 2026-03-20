@@ -1283,6 +1283,7 @@ static float calc_radial_symmetry_feather(const Mesh &mesh,
 }
 
 static float calc_symmetry_feather(const Sculpt &sd,
+                                   const ePaintSymmetryFlags symm,
                                    const Mesh &mesh,
                                    const ed::sculpt_paint::StrokeCache &cache)
 {
@@ -1290,7 +1291,6 @@ static float calc_symmetry_feather(const Sculpt &sd,
     return 1.0f;
   }
   float overlap;
-  const int symm = cache.symmetry;
 
   overlap = 0.0f;
   for (int i = 0; i <= symm; i++) {
@@ -3698,12 +3698,11 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
   const Mesh &mesh = *id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  float feather = calc_symmetry_feather(sd, mesh, *ss.cache);
+  float feather = calc_symmetry_feather(sd, symm, mesh, *ss.cache);
 
   cache.bstrength = brush_strength(sd, cache, feather, paint_mode_settings);
-  cache.symmetry = symm;
 
   /* `symm` is a bit combination of XYZ -
    * 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */

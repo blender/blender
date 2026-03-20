@@ -1797,8 +1797,6 @@ static void wpaint_do_symmetrical_brush_actions(
   wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
   wpaint_do_radial_symmetry(depsgraph, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
 
-  cache.symmetry = symm;
-
   if (mesh.editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
     /* We don't do any symmetry strokes when mirroring vertex groups. */
     copy_v3_v3(cache.last_location, cache.location);
