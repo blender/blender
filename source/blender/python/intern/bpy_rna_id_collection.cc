@@ -880,7 +880,7 @@ static PyObject *bpy_batch_remove(PyObject *self, PyObject *args, PyObject *kwds
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_orphans_purge_doc,
-    ".. method:: orphans_purge()\n"
+    ".. method:: orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=False)\n"
     "\n"
     "   Remove (delete) all IDs with no user.\n"
     "\n"
