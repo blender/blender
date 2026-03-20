@@ -1074,8 +1074,6 @@ function(data_to_c
   list(APPEND ${list_to_add} ${file_to})
   set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
 
-  get_filename_component(_file_to_path ${file_to} PATH)
-
   add_custom_command(
     OUTPUT ${file_to}
     COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to} ${symbol_name_override}
@@ -1099,8 +1097,6 @@ function(data_to_c_simple
   source_group(Generated FILES ${_file_to})
   list(APPEND ${list_to_add} ${file_from})
   set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
-
-  get_filename_component(_file_to_path ${_file_to} PATH)
 
   add_custom_command(
     OUTPUT  ${_file_to}
@@ -1136,8 +1132,6 @@ function(glsl_to_c
   source_group(Generated FILES ${_file_to})
   list(APPEND ${list_to_add} ${file_from})
   set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
-
-  get_filename_component(_file_to_path ${_file_to} PATH)
 
   add_custom_command(
     OUTPUT  ${_file_to} ${_file_meta} ${_file_info}
