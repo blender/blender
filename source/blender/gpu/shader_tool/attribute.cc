@@ -121,7 +121,8 @@ void SourceProcessor::lint_attributes(Parser &parser)
       Token prev_tok = attributes.front().prev().prev();
       if (prev_tok == '(' || prev_tok == '{' || prev_tok == ';' || prev_tok == ',' ||
           prev_tok == '}' || prev_tok == ')' || prev_tok == '\n' || prev_tok == ' ' ||
-          prev_tok.is_invalid() || prev_tok.scope().type() == ScopeType::Preprocessor)
+          prev_tok == '>' || prev_tok.is_invalid() ||
+          prev_tok.scope().type() == ScopeType::Preprocessor)
       {
         /* Placement is maybe correct. Could refine a bit more. */
       }

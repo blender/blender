@@ -304,6 +304,12 @@ void SourceProcessor::lower_templates(Parser &parser)
                               tokens[18]);
   });
 
+  /* Entry point functions. */
+  parser().foreach_match("t<..>[[..]]AA(..){..}", [&](const vector<Token> &tokens) {
+    process_template_function(
+        tokens[5], tokens[12], tokens[13].scope(), tokens[1].scope(), tokens.back());
+  });
+
   parser.apply_mutations();
 
   /* Check if there is no remaining declaration and instantiation that were not processed. */
