@@ -21,6 +21,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_avif[] = {".avif", nullptr};
+
 OIIO_NAMESPACE_USING
 using namespace imbuf;
 

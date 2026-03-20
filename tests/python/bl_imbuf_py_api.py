@@ -762,35 +762,41 @@ class TestImBufFileTypes(unittest.TestCase):
                 self.assertGreater(len(file_type.file_extensions), 0)
 
     def test_write_and_detect_all_types(self):
-        # TODO: make this meta-data available.
-        read_only_types = {'PSD', 'DDS'}
         size = (32, 32)
         with tempfile.TemporaryDirectory() as tempdir:
             for type_id, file_type in imbuf.file_types.items():
-                if type_id in read_only_types:
+                if not (file_type.has_write_file or file_type.has_write_memory):
                     continue
                 ext = file_type.file_extensions[0]
                 with self.subTest(type_id=type_id):
                     ibuf = imbuf.new(size)
                     ibuf.file_type = type_id
 
-                    filepath = os.path.join(tempdir, "test" + ext)
-                    imbuf.write(ibuf, filepath=filepath)
+                    image_data = []
+
+                    if file_type.has_write_file:
+                        filepath = os.path.join(tempdir, "test" + ext)
+                        imbuf.write(ibuf, filepath=filepath)
+                        with open(filepath, "rb") as fh:
+                            image_data.append(("file", fh.read()))
+
+                    if file_type.has_write_memory:
+                        buf = io.BytesIO()
+                        imbuf.write_to_buffer(ibuf, buf)
+                        image_data.append(("memory", buf.getvalue()))
+
                     ibuf.free()
 
-                    with open(filepath, "rb") as fh:
-                        data = fh.read()
+                    for kind, data in image_data:
+                        msg = "{:s} ({:s})".format(type_id, kind)
+                        detected = imbuf.file_type_from_buffer(data)
+                        self.assertIsNotNone(detected, msg=msg)
+                        self.assertEqual(detected.id, type_id, msg=msg)
 
-                    # Detect type from buffer.
-                    detected = imbuf.file_type_from_buffer(data)
-                    self.assertIsNotNone(detected, msg=type_id)
-                    self.assertEqual(detected.id, type_id)
-
-                    # Load from buffer and verify size and type.
-                    ibuf_loaded = imbuf.load_from_buffer(data)
-                    self.assertEqual(ibuf_loaded.size, size)
-                    self.assertEqual(ibuf_loaded.file_type, type_id)
-                    ibuf_loaded.free()
+                        ibuf_loaded = imbuf.load_from_buffer(data)
+                        self.assertEqual(ibuf_loaded.size, size, msg=msg)
+                        self.assertEqual(ibuf_loaded.file_type, type_id, msg=msg)
+                        ibuf_loaded.free()
 
 
 def main():

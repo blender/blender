@@ -13,6 +13,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_hdr[] = {".hdr", nullptr};
+
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 

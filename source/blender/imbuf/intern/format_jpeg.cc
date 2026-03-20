@@ -37,6 +37,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_jpeg[] = {".jpg", ".jpeg", nullptr};
+
 static CLG_LogRef LOG = {"image.jpeg"};
 
 /* the types are from the jpeg lib */

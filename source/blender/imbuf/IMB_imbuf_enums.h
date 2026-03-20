@@ -42,6 +42,14 @@ enum eImbFileType {
 };
 #define IMB_FTYPE_LAST IMB_FTYPE_AVIF
 
+/** Flags for #ImFileType.capability_read and #ImFileType.capability_write. */
+enum class eImFileTypeCapability : uint8_t {
+  Zero = 0,
+  File = (1 << 0),
+  Memory = (1 << 1),
+};
+ENUM_OPERATORS(eImFileTypeCapability);
+
 /** NOTE: Keep in sync with #MovieClipProxy.build_size_flag */
 enum IMB_Proxy_Size {
   IMB_PROXY_NONE = 0,

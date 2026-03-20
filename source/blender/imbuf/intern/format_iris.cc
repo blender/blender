@@ -30,6 +30,8 @@ namespace blender {
 
 static CLG_LogRef LOG = {"image.iris"};
 
+const char *imb_file_extensions_iris[] = {".sgi", ".rgb", ".rgba", ".bw", nullptr};
+
 /**
  * The SGI IRIS magic number.
  * The value is `[0x01 0xda]` when read as a big-endian ushort.

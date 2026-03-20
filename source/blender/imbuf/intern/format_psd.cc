@@ -14,6 +14,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_psd[] = {".psd", ".pdd", ".psb", nullptr};
+
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 

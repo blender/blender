@@ -25,6 +25,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_jp2[] = {".jp2", ".j2c", nullptr};
+
 static CLG_LogRef LOG = {"image.openjpeg"};
 
 #define JP2_FILEHEADER_SIZE 12

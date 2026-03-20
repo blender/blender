@@ -29,6 +29,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_webp[] = {".webp", nullptr};
+
 static CLG_LogRef LOG = {"image.webp"};
 
 OIIO_NAMESPACE_USING

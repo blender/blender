@@ -14,6 +14,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_tiff[] = {".tif", ".tiff", ".tx", nullptr};
+
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 

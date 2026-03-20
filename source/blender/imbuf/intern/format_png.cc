@@ -14,6 +14,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_png[] = {".png", nullptr};
+
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 

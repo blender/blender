@@ -14,6 +14,9 @@
 
 namespace blender {
 
+const char *imb_file_extensions_dpx[] = {".dpx", nullptr};
+const char *imb_file_extensions_cineon[] = {".cin", nullptr};
+
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 

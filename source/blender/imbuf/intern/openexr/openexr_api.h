@@ -14,6 +14,8 @@ namespace blender {
 
 struct ImFileColorSpace;
 
+extern const char *imb_file_extensions_openexr[];
+
 void imb_initopenexr();
 void imb_exitopenexr();
 

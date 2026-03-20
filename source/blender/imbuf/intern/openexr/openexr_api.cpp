@@ -104,6 +104,8 @@
 
 namespace blender {
 
+const char *imb_file_extensions_openexr[] = {".exr", nullptr};
+
 static CLG_LogRef LOG = {"image.openexr"};
 
 using namespace Imf;
