@@ -2294,6 +2294,12 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
   unset(_WARNINGS)
 endif()
 
+# For C++ we want to remove the C flags  as well, however we do NOT want to
+# test these flags for both C an CXX since they cost 1-2 seconds each on windows
+# adding 15+ seconds to the initial configure on windows. So for now just append
+# the C flags to the CXX ones if this ever causes issues we can re-evaluate this.
+set(CXX_REMOVE_STRICT_FLAGS "${CXX_REMOVE_STRICT_FLAGS} ${C_REMOVE_STRICT_FLAGS}")
+
 # Xcode enables additional warning flags by default. Disable some to match
 # command line build and other platforms more closely.
 if(XCODE)

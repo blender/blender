@@ -4,6 +4,13 @@
 
 set(MANTAVERSION "0.13")
 
+# avoid noisy warnings
+if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+  add_cxx_flag(
+    "-Wno-unused-result"
+  )
+endif()
+
 add_definitions(-DWITH_FLUID=1)
 
 # Compile Mantaflow dependencies too (e.g. `cnpy` for NUMPY file IO).
