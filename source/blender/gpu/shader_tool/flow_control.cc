@@ -291,7 +291,9 @@ void SourceProcessor::lower_static_branch(Parser &parser)
     }
 
     if (condition[1].str() != "srt_access") {
-      report_error_(ERROR_TOK(if_tok), "Expecting compilation or specialization constant.");
+      report_error_(ERROR_TOK(if_tok),
+                    "Expecting compilation or specialization constant. Make sure SRT arguments "
+                    "have the [[resource_table]] attribute.");
       return;
     }
 

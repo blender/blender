@@ -1415,7 +1415,9 @@ void func([[resource_table]] Resources &srt)
 )";
     string error;
     string output = process_test_string(input, error);
-    EXPECT_EQ(error, "Expecting compilation or specialization constant.");
+    EXPECT_EQ(error,
+              "Expecting compilation or specialization constant. Make sure SRT arguments "
+              "have the [[resource_table]] attribute.");
   }
   {
     string input = R"(
