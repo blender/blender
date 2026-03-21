@@ -10,28 +10,67 @@
  */
 
 #include <Python.h>
+#include <optional>
+
+#include "DNA_windowmanager_types.h"
+#include "RNA_types.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "BKE_main.hh"
-#include "DNA_scene_types.h"
-
+#include "../generic/py_capi_rna.hh"
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
-#include "../generic/python_utildefines.hh"
 
+#include "BPY_extern.hh"
 #include "bpy_capi_utils.hh"
 #include "bpy_operator_function.hh"
+#include "bpy_rna.hh" /* for setting argument properties & type method `get_rna_type`. */
 
-#include "BKE_context.hh"
-#include "BKE_scene.hh"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
+#include "RNA_prototypes.hh"
 
 #include "WM_api.hh"
+#include "WM_types.hh"
+
+#include "MEM_guardedalloc.h"
+
+#include "BKE_context.hh"
+#include "BKE_main.hh"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
+
+#include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
 
+#include "CLG_log.h"
+
 namespace blender {
+
+/**
+ * A callable operator.
+ *
+ * Exposed by `bpy.ops.{module}.{operator}()` to allow Blender operators to be called from Python.
+ */
+struct BPyOpFunction {
+  PyObject_HEAD
+  /** Operator ID name (e.g., `OBJECT_OT_select_all`). */
+  char idname[OP_MAX_TYPENAME];
+};
+
+/* so operators called can spawn threads which acquire the GIL */
+#define BPY_RELEASE_GIL
+
+/**
+ * Convert a Blender-format operator name to Python-format, returning the buffer for inline use.
+ */
+static const char *opname_as_py(const char *opname, char opname_buf[OP_MAX_TYPENAME])
+{
+  WM_operator_py_idname(opname_buf, opname);
+  return opname_buf;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Private Utility Functions
@@ -41,7 +80,7 @@ namespace blender {
  * Update view layer dependencies.
  * If there is no active view layer update all view layers.
  */
-static void bpy_op_fn_view_layer_update(bContext *C)
+static void bpy_op_view_layer_update(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -70,7 +109,7 @@ static void bpy_op_fn_view_layer_update(bContext *C)
   }
 }
 
-static bool bpy_op_fn_parse_args(PyObject *args, const char **r_context_str, bool *r_is_undo)
+static bool bpy_op_parse_args(PyObject *args, const char **r_context_str, bool *r_is_undo)
 {
   const char *C_exec = "EXEC_DEFAULT";
   bool C_undo = false;
@@ -110,12 +149,236 @@ static bool bpy_op_fn_parse_args(PyObject *args, const char **r_context_str, boo
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Type Functions for #BPyOpFunction
+/** \name Operator Function: Poll
  * \{ */
 
-static void bpy_op_fn_dealloc(BPyOpFunction *self)
+static PyObject *bpy_op_fn_poll_impl(const char *opname, const char *context_str)
 {
-  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
+  char opname_buf[OP_MAX_TYPENAME];
+  wm::OpCallContext context = wm::OpCallContext::ExecDefault;
+
+  /* XXX TODO: work out a better solution for passing on context,
+   * could make a tuple from self and pack the name and Context into it. */
+  bContext *C = BPY_context_get();
+
+  if (C == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError, "Context is None, cannot poll any operators");
+    return nullptr;
+  }
+
+  wmOperatorType *ot = WM_operatortype_find(opname, true);
+
+  if (ot == nullptr) {
+    PyErr_Format(PyExc_AttributeError,
+                 "Polling operator \"bpy.ops.%s\" error, "
+                 "could not be found",
+                 opname_as_py(opname, opname_buf));
+    return nullptr;
+  }
+
+  if (context_str) {
+    int context_int = int(context);
+
+    if (RNA_enum_value_from_id(rna_enum_operator_context_items, context_str, &context_int) == 0) {
+      char *enum_str = pyrna_enum_repr(rna_enum_operator_context_items);
+      PyErr_Format(PyExc_TypeError,
+                   "Calling operator \"bpy.ops.%s.poll\" error, "
+                   "expected a string enum in (%s)",
+                   opname_as_py(opname, opname_buf),
+                   enum_str);
+      MEM_delete(enum_str);
+      return nullptr;
+    }
+    /* Copy back to the properly typed enum. */
+    context = wm::OpCallContext(context_int);
+  }
+
+  /* main purpose of this function */
+  PyObject *ret = WM_operator_poll_context(C, ot, context) ? Py_True : Py_False;
+
+  return Py_NewRef(ret);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_op_fn_poll_doc,
+    ".. method:: poll(context='EXEC_DEFAULT')\n"
+    "\n"
+    "Test if the operator can be executed in the current context.\n"
+    "\n"
+    ":param context: Execution context (optional)\n"
+    ":type context: str\n"
+    ":return: True if the operator can be executed\n"
+    ":rtype: bool\n");
+static PyObject *bpy_op_fn_poll(BPyOpFunction *self, PyObject *args)
+{
+  const char *context_str;
+  if (!bpy_op_parse_args(args, &context_str, nullptr)) {
+    return nullptr;
+  }
+
+  return bpy_op_fn_poll_impl(self->idname, context_str);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Function: Call
+ * \{ */
+
+static std::optional<wmOperatorStatus> bpy_op_fn_call_impl(const char *opname,
+                                                           PyObject *kw,
+                                                           const char *context_str,
+                                                           bool is_undo)
+{
+  char opname_buf[OP_MAX_TYPENAME];
+  wmOperatorType *ot;
+  int error_val = 0;
+  wmOperatorStatus retval = OPERATOR_CANCELLED;
+
+  wm::OpCallContext context = wm::OpCallContext::ExecDefault;
+
+  /* XXX TODO: work out a better solution for passing on context,
+   * could make a tuple from self and pack the name and Context into it. */
+  bContext *C = BPY_context_get();
+
+  if (C == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError, "Context is None, cannot poll any operators");
+    return std::nullopt;
+  }
+
+  ot = WM_operatortype_find(opname, true);
+
+  if (ot == nullptr) {
+    PyErr_Format(PyExc_AttributeError,
+                 "Calling operator \"bpy.ops.%s\" error, "
+                 "could not be found",
+                 opname_as_py(opname, opname_buf));
+    return std::nullopt;
+  }
+
+  if (!pyrna_write_check()) {
+    PyErr_Format(PyExc_RuntimeError,
+                 "Calling operator \"bpy.ops.%s\" error, "
+                 "cannot modify blend data in this state (drawing/rendering)",
+                 opname_as_py(opname, opname_buf));
+    return std::nullopt;
+  }
+
+  if (context_str) {
+    int context_int = int(context);
+
+    if (RNA_enum_value_from_id(rna_enum_operator_context_items, context_str, &context_int) == 0) {
+      char *enum_str = pyrna_enum_repr(rna_enum_operator_context_items);
+      PyErr_Format(PyExc_TypeError,
+                   "Calling operator \"bpy.ops.%s\" error, "
+                   "expected a string enum in (%s)",
+                   opname_as_py(opname, opname_buf),
+                   enum_str);
+      MEM_delete(enum_str);
+      return std::nullopt;
+    }
+    /* Copy back to the properly typed enum. */
+    context = wm::OpCallContext(context_int);
+  }
+
+  if (WM_operator_poll_context(C, ot, context) == false) {
+    bool msg_free = false;
+    const char *msg = CTX_wm_operator_poll_msg_get(C, &msg_free);
+    PyErr_Format(PyExc_RuntimeError,
+                 "Operator bpy.ops.%.200s.poll() %.200s",
+                 opname_as_py(opname, opname_buf),
+                 msg ? msg : "failed, context is incorrect");
+    CTX_wm_operator_poll_msg_clear(C);
+    if (msg_free) {
+      MEM_delete(msg);
+    }
+    error_val = -1;
+  }
+  else {
+    PointerRNA ptr = WM_operator_properties_create_ptr(ot);
+    WM_operator_properties_sanitize(&ptr, false);
+
+    if (kw && PyDict_Size(kw)) {
+      error_val = pyrna_pydict_to_props(
+          &ptr, kw, false, "Converting py args to operator properties:");
+    }
+
+    if (error_val == 0) {
+      ReportList *reports;
+
+      reports = MEM_new<ReportList>("wmOperatorReportList");
+
+      /* Own so these don't move into global reports. */
+      BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
+
+#ifdef BPY_RELEASE_GIL
+      /* release GIL, since a thread could be started from an operator
+       * that updates a driver */
+      /* NOTE: I have not seen any examples of code that does this
+       * so it may not be officially supported but seems to work ok. */
+      {
+        PyThreadState *ts = PyEval_SaveThread();
+#endif
+
+        retval = WM_operator_call_py(C, ot, context, &ptr, reports, is_undo);
+
+#ifdef BPY_RELEASE_GIL
+        /* regain GIL */
+        PyEval_RestoreThread(ts);
+      }
+#endif
+
+      error_val = BPy_reports_to_error(reports, PyExc_RuntimeError, false);
+
+      /* operator output is nice to have in the terminal/console too */
+      if (!BLI_listbase_is_empty(&reports->list)) {
+        /* Restore the print level as this is owned by the operator now. */
+        eReportType level = eReportType(reports->printlevel);
+        BKE_report_print_level_set(reports, CLG_quiet_get() ? RPT_WARNING : RPT_DEBUG);
+        BPy_reports_write_stdout(reports, nullptr);
+        BKE_report_print_level_set(reports, level);
+      }
+
+      BKE_reports_clear(reports);
+      if ((reports->flag & RPT_FREE) == 0) {
+        BKE_reports_free(reports);
+        MEM_delete(reports);
+      }
+      else {
+        /* The WM is now responsible for running the modal operator,
+         * show reports in the info window. */
+        reports->flag &= ~RPT_OP_HOLD;
+      }
+    }
+
+    WM_operator_properties_free(&ptr);
+
+#if 0
+    /* if there is some way to know an operator takes args we should use this */
+    {
+      /* no props */
+      if (kw != nullptr) {
+        PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", opname);
+        return std::nullopt;
+      }
+
+      WM_operator_name_call(C, opname, wm::OpCallContext::ExecDefault, nullptr, nullptr);
+    }
+#endif
+  }
+
+  if (error_val == -1) {
+    return std::nullopt;
+  }
+
+  /* When calling `bpy.ops.wm.read_factory_settings()` `bpy.data's` main pointer
+   * is freed by clear_globals(), further access will crash blender.
+   * Setting context is not needed in this case, only calling because this
+   * function corrects bpy.data (internal Main pointer) */
+  BPY_modules_update();
+
+  return retval;
 }
 
 static PyObject *bpy_op_fn_call(BPyOpFunction *self, PyObject *args, PyObject *kwargs)
@@ -136,33 +399,11 @@ static PyObject *bpy_op_fn_call(BPyOpFunction *self, PyObject *args, PyObject *k
   /* Store the window manager before operator execution to check if it changes. */
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  /* Convert Blender format to Python format for the call. */
-  char idname_py[OP_MAX_TYPENAME];
-  WM_operator_py_idname(idname_py, self->idname);
-
   /* Parse the user's positional args (context string, undo boolean)
-   * before forwarding to `pyop_call` which expects strict types. */
+   * before forwarding to `bpy_op_fn_call_impl` which expects strict types. */
   const char *context_str;
   bool is_undo;
-  if (!bpy_op_fn_parse_args(args, &context_str, &is_undo)) {
-    return nullptr;
-  }
-
-  /* Build args tuple for `pyop_call`: (opname, kw, context_str, is_undo).
-   * Items are set immediately so `Py_DECREF(new_args)` handles cleanup on error. */
-  PyObject *new_args = PyTuple_New(4);
-  if (!new_args) {
-    return nullptr;
-  }
-
-  PyTuple_SET_ITEMS(new_args,
-                    PyUnicode_FromString(idname_py),
-                    kwargs ? Py_NewRef(kwargs) : PyDict_New(),
-                    PyUnicode_FromString(context_str),
-                    PyLong_FromLong(is_undo));
-
-  if (PyErr_Occurred()) {
-    Py_DECREF(new_args);
+  if (!bpy_op_parse_args(args, &context_str, &is_undo)) {
     return nullptr;
   }
 
@@ -172,32 +413,161 @@ static PyObject *bpy_op_fn_call(BPyOpFunction *self, PyObject *args, PyObject *k
    * NOTE: We only update active view-layer, since that's what
    * operators are supposed to operate on. There might be some
    * corner cases when operator need a full scene update though. */
-  bpy_op_fn_view_layer_update(C);
+  bpy_op_view_layer_update(C);
 
-  PyObject *result = pyop_call(nullptr, new_args);
-  Py_DECREF(new_args);
+  std::optional<wmOperatorStatus> result = bpy_op_fn_call_impl(
+      self->idname, kwargs, context_str, is_undo);
+
+  if (!result) {
+    return nullptr;
+  }
 
   /* Post-call: if operator finished and window manager unchanged, update view-layer again. */
-  if (result) {
-    /* Check membership 'FINISHED' in result using a single temporary PyObject. */
-    PyObject *finished_str = PyUnicode_FromString("FINISHED");
-    if (finished_str) {
-      int has_finished = PySequence_Contains(result, finished_str);
-      if (has_finished == 1) {
-        if (CTX_wm_manager(C) == wm) {
-          bpy_op_fn_view_layer_update(C);
-        }
-      }
-      else if (has_finished == -1) {
-        PyErr_Clear();
-      }
-      Py_DECREF(finished_str);
-    }
-    else {
-      PyErr_Clear();
-    }
+  if ((*result & OPERATOR_FINISHED) && CTX_wm_manager(C) == wm) {
+    bpy_op_view_layer_update(C);
   }
-  return result;
+
+  /* Return `retval` flag as a set. */
+  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, int(*result));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Function: As-String
+ * \{ */
+
+static PyObject *bpy_op_fn_as_string_impl(const char *opname,
+                                          PyObject *kw,
+                                          bool all_args,
+                                          bool macro_args)
+{
+  wmOperatorType *ot;
+  int error_val = 0;
+
+  bContext *C = BPY_context_get();
+
+  if (C == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError,
+                    "Context is None, cannot get the string representation of this object.");
+    return nullptr;
+  }
+
+  ot = WM_operatortype_find(opname, true);
+
+  if (ot == nullptr) {
+    PyErr_Format(PyExc_AttributeError,
+                 "_bpy.ops.as_string: operator \"%.200s\" "
+                 "could not be found",
+                 opname);
+    return nullptr;
+  }
+
+  // ptr = WM_operator_properties_create(opname);
+  /* Save another lookup */
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, ot->srna, nullptr);
+
+  if (kw && PyDict_Size(kw)) {
+    error_val = pyrna_pydict_to_props(
+        &ptr, kw, false, "Converting py args to operator properties:");
+  }
+
+  std::string op_string;
+  if (error_val == 0) {
+    op_string = WM_operator_pystring_ex(C, nullptr, all_args, macro_args, ot, &ptr);
+  }
+
+  WM_operator_properties_free(&ptr);
+
+  if (error_val == -1) {
+    return nullptr;
+  }
+
+  return PyC_UnicodeFromStdStr(op_string);
+}
+
+static PyObject *bpy_op_fn_as_string(BPyOpFunction *self)
+{
+  return bpy_op_fn_as_string_impl(self->idname, nullptr, true, true);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Function: Get RNA Type
+ * \{ */
+
+static PyObject *bpy_op_fn_get_rna_type_impl(const char *opname)
+{
+  wmOperatorType *ot = WM_operatortype_find(opname, true);
+  if (ot == nullptr) {
+    PyErr_Format(PyExc_KeyError, "get_rna_type(\"%s\") not found", opname);
+    return nullptr;
+  }
+
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_Struct, ot->srna);
+  BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(pyrna_struct_CreatePyObject(&ptr));
+  return reinterpret_cast<PyObject *>(pyrna);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_op_fn_get_rna_type_doc,
+    ".. method:: get_rna_type()\n"
+    "\n"
+    "Get the RNA type definition for this operator.\n"
+    "\n"
+    ":return: RNA type object for introspection\n"
+    ":rtype: :class:`bpy.types.Struct`\n");
+static PyObject *bpy_op_fn_get_rna_type(BPyOpFunction *self, PyObject * /*args*/)
+{
+  return bpy_op_fn_get_rna_type_impl(self->idname);
+}
+
+PyObject *pyop_getrna_type(PyObject * /*self*/, PyObject *value)
+{
+  const char *opname = PyUnicode_AsUTF8(value);
+  if (opname == nullptr) {
+    PyErr_Format(PyExc_TypeError, "get_rna_type() expects a string argument");
+    return nullptr;
+  }
+  return bpy_op_fn_get_rna_type_impl(opname);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Function: Get BL-Options
+ * \{ */
+
+static PyObject *bpy_op_fn_get_bl_options_impl(const char *opname)
+{
+  wmOperatorType *ot = WM_operatortype_find(opname, true);
+  if (ot == nullptr) {
+    PyErr_Format(PyExc_KeyError, "get_bl_options(\"%s\") not found", opname);
+    return nullptr;
+  }
+  return pyrna_enum_bitfield_as_set(rna_enum_operator_type_flag_items, ot->flag);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_op_fn_get_bl_options_doc,
+    "Set of option flags for this operator (e.g. 'REGISTER', 'UNDO')");
+static PyObject *bpy_op_fn_get_bl_options(BPyOpFunction *self, void * /*closure*/)
+{
+  return bpy_op_fn_get_bl_options_impl(self->idname);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Type Functions for #BPyOpFunction
+ * \{ */
+
+static void bpy_op_fn_dealloc(BPyOpFunction *self)
+{
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
 }
 
 /**
@@ -238,22 +608,9 @@ static PyObject *bpy_op_fn_str(BPyOpFunction *self)
 static PyObject *bpy_op_fn_repr(BPyOpFunction *self)
 {
   /* Use the same format as the original Python implementation */
-  PyObject *args = PyTuple_New(1);
-  if (!args) {
-    return nullptr;
-  }
-  PyObject *name_obj = PyUnicode_FromString(self->idname);
-  if (!name_obj) {
-    Py_DECREF(args);
-    return nullptr;
-  }
-  PyTuple_SET_ITEM(args, 0, name_obj);
-
-  PyObject *result = pyop_as_string(nullptr, args);
-  Py_DECREF(args);
-
+  PyObject *result = bpy_op_fn_as_string(self);
   if (!result) {
-    /* Fallback to simple string if pyop_as_string fails. */
+    /* Fallback to simple string if bpy_op_fn_as_string fails. */
     PyErr_Clear();
     char idname_py[OP_MAX_TYPENAME];
     WM_operator_py_idname(idname_py, self->idname);
@@ -268,54 +625,6 @@ static PyObject *bpy_op_fn_repr(BPyOpFunction *self)
 /* -------------------------------------------------------------------- */
 /** \name Methods for #BPyOpFunctionType
  * \{ */
-
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_op_fn_poll_doc,
-    ".. method:: poll(context='EXEC_DEFAULT')\n"
-    "\n"
-    "Test if the operator can be executed in the current context.\n"
-    "\n"
-    ":param context: Execution context (optional)\n"
-    ":type context: str\n"
-    ":return: True if the operator can be executed\n"
-    ":rtype: bool\n");
-static PyObject *bpy_op_fn_poll(BPyOpFunction *self, PyObject *args)
-{
-  const char *context_str;
-  if (!bpy_op_fn_parse_args(args, &context_str, nullptr)) {
-    return nullptr;
-  }
-
-  /* Convert Blender format to Python format for the poll call. */
-  char idname_py[OP_MAX_TYPENAME];
-  WM_operator_py_idname(idname_py, self->idname);
-
-  PyObject *idname_obj = PyUnicode_FromString(idname_py);
-  if (!idname_obj) {
-    return nullptr;
-  }
-
-  PyObject *context_obj = PyUnicode_FromString(context_str);
-  if (!context_obj) {
-    Py_DECREF(idname_obj);
-    return nullptr;
-  }
-
-  PyObject *poll_args = PyTuple_New(2);
-  if (!poll_args) {
-    Py_DECREF(idname_obj);
-    Py_DECREF(context_obj);
-    return nullptr;
-  }
-
-  PyTuple_SET_ITEM(poll_args, 0, idname_obj);
-  PyTuple_SET_ITEM(poll_args, 1, context_obj);
-
-  PyObject *result = pyop_poll(nullptr, poll_args);
-  Py_DECREF(poll_args);
-  return result;
-}
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -343,47 +652,14 @@ static PyObject *bpy_op_fn_idname_py(BPyOpFunction *self, PyObject * /*args*/)
   return PyUnicode_FromString(idname_py);
 }
 
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_op_fn_get_rna_type_doc,
-    ".. method:: get_rna_type()\n"
-    "\n"
-    "Get the RNA type definition for this operator.\n"
-    "\n"
-    ":return: RNA type object for introspection\n"
-    ":rtype: :class:`bpy.types.Struct`\n");
-static PyObject *bpy_op_fn_get_rna_type(BPyOpFunction *self, PyObject * /*args*/)
-{
-  PyObject *idname_obj = PyUnicode_FromString(self->idname);
-  if (!idname_obj) {
-    return nullptr;
-  }
-
-  PyObject *result = pyop_getrna_type(nullptr, idname_obj);
-  Py_DECREF(idname_obj);
-  return result;
-}
-
 static PyObject *bpy_op_fn_get_doc_impl(BPyOpFunction *self)
 {
   /* Get operator signature using Blender format idname:
    * `_op_as_string(self.idname())` where `idname()` returns Blender format). */
-  PyObject *args = PyTuple_New(1);
-  if (!args) {
-    return nullptr;
-  }
-  PyObject *name_obj = PyUnicode_FromString(self->idname);
-  if (!name_obj) {
-    Py_DECREF(args);
-    return nullptr;
-  }
-  PyTuple_SET_ITEM(args, 0, name_obj);
-
-  PyObject *sig_result = pyop_as_string(nullptr, args);
-  Py_DECREF(args);
+  PyObject *sig_result = bpy_op_fn_as_string(self);
 
   if (!sig_result) {
-    /* Fallback to simple string if pyop_as_string fails. */
+    /* Fallback to simple string if `bpy_op_fn_as_string` fails. */
     PyErr_Clear();
     char idname_py[OP_MAX_TYPENAME];
     WM_operator_py_idname(idname_py, self->idname);
@@ -391,13 +667,7 @@ static PyObject *bpy_op_fn_get_doc_impl(BPyOpFunction *self)
   }
 
   /* Get RNA type and description using Blender format idname. */
-  PyObject *idname_bl_obj = PyUnicode_FromString(self->idname);
-  if (!idname_bl_obj) {
-    return sig_result; /* Return just signature on failure. */
-  }
-
-  PyObject *rna_type = pyop_getrna_type(nullptr, idname_bl_obj);
-  Py_DECREF(idname_bl_obj);
+  PyObject *rna_type = bpy_op_fn_get_rna_type(self, nullptr);
 
   if (!rna_type) {
     PyErr_Clear();
@@ -447,21 +717,6 @@ static PyMethodDef bpy_op_fn_methods[] = {
 /** \name Get/Set for #BPyOpFunctionType
  * \{ */
 
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_op_fn_get_bl_options_doc,
-    "Set of option flags for this operator (e.g. 'REGISTER', 'UNDO')");
-static PyObject *bpy_op_fn_get_bl_options(BPyOpFunction *self, void * /*closure*/)
-{
-  PyObject *idname_obj = PyUnicode_FromString(self->idname);
-  if (!idname_obj) {
-    return nullptr;
-  }
-  PyObject *result = pyop_get_bl_options(nullptr, idname_obj);
-  Py_DECREF(idname_obj);
-  return result;
-}
-
 static PyObject *bpy_op_fn_get_doc(BPyOpFunction *self, void * /*closure*/)
 {
   return bpy_op_fn_get_doc_impl(self);
@@ -497,7 +752,7 @@ PyDoc_STRVAR(
     "   :param kwargs: Operator properties\n"
     "   :return: Set of completion status flags\n"
     "   :rtype: set[str]\n");
-PyTypeObject BPyOpFunctionType = {
+static PyTypeObject BPyOpFunctionType = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "BPyOpFunction",
     /*tp_basicsize*/ sizeof(BPyOpFunction),
