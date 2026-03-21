@@ -63,7 +63,10 @@ static PyMethodDef ImpulseResponse_methods[] = {
 };
 
 PyDoc_STRVAR(M_aud_ImpulseResponse_doc,
-	"An ImpulseResponse object represents a filter with which to convolve a sound.");
+	".. class:: ImpulseResponse(sound, /)\n\n"
+	"   An ImpulseResponse object represents a filter with which to convolve a sound.\n\n"
+	"   :arg sound: The sound to use as the impulse response.\n"
+	"   :type sound: :class:`Sound`\n");
 
 PyTypeObject ImpulseResponseType = {
 	PyVarObject_HEAD_INIT(nullptr, 0)

@@ -711,9 +711,22 @@ static PyGetSetDef Device_properties[] = {
 };
 
 PyDoc_STRVAR(M_aud_Device_doc,
-			 "Device objects represent an audio output backend like OpenAL or "
+			 ".. class:: Device(type='', rate=48000.0, channels=2, format=36, buffer_size=1024, name='')\n\n"
+			 "   Device objects represent an audio output backend like OpenAL or "
 			 "SDL, but might also represent a file output or RAM buffer "
-			 "output.");
+			 "output.\n\n"
+			 "   :arg type: The device type. An empty string means the default device.\n"
+			 "   :type type: string\n"
+			 "   :arg rate: The sample rate in Hz.\n"
+			 "   :type rate: double\n"
+			 "   :arg channels: The number of channels.\n"
+			 "   :type channels: int\n"
+			 "   :arg format: The sample format.\n"
+			 "   :type format: int\n"
+			 "   :arg buffer_size: The size of the audio buffer in samples.\n"
+			 "   :type buffer_size: int\n"
+			 "   :arg name: The name of the device.\n"
+			 "   :type name: string\n");
 
 static PyTypeObject DeviceType = {
 	PyVarObject_HEAD_INIT(nullptr, 0)

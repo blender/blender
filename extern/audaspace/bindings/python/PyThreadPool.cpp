@@ -60,7 +60,10 @@ static PyMethodDef ThreadPool_methods[] = {
 };
 
 PyDoc_STRVAR(M_aud_ThreadPool_doc,
-	"A ThreadPool is used to parallelize convolution efficiently.");
+	".. class:: ThreadPool(nThreads, /)\n\n"
+	"   A ThreadPool is used to parallelize convolution efficiently.\n\n"
+	"   :arg nThreads: The number of threads in the pool.\n"
+	"   :type nThreads: int\n");
 
 PyTypeObject ThreadPoolType = {
 	PyVarObject_HEAD_INIT(nullptr, 0)

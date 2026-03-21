@@ -2171,10 +2171,16 @@ static PyGetSetDef Sound_properties[] = {
 };
 
 PyDoc_STRVAR(M_aud_Sound_doc,
-			 "Sound objects are immutable and represent a sound that can be "
+			 ".. class:: Sound(filename, stream=0)\n\n"
+			 "   Sound objects are immutable and represent a sound that can be "
 			 "played simultaneously multiple times. They are called factories "
 			 "because they create reader objects internally that are used for "
-			 "playback.");
+			 "playback.\n\n"
+			 "   :arg filename: Path of the file.\n"
+			 "   :type filename: string\n"
+			 "   :arg stream: The index of the audio stream within the file if it\n"
+			 "      contains multiple audio streams, 0 by default.\n"
+			 "   :type stream: int\n");
 
 PyTypeObject SoundType = {
 	PyVarObject_HEAD_INIT(nullptr, 0)

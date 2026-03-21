@@ -326,7 +326,13 @@ static PyGetSetDef AnimateableProperty_properties[] = {
     {nullptr} /* Sentinel */
 };
 
-PyDoc_STRVAR(M_aud_AnimateableProperty_doc, "An AnimateableProperty object stores an array of float values for animating sound properties (e.g. pan, volume, pitch-scale)");
+PyDoc_STRVAR(M_aud_AnimateableProperty_doc,
+	".. class:: AnimateableProperty(count, value=0.0, /)\n\n"
+	"   An AnimateableProperty object stores an array of float values for animating sound properties (e.g. pan, volume, pitch-scale).\n\n"
+	"   :arg count: The number of float values to store per frame.\n"
+	"   :type count: int\n"
+	"   :arg value: The initial value for all elements.\n"
+	"   :type value: float\n");
 
 // Note that AnimateablePropertyType name is already taken
 PyTypeObject AnimateablePropertyPyType = {

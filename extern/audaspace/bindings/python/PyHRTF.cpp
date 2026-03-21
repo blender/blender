@@ -173,7 +173,8 @@ static PyMethodDef HRTF_methods[] = {
 };
 
 PyDoc_STRVAR(M_aud_HRTF_doc,
-	"An HRTF object represents a set of head related transfer functions as impulse responses. It's used for binaural sound");
+	".. class:: HRTF()\n\n"
+	"   An HRTF object represents a set of head related transfer functions as impulse responses. It's used for binaural sound.\n");
 
 PyTypeObject HRTFType = {
 	PyVarObject_HEAD_INIT(nullptr, 0)

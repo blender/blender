@@ -186,7 +186,14 @@ static PyGetSetDef Source_properties[] = {
 };
 
 PyDoc_STRVAR(M_aud_Source_doc,
-	"The source object represents the source position of a binaural sound.");
+	".. class:: Source(azimuth, elevation, distance, /)\n\n"
+	"   The source object represents the source position of a binaural sound.\n\n"
+	"   :arg azimuth: The azimuth angle in degrees.\n"
+	"   :type azimuth: float\n"
+	"   :arg elevation: The elevation angle in degrees.\n"
+	"   :type elevation: float\n"
+	"   :arg distance: The distance of the source.\n"
+	"   :type distance: float\n");
 
 PyTypeObject SourceType = {
 	PyVarObject_HEAD_INIT(nullptr, 0)

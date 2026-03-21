@@ -579,7 +579,16 @@ static PyGetSetDef Sequence_properties[] = {
 };
 
 PyDoc_STRVAR(M_aud_Sequence_doc,
-			 "This sound represents sequenced entries to play a sound sequence.");
+			 ".. class:: Sequence(channels=2, rate=48000.0, fps=30.0, muted=False)\n\n"
+			 "   This sound represents sequenced entries to play a sound sequence.\n\n"
+			 "   :arg channels: The number of channels.\n"
+			 "   :type channels: int\n"
+			 "   :arg rate: The sample rate in Hz.\n"
+			 "   :type rate: double\n"
+			 "   :arg fps: The frames per second of the sequence.\n"
+			 "   :type fps: float\n"
+			 "   :arg muted: Whether the sequence is muted.\n"
+			 "   :type muted: bool\n");
 
 extern PyTypeObject SoundType;
 
