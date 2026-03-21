@@ -15,9 +15,11 @@
  ******************************************************************************/
 
 #include "devices/DeviceManager.h"
+#include "devices/ICaptureDeviceFactory.h"
 #include "devices/IDeviceFactory.h"
 #include "devices/IDevice.h"
 #include "devices/I3DDevice.h"
+#include "Exception.h"
 
 #include <limits>
 #include <string>
@@ -27,6 +29,7 @@ AUD_NAMESPACE_BEGIN
 
 std::unordered_map<std::string, std::shared_ptr<IDeviceFactory>> DeviceManager::m_factories;
 std::shared_ptr<IDevice> DeviceManager::m_device;
+std::unordered_map<std::string, std::shared_ptr<ICaptureDeviceFactory>> DeviceManager::m_capture_factories;
 
 void DeviceManager::registerDevice(const std::string &name, std::shared_ptr<IDeviceFactory> factory)
 {
@@ -117,6 +120,39 @@ std::vector<std::string> DeviceManager::getAvailableDeviceNames()
 		names.push_back(device.name);
 
 	return names;
+}
+
+std::vector<std::string> DeviceManager::getAvailableCaptureDeviceNames()
+{
+	std::vector<std::string> names;
+	names.reserve(m_capture_factories.size());
+
+	for(auto& entry : m_capture_factories)
+		names.push_back(entry.first);
+
+	return names;
+}
+
+std::shared_ptr<ICaptureDeviceFactory> DeviceManager::getCaptureDeviceFactory(const std::string& name)
+{
+	auto it = m_capture_factories.find(name);
+
+	if(it == m_capture_factories.end())
+		return nullptr;
+
+	return it->second;
+}
+
+void DeviceManager::registerCaptureDevice(const std::string& name, std::shared_ptr<ICaptureDeviceFactory> factory)
+{
+	m_capture_factories[name] = factory;
+}
+
+std::shared_ptr<IReader> DeviceManager::openCaptureDevice(const std::string& name,
+                                                          Specs specs,
+                                                          int buffersize)
+{
+	return getCaptureDeviceFactory(name)->openDevice(specs, buffersize);
 }
 
 AUD_NAMESPACE_END

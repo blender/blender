@@ -20,18 +20,23 @@
 
 #include <algorithm>
 #include <al.h>
+#include <cstdint>
+#include <cstring>
+#include <vector>
 
 AUD_NAMESPACE_BEGIN
 
-OpenALReader::OpenALReader(Specs specs, int buffersize) :
+OpenALReader::OpenALReader(Specs specs, int buffersize, const std::string& name) :
 	m_specs(specs),
 	m_position(0),
 	m_device(nullptr)
 {
 	if((specs.channels != CHANNELS_MONO) && (specs.channels != CHANNELS_STEREO))
 		specs.channels = CHANNELS_MONO;
+	m_specs.channels = specs.channels;
 
-	m_device = alcCaptureOpenDevice(nullptr, specs.rate,
+	const char* device_name = name.empty() ? nullptr : name.c_str();
+	m_device = alcCaptureOpenDevice(device_name, specs.rate,
 									specs.channels == CHANNELS_MONO ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
 									buffersize * specs.channels * 2);
 
@@ -45,9 +50,46 @@ OpenALReader::~OpenALReader()
 {
 	if(m_device)
 	{
-		//alcCaptureStop(m_device);
+		alcCaptureStop(m_device);
 		alcCaptureCloseDevice(m_device);
 	}
+}
+
+std::vector<std::string> OpenALReader::getDeviceNames()
+{
+	std::vector<std::string> names;
+
+	/* ALC_CAPTURE_DEVICE_SPECIFIER requires ALC_ENUMERATION_EXT.
+	* Without it alcGetString may return garbage on some drivers. */
+	if(!alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
+		return names;
+
+	const ALCchar* devices = alcGetString(nullptr, ALC_CAPTURE_DEVICE_SPECIFIER);
+	if(devices != nullptr)
+	{
+		const ALCchar* cursor = devices;
+		while(*cursor != '\0')
+		{
+			names.push_back(cursor);
+			cursor += std::strlen(cursor) + 1;
+		}
+	}
+
+	const ALCchar* default_device = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
+	if(default_device != nullptr && default_device[0] != '\0')
+	{
+		const std::string default_name(default_device);
+		auto it = std::find(names.begin(), names.end(), default_name);
+		if(it == names.end())
+			names.insert(names.begin(), default_name);
+		else if(it != names.begin())
+		{
+			names.erase(it);
+			names.insert(names.begin(), default_name);
+		}
+	}
+
+	return names;
 }
 
 bool OpenALReader::isSeekable() const

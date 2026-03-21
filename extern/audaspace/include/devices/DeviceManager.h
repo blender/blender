@@ -23,6 +23,7 @@
  */
 
 #include "Audaspace.h"
+#include "respec/Specification.h"
 
 #include <memory>
 #include <vector>
@@ -33,7 +34,9 @@ AUD_NAMESPACE_BEGIN
 
 class IDevice;
 class IDeviceFactory;
+class ICaptureDeviceFactory;
 class I3DDevice;
+class IReader;
 
 /**
  * This class manages all device plugins and maintains a device if asked to do so.
@@ -47,6 +50,7 @@ private:
 	static std::unordered_map<std::string, std::shared_ptr<IDeviceFactory>> m_factories;
 
 	static std::shared_ptr<IDevice> m_device;
+	static std::unordered_map<std::string, std::shared_ptr<ICaptureDeviceFactory>> m_capture_factories;
 
 	// delete copy constructor and operator=
 	DeviceManager(const DeviceManager&) = delete;
@@ -125,6 +129,37 @@ public:
 	 * @return A list of strings with the names of available devices.
 	 */
 	static std::vector<std::string> getAvailableDeviceNames();
+
+	/**
+	 * Returns a list of available capture devices.
+	 * @return A list of strings with the names of available capture devices.
+	 */
+	static std::vector<std::string> getAvailableCaptureDeviceNames();
+
+	/**
+	 * Returns the factory for a specific capture device.
+	 * @param name The representative name of the capture device.
+	 * @return The factory if it was found, or nullptr otherwise.
+	 */
+	static std::shared_ptr<ICaptureDeviceFactory> getCaptureDeviceFactory(const std::string& name);
+
+	/**
+	 * Registers a capture device factory.
+	 * @param name A representative name for the capture device.
+	 * @param factory The factory that creates the capture reader.
+	 */
+	static void registerCaptureDevice(const std::string& name, std::shared_ptr<ICaptureDeviceFactory> factory);
+
+	/**
+	 * Opens an input capture reader.
+	 * @param name The capture device name.
+	 * @param specs The desired specification.
+	 * @param buffersize The capture buffer size in samples.
+	 */
+	static std::shared_ptr<IReader> openCaptureDevice(const std::string& name,
+	                                                 Specs specs,
+	                                                 int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+
 };
 
 AUD_NAMESPACE_END

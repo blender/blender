@@ -29,6 +29,8 @@
 #include "IReader.h"
 
 #include <alc.h>
+#include <string>
+#include <vector>
 
 AUD_NAMESPACE_BEGIN
 
@@ -67,10 +69,17 @@ public:
 	 * Creates a new reader.
 	 * \param specs The desired specification of the output samples.
 	 * \param buffersize The buffer size used to read from the device.
+	 * \param name The name of the capture device.
 	 */
-	OpenALReader(Specs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+	OpenALReader(Specs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE, const std::string& name = "");
 
 	virtual ~OpenALReader();
+
+	/**
+	 * Lists all available OpenAL capture devices.
+	 * \return Device names.
+	 */
+	static std::vector<std::string> getDeviceNames();
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

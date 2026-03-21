@@ -1,3 +1,23 @@
+Audaspace 1.9
+
+- New Echo effect (thanks AGoldenDragon)
+- Bugfix for Catmull-Rom spline interpolation
+- Build fixes for Mac (thanks Jonas Holzman)
+- Python API documentation for class constructors (thanks Andrej Zhilenkov)
+- CMake fixes (thanks Campbell Barton)
+- Sample rate type warnings (thanks Jacques Lucke and Ray Molenkamp)
+
+Detailed list of changes:
+
+e4a3d40 Porting fixes from blender
+3348de2 PyDoc: Add constructor docstrings to aud types
+7b04aa9 Build: macOS: Fix bitwise operation enum type warning in Audaspace
+a931d65 Bugfix: Catmull-Rom spline interpolation was wrong.
+1550e14 Fix AUD_Sound_Echo wrongly inside WITH_CONVOLUTION guard
+ddda09e Echo: change wet/dry behavior.
+31a59c4 Fixing Echo effect:
+c3d4ba9 Implemented a new Echo effect (#63)
+
 Audaspace 1.8
 
 - Time stretching and pitch scaling including animation and python API added (thanks Kacey La!).
