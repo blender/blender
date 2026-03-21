@@ -593,6 +593,13 @@ static void popup_block_remove(bContext *C, PopupBlockHandle *handle)
   if (handle->scrolltimer) {
     WM_event_timer_remove(wm, win, handle->scrolltimer);
   }
+  if (handle->keep_open_timer) {
+    WM_event_timer_remove(wm, win, handle->keep_open_timer);
+  }
+  if (handle->mmb_panning) {
+    WM_cursor_set(win, WM_CURSOR_DEFAULT);
+    WM_cursor_grab_disable(win, nullptr);
+  }
 }
 
 void layout_panel_popup_scroll_apply(Panel *panel, const float dy)
