@@ -10688,32 +10688,11 @@ static void menu_scroll_apply_offset_y(ARegion *region, Block *block, float dy)
 {
   BLI_assert(dy != 0.0f);
 
-  const float scroll_pad = (block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f) /
-                           block->aspect;
-
-  if (dy < 0.0f) {
-    /* Stop at top item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
-    float ymax = -FLT_MAX;
-    for (Button &bt : block->buttons()) {
-      ymax = max_ff(ymax, bt.rect.ymax);
-    }
-    if (ymax + dy - (UI_UNIT_Y * 0.5f) / block->aspect < block->rect.ymax - scroll_pad) {
-      dy = block->rect.ymax - ymax - scroll_pad;
-    }
-  }
-  else {
-    /* Stop at bottom item, extra 0.5 UI_UNIT_Y makes it snap nicer. */
-    float ymin = FLT_MAX;
-    for (Button &bt : block->buttons()) {
-      ymin = min_ff(ymin, bt.rect.ymin);
-    }
-    if (ymin + dy + (UI_UNIT_Y * 0.5f) / block->aspect > block->rect.ymin + scroll_pad) {
-      dy = block->rect.ymin - ymin + scroll_pad;
-    }
-  }
-
   /* remember scroll offset for refreshes */
-  block->handle->scrolloffset += dy;
+  const float prev_scroll = block->handle->scrolloffset;
+  block->handle->scrolloffset = std::clamp(
+      block->handle->scrolloffset + dy, block->handle->scrollmin, block->handle->scrollmax);
+  dy = block->handle->scrolloffset - prev_scroll;
   /* Apply popup scroll delta to layout panels too. */
   layout_panel_popup_scroll_apply(block->panel, dy);
 

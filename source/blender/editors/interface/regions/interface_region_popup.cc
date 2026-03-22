@@ -521,25 +521,22 @@ void popup_block_scrolltest(Block *block)
   if (block->buttons_ptrs.size() < 2) {
     return;
   }
+  if (block->handle->scrolloffset != block->handle->scrollmin) {
+    block->flag |= BLOCK_CLIPTOP;
+  }
+  if (block->handle->scrolloffset != block->handle->scrollmax) {
+    block->flag |= BLOCK_CLIPBOTTOM;
+  }
 
-  /* mark buttons that are outside boundary */
   for (Button &bt : block->buttons()) {
+    /* Tag buttons that are outside boundary */
     if (bt.rect.ymax < block->rect.ymin) {
       bt.flag |= UI_SCROLLED;
     }
     if (bt.rect.ymin > block->rect.ymax) {
       bt.flag |= UI_SCROLLED;
     }
-    if (bt.rect.ymin < block->rect.ymin) {
-      block->flag |= BLOCK_CLIPBOTTOM;
-    }
-    if (bt.rect.ymax > block->rect.ymax) {
-      block->flag |= BLOCK_CLIPTOP;
-    }
-  }
-
-  /* mark buttons overlapping arrows, if we have them */
-  for (Button &bt : block->buttons()) {
+    /* Tag buttons overlapping arrows, if we have them */
     if (block->flag & BLOCK_CLIPBOTTOM) {
       if (bt.rect.ymax < block->rect.ymin + UI_MENU_SCROLL_MOUSE / block->aspect) {
         bt.flag |= UI_SCROLLED;
@@ -876,11 +873,12 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
       ymin = min_ff(ymin, bt.rect.ymin);
       ymax = max_ff(ymax, bt.rect.ymax);
     }
-    const float scroll_pad = (block_is_menu(block) ? UI_MENU_SCROLL_PAD : UI_UNIT_Y * 0.5f) /
-                             block->aspect;
-    const float scroll_min = std::min(block->rect.ymax - ymax - scroll_pad, 0.0f);
-    const float scroll_max = std::max(block->rect.ymin - ymin + scroll_pad, 0.0f);
-    handle->scrolloffset = std::clamp(handle->scrolloffset, scroll_min, scroll_max);
+    const float bounds = block->bounds / block->aspect;
+
+    handle->scrollmin = std::round(std::min(block->rect.ymax - (ymax + bounds), 0.0f));
+    handle->scrollmax = std::round(std::max(block->rect.ymin - (ymin - bounds), 0.0f));
+    handle->scrolloffset = std::clamp(handle->scrolloffset, handle->scrollmin, handle->scrollmax);
+
     /* apply scroll offset */
     if (handle->scrolloffset != 0.0f) {
       for (Button &bt : block->buttons()) {
@@ -890,7 +888,7 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
     }
     /* Layout panels are relative to `block->rect.ymax`. Rather than a
      * scroll, this is a offset applied due to the overflow at the top. */
-    layout_panel_popup_scroll_apply(block->panel, -scroll_min - scroll_pad);
+    layout_panel_popup_scroll_apply(block->panel, -handle->scrollmin - bounds);
   }
   /* Apply popup scroll offset to layout panels. */
   layout_panel_popup_scroll_apply(block->panel, handle->scrolloffset);
