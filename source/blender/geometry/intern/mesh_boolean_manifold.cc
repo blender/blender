@@ -4,6 +4,7 @@
 
 #ifdef WITH_MANIFOLD
 #  include <algorithm>
+#  include <iomanip>
 #  include <iostream>
 
 #  include "BLI_array.hh"
@@ -134,6 +135,7 @@ static void dump_meshgl(const MeshGL &mgl, const std::string &name)
 {
   std::string indent = "    ";
   std::cout << indent << "MeshGL m;\n";
+  std::cout << std::setprecision(9);
   std::cout << indent << "m.numProp = " << mgl.numProp << ";\n";
   dump_vector_values(indent, "m.vertProperties", mgl.vertProperties);
   dump_vector_values(indent, "m.triVerts", mgl.triVerts);
@@ -144,11 +146,33 @@ static void dump_meshgl(const MeshGL &mgl, const std::string &name)
   dump_vector_values(indent, "m.runIndex", mgl.runIndex);
   dump_vector_values(indent, "m.runOriginalID", mgl.runOriginalID);
   dump_vector_values(indent, "m.faceID", mgl.faceID);
-  BLI_assert(mgl.runTransform.size() == 0);
-  BLI_assert(mgl.halfedgeTangent.size() == 0);
+  if (mgl.runTransform.size() != 0) {
+    dump_vector_values(indent, "m.runTransform", mgl.runTransform);
+  }
+  if (mgl.halfedgeTangent.size() != 0) {
+    dump_vector_values(indent, "m.halfedgeTangent", mgl.halfedgeTangent);
+  }
   if (mgl.tolerance != 0) {
     std::cout << indent << "m.tolerance = " << mgl.tolerance << ";\n";
   }
+}
+
+[[maybe_unused]] static void dump_meshgl_as_obj(const MeshGL &mgl)
+{
+  std::cout << "\n# Meshgl as OBJ\n";
+  std::cout << std::setprecision(9);
+  for (const int v : IndexRange(mgl.NumVert())) {
+    const int k = v * 3;
+    std::cout << "v " << mgl.vertProperties[k] << " " << mgl.vertProperties[k + 1] << " "
+              << mgl.vertProperties[k + 2] << "\n";
+  }
+  std::cout << "\n";
+  for (const int t : IndexRange(mgl.NumTri())) {
+    const int k = t * 3;
+    std::cout << "f " << mgl.triVerts[k] << " " << mgl.triVerts[k + 1] << " "
+              << mgl.triVerts[k + 2] << "\n";
+  }
+  std::cout << "\n";
 }
 
 static const char *domain_names[] = {
@@ -349,6 +373,72 @@ static void get_manifolds(MutableSpan<Manifold> manifolds,
       BKE_id_free(nullptr, const_cast<Mesh *>(transformed_meshes[i]));
     }
   }
+}
+
+/* Check if the MeshGL \a mgl has problems like bad faces, and if so, correct them
+ * in place by removing the bad faces.
+ * This shouldn't happen but happens sometimes in Manifold library v3.2.0.
+ * (See Issue #155657). It might be possible to remove this function in the future.
+ */
+static void clean_meshgl(MeshGL &mgl)
+{
+  /* See if any triangle has out-of-bounds or repeated vertex indices.
+   * Usually there won't be any, so do this test as fast as possible.
+   */
+  const int numtri = mgl.NumTri();
+  const int numvert = mgl.NumVert();
+  auto bad_tri = [&mgl, numvert](const int t) {
+    const int k = t * 3;
+    const uint32_t i0 = mgl.triVerts[k];
+    const uint32_t i1 = mgl.triVerts[k + 1];
+    const uint32_t i2 = mgl.triVerts[k + 2];
+    if (i0 >= numvert || i1 >= numvert || i2 >= numvert || i0 == i1 || i0 == i2 || i1 == i2) {
+      return true;
+    }
+    return false;
+  };
+  const bool any_bad_faces = threading::parallel_reduce(
+      IndexRange(numtri),
+      20000,
+      false,
+      [&](const IndexRange range, const bool init) {
+        if (init) {
+          return true;
+        }
+        for (const int t : range) {
+          if (bad_tri(t)) {
+            return true;
+          }
+        }
+        return false;
+      },
+      [](const bool a, const bool b) { return a || b; });
+  if (!any_bad_faces) {
+    /* No cleaning necessary. */
+    return;
+  }
+
+  int from_t = 0;
+  int to_t = 0;
+  int from_3t = 0;
+  int to_3t = 0;
+  while (from_t < numtri) {
+    if (bad_tri(from_t)) {
+      from_t++;
+      from_3t += 3;
+    }
+    else {
+      mgl.triVerts[to_3t++] = mgl.triVerts[from_3t++];
+      mgl.triVerts[to_3t++] = mgl.triVerts[from_3t++];
+      mgl.triVerts[to_3t++] = mgl.triVerts[from_3t++];
+      mgl.faceID[to_t++] = mgl.faceID[from_t++];
+    }
+  }
+  const int num_deleted = from_t - to_t;
+  mgl.triVerts.resize(mgl.triVerts.size() - 3 * num_deleted);
+  mgl.faceID.resize(mgl.faceID.size() - num_deleted);
+  /* Note: if need runOriginalIDs those should be adjusted too,
+   * but we aren't currently using those.*/
 }
 
 constexpr int inline_outface_size = 8;
@@ -1799,7 +1889,11 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
     if (dbg_level > 0) {
       std::cout << "boolean result has " << meshgl_result.NumTri() << " tris\n";
       dump_meshgl(meshgl_result, "boolean result meshgl");
+      if (dbg_level > 1) {
+        dump_meshgl_as_obj(meshgl_result);
+      }
     }
+    clean_meshgl(meshgl_result);
     Mesh *mesh_result;
     {
 #  ifdef DEBUG_TIME
