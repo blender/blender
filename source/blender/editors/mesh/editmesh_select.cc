@@ -1908,10 +1908,34 @@ static void mouse_mesh_loop_face(
 static void mouse_mesh_loop_edge_ring(
     BMEditMesh *em, BMEdge *eed, bool select, bool select_clear, BMWDelimitFlag delimit)
 {
+  bool full_loop = false;
+
+  /* Cycle between using delimits and skipping them. */
+  if ((delimit & BMW_DELIMIT_EDGE_MARK_SEAM) || (delimit & BMW_DELIMIT_EDGE_MARK_SHARP)) {
+    int count_by_select[2];
+
+    /* If up to the delimits is selected toggle the whole loop. */
+    walker_select_count(em, BMW_EDGERING, eed, count_by_select, BMW_FLAG_TEST_HIDDEN, delimit);
+    if (count_by_select[!select] == 0) {
+      full_loop = true;
+
+      /* If the whole loop is selected, toggle back to delimits. */
+      walker_select_count(
+          em, BMW_EDGERING, eed, count_by_select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+      if (count_by_select[!select] == 0) {
+        full_loop = false;
+      }
+    }
+  }
   if (select_clear) {
     EDBM_flag_disable_all(em, BM_ELEM_SELECT);
   }
-  walker_select(em, BMW_EDGERING, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
+  if (full_loop) {
+    walker_select(em, BMW_EDGERING, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+  }
+  else {
+    walker_select(em, BMW_EDGERING, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
+  }
 }
 
 static void mouse_mesh_loop_edge(BMEditMesh *em,
@@ -1921,7 +1945,8 @@ static void mouse_mesh_loop_edge(BMEditMesh *em,
                                  bool select_cycle,
                                  BMWDelimitFlag delimit)
 {
-  bool edge_boundary = false;
+  bool full_boundary = false;
+  bool full_loop = false;
   bool non_manifold = BM_edge_face_count_is_over(eed, 2);
 
   /* Cycle between BMW_EDGELOOP / BMW_EDGEBOUNDARY. */
@@ -1931,13 +1956,32 @@ static void mouse_mesh_loop_edge(BMEditMesh *em,
     /* If the loops selected toggle the boundaries. */
     walker_select_count(em, BMW_EDGELOOP, eed, count_by_select, BMW_FLAG_TEST_HIDDEN, delimit);
     if (count_by_select[!select] == 0) {
-      edge_boundary = true;
+      full_boundary = true;
 
       /* If the boundaries selected, toggle back to the loop. */
       walker_select_count(
           em, BMW_EDGEBOUNDARY, eed, count_by_select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
       if (count_by_select[!select] == 0) {
-        edge_boundary = false;
+        full_boundary = false;
+      }
+    }
+  }
+  /* Cycle between using delimits and skipping them. */
+  else if (!non_manifold &&
+           ((delimit & BMW_DELIMIT_EDGE_MARK_SEAM) || (delimit & BMW_DELIMIT_EDGE_MARK_SHARP)))
+  {
+    int count_by_select[2];
+
+    /* If up to the delimits is selected toggle the whole loop. */
+    walker_select_count(em, BMW_EDGELOOP, eed, count_by_select, BMW_FLAG_TEST_HIDDEN, delimit);
+    if (count_by_select[!select] == 0) {
+      full_loop = true;
+
+      /* If the whole loop is selected, toggle back to delimits. */
+      walker_select_count(
+          em, BMW_EDGELOOP, eed, count_by_select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
+      if (count_by_select[!select] == 0) {
+        full_loop = false;
       }
     }
   }
@@ -1946,11 +1990,14 @@ static void mouse_mesh_loop_edge(BMEditMesh *em,
     EDBM_flag_disable_all(em, BM_ELEM_SELECT);
   }
 
-  if (edge_boundary) {
+  if (full_boundary) {
     walker_select(em, BMW_EDGEBOUNDARY, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
   }
   else if (non_manifold) {
     walker_select(em, BMW_EDGELOOP_NONMANIFOLD, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
+  }
+  else if (full_loop) {
+    walker_select(em, BMW_EDGELOOP, eed, select, BMW_FLAG_TEST_HIDDEN, BMW_DELIMIT_NONE);
   }
   else {
     walker_select(em, BMW_EDGELOOP, eed, select, BMW_FLAG_TEST_HIDDEN, delimit);
