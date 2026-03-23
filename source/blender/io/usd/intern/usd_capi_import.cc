@@ -97,7 +97,6 @@ struct ImportJobData {
   bContext *C;
   Main *bmain;
   Scene *scene;
-  ViewLayer *view_layer;
   wmWindowManager *wm;
 
   char filepath[FILE_MAX];
@@ -132,32 +131,12 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   data->params.worker_status = worker_status;
 
-  WM_locked_interface_set(data->wm, true);
+  if (data->wm) {
+    WM_locked_interface_set(data->wm, true);
+  }
   G.is_break = false;
 
-  if (data->params.create_collection) {
-    char display_name[MAX_ID_NAME - 2];
-    BLI_path_to_display_name(
-        display_name, sizeof(display_name), BLI_path_basename(data->filepath));
-    Collection *import_collection = BKE_collection_add(
-        data->bmain, data->scene->master_collection, display_name);
-
-    DEG_id_tag_update(&import_collection->id, ID_RECALC_SYNC_TO_EVAL);
-    DEG_relations_tag_update(data->bmain);
-
-    BKE_view_layer_synced_ensure(data->scene, data->view_layer);
-    data->view_layer->active_collection = BKE_layer_collection_first_from_scene_collection(
-        data->view_layer, import_collection);
-  }
-
   BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
-
-  worker_status->progress = 0.05f;
-  worker_status->do_update = true;
-  if (G.is_break) {
-    data->was_canceled = true;
-    return;
-  }
 
   pxr::UsdStagePopulationMask pop_mask;
   for (const std::string &mask_token : pxr::TfStringTokenize(data->params.prim_path_mask, ",;")) {
@@ -181,7 +160,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     return;
   }
 
-  worker_status->progress = 0.1f;
+  worker_status->progress = 0.05f;
   worker_status->do_update = true;
   if (G.is_break) {
     data->was_canceled = true;
@@ -191,12 +170,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   double scene_scale = data->params.scale;
   if (data->params.apply_unit_conversion_scale) {
     scene_scale *= pxr::UsdGeomGetStageMetersPerUnit(stage);
-  }
-
-  /* Set up the stage for animated data. */
-  if (data->params.set_frame_range) {
-    data->scene->r.sfra = stage->GetStartTimeCode();
-    data->scene->r.efra = stage->GetEndTimeCode();
   }
 
   /* Callback function to lazily create a cache file when converting
@@ -229,6 +202,13 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   archive->find_material_import_hook_sources();
 
+  worker_status->progress = 0.1f;
+  worker_status->do_update = true;
+  if (G.is_break) {
+    data->was_canceled = true;
+    return;
+  }
+
   archive->collect_readers();
 
   worker_status->progress = 0.15f;
@@ -241,8 +221,12 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   if (data->params.import_lights && data->params.create_world_material &&
       !archive->dome_light_readers().is_empty())
   {
-    USDDomeLightReader *dome_light_reader = archive->dome_light_readers().first();
-    dome_light_reader->create_object(data->scene, data->bmain);
+    /* NOTE: Since Blender does not have dome light objects, we need to modify the Scene directly
+     * in order to setup environment lighting. */
+    if (data->scene) {
+      USDDomeLightReader *dome_light_reader = archive->dome_light_readers().first();
+      dome_light_reader->create_object(data->scene, data->bmain);
+    }
   }
 
   if (data->params.import_materials && data->params.import_all_materials) {
@@ -314,7 +298,6 @@ static void import_endjob(void *customdata)
 
   /* Delete objects on cancellation. */
   if (data->was_canceled && data->archive) {
-
     for (const USDPrimReader *reader : data->archive->readers()) {
       /* It's possible that cancellation occurred between the creation of
        * the reader and the creation of the Blender object. */
@@ -324,21 +307,50 @@ static void import_endjob(void *customdata)
     }
   }
   else if (data->archive) {
-    const Scene *scene = data->scene;
-    ViewLayer *view_layer = data->view_layer;
+    Collection *collection_dst = nullptr;
 
-    BKE_view_layer_base_deselect_all(scene, view_layer);
+    if (data->scene) {
+      /* Set scene animation range. */
+      if (data->params.set_frame_range) {
+        const pxr::UsdStageRefPtr stage = data->archive->stage();
+        data->scene->r.sfra = stage->GetStartTimeCode();
+        data->scene->r.efra = stage->GetEndTimeCode();
+      }
 
-    LayerCollection *lc = BKE_layer_collection_get_active_editable(view_layer);
-    if (!ID_IS_EDITABLE(lc->collection)) {
-      BKE_report(data->params.worker_status->reports,
-                 RPT_WARNING,
-                 "Could not find an editable collection in current scene, imported data will not "
-                 "be instantiated");
+      ViewLayer *view_layer = CTX_data_view_layer(data->C);
+
+      /* Create a new collection if required. */
+      if (data->params.create_collection) {
+        char display_name[MAX_ID_NAME - 2];
+        BLI_path_to_display_name(
+            display_name, sizeof(display_name), BLI_path_basename(data->filepath));
+        Collection *import_collection = BKE_collection_add(
+            data->bmain, data->scene->master_collection, display_name);
+
+        DEG_id_tag_update(&import_collection->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_relations_tag_update(data->bmain);
+
+        BKE_view_layer_synced_ensure(data->scene, view_layer);
+        view_layer->active_collection = BKE_layer_collection_first_from_scene_collection(
+            view_layer, import_collection);
+      }
+
+      BKE_view_layer_base_deselect_all(data->scene, view_layer);
+
+      LayerCollection *lc = BKE_layer_collection_get_active_editable(view_layer);
+      if (!ID_IS_EDITABLE(lc->collection)) {
+        BKE_report(
+            data->params.worker_status->reports,
+            RPT_WARNING,
+            "Could not find an editable collection in current scene, imported data will not "
+            "be instantiated");
+      }
+
+      collection_dst = lc->collection;
     }
 
     /* Create prototype collections for instancing. */
-    data->archive->create_proto_collections(data->bmain, lc->collection);
+    data->archive->create_proto_collections(data->bmain, collection_dst);
 
     /* Add all objects to the collection. */
     for (const USDPrimReader *reader : data->archive->readers()) {
@@ -350,39 +362,44 @@ static void import_endjob(void *customdata)
       if (!ob) {
         continue;
       }
-      BKE_collection_object_add(data->bmain, lc->collection, ob);
+      BKE_collection_object_add(data->bmain, collection_dst, ob);
     }
 
     /* Sync and do the view layer operations. */
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    bool has_instantiated_object = false;
-    bool has_uninstantiated_object = false;
-    for (const USDPrimReader *reader : data->archive->readers()) {
-      Object *ob = reader->object();
-      if (!ob) {
-        continue;
-      }
-      Base *base = BKE_view_layer_base_find(view_layer, ob);
-      if (!base) {
-        /* Object not instantiated in current viewlayer. */
-        has_uninstantiated_object = true;
-        continue;
-      }
-      has_instantiated_object = true;
-      /* TODO: is setting active needed? */
-      BKE_view_layer_base_select_and_set_active(view_layer, base);
+    if (data->scene) {
+      ViewLayer *view_layer = CTX_data_view_layer(data->C);
+      BKE_view_layer_synced_ensure(data->scene, view_layer);
 
-      DEG_id_tag_update(&lc->collection->id, ID_RECALC_SYNC_TO_EVAL);
-      DEG_id_tag_update_ex(data->bmain,
-                           &ob->id,
-                           ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
-                               ID_RECALC_BASE_FLAGS);
-    }
-    if (has_instantiated_object && has_uninstantiated_object) {
-      CLOG_ERROR(&LOG, "Some imported objects were not instantiated, while others were");
+      bool has_instantiated_object = false;
+      bool has_uninstantiated_object = false;
+      for (const USDPrimReader *reader : data->archive->readers()) {
+        Object *ob = reader->object();
+        if (!ob) {
+          continue;
+        }
+        Base *base = BKE_view_layer_base_find(view_layer, ob);
+        if (!base) {
+          /* Object not instantiated in current viewlayer. */
+          has_uninstantiated_object = true;
+          continue;
+        }
+        has_instantiated_object = true;
+        /* TODO: is setting active needed? */
+        BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+        DEG_id_tag_update(&collection_dst->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update_ex(data->bmain,
+                             &ob->id,
+                             ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
+                                 ID_RECALC_BASE_FLAGS);
+      }
+      if (has_instantiated_object && has_uninstantiated_object) {
+        CLOG_ERROR(&LOG, "Some imported objects were not instantiated, while others were");
+      }
+
+      DEG_id_tag_update(&data->scene->id, ID_RECALC_BASE_FLAGS);
     }
 
-    DEG_id_tag_update(&data->scene->id, ID_RECALC_BASE_FLAGS);
     DEG_relations_tag_update(data->bmain);
 
     if (data->params.import_materials && data->params.import_all_materials) {
@@ -400,7 +417,9 @@ static void import_endjob(void *customdata)
     }
   }
 
-  WM_locked_interface_set(data->wm, false);
+  if (data->wm) {
+    WM_locked_interface_set(data->wm, false);
+  }
 
   switch (data->error_code) {
     default:
@@ -426,7 +445,7 @@ static void import_freejob(void *user_data)
   delete data;
 }
 
-bool USD_import(const bContext *C,
+bool USD_import(bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
                 bool as_background_job,
@@ -434,11 +453,10 @@ bool USD_import(const bContext *C,
 {
   /* Using new here since `MEM_*` functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
-  job->C = const_cast<bContext *>(C);
+  job->C = C;
   job->bmain = CTX_data_main(C);
-  job->scene = CTX_data_scene(C);
-  job->view_layer = CTX_data_view_layer(C);
-  job->wm = CTX_wm_manager(C);
+  job->scene = CTX_data_scene(C);  // May be null
+  job->wm = CTX_wm_manager(C);     // May be null
   job->import_ok = false;
   job->is_background_job = as_background_job;
   STRNCPY(job->filepath, filepath);
@@ -455,7 +473,7 @@ bool USD_import(const bContext *C,
   if (as_background_job) {
     wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                                 CTX_wm_window(C),
-                                job->scene,
+                                CTX_data_scene(C),
                                 "Importing USD...",
                                 WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_USD_IMPORT);

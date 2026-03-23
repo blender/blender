@@ -251,7 +251,7 @@ bool USD_export(const bContext *C,
                 bool as_background_job,
                 ReportList *reports);
 
-bool USD_import(const bContext *C,
+bool USD_import(bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
                 bool as_background_job,
