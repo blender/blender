@@ -691,7 +691,8 @@ endif()
 unset(_install_cmd)
 
 # macro to help install files without dragging in unnecessary data.
-macro(install_dir from to)
+# Install a directory, excluding common junk files.
+function(install_dir from to)
   install(
     DIRECTORY ${from}
     DESTINATION ${to}
@@ -718,7 +719,7 @@ macro(install_dir from to)
     PATTERN "turtle.py" EXCLUDE                 # ./turtle.py
     PATTERN "wininst*.exe" EXCLUDE              # from distutils, avoid malware false positive
   )
-endmacro()
+endfunction()
 
 # -----------------------------------------------------------------------------
 # Install Targets (Platform Specific)

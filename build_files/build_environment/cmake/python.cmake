@@ -12,9 +12,12 @@ endif()
 if(WIN32)
   set(PYTHON_BINARY ${LIBDIR}/python/python${PYTHON_POSTFIX}.exe)
   set(PYTHON_SRC ${BUILD_DIR}/python/src/external_python/)
-  macro(cmake_to_dos_path MsysPath ResultingPath)
-    string(REPLACE "/" "\\" ${ResultingPath} "${MsysPath}")
-  endmacro()
+  # Return values:
+  # - `${ResultingPath}`: the DOS-style path.
+  function(cmake_to_dos_path MsysPath ResultingPath)
+    string(REPLACE "/" "\\" _result "${MsysPath}")
+    set(${ResultingPath} "${_result}" PARENT_SCOPE)
+  endfunction()
 
   if(BLENDER_PLATFORM_ARM)
     set(PYTHON_BINARY_INTERNAL ${BUILD_DIR}/python/src/external_python/PCBuild/arm64/python${PYTHON_POSTFIX}.exe)

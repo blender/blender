@@ -110,6 +110,9 @@ if(DEFINED LIBDIR)
 endif()
 
 # Wrapper to prefer static libraries
+#
+# NOTE: must be a macro, forwards `${ARGV}` to `find_package()`/`find_package_static()`
+# whose result variables must be visible in the caller's scope.
 macro(find_package_wrapper)
   if(WITH_STATIC_LIBS)
     find_package_static(${ARGV})

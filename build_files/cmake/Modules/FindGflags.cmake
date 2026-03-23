@@ -76,6 +76,9 @@ endif()
 
 # Reset CALLERS_CMAKE_FIND_LIBRARY_PREFIXES to its value when FindGflags was
 # invoked, necessary for MSVC.
+#
+# NOTE: must be a macro, modifies `CMAKE_FIND_LIBRARY_PREFIXES`
+# in the caller's scope to restore the original value.
 macro(GFLAGS_RESET_FIND_LIBRARY_PREFIX)
   if(MSVC)
     set(CMAKE_FIND_LIBRARY_PREFIXES "${CALLERS_CMAKE_FIND_LIBRARY_PREFIXES}")
@@ -85,6 +88,9 @@ endmacro()
 # Called if we failed to find gflags or any of its required dependencies,
 # unsets all public (designed to be used externally) variables and reports
 # error message at priority depending upon [REQUIRED/QUIET/<NONE>] argument.
+#
+# NOTE: must be a macro, uses `return()` to exit the calling Find module's
+# scope. A function's `return()` would only exit the function itself.
 macro(GFLAGS_REPORT_NOT_FOUND REASON_MSG)
   unset(GFLAGS_FOUND)
   unset(GFLAGS_INCLUDE_DIRS)
@@ -118,13 +124,13 @@ endmacro()
 
 # Verify that all variable names passed as arguments are defined (can be empty
 # but must be defined) or raise a fatal error.
-macro(GFLAGS_CHECK_VARS_DEFINED)
+function(GFLAGS_CHECK_VARS_DEFINED)
   foreach(CHECK_VAR ${ARGN})
     if(NOT DEFINED ${CHECK_VAR})
       message(FATAL_ERROR "Ceres Bug: ${CHECK_VAR} is not defined.")
     endif()
   endforeach()
-endmacro()
+endfunction()
 
 # Use check_cxx_source_compiles() to compile trivial test programs to determine
 # the gflags namespace.  This works on all OSs except Windows.  If using Visual

@@ -4,9 +4,9 @@
 
 # Libraries configuration for Apple.
 
-macro(find_package_wrapper)
-  # do nothing, just satisfy the macro
-endmacro()
+function(find_package_wrapper)
+  # do nothing, just satisfy the function
+endfunction()
 
 function(print_found_status
   lib_name

@@ -28,7 +28,7 @@ set(TEST_BLENDER_EXE
 
 # ------------------------------------------------------------------------------
 
-macro(view_layer_test test_name)
+function(view_layer_test test_name)
   # Adds ${CMAKE_CURRENT_LIST_DIR} to sys.path so that the tests can import
   # things from view_layer_common.py
   add_test(view_layer_${test_name} ${TEST_BLENDER_EXE}
@@ -37,7 +37,7 @@ macro(view_layer_test test_name)
     --python ${CMAKE_CURRENT_LIST_DIR}/test_${test_name}.py --
     --testdir="${TEST_SRC_DIR}/layers"
   )
-endmacro()
+endfunction()
 
 view_layer_test(active_collection)
 view_layer_test(background_set)

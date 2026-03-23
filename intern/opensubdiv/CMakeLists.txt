@@ -26,11 +26,11 @@ set(LIB
 )
 
 if(WITH_OPENSUBDIV)
-  macro(OPENSUBDIV_DEFINE_COMPONENT component)
+  function(OPENSUBDIV_DEFINE_COMPONENT component)
     if(${${component}})
       add_definitions(-D${component})
     endif()
-  endmacro()
+  endfunction()
 
   list(APPEND SRC
     # Base.

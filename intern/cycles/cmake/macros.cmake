@@ -10,7 +10,7 @@ function(cycles_set_solution_folder target)
   endif()
 endfunction()
 
-macro(cycles_add_library target library_deps)
+function(cycles_add_library target library_deps)
   add_library(${target} ${ARGN})
 
   # On Windows certain libraries have two sets of binaries: one for debug builds and one for
@@ -83,9 +83,11 @@ macro(cycles_add_library target library_deps)
   endif()
 
   cycles_set_solution_folder(${target})
-endmacro()
+endfunction()
 
-macro(cycles_external_libraries_append libraries)
+# Modifies in parent scope:
+# - `${libraries}`: appended with external library dependencies.
+function(cycles_external_libraries_append libraries)
   # Dependencies with modern targets, these always exist even when optional deps are disabled.
   list(APPEND ${libraries}
     bf::dependencies::openimageio
@@ -162,9 +164,10 @@ macro(cycles_external_libraries_append libraries)
   if(NOT CYCLES_STANDALONE_REPOSITORY)
     list(APPEND ${libraries} bf_intern_guardedalloc)
   endif()
-endmacro()
+  set(${libraries} "${${libraries}}" PARENT_SCOPE)
+endfunction()
 
-macro(cycles_install_libraries target)
+function(cycles_install_libraries target)
   # Copy DLLs for dynamically linked libraries.
   if(WIN32)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -181,4 +184,4 @@ macro(cycles_install_libraries target)
         DESTINATION ${CMAKE_INSTALL_PREFIX})
     endif()
   endif()
-endmacro()
+endfunction()

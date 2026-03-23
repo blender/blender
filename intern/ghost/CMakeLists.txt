@@ -305,7 +305,9 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     set(INC_DST ${CMAKE_CURRENT_BINARY_DIR}/libwayland)
 
     # Generate protocols bindings.
-    macro(generate_protocol_bindings PROT_DEF)
+    # Modifies in parent scope:
+    # - `SRC`: appended with generated protocol source and header files.
+    function(generate_protocol_bindings PROT_DEF)
       # File name without directory or extension (use for header name).
       get_filename_component(_name ${PROT_DEF} NAME_WLE)
       add_custom_command(
@@ -332,8 +334,8 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
         ${INC_DST}/${_name}-client-protocol.c
         ${INC_DST}/${_name}-client-protocol.h
       )
-      unset(_name)
-    endmacro()
+      set(SRC "${SRC}" PARENT_SCOPE)
+    endfunction()
 
     list(APPEND INC_SYS
       ${INC_DST}

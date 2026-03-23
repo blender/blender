@@ -33,7 +33,9 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   )
   set(hip_fatbins "")
 
-  macro(CYCLES_HIP_KERNEL_ADD arch name flags sources experimental)
+  # Modifies in parent scope:
+  # - `hip_fatbins`: appended with compressed fatbin output.
+  function(CYCLES_HIP_KERNEL_ADD arch name flags sources experimental)
     set(format "fatbin")
     set(hip_file ${name}_${arch}.${format})
     set(hip_file_compressed ${hip_file}.zst)
@@ -100,7 +102,8 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       DEPENDS ${hip_file})
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hip_file_compressed}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND hip_fatbins ${hip_file_compressed})
-  endmacro()
+    set(hip_fatbins "${hip_fatbins}" PARENT_SCOPE)
+  endfunction()
 
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
     # Compile regular kernel

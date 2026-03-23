@@ -56,15 +56,17 @@ foreach(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
   list(APPEND _opensubdiv_LIBRARIES "${OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY}")
 endforeach()
 
-macro(OPENSUBDIV_CHECK_CONTROLLER
+# Return values:
+# - `${variable_name}`: `TRUE` if the controller include file exists.
+function(OPENSUBDIV_CHECK_CONTROLLER
       controller_include_file
       variable_name)
   if(EXISTS "${OPENSUBDIV_INCLUDE_DIR}/opensubdiv/osd/${controller_include_file}")
-    set(${variable_name} TRUE)
+    set(${variable_name} TRUE PARENT_SCOPE)
   else()
-    set(${variable_name} FALSE)
+    set(${variable_name} FALSE PARENT_SCOPE)
   endif()
-endmacro()
+endfunction()
 
 
 # handle the QUIETLY and REQUIRED arguments and set OPENSUBDIV_FOUND to TRUE if

@@ -430,14 +430,16 @@ target_link_libraries(cycles_kernel
 
 if(NOT WITH_CYCLES_PARALLEL_DEVICE_KERNEL_BUILD)
   set(_cycles_prev_gpu_kernel_target "")
-  macro(cycles_add_gpu_kernel_dependencies GPU_KERNEL_TARGET)
+  # Modifies in parent scope:
+  # - `_cycles_prev_gpu_kernel_target`: updated to current target for chaining.
+  function(cycles_add_gpu_kernel_dependencies GPU_KERNEL_TARGET)
     if(TARGET ${GPU_KERNEL_TARGET})
       if(_cycles_prev_gpu_kernel_target)
         add_dependencies(${GPU_KERNEL_TARGET} ${_cycles_prev_gpu_kernel_target})
       endif()
-      set(_cycles_prev_gpu_kernel_target ${GPU_KERNEL_TARGET})
+      set(_cycles_prev_gpu_kernel_target ${GPU_KERNEL_TARGET} PARENT_SCOPE)
     endif()
-  endmacro()
+  endfunction()
 
   cycles_add_gpu_kernel_dependencies(cycles_kernel_cuda)
   cycles_add_gpu_kernel_dependencies(cycles_kernel_optix)

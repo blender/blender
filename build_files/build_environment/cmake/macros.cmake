@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # shorthand to only unpack a certain dependency
-macro(unpack_only name)
+function(unpack_only name)
   string(TOUPPER ${name} UPPER_NAME)
   set(TARGET_FILE ${${UPPER_NAME}_FILE})
   set(TARGET_HASH_TYPE ${${UPPER_NAME}_HASH_TYPE})
@@ -17,4 +17,4 @@ macro(unpack_only name)
     BUILD_COMMAND echo .
     INSTALL_COMMAND echo .
   )
-endmacro()
+endfunction()
