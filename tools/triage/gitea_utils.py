@@ -15,6 +15,7 @@ __all__ = (
     "gitea_user_get",
 )
 
+import os
 import datetime
 import json
 import urllib.error
@@ -25,13 +26,19 @@ from typing import (
     Any,
 )
 
+API_TOKEN_ENV = 'GITEA_API_TOKEN'
 BASE_API_URL = "https://projects.blender.org/api/v1"
 
 
 def url_json_get(url: str, quiet: bool = False) -> dict[str, Any] | list[dict[str, Any]] | None:
+    request = urllib.request.Request(url)
+    # If the token evironment variable is set, add the `Authorization` header to the request
+    token = os.environ.get(API_TOKEN_ENV)
+    if token:
+        request.add_header('Authorization', "token " + token)
     try:
         # Make the HTTP request and store the response in a 'response' object
-        response = urllib.request.urlopen(url)
+        response = urllib.request.urlopen(request)
     except urllib.error.URLError as ex:
         if not quiet:
             print(url)
