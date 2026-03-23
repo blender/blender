@@ -795,6 +795,14 @@ template void func(float a);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    string input = R"(A<B<1, 2>, C<1, D<T, -1>>> a;)";
+    string expect = R"(ATBT1T2TCT1TDTTT_1 a;)";
+    string error;
+    string output = process_test_local(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_template);
 

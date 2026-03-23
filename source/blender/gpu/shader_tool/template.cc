@@ -9,7 +9,6 @@
 #include <algorithm>
 
 #include "intermediate.hh"
-#include "metadata.hh"
 #include "processor.hh"
 
 namespace blender::gpu::shader {
@@ -21,7 +20,13 @@ string SourceProcessor::template_arguments_mangle(const Scope template_args)
 {
   string args_concat;
   template_args.foreach_scope(ScopeType::TemplateArg, [&](const Scope &scope) {
-    string str(scope.str());
+    string str;
+    if (scope[1] == '<') {
+      str = string(scope[0].str()) + template_arguments_mangle(scope[1].scope());
+    }
+    else {
+      str = scope.str();
+    }
     /* In order to support negative integer literals. Replace minus sign by underscore. */
     replace(str.begin(), str.end(), '-', '_');
     args_concat += 'T' + str;
