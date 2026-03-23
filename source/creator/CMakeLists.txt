@@ -288,7 +288,7 @@ if(WITH_BUILDINFO)
   add_dependencies(buildinfoobj buildinfo)
 endif()
 
-add_cc_flags_custom_test(blender)
+add_c_and_cxx_flags_custom_test(blender)
 
 # message(STATUS "Configuring blender")
 if(WITH_PYTHON_MODULE)

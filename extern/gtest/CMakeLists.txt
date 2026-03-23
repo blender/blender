@@ -4,7 +4,7 @@
 
 # avoid noisy warnings
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  remove_cc_flag(
+  remove_c_and_cxx_flag(
     "-Wmissing-declarations"
   )
 endif()

@@ -10,7 +10,7 @@ set(SRC
 )
 
 if(COMPILER_SSE42_FLAG)
-  remove_cc_flag("${COMPILER_SSE42_FLAG}")
+  remove_c_and_cxx_flag("${COMPILER_SSE42_FLAG}")
 endif()
 add_library(blender_cpu_check SHARED ${SRC})
 

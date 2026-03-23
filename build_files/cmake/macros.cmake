@@ -331,7 +331,7 @@ endfunction()
 # use this macro before add_library or add_executable.
 #
 # Optionally takes an ARGV1 passed to set(), eg `PARENT_SCOPE`.
-macro(add_cc_flags_custom_test
+macro(add_c_and_cxx_flags_custom_test
   name
   )
 
@@ -486,7 +486,7 @@ function(blender_add_lib_nolist
   library_deps
   )
 
-  add_cc_flags_custom_test(${name} PARENT_SCOPE)
+  add_c_and_cxx_flags_custom_test(${name} PARENT_SCOPE)
 
   blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
 endfunction()
@@ -499,7 +499,7 @@ function(blender_add_lib
   library_deps
   )
 
-  add_cc_flags_custom_test(${name} PARENT_SCOPE)
+  add_c_and_cxx_flags_custom_test(${name} PARENT_SCOPE)
 
   blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
 
@@ -684,7 +684,7 @@ macro(remove_cxx_flag
 endmacro()
 
 # utility macro
-macro(remove_cc_flag
+macro(remove_c_and_cxx_flag
   _flag)
 
   remove_c_flag(${ARGV})
@@ -703,7 +703,7 @@ macro(add_cxx_flag
   string(APPEND CMAKE_CXX_FLAGS " ${flag}")
 endmacro()
 
-macro(add_cc_flag
+macro(add_c_and_cxx_flag
   flag)
 
   add_c_flag("${flag}")
@@ -732,7 +732,7 @@ endmacro()
 macro(remove_strict_flags)
 
   if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    remove_cc_flag(
+    remove_c_and_cxx_flag(
       "-Wstrict-prototypes"
       "-Wsuggest-attribute=format"
       "-Wmissing-prototypes"
@@ -755,10 +755,11 @@ macro(remove_strict_flags)
     # negate flags implied by '-Wall'
     add_c_flag("${C_REMOVE_STRICT_FLAGS}")
     add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
+    add_c_and_cxx_flag("${C_AND_CXX_REMOVE_STRICT_FLAGS}")
   endif()
 
   if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    remove_cc_flag(
+    remove_c_and_cxx_flag(
       "-Wunused-parameter"
       "-Wunused-variable"
       "-Werror=[^ ]+"
@@ -768,6 +769,7 @@ macro(remove_strict_flags)
     # negate flags implied by '-Wall'
     add_c_flag("${C_REMOVE_STRICT_FLAGS}")
     add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
+    add_c_and_cxx_flag("${C_AND_CXX_REMOVE_STRICT_FLAGS}")
   endif()
 
   if(MSVC)
@@ -775,7 +777,7 @@ macro(remove_strict_flags)
       # Warning C5038: data member 'foo' will be initialized after data member 'bar'.
       "/wd5038"
     )
-    remove_cc_flag(
+    remove_c_and_cxx_flag(
       # Restore warn C4100 (unreferenced formal parameter) back to w4.
       "/w34100"
       # Restore warn C4189 (unused variable) back to w4.
@@ -787,19 +789,19 @@ endmacro()
 
 macro(remove_extra_strict_flags)
   if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    remove_cc_flag(
+    remove_c_and_cxx_flag(
       "-Wunused-parameter"
     )
   endif()
 
   if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    remove_cc_flag(
+    remove_c_and_cxx_flag(
       "-Wunused-parameter"
     )
   endif()
 
   if(MSVC)
-    remove_cc_flag(
+    remove_c_and_cxx_flag(
       # Restore warn C4100 (unreferenced formal parameter) back to w4.
       "/w34100"
     )
@@ -816,7 +818,7 @@ macro(remove_strict_c_flags_file
        (CMAKE_C_COMPILER_ID MATCHES "Clang"))
       set_source_files_properties(
         ${_SOURCE} PROPERTIES
-        COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS}"
+        COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS} ${C_AND_CXX_REMOVE_STRICT_FLAGS}"
       )
     endif()
     if(MSVC)
@@ -833,7 +835,7 @@ macro(remove_strict_cxx_flags_file
        (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
       set_source_files_properties(
         ${_SOURCE} PROPERTIES
-        COMPILE_FLAGS "${CXX_REMOVE_STRICT_FLAGS}"
+        COMPILE_FLAGS "${CXX_REMOVE_STRICT_FLAGS} ${C_AND_CXX_REMOVE_STRICT_FLAGS}"
       )
     endif()
     if(MSVC)
@@ -844,13 +846,13 @@ macro(remove_strict_cxx_flags_file
 endmacro()
 
 # External libs may need 'signed char' to be default.
-macro(remove_cc_flag_unsigned_char)
+macro(remove_c_and_cxx_flag_unsigned_char)
   if((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR
      (CMAKE_C_COMPILER_ID MATCHES "Clang") OR
      (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
-    remove_cc_flag("-funsigned-char")
+    remove_c_and_cxx_flag("-funsigned-char")
   elseif(MSVC)
-    remove_cc_flag("/J")
+    remove_c_and_cxx_flag("/J")
   else()
     message(WARNING
       "Compiler '${CMAKE_C_COMPILER_ID}' failed to disable 'unsigned char' flag."
@@ -1604,7 +1606,7 @@ endfunction()
 macro(optimize_debug_target executable)
   if(WITH_OPTIMIZED_BUILD_TOOLS)
     if(WIN32)
-      remove_cc_flag("/Od" "/RTC1")
+      remove_c_and_cxx_flag("/Od" "/RTC1")
       target_compile_options(${executable} PRIVATE "/Ox")
       target_compile_definitions(${executable} PRIVATE "_ITERATOR_DEBUG_LEVEL=0")
     else()

@@ -23,7 +23,7 @@ set(LIB
   PRIVATE bf::dependencies::zlib
   ${PLATFORM_LINKLIBS})
 
-add_cc_flags_custom_test(msgfmt)
+add_c_and_cxx_flags_custom_test(msgfmt)
 
 if(WIN32)
   string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /nodefaultlib:MSVCRT.lib")

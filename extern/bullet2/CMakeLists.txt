@@ -4,7 +4,7 @@
 
 # Suppress noisy warnings.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  remove_cc_flag(
+  remove_c_and_cxx_flag(
     "-Warray-bounds=[^ ]+"
     "-Wunused-[^ ]+"
     "-Wunused"
@@ -12,7 +12,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     "-Wall"
   )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  remove_cc_flag(
+  remove_c_and_cxx_flag(
     "-Wall"
   )
 endif()

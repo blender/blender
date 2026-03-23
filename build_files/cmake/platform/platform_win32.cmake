@@ -139,7 +139,7 @@ add_definitions(-D_ALLOW_KEYWORD_MACROS)
 # to remove for individual files that want to disable it
 # using the /GR- flag without generating a build warning
 # that both /GR and /GR- are specified.
-remove_cc_flag("/GR")
+remove_c_and_cxx_flag("/GR")
 
 # Make the Windows 8.1 API available for use.
 add_definitions(-D_WIN32_WINNT=0x603)
@@ -187,7 +187,7 @@ configure_file(
   @ONLY
 )
 
-remove_cc_flag(
+remove_c_and_cxx_flag(
   "/MDd"
   "/MD"
   "/Zi"
