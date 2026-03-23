@@ -7,6 +7,8 @@ class ModalTimerOperator(bpy.types.Operator):
     bl_label = "Modal Timer Operator"
 
     _timer = None
+    _theme = None
+    _original_color = None
 
     def modal(self, context, event):
         if event.type in {'RIGHTMOUSE', 'ESC'}:
@@ -15,13 +17,17 @@ class ModalTimerOperator(bpy.types.Operator):
 
         if event.type == 'TIMER':
             # Change theme color, silly!
-            color = context.preferences.themes[0].view_3d.space.gradients.high_gradient
+            color = self._theme.view_3d.space.gradients.high_gradient
             color.s = 1.0
             color.h += 0.01
 
         return {'PASS_THROUGH'}
 
     def execute(self, context):
+        # Store the original color to avoid altering user settings
+        self._theme = context.preferences.themes[0]
+        color = self._theme.view_3d.space.gradients.high_gradient
+        self._original_color = color[:]
         wm = context.window_manager
         self._timer = wm.event_timer_add(0.1, window=context.window)
         wm.modal_handler_add(self)
@@ -30,6 +36,7 @@ class ModalTimerOperator(bpy.types.Operator):
     def cancel(self, context):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
+        self._theme.view_3d.space.gradients.high_gradient = self._original_color
 
 
 def menu_func(self, context):
