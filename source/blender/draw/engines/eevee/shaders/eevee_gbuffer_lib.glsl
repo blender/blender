@@ -184,7 +184,7 @@ float thickness_pack(Thickness thickness)
    * distance and remap to it. Or tweak the hyperbole equality. */
   /* NOTE: Sign encodes the thickness mode. */
   /* Remap [0..+inf) to [0..1/2]. */
-  float thickness_packed = thickness.data / (1.0f + 2.0f * thickness.data);
+  float thickness_packed = thickness.value() / (1.0f + 2.0f * thickness.value());
   /* Mirror the negative from [0..1/2] to [1..1/2]. O is mapped to 0 for precision. */
   return thickness.data < 0.0f ? 1.0f - thickness_packed : thickness_packed;
 }
