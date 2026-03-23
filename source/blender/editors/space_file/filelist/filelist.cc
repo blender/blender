@@ -835,7 +835,7 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
   BLI_listbase_clear(&cache->cached_entries);
 }
 
-FileList *filelist_new(short type)
+FileList *filelist_new(short type, const bool is_from_global_asset_list)
 {
   FileList *p = MEM_new<FileList>(__func__);
 
@@ -843,6 +843,9 @@ FileList *filelist_new(short type)
 
   p->selection_state = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
   p->filelist.entries_num = FILEDIR_NBR_ENTRIES_UNSET;
+  if (is_from_global_asset_list) {
+    p->tags |= FILELIST_TAGS_FROM_GLOBAL_ASSET_LIST;
+  }
   filelist_settype(p, type);
 
   return p;

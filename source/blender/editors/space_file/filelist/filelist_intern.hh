@@ -286,6 +286,9 @@ enum FileListTags {
   FILELIST_TAGS_APPLY_FUZZY_SEARCH = (1 << 1),
   /** The file list type is not thread-safe. */
   FILELIST_TAGS_NO_THREADS = (1 << 2),
+  /** The file list is owned by the #ED_asset_list.hh API (global storage to load and store assets
+   * globally), not the Asset Browser. */
+  FILELIST_TAGS_FROM_GLOBAL_ASSET_LIST = 1 << 3,
 };
 
 enum class SpecialFileImages {

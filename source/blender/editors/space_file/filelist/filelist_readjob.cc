@@ -167,6 +167,10 @@ static void filelist_readjob_free(void *flrjv)
 
 static eWM_JobType filelist_jobtype_get(const FileList *filelist)
 {
+  if (filelist->tags & FILELIST_TAGS_FROM_GLOBAL_ASSET_LIST) {
+    BLI_assert(filelist->asset_library_ref != nullptr);
+    return WM_JOB_TYPE_ASSET_LIBRARY_GLOBAL_LISTING_LOAD;
+  }
   if (filelist->asset_library_ref) {
     return WM_JOB_TYPE_ASSET_LIBRARY_LOAD;
   }
