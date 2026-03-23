@@ -465,6 +465,50 @@ bool DenoiseImage::read_previous_pixels(const DenoiseImageLayer &layer,
   return true;
 }
 
+bool DenoiseImage::read_pixels(ImageInput *in)
+{
+  /* For multi-part EXR each subimage contains a pass, so we'll read them all. */
+  const int num_subimages = in_spec.get_int_attribute("oiio:subimages", 1);
+  vector<string> channelnames;
+  vector<int> num_channels_subimage;
+  for (int s = 0; s < num_subimages; s++) {
+    const ImageSpec spec = in->spec(s);
+    num_channels_subimage.push_back(spec.nchannels);
+    for (const string &name : spec.channelnames) {
+      channelnames.push_back(name);
+    }
+  }
+
+  num_channels = int(channelnames.size());
+  pixels.resize(size_t(width) * size_t(height) * num_channels);
+
+  /* Read all channels from each subimage. */
+  const int64_t xstride = int64_t(num_channels) * sizeof(float);
+  size_t channel_offset = 0;
+  for (size_t s = 0; s < num_channels_subimage.size(); s++) {
+    if (!in->read_image(s,
+                        0,
+                        0,
+                        num_channels_subimage[s],
+                        TypeDesc::FLOAT,
+                        pixels.data() + channel_offset,
+                        xstride))
+    {
+      return false;
+    }
+    channel_offset += num_channels_subimage[s];
+  }
+
+  /* Update in_spec to reflect the flattened channel list for use in parse_channels. */
+  in->seek_subimage(0, 0);
+  in_spec.channelnames = channelnames;
+  in_spec.nchannels = num_channels;
+  in_spec.channelformats.clear();
+  in_spec.format = TypeDesc::FLOAT;
+
+  return true;
+}
+
 bool DenoiseImage::load(const string &in_filepath, string &error)
 {
   if (!Filesystem::is_regular(in_filepath)) {
@@ -481,7 +525,11 @@ bool DenoiseImage::load(const string &in_filepath, string &error)
   in_spec = in->spec();
   width = in_spec.width;
   height = in_spec.height;
-  num_channels = in_spec.nchannels;
+
+  if (!read_pixels(in.get())) {
+    error = "Failed to read image: " + in_filepath;
+    return false;
+  }
 
   if (!parse_channels(in_spec, error)) {
     return false;
@@ -489,16 +537,6 @@ bool DenoiseImage::load(const string &in_filepath, string &error)
 
   if (layers.empty()) {
     error = "Could not find a render layer containing denoising data and motion vector passes";
-    return false;
-  }
-
-  const size_t num_pixels = (size_t)width * (size_t)height;
-  pixels.resize(num_pixels * num_channels);
-
-  /* Read all channels into buffer. Reading all channels at once is faster
-   * than individually due to interleaved EXR channel storage. */
-  if (!in->read_image(0, 0, 0, num_channels, TypeDesc::FLOAT, pixels.data())) {
-    error = "Failed to read image: " + in_filepath;
     return false;
   }
 

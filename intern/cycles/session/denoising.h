@@ -134,6 +134,10 @@ class DenoiseImage {
    * fill layers and set up the output channels and passthrough map. */
   bool parse_channels(const ImageSpec &in_spec, string &error);
 
+  /* Read pixels from an open ImageInput into the pixels buffer.
+   * Updates in_spec, num_channels, and pixels. */
+  bool read_pixels(ImageInput *in);
+
   void close_input();
 };
 

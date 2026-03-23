@@ -851,7 +851,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
   endif()
 
   if(WITH_OPENIMAGEDENOISE)
-    list(APPEND render_tests denoise)
+    list(APPEND render_tests denoise denoise_animation)
   endif()
 
   # Disabled until new OpenPGL version with deterministic results.
