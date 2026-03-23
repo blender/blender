@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
-"PO-Revision-Date: 2026-03-09 08:54+0000\n"
-"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
+"PO-Revision-Date: 2026-03-21 07:12+0000\n"
+"Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.15.2"
+"X-Generator: Weblate 5.16.2"
 
 
 msgid "Shader AOV"
@@ -11116,6 +11116,10 @@ msgstr "Vorbis"
 
 msgid "Sample Rate"
 msgstr "取樣率"
+
+
+msgid "Audio sample rate (samples/s)"
+msgstr "音訊取樣率（每秒樣本數）"
 
 
 msgctxt "Sound"
@@ -26559,6 +26563,146 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select All by Trait"
+msgstr "依特徵全選"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Select Loops"
+msgstr "選取迴圈"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Assign Material"
+msgstr "指派材質"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "List"
+msgstr "列表"
+
+
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "新增影像"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
 msgid "Quick Effects"
 msgstr "快速效果"
 
@@ -26567,24 +26711,12 @@ msgid "Show/Hide"
 msgstr "顯示/隱藏"
 
 
-msgid "List"
-msgstr "列表"
-
-
 msgid "Clean Up"
 msgstr "清理"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Asset"
 msgstr "素材"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -26599,24 +26731,8 @@ msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
 msgid "Hooks"
 msgstr "鉤"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Primitives"
-msgstr "原形"
 
 
 msgid "Vertex Group Locks"
@@ -26659,10 +26775,6 @@ msgid "Names"
 msgstr "名稱"
 
 
-msgid "Apply"
-msgstr "套用"
-
-
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
 
@@ -26687,28 +26799,12 @@ msgid "Set Face Strength"
 msgstr "設定面強度"
 
 
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
 msgid "Layout"
 msgstr "配置"
 
 
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
+msgid "Merge"
+msgstr "合併"
 
 
 msgid "Adjust"
@@ -26719,28 +26815,32 @@ msgid "Keying"
 msgstr "鍵處理"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
+msgid "Special Characters"
+msgstr "特殊字元"
 
 
 msgid "Render Preview"
 msgstr "算繪預覽"
 
 
-msgid "Utilities"
-msgstr "效用"
+msgid "Kerning"
+msgstr "字間微調"
 
 
-msgid "Pivot Point"
-msgstr "樞紐點"
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Creative"
 msgstr "創意"
 
 
-msgid "Snap"
-msgstr "吸附"
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
 
 
 msgid "Proportional Editing Falloff"
@@ -26757,102 +26857,6 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select All by Trait"
-msgstr "依特徵全選"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Select Loops"
-msgstr "選取迴圈"
-
-
-msgid "Assign Material"
-msgstr "指派材質"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Add Image"
-msgstr "新增影像"
-
-
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
-msgid "Deprecated"
-msgstr "已棄用"
-
-
-msgid "Track"
-msgstr "追蹤"
 
 
 msgid "Keyframe Insert Pie"
@@ -57035,6 +57039,10 @@ msgid "64-bit floating-point"
 msgstr "64 位元浮點"
 
 
+msgid "Sample rate in samples/s"
+msgstr "取樣率（單位為每秒樣本數）"
+
+
 msgid "Split channels"
 msgstr "分割聲道"
 
@@ -60511,6 +60519,10 @@ msgid "Reload Start-Up File"
 msgstr "重新載入初始啟動檔案"
 
 
+msgid "Open the default file"
+msgstr "開啟預設檔案"
+
+
 msgid "Factory Startup"
 msgstr "初始啟動"
 
@@ -61643,30 +61655,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "View Lock"
-msgstr "視圖鎖定"
-
-
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
 msgid "Shadow Settings"
 msgstr "陰影設定"
 
@@ -61705,14 +61693,6 @@ msgstr "運動跟蹤"
 
 msgid "Mesh Edit Mode"
 msgstr "網格編輯模式"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 動畫"
 
 
 msgid "Measurement"
@@ -61765,6 +61745,38 @@ msgstr "自動遮罩"
 
 msgid "Viewport Debug"
 msgstr "視圖除錯"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
+
+
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "View Lock"
+msgstr "視圖鎖定"
 
 
 msgid "Import Settings"
@@ -65204,6 +65216,10 @@ msgid "Multi-touch Gestures"
 msgstr "多點觸控手勢"
 
 
+msgid "Default to Advanced Numeric Input"
+msgstr "預設使用進階數值輸入"
+
+
 msgid "When entering numbers while transforming, default to advanced mode for full math expression evaluation"
 msgstr "在進行轉換時輸入數字，預設使用高級模式進行完整的表達式評估"
 
@@ -65276,6 +65292,14 @@ msgid "Show UI Key-Config"
 msgstr "顯示 UI 按鍵組態"
 
 
+msgid "Anisotropic Filtering"
+msgstr "各向異性過濾"
+
+
+msgid "Quality of anisotropic filtering"
+msgstr "各向異性過濾品質"
+
+
 msgid "2×"
 msgstr "2×"
 
@@ -65298,6 +65322,10 @@ msgstr "音訊裝置"
 
 msgid "Audio output device"
 msgstr "音訊輸出裝置"
+
+
+msgid "No device - there will be no audio output"
+msgstr "無裝置 - 不會輸出音訊"
 
 
 msgid "Audio Mixing Buffer"
@@ -65536,12 +65564,28 @@ msgid "Manual"
 msgstr "手動"
 
 
+msgid "Shader Compilation Method"
+msgstr "著色器編譯方法"
+
+
+msgid "Compilation method used for compiling shaders in parallel. Subprocess requires a lot more RAM for each worker but might compile shaders faster on some systems. Requires restarting Blender for changes to take effect. (OpenGL only)"
+msgstr "平行編譯著色器的方法。子程序需要更多記憶體，但在某些系統上可能會更快。需要重新啟動 Blender 才會生效。（僅 OpenGL）"
+
+
 msgid "Thread"
 msgstr "執行緒"
 
 
+msgid "Use threads for compiling shaders"
+msgstr "用執行緒來編譯著色器"
+
+
 msgid "Subprocess"
 msgstr "子程序"
+
+
+msgid "Use subprocesses for compiling shaders"
+msgstr "用子程序來編譯著色器"
 
 
 msgid "Solid Lights"
@@ -66094,6 +66138,14 @@ msgstr "導覽控制"
 
 msgid "Show navigation controls in 2D and 3D views which do not have scroll bars"
 msgstr "在沒有捲動軸的 2D 及 3D 檢視裡顯示導覽控制"
+
+
+msgid "Show Numeric Input Arrows"
+msgstr "顯示數值輸入箭頭"
+
+
+msgid "Display arrows in numeric input fields for increasing or decreasing values"
+msgstr "在數值輸入框顯示用來增減數值用的箭頭"
 
 
 msgid "Display Object Info"
@@ -70442,6 +70494,10 @@ msgstr "螢幕區域的空間資料"
 
 msgid "Sync Visible Range"
 msgstr "同步可見範圍"
+
+
+msgid "Synchronize the visible timeline range with other time-based editors"
+msgstr "與其他基於時間的編輯器同步可見時間軸範圍"
 
 
 msgid "Space data type"
@@ -79205,11 +79261,15 @@ msgstr "降噪已完成"
 
 
 msgid "OSL shader compilation succeeded"
-msgstr "OSL 著色器編纂成功"
+msgstr "OSL 著色器編譯成功"
 
 
 msgid "OSL script compilation failed, see console for errors"
 msgstr "OSL 命令稿編纂失敗，請查看主控臺以瞭解錯誤"
+
+
+msgid "Custom Camera shader compilation failed, see console for errors"
+msgstr "自訂相機著色器編譯失敗，請查看主控臺以瞭解錯誤"
 
 
 msgid "No text or file specified in node, nothing to compile"
@@ -79226,6 +79286,70 @@ msgstr "無法在有外部 .osl 檔旁寫入 .oso 檔，位置於 {:s}"
 
 msgid "Classic"
 msgstr "經典"
+
+
+msgid "Do not use compute device"
+msgstr "不要使用運算裝置"
+
+
+msgid "No compatible GPUs found for Cycles"
+msgstr "沒有找到 Cycles 用的相容的 GPU"
+
+
+msgid "Requires NVIDIA GPU with compute capability %s"
+msgstr "需要 Compute Capability %s 以上的 NVIDIA GPU"
+
+
+msgid "and NVIDIA driver version %s or newer"
+msgstr "以及 NVIDIA 驅動程式 %s 或更新版本"
+
+
+msgid "Requires AMD GPU with RDNA architecture"
+msgstr "需要有使用 RDNA 架構的 AMD GPU"
+
+
+msgid "and AMD Adrenalin driver %s or newer"
+msgstr "和 AMD Adrenalin 驅動程式 %s 或更新版本"
+
+
+msgid "or AMD Radeon Pro %s driver or newer"
+msgstr "或 AMD Radeon Pro %s 驅動程式或更新版本"
+
+
+msgid "Requires Intel GPU with Xe-HPG architecture"
+msgstr "需要有使用 Xe-HPG 架構的 Intel GPU"
+
+
+msgid "and ROCm HIP Runtime %s or newer"
+msgstr "和 ROCm HIP 執行階段 %s 或更新版本"
+
+
+msgid "or AMD driver version %s or newer"
+msgstr "或 AMD 驅動程式 %s 或更新版本"
+
+
+msgid "and Windows driver version %s or newer"
+msgstr "以及 Windows 驅動程式 %s 或更新版本"
+
+
+msgid "Requires Intel GPU with Xe-HPG architecture and"
+msgstr "需要使用 Xe-HPG 架構的 Intel GPU 以及"
+
+
+msgid "  - intel-level-zero-gpu or intel-compute-runtime version"
+msgstr "  - intel-level-zero-gpu 或 intel-compute-runtime 版本"
+
+
+msgid "  - oneAPI Level-Zero Loader"
+msgstr "  - oneAPI Level-Zero 載入器"
+
+
+msgid "Requires Apple Silicon with macOS %s or newer"
+msgstr "需要 Apple Silicon 和 macOS %s 或更新版本"
+
+
+msgid "    %s or newer"
+msgstr "    %s 或更新版本"
 
 
 msgid "Noise Threshold"
@@ -81620,7 +81744,7 @@ msgstr "舊有"
 
 msgctxt "Time"
 msgid "New"
-msgstr "新增"
+msgstr "新的"
 
 
 msgid "Date"
@@ -84664,6 +84788,10 @@ msgstr "回報"
 
 msgid "New Data"
 msgstr "新資料"
+
+
+msgid "Numeric Input Arrows"
+msgstr "數值輸入框的箭頭"
 
 
 msgid "Render In"
@@ -88044,6 +88172,18 @@ msgstr "線環對並未連接"
 
 msgid "Edge-rings are not connected"
 msgstr "線環並未連接"
+
+
+msgid "Compiling EEVEE engine shaders"
+msgstr "正在編譯 EEVEE 引擎著色器"
+
+
+msgid "Compiling shaders ({} remaining)"
+msgstr "正在編譯著色器（還有 {} 個）"
+
+
+msgid "Setting Preferences > System > Shader Compilation Method to Subprocess might improve compilation time."
+msgstr "將偏好設定→系統→著色器編譯方法設為「子程序」可能會改善編譯時間。"
 
 
 msgid "Baking lighting..."
@@ -91761,6 +91901,10 @@ msgid "Saved %s"
 msgstr "已儲存 %s"
 
 
+msgid "No compatible images are on the clipboard"
+msgstr "剪貼簿中沒有相容的影像"
+
+
 msgid "No packed files to unpack"
 msgstr "沒有要解包的打包檔"
 
@@ -93407,6 +93551,10 @@ msgstr "使用 %s (不同)"
 
 msgid "Overwrite %s"
 msgstr "覆寫 %s"
+
+
+msgid "Numeric input evaluation"
+msgstr "數值輸入框運算"
 
 
 msgctxt "Operator"
@@ -98021,6 +98169,11 @@ msgstr "雕塑"
 msgctxt "WorkSpace"
 msgid "Shading"
 msgstr "著色"
+
+
+msgctxt "WorkSpace"
+msgid "Storyboarding"
+msgstr "分鏡腳本"
 
 
 msgctxt "WorkSpace"

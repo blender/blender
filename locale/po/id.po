@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15683,60 +15683,16 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Sample"
-msgstr "Sampel"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
-msgid "Utilities"
-msgstr "Utilitas"
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Sample"
+msgstr "Sampel"
 
 
 msgid "Navigation"
@@ -15747,8 +15703,28 @@ msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
+
+
+msgid "Import"
+msgstr "Impor"
+
+
+msgid "Utilities"
+msgstr "Utilitas"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -15759,24 +15735,48 @@ msgid "Light Probe"
 msgstr "Probe Cahaya"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
+msgid "Math"
+msgstr "Matematika"
 
 
-msgid "Instances"
-msgstr "Contoh-contoh"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Import"
-msgstr "Impor"
+msgid "Apply"
+msgstr "Tetapkan"
 
 
 msgid "Track"
 msgstr "Lacak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
 msgid "Animals"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2026-03-11 00:12+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -35787,6 +35787,146 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Read"
+msgstr "読込"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Sample"
+msgstr "サンプル"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Write"
+msgstr "書込"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "Primitives"
+msgstr "プリミティブ"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
+
+
+msgid "Select Linked"
+msgstr "リンク選択"
+
+
+msgid "Select Loops"
+msgstr "ループ選択"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Assign Material"
+msgstr "マテリアルを割り当て"
+
+
+msgid "Import"
+msgstr "インポート"
+
+
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
+msgid "Metaball"
+msgstr "メタボール"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
+
+
+msgid "Light"
+msgstr "ライト"
+
+
+msgid "Light Probe"
+msgstr "ライトプローブ"
+
+
+msgid "List"
+msgstr "リスト"
+
+
+msgid "Math"
+msgstr "数式"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "画像を追加"
+
+
+msgid "Relations"
+msgstr "関係"
+
+
+msgid "Rigid Body"
+msgstr "リジッドボディ"
+
+
+msgid "Apply"
+msgstr "適用"
+
+
+msgid "Track"
+msgstr "トラック"
+
+
 msgid "Quick Effects"
 msgstr "クイックエフェクト"
 
@@ -35795,24 +35935,12 @@ msgid "Show/Hide"
 msgstr "表示/隠す"
 
 
-msgid "List"
-msgstr "リスト"
-
-
 msgid "Clean Up"
 msgstr "クリーンアップ"
 
 
-msgid "Math"
-msgstr "数式"
-
-
 msgid "Asset"
 msgstr "アセット"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -35827,24 +35955,8 @@ msgid "Link/Transfer Data"
 msgstr "データのリンク/転送"
 
 
-msgid "Read"
-msgstr "読込"
-
-
-msgid "Write"
-msgstr "書込"
-
-
 msgid "Hooks"
 msgstr "フック"
-
-
-msgid "Sample"
-msgstr "サンプル"
-
-
-msgid "Primitives"
-msgstr "プリミティブ"
 
 
 msgid "Vertex Group Locks"
@@ -35887,10 +35999,6 @@ msgid "Names"
 msgstr "名前"
 
 
-msgid "Apply"
-msgstr "適用"
-
-
 msgid "Toggle Bone Options"
 msgstr "ボーンオプションを切り替え"
 
@@ -35919,28 +36027,12 @@ msgid "Set Face Strength"
 msgstr "面の強さを設定"
 
 
-msgid "Merge"
-msgstr "マージ"
-
-
-msgid "Special Characters"
-msgstr "特殊文字"
-
-
-msgid "Kerning"
-msgstr "カーニング"
-
-
 msgid "Layout"
 msgstr "レイアウト"
 
 
-msgid "Metaball"
-msgstr "メタボール"
-
-
-msgid "Bone Roll"
-msgstr "ボーンロール"
+msgid "Merge"
+msgstr "マージ"
 
 
 msgid "Adjust"
@@ -35951,28 +36043,32 @@ msgid "Keying"
 msgstr "キーイング"
 
 
-msgid "Tracking"
-msgstr "トラッキング"
+msgid "Special Characters"
+msgstr "特殊文字"
 
 
 msgid "Render Preview"
 msgstr "レンダープレビュー"
 
 
-msgid "Utilities"
-msgstr "ユーティリティ"
+msgid "Kerning"
+msgstr "カーニング"
 
 
-msgid "Pivot Point"
-msgstr "ピボットポイント"
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Creative"
 msgstr "クリエイティブ"
 
 
-msgid "Snap"
-msgstr "スナップ"
+msgid "Bone Roll"
+msgstr "ボーンロール"
+
+
+msgid "Pivot Point"
+msgstr "ピボットポイント"
 
 
 msgid "Proportional Editing Falloff"
@@ -35989,102 +36085,6 @@ msgstr "自動マスク"
 
 msgid "Face Sets Edit"
 msgstr "面セット編集"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
-
-
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
-
-
-msgid "Select Linked"
-msgstr "リンク選択"
-
-
-msgid "Select Loops"
-msgstr "ループ選択"
-
-
-msgid "Assign Material"
-msgstr "マテリアルを割り当て"
-
-
-msgid "Light"
-msgstr "ライト"
-
-
-msgid "Light Probe"
-msgstr "ライトプローブ"
-
-
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
-msgid "Add Image"
-msgstr "画像を追加"
-
-
-msgid "Relations"
-msgstr "関係"
-
-
-msgid "Import"
-msgstr "インポート"
-
-
-msgid "Rigid Body"
-msgstr "リジッドボディ"
-
-
-msgid "Deprecated"
-msgstr "廃止予定"
-
-
-msgid "Track"
-msgstr "トラック"
 
 
 msgid "Keyframe Insert Pie"
@@ -93656,32 +93656,8 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR情報"
-
-
-msgid "Active Tool"
-msgstr "アクティブツール"
-
-
-msgid "View Lock"
-msgstr "ビューのロック"
-
-
 msgid "Selectability & Visibility"
 msgstr "選択可否と可視性"
-
-
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
 
 
 msgid "Shadow Settings"
@@ -93722,14 +93698,6 @@ msgstr "モーショントラッキング"
 
 msgid "Mesh Edit Mode"
 msgstr "メッシュ編集モード"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTFアニメーション"
 
 
 msgid "Measurement"
@@ -93794,6 +93762,38 @@ msgstr "カーブスケールを拡大/収縮"
 
 msgid "Viewport Debug"
 msgstr "ビューポートデバッグ"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR情報"
+
+
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTFアニメーション"
+
+
+msgid "Active Tool"
+msgstr "アクティブツール"
+
+
+msgid "View Lock"
+msgstr "ビューのロック"
 
 
 msgid "Import Settings"
@@ -99125,16 +99125,8 @@ msgid "Catalan - Català"
 msgstr "カタロニア語 - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "ロケールコード：ca_AD．翻訳の進行状況: 100％"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "簡体字中国語 - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "ロケールコード：zh_HANS．翻訳の進行状況: 100％"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -99209,16 +99201,8 @@ msgid "Georgian - ქართული"
 msgstr "ジョージア語 - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "ロケールコード：ka．翻訳の進行状況: 100％"
-
-
 msgid "German - Deutsch"
 msgstr "ドイツ語 - Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 37%"
-msgstr "ロケールコード：de_DE．翻訳の進行状況: 37％"
 
 
 msgid "Greek - Ελληνικά"
@@ -99277,10 +99261,6 @@ msgid "Korean - 한국어"
 msgstr "韓国語 - 한국어"
 
 
-msgid "Locale code: ko_KR. Translation progress: 98%"
-msgstr "ロケールコード：ko_KR．翻訳の進行状況: 98％"
-
-
 msgid "Kyrgyz - Кыргыз тили"
 msgstr "キルギス語 - Кыргыз тили"
 
@@ -99325,10 +99305,6 @@ msgid "Polish - Polski"
 msgstr "ポーランド語 - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "ロケールコード：pl_PL．翻訳の進行状況: 100％"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "ポルトガル（ブラジル）語 - Português brasileiro"
 
@@ -99341,10 +99317,6 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "ポルトガル語 - Português europeu"
 
 
-msgid "Locale code: pt_PT. Translation progress: 78%"
-msgstr "ロケールコード：pt_PT．翻訳の進行状況: 78％"
-
-
 msgid "Romanian - Român"
 msgstr "ルーマニア語 - Român"
 
@@ -99355,10 +99327,6 @@ msgstr "ロケールコード：ro_RO．翻訳の進行状況: 2％"
 
 msgid "Russian - Русский"
 msgstr "ロシア語 - Русский"
-
-
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "ロケールコード：ru_RU．翻訳の進行状況: 100％"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -99381,24 +99349,12 @@ msgid "Slovak - Slovenčina"
 msgstr "スロバキア語 - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "ロケールコード：sk_SK．翻訳の進行状況: 100％"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "スロべニア語 - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 51%"
-msgstr "ロケールコード：sl．翻訳の進行状況: 51％"
-
-
 msgid "Spanish - Español"
 msgstr "スペイン語 - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "ロケールコード：es．翻訳の進行状況: 100％"
 
 
 msgid "Swahili - Kiswahili"
@@ -99417,10 +99373,6 @@ msgid "Tamil - தமிழ்"
 msgstr "タミル語 - தமிழ்"
 
 
-msgid "Locale code: ta. Translation progress: 100%"
-msgstr "ロケールコード：ta．翻訳の進行状況: 100％"
-
-
 msgid "Thai - ภาษาไทย"
 msgstr "タイ語 - ภาษาไทย"
 
@@ -99433,24 +99385,12 @@ msgid "Turkish - Türkçe"
 msgstr "トルコ語 - Türkçe"
 
 
-msgid "Locale code: tr_TR. Translation progress: 78%"
-msgstr "ロケールコード：tr_TR．翻訳の進行状況: 78％"
-
-
 msgid "Ukrainian - Українська"
 msgstr "ウクライナ語 - Українська"
 
 
-msgid "Locale code: uk_UA. Translation progress: 57%"
-msgstr "ロケールコード：uk_UA．翻訳の進行状況: 57％"
-
-
 msgid "Urdu - وُدرُا"
 msgstr "ウルドゥー語 - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 86%"
-msgstr "ロケールコード：ur．翻訳の進行状況: 86％"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -136519,10 +136459,6 @@ msgstr "数値にしてください"
 
 msgid "Paste expected 3 numbers, formatted: '[n, n, n]'"
 msgstr "'[n, n, n]' の形の3つの数値を貼り付けてください"
-
-
-msgid "Paste expected 4 numbers, formatted: '[n, n, n, n]'"
-msgstr "'[n, n, n, n]' の形の4つの数値を貼り付けてください"
 
 
 msgid "Unsupported key: Unknown"

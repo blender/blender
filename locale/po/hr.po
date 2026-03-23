@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 11:01+0000\n"
-"PO-Revision-Date: 2026-03-11 21:12+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
+"PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Karlo Pavicic <soulcreature@hotmail.com>\n"
 "Language-Team: Croatian <https://translate.blender.org/projects/blender-ui/ui/hr/>\n"
 "Language: hr\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 5.15.2"
+"X-Generator: Weblate 5.16.2"
 
 
 msgid "Name"
@@ -104,6 +104,11 @@ msgstr "Krivulje"
 msgctxt "ID"
 msgid "Font"
 msgstr "Font"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
 
 
 msgctxt "ID"
@@ -397,6 +402,10 @@ msgid "View"
 msgstr "Pregled"
 
 
+msgid "Output"
+msgstr "Ispis"
+
+
 msgid "Cursor"
 msgstr "Kursor"
 
@@ -437,8 +446,28 @@ msgid "Animations"
 msgstr "Animacije"
 
 
+msgid "End"
+msgstr "Kraj"
+
+
+msgid "Start"
+msgstr "Početak"
+
+
 msgid "Collection"
 msgstr "Kolekcija"
+
+
+msgid "Front (X-Z)"
+msgstr "Nacrt (X-Z)"
+
+
+msgid "Side (Y-Z)"
+msgstr "Bokocrt (Y-Z)"
+
+
+msgid "Top (X-Y)"
+msgstr "Tlocrt (X-Y)"
 
 
 msgid "Line Width"
@@ -449,9 +478,19 @@ msgid "Window"
 msgstr "Prozor"
 
 
+msgctxt "Brush"
+msgid "Bend"
+msgstr "Savij"
+
+
 msgctxt "Curve"
 msgid "Sphere"
 msgstr "Sfera"
+
+
+msgctxt "Brush"
+msgid "Erase"
+msgstr "Brisanje"
 
 
 msgid "Face Sets"
@@ -520,6 +559,33 @@ msgid "Cube"
 msgstr "Kocka"
 
 
+msgctxt "Material"
+msgid "Hair"
+msgstr "Kosa"
+
+
+msgid "Hair strands"
+msgstr "Dlake"
+
+
+msgctxt "Material"
+msgid "Cloth"
+msgstr "Tkanina"
+
+
+msgid "Cloth"
+msgstr "Tkanina"
+
+
+msgctxt "Material"
+msgid "Fluid"
+msgstr "Tekućina"
+
+
+msgid "Refraction Depth"
+msgstr "Dubina refrakcije"
+
+
 msgid "Vertex Colors"
 msgstr "Boje vrhova"
 
@@ -546,6 +612,18 @@ msgstr "Bojanje vrhova"
 
 msgid "Texture Paint"
 msgstr "Teksturiranje"
+
+
+msgid "3D Cursor"
+msgstr "3D kursor"
+
+
+msgid "EEVEE"
+msgstr "EEVEE"
+
+
+msgid "EEVEE settings for the scene"
+msgstr "EEVEE scenske postavke"
 
 
 msgid "Normal Map"
@@ -598,6 +676,10 @@ msgstr "Najbliži vrh brida"
 
 msgid "Origin"
 msgstr "Ishodište"
+
+
+msgid "Only Faces"
+msgstr "Samo lica"
 
 
 msgid "UV Sphere"
@@ -822,6 +904,16 @@ msgstr "Spremi kao"
 
 
 msgctxt "Operator"
+msgid "Set 3D Cursor"
+msgstr "Postavljanje 3D kursora"
+
+
+msgctxt "Operator"
+msgid "Rotate View"
+msgstr "Rotiranje prikaza"
+
+
+msgctxt "Operator"
 msgid "Open"
 msgstr "Otvori"
 
@@ -861,6 +953,10 @@ msgid "New Main Window"
 msgstr "Kreiraj kopiju glavnog prozora"
 
 
+msgid "Drawing Plane"
+msgstr "Crtača ploha"
+
+
 msgctxt "Operator"
 msgid "Annotate"
 msgstr "Označavanje"
@@ -884,6 +980,10 @@ msgstr "Brisanje oznaka"
 msgctxt "Operator"
 msgid "Cursor"
 msgstr "Kursor"
+
+
+msgid "Shadows"
+msgstr "Sjene"
 
 
 msgctxt "WindowManager"
@@ -964,6 +1064,10 @@ msgid "Shading settings for OpenGL render engine"
 msgstr "Postavke sjenčanja za OpenGL render engine"
 
 
+msgid "Shadows Resolution Scale"
+msgstr "Veličina rezolucije sjena"
+
+
 msgctxt "ID"
 msgid "Render"
 msgstr "Renderiranje"
@@ -975,6 +1079,10 @@ msgstr "Postavke renderiranja"
 
 msgid "Speaker"
 msgstr "Zvučnik"
+
+
+msgid "Display 2D cursor"
+msgstr "Prikaži 2D kursor"
 
 
 msgctxt "Sequence"
@@ -1125,6 +1233,10 @@ msgid "Search..."
 msgstr "Pretraživanje..."
 
 
+msgid "Display Cursor"
+msgstr "Prikaži kursor"
+
+
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Spremi kao..."
@@ -1148,6 +1260,11 @@ msgstr "Lice"
 msgctxt "Collection"
 msgid "New"
 msgstr "Nova"
+
+
+msgctxt "Operator"
+msgid "Save Copy..."
+msgstr "Spremi kopiju..."
 
 
 msgctxt "Operator"
@@ -1193,11 +1310,6 @@ msgstr "Postavke..."
 msgctxt "Operator"
 msgid "Save Screenshot..."
 msgstr "Spremi snimku zaslona..."
-
-
-msgctxt "Operator"
-msgid "Save Copy..."
-msgstr "Spremi kopiju..."
 
 
 msgid "More..."

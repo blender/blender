@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2026-02-19 06:12+0000\n"
 "Last-Translator: Yegoun Lee <yegoeun.lee@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -34911,6 +34911,146 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Write"
+msgstr "쓰기"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "List"
+msgstr "목록"
+
+
+msgid "Math"
+msgstr "수학"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
 
@@ -34919,24 +35059,12 @@ msgid "Show/Hide"
 msgstr "표시/숨기기"
 
 
-msgid "List"
-msgstr "목록"
-
-
 msgid "Clean Up"
 msgstr "정리"
 
 
-msgid "Math"
-msgstr "수학"
-
-
 msgid "Asset"
 msgstr "에셋"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -34951,24 +35079,8 @@ msgid "Link/Transfer Data"
 msgstr "데이터 연결/전송"
 
 
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
 msgid "Hooks"
 msgstr "후크"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
 
 
 msgid "Vertex Group Locks"
@@ -35011,10 +35123,6 @@ msgid "Names"
 msgstr "이름"
 
 
-msgid "Apply"
-msgstr "적용"
-
-
 msgid "Toggle Bone Options"
 msgstr "뼈대 옵션을 토글"
 
@@ -35043,28 +35151,12 @@ msgid "Set Face Strength"
 msgstr "페이스 강도를 설정"
 
 
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
 msgid "Layout"
 msgstr "레이아웃"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Bone Roll"
-msgstr "뼈대 롤"
+msgid "Merge"
+msgstr "병합"
 
 
 msgid "Adjust"
@@ -35075,28 +35167,32 @@ msgid "Keying"
 msgstr "키잉"
 
 
-msgid "Tracking"
-msgstr "트래킹"
+msgid "Special Characters"
+msgstr "특수 문자"
 
 
 msgid "Render Preview"
 msgstr "렌더링 미리보기"
 
 
-msgid "Utilities"
-msgstr "유틸리티"
+msgid "Kerning"
+msgstr "자간"
 
 
-msgid "Pivot Point"
-msgstr "피벗 포인트"
+msgid "Tracking"
+msgstr "트래킹"
 
 
 msgid "Creative"
 msgstr "크리에이티브"
 
 
-msgid "Snap"
-msgstr "스냅"
+msgid "Bone Roll"
+msgstr "뼈대 롤"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
 
 
 msgid "Proportional Editing Falloff"
@@ -35113,102 +35209,6 @@ msgstr "오토마스킹"
 
 msgid "Face Sets Edit"
 msgstr "페이스 세트 편집"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Import"
-msgstr "가져오기"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
-msgid "Track"
-msgstr "트랙"
 
 
 msgid "Keyframe Insert Pie"
@@ -90782,32 +90782,8 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
-
-
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
 msgid "Selectability & Visibility"
 msgstr "선택성 및 가시성"
-
-
-msgid "glTF Variants"
-msgstr "glTF 변형"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 머티리얼 배리언트"
 
 
 msgid "Shadow Settings"
@@ -90848,14 +90824,6 @@ msgstr "모션 트래킹"
 
 msgid "Mesh Edit Mode"
 msgstr "메시 에디트 모드"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 애니메이션"
 
 
 msgid "Measurement"
@@ -90920,6 +90888,38 @@ msgstr "커브 성장/축소 스케일링"
 
 msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
+
+
+msgid "glTF Variants"
+msgstr "glTF 변형"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 머티리얼 배리언트"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 애니메이션"
+
+
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
 
 
 msgid "Import Settings"
@@ -96071,16 +96071,8 @@ msgid "Catalan - Català"
 msgstr "카탈루냐어 - 카탈루냐어"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "로캘 코드: ca_AD. 번역 진행률: 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "중국어(간체) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "로캘 코드: zh_HANS. 번역 진행률: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -96143,16 +96135,8 @@ msgid "Georgian - ქართული"
 msgstr "그루지야어 - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "로캘 코드: ka. 번역 진행률: 100%"
-
-
 msgid "German - Deutsch"
 msgstr "독일어 - Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 37%"
-msgstr "로캘 코드: de_DE. 번역 진행률: 37%"
 
 
 msgid "Greek - Ελληνικά"
@@ -96259,10 +96243,6 @@ msgid "Russian - Русский"
 msgstr "러시아어 - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "로캘 코드: ru_RU. 번역 진행률: 100%"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "세르비아어(키릴어) - Српски"
 
@@ -96283,20 +96263,12 @@ msgid "Slovak - Slovenčina"
 msgstr "슬로바키아어 - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "로캘 코드: sk_SK. 번역 진행률: 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "슬로베니아어 - Slovenščina"
 
 
 msgid "Spanish - Español"
 msgstr "스페인어 - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "로캘 코드: es. 번역 진행률: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -132058,10 +132030,6 @@ msgstr "예상 숫자"
 
 msgid "Paste expected 3 numbers, formatted: '[n, n, n]'"
 msgstr "예상 숫자 3개 붙여넣기 형식: '[n, n, n]'"
-
-
-msgid "Paste expected 4 numbers, formatted: '[n, n, n, n]'"
-msgstr "예상 숫자 4개 붙여넣기 형식: '[n, n, n, n]'"
 
 
 msgid "Unsupported key: Unknown"

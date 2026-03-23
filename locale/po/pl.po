@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2026-03-16 10:00+0000\n"
 "Last-Translator: Paweł Mazur <pawelmazur.zam@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -35206,6 +35206,146 @@ msgid "Editor menu containing buttons"
 msgstr "Menu edytora zawierające przyciski"
 
 
+msgid "Mirror"
+msgstr "Lustro"
+
+
+msgid "Snap"
+msgstr "Przyciągaj"
+
+
+msgid "UV Mapping"
+msgstr "Mapowanie UV"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Read"
+msgstr "Odczyt"
+
+
+msgid "Viewpoint"
+msgstr "Punkt widzenia"
+
+
+msgid "Sample"
+msgstr "Próbka"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Write"
+msgstr "Napisz"
+
+
+msgid "Align View"
+msgstr "Wyrównaj widok"
+
+
+msgid "Align View to Active"
+msgstr "Wyrównaj widok do aktywnego"
+
+
+msgid "Primitives"
+msgstr "Prymitywy"
+
+
+msgid "View Regions"
+msgstr "Wyświetl regiony"
+
+
+msgid "Select More/Less"
+msgstr "Wybierz więcej / mniej"
+
+
+msgid "Select Similar"
+msgstr "Wybierz podobne"
+
+
+msgid "Select All by Trait"
+msgstr "Wybierz wszystko według cechy"
+
+
+msgid "Select Linked"
+msgstr "Wybierz połączone"
+
+
+msgid "Select Loops"
+msgstr "Wybierz pętle"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instancje"
+
+
+msgid "Assign Material"
+msgstr "Przypisz materiał"
+
+
+msgid "Import"
+msgstr "Importuj"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Deprecated"
+msgstr "Przestarzałe"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "List"
+msgstr "Lista"
+
+
+msgid "Math"
+msgstr "Matematyka"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "Dodaj obraz"
+
+
+msgid "Relations"
+msgstr "Relacje"
+
+
+msgid "Rigid Body"
+msgstr "Ciało sztywne"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
 msgid "Quick Effects"
 msgstr "Szybkie efekty"
 
@@ -35214,24 +35354,12 @@ msgid "Show/Hide"
 msgstr "Pokaż / ukryj"
 
 
-msgid "List"
-msgstr "Lista"
-
-
 msgid "Clean Up"
 msgstr "Oczyść"
 
 
-msgid "Math"
-msgstr "Matematyka"
-
-
 msgid "Asset"
 msgstr "Zasób"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -35246,24 +35374,8 @@ msgid "Link/Transfer Data"
 msgstr "Łącze / transfer danych"
 
 
-msgid "Read"
-msgstr "Odczyt"
-
-
-msgid "Write"
-msgstr "Napisz"
-
-
 msgid "Hooks"
 msgstr "Haki"
-
-
-msgid "Sample"
-msgstr "Próbka"
-
-
-msgid "Primitives"
-msgstr "Prymitywy"
 
 
 msgid "Vertex Group Locks"
@@ -35306,10 +35418,6 @@ msgid "Names"
 msgstr "Nazwy"
 
 
-msgid "Apply"
-msgstr "Zastosuj"
-
-
 msgid "Toggle Bone Options"
 msgstr "Przełącz opcje kości"
 
@@ -35338,28 +35446,12 @@ msgid "Set Face Strength"
 msgstr "Ustaw siłę lica"
 
 
-msgid "Merge"
-msgstr "Scal"
-
-
-msgid "Special Characters"
-msgstr "Znaki specjalne"
-
-
-msgid "Kerning"
-msgstr "Odstęp między literami"
-
-
 msgid "Layout"
 msgstr "Układ"
 
 
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Bone Roll"
-msgstr "Rolka kości"
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Adjust"
@@ -35370,28 +35462,32 @@ msgid "Keying"
 msgstr "Kluczowanie"
 
 
-msgid "Tracking"
-msgstr "Śledzenie"
+msgid "Special Characters"
+msgstr "Znaki specjalne"
 
 
 msgid "Render Preview"
 msgstr "Podgląd renderowania"
 
 
-msgid "Utilities"
-msgstr "Narzędzia"
+msgid "Kerning"
+msgstr "Odstęp między literami"
 
 
-msgid "Pivot Point"
-msgstr "Punkt obrotu"
+msgid "Tracking"
+msgstr "Śledzenie"
 
 
 msgid "Creative"
 msgstr "Twórczy"
 
 
-msgid "Snap"
-msgstr "Przyciągaj"
+msgid "Bone Roll"
+msgstr "Rolka kości"
+
+
+msgid "Pivot Point"
+msgstr "Punkt obrotu"
 
 
 msgid "Proportional Editing Falloff"
@@ -35408,102 +35504,6 @@ msgstr "Automatyczne maskowanie"
 
 msgid "Face Sets Edit"
 msgstr "Edytuj zestawy lica"
-
-
-msgid "Mirror"
-msgstr "Lustro"
-
-
-msgid "UV Mapping"
-msgstr "Mapowanie UV"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt widzenia"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Align View"
-msgstr "Wyrównaj widok"
-
-
-msgid "Align View to Active"
-msgstr "Wyrównaj widok do aktywnego"
-
-
-msgid "View Regions"
-msgstr "Wyświetl regiony"
-
-
-msgid "Select More/Less"
-msgstr "Wybierz więcej / mniej"
-
-
-msgid "Select Similar"
-msgstr "Wybierz podobne"
-
-
-msgid "Select All by Trait"
-msgstr "Wybierz wszystko według cechy"
-
-
-msgid "Select Linked"
-msgstr "Wybierz połączone"
-
-
-msgid "Select Loops"
-msgstr "Wybierz pętle"
-
-
-msgid "Assign Material"
-msgstr "Przypisz materiał"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instancje"
-
-
-msgid "Add Image"
-msgstr "Dodaj obraz"
-
-
-msgid "Relations"
-msgstr "Relacje"
-
-
-msgid "Import"
-msgstr "Importuj"
-
-
-msgid "Rigid Body"
-msgstr "Ciało sztywne"
-
-
-msgid "Deprecated"
-msgstr "Przestarzałe"
-
-
-msgid "Track"
-msgstr "Ścieżka"
 
 
 msgid "Keyframe Insert Pie"
@@ -92502,32 +92502,8 @@ msgid "Panel containing UI elements"
 msgstr "Panel zawierający elementy interfejsu użytkownika"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Informacje o VR"
-
-
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
-
-
-msgid "View Lock"
-msgstr "Widok blokady"
-
-
 msgid "Selectability & Visibility"
 msgstr "Selektowalność i widoczność"
-
-
-msgid "glTF Variants"
-msgstr "Warianty glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Warianty materiałów glTF"
 
 
 msgid "Shadow Settings"
@@ -92568,14 +92544,6 @@ msgstr "Śledzenie ruchu"
 
 msgid "Mesh Edit Mode"
 msgstr "Tryb edycji siatki"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacje glTF"
 
 
 msgid "Measurement"
@@ -92640,6 +92608,38 @@ msgstr "Skalowanie krzywych wzrostu / kurczenia"
 
 msgid "Viewport Debug"
 msgstr "Debugowanie rzutni"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Informacje o VR"
+
+
+msgid "glTF Variants"
+msgstr "Warianty glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Warianty materiałów glTF"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacje glTF"
+
+
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
+
+
+msgid "View Lock"
+msgstr "Widok blokady"
 
 
 msgid "Import Settings"
@@ -97859,16 +97859,8 @@ msgid "Catalan - Català"
 msgstr "Kataloński - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Kod regionalny: ca_AD. Postęp tłumaczenia: 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chiński (uproszczony) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Kod regionalny: zh_HANS. Postęp tłumaczenia: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -97939,24 +97931,12 @@ msgid "French - Français"
 msgstr "Francuski - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 100%"
-msgstr "Kod regionalny: fr_FR. Postęp tłumaczenia: 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Gruziński - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Kod regionalny: ka. Postęp tłumaczenia: 100%"
-
-
 msgid "German - Deutsch"
 msgstr "Niemiecki - Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 37%"
-msgstr "Kod regionalny: de_DE. Postęp tłumaczenia: 37%"
 
 
 msgid "Greek - Ελληνικά"
@@ -98011,16 +97991,8 @@ msgid "Japanese - 日本語"
 msgstr "Japoński - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 100%"
-msgstr "Kod regionalny: ja_JP. Postęp tłumaczenia: 100%"
-
-
 msgid "Korean - 한국어"
 msgstr "Koreański - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 98%"
-msgstr "Kod regionalny: ko_KR. Postęp tłumaczenia: 98%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98067,10 +98039,6 @@ msgid "Polish - Polski"
 msgstr "Polski - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Kod regionalny: pl_PL. Postęp tłumaczenia: 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugalski (Brazylia) – Português brasileiro"
 
@@ -98083,10 +98051,6 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugalski (Portugalia) - Português europeu"
 
 
-msgid "Locale code: pt_PT. Translation progress: 78%"
-msgstr "Kod regionalny: pt_PT. Postęp tłumaczenia: 78%"
-
-
 msgid "Romanian - Român"
 msgstr "Rumuński - Român"
 
@@ -98097,10 +98061,6 @@ msgstr "Kod regionalny: ro_RO. Postęp tłumaczenia: 2%"
 
 msgid "Russian - Русский"
 msgstr "Rosyjski - Русский"
-
-
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Kod regionalny: ru_RU. Postęp tłumaczenia: 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -98123,24 +98083,12 @@ msgid "Slovak - Slovenčina"
 msgstr "Słowacki - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Kod regionalny: sk_SK. Postęp tłumaczenia: 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Słoweński - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 51%"
-msgstr "Kod regionalny: sl. Postęp tłumaczenia: 51%"
-
-
 msgid "Spanish - Español"
 msgstr "Hiszpański - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Kod regionalny: es. Postęp tłumaczenia: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -98155,16 +98103,8 @@ msgid "Swedish - Svenska"
 msgstr "Szwedzki - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 100%"
-msgstr "Kod regionalny: sv_SE. Postęp tłumaczenia: 100%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamilski - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 100%"
-msgstr "Kod regionalny: ka. Postęp tłumaczenia: 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -98179,24 +98119,12 @@ msgid "Turkish - Türkçe"
 msgstr "Turecki - Türkçe"
 
 
-msgid "Locale code: tr_TR. Translation progress: 78%"
-msgstr "Kod regionalny: tr_TR. Postęp tłumaczenia: 78%"
-
-
 msgid "Ukrainian - Українська"
 msgstr "Ukraiński - Українська"
 
 
-msgid "Locale code: uk_UA. Translation progress: 57%"
-msgstr "Kod regionalny: uk_UA. Postęp tłumaczenia: 57%"
-
-
 msgid "Urdu - وُدرُا"
 msgstr "Urdu - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 86%"
-msgstr "Kod regionalny: ur. Postęp tłumaczenia: 86%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -134971,10 +134899,6 @@ msgstr "Oczekiwano liczby"
 
 msgid "Paste expected 3 numbers, formatted: '[n, n, n]'"
 msgstr "Wklej oczekiwane 3 liczby w formacie: „[n, n, n]”"
-
-
-msgid "Paste expected 4 numbers, formatted: '[n, n, n, n]'"
-msgstr "Wklej oczekiwane 4 liczby w formacie: „[n, n, n, n]”"
 
 
 msgid "Unsupported key: Unknown"

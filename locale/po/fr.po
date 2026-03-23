@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2026-03-11 21:12+0000\n"
 "Last-Translator: Alexandr Fatih <radix83@rambler.ru>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -35206,6 +35206,146 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
+msgid "Mirror"
+msgstr "Miroir"
+
+
+msgid "Snap"
+msgstr "Aimanter"
+
+
+msgid "UV Mapping"
+msgstr "Placage UV"
+
+
+msgid "Local View"
+msgstr "Vue locale"
+
+
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Viewpoint"
+msgstr "Point de vue"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Write"
+msgstr "Écriture"
+
+
+msgid "Align View"
+msgstr "Aligner la vue"
+
+
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "View Regions"
+msgstr "Régions dans la vue"
+
+
+msgid "Select More/Less"
+msgstr "Sélectionner plus ou moins"
+
+
+msgid "Select Similar"
+msgstr "Sélectionner similaires"
+
+
+msgid "Select All by Trait"
+msgstr "Tout sélectionner par caractéristiques"
+
+
+msgid "Select Linked"
+msgstr "Sélectionner liés"
+
+
+msgid "Select Loops"
+msgstr "Sélectionner les boucles"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Assign Material"
+msgstr "Assigner un matériau"
+
+
+msgid "Import"
+msgstr "Importer"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Deprecated"
+msgstr "Obsolète"
+
+
+msgid "Light"
+msgstr "Éclairage"
+
+
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
+
+
+msgid "List"
+msgstr "Liste"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "Ajouter une image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Corps rigide"
+
+
+msgid "Apply"
+msgstr "Appliquer"
+
+
+msgid "Track"
+msgstr "Suivi"
+
+
 msgid "Quick Effects"
 msgstr "Effets rapides"
 
@@ -35214,24 +35354,12 @@ msgid "Show/Hide"
 msgstr "Afficher/cacher"
 
 
-msgid "List"
-msgstr "Liste"
-
-
 msgid "Clean Up"
 msgstr "Nettoyer"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Asset"
 msgstr "Asset"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -35246,24 +35374,8 @@ msgid "Link/Transfer Data"
 msgstr "Lier/transférer des données"
 
 
-msgid "Read"
-msgstr "Lecture"
-
-
-msgid "Write"
-msgstr "Écriture"
-
-
 msgid "Hooks"
 msgstr "Crochets"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "Vertex Group Locks"
@@ -35306,10 +35418,6 @@ msgid "Names"
 msgstr "Noms"
 
 
-msgid "Apply"
-msgstr "Appliquer"
-
-
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
 
@@ -35338,28 +35446,12 @@ msgid "Set Face Strength"
 msgstr "Définir la force de face"
 
 
-msgid "Merge"
-msgstr "Fusionner"
-
-
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
 msgid "Layout"
 msgstr "Disposition"
 
 
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
+msgid "Merge"
+msgstr "Fusionner"
 
 
 msgid "Adjust"
@@ -35370,28 +35462,32 @@ msgid "Keying"
 msgstr "Incrustation"
 
 
-msgid "Tracking"
-msgstr "Suivi"
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
 
 
 msgid "Render Preview"
 msgstr "Rendu de prévisualisation"
 
 
-msgid "Utilities"
-msgstr "Utilitaires"
+msgid "Kerning"
+msgstr "Approche"
 
 
-msgid "Pivot Point"
-msgstr "Point de pivot"
+msgid "Tracking"
+msgstr "Suivi"
 
 
 msgid "Creative"
 msgstr "Créatif"
 
 
-msgid "Snap"
-msgstr "Aimanter"
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
+
+
+msgid "Pivot Point"
+msgstr "Point de pivot"
 
 
 msgid "Proportional Editing Falloff"
@@ -35408,102 +35504,6 @@ msgstr "Masquage auto"
 
 msgid "Face Sets Edit"
 msgstr "Édition des ensembles de faces"
-
-
-msgid "Mirror"
-msgstr "Miroir"
-
-
-msgid "UV Mapping"
-msgstr "Placage UV"
-
-
-msgid "Local View"
-msgstr "Vue locale"
-
-
-msgid "Viewpoint"
-msgstr "Point de vue"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Aligner la vue"
-
-
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
-
-
-msgid "View Regions"
-msgstr "Régions dans la vue"
-
-
-msgid "Select More/Less"
-msgstr "Sélectionner plus ou moins"
-
-
-msgid "Select Similar"
-msgstr "Sélectionner similaires"
-
-
-msgid "Select All by Trait"
-msgstr "Tout sélectionner par caractéristiques"
-
-
-msgid "Select Linked"
-msgstr "Sélectionner liés"
-
-
-msgid "Select Loops"
-msgstr "Sélectionner les boucles"
-
-
-msgid "Assign Material"
-msgstr "Assigner un matériau"
-
-
-msgid "Light"
-msgstr "Éclairage"
-
-
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Add Image"
-msgstr "Ajouter une image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Import"
-msgstr "Importer"
-
-
-msgid "Rigid Body"
-msgstr "Corps rigide"
-
-
-msgid "Deprecated"
-msgstr "Obsolète"
-
-
-msgid "Track"
-msgstr "Suivi"
 
 
 msgid "Keyframe Insert Pie"
@@ -92505,32 +92505,8 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Infos VR"
-
-
-msgid "Active Tool"
-msgstr "Outil actif"
-
-
-msgid "View Lock"
-msgstr "Verrouillage de la vue"
-
-
 msgid "Selectability & Visibility"
 msgstr "Sélectionnabilité et visibilité"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de matériaux glTF"
 
 
 msgid "Shadow Settings"
@@ -92571,14 +92547,6 @@ msgstr "Suivi de mouvement (motion tracking)"
 
 msgid "Mesh Edit Mode"
 msgstr "Mode édition maillage"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animations glTF"
 
 
 msgid "Measurement"
@@ -92643,6 +92611,38 @@ msgstr "Courbes – échelle pour grandir/raccourcir"
 
 msgid "Viewport Debug"
 msgstr "Débugage vue 3D"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Infos VR"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de matériaux glTF"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animations glTF"
+
+
+msgid "Active Tool"
+msgstr "Outil actif"
+
+
+msgid "View Lock"
+msgstr "Verrouillage de la vue"
 
 
 msgid "Import Settings"
@@ -97862,16 +97862,8 @@ msgid "Catalan - Català"
 msgstr "Catalan - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Identificateur de culture : ca_AD. Progrès de la traduction : 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chinois (Simplifié) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Identificateur de culture : zh_HANS. Progrès de la traduction : 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -97942,24 +97934,12 @@ msgid "French - Français"
 msgstr "Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 100%"
-msgstr "Identificateur de culture : fr_FR. Progrès de la traduction : 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Géorgien - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Identificateur de culture : ka. Progrès de la traduction : 100%"
-
-
 msgid "German - Deutsch"
 msgstr "Allemand - Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 37%"
-msgstr "Identificateur de culture : de_DE. Progrès de la traduction : 37%"
 
 
 msgid "Greek - Ελληνικά"
@@ -98014,16 +97994,8 @@ msgid "Japanese - 日本語"
 msgstr "Japonais - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 100%"
-msgstr "Identificateur de culture : ja_JP. Progrès de la traduction : 100%"
-
-
 msgid "Korean - 한국어"
 msgstr "Coréen - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 98%"
-msgstr "Identificateur de culture : ko_KR. Progrès de la traduction : 98%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98070,10 +98042,6 @@ msgid "Polish - Polski"
 msgstr "Polonais - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Identificateur de culture : pl_PL. Progrès de la traduction : 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugais (Brésil) - Português brasileiro"
 
@@ -98086,10 +98054,6 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugais (Portugal) - Português europeu"
 
 
-msgid "Locale code: pt_PT. Translation progress: 78%"
-msgstr "Identificateur de culture : pt_PT. Progrès de la traduction : 78%"
-
-
 msgid "Romanian - Român"
 msgstr "Roumain - Român"
 
@@ -98100,10 +98064,6 @@ msgstr "Identificateur de culture : ro_RO. Progrès de la traduction : 2%"
 
 msgid "Russian - Русский"
 msgstr "Russe - Русский"
-
-
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Identificateur de culture : ru_RU. Progrès de la traduction : 100%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -98126,24 +98086,12 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovaque - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Identificateur de culture : sk_SK. Progrès de la traduction : 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Slovène - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 51%"
-msgstr "Identificateur de culture : sl. Progrès de la traduction : 51%"
-
-
 msgid "Spanish - Español"
 msgstr "Espagnol - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Identificateur de culture : es. Progrès de la traduction : 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -98158,16 +98106,8 @@ msgid "Swedish - Svenska"
 msgstr "Suédois - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 100%"
-msgstr "Identificateur de culture : sv_SE. Progrès de la traduction : 100%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamoul - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 100%"
-msgstr "Identificateur de culture : ta. Progrès de la traduction : 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -98182,24 +98122,12 @@ msgid "Turkish - Türkçe"
 msgstr "Turc - Türkçe"
 
 
-msgid "Locale code: tr_TR. Translation progress: 78%"
-msgstr "Identificateur de culture : tr_TR. Progrès de la traduction : 78%"
-
-
 msgid "Ukrainian - Українська"
 msgstr "Ukrainien - Українська"
 
 
-msgid "Locale code: uk_UA. Translation progress: 57%"
-msgstr "Identificateur de culture : uk_UA. Progrès de la traduction : 57%"
-
-
 msgid "Urdu - وُدرُا"
 msgstr "Ourdou - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 86%"
-msgstr "Identificateur de culture : ur. Progrès de la traduction : 86%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -134974,10 +134902,6 @@ msgstr "Un nombre était attendu"
 
 msgid "Paste expected 3 numbers, formatted: '[n, n, n]'"
 msgstr "Le collage attendait 3 nombres, formattés : « [n, n, n] »"
-
-
-msgid "Paste expected 4 numbers, formatted: '[n, n, n, n]'"
-msgstr "Le collage attendait 4 nombres, formattés : « [n, n, n, n] »"
 
 
 msgid "Unsupported key: Unknown"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -35068,6 +35068,146 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "List"
+msgstr "List"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Track"
+msgstr "Track"
+
+
 msgid "Quick Effects"
 msgstr "Quick Effects"
 
@@ -35076,24 +35216,12 @@ msgid "Show/Hide"
 msgstr "Show/Hide"
 
 
-msgid "List"
-msgstr "List"
-
-
 msgid "Clean Up"
 msgstr "Clean Up"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Asset"
 msgstr "Asset"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -35108,24 +35236,8 @@ msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
 
 
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Write"
-msgstr "Write"
-
-
 msgid "Hooks"
 msgstr "Hooks"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "Vertex Group Locks"
@@ -35168,10 +35280,6 @@ msgid "Names"
 msgstr "Names"
 
 
-msgid "Apply"
-msgstr "Apply"
-
-
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
 
@@ -35200,28 +35308,12 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
+msgid "Merge"
+msgstr "Merge"
 
 
 msgid "Adjust"
@@ -35232,28 +35324,32 @@ msgid "Keying"
 msgstr "Keying"
 
 
-msgid "Tracking"
-msgstr "Tracking"
+msgid "Special Characters"
+msgstr "Special Characters"
 
 
 msgid "Render Preview"
 msgstr "Render Preview"
 
 
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Kerning"
+msgstr "Kerning"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Point"
+msgid "Tracking"
+msgstr "Tracking"
 
 
 msgid "Creative"
 msgstr "Creative"
 
 
-msgid "Snap"
-msgstr "Snap"
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
 
 
 msgid "Proportional Editing Falloff"
@@ -35270,102 +35366,6 @@ msgstr "Automasking"
 
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Add Image"
-msgstr "Add Image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "Track"
-msgstr "Track"
 
 
 msgid "Keyframe Insert Pie"
@@ -91721,32 +91721,8 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
 msgid "Selectability & Visibility"
 msgstr "Selectability & Visibility"
-
-
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
 
 
 msgid "Shadow Settings"
@@ -91787,14 +91763,6 @@ msgstr "Motion Tracking"
 
 msgid "Mesh Edit Mode"
 msgstr "Mesh Edit Mode"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
 
 
 msgid "Measurement"
@@ -91859,6 +91827,38 @@ msgstr "Curves Grow/Shrink Scaling"
 
 msgid "Viewport Debug"
 msgstr "Viewport Debug"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
+
+
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
+
+
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
 
 
 msgid "Import Settings"
@@ -97058,16 +97058,8 @@ msgid "Catalan - Català"
 msgstr "Catalan - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Locale code: ca_AD. Translation progress: 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chinese (Simplified) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Locale code: zh_HANS. Translation progress: 100%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -97130,16 +97122,8 @@ msgid "Georgian - ქართული"
 msgstr "Georgian - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Locale code: ka. Translation progress: 100%"
-
-
 msgid "German - Deutsch"
 msgstr "German - Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 37%"
-msgstr "Locale code: de_DE. Translation progress: 37%"
 
 
 msgid "Greek - Ελληνικά"
@@ -97250,10 +97234,6 @@ msgid "Russian - Русский"
 msgstr "Russian - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Locale code: ru_RU. Translation progress: 100%"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbian (Cyrillic) - Српски"
 
@@ -97274,20 +97254,12 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovak - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Locale code: sk_SK. Translation progress: 100%"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Slovenian - Slovenščina"
 
 
 msgid "Spanish - Español"
 msgstr "Spanish - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Locale code: es. Translation progress: 100%"
 
 
 msgid "Swahili - Kiswahili"
@@ -97312,10 +97284,6 @@ msgstr "Turkish - Türkçe"
 
 msgid "Ukrainian - Українська"
 msgstr "Ukrainian - Українська"
-
-
-msgid "Locale code: uk_UA. Translation progress: 57%"
-msgstr "Locale code: uk_UA. Translation progress: 57%"
 
 
 msgid "Urdu - وُدرُا"
@@ -133839,10 +133807,6 @@ msgstr "Expected a number"
 
 msgid "Paste expected 3 numbers, formatted: '[n, n, n]'"
 msgstr "Paste expected 3 numbers, formatted: '[n, n, n]'"
-
-
-msgid "Paste expected 4 numbers, formatted: '[n, n, n, n]'"
-msgstr "Paste expected 4 numbers, formatted: '[n, n, n, n]'"
 
 
 msgid "Unsupported key: Unknown"

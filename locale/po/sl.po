@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2026-02-14 12:47+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -25888,6 +25888,146 @@ msgid "Use Material Mask"
 msgstr "Uporabi masko materiala"
 
 
+msgid "Mirror"
+msgstr "Zrcali"
+
+
+msgid "Snap"
+msgstr "Pritrdi"
+
+
+msgid "UV Mapping"
+msgstr "Preslikanje UV"
+
+
+msgid "Local View"
+msgstr "Krajevni pogled"
+
+
+msgid "Read"
+msgstr "Branje"
+
+
+msgid "Viewpoint"
+msgstr "Gledišče"
+
+
+msgid "Sample"
+msgstr "Vzorčenje"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Write"
+msgstr "Zapiši"
+
+
+msgid "Align View"
+msgstr "Poravnava pogleda"
+
+
+msgid "Align View to Active"
+msgstr "Poravnaj pogled na aktivno"
+
+
+msgid "Primitives"
+msgstr "Primitivi"
+
+
+msgid "View Regions"
+msgstr "Področja pogleda"
+
+
+msgid "Select More/Less"
+msgstr "Izberi več / manj"
+
+
+msgid "Select Similar"
+msgstr "Izberi sorodne"
+
+
+msgid "Select All by Trait"
+msgstr "Izberi vse po značilnosti"
+
+
+msgid "Select Linked"
+msgstr "Izberi povezano"
+
+
+msgid "Select Loops"
+msgstr "Izberi zanke"
+
+
+msgid "Gizmo"
+msgstr "Manipulator"
+
+
+msgid "Instances"
+msgstr "Primerki"
+
+
+msgid "Assign Material"
+msgstr "Dodeli material"
+
+
+msgid "Import"
+msgstr "Uvozi"
+
+
+msgid "Utilities"
+msgstr "Pripomočki"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgid "Deprecated"
+msgstr "Zastarelo"
+
+
+msgid "Light"
+msgstr "Luč"
+
+
+msgid "Light Probe"
+msgstr "Svetlobna sonda"
+
+
+msgid "List"
+msgstr "Seznam"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "Dodaj sliko"
+
+
+msgid "Relations"
+msgstr "Razmerja"
+
+
+msgid "Rigid Body"
+msgstr "Togo telo"
+
+
+msgid "Apply"
+msgstr "Uveljavi"
+
+
+msgid "Track"
+msgstr "Obriši"
+
+
 msgid "Quick Effects"
 msgstr "Učinki na hitro"
 
@@ -25896,24 +26036,12 @@ msgid "Show/Hide"
 msgstr "Pokaži / skrij"
 
 
-msgid "List"
-msgstr "Seznam"
-
-
 msgid "Clean Up"
 msgstr "Počisti"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Asset"
 msgstr "Sredstvo"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -25928,24 +26056,8 @@ msgid "Link/Transfer Data"
 msgstr "Poveži / prenesi podatke"
 
 
-msgid "Read"
-msgstr "Branje"
-
-
-msgid "Write"
-msgstr "Zapiši"
-
-
 msgid "Hooks"
 msgstr "Kavlji"
-
-
-msgid "Sample"
-msgstr "Vzorčenje"
-
-
-msgid "Primitives"
-msgstr "Primitivi"
 
 
 msgid "Trim/Add"
@@ -25976,10 +26088,6 @@ msgid "Names"
 msgstr "Imena"
 
 
-msgid "Apply"
-msgstr "Uveljavi"
-
-
 msgid "Face Data"
 msgstr "Podatki lic"
 
@@ -25992,28 +26100,12 @@ msgid "Set Face Strength"
 msgstr "Nastavi krepkost lica"
 
 
-msgid "Merge"
-msgstr "Združi"
-
-
-msgid "Special Characters"
-msgstr "Posebni znaki"
-
-
-msgid "Kerning"
-msgstr "Spodsekavanje"
-
-
 msgid "Layout"
 msgstr "Ureditev"
 
 
-msgid "Metaball"
-msgstr "Metažoga"
-
-
-msgid "Bone Roll"
-msgstr "Zasukaj kost"
+msgid "Merge"
+msgstr "Združi"
 
 
 msgid "Adjust"
@@ -26024,28 +26116,32 @@ msgid "Keying"
 msgstr "Ključenje"
 
 
-msgid "Tracking"
-msgstr "Sledenje"
+msgid "Special Characters"
+msgstr "Posebni znaki"
 
 
 msgid "Render Preview"
 msgstr "Predogled upodobitve"
 
 
-msgid "Utilities"
-msgstr "Pripomočki"
+msgid "Kerning"
+msgstr "Spodsekavanje"
 
 
-msgid "Pivot Point"
-msgstr "Osišče"
+msgid "Tracking"
+msgstr "Sledenje"
 
 
 msgid "Creative"
 msgstr "Ustvarjanje"
 
 
-msgid "Snap"
-msgstr "Pritrdi"
+msgid "Bone Roll"
+msgstr "Zasukaj kost"
+
+
+msgid "Pivot Point"
+msgstr "Osišče"
 
 
 msgid "Proportional Editing Falloff"
@@ -26058,102 +26154,6 @@ msgstr "Urejanje maske"
 
 msgid "Automasking"
 msgstr "Samodejno maskiranje"
-
-
-msgid "Mirror"
-msgstr "Zrcali"
-
-
-msgid "UV Mapping"
-msgstr "Preslikanje UV"
-
-
-msgid "Local View"
-msgstr "Krajevni pogled"
-
-
-msgid "Viewpoint"
-msgstr "Gledišče"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnava pogleda"
-
-
-msgid "Align View to Active"
-msgstr "Poravnaj pogled na aktivno"
-
-
-msgid "View Regions"
-msgstr "Področja pogleda"
-
-
-msgid "Select More/Less"
-msgstr "Izberi več / manj"
-
-
-msgid "Select Similar"
-msgstr "Izberi sorodne"
-
-
-msgid "Select All by Trait"
-msgstr "Izberi vse po značilnosti"
-
-
-msgid "Select Linked"
-msgstr "Izberi povezano"
-
-
-msgid "Select Loops"
-msgstr "Izberi zanke"
-
-
-msgid "Assign Material"
-msgstr "Dodeli material"
-
-
-msgid "Light"
-msgstr "Luč"
-
-
-msgid "Light Probe"
-msgstr "Svetlobna sonda"
-
-
-msgid "Gizmo"
-msgstr "Manipulator"
-
-
-msgid "Instances"
-msgstr "Primerki"
-
-
-msgid "Add Image"
-msgstr "Dodaj sliko"
-
-
-msgid "Relations"
-msgstr "Razmerja"
-
-
-msgid "Import"
-msgstr "Uvozi"
-
-
-msgid "Rigid Body"
-msgstr "Togo telo"
-
-
-msgid "Deprecated"
-msgstr "Zastarelo"
-
-
-msgid "Track"
-msgstr "Obriši"
 
 
 msgid "Animals"
@@ -49864,22 +49864,6 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Informacije VR"
-
-
-msgid "Active Tool"
-msgstr "Aktivno orodje"
-
-
-msgid "View Lock"
-msgstr "Zaklep pogleda"
-
-
 msgid "Selectability & Visibility"
 msgstr "Izbirljivost in vidnost"
 
@@ -49922,14 +49906,6 @@ msgstr "Obrisovanje gibanja"
 
 msgid "Mesh Edit Mode"
 msgstr "Mrežni urejevalni način"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacije glTF"
 
 
 msgid "Measurement"
@@ -49982,6 +49958,30 @@ msgstr "Samodejno maskiranje"
 
 msgid "Viewport Debug"
 msgstr "Razhroščevanje 3D pogleda"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Informacije VR"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacije glTF"
+
+
+msgid "Active Tool"
+msgstr "Aktivno orodje"
+
+
+msgid "View Lock"
+msgstr "Zaklep pogleda"
 
 
 msgid "Import Settings"

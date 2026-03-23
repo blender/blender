@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
-"PO-Revision-Date: 2025-07-23 15:31+0000\n"
-"Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
+"PO-Revision-Date: 2026-03-19 19:12+0000\n"
+"Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.12.1\n"
+"X-Generator: Weblate 5.16.2\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: E:\\PROJEKTEK\\Blender\\FORDITAS\\osszefuzes"
 
@@ -387,12 +387,20 @@ msgid "Always"
 msgstr "Mindig"
 
 
+msgid "Never"
+msgstr "Soha"
+
+
 msgid "Center"
 msgstr "Közép"
 
 
 msgid "Bottom"
 msgstr "Alulnézet"
+
+
+msgid "Show Hotkey List"
+msgstr "Gyorsbillentyűk listája mutatása"
 
 
 msgid "Action"
@@ -417,6 +425,10 @@ msgstr "Különbség"
 
 msgid "Multiply"
 msgstr "Többszörözés"
+
+
+msgid "Nothing"
+msgstr "Semmi"
 
 
 msgid "Motion Paths"
@@ -515,8 +527,16 @@ msgid "Display Paths of poses within specified range"
 msgstr "Pózok útvonalának megjelenítése a megadott tartományban"
 
 
+msgid "Frame Number"
+msgstr "Képkocka száma"
+
+
 msgid "Strokes"
 msgstr "Vonalak"
+
+
+msgid "Hide"
+msgstr "Elrejt"
 
 
 msgid "Opacity"
@@ -549,6 +569,10 @@ msgstr "Alapértelmezett"
 
 msgid "Coordinates"
 msgstr "Koordináták"
+
+
+msgid "Any Type"
+msgstr "Akármilyen típus"
 
 
 msgid "Height"
@@ -611,12 +635,28 @@ msgid "File Browser"
 msgstr "Fájl böngésző"
 
 
+msgid "Spreadsheet"
+msgstr "Táblázat"
+
+
 msgid "Preferences"
 msgstr "Preferenciák"
 
 
 msgid "Width"
 msgstr "Szélesség"
+
+
+msgid "Area width"
+msgstr "Terület szélessége"
+
+
+msgid "X Position"
+msgstr "X pozíció"
+
+
+msgid "Y Position"
+msgstr "Y pozíció"
 
 
 msgid "Active Tag"
@@ -6565,38 +6605,6 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Keying"
-msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
-
-
 msgid "Mirror"
 msgstr "Tükrözés"
 
@@ -6613,24 +6621,56 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
+msgid "Import"
+msgstr "Importálás"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
 msgid "Light"
 msgstr "Fényforrás"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Relations"
 msgstr "Kapcsolatok"
 
 
-msgid "Import"
-msgstr "Importálás"
-
-
 msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
+msgid "Apply"
+msgstr "Elfogadás"
+
+
 msgid "Track"
 msgstr "Nyom"
+
+
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Keying"
+msgstr "Kulcsozás"
+
+
+msgid "Tracking"
+msgstr "Követés"
 
 
 msgctxt "MovieClip"
@@ -7638,6 +7678,10 @@ msgstr "A módosító effektjének erőssége"
 
 msgid "Step"
 msgstr "Lépés"
+
+
+msgid "Light Object"
+msgstr "fény objektum"
 
 
 msgid "Grease Pencil layer to which assign the generated strokes"

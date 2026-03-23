@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24576,6 +24576,134 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "Primitives"
+msgstr "Primitive"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Import"
+msgstr "Importa"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Light Probe"
+msgstr "Sensore di Luce"
+
+
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
@@ -24588,16 +24716,8 @@ msgid "Clean Up"
 msgstr "Ripulisci"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
 msgid "Asset"
 msgstr "Risorsa"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Make Single User"
@@ -24612,24 +24732,8 @@ msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
 msgid "Hooks"
 msgstr "Ganci"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Primitives"
-msgstr "Primitive"
 
 
 msgid "Vertex Group Locks"
@@ -24664,10 +24768,6 @@ msgid "Names"
 msgstr "Nomi"
 
 
-msgid "Apply"
-msgstr "Applica"
-
-
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
 
@@ -24696,28 +24796,12 @@ msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
 
 
-msgid "Merge"
-msgstr "Unisci"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
 msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
+msgid "Merge"
+msgstr "Unisci"
 
 
 msgid "Adjust"
@@ -24728,20 +24812,24 @@ msgid "Keying"
 msgstr "Keying"
 
 
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
 msgid "Tracking"
 msgstr "Tracciamento"
 
 
-msgid "Utilities"
-msgstr "Utilità"
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Pivot Point"
 msgstr "Punto di Perno"
-
-
-msgid "Snap"
-msgstr "Aggancia"
 
 
 msgid "Proportional Editing Falloff"
@@ -24758,94 +24846,6 @@ msgstr "Automascheramento"
 
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Light"
-msgstr "Luce"
-
-
-msgid "Light Probe"
-msgstr "Sensore di Luce"
-
-
-msgid "Instances"
-msgstr "Istanze"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Import"
-msgstr "Importa"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Track"
-msgstr "Traccia"
 
 
 msgid "Keyframe Insert Pie"

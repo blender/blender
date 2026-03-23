@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28381,6 +28381,74 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Read"
+msgstr "Soma"
+
+
+msgid "Sample"
+msgstr "Mfano"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Write"
+msgstr "Andika"
+
+
+msgid "Primitives"
+msgstr "Watu wa kwanza"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
+msgid "Instances"
+msgstr "Matukio"
+
+
+msgid "Import"
+msgstr "Ingiza"
+
+
+msgid "Utilities"
+msgstr "Huduma"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Math"
+msgstr "Hisabati"
+
+
+msgid "Apply"
+msgstr "Tumia"
+
+
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
@@ -28389,48 +28457,20 @@ msgid "Clean Up"
 msgstr "Safisha"
 
 
-msgid "Math"
-msgstr "Hisabati"
-
-
 msgid "Asset"
 msgstr "Mali"
-
-
-msgid "Read"
-msgstr "Soma"
-
-
-msgid "Write"
-msgstr "Andika"
-
-
-msgid "Sample"
-msgstr "Mfano"
-
-
-msgid "Primitives"
-msgstr "Watu wa kwanza"
 
 
 msgid "Bone Collections"
 msgstr "Mikusanyo ya Mifupa"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Merge"
-msgstr "Unganisha"
-
-
 msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Adjust"
@@ -28445,48 +28485,8 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Utilities"
-msgstr "Huduma"
-
-
 msgid "Pivot Point"
 msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
-
-
-msgid "Instances"
-msgstr "Matukio"
-
-
-msgid "Import"
-msgstr "Ingiza"
-
-
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
 
 
 msgid "Keyframe Insert Pie"
@@ -72666,10 +72666,6 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
 msgid "Selectability & Visibility"
 msgstr "Uteuzi"
 
@@ -72740,6 +72736,10 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
+
+
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
 
 
 msgid "Motion Blur"

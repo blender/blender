@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -5352,16 +5352,8 @@ msgid "Catalan - Català"
 msgstr "Katalansk – Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Lokalkode: ca_AD. Status på oversettelse: 100 %"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Kinesisk (forenklet) – 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "Lokalkode: zh_HANS. Status på oversettelse: 100 %"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -5424,16 +5416,8 @@ msgid "Georgian - ქართული"
 msgstr "Georgisk – ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Lokalkode: ka. Status på oversettelse: 100 %"
-
-
 msgid "German - Deutsch"
 msgstr "Tysk – Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 37%"
-msgstr "Lokalkode: de_DE. Status på oversettelse: 37 %"
 
 
 msgid "Greek - Ελληνικά"
@@ -5548,10 +5532,6 @@ msgid "Russian - Русский"
 msgstr "Russisk – Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Lokalkode: ru_RU. Status på oversettelse: 100 %"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbisk (kyrillisk) – Српски"
 
@@ -5572,20 +5552,12 @@ msgid "Slovak - Slovenčina"
 msgstr "Slovakisk – Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Lokalkode: sk_SK. Status på oversettelse: 100 %"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "Slovensk – Slovenščina"
 
 
 msgid "Spanish - Español"
 msgstr "Spansk – Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Lokalkode: es. Status på oversettelse: 100 %"
 
 
 msgid "Swahili - Kiswahili"
@@ -5610,10 +5582,6 @@ msgstr "Tyrkisk – Türkçe"
 
 msgid "Ukrainian - Українська"
 msgstr "Ukrainsk – Українська"
-
-
-msgid "Locale code: uk_UA. Translation progress: 57%"
-msgstr "Lokalkode: uk_UA. Status på oversettelse: 57 %"
 
 
 msgid "Urdu - وُدرُا"

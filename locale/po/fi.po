@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'45d5533d8e66')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'ec8c60553753')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:01+0000\n"
+"POT-Creation-Date: 2026-03-23 09:55+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7248,16 +7248,8 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Read"
@@ -7266,34 +7258,6 @@ msgstr "Lue"
 
 msgid "Write"
 msgstr "Kirjoita"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
 
 
 msgid "Select More/Less"
@@ -7312,6 +7276,22 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
+msgid "Instances"
+msgstr "Instanssit"
+
+
+msgid "Import"
+msgstr "Tuo"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
 msgid "Light"
 msgstr "Valo"
 
@@ -7320,20 +7300,40 @@ msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Instances"
-msgstr "Instanssit"
+msgid "Math"
+msgstr "Matematiikka"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Add Image"
 msgstr "Lisää kuva"
 
 
-msgid "Import"
-msgstr "Tuo"
-
-
 msgid "Track"
 msgstr "Raide"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Basic"
