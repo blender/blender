@@ -24,6 +24,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "DNA_key_types.h"
+#include "DEG_depsgraph_build.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -283,6 +284,7 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     Main *bmain = CTX_data_main(C);
     BKE_object_shapekey_remove(bmain, shape_key_.object, shape_key_.kb);
     DEG_id_tag_update(&shape_key_.object->id, ID_RECALC_GEOMETRY);
+    DEG_relations_tag_update(CTX_data_main(C));
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, nullptr);
     ED_undo_grouped_push(C, "Delete Shape Key");
   }
