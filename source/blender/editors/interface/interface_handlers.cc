@@ -10000,7 +10000,7 @@ static int handle_button_event(bContext *C, const wmEvent *event, Button *but)
           WM_event_timer_remove(data->wm, data->window, data->autoopentimer);
           data->autoopentimer = nullptr;
           /* Do not open sub-menus while using an auto-scroll handler. */
-          if ((!block->handle || !block->handle->scrolltimer) &&
+          if ((block_is_pie_menu(block) || !block->handle || !block->handle->scrolltimer) &&
               (button_contains_point_px(but, region, event->xy) || but->active))
           {
             button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
@@ -11102,9 +11102,13 @@ static int handle_menu_event(bContext *C,
       mouse_motion_towards_reinit(menu, event->xy);
     }
   }
-  /* Don't auto-scroll while panning. */
-  else if (event->type == TIMER && !menu->mmb_panning && !menu->keep_open_timer) {
-    if (event->customdata == menu->scrolltimer) {
+  else if (event->type == TIMER && event->customdata == menu->scrolltimer) {
+    if (!menu_scroll_test(block, my)) {
+      WM_event_timer_remove(CTX_wm_manager(C), win, menu->scrolltimer);
+      menu->scrolltimer = nullptr;
+    }
+    /* Don't auto-scroll while panning. */
+    else if (!menu->mmb_panning && !menu->keep_open_timer) {
       menu_scroll_to_y(region, block, my);
     }
   }
