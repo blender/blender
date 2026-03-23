@@ -75,7 +75,6 @@ void OBJECT_OT_volume_add(wmOperatorType *ot)
 static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
   bool imported = false;
 
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
@@ -90,9 +89,6 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
     Volume *volume = id_cast<Volume *>(object->data);
 
     STRNCPY(volume->filepath, range.filepath);
-    if (is_relative_path) {
-      BLI_path_rel(volume->filepath, BKE_main_blendfile_path(bmain));
-    }
 
     if (!BKE_volume_load(volume, bmain)) {
       BKE_reportf(op->reports,
