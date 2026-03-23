@@ -37,6 +37,7 @@ set(SRC
 
 set(LIB
   PUBLIC bf::dependencies::openimageio
+  PRIVATE bf::dependencies::jpeg
   PUBLIC bf::dependencies::optional::tbb
   PUBLIC bf::dependencies::optional::embree
   PUBLIC bf::dependencies::optional::openpgl

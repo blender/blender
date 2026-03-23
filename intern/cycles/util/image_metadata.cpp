@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include <cassert>
+#include <csetjmp>
 #include <cstdio>
+
+#include <jpeglib.h>
 
 #include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/typedesc.h>
@@ -13,6 +16,7 @@
 #include "util/image_metadata.h"
 #include "util/log.h"
 #include "util/param.h"
+#include "util/path.h"
 #include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
@@ -278,10 +282,6 @@ bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSp
     }
   }
 
-  /* Workaround OIIO bug that sets oiio:UnassociatedAlpha on the last layer
-   * but not composite image that we read. */
-  is_cmyk = strcmp(in->format_name(), "jpeg") == 0 && channels == 4;
-
   LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath) << ", " << width << "x" << height;
 
   if (r_spec) {
@@ -304,25 +304,6 @@ static void conform_pixels_to_metadata_type(const ImageMetaData &metadata,
    * channel image is converted to RGBA format. */
   const int channels = metadata.channels;
   const bool is_rgba = metadata.is_rgba();
-
-  /* CMYK to RGBA. */
-  if (metadata.is_cmyk && is_rgba) {
-    const StorageType one = util_image_cast_from_float<StorageType>(1.0f);
-
-    for (int64_t j = 0; j < height; j++) {
-      StorageType *pixel = pixels + j * in_y_stride;
-      for (int64_t i = 0; i < width; i++, pixel += 4) {
-        const float c = util_image_cast_to_float(pixel[0]);
-        const float m = util_image_cast_to_float(pixel[1]);
-        const float y = util_image_cast_to_float(pixel[2]);
-        const float k = util_image_cast_to_float(pixel[3]);
-        pixel[0] = util_image_cast_from_float<StorageType>((1.0f - c) * (1.0f - k));
-        pixel[1] = util_image_cast_from_float<StorageType>((1.0f - m) * (1.0f - k));
-        pixel[2] = util_image_cast_from_float<StorageType>((1.0f - y) * (1.0f - k));
-        pixel[3] = one;
-      }
-    }
-  }
 
   /* Associate alpha. */
   if (channels == 4 && metadata.is_unassociated_alpha) {
@@ -488,6 +469,73 @@ void ImageMetaData::conform_pixels(void *pixels) const
   conform_pixels(pixels, width, height, channels, width * channels, width * (is_rgba() ? 4 : 1));
 }
 
+/* Workaround for OpenImageIO bug #4962 with JPEG CMYK files, until we upgrade. */
+static bool load_cmyk_jpeg_pixels(const int64_t width,
+                                  const int64_t height,
+                                  const string &filepath,
+                                  uchar *pixels,
+                                  const bool flip_y)
+{
+  struct JpegErrorHandler {
+    jpeg_error_mgr manager;
+    jmp_buf setjmp_buffer;
+  };
+
+  FILE *file = path_fopen(filepath, "rb");
+  if (!file) {
+    return false;
+  }
+
+  jpeg_decompress_struct decompress = {};
+
+  JpegErrorHandler error_handler = {};
+  decompress.err = jpeg_std_error(&error_handler.manager);
+  error_handler.manager.error_exit = [](j_common_ptr cinfo) {
+    JpegErrorHandler *err = (JpegErrorHandler *)cinfo->err;
+    longjmp(err->setjmp_buffer, 1);
+  };
+
+  if (setjmp(error_handler.setjmp_buffer)) {
+    jpeg_destroy_decompress(&decompress);
+    fclose(file);
+    return false;
+  }
+
+  jpeg_create_decompress(&decompress);
+  jpeg_stdio_src(&decompress, file);
+  jpeg_read_header(&decompress, TRUE);
+
+  /* JCS_RGB is not supported, we need to do the conversion ourselves. */
+  decompress.out_color_space = JCS_CMYK;
+  jpeg_start_decompress(&decompress);
+
+  const int64_t out_scanline_stride = width * 3;
+  const int64_t cmyk_scanline_stride = width * 4;
+  vector<JSAMPLE> row_buffer(cmyk_scanline_stride);
+  JSAMPROW row_pointer = row_buffer.data();
+
+  for (int64_t y = 0; y < height; y++) {
+    jpeg_read_scanlines(&decompress, &row_pointer, 1);
+    const int64_t dest_y = flip_y ? (height - 1 - y) : y;
+    uchar *dest = pixels + dest_y * out_scanline_stride;
+    for (int64_t x = 0; x < width; x++) {
+      const float c = util_image_cast_to_float(row_buffer[x * 4 + 0]);
+      const float m = util_image_cast_to_float(row_buffer[x * 4 + 1]);
+      const float y = util_image_cast_to_float(row_buffer[x * 4 + 2]);
+      const float k = util_image_cast_to_float(row_buffer[x * 4 + 3]);
+      dest[x * 3 + 0] = util_image_cast_from_float<uchar>(c * k);
+      dest[x * 3 + 1] = util_image_cast_from_float<uchar>(m * k);
+      dest[x * 3 + 2] = util_image_cast_from_float<uchar>(y * k);
+    }
+  }
+
+  jpeg_finish_decompress(&decompress);
+  jpeg_destroy_decompress(&decompress);
+  fclose(file);
+
+  return true;
+}
+
 template<TypeDesc::BASETYPE FileFormat, typename StorageType>
 static bool load_pixels_oiio(const ImageMetaData &metadata,
                              const std::unique_ptr<ImageInput> &in,
@@ -559,6 +607,15 @@ bool ImageMetaData::oiio_load_pixels(OIIO::string_view filepath,
 
   if (!in->open(filepath, spec, config)) {
     return false;
+  }
+
+  /* Workaround for OpenImageIO bug #4962 with JPEG CMYK files, until we upgrade. */
+  if (strcmp(in->format_name(), "jpeg") == 0) {
+    const OIIO::string_view jpeg_colorspace = spec.get_string_attribute("jpeg:ColorSpace");
+    if (jpeg_colorspace == "CMYK" || jpeg_colorspace == "YCbCrK") {
+      in.reset();
+      return load_cmyk_jpeg_pixels(width, height, filepath, (uchar *)pixels, flip_y);
+    }
   }
 
   switch (type) {

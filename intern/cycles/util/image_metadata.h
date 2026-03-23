@@ -43,7 +43,6 @@ class ImageMetaData {
   bool is_unassociated_alpha = false;
   bool ignore_alpha = false;
   bool is_channel_packed = false;
-  bool is_cmyk = false;
 
   /* Constructor */
   ImageMetaData();

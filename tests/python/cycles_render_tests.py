@@ -61,6 +61,8 @@ BLOCKLIST_OSL_ALL = BLOCKLIST_OSL_LIMITED + [
     'image_log.blend',
     'image_non_color.blend',
     'image_mapping_udim.blend',
+    # Temporary workaround for bug in OpenImageIO, to be removed when texture cache lands.
+    "image_cmyk_jpeg.blend",
     # Tests that need investigating into why they're failing:
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
