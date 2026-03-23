@@ -744,6 +744,100 @@ using MainListsArray = std::array<ListBaseT<ID> *, INDEX_ID_MAX - 1>;
  */
 MainListsArray BKE_main_lists_get(Main &bmain);
 
+/**
+ * An iterator over all IDs in the given Main.
+ *
+ * As with the historic C-based APIs, order is defined by these rules:
+ *   - ID types are iterated based on their #eID_Index, from lowest value to highest by default
+ *     (starting with libraries).
+ *   - Within a same type, IDs are iterated based on their libraries (local IDs always iterated
+ *     first) and names (alphanumeric sorting).
+ *
+ * This iterator will remain stable if the underlying Main is modified, as long as the current ID
+ * pointed at by the iterator is not modified.
+ *   - Renaming the current ID may shift it position in the underlying main, making the iterator no
+ *     more stable (some items may be skipped, or iterated over several times).
+ *   - Deleting the current ID will fully invalidate the iterator, attempt to use it in any way
+ *     afterwards will result in invalid memory accesses.
+ */
+class MainAllIDsIterator {
+ public:
+  using iterator_category = std::bidirectional_iterator_tag;
+  using value_type = ID;
+  using difference_type = std::ptrdiff_t;
+  using pointer = ID *;
+  using reference = ID &;
+
+ private:
+  MainListsArray lbarray_;
+  int64_t curr_lbarray_index_ = -1;
+  ID *curr_id_ = nullptr;
+
+ public:
+  /* Note: default constructor is a requirement to make the iterator usable with std::ranges. */
+  MainAllIDsIterator() : lbarray_{}
+  {
+    ++(*this);
+  }
+
+  explicit MainAllIDsIterator(MainListsArray &lbarray) : lbarray_(lbarray)
+  {
+    ++(*this);
+  }
+
+  explicit MainAllIDsIterator(Main &bmain) : lbarray_(BKE_main_lists_get(bmain))
+  {
+    ++(*this);
+  }
+
+  MainAllIDsIterator begin() const
+  {
+    MainAllIDsIterator tmp = *this;
+    tmp.curr_lbarray_index_ = -1;
+    tmp.curr_id_ = nullptr;
+    return ++tmp;
+  }
+
+  MainAllIDsIterator end() const
+  {
+    MainAllIDsIterator tmp = *this;
+    tmp.curr_lbarray_index_ = tmp.lbarray_.size();
+    tmp.curr_id_ = nullptr;
+    return tmp;
+  }
+
+  MainAllIDsIterator &operator++();
+
+  MainAllIDsIterator operator++(int)
+  {
+    MainAllIDsIterator tmp = *this;
+    ++(*this);
+    return tmp;
+  }
+
+  MainAllIDsIterator &operator--();
+
+  MainAllIDsIterator operator--(int)
+  {
+    MainAllIDsIterator tmp = *this;
+    --(*this);
+    return tmp;
+  }
+
+  friend bool operator==(const MainAllIDsIterator &a, const MainAllIDsIterator &b)
+  {
+    return a.curr_id_ == b.curr_id_ && a.curr_lbarray_index_ == b.curr_lbarray_index_;
+  }
+
+  ID &operator*() const
+  {
+    return *curr_id_;
+  }
+
+  /** Return the total number of IDs in the Main database that this iterator is iterating over. */
+  int64_t size() const;
+};
+
 #define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile >= (subver)))

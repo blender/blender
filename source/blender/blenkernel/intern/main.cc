@@ -1132,4 +1132,83 @@ MainListsArray BKE_main_lists_get(Main &bmain)
   return lb;
 }
 
+MainAllIDsIterator &MainAllIDsIterator::operator++()
+{
+  if (curr_id_) {
+    BLI_assert(curr_lbarray_index_ > -1 && curr_lbarray_index_ < int64_t(lbarray_.size()));
+    curr_id_ = static_cast<ID *>(curr_id_->next);
+    if (curr_id_) {
+      return *this;
+    }
+  }
+
+  BLI_assert(curr_id_ == nullptr);
+  BLI_assert(curr_lbarray_index_ >= -1 && curr_lbarray_index_ <= int64_t(lbarray_.size()));
+
+  if (curr_lbarray_index_ >= int64_t(lbarray_.size())) {
+    return *this;
+  }
+  while (true) {
+    curr_lbarray_index_++;
+    if (curr_lbarray_index_ == int64_t(lbarray_.size())) {
+      return *this;
+    }
+    /* Listbase pointers from lbarray_ can be nullptr when no data was provided (default
+     * constructor case). */
+    ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
+    if (lb_ids && !BLI_listbase_is_empty(lb_ids)) {
+      curr_id_ = static_cast<ID *>(lb_ids->first);
+      return *this;
+    }
+  }
+  BLI_assert_unreachable();
+  return *this;
+}
+
+MainAllIDsIterator &MainAllIDsIterator::operator--()
+{
+  if (curr_id_) {
+    BLI_assert(curr_lbarray_index_ > -1 && curr_lbarray_index_ < int64_t(lbarray_.size()));
+    curr_id_ = static_cast<ID *>(curr_id_->prev);
+    if (curr_id_) {
+      return *this;
+    }
+  }
+  BLI_assert(curr_id_ == nullptr);
+  BLI_assert(curr_lbarray_index_ >= -1 && curr_lbarray_index_ <= int64_t(lbarray_.size()));
+
+  if (this->curr_lbarray_index_ <= -1) {
+    return *this;
+  }
+  while (true) {
+    curr_lbarray_index_--;
+    if (curr_lbarray_index_ == -1) {
+      return *this;
+    }
+    /* Listbase pointers from lbarray_ can be nullptr when no data was provided (default
+     * constructor case). */
+    ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
+    if (lb_ids && !BLI_listbase_is_empty(lb_ids)) {
+      curr_id_ = static_cast<ID *>(lb_ids->last);
+      return *this;
+    }
+  }
+  BLI_assert_unreachable();
+  return *this;
+}
+
+int64_t MainAllIDsIterator::size() const
+{
+  int64_t size = 0;
+  for (const ListBaseT<ID> *lb_ids : lbarray_) {
+    /* Listbase pointers from lbarray_ can be nullptr when no data was provided (default
+     * constructor case). */
+    if (!lb_ids) {
+      continue;
+    }
+    size += BLI_listbase_count(lb_ids);
+  }
+  return size;
+}
+
 }  // namespace blender

@@ -197,6 +197,45 @@ static void rna_Main_version_get(PointerRNA *ptr, int *value)
   value[2] = bmain->subversionfile;
 }
 
+static int rna_iterator_BlendData_all_ids_length(PointerRNA *ptr)
+{
+  Main &bmain = *static_cast<Main *>(ptr->data);
+
+  MainAllIDsIterator internal_iter{bmain};
+  return int(internal_iter.size());
+}
+
+static void rna_iterator_BlendData_all_ids_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Main &bmain = *static_cast<Main *>(ptr->data);
+
+  iter->parent = *ptr;
+  MainAllIDsIterator *internal_iter = MEM_new<MainAllIDsIterator>(__func__, bmain);
+  iter->internal.custom = internal_iter;
+  iter->valid = (*internal_iter != internal_iter->end());
+}
+
+static void rna_iterator_BlendData_all_ids_next(CollectionPropertyIterator *iter)
+{
+  MainAllIDsIterator *internal_iter = static_cast<MainAllIDsIterator *>(iter->internal.custom);
+  (*internal_iter)++;
+  iter->valid = (*internal_iter != internal_iter->end());
+}
+
+static void rna_iterator_BlendData_all_ids_end(CollectionPropertyIterator *iter)
+{
+  MainAllIDsIterator *internal_iter = static_cast<MainAllIDsIterator *>(iter->internal.custom);
+  MEM_delete(internal_iter);
+  iter->internal.custom = nullptr;
+}
+
+static PointerRNA rna_iterator_BlendData_all_ids_get(CollectionPropertyIterator *iter)
+{
+  MainAllIDsIterator *internal_iter = static_cast<MainAllIDsIterator *>(iter->internal.custom);
+  ID &id = **internal_iter;
+  return RNA_id_pointer_create(&id);
+}
+
 #  ifdef UNIT_TEST
 
 static PointerRNA rna_Test_test_get(PointerRNA *ptr)
@@ -587,6 +626,22 @@ void RNA_def_main(BlenderRNA *brna)
       prop,
       "Color Space",
       "Information about the color space used for data-blocks in a blend file");
+
+  prop = RNA_def_property(srna, "all_ids", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_struct_type(prop, "ID");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_BlendData_all_ids_begin",
+                                    "rna_iterator_BlendData_all_ids_next",
+                                    "rna_iterator_BlendData_all_ids_end",
+                                    "rna_iterator_BlendData_all_ids_get",
+                                    "rna_iterator_BlendData_all_ids_length",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(
+      prop, "All Data-Blocks", "Read-only list of all IDs listed in Blender data-base");
 
   RNA_api_main(srna);
 
