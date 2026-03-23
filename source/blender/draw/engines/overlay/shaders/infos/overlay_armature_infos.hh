@@ -128,8 +128,6 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_solid)
 DO_STATIC_COMPILATION()
 VERTEX_IN(0, float3, pos)
 VERTEX_IN(1, float3, nor)
-/* Per instance. */
-DEPTH_WRITE(DepthWrite::GREATER)
 VERTEX_OUT(overlay_armature_shape_solid_iface)
 VERTEX_SOURCE("overlay_armature_shape_solid_vert.glsl")
 FRAGMENT_SOURCE("overlay_armature_shape_solid_frag.glsl")
