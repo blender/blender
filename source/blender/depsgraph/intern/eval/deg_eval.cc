@@ -20,6 +20,7 @@
 
 #include "BKE_global.hh"
 
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -199,11 +200,44 @@ bool is_metaball_object_operation(const OperationNode *operation_node)
 {
   const ComponentNode *component_node = operation_node->owner;
   const IDNode *id_node = component_node->owner;
+  /* This runs after the COPY_ON_EVAL stage which creates id_cow. */
+  BLI_assert(id_node->id_cow);
   if (GS(id_node->id_cow->name) != ID_OB) {
     return false;
   }
   const Object *object = reinterpret_cast<const Object *>(id_node->id_cow);
   return object->type == OB_MBALL;
+}
+
+/* Simulation modifiers with subframes (fluid domain, dynamic paint canvas) perform direct updates
+ * of other objects, which can cause race conditions over certain data (#115636). Unless and until
+ * substeps are fully supported in depsgraph evaluation such objects must use single-threaded
+ * evaluation. */
+bool is_modifier_subframe_operation(const OperationNode *operation_node)
+{
+  const ComponentNode *component_node = operation_node->owner;
+  const IDNode *id_node = component_node->owner;
+  /* This runs after the COPY_ON_EVAL stage which creates id_cow. */
+  BLI_assert(id_node->id_cow);
+  if (GS(id_node->id_cow->name) != ID_OB) {
+    return false;
+  }
+  const Object *object = reinterpret_cast<const Object *>(id_node->id_cow);
+  for (const ModifierData &md : object->modifiers) {
+    if (md.type == eModifierType_Fluid) {
+      const auto &fmd = reinterpret_cast<const FluidModifierData &>(md);
+      if (fmd.type == MOD_FLUID_TYPE_DOMAIN) {
+        return true;
+      }
+    }
+    if (md.type == eModifierType_DynamicPaint) {
+      const auto &dmd = reinterpret_cast<const DynamicPaintModifierData &>(md);
+      if (dmd.type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool need_evaluate_operation_at_stage(DepsgraphEvalState *state,
@@ -219,6 +253,10 @@ bool need_evaluate_operation_at_stage(DepsgraphEvalState *state,
 
     case EvaluationStage::THREADED_EVALUATION:
       if (is_metaball_object_operation(operation_node)) {
+        state->need_single_thread_pass = true;
+        return false;
+      }
+      if (is_modifier_subframe_operation(operation_node)) {
         state->need_single_thread_pass = true;
         return false;
       }
