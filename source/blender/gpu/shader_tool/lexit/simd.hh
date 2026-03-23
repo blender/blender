@@ -660,6 +660,7 @@ template<int Size> struct u32_base {
     }
   }
 
+  /* NOTE: This does a signed saturation on SSE. */
   explicit operator u8_base<Size / 4>() const
   {
     u8_base<Size / 4> res;
@@ -673,9 +674,9 @@ template<int Size> struct u32_base {
       uint16x8_t q23 = vcombine_u16(n2, n3);
       res.lanes[i] = vcombine_u8(vmovn_u16(q01), vmovn_u16(q23));
 #  elif defined(USE_SSE4_2)
-      __m128i pack_16_lo = _mm_packus_epi32(lanes[i * 4 + 0], lanes[i * 4 + 1]);
-      __m128i pack_16_hi = _mm_packus_epi32(lanes[i * 4 + 2], lanes[i * 4 + 3]);
-      res.lanes[i] = _mm_packus_epi16(pack_16_lo, pack_16_hi);
+      __m128i pack_16_lo = _mm_packs_epi32(lanes[i * 4 + 0], lanes[i * 4 + 1]);
+      __m128i pack_16_hi = _mm_packs_epi32(lanes[i * 4 + 2], lanes[i * 4 + 3]);
+      res.lanes[i] = _mm_packs_epi16(pack_16_lo, pack_16_hi);
 #  endif
     }
     return res;
