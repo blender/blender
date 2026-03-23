@@ -1824,9 +1824,7 @@ void mesh_smooth_set(Mesh &mesh, const bool use_smooth, const bool keep_sharp_ed
   }
   attributes.remove("sharp_face");
   if (!use_smooth) {
-    attributes.add<bool>("sharp_face",
-                         AttrDomain::Face,
-                         AttributeInitVArray(VArray<bool>::from_single(true, mesh.faces_num)));
+    attributes.add<bool>("sharp_face", AttrDomain::Face, AttributeInitValue(true));
   }
 }
 

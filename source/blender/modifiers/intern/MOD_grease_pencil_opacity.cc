@@ -130,9 +130,7 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   /* Fill color opacity per stroke. */
   bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
-      "fill_opacity",
-      bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
+      "fill_opacity", bke::AttrDomain::Curve, bke::AttributeInitValue(1.0f));
   const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
       curves, omd.influence);
 
