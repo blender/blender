@@ -338,6 +338,81 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
   return op;
 }
 
+static void draw_import_controls(bContext *, Layout &layout, const std::string &label, bool valid)
+{
+  layout.label(label, ICON_NONE);
+  if (valid) {
+    Layout &row = layout.row(false);
+    row.emboss_set(EmbossType::None);
+    /* TODO: Provide control for actual import operator and, potentially, presets. */
+  }
+}
+
+static void draw_import_properties(bContext *C, Layout &layout, wmOperator *op)
+{
+  Layout &col = layout.column(false);
+
+  col.separator();
+  col.use_property_decorate_set(false);
+
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
+  col.prop(op->ptr, prop, RNA_NO_INDEX, 0, UI_ITEM_NONE, std::nullopt, ICON_NONE, "");
+
+  template_operator_property_buts_draw_single(
+      C, op, layout, BUT_LABEL_ALIGN_NONE, TEMPLATE_OP_PROPS_HIDE_PRESETS);
+}
+
+void template_collection_importer(Layout *layout, bContext *C)
+{
+  if (!U.experimental.use_collection_importer) {
+    return;
+  }
+
+  Collection *collection = CTX_data_collection(C);
+  CollectionImport *data = collection->importer;
+
+  Layout &row = layout->row(false);
+  Layout &col = row.column(false);
+  if (data == nullptr) {
+    col.menu("COLLECTION_MT_importer_add", "Add Importer", ICON_ADD);
+    return;
+  }
+
+  col.op("COLLECTION_OT_importer_remove", std::nullopt, ICON_REMOVE);
+
+  /* Draw the importer. */
+  PointerRNA importer_ptr = RNA_pointer_create_discrete(
+      &collection->id, RNA_CollectionImport, data);
+  PanelLayout panel = layout->panel_prop(C, &importer_ptr, "is_open");
+
+  const bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
+  if (!fh) {
+    std::string label = std::string(IFACE_("Undefined")) + " " + data->fh_idname;
+    draw_import_controls(C, *panel.header, label, false);
+    return;
+  }
+
+  wmOperatorType *ot = WM_operatortype_find(fh->import_operator, false);
+  if (!ot) {
+    std::string label = std::string(IFACE_("Undefined")) + " " + fh->import_operator;
+    draw_import_controls(C, *panel.header, label, false);
+    return;
+  }
+
+  /* Assign temporary operator to uiBlock, which takes ownership. */
+  PointerRNA properties = RNA_pointer_create_discrete(
+      &collection->id, ot->srna, data->import_properties);
+  wmOperator *op = minimal_operator_create(ot, &properties);
+  block_set_active_operator(panel.header->block(), op, true);
+
+  /* Draw panel header and contents. */
+  std::string label(fh->label);
+  draw_import_controls(C, *panel.header, label, true);
+  if (panel.body) {
+    draw_import_properties(C, *panel.body, op);
+  }
+}
+
 static void draw_export_controls(
     bContext *C, Layout &layout, const std::string &label, int index, bool valid)
 {

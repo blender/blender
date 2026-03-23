@@ -381,6 +381,7 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot);
 
 void object_modifier_add_asset_register();
 
+void collection_importer_register();
 void collection_exporter_register();
 
 Vector<PointerRNA> modifier_get_edit_objects(const bContext &C, const wmOperator &op);

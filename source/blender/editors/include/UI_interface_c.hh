@@ -2658,8 +2658,8 @@ void template_tree_interface(Layout *layout, const bContext *C, PointerRNA *ptr)
  */
 void template_node_inputs(Layout *layout, bContext *C, PointerRNA *ptr);
 
+void template_collection_importer(Layout *layout, bContext *C);
 void template_collection_exporters(Layout *layout, bContext *C);
-
 }  // namespace ui
 
 namespace ed::object::shapekey {

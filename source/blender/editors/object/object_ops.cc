@@ -294,6 +294,7 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_camera_custom_update);
 
   object_modifier_add_asset_register();
+  collection_importer_register();
   collection_exporter_register();
 }
 

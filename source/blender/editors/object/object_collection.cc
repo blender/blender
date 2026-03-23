@@ -449,6 +449,116 @@ void COLLECTION_OT_create(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "Name of the new collection");
 }
 
+static bool collection_importer_add_poll(bContext *C)
+{
+  const Collection *collection = CTX_data_collection(C);
+  return BKE_collection_is_content_editable(collection) && BKE_collection_is_empty(collection);
+}
+
+static bool collection_importer_remove_poll(bContext *C)
+{
+  const Collection *collection = CTX_data_collection(C);
+  return collection->importer != nullptr;
+}
+
+static wmOperatorStatus collection_importer_add_exec(bContext *C, wmOperator *op)
+{
+  /* TODO - There should only be 1 importer in the hierarchy.
+   * This needs to be enforced either here or in the poll. */
+
+  using namespace blender;
+  Collection *collection = CTX_data_collection(C);
+
+  char name[MAX_ID_NAME - 2]; /* id name */
+  RNA_string_get(op->ptr, "name", name);
+
+  bke::FileHandlerType *fh = bke::file_handler_find(name);
+  if (!fh) {
+    BKE_reportf(op->reports, RPT_ERROR, "File handler '%s' not found", name);
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!WM_operatortype_find(fh->import_operator, true)) {
+    BKE_reportf(
+        op->reports, RPT_ERROR, "File handler operator '%s' not found", fh->import_operator);
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_collection_importer_add(collection, fh->idname);
+
+  BKE_view_layer_need_resync_tag(CTX_data_view_layer(C));
+  DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void COLLECTION_OT_importer_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Importer";
+  ot->description = "Add Importer";
+  ot->idname = "COLLECTION_OT_importer_add";
+
+  /* api callbacks */
+  ot->exec = collection_importer_add_exec;
+  ot->poll = collection_importer_add_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "FileHandler idname");
+}
+
+static wmOperatorStatus collection_importer_remove_exec(bContext *C, wmOperator * /*op*/)
+{
+  Collection *collection = CTX_data_collection(C);
+  CollectionImport *data = collection->importer;
+
+  if (!data) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_collection_importer_free_data(data);
+  MEM_delete(data);
+
+  collection->importer = nullptr;
+
+  BKE_view_layer_need_resync_tag(CTX_data_view_layer(C));
+  DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus collection_importer_remove_invoke(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent * /*event*/)
+{
+  return WM_operator_confirm_ex(
+      C, op, IFACE_("Remove importer?"), nullptr, IFACE_("Delete"), ui::AlertIcon::None, false);
+}
+
+static void COLLECTION_OT_importer_remove(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Importer";
+  ot->description = "Remove Importer";
+  ot->idname = "COLLECTION_OT_importer_remove";
+
+  /* api callbacks */
+  ot->invoke = collection_importer_remove_invoke;
+  ot->exec = collection_importer_remove_exec;
+  ot->poll = collection_importer_remove_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 static bool collection_exporter_common_check(const Collection *collection)
 {
   return collection != nullptr &&
@@ -844,6 +954,26 @@ static void WM_OT_collection_export_all(wmOperatorType *ot)
   ot->flag = 0;
 }
 
+static void collection_importer_menu_draw(const bContext * /*C*/, Menu *menu)
+{
+  using namespace blender;
+  ui::Layout &layout = *menu->layout;
+
+  /* Add all file handlers capable of being imported to the menu. */
+  bool at_least_one = false;
+  for (const auto &fh : bke::file_handlers()) {
+    if (STREQ(fh->idname, "IO_FH_usd") && WM_operatortype_find(fh->import_operator, true)) {
+      PointerRNA op_ptr = layout.op("COLLECTION_OT_importer_add", fh->label, ICON_NONE);
+      RNA_string_set(&op_ptr, "name", fh->idname);
+      at_least_one = true;
+    }
+  }
+
+  if (!at_least_one) {
+    layout.label(IFACE_("No file handlers available"), ICON_NONE);
+  }
+}
+
 static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
 {
   ui::Layout &layout = *menu->layout;
@@ -861,6 +991,18 @@ static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
   if (!at_least_one) {
     layout.label(IFACE_("No file handlers available"), ICON_NONE);
   }
+}
+
+void collection_importer_register()
+{
+  MenuType *mt = MEM_new_zeroed<MenuType>(__func__);
+  STRNCPY_UTF8(mt->idname, "COLLECTION_MT_importer_add");
+  STRNCPY_UTF8(mt->label, N_("Add Importer"));
+  mt->draw = collection_importer_menu_draw;
+
+  WM_menutype_add(mt);
+  WM_operatortype_append(COLLECTION_OT_importer_add);
+  WM_operatortype_append(COLLECTION_OT_importer_remove);
 }
 
 void collection_exporter_register()
@@ -936,15 +1078,10 @@ static wmOperatorStatus collection_link_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  /* Currently this should not be allowed (might be supported in the future though...). */
-  if (ID_IS_OVERRIDE_LIBRARY(&collection->id)) {
-    BKE_report(op->reports, RPT_ERROR, "Could not add the collection because it is overridden");
-    return OPERATOR_CANCELLED;
-  }
-  /* Linked collections are already checked for by using RNA_collection_local_itemf
-   * but operator can be called without invoke */
-  if (!ID_IS_EDITABLE(&collection->id)) {
-    BKE_report(op->reports, RPT_ERROR, "Could not add the collection because it is linked");
+  std::string reason;
+  if (!BKE_collection_is_content_editable(collection, &reason)) {
+    BKE_reportf(
+        op->reports, RPT_ERROR, "Cannot add objects to the collection. %s", reason.c_str());
     return OPERATOR_CANCELLED;
   }
 
@@ -1004,10 +1141,11 @@ static wmOperatorStatus collection_remove_exec(bContext *C, wmOperator *op)
   if (!ob || !collection) {
     return OPERATOR_CANCELLED;
   }
-  if (!ID_IS_EDITABLE(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
-    BKE_report(op->reports,
-               RPT_ERROR,
-               "Cannot remove an object from a linked or library override collection");
+
+  std::string reason;
+  if (!BKE_collection_is_content_editable(collection, &reason)) {
+    BKE_reportf(
+        op->reports, RPT_ERROR, "Cannot remove an object from the collection. %s", reason.c_str());
     return OPERATOR_CANCELLED;
   }
 

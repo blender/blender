@@ -3463,6 +3463,12 @@ static void outliner_draw_tree_element(ui::Block *block,
 
       if (tselem->type == TSE_LAYER_COLLECTION) {
         const Collection *collection = id_cast<Collection *>(tselem->id);
+        if (collection->importer) {
+          ui::icon_draw_alpha(
+              float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, ICON_IMPORT, alpha_fac);
+          offsx += UI_UNIT_X + 4 * ufac;
+        }
+
         if (!BLI_listbase_is_empty(&collection->exporters)) {
           ui::icon_draw_alpha(
               float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, ICON_EXPORT, alpha_fac);
