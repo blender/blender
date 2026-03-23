@@ -83,14 +83,13 @@ void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char 
   }
 }
 
-static std::array<float4x4, 8> transform_matrices_init(const Object &ob,
-                                                       const SculptSession &ss,
+static std::array<float4x4, 8> transform_matrices_init(const SculptSession &ss,
                                                        const ePaintSymmetryFlags symm,
                                                        const TransformDisplacementMode t_mode)
 {
   std::array<float4x4, 8> mats;
 
-  float3 d_s;
+  float3 final_pivot_pos, d_t, d_s;
   float d_r[4];
   float t_mat[4][4], r_mat[4][4], s_mat[4][4], pivot_mat[4][4], pivot_imat[4][4],
       transform_mat[4][4];
@@ -108,20 +107,11 @@ static std::array<float4x4, 8> transform_matrices_init(const Object &ob,
       copy_v3_v3(start_pivot_scale, ss.prev_pivot_scale);
       break;
   }
-  const float4x4 &ob_to_world = ob.object_to_world();
-  const float4x4 &world_to_ob = ob.world_to_object();
 
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
     ePaintSymmetryAreas v_symm = ePaintSymmetryAreas(i);
 
-    const float3 final_pivot_pos = SCULPT_flip_v3_by_symm_area(
-        ss.pivot_pos, symm, v_symm, start_pivot_pos);
-
-    const float3 start_pivot_local = SCULPT_flip_v3_by_symm_area(
-        start_pivot_pos, symm, v_symm, ss.init_pivot_pos);
-
-    const float3 final_pivot_world = math::transform_point(ob_to_world, final_pivot_pos);
-    const float3 start_pivot_world = math::transform_point(ob_to_world, start_pivot_local);
+    copy_v3_v3(final_pivot_pos, ss.pivot_pos);
 
     unit_m4(pivot_mat);
 
@@ -130,8 +120,9 @@ static std::array<float4x4, 8> transform_matrices_init(const Object &ob,
     unit_m4(s_mat);
 
     /* Translation matrix. */
-    const float3 d_t_world = final_pivot_world - start_pivot_world;
-    translate_m4(t_mat, d_t_world.x, d_t_world.y, d_t_world.z);
+    sub_v3_v3v3(d_t, ss.pivot_pos, start_pivot_pos);
+    d_t = SCULPT_flip_v3_by_symm_area(d_t, symm, v_symm, ss.init_pivot_pos);
+    translate_m4(t_mat, d_t[0], d_t[1], d_t[2]);
 
     /* Rotation matrix. */
     sub_qt_qtqt(d_r, ss.pivot_rot, start_pivot_rot);
@@ -145,7 +136,8 @@ static std::array<float4x4, 8> transform_matrices_init(const Object &ob,
     size_to_mat4(s_mat, d_s);
 
     /* Pivot matrix. */
-    translate_m4(pivot_mat, final_pivot_world.x, final_pivot_world.y, final_pivot_world.z);
+    final_pivot_pos = SCULPT_flip_v3_by_symm_area(final_pivot_pos, symm, v_symm, start_pivot_pos);
+    translate_m4(pivot_mat, final_pivot_pos[0], final_pivot_pos[1], final_pivot_pos[2]);
     invert_m4_m4(pivot_imat, pivot_mat);
 
     /* Final transform matrix. */
@@ -153,9 +145,6 @@ static std::array<float4x4, 8> transform_matrices_init(const Object &ob,
     mul_m4_m4m4(transform_mat, transform_mat, s_mat);
     mul_m4_m4m4(mats[i].ptr(), transform_mat, pivot_imat);
     mul_m4_m4m4(mats[i].ptr(), pivot_mat, mats[i].ptr());
-    float temp[4][4];
-    mul_m4_m4m4(temp, mats[i].ptr(), ob_to_world.ptr());
-    mul_m4_m4m4(mats[i].ptr(), world_to_ob.ptr(), temp);
   }
 
   return mats;
@@ -301,7 +290,7 @@ static void sculpt_transform_all_vertices(const Depsgraph &depsgraph, const Scul
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   std::array<float4x4, 8> transform_mats = transform_matrices_init(
-      ob, ss, symm, ss.filter_cache->transform_displacement_mode);
+      ss, symm, ss.filter_cache->transform_displacement_mode);
 
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
@@ -479,7 +468,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   std::array<float4x4, 8> transform_mats = transform_matrices_init(
-      ob, ss, symm, ss.filter_cache->transform_displacement_mode);
+      ss, symm, ss.filter_cache->transform_displacement_mode);
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const IndexMask &node_mask = ss.filter_cache->node_mask;
