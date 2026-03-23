@@ -848,6 +848,7 @@ enum eSpaceNodeOverlay_Flag {
    * of connected reroute nodes.
    */
   SN_OVERLAY_SHOW_REROUTE_AUTO_LABELS = (1 << 7),
+  SN_OVERLAY_SHOW_RENDER_REGION = (1 << 8),
 };
 
 enum eSpaceNodeOverlay_preview_shape {

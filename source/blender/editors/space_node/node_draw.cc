@@ -81,6 +81,7 @@
 #include "ED_node_preview.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
+#include "ED_util.hh"
 #include "ED_viewer_path.hh"
 
 #include "UI_interface.hh"
@@ -4776,6 +4777,7 @@ void node_draw_space(const bContext &C, ARegion &region)
   wmWindow *win = CTX_wm_window(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   View2D &v2d = region.v2d;
+  Scene &scene = *CTX_data_scene(&C);
 
   /* Setup off-screen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(&region);
@@ -4838,6 +4840,29 @@ void node_draw_space(const bContext &C, ARegion &region)
 
       /* Backdrop. */
       draw_nodespace_back_pix(C, region, snode, path->parent_key);
+
+      {
+        GPU_matrix_push_projection();
+        wmOrtho2_region_pixelspace(&region);
+
+        const bool show_render_region = (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
+                                         snode.overlay.flag & SN_OVERLAY_SHOW_RENDER_REGION &&
+                                         snode.flag & SNODE_BACKDRAW);
+        if (show_render_region) {
+          int render_size_x, render_size_y;
+          BKE_render_resolution(&scene.r, true, &render_size_x, &render_size_y);
+          rcti render_region;
+          BLI_rcti_init(&render_region, 0, render_size_x, 0, render_size_y);
+
+          ED_region_render_region_draw(region.winx / 2 + snode.xof,
+                                       region.winy / 2 + snode.yof,
+                                       &render_region,
+                                       snode.zoom,
+                                       snode.zoom,
+                                       snode.overlay.passepartout_alpha);
+        }
+        GPU_matrix_pop_projection();
+      }
 
       {
         float original_proj[4][4];

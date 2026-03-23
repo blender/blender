@@ -987,7 +987,7 @@ void ED_region_image_overlay_info_text_draw(const int render_size_x,
                 viewer_size_y);
 }
 
-void ED_region_image_render_region_draw(
+void ED_region_render_region_draw(
     int x, int y, const rcti *frame, float zoomx, float zoomy, float passepartout_alpha)
 {
   GPU_matrix_push();
@@ -1022,7 +1022,7 @@ void ED_region_image_render_region_draw(
   }
 
   float wire_color[3];
-  ui::theme::get_color_3fv(TH_WIRE_EDIT, wire_color);
+  ui::theme::get_color_3fv(TH_TEXT, wire_color);
   immUniformColor4f(wire_color[0], wire_color[1], wire_color[2], 1);
 
   /* The bounding box must be drawn last to ensure it remains visible

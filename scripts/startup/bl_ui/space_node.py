@@ -964,7 +964,7 @@ class NODE_PT_overlay(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'HEADER'
     bl_label = "Overlays"
-    bl_ui_units_x = 7
+    bl_ui_units_x = 14
 
     def draw(self, context):
         layout = self.layout
@@ -999,6 +999,13 @@ class NODE_PT_overlay(Panel):
 
         if snode.tree_type == 'CompositorNodeTree':
             col.prop(overlay, "show_timing", text="Timings")
+
+            subcol = col.column(align=True)
+            subcol.active = overlay.show_render_size and snode.show_backdrop
+
+            row = subcol.row(align=True)
+            row.prop(overlay, "show_render_size", text="Render Region")
+            row.prop(overlay, "passepartout_alpha", text="Passepartout")
 
 
 class NODE_MT_node_tree_interface_context_menu(Menu):
