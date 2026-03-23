@@ -136,6 +136,11 @@ IndexMask fill_mask_for_stroke_operation(const GreasePencilStrokeParams &params,
 bke::crazyspace::GeometryDeformation get_drawing_deformation(
     const GreasePencilStrokeParams &params);
 
+/* Set the screen space position to a impossibly far coordinate for all the points
+ * that are outside near/far clipping planes, this is to prevent accidental
+ * interactions with points not visibly present in the camera. */
+constexpr float invalid_screen_position = -1e10f;
+
 /* Project points from layer space into 2D view space. */
 Array<float2> view_positions_from_point_mask(const GreasePencilStrokeParams &params,
                                              const IndexMask &point_mask);

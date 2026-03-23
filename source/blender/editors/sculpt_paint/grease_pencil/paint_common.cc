@@ -178,8 +178,14 @@ IndexMask brush_point_influence_mask(const Paint &paint,
   Array<float> all_influences(selection.min_array_size());
   const IndexMask influence_mask = IndexMask::from_predicate(
       selection, memory, [&](const int point) {
+        const float2 &co = view_positions[point];
+
+        if (co == float2(invalid_screen_position)) {
+          return false;
+        }
+
         /* Distance falloff. */
-        const float distance_squared = math::distance_squared(int2(view_positions[point]), mval_i);
+        const float distance_squared = math::distance_squared(int2(co), mval_i);
         if (distance_squared > radius_squared) {
           all_influences[point] = 0.0f;
           return false;
@@ -376,9 +382,9 @@ Array<float2> view_positions_from_point_mask(const GreasePencilStrokeParams &par
             &params.region,
             math::transform_point(transform, deformation.positions[point_i]),
             view_positions[point_i],
-            V3D_PROJ_TEST_NOP);
+            V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR);
         if (result != V3D_PROJ_RET_OK) {
-          view_positions[point_i] = float2(0);
+          view_positions[point_i] = float2(invalid_screen_position);
         }
       },
       exec_mode::grain_size(4096));
@@ -404,9 +410,9 @@ Array<float2> view_positions_from_curve_mask(const GreasePencilStrokeParams &par
               &params.region,
               math::transform_point(transform, deformation.positions[point_i]),
               view_positions[point_i],
-              V3D_PROJ_TEST_NOP);
+              V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR);
           if (result != V3D_PROJ_RET_OK) {
-            view_positions[point_i] = float2(0);
+            view_positions[point_i] = float2(invalid_screen_position);
           }
         }
       },
@@ -434,9 +440,9 @@ Array<float2> view_positions_left_from_point_mask(const GreasePencilStrokeParams
             &params.region,
             math::transform_point(transform, handle_positions_left[point_i]),
             view_positions[point_i],
-            V3D_PROJ_TEST_NOP);
+            V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR);
         if (result != V3D_PROJ_RET_OK) {
-          view_positions[point_i] = float2(0);
+          view_positions[point_i] = float2(invalid_screen_position);
         }
       },
       exec_mode::grain_size(4096));
@@ -463,9 +469,9 @@ Array<float2> view_positions_right_from_point_mask(const GreasePencilStrokeParam
             &params.region,
             math::transform_point(transform, handle_positions_right[point_i]),
             view_positions[point_i],
-            V3D_PROJ_TEST_NOP);
+            V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR);
         if (result != V3D_PROJ_RET_OK) {
-          view_positions[point_i] = float2(0);
+          view_positions[point_i] = float2(invalid_screen_position);
         }
       },
       exec_mode::grain_size(4096));
