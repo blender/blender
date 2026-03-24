@@ -2801,8 +2801,8 @@ void fn() {
     string expect = R"(
 T fn1() { return _ctor(T) 1, 2 _rotc() ; }
 T fn2() { return _ctor(T) 1, 2   _rotc() ; }
-T fn3() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;   return T_tmp;}; }
-T fn4() { {T _tmp ;    _tmp.a=1;  _tmp.b=2  ;   return T_tmp;}; }
+T fn3() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;   return _tmp;}; }
+T fn4() { {T _tmp ;    _tmp.a=1;  _tmp.b=2  ;   return _tmp;}; }
 T fn5() { return _ctor(T) 1, 2 _rotc() ; }
 T fn6() { return _ctor(T) 1, 2   _rotc() ; }
 T fn7() { {T _tmp ;    _tmp.a=1;  _tmp.b=2;   return _tmp;}; }

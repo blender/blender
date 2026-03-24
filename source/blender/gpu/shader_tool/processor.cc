@@ -1123,7 +1123,8 @@ void SourceProcessor::lower_implicit_return_types(Parser &parser)
         parser.insert_before(toks[0],
                              "{" + string(type.str()) + " _tmp = " + string(type.str()) +
                                  string(list.str()) + "; ");
-        parser.replace(list, "_tmp;}");
+        const Token start = toks[1].is_valid() ? toks[1] : list.front();
+        parser.replace(start, list.back(), "_tmp;}");
       }
       else if (toks[1].is_invalid()) {
         /* Regular initializer list. Keep it simple. */
