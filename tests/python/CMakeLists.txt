@@ -833,21 +833,38 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     texture
   )
 
+  set(workbench_tests
+    workbench
+    camera
+    colorspace
+    hair
+    image_colorspace
+    image_data_types
+    image_mapping
+    image_texture_limit
+    mesh
+    pointcloud
+    texture
+  )
+
   if(WITH_OPENSUBDIV)
     list(APPEND render_tests displacement)
   endif()
 
   if(WITH_FREESTYLE)
     list(APPEND render_tests render_layer)
-  endif()
-
-  if(WITH_MOD_FLUID)
+    list(APPEND workbench_tests render_layer)
+    endif()
+    
+    if(WITH_MOD_FLUID)
     list(APPEND render_tests motion_blur reports volume)
-  endif()
-
-  if(WITH_OPENVDB AND WITH_MOD_FLUID)
+    list(APPEND workbench_tests volume)
+    endif()
+    
+    if(WITH_OPENVDB AND WITH_MOD_FLUID)
     # Some tests in the OpenVDB folder make use of fluid simulations to generate smoke
     list(APPEND render_tests openvdb)
+    list(APPEND workbench_tests openvdb)
   endif()
 
   if(WITH_OPENIMAGEDENOISE)
@@ -861,9 +878,11 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
 
   if(WITH_GPU_RENDER_TESTS)
     list(APPEND render_tests grease_pencil)
+    list(APPEND workbench_tests grease_pencil)
   endif()
 
   list(SORT render_tests)
+  list(SORT workbench_tests)
 
   # Cycles
   if(WITH_CYCLES)
@@ -975,7 +994,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     endfunction()
 
     add_gpu_render_tests(eevee "eevee_render_tests.py" "${gpu_render_tests}")
-    add_gpu_render_tests(workbench "workbench_render_tests.py" "${gpu_render_tests}")
+    add_gpu_render_tests(workbench "workbench_render_tests.py" "${workbench_tests}")
     if(WITH_GPU_RENDER_TESTS_HEADED)
       add_gpu_render_tests(overlay "overlay_render_tests.py" "overlay")
     endif()

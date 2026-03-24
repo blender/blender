@@ -37,6 +37,9 @@ def setup():
     import bpy
 
     for scene in bpy.data.scenes:
+        if scene.get("Workbench_skip_setup", False):
+            continue
+
         scene.render.engine = 'BLENDER_WORKBENCH'
         scene.display.shading.light = 'STUDIO'
         scene.display.shading.color_type = 'TEXTURE'
