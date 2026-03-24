@@ -816,13 +816,23 @@ struct EraseOperationExecutor {
             dst_attributes.lookup_or_add_for_write_span<float>(opacity_attr,
                                                                bke::AttrDomain::Point))
     {
+      SpanAttributeWriter<bool> opacity_modified =
+          dst_attributes.lookup_or_add_for_write_span<bool>(
+              "_eraser_opacity_modified", bke::AttrDomain::Point, bke::AttributeInitValue(false));
+      BLI_assert(opacity_modified);
+
       threading::parallel_for(dst.points_range(), 4096, [&](const IndexRange dst_points_range) {
         for (const int dst_point_index : dst_points_range) {
           const ed::greasepencil::PointTransferData &dst_point = dst_points[dst_point_index];
           dst_opacity.span[dst_point_index] = dst_point.opacity;
+
+          if (!dst_point.is_src_point || dst_point.opacity != src_opacity[dst_point.src_point]) {
+            opacity_modified.span[dst_point_index] = true;
+          }
         }
       });
       dst_opacity.finish();
+      opacity_modified.finish();
     }
 
     SpanAttributeWriter<bool> dst_inserted = dst_attributes.lookup_or_add_for_write_span<bool>(
@@ -1118,10 +1128,16 @@ static void remove_points_with_low_opacity(bke::CurvesGeometry &curves,
                                            const VArray<float> &opacities,
                                            const float epsilon)
 {
+  const VArray<bool> point_was_modified = *curves.attributes().lookup<bool>(
+      "_eraser_opacity_modified", bke::AttrDomain::Point);
+  if (!point_was_modified) {
+    return;
+  }
+
   IndexMaskMemory memory;
   const IndexMask points_to_remove_and_split = IndexMask::from_predicate(
       curves.points_range(), memory, [&](const int64_t point) {
-        return opacities[point] < epsilon;
+        return opacities[point] < epsilon && point_was_modified[point];
       });
   curves = geometry::remove_points_and_split(curves, points_to_remove_and_split);
 }
@@ -1143,7 +1159,11 @@ void EraseOperation::on_stroke_done(const bContext &C)
     if (drawing.strokes().attributes().contains("_eraser_inserted")) {
       simplify_opacities(drawing.strokes_for_write(), drawing.opacities(), 0.01f);
     }
-    remove_points_with_low_opacity(drawing.strokes_for_write(), drawing.opacities(), 0.0001f);
+
+    if (this->eraser_mode_ == GP_BRUSH_ERASER_SOFT) {
+      remove_points_with_low_opacity(drawing.strokes_for_write(), drawing.opacities(), 0.0001f);
+      drawing.strokes_for_write().attributes_for_write().remove("_eraser_opacity_modified");
+    }
 
     drawing.strokes_for_write().attributes_for_write().remove("_eraser_inserted");
     drawing.tag_topology_changed();
