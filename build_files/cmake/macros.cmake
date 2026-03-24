@@ -903,12 +903,19 @@ function(add_check_c_compiler_flag_impl
 
   include(CheckCCompilerFlag)
 
+  set(_is_new TRUE)
+  if (DEFINED CACHE{${_CACHE_VAR}})
+    set(_is_new FALSE)
+  endif()
+
   check_c_compiler_flag("${_FLAG}" "${_CACHE_VAR}")
   if(${_CACHE_VAR})
     # message(STATUS "Using CFLAG: ${_FLAG}")
     set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}" PARENT_SCOPE)
   else()
-    message(STATUS "Unsupported CFLAG: ${_FLAG}")
+    if(_is_new)
+      message(STATUS "Unsupported CFLAG: ${_FLAG}")
+    endif()
   endif()
 endfunction()
 
@@ -920,12 +927,19 @@ function(add_check_cxx_compiler_flag_impl
 
   include(CheckCXXCompilerFlag)
 
+  set(_is_new TRUE)
+  if (DEFINED CACHE{${_CACHE_VAR}})
+    set(_is_new FALSE)
+  endif()
+
   check_cxx_compiler_flag("${_FLAG}" "${_CACHE_VAR}")
   if(${_CACHE_VAR})
     # message(STATUS "Using CXXFLAG: ${_FLAG}")
     set(${_CXXFLAGS} "${${_CXXFLAGS}} ${_FLAG}" PARENT_SCOPE)
   else()
-    message(STATUS "Unsupported CXXFLAG: ${_FLAG}")
+    if(_is_new)
+      message(STATUS "Unsupported CXXFLAG: ${_FLAG}")
+    endif()
   endif()
 endfunction()
 
