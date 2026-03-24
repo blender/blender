@@ -302,7 +302,7 @@ class USDExportTest(AbstractUSDTest):
         #  - Frame 2: 2 faces and 2 materials [mat2, mat3]
         #  - Frame 3: 4 faces and 3 materials [mat2, mat3, mat2, mat1]
         #  - Frame 4: 4 faces and 2 materials [mat2, mat3, mat2, mat3]
-        dynamic_mesh_prim = UsdGeom.Mesh(stage.GetPrimAtPath("/root/dynamic_mesh/dynamic_mesh"))
+        dynamic_mesh_prim = UsdGeom.Mesh(stage.GetPrimAtPath("/root/dynamic_mesh/Mesh"))
         geom_subsets = UsdGeom.Subset.GetGeomSubsets(dynamic_mesh_prim)
         self.assertEqual(len(geom_subsets), 0)
 

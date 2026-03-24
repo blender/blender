@@ -1407,6 +1407,7 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   /* User counts aren't handled, don't copy into a mesh from #G_MAIN. */
   BLI_assert(me_dst->id.tag & (ID_TAG_NO_MAIN | ID_TAG_COPIED_ON_EVAL));
 
+  STRNCPY(me_dst->id.name, me_src->id.name);
   BKE_mesh_copy_parameters(me_dst, me_src);
   copy_attribute_names(*me_src, *me_dst);
 
@@ -1437,6 +1438,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
                             ((me_src->totface_legacy != 0) && (me_src->faces_num == 0)));
 
   Mesh *me_dst = BKE_id_new_nomain<Mesh>(nullptr);
+  STRNCPY(me_dst->id.name, me_src->id.name);
 
   me_dst->mselect = MEM_dupalloc(me_src->mselect);
 
