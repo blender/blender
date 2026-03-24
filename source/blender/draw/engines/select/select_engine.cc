@@ -131,6 +131,12 @@ struct Instance : public DrawEngine {
       state |= DRW_STATE_CLIP_PLANES;
     }
 
+    if (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING &&
+        draw_ctx->v3d->shading.type == OB_SOLID)
+    {
+      state |= DRW_STATE_CULL_BACK;
+    }
+
     bool retopology_occlusion = RETOPOLOGY_ENABLED(draw_ctx->v3d) && !XRAY_ENABLED(draw_ctx->v3d);
     float retopology_offset = RETOPOLOGY_OFFSET(draw_ctx->v3d);
 
