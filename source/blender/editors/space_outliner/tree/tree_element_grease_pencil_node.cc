@@ -32,13 +32,14 @@ void TreeElementGreasePencilNode::expand(SpaceOutliner & /*space_outliner*/) con
   if (!node_.is_group()) {
     return;
   }
+  int index = 0;
   for (GreasePencilLayerTreeNode &child : node_.as_group().children.items_reversed()) {
     add_element(&legacy_te_.subtree,
                 &owner_grease_pencil_.id,
                 &child,
                 &legacy_te_,
                 TSE_GREASE_PENCIL_NODE,
-                0);
+                index++);
   }
 }
 
