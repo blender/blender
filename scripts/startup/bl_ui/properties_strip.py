@@ -11,6 +11,7 @@ from bpy.app.translations import (
     pgettext_rpt as rpt_,
 )
 from rna_prop_ui import PropertyPanel
+from bl_ui.utils import PresetPanel
 
 
 class StripButtonsPanel:
@@ -31,6 +32,13 @@ class StripColorTagPicker:
     @classmethod
     def poll(cls, context):
         return context.active_strip is not None
+
+
+class STRIP_PT_effect_text_style_presets(PresetPanel, Panel):
+    bl_label = "Text Style Presets"
+    preset_subdir = "sequencer/text_style"
+    preset_operator = "script.execute_preset"
+    preset_add_operator = "sequencer.text_strip_style_preset_add"
 
 
 class STRIP_PT_color_tag_picker(StripColorTagPicker, Panel):
@@ -157,6 +165,12 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
             'TEXT',
             'COLORMIX',
         }
+
+    def draw_header_preset(self, context):
+        strip = context.active_strip
+
+        if strip.type == 'TEXT':
+            STRIP_PT_effect_text_style_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -1038,6 +1052,7 @@ classes = (
     STRIP_PT_scene_sound,
     STRIP_PT_mask,
     STRIP_PT_effect_text_style,
+    STRIP_PT_effect_text_style_presets,
     STRIP_PT_effect_text_outline,
     STRIP_PT_effect_text_shadow,
     STRIP_PT_effect_text_box,
