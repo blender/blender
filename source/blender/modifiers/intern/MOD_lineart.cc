@@ -17,6 +17,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_collection.hh"
+#include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_query.hh"
@@ -788,6 +789,9 @@ static void generate_strokes(ModifierData &md,
   }();
 
   if (drawing) {
+    BKE_defgroup_copy_list(&drawing->wrap().geometry.vertex_group_names,
+                           &grease_pencil.vertex_group_names);
+
     MOD_lineart_gpencil_generate_v3(
         lmd.cache,
         mat,

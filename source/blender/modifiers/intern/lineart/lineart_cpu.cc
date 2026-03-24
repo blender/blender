@@ -5410,6 +5410,8 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   bke::CurvesGeometry new_curves(total_point_count, stroke_count);
   new_curves.fill_curve_types(CURVE_TYPE_POLY);
 
+  BKE_defgroup_copy_list(&new_curves.vertex_group_names, &drawing.geometry.vertex_group_names);
+
   MutableAttributeAccessor attributes = new_curves.attributes_for_write();
   MutableSpan<float3> point_positions = new_curves.positions_for_write();
 
