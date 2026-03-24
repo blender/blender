@@ -30,7 +30,7 @@ struct Thickness {
 
   ThicknessMode mode() const
   {
-    return data >= 0.0 ? THICKNESS_MODE_SPHERE : THICKNESS_MODE_SLAB;
+    return data > 0.0 ? THICKNESS_MODE_SPHERE : THICKNESS_MODE_SLAB;
   }
 };
 
