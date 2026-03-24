@@ -938,7 +938,7 @@ static void text_info_row(const char *text,
   BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
 
   BLF_position(font_id, col1, row, 0.0f);
-  BLF_draw(font_id, IFACE_(text), text_len);
+  BLF_draw(font_id, text, text_len);
   BLF_position(font_id, col2, row, 0.0f);
   char draw_text[MAX_NAME];
   SNPRINTF_UTF8(draw_text, "%d x %d", size_x, size_y);
@@ -960,26 +960,26 @@ void ED_region_image_overlay_info_text_draw(const int render_size_x,
   const int font_id = BLF_default();
   int overlay_lineheight = (ui::style_get()->widget.points * UI_SCALE_FAC * 1.6f);
 
-  const char render_size_name[MAX_NAME] = "Render Size";
-  const char viewer_size_name[MAX_NAME] = "Image Size";
+  const StringRef render_size_name = IFACE_("Render Size");
+  const StringRef viewer_size_name = IFACE_("Image Size");
 
-  const int render_size_width = BLF_width(font_id, render_size_name, sizeof(render_size_name));
-  const int viewer_size_width = BLF_width(font_id, viewer_size_name, sizeof(viewer_size_name));
+  const int render_size_width = BLF_width(font_id, render_size_name.data(), MAX_NAME);
+  const int viewer_size_width = BLF_width(font_id, viewer_size_name.data(), MAX_NAME);
   int longest_label = max_ii(render_size_width, viewer_size_width);
 
   int col1 = draw_offset_x;
   int col2 = draw_offset_x + longest_label + (0.5 * U.widget_unit);
 
-  text_info_row(render_size_name,
-                sizeof(render_size_name),
+  text_info_row(render_size_name.data(),
+                render_size_name.size(),
                 col1,
                 col2,
                 draw_offset_y - overlay_lineheight,
                 render_size_x,
                 render_size_y);
 
-  text_info_row(viewer_size_name,
-                sizeof(viewer_size_name),
+  text_info_row(viewer_size_name.data(),
+                viewer_size_name.size(),
                 col1,
                 col2,
                 draw_offset_y - overlay_lineheight * 2,
