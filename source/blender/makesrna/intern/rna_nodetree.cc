@@ -3219,7 +3219,7 @@ static void rna_Node_scene_set(PointerRNA *ptr, PointerRNA value, ReportList * /
   id_us_plus(node->id);
 }
 
-static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Node_image_layer_view_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bNode *node = ptr->data_as<bNode>();
   Image *ima = reinterpret_cast<Image *>(node->id);
@@ -6537,7 +6537,7 @@ static void def_node_image_user(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Node_image_layer_itemf");
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   RNA_def_property_ui_text(prop, "Layer", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_image_layer_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_image_layer_view_update");
 
   prop = RNA_def_property(srna, "has_layers", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Node_image_has_layers_get", nullptr);
@@ -6550,7 +6550,7 @@ static void def_node_image_user(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Node_image_view_itemf");
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   RNA_def_property_ui_text(prop, "View", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_image_layer_view_update");
 
   prop = RNA_def_property(srna, "has_views", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Node_image_has_views_get", nullptr);
