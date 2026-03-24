@@ -147,7 +147,7 @@ const shader::ShaderCreateInfo &MTLShader::patch_create_info(
     patch_create_info_atomic_workaround(patched_info_, original_info);
   }
 
-  if (original_info.max_sampler_slot() > 16) {
+  if (original_info.max_sampler_slot() >= 16) {
     if (patched_info_ == nullptr) {
       patched_info_ = std::make_unique<PatchedShaderCreateInfo>(original_info);
     }
