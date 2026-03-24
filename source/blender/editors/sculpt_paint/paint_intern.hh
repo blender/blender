@@ -589,9 +589,6 @@ bool paint_get_tex_pixel(const MTex *mtex,
 
 void paint_stroke_operator_properties(wmOperatorType *ot);
 
-void BRUSH_OT_curve_preset(wmOperatorType *ot);
-void BRUSH_OT_sculpt_curves_falloff_preset(wmOperatorType *ot);
-
 void PAINT_OT_face_select_linked(wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(wmOperatorType *ot);
 void PAINT_OT_face_select_all(wmOperatorType *ot);
