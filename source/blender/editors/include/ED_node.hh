@@ -165,6 +165,9 @@ const char *node_socket_get_description(const bNodeSocket *socket);
 std::optional<Bounds<float2>> node_bounds(Span<const bNode *> nodes);
 std::optional<Bounds<float2>> node_location_bounds(Span<const bNode *> nodes);
 
+/** Find the top-most parent shared by all the nodes, or null if no parent contains all nodes. */
+bNode *find_common_parent_node(Span<bNode *> nodes);
+
 }  // namespace ed::space_node
 
 }  // namespace blender

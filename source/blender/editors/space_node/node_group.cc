@@ -644,6 +644,9 @@ static bNode *node_group_make_from_nodes(const bContext &C,
     gnode->location[0] = bounds->center()[0];
     gnode->location[1] = bounds->center()[1];
   }
+  if (bNode *parent = ed::space_node::find_common_parent_node(nodes_to_group)) {
+    gnode->parent = parent;
+  }
 
   node_group_make_insert_selected(C, ntree, gnode, nodes_to_group);
 
