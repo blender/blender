@@ -114,6 +114,7 @@ void main()
 
   /* Compute per-level size, camera offset for lines. Offset is rounded to the nearest
    * level-dependent line position for grid, while axes simply move with the camera. */
+  /* TODO(not_mark): remove all this horrible axis-swapping BS in BSL port. */
   float step_size = grid_buf.steps[level][line.axis];
   float2 step_offs = flag_test(grid_flag, SHOW_GRID) ?
                          round(grid_buf.offset / step_size) * step_size :
@@ -135,36 +136,39 @@ void main()
   line.P = step_offs + step_size * line.P;
 
   /* Compute clipping rectangle. */
-  float2 clip_min, clip_max;
+  /* TODO(not_mark): remove all this horrible axis-swapping BS in BSL port. */
+  float2 clip_min = float2(-FLT_MAX), clip_max = float2(FLT_MAX);
   if (flag_test(grid_flag, GRID_SIMA)) {
-    /* Clipping rectangle is [-1, 1]. */
+    /* SpaceImage view has user-specified clipping rectangle */
     clip_min = float2(-1.0f);
     clip_max = grid_buf.clip_rect * 2.0f - 1.0f;
   }
   else if (flag_test(grid_flag, SHOW_GRID)) {
-    /* Clipping rectangle is simply forwarded. */
-    clip_min = grid_buf.offset - grid_buf.clip_rect;
-    clip_max = grid_buf.offset + grid_buf.clip_rect;
+    clip_min = step_offs - grid_buf.clip_rect;
+    clip_max = step_offs + grid_buf.clip_rect;
   }
-  else { /* SHOW_AXES */
-    /* Clipping is applied to X-axis; line is moved to the correct axis below. */
-    float offset = grid::unpack_xy_to_axis(grid_buf.offset, grid_flag, line.axis);
-    float clip_rect = grid::unpack_xy_to_axis(grid_buf.clip_rect, grid_flag, line.axis);
-    clip_min = float2(offset - clip_rect, 0.0f);
-    clip_max = float2(offset + clip_rect, 0.0f);
+  else /* SHOW_AXES */ {
+    /* Z-axis does not have a clip value to unpack. */
+    float clip_rect = (line.axis == 2) ?
+                          grid_buf.clip_rect.x :
+                          grid::unpack_xy_to_axis(grid_buf.clip_rect, grid_flag, line.axis);
+
+    /* Clipping is applied to the x-axis, where vertex data is stored.
+     * It is swapped to the correct axis below. */
+    clip_min = float2(step_offs.x - clip_rect, 0.0f);
+    clip_max = float2(step_offs.x + clip_rect, 0.0f);
   }
 
-  /* Clip/clamp; lines entirely outside the rectangle get discarded; others get brought
-   * inside the rectangle to avoid precision problems with large lines. Z-axis ignores this. */
-  if (line.axis != 2) {
-    bool line_outside_rect = all(lessThan(line.P, clip_min)) || all(greaterThan(line.P, clip_max));
-    if (line_outside_rect) {
-      return; /* Discard line. */
-    }
-    line.P = clamp(line.P, clip_min, clip_max);
+  /* Clip/clamp; lines entirely outside the rectangle get discarded; others are brought
+   * inside the rectangle to avoid precision problems with large lines. */
+  bool line_outside_rect = all(lessThan(line.P, clip_min)) || all(greaterThan(line.P, clip_max));
+  if (line_outside_rect) {
+    return; /* Discard line. */
   }
+  line.P = clamp(line.P, clip_min, clip_max);
 
   /* Output world-space position. */
+  /* TODO(not_mark): remove all this horrible axis-swapping BS in BSL port. */
   vertex_out.pos = float3(0.0f);
   if (flag_test(grid_flag, SHOW_GRID)) {
     /* Position is placed on the correct plane. */
