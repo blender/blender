@@ -1459,6 +1459,8 @@ static BMOpDefine bmo_dissolve_edges_def = {
         /* Do not dissolve verts between 2 edges when their angle exceeds this threshold.
          * Disabled by default. */
         {"angle_threshold", BMO_OP_SLOT_FLT},
+        /* When dissolving the edge between 2 triangles, don't dissolve the verts. */
+        {"use_preserve_quads", BMO_OP_SLOT_BOOL},
         {{'\0'}},
     },
     /*slot_types_out*/

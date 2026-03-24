@@ -476,6 +476,8 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 
   const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
 
+  const bool use_preserve_quads = BMO_slot_bool_get(op->slots_in, "use_preserve_quads");
+
   if (use_face_split || use_verts) {
     BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_TAG);
   }
@@ -543,7 +545,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
          * will still be dissolved, even if they happen to make an "un-triangulate" case.
          * This is not done when face split is active, because face split often creates triangle
          * pairs on edges that touch boundaries, resulting in the boundary vert not dissolving. */
-        if (f_pair[0]->len == 3 && f_pair[1]->len == 3 &&
+        if (use_preserve_quads && f_pair[0]->len == 3 && f_pair[1]->len == 3 &&
             bmo_vert_tagged_edges_count_at_most(bm, v_edge, EDGE_TAG, 2) == 1)
         {
           continue;
