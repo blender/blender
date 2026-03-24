@@ -126,7 +126,7 @@ static void read_shader_output(const Scene *scene,
         mesh_verts[t.v[j]] += off;
         if (attr_mP != nullptr) {
           for (int step = 0; step < num_motion_steps - 1; step++) {
-            float3 *mP = attr_mP->data_float3() + step * num_verts;
+            float3 *mP = attr_mP->data_float3_for_write() + step * num_verts;
             mP[t.v[j]] += off;
           }
         }
@@ -255,7 +255,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     }
 
     /* normalize vertex normals */
-    packed_normal *vN = attr_vN->data_normal();
+    packed_normal *vN = attr_vN->data_normal_for_write();
     vector<bool> done(num_verts, false);
 
     for (size_t i = 0; i < num_triangles; i++) {
@@ -285,8 +285,8 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
 
     if (mesh->has_motion_blur() && attr_mP && attr_mN) {
       for (int step = 0; step < mesh->motion_steps - 1; step++) {
-        float3 *mP = attr_mP->data_float3() + step * mesh->verts.size();
-        packed_normal *mN = attr_mN->data_normal() + step * mesh->verts.size();
+        const float3 *mP = attr_mP->data_float3() + step * mesh->verts.size();
+        packed_normal *mN = attr_mN->data_normal_for_write() + step * mesh->verts.size();
 
         /* compute */
         vector<float3> mN_float(num_verts, zero_float3());

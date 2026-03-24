@@ -40,7 +40,7 @@ Attribute::~Attribute()
 {
   /* For voxel data, we need to free the image handle. */
   if (element & ATTR_ELEMENT_VOXEL && !buffer.empty()) {
-    ImageHandle &handle = data_voxel();
+    ImageHandle &handle = data_voxel_for_write();
     handle.~ImageHandle();
   }
 }

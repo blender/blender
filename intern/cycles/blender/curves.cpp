@@ -326,16 +326,16 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   float *attr_random = nullptr;
 
   if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
-    attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_normal();
+    attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_normal_for_write();
   }
   if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT)) {
-    attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT)->data_float();
+    attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT)->data_float_for_write();
   }
   if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH)) {
-    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH)->data_float();
+    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH)->data_float_for_write();
   }
   if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM)) {
-    attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM)->data_float();
+    attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM)->data_float_for_write();
   }
 
   int *curve_first_key = hair->get_curve_first_key().data();
@@ -478,7 +478,7 @@ static void export_hair_motion_validate_attribute(Hair *hair,
     /* Motion, fill up previous steps that we might have skipped because
      * they had no motion, but we need them anyway now. */
     for (int step = 0; step < motion_step; step++) {
-      float4 *mP = attr_mP->data_float4() + step * num_keys;
+      float4 *mP = attr_mP->data_float4_for_write() + step * num_keys;
 
       for (int key = 0; key < num_keys; key++) {
         mP[key] = make_float4(hair->get_curve_keys()[key]);
@@ -502,7 +502,7 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, cons
 
   /* export motion vectors for curve keys */
   const size_t numkeys = hair->get_curve_keys().size();
-  float4 *mP = attr_mP->data_float4() + motion_step * numkeys;
+  float4 *mP = attr_mP->data_float4_for_write() + motion_step * numkeys;
   bool have_motion = false;
   int i = 0;
   int num_curves = 0;
@@ -625,7 +625,7 @@ void BlenderSync::sync_particle_hair(Hair *hair,
       mesh_texture_space(b_mesh, loc, size);
 
       Attribute *attr_generated = hair->attributes.add(ATTR_STD_GENERATED);
-      float3 *generated = attr_generated->data_float3();
+      float3 *generated = attr_generated->data_float3_for_write();
 
       for (size_t i = 0; i < hair->num_curves(); i++) {
         const float3 co = hair->get_curve_keys()[hair->get_curve(i).first_key];
@@ -657,7 +657,7 @@ void BlenderSync::sync_particle_hair(Hair *hair,
 
       Attribute *attr_vcol = hair->attributes.add(name, TypeRGBA, ATTR_ELEMENT_CURVE);
 
-      float4 *fdata = attr_vcol->data_float4();
+      float4 *fdata = attr_vcol->data_float4_for_write();
 
       if (fdata) {
         size_t i = 0;
@@ -692,7 +692,7 @@ void BlenderSync::sync_particle_hair(Hair *hair,
           attr_uv = hair->attributes.add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
         }
 
-        float2 *uv = attr_uv->data_float2();
+        float2 *uv = attr_uv->data_float2_for_write();
 
         if (uv) {
           size_t i = 0;
@@ -729,7 +729,7 @@ static void attr_create_motion_from_velocity(Hair *hair,
   const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
-    float3 *mP = attr_mP->data_float3() + step * num_curve_keys;
+    float3 *mP = attr_mP->data_float3_for_write() + step * num_curve_keys;
 
     for (int i = 0; i < num_curve_keys; i++) {
       mP[i] = P[i] + make_float3(src[i][0], src[i][1], src[i][2]) * relative_time;
@@ -788,7 +788,7 @@ static void attr_create_generic(Scene *scene,
 
       static_assert(sizeof(blender::float2) == sizeof(float2));
       const blender::Span src = b_attr.cast<float2>();
-      std::copy(src.begin(), src.end(), attr->data_float2());
+      std::copy(src.begin(), src.end(), attr->data_float2_for_write());
       have_uv = true;
       return;
     }
@@ -810,14 +810,14 @@ static void attr_create_generic(Scene *scene,
 
         if (const std::optional<BlenderT> single_value = src_varray.get_if_single()) {
           Attribute *attr = attributes.add(name, Converter::type_desc, ATTR_ELEMENT_MESH);
-          CyclesT *data = reinterpret_cast<CyclesT *>(attr->data());
+          CyclesT *data = reinterpret_cast<CyclesT *>(attr->data_for_write());
           *data = Converter::convert(*single_value);
           return;
         }
 
         const AttributeElement element = blender_domain_to_attr_element(b_attr.domain);
         Attribute *attr = attributes.add(name, Converter::type_desc, element);
-        CyclesT *data = reinterpret_cast<CyclesT *>(attr->data());
+        CyclesT *data = reinterpret_cast<CyclesT *>(attr->data_for_write());
 
         const blender::VArraySpan src = src_varray;
         for (const int i : src.index_range()) {
@@ -875,7 +875,8 @@ static void export_hair_curves(Scene *scene,
 
   if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
     /* Get geometry normals. */
-    packed_normal *attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_normal();
+    packed_normal *attr_normal =
+        hair->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_normal_for_write();
     vector<blender::float3> point_normals(positions.size());
     blender::bke::curves_normals_point_domain_calc(
         b_curves, {point_normals.data(), int64_t(point_normals.size())});
@@ -886,13 +887,13 @@ static void export_hair_curves(Scene *scene,
   }
 
   if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT)) {
-    attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT)->data_float();
+    attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT)->data_float_for_write();
   }
   if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH)) {
-    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH)->data_float();
+    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH)->data_float_for_write();
   }
   if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM)) {
-    float *attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM)->data_float();
+    float *attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM)->data_float_for_write();
     for (const int i : points_by_curve.index_range()) {
       attr_random[i] = hash_uint2_to_float(i, 0);
     }
@@ -969,7 +970,7 @@ static void export_hair_curves_motion(Hair *hair,
   /* Export motion keys. */
   const size_t num_keys = hair->num_keys();
   const size_t num_curves = hair->num_curves();
-  float4 *mP = attr_mP->data_float4() + motion_step * num_keys;
+  float4 *mP = attr_mP->data_float4_for_write() + motion_step * num_keys;
   bool have_motion = false;
   int num_motion_keys = 0;
   int curve_index = 0;

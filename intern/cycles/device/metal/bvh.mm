@@ -792,7 +792,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       }
       else {
         size_t attr_offset = (step > center_step) ? step - 1 : step;
-        float4 *motion_points = motion_keys->data_float4() + attr_offset * num_points;
+        const float4 *motion_points = motion_keys->data_float4() + attr_offset * num_points;
 
         for (size_t j = 0; j < num_points; ++j) {
           const PointCloud::Point point = pointcloud->get_point(j);

@@ -31,14 +31,14 @@ EdgeDice::EdgeDice(const SubdParams &params_,
   mesh_shader = mesh->shader.data();
   mesh_smooth = mesh->smooth.data();
   mesh_P = mesh->verts.data();
-  mesh_N = attr_vN->data_normal();
+  mesh_N = attr_vN->data_normal_for_write();
 
   if (params.ptex) {
     Attribute *attr_ptex_face_id = params.mesh->attributes.add(ATTR_STD_PTEX_FACE_ID);
     Attribute *attr_ptex_uv = params.mesh->attributes.add(ATTR_STD_PTEX_UV);
 
-    mesh_ptex_face_id = attr_ptex_face_id->data_float();
-    mesh_ptex_uv = attr_ptex_uv->data_float2();
+    mesh_ptex_face_id = attr_ptex_face_id->data_float_for_write();
+    mesh_ptex_uv = attr_ptex_uv->data_float2_for_write();
   }
 
   interpolation.setup();

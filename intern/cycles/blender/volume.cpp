@@ -224,7 +224,7 @@ static void sync_smoke_volume(blender::Scene &b_scene,
     Attribute *attr = volume->attributes.add(std);
 
     if (!frame_interval.contains(frame)) {
-      attr->data_voxel().clear();
+      attr->data_voxel_for_write().clear();
       continue;
     }
 
@@ -233,7 +233,7 @@ static void sync_smoke_volume(blender::Scene &b_scene,
     ImageParams params;
     params.frame = frame;
 
-    attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params);
+    attr->data_voxel_for_write() = scene->image_manager->add_image(std::move(loader), params);
   }
 }
 
@@ -373,7 +373,8 @@ static void sync_volume_object(blender::Main &b_data,
       ImageParams params;
       params.frame = b_volume.runtime->frame;
 
-      attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params, false);
+      attr->data_voxel_for_write() = scene->image_manager->add_image(
+          std::move(loader), params, false);
     }
   }
 #endif

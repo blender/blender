@@ -162,7 +162,7 @@ void SubdAttributeInterpolation::setup_attribute_vertex_linear(const Attribute &
   const typename T::Type *subd_data = reinterpret_cast<const typename T::Type *>(
                                           subd_attr.data()) +
                                       motion_step * mesh.get_num_subd_base_verts();
-  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data()) +
+  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data_for_write()) +
                                 motion_step * mesh.get_verts().size();
 
   assert(mesh_data != nullptr);
@@ -276,7 +276,7 @@ void SubdAttributeInterpolation::setup_attribute_vertex_smooth(const Attribute &
   }
 
   /* Evaluate patches at limit. */
-  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data()) +
+  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data_for_write()) +
                                 mesh.get_verts().size() * motion_step;
 
   assert(mesh_data != nullptr);
@@ -286,7 +286,8 @@ void SubdAttributeInterpolation::setup_attribute_vertex_smooth(const Attribute &
   if constexpr (std::is_same_v<typename T::Type, float3>) {
     if (mesh_attr.std == ATTR_STD_MOTION_VERTEX_POSITION) {
       Attribute *attr_normal = mesh.attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
-      mesh_normal_data = attr_normal->data_normal() + mesh.get_verts().size() * motion_step;
+      mesh_normal_data = attr_normal->data_normal_for_write() +
+                         mesh.get_verts().size() * motion_step;
     }
   }
 
@@ -347,7 +348,7 @@ void SubdAttributeInterpolation::setup_attribute_corner_linear(const Attribute &
   const typename T::Type *subd_data = reinterpret_cast<const typename T::Type *>(
                                           subd_attr.data()) +
                                       motion_step * mesh.get_subd_face_corners().size();
-  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data()) +
+  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data_for_write()) +
                                 motion_step * mesh.num_triangles() * 3;
 
   assert(mesh_data != nullptr);
@@ -458,7 +459,7 @@ void SubdAttributeInterpolation::setup_attribute_corner_smooth(Attribute &mesh_a
 
   /* Evaluate patches at limit. */
   const typename T::AccumType *subd_data = refined_data;
-  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data());
+  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data_for_write());
 
   assert(mesh_data != nullptr);
 
@@ -509,7 +510,7 @@ void SubdAttributeInterpolation::setup_attribute_face(const Attribute &subd_attr
   /* Copy value from face to triangle. */
   SubdAttribute attr;
   const typename T::Type *subd_data = reinterpret_cast<const typename T::Type *>(subd_attr.data());
-  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data());
+  typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data_for_write());
 
   assert(mesh_data != nullptr);
 

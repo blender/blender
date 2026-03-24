@@ -584,7 +584,7 @@ static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
   Attribute *attr = volume->attributes.add(ATTR_STD_VOLUME_VELOCITY);
   unique_ptr<ImageLoader> loader = make_unique<VDBImageLoader>(vecgrid, "merged_velocity");
   const ImageParams params;
-  attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params);
+  attr->data_voxel_for_write() = scene->image_manager->add_image(std::move(loader), params);
 }
 #endif /* defined(WITH_OPENVDB) && defined(WITH_NANOVDB) */
 
@@ -638,7 +638,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
       continue;
     }
 
-    ImageHandle &handle = attr.data_voxel();
+    ImageHandle &handle = attr.data_voxel_for_write();
 
     if (handle.empty()) {
       continue;
