@@ -3321,11 +3321,6 @@ static void do_brush_action(const Depsgraph &depsgraph,
                                     std::numeric_limits<float>::max());
   }
 
-  bool invert = ss.cache->pen_flip || ss.cache->invert;
-  if (brush.flag & BRUSH_DIR_IN) {
-    invert = !invert;
-  }
-
   /* Apply one type of brush action. */
   switch (brush.sculpt_brush_type) {
     case SCULPT_BRUSH_TYPE_DRAW: {
