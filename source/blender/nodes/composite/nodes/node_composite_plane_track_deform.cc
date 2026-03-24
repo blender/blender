@@ -287,13 +287,13 @@ class PlaneTrackDeformOperation : public NodeOperation {
           continue;
         }
         float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
-
-        /* The derivatives of the projected coordinates with respect to x and y are the first and
-         * second columns respectively, divided by the z projection factor as can be shown by
-         * differentiating the above matrix multiplication with respect to x and y. */
-        float2 x_gradient = homography_matrix[0].xy() / transformed_coordinates.z;
-        float2 y_gradient = homography_matrix[1].xy() / transformed_coordinates.z;
-
+        /* Derivative of transformed_coordinates.xy / transformed_coordinates.z vs texels. */
+        float2 x_gradient = (homography_matrix[0].xy() * transformed_coordinates.z -
+                             transformed_coordinates.xy() * homography_matrix[0].z) /
+                            (math::square(transformed_coordinates.z) * size.x);
+        float2 y_gradient = (homography_matrix[1].xy() * transformed_coordinates.z -
+                             transformed_coordinates.xy() * homography_matrix[1].z) /
+                            (math::square(transformed_coordinates.z) * size.y);
         const float2x2 jacobian = float2x2(x_gradient, y_gradient);
         float4 sampled_color = float4(input.sample<Color>(projected_coordinates,
                                                           Interpolation::Anisotropic,
