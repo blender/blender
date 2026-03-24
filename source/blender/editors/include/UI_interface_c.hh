@@ -164,6 +164,11 @@ enum {
    *   arrow-key sub-menu traversal, and shortcut display.
    * - When disabled: non-modal. Some popups (e.g. redo panels, alert dialogs)
    *   explicitly clear this flag.
+   *
+   * \note For popups this is always enabled after initialization (set by #popup_block_open_ex).
+   * Clearing this flag during block construction is used to suppress menu-specific
+   * behavior in #block_end (e.g. left-aligned text, accelerator keys, shortcut labels),
+   * although we may choose to leave this disabled in the future.
    */
   BLOCK_LOOP = 1 << 0,
   /**
