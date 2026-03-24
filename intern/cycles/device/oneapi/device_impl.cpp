@@ -1047,23 +1047,8 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
       return false;
     }
 
-    sycl::queue *created_queue = nullptr;
-    /* In case if we are detecting several L0 platforms being utilised, we need to isolate
-     * each device in its own DPC++ context. Otherwise we are likely to experience failures and
-     * crashes, like it was in Blender bug report #138384. Performance impact of this workaround is
-     * unmeasurable, as we cannot use both GPUs without it at the moment without this workaround.
-     * In the future, it will be removed.
-     */
-    if (*multiple_level_zero_platforms_detected_pointer == false) {
-      created_queue = new sycl::queue(devices[device_index], sycl::property::queue::in_order());
-    }
-    else {
-      sycl::context device_context(devices[device_index]);
-      created_queue = new sycl::queue(
-          device_context, devices[device_index], sycl::property::queue::in_order());
-      LOG_TRACE << "Separate context was generated for the new queue, as several available SYCL "
-                   "devices were detected";
-    }
+    sycl::queue *created_queue = new sycl::queue(devices[device_index],
+                                                 sycl::property::queue::in_order());
     external_queue = reinterpret_cast<SyclQueue *>(created_queue);
 
 #  ifdef WITH_EMBREE_GPU
