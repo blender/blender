@@ -2057,7 +2057,7 @@ static void calc_rotate_deform(SculptSession &ss, const Brush &brush)
 
 static void calc_rotate_twist_deform(SculptSession &ss, const Brush &brush)
 {
-  if (ss.cache->invert) {
+  if (ss.cache->toggle_settings.invert) {
     calc_twist_deform(ss, brush);
   }
   else {
@@ -2067,7 +2067,7 @@ static void calc_rotate_twist_deform(SculptSession &ss, const Brush &brush)
 
 static void calc_scale_translate_deform(SculptSession &ss, const Brush &brush)
 {
-  if (ss.cache->invert) {
+  if (ss.cache->toggle_settings.invert) {
     sculpt_pose_do_translate_deform(ss, brush);
   }
   else {

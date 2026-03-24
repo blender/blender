@@ -765,7 +765,7 @@ void multiplane_scrape_preview_draw(const uint gpuattr,
   float4x4 local_mat_inv = math::invert(ss.cache->stroke_local_mat);
   GPU_matrix_mul(local_mat_inv.ptr());
   float angle = ss.cache->multiplane_scrape_angle;
-  if (ss.cache->pen_flip || ss.cache->invert) {
+  if (ss.cache->toggle_settings.invert) {
     angle = -angle;
   }
 

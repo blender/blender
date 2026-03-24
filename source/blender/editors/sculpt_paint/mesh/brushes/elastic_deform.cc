@@ -214,10 +214,7 @@ void do_elastic_deform_brush(const Depsgraph &depsgraph,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float strength = ss.cache->bstrength;
 
-  float3 grab_delta = ss.cache->grab_delta_symm;
-  if (ss.cache->normal_weight > 0.0f) {
-    sculpt_project_v3_normal_align(ss, ss.cache->normal_weight, grab_delta);
-  }
+  const float3 grab_delta = grab_delta_get(brush, *ss.cache);
 
   float dir;
   if (ss.cache->mouse[0] > ss.cache->initial_mouse[0]) {

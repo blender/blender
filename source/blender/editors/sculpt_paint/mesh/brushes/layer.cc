@@ -171,7 +171,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   gather_data_mesh(layer_displacement_factor.as_span(), verts, displacement_factors);
 
   if (use_persistent_base) {
-    if (cache.invert) {
+    if (cache.toggle_settings.invert) {
       reset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
     }
     else {
@@ -268,7 +268,7 @@ static void calc_grids(const Depsgraph &depsgraph,
       subdiv_ccg, layer_displacement_factor.as_span(), grids, tls.displacement_factors);
 
   if (use_persistent_base) {
-    if (cache.invert) {
+    if (cache.toggle_settings.invert) {
       reset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
     }
     else {

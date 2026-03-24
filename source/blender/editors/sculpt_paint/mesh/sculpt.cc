@@ -592,28 +592,48 @@ bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], 
   return is_in_symmetry_area;
 }
 
-void sculpt_project_v3_normal_align(const SculptSession &ss,
-                                    const float normal_weight,
-                                    float grab_delta[3])
+namespace ed::sculpt_paint {
+
+/**
+ * Align the grab delta to the brush normal.
+ *
+ * \param grab_delta: Typically from `ss.cache->grab_delta_symmetry`.
+ */
+static void sculpt_project_v3_normal_align(const StrokeCache &cache,
+                                           const float normal_weight,
+                                           float grab_delta[3])
 {
   /* Signed to support grabbing in (to make a hole) as well as out. */
-  const float len_signed = dot_v3v3(ss.cache->sculpt_normal_symm, grab_delta);
+  const float len_signed = dot_v3v3(cache.sculpt_normal_symm, grab_delta);
 
   /* This scale effectively projects the offset so dragging follows the cursor,
    * as the normal points towards the view, the scale increases. */
   float len_view_scale;
   {
     float view_aligned_normal[3];
-    project_plane_v3_v3v3(
-        view_aligned_normal, ss.cache->sculpt_normal_symm, ss.cache->view_normal_symm);
-    len_view_scale = fabsf(dot_v3v3(view_aligned_normal, ss.cache->sculpt_normal_symm));
+    project_plane_v3_v3v3(view_aligned_normal, cache.sculpt_normal_symm, cache.view_normal_symm);
+    len_view_scale = fabsf(dot_v3v3(view_aligned_normal, cache.sculpt_normal_symm));
     len_view_scale = (len_view_scale > FLT_EPSILON) ? 1.0f / len_view_scale : 1.0f;
   }
 
   mul_v3_fl(grab_delta, 1.0f - normal_weight);
   madd_v3_v3fl(
-      grab_delta, ss.cache->sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
+      grab_delta, cache.sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
 }
+
+float3 grab_delta_get(const Brush &brush, const StrokeCache &cache)
+{
+  float3 grab_delta = cache.grab_delta_symm;
+
+  const float normal_weight = bke::brush::normal_weight_get(brush, cache.toggle_settings.invert);
+  if (normal_weight > 0.0f) {
+    sculpt_project_v3_normal_align(cache, normal_weight, grab_delta);
+  }
+
+  return grab_delta;
+}
+
+}  // namespace ed::sculpt_paint
 
 namespace ed::sculpt_paint {
 
@@ -838,7 +858,8 @@ static int sculpt_brush_needs_normal(const SculptSession &ss, const Brush &brush
 {
   using namespace blender::ed::sculpt_paint;
   const MTex *mask_tex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
-  return ((bke::brush::supports_normal_weight(brush) && (ss.cache->normal_weight > 0.0f)) ||
+  return ((bke::brush::supports_normal_weight(brush) &&
+           (bke::brush::normal_weight_get(brush, ss.cache->toggle_settings.invert) > 0.0f)) ||
           ELEM(brush.sculpt_brush_type,
                SCULPT_BRUSH_TYPE_BLOB,
                SCULPT_BRUSH_TYPE_CREASE,
@@ -881,7 +902,8 @@ bool stroke_is_dyntopo(const Object &object, const Brush &brush)
 {
   const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  return ((pbvh.type() == bke::pbvh::Type::BMesh) && (!ss.cache || (!ss.cache->alt_smooth)) &&
+  return ((pbvh.type() == bke::pbvh::Type::BMesh) &&
+          (!ss.cache || (!ss.cache->toggle_settings.alt_smooth)) &&
           /* Requires mesh restore, which doesn't work with
            * dynamic-topology. */
           !(ELEM(brush.stroke_method, BRUSH_STROKE_ANCHORED, BRUSH_STROKE_DRAG_DOT)) &&
@@ -1214,7 +1236,7 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
       restore_color_from_undo_step(object);
       break;
     case SCULPT_BRUSH_TYPE_DRAW_FACE_SETS:
-      if (ss.cache->alt_smooth) {
+      if (ss.cache->toggle_settings.alt_smooth) {
         restore_position_from_undo_step(depsgraph, object);
         bke::pbvh::update_normals(depsgraph, object, *bke::object::pbvh_get(object));
       }
@@ -2217,10 +2239,9 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
 static float brush_flip(const Brush &brush, const ed::sculpt_paint::StrokeCache &cache)
 {
   const float dir = (brush.flag & BRUSH_DIR_IN) ? -1.0f : 1.0f;
-  const float pen_flip = cache.pen_flip ? -1.0f : 1.0f;
-  const float invert = cache.invert ? -1.0f : 1.0f;
+  const float invert = cache.toggle_settings.invert ? -1.0f : 1.0f;
 
-  return dir * pen_flip * invert;
+  return dir * invert;
 }
 
 /**
@@ -2637,7 +2658,8 @@ static void update_sculpt_normal(const Depsgraph &depsgraph,
                                !(brush.stroke_method == BRUSH_STROKE_ANCHORED)) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ELASTIC_DEFORM) &&
                              !(brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK &&
-                               cache.normal_weight > 0.0f);
+                               bke::brush::normal_weight_get(brush, cache.toggle_settings.invert) >
+                                   0.0f);
 
   if (cache.mirror_symmetry_pass == 0 && cache.radial_symmetry_pass == 0 &&
       (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal))
@@ -3221,7 +3243,7 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
     /* Draw face sets in smooth mode moves the vertices. */
-    if (ss.cache->alt_smooth) {
+    if (ss.cache->toggle_settings.alt_smooth) {
       need_coords = true;
     }
     else {
@@ -3419,7 +3441,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
       brushes::do_elastic_deform_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_SLIDE_RELAX:
-      if (ss.cache->alt_smooth) {
+      if (ss.cache->toggle_settings.alt_smooth) {
         brushes::do_topology_relax_brush(depsgraph, sd, ob, node_mask);
       }
       else {
@@ -3433,7 +3455,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
       cloth::do_cloth_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_DRAW_FACE_SETS:
-      if (!ss.cache->alt_smooth) {
+      if (!ss.cache->toggle_settings.alt_smooth) {
         brushes::do_draw_face_sets_brush(depsgraph, sd, ob, node_mask);
       }
       else {
@@ -3917,12 +3939,14 @@ static void sculpt_init_mirror_clipping(const Object &ob, const SculptSession &s
   ss.cache->mirror_modifier_clip.mat_inv = math::invert(ss.cache->mirror_modifier_clip.mat);
 }
 
-static void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
+static void smooth_brush_toggle_on(Main *bmain,
+                                   Paint *paint,
+                                   StrokeToggleSettings &toggle_settings)
 {
   Brush *cur_brush = BKE_paint_brush(paint);
 
   if (cur_brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
-    cache->saved_mask_brush_tool = cur_brush->mask_tool;
+    toggle_settings.original_brush_mask_tool = BrushMaskTool(cur_brush->mask_tool);
     cur_brush->mask_tool = BRUSH_MASK_SMOOTH;
     return;
   }
@@ -3940,16 +3964,16 @@ static void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache
   if (!BKE_paint_brush_set_essentials(bmain, paint, target_asset)) {
     BKE_paint_brush_set(paint, cur_brush);
     CLOG_WARN(&LOG, "Unable to switch to the '%s' essentials brush asset", target_asset);
-    cache->saved_active_brush = nullptr;
+    toggle_settings.original_active_brush = nullptr;
     return;
   }
 
   Brush *smooth_brush = BKE_paint_brush(paint);
   int cur_brush_size = BKE_brush_size_get(paint, cur_brush);
 
-  cache->saved_active_brush = cur_brush;
+  toggle_settings.original_active_brush = cur_brush;
 
-  cache->saved_smooth_size = BKE_brush_size_get(paint, smooth_brush);
+  toggle_settings.original_brush_size = BKE_brush_size_get(paint, smooth_brush);
   BKE_brush_size_set(paint, smooth_brush, cur_brush_size);
   bke::brush::common_pressure_curves_init(*smooth_brush);
 }
@@ -3959,7 +3983,7 @@ static void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
   Brush &brush = *BKE_paint_brush(paint);
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
-    brush.mask_tool = cache->saved_mask_brush_tool;
+    brush.mask_tool = cache->toggle_settings.original_brush_mask_tool;
     return;
   }
 
@@ -3973,31 +3997,31 @@ static void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
 
   /* If saved_active_brush is not set, brush was not switched/affected in
    * smooth_brush_toggle_on(). */
-  if (cache->saved_active_brush) {
-    BKE_brush_size_set(paint, &brush, cache->saved_smooth_size);
-    BKE_paint_brush_set(paint, cache->saved_active_brush);
-    cache->saved_active_brush = nullptr;
+  if (cache->toggle_settings.original_active_brush) {
+    BKE_brush_size_set(paint, &brush, cache->toggle_settings.original_brush_size);
+    BKE_paint_brush_set(paint, cache->toggle_settings.original_active_brush);
+    cache->toggle_settings.original_active_brush = nullptr;
   }
 }
 
-static void mask_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
+static void mask_brush_toggle_on(Main *bmain, Paint *paint, StrokeToggleSettings &toggle_settings)
 {
   Brush *cur_brush = BKE_paint_brush(paint);
 
   /* User is already using Mask brush */
   if (cur_brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
-    cache->saved_mask_brush_tool = cur_brush->mask_tool;
-    cache->saved_active_brush = nullptr;
+    toggle_settings.original_brush_mask_tool = BrushMaskTool(cur_brush->mask_tool);
+    toggle_settings.original_active_brush = nullptr;
     return;
   }
 
   /* Save current brush */
-  cache->saved_active_brush = cur_brush;
+  toggle_settings.original_active_brush = cur_brush;
 
   /* Switch to Mask essentials brush */
   if (!BKE_paint_brush_set_essentials(bmain, paint, "Mask")) {
     BKE_paint_brush_set(paint, cur_brush);
-    cache->saved_active_brush = nullptr;
+    toggle_settings.original_active_brush = nullptr;
     CLOG_WARN(&LOG, "Unable to switch to the 'Mask' essentials brush asset");
     return;
   }
@@ -4006,7 +4030,7 @@ static void mask_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
 
   /* Match brush size */
   const int cur_brush_size = BKE_brush_size_get(paint, cur_brush);
-  cache->saved_smooth_size = BKE_brush_size_get(paint, mask_brush);
+  toggle_settings.original_brush_size = BKE_brush_size_get(paint, mask_brush);
   BKE_brush_size_set(paint, mask_brush, cur_brush_size);
 
   if (mask_brush->curve_distance_falloff) {
@@ -4023,17 +4047,17 @@ static void mask_brush_toggle_off(Paint *paint, StrokeCache *cache)
   Brush &brush = *BKE_paint_brush(paint);
 
   /* User was already using mask brush */
-  if (cache->saved_active_brush == nullptr) {
+  if (cache->toggle_settings.original_active_brush == nullptr) {
     if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
-      brush.mask_tool = cache->saved_mask_brush_tool;
+      brush.mask_tool = cache->toggle_settings.original_brush_mask_tool;
     }
     return;
   }
 
   /* Restore previous brush */
-  BKE_brush_size_set(paint, &brush, cache->saved_smooth_size);
-  BKE_paint_brush_set(paint, cache->saved_active_brush);
-  cache->saved_active_brush = nullptr;
+  BKE_brush_size_set(paint, &brush, cache->toggle_settings.original_brush_size);
+  BKE_paint_brush_set(paint, cache->toggle_settings.original_active_brush);
+  cache->toggle_settings.original_active_brush = nullptr;
 }
 
 static void init_scene_project_brush_targets(const Depsgraph &depsgraph,
@@ -4339,7 +4363,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt &sd,
   if (pbvh && auto_mask::is_enabled(sd, object, &brush)) {
     return true;
   }
-  return ((ss.cache && ss.cache->alt_smooth) ||
+  return ((ss.cache && ss.cache->toggle_settings.alt_smooth) ||
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMOOTH) || (brush.autosmooth_factor > 0) ||
           ((brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) &&
            (brush.mask_tool == BRUSH_MASK_SMOOTH)) ||
@@ -4998,10 +5022,7 @@ struct SculptPaintStroke final : public PaintStroke {
     wm_ = CTX_wm_manager(C);
   }
 
-  void stroke_cache_init(BrushStrokeMode stroke_mode,
-                         BrushSwitchMode brush_switch_mode,
-                         bool pen_flip,
-                         const float mval[2]);
+  void stroke_cache_init(const float mval[2]);
   void stroke_cache_update(PointerRNA *ptr);
 
   bool get_location(float out[3], const float mouse[2], bool force_original) override;
@@ -5036,20 +5057,52 @@ static void brush_init_tex(const Sculpt &sd, SculptSession &ss)
   }
 }
 
-static void brush_stroke_init(bContext *C)
+namespace ed::sculpt_paint {
+
+/** Creates stroke-level toggle settings, modifies the current active brush if needed */
+static StrokeToggleSettings create_toggle_settings(const wmOperator &op, Main &bmain, Paint &paint)
+{
+  const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
+  const BrushSwitchMode brush_switch_mode = BrushSwitchMode(RNA_enum_get(op.ptr, "brush_toggle"));
+  const bool pen_flip = RNA_boolean_get(op.ptr, "pen_flip");
+
+  StrokeToggleSettings toggle_settings;
+
+  toggle_settings.invert = stroke_mode == BrushStrokeMode::Invert || pen_flip;
+  toggle_settings.alt_smooth = brush_switch_mode == BrushSwitchMode::Smooth;
+  toggle_settings.alt_mask = brush_switch_mode == BrushSwitchMode::Mask;
+
+  /* Alt-Smooth. */
+  if (toggle_settings.alt_smooth) {
+    smooth_brush_toggle_on(&bmain, &paint, toggle_settings);
+  }
+  /* Alt-Mask. */
+  if (toggle_settings.alt_mask) {
+    mask_brush_toggle_on(&bmain, &paint, toggle_settings);
+  }
+  return toggle_settings;
+}
+
+static void brush_stroke_init(bContext *C, const wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
-  const Sculpt &sd = *tool_settings->sculpt;
+  Sculpt &sd = *tool_settings->sculpt;
   SculptSession &ss = *CTX_data_active_object(C)->runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   if (!G.background) {
     view3d_operator_needs_gpu(C);
   }
+
+  if (!ss.cache) {
+    ss.cache = MEM_new<StrokeCache>(__func__);
+    ss.cache->toggle_settings = create_toggle_settings(*op, *CTX_data_main(C), sd.paint);
+  }
+
   brush_init_tex(sd, ss);
 
-  const bool needs_colors = ed::sculpt_paint::brush_type_is_paint(brush->sculpt_brush_type) &&
+  const bool needs_colors = brush_type_is_paint(brush->sculpt_brush_type) &&
                             !SCULPT_use_image_paint_brush(tool_settings->paint_mode, ob);
 
   if (needs_colors) {
@@ -5059,11 +5112,11 @@ static void brush_stroke_init(bContext *C)
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  BKE_sculpt_update_object_for_edit(
-      depsgraph, &ob, ed::sculpt_paint::brush_type_is_paint(brush->sculpt_brush_type));
+  BKE_sculpt_update_object_for_edit(depsgraph, &ob, brush_type_is_paint(brush->sculpt_brush_type));
 
   ED_paint_brush_type_update_sticky_shading_color(C, &ob);
 }
+}  // namespace ed::sculpt_paint
 
 static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
                                                 const Sculpt &sd,
@@ -5571,20 +5624,16 @@ bool color_supported_check(const Scene &scene, Object &object, ReportList *repor
   return true;
 }
 
-void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
-                                          const BrushSwitchMode brush_switch_mode,
-                                          const bool pen_flip,
-                                          const float mval[2])
+/* TODO: `init` is a bad name */
+void SculptPaintStroke::stroke_cache_init(const float mval[2])
 {
-  StrokeCache *cache = MEM_new<StrokeCache>(__func__);
   bke::PaintRuntime *paint_runtime = sculpt_->paint.runtime;
   const Brush *brush = this->brush;
   ViewContext *vc = &this->vc;
   Object &ob = *this->object;
 
   SculptSession &ss = *ob.runtime->sculpt_session;
-
-  ss.cache = cache;
+  StrokeCache *cache = ss.cache;
 
   /* Set scaling adjustment. */
   float max_scale = 0.0f;
@@ -5610,37 +5659,9 @@ void SculptPaintStroke::stroke_cache_init(const BrushStrokeMode stroke_mode,
   cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
   cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
 
-  cache->pen_flip = pen_flip;
-  cache->invert = stroke_mode == BrushStrokeMode::Invert;
-  cache->alt_smooth = brush_switch_mode == BrushSwitchMode::Smooth;
-  cache->alt_mask = brush_switch_mode == BrushSwitchMode::Mask;
-
-  /* Alt-Smooth. */
-  if (cache->alt_smooth) {
-    smooth_brush_toggle_on(bmain_, this->paint, cache);
-    /* Refresh the brush pointer in case we switched brush in the toggle function. */
-    brush = BKE_paint_brush(this->paint);
-  }
-  /* Alt-Mask. */
-  if (cache->alt_mask) {
-    mask_brush_toggle_on(bmain_, this->paint, cache);
-    /* Refresh brush pointer after switching. */
-    brush = BKE_paint_brush(this->paint);
-  }
-
-  cache->normal_weight = brush->normal_weight;
-
-  /* Interpret invert as following normal, for grab brushes. */
-  if (bke::brush::supports_normal_weight(*brush)) {
-    if (cache->invert) {
-      cache->invert = false;
-      cache->normal_weight = (cache->normal_weight == 0.0f);
-    }
-  }
-
   /* Not very nice, but with current events system implementation
    * we can't handle brush appearance inversion hotkey separately (sergey). */
-  if (cache->invert) {
+  if (cache->toggle_settings.invert) {
     paint_runtime->draw_inverted = true;
   }
   else {
@@ -5749,10 +5770,7 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float mval[2])
 
     ED_view3d_init_mats_rv3d(&ob, this->vc.rv3d);
 
-    stroke_cache_init(BrushStrokeMode(RNA_enum_get(op->ptr, "mode")),
-                      BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle")),
-                      RNA_boolean_get(op->ptr, "pen_flip"),
-                      mval);
+    stroke_cache_init(mval);
     if (brush && brush_type_is_paint(brush->sculpt_brush_type)) {
       BKE_curvemapping_init(brush->curve_rand_hue);
       BKE_curvemapping_init(brush->curve_rand_saturation);
@@ -5950,13 +5968,13 @@ void SculptPaintStroke::done(bool is_cancel)
   SCULPT_stroke_modifiers_check(*this->depsgraph, this->vc.rv3d, sd, ob, brush);
 
   /* Alt-Smooth. */
-  if (ss.cache->alt_smooth) {
+  if (ss.cache->toggle_settings.alt_smooth) {
     smooth_brush_toggle_off(&sd.paint, ss.cache);
     /* Refresh the brush pointer in case we switched brush in the toggle function. */
     brush = BKE_paint_brush(&sd.paint);
   }
   /* Toggle Mask */
-  if (ss.cache->alt_mask) {
+  if (ss.cache->toggle_settings.alt_mask) {
     mask_brush_toggle_off(&sd.paint, ss.cache);
     /* Refresh the brush pointer in case we switched brush in the toggle function. */
     brush = BKE_paint_brush(&sd.paint);
@@ -6018,7 +6036,8 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  brush_stroke_init(C);
+  stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event->type);
+  brush_stroke_init(C, op);
 
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   Brush &brush = *BKE_paint_brush(&sd.paint);
@@ -6026,28 +6045,14 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
   if (brush_type_is_paint(brush.sculpt_brush_type) &&
       !color_supported_check(scene, ob, op->reports))
   {
+    stroke->free(C, op);
+    MEM_delete(stroke);
     return OPERATOR_CANCELLED;
-  }
-  /* Currently, we only switch the brush as part of StrokeCache initialization, which does not
-   * happen until the brush goes over the mesh. Instead, check the #BrushSwitchMode which will
-   * tell if the brush will toggled at that point.
-   *
-   * Temporary mitigation to avoid backporting larger refactor for 5.1 backport.
-   *
-   * TODO: Remove this workaround, create `StrokeCache` here with "immutable" toggle values.
-   */
-  const BrushSwitchMode mode = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
-  if (brush_type_is_mask(brush.sculpt_brush_type) || mode == BrushSwitchMode::Mask) {
-    MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
-    BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
-
-    ed::sculpt_paint::mask_overlay_check(*C, *op);
-  }
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
-    ed::sculpt_paint::face_set_overlay_check(*C, *op);
   }
   if (!brush_type_is_attribute_only(brush.sculpt_brush_type) && !shape_key_check(ob, op->reports))
   {
+    stroke->free(C, op);
+    MEM_delete(stroke);
     return OPERATOR_CANCELLED;
   }
   if (ELEM(brush.sculpt_brush_type,
@@ -6057,11 +6062,21 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
     const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob);
     if (!pbvh || pbvh->type() != bke::pbvh::Type::Grids) {
       BKE_report(op->reports, RPT_ERROR, "Only supported in multiresolution mode");
+      stroke->free(C, op);
+      MEM_delete(stroke);
       return OPERATOR_CANCELLED;
     }
   }
 
-  stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event->type);
+  if (brush_type_is_mask(brush.sculpt_brush_type)) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
+    BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
+
+    ed::sculpt_paint::mask_overlay_check(*C, *op);
+  }
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
+    ed::sculpt_paint::face_set_overlay_check(*C, *op);
+  }
 
   op->customdata = stroke;
 
@@ -6095,7 +6110,7 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
 
 static wmOperatorStatus sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-  brush_stroke_init(C);
+  brush_stroke_init(C, op);
 
   SculptPaintStroke *stroke = MEM_new<SculptPaintStroke>(__func__, C, op, 0);
   op->customdata = stroke;

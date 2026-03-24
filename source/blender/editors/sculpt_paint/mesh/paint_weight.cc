@@ -66,6 +66,7 @@
 #include "mesh_brush_common.hh"
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
+#include "vw_paint_intern.hh" /* own include */
 
 namespace blender {
 
@@ -928,7 +929,6 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   bool *defbase_sel;
   SculptSession &ss = *ob.runtime->sculpt_session;
   VPaint &wp = *weight_paint_;
-  Depsgraph &depsgraph = *this->depsgraph;
 
   if (ED_wpaint_ensure_data(
           this->evil_C, bmain_, this->object, op->reports, WPAINT_ENSURE_MIRROR, &vgroup_index) ==
@@ -1055,8 +1055,7 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   }
 
   /* If not previously created, create vertex/weight paint mode session data */
-  vwpaint::init_stroke(depsgraph, ob);
-  vwpaint::update_cache_invariants(bmain_, wp, ss, op, mouse);
+  vwpaint::update_cache_invariants(wp, ss, op, mouse);
   init_session_data(wp, ob, *wpd);
 
   /* Brush may have changed after initialization. */
@@ -1829,7 +1828,7 @@ static void wpaint_do_symmetrical_brush_actions(
   cache.is_last_valid = true;
 }
 
-void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
+void WeightPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 {
   VPaint &wp = *weight_paint_;
   const ToolSettings &ts = *tool_settings_;
@@ -1879,7 +1878,7 @@ void WeightPaintStroke::update_step(wmOperator *op, PointerRNA *itemptr)
   wpi.vgroup_validmap = wpd->vgroup_validmap;
   wpi.vgroup_locked = wpd->vgroup_locked;
   wpi.vgroup_unlocked = wpd->vgroup_unlocked;
-  wpi.do_flip = RNA_boolean_get(op->ptr, "pen_flip") || ss.cache->invert;
+  wpi.do_flip = ss.cache->toggle_settings.invert;
   wpi.do_multipaint = wpd->do_multipaint;
   wpi.do_auto_normalize = ((ts.auto_normalize != 0) && (wpi.vgroup_validmap != nullptr) &&
                            (wpi.do_multipaint || wpi.vgroup_validmap[wpi.active.index]));
@@ -1916,7 +1915,7 @@ void WeightPaintStroke::done(bool /*is_cancel*/)
 
   SculptSession &ss = *ob.runtime->sculpt_session;
 
-  if (ss.cache->alt_smooth) {
+  if (ss.cache->toggle_settings.alt_smooth) {
     vwpaint::smooth_brush_toggle_off(this->paint, ss.cache);
   }
 
@@ -1947,6 +1946,7 @@ static wmOperatorStatus wpaint_invoke(bContext *C, wmOperator *op, const wmEvent
 
   WeightPaintStroke *stroke = MEM_new<WeightPaintStroke>(__func__, C, op, event->type);
   op->customdata = stroke;
+  vwpaint::init_stroke(*op, *stroke->bmain_, *stroke->paint, *stroke->depsgraph, *stroke->object);
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
   OPERATOR_RETVAL_CHECK(retval);
@@ -1970,6 +1970,8 @@ static wmOperatorStatus wpaint_exec(bContext *C, wmOperator *op)
 {
   WeightPaintStroke *stroke = MEM_new<WeightPaintStroke>(__func__, C, op, 0);
   op->customdata = stroke;
+
+  vwpaint::init_stroke(*op, *stroke->bmain_, *stroke->paint, *stroke->depsgraph, *stroke->object);
 
   stroke->exec(C, op);
 

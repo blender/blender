@@ -72,6 +72,7 @@
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
 #include "sculpt_pose.hh"
+#include "vw_paint_intern.hh" /* own include */
 
 namespace blender {
 
@@ -199,7 +200,7 @@ bool brush_use_accumulate(const VPaint &vp)
   return brush_use_accumulate_ex(*brush, eObjectMode(vp.paint.runtime->ob_mode));
 }
 
-void init_stroke(Depsgraph &depsgraph, Object &ob)
+void init_stroke(const wmOperator &op, Main &main, Paint &paint, Depsgraph &depsgraph, Object &ob)
 {
   BKE_sculpt_update_object_for_edit(&depsgraph, &ob, true);
   SculptSession &ss = *ob.runtime->sculpt_session;
@@ -209,6 +210,7 @@ void init_stroke(Depsgraph &depsgraph, Object &ob)
    */
   if (!ss.cache) {
     ss.cache = MEM_new<StrokeCache>(__func__);
+    ss.cache->toggle_settings = vwpaint::create_toggle_settings(op, main, paint);
   }
 }
 
@@ -379,33 +381,44 @@ void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
   /* The current brush should match with what we have stored in the cache. */
   BLI_assert(brush == cache->brush);
 
-  /* If saved_active_brush is not set, brush was not switched/affected in
+  /* If original_active_brush is not set, brush was not switched/affected in
    * smooth_brush_toggle_on(). */
-  if (cache->saved_active_brush) {
-    BKE_brush_size_set(paint, brush, cache->saved_smooth_size);
-    BKE_paint_brush_set(paint, cache->saved_active_brush);
-    cache->saved_active_brush = nullptr;
+  if (cache->toggle_settings.original_active_brush) {
+    BKE_brush_size_set(paint, brush, cache->toggle_settings.original_brush_size);
+    BKE_paint_brush_set(paint, cache->toggle_settings.original_active_brush);
+    cache->toggle_settings.original_active_brush = nullptr;
   }
 }
-void update_cache_invariants(
-    Main *bmain, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
+
+StrokeToggleSettings create_toggle_settings(const wmOperator &op, Main &bmain, Paint &paint)
+{
+  const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
+  const BrushSwitchMode brush_switch_mode = BrushSwitchMode(RNA_enum_get(op.ptr, "brush_toggle"));
+  const bool pen_flip = RNA_boolean_get(op.ptr, "pen_flip");
+
+  StrokeToggleSettings toggle_settings;
+
+  toggle_settings.invert = stroke_mode == BrushStrokeMode::Invert || pen_flip;
+  toggle_settings.alt_smooth = brush_switch_mode == BrushSwitchMode::Smooth;
+  /* not very nice, but with current events system implementation
+   * we can't handle brush appearance inversion hotkey separately (sergey) */
+
+  if (toggle_settings.alt_smooth) {
+    vwpaint::smooth_brush_toggle_on(&bmain, &paint, toggle_settings);
+  }
+
+  return toggle_settings;
+}
+
+void update_cache_invariants(VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
 {
   PaintStroke *stroke = static_cast<PaintStroke *>(op->customdata);
-  StrokeCache *cache;
+  StrokeCache *cache = ss.cache;
   bke::PaintRuntime &paint_runtime = *vp.paint.runtime;
   ViewContext *vc = &stroke->vc;
   Object &ob = *stroke->object;
   float mat[3][3];
   float view_dir[3] = {0.0f, 0.0f, 1.0f};
-
-  /* VW paint needs to allocate stroke cache before update is called. */
-  if (!ss.cache) {
-    cache = MEM_new<StrokeCache>(__func__);
-    ss.cache = cache;
-  }
-  else {
-    cache = ss.cache;
-  }
 
   /* Initial mouse location */
   if (mval) {
@@ -415,22 +428,13 @@ void update_cache_invariants(
     zero_v2(cache->initial_mouse);
   }
 
-  const auto mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
-  cache->invert = mode == BrushStrokeMode::Invert;
-
-  const auto brush_switch_mode = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
-  cache->alt_smooth = brush_switch_mode == BrushSwitchMode::Smooth;
   /* not very nice, but with current events system implementation
    * we can't handle brush appearance inversion hotkey separately (sergey) */
-  if (cache->invert) {
+  if (cache->toggle_settings.invert) {
     paint_runtime.draw_inverted = true;
   }
   else {
     paint_runtime.draw_inverted = false;
-  }
-
-  if (cache->alt_smooth) {
-    vwpaint::smooth_brush_toggle_on(bmain, &vp.paint, cache);
   }
 
   copy_v2_v2(cache->mouse, cache->initial_mouse);
@@ -537,7 +541,7 @@ void last_stroke_update(const float location[3], Paint &paint)
 
 /* -------------------------------------------------------------------- */
 
-void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
+void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeToggleSettings &toggle_settings)
 {
   Brush *cur_brush = BKE_paint_brush(paint);
 
@@ -545,15 +549,15 @@ void smooth_brush_toggle_on(Main *bmain, Paint *paint, StrokeCache *cache)
   if (!BKE_paint_brush_set_essentials(bmain, paint, "Blur")) {
     BKE_paint_brush_set(paint, cur_brush);
     CLOG_WARN(&LOG, "Unable to switch to the 'Blur' essentials brush asset");
-    cache->saved_active_brush = nullptr;
+    toggle_settings.original_active_brush = nullptr;
     return;
   }
 
   Brush *smooth_brush = BKE_paint_brush(paint);
   int cur_brush_size = BKE_brush_size_get(paint, cur_brush);
 
-  cache->saved_active_brush = cur_brush;
-  cache->saved_smooth_size = BKE_brush_size_get(paint, smooth_brush);
+  toggle_settings.original_active_brush = cur_brush;
+  toggle_settings.original_brush_size = BKE_brush_size_get(paint, smooth_brush);
   BKE_brush_size_set(paint, smooth_brush, cur_brush_size);
   bke::brush::common_pressure_curves_init(*smooth_brush);
 }
@@ -754,11 +758,6 @@ static void paint_and_tex_color_alpha_intern(const VPaint &vp,
       zero_v4(r_rgba);
     }
   }
-}
-
-static void vertex_paint_init_stroke(Depsgraph &depsgraph, Object &ob)
-{
-  vwpaint::init_stroke(depsgraph, ob);
 }
 
 /** \} */
@@ -1015,7 +1014,6 @@ bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
   Brush &brush = *BKE_paint_brush(&vp.paint);
   Object &ob = *this->object;
   SculptSession &ss = *ob.runtime->sculpt_session;
-  Depsgraph &depsgraph = *this->depsgraph;
 
   /* context checks could be a poll() */
   Mesh *mesh = BKE_mesh_from_object(&ob);
@@ -1040,9 +1038,7 @@ bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
   BKE_curvemapping_init(brush.curve_rand_saturation);
   BKE_curvemapping_init(brush.curve_rand_value);
 
-  /* If not previously created, create vertex/weight paint mode session data */
-  vertex_paint_init_stroke(depsgraph, ob);
-  vwpaint::update_cache_invariants(this->bmain_, vp, ss, op, mouse);
+  vwpaint::update_cache_invariants(vp, ss, op, mouse);
   init_session_data(ob);
 
   return true;
@@ -2073,7 +2069,7 @@ void VertexPaintStroke::done(bool /*is_cancel*/)
 
   SculptSession &ss = *ob.runtime->sculpt_session;
 
-  if (ss.cache && ss.cache->alt_smooth) {
+  if (ss.cache && ss.cache->toggle_settings.alt_smooth) {
     vwpaint::smooth_brush_toggle_off(this->paint, ss.cache);
   }
 
@@ -2087,6 +2083,8 @@ static wmOperatorStatus vpaint_invoke(bContext *C, wmOperator *op, const wmEvent
 {
   VertexPaintStroke *stroke = MEM_new<VertexPaintStroke>(__func__, C, op, event->type);
   op->customdata = stroke;
+
+  vwpaint::init_stroke(*op, *stroke->bmain_, *stroke->paint, *stroke->depsgraph, *stroke->object);
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
   OPERATOR_RETVAL_CHECK(retval);
@@ -2111,6 +2109,8 @@ static wmOperatorStatus vpaint_exec(bContext *C, wmOperator *op)
 {
   VertexPaintStroke *stroke = MEM_new<VertexPaintStroke>(__func__, C, op, 0);
   op->customdata = stroke;
+
+  vwpaint::init_stroke(*op, *stroke->bmain_, *stroke->paint, *stroke->depsgraph, *stroke->object);
 
   stroke->exec(C, op);
 

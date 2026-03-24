@@ -424,8 +424,9 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
     }
   }
 
-  float3 brush_color_rgb = ss.cache->invert ? BKE_brush_secondary_color_get(&paint, &brush) :
-                                              BKE_brush_color_get(&paint, &brush);
+  float3 brush_color_rgb = ss.cache->toggle_settings.invert ?
+                               BKE_brush_secondary_color_get(&paint, &brush) :
+                               BKE_brush_color_get(&paint, &brush);
 
   const std::optional<BrushColorJitterSettings> color_jitter_settings =
       BKE_brush_color_jitter_get_settings(&paint, &brush);

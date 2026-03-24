@@ -231,6 +231,10 @@ void BKE_brush_scale_size(int *r_brush_size,
  */
 bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode);
 
+namespace bke::brush {
+float normal_weight_get(const Brush &brush, bool invert);
+}
+
 /* debugging only */
 void BKE_brush_debug_print_state(Brush *br);
 

@@ -3270,7 +3270,7 @@ static float get_mesh_strength(const SculptSession &ss, const Brush &brush)
       const float disp = strength * displacement_from_grab_delta_get(ss, boundary);
       float angle_factor = disp / ss.cache->radius;
       /* Angle Snapping when inverting the brush. */
-      if (ss.cache->invert) {
+      if (ss.cache->toggle_settings.invert) {
         angle_factor = floorf(angle_factor * 10) / 10.0f;
       }
       return angle_factor * M_PI;
@@ -3287,7 +3287,7 @@ static float get_mesh_strength(const SculptSession &ss, const Brush &brush)
       const float disp = strength * displacement_from_grab_delta_get(ss, boundary);
       float angle_factor = disp / ss.cache->radius;
       /* Angle Snapping when inverting the brush. */
-      if (ss.cache->invert) {
+      if (ss.cache->toggle_settings.invert) {
         angle_factor = floorf(angle_factor * 10) / 10.0f;
       }
       return angle_factor * M_PI;

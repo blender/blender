@@ -173,13 +173,7 @@ void do_grab_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  float3 grab_delta = ss.cache->grab_delta_symm;
-
-  if (ss.cache->normal_weight > 0.0f) {
-    sculpt_project_v3_normal_align(ss, ss.cache->normal_weight, grab_delta);
-  }
-
-  grab_delta *= ss.cache->bstrength;
+  const float3 grab_delta = grab_delta_get(brush, *ss.cache) * ss.cache->bstrength;
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {

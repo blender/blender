@@ -1729,6 +1729,18 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode)
   return false;
 }
 
+namespace bke::brush {
+float normal_weight_get(const Brush &brush, const bool invert)
+{
+  BLI_assert(supports_normal_weight(brush));
+  if (!invert) {
+    return brush.normal_weight;
+  }
+
+  return brush.normal_weight == 0.0f;
+}
+}  // namespace bke::brush
+
 /* -------------------------------------------------------------------- */
 /** \name Brush Capabilities
  * \{ */
