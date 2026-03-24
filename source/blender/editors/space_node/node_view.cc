@@ -336,18 +336,76 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 /** \name Background Image Zoom
  * \{ */
 
+/* Simple struct for background image zoom data */
+struct backImageZoomData {
+  float factor;
+  float2 offset;
+};
+
+static void backimage_zoom_init(bContext *C, wmOperator *op)
+{
+  BLI_assert(space_node_composite_active_view_poll(C));
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  backImageZoomData *zdata = MEM_new_zeroed<backImageZoomData>(__func__);
+  op->customdata = zdata;
+
+  zdata->factor = RNA_float_get(op->ptr, "factor");
+  zdata->offset = {snode->xof, snode->yof}; /* Current img offset for execute. */
+}
+
 static wmOperatorStatus backimage_zoom_exec(bContext *C, wmOperator *op)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  float fac = RNA_float_get(op->ptr, "factor");
+  SpaceNode *snode = CTX_wm_space_node(C);
 
-  snode->zoom *= fac;
+  /* If executed without invoking, initialize the customdata here. */
+  if (op->customdata == nullptr) {
+    backimage_zoom_init(C, op);
+  }
+
+  backImageZoomData *zdata = static_cast<backImageZoomData *>(op->customdata);
+
+  snode->zoom *= zdata->factor;
+  snode->xof = zdata->offset.x;
+  snode->yof = zdata->offset.y;
+
   ED_region_tag_redraw(region);
   WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
   WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
+  MEM_SAFE_DELETE(zdata);
+  op->customdata = nullptr;
+
   return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus backimage_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  backimage_zoom_init(C, op);
+  backImageZoomData *zdata = static_cast<backImageZoomData *>(op->customdata);
+
+  /* If the not set in the preference, no need to do all the checks below. */
+  if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) == 0) {
+    return backimage_zoom_exec(C, op);
+  }
+
+  if (RNA_boolean_get(op->ptr, "use_mouse_pos")) {
+    float fac = RNA_float_get(op->ptr, "factor");
+
+    float2 img_center = {snode->xof + region->winx / 2.0f, snode->yof + region->winy / 2.0f};
+
+    float2 img_offset = {snode->xof + (event->mval[0] - img_center.x) * (1 - fac),
+                         snode->yof + (event->mval[1] - img_center.y) * (1 - fac)};
+
+    zdata->offset = {img_offset.x, img_offset.y};
+  }
+
+  return backimage_zoom_exec(C, op);
 }
 
 void NODE_OT_backimage_zoom(wmOperatorType *ot)
@@ -359,6 +417,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
   ot->description = "Zoom in/out the background image";
 
   /* API callbacks. */
+  ot->invoke = backimage_zoom_invoke;
   ot->exec = backimage_zoom_exec;
   ot->poll = space_node_composite_active_view_poll;
 
@@ -367,6 +426,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 
   /* internal */
   RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
+  RNA_def_boolean(ot->srna, "use_mouse_pos", true, "Use Mouse Position", "Zoom to mouse position");
 }
 
 /** \} */
