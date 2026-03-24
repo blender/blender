@@ -31,6 +31,7 @@ def get_arguments(filepath, output_filepath, gpu_backend):
         "0", "0", "128", "128",
         "-noaudio",
         "--factory-startup",
+        "--no-native-pixels",
         "--enable-autoexec",
         "--debug-memory",
         "--debug-exit-on-error"]
@@ -81,8 +82,15 @@ def main():
     report.set_reference_dir("overlay_renders")
 
     test_dir_name = Path(args.testdir).name
-    if test_dir_name.startswith('hair') and platform.system() == "Darwin":
-        report.set_fail_threshold(0.050)
+    gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+
+    if gpu_vendor == 'INTEL':
+        # Intel shows larger differences in Point Primitive coordinates,
+        # affecting the coverage of FaceDots and similar overlays.
+        # This means reference images should not be rendered on Intel.
+        report.set_fail_threshold(0.05)
+    else:
+        report.set_fail_threshold(0.02)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 

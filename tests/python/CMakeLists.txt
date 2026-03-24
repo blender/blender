@@ -959,7 +959,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
         endforeach()
       endif()
 
-      if(WITH_VULKAN_BACKEND AND (name STREQUAL "overlay" OR WITH_GPU_RENDER_TESTS_VULKAN)
+      if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN
           AND (NOT (name STREQUAL "storm_hydra" OR name STREQUAL "storm_usd") OR WITH_STORM_TESTS_VULKAN))
         foreach(render_test ${render_tests})
           add_render_test(
@@ -977,8 +977,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     add_gpu_render_tests(eevee "eevee_render_tests.py" "${gpu_render_tests}")
     add_gpu_render_tests(workbench "workbench_render_tests.py" "${gpu_render_tests}")
     if(WITH_GPU_RENDER_TESTS_HEADED)
-      # Temporarilly disabled until 154533 is merged to avoid errors on the builder.
-      # add_gpu_render_tests(overlay "overlay_render_tests.py" "${gpu_render_tests}")
+      add_gpu_render_tests(overlay "overlay_render_tests.py" "overlay")
     endif()
     if(WITH_HYDRA)
       add_gpu_render_tests(storm_hydra "storm_render_tests.py" "${gpu_render_tests}" --export_method "HYDRA")

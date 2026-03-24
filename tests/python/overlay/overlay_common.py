@@ -4,6 +4,7 @@
 
 import bpy
 import os
+import OpenImageIO as oiio
 from pathlib import Path
 import argparse
 
@@ -128,6 +129,11 @@ def render_permutations(permutations):
         output_paths.append(testpath)
         bpy.context.scene.render.filepath = filepath
         bpy.ops.render.opengl(write_still=True, view_context=True)
+        # Downscale output image
+        src = oiio.ImageBuf(filepath)
+        dst = oiio.ImageBuf(oiio.ImageSpec(128, 128, src.nchannels, src.spec().format))
+        oiio.ImageBufAlgo.resize(dst, src, filtername="box")
+        dst.write(filepath)
 
     output_list_txt = bpy.data.filepath.replace(".blend", "_permutations.txt")
     with open(output_list_txt, 'w') as file:
@@ -138,6 +144,10 @@ def run_test(permutations):
     """Check if the command line requested a specific permutation, otherwise run all tests and quit Blender."""
     if set_permutation_from_args(permutations):
         return
+
+    bpy.context.preferences.view.ui_scale = 4.0  # x4 super-sampling
+    bpy.context.scene.render.resolution_x = 512
+    bpy.context.scene.render.resolution_y = 512
 
     def run():
         render_permutations(permutations)
@@ -161,35 +171,33 @@ def ob_modes_permutations(ob, space):
     })
 
     ob_modes.add(lambda key: "sculpt" in key, [
-        Permutations("mask-off", {
-            "mask-off": lambda: setattr(overlay, "show_sculpt_mask", False),
-            "mask-on": lambda: setattr(overlay, "show_sculpt_mask", True),
-        }),
-        Permutations("sets-off", {
-            "sets-off": lambda: setattr(overlay, "show_sculpt_face_sets", False),
-            "sets-on": lambda: setattr(overlay, "show_sculpt_face_sets", True),
-        }),
+        Permutations("overlays-off", {
+            "overlays-off": lambda: (
+                setattr(overlay, "show_sculpt_mask", False),
+                setattr(overlay, "show_sculpt_face_sets", False)),
+            "overlays-on": lambda: (
+                setattr(overlay, "show_sculpt_mask", True),
+                setattr(overlay, "show_sculpt_face_sets", True)),
+        })
     ])
 
     ob_modes.add(lambda key: "paint" in key, [
-        Permutations("mask-off", {
-            "mask-off": lambda: (
-                setattr(ob.data, "use_paint_mask", False), setattr(ob.data, "use_paint_mask_vertex", False)),
-            "mask-face": lambda: (
-                setattr(ob.data, "use_paint_mask", True), setattr(ob.data, "use_paint_mask_vertex", False)),
-            "mask-vert": lambda: (
-                setattr(ob.data, "use_paint_mask", False), setattr(ob.data, "use_paint_mask_vertex", True)),
-        }),
-        Permutations("paint-wire-off", {
-            "paint-wire-off": lambda: setattr(overlay, "show_paint_wire", False),
-            "paint-wire-on": lambda: setattr(overlay, "show_paint_wire", True),
-        }),
-    ])
-
-    ob_modes.add(lambda key: "weight-paint" in key, [
-        Permutations("w-contours-off", {
-            "w-contours-off": lambda: setattr(overlay, "show_wpaint_contours", False),
-            "w-contours-on": lambda: setattr(overlay, "show_wpaint_contours", True),
+        Permutations("overlays-off", {
+            "overlays-off": lambda: (
+                setattr(ob.data, "use_paint_mask", False),
+                setattr(ob.data, "use_paint_mask_vertex", False),
+                setattr(overlay, "show_paint_wire", False),
+                setattr(overlay, "show_wpaint_contours", False)),  # weight-paint-only
+            "overlays-on-face": lambda: (
+                setattr(ob.data, "use_paint_mask", True),
+                setattr(ob.data, "use_paint_mask_vertex", False),
+                setattr(overlay, "show_paint_wire", True),
+                setattr(overlay, "show_wpaint_contours", False)),  # weight-paint-only
+            "overlays-on-vertex": lambda: (
+                setattr(ob.data, "use_paint_mask", True),
+                setattr(ob.data, "use_paint_mask_vertex", True),
+                setattr(overlay, "show_paint_wire", True),
+                setattr(overlay, "show_wpaint_contours", False)),  # weight-paint-only
         })
     ])
 
@@ -217,22 +225,20 @@ def ob_modes_permutations(ob, space):
                 setattr(shading, "show_xray_wireframe", False)),
             "xray-on": lambda: (
                 setattr(shading, "show_xray_wireframe", True), setattr(shading, "xray_alpha_wireframe", 0.5)),
-            "xray-on-alpha-1": lambda: (
-                setattr(shading, "show_xray_wireframe", True), setattr(shading, "xray_alpha_wireframe", 1.0)),
         })
     ])
 
     shading_modes.add(lambda key: "solid" in key, [
         Permutations("ob-solid", {
-            "ob-solid": lambda: setattr(ob, "display_type", 'SOLID'),
-            "ob-wire": lambda: setattr(ob, "display_type", 'WIRE'),
-        })
-    ])
-
-    shading_modes.add(lambda key: "ob-solid" in key, [
-        Permutations("ob-wire-off", {
-            "ob-wire-off": lambda: setattr(ob, "show_wire", False),
-            "ob-wire-on": lambda: setattr(ob, "show_wire", True),
+            "ob-solid": lambda: (
+                setattr(ob, "display_type", 'SOLID'),
+                setattr(ob, "show_wire", False)),
+            "ob-solid-wire": lambda: (
+                setattr(ob, "display_type", 'SOLID'),
+                setattr(ob, "show_wire", True)),
+            "ob-wire": lambda: (
+                setattr(ob, "display_type", 'WIRE'),
+                setattr(ob, "show_wire", False)),
         })
     ])
 
@@ -241,6 +247,6 @@ def ob_modes_permutations(ob, space):
         "in-front-on": lambda: setattr(ob, "show_in_front", True),
     })
 
-    ob_modes.add(None, [shading_modes, in_front_modes])
+    ob_modes.add(lambda key: "object" in key or "edit" in key, [shading_modes, in_front_modes])
 
     return ob_modes
