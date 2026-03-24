@@ -1157,6 +1157,29 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
     }
   }
 
+  /* Show template-evaluated path for filepaths with path templates. */
+  if (but->type == ButtonType::Text && rnaprop &&
+      (RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0)
+  {
+    char filepath[FILE_MAX];
+
+    RNA_property_string_get(&but->rnapoin, rnaprop, filepath);
+
+    if (BKE_path_contains_template_syntax(filepath)) {
+      const std::optional<blender::bke::path_templates::VariableMap> variables =
+          BKE_build_template_variables_for_prop(C, &but->rnapoin, rnaprop);
+      BLI_assert(variables.has_value());
+
+      const blender::Vector<blender::bke::path_templates::Error> errors = BKE_path_apply_template(
+          filepath, sizeof(filepath), *variables);
+
+      if (errors.is_empty()) {
+        tooltip_text_field_add(
+            *data, std::string(filepath), {}, TIP_STYLE_NORMAL, TIP_LC_DIMMED, true);
+      }
+    }
+  }
+
   if (rnaprop) {
     const int unit_type = button_unit_type_get(but);
 
