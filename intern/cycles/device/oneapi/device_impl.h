@@ -43,15 +43,13 @@ class OneapiDevice : public GPUDevice {
   bool use_hardware_raytracing = false;
   unsigned int kernel_features = 0;
   int scene_max_shaders_ = 0;
-  /* Currently, there are some functional errors in the different software layers of the DPC++/L0
-   * support regarding several Intel's dGPU executions. As a result, to provide proper
-   * functionality to Blender users, we need to detect such configurations and enable some
-   * workarounds for them. These workarounds don't make sense to enable by default due to a
-   * performance impact - which is not as important for the discussed configuration, as without
-   * workarounds, the configuration with several dGPUs would simply not be functional, making the
-   * performance topic irrelevant anyway. For an example of such issues, see Blender issue #138384.
+  /* On some driver versions, usage of Intel oneAPI extension for host->GPU copy optimization
+   * is causing crashes and failures. As a result, to ensure functionality, we disable
+   * this extension as a workaround. This class member variable is controlling this behavior
+   * and is set appropriately during device enumeration, based on the presented devices
+   * and their driver version (at the moment not checked, no public driver with a fix exists yet).
    */
-  bool is_several_intel_dgpu_devices_detected = false;
+  bool use_intel_copy_optimization = true;
 
   size_t get_free_mem() const;
 
@@ -160,7 +158,7 @@ class OneapiDevice : public GPUDevice {
   bool create_queue(SyclQueue *&external_queue,
                     const int device_index,
                     void *embree_device,
-                    bool *is_several_intel_dgpu_devices_detected_pointer);
+                    bool *multiple_level_zero_platforms_detected_pointer);
   void free_queue(SyclQueue *queue);
   void *usm_aligned_alloc_host(SyclQueue *queue, const size_t memory_size, const size_t alignment);
   void *usm_alloc_device(SyclQueue *queue, const size_t memory_size);
