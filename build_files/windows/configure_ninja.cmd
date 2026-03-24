@@ -14,9 +14,6 @@ if "%BUILD_WITH_SCCACHE%"=="1" (
 )
 
 if "%WITH_CLANG%" == "1" (
-	REM We want to use an external manifest with Clang
-	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_WINDOWS_EXTERNAL_MANIFEST=On
-
 	REM We can assume that we have a working copy via find_llvm.cmd
 	set CC=%LLVM_DIR%\bin\clang-cl
 	set CXX=%LLVM_DIR%\bin\clang-cl

@@ -20,10 +20,6 @@ set(CMAKE_MAP_IMPORTED_CONFIG_RELEASE Release RelWithDebInfo MinSizeRel Debug)
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(MSVC_CLANG ON)
-  if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
-    message(WARNING "WITH_WINDOWS_EXTERNAL_MANIFEST is required for clang, turning ON")
-    set(WITH_WINDOWS_EXTERNAL_MANIFEST ON)
-  endif()
   set(VC_TOOLS_DIR $ENV{VCToolsRedistDir} CACHE STRING "Location of the msvc redistributables")
   set(MSVC_REDIST_DIR ${VC_TOOLS_DIR})
   if(DEFINED MSVC_REDIST_DIR)
@@ -112,6 +108,16 @@ string(APPEND CMAKE_MODULE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
 
 if(WITH_WINDOWS_EXTERNAL_MANIFEST)
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /manifest:no")
+else()
+  if(MSVC_CLANG)
+    # lld-link.exe corrupts the manifest by supplying UAC information in the
+    # wrong namespace. Since we supply this our selves in our manifests already
+    # we can just disable this. See https://github.com/llvm/llvm-project/issues/120394
+    # for details.
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " /manifestuac:no")
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS " /manifestuac:no")
+    string(APPEND CMAKE_MODULE_LINKER_FLAGS " /manifestuac:no")
+  endif()
 endif()
 
 list(APPEND PLATFORM_LINKLIBS
