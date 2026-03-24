@@ -99,7 +99,7 @@ CoreAudioDevice::CoreAudioDevice(DeviceSpecs specs, int buffersize) : m_buffersi
 		specs.channels = CHANNELS_STEREO;
 	if(specs.format == FORMAT_INVALID)
 		specs.format = FORMAT_FLOAT32;
-	if(specs.rate == RATE_INVALID)
+	if(specs.rate == static_cast<SampleRate>(RATE_INVALID))
 		specs.rate = RATE_48000;
 
 	m_specs = specs;
