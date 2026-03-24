@@ -38,7 +38,6 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
-#include "../interface/interface_intern.hh" /* XXX bad level */
 #include "UI_interface_layout.hh"
 
 #include "ED_node.hh" /* own include */
@@ -489,7 +488,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
   ui::Layout *layout = arg->layout;
   ui::Layout *column = nullptr;
   ui::Block *block = layout->block();
-  ui::Button *but;
   NodeLinkArg *argN;
   int first = 1;
 
@@ -547,8 +545,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
         ui::block_layout_set_current(block, column);
 
         column->label(IFACE_(cname), ICON_NODE);
-        but = block->buttons_ptrs.last().get();
-
         first = 0;
       }
 
@@ -578,16 +574,16 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
         icon = ICON_NONE;
       }
 
-      but = uiDefIconTextBut(block,
-                             ui::ButtonType::But,
-                             icon,
-                             name,
-                             0,
-                             0,
-                             UI_UNIT_X * 4,
-                             UI_UNIT_Y,
-                             nullptr,
-                             TIP_("Add node to input"));
+      ui::Button *but = uiDefIconTextBut(block,
+                                         ui::ButtonType::But,
+                                         icon,
+                                         name,
+                                         0,
+                                         0,
+                                         UI_UNIT_X * 4,
+                                         UI_UNIT_Y,
+                                         nullptr,
+                                         TIP_("Add node to input"));
 
       argN = MEM_dupalloc(arg);
       argN->item = item;
@@ -612,7 +608,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
   ui::Block *block = layout->block();
   ui::Button *but = static_cast<ui::Button *>(but_p);
   ui::Layout *split, *column;
-  NodeLinkArg *arg = static_cast<NodeLinkArg *>(but->func_argN);
+  NodeLinkArg *arg = static_cast<NodeLinkArg *>(ui::button_func_argN_get(but));
   bNodeSocket *sock = arg->sock;
   bke::bNodeTreeType *ntreetype = arg->ntree->typeinfo;
 
@@ -632,20 +628,18 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
 
   if (sock->link) {
     column->label(IFACE_("Link"), ICON_NONE);
-    but = block->buttons_ptrs.last().get();
-    but->drawflag = ui::BUT_TEXT_LEFT;
 
-    but = uiDefBut(block,
-                   ui::ButtonType::But,
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
-                   0,
-                   0,
-                   UI_UNIT_X * 4,
-                   UI_UNIT_Y,
-                   nullptr,
-                   0.0,
-                   0.0,
-                   TIP_("Remove nodes connected to the input"));
+    ui::Button *but = uiDefBut(block,
+                               ui::ButtonType::But,
+                               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
+                               0,
+                               0,
+                               UI_UNIT_X * 4,
+                               UI_UNIT_Y,
+                               nullptr,
+                               0.0,
+                               0.0,
+                               TIP_("Remove nodes connected to the input"));
     button_funcN_set(but, ui_node_link, MEM_dupalloc(arg), POINTER_FROM_INT(UI_NODE_LINK_REMOVE));
 
     but = uiDefBut(block,
@@ -704,14 +698,11 @@ void uiTemplateNodeLink(
   button_node_link_set(but, input, socket_col);
   button_drawflag_enable(but, ui::BUT_ICON_LEFT);
 
-  but->poin = reinterpret_cast<char *>(but);
-  but->func_argN = arg;
-  but->func_argN_free_fn = MEM_delete_void;
-  but->func_argN_copy_fn = MEM_dupalloc_void;
+  ui::button_poin_menu_argN_set(but, but, arg, MEM_delete_void, MEM_dupalloc_void);
 
   if (input->link && input->link->fromnode) {
     if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {
-      but->flag |= ui::BUT_NODE_ACTIVE;
+      ui::button_flag_enable(but, ui::BUT_NODE_ACTIVE);
     }
   }
 

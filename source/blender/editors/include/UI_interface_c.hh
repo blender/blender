@@ -1245,6 +1245,13 @@ std::optional<std::string> button_online_manual_id_from_active(const bContext *C
     ATTR_WARN_UNUSED_RESULT;
 bool button_is_userdef(const Button *but);
 
+void *button_func_argN_get(const Button *but);
+void button_poin_menu_argN_set(Button *but,
+                               void *poin,
+                               void *argN,
+                               ButtonArgNFree func_argN_free_fn,
+                               ButtonArgNCopy func_argN_copy_fn);
+
 /* Buttons
  *
  * Functions to define various types of buttons in a block. Postfixes:
