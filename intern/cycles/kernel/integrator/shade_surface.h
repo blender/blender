@@ -837,6 +837,10 @@ ccl_device int integrate_surface(KernelGlobals kg,
       return LABEL_NONE;
     }
 
+#  ifdef __DENOISING_FEATURES__
+    film_write_denoising_features_surface_volume(kg, state, &sd, render_buffer);
+#  endif
+
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT);
     continue_path_label = integrate_surface_volume_only_bounce(state, &sd);
   }

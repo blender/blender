@@ -155,7 +155,11 @@ NODE_DEFINE(Integrator)
   SOCKET_ENUM(denoiser_type, "Denoiser Type", denoiser_type_enum, DENOISER_OPENIMAGEDENOISE);
   SOCKET_INT(denoise_start_sample, "Start Sample to Denoise", 0);
   SOCKET_BOOLEAN(use_denoise_pass_albedo, "Use Albedo Pass for Denoiser", true);
+  SOCKET_BOOLEAN(use_denoise_pass_specular_albedo, "Use Specular Albedo Pass for Denoiser", false);
   SOCKET_BOOLEAN(use_denoise_pass_normal, "Use Normal Pass for Denoiser", true);
+  SOCKET_BOOLEAN(use_denoise_pass_roughness, "Use Roughness Pass for Denoiser", false);
+  SOCKET_BOOLEAN(use_denoise_pass_depth, "Use Depth Pass for Denoiser", false);
+  SOCKET_BOOLEAN(use_denoise_pass_motion, "Use Motion Pass for Denoiser", false);
   SOCKET_ENUM(denoiser_prefilter,
               "Denoiser Prefilter",
               denoiser_prefilter_enum,
@@ -477,7 +481,11 @@ DenoiseParams Integrator::get_denoise_params() const
   denoise_params.start_sample = denoise_start_sample;
 
   denoise_params.use_pass_albedo = use_denoise_pass_albedo;
+  denoise_params.use_pass_specular_albedo = use_denoise_pass_specular_albedo;
   denoise_params.use_pass_normal = use_denoise_pass_normal;
+  denoise_params.use_pass_roughness = use_denoise_pass_roughness;
+  denoise_params.use_pass_depth = use_denoise_pass_depth;
+  denoise_params.temporally_stable = use_denoise_pass_motion;
 
   denoise_params.prefilter = denoiser_prefilter;
   denoise_params.quality = denoiser_quality;

@@ -63,7 +63,10 @@ class DenoiseParams : public Node {
 
   /* Auxiliary passes. */
   bool use_pass_albedo = true;
+  bool use_pass_specular_albedo = false;
   bool use_pass_normal = true;
+  bool use_pass_roughness = false;
+  bool use_pass_depth = false;
 
   /* Configure the denoiser to use motion vectors, previous image and a temporally stable model. */
   bool temporally_stable = false;

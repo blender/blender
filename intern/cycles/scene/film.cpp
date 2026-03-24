@@ -90,7 +90,7 @@ NODE_DEFINE(Film)
   NodeType *type = NodeType::add("film", create);
 
   SOCKET_FLOAT(exposure, "Exposure", 1.0f);
-  SOCKET_FLOAT(pass_alpha_threshold, "Pass Alpha Threshold", 0.0f);
+  SOCKET_FLOAT(pass_alpha_threshold, "Pass Alpha Threshold", 0.5f);
 
   static NodeEnum filter_enum;
   filter_enum.insert("box", FILTER_BOX);
@@ -195,8 +195,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->pass_lightgroup = PASS_UNUSED;
 
   /* Mark passes as unused so that the kernel knows the pass is inaccessible. */
-  kfilm->pass_denoising_normal = PASS_UNUSED;
   kfilm->pass_denoising_albedo = PASS_UNUSED;
+  kfilm->pass_denoising_specular_albedo = PASS_UNUSED;
+  kfilm->pass_denoising_normal = PASS_UNUSED;
+  kfilm->pass_denoising_roughness = PASS_UNUSED;
   kfilm->pass_denoising_depth = PASS_UNUSED;
   kfilm->pass_sample_count = PASS_UNUSED;
   kfilm->pass_render_time = PASS_UNUSED;
@@ -370,11 +372,17 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
         have_cryptomatte = true;
         break;
 
+      case PASS_DENOISING_ALBEDO:
+        kfilm->pass_denoising_albedo = kfilm->pass_stride;
+        break;
+      case PASS_DENOISING_SPECULAR_ALBEDO:
+        kfilm->pass_denoising_specular_albedo = kfilm->pass_stride;
+        break;
       case PASS_DENOISING_NORMAL:
         kfilm->pass_denoising_normal = kfilm->pass_stride;
         break;
-      case PASS_DENOISING_ALBEDO:
-        kfilm->pass_denoising_albedo = kfilm->pass_stride;
+      case PASS_DENOISING_ROUGHNESS:
+        kfilm->pass_denoising_roughness = kfilm->pass_stride;
         break;
       case PASS_DENOISING_DEPTH:
         kfilm->pass_denoising_depth = kfilm->pass_stride;
@@ -536,11 +544,23 @@ void Film::update_passes(Scene *scene)
   /* Create passes needed for denoising. */
   const bool use_denoise = integrator->get_use_denoise();
   if (use_denoise) {
+    if (integrator->get_use_denoise_pass_albedo()) {
+      add_auto_pass(scene, PASS_DENOISING_ALBEDO);
+    }
+    if (integrator->get_use_denoise_pass_specular_albedo()) {
+      add_auto_pass(scene, PASS_DENOISING_SPECULAR_ALBEDO);
+    }
     if (integrator->get_use_denoise_pass_normal()) {
       add_auto_pass(scene, PASS_DENOISING_NORMAL);
     }
-    if (integrator->get_use_denoise_pass_albedo()) {
-      add_auto_pass(scene, PASS_DENOISING_ALBEDO);
+    if (integrator->get_use_denoise_pass_roughness()) {
+      add_auto_pass(scene, PASS_DENOISING_ROUGHNESS);
+    }
+    if (integrator->get_use_denoise_pass_depth()) {
+      add_auto_pass(scene, PASS_DENOISING_DEPTH);
+    }
+    if (integrator->get_use_denoise_pass_motion()) {
+      add_auto_pass(scene, PASS_MOTION);
     }
   }
 
@@ -767,8 +787,8 @@ uint Film::get_kernel_features(const Scene *scene) const
     const bool has_denoise_pass = (pass_mode == PassMode::DENOISED) &&
                                   !is_volume_guiding_pass(pass_type);
 
-    if (has_denoise_pass || pass_type == PASS_DENOISING_NORMAL ||
-        pass_type == PASS_DENOISING_ALBEDO || pass_type == PASS_DENOISING_DEPTH)
+    if (has_denoise_pass ||
+        (pass_type >= PASS_DENOISING_ALBEDO && pass_type <= PASS_DENOISING_DEPTH))
     {
       kernel_features |= KERNEL_FEATURE_DENOISING;
     }

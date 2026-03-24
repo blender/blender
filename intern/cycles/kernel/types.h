@@ -339,9 +339,10 @@ enum PassType {
   /* No Scatter color since it's tricky to define what it would even mean. */
   PASS_MIST,
   PASS_DENOISING_ALBEDO,
+  PASS_DENOISING_SPECULAR_ALBEDO,
   PASS_DENOISING_NORMAL,
+  PASS_DENOISING_ROUGHNESS,
   PASS_DENOISING_DEPTH,
-  PASS_DENOISING_PREVIOUS,
   PASS_RENDER_TIME,
 
   /* PASS_SHADOW_CATCHER accumulates contribution of shadow catcher object which is not affected by
@@ -376,6 +377,8 @@ enum PassType {
   PASS_BAKE_SEED,
   PASS_BAKE_DIFFERENTIAL,
   PASS_CATEGORY_BAKE_END = 95,
+
+  PASS_DENOISING_PREVIOUS,
 
   PASS_NUM,
 };

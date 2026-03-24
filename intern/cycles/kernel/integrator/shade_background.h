@@ -5,6 +5,7 @@
 #pragma once
 
 #include "kernel/film/data_passes.h"
+#include "kernel/film/denoising_passes.h"
 #include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/guiding.h"
@@ -123,6 +124,10 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
   /* Write to render buffer. */
   film_write_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
   film_write_data_passes_background(kg, state, render_buffer);
+
+#ifdef __DENOISING_FEATURES__
+  film_write_denoising_features_background(kg, state, render_buffer);
+#endif
 }
 
 ccl_device_inline void integrate_sun_lights(KernelGlobals kg,
