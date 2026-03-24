@@ -78,7 +78,7 @@ ClosureLight bxdf_diffuse_light(ClosureUndetermined cl)
  */
 BsdfSample bxdf_translucent_sample(float3 rand, Thickness thickness)
 {
-  if (thickness.mode() == THICKNESS_MODE_SPHERE) {
+  if (thickness.mode() == ThicknessMode::Sphere) {
     /* Two transmission events inside a sphere is a uniform sphere distribution. */
     float cos_theta = rand.x * 2.0f - 1.0f;
     BsdfSample samp;
@@ -95,7 +95,7 @@ BsdfSample bxdf_translucent_sample(float3 rand, Thickness thickness)
 
 BsdfEval bxdf_translucent_eval(float3 N, float3 L, Thickness thickness)
 {
-  if (thickness.mode() == THICKNESS_MODE_SPHERE) {
+  if (thickness.mode() == ThicknessMode::Sphere) {
     /* Two transmission events inside a sphere is a uniform sphere distribution. */
     BsdfEval eval;
     eval.throughput = eval.pdf = 0.25f * M_1_PI;
@@ -117,13 +117,13 @@ LightProbeRay bxdf_translucent_lightprobe(float3 N, Thickness thickness)
   LightProbeRay probe;
   probe.perceptual_roughness = bxdf_translucent_perceived_roughness();
   /* If using the spherical assumption, discard any directionality from the lighting. */
-  probe.dominant_direction = (thickness.mode() == THICKNESS_MODE_SPHERE) ? float3(0.0f) : -N;
+  probe.dominant_direction = (thickness.mode() == ThicknessMode::Sphere) ? float3(0.0f) : -N;
   return probe;
 }
 
 Ray bxdf_translucent_ray_amend(ClosureUndetermined cl, float3 V, Ray ray, Thickness thickness)
 {
-  if (thickness.mode() == THICKNESS_MODE_SPHERE) {
+  if (thickness.mode() == ThicknessMode::Sphere) {
     /* Ray direction is distributed on the whole sphere.
      * Move the ray origin to the sphere surface (with bias to avoid self-intersection). */
     ray.origin += (ray.direction - cl.N) * thickness.value() * 0.505f;

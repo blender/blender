@@ -1225,9 +1225,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     frag_gen << "}\n\n";
 
     /* TODO(fclem): Find a way to pass material parameters inside the material UBO. */
-    info.define("thickness_mode",
-                thickness_type == MAT_THICKNESS_SLAB ? "THICKNESS_MODE_SLAB" :
-                                                       "THICKNESS_MODE_SPHERE");
+    info.define("thickness_mode", thickness_type == MAT_THICKNESS_SLAB ? "false" : "true");
 
     frag_gen << "float nodetree_thickness()\n";
     frag_gen << "{\n";

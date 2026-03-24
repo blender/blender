@@ -34,7 +34,7 @@ void main()
 {
   float3 Ng = float3(1.0f, 0.0f, 0.0f);
   float3 N = Ng;
-  Thickness thickness = Thickness::from(0.2f, THICKNESS_MODE_SLAB);
+  Thickness thickness = Thickness::from(0.2f, ThicknessMode::Slab);
 
   TEST(eevee_gbuffer, ClosureDiffuse)
   {
