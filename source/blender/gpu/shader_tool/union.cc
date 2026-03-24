@@ -304,7 +304,8 @@ void SourceProcessor::lower_unions(Parser &parser)
     fn_body += "  " + union_member.type + " val;\n";
     for (const auto &member : struct_members) {
       string to_var = "val" + member_data_access(member);
-      string access = string(union_var_tok.str()) + union_data_access(member, union_size);
+      string access = "this_." + string(union_var_tok.str()) +
+                      union_data_access(member, union_size);
       fn_body += "  " + to_var + " = " + member_from_float(union_member, member, access) + ";\n";
     }
     fn_body += "  return val;\n";

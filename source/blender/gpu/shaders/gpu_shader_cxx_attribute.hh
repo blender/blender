@@ -85,6 +85,8 @@
 /* Fragment shader output. Set stencil reference value per pixel.
  * Only supported on some platform. Check for compatibility first. */
 #  define frag_stencil_ref maybe_unused
+/* Fragment shader color output index for dual source blending. */
+#  define index(i) maybe_unused
 
 /* Graphic pipeline stage in/out. */
 #  define in maybe_unused

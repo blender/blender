@@ -443,7 +443,7 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
     case LIGHT_CULLING_DEBUG:
       return "eevee_light_culling_debug";
     case LIGHT_CULLING_SELECT:
-      return "eevee_light_culling_select";
+      return "eevee_light_culling_cull";
     case LIGHT_CULLING_SORT:
       return "eevee_light_culling_sort";
     case LIGHT_CULLING_TILE:

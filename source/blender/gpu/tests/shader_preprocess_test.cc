@@ -2475,7 +2475,7 @@ struct VertOut {
 
 struct FragOut {
   [[frag_color(0)]] float3 color;
-  [[frag_color(1), index(2)]] uint test;
+  [[frag_color(1), index(1)]] uint test;
 };
 
 template<typename T>
@@ -2649,7 +2649,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(ns_FragOut)
 FRAGMENT_OUT(0, float3, ns_FragOut_color)
-FRAGMENT_OUT_DUAL(1, uint, ns_FragOut_test, 2)
+FRAGMENT_OUT_DUAL(1, uint, ns_FragOut_test, SRC_1)
 GPU_SHADER_CREATE_END()
 
 

@@ -121,7 +121,7 @@ std::string ParsedFragOuput::serialize() const
   std::stringstream ss;
   if (!dual_source.empty()) {
     ss << "FRAGMENT_OUT_DUAL(" << slot << ", " << var_type << ", " << var_name << ", "
-       << dual_source << ")";
+       << "SRC_" << dual_source << ")";
   }
   else if (!raster_order_group.empty()) {
     ss << "FRAGMENT_OUT_ROG(" << slot << ", " << var_type << ", " << var_name << ", "

@@ -329,7 +329,6 @@ set(GLSL_SRC
   engines/eevee/shaders/infos/eevee_fullscreen_infos.hh
   engines/eevee/shaders/infos/eevee_geom_infos.hh
   engines/eevee/shaders/infos/eevee_hiz_infos.hh
-  engines/eevee/shaders/infos/eevee_light_culling_infos.hh
   engines/eevee/shaders/infos/eevee_light_infos.hh
   engines/eevee/shaders/infos/eevee_lightprobe_infos.hh
   engines/eevee/shaders/infos/eevee_lightprobe_sphere_infos.hh
@@ -458,12 +457,8 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_hiz_update_comp.glsl
   engines/eevee/shaders/eevee_horizon_scan.bsl.hh
   engines/eevee/shaders/eevee_horizon_scan_lib.bsl.hh
-  engines/eevee/shaders/eevee_light_culling_debug_frag.glsl
-  engines/eevee/shaders/eevee_light_culling_select_comp.glsl
-  engines/eevee/shaders/eevee_light_culling_sort_comp.glsl
-  engines/eevee/shaders/eevee_light_culling_tile_comp.glsl
-  engines/eevee/shaders/eevee_light_culling_zbin_comp.glsl
-  engines/eevee/shaders/eevee_light_shadow_setup_comp.glsl
+  engines/eevee/shaders/eevee_light_culling.bsl.hh
+  engines/eevee/shaders/eevee_light_shadow_setup.bsl.hh
   engines/eevee/shaders/eevee_light_eval_lib.glsl
   engines/eevee/shaders/eevee_light_iter_lib.glsl
   engines/eevee/shaders/eevee_light_lib.glsl

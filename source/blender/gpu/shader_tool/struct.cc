@@ -174,15 +174,14 @@ void SourceProcessor::lower_implicit_member(Parser &parser)
             /* Reject namespace qualified symbols. */
             (tok.prev() != Colon || tok.prev().prev() != Colon))
         {
-          if (tok.next() == '(') {
-            if (!is_class_token(methods_tokens, tok.str())) {
-              return;
-            }
+          bool is_method = tok.next() == '(';
+          if (tok.next() == '<' && !tok.next().followed_by_whitespace()) {
+            /* Might be templated method call. */
+            is_method = tok.next().scope().back().next() == '(';
           }
-          else {
-            if (!is_class_token(members_tokens, tok.str())) {
-              return;
-            }
+
+          if (!is_class_token(is_method ? methods_tokens : members_tokens, tok.str())) {
+            return;
           }
           parser.insert_before(tok, "this->");
         }

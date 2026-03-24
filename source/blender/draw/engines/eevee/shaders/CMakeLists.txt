@@ -58,7 +58,6 @@ set(SRC_GLSL_FRAG
   eevee_film_copy_frag.glsl
   eevee_film_frag.glsl
   eevee_hiz_debug_frag.glsl
-  eevee_light_culling_debug_frag.glsl
   eevee_lookdev_display_frag.glsl
   eevee_occupancy_convert_frag.glsl
   eevee_renderpass_clear_frag.glsl
@@ -94,11 +93,6 @@ set(SRC_GLSL_COMP
   eevee_film_cryptomatte_post_comp.glsl
   eevee_film_pass_convert_comp.glsl
   eevee_hiz_update_comp.glsl
-  eevee_light_culling_select_comp.glsl
-  eevee_light_culling_sort_comp.glsl
-  eevee_light_culling_tile_comp.glsl
-  eevee_light_culling_zbin_comp.glsl
-  eevee_light_shadow_setup_comp.glsl
   eevee_lightprobe_sphere_convolve_comp.glsl
   eevee_lightprobe_sphere_irradiance_comp.glsl
   eevee_lightprobe_sphere_remap_comp.glsl

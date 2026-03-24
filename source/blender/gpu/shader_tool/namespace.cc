@@ -274,7 +274,7 @@ void SourceProcessor::lower_scope_resolution_operators(Parser &parser)
       return;
     }
     Token prev = tokens[0].prev();
-    if (prev != Word && (prev != '>' && prev.followed_by_whitespace() == false)) {
+    if (prev != Word && !(prev == '>' && prev.followed_by_whitespace() == false)) {
       /* Global namespace reference. */
       parser.erase(tokens.front(), tokens.back());
     }

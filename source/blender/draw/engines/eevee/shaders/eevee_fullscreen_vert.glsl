@@ -6,7 +6,6 @@
 #include "infos/eevee_film_infos.hh"
 #include "infos/eevee_forward_infos.hh"
 #include "infos/eevee_fullscreen_infos.hh"
-#include "infos/eevee_light_culling_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_fullscreen)
 

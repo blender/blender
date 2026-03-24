@@ -104,6 +104,8 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
       /* Lint and remove C++ accessor templates before lowering template. */
       lower_srt_accessor_templates(parser);
       lower_union_accessor_templates(parser);
+      /* Lower implicit members before we remove SRT member from their struct. */
+      lower_implicit_member(parser);
       /* Lower namespaces. */
       lower_using(parser);
       lower_namespaces(parser);
@@ -119,8 +121,6 @@ SourceProcessor::Result SourceProcessor::convert(vector<Symbol> symbols_set)
       /* Lower SRT and Interfaces. */
       lower_entry_points(parser);
       lower_pipeline_definition(parser, filename);
-      /* Lower implicit members before we remove SRT member from their struct. */
-      lower_implicit_member(parser);
       lower_resource_table(parser);
       lower_resource_access_functions(parser);
       /* Lower class methods. */
@@ -1305,65 +1305,78 @@ string SourceProcessor::strip_whitespace(const string &str)
  */
 void SourceProcessor::lower_function_default_arguments(Parser &parser)
 {
-  parser().foreach_function(
-      [&](bool, Token fn_type, Token fn_name, Scope fn_args, bool fn_const, Scope fn_body) {
-        if (!fn_args.contains_token('=')) {
-          return;
-        }
+  parser().foreach_function([&](const bool is_static,
+                                Token fn_type,
+                                Token fn_name,
+                                Scope fn_args,
+                                const bool fn_const,
+                                Scope fn_body) {
+    if (!fn_args.contains_token('=')) {
+      return;
+    }
 
-        const bool has_non_void_return_type = fn_type.str() != "void";
+    const bool has_non_void_return_type = fn_type.str() != "void";
+    const bool is_method = fn_type.scope().type() == ScopeType::Struct;
 
-        string args_decl;
-        string args_names;
+    string args_decl;
+    string args_names;
+    string struct_name;
 
-        vector<string> fn_overloads;
+    if (is_method) {
+      struct_name = fn_type.scope().front().prev().str();
+    }
 
-        fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
-          Token equal = arg.find_token('=');
-          const char *comma = (args_decl.empty() ? "" : ", ");
-          if (equal.is_invalid()) {
-            args_decl += comma + string(arg.str_with_whitespace());
-            args_names += comma + string(arg.back().str());
+    vector<string> fn_overloads;
+
+    fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
+      Token equal = arg.find_token('=');
+      const char *comma = (args_decl.empty() ? "" : ", ");
+      if (equal.is_invalid()) {
+        args_decl += comma + string(arg.str_with_whitespace());
+        args_names += comma + string(arg.back().str());
+      }
+      else {
+        string arg_name(equal.prev().str());
+        string value = parser.substr_range_inclusive(equal.next(), arg.back());
+        string decl = parser.substr_range_inclusive(arg.front(), equal.prev());
+
+        string fn_call = string(fn_name.str()) + '(' + args_names + comma + value + ");";
+        if (is_method) {
+          if (is_static) {
+            fn_call = struct_name + namespace_separator + fn_call;
           }
           else {
-            string arg_name(equal.prev().str());
-            string value = parser.substr_range_inclusive(equal.next(), arg.back());
-            string decl = parser.substr_range_inclusive(arg.front(), equal.prev());
-
-            string fn_call = string(fn_name.str()) + '(' + args_names + comma + value + ");";
-            if (has_non_void_return_type) {
-              fn_call = "return " + fn_call;
-            }
-            string overload;
-            overload += string(fn_type.str()) + " ";
-            overload += string(fn_name.str()) + '(' + args_decl + ")" +
-                        string(fn_const ? " const" : "") + "\n";
-            overload += "{\n";
-            overload += "#line " + to_string(fn_type.line_number()) + "\n";
-            overload += "  " + fn_call + "\n}\n";
-            fn_overloads.emplace_back(overload);
-
-            args_decl += comma + strip_whitespace(decl);
-            args_names += comma + arg_name;
-            /* Erase the value assignment and keep the declaration. */
-            parser.erase(equal.scope());
+            fn_call = "this->" + fn_call;
           }
-        });
-        size_t end_of_fn_char = fn_body.back().line_end() + 1;
-        /* Have to reverse the declaration order. */
-        for (auto it = fn_overloads.rbegin(); it != fn_overloads.rend(); ++it) {
-          parser.insert_line_number(end_of_fn_char, fn_type.line_number());
-          parser.insert_after(end_of_fn_char, *it);
         }
-        parser.insert_line_number(end_of_fn_char, fn_body.back().line_number() + 1);
-      });
+        if (has_non_void_return_type) {
+          fn_call = "return " + fn_call;
+        }
+        string overload;
+        overload += string(fn_type.str()) + " ";
+        overload += string(fn_name.str()) + '(' + args_decl + ")" +
+                    string(fn_const ? " const" : "") + "\n";
+        overload += "{\n";
+        overload += "#line " + to_string(fn_type.line_number()) + "\n";
+        overload += "  " + fn_call + "\n}\n";
+        fn_overloads.emplace_back(overload);
+
+        args_decl += comma + strip_whitespace(decl);
+        args_names += comma + arg_name;
+        /* Erase the value assignment and keep the declaration. */
+        parser.erase(equal.scope());
+      }
+    });
+    size_t end_of_fn_char = fn_body.back().line_end() + 1;
+    /* Have to reverse the declaration order. */
+    for (auto it = fn_overloads.rbegin(); it != fn_overloads.rend(); ++it) {
+      parser.insert_line_number(end_of_fn_char, fn_type.line_number());
+      parser.insert_after(end_of_fn_char, *it);
+    }
+    parser.insert_line_number(end_of_fn_char, fn_body.back().line_number() + 1);
+  });
 
   parser.apply_mutations();
-
-  /* The above code can produce call to methods without `this->` prefix.
-   * Since lower_implicit_member was already called, we call it again to process these few
-   * occurrences. */
-  lower_implicit_member(parser);
 }
 
 /* Successive mutations can introduce a lot of unneeded line directives. */
