@@ -286,6 +286,15 @@ static void node_group_ungroup(bContext &C, bNodeTree &ntree, bNode &group_node)
       node->location[1] += center[1];
     }
   }
+  /* Attach to the same parent as the group node. */
+  if (group_node.parent) {
+    for (bNode *node : copied_nodes.node_map().values()) {
+      node->parent = group_node.parent;
+    }
+    for (bNode *node : proxy_nodes.values()) {
+      node->parent = group_node.parent;
+    }
+  }
 
   update_nested_node_refs_after_ungroup(ntree, group_node, copied_nodes);
 
