@@ -5,6 +5,7 @@
 #include "scene/volume.h"
 #include "scene/attribute.h"
 #include "scene/background.h"
+#include "scene/geometry.h"
 #include "scene/image_vdb.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -718,30 +719,40 @@ void VolumeManager::tag_update()
   need_rebuild_ = true;
 }
 
-/* Remove changed object from the list of octrees and tag for rebuild. */
-void VolumeManager::tag_update(const Object *object, uint32_t flag)
+/* Remove changed objects from the list of octrees and tag for rebuild. */
+void VolumeManager::tag_update(const set<Object *> &objects, uint32_t flag)
 {
   if (object_octrees_.empty()) {
     /* Volume object is not in the octree, can happen when using ray marching. */
     return;
   }
 
-  if (flag & ObjectManager::VISIBILITY_MODIFIED) {
-    tag_update();
-  }
+  bool volume_object_updated = false;
+  for (const Object *object : objects) {
+    if (!object->get_geometry()->has_volume) {
+      continue;
+    }
 
-  for (const Node *node : object->get_geometry()->get_used_shaders()) {
-    const Shader *shader = static_cast<const Shader *>(node);
-    if (shader->has_volume_spatial_varying || (flag & ObjectManager::OBJECT_REMOVED)) {
-      /* TODO(weizhen): no need to update if the spatial variation is not in world space. */
-      tag_update();
-      object_octrees_.erase({object, shader});
+    volume_object_updated = true;
+
+    for (const Node *node : object->get_geometry()->get_used_shaders()) {
+      const Shader *shader = static_cast<const Shader *>(node);
+      if (shader->has_volume_spatial_varying || (flag & ObjectManager::OBJECT_REMOVED)) {
+        /* TODO(weizhen): no need to update if the spatial variation is not in world space. */
+        tag_update();
+        object_octrees_.erase({object, shader});
+      }
     }
   }
 
-  if (!need_rebuild_ && (flag & ObjectManager::TRANSFORM_MODIFIED)) {
-    /* Octree is not tagged for rebuild, but the transformation changed, so a redraw is needed. */
-    update_visualization_ = true;
+  if (volume_object_updated) {
+    if (flag & ObjectManager::VISIBILITY_MODIFIED) {
+      tag_update();
+    }
+    if (!need_rebuild_ && (flag & ObjectManager::TRANSFORM_MODIFIED)) {
+      /* Octree is not tagged for rebuild but the transformation changed, so a redraw is needed. */
+      update_visualization_ = true;
+    }
   }
 }
 
@@ -759,14 +770,25 @@ void VolumeManager::tag_update(const Shader *shader)
   }
 }
 
-/* Remove object with changed geometry from the list of octrees and tag for rebuild. */
-void VolumeManager::tag_update(const Geometry *geometry)
+/* Remove objects with changed geometry from the list of octrees and tag for rebuild. */
+void VolumeManager::tag_update(const set<Geometry *> &geometry)
 {
+  bool volume_geometry_updated = false;
+  for (Geometry *geometry : geometry) {
+    if (geometry->has_volume) {
+      volume_geometry_updated = true;
+    }
+  }
+
+  if (!volume_geometry_updated) {
+    return;
+  }
+
   tag_update();
   /* Tag Octree for update. */
   for (auto it = object_octrees_.begin(); it != object_octrees_.end();) {
     const Object *object = it->first.first;
-    if (object->get_geometry() == geometry) {
+    if (geometry.contains(object->get_geometry())) {
       it = object_octrees_.erase(it);
     }
     else {
@@ -777,7 +799,7 @@ void VolumeManager::tag_update(const Geometry *geometry)
 #ifdef WITH_OPENVDB
   /* Tag VDB map for update. */
   for (auto it = vdb_map_.begin(); it != vdb_map_.end();) {
-    if (it->first.first == geometry) {
+    if (geometry.contains(const_cast<Geometry *>(it->first.first))) {
       it = vdb_map_.erase(it);
     }
     else {

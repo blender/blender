@@ -451,14 +451,14 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
 
     if (geom->has_volume) {
       if (geom->is_modified()) {
-        scene->volume_manager->tag_update(geom);
+        scene->volume_manager->tag_update({geom});
       }
       if (!prev_has_volume) {
         scene->volume_manager->tag_update();
       }
     }
     else if (prev_has_volume) {
-      scene->volume_manager->tag_update(geom);
+      scene->volume_manager->tag_update({geom});
     }
 
     if (geom->is_hair()) {

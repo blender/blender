@@ -143,6 +143,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   void post_sync(bool do_delete = true)
   {
     map<K, T *> new_map;
+    set<T *> nodes_to_delete;
     using TMapPair = pair<const K, T *>;
     typename map<K, T *>::iterator jt;
 
@@ -151,11 +152,15 @@ template<typename K, typename T, typename Flags = uint> class id_map {
 
       if (do_delete && used_set.find(pair.second) == used_set.end()) {
         flags.erase(pair.second);
-        scene->delete_node(pair.second);
+        nodes_to_delete.insert(pair.second);
       }
       else {
         new_map[pair.first] = pair.second;
       }
+    }
+
+    if (!nodes_to_delete.empty()) {
+      scene->delete_nodes(nodes_to_delete);
     }
 
     used_set.clear();

@@ -44,8 +44,8 @@ class VolumeManager {
   /* Tag volume octree for update when scene changes. */
   void tag_update();
   void tag_update(const Shader *shader);
-  void tag_update(const Object *object, const uint32_t flag);
-  void tag_update(const Geometry *geometry);
+  void tag_update(const set<Object *> &objects, const uint32_t flag);
+  void tag_update(const set<Geometry *> &geometry);
   void tag_update_indices();
   void tag_update_algorithm();
 
