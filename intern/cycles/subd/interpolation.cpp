@@ -111,6 +111,8 @@ bool SubdAttributeInterpolation::support_interp_attribute(const Attribute &attr)
 
   /* Skip element types that should not exist for subd attributes anyway. */
   switch (attr.element) {
+    case ATTR_ELEMENT_OBJECT:
+    case ATTR_ELEMENT_MESH:
     case ATTR_ELEMENT_VERTEX:
     case ATTR_ELEMENT_VERTEX_MOTION:
     case ATTR_ELEMENT_VERTEX_NORMAL:
@@ -533,6 +535,13 @@ void SubdAttributeInterpolation::setup_attribute_type(const Attribute &subd_attr
                                                       Attribute &mesh_attr)
 {
   switch (subd_attr.element) {
+    case ATTR_ELEMENT_OBJECT:
+    case ATTR_ELEMENT_MESH: {
+      /* Uniform attributes don't need interpolation, just copy data. */
+      assert(mesh_attr.buffer.size() == subd_attr.buffer.size());
+      memcpy(mesh_attr.data_for_write(), subd_attr.data(), subd_attr.buffer.size());
+      break;
+    }
     case ATTR_ELEMENT_VERTEX:
     case ATTR_ELEMENT_VERTEX_NORMAL: {
 #ifdef WITH_OPENSUBDIV
