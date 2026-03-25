@@ -623,10 +623,6 @@ IndexRange GVArrayCommon::index_range() const
 /** \name #GVArray
  * \{ */
 
-GVArray::GVArray(const GVArrayImpl *impl) : GVArrayCommon(impl) {}
-
-GVArray::GVArray(std::shared_ptr<const GVArrayImpl> impl) : GVArrayCommon(std::move(impl)) {}
-
 GVArray::GVArray(varray_tag::single /*tag*/, const CPPType &type, int64_t size, const void *value)
 {
   if (type.is_trivial && type.size <= 16 && type.alignment <= 8) {
@@ -635,26 +631,6 @@ GVArray::GVArray(varray_tag::single /*tag*/, const CPPType &type, int64_t size, 
   else {
     this->emplace<GVArrayImpl_For_SingleValue>(type, size, value);
   }
-}
-
-GVArray GVArray::from_single(const CPPType &type, const int64_t size, const void *value)
-{
-  return GVArray(varray_tag::single{}, type, size, value);
-}
-
-GVArray GVArray::from_single_ref(const CPPType &type, const int64_t size, const void *value)
-{
-  return GVArray(varray_tag::single_ref{}, type, size, value);
-}
-
-GVArray GVArray::from_single_default(const CPPType &type, const int64_t size)
-{
-  return GVArray::from_single_ref(type, size, type.default_value());
-}
-
-GVArray GVArray::from_span(GSpan span)
-{
-  return GVArray(varray_tag::span{}, span);
 }
 
 class GVArrayImpl_For_GArray : public GVArrayImpl_For_GSpan {
@@ -671,18 +647,6 @@ class GVArrayImpl_For_GArray : public GVArrayImpl_For_GSpan {
 GVArray GVArray::from_garray(GArray<> array)
 {
   return GVArray::from<GVArrayImpl_For_GArray>(std::move(array));
-}
-
-GVArray GVArray::from_empty(const CPPType &type)
-{
-  return GVArray::from_span(GSpan(type));
-}
-
-GVArray GVArray::from_std_func(const CPPType &type,
-                               int64_t size,
-                               std::function<void(int64_t index, void *r_value)> get_to_uninit)
-{
-  return GVArray::from_func(type, size, std::move(get_to_uninit));
 }
 
 GVArray GVArray::slice(IndexRange slice) const
@@ -729,11 +693,6 @@ GVMutableArray::operator GVArray() && noexcept
   GVArray varray;
   *static_cast<GVArrayCommon *>(&varray) = std::move(*this);
   return varray;
-}
-
-GVMutableArrayImpl *GVMutableArray::get_implementation() const
-{
-  return this->get_impl();
 }
 
 void GVMutableArray::set_all(const void *src)

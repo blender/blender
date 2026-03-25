@@ -692,6 +692,11 @@ inline GVMutableArrayImpl *GVMutableArray::get_impl() const
   return const_cast<GVMutableArrayImpl *>(static_cast<const GVMutableArrayImpl *>(impl_.get()));
 }
 
+inline GVMutableArrayImpl *GVMutableArray::get_implementation() const
+{
+  return this->get_impl();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -864,6 +869,45 @@ template<typename T> inline GVArray::GVArray(VArray<T> &&varray)
     return;
   }
   *this = GVArray::from<GVArrayImpl_For_VArray<T>>(std::move(varray));
+}
+
+inline GVArray::GVArray(const GVArrayImpl *impl) : GVArrayCommon(impl) {}
+
+inline GVArray::GVArray(std::shared_ptr<const GVArrayImpl> impl) : GVArrayCommon(std::move(impl))
+{
+}
+
+inline GVArray GVArray::from_single(const CPPType &type, const int64_t size, const void *value)
+{
+  return GVArray(varray_tag::single{}, type, size, value);
+}
+
+inline GVArray GVArray::from_single_ref(const CPPType &type, const int64_t size, const void *value)
+{
+  return GVArray(varray_tag::single_ref{}, type, size, value);
+}
+
+inline GVArray GVArray::from_single_default(const CPPType &type, const int64_t size)
+{
+  return GVArray::from_single_ref(type, size, type.default_value());
+}
+
+inline GVArray GVArray::from_span(GSpan span)
+{
+  return GVArray(varray_tag::span{}, span);
+}
+
+inline GVArray GVArray::from_empty(const CPPType &type)
+{
+  return GVArray::from_span(GSpan(type));
+}
+
+inline GVArray GVArray::from_std_func(
+    const CPPType &type,
+    int64_t size,
+    std::function<void(int64_t index, void *r_value)> get_to_uninit)
+{
+  return GVArray::from_func(type, size, std::move(get_to_uninit));
 }
 
 template<typename T> inline VArray<T> GVArray::typed() const
