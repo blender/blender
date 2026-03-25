@@ -15,6 +15,7 @@ class NODE_MT_compositor_node_input_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.draw_menu(layout, path="Input/Constant")
         layout.separator()
+        self.node_operator(layout, "CompositorNodeBlankImage")
         self.node_operator(layout, "CompositorNodeBokehImage")
         self.node_operator(layout, "NodeGroupInput")
         self.node_operator(layout, "CompositorNodeImage")
