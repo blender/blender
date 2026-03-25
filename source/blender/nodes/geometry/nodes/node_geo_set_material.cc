@@ -12,6 +12,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.hh"
+#include "BKE_mesh_types.hh"
 
 #include "GEO_foreach_geometry.hh"
 
@@ -40,7 +41,8 @@ static void assign_material_to_id_geometry(ID *id,
                                            const Field<bool> &selection_field,
                                            MutableAttributeAccessor &attributes,
                                            const AttrDomain domain,
-                                           Material *material)
+                                           Material *material,
+                                           SharedCache<std::optional<int>> &max_index_cache)
 {
   const int domain_size = attributes.domain_size(domain);
   fn::FieldEvaluator selection_evaluator{field_context, domain_size};
@@ -48,7 +50,7 @@ static void assign_material_to_id_geometry(ID *id,
   selection_evaluator.evaluate();
   const IndexMask selection = selection_evaluator.get_evaluated_selection_as_mask();
 
-  if (selection.size() != attributes.domain_size(domain)) {
+  if (selection.size() != domain_size) {
     /* If the entire geometry isn't selected, and there is no material slot yet, add an empty
      * slot so that the faces that aren't selected can still refer to the default material. */
     BKE_id_material_eval_ensure_default_slot(id);
@@ -66,10 +68,20 @@ static void assign_material_to_id_geometry(ID *id,
     BKE_id_material_eval_assign(id, new_index + 1, material);
   }
 
-  SpanAttributeWriter<int> indices = attributes.lookup_or_add_for_write_span<int>("material_index",
-                                                                                  domain);
-  index_mask::masked_fill(indices.span, new_index, selection);
-  indices.finish();
+  if (selection.size() == domain_size) {
+    attributes.remove("material_index");
+    attributes.add<int>("material_index", domain, bke::AttributeInitValue(new_index));
+    max_index_cache.ensure([&](std::optional<int> &data) { data = new_index; });
+  }
+  else {
+    SpanAttributeWriter<int> indices = attributes.lookup_or_add_for_write_span<int>(
+        "material_index", domain);
+    index_mask::masked_fill(indices.span, new_index, selection);
+    indices.finish();
+    if (new_index == orig_materials_num) {
+      max_index_cache.ensure([&](std::optional<int> &data) { data = new_index; });
+    }
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -95,8 +107,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       else {
         const bke::MeshFieldContext field_context{*mesh, AttrDomain::Face};
         MutableAttributeAccessor attributes = mesh->attributes_for_write();
-        assign_material_to_id_geometry(
-            &mesh->id, field_context, selection_field, attributes, AttrDomain::Face, material);
+        assign_material_to_id_geometry(&mesh->id,
+                                       field_context,
+                                       selection_field,
+                                       attributes,
+                                       AttrDomain::Face,
+                                       material,
+                                       mesh->runtime->max_material_index);
       }
     }
     if (Volume *volume = geometry_set.get_volume_for_write()) {
@@ -137,7 +154,8 @@ static void node_geo_exec(GeoNodeExecParams params)
                                        selection_field,
                                        attributes,
                                        AttrDomain::Curve,
-                                       material);
+                                       material,
+                                       curves.runtime->max_material_index_cache);
       }
     }
   });

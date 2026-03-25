@@ -436,7 +436,7 @@ static VectorSet<Material *> join_materials(const Span<const Object *> objects_t
 
   bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
   if (materials.size() <= 1) {
-    dst_attributes.remove("material_index");
+    BLI_assert(!dst_attributes.contains("material_index"));
     return materials;
   }
 
