@@ -223,7 +223,8 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
       return;
   }
 
-  int weight = 0;
+  /* Ensure color math operations have higher priority than vector or float math operations. */
+  int weight = type == SOCK_RGBA ? 4 : 0;
   if (params.in_out() == SOCK_OUT) {
     params.add_item(IFACE_("Result"), [type](LinkSearchOpParams &params) {
       bNode &node = params.add_node("ShaderNodeMix");
