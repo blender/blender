@@ -10,8 +10,8 @@ void main()
 {
   const int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  const int2 size = imageSize(output_img);
-  const float2 normalized_coordinates = (float2(texel) + 0.5f) / float2(size);
+  const float2 coordinates = float2(data_offset + texel) + 0.5f;
+  const float2 normalized_coordinates = coordinates / float2(display_size);
 
   imageStore(output_img, texel, float4(normalized_coordinates, float2(0.0f)));
 }

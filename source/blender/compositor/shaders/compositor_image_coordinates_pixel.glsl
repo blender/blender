@@ -10,5 +10,5 @@ void main()
 {
   const int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  imageStore(output_img, texel, int4(texel, int2(0)));
+  imageStore(output_img, texel, int4(data_offset + texel, int2(0)));
 }
