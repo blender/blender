@@ -1663,8 +1663,10 @@ static ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *use
                              "");
     }
 
-    button_func_set(confirm_but, dialog_exec_cb, data, col_block);
-    button_func_set(cancel_but, dialog_cancel_cb, data, col_block);
+    button_func_set(confirm_but,
+                    [data, col_block](bContext &C) { dialog_exec_cb(&C, data, col_block); });
+    button_func_set(cancel_but,
+                    [data, col_block](bContext &C) { dialog_cancel_cb(&C, data, col_block); });
     button_flag_enable((data->cancel_default) ? cancel_but : confirm_but, ui::BUT_ACTIVE_DEFAULT);
   }
 
