@@ -119,7 +119,10 @@ set(SRC_GLSL_COMP
   eevee_ray_trace_screen_comp.glsl
   eevee_shadow_clipmap_clear_comp.glsl
   eevee_shadow_page_clear_comp.glsl
-  eevee_shadow_tag_update_comp.glsl
+  eevee_shadow_page_defrag.bsl.hh
+  eevee_shadow_page_free.bsl.hh
+  eevee_shadow_page_mask.bsl.hh
+  eevee_shadow_tag_update.bsl.hh
   eevee_shadow_tag_usage_comp.glsl
   eevee_shadow_tag_usage_surfels_comp.glsl
   eevee_shadow_tag_usage_volume_comp.glsl

@@ -5,6 +5,7 @@
 #include "testing/testing.h"
 
 #include "GPU_batch.hh"
+#include "GPU_batch_utils.hh"
 #include "GPU_context.hh"
 #include "draw_shader.hh"
 #include "draw_testing.hh"
@@ -244,17 +245,32 @@ static void test_eevee_shadow_tag_update()
   tilemaps_data.push_update();
 
   gpu::Shader *sh = GPU_shader_create_from_info_name("eevee_shadow_tag_update");
+  gpu::Shader *sh_propagate = GPU_shader_create_from_info_name(
+      "eevee_shadow_tag_update_propagate");
+
+  gpu::Batch *box_batch = GPU_batch_unit_cube();
+
+  gpu::FrameBuffer *fb = GPU_framebuffer_create("empty_tagging_fb");
+  GPU_framebuffer_default_size(fb, SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES);
 
   PassSimple pass("Test");
   pass.shader_set(sh);
+  pass.framebuffer_set(&fb);
+  pass.push_constant("tilemap_count", int(tilemaps_data.size()));
   pass.bind_ssbo("tilemaps_buf", tilemaps_data);
   pass.bind_ssbo("tiles_buf", tiles_data);
   pass.bind_ssbo("bounds_buf", &manager.bounds_buf.previous());
   pass.bind_ssbo("resource_ids_buf", past_casters_updated);
-  pass.dispatch(int3(past_casters_updated.size(), 1, tilemaps_data.size()));
+  pass.draw(box_batch, past_casters_updated.size() * tilemaps_data.size());
   pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
   pass.bind_ssbo("resource_ids_buf", curr_casters_updated);
-  pass.dispatch(int3(curr_casters_updated.size(), 1, tilemaps_data.size()));
+  pass.draw(box_batch, curr_casters_updated.size() * tilemaps_data.size());
+  pass.barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  pass.shader_set(sh_propagate);
+  pass.bind_ssbo("tilemaps_buf", tilemaps_data);
+  pass.bind_ssbo("tiles_buf", tiles_data);
+  pass.dispatch(int3(1, 1, tilemaps_data.size()));
   pass.barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   draw::View view("Test");
@@ -286,16 +302,16 @@ static void test_eevee_shadow_tag_update()
       "--------------------------------"
       "--------------------------------"
       "--------------------------------"
-      "--------------------------------"
-      "xxxx----------------xxxxxxxx----"
-      "xxxx----------------xxxxxxxx----"
-      "xxxx----------------xxxxxxxx----"
-      "xxxx----------------xxxxxxxx----"
-      "xxxx----------------xxxxxxxx----"
-      "xxxx----------------xxxxxxxx----"
-      "xxxx----------------xxxxxxxx----"
-      "xxxx----------------xxxxxxxx----"
-      "--------------------------------"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
+      "xxxxx--------------xxxxxxxxxx---"
       "--------------------------------"
       "--------------------------------"
       "--------------------------------";
@@ -309,22 +325,22 @@ static void test_eevee_shadow_tag_update()
       "----------------"
       "----------------"
       "----------------"
-      "----------------"
-      "xx--------xxxx--"
-      "xx--------xxxx--"
-      "xx--------xxxx--"
-      "xx--------xxxx--"
-      "----------------"
+      "xxx------xxxxxx-"
+      "xxx------xxxxxx-"
+      "xxx------xxxxxx-"
+      "xxx------xxxxxx-"
+      "xxx------xxxxxx-"
+      "xxx------xxxxxx-"
       "----------------";
   StringRefNull expected_lod2 =
       "--------"
       "--------"
       "--------"
       "--------"
-      "--------"
-      "x----xx-"
-      "x----xx-"
-      "--------";
+      "xx--xxxx"
+      "xx--xxxx"
+      "xx--xxxx"
+      "xx--xxxx";
   StringRefNull expected_lod3 =
       "----"
       "----"
@@ -360,8 +376,11 @@ static void test_eevee_shadow_tag_update()
   GPU_shader_unbind();
 
   GPU_shader_free(sh);
+  GPU_shader_free(sh_propagate);
   DRW_shaders_free();
   GPU_render_end();
+  GPU_BATCH_DISCARD_SAFE(box_batch);
+  GPU_FRAMEBUFFER_FREE_SAFE(fb);
 }
 DRAW_TEST(eevee_shadow_tag_update)
 

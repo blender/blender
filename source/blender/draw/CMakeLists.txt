@@ -521,7 +521,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_shadow_page_free.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_mask.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_ops.bsl.hh
-  engines/eevee/shaders/eevee_shadow_tag_update_comp.glsl
+  engines/eevee/shaders/eevee_shadow_tag_update.bsl.hh
   engines/eevee/shaders/eevee_shadow_tag_usage_comp.glsl
   engines/eevee/shaders/eevee_shadow_tag_usage_frag.glsl
   engines/eevee/shaders/eevee_shadow_tag_usage_lib.glsl

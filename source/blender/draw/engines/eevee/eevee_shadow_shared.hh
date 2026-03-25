@@ -76,7 +76,7 @@ struct [[host_shared]] ShadowTileMapData {
   /** Effective minimum resolution after update throttle. */
   int effective_lod_min;
   float _pad2;
-  /** Near and far clip distances for punctual. */
+  /** Near and far clip distances for punctual (positive). */
   float clip_near;
   float clip_far;
   /** Half of the tilemap size in world units. Used to compute window matrix. */
