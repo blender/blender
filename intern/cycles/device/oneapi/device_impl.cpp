@@ -89,7 +89,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
 #  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
   if (!use_intel_copy_optimization) {
     LOG_TRACE << "oneAPI copy optimization extension may have issues on the detected "
-                 "configuration, it will be disabled to avoid crashes."
+                 "configuration, it will be disabled to avoid crashes.";
   }
 #  endif
 
