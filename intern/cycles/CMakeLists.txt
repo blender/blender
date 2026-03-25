@@ -104,7 +104,7 @@ elseif((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "C
 elseif(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(/QxSSE4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(/QxCORE-AVX2 CXX_HAS_AVX2)
-  set(CXX_HAS_F16C CXX_HAS_AVX) # Same flag enables AVX, FMA and F16C
+  set(CXX_HAS_F16C ${CXX_HAS_AVX2}) # Same flag enables AVX, FMA and F16C
 
   if(CXX_HAS_SSE42)
     set(CYCLES_SSE42_FLAGS "/QxSSE4.2")
@@ -117,7 +117,7 @@ elseif(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(-xsse4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(-xcore-avx2 CXX_HAS_AVX2)
-  set(CXX_HAS_F16C CXX_HAS_AVX) # Same flag enables AVX, FMA and F16C
+  set(CXX_HAS_F16C ${CXX_HAS_AVX2}) # Same flag enables AVX, FMA and F16C
 
   if(CXX_HAS_SSE42)
     set(CYCLES_SSE42_FLAGS "-xsse4.2")
