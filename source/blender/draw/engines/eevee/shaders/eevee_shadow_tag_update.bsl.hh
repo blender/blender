@@ -29,7 +29,6 @@ struct TagUpdate {
 
   [[push_constant]] int tilemap_count;
 
-  [[storage(1, read_write)]] uint (&tiles_buf)[];
   [[storage(5, read)]] const ObjectBounds (&bounds_buf)[];
   [[storage(6, read)]] const uint (&resource_ids_buf)[];
 };
@@ -105,7 +104,7 @@ void tag_update_vert([[resource_table]] TagUpdate &srt,
 }
 
 [[fragment]]
-void tag_update_frag([[resource_table]] TagUpdate &srt,
+void tag_update_frag([[resource_table]] Tiles &tiles,
                      [[resource_table]] TileMaps &tilemaps,
                      [[frag_coord]] const float4 frag_coord,
                      [[in]] const VertOut &v_out)
@@ -115,12 +114,12 @@ void tag_update_frag([[resource_table]] TagUpdate &srt,
   uint2 texel = uint2(frag_coord.xy);
   /* Tag only LOD0. The lower LOD will be written by the tag_propagate pass. */
   int tile_index = shadow_tile_offset(texel, tilemap.tiles_index, 0);
-  atomicOr(srt.tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
+  atomicOr(tiles.tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
 }
 
 /* Propagate the LOD0 update tag to the lower LOD tiles. */
 [[compute, local_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)]]
-void tag_propagate([[resource_table]] TagUpdate &srt,
+void tag_propagate([[resource_table]] Tiles &tiles,
                    [[resource_table]] TileMaps &tilemaps,
                    [[global_invocation_id]] const uint3 global_id)
 {
@@ -128,13 +127,13 @@ void tag_propagate([[resource_table]] TagUpdate &srt,
 
   uint2 texel = uint2(global_id.xy);
   const int tile_index_lod0 = shadow_tile_offset(texel, tilemap.tiles_index, 0);
-  bool do_update = (srt.tiles_buf[tile_index_lod0] & uint(SHADOW_DO_UPDATE)) != 0;
+  bool do_update = (tiles.tiles_buf[tile_index_lod0] & uint(SHADOW_DO_UPDATE)) != 0;
 
   if (do_update) {
     /* TODO(fclem): Recursive downsampling. */
     for (int lod = 1; lod <= SHADOW_TILEMAP_LOD; lod++) {
       int tile_index = shadow_tile_offset(texel >> lod, tilemap.tiles_index, lod);
-      atomicOr(srt.tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
+      atomicOr(tiles.tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
     }
   }
 }
