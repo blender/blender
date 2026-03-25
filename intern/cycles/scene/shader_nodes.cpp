@@ -6994,6 +6994,11 @@ void VectorMathNode::compile(SVMCompiler &compiler)
 
   const int vector1_stack_offset = compiler.stack_assign(vector1_in);
   const int vector2_stack_offset = compiler.stack_assign(vector2_in);
+  const int vector3_stack_offset = (math_type == NODE_VECTOR_MATH_WRAP ||
+                                    math_type == NODE_VECTOR_MATH_FACEFORWARD ||
+                                    math_type == NODE_VECTOR_MATH_MULTIPLY_ADD) ?
+                                       compiler.stack_assign(input("Vector3")) :
+                                       SVM_STACK_INVALID;
   const int param1_stack_offset = compiler.stack_assign(param1_in);
   const int value_stack_offset = compiler.stack_assign_if_linked(value_out);
   const int vector_stack_offset = compiler.stack_assign_if_linked(vector_out);
@@ -7005,11 +7010,7 @@ void VectorMathNode::compile(SVMCompiler &compiler)
       compiler.encode_uchar4(value_stack_offset, vector_stack_offset));
 
   /* 3 Vector Operators */
-  if (math_type == NODE_VECTOR_MATH_WRAP || math_type == NODE_VECTOR_MATH_FACEFORWARD ||
-      math_type == NODE_VECTOR_MATH_MULTIPLY_ADD)
-  {
-    ShaderInput *vector3_in = input("Vector3");
-    const int vector3_stack_offset = compiler.stack_assign(vector3_in);
+  if (vector3_stack_offset != SVM_STACK_INVALID) {
     compiler.add_node(vector3_stack_offset);
   }
 }
