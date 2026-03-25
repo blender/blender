@@ -1056,6 +1056,29 @@ static void rna_MeshUVLoopLayer_clone_set(PointerRNA *ptr, bool value)
   BKE_mesh_tessface_clear(mesh);
 }
 
+bool rna_MeshUVLoopLayer_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  CollectionPropertyIterator iter;
+  rna_Attribute_data_begin(&iter, ptr);
+  if (!iter.valid) {
+    *r_ptr = PointerRNA_NULL;
+    return false;
+  }
+
+  ArrayIterator *internal = &iter.internal.array;
+  if (index < 0 || index >= internal->length) {
+    *r_ptr = PointerRNA_NULL;
+    return false;
+  }
+
+  internal->ptr += internal->itemsize * index;
+
+  *r_ptr = RNA_pointer_create_with_parent(
+      iter.parent, RNA_MeshUVLoop, rna_iterator_array_get(&iter));
+  rna_iterator_array_end(&iter);
+  return true;
+}
+
 static void rna_Mesh_vertex_colors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   rna_AttributeGroup_iterator_begin(
@@ -2331,7 +2354,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Attribute_data_length",
-                                    "rna_Attribute_data_lookup_int",
+                                    "rna_MeshUVLoopLayer_data_lookup_int",
                                     nullptr,
                                     nullptr);
 
