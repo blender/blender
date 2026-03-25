@@ -946,13 +946,37 @@ static std::string generate_raster_builtins(GeneratedStreams &ss,
     generate_raster_builtin(ss, decl, "float", "gl_PointSize", "[[point_size]]");
   }
   if (bool(info.builtins_ & BuiltinBits::CLIP_DISTANCES) && stage == ShaderStage::VERTEX) {
+    /** WORKAROUND: BSL has currently no way to disable clip distances using compilation constant.
+     * This induce a huge performance gap with the BSL port of workbench shader (see #155865).
+     * This adds back the same preprocessor check that was previously here. However, this code is
+     * heavily tailored to workbench and assume exact match with the compilation constant name.
+     * GLSL doesn't suffer the same issue as gl_ClipDistance is only considered used if assigned.
+     */
+    std::string start_cond =
+        "\n#if (defined(SRT_CONSTANT_use_clipping) ? (SRT_CONSTANT_use_clipping == 1) : "
+        "defined(USE_WORLD_CLIP_PLANES))\n";
+    std::string end_cond = "\n#endif\n";
+
+    decl << start_cond;
+    ss.wrapper_class_members << start_cond;
+    ss.wrapper_constructor_assign << start_cond;
+
     generate_raster_builtin(ss, decl, "float", "gl_ClipDistance", "[[clip_distance]]", " [6]");
+
+    decl << end_cond;
+    ss.wrapper_class_members << end_cond;
+    ss.wrapper_constructor_assign << end_cond;
+
+    ss.entry_point_start << start_cond;
+
     /* We always create all planes and initialize them to 1 (passing). This way the shader doesn't
      * have to write to them for the ones it doesn't need. */
     StringRefNull vert_inout_inst = get_stage_out_instance_name(stage);
     for ([[maybe_unused]] const int i : IndexRange(6)) {
       ss.entry_point_start << "  " << vert_inout_inst << ".gl_ClipDistance[" << i << "] = 1.0f;\n";
     }
+
+    ss.entry_point_start << end_cond;
   }
   return decl.str();
 }
