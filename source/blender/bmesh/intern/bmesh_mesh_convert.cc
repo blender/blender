@@ -394,13 +394,13 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
 
   {
     const StringRef name = mesh->active_uv_map_name();
-    const int index = CustomData_get_named_layer_index(&bm->ldata, CD_PROP_FLOAT2, name);
-    CustomData_set_layer_active_index(&bm->ldata, CD_PROP_FLOAT2, std::max(index, 0));
+    const int index = CustomData_get_named_layer(&bm->ldata, CD_PROP_FLOAT2, name);
+    CustomData_set_layer_active(&bm->ldata, CD_PROP_FLOAT2, std::max(index, 0));
   }
   {
     const StringRef name = mesh->default_uv_map_name();
-    const int index = CustomData_get_named_layer_index(&bm->ldata, CD_PROP_FLOAT2, name);
-    CustomData_set_layer_render_index(&bm->ldata, CD_PROP_FLOAT2, std::max(index, 0));
+    const int index = CustomData_get_named_layer(&bm->ldata, CD_PROP_FLOAT2, name);
+    CustomData_set_layer_render(&bm->ldata, CD_PROP_FLOAT2, std::max(index, 0));
   }
 
   /* -------------------------------------------------------------------- */
