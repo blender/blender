@@ -106,9 +106,14 @@ void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr);
 [[nodiscard]] bool BPY_context_member_get(bContext *C,
                                           const char *member,
                                           bContextDataResult *result);
+/**
+ * Set the global `bpy.context` for Python.
+ * \param C: The context to set. In rare cases C can be null.
+ */
 void BPY_context_set(bContext *C);
 /**
  * Use for updating while a python script runs - in case of file load.
+ * \param C: The context to activate as `bpy.context`. In rare cases C can be null.
  */
 void BPY_context_update(bContext *C);
 
