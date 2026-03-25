@@ -865,6 +865,9 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     # Some tests in the OpenVDB folder make use of fluid simulations to generate smoke
     list(APPEND render_tests openvdb)
     list(APPEND workbench_tests openvdb)
+    # Some tests in the instancing folder make use of OpenVDB volumes
+    list(APPEND render_tests instancing)
+    list(APPEND workbench_tests instancing)
   endif()
 
   if(WITH_OPENIMAGEDENOISE)

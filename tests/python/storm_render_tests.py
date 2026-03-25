@@ -91,6 +91,8 @@ BLOCKLIST_OPENGL_INTEL_LINUX = [
     "hair_transmission.blend",
     "principled_bsdf_emission.blend",
     "principled_bsdf_sheen.blend",
+    # Rasterization differences in hair and point clouds.
+    "instance_types.blend",
 ]
 
 # Some Vulkan tests are broken for all vendors.
