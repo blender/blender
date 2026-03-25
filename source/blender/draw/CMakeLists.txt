@@ -522,12 +522,8 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_shadow_page_mask.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_ops.bsl.hh
   engines/eevee/shaders/eevee_shadow_tag_update.bsl.hh
-  engines/eevee/shaders/eevee_shadow_tag_usage_comp.glsl
-  engines/eevee/shaders/eevee_shadow_tag_usage_frag.glsl
-  engines/eevee/shaders/eevee_shadow_tag_usage_lib.glsl
-  engines/eevee/shaders/eevee_shadow_tag_usage_surfels_comp.glsl
-  engines/eevee/shaders/eevee_shadow_tag_usage_vert.glsl
-  engines/eevee/shaders/eevee_shadow_tag_usage_volume_comp.glsl
+  engines/eevee/shaders/eevee_shadow_tag_usage.bsl.hh
+  engines/eevee/shaders/eevee_shadow_tag_usage_transparent.bsl.hh
   engines/eevee/shaders/eevee_shadow_tilemap_amend_comp.glsl
   engines/eevee/shaders/eevee_shadow_tilemap_bounds_comp.glsl
   engines/eevee/shaders/eevee_shadow_tilemap_finalize_comp.glsl

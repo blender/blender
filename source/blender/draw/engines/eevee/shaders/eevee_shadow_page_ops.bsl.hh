@@ -11,11 +11,11 @@
 namespace eevee::shadow {
 
 struct TileMaps {
-  [[storage(0, read_write)]] ShadowTileMapData (&tilemaps_buf)[];
+  [[storage(8, read_write)]] ShadowTileMapData (&tilemaps_buf)[];
 };
 
 struct Tiles {
-  [[storage(1, read_write)]] uint (&tiles_buf)[];
+  [[storage(9, read_write)]] uint (&tiles_buf)[];
 };
 
 struct Statistics {
