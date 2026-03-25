@@ -28,10 +28,15 @@ class Context;
  */
 class CachedImageKey {
  public:
-  ImageUser image_user;
-  std::string pass_name;
+  const int layer_index;
+  const std::string pass_name;
+  const std::string view_name;
+  const int frame;
 
-  CachedImageKey(ImageUser image_user, std::string pass_name);
+  CachedImageKey(const int layer_index,
+                 const std::string pass_name,
+                 const std::string view_name,
+                 const int frame);
 
   uint64_t hash() const;
 };
