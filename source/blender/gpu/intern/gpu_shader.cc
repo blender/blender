@@ -818,7 +818,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
   const std::string error = specialized_info.check_error();
   if (!error.empty()) {
     std::cerr << error << "\n";
-    BLI_assert(false);
+    return nullptr;
   }
 
   const shader::ShaderCreateInfo &info = shader->patch_create_info(specialized_info);

@@ -431,6 +431,74 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
+  /* Check same bind-points usage. */
+  Set<int> images, samplers, ubos, ssbos;
+
+  auto register_resource = [&](const Resource &res) -> bool {
+    switch (res.bind_type) {
+      case Resource::BindType::UNIFORM_BUFFER:
+        return images.add(res.slot);
+      case Resource::BindType::STORAGE_BUFFER:
+        return samplers.add(res.slot);
+      case Resource::BindType::SAMPLER:
+        return ubos.add(res.slot);
+      case Resource::BindType::IMAGE:
+        return ssbos.add(res.slot);
+      default:
+        return false;
+    }
+  };
+
+  auto print_error_msg = [&](const Resource &res, const Vector<Resource> &resources) {
+    auto print_resource_name = [&](const Resource &res) {
+      switch (res.bind_type) {
+        case Resource::BindType::UNIFORM_BUFFER:
+          error += "Uniform Buffer " + res.uniformbuf.name;
+          break;
+        case Resource::BindType::STORAGE_BUFFER:
+          error += "Storage Buffer " + res.storagebuf.name;
+          break;
+        case Resource::BindType::SAMPLER:
+          error += "Sampler " + res.sampler.name;
+          break;
+        case Resource::BindType::IMAGE:
+          error += "Image " + res.image.name;
+          break;
+        default:
+          error += "Unknown Type";
+          break;
+      }
+    };
+
+    for (const Resource &_res : resources) {
+      if (&res != &_res && res.bind_type == _res.bind_type && res.slot == _res.slot) {
+        error += name_ + ": Validation failed : Overlapping ";
+        print_resource_name(res);
+        error += " and ";
+        print_resource_name(_res);
+        error += " at binding location " + std::to_string(res.slot) + "\n";
+      }
+    }
+  };
+
+  for (const auto &res : batch_resources_) {
+    if (register_resource(res) == false) {
+      print_error_msg(res, resources_get_all_());
+    }
+  }
+
+  for (const auto &res : pass_resources_) {
+    if (register_resource(res) == false) {
+      print_error_msg(res, resources_get_all_());
+    }
+  }
+
+  for (const auto &res : geometry_resources_) {
+    if (register_resource(res) == false) {
+      print_error_msg(res, resources_get_all_());
+    }
+  }
+
   return error;
 }
 
