@@ -356,9 +356,7 @@ void do_snake_hook_brush(const Depsgraph &depsgraph,
   SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  const float bstrength = ss.cache->bstrength;
-
-  BLI_assert(bstrength >= 0.0f);
+  BLI_assert(ss.cache->bstrength >= 0.0f);
 
   const float3 grab_delta = grab_delta_get(brush, *ss.cache);
 
