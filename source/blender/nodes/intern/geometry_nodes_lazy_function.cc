@@ -1076,10 +1076,10 @@ class LazyFunctionForBakeInputsUsage : public LazyFunction {
   }
 };
 
-bool should_log_socket_values_for_context(const GeoNodesUserData &user_data,
-                                          const ComputeContextHash hash)
+bool should_log_verbose_in_context(const GeoNodesUserData &user_data,
+                                   const ComputeContextHash hash)
 {
-  if (const Set<ComputeContextHash> *contexts = user_data.call_data->socket_log_contexts) {
+  if (const Set<ComputeContextHash> *contexts = user_data.call_data->verbose_log_contexts) {
     return contexts->contains(hash);
   }
   if (user_data.call_data->operator_data) {
@@ -1159,8 +1159,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     GeoNodesUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
-    group_user_data.log_socket_values = should_log_socket_values_for_context(
-        *user_data, compute_context.hash());
+    group_user_data.verbose_log = should_log_verbose_in_context(*user_data,
+                                                                compute_context.hash());
 
     GeoNodesLocalUserData group_local_user_data{group_user_data};
     lf::Context group_context{storage->group_storage, &group_user_data, &group_local_user_data};
@@ -1539,8 +1539,7 @@ class LazyFunctionForSimulationZone : public LazyFunction {
 
     GeoNodesUserData zone_user_data = user_data;
     zone_user_data.compute_context = &compute_context;
-    zone_user_data.log_socket_values = should_log_socket_values_for_context(
-        user_data, compute_context.hash());
+    zone_user_data.verbose_log = should_log_verbose_in_context(user_data, compute_context.hash());
 
     GeoNodesLocalUserData zone_local_user_data{zone_user_data};
     lf::Context zone_context{context.storage, &zone_user_data, &zone_local_user_data};
@@ -1768,7 +1767,7 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
                         const lf::Context &context) const override
   {
     auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
-    if (!user_data.log_socket_values) {
+    if (!user_data.verbose_log) {
       return;
     }
     auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);

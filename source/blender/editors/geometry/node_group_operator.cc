@@ -349,8 +349,8 @@ const GeoOperatorLog &node_group_operator_static_eval_log()
 }
 
 /** Find all the visible node editors to log values for. */
-static void find_socket_log_contexts(const Main &bmain,
-                                     Set<ComputeContextHash> &r_socket_log_contexts)
+static void find_verbose_log_contexts(const Main &bmain,
+                                      Set<ComputeContextHash> &r_verbose_log_contexts)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
   if (wm == nullptr) {
@@ -373,7 +373,7 @@ static void find_socket_log_contexts(const Main &bmain,
             geo_log::GeoNodesLog::get_context_hash_by_zone_for_node_editor(snode,
                                                                            compute_context_cache);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
-          r_socket_log_contexts.add(hash);
+          r_verbose_log_contexts.add(hash);
         }
       }
     }
@@ -951,11 +951,11 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
   }
 
   bke::OperatorComputeContext compute_context;
-  Set<ComputeContextHash> socket_log_contexts;
+  Set<ComputeContextHash> verbose_log_contexts;
   GeoOperatorLog &eval_log = get_static_eval_log();
   eval_log.log = std::make_unique<geo_log::GeoNodesLog>();
   eval_log.node_group_name = node_tree->id.name + 2;
-  find_socket_log_contexts(*bmain, socket_log_contexts);
+  find_verbose_log_contexts(*bmain, verbose_log_contexts);
 
   /* May be null if operator called from outside 3D view context. */
   const RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -983,7 +983,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
     call_data.eval_log = eval_log.log.get();
     if (object == active_object) {
       /* Only log values from the active object. */
-      call_data.socket_log_contexts = &socket_log_contexts;
+      call_data.verbose_log_contexts = &verbose_log_contexts;
     }
 
     bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(

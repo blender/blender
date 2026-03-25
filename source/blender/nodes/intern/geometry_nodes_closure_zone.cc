@@ -395,8 +395,8 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
         user_data.compute_context, bnode_.identifier, &btree_, closure_source_location};
     GeoNodesUserData closure_user_data = user_data;
     closure_user_data.compute_context = &closure_compute_context;
-    closure_user_data.log_socket_values = should_log_socket_values_for_context(
-        user_data, closure_compute_context.hash());
+    closure_user_data.verbose_log = should_log_verbose_in_context(user_data,
+                                                                  closure_compute_context.hash());
     GeoNodesLocalUserData closure_local_user_data{closure_user_data};
 
     lf::Context eval_graph_context{

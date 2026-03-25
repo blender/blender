@@ -236,13 +236,13 @@ struct GeoNodesCallData {
    */
   const GeoNodesSideEffectNodes *side_effect_nodes = nullptr;
   /**
-   * Controls in which compute contexts we want to log socket values. Logging them in all contexts
-   * can result in slowdowns. In the majority of cases, the logged socket values are freed without
-   * being looked at anyway.
+   * Controls in which compute contexts we want to log information like socket values. Logging them
+   * in all contexts has significant overhead. In the majority of cases, the logged values are
+   * freed without being looked at anyway.
    *
-   * If this is null, all socket values will be logged.
+   * If this is null, it is assumed that all compute contexts should be logged.
    */
-  const Set<ComputeContextHash> *socket_log_contexts = nullptr;
+  const Set<ComputeContextHash> *verbose_log_contexts = nullptr;
 
   /**
    * Data from the modifier that is being evaluated.
@@ -274,9 +274,13 @@ struct GeoNodesUserData : public fn::UserData {
    */
   const ComputeContext *compute_context = nullptr;
   /**
-   * Log socket values in the current compute context. Child contexts might use logging again.
+   * Log "more" data in the current compute context. If true, the user is likely looking at nodes
+   * in this context and expects detailed inspection information. If false, only necessary data
+   * like warnings should be logged but not e.g. socket values.
+   *
+   * Child contexts might use logging again even if the current compute context does not.
    */
-  bool log_socket_values = true;
+  bool verbose_log = true;
 
   destruct_ptr<fn::LocalUserData> get_local(LinearAllocator<> &allocator) override;
 };
@@ -547,8 +551,8 @@ class ScopedNodeTimer {
   }
 };
 
-bool should_log_socket_values_for_context(const GeoNodesUserData &user_data,
-                                          const ComputeContextHash hash);
+bool should_log_verbose_in_context(const GeoNodesUserData &user_data,
+                                   const ComputeContextHash hash);
 
 /**
  * Computes the logical or of the inputs and supports short-circuit evaluation (i.e. if the first

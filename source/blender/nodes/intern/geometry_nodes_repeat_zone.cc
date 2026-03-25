@@ -51,8 +51,8 @@ class RepeatBodyNodeExecuteWrapper : public lf::GraphExecutorNodeExecuteWrapper 
         user_data.compute_context, *repeat_output_bnode_, iteration};
     GeoNodesUserData body_user_data = user_data;
     body_user_data.compute_context = &body_compute_context;
-    body_user_data.log_socket_values = should_log_socket_values_for_context(
-        user_data, body_compute_context.hash());
+    body_user_data.verbose_log = should_log_verbose_in_context(user_data,
+                                                               body_compute_context.hash());
 
     GeoNodesLocalUserData body_local_user_data{body_user_data};
     lf::Context body_context{context.storage, &body_user_data, &body_local_user_data};

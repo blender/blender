@@ -813,7 +813,7 @@ static void find_side_effect_nodes_for_active_gizmos(
     const ModifierEvalContext &ctx,
     const wmWindowManager &wm,
     nodes::GeoNodesSideEffectNodes &r_side_effect_nodes,
-    Set<ComputeContextHash> &r_socket_log_contexts)
+    Set<ComputeContextHash> &r_verbose_log_contexts)
 {
   Object *object_orig = DEG_get_original(ctx.object);
   const NodesModifierData &nmd_orig = *reinterpret_cast<const NodesModifierData *>(
@@ -829,13 +829,13 @@ static void find_side_effect_nodes_for_active_gizmos(
           const bNodeSocket &gizmo_socket) {
         try_add_side_effect_node(
             ctx, compute_context, gizmo_node.identifier, nmd, r_side_effect_nodes);
-        r_socket_log_contexts.add(compute_context.hash());
+        r_verbose_log_contexts.add(compute_context.hash());
 
         nodes::gizmos::foreach_compute_context_on_gizmo_path(
             compute_context, gizmo_node, gizmo_socket, [&](const ComputeContext &node_context) {
               /* Make sure that all intermediate sockets are logged. This is necessary to be able
                * to evaluate the nodes in reverse for the gizmo. */
-              r_socket_log_contexts.add(node_context.hash());
+              r_verbose_log_contexts.add(node_context.hash());
             });
       });
 }
@@ -843,7 +843,7 @@ static void find_side_effect_nodes_for_active_gizmos(
 static void find_side_effect_nodes(const NodesModifierData &nmd,
                                    const ModifierEvalContext &ctx,
                                    nodes::GeoNodesSideEffectNodes &r_side_effect_nodes,
-                                   Set<ComputeContextHash> &r_socket_log_contexts)
+                                   Set<ComputeContextHash> &r_verbose_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -870,12 +870,12 @@ static void find_side_effect_nodes(const NodesModifierData &nmd,
 
   find_side_effect_nodes_for_baking(nmd, ctx, r_side_effect_nodes);
   find_side_effect_nodes_for_active_gizmos(
-      nmd, ctx, *wm, r_side_effect_nodes, r_socket_log_contexts);
+      nmd, ctx, *wm, r_side_effect_nodes, r_verbose_log_contexts);
 }
 
-static void find_socket_log_contexts(const NodesModifierData &nmd,
-                                     const ModifierEvalContext &ctx,
-                                     Set<ComputeContextHash> &r_socket_log_contexts)
+static void find_verbose_log_contexts(const NodesModifierData &nmd,
+                                      const ModifierEvalContext &ctx,
+                                      Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -1889,16 +1889,16 @@ static void modifyGeometry(ModifierData *md,
   NodesModifierBakeParams bake_params{*nmd, *ctx};
   call_data.bake_params = &bake_params;
 
-  Set<ComputeContextHash> socket_log_contexts;
+  Set<ComputeContextHash> verbose_log_contexts;
   if (logging_enabled(ctx)) {
     call_data.eval_log = eval_log.get();
 
-    find_socket_log_contexts(*nmd, *ctx, socket_log_contexts);
-    call_data.socket_log_contexts = &socket_log_contexts;
+    find_verbose_log_contexts(*nmd, *ctx, verbose_log_contexts);
+    call_data.verbose_log_contexts = &verbose_log_contexts;
   }
 
   nodes::GeoNodesSideEffectNodes side_effect_nodes;
-  find_side_effect_nodes(*nmd, *ctx, side_effect_nodes, socket_log_contexts);
+  find_side_effect_nodes(*nmd, *ctx, side_effect_nodes, verbose_log_contexts);
   call_data.side_effect_nodes = &side_effect_nodes;
 
   bke::DataBlockComputeContext data_block_compute_context{nullptr, ctx->object->id};
