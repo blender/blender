@@ -307,3 +307,9 @@ source/blender/editors/sculpt_paint/mesh/.*         @Sean-Kim
 source/blender/bmesh/.*            @ideasman42
 source/blender/editors/curve/.*    @ideasman42
 source/blender/editors/mesh/.*     @ideasman42
+
+# --------------------------------------------------
+# Documentation.
+doc/.*                                          @ideasman42 @Blendify
+scripts/modules/_rna_manual_reference.py        @Blendify
+tools/utils_doc/.*                              @ideasman42 @Blendify
