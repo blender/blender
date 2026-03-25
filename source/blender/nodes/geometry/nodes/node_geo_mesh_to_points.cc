@@ -9,7 +9,6 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_customdata.hh"
 #include "BKE_pointcloud.hh"
 
 #include "NOD_rna_define.hh"
@@ -117,32 +116,30 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     }
   }
 
-  bke::GeometrySet::GatheredAttributes attributes;
-  geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
-                                                 GeometryComponent::Type::PointCloud,
-                                                 false,
-                                                 attribute_filter,
-                                                 attributes);
-
-  for (const int i : attributes.names.index_range()) {
-    if (ELEM(attributes.names[i], "position", "radius", ".select_edge", ".select_poly")) {
-      continue;
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    const StringRef src_name = iter.name;
+    if (iter.is_builtin && !dst_attributes.is_builtin(src_name)) {
+      return;
     }
-    const StringRef src_name = attributes.names[i];
-    const bke::AttrType data_type = attributes.kinds[i].data_type;
-    const bke::GAttributeReader src = src_attributes.lookup(src_name, domain, data_type);
+    if (ELEM(src_name, "position", "radius", ".select_edge", ".select_poly")) {
+      return;
+    }
+    if (attribute_filter.allow_skip(src_name)) {
+      return;
+    }
+    const bke::AttrType data_type = iter.data_type;
+    const bke::GAttributeReader src = iter.get(domain);
     if (!src) {
       /* Domain interpolation can fail if the source domain is empty. */
-      continue;
+      return;
     }
-
     const StringRef dst_name = src_name == ".select_vert" ? ".selection" : src_name;
     const CommonVArrayInfo info = src.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
       const CPPType &type = src.varray.type();
       const bke::AttributeInitValue init(GPointer(type, info.data));
       dst_attributes.add(dst_name, AttrDomain::Point, data_type, init);
-      continue;
+      return;
     }
 
     if (share_arrays && src.domain == domain && src.sharing_info &&
@@ -157,7 +154,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
       array_utils::gather(src.varray, selection, dst.span);
       dst.finish();
     }
-  }
+  });
 
   geometry_set.replace_pointcloud(pointcloud);
   geometry_set.keep_only({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});

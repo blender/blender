@@ -288,40 +288,41 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
   }
 }
 
-BLI_NOINLINE static void propagate_existing_attributes(
-    const Mesh &mesh,
-    const GeometrySet::GatheredAttributes &attributes,
-    PointCloud &points,
-    const Span<float3> bary_coords,
-    const Span<int> tri_indices)
+BLI_NOINLINE static void propagate_existing_attributes(const Mesh &mesh,
+                                                       const bke::AttributeFilter &filter,
+                                                       PointCloud &points,
+                                                       const Span<float3> bary_coords,
+                                                       const Span<int> tri_indices)
 {
   const AttributeAccessor mesh_attributes = mesh.attributes();
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
-  for (const int i : attributes.names.index_range()) {
-    const StringRef name = attributes.names[i];
-    const bke::AttrType output_data_type = attributes.kinds[i].data_type;
+  mesh_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain == AttrDomain::Edge) {
+      return;
+    }
+    const StringRef name = iter.name;
+    if (iter.is_builtin && !point_attributes.is_builtin(name)) {
+      return;
+    }
     if (name == "position") {
-      continue;
+      return;
     }
-
-    GAttributeReader src = mesh_attributes.lookup(name);
+    if (filter.allow_skip(name)) {
+      return;
+    }
+    GAttributeReader src = iter.get();
     if (!src) {
-      continue;
+      return;
     }
-    if (src.domain == AttrDomain::Edge) {
-      continue;
-    }
-
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
-        name, AttrDomain::Point, output_data_type);
+        name, AttrDomain::Point, iter.data_type);
     if (!dst) {
-      continue;
+      return;
     }
-
     interpolate_attribute(mesh, bary_coords, tri_indices, src.domain, src.varray, dst.span);
     dst.finish();
-  }
+  });
 }
 
 namespace {
@@ -562,14 +563,8 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
 
   geometry_set.replace_pointcloud(pointcloud);
 
-  GeometrySet::GatheredAttributes attributes;
-  geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Mesh},
-                                                 GeometryComponent::Type::PointCloud,
-                                                 false,
-                                                 params.get_attribute_filter("Points"),
-                                                 attributes);
-
-  propagate_existing_attributes(mesh, attributes, *pointcloud, bary_coords, tri_indices);
+  propagate_existing_attributes(
+      mesh, params.get_attribute_filter("Points"), *pointcloud, bary_coords, tri_indices);
 
   const bool use_legacy_normal = params.node().custom2 != 0;
   compute_attribute_outputs(
