@@ -53,6 +53,9 @@ void SourceProcessor::lower_srt_accessor_templates(Parser &parser)
       if (array.is_valid()) {
         report_error_(ERROR_TOK(name), "[[resource_table]] members cannot be arrays.");
       }
+      if (name.prev() == '&') {
+        report_error_(ERROR_TOK(name.prev()), "[[resource_table]] members cannot be references.");
+      }
 
       /* Remove the template but not the wrapped type. */
       parser.erase(type);
