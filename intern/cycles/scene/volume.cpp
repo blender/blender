@@ -59,6 +59,15 @@ struct QuadData {
   float3 normal;
 };
 
+struct VertHash {
+  size_t operator()(const int3 &i) const
+  {
+    return hash_uint3(i.x, i.y, i.z);
+  }
+};
+
+using VertHashMap = unordered_map<int3, int, VertHash>;
+
 enum {
   QUAD_X_MIN = 0,
   QUAD_X_MAX = 1,
@@ -99,21 +108,16 @@ const float3 quads_normals[6] = {
     make_float3(0.0f, 0.0f, 1.0f),
 };
 
-static int add_vertex(const int3 v,
-                      vector<int3> &vertices,
-                      const int3 res,
-                      unordered_map<size_t, int> &used_verts)
+static int add_vertex(const int3 v, vector<int3> &vertices, VertHashMap &used_verts)
 {
-  const size_t vert_key = v.x + v.y * size_t(res.x + 1) +
-                          v.z * size_t(res.x + 1) * size_t(res.y + 1);
-  const unordered_map<size_t, int>::iterator it = used_verts.find(vert_key);
+  const VertHashMap::iterator it = used_verts.find(v);
 
   if (it != used_verts.end()) {
     return it->second;
   }
 
   const int vertex_offset = vertices.size();
-  used_verts[vert_key] = vertex_offset;
+  used_verts[v] = vertex_offset;
   vertices.push_back(v);
   return vertex_offset;
 }
@@ -121,15 +125,14 @@ static int add_vertex(const int3 v,
 static void create_quad(const int3 corners[8],
                         vector<int3> &vertices,
                         vector<QuadData> &quads,
-                        const int3 res,
-                        unordered_map<size_t, int> &used_verts,
+                        VertHashMap &used_verts,
                         const int face_index)
 {
   QuadData quad;
-  quad.v0 = add_vertex(corners[quads_indices[face_index][0]], vertices, res, used_verts);
-  quad.v1 = add_vertex(corners[quads_indices[face_index][1]], vertices, res, used_verts);
-  quad.v2 = add_vertex(corners[quads_indices[face_index][2]], vertices, res, used_verts);
-  quad.v3 = add_vertex(corners[quads_indices[face_index][3]], vertices, res, used_verts);
+  quad.v0 = add_vertex(corners[quads_indices[face_index][0]], vertices, used_verts);
+  quad.v1 = add_vertex(corners[quads_indices[face_index][1]], vertices, used_verts);
+  quad.v2 = add_vertex(corners[quads_indices[face_index][2]], vertices, used_verts);
+  quad.v3 = add_vertex(corners[quads_indices[face_index][3]], vertices, used_verts);
   quad.normal = quads_normals[face_index];
 
   quads.push_back(quad);
@@ -148,7 +151,6 @@ class VolumeMeshBuilder {
  public:
   /* use a MaskGrid to store the topology to save memory */
   openvdb::MaskGrid::Ptr topology_grid;
-  openvdb::CoordBBox bbox;
   bool first_grid;
 
   VolumeMeshBuilder();
@@ -202,8 +204,10 @@ void VolumeMeshBuilder::add_grid(const nanovdb::GridHandle<> &nanogrid)
 
 void VolumeMeshBuilder::add_padding(const int pad_size)
 {
-  openvdb::tools::dilateActiveValues(
-      topology_grid->tree(), pad_size, openvdb::tools::NN_FACE, openvdb::tools::IGNORE_TILES);
+  openvdb::tools::dilateActiveValues(topology_grid->tree(),
+                                     pad_size,
+                                     openvdb::tools::NN_FACE_EDGE_VERTEX,
+                                     openvdb::tools::PRESERVE_TILES);
 }
 
 void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
@@ -237,21 +241,35 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
     topology_grid->tree().voxelizeActiveTiles();
 
     const openvdb::MaskGrid::TreeType &tree = topology_grid->tree();
-    tree.evalLeafBoundingBox(bbox);
 
-    const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
+    /* Compute the active voxel bounding box to clip leaf bounding boxes. Leaf nodes are
+     * aligned to 8x8x8 blocks and can extend far beyond the actual active voxels, especially
+     * for low-resolution grids with large voxel sizes. */
+    openvdb::CoordBBox active_bbox;
+    tree.evalActiveVoxelBoundingBox(active_bbox);
+    /* +1 to convert from inclusive to exclusive bounds. */
+    active_bbox.max() = active_bbox.max().offsetBy(1);
 
-    unordered_map<size_t, int> used_verts;
+    VertHashMap used_verts;
     for (auto iter = tree.cbeginLeaf(); iter; ++iter) {
       if (iter->isEmpty()) {
         continue;
       }
       openvdb::CoordBBox leaf_bbox = iter->getNodeBoundingBox();
-      /* +1 to convert from exclusive to include bounds. */
+
+      /* Compute the leaf center from the (unclipped) node bounding box. */
+      static const int LEAF_DIM = openvdb::MaskGrid::TreeType::LeafNodeType::DIM;
+      const auto center = leaf_bbox.min() + openvdb::Coord(LEAF_DIM / 2);
+
+      /* +1 to convert from inclusive to exclusive bounds. */
       leaf_bbox.max() = leaf_bbox.max().offsetBy(1);
-      int3 min = make_int3(leaf_bbox.min().x(), leaf_bbox.min().y(), leaf_bbox.min().z());
-      int3 max = make_int3(leaf_bbox.max().x(), leaf_bbox.max().y(), leaf_bbox.max().z());
-      int3 corners[8] = {
+      /* Clip leaf bounding box to the active voxel region. */
+      leaf_bbox.min() = openvdb::Coord::maxComponent(leaf_bbox.min(), active_bbox.min());
+      leaf_bbox.max() = openvdb::Coord::minComponent(leaf_bbox.max(), active_bbox.max());
+
+      const int3 min = make_int3(leaf_bbox.min().x(), leaf_bbox.min().y(), leaf_bbox.min().z());
+      const int3 max = make_int3(leaf_bbox.max().x(), leaf_bbox.max().y(), leaf_bbox.max().z());
+      const int3 corners[8] = {
           make_int3(min[0], min[1], min[2]),
           make_int3(max[0], min[1], min[2]),
           make_int3(max[0], max[1], min[2]),
@@ -267,47 +285,39 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
        * to do so we compute the center of the current leaf and offset this coordinate
        * by the size of a leaf in each direction.
        */
-      static const int LEAF_DIM = openvdb::MaskGrid::TreeType::LeafNodeType::DIM;
-      auto center = leaf_bbox.min() + openvdb::Coord(LEAF_DIM / 2);
       if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() - LEAF_DIM, center.y(), center.z())))
       {
-        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
+        create_quad(corners, vertices_is, quads, used_verts, QUAD_X_MIN);
       }
       if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() + LEAF_DIM, center.y(), center.z())))
       {
-        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
+        create_quad(corners, vertices_is, quads, used_verts, QUAD_X_MAX);
       }
       if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() - LEAF_DIM, center.z())))
       {
-        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
+        create_quad(corners, vertices_is, quads, used_verts, QUAD_Y_MIN);
       }
       if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() + LEAF_DIM, center.z())))
       {
-        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
+        create_quad(corners, vertices_is, quads, used_verts, QUAD_Y_MAX);
       }
       if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() - LEAF_DIM)))
       {
-        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
+        create_quad(corners, vertices_is, quads, used_verts, QUAD_Z_MIN);
       }
       if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() + LEAF_DIM)))
       {
-        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
+        create_quad(corners, vertices_is, quads, used_verts, QUAD_Z_MAX);
       }
     }
     return;
   }
 
-  bbox = topology_grid->evalActiveVoxelBoundingBox();
+  openvdb::CoordBBox bbox = topology_grid->evalActiveVoxelBoundingBox();
+  const int3 min = make_int3(bbox.min().x(), bbox.min().y(), bbox.min().z());
+  const int3 max = make_int3(bbox.max().x(), bbox.max().y(), bbox.max().z());
 
-  const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
-
-  /* +1 to convert from exclusive to include bounds. */
-  bbox.max() = bbox.max().offsetBy(1);
-
-  int3 min = make_int3(bbox.min().x(), bbox.min().y(), bbox.min().z());
-  int3 max = make_int3(bbox.max().x(), bbox.max().y(), bbox.max().z());
-
-  int3 corners[8] = {
+  const int3 corners[8] = {
       make_int3(min[0], min[1], min[2]),
       make_int3(max[0], min[1], min[2]),
       make_int3(max[0], max[1], min[2]),
@@ -319,14 +329,14 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
   };
 
   /* Create 6 quads of the bounding box. */
-  unordered_map<size_t, int> used_verts;
+  VertHashMap used_verts;
 
-  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
-  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
-  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
-  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
-  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
-  create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
+  create_quad(corners, vertices_is, quads, used_verts, QUAD_X_MIN);
+  create_quad(corners, vertices_is, quads, used_verts, QUAD_X_MAX);
+  create_quad(corners, vertices_is, quads, used_verts, QUAD_Y_MIN);
+  create_quad(corners, vertices_is, quads, used_verts, QUAD_Y_MAX);
+  create_quad(corners, vertices_is, quads, used_verts, QUAD_Z_MIN);
+  create_quad(corners, vertices_is, quads, used_verts, QUAD_Z_MAX);
 }
 
 void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
@@ -344,17 +354,23 @@ void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
 
 void VolumeMeshBuilder::convert_quads_to_tris(const vector<QuadData> &quads, vector<int> &tris)
 {
+  /* If the grid transform has negative scale, the vertices transform by indexToWorld
+   * will have reversed winding order. Here we compensate for that by flipping the
+   * triangle order. */
+  const bool negative_scale =
+      topology_grid->transform().baseMap()->getAffineMap()->getMat4().det() < 0.0;
+
   int index_offset = 0;
   tris.resize(quads.size() * 6);
 
   for (size_t i = 0; i < quads.size(); ++i) {
     tris[index_offset++] = quads[i].v0;
-    tris[index_offset++] = quads[i].v2;
-    tris[index_offset++] = quads[i].v1;
+    tris[index_offset++] = negative_scale ? quads[i].v1 : quads[i].v2;
+    tris[index_offset++] = negative_scale ? quads[i].v2 : quads[i].v1;
 
     tris[index_offset++] = quads[i].v0;
-    tris[index_offset++] = quads[i].v3;
-    tris[index_offset++] = quads[i].v2;
+    tris[index_offset++] = negative_scale ? quads[i].v2 : quads[i].v3;
+    tris[index_offset++] = negative_scale ? quads[i].v3 : quads[i].v2;
   }
 }
 
@@ -855,7 +871,7 @@ static bool mesh_is_closed(const std::vector<openvdb::Vec3I> &triangles)
   for (const auto &tri : triangles) {
     for (int i = 0; i < 3; i++) {
       const std::pair<int, int> e = {tri[i], tri[(i + 1) % 3]};
-      if (edges.count(e)) {
+      if (edges.contains(e)) {
         /* Same edge exists. */
         return false;
       }
