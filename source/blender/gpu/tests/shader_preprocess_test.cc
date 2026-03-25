@@ -1524,6 +1524,32 @@ static void test_preprocess_namespace()
   {
     string input = R"(
 namespace A {
+int func(int a) { return 0; }
+int func2(int a)
+{
+  int func = func();
+  return func;
+}
+}
+)";
+    string expect = R"(
+
+int A_func(int a) { return 0; }
+int A_func2(int a)
+{
+  int func = A_func();
+  return func;
+}
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+namespace A {
 struct S {};
 int func(int a)
 {
