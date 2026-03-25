@@ -43,7 +43,7 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
    * Input socket indices must be kept in sync with ntree_shader_disconnect_inactive_mix_branches
    */
   b.add_input<decl::Float>("Factor", "Factor_Float")
-      .default_value(0.5f)
+      .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)

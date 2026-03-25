@@ -110,6 +110,13 @@ def add_closure_zone(layout, label):
     return props
 
 
+def color_mix_node_defaults(enum_identifier, props):
+    if enum_identifier == 'MIX':
+        prop = props.settings.add()
+        prop.name = "inputs[\"Factor\"].default_value"
+        prop.value = "0.5"
+
+
 class NodeMenu(Menu):
     """A base-class defining the shared methods for AddNodeMenu and SwapNodeMenu."""
     draw_assets: bool
@@ -276,6 +283,7 @@ class NodeMenu(Menu):
                 prop = props.settings.add()
                 prop.name = "blend_type"
                 prop.value = repr(item.identifier)
+                color_mix_node_defaults(item.identifier, props)
                 operators.append(props)
 
         for props in operators:
