@@ -6,6 +6,8 @@
  * \ingroup asset_system
  */
 
+#include <memory>
+
 #include "BKE_blender.hh"
 #include "BKE_preferences.h"
 
@@ -646,7 +648,26 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
     fn(*current_file_library_);
   }
 
+  /* Do essentials library first. Plenty of general features use the essentials, these features
+   * should be available as soon as possible. Not only after other, potentially big libraries are
+   * loaded. */
   for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
+    if (asset_lib_uptr->library_type() != ASSET_LIBRARY_ESSENTIALS) {
+      continue;
+    }
+
+    if (asset_lib_uptr->is_enabled()) {
+      fn(*asset_lib_uptr);
+    }
+    break;
+  }
+
+  for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
+    /* Already handled above. */
+    if (asset_lib_uptr->library_type() == ASSET_LIBRARY_ESSENTIALS) {
+      continue;
+    }
+
     if (asset_lib_uptr->is_enabled()) {
       fn(*asset_lib_uptr);
     }
