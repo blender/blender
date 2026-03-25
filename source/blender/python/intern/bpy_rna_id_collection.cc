@@ -885,12 +885,12 @@ PyDoc_STRVAR(
     "   Remove (delete) all IDs with no user.\n"
     "\n"
     "   :param do_local_ids: Include unused local IDs in the deletion, defaults to True\n"
-    "   :type do_local_ids: bool, optional\n"
+    "   :type do_local_ids: bool\n"
     "   :param do_linked_ids: Include unused linked IDs in the deletion, defaults to True\n"
-    "   :type do_linked_ids: bool, optional\n"
+    "   :type do_linked_ids: bool\n"
     "   :param do_recursive: Recursively check for unused IDs, ensuring no orphaned one "
     "remain after a single run of that function, defaults to False\n"
-    "   :type do_recursive: bool, optional\n"
+    "   :type do_recursive: bool\n"
     "   :return: The number of deleted IDs.\n"
     "   :rtype: int\n");
 static PyObject *bpy_orphans_purge(PyObject *self, PyObject *args, PyObject *kwds)
