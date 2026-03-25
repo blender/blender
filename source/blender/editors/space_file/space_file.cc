@@ -25,6 +25,8 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
+#include "BLT_translation.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -1141,13 +1143,28 @@ void ED_file_read_bookmarks()
 
   fsmenu_free();
 
-  fsmenu_read_system(ED_fsmenu_get(), true);
-  fsmenu_add_common_platform_directories(ED_fsmenu_get());
+  FSMenu *fsmenu = ED_fsmenu_get();
+
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
+  if (blendfile_path && blendfile_path[0]) {
+    /* Folder containing the currently-loaded Blend file. */
+    char dir[FILE_MAX];
+    BLI_path_split_dir_part(blendfile_path, dir, sizeof(dir));
+    fsmenu_insert_entry(fsmenu,
+                        FS_CATEGORY_SYSTEM_BOOKMARKS,
+                        dir,
+                        IFACE_("Current File"),
+                        ICON_CURRENT_FILE,
+                        FS_INSERT_FIRST);
+  }
+
+  fsmenu_read_system(fsmenu, true);
+  fsmenu_add_common_platform_directories(fsmenu);
 
   if (cfgdir.has_value()) {
     char filepath[FILE_MAX];
     BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
-    fsmenu_read_bookmarks(ED_fsmenu_get(), filepath);
+    fsmenu_read_bookmarks(fsmenu, filepath);
   }
 }
 

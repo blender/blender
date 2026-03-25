@@ -3226,6 +3226,9 @@ static wmOperatorStatus wm_open_mainfile__open(bContext *C, wmOperator *op)
       ED_outliner_select_sync_from_all_tag(C);
     }
     ED_view3d_local_collections_reset(C, (G.fileflags & G_FILE_NO_UI) != 0);
+
+    ED_file_read_bookmarks();
+
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -4055,6 +4058,8 @@ static wmOperatorStatus wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
       wm->autosave_scheduled = false;
     }
   }
+
+  ED_file_read_bookmarks();
 
   if (!is_save_as && RNA_boolean_get(op->ptr, "exit")) {
     wm_exit_schedule_delayed(C);
