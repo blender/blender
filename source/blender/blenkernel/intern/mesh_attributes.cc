@@ -945,8 +945,7 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
                             const AttributeAccessor &accessor) {
     const Mesh &mesh = *static_cast<const Mesh *>(owner);
 
-    const bool should_continue = foreach_vertex_group(
-        owner, [&](const AttributeIter &iter) { fn(iter); });
+    const bool should_continue = foreach_vertex_group(owner, fn);
     if (!should_continue) {
       return;
     }

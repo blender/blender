@@ -355,8 +355,7 @@ static AttributeAccessorFunctions get_curves_accessor_functions()
                             const AttributeAccessor &accessor) {
     const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
 
-    const bool should_continue = foreach_vertex_group(
-        owner, [&](const AttributeIter &iter) { fn(iter); });
+    const bool should_continue = foreach_vertex_group(owner, fn);
     if (!should_continue) {
       return;
     }
