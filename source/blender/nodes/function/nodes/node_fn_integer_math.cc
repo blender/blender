@@ -2,10 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <numeric>
-
-#include "BLI_math_base.h"
 #include "BLI_string.h"
+
+#include "FN_multi_function_registry.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -123,98 +122,45 @@ static void node_label(const bNodeTree * /*ntree*/,
   BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
 }
 
-/* Derived from `divide_round_i` but fixed to be safe and handle negative inputs. */
-static int safe_divide_round_i(const int a, const int b)
-{
-  const int c = math::abs(b);
-  return (a >= 0) ? math::safe_divide((2 * a + c), (2 * c)) * math::sign(b) :
-                    -math::safe_divide((2 * -a + c), (2 * c)) * math::sign(b);
-}
-
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)
 {
-  NodeIntegerMathOperation operation = NodeIntegerMathOperation(bnode.custom1);
-  static auto exec_preset = mf::build::exec_presets::AllSpanOrSingle();
-  static auto add_fn = mf::build::SI2_SO<int, int, int>(
-      "Add", [](int a, int b) { return a + b; }, exec_preset);
-  static auto sub_fn = mf::build::SI2_SO<int, int, int>(
-      "Subtract", [](int a, int b) { return a - b; }, exec_preset);
-  static auto multiply_fn = mf::build::SI2_SO<int, int, int>(
-      "Multiply", [](int a, int b) { return a * b; }, exec_preset);
-  static auto divide_fn = mf::build::SI2_SO<int, int, int>(
-      "Divide", [](int a, int b) { return math::safe_divide(a, b); }, exec_preset);
-  static auto divide_floor_fn = mf::build::SI2_SO<int, int, int>(
-      "Divide Floor",
-      [](int a, int b) { return (b != 0) ? divide_floor_i(a, b) : 0; },
-      exec_preset);
-  static auto divide_ceil_fn = mf::build::SI2_SO<int, int, int>(
-      "Divide Ceil",
-      [](int a, int b) { return (b != 0) ? -divide_floor_i(a, -b) : 0; },
-      exec_preset);
-  static auto divide_round_fn = mf::build::SI2_SO<int, int, int>(
-      "Divide Round", [](int a, int b) { return safe_divide_round_i(a, b); }, exec_preset);
-  static auto pow_fn = mf::build::SI2_SO<int, int, int>(
-      "Power", [](int a, int b) { return math::pow(a, b); }, exec_preset);
-  static auto madd_fn = mf::build::SI3_SO<int, int, int, int>(
-      "Multiply Add", [](int a, int b, int c) { return a * b + c; }, exec_preset);
-  static auto floored_mod_fn = mf::build::SI2_SO<int, int, int>(
-      "Floored Modulo",
-      [](int a, int b) { return b != 0 ? math::mod_periodic(a, b) : 0; },
-      exec_preset);
-  static auto mod_fn = mf::build::SI2_SO<int, int, int>(
-      "Modulo", [](int a, int b) { return b != 0 ? a % b : 0; }, exec_preset);
-  static auto abs_fn = mf::build::SI1_SO<int, int>(
-      "Absolute", [](int a) { return math::abs(a); }, exec_preset);
-  static auto sign_fn = mf::build::SI1_SO<int, int>(
-      "Sign", [](int a) { return math::sign(a); }, exec_preset);
-  static auto min_fn = mf::build::SI2_SO<int, int, int>(
-      "Minimum", [](int a, int b) { return math::min(a, b); }, exec_preset);
-  static auto max_fn = mf::build::SI2_SO<int, int, int>(
-      "Maximum", [](int a, int b) { return math::max(a, b); }, exec_preset);
-  static auto gcd_fn = mf::build::SI2_SO<int, int, int>(
-      "GCD", [](int a, int b) { return std::gcd(a, b); }, exec_preset);
-  static auto lcm_fn = mf::build::SI2_SO<int, int, int>(
-      "LCM", [](int a, int b) { return std::lcm(a, b); }, exec_preset);
-  static auto negate_fn = mf::build::SI1_SO<int, int>(
-      "Negate", [](int a) { return -a; }, exec_preset);
-
-  switch (operation) {
+  switch (NodeIntegerMathOperation(bnode.custom1)) {
     case NODE_INTEGER_MATH_ADD:
-      return &add_fn;
+      return &fn::multi_function::registry::lookup("int + int"_ustr);
     case NODE_INTEGER_MATH_SUBTRACT:
-      return &sub_fn;
+      return &fn::multi_function::registry::lookup("int - int"_ustr);
     case NODE_INTEGER_MATH_MULTIPLY:
-      return &multiply_fn;
+      return &fn::multi_function::registry::lookup("int * int"_ustr);
     case NODE_INTEGER_MATH_DIVIDE:
-      return &divide_fn;
+      return &fn::multi_function::registry::lookup("int / int"_ustr);
     case NODE_INTEGER_MATH_DIVIDE_FLOOR:
-      return &divide_floor_fn;
+      return &fn::multi_function::registry::lookup("floor(int, int)"_ustr);
     case NODE_INTEGER_MATH_DIVIDE_CEIL:
-      return &divide_ceil_fn;
+      return &fn::multi_function::registry::lookup("divide_ceil(int, int)"_ustr);
     case NODE_INTEGER_MATH_DIVIDE_ROUND:
-      return &divide_round_fn;
+      return &fn::multi_function::registry::lookup("divide_round(int, int)"_ustr);
     case NODE_INTEGER_MATH_POWER:
-      return &pow_fn;
+      return &fn::multi_function::registry::lookup("int ^ int"_ustr);
     case NODE_INTEGER_MATH_MULTIPLY_ADD:
-      return &madd_fn;
+      return &fn::multi_function::registry::lookup("int * int + int"_ustr);
     case NODE_INTEGER_MATH_FLOORED_MODULO:
-      return &floored_mod_fn;
+      return &fn::multi_function::registry::lookup("mod_periodic(int, int)"_ustr);
     case NODE_INTEGER_MATH_MODULO:
-      return &mod_fn;
+      return &fn::multi_function::registry::lookup("int % int"_ustr);
     case NODE_INTEGER_MATH_ABSOLUTE:
-      return &abs_fn;
+      return &fn::multi_function::registry::lookup("abs(int)"_ustr);
     case NODE_INTEGER_MATH_SIGN:
-      return &sign_fn;
+      return &fn::multi_function::registry::lookup("sign(int)"_ustr);
     case NODE_INTEGER_MATH_MINIMUM:
-      return &min_fn;
+      return &fn::multi_function::registry::lookup("min(int, int)"_ustr);
     case NODE_INTEGER_MATH_MAXIMUM:
-      return &max_fn;
+      return &fn::multi_function::registry::lookup("max(int, int)"_ustr);
     case NODE_INTEGER_MATH_GCD:
-      return &gcd_fn;
+      return &fn::multi_function::registry::lookup("gcd(int, int)"_ustr);
     case NODE_INTEGER_MATH_LCM:
-      return &lcm_fn;
+      return &fn::multi_function::registry::lookup("lcm(int, int)"_ustr);
     case NODE_INTEGER_MATH_NEGATE:
-      return &negate_fn;
+      return &fn::multi_function::registry::lookup("-int"_ustr);
   }
   BLI_assert_unreachable();
   return nullptr;

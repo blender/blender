@@ -9,6 +9,8 @@
 #include "FN_multi_function_builder.hh"
 #include "FN_multi_function_registry.hh"
 
+#include <numeric>
+
 namespace blender::fn::multi_function {
 
 void register_common_functions()
@@ -350,6 +352,88 @@ void register_common_functions()
     return build::SI1_SO<float3, float3>(
         "tan(float3)", [](const float3 &a) { return float3(tanf(a.x), tanf(a.y), tanf(a.z)); });
   });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "int + int", [](int a, int b) { return a + b; }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "int - int", [](int a, int b) { return a - b; }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "int * int", [](int a, int b) { return a * b; }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "int / int", [](int a, int b) { return math::safe_divide(a, b); }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "floor(int, int)",
+        [](int a, int b) { return (b != 0) ? divide_floor_i(a, b) : 0; },
+        exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "divide_ceil(int, int)",
+        [](int a, int b) { return (b != 0) ? -divide_floor_i(a, -b) : 0; },
+        exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "divide_round(int, int)",
+        [](int a, int b) {
+          /* Derived from `divide_round_i` but fixed to be safe and handle negative inputs. */
+          const int c = math::abs(b);
+          return (a >= 0) ? math::safe_divide((2 * a + c), (2 * c)) * math::sign(b) :
+                            -math::safe_divide((2 * -a + c), (2 * c)) * math::sign(b);
+        },
+        exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "int ^ int", [](int a, int b) { return math::pow(a, b); }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI3_SO<int, int, int, int>(
+        "int * int + int", [](int a, int b, int c) { return a * b + c; }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "mod_periodic(int, int)",
+        [](int a, int b) { return b != 0 ? math::mod_periodic(a, b) : 0; },
+        exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "int % int", [](int a, int b) { return b != 0 ? a % b : 0; }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI1_SO<int, int>("abs(int)", [](int a) { return math::abs(a); }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI1_SO<int, int>(
+        "sign(int)", [](int a) { return math::sign(a); }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "min(int, int)", [](int a, int b) { return math::min(a, b); }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>(
+        "max(int, int)", [](int a, int b) { return math::max(a, b); }, exec_fast);
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>("gcd(int, int)",
+                                            [](int a, int b) { return std::gcd(a, b); });
+  });
+  registry::add_new_cb([] {
+    return mf::build::SI2_SO<int, int, int>("lcm(int, int)",
+                                            [](int a, int b) { return std::lcm(a, b); });
+  });
+  registry::add_new_cb(
+      [] { return mf::build::SI1_SO<int, int>("-int", [](int a) { return -a; }, exec_fast); });
 }
 
 }  // namespace blender::fn::multi_function
