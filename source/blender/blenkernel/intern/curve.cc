@@ -3011,7 +3011,9 @@ void BKE_curve_bevelList_make(Object *ob, const ListBaseT<Nurb> *nurbs, const bo
     if (CU_IS_2D(cu)) {
       sd = sortdata;
       for (a = 0; a < poly; a++, sd++) {
+        BLI_assert(sd->bl->reversed == false);
         if (sd->bl->hole == sd->dir) {
+          sd->bl->reversed = true;
           BevList *bl = sd->bl;
           bevp1 = bl->bevpoints;
           bevp2 = bevp1 + (bl->nr - 1);

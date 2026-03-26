@@ -499,7 +499,7 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
      * so the CDT winding number calculation produces correct results.
      * Needed for correct non-zero filling but harmless for odd/even, see: #155733. */
     faces[p].resize(poly.count);
-    if (poly.dl->flag & DL_HOLE) {
+    if (poly.dl->flag & DL_REVERSED) {
       std::iota(faces[p].rbegin(), faces[p].rend(), poly.start);
     }
     else {
@@ -706,7 +706,7 @@ static void bevels_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
           dlnew->nr = dl.parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
-          dlnew->flag = DL_BACK_CURVE | (dl.flag & DL_HOLE);
+          dlnew->flag = DL_BACK_CURVE | (dl.flag & DL_REVERSED);
           dlnew->col = dl.col;
           dlnew->charidx = dl.charidx;
 
@@ -725,7 +725,7 @@ static void bevels_to_filledpoly(const Curve *cu, ListBaseT<DispList> *dispbase)
           dlnew->nr = dl.parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
-          dlnew->flag = DL_FRONT_CURVE | (dl.flag & DL_HOLE);
+          dlnew->flag = DL_FRONT_CURVE | (dl.flag & DL_REVERSED);
           dlnew->col = dl.col;
           dlnew->charidx = dl.charidx;
 
@@ -1499,8 +1499,8 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
           dl->type = DL_SEGM;
           dl->flag = (DL_FRONT_CURVE | DL_BACK_CURVE);
         }
-        if (bl->hole) {
-          dl->flag |= DL_HOLE;
+        if (bl->reversed) {
+          dl->flag |= DL_REVERSED;
         }
 
         dl->parts = 1;
@@ -1555,8 +1555,8 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
           if ((bl->poly >= 0) && (steps > 2)) {
             dl->flag |= DL_CYCL_V;
           }
-          if (bl->hole) {
-            dl->flag |= DL_HOLE;
+          if (bl->reversed) {
+            dl->flag |= DL_REVERSED;
           }
 
           dl->parts = steps;

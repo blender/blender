@@ -55,6 +55,8 @@ struct BevList {
   /** Cyclic when set to any value besides -1. */
   int poly;
   int hole;
+  /** Set when the winding direction is reversed. */
+  bool reversed;
   int charidx;
   int *segbevcount;
   float *seglen;
