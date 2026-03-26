@@ -1403,7 +1403,8 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", IMA_HIGH_BITDEPTH);
   RNA_def_property_ui_text(prop,
                            "Half Float Precision",
-                           "Use 16 bits per channel to lower the memory usage during rendering");
+                           "Use 16 bits per channel to lower the memory usage during rendering."
+                           "\nNote: Not supported by Cycles");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_gpu_texture_update");
 
   prop = RNA_def_property(srna, "seam_margin", PROP_INT, PROP_NONE);
