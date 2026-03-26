@@ -152,6 +152,7 @@ set(SRC
   intern/time.cc
   intern/timecode.cc
   intern/timeit.cc
+  intern/ustring.cc
   intern/uuid.cc
   intern/vector.cc
   intern/virtual_array.cc

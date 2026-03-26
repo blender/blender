@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include <OpenImageIO/ustring.h>
 
 #include "BLI_fixed_string.hh"
@@ -31,6 +33,9 @@ class UString {
  public:
   UString() = default;
   explicit UString(const StringRef str) : ustr_(std::string_view(str)) {}
+
+  /** A constructor that is meant to generate as little code as possible at the call site. */
+  static UString from_ptr_noinline(const char *str);
 
   /**
    * Access the underlying string as a #StringRefNull.
@@ -109,10 +114,26 @@ template<> struct DefaultHash<UString> {
  */
 template<FixedString FStr> inline UString operator""_ustr()
 {
-  /* Cache the resulting UString in a static variable so that it only has to be made unique once.
-   * A separate static variable is used for each different string because this entire function is
-   * templated on the string. */
-  static UString ustr(FStr.data);
+  /* This is a more optimized variant of just doing this:
+   *   ```
+   *   static UString ustr(FStr.data);
+   *   return ustr
+   *   ```
+   *
+   * The goal of the actual implementation is to improve upon performance and binary size compared
+   * to the above. This is possible here we have two pieces of information the compiler can't have:
+   *  - Once initialized, the pointer in the #UString is never null. Thus null can be used to
+   *    indicate that it has not been initialized yet. No separate guard variable is needed.
+   *  - It is valid to initialize the static variable more than once and the result will still be
+   *    the same because the string does not change. So a double checked lock is not needed.
+   */
+  /* This is initialized to null by default. */
+  static std::atomic<UString> static_ustr;
+  UString ustr = static_ustr.load(std::memory_order_relaxed);
+  if (ustr.c_str() == nullptr) [[unlikely]] {
+    ustr = UString::from_ptr_noinline(FStr.data);
+    static_ustr.store(ustr, std::memory_order_relaxed);
+  }
   return ustr;
 }
 
