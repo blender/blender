@@ -151,6 +151,7 @@ void ED_operatortypes_mask()
 
   /* layers */
   WM_operatortype_append(MASK_OT_layer_move);
+  WM_operatortype_append(MASK_OT_move_to_layer);
 
   /* duplicate */
   WM_operatortype_append(MASK_OT_duplicate);

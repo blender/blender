@@ -319,6 +319,16 @@ MaskLayer *BKE_mask_layer_active(Mask *mask)
   return static_cast<MaskLayer *>(BLI_findlink(&mask->masklayers, mask->masklay_act));
 }
 
+MaskLayer *BKE_mask_layer_by_name(Mask *mask, const char *layer_name)
+{
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    if (STREQ(mask_layer.name, layer_name)) {
+      return &mask_layer;
+    }
+  }
+  return nullptr;
+}
+
 void BKE_mask_layer_active_set(Mask *mask, MaskLayer *masklay)
 {
   mask->masklay_act = BLI_findindex(&mask->masklayers, masklay);
@@ -439,6 +449,16 @@ MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
   BKE_mask_parent_init(&spline->parent);
 
   return spline;
+}
+
+void BKE_mask_spline_move_to_layer(MaskSpline *spline,
+                                   MaskLayer *src_mask_layer,
+                                   MaskLayer *dst_mask_layer)
+{
+  if (src_mask_layer != dst_mask_layer) {
+    BLI_remlink(&src_mask_layer->splines, spline);
+    BLI_addtail(&dst_mask_layer->splines, spline);
+  }
 }
 
 bool BKE_mask_spline_remove(MaskLayer *mask_layer, MaskSpline *spline)

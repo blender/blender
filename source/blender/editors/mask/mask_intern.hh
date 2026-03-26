@@ -59,6 +59,7 @@ void MASK_OT_normals_make_consistent(wmOperatorType *ot);
 void MASK_OT_handle_type_set(wmOperatorType *ot);
 
 void MASK_OT_layer_move(wmOperatorType *ot);
+void MASK_OT_move_to_layer(wmOperatorType *ot);
 
 void MASK_OT_duplicate(wmOperatorType *ot);
 void MASK_OT_copy_splines(wmOperatorType *ot);
