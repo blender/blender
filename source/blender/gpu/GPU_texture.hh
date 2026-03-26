@@ -1014,7 +1014,9 @@ void GPU_texture_copy(gpu::Texture *dst, gpu::Texture *src);
 
 /**
  * Update the mip-map levels using the mip 0 data.
+ *
  * \note this doesn't work on depth or compressed textures.
+ * \note post-condition: All bound images could be unbound.
  */
 void GPU_texture_update_mipmap_chain(gpu::Texture *texture);
 

@@ -97,6 +97,11 @@ enum GPUBuiltinShader {
   GPU_SHADER_INDEXBUF_LINES,
   GPU_SHADER_INDEXBUF_TRIS,
 
+  /** Compute shaders to generate mipmaps. */
+  GPU_SHADER_2D_UPDATE_MIPMAPS_UNORM_8_8_8_8,
+  GPU_SHADER_2D_UPDATE_MIPMAPS_SFLOAT_16,
+  GPU_SHADER_2D_UPDATE_MIPMAPS_SFLOAT_16_16_16_16,
+
   /**
    * ----------------------- Shaders exposed through pyGPU module -----------------------
    *

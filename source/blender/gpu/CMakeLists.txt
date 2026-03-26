@@ -100,6 +100,7 @@ set(SRC
   intern/gpu_storage_buffer.cc
   intern/gpu_texture.cc
   intern/gpu_texture_pool.cc
+  intern/gpu_texture_mipmap.cc
   intern/gpu_uniform_buffer.cc
   intern/gpu_vertex_buffer.cc
   intern/gpu_vertex_format.cc
@@ -545,6 +546,7 @@ set(GLSL_SRC
   shaders/gpu_shader_3D_smooth_color_vert.glsl
   shaders/gpu_shader_3D_smooth_color_frag.glsl
   shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl
+  shaders/gpu_shader_2D_update_mipmaps.bsl.hh
 
   shaders/gpu_shader_point_uniform_color_aa_frag.glsl
   shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl

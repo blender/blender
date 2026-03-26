@@ -64,6 +64,9 @@ BLOCKLIST_VULKAN = [
     "image.blend",
 ]
 
+BLOCKLIST_OPENGL = [
+]
+
 BLOCKLIST_INTEL = [
 ]
 
@@ -237,6 +240,8 @@ def main():
         blocklist += BLOCKLIST_METAL
     elif args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
+    elif args.gpu_backend == "opengl":
+        blocklist += BLOCKLIST_OPENGL
 
     if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
         gpu_vendor = render_report.get_gpu_device_vendor(args.blender)

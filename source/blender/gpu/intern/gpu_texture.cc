@@ -17,6 +17,7 @@
 #include "gpu_context_private.hh"
 #include "gpu_framebuffer_private.hh"
 
+#include "gpu_shader_private.hh"
 #include "gpu_texture_private.hh"
 
 namespace blender {
@@ -637,11 +638,6 @@ void GPU_texture_image_unbind(gpu::Texture *tex)
 void GPU_texture_image_unbind_all()
 {
   Context::get()->state_manager->image_unbind_all();
-}
-
-void GPU_texture_update_mipmap_chain(gpu::Texture *tex)
-{
-  tex->generate_mipmap();
 }
 
 void GPU_texture_copy(gpu::Texture *dst_, gpu::Texture *src_)

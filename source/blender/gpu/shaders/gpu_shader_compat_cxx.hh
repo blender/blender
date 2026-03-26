@@ -275,3 +275,75 @@ struct PipelineCompute {
 };
 
 #include "GPU_shader_shared_utils.hh"
+
+/* -------------------------------------------------------------------- */
+/** \name Enums
+ *
+ * Enums should be defined in the root namespace when used directly in the pipeline, as they will
+ * not be fully qualified when generating the template name substitution. Defining in the root
+ * works around this limitation
+ *
+ * \{ */
+
+/**
+ * TextureWriteFormat.
+ *
+ * We can not use GPU_TEXTURE_WRITE_FORMAT_EXPAND as other parts are included that will intervene
+ * with the compatibility defines.
+ */
+enum TextureWriteFormat : uint32_t {
+  SNORM_8,
+  SNORM_8_8,
+  SNORM_8_8_8_8,
+
+  SNORM_16,
+  SNORM_16_16,
+  SNORM_16_16_16_16,
+
+  UNORM_8,
+  UNORM_8_8,
+  UNORM_8_8_8_8,
+
+  UNORM_16,
+  UNORM_16_16,
+  UNORM_16_16_16_16,
+
+  SINT_8,
+  SINT_8_8,
+  SINT_8_8_8_8,
+
+  SINT_16,
+  SINT_16_16,
+  SINT_16_16_16_16,
+
+  SINT_32,
+  SINT_32_32,
+  SINT_32_32_32_32,
+
+  UINT_8,
+  UINT_8_8,
+  UINT_8_8_8_8,
+
+  UINT_16,
+  UINT_16_16,
+  UINT_16_16_16_16,
+
+  UINT_32,
+  UINT_32_32,
+  UINT_32_32_32_32,
+
+  SFLOAT_16,
+  SFLOAT_16_16,
+  SFLOAT_16_16_16_16,
+
+  SFLOAT_32,
+  SFLOAT_32_32,
+  SFLOAT_32_32_32_32,
+
+  UNORM_10_10_10_2,
+  UINT_10_10_10_2,
+
+  UFLOAT_11_11_10,
+};
+
+/** \} */
