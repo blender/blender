@@ -1810,6 +1810,8 @@ class USERPREF_PT_saveload_blend(SaveLoadPanel, CenterAlignMixIn, Panel):
         col = layout.column(heading="Save")
         col.prop(view, "use_save_prompt")
 
+        layout.prop(paths, "save_modified_images")
+
         col = layout.column()
         col.prop(paths, "save_version")
         col.prop(paths, "recent_files")

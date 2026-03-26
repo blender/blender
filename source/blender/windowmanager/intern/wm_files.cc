@@ -3632,6 +3632,21 @@ static void wm_generic_callback_free_user_data_idproperties(void *user_data)
 /** \name Save Modified Images Dialog
  * \{ */
 
+static bool wm_show_save_modified_images_dialog(const Main *bmain, wmOperator *op)
+{
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "show_save_modified_images_dialog");
+  const bool show_save_image_dialog = prop ? RNA_property_boolean_get(op->ptr, prop) : false;
+
+  /* Toggle RNA property "show_save_modified_images_dialog" to false to prevent opening the popup
+   * dialog in an infinite loop. */
+  if (show_save_image_dialog) {
+    RNA_property_boolean_set(op->ptr, prop, false);
+  }
+
+  return !G.background && U.save_modified_images == USER_SAVE_MODIFIED_IMAGES_ASK &&
+         show_save_image_dialog && ED_image_save_all_modified_info(bmain, nullptr) > 0;
+}
+
 static void wm_block_save_modified_images_cancel(bContext *C, void *arg_block, void * /*arg_data*/)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -3894,14 +3909,7 @@ static wmOperatorStatus wm_save_as_mainfile_invoke(bContext *C,
                                                    wmOperator *op,
                                                    const wmEvent * /*event*/)
 {
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "show_save_modified_images_dialog");
-  const bool show_save_image_dialog = prop ? (!G.background &&
-                                              RNA_property_boolean_get(op->ptr, prop)) :
-                                             false;
-
-  const int modified_images_count = ED_image_save_all_modified_info(CTX_data_main(C), nullptr);
-  if (show_save_image_dialog && modified_images_count > 0) {
-    RNA_property_boolean_set(op->ptr, prop, false);
+  if (wm_show_save_modified_images_dialog(CTX_data_main(C), op)) {
     wm_operator_save_modified_images_dialog(C, op, [](bContext *C, void *user_data) {
       WM_operator_name_call_with_properties(C,
                                             "WM_OT_save_as_mainfile",
@@ -3915,7 +3923,7 @@ static wmOperatorStatus wm_save_as_mainfile_invoke(bContext *C,
   save_set_compress(op);
   save_set_filepath(C, op);
 
-  prop = RNA_struct_find_property(op->ptr, "relative_remap");
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
   if (!RNA_property_is_set(op->ptr, prop)) {
     RNA_property_boolean_set(op->ptr, prop, (U.flag & USER_RELPATHS));
   }
@@ -3936,14 +3944,16 @@ static wmOperatorStatus wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "incremental");
   const bool is_incremental = prop ? RNA_property_boolean_get(op->ptr, prop) : false;
 
-  prop = RNA_struct_find_property(op->ptr, "show_save_modified_images_dialog");
-  const bool show_save_image_dialog = prop ? (!G.background &&
-                                              RNA_property_boolean_get(op->ptr, prop)) :
-                                             false;
-
-  const int modified_images_count = ED_image_save_all_modified_info(CTX_data_main(C), nullptr);
-  if (show_save_image_dialog && modified_images_count > 0) {
-    RNA_property_boolean_set(op->ptr, prop, false);
+  if (U.save_modified_images == USER_SAVE_MODIFIED_IMAGES_ALWAYS &&
+      ED_image_save_all_modified_info(bmain, nullptr) > 0)
+  {
+    ReportList *reports = CTX_wm_reports(C);
+    const bool is_successful = ED_image_save_all_modified(C, reports);
+    if (!is_successful) {
+      WM_report_banner_show(static_cast<wmWindowManager *>(bmain->wm.first), CTX_wm_window(C));
+    }
+  }
+  else if (wm_show_save_modified_images_dialog(bmain, op)) {
     wm_operator_save_modified_images_dialog(C, op, [](bContext *C, void *user_data) {
       WM_operator_name_call_with_properties(C,
                                             "WM_OT_save_mainfile",
@@ -4151,6 +4161,7 @@ static wmOperatorStatus wm_save_mainfile_invoke(bContext *C,
                                                 wmOperator *op,
                                                 const wmEvent * /*event*/)
 {
+  const Main *bmain = CTX_data_main(C);
   wmOperatorStatus ret;
 
   /* Cancel if no active window. */
@@ -4158,14 +4169,7 @@ static wmOperatorStatus wm_save_mainfile_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "show_save_modified_images_dialog");
-  const bool show_save_image_dialog = prop ? (!G.background &&
-                                              RNA_property_boolean_get(op->ptr, prop)) :
-                                             false;
-
-  const int modified_images_count = ED_image_save_all_modified_info(CTX_data_main(C), nullptr);
-  if (show_save_image_dialog && modified_images_count > 0) {
-    RNA_property_boolean_set(op->ptr, prop, false);
+  if (wm_show_save_modified_images_dialog(bmain, op)) {
     wm_operator_save_modified_images_dialog(C, op, [](bContext *C, void *user_data) {
       WM_operator_name_call_with_properties(C,
                                             "WM_OT_save_mainfile",
@@ -4184,14 +4188,14 @@ static wmOperatorStatus wm_save_mainfile_invoke(bContext *C,
    * enable the option to remap paths to avoid confusion, see: #37240. */
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   if ((blendfile_path[0] == '\0') && (U.flag & USER_RELPATHS)) {
-    prop = RNA_struct_find_property(op->ptr, "relative_remap");
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
     if (!RNA_property_is_set(op->ptr, prop)) {
       RNA_property_boolean_set(op->ptr, prop, true);
     }
   }
 
   if (blendfile_path[0] != '\0') {
-    if (BKE_main_needs_overwrite_confirm(CTX_data_main(C))) {
+    if (BKE_main_needs_overwrite_confirm(bmain)) {
       wm_save_file_overwrite_dialog(C, op);
       ret = OPERATOR_INTERFACE;
     }
