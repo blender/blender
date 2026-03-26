@@ -2280,33 +2280,6 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_mix_palette(View3DPanel, Panel):
             col.template_palette(settings, "palette", color=True)
 
 
-class VIEW3D_PT_tools_grease_pencil_v3_brush_eraser(View3DPanel, Panel):
-    bl_context = ".grease_pencil_paint"
-    bl_label = "Eraser"
-    bl_category = "Tool"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        if context.region.type == 'TOOL_HEADER':
-            return False
-
-        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
-        tool = ToolSelectPanelHelper.tool_active_from_context(context)
-        return (tool and tool.idname == "builtin.brush")
-
-    def draw(self, context):
-        layout = self.layout
-        tool_settings = context.tool_settings
-        settings = tool_settings.gpencil_paint
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        col = layout.column()
-        col.prop_search(settings, "eraser_brush", bpy.data, "brushes")
-
-
 class VIEW3D_PT_tools_grease_pencil_v3_brush_gap_closure(View3DPanel, Panel):
     bl_context = ".grease_pencil_paint"
     bl_parent_id = "VIEW3D_PT_tools_grease_pencil_v3_brush_fill_advanced"
@@ -2417,7 +2390,6 @@ classes = (
 
     VIEW3D_PT_tools_grease_pencil_v3_brush_select,
     VIEW3D_PT_tools_grease_pencil_v3_brush_settings,
-    VIEW3D_PT_tools_grease_pencil_v3_brush_eraser,
     VIEW3D_PT_tools_grease_pencil_v3_brush_advanced,
     VIEW3D_PT_tools_grease_pencil_v3_brush_fill_advanced,
     VIEW3D_PT_tools_grease_pencil_v3_brush_stroke,

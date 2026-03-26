@@ -7,6 +7,8 @@
  * \ingroup wm
  */
 
+#include "BKE_paint_types.hh"
+
 namespace blender {
 
 struct Brush;
@@ -26,6 +28,7 @@ struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 struct wmOperatorType;
 struct wmWindow;
+struct AssetWeakReference;
 
 /* `wm_toolsystem.cc` */
 
@@ -63,6 +66,12 @@ bToolRef_Runtime *WM_toolsystem_runtime_find(WorkSpace *workspace, const bToolKe
  * \return True if the brush was successfully activated.
  */
 bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *brush);
+
+/**
+ * Get an asset reference to the last activated brush asset of a specific brush type.
+ */
+std::optional<AssetWeakReference> WM_toolsystem_last_brush_asset_from_brush_type(
+    Scene *scene, const int brush_type, const PaintMode paint_mode);
 
 void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace, const bToolKey *tkey);
 void WM_toolsystem_refresh(const bContext *C, WorkSpace *workspace, const bToolKey *tkey);

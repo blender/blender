@@ -10,6 +10,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_task.hh"
 
+#include "BKE_asset_edit.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -32,6 +33,7 @@
 #include "GEO_curves_remove_and_split.hh"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "grease_pencil_intern.hh"
@@ -42,6 +44,7 @@ class EraseOperation : public GreasePencilStrokeOperation {
   friend struct EraseOperationExecutor;
 
  private:
+  Brush *eraser_brush_;
   /* Eraser is used by the draw tool temporarily. */
   bool temp_eraser_ = false;
 
@@ -932,27 +935,20 @@ struct EraseOperationExecutor {
     Object *obact = CTX_data_active_object(&C);
     Object *ob_eval = DEG_get_evaluated(depsgraph, obact);
 
-    Paint *paint = &scene->toolsettings->gp_paint->paint;
-    Brush *brush = BKE_paint_brush(paint);
-
-    if (brush->gpencil_brush_type == GPAINT_BRUSH_TYPE_DRAW) {
-      brush = BKE_paint_eraser_brush(paint);
-    }
-
     /* Get the brush data. */
     this->mouse_position = extension_sample.mouse_position;
     this->eraser_radius = self.radius_;
     this->eraser_strength = self.strength_;
 
-    if (BKE_brush_use_size_pressure(brush)) {
+    if (BKE_brush_use_size_pressure(self.eraser_brush_)) {
       this->eraser_radius *= BKE_curvemapping_evaluateF(
-          brush->gpencil_settings->curve_strength, 0, extension_sample.pressure);
+          self.eraser_brush_->gpencil_settings->curve_strength, 0, extension_sample.pressure);
     }
-    if (BKE_brush_use_alpha_pressure(brush)) {
+    if (BKE_brush_use_alpha_pressure(self.eraser_brush_)) {
       this->eraser_strength *= BKE_curvemapping_evaluateF(
-          brush->gpencil_settings->curve_strength, 0, extension_sample.pressure);
+          self.eraser_brush_->gpencil_settings->curve_strength, 0, extension_sample.pressure);
     }
-    this->brush_ = brush;
+    this->brush_ = self.eraser_brush_;
 
     this->mouse_position_pixels = int2(round_fl_to_int(this->mouse_position.x),
                                        round_fl_to_int(this->mouse_position.y));
@@ -1050,32 +1046,43 @@ void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*st
   Paint *paint = BKE_paint_get_active_from_context(&C);
   Brush *brush = BKE_paint_brush(paint);
 
+  eraser_brush_ = brush;
   radius_ = BKE_brush_radius_get(paint, brush);
 
   /* If we're using the draw tool to erase (e.g. while holding ctrl), then we should use the
-   * eraser brush instead. */
+   * eraser brush instead. Find the last used eraser for this. */
   if (temp_eraser_) {
+    Main *bmain = CTX_data_main(&C);
+    Scene *scene = CTX_data_scene(&C);
     Object *object = CTX_data_active_object(&C);
     GreasePencil *grease_pencil = id_cast<GreasePencil *>(object->data);
 
+    std::optional<AssetWeakReference> asset_reference =
+        WM_toolsystem_last_brush_asset_from_brush_type(
+            scene, GPAINT_BRUSH_TYPE_ERASE, PaintMode::GPencil);
+    /* This should only fail in the case where the essential assets are not found. */
+    if (asset_reference) {
+      eraser_brush_ = reinterpret_cast<Brush *>(
+          bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, *asset_reference));
+      radius_ = BKE_brush_radius_get(paint, eraser_brush_);
+    }
+
     grease_pencil->runtime->temp_eraser_radius = radius_;
     grease_pencil->runtime->temp_use_eraser = true;
-
-    brush = BKE_paint_eraser_brush(paint);
   }
 
-  if (brush->gpencil_settings == nullptr) {
-    BKE_brush_init_gpencil_settings(brush);
+  if (eraser_brush_->gpencil_settings == nullptr) {
+    BKE_brush_init_gpencil_settings(eraser_brush_);
   }
-  BLI_assert(brush->gpencil_settings != nullptr);
+  BLI_assert(eraser_brush_->gpencil_settings != nullptr);
 
-  BKE_curvemapping_init(brush->curve_distance_falloff);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_strength);
+  BKE_curvemapping_init(eraser_brush_->curve_distance_falloff);
+  BKE_curvemapping_init(eraser_brush_->gpencil_settings->curve_strength);
 
-  eraser_mode_ = eGP_BrushEraserMode(brush->gpencil_settings->eraser_mode);
-  keep_caps_ = ((brush->gpencil_settings->flag & GP_BRUSH_ERASER_KEEP_CAPS) != 0);
-  active_layer_only_ = ((brush->gpencil_settings->flag & GP_BRUSH_ACTIVE_LAYER_ONLY) != 0);
-  strength_ = brush->alpha;
+  eraser_mode_ = eGP_BrushEraserMode(eraser_brush_->gpencil_settings->eraser_mode);
+  keep_caps_ = ((eraser_brush_->gpencil_settings->flag & GP_BRUSH_ERASER_KEEP_CAPS) != 0);
+  active_layer_only_ = ((eraser_brush_->gpencil_settings->flag & GP_BRUSH_ACTIVE_LAYER_ONLY) != 0);
+  strength_ = eraser_brush_->alpha;
 }
 
 void EraseOperation::on_stroke_extended(const bContext &C, const InputSample &extension_sample)
