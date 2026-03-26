@@ -27,6 +27,8 @@
 
 namespace blender::gpu::tests {
 
+#ifdef WITH_BACKEND_OPENGL
+
 /* Test operates on a 4x4 texture patch. */
 constexpr uint texture_size_x = 4;
 constexpr uint texture_size_y = 4;
@@ -168,13 +170,13 @@ template<TextureFormat FormatA, TextureFormat FormatB> static void texture_view_
   GPU_render_end();
 }
 
-static void test_vexture_view_SFLOAT_32_32_32_32()
+static void test_texture_view_SFLOAT_32_32_32_32()
 {
   texture_view_create_test<TextureFormat::SFLOAT_32_32_32_32, TextureFormat::SFLOAT_32_32_32_32>();
   texture_view_create_test<TextureFormat::SFLOAT_32_32_32_32, TextureFormat::UINT_32_32_32_32>();
   texture_view_create_test<TextureFormat::SFLOAT_32_32_32_32, TextureFormat::SINT_32_32_32_32>();
 }
-GPU_OPENGL_TEST(vexture_view_SFLOAT_32_32_32_32);
+GPU_OPENGL_TEST(texture_view_SFLOAT_32_32_32_32);
 
 static void test_texture_view_SFLOAT_32_32()
 {
@@ -236,5 +238,5 @@ static void test_texture_view_UINT_8()
   texture_view_create_test<TextureFormat::UINT_8, TextureFormat::UNORM_8>();
 }
 GPU_OPENGL_TEST(texture_view_UINT_8);
-
+#endif
 }  // namespace blender::gpu::tests
