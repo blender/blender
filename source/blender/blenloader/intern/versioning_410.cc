@@ -612,6 +612,7 @@ static void version_socket_identifier_suffixes_for_dynamic_types(
       if (char *pos = strstr(socket.identifier, separator)) {
         /* End the identifier at the separator so that the old suffix is ignored. */
         *pos = '\0';
+        socket.runtime->identifier_ustr = UString(socket.identifier);
 
         if (total.has_value()) {
           index++;
@@ -625,6 +626,7 @@ static void version_socket_identifier_suffixes_for_dynamic_types(
       /* Rename existing identifiers so that they don't conflict with the renamed one. Those will
        * be removed after versioning code. */
       BLI_strncat(socket.identifier, "_deprecated", sizeof(socket.identifier));
+      socket.runtime->identifier_ustr = UString(socket.identifier);
     }
   }
 }

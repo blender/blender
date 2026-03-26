@@ -1240,7 +1240,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
         /* Compositor node uses "Image" as the output name while the shader node uses "Color" as
          * the output name. */
         bNodeSocket *image_output = bke::node_find_socket(node, SOCK_OUT, "Image");
-        STRNCPY_UTF8(image_output->identifier, "Color");
+        version_node_socket_identifier_set(*image_output, "Color");
         STRNCPY_UTF8(image_output->name, "Color");
 
         break;
@@ -1259,7 +1259,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
         /* Compositor node uses "Value" as the output name while the shader node uses "Result" as
          * the output name. */
         bNodeSocket *value_output = bke::node_find_socket(node, SOCK_OUT, "Value");
-        STRNCPY_UTF8(value_output->identifier, "Result");
+        version_node_socket_identifier_set(*value_output, "Result");
         STRNCPY_UTF8(value_output->name, "Result");
 
         break;
@@ -1281,16 +1281,16 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
          * identifiers while the shader node uses ("Factor", "Factor_Float"), ("A", "A_Color"),
          * ("B", "B_Color"), and ("Result", "Result_Color") as socket names and identifiers. */
         bNodeSocket *factor_input = bke::node_find_socket(node, SOCK_IN, "Fac");
-        STRNCPY_UTF8(factor_input->identifier, "Factor_Float");
+        version_node_socket_identifier_set(*factor_input, "Factor_Float");
         STRNCPY_UTF8(factor_input->name, "Factor");
         bNodeSocket *first_input = bke::node_find_socket(node, SOCK_IN, "Image");
-        STRNCPY_UTF8(first_input->identifier, "A_Color");
+        version_node_socket_identifier_set(*first_input, "A_Color");
         STRNCPY_UTF8(first_input->name, "A");
         bNodeSocket *second_input = bke::node_find_socket(node, SOCK_IN, "Image_001");
-        STRNCPY_UTF8(second_input->identifier, "B_Color");
+        version_node_socket_identifier_set(*second_input, "B_Color");
         STRNCPY_UTF8(second_input->name, "B");
         bNodeSocket *image_output = bke::node_find_socket(node, SOCK_OUT, "Image");
-        STRNCPY_UTF8(image_output->identifier, "Result_Color");
+        version_node_socket_identifier_set(*image_output, "Result_Color");
         STRNCPY_UTF8(image_output->name, "Result");
 
         do_version_mix_color_use_alpha(node_tree, &node);
@@ -1641,7 +1641,7 @@ static void do_version_file_output_node(bNode &node)
     }
 
     const std::string identifier = "Item_" + std::to_string(item_data->identifier);
-    STRNCPY(input.identifier, identifier.c_str());
+    version_node_socket_identifier_set(input, identifier);
 
     BKE_image_format_free(&old_item_data->format);
     MEM_delete(old_item_data);

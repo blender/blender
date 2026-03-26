@@ -197,6 +197,8 @@ void version_node_id(bNodeTree *ntree, int node_type, const char *new_name);
  */
 void version_node_socket_id_delim(bNodeSocket *socket);
 
+void version_node_socket_identifier_set(bNodeSocket &socket, StringRefNull identifier);
+
 bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
                                                   bNode *node,
                                                   int in_out,

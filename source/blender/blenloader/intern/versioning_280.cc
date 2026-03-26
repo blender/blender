@@ -1912,7 +1912,7 @@ static void update_voronoi_node_fac_output(bNodeTree *ntree)
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy == SH_NODE_TEX_VORONOI) {
       bNodeSocket *facOutput = static_cast<bNodeSocket *>(BLI_findlink(&node.outputs, 1));
-      STRNCPY_UTF8(facOutput->identifier, "Distance");
+      version_node_socket_identifier_set(*facOutput, "Distance");
       STRNCPY_UTF8(facOutput->name, "Distance");
     }
   }

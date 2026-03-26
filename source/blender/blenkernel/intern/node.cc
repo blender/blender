@@ -1817,6 +1817,7 @@ static void direct_link_node_socket(BlendDataReader *reader, const bNode *node, 
 
   BLO_read_string(reader, &sock->default_attribute_name);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
+  sock->runtime->identifier_ustr = UString(sock->identifier);
 }
 
 static void remove_unsupported_sockets(ListBaseT<bNodeSocket> *sockets,
@@ -2765,6 +2766,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   sock->in_out = in_out;
 
   STRNCPY_UTF8(sock->identifier, auto_identifier);
+  sock->runtime->identifier_ustr = UString(sock->identifier);
   sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
   name.copy_utf8_truncated(sock->name);
@@ -3921,6 +3923,7 @@ bNode *node_add_static_node(const bContext *C, bNodeTree &ntree, const int type)
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag)
 {
   sock_dst->runtime = MEM_new<bNodeSocketRuntime>(__func__);
+  sock_dst->runtime->identifier_ustr = UString(sock_src->runtime->identifier_ustr);
   if (sock_src->prop) {
     sock_dst->prop = IDP_CopyProperty_ex(sock_src->prop, flag);
   }

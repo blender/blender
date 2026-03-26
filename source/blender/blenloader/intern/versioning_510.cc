@@ -755,7 +755,7 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
               const char *new_pass_name = legacy_pass_name_to_new_name(socket.name);
               STRNCPY(socket.name, new_pass_name);
               const char *new_pass_identifier = legacy_pass_name_to_new_name(socket.identifier);
-              STRNCPY(socket.identifier, new_pass_identifier);
+              version_node_socket_identifier_set(socket, new_pass_identifier);
             }
           }
         }
