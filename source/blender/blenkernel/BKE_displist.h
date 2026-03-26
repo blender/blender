@@ -42,13 +42,12 @@ enum {
   DL_BACK_CURVE = (1 << 3),
 
   /**
-   * Marks geometry generated from hole contours (nested inside other contours).
-   * Hole contours have their winding reversed during bevel list generation
-   * to produce correct outward-facing normals on extruded surfaces.
+   * Marks geometry whose winding direction was reversed during bevel list generation
+   * (to produce correct outward-facing normals on extruded surfaces).
    *
    * Needed to check if the winding has been flipped (CDT filling).
    */
-  DL_HOLE = (1 << 4),
+  DL_REVERSED = (1 << 4),
 };
 
 /* prototypes */
