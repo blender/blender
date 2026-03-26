@@ -31,22 +31,22 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
-  params.set_output_elem("Matrix", MatrixElem::all());
+  params.set_output_elem("Matrix"_ustr, MatrixElem::all());
 }
 
 static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 {
   using namespace value_elem;
   const MatrixElem first_input_elem = MatrixElem::all();
-  params.set_input_elem("Matrix", first_input_elem);
+  params.set_input_elem("Matrix"_ustr, first_input_elem);
 }
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
-  const float4x4 output = params.get_output<float4x4>("Matrix");
-  const float4x4 second_input = params.get_input<float4x4>("Matrix_001");
+  const float4x4 output = params.get_output<float4x4>("Matrix"_ustr);
+  const float4x4 second_input = params.get_input<float4x4>("Matrix_001"_ustr);
   const float4x4 first_input = output * math::invert(second_input);
-  params.set_input("Matrix", first_input);
+  params.set_input("Matrix"_ustr, first_input);
 }
 
 static int node_gpu_material(GPUMaterial *material,

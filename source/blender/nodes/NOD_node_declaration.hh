@@ -456,14 +456,14 @@ class BaseSocketDeclarationBuilder {
    * Utility method for the case when this socket is only used when the menu input of the given
    * identifier has a specific value.
    */
-  BaseSocketDeclarationBuilder &usage_by_menu(const StringRef menu_input_identifier,
+  BaseSocketDeclarationBuilder &usage_by_menu(const UString menu_input_identifier,
                                               const int menu_value);
 
   /**
    * Utility method for the case when this socket is only used when the menu input of the given
    * identifier has one of the specifies values.
    */
-  BaseSocketDeclarationBuilder &usage_by_menu(const StringRef menu_input_identifier,
+  BaseSocketDeclarationBuilder &usage_by_menu(const UString menu_input_identifier,
                                               const Array<int> menu_values);
 
   /**

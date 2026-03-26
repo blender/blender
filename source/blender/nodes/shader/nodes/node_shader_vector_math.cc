@@ -293,18 +293,18 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
     case NODE_VECTOR_MATH_MULTIPLY:
     case NODE_VECTOR_MATH_DIVIDE: {
       VectorElem output_elem;
-      output_elem.merge(params.get_input_elem<VectorElem>("Vector"));
-      output_elem.merge(params.get_input_elem<VectorElem>("Vector_001"));
-      params.set_output_elem("Vector", output_elem);
+      output_elem.merge(params.get_input_elem<VectorElem>("Vector"_ustr));
+      output_elem.merge(params.get_input_elem<VectorElem>("Vector_001"_ustr));
+      params.set_output_elem("Vector"_ustr, output_elem);
       break;
     }
     case NODE_VECTOR_MATH_SCALE: {
       VectorElem output_elem;
-      output_elem.merge(params.get_input_elem<VectorElem>("Vector"));
-      if (params.get_input_elem<FloatElem>("Scale")) {
+      output_elem.merge(params.get_input_elem<VectorElem>("Vector"_ustr));
+      if (params.get_input_elem<FloatElem>("Scale"_ustr)) {
         output_elem = VectorElem::all();
       }
-      params.set_output_elem("Vector", output_elem);
+      params.set_output_elem("Vector"_ustr, output_elem);
     }
     default:
       break;
@@ -320,7 +320,8 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
     case NODE_VECTOR_MATH_MULTIPLY:
     case NODE_VECTOR_MATH_DIVIDE:
     case NODE_VECTOR_MATH_SCALE: {
-      params.set_input_elem("Vector", params.get_output_elem<value_elem::VectorElem>("Vector"));
+      params.set_input_elem("Vector"_ustr,
+                            params.get_output_elem<value_elem::VectorElem>("Vector"_ustr));
       break;
     }
     default:
@@ -331,10 +332,10 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
   const NodeVectorMathOperation op = NodeVectorMathOperation(params.node.custom1);
-  const StringRef first_input_id = "Vector";
-  const StringRef second_input_id = "Vector_001";
-  const StringRef scale_input_id = "Scale";
-  const StringRef output_vector_id = "Vector";
+  const UString first_input_id = "Vector"_ustr;
+  const UString second_input_id = "Vector_001"_ustr;
+  const UString scale_input_id = "Scale"_ustr;
+  const UString output_vector_id = "Vector"_ustr;
   switch (op) {
     case NODE_VECTOR_MATH_ADD: {
       params.set_input(first_input_id,

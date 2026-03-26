@@ -694,7 +694,7 @@ class NodeTreeMainUpdater {
         continue;
       }
       const std::string identifier_str = GeoViewerItemsAccessor::socket_identifier_for_item(item);
-      const bNodeSocket *socket = viewer_node.input_by_identifier(identifier_str.c_str());
+      const bNodeSocket *socket = viewer_node.input_by_identifier(UString(identifier_str));
       if (!socket) {
         continue;
       }
@@ -1061,13 +1061,13 @@ class NodeTreeMainUpdater {
           }
 
           if (node->is_type("NodeGetBundleItem")) {
-            bNodeSocket &socket = *node->output_by_identifier("Item");
+            bNodeSocket &socket = *node->output_by_identifier("Item"_ustr);
             const auto &storage = *static_cast<const NodeGetBundleItem *>(node->storage);
             socket.display_shape = get_socket_shape(
                 socket, storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
           }
           else if (node->is_type("NodeStoreBundleItem")) {
-            bNodeSocket &socket = *node->input_by_identifier("Item");
+            bNodeSocket &socket = *node->input_by_identifier("Item"_ustr);
             const auto &storage = *static_cast<const NodeStoreBundleItem *>(node->storage);
             socket.display_shape = get_socket_shape(
                 socket, storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);

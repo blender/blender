@@ -26,7 +26,7 @@ class ElemEvalParams {
                  const Map<const bNodeSocket *, ElemVariant> &elem_by_socket,
                  Vector<SocketElem> &output_elems);
 
-  template<typename T> T get_input_elem(const StringRef identifier) const
+  template<typename T> T get_input_elem(const UString identifier) const
   {
     const bNodeSocket &socket = *node.input_by_identifier(identifier);
     if (const ElemVariant *elem = this->elem_by_socket_.lookup_ptr(&socket)) {
@@ -35,7 +35,7 @@ class ElemEvalParams {
     return T();
   }
 
-  template<typename T> void set_output_elem(const StringRef identifier, T elem)
+  template<typename T> void set_output_elem(const UString identifier, T elem)
   {
     const bNodeSocket &socket = *node.output_by_identifier(identifier);
     output_elems_.append({&socket, ElemVariant{elem}});
@@ -58,7 +58,7 @@ class InverseElemEvalParams {
                         const Map<const bNodeSocket *, ElemVariant> &elem_by_socket,
                         Vector<SocketElem> &input_elems);
 
-  template<typename T> T get_output_elem(const StringRef identifier) const
+  template<typename T> T get_output_elem(const UString identifier) const
   {
     const bNodeSocket &socket = *node.output_by_identifier(identifier);
     if (const ElemVariant *elem = this->elem_by_socket_.lookup_ptr(&socket)) {
@@ -67,7 +67,7 @@ class InverseElemEvalParams {
     return T();
   }
 
-  template<typename T> void set_input_elem(const StringRef identifier, T elem)
+  template<typename T> void set_input_elem(const UString identifier, T elem)
   {
     const bNodeSocket &socket = *node.input_by_identifier(identifier);
     input_elems_.append({&socket, ElemVariant{elem}});

@@ -139,26 +139,26 @@ static void node_declare(NodeDeclarationBuilder &b)
       .static_items(rgb_channel_items)
       .expanded()
       .translation_context(BLT_I18NCONTEXT_COLOR)
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_RGB)
+      .usage_by_menu("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_RGB)
       .optional_label();
   b.add_input<decl::Menu>("HSV Key Channel")
       .default_value(HSVChannel::H)
       .static_items(hsv_channel_items)
       .expanded()
       .translation_context(BLT_I18NCONTEXT_COLOR)
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_HSV)
+      .usage_by_menu("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_HSV)
       .optional_label();
   b.add_input<decl::Menu>("YUV Key Channel")
       .default_value(YUVChannel::V)
       .static_items(yuv_channel_items)
       .expanded()
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YUV)
+      .usage_by_menu("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_YUV)
       .optional_label();
   b.add_input<decl::Menu>("YCbCr Key Channel")
       .default_value(YCbCrChannel::Cr)
       .static_items(ycbcr_channel_items)
       .expanded()
-      .usage_by_menu("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YCC)
+      .usage_by_menu("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_YCC)
       .optional_label();
 
   b.add_input<decl::Menu>("Limit Method")
@@ -182,9 +182,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       })
       .usage_inference(
           [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
-            return params.menu_input_may_be("Limit Method",
+            return params.menu_input_may_be("Limit Method"_ustr,
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
-                   params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_RGB);
+                   params.menu_input_may_be("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_RGB);
           });
   b.add_input<decl::Menu>("HSV Limit Channel")
       .default_value(HSVChannel::S)
@@ -202,9 +202,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       })
       .usage_inference(
           [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
-            return params.menu_input_may_be("Limit Method",
+            return params.menu_input_may_be("Limit Method"_ustr,
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
-                   params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_HSV);
+                   params.menu_input_may_be("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_HSV);
           });
   b.add_input<decl::Menu>("YUV Limit Channel")
       .default_value(YUVChannel::U)
@@ -222,9 +222,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       })
       .usage_inference(
           [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
-            return params.menu_input_may_be("Limit Method",
+            return params.menu_input_may_be("Limit Method"_ustr,
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
-                   params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YUV);
+                   params.menu_input_may_be("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_YUV);
           });
   b.add_input<decl::Menu>("YCbCr Limit Channel")
       .default_value(YCbCrChannel::Cb)
@@ -242,9 +242,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       })
       .usage_inference(
           [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
-            return params.menu_input_may_be("Limit Method",
+            return params.menu_input_may_be("Limit Method"_ustr,
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
-                   params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YCC);
+                   params.menu_input_may_be("Color Space"_ustr, CMP_NODE_CHANNEL_MATTE_CS_YCC);
           });
 }
 

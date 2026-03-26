@@ -28,27 +28,27 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
-  const RotationElem rotation_elem = params.get_input_elem<RotationElem>("Rotation");
-  params.set_output_elem("Euler", rotation_elem.euler);
+  const RotationElem rotation_elem = params.get_input_elem<RotationElem>("Rotation"_ustr);
+  params.set_output_elem("Euler"_ustr, rotation_elem.euler);
 }
 
 static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 {
   using namespace value_elem;
   RotationElem rotation_elem;
-  rotation_elem.euler = params.get_output_elem<VectorElem>("Euler");
+  rotation_elem.euler = params.get_output_elem<VectorElem>("Euler"_ustr);
   if (rotation_elem) {
     rotation_elem.axis = VectorElem::all();
     rotation_elem.angle = FloatElem::all();
   }
-  params.set_input_elem("Rotation", rotation_elem);
+  params.set_input_elem("Rotation"_ustr, rotation_elem);
 }
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
-  const float3 euler = params.get_output<float3>("Euler");
+  const float3 euler = params.get_output<float3>("Euler"_ustr);
   const math::Quaternion rotation = math::to_quaternion(math::EulerXYZ(euler));
-  params.set_input("Rotation", rotation);
+  params.set_input("Rotation"_ustr, rotation);
 }
 
 static void node_register()

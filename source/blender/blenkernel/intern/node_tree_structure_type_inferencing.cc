@@ -224,7 +224,7 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
   for (const bNode *node : tree.nodes_by_type("NodeStoreBundleItem")) {
     auto &storage = *static_cast<NodeStoreBundleItem *>(node->storage);
     if (storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
-      const bNodeSocket &socket = *node->input_by_identifier("Item");
+      const bNodeSocket &socket = *node->input_by_identifier("Item"_ustr);
       is_auto_structure_type[socket.index_in_tree()].set();
     }
   }
@@ -233,7 +233,7 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
   for (const bNode *node : tree.nodes_by_type("NodeGetBundleItem")) {
     auto &storage = *static_cast<NodeGetBundleItem *>(node->storage);
     if (storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
-      const bNodeSocket &socket = *node->output_by_identifier("Item");
+      const bNodeSocket &socket = *node->output_by_identifier("Item"_ustr);
       is_auto_structure_type[socket.index_in_tree()].set();
     }
   }

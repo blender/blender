@@ -160,7 +160,7 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
   for (const int col : IndexRange(4)) {
     for (const int row : IndexRange(4)) {
       const bNodeSocket &socket = params.node.input_socket(col * 4 + row);
-      input_elems[col][row] = params.get_input_elem<FloatElem>(socket.identifier);
+      input_elems[col][row] = params.get_input_elem<FloatElem>(socket.identifier_ustr());
     }
   }
 
@@ -186,14 +186,14 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
     matrix_elem.any_non_transform = FloatElem::all();
   }
 
-  params.set_output_elem("Matrix", matrix_elem);
+  params.set_output_elem("Matrix"_ustr, matrix_elem);
 }
 
 static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 {
   using namespace value_elem;
 
-  const MatrixElem matrix_elem = params.get_output_elem<MatrixElem>("Matrix");
+  const MatrixElem matrix_elem = params.get_output_elem<MatrixElem>("Matrix"_ustr);
   std::array<std::array<FloatElem, 4>, 4> input_elems;
 
   input_elems[3][0] = matrix_elem.translation.x;
@@ -217,18 +217,18 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
   for (const int col : IndexRange(4)) {
     for (const int row : IndexRange(4)) {
       const bNodeSocket &socket = params.node.input_socket(col * 4 + row);
-      params.set_input_elem(socket.identifier, input_elems[col][row]);
+      params.set_input_elem(socket.identifier_ustr(), input_elems[col][row]);
     }
   }
 }
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
-  const float4x4 matrix = params.get_output<float4x4>("Matrix");
+  const float4x4 matrix = params.get_output<float4x4>("Matrix"_ustr);
   for (const int col : IndexRange(4)) {
     for (const int row : IndexRange(4)) {
       const bNodeSocket &socket = params.node.input_socket(col * 4 + row);
-      params.set_input(socket.identifier, matrix[col][row]);
+      params.set_input(socket.identifier_ustr(), matrix[col][row]);
     }
   }
 }

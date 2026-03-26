@@ -204,9 +204,9 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
     case NODE_MATH_SUBTRACT:
     case NODE_MATH_MULTIPLY:
     case NODE_MATH_DIVIDE: {
-      FloatElem output_elem = params.get_input_elem<FloatElem>("Value");
-      output_elem.merge(params.get_input_elem<FloatElem>("Value_001"));
-      params.set_output_elem("Value", output_elem);
+      FloatElem output_elem = params.get_input_elem<FloatElem>("Value"_ustr);
+      output_elem.merge(params.get_input_elem<FloatElem>("Value_001"_ustr));
+      params.set_output_elem("Value"_ustr, output_elem);
       break;
     }
     default:
@@ -222,7 +222,8 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
     case NODE_MATH_SUBTRACT:
     case NODE_MATH_MULTIPLY:
     case NODE_MATH_DIVIDE: {
-      params.set_input_elem("Value", params.get_output_elem<value_elem::FloatElem>("Value"));
+      params.set_input_elem("Value"_ustr,
+                            params.get_output_elem<value_elem::FloatElem>("Value"_ustr));
       break;
     }
     default:
@@ -233,9 +234,9 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
   const NodeMathOperation op = NodeMathOperation(params.node.custom1);
-  const StringRef first_input_id = "Value";
-  const StringRef second_input_id = "Value_001";
-  const StringRef output_id = "Value";
+  const UString first_input_id = "Value"_ustr;
+  const UString second_input_id = "Value_001"_ustr;
+  const UString output_id = "Value"_ustr;
   switch (op) {
     case NODE_MATH_ADD: {
       params.set_input(first_input_id,

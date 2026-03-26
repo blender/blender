@@ -166,7 +166,7 @@ int blender_attribute_name_split_type(ustring name, string *r_real_name)
 
 static float3 get_node_output_rgba(blender::bNode &b_node, const string &name)
 {
-  blender::bNodeSocket *b_sock = b_node.output_by_identifier(name);
+  blender::bNodeSocket *b_sock = b_node.output_by_identifier(blender::UString(name));
   BLI_assert(b_sock->type == blender::SOCK_RGBA);
   const auto &default_value = *b_sock->default_value_typed<blender::bNodeSocketValueRGBA>();
   return make_float3(default_value.value[0], default_value.value[1], default_value.value[2]);
@@ -174,7 +174,7 @@ static float3 get_node_output_rgba(blender::bNode &b_node, const string &name)
 
 static float get_node_output_value(blender::bNode &b_node, const string &name)
 {
-  blender::bNodeSocket *b_sock = b_node.output_by_identifier(name);
+  blender::bNodeSocket *b_sock = b_node.output_by_identifier(blender::UString(name));
   BLI_assert(b_sock->type == blender::SOCK_FLOAT);
   const auto &default_value = *b_sock->default_value_typed<blender::bNodeSocketValueFloat>();
   return default_value.value;
@@ -182,7 +182,7 @@ static float get_node_output_value(blender::bNode &b_node, const string &name)
 
 static float3 get_node_output_vector(blender::bNode &b_node, const string &name)
 {
-  blender::bNodeSocket *b_sock = b_node.output_by_identifier(name);
+  blender::bNodeSocket *b_sock = b_node.output_by_identifier(blender::UString(name));
   BLI_assert(b_sock->type == blender::SOCK_VECTOR);
   const auto &default_value = *b_sock->default_value_typed<blender::bNodeSocketValueVector>();
   return make_float3(default_value.value[0], default_value.value[1], default_value.value[2]);

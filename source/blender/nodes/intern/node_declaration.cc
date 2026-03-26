@@ -850,13 +850,13 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_single_menu
         return std::nullopt;
       }
     }
-    return params.menu_input_may_be(socket.identifier, menu_value);
+    return params.menu_input_may_be(socket.identifier_ustr(), menu_value);
   });
   return *this;
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
-    const StringRef menu_input_identifier, const int menu_value)
+    const UString menu_input_identifier, const int menu_value)
 {
   Array<int> menu_values = {menu_value};
   this->usage_by_menu(menu_input_identifier, menu_values);
@@ -864,10 +864,10 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
-    const StringRef menu_input_identifier, const Array<int> menu_values)
+    const UString menu_input_identifier, const Array<int> menu_values)
 {
   this->make_available([menu_input_identifier, menu_values](bNode &node) {
-    bNodeSocket &menu_socket = *bke::node_find_socket(node, SOCK_IN, menu_input_identifier);
+    bNodeSocket &menu_socket = *bke::node_find_socket(node, SOCK_IN, menu_input_identifier.ref());
     const SocketDeclaration &socket_declaration = *menu_socket.runtime->declaration;
     socket_declaration.make_available(node);
     bNodeSocketValueMenu *value = menu_socket.default_value_typed<bNodeSocketValueMenu>();
@@ -900,7 +900,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
         }
 
         const bNodeSocket &menu_socket = *bke::node_find_socket(
-            params.node, SOCK_IN, menu_input_identifier);
+            params.node, SOCK_IN, menu_input_identifier.ref());
         const SocketDeclaration &menu_socket_declaration = *menu_socket.runtime->declaration;
         if (!menu_socket_declaration.usage_inference_fn) {
           return menu_might_be_any_value;

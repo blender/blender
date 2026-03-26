@@ -90,7 +90,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   bke::SocketValueVariant value = params.extract_input<bke::SocketValueVariant>("Item");
-  const bNodeSocket *item_sock = bnode.input_by_identifier("Item");
+  const bNodeSocket *item_sock = bnode.input_by_identifier("Item"_ustr);
   if (!item_sock) {
     params.set_output("Bundle", std::move(bundle_ptr));
     return;

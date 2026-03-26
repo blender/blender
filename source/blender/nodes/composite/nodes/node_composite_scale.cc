@@ -57,17 +57,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0001f)
       .max(CMP_SCALE_MAX)
       .structure_type(StructureType::Dynamic)
-      .usage_by_menu("Type", {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
+      .usage_by_menu("Type"_ustr, {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
   b.add_input<decl::Float>("Y")
       .default_value(1.0f)
       .min(0.0001f)
       .max(CMP_SCALE_MAX)
       .structure_type(StructureType::Dynamic)
-      .usage_by_menu("Type", {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
+      .usage_by_menu("Type"_ustr, {CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE});
   b.add_input<decl::Menu>("Frame Type")
       .default_value(CMP_NODE_SCALE_RENDER_SIZE_STRETCH)
       .static_items(frame_type_items)
-      .usage_by_menu("Type", CMP_NODE_SCALE_RENDER_SIZE)
+      .usage_by_menu("Type"_ustr, CMP_NODE_SCALE_RENDER_SIZE)
       .optional_label()
       .description("How the image fits in the camera frame");
 

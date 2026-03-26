@@ -73,7 +73,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .expanded()
       .translation_context(BLT_I18NCONTEXT_COLOR)
       .optional_label()
-      .usage_by_menu("Limit Method", CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE);
+      .usage_by_menu("Limit Method"_ustr, CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE);
   b.add_input<decl::Float>("Limit Strength")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)

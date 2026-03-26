@@ -193,7 +193,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
-  const MatrixElem matrix_elem = params.get_input_elem<MatrixElem>("Matrix");
+  const MatrixElem matrix_elem = params.get_input_elem<MatrixElem>("Matrix"_ustr);
   std::array<std::array<FloatElem, 4>, 4> output_elems;
 
   output_elems[3][0] = matrix_elem.translation.x;
@@ -217,7 +217,7 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
   for (const int col : IndexRange(4)) {
     for (const int row : IndexRange(4)) {
       const bNodeSocket &socket = params.node.output_socket(col * 4 + row);
-      params.set_output_elem(socket.identifier, output_elems[col][row]);
+      params.set_output_elem(socket.identifier_ustr(), output_elems[col][row]);
     }
   }
 }
@@ -230,7 +230,7 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
   for (const int col : IndexRange(4)) {
     for (const int row : IndexRange(4)) {
       const bNodeSocket &socket = params.node.output_socket(col * 4 + row);
-      output_elems[col][row] = params.get_output_elem<FloatElem>(socket.identifier);
+      output_elems[col][row] = params.get_output_elem<FloatElem>(socket.identifier_ustr());
     }
   }
 
@@ -257,7 +257,7 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
     matrix_elem.any_non_transform = FloatElem::all();
   }
 
-  params.set_input_elem("Matrix", matrix_elem);
+  params.set_input_elem("Matrix"_ustr, matrix_elem);
 }
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
@@ -266,10 +266,10 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
   for (const int col : IndexRange(4)) {
     for (const int row : IndexRange(4)) {
       const bNodeSocket &socket = params.node.output_socket(col * 4 + row);
-      matrix[col][row] = params.get_output<float>(socket.identifier);
+      matrix[col][row] = params.get_output<float>(socket.identifier_ustr());
     }
   }
-  params.set_input("Matrix", matrix);
+  params.set_input("Matrix"_ustr, matrix);
 }
 
 static int node_gpu_material(GPUMaterial *material,

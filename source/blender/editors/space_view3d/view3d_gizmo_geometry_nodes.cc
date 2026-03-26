@@ -117,7 +117,7 @@ struct UpdateReport {
 };
 
 using ApplyChangeFn = std::function<void(
-    StringRef socket_identifier, FunctionRef<void(bke::SocketValueVariant &value)> modify_value)>;
+    UString socket_identifier, FunctionRef<void(bke::SocketValueVariant &value)> modify_value)>;
 
 struct GizmosUpdateParams {
   const bContext &C;
@@ -128,7 +128,7 @@ struct GizmosUpdateParams {
   UpdateReport &r_report;
   nodes::inverse_eval::ElemVariant elem;
 
-  template<typename T> [[nodiscard]] bool get_input_value(const StringRef identifier, T &r_value)
+  template<typename T> [[nodiscard]] bool get_input_value(const UString identifier, T &r_value)
   {
     const bNodeSocket &socket = *this->gizmo_node.input_by_identifier(identifier);
     const std::optional<T> value_opt = this->tree_log.find_primitive_socket_value<T>(socket);
@@ -249,8 +249,8 @@ class LinearGizmo : public NodeGizmos {
   {
     float3 position;
     float3 direction;
-    if (!params.get_input_value("Position", position) ||
-        !params.get_input_value("Direction", direction))
+    if (!params.get_input_value("Position"_ustr, position) ||
+        !params.get_input_value("Direction"_ustr, direction))
     {
       params.r_report.missing_socket_logs = true;
       return false;
@@ -284,7 +284,7 @@ class LinearGizmo : public NodeGizmos {
           const float new_gizmo_value = *static_cast<const float *>(value_ptr);
           self.edit_data_.current_value = new_gizmo_value;
           const float offset = new_gizmo_value * self.edit_data_.factor_from_transform;
-          self.apply_change("Value", [&](bke::SocketValueVariant &value_variant) {
+          self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
             value_variant.set(value_variant.get<float>() + offset);
           });
         };
@@ -355,9 +355,10 @@ class DialGizmo : public NodeGizmos {
     float3 up;
     bool screen_space;
     float radius;
-    if (!params.get_input_value("Position", position) || !params.get_input_value("Up", up) ||
-        !params.get_input_value("Screen Space", screen_space) ||
-        !params.get_input_value("Radius", radius))
+    if (!params.get_input_value("Position"_ustr, position) ||
+        !params.get_input_value("Up"_ustr, up) ||
+        !params.get_input_value("Screen Space"_ustr, screen_space) ||
+        !params.get_input_value("Radius"_ustr, radius))
     {
       params.r_report.missing_socket_logs = true;
       return false;
@@ -404,7 +405,7 @@ class DialGizmo : public NodeGizmos {
           if (self.edit_data_.is_negative_transform) {
             offset = -offset;
           }
-          self.apply_change("Value", [&](bke::SocketValueVariant &value_variant) {
+          self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
             value_variant.set(value_variant.get<float>() + offset);
           });
         };
@@ -480,8 +481,8 @@ class TransformGizmos : public NodeGizmos {
 
     float3 position;
     math::Quaternion rotation;
-    if (!params.get_input_value("Position", position) ||
-        !params.get_input_value("Rotation", rotation))
+    if (!params.get_input_value("Position"_ustr, position) ||
+        !params.get_input_value("Rotation"_ustr, rotation))
     {
       params.r_report.missing_socket_logs = true;
       return;
@@ -615,7 +616,7 @@ class TransformGizmos : public NodeGizmos {
         self.edit_data_.current_translation[axis_i] = new_gizmo_value;
         float3 translation{};
         translation[axis_i] = new_gizmo_value;
-        self.apply_change("Value", [&](bke::SocketValueVariant &value_variant) {
+        self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
           float4x4 value = value_variant.get<float4x4>();
           const float3x3 orientation = float3x3(value);
           float3 offset{};
@@ -666,7 +667,7 @@ class TransformGizmos : public NodeGizmos {
         const math::Axis axis = math::Axis::from_int(axis_i);
         const float new_gizmo_value = *static_cast<const float *>(value_ptr);
         self.edit_data_.current_rotation[axis_i] = new_gizmo_value;
-        self.apply_change("Value", [&](bke::SocketValueVariant &value_variant) {
+        self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
           float4x4 value = value_variant.get<float4x4>();
           float3 local_rotation_axis;
           if (self.transform_orientation_ == V3D_ORIENT_GLOBAL) {
@@ -720,7 +721,7 @@ class TransformGizmos : public NodeGizmos {
         self.edit_data_.current_scale[axis_i] = new_gizmo_value;
         float3 scale{1.0f, 1.0f, 1.0f};
         scale[axis_i] += new_gizmo_value;
-        self.apply_change("Value", [&](bke::SocketValueVariant &value_variant) {
+        self.apply_change("Value"_ustr, [&](bke::SocketValueVariant &value_variant) {
           float4x4 value = value_variant.get<float4x4>();
           float3 local_scale_axis;
           if (self.transform_orientation_ == V3D_ORIENT_GLOBAL) {
@@ -1057,7 +1058,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
                object_orig = &object_orig,
                nmd = &nmd_orig,
                eval_log = nmd_orig.runtime->eval_log](
-                  const StringRef socket_identifier,
+                  const UString socket_identifier,
                   const FunctionRef<void(bke::SocketValueVariant &)> modify_value) {
                 gizmo_node_tree->ensure_topology_cache();
                 const bNodeSocket &socket = *gizmo_node->input_by_identifier(socket_identifier);

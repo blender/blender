@@ -163,7 +163,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .usage_by_menu("Type",
+      .usage_by_menu("Type"_ustr,
                      {CMP_NODE_GLARE_FOG_GLOW, CMP_NODE_GLARE_BLOOM, CMP_NODE_GLARE_SUN_BEAMS})
       .description(
           "The size of the glare relative to the image. 1 means the glare covers the entire "
@@ -172,18 +172,18 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(4)
       .min(1)
       .max(16)
-      .usage_by_menu("Type", CMP_NODE_GLARE_STREAKS)
+      .usage_by_menu("Type"_ustr, CMP_NODE_GLARE_STREAKS)
       .description("The number of streaks");
   glare_panel.add_input<decl::Float>("Streaks Angle")
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
-      .usage_by_menu("Type", CMP_NODE_GLARE_STREAKS)
+      .usage_by_menu("Type"_ustr, CMP_NODE_GLARE_STREAKS)
       .description("The angle that the first streak makes with the horizontal axis");
   glare_panel.add_input<decl::Int>("Iterations")
       .default_value(3)
       .min(2)
       .max(5)
-      .usage_by_menu("Type",
+      .usage_by_menu("Type"_ustr,
                      {CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS})
       .description(
           "The number of ghosts for Ghost glare or the quality and spread of Glare for Streaks "
@@ -193,18 +193,18 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.75f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .usage_by_menu("Type", {CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_STREAKS})
+      .usage_by_menu("Type"_ustr, {CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_STREAKS})
       .description("Streak fade-out factor");
   glare_panel.add_input<decl::Float>("Color Modulation")
       .default_value(0.25)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .usage_by_menu("Type", {CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS})
+      .usage_by_menu("Type"_ustr, {CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS})
       .description("Modulates colors of streaks and ghosts for a spectral dispersion effect");
   glare_panel.add_input<decl::Bool>("Diagonal", "Diagonal Star")
       .default_value(true)
-      .usage_by_menu("Type", CMP_NODE_GLARE_SIMPLE_STAR)
+      .usage_by_menu("Type"_ustr, CMP_NODE_GLARE_SIMPLE_STAR)
       .description("Align the star diagonally");
   glare_panel.add_input<decl::Vector>("Sun Position")
       .subtype(PROP_FACTOR)
@@ -212,7 +212,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({0.5f, 0.5f})
       .min(0.0f)
       .max(1.0f)
-      .usage_by_menu("Type", CMP_NODE_GLARE_SUN_BEAMS)
+      .usage_by_menu("Type"_ustr, CMP_NODE_GLARE_SUN_BEAMS)
       .description(
           "The position of the source of the rays in normalized coordinates. 0 means lower left "
           "corner and 1 means upper right corner");
@@ -221,24 +221,24 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0)
       .subtype(PROP_FACTOR)
-      .usage_by_menu("Type", CMP_NODE_GLARE_SUN_BEAMS)
+      .usage_by_menu("Type"_ustr, CMP_NODE_GLARE_SUN_BEAMS)
       .description(
           "The amount of jitter to introduce while computing rays, higher jitter can be faster "
           "but can produce grainy or noisy results");
   glare_panel.add_input<decl::Menu>("Kernel Data Type")
       .default_value(KernelDataType::Float)
       .static_items(kernel_data_type_items)
-      .usage_by_menu("Type", CMP_NODE_GLARE_KERNEL)
+      .usage_by_menu("Type"_ustr, CMP_NODE_GLARE_KERNEL)
       .optional_label();
   glare_panel.add_input<decl::Float>("Kernel", "Float Kernel")
       .hide_value()
       .structure_type(StructureType::Dynamic)
-      .usage_by_menu("Kernel Data Type", int(KernelDataType::Float))
+      .usage_by_menu("Kernel Data Type"_ustr, int(KernelDataType::Float))
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms);
   glare_panel.add_input<decl::Color>("Kernel", "Color Kernel")
       .hide_value()
       .structure_type(StructureType::Dynamic)
-      .usage_by_menu("Kernel Data Type", int(KernelDataType::Color))
+      .usage_by_menu("Kernel Data Type"_ustr, int(KernelDataType::Color))
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms);
 }
 

@@ -183,7 +183,8 @@ static Vector<MutableNodeAndSocket> get_internal_group_links(
   Vector<MutableNodeAndSocket> result;
   if (io_socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
     for (const bNode *group_input_node : tree.group_input_nodes()) {
-      const bNodeSocket *socket = group_input_node->output_by_identifier(io_socket.identifier);
+      const bNodeSocket *socket = group_input_node->output_by_identifier(
+          UString(io_socket.identifier));
       BLI_assert(socket);
       for (const bNodeLink *link : socket->directly_linked_links()) {
         if (!link->is_available()) {
@@ -208,7 +209,8 @@ static Vector<MutableNodeAndSocket> get_internal_group_links(
   }
   if (io_socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
     if (const bNode *group_output_node = tree.group_output_node()) {
-      const bNodeSocket *socket = group_output_node->input_by_identifier(io_socket.identifier);
+      const bNodeSocket *socket = group_output_node->input_by_identifier(
+          UString(io_socket.identifier));
       BLI_assert(socket);
       for (const bNodeLink *link : socket->directly_linked_links()) {
         if (!link->is_available()) {
@@ -604,9 +606,9 @@ static void map_socket(NodeTreeInterfaceMapping &io_mapping,
 {
   const bNodeTree &group_tree = *id_cast<const bNodeTree *>(group_node.id);
   const bool is_input = (io_socket.flag & NODE_INTERFACE_SOCKET_INPUT);
-  const bNodeSocket *group_socket = is_input ?
-                                        group_node.input_by_identifier(io_socket.identifier) :
-                                        group_node.output_by_identifier(io_socket.identifier);
+  const bNodeSocket *group_socket =
+      is_input ? group_node.input_by_identifier(UString(io_socket.identifier)) :
+                 group_node.output_by_identifier(UString(io_socket.identifier));
   BLI_assert(group_socket);
   if (!group_socket->is_available()) {
     return;

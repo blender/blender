@@ -30,26 +30,26 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
   RotationElem rotation_elem;
-  rotation_elem.euler = params.get_input_elem<VectorElem>("Euler");
+  rotation_elem.euler = params.get_input_elem<VectorElem>("Euler"_ustr);
   if (rotation_elem) {
     rotation_elem.axis = VectorElem::all();
     rotation_elem.angle = FloatElem::all();
   }
-  params.set_output_elem("Rotation", rotation_elem);
+  params.set_output_elem("Rotation"_ustr, rotation_elem);
 }
 
 static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 {
   using namespace value_elem;
-  const RotationElem rotation_elem = params.get_output_elem<RotationElem>("Rotation");
+  const RotationElem rotation_elem = params.get_output_elem<RotationElem>("Rotation"_ustr);
   VectorElem vector_elem = rotation_elem.euler;
-  params.set_input_elem("Euler", vector_elem);
+  params.set_input_elem("Euler"_ustr, vector_elem);
 }
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
-  const math::Quaternion rotation = params.get_output<math::Quaternion>("Rotation");
-  params.set_input("Euler", float3(math::to_euler(rotation)));
+  const math::Quaternion rotation = params.get_output<math::Quaternion>("Rotation"_ustr);
+  params.set_input("Euler"_ustr, float3(math::to_euler(rotation)));
 }
 
 static void node_register()

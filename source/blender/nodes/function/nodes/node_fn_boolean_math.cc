@@ -135,7 +135,7 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
   const NodeBooleanMathOperation op = NodeBooleanMathOperation(params.node.custom1);
   switch (op) {
     case NODE_BOOLEAN_MATH_NOT: {
-      params.set_output_elem("Boolean", params.get_input_elem<BoolElem>("Boolean"));
+      params.set_output_elem("Boolean"_ustr, params.get_input_elem<BoolElem>("Boolean"_ustr));
       break;
     }
     default: {
@@ -150,7 +150,7 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
   const NodeBooleanMathOperation op = NodeBooleanMathOperation(params.node.custom1);
   switch (op) {
     case NODE_BOOLEAN_MATH_NOT: {
-      params.set_input_elem("Boolean", params.get_output_elem<BoolElem>("Boolean"));
+      params.set_input_elem("Boolean"_ustr, params.get_output_elem<BoolElem>("Boolean"_ustr));
       break;
     }
     default: {
@@ -162,8 +162,8 @@ static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
   const NodeBooleanMathOperation op = NodeBooleanMathOperation(params.node.custom1);
-  const StringRef first_input_id = "Boolean";
-  const StringRef output_id = "Boolean";
+  const UString first_input_id = "Boolean"_ustr;
+  const UString output_id = "Boolean"_ustr;
   switch (op) {
     case NODE_BOOLEAN_MATH_NOT: {
       params.set_input(first_input_id, !params.get_output<bool>(output_id));

@@ -3519,8 +3519,8 @@ struct GeometryNodesLazyFunctionBuilder {
 
   void build_enable_output_node_socket_usage(const bNode &bnode, BuildGraphParams &graph_params)
   {
-    const bNodeSocket &enable_bsocket = *bnode.input_by_identifier("Enable");
-    const bNodeSocket &value_input_bsocket = *bnode.input_by_identifier("Value");
+    const bNodeSocket &enable_bsocket = *bnode.input_by_identifier("Enable"_ustr);
+    const bNodeSocket &value_input_bsocket = *bnode.input_by_identifier("Value"_ustr);
     const bNodeSocket &output_bsocket = bnode.output_socket(0);
     lf::OutputSocket *output_is_used_socket = graph_params.usage_by_bsocket.lookup_default(
         &output_bsocket, nullptr);

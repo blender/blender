@@ -134,7 +134,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_output<decl::Geometry>("Curve Instances");
   b.add_output<decl::String>("Remainder")
-      .usage_by_menu("Overflow", GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
+      .usage_by_menu("Overflow"_ustr, GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
   b.add_output<decl::Int>("Line").field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
   b.add_output<decl::Int>("Word").field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
   b.add_output<decl::Vector>("Pivot Point").field_on_all();
@@ -175,7 +175,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         .default_value(0.0f)
         .min(0.0f)
         .subtype(PROP_DISTANCE)
-        .usage_by_menu("Overflow", GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT);
+        .usage_by_menu("Overflow"_ustr, GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT);
   }
 }
 

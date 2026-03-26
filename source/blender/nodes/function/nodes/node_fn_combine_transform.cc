@@ -82,31 +82,31 @@ static void node_eval_elem(value_elem::ElemEvalParams &params)
 {
   using namespace value_elem;
   MatrixElem matrix_elem;
-  matrix_elem.translation = params.get_input_elem<VectorElem>("Translation");
-  matrix_elem.rotation = params.get_input_elem<RotationElem>("Rotation");
-  matrix_elem.scale = params.get_input_elem<VectorElem>("Scale");
-  params.set_output_elem("Transform", matrix_elem);
+  matrix_elem.translation = params.get_input_elem<VectorElem>("Translation"_ustr);
+  matrix_elem.rotation = params.get_input_elem<RotationElem>("Rotation"_ustr);
+  matrix_elem.scale = params.get_input_elem<VectorElem>("Scale"_ustr);
+  params.set_output_elem("Transform"_ustr, matrix_elem);
 }
 
 static void node_eval_inverse_elem(value_elem::InverseElemEvalParams &params)
 {
   using namespace value_elem;
-  const MatrixElem matrix_elem = params.get_output_elem<MatrixElem>("Transform");
-  params.set_input_elem("Translation", matrix_elem.translation);
-  params.set_input_elem("Rotation", matrix_elem.rotation);
-  params.set_input_elem("Scale", matrix_elem.scale);
+  const MatrixElem matrix_elem = params.get_output_elem<MatrixElem>("Transform"_ustr);
+  params.set_input_elem("Translation"_ustr, matrix_elem.translation);
+  params.set_input_elem("Rotation"_ustr, matrix_elem.rotation);
+  params.set_input_elem("Scale"_ustr, matrix_elem.scale);
 }
 
 static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 {
-  const float4x4 transform = params.get_output<float4x4>("Transform");
+  const float4x4 transform = params.get_output<float4x4>("Transform"_ustr);
   float3 translation;
   math::Quaternion rotation;
   float3 scale;
   math::to_loc_rot_scale_safe<true>(transform, translation, rotation, scale);
-  params.set_input("Translation", translation);
-  params.set_input("Rotation", rotation);
-  params.set_input("Scale", scale);
+  params.set_input("Translation"_ustr, translation);
+  params.set_input("Rotation"_ustr, rotation);
+  params.set_input("Scale"_ustr, scale);
 }
 
 static void node_register()

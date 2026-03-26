@@ -46,7 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Falloff Size")
       .default_value(0.0f)
       .min(0.0f)
-      .usage_by_menu("Type", CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD)
+      .usage_by_menu("Type"_ustr, CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD)
       .description(
           "The size of the falloff from the edges in pixels. If less than two pixels, the edges "
           "will be anti-aliased");
@@ -54,7 +54,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(PROP_SMOOTH)
       .static_items(rna_enum_proportional_falloff_curve_only_items)
       .optional_label()
-      .usage_by_menu("Type", CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER)
+      .usage_by_menu("Type"_ustr, CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER)
       .translation_context(BLT_I18NCONTEXT_ID_CURVE_LEGACY);
 
   b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);

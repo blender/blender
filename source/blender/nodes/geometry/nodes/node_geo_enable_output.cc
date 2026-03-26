@@ -182,7 +182,7 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
                                                        const bNodeSocket &output_socket)
 {
   /* Internal links should always map corresponding input and output sockets. */
-  return node.input_by_identifier(output_socket.identifier);
+  return node.input_by_identifier(output_socket.identifier_ustr());
 }
 
 static void node_register()
