@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
@@ -164,50 +165,36 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
  public:
   PixelNodesTileData(bke::pbvh::Tree &pbvh, const image::ImageTileWrapper &image_tile)
   {
-    reserve(count_nodes(pbvh, image_tile));
+    IndexMaskMemory memory;
+    const IndexMask nodes = affected_nodes(pbvh, image_tile, memory);
+    reserve(nodes.size());
 
-    std::visit(
-        [&](auto &nodes) {
-          for (bke::pbvh::Node &node : nodes) {
-            if (should_add_node(node, image_tile)) {
-              NodeData &node_data = *node.pixels_;
-              UDIMTilePixels &tile_pixels = *node_data.find_tile_data(image_tile);
-              append(tile_pixels);
-            }
-          }
-        },
-        pbvh.nodes_);
+    PixelData &pixel_data = *pbvh.pixels_;
+    MutableSpan<PixelNode> pixel_nodes = pixel_data.nodes;
+
+    nodes.foreach_index([&](const int i) { append(*pixel_nodes[i].find_tile_data(image_tile)); });
   }
 
  private:
-  static bool should_add_node(bke::pbvh::Node &node, const image::ImageTileWrapper &image_tile)
+  static bool should_add_node(PixelNode &node, const image::ImageTileWrapper &image_tile)
   {
-    if ((node.flag_ & Node::Leaf) == 0) {
-      return false;
-    }
-    if (node.pixels_ == nullptr) {
-      return false;
-    }
-    NodeData &node_data = *node.pixels_;
-    if (node_data.find_tile_data(image_tile) == nullptr) {
+    if (node.find_tile_data(image_tile) == nullptr) {
       return false;
     }
     return true;
   }
 
-  static int64_t count_nodes(bke::pbvh::Tree &pbvh, const image::ImageTileWrapper &image_tile)
+  static IndexMask affected_nodes(bke::pbvh::Tree &pbvh,
+                                  const image::ImageTileWrapper &image_tile,
+                                  IndexMaskMemory &memory)
   {
-    int64_t result = 0;
-    std::visit(
-        [&](auto &nodes) {
-          for (bke::pbvh::Node &node : nodes) {
-            if (should_add_node(node, image_tile)) {
-              result++;
-            }
-          }
-        },
-        pbvh.nodes_);
-    return result;
+    IndexMask leaf_nodes = all_leaf_nodes(pbvh, memory);
+    PixelData &pixel_data = *pbvh.pixels_;
+    MutableSpan<PixelNode> pixel_nodes = pixel_data.nodes;
+
+    return IndexMask::from_predicate(leaf_nodes, memory, [&](const int i) {
+      return should_add_node(pixel_nodes[i], image_tile);
+    });
   }
 };
 
@@ -505,7 +492,7 @@ void copy_update(bke::pbvh::Tree &pbvh,
                  ImageUser &image_user,
                  const uv_islands::MeshData &mesh_data)
 {
-  PBVHData &pbvh_data = data_get(pbvh);
+  PixelData &pbvh_data = data_get(pbvh);
   pbvh_data.tiles_copy_pixels.clear();
   const NonManifoldUVEdges non_manifold_edges(mesh_data);
   if (non_manifold_edges.is_empty()) {
@@ -551,7 +538,7 @@ void copy_pixels(bke::pbvh::Tree &pbvh,
                  Map<image::TileNumber, ImBuf *> &buffers,
                  image::TileNumber tile_number)
 {
-  PBVHData &pbvh_data = data_get(pbvh);
+  PixelData &pbvh_data = data_get(pbvh);
   std::optional<std::reference_wrapper<CopyPixelTile>> pixel_tile =
       pbvh_data.tiles_copy_pixels.find_tile(tile_number);
   if (!pixel_tile.has_value()) {

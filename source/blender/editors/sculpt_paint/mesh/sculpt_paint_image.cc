@@ -68,10 +68,11 @@ std::unique_ptr<ImageData> ImageData::init_active_image(Object &ob,
   return image_data;
 }
 
-static void fetch_image_buffers(ImageData &image_data, bke::pbvh::Node &node)
+static void fetch_image_buffers(ImageData &image_data,
+                                bke::pbvh::Node & /*node*/,
+                                PixelNode &pixel_node)
 {
-  NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
-  for (const UDIMTilePixels &tile : node_data.tiles) {
+  for (const UDIMTilePixels &tile : pixel_node.tiles) {
     image_data.buffers.lookup_or_add_cb(tile.tile_number, [&]() {
       ImageUser tile_user = *image_data.image_user;
       tile_user.tile = tile.tile_number;
@@ -280,17 +281,17 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
                             const Paint &paint,
                             const Brush &brush,
                             ImageData &image_data,
-                            bke::pbvh::Node &node)
+                            bke::pbvh::Node & /*node*/,
+                            PixelNode &pixel_node)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
-  NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
+  PixelData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
 
   BitVector<> brush_test = init_uv_primitives_brush_test(
-      ss, pbvh_data.vert_tris, node_data.uv_primitives.tri_indices, positions);
+      ss, pbvh_data.vert_tris, pixel_node.uv_primitives.tri_indices, positions);
 
   PaintingKernel<ImageBufferFloat4> kernel_float4;
   PaintingKernel<ImageBufferByte4> kernel_byte4;
@@ -316,7 +317,7 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   Vector<float> distances;
 
   bool pixels_updated = false;
-  for (UDIMTilePixels &tile_data : node_data.tiles) {
+  for (UDIMTilePixels &tile_data : pixel_node.tiles) {
     ImBuf *image_buffer = image_data.buffers.lookup_default(tile_data.tile_number, nullptr);
     if (image_buffer == nullptr) {
       continue;
@@ -337,8 +338,8 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
       pixel_positions.resize(pixel_row.num_pixels);
       calc_pixel_row_positions(positions,
                                pbvh_data.vert_tris,
-                               node_data.uv_primitives.tri_indices,
-                               node_data.uv_primitives.delta_barycentric_coords,
+                               pixel_node.uv_primitives.tri_indices,
+                               pixel_node.uv_primitives.delta_barycentric_coords,
                                pixel_row,
                                pixel_positions);
 
@@ -370,7 +371,7 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
     pixels_updated |= tile_data.flags.dirty;
   }
 
-  node_data.flags.dirty |= pixels_updated;
+  pixel_node.flags.dirty |= pixels_updated;
 }
 
 static void undo_region_tiles(
@@ -384,7 +385,7 @@ static void undo_region_tiles(
   *ty = (y >> ED_IMAGE_UNDO_TILE_BITS);
 }
 
-static void push_undo(const NodeData &node_data,
+static void push_undo(const PixelNode &node_data,
                       Image &image,
                       ImageUser &image_user,
                       const TileNumber tile_number,
@@ -424,19 +425,23 @@ static void push_undo(const NodeData &node_data,
   }
 }
 
-static void do_push_undo_tile(ImageData &image_data, bke::pbvh::Node &node)
+static void do_push_undo_tile(ImageData &image_data,
+                              bke::pbvh::Node & /*node*/,
+                              PixelNode &pixel_node)
 {
-  NodeData &node_data = bke::pbvh::pixels::node_data_get(node);
-
   ImBuf *tmpibuf = nullptr;
-  for (const UDIMTilePixels &tile : node_data.tiles) {
+  for (const UDIMTilePixels &tile : pixel_node.tiles) {
     ImBuf *buffer = image_data.buffers.lookup_default(tile.tile_number, nullptr);
     if (buffer == nullptr) {
       continue;
     }
 
-    push_undo(
-        node_data, *image_data.image, *image_data.image_user, tile.tile_number, *buffer, &tmpibuf);
+    push_undo(pixel_node,
+              *image_data.image,
+              *image_data.image_user,
+              tile.tile_number,
+              *buffer,
+              &tmpibuf);
   }
   if (tmpibuf) {
     IMB_freeImBuf(tmpibuf);
@@ -448,7 +453,7 @@ static void do_push_undo_tile(ImageData &image_data, bke::pbvh::Node &node)
 /** \name Fix non-manifold edge bleeding.
  * \{ */
 
-static Vector<image::TileNumber> collect_dirty_tiles(MutableSpan<bke::pbvh::MeshNode> nodes,
+static Vector<image::TileNumber> collect_dirty_tiles(MutableSpan<PixelNode> nodes,
                                                      const IndexMask &node_mask)
 {
   Vector<image::TileNumber> dirty_tiles;
@@ -467,10 +472,11 @@ static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
 
 static void fix_non_manifold_seam_bleeding(Object &ob,
                                            ImageData &image_data,
-                                           MutableSpan<bke::pbvh::MeshNode> nodes,
+                                           MutableSpan<bke::pbvh::MeshNode> /*nodes*/,
+                                           MutableSpan<PixelNode> pixel_nodes,
                                            const IndexMask &node_mask)
 {
-  Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(nodes, node_mask);
+  Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(pixel_nodes, node_mask);
   fix_non_manifold_seam_bleeding(*bke::object::pbvh_get(ob), image_data.buffers, dirty_tiles);
 }
 
@@ -509,21 +515,28 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+  PixelData &pixel_data = *pbvh.pixels_;
+  MutableSpan<PixelNode> pixel_nodes = pixel_data.nodes;
 
   /* Explicitly marked as serial due to image buffer fetching being non-threadsafe */
-  node_mask.foreach_index([&](const int i) { fetch_image_buffers(image_data, nodes[i]); },
-                          exec_mode::serial);
-  node_mask.foreach_index([&](const int i) { do_push_undo_tile(image_data, nodes[i]); },
-                          exec_mode::grain_size(1));
   node_mask.foreach_index(
-      [&](const int i) { do_paint_pixels(depsgraph, ob, sd.paint, *brush, image_data, nodes[i]); },
+      [&](const int i) { fetch_image_buffers(image_data, nodes[i], pixel_nodes[i]); },
+      exec_mode::serial);
+  node_mask.foreach_index(
+      [&](const int i) { do_push_undo_tile(image_data, nodes[i], pixel_nodes[i]); },
+      exec_mode::grain_size(1));
+  node_mask.foreach_index(
+      [&](const int i) {
+        do_paint_pixels(depsgraph, ob, sd.paint, *brush, image_data, nodes[i], pixel_nodes[i]);
+      },
       exec_mode::grain_size(1));
 
-  fix_non_manifold_seam_bleeding(ob, image_data, nodes, node_mask);
+  fix_non_manifold_seam_bleeding(ob, image_data, nodes, pixel_nodes, node_mask);
 
   node_mask.foreach_index(
       [&](const int i) {
-        bke::pbvh::pixels::mark_image_dirty(nodes[i], *image_data.image, image_data.buffers);
+        bke::pbvh::pixels::mark_image_dirty(
+            nodes[i], pixel_nodes[i], *image_data.image, image_data.buffers);
       },
       exec_mode::grain_size(1));
 }

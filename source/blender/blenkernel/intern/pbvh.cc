@@ -29,6 +29,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
+#include "BKE_paint_bvh_pixels.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -621,16 +622,6 @@ template<> MutableSpan<BMeshNode> Tree::nodes()
 
 Tree::~Tree()
 {
-  std::visit(
-      [](auto &nodes) {
-        for (Node &node : nodes) {
-          if (node.flag_ & (Node::Leaf | Node::TexLeaf)) {
-            node_pixels_free(&node);
-          }
-        }
-      },
-      this->nodes_);
-
   pixels_free(this);
 }
 
@@ -1685,22 +1676,11 @@ Bounds<float3> bounds_get(const Tree &pbvh)
 
 /***************************** Node Access ***********************************/
 
-void BKE_pbvh_node_mark_update(bke::pbvh::Node &node)
-{
-  node.flag_ |= bke::pbvh::Node::RebuildPixels;
-}
-
 void BKE_pbvh_mark_rebuild_pixels(bke::pbvh::Tree &pbvh)
 {
-  std::visit(
-      [](auto &nodes) {
-        for (bke::pbvh::Node &node : nodes) {
-          if (node.flag_ & bke::pbvh::Node::Leaf) {
-            node.flag_ |= bke::pbvh::Node::RebuildPixels;
-          }
-        }
-      },
-      pbvh.nodes_);
+  if (pbvh.pixels_) {
+    pbvh.pixels_->flags.dirty = true;
+  }
 }
 
 void BKE_pbvh_node_fully_hidden_set(bke::pbvh::Node &node, int fully_hidden)

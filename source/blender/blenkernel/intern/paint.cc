@@ -2627,23 +2627,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
     IndexMaskMemory memory;
     const IndexMask node_mask = bke::pbvh::all_leaf_nodes(*pbvh, memory);
     pbvh->tag_positions_changed(node_mask);
-    switch (pbvh->type()) {
-      case bke::pbvh::Type::Mesh: {
-        MutableSpan<bke::pbvh::MeshNode> nodes = pbvh->nodes<bke::pbvh::MeshNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::Grids: {
-        MutableSpan<bke::pbvh::GridsNode> nodes = pbvh->nodes<bke::pbvh::GridsNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
-        break;
-      }
-      case bke::pbvh::Type::BMesh: {
-        MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh->nodes<bke::pbvh::BMeshNode>();
-        node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_update(nodes[i]); });
-        break;
-      }
-    }
+    BKE_pbvh_mark_rebuild_pixels(*pbvh);
   }
 }
 
