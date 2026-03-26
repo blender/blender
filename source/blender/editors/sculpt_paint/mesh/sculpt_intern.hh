@@ -763,6 +763,30 @@ Vector<int> find_symm_verts(const Depsgraph &depsgraph,
                             int original_vert,
                             float max_distance = std::numeric_limits<float>::max());
 
+/**
+ * Similar to `find_symm_verts`, but returns an unsorted set of all vertex indices.
+ *
+ * \note If a symmetry pass is invalid, the corresponding vertex index is set to -1
+ */
+std::array<int, PAINT_SYMM_AREAS> find_all_symm_verts_mesh(
+    const Depsgraph &depsgraph,
+    const Object &object,
+    int original_vert,
+    float max_distance = std::numeric_limits<float>::max());
+std::array<int, PAINT_SYMM_AREAS> find_all_symm_verts_grids(
+    const Object &object,
+    int original_vert,
+    float max_distance = std::numeric_limits<float>::max());
+std::array<int, PAINT_SYMM_AREAS> find_all_symm_verts_bmesh(
+    const Object &object,
+    int original_vert,
+    float max_distance = std::numeric_limits<float>::max());
+std::array<int, PAINT_SYMM_AREAS> find_all_symm_verts(
+    const Depsgraph &depsgraph,
+    const Object &object,
+    int original_vert,
+    float max_distance = std::numeric_limits<float>::max());
+
 bool node_fully_masked_or_hidden(const bke::pbvh::Node &node);
 bool node_in_sphere(const bke::pbvh::Node &node,
                     const float3 &location,

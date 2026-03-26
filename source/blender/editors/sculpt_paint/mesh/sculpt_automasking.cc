@@ -684,7 +684,8 @@ void calc_vert_factors(const Depsgraph &depsgraph,
 
     if (!automasking.settings.topology_use_brush_limit &&
         automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
-        islands::vert_id_get(ss, vert) != automasking.settings.initial_island_nr)
+        islands::vert_id_get(ss, vert) !=
+            automasking.settings.initial_island_nr[ss.cache->mirror_symmetry_pass])
     {
       factors[i] = 0.0f;
       continue;
@@ -795,7 +796,8 @@ void calc_face_factors(const Depsgraph &depsgraph,
 
       if (!automasking.settings.topology_use_brush_limit &&
           automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
-          islands::vert_id_get(ss, vert) != automasking.settings.initial_island_nr)
+          islands::vert_id_get(ss, vert) !=
+              automasking.settings.initial_island_nr[ss.cache->mirror_symmetry_pass])
       {
         factor = 0.0f;
         continue;
@@ -923,7 +925,8 @@ void calc_grids_factors(const Depsgraph &depsgraph,
 
       if (!automasking.settings.topology_use_brush_limit &&
           automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
-          islands::vert_id_get(ss, vert) != automasking.settings.initial_island_nr)
+          islands::vert_id_get(ss, vert) !=
+              automasking.settings.initial_island_nr[ss.cache->mirror_symmetry_pass])
       {
         factors[node_vert] = 0.0f;
         continue;
@@ -1045,7 +1048,8 @@ void calc_vert_factors(const Depsgraph &depsgraph,
 
     if (!automasking.settings.topology_use_brush_limit &&
         automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
-        islands::vert_id_get(ss, vert_i) != automasking.settings.initial_island_nr)
+        islands::vert_id_get(ss, vert_i) !=
+            automasking.settings.initial_island_nr[ss.cache->mirror_symmetry_pass])
     {
       factors[i] = 0.0f;
       continue;
@@ -1669,7 +1673,19 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
   vert_random_access_ensure(ob);
   if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vert_index() != -1) {
     islands::ensure_cache(ob);
-    automasking->settings.initial_island_nr = islands::vert_id_get(ss, ss.active_vert_index());
+
+    std::array<int, PAINT_SYMM_AREAS> symm_verts = find_all_symm_verts(
+        depsgraph, ob, ss.active_vert_index());
+    const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
+
+    for (int symm_it = 0; symm_it < PAINT_SYMM_AREAS; symm_it++) {
+      if (!is_symmetry_iteration_valid(symm_it, symm)) {
+        continue;
+      }
+      BLI_assert(symm_verts[symm_it] != -1);
+      automasking->settings.initial_island_nr[symm_it] = islands::vert_id_get(ss,
+                                                                              symm_verts[symm_it]);
+    }
   }
 
   const int verts_num = SCULPT_vertex_count_get(ob);

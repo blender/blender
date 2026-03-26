@@ -9,6 +9,8 @@
 
 #include <memory>
 
+#include "BKE_paint.hh"
+
 #include "BLI_array.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
@@ -36,7 +38,7 @@ struct Settings {
   /* eAutomasking_flag. */
   int flags;
   int initial_face_set;
-  int initial_island_nr;
+  std::array<int, PAINT_SYMM_AREAS> initial_island_nr;
 
   float cavity_factor;
   int cavity_blur_steps;
