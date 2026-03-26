@@ -13,6 +13,7 @@ __all__ = (
     "add_repeat_zone",
     "add_simulation_zone",
     "draw_node_group_add_menu",
+    "set_math_node_default_props"
 )
 
 import bpy
@@ -110,11 +111,33 @@ def add_closure_zone(layout, label):
     return props
 
 
+def set_socket_default_value(settings, socket_identifier, socket_default_value):
+    prop = settings.add()
+    prop.name = "inputs[\"{:s}\"].default_value".format(socket_identifier)
+    prop.value = socket_default_value
+    return prop
+
+
 def color_mix_node_defaults(enum_identifier, props):
     if enum_identifier == 'MIX':
-        prop = props.settings.add()
-        prop.name = "inputs[\"Factor\"].default_value"
-        prop.value = "0.5"
+        set_socket_default_value(props.settings, "Factor", "0.5")
+
+
+def set_math_node_default_props(enum_identifier, props):
+
+    if enum_identifier in ('MULTIPLY', 'POWER', 'MODULO', 'FLOORED_MODULO', 'ARCTAN2'):
+        set_socket_default_value(props.settings, "Value", "1.0")
+        set_socket_default_value(props.settings, "Value_001", "1.0")
+    elif enum_identifier == 'ADD':
+        set_socket_default_value(props.settings, "Value", "0.0")
+        set_socket_default_value(props.settings, "Value_001", "0.0")
+    elif enum_identifier == 'SUBTRACT':
+        # 1 - x operations are common for subtraction.
+        set_socket_default_value(props.settings, "Value", "1.0")
+        set_socket_default_value(props.settings, "Value_001", "0.0")
+    elif enum_identifier == 'MULTIPLY_ADD':
+        set_socket_default_value(props.settings, "Value_001", "1.0")
+        set_socket_default_value(props.settings, "Value_002", "0.0")
 
 
 class NodeMenu(Menu):
@@ -161,7 +184,14 @@ class NodeMenu(Menu):
         return None
 
     @classmethod
-    def node_operator_with_searchable_enum(cls, context, layout, node_idname, property_name, search_weight=0.0):
+    def node_operator_with_searchable_enum(
+            cls,
+            context,
+            layout,
+            node_idname,
+            property_name,
+            search_weight=0.0,
+            defaults_callback=None):
         """Similar to `node_operator`, but with extra entries based on a enum property while in search."""
         operators = []
         operators.append(cls.node_operator(layout, node_idname, search_weight=search_weight))
@@ -183,6 +213,8 @@ class NodeMenu(Menu):
                 prop = props.settings.add()
                 prop.name = property_name
                 prop.value = repr(item.identifier)
+                if defaults_callback is not None:
+                    defaults_callback(item.identifier, props)
                 operators.append(props)
 
         for props in operators:
