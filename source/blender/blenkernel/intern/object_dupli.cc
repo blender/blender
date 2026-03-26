@@ -1343,7 +1343,7 @@ static void make_duplis_faces(const DupliContext *ctx)
     const int cd_loop_uv_offset = CustomData_get_offset_named(
         &em->bm->ldata,
         CD_PROP_FLOAT2,
-        mesh_eval ? mesh_eval->active_uv_map_name() :
+        mesh_eval ? mesh_eval->active_uv_map_name().c_str() :
                     CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2));
     FaceDupliData_EditMesh fdd{};
     fdd.params = fdd_params;
