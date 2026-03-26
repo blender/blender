@@ -183,7 +183,7 @@ void tex_box_blend(float3 N,
 void node_tex_image_empty(float3 co, float4 &color, float &alpha)
 {
   color = float4(0.0f);
-  alpha = 0.0f;
+  alpha = 1.0f;
 }
 
 [[node]]
