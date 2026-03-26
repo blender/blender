@@ -1675,7 +1675,7 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 
     std::array<int, PAINT_SYMM_AREAS> symm_verts = find_all_symm_verts(
         depsgraph, ob, ss.active_vert_index());
-    const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
+    const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(ob);
 
     for (int symm_it = 0; symm_it < PAINT_SYMM_AREAS; symm_it++) {
       if (!is_symmetry_iteration_valid(symm_it, symm)) {

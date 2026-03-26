@@ -702,7 +702,7 @@ std::array<int, PAINT_SYMM_AREAS> find_all_symm_verts_mesh(const Depsgraph &deps
                                                            const int original_vert,
                                                            const float max_distance)
 {
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(object);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool use_original = false;
 
@@ -736,7 +736,7 @@ std::array<int, PAINT_SYMM_AREAS> find_all_symm_verts_grids(const Object &object
                                                             const int original_vert,
                                                             const float max_distance)
 {
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(object);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool use_original = false;
 
@@ -769,7 +769,7 @@ std::array<int, PAINT_SYMM_AREAS> find_all_symm_verts_bmesh(const Object &object
                                                             const int original_vert,
                                                             const float max_distance)
 {
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(object);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool use_original = false;
 
