@@ -21,6 +21,9 @@ enum eV3DOffscreenDrawFlag {
   V3D_OFSDRAW_XR_SHOW_CUSTOM_OVERLAYS = (1 << 5),
   V3D_OFSDRAW_SHOW_OBJECT_EXTRAS = (1 << 6),
   V3D_OFSDRAW_XR_SHOW_PASSTHROUGH = (1 << 7),
+  /* By default, the viewport background is set to use the world.
+   * In some specific case, we want to use the actual setting from the viewport or scene data. */
+  V3D_OFSDRAW_NO_WORLD_BACKGROUND_OVERRIDE = (1 << 8),
 };
 
 /** #View3DShading.light */

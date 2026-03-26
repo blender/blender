@@ -16,6 +16,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
@@ -1444,11 +1445,27 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
     BKE_render_resolution(&scene->r, false, &width, &height);
     const char *viewname = BKE_scene_multiview_render_view_name_get(&scene->r, context->view_id);
 
+    const bool use_scene_settings = (context->scene->r.seq_flag & R_SEQ_OVERRIDE_SCENE_SETTINGS) !=
+                                    0;
+
     uint draw_flags = V3D_OFSDRAW_NONE;
     draw_flags |= (use_gpencil) ? V3D_OFSDRAW_SHOW_ANNOTATION : 0;
-    draw_flags |= (context->scene->r.seq_flag & R_SEQ_OVERRIDE_SCENE_SETTINGS) ?
-                      V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS :
-                      0;
+    draw_flags |= (use_scene_settings) ? (V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS |
+                                          V3D_OFSDRAW_NO_WORLD_BACKGROUND_OVERRIDE) :
+                                         0;
+
+    View3DShading scene_shading = context->scene->display.shading;
+
+    if (use_scene_settings) {
+      /* Allow to render with the scene world color. */
+      if (context->scene->world != nullptr) {
+        copy_v3_v3(&scene_shading.background_color[0], &context->scene->world->horr);
+      }
+      else {
+        copy_v3_fl(&scene_shading.background_color[0], 0.0f);
+      }
+      scene_shading.background_type = V3D_SHADING_BACKGROUND_VIEWPORT;
+    }
 
     /* for old scene this can be uninitialized,
      * should probably be added to do_versions at some point if the functionality stays */
@@ -1464,7 +1481,7 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
         /* set for OpenGL render (nullptr when scrubbing) */
         depsgraph,
         scene_eval,
-        &context->scene->display.shading,
+        &scene_shading,
         eDrawType(context->scene->r.seq_prev_type),
         camera_eval,
         width,
