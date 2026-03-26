@@ -62,13 +62,14 @@ void TreeElementIDAction::expand(SpaceOutliner & /*space_outliner*/) const
   animrig::Action &action = action_.wrap();
   if (!this->slot_handle_.has_value()) {
     /* Show all slots of the Action. */
+    int index = 0;
     for (animrig::Slot *slot : action.slots()) {
       add_element(&legacy_te_.subtree,
                   reinterpret_cast<ID *>(&action_),
                   slot,
                   &legacy_te_,
                   TSE_ACTION_SLOT,
-                  0);
+                  index++);
     }
     return;
   }
