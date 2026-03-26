@@ -19,6 +19,8 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
+#include "DEG_depsgraph_build.hh"
+
 #include "WM_api.hh"
 
 #include "DNA_layer_types.h"
@@ -28,6 +30,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "NOD_dependencies.hh"
 
 namespace blender::bke::compositor {
 
@@ -243,6 +247,64 @@ bool node_tree_has_linked_file_output(const bNodeTree *node_tree)
   }
 
   return false;
+}
+
+void add_depsgraph_relations(Scene &scene, DepsNodeHandle *compositor_output_depsgraph_node)
+{
+  nodes::EvalDependencies evaluation_dependencies = nodes::gather_eval_dependencies_recursive(
+      *scene.compositing_node_group);
+
+  for (ID *id : evaluation_dependencies.ids.values()) {
+    switch (ID_Type(GS(id->name))) {
+      case ID_OB: {
+        Object *object = reinterpret_cast<Object *>(id);
+        const nodes::EvalDependencies::ObjectDependencyInfo &info =
+            evaluation_dependencies.objects_info.lookup_default(object->id.session_uid, {});
+        if (info.transform) {
+          DEG_add_object_relation(compositor_output_depsgraph_node,
+                                  object,
+                                  DEG_OB_COMP_TRANSFORM,
+                                  "Object Transform -> Compositor");
+        }
+        if (object->type == OB_CAMERA && info.camera_parameters) {
+          DEG_add_object_relation(compositor_output_depsgraph_node,
+                                  object,
+                                  DEG_OB_COMP_PARAMETERS,
+                                  "Camera Parameters -> Compositor");
+        }
+        break;
+      }
+      case ID_IM:
+        DEG_add_generic_id_relation(compositor_output_depsgraph_node, id, "Image -> Compositor");
+        break;
+      case ID_TE:
+        DEG_add_generic_id_relation(compositor_output_depsgraph_node, id, "Texture -> Compositor");
+        break;
+      case ID_VF:
+        DEG_add_vfont_relation(
+            compositor_output_depsgraph_node, reinterpret_cast<VFont *>(id), "Font -> Compositor");
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (evaluation_dependencies.needs_active_camera) {
+    DEG_add_scene_camera_relation(compositor_output_depsgraph_node,
+                                  &scene,
+                                  DEG_OB_COMP_TRANSFORM,
+                                  "Active Camera Transforms -> Compositor");
+  }
+
+  /* Active camera is a scene parameter that can change, so we need a relation for that, too. */
+  if (evaluation_dependencies.needs_active_camera ||
+      evaluation_dependencies.needs_scene_render_params)
+  {
+    DEG_add_scene_relation(compositor_output_depsgraph_node,
+                           &scene,
+                           DEG_SCENE_COMP_PARAMETERS,
+                           "Active Camera Parameters -> Compositor");
+  }
 }
 
 }  // namespace blender::bke::compositor

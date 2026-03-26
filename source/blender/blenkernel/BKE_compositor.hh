@@ -17,6 +17,7 @@ namespace blender {
 struct Scene;
 struct ViewLayer;
 struct bContext;
+struct DepsNodeHandle;
 struct bNodeTree;
 
 namespace bke::compositor {
@@ -33,6 +34,10 @@ bool is_viewport_compositor_used(const bContext &context);
 /* Note: Links to the File Output node do not guarantee it will write a result to disk, e.g. if
  * Menu Switch nodes exists but it's a good estimation without evaluating the node tree. */
 bool node_tree_has_linked_file_output(const bNodeTree *node_tree);
+
+/* Add the depsgraph relations needed by the compositor node tree of the given scene. A handle for
+ * the compositor output depsgraph node is given to be the target of the relation. */
+void add_depsgraph_relations(Scene &scene, DepsNodeHandle *compositor_output_depsgraph_node);
 
 }  // namespace bke::compositor
 }  // namespace blender

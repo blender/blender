@@ -8,7 +8,10 @@
 
 #include "intern/builder/deg_builder_relations.h"
 
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+
+#include "BKE_compositor.hh"
 
 #include "BLI_listbase.h"
 
@@ -79,6 +82,12 @@ void DepsgraphRelationBuilder::build_scene_compositor(Scene *scene)
 
   /* TODO(sergey): Trace as a scene compositor. */
   build_nodetree(scene->compositing_node_group);
+
+  const OperationKey node_output_key(
+      &scene->compositing_node_group->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+  DepsNodeHandle handle = this->create_node_handle(node_output_key);
+  bke::compositor::add_depsgraph_relations(*scene,
+                                           reinterpret_cast<blender::DepsNodeHandle *>(&handle));
 }
 
 }  // namespace blender::deg
