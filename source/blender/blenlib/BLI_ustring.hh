@@ -66,6 +66,16 @@ class UString {
   {
     return ustr_.hash();
   }
+
+  int64_t size() const
+  {
+    return int64_t(ustr_.size());
+  }
+
+  bool is_empty() const
+  {
+    return ustr_.empty();
+  }
 };
 
 /**

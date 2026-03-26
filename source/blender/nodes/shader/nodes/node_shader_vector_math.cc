@@ -9,6 +9,10 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
+#include "BLI_math_vector.hh"
+
+#include "FN_multi_function_registry.hh"
+
 #include "NOD_inverse_eval_params.hh"
 #include "NOD_math_functions.hh"
 #include "NOD_multi_function.hh"
@@ -265,81 +269,12 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 
 static const mf::MultiFunction *get_multi_function(const bNode &node)
 {
-  NodeVectorMathOperation operation = NodeVectorMathOperation(node.custom1);
-
-  const mf::MultiFunction *multi_fn = nullptr;
-
-  try_dispatch_float_math_fl3_fl3_to_fl3(
-      operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI2_SO<float3, float3, float3>(
-            info.title_case_name.c_str(), function, exec_preset);
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
+  const NodeVectorMathOperation operation = NodeVectorMathOperation(node.custom1);
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (!info) {
+    return nullptr;
   }
-
-  try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
-      operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI3_SO<float3, float3, float3, float3>(
-            info.title_case_name.c_str(), function, exec_preset);
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  try_dispatch_float_math_fl3_fl3_fl_to_fl3(
-      operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI3_SO<float3, float3, float, float3>(
-            info.title_case_name.c_str(), function, exec_preset);
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  try_dispatch_float_math_fl3_fl3_to_fl(
-      operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI2_SO<float3, float3, float>(
-            info.title_case_name.c_str(), function, exec_preset);
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  try_dispatch_float_math_fl3_fl_to_fl3(
-      operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI2_SO<float3, float, float3>(
-            info.title_case_name.c_str(), function, exec_preset);
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  try_dispatch_float_math_fl3_to_fl3(
-      operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI1_SO<float3, float3>(
-            info.title_case_name.c_str(), function, exec_preset);
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  try_dispatch_float_math_fl3_to_fl(
-      operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static auto fn = mf::build::SI1_SO<float3, float>(
-            info.title_case_name.c_str(), function, exec_preset);
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  return nullptr;
+  return &fn::multi_function::registry::lookup(info->multi_function_name);
 }
 
 static void sh_node_vector_math_build_multi_function(NodeMultiFunctionBuilder &builder)
