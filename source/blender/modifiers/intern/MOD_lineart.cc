@@ -260,6 +260,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   col = &layout.column(false);
   col->prop(ptr, "radius", ui::ITEM_R_SLIDER, IFACE_("Line Radius"), ICON_NONE);
   col->prop(ptr, "opacity", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col->prop(ptr, "fill_strokes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -809,6 +810,7 @@ static void generate_strokes(ModifierData &md,
         lmd.intersection_mask,
         lmd.radius,
         lmd.opacity,
+        lmd.fill_strokes,
         lmd.shadow_selection,
         lmd.silhouette_selection,
         lmd.source_vertex_group,
