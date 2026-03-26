@@ -27,7 +27,7 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-#include "FN_multi_function_builder.hh"
+#include "FN_multi_function_registry.hh"
 
 #include "node_geometry_util.hh"
 
@@ -1486,12 +1486,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Create a combined field from the offset and the scale so the field evaluator
    * can take care of the multiplication and to simplify each extrude function. */
-  static auto multiply_fn = mf::build::SI2_SO<float3, float, float3>(
-      "Scale",
-      [](const float3 &offset, const float scale) { return offset * scale; },
-      mf::build::exec_presets::AllSpanOrSingle());
   const Field<float3> final_offset{
-      FieldOperation::from(multiply_fn, {std::move(offset_field), std::move(scale_field)})};
+      FieldOperation::from(fn::multi_function::registry::lookup("float3 * float"_ustr),
+                           {std::move(offset_field), std::move(scale_field)})};
 
   AttributeOutputs attribute_outputs;
   attribute_outputs.top_id = params.get_output_anonymous_attribute_id_if_needed("Top");

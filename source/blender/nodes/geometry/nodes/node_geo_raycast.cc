@@ -16,7 +16,7 @@
 
 #include "RNA_enum_types.hh"
 
-#include "FN_multi_function_builder.hh"
+#include "FN_multi_function_registry.hh"
 
 #include "node_geometry_util.hh"
 
@@ -256,11 +256,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   {
     auto ray_direction = params.extract_input<bke::SocketValueVariant>("Ray Direction");
 
-    static auto normalize_fn = mf::build::SI1_SO<float3, float3>(
-        "Normalize",
-        [](const float3 &v) { return math::normalize(v); },
-        mf::build::exec_presets::AllSpanOrSingle());
-
+    static const mf::MultiFunction &normalize_fn = fn::multi_function::registry::lookup(
+        "normalize(float3)"_ustr);
     if (!execute_multi_function_on_value_variant(normalize_fn,
                                                  {&ray_direction},
                                                  {&normalized_direction},

@@ -14,7 +14,7 @@
 
 #include "BKE_curves.hh"
 
-#include "FN_multi_function_builder.hh"
+#include "FN_multi_function_registry.hh"
 
 #include "GEO_randomize.hh"
 
@@ -813,10 +813,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const int max_neighbors = std::max<int>(1, params.extract_input<int>("Max Neighbors"));
 
-  static auto normalize_fn = mf::build::SI1_SO<float3, float3>(
-      "Normalize",
-      [](const float3 &v) { return math::normalize(v); },
-      mf::build::exec_presets::AllSpanOrSingle());
+  static const mf::MultiFunction &normalize_fn = fn::multi_function::registry::lookup(
+      "normalize(float3)"_ustr);
 
   /* Normalize up fields so that is done as part of field evaluation. */
   Field<float3> guides_up_field(

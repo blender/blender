@@ -18,7 +18,7 @@
 
 #include "GEO_foreach_geometry.hh"
 
-#include "FN_multi_function_builder.hh"
+#include "FN_multi_function_registry.hh"
 
 #include "node_geometry_util.hh"
 
@@ -167,13 +167,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> radius = params.extract_input<Field<float>>("Radius");
   Field<bool> selection = params.extract_input<Field<bool>>("Selection");
 
-  /* Use another multi-function operation to make sure the input radius is greater than zero.
-   * TODO: Use mutable multi-function once that is supported. */
-  static auto max_zero_fn = mf::build::SI1_SO<float, float>(
-      __func__,
-      [](float value) { return std::max(0.0f, value); },
-      mf::build::exec_presets::AllSpanOrSingle());
-  const Field<float> positive_radius(FieldOperation::from(max_zero_fn, {std::move(radius)}), 0);
+  static const auto &max_zero_fn = fn::multi_function::registry::lookup("max(float, float)"_ustr);
+  const Field<float> positive_radius(
+      FieldOperation::from(max_zero_fn, {std::move(radius), fn::make_constant_field(0.0f)}), 0);
 
   const NodeGeometryMeshToPoints &storage = node_storage(params.node());
   const GeometryNodeMeshToPointsMode mode = GeometryNodeMeshToPointsMode(storage.mode);

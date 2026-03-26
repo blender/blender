@@ -12,6 +12,7 @@
 
 #include "FN_field.hh"
 #include "FN_multi_function_builder.hh"
+#include "FN_multi_function_registry.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
@@ -25,11 +26,9 @@ namespace blender::geometry {
 
 static fn::Field<int> get_count_input_max_one(const fn::Field<int> &count_field)
 {
-  static auto max_one_fn = mf::build::SI1_SO<int, int>(
-      "Clamp Above One",
-      [](int value) { return std::max(1, value); },
-      mf::build::exec_presets::AllSpanOrSingle());
-  return fn::Field<int>(fn::FieldOperation::from(max_one_fn, {count_field}));
+  return fn::Field<int>(
+      fn::FieldOperation::from(fn::multi_function::registry::lookup("max(int, int)"_ustr),
+                               {fn::make_constant_field(1), count_field}));
 }
 
 static int get_count_from_length(const float curve_length,

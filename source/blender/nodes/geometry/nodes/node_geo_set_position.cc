@@ -9,7 +9,7 @@
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 
-#include "FN_multi_function_builder.hh"
+#include "FN_multi_function_registry.hh"
 
 #include "node_geometry_util.hh"
 
@@ -28,19 +28,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static const auto &get_add_fn()
 {
-  static const auto fn = mf::build::SI2_SO<float3, float3, float3>(
-      "Add",
-      [](const float3 a, const float3 b) { return a + b; },
-      mf::build::exec_presets::AllSpanOrSingle());
+  static const auto &fn = fn::multi_function::registry::lookup("float3 + float3"_ustr);
   return fn;
 }
 
 static const auto &get_sub_fn()
 {
-  static const auto fn = mf::build::SI2_SO<float3, float3, float3>(
-      "Add",
-      [](const float3 a, const float3 b) { return a - b; },
-      mf::build::exec_presets::AllSpanOrSingle());
+  static const auto &fn = fn::multi_function::registry::lookup("float3 - float3"_ustr);
   return fn;
 }
 
