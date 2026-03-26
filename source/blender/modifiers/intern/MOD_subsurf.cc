@@ -317,7 +317,7 @@ static bool get_show_adaptive_options(const bContext *C, Panel *panel)
 {
   /* Don't show adaptive options if cycles isn't the active engine. */
   const RenderEngineType *engine_type = CTX_data_engine_type(C);
-  if (!STREQ(engine_type->idname, "CYCLES")) {
+  if (!(STREQ(engine_type->idname, "CYCLES") && RE_engines_is_registered("CYCLES"))) {
     return false;
   }
 
