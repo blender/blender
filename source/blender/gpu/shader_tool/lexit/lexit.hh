@@ -50,7 +50,7 @@ struct Token {
   const TokenBuffer *buf_;
   int32_t index_;
   /* General purpose flag. */
-  int32_t flag;
+  int32_t flag = 0;
 
   Token(const TokenBuffer *buf, int32_t index);
 
