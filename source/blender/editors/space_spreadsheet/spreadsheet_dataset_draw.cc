@@ -55,7 +55,7 @@ struct GeometryDomainDataId {
 };
 
 struct GeometryBundleItemId {
-  Vector<StringRef> keys;
+  Vector<UString> keys;
   SpreadsheetClosureInputOutput closure_in_out = SPREADSHEET_CLOSURE_NONE;
 };
 
@@ -69,8 +69,7 @@ struct GeometryDataIdentifier {
   {
   }
 
-  GeometryDataIdentifier(Vector<StringRef> bundle_keys,
-                         SpreadsheetClosureInputOutput closure_in_out)
+  GeometryDataIdentifier(Vector<UString> bundle_keys, SpreadsheetClosureInputOutput closure_in_out)
       : id(GeometryBundleItemId{std::move(bundle_keys), closure_in_out})
   {
   }
@@ -569,18 +568,18 @@ class GeometryBundleViewItem : public DataSetViewItem {
 
   std::optional<GeometryDataIdentifier> get_geometry_data_id() const override
   {
-    return GeometryDataIdentifier(Vector<StringRef>(), SPREADSHEET_CLOSURE_NONE);
+    return GeometryDataIdentifier(Vector<UString>(), SPREADSHEET_CLOSURE_NONE);
   }
 };
 
 class GeometryBundleItemViewItem : public DataSetViewItem {
  private:
-  std::string key_;
+  UString key_;
 
  public:
-  GeometryBundleItemViewItem(const StringRef key) : key_(key)
+  GeometryBundleItemViewItem(const UString key) : key_(key)
   {
-    label_ = key_;
+    label_ = key_.string();
   }
 
   void build_row(ui::Layout &row) override
@@ -590,7 +589,7 @@ class GeometryBundleItemViewItem : public DataSetViewItem {
 
   std::optional<GeometryDataIdentifier> get_geometry_data_id() const override
   {
-    Vector<StringRef> keys;
+    Vector<UString> keys;
     keys.append(key_);
     this->foreach_parent([&](const AbstractTreeViewItem &parent) {
       if (const auto *bundle_item = dynamic_cast<const GeometryBundleItemViewItem *>(&parent)) {
@@ -897,7 +896,7 @@ void DataSetViewItem::on_activate(bContext &C)
   }
   else if (const auto *bundle_item_id = std::get_if<GeometryBundleItemId>(&data_id->id)) {
     sspreadsheet.geometry_id.geometry_item_type = SPREADSHEET_GEOMETRY_ITEM_TYPE_BUNDLE;
-    Vector<StringRef> keys = bundle_item_id->keys.as_span();
+    Vector<UString> keys = bundle_item_id->keys.as_span();
     spreadsheet_bundle_path_init_from(
         keys, bundle_item_id->closure_in_out, sspreadsheet.geometry_id.geometry_bundle_path);
     RNA_property_update(&C, &ptr, RNA_struct_find_property(&ptr, "geometry_component_type"));
@@ -1219,7 +1218,7 @@ class ViewerDataTreeItem : public ui::AbstractTreeViewItem {
 
 struct ViewerDataPath {
   int viewer_item;
-  Vector<StringRef> bundles;
+  Vector<UString> bundles;
   SpreadsheetClosureInputOutput closure_input_output = SPREADSHEET_CLOSURE_NONE;
 
   friend bool operator==(const ViewerDataPath &a, const ViewerDataPath &b) = default;
@@ -1231,7 +1230,7 @@ struct ViewerDataPath {
     for (const auto &elem : Span(table_id.viewer_item_bundle_path.bundle_path,
                                  table_id.viewer_item_bundle_path.bundle_path_num))
     {
-      this->bundles.append(elem.identifier);
+      this->bundles.append(UString(elem.identifier));
     }
     this->closure_input_output = SpreadsheetClosureInputOutput(
         table_id.viewer_item_bundle_path.closure_input_output);
@@ -1269,9 +1268,9 @@ class BundleViewerTreeItem : public ViewerDataTreeItem {
   friend ViewerDataPath;
 
  public:
-  BundleViewerTreeItem(const StringRef key)
+  BundleViewerTreeItem(const UString key)
   {
-    label_ = key;
+    label_ = key.string();
   }
 
   void build_row(ui::Layout &row) override
@@ -1305,7 +1304,7 @@ ViewerDataPath::ViewerDataPath(const Span<const ViewerDataTreeItem *> tree_items
       this->viewer_item = viewer_node_item->item_.identifier;
     }
     else if (const auto *bundle_item = dynamic_cast<const BundleViewerTreeItem *>(item)) {
-      this->bundles.append(bundle_item->label_);
+      this->bundles.append(UString(bundle_item->label_));
     }
     else if (const auto *bundle_item = dynamic_cast<const ClosureInOutViewerTreeItem *>(item)) {
       this->closure_input_output = bundle_item->in_out_;

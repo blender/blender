@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_memory_counter_fwd.hh"
+#include "BLI_ustring.hh"
 
 #include "BKE_bake_data_block_map.hh"
 #include "BKE_geometry_set.hh"
@@ -162,7 +163,7 @@ class BundleBakeItem : public BakeItem {
   };
 
   struct Item {
-    std::string key;
+    UString key;
     std::variant<SocketValue, InternalValue> value;
   };
 

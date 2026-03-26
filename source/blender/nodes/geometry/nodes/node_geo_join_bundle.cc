@@ -47,7 +47,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   Bundle &mutable_output_bundle = output_bundle.ensure_mutable_inplace();
 
-  VectorSet<StringRef> overridden_keys;
+  VectorSet<UString> overridden_keys;
   for (; bundle_i < bundles.values.size(); bundle_i++) {
     BundlePtr &bundle = bundles.values[bundle_i];
     if (!bundle) {

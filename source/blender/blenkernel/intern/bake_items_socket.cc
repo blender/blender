@@ -60,7 +60,7 @@ static void move_bundle_socket_value_to_bake_item(
               *item_socket_value->type, value_variant, std::nullopt, r_geometry_bake_items))
       {
         bundle_bake_item.items.append(BundleBakeItem::Item{
-            bundle_item.key,
+            UString(bundle_item.key),
             BundleBakeItem::SocketValue{item_socket_value->type->idname, std::move(bake_item)}});
       }
     }

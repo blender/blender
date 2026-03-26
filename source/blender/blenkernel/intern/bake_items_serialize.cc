@@ -1444,8 +1444,8 @@ template<typename T>
     if (!value) {
       return false;
     }
-    r_bake_item.items.append(
-        BundleBakeItem::Item{*key, BundleBakeItem::SocketValue{*socket_idname, std::move(value)}});
+    r_bake_item.items.append(BundleBakeItem::Item{
+        UString(*key), BundleBakeItem::SocketValue{*socket_idname, std::move(value)}});
   }
   return true;
 }
@@ -1511,7 +1511,7 @@ static void serialize_bake_item(const BakeItem &item,
     for (const BundleBakeItem::Item &item : bundle_state_item->items) {
       if (const auto *socket_value = std::get_if<BundleBakeItem::SocketValue>(&item.value)) {
         DictionaryValue &io_bundle_item = *io_items.append_dict();
-        io_bundle_item.append_str("key", item.key);
+        io_bundle_item.append_str("key", item.key.string());
         io_bundle_item.append_str("socket_idname", socket_value->socket_idname);
         io::serialize::DictionaryValue &io_bundle_item_value = *io_bundle_item.append_dict(
             "value");

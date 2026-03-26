@@ -910,8 +910,8 @@ void BundleDataSource::collect_flat_items(const nodes::Bundle &bundle, const Str
 {
   for (const auto &item : bundle.items()) {
     const std::string path = parent_path.is_empty() ?
-                                 item.key :
-                                 nodes::Bundle::combine_path({parent_path, item.key});
+                                 item.key.string() :
+                                 nodes::Bundle::combine_path({parent_path, item.key.ref()});
     flat_item_keys_.append(path);
     flat_items_.append(&item.value);
     if (const auto *value = std::get_if<nodes::BundleItemSocketValue>(&item.value.value)) {
@@ -1095,9 +1095,9 @@ static bke::SocketValueVariant lookup_bundle_path(const nodes::BundlePtr &bundle
   if (path.bundle_path_num == 0) {
     return bke::SocketValueVariant::From(bundle);
   }
-  Vector<StringRef> keys;
+  Vector<UString> keys;
   for (const int i : IndexRange(path.bundle_path_num)) {
-    keys.append(path.bundle_path[i].identifier);
+    keys.append(UString(path.bundle_path[i].identifier));
   }
   return bundle->lookup_path<bke::SocketValueVariant>(keys).value_or(bke::SocketValueVariant{});
 }

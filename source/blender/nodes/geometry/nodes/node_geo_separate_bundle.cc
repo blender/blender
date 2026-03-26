@@ -146,7 +146,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!stype || !stype->geometry_nodes_default_value) {
       continue;
     }
-    const BundleItemValue *value = bundle->lookup(name);
+    const BundleItemValue *value = bundle->lookup(UString(name));
     if (!value) {
       params.error_message_add(
           NodeWarningType::Error,

@@ -72,7 +72,7 @@ void spreadsheet_bundle_path_clear(SpreadsheetBundleTreeViewPath &bundle_path)
 }
 
 void spreadsheet_bundle_path_init_from(
-    const Span<StringRef> keys,
+    const Span<UString> keys,
     const std::optional<SpreadsheetClosureInputOutput> closure_input_output,
     SpreadsheetBundleTreeViewPath &r_bundle_path)
 {
@@ -80,7 +80,7 @@ void spreadsheet_bundle_path_init_from(
   r_bundle_path.bundle_path = MEM_new_array<SpreadsheetBundlePathElem>(keys.size(), __func__);
   r_bundle_path.bundle_path_num = keys.size();
   for (const int i : keys.index_range()) {
-    const StringRef key = keys[i];
+    const StringRef key = keys[i].ref();
     r_bundle_path.bundle_path[i].identifier = BLI_strdupn(key.data(), key.size());
   }
   r_bundle_path.closure_input_output = closure_input_output.value_or(SPREADSHEET_CLOSURE_NONE);

@@ -116,4 +116,22 @@ template<FixedString FStr> inline UString operator""_ustr()
   return ustr;
 }
 
+/**
+ * Support using the `fmt` library with #UString.
+ */
+inline std::string_view format_as(UString str)
+{
+  return str.string();
+}
+
 }  // namespace blender
+
+/**
+ * Disable conflicting range formatter in fmtlib. Otherwise we will get compile errors
+ * where fmtlib doesn't know if it should use the formatter from format.h or ranges.h.
+ */
+namespace fmt {
+
+template<> struct is_range<blender::UString, char> : std::false_type {};
+
+}  // namespace fmt

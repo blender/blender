@@ -36,6 +36,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
+#include "BLI_ustring.hh"
 
 #include "BKE_compute_context_cache_fwd.hh"
 #include "BKE_geometry_set.hh"
@@ -200,7 +201,7 @@ class GridInfoLog : public ValueLog {
 class BundleValueLog : public ValueLog {
  public:
   struct Item {
-    std::string key;
+    UString key;
     std::variant<const bke::bNodeSocketType *, StringRefNull> type;
   };
 
